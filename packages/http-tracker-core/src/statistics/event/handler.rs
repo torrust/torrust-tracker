@@ -1,4 +1,3 @@
-use std::net::IpAddr;
 use std::sync::Arc;
 
 use torrust_tracker_metrics::label::{LabelSet, LabelValue};
@@ -12,19 +11,6 @@ use crate::statistics::HTTP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL;
 pub async fn handle_event(event: Event, stats_repository: &Arc<Repository>, now: DurationSinceUnixEpoch) {
     match event {
         Event::TcpAnnounce { connection, .. } => {
-            // Global fixed metrics
-
-            match connection.client_ip_addr() {
-                IpAddr::V4(_) => {
-                    stats_repository.increase_tcp4_announces().await;
-                }
-                IpAddr::V6(_) => {
-                    stats_repository.increase_tcp6_announces().await;
-                }
-            }
-
-            // Extendable metrics
-
             let mut label_set = LabelSet::from(connection);
             label_set.upsert(label_name!("request_kind"), LabelValue::new("announce"));
 
@@ -42,19 +28,6 @@ pub async fn handle_event(event: Event, stats_repository: &Arc<Repository>, now:
             };
         }
         Event::TcpScrape { connection } => {
-            // Global fixed metrics
-
-            match connection.client_ip_addr() {
-                IpAddr::V4(_) => {
-                    stats_repository.increase_tcp4_scrapes().await;
-                }
-                IpAddr::V6(_) => {
-                    stats_repository.increase_tcp6_scrapes().await;
-                }
-            }
-
-            // Extendable metrics
-
             let mut label_set = LabelSet::from(connection);
             label_set.upsert(label_name!("request_kind"), LabelValue::new("scrape"));
 
@@ -113,7 +86,7 @@ mod tests {
 
         let stats = stats_repository.get_stats().await;
 
-        assert_eq!(stats.tcp4_announces_handled, 1);
+        assert_eq!(stats.tcp4_announces_handled(), 1);
     }
 
     #[tokio::test]
@@ -137,7 +110,7 @@ mod tests {
 
         let stats = stats_repository.get_stats().await;
 
-        assert_eq!(stats.tcp4_scrapes_handled, 1);
+        assert_eq!(stats.tcp4_scrapes_handled(), 1);
     }
 
     #[tokio::test]
@@ -162,7 +135,7 @@ mod tests {
 
         let stats = stats_repository.get_stats().await;
 
-        assert_eq!(stats.tcp6_announces_handled, 1);
+        assert_eq!(stats.tcp6_announces_handled(), 1);
     }
 
     #[tokio::test]
@@ -188,6 +161,6 @@ mod tests {
 
         let stats = stats_repository.get_stats().await;
 
-        assert_eq!(stats.tcp6_scrapes_handled, 1);
+        assert_eq!(stats.tcp6_scrapes_handled(), 1);
     }
 }

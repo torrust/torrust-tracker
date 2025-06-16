@@ -704,7 +704,7 @@ mod for_all_config_modes {
 
             let stats = env.container.http_tracker_core_container.stats_repository.get_stats().await;
 
-            assert_eq!(stats.tcp4_announces_handled, 1);
+            assert_eq!(stats.tcp4_announces_handled(), 1);
 
             drop(stats);
 
@@ -730,7 +730,7 @@ mod for_all_config_modes {
 
             let stats = env.container.http_tracker_core_container.stats_repository.get_stats().await;
 
-            assert_eq!(stats.tcp6_announces_handled, 1);
+            assert_eq!(stats.tcp6_announces_handled(), 1);
 
             drop(stats);
 
@@ -755,7 +755,7 @@ mod for_all_config_modes {
 
             let stats = env.container.http_tracker_core_container.stats_repository.get_stats().await;
 
-            assert_eq!(stats.tcp6_announces_handled, 0);
+            assert_eq!(stats.tcp6_announces_handled(), 0);
 
             drop(stats);
 
@@ -1149,7 +1149,7 @@ mod for_all_config_modes {
 
             let stats = env.container.http_tracker_core_container.stats_repository.get_stats().await;
 
-            assert_eq!(stats.tcp4_scrapes_handled, 1);
+            assert_eq!(stats.tcp4_scrapes_handled(), 1);
 
             drop(stats);
 
@@ -1181,7 +1181,7 @@ mod for_all_config_modes {
 
             let stats = env.container.http_tracker_core_container.stats_repository.get_stats().await;
 
-            assert_eq!(stats.tcp6_scrapes_handled, 1);
+            assert_eq!(stats.tcp6_scrapes_handled(), 1);
 
             drop(stats);
 

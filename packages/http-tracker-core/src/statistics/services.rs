@@ -53,13 +53,6 @@ pub async fn get_metrics(
     TrackerMetrics {
         torrents_metrics,
         protocol_metrics: Metrics {
-            // TCPv4
-            tcp4_announces_handled: stats.tcp4_announces_handled,
-            tcp4_scrapes_handled: stats.tcp4_scrapes_handled,
-            // TCPv6
-            tcp6_announces_handled: stats.tcp6_announces_handled,
-            tcp6_scrapes_handled: stats.tcp6_scrapes_handled,
-            // Samples
             metric_collection: stats.metric_collection.clone(),
         },
     }

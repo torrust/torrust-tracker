@@ -101,13 +101,13 @@ async fn get_protocol_metrics(
 
     ProtocolMetrics {
         // TCPv4
-        tcp4_connections_handled: http_stats.tcp4_announces_handled + http_stats.tcp4_scrapes_handled,
-        tcp4_announces_handled: http_stats.tcp4_announces_handled,
-        tcp4_scrapes_handled: http_stats.tcp4_scrapes_handled,
+        tcp4_connections_handled: http_stats.tcp4_announces_handled() + http_stats.tcp4_scrapes_handled(),
+        tcp4_announces_handled: http_stats.tcp4_announces_handled(),
+        tcp4_scrapes_handled: http_stats.tcp4_scrapes_handled(),
         // TCPv6
-        tcp6_connections_handled: http_stats.tcp6_announces_handled + http_stats.tcp6_scrapes_handled,
-        tcp6_announces_handled: http_stats.tcp6_announces_handled,
-        tcp6_scrapes_handled: http_stats.tcp6_scrapes_handled,
+        tcp6_connections_handled: http_stats.tcp6_announces_handled() + http_stats.tcp6_scrapes_handled(),
+        tcp6_announces_handled: http_stats.tcp6_announces_handled(),
+        tcp6_scrapes_handled: http_stats.tcp6_scrapes_handled(),
         // UDP
         udp_requests_aborted: udp_server_stats.udp_requests_aborted,
         udp_requests_banned: udp_server_stats.udp_requests_banned,
