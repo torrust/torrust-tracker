@@ -4668,7 +4668,6 @@ dependencies = [
  "torrust-tracker-swarm-coordination-registry",
  "torrust-tracker-test-helpers",
  "torrust-udp-tracker-server",
- "tracing",
 ]
 
 [[package]]
