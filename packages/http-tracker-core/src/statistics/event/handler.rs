@@ -123,7 +123,7 @@ mod tests {
             Event::TcpAnnounce {
                 connection: ConnectionContext::new(
                     RemoteClientAddr::new(ResolvedIp::FromSocketAddr(remote_client_ip), Some(8080)),
-                    ServiceBinding::new(Protocol::HTTP, SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070)).unwrap(),
+                    ServiceBinding::new(Protocol::HTTP, SocketAddr::new(IpAddr::V6(Ipv6Addr::LOCALHOST), 7070)).unwrap(),
                 ),
                 info_hash: sample_info_hash(),
                 announcement: peer,
@@ -151,7 +151,7 @@ mod tests {
                         ))),
                         Some(8080),
                     ),
-                    ServiceBinding::new(Protocol::HTTP, SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070)).unwrap(),
+                    ServiceBinding::new(Protocol::HTTP, SocketAddr::new(IpAddr::V6(Ipv6Addr::LOCALHOST), 7070)).unwrap(),
                 ),
             },
             &stats_repository,
