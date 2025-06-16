@@ -69,15 +69,6 @@ pub async fn get_metrics(
     TrackerMetrics {
         torrents_metrics,
         protocol_metrics: Metrics {
-            // UDPv4
-            udp4_connections_handled: stats.udp4_connections_handled,
-            udp4_announces_handled: stats.udp4_announces_handled,
-            udp4_scrapes_handled: stats.udp4_scrapes_handled,
-            // UDPv6
-            udp6_connections_handled: stats.udp6_connections_handled,
-            udp6_announces_handled: stats.udp6_announces_handled,
-            udp6_scrapes_handled: stats.udp6_scrapes_handled,
-            // Extendable metrics
             metric_collection: stats.metric_collection.clone(),
         },
     }

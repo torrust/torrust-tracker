@@ -33,42 +33,6 @@ impl Repository {
         self.stats.read().await
     }
 
-    pub async fn increase_udp4_connections(&self) {
-        let mut stats_lock = self.stats.write().await;
-        stats_lock.udp4_connections_handled += 1;
-        drop(stats_lock);
-    }
-
-    pub async fn increase_udp4_announces(&self) {
-        let mut stats_lock = self.stats.write().await;
-        stats_lock.udp4_announces_handled += 1;
-        drop(stats_lock);
-    }
-
-    pub async fn increase_udp4_scrapes(&self) {
-        let mut stats_lock = self.stats.write().await;
-        stats_lock.udp4_scrapes_handled += 1;
-        drop(stats_lock);
-    }
-
-    pub async fn increase_udp6_connections(&self) {
-        let mut stats_lock = self.stats.write().await;
-        stats_lock.udp6_connections_handled += 1;
-        drop(stats_lock);
-    }
-
-    pub async fn increase_udp6_announces(&self) {
-        let mut stats_lock = self.stats.write().await;
-        stats_lock.udp6_announces_handled += 1;
-        drop(stats_lock);
-    }
-
-    pub async fn increase_udp6_scrapes(&self) {
-        let mut stats_lock = self.stats.write().await;
-        stats_lock.udp6_scrapes_handled += 1;
-        drop(stats_lock);
-    }
-
     /// # Errors
     ///
     /// This function will return an error if the metric collection fails to
