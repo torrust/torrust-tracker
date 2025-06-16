@@ -1,7 +1,6 @@
 pub mod event;
 pub mod metrics;
 pub mod repository;
-pub mod services;
 
 use metrics::Metrics;
 use torrust_tracker_metrics::metric::description::MetricDescription;
