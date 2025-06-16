@@ -1,37 +1,15 @@
 use serde::Serialize;
 use torrust_tracker_metrics::label::LabelSet;
 use torrust_tracker_metrics::metric::MetricName;
+use torrust_tracker_metrics::metric_collection::aggregate::Sum;
 use torrust_tracker_metrics::metric_collection::{Error, MetricCollection};
+use torrust_tracker_metrics::metric_name;
 use torrust_tracker_primitives::DurationSinceUnixEpoch;
 
-/// Metrics collected by the tracker.
-///
-/// - Number of connections handled
-/// - Number of `announce` requests handled
-/// - Number of `scrape` request handled
-///
-/// These metrics are collected for each connection type: UDP and HTTP
-/// and also for each IP version used by the peers: IPv4 and IPv6.
+use crate::statistics::UDP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL;
+
 #[derive(Debug, PartialEq, Default, Serialize)]
 pub struct Metrics {
-    /// Total number of UDP (UDP tracker) connections from IPv4 peers.
-    pub udp4_connections_handled: u64,
-
-    /// Total number of UDP (UDP tracker) `announce` requests from IPv4 peers.
-    pub udp4_announces_handled: u64,
-
-    /// Total number of UDP (UDP tracker) `scrape` requests from IPv4 peers.
-    pub udp4_scrapes_handled: u64,
-
-    /// Total number of UDP (UDP tracker) `connection` requests from IPv6 peers.
-    pub udp6_connections_handled: u64,
-
-    /// Total number of UDP (UDP tracker) `announce` requests from IPv6 peers.
-    pub udp6_announces_handled: u64,
-
-    /// Total number of UDP (UDP tracker) `scrape` requests from IPv6 peers.
-    pub udp6_scrapes_handled: u64,
-
     /// A collection of metrics.
     pub metric_collection: MetricCollection,
 }
@@ -62,5 +40,91 @@ impl Metrics {
         now: DurationSinceUnixEpoch,
     ) -> Result<(), Error> {
         self.metric_collection.set_gauge(metric_name, labels, value, now)
+    }
+}
+
+impl Metrics {
+    /// Total number of UDP (UDP tracker) connections from IPv4 peers.
+    #[must_use]
+    #[allow(clippy::cast_sign_loss)]
+    #[allow(clippy::cast_possible_truncation)]
+    pub fn udp4_connections_handled(&self) -> u64 {
+        self.metric_collection
+            .sum(
+                &metric_name!(UDP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL),
+                &[("server_binding_address_ip_family", "inet"), ("request_kind", "connect")].into(),
+            )
+            .unwrap_or_default()
+            .value() as u64
+    }
+
+    /// Total number of UDP (UDP tracker) `announce` requests from IPv4 peers.
+    #[must_use]
+    #[allow(clippy::cast_sign_loss)]
+    #[allow(clippy::cast_possible_truncation)]
+    pub fn udp4_announces_handled(&self) -> u64 {
+        self.metric_collection
+            .sum(
+                &metric_name!(UDP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL),
+                &[("server_binding_address_ip_family", "inet"), ("request_kind", "announce")].into(),
+            )
+            .unwrap_or_default()
+            .value() as u64
+    }
+
+    /// Total number of UDP (UDP tracker) `scrape` requests from IPv4 peers.
+    #[must_use]
+    #[allow(clippy::cast_sign_loss)]
+    #[allow(clippy::cast_possible_truncation)]
+    pub fn udp4_scrapes_handled(&self) -> u64 {
+        self.metric_collection
+            .sum(
+                &metric_name!(UDP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL),
+                &[("server_binding_address_ip_family", "inet"), ("request_kind", "scrape")].into(),
+            )
+            .unwrap_or_default()
+            .value() as u64
+    }
+
+    /// Total number of UDP (UDP tracker) `connection` requests from IPv6 peers.
+    #[must_use]
+    #[allow(clippy::cast_sign_loss)]
+    #[allow(clippy::cast_possible_truncation)]
+    pub fn udp6_connections_handled(&self) -> u64 {
+        self.metric_collection
+            .sum(
+                &metric_name!(UDP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL),
+                &[("server_binding_address_ip_family", "inet6"), ("request_kind", "connect")].into(),
+            )
+            .unwrap_or_default()
+            .value() as u64
+    }
+
+    /// Total number of UDP (UDP tracker) `announce` requests from IPv6 peers.
+    #[must_use]
+    #[allow(clippy::cast_sign_loss)]
+    #[allow(clippy::cast_possible_truncation)]
+    pub fn udp6_announces_handled(&self) -> u64 {
+        self.metric_collection
+            .sum(
+                &metric_name!(UDP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL),
+                &[("server_binding_address_ip_family", "inet6"), ("request_kind", "announce")].into(),
+            )
+            .unwrap_or_default()
+            .value() as u64
+    }
+
+    /// Total number of UDP (UDP tracker) `scrape` requests from IPv6 peers.
+    #[must_use]
+    #[allow(clippy::cast_sign_loss)]
+    #[allow(clippy::cast_possible_truncation)]
+    pub fn udp6_scrapes_handled(&self) -> u64 {
+        self.metric_collection
+            .sum(
+                &metric_name!(UDP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL),
+                &[("server_binding_address_ip_family", "inet6"), ("request_kind", "scrape")].into(),
+            )
+            .unwrap_or_default()
+            .value() as u64
     }
 }
