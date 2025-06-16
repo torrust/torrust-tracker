@@ -37,7 +37,7 @@ impl Default for HttpTracker {
 
 impl HttpTracker {
     fn default_bind_address() -> SocketAddr {
-        SocketAddr::new(IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)), 7070)
+        SocketAddr::new(IpAddr::V4(Ipv4Addr::UNSPECIFIED), 7070)
     }
 
     fn default_tsl_config() -> Option<TslConfig> {

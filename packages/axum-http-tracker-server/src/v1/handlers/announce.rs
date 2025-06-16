@@ -234,7 +234,7 @@ mod tests {
         async fn it_should_fail_when_the_authentication_key_is_missing() {
             let http_core_tracker_services = initialize_private_tracker();
 
-            let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070);
+            let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070);
             let server_service_binding = ServiceBinding::new(Protocol::HTTP, server_socket_addr).unwrap();
 
             let maybe_key = None;
@@ -265,7 +265,7 @@ mod tests {
 
             let unregistered_key = authentication::Key::from_str("YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ").unwrap();
 
-            let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070);
+            let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070);
             let server_service_binding = ServiceBinding::new(Protocol::HTTP, server_socket_addr).unwrap();
 
             let maybe_key = Some(unregistered_key);
@@ -308,7 +308,7 @@ mod tests {
 
             let announce_request = sample_announce_request();
 
-            let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070);
+            let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070);
             let server_service_binding = ServiceBinding::new(Protocol::HTTP, server_socket_addr).unwrap();
 
             let response = handle_announce(
@@ -356,7 +356,7 @@ mod tests {
                 connection_info_socket_address: None,
             };
 
-            let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070);
+            let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070);
             let server_service_binding = ServiceBinding::new(Protocol::HTTP, server_socket_addr).unwrap();
 
             let response = handle_announce(
@@ -401,7 +401,7 @@ mod tests {
                 connection_info_socket_address: None,
             };
 
-            let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070);
+            let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070);
             let server_service_binding = ServiceBinding::new(Protocol::HTTP, server_socket_addr).unwrap();
 
             let response = handle_announce(

@@ -194,7 +194,7 @@ impl Ord for Peer {
 
 impl PartialOrd for Peer {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        Some(self.peer_id.cmp(&other.peer_id))
+        Some(self.cmp(other))
     }
 }
 
@@ -517,7 +517,7 @@ pub mod fixture {
         pub fn seeder() -> Self {
             let peer = Peer {
                 peer_id: PeerId(*b"-qB00000000000000001"),
-                peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8080),
+                peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 8080),
                 updated: DurationSinceUnixEpoch::new(1_669_397_478_934, 0),
                 uploaded: NumberOfBytes::new(0),
                 downloaded: NumberOfBytes::new(0),
@@ -621,7 +621,7 @@ pub mod fixture {
         fn default() -> Self {
             Self {
                 peer_id: PeerId(*b"-qB00000000000000000"),
-                peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8080),
+                peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 8080),
                 updated: DurationSinceUnixEpoch::new(1_669_397_478_934, 0),
                 uploaded: NumberOfBytes::new(0),
                 downloaded: NumberOfBytes::new(0),

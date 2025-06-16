@@ -33,7 +33,7 @@ impl Default for UdpTracker {
 
 impl UdpTracker {
     fn default_bind_address() -> SocketAddr {
-        SocketAddr::new(IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)), 6969)
+        SocketAddr::new(IpAddr::V4(Ipv4Addr::UNSPECIFIED), 6969)
     }
 
     fn default_cookie_lifetime() -> Duration {

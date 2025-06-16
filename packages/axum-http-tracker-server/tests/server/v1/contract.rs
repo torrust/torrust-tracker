@@ -748,7 +748,7 @@ mod for_all_config_modes {
             Client::new(*env.bind_address())
                 .announce(
                     &QueryBuilder::default()
-                        .with_peer_addr(&IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0, 1)))
+                        .with_peer_addr(&IpAddr::V6(Ipv6Addr::LOCALHOST))
                         .query(),
                 )
                 .await;

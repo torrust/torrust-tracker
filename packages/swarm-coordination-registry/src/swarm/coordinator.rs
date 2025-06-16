@@ -438,7 +438,7 @@ mod tests {
 
         let peer1 = PeerBuilder::default()
             .with_peer_id(&PeerId(*b"-qB00000000000000001"))
-            .with_peer_addr(&SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 6969))
+            .with_peer_addr(&SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 6969))
             .build();
         swarm.upsert_peer(peer1.into()).await;
 
@@ -605,7 +605,7 @@ mod tests {
         let mut swarm = Coordinator::new(&sample_info_hash(), 0, None);
 
         let peer1 = PeerBuilder::default()
-            .with_peer_addr(&SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 6969))
+            .with_peer_addr(&SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 6969))
             .build();
         swarm.upsert_peer(peer1.into()).await;
 
@@ -626,13 +626,13 @@ mod tests {
 
         let peer1 = PeerBuilder::default()
             .with_peer_id(&PeerId(*b"-qB00000000000000001"))
-            .with_peer_addr(&SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 6969))
+            .with_peer_addr(&SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 6969))
             .build();
         swarm.upsert_peer(peer1.into()).await;
 
         let peer2 = PeerBuilder::default()
             .with_peer_id(&PeerId(*b"-qB00000000000000002"))
-            .with_peer_addr(&SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 6969))
+            .with_peer_addr(&SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 6969))
             .build();
         swarm.upsert_peer(peer2.into()).await;
 

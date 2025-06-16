@@ -304,7 +304,7 @@ mod tests {
                 connection_info_socket_address: Some(SocketAddr::new(original_peer_ip, 8080)),
             };
 
-            let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070);
+            let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070);
             let server_service_binding = ServiceBinding::new(Protocol::HTTP, server_socket_addr).unwrap();
 
             let scrape_service = Arc::new(ScrapeService::new(
@@ -345,8 +345,7 @@ mod tests {
                             ResolvedIp::FromSocketAddr(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1))),
                             Some(8080),
                         ),
-                        ServiceBinding::new(Protocol::HTTP, SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070))
-                            .unwrap(),
+                        ServiceBinding::new(Protocol::HTTP, SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070)).unwrap(),
                     ),
                 }))
                 .times(1)
@@ -366,7 +365,7 @@ mod tests {
                 connection_info_socket_address: Some(SocketAddr::new(peer_ip, 8080)),
             };
 
-            let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070);
+            let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070);
             let server_service_binding = ServiceBinding::new(Protocol::HTTP, server_socket_addr).unwrap();
 
             let scrape_service = Arc::new(ScrapeService::new(
@@ -384,7 +383,7 @@ mod tests {
 
         #[tokio::test]
         async fn it_should_send_the_tcp_6_scrape_event_when_the_peer_uses_ipv6() {
-            let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070);
+            let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070);
             let server_service_binding = ServiceBinding::new(Protocol::HTTP, server_socket_addr).unwrap();
 
             let config = configuration::ephemeral();
@@ -420,7 +419,7 @@ mod tests {
                 connection_info_socket_address: Some(SocketAddr::new(peer_ip, 8080)),
             };
 
-            let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070);
+            let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070);
             let server_service_binding = ServiceBinding::new(Protocol::HTTP, server_socket_addr).unwrap();
 
             let scrape_service = Arc::new(ScrapeService::new(
@@ -495,7 +494,7 @@ mod tests {
                 connection_info_socket_address: Some(SocketAddr::new(original_peer_ip, 8080)),
             };
 
-            let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070);
+            let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070);
             let server_service_binding = ServiceBinding::new(Protocol::HTTP, server_socket_addr).unwrap();
 
             let scrape_service = Arc::new(ScrapeService::new(
@@ -530,8 +529,7 @@ mod tests {
                             ResolvedIp::FromSocketAddr(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1))),
                             Some(8080),
                         ),
-                        ServiceBinding::new(Protocol::HTTP, SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070))
-                            .unwrap(),
+                        ServiceBinding::new(Protocol::HTTP, SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070)).unwrap(),
                     ),
                 }))
                 .times(1)
@@ -549,7 +547,7 @@ mod tests {
                 connection_info_socket_address: Some(SocketAddr::new(peer_ip, 8080)),
             };
 
-            let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070);
+            let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070);
             let server_service_binding = ServiceBinding::new(Protocol::HTTP, server_socket_addr).unwrap();
 
             let scrape_service = Arc::new(ScrapeService::new(
@@ -567,7 +565,7 @@ mod tests {
 
         #[tokio::test]
         async fn it_should_send_the_tcp_6_scrape_event_when_the_peer_uses_ipv6() {
-            let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070);
+            let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070);
             let server_service_binding = ServiceBinding::new(Protocol::HTTP, server_socket_addr).unwrap();
 
             let config = configuration::ephemeral();
@@ -603,7 +601,7 @@ mod tests {
                 connection_info_socket_address: Some(SocketAddr::new(peer_ip, 8080)),
             };
 
-            let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7070);
+            let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070);
             let server_service_binding = ServiceBinding::new(Protocol::HTTP, server_socket_addr).unwrap();
 
             let scrape_service = Arc::new(ScrapeService::new(

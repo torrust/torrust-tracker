@@ -19,6 +19,24 @@
 - [x] Support [newTrackon][newtrackon] checks.
 - [x] Persistent `SQLite3` or `MySQL` Databases.
 
+## Tracker Demo
+
+Experience the **Torrust Tracker** in action with our comprehensive demo environment! The [Torrust Demo][torrust-demo] repository provides a complete setup showcasing the tracker's capabilities in a real-world scenario.
+
+The demo takes full advantage of the tracker's powerful metrics system and seamless integration with [Prometheus][prometheus]. This allows you to monitor tracker performance, peer statistics, and system health in real-time. You can build sophisticated Grafana dashboards to visualize all aspects of your tracker's operation.
+
+![Sample Grafana Dashboard](./docs/media/demo/torrust-tracker-grafana-dashboard.png)
+
+**Demo Features:**
+
+- Complete Docker Compose setup.
+- Pre-configured Prometheus metrics collection.
+- Sample Grafana dashboards for monitoring.
+- Real-time tracker statistics and performance metrics.
+- Easy deployment for testing and evaluation.
+
+Visit the [Torrust Demo repository][torrust-demo] to get started with your own tracker instance and explore the monitoring capabilities.
+
 ## Roadmap
 
 Core:
@@ -49,7 +67,7 @@ Utils:
 
 Others:
 
-- [ ] Support for Windows.
+- [ ] Intensive testing for Windows.
 - [ ] Docker images for other architectures.
 
 <https://github.com/orgs/torrust/projects/10/views/6>
@@ -274,3 +292,5 @@ This project was a joint effort by [Nautilus Cyberneering GmbH][nautilus] and [D
 [Naim A.]: https://github.com/naim94a/udpt
 [greatest-ape]: https://github.com/greatest-ape/aquatic
 [Power2All]: https://github.com/power2all
+[torrust-demo]: https://github.com/torrust/torrust-demo
+[prometheus]: https://prometheus.io/

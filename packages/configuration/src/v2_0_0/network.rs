@@ -32,7 +32,7 @@ impl Default for Network {
 impl Network {
     #[allow(clippy::unnecessary_wraps)]
     fn default_external_ip() -> Option<IpAddr> {
-        Some(IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)))
+        Some(IpAddr::V4(Ipv4Addr::UNSPECIFIED))
     }
 
     fn default_on_reverse_proxy() -> bool {

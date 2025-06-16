@@ -340,11 +340,11 @@ pub(crate) mod tests {
     }
 
     pub(crate) fn sample_ipv4_socket_address() -> SocketAddr {
-        SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8080)
+        SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 8080)
     }
 
     fn sample_ipv6_socket_address() -> SocketAddr {
-        SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0, 1)), 8080)
+        SocketAddr::new(IpAddr::V6(Ipv6Addr::LOCALHOST), 8080)
     }
 
     pub(crate) fn sample_issue_time() -> f64 {

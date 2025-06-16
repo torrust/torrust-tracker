@@ -195,7 +195,7 @@ mod tests {
 
             let peer1 = PeerBuilder::default()
                 .with_peer_id(&PeerId(*b"-qB00000000000000001"))
-                .with_peer_addr(&SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 6969))
+                .with_peer_addr(&SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 6969))
                 .build();
             peer_list.upsert(peer1.into());
 

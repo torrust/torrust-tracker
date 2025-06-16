@@ -491,7 +491,7 @@ pub(crate) mod tests {
                     let (core_tracker_services, core_udp_tracker_services, server_udp_tracker_services) =
                         initialize_core_tracker_services_for_public_tracker();
 
-                    let client_ip = Ipv4Addr::new(127, 0, 0, 1);
+                    let client_ip = Ipv4Addr::LOCALHOST;
                     let client_port = 8080;
                     let info_hash = AquaticInfoHash([0u8; 20]);
                     let peer_id = AquaticPeerId([255u8; 20]);
@@ -869,8 +869,8 @@ pub(crate) mod tests {
                 async fn the_peer_ip_should_be_changed_to_the_external_ip_in_the_tracker_configuration() {
                     let config = Arc::new(TrackerConfigurationBuilder::default().with_external_ip("::126.0.0.1").into());
 
-                    let loopback_ipv4 = Ipv4Addr::new(127, 0, 0, 1);
-                    let loopback_ipv6 = Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0, 1);
+                    let loopback_ipv4 = Ipv4Addr::LOCALHOST;
+                    let loopback_ipv6 = Ipv6Addr::LOCALHOST;
 
                     let client_ip_v4 = loopback_ipv4;
                     let client_ip_v6 = loopback_ipv6;

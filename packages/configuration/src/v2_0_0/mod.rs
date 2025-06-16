@@ -492,10 +492,7 @@ mod tests {
     fn configuration_should_contain_the_external_ip() {
         let configuration = Configuration::default();
 
-        assert_eq!(
-            configuration.core.net.external_ip,
-            Some(IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)))
-        );
+        assert_eq!(configuration.core.net.external_ip, Some(IpAddr::V4(Ipv4Addr::UNSPECIFIED)));
     }
 
     #[test]
