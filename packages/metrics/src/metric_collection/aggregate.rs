@@ -1,4 +1,3 @@
-use crate::aggregate::AggregateValue;
 use crate::counter::Counter;
 use crate::gauge::Gauge;
 use crate::label::LabelSet;
@@ -7,21 +6,17 @@ use crate::metric::MetricName;
 use crate::metric_collection::{MetricCollection, MetricKindCollection};
 
 pub trait Sum {
-    type Output;
-    fn sum(&self, metric_name: &MetricName, label_set_criteria: &LabelSet) -> Self::Output;
+    fn sum(&self, metric_name: &MetricName, label_set_criteria: &LabelSet) -> Option<f64>;
 }
 
 impl Sum for MetricCollection {
-    type Output = Option<AggregateValue>;
-
-    fn sum(&self, metric_name: &MetricName, label_set_criteria: &LabelSet) -> Self::Output {
+    fn sum(&self, metric_name: &MetricName, label_set_criteria: &LabelSet) -> Option<f64> {
         if let Some(value) = self.counters.sum(metric_name, label_set_criteria) {
-            #[allow(clippy::cast_precision_loss)]
-            return Some(AggregateValue::new(value as f64));
+            return Some(value);
         }
 
         if let Some(value) = self.gauges.sum(metric_name, label_set_criteria) {
-            return Some(AggregateValue::new(value));
+            return Some(value);
         }
 
         None
@@ -29,17 +24,16 @@ impl Sum for MetricCollection {
 }
 
 impl Sum for MetricKindCollection<Counter> {
-    type Output = Option<u64>;
-
-    fn sum(&self, metric_name: &MetricName, label_set_criteria: &LabelSet) -> Self::Output {
-        self.metrics.get(metric_name).map(|metric| metric.sum(label_set_criteria))
+    fn sum(&self, metric_name: &MetricName, label_set_criteria: &LabelSet) -> Option<f64> {
+        #[allow(clippy::cast_precision_loss)]
+        self.metrics
+            .get(metric_name)
+            .map(|metric| metric.sum(label_set_criteria) as f64)
     }
 }
 
 impl Sum for MetricKindCollection<Gauge> {
-    type Output = Option<f64>;
-
-    fn sum(&self, metric_name: &MetricName, label_set_criteria: &LabelSet) -> Self::Output {
+    fn sum(&self, metric_name: &MetricName, label_set_criteria: &LabelSet) -> Option<f64> {
         self.metrics.get(metric_name).map(|metric| metric.sum(label_set_criteria))
     }
 }
@@ -81,10 +75,10 @@ mod tests {
                 )
                 .unwrap();
 
-            assert_eq!(collection.sum(&metric_name, &LabelSet::empty()), Some(2.0.into()));
+            assert_eq!(collection.sum(&metric_name, &LabelSet::empty()), Some(2.0));
             assert_eq!(
                 collection.sum(&metric_name, &(label_name!("label_1"), LabelValue::new("value_1")).into()),
-                Some(1.0.into())
+                Some(1.0)
             );
         }
 
@@ -114,10 +108,10 @@ mod tests {
                 )
                 .unwrap();
 
-            assert_eq!(collection.sum(&metric_name, &LabelSet::empty()), Some(2.0.into()));
+            assert_eq!(collection.sum(&metric_name, &LabelSet::empty()), Some(2.0));
             assert_eq!(
                 collection.sum(&metric_name, &(label_name!("label_1"), LabelValue::new("value_1")).into()),
-                Some(1.0.into())
+                Some(1.0)
             );
         }
     }

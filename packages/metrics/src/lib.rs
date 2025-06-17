@@ -1,4 +1,3 @@
-pub mod aggregate;
 pub mod counter;
 pub mod gauge;
 pub mod label;
