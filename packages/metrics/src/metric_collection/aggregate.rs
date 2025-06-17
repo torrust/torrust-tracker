@@ -22,13 +22,20 @@ impl Sum for MetricCollection {
 
 impl Sum for MetricKindCollection<Counter> {
     fn sum(&self, metric_name: &MetricName, label_set_criteria: &LabelSet) -> Option<AggregateValue> {
-        self.metrics.get(metric_name).map(|metric| metric.sum(label_set_criteria))
+        self.metrics.get(metric_name).map(|metric| {
+            let sum: u64 = metric.sum(label_set_criteria);
+            #[allow(clippy::cast_precision_loss)]
+            AggregateValue::new(sum as f64)
+        })
     }
 }
 
 impl Sum for MetricKindCollection<Gauge> {
     fn sum(&self, metric_name: &MetricName, label_set_criteria: &LabelSet) -> Option<AggregateValue> {
-        self.metrics.get(metric_name).map(|metric| metric.sum(label_set_criteria))
+        self.metrics.get(metric_name).map(|metric| {
+            let sum: f64 = metric.sum(label_set_criteria);
+            AggregateValue::new(sum)
+        })
     }
 }
 
