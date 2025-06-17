@@ -89,6 +89,14 @@ impl Repository {
 
         drop(stats_lock);
 
+        tracing::debug!(
+            "Recalculated UDP average connect processing time: {} ns (previous: {} ns, req_processing_time: {} ns, udp_connections_handled: {})",
+            new_avg,
+            previous_avg,
+            req_processing_time,
+            udp_connections_handled
+        );
+
         new_avg
     }
 
@@ -109,6 +117,14 @@ impl Repository {
 
         drop(stats_lock);
 
+        tracing::debug!(
+            "Recalculated UDP average announce processing time: {} ns (previous: {} ns, req_processing_time: {} ns, udp_announces_handled: {})",
+            new_avg,
+            previous_avg,
+            req_processing_time,
+            udp_announces_handled
+        );
+
         new_avg
     }
 
@@ -127,6 +143,14 @@ impl Repository {
         let new_avg = previous_avg as f64 + (req_processing_time - previous_avg as f64) / udp_scrapes_handled;
 
         drop(stats_lock);
+
+        tracing::debug!(
+            "Recalculated UDP average scrape processing time: {} ns (previous: {} ns, req_processing_time: {} ns, udp_scrapes_handled: {})",
+            new_avg,
+            previous_avg,
+            req_processing_time,
+            udp_scrapes_handled
+        );
 
         new_avg
     }
