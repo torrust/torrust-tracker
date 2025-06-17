@@ -210,6 +210,7 @@ mod tests {
     use bittorrent_udp_tracker_core::services::banning::BanService;
     use bittorrent_udp_tracker_core::MAX_CONNECTION_ID_ERRORS_PER_IP;
     use tokio::sync::RwLock;
+    use tokio_util::sync::CancellationToken;
     use torrust_tracker_configuration::Configuration;
     use torrust_tracker_events::bus::SenderStatus;
     use torrust_tracker_swarm_coordination_registry::container::SwarmCoordinationRegistryContainer;
@@ -224,6 +225,8 @@ mod tests {
 
     #[tokio::test]
     async fn the_statistics_service_should_return_the_tracker_metrics() {
+        let cancellation_token = CancellationToken::new();
+
         let config = tracker_configuration();
         let core_config = Arc::new(config.core.clone());
 
@@ -244,7 +247,7 @@ mod tests {
         ));
 
         if config.core.tracker_usage_statistics {
-            let _unused = run_event_listener(http_stats_event_bus.receiver(), &http_stats_repository);
+            let _unused = run_event_listener(http_stats_event_bus.receiver(), cancellation_token, &http_stats_repository);
         }
 
         // UDP server stats

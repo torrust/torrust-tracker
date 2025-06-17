@@ -18,6 +18,7 @@ bittorrent-http-tracker-core = { version = "3.0.0-develop", path = "../http-trac
 bittorrent-tracker-core = { version = "3.0.0-develop", path = "../tracker-core" }
 bittorrent-udp-tracker-core = { version = "3.0.0-develop", path = "../udp-tracker-core" }
 tokio = { version = "1", features = ["macros", "net", "rt-multi-thread", "signal", "sync"] }
+tokio-util = "0.7.15"
 torrust-tracker-configuration = { version = "3.0.0-develop", path = "../configuration" }
 torrust-tracker-metrics = { version = "3.0.0-develop", path = "../metrics" }
 torrust-tracker-primitives = { version = "3.0.0-develop", path = "../primitives" }

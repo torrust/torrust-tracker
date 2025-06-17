@@ -7,6 +7,7 @@ use bittorrent_tracker_core::announce_handler::PeersWanted;
 use bittorrent_tracker_core::container::TrackerCoreContainer;
 use bittorrent_tracker_core::statistics::persisted::load_persisted_metrics;
 use tokio::task::yield_now;
+use tokio_util::sync::CancellationToken;
 use torrust_tracker_configuration::Core;
 use torrust_tracker_metrics::label::LabelSet;
 use torrust_tracker_metrics::metric::MetricName;
@@ -66,15 +67,19 @@ impl TestEnv {
 
     async fn run_jobs(&self) {
         let mut jobs = vec![];
+        let cancellation_token = CancellationToken::new();
 
         let job = torrust_tracker_swarm_coordination_registry::statistics::event::listener::run_event_listener(
             self.swarm_coordination_registry_container.event_bus.receiver(),
+            cancellation_token.clone(),
             &self.swarm_coordination_registry_container.stats_repository,
         );
+
         jobs.push(job);
 
         let job = bittorrent_tracker_core::statistics::event::listener::run_event_listener(
             self.swarm_coordination_registry_container.event_bus.receiver(),
+            cancellation_token.clone(),
             &self.tracker_core_container.stats_repository,
             &self.tracker_core_container.db_downloads_metric_repository,
             self.tracker_core_container

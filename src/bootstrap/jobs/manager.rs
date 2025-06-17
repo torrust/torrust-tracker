@@ -2,13 +2,14 @@ use std::time::Duration;
 
 use tokio::task::JoinHandle;
 use tokio::time::timeout;
+use tokio_util::sync::CancellationToken;
 use tracing::{info, warn};
 
 /// Represents a named background job.
 #[derive(Debug)]
 pub struct Job {
-    pub name: String,
-    pub handle: JoinHandle<()>,
+    name: String,
+    handle: JoinHandle<()>,
 }
 
 impl Job {
@@ -24,12 +25,16 @@ impl Job {
 #[derive(Debug, Default)]
 pub struct JobManager {
     jobs: Vec<Job>,
+    cancellation_token: CancellationToken,
 }
 
 impl JobManager {
     #[must_use]
     pub fn new() -> Self {
-        Self { jobs: Vec::new() }
+        Self {
+            jobs: Vec::new(),
+            cancellation_token: CancellationToken::new(),
+        }
     }
 
     pub fn push<N: Into<String>>(&mut self, name: N, handle: JoinHandle<()>) {
@@ -40,6 +45,25 @@ impl JobManager {
         if let Some(handle) = handle {
             self.push(name, handle);
         }
+    }
+
+    #[must_use]
+    pub fn new_cancellation_token(&self) -> CancellationToken {
+        self.cancellation_token.clone()
+    }
+
+    /// Cancels all jobs using the shared cancellation token.
+    ///
+    /// Notice that this does not cancel the jobs immediately, but rather
+    /// signals them to stop. The jobs themselves must handle the cancellation
+    /// token appropriately.
+    ///
+    /// Notice jobs might be pushed into the manager without a cancellation
+    /// token, so this method will not cancel those jobs. Some tasks might
+    /// decide to listen for CTRL+c signal directly, or implement their own
+    /// cancellation logic.
+    pub fn cancel(&self) {
+        self.cancellation_token.cancel();
     }
 
     /// Waits sequentially for all jobs to complete, with a graceful timeout per

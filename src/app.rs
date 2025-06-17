@@ -140,28 +140,28 @@ fn start_swarm_coordination_registry_event_listener(
 ) {
     job_manager.push_opt(
         "swarm_coordination_registry_event_listener",
-        jobs::torrent_repository::start_event_listener(config, app_container),
+        jobs::torrent_repository::start_event_listener(config, app_container, job_manager.new_cancellation_token()),
     );
 }
 
 fn start_tracker_core_event_listener(config: &Configuration, app_container: &Arc<AppContainer>, job_manager: &mut JobManager) {
     job_manager.push_opt(
         "tracker_core_event_listener",
-        jobs::tracker_core::start_event_listener(config, app_container),
+        jobs::tracker_core::start_event_listener(config, app_container, job_manager.new_cancellation_token()),
     );
 }
 
 fn start_http_core_event_listener(config: &Configuration, app_container: &Arc<AppContainer>, job_manager: &mut JobManager) {
     job_manager.push_opt(
         "http_core_event_listener",
-        jobs::http_tracker_core::start_event_listener(config, app_container),
+        jobs::http_tracker_core::start_event_listener(config, app_container, job_manager.new_cancellation_token()),
     );
 }
 
 fn start_udp_core_event_listener(config: &Configuration, app_container: &Arc<AppContainer>, job_manager: &mut JobManager) {
     job_manager.push_opt(
         "udp_core_event_listener",
-        jobs::udp_tracker_core::start_event_listener(config, app_container),
+        jobs::udp_tracker_core::start_event_listener(config, app_container, job_manager.new_cancellation_token()),
     );
 }
 
@@ -172,14 +172,14 @@ fn start_udp_server_stats_event_listener(
 ) {
     job_manager.push_opt(
         "udp_server_stats_event_listener",
-        jobs::udp_tracker_server::start_stats_event_listener(config, app_container),
+        jobs::udp_tracker_server::start_stats_event_listener(config, app_container, job_manager.new_cancellation_token()),
     );
 }
 
 fn start_udp_server_banning_event_listener(app_container: &Arc<AppContainer>, job_manager: &mut JobManager) {
     job_manager.push(
         "udp_server_banning_event_listener",
-        jobs::udp_tracker_server::start_banning_event_listener(app_container),
+        jobs::udp_tracker_server::start_banning_event_listener(app_container, job_manager.new_cancellation_token()),
     );
 }
 

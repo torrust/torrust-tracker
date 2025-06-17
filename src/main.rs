@@ -10,6 +10,8 @@ async fn main() {
         _ = tokio::signal::ctrl_c() => {
             tracing::info!("Torrust tracker shutting down ...");
 
+            jobs.cancel();
+
             jobs.wait_for_all(Duration::from_secs(10)).await;
 
             tracing::info!("Torrust tracker successfully shutdown.");
