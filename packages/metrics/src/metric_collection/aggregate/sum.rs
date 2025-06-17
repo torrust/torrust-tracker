@@ -1,4 +1,3 @@
-use crate::aggregate::AggregateValue;
 use crate::counter::Counter;
 use crate::gauge::Gauge;
 use crate::label::LabelSet;
@@ -7,27 +6,34 @@ use crate::metric::MetricName;
 use crate::metric_collection::{MetricCollection, MetricKindCollection};
 
 pub trait Sum {
-    fn sum(&self, metric_name: &MetricName, label_set_criteria: &LabelSet) -> Option<AggregateValue>;
+    fn sum(&self, metric_name: &MetricName, label_set_criteria: &LabelSet) -> Option<f64>;
 }
 
 impl Sum for MetricCollection {
-    fn sum(&self, metric_name: &MetricName, label_set_criteria: &LabelSet) -> Option<AggregateValue> {
+    fn sum(&self, metric_name: &MetricName, label_set_criteria: &LabelSet) -> Option<f64> {
         if let Some(value) = self.counters.sum(metric_name, label_set_criteria) {
             return Some(value);
         }
 
-        self.gauges.sum(metric_name, label_set_criteria)
+        if let Some(value) = self.gauges.sum(metric_name, label_set_criteria) {
+            return Some(value);
+        }
+
+        None
     }
 }
 
 impl Sum for MetricKindCollection<Counter> {
-    fn sum(&self, metric_name: &MetricName, label_set_criteria: &LabelSet) -> Option<AggregateValue> {
-        self.metrics.get(metric_name).map(|metric| metric.sum(label_set_criteria))
+    fn sum(&self, metric_name: &MetricName, label_set_criteria: &LabelSet) -> Option<f64> {
+        #[allow(clippy::cast_precision_loss)]
+        self.metrics
+            .get(metric_name)
+            .map(|metric| metric.sum(label_set_criteria) as f64)
     }
 }
 
 impl Sum for MetricKindCollection<Gauge> {
-    fn sum(&self, metric_name: &MetricName, label_set_criteria: &LabelSet) -> Option<AggregateValue> {
+    fn sum(&self, metric_name: &MetricName, label_set_criteria: &LabelSet) -> Option<f64> {
         self.metrics.get(metric_name).map(|metric| metric.sum(label_set_criteria))
     }
 }
@@ -41,7 +47,7 @@ mod tests {
 
         use crate::label::LabelValue;
         use crate::label_name;
-        use crate::metric_collection::aggregate::Sum;
+        use crate::metric_collection::aggregate::sum::Sum;
 
         #[test]
         fn type_counter_with_two_samples() {
@@ -69,10 +75,10 @@ mod tests {
                 )
                 .unwrap();
 
-            assert_eq!(collection.sum(&metric_name, &LabelSet::empty()), Some(2.0.into()));
+            assert_eq!(collection.sum(&metric_name, &LabelSet::empty()), Some(2.0));
             assert_eq!(
                 collection.sum(&metric_name, &(label_name!("label_1"), LabelValue::new("value_1")).into()),
-                Some(1.0.into())
+                Some(1.0)
             );
         }
 
@@ -102,10 +108,10 @@ mod tests {
                 )
                 .unwrap();
 
-            assert_eq!(collection.sum(&metric_name, &LabelSet::empty()), Some(2.0.into()));
+            assert_eq!(collection.sum(&metric_name, &LabelSet::empty()), Some(2.0));
             assert_eq!(
                 collection.sum(&metric_name, &(label_name!("label_1"), LabelValue::new("value_1")).into()),
-                Some(1.0.into())
+                Some(1.0)
             );
         }
     }

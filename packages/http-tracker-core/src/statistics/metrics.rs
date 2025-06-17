@@ -1,7 +1,7 @@
 use serde::Serialize;
 use torrust_tracker_metrics::label::LabelSet;
 use torrust_tracker_metrics::metric::MetricName;
-use torrust_tracker_metrics::metric_collection::aggregate::Sum;
+use torrust_tracker_metrics::metric_collection::aggregate::sum::Sum;
 use torrust_tracker_metrics::metric_collection::{Error, MetricCollection};
 use torrust_tracker_metrics::metric_name;
 use torrust_tracker_primitives::DurationSinceUnixEpoch;
@@ -53,8 +53,7 @@ impl Metrics {
                 &metric_name!(HTTP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL),
                 &[("server_binding_address_ip_family", "inet"), ("request_kind", "announce")].into(),
             )
-            .unwrap_or_default()
-            .value() as u64
+            .unwrap_or_default() as u64
     }
 
     /// Total number of TCP (HTTP tracker) `scrape` requests from IPv4 peers.
@@ -67,8 +66,7 @@ impl Metrics {
                 &metric_name!(HTTP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL),
                 &[("server_binding_address_ip_family", "inet"), ("request_kind", "scrape")].into(),
             )
-            .unwrap_or_default()
-            .value() as u64
+            .unwrap_or_default() as u64
     }
 
     /// Total number of TCP (HTTP tracker) `announce` requests from IPv6 peers.
@@ -81,8 +79,7 @@ impl Metrics {
                 &metric_name!(HTTP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL),
                 &[("server_binding_address_ip_family", "inet6"), ("request_kind", "announce")].into(),
             )
-            .unwrap_or_default()
-            .value() as u64
+            .unwrap_or_default() as u64
     }
 
     /// Total number of TCP (HTTP tracker) `scrape` requests from IPv6 peers.
@@ -95,7 +92,6 @@ impl Metrics {
                 &metric_name!(HTTP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL),
                 &[("server_binding_address_ip_family", "inet6"), ("request_kind", "scrape")].into(),
             )
-            .unwrap_or_default()
-            .value() as u64
+            .unwrap_or_default() as u64
     }
 }

@@ -1,7 +1,7 @@
 use serde::Serialize;
 use torrust_tracker_metrics::label::LabelSet;
 use torrust_tracker_metrics::metric::MetricName;
-use torrust_tracker_metrics::metric_collection::aggregate::Sum;
+use torrust_tracker_metrics::metric_collection::aggregate::sum::Sum;
 use torrust_tracker_metrics::metric_collection::{Error, MetricCollection};
 use torrust_tracker_metrics::metric_name;
 use torrust_tracker_primitives::DurationSinceUnixEpoch;
@@ -56,8 +56,7 @@ impl Metrics {
     pub fn udp_requests_aborted(&self) -> u64 {
         self.metric_collection
             .sum(&metric_name!(UDP_TRACKER_SERVER_REQUESTS_ABORTED_TOTAL), &LabelSet::empty())
-            .unwrap_or_default()
-            .value() as u64
+            .unwrap_or_default() as u64
     }
 
     /// Total number of UDP (UDP tracker) requests banned.
@@ -67,8 +66,7 @@ impl Metrics {
     pub fn udp_requests_banned(&self) -> u64 {
         self.metric_collection
             .sum(&metric_name!(UDP_TRACKER_SERVER_REQUESTS_BANNED_TOTAL), &LabelSet::empty())
-            .unwrap_or_default()
-            .value() as u64
+            .unwrap_or_default() as u64
     }
 
     /// Total number of banned IPs.
@@ -78,8 +76,7 @@ impl Metrics {
     pub fn udp_banned_ips_total(&self) -> u64 {
         self.metric_collection
             .sum(&metric_name!(UDP_TRACKER_SERVER_IPS_BANNED_TOTAL), &LabelSet::empty())
-            .unwrap_or_default()
-            .value() as u64
+            .unwrap_or_default() as u64
     }
 
     /// Average rounded time spent processing UDP connect requests.
@@ -92,8 +89,7 @@ impl Metrics {
                 &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS),
                 &[("request_kind", "connect")].into(),
             )
-            .unwrap_or_default()
-            .value() as u64
+            .unwrap_or_default() as u64
     }
 
     /// Average rounded time spent processing UDP announce requests.
@@ -106,8 +102,7 @@ impl Metrics {
                 &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS),
                 &[("request_kind", "announce")].into(),
             )
-            .unwrap_or_default()
-            .value() as u64
+            .unwrap_or_default() as u64
     }
 
     /// Average rounded time spent processing UDP scrape requests.
@@ -120,8 +115,7 @@ impl Metrics {
                 &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS),
                 &[("request_kind", "scrape")].into(),
             )
-            .unwrap_or_default()
-            .value() as u64
+            .unwrap_or_default() as u64
     }
 
     // UDPv4
@@ -135,8 +129,7 @@ impl Metrics {
                 &metric_name!(UDP_TRACKER_SERVER_REQUESTS_RECEIVED_TOTAL),
                 &[("server_binding_address_ip_family", "inet")].into(),
             )
-            .unwrap_or_default()
-            .value() as u64
+            .unwrap_or_default() as u64
     }
 
     /// Total number of UDP (UDP tracker) connections from IPv4 peers.
@@ -149,8 +142,7 @@ impl Metrics {
                 &metric_name!(UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL),
                 &[("server_binding_address_ip_family", "inet"), ("request_kind", "connect")].into(),
             )
-            .unwrap_or_default()
-            .value() as u64
+            .unwrap_or_default() as u64
     }
 
     /// Total number of UDP (UDP tracker) `announce` requests from IPv4 peers.
@@ -163,8 +155,7 @@ impl Metrics {
                 &metric_name!(UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL),
                 &[("server_binding_address_ip_family", "inet"), ("request_kind", "announce")].into(),
             )
-            .unwrap_or_default()
-            .value() as u64
+            .unwrap_or_default() as u64
     }
 
     /// Total number of UDP (UDP tracker) `scrape` requests from IPv4 peers.
@@ -177,8 +168,7 @@ impl Metrics {
                 &metric_name!(UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL),
                 &[("server_binding_address_ip_family", "inet"), ("request_kind", "scrape")].into(),
             )
-            .unwrap_or_default()
-            .value() as u64
+            .unwrap_or_default() as u64
     }
 
     /// Total number of UDP (UDP tracker) responses from IPv4 peers.
@@ -191,8 +181,7 @@ impl Metrics {
                 &metric_name!(UDP_TRACKER_SERVER_RESPONSES_SENT_TOTAL),
                 &[("server_binding_address_ip_family", "inet")].into(),
             )
-            .unwrap_or_default()
-            .value() as u64
+            .unwrap_or_default() as u64
     }
 
     /// Total number of UDP (UDP tracker) `error` requests from IPv4 peers.
@@ -205,8 +194,7 @@ impl Metrics {
                 &metric_name!(UDP_TRACKER_SERVER_ERRORS_TOTAL),
                 &[("server_binding_address_ip_family", "inet")].into(),
             )
-            .unwrap_or_default()
-            .value() as u64
+            .unwrap_or_default() as u64
     }
 
     // UDPv6
@@ -220,8 +208,7 @@ impl Metrics {
                 &metric_name!(UDP_TRACKER_SERVER_REQUESTS_RECEIVED_TOTAL),
                 &[("server_binding_address_ip_family", "inet6")].into(),
             )
-            .unwrap_or_default()
-            .value() as u64
+            .unwrap_or_default() as u64
     }
 
     /// Total number of UDP (UDP tracker) `connection` requests from IPv6 peers.
@@ -234,8 +221,7 @@ impl Metrics {
                 &metric_name!(UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL),
                 &[("server_binding_address_ip_family", "inet6"), ("request_kind", "connect")].into(),
             )
-            .unwrap_or_default()
-            .value() as u64
+            .unwrap_or_default() as u64
     }
 
     /// Total number of UDP (UDP tracker) `announce` requests from IPv6 peers.
@@ -248,8 +234,7 @@ impl Metrics {
                 &metric_name!(UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL),
                 &[("server_binding_address_ip_family", "inet6"), ("request_kind", "announce")].into(),
             )
-            .unwrap_or_default()
-            .value() as u64
+            .unwrap_or_default() as u64
     }
 
     /// Total number of UDP (UDP tracker) `scrape` requests from IPv6 peers.
@@ -262,8 +247,7 @@ impl Metrics {
                 &metric_name!(UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL),
                 &[("server_binding_address_ip_family", "inet6"), ("request_kind", "scrape")].into(),
             )
-            .unwrap_or_default()
-            .value() as u64
+            .unwrap_or_default() as u64
     }
 
     /// Total number of UDP (UDP tracker) responses from IPv6 peers.
@@ -276,8 +260,7 @@ impl Metrics {
                 &metric_name!(UDP_TRACKER_SERVER_RESPONSES_SENT_TOTAL),
                 &[("server_binding_address_ip_family", "inet6")].into(),
             )
-            .unwrap_or_default()
-            .value() as u64
+            .unwrap_or_default() as u64
     }
 
     /// Total number of UDP (UDP tracker) `error` requests from IPv6 peers.
@@ -290,7 +273,6 @@ impl Metrics {
                 &metric_name!(UDP_TRACKER_SERVER_ERRORS_TOTAL),
                 &[("server_binding_address_ip_family", "inet6")].into(),
             )
-            .unwrap_or_default()
-            .value() as u64
+            .unwrap_or_default() as u64
     }
 }

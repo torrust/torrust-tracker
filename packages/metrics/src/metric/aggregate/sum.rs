@@ -1,37 +1,34 @@
-use crate::aggregate::AggregateValue;
 use crate::counter::Counter;
 use crate::gauge::Gauge;
 use crate::label::LabelSet;
 use crate::metric::Metric;
 
 pub trait Sum {
-    fn sum(&self, label_set_criteria: &LabelSet) -> AggregateValue;
+    type Output;
+    fn sum(&self, label_set_criteria: &LabelSet) -> Self::Output;
 }
 
 impl Sum for Metric<Counter> {
-    #[allow(clippy::cast_precision_loss)]
-    fn sum(&self, label_set_criteria: &LabelSet) -> AggregateValue {
-        let sum: f64 = self
-            .sample_collection
+    type Output = u64;
+
+    fn sum(&self, label_set_criteria: &LabelSet) -> Self::Output {
+        self.sample_collection
             .iter()
             .filter(|(label_set, _measurement)| label_set.matches(label_set_criteria))
-            .map(|(_label_set, measurement)| measurement.value().primitive() as f64)
-            .sum();
-
-        sum.into()
+            .map(|(_label_set, measurement)| measurement.value().primitive())
+            .sum()
     }
 }
 
 impl Sum for Metric<Gauge> {
-    fn sum(&self, label_set_criteria: &LabelSet) -> AggregateValue {
-        let sum: f64 = self
-            .sample_collection
+    type Output = f64;
+
+    fn sum(&self, label_set_criteria: &LabelSet) -> Self::Output {
+        self.sample_collection
             .iter()
             .filter(|(label_set, _measurement)| label_set.matches(label_set_criteria))
             .map(|(_label_set, measurement)| measurement.value().primitive())
-            .sum();
-
-        sum.into()
+            .sum()
     }
 }
 
@@ -40,7 +37,6 @@ mod tests {
 
     use torrust_tracker_primitives::DurationSinceUnixEpoch;
 
-    use crate::aggregate::AggregateValue;
     use crate::counter::Counter;
     use crate::gauge::Gauge;
     use crate::label::LabelSet;
@@ -83,14 +79,14 @@ mod tests {
         }
     }
 
-    fn counter_cases() -> Vec<(Metric<Counter>, LabelSet, AggregateValue)> {
+    fn counter_cases() -> Vec<(Metric<Counter>, LabelSet, u64)> {
         // (metric, label set criteria, expected_aggregate_value)
         vec![
             // Metric with one sample without label set
             (
                 MetricBuilder::default().with_sample(1.into(), &LabelSet::empty()).build(),
                 LabelSet::empty(),
-                1.0.into(),
+                1,
             ),
             // Metric with one sample with a label set
             (
@@ -98,7 +94,7 @@ mod tests {
                     .with_sample(1.into(), &[("l1", "l1_value")].into())
                     .build(),
                 [("l1", "l1_value")].into(),
-                1.0.into(),
+                1,
             ),
             // Metric with two samples, different label sets, sum all
             (
@@ -107,7 +103,7 @@ mod tests {
                     .with_sample(2.into(), &[("l2", "l2_value")].into())
                     .build(),
                 LabelSet::empty(),
-                3.0.into(),
+                3,
             ),
             // Metric with two samples, different label sets, sum one
             (
@@ -116,7 +112,7 @@ mod tests {
                     .with_sample(2.into(), &[("l2", "l2_value")].into())
                     .build(),
                 [("l1", "l1_value")].into(),
-                1.0.into(),
+                1,
             ),
             // Metric with two samples, same label key, different label values, sum by key
             (
@@ -125,7 +121,7 @@ mod tests {
                     .with_sample(2.into(), &[("l1", "l1_value"), ("lb", "lb_value")].into())
                     .build(),
                 [("l1", "l1_value")].into(),
-                3.0.into(),
+                3,
             ),
             // Metric with two samples, different label values, sum by subkey
             (
@@ -134,17 +130,17 @@ mod tests {
                     .with_sample(2.into(), &[("l1", "l1_value"), ("lb", "lb_value")].into())
                     .build(),
                 [("la", "la_value")].into(),
-                1.0.into(),
+                1,
             ),
             // Edge: Metric with no samples at all
-            (MetricBuilder::default().build(), LabelSet::empty(), 0.0.into()),
+            (MetricBuilder::default().build(), LabelSet::empty(), 0),
             // Edge: Metric with samples but no matching labels
             (
                 MetricBuilder::default()
                     .with_sample(5.into(), &[("foo", "bar")].into())
                     .build(),
                 [("not", "present")].into(),
-                0.0.into(),
+                0,
             ),
             // Edge: Metric with zero value
             (
@@ -152,7 +148,7 @@ mod tests {
                     .with_sample(0.into(), &[("l3", "l3_value")].into())
                     .build(),
                 [("l3", "l3_value")].into(),
-                0.0.into(),
+                0,
             ),
             // Edge: Metric with a very large value
             (
@@ -160,20 +156,19 @@ mod tests {
                     .with_sample(u64::MAX.into(), &LabelSet::empty())
                     .build(),
                 LabelSet::empty(),
-                #[allow(clippy::cast_precision_loss)]
-                (u64::MAX as f64).into(),
+                u64::MAX,
             ),
         ]
     }
 
-    fn gauge_cases() -> Vec<(Metric<Gauge>, LabelSet, AggregateValue)> {
+    fn gauge_cases() -> Vec<(Metric<Gauge>, LabelSet, f64)> {
         // (metric, label set criteria, expected_aggregate_value)
         vec![
             // Metric with one sample without label set
             (
                 MetricBuilder::default().with_sample(1.0.into(), &LabelSet::empty()).build(),
                 LabelSet::empty(),
-                1.0.into(),
+                1.0,
             ),
             // Metric with one sample with a label set
             (
@@ -181,7 +176,7 @@ mod tests {
                     .with_sample(1.0.into(), &[("l1", "l1_value")].into())
                     .build(),
                 [("l1", "l1_value")].into(),
-                1.0.into(),
+                1.0,
             ),
             // Metric with two samples, different label sets, sum all
             (
@@ -190,7 +185,7 @@ mod tests {
                     .with_sample(2.0.into(), &[("l2", "l2_value")].into())
                     .build(),
                 LabelSet::empty(),
-                3.0.into(),
+                3.0,
             ),
             // Metric with two samples, different label sets, sum one
             (
@@ -199,7 +194,7 @@ mod tests {
                     .with_sample(2.0.into(), &[("l2", "l2_value")].into())
                     .build(),
                 [("l1", "l1_value")].into(),
-                1.0.into(),
+                1.0,
             ),
             // Metric with two samples, same label key, different label values, sum by key
             (
@@ -208,7 +203,7 @@ mod tests {
                     .with_sample(2.0.into(), &[("l1", "l1_value"), ("lb", "lb_value")].into())
                     .build(),
                 [("l1", "l1_value")].into(),
-                3.0.into(),
+                3.0,
             ),
             // Metric with two samples, different label values, sum by subkey
             (
@@ -217,17 +212,17 @@ mod tests {
                     .with_sample(2.0.into(), &[("l1", "l1_value"), ("lb", "lb_value")].into())
                     .build(),
                 [("la", "la_value")].into(),
-                1.0.into(),
+                1.0,
             ),
             // Edge: Metric with no samples at all
-            (MetricBuilder::default().build(), LabelSet::empty(), 0.0.into()),
+            (MetricBuilder::default().build(), LabelSet::empty(), 0.0),
             // Edge: Metric with samples but no matching labels
             (
                 MetricBuilder::default()
                     .with_sample(5.0.into(), &[("foo", "bar")].into())
                     .build(),
                 [("not", "present")].into(),
-                0.0.into(),
+                0.0,
             ),
             // Edge: Metric with zero value
             (
@@ -235,7 +230,7 @@ mod tests {
                     .with_sample(0.0.into(), &[("l3", "l3_value")].into())
                     .build(),
                 [("l3", "l3_value")].into(),
-                0.0.into(),
+                0.0,
             ),
             // Edge: Metric with negative values
             (
@@ -244,7 +239,7 @@ mod tests {
                     .with_sample(3.0.into(), &[("l5", "l5_value")].into())
                     .build(),
                 LabelSet::empty(),
-                1.0.into(),
+                1.0,
             ),
             // Edge: Metric with a very large value
             (
@@ -252,7 +247,7 @@ mod tests {
                     .with_sample(f64::MAX.into(), &LabelSet::empty())
                     .build(),
                 LabelSet::empty(),
-                f64::MAX.into(),
+                f64::MAX,
             ),
         ]
     }
@@ -274,8 +269,8 @@ mod tests {
         for (idx, (metric, criteria, expected_value)) in gauge_cases().iter().enumerate() {
             let sum = metric.sum(criteria);
 
-            assert_eq!(
-                sum, *expected_value,
+            assert!(
+                (sum - expected_value).abs() <= f64::EPSILON,
                 "at case {idx}, expected sum to be {expected_value}, got {sum}"
             );
         }

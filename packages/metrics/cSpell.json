@@ -6,7 +6,9 @@
         "Kibibytes",
         "Mebibytes",
         "ñaca",
+        "println",
         "rstest",
+        "serde",
         "subsec",
         "Tebibytes",
         "thiserror"
