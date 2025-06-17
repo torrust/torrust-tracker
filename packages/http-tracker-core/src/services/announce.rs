@@ -216,6 +216,7 @@ mod tests {
     use bittorrent_tracker_core::torrent::repository::in_memory::InMemoryTorrentRepository;
     use bittorrent_tracker_core::whitelist::authorization::WhitelistAuthorization;
     use bittorrent_tracker_core::whitelist::repository::in_memory::InMemoryWhitelist;
+    use tokio_util::sync::CancellationToken;
     use torrust_tracker_configuration::{Configuration, Core};
     use torrust_tracker_primitives::peer::Peer;
     use torrust_tracker_test_helpers::configuration;
@@ -236,6 +237,8 @@ mod tests {
     }
 
     fn initialize_core_tracker_services_with_config(config: &Configuration) -> (CoreTrackerServices, CoreHttpTrackerServices) {
+        let cancellation_token = CancellationToken::new();
+
         let core_config = Arc::new(config.core.clone());
         let database = initialize_database(&config.core);
         let in_memory_torrent_repository = Arc::new(InMemoryTorrentRepository::default());
@@ -263,7 +266,7 @@ mod tests {
         let http_stats_event_sender = http_stats_event_bus.sender();
 
         if config.core.tracker_usage_statistics {
-            let _unused = run_event_listener(http_stats_event_bus.receiver(), &http_stats_repository);
+            let _unused = run_event_listener(http_stats_event_bus.receiver(), cancellation_token, &http_stats_repository);
         }
 
         (

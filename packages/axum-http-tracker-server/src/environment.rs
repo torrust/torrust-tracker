@@ -6,6 +6,7 @@ use bittorrent_primitives::info_hash::InfoHash;
 use bittorrent_tracker_core::container::TrackerCoreContainer;
 use futures::executor::block_on;
 use tokio::task::JoinHandle;
+use tokio_util::sync::CancellationToken;
 use torrust_axum_server::tsl::make_rust_tls;
 use torrust_server_lib::registar::Registar;
 use torrust_tracker_configuration::{logging, Configuration};
@@ -21,6 +22,7 @@ pub struct Environment<S> {
     pub registar: Registar,
     pub server: HttpServer<S>,
     pub event_listener_job: Option<JoinHandle<()>>,
+    pub cancellation_token: CancellationToken,
 }
 
 impl<S> Environment<S> {
@@ -59,6 +61,7 @@ impl Environment<Stopped> {
             registar: Registar::default(),
             server,
             event_listener_job: None,
+            cancellation_token: CancellationToken::new(),
         }
     }
 
@@ -72,6 +75,7 @@ impl Environment<Stopped> {
         // Start the event listener
         let event_listener_job = run_event_listener(
             self.container.http_tracker_core_container.event_bus.receiver(),
+            self.cancellation_token.clone(),
             &self.container.http_tracker_core_container.stats_repository,
         );
 
@@ -87,6 +91,7 @@ impl Environment<Stopped> {
             registar: self.registar.clone(),
             server,
             event_listener_job: Some(event_listener_job),
+            cancellation_token: self.cancellation_token,
         }
     }
 }
@@ -117,6 +122,7 @@ impl Environment<Running> {
             registar: Registar::default(),
             server,
             event_listener_job: None,
+            cancellation_token: self.cancellation_token,
         }
     }
 

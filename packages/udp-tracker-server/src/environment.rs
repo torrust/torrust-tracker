@@ -4,6 +4,7 @@ use std::sync::Arc;
 use bittorrent_tracker_core::container::TrackerCoreContainer;
 use bittorrent_udp_tracker_core::container::UdpTrackerCoreContainer;
 use tokio::task::JoinHandle;
+use tokio_util::sync::CancellationToken;
 use torrust_server_lib::registar::Registar;
 use torrust_tracker_configuration::{logging, Configuration, DEFAULT_TIMEOUT};
 use torrust_tracker_swarm_coordination_registry::container::SwarmCoordinationRegistryContainer;
@@ -25,6 +26,7 @@ where
     pub udp_core_event_listener_job: Option<JoinHandle<()>>,
     pub udp_server_stats_event_listener_job: Option<JoinHandle<()>>,
     pub udp_server_banning_event_listener_job: Option<JoinHandle<()>>,
+    pub cancellation_token: CancellationToken,
 }
 
 impl Environment<Stopped> {
@@ -46,6 +48,7 @@ impl Environment<Stopped> {
             udp_core_event_listener_job: None,
             udp_server_stats_event_listener_job: None,
             udp_server_banning_event_listener_job: None,
+            cancellation_token: CancellationToken::new(),
         }
     }
 
@@ -57,21 +60,25 @@ impl Environment<Stopped> {
     #[allow(dead_code)]
     pub async fn start(self) -> Environment<Running> {
         let cookie_lifetime = self.container.udp_tracker_core_container.udp_tracker_config.cookie_lifetime;
+
         // Start the UDP tracker core event listener
         let udp_core_event_listener_job = Some(bittorrent_udp_tracker_core::statistics::event::listener::run_event_listener(
             self.container.udp_tracker_core_container.event_bus.receiver(),
+            self.cancellation_token.clone(),
             &self.container.udp_tracker_core_container.stats_repository,
         ));
 
         // Start the UDP tracker server event listener (statistics)
         let udp_server_stats_event_listener_job = Some(crate::statistics::event::listener::run_event_listener(
             self.container.udp_tracker_server_container.event_bus.receiver(),
+            self.cancellation_token.clone(),
             &self.container.udp_tracker_server_container.stats_repository,
         ));
 
         // Start the UDP tracker server event listener (banning)
         let udp_server_banning_event_listener_job = Some(crate::banning::event::listener::run_event_listener(
             self.container.udp_tracker_server_container.event_bus.receiver(),
+            self.cancellation_token.clone(),
             &self.container.udp_tracker_core_container.ban_service,
             &self.container.udp_tracker_server_container.stats_repository,
         ));
@@ -95,6 +102,7 @@ impl Environment<Stopped> {
             udp_core_event_listener_job,
             udp_server_stats_event_listener_job,
             udp_server_banning_event_listener_job,
+            cancellation_token: self.cancellation_token,
         }
     }
 }
@@ -150,6 +158,7 @@ impl Environment<Running> {
             udp_core_event_listener_job: None,
             udp_server_stats_event_listener_job: None,
             udp_server_banning_event_listener_job: None,
+            cancellation_token: self.cancellation_token,
         }
     }
 

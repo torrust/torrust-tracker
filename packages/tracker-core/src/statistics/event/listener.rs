@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
 use tokio::task::JoinHandle;
+use tokio_util::sync::CancellationToken;
 use torrust_tracker_clock::clock::Time;
 use torrust_tracker_events::receiver::RecvError;
 use torrust_tracker_swarm_coordination_registry::event::receiver::Receiver;
@@ -13,6 +14,7 @@ use crate::{CurrentClock, TRACKER_CORE_LOG_TARGET};
 #[must_use]
 pub fn run_event_listener(
     receiver: Receiver,
+    cancellation_token: CancellationToken,
     repository: &Arc<Repository>,
     db_downloads_metric_repository: &Arc<DatabaseDownloadsMetricRepository>,
     persistent_torrent_completed_stat: bool,
@@ -20,37 +22,35 @@ pub fn run_event_listener(
     let stats_repository = repository.clone();
     let db_downloads_metric_repository: Arc<DatabaseDownloadsMetricRepository> = db_downloads_metric_repository.clone();
 
-    tracing::info!(target: TRACKER_CORE_LOG_TARGET, "Starting torrent repository event listener");
+    tracing::info!(target: TRACKER_CORE_LOG_TARGET, "Starting tracker core event listener");
 
     tokio::spawn(async move {
         dispatch_events(
             receiver,
+            cancellation_token,
             stats_repository,
             db_downloads_metric_repository,
             persistent_torrent_completed_stat,
         )
         .await;
 
-        tracing::info!(target: TRACKER_CORE_LOG_TARGET, "Torrent repository listener finished");
+        tracing::info!(target: TRACKER_CORE_LOG_TARGET, "Tracker core listener finished");
     })
 }
 
 async fn dispatch_events(
     mut receiver: Receiver,
+    cancellation_token: CancellationToken,
     stats_repository: Arc<Repository>,
     db_downloads_metric_repository: Arc<DatabaseDownloadsMetricRepository>,
     persistent_torrent_completed_stat: bool,
 ) {
-    let shutdown_signal = tokio::signal::ctrl_c();
-
-    tokio::pin!(shutdown_signal);
-
     loop {
         tokio::select! {
             biased;
 
-            _ = &mut shutdown_signal => {
-                tracing::info!(target: TRACKER_CORE_LOG_TARGET, "Received Ctrl+C, shutting down torrent repository event listener");
+            () = cancellation_token.cancelled() => {
+                tracing::info!(target: TRACKER_CORE_LOG_TARGET, "Received cancellation request, shutting down tracker core event listener.");
                 break;
             }
 
@@ -65,11 +65,11 @@ async fn dispatch_events(
                     Err(e) => {
                         match e {
                             RecvError::Closed => {
-                                tracing::info!(target: TRACKER_CORE_LOG_TARGET, "Torrent repository event receiver closed");
+                                tracing::info!(target: TRACKER_CORE_LOG_TARGET, "Tracker core event receiver closed");
                                 break;
                             }
                             RecvError::Lagged(n) => {
-                                tracing::warn!(target: TRACKER_CORE_LOG_TARGET, "Torrent repository event receiver lagged by {} events", n);
+                                tracing::warn!(target: TRACKER_CORE_LOG_TARGET, "Tracker core event receiver lagged by {} events", n);
                             }
                         }
                     }

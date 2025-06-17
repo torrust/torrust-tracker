@@ -256,6 +256,7 @@ mod tests {
     use bittorrent_http_tracker_core::statistics::event::listener::run_event_listener;
     use bittorrent_http_tracker_core::statistics::repository::Repository;
     use bittorrent_tracker_core::container::TrackerCoreContainer;
+    use tokio_util::sync::CancellationToken;
     use torrust_axum_server::tsl::make_rust_tls;
     use torrust_server_lib::registar::Registar;
     use torrust_tracker_configuration::{logging, Configuration};
@@ -265,6 +266,8 @@ mod tests {
     use crate::server::{HttpServer, Launcher};
 
     pub fn initialize_container(configuration: &Configuration) -> HttpTrackerCoreContainer {
+        let cancellation_token = CancellationToken::new();
+
         let core_config = Arc::new(configuration.core.clone());
 
         let http_trackers = configuration
@@ -287,7 +290,7 @@ mod tests {
         let http_stats_event_sender = http_stats_event_bus.sender();
 
         if configuration.core.tracker_usage_statistics {
-            let _unused = run_event_listener(http_stats_event_bus.receiver(), &http_stats_repository);
+            let _unused = run_event_listener(http_stats_event_bus.receiver(), cancellation_token, &http_stats_repository);
         }
 
         let swarm_coordination_registry_container = Arc::new(SwarmCoordinationRegistryContainer::initialize(
