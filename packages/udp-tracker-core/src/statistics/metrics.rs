@@ -1,7 +1,7 @@
 use serde::Serialize;
 use torrust_tracker_metrics::label::LabelSet;
 use torrust_tracker_metrics::metric::MetricName;
-use torrust_tracker_metrics::metric_collection::aggregate::Sum;
+use torrust_tracker_metrics::metric_collection::aggregate::sum::Sum;
 use torrust_tracker_metrics::metric_collection::{Error, MetricCollection};
 use torrust_tracker_metrics::metric_name;
 use torrust_tracker_primitives::DurationSinceUnixEpoch;

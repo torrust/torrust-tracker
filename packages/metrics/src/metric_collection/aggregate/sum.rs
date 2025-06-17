@@ -47,7 +47,7 @@ mod tests {
 
         use crate::label::LabelValue;
         use crate::label_name;
-        use crate::metric_collection::aggregate::Sum;
+        use crate::metric_collection::aggregate::sum::Sum;
 
         #[test]
         fn type_counter_with_two_samples() {
