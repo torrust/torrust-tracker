@@ -7,35 +7,40 @@ use crate::metric::MetricName;
 use crate::metric_collection::{MetricCollection, MetricKindCollection};
 
 pub trait Sum {
-    fn sum(&self, metric_name: &MetricName, label_set_criteria: &LabelSet) -> Option<AggregateValue>;
+    type Output;
+    fn sum(&self, metric_name: &MetricName, label_set_criteria: &LabelSet) -> Self::Output;
 }
 
 impl Sum for MetricCollection {
-    fn sum(&self, metric_name: &MetricName, label_set_criteria: &LabelSet) -> Option<AggregateValue> {
+    type Output = Option<AggregateValue>;
+
+    fn sum(&self, metric_name: &MetricName, label_set_criteria: &LabelSet) -> Self::Output {
         if let Some(value) = self.counters.sum(metric_name, label_set_criteria) {
-            return Some(value);
+            #[allow(clippy::cast_precision_loss)]
+            return Some(AggregateValue::new(value as f64));
         }
 
-        self.gauges.sum(metric_name, label_set_criteria)
+        if let Some(value) = self.gauges.sum(metric_name, label_set_criteria) {
+            return Some(AggregateValue::new(value));
+        }
+
+        None
     }
 }
 
 impl Sum for MetricKindCollection<Counter> {
-    fn sum(&self, metric_name: &MetricName, label_set_criteria: &LabelSet) -> Option<AggregateValue> {
-        self.metrics.get(metric_name).map(|metric| {
-            let sum: u64 = metric.sum(label_set_criteria);
-            #[allow(clippy::cast_precision_loss)]
-            AggregateValue::new(sum as f64)
-        })
+    type Output = Option<u64>;
+
+    fn sum(&self, metric_name: &MetricName, label_set_criteria: &LabelSet) -> Self::Output {
+        self.metrics.get(metric_name).map(|metric| metric.sum(label_set_criteria))
     }
 }
 
 impl Sum for MetricKindCollection<Gauge> {
-    fn sum(&self, metric_name: &MetricName, label_set_criteria: &LabelSet) -> Option<AggregateValue> {
-        self.metrics.get(metric_name).map(|metric| {
-            let sum: f64 = metric.sum(label_set_criteria);
-            AggregateValue::new(sum)
-        })
+    type Output = Option<f64>;
+
+    fn sum(&self, metric_name: &MetricName, label_set_criteria: &LabelSet) -> Self::Output {
+        self.metrics.get(metric_name).map(|metric| metric.sum(label_set_criteria))
     }
 }
 
