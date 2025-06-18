@@ -73,9 +73,7 @@ pub fn describe_metrics() -> Metrics {
     metrics.metric_collection.describe_gauge(
         &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS),
         Some(Unit::Nanoseconds),
-        Some(MetricDescription::new(
-            "Average time to process a UDP connect request in nanoseconds",
-        )),
+        Some(MetricDescription::new("Average time to process a UDP request in nanoseconds")),
     );
 
     metrics
