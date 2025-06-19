@@ -77,13 +77,50 @@ impl Metrics {
             udp_connections_handled
         );
 
-        self.update_udp_avg_connect_processing_time_ns(new_avg, label_set, now);
+        self.update_udp_avg_processing_time_ns(new_avg, label_set, now);
 
         new_avg
     }
 
-    fn update_udp_avg_connect_processing_time_ns(&mut self, new_avg: f64, label_set: &LabelSet, now: DurationSinceUnixEpoch) {
-        tracing::debug!("Updating average processing time metric for connect requests: {} ns", new_avg);
+    #[allow(clippy::cast_precision_loss)]
+    pub fn recalculate_udp_avg_announce_processing_time_ns(
+        &mut self,
+        req_processing_time: Duration,
+        label_set: &LabelSet,
+        now: DurationSinceUnixEpoch,
+    ) -> f64 {
+        let req_processing_time = req_processing_time.as_nanos() as f64;
+
+        let udp_announces_handled = (self.udp4_announces_handled() + self.udp6_announces_handled()) as f64;
+
+        let previous_avg = self.udp_avg_announce_processing_time_ns();
+
+        let new_avg = if udp_announces_handled == 0.0 {
+            req_processing_time
+        } else {
+            // Moving average: https://en.wikipedia.org/wiki/Moving_average
+            previous_avg as f64 + (req_processing_time - previous_avg as f64) / udp_announces_handled
+        };
+
+        tracing::debug!(
+            "Recalculated UDP average announce processing time: {} ns (previous: {} ns, req_processing_time: {} ns, udp_announces_handled: {})",
+            new_avg,
+            previous_avg,
+            req_processing_time,
+            udp_announces_handled
+        );
+
+        self.update_udp_avg_processing_time_ns(new_avg, label_set, now);
+
+        new_avg
+    }
+
+    fn update_udp_avg_processing_time_ns(&mut self, new_avg: f64, label_set: &LabelSet, now: DurationSinceUnixEpoch) {
+        tracing::debug!(
+            "Updating average processing time metric to {} ns for label set {}",
+            new_avg,
+            label_set,
+        );
 
         match self.set_gauge(
             &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS),
@@ -94,28 +131,6 @@ impl Metrics {
             Ok(()) => {}
             Err(err) => tracing::error!("Failed to set gauge: {}", err),
         }
-    }
-
-    #[allow(clippy::cast_precision_loss)]
-    pub fn recalculate_udp_avg_announce_processing_time_ns(&self, req_processing_time: Duration) -> f64 {
-        let req_processing_time = req_processing_time.as_nanos() as f64;
-
-        let udp_announces_handled = (self.udp4_announces_handled() + self.udp6_announces_handled()) as f64;
-
-        let previous_avg = self.udp_avg_announce_processing_time_ns();
-
-        // Moving average: https://en.wikipedia.org/wiki/Moving_average
-        let new_avg = previous_avg as f64 + (req_processing_time - previous_avg as f64) / udp_announces_handled;
-
-        tracing::debug!(
-            "Recalculated UDP average announce processing time: {} ns (previous: {} ns, req_processing_time: {} ns, udp_announces_handled: {})",
-            new_avg,
-            previous_avg,
-            req_processing_time,
-            udp_announces_handled
-        );
-
-        new_avg
     }
 
     #[allow(clippy::cast_precision_loss)]

@@ -88,10 +88,15 @@ impl Repository {
         new_avg
     }
 
-    pub async fn recalculate_udp_avg_announce_processing_time_ns(&self, req_processing_time: Duration) -> f64 {
-        let stats_lock = self.stats.write().await;
+    pub async fn recalculate_udp_avg_announce_processing_time_ns(
+        &self,
+        req_processing_time: Duration,
+        label_set: &LabelSet,
+        now: DurationSinceUnixEpoch,
+    ) -> f64 {
+        let mut stats_lock = self.stats.write().await;
 
-        let new_avg = stats_lock.recalculate_udp_avg_announce_processing_time_ns(req_processing_time);
+        let new_avg = stats_lock.recalculate_udp_avg_announce_processing_time_ns(req_processing_time, label_set, now);
 
         drop(stats_lock);
 
@@ -390,7 +395,9 @@ mod tests {
 
         // Calculate new average with processing time of 1500ns
         let processing_time = Duration::from_nanos(1500);
-        let new_avg = repo.recalculate_udp_avg_announce_processing_time_ns(processing_time).await;
+        let new_avg = repo
+            .recalculate_udp_avg_announce_processing_time_ns(processing_time, &announce_labels, now)
+            .await;
 
         // Moving average: previous_avg + (new_value - previous_avg) / total_announces
         // 500 + (1500 - 500) / 5 = 500 + 200 = 700
@@ -453,8 +460,10 @@ mod tests {
             .recalculate_udp_avg_connect_processing_time_ns(processing_time, &connect_labels, now)
             .await;
 
-        let _announce_labels = LabelSet::from([("request_kind", "announce")]);
-        let announce_avg = repo.recalculate_udp_avg_announce_processing_time_ns(processing_time).await;
+        let announce_labels = LabelSet::from([("request_kind", "announce")]);
+        let announce_avg = repo
+            .recalculate_udp_avg_announce_processing_time_ns(processing_time, &announce_labels, now)
+            .await;
 
         let _scrape_labels = LabelSet::from([("request_kind", "scrape")]);
         let scrape_avg = repo.recalculate_udp_avg_scrape_processing_time_ns(processing_time).await;
@@ -462,7 +471,7 @@ mod tests {
         // With 0 total connections, the formula becomes 0 + (1000 - 0) / 0
         // This should handle the division by zero case gracefully
         assert!((connect_avg - 1000.0).abs() < f64::EPSILON);
-        assert!(announce_avg.is_infinite() || announce_avg.is_nan());
+        assert!((announce_avg - 1000.0).abs() < f64::EPSILON);
         assert!(scrape_avg.is_infinite() || scrape_avg.is_nan());
     }
 
