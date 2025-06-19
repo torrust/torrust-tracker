@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use serde::Serialize;
 use torrust_tracker_metrics::label::LabelSet;
 use torrust_tracker_metrics::metric::MetricName;
@@ -48,6 +50,71 @@ impl Metrics {
 }
 
 impl Metrics {
+    #[allow(clippy::cast_precision_loss)]
+    pub fn recalculate_udp_avg_connect_processing_time_ns(&self, req_processing_time: Duration) -> f64 {
+        let req_processing_time = req_processing_time.as_nanos() as f64;
+        let udp_connections_handled = (self.udp4_connections_handled() + self.udp6_connections_handled()) as f64;
+
+        let previous_avg = self.udp_avg_connect_processing_time_ns();
+
+        // Moving average: https://en.wikipedia.org/wiki/Moving_average
+        let new_avg = previous_avg as f64 + (req_processing_time - previous_avg as f64) / udp_connections_handled;
+
+        tracing::debug!(
+            "Recalculated UDP average connect processing time: {} ns (previous: {} ns, req_processing_time: {} ns, udp_connections_handled: {})",
+            new_avg,
+            previous_avg,
+            req_processing_time,
+            udp_connections_handled
+        );
+
+        new_avg
+    }
+
+    #[allow(clippy::cast_precision_loss)]
+    pub fn recalculate_udp_avg_announce_processing_time_ns(&self, req_processing_time: Duration) -> f64 {
+        let req_processing_time = req_processing_time.as_nanos() as f64;
+
+        let udp_announces_handled = (self.udp4_announces_handled() + self.udp6_announces_handled()) as f64;
+
+        let previous_avg = self.udp_avg_announce_processing_time_ns();
+
+        // Moving average: https://en.wikipedia.org/wiki/Moving_average
+        let new_avg = previous_avg as f64 + (req_processing_time - previous_avg as f64) / udp_announces_handled;
+
+        tracing::debug!(
+            "Recalculated UDP average announce processing time: {} ns (previous: {} ns, req_processing_time: {} ns, udp_announces_handled: {})",
+            new_avg,
+            previous_avg,
+            req_processing_time,
+            udp_announces_handled
+        );
+
+        new_avg
+    }
+
+    #[allow(clippy::cast_precision_loss)]
+    pub fn recalculate_udp_avg_scrape_processing_time_ns(&self, req_processing_time: Duration) -> f64 {
+        let req_processing_time = req_processing_time.as_nanos() as f64;
+
+        let udp_scrapes_handled = (self.udp4_scrapes_handled() + self.udp6_scrapes_handled()) as f64;
+
+        let previous_avg = self.udp_avg_scrape_processing_time_ns();
+
+        // Moving average: https://en.wikipedia.org/wiki/Moving_average
+        let new_avg = previous_avg as f64 + (req_processing_time - previous_avg as f64) / udp_scrapes_handled;
+
+        tracing::debug!(
+            "Recalculated UDP average scrape processing time: {} ns (previous: {} ns, req_processing_time: {} ns, udp_scrapes_handled: {})",
+            new_avg,
+            previous_avg,
+            req_processing_time,
+            udp_scrapes_handled
+        );
+
+        new_avg
+    }
+
     // UDP
     /// Total number of UDP (UDP tracker) requests aborted.
     #[must_use]
