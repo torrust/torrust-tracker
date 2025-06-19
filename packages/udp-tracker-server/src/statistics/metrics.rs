@@ -51,14 +51,23 @@ impl Metrics {
 
 impl Metrics {
     #[allow(clippy::cast_precision_loss)]
-    pub fn recalculate_udp_avg_connect_processing_time_ns(&self, req_processing_time: Duration) -> f64 {
+    pub fn recalculate_udp_avg_connect_processing_time_ns(
+        &mut self,
+        req_processing_time: Duration,
+        label_set: &LabelSet,
+        now: DurationSinceUnixEpoch,
+    ) -> f64 {
         let req_processing_time = req_processing_time.as_nanos() as f64;
         let udp_connections_handled = (self.udp4_connections_handled() + self.udp6_connections_handled()) as f64;
 
         let previous_avg = self.udp_avg_connect_processing_time_ns();
 
-        // Moving average: https://en.wikipedia.org/wiki/Moving_average
-        let new_avg = previous_avg as f64 + (req_processing_time - previous_avg as f64) / udp_connections_handled;
+        let new_avg = if udp_connections_handled == 0.0 {
+            req_processing_time
+        } else {
+            // Moving average: https://en.wikipedia.org/wiki/Moving_average
+            previous_avg as f64 + (req_processing_time - previous_avg as f64) / udp_connections_handled
+        };
 
         tracing::debug!(
             "Recalculated UDP average connect processing time: {} ns (previous: {} ns, req_processing_time: {} ns, udp_connections_handled: {})",
@@ -68,7 +77,23 @@ impl Metrics {
             udp_connections_handled
         );
 
+        self.update_udp_avg_connect_processing_time_ns(new_avg, label_set, now);
+
         new_avg
+    }
+
+    fn update_udp_avg_connect_processing_time_ns(&mut self, new_avg: f64, label_set: &LabelSet, now: DurationSinceUnixEpoch) {
+        tracing::debug!("Updating average processing time metric for connect requests: {} ns", new_avg);
+
+        match self.set_gauge(
+            &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS),
+            label_set,
+            new_avg,
+            now,
+        ) {
+            Ok(()) => {}
+            Err(err) => tracing::error!("Failed to set gauge: {}", err),
+        }
     }
 
     #[allow(clippy::cast_precision_loss)]

@@ -16,26 +16,13 @@ pub async fn handle_event(
     let (result_label_value, kind_label_value) = match kind {
         UdpResponseKind::Ok { req_kind } => match req_kind {
             UdpRequestKind::Connect => {
-                let new_avg = stats_repository
-                    .recalculate_udp_avg_connect_processing_time_ns(req_processing_time)
-                    .await;
-
-                tracing::debug!("Updating average processing time metric for connect requests: {} ns", new_avg);
-
                 let mut label_set = LabelSet::from(context.clone());
                 label_set.upsert(label_name!("request_kind"), LabelValue::new(&req_kind.to_string()));
-                match stats_repository
-                    .set_gauge(
-                        &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS),
-                        &label_set,
-                        new_avg,
-                        now,
-                    )
-                    .await
-                {
-                    Ok(()) => {}
-                    Err(err) => tracing::error!("Failed to set gauge: {}", err),
-                }
+
+                let _new_avg = stats_repository
+                    .recalculate_udp_avg_connect_processing_time_ns(req_processing_time, &label_set, now)
+                    .await;
+
                 (LabelValue::new("ok"), UdpRequestKind::Connect.into())
             }
             UdpRequestKind::Announce { announce_request } => {
