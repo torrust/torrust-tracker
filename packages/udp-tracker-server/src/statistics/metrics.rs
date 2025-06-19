@@ -51,7 +51,7 @@ impl Metrics {
 
 impl Metrics {
     #[allow(clippy::cast_precision_loss)]
-    pub fn recalculate_udp_avg_connect_processing_time_ns(
+    pub fn recalculate_udp_avg_processing_time_ns(
         &mut self,
         req_processing_time: Duration,
         label_set: &LabelSet,
@@ -71,73 +71,8 @@ impl Metrics {
         };
 
         tracing::debug!(
-            "Recalculated UDP average connect processing time: {} ns (previous: {} ns, req_processing_time: {} ns, udp_connections_handled: {})",
-            new_avg,
-            previous_avg,
-            req_processing_time,
-            request_accepted_total
-        );
-
-        self.update_udp_avg_processing_time_ns(new_avg, label_set, now);
-
-        new_avg
-    }
-
-    #[allow(clippy::cast_precision_loss)]
-    pub fn recalculate_udp_avg_announce_processing_time_ns(
-        &mut self,
-        req_processing_time: Duration,
-        label_set: &LabelSet,
-        now: DurationSinceUnixEpoch,
-    ) -> f64 {
-        let req_processing_time = req_processing_time.as_nanos() as f64;
-
-        let request_accepted_total = self.udp_request_accepted(label_set) as f64;
-
-        let previous_avg = self.udp_avg_processing_time_ns(label_set);
-
-        let new_avg = if request_accepted_total == 0.0 {
-            req_processing_time
-        } else {
-            // Moving average: https://en.wikipedia.org/wiki/Moving_average
-            previous_avg as f64 + (req_processing_time - previous_avg as f64) / request_accepted_total
-        };
-
-        tracing::debug!(
-            "Recalculated UDP average announce processing time: {} ns (previous: {} ns, req_processing_time: {} ns, udp_announces_handled: {})",
-            new_avg,
-            previous_avg,
-            req_processing_time,
-            request_accepted_total
-        );
-
-        self.update_udp_avg_processing_time_ns(new_avg, label_set, now);
-
-        new_avg
-    }
-
-    #[allow(clippy::cast_precision_loss)]
-    pub fn recalculate_udp_avg_scrape_processing_time_ns(
-        &mut self,
-        req_processing_time: Duration,
-        label_set: &LabelSet,
-        now: DurationSinceUnixEpoch,
-    ) -> f64 {
-        let req_processing_time = req_processing_time.as_nanos() as f64;
-
-        let request_accepted_total = self.udp_request_accepted(label_set) as f64;
-
-        let previous_avg = self.udp_avg_processing_time_ns(label_set);
-
-        let new_avg = if request_accepted_total == 0.0 {
-            req_processing_time
-        } else {
-            // Moving average: https://en.wikipedia.org/wiki/Moving_average
-            previous_avg as f64 + (req_processing_time - previous_avg as f64) / request_accepted_total
-        };
-
-        tracing::debug!(
-            "Recalculated UDP average scrape processing time: {} ns (previous: {} ns, req_processing_time: {} ns, udp_scrapes_handled: {})",
+            "Recalculated UDP average processing time for labels {}: {} ns (previous: {} ns, req_processing_time: {} ns, request_accepted_total: {})",
+            label_set,
             new_avg,
             previous_avg,
             req_processing_time,

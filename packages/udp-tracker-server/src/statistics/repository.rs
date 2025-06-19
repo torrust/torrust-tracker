@@ -73,7 +73,7 @@ impl Repository {
         result
     }
 
-    pub async fn recalculate_udp_avg_connect_processing_time_ns(
+    pub async fn recalculate_udp_avg_processing_time_ns(
         &self,
         req_processing_time: Duration,
         label_set: &LabelSet,
@@ -81,37 +81,7 @@ impl Repository {
     ) -> f64 {
         let mut stats_lock = self.stats.write().await;
 
-        let new_avg = stats_lock.recalculate_udp_avg_connect_processing_time_ns(req_processing_time, label_set, now);
-
-        drop(stats_lock);
-
-        new_avg
-    }
-
-    pub async fn recalculate_udp_avg_announce_processing_time_ns(
-        &self,
-        req_processing_time: Duration,
-        label_set: &LabelSet,
-        now: DurationSinceUnixEpoch,
-    ) -> f64 {
-        let mut stats_lock = self.stats.write().await;
-
-        let new_avg = stats_lock.recalculate_udp_avg_announce_processing_time_ns(req_processing_time, label_set, now);
-
-        drop(stats_lock);
-
-        new_avg
-    }
-
-    pub async fn recalculate_udp_avg_scrape_processing_time_ns(
-        &self,
-        req_processing_time: Duration,
-        label_set: &LabelSet,
-        now: DurationSinceUnixEpoch,
-    ) -> f64 {
-        let mut stats_lock = self.stats.write().await;
-
-        let new_avg = stats_lock.recalculate_udp_avg_scrape_processing_time_ns(req_processing_time, label_set, now);
+        let new_avg = stats_lock.recalculate_udp_avg_processing_time_ns(req_processing_time, label_set, now);
 
         drop(stats_lock);
 
@@ -354,7 +324,7 @@ mod tests {
         // Calculate new average with processing time of 2000ns
         let processing_time = Duration::from_nanos(2000);
         let new_avg = repo
-            .recalculate_udp_avg_connect_processing_time_ns(processing_time, &connect_labels, now)
+            .recalculate_udp_avg_processing_time_ns(processing_time, &connect_labels, now)
             .await;
 
         // Moving average: previous_avg + (new_value - previous_avg) / total_connections
@@ -401,7 +371,7 @@ mod tests {
         // Calculate new average with processing time of 1500ns
         let processing_time = Duration::from_nanos(1500);
         let new_avg = repo
-            .recalculate_udp_avg_announce_processing_time_ns(processing_time, &announce_labels, now)
+            .recalculate_udp_avg_processing_time_ns(processing_time, &announce_labels, now)
             .await;
 
         // Moving average: previous_avg + (new_value - previous_avg) / total_announces
@@ -442,7 +412,7 @@ mod tests {
         // Calculate new average with processing time of 1200ns
         let processing_time = Duration::from_nanos(1200);
         let new_avg = repo
-            .recalculate_udp_avg_scrape_processing_time_ns(processing_time, &scrape_labels, now)
+            .recalculate_udp_avg_processing_time_ns(processing_time, &scrape_labels, now)
             .await;
 
         // Moving average: previous_avg + (new_value - previous_avg) / total_scrapes
@@ -464,17 +434,17 @@ mod tests {
 
         let connect_labels = LabelSet::from([("request_kind", "connect")]);
         let connect_avg = repo
-            .recalculate_udp_avg_connect_processing_time_ns(processing_time, &connect_labels, now)
+            .recalculate_udp_avg_processing_time_ns(processing_time, &connect_labels, now)
             .await;
 
         let announce_labels = LabelSet::from([("request_kind", "announce")]);
         let announce_avg = repo
-            .recalculate_udp_avg_announce_processing_time_ns(processing_time, &announce_labels, now)
+            .recalculate_udp_avg_processing_time_ns(processing_time, &announce_labels, now)
             .await;
 
         let scrape_labels = LabelSet::from([("request_kind", "scrape")]);
         let scrape_avg = repo
-            .recalculate_udp_avg_scrape_processing_time_ns(processing_time, &scrape_labels, now)
+            .recalculate_udp_avg_processing_time_ns(processing_time, &scrape_labels, now)
             .await;
 
         // With 0 total connections, the formula becomes 0 + (1000 - 0) / 0
@@ -535,7 +505,7 @@ mod tests {
         let large_duration = Duration::from_secs(1); // 1 second = 1,000,000,000 ns
         let connect_labels = LabelSet::from([("request_kind", "connect")]);
         let new_avg = repo
-            .recalculate_udp_avg_connect_processing_time_ns(large_duration, &connect_labels, now)
+            .recalculate_udp_avg_processing_time_ns(large_duration, &connect_labels, now)
             .await;
 
         // Should handle large numbers without overflow
@@ -629,7 +599,7 @@ mod tests {
         // First calculation: no connections recorded yet, should result in infinity
         let processing_time_1 = Duration::from_nanos(2000);
         let avg_1 = repo
-            .recalculate_udp_avg_connect_processing_time_ns(processing_time_1, &connect_labels, now)
+            .recalculate_udp_avg_processing_time_ns(processing_time_1, &connect_labels, now)
             .await;
 
         assert!(
@@ -647,7 +617,7 @@ mod tests {
         let processing_time_2 = Duration::from_nanos(3000);
         let connect_labels = LabelSet::from([("request_kind", "connect")]);
         let avg_2 = repo
-            .recalculate_udp_avg_connect_processing_time_ns(processing_time_2, &connect_labels, now)
+            .recalculate_udp_avg_processing_time_ns(processing_time_2, &connect_labels, now)
             .await;
 
         // There is one connection, so the average should be:

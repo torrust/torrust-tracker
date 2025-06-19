@@ -20,7 +20,7 @@ pub async fn handle_event(
                 label_set.upsert(label_name!("request_kind"), LabelValue::new(&req_kind.to_string()));
 
                 let _new_avg = stats_repository
-                    .recalculate_udp_avg_connect_processing_time_ns(req_processing_time, &label_set, now)
+                    .recalculate_udp_avg_processing_time_ns(req_processing_time, &label_set, now)
                     .await;
 
                 (LabelValue::new("ok"), UdpRequestKind::Connect.into())
@@ -30,7 +30,7 @@ pub async fn handle_event(
                 label_set.upsert(label_name!("request_kind"), LabelValue::new(&req_kind.to_string()));
 
                 let _new_avg = stats_repository
-                    .recalculate_udp_avg_announce_processing_time_ns(req_processing_time, &label_set, now)
+                    .recalculate_udp_avg_processing_time_ns(req_processing_time, &label_set, now)
                     .await;
 
                 (LabelValue::new("ok"), UdpRequestKind::Announce { announce_request }.into())
@@ -40,7 +40,7 @@ pub async fn handle_event(
                 label_set.upsert(label_name!("request_kind"), LabelValue::new(&req_kind.to_string()));
 
                 let _new_avg = stats_repository
-                    .recalculate_udp_avg_scrape_processing_time_ns(req_processing_time, &label_set, now)
+                    .recalculate_udp_avg_processing_time_ns(req_processing_time, &label_set, now)
                     .await;
 
                 (LabelValue::new("ok"), LabelValue::new(&UdpRequestKind::Scrape.to_string()))
