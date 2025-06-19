@@ -58,15 +58,16 @@ impl Metrics {
         now: DurationSinceUnixEpoch,
     ) -> f64 {
         let req_processing_time = req_processing_time.as_nanos() as f64;
-        let udp_connections_handled = (self.udp4_connections_handled() + self.udp6_connections_handled()) as f64;
 
-        let previous_avg = self.udp_avg_connect_processing_time_ns();
+        let request_accepted_total = self.udp_request_accepted(label_set) as f64;
 
-        let new_avg = if udp_connections_handled == 0.0 {
+        let previous_avg = self.udp_avg_processing_time_ns(label_set);
+
+        let new_avg = if request_accepted_total == 0.0 {
             req_processing_time
         } else {
             // Moving average: https://en.wikipedia.org/wiki/Moving_average
-            previous_avg as f64 + (req_processing_time - previous_avg as f64) / udp_connections_handled
+            previous_avg as f64 + (req_processing_time - previous_avg as f64) / request_accepted_total
         };
 
         tracing::debug!(
@@ -74,7 +75,7 @@ impl Metrics {
             new_avg,
             previous_avg,
             req_processing_time,
-            udp_connections_handled
+            request_accepted_total
         );
 
         self.update_udp_avg_processing_time_ns(new_avg, label_set, now);
@@ -91,15 +92,15 @@ impl Metrics {
     ) -> f64 {
         let req_processing_time = req_processing_time.as_nanos() as f64;
 
-        let udp_announces_handled = (self.udp4_announces_handled() + self.udp6_announces_handled()) as f64;
+        let request_accepted_total = self.udp_request_accepted(label_set) as f64;
 
-        let previous_avg = self.udp_avg_announce_processing_time_ns();
+        let previous_avg = self.udp_avg_processing_time_ns(label_set);
 
-        let new_avg = if udp_announces_handled == 0.0 {
+        let new_avg = if request_accepted_total == 0.0 {
             req_processing_time
         } else {
             // Moving average: https://en.wikipedia.org/wiki/Moving_average
-            previous_avg as f64 + (req_processing_time - previous_avg as f64) / udp_announces_handled
+            previous_avg as f64 + (req_processing_time - previous_avg as f64) / request_accepted_total
         };
 
         tracing::debug!(
@@ -107,7 +108,7 @@ impl Metrics {
             new_avg,
             previous_avg,
             req_processing_time,
-            udp_announces_handled
+            request_accepted_total
         );
 
         self.update_udp_avg_processing_time_ns(new_avg, label_set, now);
@@ -124,15 +125,15 @@ impl Metrics {
     ) -> f64 {
         let req_processing_time = req_processing_time.as_nanos() as f64;
 
-        let udp_scrapes_handled = (self.udp4_scrapes_handled() + self.udp6_scrapes_handled()) as f64;
+        let request_accepted_total = self.udp_request_accepted(label_set) as f64;
 
-        let previous_avg = self.udp_avg_scrape_processing_time_ns();
+        let previous_avg = self.udp_avg_processing_time_ns(label_set);
 
-        let new_avg = if udp_scrapes_handled == 0.0 {
+        let new_avg = if request_accepted_total == 0.0 {
             req_processing_time
         } else {
             // Moving average: https://en.wikipedia.org/wiki/Moving_average
-            previous_avg as f64 + (req_processing_time - previous_avg as f64) / udp_scrapes_handled
+            previous_avg as f64 + (req_processing_time - previous_avg as f64) / request_accepted_total
         };
 
         tracing::debug!(
@@ -140,12 +141,33 @@ impl Metrics {
             new_avg,
             previous_avg,
             req_processing_time,
-            udp_scrapes_handled
+            request_accepted_total
         );
 
         self.update_udp_avg_processing_time_ns(new_avg, label_set, now);
 
         new_avg
+    }
+
+    #[must_use]
+    #[allow(clippy::cast_sign_loss)]
+    #[allow(clippy::cast_possible_truncation)]
+    pub fn udp_avg_processing_time_ns(&self, label_set: &LabelSet) -> u64 {
+        self.metric_collection
+            .sum(
+                &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS),
+                label_set,
+            )
+            .unwrap_or_default() as u64
+    }
+
+    #[must_use]
+    #[allow(clippy::cast_sign_loss)]
+    #[allow(clippy::cast_possible_truncation)]
+    pub fn udp_request_accepted(&self, label_set: &LabelSet) -> u64 {
+        self.metric_collection
+            .sum(&metric_name!(UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL), label_set)
+            .unwrap_or_default() as u64
     }
 
     fn update_udp_avg_processing_time_ns(&mut self, new_avg: f64, label_set: &LabelSet, now: DurationSinceUnixEpoch) {
