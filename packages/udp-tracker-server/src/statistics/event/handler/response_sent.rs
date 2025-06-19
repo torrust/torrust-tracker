@@ -4,7 +4,7 @@ use torrust_tracker_primitives::DurationSinceUnixEpoch;
 
 use crate::event::{ConnectionContext, UdpRequestKind, UdpResponseKind};
 use crate::statistics::repository::Repository;
-use crate::statistics::{UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS, UDP_TRACKER_SERVER_RESPONSES_SENT_TOTAL};
+use crate::statistics::UDP_TRACKER_SERVER_RESPONSES_SENT_TOTAL;
 
 pub async fn handle_event(
     context: ConnectionContext,
@@ -36,33 +36,20 @@ pub async fn handle_event(
                 (LabelValue::new("ok"), UdpRequestKind::Announce { announce_request }.into())
             }
             UdpRequestKind::Scrape => {
-                let new_avg = stats_repository
-                    .recalculate_udp_avg_scrape_processing_time_ns(req_processing_time)
-                    .await;
-
-                tracing::debug!("Updating average processing time metric for scrape requests: {} ns", new_avg);
-
                 let mut label_set = LabelSet::from(context.clone());
                 label_set.upsert(label_name!("request_kind"), LabelValue::new(&req_kind.to_string()));
-                match stats_repository
-                    .set_gauge(
-                        &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS),
-                        &label_set,
-                        new_avg,
-                        now,
-                    )
-                    .await
-                {
-                    Ok(()) => {}
-                    Err(err) => tracing::error!("Failed to set gauge: {}", err),
-                }
+
+                let _new_avg = stats_repository
+                    .recalculate_udp_avg_scrape_processing_time_ns(req_processing_time, &label_set, now)
+                    .await;
+
                 (LabelValue::new("ok"), LabelValue::new(&UdpRequestKind::Scrape.to_string()))
             }
         },
         UdpResponseKind::Error { opt_req_kind: _ } => (LabelValue::new("error"), LabelValue::ignore()),
     };
 
-    // Extendable metrics
+    // Increase the number of responses sent
     let mut label_set = LabelSet::from(context);
     if result_label_value == LabelValue::new("ok") {
         label_set.upsert(label_name!("request_kind"), kind_label_value);
