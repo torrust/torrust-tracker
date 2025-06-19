@@ -9,7 +9,8 @@ use torrust_tracker_metrics::metric_name;
 use torrust_tracker_primitives::DurationSinceUnixEpoch;
 
 use crate::statistics::{
-    UDP_TRACKER_SERVER_ERRORS_TOTAL, UDP_TRACKER_SERVER_IPS_BANNED_TOTAL, UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS,
+    UDP_TRACKER_SERVER_ERRORS_TOTAL, UDP_TRACKER_SERVER_IPS_BANNED_TOTAL,
+    UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSED_REQUESTS_TOTAL, UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS,
     UDP_TRACKER_SERVER_REQUESTS_ABORTED_TOTAL, UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL,
     UDP_TRACKER_SERVER_REQUESTS_BANNED_TOTAL, UDP_TRACKER_SERVER_REQUESTS_RECEIVED_TOTAL,
     UDP_TRACKER_SERVER_RESPONSES_SENT_TOTAL,
@@ -57,26 +58,22 @@ impl Metrics {
         label_set: &LabelSet,
         now: DurationSinceUnixEpoch,
     ) -> f64 {
+        self.increment_udp_processed_requests_total(label_set, now);
+
+        let processed_requests_total = self.udp_processed_requests_total(label_set) as f64;
+        let previous_avg = self.udp_avg_processing_time_ns(label_set);
         let req_processing_time = req_processing_time.as_nanos() as f64;
 
-        let request_accepted_total = self.udp_request_accepted(label_set) as f64;
-
-        let previous_avg = self.udp_avg_processing_time_ns(label_set);
-
-        let new_avg = if request_accepted_total == 0.0 {
-            req_processing_time
-        } else {
-            // Moving average: https://en.wikipedia.org/wiki/Moving_average
-            previous_avg as f64 + (req_processing_time - previous_avg as f64) / request_accepted_total
-        };
+        // Moving average: https://en.wikipedia.org/wiki/Moving_average
+        let new_avg = previous_avg as f64 + (req_processing_time - previous_avg as f64) / processed_requests_total;
 
         tracing::debug!(
-            "Recalculated UDP average processing time for labels {}: {} ns (previous: {} ns, req_processing_time: {} ns, request_accepted_total: {})",
+            "Recalculated UDP average processing time for labels {}: {} ns (previous: {} ns, req_processing_time: {} ns, request_processed_total: {})",
             label_set,
             new_avg,
             previous_avg,
             req_processing_time,
-            request_accepted_total
+            processed_requests_total
         );
 
         self.update_udp_avg_processing_time_ns(new_avg, label_set, now);
@@ -105,6 +102,18 @@ impl Metrics {
             .unwrap_or_default() as u64
     }
 
+    #[must_use]
+    #[allow(clippy::cast_sign_loss)]
+    #[allow(clippy::cast_possible_truncation)]
+    pub fn udp_processed_requests_total(&self, label_set: &LabelSet) -> u64 {
+        self.metric_collection
+            .sum(
+                &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSED_REQUESTS_TOTAL),
+                label_set,
+            )
+            .unwrap_or_default() as u64
+    }
+
     fn update_udp_avg_processing_time_ns(&mut self, new_avg: f64, label_set: &LabelSet, now: DurationSinceUnixEpoch) {
         tracing::debug!(
             "Updating average processing time metric to {} ns for label set {}",
@@ -120,6 +129,19 @@ impl Metrics {
         ) {
             Ok(()) => {}
             Err(err) => tracing::error!("Failed to set gauge: {}", err),
+        }
+    }
+
+    fn increment_udp_processed_requests_total(&mut self, label_set: &LabelSet, now: DurationSinceUnixEpoch) {
+        tracing::debug!("Incrementing processed requests total for label set {}", label_set,);
+
+        match self.increase_counter(
+            &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSED_REQUESTS_TOTAL),
+            label_set,
+            now,
+        ) {
+            Ok(()) => {}
+            Err(err) => tracing::error!("Failed to increment counter: {}", err),
         }
     }
 
@@ -360,9 +382,10 @@ mod tests {
     use super::*;
     use crate::statistics::{
         UDP_TRACKER_SERVER_ERRORS_TOTAL, UDP_TRACKER_SERVER_IPS_BANNED_TOTAL,
-        UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS, UDP_TRACKER_SERVER_REQUESTS_ABORTED_TOTAL,
-        UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL, UDP_TRACKER_SERVER_REQUESTS_BANNED_TOTAL,
-        UDP_TRACKER_SERVER_REQUESTS_RECEIVED_TOTAL, UDP_TRACKER_SERVER_RESPONSES_SENT_TOTAL,
+        UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSED_REQUESTS_TOTAL, UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS,
+        UDP_TRACKER_SERVER_REQUESTS_ABORTED_TOTAL, UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL,
+        UDP_TRACKER_SERVER_REQUESTS_BANNED_TOTAL, UDP_TRACKER_SERVER_REQUESTS_RECEIVED_TOTAL,
+        UDP_TRACKER_SERVER_RESPONSES_SENT_TOTAL,
     };
     use crate::CurrentClock;
 
@@ -435,6 +458,31 @@ mod tests {
         );
 
         assert!(result.is_ok());
+    }
+
+    #[test]
+    fn it_should_return_zero_for_udp_processed_requests_total_when_no_data() {
+        let metrics = Metrics::default();
+        let labels = LabelSet::from([("request_kind", "connect")]);
+        assert_eq!(metrics.udp_processed_requests_total(&labels), 0);
+    }
+
+    #[test]
+    fn it_should_increment_processed_requests_total() {
+        let mut metrics = Metrics::default();
+        let now = CurrentClock::now();
+        let labels = LabelSet::from([("request_kind", "connect")]);
+
+        // Directly increment the counter using the public method
+        metrics
+            .increase_counter(
+                &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSED_REQUESTS_TOTAL),
+                &labels,
+                now,
+            )
+            .unwrap();
+
+        assert_eq!(metrics.udp_processed_requests_total(&labels), 1);
     }
 
     mod udp_general_metrics {

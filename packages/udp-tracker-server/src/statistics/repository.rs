@@ -295,21 +295,6 @@ mod tests {
         let repo = Repository::new();
         let now = CurrentClock::now();
 
-        // Set up initial connections handled
-        let ipv4_labels = LabelSet::from([("server_binding_address_ip_family", "inet"), ("request_kind", "connect")]);
-        let ipv6_labels = LabelSet::from([("server_binding_address_ip_family", "inet6"), ("request_kind", "connect")]);
-
-        // Simulate 2 IPv4 and 1 IPv6 connections
-        repo.increase_counter(&metric_name!(UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL), &ipv4_labels, now)
-            .await
-            .unwrap();
-        repo.increase_counter(&metric_name!(UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL), &ipv4_labels, now)
-            .await
-            .unwrap();
-        repo.increase_counter(&metric_name!(UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL), &ipv6_labels, now)
-            .await
-            .unwrap();
-
         // Set initial average to 1000ns
         let connect_labels = LabelSet::from([("request_kind", "connect")]);
         repo.set_gauge(
@@ -322,14 +307,16 @@ mod tests {
         .unwrap();
 
         // Calculate new average with processing time of 2000ns
+        // This will increment the processed requests counter from 0 to 1
         let processing_time = Duration::from_nanos(2000);
         let new_avg = repo
             .recalculate_udp_avg_processing_time_ns(processing_time, &connect_labels, now)
             .await;
 
-        // Moving average: previous_avg + (new_value - previous_avg) / total_connections
-        // 1000 + (2000 - 1000) / 3 = 1000 + 333.33 = 1333.33
-        let expected_avg = 1000.0 + (2000.0 - 1000.0) / 3.0;
+        // Moving average: previous_avg + (new_value - previous_avg) / processed_requests_total
+        // With processed_requests_total = 1 (incremented during the call):
+        // 1000 + (2000 - 1000) / 1 = 1000 + 1000 = 2000
+        let expected_avg = 1000.0 + (2000.0 - 1000.0) / 1.0;
         assert!(
             (new_avg - expected_avg).abs() < 0.01,
             "Expected {expected_avg}, got {new_avg}"
@@ -340,22 +327,6 @@ mod tests {
     async fn it_should_recalculate_the_udp_average_announce_processing_time_in_nanoseconds_using_moving_average() {
         let repo = Repository::new();
         let now = CurrentClock::now();
-
-        // Set up initial announces handled
-        let ipv4_labels = LabelSet::from([("server_binding_address_ip_family", "inet"), ("request_kind", "announce")]);
-        let ipv6_labels = LabelSet::from([("server_binding_address_ip_family", "inet6"), ("request_kind", "announce")]);
-
-        // Simulate 3 IPv4 and 2 IPv6 announces
-        for _ in 0..3 {
-            repo.increase_counter(&metric_name!(UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL), &ipv4_labels, now)
-                .await
-                .unwrap();
-        }
-        for _ in 0..2 {
-            repo.increase_counter(&metric_name!(UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL), &ipv6_labels, now)
-                .await
-                .unwrap();
-        }
 
         // Set initial average to 500ns
         let announce_labels = LabelSet::from([("request_kind", "announce")]);
@@ -369,14 +340,16 @@ mod tests {
         .unwrap();
 
         // Calculate new average with processing time of 1500ns
+        // This will increment the processed requests counter from 0 to 1
         let processing_time = Duration::from_nanos(1500);
         let new_avg = repo
             .recalculate_udp_avg_processing_time_ns(processing_time, &announce_labels, now)
             .await;
 
-        // Moving average: previous_avg + (new_value - previous_avg) / total_announces
-        // 500 + (1500 - 500) / 5 = 500 + 200 = 700
-        let expected_avg = 500.0 + (1500.0 - 500.0) / 5.0;
+        // Moving average: previous_avg + (new_value - previous_avg) / processed_requests_total
+        // With processed_requests_total = 1 (incremented during the call):
+        // 500 + (1500 - 500) / 1 = 500 + 1000 = 1500
+        let expected_avg = 500.0 + (1500.0 - 500.0) / 1.0;
         assert!(
             (new_avg - expected_avg).abs() < 0.01,
             "Expected {expected_avg}, got {new_avg}"
@@ -387,16 +360,6 @@ mod tests {
     async fn it_should_recalculate_the_udp_average_scrape_processing_time_in_nanoseconds_using_moving_average() {
         let repo = Repository::new();
         let now = CurrentClock::now();
-
-        // Set up initial scrapes handled
-        let ipv4_labels = LabelSet::from([("server_binding_address_ip_family", "inet"), ("request_kind", "scrape")]);
-
-        // Simulate 4 IPv4 scrapes
-        for _ in 0..4 {
-            repo.increase_counter(&metric_name!(UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL), &ipv4_labels, now)
-                .await
-                .unwrap();
-        }
 
         // Set initial average to 800ns
         let scrape_labels = LabelSet::from([("request_kind", "scrape")]);
@@ -410,14 +373,16 @@ mod tests {
         .unwrap();
 
         // Calculate new average with processing time of 1200ns
+        // This will increment the processed requests counter from 0 to 1
         let processing_time = Duration::from_nanos(1200);
         let new_avg = repo
             .recalculate_udp_avg_processing_time_ns(processing_time, &scrape_labels, now)
             .await;
 
-        // Moving average: previous_avg + (new_value - previous_avg) / total_scrapes
-        // 800 + (1200 - 800) / 4 = 800 + 100 = 900
-        let expected_avg = 800.0 + (1200.0 - 800.0) / 4.0;
+        // Moving average: previous_avg + (new_value - previous_avg) / processed_requests_total
+        // With processed_requests_total = 1 (incremented during the call):
+        // 800 + (1200 - 800) / 1 = 800 + 400 = 1200
+        let expected_avg = 800.0 + (1200.0 - 800.0) / 1.0;
         assert!(
             (new_avg - expected_avg).abs() < 0.01,
             "Expected {expected_avg}, got {new_avg}"
@@ -584,49 +549,38 @@ mod tests {
         let connect_labels = LabelSet::from([("request_kind", "connect")]);
         let now = CurrentClock::now();
 
-        // This test checks the behavior of `recalculate_udp_avg_connect_processing_time_ns``
-        // when no connections have been recorded yet. The first call should
-        // handle division by zero gracefully and return an infinite average,
-        // which is the current behavior.
+        // This test checks the behavior of `recalculate_udp_avg_processing_time_ns`
+        // when no processed requests have been recorded yet. The first call should
+        // handle division by zero gracefully and set the first average to the
+        // processing time of the first request.
 
-        // todo: the first average should be 2000ns, not infinity.
-        // This is because the first connection is not counted in the average
-        // calculation if the counter is increased after calculating the average.
-        // The problem is that we count requests when they are accepted, not
-        // when they are processed. And we calculate the average when the
-        // response is sent.
-
-        // First calculation: no connections recorded yet, should result in infinity
+        // First calculation: no processed requests recorded yet
         let processing_time_1 = Duration::from_nanos(2000);
         let avg_1 = repo
             .recalculate_udp_avg_processing_time_ns(processing_time_1, &connect_labels, now)
             .await;
 
+        // The first average should be the first processing time since processed_requests_total is 0
+        // When processed_requests_total == 0.0, new_avg = req_processing_time
         assert!(
             (avg_1 - 2000.0).abs() < f64::EPSILON,
             "First calculation should be 2000, but got {avg_1}"
         );
 
-        // Now add one connection and try again
-        let ipv4_labels = LabelSet::from([("server_binding_address_ip_family", "inet"), ("request_kind", "connect")]);
-        repo.increase_counter(&metric_name!(UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL), &ipv4_labels, now)
-            .await
-            .unwrap();
-
-        // Second calculation: 1 connection
+        // Second calculation: now we have one processed request (incremented during first call)
         let processing_time_2 = Duration::from_nanos(3000);
-        let connect_labels = LabelSet::from([("request_kind", "connect")]);
         let avg_2 = repo
             .recalculate_udp_avg_processing_time_ns(processing_time_2, &connect_labels, now)
             .await;
 
-        // There is one connection, so the average should be:
-        // 2000 + (3000 - 2000) / 1 = 2000 + 1000 = 3000
-        // This is because one connection is not counted yet in the average calculation,
-        // so the average is simply the processing time of the second connection.
+        // Moving average calculation: previous_avg + (new_value - previous_avg) / processed_requests_total
+        // After first call: processed_requests_total = 1, avg = 2000
+        // During second call: processed_requests_total incremented to 2
+        // new_avg = 2000 + (3000 - 2000) / 2 = 2000 + 500 = 2500
+        let expected_avg_2 = 2000.0 + (3000.0 - 2000.0) / 2.0;
         assert!(
-            (avg_2 - 3000.0).abs() < f64::EPSILON,
-            "Second calculation should be 3000ns, but got {avg_2}"
+            (avg_2 - expected_avg_2).abs() < f64::EPSILON,
+            "Second calculation should be {expected_avg_2}ns, but got {avg_2}"
         );
     }
 }
