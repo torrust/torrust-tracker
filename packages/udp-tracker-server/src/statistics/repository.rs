@@ -564,4 +564,206 @@ mod tests {
         // Should handle NaN values
         assert!(result.is_ok());
     }
+
+    #[tokio::test]
+    #[allow(clippy::too_many_lines)]
+    async fn it_should_handle_race_conditions_when_updating_udp_performance_metrics_in_parallel() {
+        // Number of concurrent requests per server
+        const REQUESTS_PER_SERVER: usize = 100;
+
+        let repo = Repository::new();
+        let now = CurrentClock::now();
+
+        // Define labels for two different UDP servers
+        let server1_labels = LabelSet::from([
+            ("request_kind", "connect"),
+            ("server_binding_address_ip_family", "inet"),
+            ("server_port", "6868"),
+        ]);
+        let server2_labels = LabelSet::from([
+            ("request_kind", "connect"),
+            ("server_binding_address_ip_family", "inet"),
+            ("server_port", "6969"),
+        ]);
+
+        let mut handles = vec![];
+
+        // Spawn tasks for server 1
+        for i in 0..REQUESTS_PER_SERVER {
+            let repo_clone = repo.clone();
+            let labels = server1_labels.clone();
+            let handle = tokio::spawn(async move {
+                // Simulate varying processing times (1000ns to 5000ns)
+                let processing_time_ns = 1000 + (i % 5) * 1000;
+                let processing_time = Duration::from_nanos(processing_time_ns as u64);
+
+                repo_clone
+                    .recalculate_udp_avg_processing_time_ns(processing_time, &labels, now)
+                    .await
+            });
+            handles.push(handle);
+        }
+
+        // Spawn tasks for server 2
+        for i in 0..REQUESTS_PER_SERVER {
+            let repo_clone = repo.clone();
+            let labels = server2_labels.clone();
+            let handle = tokio::spawn(async move {
+                // Simulate different processing times (2000ns to 6000ns)
+                let processing_time_ns = 2000 + (i % 5) * 1000;
+                let processing_time = Duration::from_nanos(processing_time_ns as u64);
+
+                repo_clone
+                    .recalculate_udp_avg_processing_time_ns(processing_time, &labels, now)
+                    .await
+            });
+            handles.push(handle);
+        }
+
+        // Collect all the results
+        let mut server1_results = Vec::new();
+        let mut server2_results = Vec::new();
+
+        for (i, handle) in handles.into_iter().enumerate() {
+            let result = handle.await.unwrap();
+            if i < REQUESTS_PER_SERVER {
+                server1_results.push(result);
+            } else {
+                server2_results.push(result);
+            }
+        }
+
+        // Verify that all tasks completed successfully
+        assert_eq!(server1_results.len(), REQUESTS_PER_SERVER);
+        assert_eq!(server2_results.len(), REQUESTS_PER_SERVER);
+
+        // Verify that all results are finite and positive
+        for result in &server1_results {
+            assert!(result.is_finite(), "Server 1 result should be finite: {result}");
+            assert!(*result > 0.0, "Server 1 result should be positive: {result}");
+        }
+
+        for result in &server2_results {
+            assert!(result.is_finite(), "Server 2 result should be finite: {result}");
+            assert!(*result > 0.0, "Server 2 result should be positive: {result}");
+        }
+
+        // Get final stats and verify metrics integrity
+        let stats = repo.get_stats().await;
+
+        // Verify that the processed requests counters are correct for each server
+        #[allow(clippy::cast_sign_loss)]
+        #[allow(clippy::cast_possible_truncation)]
+        let server1_processed = stats
+            .metric_collection
+            .get_counter_value(
+                &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSED_REQUESTS_TOTAL),
+                &server1_labels,
+            )
+            .unwrap()
+            .value();
+
+        #[allow(clippy::cast_sign_loss)]
+        #[allow(clippy::cast_possible_truncation)]
+        let server2_processed = stats
+            .metric_collection
+            .get_counter_value(
+                &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSED_REQUESTS_TOTAL),
+                &server2_labels,
+            )
+            .unwrap()
+            .value();
+
+        assert_eq!(
+            server1_processed, REQUESTS_PER_SERVER as u64,
+            "Server 1 should have processed {REQUESTS_PER_SERVER} requests",
+        );
+        assert_eq!(
+            server2_processed, REQUESTS_PER_SERVER as u64,
+            "Server 2 should have processed {REQUESTS_PER_SERVER} requests",
+        );
+
+        // Verify that the final average processing times are reasonable
+        #[allow(clippy::cast_sign_loss)]
+        #[allow(clippy::cast_possible_truncation)]
+        let server1_final_avg = stats
+            .metric_collection
+            .get_gauge_value(
+                &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS),
+                &server1_labels,
+            )
+            .unwrap()
+            .value();
+
+        #[allow(clippy::cast_sign_loss)]
+        #[allow(clippy::cast_possible_truncation)]
+        let server2_final_avg = stats
+            .metric_collection
+            .get_gauge_value(
+                &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS),
+                &server2_labels,
+            )
+            .unwrap()
+            .value();
+
+        // Server 1: 100 requests cycling through [1000, 2000, 3000, 4000, 5000] ns
+        // Expected average: (20×1000 + 20×2000 + 20×3000 + 20×4000 + 20×5000) / 100 = 3000 ns
+        // Note: Moving average with concurrent updates may have small deviations due to order dependency
+        assert!(
+            (server1_final_avg - 3000.0).abs() < 50.0,
+            "Server 1 final average should be close to 3000ns (±50ns), got {server1_final_avg}ns"
+        );
+
+        // Server 2: 100 requests cycling through [2000, 3000, 4000, 5000, 6000] ns
+        // Expected average: (20×2000 + 20×3000 + 20×4000 + 20×5000 + 20×6000) / 100 = 4000 ns
+        // Note: Moving average with concurrent updates may have small deviations due to order dependency
+        assert!(
+            (server2_final_avg - 4000.0).abs() < 50.0,
+            "Server 2 final average should be close to 4000ns (±50ns), got {server2_final_avg}ns"
+        );
+
+        // Verify that the two servers have different averages (they should since they have different processing time ranges)
+        assert!(
+            (server1_final_avg - server2_final_avg).abs() > 950.0,
+            "Server 1 and Server 2 should have different average processing times"
+        );
+
+        // Server 2 should generally have higher averages since its processing times are higher
+        assert!(
+            server2_final_avg > server1_final_avg,
+            "Server 2 average ({server2_final_avg}) should be higher than Server 1 average ({server1_final_avg})"
+        );
+
+        // Verify that the moving average calculation maintains consistency
+        // The last result for each server should match the final stored average
+        let server1_last_result = server1_results.last().copied().unwrap();
+        let server2_last_result = server2_results.last().copied().unwrap();
+
+        // Note: Due to race conditions, the last result might not exactly match the final stored average
+        // but it should be in a reasonable range. We'll check that they're in the same ballpark.
+        let server1_diff = (server1_last_result - server1_final_avg).abs();
+        let server2_diff = (server2_last_result - server2_final_avg).abs();
+
+        assert!(
+            server1_diff <= 0.0,
+            "Server 1 last result ({server1_last_result}) should be equal to final average ({server1_final_avg}), diff: {server1_diff}",
+        );
+
+        assert!(
+            server2_diff <= 0.0,
+            "Server 2 last result ({server2_last_result}) should be equal to final average ({server2_final_avg}), diff: {server2_diff}",
+        );
+
+        // Verify that the metric collection contains the expected metrics for both servers
+        assert!(stats
+            .metric_collection
+            .contains_gauge(&metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS)));
+        assert!(stats
+            .metric_collection
+            .contains_counter(&metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSED_REQUESTS_TOTAL)));
+
+        println!(
+            "Race condition test completed successfully:\n  Server 1: {server1_processed} requests, final avg: {server1_final_avg}ns\n  Server 2: {server2_processed} requests, final avg: {server2_final_avg}ns"
+        );
+    }
 }
