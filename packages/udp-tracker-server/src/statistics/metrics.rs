@@ -85,7 +85,7 @@ impl Metrics {
     #[must_use]
     #[allow(clippy::cast_sign_loss)]
     #[allow(clippy::cast_possible_truncation)]
-    pub fn udp_avg_processing_time_ns(&self, label_set: &LabelSet) -> u64 {
+    fn udp_avg_processing_time_ns(&self, label_set: &LabelSet) -> u64 {
         self.metric_collection
             .sum(
                 &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS),
@@ -106,7 +106,7 @@ impl Metrics {
     #[must_use]
     #[allow(clippy::cast_sign_loss)]
     #[allow(clippy::cast_possible_truncation)]
-    pub fn udp_processed_requests_total(&self, label_set: &LabelSet) -> u64 {
+    fn udp_processed_requests_total(&self, label_set: &LabelSet) -> u64 {
         self.metric_collection
             .sum(
                 &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSED_REQUESTS_TOTAL),
