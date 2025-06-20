@@ -137,6 +137,6 @@ mod tests {
 
         let stats = stats_repository.get_stats().await;
 
-        assert_eq!(stats.udp4_errors_handled(), 1);
+        assert_eq!(stats.udp4_errors_total(), 1);
     }
 }

@@ -95,6 +95,7 @@ mod tests {
     use std::time::Duration;
 
     use torrust_tracker_clock::clock::Time;
+    use torrust_tracker_metrics::metric_collection::aggregate::sum::Sum;
     use torrust_tracker_metrics::metric_name;
 
     use super::*;
@@ -155,8 +156,8 @@ mod tests {
         let stats = repo.get_stats().await;
 
         // Should be able to read metrics through the guard
-        assert_eq!(stats.udp_requests_aborted(), 0);
-        assert_eq!(stats.udp_requests_banned(), 0);
+        assert_eq!(stats.udp_requests_aborted_total(), 0);
+        assert_eq!(stats.udp_requests_banned_total(), 0);
     }
 
     #[tokio::test]
@@ -174,7 +175,7 @@ mod tests {
 
         // Verify the counter was incremented
         let stats = repo.get_stats().await;
-        assert_eq!(stats.udp_requests_aborted(), 1);
+        assert_eq!(stats.udp_requests_aborted_total(), 1);
     }
 
     #[tokio::test]
@@ -192,7 +193,7 @@ mod tests {
 
         // Verify the counter was incremented correctly
         let stats = repo.get_stats().await;
-        assert_eq!(stats.udp_requests_aborted(), 5);
+        assert_eq!(stats.udp_requests_aborted_total(), 5);
     }
 
     #[tokio::test]
@@ -214,8 +215,8 @@ mod tests {
 
         // Verify both labeled metrics
         let stats = repo.get_stats().await;
-        assert_eq!(stats.udp4_requests(), 1);
-        assert_eq!(stats.udp6_requests(), 1);
+        assert_eq!(stats.udp4_requests_received_total(), 1);
+        assert_eq!(stats.udp6_requests_received_total(), 1);
     }
 
     #[tokio::test]
@@ -286,8 +287,29 @@ mod tests {
 
         // Verify both labeled metrics
         let stats = repo.get_stats().await;
-        assert_eq!(stats.udp_avg_connect_processing_time_ns(), 1000);
-        assert_eq!(stats.udp_avg_announce_processing_time_ns(), 2000);
+
+        #[allow(clippy::cast_sign_loss)]
+        #[allow(clippy::cast_possible_truncation)]
+        let udp_avg_connect_processing_time_ns = stats
+            .metric_collection
+            .sum(
+                &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS),
+                &[("request_kind", "connect")].into(),
+            )
+            .unwrap_or_default() as u64;
+
+        #[allow(clippy::cast_sign_loss)]
+        #[allow(clippy::cast_possible_truncation)]
+        let udp_avg_announce_processing_time_ns = stats
+            .metric_collection
+            .sum(
+                &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS),
+                &[("request_kind", "announce")].into(),
+            )
+            .unwrap_or_default() as u64;
+
+        assert_eq!(udp_avg_connect_processing_time_ns, 1000);
+        assert_eq!(udp_avg_announce_processing_time_ns, 2000);
     }
 
     #[tokio::test]
@@ -452,7 +474,7 @@ mod tests {
 
         // Verify all increments were properly recorded
         let stats = repo.get_stats().await;
-        assert_eq!(stats.udp_requests_aborted(), 50); // 10 tasks * 5 increments each
+        assert_eq!(stats.udp_requests_aborted_total(), 50); // 10 tasks * 5 increments each
     }
 
     #[tokio::test]
@@ -511,9 +533,9 @@ mod tests {
 
         // Check final state
         let stats = repo.get_stats().await;
-        assert_eq!(stats.udp_requests_aborted(), 1);
+        assert_eq!(stats.udp_requests_aborted_total(), 1);
         assert_eq!(stats.udp_banned_ips_total(), 10);
-        assert_eq!(stats.udp_requests_banned(), 1);
+        assert_eq!(stats.udp_requests_banned_total(), 1);
     }
 
     #[tokio::test]

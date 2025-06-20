@@ -105,7 +105,7 @@ mod tests {
 
         let stats = stats_repository.get_stats().await;
 
-        assert_eq!(stats.udp4_responses(), 1);
+        assert_eq!(stats.udp4_responses_sent_total(), 1);
     }
 
     #[tokio::test]
@@ -136,6 +136,6 @@ mod tests {
 
         let stats = stats_repository.get_stats().await;
 
-        assert_eq!(stats.udp6_responses(), 1);
+        assert_eq!(stats.udp6_responses_sent_total(), 1);
     }
 }
