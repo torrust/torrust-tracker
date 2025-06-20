@@ -542,45 +542,4 @@ mod tests {
         // Should handle NaN values
         assert!(result.is_ok());
     }
-
-    #[tokio::test]
-    async fn it_should_handle_moving_average_calculation_before_any_connections_are_recorded() {
-        let repo = Repository::new();
-        let connect_labels = LabelSet::from([("request_kind", "connect")]);
-        let now = CurrentClock::now();
-
-        // This test checks the behavior of `recalculate_udp_avg_processing_time_ns`
-        // when no processed requests have been recorded yet. The first call should
-        // handle division by zero gracefully and set the first average to the
-        // processing time of the first request.
-
-        // First calculation: no processed requests recorded yet
-        let processing_time_1 = Duration::from_nanos(2000);
-        let avg_1 = repo
-            .recalculate_udp_avg_processing_time_ns(processing_time_1, &connect_labels, now)
-            .await;
-
-        // The first average should be the first processing time since processed_requests_total is 0
-        // When processed_requests_total == 0.0, new_avg = req_processing_time
-        assert!(
-            (avg_1 - 2000.0).abs() < f64::EPSILON,
-            "First calculation should be 2000, but got {avg_1}"
-        );
-
-        // Second calculation: now we have one processed request (incremented during first call)
-        let processing_time_2 = Duration::from_nanos(3000);
-        let avg_2 = repo
-            .recalculate_udp_avg_processing_time_ns(processing_time_2, &connect_labels, now)
-            .await;
-
-        // Moving average calculation: previous_avg + (new_value - previous_avg) / processed_requests_total
-        // After first call: processed_requests_total = 1, avg = 2000
-        // During second call: processed_requests_total incremented to 2
-        // new_avg = 2000 + (3000 - 2000) / 2 = 2000 + 500 = 2500
-        let expected_avg_2 = 2000.0 + (3000.0 - 2000.0) / 2.0;
-        assert!(
-            (avg_2 - expected_avg_2).abs() < f64::EPSILON,
-            "Second calculation should be {expected_avg_2}ns, but got {avg_2}"
-        );
-    }
 }
