@@ -59,18 +59,6 @@ async fn get_protocol_metrics(
     let http_stats = http_stats_repository.get_stats().await;
     let udp_server_stats = udp_server_stats_repository.get_stats().await;
 
-    /*
-
-    todo: We have to delete the global metrics from Metric types:
-
-    - bittorrent_http_tracker_core::statistics::metrics::Metrics
-    - bittorrent_udp_tracker_core::statistics::metrics::Metrics
-    - torrust_udp_tracker_server::statistics::metrics::Metrics
-
-    Internally only the labeled metrics should be used.
-
-    */
-
     // TCPv4
 
     let tcp4_announces_handled = http_stats.tcp4_announces_handled();
