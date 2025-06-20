@@ -17,6 +17,8 @@ pub const UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL: &str = "udp_tracker_server
 pub const UDP_TRACKER_SERVER_RESPONSES_SENT_TOTAL: &str = "udp_tracker_server_responses_sent_total";
 pub const UDP_TRACKER_SERVER_ERRORS_TOTAL: &str = "udp_tracker_server_errors_total";
 pub const UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS: &str = "udp_tracker_server_performance_avg_processing_time_ns";
+pub const UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSED_REQUESTS_TOTAL: &str =
+    "udp_tracker_server_performance_avg_processed_requests_total";
 
 #[must_use]
 pub fn describe_metrics() -> Metrics {
@@ -74,6 +76,14 @@ pub fn describe_metrics() -> Metrics {
         &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS),
         Some(Unit::Nanoseconds),
         Some(MetricDescription::new("Average time to process a UDP request in nanoseconds")),
+    );
+
+    metrics.metric_collection.describe_counter(
+        &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSED_REQUESTS_TOTAL),
+        Some(Unit::Count),
+        Some(MetricDescription::new(
+            "Total number of UDP requests processed for the average performance metrics",
+        )),
     );
 
     metrics

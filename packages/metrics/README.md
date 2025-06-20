@@ -67,7 +67,7 @@ println!("{}", prometheus_output);
 ### Metric Aggregation
 
 ```rust
-use torrust_tracker_metrics::metric_collection::aggregate::Sum;
+use torrust_tracker_metrics::metric_collection::aggregate::{Sum, Avg};
 
 // Sum all counter values matching specific labels
 let total_requests = metrics.sum(
@@ -76,6 +76,14 @@ let total_requests = metrics.sum(
 );
 
 println!("Total requests: {:?}", total_requests);
+
+// Calculate average of gauge values matching specific labels
+let avg_response_time = metrics.avg(
+    &metric_name!("response_time_seconds"),
+    &[("endpoint", "/announce")].into(),
+);
+
+println!("Average response time: {:?}", avg_response_time);
 ```
 
 ## Architecture

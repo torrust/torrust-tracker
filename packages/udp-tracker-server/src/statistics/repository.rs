@@ -73,84 +73,17 @@ impl Repository {
         result
     }
 
-    #[allow(clippy::cast_precision_loss)]
-    #[allow(clippy::cast_possible_truncation)]
-    #[allow(clippy::cast_sign_loss)]
-    pub async fn recalculate_udp_avg_connect_processing_time_ns(&self, req_processing_time: Duration) -> f64 {
-        let stats_lock = self.stats.write().await;
+    pub async fn recalculate_udp_avg_processing_time_ns(
+        &self,
+        req_processing_time: Duration,
+        label_set: &LabelSet,
+        now: DurationSinceUnixEpoch,
+    ) -> f64 {
+        let mut stats_lock = self.stats.write().await;
 
-        let req_processing_time = req_processing_time.as_nanos() as f64;
-        let udp_connections_handled = (stats_lock.udp4_connections_handled() + stats_lock.udp6_connections_handled()) as f64;
-
-        let previous_avg = stats_lock.udp_avg_connect_processing_time_ns();
-
-        // Moving average: https://en.wikipedia.org/wiki/Moving_average
-        let new_avg = previous_avg as f64 + (req_processing_time - previous_avg as f64) / udp_connections_handled;
+        let new_avg = stats_lock.recalculate_udp_avg_processing_time_ns(req_processing_time, label_set, now);
 
         drop(stats_lock);
-
-        tracing::debug!(
-            "Recalculated UDP average connect processing time: {} ns (previous: {} ns, req_processing_time: {} ns, udp_connections_handled: {})",
-            new_avg,
-            previous_avg,
-            req_processing_time,
-            udp_connections_handled
-        );
-
-        new_avg
-    }
-
-    #[allow(clippy::cast_precision_loss)]
-    #[allow(clippy::cast_possible_truncation)]
-    #[allow(clippy::cast_sign_loss)]
-    pub async fn recalculate_udp_avg_announce_processing_time_ns(&self, req_processing_time: Duration) -> f64 {
-        let stats_lock = self.stats.write().await;
-
-        let req_processing_time = req_processing_time.as_nanos() as f64;
-
-        let udp_announces_handled = (stats_lock.udp4_announces_handled() + stats_lock.udp6_announces_handled()) as f64;
-
-        let previous_avg = stats_lock.udp_avg_announce_processing_time_ns();
-
-        // Moving average: https://en.wikipedia.org/wiki/Moving_average
-        let new_avg = previous_avg as f64 + (req_processing_time - previous_avg as f64) / udp_announces_handled;
-
-        drop(stats_lock);
-
-        tracing::debug!(
-            "Recalculated UDP average announce processing time: {} ns (previous: {} ns, req_processing_time: {} ns, udp_announces_handled: {})",
-            new_avg,
-            previous_avg,
-            req_processing_time,
-            udp_announces_handled
-        );
-
-        new_avg
-    }
-
-    #[allow(clippy::cast_precision_loss)]
-    #[allow(clippy::cast_possible_truncation)]
-    #[allow(clippy::cast_sign_loss)]
-    pub async fn recalculate_udp_avg_scrape_processing_time_ns(&self, req_processing_time: Duration) -> f64 {
-        let stats_lock = self.stats.write().await;
-
-        let req_processing_time = req_processing_time.as_nanos() as f64;
-        let udp_scrapes_handled = (stats_lock.udp4_scrapes_handled() + stats_lock.udp6_scrapes_handled()) as f64;
-
-        let previous_avg = stats_lock.udp_avg_scrape_processing_time_ns();
-
-        // Moving average: https://en.wikipedia.org/wiki/Moving_average
-        let new_avg = previous_avg as f64 + (req_processing_time - previous_avg as f64) / udp_scrapes_handled;
-
-        drop(stats_lock);
-
-        tracing::debug!(
-            "Recalculated UDP average scrape processing time: {} ns (previous: {} ns, req_processing_time: {} ns, udp_scrapes_handled: {})",
-            new_avg,
-            previous_avg,
-            req_processing_time,
-            udp_scrapes_handled
-        );
 
         new_avg
     }
@@ -162,6 +95,7 @@ mod tests {
     use std::time::Duration;
 
     use torrust_tracker_clock::clock::Time;
+    use torrust_tracker_metrics::metric_collection::aggregate::sum::Sum;
     use torrust_tracker_metrics::metric_name;
 
     use super::*;
@@ -222,8 +156,8 @@ mod tests {
         let stats = repo.get_stats().await;
 
         // Should be able to read metrics through the guard
-        assert_eq!(stats.udp_requests_aborted(), 0);
-        assert_eq!(stats.udp_requests_banned(), 0);
+        assert_eq!(stats.udp_requests_aborted_total(), 0);
+        assert_eq!(stats.udp_requests_banned_total(), 0);
     }
 
     #[tokio::test]
@@ -241,7 +175,7 @@ mod tests {
 
         // Verify the counter was incremented
         let stats = repo.get_stats().await;
-        assert_eq!(stats.udp_requests_aborted(), 1);
+        assert_eq!(stats.udp_requests_aborted_total(), 1);
     }
 
     #[tokio::test]
@@ -259,7 +193,7 @@ mod tests {
 
         // Verify the counter was incremented correctly
         let stats = repo.get_stats().await;
-        assert_eq!(stats.udp_requests_aborted(), 5);
+        assert_eq!(stats.udp_requests_aborted_total(), 5);
     }
 
     #[tokio::test]
@@ -281,8 +215,8 @@ mod tests {
 
         // Verify both labeled metrics
         let stats = repo.get_stats().await;
-        assert_eq!(stats.udp4_requests(), 1);
-        assert_eq!(stats.udp6_requests(), 1);
+        assert_eq!(stats.udp4_requests_received_total(), 1);
+        assert_eq!(stats.udp6_requests_received_total(), 1);
     }
 
     #[tokio::test]
@@ -353,29 +287,35 @@ mod tests {
 
         // Verify both labeled metrics
         let stats = repo.get_stats().await;
-        assert_eq!(stats.udp_avg_connect_processing_time_ns(), 1000);
-        assert_eq!(stats.udp_avg_announce_processing_time_ns(), 2000);
+
+        #[allow(clippy::cast_sign_loss)]
+        #[allow(clippy::cast_possible_truncation)]
+        let udp_avg_connect_processing_time_ns = stats
+            .metric_collection
+            .sum(
+                &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS),
+                &[("request_kind", "connect")].into(),
+            )
+            .unwrap_or_default() as u64;
+
+        #[allow(clippy::cast_sign_loss)]
+        #[allow(clippy::cast_possible_truncation)]
+        let udp_avg_announce_processing_time_ns = stats
+            .metric_collection
+            .sum(
+                &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS),
+                &[("request_kind", "announce")].into(),
+            )
+            .unwrap_or_default() as u64;
+
+        assert_eq!(udp_avg_connect_processing_time_ns, 1000);
+        assert_eq!(udp_avg_announce_processing_time_ns, 2000);
     }
 
     #[tokio::test]
     async fn it_should_recalculate_the_udp_average_connect_processing_time_in_nanoseconds_using_moving_average() {
         let repo = Repository::new();
         let now = CurrentClock::now();
-
-        // Set up initial connections handled
-        let ipv4_labels = LabelSet::from([("server_binding_address_ip_family", "inet"), ("request_kind", "connect")]);
-        let ipv6_labels = LabelSet::from([("server_binding_address_ip_family", "inet6"), ("request_kind", "connect")]);
-
-        // Simulate 2 IPv4 and 1 IPv6 connections
-        repo.increase_counter(&metric_name!(UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL), &ipv4_labels, now)
-            .await
-            .unwrap();
-        repo.increase_counter(&metric_name!(UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL), &ipv4_labels, now)
-            .await
-            .unwrap();
-        repo.increase_counter(&metric_name!(UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL), &ipv6_labels, now)
-            .await
-            .unwrap();
 
         // Set initial average to 1000ns
         let connect_labels = LabelSet::from([("request_kind", "connect")]);
@@ -389,12 +329,16 @@ mod tests {
         .unwrap();
 
         // Calculate new average with processing time of 2000ns
+        // This will increment the processed requests counter from 0 to 1
         let processing_time = Duration::from_nanos(2000);
-        let new_avg = repo.recalculate_udp_avg_connect_processing_time_ns(processing_time).await;
+        let new_avg = repo
+            .recalculate_udp_avg_processing_time_ns(processing_time, &connect_labels, now)
+            .await;
 
-        // Moving average: previous_avg + (new_value - previous_avg) / total_connections
-        // 1000 + (2000 - 1000) / 3 = 1000 + 333.33 = 1333.33
-        let expected_avg = 1000.0 + (2000.0 - 1000.0) / 3.0;
+        // Moving average: previous_avg + (new_value - previous_avg) / processed_requests_total
+        // With processed_requests_total = 1 (incremented during the call):
+        // 1000 + (2000 - 1000) / 1 = 1000 + 1000 = 2000
+        let expected_avg = 1000.0 + (2000.0 - 1000.0) / 1.0;
         assert!(
             (new_avg - expected_avg).abs() < 0.01,
             "Expected {expected_avg}, got {new_avg}"
@@ -405,22 +349,6 @@ mod tests {
     async fn it_should_recalculate_the_udp_average_announce_processing_time_in_nanoseconds_using_moving_average() {
         let repo = Repository::new();
         let now = CurrentClock::now();
-
-        // Set up initial announces handled
-        let ipv4_labels = LabelSet::from([("server_binding_address_ip_family", "inet"), ("request_kind", "announce")]);
-        let ipv6_labels = LabelSet::from([("server_binding_address_ip_family", "inet6"), ("request_kind", "announce")]);
-
-        // Simulate 3 IPv4 and 2 IPv6 announces
-        for _ in 0..3 {
-            repo.increase_counter(&metric_name!(UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL), &ipv4_labels, now)
-                .await
-                .unwrap();
-        }
-        for _ in 0..2 {
-            repo.increase_counter(&metric_name!(UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL), &ipv6_labels, now)
-                .await
-                .unwrap();
-        }
 
         // Set initial average to 500ns
         let announce_labels = LabelSet::from([("request_kind", "announce")]);
@@ -434,12 +362,16 @@ mod tests {
         .unwrap();
 
         // Calculate new average with processing time of 1500ns
+        // This will increment the processed requests counter from 0 to 1
         let processing_time = Duration::from_nanos(1500);
-        let new_avg = repo.recalculate_udp_avg_announce_processing_time_ns(processing_time).await;
+        let new_avg = repo
+            .recalculate_udp_avg_processing_time_ns(processing_time, &announce_labels, now)
+            .await;
 
-        // Moving average: previous_avg + (new_value - previous_avg) / total_announces
-        // 500 + (1500 - 500) / 5 = 500 + 200 = 700
-        let expected_avg = 500.0 + (1500.0 - 500.0) / 5.0;
+        // Moving average: previous_avg + (new_value - previous_avg) / processed_requests_total
+        // With processed_requests_total = 1 (incremented during the call):
+        // 500 + (1500 - 500) / 1 = 500 + 1000 = 1500
+        let expected_avg = 500.0 + (1500.0 - 500.0) / 1.0;
         assert!(
             (new_avg - expected_avg).abs() < 0.01,
             "Expected {expected_avg}, got {new_avg}"
@@ -450,16 +382,6 @@ mod tests {
     async fn it_should_recalculate_the_udp_average_scrape_processing_time_in_nanoseconds_using_moving_average() {
         let repo = Repository::new();
         let now = CurrentClock::now();
-
-        // Set up initial scrapes handled
-        let ipv4_labels = LabelSet::from([("server_binding_address_ip_family", "inet"), ("request_kind", "scrape")]);
-
-        // Simulate 4 IPv4 scrapes
-        for _ in 0..4 {
-            repo.increase_counter(&metric_name!(UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL), &ipv4_labels, now)
-                .await
-                .unwrap();
-        }
 
         // Set initial average to 800ns
         let scrape_labels = LabelSet::from([("request_kind", "scrape")]);
@@ -473,12 +395,16 @@ mod tests {
         .unwrap();
 
         // Calculate new average with processing time of 1200ns
+        // This will increment the processed requests counter from 0 to 1
         let processing_time = Duration::from_nanos(1200);
-        let new_avg = repo.recalculate_udp_avg_scrape_processing_time_ns(processing_time).await;
+        let new_avg = repo
+            .recalculate_udp_avg_processing_time_ns(processing_time, &scrape_labels, now)
+            .await;
 
-        // Moving average: previous_avg + (new_value - previous_avg) / total_scrapes
-        // 800 + (1200 - 800) / 4 = 800 + 100 = 900
-        let expected_avg = 800.0 + (1200.0 - 800.0) / 4.0;
+        // Moving average: previous_avg + (new_value - previous_avg) / processed_requests_total
+        // With processed_requests_total = 1 (incremented during the call):
+        // 800 + (1200 - 800) / 1 = 800 + 400 = 1200
+        let expected_avg = 800.0 + (1200.0 - 800.0) / 1.0;
         assert!(
             (new_avg - expected_avg).abs() < 0.01,
             "Expected {expected_avg}, got {new_avg}"
@@ -488,19 +414,31 @@ mod tests {
     #[tokio::test]
     async fn recalculate_average_methods_should_handle_zero_connections_gracefully() {
         let repo = Repository::new();
+        let now = CurrentClock::now();
 
         // Test with zero connections (should not panic, should handle division by zero)
         let processing_time = Duration::from_nanos(1000);
 
-        let connect_avg = repo.recalculate_udp_avg_connect_processing_time_ns(processing_time).await;
-        let announce_avg = repo.recalculate_udp_avg_announce_processing_time_ns(processing_time).await;
-        let scrape_avg = repo.recalculate_udp_avg_scrape_processing_time_ns(processing_time).await;
+        let connect_labels = LabelSet::from([("request_kind", "connect")]);
+        let connect_avg = repo
+            .recalculate_udp_avg_processing_time_ns(processing_time, &connect_labels, now)
+            .await;
+
+        let announce_labels = LabelSet::from([("request_kind", "announce")]);
+        let announce_avg = repo
+            .recalculate_udp_avg_processing_time_ns(processing_time, &announce_labels, now)
+            .await;
+
+        let scrape_labels = LabelSet::from([("request_kind", "scrape")]);
+        let scrape_avg = repo
+            .recalculate_udp_avg_processing_time_ns(processing_time, &scrape_labels, now)
+            .await;
 
         // With 0 total connections, the formula becomes 0 + (1000 - 0) / 0
         // This should handle the division by zero case gracefully
-        assert!(connect_avg.is_infinite() || connect_avg.is_nan());
-        assert!(announce_avg.is_infinite() || announce_avg.is_nan());
-        assert!(scrape_avg.is_infinite() || scrape_avg.is_nan());
+        assert!((connect_avg - 1000.0).abs() < f64::EPSILON);
+        assert!((announce_avg - 1000.0).abs() < f64::EPSILON);
+        assert!((scrape_avg - 1000.0).abs() < f64::EPSILON);
     }
 
     #[tokio::test]
@@ -536,7 +474,7 @@ mod tests {
 
         // Verify all increments were properly recorded
         let stats = repo.get_stats().await;
-        assert_eq!(stats.udp_requests_aborted(), 50); // 10 tasks * 5 increments each
+        assert_eq!(stats.udp_requests_aborted_total(), 50); // 10 tasks * 5 increments each
     }
 
     #[tokio::test]
@@ -552,7 +490,10 @@ mod tests {
 
         // Test with very large processing time
         let large_duration = Duration::from_secs(1); // 1 second = 1,000,000,000 ns
-        let new_avg = repo.recalculate_udp_avg_connect_processing_time_ns(large_duration).await;
+        let connect_labels = LabelSet::from([("request_kind", "connect")]);
+        let new_avg = repo
+            .recalculate_udp_avg_processing_time_ns(large_duration, &connect_labels, now)
+            .await;
 
         // Should handle large numbers without overflow
         assert!(new_avg > 0.0);
@@ -592,9 +533,9 @@ mod tests {
 
         // Check final state
         let stats = repo.get_stats().await;
-        assert_eq!(stats.udp_requests_aborted(), 1);
+        assert_eq!(stats.udp_requests_aborted_total(), 1);
         assert_eq!(stats.udp_banned_ips_total(), 10);
-        assert_eq!(stats.udp_requests_banned(), 1);
+        assert_eq!(stats.udp_requests_banned_total(), 1);
     }
 
     #[tokio::test]
@@ -624,46 +565,211 @@ mod tests {
         assert!(result.is_ok());
     }
 
-    #[tokio::test]
-    async fn it_should_handle_moving_average_calculation_before_any_connections_are_recorded() {
-        let repo = Repository::new();
-        let now = CurrentClock::now();
+    mod race_conditions {
 
-        // This test checks the behavior of `recalculate_udp_avg_connect_processing_time_ns``
-        // when no connections have been recorded yet. The first call should
-        // handle division by zero gracefully and return an infinite average,
-        // which is the current behavior.
+        use core::f64;
+        use std::time::Duration;
 
-        // todo: the first average should be 2000ns, not infinity.
-        // This is because the first connection is not counted in the average
-        // calculation if the counter is increased after calculating the average.
-        // The problem is that we count requests when they are accepted, not
-        // when they are processed. And we calculate the average when the
-        // response is sent.
+        use tokio::task::JoinHandle;
+        use torrust_tracker_clock::clock::Time;
+        use torrust_tracker_metrics::metric_name;
 
-        // First calculation: no connections recorded yet, should result in infinity
-        let processing_time_1 = Duration::from_nanos(2000);
-        let avg_1 = repo.recalculate_udp_avg_connect_processing_time_ns(processing_time_1).await;
+        use super::*;
+        use crate::CurrentClock;
 
-        // Division by zero: 1000 + (2000 - 1000) / 0 = infinity
-        assert!(
-            avg_1.is_infinite(),
-            "First calculation should be infinite due to division by zero"
+        #[tokio::test]
+        async fn it_should_handle_race_conditions_when_updating_udp_performance_metrics_in_parallel() {
+            const REQUESTS_PER_SERVER: usize = 100;
+
+            // ** Set up test data and environment **
+
+            let repo = Repository::new();
+            let now = CurrentClock::now();
+
+            let server1_labels = create_server_metric_labels("6868");
+            let server2_labels = create_server_metric_labels("6969");
+
+            // ** Execute concurrent metric updates **
+
+            // Spawn concurrent tasks for server 1 with processing times [1000, 2000, 3000, 4000, 5000] ns
+            let server1_handles = spawn_server_tasks(&repo, &server1_labels, 1000, now, REQUESTS_PER_SERVER);
+
+            // Spawn concurrent tasks for server 2 with processing times [2000, 3000, 4000, 5000, 6000] ns
+            let server2_handles = spawn_server_tasks(&repo, &server2_labels, 2000, now, REQUESTS_PER_SERVER);
+
+            // Wait for both servers' results
+            let (server1_results, server2_results) = tokio::join!(
+                collect_concurrent_task_results(server1_handles),
+                collect_concurrent_task_results(server2_handles)
+            );
+
+            // ** Verify results and metrics **
+
+            // Verify correctness of concurrent operations
+            assert_server_results_are_valid(&server1_results, "Server 1", REQUESTS_PER_SERVER);
+            assert_server_results_are_valid(&server2_results, "Server 2", REQUESTS_PER_SERVER);
+
+            let stats = repo.get_stats().await;
+
+            // Verify each server's metrics individually
+            let server1_avg = assert_server_metrics_are_correct(&stats, &server1_labels, "Server 1", REQUESTS_PER_SERVER, 3000.0);
+            let server2_avg = assert_server_metrics_are_correct(&stats, &server2_labels, "Server 2", REQUESTS_PER_SERVER, 4000.0);
+
+            // Verify relationship between servers
+            assert_server_metrics_relationship(server1_avg, server2_avg);
+
+            // Verify each server's result consistency individually
+            assert_server_result_matches_stored_average(&server1_results, &stats, &server1_labels, "Server 1");
+            assert_server_result_matches_stored_average(&server2_results, &stats, &server2_labels, "Server 2");
+
+            // Verify metric collection integrity
+            assert_metric_collection_integrity(&stats);
+        }
+
+        // Test helper functions to hide implementation details
+
+        fn create_server_metric_labels(port: &str) -> LabelSet {
+            LabelSet::from([
+                ("request_kind", "connect"),
+                ("server_binding_address_ip_family", "inet"),
+                ("server_port", port),
+            ])
+        }
+
+        fn spawn_server_tasks(
+            repo: &Repository,
+            labels: &LabelSet,
+            base_processing_time_ns: usize,
+            now: DurationSinceUnixEpoch,
+            requests_per_server: usize,
+        ) -> Vec<JoinHandle<f64>> {
+            let mut handles = vec![];
+
+            for i in 0..requests_per_server {
+                let repo_clone = repo.clone();
+                let labels_clone = labels.clone();
+                let handle = tokio::spawn(async move {
+                    let processing_time_ns = base_processing_time_ns + (i % 5) * 1000;
+                    let processing_time = Duration::from_nanos(processing_time_ns as u64);
+                    repo_clone
+                        .recalculate_udp_avg_processing_time_ns(processing_time, &labels_clone, now)
+                        .await
+                });
+                handles.push(handle);
+            }
+
+            handles
+        }
+
+        async fn collect_concurrent_task_results(handles: Vec<tokio::task::JoinHandle<f64>>) -> Vec<f64> {
+            let mut server_results = Vec::new();
+
+            for handle in handles {
+                let result = handle.await.unwrap();
+                server_results.push(result);
+            }
+
+            server_results
+        }
+
+        fn assert_server_results_are_valid(results: &[f64], server_name: &str, expected_count: usize) {
+            // Verify all tasks completed
+            assert_eq!(
+                results.len(),
+                expected_count,
+                "{server_name} should have {expected_count} results"
+            );
+
+            // Verify all results are valid numbers
+            for result in results {
+                assert!(result.is_finite(), "{server_name} result should be finite: {result}");
+                assert!(*result > 0.0, "{server_name} result should be positive: {result}");
+            }
+        }
+
+        fn assert_server_metrics_are_correct(
+            stats: &Metrics,
+            labels: &LabelSet,
+            server_name: &str,
+            expected_request_count: usize,
+            expected_avg_ns: f64,
+        ) -> f64 {
+            // Verify request count
+            let processed_requests = get_processed_requests_count(stats, labels);
+            assert_eq!(
+                processed_requests, expected_request_count as u64,
+                "{server_name} should have processed {expected_request_count} requests"
+            );
+
+            // Verify average processing time is within expected range
+            let avg_processing_time = get_average_processing_time(stats, labels);
+            assert!(
+                (avg_processing_time - expected_avg_ns).abs() < 50.0,
+                "{server_name} average should be ~{expected_avg_ns}ns (±50ns), got {avg_processing_time}ns"
+            );
+
+            avg_processing_time
+        }
+
+        fn assert_server_metrics_relationship(server1_avg: f64, server2_avg: f64) {
+            const MIN_DIFFERENCE_NS: f64 = 950.0;
+
+            assert_averages_are_significantly_different(server1_avg, server2_avg, MIN_DIFFERENCE_NS);
+            assert_server_ordering_is_correct(server1_avg, server2_avg);
+        }
+
+        fn assert_averages_are_significantly_different(avg1: f64, avg2: f64, min_difference: f64) {
+            let difference = (avg1 - avg2).abs();
+            assert!(
+                difference > min_difference,
+                "Server averages should differ by more than {min_difference}ns, but difference was {difference}ns"
+            );
+        }
+
+        fn assert_server_ordering_is_correct(server1_avg: f64, server2_avg: f64) {
+            // Server 2 should have higher average since it has higher processing times [2000-6000] vs [1000-5000]
+            assert!(
+            server2_avg > server1_avg,
+            "Server 2 average ({server2_avg}ns) should be higher than Server 1 ({server1_avg}ns) due to higher processing time ranges"
         );
+        }
 
-        // Now add one connection and try again
-        let ipv4_labels = LabelSet::from([("server_binding_address_ip_family", "inet"), ("request_kind", "connect")]);
-        repo.increase_counter(&metric_name!(UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL), &ipv4_labels, now)
-            .await
-            .unwrap();
+        fn assert_server_result_matches_stored_average(results: &[f64], stats: &Metrics, labels: &LabelSet, server_name: &str) {
+            let final_avg = get_average_processing_time(stats, labels);
+            let last_result = results.last().copied().unwrap();
 
-        // Second calculation: 1 connection, but previous average is infinity
-        let processing_time_2 = Duration::from_nanos(3000);
-        let avg_2 = repo.recalculate_udp_avg_connect_processing_time_ns(processing_time_2).await;
+            assert!(
+                (last_result - final_avg).abs() <= f64::EPSILON,
+                "{server_name} last result ({last_result}) should match final average ({final_avg}) exactly"
+            );
+        }
 
-        assert!(
-            (avg_2 - 3000.0).abs() < f64::EPSILON,
-            "Second calculation should be 3000ns, but got {avg_2}"
-        );
+        fn assert_metric_collection_integrity(stats: &Metrics) {
+            assert!(stats
+                .metric_collection
+                .contains_gauge(&metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS)));
+            assert!(stats
+                .metric_collection
+                .contains_counter(&metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSED_REQUESTS_TOTAL)));
+        }
+
+        fn get_processed_requests_count(stats: &Metrics, labels: &LabelSet) -> u64 {
+            stats
+                .metric_collection
+                .get_counter_value(
+                    &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSED_REQUESTS_TOTAL),
+                    labels,
+                )
+                .unwrap()
+                .value()
+        }
+
+        fn get_average_processing_time(stats: &Metrics, labels: &LabelSet) -> f64 {
+            stats
+                .metric_collection
+                .get_gauge_value(&metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS), labels)
+                .unwrap()
+                .value()
+        }
     }
 }

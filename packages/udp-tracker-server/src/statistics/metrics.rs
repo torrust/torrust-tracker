@@ -1,13 +1,17 @@
+use std::time::Duration;
+
 use serde::Serialize;
 use torrust_tracker_metrics::label::LabelSet;
 use torrust_tracker_metrics::metric::MetricName;
+use torrust_tracker_metrics::metric_collection::aggregate::avg::Avg;
 use torrust_tracker_metrics::metric_collection::aggregate::sum::Sum;
 use torrust_tracker_metrics::metric_collection::{Error, MetricCollection};
 use torrust_tracker_metrics::metric_name;
 use torrust_tracker_primitives::DurationSinceUnixEpoch;
 
 use crate::statistics::{
-    UDP_TRACKER_SERVER_ERRORS_TOTAL, UDP_TRACKER_SERVER_IPS_BANNED_TOTAL, UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS,
+    UDP_TRACKER_SERVER_ERRORS_TOTAL, UDP_TRACKER_SERVER_IPS_BANNED_TOTAL,
+    UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSED_REQUESTS_TOTAL, UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS,
     UDP_TRACKER_SERVER_REQUESTS_ABORTED_TOTAL, UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL,
     UDP_TRACKER_SERVER_REQUESTS_BANNED_TOTAL, UDP_TRACKER_SERVER_REQUESTS_RECEIVED_TOTAL,
     UDP_TRACKER_SERVER_RESPONSES_SENT_TOTAL,
@@ -48,12 +52,106 @@ impl Metrics {
 }
 
 impl Metrics {
+    #[allow(clippy::cast_precision_loss)]
+    pub fn recalculate_udp_avg_processing_time_ns(
+        &mut self,
+        req_processing_time: Duration,
+        label_set: &LabelSet,
+        now: DurationSinceUnixEpoch,
+    ) -> f64 {
+        self.increment_udp_processed_requests_total(label_set, now);
+
+        let processed_requests_total = self.udp_processed_requests_total(label_set) as f64;
+        let previous_avg = self.udp_avg_processing_time_ns(label_set);
+        let req_processing_time = req_processing_time.as_nanos() as f64;
+
+        // Moving average: https://en.wikipedia.org/wiki/Moving_average
+        let new_avg = previous_avg as f64 + (req_processing_time - previous_avg as f64) / processed_requests_total;
+
+        tracing::debug!(
+            "Recalculated UDP average processing time for labels {}: {} ns (previous: {} ns, req_processing_time: {} ns, request_processed_total: {})",
+            label_set,
+            new_avg,
+            previous_avg,
+            req_processing_time,
+            processed_requests_total
+        );
+
+        self.update_udp_avg_processing_time_ns(new_avg, label_set, now);
+
+        new_avg
+    }
+
+    #[must_use]
+    #[allow(clippy::cast_sign_loss)]
+    #[allow(clippy::cast_possible_truncation)]
+    fn udp_avg_processing_time_ns(&self, label_set: &LabelSet) -> u64 {
+        self.metric_collection
+            .sum(
+                &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS),
+                label_set,
+            )
+            .unwrap_or_default() as u64
+    }
+
+    #[must_use]
+    #[allow(clippy::cast_sign_loss)]
+    #[allow(clippy::cast_possible_truncation)]
+    pub fn udp_request_accepted_total(&self, label_set: &LabelSet) -> u64 {
+        self.metric_collection
+            .sum(&metric_name!(UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL), label_set)
+            .unwrap_or_default() as u64
+    }
+
+    #[must_use]
+    #[allow(clippy::cast_sign_loss)]
+    #[allow(clippy::cast_possible_truncation)]
+    fn udp_processed_requests_total(&self, label_set: &LabelSet) -> u64 {
+        self.metric_collection
+            .sum(
+                &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSED_REQUESTS_TOTAL),
+                label_set,
+            )
+            .unwrap_or_default() as u64
+    }
+
+    fn update_udp_avg_processing_time_ns(&mut self, new_avg: f64, label_set: &LabelSet, now: DurationSinceUnixEpoch) {
+        tracing::debug!(
+            "Updating average processing time metric to {} ns for label set {}",
+            new_avg,
+            label_set,
+        );
+
+        match self.set_gauge(
+            &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS),
+            label_set,
+            new_avg,
+            now,
+        ) {
+            Ok(()) => {}
+            Err(err) => tracing::error!("Failed to set gauge: {}", err),
+        }
+    }
+
+    fn increment_udp_processed_requests_total(&mut self, label_set: &LabelSet, now: DurationSinceUnixEpoch) {
+        tracing::debug!("Incrementing processed requests total for label set {}", label_set,);
+
+        match self.increase_counter(
+            &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSED_REQUESTS_TOTAL),
+            label_set,
+            now,
+        ) {
+            Ok(()) => {}
+            Err(err) => tracing::error!("Failed to increment counter: {}", err),
+        }
+    }
+
     // UDP
     /// Total number of UDP (UDP tracker) requests aborted.
     #[must_use]
     #[allow(clippy::cast_sign_loss)]
     #[allow(clippy::cast_possible_truncation)]
-    pub fn udp_requests_aborted(&self) -> u64 {
+    pub fn udp_requests_aborted_total(&self) -> u64 {
         self.metric_collection
             .sum(&metric_name!(UDP_TRACKER_SERVER_REQUESTS_ABORTED_TOTAL), &LabelSet::empty())
             .unwrap_or_default() as u64
@@ -63,7 +161,7 @@ impl Metrics {
     #[must_use]
     #[allow(clippy::cast_sign_loss)]
     #[allow(clippy::cast_possible_truncation)]
-    pub fn udp_requests_banned(&self) -> u64 {
+    pub fn udp_requests_banned_total(&self) -> u64 {
         self.metric_collection
             .sum(&metric_name!(UDP_TRACKER_SERVER_REQUESTS_BANNED_TOTAL), &LabelSet::empty())
             .unwrap_or_default() as u64
@@ -79,43 +177,46 @@ impl Metrics {
             .unwrap_or_default() as u64
     }
 
-    /// Average rounded time spent processing UDP connect requests.
+    /// Average processing time for UDP connect requests across all servers (in nanoseconds).
+    /// This calculates the average of all gauge samples for connect requests.
     #[must_use]
     #[allow(clippy::cast_sign_loss)]
     #[allow(clippy::cast_possible_truncation)]
-    pub fn udp_avg_connect_processing_time_ns(&self) -> u64 {
+    pub fn udp_avg_connect_processing_time_ns_averaged(&self) -> u64 {
         self.metric_collection
-            .sum(
+            .avg(
                 &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS),
                 &[("request_kind", "connect")].into(),
             )
-            .unwrap_or_default() as u64
+            .unwrap_or(0.0) as u64
     }
 
-    /// Average rounded time spent processing UDP announce requests.
+    /// Average processing time for UDP announce requests across all servers (in nanoseconds).
+    /// This calculates the average of all gauge samples for announce requests.
     #[must_use]
     #[allow(clippy::cast_sign_loss)]
     #[allow(clippy::cast_possible_truncation)]
-    pub fn udp_avg_announce_processing_time_ns(&self) -> u64 {
+    pub fn udp_avg_announce_processing_time_ns_averaged(&self) -> u64 {
         self.metric_collection
-            .sum(
+            .avg(
                 &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS),
                 &[("request_kind", "announce")].into(),
             )
-            .unwrap_or_default() as u64
+            .unwrap_or(0.0) as u64
     }
 
-    /// Average rounded time spent processing UDP scrape requests.
+    /// Average processing time for UDP scrape requests across all servers (in nanoseconds).
+    /// This calculates the average of all gauge samples for scrape requests.
     #[must_use]
     #[allow(clippy::cast_sign_loss)]
     #[allow(clippy::cast_possible_truncation)]
-    pub fn udp_avg_scrape_processing_time_ns(&self) -> u64 {
+    pub fn udp_avg_scrape_processing_time_ns_averaged(&self) -> u64 {
         self.metric_collection
-            .sum(
+            .avg(
                 &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS),
                 &[("request_kind", "scrape")].into(),
             )
-            .unwrap_or_default() as u64
+            .unwrap_or(0.0) as u64
     }
 
     // UDPv4
@@ -123,7 +224,7 @@ impl Metrics {
     #[must_use]
     #[allow(clippy::cast_sign_loss)]
     #[allow(clippy::cast_possible_truncation)]
-    pub fn udp4_requests(&self) -> u64 {
+    pub fn udp4_requests_received_total(&self) -> u64 {
         self.metric_collection
             .sum(
                 &metric_name!(UDP_TRACKER_SERVER_REQUESTS_RECEIVED_TOTAL),
@@ -136,7 +237,7 @@ impl Metrics {
     #[must_use]
     #[allow(clippy::cast_sign_loss)]
     #[allow(clippy::cast_possible_truncation)]
-    pub fn udp4_connections_handled(&self) -> u64 {
+    pub fn udp4_connect_requests_accepted_total(&self) -> u64 {
         self.metric_collection
             .sum(
                 &metric_name!(UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL),
@@ -149,7 +250,7 @@ impl Metrics {
     #[must_use]
     #[allow(clippy::cast_sign_loss)]
     #[allow(clippy::cast_possible_truncation)]
-    pub fn udp4_announces_handled(&self) -> u64 {
+    pub fn udp4_announce_requests_accepted_total(&self) -> u64 {
         self.metric_collection
             .sum(
                 &metric_name!(UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL),
@@ -162,7 +263,7 @@ impl Metrics {
     #[must_use]
     #[allow(clippy::cast_sign_loss)]
     #[allow(clippy::cast_possible_truncation)]
-    pub fn udp4_scrapes_handled(&self) -> u64 {
+    pub fn udp4_scrape_requests_accepted_total(&self) -> u64 {
         self.metric_collection
             .sum(
                 &metric_name!(UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL),
@@ -175,7 +276,7 @@ impl Metrics {
     #[must_use]
     #[allow(clippy::cast_sign_loss)]
     #[allow(clippy::cast_possible_truncation)]
-    pub fn udp4_responses(&self) -> u64 {
+    pub fn udp4_responses_sent_total(&self) -> u64 {
         self.metric_collection
             .sum(
                 &metric_name!(UDP_TRACKER_SERVER_RESPONSES_SENT_TOTAL),
@@ -188,7 +289,7 @@ impl Metrics {
     #[must_use]
     #[allow(clippy::cast_sign_loss)]
     #[allow(clippy::cast_possible_truncation)]
-    pub fn udp4_errors_handled(&self) -> u64 {
+    pub fn udp4_errors_total(&self) -> u64 {
         self.metric_collection
             .sum(
                 &metric_name!(UDP_TRACKER_SERVER_ERRORS_TOTAL),
@@ -202,7 +303,7 @@ impl Metrics {
     #[must_use]
     #[allow(clippy::cast_sign_loss)]
     #[allow(clippy::cast_possible_truncation)]
-    pub fn udp6_requests(&self) -> u64 {
+    pub fn udp6_requests_received_total(&self) -> u64 {
         self.metric_collection
             .sum(
                 &metric_name!(UDP_TRACKER_SERVER_REQUESTS_RECEIVED_TOTAL),
@@ -215,7 +316,7 @@ impl Metrics {
     #[must_use]
     #[allow(clippy::cast_sign_loss)]
     #[allow(clippy::cast_possible_truncation)]
-    pub fn udp6_connections_handled(&self) -> u64 {
+    pub fn udp6_connect_requests_accepted_total(&self) -> u64 {
         self.metric_collection
             .sum(
                 &metric_name!(UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL),
@@ -228,7 +329,7 @@ impl Metrics {
     #[must_use]
     #[allow(clippy::cast_sign_loss)]
     #[allow(clippy::cast_possible_truncation)]
-    pub fn udp6_announces_handled(&self) -> u64 {
+    pub fn udp6_announce_requests_accepted_total(&self) -> u64 {
         self.metric_collection
             .sum(
                 &metric_name!(UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL),
@@ -241,7 +342,7 @@ impl Metrics {
     #[must_use]
     #[allow(clippy::cast_sign_loss)]
     #[allow(clippy::cast_possible_truncation)]
-    pub fn udp6_scrapes_handled(&self) -> u64 {
+    pub fn udp6_scrape_requests_accepted_total(&self) -> u64 {
         self.metric_collection
             .sum(
                 &metric_name!(UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL),
@@ -254,7 +355,7 @@ impl Metrics {
     #[must_use]
     #[allow(clippy::cast_sign_loss)]
     #[allow(clippy::cast_possible_truncation)]
-    pub fn udp6_responses(&self) -> u64 {
+    pub fn udp6_responses_sent_total(&self) -> u64 {
         self.metric_collection
             .sum(
                 &metric_name!(UDP_TRACKER_SERVER_RESPONSES_SENT_TOTAL),
@@ -267,7 +368,7 @@ impl Metrics {
     #[must_use]
     #[allow(clippy::cast_sign_loss)]
     #[allow(clippy::cast_possible_truncation)]
-    pub fn udp6_errors_handled(&self) -> u64 {
+    pub fn udp6_errors_total(&self) -> u64 {
         self.metric_collection
             .sum(
                 &metric_name!(UDP_TRACKER_SERVER_ERRORS_TOTAL),
@@ -285,9 +386,10 @@ mod tests {
     use super::*;
     use crate::statistics::{
         UDP_TRACKER_SERVER_ERRORS_TOTAL, UDP_TRACKER_SERVER_IPS_BANNED_TOTAL,
-        UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS, UDP_TRACKER_SERVER_REQUESTS_ABORTED_TOTAL,
-        UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL, UDP_TRACKER_SERVER_REQUESTS_BANNED_TOTAL,
-        UDP_TRACKER_SERVER_REQUESTS_RECEIVED_TOTAL, UDP_TRACKER_SERVER_RESPONSES_SENT_TOTAL,
+        UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSED_REQUESTS_TOTAL, UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS,
+        UDP_TRACKER_SERVER_REQUESTS_ABORTED_TOTAL, UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL,
+        UDP_TRACKER_SERVER_REQUESTS_BANNED_TOTAL, UDP_TRACKER_SERVER_REQUESTS_RECEIVED_TOTAL,
+        UDP_TRACKER_SERVER_RESPONSES_SENT_TOTAL,
     };
     use crate::CurrentClock;
 
@@ -362,13 +464,38 @@ mod tests {
         assert!(result.is_ok());
     }
 
+    #[test]
+    fn it_should_return_zero_for_udp_processed_requests_total_when_no_data() {
+        let metrics = Metrics::default();
+        let labels = LabelSet::from([("request_kind", "connect")]);
+        assert_eq!(metrics.udp_processed_requests_total(&labels), 0);
+    }
+
+    #[test]
+    fn it_should_increment_processed_requests_total() {
+        let mut metrics = Metrics::default();
+        let now = CurrentClock::now();
+        let labels = LabelSet::from([("request_kind", "connect")]);
+
+        // Directly increment the counter using the public method
+        metrics
+            .increase_counter(
+                &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSED_REQUESTS_TOTAL),
+                &labels,
+                now,
+            )
+            .unwrap();
+
+        assert_eq!(metrics.udp_processed_requests_total(&labels), 1);
+    }
+
     mod udp_general_metrics {
         use super::*;
 
         #[test]
         fn it_should_return_zero_for_udp_requests_aborted_when_no_data() {
             let metrics = Metrics::default();
-            assert_eq!(metrics.udp_requests_aborted(), 0);
+            assert_eq!(metrics.udp_requests_aborted_total(), 0);
         }
 
         #[test]
@@ -384,13 +511,13 @@ mod tests {
                 .increase_counter(&metric_name!(UDP_TRACKER_SERVER_REQUESTS_ABORTED_TOTAL), &labels, now)
                 .unwrap();
 
-            assert_eq!(metrics.udp_requests_aborted(), 2);
+            assert_eq!(metrics.udp_requests_aborted_total(), 2);
         }
 
         #[test]
         fn it_should_return_zero_for_udp_requests_banned_when_no_data() {
             let metrics = Metrics::default();
-            assert_eq!(metrics.udp_requests_banned(), 0);
+            assert_eq!(metrics.udp_requests_banned_total(), 0);
         }
 
         #[test]
@@ -405,7 +532,7 @@ mod tests {
                     .unwrap();
             }
 
-            assert_eq!(metrics.udp_requests_banned(), 3);
+            assert_eq!(metrics.udp_requests_banned_total(), 3);
         }
 
         #[test]
@@ -428,89 +555,13 @@ mod tests {
         }
     }
 
-    mod udp_performance_metrics {
-        use super::*;
-
-        #[test]
-        fn it_should_return_zero_for_udp_avg_connect_processing_time_ns_when_no_data() {
-            let metrics = Metrics::default();
-            assert_eq!(metrics.udp_avg_connect_processing_time_ns(), 0);
-        }
-
-        #[test]
-        fn it_should_return_gauge_value_for_udp_avg_connect_processing_time_ns() {
-            let mut metrics = Metrics::default();
-            let now = CurrentClock::now();
-            let labels = LabelSet::from([("request_kind", "connect")]);
-
-            metrics
-                .set_gauge(
-                    &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS),
-                    &labels,
-                    1500.0,
-                    now,
-                )
-                .unwrap();
-
-            assert_eq!(metrics.udp_avg_connect_processing_time_ns(), 1500);
-        }
-
-        #[test]
-        fn it_should_return_zero_for_udp_avg_announce_processing_time_ns_when_no_data() {
-            let metrics = Metrics::default();
-            assert_eq!(metrics.udp_avg_announce_processing_time_ns(), 0);
-        }
-
-        #[test]
-        fn it_should_return_gauge_value_for_udp_avg_announce_processing_time_ns() {
-            let mut metrics = Metrics::default();
-            let now = CurrentClock::now();
-            let labels = LabelSet::from([("request_kind", "announce")]);
-
-            metrics
-                .set_gauge(
-                    &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS),
-                    &labels,
-                    2500.0,
-                    now,
-                )
-                .unwrap();
-
-            assert_eq!(metrics.udp_avg_announce_processing_time_ns(), 2500);
-        }
-
-        #[test]
-        fn it_should_return_zero_for_udp_avg_scrape_processing_time_ns_when_no_data() {
-            let metrics = Metrics::default();
-            assert_eq!(metrics.udp_avg_scrape_processing_time_ns(), 0);
-        }
-
-        #[test]
-        fn it_should_return_gauge_value_for_udp_avg_scrape_processing_time_ns() {
-            let mut metrics = Metrics::default();
-            let now = CurrentClock::now();
-            let labels = LabelSet::from([("request_kind", "scrape")]);
-
-            metrics
-                .set_gauge(
-                    &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS),
-                    &labels,
-                    3500.0,
-                    now,
-                )
-                .unwrap();
-
-            assert_eq!(metrics.udp_avg_scrape_processing_time_ns(), 3500);
-        }
-    }
-
     mod udpv4_metrics {
         use super::*;
 
         #[test]
         fn it_should_return_zero_for_udp4_requests_when_no_data() {
             let metrics = Metrics::default();
-            assert_eq!(metrics.udp4_requests(), 0);
+            assert_eq!(metrics.udp4_requests_received_total(), 0);
         }
 
         #[test]
@@ -525,13 +576,13 @@ mod tests {
                     .unwrap();
             }
 
-            assert_eq!(metrics.udp4_requests(), 5);
+            assert_eq!(metrics.udp4_requests_received_total(), 5);
         }
 
         #[test]
         fn it_should_return_zero_for_udp4_connections_handled_when_no_data() {
             let metrics = Metrics::default();
-            assert_eq!(metrics.udp4_connections_handled(), 0);
+            assert_eq!(metrics.udp4_connect_requests_accepted_total(), 0);
         }
 
         #[test]
@@ -546,13 +597,13 @@ mod tests {
                     .unwrap();
             }
 
-            assert_eq!(metrics.udp4_connections_handled(), 3);
+            assert_eq!(metrics.udp4_connect_requests_accepted_total(), 3);
         }
 
         #[test]
         fn it_should_return_zero_for_udp4_announces_handled_when_no_data() {
             let metrics = Metrics::default();
-            assert_eq!(metrics.udp4_announces_handled(), 0);
+            assert_eq!(metrics.udp4_announce_requests_accepted_total(), 0);
         }
 
         #[test]
@@ -567,13 +618,13 @@ mod tests {
                     .unwrap();
             }
 
-            assert_eq!(metrics.udp4_announces_handled(), 7);
+            assert_eq!(metrics.udp4_announce_requests_accepted_total(), 7);
         }
 
         #[test]
         fn it_should_return_zero_for_udp4_scrapes_handled_when_no_data() {
             let metrics = Metrics::default();
-            assert_eq!(metrics.udp4_scrapes_handled(), 0);
+            assert_eq!(metrics.udp4_scrape_requests_accepted_total(), 0);
         }
 
         #[test]
@@ -588,13 +639,13 @@ mod tests {
                     .unwrap();
             }
 
-            assert_eq!(metrics.udp4_scrapes_handled(), 4);
+            assert_eq!(metrics.udp4_scrape_requests_accepted_total(), 4);
         }
 
         #[test]
         fn it_should_return_zero_for_udp4_responses_when_no_data() {
             let metrics = Metrics::default();
-            assert_eq!(metrics.udp4_responses(), 0);
+            assert_eq!(metrics.udp4_responses_sent_total(), 0);
         }
 
         #[test]
@@ -609,13 +660,13 @@ mod tests {
                     .unwrap();
             }
 
-            assert_eq!(metrics.udp4_responses(), 6);
+            assert_eq!(metrics.udp4_responses_sent_total(), 6);
         }
 
         #[test]
         fn it_should_return_zero_for_udp4_errors_handled_when_no_data() {
             let metrics = Metrics::default();
-            assert_eq!(metrics.udp4_errors_handled(), 0);
+            assert_eq!(metrics.udp4_errors_total(), 0);
         }
 
         #[test]
@@ -630,7 +681,7 @@ mod tests {
                     .unwrap();
             }
 
-            assert_eq!(metrics.udp4_errors_handled(), 2);
+            assert_eq!(metrics.udp4_errors_total(), 2);
         }
     }
 
@@ -640,7 +691,7 @@ mod tests {
         #[test]
         fn it_should_return_zero_for_udp6_requests_when_no_data() {
             let metrics = Metrics::default();
-            assert_eq!(metrics.udp6_requests(), 0);
+            assert_eq!(metrics.udp6_requests_received_total(), 0);
         }
 
         #[test]
@@ -655,13 +706,13 @@ mod tests {
                     .unwrap();
             }
 
-            assert_eq!(metrics.udp6_requests(), 8);
+            assert_eq!(metrics.udp6_requests_received_total(), 8);
         }
 
         #[test]
         fn it_should_return_zero_for_udp6_connections_handled_when_no_data() {
             let metrics = Metrics::default();
-            assert_eq!(metrics.udp6_connections_handled(), 0);
+            assert_eq!(metrics.udp6_connect_requests_accepted_total(), 0);
         }
 
         #[test]
@@ -676,13 +727,13 @@ mod tests {
                     .unwrap();
             }
 
-            assert_eq!(metrics.udp6_connections_handled(), 4);
+            assert_eq!(metrics.udp6_connect_requests_accepted_total(), 4);
         }
 
         #[test]
         fn it_should_return_zero_for_udp6_announces_handled_when_no_data() {
             let metrics = Metrics::default();
-            assert_eq!(metrics.udp6_announces_handled(), 0);
+            assert_eq!(metrics.udp6_announce_requests_accepted_total(), 0);
         }
 
         #[test]
@@ -697,13 +748,13 @@ mod tests {
                     .unwrap();
             }
 
-            assert_eq!(metrics.udp6_announces_handled(), 9);
+            assert_eq!(metrics.udp6_announce_requests_accepted_total(), 9);
         }
 
         #[test]
         fn it_should_return_zero_for_udp6_scrapes_handled_when_no_data() {
             let metrics = Metrics::default();
-            assert_eq!(metrics.udp6_scrapes_handled(), 0);
+            assert_eq!(metrics.udp6_scrape_requests_accepted_total(), 0);
         }
 
         #[test]
@@ -718,13 +769,13 @@ mod tests {
                     .unwrap();
             }
 
-            assert_eq!(metrics.udp6_scrapes_handled(), 6);
+            assert_eq!(metrics.udp6_scrape_requests_accepted_total(), 6);
         }
 
         #[test]
         fn it_should_return_zero_for_udp6_responses_when_no_data() {
             let metrics = Metrics::default();
-            assert_eq!(metrics.udp6_responses(), 0);
+            assert_eq!(metrics.udp6_responses_sent_total(), 0);
         }
 
         #[test]
@@ -739,13 +790,13 @@ mod tests {
                     .unwrap();
             }
 
-            assert_eq!(metrics.udp6_responses(), 11);
+            assert_eq!(metrics.udp6_responses_sent_total(), 11);
         }
 
         #[test]
         fn it_should_return_zero_for_udp6_errors_handled_when_no_data() {
             let metrics = Metrics::default();
-            assert_eq!(metrics.udp6_errors_handled(), 0);
+            assert_eq!(metrics.udp6_errors_total(), 0);
         }
 
         #[test]
@@ -760,7 +811,7 @@ mod tests {
                     .unwrap();
             }
 
-            assert_eq!(metrics.udp6_errors_handled(), 3);
+            assert_eq!(metrics.udp6_errors_total(), 3);
         }
     }
 
@@ -788,8 +839,8 @@ mod tests {
                     .unwrap();
             }
 
-            assert_eq!(metrics.udp4_requests(), 3);
-            assert_eq!(metrics.udp6_requests(), 7);
+            assert_eq!(metrics.udp4_requests_received_total(), 3);
+            assert_eq!(metrics.udp6_requests_received_total(), 7);
         }
 
         #[test]
@@ -828,9 +879,9 @@ mod tests {
                     .unwrap();
             }
 
-            assert_eq!(metrics.udp4_connections_handled(), 2);
-            assert_eq!(metrics.udp4_announces_handled(), 5);
-            assert_eq!(metrics.udp4_scrapes_handled(), 1);
+            assert_eq!(metrics.udp4_connect_requests_accepted_total(), 2);
+            assert_eq!(metrics.udp4_announce_requests_accepted_total(), 5);
+            assert_eq!(metrics.udp4_scrape_requests_accepted_total(), 1);
         }
 
         #[test]
@@ -887,10 +938,10 @@ mod tests {
                     .unwrap();
             }
 
-            assert_eq!(metrics.udp4_connections_handled(), 3);
-            assert_eq!(metrics.udp6_connections_handled(), 2);
-            assert_eq!(metrics.udp4_announces_handled(), 4);
-            assert_eq!(metrics.udp6_announces_handled(), 6);
+            assert_eq!(metrics.udp4_connect_requests_accepted_total(), 3);
+            assert_eq!(metrics.udp6_connect_requests_accepted_total(), 2);
+            assert_eq!(metrics.udp4_announce_requests_accepted_total(), 4);
+            assert_eq!(metrics.udp6_announce_requests_accepted_total(), 6);
         }
     }
 
@@ -910,7 +961,7 @@ mod tests {
                     .unwrap();
             }
 
-            assert_eq!(metrics.udp_requests_aborted(), 1000);
+            assert_eq!(metrics.udp_requests_aborted_total(), 1000);
         }
 
         #[test]
@@ -938,25 +989,6 @@ mod tests {
                 .unwrap();
 
             assert_eq!(metrics.udp_banned_ips_total(), 0);
-        }
-
-        #[test]
-        fn it_should_handle_fractional_gauge_values_with_truncation() {
-            let mut metrics = Metrics::default();
-            let now = CurrentClock::now();
-            let labels = LabelSet::from([("request_kind", "connect")]);
-
-            metrics
-                .set_gauge(
-                    &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS),
-                    &labels,
-                    1234.567,
-                    now,
-                )
-                .unwrap();
-
-            // Should truncate to 1234
-            assert_eq!(metrics.udp_avg_connect_processing_time_ns(), 1234);
         }
 
         #[test]
@@ -989,7 +1021,7 @@ mod tests {
             let result = metrics.increase_counter(&metric_name!(UDP_TRACKER_SERVER_REQUESTS_ABORTED_TOTAL), &empty_labels, now);
 
             assert!(result.is_ok());
-            assert_eq!(metrics.udp_requests_aborted(), 1);
+            assert_eq!(metrics.udp_requests_aborted_total(), 1);
         }
 
         #[test]
@@ -1014,8 +1046,8 @@ mod tests {
             }
 
             // Should return labeled sums correctly
-            assert_eq!(metrics.udp4_requests(), 3);
-            assert_eq!(metrics.udp6_requests(), 5);
+            assert_eq!(metrics.udp4_requests_received_total(), 3);
+            assert_eq!(metrics.udp6_requests_received_total(), 5);
         }
     }
 
@@ -1054,6 +1086,230 @@ mod tests {
             let result = metrics.increase_counter(&metric_name!("unknown_metric"), &labels, now);
 
             assert!(result.is_ok());
+        }
+    }
+
+    mod averaged_processing_time_metrics {
+        use super::*;
+
+        #[test]
+        fn it_should_return_zero_for_udp_avg_connect_processing_time_ns_averaged_when_no_data() {
+            let metrics = Metrics::default();
+            assert_eq!(metrics.udp_avg_connect_processing_time_ns_averaged(), 0);
+        }
+
+        #[test]
+        fn it_should_return_averaged_value_for_udp_avg_connect_processing_time_ns_averaged() {
+            let mut metrics = Metrics::default();
+            let now = CurrentClock::now();
+            let labels1 = LabelSet::from([("request_kind", "connect"), ("server_id", "server1")]);
+            let labels2 = LabelSet::from([("request_kind", "connect"), ("server_id", "server2")]);
+
+            // Set different gauge values for connect requests from different servers
+            metrics
+                .set_gauge(
+                    &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS),
+                    &labels1,
+                    1000.0,
+                    now,
+                )
+                .unwrap();
+
+            metrics
+                .set_gauge(
+                    &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS),
+                    &labels2,
+                    2000.0,
+                    now,
+                )
+                .unwrap();
+
+            // Should return the average: (1000 + 2000) / 2 = 1500
+            assert_eq!(metrics.udp_avg_connect_processing_time_ns_averaged(), 1500);
+        }
+
+        #[test]
+        fn it_should_return_zero_for_udp_avg_announce_processing_time_ns_averaged_when_no_data() {
+            let metrics = Metrics::default();
+            assert_eq!(metrics.udp_avg_announce_processing_time_ns_averaged(), 0);
+        }
+
+        #[test]
+        fn it_should_return_averaged_value_for_udp_avg_announce_processing_time_ns_averaged() {
+            let mut metrics = Metrics::default();
+            let now = CurrentClock::now();
+            let labels1 = LabelSet::from([("request_kind", "announce"), ("server_id", "server1")]);
+            let labels2 = LabelSet::from([("request_kind", "announce"), ("server_id", "server2")]);
+            let labels3 = LabelSet::from([("request_kind", "announce"), ("server_id", "server3")]);
+
+            // Set different gauge values for announce requests from different servers
+            metrics
+                .set_gauge(
+                    &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS),
+                    &labels1,
+                    1500.0,
+                    now,
+                )
+                .unwrap();
+
+            metrics
+                .set_gauge(
+                    &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS),
+                    &labels2,
+                    2500.0,
+                    now,
+                )
+                .unwrap();
+
+            metrics
+                .set_gauge(
+                    &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS),
+                    &labels3,
+                    3000.0,
+                    now,
+                )
+                .unwrap();
+
+            // Should return the average: (1500 + 2500 + 3000) / 3 = 2333 (truncated)
+            assert_eq!(metrics.udp_avg_announce_processing_time_ns_averaged(), 2333);
+        }
+
+        #[test]
+        fn it_should_return_zero_for_udp_avg_scrape_processing_time_ns_averaged_when_no_data() {
+            let metrics = Metrics::default();
+            assert_eq!(metrics.udp_avg_scrape_processing_time_ns_averaged(), 0);
+        }
+
+        #[test]
+        fn it_should_return_averaged_value_for_udp_avg_scrape_processing_time_ns_averaged() {
+            let mut metrics = Metrics::default();
+            let now = CurrentClock::now();
+            let labels1 = LabelSet::from([("request_kind", "scrape"), ("server_id", "server1")]);
+            let labels2 = LabelSet::from([("request_kind", "scrape"), ("server_id", "server2")]);
+
+            // Set different gauge values for scrape requests from different servers
+            metrics
+                .set_gauge(
+                    &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS),
+                    &labels1,
+                    500.0,
+                    now,
+                )
+                .unwrap();
+
+            metrics
+                .set_gauge(
+                    &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS),
+                    &labels2,
+                    1500.0,
+                    now,
+                )
+                .unwrap();
+
+            // Should return the average: (500 + 1500) / 2 = 1000
+            assert_eq!(metrics.udp_avg_scrape_processing_time_ns_averaged(), 1000);
+        }
+
+        #[test]
+        fn it_should_handle_fractional_averages_with_truncation() {
+            let mut metrics = Metrics::default();
+            let now = CurrentClock::now();
+            let labels1 = LabelSet::from([("request_kind", "connect"), ("server_id", "server1")]);
+            let labels2 = LabelSet::from([("request_kind", "connect"), ("server_id", "server2")]);
+            let labels3 = LabelSet::from([("request_kind", "connect"), ("server_id", "server3")]);
+
+            // Set values that will result in a fractional average
+            metrics
+                .set_gauge(
+                    &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS),
+                    &labels1,
+                    1000.0,
+                    now,
+                )
+                .unwrap();
+
+            metrics
+                .set_gauge(
+                    &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS),
+                    &labels2,
+                    1001.0,
+                    now,
+                )
+                .unwrap();
+
+            metrics
+                .set_gauge(
+                    &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS),
+                    &labels3,
+                    1001.0,
+                    now,
+                )
+                .unwrap();
+
+            // Should return the average: (1000 + 1001 + 1001) / 3 = 1000.666... → 1000 (truncated)
+            assert_eq!(metrics.udp_avg_connect_processing_time_ns_averaged(), 1000);
+        }
+
+        #[test]
+        fn it_should_only_average_matching_request_kinds() {
+            let mut metrics = Metrics::default();
+            let now = CurrentClock::now();
+
+            // Set values for different request kinds with the same server_id
+            let connect_labels = LabelSet::from([("request_kind", "connect"), ("server_id", "server1")]);
+            let announce_labels = LabelSet::from([("request_kind", "announce"), ("server_id", "server1")]);
+            let scrape_labels = LabelSet::from([("request_kind", "scrape"), ("server_id", "server1")]);
+
+            metrics
+                .set_gauge(
+                    &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS),
+                    &connect_labels,
+                    1000.0,
+                    now,
+                )
+                .unwrap();
+
+            metrics
+                .set_gauge(
+                    &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS),
+                    &announce_labels,
+                    2000.0,
+                    now,
+                )
+                .unwrap();
+
+            metrics
+                .set_gauge(
+                    &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS),
+                    &scrape_labels,
+                    3000.0,
+                    now,
+                )
+                .unwrap();
+
+            // Each function should only return the value for its specific request kind
+            assert_eq!(metrics.udp_avg_connect_processing_time_ns_averaged(), 1000);
+            assert_eq!(metrics.udp_avg_announce_processing_time_ns_averaged(), 2000);
+            assert_eq!(metrics.udp_avg_scrape_processing_time_ns_averaged(), 3000);
+        }
+
+        #[test]
+        fn it_should_handle_single_server_averaged_metrics() {
+            let mut metrics = Metrics::default();
+            let now = CurrentClock::now();
+            let labels = LabelSet::from([("request_kind", "connect"), ("server_id", "single_server")]);
+
+            metrics
+                .set_gauge(
+                    &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS),
+                    &labels,
+                    1234.0,
+                    now,
+                )
+                .unwrap();
+
+            // With only one server, the average should be the same as the single value
+            assert_eq!(metrics.udp_avg_connect_processing_time_ns_averaged(), 1234);
         }
     }
 }

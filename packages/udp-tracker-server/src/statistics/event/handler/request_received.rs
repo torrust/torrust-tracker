@@ -54,6 +54,6 @@ mod tests {
 
         let stats = stats_repository.get_stats().await;
 
-        assert_eq!(stats.udp4_requests(), 1);
+        assert_eq!(stats.udp4_requests_received_total(), 1);
     }
 }

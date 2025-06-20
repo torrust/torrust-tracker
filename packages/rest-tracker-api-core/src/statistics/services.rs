@@ -59,18 +59,6 @@ async fn get_protocol_metrics(
     let http_stats = http_stats_repository.get_stats().await;
     let udp_server_stats = udp_server_stats_repository.get_stats().await;
 
-    /*
-
-    todo: We have to delete the global metrics from Metric types:
-
-    - bittorrent_http_tracker_core::statistics::metrics::Metrics
-    - bittorrent_udp_tracker_core::statistics::metrics::Metrics
-    - torrust_udp_tracker_server::statistics::metrics::Metrics
-
-    Internally only the labeled metrics should be used.
-
-    */
-
     // TCPv4
 
     let tcp4_announces_handled = http_stats.tcp4_announces_handled();
@@ -83,30 +71,30 @@ async fn get_protocol_metrics(
 
     // UDP
 
-    let udp_requests_aborted = udp_server_stats.udp_requests_aborted();
-    let udp_requests_banned = udp_server_stats.udp_requests_banned();
+    let udp_requests_aborted = udp_server_stats.udp_requests_aborted_total();
+    let udp_requests_banned = udp_server_stats.udp_requests_banned_total();
     let udp_banned_ips_total = udp_server_stats.udp_banned_ips_total();
-    let udp_avg_connect_processing_time_ns = udp_server_stats.udp_avg_connect_processing_time_ns();
-    let udp_avg_announce_processing_time_ns = udp_server_stats.udp_avg_announce_processing_time_ns();
-    let udp_avg_scrape_processing_time_ns = udp_server_stats.udp_avg_scrape_processing_time_ns();
+    let udp_avg_connect_processing_time_ns = udp_server_stats.udp_avg_connect_processing_time_ns_averaged();
+    let udp_avg_announce_processing_time_ns = udp_server_stats.udp_avg_announce_processing_time_ns_averaged();
+    let udp_avg_scrape_processing_time_ns = udp_server_stats.udp_avg_scrape_processing_time_ns_averaged();
 
     // UDPv4
 
-    let udp4_requests = udp_server_stats.udp4_requests();
-    let udp4_connections_handled = udp_server_stats.udp4_connections_handled();
-    let udp4_announces_handled = udp_server_stats.udp4_announces_handled();
-    let udp4_scrapes_handled = udp_server_stats.udp4_scrapes_handled();
-    let udp4_responses = udp_server_stats.udp4_responses();
-    let udp4_errors_handled = udp_server_stats.udp4_errors_handled();
+    let udp4_requests = udp_server_stats.udp4_requests_received_total();
+    let udp4_connections_handled = udp_server_stats.udp4_connect_requests_accepted_total();
+    let udp4_announces_handled = udp_server_stats.udp4_announce_requests_accepted_total();
+    let udp4_scrapes_handled = udp_server_stats.udp4_scrape_requests_accepted_total();
+    let udp4_responses = udp_server_stats.udp4_responses_sent_total();
+    let udp4_errors_handled = udp_server_stats.udp4_errors_total();
 
     // UDPv6
 
-    let udp6_requests = udp_server_stats.udp6_requests();
-    let udp6_connections_handled = udp_server_stats.udp6_connections_handled();
-    let udp6_announces_handled = udp_server_stats.udp6_announces_handled();
-    let udp6_scrapes_handled = udp_server_stats.udp6_scrapes_handled();
-    let udp6_responses = udp_server_stats.udp6_responses();
-    let udp6_errors_handled = udp_server_stats.udp6_errors_handled();
+    let udp6_requests = udp_server_stats.udp6_requests_received_total();
+    let udp6_connections_handled = udp_server_stats.udp6_connect_requests_accepted_total();
+    let udp6_announces_handled = udp_server_stats.udp6_announce_requests_accepted_total();
+    let udp6_scrapes_handled = udp_server_stats.udp6_scrape_requests_accepted_total();
+    let udp6_responses = udp_server_stats.udp6_responses_sent_total();
+    let udp6_errors_handled = udp_server_stats.udp6_errors_total();
 
     // For backward compatibility we keep the `tcp4_connections_handled` and
     // `tcp6_connections_handled` metrics. They don't make sense for the HTTP

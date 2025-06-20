@@ -54,7 +54,7 @@ mod tests {
 
         let stats = stats_repository.get_stats().await;
 
-        assert_eq!(stats.udp_requests_aborted(), 1);
+        assert_eq!(stats.udp_requests_aborted_total(), 1);
     }
 
     #[tokio::test]
@@ -77,6 +77,6 @@ mod tests {
         )
         .await;
         let stats = stats_repository.get_stats().await;
-        assert_eq!(stats.udp_requests_aborted(), 1);
+        assert_eq!(stats.udp_requests_aborted_total(), 1);
     }
 }

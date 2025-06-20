@@ -61,7 +61,7 @@ mod tests {
 
         let stats = stats_repository.get_stats().await;
 
-        assert_eq!(stats.udp4_connections_handled(), 1);
+        assert_eq!(stats.udp4_connect_requests_accepted_total(), 1);
     }
 
     #[tokio::test]
@@ -89,7 +89,7 @@ mod tests {
 
         let stats = stats_repository.get_stats().await;
 
-        assert_eq!(stats.udp4_announces_handled(), 1);
+        assert_eq!(stats.udp4_announce_requests_accepted_total(), 1);
     }
 
     #[tokio::test]
@@ -115,7 +115,7 @@ mod tests {
 
         let stats = stats_repository.get_stats().await;
 
-        assert_eq!(stats.udp4_scrapes_handled(), 1);
+        assert_eq!(stats.udp4_scrape_requests_accepted_total(), 1);
     }
 
     #[tokio::test]
@@ -141,7 +141,7 @@ mod tests {
 
         let stats = stats_repository.get_stats().await;
 
-        assert_eq!(stats.udp6_connections_handled(), 1);
+        assert_eq!(stats.udp6_connect_requests_accepted_total(), 1);
     }
 
     #[tokio::test]
@@ -169,7 +169,7 @@ mod tests {
 
         let stats = stats_repository.get_stats().await;
 
-        assert_eq!(stats.udp6_announces_handled(), 1);
+        assert_eq!(stats.udp6_announce_requests_accepted_total(), 1);
     }
 
     #[tokio::test]
@@ -195,6 +195,6 @@ mod tests {
 
         let stats = stats_repository.get_stats().await;
 
-        assert_eq!(stats.udp6_scrapes_handled(), 1);
+        assert_eq!(stats.udp6_scrape_requests_accepted_total(), 1);
     }
 }
