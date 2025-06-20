@@ -78,6 +78,17 @@ impl<T> Metric<T> {
     pub fn is_empty(&self) -> bool {
         self.sample_collection.is_empty()
     }
+
+    #[must_use]
+    pub fn collect_matching_samples(
+        &self,
+        label_set_criteria: &LabelSet,
+    ) -> Vec<(&crate::label::LabelSet, &crate::sample::Measurement<T>)> {
+        self.sample_collection
+            .iter()
+            .filter(|(label_set, _measurement)| label_set.matches(label_set_criteria))
+            .collect()
+    }
 }
 
 impl Metric<Counter> {

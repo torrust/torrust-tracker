@@ -1,6 +1,7 @@
 use crate::counter::Counter;
 use crate::gauge::Gauge;
 use crate::label::LabelSet;
+use crate::metric::aggregate::sum::Sum;
 use crate::metric::Metric;
 
 pub trait Avg {
@@ -12,20 +13,13 @@ impl Avg for Metric<Counter> {
     type Output = f64;
 
     fn avg(&self, label_set_criteria: &LabelSet) -> Self::Output {
-        let matching_samples: Vec<_> = self
-            .sample_collection
-            .iter()
-            .filter(|(label_set, _measurement)| label_set.matches(label_set_criteria))
-            .collect();
+        let matching_samples = self.collect_matching_samples(label_set_criteria);
 
         if matching_samples.is_empty() {
             return 0.0;
         }
 
-        let sum: u64 = matching_samples
-            .iter()
-            .map(|(_label_set, measurement)| measurement.value().primitive())
-            .sum();
+        let sum = self.sum(label_set_criteria);
 
         #[allow(clippy::cast_precision_loss)]
         (sum as f64 / matching_samples.len() as f64)
@@ -36,20 +30,13 @@ impl Avg for Metric<Gauge> {
     type Output = f64;
 
     fn avg(&self, label_set_criteria: &LabelSet) -> Self::Output {
-        let matching_samples: Vec<_> = self
-            .sample_collection
-            .iter()
-            .filter(|(label_set, _measurement)| label_set.matches(label_set_criteria))
-            .collect();
+        let matching_samples = self.collect_matching_samples(label_set_criteria);
 
         if matching_samples.is_empty() {
             return 0.0;
         }
 
-        let sum: f64 = matching_samples
-            .iter()
-            .map(|(_label_set, measurement)| measurement.value().primitive())
-            .sum();
+        let sum = self.sum(label_set_criteria);
 
         #[allow(clippy::cast_precision_loss)]
         (sum / matching_samples.len() as f64)
