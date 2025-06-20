@@ -25,9 +25,7 @@ impl Avg for MetricCollection {
 
 impl Avg for MetricKindCollection<Counter> {
     fn avg(&self, metric_name: &MetricName, label_set_criteria: &LabelSet) -> Option<f64> {
-        self.metrics
-            .get(metric_name)
-            .map(|metric| metric.avg(label_set_criteria))
+        self.metrics.get(metric_name).map(|metric| metric.avg(label_set_criteria))
     }
 }
 
