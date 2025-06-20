@@ -3,6 +3,7 @@ use std::time::Duration;
 use serde::Serialize;
 use torrust_tracker_metrics::label::LabelSet;
 use torrust_tracker_metrics::metric::MetricName;
+use torrust_tracker_metrics::metric_collection::aggregate::avg::Avg;
 use torrust_tracker_metrics::metric_collection::aggregate::sum::Sum;
 use torrust_tracker_metrics::metric_collection::{Error, MetricCollection};
 use torrust_tracker_metrics::metric_name;
@@ -213,6 +214,48 @@ impl Metrics {
                 &[("request_kind", "scrape")].into(),
             )
             .unwrap_or_default() as u64
+    }
+
+    /// Average processing time for UDP connect requests across all servers (in nanoseconds).
+    /// This calculates the average of all gauge samples for connect requests.
+    #[must_use]
+    #[allow(clippy::cast_sign_loss)]
+    #[allow(clippy::cast_possible_truncation)]
+    pub fn udp_avg_connect_processing_time_ns_averaged(&self) -> u64 {
+        self.metric_collection
+            .avg(
+                &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS),
+                &[("request_kind", "connect")].into(),
+            )
+            .unwrap_or(0.0) as u64
+    }
+
+    /// Average processing time for UDP announce requests across all servers (in nanoseconds).
+    /// This calculates the average of all gauge samples for announce requests.
+    #[must_use]
+    #[allow(clippy::cast_sign_loss)]
+    #[allow(clippy::cast_possible_truncation)]
+    pub fn udp_avg_announce_processing_time_ns_averaged(&self) -> u64 {
+        self.metric_collection
+            .avg(
+                &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS),
+                &[("request_kind", "announce")].into(),
+            )
+            .unwrap_or(0.0) as u64
+    }
+
+    /// Average processing time for UDP scrape requests across all servers (in nanoseconds).
+    /// This calculates the average of all gauge samples for scrape requests.
+    #[must_use]
+    #[allow(clippy::cast_sign_loss)]
+    #[allow(clippy::cast_possible_truncation)]
+    pub fn udp_avg_scrape_processing_time_ns_averaged(&self) -> u64 {
+        self.metric_collection
+            .avg(
+                &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS),
+                &[("request_kind", "scrape")].into(),
+            )
+            .unwrap_or(0.0) as u64
     }
 
     // UDPv4
@@ -1177,6 +1220,230 @@ mod tests {
             let result = metrics.increase_counter(&metric_name!("unknown_metric"), &labels, now);
 
             assert!(result.is_ok());
+        }
+    }
+
+    mod averaged_processing_time_metrics {
+        use super::*;
+
+        #[test]
+        fn it_should_return_zero_for_udp_avg_connect_processing_time_ns_averaged_when_no_data() {
+            let metrics = Metrics::default();
+            assert_eq!(metrics.udp_avg_connect_processing_time_ns_averaged(), 0);
+        }
+
+        #[test]
+        fn it_should_return_averaged_value_for_udp_avg_connect_processing_time_ns_averaged() {
+            let mut metrics = Metrics::default();
+            let now = CurrentClock::now();
+            let labels1 = LabelSet::from([("request_kind", "connect"), ("server_id", "server1")]);
+            let labels2 = LabelSet::from([("request_kind", "connect"), ("server_id", "server2")]);
+
+            // Set different gauge values for connect requests from different servers
+            metrics
+                .set_gauge(
+                    &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS),
+                    &labels1,
+                    1000.0,
+                    now,
+                )
+                .unwrap();
+
+            metrics
+                .set_gauge(
+                    &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS),
+                    &labels2,
+                    2000.0,
+                    now,
+                )
+                .unwrap();
+
+            // Should return the average: (1000 + 2000) / 2 = 1500
+            assert_eq!(metrics.udp_avg_connect_processing_time_ns_averaged(), 1500);
+        }
+
+        #[test]
+        fn it_should_return_zero_for_udp_avg_announce_processing_time_ns_averaged_when_no_data() {
+            let metrics = Metrics::default();
+            assert_eq!(metrics.udp_avg_announce_processing_time_ns_averaged(), 0);
+        }
+
+        #[test]
+        fn it_should_return_averaged_value_for_udp_avg_announce_processing_time_ns_averaged() {
+            let mut metrics = Metrics::default();
+            let now = CurrentClock::now();
+            let labels1 = LabelSet::from([("request_kind", "announce"), ("server_id", "server1")]);
+            let labels2 = LabelSet::from([("request_kind", "announce"), ("server_id", "server2")]);
+            let labels3 = LabelSet::from([("request_kind", "announce"), ("server_id", "server3")]);
+
+            // Set different gauge values for announce requests from different servers
+            metrics
+                .set_gauge(
+                    &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS),
+                    &labels1,
+                    1500.0,
+                    now,
+                )
+                .unwrap();
+
+            metrics
+                .set_gauge(
+                    &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS),
+                    &labels2,
+                    2500.0,
+                    now,
+                )
+                .unwrap();
+
+            metrics
+                .set_gauge(
+                    &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS),
+                    &labels3,
+                    3000.0,
+                    now,
+                )
+                .unwrap();
+
+            // Should return the average: (1500 + 2500 + 3000) / 3 = 2333 (truncated)
+            assert_eq!(metrics.udp_avg_announce_processing_time_ns_averaged(), 2333);
+        }
+
+        #[test]
+        fn it_should_return_zero_for_udp_avg_scrape_processing_time_ns_averaged_when_no_data() {
+            let metrics = Metrics::default();
+            assert_eq!(metrics.udp_avg_scrape_processing_time_ns_averaged(), 0);
+        }
+
+        #[test]
+        fn it_should_return_averaged_value_for_udp_avg_scrape_processing_time_ns_averaged() {
+            let mut metrics = Metrics::default();
+            let now = CurrentClock::now();
+            let labels1 = LabelSet::from([("request_kind", "scrape"), ("server_id", "server1")]);
+            let labels2 = LabelSet::from([("request_kind", "scrape"), ("server_id", "server2")]);
+
+            // Set different gauge values for scrape requests from different servers
+            metrics
+                .set_gauge(
+                    &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS),
+                    &labels1,
+                    500.0,
+                    now,
+                )
+                .unwrap();
+
+            metrics
+                .set_gauge(
+                    &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS),
+                    &labels2,
+                    1500.0,
+                    now,
+                )
+                .unwrap();
+
+            // Should return the average: (500 + 1500) / 2 = 1000
+            assert_eq!(metrics.udp_avg_scrape_processing_time_ns_averaged(), 1000);
+        }
+
+        #[test]
+        fn it_should_handle_fractional_averages_with_truncation() {
+            let mut metrics = Metrics::default();
+            let now = CurrentClock::now();
+            let labels1 = LabelSet::from([("request_kind", "connect"), ("server_id", "server1")]);
+            let labels2 = LabelSet::from([("request_kind", "connect"), ("server_id", "server2")]);
+            let labels3 = LabelSet::from([("request_kind", "connect"), ("server_id", "server3")]);
+
+            // Set values that will result in a fractional average
+            metrics
+                .set_gauge(
+                    &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS),
+                    &labels1,
+                    1000.0,
+                    now,
+                )
+                .unwrap();
+
+            metrics
+                .set_gauge(
+                    &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS),
+                    &labels2,
+                    1001.0,
+                    now,
+                )
+                .unwrap();
+
+            metrics
+                .set_gauge(
+                    &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS),
+                    &labels3,
+                    1001.0,
+                    now,
+                )
+                .unwrap();
+
+            // Should return the average: (1000 + 1001 + 1001) / 3 = 1000.666... → 1000 (truncated)
+            assert_eq!(metrics.udp_avg_connect_processing_time_ns_averaged(), 1000);
+        }
+
+        #[test]
+        fn it_should_only_average_matching_request_kinds() {
+            let mut metrics = Metrics::default();
+            let now = CurrentClock::now();
+
+            // Set values for different request kinds with the same server_id
+            let connect_labels = LabelSet::from([("request_kind", "connect"), ("server_id", "server1")]);
+            let announce_labels = LabelSet::from([("request_kind", "announce"), ("server_id", "server1")]);
+            let scrape_labels = LabelSet::from([("request_kind", "scrape"), ("server_id", "server1")]);
+
+            metrics
+                .set_gauge(
+                    &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS),
+                    &connect_labels,
+                    1000.0,
+                    now,
+                )
+                .unwrap();
+
+            metrics
+                .set_gauge(
+                    &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS),
+                    &announce_labels,
+                    2000.0,
+                    now,
+                )
+                .unwrap();
+
+            metrics
+                .set_gauge(
+                    &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS),
+                    &scrape_labels,
+                    3000.0,
+                    now,
+                )
+                .unwrap();
+
+            // Each function should only return the value for its specific request kind
+            assert_eq!(metrics.udp_avg_connect_processing_time_ns_averaged(), 1000);
+            assert_eq!(metrics.udp_avg_announce_processing_time_ns_averaged(), 2000);
+            assert_eq!(metrics.udp_avg_scrape_processing_time_ns_averaged(), 3000);
+        }
+
+        #[test]
+        fn it_should_handle_single_server_averaged_metrics() {
+            let mut metrics = Metrics::default();
+            let now = CurrentClock::now();
+            let labels = LabelSet::from([("request_kind", "connect"), ("server_id", "single_server")]);
+
+            metrics
+                .set_gauge(
+                    &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS),
+                    &labels,
+                    1234.0,
+                    now,
+                )
+                .unwrap();
+
+            // With only one server, the average should be the same as the single value
+            assert_eq!(metrics.udp_avg_connect_processing_time_ns_averaged(), 1234);
         }
     }
 }

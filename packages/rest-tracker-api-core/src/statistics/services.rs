@@ -74,9 +74,9 @@ async fn get_protocol_metrics(
     let udp_requests_aborted = udp_server_stats.udp_requests_aborted();
     let udp_requests_banned = udp_server_stats.udp_requests_banned();
     let udp_banned_ips_total = udp_server_stats.udp_banned_ips_total();
-    let udp_avg_connect_processing_time_ns = udp_server_stats.udp_avg_connect_processing_time_ns();
-    let udp_avg_announce_processing_time_ns = udp_server_stats.udp_avg_announce_processing_time_ns();
-    let udp_avg_scrape_processing_time_ns = udp_server_stats.udp_avg_scrape_processing_time_ns();
+    let udp_avg_connect_processing_time_ns = udp_server_stats.udp_avg_connect_processing_time_ns_averaged();
+    let udp_avg_announce_processing_time_ns = udp_server_stats.udp_avg_announce_processing_time_ns_averaged();
+    let udp_avg_scrape_processing_time_ns = udp_server_stats.udp_avg_scrape_processing_time_ns_averaged();
 
     // UDPv4
 
