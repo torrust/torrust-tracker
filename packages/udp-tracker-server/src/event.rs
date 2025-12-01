@@ -164,7 +164,7 @@ impl From<Error> for ErrorKind {
                 },
                 UdpScrapeError::TrackerCoreWhitelistError { source } => Self::Whitelist(source.to_string()),
             },
-            Error::Internal { location: _, message } => Self::InternalServer(message.to_string()),
+            Error::Internal { location: _, message } => Self::InternalServer(message.clone()),
             Error::AuthRequired { location } => Self::TrackerAuthentication(location.to_string()),
         }
     }

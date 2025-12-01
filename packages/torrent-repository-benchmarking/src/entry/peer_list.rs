@@ -265,7 +265,7 @@ mod tests {
             peer_list.upsert(peer.into());
 
             // Remove peers not updated since one second before inserting the peer.
-            peer_list.remove_inactive_peers(last_update_time - one_second);
+            peer_list.remove_inactive_peers(last_update_time.checked_sub(one_second).unwrap());
 
             assert_eq!(peer_list.len(), 1);
         }

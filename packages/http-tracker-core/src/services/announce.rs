@@ -389,15 +389,11 @@ mod tests {
             let remote_client_ip = IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1));
 
             let server_service_binding_clone = server_service_binding.clone();
-            let peer_copy = peer;
 
             let mut http_stats_event_sender_mock = MockHttpStatsEventSender::new();
             http_stats_event_sender_mock
                 .expect_send()
                 .with(predicate::function(move |event| {
-                    let mut announced_peer = peer_copy;
-                    announced_peer.peer_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080);
-
                     let mut announcement = peer;
                     announcement.peer_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080);
 
@@ -462,15 +458,11 @@ mod tests {
             let remote_client_ip = IpAddr::V4(Ipv4Addr::LOCALHOST);
 
             let server_service_binding_clone = server_service_binding.clone();
-            let peer_copy = peer;
 
             let mut http_stats_event_sender_mock = MockHttpStatsEventSender::new();
             http_stats_event_sender_mock
                 .expect_send()
                 .with(predicate::function(move |event| {
-                    let mut announced_peer = peer_copy;
-                    announced_peer.peer_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 8080);
-
                     let mut peer_announcement = peer;
                     peer_announcement.peer_addr = SocketAddr::new(
                         IpAddr::V6(Ipv6Addr::new(0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969)),

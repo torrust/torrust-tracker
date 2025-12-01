@@ -496,7 +496,7 @@ mod tests {
         swarm.upsert_peer(peer.into()).await;
 
         // Remove peers not updated since one second before inserting the peer.
-        swarm.remove_inactive(last_update_time - one_second).await;
+        swarm.remove_inactive(last_update_time.checked_sub(one_second).unwrap()).await;
 
         assert_eq!(swarm.len(), 1);
     }
