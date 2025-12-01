@@ -82,7 +82,7 @@ impl Docker {
         let mut port_args: Vec<String> = vec![];
         for port in &options.ports {
             port_args.push("--publish".to_string());
-            port_args.push(port.to_string());
+            port_args.push(port.clone());
         }
 
         let args = [initial_args, env_var_args, port_args, [image.to_string()].to_vec()].concat();

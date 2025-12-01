@@ -86,7 +86,7 @@ impl Query {
         self.params.get_vec(name).map(|pairs| {
             let mut param_values = vec![];
             for pair in pairs {
-                param_values.push(pair.value.to_string());
+                param_values.push(pair.value.clone());
             }
             param_values
         })

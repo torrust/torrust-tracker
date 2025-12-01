@@ -105,7 +105,7 @@ pub async fn get_torrent_info(
 
     let peers = torrent_entry.lock().await.peers(None);
 
-    let peers = Some(peers.iter().map(|peer| (**peer)).collect());
+    let peers = Some(peers.iter().map(|peer| **peer).collect());
 
     Some(Info {
         info_hash: *info_hash,
