@@ -7,7 +7,7 @@ use tracing::instrument;
 
 #[instrument(skip(handle, rx_halt, message))]
 pub async fn graceful_shutdown(
-    handle: axum_server::Handle,
+    handle: axum_server::Handle<SocketAddr>,
     rx_halt: tokio::sync::oneshot::Receiver<Halted>,
     message: String,
     address: SocketAddr,

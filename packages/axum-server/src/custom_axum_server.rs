@@ -18,7 +18,7 @@
 //! If you want to know more about Axum and timeouts see <https://github.com/josecelano/axum-server-timeout>.
 use std::future::Ready;
 use std::io::ErrorKind;
-use std::net::TcpListener;
+use std::net::{SocketAddr, TcpListener};
 use std::pin::Pin;
 use std::task::{Context, Poll};
 use std::time::Duration;
@@ -36,21 +36,32 @@ use tokio::sync::mpsc::{self, UnboundedReceiver, UnboundedSender};
 use tokio::time::{Instant, Sleep};
 use tower::Service;
 
+type RustlsServerResult = Result<Server<SocketAddr, RustlsAcceptor>, std::io::Error>;
+type ServerResult = Result<Server<SocketAddr>, std::io::Error>;
+
 const HTTP1_HEADER_READ_TIMEOUT: Duration = Duration::from_secs(5);
 const HTTP2_KEEP_ALIVE_TIMEOUT: Duration = Duration::from_secs(5);
 const HTTP2_KEEP_ALIVE_INTERVAL: Duration = Duration::from_secs(5);
 
-#[must_use]
-pub fn from_tcp_with_timeouts(socket: TcpListener) -> Server {
-    add_timeouts(axum_server::from_tcp(socket))
+/// Creates an Axum server from a TCP listener with configured timeouts.
+///
+/// # Errors
+///
+/// Returns an error if the server cannot be created from the TCP socket.
+pub fn from_tcp_with_timeouts(socket: TcpListener) -> ServerResult {
+    axum_server::from_tcp(socket).map(add_timeouts)
 }
 
-#[must_use]
-pub fn from_tcp_rustls_with_timeouts(socket: TcpListener, tls: RustlsConfig) -> Server<RustlsAcceptor> {
-    add_timeouts(axum_server::from_tcp_rustls(socket, tls))
+/// Creates an Axum server from a TCP listener with TLS and configured timeouts.
+///
+/// # Errors
+///
+/// Returns an error if the server cannot be created from the TCP socket or if TLS configuration fails.
+pub fn from_tcp_rustls_with_timeouts(socket: TcpListener, tls: RustlsConfig) -> RustlsServerResult {
+    axum_server::from_tcp_rustls(socket, tls).map(add_timeouts)
 }
 
-fn add_timeouts<A>(mut server: Server<A>) -> Server<A> {
+fn add_timeouts<Addr: axum_server::Address, Acc>(mut server: Server<Addr, Acc>) -> Server<Addr, Acc> {
     server.http_builder().http1().timer(TokioTimer::new());
     server.http_builder().http2().timer(TokioTimer::new());
 

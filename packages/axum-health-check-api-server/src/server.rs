@@ -101,6 +101,9 @@ pub fn start(
         .layer(SetRequestIdLayer::x_request_id(MakeRequestUuid));
 
     let socket = std::net::TcpListener::bind(bind_to).expect("Could not bind tcp_listener to address.");
+    socket
+        .set_nonblocking(true)
+        .expect("Failed to set socket to non-blocking mode");
     let address = socket.local_addr().expect("Could not get local_addr from tcp_listener.");
     let protocol = Protocol::HTTP; // The health check API only supports HTTP directly now. Use a reverse proxy for HTTPS.
     let service_binding = ServiceBinding::new(protocol.clone(), address).expect("Service binding creation failed");
@@ -117,6 +120,7 @@ pub fn start(
     ));
 
     let running = axum_server::from_tcp(socket)
+        .expect("Failed to create server from TCP socket")
         .handle(handle)
         .serve(router.into_make_service_with_connect_info::<SocketAddr>());
 

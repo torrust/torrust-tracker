@@ -52,6 +52,9 @@ impl Launcher {
         rx_halt: Receiver<Halted>,
     ) -> BoxFuture<'static, ()> {
         let socket = std::net::TcpListener::bind(self.bind_to).expect("Could not bind tcp_listener to address.");
+        socket
+            .set_nonblocking(true)
+            .expect("Failed to set socket to non-blocking mode");
         let address = socket.local_addr().expect("Could not get local_addr from tcp_listener.");
 
         let handle = Handle::new();
@@ -74,6 +77,7 @@ impl Launcher {
         let running = Box::pin(async {
             match tls {
                 Some(tls) => custom_axum_server::from_tcp_rustls_with_timeouts(socket, tls)
+                    .expect("Failed to create server from TCP socket with TLS")
                     .handle(handle)
                     // The TimeoutAcceptor is commented because TSL does not work with it.
                     // See: https://github.com/torrust/torrust-index/issues/204#issuecomment-2115529214
@@ -82,6 +86,7 @@ impl Launcher {
                     .await
                     .expect("Axum server crashed."),
                 None => custom_axum_server::from_tcp_with_timeouts(socket)
+                    .expect("Failed to create server from TCP socket")
                     .handle(handle)
                     .acceptor(TimeoutAcceptor)
                     .serve(app.into_make_service_with_connect_info::<std::net::SocketAddr>())
