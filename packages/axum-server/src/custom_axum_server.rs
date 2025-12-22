@@ -52,7 +52,11 @@ pub fn from_tcp_with_timeouts(socket: TcpListener) -> ServerResult {
     axum_server::from_tcp(socket).map(add_timeouts)
 }
 
-#[must_use]
+/// Creates an Axum server from a TCP listener with TLS and configured timeouts.
+///
+/// # Errors
+///
+/// Returns an error if the server cannot be created from the TCP socket or if TLS configuration fails.
 pub fn from_tcp_rustls_with_timeouts(socket: TcpListener, tls: RustlsConfig) -> RustlsServerResult {
     axum_server::from_tcp_rustls(socket, tls).map(add_timeouts)
 }
