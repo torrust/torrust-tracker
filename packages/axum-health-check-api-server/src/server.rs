@@ -117,6 +117,7 @@ pub fn start(
     ));
 
     let running = axum_server::from_tcp(socket)
+        .expect("Failed to create server from TCP socket")
         .handle(handle)
         .serve(router.into_make_service_with_connect_info::<SocketAddr>());
 
