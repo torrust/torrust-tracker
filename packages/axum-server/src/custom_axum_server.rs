@@ -37,14 +37,15 @@ use tokio::time::{Instant, Sleep};
 use tower::Service;
 
 type RustlsServerResult = Result<Server<SocketAddr, RustlsAcceptor>, std::io::Error>;
+type ServerResult = Result<Server<SocketAddr>, std::io::Error>;
 
 const HTTP1_HEADER_READ_TIMEOUT: Duration = Duration::from_secs(5);
 const HTTP2_KEEP_ALIVE_TIMEOUT: Duration = Duration::from_secs(5);
 const HTTP2_KEEP_ALIVE_INTERVAL: Duration = Duration::from_secs(5);
 
 #[must_use]
-pub fn from_tcp_with_timeouts(socket: TcpListener) -> Server<SocketAddr> {
-    add_timeouts(axum_server::from_tcp(socket))
+pub fn from_tcp_with_timeouts(socket: TcpListener) -> ServerResult {
+    axum_server::from_tcp(socket).map(add_timeouts)
 }
 
 #[must_use]
