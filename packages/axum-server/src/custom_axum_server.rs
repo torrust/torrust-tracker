@@ -43,7 +43,11 @@ const HTTP1_HEADER_READ_TIMEOUT: Duration = Duration::from_secs(5);
 const HTTP2_KEEP_ALIVE_TIMEOUT: Duration = Duration::from_secs(5);
 const HTTP2_KEEP_ALIVE_INTERVAL: Duration = Duration::from_secs(5);
 
-#[must_use]
+/// Creates an Axum server from a TCP listener with configured timeouts.
+///
+/// # Errors
+///
+/// Returns an error if the server cannot be created from the TCP socket.
 pub fn from_tcp_with_timeouts(socket: TcpListener) -> ServerResult {
     axum_server::from_tcp(socket).map(add_timeouts)
 }
