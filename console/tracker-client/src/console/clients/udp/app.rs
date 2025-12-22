@@ -176,8 +176,7 @@ fn parse_socket_addr(tracker_socket_addr_str: &str) -> anyhow::Result<SocketAddr
 
         if parts.len() != 2 {
             return Err(anyhow::anyhow!(
-                "invalid address format: `{}`. Expected format is host:port",
-                tracker_socket_addr_str
+                "invalid address format: `{tracker_socket_addr_str}`. Expected format is host:port"
             ));
         }
 
@@ -196,7 +195,7 @@ fn parse_socket_addr(tracker_socket_addr_str: &str) -> anyhow::Result<SocketAddr
     // Perform DNS resolution.
     let socket_addrs: Vec<_> = resolved_addr.to_socket_addrs()?.collect();
     if socket_addrs.is_empty() {
-        Err(anyhow::anyhow!("DNS resolution failed for `{}`", tracker_socket_addr_str))
+        Err(anyhow::anyhow!("DNS resolution failed for `{tracker_socket_addr_str}`"))
     } else {
         Ok(socket_addrs[0])
     }
