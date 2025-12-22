@@ -53,7 +53,7 @@ pub fn from_tcp_rustls_with_timeouts(socket: TcpListener, tls: RustlsConfig) -> 
     axum_server::from_tcp_rustls(socket, tls).map(add_timeouts)
 }
 
-fn add_timeouts<A: axum_server::Address>(mut server: Server<A>) -> Server<A> {
+fn add_timeouts<Addr: axum_server::Address, Acc>(mut server: Server<Addr, Acc>) -> Server<Addr, Acc> {
     server.http_builder().http1().timer(TokioTimer::new());
     server.http_builder().http2().timer(TokioTimer::new());
 
