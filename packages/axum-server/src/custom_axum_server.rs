@@ -18,7 +18,7 @@
 //! If you want to know more about Axum and timeouts see <https://github.com/josecelano/axum-server-timeout>.
 use std::future::Ready;
 use std::io::ErrorKind;
-use std::net::TcpListener;
+use std::net::{SocketAddr, TcpListener};
 use std::pin::Pin;
 use std::task::{Context, Poll};
 use std::time::Duration;
@@ -41,7 +41,7 @@ const HTTP2_KEEP_ALIVE_TIMEOUT: Duration = Duration::from_secs(5);
 const HTTP2_KEEP_ALIVE_INTERVAL: Duration = Duration::from_secs(5);
 
 #[must_use]
-pub fn from_tcp_with_timeouts(socket: TcpListener) -> Server {
+pub fn from_tcp_with_timeouts(socket: TcpListener) -> Server<SocketAddr> {
     add_timeouts(axum_server::from_tcp(socket))
 }
 
@@ -50,7 +50,7 @@ pub fn from_tcp_rustls_with_timeouts(socket: TcpListener, tls: RustlsConfig) -> 
     add_timeouts(axum_server::from_tcp_rustls(socket, tls))
 }
 
-fn add_timeouts<A>(mut server: Server<A>) -> Server<A> {
+fn add_timeouts<A: axum_server::Address>(mut server: Server<A>) -> Server<A> {
     server.http_builder().http1().timer(TokioTimer::new());
     server.http_builder().http2().timer(TokioTimer::new());
 
