@@ -247,6 +247,7 @@ impl Launcher {
         rx_halt: Receiver<Halted>,
     ) -> BoxFuture<'static, ()> {
         let socket = std::net::TcpListener::bind(self.bind_to).expect("Could not bind tcp_listener to address.");
+        socket.set_nonblocking(true).expect("Failed to set socket to non-blocking mode");
         let address = socket.local_addr().expect("Could not get local_addr from tcp_listener.");
 
         let router = router(http_api_container, access_tokens, address);

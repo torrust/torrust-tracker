@@ -101,6 +101,9 @@ pub fn start(
         .layer(SetRequestIdLayer::x_request_id(MakeRequestUuid));
 
     let socket = std::net::TcpListener::bind(bind_to).expect("Could not bind tcp_listener to address.");
+    socket
+        .set_nonblocking(true)
+        .expect("Failed to set socket to non-blocking mode");
     let address = socket.local_addr().expect("Could not get local_addr from tcp_listener.");
     let protocol = Protocol::HTTP; // The health check API only supports HTTP directly now. Use a reverse proxy for HTTPS.
     let service_binding = ServiceBinding::new(protocol.clone(), address).expect("Service binding creation failed");
