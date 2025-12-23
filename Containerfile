@@ -3,13 +3,13 @@
 # Torrust Tracker
 
 ## Builder Image
-FROM docker.io/library/rust:bookworm AS chef
+FROM docker.io/library/rust:trixie AS chef
 WORKDIR /tmp
 RUN curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
 RUN cargo binstall --no-confirm cargo-chef cargo-nextest
 
 ## Tester Image
-FROM docker.io/library/rust:slim-bookworm AS tester
+FROM docker.io/library/rust:slim-trixie AS tester
 WORKDIR /tmp
 
 RUN apt-get update; apt-get install -y curl sqlite3; apt-get autoclean
@@ -21,7 +21,7 @@ RUN mkdir -p /app/share/torrust/default/database/; \
     sqlite3 /app/share/torrust/default/database/tracker.sqlite3.db  "VACUUM;"
 
 ## Su Exe Compile
-FROM docker.io/library/gcc:bookworm AS gcc
+FROM docker.io/library/gcc:trixie AS gcc
 COPY ./contrib/dev-tools/su-exec/ /usr/local/src/su-exec/
 RUN cc -Wall -Werror -g /usr/local/src/su-exec/su-exec.c -o /usr/local/bin/su-exec; chmod +x /usr/local/bin/su-exec
 
@@ -91,7 +91,7 @@ RUN chown -R root:root /app; chmod -R u=rw,go=r,a+X /app; chmod -R a+x /app/bin
 
 
 ## Runtime
-FROM gcr.io/distroless/cc-debian12:debug AS runtime
+FROM gcr.io/distroless/cc-debian13:debug AS runtime
 RUN ["/busybox/cp", "-sp", "/busybox/sh","/busybox/cat","/busybox/ls","/busybox/env", "/bin/"]
 COPY --from=gcc --chmod=0555 /usr/local/bin/su-exec /bin/su-exec
 
