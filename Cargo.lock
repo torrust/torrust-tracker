@@ -5407,7 +5407,7 @@ dependencies = [
  "torrust-tracker-clock",
  "torrust-tracker-configuration",
  "torrust-tracker-primitives",
- "zerocopy 0.7.35",
+ "zerocopy 0.8.31",
 ]
 
 [[package]]
