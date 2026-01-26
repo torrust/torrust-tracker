@@ -204,22 +204,22 @@ impl Client {
 ///
 /// Will panic if the request can't be sent
 pub async fn get(path: Url, query: Option<Query>, headers: Option<HeaderMap>) -> Response {
-    let builder = reqwest::Client::builder()
+    let client = reqwest::Client::builder()
         .timeout(Duration::from_secs(DEFAULT_REQUEST_TIMEOUT_IN_SECS))
         .build()
         .unwrap();
 
-    let builder = match query {
-        Some(params) => builder.get(path).query(&ReqwestQuery::from(params)),
-        None => builder.get(path),
-    };
+    let mut request_builder = client.get(path);
 
-    let builder = match headers {
-        Some(headers) => builder.headers(headers),
-        None => builder,
-    };
+    if let Some(params) = query {
+        request_builder = request_builder.query(&ReqwestQuery::from(params));
+    }
 
-    builder.send().await.unwrap()
+    if let Some(headers) = headers {
+        request_builder = request_builder.headers(headers);
+    }
+
+    request_builder.send().await.unwrap()
 }
 
 /// Returns a `HeaderMap` with a request id header.
