@@ -521,6 +521,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(clippy::result_large_err)]
     fn configuration_should_use_the_default_values_when_only_the_mandatory_options_are_provided_by_the_user_via_toml_file() {
         figment::Jail::expect_with(|jail| {
             jail.create_file(
@@ -552,6 +553,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(clippy::result_large_err)]
     fn configuration_should_use_the_default_values_when_only_the_mandatory_options_are_provided_by_the_user_via_toml_content() {
         figment::Jail::expect_with(|_jail| {
             let config_toml = r#"
@@ -581,6 +583,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(clippy::result_large_err)]
     fn default_configuration_could_be_overwritten_from_a_single_env_var_with_toml_contents() {
         figment::Jail::expect_with(|_jail| {
             let config_toml = r#"
@@ -613,6 +616,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(clippy::result_large_err)]
     fn default_configuration_could_be_overwritten_from_a_toml_config_file() {
         figment::Jail::expect_with(|jail| {
             jail.create_file(
@@ -646,6 +650,7 @@ mod tests {
         });
     }
 
+    #[allow(clippy::result_large_err)]
     #[test]
     fn configuration_should_allow_to_overwrite_the_default_tracker_api_token_for_admin_with_an_env_var() {
         figment::Jail::expect_with(|jail| {
