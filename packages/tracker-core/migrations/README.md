@@ -8,14 +8,15 @@ The migrations in this folder were introduced to add some new changes (permanent
 
 The tracker uses 4 tables:
 
-### 1. `whitelist`
+### 1. `whitelist_v1`
 
 Stores whitelisted torrent infohashes for private/whitelisted mode.
 
 | Column | SQLite Type | MySQL Type | Description |
 |--------|-------------|------------|-------------|
-| `id` | INTEGER PRIMARY KEY AUTOINCREMENT | integer PRIMARY KEY AUTO_INCREMENT | Auto-increment ID |
-| `info_hash` | TEXT NOT NULL UNIQUE | VARCHAR(40) NOT NULL UNIQUE | BitTorrent V1 infohash (40-char hex string) |
+| `info_hash` | TEXT PRIMARY KEY NOT NULL | BINARY(20) PRIMARY KEY NOT NULL | BitTorrent V1 infohash (SQLite: 40-char hex string, MySQL: 20-byte binary) |
+
+> **Note**: SQLite uses `WITHOUT ROWID` optimization. MySQL stores as binary for efficiency.
 
 ### 2. `torrents`
 
@@ -57,6 +58,7 @@ Stores global/aggregate metrics not tied to specific torrents (e.g., total downl
 | `20240730183500_torrust_tracker_keys_valid_until_nullable.sql` | Makes `valid_until` column nullable in `keys` table (for permanent keys) |
 | `20250527093000_torrust_tracker_new_torrent_aggregate_metrics_table.sql` | Creates `torrent_aggregate_metrics` table for global metrics |
 | `20260206120000_torrust_tracker_torrents_completed_non_zero.sql` | Removes rows with completed=0 and adds CHECK constraint (completed >= 1) |
+| `20260206130000_torrust_tracker_whitelist_without_rowid.sql` | Optimizes whitelist table: removes `id` column, uses `info_hash` as PRIMARY KEY with WITHOUT ROWID |
 
 ### MySQL
 
@@ -66,3 +68,4 @@ Stores global/aggregate metrics not tied to specific torrents (e.g., total downl
 | `20240730183500_torrust_tracker_keys_valid_until_nullable.sql` | Makes `valid_until` column nullable in `keys` table (for permanent keys) |
 | `20250527093000_torrust_tracker_new_torrent_aggregate_metrics_table.sql` | Creates `torrent_aggregate_metrics` table for global metrics |
 | `20260206120000_torrust_tracker_torrents_completed_non_zero.sql` | Removes rows with completed=0 and adds CHECK constraint (completed >= 1) |
+| `20260206130000_torrust_tracker_whitelist_binary.sql` | Optimizes whitelist table: removes `id` column, uses BINARY(20) `info_hash` as PRIMARY KEY |

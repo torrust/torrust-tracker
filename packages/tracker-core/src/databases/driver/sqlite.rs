@@ -88,11 +88,10 @@ impl Database for Sqlite {
     /// Refer to [`databases::Database::create_database_tables`](crate::core::databases::Database::create_database_tables).
     fn create_database_tables(&self) -> Result<(), Error> {
         let create_whitelist_table = "
-        CREATE TABLE IF NOT EXISTS whitelist (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            info_hash TEXT NOT NULL UNIQUE
-        );"
-        .to_string();
+        CREATE TABLE IF NOT EXISTS whitelist_v1 (
+            info_hash TEXT PRIMARY KEY NOT NULL
+        ) WITHOUT ROWID;"
+            .to_string();
 
         let create_torrents_table = "
         CREATE TABLE IF NOT EXISTS torrents (
@@ -131,7 +130,7 @@ impl Database for Sqlite {
     /// Refer to [`databases::Database::drop_database_tables`](crate::core::databases::Database::drop_database_tables).
     fn drop_database_tables(&self) -> Result<(), Error> {
         let drop_whitelist_table = "
-        DROP TABLE whitelist;"
+        DROP TABLE whitelist_v1;"
             .to_string();
 
         let drop_torrents_table = "
@@ -269,7 +268,7 @@ impl Database for Sqlite {
     fn load_whitelist(&self) -> Result<Vec<InfoHash>, Error> {
         let conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
-        let mut stmt = conn.prepare("SELECT info_hash FROM whitelist")?;
+        let mut stmt = conn.prepare("SELECT info_hash FROM whitelist_v1")?;
 
         let info_hash_iter = stmt.query_map([], |row| {
             let info_hash: String = row.get(0)?;
@@ -286,7 +285,7 @@ impl Database for Sqlite {
     fn get_info_hash_from_whitelist(&self, info_hash: InfoHash) -> Result<Option<InfoHash>, Error> {
         let conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
-        let mut stmt = conn.prepare("SELECT info_hash FROM whitelist WHERE info_hash = ?")?;
+        let mut stmt = conn.prepare("SELECT info_hash FROM whitelist_v1 WHERE info_hash = ?")?;
 
         let mut rows = stmt.query([info_hash.to_hex_string()])?;
 
@@ -299,7 +298,7 @@ impl Database for Sqlite {
     fn add_info_hash_to_whitelist(&self, info_hash: InfoHash) -> Result<usize, Error> {
         let conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
-        let insert = conn.execute("INSERT INTO whitelist (info_hash) VALUES (?)", [info_hash.to_string()])?;
+        let insert = conn.execute("INSERT INTO whitelist_v1 (info_hash) VALUES (?)", [info_hash.to_string()])?;
 
         if insert == 0 {
             Err(Error::InsertFailed {
@@ -315,7 +314,7 @@ impl Database for Sqlite {
     fn remove_info_hash_from_whitelist(&self, info_hash: InfoHash) -> Result<usize, Error> {
         let conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
-        let deleted = conn.execute("DELETE FROM whitelist WHERE info_hash = ?", [info_hash.to_string()])?;
+        let deleted = conn.execute("DELETE FROM whitelist_v1 WHERE info_hash = ?", [info_hash.to_string()])?;
 
         if deleted == 1 {
             // should only remove a single record.

@@ -73,9 +73,8 @@ impl Database for Mysql {
     /// Refer to [`databases::Database::create_database_tables`](crate::core::databases::Database::create_database_tables).
     fn create_database_tables(&self) -> Result<(), Error> {
         let create_whitelist_table = "
-        CREATE TABLE IF NOT EXISTS whitelist (
-            id integer PRIMARY KEY AUTO_INCREMENT,
-            info_hash VARCHAR(40) NOT NULL UNIQUE
+        CREATE TABLE IF NOT EXISTS whitelist_v1 (
+            info_hash BINARY(20) PRIMARY KEY NOT NULL
         );"
         .to_string();
 
@@ -123,7 +122,7 @@ impl Database for Mysql {
     /// Refer to [`databases::Database::drop_database_tables`](crate::core::databases::Database::drop_database_tables).
     fn drop_database_tables(&self) -> Result<(), Error> {
         let drop_whitelist_table = "
-        DROP TABLE `whitelist`;"
+        DROP TABLE `whitelist_v1`;"
             .to_string();
 
         let drop_torrents_table = "
@@ -137,7 +136,7 @@ impl Database for Mysql {
         let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
         conn.query_drop(&drop_whitelist_table)
-            .expect("Could not drop `whitelist` table.");
+            .expect("Could not drop `whitelist_v1` table.");
         conn.query_drop(&drop_torrents_table)
             .expect("Could not drop `torrents` table.");
         conn.query_drop(&drop_keys_table).expect("Could not drop `keys` table.");
@@ -248,8 +247,8 @@ impl Database for Mysql {
     fn load_whitelist(&self) -> Result<Vec<InfoHash>, Error> {
         let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
-        let info_hashes = conn.query_map("SELECT info_hash FROM whitelist", |info_hash: String| {
-            InfoHash::from_str(&info_hash).unwrap()
+        let info_hashes = conn.query_map("SELECT info_hash FROM whitelist_v1", |info_hash_bytes: Vec<u8>| {
+            InfoHash::from_bytes(&info_hash_bytes)
         })?;
 
         Ok(info_hashes)
@@ -259,12 +258,12 @@ impl Database for Mysql {
     fn get_info_hash_from_whitelist(&self, info_hash: InfoHash) -> Result<Option<InfoHash>, Error> {
         let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
-        let select = conn.exec_first::<String, _, _>(
-            "SELECT info_hash FROM whitelist WHERE info_hash = :info_hash",
-            params! { "info_hash" => info_hash.to_hex_string() },
+        let select = conn.exec_first::<Vec<u8>, _, _>(
+            "SELECT info_hash FROM whitelist_v1 WHERE info_hash = :info_hash",
+            params! { "info_hash" => info_hash.bytes() },
         )?;
 
-        let info_hash = select.map(|f| InfoHash::from_str(&f).expect("Failed to decode InfoHash String from DB!"));
+        let info_hash = select.map(|bytes| InfoHash::from_bytes(&bytes));
 
         Ok(info_hash)
     }
@@ -273,11 +272,11 @@ impl Database for Mysql {
     fn add_info_hash_to_whitelist(&self, info_hash: InfoHash) -> Result<usize, Error> {
         let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
-        let info_hash_str = info_hash.to_string();
+        let info_hash_bytes = info_hash.bytes();
 
         conn.exec_drop(
-            "INSERT INTO whitelist (info_hash) VALUES (:info_hash_str)",
-            params! { info_hash_str },
+            "INSERT INTO whitelist_v1 (info_hash) VALUES (:info_hash_bytes)",
+            params! { info_hash_bytes },
         )?;
 
         Ok(1)
@@ -287,9 +286,12 @@ impl Database for Mysql {
     fn remove_info_hash_from_whitelist(&self, info_hash: InfoHash) -> Result<usize, Error> {
         let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
-        let info_hash = info_hash.to_string();
+        let info_hash_bytes = info_hash.bytes();
 
-        conn.exec_drop("DELETE FROM whitelist WHERE info_hash = :info_hash", params! { info_hash })?;
+        conn.exec_drop(
+            "DELETE FROM whitelist_v1 WHERE info_hash = :info_hash_bytes",
+            params! { info_hash_bytes },
+        )?;
 
         Ok(1)
     }
