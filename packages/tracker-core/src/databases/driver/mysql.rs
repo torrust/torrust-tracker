@@ -83,7 +83,7 @@ impl Database for Mysql {
         CREATE TABLE IF NOT EXISTS torrents (
             id integer PRIMARY KEY AUTO_INCREMENT,
             info_hash VARCHAR(40) NOT NULL UNIQUE,
-            completed INTEGER DEFAULT 0 NOT NULL
+            completed INTEGER DEFAULT 1 NOT NULL CHECK (completed >= 1)
         );"
         .to_string();
 

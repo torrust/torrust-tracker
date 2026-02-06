@@ -43,9 +43,22 @@
 //! |---------------|------------------------------------|--------------------------------------|
 //! | `id`          | 1                                  | Auto-increment id                    |
 //! | `key`         | `IrweYtVuQPGbG9Jzx1DihcPmJGGpVy82` | Authentication token (32 chars)      |
-//! | `valid_until` | 1672419840                         | Timestamp indicating expiration time |
+//! | `valid_until` | 1672419840                         | Unix timestamp for expiration; NULL for permanent keys |
 //!
-//! > **NOTICE**: All authentication keys must have an expiration date.
+//! > **NOTICE**: Authentication keys can be permanent (no expiration) by setting
+//! > `valid_until` to NULL.
+//!
+//! # Torrent Aggregate Metrics
+//!
+//! A table for storing global/aggregate metrics that are not tied to a specific
+//! torrent. Currently used for tracking the total number of downloads across
+//! all torrents.
+//!
+//! | Field         | Sample data                              | Description                              |
+//! |---------------|------------------------------------------|------------------------------------------|
+//! | `id`          | 1                                        | Auto-increment id                        |
+//! | `metric_name` | `torrents_downloads_total`               | Unique identifier for the metric         |
+//! | `value`       | 12345                                    | The metric value (integer)               |
 pub mod driver;
 pub mod error;
 pub mod setup;
