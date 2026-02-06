@@ -93,13 +93,12 @@ impl Database for Sqlite {
         ) WITHOUT ROWID;"
             .to_string();
 
-        let create_torrents_table = "
-        CREATE TABLE IF NOT EXISTS torrents (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            info_hash TEXT NOT NULL UNIQUE,
-            completed INTEGER DEFAULT 1 NOT NULL CHECK (completed >= 1)
-        );"
-        .to_string();
+        let create_completed_table = "
+        CREATE TABLE IF NOT EXISTS completed_v1 (
+            info_hash TEXT PRIMARY KEY NOT NULL,
+            count INTEGER DEFAULT 1 NOT NULL CHECK (count >= 1)
+        ) WITHOUT ROWID;"
+            .to_string();
 
         let create_torrent_aggregate_metrics_table = "
         CREATE TABLE IF NOT EXISTS torrent_aggregate_metrics (
@@ -121,7 +120,7 @@ impl Database for Sqlite {
 
         conn.execute(&create_whitelist_table, [])?;
         conn.execute(&create_keys_table, [])?;
-        conn.execute(&create_torrents_table, [])?;
+        conn.execute(&create_completed_table, [])?;
         conn.execute(&create_torrent_aggregate_metrics_table, [])?;
 
         Ok(())
@@ -133,8 +132,8 @@ impl Database for Sqlite {
         DROP TABLE whitelist_v1;"
             .to_string();
 
-        let drop_torrents_table = "
-        DROP TABLE torrents;"
+        let drop_completed_table = "
+        DROP TABLE completed_v1;"
             .to_string();
 
         let drop_keys_table = "
@@ -144,7 +143,7 @@ impl Database for Sqlite {
         let conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
         conn.execute(&drop_whitelist_table, [])
-            .and_then(|_| conn.execute(&drop_torrents_table, []))
+            .and_then(|_| conn.execute(&drop_completed_table, []))
             .and_then(|_| conn.execute(&drop_keys_table, []))?;
 
         Ok(())
@@ -154,13 +153,13 @@ impl Database for Sqlite {
     fn load_all_torrents_downloads(&self) -> Result<NumberOfDownloadsBTreeMap, Error> {
         let conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
-        let mut stmt = conn.prepare("SELECT info_hash, completed FROM torrents")?;
+        let mut stmt = conn.prepare("SELECT info_hash, count FROM completed_v1")?;
 
         let torrent_iter = stmt.query_map([], |row| {
             let info_hash_string: String = row.get(0)?;
             let info_hash = InfoHash::from_str(&info_hash_string).unwrap();
-            let completed: u32 = row.get(1)?;
-            Ok((info_hash, completed))
+            let count: u32 = row.get(1)?;
+            Ok((info_hash, count))
         })?;
 
         Ok(torrent_iter.filter_map(std::result::Result::ok).collect())
@@ -170,7 +169,7 @@ impl Database for Sqlite {
     fn load_torrent_downloads(&self, info_hash: &InfoHash) -> Result<Option<NumberOfDownloads>, Error> {
         let conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
-        let mut stmt = conn.prepare("SELECT completed FROM torrents WHERE info_hash = ?")?;
+        let mut stmt = conn.prepare("SELECT count FROM completed_v1 WHERE info_hash = ?")?;
 
         let mut rows = stmt.query([info_hash.to_hex_string()])?;
 
@@ -187,7 +186,7 @@ impl Database for Sqlite {
         let conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
         let insert = conn.execute(
-            "INSERT INTO torrents (info_hash, completed) VALUES (?1, ?2) ON CONFLICT(info_hash) DO UPDATE SET completed = ?2",
+            "INSERT INTO completed_v1 (info_hash, count) VALUES (?1, ?2) ON CONFLICT(info_hash) DO UPDATE SET count = ?2",
             [info_hash.to_string(), completed.to_string()],
         )?;
 
@@ -206,7 +205,7 @@ impl Database for Sqlite {
         let conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
         let _ = conn.execute(
-            "UPDATE torrents SET completed = completed + 1 WHERE info_hash = ?",
+            "UPDATE completed_v1 SET count = count + 1 WHERE info_hash = ?",
             [info_hash.to_string()],
         )?;
 

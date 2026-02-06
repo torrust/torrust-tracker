@@ -5,7 +5,6 @@
 //! based on a URL, creates the necessary tables (for torrent metrics, torrent
 //! whitelist, and authentication keys), and implements all CRUD operations
 //! required by the persistence layer.
-use std::str::FromStr;
 use std::time::Duration;
 
 use bittorrent_primitives::info_hash::InfoHash;
@@ -78,11 +77,10 @@ impl Database for Mysql {
         );"
         .to_string();
 
-        let create_torrents_table = "
-        CREATE TABLE IF NOT EXISTS torrents (
-            id integer PRIMARY KEY AUTO_INCREMENT,
-            info_hash VARCHAR(40) NOT NULL UNIQUE,
-            completed INTEGER DEFAULT 1 NOT NULL CHECK (completed >= 1)
+        let create_completed_table = "
+        CREATE TABLE IF NOT EXISTS completed_v1 (
+            info_hash BINARY(20) PRIMARY KEY NOT NULL,
+            count INTEGER DEFAULT 1 NOT NULL CHECK (count >= 1)
         );"
         .to_string();
 
@@ -108,8 +106,8 @@ impl Database for Mysql {
 
         let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
-        conn.query_drop(&create_torrents_table)
-            .expect("Could not create torrents table.");
+        conn.query_drop(&create_completed_table)
+            .expect("Could not create completed_v1 table.");
         conn.query_drop(&create_torrent_aggregate_metrics_table)
             .expect("Could not create create_torrent_aggregate_metrics_table table.");
         conn.query_drop(&create_keys_table).expect("Could not create keys table.");
@@ -125,8 +123,8 @@ impl Database for Mysql {
         DROP TABLE `whitelist_v1`;"
             .to_string();
 
-        let drop_torrents_table = "
-        DROP TABLE `torrents`;"
+        let drop_completed_table = "
+        DROP TABLE `completed_v1`;"
             .to_string();
 
         let drop_keys_table = "
@@ -137,8 +135,8 @@ impl Database for Mysql {
 
         conn.query_drop(&drop_whitelist_table)
             .expect("Could not drop `whitelist_v1` table.");
-        conn.query_drop(&drop_torrents_table)
-            .expect("Could not drop `torrents` table.");
+        conn.query_drop(&drop_completed_table)
+            .expect("Could not drop `completed_v1` table.");
         conn.query_drop(&drop_keys_table).expect("Could not drop `keys` table.");
 
         Ok(())
@@ -149,10 +147,10 @@ impl Database for Mysql {
         let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
         let torrents = conn.query_map(
-            "SELECT info_hash, completed FROM torrents",
-            |(info_hash_string, completed): (String, u32)| {
-                let info_hash = InfoHash::from_str(&info_hash_string).unwrap();
-                (info_hash, completed)
+            "SELECT info_hash, count FROM completed_v1",
+            |(info_hash_bytes, count): (Vec<u8>, u32)| {
+                let info_hash = InfoHash::from_bytes(&info_hash_bytes);
+                (info_hash, count)
             },
         )?;
 
@@ -164,8 +162,8 @@ impl Database for Mysql {
         let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
         let query = conn.exec_first::<u32, _, _>(
-            "SELECT completed FROM torrents WHERE info_hash = :info_hash",
-            params! { "info_hash" => info_hash.to_hex_string() },
+            "SELECT count FROM completed_v1 WHERE info_hash = :info_hash",
+            params! { "info_hash" => info_hash.bytes() },
         );
 
         let persistent_torrent = query?;
@@ -175,24 +173,25 @@ impl Database for Mysql {
 
     /// Refer to [`databases::Database::save_persistent_torrent`](crate::core::databases::Database::save_persistent_torrent).
     fn save_torrent_downloads(&self, info_hash: &InfoHash, completed: u32) -> Result<(), Error> {
-        const COMMAND : &str = "INSERT INTO torrents (info_hash, completed) VALUES (:info_hash_str, :completed) ON DUPLICATE KEY UPDATE completed = VALUES(completed)";
+        const COMMAND: &str = "INSERT INTO completed_v1 (info_hash, count) VALUES (:info_hash_bytes, :count) ON DUPLICATE KEY UPDATE count = VALUES(count)";
 
         let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
-        let info_hash_str = info_hash.to_string();
+        let info_hash_bytes = info_hash.bytes();
+        let count = completed;
 
-        Ok(conn.exec_drop(COMMAND, params! { info_hash_str, completed })?)
+        Ok(conn.exec_drop(COMMAND, params! { info_hash_bytes, count })?)
     }
 
     /// Refer to [`databases::Database::increase_number_of_downloads`](crate::core::databases::Database::increase_number_of_downloads).
     fn increase_downloads_for_torrent(&self, info_hash: &InfoHash) -> Result<(), Error> {
         let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
-        let info_hash_str = info_hash.to_string();
+        let info_hash_bytes = info_hash.bytes();
 
         conn.exec_drop(
-            "UPDATE torrents SET completed = completed + 1 WHERE info_hash = :info_hash_str",
-            params! { info_hash_str },
+            "UPDATE completed_v1 SET count = count + 1 WHERE info_hash = :info_hash_bytes",
+            params! { info_hash_bytes },
         )?;
 
         Ok(())

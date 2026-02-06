@@ -18,15 +18,16 @@ Stores whitelisted torrent infohashes for private/whitelisted mode.
 
 > **Note**: SQLite uses `WITHOUT ROWID` optimization. MySQL stores as binary for efficiency.
 
-### 2. `torrents`
+### 2. `completed_v1`
 
-Stores per-torrent metrics (completed download count).
+Stores per-torrent download completion counts.
 
 | Column | SQLite Type | MySQL Type | Description |
 |--------|-------------|------------|-------------|
-| `id` | INTEGER PRIMARY KEY AUTOINCREMENT | integer PRIMARY KEY AUTO_INCREMENT | Auto-increment ID |
-| `info_hash` | TEXT NOT NULL UNIQUE | VARCHAR(40) NOT NULL UNIQUE | BitTorrent V1 infohash (40-char hex string) |
-| `completed` | INTEGER DEFAULT 1 NOT NULL CHECK (completed >= 1) | INTEGER DEFAULT 1 NOT NULL CHECK (completed >= 1) | Number of times the torrent has been fully downloaded (minimum 1) |
+| `info_hash` | TEXT PRIMARY KEY NOT NULL | BINARY(20) PRIMARY KEY NOT NULL | BitTorrent V1 infohash (SQLite: 40-char hex string, MySQL: 20-byte binary) |
+| `count` | INTEGER DEFAULT 1 NOT NULL CHECK (count >= 1) | INTEGER DEFAULT 1 NOT NULL CHECK (count >= 1) | Number of times the torrent has been fully downloaded (minimum 1) |
+
+> **Note**: SQLite uses `WITHOUT ROWID` optimization. MySQL stores info_hash as binary for efficiency.
 
 ### 3. `keys`
 
@@ -59,6 +60,7 @@ Stores global/aggregate metrics not tied to specific torrents (e.g., total downl
 | `20250527093000_torrust_tracker_new_torrent_aggregate_metrics_table.sql` | Creates `torrent_aggregate_metrics` table for global metrics |
 | `20260206120000_torrust_tracker_torrents_completed_non_zero.sql` | Removes rows with completed=0 and adds CHECK constraint (completed >= 1) |
 | `20260206130000_torrust_tracker_whitelist_without_rowid.sql` | Optimizes whitelist table: removes `id` column, uses `info_hash` as PRIMARY KEY with WITHOUT ROWID |
+| `20260206140000_torrust_tracker_completed_v1.sql` | Migrates `torrents` to `completed_v1`: removes `id` column, renames `completed` to `count`, uses `info_hash` as PRIMARY KEY with WITHOUT ROWID |
 
 ### MySQL
 
@@ -69,3 +71,4 @@ Stores global/aggregate metrics not tied to specific torrents (e.g., total downl
 | `20250527093000_torrust_tracker_new_torrent_aggregate_metrics_table.sql` | Creates `torrent_aggregate_metrics` table for global metrics |
 | `20260206120000_torrust_tracker_torrents_completed_non_zero.sql` | Removes rows with completed=0 and adds CHECK constraint (completed >= 1) |
 | `20260206130000_torrust_tracker_whitelist_binary.sql` | Optimizes whitelist table: removes `id` column, uses BINARY(20) `info_hash` as PRIMARY KEY |
+| `20260206140000_torrust_tracker_completed_v1.sql` | Migrates `torrents` to `completed_v1`: removes `id` column, renames `completed` to `count`, uses BINARY(20) `info_hash` as PRIMARY KEY |
