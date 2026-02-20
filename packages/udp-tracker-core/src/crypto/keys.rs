@@ -5,6 +5,8 @@
 //!
 //! It also provides the logic for the cipher for encryption and decryption.
 
+use cipher::{BlockDecrypt, BlockEncrypt};
+
 use self::detail_cipher::CURRENT_CIPHER;
 use self::detail_seed::CURRENT_SEED;
 pub use crate::crypto::ephemeral_instance_keys::CipherArrayBlowfish;
@@ -13,7 +15,7 @@ use crate::crypto::ephemeral_instance_keys::{CipherBlowfish, Seed, RANDOM_CIPHER
 /// This trait is for structures that can keep and provide a seed.
 pub trait Keeper {
     type Seed: Sized + Default + AsMut<[u8]>;
-    type Cipher: cipher::BlockCipher;
+    type Cipher: BlockEncrypt + BlockDecrypt;
 
     /// It returns a reference to the seed that is keeping.
     fn get_seed() -> &'static Self::Seed;

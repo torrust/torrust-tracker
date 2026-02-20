@@ -4,10 +4,10 @@
 //! application starts and are not persisted anywhere.
 
 use blowfish::BlowfishLE;
-use cipher::generic_array::GenericArray;
 use cipher::{BlockSizeUser, KeyInit};
+use generic_array::GenericArray;
 use rand::rngs::ThreadRng;
-use rand::Rng;
+use rand::RngExt;
 
 pub type Seed = [u8; 32];
 pub type CipherBlowfish = BlowfishLE;
