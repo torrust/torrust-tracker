@@ -13,7 +13,7 @@ use std::time::Duration;
 
 use derive_more::Display;
 use rand::distr::Alphanumeric;
-use rand::{rng, Rng};
+use rand::{rng, RngExt};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 use torrust_tracker_clock::conv::convert_from_timestamp_to_datetime_utc;
