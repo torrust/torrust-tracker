@@ -364,12 +364,10 @@ async fn it_should_get_paginated(
         }
 
         // it should return the only the second entry if both the limit and the offset are one.
-        Pagination { limit: 1, offset: 1 } => {
-            if info_hashes.len() > 1 {
-                let page = repo.get_paginated(Some(&paginated)).await;
-                assert_eq!(page.len(), 1);
-                assert_eq!(page[0].0, info_hashes[1]);
-            }
+        Pagination { limit: 1, offset: 1 } if info_hashes.len() > 1 => {
+            let page = repo.get_paginated(Some(&paginated)).await;
+            assert_eq!(page.len(), 1);
+            assert_eq!(page[0].0, info_hashes[1]);
         }
         // the other cases are not yet tested.
         _ => {}
