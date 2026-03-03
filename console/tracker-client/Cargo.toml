@@ -18,7 +18,7 @@ version.workspace = true
 anyhow = "1"
 aquatic_udp_protocol = "0"
 bittorrent-primitives = "0.1.0"
-bittorrent-tracker-client = { version = "4.0.0-rc.1-develop", path = "../../packages/tracker-client" }
+bittorrent-tracker-client = { version = "4.0.0-rc.1", path = "../../packages/tracker-client" }
 clap = { version = "4", features = ["derive", "env"] }
 futures = "0"
 hex-literal = "1"
@@ -30,7 +30,7 @@ serde_bytes = "0"
 serde_json = { version = "1", features = ["preserve_order"] }
 thiserror = "2"
 tokio = { version = "1", features = ["macros", "net", "rt-multi-thread", "signal", "sync"] }
-torrust-tracker-configuration = { version = "4.0.0-rc.1-develop", path = "../../packages/configuration" }
+torrust-tracker-configuration = { version = "4.0.0-rc.1", path = "../../packages/configuration" }
 tracing = "0"
 tracing-subscriber = { version = "0", features = ["json"] }
 url = { version = "2", features = ["serde"] }

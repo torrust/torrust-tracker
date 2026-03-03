@@ -14,17 +14,17 @@ rust-version.workspace = true
 version.workspace = true
 
 [dependencies]
-bittorrent-http-tracker-core = { version = "4.0.0-rc.1-develop", path = "../http-tracker-core" }
-bittorrent-tracker-core = { version = "4.0.0-rc.1-develop", path = "../tracker-core" }
-bittorrent-udp-tracker-core = { version = "4.0.0-rc.1-develop", path = "../udp-tracker-core" }
+bittorrent-http-tracker-core = { version = "4.0.0-rc.1", path = "../http-tracker-core" }
+bittorrent-tracker-core = { version = "4.0.0-rc.1", path = "../tracker-core" }
+bittorrent-udp-tracker-core = { version = "4.0.0-rc.1", path = "../udp-tracker-core" }
 tokio = { version = "1", features = ["macros", "net", "rt-multi-thread", "signal", "sync"] }
 tokio-util = "0.7.15"
-torrust-tracker-configuration = { version = "4.0.0-rc.1-develop", path = "../configuration" }
-torrust-tracker-metrics = { version = "4.0.0-rc.1-develop", path = "../metrics" }
-torrust-tracker-primitives = { version = "4.0.0-rc.1-develop", path = "../primitives" }
-torrust-tracker-swarm-coordination-registry = { version = "4.0.0-rc.1-develop", path = "../swarm-coordination-registry" }
-torrust-udp-tracker-server = { version = "4.0.0-rc.1-develop", path = "../udp-tracker-server" }
+torrust-tracker-configuration = { version = "4.0.0-rc.1", path = "../configuration" }
+torrust-tracker-metrics = { version = "4.0.0-rc.1", path = "../metrics" }
+torrust-tracker-primitives = { version = "4.0.0-rc.1", path = "../primitives" }
+torrust-tracker-swarm-coordination-registry = { version = "4.0.0-rc.1", path = "../swarm-coordination-registry" }
+torrust-udp-tracker-server = { version = "4.0.0-rc.1", path = "../udp-tracker-server" }
 
 [dev-dependencies]
-torrust-tracker-events = { version = "4.0.0-rc.1-develop", path = "../events" }
-torrust-tracker-test-helpers = { version = "4.0.0-rc.1-develop", path = "../test-helpers" }
+torrust-tracker-events = { version = "4.0.0-rc.1", path = "../events" }
+torrust-tracker-test-helpers = { version = "4.0.0-rc.1", path = "../test-helpers" }

@@ -16,5 +16,5 @@ version.workspace = true
 
 [dependencies]
 aquatic_udp_protocol = "0"
-torrust-tracker-clock = { version = "4.0.0-rc.1-develop", path = "../clock" }
-torrust-tracker-primitives = { version = "4.0.0-rc.1-develop", path = "../primitives" }
+torrust-tracker-clock = { version = "4.0.0-rc.1", path = "../clock" }
+torrust-tracker-primitives = { version = "4.0.0-rc.1", path = "../primitives" }

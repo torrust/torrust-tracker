@@ -16,8 +16,8 @@ version.workspace = true
 [dependencies]
 aquatic_udp_protocol = "0"
 bittorrent-primitives = "0.1.0"
-bittorrent-tracker-core = { version = "4.0.0-rc.1-develop", path = "../tracker-core" }
-bittorrent-udp-tracker-protocol = { version = "4.0.0-rc.1-develop", path = "../udp-protocol" }
+bittorrent-tracker-core = { version = "4.0.0-rc.1", path = "../tracker-core" }
+bittorrent-udp-tracker-protocol = { version = "4.0.0-rc.1", path = "../udp-protocol" }
 bloom = "0.3.2"
 blowfish = "0"
 cipher = "0.4"
@@ -30,18 +30,18 @@ serde = "1.0.219"
 thiserror = "2"
 tokio = { version = "1", features = ["macros", "net", "rt-multi-thread", "signal", "sync", "time"] }
 tokio-util = "0.7.15"
-torrust-tracker-clock = { version = "4.0.0-rc.1-develop", path = "../clock" }
-torrust-tracker-configuration = { version = "4.0.0-rc.1-develop", path = "../configuration" }
-torrust-tracker-events = { version = "4.0.0-rc.1-develop", path = "../events" }
-torrust-tracker-metrics = { version = "4.0.0-rc.1-develop", path = "../metrics" }
-torrust-tracker-primitives = { version = "4.0.0-rc.1-develop", path = "../primitives" }
-torrust-tracker-swarm-coordination-registry = { version = "4.0.0-rc.1-develop", path = "../swarm-coordination-registry" }
+torrust-tracker-clock = { version = "4.0.0-rc.1", path = "../clock" }
+torrust-tracker-configuration = { version = "4.0.0-rc.1", path = "../configuration" }
+torrust-tracker-events = { version = "4.0.0-rc.1", path = "../events" }
+torrust-tracker-metrics = { version = "4.0.0-rc.1", path = "../metrics" }
+torrust-tracker-primitives = { version = "4.0.0-rc.1", path = "../primitives" }
+torrust-tracker-swarm-coordination-registry = { version = "4.0.0-rc.1", path = "../swarm-coordination-registry" }
 tracing = "0"
 zerocopy = "0.7"
 
 [dev-dependencies]
 mockall = "0"
-torrust-tracker-test-helpers = { version = "4.0.0-rc.1-develop", path = "../test-helpers" }
+torrust-tracker-test-helpers = { version = "4.0.0-rc.1", path = "../test-helpers" }
 
 [[bench]]
 harness = false

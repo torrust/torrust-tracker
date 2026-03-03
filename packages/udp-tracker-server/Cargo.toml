@@ -16,9 +16,9 @@ version.workspace = true
 [dependencies]
 aquatic_udp_protocol = "0"
 bittorrent-primitives = "0.1.0"
-bittorrent-tracker-client = { version = "4.0.0-rc.1-develop", path = "../tracker-client" }
-bittorrent-tracker-core = { version = "4.0.0-rc.1-develop", path = "../tracker-core" }
-bittorrent-udp-tracker-core = { version = "4.0.0-rc.1-develop", path = "../udp-tracker-core" }
+bittorrent-tracker-client = { version = "4.0.0-rc.1", path = "../tracker-client" }
+bittorrent-tracker-core = { version = "4.0.0-rc.1", path = "../tracker-core" }
+bittorrent-udp-tracker-core = { version = "4.0.0-rc.1", path = "../udp-tracker-core" }
 derive_more = { version = "2", features = ["as_ref", "constructor", "from"] }
 futures = "0"
 futures-util = "0"
@@ -27,13 +27,13 @@ serde = "1.0.219"
 thiserror = "2"
 tokio = { version = "1", features = ["macros", "net", "rt-multi-thread", "signal", "sync"] }
 tokio-util = "0.7.15"
-torrust-server-lib = { version = "4.0.0-rc.1-develop", path = "../server-lib" }
-torrust-tracker-clock = { version = "4.0.0-rc.1-develop", path = "../clock" }
-torrust-tracker-configuration = { version = "4.0.0-rc.1-develop", path = "../configuration" }
-torrust-tracker-events = { version = "4.0.0-rc.1-develop", path = "../events" }
-torrust-tracker-metrics = { version = "4.0.0-rc.1-develop", path = "../metrics" }
-torrust-tracker-primitives = { version = "4.0.0-rc.1-develop", path = "../primitives" }
-torrust-tracker-swarm-coordination-registry = { version = "4.0.0-rc.1-develop", path = "../swarm-coordination-registry" }
+torrust-server-lib = { version = "4.0.0-rc.1", path = "../server-lib" }
+torrust-tracker-clock = { version = "4.0.0-rc.1", path = "../clock" }
+torrust-tracker-configuration = { version = "4.0.0-rc.1", path = "../configuration" }
+torrust-tracker-events = { version = "4.0.0-rc.1", path = "../events" }
+torrust-tracker-metrics = { version = "4.0.0-rc.1", path = "../metrics" }
+torrust-tracker-primitives = { version = "4.0.0-rc.1", path = "../primitives" }
+torrust-tracker-swarm-coordination-registry = { version = "4.0.0-rc.1", path = "../swarm-coordination-registry" }
 tracing = "0"
 url = { version = "2", features = ["serde"] }
 uuid = { version = "1", features = ["v4"] }
@@ -43,4 +43,4 @@ zerocopy = "0.7"
 local-ip-address = "0"
 mockall = "0"
 rand = "0"
-torrust-tracker-test-helpers = { version = "4.0.0-rc.1-develop", path = "../test-helpers" }
+torrust-tracker-test-helpers = { version = "4.0.0-rc.1", path = "../test-helpers" }

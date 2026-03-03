@@ -25,11 +25,11 @@ serde = { version = "1.0.219", features = ["derive"] }
 thiserror = "2.0.12"
 tokio = { version = "1", features = ["macros", "net", "rt-multi-thread", "signal", "sync"] }
 tokio-util = "0.7.15"
-torrust-tracker-clock = { version = "4.0.0-rc.1-develop", path = "../clock" }
-torrust-tracker-configuration = { version = "4.0.0-rc.1-develop", path = "../configuration" }
-torrust-tracker-events = { version = "4.0.0-rc.1-develop", path = "../events" }
-torrust-tracker-metrics = { version = "4.0.0-rc.1-develop", path = "../metrics" }
-torrust-tracker-primitives = { version = "4.0.0-rc.1-develop", path = "../primitives" }
+torrust-tracker-clock = { version = "4.0.0-rc.1", path = "../clock" }
+torrust-tracker-configuration = { version = "4.0.0-rc.1", path = "../configuration" }
+torrust-tracker-events = { version = "4.0.0-rc.1", path = "../events" }
+torrust-tracker-metrics = { version = "4.0.0-rc.1", path = "../metrics" }
+torrust-tracker-primitives = { version = "4.0.0-rc.1", path = "../primitives" }
 tracing = "0"
 
 [dev-dependencies]
@@ -38,4 +38,4 @@ criterion = { version = "0", features = ["async_tokio"] }
 mockall = "0"
 rand = "0"
 rstest = "0"
-torrust-tracker-test-helpers = { version = "4.0.0-rc.1-develop", path = "../test-helpers" }
+torrust-tracker-test-helpers = { version = "4.0.0-rc.1", path = "../test-helpers" }

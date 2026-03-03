@@ -23,7 +23,7 @@ serde = { version = "1", features = ["derive"] }
 tdyne-peer-id = "1"
 tdyne-peer-id-registry = "0"
 thiserror = "2"
-torrust-tracker-configuration = { version = "4.0.0-rc.1-develop", path = "../configuration" }
+torrust-tracker-configuration = { version = "4.0.0-rc.1", path = "../configuration" }
 url = "2.5.4"
 zerocopy = "0.7"
 

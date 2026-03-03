@@ -17,15 +17,15 @@ version.workspace = true
 [dependencies]
 aquatic_udp_protocol = "0"
 bittorrent-primitives = "0.1.0"
-bittorrent-tracker-core = { version = "4.0.0-rc.1-develop", path = "../tracker-core" }
+bittorrent-tracker-core = { version = "4.0.0-rc.1", path = "../tracker-core" }
 derive_more = { version = "2", features = ["as_ref", "constructor", "from"] }
 multimap = "0"
 percent-encoding = "2"
 serde = { version = "1", features = ["derive"] }
 serde_bencode = "0"
 thiserror = "2"
-torrust-tracker-clock = { version = "4.0.0-rc.1-develop", path = "../clock" }
-torrust-tracker-configuration = { version = "4.0.0-rc.1-develop", path = "../configuration" }
-torrust-tracker-contrib-bencode = { version = "4.0.0-rc.1-develop", path = "../../contrib/bencode" }
-torrust-tracker-located-error = { version = "4.0.0-rc.1-develop", path = "../located-error" }
-torrust-tracker-primitives = { version = "4.0.0-rc.1-develop", path = "../primitives" }
+torrust-tracker-clock = { version = "4.0.0-rc.1", path = "../clock" }
+torrust-tracker-configuration = { version = "4.0.0-rc.1", path = "../configuration" }
+torrust-tracker-contrib-bencode = { version = "4.0.0-rc.1", path = "../../contrib/bencode" }
+torrust-tracker-located-error = { version = "4.0.0-rc.1", path = "../located-error" }
+torrust-tracker-primitives = { version = "4.0.0-rc.1", path = "../primitives" }
