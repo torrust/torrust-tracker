@@ -59,13 +59,13 @@ jobs:
       # Triggered sub-workflow is not able to detect the original commit/PR which is available
       # in this workflow.
       - name: Store PR number
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: pr_number
           path: pr_number.txt
 
       - name: Store commit SHA
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: commit_sha
           path: commit_sha.txt
@@ -74,7 +74,7 @@ jobs:
       # is executed by a different workflow `upload_coverage.yml`. The reason for this
       # split is because `on.pull_request` workflows don't have access to secrets.
       - name: Store coverage report in artifacts
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: codecov_report
           path: ./codecov.json
