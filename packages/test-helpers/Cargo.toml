@@ -16,6 +16,6 @@ version.workspace = true
 
 [dependencies]
 rand = "0"
-torrust-tracker-configuration = { version = "3.0.0-develop", path = "../configuration" }
+torrust-tracker-configuration = { version = "4.0.0-rc.1-develop", path = "../configuration" }
 tracing = "0"
 tracing-subscriber = { version = "0", features = ["json"] }

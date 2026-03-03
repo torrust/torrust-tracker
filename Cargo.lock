@@ -626,7 +626,7 @@ checksum = "843867be96c8daad0d758b57df9392b6d8d271134fce549de6ce169ff98a92af"
 
 [[package]]
 name = "bittorrent-http-tracker-core"
-version = "3.0.0-develop"
+version = "4.0.0-rc.1-develop"
 dependencies = [
  "aquatic_udp_protocol",
  "bittorrent-http-tracker-protocol",
@@ -653,7 +653,7 @@ dependencies = [
 
 [[package]]
 name = "bittorrent-http-tracker-protocol"
-version = "3.0.0-develop"
+version = "4.0.0-rc.1-develop"
 dependencies = [
  "aquatic_udp_protocol",
  "bittorrent-primitives",
@@ -687,7 +687,7 @@ dependencies = [
 
 [[package]]
 name = "bittorrent-tracker-client"
-version = "3.0.0-develop"
+version = "4.0.0-rc.1-develop"
 dependencies = [
  "aquatic_udp_protocol",
  "bittorrent-primitives",
@@ -710,7 +710,7 @@ dependencies = [
 
 [[package]]
 name = "bittorrent-tracker-core"
-version = "3.0.0-develop"
+version = "4.0.0-rc.1-develop"
 dependencies = [
  "aquatic_udp_protocol",
  "bittorrent-primitives",
@@ -743,7 +743,7 @@ dependencies = [
 
 [[package]]
 name = "bittorrent-udp-tracker-core"
-version = "3.0.0-develop"
+version = "4.0.0-rc.1-develop"
 dependencies = [
  "aquatic_udp_protocol",
  "bittorrent-primitives",
@@ -775,7 +775,7 @@ dependencies = [
 
 [[package]]
 name = "bittorrent-udp-tracker-protocol"
-version = "3.0.0-develop"
+version = "4.0.0-rc.1-develop"
 dependencies = [
  "aquatic_udp_protocol",
  "torrust-tracker-clock",
@@ -5079,9 +5079,9 @@ checksum = "1f3ccbac311fea05f86f61904b462b55fb3df8837a366dfc601a0161d0532f20"
 
 [[package]]
 name = "tokio"
-version = "1.49.0"
+version = "1.50.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "72a2903cd7736441aac9df9d7688bd0ce48edccaadf181c3b90be801e81d3d86"
+checksum = "27ad5e34374e03cfffefc301becb44e9dc3c17584f414349ebe29ed26661822d"
 dependencies = [
  "bytes",
  "libc",
@@ -5272,7 +5272,7 @@ dependencies = [
 
 [[package]]
 name = "torrust-axum-health-check-api-server"
-version = "3.0.0-develop"
+version = "4.0.0-rc.1-develop"
 dependencies = [
  "axum",
  "axum-server",
@@ -5300,7 +5300,7 @@ dependencies = [
 
 [[package]]
 name = "torrust-axum-http-tracker-server"
-version = "3.0.0-develop"
+version = "4.0.0-rc.1-develop"
 dependencies = [
  "aquatic_udp_protocol",
  "axum",
@@ -5340,7 +5340,7 @@ dependencies = [
 
 [[package]]
 name = "torrust-axum-rest-tracker-api-server"
-version = "3.0.0-develop"
+version = "4.0.0-rc.1-develop"
 dependencies = [
  "aquatic_udp_protocol",
  "axum",
@@ -5381,7 +5381,7 @@ dependencies = [
 
 [[package]]
 name = "torrust-axum-server"
-version = "3.0.0-develop"
+version = "4.0.0-rc.1-develop"
 dependencies = [
  "axum-server",
  "camino",
@@ -5401,7 +5401,7 @@ dependencies = [
 
 [[package]]
 name = "torrust-rest-tracker-api-client"
-version = "3.0.0-develop"
+version = "4.0.0-rc.1-develop"
 dependencies = [
  "hyper",
  "reqwest",
@@ -5413,7 +5413,7 @@ dependencies = [
 
 [[package]]
 name = "torrust-rest-tracker-api-core"
-version = "3.0.0-develop"
+version = "4.0.0-rc.1-develop"
 dependencies = [
  "bittorrent-http-tracker-core",
  "bittorrent-tracker-core",
@@ -5431,7 +5431,7 @@ dependencies = [
 
 [[package]]
 name = "torrust-server-lib"
-version = "3.0.0-develop"
+version = "4.0.0-rc.1-develop"
 dependencies = [
  "derive_more",
  "rstest 0.25.0",
@@ -5443,7 +5443,7 @@ dependencies = [
 
 [[package]]
 name = "torrust-tracker"
-version = "3.0.0-develop"
+version = "4.0.0-rc.1-develop"
 dependencies = [
  "anyhow",
  "axum-server",
@@ -5482,7 +5482,7 @@ dependencies = [
 
 [[package]]
 name = "torrust-tracker-client"
-version = "3.0.0-develop"
+version = "4.0.0-rc.1-develop"
 dependencies = [
  "anyhow",
  "aquatic_udp_protocol",
@@ -5507,7 +5507,7 @@ dependencies = [
 
 [[package]]
 name = "torrust-tracker-clock"
-version = "3.0.0-develop"
+version = "4.0.0-rc.1-develop"
 dependencies = [
  "chrono",
  "lazy_static",
@@ -5517,7 +5517,7 @@ dependencies = [
 
 [[package]]
 name = "torrust-tracker-configuration"
-version = "3.0.0-develop"
+version = "4.0.0-rc.1-develop"
 dependencies = [
  "camino",
  "derive_more",
@@ -5536,7 +5536,7 @@ dependencies = [
 
 [[package]]
 name = "torrust-tracker-contrib-bencode"
-version = "3.0.0-develop"
+version = "4.0.0-rc.1-develop"
 dependencies = [
  "criterion 0.8.2",
  "thiserror 2.0.18",
@@ -5544,7 +5544,7 @@ dependencies = [
 
 [[package]]
 name = "torrust-tracker-events"
-version = "3.0.0-develop"
+version = "4.0.0-rc.1-develop"
 dependencies = [
  "futures",
  "mockall",
@@ -5553,7 +5553,7 @@ dependencies = [
 
 [[package]]
 name = "torrust-tracker-located-error"
-version = "3.0.0-develop"
+version = "4.0.0-rc.1-develop"
 dependencies = [
  "thiserror 2.0.18",
  "tracing",
@@ -5561,7 +5561,7 @@ dependencies = [
 
 [[package]]
 name = "torrust-tracker-metrics"
-version = "3.0.0-develop"
+version = "4.0.0-rc.1-develop"
 dependencies = [
  "approx",
  "chrono",
@@ -5578,7 +5578,7 @@ dependencies = [
 
 [[package]]
 name = "torrust-tracker-primitives"
-version = "3.0.0-develop"
+version = "4.0.0-rc.1-develop"
 dependencies = [
  "aquatic_udp_protocol",
  "binascii",
@@ -5596,7 +5596,7 @@ dependencies = [
 
 [[package]]
 name = "torrust-tracker-swarm-coordination-registry"
-version = "3.0.0-develop"
+version = "4.0.0-rc.1-develop"
 dependencies = [
  "aquatic_udp_protocol",
  "async-std",
@@ -5623,7 +5623,7 @@ dependencies = [
 
 [[package]]
 name = "torrust-tracker-test-helpers"
-version = "3.0.0-develop"
+version = "4.0.0-rc.1-develop"
 dependencies = [
  "rand 0.10.0",
  "torrust-tracker-configuration",
@@ -5633,7 +5633,7 @@ dependencies = [
 
 [[package]]
 name = "torrust-tracker-torrent-repository-benchmarking"
-version = "3.0.0-develop"
+version = "4.0.0-rc.1-develop"
 dependencies = [
  "aquatic_udp_protocol",
  "async-std",
@@ -5653,7 +5653,7 @@ dependencies = [
 
 [[package]]
 name = "torrust-udp-tracker-server"
-version = "3.0.0-develop"
+version = "4.0.0-rc.1-develop"
 dependencies = [
  "aquatic_udp_protocol",
  "bittorrent-primitives",
