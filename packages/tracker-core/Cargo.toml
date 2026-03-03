@@ -28,19 +28,19 @@ serde_json = { version = "1", features = ["preserve_order"] }
 thiserror = "2"
 tokio = { version = "1", features = ["macros", "net", "rt-multi-thread", "signal", "sync"] }
 tokio-util = "0.7.15"
-torrust-tracker-clock = { version = "3.0.0-develop", path = "../clock" }
-torrust-tracker-configuration = { version = "3.0.0-develop", path = "../configuration" }
-torrust-tracker-events = { version = "3.0.0-develop", path = "../events" }
-torrust-tracker-located-error = { version = "3.0.0-develop", path = "../located-error" }
-torrust-tracker-metrics = { version = "3.0.0-develop", path = "../metrics" }
-torrust-tracker-primitives = { version = "3.0.0-develop", path = "../primitives" }
-torrust-tracker-swarm-coordination-registry = { version = "3.0.0-develop", path = "../swarm-coordination-registry" }
+torrust-tracker-clock = { version = "4.0.0-rc.1-develop", path = "../clock" }
+torrust-tracker-configuration = { version = "4.0.0-rc.1-develop", path = "../configuration" }
+torrust-tracker-events = { version = "4.0.0-rc.1-develop", path = "../events" }
+torrust-tracker-located-error = { version = "4.0.0-rc.1-develop", path = "../located-error" }
+torrust-tracker-metrics = { version = "4.0.0-rc.1-develop", path = "../metrics" }
+torrust-tracker-primitives = { version = "4.0.0-rc.1-develop", path = "../primitives" }
+torrust-tracker-swarm-coordination-registry = { version = "4.0.0-rc.1-develop", path = "../swarm-coordination-registry" }
 tracing = "0"
 
 [dev-dependencies]
 local-ip-address = "0"
 mockall = "0"
 testcontainers = "0"
-torrust-rest-tracker-api-client = { version = "3.0.0-develop", path = "../rest-tracker-api-client" }
-torrust-tracker-test-helpers = { version = "3.0.0-develop", path = "../test-helpers" }
+torrust-rest-tracker-api-client = { version = "4.0.0-rc.1-develop", path = "../rest-tracker-api-client" }
+torrust-tracker-test-helpers = { version = "4.0.0-rc.1-develop", path = "../test-helpers" }
 url = "2.5.4"

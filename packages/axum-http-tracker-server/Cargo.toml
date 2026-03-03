@@ -18,10 +18,10 @@ aquatic_udp_protocol = "0"
 axum = { version = "0", features = ["macros"] }
 axum-client-ip = "0"
 axum-server = { version = "0", features = ["tls-rustls-no-provider"] }
-bittorrent-http-tracker-core = { version = "3.0.0-develop", path = "../http-tracker-core" }
-bittorrent-http-tracker-protocol = { version = "3.0.0-develop", path = "../http-protocol" }
+bittorrent-http-tracker-core = { version = "4.0.0-rc.1-develop", path = "../http-tracker-core" }
+bittorrent-http-tracker-protocol = { version = "4.0.0-rc.1-develop", path = "../http-protocol" }
 bittorrent-primitives = "0.1.0"
-bittorrent-tracker-core = { version = "3.0.0-develop", path = "../tracker-core" }
+bittorrent-tracker-core = { version = "4.0.0-rc.1-develop", path = "../tracker-core" }
 derive_more = { version = "2", features = ["as_ref", "constructor", "from"] }
 futures = "0"
 hyper = "1"
@@ -29,12 +29,12 @@ reqwest = { version = "0", features = ["json"] }
 serde = { version = "1", features = ["derive"] }
 tokio = { version = "1", features = ["macros", "net", "rt-multi-thread", "signal", "sync"] }
 tokio-util = "0.7.15"
-torrust-axum-server = { version = "3.0.0-develop", path = "../axum-server" }
-torrust-server-lib = { version = "3.0.0-develop", path = "../server-lib" }
-torrust-tracker-clock = { version = "3.0.0-develop", path = "../clock" }
-torrust-tracker-configuration = { version = "3.0.0-develop", path = "../configuration" }
-torrust-tracker-primitives = { version = "3.0.0-develop", path = "../primitives" }
-torrust-tracker-swarm-coordination-registry = { version = "3.0.0-develop", path = "../swarm-coordination-registry" }
+torrust-axum-server = { version = "4.0.0-rc.1-develop", path = "../axum-server" }
+torrust-server-lib = { version = "4.0.0-rc.1-develop", path = "../server-lib" }
+torrust-tracker-clock = { version = "4.0.0-rc.1-develop", path = "../clock" }
+torrust-tracker-configuration = { version = "4.0.0-rc.1-develop", path = "../configuration" }
+torrust-tracker-primitives = { version = "4.0.0-rc.1-develop", path = "../primitives" }
+torrust-tracker-swarm-coordination-registry = { version = "4.0.0-rc.1-develop", path = "../swarm-coordination-registry" }
 tower = { version = "0", features = ["timeout"] }
 tower-http = { version = "0", features = ["compression-full", "cors", "propagate-header", "request-id", "trace"] }
 tracing = "0"
@@ -46,8 +46,8 @@ rand = "0"
 serde_bencode = "0"
 serde_bytes = "0"
 serde_repr = "0"
-torrust-tracker-clock = { version = "3.0.0-develop", path = "../clock" }
-torrust-tracker-events = { version = "3.0.0-develop", path = "../events" }
-torrust-tracker-test-helpers = { version = "3.0.0-develop", path = "../test-helpers" }
+torrust-tracker-clock = { version = "4.0.0-rc.1-develop", path = "../clock" }
+torrust-tracker-events = { version = "4.0.0-rc.1-develop", path = "../events" }
+torrust-tracker-test-helpers = { version = "4.0.0-rc.1-develop", path = "../test-helpers" }
 uuid = { version = "1", features = ["v4"] }
 zerocopy = "0.7"

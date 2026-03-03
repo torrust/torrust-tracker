@@ -30,14 +30,14 @@ license = "AGPL-3.0-only"
 publish = true
 repository = "https://github.com/torrust/torrust-tracker"
 rust-version = "1.72"
-version = "3.0.0-develop"
+version = "4.0.0-rc.1-develop"
 
 [dependencies]
 anyhow = "1"
 axum-server = { version = "0", features = ["tls-rustls-no-provider"] }
-bittorrent-http-tracker-core = { version = "3.0.0-develop", path = "packages/http-tracker-core" }
-bittorrent-tracker-core = { version = "3.0.0-develop", path = "packages/tracker-core" }
-bittorrent-udp-tracker-core = { version = "3.0.0-develop", path = "packages/udp-tracker-core" }
+bittorrent-http-tracker-core = { version = "4.0.0-rc.1-develop", path = "packages/http-tracker-core" }
+bittorrent-tracker-core = { version = "4.0.0-rc.1-develop", path = "packages/tracker-core" }
+bittorrent-udp-tracker-core = { version = "4.0.0-rc.1-develop", path = "packages/udp-tracker-core" }
 chrono = { version = "0", default-features = false, features = ["clock"] }
 clap = { version = "4", features = ["derive", "env"] }
 rand = "0"
@@ -48,26 +48,26 @@ serde_json = { version = "1", features = ["preserve_order"] }
 thiserror = "2.0.12"
 tokio = { version = "1", features = ["macros", "net", "rt-multi-thread", "signal", "sync"] }
 tokio-util = "0.7.15"
-torrust-axum-health-check-api-server = { version = "3.0.0-develop", path = "packages/axum-health-check-api-server" }
-torrust-axum-http-tracker-server = { version = "3.0.0-develop", path = "packages/axum-http-tracker-server" }
-torrust-axum-rest-tracker-api-server = { version = "3.0.0-develop", path = "packages/axum-rest-tracker-api-server" }
-torrust-axum-server = { version = "3.0.0-develop", path = "packages/axum-server" }
-torrust-rest-tracker-api-core = { version = "3.0.0-develop", path = "packages/rest-tracker-api-core" }
-torrust-server-lib = { version = "3.0.0-develop", path = "packages/server-lib" }
-torrust-tracker-clock = { version = "3.0.0-develop", path = "packages/clock" }
-torrust-tracker-configuration = { version = "3.0.0-develop", path = "packages/configuration" }
-torrust-tracker-swarm-coordination-registry = { version = "3.0.0-develop", path = "packages/swarm-coordination-registry" }
-torrust-udp-tracker-server = { version = "3.0.0-develop", path = "packages/udp-tracker-server" }
+torrust-axum-health-check-api-server = { version = "4.0.0-rc.1-develop", path = "packages/axum-health-check-api-server" }
+torrust-axum-http-tracker-server = { version = "4.0.0-rc.1-develop", path = "packages/axum-http-tracker-server" }
+torrust-axum-rest-tracker-api-server = { version = "4.0.0-rc.1-develop", path = "packages/axum-rest-tracker-api-server" }
+torrust-axum-server = { version = "4.0.0-rc.1-develop", path = "packages/axum-server" }
+torrust-rest-tracker-api-core = { version = "4.0.0-rc.1-develop", path = "packages/rest-tracker-api-core" }
+torrust-server-lib = { version = "4.0.0-rc.1-develop", path = "packages/server-lib" }
+torrust-tracker-clock = { version = "4.0.0-rc.1-develop", path = "packages/clock" }
+torrust-tracker-configuration = { version = "4.0.0-rc.1-develop", path = "packages/configuration" }
+torrust-tracker-swarm-coordination-registry = { version = "4.0.0-rc.1-develop", path = "packages/swarm-coordination-registry" }
+torrust-udp-tracker-server = { version = "4.0.0-rc.1-develop", path = "packages/udp-tracker-server" }
 tracing = "0"
 tracing-subscriber = { version = "0", features = ["json"] }
 
 [dev-dependencies]
 bittorrent-primitives = "0.1.0"
-bittorrent-tracker-client = { version = "3.0.0-develop", path = "packages/tracker-client" }
+bittorrent-tracker-client = { version = "4.0.0-rc.1-develop", path = "packages/tracker-client" }
 local-ip-address = "0"
 mockall = "0"
-torrust-rest-tracker-api-client = { version = "3.0.0-develop", path = "packages/rest-tracker-api-client" }
-torrust-tracker-test-helpers = { version = "3.0.0-develop", path = "packages/test-helpers" }
+torrust-rest-tracker-api-client = { version = "4.0.0-rc.1-develop", path = "packages/rest-tracker-api-client" }
+torrust-tracker-test-helpers = { version = "4.0.0-rc.1-develop", path = "packages/test-helpers" }
 
 [workspace]
 members = ["console/tracker-client", "packages/torrent-repository-benchmarking"]
