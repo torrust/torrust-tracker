@@ -202,6 +202,9 @@ mod http {
 
         service.server.stop().await.expect("it should stop udp server");
 
+        // Give the OS a moment to fully release the TCP port after the server stops.
+        tokio::time::sleep(std::time::Duration::from_millis(100)).await;
+
         {
             let config = configuration.health_check_api.clone();
             let env = Started::new(&config.into(), registar).await;
