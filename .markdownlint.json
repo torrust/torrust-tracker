@@ -1,0 +1,18 @@
+{
+    "default": true,
+    "MD013": false,
+    "MD031": true,
+    "MD032": true,
+    "MD040": true,
+    "MD022": true,
+    "MD009": true,
+    "MD007": {
+        "indent": 2
+    },
+    "MD026": false,
+    "MD041": false,
+    "MD034": false,
+    "MD024": false,
+    "MD033": false,
+    "MD060": false
+}

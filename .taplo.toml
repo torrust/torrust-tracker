@@ -1,0 +1,31 @@
+# Taplo configuration file for TOML formatting
+# Used by the "Even Better TOML" VS Code extension
+
+# Exclude generated and runtime folders from linting
+exclude = [
+  "target/**",
+  "storage/**",
+  ".coverage/**",
+]
+
+[formatting]
+# Preserve blank lines that exist
+allowed_blank_lines = 1
+# Don't reorder keys to maintain structure
+reorder_keys = false
+# Array formatting
+array_trailing_comma = true
+array_auto_expand = false
+array_auto_collapse = false
+# Inline table formatting
+inline_table_expand = false
+compact_inline_tables = false
+compact_arrays = false
+# Alignment
+align_entries = false
+align_comments = true
+# Indentation
+indent_tables = false
+indent_entries = false
+# Other
+trailing_newline = true
