@@ -73,7 +73,7 @@ Others:
 <https://github.com/orgs/torrust/projects/10/views/6>
 
 ## Implemented BitTorrent Enhancement Proposals (BEPs)
->
+
 > _[Learn more about BitTorrent Enhancement Proposals][BEP 00]_
 
 - [BEP 03]: The BitTorrent Protocol.
@@ -113,8 +113,8 @@ podman run -it docker.io/torrust/tracker:develop
 
 ### Development Version
 
-- Please ensure you have the _**[latest stable (or nightly) version of rust][rust]___.
-- Please ensure that your computer has enough RAM. _**Recommended 16GB.___
+- Please ensure you have the \_\*\*[latest stable (or nightly) version of rust][rust]\_\_\_.
+- Please ensure that your computer has enough RAM. \_\*\*Recommended 16GB.\_\_\_
 
 #### Checkout, Test and Run
 
@@ -217,7 +217,7 @@ This program is free software: you can redistribute it and/or modify it under th
 
 This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the [GNU Affero General Public License][AGPL_3_0] for more details.
 
-You should have received a copy of the *GNU Affero General Public License* along with this program. If not, see <https://www.gnu.org/licenses/>.
+You should have received a copy of the _GNU Affero General Public License_ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 Some files include explicit copyright notices and/or license notices.
 
@@ -250,18 +250,14 @@ This project was a joint effort by [Nautilus Cyberneering GmbH][nautilus] and [D
 [deployment_wf_b]: ../../actions/workflows/deployment.yaml/badge.svg
 [testing_wf]: ../../actions/workflows/testing.yaml
 [testing_wf_b]: ../../actions/workflows/testing.yaml/badge.svg
-
 [bittorrent]: http://bittorrent.org/
 [rust]: https://www.rust-lang.org/
 [axum]: https://github.com/tokio-rs/axum
 [newtrackon]: https://newtrackon.com/
 [coverage]: https://app.codecov.io/gh/torrust/torrust-tracker
 [torrust]: https://torrust.com/
-
 [dockerhub]: https://hub.docker.com/r/torrust/tracker/tags
-
 [torrent_source_felid]: https://github.com/qbittorrent/qBittorrent/discussions/19406
-
 [BEP 00]: https://www.bittorrent.org/beps/bep_0000.html
 [BEP 03]: https://www.bittorrent.org/beps/bep_0003.html
 [BEP 07]: https://www.bittorrent.org/beps/bep_0007.html
@@ -269,24 +265,18 @@ This project was a joint effort by [Nautilus Cyberneering GmbH][nautilus] and [D
 [BEP 23]: https://www.bittorrent.org/beps/bep_0023.html
 [BEP 27]: https://www.bittorrent.org/beps/bep_0027.html
 [BEP 48]: https://www.bittorrent.org/beps/bep_0048.html
-
 [containers.md]: ./docs/containers.md
-
 [docs]: https://docs.rs/torrust-tracker/latest/
 [api]: https://docs.rs/torrust-tracker/latest/torrust_tracker/servers/apis/v1
 [http]: https://docs.rs/torrust-tracker/latest/torrust_tracker/servers/http
 [udp]: https://docs.rs/torrust-tracker/latest/torrust_tracker/servers/udp
-
 [good first issues]: https://github.com/torrust/torrust-tracker/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22
 [discussions]: https://github.com/torrust/torrust-tracker/discussions
-
 [guide.md]: https://github.com/torrust/.github/blob/main/info/contributing.md
 [agreement.md]: https://github.com/torrust/.github/blob/main/info/licensing/contributor_agreement_v01.md
-
 [AGPL_3_0]: ./docs/licenses/LICENSE-AGPL_3_0
 [MIT_0]: ./docs/licenses/LICENSE-MIT_0
 [FSF]: https://www.fsf.org/
-
 [nautilus]: https://github.com/orgs/Nautilus-Cyberneering/
 [Dutch Bits]: https://dutchbits.nl
 [Naim A.]: https://github.com/naim94a/udpt
