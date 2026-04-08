@@ -44,7 +44,7 @@ jobs:
       - id: coverage
         name: Generate Coverage Report
         run: |
-          cargo clean 
+          cargo clean
           cargo llvm-cov --all-features --workspace --codecov --output-path ./codecov.json
 
       - name: Store PR number and commit SHA
