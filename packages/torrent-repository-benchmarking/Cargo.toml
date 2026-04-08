@@ -1,6 +1,6 @@
 [package]
 description = "A library to runt benchmarking for different implementations of a repository of torrents files and their peers."
-keywords = ["library", "repository", "torrents"]
+keywords = [ "library", "repository", "torrents" ]
 name = "torrust-tracker-torrent-repository-benchmarking"
 readme = "README.md"
 
@@ -22,15 +22,15 @@ crossbeam-skiplist = "0"
 dashmap = "6"
 futures = "0"
 parking_lot = "0"
-tokio = { version = "1", features = ["macros", "net", "rt-multi-thread", "signal", "sync"] }
+tokio = { version = "1", features = [ "macros", "net", "rt-multi-thread", "signal", "sync" ] }
 torrust-tracker-clock = { version = "3.0.0-develop", path = "../clock" }
 torrust-tracker-configuration = { version = "3.0.0-develop", path = "../configuration" }
 torrust-tracker-primitives = { version = "3.0.0-develop", path = "../primitives" }
 zerocopy = "0.7"
 
 [dev-dependencies]
-async-std = { version = "1", features = ["attributes", "tokio1"] }
-criterion = { version = "0", features = ["async_tokio"] }
+async-std = { version = "1", features = [ "attributes", "tokio1" ] }
+criterion = { version = "0", features = [ "async_tokio" ] }
 rstest = "0"
 
 [[bench]]

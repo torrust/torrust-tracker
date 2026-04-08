@@ -1,6 +1,6 @@
 [package]
 description = "A library providing helpers for testing the Torrust tracker."
-keywords = ["helper", "library", "testing"]
+keywords = [ "helper", "library", "testing" ]
 name = "torrust-tracker-test-helpers"
 readme = "README.md"
 
@@ -18,4 +18,4 @@ version.workspace = true
 rand = "0"
 torrust-tracker-configuration = { version = "3.0.0-develop", path = "../configuration" }
 tracing = "0"
-tracing-subscriber = { version = "0", features = ["json"] }
+tracing-subscriber = { version = "0", features = [ "json" ] }

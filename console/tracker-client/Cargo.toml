@@ -1,6 +1,6 @@
 [package]
 description = "A collection of console clients to make requests to BitTorrent trackers."
-keywords = ["bittorrent", "client", "tracker"]
+keywords = [ "bittorrent", "client", "tracker" ]
 license = "LGPL-3.0"
 name = "torrust-tracker-client"
 readme = "README.md"
@@ -19,21 +19,21 @@ anyhow = "1"
 aquatic_udp_protocol = "0"
 bittorrent-primitives = "0.1.0"
 bittorrent-tracker-client = { version = "3.0.0-develop", path = "../../packages/tracker-client" }
-clap = { version = "4", features = ["derive", "env"] }
+clap = { version = "4", features = [ "derive", "env" ] }
 futures = "0"
 hex-literal = "1"
 hyper = "1"
-reqwest = { version = "0", features = ["json"] }
-serde = { version = "1", features = ["derive"] }
+reqwest = { version = "0", features = [ "json" ] }
+serde = { version = "1", features = [ "derive" ] }
 serde_bencode = "0"
 serde_bytes = "0"
-serde_json = { version = "1", features = ["preserve_order"] }
+serde_json = { version = "1", features = [ "preserve_order" ] }
 thiserror = "2"
-tokio = { version = "1", features = ["macros", "net", "rt-multi-thread", "signal", "sync"] }
+tokio = { version = "1", features = [ "macros", "net", "rt-multi-thread", "signal", "sync" ] }
 torrust-tracker-configuration = { version = "3.0.0-develop", path = "../../packages/configuration" }
 tracing = "0"
-tracing-subscriber = { version = "0", features = ["json"] }
-url = { version = "2", features = ["serde"] }
+tracing-subscriber = { version = "0", features = [ "json" ] }
+url = { version = "2", features = [ "serde" ] }
 
 [package.metadata.cargo-machete]
-ignored = ["serde_bytes"]
+ignored = [ "serde_bytes" ]

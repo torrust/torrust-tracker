@@ -1,6 +1,6 @@
 [package]
 description = "A library with the generic tracker clients."
-keywords = ["bittorrent", "client", "tracker"]
+keywords = [ "bittorrent", "client", "tracker" ]
 license = "LGPL-3.0"
 name = "bittorrent-tracker-client"
 readme = "README.md"
@@ -17,16 +17,16 @@ version.workspace = true
 [dependencies]
 aquatic_udp_protocol = "0"
 bittorrent-primitives = "0.1.0"
-derive_more = { version = "2", features = ["as_ref", "constructor", "from"] }
+derive_more = { version = "2", features = [ "as_ref", "constructor", "from" ] }
 hyper = "1"
 percent-encoding = "2"
-reqwest = { version = "0", features = ["json"] }
-serde = { version = "1", features = ["derive"] }
+reqwest = { version = "0", features = [ "json" ] }
+serde = { version = "1", features = [ "derive" ] }
 serde_bencode = "0"
 serde_bytes = "0"
 serde_repr = "0"
 thiserror = "2"
-tokio = { version = "1", features = ["macros", "net", "rt-multi-thread", "signal", "sync"] }
+tokio = { version = "1", features = [ "macros", "net", "rt-multi-thread", "signal", "sync" ] }
 torrust-tracker-configuration = { version = "3.0.0-develop", path = "../configuration" }
 torrust-tracker-located-error = { version = "3.0.0-develop", path = "../located-error" }
 torrust-tracker-primitives = { version = "3.0.0-develop", path = "../primitives" }
@@ -34,4 +34,4 @@ tracing = "0"
 zerocopy = "0.7"
 
 [package.metadata.cargo-machete]
-ignored = ["serde_bytes"]
+ignored = [ "serde_bytes" ]

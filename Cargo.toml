@@ -19,13 +19,13 @@ version.workspace = true
 name = "torrust_tracker_lib"
 
 [workspace.package]
-authors = ["Nautilus Cyberneering <info@nautilus-cyberneering.de>, Mick van Dijke <mick@dutchbits.nl>"]
-categories = ["network-programming", "web-programming"]
+authors = [ "Nautilus Cyberneering <info@nautilus-cyberneering.de>, Mick van Dijke <mick@dutchbits.nl>" ]
+categories = [ "network-programming", "web-programming" ]
 description = "A feature rich BitTorrent tracker."
 documentation = "https://docs.rs/crate/torrust-tracker/"
 edition = "2021"
 homepage = "https://torrust.com/"
-keywords = ["bittorrent", "file-sharing", "peer-to-peer", "torrent", "tracker"]
+keywords = [ "bittorrent", "file-sharing", "peer-to-peer", "torrent", "tracker" ]
 license = "AGPL-3.0-only"
 publish = true
 repository = "https://github.com/torrust/torrust-tracker"
@@ -34,19 +34,19 @@ version = "3.0.0-develop"
 
 [dependencies]
 anyhow = "1"
-axum-server = { version = "0", features = ["tls-rustls-no-provider"] }
+axum-server = { version = "0", features = [ "tls-rustls-no-provider" ] }
 bittorrent-http-tracker-core = { version = "3.0.0-develop", path = "packages/http-tracker-core" }
 bittorrent-tracker-core = { version = "3.0.0-develop", path = "packages/tracker-core" }
 bittorrent-udp-tracker-core = { version = "3.0.0-develop", path = "packages/udp-tracker-core" }
-chrono = { version = "0", default-features = false, features = ["clock"] }
-clap = { version = "4", features = ["derive", "env"] }
+chrono = { version = "0", default-features = false, features = [ "clock" ] }
+clap = { version = "4", features = [ "derive", "env" ] }
 rand = "0"
 regex = "1"
-reqwest = { version = "0", features = ["json"] }
-serde = { version = "1", features = ["derive"] }
-serde_json = { version = "1", features = ["preserve_order"] }
+reqwest = { version = "0", features = [ "json" ] }
+serde = { version = "1", features = [ "derive" ] }
+serde_json = { version = "1", features = [ "preserve_order" ] }
 thiserror = "2.0.12"
-tokio = { version = "1", features = ["macros", "net", "rt-multi-thread", "signal", "sync"] }
+tokio = { version = "1", features = [ "macros", "net", "rt-multi-thread", "signal", "sync" ] }
 tokio-util = "0.7.15"
 torrust-axum-health-check-api-server = { version = "3.0.0-develop", path = "packages/axum-health-check-api-server" }
 torrust-axum-http-tracker-server = { version = "3.0.0-develop", path = "packages/axum-http-tracker-server" }
@@ -59,7 +59,7 @@ torrust-tracker-configuration = { version = "3.0.0-develop", path = "packages/co
 torrust-tracker-swarm-coordination-registry = { version = "3.0.0-develop", path = "packages/swarm-coordination-registry" }
 torrust-udp-tracker-server = { version = "3.0.0-develop", path = "packages/udp-tracker-server" }
 tracing = "0"
-tracing-subscriber = { version = "0", features = ["json"] }
+tracing-subscriber = { version = "0", features = [ "json" ] }
 
 [dev-dependencies]
 bittorrent-primitives = "0.1.0"
@@ -70,7 +70,7 @@ torrust-rest-tracker-api-client = { version = "3.0.0-develop", path = "packages/
 torrust-tracker-test-helpers = { version = "3.0.0-develop", path = "packages/test-helpers" }
 
 [workspace]
-members = ["console/tracker-client", "packages/torrent-repository-benchmarking"]
+members = [ "console/tracker-client", "packages/torrent-repository-benchmarking" ]
 
 [profile.dev]
 debug = 1

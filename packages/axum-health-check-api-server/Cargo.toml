@@ -4,7 +4,7 @@ description = "The Torrust Bittorrent HTTP tracker."
 documentation.workspace = true
 edition.workspace = true
 homepage.workspace = true
-keywords = ["axum", "bittorrent", "healthcheck", "http", "server", "torrust", "tracker"]
+keywords = [ "axum", "bittorrent", "healthcheck", "http", "server", "torrust", "tracker" ]
 license.workspace = true
 name = "torrust-axum-health-check-api-server"
 publish.workspace = true
@@ -14,27 +14,27 @@ rust-version.workspace = true
 version.workspace = true
 
 [dependencies]
-axum = { version = "0", features = ["macros"] }
-axum-server = { version = "0", features = ["tls-rustls-no-provider"] }
+axum = { version = "0", features = [ "macros" ] }
+axum-server = { version = "0", features = [ "tls-rustls-no-provider" ] }
 futures = "0"
 hyper = "1"
-serde = { version = "1", features = ["derive"] }
-serde_json = { version = "1", features = ["preserve_order"] }
-tokio = { version = "1", features = ["macros", "net", "rt-multi-thread", "signal", "sync"] }
+serde = { version = "1", features = [ "derive" ] }
+serde_json = { version = "1", features = [ "preserve_order" ] }
+tokio = { version = "1", features = [ "macros", "net", "rt-multi-thread", "signal", "sync" ] }
 torrust-axum-server = { version = "3.0.0-develop", path = "../axum-server" }
 torrust-server-lib = { version = "3.0.0-develop", path = "../server-lib" }
 torrust-tracker-configuration = { version = "3.0.0-develop", path = "../configuration" }
 torrust-tracker-primitives = { version = "3.0.0-develop", path = "../primitives" }
-tower-http = { version = "0", features = ["compression-full", "cors", "propagate-header", "request-id", "trace"] }
+tower-http = { version = "0", features = [ "compression-full", "cors", "propagate-header", "request-id", "trace" ] }
 tracing = "0"
 url = "2.5.4"
 
 [dev-dependencies]
-reqwest = { version = "0", features = ["json"] }
+reqwest = { version = "0", features = [ "json" ] }
 torrust-axum-health-check-api-server = { version = "3.0.0-develop", path = "../axum-health-check-api-server" }
 torrust-axum-http-tracker-server = { version = "3.0.0-develop", path = "../axum-http-tracker-server" }
 torrust-axum-rest-tracker-api-server = { version = "3.0.0-develop", path = "../axum-rest-tracker-api-server" }
 torrust-tracker-clock = { version = "3.0.0-develop", path = "../clock" }
 torrust-tracker-test-helpers = { version = "3.0.0-develop", path = "../test-helpers" }
 torrust-udp-tracker-server = { version = "3.0.0-develop", path = "../udp-tracker-server" }
-tracing-subscriber = { version = "0", features = ["json"] }
+tracing-subscriber = { version = "0", features = [ "json" ] }
