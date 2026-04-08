@@ -1,4 +1,5 @@
 # su-exec
+
 switch user and group id, setgroups and exec
 
 ## Purpose
@@ -21,7 +22,7 @@ name separated with colon (e.g. `nobody:ftp`). Numeric uid/gid values
 can be used instead of names. Example:
 
 ```shell
-$ su-exec apache:1000 /usr/sbin/httpd -f /opt/www/httpd.conf
+su-exec apache:1000 /usr/sbin/httpd -f /opt/www/httpd.conf
 ```
 
 ## TTY & parent/child handling
@@ -43,4 +44,3 @@ PID   USER     TIME   COMMAND
 
 This does more or less exactly the same thing as [gosu](https://github.com/tianon/gosu)
 but it is only 10kb instead of 1.8MB.
-

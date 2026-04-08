@@ -1,7 +1,7 @@
 name: Upload Coverage Report (PR)
 
 on:
-  # This workflow is triggered after every successfull execution
+  # This workflow is triggered after every successful execution
   # of `Generate Coverage Report` workflow.
   workflow_run:
     workflows: ["Generate Coverage Report (PR)"]

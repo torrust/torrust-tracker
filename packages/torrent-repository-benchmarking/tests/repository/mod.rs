@@ -526,7 +526,6 @@ async fn it_should_remove_inactive_peers(
     repo: Repo,
     #[case] entries: Entries,
 ) {
-    use std::ops::Sub as _;
     use std::time::Duration;
 
     use torrust_tracker_clock::clock::stopped::Stopped as _;
@@ -556,7 +555,9 @@ async fn it_should_remove_inactive_peers(
         let now = clock::Working::now();
         clock::Stopped::local_set(&now);
 
-        peer.updated = now.sub(EXPIRE);
+        peer.updated = now
+            .checked_sub(EXPIRE)
+            .expect("it_should_remove_inactive_peers_beyond_cutoff: EXPIRE must not exceed now");
     }
 
     // Insert the infohash and peer into the repository

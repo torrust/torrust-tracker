@@ -1,10 +1,10 @@
 [package]
 description = "(contrib) Efficient decoding and encoding for bencode."
-keywords = ["bencode", "contrib", "library"]
+keywords = [ "bencode", "contrib", "library" ]
 name = "torrust-tracker-contrib-bencode"
 readme = "README.md"
 
-authors = ["Nautilus Cyberneering <info@nautilus-cyberneering.de>, Andrew <amiller4421@gmail.com>"]
+authors = [ "Nautilus Cyberneering <info@nautilus-cyberneering.de>, Andrew <amiller4421@gmail.com>" ]
 license = "Apache-2.0"
 repository = "https://github.com/torrust/bittorrent-infrastructure-project"
 

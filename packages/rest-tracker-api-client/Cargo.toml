@@ -1,6 +1,6 @@
 [package]
 description = "A library to interact with the Torrust Tracker REST API."
-keywords = ["bittorrent", "client", "tracker"]
+keywords = [ "bittorrent", "client", "tracker" ]
 license = "LGPL-3.0"
 name = "torrust-rest-tracker-api-client"
 readme = "README.md"
@@ -16,8 +16,8 @@ version.workspace = true
 
 [dependencies]
 hyper = "1"
-reqwest = { version = "0", features = ["json", "query"] }
-serde = { version = "1", features = ["derive"] }
+reqwest = { version = "0", features = [ "json", "query" ] }
+serde = { version = "1", features = [ "derive" ] }
 thiserror = "2"
-url = { version = "2", features = ["serde"] }
-uuid = { version = "1", features = ["v4"] }
+url = { version = "2", features = [ "serde" ] }
+uuid = { version = "1", features = [ "v4" ] }

@@ -1,6 +1,6 @@
 [package]
 description = "A library with the primitive types and functions for the BitTorrent UDP tracker protocol."
-keywords = ["bittorrent", "library", "primitives", "udp"]
+keywords = [ "bittorrent", "library", "primitives", "udp" ]
 name = "bittorrent-udp-tracker-protocol"
 readme = "README.md"
 

@@ -54,7 +54,7 @@ impl Launcher {
             panic!("it should not use udp if using authentication");
         }
 
-        let socket = tokio::time::timeout(Duration::from_millis(5000), BoundSocket::new(bind_to))
+        let socket = tokio::time::timeout(Duration::from_secs(5), BoundSocket::new(bind_to))
             .await
             .expect("it should bind to the socket within five seconds");
 

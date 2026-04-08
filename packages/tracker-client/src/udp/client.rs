@@ -256,7 +256,7 @@ pub async fn check(service_binding: &ServiceBinding) -> Result<String, String> {
                 }
             };
 
-            let sleep = time::sleep(Duration::from_millis(2000));
+            let sleep = time::sleep(Duration::from_secs(2));
             tokio::pin!(sleep);
 
             tokio::select! {

@@ -220,9 +220,9 @@ pub struct Launcher {
 impl std::fmt::Display for Launcher {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         if self.tls.is_some() {
-            write!(f, "(with socket): {}, using TLS", self.bind_to,)
+            write!(f, "(with socket): {}, using TLS", self.bind_to)
         } else {
-            write!(f, "(with socket): {}, without TLS", self.bind_to,)
+            write!(f, "(with socket): {}, without TLS", self.bind_to)
         }
     }
 }

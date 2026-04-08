@@ -1,6 +1,6 @@
 [package]
 description = "A library to provide error decorator with the location and the source of the original error."
-keywords = ["errors", "helper", "library"]
+keywords = [ "errors", "helper", "library" ]
 name = "torrust-tracker-located-error"
 readme = "README.md"
 

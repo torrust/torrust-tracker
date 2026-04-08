@@ -4,7 +4,7 @@ description = "A library with the core functionality needed to implement a BitTo
 documentation.workspace = true
 edition.workspace = true
 homepage.workspace = true
-keywords = ["api", "bittorrent", "core", "library", "tracker"]
+keywords = [ "api", "bittorrent", "core", "library", "tracker" ]
 license.workspace = true
 name = "bittorrent-http-tracker-core"
 publish.workspace = true
@@ -18,11 +18,11 @@ aquatic_udp_protocol = "0"
 bittorrent-http-tracker-protocol = { version = "3.0.0-develop", path = "../http-protocol" }
 bittorrent-primitives = "0.1.0"
 bittorrent-tracker-core = { version = "3.0.0-develop", path = "../tracker-core" }
-criterion = { version = "0.5.1", features = ["async_tokio"] }
+criterion = { version = "0.5.1", features = [ "async_tokio" ] }
 futures = "0"
 serde = "1.0.219"
 thiserror = "2"
-tokio = { version = "1", features = ["macros", "net", "rt-multi-thread", "signal", "sync"] }
+tokio = { version = "1", features = [ "macros", "net", "rt-multi-thread", "signal", "sync" ] }
 tokio-util = "0.7.15"
 torrust-tracker-clock = { version = "3.0.0-develop", path = "../clock" }
 torrust-tracker-configuration = { version = "3.0.0-develop", path = "../configuration" }

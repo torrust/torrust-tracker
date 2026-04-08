@@ -1,6 +1,6 @@
 [package]
 description = "A library with the primitive types and functions for the BitTorrent HTTP tracker protocol."
-keywords = ["api", "library", "primitives"]
+keywords = [ "api", "library", "primitives" ]
 name = "bittorrent-http-tracker-protocol"
 readme = "README.md"
 
@@ -18,10 +18,10 @@ version.workspace = true
 aquatic_udp_protocol = "0"
 bittorrent-primitives = "0.1.0"
 bittorrent-tracker-core = { version = "3.0.0-develop", path = "../tracker-core" }
-derive_more = { version = "2", features = ["as_ref", "constructor", "from"] }
+derive_more = { version = "2", features = [ "as_ref", "constructor", "from" ] }
 multimap = "0"
 percent-encoding = "2"
-serde = { version = "1", features = ["derive"] }
+serde = { version = "1", features = [ "derive" ] }
 serde_bencode = "0"
 thiserror = "2"
 torrust-tracker-clock = { version = "3.0.0-develop", path = "../clock" }

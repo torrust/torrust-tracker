@@ -80,9 +80,15 @@ jobs:
                 echo "continue=true" >> $GITHUB_OUTPUT
                 echo "On \`develop\` Branch, Type: \`development\`"
 
-              elif [[ $(echo "${{ github.ref }}" | grep -P '^(refs\/heads\/releases\/)(v)(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$') ]]; then
+              elif [[ "${{ github.ref }}" =~ ^refs/heads/releases/ ]]; then
+                semver_regex='^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-((0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)(\.(0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*))*))?(\+([0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*))?$'
+                version=$(echo "${{ github.ref }}" | sed -n -E 's#^refs/heads/releases/##p')
 
-                version=$(echo "${{ github.ref }}" | sed -n -E 's/^(refs\/heads\/releases\/)//p')
+                if [[ ! "$version" =~ $semver_regex ]]; then
+                  echo "Not a valid release branch semver. Will Not Continue"
+                  exit 0
+                fi
+
                 echo "version=$version" >> $GITHUB_OUTPUT
                 echo "type=release" >> $GITHUB_OUTPUT
                 echo "continue=true" >> $GITHUB_OUTPUT

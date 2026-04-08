@@ -1,0 +1,16 @@
+extends: default
+
+rules:
+  line-length:
+    max: 200 # More reasonable for infrastructure code
+  comments:
+    min-spaces-from-content: 1 # Allow single space before comments
+  document-start: disable # Most project YAML files don't require ---
+  truthy:
+    allowed-values: ["true", "false", "yes", "no", "on", "off"] # Allow common GitHub Actions values
+
+# Ignore generated/runtime directories
+ignore: |
+  target/**
+  storage/**
+  .coverage/**

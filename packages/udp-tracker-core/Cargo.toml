@@ -4,7 +4,7 @@ description = "A library with the core functionality needed to implement a BitTo
 documentation.workspace = true
 edition.workspace = true
 homepage.workspace = true
-keywords = ["api", "bittorrent", "core", "library", "tracker"]
+keywords = [ "api", "bittorrent", "core", "library", "tracker" ]
 license.workspace = true
 name = "bittorrent-udp-tracker-core"
 publish.workspace = true
@@ -21,14 +21,14 @@ bittorrent-udp-tracker-protocol = { version = "3.0.0-develop", path = "../udp-pr
 bloom = "0.3.2"
 blowfish = "0"
 cipher = "0.4"
-criterion = { version = "0.5.1", features = ["async_tokio"] }
+criterion = { version = "0.5.1", features = [ "async_tokio" ] }
 futures = "0"
 generic-array = "0"
 lazy_static = "1"
 rand = "0"
 serde = "1.0.219"
 thiserror = "2"
-tokio = { version = "1", features = ["macros", "net", "rt-multi-thread", "signal", "sync", "time"] }
+tokio = { version = "1", features = [ "macros", "net", "rt-multi-thread", "signal", "sync", "time" ] }
 tokio-util = "0.7.15"
 torrust-tracker-clock = { version = "3.0.0-develop", path = "../clock" }
 torrust-tracker-configuration = { version = "3.0.0-develop", path = "../configuration" }

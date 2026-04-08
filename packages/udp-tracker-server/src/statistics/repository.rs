@@ -330,7 +330,7 @@ mod tests {
 
         // Calculate new average with processing time of 2000ns
         // This will increment the processed requests counter from 0 to 1
-        let processing_time = Duration::from_nanos(2000);
+        let processing_time = Duration::from_micros(2);
         let new_avg = repo
             .recalculate_udp_avg_processing_time_ns(processing_time, &connect_labels, now)
             .await;
@@ -417,7 +417,7 @@ mod tests {
         let now = CurrentClock::now();
 
         // Test with zero connections (should not panic, should handle division by zero)
-        let processing_time = Duration::from_nanos(1000);
+        let processing_time = Duration::from_micros(1);
 
         let connect_labels = LabelSet::from([("request_kind", "connect")]);
         let connect_avg = repo

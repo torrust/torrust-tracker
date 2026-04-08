@@ -1,6 +1,6 @@
 [package]
 description = "A library that provides a repository of torrents files and their peers."
-keywords = ["library", "repository", "torrents"]
+keywords = [ "library", "repository", "torrents" ]
 name = "torrust-tracker-swarm-coordination-registry"
 readme = "README.md"
 
@@ -18,12 +18,12 @@ version.workspace = true
 [dependencies]
 aquatic_udp_protocol = "0"
 bittorrent-primitives = "0.1.0"
-chrono = { version = "0", default-features = false, features = ["clock"] }
+chrono = { version = "0", default-features = false, features = [ "clock" ] }
 crossbeam-skiplist = "0"
 futures = "0"
-serde = { version = "1.0.219", features = ["derive"] }
+serde = { version = "1.0.219", features = [ "derive" ] }
 thiserror = "2.0.12"
-tokio = { version = "1", features = ["macros", "net", "rt-multi-thread", "signal", "sync"] }
+tokio = { version = "1", features = [ "macros", "net", "rt-multi-thread", "signal", "sync" ] }
 tokio-util = "0.7.15"
 torrust-tracker-clock = { version = "3.0.0-develop", path = "../clock" }
 torrust-tracker-configuration = { version = "3.0.0-develop", path = "../configuration" }
@@ -33,8 +33,8 @@ torrust-tracker-primitives = { version = "3.0.0-develop", path = "../primitives"
 tracing = "0"
 
 [dev-dependencies]
-async-std = { version = "1", features = ["attributes", "tokio1"] }
-criterion = { version = "0", features = ["async_tokio"] }
+async-std = { version = "1", features = [ "attributes", "tokio1" ] }
+criterion = { version = "0", features = [ "async_tokio" ] }
 mockall = "0"
 rand = "0"
 rstest = "0"
