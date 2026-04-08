@@ -1,5 +1,4 @@
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
-use std::ops::Sub;
 use std::time::Duration;
 
 use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
@@ -430,7 +429,9 @@ async fn it_should_remove_inactive_peers_beyond_cutoff(
     let now = clock::Working::now();
     clock::Stopped::local_set(&now);
 
-    peer.updated = now.sub(EXPIRE);
+    peer.updated = now
+        .checked_sub(EXPIRE)
+        .expect("it_should_remove_inactive_peers_beyond_cutoff: EXPIRE must not exceed now");
 
     torrent.upsert_peer(&peer).await;
 

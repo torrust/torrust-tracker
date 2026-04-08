@@ -32,7 +32,7 @@ async fn send_connection_request(transaction_id: TransactionId, client: &UdpTrac
 
     match response {
         Response::Connect(connect_response) => connect_response.connection_id,
-        _ => panic!("error connecting to udp server {:?}", response),
+        _ => panic!("error connecting to udp server {response:?}"),
     }
 }
 

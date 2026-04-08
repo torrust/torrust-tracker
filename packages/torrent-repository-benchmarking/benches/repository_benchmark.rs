@@ -17,7 +17,7 @@ fn add_one_torrent(c: &mut Criterion) {
     let mut group = c.benchmark_group("add_one_torrent");
 
     group.warm_up_time(Duration::from_millis(500));
-    group.measurement_time(Duration::from_millis(1000));
+    group.measurement_time(Duration::from_secs(1));
 
     group.bench_function("RwLockStd", |b| {
         b.iter_custom(sync::add_one_torrent::<TorrentsRwLockStd, _>);
@@ -74,7 +74,7 @@ fn add_multiple_torrents_in_parallel(c: &mut Criterion) {
     //group.sample_size(10);
 
     group.warm_up_time(Duration::from_millis(500));
-    group.measurement_time(Duration::from_millis(1000));
+    group.measurement_time(Duration::from_secs(1));
 
     group.bench_function("RwLockStd", |b| {
         b.to_async(&rt)
@@ -138,7 +138,7 @@ fn update_one_torrent_in_parallel(c: &mut Criterion) {
     //group.sample_size(10);
 
     group.warm_up_time(Duration::from_millis(500));
-    group.measurement_time(Duration::from_millis(1000));
+    group.measurement_time(Duration::from_secs(1));
 
     group.bench_function("RwLockStd", |b| {
         b.to_async(&rt)
@@ -202,7 +202,7 @@ fn update_multiple_torrents_in_parallel(c: &mut Criterion) {
     //group.sample_size(10);
 
     group.warm_up_time(Duration::from_millis(500));
-    group.measurement_time(Duration::from_millis(1000));
+    group.measurement_time(Duration::from_secs(1));
 
     group.bench_function("RwLockStd", |b| {
         b.to_async(&rt)

@@ -12,7 +12,7 @@ fn announce_once(c: &mut Criterion) {
     let mut group = c.benchmark_group("http_tracker_handle_announce_once");
 
     group.warm_up_time(Duration::from_millis(500));
-    group.measurement_time(Duration::from_millis(1000));
+    group.measurement_time(Duration::from_secs(1));
 
     group.bench_function("handle_announce_data", |b| {
         b.iter(|| sync::return_announce_data_once(100));
