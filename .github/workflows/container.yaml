@@ -108,7 +108,7 @@ jobs:
     steps:
       - id: meta
         name: Docker Meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
           images: |
             "${{ secrets.DOCKER_HUB_USERNAME }}/${{secrets.DOCKER_HUB_REPOSITORY_NAME }}"
@@ -146,7 +146,7 @@ jobs:
     steps:
       - id: meta
         name: Docker Meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
           images: |
             "${{ secrets.DOCKER_HUB_USERNAME }}/${{secrets.DOCKER_HUB_REPOSITORY_NAME }}"
