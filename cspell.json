@@ -1,0 +1,27 @@
+{
+    "$schema": "https://raw.githubusercontent.com/streetsidesoftware/cspell/main/cspell.schema.json",
+    "version": "0.2",
+    "dictionaryDefinitions": [
+        {
+            "name": "project-words",
+            "path": "./project-words.txt",
+            "addWords": true
+        }
+    ],
+    "dictionaries": [
+        "project-words"
+    ],
+    "enableFiletypes": [
+        "dockerfile",
+        "shellscript",
+        "toml"
+    ],
+    "ignorePaths": [
+        "target",
+        "docs/media/*.svg",
+        "contrib/bencode/benches/*.bencode",
+        "contrib/dev-tools/su-exec/**",
+        ".github/labels.json",
+        "/project-words.txt"
+    ]
+}
