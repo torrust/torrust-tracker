@@ -2,7 +2,7 @@
 //!
 //! This module provides an implementation of the [`Database`] trait for
 //! `PostgreSQL` using the `r2d2_postgres` connection pool. It configures the
-//! PostgreSQL connection based on a URL, creates the necessary tables (for
+//! `PostgreSQL` connection based on a URL, creates the necessary tables (for
 //! torrent metrics, torrent whitelist, and authentication keys), and implements
 //! all CRUD operations required by the persistence layer.
 //!
@@ -344,7 +344,7 @@ impl Database for Postgres {
         let info_hash_str = info_hash.to_string();
         self.with_connection(move |conn| {
             let rows_affected = conn.execute("INSERT INTO whitelist (info_hash) VALUES ($1)", &[&info_hash_str])?;
-            Ok(rows_affected as usize)
+            Ok(usize::try_from(rows_affected).expect("rows affected should fit in usize"))
         })
     }
 
@@ -352,7 +352,7 @@ impl Database for Postgres {
         let info_hash_str = info_hash.to_string();
         self.with_connection(move |conn| {
             let rows_affected = conn.execute("DELETE FROM whitelist WHERE info_hash = $1", &[&info_hash_str])?;
-            Ok(rows_affected as usize)
+            Ok(usize::try_from(rows_affected).expect("rows affected should fit in usize"))
         })
     }
 
@@ -384,24 +384,21 @@ impl Database for Postgres {
         let key_str = auth_key.key.to_string();
         let valid_until = auth_key.valid_until;
         self.with_connection(move |conn| {
-            let rows_affected = match valid_until {
-                Some(valid_until) => {
-                    let valid_until_i64 = i64::try_from(valid_until.as_secs()).unwrap();
-                    conn.execute(
-                        "INSERT INTO keys (key, valid_until) VALUES ($1, $2)",
-                        &[&key_str, &valid_until_i64],
-                    )?
-                }
-                None => {
-                    let null_value: Option<i64> = None;
-                    conn.execute(
-                        "INSERT INTO keys (key, valid_until) VALUES ($1, $2)",
-                        &[&key_str, &null_value],
-                    )?
-                }
+            let rows_affected = if let Some(valid_until) = valid_until {
+                let valid_until_i64 = i64::try_from(valid_until.as_secs()).unwrap();
+                conn.execute(
+                    "INSERT INTO keys (key, valid_until) VALUES ($1, $2)",
+                    &[&key_str, &valid_until_i64],
+                )?
+            } else {
+                let null_value: Option<i64> = None;
+                conn.execute(
+                    "INSERT INTO keys (key, valid_until) VALUES ($1, $2)",
+                    &[&key_str, &null_value],
+                )?
             };
 
-            Ok(rows_affected as usize)
+            Ok(usize::try_from(rows_affected).expect("rows affected should fit in usize"))
         })
     }
 
@@ -409,7 +406,7 @@ impl Database for Postgres {
         let key_str = key.to_string();
         self.with_connection(move |conn| {
             let rows_affected = conn.execute("DELETE FROM keys WHERE key = $1", &[&key_str])?;
-            Ok(rows_affected as usize)
+            Ok(usize::try_from(rows_affected).expect("rows affected should fit in usize"))
         })
     }
 }
@@ -524,7 +521,7 @@ mod tests {
         driver
     }
 
-    /// Runs the full PostgreSQL driver test suite using testcontainers.
+    /// Runs the full `PostgreSQL` driver test suite using testcontainers.
     ///
     /// Enable with:
     /// `TORRUST_TRACKER_CORE_RUN_POSTGRES_DRIVER_TEST=true cargo test`
@@ -555,19 +552,16 @@ mod tests {
         Ok(())
     }
 
-    /// Runs the full PostgreSQL driver test suite against a local PostgreSQL
+    /// Runs the full `PostgreSQL` driver test suite against a local `PostgreSQL`
     /// instance specified via environment variable.
     ///
     /// Enable with:
     /// `TORRUST_TRACKER_CORE_POSTGRES_DATABASE_URL="postgresql://user:pass@host:port/db" cargo test`
     #[tokio::test]
     async fn run_postgres_driver_tests_local() -> Result<(), Box<dyn std::error::Error + 'static>> {
-        let db_url = match std::env::var("TORRUST_TRACKER_CORE_POSTGRES_DATABASE_URL") {
-            Ok(url) => url,
-            Err(_) => {
-                println!("Skipping the local PostgreSQL driver tests.");
-                return Ok(());
-            }
+        let Ok(db_url) = std::env::var("TORRUST_TRACKER_CORE_POSTGRES_DATABASE_URL") else {
+            println!("Skipping the local PostgreSQL driver tests.");
+            return Ok(());
         };
 
         let mut config = Core::default();

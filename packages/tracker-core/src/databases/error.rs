@@ -80,7 +80,7 @@ pub enum Error {
 
     /// Indicates a failure to connect to the database (generic).
     ///
-    /// This error variant wraps connection-related errors for drivers that do not use MySQL URL errors.
+    /// This error variant wraps connection-related errors for drivers that do not use `MySQL` URL errors.
     #[error("Failed to connect to {driver} database: {source}")]
     GenericConnectionError {
         source: LocatedError<'static, dyn std::error::Error + Send + Sync>,
