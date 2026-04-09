@@ -6,8 +6,8 @@
 //! creation errors. Each error variant includes contextual information such as
 //! the associated database driver and, when applicable, the source error.
 //!
-//! External errors from database libraries (e.g., `rusqlite`, `mysql`) are
-//! converted into this error type using the provided `From` implementations.
+//! External errors from database libraries (e.g., `rusqlite`, `mysql`, `postgres`)
+//! are converted into this error type using the provided `From` implementations.
 use std::panic::Location;
 use std::sync::Arc;
 
@@ -78,6 +78,15 @@ pub enum Error {
         driver: Driver,
     },
 
+    /// Indicates a failure to connect to the database (generic).
+    ///
+    /// This error variant wraps connection-related errors for drivers that do not use MySQL URL errors.
+    #[error("Failed to connect to {driver} database: {source}")]
+    GenericConnectionError {
+        source: LocatedError<'static, dyn std::error::Error + Send + Sync>,
+        driver: Driver,
+    },
+
     /// Indicates a failure to create a connection pool.
     ///
     /// This error variant is used when the connection pool creation (using r2d2) fails.
@@ -111,6 +120,17 @@ impl From<r2d2_mysql::mysql::Error> for Error {
         Error::InvalidQuery {
             source: e.into(),
             driver: Driver::MySQL,
+        }
+    }
+}
+
+impl From<r2d2_postgres::postgres::Error> for Error {
+    #[track_caller]
+    fn from(err: r2d2_postgres::postgres::Error) -> Self {
+        let e: DynError = Arc::new(err);
+        Error::InvalidQuery {
+            source: e.into(),
+            driver: Driver::PostgreSQL,
         }
     }
 }

@@ -1,5 +1,6 @@
 //! Database driver factory.
 use mysql::Mysql;
+use postgres::Postgres;
 use serde::{Deserialize, Serialize};
 use sqlite::Sqlite;
 
@@ -23,6 +24,8 @@ pub enum Driver {
     Sqlite3,
     /// The `MySQL` database driver.
     MySQL,
+    /// The `PostgreSQL` database driver.
+    PostgreSQL,
 }
 
 /// It builds a new database driver.
@@ -62,6 +65,7 @@ pub enum Driver {
 ///
 /// This function will panic if unable to create database tables.
 pub mod mysql;
+pub mod postgres;
 pub mod sqlite;
 
 /// It builds a new database driver.
@@ -77,6 +81,7 @@ pub(crate) fn build(driver: &Driver, db_path: &str) -> Result<Box<dyn Database>,
     let database: Box<dyn Database> = match driver {
         Driver::Sqlite3 => Box::new(Sqlite::new(db_path)?),
         Driver::MySQL => Box::new(Mysql::new(db_path)?),
+        Driver::PostgreSQL => Box::new(Postgres::new(db_path)?),
     };
 
     database.create_database_tables().expect("Could not create database tables.");

@@ -2,10 +2,11 @@
 //!
 //! Persistence is currently implemented using a single [`Database`] trait.
 //!
-//! There are two implementations of the trait (two drivers):
+//! There are three implementations of the trait (three drivers):
 //!
 //! - **`MySQL`**
 //! - **`Sqlite`**
+//! - **`PostgreSQL`**
 //!
 //! > **NOTICE**: There are no database migrations at this time. If schema
 //! > changes occur, either migration functionality will be implemented or a

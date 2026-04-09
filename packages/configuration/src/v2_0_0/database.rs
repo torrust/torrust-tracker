@@ -5,7 +5,7 @@ use url::Url;
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone)]
 pub struct Database {
     // Database configuration
-    /// Database driver. Possible values are: `sqlite3`, and `mysql`.
+    /// Database driver. Possible values are: `sqlite3`, `mysql`, and `postgresql`.
     #[serde(default = "Database::default_driver")]
     pub driver: Driver,
 
@@ -14,6 +14,8 @@ pub struct Database {
     /// `./storage/tracker/lib/database/sqlite3.db`.
     /// For `Mysql`, the format is `mysql://db_user:db_user_password:port/db_name`, for
     /// example: `mysql://root:password@localhost:3306/torrust`.
+    /// For `PostgreSQL`, the format is `postgresql://db_user:db_user_password@host:port/db_name`, for
+    /// example: `postgresql://root:password@localhost:5432/torrust`.
     #[serde(default = "Database::default_path")]
     pub path: String,
 }
@@ -51,6 +53,11 @@ impl Database {
                 url.set_password(Some("***")).expect("url password should be changed");
                 self.path = url.to_string();
             }
+            Driver::PostgreSQL => {
+                let mut url = Url::parse(&self.path).expect("path for PostgreSQL driver should be a valid URL");
+                url.set_password(Some("***")).expect("url password should be changed");
+                self.path = url.to_string();
+            }
         }
     }
 }
@@ -63,6 +70,8 @@ pub enum Driver {
     Sqlite3,
     /// The `MySQL` database driver.
     MySQL,
+    /// The `PostgreSQL` database driver.
+    PostgreSQL,
 }
 
 #[cfg(test)]
@@ -80,5 +89,17 @@ mod tests {
         database.mask_secrets();
 
         assert_eq!(database.path, "mysql://root:***@localhost:3306/torrust".to_string());
+    }
+
+    #[test]
+    fn it_should_allow_masking_the_postgresql_user_password() {
+        let mut database = Database {
+            driver: Driver::PostgreSQL,
+            path: "postgresql://root:password@localhost:5432/torrust".to_string(),
+        };
+
+        database.mask_secrets();
+
+        assert_eq!(database.path, "postgresql://root:***@localhost:5432/torrust".to_string());
     }
 }

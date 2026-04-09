@@ -43,6 +43,7 @@ pub fn initialize_database(config: &Core) -> Arc<Box<dyn Database>> {
     let driver = match config.database.driver {
         torrust_tracker_configuration::Driver::Sqlite3 => Driver::Sqlite3,
         torrust_tracker_configuration::Driver::MySQL => Driver::MySQL,
+        torrust_tracker_configuration::Driver::PostgreSQL => Driver::PostgreSQL,
     };
 
     Arc::new(driver::build(&driver, &config.database.path).expect("Database driver build failed."))

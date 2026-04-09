@@ -250,3 +250,4 @@ mysqladmin
 setgroups
 taplo
 trixie
+postgresql
