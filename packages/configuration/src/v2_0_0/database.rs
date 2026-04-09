@@ -12,7 +12,7 @@ pub struct Database {
     /// Database connection string. The format depends on the database driver.
     /// For `sqlite3`, the format is `path/to/database.db`, for example:
     /// `./storage/tracker/lib/database/sqlite3.db`.
-    /// For `Mysql`, the format is `mysql://db_user:db_user_password:port/db_name`, for
+    /// For `MySQL`, the format is `mysql://db_user:db_user_password@host:port/db_name`, for
     /// example: `mysql://root:password@localhost:3306/torrust`.
     /// For `PostgreSQL`, the format is `postgresql://db_user:db_user_password@host:port/db_name`, for
     /// example: `postgresql://root:password@localhost:5432/torrust`.

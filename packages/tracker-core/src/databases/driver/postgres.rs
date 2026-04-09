@@ -419,7 +419,7 @@ mod tests {
     /*
     We run a PostgreSQL container and run all the tests against the same container and database.
 
-    Test for this driver are executed with:
+    Tests for this driver are executed with:
 
     `TORRUST_TRACKER_CORE_RUN_POSTGRES_DRIVER_TEST=true cargo test`
 
