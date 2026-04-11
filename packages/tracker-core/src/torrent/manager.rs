@@ -70,8 +70,11 @@ impl TorrentsManager {
     ///
     /// Returns a `databases::error::Error` if unable to load the persistent
     /// torrent data.
-    pub fn load_torrents_from_database(&self) -> Result<(), databases::error::Error> {
-        let persistent_torrents = self.db_downloads_metric_repository.load_all_torrents_downloads()?;
+    pub async fn load_torrents_from_database(&self) -> Result<(), databases::error::Error> {
+        let persistent_torrents = self
+            .db_downloads_metric_repository
+            .load_all_torrents_downloads()
+            .await?;
 
         self.in_memory_torrent_repository.import_persistent(&persistent_torrents);
 
@@ -170,7 +173,8 @@ mod tests {
         let swarms = Arc::new(Registry::default());
         let in_memory_torrent_repository = Arc::new(InMemoryTorrentRepository::new(swarms));
         let database = initialize_database(&config);
-        let database_persistent_torrent_repository = Arc::new(DatabaseDownloadsMetricRepository::new(&database));
+        let database_persistent_torrent_repository =
+            Arc::new(DatabaseDownloadsMetricRepository::new(database.torrent_metrics_store()));
 
         let torrents_manager = Arc::new(TorrentsManager::new(
             &config,
@@ -197,9 +201,10 @@ mod tests {
         services
             .database_persistent_torrent_repository
             .save_torrent_downloads(&infohash, 1)
+            .await
             .unwrap();
 
-        torrents_manager.load_torrents_from_database().unwrap();
+        torrents_manager.load_torrents_from_database().await.unwrap();
 
         assert_eq!(
             services

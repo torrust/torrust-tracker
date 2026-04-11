@@ -3,7 +3,7 @@ use std::sync::Arc;
 
 use bittorrent_primitives::info_hash::InfoHash;
 
-use crate::databases::{self, Database};
+use crate::databases::{self, WhitelistStore};
 
 /// The persisted list of allowed torrents.
 ///
@@ -12,13 +12,13 @@ use crate::databases::{self, Database};
 pub struct DatabaseWhitelist {
     /// A database driver implementation: [`Sqlite3`](crate::core::databases::sqlite)
     /// or [`MySQL`](crate::core::databases::mysql)
-    database: Arc<Box<dyn Database>>,
+    database: Arc<dyn WhitelistStore>,
 }
 
 impl DatabaseWhitelist {
     /// Creates a new `DatabaseWhitelist`.
     #[must_use]
-    pub fn new(database: Arc<Box<dyn Database>>) -> Self {
+    pub fn new(database: Arc<dyn WhitelistStore>) -> Self {
         Self { database }
     }
 
@@ -27,14 +27,14 @@ impl DatabaseWhitelist {
     /// # Errors
     /// Returns a `database::Error` if unable to add the `info_hash` to the
     /// whitelist.
-    pub(crate) fn add(&self, info_hash: &InfoHash) -> Result<(), databases::error::Error> {
-        let is_whitelisted = self.database.is_info_hash_whitelisted(*info_hash)?;
+    pub(crate) async fn add(&self, info_hash: &InfoHash) -> Result<(), databases::error::Error> {
+        let is_whitelisted = self.database.is_info_hash_whitelisted(*info_hash).await?;
 
         if is_whitelisted {
             return Ok(());
         }
 
-        self.database.add_info_hash_to_whitelist(*info_hash)?;
+        self.database.add_info_hash_to_whitelist(*info_hash).await?;
 
         Ok(())
     }
@@ -43,14 +43,14 @@ impl DatabaseWhitelist {
     ///
     /// # Errors
     /// Returns a `database::Error` if unable to remove the `info_hash`.
-    pub(crate) fn remove(&self, info_hash: &InfoHash) -> Result<(), databases::error::Error> {
-        let is_whitelisted = self.database.is_info_hash_whitelisted(*info_hash)?;
+    pub(crate) async fn remove(&self, info_hash: &InfoHash) -> Result<(), databases::error::Error> {
+        let is_whitelisted = self.database.is_info_hash_whitelisted(*info_hash).await?;
 
         if !is_whitelisted {
             return Ok(());
         }
 
-        self.database.remove_info_hash_from_whitelist(*info_hash)?;
+        self.database.remove_info_hash_from_whitelist(*info_hash).await?;
 
         Ok(())
     }
@@ -60,8 +60,8 @@ impl DatabaseWhitelist {
     /// # Errors
     /// Returns a `database::Error` if unable to load whitelisted `info_hash`
     /// values.
-    pub(crate) fn load_from_database(&self) -> Result<Vec<InfoHash>, databases::error::Error> {
-        self.database.load_whitelist()
+    pub(crate) async fn load_from_database(&self) -> Result<Vec<InfoHash>, databases::error::Error> {
+        self.database.load_whitelist().await
     }
 }
 
@@ -76,65 +76,65 @@ mod tests {
         fn initialize_database_whitelist() -> DatabaseWhitelist {
             let configuration = ephemeral_configuration_for_listed_tracker();
             let database = initialize_database(&configuration);
-            DatabaseWhitelist::new(database)
+            DatabaseWhitelist::new(database.whitelist_store())
         }
 
-        #[test]
-        fn should_add_a_new_infohash_to_the_list() {
+        #[tokio::test]
+        async fn should_add_a_new_infohash_to_the_list() {
             let whitelist = initialize_database_whitelist();
 
             let infohash = sample_info_hash();
 
-            let _result = whitelist.add(&infohash);
+            let _result = whitelist.add(&infohash).await;
 
-            assert_eq!(whitelist.load_from_database().unwrap(), vec!(infohash));
+            assert_eq!(whitelist.load_from_database().await.unwrap(), vec!(infohash));
         }
 
-        #[test]
-        fn should_remove_a_infohash_from_the_list() {
+        #[tokio::test]
+        async fn should_remove_a_infohash_from_the_list() {
             let whitelist = initialize_database_whitelist();
 
             let infohash = sample_info_hash();
 
-            let _result = whitelist.add(&infohash);
+            let _result = whitelist.add(&infohash).await;
 
-            let _result = whitelist.remove(&infohash);
+            let _result = whitelist.remove(&infohash).await;
 
-            assert_eq!(whitelist.load_from_database().unwrap(), vec!());
+            assert_eq!(whitelist.load_from_database().await.unwrap(), vec!());
         }
 
-        #[test]
-        fn should_load_all_infohashes_from_the_database() {
+        #[tokio::test]
+        async fn should_load_all_infohashes_from_the_database() {
             let whitelist = initialize_database_whitelist();
 
             let infohash = sample_info_hash();
 
-            let _result = whitelist.add(&infohash);
+            let _result = whitelist.add(&infohash).await;
 
-            let result = whitelist.load_from_database().unwrap();
+            let result = whitelist.load_from_database().await.unwrap();
 
             assert_eq!(result, vec!(infohash));
         }
 
-        #[test]
-        fn should_not_add_the_same_infohash_to_the_list_twice() {
+        #[tokio::test]
+        async fn should_not_add_the_same_infohash_to_the_list_twice() {
             let whitelist = initialize_database_whitelist();
 
             let infohash = sample_info_hash();
 
-            let _result = whitelist.add(&infohash);
-            let _result = whitelist.add(&infohash);
+            let _result = whitelist.add(&infohash).await;
+            let _result = whitelist.add(&infohash).await;
 
-            assert_eq!(whitelist.load_from_database().unwrap(), vec!(infohash));
+            assert_eq!(whitelist.load_from_database().await.unwrap(), vec!(infohash));
         }
 
-        #[test]
-        fn should_not_fail_removing_an_infohash_that_is_not_in_the_list() {
+        #[tokio::test]
+        async fn should_not_fail_removing_an_infohash_that_is_not_in_the_list() {
             let whitelist = initialize_database_whitelist();
 
             let infohash = sample_info_hash();
 
-            let result = whitelist.remove(&infohash);
+            let result = whitelist.remove(&infohash).await;
 
             assert!(result.is_ok());
         }

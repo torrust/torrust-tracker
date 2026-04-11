@@ -4,7 +4,7 @@ CREATE TABLE
         info_hash VARCHAR(40) NOT NULL UNIQUE
     );
 
-# todo: rename to `torrent_metrics`
+-- todo: rename to `torrent_metrics`
 CREATE TABLE
     IF NOT EXISTS torrents (
         id integer PRIMARY KEY AUTO_INCREMENT,

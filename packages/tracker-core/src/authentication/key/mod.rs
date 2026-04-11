@@ -191,8 +191,8 @@ pub enum Error {
     MissingAuthKey { location: &'static Location<'static> },
 }
 
-impl From<r2d2_sqlite::rusqlite::Error> for Error {
-    fn from(e: r2d2_sqlite::rusqlite::Error) -> Self {
+impl From<crate::databases::error::Error> for Error {
+    fn from(e: crate::databases::error::Error) -> Self {
         Error::KeyVerificationError {
             source: (Arc::new(e) as DynError).into(),
         }
@@ -293,10 +293,14 @@ mod tests {
 
     mod the_key_verification_error {
         use crate::authentication::key;
+        use crate::databases::driver::Driver;
 
         #[test]
         fn could_be_a_database_error() {
-            let err = r2d2_sqlite::rusqlite::Error::InvalidQuery;
+            let err = crate::databases::error::Error::InsertFailed {
+                location: std::panic::Location::caller(),
+                driver: Driver::Sqlite3,
+            };
 
             let err: key::Error = err.into();
 

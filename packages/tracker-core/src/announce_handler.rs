@@ -167,20 +167,20 @@ impl AnnounceHandler {
         peer.change_ip(&assign_ip_address_to_peer(remote_client_ip, self.config.net.external_ip));
 
         self.in_memory_torrent_repository
-            .handle_announcement(info_hash, peer, self.load_downloads_metric_if_needed(info_hash)?)
+            .handle_announcement(info_hash, peer, self.load_downloads_metric_if_needed(info_hash).await?)
             .await;
 
         Ok(self.build_announce_data(info_hash, peer, peers_wanted).await)
     }
 
     /// Loads the number of downloads for a torrent if needed.
-    fn load_downloads_metric_if_needed(
+    async fn load_downloads_metric_if_needed(
         &self,
         info_hash: &InfoHash,
     ) -> Result<Option<NumberOfDownloads>, databases::error::Error> {
         if self.config.tracker_policy.persistent_torrent_completed_stat && !self.in_memory_torrent_repository.contains(info_hash)
         {
-            Ok(self.db_downloads_metric_repository.load_torrent_downloads(info_hash)?)
+            Ok(self.db_downloads_metric_repository.load_torrent_downloads(info_hash).await?)
         } else {
             Ok(None)
         }

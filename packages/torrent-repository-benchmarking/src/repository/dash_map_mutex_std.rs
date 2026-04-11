@@ -52,7 +52,7 @@ where
         for entry in &self.torrents {
             let stats = entry.value().lock().expect("it should get a lock").get_swarm_metadata();
             metrics.total_complete += u64::from(stats.complete);
-            metrics.total_downloaded += u64::from(stats.downloaded);
+            metrics.total_downloaded += stats.downloaded;
             metrics.total_incomplete += u64::from(stats.incomplete);
             metrics.total_torrents += 1;
         }

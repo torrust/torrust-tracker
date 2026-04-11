@@ -82,6 +82,7 @@ async fn it_should_persist_the_number_of_completed_peers_for_each_torrent_into_t
         .tracker_core_container
         .torrents_manager
         .load_torrents_from_database()
+        .await
         .unwrap();
 
     assert!(test_env.get_swarm_metadata(&info_hash).await.unwrap().downloads() == 1);

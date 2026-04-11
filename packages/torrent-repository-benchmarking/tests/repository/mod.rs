@@ -176,7 +176,7 @@ fn persistent_single() -> NumberOfDownloadsBTreeMap {
     let hash = &mut DefaultHasher::default();
 
     hash.write_u8(1);
-    let t = [(InfoHash::from(&hash.clone()), 0_u32)];
+    let t = [(InfoHash::from(&hash.clone()), 0_u64)];
 
     t.iter().copied().collect()
 }
@@ -192,7 +192,7 @@ fn persistent_three() -> NumberOfDownloadsBTreeMap {
     hash.write_u8(3);
     let info_3 = InfoHash::from(&hash.clone());
 
-    let t = [(info_1, 1_u32), (info_2, 2_u32), (info_3, 3_u32)];
+    let t = [(info_1, 1_u64), (info_2, 2_u64), (info_3, 3_u64)];
 
     t.iter().copied().collect()
 }
@@ -412,7 +412,7 @@ async fn it_should_get_metrics(
         metrics.total_torrents += 1;
         metrics.total_incomplete += u64::from(stats.incomplete);
         metrics.total_complete += u64::from(stats.complete);
-        metrics.total_downloaded += u64::from(stats.downloaded);
+        metrics.total_downloaded += stats.downloaded;
     }
 
     assert_eq!(repo.get_metrics().await, metrics);

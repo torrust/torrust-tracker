@@ -160,7 +160,7 @@ mod tests {
         let in_memory_key_repository = Arc::new(InMemoryKeyRepository::default());
         let authentication_service = Arc::new(AuthenticationService::new(&config.core, &in_memory_key_repository));
         let in_memory_torrent_repository = Arc::new(InMemoryTorrentRepository::default());
-        let db_downloads_metric_repository = Arc::new(DatabaseDownloadsMetricRepository::new(&database));
+        let db_downloads_metric_repository = Arc::new(DatabaseDownloadsMetricRepository::new(database.torrent_metrics_store()));
         let announce_handler = Arc::new(AnnounceHandler::new(
             &config.core,
             &whitelist_authorization,

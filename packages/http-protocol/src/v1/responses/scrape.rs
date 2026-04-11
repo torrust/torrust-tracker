@@ -5,6 +5,7 @@ use std::borrow::Cow;
 
 use torrust_tracker_contrib_bencode::{ben_int, ben_map, BMutAccess};
 use torrust_tracker_primitives::core::ScrapeData;
+use torrust_tracker_primitives::NumberOfDownloads;
 
 /// The `Scrape` response for the HTTP tracker.
 ///
@@ -60,7 +61,7 @@ impl Bencoded {
                 Cow::from(info_hash.bytes().to_vec()),
                 ben_map! {
                     "complete" => ben_int!(i64::from(value.complete)),
-                    "downloaded" => ben_int!(i64::from(value.downloaded)),
+                    "downloaded" => ben_int!(bencode_download_count(value.downloaded)),
                     "incomplete" => ben_int!(i64::from(value.incomplete))
                 },
             );
@@ -71,6 +72,10 @@ impl Bencoded {
         })
         .encode()
     }
+}
+
+fn bencode_download_count(downloaded: NumberOfDownloads) -> i64 {
+    i64::try_from(downloaded).unwrap_or(i64::MAX)
 }
 
 impl From<ScrapeData> for Bencoded {
@@ -130,6 +135,26 @@ mod tests {
                 String::from_utf8(bytes).unwrap(),
                 String::from_utf8(expected_bytes.to_vec()).unwrap()
             );
+        }
+
+        #[test]
+        fn should_saturate_large_download_counts() {
+            let info_hash = InfoHash::from_bytes(&[0x69; 20]);
+            let mut scrape_data = ScrapeData::empty();
+            scrape_data.add_file(
+                &info_hash,
+                SwarmMetadata {
+                    complete: 1,
+                    downloaded: u64::MAX,
+                    incomplete: 3,
+                },
+            );
+
+            let response = Bencoded::from(scrape_data);
+            let bytes = response.body();
+            let body = String::from_utf8(bytes).unwrap();
+
+            assert!(body.contains("downloadedi9223372036854775807e"));
         }
     }
 }

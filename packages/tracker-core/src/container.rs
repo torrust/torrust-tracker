@@ -9,7 +9,7 @@ use crate::authentication::key::repository::in_memory::InMemoryKeyRepository;
 use crate::authentication::key::repository::persisted::DatabaseKeyRepository;
 use crate::authentication::service::AuthenticationService;
 use crate::databases::setup::initialize_database;
-use crate::databases::Database;
+use crate::databases::Persistence;
 use crate::scrape_handler::ScrapeHandler;
 use crate::statistics::persisted::downloads::DatabaseDownloadsMetricRepository;
 use crate::torrent::manager::TorrentsManager;
@@ -22,7 +22,7 @@ use crate::{statistics, whitelist};
 
 pub struct TrackerCoreContainer {
     pub core_config: Arc<Core>,
-    pub database: Arc<Box<dyn Database>>,
+    pub database: Persistence,
     pub announce_handler: Arc<AnnounceHandler>,
     pub scrape_handler: Arc<ScrapeHandler>,
     pub keys_handler: Arc<KeysHandler>,
@@ -45,8 +45,8 @@ impl TrackerCoreContainer {
         let database = initialize_database(core_config);
         let in_memory_whitelist = Arc::new(InMemoryWhitelist::default());
         let whitelist_authorization = Arc::new(WhitelistAuthorization::new(core_config, &in_memory_whitelist.clone()));
-        let whitelist_manager = initialize_whitelist_manager(database.clone(), in_memory_whitelist.clone());
-        let db_key_repository = Arc::new(DatabaseKeyRepository::new(&database));
+        let whitelist_manager = initialize_whitelist_manager(database.whitelist_store(), in_memory_whitelist.clone());
+        let db_key_repository = Arc::new(DatabaseKeyRepository::new(database.auth_key_store()));
         let in_memory_key_repository = Arc::new(InMemoryKeyRepository::default());
         let authentication_service = Arc::new(AuthenticationService::new(core_config, &in_memory_key_repository));
         let keys_handler = Arc::new(KeysHandler::new(
@@ -56,7 +56,7 @@ impl TrackerCoreContainer {
         let in_memory_torrent_repository = Arc::new(InMemoryTorrentRepository::new(
             swarm_coordination_registry_container.swarms.clone(),
         ));
-        let db_downloads_metric_repository = Arc::new(DatabaseDownloadsMetricRepository::new(&database));
+        let db_downloads_metric_repository = Arc::new(DatabaseDownloadsMetricRepository::new(database.torrent_metrics_store()));
 
         let torrents_manager = Arc::new(TorrentsManager::new(
             core_config,

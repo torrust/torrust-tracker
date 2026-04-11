@@ -42,9 +42,16 @@ if [ -n "$TORRUST_TRACKER_CONFIG_OVERRIDE_CORE__DATABASE__DRIVER" ]; then
         # Select default MySQL configuration
         default_config="/usr/share/torrust/default/config/tracker.container.mysql.toml"
 
+    elif cmp_lc "$TORRUST_TRACKER_CONFIG_OVERRIDE_CORE__DATABASE__DRIVER" "postgresql"; then
+
+        # (no database file needed for PostgreSQL)
+
+        # Select default PostgreSQL configuration
+        default_config="/usr/share/torrust/default/config/tracker.container.postgresql.toml"
+
     else 
         echo "Error: Unsupported Database Type: \"$TORRUST_TRACKER_CONFIG_OVERRIDE_CORE__DATABASE__DRIVER\"."
-        echo "Please Note: Supported Database Types: \"sqlite3\", \"mysql\"."
+        echo "Please Note: Supported Database Types: \"sqlite3\", \"mysql\", \"postgresql\"."
         exit 1
     fi
 else

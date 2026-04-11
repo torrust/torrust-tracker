@@ -10,6 +10,7 @@ use bittorrent_udp_tracker_core::services::scrape::ScrapeService;
 use bittorrent_udp_tracker_core::{self};
 use torrust_tracker_primitives::core::ScrapeData;
 use torrust_tracker_primitives::service_binding::ServiceBinding;
+use torrust_tracker_primitives::NumberOfDownloads as PersistentDownloadCount;
 use tracing::{instrument, Level};
 use zerocopy::network_endian::I32;
 
@@ -59,12 +60,11 @@ fn build_response(request: &ScrapeRequest, scrape_data: &ScrapeData) -> Response
     for file in &scrape_data.files {
         let swarm_metadata = file.1;
 
-        #[allow(clippy::cast_possible_truncation)]
         let scrape_entry = {
             TorrentScrapeStatistics {
-                seeders: NumberOfPeers(I32::new(i64::from(swarm_metadata.complete) as i32)),
-                completed: NumberOfDownloads(I32::new(i64::from(swarm_metadata.downloaded) as i32)),
-                leechers: NumberOfPeers(I32::new(i64::from(swarm_metadata.incomplete) as i32)),
+                seeders: NumberOfPeers(I32::new(udp_counter_from_u32(swarm_metadata.complete))),
+                completed: NumberOfDownloads(I32::new(udp_counter_from_downloads(swarm_metadata.downloaded))),
+                leechers: NumberOfPeers(I32::new(udp_counter_from_u32(swarm_metadata.incomplete))),
             }
         };
 
@@ -77,6 +77,15 @@ fn build_response(request: &ScrapeRequest, scrape_data: &ScrapeData) -> Response
     };
 
     Response::from(response)
+}
+
+fn udp_counter_from_u32(value: u32) -> i32 {
+    i32::try_from(value).unwrap_or(i32::MAX)
+}
+
+fn udp_counter_from_downloads(value: PersistentDownloadCount) -> i32 {
+    let max = i32::MAX as u64;
+    i32::try_from(value.min(max)).unwrap_or(i32::MAX)
 }
 
 #[cfg(test)]
@@ -456,6 +465,16 @@ mod tests {
                 .await
                 .unwrap();
             }
+        }
+
+        #[test]
+        fn should_saturate_large_download_counts_for_udp_protocol() {
+            assert_eq!(super::super::udp_counter_from_downloads(u64::MAX), i32::MAX);
+            assert_eq!(
+                super::super::udp_counter_from_downloads((i32::MAX as u64) + 1),
+                i32::MAX
+            );
+            assert_eq!(super::super::udp_counter_from_downloads(42), 42);
         }
     }
 }

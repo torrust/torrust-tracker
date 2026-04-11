@@ -1,4 +1,6 @@
 .env
+__pycache__/
+*.pyc
 *.code-workspace
 **/*.rs.bk
 /.coverage/

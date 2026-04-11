@@ -5,7 +5,7 @@ use bittorrent_primitives::info_hash::InfoHash;
 use torrust_tracker_primitives::{NumberOfDownloads, NumberOfDownloadsBTreeMap};
 
 use crate::databases::error::Error;
-use crate::databases::Database;
+use crate::databases::TorrentMetricsStore;
 
 /// It persists torrent metrics in a database.
 ///
@@ -22,10 +22,8 @@ use crate::databases::Database;
 pub struct DatabaseDownloadsMetricRepository {
     /// A shared reference to the database driver implementation.
     ///
-    /// The driver must implement the [`Database`] trait. This allows for
-    /// different underlying implementations (e.g., `SQLite3` or `MySQL`) to be
-    /// used interchangeably.
-    database: Arc<Box<dyn Database>>,
+    /// The store must implement the [`TorrentMetricsStore`] trait.
+    database: Arc<dyn TorrentMetricsStore>,
 }
 
 impl DatabaseDownloadsMetricRepository {
@@ -33,18 +31,15 @@ impl DatabaseDownloadsMetricRepository {
     ///
     /// # Arguments
     ///
-    /// * `database` - A shared reference to a boxed database driver
-    ///   implementing the [`Database`] trait.
+    /// * `database` - A shared reference to a torrent metrics store.
     ///
     /// # Returns
     ///
     /// A new `DatabasePersistentTorrentRepository` instance with a cloned
     /// reference to the provided database.
     #[must_use]
-    pub fn new(database: &Arc<Box<dyn Database>>) -> DatabaseDownloadsMetricRepository {
-        Self {
-            database: database.clone(),
-        }
+    pub fn new(database: Arc<dyn TorrentMetricsStore>) -> DatabaseDownloadsMetricRepository {
+        Self { database }
     }
 
     // Single Torrent Metrics
@@ -60,12 +55,12 @@ impl DatabaseDownloadsMetricRepository {
     /// # Errors
     ///
     /// Returns an [`Error`] if the database operation fails.
-    pub(crate) fn increase_downloads_for_torrent(&self, info_hash: &InfoHash) -> Result<(), Error> {
-        let torrent = self.load_torrent_downloads(info_hash)?;
+    pub(crate) async fn increase_downloads_for_torrent(&self, info_hash: &InfoHash) -> Result<(), Error> {
+        let torrent = self.load_torrent_downloads(info_hash).await?;
 
         match torrent {
-            Some(_number_of_downloads) => self.database.increase_downloads_for_torrent(info_hash),
-            None => self.save_torrent_downloads(info_hash, 1),
+            Some(_number_of_downloads) => self.database.increase_downloads_for_torrent(info_hash).await,
+            None => self.save_torrent_downloads(info_hash, 1).await,
         }
     }
 
@@ -77,8 +72,8 @@ impl DatabaseDownloadsMetricRepository {
     /// # Errors
     ///
     /// Returns an [`Error`] if the underlying database query fails.
-    pub(crate) fn load_all_torrents_downloads(&self) -> Result<NumberOfDownloadsBTreeMap, Error> {
-        self.database.load_all_torrents_downloads()
+    pub(crate) async fn load_all_torrents_downloads(&self) -> Result<NumberOfDownloadsBTreeMap, Error> {
+        self.database.load_all_torrents_downloads().await
     }
 
     /// Loads one persistent torrent metrics from the database.
@@ -89,8 +84,8 @@ impl DatabaseDownloadsMetricRepository {
     /// # Errors
     ///
     /// Returns an [`Error`] if the underlying database query fails.
-    pub(crate) fn load_torrent_downloads(&self, info_hash: &InfoHash) -> Result<Option<NumberOfDownloads>, Error> {
-        self.database.load_torrent_downloads(info_hash)
+    pub(crate) async fn load_torrent_downloads(&self, info_hash: &InfoHash) -> Result<Option<NumberOfDownloads>, Error> {
+        self.database.load_torrent_downloads(info_hash).await
     }
 
     /// Saves the persistent torrent metric into the database.
@@ -106,8 +101,12 @@ impl DatabaseDownloadsMetricRepository {
     /// # Errors
     ///
     /// Returns an [`Error`] if the database operation fails.
-    pub(crate) fn save_torrent_downloads(&self, info_hash: &InfoHash, downloaded: u32) -> Result<(), Error> {
-        self.database.save_torrent_downloads(info_hash, downloaded)
+    pub(crate) async fn save_torrent_downloads(
+        &self,
+        info_hash: &InfoHash,
+        downloaded: NumberOfDownloads,
+    ) -> Result<(), Error> {
+        self.database.save_torrent_downloads(info_hash, downloaded).await
     }
 
     // Aggregate Metrics
@@ -119,12 +118,12 @@ impl DatabaseDownloadsMetricRepository {
     /// # Errors
     ///
     /// Returns an [`Error`] if the database operation fails.
-    pub(crate) fn increase_global_downloads(&self) -> Result<(), Error> {
-        let torrent = self.database.load_global_downloads()?;
+    pub(crate) async fn increase_global_downloads(&self) -> Result<(), Error> {
+        let torrent = self.database.load_global_downloads().await?;
 
         match torrent {
-            Some(_number_of_downloads) => self.database.increase_global_downloads(),
-            None => self.database.save_global_downloads(1),
+            Some(_number_of_downloads) => self.database.increase_global_downloads().await,
+            None => self.database.save_global_downloads(1).await,
         }
     }
 
@@ -133,8 +132,8 @@ impl DatabaseDownloadsMetricRepository {
     /// # Errors
     ///
     /// Returns an [`Error`] if the underlying database query fails.
-    pub(crate) fn load_global_downloads(&self) -> Result<Option<NumberOfDownloads>, Error> {
-        self.database.load_global_downloads()
+    pub(crate) async fn load_global_downloads(&self) -> Result<Option<NumberOfDownloads>, Error> {
+        self.database.load_global_downloads().await
     }
 }
 
@@ -150,50 +149,50 @@ mod tests {
     fn initialize_db_persistent_torrent_repository() -> DatabaseDownloadsMetricRepository {
         let config = ephemeral_configuration();
         let database = initialize_database(&config);
-        DatabaseDownloadsMetricRepository::new(&database)
+        DatabaseDownloadsMetricRepository::new(database.torrent_metrics_store())
     }
 
-    #[test]
-    fn it_saves_the_numbers_of_downloads_for_a_torrent_into_the_database() {
+    #[tokio::test]
+    async fn it_saves_the_numbers_of_downloads_for_a_torrent_into_the_database() {
         let repository = initialize_db_persistent_torrent_repository();
 
         let infohash = sample_info_hash();
 
-        repository.save_torrent_downloads(&infohash, 1).unwrap();
+        repository.save_torrent_downloads(&infohash, 1).await.unwrap();
 
-        let torrents = repository.load_all_torrents_downloads().unwrap();
+        let torrents = repository.load_all_torrents_downloads().await.unwrap();
 
-        assert_eq!(torrents.get(&infohash), Some(1).as_ref());
+        assert_eq!(torrents.get(&infohash), Some(1_u64).as_ref());
     }
 
-    #[test]
-    fn it_increases_the_numbers_of_downloads_for_a_torrent_into_the_database() {
+    #[tokio::test]
+    async fn it_increases_the_numbers_of_downloads_for_a_torrent_into_the_database() {
         let repository = initialize_db_persistent_torrent_repository();
 
         let infohash = sample_info_hash();
 
-        repository.increase_downloads_for_torrent(&infohash).unwrap();
+        repository.increase_downloads_for_torrent(&infohash).await.unwrap();
 
-        let torrents = repository.load_all_torrents_downloads().unwrap();
+        let torrents = repository.load_all_torrents_downloads().await.unwrap();
 
-        assert_eq!(torrents.get(&infohash), Some(1).as_ref());
+        assert_eq!(torrents.get(&infohash), Some(1_u64).as_ref());
     }
 
-    #[test]
-    fn it_loads_the_numbers_of_downloads_for_all_torrents_from_the_database() {
+    #[tokio::test]
+    async fn it_loads_the_numbers_of_downloads_for_all_torrents_from_the_database() {
         let repository = initialize_db_persistent_torrent_repository();
 
         let infohash_one = sample_info_hash_one();
         let infohash_two = sample_info_hash_two();
 
-        repository.save_torrent_downloads(&infohash_one, 1).unwrap();
-        repository.save_torrent_downloads(&infohash_two, 2).unwrap();
+        repository.save_torrent_downloads(&infohash_one, 1).await.unwrap();
+        repository.save_torrent_downloads(&infohash_two, 2).await.unwrap();
 
-        let torrents = repository.load_all_torrents_downloads().unwrap();
+        let torrents = repository.load_all_torrents_downloads().await.unwrap();
 
         let mut expected_torrents = NumberOfDownloadsBTreeMap::new();
-        expected_torrents.insert(infohash_one, 1);
-        expected_torrents.insert(infohash_two, 2);
+        expected_torrents.insert(infohash_one, 1_u64);
+        expected_torrents.insert(infohash_two, 2_u64);
 
         assert_eq!(torrents, expected_torrents);
     }

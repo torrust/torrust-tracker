@@ -9,7 +9,7 @@ use bittorrent_primitives::info_hash::InfoHash;
 use torrust_tracker_configuration::TrackerPolicy;
 use torrust_tracker_primitives::peer::{self, Peer, PeerAnnouncement};
 use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
-use torrust_tracker_primitives::DurationSinceUnixEpoch;
+use torrust_tracker_primitives::{DurationSinceUnixEpoch, NumberOfDownloads};
 
 use crate::event::sender::Sender;
 use crate::event::Event;
@@ -24,7 +24,7 @@ pub struct Coordinator {
 
 impl Coordinator {
     #[must_use]
-    pub fn new(info_hash: &InfoHash, downloaded: u32, event_sender: Sender) -> Self {
+    pub fn new(info_hash: &InfoHash, downloaded: NumberOfDownloads, event_sender: Sender) -> Self {
         Self {
             info_hash: *info_hash,
             peers: BTreeMap::new(),

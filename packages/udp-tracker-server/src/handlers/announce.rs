@@ -896,7 +896,8 @@ pub(crate) mod tests {
                     let whitelist_authorization =
                         Arc::new(WhitelistAuthorization::new(&config.core, &in_memory_whitelist.clone()));
                     let in_memory_torrent_repository = Arc::new(InMemoryTorrentRepository::default());
-                    let db_downloads_metric_repository = Arc::new(DatabaseDownloadsMetricRepository::new(&database));
+                    let db_downloads_metric_repository =
+                        Arc::new(DatabaseDownloadsMetricRepository::new(database.torrent_metrics_store()));
 
                     let request = AnnounceRequestBuilder::default()
                         .with_connection_id(make(gen_remote_fingerprint(&client_socket_addr), sample_issue_time()).unwrap())

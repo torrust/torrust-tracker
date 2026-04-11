@@ -1,12 +1,12 @@
-//! The `SQLite3` database driver.
+//! The `PostgreSQL` database driver.
 use std::str::FromStr;
 use std::sync::atomic::{AtomicBool, Ordering};
 
 use async_trait::async_trait;
 use bittorrent_primitives::info_hash::InfoHash;
 use sqlx::migrate::Migrator;
-use sqlx::sqlite::{SqliteConnectOptions, SqlitePoolOptions};
-use sqlx::{ConnectOptions, Row, SqlitePool};
+use sqlx::postgres::{PgConnectOptions, PgPoolOptions};
+use sqlx::{ConnectOptions, PgPool, Row};
 use tokio::sync::Mutex;
 use torrust_tracker_primitives::{DurationSinceUnixEpoch, NumberOfDownloads, NumberOfDownloadsBTreeMap};
 
@@ -15,29 +15,28 @@ use crate::authentication::{self, Key};
 use crate::databases::error::Error;
 use crate::databases::{AuthKeyStore, SchemaMigrator, TorrentMetricsStore, WhitelistStore};
 
-const DRIVER: Driver = Driver::Sqlite3;
-static MIGRATOR: Migrator = sqlx::migrate!("migrations/sqlite");
+const DRIVER: Driver = Driver::PostgreSQL;
+static MIGRATOR: Migrator = sqlx::migrate!("migrations/postgresql");
 
-/// `SQLite` driver implementation backed by `sqlx`.
-pub(crate) struct Sqlite {
-    pool: SqlitePool,
+/// `PostgreSQL` driver implementation backed by `sqlx`.
+pub(crate) struct Postgres {
+    pool: PgPool,
     schema_ready: AtomicBool,
     schema_lock: Mutex<()>,
 }
 
-impl Sqlite {
-    /// Instantiates a new `SQLite3` database driver.
+impl Postgres {
+    /// Instantiates a new `PostgreSQL` database driver.
     ///
     /// # Errors
     ///
     /// Returns an [`Error`] if the database URL cannot be parsed.
     pub fn new(db_path: &str) -> Result<Self, Error> {
-        let options = SqliteConnectOptions::from_str(db_path)
+        let options = PgConnectOptions::from_str(db_path)
             .map_err(|err| Error::connection_error(DRIVER, err))?
-            .create_if_missing(true)
             .disable_statement_logging();
 
-        let pool = SqlitePoolOptions::new().connect_lazy_with(options);
+        let pool = PgPoolOptions::new().connect_lazy_with(options);
 
         Ok(Self {
             pool,
@@ -100,7 +99,7 @@ impl Sqlite {
 }
 
 #[async_trait]
-impl SchemaMigrator for Sqlite {
+impl SchemaMigrator for Postgres {
     async fn create_database_tables(&self) -> Result<(), Error> {
         self.ensure_schema().await
     }
@@ -134,7 +133,7 @@ impl SchemaMigrator for Sqlite {
 }
 
 #[async_trait]
-impl TorrentMetricsStore for Sqlite {
+impl TorrentMetricsStore for Postgres {
     async fn load_all_torrents_downloads(&self) -> Result<NumberOfDownloadsBTreeMap, Error> {
         self.ensure_schema().await?;
 
@@ -158,7 +157,7 @@ impl TorrentMetricsStore for Sqlite {
     async fn load_torrent_downloads(&self, info_hash: &InfoHash) -> Result<Option<NumberOfDownloads>, Error> {
         self.ensure_schema().await?;
 
-        let row = sqlx::query("SELECT completed FROM torrents WHERE info_hash = ?")
+        let row = sqlx::query("SELECT completed FROM torrents WHERE info_hash = $1")
             .bind(info_hash.to_hex_string())
             .fetch_optional(&self.pool)
             .await
@@ -177,7 +176,7 @@ impl TorrentMetricsStore for Sqlite {
         let encoded_downloaded = self.encode_counter(downloaded)?;
 
         let insert = sqlx::query(
-            "INSERT INTO torrents (info_hash, completed) VALUES (?, ?) ON CONFLICT(info_hash) DO UPDATE SET completed = excluded.completed",
+            "INSERT INTO torrents (info_hash, completed) VALUES ($1, $2) ON CONFLICT (info_hash) DO UPDATE SET completed = EXCLUDED.completed",
         )
         .bind(info_hash.to_hex_string())
         .bind(encoded_downloaded)
@@ -198,7 +197,7 @@ impl TorrentMetricsStore for Sqlite {
     async fn increase_downloads_for_torrent(&self, info_hash: &InfoHash) -> Result<(), Error> {
         self.ensure_schema().await?;
 
-        sqlx::query("UPDATE torrents SET completed = completed + 1 WHERE info_hash = ?")
+        sqlx::query("UPDATE torrents SET completed = completed + 1 WHERE info_hash = $1")
             .bind(info_hash.to_hex_string())
             .execute(&self.pool)
             .await
@@ -210,7 +209,7 @@ impl TorrentMetricsStore for Sqlite {
     async fn load_global_downloads(&self) -> Result<Option<NumberOfDownloads>, Error> {
         self.ensure_schema().await?;
 
-        let row = sqlx::query("SELECT value FROM torrent_aggregate_metrics WHERE metric_name = ?")
+        let row = sqlx::query("SELECT value FROM torrent_aggregate_metrics WHERE metric_name = $1")
             .bind(TORRENTS_DOWNLOADS_TOTAL)
             .fetch_optional(&self.pool)
             .await
@@ -229,7 +228,7 @@ impl TorrentMetricsStore for Sqlite {
         let encoded_downloaded = self.encode_counter(downloaded)?;
 
         let insert = sqlx::query(
-            "INSERT INTO torrent_aggregate_metrics (metric_name, value) VALUES (?, ?) ON CONFLICT(metric_name) DO UPDATE SET value = excluded.value",
+            "INSERT INTO torrent_aggregate_metrics (metric_name, value) VALUES ($1, $2) ON CONFLICT (metric_name) DO UPDATE SET value = EXCLUDED.value",
         )
         .bind(TORRENTS_DOWNLOADS_TOTAL)
         .bind(encoded_downloaded)
@@ -250,7 +249,7 @@ impl TorrentMetricsStore for Sqlite {
     async fn increase_global_downloads(&self) -> Result<(), Error> {
         self.ensure_schema().await?;
 
-        sqlx::query("UPDATE torrent_aggregate_metrics SET value = value + 1 WHERE metric_name = ?")
+        sqlx::query("UPDATE torrent_aggregate_metrics SET value = value + 1 WHERE metric_name = $1")
             .bind(TORRENTS_DOWNLOADS_TOTAL)
             .execute(&self.pool)
             .await
@@ -261,7 +260,7 @@ impl TorrentMetricsStore for Sqlite {
 }
 
 #[async_trait]
-impl WhitelistStore for Sqlite {
+impl WhitelistStore for Postgres {
     async fn load_whitelist(&self) -> Result<Vec<InfoHash>, Error> {
         self.ensure_schema().await?;
 
@@ -281,7 +280,7 @@ impl WhitelistStore for Sqlite {
     async fn get_info_hash_from_whitelist(&self, info_hash: InfoHash) -> Result<Option<InfoHash>, Error> {
         self.ensure_schema().await?;
 
-        let row = sqlx::query("SELECT info_hash FROM whitelist WHERE info_hash = ?")
+        let row = sqlx::query("SELECT info_hash FROM whitelist WHERE info_hash = $1")
             .bind(info_hash.to_hex_string())
             .fetch_optional(&self.pool)
             .await
@@ -297,7 +296,7 @@ impl WhitelistStore for Sqlite {
     async fn add_info_hash_to_whitelist(&self, info_hash: InfoHash) -> Result<usize, Error> {
         self.ensure_schema().await?;
 
-        let insert = sqlx::query("INSERT INTO whitelist (info_hash) VALUES (?)")
+        let insert = sqlx::query("INSERT INTO whitelist (info_hash) VALUES ($1)")
             .bind(info_hash.to_hex_string())
             .execute(&self.pool)
             .await
@@ -316,7 +315,7 @@ impl WhitelistStore for Sqlite {
     async fn remove_info_hash_from_whitelist(&self, info_hash: InfoHash) -> Result<usize, Error> {
         self.ensure_schema().await?;
 
-        let deleted = sqlx::query("DELETE FROM whitelist WHERE info_hash = ?")
+        let deleted = sqlx::query("DELETE FROM whitelist WHERE info_hash = $1")
             .bind(info_hash.to_hex_string())
             .execute(&self.pool)
             .await
@@ -337,7 +336,7 @@ impl WhitelistStore for Sqlite {
 }
 
 #[async_trait]
-impl AuthKeyStore for Sqlite {
+impl AuthKeyStore for Postgres {
     async fn load_keys(&self) -> Result<Vec<authentication::PeerKey>, Error> {
         self.ensure_schema().await?;
 
@@ -362,7 +361,7 @@ impl AuthKeyStore for Sqlite {
     async fn get_key_from_keys(&self, key: &Key) -> Result<Option<authentication::PeerKey>, Error> {
         self.ensure_schema().await?;
 
-        let row = sqlx::query("SELECT key, valid_until FROM keys WHERE key = ?")
+        let row = sqlx::query("SELECT key, valid_until FROM keys WHERE key = $1")
             .bind(key.to_string())
             .fetch_optional(&self.pool)
             .await
@@ -390,7 +389,7 @@ impl AuthKeyStore for Sqlite {
             .transpose()
             .map_err(|err| Error::invalid_query(DRIVER, err))?;
 
-        let insert = sqlx::query("INSERT INTO keys (key, valid_until) VALUES (?, ?)")
+        let insert = sqlx::query("INSERT INTO keys (key, valid_until) VALUES ($1, $2)")
             .bind(auth_key.key.to_string())
             .bind(valid_until)
             .execute(&self.pool)
@@ -410,7 +409,7 @@ impl AuthKeyStore for Sqlite {
     async fn remove_key_from_keys(&self, key: &Key) -> Result<usize, Error> {
         self.ensure_schema().await?;
 
-        let deleted = sqlx::query("DELETE FROM keys WHERE key = ?")
+        let deleted = sqlx::query("DELETE FROM keys WHERE key = $1")
             .bind(key.to_string())
             .execute(&self.pool)
             .await
@@ -432,26 +431,132 @@ impl AuthKeyStore for Sqlite {
 
 #[cfg(test)]
 mod tests {
+    use testcontainers::core::IntoContainerPort;
+    use testcontainers::runners::AsyncRunner;
+    use testcontainers::{ContainerAsync, GenericImage, ImageExt};
     use torrust_tracker_configuration::Core;
-    use torrust_tracker_test_helpers::configuration::ephemeral_sqlite_database;
 
     use crate::databases::driver::build;
     use crate::databases::driver::tests::run_tests;
     use crate::databases::driver::Driver;
 
-    fn ephemeral_configuration() -> Core {
+    #[derive(Debug, Default)]
+    struct StoppedPostgresContainer {}
+
+    impl StoppedPostgresContainer {
+        async fn run(
+            self,
+            config: &PostgresConfiguration,
+        ) -> Result<RunningPostgresContainer, Box<dyn std::error::Error + 'static>> {
+            let image_name = std::env::var("TORRUST_TRACKER_CORE_POSTGRES_DRIVER_IMAGE").unwrap_or_else(|_| "postgres".to_string());
+            let image_tag = std::env::var("TORRUST_TRACKER_CORE_POSTGRES_DRIVER_IMAGE_TAG").unwrap_or_else(|_| "16".to_string());
+
+            let container = GenericImage::new(image_name, image_tag)
+                .with_exposed_port(config.internal_port.tcp())
+                .with_env_var("POSTGRES_PASSWORD", config.db_password.clone())
+                .with_env_var("POSTGRES_USER", config.db_user.clone())
+                .with_env_var("POSTGRES_DB", config.database.clone())
+                .start()
+                .await?;
+
+            Ok(RunningPostgresContainer::new(container, config.internal_port))
+        }
+    }
+
+    struct RunningPostgresContainer {
+        container: ContainerAsync<GenericImage>,
+        internal_port: u16,
+    }
+
+    impl RunningPostgresContainer {
+        fn new(container: ContainerAsync<GenericImage>, internal_port: u16) -> Self {
+            Self {
+                container,
+                internal_port,
+            }
+        }
+
+        async fn stop(self) {
+            self.container.stop().await.unwrap();
+        }
+
+        async fn get_host(&self) -> url::Host {
+            self.container.get_host().await.unwrap()
+        }
+
+        async fn get_host_port_ipv4(&self) -> u16 {
+            self.container.get_host_port_ipv4(self.internal_port).await.unwrap()
+        }
+    }
+
+    impl Default for PostgresConfiguration {
+        fn default() -> Self {
+            Self {
+                internal_port: 5432,
+                database: "torrust_tracker_test".to_string(),
+                db_user: "postgres".to_string(),
+                db_password: "test".to_string(),
+            }
+        }
+    }
+
+    struct PostgresConfiguration {
+        pub internal_port: u16,
+        pub database: String,
+        pub db_user: String,
+        pub db_password: String,
+    }
+
+    fn core_configuration(host: &url::Host, port: u16, pg_configuration: &PostgresConfiguration) -> Core {
         let mut config = Core::default();
-        let temp_file = ephemeral_sqlite_database();
-        temp_file.to_str().unwrap().clone_into(&mut config.database.path);
+
+        config.database.driver = torrust_tracker_configuration::Driver::PostgreSQL;
+        config.database.path = format!(
+            "postgresql://{}:{}@{}:{}/{}",
+            pg_configuration.db_user,
+            pg_configuration.db_password,
+            host,
+            port,
+            pg_configuration.database
+        );
+
+        config
+    }
+
+    fn local_configuration(url: &str) -> Core {
+        let mut config = Core::default();
+        config.database.driver = torrust_tracker_configuration::Driver::PostgreSQL;
+        config.database.path = url.to_string();
         config
     }
 
     #[tokio::test]
-    async fn run_sqlite_driver_tests() -> Result<(), Box<dyn std::error::Error + 'static>> {
-        let config = ephemeral_configuration();
-        let driver = build(&Driver::Sqlite3, &config.database.path)?;
+    async fn run_postgres_driver_tests() -> Result<(), Box<dyn std::error::Error + 'static>> {
+        if std::env::var("TORRUST_TRACKER_CORE_RUN_POSTGRES_DRIVER_TEST").is_err() {
+            println!("Skipping the PostgreSQL driver tests.");
+            return Ok(());
+        }
+
+        if let Ok(database_url) = std::env::var("TORRUST_TRACKER_CORE_POSTGRES_DRIVER_URL") {
+            let config = local_configuration(&database_url);
+            let driver = build(&Driver::PostgreSQL, &config.database.path)?;
+            run_tests(&driver).await;
+            return Ok(());
+        }
+
+        let pg_configuration = PostgresConfiguration::default();
+        let stopped_pg_container = StoppedPostgresContainer::default();
+        let pg_container = stopped_pg_container.run(&pg_configuration).await.unwrap();
+
+        let host = pg_container.get_host().await;
+        let port = pg_container.get_host_port_ipv4().await;
+
+        let config = core_configuration(&host, port, &pg_configuration);
+        let driver = build(&Driver::PostgreSQL, &config.database.path)?;
 
         run_tests(&driver).await;
+
+        pg_container.stop().await;
 
         Ok(())
     }

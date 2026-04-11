@@ -84,7 +84,7 @@ where
         for entry in self.get_torrents().await.values() {
             let stats = entry.get_swarm_metadata();
             metrics.total_complete += u64::from(stats.complete);
-            metrics.total_downloaded += u64::from(stats.downloaded);
+            metrics.total_downloaded += stats.downloaded;
             metrics.total_incomplete += u64::from(stats.incomplete);
             metrics.total_torrents += 1;
         }

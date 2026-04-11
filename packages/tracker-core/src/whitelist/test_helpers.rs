@@ -21,7 +21,7 @@ pub(crate) mod tests {
         let database = initialize_database(&config.core);
         let in_memory_whitelist = Arc::new(InMemoryWhitelist::default());
         let whitelist_authorization = Arc::new(WhitelistAuthorization::new(&config.core, &in_memory_whitelist.clone()));
-        let whitelist_manager = initialize_whitelist_manager(database.clone(), in_memory_whitelist.clone());
+        let whitelist_manager = initialize_whitelist_manager(database.whitelist_store(), in_memory_whitelist.clone());
 
         (whitelist_authorization, whitelist_manager)
     }

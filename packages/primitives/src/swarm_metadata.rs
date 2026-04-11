@@ -2,6 +2,8 @@ use std::ops::AddAssign;
 
 use derive_more::Constructor;
 
+use crate::NumberOfDownloads;
+
 /// Swarm statistics for one torrent.
 ///
 /// Swarm metadata dictionary in the scrape response.
@@ -11,7 +13,7 @@ use derive_more::Constructor;
 pub struct SwarmMetadata {
     /// (i.e `completed`): The number of peers that have ever completed
     /// downloading a given torrent.
-    pub downloaded: u32,
+    pub downloaded: NumberOfDownloads,
 
     /// (i.e `seeders`): The number of active peers that have completed
     /// downloading (seeders) a given torrent.
@@ -29,7 +31,7 @@ impl SwarmMetadata {
     }
 
     #[must_use]
-    pub fn downloads(&self) -> u32 {
+    pub fn downloads(&self) -> NumberOfDownloads {
         self.downloaded
     }
 

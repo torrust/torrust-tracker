@@ -4,7 +4,7 @@ use std::sync::Arc;
 
 use torrust_tracker_configuration::TrackerPolicy;
 use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
-use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch};
+use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, NumberOfDownloads};
 
 use self::peer_list::PeerList;
 
@@ -88,5 +88,5 @@ pub struct Torrent {
     /// A network of peers that are all trying to download the torrent associated to this entry
     pub(crate) swarm: PeerList,
     /// The number of peers that have ever completed downloading the torrent associated to this entry
-    pub(crate) downloaded: u32,
+    pub(crate) downloaded: NumberOfDownloads,
 }

@@ -15,16 +15,15 @@ version.workspace = true
 
 [dependencies]
 aquatic_udp_protocol = "0"
+async-trait = "0"
 bittorrent-primitives = "0.1.0"
 chrono = { version = "0", default-features = false, features = [ "clock" ] }
 derive_more = { version = "2", features = [ "as_ref", "constructor", "from" ] }
 mockall = "0"
-r2d2 = "0"
-r2d2_mysql = "25"
-r2d2_sqlite = { version = "0", features = [ "bundled" ] }
 rand = "0"
 serde = { version = "1", features = [ "derive" ] }
 serde_json = { version = "1", features = [ "preserve_order" ] }
+sqlx = { version = "0.8", features = [ "runtime-tokio-rustls", "sqlite", "mysql", "postgres", "migrate" ] }
 thiserror = "2"
 tokio = { version = "1", features = [ "macros", "net", "rt-multi-thread", "signal", "sync" ] }
 tokio-util = "0.7.15"

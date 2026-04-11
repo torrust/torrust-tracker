@@ -1,0 +1,9 @@
+ALTER TABLE torrents
+    ALTER COLUMN completed TYPE BIGINT,
+    ALTER COLUMN completed SET DEFAULT 0,
+    ALTER COLUMN completed SET NOT NULL;
+
+ALTER TABLE torrent_aggregate_metrics
+    ALTER COLUMN value TYPE BIGINT,
+    ALTER COLUMN value SET DEFAULT 0,
+    ALTER COLUMN value SET NOT NULL;

@@ -65,7 +65,7 @@ mod tests {
             config: &Configuration,
         ) -> (Arc<KeysHandler>, Arc<AuthenticationService>) {
             let database = initialize_database(&config.core);
-            let db_key_repository = Arc::new(DatabaseKeyRepository::new(&database));
+            let db_key_repository = Arc::new(DatabaseKeyRepository::new(database.auth_key_store()));
             let in_memory_key_repository = Arc::new(InMemoryKeyRepository::default());
             let authentication_service = Arc::new(service::AuthenticationService::new(&config.core, &in_memory_key_repository));
             let keys_handler = Arc::new(KeysHandler::new(
