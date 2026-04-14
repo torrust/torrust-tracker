@@ -84,8 +84,7 @@ fn udp_counter_from_u32(value: u32) -> i32 {
 }
 
 fn udp_counter_from_downloads(value: PersistentDownloadCount) -> i32 {
-    let max = i32::MAX as u64;
-    i32::try_from(value.min(max)).unwrap_or(i32::MAX)
+    value.min(i32::MAX as u64) as i32
 }
 
 #[cfg(test)]

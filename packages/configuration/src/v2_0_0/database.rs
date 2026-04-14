@@ -48,13 +48,8 @@ impl Database {
             Driver::Sqlite3 => {
                 // Nothing to mask
             }
-            Driver::MySQL => {
-                let mut url = Url::parse(&self.path).expect("path for MySQL driver should be a valid URL");
-                url.set_password(Some("***")).expect("url password should be changed");
-                self.path = url.to_string();
-            }
-            Driver::PostgreSQL => {
-                let mut url = Url::parse(&self.path).expect("path for PostgreSQL driver should be a valid URL");
+            Driver::MySQL | Driver::PostgreSQL => {
+                let mut url = Url::parse(&self.path).expect("path for SQL URL-based drivers should be a valid URL");
                 url.set_password(Some("***")).expect("url password should be changed");
                 self.path = url.to_string();
             }

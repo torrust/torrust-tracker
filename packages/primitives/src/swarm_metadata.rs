@@ -13,14 +13,23 @@ use crate::NumberOfDownloads;
 pub struct SwarmMetadata {
     /// (i.e `completed`): The number of peers that have ever completed
     /// downloading a given torrent.
+    ///
+    /// This uses `u64` because it is persisted as a cumulative counter and can
+    /// grow independently from the active peer counts below.
     pub downloaded: NumberOfDownloads,
 
     /// (i.e `seeders`): The number of active peers that have completed
     /// downloading (seeders) a given torrent.
+    ///
+    /// Active peer counts stay bounded by the swarm population, so `u32`
+    /// remains sufficient here.
     pub complete: u32,
 
     /// (i.e `leechers`): The number of active peers that have not completed
     /// downloading (leechers) a given torrent.
+    ///
+    /// Active peer counts stay bounded by the swarm population, so `u32`
+    /// remains sufficient here.
     pub incomplete: u32,
 }
 

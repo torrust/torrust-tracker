@@ -12,6 +12,8 @@ private = false
 
 [core.database]
 driver = "postgresql"
+# Example credentials for local development and container smoke tests only.
+# Do not reuse them in production deployments.
 path = "postgresql://postgres:postgres@postgres:5432/torrust_tracker"
 
 # Uncomment to enable services

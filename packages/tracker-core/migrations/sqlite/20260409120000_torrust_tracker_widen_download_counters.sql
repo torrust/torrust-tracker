@@ -1,0 +1,3 @@
+-- SQLite stores INTEGER values as signed 64-bit integers already.
+-- This migration is intentionally a no-op so the migration history stays
+-- aligned with the MySQL and PostgreSQL backends.

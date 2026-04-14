@@ -21,9 +21,11 @@ import urllib.request
 from pathlib import Path
 
 
-PLAYGROUND_DIR = Path("/Users/crab/Documents/Playground")
-DEFAULT_BEFORE_REPO = PLAYGROUND_DIR / "torrust-tracker-before-bench"
-DEFAULT_AFTER_REPO = PLAYGROUND_DIR / "torrust-tracker-work"
+ROOT_DIR = Path(__file__).resolve().parents[3]
+DEFAULT_AFTER_REPO = Path(os.environ.get("TORRUST_TRACKER_AFTER_REPO", str(ROOT_DIR)))
+DEFAULT_BEFORE_REPO = Path(
+    os.environ.get("TORRUST_TRACKER_BEFORE_REPO", str(ROOT_DIR.parent / "torrust-tracker-before-bench"))
+)
 API_TOKEN = "CodexBenchmarkToken"
 
 

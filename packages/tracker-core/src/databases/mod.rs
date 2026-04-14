@@ -126,6 +126,9 @@ pub trait TorrentMetricsStore: Sync + Send {
 
     /// Increases the download counter for a torrent.
     ///
+    /// Implementations may treat a missing row as a no-op. The repository
+    /// layer is responsible for inserting the counter when it does not exist.
+    ///
     /// # Errors
     ///
     /// Returns an [`Error`] if the update fails.
