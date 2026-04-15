@@ -5,7 +5,7 @@
 //!
 //! It also provides the logic for the cipher for encryption and decryption.
 
-use cipher::{BlockDecrypt, BlockEncrypt};
+use cipher::{BlockCipherDecrypt, BlockCipherEncrypt};
 
 use self::detail_cipher::CURRENT_CIPHER;
 use self::detail_seed::CURRENT_SEED;
@@ -15,7 +15,7 @@ use crate::crypto::ephemeral_instance_keys::{CipherBlowfish, Seed, RANDOM_CIPHER
 /// This trait is for structures that can keep and provide a seed.
 pub trait Keeper {
     type Seed: Sized + Default + AsMut<[u8]>;
-    type Cipher: BlockEncrypt + BlockDecrypt;
+    type Cipher: BlockCipherEncrypt + BlockCipherDecrypt;
 
     /// It returns a reference to the seed that is keeping.
     fn get_seed() -> &'static Self::Seed;
@@ -137,14 +137,14 @@ mod detail_cipher {
 
     #[cfg(test)]
     mod tests {
-        use cipher::BlockEncrypt;
+        use cipher::BlockCipherEncrypt;
 
         use crate::crypto::ephemeral_instance_keys::{CipherArrayBlowfish, ZEROED_TEST_CIPHER_BLOWFISH};
         use crate::crypto::keys::detail_cipher::CURRENT_CIPHER;
 
         #[test]
         fn it_should_default_to_zeroed_seed_when_testing() {
-            let mut data: cipher::generic_array::GenericArray<u8, _> = CipherArrayBlowfish::from([0u8; 8]);
+            let mut data = CipherArrayBlowfish::from([0u8; 8]);
             let mut data_2 = CipherArrayBlowfish::from([0u8; 8]);
 
             CURRENT_CIPHER.encrypt_block(&mut data);

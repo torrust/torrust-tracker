@@ -20,10 +20,9 @@ bittorrent-tracker-core = { version = "3.0.0-develop", path = "../tracker-core" 
 bittorrent-udp-tracker-protocol = { version = "3.0.0-develop", path = "../udp-protocol" }
 bloom = "0.3.2"
 blowfish = "0"
-cipher = "0.4"
+cipher = "0.5"
 criterion = { version = "0.5.1", features = [ "async_tokio" ] }
 futures = "0"
-generic-array = "0"
 lazy_static = "1"
 rand = "0"
 serde = "1.0.219"
