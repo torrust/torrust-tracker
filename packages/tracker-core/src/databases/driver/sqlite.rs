@@ -110,6 +110,8 @@ impl SchemaMigrator for Sqlite {
     }
 
     async fn drop_database_tables(&self) -> Result<(), Error> {
+        // Tests intentionally use an explicit drop/create cycle to simulate failures.
+        // Callers that need a working schema after this must invoke `create_database_tables`.
         sqlx::query("DROP TABLE IF EXISTS whitelist")
             .execute(&self.pool)
             .await

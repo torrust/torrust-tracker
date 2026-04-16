@@ -191,6 +191,7 @@ impl TestEnv {
     async fn wait_for_persisted_downloads(&self, info_hash: &InfoHash, expected: u64) {
         const MAX_ATTEMPTS: usize = 50;
         const RETRY_DELAY: Duration = Duration::from_millis(10);
+        let mut last_observed = None;
 
         for _attempt in 0..MAX_ATTEMPTS {
             let downloads = self
@@ -205,9 +206,10 @@ impl TestEnv {
                 return;
             }
 
+            last_observed = downloads;
             tokio::time::sleep(RETRY_DELAY).await;
         }
 
-        panic!("timed out waiting for persisted downloads for torrent");
+        panic!("timed out waiting for persisted downloads for torrent: expected {expected}, last saw {last_observed:?}");
     }
 }
