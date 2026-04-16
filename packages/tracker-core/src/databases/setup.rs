@@ -29,8 +29,8 @@ mod tests {
     use super::initialize_database;
     use crate::test_helpers::tests::ephemeral_configuration;
 
-    #[test]
-    fn it_should_initialize_the_sqlite_database() {
+    #[tokio::test]
+    async fn it_should_initialize_the_sqlite_database() {
         let config = ephemeral_configuration();
         let _database = initialize_database(&config);
     }

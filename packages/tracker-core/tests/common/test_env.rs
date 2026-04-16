@@ -1,5 +1,6 @@
 use std::net::IpAddr;
 use std::sync::Arc;
+use std::time::Duration;
 
 use aquatic_udp_protocol::AnnounceEvent;
 use bittorrent_primitives::info_hash::InfoHash;
@@ -149,6 +150,15 @@ impl TestEnv {
         let announce_data = self.announce_peer_completed(peer, remote_client_ip, info_hash).await;
 
         assert_eq!(announce_data.stats.downloads(), 1);
+
+        if self
+            .tracker_core_container
+            .core_config
+            .tracker_policy
+            .persistent_torrent_completed_stat
+        {
+            self.wait_for_persisted_downloads(info_hash, 1).await;
+        }
     }
 
     pub async fn get_swarm_metadata(&self, info_hash: &InfoHash) -> Option<SwarmMetadata> {
@@ -176,5 +186,28 @@ impl TestEnv {
             .get_counter_value(&MetricName::new(metric_name), &LabelSet::default())
             .unwrap()
             .value()
+    }
+
+    async fn wait_for_persisted_downloads(&self, info_hash: &InfoHash, expected: u64) {
+        const MAX_ATTEMPTS: usize = 50;
+        const RETRY_DELAY: Duration = Duration::from_millis(10);
+
+        for _attempt in 0..MAX_ATTEMPTS {
+            let downloads = self
+                .tracker_core_container
+                .database
+                .torrent_metrics_store()
+                .load_torrent_downloads(info_hash)
+                .await
+                .unwrap();
+
+            if downloads == Some(expected) {
+                return;
+            }
+
+            tokio::time::sleep(RETRY_DELAY).await;
+        }
+
+        panic!("timed out waiting for persisted downloads for torrent");
     }
 }
