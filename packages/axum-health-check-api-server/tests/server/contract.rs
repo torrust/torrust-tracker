@@ -326,7 +326,14 @@ mod udp {
             let details = report.details.first().expect("it should have some details");
 
             assert_eq!(details.binding, binding);
-            assert_eq!(details.result, Err("Timed Out".to_string()));
+            assert!(
+                details
+                    .result
+                    .as_ref()
+                    .is_err_and(|error| error.contains("Timed Out") || error.contains("Connection refused")),
+                "unexpected udp health-check error: {:?}",
+                details.result
+            );
             assert_eq!(details.info, format!("checking the udp tracker health check at: {binding}"));
 
             env.stop().await.expect("it should stop the service");

@@ -56,6 +56,10 @@ impl Postgres {
             return Ok(());
         }
 
+        self.run_migrations().await
+    }
+
+    async fn run_migrations(&self) -> Result<(), Error> {
         MIGRATOR
             .run(&self.pool)
             .await
@@ -101,7 +105,7 @@ impl Postgres {
 #[async_trait]
 impl SchemaMigrator for Postgres {
     async fn create_database_tables(&self) -> Result<(), Error> {
-        self.ensure_schema().await
+        self.run_migrations().await
     }
 
     async fn drop_database_tables(&self) -> Result<(), Error> {
@@ -125,8 +129,6 @@ impl SchemaMigrator for Postgres {
             .execute(&self.pool)
             .await
             .map_err(|err| (err, DRIVER))?;
-
-        self.schema_ready.store(false, Ordering::Release);
 
         Ok(())
     }

@@ -13,5 +13,6 @@ use bittorrent_tracker_core::databases::Persistence;
 /// - Inject a database mock in the future.
 /// - Inject directly the database reference passed to the Tracker type.
 pub async fn force_database_error(tracker: &Persistence) {
+    tracker.schema_migrator().create_database_tables().await.unwrap();
     tracker.schema_migrator().drop_database_tables().await.unwrap();
 }

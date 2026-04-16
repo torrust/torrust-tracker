@@ -264,7 +264,10 @@ pub async fn check(service_binding: &ServiceBinding) -> Result<String, String> {
                       Err("Timed Out".to_string())
                 }
                 response = client.receive() => {
-                      process(response.unwrap())
+                      match response {
+                          Ok(response) => process(response),
+                          Err(err) => Err(err.to_string()),
+                      }
                 }
             }
         }
