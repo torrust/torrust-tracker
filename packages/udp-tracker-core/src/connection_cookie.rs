@@ -84,7 +84,6 @@ use tracing::instrument;
 use zerocopy::AsBytes;
 
 use crate::crypto::keys::CipherArrayBlowfish;
-
 /// Error returned when there was an error with the connection cookie.
 #[derive(Error, Debug, Clone, PartialEq)]
 pub enum ConnectionCookieError {
@@ -140,8 +139,8 @@ use std::ops::Range;
 pub fn check(cookie: &Cookie, fingerprint: u64, valid_range: Range<f64>) -> Result<f64, ConnectionCookieError> {
     assert!(valid_range.start <= valid_range.end, "range start is larger than range end");
 
-    let cookie_bytes = CipherArrayBlowfish::from_slice(cookie.0.as_bytes());
-    let cookie_bytes = decode(*cookie_bytes);
+    let cookie_bytes = CipherArrayBlowfish::try_from(cookie.0.as_bytes()).expect("it should be the same size");
+    let cookie_bytes = decode(cookie_bytes);
 
     let issue_time = disassemble(fingerprint, cookie_bytes);
 
@@ -176,7 +175,7 @@ pub fn gen_remote_fingerprint(remote_addr: &SocketAddr) -> u64 {
 }
 
 mod cookie_builder {
-    use cipher::{BlockDecrypt, BlockEncrypt};
+    use cipher::{BlockCipherDecrypt, BlockCipherEncrypt};
     use tracing::instrument;
     use zerocopy::{byteorder, AsBytes as _, NativeEndian};
 
@@ -196,7 +195,7 @@ mod cookie_builder {
         let cookie: byteorder::I64<NativeEndian> =
             *zerocopy::FromBytes::ref_from(&cookie.to_ne_bytes()).expect("it should be aligned");
 
-        *CipherArrayBlowfish::from_slice(cookie.as_bytes())
+        CipherArrayBlowfish::try_from(cookie.as_bytes()).expect("it should be the same size")
     }
 
     #[instrument()]

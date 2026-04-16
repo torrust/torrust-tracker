@@ -4,14 +4,13 @@
 //! application starts and are not persisted anywhere.
 
 use blowfish::BlowfishLE;
-use cipher::{BlockSizeUser, KeyInit};
-use generic_array::GenericArray;
+use cipher::{Block, KeyInit};
 use rand::rngs::ThreadRng;
 use rand::RngExt;
 
 pub type Seed = [u8; 32];
 pub type CipherBlowfish = BlowfishLE;
-pub type CipherArrayBlowfish = GenericArray<u8, <CipherBlowfish as BlockSizeUser>::BlockSize>;
+pub type CipherArrayBlowfish = Block<CipherBlowfish>;
 
 lazy_static! {
     /// The random static seed.
