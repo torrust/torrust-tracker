@@ -248,6 +248,10 @@ driver = "mysql"
 path = "mysql://db_user:db_user_secret_password@mysql:3306/torrust_tracker"
 ```
 
+Important: if the MySQL password contains reserved URL characters (for example `+`, `/`, `@`, or `:`), it must be percent-encoded in the DSN password component. For example, if the raw password is `a+b/c`, use `a%2Bb%2Fc` in the DSN.
+
+When generating secrets automatically, prefer URL-safe passwords (`A-Z`, `a-z`, `0-9`, `-`, `_`) to avoid DSN parsing issues.
+
 ### Build and Run:
 
 ```sh
@@ -292,7 +296,7 @@ These are some useful commands for MySQL.
 Open a shell in the MySQL container using docker or docker-compose.
 
 ```s
-docker exec -it torrust-mysql-1 /bin/bash 
+docker exec -it torrust-mysql-1 /bin/bash
 docker compose exec mysql /bin/bash
 ```
 
