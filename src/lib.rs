@@ -88,6 +88,12 @@
 //!
 //! The tracker has some system dependencies:
 //!
+//! First, you need to install the build tools:
+//!
+//! ```text
+//! sudo apt-get install build-essential
+//! ```
+//!
 //! Since we are using the `openssl` crate with the [vendored feature](https://docs.rs/openssl/latest/openssl/#vendored),
 //! enabled, you will need to install the following dependencies:
 //!
