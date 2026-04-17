@@ -137,6 +137,10 @@ jobs:
         name: Run MySQL Database Tests
         run: TORRUST_TRACKER_CORE_RUN_MYSQL_DRIVER_TEST=true cargo test --package bittorrent-tracker-core
 
+      - id: database-postgresql
+        name: Run PostgreSQL Database Tests
+        run: TORRUST_TRACKER_CORE_RUN_POSTGRES_DRIVER_TEST=true cargo test --package bittorrent-tracker-core
+
   e2e:
     name: E2E
     runs-on: ubuntu-latest

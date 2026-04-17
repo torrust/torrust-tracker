@@ -16,6 +16,8 @@ jobs:
     env:
       CARGO_INCREMENTAL: "0"
       RUSTFLAGS: "-Cinstrument-coverage"
+      TORRUST_TRACKER_CORE_RUN_MYSQL_DRIVER_TEST: "true"
+      TORRUST_TRACKER_CORE_RUN_POSTGRES_DRIVER_TEST: "true"
 
     steps:
       - name: Checkout repository
