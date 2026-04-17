@@ -439,9 +439,8 @@ mod tests {
     use torrust_tracker_configuration::Core;
     use torrust_tracker_test_helpers::configuration::ephemeral_sqlite_database;
 
-    use crate::databases::driver::build;
     use crate::databases::driver::tests::run_tests;
-    use crate::databases::driver::Driver;
+    use crate::databases::driver::{build, Driver};
 
     fn ephemeral_configuration() -> Core {
         let mut config = Core::default();

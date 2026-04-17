@@ -440,9 +440,8 @@ mod tests {
     use testcontainers::{ContainerAsync, GenericImage, ImageExt};
     use torrust_tracker_configuration::Core;
 
-    use crate::databases::driver::build;
     use crate::databases::driver::tests::run_tests;
-    use crate::databases::driver::Driver;
+    use crate::databases::driver::{build, Driver};
 
     #[derive(Debug, Default)]
     struct StoppedMysqlContainer {}

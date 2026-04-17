@@ -165,9 +165,10 @@ mod tests {
     use std::io;
     use std::sync::Arc;
 
+    use torrust_tracker_located_error::DynError;
+
     use super::Error;
     use crate::databases::driver::Driver;
-    use torrust_tracker_located_error::DynError;
 
     #[test]
     fn it_should_build_a_database_error_from_a_sqlx_row_not_found_error() {
