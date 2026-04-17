@@ -12,8 +12,10 @@ pub struct Database {
     /// Database connection string. The format depends on the database driver.
     /// For `sqlite3`, the format is `path/to/database.db`, for example:
     /// `./storage/tracker/lib/database/sqlite3.db`.
-    /// For `Mysql`, the format is `mysql://db_user:db_user_password:port/db_name`, for
+    /// For `mysql`, the format is `mysql://db_user:db_user_password@host:port/db_name`, for
     /// example: `mysql://root:password@localhost:3306/torrust`.
+    /// If the password contains reserved URL characters (for example `+` or `/`),
+    /// percent-encode it in the URL.
     #[serde(default = "Database::default_path")]
     pub path: String,
 }
