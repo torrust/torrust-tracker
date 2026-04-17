@@ -95,9 +95,6 @@ mod tests {
 
         database.mask_secrets();
 
-        assert_eq!(
-            database.path,
-            "postgresql://postgres:***@localhost:5432/torrust".to_string()
-        );
+        assert_eq!(database.path, "postgresql://postgres:***@localhost:5432/torrust".to_string());
     }
 }

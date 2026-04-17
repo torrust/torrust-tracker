@@ -514,11 +514,7 @@ mod tests {
         config.database.driver = torrust_tracker_configuration::Driver::MySQL;
         config.database.path = format!(
             "mysql://{}:{}@{}:{}/{}",
-            mysql_configuration.db_user,
-            mysql_configuration.db_root_password,
-            host,
-            port,
-            mysql_configuration.database
+            mysql_configuration.db_user, mysql_configuration.db_root_password, host, port, mysql_configuration.database
         );
 
         config

@@ -226,9 +226,6 @@ impl KeysHandler {
     ) -> Result<PeerKey, databases::error::Error> {
         let peer_key = PeerKey { key, valid_until };
 
-        // code-review: should we return a friendly error instead of the DB
-        // constrain error when the key already exist? For now, it's returning
-        // the specif error for each DB driver when a UNIQUE constrain fails.
         self.db_key_repository.add(&peer_key).await?;
 
         self.in_memory_key_repository.insert(&peer_key).await;

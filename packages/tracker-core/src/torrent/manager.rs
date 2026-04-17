@@ -71,10 +71,7 @@ impl TorrentsManager {
     /// Returns a `databases::error::Error` if unable to load the persistent
     /// torrent data.
     pub async fn load_torrents_from_database(&self) -> Result<(), databases::error::Error> {
-        let persistent_torrents = self
-            .db_downloads_metric_repository
-            .load_all_torrents_downloads()
-            .await?;
+        let persistent_torrents = self.db_downloads_metric_repository.load_all_torrents_downloads().await?;
 
         self.in_memory_torrent_repository.import_persistent(&persistent_torrents);
 

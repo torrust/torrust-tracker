@@ -101,11 +101,7 @@ impl DatabaseDownloadsMetricRepository {
     /// # Errors
     ///
     /// Returns an [`Error`] if the database operation fails.
-    pub(crate) async fn save_torrent_downloads(
-        &self,
-        info_hash: &InfoHash,
-        downloaded: NumberOfDownloads,
-    ) -> Result<(), Error> {
+    pub(crate) async fn save_torrent_downloads(&self, info_hash: &InfoHash, downloaded: NumberOfDownloads) -> Result<(), Error> {
         self.database.save_torrent_downloads(info_hash, downloaded).await
     }
 

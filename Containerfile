@@ -6,7 +6,7 @@
 FROM docker.io/library/rust:trixie AS chef
 WORKDIR /tmp
 RUN curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
-RUN cargo binstall --no-confirm cargo-chef cargo-nextest
+RUN cargo binstall --no-confirm --locked cargo-chef cargo-nextest
 
 ## Tester Image
 FROM docker.io/library/rust:slim-trixie AS tester
@@ -14,7 +14,7 @@ WORKDIR /tmp
 
 RUN apt-get update; apt-get install -y curl sqlite3; apt-get autoclean
 RUN curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
-RUN cargo binstall --no-confirm cargo-nextest
+RUN cargo binstall --no-confirm --locked cargo-nextest
 
 COPY ./share/ /app/share/torrust
 RUN mkdir -p /app/share/torrust/default/database/; \
@@ -72,7 +72,9 @@ RUN cargo nextest run --workspace-remap /test/src/ --extract-to /test/src/ --no-
 RUN cargo nextest run --workspace-remap /test/src/ --target-dir-remap /test/src/target/ --cargo-metadata /test/src/target/nextest/cargo-metadata.json --binaries-metadata /test/src/target/nextest/binaries-metadata.json
 
 RUN mkdir -p /app/bin/; cp -l /test/src/target/debug/torrust-tracker /app/bin/torrust-tracker
-RUN mkdir /app/lib/; cp -l $(realpath $(ldd /app/bin/torrust-tracker | grep "libz\.so\.1" | awk '{print $3}')) /app/lib/libz.so.1
+RUN mkdir -p /app/lib/; \
+    libz_path="$(ldd /app/bin/torrust-tracker | awk '/libz\.so\.1/ { print $3; exit }')"; \
+    if [ -n "$libz_path" ]; then cp -l "$(realpath "$libz_path")" /app/lib/libz.so.1; fi
 RUN chown -R root:root /app; chmod -R u=rw,go=r,a+X /app; chmod -R a+x /app/bin
 
 # Extract and Test (release)
@@ -86,7 +88,9 @@ RUN cargo nextest run --workspace-remap /test/src/ --extract-to /test/src/ --no-
 RUN cargo nextest run --workspace-remap /test/src/ --target-dir-remap /test/src/target/ --cargo-metadata /test/src/target/nextest/cargo-metadata.json --binaries-metadata /test/src/target/nextest/binaries-metadata.json
 
 RUN mkdir -p /app/bin/; cp -l /test/src/target/release/torrust-tracker /app/bin/torrust-tracker; cp -l /test/src/target/release/http_health_check /app/bin/http_health_check
-RUN mkdir -p /app/lib/; cp -l $(realpath $(ldd /app/bin/torrust-tracker | grep "libz\.so\.1" | awk '{print $3}')) /app/lib/libz.so.1
+RUN mkdir -p /app/lib/; \
+    libz_path="$(ldd /app/bin/torrust-tracker | awk '/libz\.so\.1/ { print $3; exit }')"; \
+    if [ -n "$libz_path" ]; then cp -l "$(realpath "$libz_path")" /app/lib/libz.so.1; fi
 RUN chown -R root:root /app; chmod -R u=rw,go=r,a+X /app; chmod -R a+x /app/bin
 
 

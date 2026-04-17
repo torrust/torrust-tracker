@@ -469,10 +469,7 @@ mod tests {
         #[test]
         fn should_saturate_large_download_counts_for_udp_protocol() {
             assert_eq!(super::super::udp_counter_from_downloads(u64::MAX), i32::MAX);
-            assert_eq!(
-                super::super::udp_counter_from_downloads((i32::MAX as u64) + 1),
-                i32::MAX
-            );
+            assert_eq!(super::super::udp_counter_from_downloads((i32::MAX as u64) + 1), i32::MAX);
             assert_eq!(super::super::udp_counter_from_downloads(42), 42);
         }
     }

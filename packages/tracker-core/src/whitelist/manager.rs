@@ -144,7 +144,12 @@ mod tests {
                 whitelist_manager.add_torrent_to_whitelist(&info_hash).await.unwrap();
 
                 assert!(services.in_memory_whitelist.contains(&info_hash).await);
-                assert!(services.database_whitelist.load_from_database().await.unwrap().contains(&info_hash));
+                assert!(services
+                    .database_whitelist
+                    .load_from_database()
+                    .await
+                    .unwrap()
+                    .contains(&info_hash));
             }
 
             #[tokio::test]
@@ -158,7 +163,12 @@ mod tests {
                 whitelist_manager.remove_torrent_from_whitelist(&info_hash).await.unwrap();
 
                 assert!(!services.in_memory_whitelist.contains(&info_hash).await);
-                assert!(!services.database_whitelist.load_from_database().await.unwrap().contains(&info_hash));
+                assert!(!services
+                    .database_whitelist
+                    .load_from_database()
+                    .await
+                    .unwrap()
+                    .contains(&info_hash));
             }
 
             mod persistence {

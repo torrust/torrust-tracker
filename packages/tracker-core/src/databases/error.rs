@@ -178,14 +178,22 @@ mod tests {
 
     #[test]
     fn it_should_build_a_database_error_from_a_sqlx_io_error() {
-        let err: Error = (sqlx::Error::Io(io::Error::from(io::ErrorKind::ConnectionRefused)), Driver::MySQL).into();
+        let err: Error = (
+            sqlx::Error::Io(io::Error::from(io::ErrorKind::ConnectionRefused)),
+            Driver::MySQL,
+        )
+            .into();
 
         assert!(matches!(err, Error::ConnectionError { .. }));
     }
 
     #[test]
     fn it_should_build_a_database_error_from_a_dyn_connection_error() {
-        let err: Error = ((Arc::new(io::Error::from(io::ErrorKind::TimedOut)) as DynError), Driver::PostgreSQL).into();
+        let err: Error = (
+            (Arc::new(io::Error::from(io::ErrorKind::TimedOut)) as DynError),
+            Driver::PostgreSQL,
+        )
+            .into();
 
         assert!(matches!(err, Error::ConnectionError { .. }));
     }

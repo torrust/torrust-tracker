@@ -188,12 +188,7 @@ pub(crate) mod tests {
         pub async fn it_should_save_and_load_the_global_number_of_downloads(driver: &Persistence) {
             driver.torrent_metrics_store().save_global_downloads(1).await.unwrap();
 
-            let number_of_downloads = driver
-                .torrent_metrics_store()
-                .load_global_downloads()
-                .await
-                .unwrap()
-                .unwrap();
+            let number_of_downloads = driver.torrent_metrics_store().load_global_downloads().await.unwrap().unwrap();
 
             assert_eq!(number_of_downloads, 1);
         }
@@ -201,12 +196,7 @@ pub(crate) mod tests {
         pub async fn it_should_load_the_global_number_of_downloads(driver: &Persistence) {
             driver.torrent_metrics_store().save_global_downloads(1).await.unwrap();
 
-            let number_of_downloads = driver
-                .torrent_metrics_store()
-                .load_global_downloads()
-                .await
-                .unwrap()
-                .unwrap();
+            let number_of_downloads = driver.torrent_metrics_store().load_global_downloads().await.unwrap().unwrap();
 
             assert_eq!(number_of_downloads, 1);
         }
@@ -216,12 +206,7 @@ pub(crate) mod tests {
 
             driver.torrent_metrics_store().increase_global_downloads().await.unwrap();
 
-            let number_of_downloads = driver
-                .torrent_metrics_store()
-                .load_global_downloads()
-                .await
-                .unwrap()
-                .unwrap();
+            let number_of_downloads = driver.torrent_metrics_store().load_global_downloads().await.unwrap().unwrap();
 
             assert_eq!(number_of_downloads, 2);
         }
@@ -250,11 +235,7 @@ pub(crate) mod tests {
                 Some(large_value)
             );
             assert_eq!(
-                driver
-                    .torrent_metrics_store()
-                    .load_global_downloads()
-                    .await
-                    .unwrap(),
+                driver.torrent_metrics_store().load_global_downloads().await.unwrap(),
                 Some(large_value)
             );
         }
@@ -312,11 +293,7 @@ pub(crate) mod tests {
             let peer_key = generate_permanent_key();
             driver.auth_key_store().add_key_to_keys(&peer_key).await.unwrap();
 
-            driver
-                .auth_key_store()
-                .remove_key_from_keys(&peer_key.key())
-                .await
-                .unwrap();
+            driver.auth_key_store().remove_key_from_keys(&peer_key.key()).await.unwrap();
 
             assert!(driver
                 .auth_key_store()
@@ -330,11 +307,7 @@ pub(crate) mod tests {
             let peer_key = generate_expiring_key(Duration::from_secs(120));
             driver.auth_key_store().add_key_to_keys(&peer_key).await.unwrap();
 
-            driver
-                .auth_key_store()
-                .remove_key_from_keys(&peer_key.key())
-                .await
-                .unwrap();
+            driver.auth_key_store().remove_key_from_keys(&peer_key.key()).await.unwrap();
 
             assert!(driver
                 .auth_key_store()
@@ -351,11 +324,7 @@ pub(crate) mod tests {
 
         pub async fn it_should_load_the_whitelist(driver: &Persistence) {
             let infohash = random_info_hash();
-            driver
-                .whitelist_store()
-                .add_info_hash_to_whitelist(infohash)
-                .await
-                .unwrap();
+            driver.whitelist_store().add_info_hash_to_whitelist(infohash).await.unwrap();
 
             let whitelist = driver.whitelist_store().load_whitelist().await.unwrap();
 
@@ -365,11 +334,7 @@ pub(crate) mod tests {
         pub async fn it_should_add_and_get_infohashes(driver: &Persistence) {
             let infohash = random_info_hash();
 
-            driver
-                .whitelist_store()
-                .add_info_hash_to_whitelist(infohash)
-                .await
-                .unwrap();
+            driver.whitelist_store().add_info_hash_to_whitelist(infohash).await.unwrap();
 
             let stored_infohash = driver
                 .whitelist_store()
@@ -383,11 +348,7 @@ pub(crate) mod tests {
 
         pub async fn it_should_remove_an_infohash_from_the_whitelist(driver: &Persistence) {
             let infohash = random_info_hash();
-            driver
-                .whitelist_store()
-                .add_info_hash_to_whitelist(infohash)
-                .await
-                .unwrap();
+            driver.whitelist_store().add_info_hash_to_whitelist(infohash).await.unwrap();
 
             driver
                 .whitelist_store()
@@ -406,15 +367,8 @@ pub(crate) mod tests {
         pub async fn it_should_fail_trying_to_add_the_same_infohash_twice(driver: &Persistence) {
             let infohash = random_info_hash();
 
-            driver
-                .whitelist_store()
-                .add_info_hash_to_whitelist(infohash)
-                .await
-                .unwrap();
-            let result = driver
-                .whitelist_store()
-                .add_info_hash_to_whitelist(infohash)
-                .await;
+            driver.whitelist_store().add_info_hash_to_whitelist(infohash).await.unwrap();
+            let result = driver.whitelist_store().add_info_hash_to_whitelist(infohash).await;
 
             assert!(result.is_err());
         }

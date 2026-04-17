@@ -452,7 +452,8 @@ mod tests {
             self,
             config: &PostgresConfiguration,
         ) -> Result<RunningPostgresContainer, Box<dyn std::error::Error + 'static>> {
-            let image_name = std::env::var("TORRUST_TRACKER_CORE_POSTGRES_DRIVER_IMAGE").unwrap_or_else(|_| "postgres".to_string());
+            let image_name =
+                std::env::var("TORRUST_TRACKER_CORE_POSTGRES_DRIVER_IMAGE").unwrap_or_else(|_| "postgres".to_string());
             let image_tag = std::env::var("TORRUST_TRACKER_CORE_POSTGRES_DRIVER_IMAGE_TAG").unwrap_or_else(|_| "16".to_string());
 
             let container = GenericImage::new(image_name, image_tag)
@@ -517,11 +518,7 @@ mod tests {
         config.database.driver = torrust_tracker_configuration::Driver::PostgreSQL;
         config.database.path = format!(
             "postgresql://{}:{}@{}:{}/{}",
-            pg_configuration.db_user,
-            pg_configuration.db_password,
-            host,
-            port,
-            pg_configuration.database
+            pg_configuration.db_user, pg_configuration.db_password, host, port, pg_configuration.database
         );
 
         config
