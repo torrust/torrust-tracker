@@ -187,22 +187,36 @@ Checkpoint:
 Define custom GitHub Copilot agents tailored to Torrust project workflows so that specialized
 tasks can be delegated to focused agents with the right prompt context.
 
-- [ ] Create `.github/agents/` directory
-- [ ] Identify workflows that benefit from a dedicated agent (e.g. issue implementation planner, code reviewer, documentation writer, release drafter)
-- [ ] For each agent, create `.github/agents/<agent-name>.md` with:
+- [x] Create `.github/agents/` directory
+- [x] Identify workflows that benefit from a dedicated agent
+- [x] For each agent, create `.github/agents/<agent-name>.md` with:
   - YAML frontmatter: `name` (optional), `description`, optional `tools`
   - Prompt body: role definition, scope, constraints, and step-by-step instructions
 - [ ] Test each custom agent by assigning it to a task or issue in GitHub Copilot CLI
 
 **Candidate initial agents**:
 
-- `committer` — commit specialist: reads branch/diff, runs pre-commit checks (`linter all`),
-  proposes a GPG-signed Conventional Commit message, and creates the commit only after scope and
-  checks are clear. Reference:
+- `committer` ✅ — commit specialist: reads branch/diff, runs pre-commit checks
+  (`./scripts/pre-commit.sh`), proposes a GPG-signed Conventional Commit message, and creates
+  the commit only after scope and checks are clear. Reference:
   [`torrust-tracker-demo/.github/agents/commiter.agent.md`](https://raw.githubusercontent.com/torrust/torrust-tracker-demo/refs/heads/main/.github/agents/commiter.agent.md)
-- `issue-planner` — given a GitHub issue, produces a detailed implementation plan document (like the ones in `docs/issues/`) including branch name, task breakdown, checkpoints, and commit message suggestions
-- `code-reviewer` — reviews PRs against Torrust coding conventions, clippy rules, and security considerations
-- `docs-writer` — creates or updates documentation files following the existing docs structure
+- `implementer` ✅ — software implementer that applies Test-Driven Development and seeks the
+  simplest solution. Follows a structured process: analyse → decompose into small steps →
+  implement with TDD → call the Complexity Auditor after each step → call the Committer when
+  ready. Guided by Beck's Four Rules of Simple Design.
+- `complexity-auditor` ✅ — code quality auditor that checks cyclomatic and cognitive complexity
+  of changes after each implementation step. Reports PASS/WARN/FAIL per function using thresholds
+  and Clippy's `cognitive_complexity` lint. Called by the Implementer; can also be invoked
+  directly.
+
+**Future agents** (not yet implemented):
+
+- `issue-planner` — given a GitHub issue, produces a detailed implementation plan document
+  (like those in `docs/issues/`) including branch name, task breakdown, checkpoints, and commit
+  message suggestions.
+- `code-reviewer` — reviews PRs against Torrust coding conventions, clippy rules, and security
+  considerations.
+- `docs-writer` — creates or updates documentation files following the existing docs structure.
 
 Commit message: `docs(agents): add initial custom agents under .github/agents/`
 
@@ -224,6 +238,13 @@ Checkpoint:
 Once the root file is stable, evaluate whether any workspace packages have sufficiently different
 conventions or setup to warrant their own `AGENTS.md`. This can be tracked as a separate follow-up
 issue.
+
+- [x] Evaluate workspace packages for package-specific conventions
+- [x] Add `packages/AGENTS.md` — guidance scoped to all workspace packages
+- [x] Add `src/AGENTS.md` — guidance scoped to the main binary/library source
+
+> **Note**: Completed as part of Task 1. `packages/AGENTS.md` and `src/AGENTS.md` were added
+> alongside the root `AGENTS.md`.
 
 ---
 

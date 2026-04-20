@@ -1,6 +1,7 @@
 Addrs
 adduser
 alekitto
+analyse
 appuser
 Arvid
 ASMS
@@ -47,6 +48,7 @@ Containerfile
 conv
 curr
 cvar
+cyclomatic
 Cyberneering
 dashmap
 datagram
@@ -125,6 +127,7 @@ obra
 oneshot
 ostr
 Pando
+penalise
 peekable
 peerlist
 programatik
