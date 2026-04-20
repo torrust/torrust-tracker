@@ -22,7 +22,7 @@ jobs:
     steps:
       - name: "Download existing coverage report"
         id: prepare_report
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             var fs = require('fs');
