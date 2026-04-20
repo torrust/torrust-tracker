@@ -331,8 +331,8 @@ frameworks that were evaluated.
 8. Incremental adoption — individual skills, custom agents, or patterns from those frameworks can
    still be cherry-picked and integrated progressively if specific value is identified.
 
-- [ ] Create `docs/adrs/<YYYYMMDDHHMMSS>_ai-agent-framework-approach.md` using the `create-adr` skill
-- [ ] Record the decision, the alternatives considered, and the reasoning above
+- [x] Create `docs/adrs/<YYYYMMDDHHMMSS>_ai-agent-framework-approach.md` using the `create-adr` skill
+- [x] Record the decision, the alternatives considered, and the reasoning above
 
 Commit message: `docs(adrs): add ADR for AI agent framework approach`
 

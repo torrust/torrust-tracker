@@ -246,6 +246,7 @@ sysmalloc
 sysret
 timespec
 toki
+specialised
 toplevel
 torru
 ttwu
