@@ -36,6 +36,7 @@ clippy
 cloneable
 codecov
 codegen
+commiter
 completei
 Condvar
 connectionless
@@ -117,6 +118,7 @@ nonroot
 Norberg
 numwant
 nvCFlJCq7fz7Qx6KoKTDiMZvns8l5Kw7
+obra
 oneshot
 ostr
 Pando
@@ -166,6 +168,7 @@ tdyne
 Tebibytes
 tempfile
 testcontainers
+Tera
 thiserror
 tlsv
 Torrentstorm
@@ -250,3 +253,9 @@ mysqladmin
 setgroups
 taplo
 trixie
+adrs
+Agentic
+agentskills
+frontmatter
+MSRV
+rustup
