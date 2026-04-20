@@ -264,19 +264,20 @@ https://raw.githubusercontent.com/torrust/torrust-tracker-deployer/refs/heads/ma
 
 Minimum steps to include:
 
-- [ ] Trigger on `workflow_dispatch`, `push` and `pull_request` (scoped to the workflow file path)
-- [ ] `copilot-setup-steps` job on `ubuntu-latest`, `timeout-minutes: 30`, `permissions: contents: read`
-- [ ] `actions/checkout@v5` — check out the repository (verify this is still the latest stable
+- [x] Trigger on `workflow_dispatch`, `push` and `pull_request` (scoped to the workflow file path)
+- [x] `copilot-setup-steps` job on `ubuntu-latest`, `timeout-minutes: 30`, `permissions: contents: read`
+- [x] `actions/checkout@v6` — check out the repository (verify this is still the latest stable
       version on the GitHub Marketplace before merging)
-- [ ] `dtolnay/rust-toolchain@stable` — install the stable Rust toolchain (pin MSRV if needed)
-- [ ] `Swatinem/rust-cache@v2` — cache `target/` and `~/.cargo` between runs
-- [ ] `cargo build` warm-up — build the workspace (or key packages) so incremental compilation is
+- [x] `dtolnay/rust-toolchain@stable` — install the stable Rust toolchain (pin MSRV if needed)
+- [x] `Swatinem/rust-cache@v2` — cache `target/` and `~/.cargo` between runs
+- [x] `cargo build` warm-up — build the workspace (or key packages) so incremental compilation is
       ready when Copilot starts editing
-- [ ] Install the `linter` binary —
+- [x] Install the `linter` binary —
       `cargo install --locked --git https://github.com/torrust/torrust-linting --bin linter`
-- [ ] Install `cargo-machete` — `cargo install cargo-machete`; ensures Copilot can run unused
+- [x] Install `cargo-machete` — `cargo install cargo-machete`; ensures Copilot can run unused
       dependency checks (`cargo machete`) as required by the essential rules
-- [ ] Smoke-check: run `linter all` to confirm the environment is healthy before Copilot begins
+- [x] Smoke-check: run `linter all` to confirm the environment is healthy before Copilot begins
+- [x] Install Git pre-commit hooks — `./scripts/install-git-hooks.sh`
 
 Commit message: `ci(copilot): add copilot-setup-steps workflow`
 
