@@ -64,24 +64,24 @@ effectively without requiring repeated manual instructions.
 Create `AGENTS.md` in the repository root, adapting the above files to the tracker. At minimum
 the file must cover:
 
-- [ ] Repository link and project overview (language, license, MSRV, web framework, protocols, databases)
-- [ ] Tech stack (languages, frameworks, databases, containerization, linting tools)
-- [ ] Key directories (`src/`, `src/bin/`, `packages/`, `console/`, `contrib/`, `tests/`, `docs/`, `share/`, `storage/`, `.github/workflows/`)
-- [ ] Package catalog (all workspace packages with their layer and description)
-- [ ] Package naming conventions (`axum-*`, `*-server`, `*-core`, `*-protocol`)
-- [ ] Key configuration files (`.markdownlint.json`, `.yamllint-ci.yml`, `.taplo.toml`, `cspell.json`, `rustfmt.toml`, etc.)
-- [ ] Build & test commands (`cargo build`, `cargo test --doc`, `cargo test --all-targets`, E2E runner, benchmarks)
-- [ ] Lint commands (`linter all` and individual linters; how to install the `linter` binary)
-- [ ] Dependencies check (`cargo machete`)
-- [ ] Code style (rustfmt rules, clippy policy, import grouping, per-format rules)
-- [ ] Collaboration principles (no flattery, push back on weak ideas, flag blockers early)
-- [ ] Essential rules (linting gate, GPG commit signing, no `storage/`/`target/` commits, `cargo machete`)
-- [ ] Git workflow (branch naming, Conventional Commits, branch strategy: `develop` → `staging/main` → `main`)
-- [ ] Development principles (observability, testability, modularity, extensibility; Beck's four rules)
-- [ ] Container / Docker (key commands, ports, volume mount paths)
-- [ ] Auto-invoke skills placeholder (to be filled in when `.github/skills/` is populated)
-- [ ] Documentation quick-navigation table
-- [ ] Add a brief entry to `docs/index.md` pointing contributors to `AGENTS.md`, `.github/skills/`, and `.github/agents/`
+- [x] Repository link and project overview (language, license, MSRV, web framework, protocols, databases)
+- [x] Tech stack (languages, frameworks, databases, containerization, linting tools)
+- [x] Key directories (`src/`, `src/bin/`, `packages/`, `console/`, `contrib/`, `tests/`, `docs/`, `share/`, `storage/`, `.github/workflows/`)
+- [x] Package catalog (all workspace packages with their layer and description)
+- [x] Package naming conventions (`axum-*`, `*-server`, `*-core`, `*-protocol`)
+- [x] Key configuration files (`.markdownlint.json`, `.yamllint-ci.yml`, `.taplo.toml`, `cspell.json`, `rustfmt.toml`, etc.)
+- [x] Build & test commands (`cargo build`, `cargo test --doc`, `cargo test --all-targets`, E2E runner, benchmarks)
+- [x] Lint commands (`linter all` and individual linters; how to install the `linter` binary)
+- [x] Dependencies check (`cargo machete`)
+- [x] Code style (rustfmt rules, clippy policy, import grouping, per-format rules)
+- [x] Collaboration principles (no flattery, push back on weak ideas, flag blockers early)
+- [x] Essential rules (linting gate, GPG commit signing, no `storage/`/`target/` commits, `cargo machete`)
+- [x] Git workflow (branch naming, Conventional Commits, branch strategy: `develop` → `staging/main` → `main`)
+- [x] Development principles (observability, testability, modularity, extensibility; Beck's four rules)
+- [x] Container / Docker (key commands, ports, volume mount paths)
+- [x] Auto-invoke skills placeholder (to be filled in when `.github/skills/` is populated)
+- [x] Documentation quick-navigation table
+- [x] Add a brief entry to `docs/index.md` pointing contributors to `AGENTS.md`, `.github/skills/`, and `.github/agents/`
 
 Commit message: `docs(agents): add root AGENTS.md`
 
