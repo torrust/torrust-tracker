@@ -7,13 +7,16 @@ ASMS
 asyn
 autoclean
 AUTOINCREMENT
+autolinks
 automock
 Avicora
 Azureus
+backlinks
 bdecode
 bencode
 bencoded
 bencoding
+behaviour
 beps
 binascii
 binstall
@@ -184,6 +187,7 @@ underflows
 Unsendable
 untuple
 uroot
+usize
 Vagaa
 valgrind
 Vitaly
@@ -239,6 +243,7 @@ sysmalloc
 sysret
 timespec
 toki
+toplevel
 torru
 ttwu
 uninit

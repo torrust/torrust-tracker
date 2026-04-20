@@ -103,13 +103,13 @@ Checkpoint:
 Define reusable, project-specific skills that agents can load to perform specialized tasks on
 this repository consistently.
 
-- [ ] Create `.github/skills/` directory
-- [ ] Review and confirm the candidate skills listed below (add, remove, or adjust before starting implementation)
-- [ ] For each skill, create a directory with:
+- [x] Create `.github/skills/` directory
+- [x] Review and confirm the candidate skills listed below (add, remove, or adjust before starting implementation)
+- [x] For each skill, create a directory with:
   - `SKILL.md` — YAML frontmatter (`name`, `description`, optional `license`, `compatibility`) + step-by-step instructions
   - `scripts/` (optional) — executable scripts the agent can run
   - `references/` (optional) — additional reference documentation
-- [ ] Validate skill files against the Agent Skills spec (name rules: lowercase, hyphens, no consecutive hyphens, max 64 chars; description: max 1024 chars)
+- [x] Validate skill files against the Agent Skills spec (name rules: lowercase, hyphens, no consecutive hyphens, max 64 chars; description: max 1024 chars)
 
 **Candidate initial skills** (ported / adapted from `torrust-tracker-deployer`):
 
@@ -131,37 +131,39 @@ Directory layout to mirror the deployer structure:
     testing/
 ```
 
-**`add-new-skill`** — meta-skill: guide for creating new Agent Skills for this repository.
+**`add-new-skill`** ✅ — meta-skill: guide for creating new Agent Skills for this repository.
 
 **`dev/git-workflow/`**:
 
-- `commit-changes` — commit following Conventional Commits; pre-commit verification checklist.
-- `create-feature-branch` — branch naming convention and lifecycle.
-- `open-pull-request` — open a PR via GitHub CLI or GitHub MCP tool; pre-flight checks.
-- `release-new-version` — version bump, signed release commit, signed tag, CI verification.
-- `review-pr` — review a PR against Torrust quality standards and checklist.
-- `run-linters` — run the full linting suite (`linter all`); fix individual linter failures.
-- `run-pre-commit-checks` — mandatory quality gates before every commit.
+- `commit-changes` ✅ — commit following Conventional Commits; pre-commit verification checklist.
+- `create-feature-branch` ✅ — branch naming convention and lifecycle.
+- `open-pull-request` ✅ — open a PR via GitHub CLI or GitHub MCP tool; pre-flight checks.
+- `release-new-version` ✅ — version bump, signed release commit, signed tag, CI verification.
+- `review-pr` ✅ — review a PR against Torrust quality standards and checklist.
+- `run-linters` ✅ — run the full linting suite (`linter all`); fix individual linter failures.
+- `run-pre-commit-checks` ✅ — mandatory quality gates before every commit.
 
 **`dev/maintenance/`**:
 
-- `update-dependencies` — run `cargo update`, create branch, commit, push, open PR.
+- `install-linter` ✅ — install the `linter` binary and its external tool dependencies.
+- `setup-dev-environment` ✅ — full onboarding guide: system deps, Rust toolchain, storage dirs, linter, git hooks, smoke test.
+- `update-dependencies` ✅ — run `cargo update`, create branch, commit, push, open PR.
 
 **`dev/planning/`**:
 
-- `create-adr` — create an Architectural Decision Record in `docs/adrs/`.
-- `create-issue` — draft and open a GitHub issue following project conventions.
-- `write-markdown-docs` — GFM pitfalls (auto-links, ordered list numbering, etc.).
-- `cleanup-completed-issues` — remove issue doc files and update roadmap after PR merge.
+- `create-adr` ✅ — create an Architectural Decision Record in `docs/adrs/`.
+- `create-issue` ✅ — draft and open a GitHub issue following project conventions.
+- `write-markdown-docs` ✅ — GFM pitfalls (auto-links, ordered list numbering, etc.).
+- `cleanup-completed-issues` ✅ — remove issue doc files and update roadmap after PR merge.
 
 **`dev/rust-code-quality/`**:
 
-- `handle-errors-in-code` — `thiserror`-based structured errors; what/where/when/why context.
-- `handle-secrets` — wrapper types for tokens/passwords; never use plain `String` for secrets.
+- `handle-errors-in-code` ✅ — `thiserror`-based structured errors; what/where/when/why context.
+- `handle-secrets` ✅ — wrapper types for tokens/passwords; never use plain `String` for secrets.
 
 **`dev/testing/`**:
 
-- `write-unit-test` — `it_should_*` naming, AAA pattern, `MockClock`, `TempDir`, `rstest`.
+- `write-unit-test` ✅ — `it_should_*` naming, AAA pattern, `MockClock`, `TempDir`, `rstest`.
 
 Commit message: `docs(agents): add initial agent skills under .github/skills/`
 
