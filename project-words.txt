@@ -143,6 +143,7 @@ ringsize
 rngs
 rosegment
 routable
+repomix
 rstest
 rusqlite
 rustc

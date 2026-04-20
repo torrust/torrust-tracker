@@ -17,4 +17,5 @@ codecov.json
 integration_tests_sqlite3.db
 lcov.info
 perf.data*
+repomix-output.xml
 rustc-ice-*.txt
