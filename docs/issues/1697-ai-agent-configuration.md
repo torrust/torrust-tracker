@@ -64,24 +64,24 @@ effectively without requiring repeated manual instructions.
 Create `AGENTS.md` in the repository root, adapting the above files to the tracker. At minimum
 the file must cover:
 
-- [ ] Repository link and project overview (language, license, MSRV, web framework, protocols, databases)
-- [ ] Tech stack (languages, frameworks, databases, containerization, linting tools)
-- [ ] Key directories (`src/`, `src/bin/`, `packages/`, `console/`, `contrib/`, `tests/`, `docs/`, `share/`, `storage/`, `.github/workflows/`)
-- [ ] Package catalog (all workspace packages with their layer and description)
-- [ ] Package naming conventions (`axum-*`, `*-server`, `*-core`, `*-protocol`)
-- [ ] Key configuration files (`.markdownlint.json`, `.yamllint-ci.yml`, `.taplo.toml`, `cspell.json`, `rustfmt.toml`, etc.)
-- [ ] Build & test commands (`cargo build`, `cargo test --doc`, `cargo test --all-targets`, E2E runner, benchmarks)
-- [ ] Lint commands (`linter all` and individual linters; how to install the `linter` binary)
-- [ ] Dependencies check (`cargo machete`)
-- [ ] Code style (rustfmt rules, clippy policy, import grouping, per-format rules)
-- [ ] Collaboration principles (no flattery, push back on weak ideas, flag blockers early)
-- [ ] Essential rules (linting gate, GPG commit signing, no `storage/`/`target/` commits, `cargo machete`)
-- [ ] Git workflow (branch naming, Conventional Commits, branch strategy: `develop` → `staging/main` → `main`)
-- [ ] Development principles (observability, testability, modularity, extensibility; Beck's four rules)
-- [ ] Container / Docker (key commands, ports, volume mount paths)
-- [ ] Auto-invoke skills placeholder (to be filled in when `.github/skills/` is populated)
-- [ ] Documentation quick-navigation table
-- [ ] Add a brief entry to `docs/index.md` pointing contributors to `AGENTS.md`, `.github/skills/`, and `.github/agents/`
+- [x] Repository link and project overview (language, license, MSRV, web framework, protocols, databases)
+- [x] Tech stack (languages, frameworks, databases, containerization, linting tools)
+- [x] Key directories (`src/`, `src/bin/`, `packages/`, `console/`, `contrib/`, `tests/`, `docs/`, `share/`, `storage/`, `.github/workflows/`)
+- [x] Package catalog (all workspace packages with their layer and description)
+- [x] Package naming conventions (`axum-*`, `*-server`, `*-core`, `*-protocol`)
+- [x] Key configuration files (`.markdownlint.json`, `.yamllint-ci.yml`, `.taplo.toml`, `cspell.json`, `rustfmt.toml`, etc.)
+- [x] Build & test commands (`cargo build`, `cargo test --doc`, `cargo test --all-targets`, E2E runner, benchmarks)
+- [x] Lint commands (`linter all` and individual linters; how to install the `linter` binary)
+- [x] Dependencies check (`cargo machete`)
+- [x] Code style (rustfmt rules, clippy policy, import grouping, per-format rules)
+- [x] Collaboration principles (no flattery, push back on weak ideas, flag blockers early)
+- [x] Essential rules (linting gate, GPG commit signing, no `storage/`/`target/` commits, `cargo machete`)
+- [x] Git workflow (branch naming, Conventional Commits, branch strategy: `develop` → `staging/main` → `main`)
+- [x] Development principles (observability, testability, modularity, extensibility; Beck's four rules)
+- [x] Container / Docker (key commands, ports, volume mount paths)
+- [x] Auto-invoke skills placeholder (to be filled in when `.github/skills/` is populated)
+- [x] Documentation quick-navigation table
+- [x] Add a brief entry to `docs/index.md` pointing contributors to `AGENTS.md`, `.github/skills/`, and `.github/agents/`
 
 Commit message: `docs(agents): add root AGENTS.md`
 
@@ -103,13 +103,13 @@ Checkpoint:
 Define reusable, project-specific skills that agents can load to perform specialized tasks on
 this repository consistently.
 
-- [ ] Create `.github/skills/` directory
-- [ ] Review and confirm the candidate skills listed below (add, remove, or adjust before starting implementation)
-- [ ] For each skill, create a directory with:
+- [x] Create `.github/skills/` directory
+- [x] Review and confirm the candidate skills listed below (add, remove, or adjust before starting implementation)
+- [x] For each skill, create a directory with:
   - `SKILL.md` — YAML frontmatter (`name`, `description`, optional `license`, `compatibility`) + step-by-step instructions
   - `scripts/` (optional) — executable scripts the agent can run
   - `references/` (optional) — additional reference documentation
-- [ ] Validate skill files against the Agent Skills spec (name rules: lowercase, hyphens, no consecutive hyphens, max 64 chars; description: max 1024 chars)
+- [x] Validate skill files against the Agent Skills spec (name rules: lowercase, hyphens, no consecutive hyphens, max 64 chars; description: max 1024 chars)
 
 **Candidate initial skills** (ported / adapted from `torrust-tracker-deployer`):
 
@@ -131,37 +131,39 @@ Directory layout to mirror the deployer structure:
     testing/
 ```
 
-**`add-new-skill`** — meta-skill: guide for creating new Agent Skills for this repository.
+**`add-new-skill`** ✅ — meta-skill: guide for creating new Agent Skills for this repository.
 
 **`dev/git-workflow/`**:
 
-- `commit-changes` — commit following Conventional Commits; pre-commit verification checklist.
-- `create-feature-branch` — branch naming convention and lifecycle.
-- `open-pull-request` — open a PR via GitHub CLI or GitHub MCP tool; pre-flight checks.
-- `release-new-version` — version bump, signed release commit, signed tag, CI verification.
-- `review-pr` — review a PR against Torrust quality standards and checklist.
-- `run-linters` — run the full linting suite (`linter all`); fix individual linter failures.
-- `run-pre-commit-checks` — mandatory quality gates before every commit.
+- `commit-changes` ✅ — commit following Conventional Commits; pre-commit verification checklist.
+- `create-feature-branch` ✅ — branch naming convention and lifecycle.
+- `open-pull-request` ✅ — open a PR via GitHub CLI or GitHub MCP tool; pre-flight checks.
+- `release-new-version` ✅ — version bump, signed release commit, signed tag, CI verification.
+- `review-pr` ✅ — review a PR against Torrust quality standards and checklist.
+- `run-linters` ✅ — run the full linting suite (`linter all`); fix individual linter failures.
+- `run-pre-commit-checks` ✅ — mandatory quality gates before every commit.
 
 **`dev/maintenance/`**:
 
-- `update-dependencies` — run `cargo update`, create branch, commit, push, open PR.
+- `install-linter` ✅ — install the `linter` binary and its external tool dependencies.
+- `setup-dev-environment` ✅ — full onboarding guide: system deps, Rust toolchain, storage dirs, linter, git hooks, smoke test.
+- `update-dependencies` ✅ — run `cargo update`, create branch, commit, push, open PR.
 
 **`dev/planning/`**:
 
-- `create-adr` — create an Architectural Decision Record in `docs/adrs/`.
-- `create-issue` — draft and open a GitHub issue following project conventions.
-- `write-markdown-docs` — GFM pitfalls (auto-links, ordered list numbering, etc.).
-- `cleanup-completed-issues` — remove issue doc files and update roadmap after PR merge.
+- `create-adr` ✅ — create an Architectural Decision Record in `docs/adrs/`.
+- `create-issue` ✅ — draft and open a GitHub issue following project conventions.
+- `write-markdown-docs` ✅ — GFM pitfalls (auto-links, ordered list numbering, etc.).
+- `cleanup-completed-issues` ✅ — remove issue doc files and update roadmap after PR merge.
 
 **`dev/rust-code-quality/`**:
 
-- `handle-errors-in-code` — `thiserror`-based structured errors; what/where/when/why context.
-- `handle-secrets` — wrapper types for tokens/passwords; never use plain `String` for secrets.
+- `handle-errors-in-code` ✅ — `thiserror`-based structured errors; what/where/when/why context.
+- `handle-secrets` ✅ — wrapper types for tokens/passwords; never use plain `String` for secrets.
 
 **`dev/testing/`**:
 
-- `write-unit-test` — `it_should_*` naming, AAA pattern, `MockClock`, `TempDir`, `rstest`.
+- `write-unit-test` ✅ — `it_should_*` naming, AAA pattern, `MockClock`, `TempDir`, `rstest`.
 
 Commit message: `docs(agents): add initial agent skills under .github/skills/`
 
@@ -185,22 +187,36 @@ Checkpoint:
 Define custom GitHub Copilot agents tailored to Torrust project workflows so that specialized
 tasks can be delegated to focused agents with the right prompt context.
 
-- [ ] Create `.github/agents/` directory
-- [ ] Identify workflows that benefit from a dedicated agent (e.g. issue implementation planner, code reviewer, documentation writer, release drafter)
-- [ ] For each agent, create `.github/agents/<agent-name>.md` with:
+- [x] Create `.github/agents/` directory
+- [x] Identify workflows that benefit from a dedicated agent
+- [x] For each agent, create `.github/agents/<agent-name>.md` with:
   - YAML frontmatter: `name` (optional), `description`, optional `tools`
   - Prompt body: role definition, scope, constraints, and step-by-step instructions
-- [ ] Test each custom agent by assigning it to a task or issue in GitHub Copilot CLI
+- [x] Test each custom agent by assigning it to a task or issue in GitHub Copilot CLI
 
 **Candidate initial agents**:
 
-- `committer` — commit specialist: reads branch/diff, runs pre-commit checks (`linter all`),
-  proposes a GPG-signed Conventional Commit message, and creates the commit only after scope and
-  checks are clear. Reference:
+- `committer` ✅ — commit specialist: reads branch/diff, runs pre-commit checks
+  (`./scripts/pre-commit.sh`), proposes a GPG-signed Conventional Commit message, and creates
+  the commit only after scope and checks are clear. Reference:
   [`torrust-tracker-demo/.github/agents/commiter.agent.md`](https://raw.githubusercontent.com/torrust/torrust-tracker-demo/refs/heads/main/.github/agents/commiter.agent.md)
-- `issue-planner` — given a GitHub issue, produces a detailed implementation plan document (like the ones in `docs/issues/`) including branch name, task breakdown, checkpoints, and commit message suggestions
-- `code-reviewer` — reviews PRs against Torrust coding conventions, clippy rules, and security considerations
-- `docs-writer` — creates or updates documentation files following the existing docs structure
+- `implementer` ✅ — software implementer that applies Test-Driven Development and seeks the
+  simplest solution. Follows a structured process: analyse → decompose into small steps →
+  implement with TDD → call the Complexity Auditor after each step → call the Committer when
+  ready. Guided by Beck's Four Rules of Simple Design.
+- `complexity-auditor` ✅ — code quality auditor that checks cyclomatic and cognitive complexity
+  of changes after each implementation step. Reports PASS/WARN/FAIL per function using thresholds
+  and Clippy's `cognitive_complexity` lint. Called by the Implementer; can also be invoked
+  directly.
+
+**Future agents** (not yet implemented):
+
+- `issue-planner` — given a GitHub issue, produces a detailed implementation plan document
+  (like those in `docs/issues/`) including branch name, task breakdown, checkpoints, and commit
+  message suggestions.
+- `code-reviewer` — reviews PRs against Torrust coding conventions, clippy rules, and security
+  considerations.
+- `docs-writer` — creates or updates documentation files following the existing docs structure.
 
 Commit message: `docs(agents): add initial custom agents under .github/agents/`
 
@@ -223,6 +239,13 @@ Once the root file is stable, evaluate whether any workspace packages have suffi
 conventions or setup to warrant their own `AGENTS.md`. This can be tracked as a separate follow-up
 issue.
 
+- [x] Evaluate workspace packages for package-specific conventions
+- [x] Add `packages/AGENTS.md` — guidance scoped to all workspace packages
+- [x] Add `src/AGENTS.md` — guidance scoped to the main binary/library source
+
+> **Note**: Completed as part of Task 1. `packages/AGENTS.md` and `src/AGENTS.md` were added
+> alongside the root `AGENTS.md`.
+
 ---
 
 ### Task 5: Add `copilot-setup-steps.yml` workflow
@@ -241,19 +264,20 @@ https://raw.githubusercontent.com/torrust/torrust-tracker-deployer/refs/heads/ma
 
 Minimum steps to include:
 
-- [ ] Trigger on `workflow_dispatch`, `push` and `pull_request` (scoped to the workflow file path)
-- [ ] `copilot-setup-steps` job on `ubuntu-latest`, `timeout-minutes: 30`, `permissions: contents: read`
-- [ ] `actions/checkout@v5` — check out the repository (verify this is still the latest stable
+- [x] Trigger on `workflow_dispatch`, `push` and `pull_request` (scoped to the workflow file path)
+- [x] `copilot-setup-steps` job on `ubuntu-latest`, `timeout-minutes: 30`, `permissions: contents: read`
+- [x] `actions/checkout@v6` — check out the repository (verify this is still the latest stable
       version on the GitHub Marketplace before merging)
-- [ ] `dtolnay/rust-toolchain@stable` — install the stable Rust toolchain (pin MSRV if needed)
-- [ ] `Swatinem/rust-cache@v2` — cache `target/` and `~/.cargo` between runs
-- [ ] `cargo build` warm-up — build the workspace (or key packages) so incremental compilation is
+- [x] `dtolnay/rust-toolchain@stable` — install the stable Rust toolchain (pin MSRV if needed)
+- [x] `Swatinem/rust-cache@v2` — cache `target/` and `~/.cargo` between runs
+- [x] `cargo build` warm-up — build the workspace (or key packages) so incremental compilation is
       ready when Copilot starts editing
-- [ ] Install the `linter` binary —
+- [x] Install the `linter` binary —
       `cargo install --locked --git https://github.com/torrust/torrust-linting --bin linter`
-- [ ] Install `cargo-machete` — `cargo install cargo-machete`; ensures Copilot can run unused
+- [x] Install `cargo-machete` — `cargo install cargo-machete`; ensures Copilot can run unused
       dependency checks (`cargo machete`) as required by the essential rules
-- [ ] Smoke-check: run `linter all` to confirm the environment is healthy before Copilot begins
+- [x] Smoke-check: run `linter all` to confirm the environment is healthy before Copilot begins
+- [x] Install Git pre-commit hooks — `./scripts/install-git-hooks.sh`
 
 Commit message: `ci(copilot): add copilot-setup-steps workflow`
 
@@ -307,8 +331,8 @@ frameworks that were evaluated.
 8. Incremental adoption — individual skills, custom agents, or patterns from those frameworks can
    still be cherry-picked and integrated progressively if specific value is identified.
 
-- [ ] Create `docs/adrs/<YYYYMMDDHHMMSS>_ai-agent-framework-approach.md` using the `create-adr` skill
-- [ ] Record the decision, the alternatives considered, and the reasoning above
+- [x] Create `docs/adrs/<YYYYMMDDHHMMSS>_ai-agent-framework-approach.md` using the `create-adr` skill
+- [x] Record the decision, the alternatives considered, and the reasoning above
 
 Commit message: `docs(adrs): add ADR for AI agent framework approach`
 
@@ -325,10 +349,10 @@ Checkpoint:
 
 ## Acceptance Criteria
 
-- [ ] `AGENTS.md` exists at the repo root and contains accurate, up-to-date project guidance.
-- [ ] At least one skill is available under `.github/skills/` and can be successfully activated by GitHub Copilot.
-- [ ] At least one custom agent is available under `.github/agents/` and can be assigned to a task.
-- [ ] `copilot-setup-steps.yml` exists, the workflow runs successfully in the **Actions** tab, and `linter all` exits with code `0` inside it.
-- [ ] An ADR exists in `docs/adrs/` documenting the decision to use a custom GitHub-Copilot-aligned agent framework.
-- [ ] All files pass spelling checks (`cspell`) and markdown linting.
-- [ ] A brief entry in `docs/index.md` points contributors to `AGENTS.md`, `.github/skills/`, and `.github/agents/`.
+- [x] `AGENTS.md` exists at the repo root and contains accurate, up-to-date project guidance.
+- [x] At least one skill is available under `.github/skills/` and can be successfully activated by GitHub Copilot.
+- [x] At least one custom agent is available under `.github/agents/` and can be assigned to a task.
+- [x] `copilot-setup-steps.yml` exists, the workflow runs successfully in the **Actions** tab, and `linter all` exits with code `0` inside it.
+- [x] An ADR exists in `docs/adrs/` documenting the decision to use a custom GitHub-Copilot-aligned agent framework.
+- [x] All files pass spelling checks (`cspell`) and markdown linting.
+- [x] A brief entry in `docs/index.md` points contributors to `AGENTS.md`, `.github/skills/`, and `.github/agents/`.

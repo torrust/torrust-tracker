@@ -1,23 +1,32 @@
 # Architectural Decision Records (ADRs)
 
-This directory contains the architectural decision records (ADRs) for the
-project. ADRs are a way to document the architectural decisions made in the
-project.
+This directory contains the architectural decision records (ADRs) for the project.
+ADRs document architectural decisions — what was decided, why, and what alternatives
+were considered.
 
 More info: <https://adr.github.io/>.
 
-## How to add a new record
+See [index.md](index.md) for the full list of ADRs.
 
-For the prefix:
+## How to Add a New ADR
 
-```s
+Generate the timestamp prefix (UTC):
+
+```shell
 date -u +"%Y%m%d%H%M%S"
 ```
 
-Then you can create a new markdown file with the following format:
+Create a new Markdown file using the format `YYYYMMDDHHMMSS_snake_case_title.md`:
 
-```s
+```shell
 20230510152112_title.md
 ```
 
-For the time being, we are not following any specific template.
+Then add a row to the [Index](index.md) table.
+
+There is no rigid template. A typical ADR includes:
+
+- **Description** — the problem or context motivating the decision
+- **Agreement** — what was decided and why
+- **Date** — decision date (`YYYY-MM-DD`)
+- **References** — related issues, PRs, external docs

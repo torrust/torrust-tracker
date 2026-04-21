@@ -1,0 +1,101 @@
+---
+name: create-issue
+description: Guide for creating GitHub issues in the torrust-tracker project. Covers the full workflow from specification drafting, user review, to GitHub issue creation with proper documentation and file naming. Supports task, bug, feature, and epic issue types. Use when creating issues, opening tickets, filing bugs, proposing tasks, or adding features. Triggers on "create issue", "open issue", "new issue", "file bug", "add task", "create epic", or "open ticket".
+metadata:
+  author: torrust
+  version: "1.0"
+---
+
+# Creating Issues
+
+## Issue Types
+
+| Type        | Label     | When to Use                                  |
+| ----------- | --------- | -------------------------------------------- |
+| **Task**    | `task`    | Single implementable unit of work            |
+| **Bug**     | `bug`     | Something broken that needs fixing           |
+| **Feature** | `feature` | New capability or enhancement                |
+| **Epic**    | `epic`    | Major feature area containing multiple tasks |
+
+## Workflow Overview
+
+The process is **spec-first**: write and review a specification before creating the GitHub issue.
+
+1. **Draft specification** document in `docs/issues/` (no template — write from scratch)
+2. **User reviews** the draft specification
+3. **Create GitHub issue**
+4. **Rename spec file** to include the issue number
+5. **Pre-commit checks** and commit the spec
+
+**Never create the GitHub issue before the user reviews and approves the specification.**
+
+## Step-by-Step Process
+
+### Step 1: Draft Issue Specification
+
+Create a specification file with a **temporary name** (no issue number yet):
+
+```bash
+touch docs/issues/{short-description}.md
+```
+
+Use [docs/templates/ISSUE.md](../../../docs/templates/ISSUE.md) as the starting structure.
+Use **placeholders** for the issue number until after creation (e.g., `[To be assigned]`).
+
+After drafting, run linters:
+
+```bash
+linter markdown
+linter cspell
+```
+
+### Step 2: User Reviews the Draft
+
+**STOP HERE** — present the draft to the user. Iterate until approved.
+
+### Step 3: Create the GitHub Issue
+
+After user approval, create the GitHub issue. Options:
+
+**GitHub CLI:**
+
+```bash
+gh issue create \
+  --repo torrust/torrust-tracker \
+  --title "{title}" \
+  --body "{body}" \
+  --label "{label}"
+```
+
+**MCP GitHub tools** (if available): use `mcp_github_github_issue_write` with `title`, `body`, and `labels`.
+
+### Step 4: Rename the Spec File
+
+Rename using the assigned issue number:
+
+```bash
+git mv docs/issues/{short-description}.md \
+       docs/issues/{number}-{short-description}.md
+```
+
+Update any issue number placeholders inside the file.
+
+### Step 5: Commit and Push
+
+```bash
+linter all    # Must pass
+
+git add docs/issues/
+git commit -S -m "docs(issues): add issue specification for #{number}"
+git push {your-fork-remote} {branch}
+```
+
+## Naming Convention
+
+File name format: `{number}-{short-description}.md`
+
+Examples:
+
+- `1697-ai-agent-configuration.md`
+- `42-add-peer-expiry-grace-period.md`
+- `523-internal-linting-tool.md`

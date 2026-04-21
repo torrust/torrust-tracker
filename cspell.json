@@ -22,6 +22,7 @@
         "contrib/bencode/benches/*.bencode",
         "contrib/dev-tools/su-exec/**",
         ".github/labels.json",
-        "/project-words.txt"
+        "/project-words.txt",
+        "repomix-output.xml"
     ]
 }

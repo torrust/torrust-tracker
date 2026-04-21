@@ -1,19 +1,23 @@
 Addrs
 adduser
 alekitto
+analyse
 appuser
 Arvid
 ASMS
 asyn
 autoclean
 AUTOINCREMENT
+autolinks
 automock
 Avicora
 Azureus
+backlinks
 bdecode
 bencode
 bencoded
 bencoding
+behaviour
 beps
 binascii
 binstall
@@ -44,6 +48,7 @@ Containerfile
 conv
 curr
 cvar
+cyclomatic
 Cyberneering
 dashmap
 datagram
@@ -124,6 +129,7 @@ ostr
 Pando
 peekable
 peerlist
+penalise
 programatik
 proot
 proto
@@ -134,6 +140,7 @@ Rasterbar
 realpath
 reannounce
 Registar
+repomix
 repr
 reqs
 reqwest
@@ -159,6 +166,7 @@ SHLVL
 skiplist
 slowloris
 socketaddr
+specialised
 sqllite
 subsec
 Swatinem
@@ -171,6 +179,7 @@ testcontainers
 Tera
 thiserror
 tlsv
+toplevel
 Torrentstorm
 torrust
 torrustracker
@@ -183,6 +192,7 @@ underflows
 Unsendable
 untuple
 uroot
+usize
 Vagaa
 valgrind
 Vitaly
