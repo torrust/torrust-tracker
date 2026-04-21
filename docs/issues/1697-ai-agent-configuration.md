@@ -192,7 +192,7 @@ tasks can be delegated to focused agents with the right prompt context.
 - [x] For each agent, create `.github/agents/<agent-name>.md` with:
   - YAML frontmatter: `name` (optional), `description`, optional `tools`
   - Prompt body: role definition, scope, constraints, and step-by-step instructions
-- [ ] Test each custom agent by assigning it to a task or issue in GitHub Copilot CLI
+- [x] Test each custom agent by assigning it to a task or issue in GitHub Copilot CLI
 
 **Candidate initial agents**:
 
@@ -349,10 +349,10 @@ Checkpoint:
 
 ## Acceptance Criteria
 
-- [ ] `AGENTS.md` exists at the repo root and contains accurate, up-to-date project guidance.
-- [ ] At least one skill is available under `.github/skills/` and can be successfully activated by GitHub Copilot.
-- [ ] At least one custom agent is available under `.github/agents/` and can be assigned to a task.
-- [ ] `copilot-setup-steps.yml` exists, the workflow runs successfully in the **Actions** tab, and `linter all` exits with code `0` inside it.
-- [ ] An ADR exists in `docs/adrs/` documenting the decision to use a custom GitHub-Copilot-aligned agent framework.
-- [ ] All files pass spelling checks (`cspell`) and markdown linting.
-- [ ] A brief entry in `docs/index.md` points contributors to `AGENTS.md`, `.github/skills/`, and `.github/agents/`.
+- [x] `AGENTS.md` exists at the repo root and contains accurate, up-to-date project guidance.
+- [x] At least one skill is available under `.github/skills/` and can be successfully activated by GitHub Copilot.
+- [x] At least one custom agent is available under `.github/agents/` and can be assigned to a task.
+- [x] `copilot-setup-steps.yml` exists, the workflow runs successfully in the **Actions** tab, and `linter all` exits with code `0` inside it.
+- [x] An ADR exists in `docs/adrs/` documenting the decision to use a custom GitHub-Copilot-aligned agent framework.
+- [x] All files pass spelling checks (`cspell`) and markdown linting.
+- [x] A brief entry in `docs/index.md` points contributors to `AGENTS.md`, `.github/skills/`, and `.github/agents/`.
