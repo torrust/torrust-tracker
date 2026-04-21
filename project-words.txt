@@ -127,9 +127,9 @@ obra
 oneshot
 ostr
 Pando
-penalise
 peekable
 peerlist
+penalise
 programatik
 proot
 proto
@@ -140,6 +140,7 @@ Rasterbar
 realpath
 reannounce
 Registar
+repomix
 repr
 reqs
 reqwest
@@ -149,7 +150,6 @@ ringsize
 rngs
 rosegment
 routable
-repomix
 rstest
 rusqlite
 rustc
@@ -166,6 +166,7 @@ SHLVL
 skiplist
 slowloris
 socketaddr
+specialised
 sqllite
 subsec
 Swatinem
@@ -178,6 +179,7 @@ testcontainers
 Tera
 thiserror
 tlsv
+toplevel
 Torrentstorm
 torrust
 torrustracker
@@ -246,8 +248,6 @@ sysmalloc
 sysret
 timespec
 toki
-specialised
-toplevel
 torru
 ttwu
 uninit

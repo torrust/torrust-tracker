@@ -11,7 +11,8 @@ set -euo pipefail
 
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 HOOKS_SRC="${REPO_ROOT}/.githooks"
-HOOKS_DST="${REPO_ROOT}/.git/hooks"
+HOOKS_DST="$(git rev-parse --git-path hooks)"
+mkdir -p "${HOOKS_DST}"
 
 if [ ! -d "${HOOKS_SRC}" ]; then
     echo "ERROR: .githooks/ directory not found at ${HOOKS_SRC}"
