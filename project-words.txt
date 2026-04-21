@@ -272,13 +272,13 @@ agentskills
 frontmatter
 MSRV
 newtypes
+pipefail
+qbittorrent
+rustup
 sqlx
+stabilised
 subissue
 Subissue
 Subissues
-rustup
-pipefail
-qbittorrent
-stabilised
 supertrait
 upcasting

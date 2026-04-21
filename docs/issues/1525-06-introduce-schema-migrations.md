@@ -277,7 +277,7 @@ async fn bootstrap_legacy_schema(pool: &Pool) -> Result<(), Error> {
 ```rust
 async fn create_database_tables(&self) -> Result<(), Error> {
     bootstrap_legacy_schema(&self.pool).await?;
-    MIGRATOR.run(&self.pool).await.map_err(|e| Error::migration_error(DRIVER, e))?;;
+    MIGRATOR.run(&self.pool).await.map_err(|e| Error::migration_error(DRIVER, e))?;
     Ok(())
 }
 ```

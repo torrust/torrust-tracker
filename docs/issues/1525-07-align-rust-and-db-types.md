@@ -4,7 +4,7 @@
 
 Widen the download-counter type in Rust from `u32` to `u64` and widen the corresponding
 database columns from `INTEGER` (32-bit, MySQL) to `BIGINT` (64-bit), delivered as a versioned
-`sqlx` migration so the change is explicit, testable, and reversible.
+`sqlx` migration so the change is explicit, testable, and tracked as a forward schema change.
 
 ## Background
 

@@ -138,7 +138,7 @@ CREATE TABLE IF NOT EXISTS torrents (
 CREATE TABLE IF NOT EXISTS keys (
     id SERIAL PRIMARY KEY,
     key VARCHAR(32) NOT NULL UNIQUE,
-    valid_until BIGINT NOT NULL
+    valid_until INTEGER NOT NULL
 );
 ```
 
@@ -286,7 +286,7 @@ async fn create_database_tables(&self) -> Result<(), Error> {
     MIGRATOR
         .run(&self.pool)
         .await
-        .map_err(|e| Error::migration_error(e, DRIVER))?;
+        .map_err(|e| Error::migration_error(DRIVER, e))?;
     Ok(())
 }
 ```
