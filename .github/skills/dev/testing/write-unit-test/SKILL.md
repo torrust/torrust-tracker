@@ -90,7 +90,7 @@ mod tests {
 
 ```bash
 # Run all tests in a package
-cargo test -p tracker-core
+cargo test -p bittorrent-tracker-core
 
 # Run specific test by name
 cargo test it_should_return_error_when_info_hash_is_invalid
@@ -102,60 +102,81 @@ cargo test info_hash::tests
 cargo test -- --nocapture
 ```
 
-## Phase 2: Deterministic Time with MockClock
+## Phase 2: Deterministic Time with `clock::Stopped`
 
-The `clock` workspace package provides a `MockClock` for deterministic time testing.
-Never use `std::time::SystemTime::now()` or `chrono::Utc::now()` directly in production code
-that needs testing.
+The `clock` workspace package provides `clock::Stopped` for deterministic time testing.
+Never call `std::time::SystemTime::now()` or `chrono::Utc::now()` directly in production code
+that needs testing. Instead, use the type-level clock abstraction.
 
-### Inject the Clock Dependency
+### Use the Type-Level Clock Alias
+
+Copy the following boilerplate into each crate that needs a clock. The `CurrentClock` alias
+automatically selects `Working` in production and `Stopped` in tests:
 
 ```rust
-use torrust_tracker_clock::clock::Clock;
-use std::sync::Arc;
+/// Working version, for production.
+#[cfg(not(test))]
+pub(crate) type CurrentClock = torrust_tracker_clock::clock::Working;
 
-pub struct PeerList {
-    clock: Arc<dyn Clock>,
-}
+/// Stopped version, for testing.
+#[cfg(test)]
+pub(crate) type CurrentClock = torrust_tracker_clock::clock::Stopped;
+```
 
-impl PeerList {
-    pub fn new(clock: Arc<dyn Clock>) -> Self {
-        Self { clock }
-    }
+In production code, obtain the current time via the `Time` trait:
 
-    pub fn is_peer_expired(&self, last_seen: i64, ttl: u32) -> bool {
-        let now = self.clock.now();
-        now - last_seen > i64::from(ttl)
-    }
+```rust
+use torrust_tracker_clock::clock::Time as _;
+
+pub fn is_peer_expired(last_seen: std::time::Duration, ttl: u32) -> bool {
+    let now = CurrentClock::now(); // returns DurationSinceUnixEpoch (= std::time::Duration)
+    now.saturating_sub(last_seen) > std::time::Duration::from_secs(u64::from(ttl))
 }
 ```
 
-### Use MockClock in Tests
+### Control Time in Tests
+
+Use `clock::Stopped::local_set` to pin the clock to a specific instant. The stopped clock is
+thread-local, so tests are isolated from each other by default.
 
 ```rust
 #[cfg(test)]
 mod tests {
+    use std::time::Duration;
+
+    use torrust_tracker_clock::clock::{stopped::Stopped as _, Time as _};
+    use torrust_tracker_clock::clock::Stopped;
+
     use super::*;
-    use torrust_tracker_clock::clock::stopped::Stopped as MockClock;
-    use std::sync::Arc;
 
     #[test]
     fn it_should_mark_peer_as_expired_when_ttl_has_elapsed() {
-        // Arrange
-        let fixed_time = 1_700_000_100i64; // specific Unix timestamp
-        let clock = Arc::new(MockClock::new(fixed_time));
-        let list = PeerList::new(clock);
-        let last_seen = 1_700_000_000i64;
+        // Arrange — pin the clock to a known instant
+        let fixed_time = Duration::from_secs(1_700_000_100);
+        Stopped::local_set(&fixed_time);
+
+        let last_seen = Duration::from_secs(1_700_000_000);
         let ttl = 60u32;
 
         // Act
-        let expired = list.is_peer_expired(last_seen, ttl);
+        let expired = is_peer_expired(last_seen, ttl);
 
         // Assert
         assert!(expired);
+
+        // Clean up — reset to zero so other tests start from a clean state
+        Stopped::local_reset();
     }
 }
 ```
+
+> **Key points**
+>
+> - `Stopped::now()` defaults to `Duration::ZERO` at the start of each test thread.
+> - `Stopped::local_set(&duration)` sets the current time for the calling thread only.
+> - `Stopped::local_reset()` resets back to `Duration::ZERO`.
+> - `Stopped::local_add(&duration)` advances the clock by the given amount.
+> - Import the `Stopped` trait (`use …::stopped::Stopped as _`) to bring its methods into scope.
 
 ## Phase 3: Parameterized Tests with rstest
 
@@ -195,6 +216,6 @@ Check the package for available mock servers, fixture generators, and utility ty
 
 - [ ] Test name uses `it_should_` prefix
 - [ ] Test follows AAA pattern with comments (`// Arrange`, `// Act`, `// Assert`)
-- [ ] No `std::time::SystemTime::now()` in production code — inject `Clock` instead
+- [ ] No `std::time::SystemTime::now()` in production code — use the `CurrentClock` type alias instead
 - [ ] No shared mutable state between tests
 - [ ] `cargo test -p <package>` passes

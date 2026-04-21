@@ -134,7 +134,7 @@ cargo test -p <package-name>
 cargo test --doc -p <package-name>
 
 # MySQL-specific tests in tracker-core (requires a running MySQL instance)
-TORRUST_TRACKER_CORE_RUN_MYSQL_DRIVER_TEST=true cargo test -p torrust-tracker-core
+TORRUST_TRACKER_CORE_RUN_MYSQL_DRIVER_TEST=true cargo test -p bittorrent-tracker-core
 ```
 
 Use `clock::Stopped` (from the `clock` package) in unit tests that need deterministic time.

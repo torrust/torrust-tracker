@@ -43,7 +43,7 @@ The script runs these steps in order:
 > **MySQL tests**: MySQL-specific tests require a running instance and a feature flag:
 >
 > ```bash
-> TORRUST_TRACKER_CORE_RUN_MYSQL_DRIVER_TEST=true cargo test --package tracker-core
+> TORRUST_TRACKER_CORE_RUN_MYSQL_DRIVER_TEST=true cargo test --package bittorrent-tracker-core
 > ```
 >
 > These are not run by the pre-commit script.
