@@ -1,10 +1,9 @@
-.github/skills/dev/testing/write-unit-test/SKILL.md---
+---
 name: write-unit-test
 description: Guide for writing unit tests following project conventions including behavior-driven naming (it*should*\*), AAA pattern, MockClock for deterministic time testing, and parameterized tests with rstest. Use when adding tests for domain entities, value objects, utilities, or tracker logic. Triggers on "write unit test", "add test", "test coverage", "unit testing", or "add unit tests".
 metadata:
-author: torrust
-version: "1.0"
-
+  author: torrust
+  version: "1.0"
 ---
 
 # Writing Unit Tests

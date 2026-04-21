@@ -28,7 +28,7 @@ depend on packages in the same layer or a lower one.
 │  events  metrics  clock  located-error  server-lib             │
 ├────────────────────────────────────────────────────────────────┤
 │  Utilities / Test support                                      │
-│  test-helpers  located-error  clock                            │
+│  test-helpers                                                  │
 └────────────────────────────────────────────────────────────────┘
 ```
 

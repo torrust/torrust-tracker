@@ -49,7 +49,9 @@ run_step() {
     echo "[Step ${step_number}/${total_steps}] ${description}..."
 
     local step_start=$SECONDS
-    eval "${command}"
+    local -a cmd_array
+    read -ra cmd_array <<< "${command}"
+    "${cmd_array[@]}"
     local step_elapsed=$((SECONDS - step_start))
 
     echo "PASSED: ${success_message} ($(format_time "${step_elapsed}"))"

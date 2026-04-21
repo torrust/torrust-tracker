@@ -47,8 +47,8 @@ native IPv4/IPv6 support, private/whitelisted mode, and a management REST API.
 - `share/default/` — Default configuration files and fixtures
 - `storage/` — Runtime data (git-ignored); databases, logs, config
 - `.github/workflows/` — CI/CD workflows (testing, coverage, container, deployment)
-- `.github/skills/` — Agent Skills for specialized workflows _(to be added — see issue #1697)_
-- `.github/agents/` — Custom Copilot agents _(to be added — see issue #1697)_
+- `.github/skills/` — Agent Skills for specialized workflows and task-specific guidance
+- `.github/agents/` — Custom Copilot agents and their repository-specific definitions
 
 ## 📦 Package Catalog
 
@@ -106,19 +106,19 @@ All packages live under `packages/`. The workspace version is `3.0.0-develop`.
 
 ## 📄 Key Configuration Files
 
-| File                          | Used by                                                                                                                             |
-| ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| `.markdownlint.json`          | markdownlint                                                                                                                        |
-| `.yamllint-ci.yml`            | yamllint                                                                                                                            |
-| `.taplo.toml`                 | taplo (TOML formatting)                                                                                                             |
-| `cspell.json` / `cSpell.json` | cspell (spell checker) — both filenames exist in the repo                                                                           |
-| `project-words.txt`           | cspell project-specific dictionary                                                                                                  |
-| `rustfmt.toml`                | rustfmt (`group_imports = "StdExternalCrate"`, `max_width = 130`)                                                                   |
-| `.cargo/config.toml`          | Cargo aliases (`cov`, `cov-lcov`, `cov-html`, `time`) and global `rustflags` (`-D warnings`, `-D unused`, `-D rust-2018-idioms`, …) |
-| `Cargo.toml`                  | Cargo workspace root                                                                                                                |
-| `compose.yaml`                | Docker Compose for local dev and demo                                                                                               |
-| `Containerfile`               | Container image definition                                                                                                          |
-| `codecov.yaml`                | Code coverage configuration                                                                                                         |
+| File                 | Used by                                                                                                                             |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `.markdownlint.json` | markdownlint                                                                                                                        |
+| `.yamllint-ci.yml`   | yamllint                                                                                                                            |
+| `.taplo.toml`        | taplo (TOML formatting)                                                                                                             |
+| `cspell.json`        | cspell (spell checker) configuration                                                                                                |
+| `project-words.txt`  | cspell project-specific dictionary                                                                                                  |
+| `rustfmt.toml`       | rustfmt (`group_imports = "StdExternalCrate"`, `max_width = 130`)                                                                   |
+| `.cargo/config.toml` | Cargo aliases (`cov`, `cov-lcov`, `cov-html`, `time`) and global `rustflags` (`-D warnings`, `-D unused`, `-D rust-2018-idioms`, …) |
+| `Cargo.toml`         | Cargo workspace root                                                                                                                |
+| `compose.yaml`       | Docker Compose for local dev and demo                                                                                               |
+| `Containerfile`      | Container image definition                                                                                                          |
+| `codecov.yaml`       | Code coverage configuration                                                                                                         |
 
 ## 🧪 Build & Test
 
@@ -127,7 +127,7 @@ All packages live under `packages/`. The workspace version is `3.0.0-develop`.
 ```sh
 rustup show                        # Check active toolchain
 rustup update                      # Update toolchain
-rustup toolchain install nightly   # Required: pre-commit hooks use cargo +nightly fmt/check/doc
+rustup toolchain install nightly   # Optional: only needed for manual cargo +nightly doc; the repo hook runs ./scripts/pre-commit.sh
 ```
 
 ### Build
@@ -349,7 +349,8 @@ See [docs/containers.md](docs/containers.md) for detailed container documentatio
 
 ## 🎯 Auto-Invoke Skills
 
-Agent Skills will be available under `.github/skills/` once issue #1697 is implemented.
+Agent Skills live under [`.github/skills/`](.github/skills/). Each skill is a `SKILL.md` file
+with YAML frontmatter and Markdown instructions covering a repeatable workflow.
 
 > Skills supplement (not replace) the rules in this file. Rules apply always; skills activate
 > when their workflows are needed.
@@ -384,5 +385,5 @@ Agent Skills will be available under `.github/skills/` once issue #1697 is imple
 | Run profiling                        | [`docs/profiling.md`](docs/profiling.md)             |
 | Understand the release process       | [`docs/release_process.md`](docs/release_process.md) |
 | Report a security vulnerability      | [`SECURITY.md`](SECURITY.md)                         |
-| Agent skills reference               | `.github/skills/` _(coming — see issue #1697)_       |
-| Custom agents reference              | `.github/agents/` _(coming — see issue #1697)_       |
+| Agent skills reference               | [`.github/skills/`](.github/skills/)                 |
+| Custom agents reference              | [`.github/agents/`](.github/agents/)                 |

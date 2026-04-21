@@ -52,7 +52,7 @@ Key formatting settings:
 ### cspell (Spell Checker)
 
 **Tool**: cspell  
-**Config**: `cspell.json`, `cSpell.json`  
+**Config**: `cspell.json`  
 **Dictionary**: `project-words.txt`  
 **Run**: `linter cspell`
 
