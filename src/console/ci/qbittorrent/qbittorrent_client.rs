@@ -201,6 +201,17 @@ impl QbittorrentClient {
             .context("failed to deserialize qBittorrent torrents list")
     }
 
+    /// # Errors
+    ///
+    /// Returns an error when querying torrents fails.
+    pub async fn torrent_count(&self) -> anyhow::Result<usize> {
+        Ok(self
+            .list_torrents()
+            .await
+            .with_context(|| format!("failed to list {} torrents", self.client_label))?
+            .len())
+    }
+
     fn webui_headers(&self) -> anyhow::Result<(String, String)> {
         let parsed_url = reqwest::Url::parse(&self.base_url)
             .with_context(|| format!("failed to parse qBittorrent base URL '{}'", self.base_url))?;

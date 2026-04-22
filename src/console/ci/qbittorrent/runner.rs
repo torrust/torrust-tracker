@@ -332,8 +332,8 @@ async fn wait_for_torrent_counts(
     let poll_interval = Duration::from_millis(500);
 
     loop {
-        let seeder_count = wait_for_torrent_count(seeder, "seeder").await?;
-        let leecher_count = wait_for_torrent_count(leecher, "leecher").await?;
+        let seeder_count = seeder.torrent_count().await?;
+        let leecher_count = leecher.torrent_count().await?;
 
         tracing::info!("Seeder has {seeder_count} torrent(s), leecher has {leecher_count} torrent(s)");
 
@@ -348,14 +348,6 @@ async fn wait_for_torrent_counts(
 
         sleep(poll_interval).await;
     }
-}
-
-async fn wait_for_torrent_count(client: &QbittorrentClient, client_label: &str) -> anyhow::Result<usize> {
-    Ok(client
-        .list_torrents()
-        .await
-        .with_context(|| format!("failed to list {client_label} torrents"))?
-        .len())
 }
 
 /// Polls the leecher until its torrent reaches 100% progress.
