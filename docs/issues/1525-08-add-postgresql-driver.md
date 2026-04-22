@@ -625,11 +625,64 @@ Steps:
 
 - Add `share/default/config/tracker.container.postgresql.toml` as described in the
   "What Changes" section.
+
+- Update `share/container/entry_script_sh` to handle `postgresql` alongside the existing
+  `sqlite3` and `mysql` branches. Add an `elif` branch immediately after the `mysql` branch:
+
+  ```sh
+  elif cmp_lc "$TORRUST_TRACKER_CONFIG_OVERRIDE_CORE__DATABASE__DRIVER" "postgresql"; then
+
+      # (no database file needed for PostgreSQL)
+
+      # Select default PostgreSQL configuration
+      default_config="/usr/share/torrust/default/config/tracker.container.postgresql.toml"
+  ```
+
+  Also update the error message in the `else` branch to list all three supported backends:
+
+  ```sh
+  echo "Please Note: Supported Database Types: \"sqlite3\", \"mysql\", \"postgresql\"."
+  ```
+
+  The `Containerfile` already copies this file via
+  `COPY --chmod=0555 ./share/container/entry_script_sh /usr/local/bin/entry.sh`; no
+  `Containerfile` changes are needed.
+
+- Update `compose.yaml` to support the PostgreSQL backend alongside the existing MySQL
+  service:
+  - Add a `postgres` service using `image: postgres:16`:
+
+    ```yaml
+    postgres:
+      image: postgres:16
+      healthcheck:
+        test: ["CMD-SHELL", "pg_isready -U postgres"]
+        interval: 3s
+        retries: 5
+        start_period: 30s
+      environment:
+        - POSTGRES_PASSWORD=postgres
+        - POSTGRES_USER=postgres
+        - POSTGRES_DB=torrust_tracker
+      networks:
+        - server_side
+      volumes:
+        - postgres_data:/var/lib/postgresql/data
+    ```
+
+  - Add `postgres` to the tracker service's `depends_on` list (alongside `mysql`) so the
+    tracker waits for whichever backend is healthy. Both DB services start; the tracker
+    connects to whichever backend the `TORRUST_TRACKER_CONFIG_OVERRIDE_CORE__DATABASE__DRIVER`
+    env var selects. This is acceptable for a demo / developer compose file.
+
+  - Add a `postgres_data` named volume to the `volumes:` section.
+
 - Update user-facing documentation to document PostgreSQL as a supported backend:
   - `README.md` — add `postgresql` to the list of supported database backends.
   - `docs/containers.md` — add a section (or extend the existing database section) describing
     how to run the tracker with PostgreSQL, including the `POSTGRES_DB` pre-creation
     requirement and a reference to the new container config file.
+
 - Run `linter cspell` and add any new technical terms to `project-words.txt` in alphabetical
   order. Terms likely to be flagged: `postgresql` (lowercase), `isready`, and any other
   identifiers used in scripts or code comments.
@@ -637,6 +690,14 @@ Steps:
 Acceptance criteria:
 
 - [ ] `share/default/config/tracker.container.postgresql.toml` exists and is valid TOML.
+- [ ] `share/container/entry_script_sh` has a `postgresql` branch that selects
+      `tracker.container.postgresql.toml`; the `else` error message lists all three supported
+      backends.
+- [ ] `compose.yaml` has a `postgres` service; the tracker service's `depends_on` includes
+      both `mysql` and `postgres`; a `postgres_data` volume is declared.
+- [ ] `docker compose up` with
+      `TORRUST_TRACKER_CONFIG_OVERRIDE_CORE__DATABASE__DRIVER=postgresql` starts the tracker
+      successfully against the PostgreSQL container.
 - [ ] The container configuration or its companion documentation (compose file or README)
       creates the `torrust_tracker` database (via `POSTGRES_DB` env var or equivalent) before
       the tracker is started.
@@ -685,6 +746,12 @@ Acceptance criteria:
 - [ ] The benchmark runner produces results for PostgreSQL; `docs/benchmarks/baseline.md`
       is updated.
 - [ ] `share/default/config/tracker.container.postgresql.toml` exists and is valid TOML.
+- [ ] `share/container/entry_script_sh` has a `postgresql` branch; the `else` error message
+      lists all three supported backends.
+- [ ] `compose.yaml` has a `postgres` service; the tracker service's `depends_on` includes
+      both `mysql` and `postgres`; `docker compose up` with
+      `TORRUST_TRACKER_CONFIG_OVERRIDE_CORE__DATABASE__DRIVER=postgresql` starts the tracker
+      successfully.
 - [ ] `project-words.txt` is up to date; `linter cspell` reports no failures.
 - [ ] `README.md` lists PostgreSQL as a supported database backend.
 - [ ] `docs/containers.md` documents how to run the tracker with PostgreSQL and states the
