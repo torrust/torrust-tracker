@@ -14,13 +14,13 @@ This skill guides you through the complete commit process for the Torrust Tracke
 
 ```bash
 # One-time setup: install the pre-commit Git hook
-./scripts/install-git-hooks.sh
+./contrib/dev-tools/git/install-git-hooks.sh
 
 # Stage changes
 git add <files>
 
 # Commit with conventional format and GPG signature (MANDATORY)
-# The pre-commit hook runs ./scripts/pre-commit.sh automatically
+# The pre-commit hook runs ./contrib/dev-tools/git/hooks/pre-commit.sh automatically
 git commit -S -m "<type>[(<scope>)]: <description>"
 ```
 
@@ -66,11 +66,11 @@ git commit -S -m "your commit message"
 
 ### Git Hook
 
-The repository ships a `pre-commit` Git hook that runs `./scripts/pre-commit.sh`
+The repository ships a `pre-commit` Git hook that runs `./contrib/dev-tools/git/hooks/pre-commit.sh`
 automatically on every `git commit`. Install it once after cloning:
 
 ```bash
-./scripts/install-git-hooks.sh
+./contrib/dev-tools/git/install-git-hooks.sh
 ```
 
 Once installed, the hook fires on every commit and you do not need to run the script manually.
@@ -84,7 +84,7 @@ If the hook is not installed, run the script explicitly before committing.
 > command timeout of **at least 5 minutes** before invoking this script.
 
 ```bash
-./scripts/pre-commit.sh
+./contrib/dev-tools/git/hooks/pre-commit.sh
 ```
 
 The script runs:

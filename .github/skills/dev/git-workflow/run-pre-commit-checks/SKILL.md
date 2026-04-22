@@ -10,11 +10,11 @@ metadata:
 
 ## Git Hook (Recommended Setup)
 
-The repository ships a `pre-commit` Git hook that runs `./scripts/pre-commit.sh`
+The repository ships a `pre-commit` Git hook that runs `./contrib/dev-tools/git/hooks/pre-commit.sh`
 automatically on every `git commit`. Install it once after cloning:
 
 ```bash
-./scripts/install-git-hooks.sh
+./contrib/dev-tools/git/install-git-hooks.sh
 ```
 
 After installation the hook fires automatically; you do not need to invoke the script
@@ -23,14 +23,14 @@ manually before each commit.
 ## Automated Checks
 
 > **⏱️ Expected runtime: ~3 minutes** on a modern developer machine. AI agents must set a
-> command timeout of **at least 5 minutes** before invoking `./scripts/pre-commit.sh`. Agents
+> command timeout of **at least 5 minutes** before invoking `./contrib/dev-tools/git/hooks/pre-commit.sh`. Agents
 > with a default per-command timeout below 5 minutes will likely time out and report a false
 > failure.
 
 Run the pre-commit script. **It must exit with code `0` before every commit.**
 
 ```bash
-./scripts/pre-commit.sh
+./contrib/dev-tools/git/hooks/pre-commit.sh
 ```
 
 The script runs these steps in order:

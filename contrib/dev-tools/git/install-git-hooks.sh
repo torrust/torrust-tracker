@@ -2,7 +2,7 @@
 # Install project Git hooks from .githooks/ into .git/hooks/.
 #
 # Usage:
-#   ./scripts/install-git-hooks.sh
+#   ./contrib/dev-tools/git/install-git-hooks.sh
 #
 # Run once after cloning the repository. Re-run to update hooks after
 # they change.

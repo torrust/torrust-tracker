@@ -17,7 +17,7 @@ Treat every commit request as a review-and-verify workflow, not as a blind reque
 
 - Follow `AGENTS.md` for repository-wide behaviour and
   `.github/skills/dev/git-workflow/commit-changes/SKILL.md` for commit-specific reference details.
-- The pre-commit validation command is `./scripts/pre-commit.sh`.
+- The pre-commit validation command is `./contrib/dev-tools/git/hooks/pre-commit.sh`.
 - Create GPG-signed Conventional Commits (`git commit -S`).
 
 ## Required Workflow
@@ -25,7 +25,7 @@ Treat every commit request as a review-and-verify workflow, not as a blind reque
 1. Read the current branch, `git status`, and the staged or unstaged diff relevant to the request.
 2. Summarize the intended commit scope before taking action.
 3. Ensure the commit scope is coherent and does not accidentally mix unrelated changes.
-4. Run `./scripts/pre-commit.sh` when feasible and fix issues that are directly related to the
+4. Run `./contrib/dev-tools/git/hooks/pre-commit.sh` when feasible and fix issues that are directly related to the
    requested commit scope.
 5. Propose a precise Conventional Commit message.
 6. Create the commit with `git commit -S` only after the scope is clear and blockers are resolved.

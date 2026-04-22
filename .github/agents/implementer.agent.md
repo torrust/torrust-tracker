@@ -27,7 +27,7 @@ Reference: [Beck Design Rules](https://martinfowler.com/bliki/BeckDesignRules.ht
 ## Repository Rules
 
 - Follow `AGENTS.md` for repository-wide conventions.
-- The pre-commit validation command is `./scripts/pre-commit.sh`.
+- The pre-commit validation command is `./contrib/dev-tools/git/hooks/pre-commit.sh`.
 - Relevant skills to load when needed:
   - `.github/skills/dev/testing/write-unit-test/SKILL.md` — test naming and Arrange/Act/Assert pattern.
   - `.github/skills/dev/rust-code-quality/handle-errors-in-code/SKILL.md` — error handling.
@@ -82,5 +82,5 @@ description of what was implemented. Do not commit directly — always delegate 
 - Do not implement more than was asked — scope creep is a defect.
 - Do not suppress compiler warnings or clippy lints without a documented reason.
 - Do not add dependencies without running `cargo machete` afterward.
-- Do not commit code that fails `./scripts/pre-commit.sh`.
+- Do not commit code that fails `./contrib/dev-tools/git/hooks/pre-commit.sh`.
 - Do not skip the audit step, even for small changes.

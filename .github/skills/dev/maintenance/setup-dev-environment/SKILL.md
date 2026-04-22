@@ -72,10 +72,10 @@ cargo install cargo-machete   # Unused dependency checker
 Install the project pre-commit hook (one-time, re-run after hook changes):
 
 ```bash
-./scripts/install-git-hooks.sh
+./contrib/dev-tools/git/install-git-hooks.sh
 ```
 
-The hook runs `./scripts/pre-commit.sh` automatically on every `git commit`.
+The hook runs `./contrib/dev-tools/git/hooks/pre-commit.sh` automatically on every `git commit`.
 
 ## Step 8: Smoke Test
 
