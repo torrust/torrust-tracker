@@ -303,23 +303,17 @@ async fn upload_torrent_to_clients(
     leecher: &QbittorrentClient,
     torrent_upload: TorrentUpload<'_>,
 ) -> anyhow::Result<()> {
-    upload_torrent_to_client(seeder, torrent_upload, "/downloads").await?;
-    upload_torrent_to_client(leecher, torrent_upload, "/downloads").await?;
-
-    tracing::info!("Torrent file uploaded to both qBittorrent clients");
-
-    Ok(())
-}
-
-async fn upload_torrent_to_client(
-    client: &QbittorrentClient,
-    torrent_upload: TorrentUpload<'_>,
-    save_path: &str,
-) -> anyhow::Result<()> {
-    client
-        .upload_torrent(torrent_upload.file_name, torrent_upload.bytes, save_path)
+    seeder
+        .upload_torrent(torrent_upload.file_name, torrent_upload.bytes, "/downloads")
         .await
         .context("failed to upload torrent")?;
+
+    leecher
+        .upload_torrent(torrent_upload.file_name, torrent_upload.bytes, "/downloads")
+        .await
+        .context("failed to upload torrent")?;
+
+    tracing::info!("Torrent file uploaded to both qBittorrent clients");
 
     Ok(())
 }
