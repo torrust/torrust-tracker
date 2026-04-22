@@ -86,7 +86,7 @@ You can then browse or search it while working in the main repository.
 
 ### 1) Add DB compatibility matrix
 
-- Spec file: `docs/issues/1525-01-persistence-test-coverage.md`
+- Spec file: `docs/issues/1703-1525-01-persistence-test-coverage.md`
 - Outcome: compatibility matrix exercises SQLite and multiple MySQL versions; PostgreSQL slot
   reserved for subissue 8
 

@@ -1,4 +1,6 @@
-# Subissue Draft for #1525-01: Add DB Compatibility Matrix
+# Subissue #1703 (Draft for #1525-01): Add DB Compatibility Matrix
+
+- Issue: https://github.com/torrust/torrust-tracker/issues/1703
 
 ## Goal
 
@@ -42,7 +44,7 @@ The implementation must follow these quality rules for all new and modified test
 
 The PR #1695 review branch includes a QA script that defines the expected behavior:
 
-- `run-db-compatibility-matrix.sh`:
+- `database-compatibility` job in `.github/workflows/testing.yaml`:
   executes a compatibility matrix across SQLite, multiple MySQL versions, and multiple PostgreSQL
   versions.
 
@@ -86,38 +88,30 @@ Steps:
   - PostgreSQL (reserved for subissue #1525-08): `TORRUST_TRACKER_CORE_POSTGRES_DRIVER_IMAGE_TAG`
 
   When `TORRUST_TRACKER_CORE_MYSQL_DRIVER_IMAGE_TAG` is not set, the test falls back to the
-  current hardcoded default (e.g. `8.0`), preserving existing behavior. The matrix script sets
+  current hardcoded default (e.g. `8.0`), preserving existing behavior. The CI matrix job sets
   this variable explicitly for each version in the loop, so unset means "run as today" and the
   matrix just expands that into multiple combinations.
 
-- Add `contrib/dev-tools/qa/run-db-compatibility-matrix.sh` modeled after the PR prototype:
-  - `set -euo pipefail`
-  - define default version sets from env vars:
-    - `MYSQL_VERSIONS` defaulting to at least `8.0 8.4`
-    - `POSTGRES_VERSIONS` reserved for subissue #1525-08
-  - run pre-checks once (`cargo check --workspace --all-targets`)
-  - run protocol/configuration tests once
-  - run SQLite driver tests once
-  - loop MySQL versions: `docker pull mysql:<version>`, then run MySQL driver tests with
-    `TORRUST_TRACKER_CORE_RUN_MYSQL_DRIVER_TEST=1` and
-    `TORRUST_TRACKER_CORE_MYSQL_DRIVER_IMAGE_TAG=<version>`
-  - print a clear heading for each backend/version before executing tests
-  - fail fast on first failure with the failing backend/version visible in logs
-  - keep script complexity intentionally low; avoid re-implementing test logic already in test
-    functions
-- Replace the current single MySQL `database` step in `.github/workflows/testing.yaml` with
-  execution of the new script.
+- Add a dedicated `database-compatibility` workflow job (between unit and e2e) with matrix values for MySQL versions:
+  - include matrix values for at least `8.0` and `8.4`
+  - run `cargo test -p bittorrent-tracker-core --features db-compatibility-tests run_mysql_driver_tests -- --nocapture`
+  - set `TORRUST_TRACKER_CORE_RUN_MYSQL_DRIVER_TEST=true`
+  - set `TORRUST_TRACKER_CORE_MYSQL_DRIVER_IMAGE_TAG=<version>`
+  - keep the test logic in Rust; use workflow matrix for version fan-out
+- Replace the current single MySQL `database` step in `.github/workflows/testing.yaml` with a
+  dedicated `database-compatibility` job.
 
 Acceptance criteria:
 
 - [ ] DB image version injection is supported via `TORRUST_TRACKER_CORE_MYSQL_DRIVER_IMAGE_TAG`
       (and a reserved `POSTGRES` equivalent for subissue #1525-08).
-- [ ] `contrib/dev-tools/qa/run-db-compatibility-matrix.sh` exists and runs successfully.
-- [ ] The script exercises SQLite and at least two MySQL versions by default.
+- [ ] `database-compatibility` workflow job runs successfully for each configured MySQL version.
+- [ ] The workflow matrix exercises at least two MySQL versions by default.
 - [ ] Failures identify the backend/version combination that broke.
-- [ ] The `database` job step in `.github/workflows/testing.yaml` runs the matrix script instead
-      of a single-version MySQL command.
-- [ ] The script structure allows PostgreSQL to be added in subissue #1525-08 without a redesign.
+- [ ] The dedicated `database-compatibility` job in `.github/workflows/testing.yaml` replaces the
+      old single-version MySQL command.
+- [ ] The workflow matrix structure allows PostgreSQL to be added in subissue #1525-08 without a
+      redesign.
 - [ ] Tests do not hard-code host ports; `testcontainers` assigns random ports automatically.
 - [ ] All containers started by tests are removed unconditionally on test completion or failure.
 
@@ -125,12 +119,13 @@ Acceptance criteria:
 
 Steps:
 
-- Document the local invocation command for the matrix script.
-- Document that the CI `database` step runs the same script.
+- Document the local invocation command for the compatibility test using explicit feature + env
+  vars.
+- Document that CI runs the same test through the `database-compatibility` workflow job matrix.
 
 Acceptance criteria:
 
-- [ ] The matrix script is documented and runnable without ad hoc manual steps.
+- [ ] The compatibility test command is documented and runnable without ad hoc manual steps.
 
 ## Out of Scope
 
@@ -143,8 +138,8 @@ Acceptance criteria:
 
 - [ ] `cargo test --workspace --all-targets` passes.
 - [ ] `linter all` exits with code `0`.
-- [ ] The matrix script has been executed successfully in a clean environment; a passing run log
-      is included in the PR description.
+- [ ] The `database-compatibility` workflow job has been executed successfully in a clean
+      environment; a passing run log is included in the PR description.
 
 ## References
 
@@ -152,4 +147,4 @@ Acceptance criteria:
 - Reference PR: #1695
 - Reference implementation branch: `josecelano:pr-1684-review` — see EPIC for checkout
   instructions (`docs/issues/1525-overhaul-persistence.md`)
-- Reference script: `contrib/dev-tools/qa/run-db-compatibility-matrix.sh`
+- Reference job: `.github/workflows/testing.yaml` `database-compatibility`

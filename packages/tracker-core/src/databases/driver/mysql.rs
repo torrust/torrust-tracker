@@ -345,7 +345,7 @@ impl Database for Mysql {
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, feature = "db-compatibility-tests"))]
 mod tests {
     use std::sync::Arc;
 
@@ -355,7 +355,8 @@ mod tests {
 
     Test for this driver are executed with:
 
-    `TORRUST_TRACKER_CORE_RUN_MYSQL_DRIVER_TEST=true cargo test`
+    `TORRUST_TRACKER_CORE_RUN_MYSQL_DRIVER_TEST=true \
+     cargo test -p bittorrent-tracker-core --features db-compatibility-tests run_mysql_driver_tests`
 
     The `Database` trait is very simple and we only have one driver that needs
     a container. In the future we might want to use different approaches like:
@@ -379,7 +380,9 @@ mod tests {
 
     impl StoppedMysqlContainer {
         async fn run(self, config: &MysqlConfiguration) -> Result<RunningMysqlContainer, Box<dyn std::error::Error + 'static>> {
-            let container = GenericImage::new("mysql", "8.0")
+            let image_tag = std::env::var("TORRUST_TRACKER_CORE_MYSQL_DRIVER_IMAGE_TAG").unwrap_or_else(|_| "8.0".to_string());
+
+            let container = GenericImage::new("mysql", image_tag.as_str())
                 .with_exposed_port(config.internal_port.tcp())
                 // todo: this does not work
                 //.with_wait_for(WaitFor::message_on_stdout("ready for connections"))
@@ -454,6 +457,8 @@ mod tests {
         driver
     }
 
+    // This test is invoked by `.github/workflows/testing.yaml` in the
+    // `database-compatibility` job to validate supported MySQL versions.
     #[tokio::test]
     async fn run_mysql_driver_tests() -> Result<(), Box<dyn std::error::Error + 'static>> {
         if std::env::var("TORRUST_TRACKER_CORE_RUN_MYSQL_DRIVER_TEST").is_err() {

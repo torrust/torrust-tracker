@@ -131,5 +131,25 @@ mod tests {
                 String::from_utf8(expected_bytes.to_vec()).unwrap()
             );
         }
+
+        #[test]
+        fn should_encode_large_download_counts_as_i64() {
+            let info_hash = InfoHash::from_bytes(&[0x69; 20]);
+            let mut scrape_data = ScrapeData::empty();
+            scrape_data.add_file(
+                &info_hash,
+                SwarmMetadata {
+                    complete: 1,
+                    downloaded: u32::MAX,
+                    incomplete: 3,
+                },
+            );
+
+            let response = Bencoded::from(scrape_data);
+            let bytes = response.body();
+            let body = String::from_utf8(bytes).unwrap();
+
+            assert!(body.contains(&format!("downloadedi{}e", i64::from(u32::MAX))));
+        }
     }
 }
