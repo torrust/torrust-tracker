@@ -35,10 +35,16 @@ const QBITTORRENT_PASSWORD: &str = "torrust-e2e-pass";
 const QBITTORRENT_FALLBACK_PASSWORD: &str = "adminadmin";
 const QBITTORRENT_WEBUI_PORT: u16 = 8080;
 const QBITTORRENT_CONFIG_RELATIVE_PATH: &str = "qBittorrent/qBittorrent.conf";
+const QBITTORRENT_DOWNLOADS_PATH: &str = "/downloads";
+const QBITTORRENT_DOWNLOADS_TEMP_PATH: &str = "/downloads/temp";
 const PAYLOAD_FILE_NAME: &str = "payload.bin";
 const TORRENT_FILE_NAME: &str = "payload.torrent";
 const PAYLOAD_SIZE_BYTES: usize = 1024 * 1024;
 const TORRENT_PIECE_LENGTH: usize = 16 * 1024;
+const TORRENT_POLL_INTERVAL: Duration = Duration::from_millis(500);
+const LOGIN_POLL_INTERVAL: Duration = Duration::from_secs(1);
+const LOGIN_LOG_POLL_INTERVAL: Duration = Duration::from_secs(5);
+const COMPOSE_PORT_POLL_INTERVAL: Duration = Duration::from_secs(1);
 
 #[derive(Clone, Copy, Debug)]
 struct TorrentUpload<'a> {
@@ -304,12 +310,12 @@ async fn upload_torrent_to_clients(
     torrent_upload: TorrentUpload<'_>,
 ) -> anyhow::Result<()> {
     seeder
-        .upload_torrent(torrent_upload.file_name, torrent_upload.bytes, "/downloads")
+        .upload_torrent(torrent_upload.file_name, torrent_upload.bytes, QBITTORRENT_DOWNLOADS_PATH)
         .await
         .context("failed to upload torrent")?;
 
     leecher
-        .upload_torrent(torrent_upload.file_name, torrent_upload.bytes, "/downloads")
+        .upload_torrent(torrent_upload.file_name, torrent_upload.bytes, QBITTORRENT_DOWNLOADS_PATH)
         .await
         .context("failed to upload torrent")?;
 
@@ -329,7 +335,7 @@ async fn wait_for_torrent_counts(
     timeout: Duration,
 ) -> anyhow::Result<()> {
     let deadline = std::time::Instant::now() + timeout;
-    let poll_interval = Duration::from_millis(500);
+    let poll_interval = TORRENT_POLL_INTERVAL;
 
     loop {
         let seeder_count = seeder.torrent_count().await?;
@@ -356,7 +362,7 @@ async fn wait_for_torrent_counts(
 /// first torrent on the leecher reports `progress >= 1.0`, indicating a full download.
 async fn wait_for_leecher_completion(leecher: &QbittorrentClient, timeout: Duration) -> anyhow::Result<()> {
     let deadline = std::time::Instant::now() + timeout;
-    let poll_interval = Duration::from_millis(500);
+    let poll_interval = TORRENT_POLL_INTERVAL;
 
     loop {
         let torrents = leecher
@@ -478,7 +484,7 @@ fn write_qbittorrent_config(config_root: &Path, username: &str, password: &str) 
 
     let password_hash = build_qbittorrent_password_hash(password);
     let config = format!(
-        "[BitTorrent]\nSession\\AddTorrentStopped=false\nSession\\DefaultSavePath=/downloads\nSession\\TempPath=/downloads/temp\n[Preferences]\nWebUI\\LocalHostAuth=false\nWebUI\\Port={QBITTORRENT_WEBUI_PORT}\nWebUI\\Password_PBKDF2=\"{password_hash}\"\nWebUI\\Username={username}\n"
+        "[BitTorrent]\nSession\\AddTorrentStopped=false\nSession\\DefaultSavePath={QBITTORRENT_DOWNLOADS_PATH}\nSession\\TempPath={QBITTORRENT_DOWNLOADS_TEMP_PATH}\n[Preferences]\nWebUI\\LocalHostAuth=false\nWebUI\\Port={QBITTORRENT_WEBUI_PORT}\nWebUI\\Password_PBKDF2=\"{password_hash}\"\nWebUI\\Username={username}\n"
     );
 
     fs::write(&config_path, config).with_context(|| format!("failed to write qBittorrent config '{}'", config_path.display()))?;
@@ -505,8 +511,8 @@ async fn wait_for_qbittorrent_login(
     timeout: Duration,
 ) -> anyhow::Result<String> {
     let start = std::time::Instant::now();
-    let poll_interval = Duration::from_secs(1);
-    let log_poll_interval = Duration::from_secs(5);
+    let poll_interval = LOGIN_POLL_INTERVAL;
+    let log_poll_interval = LOGIN_LOG_POLL_INTERVAL;
     let mut last_log_check: Option<std::time::Instant> = None;
     let mut last_error = String::from("qBittorrent WebUI did not accept known credentials yet");
     let mut candidate_passwords = vec![QBITTORRENT_PASSWORD.to_string(), QBITTORRENT_FALLBACK_PASSWORD.to_string()];
@@ -562,7 +568,7 @@ async fn resolve_service_host_port(
     timeout: Duration,
 ) -> anyhow::Result<u16> {
     let start = std::time::Instant::now();
-    let poll_interval = Duration::from_secs(1);
+    let poll_interval = COMPOSE_PORT_POLL_INTERVAL;
     let mut last_error: Option<std::io::Error> = None;
 
     while start.elapsed() < timeout {
