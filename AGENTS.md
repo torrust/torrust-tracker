@@ -127,7 +127,7 @@ All packages live under `packages/`. The workspace version is `3.0.0-develop`.
 ```sh
 rustup show                        # Check active toolchain
 rustup update                      # Update toolchain
-rustup toolchain install nightly   # Optional: only needed for manual cargo +nightly doc; the repo hook runs ./contrib/dev-tools/git/hooks/pre-commit.sh
+rustup toolchain install nightly   # Optional: needed for manual cargo +nightly commands and the repo pre-push checks (fmt/check/doc)
 ```
 
 ### Build

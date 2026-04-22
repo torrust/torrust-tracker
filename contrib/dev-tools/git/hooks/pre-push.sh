@@ -19,14 +19,14 @@ set -euo pipefail
 # Each step: "description|success_message|command"
 
 declare -a STEPS=(
-    "Checking for unused dependencies (cargo machete)|No unused dependencies found|cargo machete"
+    "Checking for unused dependencies (cargo machete)|No unused dependencies found|cargo +stable machete"
     "Running all linters|All linters passed|linter all"
     "Checking format with nightly toolchain|Nightly format check passed|cargo +nightly fmt --check"
     "Checking workspace with nightly toolchain|Nightly check passed|cargo +nightly check --tests --benches --examples --workspace --all-targets --all-features"
     "Building documentation with nightly toolchain|Nightly documentation built|cargo +nightly doc --no-deps --bins --examples --workspace --all-features"
-    "Running documentation tests|Documentation tests passed|cargo test --doc --workspace"
-    "Running all tests|All tests passed|cargo test --tests --benches --examples --workspace --all-targets --all-features"
-    "Running E2E tests|E2E tests passed|cargo run --bin e2e_tests_runner -- --config-toml-path ./share/default/config/tracker.e2e.container.sqlite3.toml"
+    "Running documentation tests|Documentation tests passed|cargo +stable test --doc --workspace"
+    "Running all tests|All tests passed|cargo +stable test --tests --benches --examples --workspace --all-targets --all-features"
+    "Running E2E tests|E2E tests passed|cargo +stable run --bin e2e_tests_runner -- --config-toml-path ./share/default/config/tracker.e2e.container.sqlite3.toml"
 )
 
 # ============================================================================
