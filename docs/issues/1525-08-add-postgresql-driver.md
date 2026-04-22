@@ -767,7 +767,7 @@ Acceptance criteria:
 - EPIC: `#1525` — `docs/issues/1525-overhaul-persistence.md`
 - Subissue `1525-01`: `docs/issues/1525-01-persistence-test-coverage.md` — compatibility
   matrix structure (PostgreSQL loop deferred here)
-- Subissue `1525-02`: `docs/issues/1525-02-qbittorrent-e2e.md` — E2E runner (PostgreSQL
+- Subissue `1525-02`: `docs/issues/1706-1525-02-qbittorrent-e2e.md` — E2E runner (PostgreSQL
   deferred here)
 - Subissue `1525-03`: `docs/issues/1525-03-persistence-benchmarking.md` — benchmark runner
   (PostgreSQL deferred here)
