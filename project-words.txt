@@ -196,6 +196,7 @@ repomix
 repr
 reqs
 reqwest
+reuseaddr
 rerequests
 ringbuf
 ringsize
@@ -222,6 +223,7 @@ shellcheck
 SHLVL
 skiplist
 slowloris
+socat
 socketaddr
 sockfd
 specialised

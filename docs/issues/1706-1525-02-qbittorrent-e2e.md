@@ -138,8 +138,8 @@ Steps:
 Acceptance criteria:
 
 - [x] The runner completes a full seeder → leecher download using the containerized tracker.
-- [ ] Leecher torrent progress reaches 100% before the runner declares success.
-- [ ] Downloaded file is verified against the original payload (hash or byte comparison).
+- [x] Leecher torrent progress reaches 100% before the runner declares success.
+- [x] Downloaded file is verified against the original payload (hash or byte comparison).
 - [x] The runner can be executed repeatedly without manual setup or teardown.
 - [x] No orphaned containers or volumes remain on success or failure.
 - [x] The binary is documented in the top-level module doc comment with an example invocation.
@@ -166,11 +166,11 @@ Steps:
 
 Acceptance criteria:
 
-- [ ] The runner polls leecher torrent progress until reaching 100%.
-- [ ] The runner retrieves the downloaded file from the leecher container.
-- [ ] The runner verifies the downloaded file matches the original payload (hash or byte comparison).
-- [ ] The runner errors if completion or verification fails within the timeout window.
-- [ ] The runner logs progress at each step for debugging.
+- [x] The runner polls leecher torrent progress until reaching 100%.
+- [x] The runner retrieves the downloaded file from the leecher container.
+- [x] The runner verifies the downloaded file matches the original payload (hash or byte comparison).
+- [x] The runner errors if completion or verification fails within the timeout window.
+- [x] The runner logs progress at each step for debugging.
 
 ### 4) Document the E2E workflow and GitHub Actions integration
 
@@ -200,8 +200,8 @@ Acceptance criteria:
 
 ## Definition of Done
 
-- [ ] Leecher torrent progress verification implemented and tested.
-- [ ] Downloaded file integrity verification (hash/byte comparison) implemented and tested.
+- [x] Leecher torrent progress verification implemented and tested.
+- [x] Downloaded file integrity verification (hash/byte comparison) implemented and tested.
 - [x] `cargo test --workspace --all-targets` passes (or the E2E test is explicitly excluded with a
       documented opt-in flag).
 - [x] `linter all` exits with code `0`.
@@ -231,14 +231,15 @@ Acceptance criteria:
 - Rust runner binary with full scaffolding and orchestration
 - Torrent upload to both clients via qBittorrent WebUI API
 - Polling loop to wait for torrents to appear on both clients (fixes race condition)
+- Polling loop to wait for leecher torrent progress to reach 100%
+- Payload integrity verification: reads downloaded file from leecher volume mount,
+  compares byte-for-byte against original, logs SHA1 hash on success
 - RAII-based automatic cleanup via `docker compose down --volumes`
 - `--keep-containers` debug flag for post-run inspection
 - All linting checks passing; runner exits code 0
 
 **Pending (follow-up tasks):**
 
-- Verify leecher torrent progress reaches 100% before declaring success
-- Retrieve and verify downloaded file integrity (hash or byte comparison against original payload)
 - GitHub Actions workflow integration (documented and planned for follow-up)
 
 ### Race Condition Resolution
@@ -278,7 +279,9 @@ A passing run log demonstrating core functionality:
 
 1. **Exit code 0** — Binary exits successfully
 2. **Torrent counts verified** — Polling detects both clients reach ≥ 1 torrent
-3. **Containers cleaned up** — RAII guard executes `docker compose down --volumes` on exit
+3. **Leecher reaches 100%** — Progress polling logs each step until `stalledUP`
+4. **Payload integrity verified** — SHA1 hash of downloaded file matches original
+5. **Containers cleaned up** — RAII guard executes `docker compose down --volumes` on exit
 
 Example output excerpt:
 
@@ -286,9 +289,34 @@ Example output excerpt:
 Seeder has 0 torrent(s), leecher has 0 torrent(s)
 Seeder has 1 torrent(s), leecher has 1 torrent(s)
 Both clients have at least one torrent — upload confirmed
+Leecher torrent progress: 0.0% (state: queuedDL)
+Leecher torrent progress: 0.0% (state: stalledDL)
+Leecher torrent progress: 100.0% (state: stalledUP)
+Leecher torrent download complete (100%)
+Payload integrity verified: SHA1 c2fc4cb20f1301a6b0dd211c19e69a13925dbe40 (1048576 bytes match)
 ```
 
 All linting checks (`linter all`) pass with exit code 0.
+
+### Session Progress Update (2026-04-22)
+
+Additional validation completed in this session:
+
+- Re-ran `qbittorrent_e2e_runner` with `--keep-containers` to preserve the stack for manual checks.
+- Confirmed leecher WebUI access and authentication on a fresh environment.
+- Manually verified in leecher UI that `payload.bin` reached `100%` and moved to `Seeding` state.
+- Re-ran `linter all` after documentation updates; all linters pass.
+
+Operational troubleshooting findings captured during validation:
+
+- qBittorrent login success must be validated using response body (`Ok.`), not only status code.
+  Wrong credentials can return `200 OK` with body `Fails.`.
+- Repeated failed login attempts trigger temporary IP bans (`403 Forbidden`).
+- For manual browser inspection via random host port mappings, forwarding
+  `localhost:8080` to the published leecher port with `socat` provides a stable access path.
+
+These findings are documented in `contrib/dev-tools/debugging/qbt/README.md` under
+Troubleshooting.
 
 ### GitHub Actions Integration (Deferred)
 

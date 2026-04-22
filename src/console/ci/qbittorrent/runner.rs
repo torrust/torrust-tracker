@@ -5,6 +5,7 @@
 //! ```text
 //! cargo run --bin qbittorrent_e2e_runner -- --compose-file ./compose.qbittorrent-e2e.yaml --timeout-seconds 180
 //! ```
+use std::fmt::Write as FmtWrite;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
@@ -79,6 +80,7 @@ struct PreparedWorkspace {
     leecher_config_path: PathBuf,
     seeder_downloads_path: PathBuf,
     leecher_downloads_path: PathBuf,
+    payload_bytes: Vec<u8>,
     torrent_bytes: Vec<u8>,
 }
 
@@ -105,6 +107,9 @@ pub async fn run() -> anyhow::Result<()> {
     let (seeder, leecher) = initialize_clients(&compose, timeout).await?;
     upload_torrent_to_clients(&seeder, &leecher, &workspace.torrent_bytes).await?;
     wait_for_torrent_counts(&seeder, &leecher, timeout).await?;
+    wait_for_leecher_completion(&leecher, timeout).await?;
+    verify_payload_integrity(&workspace.leecher_downloads_path, &workspace.payload_bytes)
+        .context("downloaded payload does not match the original")?;
 
     if args.keep_containers {
         tracing::info!(
@@ -141,7 +146,7 @@ fn prepare_workspace(args: &Args) -> anyhow::Result<PreparedWorkspace> {
         .context("failed to generate leecher qBittorrent config")?;
 
     let tracker_config_path = write_tracker_config(&temp_dir, &args.tracker_config_template)?;
-    let torrent_bytes = write_payload_and_torrent(&shared_path, &seeder_downloads_path)?;
+    let (payload_bytes, torrent_bytes) = write_payload_and_torrent(&shared_path, &seeder_downloads_path)?;
 
     Ok(PreparedWorkspace {
         _temp_dir: temp_dir,
@@ -152,6 +157,7 @@ fn prepare_workspace(args: &Args) -> anyhow::Result<PreparedWorkspace> {
         leecher_config_path,
         seeder_downloads_path,
         leecher_downloads_path,
+        payload_bytes,
         torrent_bytes,
     })
 }
@@ -171,7 +177,7 @@ fn write_tracker_config(temp_dir: &tempfile::TempDir, tracker_config_template: &
     Ok(tracker_config_path)
 }
 
-fn write_payload_and_torrent(shared_path: &Path, seeder_downloads_path: &Path) -> anyhow::Result<Vec<u8>> {
+fn write_payload_and_torrent(shared_path: &Path, seeder_downloads_path: &Path) -> anyhow::Result<(Vec<u8>, Vec<u8>)> {
     let payload_path = shared_path.join(PAYLOAD_FILE_NAME);
     let torrent_path = shared_path.join(TORRENT_FILE_NAME);
     let payload_bytes = build_payload_bytes(PAYLOAD_SIZE_BYTES);
@@ -189,7 +195,7 @@ fn write_payload_and_torrent(shared_path: &Path, seeder_downloads_path: &Path) -
     fs::write(&torrent_path, &torrent_bytes)
         .with_context(|| format!("failed to write torrent file '{}'", torrent_path.display()))?;
 
-    Ok(torrent_bytes)
+    Ok((payload_bytes, torrent_bytes))
 }
 
 fn build_compose(args: &Args, project_name: &str, workspace: &PreparedWorkspace) -> anyhow::Result<DockerCompose> {
@@ -308,6 +314,83 @@ async fn wait_for_torrent_counts(
 
         sleep(poll_interval).await;
     }
+}
+
+/// Polls the leecher until its torrent reaches 100% progress.
+///
+/// qBittorrent downloads asynchronously. This function retries every 500 ms until the
+/// first torrent on the leecher reports `progress >= 1.0`, indicating a full download.
+async fn wait_for_leecher_completion(leecher: &QbittorrentClient, timeout: Duration) -> anyhow::Result<()> {
+    let deadline = std::time::Instant::now() + timeout;
+    let poll_interval = Duration::from_millis(500);
+
+    loop {
+        let torrents = leecher
+            .list_torrents()
+            .await
+            .context("failed to list leecher torrents while polling for completion")?;
+
+        if let Some(torrent) = torrents.first() {
+            tracing::info!(
+                "Leecher torrent progress: {:.1}% (state: {})",
+                torrent.progress * 100.0,
+                torrent.state
+            );
+
+            if torrent.progress >= 1.0 {
+                tracing::info!("Leecher torrent download complete (100%)");
+                return Ok(());
+            }
+        }
+
+        if std::time::Instant::now() >= deadline {
+            anyhow::bail!("timed out waiting for leecher to complete download");
+        }
+
+        sleep(poll_interval).await;
+    }
+}
+
+/// Verifies that the leecher's downloaded file matches the original payload byte-for-byte.
+///
+/// Reads the downloaded file from `leecher_downloads_path/payload.bin` and compares it to
+/// `original_payload`. Logs the `SHA1` hash of the verified payload on success.
+fn verify_payload_integrity(leecher_downloads_path: &Path, original_payload: &[u8]) -> anyhow::Result<()> {
+    let downloaded_path = leecher_downloads_path.join(PAYLOAD_FILE_NAME);
+    let downloaded_bytes = fs::read(&downloaded_path)
+        .with_context(|| format!("failed to read downloaded payload from '{}'", downloaded_path.display()))?;
+
+    if downloaded_bytes.len() != original_payload.len() {
+        anyhow::bail!(
+            "payload size mismatch: original {} bytes, downloaded {} bytes",
+            original_payload.len(),
+            downloaded_bytes.len()
+        );
+    }
+
+    if downloaded_bytes != original_payload {
+        let original_hash: String = Sha1::digest(original_payload).iter().fold(String::new(), |mut s, b| {
+            let _ = write!(s, "{b:02x}");
+            s
+        });
+        let downloaded_hash: String = Sha1::digest(&downloaded_bytes).iter().fold(String::new(), |mut s, b| {
+            let _ = write!(s, "{b:02x}");
+            s
+        });
+        anyhow::bail!("payload content mismatch: original SHA1 {original_hash}, downloaded SHA1 {downloaded_hash}");
+    }
+
+    let hash: String = Sha1::digest(original_payload).iter().fold(String::new(), |mut s, b| {
+        let _ = write!(s, "{b:02x}");
+        s
+    });
+    tracing::info!(
+        "Payload integrity verified: SHA1 {} ({} bytes match)",
+        hash,
+        original_payload.len()
+    );
+
+    Ok(())
 }
 
 fn tracing_stdout_init(filter: LevelFilter) {
