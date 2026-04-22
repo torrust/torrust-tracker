@@ -53,6 +53,7 @@ Cyberneering
 dashmap
 datagram
 datetime
+dbname
 debuginfo
 Deque
 Dijke
@@ -88,6 +89,7 @@ infohashes
 infoschema
 Intermodal
 intervali
+isready
 Joakim
 kallsyms
 Karatay
@@ -195,6 +197,7 @@ uroot
 usize
 Vagaa
 valgrind
+VARCHAR
 Vitaly
 vmlinux
 Vuze
@@ -268,4 +271,14 @@ Agentic
 agentskills
 frontmatter
 MSRV
+newtypes
+pipefail
+qbittorrent
 rustup
+sqlx
+stabilised
+subissue
+Subissue
+Subissues
+supertrait
+upcasting
