@@ -25,6 +25,7 @@ use tracing::level_filters::LevelFilter;
 
 use super::bencode::BencodeValue;
 use super::qbittorrent_client::QbittorrentClient;
+use super::workspace::{EphemeralWorkspace, PermanentWorkspace, PreparedWorkspace, WorkspaceResources};
 use crate::console::ci::compose::DockerCompose;
 
 const TRACKER_IMAGE: &str = "torrust-tracker:qbt-e2e-local";
@@ -70,46 +71,6 @@ struct Args {
     /// down.  Useful for post-run debugging (e.g. `docker logs <container>`).
     #[clap(long, default_value_t = false)]
     keep_containers: bool,
-}
-
-struct WorkspaceResources {
-    root_path: PathBuf,
-    tracker_config_path: PathBuf,
-    tracker_storage_path: PathBuf,
-    shared_path: PathBuf,
-    seeder_config_path: PathBuf,
-    leecher_config_path: PathBuf,
-    seeder_downloads_path: PathBuf,
-    leecher_downloads_path: PathBuf,
-    payload_bytes: Vec<u8>,
-    torrent_bytes: Vec<u8>,
-}
-
-struct EphemeralWorkspace {
-    _temp_dir: tempfile::TempDir,
-    resources: WorkspaceResources,
-}
-
-struct PermanentWorkspace {
-    resources: WorkspaceResources,
-}
-
-enum PreparedWorkspace {
-    Ephemeral(EphemeralWorkspace),
-    Permanent(PermanentWorkspace),
-}
-
-impl PreparedWorkspace {
-    fn resources(&self) -> &WorkspaceResources {
-        match self {
-            Self::Ephemeral(workspace) => &workspace.resources,
-            Self::Permanent(workspace) => &workspace.resources,
-        }
-    }
-
-    fn root_path(&self) -> &Path {
-        &self.resources().root_path
-    }
 }
 
 /// Runs the qBittorrent E2E smoke orchestration.
