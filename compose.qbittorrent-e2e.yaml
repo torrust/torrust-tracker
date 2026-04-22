@@ -1,0 +1,62 @@
+name: qbittorrent-e2e
+
+services:
+  tracker:
+    image: ${QBT_E2E_TRACKER_IMAGE:?QBT_E2E_TRACKER_IMAGE is required}
+    restart: "no"
+    volumes:
+      - type: bind
+        source: ${QBT_E2E_TRACKER_CONFIG_PATH:?QBT_E2E_TRACKER_CONFIG_PATH is required}
+        target: /etc/torrust/tracker/tracker.toml
+        read_only: true
+      - type: bind
+        source: ${QBT_E2E_TRACKER_STORAGE_PATH:?QBT_E2E_TRACKER_STORAGE_PATH is required}
+        target: /var/lib/torrust/tracker
+    ports:
+      - "0:7070"
+      - "0:6969/udp"
+      - "0:1313"
+
+  qbittorrent-seeder:
+    image: ${QBT_E2E_QBITTORRENT_IMAGE:?QBT_E2E_QBITTORRENT_IMAGE is required}
+    restart: "no"
+    environment:
+      WEBUI_PORT: "8080"
+      PUID: "1000"
+      PGID: "1000"
+      TZ: "UTC"
+      QBT_LEGAL_NOTICE: "confirm"
+    volumes:
+      - type: bind
+        source: ${QBT_E2E_SEEDER_CONFIG_PATH:?QBT_E2E_SEEDER_CONFIG_PATH is required}
+        target: /config
+      - type: bind
+        source: ${QBT_E2E_SEEDER_DOWNLOADS_PATH:?QBT_E2E_SEEDER_DOWNLOADS_PATH is required}
+        target: /downloads
+      - type: bind
+        source: ${QBT_E2E_SHARED_PATH:?QBT_E2E_SHARED_PATH is required}
+        target: /shared
+    ports:
+      - "0:8080"
+
+  qbittorrent-leecher:
+    image: ${QBT_E2E_QBITTORRENT_IMAGE:?QBT_E2E_QBITTORRENT_IMAGE is required}
+    restart: "no"
+    environment:
+      WEBUI_PORT: "8080"
+      PUID: "1000"
+      PGID: "1000"
+      TZ: "UTC"
+      QBT_LEGAL_NOTICE: "confirm"
+    volumes:
+      - type: bind
+        source: ${QBT_E2E_LEECHER_CONFIG_PATH:?QBT_E2E_LEECHER_CONFIG_PATH is required}
+        target: /config
+      - type: bind
+        source: ${QBT_E2E_LEECHER_DOWNLOADS_PATH:?QBT_E2E_LEECHER_DOWNLOADS_PATH is required}
+        target: /downloads
+      - type: bind
+        source: ${QBT_E2E_SHARED_PATH:?QBT_E2E_SHARED_PATH is required}
+        target: /shared
+    ports:
+      - "0:8080"

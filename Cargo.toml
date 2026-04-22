@@ -35,16 +35,21 @@ version = "3.0.0-develop"
 [dependencies]
 anyhow = "1"
 axum-server = { version = "0", features = [ "tls-rustls-no-provider" ] }
+base64 = "0.22.1"
 bittorrent-http-tracker-core = { version = "3.0.0-develop", path = "packages/http-tracker-core" }
 bittorrent-tracker-core = { version = "3.0.0-develop", path = "packages/tracker-core" }
 bittorrent-udp-tracker-core = { version = "3.0.0-develop", path = "packages/udp-tracker-core" }
 chrono = { version = "0", default-features = false, features = [ "clock" ] }
 clap = { version = "4", features = [ "derive", "env" ] }
+pbkdf2 = "0.13.0"
 rand = "0"
 regex = "1"
-reqwest = { version = "0", features = [ "json" ] }
+reqwest = { version = "0", features = [ "json", "multipart" ] }
 serde = { version = "1", features = [ "derive" ] }
 serde_json = { version = "1", features = [ "preserve_order" ] }
+sha1 = "0.11.0"
+sha2 = "0.11.0"
+tempfile = "3.27.0"
 thiserror = "2.0.12"
 tokio = { version = "1", features = [ "macros", "net", "rt-multi-thread", "signal", "sync" ] }
 tokio-util = "0.7.15"
