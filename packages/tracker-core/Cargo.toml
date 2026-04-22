@@ -13,6 +13,10 @@ repository.workspace = true
 rust-version.workspace = true
 version.workspace = true
 
+[features]
+default = [  ]
+db-compatibility-tests = [  ]
+
 [dependencies]
 aquatic_udp_protocol = "0"
 bittorrent-primitives = "0.1.0"

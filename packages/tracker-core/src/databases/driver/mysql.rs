@@ -345,7 +345,7 @@ impl Database for Mysql {
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, feature = "db-compatibility-tests"))]
 mod tests {
     use std::sync::Arc;
 
@@ -379,7 +379,9 @@ mod tests {
 
     impl StoppedMysqlContainer {
         async fn run(self, config: &MysqlConfiguration) -> Result<RunningMysqlContainer, Box<dyn std::error::Error + 'static>> {
-            let container = GenericImage::new("mysql", "8.0")
+            let image_tag = std::env::var("TORRUST_TRACKER_CORE_MYSQL_DRIVER_IMAGE_TAG").unwrap_or_else(|_| "8.0".to_string());
+
+            let container = GenericImage::new("mysql", image_tag.as_str())
                 .with_exposed_port(config.internal_port.tcp())
                 // todo: this does not work
                 //.with_wait_for(WaitFor::message_on_stdout("ready for connections"))
