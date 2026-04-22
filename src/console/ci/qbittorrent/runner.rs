@@ -58,6 +58,9 @@ impl<'a> TorrentUpload<'a> {
     }
 }
 
+type ClientPair = (QbittorrentClient, QbittorrentClient);
+type ClientPairRef<'a> = (&'a QbittorrentClient, &'a QbittorrentClient);
+
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None)]
 struct Args {
@@ -114,8 +117,8 @@ pub async fn run() -> anyhow::Result<()> {
     let timeout = Duration::from_secs(args.timeout_seconds);
     let (seeder, leecher) = initialize_clients(&compose, timeout).await?;
     let torrent_upload = TorrentUpload::new(TORRENT_FILE_NAME, &resources.torrent_bytes);
-    upload_torrent_to_clients(&seeder, &leecher, torrent_upload).await?;
-    wait_for_torrent_counts(&seeder, &leecher, timeout).await?;
+    upload_torrent_to_clients((&seeder, &leecher), torrent_upload).await?;
+    wait_for_torrent_counts((&seeder, &leecher), timeout).await?;
     wait_for_leecher_completion(&leecher, timeout).await?;
     verify_payload_integrity(&resources.leecher_downloads_path, &resources.payload_bytes)
         .context("downloaded payload does not match the original")?;
@@ -270,10 +273,7 @@ fn build_compose(args: &Args, project_name: &str, workspace: &WorkspaceResources
         ))
 }
 
-async fn initialize_clients(
-    compose: &DockerCompose,
-    timeout: Duration,
-) -> anyhow::Result<(QbittorrentClient, QbittorrentClient)> {
+async fn initialize_clients(compose: &DockerCompose, timeout: Duration) -> anyhow::Result<ClientPair> {
     let seeder = initialize_client(compose, "qbittorrent-seeder", "Seeder", timeout).await?;
     let leecher = initialize_client(compose, "qbittorrent-leecher", "Leecher", timeout).await?;
 
@@ -304,11 +304,9 @@ async fn initialize_client(
     Ok(client)
 }
 
-async fn upload_torrent_to_clients(
-    seeder: &QbittorrentClient,
-    leecher: &QbittorrentClient,
-    torrent_upload: TorrentUpload<'_>,
-) -> anyhow::Result<()> {
+async fn upload_torrent_to_clients(clients: ClientPairRef<'_>, torrent_upload: TorrentUpload<'_>) -> anyhow::Result<()> {
+    let (seeder, leecher) = clients;
+
     seeder
         .upload_torrent(torrent_upload.file_name, torrent_upload.bytes, QBITTORRENT_DOWNLOADS_PATH)
         .await
@@ -329,11 +327,8 @@ async fn upload_torrent_to_clients(
 /// qBittorrent processes `add_torrent` asynchronously, so an immediate `list_torrents`
 /// after upload would race and return 0. This function retries every 500 ms until both
 /// clients report ≥ 1 torrent or the timeout expires.
-async fn wait_for_torrent_counts(
-    seeder: &QbittorrentClient,
-    leecher: &QbittorrentClient,
-    timeout: Duration,
-) -> anyhow::Result<()> {
+async fn wait_for_torrent_counts(clients: ClientPairRef<'_>, timeout: Duration) -> anyhow::Result<()> {
+    let (seeder, leecher) = clients;
     let deadline = std::time::Instant::now() + timeout;
     let poll_interval = TORRENT_POLL_INTERVAL;
 
