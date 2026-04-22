@@ -180,6 +180,19 @@ See [docs/benchmarking.md](docs/benchmarking.md) and [docs/profiling.md](docs/pr
 The project uses the `linter` binary from
 [torrust/torrust-linting](https://github.com/torrust/torrust-linting).
 
+Agent reminder:
+
+- When asked to lint, prefer loading the `run-linters` skill at
+  `.github/skills/dev/git-workflow/run-linters/SKILL.md`.
+- Start with `linter all`.
+- To lint only markdown files, run `linter markdown`.
+- To isolate a failing tool, run the individual linters directly:
+  `linter markdown`, `linter yaml`, `linter toml`, `linter cspell`, `linter clippy`,
+  `linter rustfmt`, `linter shellcheck`.
+- If `linter all` fails or appears inconclusive, use the individual commands above before editing
+  files so the failing linter is explicit.
+- Treat `linter all` passing with exit code `0` as the required pre-commit gate.
+
 ```sh
 # Install the linter binary
 cargo install --locked --git https://github.com/torrust/torrust-linting --bin linter
