@@ -329,16 +329,19 @@ async fn upload_torrent_to_clients(
     leecher: &QbittorrentClient,
     torrent_bytes: &[u8],
 ) -> anyhow::Result<()> {
-    seeder
-        .add_torrent(TORRENT_FILE_NAME, torrent_bytes.to_vec(), "/downloads")
-        .await
-        .context("failed to upload torrent to seeder qBittorrent instance")?;
-    leecher
-        .add_torrent(TORRENT_FILE_NAME, torrent_bytes.to_vec(), "/downloads")
-        .await
-        .context("failed to upload torrent to leecher qBittorrent instance")?;
+    upload_torrent_to_client(seeder, torrent_bytes, "seeder").await?;
+    upload_torrent_to_client(leecher, torrent_bytes, "leecher").await?;
 
     tracing::info!("Torrent file uploaded to both qBittorrent clients");
+
+    Ok(())
+}
+
+async fn upload_torrent_to_client(client: &QbittorrentClient, torrent_bytes: &[u8], client_label: &str) -> anyhow::Result<()> {
+    client
+        .add_torrent(TORRENT_FILE_NAME, torrent_bytes.to_vec(), "/downloads")
+        .await
+        .with_context(|| format!("failed to upload torrent to {client_label} qBittorrent instance"))?;
 
     Ok(())
 }
