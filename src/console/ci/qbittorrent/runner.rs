@@ -40,6 +40,18 @@ const TORRENT_FILE_NAME: &str = "payload.torrent";
 const PAYLOAD_SIZE_BYTES: usize = 1024 * 1024;
 const TORRENT_PIECE_LENGTH: usize = 16 * 1024;
 
+#[derive(Clone, Copy, Debug)]
+struct TorrentUpload<'a> {
+    file_name: &'a str,
+    bytes: &'a [u8],
+}
+
+impl<'a> TorrentUpload<'a> {
+    const fn new(file_name: &'a str, bytes: &'a [u8]) -> Self {
+        Self { file_name, bytes }
+    }
+}
+
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None)]
 struct Args {
@@ -95,7 +107,8 @@ pub async fn run() -> anyhow::Result<()> {
 
     let timeout = Duration::from_secs(args.timeout_seconds);
     let (seeder, leecher) = initialize_clients(&compose, timeout).await?;
-    upload_torrent_to_clients(&seeder, &leecher, &resources.torrent_bytes).await?;
+    let torrent_upload = TorrentUpload::new(TORRENT_FILE_NAME, &resources.torrent_bytes);
+    upload_torrent_to_clients(&seeder, &leecher, torrent_upload).await?;
     wait_for_torrent_counts(&seeder, &leecher, timeout).await?;
     wait_for_leecher_completion(&leecher, timeout).await?;
     verify_payload_integrity(&resources.leecher_downloads_path, &resources.payload_bytes)
@@ -288,10 +301,10 @@ async fn initialize_client(
 async fn upload_torrent_to_clients(
     seeder: &QbittorrentClient,
     leecher: &QbittorrentClient,
-    torrent_bytes: &[u8],
+    torrent_upload: TorrentUpload<'_>,
 ) -> anyhow::Result<()> {
-    upload_torrent_to_client(seeder, TORRENT_FILE_NAME, torrent_bytes, "/downloads").await?;
-    upload_torrent_to_client(leecher, TORRENT_FILE_NAME, torrent_bytes, "/downloads").await?;
+    upload_torrent_to_client(seeder, torrent_upload, "/downloads").await?;
+    upload_torrent_to_client(leecher, torrent_upload, "/downloads").await?;
 
     tracing::info!("Torrent file uploaded to both qBittorrent clients");
 
@@ -300,12 +313,11 @@ async fn upload_torrent_to_clients(
 
 async fn upload_torrent_to_client(
     client: &QbittorrentClient,
-    torrent_name: &str,
-    torrent_bytes: &[u8],
+    torrent_upload: TorrentUpload<'_>,
     save_path: &str,
 ) -> anyhow::Result<()> {
     client
-        .upload_torrent(torrent_name, torrent_bytes, save_path)
+        .upload_torrent(torrent_upload.file_name, torrent_upload.bytes, save_path)
         .await
         .context("failed to upload torrent")?;
 
