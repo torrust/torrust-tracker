@@ -294,29 +294,34 @@ async fn initialize_clients(
     compose: &DockerCompose,
     timeout: Duration,
 ) -> anyhow::Result<(QbittorrentClient, QbittorrentClient)> {
-    let seeder_port = resolve_service_host_port(compose, "qbittorrent-seeder", QBITTORRENT_WEBUI_PORT, timeout)
-        .await
-        .context("failed to resolve seeder WebUI host port")?;
-    let leecher_port = resolve_service_host_port(compose, "qbittorrent-leecher", QBITTORRENT_WEBUI_PORT, timeout)
-        .await
-        .context("failed to resolve leecher WebUI host port")?;
-
-    tracing::info!("Seeder WebUI host port: {seeder_port}");
-    tracing::info!("Leecher WebUI host port: {leecher_port}");
-
-    let seeder = QbittorrentClient::new(&format!("http://127.0.0.1:{seeder_port}"), timeout)?;
-    let leecher = QbittorrentClient::new(&format!("http://127.0.0.1:{leecher_port}"), timeout)?;
-
-    let _seeder_password = wait_for_qbittorrent_login(&seeder, compose, "qbittorrent-seeder", timeout)
-        .await
-        .context("seeder qBittorrent API did not become ready for authentication")?;
-    let _leecher_password = wait_for_qbittorrent_login(&leecher, compose, "qbittorrent-leecher", timeout)
-        .await
-        .context("leecher qBittorrent API did not become ready for authentication")?;
+    let seeder = initialize_client(compose, "qbittorrent-seeder", "Seeder", timeout).await?;
+    let leecher = initialize_client(compose, "qbittorrent-leecher", "Leecher", timeout).await?;
 
     tracing::info!("qBittorrent WebUI login succeeded for both clients");
 
     Ok((seeder, leecher))
+}
+
+async fn initialize_client(
+    compose: &DockerCompose,
+    service: &str,
+    client_label: &str,
+    timeout: Duration,
+) -> anyhow::Result<QbittorrentClient> {
+    let host_port = resolve_service_host_port(compose, service, QBITTORRENT_WEBUI_PORT, timeout)
+        .await
+        .with_context(|| format!("failed to resolve {service} WebUI host port"))?;
+
+    tracing::info!("{client_label} WebUI host port: {host_port}");
+
+    let client = QbittorrentClient::new(&format!("http://127.0.0.1:{host_port}"), timeout)
+        .with_context(|| format!("failed to create qBittorrent client for service '{service}'"))?;
+
+    let _password = wait_for_qbittorrent_login(&client, compose, service, timeout)
+        .await
+        .with_context(|| format!("{service} qBittorrent API did not become ready for authentication"))?;
+
+    Ok(client)
 }
 
 async fn upload_torrent_to_clients(
