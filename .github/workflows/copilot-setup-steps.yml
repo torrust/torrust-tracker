@@ -7,13 +7,13 @@ on:
   push:
     paths:
       - .github/workflows/copilot-setup-steps.yml
-      - scripts/install-git-hooks.sh
-      - scripts/pre-commit.sh
+      - contrib/dev-tools/git/install-git-hooks.sh
+      - contrib/dev-tools/git/hooks/pre-commit.sh
   pull_request:
     paths:
       - .github/workflows/copilot-setup-steps.yml
-      - scripts/install-git-hooks.sh
-      - scripts/pre-commit.sh
+      - contrib/dev-tools/git/install-git-hooks.sh
+      - contrib/dev-tools/git/hooks/pre-commit.sh
 
 jobs:
   # The job MUST be called `copilot-setup-steps` or it will not be picked up
@@ -47,7 +47,7 @@ jobs:
         run: cargo install cargo-machete
 
       - name: Install Git pre-commit hooks
-        run: ./scripts/install-git-hooks.sh
+        run: ./contrib/dev-tools/git/install-git-hooks.sh
 
       - name: Smoke-check — run all linters
         run: linter all

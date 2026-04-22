@@ -197,7 +197,7 @@ tasks can be delegated to focused agents with the right prompt context.
 **Candidate initial agents**:
 
 - `committer` ✅ — commit specialist: reads branch/diff, runs pre-commit checks
-  (`./scripts/pre-commit.sh`), proposes a GPG-signed Conventional Commit message, and creates
+  (`./contrib/dev-tools/git/hooks/pre-commit.sh`), proposes a GPG-signed Conventional Commit message, and creates
   the commit only after scope and checks are clear. Reference:
   [`torrust-tracker-demo/.github/agents/commiter.agent.md`](https://raw.githubusercontent.com/torrust/torrust-tracker-demo/refs/heads/main/.github/agents/commiter.agent.md)
 - `implementer` ✅ — software implementer that applies Test-Driven Development and seeks the
@@ -277,7 +277,7 @@ Minimum steps to include:
 - [x] Install `cargo-machete` — `cargo install cargo-machete`; ensures Copilot can run unused
       dependency checks (`cargo machete`) as required by the essential rules
 - [x] Smoke-check: run `linter all` to confirm the environment is healthy before Copilot begins
-- [x] Install Git pre-commit hooks — `./scripts/install-git-hooks.sh`
+- [x] Install Git pre-commit hooks — `./contrib/dev-tools/git/install-git-hooks.sh`
 
 Commit message: `ci(copilot): add copilot-setup-steps workflow`
 

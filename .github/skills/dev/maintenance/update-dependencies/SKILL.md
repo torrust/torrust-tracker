@@ -37,7 +37,7 @@ cargo update 2>&1 | tee /tmp/cargo-update.txt
 # If Cargo.lock has no changes, nothing to do — stop here.
 
 # Verify
-./scripts/pre-commit.sh
+./contrib/dev-tools/git/hooks/pre-commit.sh
 
 # Commit and push
 git add Cargo.lock
@@ -92,7 +92,7 @@ cargo update --precise {old-version} {crate-name}
 
 ```bash
 cargo machete
-./scripts/pre-commit.sh
+./contrib/dev-tools/git/hooks/pre-commit.sh
 ```
 
 Fix any failures before proceeding.
