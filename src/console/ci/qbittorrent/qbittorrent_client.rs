@@ -11,6 +11,7 @@ const QBITTORRENT_WEBUI_PORT: u16 = 8080;
 
 #[derive(Debug, Clone)]
 pub struct QbittorrentClient {
+    client_label: String,
     base_url: String,
     client: reqwest::Client,
     sid_cookie: Arc<Mutex<Option<String>>>,
@@ -27,13 +28,14 @@ impl QbittorrentClient {
     /// # Errors
     ///
     /// Returns an error when the HTTP client cannot be built.
-    pub fn new(base_url: &str, timeout: Duration) -> anyhow::Result<Self> {
+    pub fn new(client_label: &str, base_url: &str, timeout: Duration) -> anyhow::Result<Self> {
         let client = reqwest::Client::builder()
             .timeout(timeout)
             .build()
             .context("failed to build qBittorrent HTTP client")?;
 
         Ok(Self {
+            client_label: client_label.to_string(),
             base_url: base_url.to_string(),
             client,
             sid_cookie: Arc::new(Mutex::new(None)),
@@ -153,6 +155,15 @@ impl QbittorrentClient {
                 response.status()
             ))
         }
+    }
+
+    /// # Errors
+    ///
+    /// Returns an error when uploading a torrent file fails.
+    pub async fn upload_torrent(&self, torrent_name: &str, torrent_bytes: &[u8], save_path: &str) -> anyhow::Result<()> {
+        self.add_torrent(torrent_name, torrent_bytes.to_vec(), save_path)
+            .await
+            .with_context(|| format!("failed to upload torrent to {} qBittorrent instance", self.client_label))
     }
 
     /// # Errors

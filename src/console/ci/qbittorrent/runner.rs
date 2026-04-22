@@ -275,7 +275,7 @@ async fn initialize_client(
 
     tracing::info!("{client_label} WebUI host port: {host_port}");
 
-    let client = QbittorrentClient::new(&format!("http://127.0.0.1:{host_port}"), timeout)
+    let client = QbittorrentClient::new(client_label, &format!("http://127.0.0.1:{host_port}"), timeout)
         .with_context(|| format!("failed to create qBittorrent client for service '{service}'"))?;
 
     let _password = wait_for_qbittorrent_login(&client, compose, service, timeout)
@@ -290,19 +290,24 @@ async fn upload_torrent_to_clients(
     leecher: &QbittorrentClient,
     torrent_bytes: &[u8],
 ) -> anyhow::Result<()> {
-    upload_torrent_to_client(seeder, torrent_bytes, "seeder").await?;
-    upload_torrent_to_client(leecher, torrent_bytes, "leecher").await?;
+    upload_torrent_to_client(seeder, TORRENT_FILE_NAME, torrent_bytes, "/downloads").await?;
+    upload_torrent_to_client(leecher, TORRENT_FILE_NAME, torrent_bytes, "/downloads").await?;
 
     tracing::info!("Torrent file uploaded to both qBittorrent clients");
 
     Ok(())
 }
 
-async fn upload_torrent_to_client(client: &QbittorrentClient, torrent_bytes: &[u8], client_label: &str) -> anyhow::Result<()> {
+async fn upload_torrent_to_client(
+    client: &QbittorrentClient,
+    torrent_name: &str,
+    torrent_bytes: &[u8],
+    save_path: &str,
+) -> anyhow::Result<()> {
     client
-        .add_torrent(TORRENT_FILE_NAME, torrent_bytes.to_vec(), "/downloads")
+        .upload_torrent(torrent_name, torrent_bytes, save_path)
         .await
-        .with_context(|| format!("failed to upload torrent to {client_label} qBittorrent instance"))?;
+        .context("failed to upload torrent")?;
 
     Ok(())
 }
