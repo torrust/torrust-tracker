@@ -1,4 +1,6 @@
-# Subissue Draft for #1525-01: Add DB Compatibility Matrix
+# Subissue #1703 (Draft for #1525-01): Add DB Compatibility Matrix
+
+- Issue: https://github.com/torrust/torrust-tracker/issues/1703
 
 ## Goal
 
