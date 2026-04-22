@@ -44,7 +44,11 @@ impl QbittorrentClient {
     ///
     /// Returns an error when login fails.
     pub async fn login(&self, username: &str, password: &str) -> anyhow::Result<()> {
-        let body = format!("username={username}&password={password}");
+        let body = reqwest::Url::parse_with_params("http://localhost", &[("username", username), ("password", password)])
+            .context("failed to URL-encode qBittorrent login body")?
+            .query()
+            .ok_or_else(|| anyhow::anyhow!("encoded qBittorrent login body is unexpectedly empty"))?
+            .to_string();
         let (webui_host, webui_origin) = self
             .webui_headers()
             .context("failed to prepare qBittorrent WebUI CSRF headers")?;

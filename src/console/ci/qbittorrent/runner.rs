@@ -71,8 +71,8 @@ struct Args {
     keep_containers: bool,
 }
 
-struct PreparedWorkspace {
-    _temp_dir: tempfile::TempDir,
+struct WorkspaceResources {
+    root_path: PathBuf,
     tracker_config_path: PathBuf,
     tracker_storage_path: PathBuf,
     shared_path: PathBuf,
@@ -82,6 +82,33 @@ struct PreparedWorkspace {
     leecher_downloads_path: PathBuf,
     payload_bytes: Vec<u8>,
     torrent_bytes: Vec<u8>,
+}
+
+struct EphemeralWorkspace {
+    _temp_dir: tempfile::TempDir,
+    resources: WorkspaceResources,
+}
+
+struct PermanentWorkspace {
+    resources: WorkspaceResources,
+}
+
+enum PreparedWorkspace {
+    Ephemeral(EphemeralWorkspace),
+    Permanent(PermanentWorkspace),
+}
+
+impl PreparedWorkspace {
+    fn resources(&self) -> &WorkspaceResources {
+        match self {
+            Self::Ephemeral(workspace) => &workspace.resources,
+            Self::Permanent(workspace) => &workspace.resources,
+        }
+    }
+
+    fn root_path(&self) -> &Path {
+        &self.resources().root_path
+    }
 }
 
 /// Runs the qBittorrent E2E smoke orchestration.
@@ -96,27 +123,30 @@ pub async fn run() -> anyhow::Result<()> {
     let project_name = build_project_name(&args.project_prefix);
     tracing::info!("Using compose project name: {project_name}");
 
-    let workspace = prepare_workspace(&args)?;
+    let workspace = prepare_workspace(&args, &project_name)?;
+    let resources = workspace.resources();
 
     build_tracker_image(&args.tracker_image).context("failed to build local tracker image")?;
 
-    let compose = build_compose(&args, &project_name, &workspace)?;
+    let compose = build_compose(&args, &project_name, resources)?;
     let mut running_compose = compose.up().context("failed to start qBittorrent compose stack")?;
 
     let timeout = Duration::from_secs(args.timeout_seconds);
     let (seeder, leecher) = initialize_clients(&compose, timeout).await?;
-    upload_torrent_to_clients(&seeder, &leecher, &workspace.torrent_bytes).await?;
+    upload_torrent_to_clients(&seeder, &leecher, &resources.torrent_bytes).await?;
     wait_for_torrent_counts(&seeder, &leecher, timeout).await?;
     wait_for_leecher_completion(&leecher, timeout).await?;
-    verify_payload_integrity(&workspace.leecher_downloads_path, &workspace.payload_bytes)
+    verify_payload_integrity(&resources.leecher_downloads_path, &resources.payload_bytes)
         .context("downloaded payload does not match the original")?;
 
     if args.keep_containers {
         tracing::info!(
             "Keeping containers alive for debugging. Project name: '{}'. \
+             Workspace: '{}'. \
              Use `docker compose -p {} logs` to inspect them, \
              then `docker compose -p {} down --volumes` to clean up.",
             running_compose.project(),
+            workspace.root_path().display(),
             running_compose.project(),
             running_compose.project(),
         );
@@ -126,14 +156,41 @@ pub async fn run() -> anyhow::Result<()> {
     Ok(())
 }
 
-fn prepare_workspace(args: &Args) -> anyhow::Result<PreparedWorkspace> {
-    let temp_dir = tempfile::tempdir().context("failed to create temporary workspace")?;
-    let tracker_storage_path = temp_dir.path().join("tracker-storage");
-    let shared_path = temp_dir.path().join("shared");
-    let seeder_config_path = temp_dir.path().join("seeder-config");
-    let leecher_config_path = temp_dir.path().join("leecher-config");
-    let seeder_downloads_path = temp_dir.path().join("seeder-downloads");
-    let leecher_downloads_path = temp_dir.path().join("leecher-downloads");
+fn prepare_workspace(args: &Args, project_name: &str) -> anyhow::Result<PreparedWorkspace> {
+    if args.keep_containers {
+        let persistent_root = std::env::current_dir()
+            .context("failed to resolve current working directory")?
+            .join("storage")
+            .join("qbt-e2e")
+            .join(project_name);
+        fs::create_dir_all(&persistent_root).with_context(|| {
+            format!(
+                "failed to create persistent qBittorrent workspace '{}'",
+                persistent_root.display()
+            )
+        })?;
+        let resources = prepare_workspace_resources(persistent_root, args)?;
+
+        Ok(PreparedWorkspace::Permanent(PermanentWorkspace { resources }))
+    } else {
+        let temp_dir = tempfile::tempdir().context("failed to create temporary workspace")?;
+        let root_path = temp_dir.path().to_path_buf();
+        let resources = prepare_workspace_resources(root_path, args)?;
+
+        Ok(PreparedWorkspace::Ephemeral(EphemeralWorkspace {
+            _temp_dir: temp_dir,
+            resources,
+        }))
+    }
+}
+
+fn prepare_workspace_resources(root_path: PathBuf, args: &Args) -> anyhow::Result<WorkspaceResources> {
+    let tracker_storage_path = root_path.join("tracker-storage");
+    let shared_path = root_path.join("shared");
+    let seeder_config_path = root_path.join("seeder-config");
+    let leecher_config_path = root_path.join("leecher-config");
+    let seeder_downloads_path = root_path.join("seeder-downloads");
+    let leecher_downloads_path = root_path.join("leecher-downloads");
 
     fs::create_dir_all(&tracker_storage_path).context("failed to create tracker storage directory")?;
     fs::create_dir_all(&shared_path).context("failed to create shared artifacts directory")?;
@@ -145,11 +202,11 @@ fn prepare_workspace(args: &Args) -> anyhow::Result<PreparedWorkspace> {
     write_qbittorrent_config(&leecher_config_path, QBITTORRENT_USERNAME, QBITTORRENT_PASSWORD)
         .context("failed to generate leecher qBittorrent config")?;
 
-    let tracker_config_path = write_tracker_config(&temp_dir, &args.tracker_config_template)?;
+    let tracker_config_path = write_tracker_config(&root_path, &args.tracker_config_template)?;
     let (payload_bytes, torrent_bytes) = write_payload_and_torrent(&shared_path, &seeder_downloads_path)?;
 
-    Ok(PreparedWorkspace {
-        _temp_dir: temp_dir,
+    Ok(WorkspaceResources {
+        root_path,
         tracker_config_path,
         tracker_storage_path,
         shared_path,
@@ -162,8 +219,8 @@ fn prepare_workspace(args: &Args) -> anyhow::Result<PreparedWorkspace> {
     })
 }
 
-fn write_tracker_config(temp_dir: &tempfile::TempDir, tracker_config_template: &Path) -> anyhow::Result<PathBuf> {
-    let tracker_config_path = temp_dir.path().join("tracker-config.toml");
+fn write_tracker_config(workspace_root: &Path, tracker_config_template: &Path) -> anyhow::Result<PathBuf> {
+    let tracker_config_path = workspace_root.join("tracker-config.toml");
     let tracker_config = fs::read_to_string(tracker_config_template).with_context(|| {
         format!(
             "failed to read tracker config template '{}'",
@@ -198,7 +255,7 @@ fn write_payload_and_torrent(shared_path: &Path, seeder_downloads_path: &Path) -
     Ok((payload_bytes, torrent_bytes))
 }
 
-fn build_compose(args: &Args, project_name: &str, workspace: &PreparedWorkspace) -> anyhow::Result<DockerCompose> {
+fn build_compose(args: &Args, project_name: &str, workspace: &WorkspaceResources) -> anyhow::Result<DockerCompose> {
     Ok(DockerCompose::new(&args.compose_file, project_name)
         .with_env("QBT_E2E_TRACKER_IMAGE", &args.tracker_image)
         .with_env("QBT_E2E_QBITTORRENT_IMAGE", &args.qbittorrent_image)
@@ -472,15 +529,23 @@ async fn wait_for_qbittorrent_login(
 ) -> anyhow::Result<String> {
     let start = std::time::Instant::now();
     let poll_interval = Duration::from_secs(1);
+    let log_poll_interval = Duration::from_secs(5);
+    let mut last_log_check: Option<std::time::Instant> = None;
     let mut last_error = String::from("qBittorrent WebUI did not accept known credentials yet");
     let mut candidate_passwords = vec![QBITTORRENT_PASSWORD.to_string(), QBITTORRENT_FALLBACK_PASSWORD.to_string()];
 
     while start.elapsed() < timeout {
-        if let Ok(logs) = compose.logs(&[service]) {
-            if let Some(password) = extract_temporary_webui_password(&logs) {
-                let is_known_password = candidate_passwords.iter().any(|candidate| candidate == &password);
-                if !is_known_password {
-                    candidate_passwords.push(password);
+        let should_refresh_logs =
+            candidate_passwords.len() <= 2 && last_log_check.map_or(true, |last_check| last_check.elapsed() >= log_poll_interval);
+        if should_refresh_logs {
+            last_log_check = Some(std::time::Instant::now());
+
+            if let Ok(logs) = compose.logs(&[service]) {
+                if let Some(password) = extract_temporary_webui_password(&logs) {
+                    let is_known_password = candidate_passwords.iter().any(|candidate| candidate == &password);
+                    if !is_known_password {
+                        candidate_passwords.push(password);
+                    }
                 }
             }
         }

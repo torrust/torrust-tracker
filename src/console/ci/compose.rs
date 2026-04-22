@@ -122,7 +122,15 @@ impl DockerCompose {
         if !output.status.success() {
             return Err(io::Error::new(
                 io::ErrorKind::Other,
-                format!("docker compose port failed for service '{service}' and port '{container_port}'"),
+                format!(
+                    "docker compose port failed for file '{}' and project '{}', service '{}' and port '{}': stderr: {} stdout: {}",
+                    self.file.display(),
+                    self.project,
+                    service,
+                    container_port,
+                    String::from_utf8_lossy(&output.stderr),
+                    String::from_utf8_lossy(&output.stdout)
+                ),
             ));
         }
 
