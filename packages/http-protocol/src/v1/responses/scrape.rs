@@ -133,7 +133,7 @@ mod tests {
         }
 
         #[test]
-        fn should_saturate_large_download_counts() {
+        fn should_encode_large_download_counts_as_i64() {
             let info_hash = InfoHash::from_bytes(&[0x69; 20]);
             let mut scrape_data = ScrapeData::empty();
             scrape_data.add_file(

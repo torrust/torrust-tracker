@@ -355,7 +355,8 @@ mod tests {
 
     Test for this driver are executed with:
 
-    `TORRUST_TRACKER_CORE_RUN_MYSQL_DRIVER_TEST=true cargo test`
+    `TORRUST_TRACKER_CORE_RUN_MYSQL_DRIVER_TEST=true \
+     cargo test -p bittorrent-tracker-core --features db-compatibility-tests run_mysql_driver_tests`
 
     The `Database` trait is very simple and we only have one driver that needs
     a container. In the future we might want to use different approaches like:
@@ -456,6 +457,8 @@ mod tests {
         driver
     }
 
+    // This test is invoked by `.github/workflows/testing.yaml` in the
+    // `database-compatibility` job to validate supported MySQL versions.
     #[tokio::test]
     async fn run_mysql_driver_tests() -> Result<(), Box<dyn std::error::Error + 'static>> {
         if std::env::var("TORRUST_TRACKER_CORE_RUN_MYSQL_DRIVER_TEST").is_err() {
