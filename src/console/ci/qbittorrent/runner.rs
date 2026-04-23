@@ -25,8 +25,8 @@ use tracing::level_filters::LevelFilter;
 use super::client_role::ClientRole;
 use super::qbittorrent_client::QbittorrentClient;
 use super::scenario_steps::{
-    add_torrent_file_to_client, add_torrent_file_to_leecher, build_payload_fixture, build_torrent_fixture, login_client,
-    wait_until_client_has_any_torrent, wait_until_download_completes, wait_until_temporary_password_appears_in_logs,
+    add_torrent_file_to_client, build_payload_fixture, build_torrent_fixture, login_client, wait_until_client_has_any_torrent,
+    wait_until_download_completes, wait_until_temporary_password_appears_in_logs,
 };
 use super::workspace::{EphemeralWorkspace, PermanentWorkspace, PreparedWorkspace, WorkspaceResources};
 use crate::console::ci::compose::DockerCompose;
@@ -160,7 +160,7 @@ impl<'a> ScenarioRunner<'a> {
         )
         .await?;
 
-        add_torrent_file_to_leecher(
+        add_torrent_file_to_client(
             leecher,
             torrent_upload.file_name,
             torrent_upload.bytes,
