@@ -274,8 +274,8 @@ fn build_compose(args: &Args, project_name: &str, workspace: &WorkspaceResources
 }
 
 async fn initialize_clients(compose: &DockerCompose, timeout: Duration) -> anyhow::Result<ClientPair> {
-    let seeder = initialize_client(compose, "qbittorrent-seeder", "Seeder", timeout).await?;
-    let leecher = initialize_client(compose, "qbittorrent-leecher", "Leecher", timeout).await?;
+    let seeder = initialize_client(compose, "qbittorrent-seeder", "seeder", timeout).await?;
+    let leecher = initialize_client(compose, "qbittorrent-leecher", "leecher", timeout).await?;
 
     tracing::info!("qBittorrent WebUI login succeeded for both clients");
 
@@ -284,22 +284,22 @@ async fn initialize_clients(compose: &DockerCompose, timeout: Duration) -> anyho
 
 async fn initialize_client(
     compose: &DockerCompose,
-    service: &str,
-    client_label: &str,
+    service_name: &str,
+    role: &str,
     timeout: Duration,
 ) -> anyhow::Result<QbittorrentClient> {
-    let host_port = resolve_service_host_port(compose, service, QBITTORRENT_WEBUI_PORT, timeout)
+    let host_port = resolve_service_host_port(compose, service_name, QBITTORRENT_WEBUI_PORT, timeout)
         .await
-        .with_context(|| format!("failed to resolve {service} WebUI host port"))?;
+        .with_context(|| format!("failed to resolve {service_name} WebUI host port"))?;
 
-    tracing::info!("{client_label} WebUI host port: {host_port}");
+    tracing::info!("{role} WebUI host port: {host_port}");
 
-    let client = QbittorrentClient::new(client_label, &format!("http://127.0.0.1:{host_port}"), timeout)
-        .with_context(|| format!("failed to create qBittorrent client for service '{service}'"))?;
+    let client = QbittorrentClient::new(role, &format!("http://127.0.0.1:{host_port}"), timeout)
+        .with_context(|| format!("failed to create qBittorrent client for service '{service_name}'"))?;
 
-    let _password = wait_for_qbittorrent_login(&client, compose, service, timeout)
+    let _password = wait_for_qbittorrent_login(&client, compose, service_name, timeout)
         .await
-        .with_context(|| format!("{service} qBittorrent API did not become ready for authentication"))?;
+        .with_context(|| format!("{service_name} qBittorrent API did not become ready for authentication"))?;
 
     Ok(client)
 }
@@ -502,7 +502,7 @@ fn build_qbittorrent_password_hash(password: &str) -> String {
 async fn wait_for_qbittorrent_login(
     client: &QbittorrentClient,
     compose: &DockerCompose,
-    service: &str,
+    service_name: &str,
     timeout: Duration,
 ) -> anyhow::Result<String> {
     let start = std::time::Instant::now();
@@ -518,7 +518,7 @@ async fn wait_for_qbittorrent_login(
         if should_refresh_logs {
             last_log_check = Some(std::time::Instant::now());
 
-            if let Ok(logs) = compose.logs(&[service]) {
+            if let Ok(logs) = compose.logs(&[service_name]) {
                 if let Some(password) = extract_temporary_webui_password(&logs) {
                     let is_known_password = candidate_passwords.iter().any(|candidate| candidate == &password);
                     if !is_known_password {
@@ -558,7 +558,7 @@ fn extract_temporary_webui_password(logs: &str) -> Option<String> {
 
 async fn resolve_service_host_port(
     compose: &DockerCompose,
-    service: &str,
+    service_name: &str,
     container_port: u16,
     timeout: Duration,
 ) -> anyhow::Result<u16> {
@@ -568,22 +568,22 @@ async fn resolve_service_host_port(
 
     while start.elapsed() < timeout {
         if let Ok(ps_output) = compose.ps() {
-            if compose_service_has_exited(&ps_output, service) {
+            if compose_service_has_exited(&ps_output, service_name) {
                 let logs_output = compose
-                    .logs(&[service])
+                    .logs(&[service_name])
                     .unwrap_or_else(|error| format!("failed to collect compose logs output: {error}"));
 
                 return Err(anyhow::anyhow!(
-                    "compose service '{service}' exited while waiting for port mapping '{container_port}'.\nCompose ps:\n{ps_output}\nCompose logs:\n{logs_output}"
+                    "compose service '{service_name}' exited while waiting for port mapping '{container_port}'.\nCompose ps:\n{ps_output}\nCompose logs:\n{logs_output}"
                 ));
             }
         }
 
-        match compose.port(service, container_port) {
+        match compose.port(service_name, container_port) {
             Ok(host_port) => return Ok(host_port),
             Err(error) => {
                 last_error = Some(error);
-                tracing::info!("Waiting for compose port mapping for service '{service}'");
+                tracing::info!("Waiting for compose port mapping for service '{service_name}'");
                 sleep(poll_interval).await;
             }
         }
@@ -593,12 +593,12 @@ async fn resolve_service_host_port(
         .ps()
         .unwrap_or_else(|error| format!("failed to collect compose ps output: {error}"));
     let logs_output = compose
-        .logs(&[service, "tracker"])
+        .logs(&[service_name, "tracker"])
         .unwrap_or_else(|error| format!("failed to collect compose logs output: {error}"));
 
     Err(anyhow::anyhow!(
         "timed out waiting for compose port mapping for service '{}' and port '{}'. Last error: {}\nCompose ps:\n{}\nCompose logs:\n{}",
-        service,
+        service_name,
         container_port,
         last_error.as_ref().map_or_else(
             || "no port error captured".to_string(),
@@ -609,9 +609,9 @@ async fn resolve_service_host_port(
     ))
 }
 
-fn compose_service_has_exited(ps_output: &str, service: &str) -> bool {
+fn compose_service_has_exited(ps_output: &str, service_name: &str) -> bool {
     ps_output.lines().any(|line| {
-        line.contains(service)
+        line.contains(service_name)
             && (line.contains("exited") || line.contains("dead") || line.contains("created") || line.contains("removing"))
     })
 }
