@@ -112,7 +112,15 @@ impl<'a> ScenarioRunner<'a> {
 
     async fn initialize_client(&self, role: ClientRole) -> anyhow::Result<QbittorrentClient> {
         let service_name = role.service_name();
-        let host_port = resolve_service_host_port(self.compose, service_name, QBITTORRENT_WEBUI_PORT, self.timeout)
+        let host_port = self
+            .compose
+            .wait_for_port_mapping(
+                service_name,
+                QBITTORRENT_WEBUI_PORT,
+                self.timeout,
+                COMPOSE_PORT_POLL_INTERVAL,
+                &["tracker"],
+            )
             .await
             .with_context(|| format!("failed to resolve {service_name} WebUI host port"))?;
 
@@ -621,56 +629,4 @@ fn extract_temporary_webui_password(logs: &str) -> Option<String> {
         .rev()
         .find_map(|line| line.split_once(PREFIX).map(|(_, password)| password.trim().to_string()))
         .filter(|password| !password.is_empty())
-}
-
-async fn resolve_service_host_port(
-    compose: &DockerCompose,
-    service_name: &str,
-    container_port: u16,
-    timeout: Duration,
-) -> anyhow::Result<u16> {
-    let poller = Poller::new(timeout, COMPOSE_PORT_POLL_INTERVAL);
-
-    loop {
-        if let Ok(ps_output) = compose.ps() {
-            if compose_service_has_exited(&ps_output, service_name) {
-                let logs_output = compose
-                    .logs(&[service_name])
-                    .unwrap_or_else(|error| format!("failed to collect compose logs output: {error}"));
-
-                anyhow::bail!(
-                    "compose service '{service_name}' exited while waiting for port mapping '{container_port}'.\nCompose ps:\n{ps_output}\nCompose logs:\n{logs_output}"
-                );
-            }
-        }
-
-        match compose.port(service_name, container_port) {
-            Ok(host_port) => return Ok(host_port),
-            Err(_) => {
-                tracing::info!("Waiting for compose port mapping for service '{service_name}'");
-            }
-        }
-
-        poller
-            .retry_or_timeout(|| {
-            let ps_output = compose
-                .ps()
-                .unwrap_or_else(|error| format!("failed to collect compose ps output: {error}"));
-            let logs_output = compose
-                .logs(&[service_name, "tracker"])
-                .unwrap_or_else(|error| format!("failed to collect compose logs output: {error}"));
-
-            format!(
-                "timed out waiting for compose port mapping for service '{service_name}' and port '{container_port}'.\nCompose ps:\n{ps_output}\nCompose logs:\n{logs_output}"
-            )
-            })
-            .await?;
-    }
-}
-
-fn compose_service_has_exited(ps_output: &str, service_name: &str) -> bool {
-    ps_output.lines().any(|line| {
-        line.contains(service_name)
-            && (line.contains("exited") || line.contains("dead") || line.contains("created") || line.contains("removing"))
-    })
 }

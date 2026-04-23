@@ -2,6 +2,9 @@
 use std::io;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Output};
+use std::time::{Duration, Instant};
+
+use tokio::time::sleep;
 
 #[derive(Clone, Debug)]
 pub struct DockerCompose {
@@ -150,6 +153,77 @@ impl DockerCompose {
         Ok(host_port)
     }
 
+    /// Waits until a service has a resolved host port mapping.
+    ///
+    /// This helper retries `docker compose port` until it succeeds, the timeout
+    /// expires, or the target service exits.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the service exits, port mapping cannot be resolved
+    /// before timeout, or compose commands fail while gathering diagnostics.
+    pub async fn wait_for_port_mapping(
+        &self,
+        service: &str,
+        container_port: u16,
+        timeout: Duration,
+        poll_interval: Duration,
+        extra_log_services: &[&str],
+    ) -> io::Result<u16> {
+        let deadline = Instant::now() + timeout;
+
+        loop {
+            if let Ok(ps_output) = self.ps() {
+                if compose_service_has_exited(&ps_output, service) {
+                    let logs_output = self
+                        .logs(&[service])
+                        .unwrap_or_else(|error| format!("failed to collect compose logs output: {error}"));
+
+                    return Err(io::Error::new(
+                        io::ErrorKind::Other,
+                        format!(
+                            "compose service '{service}' exited while waiting for port mapping '{container_port}'.\nCompose ps:\n{ps_output}\nCompose logs:\n{logs_output}"
+                        ),
+                    ));
+                }
+            }
+
+            match self.port(service, container_port) {
+                Ok(host_port) => return Ok(host_port),
+                Err(_) => {
+                    tracing::info!("Waiting for compose port mapping for service '{service}'");
+                }
+            }
+
+            if Instant::now() >= deadline {
+                let ps_output = self
+                    .ps()
+                    .unwrap_or_else(|error| format!("failed to collect compose ps output: {error}"));
+
+                let mut log_services = Vec::with_capacity(1 + extra_log_services.len());
+                log_services.push(service);
+                for extra_service in extra_log_services {
+                    if *extra_service != service {
+                        log_services.push(*extra_service);
+                    }
+                }
+
+                let logs_output = self
+                    .logs(&log_services)
+                    .unwrap_or_else(|error| format!("failed to collect compose logs output: {error}"));
+
+                return Err(io::Error::new(
+                    io::ErrorKind::TimedOut,
+                    format!(
+                        "timed out waiting for compose port mapping for service '{service}' and port '{container_port}'.\nCompose ps:\n{ps_output}\nCompose logs:\n{logs_output}"
+                    ),
+                ));
+            }
+
+            sleep(poll_interval).await;
+        }
+    }
+
     /// Runs `docker compose exec` in non-interactive mode for scripted commands.
     ///
     /// # Errors
@@ -228,4 +302,11 @@ impl DockerCompose {
 
         command.output()
     }
+}
+
+fn compose_service_has_exited(ps_output: &str, service_name: &str) -> bool {
+    ps_output.lines().any(|line| {
+        line.contains(service_name)
+            && (line.contains("exited") || line.contains("dead") || line.contains("created") || line.contains("removing"))
+    })
 }
