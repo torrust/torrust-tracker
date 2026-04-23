@@ -223,25 +223,10 @@ fn prepare_workspace(args: &Args, project_name: &str) -> anyhow::Result<Prepared
 }
 
 fn prepare_workspace_resources(root_path: PathBuf, args: &Args) -> anyhow::Result<WorkspaceResources> {
-    let tracker_storage_path = root_path.join("tracker-storage");
-    let shared_path = root_path.join("shared");
-    let seeder_config_path = root_path.join("seeder-config");
-    let leecher_config_path = root_path.join("leecher-config");
-    let seeder_downloads_path = root_path.join("seeder-downloads");
-    let leecher_downloads_path = root_path.join("leecher-downloads");
-
-    fs::create_dir_all(&tracker_storage_path).context("failed to create tracker storage directory")?;
-    fs::create_dir_all(&shared_path).context("failed to create shared artifacts directory")?;
-    fs::create_dir_all(&seeder_downloads_path).context("failed to create seeder downloads directory")?;
-    fs::create_dir_all(&leecher_downloads_path).context("failed to create leecher downloads directory")?;
-
-    write_qbittorrent_config(&seeder_config_path, QBITTORRENT_USERNAME, QBITTORRENT_PASSWORD)
-        .context("failed to generate seeder qBittorrent config")?;
-    write_qbittorrent_config(&leecher_config_path, QBITTORRENT_USERNAME, QBITTORRENT_PASSWORD)
-        .context("failed to generate leecher qBittorrent config")?;
-
-    let tracker_config_path = write_tracker_config(&root_path, &args.tracker_config_template)?;
-    let generated_payload_and_torrent = write_payload_and_torrent(&shared_path, &seeder_downloads_path)?;
+    let (tracker_config_path, tracker_storage_path) = setup_tracker_workspace(&root_path, &args.tracker_config_template)?;
+    let (seeder_config_path, seeder_downloads_path) = setup_qbittorrent_workspace(&root_path, "seeder")?;
+    let (leecher_config_path, leecher_downloads_path) = setup_qbittorrent_workspace(&root_path, "leecher")?;
+    let (shared_path, generated) = setup_shared_fixtures(&root_path, &seeder_downloads_path)?;
 
     Ok(WorkspaceResources {
         root_path,
@@ -252,9 +237,32 @@ fn prepare_workspace_resources(root_path: PathBuf, args: &Args) -> anyhow::Resul
         leecher_config_path,
         seeder_downloads_path,
         leecher_downloads_path,
-        payload_bytes: generated_payload_and_torrent.payload_bytes,
-        torrent_bytes: generated_payload_and_torrent.torrent_bytes,
+        payload_bytes: generated.payload_bytes,
+        torrent_bytes: generated.torrent_bytes,
     })
+}
+
+fn setup_tracker_workspace(root: &Path, config_template: &Path) -> anyhow::Result<(PathBuf, PathBuf)> {
+    let tracker_storage_path = root.join("tracker-storage");
+    fs::create_dir_all(&tracker_storage_path).context("failed to create tracker storage directory")?;
+    let tracker_config_path = write_tracker_config(root, config_template)?;
+    Ok((tracker_config_path, tracker_storage_path))
+}
+
+fn setup_qbittorrent_workspace(root: &Path, role: &str) -> anyhow::Result<(PathBuf, PathBuf)> {
+    let config_path = root.join(format!("{role}-config"));
+    let downloads_path = root.join(format!("{role}-downloads"));
+    fs::create_dir_all(&downloads_path).with_context(|| format!("failed to create {role} downloads directory"))?;
+    write_qbittorrent_config(&config_path, QBITTORRENT_USERNAME, QBITTORRENT_PASSWORD)
+        .with_context(|| format!("failed to generate {role} qBittorrent config"))?;
+    Ok((config_path, downloads_path))
+}
+
+fn setup_shared_fixtures(root: &Path, seeder_downloads: &Path) -> anyhow::Result<(PathBuf, GeneratedPayloadAndTorrent)> {
+    let shared_path = root.join("shared");
+    fs::create_dir_all(&shared_path).context("failed to create shared artifacts directory")?;
+    let generated = write_payload_and_torrent(&shared_path, seeder_downloads)?;
+    Ok((shared_path, generated))
 }
 
 fn write_tracker_config(workspace_root: &Path, tracker_config_template: &Path) -> anyhow::Result<PathBuf> {
