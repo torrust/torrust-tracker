@@ -25,7 +25,7 @@ use tracing::level_filters::LevelFilter;
 use super::client_role::ClientRole;
 use super::poller::Poller;
 use super::qbittorrent_client::QbittorrentClient;
-use super::torrent_artifacts::{build_payload_bytes, build_torrent_bytes};
+use super::scenario_steps::{build_payload_fixture, build_torrent_fixture};
 use super::workspace::{EphemeralWorkspace, PermanentWorkspace, PreparedWorkspace, WorkspaceResources};
 use crate::console::ci::compose::DockerCompose;
 
@@ -411,9 +411,9 @@ fn write_tracker_config(workspace_root: &Path, tracker_config_template: &Path) -
 fn write_payload_and_torrent(shared_path: &Path, seeder_downloads_path: &Path) -> anyhow::Result<GeneratedPayloadAndTorrent> {
     let payload_path = shared_path.join(PAYLOAD_FILE_NAME);
     let torrent_path = shared_path.join(TORRENT_FILE_NAME);
-    let payload_bytes = build_payload_bytes(PAYLOAD_SIZE_BYTES);
+    let payload_fixture = build_payload_fixture(PAYLOAD_SIZE_BYTES);
 
-    fs::write(&payload_path, &payload_bytes)
+    fs::write(&payload_path, &payload_fixture.bytes)
         .with_context(|| format!("failed to write payload file '{}'", payload_path.display()))?;
     fs::copy(&payload_path, seeder_downloads_path.join(PAYLOAD_FILE_NAME)).with_context(|| {
         format!(
@@ -422,18 +422,18 @@ fn write_payload_and_torrent(shared_path: &Path, seeder_downloads_path: &Path) -
         )
     })?;
 
-    let torrent_bytes = build_torrent_bytes(
-        &payload_bytes,
+    let torrent_fixture = build_torrent_fixture(
+        &payload_fixture,
         PAYLOAD_FILE_NAME,
         "http://tracker:7070/announce",
         TORRENT_PIECE_LENGTH,
     )?;
-    fs::write(&torrent_path, &torrent_bytes)
+    fs::write(&torrent_path, &torrent_fixture.bytes)
         .with_context(|| format!("failed to write torrent file '{}'", torrent_path.display()))?;
 
     Ok(GeneratedPayloadAndTorrent {
-        payload_bytes,
-        torrent_bytes,
+        payload_bytes: payload_fixture.bytes,
+        torrent_bytes: torrent_fixture.bytes,
     })
 }
 
