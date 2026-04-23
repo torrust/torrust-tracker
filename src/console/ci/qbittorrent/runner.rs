@@ -198,6 +198,10 @@ impl<'a> ScenarioRunner<'a> {
         Ok(())
     }
 
+    /// Polls both clients until each has at least one torrent, then logs the final counts.
+    ///
+    /// qBittorrent processes `add_torrent` asynchronously, so an immediate `list_torrents`
+    /// after upload can race and return 0.
     async fn wait_for_torrent_counts(&self, clients: ClientPairRef<'_>) -> anyhow::Result<()> {
         let (seeder, leecher) = clients;
         let poller = Poller::new(self.timeout, TORRENT_POLL_INTERVAL);
@@ -221,6 +225,7 @@ impl<'a> ScenarioRunner<'a> {
         }
     }
 
+    /// Polls the leecher until its first torrent reaches full completion.
     async fn wait_for_leecher_completion(&self, leecher: &QbittorrentClient) -> anyhow::Result<()> {
         let poller = Poller::new(self.timeout, TORRENT_POLL_INTERVAL);
 
@@ -503,15 +508,6 @@ fn build_compose(args: &Args, project_name: &str, workspace: &WorkspaceResources
         ))
 }
 
-/// Polls both clients until each has at least one torrent, then logs the final counts.
-///
-/// qBittorrent processes `add_torrent` asynchronously, so an immediate `list_torrents`
-/// after upload would race and return 0. This function retries every 500 ms until both
-/// clients report ≥ 1 torrent or the timeout expires.
-/// Polls the leecher until its torrent reaches 100% progress.
-///
-/// qBittorrent downloads asynchronously. This function retries every 500 ms until the
-/// first torrent on the leecher reports `progress >= 1.0`, indicating a full download.
 /// Verifies that the leecher's downloaded file matches the original payload byte-for-byte.
 ///
 /// Reads the downloaded file from `leecher_downloads_path/payload.bin` and compares it to
@@ -530,21 +526,12 @@ fn verify_payload_integrity(leecher_downloads_path: &Path, original_payload: &[u
     }
 
     if downloaded_bytes != original_payload {
-        let original_hash: String = Sha1::digest(original_payload).iter().fold(String::new(), |mut s, b| {
-            let _ = write!(s, "{b:02x}");
-            s
-        });
-        let downloaded_hash: String = Sha1::digest(&downloaded_bytes).iter().fold(String::new(), |mut s, b| {
-            let _ = write!(s, "{b:02x}");
-            s
-        });
+        let original_hash = sha1_hex(original_payload);
+        let downloaded_hash = sha1_hex(&downloaded_bytes);
         anyhow::bail!("payload content mismatch: original SHA1 {original_hash}, downloaded SHA1 {downloaded_hash}");
     }
 
-    let hash: String = Sha1::digest(original_payload).iter().fold(String::new(), |mut s, b| {
-        let _ = write!(s, "{b:02x}");
-        s
-    });
+    let hash = sha1_hex(original_payload);
     tracing::info!(
         "Payload integrity verified: SHA1 {} ({} bytes match)",
         hash,
@@ -552,6 +539,13 @@ fn verify_payload_integrity(leecher_downloads_path: &Path, original_payload: &[u
     );
 
     Ok(())
+}
+
+fn sha1_hex(bytes: &[u8]) -> String {
+    Sha1::digest(bytes).iter().fold(String::new(), |mut output, byte| {
+        let _ = write!(output, "{byte:02x}");
+        output
+    })
 }
 
 fn tracing_stdout_init(filter: LevelFilter) {
