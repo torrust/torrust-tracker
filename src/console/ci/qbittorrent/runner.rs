@@ -23,6 +23,7 @@ use sha2::Sha512;
 use tokio::time::sleep;
 use tracing::level_filters::LevelFilter;
 
+use super::client_role::ClientRole;
 use super::qbittorrent_client::QbittorrentClient;
 use super::torrent_artifacts::{build_payload_bytes, build_torrent_bytes};
 use super::workspace::{EphemeralWorkspace, PermanentWorkspace, PreparedWorkspace, WorkspaceResources};
@@ -60,28 +61,6 @@ impl<'a> TorrentUpload<'a> {
 
 type ClientPair = (QbittorrentClient, QbittorrentClient);
 type ClientPairRef<'a> = (&'a QbittorrentClient, &'a QbittorrentClient);
-
-#[derive(Clone, Copy, Debug)]
-enum ClientRole {
-    Seeder,
-    Leecher,
-}
-
-impl ClientRole {
-    const fn service_name(self) -> &'static str {
-        match self {
-            Self::Seeder => "qbittorrent-seeder",
-            Self::Leecher => "qbittorrent-leecher",
-        }
-    }
-
-    const fn client_label(self) -> &'static str {
-        match self {
-            Self::Seeder => "seeder",
-            Self::Leecher => "leecher",
-        }
-    }
-}
 
 struct Poller {
     deadline: Instant,
