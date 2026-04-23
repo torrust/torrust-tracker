@@ -89,7 +89,10 @@ impl<'a> ScenarioRunner<'a> {
     }
 
     async fn run(&self) -> anyhow::Result<()> {
+        // ARRANGE: wait for all clients to be reachable and authenticated.
         let (seeder, leecher) = self.initialize_clients().await?;
+
+        // ACT: simulate the seeder-first transfer story.
         let torrent_upload = TorrentUpload::new(TORRENT_FILE_NAME, &self.workspace.torrent_bytes);
 
         self.upload_torrent_to_clients((&seeder, &leecher), torrent_upload).await?;
@@ -295,7 +298,7 @@ pub async fn run() -> anyhow::Result<()> {
     let project_name = build_project_name(&args.project_prefix);
     tracing::info!("Using compose project name: {project_name}");
 
-    // Phase 1: prepare local inputs and compose stack.
+    // ARRANGE: build workspace artifacts, tracker image, and start all containers.
     let workspace = prepare_workspace(&args, &project_name)?;
     let resources = workspace.resources();
 
@@ -304,12 +307,12 @@ pub async fn run() -> anyhow::Result<()> {
     let compose = build_compose(&args, &project_name, resources)?;
     let mut running_compose = compose.up().context("failed to start qBittorrent compose stack")?;
 
-    // Phase 2: run transfer and verification flow.
+    // ACT: run the transfer scenario and verify the result.
     let timeout = Duration::from_secs(args.timeout_seconds);
     let scenario_runner = ScenarioRunner::new(&compose, resources, timeout);
     scenario_runner.run().await?;
 
-    // Phase 3: optionally keep containers for debugging.
+    // POST-SCENARIO: optionally keep containers for debugging.
     if args.keep_containers {
         tracing::info!(
             "Keeping containers alive for debugging. Project name: '{}'. \
