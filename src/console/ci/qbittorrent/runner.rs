@@ -9,7 +9,7 @@ use std::fmt::Write as FmtWrite;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
-use std::time::{Duration, Instant};
+use std::time::Duration;
 
 use anyhow::Context;
 use base64::engine::general_purpose::STANDARD as BASE64_STANDARD;
@@ -26,7 +26,8 @@ use super::client_role::ClientRole;
 use super::poller::Poller;
 use super::qbittorrent_client::QbittorrentClient;
 use super::scenario_steps::{
-    add_torrent_file_to_client, build_payload_fixture, build_torrent_fixture, wait_until_client_has_any_torrent,
+    add_torrent_file_to_client, build_payload_fixture, build_torrent_fixture, wait_until_client_can_login,
+    wait_until_client_has_any_torrent, LoginReadinessSettings,
 };
 use super::workspace::{EphemeralWorkspace, PermanentWorkspace, PreparedWorkspace, WorkspaceResources};
 use crate::console::ci::compose::DockerCompose;
@@ -63,12 +64,6 @@ impl<'a> TorrentUpload<'a> {
 
 type ClientPair = (QbittorrentClient, QbittorrentClient);
 type ClientPairRef<'a> = (&'a QbittorrentClient, &'a QbittorrentClient);
-
-struct LoginCandidates {
-    passwords: Vec<String>,
-    last_log_check: Option<Instant>,
-    log_poll_interval: Duration,
-}
 
 struct GeneratedPayloadAndTorrent {
     payload_bytes: Vec<u8>,
@@ -134,7 +129,16 @@ impl<'a> ScenarioRunner<'a> {
         let client = QbittorrentClient::new(role.client_label(), &format!("http://127.0.0.1:{host_port}"), self.timeout)
             .with_context(|| format!("failed to create qBittorrent client for service '{service_name}'"))?;
 
-        let _password = wait_for_qbittorrent_login(&client, self.compose, service_name, self.timeout)
+        let login_settings = LoginReadinessSettings {
+            username: QBITTORRENT_USERNAME,
+            preferred_password: QBITTORRENT_PASSWORD,
+            fallback_password: QBITTORRENT_FALLBACK_PASSWORD,
+            timeout: self.timeout,
+            login_poll_interval: LOGIN_POLL_INTERVAL,
+            log_poll_interval: LOGIN_LOG_POLL_INTERVAL,
+        };
+
+        let _password = wait_until_client_can_login(&client, self.compose, service_name, &login_settings)
             .await
             .with_context(|| format!("{service_name} qBittorrent API did not become ready for authentication"))?;
 
@@ -227,37 +231,6 @@ impl<'a> ScenarioRunner<'a> {
 
     fn verify_payload_integrity(&self) -> anyhow::Result<()> {
         verify_payload_integrity(&self.workspace.leecher_downloads_path, &self.workspace.payload_bytes)
-    }
-}
-
-impl LoginCandidates {
-    fn new(passwords: Vec<String>, log_poll_interval: Duration) -> Self {
-        Self {
-            passwords,
-            last_log_check: None,
-            log_poll_interval,
-        }
-    }
-
-    fn should_refresh_logs(&self) -> bool {
-        self.passwords.len() <= 2
-            && self
-                .last_log_check
-                .map_or(true, |last_check| last_check.elapsed() >= self.log_poll_interval)
-    }
-
-    fn mark_logs_checked(&mut self) {
-        self.last_log_check = Some(Instant::now());
-    }
-
-    fn add_if_new(&mut self, password: String) {
-        if self.passwords.iter().all(|candidate| candidate != &password) {
-            self.passwords.push(password);
-        }
-    }
-
-    fn iter(&self) -> impl Iterator<Item = &str> {
-        self.passwords.iter().map(String::as_str)
     }
 }
 
@@ -588,56 +561,4 @@ fn build_qbittorrent_password_hash(password: &str) -> String {
         BASE64_STANDARD.encode(salt),
         BASE64_STANDARD.encode(digest)
     )
-}
-
-async fn wait_for_qbittorrent_login(
-    client: &QbittorrentClient,
-    compose: &DockerCompose,
-    service_name: &str,
-    timeout: Duration,
-) -> anyhow::Result<String> {
-    let poller = Poller::new(timeout, LOGIN_POLL_INTERVAL);
-    let mut candidates = LoginCandidates::new(
-        vec![QBITTORRENT_PASSWORD.to_string(), QBITTORRENT_FALLBACK_PASSWORD.to_string()],
-        LOGIN_LOG_POLL_INTERVAL,
-    );
-    let mut last_error = String::from("qBittorrent WebUI did not accept known credentials yet");
-
-    loop {
-        if candidates.should_refresh_logs() {
-            candidates.mark_logs_checked();
-
-            if let Ok(logs) = compose.logs(&[service_name]) {
-                if let Some(password) = extract_temporary_webui_password(&logs) {
-                    candidates.add_if_new(password);
-                }
-            }
-        }
-
-        for candidate_password in candidates.iter() {
-            match client.login(QBITTORRENT_USERNAME, candidate_password).await {
-                Ok(()) => return Ok(candidate_password.to_string()),
-                Err(error) => {
-                    last_error = error.to_string();
-                }
-            }
-        }
-
-        tracing::info!("Waiting for qBittorrent WebUI authentication: {last_error}");
-
-        poller
-            .retry_or_timeout(|| {
-                format!("timed out waiting for qBittorrent WebUI authentication readiness. Last error: {last_error}")
-            })
-            .await?;
-    }
-}
-
-fn extract_temporary_webui_password(logs: &str) -> Option<String> {
-    const PREFIX: &str = "A temporary password is provided for this session:";
-
-    logs.lines()
-        .rev()
-        .find_map(|line| line.split_once(PREFIX).map(|(_, password)| password.trim().to_string()))
-        .filter(|password| !password.is_empty())
 }
