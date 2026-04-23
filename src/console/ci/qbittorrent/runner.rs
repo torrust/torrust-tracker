@@ -20,10 +20,10 @@ use rand::distr::Alphanumeric;
 use rand::RngExt;
 use sha1::{Digest as Sha1Digest, Sha1};
 use sha2::Sha512;
-use tokio::time::sleep;
 use tracing::level_filters::LevelFilter;
 
 use super::client_role::ClientRole;
+use super::poller::Poller;
 use super::qbittorrent_client::QbittorrentClient;
 use super::torrent_artifacts::{build_payload_bytes, build_torrent_bytes};
 use super::workspace::{EphemeralWorkspace, PermanentWorkspace, PreparedWorkspace, WorkspaceResources};
@@ -61,33 +61,6 @@ impl<'a> TorrentUpload<'a> {
 
 type ClientPair = (QbittorrentClient, QbittorrentClient);
 type ClientPairRef<'a> = (&'a QbittorrentClient, &'a QbittorrentClient);
-
-struct Poller {
-    deadline: Instant,
-    interval: Duration,
-}
-
-impl Poller {
-    fn new(timeout: Duration, interval: Duration) -> Self {
-        Self {
-            deadline: Instant::now() + timeout,
-            interval,
-        }
-    }
-
-    async fn retry_or_timeout<M>(&self, timeout_message: M) -> anyhow::Result<()>
-    where
-        M: FnOnce() -> String,
-    {
-        if Instant::now() >= self.deadline {
-            anyhow::bail!(timeout_message());
-        }
-
-        sleep(self.interval).await;
-
-        Ok(())
-    }
-}
 
 struct LoginCandidates {
     passwords: Vec<String>,
