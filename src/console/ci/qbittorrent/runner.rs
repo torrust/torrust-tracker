@@ -23,8 +23,8 @@ use sha2::Sha512;
 use tokio::time::sleep;
 use tracing::level_filters::LevelFilter;
 
-use super::bencode::BencodeValue;
 use super::qbittorrent_client::QbittorrentClient;
+use super::torrent_artifacts::{build_payload_bytes, build_torrent_bytes};
 use super::workspace::{EphemeralWorkspace, PermanentWorkspace, PreparedWorkspace, WorkspaceResources};
 use crate::console::ci::compose::DockerCompose;
 
@@ -311,7 +311,12 @@ fn write_payload_and_torrent(shared_path: &Path, seeder_downloads_path: &Path) -
         )
     })?;
 
-    let torrent_bytes = build_torrent_bytes(&payload_bytes, PAYLOAD_FILE_NAME, "http://tracker:7070/announce")?;
+    let torrent_bytes = build_torrent_bytes(
+        &payload_bytes,
+        PAYLOAD_FILE_NAME,
+        "http://tracker:7070/announce",
+        TORRENT_PIECE_LENGTH,
+    )?;
     fs::write(&torrent_path, &torrent_bytes)
         .with_context(|| format!("failed to write torrent file '{}'", torrent_path.display()))?;
 
@@ -679,38 +684,4 @@ fn compose_service_has_exited(ps_output: &str, service_name: &str) -> bool {
         line.contains(service_name)
             && (line.contains("exited") || line.contains("dead") || line.contains("created") || line.contains("removing"))
     })
-}
-
-fn build_payload_bytes(length: usize) -> Vec<u8> {
-    let pattern = (0_u8..=250_u8).collect::<Vec<_>>();
-
-    (0..length).map(|index| pattern[index % pattern.len()]).collect()
-}
-
-fn build_torrent_bytes(payload_bytes: &[u8], payload_name: &str, announce_url: &str) -> anyhow::Result<Vec<u8>> {
-    let pieces = payload_bytes
-        .chunks(TORRENT_PIECE_LENGTH)
-        .map(|piece| Sha1::digest(piece).to_vec())
-        .collect::<Vec<_>>()
-        .concat();
-
-    let info = BencodeValue::Dictionary(vec![
-        (b"length".to_vec(), BencodeValue::Integer(i64::try_from(payload_bytes.len())?)),
-        (b"name".to_vec(), BencodeValue::Bytes(payload_name.as_bytes().to_vec())),
-        (
-            b"piece length".to_vec(),
-            BencodeValue::Integer(i64::try_from(TORRENT_PIECE_LENGTH)?),
-        ),
-        (b"pieces".to_vec(), BencodeValue::Bytes(pieces)),
-    ]);
-
-    let info_bytes = info.encode();
-    let torrent = BencodeValue::Dictionary(vec![
-        (b"announce".to_vec(), BencodeValue::Bytes(announce_url.as_bytes().to_vec())),
-        (b"created by".to_vec(), BencodeValue::Bytes(b"torrust-qb-e2e".to_vec())),
-        (b"creation date".to_vec(), BencodeValue::Integer(0)),
-        (b"info".to_vec(), BencodeValue::Raw(info_bytes)),
-    ]);
-
-    Ok(torrent.encode())
 }
