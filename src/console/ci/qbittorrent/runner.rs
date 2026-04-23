@@ -88,6 +88,43 @@ impl Poller {
     }
 }
 
+struct LoginCandidates {
+    passwords: Vec<String>,
+    last_log_check: Option<Instant>,
+    log_poll_interval: Duration,
+}
+
+impl LoginCandidates {
+    fn new(log_poll_interval: Duration) -> Self {
+        Self {
+            passwords: vec![QBITTORRENT_PASSWORD.to_string(), QBITTORRENT_FALLBACK_PASSWORD.to_string()],
+            last_log_check: None,
+            log_poll_interval,
+        }
+    }
+
+    fn should_refresh_logs(&self) -> bool {
+        self.passwords.len() <= 2
+            && self
+                .last_log_check
+                .map_or(true, |last_check| last_check.elapsed() >= self.log_poll_interval)
+    }
+
+    fn mark_logs_checked(&mut self) {
+        self.last_log_check = Some(Instant::now());
+    }
+
+    fn add_if_new(&mut self, password: String) {
+        if self.passwords.iter().all(|candidate| candidate != &password) {
+            self.passwords.push(password);
+        }
+    }
+
+    fn iter(&self) -> impl Iterator<Item = &str> {
+        self.passwords.iter().map(String::as_str)
+    }
+}
+
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None)]
 struct Args {
@@ -538,31 +575,24 @@ async fn wait_for_qbittorrent_login(
     service_name: &str,
     timeout: Duration,
 ) -> anyhow::Result<String> {
-    let log_poll_interval = LOGIN_LOG_POLL_INTERVAL;
     let poller = Poller::new(timeout, LOGIN_POLL_INTERVAL);
-    let mut last_log_check: Option<std::time::Instant> = None;
+    let mut candidates = LoginCandidates::new(LOGIN_LOG_POLL_INTERVAL);
     let mut last_error = String::from("qBittorrent WebUI did not accept known credentials yet");
-    let mut candidate_passwords = vec![QBITTORRENT_PASSWORD.to_string(), QBITTORRENT_FALLBACK_PASSWORD.to_string()];
 
     loop {
-        let should_refresh_logs =
-            candidate_passwords.len() <= 2 && last_log_check.map_or(true, |last_check| last_check.elapsed() >= log_poll_interval);
-        if should_refresh_logs {
-            last_log_check = Some(std::time::Instant::now());
+        if candidates.should_refresh_logs() {
+            candidates.mark_logs_checked();
 
             if let Ok(logs) = compose.logs(&[service_name]) {
                 if let Some(password) = extract_temporary_webui_password(&logs) {
-                    let is_known_password = candidate_passwords.iter().any(|candidate| candidate == &password);
-                    if !is_known_password {
-                        candidate_passwords.push(password);
-                    }
+                    candidates.add_if_new(password);
                 }
             }
         }
 
-        for candidate_password in &candidate_passwords {
+        for candidate_password in candidates.iter() {
             match client.login(QBITTORRENT_USERNAME, candidate_password).await {
-                Ok(()) => return Ok(candidate_password.clone()),
+                Ok(()) => return Ok(candidate_password.to_string()),
                 Err(error) => {
                     last_error = error.to_string();
                 }
