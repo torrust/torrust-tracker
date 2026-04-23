@@ -1,0 +1,36 @@
+use std::time::Duration;
+
+use super::super::poller::Poller;
+use super::super::qbittorrent_client::QbittorrentClient;
+
+/// Waits until the client first torrent reaches full completion.
+///
+/// # Errors
+///
+/// Returns an error when polling times out or the torrent list query fails.
+pub(in super::super) async fn wait_until_download_completes(
+    client: &QbittorrentClient,
+    timeout: Duration,
+    poll_interval: Duration,
+) -> anyhow::Result<()> {
+    let poller = Poller::new(timeout, poll_interval);
+
+    loop {
+        if let Some(torrent) = client.first_torrent().await? {
+            tracing::info!(
+                "Torrent progress: {:.1}% (state: {})",
+                torrent.progress * 100.0,
+                torrent.state
+            );
+
+            if torrent.progress >= 1.0 {
+                tracing::info!("Torrent download complete (100%)");
+                return Ok(());
+            }
+        }
+
+        poller
+            .retry_or_timeout(|| "timed out waiting for download to complete".to_string())
+            .await?;
+    }
+}

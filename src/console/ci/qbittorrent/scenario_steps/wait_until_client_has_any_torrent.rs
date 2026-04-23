@@ -20,14 +20,13 @@ pub(in super::super) async fn wait_until_client_has_any_torrent(
     let poller = Poller::new(timeout, poll_interval);
 
     loop {
-        let torrent_count = client.torrent_count().await?;
-
-        tracing::info!("{client_name} has {torrent_count} torrent(s)");
-
-        if torrent_count >= 1 {
+        if client.has_any_torrents().await? {
             tracing::info!("{client_name} has at least one torrent");
             return Ok(());
         }
+
+        let torrent_count = client.torrent_count().await?;
+        tracing::info!("{client_name} has {torrent_count} torrent(s)");
 
         poller
             .retry_or_timeout(|| {

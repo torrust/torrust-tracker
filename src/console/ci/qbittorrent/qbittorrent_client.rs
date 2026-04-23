@@ -204,6 +204,32 @@ impl QbittorrentClient {
     /// # Errors
     ///
     /// Returns an error when querying torrents fails.
+    pub async fn first_torrent(&self) -> anyhow::Result<Option<TorrentInfo>> {
+        let torrents = self
+            .list_torrents()
+            .await
+            .with_context(|| format!("failed to list {} torrents", self.client_label))?;
+
+        Ok(torrents.into_iter().next())
+    }
+
+    /// # Errors
+    ///
+    /// Returns an error when querying torrents fails.
+    pub async fn first_torrent_progress(&self) -> anyhow::Result<Option<f64>> {
+        Ok(self.first_torrent().await?.map(|torrent| torrent.progress))
+    }
+
+    /// # Errors
+    ///
+    /// Returns an error when querying torrents fails.
+    pub async fn has_any_torrents(&self) -> anyhow::Result<bool> {
+        Ok(self.torrent_count().await? > 0)
+    }
+
+    /// # Errors
+    ///
+    /// Returns an error when querying torrents fails.
     pub async fn torrent_count(&self) -> anyhow::Result<usize> {
         Ok(self
             .list_torrents()
