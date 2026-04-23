@@ -95,9 +95,9 @@ struct LoginCandidates {
 }
 
 impl LoginCandidates {
-    fn new(log_poll_interval: Duration) -> Self {
+    fn new(passwords: Vec<String>, log_poll_interval: Duration) -> Self {
         Self {
-            passwords: vec![QBITTORRENT_PASSWORD.to_string(), QBITTORRENT_FALLBACK_PASSWORD.to_string()],
+            passwords,
             last_log_check: None,
             log_poll_interval,
         }
@@ -576,7 +576,10 @@ async fn wait_for_qbittorrent_login(
     timeout: Duration,
 ) -> anyhow::Result<String> {
     let poller = Poller::new(timeout, LOGIN_POLL_INTERVAL);
-    let mut candidates = LoginCandidates::new(LOGIN_LOG_POLL_INTERVAL);
+    let mut candidates = LoginCandidates::new(
+        vec![QBITTORRENT_PASSWORD.to_string(), QBITTORRENT_FALLBACK_PASSWORD.to_string()],
+        LOGIN_LOG_POLL_INTERVAL,
+    );
     let mut last_error = String::from("qBittorrent WebUI did not accept known credentials yet");
 
     loop {
