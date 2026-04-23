@@ -9,7 +9,7 @@ use std::fmt::Write as FmtWrite;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 use anyhow::Context;
 use base64::engine::general_purpose::STANDARD as BASE64_STANDARD;
@@ -60,6 +60,33 @@ impl<'a> TorrentUpload<'a> {
 
 type ClientPair = (QbittorrentClient, QbittorrentClient);
 type ClientPairRef<'a> = (&'a QbittorrentClient, &'a QbittorrentClient);
+
+struct Poller {
+    deadline: Instant,
+    interval: Duration,
+}
+
+impl Poller {
+    fn new(timeout: Duration, interval: Duration) -> Self {
+        Self {
+            deadline: Instant::now() + timeout,
+            interval,
+        }
+    }
+
+    async fn retry_or_timeout<M>(&self, timeout_message: M) -> anyhow::Result<()>
+    where
+        M: FnOnce() -> String,
+    {
+        if Instant::now() >= self.deadline {
+            anyhow::bail!(timeout_message());
+        }
+
+        sleep(self.interval).await;
+
+        Ok(())
+    }
+}
 
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None)]
@@ -339,8 +366,7 @@ async fn upload_torrent_to_clients(clients: ClientPairRef<'_>, torrent_upload: T
 /// clients report ≥ 1 torrent or the timeout expires.
 async fn wait_for_torrent_counts(clients: ClientPairRef<'_>, timeout: Duration) -> anyhow::Result<()> {
     let (seeder, leecher) = clients;
-    let deadline = std::time::Instant::now() + timeout;
-    let poll_interval = TORRENT_POLL_INTERVAL;
+    let poller = Poller::new(timeout, TORRENT_POLL_INTERVAL);
 
     loop {
         let seeder_count = seeder.torrent_count().await?;
@@ -353,11 +379,11 @@ async fn wait_for_torrent_counts(clients: ClientPairRef<'_>, timeout: Duration) 
             return Ok(());
         }
 
-        if std::time::Instant::now() >= deadline {
-            anyhow::bail!("timed out waiting for torrents: seeder has {seeder_count}, leecher has {leecher_count}");
-        }
-
-        sleep(poll_interval).await;
+        poller
+            .retry_or_timeout(|| {
+                format!("timed out waiting for torrents: seeder has {seeder_count}, leecher has {leecher_count}")
+            })
+            .await?;
     }
 }
 
@@ -366,8 +392,7 @@ async fn wait_for_torrent_counts(clients: ClientPairRef<'_>, timeout: Duration) 
 /// qBittorrent downloads asynchronously. This function retries every 500 ms until the
 /// first torrent on the leecher reports `progress >= 1.0`, indicating a full download.
 async fn wait_for_leecher_completion(leecher: &QbittorrentClient, timeout: Duration) -> anyhow::Result<()> {
-    let deadline = std::time::Instant::now() + timeout;
-    let poll_interval = TORRENT_POLL_INTERVAL;
+    let poller = Poller::new(timeout, TORRENT_POLL_INTERVAL);
 
     loop {
         let torrents = leecher
@@ -388,11 +413,9 @@ async fn wait_for_leecher_completion(leecher: &QbittorrentClient, timeout: Durat
             }
         }
 
-        if std::time::Instant::now() >= deadline {
-            anyhow::bail!("timed out waiting for leecher to complete download");
-        }
-
-        sleep(poll_interval).await;
+        poller
+            .retry_or_timeout(|| "timed out waiting for leecher to complete download".to_string())
+            .await?;
     }
 }
 
@@ -515,14 +538,13 @@ async fn wait_for_qbittorrent_login(
     service_name: &str,
     timeout: Duration,
 ) -> anyhow::Result<String> {
-    let start = std::time::Instant::now();
-    let poll_interval = LOGIN_POLL_INTERVAL;
     let log_poll_interval = LOGIN_LOG_POLL_INTERVAL;
+    let poller = Poller::new(timeout, LOGIN_POLL_INTERVAL);
     let mut last_log_check: Option<std::time::Instant> = None;
     let mut last_error = String::from("qBittorrent WebUI did not accept known credentials yet");
     let mut candidate_passwords = vec![QBITTORRENT_PASSWORD.to_string(), QBITTORRENT_FALLBACK_PASSWORD.to_string()];
 
-    while start.elapsed() < timeout {
+    loop {
         let should_refresh_logs =
             candidate_passwords.len() <= 2 && last_log_check.map_or(true, |last_check| last_check.elapsed() >= log_poll_interval);
         if should_refresh_logs {
@@ -549,12 +571,12 @@ async fn wait_for_qbittorrent_login(
 
         tracing::info!("Waiting for qBittorrent WebUI authentication: {last_error}");
 
-        sleep(poll_interval).await;
+        poller
+            .retry_or_timeout(|| {
+                format!("timed out waiting for qBittorrent WebUI authentication readiness. Last error: {last_error}")
+            })
+            .await?;
     }
-
-    Err(anyhow::anyhow!(
-        "timed out waiting for qBittorrent WebUI authentication readiness. Last error: {last_error}"
-    ))
 }
 
 fn extract_temporary_webui_password(logs: &str) -> Option<String> {
@@ -572,51 +594,43 @@ async fn resolve_service_host_port(
     container_port: u16,
     timeout: Duration,
 ) -> anyhow::Result<u16> {
-    let start = std::time::Instant::now();
-    let poll_interval = COMPOSE_PORT_POLL_INTERVAL;
-    let mut last_error: Option<std::io::Error> = None;
+    let poller = Poller::new(timeout, COMPOSE_PORT_POLL_INTERVAL);
 
-    while start.elapsed() < timeout {
+    loop {
         if let Ok(ps_output) = compose.ps() {
             if compose_service_has_exited(&ps_output, service_name) {
                 let logs_output = compose
                     .logs(&[service_name])
                     .unwrap_or_else(|error| format!("failed to collect compose logs output: {error}"));
 
-                return Err(anyhow::anyhow!(
+                anyhow::bail!(
                     "compose service '{service_name}' exited while waiting for port mapping '{container_port}'.\nCompose ps:\n{ps_output}\nCompose logs:\n{logs_output}"
-                ));
+                );
             }
         }
 
         match compose.port(service_name, container_port) {
             Ok(host_port) => return Ok(host_port),
-            Err(error) => {
-                last_error = Some(error);
+            Err(_) => {
                 tracing::info!("Waiting for compose port mapping for service '{service_name}'");
-                sleep(poll_interval).await;
             }
         }
+
+        poller
+            .retry_or_timeout(|| {
+            let ps_output = compose
+                .ps()
+                .unwrap_or_else(|error| format!("failed to collect compose ps output: {error}"));
+            let logs_output = compose
+                .logs(&[service_name, "tracker"])
+                .unwrap_or_else(|error| format!("failed to collect compose logs output: {error}"));
+
+            format!(
+                "timed out waiting for compose port mapping for service '{service_name}' and port '{container_port}'.\nCompose ps:\n{ps_output}\nCompose logs:\n{logs_output}"
+            )
+            })
+            .await?;
     }
-
-    let ps_output = compose
-        .ps()
-        .unwrap_or_else(|error| format!("failed to collect compose ps output: {error}"));
-    let logs_output = compose
-        .logs(&[service_name, "tracker"])
-        .unwrap_or_else(|error| format!("failed to collect compose logs output: {error}"));
-
-    Err(anyhow::anyhow!(
-        "timed out waiting for compose port mapping for service '{}' and port '{}'. Last error: {}\nCompose ps:\n{}\nCompose logs:\n{}",
-        service_name,
-        container_port,
-        last_error.as_ref().map_or_else(
-            || "no port error captured".to_string(),
-            std::string::ToString::to_string,
-        ),
-        ps_output,
-        logs_output
-    ))
 }
 
 fn compose_service_has_exited(ps_output: &str, service_name: &str) -> bool {
