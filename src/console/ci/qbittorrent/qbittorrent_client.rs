@@ -119,7 +119,7 @@ impl QbittorrentClient {
     /// # Errors
     ///
     /// Returns an error when uploading a torrent file fails.
-    pub async fn add_torrent(&self, torrent_name: &str, torrent_bytes: Vec<u8>, save_path: &str) -> anyhow::Result<()> {
+    async fn add_torrent(&self, torrent_name: &str, torrent_bytes: Vec<u8>, save_path: &str) -> anyhow::Result<()> {
         let (webui_host, webui_origin) = self
             .webui_headers()
             .context("failed to prepare qBittorrent WebUI CSRF headers")?;
@@ -159,11 +159,11 @@ impl QbittorrentClient {
 
     /// # Errors
     ///
-    /// Returns an error when uploading a torrent file fails.
-    pub async fn upload_torrent(&self, torrent_name: &str, torrent_bytes: &[u8], save_path: &str) -> anyhow::Result<()> {
+    /// Returns an error when adding a torrent file fails.
+    pub async fn add_torrent_file(&self, torrent_name: &str, torrent_bytes: &[u8], save_path: &str) -> anyhow::Result<()> {
         self.add_torrent(torrent_name, torrent_bytes.to_vec(), save_path)
             .await
-            .with_context(|| format!("failed to upload torrent to {} qBittorrent instance", self.client_label))
+            .with_context(|| format!("failed to add torrent file to {} qBittorrent instance", self.client_label))
     }
 
     /// # Errors

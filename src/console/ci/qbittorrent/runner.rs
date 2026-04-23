@@ -25,7 +25,9 @@ use tracing::level_filters::LevelFilter;
 use super::client_role::ClientRole;
 use super::poller::Poller;
 use super::qbittorrent_client::QbittorrentClient;
-use super::scenario_steps::{build_payload_fixture, build_torrent_fixture};
+use super::scenario_steps::{
+    add_torrent_file_to_client, build_payload_fixture, build_torrent_fixture, wait_until_client_has_any_torrent,
+};
 use super::workspace::{EphemeralWorkspace, PermanentWorkspace, PreparedWorkspace, WorkspaceResources};
 use crate::console::ci::compose::DockerCompose;
 
@@ -146,15 +148,21 @@ impl<'a> ScenarioRunner<'a> {
     ) -> anyhow::Result<()> {
         let (seeder, leecher) = clients;
 
-        seeder
-            .upload_torrent(torrent_upload.file_name, torrent_upload.bytes, QBITTORRENT_DOWNLOADS_PATH)
-            .await
-            .context("failed to upload torrent")?;
+        add_torrent_file_to_client(
+            seeder,
+            torrent_upload.file_name,
+            torrent_upload.bytes,
+            QBITTORRENT_DOWNLOADS_PATH,
+        )
+        .await?;
 
-        leecher
-            .upload_torrent(torrent_upload.file_name, torrent_upload.bytes, QBITTORRENT_DOWNLOADS_PATH)
-            .await
-            .context("failed to upload torrent")?;
+        add_torrent_file_to_client(
+            leecher,
+            torrent_upload.file_name,
+            torrent_upload.bytes,
+            QBITTORRENT_DOWNLOADS_PATH,
+        )
+        .await?;
 
         tracing::info!("Torrent file uploaded to both qBittorrent clients");
 
@@ -167,23 +175,23 @@ impl<'a> ScenarioRunner<'a> {
     /// after upload can race and return 0.
     async fn wait_for_torrent_counts(&self, clients: ClientPairRef<'_>) -> anyhow::Result<()> {
         let (seeder, leecher) = clients;
+
+        wait_until_client_has_any_torrent(seeder, self.timeout, TORRENT_POLL_INTERVAL, "Seeder").await?;
+
         let poller = Poller::new(self.timeout, TORRENT_POLL_INTERVAL);
 
         loop {
-            let seeder_count = seeder.torrent_count().await?;
             let leecher_count = leecher.torrent_count().await?;
 
-            tracing::info!("Seeder has {seeder_count} torrent(s), leecher has {leecher_count} torrent(s)");
+            tracing::info!("Leecher has {leecher_count} torrent(s)");
 
-            if seeder_count >= 1 && leecher_count >= 1 {
-                tracing::info!("Both clients have at least one torrent - upload confirmed");
+            if leecher_count >= 1 {
+                tracing::info!("Leecher has at least one torrent - upload confirmed");
                 return Ok(());
             }
 
             poller
-                .retry_or_timeout(|| {
-                    format!("timed out waiting for torrents: seeder has {seeder_count}, leecher has {leecher_count}")
-                })
+                .retry_or_timeout(|| format!("timed out waiting for leecher torrent: leecher has {leecher_count}"))
                 .await?;
         }
     }
