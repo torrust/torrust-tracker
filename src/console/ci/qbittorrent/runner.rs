@@ -106,6 +106,7 @@ pub async fn run() -> anyhow::Result<()> {
     let project_name = build_project_name(&args.project_prefix);
     tracing::info!("Using compose project name: {project_name}");
 
+    // Phase 1: prepare local inputs and compose stack.
     let workspace = prepare_workspace(&args, &project_name)?;
     let resources = workspace.resources();
 
@@ -114,15 +115,11 @@ pub async fn run() -> anyhow::Result<()> {
     let compose = build_compose(&args, &project_name, resources)?;
     let mut running_compose = compose.up().context("failed to start qBittorrent compose stack")?;
 
+    // Phase 2: run transfer and verification flow.
     let timeout = Duration::from_secs(args.timeout_seconds);
-    let (seeder, leecher) = initialize_clients(&compose, timeout).await?;
-    let torrent_upload = TorrentUpload::new(TORRENT_FILE_NAME, &resources.torrent_bytes);
-    upload_torrent_to_clients((&seeder, &leecher), torrent_upload).await?;
-    wait_for_torrent_counts((&seeder, &leecher), timeout).await?;
-    wait_for_leecher_completion(&leecher, timeout).await?;
-    verify_payload_integrity(&resources.leecher_downloads_path, &resources.payload_bytes)
-        .context("downloaded payload does not match the original")?;
+    run_transfer_flow(&compose, resources, timeout).await?;
 
+    // Phase 3: optionally keep containers for debugging.
     if args.keep_containers {
         tracing::info!(
             "Keeping containers alive for debugging. Project name: '{}'. \
@@ -136,6 +133,19 @@ pub async fn run() -> anyhow::Result<()> {
         );
         running_compose.keep();
     }
+
+    Ok(())
+}
+
+async fn run_transfer_flow(compose: &DockerCompose, workspace: &WorkspaceResources, timeout: Duration) -> anyhow::Result<()> {
+    let (seeder, leecher) = initialize_clients(compose, timeout).await?;
+    let torrent_upload = TorrentUpload::new(TORRENT_FILE_NAME, &workspace.torrent_bytes);
+
+    upload_torrent_to_clients((&seeder, &leecher), torrent_upload).await?;
+    wait_for_torrent_counts((&seeder, &leecher), timeout).await?;
+    wait_for_leecher_completion(&leecher, timeout).await?;
+    verify_payload_integrity(&workspace.leecher_downloads_path, &workspace.payload_bytes)
+        .context("downloaded payload does not match the original")?;
 
     Ok(())
 }
