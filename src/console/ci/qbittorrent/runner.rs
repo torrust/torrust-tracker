@@ -26,7 +26,7 @@ use super::client_role::ClientRole;
 use super::qbittorrent_client::QbittorrentClient;
 use super::scenario_steps::{
     add_torrent_file_to_client, build_payload_fixture, build_torrent_fixture, login_client, wait_until_client_has_any_torrent,
-    wait_until_download_completes, wait_until_temporary_password_appears_in_logs,
+    wait_until_download_completes,
 };
 use super::workspace::{EphemeralWorkspace, PermanentWorkspace, PreparedWorkspace, WorkspaceResources};
 use crate::console::ci::compose::DockerCompose;
@@ -45,7 +45,6 @@ const PAYLOAD_SIZE_BYTES: usize = 1024 * 1024;
 const TORRENT_PIECE_LENGTH: usize = 16 * 1024;
 const TORRENT_POLL_INTERVAL: Duration = Duration::from_millis(500);
 const LOGIN_POLL_INTERVAL: Duration = Duration::from_secs(1);
-const LOGIN_LOG_POLL_INTERVAL: Duration = Duration::from_secs(5);
 const COMPOSE_PORT_POLL_INTERVAL: Duration = Duration::from_secs(1);
 
 #[derive(Clone, Copy, Debug)]
@@ -127,15 +126,10 @@ impl<'a> ScenarioRunner<'a> {
         let client = QbittorrentClient::new(role.client_label(), &format!("http://127.0.0.1:{host_port}"), self.timeout)
             .with_context(|| format!("failed to create qBittorrent client for service '{service_name}'"))?;
 
-        let captured_password =
-            wait_until_temporary_password_appears_in_logs(self.compose, service_name, self.timeout, LOGIN_LOG_POLL_INTERVAL)
-                .await
-                .with_context(|| format!("{service_name} temporary qBittorrent password did not appear in logs"))?;
-
         login_client(
             &client,
             QBITTORRENT_USERNAME,
-            &captured_password,
+            QBITTORRENT_PASSWORD,
             self.timeout,
             LOGIN_POLL_INTERVAL,
         )
