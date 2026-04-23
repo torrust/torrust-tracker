@@ -94,6 +94,11 @@ struct LoginCandidates {
     log_poll_interval: Duration,
 }
 
+struct GeneratedPayloadAndTorrent {
+    payload_bytes: Vec<u8>,
+    torrent_bytes: Vec<u8>,
+}
+
 impl LoginCandidates {
     fn new(passwords: Vec<String>, log_poll_interval: Duration) -> Self {
         Self {
@@ -261,7 +266,7 @@ fn prepare_workspace_resources(root_path: PathBuf, args: &Args) -> anyhow::Resul
         .context("failed to generate leecher qBittorrent config")?;
 
     let tracker_config_path = write_tracker_config(&root_path, &args.tracker_config_template)?;
-    let (payload_bytes, torrent_bytes) = write_payload_and_torrent(&shared_path, &seeder_downloads_path)?;
+    let generated_payload_and_torrent = write_payload_and_torrent(&shared_path, &seeder_downloads_path)?;
 
     Ok(WorkspaceResources {
         root_path,
@@ -272,8 +277,8 @@ fn prepare_workspace_resources(root_path: PathBuf, args: &Args) -> anyhow::Resul
         leecher_config_path,
         seeder_downloads_path,
         leecher_downloads_path,
-        payload_bytes,
-        torrent_bytes,
+        payload_bytes: generated_payload_and_torrent.payload_bytes,
+        torrent_bytes: generated_payload_and_torrent.torrent_bytes,
     })
 }
 
@@ -292,7 +297,7 @@ fn write_tracker_config(workspace_root: &Path, tracker_config_template: &Path) -
     Ok(tracker_config_path)
 }
 
-fn write_payload_and_torrent(shared_path: &Path, seeder_downloads_path: &Path) -> anyhow::Result<(Vec<u8>, Vec<u8>)> {
+fn write_payload_and_torrent(shared_path: &Path, seeder_downloads_path: &Path) -> anyhow::Result<GeneratedPayloadAndTorrent> {
     let payload_path = shared_path.join(PAYLOAD_FILE_NAME);
     let torrent_path = shared_path.join(TORRENT_FILE_NAME);
     let payload_bytes = build_payload_bytes(PAYLOAD_SIZE_BYTES);
@@ -310,7 +315,10 @@ fn write_payload_and_torrent(shared_path: &Path, seeder_downloads_path: &Path) -
     fs::write(&torrent_path, &torrent_bytes)
         .with_context(|| format!("failed to write torrent file '{}'", torrent_path.display()))?;
 
-    Ok((payload_bytes, torrent_bytes))
+    Ok(GeneratedPayloadAndTorrent {
+        payload_bytes,
+        torrent_bytes,
+    })
 }
 
 fn build_compose(args: &Args, project_name: &str, workspace: &WorkspaceResources) -> anyhow::Result<DockerCompose> {
