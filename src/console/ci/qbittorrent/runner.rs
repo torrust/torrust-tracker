@@ -121,6 +121,139 @@ struct GeneratedPayloadAndTorrent {
     torrent_bytes: Vec<u8>,
 }
 
+struct ScenarioRunner<'a> {
+    compose: &'a DockerCompose,
+    workspace: &'a WorkspaceResources,
+    timeout: Duration,
+}
+
+impl<'a> ScenarioRunner<'a> {
+    const fn new(compose: &'a DockerCompose, workspace: &'a WorkspaceResources, timeout: Duration) -> Self {
+        Self {
+            compose,
+            workspace,
+            timeout,
+        }
+    }
+
+    async fn run(&self) -> anyhow::Result<()> {
+        let (seeder, leecher) = self.initialize_clients().await?;
+        let torrent_upload = TorrentUpload::new(TORRENT_FILE_NAME, &self.workspace.torrent_bytes);
+
+        self.upload_torrent_to_clients((&seeder, &leecher), torrent_upload).await?;
+        self.wait_for_torrent_counts((&seeder, &leecher)).await?;
+        self.wait_for_leecher_completion(&leecher).await?;
+        self.verify_payload_integrity()
+            .context("downloaded payload does not match the original")?;
+
+        Ok(())
+    }
+
+    async fn initialize_clients(&self) -> anyhow::Result<ClientPair> {
+        let seeder = self.initialize_client(ClientRole::Seeder).await?;
+        let leecher = self.initialize_client(ClientRole::Leecher).await?;
+
+        tracing::info!("qBittorrent WebUI login succeeded for both clients");
+
+        Ok((seeder, leecher))
+    }
+
+    async fn initialize_client(&self, role: ClientRole) -> anyhow::Result<QbittorrentClient> {
+        let service_name = role.service_name();
+        let host_port = resolve_service_host_port(self.compose, service_name, QBITTORRENT_WEBUI_PORT, self.timeout)
+            .await
+            .with_context(|| format!("failed to resolve {service_name} WebUI host port"))?;
+
+        tracing::info!("{} WebUI host port: {host_port}", role.client_label());
+
+        let client = QbittorrentClient::new(role.client_label(), &format!("http://127.0.0.1:{host_port}"), self.timeout)
+            .with_context(|| format!("failed to create qBittorrent client for service '{service_name}'"))?;
+
+        let _password = wait_for_qbittorrent_login(&client, self.compose, service_name, self.timeout)
+            .await
+            .with_context(|| format!("{service_name} qBittorrent API did not become ready for authentication"))?;
+
+        Ok(client)
+    }
+
+    async fn upload_torrent_to_clients(
+        &self,
+        clients: ClientPairRef<'_>,
+        torrent_upload: TorrentUpload<'_>,
+    ) -> anyhow::Result<()> {
+        let (seeder, leecher) = clients;
+
+        seeder
+            .upload_torrent(torrent_upload.file_name, torrent_upload.bytes, QBITTORRENT_DOWNLOADS_PATH)
+            .await
+            .context("failed to upload torrent")?;
+
+        leecher
+            .upload_torrent(torrent_upload.file_name, torrent_upload.bytes, QBITTORRENT_DOWNLOADS_PATH)
+            .await
+            .context("failed to upload torrent")?;
+
+        tracing::info!("Torrent file uploaded to both qBittorrent clients");
+
+        Ok(())
+    }
+
+    async fn wait_for_torrent_counts(&self, clients: ClientPairRef<'_>) -> anyhow::Result<()> {
+        let (seeder, leecher) = clients;
+        let poller = Poller::new(self.timeout, TORRENT_POLL_INTERVAL);
+
+        loop {
+            let seeder_count = seeder.torrent_count().await?;
+            let leecher_count = leecher.torrent_count().await?;
+
+            tracing::info!("Seeder has {seeder_count} torrent(s), leecher has {leecher_count} torrent(s)");
+
+            if seeder_count >= 1 && leecher_count >= 1 {
+                tracing::info!("Both clients have at least one torrent - upload confirmed");
+                return Ok(());
+            }
+
+            poller
+                .retry_or_timeout(|| {
+                    format!("timed out waiting for torrents: seeder has {seeder_count}, leecher has {leecher_count}")
+                })
+                .await?;
+        }
+    }
+
+    async fn wait_for_leecher_completion(&self, leecher: &QbittorrentClient) -> anyhow::Result<()> {
+        let poller = Poller::new(self.timeout, TORRENT_POLL_INTERVAL);
+
+        loop {
+            let torrents = leecher
+                .list_torrents()
+                .await
+                .context("failed to list leecher torrents while polling for completion")?;
+
+            if let Some(torrent) = torrents.first() {
+                tracing::info!(
+                    "Leecher torrent progress: {:.1}% (state: {})",
+                    torrent.progress * 100.0,
+                    torrent.state
+                );
+
+                if torrent.progress >= 1.0 {
+                    tracing::info!("Leecher torrent download complete (100%)");
+                    return Ok(());
+                }
+            }
+
+            poller
+                .retry_or_timeout(|| "timed out waiting for leecher to complete download".to_string())
+                .await?;
+        }
+    }
+
+    fn verify_payload_integrity(&self) -> anyhow::Result<()> {
+        verify_payload_integrity(&self.workspace.leecher_downloads_path, &self.workspace.payload_bytes)
+    }
+}
+
 impl LoginCandidates {
     fn new(passwords: Vec<String>, log_poll_interval: Duration) -> Self {
         Self {
@@ -208,7 +341,8 @@ pub async fn run() -> anyhow::Result<()> {
 
     // Phase 2: run transfer and verification flow.
     let timeout = Duration::from_secs(args.timeout_seconds);
-    run_transfer_flow(&compose, resources, timeout).await?;
+    let scenario_runner = ScenarioRunner::new(&compose, resources, timeout);
+    scenario_runner.run().await?;
 
     // Phase 3: optionally keep containers for debugging.
     if args.keep_containers {
@@ -224,19 +358,6 @@ pub async fn run() -> anyhow::Result<()> {
         );
         running_compose.keep();
     }
-
-    Ok(())
-}
-
-async fn run_transfer_flow(compose: &DockerCompose, workspace: &WorkspaceResources, timeout: Duration) -> anyhow::Result<()> {
-    let (seeder, leecher) = initialize_clients(compose, timeout).await?;
-    let torrent_upload = TorrentUpload::new(TORRENT_FILE_NAME, &workspace.torrent_bytes);
-
-    upload_torrent_to_clients((&seeder, &leecher), torrent_upload).await?;
-    wait_for_torrent_counts((&seeder, &leecher), timeout).await?;
-    wait_for_leecher_completion(&leecher, timeout).await?;
-    verify_payload_integrity(&workspace.leecher_downloads_path, &workspace.payload_bytes)
-        .context("downloaded payload does not match the original")?;
 
     Ok(())
 }
@@ -382,111 +503,15 @@ fn build_compose(args: &Args, project_name: &str, workspace: &WorkspaceResources
         ))
 }
 
-async fn initialize_clients(compose: &DockerCompose, timeout: Duration) -> anyhow::Result<ClientPair> {
-    let seeder = initialize_client(compose, ClientRole::Seeder, timeout).await?;
-    let leecher = initialize_client(compose, ClientRole::Leecher, timeout).await?;
-
-    tracing::info!("qBittorrent WebUI login succeeded for both clients");
-
-    Ok((seeder, leecher))
-}
-
-async fn initialize_client(compose: &DockerCompose, role: ClientRole, timeout: Duration) -> anyhow::Result<QbittorrentClient> {
-    let service_name = role.service_name();
-    let host_port = resolve_service_host_port(compose, service_name, QBITTORRENT_WEBUI_PORT, timeout)
-        .await
-        .with_context(|| format!("failed to resolve {service_name} WebUI host port"))?;
-
-    tracing::info!("{} WebUI host port: {host_port}", role.client_label());
-
-    let client = QbittorrentClient::new(role.client_label(), &format!("http://127.0.0.1:{host_port}"), timeout)
-        .with_context(|| format!("failed to create qBittorrent client for service '{service_name}'"))?;
-
-    let _password = wait_for_qbittorrent_login(&client, compose, service_name, timeout)
-        .await
-        .with_context(|| format!("{service_name} qBittorrent API did not become ready for authentication"))?;
-
-    Ok(client)
-}
-
-async fn upload_torrent_to_clients(clients: ClientPairRef<'_>, torrent_upload: TorrentUpload<'_>) -> anyhow::Result<()> {
-    let (seeder, leecher) = clients;
-
-    seeder
-        .upload_torrent(torrent_upload.file_name, torrent_upload.bytes, QBITTORRENT_DOWNLOADS_PATH)
-        .await
-        .context("failed to upload torrent")?;
-
-    leecher
-        .upload_torrent(torrent_upload.file_name, torrent_upload.bytes, QBITTORRENT_DOWNLOADS_PATH)
-        .await
-        .context("failed to upload torrent")?;
-
-    tracing::info!("Torrent file uploaded to both qBittorrent clients");
-
-    Ok(())
-}
-
 /// Polls both clients until each has at least one torrent, then logs the final counts.
 ///
 /// qBittorrent processes `add_torrent` asynchronously, so an immediate `list_torrents`
 /// after upload would race and return 0. This function retries every 500 ms until both
 /// clients report ≥ 1 torrent or the timeout expires.
-async fn wait_for_torrent_counts(clients: ClientPairRef<'_>, timeout: Duration) -> anyhow::Result<()> {
-    let (seeder, leecher) = clients;
-    let poller = Poller::new(timeout, TORRENT_POLL_INTERVAL);
-
-    loop {
-        let seeder_count = seeder.torrent_count().await?;
-        let leecher_count = leecher.torrent_count().await?;
-
-        tracing::info!("Seeder has {seeder_count} torrent(s), leecher has {leecher_count} torrent(s)");
-
-        if seeder_count >= 1 && leecher_count >= 1 {
-            tracing::info!("Both clients have at least one torrent — upload confirmed");
-            return Ok(());
-        }
-
-        poller
-            .retry_or_timeout(|| {
-                format!("timed out waiting for torrents: seeder has {seeder_count}, leecher has {leecher_count}")
-            })
-            .await?;
-    }
-}
-
 /// Polls the leecher until its torrent reaches 100% progress.
 ///
 /// qBittorrent downloads asynchronously. This function retries every 500 ms until the
 /// first torrent on the leecher reports `progress >= 1.0`, indicating a full download.
-async fn wait_for_leecher_completion(leecher: &QbittorrentClient, timeout: Duration) -> anyhow::Result<()> {
-    let poller = Poller::new(timeout, TORRENT_POLL_INTERVAL);
-
-    loop {
-        let torrents = leecher
-            .list_torrents()
-            .await
-            .context("failed to list leecher torrents while polling for completion")?;
-
-        if let Some(torrent) = torrents.first() {
-            tracing::info!(
-                "Leecher torrent progress: {:.1}% (state: {})",
-                torrent.progress * 100.0,
-                torrent.state
-            );
-
-            if torrent.progress >= 1.0 {
-                tracing::info!("Leecher torrent download complete (100%)");
-                return Ok(());
-            }
-        }
-
-        poller
-            .retry_or_timeout(|| "timed out waiting for leecher to complete download".to_string())
-            .await?;
-    }
-}
-
 /// Verifies that the leecher's downloaded file matches the original payload byte-for-byte.
 ///
 /// Reads the downloaded file from `leecher_downloads_path/payload.bin` and compares it to
