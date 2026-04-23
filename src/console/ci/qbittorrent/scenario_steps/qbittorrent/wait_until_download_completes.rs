@@ -1,14 +1,14 @@
 use std::time::Duration;
 
-use super::super::poller::Poller;
-use super::super::qbittorrent_client::QbittorrentClient;
+use super::super::super::poller::Poller;
+use super::super::super::qbittorrent_client::QbittorrentClient;
 
 /// Waits until the client first torrent reaches full completion.
 ///
 /// # Errors
 ///
 /// Returns an error when polling times out or the torrent list query fails.
-pub(in super::super) async fn wait_until_download_completes(
+pub async fn wait_until_download_completes(
     client: &QbittorrentClient,
     timeout: Duration,
     poll_interval: Duration,

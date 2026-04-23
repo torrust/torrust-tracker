@@ -1,6 +1,6 @@
 use anyhow::Context;
 
-use super::super::qbittorrent_client::QbittorrentClient;
+use super::super::super::qbittorrent_client::QbittorrentClient;
 
 /// Submits a `.torrent` file to a qBittorrent client.
 ///
@@ -10,7 +10,7 @@ use super::super::qbittorrent_client::QbittorrentClient;
 /// # Errors
 ///
 /// Returns an error when the qBittorrent API call fails.
-pub(in super::super) async fn add_torrent_file_to_client(
+pub async fn add_torrent_file_to_client(
     client: &QbittorrentClient,
     torrent_file_name: &str,
     torrent_bytes: &[u8],

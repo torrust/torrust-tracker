@@ -1,14 +1,14 @@
 use std::time::Duration;
 
-use super::super::poller::Poller;
-use super::super::qbittorrent_client::QbittorrentClient;
+use super::super::super::poller::Poller;
+use super::super::super::qbittorrent_client::QbittorrentClient;
 
 /// Attempts login using provided credentials and retries until accepted.
 ///
 /// # Errors
 ///
 /// Returns an error when login does not succeed before timeout.
-pub(in super::super) async fn login_client(
+pub async fn login_client(
     client: &QbittorrentClient,
     username: &str,
     password: &str,

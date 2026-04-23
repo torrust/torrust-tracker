@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use super::super::poller::Poller;
+use super::super::super::poller::Poller;
 use crate::console::ci::compose::DockerCompose;
 
 /// Waits until qBittorrent logs expose a temporary `WebUI` password and returns it.
@@ -8,7 +8,7 @@ use crate::console::ci::compose::DockerCompose;
 /// # Errors
 ///
 /// Returns an error when no temporary password is discovered before timeout.
-pub(in super::super) async fn wait_until_temporary_password_appears_in_logs(
+pub async fn wait_until_temporary_password_appears_in_logs(
     compose: &DockerCompose,
     service_name: &str,
     timeout: Duration,

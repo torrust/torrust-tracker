@@ -1,7 +1,7 @@
 use std::time::Duration;
 
-use super::super::poller::Poller;
-use super::super::qbittorrent_client::QbittorrentClient;
+use super::super::super::poller::Poller;
+use super::super::super::qbittorrent_client::QbittorrentClient;
 
 /// Waits until the client reports at least one torrent in its list.
 ///
@@ -11,7 +11,7 @@ use super::super::qbittorrent_client::QbittorrentClient;
 /// # Errors
 ///
 /// Returns an error when polling times out or the torrent list query fails.
-pub(in super::super) async fn wait_until_client_has_any_torrent(
+pub async fn wait_until_client_has_any_torrent(
     client: &QbittorrentClient,
     timeout: Duration,
     poll_interval: Duration,
