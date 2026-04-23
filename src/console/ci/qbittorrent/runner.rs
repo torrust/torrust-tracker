@@ -61,6 +61,28 @@ impl<'a> TorrentUpload<'a> {
 type ClientPair = (QbittorrentClient, QbittorrentClient);
 type ClientPairRef<'a> = (&'a QbittorrentClient, &'a QbittorrentClient);
 
+#[derive(Clone, Copy, Debug)]
+enum ClientRole {
+    Seeder,
+    Leecher,
+}
+
+impl ClientRole {
+    const fn service_name(self) -> &'static str {
+        match self {
+            Self::Seeder => "qbittorrent-seeder",
+            Self::Leecher => "qbittorrent-leecher",
+        }
+    }
+
+    const fn client_label(self) -> &'static str {
+        match self {
+            Self::Seeder => "seeder",
+            Self::Leecher => "leecher",
+        }
+    }
+}
+
 struct Poller {
     deadline: Instant,
     interval: Duration,
@@ -361,27 +383,23 @@ fn build_compose(args: &Args, project_name: &str, workspace: &WorkspaceResources
 }
 
 async fn initialize_clients(compose: &DockerCompose, timeout: Duration) -> anyhow::Result<ClientPair> {
-    let seeder = initialize_client(compose, "qbittorrent-seeder", "seeder", timeout).await?;
-    let leecher = initialize_client(compose, "qbittorrent-leecher", "leecher", timeout).await?;
+    let seeder = initialize_client(compose, ClientRole::Seeder, timeout).await?;
+    let leecher = initialize_client(compose, ClientRole::Leecher, timeout).await?;
 
     tracing::info!("qBittorrent WebUI login succeeded for both clients");
 
     Ok((seeder, leecher))
 }
 
-async fn initialize_client(
-    compose: &DockerCompose,
-    service_name: &str,
-    role: &str,
-    timeout: Duration,
-) -> anyhow::Result<QbittorrentClient> {
+async fn initialize_client(compose: &DockerCompose, role: ClientRole, timeout: Duration) -> anyhow::Result<QbittorrentClient> {
+    let service_name = role.service_name();
     let host_port = resolve_service_host_port(compose, service_name, QBITTORRENT_WEBUI_PORT, timeout)
         .await
         .with_context(|| format!("failed to resolve {service_name} WebUI host port"))?;
 
-    tracing::info!("{role} WebUI host port: {host_port}");
+    tracing::info!("{} WebUI host port: {host_port}", role.client_label());
 
-    let client = QbittorrentClient::new(role, &format!("http://127.0.0.1:{host_port}"), timeout)
+    let client = QbittorrentClient::new(role.client_label(), &format!("http://127.0.0.1:{host_port}"), timeout)
         .with_context(|| format!("failed to create qBittorrent client for service '{service_name}'"))?;
 
     let _password = wait_for_qbittorrent_login(&client, compose, service_name, timeout)
