@@ -11,7 +11,7 @@ use anyhow::Context;
 
 use super::client_role::ClientRole;
 use super::qbittorrent_client::QbittorrentClient;
-use super::types::ComposeProjectName;
+use super::types::{ComposeProjectName, QbittorrentImage, TrackerImage};
 use super::workspace::WorkspaceResources;
 use crate::console::ci::compose::{DockerCompose, RunningCompose};
 
@@ -28,8 +28,8 @@ const COMPOSE_PORT_POLL_INTERVAL: Duration = Duration::from_secs(1);
 pub(crate) async fn start(
     compose_file: &Path,
     project_name: &ComposeProjectName,
-    tracker_image: &str,
-    qbittorrent_image: &str,
+    tracker_image: &TrackerImage,
+    qbittorrent_image: &QbittorrentImage,
     resources: &WorkspaceResources,
 ) -> anyhow::Result<(RunningCompose, QbittorrentClient, QbittorrentClient)> {
     let compose = configure_compose(compose_file, project_name, tracker_image, qbittorrent_image, resources)?;
@@ -82,13 +82,13 @@ fn build_client(role: ClientRole, host_port: u16, timeout: Duration) -> anyhow::
 fn configure_compose(
     compose_file: &Path,
     project_name: &ComposeProjectName,
-    tracker_image: &str,
-    qbittorrent_image: &str,
+    tracker_image: &TrackerImage,
+    qbittorrent_image: &QbittorrentImage,
     workspace: &WorkspaceResources,
 ) -> anyhow::Result<DockerCompose> {
     Ok(DockerCompose::new(compose_file, project_name.as_str())
-        .with_env("QBT_E2E_TRACKER_IMAGE", tracker_image)
-        .with_env("QBT_E2E_QBITTORRENT_IMAGE", qbittorrent_image)
+        .with_env("QBT_E2E_TRACKER_IMAGE", tracker_image.as_str())
+        .with_env("QBT_E2E_QBITTORRENT_IMAGE", qbittorrent_image.as_str())
         .with_env(
             "QBT_E2E_TRACKER_CONFIG_PATH",
             normalize_path_for_compose(&workspace.tracker.config_path)?.as_str(),

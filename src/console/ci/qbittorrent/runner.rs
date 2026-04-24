@@ -11,7 +11,7 @@ use std::time::Duration;
 use clap::Parser;
 use tracing::level_filters::LevelFilter;
 
-use super::types::ComposeProjectName;
+use super::types::{ComposeProjectName, QbittorrentImage, TrackerImage};
 use super::{filesystem_setup, scenarios, services_setup};
 
 const TRACKER_IMAGE: &str = "torrust-tracker:qbt-e2e-local";
@@ -67,11 +67,14 @@ pub async fn run() -> anyhow::Result<()> {
     let workspace = filesystem_setup::prepare(&args.tracker_config_template, &project_name, args.keep_containers, timeout)?;
     let resources = workspace.resources();
 
+    let tracker_image = TrackerImage::new(&args.tracker_image);
+    let qbittorrent_image = QbittorrentImage::new(&args.qbittorrent_image);
+
     let (mut running_compose, seeder, leecher) = services_setup::start(
         &args.compose_file,
         &project_name,
-        &args.tracker_image,
-        &args.qbittorrent_image,
+        &tracker_image,
+        &qbittorrent_image,
         resources,
     )
     .await?;
