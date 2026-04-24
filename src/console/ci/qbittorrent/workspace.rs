@@ -1,6 +1,19 @@
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 
+pub(crate) struct PeerConfig {
+    /// Path to `{role}-config/` on the host.
+    pub(crate) config_path: PathBuf,
+    /// Path to `{role}-downloads/` on the host.
+    pub(crate) downloads_path: PathBuf,
+    /// `qBittorrent` web-UI username.
+    pub(crate) username: String,
+    /// `qBittorrent` web-UI password (role-specific).
+    pub(crate) password: String,
+    /// Download path inside the container (e.g. `"/downloads"`).
+    pub(crate) container_downloads_path: String,
+}
+
 pub(crate) struct TrackerFilesystem {
     /// Path to `tracker-config.toml` on the host.
     pub(crate) config_path: PathBuf,
@@ -32,15 +45,10 @@ pub(crate) struct TimingConfig {
 pub(crate) struct WorkspaceResources {
     pub(crate) root_path: PathBuf,
     pub(crate) tracker: TrackerFilesystem,
-    pub(crate) seeder_config_path: PathBuf,
-    pub(crate) leecher_config_path: PathBuf,
-    pub(crate) seeder_downloads_path: PathBuf,
-    pub(crate) leecher_downloads_path: PathBuf,
+    pub(crate) seeder: PeerConfig,
+    pub(crate) leecher: PeerConfig,
     pub(crate) shared: SharedFixtures,
     pub(crate) timing: TimingConfig,
-    pub(crate) username: String,
-    pub(crate) password: String,
-    pub(crate) downloads_path: String,
 }
 
 pub(crate) struct EphemeralWorkspace {

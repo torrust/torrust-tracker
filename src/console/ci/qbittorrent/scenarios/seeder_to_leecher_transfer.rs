@@ -27,8 +27,8 @@ pub(crate) async fn run(
 
     login_client(
         seeder,
-        &workspace.username,
-        &workspace.password,
+        &workspace.seeder.username,
+        &workspace.seeder.password,
         workspace.timing.polling_deadline,
         workspace.timing.login_poll_interval,
     )
@@ -39,7 +39,7 @@ pub(crate) async fn run(
         seeder,
         &workspace.shared.torrent_file_name,
         &workspace.shared.torrent_bytes,
-        &workspace.downloads_path,
+        &workspace.seeder.container_downloads_path,
     )
     .await?;
 
@@ -57,8 +57,8 @@ pub(crate) async fn run(
 
     login_client(
         leecher,
-        &workspace.username,
-        &workspace.password,
+        &workspace.leecher.username,
+        &workspace.leecher.password,
         workspace.timing.polling_deadline,
         workspace.timing.login_poll_interval,
     )
@@ -70,7 +70,7 @@ pub(crate) async fn run(
         leecher,
         &workspace.shared.torrent_file_name,
         &workspace.shared.torrent_bytes,
-        &workspace.downloads_path,
+        &workspace.leecher.container_downloads_path,
     )
     .await?;
     tracing::info!("Torrent file uploaded to both qBittorrent clients");
@@ -92,7 +92,7 @@ pub(crate) async fn run(
     // ASSERT: downloaded file matches the original payload.
 
     verify_payload_integrity(
-        &workspace.leecher_downloads_path.join(&workspace.shared.payload_file_name),
+        &workspace.leecher.downloads_path.join(&workspace.shared.payload_file_name),
         &workspace.shared.path.join(&workspace.shared.payload_file_name),
     )
     .context("downloaded payload does not match the original")?;

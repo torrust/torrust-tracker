@@ -35,12 +35,13 @@ use anyhow::Context;
 use super::qbittorrent_config::QbittorrentConfigBuilder;
 use super::scenario_steps::{build_payload_fixture, build_torrent_fixture};
 use super::workspace::{
-    EphemeralWorkspace, PermanentWorkspace, PreparedWorkspace, SharedFixtures, TimingConfig, TrackerFilesystem,
+    EphemeralWorkspace, PeerConfig, PermanentWorkspace, PreparedWorkspace, SharedFixtures, TimingConfig, TrackerFilesystem,
     WorkspaceResources,
 };
 
 const QBITTORRENT_USERNAME: &str = "admin";
-const QBITTORRENT_PASSWORD: &str = "torrust-e2e-pass";
+const SEEDER_PASSWORD: &str = "seeder-pass";
+const LEECHER_PASSWORD: &str = "leecher-pass";
 const PAYLOAD_FILE_NAME: &str = "payload.bin";
 const TORRENT_FILE_NAME: &str = "payload.torrent";
 const PAYLOAD_SIZE_BYTES: usize = 1024 * 1024;
@@ -101,8 +102,8 @@ fn prepare_resources(
     timeout: Duration,
 ) -> anyhow::Result<WorkspaceResources> {
     let (tracker_config_path, tracker_storage_path) = setup_tracker_workspace(&root_path, tracker_config_template)?;
-    let (seeder_config_path, seeder_downloads_path) = setup_qbittorrent_workspace(&root_path, "seeder")?;
-    let (leecher_config_path, leecher_downloads_path) = setup_qbittorrent_workspace(&root_path, "leecher")?;
+    let (seeder_config_path, seeder_downloads_path) = setup_qbittorrent_workspace(&root_path, "seeder", SEEDER_PASSWORD)?;
+    let (leecher_config_path, leecher_downloads_path) = setup_qbittorrent_workspace(&root_path, "leecher", LEECHER_PASSWORD)?;
     let (shared_path, generated) = setup_shared_fixtures(&root_path, &seeder_downloads_path)?;
 
     Ok(WorkspaceResources {
@@ -111,10 +112,20 @@ fn prepare_resources(
             config_path: tracker_config_path,
             storage_path: tracker_storage_path,
         },
-        seeder_config_path,
-        leecher_config_path,
-        seeder_downloads_path,
-        leecher_downloads_path,
+        seeder: PeerConfig {
+            config_path: seeder_config_path,
+            downloads_path: seeder_downloads_path,
+            username: QBITTORRENT_USERNAME.to_string(),
+            password: SEEDER_PASSWORD.to_string(),
+            container_downloads_path: QBITTORRENT_DOWNLOADS_PATH.to_string(),
+        },
+        leecher: PeerConfig {
+            config_path: leecher_config_path,
+            downloads_path: leecher_downloads_path,
+            username: QBITTORRENT_USERNAME.to_string(),
+            password: LEECHER_PASSWORD.to_string(),
+            container_downloads_path: QBITTORRENT_DOWNLOADS_PATH.to_string(),
+        },
         shared: SharedFixtures {
             path: shared_path,
             payload_file_name: PAYLOAD_FILE_NAME.to_string(),
@@ -126,9 +137,6 @@ fn prepare_resources(
             login_poll_interval: LOGIN_POLL_INTERVAL,
             torrent_poll_interval: TORRENT_POLL_INTERVAL,
         },
-        username: QBITTORRENT_USERNAME.to_string(),
-        password: QBITTORRENT_PASSWORD.to_string(),
-        downloads_path: QBITTORRENT_DOWNLOADS_PATH.to_string(),
     })
 }
 
@@ -139,11 +147,11 @@ fn setup_tracker_workspace(root: &Path, config_template: &Path) -> anyhow::Resul
     Ok((tracker_config_path, tracker_storage_path))
 }
 
-fn setup_qbittorrent_workspace(root: &Path, role: &str) -> anyhow::Result<(PathBuf, PathBuf)> {
+fn setup_qbittorrent_workspace(root: &Path, role: &str, password: &str) -> anyhow::Result<(PathBuf, PathBuf)> {
     let config_path = root.join(format!("{role}-config"));
     let downloads_path = root.join(format!("{role}-downloads"));
     fs::create_dir_all(&downloads_path).with_context(|| format!("failed to create {role} downloads directory"))?;
-    QbittorrentConfigBuilder::new(QBITTORRENT_USERNAME, QBITTORRENT_PASSWORD)
+    QbittorrentConfigBuilder::new(QBITTORRENT_USERNAME, password)
         .write_to(&config_path)
         .with_context(|| format!("failed to generate {role} qBittorrent config"))?;
     Ok((config_path, downloads_path))

@@ -102,19 +102,19 @@ fn configure_compose(
         )
         .with_env(
             "QBT_E2E_SEEDER_CONFIG_PATH",
-            normalize_path_for_compose(&workspace.seeder_config_path)?.as_str(),
+            normalize_path_for_compose(&workspace.seeder.config_path)?.as_str(),
         )
         .with_env(
             "QBT_E2E_LEECHER_CONFIG_PATH",
-            normalize_path_for_compose(&workspace.leecher_config_path)?.as_str(),
+            normalize_path_for_compose(&workspace.leecher.config_path)?.as_str(),
         )
         .with_env(
             "QBT_E2E_SEEDER_DOWNLOADS_PATH",
-            normalize_path_for_compose(&workspace.seeder_downloads_path)?.as_str(),
+            normalize_path_for_compose(&workspace.seeder.downloads_path)?.as_str(),
         )
         .with_env(
             "QBT_E2E_LEECHER_DOWNLOADS_PATH",
-            normalize_path_for_compose(&workspace.leecher_downloads_path)?.as_str(),
+            normalize_path_for_compose(&workspace.leecher.downloads_path)?.as_str(),
         ))
 }
 
