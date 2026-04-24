@@ -61,3 +61,4 @@ pub mod scenario_steps;
 pub mod scenarios;
 pub mod torrent_artifacts;
 pub mod workspace;
+pub mod workspace_setup;
