@@ -5,7 +5,6 @@
 //! ```text
 //! cargo run --bin qbittorrent_e2e_runner -- --compose-file ./compose.qbittorrent-e2e.yaml --timeout-seconds 180
 //! ```
-use std::fmt::Write as FmtWrite;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
@@ -18,15 +17,14 @@ use clap::Parser;
 use pbkdf2::pbkdf2_hmac;
 use rand::distr::Alphanumeric;
 use rand::RngExt;
-use sha1::{Digest as Sha1Digest, Sha1};
 use sha2::Sha512;
 use tracing::level_filters::LevelFilter;
 
 use super::client_role::ClientRole;
 use super::qbittorrent_client::QbittorrentClient;
 use super::scenario_steps::{
-    add_torrent_file_to_client, build_payload_fixture, build_torrent_fixture, login_client, wait_until_client_has_any_torrent,
-    wait_until_download_completes,
+    add_torrent_file_to_client, build_payload_fixture, build_torrent_fixture, login_client, verify_payload_integrity,
+    wait_until_client_has_any_torrent, wait_until_download_completes,
 };
 use super::workspace::{EphemeralWorkspace, PermanentWorkspace, PreparedWorkspace, WorkspaceResources};
 use crate::console::ci::compose::DockerCompose;
@@ -341,46 +339,6 @@ fn build_compose(args: &Args, project_name: &str, workspace: &WorkspaceResources
             "QBT_E2E_LEECHER_DOWNLOADS_PATH",
             normalize_path_for_compose(&workspace.leecher_downloads_path)?.as_str(),
         ))
-}
-
-/// Verifies that the leecher's downloaded file matches the original payload byte-for-byte.
-///
-/// Reads the downloaded file from `leecher_downloads_path/payload.bin` and compares it to
-/// `original_payload`. Logs the `SHA1` hash of the verified payload on success.
-fn verify_payload_integrity(leecher_downloads_path: &Path, original_payload: &[u8]) -> anyhow::Result<()> {
-    let downloaded_path = leecher_downloads_path.join(PAYLOAD_FILE_NAME);
-    let downloaded_bytes = fs::read(&downloaded_path)
-        .with_context(|| format!("failed to read downloaded payload from '{}'", downloaded_path.display()))?;
-
-    if downloaded_bytes.len() != original_payload.len() {
-        anyhow::bail!(
-            "payload size mismatch: original {} bytes, downloaded {} bytes",
-            original_payload.len(),
-            downloaded_bytes.len()
-        );
-    }
-
-    if downloaded_bytes != original_payload {
-        let original_hash = sha1_hex(original_payload);
-        let downloaded_hash = sha1_hex(&downloaded_bytes);
-        anyhow::bail!("payload content mismatch: original SHA1 {original_hash}, downloaded SHA1 {downloaded_hash}");
-    }
-
-    let hash = sha1_hex(original_payload);
-    tracing::info!(
-        "Payload integrity verified: SHA1 {} ({} bytes match)",
-        hash,
-        original_payload.len()
-    );
-
-    Ok(())
-}
-
-fn sha1_hex(bytes: &[u8]) -> String {
-    Sha1::digest(bytes).iter().fold(String::new(), |mut output, byte| {
-        let _ = write!(output, "{byte:02x}");
-        output
-    })
 }
 
 fn tracing_stdout_init(filter: LevelFilter) {
