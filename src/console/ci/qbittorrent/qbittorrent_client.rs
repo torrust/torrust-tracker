@@ -11,6 +11,49 @@ use super::types::{TorrentProgress, TorrentState};
 
 const QBITTORRENT_WEBUI_PORT: u16 = 8080;
 
+/// A validated qBittorrent `WebUI` base URL.
+///
+/// Parses the raw URL string once at construction time.  All subsequent
+/// accessors are infallible, removing the repeated parse-and-error pattern
+/// that would otherwise occur in every API method.
+#[derive(Debug, Clone)]
+struct WebUiBaseUrl {
+    raw: String,
+    host: String,
+    scheme: String,
+}
+
+impl WebUiBaseUrl {
+    fn new(url: &str) -> anyhow::Result<Self> {
+        let parsed = reqwest::Url::parse(url).with_context(|| format!("failed to parse qBittorrent WebUI base URL '{url}'"))?;
+        let host = parsed
+            .host_str()
+            .ok_or_else(|| anyhow::anyhow!("qBittorrent WebUI URL has no host: '{url}'"))?
+            .to_string();
+        let scheme = parsed.scheme().to_string();
+        Ok(Self {
+            raw: url.to_string(),
+            host,
+            scheme,
+        })
+    }
+
+    /// Returns the base URL string for composing API paths.
+    fn as_str(&self) -> &str {
+        &self.raw
+    }
+
+    /// Returns only the host component (e.g. `"127.0.0.1"`).
+    fn host(&self) -> &str {
+        &self.host
+    }
+
+    /// Returns the scheme (e.g. `"http"`).
+    fn scheme(&self) -> &str {
+        &self.scheme
+    }
+}
+
 /// Credentials for authenticating with the `qBittorrent` web UI.
 #[derive(Debug, Clone)]
 pub(crate) struct QbittorrentCredentials {
@@ -23,7 +66,7 @@ pub(crate) struct QbittorrentCredentials {
 #[derive(Debug, Clone)]
 pub struct QbittorrentClient {
     client_label: String,
-    base_url: String,
+    base_url: WebUiBaseUrl,
     client: reqwest::Client,
     sid_cookie: Arc<Mutex<Option<String>>>,
 }
@@ -40,6 +83,7 @@ impl QbittorrentClient {
     ///
     /// Returns an error when the HTTP client cannot be built.
     pub fn new(client_label: &str, base_url: &str, timeout: Duration) -> anyhow::Result<Self> {
+        let base_url = WebUiBaseUrl::new(base_url)?;
         let client = reqwest::Client::builder()
             .timeout(timeout)
             .build()
@@ -47,7 +91,7 @@ impl QbittorrentClient {
 
         Ok(Self {
             client_label: client_label.to_string(),
-            base_url: base_url.to_string(),
+            base_url,
             client,
             sid_cookie: Arc::new(Mutex::new(None)),
         })
@@ -62,13 +106,11 @@ impl QbittorrentClient {
             .query()
             .ok_or_else(|| anyhow::anyhow!("encoded qBittorrent login body is unexpectedly empty"))?
             .to_string();
-        let (webui_host, webui_origin) = self
-            .webui_headers()
-            .context("failed to prepare qBittorrent WebUI CSRF headers")?;
+        let (webui_host, webui_origin) = self.webui_headers();
 
         let response = self
             .client
-            .post(format!("{}/api/v2/auth/login", self.base_url))
+            .post(format!("{}/api/v2/auth/login", self.base_url.as_str()))
             .header(CONTENT_TYPE, "application/x-www-form-urlencoded")
             .header(HOST, webui_host)
             .header("Referer", &webui_origin)
@@ -99,14 +141,12 @@ impl QbittorrentClient {
     ///
     /// Returns an error when reading the qBittorrent application version fails.
     pub async fn app_version(&self) -> anyhow::Result<String> {
-        let (webui_host, webui_origin) = self
-            .webui_headers()
-            .context("failed to prepare qBittorrent WebUI CSRF headers")?;
+        let (webui_host, webui_origin) = self.webui_headers();
         let sid_cookie = self.sid_cookie.lock().await.clone();
 
         let request = self
             .client
-            .get(format!("{}/api/v2/app/version", self.base_url))
+            .get(format!("{}/api/v2/app/version", self.base_url.as_str()))
             .header(HOST, webui_host)
             .header("Referer", webui_origin);
         let request = if let Some(cookie) = sid_cookie {
@@ -131,9 +171,7 @@ impl QbittorrentClient {
     ///
     /// Returns an error when adding a torrent file fails.
     pub async fn add_torrent_file(&self, torrent_name: &str, torrent_bytes: &[u8], save_path: &str) -> anyhow::Result<()> {
-        let (webui_host, webui_origin) = self
-            .webui_headers()
-            .context("failed to prepare qBittorrent WebUI CSRF headers")?;
+        let (webui_host, webui_origin) = self.webui_headers();
         let sid_cookie = self.sid_cookie.lock().await.clone();
 
         let part = Part::bytes(torrent_bytes.to_vec()).file_name(torrent_name.to_string());
@@ -145,7 +183,7 @@ impl QbittorrentClient {
 
         let request = self
             .client
-            .post(format!("{}/api/v2/torrents/add", self.base_url))
+            .post(format!("{}/api/v2/torrents/add", self.base_url.as_str()))
             .header(HOST, webui_host)
             .header("Referer", &webui_origin)
             .header("Origin", &webui_origin)
@@ -176,14 +214,12 @@ impl QbittorrentClient {
     ///
     /// Returns an error when querying torrents fails.
     pub async fn list_torrents(&self) -> anyhow::Result<Vec<TorrentInfo>> {
-        let (webui_host, webui_origin) = self
-            .webui_headers()
-            .context("failed to prepare qBittorrent WebUI CSRF headers")?;
+        let (webui_host, webui_origin) = self.webui_headers();
         let sid_cookie = self.sid_cookie.lock().await.clone();
 
         let request = self
             .client
-            .get(format!("{}/api/v2/torrents/info", self.base_url))
+            .get(format!("{}/api/v2/torrents/info", self.base_url.as_str()))
             .header(HOST, webui_host)
             .header("Referer", webui_origin);
         let request = if let Some(cookie) = sid_cookie {
@@ -244,18 +280,13 @@ impl QbittorrentClient {
             .len())
     }
 
-    fn webui_headers(&self) -> anyhow::Result<(String, String)> {
-        let parsed_url = reqwest::Url::parse(&self.base_url)
-            .with_context(|| format!("failed to parse qBittorrent base URL '{}'", self.base_url))?;
-        let host = parsed_url
-            .host_str()
-            .ok_or_else(|| anyhow::anyhow!("qBittorrent base URL has no host: '{}'", self.base_url))?;
-        let scheme = parsed_url.scheme();
-
-        Ok((
+    fn webui_headers(&self) -> (String, String) {
+        let host = self.base_url.host();
+        let scheme = self.base_url.scheme();
+        (
             format!("{host}:{QBITTORRENT_WEBUI_PORT}"),
             format!("{scheme}://{host}:{QBITTORRENT_WEBUI_PORT}"),
-        ))
+        )
     }
 }
 
