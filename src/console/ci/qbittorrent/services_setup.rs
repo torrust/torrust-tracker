@@ -11,6 +11,7 @@ use anyhow::Context;
 
 use super::client_role::ClientRole;
 use super::qbittorrent_client::QbittorrentClient;
+use super::types::ComposeProjectName;
 use super::workspace::WorkspaceResources;
 use crate::console::ci::compose::{DockerCompose, RunningCompose};
 
@@ -26,7 +27,7 @@ const COMPOSE_PORT_POLL_INTERVAL: Duration = Duration::from_secs(1);
 /// construction fails.
 pub(crate) async fn start(
     compose_file: &Path,
-    project_name: &str,
+    project_name: &ComposeProjectName,
     tracker_image: &str,
     qbittorrent_image: &str,
     resources: &WorkspaceResources,
@@ -80,12 +81,12 @@ fn build_client(role: ClientRole, host_port: u16, timeout: Duration) -> anyhow::
 
 fn configure_compose(
     compose_file: &Path,
-    project_name: &str,
+    project_name: &ComposeProjectName,
     tracker_image: &str,
     qbittorrent_image: &str,
     workspace: &WorkspaceResources,
 ) -> anyhow::Result<DockerCompose> {
-    Ok(DockerCompose::new(compose_file, project_name)
+    Ok(DockerCompose::new(compose_file, project_name.as_str())
         .with_env("QBT_E2E_TRACKER_IMAGE", tracker_image)
         .with_env("QBT_E2E_QBITTORRENT_IMAGE", qbittorrent_image)
         .with_env(

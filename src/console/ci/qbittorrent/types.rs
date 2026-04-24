@@ -7,6 +7,9 @@ use std::ops::Deref;
 use std::path::Path;
 use std::time::Duration;
 
+use rand::distr::Alphanumeric;
+use rand::RngExt;
+
 /// A file name (base name only, no path separators).
 ///
 /// Wraps a [`String`] and provides [`Deref`] to `str` so values can be used
@@ -282,5 +285,51 @@ impl PollInterval {
     /// Returns the underlying [`Duration`].
     pub(crate) fn as_duration(&self) -> Duration {
         self.0
+    }
+}
+
+/// A Docker Compose project name generated for one E2E test run.
+///
+/// Project names follow the pattern `<prefix>-<random-suffix>` where the
+/// suffix is ten lowercase alphanumeric characters, keeping each run's
+/// containers, volumes, and networks isolated from one another.
+///
+/// Wraps a [`String`] and provides [`Deref`] to `str` so values can be
+/// passed wherever `&str` is expected.
+#[derive(Debug, Clone)]
+pub(crate) struct ComposeProjectName(String);
+
+impl ComposeProjectName {
+    /// Generates a unique project name with the given prefix.
+    ///
+    /// Appends ten random lowercase alphanumeric characters to `prefix`,
+    /// separated by a hyphen.
+    pub(crate) fn generate(prefix: &str) -> Self {
+        let suffix: String = rand::rng()
+            .sample_iter(&Alphanumeric)
+            .take(10)
+            .map(char::from)
+            .map(|c| c.to_ascii_lowercase())
+            .collect();
+        Self(format!("{prefix}-{suffix}"))
+    }
+
+    /// Returns the project name as a `&str`.
+    pub(crate) fn as_str(&self) -> &str {
+        &self.0
+    }
+}
+
+impl Deref for ComposeProjectName {
+    type Target = str;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl fmt::Display for ComposeProjectName {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(&self.0)
     }
 }

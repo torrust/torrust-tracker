@@ -35,7 +35,7 @@ use anyhow::Context;
 use super::qbittorrent_client::QbittorrentCredentials;
 use super::qbittorrent_config::QbittorrentConfigBuilder;
 use super::scenario_steps::{build_payload_fixture, build_torrent_fixture};
-use super::types::{ContainerPath, Deadline, FileName, PollInterval};
+use super::types::{ComposeProjectName, ContainerPath, Deadline, FileName, PollInterval};
 use super::workspace::{
     EphemeralWorkspace, PeerConfig, PermanentWorkspace, PreparedWorkspace, SharedFixtures, TimingConfig, TorrentFixture,
     TrackerFilesystem, WorkspaceResources,
@@ -67,7 +67,7 @@ struct GeneratedPayloadAndTorrent {
 /// Returns an error when any directory or file operation fails.
 pub(crate) fn prepare(
     tracker_config_template: &Path,
-    project_name: &str,
+    project_name: &ComposeProjectName,
     keep_containers: bool,
     timeout: Duration,
 ) -> anyhow::Result<PreparedWorkspace> {
@@ -76,7 +76,7 @@ pub(crate) fn prepare(
             .context("failed to resolve current working directory")?
             .join("storage")
             .join("qbt-e2e")
-            .join(project_name);
+            .join(project_name.as_str());
         fs::create_dir_all(&persistent_root).with_context(|| {
             format!(
                 "failed to create persistent qBittorrent workspace '{}'",

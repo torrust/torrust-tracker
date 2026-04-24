@@ -9,10 +9,9 @@ use std::path::PathBuf;
 use std::time::Duration;
 
 use clap::Parser;
-use rand::distr::Alphanumeric;
-use rand::RngExt;
 use tracing::level_filters::LevelFilter;
 
+use super::types::ComposeProjectName;
 use super::{filesystem_setup, scenarios, services_setup};
 
 const TRACKER_IMAGE: &str = "torrust-tracker:qbt-e2e-local";
@@ -60,7 +59,7 @@ pub async fn run() -> anyhow::Result<()> {
     tracing_stdout_init(LevelFilter::INFO);
 
     let args = Args::parse();
-    let project_name = build_project_name(&args.project_prefix);
+    let project_name = ComposeProjectName::generate(&args.project_prefix);
     tracing::info!("Using compose project name: {project_name}");
 
     let timeout = Duration::from_secs(args.timeout_seconds);
@@ -100,14 +99,4 @@ pub async fn run() -> anyhow::Result<()> {
 fn tracing_stdout_init(filter: LevelFilter) {
     tracing_subscriber::fmt().with_max_level(filter).init();
     tracing::info!("Logging initialized");
-}
-
-fn build_project_name(prefix: &str) -> String {
-    let suffix: String = rand::rng()
-        .sample_iter(&Alphanumeric)
-        .take(10)
-        .map(char::from)
-        .map(|character| character.to_ascii_lowercase())
-        .collect();
-    format!("{prefix}-{suffix}")
 }
