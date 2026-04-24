@@ -35,7 +35,7 @@ use anyhow::Context;
 use super::qbittorrent_client::QbittorrentCredentials;
 use super::qbittorrent_config::QbittorrentConfigBuilder;
 use super::scenario_steps::{build_payload_fixture, build_torrent_fixture};
-use super::types::FileName;
+use super::types::{ContainerPath, FileName};
 use super::workspace::{
     EphemeralWorkspace, PeerConfig, PermanentWorkspace, PreparedWorkspace, SharedFixtures, TimingConfig, TorrentFixture,
     TrackerFilesystem, WorkspaceResources,
@@ -121,7 +121,7 @@ fn prepare_resources(
                 username: QBITTORRENT_USERNAME.to_string(),
                 password: SEEDER_PASSWORD.to_string(),
             },
-            container_downloads_path: QBITTORRENT_DOWNLOADS_PATH.to_string(),
+            container_downloads_path: ContainerPath::new(QBITTORRENT_DOWNLOADS_PATH),
         },
         leecher: PeerConfig {
             config_path: leecher_config_path,
@@ -130,7 +130,7 @@ fn prepare_resources(
                 username: QBITTORRENT_USERNAME.to_string(),
                 password: LEECHER_PASSWORD.to_string(),
             },
-            container_downloads_path: QBITTORRENT_DOWNLOADS_PATH.to_string(),
+            container_downloads_path: ContainerPath::new(QBITTORRENT_DOWNLOADS_PATH),
         },
         shared: SharedFixtures {
             path: shared_path,
