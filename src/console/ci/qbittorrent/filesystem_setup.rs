@@ -34,7 +34,7 @@ use anyhow::Context;
 
 use super::qbittorrent_config::QbittorrentConfigBuilder;
 use super::scenario_steps::{build_payload_fixture, build_torrent_fixture};
-use super::workspace::{EphemeralWorkspace, PermanentWorkspace, PreparedWorkspace, WorkspaceResources};
+use super::workspace::{EphemeralWorkspace, PermanentWorkspace, PreparedWorkspace, TimingConfig, WorkspaceResources};
 
 const QBITTORRENT_USERNAME: &str = "admin";
 const QBITTORRENT_PASSWORD: &str = "torrust-e2e-pass";
@@ -112,11 +112,13 @@ fn prepare_resources(
         seeder_downloads_path,
         leecher_downloads_path,
         torrent_bytes: generated.torrent_bytes,
-        timeout,
+        timing: TimingConfig {
+            polling_deadline: timeout,
+            login_poll_interval: LOGIN_POLL_INTERVAL,
+            torrent_poll_interval: TORRENT_POLL_INTERVAL,
+        },
         username: QBITTORRENT_USERNAME.to_string(),
         password: QBITTORRENT_PASSWORD.to_string(),
-        login_poll_interval: LOGIN_POLL_INTERVAL,
-        torrent_poll_interval: TORRENT_POLL_INTERVAL,
         torrent_file_name: TORRENT_FILE_NAME.to_string(),
         payload_file_name: PAYLOAD_FILE_NAME.to_string(),
         downloads_path: QBITTORRENT_DOWNLOADS_PATH.to_string(),

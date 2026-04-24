@@ -29,8 +29,8 @@ pub(crate) async fn run(
         seeder,
         &workspace.username,
         &workspace.password,
-        workspace.timeout,
-        workspace.login_poll_interval,
+        workspace.timing.polling_deadline,
+        workspace.timing.login_poll_interval,
     )
     .await
     .context("seeder qBittorrent API did not become ready for authentication")?;
@@ -45,7 +45,13 @@ pub(crate) async fn run(
 
     // qBittorrent processes `add_torrent` asynchronously, so an immediate `list_torrents`
     // after upload can race and return 0.
-    wait_until_client_has_any_torrent(seeder, workspace.timeout, workspace.torrent_poll_interval, "Seeder").await?;
+    wait_until_client_has_any_torrent(
+        seeder,
+        workspace.timing.polling_deadline,
+        workspace.timing.torrent_poll_interval,
+        "Seeder",
+    )
+    .await?;
 
     // ACT: leecher downloads the torrent from the seeder via the tracker
 
@@ -53,8 +59,8 @@ pub(crate) async fn run(
         leecher,
         &workspace.username,
         &workspace.password,
-        workspace.timeout,
-        workspace.login_poll_interval,
+        workspace.timing.polling_deadline,
+        workspace.timing.login_poll_interval,
     )
     .await
     .context("leecher qBittorrent API did not become ready for authentication")?;
@@ -69,8 +75,19 @@ pub(crate) async fn run(
     .await?;
     tracing::info!("Torrent file uploaded to both qBittorrent clients");
 
-    wait_until_client_has_any_torrent(leecher, workspace.timeout, workspace.torrent_poll_interval, "Leecher").await?;
-    wait_until_download_completes(leecher, workspace.timeout, workspace.torrent_poll_interval).await?;
+    wait_until_client_has_any_torrent(
+        leecher,
+        workspace.timing.polling_deadline,
+        workspace.timing.torrent_poll_interval,
+        "Leecher",
+    )
+    .await?;
+    wait_until_download_completes(
+        leecher,
+        workspace.timing.polling_deadline,
+        workspace.timing.torrent_poll_interval,
+    )
+    .await?;
 
     // ASSERT: downloaded file matches the original payload.
 
