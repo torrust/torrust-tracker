@@ -2,6 +2,30 @@
 //!
 //! This module creates the directory tree, service configuration files, and
 //! shared test fixtures that the `Docker` Compose stack needs before it starts.
+//!
+//! # Workspace Layout
+//!
+//! After [`prepare`] returns, the workspace root contains:
+//!
+//! ```text
+//! <workspace-root>/
+//! ├── leecher-config/
+//! │   └── qBittorrent/
+//! │       └── qBittorrent.conf
+//! ├── leecher-downloads/
+//! ├── seeder-config/
+//! │   └── qBittorrent/
+//! │       └── qBittorrent.conf
+//! ├── seeder-downloads/
+//! │   └── payload.bin          ← pre-seeded payload copy
+//! ├── shared/
+//! │   ├── payload.bin          ← source payload file
+//! │   └── payload.torrent
+//! ├── tracker-config.toml
+//! └── tracker-storage/
+//!     └── database/
+//!         └── sqlite3.db       ← created at runtime by the tracker
+//! ```
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::time::Duration;

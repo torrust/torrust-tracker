@@ -23,6 +23,7 @@
         "contrib/dev-tools/su-exec/**",
         ".github/labels.json",
         "/project-words.txt",
-        "repomix-output.xml"
+        "repomix-output.xml",
+        "TEMP-*.md"
     ]
 }

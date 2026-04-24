@@ -62,6 +62,7 @@ cyclomatic
 dashmap
 datagram
 datetime
+dbip
 dbname
 debuginfo
 Deque
@@ -143,6 +144,7 @@ metainfo
 middlewares
 misresolved
 mmap
+mmdb
 mockall
 mprotect
 MSRV
