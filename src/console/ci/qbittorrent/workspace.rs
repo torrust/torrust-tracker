@@ -1,8 +1,7 @@
 use std::path::{Path, PathBuf};
-use std::time::Duration;
 
 use super::qbittorrent_client::QbittorrentCredentials;
-use super::types::{ContainerPath, FileName};
+use super::types::{ContainerPath, Deadline, FileName, PollInterval};
 
 pub(crate) struct PeerConfig {
     /// Path to `{role}-config/` on the host.
@@ -41,11 +40,11 @@ pub(crate) struct SharedFixtures {
 pub(crate) struct TimingConfig {
     /// Maximum time any single polling loop will wait before giving up.
     /// Passed directly to `Poller::new` as the loop deadline.
-    pub(crate) polling_deadline: Duration,
+    pub(crate) polling_deadline: Deadline,
     /// Sleep duration between login-readiness retries.
-    pub(crate) login_poll_interval: Duration,
+    pub(crate) login_poll_interval: PollInterval,
     /// Sleep duration between torrent-state retries.
-    pub(crate) torrent_poll_interval: Duration,
+    pub(crate) torrent_poll_interval: PollInterval,
 }
 
 pub(crate) struct WorkspaceResources {

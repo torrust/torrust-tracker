@@ -2,16 +2,18 @@ use std::time::{Duration, Instant};
 
 use tokio::time::sleep;
 
+use super::types::{Deadline, PollInterval};
+
 pub(super) struct Poller {
     deadline: Instant,
     interval: Duration,
 }
 
 impl Poller {
-    pub(super) fn new(timeout: Duration, interval: Duration) -> Self {
+    pub(super) fn new(timeout: Deadline, interval: PollInterval) -> Self {
         Self {
-            deadline: Instant::now() + timeout,
-            interval,
+            deadline: Instant::now() + timeout.as_duration(),
+            interval: interval.as_duration(),
         }
     }
 

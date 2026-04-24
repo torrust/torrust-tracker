@@ -34,7 +34,7 @@ pub(crate) async fn start(
     let compose = configure_compose(compose_file, project_name, tracker_image, qbittorrent_image, resources)?;
     compose.build().context("failed to build local tracker image")?;
     let running_compose = compose.up().context("failed to start qBittorrent compose stack")?;
-    let (seeder, leecher) = build_clients(&compose, resources.timing.polling_deadline).await?;
+    let (seeder, leecher) = build_clients(&compose, resources.timing.polling_deadline.as_duration()).await?;
     Ok((running_compose, seeder, leecher))
 }
 

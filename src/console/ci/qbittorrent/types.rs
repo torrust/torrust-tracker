@@ -5,6 +5,7 @@
 use std::fmt;
 use std::ops::Deref;
 use std::path::Path;
+use std::time::Duration;
 
 /// A file name (base name only, no path separators).
 ///
@@ -93,5 +94,45 @@ impl From<String> for ContainerPath {
 impl From<&str> for ContainerPath {
     fn from(s: &str) -> Self {
         Self(s.to_string())
+    }
+}
+
+/// A polling-loop deadline expressed as a [`Duration`] measured from the moment
+/// the loop starts.
+///
+/// Wraps a [`Duration`] representing the *maximum time* a polling loop may wait
+/// before giving up.  Keeping it distinct from [`PollInterval`] turns an
+/// accidental swap into a compile error instead of a silent logic bug.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct Deadline(Duration);
+
+impl Deadline {
+    /// Creates a new [`Deadline`] from a [`Duration`].
+    pub(crate) fn new(duration: Duration) -> Self {
+        Self(duration)
+    }
+
+    /// Returns the underlying [`Duration`].
+    pub(crate) fn as_duration(&self) -> Duration {
+        self.0
+    }
+}
+
+/// The sleep duration between successive retries in a polling loop.
+///
+/// Wraps a [`Duration`].  Distinct from [`Deadline`] so that the two cannot
+/// be accidentally swapped at a call site.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct PollInterval(Duration);
+
+impl PollInterval {
+    /// Creates a new [`PollInterval`] from a [`Duration`].
+    pub(crate) fn new(duration: Duration) -> Self {
+        Self(duration)
+    }
+
+    /// Returns the underlying [`Duration`].
+    pub(crate) fn as_duration(&self) -> Duration {
+        self.0
     }
 }

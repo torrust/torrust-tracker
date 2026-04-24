@@ -1,7 +1,6 @@
-use std::time::Duration;
-
 use super::super::super::poller::Poller;
 use super::super::super::qbittorrent_client::QbittorrentClient;
+use super::super::super::types::{Deadline, PollInterval};
 
 /// Attempts login using provided credentials and retries until accepted.
 ///
@@ -12,8 +11,8 @@ pub async fn login_client(
     client: &QbittorrentClient,
     username: &str,
     password: &str,
-    timeout: Duration,
-    poll_interval: Duration,
+    timeout: Deadline,
+    poll_interval: PollInterval,
 ) -> anyhow::Result<()> {
     let poller = Poller::new(timeout, poll_interval);
 

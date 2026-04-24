@@ -35,7 +35,7 @@ use anyhow::Context;
 use super::qbittorrent_client::QbittorrentCredentials;
 use super::qbittorrent_config::QbittorrentConfigBuilder;
 use super::scenario_steps::{build_payload_fixture, build_torrent_fixture};
-use super::types::{ContainerPath, FileName};
+use super::types::{ContainerPath, Deadline, FileName, PollInterval};
 use super::workspace::{
     EphemeralWorkspace, PeerConfig, PermanentWorkspace, PreparedWorkspace, SharedFixtures, TimingConfig, TorrentFixture,
     TrackerFilesystem, WorkspaceResources,
@@ -141,9 +141,9 @@ fn prepare_resources(
             },
         },
         timing: TimingConfig {
-            polling_deadline: timeout,
-            login_poll_interval: LOGIN_POLL_INTERVAL,
-            torrent_poll_interval: TORRENT_POLL_INTERVAL,
+            polling_deadline: Deadline::new(timeout),
+            login_poll_interval: PollInterval::new(LOGIN_POLL_INTERVAL),
+            torrent_poll_interval: PollInterval::new(TORRENT_POLL_INTERVAL),
         },
     })
 }
