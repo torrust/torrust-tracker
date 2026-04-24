@@ -155,6 +155,7 @@ mysqladmin
 Naim
 nanos
 newkey
+newtype
 newtypes
 nextest
 nocapture

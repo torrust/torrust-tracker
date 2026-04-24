@@ -35,6 +35,7 @@ use anyhow::Context;
 use super::qbittorrent_client::QbittorrentCredentials;
 use super::qbittorrent_config::QbittorrentConfigBuilder;
 use super::scenario_steps::{build_payload_fixture, build_torrent_fixture};
+use super::types::FileName;
 use super::workspace::{
     EphemeralWorkspace, PeerConfig, PermanentWorkspace, PreparedWorkspace, SharedFixtures, TimingConfig, TorrentFixture,
     TrackerFilesystem, WorkspaceResources,
@@ -134,8 +135,8 @@ fn prepare_resources(
         shared: SharedFixtures {
             path: shared_path,
             torrent: TorrentFixture {
-                payload_file_name: PAYLOAD_FILE_NAME.to_string(),
-                torrent_file_name: TORRENT_FILE_NAME.to_string(),
+                payload_file_name: FileName::new(PAYLOAD_FILE_NAME),
+                torrent_file_name: FileName::new(TORRENT_FILE_NAME),
                 torrent_bytes: generated.torrent_bytes,
             },
         },

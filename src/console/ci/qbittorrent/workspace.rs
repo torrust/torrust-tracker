@@ -2,6 +2,7 @@ use std::path::{Path, PathBuf};
 use std::time::Duration;
 
 use super::qbittorrent_client::QbittorrentCredentials;
+use super::types::FileName;
 
 pub(crate) struct PeerConfig {
     /// Path to `{role}-config/` on the host.
@@ -23,9 +24,9 @@ pub(crate) struct TrackerFilesystem {
 
 pub(crate) struct TorrentFixture {
     /// File name of the payload (e.g. `"payload.bin"`).
-    pub(crate) payload_file_name: String,
+    pub(crate) payload_file_name: FileName,
     /// File name of the torrent file (e.g. `"payload.torrent"`).
-    pub(crate) torrent_file_name: String,
+    pub(crate) torrent_file_name: FileName,
     /// Raw bytes of the torrent file, held in memory.
     pub(crate) torrent_bytes: Vec<u8>,
 }
