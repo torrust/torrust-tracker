@@ -97,6 +97,37 @@ impl From<&str> for ContainerPath {
     }
 }
 
+/// A torrent download progress value in the range `0.0` (not started) to
+/// `1.0` (fully complete), as reported by the qBittorrent Web API.
+///
+/// Wraps an `f64` to disambiguate progress from other floating-point fields
+/// such as download speed.  Use [`is_complete`](Self::is_complete) to test for
+/// full completion and [`as_fraction`](Self::as_fraction) to obtain the raw
+/// `0.0`–`1.0` value for arithmetic or formatted output.
+#[derive(Debug, Clone, Copy)]
+pub struct TorrentProgress(f64);
+
+impl TorrentProgress {
+    /// Returns `true` when the torrent has reached 100 % (`progress >= 1.0`).
+    #[must_use]
+    pub fn is_complete(self) -> bool {
+        self.0 >= 1.0
+    }
+
+    /// Returns the raw fraction in the range `0.0`–`1.0`.
+    #[must_use]
+    pub fn as_fraction(self) -> f64 {
+        self.0
+    }
+}
+
+impl<'de> serde::Deserialize<'de> for TorrentProgress {
+    fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        let value = <f64 as serde::Deserialize>::deserialize(deserializer)?;
+        Ok(Self(value))
+    }
+}
+
 /// The state of a torrent as reported by the qBittorrent Web API.
 ///
 /// Variants map one-to-one to the string values returned by the

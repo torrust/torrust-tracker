@@ -18,11 +18,11 @@ pub async fn wait_until_download_completes(
         if let Some(torrent) = client.first_torrent().await? {
             tracing::info!(
                 "Torrent progress: {:.1}% (state: {})",
-                torrent.progress * 100.0,
+                torrent.progress.as_fraction() * 100.0,
                 torrent.state
             );
 
-            if torrent.progress >= 1.0 {
+            if torrent.progress.is_complete() {
                 tracing::info!("Torrent download complete (100%)");
                 return Ok(());
             }

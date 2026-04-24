@@ -7,7 +7,7 @@ use reqwest::multipart::{Form, Part};
 use serde::Deserialize;
 use tokio::sync::Mutex;
 
-use super::types::TorrentState;
+use super::types::{TorrentProgress, TorrentState};
 
 const QBITTORRENT_WEBUI_PORT: u16 = 8080;
 
@@ -31,7 +31,7 @@ pub struct QbittorrentClient {
 #[derive(Debug, Deserialize)]
 pub struct TorrentInfo {
     pub hash: String,
-    pub progress: f64,
+    pub progress: TorrentProgress,
     pub state: TorrentState,
 }
 
@@ -222,7 +222,7 @@ impl QbittorrentClient {
     /// # Errors
     ///
     /// Returns an error when querying torrents fails.
-    pub async fn first_torrent_progress(&self) -> anyhow::Result<Option<f64>> {
+    pub async fn first_torrent_progress(&self) -> anyhow::Result<Option<TorrentProgress>> {
         Ok(self.first_torrent().await?.map(|torrent| torrent.progress))
     }
 
