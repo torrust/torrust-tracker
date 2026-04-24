@@ -7,7 +7,7 @@ use reqwest::multipart::{Form, Part};
 use serde::Deserialize;
 use tokio::sync::Mutex;
 
-use super::types::{TorrentProgress, TorrentState};
+use super::types::{TorrentHash, TorrentProgress, TorrentState};
 
 const QBITTORRENT_WEBUI_PORT: u16 = 8080;
 
@@ -73,7 +73,7 @@ pub struct QbittorrentClient {
 
 #[derive(Debug, Deserialize)]
 pub struct TorrentInfo {
-    pub hash: String,
+    pub hash: TorrentHash,
     pub progress: TorrentProgress,
     pub state: TorrentState,
 }

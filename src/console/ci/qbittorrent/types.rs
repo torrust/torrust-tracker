@@ -399,3 +399,47 @@ impl fmt::Display for QbittorrentImage {
         f.write_str(&self.0)
     }
 }
+
+/// A qBittorrent torrent hash — a 40-character lowercase hex-encoded SHA-1
+/// string, as returned by the `/api/v2/torrents/info` endpoint.
+///
+/// Distinct from the binary [`InfoHash`](primitives::InfoHash) type in the
+/// `primitives` package: the API delivers hex strings, not raw bytes.  Wrapping
+/// it here documents the invariant and disambiguates the field from other
+/// [`String`] fields such as the torrent name or save path.
+#[derive(Debug, Clone)]
+pub struct TorrentHash(String);
+
+impl TorrentHash {
+    /// Creates a new [`TorrentHash`] from any value that converts into a [`String`].
+    pub fn new(hash: impl Into<String>) -> Self {
+        Self(hash.into())
+    }
+
+    /// Returns the hash as a `&str`.
+    #[must_use]
+    pub fn as_str(&self) -> &str {
+        &self.0
+    }
+}
+
+impl Deref for TorrentHash {
+    type Target = str;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl fmt::Display for TorrentHash {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(&self.0)
+    }
+}
+
+impl<'de> serde::Deserialize<'de> for TorrentHash {
+    fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        let value = <String as serde::Deserialize>::deserialize(deserializer)?;
+        Ok(Self(value))
+    }
+}
