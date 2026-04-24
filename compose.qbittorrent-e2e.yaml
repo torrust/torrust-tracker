@@ -2,6 +2,10 @@ name: qbittorrent-e2e
 
 services:
   tracker:
+    build:
+      context: .
+      dockerfile: Containerfile
+      target: release
     image: ${QBT_E2E_TRACKER_IMAGE:?QBT_E2E_TRACKER_IMAGE is required}
     restart: "no"
     volumes:

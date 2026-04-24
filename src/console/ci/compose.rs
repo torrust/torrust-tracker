@@ -91,6 +91,38 @@ impl DockerCompose {
         }
     }
 
+    /// Builds images defined in the compose file.
+    ///
+    /// Build output is streamed live to stdout/stderr so progress is visible.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when docker compose build fails.
+    pub fn build(&self) -> io::Result<()> {
+        let mut command = Command::new("docker");
+        command.envs(self.env_vars.iter().map(|(key, value)| (key, value)));
+        command.arg("compose");
+        command.arg("-f").arg(&self.file);
+        command.arg("-p").arg(&self.project);
+        command.arg("build");
+
+        tracing::info!("Running docker compose command: {:?}", command);
+
+        let status = command.status()?;
+        if status.success() {
+            Ok(())
+        } else {
+            Err(io::Error::new(
+                io::ErrorKind::Other,
+                format!(
+                    "docker compose build failed for file '{}' and project '{}'",
+                    self.file.display(),
+                    self.project,
+                ),
+            ))
+        }
+    }
+
     /// Runs docker compose down --volumes.
     ///
     /// # Errors

@@ -7,7 +7,6 @@
 //! ```
 use std::fs;
 use std::path::{Path, PathBuf};
-use std::process::Command;
 use std::time::Duration;
 
 use anyhow::Context;
@@ -162,9 +161,8 @@ pub async fn run() -> anyhow::Result<()> {
     let workspace = prepare_workspace(&args, &project_name)?;
     let resources = workspace.resources();
 
-    build_tracker_image(&args.tracker_image).context("failed to build local tracker image")?;
-
     let compose = build_compose(&args, &project_name, resources)?;
+    compose.build().context("failed to build local tracker image")?;
     let mut running_compose = compose.up().context("failed to start qBittorrent compose stack")?;
 
     // ACT: run the transfer scenario and verify the result.
@@ -356,17 +354,4 @@ fn normalize_path_for_compose(path: &Path) -> anyhow::Result<String> {
     let absolute_path = fs::canonicalize(path).with_context(|| format!("failed to canonicalize path '{}'", path.display()))?;
 
     Ok(absolute_path.to_string_lossy().to_string())
-}
-
-fn build_tracker_image(image: &str) -> anyhow::Result<()> {
-    let status = Command::new("docker")
-        .args(["build", "-f", "Containerfile", "-t", image, "--target", "release", "."])
-        .status()
-        .context("failed to invoke docker build for tracker image")?;
-
-    if status.success() {
-        Ok(())
-    } else {
-        Err(anyhow::anyhow!("docker build failed for tracker image '{image}'"))
-    }
 }
