@@ -11,17 +11,14 @@ use std::process::Command;
 use std::time::Duration;
 
 use anyhow::Context;
-use base64::engine::general_purpose::STANDARD as BASE64_STANDARD;
-use base64::Engine;
 use clap::Parser;
-use pbkdf2::pbkdf2_hmac;
 use rand::distr::Alphanumeric;
 use rand::RngExt;
-use sha2::Sha512;
 use tracing::level_filters::LevelFilter;
 
 use super::client_role::ClientRole;
 use super::qbittorrent_client::QbittorrentClient;
+use super::qbittorrent_config::QbittorrentConfigBuilder;
 use super::scenario_steps::{
     add_torrent_file_to_client, build_payload_fixture, build_torrent_fixture, login_client, verify_payload_integrity,
     wait_until_client_has_any_torrent, wait_until_download_completes,
@@ -34,9 +31,7 @@ const QBITTORRENT_IMAGE: &str = "lscr.io/linuxserver/qbittorrent:5.1.4";
 const QBITTORRENT_USERNAME: &str = "admin";
 const QBITTORRENT_PASSWORD: &str = "torrust-e2e-pass";
 const QBITTORRENT_WEBUI_PORT: u16 = 8080;
-const QBITTORRENT_CONFIG_RELATIVE_PATH: &str = "qBittorrent/qBittorrent.conf";
 const QBITTORRENT_DOWNLOADS_PATH: &str = "/downloads";
-const QBITTORRENT_DOWNLOADS_TEMP_PATH: &str = "/downloads/temp";
 const PAYLOAD_FILE_NAME: &str = "payload.bin";
 const TORRENT_FILE_NAME: &str = "payload.torrent";
 const PAYLOAD_SIZE_BYTES: usize = 1024 * 1024;
@@ -252,7 +247,8 @@ fn setup_qbittorrent_workspace(root: &Path, role: &str) -> anyhow::Result<(PathB
     let config_path = root.join(format!("{role}-config"));
     let downloads_path = root.join(format!("{role}-downloads"));
     fs::create_dir_all(&downloads_path).with_context(|| format!("failed to create {role} downloads directory"))?;
-    write_qbittorrent_config(&config_path, QBITTORRENT_USERNAME, QBITTORRENT_PASSWORD)
+    QbittorrentConfigBuilder::new(QBITTORRENT_USERNAME, QBITTORRENT_PASSWORD)
+        .write_to(&config_path)
         .with_context(|| format!("failed to generate {role} qBittorrent config"))?;
     Ok((config_path, downloads_path))
 }
@@ -373,41 +369,4 @@ fn build_tracker_image(image: &str) -> anyhow::Result<()> {
     } else {
         Err(anyhow::anyhow!("docker build failed for tracker image '{image}'"))
     }
-}
-
-fn write_qbittorrent_config(config_root: &Path, username: &str, password: &str) -> anyhow::Result<()> {
-    let config_path = config_root.join(QBITTORRENT_CONFIG_RELATIVE_PATH);
-    let config_dir = config_path
-        .parent()
-        .ok_or_else(|| anyhow::anyhow!("qBittorrent config path has no parent directory"))?;
-    let resume_dir = config_root.join("qBittorrent/BT_backup");
-    let cache_dir = config_root.join(".cache/qBittorrent");
-
-    fs::create_dir_all(config_dir)
-        .with_context(|| format!("failed to create qBittorrent config directory '{}'", config_dir.display()))?;
-    fs::create_dir_all(&resume_dir)
-        .with_context(|| format!("failed to create qBittorrent resume directory '{}'", resume_dir.display()))?;
-    fs::create_dir_all(&cache_dir)
-        .with_context(|| format!("failed to create qBittorrent cache directory '{}'", cache_dir.display()))?;
-
-    let password_hash = build_qbittorrent_password_hash(password);
-    let config = format!(
-        "[BitTorrent]\nSession\\AddTorrentStopped=false\nSession\\DefaultSavePath={QBITTORRENT_DOWNLOADS_PATH}\nSession\\TempPath={QBITTORRENT_DOWNLOADS_TEMP_PATH}\n[Preferences]\nWebUI\\LocalHostAuth=false\nWebUI\\Port={QBITTORRENT_WEBUI_PORT}\nWebUI\\Password_PBKDF2=\"{password_hash}\"\nWebUI\\Username={username}\n"
-    );
-
-    fs::write(&config_path, config).with_context(|| format!("failed to write qBittorrent config '{}'", config_path.display()))?;
-
-    Ok(())
-}
-
-fn build_qbittorrent_password_hash(password: &str) -> String {
-    let salt: [u8; 16] = rand::random();
-    let mut digest = [0_u8; 64];
-    pbkdf2_hmac::<Sha512>(password.as_bytes(), &salt, 100_000, &mut digest);
-
-    format!(
-        "@ByteArray({}:{})",
-        BASE64_STANDARD.encode(salt),
-        BASE64_STANDARD.encode(digest)
-    )
 }
