@@ -31,19 +31,27 @@ pub(crate) async fn start(
     qbittorrent_image: &str,
     resources: &WorkspaceResources,
 ) -> anyhow::Result<(RunningCompose, QbittorrentClient, QbittorrentClient)> {
-    let compose = build_compose(compose_file, project_name, tracker_image, qbittorrent_image, resources)?;
+    let compose = configure_compose(compose_file, project_name, tracker_image, qbittorrent_image, resources)?;
     compose.build().context("failed to build local tracker image")?;
     let running_compose = compose.up().context("failed to start qBittorrent compose stack")?;
-    let (seeder, leecher) = build_api_clients(&compose, resources.timeout).await?;
+    let (seeder, leecher) = build_clients(&compose, resources.timeout).await?;
     Ok((running_compose, seeder, leecher))
 }
 
-async fn build_api_clients(compose: &DockerCompose, timeout: Duration) -> anyhow::Result<(QbittorrentClient, QbittorrentClient)> {
-    let seeder_port = wait_for_client_port(compose, ClientRole::Seeder, timeout).await?;
-    let leecher_port = wait_for_client_port(compose, ClientRole::Leecher, timeout).await?;
-    let seeder = build_client(ClientRole::Seeder, seeder_port, timeout)?;
-    let leecher = build_client(ClientRole::Leecher, leecher_port, timeout)?;
+async fn build_clients(compose: &DockerCompose, timeout: Duration) -> anyhow::Result<(QbittorrentClient, QbittorrentClient)> {
+    let seeder = build_seeder_client(compose, timeout).await?;
+    let leecher = build_leecher_client(compose, timeout).await?;
     Ok((seeder, leecher))
+}
+
+async fn build_seeder_client(compose: &DockerCompose, timeout: Duration) -> anyhow::Result<QbittorrentClient> {
+    let port = wait_for_client_port(compose, ClientRole::Seeder, timeout).await?;
+    build_client(ClientRole::Seeder, port, timeout)
+}
+
+async fn build_leecher_client(compose: &DockerCompose, timeout: Duration) -> anyhow::Result<QbittorrentClient> {
+    let port = wait_for_client_port(compose, ClientRole::Leecher, timeout).await?;
+    build_client(ClientRole::Leecher, port, timeout)
 }
 
 async fn wait_for_client_port(compose: &DockerCompose, role: ClientRole, timeout: Duration) -> anyhow::Result<u16> {
@@ -70,7 +78,7 @@ fn build_client(role: ClientRole, host_port: u16, timeout: Duration) -> anyhow::
         .with_context(|| format!("failed to create qBittorrent client for service '{service_name}'"))
 }
 
-fn build_compose(
+fn configure_compose(
     compose_file: &Path,
     project_name: &str,
     tracker_image: &str,
