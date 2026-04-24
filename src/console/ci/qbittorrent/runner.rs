@@ -13,7 +13,7 @@ use rand::distr::Alphanumeric;
 use rand::RngExt;
 use tracing::level_filters::LevelFilter;
 
-use super::{compose_stack, scenarios, workspace_setup};
+use super::{filesystem_setup, scenarios, services_setup};
 
 const TRACKER_IMAGE: &str = "torrust-tracker:qbt-e2e-local";
 const QBITTORRENT_IMAGE: &str = "lscr.io/linuxserver/qbittorrent:5.1.4";
@@ -65,10 +65,10 @@ pub async fn run() -> anyhow::Result<()> {
 
     let timeout = Duration::from_secs(args.timeout_seconds);
 
-    let workspace = workspace_setup::prepare(&args.tracker_config_template, &project_name, args.keep_containers, timeout)?;
+    let workspace = filesystem_setup::prepare(&args.tracker_config_template, &project_name, args.keep_containers, timeout)?;
     let resources = workspace.resources();
 
-    let (mut running_compose, seeder, leecher) = compose_stack::start(
+    let (mut running_compose, seeder, leecher) = services_setup::start(
         &args.compose_file,
         &project_name,
         &args.tracker_image,

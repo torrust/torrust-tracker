@@ -52,13 +52,13 @@
 
 pub mod bencode;
 pub mod client_role;
-pub mod compose_stack;
+pub mod filesystem_setup;
 pub mod poller;
 pub mod qbittorrent_client;
 pub mod qbittorrent_config;
 pub mod runner;
 pub mod scenario_steps;
 pub mod scenarios;
+pub mod services_setup;
 pub mod torrent_artifacts;
 pub mod workspace;
-pub mod workspace_setup;

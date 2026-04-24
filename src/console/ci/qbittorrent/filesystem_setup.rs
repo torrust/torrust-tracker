@@ -1,4 +1,4 @@
-//! Workspace setup for the `qBittorrent` E2E tests.
+//! Filesystem setup for the `qBittorrent` E2E tests.
 //!
 //! This module creates the directory tree, service configuration files, and
 //! shared test fixtures that the `Docker` Compose stack needs before it starts.

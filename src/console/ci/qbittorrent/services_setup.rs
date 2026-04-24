@@ -1,7 +1,7 @@
-//! Docker Compose stack provisioning for the `qBittorrent` E2E tests.
+//! Container services setup for the `qBittorrent` E2E tests.
 //!
 //! This module starts the full infrastructure stack: builds the tracker image,
-//! brings up the Docker Compose services, and constructs the `qBittorrent` API
+//! brings up the `Docker` Compose services, and constructs the `qBittorrent` API
 //! clients for the seeder and leecher containers.
 use std::fs;
 use std::path::Path;
