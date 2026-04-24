@@ -118,14 +118,14 @@ impl QbittorrentClient {
 
     /// # Errors
     ///
-    /// Returns an error when uploading a torrent file fails.
-    async fn add_torrent(&self, torrent_name: &str, torrent_bytes: Vec<u8>, save_path: &str) -> anyhow::Result<()> {
+    /// Returns an error when adding a torrent file fails.
+    pub async fn add_torrent_file(&self, torrent_name: &str, torrent_bytes: &[u8], save_path: &str) -> anyhow::Result<()> {
         let (webui_host, webui_origin) = self
             .webui_headers()
             .context("failed to prepare qBittorrent WebUI CSRF headers")?;
         let sid_cookie = self.sid_cookie.lock().await.clone();
 
-        let part = Part::bytes(torrent_bytes).file_name(torrent_name.to_string());
+        let part = Part::bytes(torrent_bytes.to_vec()).file_name(torrent_name.to_string());
         let form = Form::new()
             .part("torrents", part)
             .text("savepath", save_path.to_string())
@@ -145,25 +145,20 @@ impl QbittorrentClient {
             request
         };
 
-        let response = request.send().await.context("failed to call qBittorrent torrents/add API")?;
+        let response = request
+            .send()
+            .await
+            .with_context(|| format!("failed to call torrents/add on {} qBittorrent instance", self.client_label))?;
 
         if response.status().is_success() {
             Ok(())
         } else {
             Err(anyhow::anyhow!(
-                "qBittorrent torrents/add failed with status {}",
-                response.status()
+                "qBittorrent torrents/add failed with status {} on {} instance",
+                response.status(),
+                self.client_label
             ))
         }
-    }
-
-    /// # Errors
-    ///
-    /// Returns an error when adding a torrent file fails.
-    pub async fn add_torrent_file(&self, torrent_name: &str, torrent_bytes: &[u8], save_path: &str) -> anyhow::Result<()> {
-        self.add_torrent(torrent_name, torrent_bytes.to_vec(), save_path)
-            .await
-            .with_context(|| format!("failed to add torrent file to {} qBittorrent instance", self.client_label))
     }
 
     /// # Errors
