@@ -97,6 +97,123 @@ impl From<&str> for ContainerPath {
     }
 }
 
+/// The state of a torrent as reported by the qBittorrent Web API.
+///
+/// Variants map one-to-one to the string values returned by the
+/// `/api/v2/torrents/info` endpoint.  Any string not listed here is captured
+/// by [`TorrentState::Unknown`] and its raw value is preserved for
+/// diagnostics.
+///
+/// Note: qBittorrent 5.0 renamed `pausedUP`/`pausedDL` to
+/// `stoppedUP`/`stoppedDL`.  Both spellings are represented.
+#[derive(Debug, Clone)]
+pub enum TorrentState {
+    /// Some error occurred.
+    Error,
+    /// Torrent data files are missing.
+    MissingFiles,
+    /// Torrent is being seeded and data is being transferred.
+    Uploading,
+    /// Seeder has finished and the torrent is stopped (qBittorrent ≥ 5.0).
+    StoppedUp,
+    /// Seeder has finished and the torrent is paused (qBittorrent < 5.0).
+    PausedUp,
+    /// Torrent is queued for upload.
+    QueuedUp,
+    /// Seeding is stalled (no peers downloading).
+    StalledUp,
+    /// Checking data after completing upload.
+    CheckingUp,
+    /// Torrent is force-seeding.
+    ForcedUp,
+    /// Allocating disk space for the download.
+    Allocating,
+    /// Torrent is downloading.
+    Downloading,
+    /// Fetching torrent metadata.
+    MetaDl,
+    /// Download is stopped (qBittorrent ≥ 5.0).
+    StoppedDl,
+    /// Download is paused (qBittorrent < 5.0).
+    PausedDl,
+    /// Torrent is queued for download.
+    QueuedDl,
+    /// Download is stalled (no seeds available).
+    StalledDl,
+    /// Checking data while downloading.
+    CheckingDl,
+    /// Torrent is force-downloading.
+    ForcedDl,
+    /// Checking resume data on startup.
+    CheckingResumeData,
+    /// Moving files to a new location.
+    Moving,
+    /// The API returned `"unknown"`.
+    UnknownToApi,
+    /// An unrecognized state string; the raw value is preserved for diagnostics.
+    Unknown(String),
+}
+
+impl<'de> serde::Deserialize<'de> for TorrentState {
+    fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        let s = <String as serde::Deserialize>::deserialize(deserializer)?;
+        Ok(match s.as_str() {
+            "error" => Self::Error,
+            "missingFiles" => Self::MissingFiles,
+            "uploading" => Self::Uploading,
+            "stoppedUP" => Self::StoppedUp,
+            "pausedUP" => Self::PausedUp,
+            "queuedUP" => Self::QueuedUp,
+            "stalledUP" => Self::StalledUp,
+            "checkingUP" => Self::CheckingUp,
+            "forcedUP" => Self::ForcedUp,
+            "allocating" => Self::Allocating,
+            "downloading" => Self::Downloading,
+            "metaDL" => Self::MetaDl,
+            "stoppedDL" => Self::StoppedDl,
+            "pausedDL" => Self::PausedDl,
+            "queuedDL" => Self::QueuedDl,
+            "stalledDL" => Self::StalledDl,
+            "checkingDL" => Self::CheckingDl,
+            "forcedDL" => Self::ForcedDl,
+            "checkingResumeData" => Self::CheckingResumeData,
+            "moving" => Self::Moving,
+            "unknown" => Self::UnknownToApi,
+            other => Self::Unknown(other.to_string()),
+        })
+    }
+}
+
+impl fmt::Display for TorrentState {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let s = match self {
+            Self::Error => "error",
+            Self::MissingFiles => "missingFiles",
+            Self::Uploading => "uploading",
+            Self::StoppedUp => "stoppedUP",
+            Self::PausedUp => "pausedUP",
+            Self::QueuedUp => "queuedUP",
+            Self::StalledUp => "stalledUP",
+            Self::CheckingUp => "checkingUP",
+            Self::ForcedUp => "forcedUP",
+            Self::Allocating => "allocating",
+            Self::Downloading => "downloading",
+            Self::MetaDl => "metaDL",
+            Self::StoppedDl => "stoppedDL",
+            Self::PausedDl => "pausedDL",
+            Self::QueuedDl => "queuedDL",
+            Self::StalledDl => "stalledDL",
+            Self::CheckingDl => "checkingDL",
+            Self::ForcedDl => "forcedDL",
+            Self::CheckingResumeData => "checkingResumeData",
+            Self::Moving => "moving",
+            Self::UnknownToApi => "unknown",
+            Self::Unknown(raw) => return f.write_str(raw),
+        };
+        f.write_str(s)
+    }
+}
+
 /// A polling-loop deadline expressed as a [`Duration`] measured from the moment
 /// the loop starts.
 ///

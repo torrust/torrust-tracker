@@ -7,6 +7,8 @@ use reqwest::multipart::{Form, Part};
 use serde::Deserialize;
 use tokio::sync::Mutex;
 
+use super::types::TorrentState;
+
 const QBITTORRENT_WEBUI_PORT: u16 = 8080;
 
 /// Credentials for authenticating with the `qBittorrent` web UI.
@@ -30,7 +32,7 @@ pub struct QbittorrentClient {
 pub struct TorrentInfo {
     pub hash: String,
     pub progress: f64,
-    pub state: String,
+    pub state: TorrentState,
 }
 
 impl QbittorrentClient {
