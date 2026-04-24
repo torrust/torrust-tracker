@@ -45,8 +45,29 @@ struct GeneratedPayloadAndTorrent {
 
 async fn run_scenario(compose: &DockerCompose, workspace: &WorkspaceResources, timeout: Duration) -> anyhow::Result<()> {
     // ARRANGE: wait for all clients to be reachable and authenticated.
-    let seeder = initialize_client(compose, ClientRole::Seeder, timeout).await?;
-    let leecher = initialize_client(compose, ClientRole::Leecher, timeout).await?;
+    let seeder_port = wait_for_client_port(compose, ClientRole::Seeder, timeout).await?;
+    let seeder = build_client(ClientRole::Seeder, seeder_port, timeout)?;
+    login_client(
+        &seeder,
+        QBITTORRENT_USERNAME,
+        QBITTORRENT_PASSWORD,
+        timeout,
+        LOGIN_POLL_INTERVAL,
+    )
+    .await
+    .context("seeder qBittorrent API did not become ready for authentication")?;
+
+    let leecher_port = wait_for_client_port(compose, ClientRole::Leecher, timeout).await?;
+    let leecher = build_client(ClientRole::Leecher, leecher_port, timeout)?;
+    login_client(
+        &leecher,
+        QBITTORRENT_USERNAME,
+        QBITTORRENT_PASSWORD,
+        timeout,
+        LOGIN_POLL_INTERVAL,
+    )
+    .await
+    .context("leecher qBittorrent API did not become ready for authentication")?;
     tracing::info!("qBittorrent WebUI login succeeded for both clients");
 
     // ACT: simulate the seeder-first transfer story.
@@ -81,7 +102,7 @@ async fn run_scenario(compose: &DockerCompose, workspace: &WorkspaceResources, t
     Ok(())
 }
 
-async fn initialize_client(compose: &DockerCompose, role: ClientRole, timeout: Duration) -> anyhow::Result<QbittorrentClient> {
+async fn wait_for_client_port(compose: &DockerCompose, role: ClientRole, timeout: Duration) -> anyhow::Result<u16> {
     let service_name = role.service_name();
     let host_port = compose
         .wait_for_port_mapping(
@@ -96,20 +117,13 @@ async fn initialize_client(compose: &DockerCompose, role: ClientRole, timeout: D
 
     tracing::info!("{} WebUI host port: {host_port}", role.client_label());
 
-    let client = QbittorrentClient::new(role.client_label(), &format!("http://127.0.0.1:{host_port}"), timeout)
-        .with_context(|| format!("failed to create qBittorrent client for service '{service_name}'"))?;
+    Ok(host_port)
+}
 
-    login_client(
-        &client,
-        QBITTORRENT_USERNAME,
-        QBITTORRENT_PASSWORD,
-        timeout,
-        LOGIN_POLL_INTERVAL,
-    )
-    .await
-    .with_context(|| format!("{service_name} qBittorrent API did not become ready for authentication"))?;
-
-    Ok(client)
+fn build_client(role: ClientRole, host_port: u16, timeout: Duration) -> anyhow::Result<QbittorrentClient> {
+    let service_name = role.service_name();
+    QbittorrentClient::new(role.client_label(), &format!("http://127.0.0.1:{host_port}"), timeout)
+        .with_context(|| format!("failed to create qBittorrent client for service '{service_name}'"))
 }
 
 #[derive(Parser, Debug)]
