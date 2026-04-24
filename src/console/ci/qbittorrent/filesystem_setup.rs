@@ -35,7 +35,7 @@ use anyhow::Context;
 use super::qbittorrent_client::QbittorrentCredentials;
 use super::qbittorrent_config::QbittorrentConfigBuilder;
 use super::scenario_steps::{build_payload_fixture, build_torrent_fixture};
-use super::types::{ComposeProjectName, ContainerPath, Deadline, FileName, PollInterval};
+use super::types::{ComposeProjectName, ContainerPath, Deadline, FileName, PayloadSize, PieceLength, PollInterval};
 use super::workspace::{
     EphemeralWorkspace, PeerConfig, PermanentWorkspace, PreparedWorkspace, SharedFixtures, TimingConfig, TorrentFixture,
     TrackerFilesystem, WorkspaceResources,
@@ -46,8 +46,8 @@ const SEEDER_PASSWORD: &str = "seeder-pass";
 const LEECHER_PASSWORD: &str = "leecher-pass";
 const PAYLOAD_FILE_NAME: &str = "payload.bin";
 const TORRENT_FILE_NAME: &str = "payload.torrent";
-const PAYLOAD_SIZE_BYTES: usize = 1024 * 1024;
-const TORRENT_PIECE_LENGTH: usize = 16 * 1024;
+const PAYLOAD_SIZE_BYTES: PayloadSize = PayloadSize::new(1024 * 1024);
+const TORRENT_PIECE_LENGTH: PieceLength = PieceLength::new(16 * 1024);
 const QBITTORRENT_DOWNLOADS_PATH: &str = "/downloads";
 const TORRENT_POLL_INTERVAL: Duration = Duration::from_millis(500);
 const LOGIN_POLL_INTERVAL: Duration = Duration::from_secs(1);

@@ -1,6 +1,7 @@
 use anyhow::Context;
 
 use super::super::super::torrent_artifacts::build_torrent_bytes;
+use super::super::super::types::PieceLength;
 use super::build_payload_fixture::GeneratedPayload;
 
 /// In-memory `.torrent` fixture generated from a payload fixture.
@@ -17,9 +18,9 @@ pub fn build_torrent_fixture(
     payload: &GeneratedPayload,
     payload_name: &str,
     announce_url: &str,
-    piece_length: usize,
+    piece_length: PieceLength,
 ) -> anyhow::Result<GeneratedTorrent> {
-    let bytes = build_torrent_bytes(&payload.bytes, payload_name, announce_url, piece_length)
+    let bytes = build_torrent_bytes(&payload.bytes, payload_name, announce_url, piece_length.as_usize())
         .context("failed to build torrent fixture bytes from payload fixture")?;
 
     Ok(GeneratedTorrent { bytes })

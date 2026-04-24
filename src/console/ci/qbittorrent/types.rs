@@ -443,3 +443,43 @@ impl<'de> serde::Deserialize<'de> for TorrentHash {
         Ok(Self(value))
     }
 }
+
+/// The total byte size of a test payload used in the E2E torrent scenario.
+///
+/// Distinct from [`PieceLength`] to prevent an accidental swap of the two
+/// `usize` torrent-construction arguments.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct PayloadSize(usize);
+
+impl PayloadSize {
+    /// Creates a new [`PayloadSize`] from a byte count.
+    pub(crate) const fn new(bytes: usize) -> Self {
+        Self(bytes)
+    }
+
+    /// Returns the byte count as a `usize`.
+    #[must_use]
+    pub(crate) fn as_usize(self) -> usize {
+        self.0
+    }
+}
+
+/// The piece length for a torrent, in bytes.
+///
+/// Distinct from [`PayloadSize`] to prevent an accidental swap of the two
+/// `usize` torrent-construction arguments.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct PieceLength(usize);
+
+impl PieceLength {
+    /// Creates a new [`PieceLength`] from a byte count.
+    pub(crate) const fn new(bytes: usize) -> Self {
+        Self(bytes)
+    }
+
+    /// Returns the piece length as a `usize`.
+    #[must_use]
+    pub(crate) fn as_usize(self) -> usize {
+        self.0
+    }
+}
