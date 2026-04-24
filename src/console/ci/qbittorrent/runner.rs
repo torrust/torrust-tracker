@@ -15,19 +15,15 @@ use rand::distr::Alphanumeric;
 use rand::RngExt;
 use tracing::level_filters::LevelFilter;
 
-use super::client_role::ClientRole;
-use super::qbittorrent_client::QbittorrentClient;
 use super::qbittorrent_config::QbittorrentConfigBuilder;
 use super::scenario_steps::{build_payload_fixture, build_torrent_fixture};
-use super::scenarios;
 use super::workspace::{EphemeralWorkspace, PermanentWorkspace, PreparedWorkspace, WorkspaceResources};
-use crate::console::ci::compose::DockerCompose;
+use super::{compose_stack, scenarios};
 
 const TRACKER_IMAGE: &str = "torrust-tracker:qbt-e2e-local";
 const QBITTORRENT_IMAGE: &str = "lscr.io/linuxserver/qbittorrent:5.1.4";
 const QBITTORRENT_USERNAME: &str = "admin";
 const QBITTORRENT_PASSWORD: &str = "torrust-e2e-pass";
-const QBITTORRENT_WEBUI_PORT: u16 = 8080;
 const PAYLOAD_FILE_NAME: &str = "payload.bin";
 const TORRENT_FILE_NAME: &str = "payload.torrent";
 const PAYLOAD_SIZE_BYTES: usize = 1024 * 1024;
@@ -35,42 +31,9 @@ const TORRENT_PIECE_LENGTH: usize = 16 * 1024;
 const QBITTORRENT_DOWNLOADS_PATH: &str = "/downloads";
 const TORRENT_POLL_INTERVAL: Duration = Duration::from_millis(500);
 const LOGIN_POLL_INTERVAL: Duration = Duration::from_secs(1);
-const COMPOSE_PORT_POLL_INTERVAL: Duration = Duration::from_secs(1);
 
 struct GeneratedPayloadAndTorrent {
     torrent_bytes: Vec<u8>,
-}
-
-async fn build_api_clients(compose: &DockerCompose, timeout: Duration) -> anyhow::Result<(QbittorrentClient, QbittorrentClient)> {
-    let seeder_port = wait_for_client_port(compose, ClientRole::Seeder, timeout).await?;
-    let leecher_port = wait_for_client_port(compose, ClientRole::Leecher, timeout).await?;
-    let seeder = build_client(ClientRole::Seeder, seeder_port, timeout)?;
-    let leecher = build_client(ClientRole::Leecher, leecher_port, timeout)?;
-    Ok((seeder, leecher))
-}
-
-async fn wait_for_client_port(compose: &DockerCompose, role: ClientRole, timeout: Duration) -> anyhow::Result<u16> {
-    let service_name = role.service_name();
-    let host_port = compose
-        .wait_for_port_mapping(
-            service_name,
-            QBITTORRENT_WEBUI_PORT,
-            timeout,
-            COMPOSE_PORT_POLL_INTERVAL,
-            &["tracker"],
-        )
-        .await
-        .with_context(|| format!("failed to resolve {service_name} WebUI host port"))?;
-
-    tracing::info!("{} WebUI host port: {host_port}", role.client_label());
-
-    Ok(host_port)
-}
-
-fn build_client(role: ClientRole, host_port: u16, timeout: Duration) -> anyhow::Result<QbittorrentClient> {
-    let service_name = role.service_name();
-    QbittorrentClient::new(role.client_label(), &format!("http://127.0.0.1:{host_port}"), timeout)
-        .with_context(|| format!("failed to create qBittorrent client for service '{service_name}'"))
 }
 
 #[derive(Parser, Debug)]
@@ -118,17 +81,19 @@ pub async fn run() -> anyhow::Result<()> {
     let project_name = build_project_name(&args.project_prefix);
     tracing::info!("Using compose project name: {project_name}");
 
-    // ARRANGE: build workspace artifacts, tracker image, and start all containers.
     let timeout = Duration::from_secs(args.timeout_seconds);
+
     let workspace = prepare_workspace(&args, &project_name, timeout)?;
     let resources = workspace.resources();
 
-    let compose = build_compose(&args, &project_name, resources)?;
-    compose.build().context("failed to build local tracker image")?;
-    let mut running_compose = compose.up().context("failed to start qBittorrent compose stack")?;
-
-    let timeout = Duration::from_secs(args.timeout_seconds);
-    let (seeder, leecher) = build_api_clients(&compose, timeout).await?;
+    let (mut running_compose, seeder, leecher) = compose_stack::start(
+        &args.compose_file,
+        &project_name,
+        &args.tracker_image,
+        &args.qbittorrent_image,
+        resources,
+    )
+    .await?;
 
     // ACT: run the transfer scenario and verify the result.
     scenarios::seeder_to_leecher_transfer::run(&seeder, &leecher, resources).await?;
@@ -273,40 +238,6 @@ fn write_payload_and_torrent(shared_path: &Path, seeder_downloads_path: &Path) -
     })
 }
 
-fn build_compose(args: &Args, project_name: &str, workspace: &WorkspaceResources) -> anyhow::Result<DockerCompose> {
-    Ok(DockerCompose::new(&args.compose_file, project_name)
-        .with_env("QBT_E2E_TRACKER_IMAGE", &args.tracker_image)
-        .with_env("QBT_E2E_QBITTORRENT_IMAGE", &args.qbittorrent_image)
-        .with_env(
-            "QBT_E2E_TRACKER_CONFIG_PATH",
-            normalize_path_for_compose(&workspace.tracker_config_path)?.as_str(),
-        )
-        .with_env(
-            "QBT_E2E_TRACKER_STORAGE_PATH",
-            normalize_path_for_compose(&workspace.tracker_storage_path)?.as_str(),
-        )
-        .with_env(
-            "QBT_E2E_SHARED_PATH",
-            normalize_path_for_compose(&workspace.shared_path)?.as_str(),
-        )
-        .with_env(
-            "QBT_E2E_SEEDER_CONFIG_PATH",
-            normalize_path_for_compose(&workspace.seeder_config_path)?.as_str(),
-        )
-        .with_env(
-            "QBT_E2E_LEECHER_CONFIG_PATH",
-            normalize_path_for_compose(&workspace.leecher_config_path)?.as_str(),
-        )
-        .with_env(
-            "QBT_E2E_SEEDER_DOWNLOADS_PATH",
-            normalize_path_for_compose(&workspace.seeder_downloads_path)?.as_str(),
-        )
-        .with_env(
-            "QBT_E2E_LEECHER_DOWNLOADS_PATH",
-            normalize_path_for_compose(&workspace.leecher_downloads_path)?.as_str(),
-        ))
-}
-
 fn tracing_stdout_init(filter: LevelFilter) {
     tracing_subscriber::fmt().with_max_level(filter).init();
     tracing::info!("Logging initialized");
@@ -320,10 +251,4 @@ fn build_project_name(prefix: &str) -> String {
         .map(|character| character.to_ascii_lowercase())
         .collect();
     format!("{prefix}-{suffix}")
-}
-
-fn normalize_path_for_compose(path: &Path) -> anyhow::Result<String> {
-    let absolute_path = fs::canonicalize(path).with_context(|| format!("failed to canonicalize path '{}'", path.display()))?;
-
-    Ok(absolute_path.to_string_lossy().to_string())
 }

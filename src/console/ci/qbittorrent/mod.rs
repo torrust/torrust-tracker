@@ -52,6 +52,7 @@
 
 pub mod bencode;
 pub mod client_role;
+pub mod compose_stack;
 pub mod poller;
 pub mod qbittorrent_client;
 pub mod qbittorrent_config;
