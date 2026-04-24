@@ -43,12 +43,14 @@ struct GeneratedPayloadAndTorrent {
     torrent_bytes: Vec<u8>,
 }
 
-async fn run_scenario(compose: &DockerCompose, workspace: &WorkspaceResources, timeout: Duration) -> anyhow::Result<()> {
-    // ARRANGE: wait for all clients to be reachable and authenticated.
-    let seeder_port = wait_for_client_port(compose, ClientRole::Seeder, timeout).await?;
-    let seeder = build_client(ClientRole::Seeder, seeder_port, timeout)?;
+async fn run_scenario(
+    seeder: &QbittorrentClient,
+    leecher: &QbittorrentClient,
+    workspace: &WorkspaceResources,
+    timeout: Duration,
+) -> anyhow::Result<()> {
     login_client(
-        &seeder,
+        seeder,
         QBITTORRENT_USERNAME,
         QBITTORRENT_PASSWORD,
         timeout,
@@ -57,10 +59,8 @@ async fn run_scenario(compose: &DockerCompose, workspace: &WorkspaceResources, t
     .await
     .context("seeder qBittorrent API did not become ready for authentication")?;
 
-    let leecher_port = wait_for_client_port(compose, ClientRole::Leecher, timeout).await?;
-    let leecher = build_client(ClientRole::Leecher, leecher_port, timeout)?;
     login_client(
-        &leecher,
+        leecher,
         QBITTORRENT_USERNAME,
         QBITTORRENT_PASSWORD,
         timeout,
@@ -70,16 +70,15 @@ async fn run_scenario(compose: &DockerCompose, workspace: &WorkspaceResources, t
     .context("leecher qBittorrent API did not become ready for authentication")?;
     tracing::info!("qBittorrent WebUI login succeeded for both clients");
 
-    // ACT: simulate the seeder-first transfer story.
     add_torrent_file_to_client(
-        &seeder,
+        seeder,
         TORRENT_FILE_NAME,
         &workspace.torrent_bytes,
         QBITTORRENT_DOWNLOADS_PATH,
     )
     .await?;
     add_torrent_file_to_client(
-        &leecher,
+        leecher,
         TORRENT_FILE_NAME,
         &workspace.torrent_bytes,
         QBITTORRENT_DOWNLOADS_PATH,
@@ -89,10 +88,10 @@ async fn run_scenario(compose: &DockerCompose, workspace: &WorkspaceResources, t
 
     // qBittorrent processes `add_torrent` asynchronously, so an immediate `list_torrents`
     // after upload can race and return 0.
-    wait_until_client_has_any_torrent(&seeder, timeout, TORRENT_POLL_INTERVAL, "Seeder").await?;
-    wait_until_client_has_any_torrent(&leecher, timeout, TORRENT_POLL_INTERVAL, "Leecher").await?;
+    wait_until_client_has_any_torrent(seeder, timeout, TORRENT_POLL_INTERVAL, "Seeder").await?;
+    wait_until_client_has_any_torrent(leecher, timeout, TORRENT_POLL_INTERVAL, "Leecher").await?;
 
-    wait_until_download_completes(&leecher, timeout, TORRENT_POLL_INTERVAL).await?;
+    wait_until_download_completes(leecher, timeout, TORRENT_POLL_INTERVAL).await?;
     verify_payload_integrity(
         &workspace.leecher_downloads_path.join(PAYLOAD_FILE_NAME),
         &workspace.shared_path.join(PAYLOAD_FILE_NAME),
@@ -100,6 +99,14 @@ async fn run_scenario(compose: &DockerCompose, workspace: &WorkspaceResources, t
     .context("downloaded payload does not match the original")?;
 
     Ok(())
+}
+
+async fn build_api_clients(compose: &DockerCompose, timeout: Duration) -> anyhow::Result<(QbittorrentClient, QbittorrentClient)> {
+    let seeder_port = wait_for_client_port(compose, ClientRole::Seeder, timeout).await?;
+    let leecher_port = wait_for_client_port(compose, ClientRole::Leecher, timeout).await?;
+    let seeder = build_client(ClientRole::Seeder, seeder_port, timeout)?;
+    let leecher = build_client(ClientRole::Leecher, leecher_port, timeout)?;
+    Ok((seeder, leecher))
 }
 
 async fn wait_for_client_port(compose: &DockerCompose, role: ClientRole, timeout: Duration) -> anyhow::Result<u16> {
@@ -179,9 +186,11 @@ pub async fn run() -> anyhow::Result<()> {
     compose.build().context("failed to build local tracker image")?;
     let mut running_compose = compose.up().context("failed to start qBittorrent compose stack")?;
 
-    // ACT: run the transfer scenario and verify the result.
     let timeout = Duration::from_secs(args.timeout_seconds);
-    run_scenario(&compose, resources, timeout).await?;
+    let (seeder, leecher) = build_api_clients(&compose, timeout).await?;
+
+    // ACT: run the transfer scenario and verify the result.
+    run_scenario(&seeder, &leecher, resources, timeout).await?;
 
     // POST-SCENARIO: optionally keep containers for debugging.
     if args.keep_containers {
