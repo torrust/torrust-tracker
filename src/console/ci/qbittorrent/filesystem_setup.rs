@@ -32,6 +32,7 @@ use std::time::Duration;
 
 use anyhow::Context;
 
+use super::qbittorrent_client::QbittorrentCredentials;
 use super::qbittorrent_config::QbittorrentConfigBuilder;
 use super::scenario_steps::{build_payload_fixture, build_torrent_fixture};
 use super::workspace::{
@@ -115,15 +116,19 @@ fn prepare_resources(
         seeder: PeerConfig {
             config_path: seeder_config_path,
             downloads_path: seeder_downloads_path,
-            username: QBITTORRENT_USERNAME.to_string(),
-            password: SEEDER_PASSWORD.to_string(),
+            credentials: QbittorrentCredentials {
+                username: QBITTORRENT_USERNAME.to_string(),
+                password: SEEDER_PASSWORD.to_string(),
+            },
             container_downloads_path: QBITTORRENT_DOWNLOADS_PATH.to_string(),
         },
         leecher: PeerConfig {
             config_path: leecher_config_path,
             downloads_path: leecher_downloads_path,
-            username: QBITTORRENT_USERNAME.to_string(),
-            password: LEECHER_PASSWORD.to_string(),
+            credentials: QbittorrentCredentials {
+                username: QBITTORRENT_USERNAME.to_string(),
+                password: LEECHER_PASSWORD.to_string(),
+            },
             container_downloads_path: QBITTORRENT_DOWNLOADS_PATH.to_string(),
         },
         shared: SharedFixtures {

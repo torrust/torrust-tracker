@@ -1,15 +1,15 @@
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 
+use super::qbittorrent_client::QbittorrentCredentials;
+
 pub(crate) struct PeerConfig {
     /// Path to `{role}-config/` on the host.
     pub(crate) config_path: PathBuf,
     /// Path to `{role}-downloads/` on the host.
     pub(crate) downloads_path: PathBuf,
-    /// `qBittorrent` web-UI username.
-    pub(crate) username: String,
-    /// `qBittorrent` web-UI password (role-specific).
-    pub(crate) password: String,
+    /// Credentials for the `qBittorrent` web UI.
+    pub(crate) credentials: QbittorrentCredentials,
     /// Download path inside the container (e.g. `"/downloads"`).
     pub(crate) container_downloads_path: String,
 }

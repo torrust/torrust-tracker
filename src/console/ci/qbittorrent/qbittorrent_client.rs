@@ -9,6 +9,15 @@ use tokio::sync::Mutex;
 
 const QBITTORRENT_WEBUI_PORT: u16 = 8080;
 
+/// Credentials for authenticating with the `qBittorrent` web UI.
+#[derive(Debug, Clone)]
+pub(crate) struct QbittorrentCredentials {
+    /// Web-UI username.
+    pub(crate) username: String,
+    /// Web-UI password.
+    pub(crate) password: String,
+}
+
 #[derive(Debug, Clone)]
 pub struct QbittorrentClient {
     client_label: String,
