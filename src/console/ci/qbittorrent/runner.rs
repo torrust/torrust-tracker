@@ -18,10 +18,8 @@ use tracing::level_filters::LevelFilter;
 use super::client_role::ClientRole;
 use super::qbittorrent_client::QbittorrentClient;
 use super::qbittorrent_config::QbittorrentConfigBuilder;
-use super::scenario_steps::{
-    add_torrent_file_to_client, build_payload_fixture, build_torrent_fixture, login_client, verify_payload_integrity,
-    wait_until_client_has_any_torrent, wait_until_download_completes,
-};
+use super::scenario_steps::{build_payload_fixture, build_torrent_fixture};
+use super::scenarios;
 use super::workspace::{EphemeralWorkspace, PermanentWorkspace, PreparedWorkspace, WorkspaceResources};
 use crate::console::ci::compose::DockerCompose;
 
@@ -30,75 +28,17 @@ const QBITTORRENT_IMAGE: &str = "lscr.io/linuxserver/qbittorrent:5.1.4";
 const QBITTORRENT_USERNAME: &str = "admin";
 const QBITTORRENT_PASSWORD: &str = "torrust-e2e-pass";
 const QBITTORRENT_WEBUI_PORT: u16 = 8080;
-const QBITTORRENT_DOWNLOADS_PATH: &str = "/downloads";
 const PAYLOAD_FILE_NAME: &str = "payload.bin";
 const TORRENT_FILE_NAME: &str = "payload.torrent";
 const PAYLOAD_SIZE_BYTES: usize = 1024 * 1024;
 const TORRENT_PIECE_LENGTH: usize = 16 * 1024;
+const QBITTORRENT_DOWNLOADS_PATH: &str = "/downloads";
 const TORRENT_POLL_INTERVAL: Duration = Duration::from_millis(500);
 const LOGIN_POLL_INTERVAL: Duration = Duration::from_secs(1);
 const COMPOSE_PORT_POLL_INTERVAL: Duration = Duration::from_secs(1);
 
 struct GeneratedPayloadAndTorrent {
     torrent_bytes: Vec<u8>,
-}
-
-async fn run_scenario(
-    seeder: &QbittorrentClient,
-    leecher: &QbittorrentClient,
-    workspace: &WorkspaceResources,
-    timeout: Duration,
-) -> anyhow::Result<()> {
-    login_client(
-        seeder,
-        QBITTORRENT_USERNAME,
-        QBITTORRENT_PASSWORD,
-        timeout,
-        LOGIN_POLL_INTERVAL,
-    )
-    .await
-    .context("seeder qBittorrent API did not become ready for authentication")?;
-
-    login_client(
-        leecher,
-        QBITTORRENT_USERNAME,
-        QBITTORRENT_PASSWORD,
-        timeout,
-        LOGIN_POLL_INTERVAL,
-    )
-    .await
-    .context("leecher qBittorrent API did not become ready for authentication")?;
-    tracing::info!("qBittorrent WebUI login succeeded for both clients");
-
-    add_torrent_file_to_client(
-        seeder,
-        TORRENT_FILE_NAME,
-        &workspace.torrent_bytes,
-        QBITTORRENT_DOWNLOADS_PATH,
-    )
-    .await?;
-    add_torrent_file_to_client(
-        leecher,
-        TORRENT_FILE_NAME,
-        &workspace.torrent_bytes,
-        QBITTORRENT_DOWNLOADS_PATH,
-    )
-    .await?;
-    tracing::info!("Torrent file uploaded to both qBittorrent clients");
-
-    // qBittorrent processes `add_torrent` asynchronously, so an immediate `list_torrents`
-    // after upload can race and return 0.
-    wait_until_client_has_any_torrent(seeder, timeout, TORRENT_POLL_INTERVAL, "Seeder").await?;
-    wait_until_client_has_any_torrent(leecher, timeout, TORRENT_POLL_INTERVAL, "Leecher").await?;
-
-    wait_until_download_completes(leecher, timeout, TORRENT_POLL_INTERVAL).await?;
-    verify_payload_integrity(
-        &workspace.leecher_downloads_path.join(PAYLOAD_FILE_NAME),
-        &workspace.shared_path.join(PAYLOAD_FILE_NAME),
-    )
-    .context("downloaded payload does not match the original")?;
-
-    Ok(())
 }
 
 async fn build_api_clients(compose: &DockerCompose, timeout: Duration) -> anyhow::Result<(QbittorrentClient, QbittorrentClient)> {
@@ -179,7 +119,8 @@ pub async fn run() -> anyhow::Result<()> {
     tracing::info!("Using compose project name: {project_name}");
 
     // ARRANGE: build workspace artifacts, tracker image, and start all containers.
-    let workspace = prepare_workspace(&args, &project_name)?;
+    let timeout = Duration::from_secs(args.timeout_seconds);
+    let workspace = prepare_workspace(&args, &project_name, timeout)?;
     let resources = workspace.resources();
 
     let compose = build_compose(&args, &project_name, resources)?;
@@ -190,7 +131,7 @@ pub async fn run() -> anyhow::Result<()> {
     let (seeder, leecher) = build_api_clients(&compose, timeout).await?;
 
     // ACT: run the transfer scenario and verify the result.
-    run_scenario(&seeder, &leecher, resources, timeout).await?;
+    scenarios::seeder_to_leecher_transfer::run(&seeder, &leecher, resources).await?;
 
     // POST-SCENARIO: optionally keep containers for debugging.
     if args.keep_containers {
@@ -210,7 +151,7 @@ pub async fn run() -> anyhow::Result<()> {
     Ok(())
 }
 
-fn prepare_workspace(args: &Args, project_name: &str) -> anyhow::Result<PreparedWorkspace> {
+fn prepare_workspace(args: &Args, project_name: &str, timeout: Duration) -> anyhow::Result<PreparedWorkspace> {
     if args.keep_containers {
         let persistent_root = std::env::current_dir()
             .context("failed to resolve current working directory")?
@@ -223,13 +164,13 @@ fn prepare_workspace(args: &Args, project_name: &str) -> anyhow::Result<Prepared
                 persistent_root.display()
             )
         })?;
-        let resources = prepare_workspace_resources(persistent_root, args)?;
+        let resources = prepare_workspace_resources(persistent_root, args, timeout)?;
 
         Ok(PreparedWorkspace::Permanent(PermanentWorkspace { resources }))
     } else {
         let temp_dir = tempfile::tempdir().context("failed to create temporary workspace")?;
         let root_path = temp_dir.path().to_path_buf();
-        let resources = prepare_workspace_resources(root_path, args)?;
+        let resources = prepare_workspace_resources(root_path, args, timeout)?;
 
         Ok(PreparedWorkspace::Ephemeral(EphemeralWorkspace {
             _temp_dir: temp_dir,
@@ -238,7 +179,7 @@ fn prepare_workspace(args: &Args, project_name: &str) -> anyhow::Result<Prepared
     }
 }
 
-fn prepare_workspace_resources(root_path: PathBuf, args: &Args) -> anyhow::Result<WorkspaceResources> {
+fn prepare_workspace_resources(root_path: PathBuf, args: &Args, timeout: Duration) -> anyhow::Result<WorkspaceResources> {
     let (tracker_config_path, tracker_storage_path) = setup_tracker_workspace(&root_path, &args.tracker_config_template)?;
     let (seeder_config_path, seeder_downloads_path) = setup_qbittorrent_workspace(&root_path, "seeder")?;
     let (leecher_config_path, leecher_downloads_path) = setup_qbittorrent_workspace(&root_path, "leecher")?;
@@ -254,6 +195,14 @@ fn prepare_workspace_resources(root_path: PathBuf, args: &Args) -> anyhow::Resul
         seeder_downloads_path,
         leecher_downloads_path,
         torrent_bytes: generated.torrent_bytes,
+        timeout,
+        username: QBITTORRENT_USERNAME.to_string(),
+        password: QBITTORRENT_PASSWORD.to_string(),
+        login_poll_interval: LOGIN_POLL_INTERVAL,
+        torrent_poll_interval: TORRENT_POLL_INTERVAL,
+        torrent_file_name: TORRENT_FILE_NAME.to_string(),
+        payload_file_name: PAYLOAD_FILE_NAME.to_string(),
+        downloads_path: QBITTORRENT_DOWNLOADS_PATH.to_string(),
     })
 }
 

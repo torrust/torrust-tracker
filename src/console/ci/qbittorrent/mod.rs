@@ -57,5 +57,6 @@ pub mod qbittorrent_client;
 pub mod qbittorrent_config;
 pub mod runner;
 pub mod scenario_steps;
+pub mod scenarios;
 pub mod torrent_artifacts;
 pub mod workspace;
