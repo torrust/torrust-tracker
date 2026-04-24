@@ -8,6 +8,17 @@ pub(crate) struct TrackerFilesystem {
     pub(crate) storage_path: PathBuf,
 }
 
+pub(crate) struct SharedFixtures {
+    /// Path to the `shared/` directory on the host.
+    pub(crate) path: PathBuf,
+    /// File name of the payload (e.g. `"payload.bin"`).
+    pub(crate) payload_file_name: String,
+    /// File name of the torrent file (e.g. `"payload.torrent"`).
+    pub(crate) torrent_file_name: String,
+    /// Raw bytes of the torrent file, held in memory.
+    pub(crate) torrent_bytes: Vec<u8>,
+}
+
 pub(crate) struct TimingConfig {
     /// Maximum time any single polling loop will wait before giving up.
     /// Passed directly to `Poller::new` as the loop deadline.
@@ -21,17 +32,14 @@ pub(crate) struct TimingConfig {
 pub(crate) struct WorkspaceResources {
     pub(crate) root_path: PathBuf,
     pub(crate) tracker: TrackerFilesystem,
-    pub(crate) shared_path: PathBuf,
     pub(crate) seeder_config_path: PathBuf,
     pub(crate) leecher_config_path: PathBuf,
     pub(crate) seeder_downloads_path: PathBuf,
     pub(crate) leecher_downloads_path: PathBuf,
-    pub(crate) torrent_bytes: Vec<u8>,
+    pub(crate) shared: SharedFixtures,
     pub(crate) timing: TimingConfig,
     pub(crate) username: String,
     pub(crate) password: String,
-    pub(crate) torrent_file_name: String,
-    pub(crate) payload_file_name: String,
     pub(crate) downloads_path: String,
 }
 

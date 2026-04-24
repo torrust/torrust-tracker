@@ -98,7 +98,7 @@ fn configure_compose(
         )
         .with_env(
             "QBT_E2E_SHARED_PATH",
-            normalize_path_for_compose(&workspace.shared_path)?.as_str(),
+            normalize_path_for_compose(&workspace.shared.path)?.as_str(),
         )
         .with_env(
             "QBT_E2E_SEEDER_CONFIG_PATH",

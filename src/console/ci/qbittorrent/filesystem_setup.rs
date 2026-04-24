@@ -35,7 +35,8 @@ use anyhow::Context;
 use super::qbittorrent_config::QbittorrentConfigBuilder;
 use super::scenario_steps::{build_payload_fixture, build_torrent_fixture};
 use super::workspace::{
-    EphemeralWorkspace, PermanentWorkspace, PreparedWorkspace, TimingConfig, TrackerFilesystem, WorkspaceResources,
+    EphemeralWorkspace, PermanentWorkspace, PreparedWorkspace, SharedFixtures, TimingConfig, TrackerFilesystem,
+    WorkspaceResources,
 };
 
 const QBITTORRENT_USERNAME: &str = "admin";
@@ -110,12 +111,16 @@ fn prepare_resources(
             config_path: tracker_config_path,
             storage_path: tracker_storage_path,
         },
-        shared_path,
         seeder_config_path,
         leecher_config_path,
         seeder_downloads_path,
         leecher_downloads_path,
-        torrent_bytes: generated.torrent_bytes,
+        shared: SharedFixtures {
+            path: shared_path,
+            payload_file_name: PAYLOAD_FILE_NAME.to_string(),
+            torrent_file_name: TORRENT_FILE_NAME.to_string(),
+            torrent_bytes: generated.torrent_bytes,
+        },
         timing: TimingConfig {
             polling_deadline: timeout,
             login_poll_interval: LOGIN_POLL_INTERVAL,
@@ -123,8 +128,6 @@ fn prepare_resources(
         },
         username: QBITTORRENT_USERNAME.to_string(),
         password: QBITTORRENT_PASSWORD.to_string(),
-        torrent_file_name: TORRENT_FILE_NAME.to_string(),
-        payload_file_name: PAYLOAD_FILE_NAME.to_string(),
         downloads_path: QBITTORRENT_DOWNLOADS_PATH.to_string(),
     })
 }
