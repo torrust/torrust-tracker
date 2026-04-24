@@ -37,8 +37,8 @@ pub(crate) async fn run(
 
     add_torrent_file_to_client(
         seeder,
-        &workspace.shared.torrent_file_name,
-        &workspace.shared.torrent_bytes,
+        &workspace.shared.torrent.torrent_file_name,
+        &workspace.shared.torrent.torrent_bytes,
         &workspace.seeder.container_downloads_path,
     )
     .await?;
@@ -68,8 +68,8 @@ pub(crate) async fn run(
 
     add_torrent_file_to_client(
         leecher,
-        &workspace.shared.torrent_file_name,
-        &workspace.shared.torrent_bytes,
+        &workspace.shared.torrent.torrent_file_name,
+        &workspace.shared.torrent.torrent_bytes,
         &workspace.leecher.container_downloads_path,
     )
     .await?;
@@ -92,8 +92,11 @@ pub(crate) async fn run(
     // ASSERT: downloaded file matches the original payload.
 
     verify_payload_integrity(
-        &workspace.leecher.downloads_path.join(&workspace.shared.payload_file_name),
-        &workspace.shared.path.join(&workspace.shared.payload_file_name),
+        &workspace
+            .leecher
+            .downloads_path
+            .join(&workspace.shared.torrent.payload_file_name),
+        &workspace.shared.path.join(&workspace.shared.torrent.payload_file_name),
     )
     .context("downloaded payload does not match the original")?;
 

@@ -21,15 +21,20 @@ pub(crate) struct TrackerFilesystem {
     pub(crate) storage_path: PathBuf,
 }
 
-pub(crate) struct SharedFixtures {
-    /// Path to the `shared/` directory on the host.
-    pub(crate) path: PathBuf,
+pub(crate) struct TorrentFixture {
     /// File name of the payload (e.g. `"payload.bin"`).
     pub(crate) payload_file_name: String,
     /// File name of the torrent file (e.g. `"payload.torrent"`).
     pub(crate) torrent_file_name: String,
     /// Raw bytes of the torrent file, held in memory.
     pub(crate) torrent_bytes: Vec<u8>,
+}
+
+pub(crate) struct SharedFixtures {
+    /// Path to the `shared/` directory on the host.
+    pub(crate) path: PathBuf,
+    /// The torrent fixture used by the current scenario.
+    pub(crate) torrent: TorrentFixture,
 }
 
 pub(crate) struct TimingConfig {

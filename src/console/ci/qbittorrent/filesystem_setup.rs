@@ -36,8 +36,8 @@ use super::qbittorrent_client::QbittorrentCredentials;
 use super::qbittorrent_config::QbittorrentConfigBuilder;
 use super::scenario_steps::{build_payload_fixture, build_torrent_fixture};
 use super::workspace::{
-    EphemeralWorkspace, PeerConfig, PermanentWorkspace, PreparedWorkspace, SharedFixtures, TimingConfig, TrackerFilesystem,
-    WorkspaceResources,
+    EphemeralWorkspace, PeerConfig, PermanentWorkspace, PreparedWorkspace, SharedFixtures, TimingConfig, TorrentFixture,
+    TrackerFilesystem, WorkspaceResources,
 };
 
 const QBITTORRENT_USERNAME: &str = "admin";
@@ -133,9 +133,11 @@ fn prepare_resources(
         },
         shared: SharedFixtures {
             path: shared_path,
-            payload_file_name: PAYLOAD_FILE_NAME.to_string(),
-            torrent_file_name: TORRENT_FILE_NAME.to_string(),
-            torrent_bytes: generated.torrent_bytes,
+            torrent: TorrentFixture {
+                payload_file_name: PAYLOAD_FILE_NAME.to_string(),
+                torrent_file_name: TORRENT_FILE_NAME.to_string(),
+                torrent_bytes: generated.torrent_bytes,
+            },
         },
         timing: TimingConfig {
             polling_deadline: timeout,
