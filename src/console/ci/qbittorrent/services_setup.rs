@@ -90,11 +90,11 @@ fn configure_compose(
         .with_env("QBT_E2E_QBITTORRENT_IMAGE", qbittorrent_image)
         .with_env(
             "QBT_E2E_TRACKER_CONFIG_PATH",
-            normalize_path_for_compose(&workspace.tracker_config_path)?.as_str(),
+            normalize_path_for_compose(&workspace.tracker.config_path)?.as_str(),
         )
         .with_env(
             "QBT_E2E_TRACKER_STORAGE_PATH",
-            normalize_path_for_compose(&workspace.tracker_storage_path)?.as_str(),
+            normalize_path_for_compose(&workspace.tracker.storage_path)?.as_str(),
         )
         .with_env(
             "QBT_E2E_SHARED_PATH",

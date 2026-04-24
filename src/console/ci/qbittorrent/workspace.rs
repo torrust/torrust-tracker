@@ -1,6 +1,13 @@
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 
+pub(crate) struct TrackerFilesystem {
+    /// Path to `tracker-config.toml` on the host.
+    pub(crate) config_path: PathBuf,
+    /// Path to the `tracker-storage/` directory on the host.
+    pub(crate) storage_path: PathBuf,
+}
+
 pub(crate) struct TimingConfig {
     /// Maximum time any single polling loop will wait before giving up.
     /// Passed directly to `Poller::new` as the loop deadline.
@@ -13,8 +20,7 @@ pub(crate) struct TimingConfig {
 
 pub(crate) struct WorkspaceResources {
     pub(crate) root_path: PathBuf,
-    pub(crate) tracker_config_path: PathBuf,
-    pub(crate) tracker_storage_path: PathBuf,
+    pub(crate) tracker: TrackerFilesystem,
     pub(crate) shared_path: PathBuf,
     pub(crate) seeder_config_path: PathBuf,
     pub(crate) leecher_config_path: PathBuf,

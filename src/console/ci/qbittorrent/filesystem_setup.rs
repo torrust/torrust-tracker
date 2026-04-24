@@ -34,7 +34,9 @@ use anyhow::Context;
 
 use super::qbittorrent_config::QbittorrentConfigBuilder;
 use super::scenario_steps::{build_payload_fixture, build_torrent_fixture};
-use super::workspace::{EphemeralWorkspace, PermanentWorkspace, PreparedWorkspace, TimingConfig, WorkspaceResources};
+use super::workspace::{
+    EphemeralWorkspace, PermanentWorkspace, PreparedWorkspace, TimingConfig, TrackerFilesystem, WorkspaceResources,
+};
 
 const QBITTORRENT_USERNAME: &str = "admin";
 const QBITTORRENT_PASSWORD: &str = "torrust-e2e-pass";
@@ -104,8 +106,10 @@ fn prepare_resources(
 
     Ok(WorkspaceResources {
         root_path,
-        tracker_config_path,
-        tracker_storage_path,
+        tracker: TrackerFilesystem {
+            config_path: tracker_config_path,
+            storage_path: tracker_storage_path,
+        },
         shared_path,
         seeder_config_path,
         leecher_config_path,
