@@ -9,7 +9,6 @@ pub(crate) struct WorkspaceResources {
     pub(crate) leecher_config_path: PathBuf,
     pub(crate) seeder_downloads_path: PathBuf,
     pub(crate) leecher_downloads_path: PathBuf,
-    pub(crate) payload_bytes: Vec<u8>,
     pub(crate) torrent_bytes: Vec<u8>,
 }
 

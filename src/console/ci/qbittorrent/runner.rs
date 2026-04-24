@@ -46,7 +46,6 @@ const LOGIN_POLL_INTERVAL: Duration = Duration::from_secs(1);
 const COMPOSE_PORT_POLL_INTERVAL: Duration = Duration::from_secs(1);
 
 struct GeneratedPayloadAndTorrent {
-    payload_bytes: Vec<u8>,
     torrent_bytes: Vec<u8>,
 }
 
@@ -79,8 +78,11 @@ async fn run_scenario(compose: &DockerCompose, workspace: &WorkspaceResources, t
     wait_until_client_has_any_torrent(&leecher, timeout, TORRENT_POLL_INTERVAL, "Leecher").await?;
 
     wait_until_download_completes(&leecher, timeout, TORRENT_POLL_INTERVAL).await?;
-    verify_payload_integrity(&workspace.leecher_downloads_path, &workspace.payload_bytes)
-        .context("downloaded payload does not match the original")?;
+    verify_payload_integrity(
+        &workspace.leecher_downloads_path.join(PAYLOAD_FILE_NAME),
+        &workspace.shared_path.join(PAYLOAD_FILE_NAME),
+    )
+    .context("downloaded payload does not match the original")?;
 
     Ok(())
 }
@@ -235,7 +237,6 @@ fn prepare_workspace_resources(root_path: PathBuf, args: &Args) -> anyhow::Resul
         leecher_config_path,
         seeder_downloads_path,
         leecher_downloads_path,
-        payload_bytes: generated.payload_bytes,
         torrent_bytes: generated.torrent_bytes,
     })
 }
@@ -302,7 +303,6 @@ fn write_payload_and_torrent(shared_path: &Path, seeder_downloads_path: &Path) -
         .with_context(|| format!("failed to write torrent file '{}'", torrent_path.display()))?;
 
     Ok(GeneratedPayloadAndTorrent {
-        payload_bytes: payload_fixture.bytes,
         torrent_bytes: torrent_fixture.bytes,
     })
 }
