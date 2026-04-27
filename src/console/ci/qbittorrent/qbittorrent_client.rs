@@ -8,8 +8,6 @@ use reqwest::multipart::{Form, Part};
 use serde::Deserialize;
 use tokio::sync::Mutex;
 
-use super::types::TorrentHash;
-
 const QBITTORRENT_WEBUI_PORT: u16 = 8080;
 
 /// A validated qBittorrent `WebUI` base URL.
@@ -77,6 +75,50 @@ pub struct TorrentInfo {
     pub hash: TorrentHash,
     pub progress: TorrentProgress,
     pub state: TorrentState,
+}
+
+/// A qBittorrent torrent hash - a 40-character lowercase hex-encoded SHA-1
+/// string, as returned by the `/api/v2/torrents/info` endpoint.
+///
+/// Distinct from the binary [`InfoHash`](primitives::InfoHash) type in the
+/// `primitives` package: the API delivers hex strings, not raw bytes. Wrapping
+/// it here documents the invariant and disambiguates the field from other
+/// [`String`] fields such as the torrent name or save path.
+#[derive(Debug, Clone)]
+pub struct TorrentHash(String);
+
+impl TorrentHash {
+    /// Creates a new [`TorrentHash`] from any value that converts into a [`String`].
+    pub fn new(hash: impl Into<String>) -> Self {
+        Self(hash.into())
+    }
+
+    /// Returns the hash as a `&str`.
+    #[must_use]
+    pub fn as_str(&self) -> &str {
+        &self.0
+    }
+}
+
+impl std::ops::Deref for TorrentHash {
+    type Target = str;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl fmt::Display for TorrentHash {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(&self.0)
+    }
+}
+
+impl<'de> serde::Deserialize<'de> for TorrentHash {
+    fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        let value = <String as serde::Deserialize>::deserialize(deserializer)?;
+        Ok(Self(value))
+    }
 }
 
 /// A torrent download progress value in the range `0.0` (not started) to
@@ -451,4 +493,92 @@ fn extract_sid_cookie(headers: &reqwest::header::HeaderMap) -> Option<String> {
                 .filter(|cookie| cookie.starts_with("SID="))
                 .map(ToOwned::to_owned)
         })
+}
+
+#[cfg(test)]
+mod tests {
+    use reqwest::header::{HeaderMap, HeaderValue, SET_COOKIE};
+
+    use super::{extract_sid_cookie, TorrentHash, TorrentProgress, TorrentState};
+
+    #[test]
+    fn it_should_construct_torrent_hash_and_expose_accessors() {
+        let hash = TorrentHash::new("0123456789abcdef0123456789abcdef01234567");
+
+        assert_eq!(hash.as_str(), "0123456789abcdef0123456789abcdef01234567");
+        assert_eq!(&*hash, "0123456789abcdef0123456789abcdef01234567");
+        assert_eq!(hash.to_string(), "0123456789abcdef0123456789abcdef01234567");
+    }
+
+    #[test]
+    fn it_should_deserialize_torrent_hash_from_json_string() {
+        let parsed = serde_json::from_str::<TorrentHash>("\"abcdef0123456789abcdef0123456789abcdef01\"");
+
+        assert!(parsed.is_ok());
+        let hash = parsed.unwrap_or_else(|error| panic!("failed to parse hash: {error}"));
+        assert_eq!(hash.as_str(), "abcdef0123456789abcdef0123456789abcdef01");
+    }
+
+    #[test]
+    fn it_should_report_torrent_progress_completion_threshold() {
+        let complete = serde_json::from_str::<TorrentProgress>("1.0");
+        let in_progress = serde_json::from_str::<TorrentProgress>("0.42");
+
+        assert!(complete.is_ok());
+        assert!(in_progress.is_ok());
+
+        let complete = complete.unwrap_or_else(|error| panic!("failed to parse complete progress: {error}"));
+        let in_progress = in_progress.unwrap_or_else(|error| panic!("failed to parse in-progress value: {error}"));
+
+        assert!(complete.is_complete());
+        assert_eq!(complete.as_fraction(), 1.0);
+
+        assert!(!in_progress.is_complete());
+        assert_eq!(in_progress.as_fraction(), 0.42);
+    }
+
+    #[test]
+    fn it_should_deserialize_torrent_state_known_variant() {
+        let parsed = serde_json::from_str::<TorrentState>("\"stoppedDL\"");
+
+        assert!(parsed.is_ok());
+        match parsed.unwrap_or_else(|error| panic!("failed to parse state: {error}")) {
+            TorrentState::StoppedDl => {}
+            other => panic!("unexpected state variant: {other}"),
+        }
+    }
+
+    #[test]
+    fn it_should_deserialize_unknown_torrent_state_preserving_raw_value() {
+        let parsed = serde_json::from_str::<TorrentState>("\"futureState\"");
+
+        assert!(parsed.is_ok());
+        match parsed.unwrap_or_else(|error| panic!("failed to parse state: {error}")) {
+            TorrentState::Unknown(raw) => assert_eq!(raw, "futureState"),
+            other => panic!("unexpected state variant: {other}"),
+        }
+    }
+
+    #[test]
+    fn it_should_display_known_and_unknown_torrent_state_values() {
+        assert_eq!(TorrentState::PausedDl.to_string(), "pausedDL");
+        assert_eq!(TorrentState::Unknown(String::from("custom")).to_string(), "custom");
+    }
+
+    #[test]
+    fn it_should_extract_sid_cookie_when_present() {
+        let mut headers = HeaderMap::new();
+        headers.append(SET_COOKIE, HeaderValue::from_static("foo=bar; Path=/"));
+        headers.append(SET_COOKIE, HeaderValue::from_static("SID=abc123; HttpOnly; Path=/"));
+
+        assert_eq!(extract_sid_cookie(&headers), Some(String::from("SID=abc123")));
+    }
+
+    #[test]
+    fn it_should_return_none_when_sid_cookie_is_missing() {
+        let mut headers = HeaderMap::new();
+        headers.append(SET_COOKIE, HeaderValue::from_static("foo=bar; Path=/"));
+
+        assert_eq!(extract_sid_cookie(&headers), None);
+    }
 }
