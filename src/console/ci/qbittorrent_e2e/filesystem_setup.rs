@@ -34,6 +34,7 @@ use anyhow::Context;
 
 use super::qbittorrent::{QbittorrentConfigBuilder, QbittorrentCredentials};
 use super::scenario_steps::{build_payload_fixture, build_torrent_fixture};
+use super::tracker::TrackerConfigBuilder;
 use super::types::{ComposeProjectName, ContainerPath, Deadline, FileName, PayloadSize, PieceLength, PollInterval};
 use super::workspace::{
     EphemeralWorkspace, PeerConfig, PermanentWorkspace, PreparedWorkspace, SharedFixtures, TimingConfig, TorrentFixture,
@@ -65,7 +66,6 @@ struct GeneratedPayloadAndTorrent {
 ///
 /// Returns an error when any directory or file operation fails.
 pub(crate) fn prepare(
-    tracker_config_template: &Path,
     project_name: &ComposeProjectName,
     keep_containers: bool,
     timeout: Duration,
@@ -82,13 +82,13 @@ pub(crate) fn prepare(
                 persistent_root.display()
             )
         })?;
-        let resources = prepare_resources(persistent_root, tracker_config_template, timeout)?;
+        let resources = prepare_resources(persistent_root, timeout)?;
 
         Ok(PreparedWorkspace::Permanent(PermanentWorkspace { resources }))
     } else {
         let temp_dir = tempfile::tempdir().context("failed to create temporary workspace")?;
         let root_path = temp_dir.path().to_path_buf();
-        let resources = prepare_resources(root_path, tracker_config_template, timeout)?;
+        let resources = prepare_resources(root_path, timeout)?;
 
         Ok(PreparedWorkspace::Ephemeral(EphemeralWorkspace {
             _temp_dir: temp_dir,
@@ -97,12 +97,8 @@ pub(crate) fn prepare(
     }
 }
 
-fn prepare_resources(
-    root_path: PathBuf,
-    tracker_config_template: &Path,
-    timeout: Duration,
-) -> anyhow::Result<WorkspaceResources> {
-    let (tracker_config_path, tracker_storage_path) = setup_tracker_workspace(&root_path, tracker_config_template)?;
+fn prepare_resources(root_path: PathBuf, timeout: Duration) -> anyhow::Result<WorkspaceResources> {
+    let (tracker_config_path, tracker_storage_path) = setup_tracker_workspace(&root_path)?;
     let (seeder_config_path, seeder_downloads_path) = setup_qbittorrent_workspace(&root_path, "seeder", SEEDER_PASSWORD)?;
     let (leecher_config_path, leecher_downloads_path) = setup_qbittorrent_workspace(&root_path, "leecher", LEECHER_PASSWORD)?;
     let (shared_path, generated) = setup_shared_fixtures(&root_path, &seeder_downloads_path)?;
@@ -147,10 +143,10 @@ fn prepare_resources(
     })
 }
 
-fn setup_tracker_workspace(root: &Path, config_template: &Path) -> anyhow::Result<(PathBuf, PathBuf)> {
+fn setup_tracker_workspace(root: &Path) -> anyhow::Result<(PathBuf, PathBuf)> {
     let tracker_storage_path = root.join("tracker-storage");
     fs::create_dir_all(&tracker_storage_path).context("failed to create tracker storage directory")?;
-    let tracker_config_path = write_tracker_config(root, config_template)?;
+    let tracker_config_path = TrackerConfigBuilder::new().write_to(root)?;
     Ok((tracker_config_path, tracker_storage_path))
 }
 
@@ -169,21 +165,6 @@ fn setup_shared_fixtures(root: &Path, seeder_downloads: &Path) -> anyhow::Result
     fs::create_dir_all(&shared_path).context("failed to create shared artifacts directory")?;
     let generated = write_payload_and_torrent(&shared_path, seeder_downloads)?;
     Ok((shared_path, generated))
-}
-
-fn write_tracker_config(workspace_root: &Path, tracker_config_template: &Path) -> anyhow::Result<PathBuf> {
-    let tracker_config_path = workspace_root.join("tracker-config.toml");
-    let tracker_config = fs::read_to_string(tracker_config_template).with_context(|| {
-        format!(
-            "failed to read tracker config template '{}'",
-            tracker_config_template.display()
-        )
-    })?;
-
-    fs::write(&tracker_config_path, tracker_config)
-        .with_context(|| format!("failed to write generated tracker config '{}'", tracker_config_path.display()))?;
-
-    Ok(tracker_config_path)
 }
 
 fn write_payload_and_torrent(shared_path: &Path, seeder_downloads_path: &Path) -> anyhow::Result<GeneratedPayloadAndTorrent> {

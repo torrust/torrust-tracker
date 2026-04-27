@@ -24,10 +24,6 @@ struct Args {
     #[clap(long, default_value = "compose.qbittorrent-e2e.yaml")]
     compose_file: PathBuf,
 
-    /// Tracker config template copied into the temporary E2E workspace.
-    #[clap(long, default_value = "share/default/config/tracker.e2e.container.sqlite3.toml")]
-    tracker_config_template: PathBuf,
-
     /// Timeout in seconds for API operations.
     #[clap(long, default_value_t = 180)]
     timeout_seconds: u64,
@@ -64,7 +60,7 @@ pub async fn run() -> anyhow::Result<()> {
 
     let timeout = Duration::from_secs(args.timeout_seconds);
 
-    let workspace = filesystem_setup::prepare(&args.tracker_config_template, &project_name, args.keep_containers, timeout)?;
+    let workspace = filesystem_setup::prepare(&project_name, args.keep_containers, timeout)?;
     let resources = workspace.resources();
 
     let tracker_image = TrackerImage::new(&args.tracker_image);
