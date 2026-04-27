@@ -98,6 +98,9 @@ impl<'a> QbittorrentConfigBuilder<'a> {
             "[BitTorrent]\n\
              Session\\AddTorrentStopped=false\n\
              Session\\DefaultSavePath={downloads_path}\n\
+             Session\\DHTEnabled=false\n\
+             Session\\LSDEnabled=false\n\
+             Session\\PeXEnabled=false\n\
              Session\\TempPath={downloads_temp_path}\n\
              \n\
              [Preferences]\n\
