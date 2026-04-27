@@ -13,6 +13,7 @@ mod verify_payload_integrity;
 
 pub(super) use fixtures::{build_payload_fixture, build_torrent_fixture};
 pub(super) use qbittorrent::{
-    add_torrent_file_to_client, login_client, wait_until_client_has_any_torrent, wait_until_download_completes,
+    add_torrent_file_to_client, ensure_torrent_is_absent, login_client, wait_until_download_completes,
+    wait_until_torrent_appears_in_client,
 };
 pub(super) use verify_payload_integrity::verify_payload_integrity;

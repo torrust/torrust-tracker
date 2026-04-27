@@ -1,7 +1,7 @@
 use std::path::{Path, PathBuf};
 
 use super::qbittorrent::QbittorrentCredentials;
-use super::types::{ContainerPath, Deadline, FileName, PollInterval};
+use super::types::{ContainerPath, Deadline, FileName, InfoHash, PollInterval};
 
 pub(crate) struct PeerConfig {
     /// Path to `{role}-config/` on the host.
@@ -28,6 +28,9 @@ pub(crate) struct TorrentFixture {
     pub(crate) torrent_file_name: FileName,
     /// Raw bytes of the torrent file, held in memory.
     pub(crate) torrent_bytes: Vec<u8>,
+    /// v1 [`InfoHash`]: SHA-1 of the bencoded `info` dict, lowercase hex (40 chars).
+    /// Matches the hash format returned by the qBittorrent Web API.
+    pub(crate) info_hash: InfoHash,
 }
 
 pub(crate) struct SharedFixtures {

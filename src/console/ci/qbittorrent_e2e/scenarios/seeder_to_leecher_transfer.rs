@@ -8,8 +8,8 @@ use anyhow::Context;
 
 use super::super::qbittorrent::QbittorrentClient;
 use super::super::scenario_steps::{
-    add_torrent_file_to_client, login_client, verify_payload_integrity, wait_until_client_has_any_torrent,
-    wait_until_download_completes,
+    add_torrent_file_to_client, ensure_torrent_is_absent, login_client, verify_payload_integrity, wait_until_download_completes,
+    wait_until_torrent_appears_in_client,
 };
 use super::super::workspace::WorkspaceResources;
 
@@ -23,6 +23,8 @@ pub(crate) async fn run(
     leecher: &QbittorrentClient,
     workspace: &WorkspaceResources,
 ) -> anyhow::Result<()> {
+    let info_hash = workspace.shared.torrent.info_hash.clone();
+
     // ARRANGE: seeder seeds a new torrent
 
     login_client(
@@ -34,6 +36,16 @@ pub(crate) async fn run(
     .await
     .context("seeder qBittorrent API did not become ready for authentication")?;
 
+    // Guarantee a clean starting state — delete the torrent if a previous run left it behind.
+    ensure_torrent_is_absent(
+        seeder,
+        &info_hash,
+        workspace.timing.polling_deadline,
+        workspace.timing.torrent_poll_interval,
+        "Seeder",
+    )
+    .await?;
+
     add_torrent_file_to_client(
         seeder,
         &workspace.shared.torrent.torrent_file_name,
@@ -44,8 +56,9 @@ pub(crate) async fn run(
 
     // qBittorrent processes `add_torrent` asynchronously, so an immediate `list_torrents`
     // after upload can race and return 0.
-    wait_until_client_has_any_torrent(
+    wait_until_torrent_appears_in_client(
         seeder,
+        &info_hash,
         workspace.timing.polling_deadline,
         workspace.timing.torrent_poll_interval,
         "Seeder",
@@ -64,6 +77,16 @@ pub(crate) async fn run(
     .context("leecher qBittorrent API did not become ready for authentication")?;
     tracing::info!("qBittorrent WebUI login succeeded for both clients");
 
+    // Guarantee a clean starting state for the leecher.
+    ensure_torrent_is_absent(
+        leecher,
+        &info_hash,
+        workspace.timing.polling_deadline,
+        workspace.timing.torrent_poll_interval,
+        "Leecher",
+    )
+    .await?;
+
     add_torrent_file_to_client(
         leecher,
         &workspace.shared.torrent.torrent_file_name,
@@ -73,8 +96,9 @@ pub(crate) async fn run(
     .await?;
     tracing::info!("Torrent file uploaded to both qBittorrent clients");
 
-    wait_until_client_has_any_torrent(
+    wait_until_torrent_appears_in_client(
         leecher,
+        &info_hash,
         workspace.timing.polling_deadline,
         workspace.timing.torrent_poll_interval,
         "Leecher",

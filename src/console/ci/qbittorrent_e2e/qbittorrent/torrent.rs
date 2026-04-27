@@ -2,58 +2,13 @@ use std::fmt;
 
 use serde::Deserialize;
 
+use super::super::types::InfoHash;
+
 #[derive(Debug, Deserialize)]
 pub struct TorrentInfo {
-    #[expect(dead_code, reason = "reserved for future scenario assertions")]
-    pub hash: TorrentHash,
+    pub hash: InfoHash,
     pub progress: TorrentProgress,
     pub state: TorrentState,
-}
-
-/// A qBittorrent torrent hash - a 40-character lowercase hex-encoded SHA-1
-/// string, as returned by the `/api/v2/torrents/info` endpoint.
-///
-/// Distinct from the binary [`InfoHash`](primitives::InfoHash) type in the
-/// `primitives` package: the API delivers hex strings, not raw bytes. Wrapping
-/// it here documents the invariant and disambiguates the field from other
-/// [`String`] fields such as the torrent name or save path.
-#[derive(Debug, Clone)]
-pub struct TorrentHash(String);
-
-impl TorrentHash {
-    /// Creates a new [`TorrentHash`] from any value that converts into a [`String`].
-    #[allow(dead_code)]
-    pub fn new(hash: impl Into<String>) -> Self {
-        Self(hash.into())
-    }
-
-    /// Returns the hash as a `&str`.
-    #[must_use]
-    #[allow(dead_code)]
-    pub fn as_str(&self) -> &str {
-        &self.0
-    }
-}
-
-impl std::ops::Deref for TorrentHash {
-    type Target = str;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
-impl fmt::Display for TorrentHash {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str(&self.0)
-    }
-}
-
-impl<'de> serde::Deserialize<'de> for TorrentHash {
-    fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        let value = <String as serde::Deserialize>::deserialize(deserializer)?;
-        Ok(Self(value))
-    }
 }
 
 /// A torrent download progress value in the range `0.0` (not started) to
@@ -205,25 +160,7 @@ impl fmt::Display for TorrentState {
 
 #[cfg(test)]
 mod tests {
-    use super::{TorrentHash, TorrentProgress, TorrentState};
-
-    #[test]
-    fn it_should_construct_torrent_hash_and_expose_accessors() {
-        let hash = TorrentHash::new("0123456789abcdef0123456789abcdef01234567");
-
-        assert_eq!(hash.as_str(), "0123456789abcdef0123456789abcdef01234567");
-        assert_eq!(&*hash, "0123456789abcdef0123456789abcdef01234567");
-        assert_eq!(hash.to_string(), "0123456789abcdef0123456789abcdef01234567");
-    }
-
-    #[test]
-    fn it_should_deserialize_torrent_hash_from_json_string() {
-        let parsed = serde_json::from_str::<TorrentHash>("\"abcdef0123456789abcdef0123456789abcdef01\"");
-
-        assert!(parsed.is_ok());
-        let hash = parsed.unwrap_or_else(|error| panic!("failed to parse hash: {error}"));
-        assert_eq!(hash.as_str(), "abcdef0123456789abcdef0123456789abcdef01");
-    }
+    use super::{TorrentProgress, TorrentState};
 
     #[test]
     fn it_should_report_torrent_progress_completion_threshold() {

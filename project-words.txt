@@ -94,6 +94,7 @@ Grcov
 hasher
 healthcheck
 heaptrack
+hexdigit
 hexlify
 hlocalhost
 hmac

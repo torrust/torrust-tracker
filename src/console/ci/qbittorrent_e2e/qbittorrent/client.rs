@@ -6,6 +6,7 @@ use reqwest::header::{CONTENT_TYPE, HOST, SET_COOKIE};
 use reqwest::multipart::{Form, Part};
 use tokio::sync::Mutex;
 
+use super::super::types::InfoHash;
 use super::credentials::QbittorrentCredentials;
 use super::torrent::{TorrentInfo, TorrentProgress};
 
@@ -257,8 +258,52 @@ impl QbittorrentClient {
     /// # Errors
     ///
     /// Returns an error when querying torrents fails.
-    pub async fn has_any_torrents(&self) -> anyhow::Result<bool> {
-        Ok(self.torrent_count().await? > 0)
+    pub async fn has_torrent_with_hash(&self, hash: &InfoHash) -> anyhow::Result<bool> {
+        let torrents = self
+            .list_torrents()
+            .await
+            .with_context(|| format!("failed to list {} torrents", self.client_label))?;
+        Ok(torrents.iter().any(|t| t.hash.as_str() == hash.as_str()))
+    }
+
+    /// Deletes the torrent identified by `hash` without removing its downloaded files.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the qBittorrent API call fails.
+    pub async fn delete_torrent(&self, hash: &InfoHash) -> anyhow::Result<()> {
+        let (webui_host, webui_origin) = self.webui_headers();
+        let sid_cookie = self.sid_cookie.lock().await.clone();
+
+        let body = format!("hashes={}&deleteFiles=false", hash.as_str());
+        let request = self
+            .client
+            .post(format!("{}/api/v2/torrents/delete", self.base_url.as_str()))
+            .header(CONTENT_TYPE, "application/x-www-form-urlencoded")
+            .header(HOST, webui_host)
+            .header("Referer", &webui_origin)
+            .header("Origin", &webui_origin)
+            .body(body);
+        let request = if let Some(cookie) = sid_cookie {
+            request.header("Cookie", cookie)
+        } else {
+            request
+        };
+
+        let response = request
+            .send()
+            .await
+            .with_context(|| format!("failed to call torrents/delete on {} qBittorrent instance", self.client_label))?;
+
+        if response.status().is_success() {
+            Ok(())
+        } else {
+            Err(anyhow::anyhow!(
+                "qBittorrent torrents/delete failed with status {} on {} instance",
+                response.status(),
+                self.client_label
+            ))
+        }
     }
 
     /// # Errors

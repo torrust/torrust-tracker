@@ -3,7 +3,7 @@
 //! Example:
 //!
 //! ```text
-//! cargo run --bin qbittorrent_e2e_runner -- --compose-file ./compose.qbittorrent-e2e.yaml --timeout-seconds 180
+//! cargo run --bin qbittorrent_e2e_runner -- --compose-file ./compose.qbittorrent-e2e.yaml --timeout-seconds 300
 //! ```
 use std::path::PathBuf;
 use std::time::Duration;

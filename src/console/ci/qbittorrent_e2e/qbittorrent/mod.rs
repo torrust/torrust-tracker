@@ -12,4 +12,4 @@ pub(super) use client::QbittorrentClient;
 pub(super) use config_builder::QbittorrentConfigBuilder;
 pub(super) use credentials::QbittorrentCredentials;
 #[expect(unused_imports, reason = "staged migration re-export")]
-pub(super) use torrent::{TorrentHash, TorrentInfo, TorrentProgress, TorrentState};
+pub(super) use torrent::{TorrentInfo, TorrentProgress, TorrentState};

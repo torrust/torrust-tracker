@@ -35,7 +35,7 @@ use anyhow::Context;
 use super::qbittorrent::{QbittorrentConfigBuilder, QbittorrentCredentials};
 use super::scenario_steps::{build_payload_fixture, build_torrent_fixture};
 use super::tracker::{TrackerConfig, TrackerConfigBuilder};
-use super::types::{ComposeProjectName, ContainerPath, Deadline, FileName, PayloadSize, PieceLength, PollInterval};
+use super::types::{ComposeProjectName, ContainerPath, Deadline, FileName, InfoHash, PayloadSize, PieceLength, PollInterval};
 use super::workspace::{
     EphemeralWorkspace, PeerConfig, PermanentWorkspace, PreparedWorkspace, SharedFixtures, TimingConfig, TorrentFixture,
     TrackerFilesystem, WorkspaceResources,
@@ -54,6 +54,7 @@ const LOGIN_POLL_INTERVAL: Duration = Duration::from_secs(1);
 
 struct GeneratedPayloadAndTorrent {
     torrent_bytes: Vec<u8>,
+    info_hash: InfoHash,
 }
 
 /// Creates and populates the workspace for a single E2E test run.
@@ -138,6 +139,7 @@ fn prepare_resources(
                 payload_file_name: FileName::new(PAYLOAD_FILE_NAME),
                 torrent_file_name: FileName::new(TORRENT_FILE_NAME),
                 torrent_bytes: generated.torrent_bytes,
+                info_hash: generated.info_hash,
             },
         },
         timing: TimingConfig {
@@ -201,5 +203,6 @@ fn write_payload_and_torrent(
 
     Ok(GeneratedPayloadAndTorrent {
         torrent_bytes: torrent_fixture.bytes,
+        info_hash: torrent_fixture.info_hash,
     })
 }
