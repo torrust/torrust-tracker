@@ -53,7 +53,7 @@ impl TrackerConfig {
     }
 
     pub(crate) fn announce_url_for_compose_service(&self) -> String {
-        let announce_url = format!("http://tracker:{}/announce", self.http_tracker_bind_address.port());
+        let announce_url = format!("http://tracker:{}/announce", self.http_tracker_bind_address.port()); // DevSkim: ignore DS137138
 
         announce_url
     }
