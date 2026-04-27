@@ -31,23 +31,19 @@ use std::path::{Path, PathBuf};
 use std::time::Duration;
 
 use anyhow::Context;
+use reqwest::Url;
 
 use super::qbittorrent::{QbittorrentConfigBuilder, QbittorrentCredentials};
-use super::scenario_steps::{build_payload_fixture, build_torrent_fixture};
 use super::tracker::{TrackerConfig, TrackerConfigBuilder};
-use super::types::{ComposeProjectName, ContainerPath, Deadline, FileName, PayloadSize, PieceLength, PollInterval};
+use super::types::{ComposeProjectName, ContainerPath, Deadline, PollInterval};
 use super::workspace::{
-    EphemeralWorkspace, PeerConfig, PermanentWorkspace, PreparedWorkspace, SharedFixtures, TimingConfig, TorrentFixture,
+    EphemeralWorkspace, PeerConfig, PermanentWorkspace, PreparedWorkspace, SharedFixtures, TimingConfig, TrackerEndpoints,
     TrackerFilesystem, WorkspaceResources,
 };
 
 const QBITTORRENT_USERNAME: &str = "admin";
 const SEEDER_PASSWORD: &str = "seeder-pass";
 const LEECHER_PASSWORD: &str = "leecher-pass";
-const PAYLOAD_FILE_NAME: &str = "payload.bin";
-const TORRENT_FILE_NAME: &str = "payload.torrent";
-const PAYLOAD_SIZE_BYTES: PayloadSize = PayloadSize::new(1024 * 1024);
-const TORRENT_PIECE_LENGTH: PieceLength = PieceLength::new(16 * 1024);
 const QBITTORRENT_DOWNLOADS_PATH: &str = "/downloads";
 const TORRENT_POLL_INTERVAL: Duration = Duration::from_millis(500);
 const LOGIN_POLL_INTERVAL: Duration = Duration::from_secs(1);
@@ -102,11 +98,18 @@ fn prepare_resources(
     let tracker = setup_tracker_workspace(&root_path, tracker_config)?;
     let seeder = setup_qbittorrent_workspace(&root_path, "seeder", SEEDER_PASSWORD)?;
     let leecher = setup_qbittorrent_workspace(&root_path, "leecher", LEECHER_PASSWORD)?;
-    let shared = setup_shared_fixtures(&root_path, &seeder.downloads_path, tracker_config)?;
+    let shared = setup_shared_fixtures(&root_path)?;
+    let tracker_endpoints = TrackerEndpoints {
+        http_announce_url: Url::parse(&tracker_config.announce_url_for_compose_service())
+            .context("failed to parse HTTP tracker announce URL for compose service")?,
+        udp_announce_url: Url::parse(&tracker_config.udp_announce_url_for_compose_service())
+            .context("failed to parse UDP tracker announce URL for compose service")?,
+    };
 
     Ok(WorkspaceResources {
         root_path,
         tracker,
+        tracker_endpoints,
         seeder,
         leecher,
         shared,
@@ -146,40 +149,8 @@ fn setup_qbittorrent_workspace(root: &Path, role: &str, password: &str) -> anyho
     })
 }
 
-fn setup_shared_fixtures(root: &Path, seeder_downloads: &Path, tracker_config: &TrackerConfig) -> anyhow::Result<SharedFixtures> {
+fn setup_shared_fixtures(root: &Path) -> anyhow::Result<SharedFixtures> {
     let path = root.join("shared");
     fs::create_dir_all(&path).context("failed to create shared artifacts directory")?;
-    let torrent = write_payload_and_torrent(&path, seeder_downloads, tracker_config)?;
-    Ok(SharedFixtures { path, torrent })
-}
-
-fn write_payload_and_torrent(
-    shared_path: &Path,
-    seeder_downloads_path: &Path,
-    tracker_config: &TrackerConfig,
-) -> anyhow::Result<TorrentFixture> {
-    let payload_path = shared_path.join(PAYLOAD_FILE_NAME);
-    let torrent_path = shared_path.join(TORRENT_FILE_NAME);
-    let payload_fixture = build_payload_fixture(PAYLOAD_SIZE_BYTES);
-
-    fs::write(&payload_path, &payload_fixture.bytes)
-        .with_context(|| format!("failed to write payload file '{}'", payload_path.display()))?;
-    fs::copy(&payload_path, seeder_downloads_path.join(PAYLOAD_FILE_NAME)).with_context(|| {
-        format!(
-            "failed to prime seeder downloads with payload '{}'",
-            seeder_downloads_path.join(PAYLOAD_FILE_NAME).display()
-        )
-    })?;
-
-    let announce_url = tracker_config.announce_url_for_compose_service();
-    let torrent_fixture = build_torrent_fixture(&payload_fixture, PAYLOAD_FILE_NAME, &announce_url, TORRENT_PIECE_LENGTH)?;
-    fs::write(&torrent_path, &torrent_fixture.bytes)
-        .with_context(|| format!("failed to write torrent file '{}'", torrent_path.display()))?;
-
-    Ok(TorrentFixture {
-        payload_file_name: FileName::new(PAYLOAD_FILE_NAME),
-        torrent_file_name: FileName::new(TORRENT_FILE_NAME),
-        torrent_bytes: torrent_fixture.bytes,
-        info_hash: torrent_fixture.info_hash,
-    })
+    Ok(SharedFixtures { path })
 }

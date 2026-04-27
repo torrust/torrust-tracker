@@ -1,7 +1,9 @@
 use std::path::{Path, PathBuf};
 
+use reqwest::Url;
+
 use super::qbittorrent::QbittorrentCredentials;
-use super::types::{ContainerPath, Deadline, FileName, InfoHash, PollInterval};
+use super::types::{ContainerPath, Deadline, PollInterval};
 
 pub(crate) struct PeerConfig {
     /// Path to `{role}-config/` on the host.
@@ -21,23 +23,17 @@ pub(crate) struct TrackerFilesystem {
     pub(crate) storage_path: PathBuf,
 }
 
-pub(crate) struct TorrentFixture {
-    /// File name of the payload (e.g. `"payload.bin"`).
-    pub(crate) payload_file_name: FileName,
-    /// File name of the torrent file (e.g. `"payload.torrent"`).
-    pub(crate) torrent_file_name: FileName,
-    /// Raw bytes of the torrent file, held in memory.
-    pub(crate) torrent_bytes: Vec<u8>,
-    /// v1 [`InfoHash`]: SHA-1 of the bencoded `info` dict, lowercase hex (40 chars).
-    /// Matches the hash format returned by the qBittorrent Web API.
-    pub(crate) info_hash: InfoHash,
+/// Tracker announce URLs formatted for use from within the Docker Compose network.
+pub(crate) struct TrackerEndpoints {
+    /// HTTP announce URL reachable by containers (e.g. `"http://tracker:7070/announce"`).
+    pub(crate) http_announce_url: Url,
+    /// UDP announce URL reachable by containers (e.g. `"udp://tracker:6969/announce"`).
+    pub(crate) udp_announce_url: Url,
 }
 
 pub(crate) struct SharedFixtures {
     /// Path to the `shared/` directory on the host.
     pub(crate) path: PathBuf,
-    /// The torrent fixture used by the current scenario.
-    pub(crate) torrent: TorrentFixture,
 }
 
 pub(crate) struct TimingConfig {
@@ -53,6 +49,7 @@ pub(crate) struct TimingConfig {
 pub(crate) struct WorkspaceResources {
     pub(crate) root_path: PathBuf,
     pub(crate) tracker: TrackerFilesystem,
+    pub(crate) tracker_endpoints: TrackerEndpoints,
     pub(crate) seeder: PeerConfig,
     pub(crate) leecher: PeerConfig,
     pub(crate) shared: SharedFixtures,

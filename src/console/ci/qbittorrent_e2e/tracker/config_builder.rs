@@ -66,6 +66,10 @@ impl TrackerConfig {
         announce_url
     }
 
+    pub(crate) fn udp_announce_url_for_compose_service(&self) -> String {
+        format!("udp://tracker:{}/announce", self.udp_bind_address.port())
+    }
+
     fn to_torrust_configuration(&self) -> Configuration {
         let mut configuration = Configuration::default();
 
