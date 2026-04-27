@@ -18,10 +18,11 @@ pub async fn ensure_torrent_is_absent(
     hash: &InfoHash,
     timeout: Deadline,
     poll_interval: PollInterval,
-    client_name: &str,
 ) -> anyhow::Result<()> {
+    let client_label = client.label();
+
     if client.has_torrent_with_hash(hash).await? {
-        tracing::info!("{client_name}: torrent {hash} already present — deleting to start from a clean state");
+        tracing::info!(client = client_label, torrent = %hash, "torrent already present, deleting for clean start");
         client.delete_torrent(hash).await?;
     }
 
@@ -29,14 +30,14 @@ pub async fn ensure_torrent_is_absent(
 
     loop {
         if !client.has_torrent_with_hash(hash).await? {
-            tracing::info!("{client_name}: torrent {hash} is absent");
+            tracing::info!(client = client_label, torrent = %hash, "torrent is absent");
             return Ok(());
         }
 
-        tracing::info!("{client_name}: waiting for torrent {hash} to be removed");
+        tracing::info!(client = client_label, torrent = %hash, "waiting for torrent to be removed");
 
         poller
-            .retry_or_timeout(|| format!("timed out waiting for {client_name} to remove torrent {hash}"))
+            .retry_or_timeout(|| format!("timed out waiting for {client_label} to remove torrent {hash}"))
             .await?;
     }
 }

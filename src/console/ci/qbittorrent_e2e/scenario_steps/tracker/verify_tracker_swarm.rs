@@ -21,10 +21,11 @@ pub async fn verify_tracker_swarm(client: &TrackerApiClient, hash: &InfoHash) ->
         .with_context(|| format!("failed to query tracker swarm for torrent {hash}"))?;
 
     tracing::info!(
-        "Tracker swarm for {hash}: seeders={}, completed={}, leechers={}",
-        torrent.seeders,
-        torrent.completed,
-        torrent.leechers
+        torrent = %hash,
+        seeders = torrent.seeders,
+        completed = torrent.completed,
+        leechers = torrent.leechers,
+        "tracker swarm stats"
     );
 
     anyhow::ensure!(
@@ -41,7 +42,7 @@ pub async fn verify_tracker_swarm(client: &TrackerApiClient, hash: &InfoHash) ->
         torrent.completed
     );
 
-    tracing::info!("Tracker swarm verification passed for {hash}");
+    tracing::info!(torrent = %hash, "tracker swarm verification passed");
 
     Ok(())
 }

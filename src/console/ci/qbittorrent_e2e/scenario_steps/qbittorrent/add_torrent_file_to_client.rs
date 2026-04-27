@@ -19,5 +19,13 @@ pub async fn add_torrent_file_to_client(
     client
         .add_torrent_file(torrent_file_name, torrent_bytes, save_path)
         .await
-        .context("failed to add torrent file to qBittorrent client")
+        .context("failed to add torrent file to qBittorrent client")?;
+
+    tracing::info!(
+        client = client.label(),
+        torrent_file = torrent_file_name,
+        "torrent file submitted to client"
+    );
+
+    Ok(())
 }

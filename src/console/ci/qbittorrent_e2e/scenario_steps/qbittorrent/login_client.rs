@@ -14,14 +14,22 @@ pub async fn login_client(
     poll_interval: PollInterval,
 ) -> anyhow::Result<()> {
     let poller = Poller::new(timeout, poll_interval);
+    let client_label = client.label();
 
     loop {
         let last_error = match client.login(credentials).await {
-            Ok(()) => return Ok(()),
+            Ok(()) => {
+                tracing::info!(client = client_label, "qBittorrent WebUI login succeeded");
+                return Ok(());
+            }
             Err(error) => error.to_string(),
         };
 
-        tracing::info!("Waiting for qBittorrent WebUI authentication: {last_error}");
+        tracing::info!(
+            client = client_label,
+            error = last_error,
+            "waiting for qBittorrent WebUI authentication"
+        );
 
         poller
             .retry_or_timeout(|| {

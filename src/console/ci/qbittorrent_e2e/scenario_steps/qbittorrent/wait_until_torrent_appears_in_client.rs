@@ -19,21 +19,21 @@ pub async fn wait_until_torrent_appears_in_client(
     hash: &InfoHash,
     timeout: Deadline,
     poll_interval: PollInterval,
-    client_name: &str,
 ) -> anyhow::Result<()> {
+    let client_label = client.label();
     let poller = Poller::new(timeout, poll_interval);
 
     loop {
         if client.has_torrent_with_hash(hash).await? {
-            tracing::info!("{client_name}: torrent {hash} has appeared in client list");
+            tracing::info!(client = client_label, torrent = %hash, "torrent has appeared in client list");
             return Ok(());
         }
 
         let torrent_count = client.torrent_count().await?;
-        tracing::info!("{client_name} has {torrent_count} torrent(s), waiting for {hash}");
+        tracing::info!(client = client_label, torrent = %hash, torrent_count = torrent_count, "waiting for torrent to appear");
 
         poller
-            .retry_or_timeout(|| format!("timed out waiting for {client_name} to register torrent {hash}"))
+            .retry_or_timeout(|| format!("timed out waiting for {client_label} to register torrent {hash}"))
             .await?;
     }
 }

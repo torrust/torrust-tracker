@@ -18,17 +18,21 @@ pub async fn wait_until_download_completes(
     poll_interval: PollInterval,
 ) -> anyhow::Result<()> {
     let poller = Poller::new(timeout, poll_interval);
+    let client_label = client.label();
 
     loop {
         if let Some(torrent) = client.torrent_by_hash(hash).await? {
+            let progress_pct = torrent.progress.as_fraction() * 100.0;
             tracing::info!(
-                "Torrent {hash} progress: {:.1}% (state: {})",
-                torrent.progress.as_fraction() * 100.0,
-                torrent.state
+                client = client_label,
+                torrent = %hash,
+                progress = progress_pct,
+                state = %torrent.state,
+                "download progress"
             );
 
             if torrent.progress.is_complete() {
-                tracing::info!("Torrent {hash} download complete (100%)");
+                tracing::info!(client = client_label, torrent = %hash, "download complete");
                 return Ok(());
             }
         }

@@ -24,7 +24,7 @@ pub(in super::super) fn verify_payload_integrity(downloaded_path: &Path, origina
         anyhow::bail!("payload content mismatch: files have the same size but different contents");
     }
 
-    tracing::info!("Payload integrity verified: {} bytes match", original_bytes.len());
+    tracing::info!(bytes = original_bytes.len(), "payload integrity verified");
 
     Ok(())
 }

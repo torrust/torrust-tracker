@@ -82,6 +82,11 @@ impl QbittorrentClient {
         })
     }
 
+    /// Returns the human-readable label identifying this client (e.g. `"seeder"` or `"leecher"`).
+    pub fn label(&self) -> &str {
+        &self.client_label
+    }
+
     /// # Errors
     ///
     /// Returns an error when login fails.

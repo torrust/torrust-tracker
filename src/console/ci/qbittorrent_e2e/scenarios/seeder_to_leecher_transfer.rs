@@ -27,6 +27,8 @@ pub(crate) async fn run(
 ) -> anyhow::Result<()> {
     let info_hash = workspace.shared.torrent.info_hash.clone();
 
+    tracing::info!(torrent = %info_hash, "scenario start: seeder-to-leecher transfer");
+
     // ARRANGE: seeder seeds a new torrent
 
     login_client(
@@ -44,7 +46,6 @@ pub(crate) async fn run(
         &info_hash,
         workspace.timing.polling_deadline,
         workspace.timing.torrent_poll_interval,
-        "Seeder",
     )
     .await?;
 
@@ -63,9 +64,10 @@ pub(crate) async fn run(
         &info_hash,
         workspace.timing.polling_deadline,
         workspace.timing.torrent_poll_interval,
-        "Seeder",
     )
     .await?;
+
+    tracing::info!(torrent = %info_hash, "seeder is ready");
 
     // ACT: leecher downloads the torrent from the seeder via the tracker
 
@@ -77,7 +79,6 @@ pub(crate) async fn run(
     )
     .await
     .context("leecher qBittorrent API did not become ready for authentication")?;
-    tracing::info!("qBittorrent WebUI login succeeded for both clients");
 
     // Guarantee a clean starting state for the leecher.
     ensure_torrent_is_absent(
@@ -85,7 +86,6 @@ pub(crate) async fn run(
         &info_hash,
         workspace.timing.polling_deadline,
         workspace.timing.torrent_poll_interval,
-        "Leecher",
     )
     .await?;
 
@@ -96,14 +96,14 @@ pub(crate) async fn run(
         &workspace.leecher.container_downloads_path,
     )
     .await?;
-    tracing::info!("Torrent file uploaded to both qBittorrent clients");
+
+    tracing::info!(torrent = %info_hash, "download started: leecher is fetching from seeder");
 
     wait_until_torrent_appears_in_client(
         leecher,
         &info_hash,
         workspace.timing.polling_deadline,
         workspace.timing.torrent_poll_interval,
-        "Leecher",
     )
     .await?;
     wait_until_download_completes(
@@ -113,6 +113,8 @@ pub(crate) async fn run(
         workspace.timing.torrent_poll_interval,
     )
     .await?;
+
+    tracing::info!(torrent = %info_hash, "download finished");
 
     // ASSERT: downloaded file matches the original payload.
 
@@ -130,6 +132,8 @@ pub(crate) async fn run(
     verify_tracker_swarm(tracker, &info_hash)
         .await
         .context("tracker swarm verification failed")?;
+
+    tracing::info!(torrent = %info_hash, "scenario passed: seeder-to-leecher transfer");
 
     Ok(())
 }
