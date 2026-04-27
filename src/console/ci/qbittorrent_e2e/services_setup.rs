@@ -10,7 +10,7 @@ use std::time::Duration;
 use anyhow::Context;
 
 use super::client_role::ClientRole;
-use super::qbittorrent_client::QbittorrentClient;
+use super::qbittorrent::QbittorrentClient;
 use super::types::{ComposeProjectName, QbittorrentImage, TrackerImage};
 use super::workspace::WorkspaceResources;
 use crate::console::ci::compose::{DockerCompose, RunningCompose};

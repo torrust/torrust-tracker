@@ -32,8 +32,7 @@ use std::time::Duration;
 
 use anyhow::Context;
 
-use super::qbittorrent_client::QbittorrentCredentials;
-use super::qbittorrent_config::QbittorrentConfigBuilder;
+use super::qbittorrent::{QbittorrentConfigBuilder, QbittorrentCredentials};
 use super::scenario_steps::{build_payload_fixture, build_torrent_fixture};
 use super::types::{ComposeProjectName, ContainerPath, Deadline, FileName, PayloadSize, PieceLength, PollInterval};
 use super::workspace::{

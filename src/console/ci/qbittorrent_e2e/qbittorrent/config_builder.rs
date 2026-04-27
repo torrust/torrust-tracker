@@ -18,7 +18,7 @@ const DEFAULT_DOWNLOADS_TEMP_PATH: &str = "/downloads/temp";
 /// Provides a fluent interface to configure credentials and paths. Call
 /// [`write_to`](QbittorrentConfigBuilder::write_to) to create the required
 /// directory layout and write `qBittorrent/qBittorrent.conf`.
-pub(super) struct QbittorrentConfigBuilder<'a> {
+pub(crate) struct QbittorrentConfigBuilder<'a> {
     username: &'a str,
     password: &'a str,
     webui_port: u16,
@@ -28,7 +28,7 @@ pub(super) struct QbittorrentConfigBuilder<'a> {
 
 impl<'a> QbittorrentConfigBuilder<'a> {
     /// Creates a builder with default port (`8080`) and download paths (`/downloads`).
-    pub(super) fn new(username: &'a str, password: &'a str) -> Self {
+    pub(crate) fn new(username: &'a str, password: &'a str) -> Self {
         Self {
             username,
             password,
@@ -39,19 +39,19 @@ impl<'a> QbittorrentConfigBuilder<'a> {
     }
 
     #[expect(dead_code, reason = "reserved for future scenario configuration")]
-    pub(super) fn webui_port(mut self, port: u16) -> Self {
+    pub(crate) fn webui_port(mut self, port: u16) -> Self {
         self.webui_port = port;
         self
     }
 
     #[expect(dead_code, reason = "reserved for future scenario configuration")]
-    pub(super) fn downloads_path(mut self, path: &'a str) -> Self {
+    pub(crate) fn downloads_path(mut self, path: &'a str) -> Self {
         self.downloads_path = path;
         self
     }
 
     #[expect(dead_code, reason = "reserved for future scenario configuration")]
-    pub(super) fn downloads_temp_path(mut self, path: &'a str) -> Self {
+    pub(crate) fn downloads_temp_path(mut self, path: &'a str) -> Self {
         self.downloads_temp_path = path;
         self
     }
@@ -64,7 +64,7 @@ impl<'a> QbittorrentConfigBuilder<'a> {
     /// # Errors
     ///
     /// Returns an error when creating directories or writing the config file fails.
-    pub(super) fn write_to(&self, config_root: &Path) -> anyhow::Result<()> {
+    pub(crate) fn write_to(&self, config_root: &Path) -> anyhow::Result<()> {
         let config_path = config_root.join(CONFIG_RELATIVE_PATH);
         let config_dir = config_path
             .parent()

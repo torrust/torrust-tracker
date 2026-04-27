@@ -45,9 +45,9 @@
 //! See `contrib/dev-tools/debugging/qbt/` for standalone shell scripts that
 //! probe a single qBittorrent container in isolation and validate the compose
 //! stack without running the full Rust runner.
-use torrust_tracker_lib::console::ci::qbittorrent;
+use torrust_tracker_lib::console::ci::qbittorrent_e2e;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    qbittorrent::runner::run().await
+    qbittorrent_e2e::runner::run().await
 }

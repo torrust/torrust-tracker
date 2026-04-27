@@ -10,6 +10,11 @@
 //! (`src/bin/qbittorrent_e2e_runner.rs`), which is a thin wrapper that delegates
 //! everything to [`runner`]. All domain logic lives in this module tree.
 //!
+//! qBittorrent-specific concerns are grouped under [`qbittorrent`], with focused
+//! submodules for HTTP client behavior, API models, credentials, and config
+//! building. Scenario orchestration modules depend on this feature module instead
+//! of importing those concerns from ad-hoc top-level files.
+//!
 //! ## BDD-style scenarios and steps
 //!
 //! Tests are structured around *scenarios* — each scenario describes a complete
@@ -54,8 +59,7 @@ pub mod bencode;
 pub mod client_role;
 pub mod filesystem_setup;
 pub mod poller;
-pub mod qbittorrent_client;
-pub mod qbittorrent_config;
+pub mod qbittorrent;
 pub mod runner;
 pub mod scenario_steps;
 pub mod scenarios;

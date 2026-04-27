@@ -1,5 +1,5 @@
 use super::super::super::poller::Poller;
-use super::super::super::qbittorrent_client::QbittorrentClient;
+use super::super::super::qbittorrent::QbittorrentClient;
 use super::super::super::types::{Deadline, PollInterval};
 
 /// Attempts login using provided credentials and retries until accepted.

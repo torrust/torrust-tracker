@@ -6,7 +6,7 @@
 
 use anyhow::Context;
 
-use super::super::qbittorrent_client::QbittorrentClient;
+use super::super::qbittorrent::QbittorrentClient;
 use super::super::scenario_steps::{
     add_torrent_file_to_client, login_client, verify_payload_integrity, wait_until_client_has_any_torrent,
     wait_until_download_completes,

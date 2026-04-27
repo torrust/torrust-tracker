@@ -1,6 +1,6 @@
 use anyhow::Context;
 
-use super::super::super::qbittorrent_client::QbittorrentClient;
+use super::super::super::qbittorrent::QbittorrentClient;
 
 /// Submits a `.torrent` file to a qBittorrent client.
 ///

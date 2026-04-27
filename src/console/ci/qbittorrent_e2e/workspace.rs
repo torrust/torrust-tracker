@@ -1,6 +1,6 @@
 use std::path::{Path, PathBuf};
 
-use super::qbittorrent_client::QbittorrentCredentials;
+use super::qbittorrent::QbittorrentCredentials;
 use super::types::{ContainerPath, Deadline, FileName, PollInterval};
 
 pub(crate) struct PeerConfig {
