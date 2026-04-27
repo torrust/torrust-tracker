@@ -6,6 +6,7 @@ use reqwest::header::{CONTENT_TYPE, HOST, SET_COOKIE};
 use reqwest::multipart::{Form, Part};
 use tokio::sync::Mutex;
 
+use super::credentials::QbittorrentCredentials;
 use super::torrent::{TorrentInfo, TorrentProgress};
 
 const QBITTORRENT_WEBUI_PORT: u16 = 8080;
@@ -83,12 +84,18 @@ impl QbittorrentClient {
     /// # Errors
     ///
     /// Returns an error when login fails.
-    pub async fn login(&self, username: &str, password: &str) -> anyhow::Result<()> {
-        let body = reqwest::Url::parse_with_params("http://localhost", &[("username", username), ("password", password)])
-            .context("failed to URL-encode qBittorrent login body")?
-            .query()
-            .ok_or_else(|| anyhow::anyhow!("encoded qBittorrent login body is unexpectedly empty"))?
-            .to_string();
+    pub async fn login(&self, credentials: &QbittorrentCredentials) -> anyhow::Result<()> {
+        let body = reqwest::Url::parse_with_params(
+            "http://localhost",
+            &[
+                ("username", credentials.username.as_str()),
+                ("password", credentials.password.as_str()),
+            ],
+        )
+        .context("failed to URL-encode qBittorrent login body")?
+        .query()
+        .ok_or_else(|| anyhow::anyhow!("encoded qBittorrent login body is unexpectedly empty"))?
+        .to_string();
         let (webui_host, webui_origin) = self.webui_headers();
 
         let response = self

@@ -27,8 +27,7 @@ pub(crate) async fn run(
 
     login_client(
         seeder,
-        &workspace.seeder.credentials.username,
-        &workspace.seeder.credentials.password,
+        &workspace.seeder.credentials,
         workspace.timing.polling_deadline,
         workspace.timing.login_poll_interval,
     )
@@ -57,8 +56,7 @@ pub(crate) async fn run(
 
     login_client(
         leecher,
-        &workspace.leecher.credentials.username,
-        &workspace.leecher.credentials.password,
+        &workspace.leecher.credentials,
         workspace.timing.polling_deadline,
         workspace.timing.login_poll_interval,
     )
