@@ -106,6 +106,7 @@ pub(crate) async fn run(
     .await?;
     wait_until_download_completes(
         leecher,
+        &info_hash,
         workspace.timing.polling_deadline,
         workspace.timing.torrent_poll_interval,
     )

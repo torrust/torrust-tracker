@@ -238,6 +238,9 @@ impl QbittorrentClient {
     /// # Errors
     ///
     /// Returns an error when querying torrents fails.
+    /// # Errors
+    ///
+    /// Returns an error when querying torrents fails.
     pub async fn first_torrent(&self) -> anyhow::Result<Option<TorrentInfo>> {
         let torrents = self
             .list_torrents()
@@ -255,15 +258,25 @@ impl QbittorrentClient {
         Ok(self.first_torrent().await?.map(|torrent| torrent.progress))
     }
 
+    /// Returns the [`TorrentInfo`] for the torrent identified by `hash`, or `None` if it is not
+    /// in the client's list.
+    ///
     /// # Errors
     ///
     /// Returns an error when querying torrents fails.
-    pub async fn has_torrent_with_hash(&self, hash: &InfoHash) -> anyhow::Result<bool> {
+    pub async fn torrent_by_hash(&self, hash: &InfoHash) -> anyhow::Result<Option<TorrentInfo>> {
         let torrents = self
             .list_torrents()
             .await
             .with_context(|| format!("failed to list {} torrents", self.client_label))?;
-        Ok(torrents.iter().any(|t| t.hash.as_str() == hash.as_str()))
+        Ok(torrents.into_iter().find(|t| t.hash.as_str() == hash.as_str()))
+    }
+
+    /// # Errors
+    ///
+    /// Returns an error when querying torrents fails.
+    pub async fn has_torrent_with_hash(&self, hash: &InfoHash) -> anyhow::Result<bool> {
+        Ok(self.torrent_by_hash(hash).await?.is_some())
     }
 
     /// Deletes the torrent identified by `hash` without removing its downloaded files.
