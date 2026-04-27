@@ -58,6 +58,7 @@ torrust-axum-health-check-api-server = { version = "3.0.0-develop", path = "pack
 torrust-axum-http-tracker-server = { version = "3.0.0-develop", path = "packages/axum-http-tracker-server" }
 torrust-axum-rest-tracker-api-server = { version = "3.0.0-develop", path = "packages/axum-rest-tracker-api-server" }
 torrust-axum-server = { version = "3.0.0-develop", path = "packages/axum-server" }
+torrust-rest-tracker-api-client = { version = "3.0.0-develop", path = "packages/rest-tracker-api-client" }
 torrust-rest-tracker-api-core = { version = "3.0.0-develop", path = "packages/rest-tracker-api-core" }
 torrust-server-lib = { version = "3.0.0-develop", path = "packages/server-lib" }
 torrust-tracker-clock = { version = "3.0.0-develop", path = "packages/clock" }
@@ -72,7 +73,6 @@ bittorrent-primitives = "0.1.0"
 bittorrent-tracker-client = { version = "3.0.0-develop", path = "packages/tracker-client" }
 local-ip-address = "0"
 mockall = "0"
-torrust-rest-tracker-api-client = { version = "3.0.0-develop", path = "packages/rest-tracker-api-client" }
 torrust-tracker-test-helpers = { version = "3.0.0-develop", path = "packages/test-helpers" }
 
 [workspace]

@@ -11,7 +11,7 @@ use anyhow::Context;
 
 use super::client_role::ClientRole;
 use super::qbittorrent::QbittorrentClient;
-use super::tracker::TrackerConfig;
+use super::tracker::{TrackerApiClient, TrackerConfig};
 use super::types::{ComposeProjectName, QbittorrentImage, TrackerImage};
 use super::workspace::WorkspaceResources;
 use crate::console::ci::compose::{DockerCompose, RunningCompose};
@@ -33,7 +33,7 @@ pub(crate) async fn start(
     qbittorrent_image: &QbittorrentImage,
     resources: &WorkspaceResources,
     tracker_config: &TrackerConfig,
-) -> anyhow::Result<(RunningCompose, QbittorrentClient, QbittorrentClient)> {
+) -> anyhow::Result<(RunningCompose, QbittorrentClient, QbittorrentClient, TrackerApiClient)> {
     let compose = configure_compose(
         compose_file,
         project_name,
@@ -44,14 +44,32 @@ pub(crate) async fn start(
     )?;
     compose.build().context("failed to build local tracker image")?;
     let running_compose = compose.up().context("failed to start qBittorrent compose stack")?;
-    let (seeder, leecher) = build_clients(&compose, resources.timing.polling_deadline.as_duration()).await?;
-    Ok((running_compose, seeder, leecher))
+    let timeout = resources.timing.polling_deadline.as_duration();
+    let (seeder, leecher) = build_clients(&compose, timeout).await?;
+    let tracker = build_tracker_api_client(&compose, tracker_config, timeout).await?;
+    Ok((running_compose, seeder, leecher, tracker))
 }
 
 async fn build_clients(compose: &DockerCompose, timeout: Duration) -> anyhow::Result<(QbittorrentClient, QbittorrentClient)> {
     let seeder = build_seeder_client(compose, timeout).await?;
     let leecher = build_leecher_client(compose, timeout).await?;
     Ok((seeder, leecher))
+}
+
+async fn build_tracker_api_client(
+    compose: &DockerCompose,
+    tracker_config: &TrackerConfig,
+    timeout: Duration,
+) -> anyhow::Result<TrackerApiClient> {
+    let container_port = tracker_config.http_api_bind_address().port();
+    let host_port = compose
+        .wait_for_port_mapping("tracker", container_port, timeout, COMPOSE_PORT_POLL_INTERVAL, &[])
+        .await
+        .context("failed to resolve tracker REST API host port")?;
+
+    tracing::info!("Tracker REST API host port: {host_port}");
+
+    TrackerApiClient::new(host_port, tracker_config).context("failed to build tracker REST API client")
 }
 
 async fn build_seeder_client(compose: &DockerCompose, timeout: Duration) -> anyhow::Result<QbittorrentClient> {
@@ -98,6 +116,7 @@ fn configure_compose(
 ) -> anyhow::Result<DockerCompose> {
     let tracker_http_tracker_port = tracker_config.http_tracker_bind_address().port().to_string();
     let tracker_udp_port = tracker_config.udp_bind_address().port().to_string();
+    let tracker_http_api_port = tracker_config.http_api_bind_address().port().to_string();
     let tracker_health_check_api_port = tracker_config.health_check_api_bind_address().port().to_string();
 
     Ok(DockerCompose::new(compose_file, project_name.as_str())
@@ -105,6 +124,7 @@ fn configure_compose(
         .with_env("QBT_E2E_QBITTORRENT_IMAGE", qbittorrent_image.as_str())
         .with_env("QBT_E2E_TRACKER_HTTP_TRACKER_PORT", tracker_http_tracker_port.as_str())
         .with_env("QBT_E2E_TRACKER_UDP_PORT", tracker_udp_port.as_str())
+        .with_env("QBT_E2E_TRACKER_HTTP_API_PORT", tracker_http_api_port.as_str())
         .with_env(
             "QBT_E2E_TRACKER_HEALTH_CHECK_API_PORT",
             tracker_health_check_api_port.as_str(),

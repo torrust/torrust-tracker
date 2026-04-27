@@ -19,6 +19,7 @@ services:
     ports:
       - "0:${QBT_E2E_TRACKER_HTTP_TRACKER_PORT:?QBT_E2E_TRACKER_HTTP_TRACKER_PORT is required}"
       - "0:${QBT_E2E_TRACKER_UDP_PORT:?QBT_E2E_TRACKER_UDP_PORT is required}/udp"
+      - "0:${QBT_E2E_TRACKER_HTTP_API_PORT:?QBT_E2E_TRACKER_HTTP_API_PORT is required}"
       - "0:${QBT_E2E_TRACKER_HEALTH_CHECK_API_PORT:?QBT_E2E_TRACKER_HEALTH_CHECK_API_PORT is required}"
 
   qbittorrent-seeder:

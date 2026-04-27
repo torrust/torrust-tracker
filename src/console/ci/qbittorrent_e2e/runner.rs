@@ -68,7 +68,7 @@ pub async fn run() -> anyhow::Result<()> {
     let tracker_image = TrackerImage::new(&args.tracker_image);
     let qbittorrent_image = QbittorrentImage::new(&args.qbittorrent_image);
 
-    let (mut running_compose, seeder, leecher) = services_setup::start(
+    let (mut running_compose, seeder, leecher, tracker) = services_setup::start(
         &args.compose_file,
         &project_name,
         &tracker_image,
@@ -78,7 +78,7 @@ pub async fn run() -> anyhow::Result<()> {
     )
     .await?;
 
-    scenarios::seeder_to_leecher_transfer::run(&seeder, &leecher, resources).await?;
+    scenarios::seeder_to_leecher_transfer::run(&seeder, &leecher, &tracker, resources).await?;
 
     // POST-SCENARIO: optionally keep containers for debugging.
     if args.keep_containers {

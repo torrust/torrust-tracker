@@ -8,9 +8,10 @@ use anyhow::Context;
 
 use super::super::qbittorrent::QbittorrentClient;
 use super::super::scenario_steps::{
-    add_torrent_file_to_client, ensure_torrent_is_absent, login_client, verify_payload_integrity, wait_until_download_completes,
-    wait_until_torrent_appears_in_client,
+    add_torrent_file_to_client, ensure_torrent_is_absent, login_client, verify_payload_integrity, verify_tracker_swarm,
+    wait_until_download_completes, wait_until_torrent_appears_in_client,
 };
+use super::super::tracker::TrackerApiClient;
 use super::super::workspace::WorkspaceResources;
 
 /// Runs the seeder-to-leecher transfer scenario.
@@ -21,6 +22,7 @@ use super::super::workspace::WorkspaceResources;
 pub(crate) async fn run(
     seeder: &QbittorrentClient,
     leecher: &QbittorrentClient,
+    tracker: &TrackerApiClient,
     workspace: &WorkspaceResources,
 ) -> anyhow::Result<()> {
     let info_hash = workspace.shared.torrent.info_hash.clone();
@@ -122,6 +124,12 @@ pub(crate) async fn run(
         &workspace.shared.path.join(&workspace.shared.torrent.payload_file_name),
     )
     .context("downloaded payload does not match the original")?;
+
+    // ASSERT: tracker registered both peers (seeder announced; leecher completed).
+
+    verify_tracker_swarm(tracker, &info_hash)
+        .await
+        .context("tracker swarm verification failed")?;
 
     Ok(())
 }

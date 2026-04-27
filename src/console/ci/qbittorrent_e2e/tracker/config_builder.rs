@@ -52,6 +52,14 @@ impl TrackerConfig {
         self.health_check_api_bind_address
     }
 
+    pub(crate) fn http_api_bind_address(&self) -> SocketAddr {
+        self.http_api_bind_address
+    }
+
+    pub(crate) fn access_token(&self) -> &str {
+        &self.access_token
+    }
+
     pub(crate) fn announce_url_for_compose_service(&self) -> String {
         let announce_url = format!("http://tracker:{}/announce", self.http_tracker_bind_address.port()); // DevSkim: ignore DS137138
 
