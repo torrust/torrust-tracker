@@ -17,9 +17,9 @@ services:
         source: ${QBT_E2E_TRACKER_STORAGE_PATH:?QBT_E2E_TRACKER_STORAGE_PATH is required}
         target: /var/lib/torrust/tracker
     ports:
-      - "0:7070"
-      - "0:6969/udp"
-      - "0:1313"
+      - "0:${QBT_E2E_TRACKER_HTTP_TRACKER_PORT:?QBT_E2E_TRACKER_HTTP_TRACKER_PORT is required}"
+      - "0:${QBT_E2E_TRACKER_UDP_PORT:?QBT_E2E_TRACKER_UDP_PORT is required}/udp"
+      - "0:${QBT_E2E_TRACKER_HEALTH_CHECK_API_PORT:?QBT_E2E_TRACKER_HEALTH_CHECK_API_PORT is required}"
 
   qbittorrent-seeder:
     image: ${QBT_E2E_QBITTORRENT_IMAGE:?QBT_E2E_QBITTORRENT_IMAGE is required}

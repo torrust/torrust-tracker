@@ -11,6 +11,7 @@ use std::time::Duration;
 use clap::Parser;
 use tracing::level_filters::LevelFilter;
 
+use super::tracker::TrackerConfig;
 use super::types::{ComposeProjectName, QbittorrentImage, TrackerImage};
 use super::{filesystem_setup, scenarios, services_setup};
 
@@ -59,8 +60,9 @@ pub async fn run() -> anyhow::Result<()> {
     tracing::info!("Using compose project name: {project_name}");
 
     let timeout = Duration::from_secs(args.timeout_seconds);
+    let tracker_config = TrackerConfig::default();
 
-    let workspace = filesystem_setup::prepare(&project_name, args.keep_containers, timeout)?;
+    let workspace = filesystem_setup::prepare(&project_name, args.keep_containers, timeout, &tracker_config)?;
     let resources = workspace.resources();
 
     let tracker_image = TrackerImage::new(&args.tracker_image);
@@ -72,6 +74,7 @@ pub async fn run() -> anyhow::Result<()> {
         &tracker_image,
         &qbittorrent_image,
         resources,
+        &tracker_config,
     )
     .await?;
 

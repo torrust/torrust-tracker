@@ -34,7 +34,7 @@ use anyhow::Context;
 
 use super::qbittorrent::{QbittorrentConfigBuilder, QbittorrentCredentials};
 use super::scenario_steps::{build_payload_fixture, build_torrent_fixture};
-use super::tracker::TrackerConfigBuilder;
+use super::tracker::{TrackerConfig, TrackerConfigBuilder};
 use super::types::{ComposeProjectName, ContainerPath, Deadline, FileName, PayloadSize, PieceLength, PollInterval};
 use super::workspace::{
     EphemeralWorkspace, PeerConfig, PermanentWorkspace, PreparedWorkspace, SharedFixtures, TimingConfig, TorrentFixture,
@@ -69,6 +69,7 @@ pub(crate) fn prepare(
     project_name: &ComposeProjectName,
     keep_containers: bool,
     timeout: Duration,
+    tracker_config: &TrackerConfig,
 ) -> anyhow::Result<PreparedWorkspace> {
     if keep_containers {
         let persistent_root = std::env::current_dir()
@@ -82,13 +83,13 @@ pub(crate) fn prepare(
                 persistent_root.display()
             )
         })?;
-        let resources = prepare_resources(persistent_root, timeout)?;
+        let resources = prepare_resources(persistent_root, timeout, tracker_config)?;
 
         Ok(PreparedWorkspace::Permanent(PermanentWorkspace { resources }))
     } else {
         let temp_dir = tempfile::tempdir().context("failed to create temporary workspace")?;
         let root_path = temp_dir.path().to_path_buf();
-        let resources = prepare_resources(root_path, timeout)?;
+        let resources = prepare_resources(root_path, timeout, tracker_config)?;
 
         Ok(PreparedWorkspace::Ephemeral(EphemeralWorkspace {
             _temp_dir: temp_dir,
@@ -97,11 +98,15 @@ pub(crate) fn prepare(
     }
 }
 
-fn prepare_resources(root_path: PathBuf, timeout: Duration) -> anyhow::Result<WorkspaceResources> {
-    let (tracker_config_path, tracker_storage_path) = setup_tracker_workspace(&root_path)?;
+fn prepare_resources(
+    root_path: PathBuf,
+    timeout: Duration,
+    tracker_config: &TrackerConfig,
+) -> anyhow::Result<WorkspaceResources> {
+    let (tracker_config_path, tracker_storage_path) = setup_tracker_workspace(&root_path, tracker_config)?;
     let (seeder_config_path, seeder_downloads_path) = setup_qbittorrent_workspace(&root_path, "seeder", SEEDER_PASSWORD)?;
     let (leecher_config_path, leecher_downloads_path) = setup_qbittorrent_workspace(&root_path, "leecher", LEECHER_PASSWORD)?;
-    let (shared_path, generated) = setup_shared_fixtures(&root_path, &seeder_downloads_path)?;
+    let (shared_path, generated) = setup_shared_fixtures(&root_path, &seeder_downloads_path, tracker_config)?;
 
     Ok(WorkspaceResources {
         root_path,
@@ -143,10 +148,10 @@ fn prepare_resources(root_path: PathBuf, timeout: Duration) -> anyhow::Result<Wo
     })
 }
 
-fn setup_tracker_workspace(root: &Path) -> anyhow::Result<(PathBuf, PathBuf)> {
+fn setup_tracker_workspace(root: &Path, tracker_config: &TrackerConfig) -> anyhow::Result<(PathBuf, PathBuf)> {
     let tracker_storage_path = root.join("tracker-storage");
     fs::create_dir_all(&tracker_storage_path).context("failed to create tracker storage directory")?;
-    let tracker_config_path = TrackerConfigBuilder::new().write_to(root)?;
+    let tracker_config_path = TrackerConfigBuilder::new(tracker_config.clone()).write_to(root)?;
     Ok((tracker_config_path, tracker_storage_path))
 }
 
@@ -160,14 +165,22 @@ fn setup_qbittorrent_workspace(root: &Path, role: &str, password: &str) -> anyho
     Ok((config_path, downloads_path))
 }
 
-fn setup_shared_fixtures(root: &Path, seeder_downloads: &Path) -> anyhow::Result<(PathBuf, GeneratedPayloadAndTorrent)> {
+fn setup_shared_fixtures(
+    root: &Path,
+    seeder_downloads: &Path,
+    tracker_config: &TrackerConfig,
+) -> anyhow::Result<(PathBuf, GeneratedPayloadAndTorrent)> {
     let shared_path = root.join("shared");
     fs::create_dir_all(&shared_path).context("failed to create shared artifacts directory")?;
-    let generated = write_payload_and_torrent(&shared_path, seeder_downloads)?;
+    let generated = write_payload_and_torrent(&shared_path, seeder_downloads, tracker_config)?;
     Ok((shared_path, generated))
 }
 
-fn write_payload_and_torrent(shared_path: &Path, seeder_downloads_path: &Path) -> anyhow::Result<GeneratedPayloadAndTorrent> {
+fn write_payload_and_torrent(
+    shared_path: &Path,
+    seeder_downloads_path: &Path,
+    tracker_config: &TrackerConfig,
+) -> anyhow::Result<GeneratedPayloadAndTorrent> {
     let payload_path = shared_path.join(PAYLOAD_FILE_NAME);
     let torrent_path = shared_path.join(TORRENT_FILE_NAME);
     let payload_fixture = build_payload_fixture(PAYLOAD_SIZE_BYTES);
@@ -181,12 +194,8 @@ fn write_payload_and_torrent(shared_path: &Path, seeder_downloads_path: &Path) -
         )
     })?;
 
-    let torrent_fixture = build_torrent_fixture(
-        &payload_fixture,
-        PAYLOAD_FILE_NAME,
-        "http://tracker:7070/announce",
-        TORRENT_PIECE_LENGTH,
-    )?;
+    let announce_url = tracker_config.announce_url_for_compose_service();
+    let torrent_fixture = build_torrent_fixture(&payload_fixture, PAYLOAD_FILE_NAME, &announce_url, TORRENT_PIECE_LENGTH)?;
     fs::write(&torrent_path, &torrent_fixture.bytes)
         .with_context(|| format!("failed to write torrent file '{}'", torrent_path.display()))?;
 

@@ -11,6 +11,7 @@ use anyhow::Context;
 
 use super::client_role::ClientRole;
 use super::qbittorrent::QbittorrentClient;
+use super::tracker::TrackerConfig;
 use super::types::{ComposeProjectName, QbittorrentImage, TrackerImage};
 use super::workspace::WorkspaceResources;
 use crate::console::ci::compose::{DockerCompose, RunningCompose};
@@ -31,8 +32,16 @@ pub(crate) async fn start(
     tracker_image: &TrackerImage,
     qbittorrent_image: &QbittorrentImage,
     resources: &WorkspaceResources,
+    tracker_config: &TrackerConfig,
 ) -> anyhow::Result<(RunningCompose, QbittorrentClient, QbittorrentClient)> {
-    let compose = configure_compose(compose_file, project_name, tracker_image, qbittorrent_image, resources)?;
+    let compose = configure_compose(
+        compose_file,
+        project_name,
+        tracker_image,
+        qbittorrent_image,
+        resources,
+        tracker_config,
+    )?;
     compose.build().context("failed to build local tracker image")?;
     let running_compose = compose.up().context("failed to start qBittorrent compose stack")?;
     let (seeder, leecher) = build_clients(&compose, resources.timing.polling_deadline.as_duration()).await?;
@@ -85,10 +94,21 @@ fn configure_compose(
     tracker_image: &TrackerImage,
     qbittorrent_image: &QbittorrentImage,
     workspace: &WorkspaceResources,
+    tracker_config: &TrackerConfig,
 ) -> anyhow::Result<DockerCompose> {
+    let tracker_http_tracker_port = tracker_config.http_tracker_bind_address().port().to_string();
+    let tracker_udp_port = tracker_config.udp_bind_address().port().to_string();
+    let tracker_health_check_api_port = tracker_config.health_check_api_bind_address().port().to_string();
+
     Ok(DockerCompose::new(compose_file, project_name.as_str())
         .with_env("QBT_E2E_TRACKER_IMAGE", tracker_image.as_str())
         .with_env("QBT_E2E_QBITTORRENT_IMAGE", qbittorrent_image.as_str())
+        .with_env("QBT_E2E_TRACKER_HTTP_TRACKER_PORT", tracker_http_tracker_port.as_str())
+        .with_env("QBT_E2E_TRACKER_UDP_PORT", tracker_udp_port.as_str())
+        .with_env(
+            "QBT_E2E_TRACKER_HEALTH_CHECK_API_PORT",
+            tracker_health_check_api_port.as_str(),
+        )
         .with_env(
             "QBT_E2E_TRACKER_CONFIG_PATH",
             normalize_path_for_compose(&workspace.tracker.config_path)?.as_str(),

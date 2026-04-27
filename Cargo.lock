@@ -5629,6 +5629,7 @@ dependencies = [
  "thiserror 2.0.18",
  "tokio",
  "tokio-util",
+ "toml 0.8.23",
  "torrust-axum-health-check-api-server",
  "torrust-axum-http-tracker-server",
  "torrust-axum-rest-tracker-api-server",

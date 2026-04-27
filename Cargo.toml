@@ -53,6 +53,7 @@ tempfile = "3.27.0"
 thiserror = "2.0.12"
 tokio = { version = "1", features = [ "macros", "net", "rt-multi-thread", "signal", "sync" ] }
 tokio-util = "0.7.15"
+toml = "0"
 torrust-axum-health-check-api-server = { version = "3.0.0-develop", path = "packages/axum-health-check-api-server" }
 torrust-axum-http-tracker-server = { version = "3.0.0-develop", path = "packages/axum-http-tracker-server" }
 torrust-axum-rest-tracker-api-server = { version = "3.0.0-develop", path = "packages/axum-rest-tracker-api-server" }
