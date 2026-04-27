@@ -192,3 +192,28 @@ jobs:
       - id: test
         name: Run E2E Tests
         run: cargo run --bin e2e_tests_runner -- --config-toml-path "./share/default/config/tracker.e2e.container.sqlite3.toml"
+
+  qbittorrent-e2e:
+    name: qBittorrent E2E
+    runs-on: ubuntu-latest
+    needs: e2e
+    timeout-minutes: 30
+
+    steps:
+      - id: checkout
+        name: Checkout Repository
+        uses: actions/checkout@v6
+
+      - id: setup
+        name: Setup Toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+
+      - id: cache
+        name: Enable Job Cache
+        uses: Swatinem/rust-cache@v2
+
+      - id: test
+        name: Run qBittorrent E2E Test
+        run: cargo run --bin qbittorrent_e2e_runner -- --compose-file ./compose.qbittorrent-e2e.yaml --timeout-seconds 600
