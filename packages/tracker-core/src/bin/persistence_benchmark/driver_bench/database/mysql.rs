@@ -33,7 +33,7 @@ pub(super) async fn initialize(db_version: &str) -> Result<ActiveDatabase> {
     let database = initialize_database(&config);
 
     Ok(ActiveDatabase {
-        database,
+        database: Some(database),
         resource: Some(BenchmarkResource::Mysql(Box::new(mysql_container))),
     })
 }

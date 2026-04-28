@@ -24,9 +24,9 @@ already covered by tests, otherwise performance comparisons risk masking regress
   must be designed so PostgreSQL can be added in subissue #1525-08 without redesign.
 - One invocation produces results for one driver/version combination. Run it three times to
   cover `sqlite3`, `mysql:8.0`, and `mysql:8.4`.
-- Commit one JSON report per combination under `docs/benchmarks/` as the baseline. Re-run
-  and update the reports in each subsequent subissue that changes persistence behavior. The
-  git diff of those JSON files is the before/after comparison.
+- Commit one JSON report per combination under `packages/tracker-core/docs/benchmarking/runs/`
+  as the baseline. Re-run and update the reports in each subsequent subissue that changes
+  persistence behavior. The git diff of those JSON files is the before/after comparison.
 
 ## Measurement Tool Rationale
 
@@ -55,10 +55,10 @@ Every method on the `Database` trait, grouped by category:
 | Whitelist         | `add_info_hash_to_whitelist`, `get_info_hash_from_whitelist`, `load_whitelist`, `remove_info_hash_from_whitelist`   |
 | Auth keys         | `add_key_to_keys`, `get_key_from_keys`, `load_keys`, `remove_key_from_keys`                                         |
 
-Each method is called `--ops N` times (default `10`). The collected `Vec<Duration>` is sorted
+Each method is called `--ops N` times (default `100`). The collected `Vec<Duration>` is sorted
 to produce `count`, `best`, `median`, and `worst` per operation.
 
-A default of `10` is deliberately small so a local run finishes well under 3 minutes.
+A default of `100` matches the committed baseline reports and produces stable medians.
 Pass a larger `--ops` value when tighter statistics are needed.
 
 ## What Is NOT Measured
@@ -134,8 +134,8 @@ Run `cargo machete` after to verify no unused dependencies remain.
 cargo run -p bittorrent-tracker-core --bin persistence_benchmark_runner -- \
     --driver sqlite3|mysql      # exactly one driver per run
     --db-version 8.4            # DB image tag; ignored for sqlite3; default "8.4" for mysql
-    --ops 10                    # samples per operation; default 10
-  --json-output <path>        # default: .benchmarks/bench-results-<driver>[-<db-version>].json
+    --ops 100                   # samples per operation; default 100
+                                # JSON report is printed to stdout; redirect to save it
 ```
 
 **Driver setup:**
@@ -160,7 +160,7 @@ cargo run -p bittorrent-tracker-core --bin persistence_benchmark_runner -- \
     "git_revision": "<sha>",
     "driver": "sqlite3",
     "db_version": "-",
-    "ops": 10,
+    "ops": 100,
     "timestamp": "2026-04-28T12:00:00Z"
   },
   "operations": [
@@ -178,9 +178,9 @@ cargo run -p bittorrent-tracker-core --bin persistence_benchmark_runner -- \
 Acceptance criteria:
 
 - [ ] `cargo run -p bittorrent-tracker-core --bin persistence_benchmark_runner -- --driver sqlite3`
-      runs to completion and writes a JSON report.
+      runs to completion and prints a JSON report to stdout.
 - [ ] `cargo run -p bittorrent-tracker-core --bin persistence_benchmark_runner -- --driver mysql --db-version 8.4`
-      runs to completion and writes a JSON report.
+      runs to completion and prints a JSON report to stdout.
 - [ ] JSON schema matches the structure above.
 - [ ] `cargo machete` reports no unused dependencies.
 
@@ -193,21 +193,21 @@ reports alongside the code change. The git diff is the before/after comparison.
 ```bash
 cargo run -p bittorrent-tracker-core --bin persistence_benchmark_runner -- \
     --driver sqlite3 \
-    --json-output docs/benchmarks/baseline-sqlite3.json
+    > packages/tracker-core/docs/benchmarking/runs/$(date +%F)/sqlite3.json
 
 cargo run -p bittorrent-tracker-core --bin persistence_benchmark_runner -- \
     --driver mysql --db-version 8.0 \
-    --json-output docs/benchmarks/baseline-mysql-8.0.json
+    > packages/tracker-core/docs/benchmarking/runs/$(date +%F)/mysql-8.0.json
 
 cargo run -p bittorrent-tracker-core --bin persistence_benchmark_runner -- \
     --driver mysql --db-version 8.4 \
-    --json-output docs/benchmarks/baseline-mysql-8.4.json
+    > packages/tracker-core/docs/benchmarking/runs/$(date +%F)/mysql-8.4.json
 ```
 
 Acceptance criteria:
 
-- [ ] `docs/benchmarks/baseline-sqlite3.json`, `docs/benchmarks/baseline-mysql-8.0.json`,
-      and `docs/benchmarks/baseline-mysql-8.4.json` are committed.
+- [ ] `packages/tracker-core/docs/benchmarking/runs/<date>/sqlite3.json`,
+      `mysql-8.0.json`, and `mysql-8.4.json` are committed.
 - [ ] Each file identifies the git revision, driver, db-version, ops count, and timestamp.
 
 ### 3) Document the workflow
@@ -239,8 +239,8 @@ Acceptance criteria:
       runs to completion and prints a summary.
 - [ ] `cargo run -p bittorrent-tracker-core --bin persistence_benchmark_runner -- --driver mysql --db-version 8.4`
       runs to completion and prints a summary.
-- [ ] `docs/benchmarks/baseline-sqlite3.json`, `docs/benchmarks/baseline-mysql-8.0.json`,
-      and `docs/benchmarks/baseline-mysql-8.4.json` are committed.
+- [ ] `packages/tracker-core/docs/benchmarking/runs/<date>/sqlite3.json`,
+      `mysql-8.0.json`, and `mysql-8.4.json` are committed.
 - [ ] `docs/benchmarking.md` documents the workflow.
 - [ ] `cargo test --workspace --all-targets` passes.
 - [ ] `linter all` exits with code `0`.

@@ -16,7 +16,7 @@ pub(super) fn initialize() -> ActiveDatabase {
     let database = initialize_database(&config);
 
     ActiveDatabase {
-        database,
+        database: Some(database),
         resource: Some(BenchmarkResource::Sqlite(sqlite_db_path)),
     }
 }

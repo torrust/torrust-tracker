@@ -11,7 +11,7 @@ mod mysql;
 mod sqlite;
 
 pub(super) struct ActiveDatabase {
-    pub(super) database: Arc<Box<dyn Database>>,
+    pub(super) database: Option<Arc<Box<dyn Database>>>,
     resource: Option<BenchmarkResource>,
 }
 
@@ -41,6 +41,9 @@ impl ActiveDatabase {
 
 impl Drop for ActiveDatabase {
     fn drop(&mut self) {
+        // Drop the database connection before cleaning up the resource.
+        // For SQLite this ensures the file handle is released before removal.
+        drop(self.database.take());
         match self.resource.take() {
             Some(BenchmarkResource::Sqlite(path)) => {
                 let _removed_file_result = std::fs::remove_file(path);
@@ -70,13 +73,21 @@ pub(super) async fn reset_database(database: &dyn Database) -> Result<()> {
 ///
 /// Returns an error if the database is still not ready after all retries.
 async fn create_database_tables_with_retry(database: &dyn Database) -> Result<()> {
+    let mut last_error: Option<anyhow::Error> = None;
+
     for _ in 0..5 {
-        if database.create_database_tables().is_ok() {
-            return Ok(());
+        match database.create_database_tables() {
+            Ok(()) => return Ok(()),
+            Err(error) => {
+                last_error = Some(error.into());
+            }
         }
 
         tokio::time::sleep(Duration::from_secs(2)).await;
     }
 
-    Err(anyhow!("database is not ready after retries"))
+    match last_error {
+        Some(error) => Err(anyhow!("database is not ready after retries; last error: {error}")),
+        None => Err(anyhow!("database is not ready after retries")),
+    }
 }

@@ -8,22 +8,29 @@ use super::RawOperationSamples;
 
 /// Measures one database operation `ops` times and records elapsed samples.
 ///
-/// The closure receives the iteration index so callers can generate distinct
-/// fixture values when required.
+/// Per-iteration fixture generation is performed by `setup` before timing
+/// starts, so the recorded durations reflect only the database operation.
 ///
 /// # Errors
 ///
-/// Returns an error if any operation invocation fails.
-pub(super) fn measure_operation<F>(name: impl Into<String>, ops: usize, mut operation: F) -> Result<RawOperationSamples>
+/// Returns an error if setup or any operation invocation fails.
+pub(super) fn measure_operation<S, F, T>(
+    name: impl Into<String>,
+    ops: usize,
+    mut setup: S,
+    mut operation: F,
+) -> Result<RawOperationSamples>
 where
-    F: FnMut(usize) -> Result<()>,
+    S: FnMut(usize) -> Result<T>,
+    F: FnMut(T) -> Result<()>,
 {
     let name = name.into();
     let mut samples = Vec::with_capacity(ops);
 
     for index in 0..ops {
+        let prepared = setup(index)?;
         let start = Instant::now();
-        operation(index)?;
+        operation(prepared)?;
         samples.push(start.elapsed());
     }
 
