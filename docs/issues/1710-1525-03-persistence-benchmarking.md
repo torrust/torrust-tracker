@@ -1,4 +1,4 @@
-# Subissue Draft for #1525-03: Add Persistence Benchmarking
+# Issue #1710 / Subissue #1525-03: Add Persistence Benchmarking
 
 ## Goal
 
@@ -12,221 +12,207 @@ already covered by tests, otherwise performance comparisons risk masking regress
 
 ## Scope
 
-- Implement the benchmark runner in Rust (a new binary, consistent with the `e2e_tests_runner`
-  pattern), following the same docker compose approach used in subissue #1525-02.
-- Use one docker compose file per database backend. Each compose file defines the database
-  container and the tracker container together. The runner launches the compose stack,
-  discovers the ports, runs the workloads, and tears down. No manual `docker run` calls.
+- Implement the benchmark runner as a binary inside `packages/tracker-core`, the package
+  that owns the persistence layer. No Docker Compose, no image building or swapping.
+- Benchmark every method of the `Database` trait directly, using real driver instances
+  (SQLite file on disk; MySQL container via testcontainers — the same mechanism already used
+  in the package's integration tests).
 - Run the benchmark against SQLite and MySQL only. PostgreSQL is not available yet; the runner
   must be designed so PostgreSQL can be added in subissue #1525-08 without redesign.
-- The benchmark compares two tracker Docker images: a `bench-before` image and a `bench-after`
-  image. The tracker image tag is passed to compose via an environment variable so the runner
-  can swap it per variant. This allows the same compose files and runner to be re-used after
-  each subsequent subissue.
-- On the first run (this subissue), before and after use the same image built from the current
-  `develop` HEAD, giving an identical-baseline comparison. The committed report records this.
-- Commit the first benchmark report into `docs/benchmarks/` as a baseline reference. Re-run
-  and update the report in each subsequent subissue that changes persistence behavior.
+- One invocation produces results for one driver/version combination. Run it three times to
+  cover `sqlite3`, `mysql:8.0`, and `mysql:8.4`.
+- Commit one JSON report per combination under `docs/benchmarks/` as the baseline. Re-run
+  and update the reports in each subsequent subissue that changes persistence behavior. The
+  git diff of those JSON files is the before/after comparison.
 
 ## Measurement Tool Rationale
 
-**Why not Criterion?** `criterion` is a micro-benchmark framework: it runs the same in-process
-function thousands of times in a tight loop, applies warm-up phases, and performs statistical
-outlier detection for nanosecond-to-millisecond measurements. It is the right tool for the
-existing `torrent-repository-benchmarking` crate (in-memory data structures). It is the wrong
-tool here because:
+**Why not Criterion?** `criterion` is a micro-benchmark framework designed for in-process
+function calls. It is the right tool for the existing `torrent-repository-benchmarking` crate
+(in-memory data structures). It is the wrong tool here because:
 
-- Each operation involves a real HTTP round-trip to a containerized tracker talking to a real
-  database. The overhead dwarfs what criterion's sampling model expects.
-- We need _aggregate_ metrics across N concurrent workers (ops/sec, p95 latency), not per-call
-  statistics from a single thread.
-- The before/after comparison is across two different Docker images, not across two functions
-  in the same process — criterion has no model for that.
+- Each operation involves a real database round-trip via an `r2d2` connection pool. The
+  overhead and variance are orders of magnitude larger than what criterion's sampling model
+  expects.
+- The before/after comparison spans different branches (and later, different driver
+  implementations), not two functions in the same process — criterion has no model for that.
 
 **What to use instead**: `std::time::Instant` per-call timing, collected into a `Vec<Duration>`,
-then sorted for percentile extraction. This is exactly what the Python reference script does.
-For concurrency, spawn N OS threads via `std::thread::spawn` (one per worker up to
-`--concurrency`), each running blocking `reqwest` calls in a loop. Join all threads and
-collect their `Duration` measurements into a shared `Vec` for percentile computation. Do
-not use `rayon` — its work-stealing pool is designed for CPU-bound tasks and will stall
-under I/O-bound HTTP workloads. Output is written as JSON (via `serde_json`) and Markdown.
+then sorted to extract `best`, `median`, and `worst`. No external stats crate is needed.
+Output is JSON only (via `serde_json`).
 
-## Reference Workflow
+## What Gets Measured
 
-The PR #1695 review branch includes a Python reference:
+Every method on the `Database` trait, grouped by category:
 
-- `contrib/dev-tools/qa/run-before-after-db-benchmark.py`
+| Category          | Methods                                                                                                             |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------- |
+| Torrent metrics   | `save_torrent_downloads`, `load_torrent_downloads`, `load_all_torrents_downloads`, `increase_downloads_for_torrent` |
+| Aggregate metrics | `save_global_downloads`, `load_global_downloads`, `increase_global_downloads`                                       |
+| Whitelist         | `add_info_hash_to_whitelist`, `get_info_hash_from_whitelist`, `load_whitelist`, `remove_info_hash_from_whitelist`   |
+| Auth keys         | `add_key_to_keys`, `get_key_from_keys`, `load_keys`, `remove_key_from_keys`                                         |
 
-That script defines the full benchmark approach: it starts a real tracker binary, starts
-database containers with free ports, sends HTTP workloads concurrently, collects latency
-percentiles and throughput, and prints a before/after comparison. The Rust implementation
-must replicate this approach.
+Each method is called `--ops N` times (default `10`). The collected `Vec<Duration>` is sorted
+to produce `count`, `best`, `median`, and `worst` per operation.
 
-### What the Python script measures
+A default of `10` is deliberately small so a local run finishes well under 3 minutes.
+Pass a larger `--ops` value when tighter statistics are needed.
 
-- **Startup time** — how long the tracker takes to reach `200 OK` on the health endpoint,
-  measured for both an empty database and a populated database (after the workloads have run).
-- **Workloads** (each run sequentially and concurrently):
-  - `announce_lifecycle` — HTTP `started` announce followed by `completed` announce for each
-    unique infohash
-  - `whitelist_add` — REST API `POST /api/v1/whitelist/{info_hash}`
-  - `whitelist_reload` — REST API `GET /api/v1/whitelist/reload`
-  - `auth_key_add` — REST API `POST /api/v1/keys`
-  - `auth_key_reload` — REST API `GET /api/v1/keys/reload`
-- **Metrics per workload**: count, total time, ops/sec, mean latency, median latency, p95
-  latency, min/max latency.
-- **Comparison output**: startup speedup (after/before), ops/s speedup, p95 latency improvement
-  ratio for each workload × driver combination.
+## What Is NOT Measured
+
+- **Startup time** — not a persistence-layer concern; constant across persistence refactors.
+- **Concurrent throughput** — the existing drivers are synchronous (`r2d2`); a single-threaded
+  loop gives stable, comparable numbers. Concurrent load is relevant after the async `sqlx`
+  migration (subissue #1525-05), but even then the comparison should be single-threaded first.
+- **HTTP roundtrip latency** — noise relative to what is being refactored.
+- **Before/after image swapping** — the benchmark runs once per branch; the committed report
+  is the baseline; the git diff is the comparison.
 
 ## Proposed Branch
 
-- `1525-03-persistence-benchmarking`
+- `1710-add-persistence-benchmarking`
 
 ## Testing Principles
 
-- **Isolation**: Each run uses a unique compose project name (e.g.
-  `torrust-bench-<driver>-<variant>-<random>`) so container names, networks, and volumes
-  never collide with a parallel invocation. This mirrors the isolation strategy in
-  subissue #1525-02.
-- **Independent system resources**: Do not bind to fixed host ports. Discover the ports
-  assigned by compose using `docker compose port`. Place all temporary files (SQLite database
-  file, tracker config, logs) in a `tempfile`-managed directory that is removed on exit.
-- **Cleanup**: Use a `RunningCompose` `Drop` guard (from the `DockerCompose` wrapper in
-  subissue #1525-02) to call `docker compose down --volumes` unconditionally on success,
-  failure, and panic.
-- **Verified before done**: Run the benchmark in a clean environment and include the output in
-  the PR description alongside the committed report.
+- **Real drivers**: SQLite uses a temporary file on disk; MySQL uses a testcontainers
+  `GenericImage` — the same mechanism already present in the package's integration tests.
+- **MySQL container lifecycle**: reuse the retry logic in
+  `packages/tracker-core/src/databases/driver/mod.rs` to wait for container readiness.
+- **Cleanup**: the testcontainers container is dropped (and therefore stopped) automatically
+  when the `RunningMysqlContainer` goes out of scope.
+- **Verified before done**: run the benchmark in a clean environment and include a copy of
+  the console output in the PR description alongside the committed JSON reports.
 
 ## Tasks
 
-### 1) Add docker compose files for each database backend
+### 1) Implement the benchmark runner binary inside `packages/tracker-core`
 
-Add one compose file per database under `contrib/dev-tools/bench/`:
+Add a new binary and supporting module to the `bittorrent-tracker-core` package.
 
-- `compose.bench-sqlite3.yaml` — tracker service + a volume for the SQLite database file.
-- `compose.bench-mysql.yaml` — tracker service + MySQL service.
+**New files:**
 
-Design notes:
-
-- Parameterize the tracker image tag with an env var (e.g.
-  `TORRUST_TRACKER_BENCH_IMAGE`, defaulting to `torrust-tracker:bench`) so the runner can
-  swap before/after images without editing the file.
-- Set `TORRUST_TRACKER_CONFIG_TOML` via the compose `environment` key so the runner can inject
-  a generated config without mounting a file.
-- Do not expose fixed host ports in the compose files; expose only the container ports and let
-  Docker assign ephemeral host ports. The runner discovers them with `docker compose port`.
-- Ensure `healthcheck` is defined for each service so `docker compose up --wait` blocks until
-  everything is ready.
-
-Acceptance criteria:
-
-- [ ] `docker compose -f compose.bench-sqlite3.yaml up --wait` starts successfully.
-- [ ] `docker compose -f compose.bench-mysql.yaml up --wait` starts successfully.
-- [ ] `docker compose -f <file> down --volumes` leaves no orphaned resources.
-
-### 2) Implement the Rust benchmark runner binary
-
-Add a new binary `src/bin/persistence_benchmark_runner.rs` following the `e2e_tests_runner`
-pattern. Reuse the `DockerCompose` wrapper introduced in subissue #1525-02 at
-`src/console/ci/compose.rs`.
-
-**Dependencies** — add to the workspace `Cargo.toml` and the binary's crate:
-
-```toml
-reqwest = { version = "...", features = ["blocking"] }
-serde_json = { version = "..." }
+```text
+packages/tracker-core/src/bin/persistence_benchmark_runner.rs   ← thin entry point (3 lines)
+packages/tracker-core/src/bench/
+  mod.rs           ← module doc, re-exports
+  runner.rs        ← CLI args (clap), orchestration, tracing init
+  driver_bench.rs  ← driver setup, measurement loops, RawResults
+  metrics.rs       ← Vec<Duration> → OperationStats (count, best, median, worst)
+  report.rs        ← OperationStats → JSON (serde_json)
+  types.rs         ← newtype wrappers (BenchDriver, Ops, …)
 ```
 
-`rayon` is not needed (see the concurrent workloads approach below). Run `cargo machete`
-after to verify no unused dependencies remain.
+**Dependencies** — add only to `packages/tracker-core/Cargo.toml` (not the workspace root):
 
-**Architecture** — add a module `src/console/ci/bench/` containing:
+```toml
+clap        = { version = "...", features = ["derive"] }
+serde_json  = { version = "..." }   # already present; confirm it is not dev-only
+anyhow      = { version = "..." }
+tracing     = { version = "..." }   # already present
+```
 
-- `runner.rs` — main orchestration and CLI argument parsing
-- `workloads.rs` — HTTP client calls for each workload (announce, whitelist, auth key)
-- `metrics.rs` — `Instant`-based latency collection, sorting, percentile and throughput
-  computation (no external stats crate needed)
-- `report.rs` — JSON (`serde_json`) and Markdown formatting
+Run `cargo machete` after to verify no unused dependencies remain.
 
-**CLI arguments** (mirroring the Python script):
+**CLI:**
 
-- `--before-image <tag>` — tracker Docker image for the "before" variant
-  (default: `torrust-tracker:bench`)
-- `--after-image <tag>` — tracker Docker image for the "after" variant
-  (default: same as `--before-image`)
-- `--dbs <sqlite3|mysql>` — space/comma-separated list of drivers (default: `sqlite3 mysql`)
-- `--mysql-version <tag>` — MySQL Docker image tag (default `8.4`)
-- `--ops <n>` — number of operations per workload (default `200`)
-- `--reload-iterations <n>` — iterations for reload workloads (default `30`)
-- `--concurrency <n>` — worker threads for concurrent workloads (default `16`)
-- `--json-output <path>` — write machine-readable JSON to this path
-- `--report-output <path>` — write the human-readable Markdown report to this path
+```text
+cargo run -p bittorrent-tracker-core --bin persistence_benchmark_runner -- \
+    --driver sqlite3|mysql      # exactly one driver per run
+    --db-version 8.4            # DB image tag; ignored for sqlite3; default "8.4" for mysql
+    --ops 10                    # samples per operation; default 10
+    --json-output <path>        # default: bench-results.json
+```
 
-**Per-suite lifecycle** (one suite = one `(driver, variant)` pair):
+**Driver setup:**
 
-1. Select the compose file for the driver.
-2. Build or tag the tracker image as `TORRUST_TRACKER_BENCH_IMAGE` for this variant.
-3. Create a unique compose project name.
-4. `DockerCompose::up()` — blocks until all services are healthy.
-5. Discover the tracker HTTP, REST API, and health check host ports via
-   `DockerCompose::port()`.
-6. Record `startup_empty_ms` (time from `up` call to first successful health check response).
-7. Run a warm-up iteration.
-8. Run each workload sequentially then concurrently; collect per-operation `Duration` values.
-9. Restart the tracker service only (or call `down` then `up` again) to measure
-   `startup_populated_ms` against the now-populated database.
-10. `DockerCompose::down()` — unconditional, via `Drop` guard.
+- `sqlite3` — create a temporary file path; build the `r2d2_sqlite` pool; create tables.
+- `mysql` — start a testcontainers `GenericImage` with the requested `--db-version` tag;
+  reuse the container readiness retry logic from
+  `packages/tracker-core/src/databases/driver/mod.rs`.
 
-**HTTP client**: use `reqwest` (blocking feature) for workload calls.
+**Measurement loop** (per operation):
 
-**Concurrent workloads**: spawn `--concurrency` OS threads via `std::thread::spawn`, each
-running blocking `reqwest` calls in a loop; collect per-thread `Duration` measurements into
-a shared `Vec` (via `Arc<Mutex<Vec<Duration>>>` or join handles). Do not use `rayon` —
-its work-stealing pool blocks under I/O-bound workloads.
+1. Prepare realistic input data (a random `InfoHash`, `AuthKey`, etc.).
+2. Time each call with `std::time::Instant`.
+3. Repeat `--ops` times; collect into a `Vec<Duration>`.
+4. Sort and derive `count`, `best`, `median`, `worst`.
 
-Acceptance criteria:
+**JSON output schema:**
 
-- [ ] The binary runs successfully against SQLite and MySQL.
-- [ ] Startup times (empty and populated) are recorded for each driver.
-- [ ] All five workload families are measured sequentially and concurrently.
-- [ ] JSON output schema matches the Python reference (`results`, `comparisons` keys).
-- [ ] Human-readable Markdown report is produced.
-- [ ] All compose stacks are cleaned up unconditionally via `Drop` guards.
-- [ ] No hard-coded host ports; all ports are discovered via `docker compose port`.
-
-### 3) Commit the baseline benchmark report
-
-After the binary is working:
-
-- Build a Docker image from the current `develop` HEAD:
-  `docker build -t torrust-tracker:bench .`
-- Run the benchmark with `--before-image torrust-tracker:bench` and
-  `--after-image torrust-tracker:bench` (both pointing to the same freshly built image,
-  producing an identical-baseline comparison).
-- Save the JSON output to `docs/benchmarks/baseline.json`.
-- Save the Markdown report to `docs/benchmarks/baseline.md`.
-- Commit both files as part of this subissue's PR.
+```json
+{
+  "meta": {
+    "git_revision": "<sha>",
+    "driver": "sqlite3",
+    "db_version": "-",
+    "ops": 10,
+    "timestamp": "2026-04-28T12:00:00Z"
+  },
+  "operations": [
+    {
+      "name": "add_info_hash_to_whitelist",
+      "count": 10,
+      "best_us": 42,
+      "median_us": 55,
+      "worst_us": 120
+    }
+  ]
+}
+```
 
 Acceptance criteria:
 
-- [ ] `docs/benchmarks/baseline.json` and `docs/benchmarks/baseline.md` are committed.
-- [ ] The Markdown report is readable without tooling and identifies the git revision used.
+- [ ] `cargo run -p bittorrent-tracker-core --bin persistence_benchmark_runner -- --driver sqlite3`
+      runs to completion and writes a JSON report.
+- [ ] `cargo run -p bittorrent-tracker-core --bin persistence_benchmark_runner -- --driver mysql --db-version 8.4`
+      runs to completion and writes a JSON report.
+- [ ] JSON schema matches the structure above.
+- [ ] `cargo machete` reports no unused dependencies.
 
-### 4) Document the workflow
+### 2) Commit the baseline benchmark reports
 
-Steps:
+Run the binary once per driver/version combination on the current branch HEAD and commit the
+resulting JSON files. Each subsequent subissue reruns the same commands and commits updated
+reports alongside the code change. The git diff is the before/after comparison.
 
-- Document how to invoke the benchmark locally.
-- Document how to produce an updated report after each subsequent subissue.
-- Note that PostgreSQL support will be added to the benchmark in subissue #1525-08.
+```bash
+cargo run -p bittorrent-tracker-core --bin persistence_benchmark_runner -- \
+    --driver sqlite3 \
+    --json-output docs/benchmarks/baseline-sqlite3.json
+
+cargo run -p bittorrent-tracker-core --bin persistence_benchmark_runner -- \
+    --driver mysql --db-version 8.0 \
+    --json-output docs/benchmarks/baseline-mysql-8.0.json
+
+cargo run -p bittorrent-tracker-core --bin persistence_benchmark_runner -- \
+    --driver mysql --db-version 8.4 \
+    --json-output docs/benchmarks/baseline-mysql-8.4.json
+```
 
 Acceptance criteria:
 
-- [ ] The benchmark is documented and runnable without ad hoc manual steps.
+- [ ] `docs/benchmarks/baseline-sqlite3.json`, `docs/benchmarks/baseline-mysql-8.0.json`,
+      and `docs/benchmarks/baseline-mysql-8.4.json` are committed.
+- [ ] Each file identifies the git revision, driver, db-version, ops count, and timestamp.
+
+### 3) Document the workflow
+
+- Add a section to `docs/benchmarking.md` explaining how to invoke the benchmark locally, how
+  to interpret the JSON output, and how to produce an updated report after each subsequent
+  subissue.
+- Note that PostgreSQL support will be added in subissue #1525-08.
+
+Acceptance criteria:
+
+- [ ] `docs/benchmarking.md` documents the full workflow without ad hoc manual steps.
 
 ## Out of Scope
 
 - PostgreSQL support (reserved for subissue #1525-08).
+- Concurrent throughput measurement (deferred until after the async `sqlx` migration in
+  subissue #1525-05).
+- Startup time measurement (not a persistence-layer concern).
+- HTTP-level benchmarking (noise relative to what is being refactored).
 - Defining hard performance gates for CI.
 - Replacing correctness-focused tests.
 - The existing `torrent-repository-benchmarking` criterion micro-benchmarks (those measure
@@ -234,18 +220,23 @@ Acceptance criteria:
 
 ## Definition of Done
 
+- [ ] `cargo run -p bittorrent-tracker-core --bin persistence_benchmark_runner -- --driver sqlite3`
+      runs to completion and prints a summary.
+- [ ] `cargo run -p bittorrent-tracker-core --bin persistence_benchmark_runner -- --driver mysql --db-version 8.4`
+      runs to completion and prints a summary.
+- [ ] `docs/benchmarks/baseline-sqlite3.json`, `docs/benchmarks/baseline-mysql-8.0.json`,
+      and `docs/benchmarks/baseline-mysql-8.4.json` are committed.
+- [ ] `docs/benchmarking.md` documents the workflow.
 - [ ] `cargo test --workspace --all-targets` passes.
 - [ ] `linter all` exits with code `0`.
-- [ ] The benchmark has been executed successfully; `docs/benchmarks/baseline.md` and
-      `docs/benchmarks/baseline.json` are committed.
 - [ ] A passing run log is included in the PR description.
 
 ## References
 
 - EPIC: #1525
-- Reference PR: #1695
-- Reference implementation branch: `josecelano:pr-1684-review` — see EPIC for checkout
-  instructions (`docs/issues/1525-overhaul-persistence.md`)
-- Reference script: `contrib/dev-tools/qa/run-before-after-db-benchmark.py`
-- Docker compose wrapper: `src/console/ci/e2e/docker.rs` (pattern reused for compose wrapper)
-- Subissue #1525-02 compose wrapper: `src/console/ci/compose.rs`
+- GitHub issue: #1710
+- Existing driver test infrastructure: `packages/tracker-core/src/databases/driver/mod.rs`
+- MySQL container helper: `packages/tracker-core/src/databases/driver/mysql.rs`
+  (`StoppedMysqlContainer`, `RunningMysqlContainer`)
+- Style reference for binary layout: `src/console/ci/qbittorrent_e2e/runner.rs`
+- Benchmarking docs: `docs/benchmarking.md`
