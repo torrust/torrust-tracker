@@ -164,14 +164,8 @@ mod tests {
 
     #[test]
     fn it_should_report_torrent_progress_completion_threshold() {
-        let complete = serde_json::from_str::<TorrentProgress>("1.0");
-        let in_progress = serde_json::from_str::<TorrentProgress>("0.42");
-
-        assert!(complete.is_ok());
-        assert!(in_progress.is_ok());
-
-        let complete = complete.unwrap_or_else(|error| panic!("failed to parse complete progress: {error}"));
-        let in_progress = in_progress.unwrap_or_else(|error| panic!("failed to parse in-progress value: {error}"));
+        let complete = serde_json::from_str::<TorrentProgress>("1.0").expect("1.0 is valid progress JSON");
+        let in_progress = serde_json::from_str::<TorrentProgress>("0.42").expect("0.42 is valid progress JSON");
 
         assert!(complete.is_complete());
         assert!((complete.as_fraction() - 1.0).abs() < f64::EPSILON);
@@ -182,24 +176,19 @@ mod tests {
 
     #[test]
     fn it_should_deserialize_torrent_state_known_variant() {
-        let parsed = serde_json::from_str::<TorrentState>("\"stoppedDL\"");
+        let parsed = serde_json::from_str::<TorrentState>("\"stoppedDL\"").expect("stoppedDL is a valid state JSON");
 
-        assert!(parsed.is_ok());
-        match parsed.unwrap_or_else(|error| panic!("failed to parse state: {error}")) {
-            TorrentState::StoppedDl => {}
-            other => panic!("unexpected state variant: {other}"),
-        }
+        assert!(matches!(parsed, TorrentState::StoppedDl), "expected StoppedDl, got {parsed}");
     }
 
     #[test]
     fn it_should_deserialize_unknown_torrent_state_preserving_raw_value() {
-        let parsed = serde_json::from_str::<TorrentState>("\"futureState\"");
+        let parsed = serde_json::from_str::<TorrentState>("\"futureState\"").expect("futureState is valid state JSON");
 
-        assert!(parsed.is_ok());
-        match parsed.unwrap_or_else(|error| panic!("failed to parse state: {error}")) {
-            TorrentState::Unknown(raw) => assert_eq!(raw, "futureState"),
-            other => panic!("unexpected state variant: {other}"),
-        }
+        let TorrentState::Unknown(raw) = parsed else {
+            panic!("expected Unknown variant, got {parsed}");
+        };
+        assert_eq!(raw, "futureState");
     }
 
     #[test]

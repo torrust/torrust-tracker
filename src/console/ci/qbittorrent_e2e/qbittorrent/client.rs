@@ -9,8 +9,7 @@ use tokio::sync::Mutex;
 use super::super::types::InfoHash;
 use super::credentials::QbittorrentCredentials;
 use super::torrent::{TorrentInfo, TorrentProgress};
-
-const QBITTORRENT_WEBUI_PORT: u16 = 8080;
+use super::QBITTORRENT_WEBUI_PORT;
 
 /// A validated qBittorrent `WebUI` base URL.
 ///
@@ -136,7 +135,8 @@ impl QbittorrentClient {
     /// # Errors
     ///
     /// Returns an error when reading the qBittorrent application version fails.
-    #[expect(dead_code, reason = "reserved for staged scenario coverage")]
+    // Staged: used by planned scenario steps in <https://github.com/torrust/torrust-tracker/issues/1706>.
+    #[expect(dead_code, reason = "reserved for staged scenario coverage; see #1706")]
     pub async fn app_version(&self) -> anyhow::Result<String> {
         let (webui_host, webui_origin) = self.webui_headers();
         let sid_cookie = self.sid_cookie.lock().await.clone();
@@ -243,9 +243,6 @@ impl QbittorrentClient {
     /// # Errors
     ///
     /// Returns an error when querying torrents fails.
-    /// # Errors
-    ///
-    /// Returns an error when querying torrents fails.
     pub async fn first_torrent(&self) -> anyhow::Result<Option<TorrentInfo>> {
         let torrents = self
             .list_torrents()
@@ -258,7 +255,8 @@ impl QbittorrentClient {
     /// # Errors
     ///
     /// Returns an error when querying torrents fails.
-    #[expect(dead_code, reason = "reserved for staged scenario coverage")]
+    // Staged: used by planned scenario steps in <https://github.com/torrust/torrust-tracker/issues/1706>.
+    #[expect(dead_code, reason = "reserved for staged scenario coverage; see #1706")]
     pub async fn first_torrent_progress(&self) -> anyhow::Result<Option<TorrentProgress>> {
         Ok(self.first_torrent().await?.map(|torrent| torrent.progress))
     }

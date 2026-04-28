@@ -63,8 +63,7 @@ mod tests {
     fn it_should_deserialize_info_hash_from_json_string() {
         let parsed = serde_json::from_str::<InfoHash>("\"abcdef0123456789abcdef0123456789abcdef01\""); // DevSkim: ignore DS173237
 
-        assert!(parsed.is_ok());
-        let hash = parsed.unwrap_or_else(|error| panic!("failed to parse hash: {error}"));
+        let hash = parsed.expect("valid hash JSON");
         assert_eq!(hash.as_str(), "abcdef0123456789abcdef0123456789abcdef01"); // DevSkim: ignore DS173237
     }
 }

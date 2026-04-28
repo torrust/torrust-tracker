@@ -8,8 +8,9 @@ use base64::Engine;
 use pbkdf2::pbkdf2_hmac;
 use sha2::Sha512;
 
+use super::QBITTORRENT_WEBUI_PORT;
+
 const CONFIG_RELATIVE_PATH: &str = "qBittorrent/qBittorrent.conf";
-const DEFAULT_WEBUI_PORT: u16 = 8080;
 const DEFAULT_DOWNLOADS_PATH: &str = "/downloads";
 const DEFAULT_DOWNLOADS_TEMP_PATH: &str = "/downloads/temp";
 
@@ -32,25 +33,28 @@ impl<'a> QbittorrentConfigBuilder<'a> {
         Self {
             username,
             password,
-            webui_port: DEFAULT_WEBUI_PORT,
+            webui_port: QBITTORRENT_WEBUI_PORT,
             downloads_path: DEFAULT_DOWNLOADS_PATH,
             downloads_temp_path: DEFAULT_DOWNLOADS_TEMP_PATH,
         }
     }
 
-    #[expect(dead_code, reason = "reserved for future scenario configuration")]
+    // These builder methods override the defaults written into the qBittorrent
+    // config file. They are needed when future scenarios require non-standard
+    // paths or a different WebUI port. Tracked: <https://github.com/torrust/torrust-tracker/issues/1706>.
+    #[expect(dead_code, reason = "reserved for future scenario configuration; see #1706")]
     pub(crate) fn webui_port(mut self, port: u16) -> Self {
         self.webui_port = port;
         self
     }
 
-    #[expect(dead_code, reason = "reserved for future scenario configuration")]
+    #[expect(dead_code, reason = "reserved for future scenario configuration; see #1706")]
     pub(crate) fn downloads_path(mut self, path: &'a str) -> Self {
         self.downloads_path = path;
         self
     }
 
-    #[expect(dead_code, reason = "reserved for future scenario configuration")]
+    #[expect(dead_code, reason = "reserved for future scenario configuration; see #1706")]
     pub(crate) fn downloads_temp_path(mut self, path: &'a str) -> Self {
         self.downloads_temp_path = path;
         self

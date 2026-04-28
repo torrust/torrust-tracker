@@ -115,37 +115,40 @@ impl TrackerConfigBuilder {
         Self { tracker_config }
     }
 
-    #[expect(dead_code, reason = "reserved for future scenario configuration")]
+    // These builder methods allow future scenarios to override the default
+    // tracker bind addresses, database path, and access token (e.g. for
+    // private-tracker or multi-database scenarios). Tracked: <https://github.com/torrust/torrust-tracker/issues/1706>.
+    #[expect(dead_code, reason = "reserved for future scenario configuration; see #1706")]
     pub(crate) fn database_path(mut self, path: &str) -> Self {
         self.tracker_config.database_path = path.to_string();
         self
     }
 
-    #[expect(dead_code, reason = "reserved for future scenario configuration")]
+    #[expect(dead_code, reason = "reserved for future scenario configuration; see #1706")]
     pub(crate) fn udp_bind_address(mut self, addr: SocketAddr) -> Self {
         self.tracker_config.udp_bind_address = addr;
         self
     }
 
-    #[expect(dead_code, reason = "reserved for future scenario configuration")]
+    #[expect(dead_code, reason = "reserved for future scenario configuration; see #1706")]
     pub(crate) fn http_tracker_bind_address(mut self, addr: SocketAddr) -> Self {
         self.tracker_config.http_tracker_bind_address = addr;
         self
     }
 
-    #[expect(dead_code, reason = "reserved for future scenario configuration")]
+    #[expect(dead_code, reason = "reserved for future scenario configuration; see #1706")]
     pub(crate) fn http_api_bind_address(mut self, addr: SocketAddr) -> Self {
         self.tracker_config.http_api_bind_address = addr;
         self
     }
 
-    #[expect(dead_code, reason = "reserved for future scenario configuration")]
+    #[expect(dead_code, reason = "reserved for future scenario configuration; see #1706")]
     pub(crate) fn health_check_api_bind_address(mut self, addr: SocketAddr) -> Self {
         self.tracker_config.health_check_api_bind_address = addr;
         self
     }
 
-    #[expect(dead_code, reason = "reserved for future scenario configuration")]
+    #[expect(dead_code, reason = "reserved for future scenario configuration; see #1706")]
     pub(crate) fn access_token(mut self, token: &str) -> Self {
         self.tracker_config.access_token = token.to_string();
         self

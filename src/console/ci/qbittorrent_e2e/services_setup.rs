@@ -10,13 +10,11 @@ use std::time::Duration;
 use anyhow::Context;
 
 use super::client_role::ClientRole;
-use super::qbittorrent::QbittorrentClient;
+use super::qbittorrent::{QbittorrentClient, QBITTORRENT_WEBUI_PORT};
 use super::tracker::{TrackerApiClient, TrackerConfig};
 use super::types::{ComposeProjectName, QbittorrentImage, TrackerImage};
 use super::workspace::WorkspaceResources;
 use crate::console::ci::compose::{DockerCompose, RunningCompose};
-
-const QBITTORRENT_WEBUI_PORT: u16 = 8080;
 const COMPOSE_PORT_POLL_INTERVAL: Duration = Duration::from_secs(1);
 
 /// Builds the tracker image, starts all Docker Compose services, and returns
@@ -162,5 +160,5 @@ fn configure_compose(
 fn normalize_path_for_compose(path: &Path) -> anyhow::Result<String> {
     let absolute_path = fs::canonicalize(path).with_context(|| format!("failed to canonicalize path '{}'", path.display()))?;
 
-    Ok(absolute_path.to_string_lossy().to_string())
+    Ok(absolute_path.to_string_lossy().into_owned())
 }
