@@ -64,6 +64,7 @@ pub async fn run() -> anyhow::Result<()> {
 
     let workspace = filesystem_setup::prepare(&project_name, args.keep_containers, timeout, &tracker_config)?;
     let resources = workspace.resources();
+    let prepared_cases = scenarios::seeder_to_leecher_transfer::prepare(resources)?;
 
     let tracker_image = TrackerImage::new(&args.tracker_image);
     let qbittorrent_image = QbittorrentImage::new(&args.qbittorrent_image);
@@ -78,7 +79,7 @@ pub async fn run() -> anyhow::Result<()> {
     )
     .await?;
 
-    scenarios::seeder_to_leecher_transfer::run(&seeder, &leecher, &tracker, resources).await?;
+    scenarios::seeder_to_leecher_transfer::run(&seeder, &leecher, &tracker, resources, &prepared_cases).await?;
 
     // POST-SCENARIO: optionally keep containers for debugging.
     if args.keep_containers {

@@ -53,6 +53,32 @@ struct ScenarioCase {
     info_hash: InfoHash,
 }
 
+/// Scenario fixtures prepared on the host filesystem before containers start.
+pub(crate) struct PreparedCases {
+    cases: Vec<ScenarioCase>,
+}
+
+impl PreparedCases {
+    fn iter(&self) -> impl Iterator<Item = &ScenarioCase> {
+        self.cases.iter()
+    }
+}
+
+/// Builds all scenario fixtures on disk.
+///
+/// This must run before `docker compose up` so host-side writes to bind-mounted
+/// paths are done before container init scripts can alter ownership/permissions.
+pub(crate) fn prepare(workspace: &WorkspaceResources) -> anyhow::Result<PreparedCases> {
+    let http_case = prepare_case(workspace, Protocol::Http, &workspace.tracker_endpoints.http_announce_url)
+        .context("failed to prepare HTTP scenario case")?;
+    let udp_case = prepare_case(workspace, Protocol::Udp, &workspace.tracker_endpoints.udp_announce_url)
+        .context("failed to prepare UDP scenario case")?;
+
+    Ok(PreparedCases {
+        cases: vec![http_case, udp_case],
+    })
+}
+
 /// Runs the seeder-to-leecher transfer scenario for both the HTTP and UDP trackers.
 ///
 /// # Errors
@@ -63,18 +89,14 @@ pub(crate) async fn run(
     leecher: &QbittorrentClient,
     tracker: &TrackerApiClient,
     workspace: &WorkspaceResources,
+    prepared_cases: &PreparedCases,
 ) -> anyhow::Result<()> {
-    let http_case = prepare_case(workspace, Protocol::Http, &workspace.tracker_endpoints.http_announce_url)
-        .context("failed to prepare HTTP scenario case")?;
-    run_case(seeder, leecher, tracker, workspace, &http_case)
-        .await
-        .context("HTTP tracker scenario failed")?;
-
-    let udp_case = prepare_case(workspace, Protocol::Udp, &workspace.tracker_endpoints.udp_announce_url)
-        .context("failed to prepare UDP scenario case")?;
-    run_case(seeder, leecher, tracker, workspace, &udp_case)
-        .await
-        .context("UDP tracker scenario failed")?;
+    for case in prepared_cases.iter() {
+        let case_label = case.protocol.label();
+        run_case(seeder, leecher, tracker, workspace, case)
+            .await
+            .with_context(|| format!("{case_label} tracker scenario failed"))?;
+    }
 
     Ok(())
 }
