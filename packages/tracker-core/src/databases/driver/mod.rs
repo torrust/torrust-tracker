@@ -1,4 +1,6 @@
 //! Database driver factory.
+use std::str::FromStr;
+
 use mysql::Mysql;
 use serde::{Deserialize, Serialize};
 use sqlite::Sqlite;
@@ -23,6 +25,29 @@ pub enum Driver {
     Sqlite3,
     /// The `MySQL` database driver.
     MySQL,
+}
+
+impl Driver {
+    /// Returns the stable lowercase identifier used by CLI and reports.
+    #[must_use]
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Self::Sqlite3 => "sqlite3",
+            Self::MySQL => "mysql",
+        }
+    }
+}
+
+impl FromStr for Driver {
+    type Err = String;
+
+    fn from_str(value: &str) -> Result<Self, Self::Err> {
+        match value {
+            "sqlite3" => Ok(Self::Sqlite3),
+            "mysql" => Ok(Self::MySQL),
+            _ => Err("driver must be one of: sqlite3, mysql".to_string()),
+        }
+    }
 }
 
 /// It builds a new database driver.

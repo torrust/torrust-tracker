@@ -18,9 +18,11 @@ default = [  ]
 db-compatibility-tests = [  ]
 
 [dependencies]
+anyhow = "1"
 aquatic_udp_protocol = "0"
 bittorrent-primitives = "0.1.0"
 chrono = { version = "0", default-features = false, features = [ "clock" ] }
+clap = { version = "4", features = [ "derive" ] }
 derive_more = { version = "2", features = [ "as_ref", "constructor", "from" ] }
 mockall = "0"
 r2d2 = "0"
@@ -39,12 +41,12 @@ torrust-tracker-located-error = { version = "3.0.0-develop", path = "../located-
 torrust-tracker-metrics = { version = "3.0.0-develop", path = "../metrics" }
 torrust-tracker-primitives = { version = "3.0.0-develop", path = "../primitives" }
 torrust-tracker-swarm-coordination-registry = { version = "3.0.0-develop", path = "../swarm-coordination-registry" }
+testcontainers = "0"
 tracing = "0"
 
 [dev-dependencies]
 local-ip-address = "0"
 mockall = "0"
-testcontainers = "0"
 torrust-rest-tracker-api-client = { version = "3.0.0-develop", path = "../rest-tracker-api-client" }
 torrust-tracker-test-helpers = { version = "3.0.0-develop", path = "../test-helpers" }
 url = "2.5.4"

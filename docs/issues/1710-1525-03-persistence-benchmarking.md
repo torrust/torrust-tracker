@@ -14,6 +14,9 @@ already covered by tests, otherwise performance comparisons risk masking regress
 
 - Implement the benchmark runner as a binary inside `packages/tracker-core`, the package
   that owns the persistence layer. No Docker Compose, no image building or swapping.
+- Keep the benchmark helper modules private to the binary target instead of exposing them from
+  the `bittorrent-tracker-core` library API. This keeps development tooling out of the
+  production module surface while still allowing `cargo run` execution from the same package.
 - Benchmark every method of the `Database` trait directly, using real driver instances
   (SQLite file on disk; MySQL container via testcontainers — the same mechanism already used
   in the package's integration tests).
@@ -87,13 +90,25 @@ Pass a larger `--ops` value when tighter statistics are needed.
 
 ### 1) Implement the benchmark runner binary inside `packages/tracker-core`
 
-Add a new binary and supporting module to the `bittorrent-tracker-core` package.
+Add a new binary and binary-private support module tree to the `bittorrent-tracker-core`
+package.
+
+**Module placement rationale:**
+
+- Do **not** expose the benchmark implementation from `packages/tracker-core/src/lib.rs`.
+  Benchmark orchestration is a developer tool, not part of the production library API.
+- Do **not** place this implementation under `packages/tracker-core/benches/`. In this
+  repository, `benches/` is used for Criterion-style `cargo bench` targets. This persistence
+  runner is different: it has a CLI, writes JSON files, selects database drivers and versions,
+  and is intended to be run manually with `cargo run`.
+- Therefore, keep the executable in `src/bin/` and place its helper modules under a
+  binary-private directory next to it.
 
 **New files:**
 
 ```text
 packages/tracker-core/src/bin/persistence_benchmark_runner.rs   ← thin entry point (3 lines)
-packages/tracker-core/src/bench/
+packages/tracker-core/src/bin/persistence_benchmark/
   mod.rs           ← module doc, re-exports
   runner.rs        ← CLI args (clap), orchestration, tracing init
   driver_bench.rs  ← driver setup, measurement loops, RawResults
@@ -120,7 +135,7 @@ cargo run -p bittorrent-tracker-core --bin persistence_benchmark_runner -- \
     --driver sqlite3|mysql      # exactly one driver per run
     --db-version 8.4            # DB image tag; ignored for sqlite3; default "8.4" for mysql
     --ops 10                    # samples per operation; default 10
-    --json-output <path>        # default: bench-results.json
+  --json-output <path>        # default: .benchmarks/bench-results-<driver>[-<db-version>].json
 ```
 
 **Driver setup:**
