@@ -34,7 +34,6 @@
 //! | Flag | Default | Description |
 //! |------|---------|-------------|
 //! | `--compose-file` | `compose.qbittorrent-e2e.yaml` | Compose file for the scenario |
-//! | `--tracker-config-template` | `share/default/config/tracker.e2e.container.sqlite3.toml` | Tracker config copied into the workspace |
 //! | `--timeout-seconds` | `180` | Per-operation HTTP timeout for `WebUI` calls |
 //! | `--tracker-image` | `torrust-tracker:qbt-e2e-local` | Local Docker image tag built for the tracker |
 //! | `--qbittorrent-image` | `lscr.io/linuxserver/qbittorrent:5.1.4` | qBittorrent image for seeder and leecher |

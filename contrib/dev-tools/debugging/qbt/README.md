@@ -72,7 +72,8 @@ Workaround for manual browser inspection:
    socat TCP-LISTEN:8080,reuseaddr,fork TCP:127.0.0.1:<host-port>
 
 2. Open `http://localhost:8080`.
-3. Log in with `admin` / `torrust-e2e-pass`.
+3. Log in with the leecher credentials configured by the E2E workflow:
+   `admin` / `leecher-pass`.
 4. Stop the forwarder with `Ctrl+C` when done.
 
 Notes:

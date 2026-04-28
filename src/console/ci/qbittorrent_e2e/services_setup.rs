@@ -100,7 +100,7 @@ async fn wait_for_client_port(compose: &DockerCompose, role: ClientRole, timeout
 
 fn build_client(role: ClientRole, host_port: u16, timeout: Duration) -> anyhow::Result<QbittorrentClient> {
     let service_name = role.service_name();
-    QbittorrentClient::new(role.client_label(), &format!("http://127.0.0.1:{host_port}"), timeout)
+    QbittorrentClient::new(role.client_label(), &format!("http://localhost:{host_port}"), timeout)
         .with_context(|| format!("failed to create qBittorrent client for service '{service_name}'"))
 }
 

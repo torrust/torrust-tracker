@@ -185,12 +185,13 @@ Steps:
     dispatch).
   - Logs output and failures for debugging.
   - Does not block other tests if it fails (can be marked as non-blocking initially).
-  - Note: workflow implementation is deferred to a follow-up task after this subissue merges.
+  - Note: The GitHub Actions workflow step (`run-qbittorrent-e2e-test`) is implemented in
+    `.github/workflows/testing.yaml`.
 
 Acceptance criteria:
 
 - [x] The test is documented and runnable without ad hoc manual steps.
-- [ ] GitHub Actions workflow integration is documented and planned (implementation deferred).
+- [x] GitHub Actions workflow integration is implemented in `.github/workflows/testing.yaml`.
 
 ## Out of Scope
 
@@ -207,7 +208,7 @@ Acceptance criteria:
 - [x] `linter all` exits with code `0`.
 - [x] The E2E runner has been executed successfully in a clean environment; a passing run log is
       included in the PR description.
-- [ ] GitHub Actions workflow integration is documented and planned for follow-up.
+- [x] GitHub Actions workflow integration is implemented in `.github/workflows/testing.yaml`.
 
 ## References
 
@@ -240,7 +241,7 @@ Acceptance criteria:
 
 **Pending (follow-up tasks):**
 
-- GitHub Actions workflow integration (documented and planned for follow-up)
+- GitHub Actions workflow integration
 
 ### Race Condition Resolution
 
@@ -318,12 +319,8 @@ Operational troubleshooting findings captured during validation:
 These findings are documented in `contrib/dev-tools/debugging/qbt/README.md` under
 Troubleshooting.
 
-### GitHub Actions Integration (Deferred)
+### GitHub Actions Integration
 
-The E2E runner is currently a standalone binary invoked manually. Integration into GitHub Actions
-is planned for a follow-up task and will involve:
-
-- Creating or updating a GitHub Actions workflow (e.g., `.github/workflows/e2e-qbittorrent.yml`)
-- Running on push and pull requests (or opt-in via `workflow_dispatch`)
-- Capturing logs and failures for debugging
-- Initially marked as non-blocking so it does not fail PR merge gates while being tested
+The E2E runner is integrated into GitHub Actions via a `run-qbittorrent-e2e-test` step in
+`.github/workflows/testing.yaml`. The step runs on push and pull requests with a 600-second
+timeout. It is currently non-blocking so it does not gate PR merges while the step stabilizes.

@@ -11,6 +11,9 @@ use super::credentials::QbittorrentCredentials;
 use super::torrent::{TorrentInfo, TorrentProgress};
 use super::QBITTORRENT_WEBUI_PORT;
 
+const WEBUI_HEADER_HOST: &str = "localhost";
+const WEBUI_HEADER_SCHEME: &str = "http";
+
 /// A validated qBittorrent `WebUI` base URL.
 ///
 /// Parses the raw URL string once at construction time.  All subsequent
@@ -19,38 +22,21 @@ use super::QBITTORRENT_WEBUI_PORT;
 #[derive(Debug, Clone)]
 struct WebUiBaseUrl {
     raw: String,
-    host: String,
-    scheme: String,
 }
 
 impl WebUiBaseUrl {
     fn new(url: &str) -> anyhow::Result<Self> {
         let parsed = reqwest::Url::parse(url).with_context(|| format!("failed to parse qBittorrent WebUI base URL '{url}'"))?;
-        let host = parsed
+        parsed
             .host_str()
-            .ok_or_else(|| anyhow::anyhow!("qBittorrent WebUI URL has no host: '{url}'"))?
-            .to_string();
-        let scheme = parsed.scheme().to_string();
-        Ok(Self {
-            raw: url.to_string(),
-            host,
-            scheme,
-        })
+            .ok_or_else(|| anyhow::anyhow!("qBittorrent WebUI URL has no host: '{url}'"))?;
+
+        Ok(Self { raw: url.to_string() })
     }
 
     /// Returns the base URL string for composing API paths.
     fn as_str(&self) -> &str {
         &self.raw
-    }
-
-    /// Returns only the host component (e.g. `"127.0.0.1"`).
-    fn host(&self) -> &str {
-        &self.host
-    }
-
-    /// Returns the scheme (e.g. `"http"`).
-    fn scheme(&self) -> &str {
-        &self.scheme
     }
 }
 
@@ -101,7 +87,7 @@ impl QbittorrentClient {
         .query()
         .ok_or_else(|| anyhow::anyhow!("encoded qBittorrent login body is unexpectedly empty"))?
         .to_string();
-        let (webui_host, webui_origin) = self.webui_headers();
+        let (webui_host, webui_origin) = Self::webui_headers();
 
         let response = self
             .client
@@ -138,7 +124,7 @@ impl QbittorrentClient {
     // Staged: used by planned scenario steps in <https://github.com/torrust/torrust-tracker/issues/1706>.
     #[expect(dead_code, reason = "reserved for staged scenario coverage; see #1706")]
     pub async fn app_version(&self) -> anyhow::Result<String> {
-        let (webui_host, webui_origin) = self.webui_headers();
+        let (webui_host, webui_origin) = Self::webui_headers();
         let sid_cookie = self.sid_cookie.lock().await.clone();
 
         let request = self
@@ -168,7 +154,7 @@ impl QbittorrentClient {
     ///
     /// Returns an error when adding a torrent file fails.
     pub async fn add_torrent_file(&self, torrent_name: &str, torrent_bytes: &[u8], save_path: &str) -> anyhow::Result<()> {
-        let (webui_host, webui_origin) = self.webui_headers();
+        let (webui_host, webui_origin) = Self::webui_headers();
         let sid_cookie = self.sid_cookie.lock().await.clone();
 
         let part = Part::bytes(torrent_bytes.to_vec()).file_name(torrent_name.to_string());
@@ -211,7 +197,7 @@ impl QbittorrentClient {
     ///
     /// Returns an error when querying torrents fails.
     pub async fn list_torrents(&self) -> anyhow::Result<Vec<TorrentInfo>> {
-        let (webui_host, webui_origin) = self.webui_headers();
+        let (webui_host, webui_origin) = Self::webui_headers();
         let sid_cookie = self.sid_cookie.lock().await.clone();
 
         let request = self
@@ -288,7 +274,7 @@ impl QbittorrentClient {
     ///
     /// Returns an error when the qBittorrent API call fails.
     pub async fn delete_torrent(&self, hash: &InfoHash) -> anyhow::Result<()> {
-        let (webui_host, webui_origin) = self.webui_headers();
+        let (webui_host, webui_origin) = Self::webui_headers();
         let sid_cookie = self.sid_cookie.lock().await.clone();
 
         let body = format!("hashes={}&deleteFiles=false", hash.as_str());
@@ -333,12 +319,10 @@ impl QbittorrentClient {
             .len())
     }
 
-    fn webui_headers(&self) -> (String, String) {
-        let host = self.base_url.host();
-        let scheme = self.base_url.scheme();
+    fn webui_headers() -> (String, String) {
         (
-            format!("{host}:{QBITTORRENT_WEBUI_PORT}"),
-            format!("{scheme}://{host}:{QBITTORRENT_WEBUI_PORT}"),
+            format!("{WEBUI_HEADER_HOST}:{QBITTORRENT_WEBUI_PORT}"),
+            format!("{WEBUI_HEADER_SCHEME}://{WEBUI_HEADER_HOST}:{QBITTORRENT_WEBUI_PORT}"),
         )
     }
 }
