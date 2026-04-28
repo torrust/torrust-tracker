@@ -92,7 +92,7 @@ You can then browse or search it while working in the main repository.
 
 ### 2) Add qBittorrent end-to-end test
 
-- Spec file: `docs/issues/1525-02-qbittorrent-e2e.md`
+- Spec file: `docs/issues/1706-1525-02-qbittorrent-e2e.md`
 - Outcome: one complete seeder/leecher torrent-sharing scenario using real containerized clients
   and docker compose, with SQLite as the backend
 

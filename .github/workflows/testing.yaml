@@ -168,27 +168,33 @@ jobs:
     name: E2E
     runs-on: ubuntu-latest
     needs: database-compatibility
+    timeout-minutes: 45
 
     strategy:
       matrix:
         toolchain: [nightly, stable]
 
     steps:
-      - id: setup
+      - id: setup-e2e-toolchain
         name: Setup Toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: ${{ matrix.toolchain }}
           components: llvm-tools-preview
 
-      - id: cache
+      - id: enable-e2e-job-cache
         name: Enable Job Cache
         uses: Swatinem/rust-cache@v2
 
-      - id: checkout
+      - id: checkout-repository
         name: Checkout Repository
         uses: actions/checkout@v6
 
-      - id: test
+      - id: run-tracker-e2e-tests
         name: Run E2E Tests
         run: cargo run --bin e2e_tests_runner -- --config-toml-path "./share/default/config/tracker.e2e.container.sqlite3.toml"
+
+      - id: run-qbittorrent-e2e-test
+        if: matrix.toolchain == 'stable'
+        name: Run qBittorrent E2E Test
+        run: cargo run --bin qbittorrent_e2e_runner -- --compose-file ./compose.qbittorrent-e2e.yaml --timeout-seconds 600
