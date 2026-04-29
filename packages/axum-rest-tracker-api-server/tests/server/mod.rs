@@ -14,6 +14,6 @@ use bittorrent_tracker_core::databases::SchemaMigrator;
 ///
 /// - Inject a database mock in the future.
 /// - Inject directly the database reference passed to the Tracker type.
-pub fn force_database_error(schema_migrator: &Arc<dyn SchemaMigrator>) {
-    schema_migrator.drop_database_tables().unwrap();
+pub async fn force_database_error(schema_migrator: &Arc<dyn SchemaMigrator>) {
+    schema_migrator.drop_database_tables().await.unwrap();
 }

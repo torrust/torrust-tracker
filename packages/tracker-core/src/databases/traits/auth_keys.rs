@@ -1,4 +1,5 @@
 //! The [`AuthKeyStore`] trait — authentication keys context.
+use async_trait::async_trait;
 use mockall::automock;
 
 use super::super::error::Error;
@@ -8,6 +9,7 @@ use crate::authentication::{self, Key};
 // The `automock` macro generates a struct whose fields all end with `keys`,
 // which triggers `clippy::struct_field_names` (pedantic). Suppressed here
 // because the generated mock struct is outside our control.
+#[async_trait]
 #[allow(clippy::struct_field_names)]
 #[automock]
 pub trait AuthKeyStore: Sync + Send {
@@ -16,7 +18,7 @@ pub trait AuthKeyStore: Sync + Send {
     /// # Errors
     ///
     /// Returns an [`Error`] if the keys cannot be loaded.
-    fn load_keys(&self) -> Result<Vec<authentication::PeerKey>, Error>;
+    async fn load_keys(&self) -> Result<Vec<authentication::PeerKey>, Error>;
 
     /// Retrieves a specific authentication key from the database.
     ///
@@ -26,19 +28,19 @@ pub trait AuthKeyStore: Sync + Send {
     /// # Errors
     ///
     /// Returns an [`Error`] if the key cannot be queried.
-    fn get_key_from_keys(&self, key: &Key) -> Result<Option<authentication::PeerKey>, Error>;
+    async fn get_key_from_keys(&self, key: &Key) -> Result<Option<authentication::PeerKey>, Error>;
 
     /// Adds an authentication key to the database.
     ///
     /// # Errors
     ///
     /// Returns an [`Error`] if the key cannot be saved.
-    fn add_key_to_keys(&self, auth_key: &authentication::PeerKey) -> Result<usize, Error>;
+    async fn add_key_to_keys(&self, auth_key: &authentication::PeerKey) -> Result<usize, Error>;
 
     /// Removes an authentication key from the database.
     ///
     /// # Errors
     ///
     /// Returns an [`Error`] if the key cannot be removed.
-    fn remove_key_from_keys(&self, key: &Key) -> Result<usize, Error>;
+    async fn remove_key_from_keys(&self, key: &Key) -> Result<usize, Error>;
 }

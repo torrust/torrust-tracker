@@ -257,6 +257,23 @@ This task is a single focused commit. Steps within the commit:
 **Outcome**: `cargo test --workspace --all-targets` passes. `linter all` exits `0`. Sync drivers
 and all `r2d2`/`rusqlite`/`mysql` dependencies are gone.
 
+### Task 5 — Remove sync-to-async runtime bridges (cleanup follow-up)
+
+During Task 4, some sync wrappers were introduced to keep existing sync consumers working
+while trait methods became async (helpers named `block_on_current_or_new_runtime`).
+These wrappers are a transitional compatibility mechanism and should be removed.
+
+This task migrates remaining sync call paths to native async end-to-end:
+
+1. Make repository/service methods async where they call async persistence traits.
+2. Propagate `.await` through callers instead of blocking at lower layers.
+3. Remove all `block_on_current_or_new_runtime` helpers from tracker-core modules.
+4. Keep runtime ownership at application boundaries only (no nested runtime creation).
+5. Preserve eager schema initialization behavior while using async initialization paths.
+
+**Outcome**: no `block_on_current_or_new_runtime` helper remains; persistence interactions
+are fully async from call sites to drivers; tests, linters, and benchmarks still pass.
+
 ## Constraints
 
 - Do not add PostgreSQL in this step.
@@ -276,6 +293,7 @@ and all `r2d2`/`rusqlite`/`mysql` dependencies are gone.
 - [ ] `r2d2`, `r2d2_sqlite`, `rusqlite`, and the `mysql` crate are removed from
       `tracker-core/Cargo.toml`.
 - [ ] Existing behavior is preserved end-to-end.
+- [ ] All temporary sync-to-async runtime bridge helpers (e.g. `block_on_current_or_new_runtime`) are removed and replaced with native async call paths.
 - [ ] The branch compiles and all tests pass after each of Tasks 1–3 individually (verified by CI
       or manual `cargo test` run after each task).
 - [ ] Persistence benchmarking (see subissue `1525-03`) shows no regression against the committed

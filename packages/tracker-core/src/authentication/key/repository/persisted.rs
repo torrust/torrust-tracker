@@ -13,6 +13,33 @@ pub struct DatabaseKeyRepository {
     database: Arc<dyn AuthKeyStore>,
 }
 
+fn block_on_current_or_new_runtime<F>(future: F) -> F::Output
+where
+    F: std::future::Future + Send,
+    F::Output: Send,
+{
+    if tokio::runtime::Handle::try_current().is_ok() {
+        std::thread::scope(|scope| {
+            scope
+                .spawn(|| {
+                    tokio::runtime::Builder::new_current_thread()
+                        .enable_all()
+                        .build()
+                        .expect("failed to build Tokio runtime")
+                        .block_on(future)
+                })
+                .join()
+                .expect("failed to join blocking runtime thread")
+        })
+    } else {
+        tokio::runtime::Builder::new_current_thread()
+            .enable_all()
+            .build()
+            .expect("failed to build Tokio runtime")
+            .block_on(future)
+    }
+}
+
 impl DatabaseKeyRepository {
     /// Creates a new `DatabaseKeyRepository` instance.
     ///
@@ -40,7 +67,7 @@ impl DatabaseKeyRepository {
     ///
     /// Returns a [`databases::error::Error`] if the key cannot be added.
     pub(crate) fn add(&self, peer_key: &PeerKey) -> Result<(), databases::error::Error> {
-        self.database.add_key_to_keys(peer_key)?;
+        block_on_current_or_new_runtime(self.database.add_key_to_keys(peer_key))?;
         Ok(())
     }
 
@@ -54,7 +81,7 @@ impl DatabaseKeyRepository {
     ///
     /// Returns a [`databases::error::Error`] if the key cannot be removed.
     pub(crate) fn remove(&self, key: &Key) -> Result<(), databases::error::Error> {
-        self.database.remove_key_from_keys(key)?;
+        block_on_current_or_new_runtime(self.database.remove_key_from_keys(key))?;
         Ok(())
     }
 
@@ -68,7 +95,7 @@ impl DatabaseKeyRepository {
     ///
     /// A vector containing all persisted [`PeerKey`] entries.
     pub(crate) fn load_keys(&self) -> Result<Vec<PeerKey>, databases::error::Error> {
-        let keys = self.database.load_keys()?;
+        let keys = block_on_current_or_new_runtime(self.database.load_keys())?;
         Ok(keys)
     }
 }
@@ -94,8 +121,8 @@ mod tests {
             config
         }
 
-        #[test]
-        fn persist_a_new_peer_key() {
+        #[tokio::test]
+        async fn persist_a_new_peer_key() {
             let configuration = ephemeral_configuration();
 
             let stores = initialize_database(&configuration);
@@ -114,8 +141,8 @@ mod tests {
             assert_eq!(keys, vec!(peer_key));
         }
 
-        #[test]
-        fn remove_a_persisted_peer_key() {
+        #[tokio::test]
+        async fn remove_a_persisted_peer_key() {
             let configuration = ephemeral_configuration();
 
             let stores = initialize_database(&configuration);
@@ -136,8 +163,8 @@ mod tests {
             assert!(keys.is_empty());
         }
 
-        #[test]
-        fn load_all_persisted_peer_keys() {
+        #[tokio::test]
+        async fn load_all_persisted_peer_keys() {
             let configuration = ephemeral_configuration();
 
             let stores = initialize_database(&configuration);

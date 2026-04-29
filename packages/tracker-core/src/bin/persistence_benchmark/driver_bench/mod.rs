@@ -29,9 +29,9 @@ pub async fn run(driver: Driver, db_version: &str, ops: OpsCount) -> Result<Vec<
     let ops = ops.get();
 
     let mut operations_samples = Vec::new();
-    operations::benchmark_torrent_operations(&*stores.torrent_metrics_store, ops, &mut operations_samples)?;
-    operations::benchmark_whitelist_operations(&*stores.whitelist_store, ops, &mut operations_samples)?;
-    operations::benchmark_key_operations(&*stores.auth_key_store, ops, &mut operations_samples)?;
+    operations::benchmark_torrent_operations(&*stores.torrent_metrics_store, ops, &mut operations_samples).await?;
+    operations::benchmark_whitelist_operations(&*stores.whitelist_store, ops, &mut operations_samples).await?;
+    operations::benchmark_key_operations(&*stores.auth_key_store, ops, &mut operations_samples).await?;
 
     Ok(operations_samples)
 }

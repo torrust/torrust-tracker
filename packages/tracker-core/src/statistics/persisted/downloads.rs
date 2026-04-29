@@ -27,6 +27,33 @@ pub struct DatabaseDownloadsMetricRepository {
     database: Arc<dyn TorrentMetricsStore>,
 }
 
+fn block_on_current_or_new_runtime<F>(future: F) -> F::Output
+where
+    F: std::future::Future + Send,
+    F::Output: Send,
+{
+    if tokio::runtime::Handle::try_current().is_ok() {
+        std::thread::scope(|scope| {
+            scope
+                .spawn(|| {
+                    tokio::runtime::Builder::new_current_thread()
+                        .enable_all()
+                        .build()
+                        .expect("failed to build Tokio runtime")
+                        .block_on(future)
+                })
+                .join()
+                .expect("failed to join blocking runtime thread")
+        })
+    } else {
+        tokio::runtime::Builder::new_current_thread()
+            .enable_all()
+            .build()
+            .expect("failed to build Tokio runtime")
+            .block_on(future)
+    }
+}
+
 impl DatabaseDownloadsMetricRepository {
     /// Creates a new instance of `DatabaseDownloadsMetricRepository`.
     ///
@@ -63,7 +90,9 @@ impl DatabaseDownloadsMetricRepository {
         let torrent = self.load_torrent_downloads(info_hash)?;
 
         match torrent {
-            Some(_number_of_downloads) => self.database.increase_downloads_for_torrent(info_hash),
+            Some(_number_of_downloads) => {
+                block_on_current_or_new_runtime(self.database.increase_downloads_for_torrent(info_hash))
+            }
             None => self.save_torrent_downloads(info_hash, 1),
         }
     }
@@ -77,7 +106,7 @@ impl DatabaseDownloadsMetricRepository {
     ///
     /// Returns an [`Error`] if the underlying database query fails.
     pub(crate) fn load_all_torrents_downloads(&self) -> Result<NumberOfDownloadsBTreeMap, Error> {
-        self.database.load_all_torrents_downloads()
+        block_on_current_or_new_runtime(self.database.load_all_torrents_downloads())
     }
 
     /// Loads one persistent torrent metrics from the database.
@@ -89,7 +118,7 @@ impl DatabaseDownloadsMetricRepository {
     ///
     /// Returns an [`Error`] if the underlying database query fails.
     pub(crate) fn load_torrent_downloads(&self, info_hash: &InfoHash) -> Result<Option<NumberOfDownloads>, Error> {
-        self.database.load_torrent_downloads(info_hash)
+        block_on_current_or_new_runtime(self.database.load_torrent_downloads(info_hash))
     }
 
     /// Saves the persistent torrent metric into the database.
@@ -106,7 +135,7 @@ impl DatabaseDownloadsMetricRepository {
     ///
     /// Returns an [`Error`] if the database operation fails.
     pub(crate) fn save_torrent_downloads(&self, info_hash: &InfoHash, downloaded: u32) -> Result<(), Error> {
-        self.database.save_torrent_downloads(info_hash, downloaded)
+        block_on_current_or_new_runtime(self.database.save_torrent_downloads(info_hash, downloaded))
     }
 
     // Aggregate Metrics
@@ -119,11 +148,11 @@ impl DatabaseDownloadsMetricRepository {
     ///
     /// Returns an [`Error`] if the database operation fails.
     pub(crate) fn increase_global_downloads(&self) -> Result<(), Error> {
-        let torrent = self.database.load_global_downloads()?;
+        let torrent = block_on_current_or_new_runtime(self.database.load_global_downloads())?;
 
         match torrent {
-            Some(_number_of_downloads) => self.database.increase_global_downloads(),
-            None => self.database.save_global_downloads(1),
+            Some(_number_of_downloads) => block_on_current_or_new_runtime(self.database.increase_global_downloads()),
+            None => block_on_current_or_new_runtime(self.database.save_global_downloads(1)),
         }
     }
 
@@ -133,7 +162,7 @@ impl DatabaseDownloadsMetricRepository {
     ///
     /// Returns an [`Error`] if the underlying database query fails.
     pub(crate) fn load_global_downloads(&self) -> Result<Option<NumberOfDownloads>, Error> {
-        self.database.load_global_downloads()
+        block_on_current_or_new_runtime(self.database.load_global_downloads())
     }
 }
 
@@ -152,8 +181,8 @@ mod tests {
         DatabaseDownloadsMetricRepository::new(&stores.torrent_metrics_store)
     }
 
-    #[test]
-    fn it_saves_the_numbers_of_downloads_for_a_torrent_into_the_database() {
+    #[tokio::test]
+    async fn it_saves_the_numbers_of_downloads_for_a_torrent_into_the_database() {
         let repository = initialize_db_persistent_torrent_repository();
 
         let infohash = sample_info_hash();
@@ -165,8 +194,8 @@ mod tests {
         assert_eq!(torrents.get(&infohash), Some(1).as_ref());
     }
 
-    #[test]
-    fn it_increases_the_numbers_of_downloads_for_a_torrent_into_the_database() {
+    #[tokio::test]
+    async fn it_increases_the_numbers_of_downloads_for_a_torrent_into_the_database() {
         let repository = initialize_db_persistent_torrent_repository();
 
         let infohash = sample_info_hash();
@@ -178,8 +207,8 @@ mod tests {
         assert_eq!(torrents.get(&infohash), Some(1).as_ref());
     }
 
-    #[test]
-    fn it_loads_the_numbers_of_downloads_for_all_torrents_from_the_database() {
+    #[tokio::test]
+    async fn it_loads_the_numbers_of_downloads_for_all_torrents_from_the_database() {
         let repository = initialize_db_persistent_torrent_repository();
 
         let infohash_one = sample_info_hash_one();

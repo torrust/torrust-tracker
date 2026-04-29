@@ -1,8 +1,8 @@
 use std::str::FromStr;
 
+use ::sqlx::Row;
+use async_trait::async_trait;
 use bittorrent_primitives::info_hash::InfoHash;
-use r2d2_mysql::mysql::params;
-use r2d2_mysql::mysql::prelude::Queryable;
 use torrust_tracker_primitives::{NumberOfDownloads, NumberOfDownloadsBTreeMap};
 
 use super::{Mysql, DRIVER};
@@ -10,19 +10,24 @@ use crate::databases::driver::TORRENTS_DOWNLOADS_TOTAL;
 use crate::databases::error::Error;
 use crate::databases::TorrentMetricsStore;
 
+#[async_trait]
 impl TorrentMetricsStore for Mysql {
-    fn load_all_torrents_downloads(&self) -> Result<NumberOfDownloadsBTreeMap, Error> {
-        let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
+    async fn load_all_torrents_downloads(&self) -> Result<NumberOfDownloadsBTreeMap, Error> {
+        let rows = ::sqlx::query("SELECT info_hash, completed FROM torrents")
+            .fetch_all(&self.pool)
+            .await
+            .map_err(|e| (e, DRIVER))?;
 
-        let raw_rows: Vec<(String, u32)> = conn.query_map(
-            "SELECT info_hash, completed FROM torrents",
-            |(info_hash_string, completed): (String, u32)| (info_hash_string, completed),
-        )?;
+        rows.into_iter()
+            .map(|row| {
+                let info_hash_value: String = row.try_get("info_hash").map_err(|e| (e, DRIVER))?;
+                let completed: i64 = row.try_get("completed").map_err(|e| (e, DRIVER))?;
+                let completed = u32::try_from(completed).map_err(|e| Error::MalformedDatabaseRecord {
+                    message: e.to_string(),
+                    driver: DRIVER,
+                })?;
 
-        raw_rows
-            .into_iter()
-            .map(|(s, completed)| {
-                InfoHash::from_str(&s)
+                InfoHash::from_str(&info_hash_value)
                     .map(|info_hash| (info_hash, completed))
                     .map_err(|e| Error::MalformedDatabaseRecord {
                         message: format!("{e:?}"),
@@ -33,59 +38,71 @@ impl TorrentMetricsStore for Mysql {
             .map(|v| v.iter().copied().collect())
     }
 
-    fn load_torrent_downloads(&self, info_hash: &InfoHash) -> Result<Option<NumberOfDownloads>, Error> {
-        let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
+    async fn load_torrent_downloads(&self, info_hash: &InfoHash) -> Result<Option<NumberOfDownloads>, Error> {
+        let maybe_row = ::sqlx::query("SELECT completed FROM torrents WHERE info_hash = ?")
+            .bind(info_hash.to_hex_string())
+            .fetch_optional(&self.pool)
+            .await
+            .map_err(|e| (e, DRIVER))?;
 
-        let query = conn.exec_first::<u32, _, _>(
-            "SELECT completed FROM torrents WHERE info_hash = :info_hash",
-            params! { "info_hash" => info_hash.to_hex_string() },
-        );
-
-        let persistent_torrent = query?;
-
-        Ok(persistent_torrent)
+        maybe_row
+            .map(|row| {
+                let completed: i64 = row.try_get("completed").map_err(|e| (e, DRIVER))?;
+                u32::try_from(completed).map_err(|e| Error::MalformedDatabaseRecord {
+                    message: e.to_string(),
+                    driver: DRIVER,
+                })
+            })
+            .transpose()
     }
 
-    fn save_torrent_downloads(&self, info_hash: &InfoHash, completed: u32) -> Result<(), Error> {
-        const COMMAND : &str = "INSERT INTO torrents (info_hash, completed) VALUES (:info_hash_str, :completed) ON DUPLICATE KEY UPDATE completed = VALUES(completed)";
+    async fn save_torrent_downloads(&self, info_hash: &InfoHash, completed: u32) -> Result<(), Error> {
+        let insert = ::sqlx::query(
+            "INSERT INTO torrents (info_hash, completed) VALUES (?, ?) ON DUPLICATE KEY UPDATE completed = VALUES(completed)",
+        )
+        .bind(info_hash.to_string())
+        .bind(i64::from(completed))
+        .execute(&self.pool)
+        .await
+        .map_err(|e| (e, DRIVER))?
+        .rows_affected();
 
-        let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
-
-        let info_hash_str = info_hash.to_string();
-
-        Ok(conn.exec_drop(COMMAND, params! { info_hash_str, completed })?)
+        if insert == 0 {
+            Err(Error::InsertFailed {
+                location: std::panic::Location::caller(),
+                driver: DRIVER,
+            })
+        } else {
+            Ok(())
+        }
     }
 
-    fn increase_downloads_for_torrent(&self, info_hash: &InfoHash) -> Result<(), Error> {
-        let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
-
-        let info_hash_str = info_hash.to_string();
-
-        conn.exec_drop(
-            "UPDATE torrents SET completed = completed + 1 WHERE info_hash = :info_hash_str",
-            params! { info_hash_str },
-        )?;
+    async fn increase_downloads_for_torrent(&self, info_hash: &InfoHash) -> Result<(), Error> {
+        ::sqlx::query("UPDATE torrents SET completed = completed + 1 WHERE info_hash = ?")
+            .bind(info_hash.to_string())
+            .execute(&self.pool)
+            .await
+            .map_err(|e| (e, DRIVER))?;
 
         Ok(())
     }
 
-    fn load_global_downloads(&self) -> Result<Option<NumberOfDownloads>, Error> {
-        self.load_torrent_aggregate_metric(TORRENTS_DOWNLOADS_TOTAL)
+    async fn load_global_downloads(&self) -> Result<Option<NumberOfDownloads>, Error> {
+        self.load_torrent_aggregate_metric(TORRENTS_DOWNLOADS_TOTAL).await
     }
 
-    fn save_global_downloads(&self, downloaded: NumberOfDownloads) -> Result<(), Error> {
-        self.save_torrent_aggregate_metric(TORRENTS_DOWNLOADS_TOTAL, downloaded)
+    async fn save_global_downloads(&self, downloaded: NumberOfDownloads) -> Result<(), Error> {
+        self.save_torrent_aggregate_metric(TORRENTS_DOWNLOADS_TOTAL, downloaded).await
     }
 
-    fn increase_global_downloads(&self) -> Result<(), Error> {
-        let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
-
+    async fn increase_global_downloads(&self) -> Result<(), Error> {
         let metric_name = TORRENTS_DOWNLOADS_TOTAL;
 
-        conn.exec_drop(
-            "UPDATE torrent_aggregate_metrics SET value = value + 1 WHERE metric_name = :metric_name",
-            params! { metric_name },
-        )?;
+        ::sqlx::query("UPDATE torrent_aggregate_metrics SET value = value + 1 WHERE metric_name = ?")
+            .bind(metric_name)
+            .execute(&self.pool)
+            .await
+            .map_err(|e| (e, DRIVER))?;
 
         Ok(())
     }

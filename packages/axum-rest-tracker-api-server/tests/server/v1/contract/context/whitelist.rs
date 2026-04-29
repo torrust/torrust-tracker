@@ -115,7 +115,7 @@ async fn should_fail_when_the_torrent_cannot_be_whitelisted() {
 
     let info_hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned(); // DevSkim: ignore DS173237
 
-    force_database_error(&env.container.tracker_core_container.database_stores.schema_migrator);
+    force_database_error(&env.container.tracker_core_container.database_stores.schema_migrator).await;
 
     let request_id = Uuid::new_v4();
 
@@ -266,7 +266,7 @@ async fn should_fail_when_the_torrent_cannot_be_removed_from_the_whitelist() {
         .await
         .unwrap();
 
-    force_database_error(&env.container.tracker_core_container.database_stores.schema_migrator);
+    force_database_error(&env.container.tracker_core_container.database_stores.schema_migrator).await;
 
     let request_id = Uuid::new_v4();
 
@@ -392,7 +392,7 @@ async fn should_fail_when_the_whitelist_cannot_be_reloaded_from_the_database() {
         .await
         .unwrap();
 
-    force_database_error(&env.container.tracker_core_container.database_stores.schema_migrator);
+    force_database_error(&env.container.tracker_core_container.database_stores.schema_migrator).await;
 
     let request_id = Uuid::new_v4();
 

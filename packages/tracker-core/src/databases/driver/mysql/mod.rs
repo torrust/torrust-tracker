@@ -1,17 +1,8 @@
 //! The `MySQL` database driver.
-//!
-//! This module provides implementations of the four narrow database traits
-//! ([`SchemaMigrator`](crate::databases::SchemaMigrator),
-//! [`TorrentMetricsStore`](crate::databases::TorrentMetricsStore),
-//! [`WhitelistStore`](crate::databases::WhitelistStore),
-//! [`AuthKeyStore`](crate::databases::AuthKeyStore)
-//! for `MySQL` using the `r2d2_mysql` connection pool. It configures the `MySQL`
-//! connection based on a URL, creates the necessary tables (for torrent metrics,
-//! torrent whitelist, and authentication keys), and implements all CRUD
-//! operations required by the persistence layer.
-use r2d2::Pool;
-use r2d2_mysql::mysql::{Opts, OptsBuilder};
-use r2d2_mysql::MySqlConnectionManager;
+use std::str::FromStr;
+
+use ::sqlx::mysql::{MySqlConnectOptions, MySqlPoolOptions};
+use ::sqlx::{MySqlPool, Row};
 use torrust_tracker_primitives::NumberOfDownloads;
 
 use super::{Driver, Error};
@@ -29,50 +20,55 @@ const DRIVER: Driver = Driver::MySQL;
 /// `r2d2_mysql` connection manager. It implements the [`Database`] trait to
 /// provide persistence operations.
 pub(crate) struct Mysql {
-    pool: Pool<MySqlConnectionManager>,
+    pool: MySqlPool,
 }
 
 impl Mysql {
-    /// It instantiates a new `MySQL` database driver.
-    ///
-    ///
-    /// # Errors
-    ///
-    /// Will return `r2d2::Error` if `db_path` is not able to create `MySQL` database.
     pub fn new(db_path: &str) -> Result<Self, Error> {
-        let opts = Opts::from_url(db_path)?;
-        let builder = OptsBuilder::from_opts(opts);
-        let manager = MySqlConnectionManager::new(builder);
-        let pool = r2d2::Pool::builder().build(manager).map_err(|e| (e, DRIVER))?;
+        let options = MySqlConnectOptions::from_str(db_path).map_err(|e| (e, DRIVER))?;
+
+        let pool = MySqlPoolOptions::new().connect_lazy_with(options);
 
         Ok(Self { pool })
     }
 
-    fn load_torrent_aggregate_metric(&self, metric_name: &str) -> Result<Option<NumberOfDownloads>, Error> {
-        use r2d2_mysql::mysql::params;
-        use r2d2_mysql::mysql::prelude::Queryable;
+    async fn load_torrent_aggregate_metric(&self, metric_name: &str) -> Result<Option<NumberOfDownloads>, Error> {
+        let maybe_row = ::sqlx::query("SELECT value FROM torrent_aggregate_metrics WHERE metric_name = ?")
+            .bind(metric_name)
+            .fetch_optional(&self.pool)
+            .await
+            .map_err(|e| (e, DRIVER))?;
 
-        let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
-
-        let query = conn.exec_first::<u32, _, _>(
-            "SELECT value FROM torrent_aggregate_metrics WHERE metric_name = :metric_name",
-            params! { "metric_name" => metric_name },
-        );
-
-        let persistent_torrent = query?;
-
-        Ok(persistent_torrent)
+        maybe_row
+            .map(|row| {
+                let value: i64 = row.try_get("value").map_err(|e| (e, DRIVER))?;
+                u32::try_from(value).map_err(|e| Error::MalformedDatabaseRecord {
+                    message: e.to_string(),
+                    driver: DRIVER,
+                })
+            })
+            .transpose()
     }
 
-    fn save_torrent_aggregate_metric(&self, metric_name: &str, completed: NumberOfDownloads) -> Result<(), Error> {
-        use r2d2_mysql::mysql::params;
-        use r2d2_mysql::mysql::prelude::Queryable;
+    async fn save_torrent_aggregate_metric(&self, metric_name: &str, completed: NumberOfDownloads) -> Result<(), Error> {
+        let insert = ::sqlx::query(
+            "INSERT INTO torrent_aggregate_metrics (metric_name, value) VALUES (?, ?) ON DUPLICATE KEY UPDATE value = VALUES(value)",
+        )
+        .bind(metric_name)
+        .bind(i64::from(completed))
+        .execute(&self.pool)
+        .await
+        .map_err(|e| (e, DRIVER))?
+        .rows_affected();
 
-        const COMMAND : &str = "INSERT INTO torrent_aggregate_metrics (metric_name, value) VALUES (:metric_name, :completed) ON DUPLICATE KEY UPDATE value = VALUES(value)";
-
-        let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
-
-        Ok(conn.exec_drop(COMMAND, params! { metric_name, completed })?)
+        if insert == 0 {
+            Err(Error::InsertFailed {
+                location: std::panic::Location::caller(),
+                driver: DRIVER,
+            })
+        } else {
+            Ok(())
+        }
     }
 }
 
@@ -184,8 +180,7 @@ mod tests {
     }
 
     fn initialize_driver(config: &Core) -> Arc<Box<dyn Database>> {
-        let driver: Arc<Box<dyn Database>> = Arc::new(Box::new(Mysql::new(&config.database.path).unwrap()));
-        driver
+        Arc::new(Box::new(Mysql::new(&config.database.path).unwrap()))
     }
 
     // This test is invoked by `.github/workflows/testing.yaml` in the

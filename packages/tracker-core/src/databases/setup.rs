@@ -42,6 +42,33 @@ where
     }
 }
 
+fn block_on_current_or_new_runtime<F>(future: F) -> F::Output
+where
+    F: std::future::Future + Send,
+    F::Output: Send,
+{
+    if tokio::runtime::Handle::try_current().is_ok() {
+        std::thread::scope(|scope| {
+            scope
+                .spawn(|| {
+                    tokio::runtime::Builder::new_current_thread()
+                        .enable_all()
+                        .build()
+                        .expect("failed to build Tokio runtime")
+                        .block_on(future)
+                })
+                .join()
+                .expect("failed to join blocking runtime thread")
+        })
+    } else {
+        tokio::runtime::Builder::new_current_thread()
+            .enable_all()
+            .build()
+            .expect("failed to build Tokio runtime")
+            .block_on(future)
+    }
+}
+
 /// Initializes and returns a [`DatabaseStores`] bundle based on the provided
 /// configuration.
 ///
@@ -82,12 +109,12 @@ pub fn initialize_database(config: &Core) -> DatabaseStores {
     match driver {
         Driver::Sqlite3 => {
             let db = Arc::new(Sqlite::new(&config.database.path).expect("Database driver build failed."));
-            db.create_database_tables().expect("Could not create database tables.");
+            block_on_current_or_new_runtime(db.create_database_tables()).expect("Could not create database tables.");
             build_database_stores(db)
         }
         Driver::MySQL => {
             let db = Arc::new(Mysql::new(&config.database.path).expect("Database driver build failed."));
-            db.create_database_tables().expect("Could not create database tables.");
+            block_on_current_or_new_runtime(db.create_database_tables()).expect("Could not create database tables.");
             build_database_stores(db)
         }
     }
@@ -98,8 +125,8 @@ mod tests {
     use super::initialize_database;
     use crate::test_helpers::tests::ephemeral_configuration;
 
-    #[test]
-    fn it_should_initialize_the_sqlite_database() {
+    #[tokio::test]
+    async fn it_should_initialize_the_sqlite_database() {
         let config = ephemeral_configuration();
         let _database = initialize_database(&config);
     }
