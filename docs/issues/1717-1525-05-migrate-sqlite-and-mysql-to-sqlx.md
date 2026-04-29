@@ -17,10 +17,10 @@ async persistence model first so PostgreSQL can land on a common foundation.
 
 ### Starting point
 
-By the time this subissue is implemented, subissue `1525-04` will have split the monolithic
-`Database` trait into four narrow sync traits (`SchemaMigrator`, `TorrentMetricsStore`,
-`WhitelistStore`, `AuthKeyStore`) plus a `Database` aggregate supertrait with a blanket impl.
-Consumers still hold `Arc<Box<dyn Database>>`.
+Subissue `1525-04` has already been merged into `develop` (it is included in this branch).
+It split the monolithic `Database` trait into four narrow sync traits (`SchemaMigrator`,
+`TorrentMetricsStore`, `WhitelistStore`, `AuthKeyStore`) plus a `Database` aggregate supertrait
+with a blanket impl. Consumers still hold `Arc<Box<dyn Database>>`.
 
 The existing drivers (`Sqlite` in `driver/sqlite.rs`, `Mysql` in `driver/mysql.rs`) use
 synchronous connection pools (`r2d2_sqlite`/`r2d2` for SQLite, the `mysql` crate for MySQL).
@@ -65,46 +65,63 @@ Add the async substrate without touching the existing drivers or traits.
 In `packages/tracker-core/Cargo.toml`, add:
 
 ```toml
-async-trait = "..."
-sqlx = { version = "...", features = ["sqlite", "mysql", "runtime-tokio-native-tls"] }
-tokio = { version = "...", features = ["full"] }   # if not already present with needed features
+async-trait = "*"   # latest compatible with MSRV 1.72
+sqlx = { version = "*", features = ["sqlite", "mysql", "runtime-tokio-native-tls"] }   # latest compatible
+tokio = { version = "*", features = ["full"] }   # latest compatible; if not already present with needed features
 ```
+
+Use the latest crate versions compatible with MSRV 1.72. For the `Mutex` used in
+`ensure_schema()`, use `tokio::sync::Mutex` (not `std::sync::Mutex`) to avoid runtime conflicts
+since Tokio is used throughout the project.
 
 Keep `r2d2`, `r2d2_sqlite`, `rusqlite`, and the `mysql` crate — they are still needed by the old
 drivers until Task 4.
 
 #### Error handling
 
-Update `databases/error.rs` so that `sqlx::Error` can be converted into the existing `Error` type.
-Add the following constructor methods and their corresponding enum variants. Do not add
-`Error::migration_error()` — that belongs to `1525-06`:
+Update `databases/error.rs` so that `sqlx::Error` can be converted into the existing `Error`
+type. The variants `ConnectionError`, `InvalidQuery`, and `QueryReturnedNoRows` **already exist**
+in `error.rs`; do not re-introduce them. The only required change is:
 
-- `Error::connection_error()` — wraps connection failures (`sqlx::Error::Io`, pool errors,
-  etc.). Introduce the `ConnectionError` variant.
-- `Error::invalid_query()` — wraps type-decoding and encoding failures. Used by
-  `decode_info_hash`, `decode_key`, `decode_valid_until`, and counter conversion helpers in
-  the async drivers. Also used by the `decode_counter`/`encode_counter` helpers introduced in
-  `1525-07` — introduce the variant here so `1525-07` requires no additional `error.rs`
-  changes. Introduce the `InvalidQuery` variant.
-- `Error::query_returned_no_rows()` — for `sqlx::Error::RowNotFound`. Introduce the
-  `QueryReturnedNoRows` variant.
-- `From<(sqlx::Error, Driver)>` — maps `sqlx::Error` variants to `ConnectionError`,
-  `QueryReturnedNoRows`, or `InvalidQuery` based on error kind (see reference `error.rs`).
+- Broaden `ConnectionError`: its `source` field currently wraps `LocatedError<'static, UrlError>`
+  (MySQL-specific). Generalize it to `LocatedError<'static, dyn std::error::Error + Send + Sync>`
+  so it can hold any connection-level error from sqlx as well.
+- Add `From<(sqlx::Error, Driver)>` — maps `sqlx::Error` variants to `ConnectionError`,
+  `QueryReturnedNoRows`, or `InvalidQuery` based on error kind (see reference `error.rs`). Do not
+  add `Error::migration_error()` — that belongs to `1525-06`.
 
-Do not change existing variants.
+Do not change any other existing variants. The `ConnectionPool` variant (wraps `r2d2::Error`) is
+removed in Task 4 together with the `r2d2` dependency.
 
 **Outcome**: `cargo test --workspace --all-targets` still passes. No behavior change.
 
 ### Task 2 — Implement async SQLite driver (stays green)
 
 Create a new async SQLite driver in a parallel `databases/sqlx/` submodule without touching the
-existing `databases/driver/sqlite.rs`.
+existing `databases/driver/sqlite/` subdirectory.
+
+> **Note**: post-1525-04 the sync drivers are already split into per-trait files. The actual
+> existing layout is:
+>
+> ```text
+> databases/driver/sqlite/mod.rs
+> databases/driver/sqlite/schema_migrator.rs
+> databases/driver/sqlite/torrent_metrics_store.rs
+> databases/driver/sqlite/whitelist_store.rs
+> databases/driver/sqlite/auth_key_store.rs
+> ```
+>
+> The async parallel module must mirror this layout.
 
 #### New files
 
 ```text
-packages/tracker-core/src/databases/sqlx/mod.rs   ← async trait definitions + AsyncDatabase aggregate
-packages/tracker-core/src/databases/sqlx/sqlite.rs ← SqliteSqlx struct
+packages/tracker-core/src/databases/sqlx/mod.rs              ← async trait definitions + AsyncDatabase aggregate
+packages/tracker-core/src/databases/sqlx/sqlite/mod.rs       ← SqliteSqlx struct + pool/latch
+packages/tracker-core/src/databases/sqlx/sqlite/schema_migrator.rs
+packages/tracker-core/src/databases/sqlx/sqlite/torrent_metrics_store.rs
+packages/tracker-core/src/databases/sqlx/sqlite/whitelist_store.rs
+packages/tracker-core/src/databases/sqlx/sqlite/auth_key_store.rs
 ```
 
 #### Async trait definitions (`databases/sqlx/mod.rs`)
@@ -168,8 +185,9 @@ untouched.
 
 ### Task 3 — Implement async MySQL driver (stays green)
 
-Create `packages/tracker-core/src/databases/sqlx/mysql.rs` with a `MysqlSqlx` struct mirroring
-the same structure as `SqliteSqlx` but using `MySqlPool`. Schema initialization uses raw
+Create a `packages/tracker-core/src/databases/sqlx/mysql/` subdirectory mirroring the same
+per-trait file layout as `databases/sqlx/sqlite/` (i.e. `mod.rs`, `schema_migrator.rs`,
+`torrent_metrics_store.rs`, `whitelist_store.rs`, `auth_key_store.rs`) but using `MySqlPool`. Schema initialization uses raw
 `sqlx::query()` DDL — no `sqlx::migrate!()` in this step.
 
 Implement the same four async traits. Add an inline `#[cfg(test)]` module that runs the shared
@@ -186,38 +204,40 @@ This task is a single focused commit. Steps within the commit:
 1. **Rename async traits to canonical names**: rename `AsyncSchemaMigrator` → `SchemaMigrator`,
    `AsyncTorrentMetricsStore` → `TorrentMetricsStore`, etc. in `databases/sqlx/mod.rs`. Rename
    `AsyncDatabase` → `Database`. Move the trait definitions from `databases/sqlx/mod.rs` into
-   `databases/mod.rs` (replacing the sync trait definitions). Move the driver files into the
-   existing driver directory, overwriting the old sync drivers:
-   `databases/sqlx/sqlite.rs` → `databases/driver/sqlite.rs` and
-   `databases/sqlx/mysql.rs` → `databases/driver/mysql.rs`. Remove the now-empty
-   `databases/sqlx/` submodule.
+   `databases/traits/` (replacing the sync trait definitions in
+   `databases/traits/schema.rs`, `databases/traits/torrent_metrics.rs`,
+   `databases/traits/whitelist.rs`, `databases/traits/auth_keys.rs`).
+   Move the driver subdirectories, overwriting the old sync drivers:
+   `databases/sqlx/sqlite/` → `databases/driver/sqlite/` and
+   `databases/sqlx/mysql/` → `databases/driver/mysql/`.
+   Remove the now-empty `databases/sqlx/` submodule.
 
 2. **Rename driver structs**: rename `SqliteSqlx` → `Sqlite`, `MysqlSqlx` → `Mysql`.
 
-3. **Clean up old driver module helpers**: remove the sync test helpers from
-   `databases/driver/mod.rs` that reference `Arc<Box<dyn Database>>` with sync methods; replace
-   with async equivalents. (The old sync driver files at `databases/driver/sqlite.rs` and
-   `databases/driver/mysql.rs` were already overwritten by the async drivers in step 1.)
+3. **Clean up `databases/driver/mod.rs`**: remove the sync test helpers that call trait methods
+   without `.await`; replace with async equivalents.
 
-4. **Update `databases/driver/mod.rs` `build()`**: the function no longer calls
-   `create_database_tables()` eagerly (schema is now lazy). Update the return type if needed.
+4. **Update `databases/setup.rs` — `initialize_database()`**: this function already returns
+   `DatabaseStores` (a struct of four `Arc<dyn XxxStore>` fields, one per narrow trait — not
+   `Arc<Box<dyn Database>>`). Remove the eager `create_database_tables()` call; schema
+   initialization is now lazy via `ensure_schema()`. No return-type change is needed.
 
-5. **Update `databases/setup.rs`**: `initialize_database()` constructs the new async `Sqlite` or
-   `Mysql` and wraps in `Arc<Box<dyn Database>>` (type stays the same, traits are now async).
-
-6. **Add `.await` at all consumer call sites**: every location that called a `Database` method
+5. **Add `.await` at all consumer call sites**: every location that called a narrow-trait method
    synchronously now needs `.await`. The affected files are:
    - `statistics/persisted/downloads.rs` (`DatabaseDownloadsMetricRepository`)
    - `whitelist/repository/persisted.rs` (`DatabaseWhitelist`)
    - `whitelist/setup.rs`
    - `authentication/key/repository/persisted.rs` (`DatabaseKeyRepository`)
    - `authentication/handler.rs` (test helpers)
+   - `src/bin/persistence_benchmark/driver_bench/` and
+     `src/bin/persistence_benchmark/driver_bench/operations/` (benchmark binary)
    - Any integration tests in `tests/`
 
-7. **Remove unused dependencies**: remove `r2d2`, `r2d2_sqlite`, `rusqlite`, and the `mysql` crate
-   from `tracker-core/Cargo.toml`. Run `cargo machete` to verify.
+6. **Remove unused dependencies**: remove `r2d2`, `r2d2_sqlite`, `rusqlite`, and `r2d2_mysql`
+   from `tracker-core/Cargo.toml`. Also remove the `ConnectionPool` error variant and its
+   `From<(r2d2::Error, Driver)>` impl from `databases/error.rs`. Run `cargo machete` to verify.
 
-8. **Update mock usage**: `#[automock]` on the narrow traits generates async mocks via `mockall`.
+7. **Update mock usage**: `#[automock]` on the narrow traits generates async mocks via `mockall`.
    Note that `MockDatabase` was already removed in `1525-04` (the aggregate supertrait has no
    methods). The actual breakage surface in this switch commit is the four narrow-trait mocks:
    `MockSchemaMigrator`, `MockTorrentMetricsStore`, `MockWhitelistStore`, and `MockAuthKeyStore`.
@@ -235,8 +255,9 @@ and all `r2d2`/`rusqlite`/`mysql` dependencies are gone.
 - Do not introduce `sqlx::migrate!()`, migration files, or the `sqlx` `macros` feature — those
   are introduced in subissue `1525-06`.
 - Do not change the SQL schema in this step (schema evolution is `1525-06`).
-- Keep `Arc<Box<dyn Database>>` as the consumer-facing type; do not introduce the `Persistence`
-  struct from the reference implementation (that is a separate concern).
+- `DatabaseStores` (four `Arc<dyn XxxStore>` fields, one per narrow trait) is already the
+  consumer-facing type returned by `initialize_database()`; do not change this. Do not introduce
+  `Arc<Box<dyn Database>>` or the `Persistence` struct from the reference implementation.
 - The lazy `ensure_schema()` latch must be correct under concurrent async access: use
   `AtomicBool` (Acquire/Release) + `Mutex` double-checked pattern as in the reference.
 
@@ -268,11 +289,13 @@ and all `r2d2`/`rusqlite`/`mysql` dependencies are gone.
 ## References
 
 - EPIC: `#1525`
-- Subissue `1525-04`: `docs/issues/1713-1525-04-split-persistence-traits.md` — must be completed first
+- Subissue `1525-04`: `docs/issues/1713-1525-04-split-persistence-traits.md` — **already merged
+  into `develop`**
 - Subissue `1525-03`: `docs/issues/1525-03-persistence-benchmarking.md` — benchmark baseline
 - Reference PR: `#1695`
-- Reference implementation branch: `josecelano:pr-1684-review` — see EPIC for checkout
-  instructions (`docs/issues/1525-overhaul-persistence.md`)
+- Reference implementation branch: `josecelano:pr-1684-review` — local checkout at
+  `/home/josecelano/Documents/git/committer/me/github/torrust/torrust-tracker-pr-1700`;
+  consult only if blocked during implementation
 - Reference files (async driver implementations — note: the reference uses `sqlx::migrate!()`
   which is not adopted in this step; use raw DDL instead):
   - `packages/tracker-core/src/databases/driver/sqlite.rs`
