@@ -299,7 +299,7 @@ mod tests {
         use crate::authentication::key::repository::in_memory::InMemoryKeyRepository;
         use crate::authentication::key::repository::persisted::DatabaseKeyRepository;
         use crate::databases::setup::initialize_database;
-        use crate::databases::Database;
+        use crate::databases::{Database, MockAuthKeyStore};
 
         fn instantiate_keys_handler() -> KeysHandler {
             let config = configuration::ephemeral_private();
@@ -324,8 +324,126 @@ mod tests {
             KeysHandler::new(&db_key_repository, &in_memory_key_repository)
         }
 
-        mod handling_expiring_peer_keys {
+        /// Test double that satisfies `Database` by delegating auth-key calls to
+        /// `MockAuthKeyStore` and panicking for all other traits.
+        #[cfg(test)]
+        #[derive(Default)]
+        struct AuthKeyStoreMock {
+            pub inner: MockAuthKeyStore,
+        }
+        #[cfg(test)]
+        impl crate::databases::SchemaMigrator for AuthKeyStoreMock {
+            fn create_database_tables(&self) -> Result<(), crate::databases::error::Error> {
+                unimplemented!()
+            }
 
+            fn drop_database_tables(&self) -> Result<(), crate::databases::error::Error> {
+                unimplemented!()
+            }
+        }
+
+        #[cfg(test)]
+        impl crate::databases::TorrentMetricsStore for AuthKeyStoreMock {
+            fn load_all_torrents_downloads(
+                &self,
+            ) -> Result<torrust_tracker_primitives::NumberOfDownloadsBTreeMap, crate::databases::error::Error> {
+                unimplemented!()
+            }
+
+            fn load_torrent_downloads(
+                &self,
+                _info_hash: &bittorrent_primitives::info_hash::InfoHash,
+            ) -> Result<Option<torrust_tracker_primitives::NumberOfDownloads>, crate::databases::error::Error> {
+                unimplemented!()
+            }
+
+            fn save_torrent_downloads(
+                &self,
+                _info_hash: &bittorrent_primitives::info_hash::InfoHash,
+                _downloaded: u32,
+            ) -> Result<(), crate::databases::error::Error> {
+                unimplemented!()
+            }
+
+            fn increase_downloads_for_torrent(
+                &self,
+                _info_hash: &bittorrent_primitives::info_hash::InfoHash,
+            ) -> Result<(), crate::databases::error::Error> {
+                unimplemented!()
+            }
+
+            fn load_global_downloads(
+                &self,
+            ) -> Result<Option<torrust_tracker_primitives::NumberOfDownloads>, crate::databases::error::Error> {
+                unimplemented!()
+            }
+
+            fn save_global_downloads(
+                &self,
+                _downloaded: torrust_tracker_primitives::NumberOfDownloads,
+            ) -> Result<(), crate::databases::error::Error> {
+                unimplemented!()
+            }
+
+            fn increase_global_downloads(&self) -> Result<(), crate::databases::error::Error> {
+                unimplemented!()
+            }
+        }
+
+        #[cfg(test)]
+        impl crate::databases::WhitelistStore for AuthKeyStoreMock {
+            fn load_whitelist(&self) -> Result<Vec<bittorrent_primitives::info_hash::InfoHash>, crate::databases::error::Error> {
+                unimplemented!()
+            }
+
+            fn get_info_hash_from_whitelist(
+                &self,
+                _info_hash: bittorrent_primitives::info_hash::InfoHash,
+            ) -> Result<Option<bittorrent_primitives::info_hash::InfoHash>, crate::databases::error::Error> {
+                unimplemented!()
+            }
+
+            fn add_info_hash_to_whitelist(
+                &self,
+                _info_hash: bittorrent_primitives::info_hash::InfoHash,
+            ) -> Result<usize, crate::databases::error::Error> {
+                unimplemented!()
+            }
+
+            fn remove_info_hash_from_whitelist(
+                &self,
+                _info_hash: bittorrent_primitives::info_hash::InfoHash,
+            ) -> Result<usize, crate::databases::error::Error> {
+                unimplemented!()
+            }
+        }
+
+        #[cfg(test)]
+        impl crate::databases::AuthKeyStore for AuthKeyStoreMock {
+            fn load_keys(&self) -> Result<Vec<crate::authentication::PeerKey>, crate::databases::error::Error> {
+                self.inner.load_keys()
+            }
+
+            fn get_key_from_keys(
+                &self,
+                key: &crate::authentication::Key,
+            ) -> Result<Option<crate::authentication::PeerKey>, crate::databases::error::Error> {
+                self.inner.get_key_from_keys(key)
+            }
+
+            fn add_key_to_keys(
+                &self,
+                auth_key: &crate::authentication::PeerKey,
+            ) -> Result<usize, crate::databases::error::Error> {
+                self.inner.add_key_to_keys(auth_key)
+            }
+
+            fn remove_key_from_keys(&self, key: &crate::authentication::Key) -> Result<usize, crate::databases::error::Error> {
+                self.inner.remove_key_from_keys(key)
+            }
+        }
+
+        mod handling_expiring_peer_keys {
             use std::time::Duration;
 
             use torrust_tracker_clock::clock::Time;
@@ -358,12 +476,12 @@ mod tests {
                 use torrust_tracker_clock::clock::{self, Time};
 
                 use crate::authentication::handler::tests::the_keys_handler_when_the_tracker_is_configured_as_private::{
-                    instantiate_keys_handler, instantiate_keys_handler_with_database,
+                    instantiate_keys_handler, instantiate_keys_handler_with_database, AuthKeyStoreMock,
                 };
                 use crate::authentication::handler::AddKeyRequest;
                 use crate::authentication::PeerKey;
                 use crate::databases::driver::Driver;
-                use crate::databases::{self, Database, MockDatabase};
+                use crate::databases::{self, Database};
                 use crate::error::PeerKeyError;
                 use crate::CurrentClock;
 
@@ -392,8 +510,9 @@ mod tests {
                     // The key should be valid the next 60 seconds.
                     let expected_valid_until = clock::Stopped::now_add(&Duration::from_secs(60)).unwrap();
 
-                    let mut database_mock = MockDatabase::default();
+                    let mut database_mock = AuthKeyStoreMock::default();
                     database_mock
+                        .inner
                         .expect_add_key_to_keys()
                         .with(function(move |peer_key: &PeerKey| {
                             peer_key.valid_until == Some(expected_valid_until)
@@ -430,12 +549,12 @@ mod tests {
                 use torrust_tracker_clock::clock::{self, Time};
 
                 use crate::authentication::handler::tests::the_keys_handler_when_the_tracker_is_configured_as_private::{
-                    instantiate_keys_handler, instantiate_keys_handler_with_database,
+                    instantiate_keys_handler, instantiate_keys_handler_with_database, AuthKeyStoreMock,
                 };
                 use crate::authentication::handler::AddKeyRequest;
                 use crate::authentication::{Key, PeerKey};
                 use crate::databases::driver::Driver;
-                use crate::databases::{self, Database, MockDatabase};
+                use crate::databases::{self, Database};
                 use crate::error::PeerKeyError;
                 use crate::CurrentClock;
 
@@ -499,8 +618,9 @@ mod tests {
                         valid_until: Some(expected_valid_until),
                     };
 
-                    let mut database_mock = MockDatabase::default();
+                    let mut database_mock = AuthKeyStoreMock::default();
                     database_mock
+                        .inner
                         .expect_add_key_to_keys()
                         .with(predicate::eq(expected_peer_key))
                         .times(1)
@@ -536,12 +656,12 @@ mod tests {
                 use mockall::predicate::function;
 
                 use crate::authentication::handler::tests::the_keys_handler_when_the_tracker_is_configured_as_private::{
-                    instantiate_keys_handler, instantiate_keys_handler_with_database,
+                    instantiate_keys_handler, instantiate_keys_handler_with_database, AuthKeyStoreMock,
                 };
                 use crate::authentication::handler::AddKeyRequest;
                 use crate::authentication::PeerKey;
                 use crate::databases::driver::Driver;
-                use crate::databases::{self, Database, MockDatabase};
+                use crate::databases::{self, Database};
                 use crate::error::PeerKeyError;
 
                 #[tokio::test]
@@ -570,8 +690,9 @@ mod tests {
 
                 #[tokio::test]
                 async fn it_should_fail_adding_a_randomly_generated_key_when_there_is_a_database_error() {
-                    let mut database_mock = MockDatabase::default();
+                    let mut database_mock = AuthKeyStoreMock::default();
                     database_mock
+                        .inner
                         .expect_add_key_to_keys()
                         .with(function(move |peer_key: &PeerKey| peer_key.valid_until.is_none()))
                         .times(1)
@@ -604,12 +725,12 @@ mod tests {
                 use mockall::predicate;
 
                 use crate::authentication::handler::tests::the_keys_handler_when_the_tracker_is_configured_as_private::{
-                    instantiate_keys_handler, instantiate_keys_handler_with_database,
+                    instantiate_keys_handler, instantiate_keys_handler_with_database, AuthKeyStoreMock,
                 };
                 use crate::authentication::handler::AddKeyRequest;
                 use crate::authentication::{Key, PeerKey};
                 use crate::databases::driver::Driver;
-                use crate::databases::{self, Database, MockDatabase};
+                use crate::databases::{self, Database};
                 use crate::error::PeerKeyError;
 
                 #[tokio::test]
@@ -654,8 +775,9 @@ mod tests {
                         valid_until: None,
                     };
 
-                    let mut database_mock = MockDatabase::default();
+                    let mut database_mock = AuthKeyStoreMock::default();
                     database_mock
+                        .inner
                         .expect_add_key_to_keys()
                         .with(predicate::eq(expected_peer_key))
                         .times(1)

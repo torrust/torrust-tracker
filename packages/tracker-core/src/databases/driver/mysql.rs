@@ -1,10 +1,14 @@
 //! The `MySQL` database driver.
 //!
-//! This module provides an implementation of the [`Database`] trait for `MySQL`
-//! using the `r2d2_mysql` connection pool. It configures the MySQL connection
-//! based on a URL, creates the necessary tables (for torrent metrics, torrent
-//! whitelist, and authentication keys), and implements all CRUD operations
-//! required by the persistence layer.
+//! This module provides implementations of the four narrow database traits
+//! ([`SchemaMigrator`](crate::databases::SchemaMigrator),
+//! [`TorrentMetricsStore`](crate::databases::TorrentMetricsStore),
+//! [`WhitelistStore`](crate::databases::WhitelistStore),
+//! [`AuthKeyStore`](crate::databases::AuthKeyStore))
+//! for `MySQL` using the `r2d2_mysql` connection pool. It configures the MySQL
+//! connection based on a URL, creates the necessary tables (for torrent metrics,
+//! torrent whitelist, and authentication keys), and implements all CRUD
+//! operations required by the persistence layer.
 use std::str::FromStr;
 use std::time::Duration;
 
@@ -15,9 +19,10 @@ use r2d2_mysql::mysql::{params, Opts, OptsBuilder};
 use r2d2_mysql::MySqlConnectionManager;
 use torrust_tracker_primitives::{NumberOfDownloads, NumberOfDownloadsBTreeMap};
 
-use super::{Database, Driver, Error, TORRENTS_DOWNLOADS_TOTAL};
+use super::{Driver, Error, TORRENTS_DOWNLOADS_TOTAL};
 use crate::authentication::key::AUTH_KEY_LENGTH;
 use crate::authentication::{self, Key};
+use crate::databases::{AuthKeyStore, SchemaMigrator, TorrentMetricsStore, WhitelistStore};
 
 const DRIVER: Driver = Driver::MySQL;
 
@@ -69,7 +74,7 @@ impl Mysql {
     }
 }
 
-impl Database for Mysql {
+impl SchemaMigrator for Mysql {
     /// Refer to [`databases::Database::create_database_tables`](crate::core::databases::Database::create_database_tables).
     fn create_database_tables(&self) -> Result<(), Error> {
         let create_whitelist_table = "
@@ -144,7 +149,9 @@ impl Database for Mysql {
 
         Ok(())
     }
+}
 
+impl TorrentMetricsStore for Mysql {
     /// Refer to [`databases::Database::load_persistent_torrents`](crate::core::databases::Database::load_persistent_torrents).
     fn load_all_torrents_downloads(&self) -> Result<NumberOfDownloadsBTreeMap, Error> {
         let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
@@ -222,28 +229,9 @@ impl Database for Mysql {
 
         Ok(())
     }
+}
 
-    /// Refer to [`databases::Database::load_keys`](crate::core::databases::Database::load_keys).
-    fn load_keys(&self) -> Result<Vec<authentication::PeerKey>, Error> {
-        let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
-
-        let keys = conn.query_map(
-            "SELECT `key`, valid_until FROM `keys`",
-            |(key, valid_until): (String, Option<i64>)| match valid_until {
-                Some(valid_until) => authentication::PeerKey {
-                    key: key.parse::<Key>().unwrap(),
-                    valid_until: Some(Duration::from_secs(valid_until.unsigned_abs())),
-                },
-                None => authentication::PeerKey {
-                    key: key.parse::<Key>().unwrap(),
-                    valid_until: None,
-                },
-            },
-        )?;
-
-        Ok(keys)
-    }
-
+impl WhitelistStore for Mysql {
     /// Refer to [`databases::Database::load_whitelist`](crate::core::databases::Database::load_whitelist).
     fn load_whitelist(&self) -> Result<Vec<InfoHash>, Error> {
         let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
@@ -292,6 +280,29 @@ impl Database for Mysql {
         conn.exec_drop("DELETE FROM whitelist WHERE info_hash = :info_hash", params! { info_hash })?;
 
         Ok(1)
+    }
+}
+
+impl AuthKeyStore for Mysql {
+    /// Refer to [`databases::Database::load_keys`](crate::core::databases::Database::load_keys).
+    fn load_keys(&self) -> Result<Vec<authentication::PeerKey>, Error> {
+        let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
+
+        let keys = conn.query_map(
+            "SELECT `key`, valid_until FROM `keys`",
+            |(key, valid_until): (String, Option<i64>)| match valid_until {
+                Some(valid_until) => authentication::PeerKey {
+                    key: key.parse::<Key>().unwrap(),
+                    valid_until: Some(Duration::from_secs(valid_until.unsigned_abs())),
+                },
+                None => authentication::PeerKey {
+                    key: key.parse::<Key>().unwrap(),
+                    valid_until: None,
+                },
+            },
+        )?;
+
+        Ok(keys)
     }
 
     /// Refer to [`databases::Database::get_key_from_keys`](crate::core::databases::Database::get_key_from_keys).

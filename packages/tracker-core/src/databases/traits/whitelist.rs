@@ -1,0 +1,52 @@
+//! The [`WhitelistStore`] trait — torrent whitelist context.
+use bittorrent_primitives::info_hash::InfoHash;
+use mockall::automock;
+
+use super::super::error::Error;
+
+/// Trait covering persistence operations for the torrent whitelist.
+#[automock]
+pub trait WhitelistStore: Sync + Send {
+    /// Loads the whitelisted torrents from the database.
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`Error`] if the whitelist cannot be loaded.
+    fn load_whitelist(&self) -> Result<Vec<InfoHash>, Error>;
+
+    /// Retrieves a whitelisted torrent from the database.
+    ///
+    /// Returns `Some(InfoHash)` if the torrent is in the whitelist, or `None`
+    /// otherwise.
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`Error`] if the whitelist cannot be queried.
+    fn get_info_hash_from_whitelist(&self, info_hash: InfoHash) -> Result<Option<InfoHash>, Error>;
+
+    /// Adds a torrent to the whitelist.
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`Error`] if the torrent cannot be added to the whitelist.
+    fn add_info_hash_to_whitelist(&self, info_hash: InfoHash) -> Result<usize, Error>;
+
+    /// Removes a torrent from the whitelist.
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`Error`] if the torrent cannot be removed from the whitelist.
+    fn remove_info_hash_from_whitelist(&self, info_hash: InfoHash) -> Result<usize, Error>;
+
+    /// Checks whether a torrent is whitelisted.
+    ///
+    /// This default implementation returns `true` if the infohash is included
+    /// in the whitelist, or `false` otherwise.
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`Error`] if the whitelist cannot be queried.
+    fn is_info_hash_whitelisted(&self, info_hash: InfoHash) -> Result<bool, Error> {
+        Ok(self.get_info_hash_from_whitelist(info_hash)?.is_some())
+    }
+}
