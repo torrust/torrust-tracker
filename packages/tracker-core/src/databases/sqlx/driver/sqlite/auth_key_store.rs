@@ -12,8 +12,6 @@ use crate::databases::sqlx::traits::AsyncAuthKeyStore;
 #[async_trait]
 impl AsyncAuthKeyStore for SqliteSqlx {
     async fn load_keys(&self) -> Result<Vec<authentication::PeerKey>, Error> {
-        self.ensure_schema().await?;
-
         let rows = ::sqlx::query("SELECT key, valid_until FROM keys")
             .fetch_all(&self.pool)
             .await
@@ -44,8 +42,6 @@ impl AsyncAuthKeyStore for SqliteSqlx {
     }
 
     async fn get_key_from_keys(&self, key: &Key) -> Result<Option<authentication::PeerKey>, Error> {
-        self.ensure_schema().await?;
-
         let maybe_row = ::sqlx::query("SELECT key, valid_until FROM keys WHERE key = ?1")
             .bind(key.to_string())
             .fetch_optional(&self.pool)
@@ -77,8 +73,6 @@ impl AsyncAuthKeyStore for SqliteSqlx {
     }
 
     async fn add_key_to_keys(&self, auth_key: &authentication::PeerKey) -> Result<usize, Error> {
-        self.ensure_schema().await?;
-
         let valid_until = auth_key
             .valid_until
             .map(|value| {
@@ -108,8 +102,6 @@ impl AsyncAuthKeyStore for SqliteSqlx {
     }
 
     async fn remove_key_from_keys(&self, key: &Key) -> Result<usize, Error> {
-        self.ensure_schema().await?;
-
         let deleted = ::sqlx::query("DELETE FROM keys WHERE key = ?1")
             .bind(key.to_string())
             .execute(&self.pool)

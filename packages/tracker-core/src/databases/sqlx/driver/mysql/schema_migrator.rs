@@ -83,8 +83,6 @@ impl AsyncSchemaMigrator for MysqlSqlx {
             .await
             .map_err(|e| (e, DRIVER))?;
 
-        self.schema_ready.store(false, std::sync::atomic::Ordering::Release);
-
         Ok(())
     }
 }

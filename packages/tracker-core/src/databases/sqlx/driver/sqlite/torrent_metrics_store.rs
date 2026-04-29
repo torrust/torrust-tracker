@@ -13,8 +13,6 @@ use crate::databases::sqlx::traits::AsyncTorrentMetricsStore;
 #[async_trait]
 impl AsyncTorrentMetricsStore for SqliteSqlx {
     async fn load_all_torrents_downloads(&self) -> Result<NumberOfDownloadsBTreeMap, Error> {
-        self.ensure_schema().await?;
-
         let rows = ::sqlx::query("SELECT info_hash, completed FROM torrents")
             .fetch_all(&self.pool)
             .await
@@ -41,8 +39,6 @@ impl AsyncTorrentMetricsStore for SqliteSqlx {
     }
 
     async fn load_torrent_downloads(&self, info_hash: &InfoHash) -> Result<Option<NumberOfDownloads>, Error> {
-        self.ensure_schema().await?;
-
         let maybe_row = ::sqlx::query("SELECT completed FROM torrents WHERE info_hash = ?1")
             .bind(info_hash.to_hex_string())
             .fetch_optional(&self.pool)
@@ -61,8 +57,6 @@ impl AsyncTorrentMetricsStore for SqliteSqlx {
     }
 
     async fn save_torrent_downloads(&self, info_hash: &InfoHash, completed: u32) -> Result<(), Error> {
-        self.ensure_schema().await?;
-
         let insert = ::sqlx::query(
             "INSERT INTO torrents (info_hash, completed) VALUES (?1, ?2) ON CONFLICT(info_hash) DO UPDATE SET completed = ?2",
         )
@@ -84,8 +78,6 @@ impl AsyncTorrentMetricsStore for SqliteSqlx {
     }
 
     async fn increase_downloads_for_torrent(&self, info_hash: &InfoHash) -> Result<(), Error> {
-        self.ensure_schema().await?;
-
         ::sqlx::query("UPDATE torrents SET completed = completed + 1 WHERE info_hash = ?1")
             .bind(info_hash.to_string())
             .execute(&self.pool)
@@ -96,18 +88,14 @@ impl AsyncTorrentMetricsStore for SqliteSqlx {
     }
 
     async fn load_global_downloads(&self) -> Result<Option<NumberOfDownloads>, Error> {
-        self.ensure_schema().await?;
         self.load_torrent_aggregate_metric(TORRENTS_DOWNLOADS_TOTAL).await
     }
 
     async fn save_global_downloads(&self, downloaded: NumberOfDownloads) -> Result<(), Error> {
-        self.ensure_schema().await?;
         self.save_torrent_aggregate_metric(TORRENTS_DOWNLOADS_TOTAL, downloaded).await
     }
 
     async fn increase_global_downloads(&self) -> Result<(), Error> {
-        self.ensure_schema().await?;
-
         let metric_name = TORRENTS_DOWNLOADS_TOTAL;
 
         ::sqlx::query("UPDATE torrent_aggregate_metrics SET value = value + 1 WHERE metric_name = ?1")

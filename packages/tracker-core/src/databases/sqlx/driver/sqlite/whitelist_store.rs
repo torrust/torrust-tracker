@@ -12,8 +12,6 @@ use crate::databases::sqlx::traits::AsyncWhitelistStore;
 #[async_trait]
 impl AsyncWhitelistStore for SqliteSqlx {
     async fn load_whitelist(&self) -> Result<Vec<InfoHash>, Error> {
-        self.ensure_schema().await?;
-
         let rows = ::sqlx::query("SELECT info_hash FROM whitelist")
             .fetch_all(&self.pool)
             .await
@@ -31,8 +29,6 @@ impl AsyncWhitelistStore for SqliteSqlx {
     }
 
     async fn get_info_hash_from_whitelist(&self, info_hash: InfoHash) -> Result<Option<InfoHash>, Error> {
-        self.ensure_schema().await?;
-
         let maybe_row = ::sqlx::query("SELECT info_hash FROM whitelist WHERE info_hash = ?1")
             .bind(info_hash.to_hex_string())
             .fetch_optional(&self.pool)
@@ -51,8 +47,6 @@ impl AsyncWhitelistStore for SqliteSqlx {
     }
 
     async fn add_info_hash_to_whitelist(&self, info_hash: InfoHash) -> Result<usize, Error> {
-        self.ensure_schema().await?;
-
         let insert = ::sqlx::query("INSERT INTO whitelist (info_hash) VALUES (?1)")
             .bind(info_hash.to_string())
             .execute(&self.pool)
@@ -71,8 +65,6 @@ impl AsyncWhitelistStore for SqliteSqlx {
     }
 
     async fn remove_info_hash_from_whitelist(&self, info_hash: InfoHash) -> Result<usize, Error> {
-        self.ensure_schema().await?;
-
         let deleted = ::sqlx::query("DELETE FROM whitelist WHERE info_hash = ?1")
             .bind(info_hash.to_string())
             .execute(&self.pool)

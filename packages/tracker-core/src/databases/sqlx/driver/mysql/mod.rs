@@ -1,16 +1,13 @@
 #![allow(dead_code)]
 
 use std::str::FromStr;
-use std::sync::atomic::{AtomicBool, Ordering};
 
 use ::sqlx::mysql::{MySqlConnectOptions, MySqlPoolOptions};
 use ::sqlx::{MySqlPool, Row};
-use tokio::sync::Mutex;
 use torrust_tracker_primitives::NumberOfDownloads;
 
 use crate::databases::driver::Driver;
 use crate::databases::error::Error;
-use crate::databases::sqlx::traits::AsyncSchemaMigrator;
 
 mod auth_key_store;
 mod schema_migrator;
@@ -21,8 +18,6 @@ const DRIVER: Driver = Driver::MySQL;
 
 pub(crate) struct MysqlSqlx {
     pool: MySqlPool,
-    schema_ready: AtomicBool,
-    schema_lock: Mutex<()>,
 }
 
 impl MysqlSqlx {
@@ -31,27 +26,7 @@ impl MysqlSqlx {
 
         let pool = MySqlPoolOptions::new().connect_lazy_with(options);
 
-        Ok(Self {
-            pool,
-            schema_ready: AtomicBool::new(false),
-            schema_lock: Mutex::new(()),
-        })
-    }
-
-    async fn ensure_schema(&self) -> Result<(), Error> {
-        if self.schema_ready.load(Ordering::Acquire) {
-            return Ok(());
-        }
-
-        let _guard = self.schema_lock.lock().await;
-        if self.schema_ready.load(Ordering::Acquire) {
-            return Ok(());
-        }
-
-        self.create_database_tables().await?;
-        self.schema_ready.store(true, Ordering::Release);
-
-        Ok(())
+        Ok(Self { pool })
     }
 
     async fn load_torrent_aggregate_metric(&self, metric_name: &str) -> Result<Option<NumberOfDownloads>, Error> {
