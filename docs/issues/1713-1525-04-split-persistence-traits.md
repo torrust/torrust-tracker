@@ -246,6 +246,22 @@ pub use torrent_metrics::{MockTorrentMetricsStore, TorrentMetricsStore};
 pub use whitelist::{MockWhitelistStore, WhitelistStore};
 ```
 
+## Implementation Notes
+
+- **`mockall` dependency**: Already present in `[dependencies]` of `tracker-core/Cargo.toml`.
+  No change needed.
+
+- **ADR timestamp**: Use the date the ADR is authored (`YYYYMMDDHHMMSS` format, today's date).
+
+- **Consumer file changes**: The spirit of this subissue is not to mix refactorings — keep the
+  focus on the structural split. However, if test-only code (e.g. `MockDatabase` usage in
+  `handler.rs`) must be updated to compile after `MockDatabase` is removed, that change is
+  acceptable. Production consumer files (`persisted.rs`, `downloads.rs`, etc.) must not change.
+
+- **Method signatures**: Follow the actual code in `mod.rs` — the spec snippets are suggestions
+  and may have drifted. In particular, `save_torrent_downloads` takes `completed: u32` (not
+  `NumberOfDownloads`) in the current code.
+
 ## Out of Scope
 
 - Changing consumer wiring from `Arc<Box<dyn Database>>` to narrow trait objects.
@@ -261,7 +277,8 @@ pub use whitelist::{MockWhitelistStore, WhitelistStore};
 - [ ] `Database` is an empty aggregate supertrait with a blanket impl.
 - [ ] Both drivers (`Sqlite`, `Mysql`) compile through the blanket impl with no manual
       `impl Database for <Driver>` block.
-- [ ] No existing consumer file (`persisted.rs`, `downloads.rs`, etc.) is changed.
+- [ ] Production consumer files (`persisted.rs`, `downloads.rs`, etc.) are not changed.
+- [ ] Test code that used `MockDatabase` is updated to use the appropriate narrow mock type.
 - [ ] `#[automock]` is on the four narrow traits; `MockDatabase` is removed.
 - [ ] No behavior change — existing tests pass without modification.
 - [ ] Persistence benchmarking (see subissue #1525-03) shows no regression against the
