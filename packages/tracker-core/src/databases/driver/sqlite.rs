@@ -1,8 +1,12 @@
 //! The `SQLite3` database driver.
 //!
-//! This module provides an implementation of the [`Database`] trait for
-//! `SQLite3` using the `r2d2_sqlite` connection pool. It defines the schema for
-//!  whitelist, torrent metrics, and authentication keys, and provides methods
+//! This module provides implementations of the four narrow database traits
+//! ([`SchemaMigrator`](crate::databases::SchemaMigrator),
+//! [`TorrentMetricsStore`](crate::databases::TorrentMetricsStore),
+//! [`WhitelistStore`](crate::databases::WhitelistStore),
+//! [`AuthKeyStore`](crate::databases::AuthKeyStore)
+//! for `SQLite3` using the `r2d2_sqlite` connection pool. It defines the schema
+//! for whitelist, torrent metrics, and authentication keys, and provides methods
 //! to create and drop tables as well as perform CRUD operations on these
 //! persistent objects.
 use std::panic::Location;
@@ -15,8 +19,9 @@ use r2d2_sqlite::rusqlite::types::Null;
 use r2d2_sqlite::SqliteConnectionManager;
 use torrust_tracker_primitives::{DurationSinceUnixEpoch, NumberOfDownloads, NumberOfDownloadsBTreeMap};
 
-use super::{Database, Driver, Error, TORRENTS_DOWNLOADS_TOTAL};
+use super::{Driver, Error, TORRENTS_DOWNLOADS_TOTAL};
 use crate::authentication::{self, Key};
+use crate::databases::{AuthKeyStore, SchemaMigrator, TorrentMetricsStore, WhitelistStore};
 
 const DRIVER: Driver = Driver::Sqlite3;
 
@@ -84,8 +89,7 @@ impl Sqlite {
     }
 }
 
-impl Database for Sqlite {
-    /// Refer to [`databases::Database::create_database_tables`](crate::core::databases::Database::create_database_tables).
+impl SchemaMigrator for Sqlite {
     fn create_database_tables(&self) -> Result<(), Error> {
         let create_whitelist_table = "
         CREATE TABLE IF NOT EXISTS whitelist (
@@ -128,7 +132,6 @@ impl Database for Sqlite {
         Ok(())
     }
 
-    /// Refer to [`databases::Database::drop_database_tables`](crate::core::databases::Database::drop_database_tables).
     fn drop_database_tables(&self) -> Result<(), Error> {
         let drop_whitelist_table = "
         DROP TABLE whitelist;"
@@ -150,8 +153,9 @@ impl Database for Sqlite {
 
         Ok(())
     }
+}
 
-    /// Refer to [`databases::Database::load_persistent_torrents`](crate::core::databases::Database::load_persistent_torrents).
+impl TorrentMetricsStore for Sqlite {
     fn load_all_torrents_downloads(&self) -> Result<NumberOfDownloadsBTreeMap, Error> {
         let conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
@@ -167,7 +171,6 @@ impl Database for Sqlite {
         Ok(torrent_iter.filter_map(std::result::Result::ok).collect())
     }
 
-    /// Refer to [`databases::Database::load_persistent_torrent`](crate::core::databases::Database::load_persistent_torrent).
     fn load_torrent_downloads(&self, info_hash: &InfoHash) -> Result<Option<NumberOfDownloads>, Error> {
         let conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
@@ -183,7 +186,6 @@ impl Database for Sqlite {
         }))
     }
 
-    /// Refer to [`databases::Database::save_persistent_torrent`](crate::core::databases::Database::save_persistent_torrent).
     fn save_torrent_downloads(&self, info_hash: &InfoHash, completed: u32) -> Result<(), Error> {
         let conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
@@ -202,7 +204,6 @@ impl Database for Sqlite {
         }
     }
 
-    /// Refer to [`databases::Database::increase_number_of_downloads`](crate::core::databases::Database::increase_number_of_downloads).
     fn increase_downloads_for_torrent(&self, info_hash: &InfoHash) -> Result<(), Error> {
         let conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
@@ -214,17 +215,14 @@ impl Database for Sqlite {
         Ok(())
     }
 
-    /// Refer to [`databases::Database::load_global_number_of_downloads`](crate::core::databases::Database::load_global_number_of_downloads).
     fn load_global_downloads(&self) -> Result<Option<NumberOfDownloads>, Error> {
         self.load_torrent_aggregate_metric(TORRENTS_DOWNLOADS_TOTAL)
     }
 
-    /// Refer to [`databases::Database::save_global_number_of_downloads`](crate::core::databases::Database::save_global_number_of_downloads).
     fn save_global_downloads(&self, downloaded: NumberOfDownloads) -> Result<(), Error> {
         self.save_torrent_aggregate_metric(TORRENTS_DOWNLOADS_TOTAL, downloaded)
     }
 
-    /// Refer to [`databases::Database::increase_global_number_of_downloads`](crate::core::databases::Database::increase_global_number_of_downloads).
     fn increase_global_downloads(&self) -> Result<(), Error> {
         let conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
@@ -237,8 +235,71 @@ impl Database for Sqlite {
 
         Ok(())
     }
+}
 
-    /// Refer to [`databases::Database::load_keys`](crate::core::databases::Database::load_keys).
+impl WhitelistStore for Sqlite {
+    fn load_whitelist(&self) -> Result<Vec<InfoHash>, Error> {
+        let conn = self.pool.get().map_err(|e| (e, DRIVER))?;
+
+        let mut stmt = conn.prepare("SELECT info_hash FROM whitelist")?;
+
+        let info_hash_iter = stmt.query_map([], |row| {
+            let info_hash: String = row.get(0)?;
+
+            Ok(InfoHash::from_str(&info_hash).unwrap())
+        })?;
+
+        let info_hashes: Vec<InfoHash> = info_hash_iter.filter_map(std::result::Result::ok).collect();
+
+        Ok(info_hashes)
+    }
+
+    fn get_info_hash_from_whitelist(&self, info_hash: InfoHash) -> Result<Option<InfoHash>, Error> {
+        let conn = self.pool.get().map_err(|e| (e, DRIVER))?;
+
+        let mut stmt = conn.prepare("SELECT info_hash FROM whitelist WHERE info_hash = ?")?;
+
+        let mut rows = stmt.query([info_hash.to_hex_string()])?;
+
+        let query = rows.next()?;
+
+        Ok(query.map(|f| InfoHash::from_str(&f.get_unwrap::<_, String>(0)).unwrap()))
+    }
+
+    fn add_info_hash_to_whitelist(&self, info_hash: InfoHash) -> Result<usize, Error> {
+        let conn = self.pool.get().map_err(|e| (e, DRIVER))?;
+
+        let insert = conn.execute("INSERT INTO whitelist (info_hash) VALUES (?)", [info_hash.to_string()])?;
+
+        if insert == 0 {
+            Err(Error::InsertFailed {
+                location: Location::caller(),
+                driver: DRIVER,
+            })
+        } else {
+            Ok(insert)
+        }
+    }
+
+    fn remove_info_hash_from_whitelist(&self, info_hash: InfoHash) -> Result<usize, Error> {
+        let conn = self.pool.get().map_err(|e| (e, DRIVER))?;
+
+        let deleted = conn.execute("DELETE FROM whitelist WHERE info_hash = ?", [info_hash.to_string()])?;
+
+        if deleted == 1 {
+            // should only remove a single record.
+            Ok(deleted)
+        } else {
+            Err(Error::DeleteFailed {
+                location: Location::caller(),
+                error_code: deleted,
+                driver: DRIVER,
+            })
+        }
+    }
+}
+
+impl AuthKeyStore for Sqlite {
     fn load_keys(&self) -> Result<Vec<authentication::PeerKey>, Error> {
         let conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
@@ -265,71 +326,6 @@ impl Database for Sqlite {
         Ok(keys)
     }
 
-    /// Refer to [`databases::Database::load_whitelist`](crate::core::databases::Database::load_whitelist).
-    fn load_whitelist(&self) -> Result<Vec<InfoHash>, Error> {
-        let conn = self.pool.get().map_err(|e| (e, DRIVER))?;
-
-        let mut stmt = conn.prepare("SELECT info_hash FROM whitelist")?;
-
-        let info_hash_iter = stmt.query_map([], |row| {
-            let info_hash: String = row.get(0)?;
-
-            Ok(InfoHash::from_str(&info_hash).unwrap())
-        })?;
-
-        let info_hashes: Vec<InfoHash> = info_hash_iter.filter_map(std::result::Result::ok).collect();
-
-        Ok(info_hashes)
-    }
-
-    /// Refer to [`databases::Database::get_info_hash_from_whitelist`](crate::core::databases::Database::get_info_hash_from_whitelist).
-    fn get_info_hash_from_whitelist(&self, info_hash: InfoHash) -> Result<Option<InfoHash>, Error> {
-        let conn = self.pool.get().map_err(|e| (e, DRIVER))?;
-
-        let mut stmt = conn.prepare("SELECT info_hash FROM whitelist WHERE info_hash = ?")?;
-
-        let mut rows = stmt.query([info_hash.to_hex_string()])?;
-
-        let query = rows.next()?;
-
-        Ok(query.map(|f| InfoHash::from_str(&f.get_unwrap::<_, String>(0)).unwrap()))
-    }
-
-    /// Refer to [`databases::Database::add_info_hash_to_whitelist`](crate::core::databases::Database::add_info_hash_to_whitelist).
-    fn add_info_hash_to_whitelist(&self, info_hash: InfoHash) -> Result<usize, Error> {
-        let conn = self.pool.get().map_err(|e| (e, DRIVER))?;
-
-        let insert = conn.execute("INSERT INTO whitelist (info_hash) VALUES (?)", [info_hash.to_string()])?;
-
-        if insert == 0 {
-            Err(Error::InsertFailed {
-                location: Location::caller(),
-                driver: DRIVER,
-            })
-        } else {
-            Ok(insert)
-        }
-    }
-
-    /// Refer to [`databases::Database::remove_info_hash_from_whitelist`](crate::core::databases::Database::remove_info_hash_from_whitelist).
-    fn remove_info_hash_from_whitelist(&self, info_hash: InfoHash) -> Result<usize, Error> {
-        let conn = self.pool.get().map_err(|e| (e, DRIVER))?;
-
-        let deleted = conn.execute("DELETE FROM whitelist WHERE info_hash = ?", [info_hash.to_string()])?;
-
-        if deleted == 1 {
-            // should only remove a single record.
-            Ok(deleted)
-        } else {
-            Err(Error::DeleteFailed {
-                location: Location::caller(),
-                error_code: deleted,
-                driver: DRIVER,
-            })
-        }
-    }
-
-    /// Refer to [`databases::Database::get_key_from_keys`](crate::core::databases::Database::get_key_from_keys).
     fn get_key_from_keys(&self, key: &Key) -> Result<Option<authentication::PeerKey>, Error> {
         let conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
@@ -356,7 +352,6 @@ impl Database for Sqlite {
         }))
     }
 
-    /// Refer to [`databases::Database::add_key_to_keys`](crate::core::databases::Database::add_key_to_keys).
     fn add_key_to_keys(&self, auth_key: &authentication::PeerKey) -> Result<usize, Error> {
         let conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
@@ -381,7 +376,6 @@ impl Database for Sqlite {
         }
     }
 
-    /// Refer to [`databases::Database::remove_key_from_keys`](crate::core::databases::Database::remove_key_from_keys).
     fn remove_key_from_keys(&self, key: &Key) -> Result<usize, Error> {
         let conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 

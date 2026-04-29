@@ -268,7 +268,7 @@ and all `r2d2`/`rusqlite`/`mysql` dependencies are gone.
 ## References
 
 - EPIC: `#1525`
-- Subissue `1525-04`: `docs/issues/1525-04-split-persistence-traits.md` — must be completed first
+- Subissue `1525-04`: `docs/issues/1713-1525-04-split-persistence-traits.md` — must be completed first
 - Subissue `1525-03`: `docs/issues/1525-03-persistence-benchmarking.md` — benchmark baseline
 - Reference PR: `#1695`
 - Reference implementation branch: `josecelano:pr-1684-review` — see EPIC for checkout
