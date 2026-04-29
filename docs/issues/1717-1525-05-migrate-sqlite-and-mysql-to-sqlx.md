@@ -41,6 +41,17 @@ The technique is to put the async traits and new drivers in a temporary `databas
 submodule during Tasks 1–3. Task 4 moves them into place, updates consumers, and removes the sync
 code.
 
+### Decision update (2026-04-29)
+
+After implementation review, we decided to keep **eager schema initialization** in this subissue
+for operational clarity and parity with the existing sync drivers:
+
+- Do **not** use per-method lazy schema checks (`ensure_schema()`).
+- Keep explicit startup initialization (`create_database_tables()`) in setup/factory wiring.
+- Keep using raw `sqlx::query()` DDL in this subissue; migration tooling stays in `1525-06`.
+
+This decision also applies to Task 4 (switch commit): keep eager initialization there as well.
+
 ### What changes in the drivers
 
 The current drivers use blocking I/O and create the schema eagerly on construction. The new
@@ -50,8 +61,7 @@ The current drivers use blocking I/O and create the schema eagerly on constructi
 - Manage the schema with raw `sqlx::query()` DDL statements (`CREATE TABLE IF NOT EXISTS ...`),
   exactly mirroring what the current sync drivers do. `sqlx::migrate!()` and migration files are
   **not** introduced here — that is subissue `1525-06`.
-- Run `create_database_tables()` lazily the first time any operation is called, protected by an
-  `AtomicBool` + `Mutex` double-checked latch (`ensure_schema()`).
+- Keep schema initialization eager via setup/factory initialization (`create_database_tables()`).
 - All trait methods become `async fn` (via `async_trait`).
 
 ## Tasks
@@ -70,9 +80,7 @@ sqlx = { version = "*", features = ["sqlite", "mysql", "runtime-tokio-native-tls
 tokio = { version = "*", features = ["full"] }   # latest compatible; if not already present with needed features
 ```
 
-Use the latest crate versions compatible with MSRV 1.72. For the `Mutex` used in
-`ensure_schema()`, use `tokio::sync::Mutex` (not `std::sync::Mutex`) to avoid runtime conflicts
-since Tokio is used throughout the project.
+Use the latest crate versions compatible with MSRV 1.72.
 
 Keep `r2d2`, `r2d2_sqlite`, `rusqlite`, and the `mysql` crate — they are still needed by the old
 drivers until Task 4.
@@ -219,8 +227,8 @@ This task is a single focused commit. Steps within the commit:
 
 4. **Update `databases/setup.rs` — `initialize_database()`**: this function already returns
    `DatabaseStores` (a struct of four `Arc<dyn XxxStore>` fields, one per narrow trait — not
-   `Arc<Box<dyn Database>>`). Remove the eager `create_database_tables()` call; schema
-   initialization is now lazy via `ensure_schema()`. No return-type change is needed.
+   `Arc<Box<dyn Database>>`). Keep eager `create_database_tables()` during initialization.
+   No return-type change is needed.
 
 5. **Add `.await` at all consumer call sites**: every location that called a narrow-trait method
    synchronously now needs `.await`. The affected files are:
@@ -258,13 +266,12 @@ and all `r2d2`/`rusqlite`/`mysql` dependencies are gone.
 - `DatabaseStores` (four `Arc<dyn XxxStore>` fields, one per narrow trait) is already the
   consumer-facing type returned by `initialize_database()`; do not change this. Do not introduce
   `Arc<Box<dyn Database>>` or the `Persistence` struct from the reference implementation.
-- The lazy `ensure_schema()` latch must be correct under concurrent async access: use
-  `AtomicBool` (Acquire/Release) + `Mutex` double-checked pattern as in the reference.
+- Keep startup schema initialization eager in this subissue and in Task 4.
 
 ## Acceptance Criteria
 
 - [ ] SQLite and MySQL drivers use `sqlx` with async trait methods.
-- [ ] Schema initialization is lazy (`ensure_schema()` pattern) — no eager call in `build()`.
+- [ ] Schema initialization remains eager via setup/factory initialization.
 - [ ] Schema management uses raw `sqlx::query()` DDL; `sqlx::migrate!()` is not used.
 - [ ] `r2d2`, `r2d2_sqlite`, `rusqlite`, and the `mysql` crate are removed from
       `tracker-core/Cargo.toml`.
