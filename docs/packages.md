@@ -43,14 +43,14 @@ contrib/
 
 ## Package Conventions
 
-| Prefix          | Responsibility                          | Dependencies              |
-|-----------------|-----------------------------------------|---------------------------|
-| `axum-*`        | HTTP server components using Axum       | Axum framework            |
-| `*-server`      | Server implementations                  | Corresponding *-core      |
-| `*-core`        | Domain logic & business rules           | Protocol implementations  |
-| `*-protocol`    | BitTorrent protocol implementations     | BitTorrent protocol       |
-| `udp-*`         | UDP Protocol-specific implementations   | Tracker core              |
-| `http-*`        | HTTP Protocol-specific implementations  | Tracker core              |
+| Prefix       | Responsibility                         | Dependencies             |
+| ------------ | -------------------------------------- | ------------------------ |
+| `axum-*`     | HTTP server components using Axum      | Axum framework           |
+| `*-server`   | Server implementations                 | Corresponding \*-core    |
+| `*-core`     | Domain logic & business rules          | Protocol implementations |
+| `*-protocol` | BitTorrent protocol implementations    | BitTorrent protocol      |
+| `udp-*`      | UDP Protocol-specific implementations  | Tracker core             |
+| `http-*`     | HTTP Protocol-specific implementations | Tracker core             |
 
 Key Architectural Principles:
 
@@ -65,31 +65,31 @@ Key Architectural Principles:
 
 ## Package Catalog
 
-| Package | Description | Key Responsibilities |
-|---------|-------------|----------------------|
-| **axum-*** | | |
-| `axum-server` | Base Axum HTTP server infrastructure | HTTP server lifecycle management |
-| `axum-http-tracker-server` | BitTorrent HTTP tracker (BEP 3/23) | Handle announce/scrape requests |
-| `axum-rest-tracker-api-server` | Management REST API | Tracker configuration & monitoring |
-| `axum-health-check-api-server` | Health monitoring endpoint | System health reporting |
-| **Core Components** | | |
-| `http-tracker-core` | HTTP-specific implementation | Request validation, Response formatting |
-| `udp-tracker-core` | UDP-specific implementation | Connectionless request handling |
-| `tracker-core` | Central tracker logic | Peer management |
-| **Protocols** | | |
-| `http-protocol` | HTTP tracker protocol (BEP 3/23) | Announce/scrape request parsing |
-| `udp-protocol` | UDP tracker protocol (BEP 15) | UDP message framing/parsing |
-| **Domain** | | |
-| `torrent-repository` | Torrent metadata storage | InfoHash management, Peer coordination |
-| `configuration` | Runtime configuration | Config file parsing, Environment variables |
-| `primitives` | Domain-specific types | InfoHash, PeerId, Byte handling |
-| **Utilities** | | |
-| `clock` | Time abstraction | Mockable time source for testing |
-| `located-error` | Diagnostic errors | Error tracing with source locations |
-| `test-helpers` | Testing utilities | Mock servers, Test data generation |
-| **Client Tools** | | |
-| `tracker-client` | CLI client | Tracker interaction/testing |
-| `rest-tracker-api-client` | API client library | REST API integration |
+| Package                        | Description                          | Key Responsibilities                       |
+| ------------------------------ | ------------------------------------ | ------------------------------------------ |
+| **axum-\***                    |                                      |                                            |
+| `axum-server`                  | Base Axum HTTP server infrastructure | HTTP server lifecycle management           |
+| `axum-http-tracker-server`     | BitTorrent HTTP tracker (BEP 3/23)   | Handle announce/scrape requests            |
+| `axum-rest-tracker-api-server` | Management REST API                  | Tracker configuration & monitoring         |
+| `axum-health-check-api-server` | Health monitoring endpoint           | System health reporting                    |
+| **Core Components**            |                                      |                                            |
+| `http-tracker-core`            | HTTP-specific implementation         | Request validation, Response formatting    |
+| `udp-tracker-core`             | UDP-specific implementation          | Connectionless request handling            |
+| `tracker-core`                 | Central tracker logic                | Peer management                            |
+| **Protocols**                  |                                      |                                            |
+| `http-protocol`                | HTTP tracker protocol (BEP 3/23)     | Announce/scrape request parsing            |
+| `udp-protocol`                 | UDP tracker protocol (BEP 15)        | UDP message framing/parsing                |
+| **Domain**                     |                                      |                                            |
+| `torrent-repository`           | Torrent metadata storage             | InfoHash management, Peer coordination     |
+| `configuration`                | Runtime configuration                | Config file parsing, Environment variables |
+| `primitives`                   | Domain-specific types                | InfoHash, PeerId, Byte handling            |
+| **Utilities**                  |                                      |                                            |
+| `clock`                        | Time abstraction                     | Mockable time source for testing           |
+| `located-error`                | Diagnostic errors                    | Error tracing with source locations        |
+| `test-helpers`                 | Testing utilities                    | Mock servers, Test data generation         |
+| **Client Tools**               |                                      |                                            |
+| `tracker-client`               | CLI client                           | Tracker interaction/testing                |
+| `rest-tracker-api-client`      | API client library                   | REST API integration                       |
 
 ## Protocol Implementation Details
 
