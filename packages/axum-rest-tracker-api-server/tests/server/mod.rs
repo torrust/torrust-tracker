@@ -3,7 +3,7 @@ pub mod v1;
 
 use std::sync::Arc;
 
-use bittorrent_tracker_core::databases::Database;
+use bittorrent_tracker_core::databases::SchemaMigrator;
 
 /// It forces a database error by dropping all tables. That makes all queries
 /// fail.
@@ -14,6 +14,6 @@ use bittorrent_tracker_core::databases::Database;
 ///
 /// - Inject a database mock in the future.
 /// - Inject directly the database reference passed to the Tracker type.
-pub fn force_database_error(tracker: &Arc<Box<dyn Database>>) {
-    tracker.drop_database_tables().unwrap();
+pub fn force_database_error(schema_migrator: &Arc<dyn SchemaMigrator>) {
+    schema_migrator.drop_database_tables().unwrap();
 }

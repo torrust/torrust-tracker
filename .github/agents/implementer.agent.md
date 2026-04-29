@@ -33,6 +33,18 @@ Reference: [Beck Design Rules](https://martinfowler.com/bliki/BeckDesignRules.ht
   - `.github/skills/dev/rust-code-quality/handle-errors-in-code/SKILL.md` — error handling.
   - `.github/skills/dev/git-workflow/commit-changes/SKILL.md` — commit conventions.
 
+### ADR Discoverability Convention
+
+When a change introduces or updates an ADR that affects a specific code area:
+
+- Link the ADR to the key affected code files (for example in an "Affected Code"
+  section).
+- Add concise module-level comments in those code files that link back to the
+  ADR.
+
+Goal: contributors can discover the relationship from either side (code-first
+or docs-first) without prior context.
+
 ## Required Workflow
 
 ### Step 1 — Analyse the Task

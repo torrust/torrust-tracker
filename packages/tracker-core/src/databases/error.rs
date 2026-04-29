@@ -69,6 +69,12 @@ pub enum Error {
         driver: Driver,
     },
 
+    /// Indicates that a row read from the database contains a malformed value
+    /// (e.g., a corrupt or manually-edited `info_hash` or key string that
+    /// cannot be parsed into the expected domain type).
+    #[error("Malformed {driver} database record: {message}")]
+    MalformedDatabaseRecord { message: String, driver: Driver },
+
     /// Indicates a failure to connect to the database.
     ///
     /// This error variant wraps connection-related errors, such as those caused by an invalid URL.

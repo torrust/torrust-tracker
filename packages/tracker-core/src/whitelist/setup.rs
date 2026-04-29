@@ -7,7 +7,7 @@ use std::sync::Arc;
 use super::manager::WhitelistManager;
 use super::repository::in_memory::InMemoryWhitelist;
 use super::repository::persisted::DatabaseWhitelist;
-use crate::databases::Database;
+use crate::databases::WhitelistStore;
 
 /// Initializes the `WhitelistManager` by combining in-memory and database
 /// repositories.
@@ -22,20 +22,20 @@ use crate::databases::Database;
 ///
 /// # Arguments
 ///
-/// * `database` - An `Arc<Box<dyn Database>>` representing the database connection,
-///   sed for persistent whitelist storage.
-/// * `in_memory_whitelist` - An `Arc<InMemoryWhitelist>` representing the in-memory
-///   whitelist repository for fast access.
+/// * `whitelist_store` - An `Arc<dyn WhitelistStore>` representing the
+///   whitelist persistence store.
+/// * `in_memory_whitelist` - An `Arc<InMemoryWhitelist>` representing the
+///   in-memory whitelist repository for fast access.
 ///
 /// # Returns
 ///
-/// An `Arc<WhitelistManager>` instance that manages both the in-memory and database
-/// whitelist repositories.
+/// An `Arc<WhitelistManager>` instance that manages both the in-memory and
+/// database whitelist repositories.
 #[must_use]
 pub fn initialize_whitelist_manager(
-    database: Arc<Box<dyn Database>>,
+    whitelist_store: Arc<dyn WhitelistStore>,
     in_memory_whitelist: Arc<InMemoryWhitelist>,
 ) -> Arc<WhitelistManager> {
-    let database_whitelist = Arc::new(DatabaseWhitelist::new(database));
+    let database_whitelist = Arc::new(DatabaseWhitelist::new(whitelist_store));
     Arc::new(WhitelistManager::new(database_whitelist, in_memory_whitelist))
 }

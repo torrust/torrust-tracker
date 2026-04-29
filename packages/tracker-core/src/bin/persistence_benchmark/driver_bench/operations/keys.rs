@@ -1,6 +1,6 @@
 use anyhow::{Context, Result};
 use bittorrent_tracker_core::authentication;
-use bittorrent_tracker_core::databases::Database;
+use bittorrent_tracker_core::databases::AuthKeyStore;
 
 use super::super::sampling::measure_operation;
 use super::super::RawOperationSamples;
@@ -11,7 +11,7 @@ use super::super::RawOperationSamples;
 ///
 /// Returns an error if any setup or measured database operation fails.
 pub(super) fn benchmark_key_operations(
-    database: &dyn Database,
+    database: &dyn AuthKeyStore,
     ops: usize,
     operations: &mut Vec<RawOperationSamples>,
 ) -> Result<()> {

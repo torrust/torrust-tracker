@@ -5,14 +5,14 @@ use bittorrent_primitives::info_hash::InfoHash;
 use torrust_tracker_primitives::{NumberOfDownloads, NumberOfDownloadsBTreeMap};
 
 use crate::databases::error::Error;
-use crate::databases::Database;
+use crate::databases::TorrentMetricsStore;
 
 /// It persists torrent metrics in a database.
 ///
 /// This repository persists only a subset of the torrent data: the torrent
 /// metrics, specifically the number of downloads (or completed counts) for each
 /// torrent. It relies on a database driver (either `SQLite3` or `MySQL`) that
-/// implements the [`Database`] trait to perform the actual persistence
+/// implements the [`TorrentMetricsStore`] trait to perform the actual persistence
 /// operations.
 ///
 /// # Note
@@ -20,28 +20,27 @@ use crate::databases::Database;
 /// Not all in-memory torrent data is persisted; only the aggregate metrics are
 /// stored.
 pub struct DatabaseDownloadsMetricRepository {
-    /// A shared reference to the database driver implementation.
+    /// A shared reference to the torrent metrics store implementation.
     ///
-    /// The driver must implement the [`Database`] trait. This allows for
-    /// different underlying implementations (e.g., `SQLite3` or `MySQL`) to be
-    /// used interchangeably.
-    database: Arc<Box<dyn Database>>,
+    /// This allows for different underlying implementations (e.g., `SQLite3`
+    /// or `MySQL`) to be used interchangeably.
+    database: Arc<dyn TorrentMetricsStore>,
 }
 
 impl DatabaseDownloadsMetricRepository {
-    /// Creates a new instance of `DatabasePersistentTorrentRepository`.
+    /// Creates a new instance of `DatabaseDownloadsMetricRepository`.
     ///
     /// # Arguments
     ///
-    /// * `database` - A shared reference to a boxed database driver
-    ///   implementing the [`Database`] trait.
+    /// * `database` - A shared reference to a torrent metrics store
+    ///   implementing the [`TorrentMetricsStore`] trait.
     ///
     /// # Returns
     ///
-    /// A new `DatabasePersistentTorrentRepository` instance with a cloned
-    /// reference to the provided database.
+    /// A new `DatabaseDownloadsMetricRepository` instance with a cloned
+    /// reference to the provided store.
     #[must_use]
-    pub fn new(database: &Arc<Box<dyn Database>>) -> DatabaseDownloadsMetricRepository {
+    pub fn new(database: &Arc<dyn TorrentMetricsStore>) -> DatabaseDownloadsMetricRepository {
         Self {
             database: database.clone(),
         }
@@ -149,8 +148,8 @@ mod tests {
 
     fn initialize_db_persistent_torrent_repository() -> DatabaseDownloadsMetricRepository {
         let config = ephemeral_configuration();
-        let database = initialize_database(&config);
-        DatabaseDownloadsMetricRepository::new(&database)
+        let stores = initialize_database(&config);
+        DatabaseDownloadsMetricRepository::new(&stores.torrent_metrics_store)
     }
 
     #[test]

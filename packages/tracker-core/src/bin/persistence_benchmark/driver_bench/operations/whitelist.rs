@@ -1,5 +1,5 @@
 use anyhow::{Context, Result};
-use bittorrent_tracker_core::databases::Database;
+use bittorrent_tracker_core::databases::WhitelistStore;
 
 use super::super::sampling::{info_hash_from_index, measure_operation};
 use super::super::RawOperationSamples;
@@ -10,7 +10,7 @@ use super::super::RawOperationSamples;
 ///
 /// Returns an error if any setup or measured database operation fails.
 pub(super) fn benchmark_whitelist_operations(
-    database: &dyn Database,
+    database: &dyn WhitelistStore,
     ops: usize,
     operations: &mut Vec<RawOperationSamples>,
 ) -> Result<()> {

@@ -130,14 +130,14 @@ pub(crate) mod tests {
 
     #[must_use]
     pub fn initialize_handlers(config: &Configuration) -> (Arc<AnnounceHandler>, Arc<ScrapeHandler>) {
-        let database = initialize_database(&config.core);
+        let stores = initialize_database(&config.core);
         let in_memory_whitelist = Arc::new(InMemoryWhitelist::default());
         let whitelist_authorization = Arc::new(whitelist::authorization::WhitelistAuthorization::new(
             &config.core,
             &in_memory_whitelist.clone(),
         ));
         let in_memory_torrent_repository = Arc::new(InMemoryTorrentRepository::default());
-        let db_downloads_metric_repository = Arc::new(DatabaseDownloadsMetricRepository::new(&database));
+        let db_downloads_metric_repository = Arc::new(DatabaseDownloadsMetricRepository::new(&stores.torrent_metrics_store));
 
         let announce_handler = Arc::new(AnnounceHandler::new(
             &config.core,

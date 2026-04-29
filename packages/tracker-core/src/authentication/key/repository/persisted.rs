@@ -2,15 +2,15 @@
 use std::sync::Arc;
 
 use crate::authentication::key::{Key, PeerKey};
-use crate::databases::{self, Database};
+use crate::databases::{self, AuthKeyStore};
 
 /// A repository for storing authentication keys in a persistent database.
 ///
 /// This repository provides methods to add, remove, and load authentication
 /// keys from the underlying database. It wraps an instance of a type
-/// implementing the [`Database`] trait.
+/// implementing the [`AuthKeyStore`] trait.
 pub struct DatabaseKeyRepository {
-    database: Arc<Box<dyn Database>>,
+    database: Arc<dyn AuthKeyStore>,
 }
 
 impl DatabaseKeyRepository {
@@ -18,13 +18,13 @@ impl DatabaseKeyRepository {
     ///
     /// # Arguments
     ///
-    /// * `database` - A shared reference to a boxed database implementation.
+    /// * `database` - A shared reference to an auth-key store implementation.
     ///
     /// # Returns
     ///
     /// A new instance of `DatabaseKeyRepository`
     #[must_use]
-    pub fn new(database: &Arc<Box<dyn Database>>) -> Self {
+    pub fn new(database: &Arc<dyn AuthKeyStore>) -> Self {
         Self {
             database: database.clone(),
         }
@@ -98,9 +98,9 @@ mod tests {
         fn persist_a_new_peer_key() {
             let configuration = ephemeral_configuration();
 
-            let database = initialize_database(&configuration);
+            let stores = initialize_database(&configuration);
 
-            let repository = DatabaseKeyRepository::new(&database);
+            let repository = DatabaseKeyRepository::new(&stores.auth_key_store);
 
             let peer_key = PeerKey {
                 key: Key::new("YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ").unwrap(),
@@ -118,9 +118,9 @@ mod tests {
         fn remove_a_persisted_peer_key() {
             let configuration = ephemeral_configuration();
 
-            let database = initialize_database(&configuration);
+            let stores = initialize_database(&configuration);
 
-            let repository = DatabaseKeyRepository::new(&database);
+            let repository = DatabaseKeyRepository::new(&stores.auth_key_store);
 
             let peer_key = PeerKey {
                 key: Key::new("YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ").unwrap(),
@@ -140,9 +140,9 @@ mod tests {
         fn load_all_persisted_peer_keys() {
             let configuration = ephemeral_configuration();
 
-            let database = initialize_database(&configuration);
+            let stores = initialize_database(&configuration);
 
-            let repository = DatabaseKeyRepository::new(&database);
+            let repository = DatabaseKeyRepository::new(&stores.auth_key_store);
 
             let peer_key = PeerKey {
                 key: Key::new("YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ").unwrap(),
