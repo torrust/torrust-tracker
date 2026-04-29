@@ -18,9 +18,13 @@ metadata:
 Before opening a PR:
 
 - [ ] Working tree is clean (`git status`)
+- [ ] Upstream target repository confirmed from workspace metadata (`Cargo.toml` → `repository`)
 - [ ] Branch is pushed to your fork remote
 - [ ] Commits are GPG signed (`git log --show-signature -n 1`)
 - [ ] All pre-commit checks passed (`linter all`, `cargo machete`, tests)
+
+> Important: always open the PR in the **upstream repository**, not in your fork.
+> Resolve upstream from `Cargo.toml` (`repository = "https://github.com/torrust/torrust-tracker"`) and use that value for `gh pr create --repo ...`.
 
 ## Title and Description Convention
 
@@ -42,11 +46,18 @@ PR body must include:
 
 ```bash
 gh pr create \
-  --repo torrust/torrust-tracker \
+  --repo <upstream-owner>/<upstream-repo> \
   --base develop \
   --head <fork-owner>:<branch-name> \
   --title "<title>" \
   --body "<body>"
+```
+
+Example upstream resolution from `Cargo.toml`:
+
+```bash
+UPSTREAM_REPO=$(grep '^repository\s*=\s*"https://github.com/' Cargo.toml | sed -E 's#.*github.com/([^\"]+).*#\1#')
+gh pr create --repo "$UPSTREAM_REPO" --base develop --head <fork-owner>:<branch-name> --title "<title>" --body "<body>"
 ```
 
 If successful, `gh` prints the PR URL.
