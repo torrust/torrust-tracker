@@ -1,5 +1,5 @@
 use anyhow::{Context, Result};
-use bittorrent_tracker_core::databases::Database;
+use bittorrent_tracker_core::databases::TorrentMetricsStore;
 
 use super::super::sampling::{downloads_from_index, info_hash_from_index, measure_operation};
 use super::super::RawOperationSamples;
@@ -13,7 +13,7 @@ use super::super::RawOperationSamples;
 ///
 /// Returns an error if any setup or measured database operation fails.
 pub(super) fn benchmark_torrent_operations(
-    database: &dyn Database,
+    database: &dyn TorrentMetricsStore,
     ops: usize,
     operations: &mut Vec<RawOperationSamples>,
 ) -> Result<()> {

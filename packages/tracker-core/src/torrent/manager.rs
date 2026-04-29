@@ -170,7 +170,8 @@ mod tests {
         let swarms = Arc::new(Registry::default());
         let in_memory_torrent_repository = Arc::new(InMemoryTorrentRepository::new(swarms));
         let database = initialize_database(&config);
-        let database_persistent_torrent_repository = Arc::new(DatabaseDownloadsMetricRepository::new(&database));
+        let database_persistent_torrent_repository =
+            Arc::new(DatabaseDownloadsMetricRepository::new(&database.torrent_metrics_store));
 
         let torrents_manager = Arc::new(TorrentsManager::new(
             &config,

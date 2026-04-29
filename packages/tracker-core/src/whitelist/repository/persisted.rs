@@ -3,22 +3,21 @@ use std::sync::Arc;
 
 use bittorrent_primitives::info_hash::InfoHash;
 
-use crate::databases::{self, Database};
+use crate::databases::{self, WhitelistStore};
 
 /// The persisted list of allowed torrents.
 ///
 /// This repository handles adding, removing, and loading torrents
 /// from a persistent database like `SQLite` or `MySQL`ç.
 pub struct DatabaseWhitelist {
-    /// A database driver implementation: [`Sqlite3`](crate::core::databases::sqlite)
-    /// or [`MySQL`](crate::core::databases::mysql)
-    database: Arc<Box<dyn Database>>,
+    /// A whitelist store implementation (e.g., `SQLite3` or `MySQL`).
+    database: Arc<dyn WhitelistStore>,
 }
 
 impl DatabaseWhitelist {
     /// Creates a new `DatabaseWhitelist`.
     #[must_use]
-    pub fn new(database: Arc<Box<dyn Database>>) -> Self {
+    pub fn new(database: Arc<dyn WhitelistStore>) -> Self {
         Self { database }
     }
 
@@ -75,8 +74,8 @@ mod tests {
 
         fn initialize_database_whitelist() -> DatabaseWhitelist {
             let configuration = ephemeral_configuration_for_listed_tracker();
-            let database = initialize_database(&configuration);
-            DatabaseWhitelist::new(database)
+            let stores = initialize_database(&configuration);
+            DatabaseWhitelist::new(stores.whitelist_store)
         }
 
         #[test]

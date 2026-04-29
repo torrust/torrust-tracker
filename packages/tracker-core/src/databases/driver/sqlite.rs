@@ -404,7 +404,7 @@ mod tests {
 
     use crate::databases::driver::sqlite::Sqlite;
     use crate::databases::driver::tests::run_tests;
-    use crate::databases::Database;
+    use crate::databases::traits::Database;
 
     fn ephemeral_configuration() -> Core {
         let mut config = Core::default();

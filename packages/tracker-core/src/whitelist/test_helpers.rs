@@ -18,10 +18,10 @@ pub(crate) mod tests {
 
     #[must_use]
     pub fn initialize_whitelist_services(config: &Configuration) -> (Arc<WhitelistAuthorization>, Arc<WhitelistManager>) {
-        let database = initialize_database(&config.core);
+        let stores = initialize_database(&config.core);
         let in_memory_whitelist = Arc::new(InMemoryWhitelist::default());
         let whitelist_authorization = Arc::new(WhitelistAuthorization::new(&config.core, &in_memory_whitelist.clone()));
-        let whitelist_manager = initialize_whitelist_manager(database.clone(), in_memory_whitelist.clone());
+        let whitelist_manager = initialize_whitelist_manager(stores.whitelist_store.clone(), in_memory_whitelist.clone());
 
         (whitelist_authorization, whitelist_manager)
     }

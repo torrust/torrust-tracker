@@ -96,14 +96,12 @@ mod tests {
     use torrust_tracker_configuration::Core;
 
     use crate::databases::setup::initialize_database;
-    use crate::databases::Database;
     use crate::test_helpers::tests::ephemeral_configuration_for_listed_tracker;
     use crate::whitelist::manager::WhitelistManager;
     use crate::whitelist::repository::in_memory::InMemoryWhitelist;
     use crate::whitelist::repository::persisted::DatabaseWhitelist;
 
     struct WhitelistManagerDeps {
-        pub _database: Arc<Box<dyn Database>>,
         pub database_whitelist: Arc<DatabaseWhitelist>,
         pub in_memory_whitelist: Arc<InMemoryWhitelist>,
     }
@@ -114,8 +112,8 @@ mod tests {
     }
 
     fn initialize_whitelist_manager_and_deps(config: &Core) -> (Arc<WhitelistManager>, Arc<WhitelistManagerDeps>) {
-        let database = initialize_database(config);
-        let database_whitelist = Arc::new(DatabaseWhitelist::new(database.clone()));
+        let stores = initialize_database(config);
+        let database_whitelist = Arc::new(DatabaseWhitelist::new(stores.whitelist_store.clone()));
         let in_memory_whitelist = Arc::new(InMemoryWhitelist::default());
 
         let whitelist_manager = Arc::new(WhitelistManager::new(database_whitelist.clone(), in_memory_whitelist.clone()));
@@ -123,7 +121,6 @@ mod tests {
         (
             whitelist_manager,
             Arc::new(WhitelistManagerDeps {
-                _database: database,
                 database_whitelist,
                 in_memory_whitelist,
             }),

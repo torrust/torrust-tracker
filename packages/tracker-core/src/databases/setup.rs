@@ -3,25 +3,46 @@ use std::sync::Arc;
 
 use torrust_tracker_configuration::Core;
 
-use super::driver::{self, Driver};
-use super::Database;
+use super::driver::mysql::Mysql;
+use super::driver::sqlite::Sqlite;
+use super::driver::Driver;
+use super::traits::{AuthKeyStore, SchemaMigrator, TorrentMetricsStore, WhitelistStore};
 
-/// Initializes and returns a database instance based on the provided configuration.
+/// A bundle of narrow-trait store references, one per persistence context.
 ///
-/// This function creates a new database instance according to the settings
+/// The factory (`initialize_database`) constructs the concrete driver once and
+/// coerces it into each narrow `Arc<dyn XxxStore>`.  Individual services are
+/// wired at construction time by passing the relevant field
+/// (e.g. `database_stores.auth_key_store.clone()`) to each constructor.
+/// Services themselves never hold a `DatabaseStores`; they only see the narrow
+/// trait they need.
+pub struct DatabaseStores {
+    /// Schema lifecycle: create / drop tables.
+    pub schema_migrator: Arc<dyn SchemaMigrator>,
+    /// Per-torrent and global download counters.
+    pub torrent_metrics_store: Arc<dyn TorrentMetricsStore>,
+    /// Torrent infohash whitelist.
+    pub whitelist_store: Arc<dyn WhitelistStore>,
+    /// Authentication key persistence.
+    pub auth_key_store: Arc<dyn AuthKeyStore>,
+}
+
+/// Initializes and returns a [`DatabaseStores`] bundle based on the provided
+/// configuration.
+///
+/// This function creates a new database driver according to the settings
 /// defined in the [`Core`] configuration. It selects the appropriate driver
 /// (either `Sqlite3` or `MySQL`) as specified in `config.database.driver` and
 /// attempts to build the database connection using the path defined in
 /// `config.database.path`.
 ///
-/// The resulting database instance is wrapped in a shared pointer (`Arc`) to a
-/// boxed trait object, allowing safe sharing of the database connection across
-/// multiple threads.
+/// The concrete driver is constructed once and coerced into four narrow
+/// `Arc<dyn XxxStore>` references, one for each persistence context.
 ///
 /// # Panics
 ///
 /// This function will panic if the database cannot be initialized (i.e., if the
-///  driver fails to build the connection). This is enforced by the use of
+/// driver fails to build the connection). This is enforced by the use of
 /// [`expect`](std::result::Result::expect) in the implementation.
 ///
 /// # Example
@@ -34,18 +55,37 @@ use super::Database;
 /// let config = Core::default();
 ///
 /// // Initialize the database; this will panic if initialization fails.
-/// let database = initialize_database(&config);
-///
-/// // The returned database instance can now be used for persistence operations.
+/// let stores = initialize_database(&config);
 /// ```
 #[must_use]
-pub fn initialize_database(config: &Core) -> Arc<Box<dyn Database>> {
+pub fn initialize_database(config: &Core) -> DatabaseStores {
     let driver = match config.database.driver {
         torrust_tracker_configuration::Driver::Sqlite3 => Driver::Sqlite3,
         torrust_tracker_configuration::Driver::MySQL => Driver::MySQL,
     };
 
-    Arc::new(driver::build(&driver, &config.database.path).expect("Database driver build failed."))
+    match driver {
+        Driver::Sqlite3 => {
+            let db = Arc::new(Sqlite::new(&config.database.path).expect("Database driver build failed."));
+            db.create_database_tables().expect("Could not create database tables.");
+            DatabaseStores {
+                schema_migrator: db.clone(),
+                torrent_metrics_store: db.clone(),
+                whitelist_store: db.clone(),
+                auth_key_store: db,
+            }
+        }
+        Driver::MySQL => {
+            let db = Arc::new(Mysql::new(&config.database.path).expect("Database driver build failed."));
+            db.create_database_tables().expect("Could not create database tables.");
+            DatabaseStores {
+                schema_migrator: db.clone(),
+                torrent_metrics_store: db.clone(),
+                whitelist_store: db.clone(),
+                auth_key_store: db,
+            }
+        }
+    }
 }
 
 #[cfg(test)]

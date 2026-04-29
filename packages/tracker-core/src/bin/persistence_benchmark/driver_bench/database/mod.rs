@@ -1,17 +1,17 @@
 use std::path::PathBuf;
-use std::sync::Arc;
 use std::time::Duration;
 
 use anyhow::{anyhow, Context, Result};
 use bittorrent_tracker_core::databases::driver::Driver;
-use bittorrent_tracker_core::databases::Database;
+use bittorrent_tracker_core::databases::setup::DatabaseStores;
+use bittorrent_tracker_core::databases::SchemaMigrator;
 use testcontainers::{ContainerAsync, GenericImage};
 
 mod mysql;
 mod sqlite;
 
 pub(super) struct ActiveDatabase {
-    pub(super) database: Option<Arc<Box<dyn Database>>>,
+    pub(super) database: Option<DatabaseStores>,
     resource: Option<BenchmarkResource>,
 }
 
@@ -56,12 +56,12 @@ impl Drop for ActiveDatabase {
     }
 }
 
-pub(super) async fn reset_database(database: &dyn Database) -> Result<()> {
-    create_database_tables_with_retry(database).await?;
-    database
+pub(super) async fn reset_database(schema_migrator: &dyn SchemaMigrator) -> Result<()> {
+    create_database_tables_with_retry(schema_migrator).await?;
+    schema_migrator
         .drop_database_tables()
         .context("failed to drop benchmark database tables")?;
-    create_database_tables_with_retry(database).await
+    create_database_tables_with_retry(schema_migrator).await
 }
 
 /// Retries table creation until the database is ready.
@@ -72,11 +72,11 @@ pub(super) async fn reset_database(database: &dyn Database) -> Result<()> {
 /// # Errors
 ///
 /// Returns an error if the database is still not ready after all retries.
-async fn create_database_tables_with_retry(database: &dyn Database) -> Result<()> {
+async fn create_database_tables_with_retry(schema_migrator: &dyn SchemaMigrator) -> Result<()> {
     let mut last_error: Option<anyhow::Error> = None;
 
     for _ in 0..5 {
-        match database.create_database_tables() {
+        match schema_migrator.create_database_tables() {
             Ok(()) => return Ok(()),
             Err(error) => {
                 last_error = Some(error.into());

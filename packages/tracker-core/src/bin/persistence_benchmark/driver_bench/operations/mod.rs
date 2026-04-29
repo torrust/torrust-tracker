@@ -3,12 +3,12 @@ mod torrent;
 mod whitelist;
 
 use anyhow::Result;
-use bittorrent_tracker_core::databases::Database;
+use bittorrent_tracker_core::databases::{AuthKeyStore, TorrentMetricsStore, WhitelistStore};
 
 use super::RawOperationSamples;
 
 pub(super) fn benchmark_torrent_operations(
-    database: &dyn Database,
+    database: &dyn TorrentMetricsStore,
     ops: usize,
     operations: &mut Vec<RawOperationSamples>,
 ) -> Result<()> {
@@ -16,7 +16,7 @@ pub(super) fn benchmark_torrent_operations(
 }
 
 pub(super) fn benchmark_whitelist_operations(
-    database: &dyn Database,
+    database: &dyn WhitelistStore,
     ops: usize,
     operations: &mut Vec<RawOperationSamples>,
 ) -> Result<()> {
@@ -24,7 +24,7 @@ pub(super) fn benchmark_whitelist_operations(
 }
 
 pub(super) fn benchmark_key_operations(
-    database: &dyn Database,
+    database: &dyn AuthKeyStore,
     ops: usize,
     operations: &mut Vec<RawOperationSamples>,
 ) -> Result<()> {

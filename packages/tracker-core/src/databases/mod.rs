@@ -60,6 +60,6 @@ pub mod setup;
 pub mod traits;
 
 pub use traits::{
-    AuthKeyStore, Database, MockAuthKeyStore, MockSchemaMigrator, MockTorrentMetricsStore, MockWhitelistStore, SchemaMigrator,
+    AuthKeyStore, MockAuthKeyStore, MockSchemaMigrator, MockTorrentMetricsStore, MockWhitelistStore, SchemaMigrator,
     TorrentMetricsStore, WhitelistStore,
 };

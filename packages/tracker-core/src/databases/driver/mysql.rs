@@ -5,7 +5,7 @@
 //! [`TorrentMetricsStore`](crate::databases::TorrentMetricsStore),
 //! [`WhitelistStore`](crate::databases::WhitelistStore),
 //! [`AuthKeyStore`](crate::databases::AuthKeyStore)
-//! for `MySQL` using the `r2d2_mysql` connection pool. It configures the MySQL
+//! for `MySQL` using the `r2d2_mysql` connection pool. It configures the `MySQL`
 //! connection based on a URL, creates the necessary tables (for torrent metrics,
 //! torrent whitelist, and authentication keys), and implements all CRUD
 //! operations required by the persistence layer.
@@ -366,7 +366,7 @@ mod tests {
 
     use super::Mysql;
     use crate::databases::driver::tests::run_tests;
-    use crate::databases::Database;
+    use crate::databases::traits::Database;
 
     #[derive(Debug, Default)]
     struct StoppedMysqlContainer {}
