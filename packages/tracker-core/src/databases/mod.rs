@@ -60,6 +60,7 @@
 pub mod driver;
 pub mod error;
 pub mod setup;
+pub mod sqlx;
 pub mod traits;
 
 pub use traits::{
