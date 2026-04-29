@@ -4,7 +4,7 @@
 //! ([`SchemaMigrator`](crate::databases::SchemaMigrator),
 //! [`TorrentMetricsStore`](crate::databases::TorrentMetricsStore),
 //! [`WhitelistStore`](crate::databases::WhitelistStore),
-//! [`AuthKeyStore`](crate::databases::AuthKeyStore))
+//! [`AuthKeyStore`](crate::databases::AuthKeyStore)
 //! for `MySQL` using the `r2d2_mysql` connection pool. It configures the MySQL
 //! connection based on a URL, creates the necessary tables (for torrent metrics,
 //! torrent whitelist, and authentication keys), and implements all CRUD
@@ -38,7 +38,6 @@ pub(crate) struct Mysql {
 impl Mysql {
     /// It instantiates a new `MySQL` database driver.
     ///
-    /// Refer to [`databases::Database::new`](crate::core::databases::Database::new).
     ///
     /// # Errors
     ///
@@ -75,7 +74,6 @@ impl Mysql {
 }
 
 impl SchemaMigrator for Mysql {
-    /// Refer to [`databases::Database::create_database_tables`](crate::core::databases::Database::create_database_tables).
     fn create_database_tables(&self) -> Result<(), Error> {
         let create_whitelist_table = "
         CREATE TABLE IF NOT EXISTS whitelist (
@@ -125,7 +123,6 @@ impl SchemaMigrator for Mysql {
         Ok(())
     }
 
-    /// Refer to [`databases::Database::drop_database_tables`](crate::core::databases::Database::drop_database_tables).
     fn drop_database_tables(&self) -> Result<(), Error> {
         let drop_whitelist_table = "
         DROP TABLE `whitelist`;"
@@ -152,7 +149,6 @@ impl SchemaMigrator for Mysql {
 }
 
 impl TorrentMetricsStore for Mysql {
-    /// Refer to [`databases::Database::load_persistent_torrents`](crate::core::databases::Database::load_persistent_torrents).
     fn load_all_torrents_downloads(&self) -> Result<NumberOfDownloadsBTreeMap, Error> {
         let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
@@ -167,7 +163,6 @@ impl TorrentMetricsStore for Mysql {
         Ok(torrents.iter().copied().collect())
     }
 
-    /// Refer to [`databases::Database::load_persistent_torrent`](crate::core::databases::Database::load_persistent_torrent).
     fn load_torrent_downloads(&self, info_hash: &InfoHash) -> Result<Option<NumberOfDownloads>, Error> {
         let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
@@ -181,7 +176,6 @@ impl TorrentMetricsStore for Mysql {
         Ok(persistent_torrent)
     }
 
-    /// Refer to [`databases::Database::save_persistent_torrent`](crate::core::databases::Database::save_persistent_torrent).
     fn save_torrent_downloads(&self, info_hash: &InfoHash, completed: u32) -> Result<(), Error> {
         const COMMAND : &str = "INSERT INTO torrents (info_hash, completed) VALUES (:info_hash_str, :completed) ON DUPLICATE KEY UPDATE completed = VALUES(completed)";
 
@@ -192,7 +186,6 @@ impl TorrentMetricsStore for Mysql {
         Ok(conn.exec_drop(COMMAND, params! { info_hash_str, completed })?)
     }
 
-    /// Refer to [`databases::Database::increase_number_of_downloads`](crate::core::databases::Database::increase_number_of_downloads).
     fn increase_downloads_for_torrent(&self, info_hash: &InfoHash) -> Result<(), Error> {
         let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
@@ -206,17 +199,14 @@ impl TorrentMetricsStore for Mysql {
         Ok(())
     }
 
-    /// Refer to [`databases::Database::load_global_number_of_downloads`](crate::core::databases::Database::load_global_number_of_downloads).
     fn load_global_downloads(&self) -> Result<Option<NumberOfDownloads>, Error> {
         self.load_torrent_aggregate_metric(TORRENTS_DOWNLOADS_TOTAL)
     }
 
-    /// Refer to [`databases::Database::save_global_number_of_downloads`](crate::core::databases::Database::save_global_number_of_downloads).
     fn save_global_downloads(&self, downloaded: NumberOfDownloads) -> Result<(), Error> {
         self.save_torrent_aggregate_metric(TORRENTS_DOWNLOADS_TOTAL, downloaded)
     }
 
-    /// Refer to [`databases::Database::increase_global_number_of_downloads`](crate::core::databases::Database::increase_global_number_of_downloads).
     fn increase_global_downloads(&self) -> Result<(), Error> {
         let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
@@ -232,7 +222,6 @@ impl TorrentMetricsStore for Mysql {
 }
 
 impl WhitelistStore for Mysql {
-    /// Refer to [`databases::Database::load_whitelist`](crate::core::databases::Database::load_whitelist).
     fn load_whitelist(&self) -> Result<Vec<InfoHash>, Error> {
         let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
@@ -243,7 +232,6 @@ impl WhitelistStore for Mysql {
         Ok(info_hashes)
     }
 
-    /// Refer to [`databases::Database::get_info_hash_from_whitelist`](crate::core::databases::Database::get_info_hash_from_whitelist).
     fn get_info_hash_from_whitelist(&self, info_hash: InfoHash) -> Result<Option<InfoHash>, Error> {
         let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
@@ -257,7 +245,6 @@ impl WhitelistStore for Mysql {
         Ok(info_hash)
     }
 
-    /// Refer to [`databases::Database::add_info_hash_to_whitelist`](crate::core::databases::Database::add_info_hash_to_whitelist).
     fn add_info_hash_to_whitelist(&self, info_hash: InfoHash) -> Result<usize, Error> {
         let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
@@ -271,7 +258,6 @@ impl WhitelistStore for Mysql {
         Ok(1)
     }
 
-    /// Refer to [`databases::Database::remove_info_hash_from_whitelist`](crate::core::databases::Database::remove_info_hash_from_whitelist).
     fn remove_info_hash_from_whitelist(&self, info_hash: InfoHash) -> Result<usize, Error> {
         let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
@@ -284,7 +270,6 @@ impl WhitelistStore for Mysql {
 }
 
 impl AuthKeyStore for Mysql {
-    /// Refer to [`databases::Database::load_keys`](crate::core::databases::Database::load_keys).
     fn load_keys(&self) -> Result<Vec<authentication::PeerKey>, Error> {
         let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
@@ -305,7 +290,6 @@ impl AuthKeyStore for Mysql {
         Ok(keys)
     }
 
-    /// Refer to [`databases::Database::get_key_from_keys`](crate::core::databases::Database::get_key_from_keys).
     fn get_key_from_keys(&self, key: &Key) -> Result<Option<authentication::PeerKey>, Error> {
         let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
@@ -328,7 +312,6 @@ impl AuthKeyStore for Mysql {
         }))
     }
 
-    /// Refer to [`databases::Database::add_key_to_keys`](crate::core::databases::Database::add_key_to_keys).
     fn add_key_to_keys(&self, auth_key: &authentication::PeerKey) -> Result<usize, Error> {
         let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
@@ -346,7 +329,6 @@ impl AuthKeyStore for Mysql {
         Ok(1)
     }
 
-    /// Refer to [`databases::Database::remove_key_from_keys`](crate::core::databases::Database::remove_key_from_keys).
     fn remove_key_from_keys(&self, key: &Key) -> Result<usize, Error> {
         let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
