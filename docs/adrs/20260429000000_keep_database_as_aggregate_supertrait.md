@@ -83,6 +83,24 @@ between two trait objects would be a different story, but is not needed here.
   passing only the narrow store it needs. At that point `Database` can be
   made fully private or removed.
 
+### Clarification And Revisit Criteria
+
+For now, `TorrentMetricsStore` keeps both per-torrent downloads (stored in
+`torrents`) and the global aggregate metric `TORRENTS_DOWNLOADS_TOTAL`
+(stored in `torrent_aggregate_metrics`). This is intentional: in the current
+domain model there is only one persisted per-torrent metric and one persisted
+global metric, and they are strongly related.
+
+There is no near-term plan to add more tables, fields, or persisted objects in
+this area. Therefore, introducing another split (for example,
+`TorrentAggregateMetricStore`) is deferred to avoid extra API churn without
+clear short-term benefit.
+
+This decision should be reconsidered if persistence scope changes, especially
+if aggregate metrics grow and are no longer torrent-specific (for example,
+global tracker metrics such as total unique peers that ever announced), or if
+method count/responsibility in `TorrentMetricsStore` increases materially.
+
 ## Date
 
 2026-04-29
