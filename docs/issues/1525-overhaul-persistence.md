@@ -103,7 +103,7 @@ You can then browse or search it while working in the main repository.
 
 ### 4) Split the persistence traits by context
 
-- Spec file: `docs/issues/1525-04-split-persistence-traits.md`
+- Spec file: `docs/issues/1713-1525-04-split-persistence-traits.md`
 - Outcome: smaller interfaces with lower coupling and clearer responsibilities
 
 ### 5) Migrate SQLite and MySQL drivers to async `sqlx`

@@ -1,4 +1,4 @@
-# Subissue Draft for #1525-04: Split Persistence Traits by Context
+# Issue #1713 (Subissue of #1525-04): Split Persistence Traits by Context
 
 ## Goal
 
@@ -43,7 +43,7 @@ This preserves both goals:
 
 ## Proposed Branch
 
-- `1525-04-split-persistence-traits`
+- `1713-1525-04-split-persistence-traits`
 
 ## Current State
 
