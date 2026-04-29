@@ -165,6 +165,7 @@ re-exporting it from `databases/mod.rs`. Keep it accessible inside
 ## References
 
 - EPIC: #1525
+- GitHub Issue: #1715
 - Predecessor: [docs/issues/1713-1525-04-split-persistence-traits.md](1713-1525-04-split-persistence-traits.md)
 - ADR: [docs/adrs/20260429000000_keep_database_as_aggregate_supertrait.md](../adrs/20260429000000_keep_database_as_aggregate_supertrait.md)
 - Successor: [docs/issues/1525-05-migrate-sqlite-and-mysql-to-sqlx.md](1525-05-migrate-sqlite-and-mysql-to-sqlx.md)

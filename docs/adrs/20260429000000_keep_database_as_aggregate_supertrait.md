@@ -76,7 +76,7 @@ between two trait objects would be a different story, but is not needed here.
   about — but it is a mechanical change across test files.
 - `Database` will persist as long as `Arc<Box<dyn Database>>` wiring exists.
   That wiring will be replaced in subissue #1525-04b
-  ([docs/issues/1525-04b-migrate-consumers-to-narrow-traits.md](../issues/1525-04b-migrate-consumers-to-narrow-traits.md))
+  ([docs/issues/1715-1525-04b-migrate-consumers-to-narrow-traits.md](../issues/1715-1525-04b-migrate-consumers-to-narrow-traits.md))
   by a plain `DatabaseStores` struct (one `Arc<dyn XxxStore>` field per
   context). `TrackerCoreContainer` will hold `DatabaseStores` instead of
   `Arc<Box<dyn Database>>`; each service is wired at construction time by

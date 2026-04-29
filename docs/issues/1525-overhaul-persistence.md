@@ -108,7 +108,7 @@ You can then browse or search it while working in the main repository.
 
 ### 4b) Migrate consumers to narrow persistence traits
 
-- Spec file: `docs/issues/1525-04b-migrate-consumers-to-narrow-traits.md`
+- Spec file: `docs/issues/1715-1525-04b-migrate-consumers-to-narrow-traits.md`
 - Outcome: every consumer holds only the narrow trait(s) it uses; `Database`
   becomes a private compile-time guard inside `databases/`
 
