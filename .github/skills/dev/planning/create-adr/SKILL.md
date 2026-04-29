@@ -94,6 +94,18 @@ Add a row to the index table in `docs/adrs/index.md`:
 - The first column links to the ADR file using the timestamp as display text.
 - The short description should allow a reader to understand the decision without opening the file.
 
+### Step 3.5: Cross-link ADR and Affected Code
+
+When an ADR affects a specific area of code, keep discovery bidirectional:
+
+- Add a short "Affected Code" section in the ADR with links to key files
+  (module entry points, traits, setup/wiring files).
+- Add concise module-level doc comments in those code files pointing back to
+  the ADR.
+
+This keeps rationale discoverable whether a contributor starts from docs or
+from code.
+
 ### Step 4: Validate and Commit
 
 ```bash
@@ -105,6 +117,9 @@ git add docs/adrs/
 git commit -S -m "docs(adrs): add ADR for {short description}"
 git push {your-fork-remote} {branch}
 ```
+
+If code comments were added to establish ADR links, include those files in the
+same commit when practical.
 
 ## Example ADR
 
