@@ -712,9 +712,11 @@ dependencies = [
 name = "bittorrent-tracker-core"
 version = "3.0.0-develop"
 dependencies = [
+ "anyhow",
  "aquatic_udp_protocol",
  "bittorrent-primitives",
  "chrono",
+ "clap",
  "derive_more",
  "local-ip-address",
  "mockall",

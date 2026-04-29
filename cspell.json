@@ -21,6 +21,7 @@
         "docs/media/*.svg",
         "contrib/bencode/benches/*.bencode",
         "contrib/dev-tools/su-exec/**",
+        "packages/tracker-core/docs/benchmarking/machine/*.txt",
         ".github/labels.json",
         "/project-words.txt",
         "repomix-output.xml",

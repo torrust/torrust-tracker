@@ -2,6 +2,7 @@
 *.code-workspace
 **/*.rs.bk
 /.coverage/
+/.benchmarks/
 /.idea/
 /.vscode/launch.json
 /data.db
