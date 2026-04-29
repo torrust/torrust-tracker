@@ -1,5 +1,6 @@
 #![allow(dead_code)]
 
+pub mod mysql;
 pub mod sqlite;
 
 #[cfg(test)]
