@@ -10,6 +10,9 @@
 //! - [`Database`] — aggregate supertrait; any type that implements all four
 //!   narrow traits automatically satisfies `Database` via a blanket impl
 //!
+//! Design rationale: see ADR
+//! [`20260429000000_keep_database_as_aggregate_supertrait`](../../../docs/adrs/20260429000000_keep_database_as_aggregate_supertrait.md).
+//!
 //! There are two implementations (two drivers):
 //!
 //! - **`MySQL`**

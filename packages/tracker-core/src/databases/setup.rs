@@ -1,4 +1,7 @@
 //! This module provides functionality for setting up databases.
+//!
+//! For the persistence trait boundary and wiring rationale, see ADR
+//! [`20260429000000_keep_database_as_aggregate_supertrait`](../../../docs/adrs/20260429000000_keep_database_as_aggregate_supertrait.md).
 use std::sync::Arc;
 
 use torrust_tracker_configuration::Core;

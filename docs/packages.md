@@ -3,6 +3,7 @@
 - [Package Conventions](#package-conventions)
 - [Package Catalog](#package-catalog)
 - [Architectural Philosophy](#architectural-philosophy)
+- [Design Decisions](#design-decisions)
 - [Protocol Implementation Details](#protocol-implementation-details)
 - [Architectural Philosophy](#architectural-philosophy)
 
@@ -56,6 +57,11 @@ Key Architectural Principles:
 1. **Separation of Concerns**: Servers contain only network I/O logic.
 2. **Protocol Compliance**: `*-protocol` packages strictly implement BEP specifications.
 3. **Extensibility**: Core logic is framework-agnostic for easy protocol additions.
+
+## Design Decisions
+
+- Persistence trait boundaries and the aggregate supertrait choice:
+  [docs/adrs/20260429000000_keep_database_as_aggregate_supertrait.md](adrs/20260429000000_keep_database_as_aggregate_supertrait.md)
 
 ## Package Catalog
 
