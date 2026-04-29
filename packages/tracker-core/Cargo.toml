@@ -19,6 +19,7 @@ db-compatibility-tests = [  ]
 
 [dependencies]
 anyhow = "1"
+async-trait = "0"
 aquatic_udp_protocol = "0"
 bittorrent-primitives = "0.1.0"
 chrono = { version = "0", default-features = false, features = [ "clock" ] }
@@ -31,6 +32,7 @@ r2d2_sqlite = { version = "0", features = [ "bundled" ] }
 rand = "0"
 serde = { version = "1", features = [ "derive" ] }
 serde_json = { version = "1", features = [ "preserve_order" ] }
+sqlx = { version = "0.8", features = [ "mysql", "runtime-tokio-native-tls", "sqlite" ] }
 thiserror = "2"
 tokio = { version = "1", features = [ "macros", "net", "rt-multi-thread", "signal", "sync" ] }
 tokio-util = "0.7.15"
@@ -50,3 +52,6 @@ mockall = "0"
 torrust-rest-tracker-api-client = { version = "3.0.0-develop", path = "../rest-tracker-api-client" }
 torrust-tracker-test-helpers = { version = "3.0.0-develop", path = "../test-helpers" }
 url = "2.5.4"
+
+[package.metadata.cargo-machete]
+ignored = [ "async-trait" ]

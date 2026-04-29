@@ -6,12 +6,13 @@
 //! creation errors. Each error variant includes contextual information such as
 //! the associated database driver and, when applicable, the source error.
 //!
-//! External errors from database libraries (e.g., `rusqlite`, `mysql`) are
-//! converted into this error type using the provided `From` implementations.
+//! External errors from database libraries (e.g., `rusqlite`, `mysql`, `sqlx`)
+//! are converted into this error type using the provided `From` implementations.
 use std::panic::Location;
 use std::sync::Arc;
 
 use r2d2_mysql::mysql::UrlError;
+use sqlx::Error as SqlxError;
 use torrust_tracker_located_error::{DynError, Located, LocatedError};
 
 use super::driver::Driver;
@@ -77,10 +78,11 @@ pub enum Error {
 
     /// Indicates a failure to connect to the database.
     ///
-    /// This error variant wraps connection-related errors, such as those caused by an invalid URL.
+    /// This error variant wraps connection-related errors, such as pool
+    /// timeouts, TLS failures, or invalid URL errors.
     #[error("Failed to connect to {driver} database: {source}")]
     ConnectionError {
-        source: LocatedError<'static, UrlError>,
+        source: LocatedError<'static, dyn std::error::Error + Send + Sync>,
         driver: Driver,
     },
 
@@ -125,7 +127,7 @@ impl From<UrlError> for Error {
     #[track_caller]
     fn from(err: UrlError) -> Self {
         Self::ConnectionError {
-            source: Located(err).into(),
+            source: (Arc::new(err) as DynError).into(),
             driver: Driver::MySQL,
         }
     }
@@ -142,10 +144,38 @@ impl From<(r2d2::Error, Driver)> for Error {
     }
 }
 
+impl From<(SqlxError, Driver)> for Error {
+    #[track_caller]
+    fn from(value: (SqlxError, Driver)) -> Self {
+        let (err, driver) = value;
+
+        match err {
+            SqlxError::RowNotFound => Self::QueryReturnedNoRows {
+                source: (Arc::new(SqlxError::RowNotFound) as DynError).into(),
+                driver,
+            },
+            SqlxError::Io(_)
+            | SqlxError::Tls(_)
+            | SqlxError::PoolTimedOut
+            | SqlxError::PoolClosed
+            | SqlxError::WorkerCrashed
+            | SqlxError::Configuration(_) => Self::ConnectionError {
+                source: (Arc::new(err) as DynError).into(),
+                driver,
+            },
+            _ => Self::InvalidQuery {
+                source: (Arc::new(err) as DynError).into(),
+                driver,
+            },
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use r2d2_mysql::mysql;
 
+    use crate::databases::driver::Driver;
     use crate::databases::error::Error;
 
     #[test]
@@ -173,6 +203,26 @@ mod tests {
     #[test]
     fn it_should_build_a_database_error_from_a_mysql_url_error() {
         let err: Error = mysql::error::UrlError::BadUrl.into();
+
+        assert!(matches!(err, Error::ConnectionError { .. }));
+    }
+
+    #[test]
+    fn it_should_build_a_database_error_from_a_sqlx_row_not_found_error() {
+        let err: Error = (sqlx::Error::RowNotFound, Driver::Sqlite3).into();
+
+        assert!(matches!(err, Error::QueryReturnedNoRows { .. }));
+    }
+
+    #[test]
+    fn it_should_build_a_database_error_from_a_sqlx_io_error() {
+        use std::io;
+
+        let err: Error = (
+            sqlx::Error::Io(io::Error::from(io::ErrorKind::ConnectionRefused)),
+            Driver::MySQL,
+        )
+            .into();
 
         assert!(matches!(err, Error::ConnectionError { .. }));
     }
