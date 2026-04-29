@@ -12,21 +12,26 @@ impl AuthKeyStore for Mysql {
     fn load_keys(&self) -> Result<Vec<authentication::PeerKey>, Error> {
         let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
-        let keys = conn.query_map(
+        let raw: Vec<(String, Option<i64>)> = conn.query_map(
             "SELECT `key`, valid_until FROM `keys`",
-            |(key, valid_until): (String, Option<i64>)| match valid_until {
-                Some(valid_until) => authentication::PeerKey {
-                    key: key.parse::<Key>().unwrap(),
-                    valid_until: Some(Duration::from_secs(valid_until.unsigned_abs())),
-                },
-                None => authentication::PeerKey {
-                    key: key.parse::<Key>().unwrap(),
-                    valid_until: None,
-                },
-            },
+            |(key, valid_until): (String, Option<i64>)| (key, valid_until),
         )?;
 
-        Ok(keys)
+        raw.into_iter()
+            .map(|(key, valid_until)| {
+                let key = key.parse::<Key>().map_err(|e| Error::MalformedDatabaseRecord {
+                    message: e.to_string(),
+                    driver: DRIVER,
+                })?;
+                Ok(match valid_until {
+                    Some(valid_until) => authentication::PeerKey {
+                        key,
+                        valid_until: Some(Duration::from_secs(valid_until.unsigned_abs())),
+                    },
+                    None => authentication::PeerKey { key, valid_until: None },
+                })
+            })
+            .collect()
     }
 
     fn get_key_from_keys(&self, key: &Key) -> Result<Option<authentication::PeerKey>, Error> {
@@ -39,16 +44,23 @@ impl AuthKeyStore for Mysql {
 
         let key = query?;
 
-        Ok(key.map(|(key, opt_valid_until)| match opt_valid_until {
-            Some(valid_until) => authentication::PeerKey {
-                key: key.parse::<Key>().unwrap(),
-                valid_until: Some(Duration::from_secs(valid_until.unsigned_abs())),
-            },
-            None => authentication::PeerKey {
-                key: key.parse::<Key>().unwrap(),
-                valid_until: None,
-            },
-        }))
+        let peer_key = key
+            .map(|(key, opt_valid_until)| -> Result<authentication::PeerKey, Error> {
+                let key = key.parse::<Key>().map_err(|e| Error::MalformedDatabaseRecord {
+                    message: e.to_string(),
+                    driver: DRIVER,
+                })?;
+                Ok(match opt_valid_until {
+                    Some(valid_until) => authentication::PeerKey {
+                        key,
+                        valid_until: Some(Duration::from_secs(valid_until.unsigned_abs())),
+                    },
+                    None => authentication::PeerKey { key, valid_until: None },
+                })
+            })
+            .transpose()?;
+
+        Ok(peer_key)
     }
 
     fn add_key_to_keys(&self, auth_key: &authentication::PeerKey) -> Result<usize, Error> {

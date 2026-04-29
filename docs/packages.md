@@ -5,7 +5,6 @@
 - [Architectural Philosophy](#architectural-philosophy)
 - [Design Decisions](#design-decisions)
 - [Protocol Implementation Details](#protocol-implementation-details)
-- [Architectural Philosophy](#architectural-philosophy)
 
 ```output
 packages/

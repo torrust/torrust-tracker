@@ -14,14 +14,22 @@ impl TorrentMetricsStore for Sqlite {
 
         let mut stmt = conn.prepare("SELECT info_hash, completed FROM torrents")?;
 
-        let torrent_iter = stmt.query_map([], |row| {
-            let info_hash_string: String = row.get(0)?;
-            let info_hash = InfoHash::from_str(&info_hash_string).unwrap();
-            let completed: u32 = row.get(1)?;
-            Ok((info_hash, completed))
-        })?;
+        let raw: Vec<(String, u32)> = stmt
+            .query_map([], |row| Ok((row.get::<_, String>(0)?, row.get::<_, u32>(1)?)))?
+            .filter_map(std::result::Result::ok)
+            .collect();
 
-        Ok(torrent_iter.filter_map(std::result::Result::ok).collect())
+        raw.into_iter()
+            .map(|(s, completed)| {
+                InfoHash::from_str(&s)
+                    .map(|info_hash| (info_hash, completed))
+                    .map_err(|e| Error::MalformedDatabaseRecord {
+                        message: format!("{e:?}"),
+                        driver: DRIVER,
+                    })
+            })
+            .collect::<Result<Vec<_>, Error>>()
+            .map(|v| v.iter().copied().collect())
     }
 
     fn load_torrent_downloads(&self, info_hash: &InfoHash) -> Result<Option<NumberOfDownloads>, Error> {

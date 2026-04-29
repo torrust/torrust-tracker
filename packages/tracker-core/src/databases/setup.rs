@@ -30,6 +30,18 @@ pub struct DatabaseStores {
     pub auth_key_store: Arc<dyn AuthKeyStore>,
 }
 
+fn build_database_stores<T>(db: Arc<T>) -> DatabaseStores
+where
+    T: SchemaMigrator + TorrentMetricsStore + WhitelistStore + AuthKeyStore + Send + Sync + 'static,
+{
+    DatabaseStores {
+        schema_migrator: db.clone(),
+        torrent_metrics_store: db.clone(),
+        whitelist_store: db.clone(),
+        auth_key_store: db,
+    }
+}
+
 /// Initializes and returns a [`DatabaseStores`] bundle based on the provided
 /// configuration.
 ///
@@ -71,22 +83,12 @@ pub fn initialize_database(config: &Core) -> DatabaseStores {
         Driver::Sqlite3 => {
             let db = Arc::new(Sqlite::new(&config.database.path).expect("Database driver build failed."));
             db.create_database_tables().expect("Could not create database tables.");
-            DatabaseStores {
-                schema_migrator: db.clone(),
-                torrent_metrics_store: db.clone(),
-                whitelist_store: db.clone(),
-                auth_key_store: db,
-            }
+            build_database_stores(db)
         }
         Driver::MySQL => {
             let db = Arc::new(Mysql::new(&config.database.path).expect("Database driver build failed."));
             db.create_database_tables().expect("Could not create database tables.");
-            DatabaseStores {
-                schema_migrator: db.clone(),
-                torrent_metrics_store: db.clone(),
-                whitelist_store: db.clone(),
-                auth_key_store: db,
-            }
+            build_database_stores(db)
         }
     }
 }

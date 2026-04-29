@@ -44,13 +44,10 @@ impl SchemaMigrator for Mysql {
 
         let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
-        conn.query_drop(&create_torrents_table)
-            .expect("Could not create torrents table.");
-        conn.query_drop(&create_torrent_aggregate_metrics_table)
-            .expect("Could not create create_torrent_aggregate_metrics_table table.");
-        conn.query_drop(&create_keys_table).expect("Could not create keys table.");
-        conn.query_drop(&create_whitelist_table)
-            .expect("Could not create whitelist table.");
+        conn.query_drop(&create_torrents_table)?;
+        conn.query_drop(&create_torrent_aggregate_metrics_table)?;
+        conn.query_drop(&create_keys_table)?;
+        conn.query_drop(&create_whitelist_table)?;
 
         Ok(())
     }
@@ -70,11 +67,9 @@ impl SchemaMigrator for Mysql {
 
         let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
-        conn.query_drop(&drop_whitelist_table)
-            .expect("Could not drop `whitelist` table.");
-        conn.query_drop(&drop_torrents_table)
-            .expect("Could not drop `torrents` table.");
-        conn.query_drop(&drop_keys_table).expect("Could not drop `keys` table.");
+        conn.query_drop(&drop_whitelist_table)?;
+        conn.query_drop(&drop_torrents_table)?;
+        conn.query_drop(&drop_keys_table)?;
 
         Ok(())
     }

@@ -12,11 +12,16 @@ impl WhitelistStore for Mysql {
     fn load_whitelist(&self) -> Result<Vec<InfoHash>, Error> {
         let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
-        let info_hashes = conn.query_map("SELECT info_hash FROM whitelist", |info_hash: String| {
-            InfoHash::from_str(&info_hash).unwrap()
-        })?;
+        let raw: Vec<String> = conn.query_map("SELECT info_hash FROM whitelist", |info_hash: String| info_hash)?;
 
-        Ok(info_hashes)
+        raw.into_iter()
+            .map(|s| {
+                InfoHash::from_str(&s).map_err(|e| Error::MalformedDatabaseRecord {
+                    message: format!("{e:?}"),
+                    driver: DRIVER,
+                })
+            })
+            .collect()
     }
 
     fn get_info_hash_from_whitelist(&self, info_hash: InfoHash) -> Result<Option<InfoHash>, Error> {
@@ -27,7 +32,14 @@ impl WhitelistStore for Mysql {
             params! { "info_hash" => info_hash.to_hex_string() },
         )?;
 
-        let info_hash = select.map(|f| InfoHash::from_str(&f).expect("Failed to decode InfoHash String from DB!"));
+        let info_hash = select
+            .map(|s| {
+                InfoHash::from_str(&s).map_err(|e| Error::MalformedDatabaseRecord {
+                    message: format!("{e:?}"),
+                    driver: DRIVER,
+                })
+            })
+            .transpose()?;
 
         Ok(info_hash)
     }

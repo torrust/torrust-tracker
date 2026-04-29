@@ -13,15 +13,19 @@ impl WhitelistStore for Sqlite {
 
         let mut stmt = conn.prepare("SELECT info_hash FROM whitelist")?;
 
-        let info_hash_iter = stmt.query_map([], |row| {
-            let info_hash: String = row.get(0)?;
+        let raw: Vec<String> = stmt
+            .query_map([], |row| row.get::<_, String>(0))?
+            .filter_map(std::result::Result::ok)
+            .collect();
 
-            Ok(InfoHash::from_str(&info_hash).unwrap())
-        })?;
-
-        let info_hashes: Vec<InfoHash> = info_hash_iter.filter_map(std::result::Result::ok).collect();
-
-        Ok(info_hashes)
+        raw.into_iter()
+            .map(|s| {
+                InfoHash::from_str(&s).map_err(|e| Error::MalformedDatabaseRecord {
+                    message: format!("{e:?}"),
+                    driver: DRIVER,
+                })
+            })
+            .collect()
     }
 
     fn get_info_hash_from_whitelist(&self, info_hash: InfoHash) -> Result<Option<InfoHash>, Error> {
@@ -33,7 +37,17 @@ impl WhitelistStore for Sqlite {
 
         let query = rows.next()?;
 
-        Ok(query.map(|f| InfoHash::from_str(&f.get_unwrap::<_, String>(0)).unwrap()))
+        let info_hash = query
+            .map(|f| -> Result<InfoHash, Error> {
+                let s: String = f.get(0).map_err(Error::from)?;
+                InfoHash::from_str(&s).map_err(|e| Error::MalformedDatabaseRecord {
+                    message: format!("{e:?}"),
+                    driver: DRIVER,
+                })
+            })
+            .transpose()?;
+
+        Ok(info_hash)
     }
 
     fn add_info_hash_to_whitelist(&self, info_hash: InfoHash) -> Result<usize, Error> {

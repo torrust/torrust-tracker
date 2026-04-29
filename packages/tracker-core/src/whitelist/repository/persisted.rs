@@ -8,7 +8,7 @@ use crate::databases::{self, WhitelistStore};
 /// The persisted list of allowed torrents.
 ///
 /// This repository handles adding, removing, and loading torrents
-/// from a persistent database like `SQLite` or `MySQL`ç.
+/// from a persistent database like `SQLite` or `MySQL`.
 pub struct DatabaseWhitelist {
     /// A whitelist store implementation (e.g., `SQLite3` or `MySQL`).
     database: Arc<dyn WhitelistStore>,

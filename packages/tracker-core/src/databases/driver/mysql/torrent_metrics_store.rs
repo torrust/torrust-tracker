@@ -14,15 +14,23 @@ impl TorrentMetricsStore for Mysql {
     fn load_all_torrents_downloads(&self) -> Result<NumberOfDownloadsBTreeMap, Error> {
         let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
 
-        let torrents = conn.query_map(
+        let raw_rows: Vec<(String, u32)> = conn.query_map(
             "SELECT info_hash, completed FROM torrents",
-            |(info_hash_string, completed): (String, u32)| {
-                let info_hash = InfoHash::from_str(&info_hash_string).unwrap();
-                (info_hash, completed)
-            },
+            |(info_hash_string, completed): (String, u32)| (info_hash_string, completed),
         )?;
 
-        Ok(torrents.iter().copied().collect())
+        raw_rows
+            .into_iter()
+            .map(|(s, completed)| {
+                InfoHash::from_str(&s)
+                    .map(|info_hash| (info_hash, completed))
+                    .map_err(|e| Error::MalformedDatabaseRecord {
+                        message: format!("{e:?}"),
+                        driver: DRIVER,
+                    })
+            })
+            .collect::<Result<Vec<_>, Error>>()
+            .map(|v| v.iter().copied().collect())
     }
 
     fn load_torrent_downloads(&self, info_hash: &InfoHash) -> Result<Option<NumberOfDownloads>, Error> {
