@@ -771,7 +771,7 @@ Acceptance criteria:
   deferred here)
 - Subissue `1525-03`: `docs/issues/1525-03-persistence-benchmarking.md` — benchmark runner
   (PostgreSQL deferred here)
-- Subissue `1525-06`: `docs/issues/1525-06-introduce-schema-migrations.md` — migration
+- Subissue `1525-06`: `docs/issues/1719-1525-06-introduce-schema-migrations.md` — migration
   framework and history-alignment pattern
 - Subissue `1525-07`: `docs/issues/1525-07-align-rust-and-db-types.md` — fourth migration
   and `NumberOfDownloads = u64`

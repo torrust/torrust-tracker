@@ -84,7 +84,7 @@ ALTER TABLE torrent_aggregate_metrics
 
 PostgreSQL migration files are not created here. They will be added in subissue `1525-08` when
 the PostgreSQL driver is introduced. Following the
-[history-alignment pattern](1525-06-introduce-schema-migrations.md#history-alignment-pattern)
+[history-alignment pattern](1719-1525-06-introduce-schema-migrations.md#history-alignment-pattern)
 established in `1525-06`, subissue `1525-08` creates **all four** migration files for
 PostgreSQL starting from migration 1. PostgreSQL's migration 1 creates the columns as
 `INTEGER` (matching the original schema from the other backends), and migration 4 widens them
@@ -212,7 +212,7 @@ These tests extend the existing driver `#[cfg(test)]` modules.
 ## References
 
 - EPIC: `#1525`
-- Subissue `1525-06`: `docs/issues/1525-06-introduce-schema-migrations.md` — must be completed
+- Subissue `1525-06`: `docs/issues/1719-1525-06-introduce-schema-migrations.md` — must be completed
   first (provides the migration framework)
 - Subissue `1525-08`: `docs/issues/1525-08-add-postgresql-driver.md` — adds PostgreSQL
   migration files including the history-aligned no-op for this migration
