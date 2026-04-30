@@ -60,7 +60,10 @@ impl WhitelistStore for Sqlite {
                 driver: DRIVER,
             })
         } else {
-            Ok(usize::try_from(insert).unwrap_or(0))
+            usize::try_from(insert).map_err(|e| Error::MalformedDatabaseRecord {
+                message: format!("rows_affected does not fit in usize: {e}"),
+                driver: DRIVER,
+            })
         }
     }
 

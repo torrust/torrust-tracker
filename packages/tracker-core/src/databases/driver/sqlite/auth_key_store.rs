@@ -27,15 +27,9 @@ impl AuthKeyStore for Sqlite {
                     driver: DRIVER,
                 })?;
 
-                Ok(match valid_until {
-                    Some(value) => authentication::PeerKey {
-                        key: parsed_key,
-                        valid_until: Some(DurationSinceUnixEpoch::from_secs(value.unsigned_abs())),
-                    },
-                    None => authentication::PeerKey {
-                        key: parsed_key,
-                        valid_until: None,
-                    },
+                Ok(authentication::PeerKey {
+                    key: parsed_key,
+                    valid_until: valid_until.map(parse_valid_until).transpose()?,
                 })
             })
             .collect()
@@ -58,15 +52,9 @@ impl AuthKeyStore for Sqlite {
                     driver: DRIVER,
                 })?;
 
-                Ok(match valid_until {
-                    Some(value) => authentication::PeerKey {
-                        key: parsed_key,
-                        valid_until: Some(DurationSinceUnixEpoch::from_secs(value.unsigned_abs())),
-                    },
-                    None => authentication::PeerKey {
-                        key: parsed_key,
-                        valid_until: None,
-                    },
+                Ok(authentication::PeerKey {
+                    key: parsed_key,
+                    valid_until: valid_until.map(parse_valid_until).transpose()?,
                 })
             })
             .transpose()
@@ -97,7 +85,10 @@ impl AuthKeyStore for Sqlite {
                 driver: DRIVER,
             })
         } else {
-            Ok(usize::try_from(insert).unwrap_or(0))
+            usize::try_from(insert).map_err(|e| Error::MalformedDatabaseRecord {
+                message: format!("rows_affected does not fit in usize: {e}"),
+                driver: DRIVER,
+            })
         }
     }
 
@@ -120,4 +111,18 @@ impl AuthKeyStore for Sqlite {
             })
         }
     }
+}
+
+/// Convert a signed seconds value loaded from the database into a
+/// [`DurationSinceUnixEpoch`].
+///
+/// Negative values indicate a corrupted record (timestamps before the Unix
+/// epoch are not representable) and are rejected as
+/// [`Error::MalformedDatabaseRecord`].
+fn parse_valid_until(value: i64) -> Result<DurationSinceUnixEpoch, Error> {
+    let secs = u64::try_from(value).map_err(|_| Error::MalformedDatabaseRecord {
+        message: format!("negative valid_until timestamp: {value}"),
+        driver: DRIVER,
+    })?;
+    Ok(DurationSinceUnixEpoch::from_secs(secs))
 }
