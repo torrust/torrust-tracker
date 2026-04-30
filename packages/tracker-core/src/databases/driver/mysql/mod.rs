@@ -19,11 +19,7 @@ const DRIVER: Driver = Driver::MySQL;
 ///
 /// All `.sql` files under `migrations/mysql/` are compiled into the binary at
 /// build time and applied in timestamp order by `MIGRATOR.run(&pool)`.
-//
-// `dead_code` is allowed during the scaffolding phase of subissue 1525-06: the
-// migrator is wired into `create_database_tables()` in the next phase.
-#[allow(dead_code)]
-static MIGRATOR: Migrator = ::sqlx::migrate!("migrations/mysql");
+pub(super) static MIGRATOR: Migrator = ::sqlx::migrate!("migrations/mysql");
 
 /// `MySQL` driver implementation.
 ///
@@ -212,6 +208,14 @@ mod tests {
         let driver = initialize_driver(&config);
 
         run_tests(&driver).await;
+
+        // Idempotency: a second `create_database_tables()` call must be a
+        // no-op (embedded `sqlx` migrator skips migrations already recorded
+        // in `_sqlx_migrations`).
+        driver
+            .create_database_tables()
+            .await
+            .expect("second migration run should be a no-op");
 
         mysql_container.stop().await;
 

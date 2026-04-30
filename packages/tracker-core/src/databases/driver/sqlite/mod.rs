@@ -17,11 +17,7 @@ const DRIVER: Driver = Driver::Sqlite3;
 ///
 /// All `.sql` files under `migrations/sqlite/` are compiled into the binary at
 /// build time and applied in timestamp order by `MIGRATOR.run(&pool)`.
-//
-// `dead_code` is allowed during the scaffolding phase of subissue 1525-06: the
-// migrator is wired into `create_database_tables()` in the next phase.
-#[allow(dead_code)]
-static MIGRATOR: Migrator = ::sqlx::migrate!("migrations/sqlite");
+pub(super) static MIGRATOR: Migrator = ::sqlx::migrate!("migrations/sqlite");
 
 /// `SQLite` driver implementation.
 ///
@@ -115,5 +111,24 @@ mod tests {
         run_tests(&driver).await;
 
         Ok(())
+    }
+
+    #[tokio::test]
+    async fn create_database_tables_should_be_idempotent_on_a_fresh_database() {
+        let config = ephemeral_configuration();
+        let driver = initialize_driver(&config);
+
+        // First call applies every embedded migration.
+        driver
+            .create_database_tables()
+            .await
+            .expect("first migration run should succeed on a fresh database");
+
+        // Second call must be a no-op: the embedded `sqlx` migrator skips
+        // migrations already recorded in `_sqlx_migrations`.
+        driver
+            .create_database_tables()
+            .await
+            .expect("second migration run should be a no-op");
     }
 }
