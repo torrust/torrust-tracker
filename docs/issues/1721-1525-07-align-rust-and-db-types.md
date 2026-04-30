@@ -2,9 +2,48 @@
 
 ## Goal
 
-Widen the download-counter type in Rust from `u32` to `u64` and widen the corresponding
-database columns from `INTEGER` (32-bit, MySQL) to `BIGINT` (64-bit), delivered as a versioned
-`sqlx` migration so the change is explicit, testable, and tracked as a forward schema change.
+Widen the MySQL download-counter columns from `INTEGER` (32-bit signed) to `BIGINT` (64-bit),
+delivered as a versioned `sqlx` migration. The Rust type `NumberOfDownloads` stays `u32` —
+the database column is intentionally wider than the Rust type, and that is the correct design
+(see [Design Decision](#design-decision-widen-db-only-keep-rust-type) below).
+
+## Type-Mapping Diagram
+
+### Current state (before this subissue)
+
+```text
+DB column (MySQL)       sqlx read    Driver cast    Rust domain     Wire (write)
+────────────────────    ──────────   ────────────   ─────────────   ──────────────────────
+torrents.completed
+  INT (signed 32-bit)   → i64      → u32::try_from  NumberOfDownloads  UDP: i32::try_from (saturate)
+  max 2,147,483,647                  (may error!)    = u32              HTTP: i64::from(u32) (infallible)
+
+torrent_aggregate_metrics.value
+  INT (signed 32-bit)   → i64      → u32::try_from  (same alias)
+  max 2,147,483,647                  (may error!)
+```
+
+**Problem**: `u32::MAX` (4,294,967,295) > `i32::MAX` (2,147,483,647). Once the counter exceeds
+`i32::MAX`, the MySQL write fails or overflows silently.
+
+### Final state (after this subissue)
+
+```text
+DB column (MySQL)       sqlx read    Driver cast    Rust domain     Wire (write)
+────────────────────    ──────────   ────────────   ─────────────   ──────────────────────
+torrents.completed
+  BIGINT (signed 64)    → i64      → u32::try_from  NumberOfDownloads  UDP: i32::try_from (saturate)
+  max 9,223,372,036,…               (infallible      = u32              HTTP: i64::from(u32) (infallible)
+                                     for u32 range)
+
+torrent_aggregate_metrics.value
+  BIGINT (signed 64)    → i64      → u32::try_from  (same alias)
+  max 9,223,372,036,…               (infallible
+                                     for u32 range)
+```
+
+**SQLite**: no column change needed — SQLite `INTEGER` already stores any value as signed
+64-bit. A no-op migration is added solely to keep the migration history aligned with MySQL.
 
 ## Background
 
@@ -20,38 +59,73 @@ into both drivers. The schema at that point contains:
 The Rust type alias is `NumberOfDownloads = u32` in
 `packages/primitives/src/lib.rs`. The `SwarmMetadata.downloaded` field also uses this type.
 The drivers read the column as `i64` (sqlx always returns integer columns as `i64`) and
-immediately narrow-cast to `u32`.
+narrow-cast to `u32`.
 
 ### Why this is a problem
 
-The MySQL `INT` column type is **signed 32-bit** (max 2,147,483,647). Writing a `u32` value
-above that limit silently overflows or errors. Practically, the counter saturates at the same
-point as the UDP scrape wire format (`completed` is `i32` in BEP 15), but the correct fix is
-to widen the storage type rather than rely on implicit saturation in the driver.
+The MySQL `INT` column type is **signed 32-bit** (max 2,147,483,647). `u32::MAX` is
+4,294,967,295 — roughly double that limit. Once the download counter exceeds `i32::MAX` the
+MySQL write fails or silently overflows. Widening the column to `BIGINT` removes this ceiling
+while keeping the Rust type and all existing wire-encoding logic unchanged.
 
-`u32::MAX` (4,294,967,295) is already higher than the `i32::MAX` wire limit, so protocol
-saturation happens before storage overflow today. However, aligning storage to `BIGINT` and the
-Rust type to `u64` makes the storage contract explicit and decoupled from any particular
-protocol encoding. Future protocol changes or a direct-database query tool cannot accidentally
-exceed a silently-constrained column.
+**Protocol encoding** (no changes in this subissue):
 
-**Protocol encoding** (read-only, no changes needed in this subissue):
-
-- UDP scrape response (`i32` wire field): the existing conversion from `NumberOfDownloads` to
-  `i32` already saturates at `i32::MAX`. This remains unchanged.
-- HTTP scrape response (bencoded `i64`): `bencode_download_count()` saturates at `i64::MAX`.
-  This remains unchanged.
+- UDP scrape (`i32` wire field): `i32::try_from(u32)` already saturates at `i32::MAX`.
+- HTTP scrape (bencoded `i64`): `i64::from(u32)` is infallible; no change needed.
 
 ### Why migrations first (1525-06 before 1525-07)
 
-The column-widening change must be delivered as a versioned migration rather than an ad hoc DDL
-update. Having the migration framework from `1525-06` in place ensures the change is tracked in
-`_sqlx_migrations`, tested like any other migration, and can be reasoned about in production
-upgrade scenarios.
+The column-widening change must be a versioned migration, not ad hoc DDL. The migration
+framework from `1525-06` ensures the change is recorded in `_sqlx_migrations`, testable, and
+safe in production upgrade scenarios.
+
+## Design Decision: Widen DB Only, Keep Rust Type
+
+The initial proposal for this subissue suggested widening `NumberOfDownloads` from `u32` to
+`u64` alongside the database column. After analysis, **only the DB column is widened**. The
+Rust type stays `u32`. Here is the reasoning:
+
+### Why NOT widen the Rust type
+
+The database in this tracker is an internal persistence store, not a shared external system.
+No other service writes to it directly. Writing a value above `u32::MAX` into this database
+would mean the application logic itself had produced that value — which is impossible while
+`NumberOfDownloads = u32`. The write path is therefore fully bounded by the Rust type at
+compile time.
+
+This is the same reasoning as storing an enum variant as a string in the database: the string
+column could hold arbitrary text, but the application only ever writes valid variant names. The
+wider storage type is intentional; it does not indicate that the application type should match it.
+
+### The read path is safe too
+
+If someone bypassed the application and wrote a value above `u32::MAX` directly into the
+database, the driver would return a `MalformedDatabaseRecord` error at read time — which is the
+correct behaviour. The application should not silently accept data that violates its own
+invariants. We already have similar guarded conversions elsewhere in the drivers.
+
+### Why the original proposal suggested `u64`
+
+The original motivation was defensive: aligning the Rust type to the full BIGINT range would
+make the read path infallible and future-proof against protocol changes. That reasoning is
+valid, but it comes at the cost of a large cascade change (scrape encoders, swarm metadata,
+benchmark helpers, UDP handler) for a scenario — direct external writes — that is out of scope
+and would break other invariants anyway. The simpler approach (widen DB only) fixes the actual
+bug with minimal churn.
+
+### `SwarmMetadata` field types
+
+`complete` and `incomplete` in `SwarmMetadata` are point-in-time counts of currently connected
+seeders and leechers. They are in-memory only and never persisted. Widening them would add
+scope without fixing any real problem; they remain `u32`.
+
+`downloaded` is the persisted accumulator. It stays `u32` in Rust but the field should use the
+`NumberOfDownloads` type alias (not the bare `u32`) to make the intent explicit. This is a
+cosmetic fix included in Task 2.
 
 ## Proposed Branch
 
-- `1525-07-align-rust-and-db-types`
+- `1721-1525-07-align-rust-and-db-types`
 
 ## What Changes
 
@@ -86,64 +160,26 @@ PostgreSQL migration files are not created here. They will be added in subissue 
 the PostgreSQL driver is introduced. Following the
 [history-alignment pattern](1719-1525-06-introduce-schema-migrations.md#history-alignment-pattern)
 established in `1525-06`, subissue `1525-08` creates **all four** migration files for
-PostgreSQL starting from migration 1. PostgreSQL's migration 1 creates the columns as
-`INTEGER` (matching the original schema from the other backends), and migration 4 widens them
-to `BIGINT` using PostgreSQL-specific `ALTER COLUMN ... TYPE BIGINT` syntax. Migration 4 is
-not a no-op for PostgreSQL.
+PostgreSQL starting from migration 1. PostgreSQL's migration 4 widens the columns using
+PostgreSQL-specific `ALTER COLUMN ... TYPE BIGINT` syntax; it is not a no-op for PostgreSQL.
 
-### Rust type changes
+### Rust changes (cosmetic only)
 
-**`packages/primitives/src/lib.rs`** — widen the type alias:
-
-```rust
-// Before
-pub type NumberOfDownloads = u32;
-
-// After
-pub type NumberOfDownloads = u64;
-```
-
-**`packages/primitives/src/swarm_metadata.rs`** — `downloaded` field currently uses the bare
-`u32`. Update it to use `NumberOfDownloads` explicitly:
+**`packages/primitives/src/swarm_metadata.rs`** — use the `NumberOfDownloads` alias instead
+of the bare `u32` for the `downloaded` field and the `downloads()` return type:
 
 ```rust
 // Before
 pub downloaded: u32,
+pub fn downloads(&self) -> u32 { ... }
 
 // After
 pub downloaded: NumberOfDownloads,
+pub fn downloads(&self) -> NumberOfDownloads { ... }
 ```
 
-Also update the `downloads()` method return type to `NumberOfDownloads`.
-
-### Driver conversion changes
-
-After `1525-05`, the sqlx drivers read counter columns as `i64`. With `NumberOfDownloads = u32`
-the read path does `u32::try_from(i64_value)`. After this subissue it becomes
-`u64::try_from(i64_value)`.
-
-Because the database column type is `BIGINT` (signed), the **write path** must also encode
-`u64 → i64`. Values above `i64::MAX` (≈ 9.2 × 10¹⁸) cannot be stored and must return an
-error rather than silently truncate. Add named helper methods to each driver to make the
-conversion explicit and consistent:
-
-```rust
-fn decode_counter(value: i64) -> Result<NumberOfDownloads, Error> {
-    u64::try_from(value).map_err(|err| Error::invalid_query(DRIVER, err))
-}
-
-fn encode_counter(value: NumberOfDownloads) -> Result<i64, Error> {
-    i64::try_from(value).map_err(|err| Error::invalid_query(DRIVER, err))
-}
-```
-
-Use these helpers in every place a counter column is read from or written to the database.
-
-### Cascade compilation fixes
-
-Widening `NumberOfDownloads` from `u32` to `u64` will produce compilation errors wherever the
-old `u32` range was assumed. Fix all errors; do not add `as u32` casts or `allow` attributes
-to suppress them.
+`NumberOfDownloads` remains `u32` in `packages/primitives/src/lib.rs`. No other Rust types
+change. No cascade compilation fixes are required.
 
 ## Tasks
 
@@ -155,28 +191,22 @@ Create the two new migration files listed above. Do not modify any existing migr
 `mysql/`. The fourth file is verified by running the migration against a fresh test database
 of each type.
 
-### Task 2 — Widen `NumberOfDownloads` and fix cascade
+### Task 2 — Use `NumberOfDownloads` alias in `SwarmMetadata`
 
-Change `NumberOfDownloads = u32 → u64` in `packages/primitives/src/lib.rs` and update
-`SwarmMetadata.downloaded` to use the alias. Fix all resulting compilation errors across the
-workspace (driver conversion logic, scrape response encoding, announce handler arithmetic,
-etc.).
-
-Add `decode_counter` / `encode_counter` helpers to both driver files as described above.
+Update `SwarmMetadata.downloaded` and `downloads()` to use the `NumberOfDownloads` alias
+instead of the bare `u32`. This is a cosmetic change; no logic changes.
 
 **Outcome**: `cargo build --workspace` succeeds with no warnings or errors.
 
-### Task 3 — Validate migration and type alignment
+### Task 3 — Validate the migration
 
 Add or extend tests that verify:
 
 - **MySQL migration**: running the migration on a database with the pre-migration `INT` column
-  produces a `BIGINT` column, and writing and reading a value larger than `2^31 − 1` round-trips
-  correctly.
+  produces a `BIGINT` column, and writing and reading a value in the range `(i32::MAX, u32::MAX]`
+  round-trips correctly (this range was previously unsafe with `INT`).
 - **SQLite no-op**: the migration applies cleanly (recorded in `_sqlx_migrations`) and the
-  column already accepts large values.
-- **Boundary encode**: writing a `u64` counter value of exactly `i64::MAX` succeeds; writing
-  `i64::MAX + 1` returns an appropriate error rather than panicking or wrapping.
+  column continues to accept all values in the `u32` range.
 
 These tests extend the existing driver `#[cfg(test)]` modules.
 
@@ -184,10 +214,11 @@ These tests extend the existing driver `#[cfg(test)]` modules.
 
 ## Out of Scope
 
+- Widening `NumberOfDownloads` to `u64` — explicitly out of scope (see Design Decision above).
 - PostgreSQL migration files — added in subissue `1525-08`.
 - Down migrations (rollback) — not needed at this stage.
 - Trait splitting or other structural refactoring.
-- Other numeric types beyond `NumberOfDownloads` / download counters.
+- Changes to `complete` / `incomplete` fields in `SwarmMetadata`.
 
 ## Acceptance Criteria
 
@@ -195,15 +226,13 @@ These tests extend the existing driver `#[cfg(test)]` modules.
       exists and is a comment-only no-op.
 - [ ] `packages/tracker-core/migrations/mysql/20260409120000_torrust_tracker_widen_download_counters.sql`
       exists and widens `torrents.completed` and `torrent_aggregate_metrics.value` to `BIGINT`.
-- [ ] `NumberOfDownloads = u64` in `packages/primitives/src/lib.rs`.
-- [ ] `SwarmMetadata.downloaded` uses `NumberOfDownloads`; bare `u32` is removed from that field.
-- [ ] Both driver files use explicit `decode_counter` / `encode_counter` helpers for all
-      counter-column reads and writes.
-- [ ] `encode_counter` returns an error (not a panic, not silent truncation) for values
-      above `i64::MAX`.
-- [ ] A test verifies round-trip of a value larger than `u32::MAX` for each backend.
-- [ ] A test verifies the encode error path for values above `i64::MAX`.
-- [ ] No `as u32` casts or compiler-suppression attributes introduced by this subissue.
+- [ ] `NumberOfDownloads` remains `u32` in `packages/primitives/src/lib.rs`.
+- [ ] `SwarmMetadata.downloaded` and `downloads()` use the `NumberOfDownloads` alias; bare
+      `u32` is replaced with the alias in that struct.
+- [ ] A test verifies that writing and reading a value in `(i32::MAX, u32::MAX]` round-trips
+      correctly on MySQL after the migration.
+- [ ] A test verifies the SQLite no-op migration applies cleanly.
+- [ ] No new `as u32` casts or compiler-suppression attributes introduced by this subissue.
 - [ ] Persistence benchmarking (see subissue `1525-03`) shows no regression against the
       committed baseline.
 - [ ] `cargo test --workspace --all-targets` passes.
@@ -222,7 +251,4 @@ These tests extend the existing driver `#[cfg(test)]` modules.
 - Reference files:
   - `packages/tracker-core/migrations/sqlite/20260409120000_torrust_tracker_widen_download_counters.sql`
   - `packages/tracker-core/migrations/mysql/20260409120000_torrust_tracker_widen_download_counters.sql`
-  - `packages/primitives/src/lib.rs` (type alias change)
-  - `packages/primitives/src/swarm_metadata.rs` (field type change)
-  - `packages/tracker-core/src/databases/driver/sqlite.rs` (decode/encode helpers)
-  - `packages/tracker-core/src/databases/driver/mysql.rs` (decode/encode helpers)
+  - `packages/primitives/src/swarm_metadata.rs` (alias cosmetic fix)
