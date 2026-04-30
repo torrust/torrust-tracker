@@ -38,9 +38,9 @@ By the time this subissue is implemented:
   a `bootstrap_legacy_schema()` helper for upgrading pre-v4 databases. Both backends have three
   migration files.
 
-- **1525-07** has widened `NumberOfDownloads` from `u32` to `u64`, added a fourth migration to
-  SQLite and MySQL, and added `decode_counter`/`encode_counter` helpers to both drivers. The
-  migration file layout at the end of `1525-07` is:
+- **1525-07** has widened MySQL download-counter columns to `BIGINT` via a fourth migration,
+  added a history-aligned no-op migration for SQLite, and kept `NumberOfDownloads = u32`.
+  The migration file layout at the end of `1525-07` is:
 
   ```text
   packages/tracker-core/migrations/
@@ -323,7 +323,7 @@ async fn drop_database_tables(&self) -> Result<(), Error> {
 
 ```rust
 fn decode_counter(value: i64) -> Result<NumberOfDownloads, Error> {
-    u64::try_from(value).map_err(|err| Error::invalid_query(DRIVER, err))
+  u32::try_from(value).map_err(|err| Error::invalid_query(DRIVER, err))
 }
 
 fn encode_counter(value: NumberOfDownloads) -> Result<i64, Error> {
@@ -332,7 +332,7 @@ fn encode_counter(value: NumberOfDownloads) -> Result<i64, Error> {
 ```
 
 Use these helpers in every place a counter column is read from or written to the database.
-Do not use bare `as i64` casts or `as u64` casts.
+Do not use bare `as i64` casts or `as u32` casts.
 
 **`TorrentMetricsStore`, `WhitelistStore`, `AuthKeyStore` implementations**: Follow the same
 structure as the SQLite and MySQL drivers, substituting `$1`/`$2` placeholders and the
@@ -482,7 +482,7 @@ Acceptance criteria:
 - [ ] `create_database_tables()` calls `MIGRATOR.run()` with no legacy bootstrap.
 - [ ] `drop_database_tables()` drops all five tables including `_sqlx_migrations`.
 - [ ] All counter reads use `decode_counter`; all counter writes use `encode_counter`.
-- [ ] No bare `as i64` or `as u64` casts in the driver.
+- [ ] No bare `as i64` or `as u32` casts in the driver.
 
 ### Task 4 — Wire the PostgreSQL driver into the factory and setup
 
@@ -773,8 +773,8 @@ Acceptance criteria:
   (PostgreSQL deferred here)
 - Subissue `1525-06`: `docs/issues/1719-1525-06-introduce-schema-migrations.md` — migration
   framework and history-alignment pattern
-- Subissue `1525-07`: `docs/issues/1525-07-align-rust-and-db-types.md` — fourth migration
-  and `NumberOfDownloads = u64`
+- Subissue `1525-07`: `docs/issues/1721-1525-07-align-rust-and-db-types.md` — fourth migration
+  and DB-only widening (`NumberOfDownloads = u32`)
 - Reference PR: `#1695`
 - Reference implementation branch: `josecelano:pr-1684-review` — see EPIC for checkout
   instructions
