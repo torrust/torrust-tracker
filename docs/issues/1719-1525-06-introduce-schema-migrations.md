@@ -23,9 +23,11 @@ be added (subissue `1525-08`).
 ### Starting point
 
 By the time this subissue is implemented, subissue `1525-05` will have delivered async SQLite
-and MySQL drivers backed by `sqlx`. Each driver has an `ensure_schema()` latch that calls
-`create_database_tables()` lazily. That method currently issues raw `sqlx::query()` DDL. This
-subissue replaces that raw DDL path with `sqlx::migrate!()`.
+and MySQL drivers backed by `sqlx`. `SchemaMigrator::create_database_tables()` is invoked
+once from `databases::setup::initialize_database()` after the driver is built; subissue
+`1525-05` explicitly chose **not** to use a per-method lazy `ensure_schema()` latch. The
+current `create_database_tables()` issues raw `sqlx::query()` DDL. This subissue replaces
+that raw DDL path with `sqlx::migrate!()`.
 
 There are already 3 migration files under `packages/tracker-core/migrations/` (both `sqlite/`
 and `mysql/` subdirectories) that capture the schema history:
@@ -44,8 +46,10 @@ automatically. This subissue is the first time they are wired into the applicati
 The current `create_database_tables()` method issues `CREATE TABLE IF NOT EXISTS` for all four
 tables (`whitelist`, `torrents`, `torrent_aggregate_metrics`, `keys`) using hardcoded DDL that
 already reflects the final schema state (nullable `valid_until`, all four tables present). The
-current `drop_database_tables()` drops `whitelist`, `torrents`, and `keys` but **not**
-`torrent_aggregate_metrics`, which leaks across test drop/create cycles.
+current `drop_database_tables()` already drops all four tables (`whitelist`, `torrents`,
+`keys`, **and** `torrent_aggregate_metrics`) — there is no pre-existing omission. What is
+missing is `_sqlx_migrations`, which does not exist today and will be introduced by this
+subissue. All current drops use bare `DROP TABLE` (no `IF EXISTS`).
 
 This gives two distinct behaviors today:
 
@@ -154,9 +158,125 @@ This logic lives in a helper function called before `MIGRATOR.run(&pool)` inside
 
 After this subissue, `SchemaMigrator::create_database_tables()` calls the legacy-bootstrap
 helper and then `MIGRATOR.run(&pool)` instead of issuing raw DDL. `drop_database_tables()`
-(used only in tests) must also drop the `_sqlx_migrations` and `torrent_aggregate_metrics`
-tables (fixing the pre-existing omission) so that the drop/create cycle used in the test suite
-works correctly.
+(used in tests and in the `axum-rest-tracker-api-server` `force_database_error` helper) must
+also drop `_sqlx_migrations` (newly introduced by this subissue) and switch every drop to
+`DROP TABLE IF EXISTS` so the drop/create cycle used by `databases::driver::tests::run_tests`
+(create → drop → create) leaves a clean slate that `MIGRATOR.run()` can re-bootstrap as a
+fresh database.
+
+## Findings from current-code analysis (2026-04-30)
+
+Review of `develop` (post-`1525-05`) before starting implementation. These items refine or
+correct statements elsewhere in this spec; tasks below should be read with these in mind.
+
+### F1. No `ensure_schema()` latch exists — and none is planned
+
+Subissue `1525-05` explicitly decided not to introduce a per-method lazy schema latch (see
+`docs/issues/1717-1525-05-migrate-sqlite-and-mysql-to-sqlx.md`: _"Do **not** use per-method
+lazy schema checks (`ensure_schema()`)"_). `create_database_tables()` is called exactly once
+from `databases::setup::initialize_database()`. Any references to an `ensure_schema()` latch
+in earlier drafts of this spec are obsolete. Replace mentions of "the `ensure_schema()` latch
+remains in place" with "`create_database_tables()` continues to be invoked once from
+`initialize_database()`".
+
+### F2. `drop_database_tables()` already drops `torrent_aggregate_metrics`
+
+Both the SQLite and MySQL drivers in current code already drop all four tables. The spec's
+claim that this is a "pre-existing omission" is incorrect. The only **new** drop required by
+this subissue is `_sqlx_migrations`. Acceptance criteria below are reworded accordingly. The
+`DROP TABLE IF EXISTS` switch (covering all five drops) remains a real change — current code
+uses bare `DROP TABLE`.
+
+### F3. Error construction follows a tuple-`From` pattern, not a constructor
+
+All existing `sqlx`-error sites use `.map_err(|e| (e, DRIVER))?` and rely on
+`impl From<(SqlxError, Driver)> for Error`. The proposed `Error::migration_error(driver,
+source)` constructor breaks that convention. Preferred shape:
+
+- Add a new `Error::MigrationError { source, driver }` variant.
+- Add `impl From<(sqlx::migrate::MigrateError, Driver)> for Error`.
+- Call sites then write `.map_err(|e| (e, DRIVER))?`, identical to every other driver call.
+
+Update Task 2 and the bootstrap helper code in Task 3 to use this shape. The acceptance
+criterion "`Error::migration_error()` wraps `MigrateError`" should be reworded as "a new
+`Error::MigrationError` variant + `From<(MigrateError, Driver)>` impl wraps `MigrateError`".
+
+### F4. `sqlx`'s `migrate` feature is already enabled transitively; only `macros` is missing
+
+`cargo tree` confirms `sqlx-core` is built with the `migrate` feature already (so the
+`sqlx::migrate::Migrator` and `MigrateError` types are reachable today). The required
+addition in `packages/tracker-core/Cargo.toml` is the **`macros`** feature on `sqlx`, which
+gates the compile-time `sqlx::migrate!()` macro. No other feature additions are needed.
+
+### F5. SQLite migration 1 contains an invalid `#` comment
+
+`packages/tracker-core/migrations/sqlite/20240730183000_torrust_tracker_create_all_tables.sql`
+contains a Bash-style comment line (`# todo: rename to torrent_metrics`). SQLite's lexer does not
+accept `#` as a comment introducer (only `--` and `/* … */`); only MySQL does. When
+`MIGRATOR.run()` executes this file against SQLite, the statement parser is expected to
+fail with a syntax error. **Action in Task 1**: replace `#` with `--` in the SQLite file
+(and in the MySQL file as well, for consistency, since `--` is portable). Verify by running
+the SQLite driver tests after the change.
+
+### F6. MySQL migration 1 still uses `INT(10)` display-width syntax
+
+MySQL 8.0 deprecated integer display-width attributes. `INT(10)` still parses but emits a
+warning and is dropped from `SHOW CREATE TABLE` output, which can cause schema-comparison
+noise. Not blocking for this subissue; flag as an optional cleanup or defer to subissue
+`1525-07` (Rust ↔ SQL type alignment) where integer widths are revisited.
+
+### F7. `keys.key` width is `VARCHAR(32)`, matches `AUTH_KEY_LENGTH`
+
+Verified: `AUTH_KEY_LENGTH = 32` in `packages/tracker-core/src/authentication/key/mod.rs`.
+MySQL migration 1 uses `VARCHAR(32)`, so the migration file matches the `format!`-built DDL
+in the current driver. No discrepancy. Once migrations own the schema, the `format!` /
+`AUTH_KEY_LENGTH` coupling in `mysql/schema_migrator.rs` disappears (the column width is
+frozen in the migration file).
+
+### F8. Other consumers of `drop_database_tables()` outside the test harness
+
+`packages/axum-rest-tracker-api-server/tests/server/mod.rs::force_database_error` calls
+`drop_database_tables()` to provoke query failures. After this subissue it will additionally
+drop `_sqlx_migrations`. Behaviour is unchanged for the test (subsequent queries still
+fail), but worth a sentence in the PR description.
+
+### F9. `bootstrap_legacy_schema()` precondition queries — concrete forms
+
+The spec describes the checks abstractly. Concrete queries to use:
+
+- **`_sqlx_migrations` exists**
+  - SQLite: `SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = '_sqlx_migrations'`
+  - MySQL: `SELECT 1 FROM information_schema.tables WHERE table_schema = DATABASE() AND
+table_name = '_sqlx_migrations'`
+- **Legacy sentinel (`whitelist` exists)** — same shape as above with `name='whitelist'`.
+- **Migration 2 applied (`keys.valid_until` is nullable)**
+  - SQLite: `PRAGMA table_info(keys)` → row where `name='valid_until'` has `notnull = 0`.
+  - MySQL: `SELECT is_nullable FROM information_schema.columns WHERE table_schema =
+DATABASE() AND table_name = 'keys' AND column_name = 'valid_until'` → `'YES'`.
+- **Migration 3 applied (`torrent_aggregate_metrics` exists)** — sentinel-table check, same
+  shape as the first two.
+
+Important ordering: check `_sqlx_migrations` existence with a raw query **before** calling
+`MIGRATOR.ensure_migrations_table(pool)`, because the latter creates the table if absent and
+would defeat the detection.
+
+### F10. `apply_fake` SQL — confirm column types and key types in sqlx 0.8
+
+`Migration::version` is `i64`, `Migration::description` is `Cow<'static, str>`, and
+`Migration::checksum` is `Cow<'static, [u8]>`. Binding `&[u8]` for the checksum column works
+in both backends. The `_sqlx_migrations` schema has columns
+`(version BIGINT PK, description TEXT, installed_on TIMESTAMP, success BOOL, checksum BLOB,
+execution_time BIGINT)` — verify this once during implementation by inspecting the table sqlx
+creates against a fresh DB; if column types differ across backends, adjust the INSERT bind
+types accordingly.
+
+### F11. `database_setup` test cycle is the natural drop/create test
+
+`packages/tracker-core/src/databases/driver/mod.rs::database_setup` already does
+`create → drop → create`. After this subissue, the second `create` runs `MIGRATOR.run()` on
+a database where everything (including `_sqlx_migrations`) was just dropped. No additional
+test is needed for the drop/create cycle scenario beyond verifying that this existing test
+still passes.
 
 ## Tasks
 
@@ -167,7 +287,15 @@ their SQL content is correct and consistent with the current schema produced by 
 DDL in `1525-05`. Do not change existing file timestamps or names. Fix content only if a
 discrepancy is found.
 
-**Outcome**: all three migration files are verified correct; nothing else changes yet.
+Known issue to fix as part of this task (see finding F5): the SQLite (and MySQL) migration
+`20240730183000_torrust_tracker_create_all_tables.sql` contains a Bash-style line
+(`# todo: rename to ...torrent_metrics`). SQLite does not accept `#` line comments — replace `#` with `--` in
+both backend files. This is the only content change expected; verify by running
+`cargo test -p bittorrent-tracker-core run_sqlite_driver_tests` after Task 3 wires the
+migrator in.
+
+**Outcome**: all three migration files compile under `sqlx::migrate!()` for both backends;
+the `#`-comment incompatibility is fixed.
 
 ### Task 2 — Enable `sqlx` `macros` feature and add `MIGRATOR` statics
 
@@ -190,7 +318,9 @@ static MIGRATOR: Migrator = sqlx::migrate!("migrations/sqlite");
 static MIGRATOR: Migrator = sqlx::migrate!("migrations/mysql");
 ```
 
-Add `Error::migration_error()` to `databases/error.rs` to wrap `sqlx::migrate::MigrateError`.
+Add a new `Error::MigrationError { source, driver }` variant to `databases/error.rs` and an
+`impl From<(sqlx::migrate::MigrateError, Driver)> for Error` so the new code can keep the
+established `.map_err(|e| (e, DRIVER))?` call pattern (see finding F3).
 
 **Outcome**: project compiles with migration statics defined but not yet called.
 
@@ -225,14 +355,17 @@ async fn bootstrap_legacy_schema(pool: &Pool) -> Result<(), Error> {
     let migration_2_applied: bool = /* check keys.valid_until is nullable */;
     let migration_3_applied: bool = /* check torrent_aggregate_metrics table exists */;
     if !migration_2_applied || !migration_3_applied {
-        return Err(Error::migration_error(
-            DRIVER,
-            std::io::Error::new(
-                std::io::ErrorKind::InvalidData,
+        // Build a `MigrateError` directly so the conversion goes through the
+        // standard `From<(MigrateError, Driver)> for Error` impl introduced in Task 2.
+        return Err((
+            sqlx::migrate::MigrateError::Source(
                 "Legacy database is not fully migrated. Apply all three manual migrations \
-                 listed in packages/tracker-core/migrations/README.md before upgrading to v4.",
+                 listed in packages/tracker-core/migrations/README.md before upgrading to v4."
+                    .into(),
             ),
-        ));
+            DRIVER,
+        )
+            .into());
     }
 
     // PRECONDITION: all three manual migrations have been verified as applied:
@@ -244,7 +377,7 @@ async fn bootstrap_legacy_schema(pool: &Pool) -> Result<(), Error> {
     MIGRATOR
         .ensure_migrations_table(pool)
         .await
-        .map_err(|e| Error::migration_error(DRIVER, e))?;
+        .map_err(|e| (e, DRIVER))?;
     for migration in MIGRATOR.iter() {
         if migration.version <= 20_250_527_093_000 {
             // sqlx 0.8 does not expose a public `apply_fake()` API on `Migrator`.
@@ -265,7 +398,7 @@ async fn bootstrap_legacy_schema(pool: &Pool) -> Result<(), Error> {
             .bind(migration.checksum.as_ref())
             .execute(pool)
             .await
-            .map_err(|e| Error::migration_error(DRIVER, e))?;
+            .map_err(|e| (e, DRIVER))?;
         }
     }
     Ok(())
@@ -277,7 +410,7 @@ async fn bootstrap_legacy_schema(pool: &Pool) -> Result<(), Error> {
 ```rust
 async fn create_database_tables(&self) -> Result<(), Error> {
     bootstrap_legacy_schema(&self.pool).await?;
-    MIGRATOR.run(&self.pool).await.map_err(|e| Error::migration_error(DRIVER, e))?;
+    MIGRATOR.run(&self.pool).await.map_err(|e| (e, DRIVER))?;
     Ok(())
 }
 ```
@@ -332,8 +465,8 @@ Update `packages/tracker-core/migrations/README.md` to replace the stale content
   migration file causes a checksum-mismatch error on the next startup for any database that has
   already applied that migration.
 
-The `ensure_schema()` latch remains in place — it now guards the
-`bootstrap_legacy_schema()` + `MIGRATOR.run()` sequence.
+`create_database_tables()` continues to be invoked once from
+`databases::setup::initialize_database()` (no `ensure_schema()` latch — see finding F1).
 
 **Outcome**: `cargo test --workspace --all-targets` passes. Schema is owned by migration files.
 The README accurately reflects the new automatic migration behavior.
@@ -383,12 +516,14 @@ modules.
       confirmed correct and match the final schema produced by the hardcoded DDL in `1525-05`.
 - [ ] `sqlx::migrate!()` (`macros` feature) is used in both drivers; no raw DDL remains in
       `create_database_tables()`.
-- [ ] `drop_database_tables()` drops `_sqlx_migrations` **and** `torrent_aggregate_metrics`
-      (fixing the pre-existing omission) so the test cycle works. All five drops use
-      `DROP TABLE IF EXISTS`.
+- [ ] `drop_database_tables()` adds a drop for `_sqlx_migrations` (the only newly required
+      drop — `torrent_aggregate_metrics` is already dropped today; see finding F2) and every
+      drop is converted to `DROP TABLE IF EXISTS`.
 - [ ] `bootstrap_legacy_schema()` verifies that migrations 2 and 3 were applied before
       fake-applying, and returns a descriptive error if the precondition is not met.
-- [ ] `Error::migration_error()` wraps `sqlx::migrate::MigrateError`.
+- [ ] A new `Error::MigrationError` variant plus `impl From<(sqlx::migrate::MigrateError,
+    Driver)> for Error` wrap `MigrateError`, matching the existing tuple-`From` pattern
+      used by every other `sqlx` error site (see finding F3).
 - [ ] `packages/tracker-core/migrations/README.md` is updated to document automatic migration
       behavior and the v4 upgrade requirement.
 - [ ] Guidance for `1525-08`: PostgreSQL migration files start from migration 1 following the
