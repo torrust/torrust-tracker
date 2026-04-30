@@ -349,7 +349,7 @@ of inferred status.
 
 ### Progress Review (2026-04-30)
 
-Status: structural cleanup complete; only benchmark validation remains.
+Status: structural cleanup and benchmark validation complete.
 
 What is done:
 
@@ -362,11 +362,11 @@ What is done:
 - Legacy compatibility/error plumbing has been removed from `packages/tracker-core/src/databases/error.rs` (no more `ConnectionPool` variant or `r2d2`/`rusqlite`/`mysql` `From` impls) and from `packages/tracker-core/src/authentication/key/mod.rs` (the `From<rusqlite::Error>` impl is now `From<sqlx::Error>`).
 - Stale `r2d2_*` references in driver doc comments have been replaced with accurate `sqlx`-based wording.
 - Current validation passed: `cargo machete`, `linter all`, doc tests, and full workspace tests on the cleaned-up state.
+- Persistence benchmark comparison against the `2026-04-28` baseline recorded under `packages/tracker-core/docs/benchmarking/runs/2026-04-30/`. No regression: MySQL totals are 13–16% faster and SQLite per-operation medians stay within run-to-run variance. The bench harness was updated to wait for the MySQL container's TCP listener (sqlx no longer hides this race the way r2d2 did); production code paths are unchanged.
 
 What is still not done:
 
 - There is no recorded evidence in this branch that Tasks 1 to 3 were each validated independently at the time they were completed.
-- There is no recorded post-migration benchmark comparison against the committed baseline from subissue `1525-03`.
 
 - [x] SQLite and MySQL drivers use `sqlx` with async trait methods.
 - [x] Schema initialization remains eager via setup/factory initialization.
@@ -377,8 +377,10 @@ What is still not done:
 - [x] All temporary sync-to-async runtime bridge helpers (e.g. `block_on_current_or_new_runtime`) are removed and replaced with native async call paths.
 - [ ] The branch compiles and all tests pass after each of Tasks 1–3 individually (verified by CI
       or manual `cargo test` run after each task).
-- [ ] Persistence benchmarking (see subissue `1525-03`) shows no regression against the committed
-      baseline.
+- [x] Persistence benchmarking (see subissue `1525-03`) shows no regression against the committed
+      baseline. — See `packages/tracker-core/docs/benchmarking/runs/2026-04-30/REPORT.md` for the
+      full comparison; MySQL totals improved by 13–16% and SQLite per-op medians remained within
+      run-to-run variance.
 - [x] `cargo test --workspace --all-targets` passes.
 - [x] `linter all` exits with code `0`.
 - [x] `cargo machete` reports no unused dependencies.

@@ -60,6 +60,18 @@ where
 /// driver fails to build the connection). This is enforced by the use of
 /// [`expect`](std::result::Result::expect) in the implementation.
 ///
+/// In particular, schema initialization issues a query against the configured
+/// database immediately after the driver is built. If the database service is
+/// not yet ready to accept connections (for example, a freshly started `MySQL`
+/// container that has not finished binding its TCP listener), the first query
+/// can fail and this function will panic. The `sqlx` driver does not retry the
+/// initial connection on its own, so callers are responsible for ensuring the
+/// database is reachable before calling `initialize_database`.
+///
+/// Other panic causes include malformed connection URLs, authentication
+/// failures, insufficient permissions to issue DDL, network errors, or any
+/// other underlying `sqlx::Error` returned while creating the schema.
+///
 /// # Example
 ///
 /// ```rust,no_run
