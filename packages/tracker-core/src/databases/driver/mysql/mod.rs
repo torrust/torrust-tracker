@@ -329,7 +329,7 @@ mod tests {
     }
 
     async fn assert_mysql_column_type(pool: &::sqlx::MySqlPool, table: &str, column: &str, expected_type: &str) {
-        let data_type: String = ::sqlx::query_scalar(
+        let data_type_bytes: Vec<u8> = ::sqlx::query_scalar(
             "SELECT DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?",
         )
         .bind(table)
@@ -337,6 +337,8 @@ mod tests {
         .fetch_one(pool)
         .await
         .expect("column type query should succeed");
+
+        let data_type = String::from_utf8_lossy(&data_type_bytes).to_lowercase();
 
         assert_eq!(data_type, expected_type, "{table}.{column} should be {expected_type}");
     }
