@@ -96,6 +96,16 @@ pub enum Error {
         source: LocatedError<'static, dyn std::error::Error + Send + Sync>,
         driver: Driver,
     },
+
+    /// Indicates that a pre-v4 database is in a partially-migrated state and
+    /// cannot be auto-bootstrapped into the `sqlx` migration system.
+    ///
+    /// Raised by the legacy-bootstrap path of `create_database_tables()` when
+    /// some — but not all — of the expected legacy tables are present and the
+    /// `_sqlx_migrations` table does not yet exist. The fix is to apply the
+    /// missing manual migrations before upgrading.
+    #[error("Cannot upgrade {driver} database: {reason}")]
+    LegacyDatabaseNotMigrated { reason: String, driver: Driver },
 }
 
 impl From<(SqlxError, Driver)> for Error {

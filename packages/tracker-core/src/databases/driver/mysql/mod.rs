@@ -217,8 +217,84 @@ mod tests {
             .await
             .expect("second migration run should be a no-op");
 
+        // Legacy bootstrap: simulate a pre-v4 database (no `_sqlx_migrations`
+        // table, all four legacy tables present) and verify
+        // `create_database_tables()` seeds the migration history without
+        // re-running the embedded migrations.
+        driver
+            .drop_database_tables()
+            .await
+            .expect("drop tables before legacy bootstrap test");
+
+        let raw_pool = ::sqlx::mysql::MySqlPoolOptions::new()
+            .connect(&config.database.path)
+            .await
+            .expect("connect to mysql for raw DDL");
+        create_legacy_pre_v4_schema(&raw_pool).await;
+
+        driver
+            .create_database_tables()
+            .await
+            .expect("legacy bootstrap should succeed");
+
+        let recorded: i64 = ::sqlx::query_scalar("SELECT COUNT(*) FROM `_sqlx_migrations`")
+            .fetch_one(&raw_pool)
+            .await
+            .expect("count _sqlx_migrations");
+        assert_eq!(recorded, 3, "all three legacy migrations should be fake-applied");
+
+        // Partial-state rejection: only two of four legacy tables present.
+        driver
+            .drop_database_tables()
+            .await
+            .expect("drop tables before partial-state test");
+        for stmt in [
+            "CREATE TABLE whitelist (id INTEGER PRIMARY KEY AUTO_INCREMENT)",
+            "CREATE TABLE torrents (id INTEGER PRIMARY KEY AUTO_INCREMENT)",
+        ] {
+            ::sqlx::query(stmt).execute(&raw_pool).await.expect("partial DDL");
+        }
+
+        let err = driver
+            .create_database_tables()
+            .await
+            .expect_err("partial legacy state must be rejected");
+        match err {
+            crate::databases::error::Error::LegacyDatabaseNotMigrated { reason, .. } => {
+                assert!(reason.contains("apply every pre-v4 migration"));
+            }
+            other => panic!("unexpected error: {other:?}"),
+        }
+        drop(raw_pool);
+
         mysql_container.stop().await;
 
         Ok(())
+    }
+
+    /// Recreate the schema produced by the three pre-v4 manual migrations.
+    ///
+    /// This raw DDL mirrors the cumulative state of
+    /// `migrations/mysql/2024073018*.sql` and
+    /// `migrations/mysql/20250527093000_*.sql` after they have been applied
+    /// in order. We build it by hand so the legacy-bootstrap test path
+    /// can build a database that looks exactly like a pre-v4 tracker on disk
+    /// (legacy tables present, no `_sqlx_migrations` row).
+    ///
+    /// # Legacy compatibility
+    ///
+    /// Drop this helper at the same time as the
+    /// `bootstrap_legacy_schema` function in
+    /// `mysql/schema_migrator.rs` — see the legacy-compatibility note on
+    /// that function.
+    async fn create_legacy_pre_v4_schema(pool: &::sqlx::MySqlPool) {
+        for stmt in [
+            "CREATE TABLE whitelist (id INTEGER PRIMARY KEY AUTO_INCREMENT, info_hash VARCHAR(40) NOT NULL UNIQUE)",
+            "CREATE TABLE torrents (id INTEGER PRIMARY KEY AUTO_INCREMENT, info_hash VARCHAR(40) NOT NULL UNIQUE, completed INTEGER DEFAULT 0 NOT NULL)",
+            "CREATE TABLE `keys` (`id` INT NOT NULL AUTO_INCREMENT, `key` VARCHAR(32) NOT NULL, `valid_until` INT(10), PRIMARY KEY (`id`), UNIQUE (`key`))",
+            "CREATE TABLE torrent_aggregate_metrics (id INTEGER PRIMARY KEY AUTO_INCREMENT, metric_name VARCHAR(50) NOT NULL UNIQUE, value INTEGER DEFAULT 0 NOT NULL)",
+        ] {
+            ::sqlx::query(stmt).execute(pool).await.expect("legacy DDL");
+        }
     }
 }
