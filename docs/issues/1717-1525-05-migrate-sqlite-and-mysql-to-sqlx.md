@@ -274,6 +274,66 @@ This task migrates remaining sync call paths to native async end-to-end:
 **Outcome**: no `block_on_current_or_new_runtime` helper remains; persistence interactions
 are fully async from call sites to drivers; tests, linters, and benchmarks still pass.
 
+### Task 6 — Remove legacy persistence surface and temporary sqlx staging tree
+
+The branch still contains a mixed layout:
+
+- canonical runtime code under `packages/tracker-core/src/databases/driver/` and
+  `packages/tracker-core/src/databases/traits/`
+- temporary migration staging code under `packages/tracker-core/src/databases/sqlx/`
+- legacy compatibility dependencies and error conversions that were expected to disappear in the
+  switch commit
+
+This task finishes the structural cleanup so the repository reflects a single persistence model.
+
+1. Remove the temporary staging subtree under `packages/tracker-core/src/databases/sqlx/`,
+   including its nested `driver/` and `traits/` directories.
+2. Ensure `packages/tracker-core/src/databases/driver/` contains only the canonical sqlx-backed
+   implementations that remain in use.
+3. Ensure `packages/tracker-core/src/databases/traits/` contains only the canonical async trait
+   definitions that remain in use.
+4. Remove leftover legacy compatibility code tied to the pre-sqlx drivers, including obsolete
+   error conversions and type references.
+5. Remove obsolete dependencies from `packages/tracker-core/Cargo.toml`: `r2d2`, `r2d2_sqlite`,
+   `rusqlite`, and `r2d2_mysql`.
+6. Regenerate lockfile state as needed and confirm `cargo machete` still passes.
+
+**Outcome**: there is one canonical async persistence surface only; the temporary `databases/sqlx/`
+tree is gone; legacy sync-driver compatibility code and dependencies are gone.
+
+### Task 7 — Record final validation and benchmark status
+
+Once the structural cleanup is complete, record the remaining evidence needed to close the
+subissue cleanly.
+
+Benchmark entrypoints and docs for the implementer:
+
+- Binary entrypoint: `packages/tracker-core/src/bin/persistence_benchmark_runner.rs`
+- Binary-private implementation modules: `packages/tracker-core/src/bin/persistence_benchmark/`
+- Benchmark artifact index and workflow notes: `packages/tracker-core/docs/benchmarking/README.md`
+- Baseline benchmark spec and command examples: `docs/issues/1710-1525-03-persistence-benchmarking.md`
+- Current committed baseline artifacts: `packages/tracker-core/docs/benchmarking/runs/2026-04-28/`
+
+Typical commands:
+
+```text
+cargo run -p bittorrent-tracker-core --bin persistence_benchmark_runner -- \
+  --driver sqlite3
+
+cargo run -p bittorrent-tracker-core --bin persistence_benchmark_runner -- \
+  --driver mysql \
+  --db-version 8.4
+```
+
+1. Run and record focused validation for the final cleanup work.
+2. Run `cargo test --workspace --all-targets` and `linter all` on the final state.
+3. Run the persistence benchmark comparison against the committed baseline from subissue `1525-03`,
+   or explicitly document why that comparison is still deferred.
+4. Update the acceptance criteria in this spec to match the final verified state.
+
+**Outcome**: the spec contains closure-quality evidence for remaining acceptance criteria instead
+of inferred status.
+
 ## Constraints
 
 - Do not add PostgreSQL in this step.
@@ -287,20 +347,44 @@ are fully async from call sites to drivers; tests, linters, and benchmarks still
 
 ## Acceptance Criteria
 
-- [ ] SQLite and MySQL drivers use `sqlx` with async trait methods.
-- [ ] Schema initialization remains eager via setup/factory initialization.
-- [ ] Schema management uses raw `sqlx::query()` DDL; `sqlx::migrate!()` is not used.
+### Progress Review (2026-04-30)
+
+Status: partially complete.
+
+What is done:
+
+- SQLite and MySQL driver implementations use `sqlx` pools and async trait methods.
+- Schema initialization is still eager in `initialize_database()`.
+- Schema creation still uses raw `sqlx::query()` DDL, and `sqlx::migrate!()` is not used.
+- Sync-to-async bridge helpers introduced during the migration have now been removed, and async initialization has been propagated through current call paths.
+- Current validation passed: `cargo machete`, `linter all`, doc tests, and full workspace tests.
+
+What is still not done:
+
+- The temporary staging subtree under `packages/tracker-core/src/databases/sqlx/` still exists,
+  including its nested `driver/` and `traits/` folders.
+- The canonical `packages/tracker-core/src/databases/driver/` and
+  `packages/tracker-core/src/databases/traits/` locations have not yet been fully cleaned up to
+  represent the single final persistence surface.
+- Legacy `r2d2`, `r2d2_sqlite`, `rusqlite`, and `r2d2_mysql` dependencies are still present in `packages/tracker-core/Cargo.toml`.
+- Legacy compatibility/error plumbing is still present in code (for example in `packages/tracker-core/src/databases/error.rs` and `packages/tracker-core/src/authentication/key/mod.rs`).
+- There is no recorded evidence in this branch that Tasks 1 to 3 were each validated independently at the time they were completed.
+- There is no recorded post-migration benchmark comparison against the committed baseline from subissue `1525-03`.
+
+- [x] SQLite and MySQL drivers use `sqlx` with async trait methods.
+- [x] Schema initialization remains eager via setup/factory initialization.
+- [x] Schema management uses raw `sqlx::query()` DDL; `sqlx::migrate!()` is not used.
 - [ ] `r2d2`, `r2d2_sqlite`, `rusqlite`, and the `mysql` crate are removed from
       `tracker-core/Cargo.toml`.
-- [ ] Existing behavior is preserved end-to-end.
-- [ ] All temporary sync-to-async runtime bridge helpers (e.g. `block_on_current_or_new_runtime`) are removed and replaced with native async call paths.
+- [x] Existing behavior is preserved end-to-end.
+- [x] All temporary sync-to-async runtime bridge helpers (e.g. `block_on_current_or_new_runtime`) are removed and replaced with native async call paths.
 - [ ] The branch compiles and all tests pass after each of Tasks 1–3 individually (verified by CI
       or manual `cargo test` run after each task).
 - [ ] Persistence benchmarking (see subissue `1525-03`) shows no regression against the committed
       baseline.
-- [ ] `cargo test --workspace --all-targets` passes.
-- [ ] `linter all` exits with code `0`.
-- [ ] `cargo machete` reports no unused dependencies.
+- [x] `cargo test --workspace --all-targets` passes.
+- [x] `linter all` exits with code `0`.
+- [x] `cargo machete` reports no unused dependencies.
 
 ## Out of Scope
 
