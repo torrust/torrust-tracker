@@ -1,6 +1,5 @@
 //! The `SQLite3` database driver.
 use std::panic::Location;
-use std::str::FromStr;
 
 use ::sqlx::sqlite::{SqliteConnectOptions, SqlitePoolOptions};
 use ::sqlx::{Row, SqlitePool};
@@ -25,10 +24,14 @@ pub(crate) struct Sqlite {
 impl Sqlite {
     /// Instantiates a new `SQLite3` database driver.
     ///
+    // Keep the `Result` return for API symmetry with the MySQL driver and
+    // forward-compatibility (future option parsing may surface fallible cases).
+    #[allow(clippy::unnecessary_wraps)]
     pub fn new(db_path: &str) -> Result<Self, Error> {
-        let options = SqliteConnectOptions::from_str(&format!("sqlite://{db_path}"))
-            .map_err(|e| (e, DRIVER))?
-            .create_if_missing(true);
+        // Build the connection options directly from the filesystem path so
+        // relative paths (e.g. `./storage/...`) are preserved verbatim instead
+        // of being parsed as the authority component of a `sqlite://` URL.
+        let options = SqliteConnectOptions::new().filename(db_path).create_if_missing(true);
 
         let pool = SqlitePoolOptions::new().connect_lazy_with(options);
 
