@@ -57,24 +57,20 @@ impl TorrentMetricsStore for Mysql {
     }
 
     async fn save_torrent_downloads(&self, info_hash: &InfoHash, completed: u32) -> Result<(), Error> {
-        let insert = ::sqlx::query(
+        // `ON DUPLICATE KEY UPDATE` may legitimately report `rows_affected() == 0`
+        // when the row already exists with the same value (no-op update), so we
+        // do not treat 0 as a failure here. A real failure surfaces as `Err`
+        // from `execute()`.
+        ::sqlx::query(
             "INSERT INTO torrents (info_hash, completed) VALUES (?, ?) ON DUPLICATE KEY UPDATE completed = VALUES(completed)",
         )
         .bind(info_hash.to_string())
         .bind(i64::from(completed))
         .execute(&self.pool)
         .await
-        .map_err(|e| (e, DRIVER))?
-        .rows_affected();
+        .map_err(|e| (e, DRIVER))?;
 
-        if insert == 0 {
-            Err(Error::InsertFailed {
-                location: std::panic::Location::caller(),
-                driver: DRIVER,
-            })
-        } else {
-            Ok(())
-        }
+        Ok(())
     }
 
     async fn increase_downloads_for_torrent(&self, info_hash: &InfoHash) -> Result<(), Error> {
