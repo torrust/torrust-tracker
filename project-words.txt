@@ -81,6 +81,7 @@ fastrand
 fdbased
 fdget
 filesd
+finalises
 flamegraph
 formatjson
 fput
@@ -152,6 +153,7 @@ MSRV
 multimap
 myacicontext
 mysqladmin
+mysqld
 ñaca
 Naim
 nanos
@@ -242,6 +244,7 @@ subsec
 supertrait
 Swatinem
 Swiftbit
+syscall
 sysmalloc
 sysret
 taiki
@@ -250,6 +253,7 @@ tdyne
 Tebibytes
 tempfile
 Tera
+testcontainer
 testcontainers
 thiserror
 timespec
