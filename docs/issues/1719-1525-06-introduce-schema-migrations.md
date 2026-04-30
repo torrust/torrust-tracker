@@ -197,9 +197,10 @@ source)` constructor breaks that convention. Preferred shape:
 - Add `impl From<(sqlx::migrate::MigrateError, Driver)> for Error`.
 - Call sites then write `.map_err(|e| (e, DRIVER))?`, identical to every other driver call.
 
-Update Task 2 and the bootstrap helper code in Task 3 to use this shape. The acceptance
-criterion "`Error::migration_error()` wraps `MigrateError`" should be reworded as "a new
-`Error::MigrationError` variant + `From<(MigrateError, Driver)>` impl wraps `MigrateError`".
+Update Task 2 (where the variant is added) and the bootstrap helper code in Task 4 to use
+this shape. The acceptance criterion "`Error::migration_error()` wraps `MigrateError`"
+should be reworded as "a new `Error::MigrationError` variant + `From<(MigrateError,
+Driver)>` impl wraps `MigrateError`".
 
 ### F4. `sqlx`'s `migrate` feature is already enabled transitively; only `macros` is missing
 
@@ -215,8 +216,9 @@ contains a Bash-style comment line (`# todo: rename to torrent_metrics`). SQLite
 accept `#` as a comment introducer (only `--` and `/* … */`); only MySQL does. When
 `MIGRATOR.run()` executes this file against SQLite, the statement parser is expected to
 fail with a syntax error. **Action in Task 1**: replace `#` with `--` in the SQLite file
-(and in the MySQL file as well, for consistency, since `--` is portable). Verify by running
-the SQLite driver tests after the change.
+only — MySQL accepts `#` as a line comment natively, and editing the MySQL file would
+break immutability for installers who already applied it manually (see Q1.5). Verify by
+running the SQLite driver tests after the change.
 
 ### F6. MySQL migration 1 still uses `INT(10)` display-width syntax
 
@@ -278,26 +280,209 @@ a database where everything (including `_sqlx_migrations`) was just dropped. No 
 test is needed for the drop/create cycle scenario beyond verifying that this existing test
 still passes.
 
+## Open questions (from implementer, 2026-04-30)
+
+The following questions should be resolved before implementation starts. Please reply
+inline below each question.
+
+### Q1 — Editing migration files vs. immutability rule
+
+Task 1 instructs us to fix content if a discrepancy is found (F5 found one: the `#`
+comment in SQLite migration 1). But Task 3 also states:
+
+> **Migration file immutability**: once a migration file has been deployed, it must
+> never be modified … editing a committed migration file causes a checksum-mismatch
+> error on the next startup.
+
+The three migration files were "deployed" historically (users were told to run them
+manually), but no tracker has ever called `MIGRATOR.run()` on them, so no
+`_sqlx_migrations` row exists yet and there is no checksum to mismatch. My reading is
+that editing them is safe **this once**, before the migrator is wired in, and the
+immutability rule applies from this subissue forward. Confirm?
+
+**Reply:**
+
+The migration "packages/tracker-core/migrations/sqlite/20240730183000_torrust_tracker_create_all_tables.sql" emulates the initial database setup. Then the other two migrations:
+
+- packages/tracker-core/migrations/sqlite/20240730183500_torrust_tracker_keys_valid_until_nullable.sql
+- packages/tracker-core/migrations/sqlite/20250527093000_torrust_tracker_new_torrent_aggregate_metrics_table.sql
+
+were added when we needed to make some changes. However we notified users to run them manually because there
+was not migrations at that time. At the same time the hardcoded SQL queries were changed, but that was a safe change because they were executed only if the tables did not exist. WE can assume all users will be in one of these two situations:
+
+- A new tracker installation, empty database
+- An existing tracker installation, with the three tables already created but no \_sqlx_migrations table. However we cal also assume all migrations were applied manually.
+
+In both cases we have to keep the same migrations so all installations have the same migration history, so we need to keep those migrations files. So they are immutable. The new migrations will be also immutable. The reason is we do not know is users are installing the "develop" branch, so once we merge a new migration in the "develop" branch we cannot change it.
+
+So in the new scenario we have to run those 2 migrations only if the DB schema is still empty (fresh DB installation). If the schema is not empty we have to mark those 3 migrations as executed.
+
+### Q2 — F6 (`INT(10)` cleanup): do it here or defer?
+
+I propose deferring the `INT(10)` → `INT` cleanup to subissue 1525-07
+(type-alignment), keeping this PR focused on wiring migrations. Confirm defer?
+
+**Reply:**
+
+Yes, changes in DB and Rust types to align them must be deferred to the next subissue, because they require schema changes that must be delivered through migrations. So we need to keep the `INT(10)` in the migration files for now, and we can change it in the next subissue when we align Rust and SQL types.
+
+### Q3 — Legacy-bootstrap test: SQLite-only or both backends?
+
+To test `bootstrap_legacy_schema()` I need to: pre-create the four tables with raw DDL
+matching the post-migration-3 state, run the bootstrap helper, then assert
+`_sqlx_migrations` ends up populated with the three rows at the right checksums.
+
+This is cheap on SQLite (in-memory). For MySQL it requires the testcontainer harness
+gated behind the existing MySQL driver-test environment variable. Acceptable plan:
+
+- Add the legacy-bootstrap test only for **SQLite** in the always-on test suite.
+- Cover MySQL with the same scenario inside the gated `run_mysql_driver_tests` path.
+
+Confirm, or do you want both backends in the always-on suite?
+
+**Reply:**
+
+We should do it for all databases. It's the only way to verify it works. That could be a good documentation for what we had before adding migrations.
+
+### Q4 — Partial-migration guard test: same question as Q3
+
+Same scope question for the partial-migration error case (some legacy tables present,
+others not): SQLite-only in the always-on suite, MySQL inside the gated path?
+
+**Reply:**
+
+If there is at least one legacy legacy table, but others are missing we assume a corrupted DB and stop executions with an error concrete informative error message. We do not need to check that the tables have the correct definition, the application will fail later running newer migrations or running some queries.
+
+### Q5 — Where does the v4 changelog / upgrade-guide entry go?
+
+Acceptance criterion: _"The v4 changelog or upgrade guide documents the pre-upgrade
+requirement"_. There is no `CHANGELOG.md` or upgrade guide in the repo today. Pick one:
+
+- (a) Create a new `docs/upgrade-to-v4.md` and add the entry there.
+- (b) Document the pre-upgrade requirement only in
+  `packages/tracker-core/migrations/README.md` and mark the changelog item as out of
+  scope (tracked separately in a follow-up issue).
+- (c) Create a stub changelog/upgrade-guide file for someone else to expand later.
+
+**Reply:**
+
+This is not a breaking change, we have to document it inside the package. Since migrations are
+going to be executed automatically and it's compatible with any well-formed database, we can just document it in the `packages/tracker-core/migrations/README.md` file. We can add a section "Upgrade from older versions" and explain the requirement there.
+
+### Q6 — `MigrateError::Source` vs. a new `Error` variant for precondition failures
+
+In F3 / Task 3 the precondition guard returns an error if legacy tables don't match the
+post-migration-3 state. I planned to wrap a human message in
+`sqlx::migrate::MigrateError::Source(... .into())` so it flows through
+`From<(MigrateError, Driver)>`. If sqlx 0.8's `MigrateError::Source` doesn't accept a
+`Box<dyn Error + Send + Sync>` cleanly, the fallback is to add a dedicated
+`Error::LegacyDatabaseNotMigrated { driver, reason }` variant directly. OK to decide
+during implementation, or do you want a specific choice now?
+
+**Reply:**
+
+We can decide during implementation, I don't have a string preference for now.
+
+### Q7 — Commit granularity (single PR, multiple commits)
+
+Plan: one PR (this branch), four commits — one per task:
+
+1. Task 1 — fix `#` → `--` comments in migration 1 (both backends).
+2. Task 2 — add sqlx `macros` feature, `MIGRATOR` statics, `Error::MigrationError`
+   variant + `From` impl. (Compiles; nothing called yet.)
+3. Task 3 — wire `bootstrap_legacy_schema()` + `MIGRATOR.run()` into
+   `create_database_tables()`, update `drop_database_tables()` (`IF EXISTS` everywhere
+   plus `_sqlx_migrations`), update `migrations/README.md`.
+4. Task 4 — add tests (fresh DB, idempotency, legacy bootstrap, partial-migration
+   guard).
+
+Acceptable, or do you prefer different granularity (one task per PR, or fewer/larger
+commits)?
+
+**Reply:**
+
+One PR is fine. I guess the way I would split it would be something like:
+
+1. Add the scaffolding to run migrations without running them yet.
+2. Make the change in both drivers assuming fresh empty databases (including tests)
+3. Implement the patch for backward compatibility (including tests)
+
+### Q1.5 — Follow-up: residual conflict between Q1 immutability rule and the `#` comment in SQLite migration 1
+
+Your Q1 reply states that the three existing migration files are immutable. But finding F5
+documents that `packages/tracker-core/migrations/sqlite/20240730183000_torrust_tracker_create_all_tables.sql`
+line 7 contains:
+
+```sql
+# todo: rename to `torrent_metrics`
+```
+
+SQLite does not accept `#` line comments. As soon as we wire `MIGRATOR.run()` in for a
+fresh install (one of the two scenarios you listed), `sqlx` will execute this file and
+SQLite will return a syntax error. This means the file as currently committed cannot be
+shipped as-is once the migrator is enabled.
+
+The pragmatic resolution: this PR ships the migrator. Before this PR, no installation has
+ever had a `_sqlx_migrations` row referencing this file (the migrator has never been
+wired in), so fixing the `#` → `--` in this PR causes zero checksum-mismatch errors in
+the field. The immutability rule then kicks in from the moment this PR merges.
+
+Three options:
+
+- (a) Fix `#` → `--` in this PR as part of "Step 2 — Fresh-install path". Document it as a
+  one-time pre-shipment correction in the commit message and in `migrations/README.md`.
+- (b) Add a NEW migration on top (e.g. `20260501000000_fix_create_all_tables_comment.sql`)
+  that drops and recreates the table — strictly correct under immutability but heavyweight
+  for a comment fix and risks production data loss if anyone runs it in error.
+- (c) Delete the `#` comment line entirely (still a content edit, same caveat as option a).
+
+I recommend (a). Confirm the choice (or pick another).
+
+**Reply:**
+
+That is not an easy change because we have to update the code. We can simply document it as a refactoring proposal to be implemented in the future. We can include that proposal in the packages/tracker-core/docs folder in a new markdown file.
+
 ## Tasks
 
-### Task 1 — Verify existing migration files
+Implementation is split into **three phases** (one commit per phase, in the same PR; see Q7):
 
-The three migration files already exist under `packages/tracker-core/migrations/`. Verify that
-their SQL content is correct and consistent with the current schema produced by the hardcoded
-DDL in `1525-05`. Do not change existing file timestamps or names. Fix content only if a
-discrepancy is found.
+1. **Scaffolding** — add the `sqlx` `macros` feature, the `MIGRATOR` statics, the new
+   `Error::MigrationError` variant + `From` impl, and fix the SQLite-only `#`-comment in
+   migration 1. No call to `MIGRATOR.run()` yet, so no behaviour change.
+2. **Fresh-install path** — wire `MIGRATOR.run()` into `create_database_tables()` and
+   convert all `drop_database_tables()` statements to `DROP TABLE IF EXISTS`, plus add
+   `_sqlx_migrations`. Add tests for fresh DB, idempotency, drop/create cycle.
+3. **Legacy bootstrap path** — add `bootstrap_legacy_schema()` to handle pre-v4
+   installations that already have the four legacy tables but no `_sqlx_migrations`. Add
+   tests for legacy bootstrap and the partial-migration guard.
 
-Known issue to fix as part of this task (see finding F5): the SQLite (and MySQL) migration
-`20240730183000_torrust_tracker_create_all_tables.sql` contains a Bash-style line
-(`# todo: rename to ...torrent_metrics`). SQLite does not accept `#` line comments — replace `#` with `--` in
-both backend files. This is the only content change expected; verify by running
-`cargo test -p bittorrent-tracker-core run_sqlite_driver_tests` after Task 3 wires the
-migrator in.
+### Task 1 — Fix the SQLite-only `#` comment in migration 1
 
-**Outcome**: all three migration files compile under `sqlx::migrate!()` for both backends;
-the `#`-comment incompatibility is fixed.
+The three existing migration files are **immutable from now on** (Q1): once this PR ships
+the migrator, editing any of them would cause checksum-mismatch errors in the field. This
+is our **one and only** chance to correct content before the migrator is wired in.
 
-### Task 2 — Enable `sqlx` `macros` feature and add `MIGRATOR` statics
+The only correction needed (finding F5):
+`packages/tracker-core/migrations/sqlite/20240730183000_torrust_tracker_create_all_tables.sql`
+contains a `#`-prefixed TODO line. SQLite does not accept `#` as a line-comment marker, so
+`sqlx::migrate!()` would fail to parse the file on every fresh install. Fix is a single
+character swap (Q1.5):
+
+```diff
+-# todo: rename to `torrent_metrics`
++-- todo: rename to `torrent_metrics`
+```
+
+The MySQL counterpart is **not** edited — MySQL accepts `#` as a line comment natively, and
+editing it would also break immutability for any installer who already manually applied it.
+
+The table-rename TODO (`metrics` → `torrent_metrics`) is intentionally left as a comment
+for a future change — the table currently holds only metrics but may grow other fields, so
+the rename is deferred until a real driver requires it.
+
+**Outcome**: `sqlx::migrate!("migrations/sqlite")` parses all three files cleanly.
+
+### Task 2 — Scaffolding: enable `sqlx` `macros` feature and add `MIGRATOR` statics
 
 In `packages/tracker-core/Cargo.toml`, add the `macros` feature to the existing `sqlx`
 dependency:
@@ -322,18 +507,82 @@ Add a new `Error::MigrationError { source, driver }` variant to `databases/error
 `impl From<(sqlx::migrate::MigrateError, Driver)> for Error` so the new code can keep the
 established `.map_err(|e| (e, DRIVER))?` call pattern (see finding F3).
 
-**Outcome**: project compiles with migration statics defined but not yet called.
+For the partial-migration error case (Q4), the implementer may either reuse `MigrateError`
+(e.g. `MigrateError::Source(...)`) or add a dedicated `Error::LegacyDatabaseNotMigrated
+{ driver, reason }` variant — Q6 leaves this to implementation taste.
 
-### Task 3 — Wire migrations into `create_database_tables()` and `drop_database_tables()`
+**Outcome**: project compiles with migration statics defined but not yet called. No
+behaviour change.
 
-#### Legacy bootstrap helper
+### Task 3 — Fresh-install path: wire `MIGRATOR.run()` and update `drop_database_tables()`
+
+#### Updated `create_database_tables()` (fresh-install only — legacy bootstrap added in Task 4)
+
+```rust
+async fn create_database_tables(&self) -> Result<(), Error> {
+    MIGRATOR.run(&self.pool).await.map_err(|e| (e, DRIVER))?;
+    Ok(())
+}
+```
+
+#### Updated `drop_database_tables()`
+
+Add a drop for `_sqlx_migrations` (the only newly required drop — `torrent_aggregate_metrics`
+is already dropped today; see finding F2). Convert every drop to `DROP TABLE IF EXISTS` for
+safer test teardown.
+
+```rust
+sqlx::query("DROP TABLE IF EXISTS _sqlx_migrations").execute(&self.pool).await...?;
+sqlx::query("DROP TABLE IF EXISTS torrent_aggregate_metrics").execute(&self.pool).await...?;
+sqlx::query("DROP TABLE IF EXISTS whitelist").execute(&self.pool).await...?;
+sqlx::query("DROP TABLE IF EXISTS torrents").execute(&self.pool).await...?;
+sqlx::query("DROP TABLE IF EXISTS keys").execute(&self.pool).await...?;
+```
+
+#### Update `migrations/README.md`
+
+Replace the stale "We don't support automatic migrations yet" content with documentation
+covering (Q5):
+
+- Migrations are now applied automatically on startup via `sqlx::migrate!()`.
+- The `_sqlx_migrations` table tracks which migrations have run.
+- To add a new migration: create a `.sql` file with the next timestamp in all applicable
+  backend directories, following the history-alignment pattern.
+- **Upgrade from older versions** (formerly "v4 upgrade requirement"): users on a pre-v4
+  tracker must have applied all three manual migrations before upgrading. The automatic
+  bootstrap (Task 4) handles the `_sqlx_migrations` row insertion. This goes only in this
+  README — there is no separate `CHANGELOG.md` or upgrade guide for v4.
+- **Migration file immutability**: once a migration file has been deployed, it must never
+  be modified. `sqlx` records each migration's checksum in `_sqlx_migrations`; editing a
+  committed migration file causes a checksum-mismatch error on the next startup for any
+  database that has already applied that migration.
+
+#### Tests added in this phase
+
+- **Fresh database**: a single `create_database_tables()` call runs all migrations and
+  leaves the database in the correct final schema state. Both backends.
+- **Idempotency**: a second `create_database_tables()` call is a no-op. Both backends.
+- **Drop/create cycle**: covered by the existing `databases::driver::tests::database_setup`
+  harness (see F11) — verify it still passes.
+
+**Outcome**: fresh installs work end-to-end via `MIGRATOR.run()`. Pre-v4 installs would still
+fail at this point — that is fixed in Task 4.
+
+### Task 4 — Legacy bootstrap path
 
 Add a private async helper function `bootstrap_legacy_schema` to each driver. This function
 detects whether the database is in the legacy state (user-managed schema, no
 `_sqlx_migrations` table) and, if so, fake-applies the three pre-existing migrations so that
-`MIGRATOR.run()` can continue with only the new ones:
+`MIGRATOR.run()` can continue with only the new ones (Q3, Q4):
 
 ```rust
+const LEGACY_TABLES: &[&str] = &[
+    "whitelist",
+    "torrents",
+    "keys",
+    "torrent_aggregate_metrics",
+];
+
 async fn bootstrap_legacy_schema(pool: &Pool) -> Result<(), Error> {
     // Check whether _sqlx_migrations already exists.
     let migrations_table_exists: bool = /* backend-appropriate query */;
@@ -341,39 +590,27 @@ async fn bootstrap_legacy_schema(pool: &Pool) -> Result<(), Error> {
         return Ok(());  // normal path — nothing to do here
     }
 
-    // Check whether the legacy tables exist (whitelist is a reliable sentinel).
-    let legacy_tables_exist: bool = /* backend-appropriate query */;
-    if !legacy_tables_exist {
+    // Count which of the four expected legacy tables are present.
+    // SQLite: query sqlite_master.
+    // MySQL: query information_schema.tables filtered by DATABASE().
+    let present_legacy_tables: usize = /* backend-appropriate query */;
+
+    if present_legacy_tables == 0 {
         return Ok(());  // fresh database — MIGRATOR.run() will handle it
     }
 
-    // PRECONDITION GUARD: before fake-applying, verify that migration 2 (nullable
-    // valid_until) and migration 3 (torrent_aggregate_metrics table) were applied.
-    // If not, return a descriptive error rather than silently bootstrapping a broken schema.
-    // SQLite: use `PRAGMA table_info(keys)` and `sqlite_master`.
-    // MySQL: use `information_schema.columns` and `information_schema.tables`.
-    let migration_2_applied: bool = /* check keys.valid_until is nullable */;
-    let migration_3_applied: bool = /* check torrent_aggregate_metrics table exists */;
-    if !migration_2_applied || !migration_3_applied {
-        // Build a `MigrateError` directly so the conversion goes through the
-        // standard `From<(MigrateError, Driver)> for Error` impl introduced in Task 2.
-        return Err((
-            sqlx::migrate::MigrateError::Source(
-                "Legacy database is not fully migrated. Apply all three manual migrations \
-                 listed in packages/tracker-core/migrations/README.md before upgrading to v4."
-                    .into(),
-            ),
-            DRIVER,
-        )
-            .into());
+    if present_legacy_tables < LEGACY_TABLES.len() {
+        // PRECONDITION GUARD (Q4): some legacy tables exist but not all four.
+        // We treat this as a corrupted/partially-migrated database and stop with a
+        // descriptive error. We do NOT verify column-level structure — if the user
+        // has all four tables we trust the upgrade-guide precondition; subsequent
+        // queries will surface any structural problem.
+        return Err(/* MigrateError::Source(...) or Error::LegacyDatabaseNotMigrated — see Q6 */);
     }
 
-    // PRECONDITION: all three manual migrations have been verified as applied:
-    //   (1) whitelist/torrents/keys tables exist (whitelist sentinel check above)
-    //   (2) keys.valid_until is nullable (verified above)
-    //   (3) torrent_aggregate_metrics table exists (verified above)
-    // The v4 upgrade guide requires the user to have applied all three manual migrations
-    // before upgrading to v4.
+    // PRECONDITION: all four legacy tables exist. Per the upgrade guide in
+    // packages/tracker-core/migrations/README.md the user has applied all three
+    // manual migrations before upgrading to v4.
     MIGRATOR
         .ensure_migrations_table(pool)
         .await
@@ -405,7 +642,7 @@ async fn bootstrap_legacy_schema(pool: &Pool) -> Result<(), Error> {
 }
 ```
 
-#### Updated `create_database_tables()`
+#### Updated `create_database_tables()` (full version)
 
 ```rust
 async fn create_database_tables(&self) -> Result<(), Error> {
@@ -415,82 +652,28 @@ async fn create_database_tables(&self) -> Result<(), Error> {
 }
 ```
 
-#### Updated `drop_database_tables()`
-
-Fix the pre-existing omission: drop `torrent_aggregate_metrics` and `_sqlx_migrations` in
-addition to the existing drops so that the test setup cycle (drop → create) works correctly.
-
-Use `DROP TABLE IF EXISTS` for all five drops. This matches the reference implementation and
-is the safer choice for test teardown (avoids errors on a partially torn-down database).
-
-```rust
-// Example using DROP TABLE IF EXISTS for all five drops:
-sqlx::query("DROP TABLE IF EXISTS _sqlx_migrations").execute(&self.pool).await...?;
-sqlx::query("DROP TABLE IF EXISTS torrent_aggregate_metrics").execute(&self.pool).await...?;
-sqlx::query("DROP TABLE IF EXISTS whitelist").execute(&self.pool).await...?;
-sqlx::query("DROP TABLE IF EXISTS torrents").execute(&self.pool).await...?;
-sqlx::query("DROP TABLE IF EXISTS keys").execute(&self.pool).await...?;
-```
-
-#### Legacy bootstrap precondition guard
-
-The `bootstrap_legacy_schema()` helper must verify the critical schema elements before
-fake-applying migrations. If any element is absent, it must return an error rather than
-silently bootstrapping a broken schema. Add the precondition checks described in the code
-block above (migration 2 nullable check and migration 3 table existence check) and document
-the verified state with a comment:
-
-```rust
-// PRECONDITION: all three manual migrations have been verified as applied:
-//   (1) whitelist/torrents/keys tables exist (whitelist sentinel check above)
-//   (2) keys.valid_until is nullable (verified above)
-//   (3) torrent_aggregate_metrics table exists (verified above)
-// The v4 upgrade guide requires the user to have applied all three manual migrations
-// before upgrading to v4.
-```
-
-#### Update `migrations/README.md`
-
-Update `packages/tracker-core/migrations/README.md` to replace the stale content (currently:
-"We don't support automatic migrations yet") with accurate documentation covering:
-
-- Migrations are now applied automatically on startup via `sqlx::migrate!()`.
-- The `_sqlx_migrations` table tracks which migrations have run.
-- To add a new migration: create a `.sql` file with the next timestamp in all applicable backend
-  directories, following the history-alignment pattern.
-- v4 upgrade requirement: users on a pre-v4 tracker must apply all three manual migrations before
-  upgrading to v4. The automatic bootstrap handles the rest.
-- **Migration file immutability**: once a migration file has been deployed, it must never be
-  modified. `sqlx` records each migration's checksum in `_sqlx_migrations`; editing a committed
-  migration file causes a checksum-mismatch error on the next startup for any database that has
-  already applied that migration.
-
 `create_database_tables()` continues to be invoked once from
 `databases::setup::initialize_database()` (no `ensure_schema()` latch — see finding F1).
 
-**Outcome**: `cargo test --workspace --all-targets` passes. Schema is owned by migration files.
-The README accurately reflects the new automatic migration behavior.
+#### Tests added in this phase (Q3, Q4 — both backends)
 
-### Task 4 — Validate migration behavior
+- **Legacy bootstrap (SQLite + MySQL)**: pre-create the four tables with raw DDL matching
+  the post-migration-3 state, run `bootstrap_legacy_schema()` followed by `MIGRATOR.run()`,
+  then assert `_sqlx_migrations` is populated with the three rows at the embedded
+  checksums and that a follow-up `MIGRATOR.run()` is a no-op.
+- **Partial-migration guard (SQLite + MySQL)**: pre-create only some of the four legacy
+  tables (e.g. `whitelist` and `torrents` but not `keys` or `torrent_aggregate_metrics`)
+  and assert `bootstrap_legacy_schema()` returns the descriptive error rather than
+  silently fake-applying. We do **not** assert column-level details.
 
-Add or extend tests that verify:
+MySQL coverage uses the same gated path as the existing driver tests (the env-var-gated
+`run_mysql_driver_tests` setup); SQLite coverage runs in the always-on suite.
 
-- **Fresh database**: a single `create_database_tables()` call runs all migrations and
-  leaves the database in the correct final schema state.
-- **Idempotency**: calling `create_database_tables()` a second time on an already-migrated
-  database is a no-op (all migrations already recorded in `_sqlx_migrations`).
-- **Drop/create cycle**: `drop_database_tables()` followed by `create_database_tables()`
-  produces a clean schema (all tables including `_sqlx_migrations` and
-  `torrent_aggregate_metrics` are dropped and recreated).
-- **Legacy bootstrap**: a database that has the pre-existing three tables (created without
-  `_sqlx_migrations`) is correctly bootstrapped — `_sqlx_migrations` is created, the three
-  migrations are marked fake-applied, and any new migrations are applied.
-- **Partial-migration guard**: a database that has the schema tables but is missing
-  `torrent_aggregate_metrics` (migration 3 not applied) must cause `bootstrap_legacy_schema()`
-  to return an error, not silently proceed.
-
-These tests can live alongside the existing behavioral tests in the driver `#[cfg(test)]`
+These tests live alongside the existing behavioral tests in the driver `#[cfg(test)]`
 modules.
+
+**Outcome**: `cargo test --workspace --all-targets` passes for SQLite, and the gated MySQL
+suite passes when MySQL is available. Schema is fully owned by migration files.
 
 ## Out of Scope
 
@@ -499,10 +682,14 @@ modules.
   the history-alignment requirement: PostgreSQL must start from migration 1 (not a catch-up
   migration) to keep version history identical across all backends.
 - Down migrations (rollback) — not needed at this stage.
-- Handling legacy databases where not all three manual migrations were applied — the v4
-  changelog must state that all three migrations must be applied before upgrading to v4.
-  The legacy bootstrap path verifies this precondition and returns an error if it is not met
-  (see the precondition guard above).
+- Handling legacy databases where not all three manual migrations were applied — the
+  upgrade-from-older-versions section in `packages/tracker-core/migrations/README.md`
+  states that all three migrations must be applied before upgrading. The partial-migration
+  guard returns an error if the precondition is not met (see Task 4).
+- `INT(10)` → `INT` cleanup in the MySQL migration file (finding F6) — deferred to subissue
+  `1525-07` together with the rest of the Rust↔SQL type alignment work (Q2).
+- Renaming `metrics` → `torrent_metrics` (the TODO comment kept in migration 1) — deferred
+  until a real driver requires the rename and the table's purpose is settled (Q1.5).
 - **Migration file integrity check in CI** — `sqlx migrate check` (or an equivalent
   step that connects to a fresh database and verifies checksums) can detect if a deployed
   migration file has been edited after deployment. This requires a live database in CI and
@@ -512,38 +699,36 @@ modules.
 
 ## Acceptance Criteria
 
-- [ ] The three existing migration files under `migrations/sqlite/` and `migrations/mysql/` are
-      confirmed correct and match the final schema produced by the hardcoded DDL in `1525-05`.
+- [ ] The SQLite migration 1 (`#` → `--`) is the only existing-file edit; MySQL migration 1
+      and the other four files are byte-for-byte unchanged (Q1, Q1.5).
 - [ ] `sqlx::migrate!()` (`macros` feature) is used in both drivers; no raw DDL remains in
       `create_database_tables()`.
 - [ ] `drop_database_tables()` adds a drop for `_sqlx_migrations` (the only newly required
       drop — `torrent_aggregate_metrics` is already dropped today; see finding F2) and every
       drop is converted to `DROP TABLE IF EXISTS`.
-- [ ] `bootstrap_legacy_schema()` verifies that migrations 2 and 3 were applied before
-      fake-applying, and returns a descriptive error if the precondition is not met.
+- [ ] `bootstrap_legacy_schema()` accepts "all four legacy tables present" as the only
+      success precondition; if 1–3 of them exist it returns a descriptive error (Q4).
 - [ ] A new `Error::MigrationError` variant plus `impl From<(sqlx::migrate::MigrateError,
-    Driver)> for Error` wrap `MigrateError`, matching the existing tuple-`From` pattern
+  Driver)> for Error` wrap `MigrateError`, matching the existing tuple-`From` pattern
       used by every other `sqlx` error site (see finding F3).
 - [ ] `packages/tracker-core/migrations/README.md` is updated to document automatic migration
-      behavior and the v4 upgrade requirement.
+      behaviour, migration-file immutability, and the upgrade-from-older-versions requirement
+      (apply all three manual migrations first). No separate `CHANGELOG.md` or upgrade guide
+      is created (Q5).
 - [ ] Guidance for `1525-08`: PostgreSQL migration files start from migration 1 following the
       history-alignment pattern, with the same filenames/timestamps as SQLite and MySQL.
-- [ ] Legacy bootstrap: a database with the pre-existing tables but no `_sqlx_migrations` is
-      correctly detected; the three pre-existing migrations are fake-applied; new migrations
-      run normally.
 - [ ] Fresh database: `create_database_tables()` runs all migrations from scratch via
-      `MIGRATOR.run()`.
-- [ ] Migration idempotency is verified by tests (second call is a no-op).
-- [ ] Drop/create cycle is verified by tests (all tables cleaned up and recreated).
-- [ ] Legacy bootstrap scenario is verified by a test (fully-migrated legacy database is
-      bootstrapped correctly).
-- [ ] Partial-migration guard is verified by a test (database missing `torrent_aggregate_metrics`
-      causes an error rather than silent bootstrap).
+      `MIGRATOR.run()` (verified by test on both backends).
+- [ ] Migration idempotency is verified by tests (second call is a no-op) on both backends.
+- [ ] Drop/create cycle continues to pass via the existing
+      `databases::driver::tests::database_setup` harness (see F11).
+- [ ] Legacy bootstrap scenario is verified by tests on both backends — SQLite in the
+      always-on suite, MySQL in the gated `run_mysql_driver_tests` path (Q3).
+- [ ] Partial-migration guard is verified by tests on both backends, same gating as above
+      (Q4).
 - [ ] Existing behavioral tests continue to pass.
-- [ ] The v4 changelog or upgrade guide documents the pre-upgrade requirement: apply all three
-      manual migrations before upgrading to v4.
-- [ ] Persistence benchmarking (see subissue `1525-03`) shows no regression against the committed
-      baseline.
+- [ ] Persistence benchmarking (see subissue `1525-03`) shows no regression against the
+      committed baseline.
 - [ ] `cargo test --workspace --all-targets` passes.
 - [ ] `linter all` exits with code `0`.
 
