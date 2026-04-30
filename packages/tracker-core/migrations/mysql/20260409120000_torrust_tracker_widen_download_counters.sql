@@ -1,0 +1,3 @@
+ALTER TABLE torrents MODIFY completed BIGINT NOT NULL DEFAULT 0;
+
+ALTER TABLE torrent_aggregate_metrics MODIFY value BIGINT NOT NULL DEFAULT 0;

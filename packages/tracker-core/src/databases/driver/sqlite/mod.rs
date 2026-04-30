@@ -117,6 +117,13 @@ mod tests {
     async fn create_database_tables_should_be_idempotent_on_a_fresh_database() {
         let config = ephemeral_configuration();
         let driver = initialize_driver(&config);
+        let options = ::sqlx::sqlite::SqliteConnectOptions::new()
+            .filename(&config.database.path)
+            .create_if_missing(true);
+        let pool = ::sqlx::sqlite::SqlitePoolOptions::new()
+            .connect_with(options)
+            .await
+            .expect("connect sqlite for migration count");
 
         // First call applies every embedded migration.
         driver
@@ -130,5 +137,11 @@ mod tests {
             .create_database_tables()
             .await
             .expect("second migration run should be a no-op");
+
+        let recorded: i64 = ::sqlx::query_scalar("SELECT COUNT(*) FROM _sqlx_migrations")
+            .fetch_one(&pool)
+            .await
+            .expect("count _sqlx_migrations");
+        assert_eq!(recorded, 4, "all four migrations should be recorded");
     }
 }
