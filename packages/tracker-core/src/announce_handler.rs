@@ -167,20 +167,20 @@ impl AnnounceHandler {
         peer.change_ip(&assign_ip_address_to_peer(remote_client_ip, self.config.net.external_ip));
 
         self.in_memory_torrent_repository
-            .handle_announcement(info_hash, peer, self.load_downloads_metric_if_needed(info_hash)?)
+            .handle_announcement(info_hash, peer, self.load_downloads_metric_if_needed(info_hash).await?)
             .await;
 
         Ok(self.build_announce_data(info_hash, peer, peers_wanted).await)
     }
 
     /// Loads the number of downloads for a torrent if needed.
-    fn load_downloads_metric_if_needed(
+    async fn load_downloads_metric_if_needed(
         &self,
         info_hash: &InfoHash,
     ) -> Result<Option<NumberOfDownloads>, databases::error::Error> {
         if self.config.tracker_policy.persistent_torrent_completed_stat && !self.in_memory_torrent_repository.contains(info_hash)
         {
-            Ok(self.db_downloads_metric_repository.load_torrent_downloads(info_hash)?)
+            Ok(self.db_downloads_metric_repository.load_torrent_downloads(info_hash).await?)
         } else {
             Ok(None)
         }
@@ -292,9 +292,9 @@ mod tests {
         use crate::scrape_handler::ScrapeHandler;
         use crate::test_helpers::tests::initialize_handlers;
 
-        fn public_tracker() -> (Arc<AnnounceHandler>, Arc<ScrapeHandler>) {
+        async fn public_tracker() -> (Arc<AnnounceHandler>, Arc<ScrapeHandler>) {
             let config = configuration::ephemeral_public();
-            initialize_handlers(&config)
+            initialize_handlers(&config).await
         }
 
         // The client peer IP
@@ -453,7 +453,7 @@ mod tests {
 
                 #[tokio::test]
                 async fn it_should_return_the_announce_data_with_an_empty_peer_list_when_it_is_the_first_announced_peer() {
-                    let (announce_handler, _scrape_handler) = public_tracker();
+                    let (announce_handler, _scrape_handler) = public_tracker().await;
 
                     let mut peer = sample_peer();
 
@@ -467,7 +467,7 @@ mod tests {
 
                 #[tokio::test]
                 async fn it_should_return_the_announce_data_with_the_previously_announced_peers() {
-                    let (announce_handler, _scrape_handler) = public_tracker();
+                    let (announce_handler, _scrape_handler) = public_tracker().await;
 
                     let mut previously_announced_peer = sample_peer_1();
                     announce_handler
@@ -491,7 +491,7 @@ mod tests {
 
                 #[tokio::test]
                 async fn it_should_allow_peers_to_get_only_a_subset_of_the_peers_in_the_swarm() {
-                    let (announce_handler, _scrape_handler) = public_tracker();
+                    let (announce_handler, _scrape_handler) = public_tracker().await;
 
                     let mut previously_announced_peer_1 = sample_peer_1();
                     announce_handler
@@ -537,7 +537,7 @@ mod tests {
 
                     #[tokio::test]
                     async fn when_the_peer_is_a_seeder() {
-                        let (announce_handler, _scrape_handler) = public_tracker();
+                        let (announce_handler, _scrape_handler) = public_tracker().await;
 
                         let mut peer = seeder();
 
@@ -551,7 +551,7 @@ mod tests {
 
                     #[tokio::test]
                     async fn when_the_peer_is_a_leecher() {
-                        let (announce_handler, _scrape_handler) = public_tracker();
+                        let (announce_handler, _scrape_handler) = public_tracker().await;
 
                         let mut peer = leecher();
 
@@ -565,7 +565,7 @@ mod tests {
 
                     #[tokio::test]
                     async fn when_a_previously_announced_started_peer_has_completed_downloading() {
-                        let (announce_handler, _scrape_handler) = public_tracker();
+                        let (announce_handler, _scrape_handler) = public_tracker().await;
 
                         // We have to announce with "started" event because peer does not count if peer was not previously known
                         let mut started_peer = started_peer();

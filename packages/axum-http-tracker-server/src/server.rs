@@ -270,7 +270,7 @@ mod tests {
 
     use crate::server::{HttpServer, Launcher};
 
-    pub fn initialize_container(configuration: &Configuration) -> HttpTrackerCoreContainer {
+    pub async fn initialize_container(configuration: &Configuration) -> HttpTrackerCoreContainer {
         let cancellation_token = CancellationToken::new();
 
         let core_config = Arc::new(configuration.core.clone());
@@ -302,10 +302,8 @@ mod tests {
             configuration.core.tracker_usage_statistics.into(),
         ));
 
-        let tracker_core_container = Arc::new(TrackerCoreContainer::initialize_from(
-            &core_config,
-            &swarm_coordination_registry_container,
-        ));
+        let tracker_core_container =
+            Arc::new(TrackerCoreContainer::initialize_from(&core_config, &swarm_coordination_registry_container).await);
 
         let announce_service = Arc::new(AnnounceService::new(
             tracker_core_container.core_config.clone(),
@@ -355,7 +353,7 @@ mod tests {
 
         initialize_global_services(&configuration);
 
-        let http_tracker_container = Arc::new(initialize_container(&configuration));
+        let http_tracker_container = Arc::new(initialize_container(&configuration).await);
 
         let bind_to = http_tracker_config.bind_address;
 

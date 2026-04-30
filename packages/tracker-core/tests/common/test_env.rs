@@ -25,23 +25,21 @@ pub struct TestEnv {
 impl TestEnv {
     #[must_use]
     pub async fn started(core_config: Core) -> Self {
-        let test_env = TestEnv::new(core_config);
+        let test_env = TestEnv::new(core_config).await;
         test_env.start().await;
         test_env
     }
 
     #[must_use]
-    pub fn new(core_config: Core) -> Self {
+    pub async fn new(core_config: Core) -> Self {
         let core_config = Arc::new(core_config);
 
         let swarm_coordination_registry_container = Arc::new(SwarmCoordinationRegistryContainer::initialize(
             core_config.tracker_usage_statistics.into(),
         ));
 
-        let tracker_core_container = Arc::new(TrackerCoreContainer::initialize_from(
-            &core_config,
-            &swarm_coordination_registry_container,
-        ));
+        let tracker_core_container =
+            Arc::new(TrackerCoreContainer::initialize_from(&core_config, &swarm_coordination_registry_container).await);
 
         Self {
             swarm_coordination_registry_container,

@@ -32,10 +32,10 @@ where
 impl Environment<Stopped> {
     #[allow(dead_code)]
     #[must_use]
-    pub fn new(configuration: &Arc<Configuration>) -> Self {
+    pub async fn new(configuration: &Arc<Configuration>) -> Self {
         initialize_global_services(configuration);
 
-        let container = Arc::new(EnvContainer::initialize(configuration));
+        let container = Arc::new(EnvContainer::initialize(configuration).await);
 
         let bind_to = container.udp_tracker_core_container.udp_tracker_config.bind_address;
 
@@ -112,7 +112,7 @@ impl Environment<Running> {
     ///
     /// Will panic if it cannot start the server within the timeout.
     pub async fn new(configuration: &Arc<Configuration>) -> Self {
-        tokio::time::timeout(DEFAULT_TIMEOUT, Environment::<Stopped>::new(configuration).start())
+        tokio::time::timeout(DEFAULT_TIMEOUT, Environment::<Stopped>::new(configuration).await.start())
             .await
             .expect("Failed to create a UDP tracker server running environment within the timeout")
     }
@@ -179,7 +179,7 @@ impl EnvContainer {
     ///
     /// Will panic if the configuration is missing the UDP tracker configuration.
     #[must_use]
-    pub fn initialize(configuration: &Configuration) -> Self {
+    pub async fn initialize(configuration: &Configuration) -> Self {
         let core_config = Arc::new(configuration.core.clone());
         let udp_tracker_configurations = configuration.udp_trackers.clone().expect("missing UDP tracker configuration");
         let udp_tracker_config = Arc::new(udp_tracker_configurations[0].clone());
@@ -188,10 +188,8 @@ impl EnvContainer {
             core_config.tracker_usage_statistics.into(),
         ));
 
-        let tracker_core_container = Arc::new(TrackerCoreContainer::initialize_from(
-            &core_config,
-            &swarm_coordination_registry_container,
-        ));
+        let tracker_core_container =
+            Arc::new(TrackerCoreContainer::initialize_from(&core_config, &swarm_coordination_registry_container).await);
 
         let udp_tracker_core_container =
             UdpTrackerCoreContainer::initialize_from_tracker_core(&tracker_core_container, &udp_tracker_config);

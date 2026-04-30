@@ -44,13 +44,13 @@ mod tests {
         use crate::authentication::service::AuthenticationService;
         use crate::databases::setup::initialize_database;
 
-        fn instantiate_keys_manager_and_authentication() -> (Arc<KeysHandler>, Arc<AuthenticationService>) {
+        async fn instantiate_keys_manager_and_authentication() -> (Arc<KeysHandler>, Arc<AuthenticationService>) {
             let config = configuration::ephemeral_private();
 
-            instantiate_keys_manager_and_authentication_with_configuration(&config)
+            instantiate_keys_manager_and_authentication_with_configuration(&config).await
         }
 
-        fn instantiate_keys_manager_and_authentication_with_checking_keys_expiration_disabled(
+        async fn instantiate_keys_manager_and_authentication_with_checking_keys_expiration_disabled(
         ) -> (Arc<KeysHandler>, Arc<AuthenticationService>) {
             let mut config = configuration::ephemeral_private();
 
@@ -58,13 +58,13 @@ mod tests {
                 check_keys_expiration: false,
             });
 
-            instantiate_keys_manager_and_authentication_with_configuration(&config)
+            instantiate_keys_manager_and_authentication_with_configuration(&config).await
         }
 
-        fn instantiate_keys_manager_and_authentication_with_configuration(
+        async fn instantiate_keys_manager_and_authentication_with_configuration(
             config: &Configuration,
         ) -> (Arc<KeysHandler>, Arc<AuthenticationService>) {
-            let stores = initialize_database(&config.core);
+            let stores = initialize_database(&config.core).await;
             let db_key_repository = Arc::new(DatabaseKeyRepository::new(&stores.auth_key_store));
             let in_memory_key_repository = Arc::new(InMemoryKeyRepository::default());
             let authentication_service = Arc::new(service::AuthenticationService::new(&config.core, &in_memory_key_repository));
@@ -78,7 +78,7 @@ mod tests {
 
         #[tokio::test]
         async fn it_should_remove_an_authentication_key() {
-            let (keys_manager, authentication_service) = instantiate_keys_manager_and_authentication();
+            let (keys_manager, authentication_service) = instantiate_keys_manager_and_authentication().await;
 
             let expiring_key = keys_manager
                 .generate_expiring_peer_key(Some(Duration::from_secs(100)))
@@ -95,7 +95,7 @@ mod tests {
 
         #[tokio::test]
         async fn it_should_load_authentication_keys_from_the_database() {
-            let (keys_manager, authentication_service) = instantiate_keys_manager_and_authentication();
+            let (keys_manager, authentication_service) = instantiate_keys_manager_and_authentication().await;
 
             let expiring_key = keys_manager
                 .generate_expiring_peer_key(Some(Duration::from_secs(100)))
@@ -126,7 +126,7 @@ mod tests {
 
                 #[tokio::test]
                 async fn it_should_authenticate_a_peer_with_the_key() {
-                    let (keys_manager, authentication_service) = instantiate_keys_manager_and_authentication();
+                    let (keys_manager, authentication_service) = instantiate_keys_manager_and_authentication().await;
 
                     let peer_key = keys_manager
                         .generate_expiring_peer_key(Some(Duration::from_secs(100)))
@@ -141,7 +141,7 @@ mod tests {
                 #[tokio::test]
                 async fn it_should_accept_an_expired_key_when_checking_expiration_is_disabled_in_configuration() {
                     let (keys_manager, authentication_service) =
-                        instantiate_keys_manager_and_authentication_with_checking_keys_expiration_disabled();
+                        instantiate_keys_manager_and_authentication_with_checking_keys_expiration_disabled().await;
 
                     let past_timestamp = Duration::ZERO;
 
@@ -165,7 +165,7 @@ mod tests {
 
                 #[tokio::test]
                 async fn it_should_authenticate_a_peer_with_the_key() {
-                    let (keys_manager, authentication_service) = instantiate_keys_manager_and_authentication();
+                    let (keys_manager, authentication_service) = instantiate_keys_manager_and_authentication().await;
 
                     let peer_key = keys_manager
                         .add_peer_key(AddKeyRequest {
@@ -183,7 +183,7 @@ mod tests {
                 #[tokio::test]
                 async fn it_should_accept_an_expired_key_when_checking_expiration_is_disabled_in_configuration() {
                     let (keys_manager, authentication_service) =
-                        instantiate_keys_manager_and_authentication_with_checking_keys_expiration_disabled();
+                        instantiate_keys_manager_and_authentication_with_checking_keys_expiration_disabled().await;
 
                     let peer_key = keys_manager
                         .add_peer_key(AddKeyRequest {
@@ -205,7 +205,7 @@ mod tests {
 
                 #[tokio::test]
                 async fn it_should_authenticate_a_peer_with_the_key() {
-                    let (keys_manager, authentication_service) = instantiate_keys_manager_and_authentication();
+                    let (keys_manager, authentication_service) = instantiate_keys_manager_and_authentication().await;
 
                     let peer_key = keys_manager.generate_permanent_peer_key().await.unwrap();
 
@@ -222,7 +222,7 @@ mod tests {
 
                 #[tokio::test]
                 async fn it_should_authenticate_a_peer_with_the_key() {
-                    let (keys_manager, authentication_service) = instantiate_keys_manager_and_authentication();
+                    let (keys_manager, authentication_service) = instantiate_keys_manager_and_authentication().await;
 
                     let peer_key = keys_manager
                         .add_peer_key(AddKeyRequest {

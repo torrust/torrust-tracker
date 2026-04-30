@@ -250,26 +250,26 @@ pub(crate) mod tests {
         configuration::ephemeral()
     }
 
-    pub(crate) fn initialize_core_tracker_services_for_default_tracker_configuration(
+    pub(crate) async fn initialize_core_tracker_services_for_default_tracker_configuration(
     ) -> (CoreTrackerServices, CoreUdpTrackerServices, ServerUdpTrackerServices) {
-        initialize_core_tracker_services(&default_testing_tracker_configuration())
+        initialize_core_tracker_services(&default_testing_tracker_configuration()).await
     }
 
-    pub(crate) fn initialize_core_tracker_services_for_public_tracker(
+    pub(crate) async fn initialize_core_tracker_services_for_public_tracker(
     ) -> (CoreTrackerServices, CoreUdpTrackerServices, ServerUdpTrackerServices) {
-        initialize_core_tracker_services(&configuration::ephemeral_public())
+        initialize_core_tracker_services(&configuration::ephemeral_public()).await
     }
 
-    pub(crate) fn initialize_core_tracker_services_for_listed_tracker(
+    pub(crate) async fn initialize_core_tracker_services_for_listed_tracker(
     ) -> (CoreTrackerServices, CoreUdpTrackerServices, ServerUdpTrackerServices) {
-        initialize_core_tracker_services(&configuration::ephemeral_listed())
+        initialize_core_tracker_services(&configuration::ephemeral_listed()).await
     }
 
-    fn initialize_core_tracker_services(
+    async fn initialize_core_tracker_services(
         config: &Configuration,
     ) -> (CoreTrackerServices, CoreUdpTrackerServices, ServerUdpTrackerServices) {
         let core_config = Arc::new(config.core.clone());
-        let database = initialize_database(&config.core);
+        let database = initialize_database(&config.core).await;
         let in_memory_whitelist = Arc::new(InMemoryWhitelist::default());
         let whitelist_authorization = Arc::new(WhitelistAuthorization::new(&config.core, &in_memory_whitelist.clone()));
         let in_memory_torrent_repository = Arc::new(InMemoryTorrentRepository::default());

@@ -77,14 +77,26 @@ async fn it_should_persist_the_number_of_completed_peers_for_each_torrent_into_t
     // Ensure the swarm metadata is removed
     assert!(test_env.get_swarm_metadata(&info_hash).await.is_none());
 
-    // Load torrents from the database to ensure the completed stats are persisted
-    test_env
-        .tracker_core_container
-        .torrents_manager
-        .load_torrents_from_database()
-        .unwrap();
+    // Load torrents from the database to ensure the completed stats are persisted.
+    let mut restored = false;
+    for _ in 0..10 {
+        test_env
+            .tracker_core_container
+            .torrents_manager
+            .load_torrents_from_database()
+            .await
+            .unwrap();
 
-    assert!(test_env.get_swarm_metadata(&info_hash).await.unwrap().downloads() == 1);
+        if let Some(swarm_metadata) = test_env.get_swarm_metadata(&info_hash).await {
+            assert!(swarm_metadata.downloads() == 1);
+            restored = true;
+            break;
+        }
+
+        tokio::task::yield_now().await;
+    }
+
+    assert!(restored);
 }
 
 #[tokio::test]

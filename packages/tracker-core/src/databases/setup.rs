@@ -42,33 +42,6 @@ where
     }
 }
 
-fn block_on_current_or_new_runtime<F>(future: F) -> F::Output
-where
-    F: std::future::Future + Send,
-    F::Output: Send,
-{
-    if tokio::runtime::Handle::try_current().is_ok() {
-        std::thread::scope(|scope| {
-            scope
-                .spawn(|| {
-                    tokio::runtime::Builder::new_current_thread()
-                        .enable_all()
-                        .build()
-                        .expect("failed to build Tokio runtime")
-                        .block_on(future)
-                })
-                .join()
-                .expect("failed to join blocking runtime thread")
-        })
-    } else {
-        tokio::runtime::Builder::new_current_thread()
-            .enable_all()
-            .build()
-            .expect("failed to build Tokio runtime")
-            .block_on(future)
-    }
-}
-
 /// Initializes and returns a [`DatabaseStores`] bundle based on the provided
 /// configuration.
 ///
@@ -97,10 +70,12 @@ where
 /// let config = Core::default();
 ///
 /// // Initialize the database; this will panic if initialization fails.
-/// let stores = initialize_database(&config);
+/// # async {
+/// let stores = initialize_database(&config).await;
+/// # };
 /// ```
 #[must_use]
-pub fn initialize_database(config: &Core) -> DatabaseStores {
+pub async fn initialize_database(config: &Core) -> DatabaseStores {
     let driver = match config.database.driver {
         torrust_tracker_configuration::Driver::Sqlite3 => Driver::Sqlite3,
         torrust_tracker_configuration::Driver::MySQL => Driver::MySQL,
@@ -109,12 +84,12 @@ pub fn initialize_database(config: &Core) -> DatabaseStores {
     match driver {
         Driver::Sqlite3 => {
             let db = Arc::new(Sqlite::new(&config.database.path).expect("Database driver build failed."));
-            block_on_current_or_new_runtime(db.create_database_tables()).expect("Could not create database tables.");
+            db.create_database_tables().await.expect("Could not create database tables.");
             build_database_stores(db)
         }
         Driver::MySQL => {
             let db = Arc::new(Mysql::new(&config.database.path).expect("Database driver build failed."));
-            block_on_current_or_new_runtime(db.create_database_tables()).expect("Could not create database tables.");
+            db.create_database_tables().await.expect("Could not create database tables.");
             build_database_stores(db)
         }
     }
@@ -128,6 +103,6 @@ mod tests {
     #[tokio::test]
     async fn it_should_initialize_the_sqlite_database() {
         let config = ephemeral_configuration();
-        let _database = initialize_database(&config);
+        let _database = initialize_database(&config).await;
     }
 }

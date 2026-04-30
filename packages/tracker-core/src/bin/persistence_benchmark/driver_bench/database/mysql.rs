@@ -30,7 +30,7 @@ pub(super) async fn initialize(db_version: &str) -> Result<ActiveDatabase> {
     let mut config = configuration::Core::default();
     config.database.driver = configuration::Driver::MySQL;
     config.database.path = mysql_database_url;
-    let database = initialize_database(&config);
+    let database = initialize_database(&config).await;
 
     Ok(ActiveDatabase {
         database: Some(database),

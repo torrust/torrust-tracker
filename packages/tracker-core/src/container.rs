@@ -37,11 +37,11 @@ pub struct TrackerCoreContainer {
 
 impl TrackerCoreContainer {
     #[must_use]
-    pub fn initialize_from(
+    pub async fn initialize_from(
         core_config: &Arc<Core>,
         swarm_coordination_registry_container: &Arc<SwarmCoordinationRegistryContainer>,
     ) -> Self {
-        let db = initialize_database(core_config);
+        let db = initialize_database(core_config).await;
         let in_memory_whitelist = Arc::new(InMemoryWhitelist::default());
         let whitelist_authorization = Arc::new(WhitelistAuthorization::new(core_config, &in_memory_whitelist.clone()));
         let whitelist_manager = initialize_whitelist_manager(db.whitelist_store.clone(), in_memory_whitelist.clone());

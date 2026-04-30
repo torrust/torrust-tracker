@@ -36,7 +36,7 @@ use crate::container::AppContainer;
 use crate::CurrentClock;
 
 pub async fn run() -> (Arc<AppContainer>, JobManager) {
-    let (config, app_container) = bootstrap::app::setup();
+    let (config, app_container) = bootstrap::app::setup().await;
 
     let app_container = Arc::new(app_container);
 

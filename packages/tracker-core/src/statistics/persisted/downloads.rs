@@ -27,33 +27,6 @@ pub struct DatabaseDownloadsMetricRepository {
     database: Arc<dyn TorrentMetricsStore>,
 }
 
-fn block_on_current_or_new_runtime<F>(future: F) -> F::Output
-where
-    F: std::future::Future + Send,
-    F::Output: Send,
-{
-    if tokio::runtime::Handle::try_current().is_ok() {
-        std::thread::scope(|scope| {
-            scope
-                .spawn(|| {
-                    tokio::runtime::Builder::new_current_thread()
-                        .enable_all()
-                        .build()
-                        .expect("failed to build Tokio runtime")
-                        .block_on(future)
-                })
-                .join()
-                .expect("failed to join blocking runtime thread")
-        })
-    } else {
-        tokio::runtime::Builder::new_current_thread()
-            .enable_all()
-            .build()
-            .expect("failed to build Tokio runtime")
-            .block_on(future)
-    }
-}
-
 impl DatabaseDownloadsMetricRepository {
     /// Creates a new instance of `DatabaseDownloadsMetricRepository`.
     ///
@@ -86,14 +59,12 @@ impl DatabaseDownloadsMetricRepository {
     /// # Errors
     ///
     /// Returns an [`Error`] if the database operation fails.
-    pub(crate) fn increase_downloads_for_torrent(&self, info_hash: &InfoHash) -> Result<(), Error> {
-        let torrent = self.load_torrent_downloads(info_hash)?;
+    pub(crate) async fn increase_downloads_for_torrent(&self, info_hash: &InfoHash) -> Result<(), Error> {
+        let torrent = self.load_torrent_downloads(info_hash).await?;
 
         match torrent {
-            Some(_number_of_downloads) => {
-                block_on_current_or_new_runtime(self.database.increase_downloads_for_torrent(info_hash))
-            }
-            None => self.save_torrent_downloads(info_hash, 1),
+            Some(_number_of_downloads) => self.database.increase_downloads_for_torrent(info_hash).await,
+            None => self.save_torrent_downloads(info_hash, 1).await,
         }
     }
 
@@ -105,8 +76,8 @@ impl DatabaseDownloadsMetricRepository {
     /// # Errors
     ///
     /// Returns an [`Error`] if the underlying database query fails.
-    pub(crate) fn load_all_torrents_downloads(&self) -> Result<NumberOfDownloadsBTreeMap, Error> {
-        block_on_current_or_new_runtime(self.database.load_all_torrents_downloads())
+    pub(crate) async fn load_all_torrents_downloads(&self) -> Result<NumberOfDownloadsBTreeMap, Error> {
+        self.database.load_all_torrents_downloads().await
     }
 
     /// Loads one persistent torrent metrics from the database.
@@ -117,8 +88,8 @@ impl DatabaseDownloadsMetricRepository {
     /// # Errors
     ///
     /// Returns an [`Error`] if the underlying database query fails.
-    pub(crate) fn load_torrent_downloads(&self, info_hash: &InfoHash) -> Result<Option<NumberOfDownloads>, Error> {
-        block_on_current_or_new_runtime(self.database.load_torrent_downloads(info_hash))
+    pub(crate) async fn load_torrent_downloads(&self, info_hash: &InfoHash) -> Result<Option<NumberOfDownloads>, Error> {
+        self.database.load_torrent_downloads(info_hash).await
     }
 
     /// Saves the persistent torrent metric into the database.
@@ -134,8 +105,8 @@ impl DatabaseDownloadsMetricRepository {
     /// # Errors
     ///
     /// Returns an [`Error`] if the database operation fails.
-    pub(crate) fn save_torrent_downloads(&self, info_hash: &InfoHash, downloaded: u32) -> Result<(), Error> {
-        block_on_current_or_new_runtime(self.database.save_torrent_downloads(info_hash, downloaded))
+    pub(crate) async fn save_torrent_downloads(&self, info_hash: &InfoHash, downloaded: u32) -> Result<(), Error> {
+        self.database.save_torrent_downloads(info_hash, downloaded).await
     }
 
     // Aggregate Metrics
@@ -147,12 +118,12 @@ impl DatabaseDownloadsMetricRepository {
     /// # Errors
     ///
     /// Returns an [`Error`] if the database operation fails.
-    pub(crate) fn increase_global_downloads(&self) -> Result<(), Error> {
-        let torrent = block_on_current_or_new_runtime(self.database.load_global_downloads())?;
+    pub(crate) async fn increase_global_downloads(&self) -> Result<(), Error> {
+        let torrent = self.database.load_global_downloads().await?;
 
         match torrent {
-            Some(_number_of_downloads) => block_on_current_or_new_runtime(self.database.increase_global_downloads()),
-            None => block_on_current_or_new_runtime(self.database.save_global_downloads(1)),
+            Some(_number_of_downloads) => self.database.increase_global_downloads().await,
+            None => self.database.save_global_downloads(1).await,
         }
     }
 
@@ -161,8 +132,8 @@ impl DatabaseDownloadsMetricRepository {
     /// # Errors
     ///
     /// Returns an [`Error`] if the underlying database query fails.
-    pub(crate) fn load_global_downloads(&self) -> Result<Option<NumberOfDownloads>, Error> {
-        block_on_current_or_new_runtime(self.database.load_global_downloads())
+    pub(crate) async fn load_global_downloads(&self) -> Result<Option<NumberOfDownloads>, Error> {
+        self.database.load_global_downloads().await
     }
 }
 
@@ -175,49 +146,49 @@ mod tests {
     use crate::databases::setup::initialize_database;
     use crate::test_helpers::tests::{ephemeral_configuration, sample_info_hash, sample_info_hash_one, sample_info_hash_two};
 
-    fn initialize_db_persistent_torrent_repository() -> DatabaseDownloadsMetricRepository {
+    async fn initialize_db_persistent_torrent_repository() -> DatabaseDownloadsMetricRepository {
         let config = ephemeral_configuration();
-        let stores = initialize_database(&config);
+        let stores = initialize_database(&config).await;
         DatabaseDownloadsMetricRepository::new(&stores.torrent_metrics_store)
     }
 
     #[tokio::test]
     async fn it_saves_the_numbers_of_downloads_for_a_torrent_into_the_database() {
-        let repository = initialize_db_persistent_torrent_repository();
+        let repository = initialize_db_persistent_torrent_repository().await;
 
         let infohash = sample_info_hash();
 
-        repository.save_torrent_downloads(&infohash, 1).unwrap();
+        repository.save_torrent_downloads(&infohash, 1).await.unwrap();
 
-        let torrents = repository.load_all_torrents_downloads().unwrap();
+        let torrents = repository.load_all_torrents_downloads().await.unwrap();
 
         assert_eq!(torrents.get(&infohash), Some(1).as_ref());
     }
 
     #[tokio::test]
     async fn it_increases_the_numbers_of_downloads_for_a_torrent_into_the_database() {
-        let repository = initialize_db_persistent_torrent_repository();
+        let repository = initialize_db_persistent_torrent_repository().await;
 
         let infohash = sample_info_hash();
 
-        repository.increase_downloads_for_torrent(&infohash).unwrap();
+        repository.increase_downloads_for_torrent(&infohash).await.unwrap();
 
-        let torrents = repository.load_all_torrents_downloads().unwrap();
+        let torrents = repository.load_all_torrents_downloads().await.unwrap();
 
         assert_eq!(torrents.get(&infohash), Some(1).as_ref());
     }
 
     #[tokio::test]
     async fn it_loads_the_numbers_of_downloads_for_all_torrents_from_the_database() {
-        let repository = initialize_db_persistent_torrent_repository();
+        let repository = initialize_db_persistent_torrent_repository().await;
 
         let infohash_one = sample_info_hash_one();
         let infohash_two = sample_info_hash_two();
 
-        repository.save_torrent_downloads(&infohash_one, 1).unwrap();
-        repository.save_torrent_downloads(&infohash_two, 2).unwrap();
+        repository.save_torrent_downloads(&infohash_one, 1).await.unwrap();
+        repository.save_torrent_downloads(&infohash_two, 2).await.unwrap();
 
-        let torrents = repository.load_all_torrents_downloads().unwrap();
+        let torrents = repository.load_all_torrents_downloads().await.unwrap();
 
         let mut expected_torrents = NumberOfDownloadsBTreeMap::new();
         expected_torrents.insert(infohash_one, 1);

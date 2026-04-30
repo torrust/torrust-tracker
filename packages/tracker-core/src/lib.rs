@@ -170,14 +170,14 @@ mod tests {
         use crate::scrape_handler::ScrapeHandler;
         use crate::test_helpers::tests::initialize_handlers;
 
-        fn initialize_handlers_for_public_tracker() -> (Arc<AnnounceHandler>, Arc<ScrapeHandler>) {
+        async fn initialize_handlers_for_public_tracker() -> (Arc<AnnounceHandler>, Arc<ScrapeHandler>) {
             let config = configuration::ephemeral_public();
-            initialize_handlers(&config)
+            initialize_handlers(&config).await
         }
 
-        fn initialize_handlers_for_listed_tracker() -> (Arc<AnnounceHandler>, Arc<ScrapeHandler>) {
+        async fn initialize_handlers_for_listed_tracker() -> (Arc<AnnounceHandler>, Arc<ScrapeHandler>) {
             let config = configuration::ephemeral_listed();
-            initialize_handlers(&config)
+            initialize_handlers(&config).await
         }
 
         mod for_all_config_modes {
@@ -196,7 +196,7 @@ mod tests {
 
                 #[tokio::test]
                 async fn it_should_return_the_swarm_metadata_for_the_requested_file_if_the_tracker_has_that_torrent() {
-                    let (announce_handler, scrape_handler) = initialize_handlers_for_public_tracker();
+                    let (announce_handler, scrape_handler) = initialize_handlers_for_public_tracker().await;
 
                     let info_hash = "3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0".parse::<InfoHash>().unwrap(); // DevSkim: ignore DS173237
 
@@ -255,7 +255,7 @@ mod tests {
 
                 #[tokio::test]
                 async fn it_should_return_the_zeroed_swarm_metadata_for_the_requested_file_if_it_is_not_whitelisted() {
-                    let (_announce_handler, scrape_handler) = initialize_handlers_for_listed_tracker();
+                    let (_announce_handler, scrape_handler) = initialize_handlers_for_listed_tracker().await;
 
                     let non_whitelisted_info_hash = "3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0".parse::<InfoHash>().unwrap(); // DevSkim: ignore DS173237
 

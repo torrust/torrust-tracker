@@ -232,15 +232,17 @@ mod tests {
         pub http_stats_event_sender: crate::event::sender::Sender,
     }
 
-    fn initialize_core_tracker_services() -> (CoreTrackerServices, CoreHttpTrackerServices) {
-        initialize_core_tracker_services_with_config(&configuration::ephemeral_public())
+    async fn initialize_core_tracker_services() -> (CoreTrackerServices, CoreHttpTrackerServices) {
+        initialize_core_tracker_services_with_config(&configuration::ephemeral_public()).await
     }
 
-    fn initialize_core_tracker_services_with_config(config: &Configuration) -> (CoreTrackerServices, CoreHttpTrackerServices) {
+    async fn initialize_core_tracker_services_with_config(
+        config: &Configuration,
+    ) -> (CoreTrackerServices, CoreHttpTrackerServices) {
         let cancellation_token = CancellationToken::new();
 
         let core_config = Arc::new(config.core.clone());
-        let database = initialize_database(&config.core);
+        let database = initialize_database(&config.core).await;
         let in_memory_torrent_repository = Arc::new(InMemoryTorrentRepository::default());
         let db_downloads_metric_repository = Arc::new(DatabaseDownloadsMetricRepository::new(&database.torrent_metrics_store));
         let in_memory_whitelist = Arc::new(InMemoryWhitelist::default());
@@ -346,7 +348,7 @@ mod tests {
 
         #[tokio::test]
         async fn it_should_return_the_announce_data() {
-            let (core_tracker_services, core_http_tracker_services) = initialize_core_tracker_services();
+            let (core_tracker_services, core_http_tracker_services) = initialize_core_tracker_services().await;
 
             let peer = sample_peer();
 
@@ -412,7 +414,7 @@ mod tests {
                 .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
             let http_stats_event_sender: crate::event::sender::Sender = Some(Arc::new(http_stats_event_sender_mock));
 
-            let (core_tracker_services, mut core_http_tracker_services) = initialize_core_tracker_services();
+            let (core_tracker_services, mut core_http_tracker_services) = initialize_core_tracker_services().await;
 
             core_http_tracker_services.http_stats_event_sender = http_stats_event_sender;
 
@@ -486,7 +488,7 @@ mod tests {
             let http_stats_event_sender: crate::event::sender::Sender = Some(Arc::new(http_stats_event_sender_mock));
 
             let (core_tracker_services, mut core_http_tracker_services) =
-                initialize_core_tracker_services_with_config(&tracker_with_an_ipv6_external_ip());
+                initialize_core_tracker_services_with_config(&tracker_with_an_ipv6_external_ip()).await;
 
             core_http_tracker_services.http_stats_event_sender = http_stats_event_sender;
 
@@ -532,7 +534,7 @@ mod tests {
                 .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
             let http_stats_event_sender: crate::event::sender::Sender = Some(Arc::new(http_stats_event_sender_mock));
 
-            let (core_tracker_services, mut core_http_tracker_services) = initialize_core_tracker_services();
+            let (core_tracker_services, mut core_http_tracker_services) = initialize_core_tracker_services().await;
             core_http_tracker_services.http_stats_event_sender = http_stats_event_sender;
 
             let (announce_request, client_ip_sources) = sample_announce_request_for_peer(peer);

@@ -30,7 +30,7 @@ pub struct TrackerHttpApiCoreContainer {
 
 impl TrackerHttpApiCoreContainer {
     #[must_use]
-    pub fn initialize(
+    pub async fn initialize(
         core_config: &Arc<Core>,
         http_tracker_config: &Arc<HttpTracker>,
         udp_tracker_config: &Arc<UdpTracker>,
@@ -40,10 +40,8 @@ impl TrackerHttpApiCoreContainer {
             core_config.tracker_usage_statistics.into(),
         ));
 
-        let tracker_core_container = Arc::new(TrackerCoreContainer::initialize_from(
-            core_config,
-            &swarm_coordination_registry_container,
-        ));
+        let tracker_core_container =
+            Arc::new(TrackerCoreContainer::initialize_from(core_config, &swarm_coordination_registry_container).await);
 
         let http_tracker_core_container =
             HttpTrackerCoreContainer::initialize_from_tracker_core(&tracker_core_container, http_tracker_config);

@@ -182,7 +182,7 @@ impl KeysHandler {
     pub async fn generate_expiring_peer_key(&self, lifetime: Option<Duration>) -> Result<PeerKey, databases::error::Error> {
         let peer_key = key::generate_key(lifetime);
 
-        self.db_key_repository.add(&peer_key)?;
+        self.db_key_repository.add(&peer_key).await?;
 
         self.in_memory_key_repository.insert(&peer_key).await;
 
@@ -229,7 +229,7 @@ impl KeysHandler {
         // code-review: should we return a friendly error instead of the DB
         // constrain error when the key already exist? For now, it's returning
         // the specif error for each DB driver when a UNIQUE constrain fails.
-        self.db_key_repository.add(&peer_key)?;
+        self.db_key_repository.add(&peer_key).await?;
 
         self.in_memory_key_repository.insert(&peer_key).await;
 
@@ -249,7 +249,7 @@ impl KeysHandler {
     /// Returns a `databases::error::Error` if the key cannot be removed from
     /// the database.
     pub async fn remove_peer_key(&self, key: &Key) -> Result<(), databases::error::Error> {
-        self.db_key_repository.remove(key)?;
+        self.db_key_repository.remove(key).await?;
 
         self.remove_in_memory_auth_key(key).await;
 
@@ -277,7 +277,7 @@ impl KeysHandler {
     ///
     /// Returns a `databases::error::Error` if there is an issue loading the keys from the database.
     pub async fn load_peer_keys_from_database(&self) -> Result<(), databases::error::Error> {
-        let keys_from_database = self.db_key_repository.load_keys()?;
+        let keys_from_database = self.db_key_repository.load_keys().await?;
 
         self.in_memory_key_repository.reset_with(keys_from_database).await;
 
@@ -301,10 +301,10 @@ mod tests {
         use crate::databases::setup::initialize_database;
         use crate::databases::{AuthKeyStore, MockAuthKeyStore};
 
-        fn instantiate_keys_handler() -> KeysHandler {
+        async fn instantiate_keys_handler() -> KeysHandler {
             let config = configuration::ephemeral_private();
 
-            instantiate_keys_handler_with_configuration(&config)
+            instantiate_keys_handler_with_configuration(&config).await
         }
 
         fn instantiate_keys_handler_with_database(auth_key_store: &Arc<dyn AuthKeyStore>) -> KeysHandler {
@@ -314,10 +314,10 @@ mod tests {
             KeysHandler::new(&db_key_repository, &in_memory_key_repository)
         }
 
-        fn instantiate_keys_handler_with_configuration(config: &Configuration) -> KeysHandler {
+        async fn instantiate_keys_handler_with_configuration(config: &Configuration) -> KeysHandler {
             // todo: pass only Core configuration
 
-            let stores = initialize_database(&config.core);
+            let stores = initialize_database(&config.core).await;
             let db_key_repository = Arc::new(DatabaseKeyRepository::new(&stores.auth_key_store));
             let in_memory_key_repository = Arc::new(InMemoryKeyRepository::default());
 
@@ -338,7 +338,7 @@ mod tests {
 
             #[tokio::test]
             async fn it_should_generate_the_key() {
-                let keys_handler = instantiate_keys_handler();
+                let keys_handler = instantiate_keys_handler().await;
 
                 let peer_key = keys_handler
                     .generate_expiring_peer_key(Some(Duration::from_secs(100)))
@@ -372,7 +372,7 @@ mod tests {
 
                 #[tokio::test]
                 async fn it_should_add_a_randomly_generated_key() {
-                    let keys_handler = instantiate_keys_handler();
+                    let keys_handler = instantiate_keys_handler().await;
 
                     let peer_key = keys_handler
                         .add_peer_key(AddKeyRequest {
@@ -446,7 +446,7 @@ mod tests {
 
                 #[tokio::test]
                 async fn it_should_add_a_pre_generated_key() {
-                    let keys_handler = instantiate_keys_handler();
+                    let keys_handler = instantiate_keys_handler().await;
 
                     let peer_key = keys_handler
                         .add_peer_key(AddKeyRequest {
@@ -467,7 +467,7 @@ mod tests {
 
                 #[tokio::test]
                 async fn it_should_fail_adding_a_pre_generated_key_when_the_key_duration_exceeds_the_maximum_duration() {
-                    let keys_handler = instantiate_keys_handler();
+                    let keys_handler = instantiate_keys_handler().await;
 
                     let result = keys_handler
                         .add_peer_key(AddKeyRequest {
@@ -481,7 +481,7 @@ mod tests {
 
                 #[tokio::test]
                 async fn it_should_fail_adding_a_pre_generated_key_when_the_key_is_invalid() {
-                    let keys_handler = instantiate_keys_handler();
+                    let keys_handler = instantiate_keys_handler().await;
 
                     let result = keys_handler
                         .add_peer_key(AddKeyRequest {
@@ -553,7 +553,7 @@ mod tests {
 
                 #[tokio::test]
                 async fn it_should_generate_the_key() {
-                    let keys_handler = instantiate_keys_handler();
+                    let keys_handler = instantiate_keys_handler().await;
 
                     let peer_key = keys_handler.generate_permanent_peer_key().await.unwrap();
 
@@ -562,7 +562,7 @@ mod tests {
 
                 #[tokio::test]
                 async fn it_should_add_a_randomly_generated_key() {
-                    let keys_handler = instantiate_keys_handler();
+                    let keys_handler = instantiate_keys_handler().await;
 
                     let peer_key = keys_handler
                         .add_peer_key(AddKeyRequest {
@@ -623,7 +623,7 @@ mod tests {
 
                 #[tokio::test]
                 async fn it_should_add_a_pre_generated_key() {
-                    let keys_handler = instantiate_keys_handler();
+                    let keys_handler = instantiate_keys_handler().await;
 
                     let peer_key = keys_handler
                         .add_peer_key(AddKeyRequest {
@@ -644,7 +644,7 @@ mod tests {
 
                 #[tokio::test]
                 async fn it_should_fail_adding_a_pre_generated_key_when_the_key_is_invalid() {
-                    let keys_handler = instantiate_keys_handler();
+                    let keys_handler = instantiate_keys_handler().await;
 
                     let result = keys_handler
                         .add_peer_key(AddKeyRequest {

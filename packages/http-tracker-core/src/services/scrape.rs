@@ -195,8 +195,8 @@ mod tests {
         authentication_service: Arc<AuthenticationService>,
     }
 
-    fn initialize_services_with_configuration(config: &Configuration) -> Container {
-        let database = initialize_database(&config.core);
+    async fn initialize_services_with_configuration(config: &Configuration) -> Container {
+        let database = initialize_database(&config.core).await;
         let in_memory_whitelist = Arc::new(InMemoryWhitelist::default());
         let whitelist_authorization = Arc::new(WhitelistAuthorization::new(&config.core, &in_memory_whitelist.clone()));
         let in_memory_torrent_repository = Arc::new(InMemoryTorrentRepository::default());
@@ -281,7 +281,7 @@ mod tests {
 
             let http_stats_event_sender = http_stats_event_bus.sender();
 
-            let container = initialize_services_with_configuration(&configuration);
+            let container = initialize_services_with_configuration(&configuration).await;
 
             let info_hash = sample_info_hash();
             let info_hashes = vec![info_hash];
@@ -352,7 +352,7 @@ mod tests {
                 .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
             let http_stats_event_sender: crate::event::sender::Sender = Some(Arc::new(http_stats_event_sender_mock));
 
-            let container = initialize_services_with_configuration(&config);
+            let container = initialize_services_with_configuration(&config).await;
 
             let peer_ip = IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1));
 
@@ -406,7 +406,7 @@ mod tests {
                 .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
             let http_stats_event_sender: crate::event::sender::Sender = Some(Arc::new(http_stats_event_sender_mock));
 
-            let container = initialize_services_with_configuration(&config);
+            let container = initialize_services_with_configuration(&config).await;
 
             let peer_ip = IpAddr::V6(Ipv6Addr::new(0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969));
 
@@ -465,7 +465,7 @@ mod tests {
         ) {
             let config = configuration::ephemeral_private();
 
-            let container = initialize_services_with_configuration(&config);
+            let container = initialize_services_with_configuration(&config).await;
 
             // HTTP core stats
             let http_core_broadcaster = Broadcaster::default();
@@ -518,7 +518,7 @@ mod tests {
         async fn it_should_send_the_tcp_4_scrape_event_when_the_peer_uses_ipv4() {
             let config = configuration::ephemeral();
 
-            let container = initialize_services_with_configuration(&config);
+            let container = initialize_services_with_configuration(&config).await;
 
             let mut http_stats_event_sender_mock = MockHttpStatsEventSender::new();
             http_stats_event_sender_mock
@@ -570,7 +570,7 @@ mod tests {
 
             let config = configuration::ephemeral();
 
-            let container = initialize_services_with_configuration(&config);
+            let container = initialize_services_with_configuration(&config).await;
 
             let mut http_stats_event_sender_mock = MockHttpStatsEventSender::new();
             http_stats_event_sender_mock

@@ -8,7 +8,7 @@ use crate::helpers::util::{initialize_core_tracker_services, sample_announce_req
 
 #[must_use]
 pub async fn return_announce_data_once(samples: u64) -> Duration {
-    let (core_tracker_services, core_http_tracker_services) = initialize_core_tracker_services();
+    let (core_tracker_services, core_http_tracker_services) = initialize_core_tracker_services().await;
 
     let peer = sample_peer();
 

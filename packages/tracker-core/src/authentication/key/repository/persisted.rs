@@ -13,33 +13,6 @@ pub struct DatabaseKeyRepository {
     database: Arc<dyn AuthKeyStore>,
 }
 
-fn block_on_current_or_new_runtime<F>(future: F) -> F::Output
-where
-    F: std::future::Future + Send,
-    F::Output: Send,
-{
-    if tokio::runtime::Handle::try_current().is_ok() {
-        std::thread::scope(|scope| {
-            scope
-                .spawn(|| {
-                    tokio::runtime::Builder::new_current_thread()
-                        .enable_all()
-                        .build()
-                        .expect("failed to build Tokio runtime")
-                        .block_on(future)
-                })
-                .join()
-                .expect("failed to join blocking runtime thread")
-        })
-    } else {
-        tokio::runtime::Builder::new_current_thread()
-            .enable_all()
-            .build()
-            .expect("failed to build Tokio runtime")
-            .block_on(future)
-    }
-}
-
 impl DatabaseKeyRepository {
     /// Creates a new `DatabaseKeyRepository` instance.
     ///
@@ -66,8 +39,8 @@ impl DatabaseKeyRepository {
     /// # Errors
     ///
     /// Returns a [`databases::error::Error`] if the key cannot be added.
-    pub(crate) fn add(&self, peer_key: &PeerKey) -> Result<(), databases::error::Error> {
-        block_on_current_or_new_runtime(self.database.add_key_to_keys(peer_key))?;
+    pub(crate) async fn add(&self, peer_key: &PeerKey) -> Result<(), databases::error::Error> {
+        self.database.add_key_to_keys(peer_key).await?;
         Ok(())
     }
 
@@ -80,8 +53,8 @@ impl DatabaseKeyRepository {
     /// # Errors
     ///
     /// Returns a [`databases::error::Error`] if the key cannot be removed.
-    pub(crate) fn remove(&self, key: &Key) -> Result<(), databases::error::Error> {
-        block_on_current_or_new_runtime(self.database.remove_key_from_keys(key))?;
+    pub(crate) async fn remove(&self, key: &Key) -> Result<(), databases::error::Error> {
+        self.database.remove_key_from_keys(key).await?;
         Ok(())
     }
 
@@ -94,8 +67,8 @@ impl DatabaseKeyRepository {
     /// # Returns
     ///
     /// A vector containing all persisted [`PeerKey`] entries.
-    pub(crate) fn load_keys(&self) -> Result<Vec<PeerKey>, databases::error::Error> {
-        let keys = block_on_current_or_new_runtime(self.database.load_keys())?;
+    pub(crate) async fn load_keys(&self) -> Result<Vec<PeerKey>, databases::error::Error> {
+        let keys = self.database.load_keys().await?;
         Ok(keys)
     }
 }
@@ -125,7 +98,7 @@ mod tests {
         async fn persist_a_new_peer_key() {
             let configuration = ephemeral_configuration();
 
-            let stores = initialize_database(&configuration);
+            let stores = initialize_database(&configuration).await;
 
             let repository = DatabaseKeyRepository::new(&stores.auth_key_store);
 
@@ -134,10 +107,10 @@ mod tests {
                 valid_until: Some(Duration::new(9999, 0)),
             };
 
-            let result = repository.add(&peer_key);
+            let result = repository.add(&peer_key).await;
             assert!(result.is_ok());
 
-            let keys = repository.load_keys().unwrap();
+            let keys = repository.load_keys().await.unwrap();
             assert_eq!(keys, vec!(peer_key));
         }
 
@@ -145,7 +118,7 @@ mod tests {
         async fn remove_a_persisted_peer_key() {
             let configuration = ephemeral_configuration();
 
-            let stores = initialize_database(&configuration);
+            let stores = initialize_database(&configuration).await;
 
             let repository = DatabaseKeyRepository::new(&stores.auth_key_store);
 
@@ -154,12 +127,12 @@ mod tests {
                 valid_until: Some(Duration::new(9999, 0)),
             };
 
-            let _unused = repository.add(&peer_key);
+            let _unused = repository.add(&peer_key).await;
 
-            let result = repository.remove(&peer_key.key);
+            let result = repository.remove(&peer_key.key).await;
             assert!(result.is_ok());
 
-            let keys = repository.load_keys().unwrap();
+            let keys = repository.load_keys().await.unwrap();
             assert!(keys.is_empty());
         }
 
@@ -167,7 +140,7 @@ mod tests {
         async fn load_all_persisted_peer_keys() {
             let configuration = ephemeral_configuration();
 
-            let stores = initialize_database(&configuration);
+            let stores = initialize_database(&configuration).await;
 
             let repository = DatabaseKeyRepository::new(&stores.auth_key_store);
 
@@ -176,9 +149,9 @@ mod tests {
                 valid_until: Some(Duration::new(9999, 0)),
             };
 
-            let _unused = repository.add(&peer_key);
+            let _unused = repository.add(&peer_key).await;
 
-            let keys = repository.load_keys().unwrap();
+            let keys = repository.load_keys().await.unwrap();
 
             assert_eq!(keys, vec!(peer_key));
         }

@@ -222,7 +222,7 @@ mod tests {
             Arc::new(SwarmCoordinationRegistryContainer::initialize(SenderStatus::Enabled));
 
         let tracker_core_container =
-            TrackerCoreContainer::initialize_from(&core_config, &swarm_coordination_registry_container.clone());
+            TrackerCoreContainer::initialize_from(&core_config, &swarm_coordination_registry_container.clone()).await;
 
         let _ban_service = Arc::new(RwLock::new(BanService::new(MAX_CONNECTION_ID_ERRORS_PER_IP)));
 

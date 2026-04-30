@@ -5,7 +5,6 @@ use bittorrent_http_tracker_core::container::HttpTrackerCoreContainer;
 use bittorrent_primitives::info_hash::InfoHash;
 use bittorrent_tracker_core::container::TrackerCoreContainer;
 use bittorrent_udp_tracker_core::container::UdpTrackerCoreContainer;
-use futures::executor::block_on;
 use torrust_axum_server::tsl::make_rust_tls;
 use torrust_rest_tracker_api_client::connection_info::{ConnectionInfo, Origin};
 use torrust_rest_tracker_api_core::container::TrackerHttpApiCoreContainer;
@@ -48,17 +47,16 @@ impl Environment<Stopped> {
     /// Will panic if it cannot make the TSL configuration from the provided
     /// configuration.
     #[must_use]
-    pub fn new(configuration: &Arc<Configuration>) -> Self {
+    pub async fn new(configuration: &Arc<Configuration>) -> Self {
         initialize_global_services(configuration);
 
-        let container = Arc::new(EnvContainer::initialize(configuration));
+        let container = Arc::new(EnvContainer::initialize(configuration).await);
 
         let bind_to = container.tracker_http_api_core_container.http_api_config.bind_address;
 
-        let tls = block_on(make_rust_tls(
-            &container.tracker_http_api_core_container.http_api_config.tsl_config,
-        ))
-        .map(|tls| tls.expect("tls config failed"));
+        let tls = make_rust_tls(&container.tracker_http_api_core_container.http_api_config.tsl_config)
+            .await
+            .map(|tls| tls.expect("tls config failed"));
 
         let server = ApiServer::new(Launcher::new(bind_to, tls));
 
@@ -99,7 +97,7 @@ impl Environment<Stopped> {
 
 impl Environment<Running> {
     pub async fn new(configuration: &Arc<Configuration>) -> Self {
-        Environment::<Stopped>::new(configuration).start().await
+        Environment::<Stopped>::new(configuration).await.start().await
     }
 
     /// # Panics
@@ -153,7 +151,7 @@ impl EnvContainer {
     /// - The configuration does not contain a UDP tracker configuration.
     /// - The configuration does not contain a HTTP API configuration.
     #[must_use]
-    pub fn initialize(configuration: &Configuration) -> Self {
+    pub async fn initialize(configuration: &Configuration) -> Self {
         let core_config = Arc::new(configuration.core.clone());
 
         let http_tracker_config = configuration
@@ -177,10 +175,8 @@ impl EnvContainer {
             core_config.tracker_usage_statistics.into(),
         ));
 
-        let tracker_core_container = Arc::new(TrackerCoreContainer::initialize_from(
-            &core_config,
-            &swarm_coordination_registry_container,
-        ));
+        let tracker_core_container =
+            Arc::new(TrackerCoreContainer::initialize_from(&core_config, &swarm_coordination_registry_container).await);
 
         let http_tracker_core_container =
             HttpTrackerCoreContainer::initialize_from_tracker_core(&tracker_core_container, &http_tracker_config);

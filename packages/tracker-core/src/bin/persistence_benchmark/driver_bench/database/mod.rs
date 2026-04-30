@@ -33,7 +33,7 @@ impl ActiveDatabase {
     /// connection details.
     pub(super) async fn new(driver: Driver, db_version: &str) -> Result<Self> {
         match driver {
-            Driver::Sqlite3 => Ok(sqlite::initialize()),
+            Driver::Sqlite3 => Ok(sqlite::initialize().await),
             Driver::MySQL => mysql::initialize(db_version).await,
         }
     }
