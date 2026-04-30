@@ -1,6 +1,7 @@
 //! The `MySQL` database driver.
 use std::str::FromStr;
 
+use ::sqlx::migrate::Migrator;
 use ::sqlx::mysql::{MySqlConnectOptions, MySqlPoolOptions};
 use ::sqlx::{MySqlPool, Row};
 use torrust_tracker_primitives::NumberOfDownloads;
@@ -13,6 +14,16 @@ mod torrent_metrics_store;
 mod whitelist_store;
 
 const DRIVER: Driver = Driver::MySQL;
+
+/// Embedded `sqlx` migrator for the `MySQL` backend.
+///
+/// All `.sql` files under `migrations/mysql/` are compiled into the binary at
+/// build time and applied in timestamp order by `MIGRATOR.run(&pool)`.
+//
+// `dead_code` is allowed during the scaffolding phase of subissue 1525-06: the
+// migrator is wired into `create_database_tables()` in the next phase.
+#[allow(dead_code)]
+static MIGRATOR: Migrator = ::sqlx::migrate!("migrations/mysql");
 
 /// `MySQL` driver implementation.
 ///

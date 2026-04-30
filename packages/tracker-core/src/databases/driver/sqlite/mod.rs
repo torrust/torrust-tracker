@@ -1,4 +1,5 @@
 //! The `SQLite3` database driver.
+use ::sqlx::migrate::Migrator;
 use ::sqlx::sqlite::{SqliteConnectOptions, SqlitePoolOptions};
 use ::sqlx::{Row, SqlitePool};
 use torrust_tracker_primitives::NumberOfDownloads;
@@ -11,6 +12,16 @@ mod torrent_metrics_store;
 mod whitelist_store;
 
 const DRIVER: Driver = Driver::Sqlite3;
+
+/// Embedded `sqlx` migrator for the `SQLite` backend.
+///
+/// All `.sql` files under `migrations/sqlite/` are compiled into the binary at
+/// build time and applied in timestamp order by `MIGRATOR.run(&pool)`.
+//
+// `dead_code` is allowed during the scaffolding phase of subissue 1525-06: the
+// migrator is wired into `create_database_tables()` in the next phase.
+#[allow(dead_code)]
+static MIGRATOR: Migrator = ::sqlx::migrate!("migrations/sqlite");
 
 /// `SQLite` driver implementation.
 ///
