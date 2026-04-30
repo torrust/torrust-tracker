@@ -13,14 +13,24 @@ is applied exactly once per database.
 
 ## Adding a new migration
 
-1. Pick a UTC timestamp prefix higher than every existing file
-   (`YYYYMMDDhhmmss_short_description.sql`).
+1. Pick a UTC timestamp prefix higher than every existing file and **strictly
+   greater than `20250527093000`** (the last legacy migration; see
+   [Upgrading from older versions](#upgrading-from-older-versions)). Use the
+   pattern `YYYYMMDDhhmmss_short_description.sql`. You can either create the
+   file by hand or, if you have [`sqlx-cli`][sqlx-cli] installed
+   (`cargo install sqlx-cli`), run `sqlx migrate add <name>` inside the target
+   backend folder — it only generates the empty file with the right timestamp
+   and has no runtime role.
 2. Create the file under **every** backend folder where the change applies, so
    the `_sqlx_migrations` history stays aligned across backends.
-3. Use SQL syntax supported by `sqlx`'s simple statement splitter — separate
-   statements with `;` and use `--` for line comments. The SQLite parser does
-   not accept `#`-style comments.
-4. Run the test suite: `cargo test -p bittorrent-tracker-core`.
+3. This project uses the simple, forward-only migration style. Do **not** add
+   `.up.sql` / `.down.sql` pairs — `sqlx` does not allow mixing the two styles
+   in the same folder.
+4. Use SQL syntax supported by `sqlx`'s statement splitter — separate
+   statements with `;` and use `--` for line comments (this applies to both
+   the SQLite and MySQL backends; `#`-style comments are not accepted).
+5. Run the test suite: `cargo test -p bittorrent-tracker-core`. A rebuild is
+   required for the new migration to be embedded into the binary.
 
 ## Migration file immutability
 
@@ -39,3 +49,4 @@ existing schemas without a `_sqlx_migrations` table and seeds the migration
 history so the embedded migrator skips them on subsequent runs.
 
 [sqlx-migrate]: https://docs.rs/sqlx/latest/sqlx/macro.migrate.html
+[sqlx-cli]: https://github.com/launchbadge/sqlx/tree/main/sqlx-cli
