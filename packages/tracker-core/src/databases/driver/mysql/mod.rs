@@ -16,9 +16,8 @@ const DRIVER: Driver = Driver::MySQL;
 
 /// `MySQL` driver implementation.
 ///
-/// This struct encapsulates a connection pool for `MySQL`, built using the
-/// `r2d2_mysql` connection manager. It implements the [`Database`] trait to
-/// provide persistence operations.
+/// This struct encapsulates an async `sqlx` connection pool for `MySQL`.
+/// It implements the [`Database`] trait to provide persistence operations.
 pub(crate) struct Mysql {
     pool: MySqlPool,
 }

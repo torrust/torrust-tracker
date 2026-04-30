@@ -349,32 +349,29 @@ of inferred status.
 
 ### Progress Review (2026-04-30)
 
-Status: partially complete.
+Status: structural cleanup complete; only benchmark validation remains.
 
 What is done:
 
 - SQLite and MySQL driver implementations use `sqlx` pools and async trait methods.
 - Schema initialization is still eager in `initialize_database()`.
 - Schema creation still uses raw `sqlx::query()` DDL, and `sqlx::migrate!()` is not used.
-- Sync-to-async bridge helpers introduced during the migration have now been removed, and async initialization has been propagated through current call paths.
-- Current validation passed: `cargo machete`, `linter all`, doc tests, and full workspace tests.
+- Sync-to-async bridge helpers introduced during the migration have been removed, and async initialization has been propagated through current call paths.
+- The temporary staging subtree under `packages/tracker-core/src/databases/sqlx/` has been removed; the canonical `databases/driver/` and `databases/traits/` directories are the single persistence surface.
+- Legacy `r2d2`, `r2d2_sqlite`, and `r2d2_mysql` dependencies have been removed from `packages/tracker-core/Cargo.toml` (the `rusqlite` symbol was only re-exported through `r2d2_sqlite`; no separate direct dep existed).
+- Legacy compatibility/error plumbing has been removed from `packages/tracker-core/src/databases/error.rs` (no more `ConnectionPool` variant or `r2d2`/`rusqlite`/`mysql` `From` impls) and from `packages/tracker-core/src/authentication/key/mod.rs` (the `From<rusqlite::Error>` impl is now `From<sqlx::Error>`).
+- Stale `r2d2_*` references in driver doc comments have been replaced with accurate `sqlx`-based wording.
+- Current validation passed: `cargo machete`, `linter all`, doc tests, and full workspace tests on the cleaned-up state.
 
 What is still not done:
 
-- The temporary staging subtree under `packages/tracker-core/src/databases/sqlx/` still exists,
-  including its nested `driver/` and `traits/` folders.
-- The canonical `packages/tracker-core/src/databases/driver/` and
-  `packages/tracker-core/src/databases/traits/` locations have not yet been fully cleaned up to
-  represent the single final persistence surface.
-- Legacy `r2d2`, `r2d2_sqlite`, `rusqlite`, and `r2d2_mysql` dependencies are still present in `packages/tracker-core/Cargo.toml`.
-- Legacy compatibility/error plumbing is still present in code (for example in `packages/tracker-core/src/databases/error.rs` and `packages/tracker-core/src/authentication/key/mod.rs`).
 - There is no recorded evidence in this branch that Tasks 1 to 3 were each validated independently at the time they were completed.
 - There is no recorded post-migration benchmark comparison against the committed baseline from subissue `1525-03`.
 
 - [x] SQLite and MySQL drivers use `sqlx` with async trait methods.
 - [x] Schema initialization remains eager via setup/factory initialization.
 - [x] Schema management uses raw `sqlx::query()` DDL; `sqlx::migrate!()` is not used.
-- [ ] `r2d2`, `r2d2_sqlite`, `rusqlite`, and the `mysql` crate are removed from
+- [x] `r2d2`, `r2d2_sqlite`, `rusqlite`, and the `mysql` crate are removed from
       `tracker-core/Cargo.toml`.
 - [x] Existing behavior is preserved end-to-end.
 - [x] All temporary sync-to-async runtime bridge helpers (e.g. `block_on_current_or_new_runtime`) are removed and replaced with native async call paths.

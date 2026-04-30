@@ -17,8 +17,7 @@ const DRIVER: Driver = Driver::Sqlite3;
 
 /// `SQLite` driver implementation.
 ///
-/// This struct encapsulates a connection pool for `SQLite` using the `r2d2_sqlite`
-/// connection manager.
+/// This struct encapsulates an async `sqlx` connection pool for `SQLite`.
 pub(crate) struct Sqlite {
     pool: SqlitePool,
 }
