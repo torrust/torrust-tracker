@@ -78,23 +78,28 @@ async fn it_should_persist_the_number_of_completed_peers_for_each_torrent_into_t
     assert!(test_env.get_swarm_metadata(&info_hash).await.is_none());
 
     // Load torrents from the database to ensure the completed stats are persisted.
-    let mut restored = false;
-    for _ in 0..10 {
-        test_env
-            .tracker_core_container
-            .torrents_manager
-            .load_torrents_from_database()
-            .await
-            .unwrap();
+    // Bound the wait with a timeout instead of a fixed iteration count so the
+    // test fails loudly on a stalled system rather than after an arbitrary
+    // number of immediate retries.
+    let restored = tokio::time::timeout(std::time::Duration::from_secs(5), async {
+        loop {
+            test_env
+                .tracker_core_container
+                .torrents_manager
+                .load_torrents_from_database()
+                .await
+                .unwrap();
 
-        if let Some(swarm_metadata) = test_env.get_swarm_metadata(&info_hash).await {
-            assert!(swarm_metadata.downloads() == 1);
-            restored = true;
-            break;
+            if let Some(swarm_metadata) = test_env.get_swarm_metadata(&info_hash).await {
+                assert!(swarm_metadata.downloads() == 1);
+                break true;
+            }
+
+            tokio::time::sleep(std::time::Duration::from_millis(50)).await;
         }
-
-        tokio::task::yield_now().await;
-    }
+    })
+    .await
+    .unwrap_or(false);
 
     assert!(restored);
 }
