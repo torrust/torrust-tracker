@@ -23,10 +23,10 @@ use crate::container::AppContainer;
 ///
 /// # Panics
 ///
-/// Setup can file if the configuration is invalid.
+/// Setup can fail if the configuration is invalid.
 #[must_use]
 #[instrument(skip())]
-pub fn setup() -> (Configuration, AppContainer) {
+pub async fn setup() -> (Configuration, AppContainer) {
     #[cfg(not(test))]
     check_seed();
 
@@ -40,7 +40,7 @@ pub fn setup() -> (Configuration, AppContainer) {
 
     tracing::info!("Configuration:\n{}", configuration.clone().mask_secrets().to_json());
 
-    let app_container = AppContainer::initialize(&configuration);
+    let app_container = AppContainer::initialize(&configuration).await;
 
     (configuration, app_container)
 }

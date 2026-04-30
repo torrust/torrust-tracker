@@ -60,6 +60,18 @@ where
 /// driver fails to build the connection). This is enforced by the use of
 /// [`expect`](std::result::Result::expect) in the implementation.
 ///
+/// In particular, schema initialization issues a query against the configured
+/// database immediately after the driver is built. If the database service is
+/// not yet ready to accept connections (for example, a freshly started `MySQL`
+/// container that has not finished binding its TCP listener), the first query
+/// can fail and this function will panic. The `sqlx` driver does not retry the
+/// initial connection on its own, so callers are responsible for ensuring the
+/// database is reachable before calling `initialize_database`.
+///
+/// Other panic causes include malformed connection URLs, authentication
+/// failures, insufficient permissions to issue DDL, network errors, or any
+/// other underlying `sqlx::Error` returned while creating the schema.
+///
 /// # Example
 ///
 /// ```rust,no_run
@@ -70,10 +82,12 @@ where
 /// let config = Core::default();
 ///
 /// // Initialize the database; this will panic if initialization fails.
-/// let stores = initialize_database(&config);
+/// # async {
+/// let stores = initialize_database(&config).await;
+/// # };
 /// ```
 #[must_use]
-pub fn initialize_database(config: &Core) -> DatabaseStores {
+pub async fn initialize_database(config: &Core) -> DatabaseStores {
     let driver = match config.database.driver {
         torrust_tracker_configuration::Driver::Sqlite3 => Driver::Sqlite3,
         torrust_tracker_configuration::Driver::MySQL => Driver::MySQL,
@@ -82,12 +96,12 @@ pub fn initialize_database(config: &Core) -> DatabaseStores {
     match driver {
         Driver::Sqlite3 => {
             let db = Arc::new(Sqlite::new(&config.database.path).expect("Database driver build failed."));
-            db.create_database_tables().expect("Could not create database tables.");
+            db.create_database_tables().await.expect("Could not create database tables.");
             build_database_stores(db)
         }
         Driver::MySQL => {
             let db = Arc::new(Mysql::new(&config.database.path).expect("Database driver build failed."));
-            db.create_database_tables().expect("Could not create database tables.");
+            db.create_database_tables().await.expect("Could not create database tables.");
             build_database_stores(db)
         }
     }
@@ -98,9 +112,9 @@ mod tests {
     use super::initialize_database;
     use crate::test_helpers::tests::ephemeral_configuration;
 
-    #[test]
-    fn it_should_initialize_the_sqlite_database() {
+    #[tokio::test]
+    async fn it_should_initialize_the_sqlite_database() {
         let config = ephemeral_configuration();
-        let _database = initialize_database(&config);
+        let _database = initialize_database(&config).await;
     }
 }

@@ -6,31 +6,31 @@ use bittorrent_primitives::info_hash::InfoHash;
 
 use super::RawOperationSamples;
 
-/// Measures one database operation `ops` times and records elapsed samples.
-///
-/// Per-iteration fixture generation is performed by `setup` before timing
-/// starts, so the recorded durations reflect only the database operation.
+/// Async variant of operation measurement, for database operations requiring
+/// `.await`.
 ///
 /// # Errors
 ///
-/// Returns an error if setup or any operation invocation fails.
-pub(super) fn measure_operation<S, F, T>(
+/// Returns an error if setup or any async operation invocation fails.
+pub(super) async fn measure_operation_async<S, SetupFut, F, T, OpFut>(
     name: impl Into<String>,
     ops: usize,
     mut setup: S,
     mut operation: F,
 ) -> Result<RawOperationSamples>
 where
-    S: FnMut(usize) -> Result<T>,
-    F: FnMut(T) -> Result<()>,
+    S: FnMut(usize) -> SetupFut,
+    SetupFut: std::future::Future<Output = Result<T>>,
+    F: FnMut(T) -> OpFut,
+    OpFut: std::future::Future<Output = Result<()>>,
 {
     let name = name.into();
     let mut samples = Vec::with_capacity(ops);
 
     for index in 0..ops {
-        let prepared = setup(index)?;
+        let prepared = setup(index).await?;
         let start = Instant::now();
-        operation(prepared)?;
+        operation(prepared).await?;
         samples.push(start.elapsed());
     }
 

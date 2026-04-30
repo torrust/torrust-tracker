@@ -191,8 +191,8 @@ pub enum Error {
     MissingAuthKey { location: &'static Location<'static> },
 }
 
-impl From<r2d2_sqlite::rusqlite::Error> for Error {
-    fn from(e: r2d2_sqlite::rusqlite::Error) -> Self {
+impl From<sqlx::Error> for Error {
+    fn from(e: sqlx::Error) -> Self {
         Error::KeyVerificationError {
             source: (Arc::new(e) as DynError).into(),
         }
@@ -296,7 +296,7 @@ mod tests {
 
         #[test]
         fn could_be_a_database_error() {
-            let err = r2d2_sqlite::rusqlite::Error::InvalidQuery;
+            let err = sqlx::Error::RowNotFound;
 
             let err: key::Error = err.into();
 

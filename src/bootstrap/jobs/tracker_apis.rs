@@ -121,7 +121,8 @@ mod tests {
         initialize_global_services(&cfg);
 
         let http_api_container =
-            TrackerHttpApiCoreContainer::initialize(&core_config, &http_tracker_config, &udp_tracker_config, &http_api_config);
+            TrackerHttpApiCoreContainer::initialize(&core_config, &http_tracker_config, &udp_tracker_config, &http_api_config)
+                .await;
 
         let version = Version::V1;
 

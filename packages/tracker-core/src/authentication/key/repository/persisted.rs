@@ -39,8 +39,8 @@ impl DatabaseKeyRepository {
     /// # Errors
     ///
     /// Returns a [`databases::error::Error`] if the key cannot be added.
-    pub(crate) fn add(&self, peer_key: &PeerKey) -> Result<(), databases::error::Error> {
-        self.database.add_key_to_keys(peer_key)?;
+    pub(crate) async fn add(&self, peer_key: &PeerKey) -> Result<(), databases::error::Error> {
+        self.database.add_key_to_keys(peer_key).await?;
         Ok(())
     }
 
@@ -53,8 +53,8 @@ impl DatabaseKeyRepository {
     /// # Errors
     ///
     /// Returns a [`databases::error::Error`] if the key cannot be removed.
-    pub(crate) fn remove(&self, key: &Key) -> Result<(), databases::error::Error> {
-        self.database.remove_key_from_keys(key)?;
+    pub(crate) async fn remove(&self, key: &Key) -> Result<(), databases::error::Error> {
+        self.database.remove_key_from_keys(key).await?;
         Ok(())
     }
 
@@ -67,8 +67,8 @@ impl DatabaseKeyRepository {
     /// # Returns
     ///
     /// A vector containing all persisted [`PeerKey`] entries.
-    pub(crate) fn load_keys(&self) -> Result<Vec<PeerKey>, databases::error::Error> {
-        let keys = self.database.load_keys()?;
+    pub(crate) async fn load_keys(&self) -> Result<Vec<PeerKey>, databases::error::Error> {
+        let keys = self.database.load_keys().await?;
         Ok(keys)
     }
 }
@@ -94,11 +94,11 @@ mod tests {
             config
         }
 
-        #[test]
-        fn persist_a_new_peer_key() {
+        #[tokio::test]
+        async fn persist_a_new_peer_key() {
             let configuration = ephemeral_configuration();
 
-            let stores = initialize_database(&configuration);
+            let stores = initialize_database(&configuration).await;
 
             let repository = DatabaseKeyRepository::new(&stores.auth_key_store);
 
@@ -107,18 +107,18 @@ mod tests {
                 valid_until: Some(Duration::new(9999, 0)),
             };
 
-            let result = repository.add(&peer_key);
+            let result = repository.add(&peer_key).await;
             assert!(result.is_ok());
 
-            let keys = repository.load_keys().unwrap();
+            let keys = repository.load_keys().await.unwrap();
             assert_eq!(keys, vec!(peer_key));
         }
 
-        #[test]
-        fn remove_a_persisted_peer_key() {
+        #[tokio::test]
+        async fn remove_a_persisted_peer_key() {
             let configuration = ephemeral_configuration();
 
-            let stores = initialize_database(&configuration);
+            let stores = initialize_database(&configuration).await;
 
             let repository = DatabaseKeyRepository::new(&stores.auth_key_store);
 
@@ -127,20 +127,20 @@ mod tests {
                 valid_until: Some(Duration::new(9999, 0)),
             };
 
-            let _unused = repository.add(&peer_key);
+            let _unused = repository.add(&peer_key).await;
 
-            let result = repository.remove(&peer_key.key);
+            let result = repository.remove(&peer_key.key).await;
             assert!(result.is_ok());
 
-            let keys = repository.load_keys().unwrap();
+            let keys = repository.load_keys().await.unwrap();
             assert!(keys.is_empty());
         }
 
-        #[test]
-        fn load_all_persisted_peer_keys() {
+        #[tokio::test]
+        async fn load_all_persisted_peer_keys() {
             let configuration = ephemeral_configuration();
 
-            let stores = initialize_database(&configuration);
+            let stores = initialize_database(&configuration).await;
 
             let repository = DatabaseKeyRepository::new(&stores.auth_key_store);
 
@@ -149,9 +149,9 @@ mod tests {
                 valid_until: Some(Duration::new(9999, 0)),
             };
 
-            let _unused = repository.add(&peer_key);
+            let _unused = repository.add(&peer_key).await;
 
-            let keys = repository.load_keys().unwrap();
+            let keys = repository.load_keys().await.unwrap();
 
             assert_eq!(keys, vec!(peer_key));
         }

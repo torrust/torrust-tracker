@@ -33,7 +33,7 @@ impl ActiveDatabase {
     /// connection details.
     pub(super) async fn new(driver: Driver, db_version: &str) -> Result<Self> {
         match driver {
-            Driver::Sqlite3 => Ok(sqlite::initialize()),
+            Driver::Sqlite3 => Ok(sqlite::initialize().await),
             Driver::MySQL => mysql::initialize(db_version).await,
         }
     }
@@ -60,6 +60,7 @@ pub(super) async fn reset_database(schema_migrator: &dyn SchemaMigrator) -> Resu
     create_database_tables_with_retry(schema_migrator).await?;
     schema_migrator
         .drop_database_tables()
+        .await
         .context("failed to drop benchmark database tables")?;
     create_database_tables_with_retry(schema_migrator).await
 }
@@ -76,7 +77,7 @@ async fn create_database_tables_with_retry(schema_migrator: &dyn SchemaMigrator)
     let mut last_error: Option<anyhow::Error> = None;
 
     for _ in 0..5 {
-        match schema_migrator.create_database_tables() {
+        match schema_migrator.create_database_tables().await {
             Ok(()) => return Ok(()),
             Err(error) => {
                 last_error = Some(error.into());

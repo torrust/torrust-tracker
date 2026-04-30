@@ -350,7 +350,8 @@ mod tests {
         let register = &Registar::default();
 
         let http_api_container =
-            TrackerHttpApiCoreContainer::initialize(&core_config, &http_tracker_config, &udp_tracker_config, &http_api_config);
+            TrackerHttpApiCoreContainer::initialize(&core_config, &http_tracker_config, &udp_tracker_config, &http_api_config)
+                .await;
 
         let started = stopped
             .start(http_api_container, register.give_form(), access_tokens)

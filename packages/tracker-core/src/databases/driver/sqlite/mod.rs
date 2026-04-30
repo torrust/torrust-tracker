@@ -1,18 +1,6 @@
 //! The `SQLite3` database driver.
-//!
-//! This module provides implementations of the four narrow database traits
-//! ([`SchemaMigrator`](crate::databases::SchemaMigrator),
-//! [`TorrentMetricsStore`](crate::databases::TorrentMetricsStore),
-//! [`WhitelistStore`](crate::databases::WhitelistStore),
-//! [`AuthKeyStore`](crate::databases::AuthKeyStore)
-//! for `SQLite3` using the `r2d2_sqlite` connection pool. It defines the schema
-//! for whitelist, torrent metrics, and authentication keys, and provides methods
-//! to create and drop tables as well as perform CRUD operations on these
-//! persistent objects.
-use std::panic::Location;
-
-use r2d2::Pool;
-use r2d2_sqlite::SqliteConnectionManager;
+use ::sqlx::sqlite::{SqliteConnectOptions, SqlitePoolOptions};
+use ::sqlx::{Row, SqlitePool};
 use torrust_tracker_primitives::NumberOfDownloads;
 
 use super::{Driver, Error};
@@ -26,65 +14,61 @@ const DRIVER: Driver = Driver::Sqlite3;
 
 /// `SQLite` driver implementation.
 ///
-/// This struct encapsulates a connection pool for `SQLite` using the `r2d2_sqlite`
-/// connection manager.
+/// This struct encapsulates an async `sqlx` connection pool for `SQLite`.
 pub(crate) struct Sqlite {
-    pool: Pool<SqliteConnectionManager>,
+    pool: SqlitePool,
 }
 
 impl Sqlite {
     /// Instantiates a new `SQLite3` database driver.
     ///
-    /// This function creates a connection manager for the `SQLite` database
-    /// located at `db_path` and then builds a connection pool using `r2d2`. If
-    /// the pool cannot be created, an error is returned (wrapped with the
-    /// appropriate driver information).
-    ///
-    /// # Arguments
-    ///
-    /// * `db_path` - A string slice representing the file path to the `SQLite` database.
-    ///
-    /// # Errors
-    ///
-    /// Returns an [`Error`] if the connection pool cannot be built.
+    // Keep the `Result` return for API symmetry with the MySQL driver and
+    // forward-compatibility (future option parsing may surface fallible cases).
+    #[allow(clippy::unnecessary_wraps)]
     pub fn new(db_path: &str) -> Result<Self, Error> {
-        let manager = SqliteConnectionManager::file(db_path);
-        let pool = r2d2::Pool::builder().build(manager).map_err(|e| (e, DRIVER))?;
+        // Build the connection options directly from the filesystem path so
+        // relative paths (e.g. `./storage/...`) are preserved verbatim instead
+        // of being parsed as the authority component of a `sqlite://` URL.
+        let options = SqliteConnectOptions::new().filename(db_path).create_if_missing(true);
+
+        let pool = SqlitePoolOptions::new().connect_lazy_with(options);
 
         Ok(Self { pool })
     }
 
-    fn load_torrent_aggregate_metric(&self, metric_name: &str) -> Result<Option<NumberOfDownloads>, Error> {
-        let conn = self.pool.get().map_err(|e| (e, DRIVER))?;
+    async fn load_torrent_aggregate_metric(&self, metric_name: &str) -> Result<Option<NumberOfDownloads>, Error> {
+        let maybe_row = ::sqlx::query("SELECT value FROM torrent_aggregate_metrics WHERE metric_name = ?1")
+            .bind(metric_name)
+            .fetch_optional(&self.pool)
+            .await
+            .map_err(|e| (e, DRIVER))?;
 
-        let mut stmt = conn.prepare("SELECT value FROM torrent_aggregate_metrics WHERE metric_name = ?")?;
-
-        let mut rows = stmt.query([metric_name])?;
-
-        let persistent_torrent = rows.next()?;
-
-        Ok(persistent_torrent.map(|f| {
-            let value: i64 = f.get(0).unwrap();
-            u32::try_from(value).unwrap()
-        }))
+        maybe_row
+            .map(|row| {
+                let value: i64 = row.try_get("value").map_err(|e| (e, DRIVER))?;
+                u32::try_from(value).map_err(|e| Error::MalformedDatabaseRecord {
+                    message: e.to_string(),
+                    driver: DRIVER,
+                })
+            })
+            .transpose()
     }
 
-    fn save_torrent_aggregate_metric(&self, metric_name: &str, completed: NumberOfDownloads) -> Result<(), Error> {
-        let conn = self.pool.get().map_err(|e| (e, DRIVER))?;
-
-        let insert = conn.execute(
+    async fn save_torrent_aggregate_metric(&self, metric_name: &str, completed: NumberOfDownloads) -> Result<(), Error> {
+        // `ON CONFLICT ... DO UPDATE` may legitimately report `rows_affected() == 0`
+        // when the row already exists with the same value (no-op update), so we
+        // do not treat 0 as a failure here. A real failure surfaces as `Err`
+        // from `execute()`.
+        ::sqlx::query(
             "INSERT INTO torrent_aggregate_metrics (metric_name, value) VALUES (?1, ?2) ON CONFLICT(metric_name) DO UPDATE SET value = ?2",
-            [metric_name.to_string(), completed.to_string()],
-        )?;
+        )
+        .bind(metric_name)
+        .bind(i64::from(completed))
+        .execute(&self.pool)
+        .await
+        .map_err(|e| (e, DRIVER))?;
 
-        if insert == 0 {
-            Err(Error::InsertFailed {
-                location: Location::caller(),
-                driver: DRIVER,
-            })
-        } else {
-            Ok(())
-        }
+        Ok(())
     }
 }
 
@@ -108,8 +92,7 @@ mod tests {
     }
 
     fn initialize_driver(config: &Core) -> Arc<Box<dyn Database>> {
-        let driver: Arc<Box<dyn Database>> = Arc::new(Box::new(Sqlite::new(&config.database.path).unwrap()));
-        driver
+        Arc::new(Box::new(Sqlite::new(&config.database.path).unwrap()))
     }
 
     #[tokio::test]

@@ -28,6 +28,20 @@ Raw JSON artifacts:
 - `runs/2026-04-28/mysql-8.4.json`
 - `runs/2026-04-28/mysql-8.0.json`
 
+## Post-SQLx run
+
+- Date: `2026-04-30`
+- Commit (HEAD at run time): `a4dbc63a6c713e115bfc11374b72743aa51ebfb5`
+- Issue context: `docs/issues/1717-1525-05-migrate-sqlite-and-mysql-to-sqlx.md`
+- Run summary (with comparison vs `2026-04-28`): `runs/2026-04-30/REPORT.md`
+- Machine profile: `machine/2026-04-30-josecelano-desktop.txt`
+
+Raw JSON artifacts:
+
+- `runs/2026-04-30/sqlite3.json`
+- `runs/2026-04-30/mysql-8.4.json`
+- `runs/2026-04-30/mysql-8.0.json`
+
 ## How to add a new run
 
 1. Create a new run folder:
@@ -63,3 +77,5 @@ After implementing:
 - `docs/issues/1525-05-migrate-sqlite-and-mysql-to-sqlx.md`
 
 run the same benchmark commands again, store results in a new dated folder, and compare against `runs/2026-04-28`.
+
+The first such comparison was captured at `runs/2026-04-30/REPORT.md`.

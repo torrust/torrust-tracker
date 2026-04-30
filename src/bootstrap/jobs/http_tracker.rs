@@ -94,7 +94,7 @@ mod tests {
 
         initialize_global_services(&cfg);
 
-        let http_tracker_container = HttpTrackerCoreContainer::initialize(&core_config, &http_tracker_config);
+        let http_tracker_container = HttpTrackerCoreContainer::initialize(&core_config, &http_tracker_config).await;
 
         let version = Version::V1;
 

@@ -47,7 +47,7 @@ pub struct AppContainer {
 
 impl AppContainer {
     #[instrument(skip(configuration))]
-    pub fn initialize(configuration: &Configuration) -> AppContainer {
+    pub async fn initialize(configuration: &Configuration) -> AppContainer {
         // Configuration
 
         let core_config = Arc::new(configuration.core.clone());
@@ -66,10 +66,8 @@ impl AppContainer {
 
         // Core
 
-        let tracker_core_container = Arc::new(TrackerCoreContainer::initialize_from(
-            &core_config,
-            &swarm_coordination_registry_container,
-        ));
+        let tracker_core_container =
+            Arc::new(TrackerCoreContainer::initialize_from(&core_config, &swarm_coordination_registry_container).await);
 
         // HTTP
 

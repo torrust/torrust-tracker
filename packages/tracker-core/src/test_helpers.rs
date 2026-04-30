@@ -129,8 +129,8 @@ pub(crate) mod tests {
     }
 
     #[must_use]
-    pub fn initialize_handlers(config: &Configuration) -> (Arc<AnnounceHandler>, Arc<ScrapeHandler>) {
-        let stores = initialize_database(&config.core);
+    pub async fn initialize_handlers(config: &Configuration) -> (Arc<AnnounceHandler>, Arc<ScrapeHandler>) {
+        let stores = initialize_database(&config.core).await;
         let in_memory_whitelist = Arc::new(InMemoryWhitelist::default());
         let whitelist_authorization = Arc::new(whitelist::authorization::WhitelistAuthorization::new(
             &config.core,

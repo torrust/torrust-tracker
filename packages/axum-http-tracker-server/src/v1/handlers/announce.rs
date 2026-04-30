@@ -133,28 +133,28 @@ mod tests {
         pub announce_service: Arc<AnnounceService>,
     }
 
-    fn initialize_private_tracker() -> CoreHttpTrackerServices {
-        initialize_core_tracker_services(&configuration::ephemeral_private())
+    async fn initialize_private_tracker() -> CoreHttpTrackerServices {
+        initialize_core_tracker_services(&configuration::ephemeral_private()).await
     }
 
-    fn initialize_listed_tracker() -> CoreHttpTrackerServices {
-        initialize_core_tracker_services(&configuration::ephemeral_listed())
+    async fn initialize_listed_tracker() -> CoreHttpTrackerServices {
+        initialize_core_tracker_services(&configuration::ephemeral_listed()).await
     }
 
-    fn initialize_tracker_on_reverse_proxy() -> CoreHttpTrackerServices {
-        initialize_core_tracker_services(&configuration::ephemeral_with_reverse_proxy())
+    async fn initialize_tracker_on_reverse_proxy() -> CoreHttpTrackerServices {
+        initialize_core_tracker_services(&configuration::ephemeral_with_reverse_proxy()).await
     }
 
-    fn initialize_tracker_not_on_reverse_proxy() -> CoreHttpTrackerServices {
-        initialize_core_tracker_services(&configuration::ephemeral_without_reverse_proxy())
+    async fn initialize_tracker_not_on_reverse_proxy() -> CoreHttpTrackerServices {
+        initialize_core_tracker_services(&configuration::ephemeral_without_reverse_proxy()).await
     }
 
-    fn initialize_core_tracker_services(config: &Configuration) -> CoreHttpTrackerServices {
+    async fn initialize_core_tracker_services(config: &Configuration) -> CoreHttpTrackerServices {
         let cancellation_token = CancellationToken::new();
 
         // Initialize the core tracker services with the provided configuration.
         let core_config = Arc::new(config.core.clone());
-        let database = initialize_database(&config.core);
+        let database = initialize_database(&config.core).await;
         let in_memory_whitelist = Arc::new(InMemoryWhitelist::default());
         let whitelist_authorization = Arc::new(WhitelistAuthorization::new(&config.core, &in_memory_whitelist.clone()));
         let in_memory_key_repository = Arc::new(InMemoryKeyRepository::default());
@@ -236,7 +236,7 @@ mod tests {
 
         #[tokio::test]
         async fn it_should_fail_when_the_authentication_key_is_missing() {
-            let http_core_tracker_services = initialize_private_tracker();
+            let http_core_tracker_services = initialize_private_tracker().await;
 
             let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070);
             let server_service_binding = ServiceBinding::new(Protocol::HTTP, server_socket_addr).unwrap();
@@ -265,7 +265,7 @@ mod tests {
 
         #[tokio::test]
         async fn it_should_fail_when_the_authentication_key_is_invalid() {
-            let http_core_tracker_services = initialize_private_tracker();
+            let http_core_tracker_services = initialize_private_tracker().await;
 
             let unregistered_key = authentication::Key::from_str("YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ").unwrap();
 
@@ -308,7 +308,7 @@ mod tests {
 
         #[tokio::test]
         async fn it_should_fail_when_the_announced_torrent_is_not_whitelisted() {
-            let http_core_tracker_services = initialize_listed_tracker();
+            let http_core_tracker_services = initialize_listed_tracker().await;
 
             let announce_request = sample_announce_request();
 
@@ -353,7 +353,7 @@ mod tests {
 
         #[tokio::test]
         async fn it_should_fail_when_the_right_most_x_forwarded_for_header_ip_is_not_available() {
-            let http_core_tracker_services = initialize_tracker_on_reverse_proxy();
+            let http_core_tracker_services = initialize_tracker_on_reverse_proxy().await;
 
             let client_ip_sources = ClientIpSources {
                 right_most_x_forwarded_for: None,
@@ -398,7 +398,7 @@ mod tests {
 
         #[tokio::test]
         async fn it_should_fail_when_the_client_ip_from_the_connection_info_is_not_available() {
-            let http_core_tracker_services = initialize_tracker_not_on_reverse_proxy();
+            let http_core_tracker_services = initialize_tracker_not_on_reverse_proxy().await;
 
             let client_ip_sources = ClientIpSources {
                 right_most_x_forwarded_for: None,

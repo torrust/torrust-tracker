@@ -1,4 +1,5 @@
 //! The [`SchemaMigrator`] trait — schema management context.
+use async_trait::async_trait;
 use mockall::automock;
 
 use super::super::error::Error;
@@ -7,6 +8,7 @@ use super::super::error::Error;
 ///
 /// Implementors are responsible for creating and dropping the full set of
 /// database tables used by the tracker.
+#[async_trait]
 #[automock]
 pub trait SchemaMigrator: Sync + Send {
     /// Creates the necessary database tables.
@@ -16,7 +18,7 @@ pub trait SchemaMigrator: Sync + Send {
     /// # Errors
     ///
     /// Returns an [`Error`] if the tables cannot be created.
-    fn create_database_tables(&self) -> Result<(), Error>;
+    async fn create_database_tables(&self) -> Result<(), Error>;
 
     /// Drops the database tables.
     ///
@@ -25,5 +27,5 @@ pub trait SchemaMigrator: Sync + Send {
     /// # Errors
     ///
     /// Returns an [`Error`] if the tables cannot be dropped.
-    fn drop_database_tables(&self) -> Result<(), Error>;
+    async fn drop_database_tables(&self) -> Result<(), Error>;
 }

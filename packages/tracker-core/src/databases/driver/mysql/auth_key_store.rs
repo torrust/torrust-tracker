@@ -1,90 +1,125 @@
-use std::time::Duration;
-
-use r2d2_mysql::mysql::params;
-use r2d2_mysql::mysql::prelude::Queryable;
+use ::sqlx::Row;
+use async_trait::async_trait;
+use torrust_tracker_primitives::DurationSinceUnixEpoch;
 
 use super::{Mysql, DRIVER};
 use crate::authentication::{self, Key};
 use crate::databases::error::Error;
 use crate::databases::AuthKeyStore;
 
+#[async_trait]
 impl AuthKeyStore for Mysql {
-    fn load_keys(&self) -> Result<Vec<authentication::PeerKey>, Error> {
-        let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
+    async fn load_keys(&self) -> Result<Vec<authentication::PeerKey>, Error> {
+        let rows = ::sqlx::query("SELECT `key`, valid_until FROM `keys`")
+            .fetch_all(&self.pool)
+            .await
+            .map_err(|e| (e, DRIVER))?;
 
-        let raw: Vec<(String, Option<i64>)> = conn.query_map(
-            "SELECT `key`, valid_until FROM `keys`",
-            |(key, valid_until): (String, Option<i64>)| (key, valid_until),
-        )?;
+        rows.into_iter()
+            .map(|row| {
+                let key_value: String = row.try_get("key").map_err(|e| (e, DRIVER))?;
+                let valid_until: Option<i64> = row.try_get("valid_until").map_err(|e| (e, DRIVER))?;
 
-        raw.into_iter()
-            .map(|(key, valid_until)| {
-                let key = key.parse::<Key>().map_err(|e| Error::MalformedDatabaseRecord {
+                let parsed_key = key_value.parse::<Key>().map_err(|e| Error::MalformedDatabaseRecord {
                     message: e.to_string(),
                     driver: DRIVER,
                 })?;
-                Ok(match valid_until {
-                    Some(valid_until) => authentication::PeerKey {
-                        key,
-                        valid_until: Some(Duration::from_secs(valid_until.unsigned_abs())),
-                    },
-                    None => authentication::PeerKey { key, valid_until: None },
+
+                Ok(authentication::PeerKey {
+                    key: parsed_key,
+                    valid_until: valid_until.map(parse_valid_until).transpose()?,
                 })
             })
             .collect()
     }
 
-    fn get_key_from_keys(&self, key: &Key) -> Result<Option<authentication::PeerKey>, Error> {
-        let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
+    async fn get_key_from_keys(&self, key: &Key) -> Result<Option<authentication::PeerKey>, Error> {
+        let maybe_row = ::sqlx::query("SELECT `key`, valid_until FROM `keys` WHERE `key` = ?")
+            .bind(key.to_string())
+            .fetch_optional(&self.pool)
+            .await
+            .map_err(|e| (e, DRIVER))?;
 
-        let query = conn.exec_first::<(String, Option<i64>), _, _>(
-            "SELECT `key`, valid_until FROM `keys` WHERE `key` = :key",
-            params! { "key" => key.to_string() },
-        );
+        maybe_row
+            .map(|row| {
+                let key_value: String = row.try_get("key").map_err(|e| (e, DRIVER))?;
+                let valid_until: Option<i64> = row.try_get("valid_until").map_err(|e| (e, DRIVER))?;
 
-        let key = query?;
-
-        let peer_key = key
-            .map(|(key, opt_valid_until)| -> Result<authentication::PeerKey, Error> {
-                let key = key.parse::<Key>().map_err(|e| Error::MalformedDatabaseRecord {
+                let parsed_key = key_value.parse::<Key>().map_err(|e| Error::MalformedDatabaseRecord {
                     message: e.to_string(),
                     driver: DRIVER,
                 })?;
-                Ok(match opt_valid_until {
-                    Some(valid_until) => authentication::PeerKey {
-                        key,
-                        valid_until: Some(Duration::from_secs(valid_until.unsigned_abs())),
-                    },
-                    None => authentication::PeerKey { key, valid_until: None },
+
+                Ok(authentication::PeerKey {
+                    key: parsed_key,
+                    valid_until: valid_until.map(parse_valid_until).transpose()?,
+                })
+            })
+            .transpose()
+    }
+
+    async fn add_key_to_keys(&self, auth_key: &authentication::PeerKey) -> Result<usize, Error> {
+        let valid_until = auth_key
+            .valid_until
+            .map(|value| {
+                i64::try_from(value.as_secs()).map_err(|e| Error::MalformedDatabaseRecord {
+                    message: e.to_string(),
+                    driver: DRIVER,
                 })
             })
             .transpose()?;
 
-        Ok(peer_key)
-    }
+        let insert = ::sqlx::query("INSERT INTO `keys` (`key`, valid_until) VALUES (?, ?)")
+            .bind(auth_key.key.to_string())
+            .bind(valid_until)
+            .execute(&self.pool)
+            .await
+            .map_err(|e| (e, DRIVER))?
+            .rows_affected();
 
-    fn add_key_to_keys(&self, auth_key: &authentication::PeerKey) -> Result<usize, Error> {
-        let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
-
-        match auth_key.valid_until {
-            Some(valid_until) => conn.exec_drop(
-                "INSERT INTO `keys` (`key`, valid_until) VALUES (:key, :valid_until)",
-                params! { "key" => auth_key.key.to_string(), "valid_until" => valid_until.as_secs().to_string() },
-            )?,
-            None => conn.exec_drop(
-                "INSERT INTO `keys` (`key`) VALUES (:key)",
-                params! { "key" => auth_key.key.to_string() },
-            )?,
+        if insert == 0 {
+            Err(Error::InsertFailed {
+                location: std::panic::Location::caller(),
+                driver: DRIVER,
+            })
+        } else {
+            usize::try_from(insert).map_err(|e| Error::MalformedDatabaseRecord {
+                message: format!("rows_affected does not fit in usize: {e}"),
+                driver: DRIVER,
+            })
         }
-
-        Ok(1)
     }
 
-    fn remove_key_from_keys(&self, key: &Key) -> Result<usize, Error> {
-        let mut conn = self.pool.get().map_err(|e| (e, DRIVER))?;
+    async fn remove_key_from_keys(&self, key: &Key) -> Result<usize, Error> {
+        let deleted = ::sqlx::query("DELETE FROM `keys` WHERE `key` = ?")
+            .bind(key.to_string())
+            .execute(&self.pool)
+            .await
+            .map_err(|e| (e, DRIVER))?
+            .rows_affected();
 
-        conn.exec_drop("DELETE FROM `keys` WHERE `key` = :key", params! { "key" => key.to_string() })?;
-
-        Ok(1)
+        if deleted == 1 {
+            Ok(1)
+        } else {
+            Err(Error::DeleteFailed {
+                location: std::panic::Location::caller(),
+                error_code: usize::try_from(deleted).unwrap_or(0),
+                driver: DRIVER,
+            })
+        }
     }
+}
+
+/// Convert a signed seconds value loaded from the database into a
+/// [`DurationSinceUnixEpoch`].
+///
+/// Negative values indicate a corrupted record (timestamps before the Unix
+/// epoch are not representable) and are rejected as
+/// [`Error::MalformedDatabaseRecord`].
+fn parse_valid_until(value: i64) -> Result<DurationSinceUnixEpoch, Error> {
+    let secs = u64::try_from(value).map_err(|_| Error::MalformedDatabaseRecord {
+        message: format!("negative valid_until timestamp: {value}"),
+        driver: DRIVER,
+    })?;
+    Ok(DurationSinceUnixEpoch::from_secs(secs))
 }

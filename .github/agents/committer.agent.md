@@ -41,6 +41,19 @@ Treat every commit request as a review-and-verify workflow, not as a blind reque
 - Do not mix skill/workflow documentation changes with implementation changes — always create
   separate commits.
 
+## Splitting Commits
+
+When the requested work spans multiple logical commits and `project-words.txt` has been
+modified with new entries that belong to different commits, do not try to split the
+dictionary additions across those commits. Instead:
+
+1. Commit all `project-words.txt` changes first as a single `chore(cspell): add <words>`
+   commit (or fold them into the first logical commit when that is more natural).
+2. Then create the remaining focused commits for the actual implementation/docs changes.
+
+This keeps the spell-check linter green at every commit and keeps the substantive commits
+focused on their real intent rather than on dictionary churn.
+
 ## Output Format
 
 When handling a commit task, respond in this order:

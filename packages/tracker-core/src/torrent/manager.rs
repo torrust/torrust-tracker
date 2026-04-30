@@ -70,8 +70,8 @@ impl TorrentsManager {
     ///
     /// Returns a `databases::error::Error` if unable to load the persistent
     /// torrent data.
-    pub fn load_torrents_from_database(&self) -> Result<(), databases::error::Error> {
-        let persistent_torrents = self.db_downloads_metric_repository.load_all_torrents_downloads()?;
+    pub async fn load_torrents_from_database(&self) -> Result<(), databases::error::Error> {
+        let persistent_torrents = self.db_downloads_metric_repository.load_all_torrents_downloads().await?;
 
         self.in_memory_torrent_repository.import_persistent(&persistent_torrents);
 
@@ -161,15 +161,15 @@ mod tests {
         database_persistent_torrent_repository: Arc<DatabaseDownloadsMetricRepository>,
     }
 
-    fn initialize_torrents_manager() -> (Arc<TorrentsManager>, Arc<TorrentsManagerDeps>) {
+    async fn initialize_torrents_manager() -> (Arc<TorrentsManager>, Arc<TorrentsManagerDeps>) {
         let config = ephemeral_configuration();
-        initialize_torrents_manager_with(config.clone())
+        initialize_torrents_manager_with(config.clone()).await
     }
 
-    fn initialize_torrents_manager_with(config: Core) -> (Arc<TorrentsManager>, Arc<TorrentsManagerDeps>) {
+    async fn initialize_torrents_manager_with(config: Core) -> (Arc<TorrentsManager>, Arc<TorrentsManagerDeps>) {
         let swarms = Arc::new(Registry::default());
         let in_memory_torrent_repository = Arc::new(InMemoryTorrentRepository::new(swarms));
-        let database = initialize_database(&config);
+        let database = initialize_database(&config).await;
         let database_persistent_torrent_repository =
             Arc::new(DatabaseDownloadsMetricRepository::new(&database.torrent_metrics_store));
 
@@ -191,16 +191,17 @@ mod tests {
 
     #[tokio::test]
     async fn it_should_load_the_numbers_of_downloads_for_all_torrents_from_the_database() {
-        let (torrents_manager, services) = initialize_torrents_manager();
+        let (torrents_manager, services) = initialize_torrents_manager().await;
 
         let infohash = sample_info_hash();
 
         services
             .database_persistent_torrent_repository
             .save_torrent_downloads(&infohash, 1)
+            .await
             .unwrap();
 
-        torrents_manager.load_torrents_from_database().unwrap();
+        torrents_manager.load_torrents_from_database().await.unwrap();
 
         assert_eq!(
             services
@@ -231,7 +232,7 @@ mod tests {
 
         #[tokio::test]
         async fn it_should_remove_peers_that_have_not_been_updated_after_a_cutoff_time() {
-            let (torrents_manager, services) = initialize_torrents_manager();
+            let (torrents_manager, services) = initialize_torrents_manager().await;
 
             let infohash = sample_info_hash();
 
@@ -273,7 +274,7 @@ mod tests {
             let mut config = ephemeral_configuration();
             config.tracker_policy.remove_peerless_torrents = true;
 
-            let (torrents_manager, services) = initialize_torrents_manager_with(config);
+            let (torrents_manager, services) = initialize_torrents_manager_with(config).await;
 
             let infohash = sample_info_hash();
 
@@ -289,7 +290,7 @@ mod tests {
             let mut config = ephemeral_configuration();
             config.tracker_policy.remove_peerless_torrents = false;
 
-            let (torrents_manager, services) = initialize_torrents_manager_with(config);
+            let (torrents_manager, services) = initialize_torrents_manager_with(config).await;
 
             let infohash = sample_info_hash();
 

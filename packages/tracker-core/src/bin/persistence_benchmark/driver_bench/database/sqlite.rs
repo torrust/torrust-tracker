@@ -3,7 +3,7 @@ use torrust_tracker_configuration as configuration;
 
 use super::{ActiveDatabase, BenchmarkResource};
 
-pub(super) fn initialize() -> ActiveDatabase {
+pub(super) async fn initialize() -> ActiveDatabase {
     let sqlite_db_path = std::env::temp_dir().join(format!(
         "torrust-tracker-core-benchmark-{}.sqlite3",
         chrono::Utc::now().timestamp_nanos_opt().unwrap_or_default()
@@ -13,7 +13,7 @@ pub(super) fn initialize() -> ActiveDatabase {
     config.database.driver = configuration::Driver::Sqlite3;
     config.database.path = sqlite_db_path_as_string;
 
-    let database = initialize_database(&config);
+    let database = initialize_database(&config).await;
 
     ActiveDatabase {
         database: Some(database),

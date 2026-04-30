@@ -17,8 +17,8 @@ pub(crate) mod tests {
     use crate::whitelist::setup::initialize_whitelist_manager;
 
     #[must_use]
-    pub fn initialize_whitelist_services(config: &Configuration) -> (Arc<WhitelistAuthorization>, Arc<WhitelistManager>) {
-        let stores = initialize_database(&config.core);
+    pub async fn initialize_whitelist_services(config: &Configuration) -> (Arc<WhitelistAuthorization>, Arc<WhitelistManager>) {
+        let stores = initialize_database(&config.core).await;
         let in_memory_whitelist = Arc::new(InMemoryWhitelist::default());
         let whitelist_authorization = Arc::new(WhitelistAuthorization::new(&config.core, &in_memory_whitelist.clone()));
         let whitelist_manager = initialize_whitelist_manager(stores.whitelist_store.clone(), in_memory_whitelist.clone());
@@ -27,9 +27,9 @@ pub(crate) mod tests {
     }
 
     #[must_use]
-    pub fn initialize_whitelist_services_for_listed_tracker() -> (Arc<WhitelistAuthorization>, Arc<WhitelistManager>) {
+    pub async fn initialize_whitelist_services_for_listed_tracker() -> (Arc<WhitelistAuthorization>, Arc<WhitelistManager>) {
         use torrust_tracker_test_helpers::configuration;
 
-        initialize_whitelist_services(&configuration::ephemeral_listed())
+        initialize_whitelist_services(&configuration::ephemeral_listed()).await
     }
 }

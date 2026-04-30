@@ -232,7 +232,7 @@ pub(crate) mod tests {
             #[tokio::test]
             async fn an_announced_peer_should_be_added_to_the_tracker() {
                 let (core_tracker_services, core_udp_tracker_services, server_udp_tracker_services) =
-                    initialize_core_tracker_services_for_public_tracker();
+                    initialize_core_tracker_services_for_public_tracker().await;
 
                 let client_ip = Ipv4Addr::new(126, 0, 0, 1);
                 let client_port = 8080;
@@ -280,7 +280,7 @@ pub(crate) mod tests {
             #[tokio::test]
             async fn the_announced_peer_should_not_be_included_in_the_response() {
                 let (core_tracker_services, core_udp_tracker_services, server_udp_tracker_services) =
-                    initialize_core_tracker_services_for_public_tracker();
+                    initialize_core_tracker_services_for_public_tracker().await;
 
                 let client_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080);
                 let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969);
@@ -324,7 +324,7 @@ pub(crate) mod tests {
                 // "Do note that most trackers will only honor the IP address field under limited circumstances."
 
                 let (core_tracker_services, core_udp_tracker_services, server_udp_tracker_services) =
-                    initialize_core_tracker_services_for_public_tracker();
+                    initialize_core_tracker_services_for_public_tracker().await;
 
                 let info_hash = AquaticInfoHash([0u8; 20]);
                 let peer_id = AquaticPeerId([255u8; 20]);
@@ -420,7 +420,7 @@ pub(crate) mod tests {
             #[tokio::test]
             async fn when_the_announce_request_comes_from_a_client_using_ipv4_the_response_should_not_include_peers_using_ipv6() {
                 let (core_tracker_services, core_udp_tracker_services, _server_udp_tracker_services) =
-                    initialize_core_tracker_services_for_public_tracker();
+                    initialize_core_tracker_services_for_public_tracker().await;
 
                 add_a_torrent_peer_using_ipv6(&core_tracker_services.in_memory_torrent_repository).await;
 
@@ -456,7 +456,7 @@ pub(crate) mod tests {
                     Some(Arc::new(udp_server_stats_event_sender_mock));
 
                 let (core_tracker_services, core_udp_tracker_services, _server_udp_tracker_services) =
-                    initialize_core_tracker_services_for_default_tracker_configuration();
+                    initialize_core_tracker_services_for_default_tracker_configuration().await;
 
                 handle_announce(
                     &core_udp_tracker_services.announce_service,
@@ -489,7 +489,7 @@ pub(crate) mod tests {
                 #[tokio::test]
                 async fn the_peer_ip_should_be_changed_to_the_external_ip_in_the_tracker_configuration_if_defined() {
                     let (core_tracker_services, core_udp_tracker_services, server_udp_tracker_services) =
-                        initialize_core_tracker_services_for_public_tracker();
+                        initialize_core_tracker_services_for_public_tracker().await;
 
                     let client_ip = Ipv4Addr::LOCALHOST;
                     let client_port = 8080;
@@ -573,7 +573,7 @@ pub(crate) mod tests {
             #[tokio::test]
             async fn an_announced_peer_should_be_added_to_the_tracker() {
                 let (core_tracker_services, core_udp_tracker_services, server_udp_tracker_services) =
-                    initialize_core_tracker_services_for_public_tracker();
+                    initialize_core_tracker_services_for_public_tracker().await;
 
                 let client_ip_v4 = Ipv4Addr::new(126, 0, 0, 1);
                 let client_ip_v6 = client_ip_v4.to_ipv6_compatible();
@@ -622,7 +622,7 @@ pub(crate) mod tests {
             #[tokio::test]
             async fn the_announced_peer_should_not_be_included_in_the_response() {
                 let (core_tracker_services, core_udp_tracker_services, server_udp_tracker_services) =
-                    initialize_core_tracker_services_for_public_tracker();
+                    initialize_core_tracker_services_for_public_tracker().await;
 
                 let client_ip_v4 = Ipv4Addr::new(126, 0, 0, 1);
                 let client_ip_v6 = client_ip_v4.to_ipv6_compatible();
@@ -669,7 +669,7 @@ pub(crate) mod tests {
                 // "Do note that most trackers will only honor the IP address field under limited circumstances."
 
                 let (core_tracker_services, core_udp_tracker_services, server_udp_tracker_service) =
-                    initialize_core_tracker_services_for_public_tracker();
+                    initialize_core_tracker_services_for_public_tracker().await;
 
                 let info_hash = AquaticInfoHash([0u8; 20]);
                 let peer_id = AquaticPeerId([255u8; 20]);
@@ -780,7 +780,7 @@ pub(crate) mod tests {
             #[tokio::test]
             async fn when_the_announce_request_comes_from_a_client_using_ipv6_the_response_should_not_include_peers_using_ipv4() {
                 let (core_tracker_services, _core_udp_tracker_services, _server_udp_tracker_services) =
-                    initialize_core_tracker_services_for_public_tracker();
+                    initialize_core_tracker_services_for_public_tracker().await;
 
                 add_a_torrent_peer_using_ipv4(&core_tracker_services.in_memory_torrent_repository).await;
 
@@ -823,7 +823,7 @@ pub(crate) mod tests {
                     Some(Arc::new(udp_server_stats_event_sender_mock));
 
                 let (core_tracker_services, core_udp_tracker_services, _server_udp_tracker_services) =
-                    initialize_core_tracker_services_for_default_tracker_configuration();
+                    initialize_core_tracker_services_for_default_tracker_configuration().await;
 
                 handle_announce(
                     &core_udp_tracker_services.announce_service,
@@ -891,7 +891,7 @@ pub(crate) mod tests {
                     let server_service_binding = ServiceBinding::new(Protocol::UDP, server_socket_addr).unwrap();
                     let server_service_binding_clone = server_service_binding.clone();
 
-                    let database = initialize_database(&config.core);
+                    let database = initialize_database(&config.core).await;
                     let in_memory_whitelist = Arc::new(InMemoryWhitelist::default());
                     let whitelist_authorization =
                         Arc::new(WhitelistAuthorization::new(&config.core, &in_memory_whitelist.clone()));

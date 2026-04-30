@@ -38,15 +38,17 @@ pub struct CoreHttpTrackerServices {
     pub http_stats_event_sender: bittorrent_http_tracker_core::event::sender::Sender,
 }
 
-pub fn initialize_core_tracker_services() -> (CoreTrackerServices, CoreHttpTrackerServices) {
-    initialize_core_tracker_services_with_config(&configuration::ephemeral_public())
+pub async fn initialize_core_tracker_services() -> (CoreTrackerServices, CoreHttpTrackerServices) {
+    initialize_core_tracker_services_with_config(&configuration::ephemeral_public()).await
 }
 
-pub fn initialize_core_tracker_services_with_config(config: &Configuration) -> (CoreTrackerServices, CoreHttpTrackerServices) {
+pub async fn initialize_core_tracker_services_with_config(
+    config: &Configuration,
+) -> (CoreTrackerServices, CoreHttpTrackerServices) {
     let cancellation_token = CancellationToken::new();
 
     let core_config = Arc::new(config.core.clone());
-    let database = initialize_database(&config.core);
+    let database = initialize_database(&config.core).await;
     let in_memory_torrent_repository = Arc::new(InMemoryTorrentRepository::default());
     let db_downloads_metric_repository = Arc::new(DatabaseDownloadsMetricRepository::new(&database.torrent_metrics_store));
     let in_memory_whitelist = Arc::new(InMemoryWhitelist::default());

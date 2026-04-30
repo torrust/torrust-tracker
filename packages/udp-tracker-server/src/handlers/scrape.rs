@@ -118,7 +118,7 @@ mod tests {
         #[tokio::test]
         async fn should_return_no_stats_when_the_tracker_does_not_have_any_torrent() {
             let (_core_tracker_services, core_udp_tracker_services, server_udp_tracker_services) =
-                initialize_core_tracker_services_for_public_tracker();
+                initialize_core_tracker_services_for_public_tracker().await;
 
             let client_socket_addr = sample_ipv4_remote_addr();
             let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969);
@@ -235,7 +235,7 @@ mod tests {
             #[tokio::test]
             async fn should_return_torrent_statistics_when_the_tracker_has_the_requested_torrent() {
                 let (core_tracker_services, core_udp_tracker_services, _server_udp_tracker_services) =
-                    initialize_core_tracker_services_for_public_tracker();
+                    initialize_core_tracker_services_for_public_tracker().await;
 
                 let torrent_stats = match_scrape_response(
                     add_a_sample_seeder_and_scrape(core_tracker_services.into(), core_udp_tracker_services.into()).await,
@@ -268,7 +268,7 @@ mod tests {
             #[tokio::test]
             async fn should_return_the_torrent_statistics_when_the_requested_torrent_is_whitelisted() {
                 let (core_tracker_services, core_udp_tracker_services, server_udp_tracker_services) =
-                    initialize_core_tracker_services_for_listed_tracker();
+                    initialize_core_tracker_services_for_listed_tracker().await;
 
                 let client_socket_addr = sample_ipv4_remote_addr();
                 let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969);
@@ -313,7 +313,7 @@ mod tests {
             #[tokio::test]
             async fn should_return_zeroed_statistics_when_the_requested_torrent_is_not_whitelisted() {
                 let (core_tracker_services, core_udp_tracker_services, server_udp_tracker_services) =
-                    initialize_core_tracker_services_for_listed_tracker();
+                    initialize_core_tracker_services_for_listed_tracker().await;
 
                 let client_socket_addr = sample_ipv4_remote_addr();
                 let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969);
@@ -396,7 +396,7 @@ mod tests {
                     Some(Arc::new(udp_server_stats_event_sender_mock));
 
                 let (_core_tracker_services, core_udp_tracker_services, _server_udp_tracker_services) =
-                    initialize_core_tracker_services_for_default_tracker_configuration();
+                    initialize_core_tracker_services_for_default_tracker_configuration().await;
 
                 handle_scrape(
                     &core_udp_tracker_services.scrape_service,
@@ -446,7 +446,7 @@ mod tests {
                     Some(Arc::new(udp_server_stats_event_sender_mock));
 
                 let (_core_tracker_services, core_udp_tracker_services, _server_udp_tracker_services) =
-                    initialize_core_tracker_services_for_default_tracker_configuration();
+                    initialize_core_tracker_services_for_default_tracker_configuration().await;
 
                 handle_scrape(
                     &core_udp_tracker_services.scrape_service,
