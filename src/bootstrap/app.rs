@@ -23,7 +23,8 @@ use crate::container::AppContainer;
 ///
 /// # Panics
 ///
-/// Setup can file if the configuration is invalid.
+/// Setup can fail if the configuration is invalid.
+#[must_use]
 #[instrument(skip())]
 pub async fn setup() -> (Configuration, AppContainer) {
     #[cfg(not(test))]
