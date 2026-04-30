@@ -387,7 +387,7 @@ We can decide during implementation, I don't have a string preference for now.
 
 Plan: one PR (this branch), four commits — one per task:
 
-1. Task 1 — fix `#` → `--` comments in migration 1 (both backends).
+1. Task 1 — fix `#` → `--` comments in SQLite migration 1 only (do not edit MySQL migration 1).
 2. Task 2 — add sqlx `macros` feature, `MIGRATOR` statics, `Error::MigrationError`
    variant + `From` impl. (Compiles; nothing called yet.)
 3. Task 3 — wire `bootstrap_legacy_schema()` + `MIGRATOR.run()` into
@@ -709,7 +709,7 @@ suite passes when MySQL is available. Schema is fully owned by migration files.
 - [ ] `bootstrap_legacy_schema()` accepts "all four legacy tables present" as the only
       success precondition; if 1–3 of them exist it returns a descriptive error (Q4).
 - [ ] A new `Error::MigrationError` variant plus `impl From<(sqlx::migrate::MigrateError,
-  Driver)> for Error` wrap `MigrateError`, matching the existing tuple-`From` pattern
+Driver)> for Error` wrap `MigrateError`, matching the existing tuple-`From` pattern
       used by every other `sqlx` error site (see finding F3).
 - [ ] `packages/tracker-core/migrations/README.md` is updated to document automatic migration
       behaviour, migration-file immutability, and the upgrade-from-older-versions requirement

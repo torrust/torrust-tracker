@@ -157,7 +157,9 @@ async fn bootstrap_legacy_schema(pool: &SqlitePool) -> Result<(), Error> {
 
 #[cfg(test)]
 mod tests {
-    use ::sqlx::sqlite::SqlitePoolOptions;
+    use std::path::PathBuf;
+
+    use ::sqlx::sqlite::{SqliteConnectOptions, SqlitePoolOptions};
     use ::sqlx::SqlitePool;
     use torrust_tracker_test_helpers::configuration::ephemeral_sqlite_database;
 
@@ -169,15 +171,23 @@ mod tests {
     /// Connect to a fresh on-disk ephemeral `SQLite` database. We use a real
     /// file (not `:memory:`) so the same connection pool used by `Sqlite`
     /// observes tables created via the helper pool below.
-    async fn new_pool() -> (SqlitePool, String) {
-        let path = ephemeral_sqlite_database().to_str().unwrap().to_string();
-        let url = format!("sqlite://{path}?mode=rwc");
-        let pool = SqlitePoolOptions::new().connect(&url).await.expect("connect to sqlite");
+    ///
+    /// Build the pool through [`SqliteConnectOptions::filename`] (mirroring
+    /// `Sqlite::new`) so the filesystem path is handled by `sqlx` directly
+    /// instead of being string-formatted into a `sqlite://` URL — that keeps
+    /// non-UTF-8 and Windows paths working.
+    async fn new_pool() -> (SqlitePool, PathBuf) {
+        let path = ephemeral_sqlite_database();
+        let options = SqliteConnectOptions::new().filename(&path).create_if_missing(true);
+        let pool = SqlitePoolOptions::new()
+            .connect_with(options)
+            .await
+            .expect("connect to sqlite");
         (pool, path)
     }
 
-    fn driver(path: &str) -> Sqlite {
-        Sqlite::new(path).unwrap()
+    fn driver(path: &std::path::Path) -> Sqlite {
+        Sqlite::new(path.to_str().expect("ephemeral path is utf-8 in tests")).unwrap()
     }
 
     /// Recreate the schema produced by the three pre-v4 manual migrations.
