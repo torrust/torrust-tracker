@@ -1,6 +1,4 @@
 //! The `SQLite3` database driver.
-use std::panic::Location;
-
 use ::sqlx::sqlite::{SqliteConnectOptions, SqlitePoolOptions};
 use ::sqlx::{Row, SqlitePool};
 use torrust_tracker_primitives::NumberOfDownloads;
@@ -57,24 +55,20 @@ impl Sqlite {
     }
 
     async fn save_torrent_aggregate_metric(&self, metric_name: &str, completed: NumberOfDownloads) -> Result<(), Error> {
-        let insert = ::sqlx::query(
+        // `ON CONFLICT ... DO UPDATE` may legitimately report `rows_affected() == 0`
+        // when the row already exists with the same value (no-op update), so we
+        // do not treat 0 as a failure here. A real failure surfaces as `Err`
+        // from `execute()`.
+        ::sqlx::query(
             "INSERT INTO torrent_aggregate_metrics (metric_name, value) VALUES (?1, ?2) ON CONFLICT(metric_name) DO UPDATE SET value = ?2",
         )
         .bind(metric_name)
         .bind(i64::from(completed))
         .execute(&self.pool)
         .await
-        .map_err(|e| (e, DRIVER))?
-        .rows_affected();
+        .map_err(|e| (e, DRIVER))?;
 
-        if insert == 0 {
-            Err(Error::InsertFailed {
-                location: Location::caller(),
-                driver: DRIVER,
-            })
-        } else {
-            Ok(())
-        }
+        Ok(())
     }
 }
 
