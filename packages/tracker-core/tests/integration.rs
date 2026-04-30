@@ -80,7 +80,10 @@ async fn it_should_persist_the_number_of_completed_peers_for_each_torrent_into_t
     // Load torrents from the database to ensure the completed stats are persisted.
     // Bound the wait with a timeout instead of a fixed iteration count so the
     // test fails loudly on a stalled system rather than after an arbitrary
-    // number of immediate retries.
+    // number of immediate retries. Re-check the desired state (`downloads == 1`)
+    // inside the retry condition so an intermediate observation does not
+    // panic the test before the background listener has finished applying
+    // the persisted value.
     let restored = tokio::time::timeout(std::time::Duration::from_secs(5), async {
         loop {
             test_env
@@ -91,8 +94,9 @@ async fn it_should_persist_the_number_of_completed_peers_for_each_torrent_into_t
                 .unwrap();
 
             if let Some(swarm_metadata) = test_env.get_swarm_metadata(&info_hash).await {
-                assert!(swarm_metadata.downloads() == 1);
-                break true;
+                if swarm_metadata.downloads() == 1 {
+                    break true;
+                }
             }
 
             tokio::time::sleep(std::time::Duration::from_millis(50)).await;
