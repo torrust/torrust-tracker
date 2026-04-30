@@ -61,6 +61,9 @@ impl SchemaMigrator for Sqlite {
         let drop_torrents_table = "
         DROP TABLE torrents;";
 
+        let drop_torrent_aggregate_metrics_table = "
+        DROP TABLE torrent_aggregate_metrics;";
+
         let drop_keys_table = "
         DROP TABLE keys;";
 
@@ -69,6 +72,10 @@ impl SchemaMigrator for Sqlite {
             .await
             .map_err(|e| (e, DRIVER))?;
         ::sqlx::query(drop_torrents_table)
+            .execute(&self.pool)
+            .await
+            .map_err(|e| (e, DRIVER))?;
+        ::sqlx::query(drop_torrent_aggregate_metrics_table)
             .execute(&self.pool)
             .await
             .map_err(|e| (e, DRIVER))?;
