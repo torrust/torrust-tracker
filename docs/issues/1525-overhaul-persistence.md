@@ -119,7 +119,7 @@ You can then browse or search it while working in the main repository.
 
 ### 6) Introduce schema migrations
 
-- Spec file: `docs/issues/1525-06-introduce-schema-migrations.md`
+- Spec file: `docs/issues/1719-1525-06-introduce-schema-migrations.md`
 - Outcome: schema changes become explicit, versioned, and testable
 
 ### 7) Align persisted counters and Rust/SQL type boundaries

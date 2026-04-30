@@ -11,6 +11,7 @@
 use std::panic::Location;
 use std::sync::Arc;
 
+use sqlx::migrate::MigrateError;
 use sqlx::Error as SqlxError;
 use torrust_tracker_located_error::{DynError, LocatedError};
 
@@ -84,6 +85,27 @@ pub enum Error {
         source: LocatedError<'static, dyn std::error::Error + Send + Sync>,
         driver: Driver,
     },
+
+    /// Indicates a failure while applying schema migrations.
+    ///
+    /// This error variant wraps `sqlx::migrate::MigrateError`, raised by
+    /// `MIGRATOR.run()` (or by the helpers used to bootstrap the
+    /// `_sqlx_migrations` tracking table on legacy databases).
+    #[error("Failed to apply {driver} schema migrations: {source}")]
+    MigrationError {
+        source: LocatedError<'static, dyn std::error::Error + Send + Sync>,
+        driver: Driver,
+    },
+
+    /// Indicates that a pre-v4 database is in a partially-migrated state and
+    /// cannot be auto-bootstrapped into the `sqlx` migration system.
+    ///
+    /// Raised by the legacy-bootstrap path of `create_database_tables()` when
+    /// some — but not all — of the expected legacy tables are present and the
+    /// `_sqlx_migrations` table does not yet exist. The fix is to apply the
+    /// missing manual migrations before upgrading.
+    #[error("Cannot upgrade {driver} database: {reason}")]
+    LegacyDatabaseNotMigrated { reason: String, driver: Driver },
 }
 
 impl From<(SqlxError, Driver)> for Error {
@@ -109,6 +131,18 @@ impl From<(SqlxError, Driver)> for Error {
                 source: (Arc::new(err) as DynError).into(),
                 driver,
             },
+        }
+    }
+}
+
+impl From<(MigrateError, Driver)> for Error {
+    #[track_caller]
+    fn from(value: (MigrateError, Driver)) -> Self {
+        let (err, driver) = value;
+
+        Self::MigrationError {
+            source: (Arc::new(err) as DynError).into(),
+            driver,
         }
     }
 }

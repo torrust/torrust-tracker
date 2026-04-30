@@ -1,4 +1,5 @@
 //! The `SQLite3` database driver.
+use ::sqlx::migrate::Migrator;
 use ::sqlx::sqlite::{SqliteConnectOptions, SqlitePoolOptions};
 use ::sqlx::{Row, SqlitePool};
 use torrust_tracker_primitives::NumberOfDownloads;
@@ -11,6 +12,12 @@ mod torrent_metrics_store;
 mod whitelist_store;
 
 const DRIVER: Driver = Driver::Sqlite3;
+
+/// Embedded `sqlx` migrator for the `SQLite` backend.
+///
+/// All `.sql` files under `migrations/sqlite/` are compiled into the binary at
+/// build time and applied in timestamp order by `MIGRATOR.run(&pool)`.
+pub(super) static MIGRATOR: Migrator = ::sqlx::migrate!("migrations/sqlite");
 
 /// `SQLite` driver implementation.
 ///
@@ -104,5 +111,24 @@ mod tests {
         run_tests(&driver).await;
 
         Ok(())
+    }
+
+    #[tokio::test]
+    async fn create_database_tables_should_be_idempotent_on_a_fresh_database() {
+        let config = ephemeral_configuration();
+        let driver = initialize_driver(&config);
+
+        // First call applies every embedded migration.
+        driver
+            .create_database_tables()
+            .await
+            .expect("first migration run should succeed on a fresh database");
+
+        // Second call must be a no-op: the embedded `sqlx` migrator skips
+        // migrations already recorded in `_sqlx_migrations`.
+        driver
+            .create_database_tables()
+            .await
+            .expect("second migration run should be a no-op");
     }
 }
