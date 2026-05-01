@@ -87,7 +87,7 @@ jobs:
       - id: run-qbittorrent-e2e-test
         name: Run qBittorrent E2E Test (SQLite)
         if: ${{ matrix.run_qbittorrent_e2e }}
-        run: cargo run --bin qbittorrent_e2e_runner -- --compose-file ./compose.qbittorrent-e2e.sqlite3.yaml --timeout-seconds 600
+        run: cargo run --bin qbittorrent_e2e_runner -- --db-driver sqlite3 --timeout-seconds 600
 
       - id: run-qbittorrent-e2e-test-mysql
         name: Run qBittorrent E2E Test (MySQL)
