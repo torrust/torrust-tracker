@@ -8,10 +8,24 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  test-nightly:
-    name: Test (nightly)
+  test:
+    name: Test (${{ matrix.toolchain }})
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: ${{ matrix.timeout_minutes }}
+
+    strategy:
+      matrix:
+        include:
+          - toolchain: nightly
+            components: rustfmt, clippy, llvm-tools-preview
+            timeout_minutes: 45
+            run_format: true
+            run_qbittorrent_e2e: false
+          - toolchain: stable
+            components: clippy, llvm-tools-preview
+            timeout_minutes: 90
+            run_format: false
+            run_qbittorrent_e2e: true
 
     steps:
       - id: checkout
@@ -22,8 +36,8 @@ jobs:
         name: Setup Toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: nightly
-          components: rustfmt, clippy, llvm-tools-preview
+          toolchain: ${{ matrix.toolchain }}
+          components: ${{ matrix.components }}
 
       - id: node
         name: Setup Node.js
@@ -51,64 +65,8 @@ jobs:
 
       - id: format
         name: Run Formatting-Checks
+        if: ${{ matrix.run_format }}
         run: cargo fmt --check
-
-      - id: lint
-        name: Run All Linters
-        run: linter all
-
-      - id: test-docs
-        name: Run Documentation Tests
-        run: cargo test --doc --workspace
-
-      - id: test
-        name: Run Unit Tests
-        run: cargo test --tests --benches --examples --workspace --all-targets --all-features
-
-      - id: run-tracker-e2e-tests
-        name: Run E2E Tests
-        run: cargo run --bin e2e_tests_runner -- --config-toml-path "./share/default/config/tracker.e2e.container.sqlite3.toml"
-
-  test-stable:
-    name: Test (stable)
-    runs-on: ubuntu-latest
-    timeout-minutes: 90
-
-    steps:
-      - id: checkout
-        name: Checkout Repository
-        uses: actions/checkout@v6
-
-      - id: setup
-        name: Setup Toolchain
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          toolchain: stable
-          components: clippy, llvm-tools-preview
-
-      - id: node
-        name: Setup Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: "20"
-
-      - id: cache
-        name: Enable Job Cache
-        uses: Swatinem/rust-cache@v2
-
-      - id: fetch
-        name: Download Dependencies
-        run: cargo fetch --verbose
-
-      - id: linter
-        name: Install Internal Linter
-        run: cargo install --locked --git https://github.com/torrust/torrust-linting --bin linter
-
-      - id: tools
-        name: Install Tools
-        uses: taiki-e/install-action@v2
-        with:
-          tool: cargo-llvm-cov, cargo-nextest
 
       - id: lint
         name: Run All Linters
@@ -128,12 +86,15 @@ jobs:
 
       - id: run-qbittorrent-e2e-test
         name: Run qBittorrent E2E Test (SQLite)
+        if: ${{ matrix.run_qbittorrent_e2e }}
         run: cargo run --bin qbittorrent_e2e_runner -- --compose-file ./compose.qbittorrent-e2e.sqlite3.yaml --timeout-seconds 600
 
       - id: run-qbittorrent-e2e-test-mysql
         name: Run qBittorrent E2E Test (MySQL)
+        if: ${{ matrix.run_qbittorrent_e2e }}
         run: cargo run --bin qbittorrent_e2e_runner -- --db-driver mysql --timeout-seconds 600
 
       - id: run-qbittorrent-e2e-test-postgresql
         name: Run qBittorrent E2E Test (PostgreSQL)
+        if: ${{ matrix.run_qbittorrent_e2e }}
         run: cargo run --bin qbittorrent_e2e_runner -- --db-driver postgresql --timeout-seconds 600
