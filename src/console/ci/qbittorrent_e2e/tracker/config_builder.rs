@@ -4,10 +4,12 @@ use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::path::{Path, PathBuf};
 
 use anyhow::Context;
-use torrust_tracker_configuration::{Configuration, HealthCheckApi, HttpApi, HttpTracker, UdpTracker};
+use torrust_tracker_configuration::{Configuration, Driver, HealthCheckApi, HttpApi, HttpTracker, UdpTracker};
 
 const CONFIG_FILE_NAME: &str = "tracker-config.toml";
-const DEFAULT_DATABASE_PATH: &str = "/var/lib/torrust/tracker/database/sqlite3.db";
+const DEFAULT_SQLITE3_DATABASE_PATH: &str = "/var/lib/torrust/tracker/database/sqlite3.db";
+const DEFAULT_MYSQL_DATABASE_PATH: &str = "mysql://db_user:db_user_secret_password@mysql:3306/torrust_tracker";
+const DEFAULT_POSTGRESQL_DATABASE_PATH: &str = "postgresql://postgres:postgres@postgres:5432/torrust_tracker";
 const TRACKER_BIND_HOST: IpAddr = IpAddr::V4(Ipv4Addr::UNSPECIFIED);
 const TRACKER_UDP_PORT: u16 = 6969;
 const TRACKER_HTTP_TRACKER_PORT: u16 = 7070;
@@ -15,9 +17,35 @@ const TRACKER_HTTP_API_PORT: u16 = 1212;
 const TRACKER_HEALTH_CHECK_API_PORT: u16 = 1313;
 const DEFAULT_ACCESS_TOKEN: &str = "MyAccessToken";
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub(crate) enum DatabaseDriver {
+    Sqlite3,
+    MySQL,
+    PostgreSQL,
+}
+
+impl DatabaseDriver {
+    fn configuration_driver(self) -> Driver {
+        match self {
+            Self::Sqlite3 => Driver::Sqlite3,
+            Self::MySQL => Driver::MySQL,
+            Self::PostgreSQL => Driver::PostgreSQL,
+        }
+    }
+
+    fn default_database_path(self) -> &'static str {
+        match self {
+            Self::Sqlite3 => DEFAULT_SQLITE3_DATABASE_PATH,
+            Self::MySQL => DEFAULT_MYSQL_DATABASE_PATH,
+            Self::PostgreSQL => DEFAULT_POSTGRESQL_DATABASE_PATH,
+        }
+    }
+}
+
 /// Typed tracker configuration shared across the E2E workflow.
 #[derive(Clone, Debug)]
 pub(crate) struct TrackerConfig {
+    database_driver: DatabaseDriver,
     database_path: String,
     udp_bind_address: SocketAddr,
     http_tracker_bind_address: SocketAddr,
@@ -28,8 +56,15 @@ pub(crate) struct TrackerConfig {
 
 impl Default for TrackerConfig {
     fn default() -> Self {
+        Self::for_database_driver(DatabaseDriver::Sqlite3)
+    }
+}
+
+impl TrackerConfig {
+    pub(crate) fn for_database_driver(database_driver: DatabaseDriver) -> Self {
         Self {
-            database_path: DEFAULT_DATABASE_PATH.to_string(),
+            database_driver,
+            database_path: database_driver.default_database_path().to_string(),
             udp_bind_address: bind_address(TRACKER_UDP_PORT),
             http_tracker_bind_address: bind_address(TRACKER_HTTP_TRACKER_PORT),
             http_api_bind_address: bind_address(TRACKER_HTTP_API_PORT),
@@ -37,9 +72,7 @@ impl Default for TrackerConfig {
             access_token: DEFAULT_ACCESS_TOKEN.to_string(),
         }
     }
-}
 
-impl TrackerConfig {
     pub(crate) fn udp_bind_address(&self) -> SocketAddr {
         self.udp_bind_address
     }
@@ -73,6 +106,7 @@ impl TrackerConfig {
     fn to_torrust_configuration(&self) -> Configuration {
         let mut configuration = Configuration::default();
 
+        configuration.core.database.driver = self.database_driver.configuration_driver();
         configuration.core.database.path.clone_from(&self.database_path);
 
         configuration.udp_trackers = Some(vec![UdpTracker {

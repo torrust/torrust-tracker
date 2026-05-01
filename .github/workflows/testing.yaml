@@ -227,5 +227,15 @@ jobs:
 
       - id: run-qbittorrent-e2e-test
         if: matrix.toolchain == 'stable'
-        name: Run qBittorrent E2E Test
-        run: cargo run --bin qbittorrent_e2e_runner -- --compose-file ./compose.qbittorrent-e2e.yaml --timeout-seconds 600
+        name: Run qBittorrent E2E Test (SQLite)
+        run: cargo run --bin qbittorrent_e2e_runner -- --compose-file ./compose.qbittorrent-e2e.sqlite3.yaml --timeout-seconds 600
+
+      - id: run-qbittorrent-e2e-test-mysql
+        if: matrix.toolchain == 'stable'
+        name: Run qBittorrent E2E Test (MySQL)
+        run: cargo run --bin qbittorrent_e2e_runner -- --db-driver mysql --timeout-seconds 600
+
+      - id: run-qbittorrent-e2e-test-postgresql
+        if: matrix.toolchain == 'stable'
+        name: Run qBittorrent E2E Test (PostgreSQL)
+        run: cargo run --bin qbittorrent_e2e_runner -- --db-driver postgresql --timeout-seconds 600

@@ -6,9 +6,9 @@
 //! 1. Builds a local Torrust Tracker Docker image.
 //! 2. Creates an ephemeral workspace (temporary directory) with all required
 //!    configuration files and pre-generated torrent + payload.
-//! 3. Starts a Docker Compose stack (`compose.qbittorrent-e2e.yaml`) containing
-//!    a tracker, a seeder, and a leecher — all using randomly assigned host ports
-//!    so multiple runs can coexist.
+//! 3. Starts a backend-specific Docker Compose stack containing a tracker, a
+//!    seeder, and a leecher. The default stack is `SQLite`, while `--db-driver`
+//!    can switch to `MySQL` or `PostgreSQL`.
 //! 4. Authenticates with both `qBittorrent` `WebUI` instances.
 //! 5. Uploads the torrent to the seeder and the leecher.
 //! 6. Logs the torrent count reported by each client.
@@ -25,7 +25,7 @@
 //!
 //! ```text
 //! cargo run --bin qbittorrent_e2e_runner -- \
-//!     --compose-file ./compose.qbittorrent-e2e.yaml \
+//!     --db-driver postgresql \
 //!     --timeout-seconds 180
 //! ```
 //!
@@ -33,7 +33,8 @@
 //!
 //! | Flag | Default | Description |
 //! |------|---------|-------------|
-//! | `--compose-file` | `compose.qbittorrent-e2e.yaml` | Compose file for the scenario |
+//! | `--db-driver` | `sqlite3` | Tracker database backend: `sqlite3`, `mysql`, or `postgresql` |
+//! | `--compose-file` | driver-specific default | Override the compose file selected for the scenario |
 //! | `--timeout-seconds` | `180` | Per-operation HTTP timeout for `WebUI` calls |
 //! | `--tracker-image` | `torrust-tracker:qbt-e2e-local` | Local Docker image tag built for the tracker |
 //! | `--qbittorrent-image` | `lscr.io/linuxserver/qbittorrent:5.1.4` | qBittorrent image for seeder and leecher |

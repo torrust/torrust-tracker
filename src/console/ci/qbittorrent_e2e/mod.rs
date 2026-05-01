@@ -52,7 +52,7 @@
 //!
 //! This also opens a clear extension path: in the future we could have multiple
 //! infrastructure configurations (e.g. public vs. private tracker, `SQLite` vs.
-//! `MySQL`, different numbers of peers) each hosting their own suite of scenarios,
+//! `MySQL` vs. `PostgreSQL`, different numbers of peers) each hosting their own suite of scenarios,
 //! without changing the scenario or step code.
 
 pub mod bencode;

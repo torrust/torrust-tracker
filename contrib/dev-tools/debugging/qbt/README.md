@@ -45,7 +45,7 @@ How to verify:
 1. Confirm the leecher port mapping.
 2. Compare login responses with and without host header override.
 
-   docker compose -f ./compose.qbittorrent-e2e.yaml -p <project> port qbittorrent-leecher 8080
+   docker compose -f ./compose.qbittorrent-e2e.sqlite3.yaml -p <project> port qbittorrent-leecher 8080
    curl -i -X POST http://127.0.0.1:<host-port>/api/v2/auth/login \
     --data 'username=admin&password=adminadmin'
    curl -i -X POST http://127.0.0.1:<host-port>/api/v2/auth/login \

@@ -3,4 +3,4 @@ mod client;
 mod config_builder;
 
 pub(crate) use client::TrackerApiClient;
-pub(super) use config_builder::{TrackerConfig, TrackerConfigBuilder};
+pub(super) use config_builder::{DatabaseDriver, TrackerConfig, TrackerConfigBuilder};
