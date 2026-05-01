@@ -16,5 +16,5 @@ CREATE TABLE
     IF NOT EXISTS keys (
         id SERIAL PRIMARY KEY,
         key VARCHAR(32) NOT NULL UNIQUE,
-        valid_until INTEGER NOT NULL
+        valid_until BIGINT NOT NULL
     );
