@@ -44,7 +44,7 @@ jobs:
 
     strategy:
       matrix:
-        postgres-version: ["15", "16", "17"]
+        postgres-version: ["14", "15", "16", "17"]
 
     steps:
       - id: checkout

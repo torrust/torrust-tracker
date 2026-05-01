@@ -81,4 +81,27 @@ mod tests {
         assert_eq!(report.meta.db_version, "8.4");
         assert_eq!(report.meta.ops, 2);
     }
+
+    #[test]
+    fn it_should_keep_postgresql_db_version_in_report_metadata() {
+        let db_version = DbVersion::from_str("17").expect("db version should parse");
+        let timings_ms = ReportTimings {
+            benchmark: 5,
+            report_build: 1,
+            total: 6,
+        };
+        let operation_stats = vec![OperationStats {
+            name: "load_keys".to_string(),
+            count: 1,
+            best: Duration::from_micros(1),
+            median: Duration::from_micros(2),
+            worst: Duration::from_micros(3),
+        }];
+
+        let report = build_report(&Driver::PostgreSQL, &db_version, 1, timings_ms, operation_stats);
+
+        assert_eq!(report.meta.driver, "postgresql");
+        assert_eq!(report.meta.db_version, "17");
+        assert_eq!(report.meta.ops, 1);
+    }
 }

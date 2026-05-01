@@ -265,7 +265,7 @@ mod tests {
         for stmt in [
             "CREATE TABLE IF NOT EXISTS whitelist (id SERIAL PRIMARY KEY, info_hash VARCHAR(40) NOT NULL UNIQUE)",
             "CREATE TABLE IF NOT EXISTS torrents (id SERIAL PRIMARY KEY, info_hash VARCHAR(40) NOT NULL UNIQUE, completed INTEGER DEFAULT 0 NOT NULL)",
-            "CREATE TABLE IF NOT EXISTS keys (id SERIAL PRIMARY KEY, key VARCHAR(32) NOT NULL UNIQUE, valid_until INTEGER NOT NULL)",
+            "CREATE TABLE IF NOT EXISTS keys (id SERIAL PRIMARY KEY, key VARCHAR(32) NOT NULL UNIQUE, valid_until BIGINT NOT NULL)",
             "CREATE TABLE IF NOT EXISTS torrent_aggregate_metrics (id SERIAL PRIMARY KEY, metric_name VARCHAR(50) NOT NULL UNIQUE, value INTEGER DEFAULT 0 NOT NULL)",
         ] {
             ::sqlx::query(stmt).execute(pool).await.expect("schema DDL");
