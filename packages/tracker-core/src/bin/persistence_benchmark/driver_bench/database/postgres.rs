@@ -19,11 +19,16 @@ const READINESS_PING_RETRIES: usize = 30;
 const READINESS_PING_INTERVAL: Duration = Duration::from_millis(500);
 
 pub(super) async fn initialize(db_version: &str) -> Result<ActiveDatabase> {
+    // The official `postgres` image emits "database system is ready to accept
+    // connections" once on stderr when the TCP listener is up. We wait for
+    // that single occurrence before probing the connection — this mirrors the
+    // two-occurrence strategy used for MySQL where the init cycle emits it
+    // twice. PostgreSQL only emits it once.
     let postgres_container = GenericImage::new("postgres", db_version)
         .with_exposed_port(5432.tcp())
-        .with_wait_for(WaitFor::Log(
-            LogWaitStrategy::stderr("database system is ready to accept connections").with_times(2),
-        ))
+        .with_wait_for(WaitFor::Log(LogWaitStrategy::stderr(
+            "database system is ready to accept connections",
+        )))
         .with_env_var("POSTGRES_PASSWORD", "test")
         .with_env_var("POSTGRES_DB", "torrust_tracker_bench")
         .with_env_var("POSTGRES_USER", "root")
