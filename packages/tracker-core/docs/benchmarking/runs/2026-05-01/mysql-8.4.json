@@ -1,0 +1,121 @@
+{
+  "meta": {
+    "git_revision": "74f5c8a9305912db8873024156cc006662ad1902",
+    "driver": "mysql",
+    "db_version": "8.4",
+    "ops": 100,
+    "timestamp": "2026-05-01T09:58:23.545474317+00:00",
+    "timings_ms": {
+      "benchmark": 6371,
+      "report_build": 1,
+      "total": 6372
+    }
+  },
+  "operations": [
+    {
+      "name": "save_torrent_downloads",
+      "count": 100,
+      "best_us": 692,
+      "median_us": 769,
+      "worst_us": 1878
+    },
+    {
+      "name": "load_torrent_downloads",
+      "count": 100,
+      "best_us": 95,
+      "median_us": 112,
+      "worst_us": 266
+    },
+    {
+      "name": "load_all_torrents_downloads",
+      "count": 100,
+      "best_us": 152,
+      "median_us": 172,
+      "worst_us": 429
+    },
+    {
+      "name": "increase_downloads_for_torrent",
+      "count": 100,
+      "best_us": 711,
+      "median_us": 773,
+      "worst_us": 1333
+    },
+    {
+      "name": "save_global_downloads",
+      "count": 100,
+      "best_us": 708,
+      "median_us": 793,
+      "worst_us": 1301
+    },
+    {
+      "name": "load_global_downloads",
+      "count": 100,
+      "best_us": 94,
+      "median_us": 115,
+      "worst_us": 258
+    },
+    {
+      "name": "increase_global_downloads",
+      "count": 100,
+      "best_us": 706,
+      "median_us": 774,
+      "worst_us": 1811
+    },
+    {
+      "name": "add_info_hash_to_whitelist",
+      "count": 100,
+      "best_us": 685,
+      "median_us": 735,
+      "worst_us": 1156
+    },
+    {
+      "name": "get_info_hash_from_whitelist",
+      "count": 100,
+      "best_us": 102,
+      "median_us": 109,
+      "worst_us": 266
+    },
+    {
+      "name": "load_whitelist",
+      "count": 100,
+      "best_us": 143,
+      "median_us": 161,
+      "worst_us": 262
+    },
+    {
+      "name": "remove_info_hash_from_whitelist",
+      "count": 100,
+      "best_us": 681,
+      "median_us": 766,
+      "worst_us": 1549
+    },
+    {
+      "name": "add_key_to_keys",
+      "count": 100,
+      "best_us": 687,
+      "median_us": 750,
+      "worst_us": 1201
+    },
+    {
+      "name": "get_key_from_keys",
+      "count": 100,
+      "best_us": 95,
+      "median_us": 118,
+      "worst_us": 336
+    },
+    {
+      "name": "load_keys",
+      "count": 100,
+      "best_us": 156,
+      "median_us": 167,
+      "worst_us": 289
+    },
+    {
+      "name": "remove_key_from_keys",
+      "count": 100,
+      "best_us": 686,
+      "median_us": 739,
+      "worst_us": 1175
+    }
+  ]
+}

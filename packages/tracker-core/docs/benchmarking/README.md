@@ -28,7 +28,7 @@ Raw JSON artifacts:
 - `runs/2026-04-28/mysql-8.4.json`
 - `runs/2026-04-28/mysql-8.0.json`
 
-## Post-SQLx run
+## Post-SQLx run (SQLite and MySQL only)
 
 - Date: `2026-04-30`
 - Commit (HEAD at run time): `a4dbc63a6c713e115bfc11374b72743aa51ebfb5`
@@ -42,6 +42,21 @@ Raw JSON artifacts:
 - `runs/2026-04-30/mysql-8.4.json`
 - `runs/2026-04-30/mysql-8.0.json`
 
+## PostgreSQL baseline run
+
+- Date: `2026-05-01`
+- Commit (HEAD at run time): `74f5c8a9305912db8873024156cc006662ad1902`
+- Issue context: `docs/issues/1723-1525-08-add-postgresql-driver.md`
+- Run summary (first run with PostgreSQL): `runs/2026-05-01/REPORT.md`
+- Machine profile: `machine/2026-05-01-josecelano-desktop.txt`
+
+Raw JSON artifacts:
+
+- `runs/2026-05-01/sqlite3.json`
+- `runs/2026-05-01/mysql-8.4.json`
+- `runs/2026-05-01/mysql-8.0.json`
+- `runs/2026-05-01/postgresql-17.json`
+
 ## How to add a new run
 
 1. Create a new run folder:
@@ -53,6 +68,8 @@ Raw JSON artifacts:
    `cargo run -p bittorrent-tracker-core --bin persistence_benchmark_runner -- --driver sqlite3 > packages/tracker-core/docs/benchmarking/runs/YYYY-MM-DD/sqlite3.json`
 
    `cargo run -p bittorrent-tracker-core --bin persistence_benchmark_runner -- --driver mysql --db-version 8.4 > packages/tracker-core/docs/benchmarking/runs/YYYY-MM-DD/mysql-8.4.json`
+
+   `cargo run -p bittorrent-tracker-core --bin persistence_benchmark_runner -- --driver postgresql --db-version 17 > packages/tracker-core/docs/benchmarking/runs/YYYY-MM-DD/postgresql-17.json`
 
 3. Capture machine profile:
 
@@ -72,10 +89,11 @@ Raw JSON artifacts:
 
 ## Planned comparison point
 
-After implementing:
+After implementing `docs/issues/1717-1525-05-migrate-sqlite-and-mysql-to-sqlx.md`, the
+benchmark was re-run at `runs/2026-04-30` to compare against the `2026-04-28` baseline.
 
-- `docs/issues/1525-05-migrate-sqlite-and-mysql-to-sqlx.md`
+After adding the PostgreSQL driver (`docs/issues/1723-1525-08-add-postgresql-driver.md`),
+the benchmark was run again at `runs/2026-05-01` to establish the PostgreSQL baseline.
 
-run the same benchmark commands again, store results in a new dated folder, and compare against `runs/2026-04-28`.
-
-The first such comparison was captured at `runs/2026-04-30/REPORT.md`.
+The next planned comparison point is after any major persistence refactor that touches all
+drivers (e.g., schema migrations or async `sqlx` pool changes).
