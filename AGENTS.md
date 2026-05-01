@@ -106,19 +106,21 @@ All packages live under `packages/`. The workspace version is `3.0.0-develop`.
 
 ## 📄 Key Configuration Files
 
-| File                 | Used by                                                                                                                             |
-| -------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| `.markdownlint.json` | markdownlint                                                                                                                        |
-| `.yamllint-ci.yml`   | yamllint                                                                                                                            |
-| `.taplo.toml`        | taplo (TOML formatting)                                                                                                             |
-| `cspell.json`        | cspell (spell checker) configuration                                                                                                |
-| `project-words.txt`  | cspell project-specific dictionary                                                                                                  |
-| `rustfmt.toml`       | rustfmt (`group_imports = "StdExternalCrate"`, `max_width = 130`)                                                                   |
-| `.cargo/config.toml` | Cargo aliases (`cov`, `cov-lcov`, `cov-html`, `time`) and global `rustflags` (`-D warnings`, `-D unused`, `-D rust-2018-idioms`, …) |
-| `Cargo.toml`         | Cargo workspace root                                                                                                                |
-| `compose.yaml`       | Docker Compose for local dev and demo                                                                                               |
-| `Containerfile`      | Container image definition                                                                                                          |
-| `codecov.yaml`       | Code coverage configuration                                                                                                         |
+| File                                      | Used by                                                                                                                             |
+| ----------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `.markdownlint.json`                      | markdownlint                                                                                                                        |
+| `.yamllint-ci.yml`                        | yamllint                                                                                                                            |
+| `.taplo.toml`                             | taplo (TOML formatting)                                                                                                             |
+| `cspell.json`                             | cspell (spell checker) configuration                                                                                                |
+| `project-words.txt`                       | cspell project-specific dictionary                                                                                                  |
+| `rustfmt.toml`                            | rustfmt (`group_imports = "StdExternalCrate"`, `max_width = 130`)                                                                   |
+| `.cargo/config.toml`                      | Cargo aliases (`cov`, `cov-lcov`, `cov-html`, `time`) and global `rustflags` (`-D warnings`, `-D unused`, `-D rust-2018-idioms`, …) |
+| `Cargo.toml`                              | Cargo workspace root                                                                                                                |
+| `compose.qbittorrent-e2e.sqlite3.yaml`    | qBittorrent E2E Compose stack for SQLite backend                                                                                    |
+| `compose.qbittorrent-e2e.mysql.yaml`      | qBittorrent E2E Compose stack for MySQL backend                                                                                     |
+| `compose.qbittorrent-e2e.postgresql.yaml` | qBittorrent E2E Compose stack for PostgreSQL backend                                                                                |
+| `Containerfile`                           | Container image definition                                                                                                          |
+| `codecov.yaml`                            | Code coverage configuration                                                                                                         |
 
 ## 🧪 Build & Test
 

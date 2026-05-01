@@ -24,10 +24,15 @@ persistence layer is async (`1525-05`), schema-managed (`1525-06`), and correctl
 
 By the time this subissue is implemented:
 
-- **1525-04** has split the monolithic `Database` trait into four narrow context traits
-  (`SchemaMigrator`, `TorrentMetricsStore`, `WhitelistStore`, `AuthKeyStore`) plus a blanket
-  `Database` aggregate supertrait. Both existing drivers (`Sqlite`, `Mysql`) satisfy `Database`
-  through the blanket impl. Consumers hold `Arc<Box<dyn Database>>`.
+- **1525-04** and **1525-04b** together split the monolithic `Database` trait into four
+  narrow context traits (`SchemaMigrator`, `TorrentMetricsStore`, `WhitelistStore`,
+  `AuthKeyStore`) plus a blanket `Database` aggregate supertrait, and migrated all
+  production consumers to narrow traits. Both existing drivers (`Sqlite`, `Mysql`) satisfy
+  `Database` through the blanket impl. The factory (`initialize_database`) in
+  `databases/setup.rs` constructs the concrete driver once and returns a `DatabaseStores`
+  struct whose fields are `Arc<dyn XxxStore>` — production consumers never see
+  `Arc<Box<dyn Database>>`. The internal driver test helpers in `databases/driver/mod.rs`
+  still use `Arc<Box<dyn Database>>` as a convenience wrapper for the shared test suite.
 
 - **1525-05** has moved SQLite and MySQL to async `sqlx` connection pools. `r2d2`, `r2d2_sqlite`,
   `rusqlite`, and the `mysql` crate are gone. The `sqlx` dependency has `sqlite` and `mysql`
@@ -342,25 +347,34 @@ PostgreSQL upsert syntax. There are no behavior differences relative to the othe
 
 In `packages/tracker-core/src/databases/driver/mod.rs`:
 
-- Add `PostgreSQL` variant to the `Driver` enum.
+- Add `PostgreSQL` variant to the `Driver` enum (and extend `as_str()` and `FromStr` to
+  recognize `"postgresql"`).
 - Add a `pub mod postgres;` declaration.
-- Add a match arm in `build()`:
 
-  ```rust
-  Driver::PostgreSQL => {
-      let backend = Postgres::new(db_path)?;
-      Ok(Arc::new(Box::new(backend) as Box<dyn Database>))
-  }
-  ```
+There is no `build()` helper in this module. The concrete driver is constructed
+directly in `setup.rs`.
 
 ### Database setup
 
-In `packages/tracker-core/src/databases/setup.rs`, extend the configuration-to-internal
-driver enum conversion:
+In `packages/tracker-core/src/databases/setup.rs`:
 
-```rust
-torrust_tracker_configuration::Driver::PostgreSQL => Driver::PostgreSQL,
-```
+- Extend the first `match` (config driver → internal `Driver` enum):
+
+  ```rust
+  torrust_tracker_configuration::Driver::PostgreSQL => Driver::PostgreSQL,
+  ```
+
+- Add a `Driver::PostgreSQL` arm to the second `match` (internal `Driver` → concrete
+  construction), mirroring the `Sqlite3` and `MySQL` arms:
+
+  ```rust
+  Driver::PostgreSQL => {
+      use super::driver::postgres::Postgres;
+      let db = Arc::new(Postgres::new(&config.database.path).expect("Database driver build failed."));
+      db.create_database_tables().await.expect("Could not create database tables.");
+      build_database_stores(db)
+  }
+  ```
 
 ### Default configuration file
 
@@ -380,16 +394,17 @@ All other sections remain the same as the existing container configs.
 Add an inline `#[cfg(test)]` module in `postgres.rs`. The test is guarded by an environment
 variable to avoid requiring a PostgreSQL container in every `cargo test` run.
 
-**Environment variables**:
+**Environment variables** (matching the MySQL driver pattern — testcontainers only):
 
-| Variable                                         | Purpose                                    | Default                   |
-| ------------------------------------------------ | ------------------------------------------ | ------------------------- |
-| `TORRUST_TRACKER_CORE_RUN_POSTGRES_DRIVER_TEST`  | Enable the test (must be set to any value) | unset → test is skipped   |
-| `TORRUST_TRACKER_CORE_POSTGRES_DRIVER_URL`       | Use an already-running PostgreSQL instance | unset → start a container |
-| `TORRUST_TRACKER_CORE_POSTGRES_DRIVER_IMAGE`     | PostgreSQL Docker image name               | `postgres`                |
-| `TORRUST_TRACKER_CORE_POSTGRES_DRIVER_IMAGE_TAG` | PostgreSQL Docker image tag                | `16`                      |
+| Variable                                         | Purpose                                    | Default                 |
+| ------------------------------------------------ | ------------------------------------------ | ----------------------- |
+| `TORRUST_TRACKER_CORE_RUN_POSTGRES_DRIVER_TEST`  | Enable the test (must be set to any value) | unset → test is skipped |
+| `TORRUST_TRACKER_CORE_POSTGRES_DRIVER_IMAGE_TAG` | PostgreSQL Docker image tag                | `16`                    |
 
-**Test container defaults** (when no URL is provided):
+No external-URL option. The test always starts a container, matching the MySQL driver
+pattern.
+
+**Test container defaults**:
 
 ```text
 internal port:  5432
@@ -401,17 +416,26 @@ password:       test
 Start the container using `testcontainers::GenericImage` (already a dev-dependency from
 MySQL tests). Set container env vars `POSTGRES_PASSWORD`, `POSTGRES_USER`, `POSTGRES_DB`.
 
-**Test function skeleton**:
+**Test function skeleton** (following the MySQL driver pattern):
 
 ```rust
 #[tokio::test]
 async fn run_postgres_driver_tests() -> Result<(), Box<dyn std::error::Error + 'static>> {
     if std::env::var("TORRUST_TRACKER_CORE_RUN_POSTGRES_DRIVER_TEST").is_err() {
+        println!("Skipping the PostgreSQL driver tests.");
         return Ok(());
     }
-    let db_url = /* resolve from env or start container */;
-    let driver = Postgres::new(&db_url)?;
-    super::tests::run_tests(&driver).await;
+
+    let postgres_configuration = PostgresConfiguration::default();
+    let stopped_container = StoppedPostgresContainer::default();
+    let container = stopped_container.run(&postgres_configuration).await.unwrap();
+
+    let host = container.get_host().await;
+    let port = container.get_host_port_ipv4().await;
+    let config = core_configuration(&host, port, &postgres_configuration);
+
+    let driver = Arc::new(Box::new(Postgres::new(&config.database.path).unwrap()) as Box<dyn Database>);
+    run_tests(&driver).await;
     Ok(())
 }
 ```
@@ -490,10 +514,16 @@ Steps:
 
 - In `packages/tracker-core/src/databases/driver/mod.rs`:
   - Add `PostgreSQL` to the `Driver` enum.
+  - Extend `as_str()` to return `"postgresql"` for `PostgreSQL`.
+  - Extend `FromStr` to accept `"postgresql"` and update the error message to include it.
   - Add `pub mod postgres;`.
-  - Add the `Driver::PostgreSQL` arm in `build()`.
 - In `packages/tracker-core/src/databases/setup.rs`:
-  - Add `torrust_tracker_configuration::Driver::PostgreSQL => Driver::PostgreSQL`.
+  - Add `torrust_tracker_configuration::Driver::PostgreSQL => Driver::PostgreSQL` to the
+    first `match` (config → internal enum).
+  - Add the `Driver::PostgreSQL` arm to the second `match` (internal enum → concrete
+    construction), constructing `Arc::new(Postgres::new(...))` and calling
+    `create_database_tables()` then `build_database_stores(db)` — matching the existing
+    `Sqlite3` and `MySQL` arms exactly.
 
 Acceptance criteria:
 
@@ -509,21 +539,20 @@ section above.
 Steps:
 
 - Implement `run_postgres_driver_tests` guarded by
-  `TORRUST_TRACKER_CORE_RUN_POSTGRES_DRIVER_TEST`.
-- Support both a pre-existing PostgreSQL instance (via
-  `TORRUST_TRACKER_CORE_POSTGRES_DRIVER_URL`) and a `testcontainers` container started
-  on demand.
-- Default container tag: `16`. Image tag injection via
+  `TORRUST_TRACKER_CORE_RUN_POSTGRES_DRIVER_TEST`, matching the MySQL driver test
+  structure exactly.
+- Always start a `testcontainers::GenericImage` container (no external-URL fallback).
+- Default container tag: `16`. Tag is overridable via
   `TORRUST_TRACKER_CORE_POSTGRES_DRIVER_IMAGE_TAG` (enables the compatibility matrix loop
   in Task 6).
 - Call `tests::run_tests(&driver).await` — the shared test suite used by all backends.
 
 Acceptance criteria:
 
-- [ ] `TORRUST_TRACKER_CORE_RUN_POSTGRES_DRIVER_TEST` is unset → test returns immediately
-      without error.
-- [ ] When the env var is set, the test starts a PostgreSQL container (or connects to the
-      provided URL), runs the shared test suite, and passes.
+- [ ] `TORRUST_TRACKER_CORE_RUN_POSTGRES_DRIVER_TEST` is unset → test prints skip message
+      and returns immediately without error.
+- [ ] When the env var is set, the test starts a PostgreSQL container via testcontainers,
+      runs the shared test suite, and passes.
 - [ ] The container started by the test is removed unconditionally on completion or failure.
 
 ### Task 6 — Extend the compatibility matrix (completing subissue 1525-01)
@@ -566,12 +595,14 @@ Acceptance criteria:
       included in the PR description.
 - [ ] The compatibility matrix exercises PostgreSQL 14, 15, 16, and 17 by default.
 
-### Task 7 — Extend the qBittorrent E2E runner with PostgreSQL (completing subissue 1525-02)
+### Task 7 — Extend the qBittorrent E2E runner with MySQL and PostgreSQL (completing subissue 1525-02)
 
-The qBittorrent E2E runner introduced in subissue `1525-02` uses SQLite only. This task
-extends it to support PostgreSQL and MySQL. MySQL E2E support (`--db-driver mysql`) is new
-work introduced here — it was explicitly out of scope in `1525-02`. It is included here to
-avoid a fourth subissue for a minor change and to keep all three backends consistent.
+The qBittorrent E2E runner introduced in subissue `1525-02` uses SQLite only. The `Args`
+struct in `src/console/ci/qbittorrent_e2e/runner.rs` has no `--db-driver` flag;
+`config_builder.rs` defaults to an SQLite path for all runs. MySQL E2E support was
+explicitly deferred in `1525-02` and has NOT been added since. This task adds
+`--db-driver` support for all three backends: `sqlite3` (existing default, preserved),
+`mysql` (new), and `postgresql` (new).
 
 Steps:
 
@@ -648,34 +679,38 @@ Steps:
   `COPY --chmod=0555 ./share/container/entry_script_sh /usr/local/bin/entry.sh`; no
   `Containerfile` changes are needed.
 
-- Update `compose.yaml` to support the PostgreSQL backend alongside the existing MySQL
-  service:
-  - Add a `postgres` service using `image: postgres:16`:
+- Rename `compose.yaml` to `compose.mysql.yaml`. This file is used by
+  `.github/workflows/container.yaml` in the `docker compose build` step. Update the
+  workflow to pass `-f compose.mysql.yaml` so the rename is transparent to CI.
+  Update any documentation that references `compose.yaml` for the MySQL demo.
 
-    ```yaml
-    postgres:
-      image: postgres:16
-      healthcheck:
-        test: ["CMD-SHELL", "pg_isready -U postgres"]
-        interval: 3s
-        retries: 5
-        start_period: 30s
-      environment:
-        - POSTGRES_PASSWORD=postgres
-        - POSTGRES_USER=postgres
-        - POSTGRES_DB=torrust_tracker
-      networks:
-        - server_side
-      volumes:
-        - postgres_data:/var/lib/postgresql/data
-    ```
+- Add a new `compose.postgresql.yaml` for the PostgreSQL backend. Model it after the
+  renamed `compose.mysql.yaml` but replace the `mysql` service with a `postgres` service:
 
-  - Add `postgres` to the tracker service's `depends_on` list (alongside `mysql`) so the
-    tracker waits for whichever backend is healthy. Both DB services start; the tracker
-    connects to whichever backend the `TORRUST_TRACKER_CONFIG_OVERRIDE_CORE__DATABASE__DRIVER`
-    env var selects. This is acceptable for a demo / developer compose file.
+  ```yaml
+  postgres:
+    image: postgres:16
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 3s
+      retries: 5
+      start_period: 30s
+    environment:
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=torrust_tracker
+    networks:
+      - server_side
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+  ```
 
-  - Add a `postgres_data` named volume to the `volumes:` section.
+  The tracker service in `compose.postgresql.yaml` should default to
+  `TORRUST_TRACKER_CONFIG_OVERRIDE_CORE__DATABASE__DRIVER=postgresql` and depend on
+  `postgres` only (not `mysql`).
+
+- Add a second `docker compose -f compose.postgresql.yaml build` step to the
+  `container.yaml` workflow so both compose files are validated in CI.
 
 - Update user-facing documentation to document PostgreSQL as a supported backend:
   - `README.md` — add `postgresql` to the list of supported database backends.
@@ -693,11 +728,12 @@ Acceptance criteria:
 - [ ] `share/container/entry_script_sh` has a `postgresql` branch that selects
       `tracker.container.postgresql.toml`; the `else` error message lists all three supported
       backends.
-- [ ] `compose.yaml` has a `postgres` service; the tracker service's `depends_on` includes
-      both `mysql` and `postgres`; a `postgres_data` volume is declared.
-- [ ] `docker compose up` with
-      `TORRUST_TRACKER_CONFIG_OVERRIDE_CORE__DATABASE__DRIVER=postgresql` starts the tracker
-      successfully against the PostgreSQL container.
+- [ ] `compose.yaml` is renamed to `compose.mysql.yaml`; `.github/workflows/container.yaml`
+      uses `-f compose.mysql.yaml`.
+- [ ] `compose.postgresql.yaml` exists with a `postgres` service and a tracker service
+      that defaults to the PostgreSQL driver.
+- [ ] `docker compose -f compose.postgresql.yaml up` starts the tracker successfully
+      against the PostgreSQL container.
 - [ ] The container configuration or its companion documentation (compose file or README)
       creates the `torrust_tracker` database (via `POSTGRES_DB` env var or equivalent) before
       the tracker is started.
@@ -710,8 +746,10 @@ Acceptance criteria:
 
 ## Out of Scope
 
-- Changing consumer wiring from `Arc<Box<dyn Database>>` to narrow trait objects. Deferred
-  until the MSRV reaches 1.76 (trait-object upcasting).
+- Changing the internal driver test helpers (`databases/driver/mod.rs`) from
+  `Arc<Box<dyn Database>>` to narrow trait objects. Production consumers already use
+  narrow traits (`Arc<dyn XxxStore>`) via `DatabaseStores`; the test-helper wiring is
+  an internal concern and can be migrated separately.
 - PostgreSQL-specific performance tuning or connection pool size configuration beyond the
   default `PgPoolOptions` settings.
 - Down migrations (rollback support).
@@ -742,16 +780,16 @@ Acceptance criteria:
       in tests, enabling the compatibility matrix loop.
 - [ ] `run-db-compatibility-matrix.sh` loops over `POSTGRES_VERSIONS` (default:
       `14 15 16 17`).
-- [ ] The qBittorrent E2E runner completes a full download cycle with PostgreSQL.
+- [ ] The qBittorrent E2E runner completes a full download cycle with both MySQL and
+      PostgreSQL (the `--db-driver` flag is added for all three backends).
 - [ ] The benchmark runner produces results for PostgreSQL; `docs/benchmarks/baseline.md`
       is updated.
 - [ ] `share/default/config/tracker.container.postgresql.toml` exists and is valid TOML.
 - [ ] `share/container/entry_script_sh` has a `postgresql` branch; the `else` error message
       lists all three supported backends.
-- [ ] `compose.yaml` has a `postgres` service; the tracker service's `depends_on` includes
-      both `mysql` and `postgres`; `docker compose up` with
-      `TORRUST_TRACKER_CONFIG_OVERRIDE_CORE__DATABASE__DRIVER=postgresql` starts the tracker
-      successfully.
+- [ ] `compose.yaml` is renamed to `compose.mysql.yaml`; `compose.postgresql.yaml` exists;
+      both are validated by `.github/workflows/container.yaml`; `docker compose -f
+compose.postgresql.yaml up` starts the tracker successfully against PostgreSQL.
 - [ ] `project-words.txt` is up to date; `linter cspell` reports no failures.
 - [ ] `README.md` lists PostgreSQL as a supported database backend.
 - [ ] `docs/containers.md` documents how to run the tracker with PostgreSQL and states the
@@ -761,6 +799,177 @@ Acceptance criteria:
 - [ ] `cargo test --workspace --all-targets` passes.
 - [ ] `cargo machete` reports no unused dependencies.
 - [ ] `linter all` exits with code `0`.
+
+## Implementation Questions
+
+The following questions must be answered before starting implementation.
+
+### Q1 — PR scope: single PR or phased?
+
+Do you want everything in this spec implemented in one PR, or split into phases
+(e.g. core driver + migrations first, then QA/E2E/benchmark extensions)?
+
+**Answer**:
+
+I want one PR, but commits must be incremental and logically organized to allow for review in phases.
+Each commit your be deployable (pass the pre-commit checks) and testable independently.
+
+### Q2 — CI scope for this subissue
+
+Should the PostgreSQL compatibility matrix be wired into
+`.github/workflows/testing.yaml` now, or keep CI changes minimal and run
+PostgreSQL checks manually for the first iteration?
+
+**Answer**:
+
+Yes, but that can be one of the independent tasks.
+
+### Q3 — MySQL support in the qBittorrent E2E runner
+
+The spec includes adding `--db-driver mysql` support to the qBittorrent E2E
+runner as part of this subissue (Task 7). Should that stay coupled here, or
+should this subissue deliver PostgreSQL-only E2E and defer MySQL E2E to a
+follow-up?
+
+**Answer**:
+
+MySQL E2E was already added (confirmed). We have to add PostgreSQL to the E2E runner.
+This can be an independent commit. Task 7 will add both `--db-driver` support and the
+PostgreSQL E2E integration.
+
+### Q4 — Benchmark artifacts in this branch
+
+Should fresh benchmark results for PostgreSQL be generated and committed in
+this same branch, or deferred until the driver is stable and a follow-up run
+is done?
+
+**Answer**:
+
+Yes, after finishing the implementation and verifying the driver works, we can run benchmarks and update the baseline in the same branch. Again this can be another independent commit.
+
+### Q5 — `compose.yaml` database service strategy
+
+The spec says the tracker `depends_on` both `mysql` and `postgres` so both DB
+services start regardless of which driver is selected. Alternatively, services
+could be profile-based so only the selected backend starts. Which do you
+prefer?
+
+**Answer**:
+
+Confirmed: the spec is correct. Rename `compose.yaml` → `compose.mysql.yaml`, add
+`compose.postgresql.yaml` with the PostgreSQL service (tracker depends on `postgres` only),
+and update `.github/workflows/container.yaml` to validate both files. This can be implemented
+as part of Task 9 (containers and documentation updates).
+
+### Q6 — PostgreSQL driver test: testcontainers vs external URL
+
+The spec supports both a pre-existing PostgreSQL instance (via
+`TORRUST_TRACKER_CORE_POSTGRES_DRIVER_URL`) and a testcontainers container.
+Is this two-mode approach correct, or should the test always start a container
+(matching the MySQL driver test pattern)?
+
+**Answer**:
+
+Match the MySQL driver test pattern: testcontainers only, no external-URL fallback.
+This ensures consistent, isolated test environments across all three backends.
+
+### Q7 — Reference implementation alignment
+
+Should implementation prioritize parity with the reference branch
+(`josecelano:pr-1684-review`) or prioritize the smallest clean diff against
+the current refactored codebase, even where that diverges from the reference?
+
+**Answer**:
+
+Not at all. The reference implementation is a guide, not a spec. The implementation should prioritize the cleanest solution, even if that means diverging from the reference in some places. The reference may contain code that is no longer relevant or optimal in the context of the refactored codebase, and blindly following it could lead to unnecessary complexity or technical debt. By clean solutions, I mean solutions that are well-structured, maintainable, testable,and fit well with the existing codebase, even if they differ from the reference implementation.
+
+### Q8 — Implementation pace in this session
+
+After all answers are provided, should implementation proceed immediately and
+run through lint/tests in the same session without pausing for interim review?
+
+**Answer**:
+
+No. Read replies, update spec, analyze code readiness, then begin implementation.
+All commits must be incremental, deployable, and logically organized.
+
+---
+
+## Implementation Summary
+
+Based on the answers above, the work will be delivered as **one PR with independent,
+incremental commits** organized in the following phases:
+
+### Phase 1: Core driver (Tasks 1–6)
+
+These tasks establish the PostgreSQL driver fundamentals and must be completed first.
+Each can be committed independently once it passes `linter all` and `cargo test`.
+
+- **Task 1**: Add `Driver::PostgreSQL` to configuration package
+- **Task 2**: Add `Driver::PostgreSQL` variant to internal driver enum and `build()` factory
+- **Task 3**: Implement `packages/tracker-core/src/databases/driver/postgres/mod.rs` (schema,
+  pools, traits)
+- **Task 4**: Add migration files for PostgreSQL
+- **Task 5**: Extend `packages/tracker-core/Cargo.toml` with `postgres` feature and
+  implement the driver tests
+- **Task 6**: Extend the persistence benchmark runner (`BenchmarkResource::Postgres`)
+
+### Phase 2: Extended integration (Tasks 7–9)
+
+These tasks integrate PostgreSQL across the E2E harness, containers, and documentation.
+Each can be a separate commit once Phase 1 is complete.
+
+- **Task 7**: Add `--db-driver` flag and PostgreSQL support to the qBittorrent E2E runner
+- **Task 8**: Extend `.github/workflows/testing.yaml` with PostgreSQL compatibility matrix
+- **Task 9**: Add container configs, update `entry_script_sh`, rename/add compose files,
+  update workflows and documentation
+
+### Phase 3: Verification (Task 10 — implicit)
+
+After all commits, run benchmarks and update baseline artifacts in a final commit.
+
+### Task dependencies
+
+**No hard blockers between phases.** Phase 1 tasks can run in parallel for code review
+(all changes are scoped). Phase 2 tasks depend only on Phase 1 being complete. Benchmarks
+(Phase 3) run last for data freshness.
+
+## Progress Update (2026-05-01)
+
+Status by task (based on commits currently on this branch):
+
+- [x] Task 1: configuration `Driver::PostgreSQL` + URL secret masking.
+- [x] Task 2: `sqlx` postgres feature + PostgreSQL migration set.
+- [x] Task 3: PostgreSQL driver implementation.
+- [x] Task 4: factory/setup wiring for PostgreSQL.
+- [x] Task 5: PostgreSQL driver tests.
+- [x] Task 6: compatibility matrix extended with PostgreSQL versions.
+- [x] Task 7: qBittorrent E2E runner extended for MySQL/PostgreSQL.
+- [x] Task 8: benchmark runner extended with PostgreSQL and first benchmark run committed.
+- [x] Task 9: container compose strategy and user-facing container docs updates.
+
+Recent milestone commits:
+
+- `a0f9c001` — PostgreSQL database driver.
+- `15af1e07` — PostgreSQL key timestamp fix.
+- `54210f3f` — PostgreSQL compatibility job.
+- `74f5c8a9` — qBittorrent E2E runner MySQL/PostgreSQL extension.
+- `e0d0a872` — benchmark runner PostgreSQL startup/wait fix.
+- `aee2efbe` — benchmark artifacts and report for `2026-05-01`.
+- `248df3d9` — container compose validation uses isolated temp paths.
+- `b0a654ee` — legacy `compose.yaml` removed and compose references aligned.
+- `3ef07071` — README and containers guide updated for PostgreSQL runtime usage.
+
+Scope note for Task 8:
+
+- The benchmark integration in this branch uses the Rust benchmark runner in
+  `packages/tracker-core` with containerized DB lifecycle managed from the runner/test harness,
+  and stores artifacts under `packages/tracker-core/docs/benchmarking/`.
+
+Task 9 implementation note:
+
+- The container validation workflow now uses the qBittorrent E2E compose files and isolated
+  temporary paths, instead of the legacy root `compose.yaml` stack.
 
 ## References
 

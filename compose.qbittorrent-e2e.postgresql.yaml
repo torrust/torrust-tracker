@@ -1,0 +1,85 @@
+name: qbittorrent-e2e
+
+services:
+  tracker:
+    build:
+      context: .
+      dockerfile: Containerfile
+      target: release
+    image: ${QBT_E2E_TRACKER_IMAGE:?QBT_E2E_TRACKER_IMAGE is required}
+    restart: "no"
+    environment:
+      TORRUST_TRACKER_CONFIG_OVERRIDE_CORE__DATABASE__DRIVER: postgresql
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - type: bind
+        source: ${QBT_E2E_TRACKER_CONFIG_PATH:?QBT_E2E_TRACKER_CONFIG_PATH is required}
+        target: /etc/torrust/tracker/tracker.toml
+        read_only: true
+      - type: bind
+        source: ${QBT_E2E_TRACKER_STORAGE_PATH:?QBT_E2E_TRACKER_STORAGE_PATH is required}
+        target: /var/lib/torrust/tracker
+    ports:
+      - "0:${QBT_E2E_TRACKER_HTTP_TRACKER_PORT:?QBT_E2E_TRACKER_HTTP_TRACKER_PORT is required}"
+      - "0:${QBT_E2E_TRACKER_UDP_PORT:?QBT_E2E_TRACKER_UDP_PORT is required}/udp"
+      - "0:${QBT_E2E_TRACKER_HTTP_API_PORT:?QBT_E2E_TRACKER_HTTP_API_PORT is required}"
+      - "0:${QBT_E2E_TRACKER_HEALTH_CHECK_API_PORT:?QBT_E2E_TRACKER_HEALTH_CHECK_API_PORT is required}"
+
+  postgres:
+    image: postgres:17
+    restart: "no"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d torrust_tracker"]
+      interval: 3s
+      retries: 20
+      start_period: 10s
+    environment:
+      POSTGRES_DB: torrust_tracker
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: postgres
+
+  qbittorrent-seeder:
+    image: ${QBT_E2E_QBITTORRENT_IMAGE:?QBT_E2E_QBITTORRENT_IMAGE is required}
+    restart: "no"
+    environment:
+      WEBUI_PORT: "8080"
+      PUID: "1000"
+      PGID: "1000"
+      TZ: "UTC"
+      QBT_LEGAL_NOTICE: "confirm"
+    volumes:
+      - type: bind
+        source: ${QBT_E2E_SEEDER_CONFIG_PATH:?QBT_E2E_SEEDER_CONFIG_PATH is required}
+        target: /config
+      - type: bind
+        source: ${QBT_E2E_SEEDER_DOWNLOADS_PATH:?QBT_E2E_SEEDER_DOWNLOADS_PATH is required}
+        target: /downloads
+      - type: bind
+        source: ${QBT_E2E_SHARED_PATH:?QBT_E2E_SHARED_PATH is required}
+        target: /shared
+    ports:
+      - "0:8080"
+
+  qbittorrent-leecher:
+    image: ${QBT_E2E_QBITTORRENT_IMAGE:?QBT_E2E_QBITTORRENT_IMAGE is required}
+    restart: "no"
+    environment:
+      WEBUI_PORT: "8080"
+      PUID: "1000"
+      PGID: "1000"
+      TZ: "UTC"
+      QBT_LEGAL_NOTICE: "confirm"
+    volumes:
+      - type: bind
+        source: ${QBT_E2E_LEECHER_CONFIG_PATH:?QBT_E2E_LEECHER_CONFIG_PATH is required}
+        target: /config
+      - type: bind
+        source: ${QBT_E2E_LEECHER_DOWNLOADS_PATH:?QBT_E2E_LEECHER_DOWNLOADS_PATH is required}
+        target: /downloads
+      - type: bind
+        source: ${QBT_E2E_SHARED_PATH:?QBT_E2E_SHARED_PATH is required}
+        target: /shared
+    ports:
+      - "0:8080"

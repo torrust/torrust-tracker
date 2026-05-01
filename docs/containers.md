@@ -149,13 +149,26 @@ The following environmental variables can be set:
 
 - `TORRUST_TRACKER_CONFIG_TOML_PATH` - The in-container path to the tracker configuration file, (default: `"/etc/torrust/tracker/tracker.toml"`).
 - `TORRUST_TRACKER_CONFIG_OVERRIDE_HTTP_API__ACCESS_TOKENS__ADMIN` - Override of the admin token. If set, this value overrides any value set in the config.
-- `TORRUST_TRACKER_CONFIG_OVERRIDE_CORE__DATABASE__DRIVER` - The database type used for the container, (options: `sqlite3`, `mysql`, default `sqlite3`). Please Note: This dose not override the database configuration within the `.toml` config file.
+- `TORRUST_TRACKER_CONFIG_OVERRIDE_CORE__DATABASE__DRIVER` - The database type used for the container, (options: `sqlite3`, `mysql`, `postgresql`, default `sqlite3`). Please Note: This dose not override the database configuration within the `.toml` config file.
 - `TORRUST_TRACKER_CONFIG_TOML` - Load config from this environmental variable instead from a file, (i.e: `TORRUST_TRACKER_CONFIG_TOML=$(cat tracker-tracker.toml)`).
 - `USER_ID` - The user id for the runtime crated `torrust` user. Please Note: This user id should match the ownership of the host-mapped volumes, (default `1000`).
 - `UDP_PORT` - The port for the UDP tracker. This should match the port used in the configuration, (default `6969`).
 - `HTTP_PORT` - The port for the HTTP tracker. This should match the port used in the configuration, (default `7070`).
 - `API_PORT` - The port for the tracker API. This should match the port used in the configuration, (default `1212`).
 - `HEALTH_CHECK_API_PORT` - The port for the Health Check API. This should match the port used in the configuration, (default `1313`).
+
+#### PostgreSQL backend notes
+
+To run the tracker with PostgreSQL in containers:
+
+- Set `TORRUST_TRACKER_CONFIG_OVERRIDE_CORE__DATABASE__DRIVER=postgresql`.
+- Use the default PostgreSQL container configuration file:
+  `share/default/config/tracker.container.postgresql.toml`.
+- Ensure the target database exists before tracker startup.
+  The default PostgreSQL DSN in the container config expects `torrust_tracker`.
+
+When using a PostgreSQL container, set `POSTGRES_DB=torrust_tracker` (or create the
+same database explicitly) so the tracker can connect at startup.
 
 ### Sockets
 

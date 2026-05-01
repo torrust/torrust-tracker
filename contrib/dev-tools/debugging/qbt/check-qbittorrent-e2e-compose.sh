@@ -5,7 +5,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../../../.." && pwd)"
 
-COMPOSE_FILE="$REPO_ROOT/compose.qbittorrent-e2e.yaml"
+COMPOSE_FILE="$REPO_ROOT/compose.qbittorrent-e2e.sqlite3.yaml"
 TRACKER_IMAGE="torrust-tracker:qbt-e2e-local"
 QBITTORRENT_IMAGE="lscr.io/linuxserver/qbittorrent:5.1.4"
 PROJECT_NAME="qbt-e2e-composecheck-$(date +%s)"

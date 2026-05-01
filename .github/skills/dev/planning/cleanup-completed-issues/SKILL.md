@@ -1,33 +1,36 @@
 ---
 name: cleanup-completed-issues
-description: Guide for cleaning up completed and closed issues in the torrust-tracker project. Covers removing issue documentation files from docs/issues/ and committing the cleanup. Supports single issue cleanup or batch cleanup. Use when cleaning up closed issues, removing issue docs, or maintaining the docs/issues/ folder. Triggers on "cleanup issue", "remove issue", "clean completed issues", "delete closed issue", or "maintain issue docs".
+description: Guide for cleaning up completed and closed issues in the torrust-tracker project. Covers moving closed issue documentation files from docs/issues/ to docs/issues/closed/ and eventually deleting them. Supports single issue cleanup or batch cleanup. Use when cleaning up closed issues, archiving issue docs, or maintaining the docs/issues/ folder. Triggers on "cleanup issue", "archive issue", "move closed issue", "clean completed issues", "delete closed issue", or "maintain issue docs".
 metadata:
   author: torrust
-  version: "1.0"
+  version: "1.1"
 ---
 
 # Cleaning Up Completed Issues
 
-## When to Clean Up
+## Two-Stage Lifecycle
 
-- **After PR merge**: Remove the issue file when its PR is merged
-- **Batch cleanup**: Periodically clean up multiple closed issues during maintenance
-- **Before releases**: Tidy documentation before major releases
+Closed issue specs are **not deleted immediately**. They go through a two-stage lifecycle:
 
-## Cleanup Approaches
+1. **Stage 1 — Archive**: When an issue is closed, move its spec file from `docs/issues/` to
+   `docs/issues/closed/`. The file stays here as a reference buffer while adjacent issues are
+   still in progress.
+2. **Stage 2 — Delete**: Once the spec is no longer referenced by active work (typically after
+   the next one or two related issues are also closed), delete it permanently.
 
-### Option 1: Single Issue Cleanup (Recommended)
+See [`docs/issues/closed/README.md`](../../../../docs/issues/closed/README.md) for the purpose
+of the buffer folder.
 
-1. Verify the issue is closed on GitHub
-2. Remove the issue file from `docs/issues/`
-3. Commit and push changes
+## When to Archive (Stage 1)
 
-### Option 2: Batch Cleanup
+- **After PR merge**: Move the issue file when its PR is merged and the issue is closed.
+- **Batch archive**: Periodically move multiple closed issue files during maintenance.
+- **Before releases**: Tidy `docs/issues/` before major releases.
 
-1. List all issue files in `docs/issues/`
-2. Check status of each issue on GitHub
-3. Remove all closed issue files
-4. Commit and push with a descriptive message
+## When to Delete (Stage 2)
+
+- The spec is no longer referenced by any open issue or active work.
+- The related issue series has progressed far enough that the context is no longer needed.
 
 ## Step-by-Step Process
 
@@ -36,7 +39,7 @@ metadata:
 **Single issue:**
 
 ```bash
-gh issue view {issue-number} --json state --jq .state
+gh issue view {issue-number} --repo torrust/torrust-tracker --json state --jq .state
 ```
 
 Expected: `CLOSED`
@@ -45,44 +48,46 @@ Expected: `CLOSED`
 
 ```bash
 for issue in 21 22 23 24; do
-  state=$(gh issue view "$issue" --json state --jq .state 2>/dev/null || echo "NOT_FOUND")
-  echo "$issue:$state"
+  state=$(gh issue view "$issue" --repo torrust/torrust-tracker --json state --jq .state 2>/dev/null || echo "NOT_FOUND")
+  echo "$issue: $state"
 done
 ```
 
-### Step 2: Remove Issue Documentation File
+### Step 2: Move Issue File to `docs/issues/closed/`
 
 ```bash
 # Single issue
-git rm docs/issues/42-add-peer-expiry-grace-period.md
+git mv docs/issues/42-add-peer-expiry-grace-period.md docs/issues/closed/
 
 # Batch
-git rm docs/issues/21-some-old-issue.md \
-       docs/issues/22-another-old-issue.md
+git mv docs/issues/21-some-old-issue.md \
+       docs/issues/22-another-old-issue.md \
+       docs/issues/closed/
 ```
 
 ### Step 3: Commit and Push
 
 ```bash
 # Single issue
-git commit -S -m "chore(issues): remove closed issue #42 documentation"
+git commit -S -m "chore(issues): archive closed issue #42 spec to docs/issues/closed"
 
 # Batch
-git commit -S -m "chore(issues): remove documentation for closed issues #21, #22, #23"
+git commit -S -m "chore(issues): archive closed issue specs #21, #22, #23 to docs/issues/closed"
 
 git push {your-fork-remote} {branch}
 ```
 
-## Determining If an Issue File Should Stay
+### Step 4 (Stage 2): Delete When No Longer Needed
 
-Keep issue files when:
+```bash
+git rm docs/issues/closed/42-add-peer-expiry-grace-period.md
+git commit -S -m "chore(issues): remove closed issue #42 spec (no longer referenced)"
+```
 
-- The issue is still open
-- The PR is open (still being worked on)
-- The specification is referenced from other active docs
+## Determining File Placement
 
-Remove issue files when:
-
-- The issue is **closed**
-- The implementing PR is **merged**
-- The file is no longer referenced by active work
+| Condition                               | Action                        |
+| --------------------------------------- | ----------------------------- |
+| Issue still open                        | Keep in `docs/issues/`        |
+| Issue closed, related work still active | Move to `docs/issues/closed/` |
+| Issue closed, no longer referenced      | Delete permanently            |

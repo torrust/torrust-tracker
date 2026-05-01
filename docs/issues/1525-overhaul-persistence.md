@@ -130,7 +130,7 @@ You can then browse or search it while working in the main repository.
 
 ### 8) Add PostgreSQL driver support
 
-- Spec file: `docs/issues/1525-08-add-postgresql-driver.md`
+- Spec file: `docs/issues/1723-1525-08-add-postgresql-driver.md`
 - Outcome: PostgreSQL support lands on top of the refactored and migration-backed persistence
   layer; PostgreSQL is added to the compatibility matrix (subissue 1) and qBittorrent E2E
   (subissue 2) test harnesses

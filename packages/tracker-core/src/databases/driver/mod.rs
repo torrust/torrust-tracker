@@ -22,6 +22,8 @@ pub enum Driver {
     Sqlite3,
     /// The `MySQL` database driver.
     MySQL,
+    /// The `PostgreSQL` database driver.
+    PostgreSQL,
 }
 
 impl Driver {
@@ -31,6 +33,7 @@ impl Driver {
         match self {
             Self::Sqlite3 => "sqlite3",
             Self::MySQL => "mysql",
+            Self::PostgreSQL => "postgresql",
         }
     }
 }
@@ -42,12 +45,14 @@ impl FromStr for Driver {
         match value {
             "sqlite3" => Ok(Self::Sqlite3),
             "mysql" => Ok(Self::MySQL),
-            _ => Err("driver must be one of: sqlite3, mysql".to_string()),
+            "postgresql" => Ok(Self::PostgreSQL),
+            _ => Err("driver must be one of: sqlite3, mysql, postgresql".to_string()),
         }
     }
 }
 
 pub mod mysql;
+pub mod postgres;
 pub mod sqlite;
 
 #[cfg(test)]

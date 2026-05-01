@@ -243,7 +243,7 @@ These tests extend the existing driver `#[cfg(test)]` modules.
 - EPIC: `#1525`
 - Subissue `1525-06`: `docs/issues/1719-1525-06-introduce-schema-migrations.md` — must be completed
   first (provides the migration framework)
-- Subissue `1525-08`: `docs/issues/1525-08-add-postgresql-driver.md` — adds PostgreSQL
+- Subissue `1525-08`: `docs/issues/1723-1525-08-add-postgresql-driver.md` — adds PostgreSQL
   migration files including the history-aligned no-op for this migration
 - Subissue `1525-03`: `docs/issues/1525-03-persistence-benchmarking.md` — benchmark baseline
 - Reference implementation branch: `josecelano:pr-1684-review` — see EPIC for checkout
