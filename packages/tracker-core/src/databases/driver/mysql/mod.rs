@@ -103,6 +103,7 @@ mod tests {
     use super::Mysql;
     use crate::databases::driver::tests::run_tests;
     use crate::databases::traits::Database;
+    use crate::test_helpers::tests::random_info_hash;
 
     #[derive(Debug, Default)]
     struct StoppedMysqlContainer {}
@@ -241,7 +242,36 @@ mod tests {
             .fetch_one(&raw_pool)
             .await
             .expect("count _sqlx_migrations");
-        assert_eq!(recorded, 3, "all three legacy migrations should be fake-applied");
+        assert_eq!(
+            recorded, 4,
+            "all migrations should be recorded after bootstrap + migrator run"
+        );
+
+        assert_mysql_column_type(&raw_pool, "torrents", "completed", "bigint").await;
+        assert_mysql_column_type(&raw_pool, "torrent_aggregate_metrics", "value", "bigint").await;
+
+        let above_i32_max = 2_200_000_000_u32;
+        let info_hash = random_info_hash();
+
+        driver
+            .save_torrent_downloads(&info_hash, above_i32_max)
+            .await
+            .expect("save torrent downloads above i32::MAX should succeed");
+        let loaded_torrent_downloads = driver
+            .load_torrent_downloads(&info_hash)
+            .await
+            .expect("load torrent downloads above i32::MAX should succeed");
+        assert_eq!(loaded_torrent_downloads, Some(above_i32_max));
+
+        driver
+            .save_global_downloads(above_i32_max)
+            .await
+            .expect("save global downloads above i32::MAX should succeed");
+        let loaded_global_downloads = driver
+            .load_global_downloads()
+            .await
+            .expect("load global downloads above i32::MAX should succeed");
+        assert_eq!(loaded_global_downloads, Some(above_i32_max));
 
         // Partial-state rejection: only two of four legacy tables present.
         driver
@@ -296,5 +326,20 @@ mod tests {
         ] {
             ::sqlx::query(stmt).execute(pool).await.expect("legacy DDL");
         }
+    }
+
+    async fn assert_mysql_column_type(pool: &::sqlx::MySqlPool, table: &str, column: &str, expected_type: &str) {
+        let data_type_bytes: Vec<u8> = ::sqlx::query_scalar(
+            "SELECT DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?",
+        )
+        .bind(table)
+        .bind(column)
+        .fetch_one(pool)
+        .await
+        .expect("column type query should succeed");
+
+        let data_type = String::from_utf8_lossy(&data_type_bytes).to_lowercase();
+
+        assert_eq!(data_type, expected_type, "{table}.{column} should be {expected_type}");
     }
 }

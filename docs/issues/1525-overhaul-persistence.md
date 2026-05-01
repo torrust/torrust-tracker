@@ -124,7 +124,7 @@ You can then browse or search it while working in the main repository.
 
 ### 7) Align persisted counters and Rust/SQL type boundaries
 
-- Spec file: `docs/issues/1525-07-align-rust-and-db-types.md`
+- Spec file: `docs/issues/1721-1525-07-align-rust-and-db-types.md`
 - Outcome: explicit contract for persisted counters and numeric ranges, with any needed schema
   changes delivered through migrations
 
