@@ -1,0 +1,69 @@
+name: Database Compatibility
+
+on:
+  push:
+  pull_request:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  database-compatibility-mysql:
+    name: Database Compatibility MySQL (${{ matrix.mysql-version }})
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        mysql-version: ["8.0", "8.4"]
+
+    steps:
+      - id: checkout
+        name: Checkout Repository
+        uses: actions/checkout@v6
+
+      - id: setup
+        name: Setup Toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+
+      - id: cache
+        name: Enable Job Cache
+        uses: Swatinem/rust-cache@v2
+
+      - id: database
+        name: Run Database Compatibility Test
+        env:
+          TORRUST_TRACKER_CORE_RUN_MYSQL_DRIVER_TEST: "true"
+          TORRUST_TRACKER_CORE_MYSQL_DRIVER_IMAGE_TAG: ${{ matrix.mysql-version }}
+        run: cargo test -p bittorrent-tracker-core --features db-compatibility-tests run_mysql_driver_tests -- --nocapture
+
+  database-compatibility-postgres:
+    name: Database Compatibility PostgreSQL (${{ matrix.postgres-version }})
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        postgres-version: ["15", "16", "17"]
+
+    steps:
+      - id: checkout
+        name: Checkout Repository
+        uses: actions/checkout@v6
+
+      - id: setup
+        name: Setup Toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+
+      - id: cache
+        name: Enable Job Cache
+        uses: Swatinem/rust-cache@v2
+
+      - id: database
+        name: Run Database Compatibility Test
+        env:
+          TORRUST_TRACKER_CORE_RUN_POSTGRES_DRIVER_TEST: "true"
+          TORRUST_TRACKER_CORE_POSTGRES_DRIVER_IMAGE_TAG: ${{ matrix.postgres-version }}
+        run: cargo test -p bittorrent-tracker-core --features db-compatibility-tests run_postgres_driver_tests -- --nocapture
