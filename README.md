@@ -17,7 +17,7 @@
 - [x] Private & Whitelisted mode.
 - [x] Tracker Management API.
 - [x] Support [newTrackon][newtrackon] checks.
-- [x] Persistent `SQLite3` or `MySQL` Databases.
+- [x] Persistent `SQLite3`, `MySQL`, or `PostgreSQL` Databases.
 
 ## Tracker Demo
 
@@ -46,7 +46,7 @@ Core:
 
 Persistence:
 
-- [ ] Support other databases like PostgreSQL.
+- [ ] Support additional persistence backends.
 
 Performance:
 
