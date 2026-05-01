@@ -7,6 +7,7 @@ use std::sync::Arc;
 use torrust_tracker_configuration::Core;
 
 use super::driver::mysql::Mysql;
+use super::driver::postgres::Postgres;
 use super::driver::sqlite::Sqlite;
 use super::driver::Driver;
 use super::traits::{AuthKeyStore, SchemaMigrator, TorrentMetricsStore, WhitelistStore};
@@ -91,6 +92,7 @@ pub async fn initialize_database(config: &Core) -> DatabaseStores {
     let driver = match config.database.driver {
         torrust_tracker_configuration::Driver::Sqlite3 => Driver::Sqlite3,
         torrust_tracker_configuration::Driver::MySQL => Driver::MySQL,
+        torrust_tracker_configuration::Driver::PostgreSQL => Driver::PostgreSQL,
     };
 
     match driver {
@@ -101,6 +103,11 @@ pub async fn initialize_database(config: &Core) -> DatabaseStores {
         }
         Driver::MySQL => {
             let db = Arc::new(Mysql::new(&config.database.path).expect("Database driver build failed."));
+            db.create_database_tables().await.expect("Could not create database tables.");
+            build_database_stores(db)
+        }
+        Driver::PostgreSQL => {
+            let db = Arc::new(Postgres::new(&config.database.path).expect("Database driver build failed."));
             db.create_database_tables().await.expect("Could not create database tables.");
             build_database_stores(db)
         }

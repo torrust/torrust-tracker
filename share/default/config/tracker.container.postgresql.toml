@@ -1,0 +1,32 @@
+[metadata]
+app = "torrust-tracker"
+purpose = "configuration"
+schema_version = "2.0.0"
+
+[logging]
+threshold = "info"
+
+[core]
+listed = false
+private = false
+
+[core.database]
+driver = "postgresql"
+# If the PostgreSQL password includes reserved URL characters (for example + or /),
+# percent-encode it in the DSN password component.
+# Example: password a+b/c -> a%2Bb%2Fc
+path = "postgresql://postgres:postgres@postgres:5432/torrust_tracker"
+
+# Uncomment to enable services
+
+#[[udp_trackers]]
+#bind_address = "0.0.0.0:6969"
+
+#[[http_trackers]]
+#bind_address = "0.0.0.0:7070"
+
+#[http_api]
+#bind_address = "0.0.0.0:1212"
+
+#[http_api.access_tokens]
+#admin = "MyAccessToken"

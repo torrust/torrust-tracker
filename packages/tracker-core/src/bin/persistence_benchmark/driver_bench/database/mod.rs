@@ -8,6 +8,7 @@ use bittorrent_tracker_core::databases::SchemaMigrator;
 use testcontainers::{ContainerAsync, GenericImage};
 
 mod mysql;
+mod postgres;
 mod sqlite;
 
 pub(super) struct ActiveDatabase {
@@ -18,6 +19,7 @@ pub(super) struct ActiveDatabase {
 enum BenchmarkResource {
     Sqlite(PathBuf),
     Mysql(Box<ContainerAsync<GenericImage>>),
+    Postgres(Box<ContainerAsync<GenericImage>>),
 }
 
 impl ActiveDatabase {
@@ -29,12 +31,13 @@ impl ActiveDatabase {
     ///
     /// # Errors
     ///
-    /// Returns an error if the `MySQL` container cannot be started or queried for
+    /// Returns an error if the `MySQL` or `PostgreSQL` container cannot be started or queried for
     /// connection details.
     pub(super) async fn new(driver: Driver, db_version: &str) -> Result<Self> {
         match driver {
             Driver::Sqlite3 => Ok(sqlite::initialize().await),
             Driver::MySQL => mysql::initialize(db_version).await,
+            Driver::PostgreSQL => postgres::initialize(db_version).await,
         }
     }
 }
@@ -48,7 +51,7 @@ impl Drop for ActiveDatabase {
             Some(BenchmarkResource::Sqlite(path)) => {
                 let _removed_file_result = std::fs::remove_file(path);
             }
-            Some(BenchmarkResource::Mysql(container)) => {
+            Some(BenchmarkResource::Mysql(container) | BenchmarkResource::Postgres(container)) => {
                 drop(container);
             }
             None => {}

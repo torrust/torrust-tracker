@@ -17,7 +17,7 @@ pub fn build_report(
 ) -> report::BenchReport {
     let normalized_db_version = match driver {
         Driver::Sqlite3 => "-".to_string(),
-        Driver::MySQL => db_version.to_string(),
+        Driver::MySQL | Driver::PostgreSQL => db_version.to_string(),
     };
 
     let meta = report::ReportMeta::from_run_context(driver.as_str(), &normalized_db_version, ops, timings_ms);

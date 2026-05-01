@@ -5,7 +5,7 @@ use url::Url;
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone)]
 pub struct Database {
     // Database configuration
-    /// Database driver. Possible values are: `sqlite3`, and `mysql`.
+    /// Database driver. Possible values are: `sqlite3`, `mysql`, and `postgresql`.
     #[serde(default = "Database::default_driver")]
     pub driver: Driver,
 
@@ -14,6 +14,8 @@ pub struct Database {
     /// `./storage/tracker/lib/database/sqlite3.db`.
     /// For `mysql`, the format is `mysql://db_user:db_user_password@host:port/db_name`, for
     /// example: `mysql://root:password@localhost:3306/torrust`.
+    /// For `postgresql`, the format is `postgresql://db_user:db_user_password@host:port/db_name`,
+    /// for example: `postgresql://postgres:password@localhost:5432/torrust`.
     /// If the password contains reserved URL characters (for example `+` or `/`),
     /// percent-encode it in the URL.
     #[serde(default = "Database::default_path")]
@@ -42,14 +44,14 @@ impl Database {
     ///
     /// # Panics
     ///
-    /// Will panic if the database path for `MySQL` is not a valid URL.
+    /// Will panic if the database path for `MySQL` or `PostgreSQL` is not a valid URL.
     pub fn mask_secrets(&mut self) {
         match self.driver {
             Driver::Sqlite3 => {
                 // Nothing to mask
             }
-            Driver::MySQL => {
-                let mut url = Url::parse(&self.path).expect("path for MySQL driver should be a valid URL");
+            Driver::MySQL | Driver::PostgreSQL => {
+                let mut url = Url::parse(&self.path).expect("path for MySQL/PostgreSQL driver should be a valid URL");
                 url.set_password(Some("***")).expect("url password should be changed");
                 self.path = url.to_string();
             }
@@ -65,6 +67,8 @@ pub enum Driver {
     Sqlite3,
     /// The `MySQL` database driver.
     MySQL,
+    /// The `PostgreSQL` database driver.
+    PostgreSQL,
 }
 
 #[cfg(test)]
@@ -82,5 +86,17 @@ mod tests {
         database.mask_secrets();
 
         assert_eq!(database.path, "mysql://root:***@localhost:3306/torrust".to_string());
+    }
+
+    #[test]
+    fn it_should_allow_masking_the_postgresql_user_password() {
+        let mut database = Database {
+            driver: Driver::PostgreSQL,
+            path: "postgresql://postgres:password@localhost:5432/torrust".to_string(),
+        };
+
+        database.mask_secrets();
+
+        assert_eq!(database.path, "postgresql://postgres:***@localhost:5432/torrust".to_string());
     }
 }
