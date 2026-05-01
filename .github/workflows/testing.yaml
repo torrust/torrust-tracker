@@ -8,8 +8,8 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  test:
-    name: Test (${{ matrix.toolchain }})
+  unit:
+    name: Unit (${{ matrix.toolchain }})
     runs-on: ubuntu-latest
     timeout-minutes: ${{ matrix.timeout_minutes }}
 
@@ -20,12 +20,10 @@ jobs:
             components: rustfmt, clippy, llvm-tools-preview
             timeout_minutes: 45
             run_format: true
-            run_qbittorrent_e2e: false
           - toolchain: stable
             components: clippy, llvm-tools-preview
             timeout_minutes: 90
             run_format: false
-            run_qbittorrent_e2e: true
 
     steps:
       - id: checkout
@@ -80,21 +78,42 @@ jobs:
         name: Run Unit Tests
         run: cargo test --tests --benches --examples --workspace --all-targets --all-features
 
+  docker-e2e:
+    name: Docker E2E
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+
+    steps:
+      - id: checkout
+        name: Checkout Repository
+        uses: actions/checkout@v6
+
+      - id: setup
+        name: Setup Toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+
+      - id: cache
+        name: Enable Job Cache
+        uses: Swatinem/rust-cache@v2
+
+      - id: fetch
+        name: Download Dependencies
+        run: cargo fetch --verbose
+
       - id: run-tracker-e2e-tests
         name: Run E2E Tests
         run: cargo run --bin e2e_tests_runner -- --config-toml-path "./share/default/config/tracker.e2e.container.sqlite3.toml"
 
-      - id: run-qbittorrent-e2e-test
+      - id: run-qbittorrent-e2e-test-sqlite3
         name: Run qBittorrent E2E Test (SQLite)
-        if: ${{ matrix.run_qbittorrent_e2e }}
         run: cargo run --bin qbittorrent_e2e_runner -- --db-driver sqlite3 --timeout-seconds 600
 
       - id: run-qbittorrent-e2e-test-mysql
         name: Run qBittorrent E2E Test (MySQL)
-        if: ${{ matrix.run_qbittorrent_e2e }}
         run: cargo run --bin qbittorrent_e2e_runner -- --db-driver mysql --timeout-seconds 600
 
       - id: run-qbittorrent-e2e-test-postgresql
         name: Run qBittorrent E2E Test (PostgreSQL)
-        if: ${{ matrix.run_qbittorrent_e2e }}
         run: cargo run --bin qbittorrent_e2e_runner -- --db-driver postgresql --timeout-seconds 600
