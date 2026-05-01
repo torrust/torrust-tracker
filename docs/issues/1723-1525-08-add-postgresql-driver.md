@@ -789,7 +789,7 @@ Acceptance criteria:
       lists all three supported backends.
 - [ ] `compose.yaml` is renamed to `compose.mysql.yaml`; `compose.postgresql.yaml` exists;
       both are validated by `.github/workflows/container.yaml`; `docker compose -f
-  compose.postgresql.yaml up` starts the tracker successfully against PostgreSQL.
+compose.postgresql.yaml up` starts the tracker successfully against PostgreSQL.
 - [ ] `project-words.txt` is up to date; `linter cspell` reports no failures.
 - [ ] `README.md` lists PostgreSQL as a supported database backend.
 - [ ] `docs/containers.md` documents how to run the tracker with PostgreSQL and states the
@@ -933,6 +933,43 @@ After all commits, run benchmarks and update baseline artifacts in a final commi
 **No hard blockers between phases.** Phase 1 tasks can run in parallel for code review
 (all changes are scoped). Phase 2 tasks depend only on Phase 1 being complete. Benchmarks
 (Phase 3) run last for data freshness.
+
+## Progress Update (2026-05-01)
+
+Status by task (based on commits currently on this branch):
+
+- [x] Task 1: configuration `Driver::PostgreSQL` + URL secret masking.
+- [x] Task 2: `sqlx` postgres feature + PostgreSQL migration set.
+- [x] Task 3: PostgreSQL driver implementation.
+- [x] Task 4: factory/setup wiring for PostgreSQL.
+- [x] Task 5: PostgreSQL driver tests.
+- [x] Task 6: compatibility matrix extended with PostgreSQL versions.
+- [x] Task 7: qBittorrent E2E runner extended for MySQL/PostgreSQL.
+- [x] Task 8: benchmark runner extended with PostgreSQL and first benchmark run committed.
+- [x] Task 9: container compose strategy and user-facing container docs updates.
+
+Recent milestone commits:
+
+- `a0f9c001` — PostgreSQL database driver.
+- `15af1e07` — PostgreSQL key timestamp fix.
+- `54210f3f` — PostgreSQL compatibility job.
+- `74f5c8a9` — qBittorrent E2E runner MySQL/PostgreSQL extension.
+- `e0d0a872` — benchmark runner PostgreSQL startup/wait fix.
+- `aee2efbe` — benchmark artifacts and report for `2026-05-01`.
+- `248df3d9` — container compose validation uses isolated temp paths.
+- `b0a654ee` — legacy `compose.yaml` removed and compose references aligned.
+- `3ef07071` — README and containers guide updated for PostgreSQL runtime usage.
+
+Scope note for Task 8:
+
+- The benchmark integration in this branch uses the Rust benchmark runner in
+  `packages/tracker-core` with containerized DB lifecycle managed from the runner/test harness,
+  and stores artifacts under `packages/tracker-core/docs/benchmarking/`.
+
+Task 9 implementation note:
+
+- The container validation workflow now uses the qBittorrent E2E compose files and isolated
+  temporary paths, instead of the legacy root `compose.yaml` stack.
 
 ## References
 
