@@ -175,6 +175,7 @@ numwant
 nvCFlJCq7fz7Qx6KoKTDiMZvns8l5Kw7
 obra
 oneshot
+openmetrics
 ostr
 Pando
 parallelise
@@ -201,6 +202,7 @@ RAII
 Rakshasa
 randomised
 Rasterbar
+recognised
 realpath
 reannounce
 recompiles
@@ -259,6 +261,7 @@ sysmalloc
 sysret
 taiki
 taplo
+trunc
 tdyne
 Tebibytes
 tempfile
@@ -283,6 +286,7 @@ udpv
 Unamed
 underflows
 uninit
+unrecognised
 Uninit
 unittests
 unparked
