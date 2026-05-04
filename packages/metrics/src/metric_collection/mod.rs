@@ -1,14 +1,13 @@
 pub mod aggregate;
 mod error;
 mod kind_collection;
+mod serde;
 
 use std::collections::HashSet;
 use std::sync::Arc;
 
 pub use error::Error;
 pub use kind_collection::MetricKindCollection;
-use serde::ser::{SerializeSeq, Serializer};
-use serde::{Deserialize, Deserializer, Serialize};
 use torrust_tracker_primitives::DurationSinceUnixEpoch;
 
 use super::counter::Counter;
@@ -28,8 +27,8 @@ use crate::METRICS_TARGET;
 
 #[derive(Debug, Clone, Default, PartialEq)]
 pub struct MetricCollection {
-    counters: MetricKindCollection<Counter>,
-    gauges: MetricKindCollection<Gauge>,
+    pub(super) counters: MetricKindCollection<Counter>,
+    pub(super) gauges: MetricKindCollection<Gauge>,
 }
 
 impl MetricCollection {
@@ -234,66 +233,6 @@ impl MetricCollection {
         self.gauges.decrement(name, label_set, time);
 
         Ok(())
-    }
-}
-
-/// Implements serialization for `MetricCollection`.
-impl Serialize for MetricCollection {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        #[derive(Serialize)]
-        #[serde(tag = "type", rename_all = "lowercase")]
-        enum SerializableMetric<'a> {
-            Counter(&'a Metric<Counter>),
-            Gauge(&'a Metric<Gauge>),
-        }
-
-        let mut seq = serializer.serialize_seq(Some(self.counters.metrics.len() + self.gauges.metrics.len()))?;
-
-        for metric in self.counters.metrics.values() {
-            seq.serialize_element(&SerializableMetric::Counter(metric))?;
-        }
-
-        for metric in self.gauges.metrics.values() {
-            seq.serialize_element(&SerializableMetric::Gauge(metric))?;
-        }
-
-        seq.end()
-    }
-}
-
-impl<'de> Deserialize<'de> for MetricCollection {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        #[derive(Deserialize)]
-        #[serde(tag = "type", rename_all = "lowercase")]
-        enum MetricPayload {
-            Counter(Metric<Counter>),
-            Gauge(Metric<Gauge>),
-        }
-
-        let payload = Vec::<MetricPayload>::deserialize(deserializer)?;
-
-        let mut counters = Vec::new();
-        let mut gauges = Vec::new();
-
-        for metric in payload {
-            match metric {
-                MetricPayload::Counter(counter) => counters.push(counter),
-                MetricPayload::Gauge(gauge) => gauges.push(gauge),
-            }
-        }
-
-        let counters = MetricKindCollection::new(counters).map_err(serde::de::Error::custom)?;
-        let gauges = MetricKindCollection::new(gauges).map_err(serde::de::Error::custom)?;
-
-        let metric_collection = MetricCollection::new(counters, gauges).map_err(serde::de::Error::custom)?;
-
-        Ok(metric_collection)
     }
 }
 
@@ -721,30 +660,6 @@ udp_tracker_server_performance_avg_announce_processing_time_ns{server_binding_ip
         let result = collection.increment_counter(&metric_name!("test_metric"), &label_set, time);
 
         assert!(result.is_err());
-    }
-
-    #[test]
-    fn it_should_allow_serializing_to_json() {
-        // todo: this test does work with metric with multiple samples because
-        // samples are not serialized in the same order as they are created.
-        let (metric_collection, expected_json, _expected_prometheus) = MetricCollectionFixture::default().deconstruct();
-
-        let json = serde_json::to_string_pretty(&metric_collection).unwrap();
-
-        assert_eq!(
-            serde_json::from_str::<serde_json::Value>(&json).unwrap(),
-            serde_json::from_str::<serde_json::Value>(&expected_json).unwrap()
-        );
-    }
-
-    #[test]
-    fn it_should_allow_deserializing_from_json() {
-        let (expected_metric_collection, metric_collection_json, _expected_prometheus) =
-            MetricCollectionFixture::default().deconstruct();
-
-        let metric_collection: MetricCollection = serde_json::from_str(&metric_collection_json).unwrap();
-
-        assert_eq!(metric_collection, expected_metric_collection);
     }
 
     #[test]
