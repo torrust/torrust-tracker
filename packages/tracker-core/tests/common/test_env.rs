@@ -157,6 +157,29 @@ impl TestEnv {
             .unwrap()
     }
 
+    /// Waits until the global download count in the database reaches `expected`, with a 5-second
+    /// timeout. Used in tests to avoid a race between the event listener persisting to the
+    /// database and the creation of a new `TestEnv` that reads from that same database.
+    pub async fn wait_for_global_downloads_persisted(&self, expected: u64) {
+        tokio::time::timeout(std::time::Duration::from_secs(5), async {
+            loop {
+                if let Ok(Some(downloads)) = self
+                    .tracker_core_container
+                    .db_downloads_metric_repository
+                    .load_global_downloads()
+                    .await
+                {
+                    if u64::from(downloads) >= expected {
+                        break;
+                    }
+                }
+                tokio::time::sleep(std::time::Duration::from_millis(50)).await;
+            }
+        })
+        .await
+        .expect("Timed out waiting for global downloads to be persisted to the database");
+    }
+
     pub async fn remove_swarm(&self, info_hash: &InfoHash) {
         self.swarm_coordination_registry_container
             .swarms
