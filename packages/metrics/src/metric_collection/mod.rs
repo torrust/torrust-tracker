@@ -526,8 +526,69 @@ fn parse_prometheus_timestamp(t: f64, fallback: DurationSinceUnixEpoch) -> Durat
     }
 }
 
+/// Converts an `openmetrics_parser::LabelSet` to our `LabelSet`, remapping
+/// any `LabelConversion` error to include the owning `family_name`.
+fn convert_openmetrics_label_set(
+    family_name: &str,
+    parser_label_set: openmetrics_parser::LabelSet<'_>,
+) -> Result<LabelSet, PrometheusDeserializationError> {
+    LabelSet::try_from(parser_label_set).map_err(|e| match e {
+        PrometheusDeserializationError::LabelConversion { message, .. } => PrometheusDeserializationError::LabelConversion {
+            metric_name: family_name.to_owned(),
+            message,
+        },
+        other => other,
+    })
+}
+
+/// Extracts a `Counter` value from a Prometheus sample value.
+fn counter_value_from_prom(
+    family_name: &str,
+    prom_value: &openmetrics_parser::PrometheusValue,
+) -> Result<Counter, PrometheusDeserializationError> {
+    match prom_value {
+        openmetrics_parser::PrometheusValue::Counter(c) => {
+            let f = c.value.as_f64();
+            if f < 0.0 || !f.is_finite() {
+                return Err(PrometheusDeserializationError::ValueMismatch {
+                    metric_name: family_name.to_owned(),
+                    expected_type: "counter (non-negative)".to_owned(),
+                    actual: c.value.to_string(),
+                });
+            }
+            #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+            Ok(Counter::new(f as u64))
+        }
+        openmetrics_parser::PrometheusValue::Unknown(_) => Err(PrometheusDeserializationError::UnknownValue {
+            metric_name: family_name.to_owned(),
+        }),
+        other => Err(PrometheusDeserializationError::ValueMismatch {
+            metric_name: family_name.to_owned(),
+            expected_type: "counter".to_owned(),
+            actual: format!("{other:?}"),
+        }),
+    }
+}
+
+/// Extracts a `Gauge` value from a Prometheus sample value.
+fn gauge_value_from_prom(
+    family_name: &str,
+    prom_value: &openmetrics_parser::PrometheusValue,
+) -> Result<Gauge, PrometheusDeserializationError> {
+    match prom_value {
+        openmetrics_parser::PrometheusValue::Gauge(n) => Ok(Gauge::new(n.as_f64())),
+        openmetrics_parser::PrometheusValue::Unknown(_) => Err(PrometheusDeserializationError::UnknownValue {
+            metric_name: family_name.to_owned(),
+        }),
+        other => Err(PrometheusDeserializationError::ValueMismatch {
+            metric_name: family_name.to_owned(),
+            expected_type: "gauge".to_owned(),
+            actual: format!("{other:?}"),
+        }),
+    }
+}
+
 impl PrometheusDeserializable for MetricCollection {
-    #[allow(clippy::too_many_lines)]
     fn from_prometheus(input: &str, now: DurationSinceUnixEpoch) -> Result<Self, PrometheusDeserializationError> {
         // The Prometheus text format requires every metric line to end with a
         // newline character. Normalize the input so callers that produce output
@@ -565,52 +626,14 @@ impl PrometheusDeserializable for MetricCollection {
                                 metric_name: family_name.clone(),
                                 message: e.to_string(),
                             })?;
-
-                        let label_set = LabelSet::try_from(parser_label_set).map_err(|e| match e {
-                            PrometheusDeserializationError::LabelConversion { message, .. } => {
-                                PrometheusDeserializationError::LabelConversion {
-                                    metric_name: family_name.clone(),
-                                    message,
-                                }
-                            }
-                            other => other,
-                        })?;
-
-                        let value = match &parser_sample.value {
-                            openmetrics_parser::PrometheusValue::Counter(c) => {
-                                let f = c.value.as_f64();
-                                if f < 0.0 || !f.is_finite() {
-                                    return Err(PrometheusDeserializationError::ValueMismatch {
-                                        metric_name: family_name.clone(),
-                                        expected_type: "counter (non-negative)".to_owned(),
-                                        actual: c.value.to_string(),
-                                    });
-                                }
-                                #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
-                                Counter::new(f as u64)
-                            }
-                            openmetrics_parser::PrometheusValue::Unknown(_) => {
-                                return Err(PrometheusDeserializationError::UnknownValue {
-                                    metric_name: family_name.clone(),
-                                });
-                            }
-                            other => {
-                                return Err(PrometheusDeserializationError::ValueMismatch {
-                                    metric_name: family_name.clone(),
-                                    expected_type: "counter".to_owned(),
-                                    actual: format!("{other:?}"),
-                                });
-                            }
-                        };
-
+                        let label_set = convert_openmetrics_label_set(family_name, parser_label_set)?;
+                        let value = counter_value_from_prom(family_name, &parser_sample.value)?;
                         let time = parser_sample.timestamp.map_or(now, |t| parse_prometheus_timestamp(t, now));
-
                         samples.push(Sample::new(value, time, label_set));
                     }
 
                     let sample_collection = SampleCollection::new(samples)
                         .map_err(|e| PrometheusDeserializationError::ParseError { message: e.to_string() })?;
-
                     counter_metrics.push(Metric::new(metric_name, None, description, sample_collection));
                 }
                 openmetrics_parser::PrometheusType::Gauge => {
@@ -623,41 +646,14 @@ impl PrometheusDeserializable for MetricCollection {
                                 metric_name: family_name.clone(),
                                 message: e.to_string(),
                             })?;
-
-                        let label_set = LabelSet::try_from(parser_label_set).map_err(|e| match e {
-                            PrometheusDeserializationError::LabelConversion { message, .. } => {
-                                PrometheusDeserializationError::LabelConversion {
-                                    metric_name: family_name.clone(),
-                                    message,
-                                }
-                            }
-                            other => other,
-                        })?;
-
-                        let value = match &parser_sample.value {
-                            openmetrics_parser::PrometheusValue::Gauge(n) => Gauge::new(n.as_f64()),
-                            openmetrics_parser::PrometheusValue::Unknown(_) => {
-                                return Err(PrometheusDeserializationError::UnknownValue {
-                                    metric_name: family_name.clone(),
-                                });
-                            }
-                            other => {
-                                return Err(PrometheusDeserializationError::ValueMismatch {
-                                    metric_name: family_name.clone(),
-                                    expected_type: "gauge".to_owned(),
-                                    actual: format!("{other:?}"),
-                                });
-                            }
-                        };
-
+                        let label_set = convert_openmetrics_label_set(family_name, parser_label_set)?;
+                        let value = gauge_value_from_prom(family_name, &parser_sample.value)?;
                         let time = parser_sample.timestamp.map_or(now, |t| parse_prometheus_timestamp(t, now));
-
                         samples.push(Sample::new(value, time, label_set));
                     }
 
                     let sample_collection = SampleCollection::new(samples)
                         .map_err(|e| PrometheusDeserializationError::ParseError { message: e.to_string() })?;
-
                     gauge_metrics.push(Metric::new(metric_name, None, description, sample_collection));
                 }
                 openmetrics_parser::PrometheusType::Histogram | openmetrics_parser::PrometheusType::Summary => {
