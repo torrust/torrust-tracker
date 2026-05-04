@@ -194,4 +194,53 @@ mod tests {
 
         assert_eq!(metric_collection, expected_metric_collection);
     }
+
+    #[test]
+    fn it_should_allow_serializing_an_empty_collection_to_json() {
+        let collection = MetricCollection::default();
+        let json = serde_json::to_string(&collection).unwrap();
+        assert_eq!(json, "[]");
+    }
+
+    #[test]
+    fn it_should_allow_deserializing_an_empty_json_array() {
+        let collection: MetricCollection = serde_json::from_str("[]").unwrap();
+        assert_eq!(collection, MetricCollection::default());
+    }
+
+    #[test]
+    fn it_should_fail_deserializing_json_with_unknown_metric_type() {
+        // "histogram" is not a recognised tag variant in MetricPayload
+        let json = r#"[{"type":"histogram","name":"test","unit":null,"description":null,"samples":[]}]"#;
+
+        let result = serde_json::from_str::<MetricCollection>(json);
+
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn it_should_fail_deserializing_json_with_duplicate_counter_names() {
+        // Two counter entries with the same name → MetricKindCollection::new error
+        let json = r#"[
+            {"type":"counter","name":"hits_total","unit":null,"description":null,"samples":[]},
+            {"type":"counter","name":"hits_total","unit":null,"description":null,"samples":[]}
+        ]"#;
+
+        let result = serde_json::from_str::<MetricCollection>(json);
+
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn it_should_fail_deserializing_json_with_cross_type_name_collision() {
+        // A counter and a gauge sharing the same name → MetricCollection::new error
+        let json = r#"[
+            {"type":"counter","name":"shared_name","unit":null,"description":null,"samples":[]},
+            {"type":"gauge","name":"shared_name","unit":null,"description":null,"samples":[]}
+        ]"#;
+
+        let result = serde_json::from_str::<MetricCollection>(json);
+
+        assert!(result.is_err());
+    }
 }

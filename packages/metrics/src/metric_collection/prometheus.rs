@@ -465,5 +465,17 @@ mod tests {
 
             assert!(matches!(result, Err(PrometheusDeserializationError::CollectionError { .. })));
         }
+
+        #[test]
+        fn it_should_return_unknown_type_error_when_no_type_declaration_is_present() {
+            let now = DurationSinceUnixEpoch::from_secs(0);
+            // No # TYPE line → the parser assigns type Unknown, which triggers
+            // the PrometheusType::Unknown arm and returns UnknownType error.
+            let input = "hits_total 7\n";
+
+            let result = MetricCollection::from_prometheus(input, now);
+
+            assert!(matches!(result, Err(PrometheusDeserializationError::UnknownType { .. })));
+        }
     }
 }
