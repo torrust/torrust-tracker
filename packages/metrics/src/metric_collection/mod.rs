@@ -1,8 +1,10 @@
 pub mod aggregate;
+mod error;
 
 use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 
+pub use error::Error;
 use serde::ser::{SerializeSeq, Serializer};
 use serde::{Deserialize, Deserializer, Serialize};
 use torrust_tracker_primitives::DurationSinceUnixEpoch;
@@ -231,24 +233,6 @@ impl MetricCollection {
 
         Ok(())
     }
-}
-
-#[derive(thiserror::Error, Debug, Clone)]
-pub enum Error {
-    #[error("Metric names must be unique across all metrics types.")]
-    MetricNameCollisionInConstructor {
-        counter_names: Vec<String>,
-        gauge_names: Vec<String>,
-    },
-
-    #[error("Found duplicate metric name in list. Metric names must be unique across all metrics types.")]
-    DuplicateMetricNameInList { metric_name: MetricName },
-
-    #[error("Cannot merge metric '{metric_name}': it already exists in the current collection")]
-    MetricNameCollisionInMerge { metric_name: MetricName },
-
-    #[error("Cannot create metric with name '{metric_name}': another metric with this name already exists")]
-    MetricNameCollisionAdding { metric_name: MetricName },
 }
 
 /// Implements serialization for `MetricCollection`.
