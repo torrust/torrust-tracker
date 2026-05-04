@@ -31,19 +31,19 @@ impl Printer for Logger {
     }
 
     fn print(&self, output: &str) {
-        *self.output.borrow_mut() = format!("{}{}", self.output.borrow(), &output);
+        *self.output.borrow_mut() = format!("{}{}", self.output.borrow(), output);
     }
 
     fn eprint(&self, output: &str) {
-        *self.output.borrow_mut() = format!("{}{}", self.output.borrow(), &output);
+        *self.output.borrow_mut() = format!("{}{}", self.output.borrow(), output);
     }
 
     fn println(&self, output: &str) {
-        self.print(&format!("{}/n", &output));
+        self.print(&format!("{output}/n"));
     }
 
     fn eprintln(&self, output: &str) {
-        self.eprint(&format!("{}/n", &output));
+        self.eprint(&format!("{output}/n"));
     }
 }
 

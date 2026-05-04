@@ -40,7 +40,7 @@ impl Client {
     }
 
     pub async fn generate_auth_key(&self, seconds_valid: i32, headers: Option<HeaderMap>) -> Response {
-        self.post_empty(&format!("key/{}", &seconds_valid), headers).await
+        self.post_empty(&format!("key/{seconds_valid}"), headers).await
     }
 
     pub async fn add_auth_key(&self, add_key_form: AddKeyForm, headers: Option<HeaderMap>) -> Response {
@@ -48,7 +48,7 @@ impl Client {
     }
 
     pub async fn delete_auth_key(&self, key: &str, headers: Option<HeaderMap>) -> Response {
-        self.delete(&format!("key/{}", &key), headers).await
+        self.delete(&format!("key/{key}"), headers).await
     }
 
     pub async fn reload_keys(&self, headers: Option<HeaderMap>) -> Response {
@@ -56,11 +56,11 @@ impl Client {
     }
 
     pub async fn whitelist_a_torrent(&self, info_hash: &str, headers: Option<HeaderMap>) -> Response {
-        self.post_empty(&format!("whitelist/{}", &info_hash), headers).await
+        self.post_empty(&format!("whitelist/{info_hash}"), headers).await
     }
 
     pub async fn remove_torrent_from_whitelist(&self, info_hash: &str, headers: Option<HeaderMap>) -> Response {
-        self.delete(&format!("whitelist/{}", &info_hash), headers).await
+        self.delete(&format!("whitelist/{info_hash}"), headers).await
     }
 
     pub async fn reload_whitelist(&self, headers: Option<HeaderMap>) -> Response {
@@ -68,7 +68,7 @@ impl Client {
     }
 
     pub async fn get_torrent(&self, info_hash: &str, headers: Option<HeaderMap>) -> Response {
-        self.get(&format!("torrent/{}", &info_hash), Query::default(), headers).await
+        self.get(&format!("torrent/{info_hash}"), Query::default(), headers).await
     }
 
     pub async fn get_torrents(&self, params: Query, headers: Option<HeaderMap>) -> Response {
@@ -196,7 +196,7 @@ impl Client {
     }
 
     fn base_url(&self, path: &str) -> Url {
-        Url::parse(&format!("{}{}{path}", &self.connection_info.origin, &self.base_path)).unwrap()
+        Url::parse(&format!("{}{}{path}", self.connection_info.origin, self.base_path)).unwrap()
     }
 }
 

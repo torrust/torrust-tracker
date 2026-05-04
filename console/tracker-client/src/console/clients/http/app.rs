@@ -72,7 +72,7 @@ async fn announce_command(tracker_url: String, info_hash: String, timeout: Durat
     let body = response.bytes().await?;
 
     let announce_response: Announce = serde_bencode::from_bytes(&body)
-        .unwrap_or_else(|_| panic!("response body should be a valid announce response, got: \"{:#?}\"", &body));
+        .unwrap_or_else(|_| panic!("response body should be a valid announce response, got: \"{body:#?}\""));
 
     let json = serde_json::to_string(&announce_response).context("failed to serialize scrape response into JSON")?;
 
@@ -91,7 +91,7 @@ async fn scrape_command(tracker_url: &str, info_hashes: &[String], timeout: Dura
     let body = response.bytes().await?;
 
     let scrape_response = scrape::Response::try_from_bencoded(&body)
-        .unwrap_or_else(|_| panic!("response body should be a valid scrape response, got: \"{:#?}\"", &body));
+        .unwrap_or_else(|_| panic!("response body should be a valid scrape response, got: \"{body:#?}\""));
 
     let json = serde_json::to_string(&scrape_response).context("failed to serialize scrape response into JSON")?;
 

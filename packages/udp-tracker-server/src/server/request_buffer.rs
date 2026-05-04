@@ -17,7 +17,7 @@ pub struct ActiveRequests {
 impl std::fmt::Debug for ActiveRequests {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let (left, right) = &self.rb.as_slices();
-        let dbg = format!("capacity: {}, left: {left:?}, right: {right:?}", &self.rb.capacity());
+        let dbg = format!("capacity: {}, left: {left:?}, right: {right:?}", self.rb.capacity());
         f.debug_struct("ActiveRequests").field("rb", &dbg).finish()
     }
 }
