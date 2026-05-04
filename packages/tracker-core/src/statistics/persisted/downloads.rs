@@ -132,7 +132,7 @@ impl DatabaseDownloadsMetricRepository {
     /// # Errors
     ///
     /// Returns an [`Error`] if the underlying database query fails.
-    pub async fn load_global_downloads(&self) -> Result<Option<NumberOfDownloads>, Error> {
+    pub(crate) async fn load_global_downloads(&self) -> Result<Option<NumberOfDownloads>, Error> {
         self.database.load_global_downloads().await
     }
 }

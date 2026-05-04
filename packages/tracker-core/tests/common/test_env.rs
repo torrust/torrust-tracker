@@ -165,7 +165,8 @@ impl TestEnv {
             loop {
                 if let Ok(Some(downloads)) = self
                     .tracker_core_container
-                    .db_downloads_metric_repository
+                    .database_stores
+                    .torrent_metrics_store
                     .load_global_downloads()
                     .await
                 {
