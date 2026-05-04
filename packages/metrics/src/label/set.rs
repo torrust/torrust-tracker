@@ -204,12 +204,13 @@ impl TryFrom<openmetrics_parser::LabelSet<'_>> for LabelSet {
     type Error = crate::prometheus::PrometheusDeserializationError;
 
     fn try_from(parser_set: openmetrics_parser::LabelSet<'_>) -> Result<Self, Self::Error> {
+        const UNKNOWN_METRIC_NAME: &str = "<unknown>";
         let mut items = BTreeMap::new();
 
         for (name, value) in parser_set.iter() {
             if name.is_empty() {
                 return Err(crate::prometheus::PrometheusDeserializationError::LabelConversion {
-                    metric_name: String::new(),
+                    metric_name: UNKNOWN_METRIC_NAME.to_owned(),
                     message: "Label name cannot be empty".to_owned(),
                 });
             }
@@ -662,7 +663,10 @@ mod tests {
 
             let result = LabelSet::try_from(parser_set);
 
-            assert!(matches!(result, Err(PrometheusDeserializationError::LabelConversion { .. })));
+            assert!(matches!(
+                result,
+                Err(PrometheusDeserializationError::LabelConversion { metric_name, .. }) if metric_name == "<unknown>"
+            ));
         }
     }
 }

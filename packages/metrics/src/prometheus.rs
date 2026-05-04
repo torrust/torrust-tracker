@@ -60,7 +60,7 @@ pub enum PrometheusDeserializationError {
     #[error("Failed to convert label set for metric '{metric_name}': {message}")]
     LabelConversion { metric_name: String, message: String },
 
-    /// A structural error when assembling the `MetricCollection` from parsed data.
-    #[error("Failed to build MetricCollection: {0}")]
-    CollectionError(#[from] crate::metric_collection::Error),
+    /// A structural error when assembling collections from parsed data.
+    #[error("Failed to build collection data: {message}")]
+    CollectionError { message: String },
 }

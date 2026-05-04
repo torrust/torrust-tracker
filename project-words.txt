@@ -87,6 +87,7 @@ finalises
 flamegraph
 formatjson
 fput
+fract
 Freebox
 frontmatter
 Frostegård
@@ -287,6 +288,7 @@ Unamed
 underflows
 uninit
 unrecognised
+unrepresentable
 Uninit
 unittests
 unparked

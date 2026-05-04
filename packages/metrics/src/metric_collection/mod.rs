@@ -510,13 +510,22 @@ impl MetricKindCollection<Gauge> {
 ///
 /// If `t` is non-finite or negative, `fallback` is returned instead.
 fn parse_prometheus_timestamp(t: f64, fallback: DurationSinceUnixEpoch) -> DurationSinceUnixEpoch {
+    const FIRST_UNREPRESENTABLE_U64_AS_F64: f64 = 18_446_744_073_709_551_616.0;
+
     if t.is_finite() && t >= 0.0 {
+        if t.trunc() >= FIRST_UNREPRESENTABLE_U64_AS_F64 {
+            return fallback;
+        }
+
         #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
         let secs = t.trunc() as u64;
         #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
         let nanos = ((t - t.trunc()) * 1_000_000_000.0).round() as u32;
         let (secs, nanos) = if nanos >= 1_000_000_000 {
-            (secs + 1, nanos - 1_000_000_000)
+            match secs.checked_add(1) {
+                Some(next_secs) => (next_secs, nanos - 1_000_000_000),
+                None => return fallback,
+            }
         } else {
             (secs, nanos)
         };
@@ -524,6 +533,26 @@ fn parse_prometheus_timestamp(t: f64, fallback: DurationSinceUnixEpoch) -> Durat
     } else {
         fallback
     }
+}
+
+fn collection_error<E: ToString>(error: &E) -> PrometheusDeserializationError {
+    PrometheusDeserializationError::CollectionError {
+        message: error.to_string(),
+    }
+}
+
+fn build_sample_collection<T>(samples: Vec<Sample<T>>) -> Result<SampleCollection<T>, PrometheusDeserializationError> {
+    SampleCollection::new(samples).map_err(|error| collection_error(&error))
+}
+
+fn build_metric_collection(
+    counter_metrics: Vec<Metric<Counter>>,
+    gauge_metrics: Vec<Metric<Gauge>>,
+) -> Result<MetricCollection, PrometheusDeserializationError> {
+    let counters = MetricKindCollection::new(counter_metrics).map_err(|error| collection_error(&error))?;
+    let gauges = MetricKindCollection::new(gauge_metrics).map_err(|error| collection_error(&error))?;
+
+    MetricCollection::new(counters, gauges).map_err(|error| collection_error(&error))
 }
 
 /// Converts an `openmetrics_parser::LabelSet` to our `LabelSet`, remapping
@@ -548,16 +577,33 @@ fn counter_value_from_prom(
 ) -> Result<Counter, PrometheusDeserializationError> {
     match prom_value {
         openmetrics_parser::PrometheusValue::Counter(c) => {
-            let f = c.value.as_f64();
-            if f < 0.0 || !f.is_finite() {
-                return Err(PrometheusDeserializationError::ValueMismatch {
-                    metric_name: family_name.to_owned(),
-                    expected_type: "counter (non-negative)".to_owned(),
-                    actual: c.value.to_string(),
-                });
-            }
-            #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
-            Ok(Counter::new(f as u64))
+            let counter = match c.value {
+                openmetrics_parser::MetricNumber::Int(value) => match u64::try_from(value) {
+                    Ok(value) => Counter::new(value),
+                    Err(_) => {
+                        return Err(PrometheusDeserializationError::ValueMismatch {
+                            metric_name: family_name.to_owned(),
+                            expected_type: "counter (non-negative integer)".to_owned(),
+                            actual: c.value.to_string(),
+                        });
+                    }
+                },
+                openmetrics_parser::MetricNumber::Float(value)
+                    if value.is_finite() && value >= 0.0 && value.fract() == 0.0 && value < 18_446_744_073_709_551_616.0 =>
+                {
+                    #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+                    Counter::new(value as u64)
+                }
+                openmetrics_parser::MetricNumber::Float(_) => {
+                    return Err(PrometheusDeserializationError::ValueMismatch {
+                        metric_name: family_name.to_owned(),
+                        expected_type: "counter (non-negative integer)".to_owned(),
+                        actual: c.value.to_string(),
+                    });
+                }
+            };
+
+            Ok(counter)
         }
         openmetrics_parser::PrometheusValue::Unknown(_) => Err(PrometheusDeserializationError::UnknownValue {
             metric_name: family_name.to_owned(),
@@ -632,8 +678,7 @@ impl PrometheusDeserializable for MetricCollection {
                         samples.push(Sample::new(value, time, label_set));
                     }
 
-                    let sample_collection = SampleCollection::new(samples)
-                        .map_err(|e| PrometheusDeserializationError::ParseError { message: e.to_string() })?;
+                    let sample_collection = build_sample_collection(samples)?;
                     counter_metrics.push(Metric::new(metric_name, None, description, sample_collection));
                 }
                 openmetrics_parser::PrometheusType::Gauge => {
@@ -652,8 +697,7 @@ impl PrometheusDeserializable for MetricCollection {
                         samples.push(Sample::new(value, time, label_set));
                     }
 
-                    let sample_collection = SampleCollection::new(samples)
-                        .map_err(|e| PrometheusDeserializationError::ParseError { message: e.to_string() })?;
+                    let sample_collection = build_sample_collection(samples)?;
                     gauge_metrics.push(Metric::new(metric_name, None, description, sample_collection));
                 }
                 openmetrics_parser::PrometheusType::Histogram | openmetrics_parser::PrometheusType::Summary => {
@@ -670,9 +714,7 @@ impl PrometheusDeserializable for MetricCollection {
             }
         }
 
-        let counters = MetricKindCollection::new(counter_metrics)?;
-        let gauges = MetricKindCollection::new(gauge_metrics)?;
-        Ok(MetricCollection::new(counters, gauges)?)
+        build_metric_collection(counter_metrics, gauge_metrics)
     }
 }
 
@@ -1416,6 +1458,14 @@ http_tracker_core_announce_requests_received_total{server_binding_ip="0.0.0.0",s
         }
 
         #[test]
+        fn it_should_use_fallback_when_timestamp_would_overflow_u64_seconds() {
+            const FIRST_UNREPRESENTABLE_U64_AS_F64: f64 = 18_446_744_073_709_551_616.0;
+            let fallback = DurationSinceUnixEpoch::from_secs(42);
+            let result = parse_prometheus_timestamp(FIRST_UNREPRESENTABLE_U64_AS_F64, fallback);
+            assert_eq!(result, fallback);
+        }
+
+        #[test]
         fn it_should_handle_nanosecond_boundary_overflow() {
             let now = DurationSinceUnixEpoch::from_secs(0);
             // 1 second + fractional part that rounds to exactly 1_000_000_000 nanos
@@ -1536,6 +1586,40 @@ http_tracker_core_announce_requests_received_total{server_binding_ip="0.0.0.0",s
                 .expect("counter should be present");
 
             assert_eq!(value, Counter::new(7));
+        }
+
+        #[test]
+        fn it_should_reject_fractional_counter_values() {
+            let now = DurationSinceUnixEpoch::from_secs(1_000);
+            let input = "# TYPE requests_total counter\nrequests_total 42.5\n";
+
+            let result = MetricCollection::from_prometheus(input, now);
+
+            assert!(matches!(result, Err(PrometheusDeserializationError::ValueMismatch { .. })));
+        }
+
+        #[test]
+        fn it_should_classify_duplicate_metric_names_as_collection_errors() {
+            let label_set = super::super::LabelSet::empty();
+            let time = DurationSinceUnixEpoch::from_secs(1_000);
+            let counter_metrics = vec![
+                Metric::new(
+                    metric_name!("requests_total"),
+                    None,
+                    None,
+                    SampleCollection::new(vec![Sample::new(Counter::new(1), time, label_set.clone())]).unwrap(),
+                ),
+                Metric::new(
+                    metric_name!("requests_total"),
+                    None,
+                    None,
+                    SampleCollection::new(vec![Sample::new(Counter::new(2), time, label_set)]).unwrap(),
+                ),
+            ];
+
+            let result = super::super::build_metric_collection(counter_metrics, Vec::new());
+
+            assert!(matches!(result, Err(PrometheusDeserializationError::CollectionError { .. })));
         }
     }
 }
