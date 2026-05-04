@@ -55,7 +55,7 @@ impl TrackerContainer {
 
         let is_healthy = Docker::wait_until_is_healthy(&self.name, Duration::from_secs(10));
 
-        assert!(is_healthy, "Unhealthy tracker container: {}", &self.name);
+        assert!(is_healthy, "Unhealthy tracker container: {}", self.name);
 
         tracing::info!("Container {} is healthy ...", &self.name);
 

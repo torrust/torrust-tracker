@@ -70,7 +70,7 @@ async fn it_should_persist_the_number_of_completed_peers_for_each_torrent_into_t
         .increase_number_of_downloads(sample_peer(), &remote_client_ip(), &info_hash)
         .await;
 
-    assert!(test_env.get_swarm_metadata(&info_hash).await.unwrap().downloads() == 1);
+    assert_eq!(test_env.get_swarm_metadata(&info_hash).await.unwrap().downloads(), 1);
 
     test_env.remove_swarm(&info_hash).await;
 

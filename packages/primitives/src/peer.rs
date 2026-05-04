@@ -652,8 +652,8 @@ pub mod test {
 
             let leecher1 = PeerBuilder::leecher().build();
 
-            assert!(seeder1 == seeder2);
-            assert!(seeder1 != leecher1);
+            assert_eq!(seeder1, seeder2);
+            assert_ne!(seeder1, leecher1);
         }
     }
 

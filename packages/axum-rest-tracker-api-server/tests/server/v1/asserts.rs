@@ -95,13 +95,13 @@ pub async fn assert_invalid_infohash_param(response: Response, invalid_infohash:
 }
 
 pub async fn assert_invalid_auth_key_get_param(response: Response, invalid_auth_key: &str) {
-    assert_bad_request(response, &format!("Invalid auth key id param \"{}\"", &invalid_auth_key)).await;
+    assert_bad_request(response, &format!("Invalid auth key id param \"{invalid_auth_key}\"")).await;
 }
 
 pub async fn assert_invalid_auth_key_post_param(response: Response, invalid_auth_key: &str) {
     assert_bad_request_with_text(
         response,
-        &format!("Invalid URL: invalid auth key: string \"{}\"", &invalid_auth_key),
+        &format!("Invalid URL: invalid auth key: string \"{invalid_auth_key}\""),
     )
     .await;
 }

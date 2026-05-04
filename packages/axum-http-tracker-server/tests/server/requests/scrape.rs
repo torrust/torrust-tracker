@@ -97,7 +97,7 @@ impl std::fmt::Display for QueryParams {
         let query = self
             .info_hash
             .iter()
-            .map(|info_hash| format!("info_hash={}", &info_hash))
+            .map(|info_hash| format!("info_hash={info_hash}"))
             .collect::<Vec<String>>()
             .join("&");
 

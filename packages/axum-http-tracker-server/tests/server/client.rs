@@ -98,6 +98,6 @@ impl Client {
     }
 
     fn base_url(&self) -> String {
-        format!("http://{}/", &self.server_addr)
+        format!("http://{}/", self.server_addr)
     }
 }

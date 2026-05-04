@@ -200,7 +200,7 @@ pub mod test {
 
         let event1_clone = event1.clone();
 
-        assert!(event1 == event1_clone);
-        assert!(event1 != event2);
+        assert_eq!(event1, event1_clone);
+        assert_ne!(event1, event2);
     }
 }

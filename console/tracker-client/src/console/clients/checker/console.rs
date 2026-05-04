@@ -21,18 +21,18 @@ impl Printer for Console {
     }
 
     fn print(&self, output: &str) {
-        print!("{}", &output);
+        print!("{output}");
     }
 
     fn eprint(&self, output: &str) {
-        eprint!("{}", &output);
+        eprint!("{output}");
     }
 
     fn println(&self, output: &str) {
-        println!("{}", &output);
+        println!("{output}");
     }
 
     fn eprintln(&self, output: &str) {
-        eprintln!("{}", &output);
+        eprintln!("{output}");
     }
 }

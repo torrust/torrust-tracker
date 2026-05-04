@@ -35,7 +35,7 @@ pub async fn assert_announce_response(response: Response, expected_announce_resp
     let body = response.bytes().await.unwrap();
 
     let announce_response: Announce = serde_bencode::from_bytes(&body)
-        .unwrap_or_else(|_| panic!("response body should be a valid announce response, got \"{:#?}\"", &body));
+        .unwrap_or_else(|_| panic!("response body should be a valid announce response, got \"{body:#?}\""));
 
     assert_eq!(announce_response, *expected_announce_response);
 }
@@ -45,12 +45,8 @@ pub async fn assert_compact_announce_response(response: Response, expected_respo
 
     let bytes = response.bytes().await.unwrap();
 
-    let compact_announce = DeserializedCompact::from_bytes(&bytes).unwrap_or_else(|_| {
-        panic!(
-            "response body should be a valid compact announce response, got \"{:?}\"",
-            &bytes
-        )
-    });
+    let compact_announce = DeserializedCompact::from_bytes(&bytes)
+        .unwrap_or_else(|_| panic!("response body should be a valid compact announce response, got \"{bytes:?}\""));
 
     let actual_response = Compact::from(compact_announce);
 
@@ -74,7 +70,7 @@ pub async fn assert_is_announce_response(response: Response) {
     assert_eq!(response.status(), 200);
     let body = response.text().await.unwrap();
     let _announce_response: Announce = serde_bencode::from_str(&body)
-        .unwrap_or_else(|_| panic!("response body should be a valid announce response, got \"{}\"", &body));
+        .unwrap_or_else(|_| panic!("response body should be a valid announce response, got \"{body}\""));
 }
 
 // Error responses
