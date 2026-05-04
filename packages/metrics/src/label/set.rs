@@ -200,6 +200,27 @@ impl PrometheusSerializable for LabelSet {
     }
 }
 
+impl TryFrom<openmetrics_parser::LabelSet<'_>> for LabelSet {
+    type Error = crate::prometheus::PrometheusDeserializationError;
+
+    fn try_from(parser_set: openmetrics_parser::LabelSet<'_>) -> Result<Self, Self::Error> {
+        let mut items = BTreeMap::new();
+
+        for (name, value) in parser_set.iter() {
+            if name.is_empty() {
+                return Err(crate::prometheus::PrometheusDeserializationError::LabelConversion {
+                    metric_name: String::new(),
+                    message: "Label name cannot be empty".to_owned(),
+                });
+            }
+
+            items.insert(LabelName::new(name), LabelValue::new(value));
+        }
+
+        Ok(Self { items })
+    }
+}
+
 #[cfg(test)]
 mod tests {
 
@@ -580,5 +601,68 @@ mod tests {
 
         // Should be in alphabetical order
         assert_eq!(labels, vec!["a_label", "m_label", "z_label"]);
+    }
+
+    mod try_from_openmetrics_parser_label_set {
+        use std::sync::Arc;
+
+        use pretty_assertions::assert_eq;
+
+        use crate::label::set::LabelSet;
+        use crate::prometheus::PrometheusDeserializationError;
+
+        fn make_parser_label_set(
+            names: Arc<Vec<String>>,
+            sample: &openmetrics_parser::PrometheusSample,
+        ) -> openmetrics_parser::LabelSet<'_> {
+            openmetrics_parser::LabelSet::new(names, sample).expect("test fixture should be valid")
+        }
+
+        #[test]
+        fn it_should_convert_empty_label_set() {
+            let names = Arc::new(vec![]);
+            let sample = openmetrics_parser::PrometheusSample::new(
+                vec![],
+                None,
+                openmetrics_parser::PrometheusValue::Gauge(openmetrics_parser::MetricNumber::Int(0)),
+            );
+            let parser_set = make_parser_label_set(names, &sample);
+
+            let result = LabelSet::try_from(parser_set);
+
+            assert!(result.is_ok());
+            assert_eq!(result.unwrap(), LabelSet::empty());
+        }
+
+        #[test]
+        fn it_should_convert_label_set_with_known_labels() {
+            let names = Arc::new(vec!["host".to_owned(), "port".to_owned()]);
+            let sample = openmetrics_parser::PrometheusSample::new(
+                vec!["localhost".to_owned(), "8080".to_owned()],
+                None,
+                openmetrics_parser::PrometheusValue::Gauge(openmetrics_parser::MetricNumber::Int(0)),
+            );
+            let parser_set = make_parser_label_set(names, &sample);
+
+            let result = LabelSet::try_from(parser_set).expect("conversion should succeed");
+
+            let expected: LabelSet = vec![("host", "localhost"), ("port", "8080")].into();
+            assert_eq!(result, expected);
+        }
+
+        #[test]
+        fn it_should_return_label_conversion_error_for_empty_label_name() {
+            let names = Arc::new(vec![String::new()]);
+            let sample = openmetrics_parser::PrometheusSample::new(
+                vec!["value".to_owned()],
+                None,
+                openmetrics_parser::PrometheusValue::Gauge(openmetrics_parser::MetricNumber::Int(0)),
+            );
+            let parser_set = make_parser_label_set(names, &sample);
+
+            let result = LabelSet::try_from(parser_set);
+
+            assert!(matches!(result, Err(PrometheusDeserializationError::LabelConversion { .. })));
+        }
     }
 }
