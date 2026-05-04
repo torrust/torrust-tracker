@@ -247,7 +247,6 @@ impl PrometheusDeserializable for MetricCollection {
 #[cfg(test)]
 mod tests {
     mod prometheus_timestamp {
-        use approx::assert_abs_diff_eq;
         use torrust_tracker_primitives::DurationSinceUnixEpoch;
 
         use super::super::parse_prometheus_timestamp;
@@ -305,10 +304,11 @@ mod tests {
         #[test]
         fn it_should_handle_nanosecond_boundary_overflow() {
             let now = DurationSinceUnixEpoch::from_secs(0);
-            // 1 second + fractional part that rounds to exactly 1_000_000_000 nanos
-            // 0.9999999995 * 1e9 rounds to 1_000_000_000, triggering carry
+            // 0.9999999995 * 1e9 rounds to exactly 1_000_000_000 nanos, triggering
+            // a carry: secs becomes 2, nanos becomes 0. Use exact equality so that
+            // the mutant `nanos / 1_000_000_000` (= 1 ns) is caught.
             let result = parse_prometheus_timestamp(1.999_999_999_5, now);
-            assert_abs_diff_eq!(result.as_secs_f64(), 2.0, epsilon = 1e-3);
+            assert_eq!(result, DurationSinceUnixEpoch::from_secs(2));
         }
 
         #[test]
@@ -464,6 +464,41 @@ mod tests {
             let result = build_metric_collection(counter_metrics, Vec::new());
 
             assert!(matches!(result, Err(PrometheusDeserializationError::CollectionError { .. })));
+        }
+
+        #[test]
+        fn it_should_accept_a_counter_value_that_is_a_whole_number_float() {
+            // A counter value written as a float with no fractional part (e.g. "42.0")
+            // must be accepted and treated as the integer 42. This test catches
+            // mutations that corrupt the float-counter match guard by replacing it
+            // with `false` or inverting the `>= 0.0` / `< MAX` checks.
+            let now = DurationSinceUnixEpoch::from_secs(1_000);
+            let input = "# TYPE requests_total counter\nrequests_total 42.0\n";
+
+            let result = MetricCollection::from_prometheus(input, now).expect("should parse successfully");
+
+            let label_set = LabelSet::empty();
+            let value = result
+                .get_counter_value(&metric_name!("requests_total"), &label_set)
+                .expect("counter should be present");
+
+            assert_eq!(value, Counter::new(42));
+        }
+
+        #[test]
+        fn it_should_reject_a_float_counter_value_equal_to_first_unrepresentable_u64() {
+            // 18_446_744_073_709_551_616.0 == 2^64, the first f64 that cannot be
+            // safely cast to u64. The guard `value < FIRST_UNREPRESENTABLE_U64_AS_F64`
+            // must be strict (<), not <=. This test catches the `<` → `<=` mutation.
+            let now = DurationSinceUnixEpoch::from_secs(1_000);
+            let input = "# TYPE requests_total counter\nrequests_total 18446744073709551616.0\n";
+
+            let result = MetricCollection::from_prometheus(input, now);
+
+            assert!(
+                matches!(result, Err(PrometheusDeserializationError::ValueMismatch { .. })),
+                "expected ValueMismatch, got {result:?}"
+            );
         }
 
         #[test]
