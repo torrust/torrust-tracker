@@ -56,6 +56,7 @@ connectionless
 Containerfile
 conv
 curr
+cdylib
 cvar
 Cyberneering
 cyclomatic
@@ -73,6 +74,7 @@ Dmqcd
 dockerhub
 downloadedi
 dtolnay
+dylib
 elif
 endianness
 Eray
@@ -99,6 +101,7 @@ hexdigit
 hexlify
 hlocalhost
 hmac
+hotspot
 Hydranode
 hyperthread
 Icelake
@@ -148,6 +151,7 @@ misresolved
 mmap
 mmdb
 mockall
+monomorphisation
 mprotect
 MSRV
 multimap
@@ -173,6 +177,8 @@ obra
 oneshot
 ostr
 Pando
+parallelise
+parallelised
 peekable
 peerlist
 peersld
@@ -197,6 +203,7 @@ randomised
 Rasterbar
 realpath
 reannounce
+recompiles
 referer
 Registar
 repomix
@@ -207,6 +214,7 @@ reuseaddr
 rerequests
 ringbuf
 ringsize
+rlib
 rngs
 rosegment
 routable
@@ -221,6 +229,7 @@ Rustls
 rustup
 Ryzen
 savepath
+sccache
 Seedable
 serde
 setgroups
@@ -275,6 +284,7 @@ Unamed
 underflows
 uninit
 Uninit
+unittests
 unparked
 Unparker
 Unsendable
@@ -298,6 +308,7 @@ Werror
 whitespaces
 Xacrimon
 XBTT
+zstd
 Xdebug
 Xeon
 Xtorrent
