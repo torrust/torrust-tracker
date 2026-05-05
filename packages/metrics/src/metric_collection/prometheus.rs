@@ -96,6 +96,12 @@ fn convert_openmetrics_label_set(
     })
 }
 
+/// Returns `true` if `v` is a non-negative, whole number that fits in a `u64`.
+fn is_whole_u64_representable(v: f64) -> bool {
+    const FIRST_UNREPRESENTABLE: f64 = 18_446_744_073_709_551_616.0; // 2^64
+    v.is_finite() && v >= 0.0 && v.fract() == 0.0 && v < FIRST_UNREPRESENTABLE
+}
+
 trait FromPrometheusValue: Sized {
     fn from_prometheus_value(
         family_name: &str,
@@ -121,8 +127,7 @@ impl FromPrometheusValue for Counter {
                             });
                         }
                     },
-                    openmetrics_parser::MetricNumber::Float(value)
-                        if value.is_finite() && value >= 0.0 && value.fract() == 0.0 && value < 18_446_744_073_709_551_616.0 =>
+                    openmetrics_parser::MetricNumber::Float(value) if is_whole_u64_representable(value) =>
                     {
                         #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
                         Counter::new(value as u64)
