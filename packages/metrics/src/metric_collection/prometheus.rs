@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use std::sync::Arc;
 
 use torrust_tracker_primitives::DurationSinceUnixEpoch;
@@ -110,6 +111,14 @@ fn description_from_help(help: &str) -> Option<MetricDescription> {
     }
 }
 
+fn ensure_trailing_newline(input: &str) -> Cow<'_, str> {
+    if input.ends_with('\n') {
+        Cow::Borrowed(input)
+    } else {
+        Cow::Owned(format!("{input}\n"))
+    }
+}
+
 trait FromPrometheusValue: Sized {
     fn from_prometheus_value(
         family_name: &str,
@@ -213,15 +222,9 @@ impl PrometheusDeserializable for MetricCollection {
         // The Prometheus text format requires every metric line to end with a
         // newline character. Normalize the input so callers that produce output
         // without a trailing newline (e.g. our own `to_prometheus`) still work.
-        let normalized;
-        let input = if input.ends_with('\n') {
-            input
-        } else {
-            normalized = format!("{input}\n");
-            normalized.as_str()
-        };
+        let input = ensure_trailing_newline(input);
 
-        let exposition = openmetrics_parser::prometheus::parse_prometheus(input)
+        let exposition = openmetrics_parser::prometheus::parse_prometheus(input.as_ref())
             .map_err(|e| PrometheusDeserializationError::ParseError { message: e.to_string() })?;
 
         let mut counter_metrics: Vec<Metric<Counter>> = Vec::new();
