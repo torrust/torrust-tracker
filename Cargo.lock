@@ -139,8 +139,6 @@ dependencies = [
 [[package]]
 name = "aquatic_peer_id"
 version = "0.9.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f0732a73df221dcb25713849c6ebaf57b85355f669716652a7466f688cc06f25"
 dependencies = [
  "compact_str",
  "hex",
@@ -153,12 +151,13 @@ dependencies = [
 [[package]]
 name = "aquatic_udp_protocol"
 version = "0.9.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0af90e5162f5fcbde33524128f08dc52a779f32512d5f8692eadd4b55c89389e"
 dependencies = [
  "aquatic_peer_id",
  "byteorder",
  "either",
+ "pretty_assertions",
+ "quickcheck",
+ "quickcheck_macros",
  "zerocopy 0.7.35",
 ]
 
@@ -3653,6 +3652,17 @@ dependencies = [
  "env_logger",
  "log",
  "rand 0.10.1",
+]
+
+[[package]]
+name = "quickcheck_macros"
+version = "1.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a9a28b8493dd664c8b171dd944da82d933f7d456b829bfb236738e1fe06c5ba4"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.117",
 ]
 
 [[package]]

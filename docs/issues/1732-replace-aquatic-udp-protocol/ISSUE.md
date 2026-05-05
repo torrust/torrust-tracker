@@ -44,44 +44,55 @@ Torrust Tracker's AGPL-3.0 license. Apache 2.0 permits copying, modification, an
 redistribution provided that:
 
 - The original copyright notice is preserved.
-- A `NOTICE` file is included (if the original has one).
+- A `NOTICE` file is included (if the original has one — the aquatic repo does not have one).
 - Modifications are clearly marked.
 
-We must include the Apache 2.0 license text and copyright header in the new package.
+We must include the Apache 2.0 `LICENSE` file in each new package and attribute the original
+author in the `README.md`.
+
+### No publishing required
+
+The internal fork packages (`packages/aquatic-peer-id`, `packages/aquatic-udp-protocol`) are
+**never published to crates.io**. All dependent packages reference them via Cargo path
+dependencies (`path = "../aquatic-peer-id"`, `path = "../aquatic-udp-protocol"`), which are
+resolved locally by Cargo. The crate names are kept identical to the upstream ones
+(`aquatic_peer_id`, `aquatic_udp_protocol`) so that all existing `use` statements in the
+codebase compile without changes. Once Step 4 is complete and the packages are removed from the
+workspace, the path dependencies are removed along with them.
 
 ### Types currently used across the workspace
 
 The following distinct types are imported from `aquatic_udp_protocol` in 26 source files across
 13 packages:
 
-| Category            | Types                                                                                        |
-| ------------------- | -------------------------------------------------------------------------------------------- |
-| Request types       | `Request`, `ConnectRequest`, `AnnounceRequest`, `ScrapeRequest`                              |
-| Response types      | `Response`, `ConnectResponse`, `AnnounceResponse<T>`, `ScrapeResponse`, `ErrorResponse`     |
-| Identifiers         | `TransactionId`, `ConnectionId`, `InfoHash`, `PeerId`                                        |
-| Announce parameters | `AnnounceEvent`, `AnnounceActionPlaceholder`, `Port`, `PeerKey`                              |
-| Counters            | `NumberOfBytes`, `NumberOfPeers`, `NumberOfDownloads`                                        |
-| Scrape statistics   | `TorrentScrapeStatistics`                                                                    |
-| Address types       | `Ipv4AddrBytes`, `Ipv6AddrBytes`                                                             |
-| Modules             | `aquatic_udp_protocol::common`                                                               |
+| Category            | Types                                                                                   |
+| ------------------- | --------------------------------------------------------------------------------------- |
+| Request types       | `Request`, `ConnectRequest`, `AnnounceRequest`, `ScrapeRequest`                         |
+| Response types      | `Response`, `ConnectResponse`, `AnnounceResponse<T>`, `ScrapeResponse`, `ErrorResponse` |
+| Identifiers         | `TransactionId`, `ConnectionId`, `InfoHash`, `PeerId`                                   |
+| Announce parameters | `AnnounceEvent`, `AnnounceActionPlaceholder`, `Port`, `PeerKey`                         |
+| Counters            | `NumberOfBytes`, `NumberOfPeers`, `NumberOfDownloads`                                   |
+| Scrape statistics   | `TorrentScrapeStatistics`                                                               |
+| Address types       | `Ipv4AddrBytes`, `Ipv6AddrBytes`                                                        |
+| Modules             | `aquatic_udp_protocol::common`                                                          |
 
 ### Packages to update
 
-| Package                       | Path                                  |
-| ----------------------------- | ------------------------------------- |
-| `bittorrent-udp-protocol`     | `packages/udp-protocol`               |
-| `bittorrent-http-protocol`    | `packages/http-protocol`              |
-| `bittorrent-udp-tracker-core` | `packages/udp-tracker-core`           |
-| `bittorrent-tracker-core`     | `packages/tracker-core`               |
-| `bittorrent-http-tracker-core`| `packages/http-tracker-core`          |
-| `bittorrent-tracker-primitives`| `packages/primitives`                |
-| `axum-http-tracker-server`    | `packages/axum-http-tracker-server`   |
-| `axum-rest-tracker-api-server`| `packages/axum-rest-tracker-api-server`|
-| `swarm-coordination-registry` | `packages/swarm-coordination-registry`|
-| `torrent-repository-benchmarking`| `packages/torrent-repository-benchmarking`|
-| `bittorrent-tracker-client`   | `packages/tracker-client`             |
-| `tracker-client` (console)    | `console/tracker-client`              |
-| `udp-tracker-server`          | `packages/udp-tracker-server`         |
+| Package                           | Path                                       |
+| --------------------------------- | ------------------------------------------ |
+| `bittorrent-udp-protocol`         | `packages/udp-protocol`                    |
+| `bittorrent-http-protocol`        | `packages/http-protocol`                   |
+| `bittorrent-udp-tracker-core`     | `packages/udp-tracker-core`                |
+| `bittorrent-tracker-core`         | `packages/tracker-core`                    |
+| `bittorrent-http-tracker-core`    | `packages/http-tracker-core`               |
+| `bittorrent-tracker-primitives`   | `packages/primitives`                      |
+| `axum-http-tracker-server`        | `packages/axum-http-tracker-server`        |
+| `axum-rest-tracker-api-server`    | `packages/axum-rest-tracker-api-server`    |
+| `swarm-coordination-registry`     | `packages/swarm-coordination-registry`     |
+| `torrent-repository-benchmarking` | `packages/torrent-repository-benchmarking` |
+| `bittorrent-tracker-client`       | `packages/tracker-client`                  |
+| `tracker-client` (console)        | `console/tracker-client`                   |
+| `udp-tracker-server`              | `packages/udp-tracker-server`              |
 
 ## Goals
 
@@ -96,12 +107,21 @@ The following distinct types are imported from `aquatic_udp_protocol` in 26 sour
 
 ### Step 1: Create `packages/aquatic-udp-protocol` (internal fork)
 
-- [ ] Copy the `aquatic_udp_protocol` 0.9.0 source (4 files) into a new workspace package
-      `packages/aquatic-udp-protocol`.
-- [ ] Add the Apache 2.0 `LICENSE` file and a `NOTICE` file crediting the original author
-      (Joakim Frostegård / greatest-ape).
-- [ ] Add a `README.md` explaining that this is a temporary internal fork.
-- [ ] Register the package in the workspace `Cargo.toml`.
+#### Step 1a: Add the internal fork packages to the workspace
+
+- [x] Copy the `aquatic_udp_protocol` 0.9.0 source (4 files) into a new workspace package
+      `packages/aquatic-udp-protocol`. Also copied `aquatic_peer_id` 0.9.0 into
+      `packages/aquatic-peer-id` (needed because `PeerClient` is used in the workspace).
+- [x] Add the Apache 2.0 `LICENSE` file to each fork package. The upstream aquatic repo has no
+      `NOTICE` file and no per-file copyright headers, so none need to be copied. Each source
+      file carries an inline attribution header naming the original author (Joakim Frostegård /
+      greatest-ape), linking to the source crate version on crates.io, and stating the Apache
+      2.0 license.
+- [x] Add a `README.md` to each fork package explaining it is a temporary internal fork.
+- [x] Register both packages in the workspace `Cargo.toml`.
+
+#### Step 1b: Switch all dependent packages to the internal fork
+
 - [ ] Point all 13 packages at the internal fork instead of the crates.io version
       (`aquatic_udp_protocol = { path = "../aquatic-udp-protocol" }`).
 - [ ] Verify the build compiles and all tests pass.
@@ -122,6 +142,8 @@ The following distinct types are imported from `aquatic_udp_protocol` in 26 sour
 ### Step 4: Migrate `packages/udp-protocol` to own the protocol types
 
 - [ ] Move all BEP 15 types into `packages/udp-protocol`, replacing the internal fork.
+      Add an inline attribution comment to each migrated source file crediting the original
+      `aquatic_udp_protocol` 0.9.0 as the starting point.
 - [ ] Update all 13 dependent packages to import from `bittorrent-udp-tracker-protocol`
       instead of `aquatic_udp_protocol`.
 - [ ] Remove `packages/aquatic-udp-protocol` from the workspace once no package depends on it.

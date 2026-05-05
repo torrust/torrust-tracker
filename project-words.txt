@@ -11,6 +11,7 @@ analyse
 appuser
 Arvid
 ASMS
+asdh
 asyn
 autoclean
 AUTOINCREMENT
@@ -197,6 +198,7 @@ proto
 PUID
 qbittorrent
 QJSF
+quickcheck
 Quickstart
 Radeon
 RAII
@@ -311,6 +313,7 @@ vtable
 Vuze
 wakelist
 wakeup
+webtorrent
 WEBUI
 Weidendorfer
 Werror
