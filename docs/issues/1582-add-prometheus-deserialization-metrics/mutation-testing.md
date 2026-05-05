@@ -179,7 +179,7 @@ Update this table after completing each task. Columns:
 | Status | Task      | File(s)                              | Mutants | Caught | Survived | Skipped |
 | :----: | --------- | ------------------------------------ | ------: | -----: | -------: | ------: |
 | `[x]`  | 1         | `metric_collection/prometheus.rs`    |      35 |     24 |        0 |       0 |
-| `[ ]`  | 2         | `metric_collection/mod.rs`           |      19 |      — |        — |       — |
+| `[x]`  | 2         | `metric_collection/mod.rs`           |      19 |      2 |        0 |       0 |
 | `[ ]`  | 3         | `counter.rs` + `gauge.rs`            |      32 |      — |        — |       — |
 | `[ ]`  | 4         | `sample_collection.rs` + `sample.rs` |      45 |      — |        — |       — |
 | `[ ]`  | 5         | `label/set.rs`                       |      26 |      — |        — |       — |
