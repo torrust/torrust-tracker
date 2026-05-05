@@ -120,6 +120,12 @@ async fn it_should_persist_the_global_number_of_completed_peers_into_the_databas
         .increase_number_of_downloads(sample_peer(), &remote_client_ip(), &sample_info_hash())
         .await;
 
+    // Wait for the event listener to persist the download count to the database
+    // before simulating a restart. Without this, the new test environment may
+    // start before the background task has written to the database, causing a
+    // flaky failure under high-concurrency environments such as Docker builds.
+    test_env.wait_for_global_downloads_persisted(1).await;
+
     // We run a new instance of the test environment to simulate a restart.
     // The new instance uses the same underlying database.
 
