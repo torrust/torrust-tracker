@@ -102,6 +102,14 @@ fn is_whole_u64_representable(v: f64) -> bool {
     v.is_finite() && v >= 0.0 && v.fract() == 0.0 && v < FIRST_UNREPRESENTABLE
 }
 
+fn description_from_help(help: &str) -> Option<MetricDescription> {
+    if help.is_empty() {
+        None
+    } else {
+        Some(help.into())
+    }
+}
+
 trait FromPrometheusValue: Sized {
     fn from_prometheus_value(
         family_name: &str,
@@ -196,11 +204,7 @@ fn parse_family_samples<T: FromPrometheusValue>(
     }
 
     let metric_name = MetricName::new(family_name);
-    let description = if family.help.is_empty() {
-        None
-    } else {
-        Some(MetricDescription::new(&family.help))
-    };
+    let description = description_from_help(&family.help);
     Ok(Metric::new(metric_name, None, description, build_sample_collection(samples)?))
 }
 
