@@ -16,7 +16,7 @@ rust-version.workspace = true
 version.workspace = true
 
 [dependencies]
-aquatic_udp_protocol = "0"
+aquatic_udp_protocol = { path = "../aquatic-udp-protocol" }
 bittorrent-primitives = "0.1.0"
 crossbeam-skiplist = "0"
 dashmap = "6"

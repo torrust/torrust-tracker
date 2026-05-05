@@ -122,9 +122,9 @@ The following distinct types are imported from `aquatic_udp_protocol` in 26 sour
 
 #### Step 1b: Switch all dependent packages to the internal fork
 
-- [ ] Point all 13 packages at the internal fork instead of the crates.io version
+- [x] Point all 13 packages at the internal fork instead of the crates.io version
       (`aquatic_udp_protocol = { path = "../aquatic-udp-protocol" }`).
-- [ ] Verify the build compiles and all tests pass.
+- [x] Verify the build compiles and all tests pass.
 
 ### Step 2: Strip unused items from the internal fork
 

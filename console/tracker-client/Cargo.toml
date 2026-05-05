@@ -16,7 +16,7 @@ version.workspace = true
 
 [dependencies]
 anyhow = "1"
-aquatic_udp_protocol = "0"
+aquatic_udp_protocol = { path = "../../packages/aquatic-udp-protocol" }
 bittorrent-primitives = "0.1.0"
 bittorrent-tracker-client = { version = "3.0.0-develop", path = "../../packages/tracker-client" }
 clap = { version = "4", features = [ "derive", "env" ] }

@@ -14,7 +14,7 @@ rust-version.workspace = true
 version.workspace = true
 
 [dependencies]
-aquatic_udp_protocol = "0"
+aquatic_udp_protocol = { path = "../aquatic-udp-protocol" }
 axum = { version = "0", features = [ "macros" ] }
 axum-extra = { version = "0", features = [ "query" ] }
 axum-server = { version = "0", features = [ "tls-rustls-no-provider" ] }
