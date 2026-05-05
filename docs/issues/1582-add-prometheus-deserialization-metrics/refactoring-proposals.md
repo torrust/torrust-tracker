@@ -366,6 +366,94 @@ is not ideal. An alternative is a newtype `ParsedExposition(exposition, now)`.
 
 ---
 
+## 9. Make Stage 3 a typed conversion (`TryFrom`) instead of a free helper
+
+**Effort**: medium | **Impact**: medium-high
+
+After implementing proposal 8, Stage 3 currently lives in a free function:
+`exposition_to_metric_collection(&exposition.families, now)`.
+
+A stronger boundary is to model conversion as a type-level contract using a
+newtype wrapper and `TryFrom`:
+
+```rust
+struct ParsedExposition<'a> {
+    exposition: openmetrics_parser::PrometheusExposition<'a>,
+    now: DurationSinceUnixEpoch,
+}
+
+impl TryFrom<ParsedExposition<'_>> for MetricCollection {
+    type Error = PrometheusDeserializationError;
+
+    fn try_from(parsed: ParsedExposition<'_>) -> Result<Self, Self::Error> {
+        // current Stage 3 logic
+    }
+}
+```
+
+This makes the pipeline explicit at the type level and avoids leaking the
+internal `families` container type (`HashMap`) into function signatures.
+
+---
+
+## 10. Remove duplicate `2^64` constants from float validation logic
+
+**Effort**: low | **Impact**: low-medium
+
+`parse_prometheus_timestamp` and `is_whole_u64_representable` currently each define
+their own `18_446_744_073_709_551_616.0` constant.
+
+Consolidating this into a single module-level constant avoids drift and keeps
+`u64`-range semantics in one place:
+
+```rust
+const FIRST_UNREPRESENTABLE_U64_AS_F64: f64 = 18_446_744_073_709_551_616.0;
+```
+
+This is especially useful if future numeric parsing paths need the same bound.
+
+---
+
+## 11. Add direct unit tests for helper boundaries
+
+**Effort**: low | **Impact**: medium (regression safety)
+
+Now that the module has more small helpers, it is worth testing them directly:
+
+- `ensure_trailing_newline`
+- `description_from_help`
+- Stage 3 converter entry point (current free function or future `TryFrom`)
+
+Current tests cover behavior end-to-end, but direct helper tests make regressions
+easier to localize and reduce mutation-testing blind spots in boundary logic.
+
+---
+
+## 12. Factor repeated counter mismatch error construction
+
+**Effort**: low | **Impact**: low-medium
+
+In `FromPrometheusValue for Counter`, `ValueMismatch` for
+"counter (non-negative integer)" is built in multiple branches.
+
+Extracting a tiny local helper keeps the happy path easier to scan and avoids
+duplicating error-shape details:
+
+```rust
+fn counter_integer_mismatch(family_name: &str, actual: String) -> PrometheusDeserializationError {
+    PrometheusDeserializationError::ValueMismatch {
+        metric_name: family_name.to_owned(),
+        expected_type: "counter (non-negative integer)".to_owned(),
+        actual,
+    }
+}
+```
+
+This keeps branch logic focused on value classification while preserving exactly
+the same error behavior.
+
+---
+
 ## Summary table
 
 | #   | Proposal                                                          | Effort | Impact                    |
@@ -378,3 +466,7 @@ is not ideal. An alternative is a newtype `ParsedExposition(exposition, now)`.
 | 6   | Use `TryFrom` for `Counter`/`Gauge` extraction                    | Medium | Idiomatic                 |
 | 7   | Implement `From` conversions instead of `collection_error` helper | Low    | Small                     |
 | 8   | Decompose into normalize → parse → convert pipeline               | High   | Highest testability       |
+| 9   | Model Stage 3 as `TryFrom` conversion                             | Medium | Medium-High               |
+| 10  | Consolidate shared `2^64` float bound constant                    | Low    | Low-Medium                |
+| 11  | Add direct tests for helper boundaries                            | Low    | Medium                    |
+| 12  | Factor repeated counter mismatch error constructor                | Low    | Low-Medium                |
