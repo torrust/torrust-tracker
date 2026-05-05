@@ -13,6 +13,13 @@ use crate::prometheus::{PrometheusDeserializable, PrometheusDeserializationError
 use crate::sample::Sample;
 use crate::sample_collection::SampleCollection;
 
+const FIRST_UNREPRESENTABLE_U64_AS_F64: f64 = 18_446_744_073_709_551_616.0;
+
+struct ParsedExposition {
+    exposition: openmetrics_parser::MetricsExposition<openmetrics_parser::PrometheusType, openmetrics_parser::PrometheusValue>,
+    now: DurationSinceUnixEpoch,
+}
+
 impl PrometheusSerializable for MetricCollection {
     fn to_prometheus(&self) -> String {
         self.counters
@@ -37,8 +44,6 @@ impl PrometheusSerializable for MetricCollection {
 ///
 /// Returns `None` when `t` is non-finite, negative, or out of range.
 pub(super) fn parse_prometheus_timestamp(t: f64) -> Option<DurationSinceUnixEpoch> {
-    const FIRST_UNREPRESENTABLE_U64_AS_F64: f64 = 18_446_744_073_709_551_616.0;
-
     if t.is_finite() && t >= 0.0 {
         if t.trunc() >= FIRST_UNREPRESENTABLE_U64_AS_F64 {
             return None;
@@ -91,8 +96,15 @@ fn convert_openmetrics_label_set(
 
 /// Returns `true` if `v` is a non-negative, whole number that fits in a `u64`.
 fn is_whole_u64_representable(v: f64) -> bool {
-    const FIRST_UNREPRESENTABLE: f64 = 18_446_744_073_709_551_616.0; // 2^64
-    v.is_finite() && v >= 0.0 && v.fract() == 0.0 && v < FIRST_UNREPRESENTABLE
+    v.is_finite() && v >= 0.0 && v.fract() == 0.0 && v < FIRST_UNREPRESENTABLE_U64_AS_F64
+}
+
+fn counter_integer_mismatch(family_name: &str, actual: String) -> PrometheusDeserializationError {
+    PrometheusDeserializationError::ValueMismatch {
+        metric_name: family_name.to_owned(),
+        expected_type: "counter (non-negative integer)".to_owned(),
+        actual,
+    }
 }
 
 fn description_from_help(help: &str) -> Option<MetricDescription> {
@@ -129,11 +141,7 @@ impl FromPrometheusValue for Counter {
                     openmetrics_parser::MetricNumber::Int(value) => match u64::try_from(value) {
                         Ok(value) => Counter::new(value),
                         Err(_) => {
-                            return Err(PrometheusDeserializationError::ValueMismatch {
-                                metric_name: family_name.to_owned(),
-                                expected_type: "counter (non-negative integer)".to_owned(),
-                                actual: c.value.to_string(),
-                            });
+                            return Err(counter_integer_mismatch(family_name, c.value.to_string()));
                         }
                     },
                     openmetrics_parser::MetricNumber::Float(value) if is_whole_u64_representable(value) =>
@@ -142,11 +150,7 @@ impl FromPrometheusValue for Counter {
                         Counter::new(value as u64)
                     }
                     openmetrics_parser::MetricNumber::Float(_) => {
-                        return Err(PrometheusDeserializationError::ValueMismatch {
-                            metric_name: family_name.to_owned(),
-                            expected_type: "counter (non-negative integer)".to_owned(),
-                            actual: c.value.to_string(),
-                        });
+                        return Err(counter_integer_mismatch(family_name, c.value.to_string()));
                     }
                 };
 
@@ -209,41 +213,39 @@ fn parse_family_samples<T: FromPrometheusValue>(
     Ok(Metric::new(metric_name, None, description, build_sample_collection(samples)?))
 }
 
-/// Converts a parsed Prometheus exposition to a `MetricCollection`.
-///
-/// This function encapsulates Stage 3 (Convert) of the deserialization pipeline.
-/// It takes a parsed exposition's families and transforms them into a `MetricCollection`
-/// by iterating over families and converting them based on their type.
-fn exposition_to_metric_collection(
-    families: &std::collections::HashMap<String, openmetrics_parser::PrometheusMetricFamily>,
-    now: DurationSinceUnixEpoch,
-) -> Result<MetricCollection, PrometheusDeserializationError> {
-    let mut counter_metrics: Vec<Metric<Counter>> = Vec::new();
-    let mut gauge_metrics: Vec<Metric<Gauge>> = Vec::new();
+impl TryFrom<ParsedExposition> for MetricCollection {
+    type Error = PrometheusDeserializationError;
 
-    for (family_name, family) in families {
-        match family.family_type {
-            openmetrics_parser::PrometheusType::Counter => {
-                counter_metrics.push(parse_family_samples::<Counter>(family_name, family, now)?);
-            }
-            openmetrics_parser::PrometheusType::Gauge => {
-                gauge_metrics.push(parse_family_samples::<Gauge>(family_name, family, now)?);
-            }
-            openmetrics_parser::PrometheusType::Histogram | openmetrics_parser::PrometheusType::Summary => {
-                return Err(PrometheusDeserializationError::UnsupportedType {
-                    metric_name: family_name.clone(),
-                    metric_type: family.family_type.to_string(),
-                });
-            }
-            openmetrics_parser::PrometheusType::Unknown => {
-                return Err(PrometheusDeserializationError::UnknownType {
-                    metric_name: family_name.clone(),
-                });
+    fn try_from(parsed: ParsedExposition) -> Result<Self, Self::Error> {
+        let ParsedExposition { exposition, now } = parsed;
+
+        let mut counter_metrics: Vec<Metric<Counter>> = Vec::new();
+        let mut gauge_metrics: Vec<Metric<Gauge>> = Vec::new();
+
+        for (family_name, family) in &exposition.families {
+            match family.family_type {
+                openmetrics_parser::PrometheusType::Counter => {
+                    counter_metrics.push(parse_family_samples::<Counter>(family_name, family, now)?);
+                }
+                openmetrics_parser::PrometheusType::Gauge => {
+                    gauge_metrics.push(parse_family_samples::<Gauge>(family_name, family, now)?);
+                }
+                openmetrics_parser::PrometheusType::Histogram | openmetrics_parser::PrometheusType::Summary => {
+                    return Err(PrometheusDeserializationError::UnsupportedType {
+                        metric_name: family_name.clone(),
+                        metric_type: family.family_type.to_string(),
+                    });
+                }
+                openmetrics_parser::PrometheusType::Unknown => {
+                    return Err(PrometheusDeserializationError::UnknownType {
+                        metric_name: family_name.clone(),
+                    });
+                }
             }
         }
-    }
 
-    build_metric_collection(counter_metrics, gauge_metrics)
+        build_metric_collection(counter_metrics, gauge_metrics)
+    }
 }
 
 impl PrometheusDeserializable for MetricCollection {
@@ -256,12 +258,105 @@ impl PrometheusDeserializable for MetricCollection {
             .map_err(|e| PrometheusDeserializationError::ParseError { message: e.to_string() })?;
 
         // Stage 3 (Convert): PrometheusExposition → MetricCollection
-        exposition_to_metric_collection(&exposition.families, now)
+        MetricCollection::try_from(ParsedExposition { exposition, now })
     }
 }
 
 #[cfg(test)]
 mod tests {
+    mod helper_functions {
+        use std::borrow::Cow;
+
+        use super::super::{description_from_help, ensure_trailing_newline};
+        use crate::metric::description::MetricDescription;
+
+        #[test]
+        fn ensure_trailing_newline_returns_borrowed_when_input_has_newline() {
+            let input = "# TYPE hits_total counter\n";
+            let result = ensure_trailing_newline(input);
+
+            assert!(matches!(result, Cow::Borrowed(_)));
+            assert_eq!(result.as_ref(), input);
+        }
+
+        #[test]
+        fn ensure_trailing_newline_returns_owned_when_input_missing_newline() {
+            let input = "# TYPE hits_total counter";
+            let result = ensure_trailing_newline(input);
+
+            assert!(matches!(result, Cow::Owned(_)));
+            assert_eq!(result.as_ref(), "# TYPE hits_total counter\n");
+        }
+
+        #[test]
+        fn description_from_help_returns_none_for_empty_help() {
+            assert_eq!(description_from_help(""), None);
+        }
+
+        #[test]
+        fn description_from_help_returns_some_for_non_empty_help() {
+            assert_eq!(
+                description_from_help("The total number of requests."),
+                Some(MetricDescription::new("The total number of requests."))
+            );
+        }
+    }
+
+    mod stage3_conversion {
+        use torrust_tracker_primitives::DurationSinceUnixEpoch;
+
+        use super::super::ParsedExposition;
+        use crate::counter::Counter;
+        use crate::label::LabelSet;
+        use crate::metric_collection::MetricCollection;
+        use crate::metric_name;
+        use crate::prometheus::{PrometheusDeserializable, PrometheusDeserializationError};
+
+        #[test]
+        fn try_from_parsed_exposition_should_convert_counter_family() {
+            let now = DurationSinceUnixEpoch::from_secs(1_000);
+            let input = "# TYPE requests_total counter\nrequests_total 42\n";
+            let exposition =
+                openmetrics_parser::prometheus::parse_prometheus(input).expect("exposition should parse for stage-3 test");
+
+            let result =
+                MetricCollection::try_from(ParsedExposition { exposition, now }).expect("stage-3 conversion should work");
+
+            let value = result
+                .get_counter_value(&metric_name!("requests_total"), &LabelSet::empty())
+                .expect("counter should be present");
+
+            assert_eq!(value, Counter::new(42));
+        }
+
+        #[test]
+        fn try_from_parsed_exposition_should_reject_unsupported_histogram() {
+            let now = DurationSinceUnixEpoch::from_secs(0);
+            let input = "# TYPE latency histogram\nlatency_bucket{le=\"0.1\"} 5\nlatency_bucket{le=\"+Inf\"} 10\nlatency_sum 1.5\nlatency_count 10\n";
+            let exposition =
+                openmetrics_parser::prometheus::parse_prometheus(input).expect("exposition should parse for stage-3 test");
+
+            let result = MetricCollection::try_from(ParsedExposition { exposition, now });
+
+            assert!(matches!(result, Err(PrometheusDeserializationError::UnsupportedType { .. })));
+        }
+
+        #[test]
+        fn from_prometheus_and_stage3_try_from_should_produce_same_output() {
+            let now = DurationSinceUnixEpoch::from_secs(1_000);
+            let input = "# TYPE requests_total counter\nrequests_total{method=\"get\"} 42\n";
+
+            let from_text = MetricCollection::from_prometheus(input, now).expect("from_prometheus should parse");
+
+            let exposition =
+                openmetrics_parser::prometheus::parse_prometheus(input).expect("exposition should parse for stage-3 test");
+            let from_stage3 =
+                MetricCollection::try_from(ParsedExposition { exposition, now }).expect("stage-3 conversion should work");
+
+            assert_eq!(from_text, from_stage3);
+        }
+    }
+
     mod prometheus_timestamp {
         use torrust_tracker_primitives::DurationSinceUnixEpoch;
 
