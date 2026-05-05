@@ -209,42 +209,54 @@ fn parse_family_samples<T: FromPrometheusValue>(
     Ok(Metric::new(metric_name, None, description, build_sample_collection(samples)?))
 }
 
+/// Converts a parsed Prometheus exposition to a `MetricCollection`.
+///
+/// This function encapsulates Stage 3 (Convert) of the deserialization pipeline.
+/// It takes a parsed exposition's families and transforms them into a `MetricCollection`
+/// by iterating over families and converting them based on their type.
+fn exposition_to_metric_collection(
+    families: &std::collections::HashMap<String, openmetrics_parser::PrometheusMetricFamily>,
+    now: DurationSinceUnixEpoch,
+) -> Result<MetricCollection, PrometheusDeserializationError> {
+    let mut counter_metrics: Vec<Metric<Counter>> = Vec::new();
+    let mut gauge_metrics: Vec<Metric<Gauge>> = Vec::new();
+
+    for (family_name, family) in families {
+        match family.family_type {
+            openmetrics_parser::PrometheusType::Counter => {
+                counter_metrics.push(parse_family_samples::<Counter>(family_name, family, now)?);
+            }
+            openmetrics_parser::PrometheusType::Gauge => {
+                gauge_metrics.push(parse_family_samples::<Gauge>(family_name, family, now)?);
+            }
+            openmetrics_parser::PrometheusType::Histogram | openmetrics_parser::PrometheusType::Summary => {
+                return Err(PrometheusDeserializationError::UnsupportedType {
+                    metric_name: family_name.clone(),
+                    metric_type: family.family_type.to_string(),
+                });
+            }
+            openmetrics_parser::PrometheusType::Unknown => {
+                return Err(PrometheusDeserializationError::UnknownType {
+                    metric_name: family_name.clone(),
+                });
+            }
+        }
+    }
+
+    build_metric_collection(counter_metrics, gauge_metrics)
+}
+
 impl PrometheusDeserializable for MetricCollection {
     fn from_prometheus(input: &str, now: DurationSinceUnixEpoch) -> Result<Self, PrometheusDeserializationError> {
-        // The Prometheus text format requires every metric line to end with a
-        // newline character. Normalize the input so callers that produce output
-        // without a trailing newline (e.g. our own `to_prometheus`) still work.
+        // Stage 1 (Normalize): Ensure trailing newline
         let input = ensure_trailing_newline(input);
 
+        // Stage 2 (Parse): Text → PrometheusExposition
         let exposition = openmetrics_parser::prometheus::parse_prometheus(input.as_ref())
             .map_err(|e| PrometheusDeserializationError::ParseError { message: e.to_string() })?;
 
-        let mut counter_metrics: Vec<Metric<Counter>> = Vec::new();
-        let mut gauge_metrics: Vec<Metric<Gauge>> = Vec::new();
-
-        for (family_name, family) in &exposition.families {
-            match family.family_type {
-                openmetrics_parser::PrometheusType::Counter => {
-                    counter_metrics.push(parse_family_samples::<Counter>(family_name, family, now)?);
-                }
-                openmetrics_parser::PrometheusType::Gauge => {
-                    gauge_metrics.push(parse_family_samples::<Gauge>(family_name, family, now)?);
-                }
-                openmetrics_parser::PrometheusType::Histogram | openmetrics_parser::PrometheusType::Summary => {
-                    return Err(PrometheusDeserializationError::UnsupportedType {
-                        metric_name: family_name.clone(),
-                        metric_type: family.family_type.to_string(),
-                    });
-                }
-                openmetrics_parser::PrometheusType::Unknown => {
-                    return Err(PrometheusDeserializationError::UnknownType {
-                        metric_name: family_name.clone(),
-                    });
-                }
-            }
-        }
-
-        build_metric_collection(counter_metrics, gauge_metrics)
+        // Stage 3 (Convert): PrometheusExposition → MetricCollection
+        exposition_to_metric_collection(&exposition.families, now)
     }
 }
 
