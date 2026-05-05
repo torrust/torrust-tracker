@@ -244,6 +244,21 @@ mod tests {
         assert!(!collection.is_empty());
     }
 
+    #[test]
+    fn it_should_allow_iterating_samples() {
+        let label_set = LabelSet::from(vec![("key", "val")]);
+        let sample = Sample::new(Counter::new(5), sample_update_time(), label_set.clone());
+        let collection = SampleCollection::new(vec![sample]).unwrap();
+
+        let mut count = 0;
+        for (ls, meas) in collection.iter() {
+            assert_eq!(ls, &label_set);
+            assert_eq!(meas.value(), &Counter::new(5));
+            count += 1;
+        }
+        assert_eq!(count, 1);
+    }
+
     mod json_serialization {
         use crate::counter::Counter;
         use crate::label::LabelSet;
@@ -538,6 +553,17 @@ mod tests {
             collection.decrement(&label_set, sample_update_time());
             let sample = collection.get(&label_set).unwrap();
             assert_eq!(*sample.value(), Gauge::new(0.0));
+        }
+
+        #[test]
+        fn it_should_create_a_default_gauge_when_decrementing_a_nonexistent_label_set() {
+            let label_set = LabelSet::default();
+            let mut collection = SampleCollection::<Gauge>::default();
+
+            // Decrement without prior set or increment — triggers the or_insert_with path
+            collection.decrement(&label_set, sample_update_time());
+            let sample = collection.get(&label_set).unwrap();
+            assert_eq!(*sample.value(), Gauge::new(-1.0));
         }
     }
 }

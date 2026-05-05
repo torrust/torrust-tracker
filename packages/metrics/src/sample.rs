@@ -230,6 +230,39 @@ mod tests {
         assert_eq!(sample.labels(), &LabelSet::from(vec![("test", "label")]));
     }
 
+    #[test]
+    fn it_should_expose_measurement() {
+        let time = DurationSinceUnixEpoch::from_secs(1_743_552_000);
+        let sample = Sample::new(42_u32, time, LabelSet::from(vec![("k", "v")]));
+
+        let measurement = sample.measurement();
+
+        assert_eq!(measurement.value(), &42_u32);
+        assert_eq!(measurement.recorded_at(), time);
+    }
+
+    #[test]
+    fn it_should_allow_creating_measurement_directly() {
+        let time = DurationSinceUnixEpoch::from_secs(1_743_552_000);
+        let measurement = Measurement::new(99_u32, time);
+
+        assert_eq!(measurement.value(), &99_u32);
+        assert_eq!(measurement.recorded_at(), time);
+    }
+
+    #[test]
+    fn it_should_allow_converting_sample_into_label_set_and_measurement() {
+        let time = DurationSinceUnixEpoch::from_secs(1_743_552_000);
+        let label_set = LabelSet::from(vec![("env", "prod")]);
+        let sample = Sample::new(7_u32, time, label_set.clone());
+
+        let (labels, meas): (LabelSet, Measurement<u32>) = sample.into();
+
+        assert_eq!(labels, label_set);
+        assert_eq!(meas.value(), &7_u32);
+        assert_eq!(meas.recorded_at(), time);
+    }
+
     mod for_counter_type_sample {
         use torrust_tracker_primitives::DurationSinceUnixEpoch;
 
@@ -461,6 +494,22 @@ mod tests {
 
             let json = serde_json::to_string(&sample).unwrap();
 
+            let deserialized: Sample<i32> = serde_json::from_str(&json).unwrap();
+
+            assert_eq!(deserialized, sample);
+        }
+
+        #[test]
+        fn test_serialization_round_trip_with_pretty_formatter() {
+            // Use serde_json::to_string_pretty to exercise the PrettyFormatter
+            // monomorphisation of serialize_duration.
+            let sample = Sample::new(
+                42,
+                DurationSinceUnixEpoch::new(1_743_552_000, 0),
+                LabelSet::from(vec![("env", "prod")]),
+            );
+
+            let json = serde_json::to_string_pretty(&sample).unwrap();
             let deserialized: Sample<i32> = serde_json::from_str(&json).unwrap();
 
             assert_eq!(deserialized, sample);

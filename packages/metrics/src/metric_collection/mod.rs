@@ -1,16 +1,19 @@
 pub mod aggregate;
+mod error;
+mod kind_collection;
+mod prometheus;
+mod serde;
 
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
 
-use serde::ser::{SerializeSeq, Serializer};
-use serde::{Deserialize, Deserializer, Serialize};
+pub use error::Error;
+pub use kind_collection::MetricKindCollection;
 use torrust_tracker_primitives::DurationSinceUnixEpoch;
 
 use super::counter::Counter;
 use super::gauge::Gauge;
 use super::label::LabelSet;
 use super::metric::{Metric, MetricName};
-use super::prometheus::PrometheusSerializable;
 use crate::metric::description::MetricDescription;
 use crate::sample_collection::SampleCollection;
 use crate::unit::Unit;
@@ -22,8 +25,8 @@ use crate::METRICS_TARGET;
 
 #[derive(Debug, Clone, Default, PartialEq)]
 pub struct MetricCollection {
-    counters: MetricKindCollection<Counter>,
-    gauges: MetricKindCollection<Gauge>,
+    pub(super) counters: MetricKindCollection<Counter>,
+    pub(super) gauges: MetricKindCollection<Gauge>,
 }
 
 impl MetricCollection {
@@ -231,278 +234,6 @@ impl MetricCollection {
     }
 }
 
-#[derive(thiserror::Error, Debug, Clone)]
-pub enum Error {
-    #[error("Metric names must be unique across all metrics types.")]
-    MetricNameCollisionInConstructor {
-        counter_names: Vec<String>,
-        gauge_names: Vec<String>,
-    },
-
-    #[error("Found duplicate metric name in list. Metric names must be unique across all metrics types.")]
-    DuplicateMetricNameInList { metric_name: MetricName },
-
-    #[error("Cannot merge metric '{metric_name}': it already exists in the current collection")]
-    MetricNameCollisionInMerge { metric_name: MetricName },
-
-    #[error("Cannot create metric with name '{metric_name}': another metric with this name already exists")]
-    MetricNameCollisionAdding { metric_name: MetricName },
-}
-
-/// Implements serialization for `MetricCollection`.
-impl Serialize for MetricCollection {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        #[derive(Serialize)]
-        #[serde(tag = "type", rename_all = "lowercase")]
-        enum SerializableMetric<'a> {
-            Counter(&'a Metric<Counter>),
-            Gauge(&'a Metric<Gauge>),
-        }
-
-        let mut seq = serializer.serialize_seq(Some(self.counters.metrics.len() + self.gauges.metrics.len()))?;
-
-        for metric in self.counters.metrics.values() {
-            seq.serialize_element(&SerializableMetric::Counter(metric))?;
-        }
-
-        for metric in self.gauges.metrics.values() {
-            seq.serialize_element(&SerializableMetric::Gauge(metric))?;
-        }
-
-        seq.end()
-    }
-}
-
-impl<'de> Deserialize<'de> for MetricCollection {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        #[derive(Deserialize)]
-        #[serde(tag = "type", rename_all = "lowercase")]
-        enum MetricPayload {
-            Counter(Metric<Counter>),
-            Gauge(Metric<Gauge>),
-        }
-
-        let payload = Vec::<MetricPayload>::deserialize(deserializer)?;
-
-        let mut counters = Vec::new();
-        let mut gauges = Vec::new();
-
-        for metric in payload {
-            match metric {
-                MetricPayload::Counter(counter) => counters.push(counter),
-                MetricPayload::Gauge(gauge) => gauges.push(gauge),
-            }
-        }
-
-        let counters = MetricKindCollection::new(counters).map_err(serde::de::Error::custom)?;
-        let gauges = MetricKindCollection::new(gauges).map_err(serde::de::Error::custom)?;
-
-        let metric_collection = MetricCollection::new(counters, gauges).map_err(serde::de::Error::custom)?;
-
-        Ok(metric_collection)
-    }
-}
-
-impl PrometheusSerializable for MetricCollection {
-    fn to_prometheus(&self) -> String {
-        self.counters
-            .metrics
-            .values()
-            .filter(|metric| !metric.is_empty())
-            .map(Metric::<Counter>::to_prometheus)
-            .chain(
-                self.gauges
-                    .metrics
-                    .values()
-                    .filter(|metric| !metric.is_empty())
-                    .map(Metric::<Gauge>::to_prometheus),
-            )
-            .collect::<Vec<String>>()
-            .join("\n\n")
-    }
-}
-
-#[derive(Debug, Clone, Default, PartialEq)]
-pub struct MetricKindCollection<T> {
-    metrics: HashMap<MetricName, Metric<T>>,
-}
-
-impl<T> MetricKindCollection<T> {
-    /// Creates a new `MetricKindCollection` from a vector of metrics
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if duplicate metric names are passed.
-    pub fn new(metrics: Vec<Metric<T>>) -> Result<Self, Error> {
-        let mut map = HashMap::with_capacity(metrics.len());
-
-        for metric in metrics {
-            let metric_name = metric.name().clone();
-
-            if let Some(_old_metric) = map.insert(metric.name().clone(), metric) {
-                return Err(Error::DuplicateMetricNameInList { metric_name });
-            }
-        }
-
-        Ok(Self { metrics: map })
-    }
-
-    /// Returns an iterator over all metric names in this collection.
-    pub fn names(&self) -> impl Iterator<Item = &MetricName> {
-        self.metrics.keys()
-    }
-
-    pub fn insert_if_absent(&mut self, metric: Metric<T>) {
-        if !self.metrics.contains_key(metric.name()) {
-            self.insert(metric);
-        }
-    }
-
-    pub fn insert(&mut self, metric: Metric<T>) {
-        self.metrics.insert(metric.name().clone(), metric);
-    }
-}
-
-impl<T: Clone> MetricKindCollection<T> {
-    /// Merges another `MetricKindCollection` into this one.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if a metric name already exists in the current collection.
-    pub fn merge(&mut self, other: &Self) -> Result<(), Error> {
-        self.check_for_name_collision(other)?;
-
-        for (metric_name, metric) in &other.metrics {
-            self.metrics.insert(metric_name.clone(), metric.clone());
-        }
-
-        Ok(())
-    }
-
-    fn check_for_name_collision(&self, other: &Self) -> Result<(), Error> {
-        for metric_name in other.metrics.keys() {
-            if self.metrics.contains_key(metric_name) {
-                return Err(Error::MetricNameCollisionInMerge {
-                    metric_name: metric_name.clone(),
-                });
-            }
-        }
-
-        Ok(())
-    }
-}
-
-impl MetricKindCollection<Counter> {
-    /// Increments the counter for the given metric name and labels.
-    ///
-    /// If the metric name does not exist, it will be created.
-    ///
-    /// # Panics
-    ///
-    /// Panics if the metric does not exist.
-    pub fn increment(&mut self, name: &MetricName, label_set: &LabelSet, time: DurationSinceUnixEpoch) {
-        let metric = Metric::<Counter>::new_empty_with_name(name.clone());
-
-        self.insert_if_absent(metric);
-
-        let metric = self.metrics.get_mut(name).expect("Counter metric should exist");
-
-        metric.increment(label_set, time);
-    }
-
-    /// Sets the counter to an absolute value for the given metric name and labels.
-    ///
-    /// If the metric name does not exist, it will be created.
-    ///
-    /// # Panics
-    ///
-    /// Panics if the metric does not exist.
-    pub fn absolute(&mut self, name: &MetricName, label_set: &LabelSet, value: u64, time: DurationSinceUnixEpoch) {
-        let metric = Metric::<Counter>::new_empty_with_name(name.clone());
-
-        self.insert_if_absent(metric);
-
-        let metric = self.metrics.get_mut(name).expect("Counter metric should exist");
-
-        metric.absolute(label_set, value, time);
-    }
-
-    #[must_use]
-    pub fn get_value(&self, name: &MetricName, label_set: &LabelSet) -> Option<Counter> {
-        self.metrics
-            .get(name)
-            .and_then(|metric| metric.get_sample_data(label_set))
-            .map(|sample| sample.value().clone())
-    }
-}
-
-impl MetricKindCollection<Gauge> {
-    /// Sets the gauge for the given metric name and labels.
-    ///
-    /// If the metric name does not exist, it will be created.
-    ///
-    /// # Panics
-    ///
-    /// Panics if the metric does not exist and it could not be created.
-    pub fn set(&mut self, name: &MetricName, label_set: &LabelSet, value: f64, time: DurationSinceUnixEpoch) {
-        let metric = Metric::<Gauge>::new_empty_with_name(name.clone());
-
-        self.insert_if_absent(metric);
-
-        let metric = self.metrics.get_mut(name).expect("Gauge metric should exist");
-
-        metric.set(label_set, value, time);
-    }
-
-    /// Increments the gauge for the given metric name and labels.
-    ///
-    /// If the metric name does not exist, it will be created.
-    ///
-    /// # Panics
-    ///
-    /// Panics if the metric does not exist and it could not be created.
-    pub fn increment(&mut self, name: &MetricName, label_set: &LabelSet, time: DurationSinceUnixEpoch) {
-        let metric = Metric::<Gauge>::new_empty_with_name(name.clone());
-
-        self.insert_if_absent(metric);
-
-        let metric = self.metrics.get_mut(name).expect("Gauge metric should exist");
-
-        metric.increment(label_set, time);
-    }
-
-    /// Decrements the gauge for the given metric name and labels.
-    ///
-    /// If the metric name does not exist, it will be created.
-    ///
-    /// # Panics
-    ///
-    /// Panics if the metric does not exist and it could not be created.
-    pub fn decrement(&mut self, name: &MetricName, label_set: &LabelSet, time: DurationSinceUnixEpoch) {
-        let metric = Metric::<Gauge>::new_empty_with_name(name.clone());
-
-        self.insert_if_absent(metric);
-
-        let metric = self.metrics.get_mut(name).expect("Gauge metric should exist");
-
-        metric.decrement(label_set, time);
-    }
-
-    #[must_use]
-    pub fn get_value(&self, name: &MetricName, label_set: &LabelSet) -> Option<Gauge> {
-        self.metrics
-            .get(name)
-            .and_then(|metric| metric.get_sample_data(label_set))
-            .map(|sample| sample.value().clone())
-    }
-}
-
 #[cfg(test)]
 mod tests {
 
@@ -510,6 +241,7 @@ mod tests {
 
     use super::*;
     use crate::label::LabelValue;
+    use crate::prometheus::PrometheusSerializable;
     use crate::sample::Sample;
     use crate::sample_collection::SampleCollection;
     use crate::tests::{format_prometheus_output, sort_lines};
@@ -695,30 +427,6 @@ udp_tracker_server_performance_avg_announce_processing_time_ns{server_binding_ip
         let result = collection.increment_counter(&metric_name!("test_metric"), &label_set, time);
 
         assert!(result.is_err());
-    }
-
-    #[test]
-    fn it_should_allow_serializing_to_json() {
-        // todo: this test does work with metric with multiple samples because
-        // samples are not serialized in the same order as they are created.
-        let (metric_collection, expected_json, _expected_prometheus) = MetricCollectionFixture::default().deconstruct();
-
-        let json = serde_json::to_string_pretty(&metric_collection).unwrap();
-
-        assert_eq!(
-            serde_json::from_str::<serde_json::Value>(&json).unwrap(),
-            serde_json::from_str::<serde_json::Value>(&expected_json).unwrap()
-        );
-    }
-
-    #[test]
-    fn it_should_allow_deserializing_from_json() {
-        let (expected_metric_collection, metric_collection_json, _expected_prometheus) =
-            MetricCollectionFixture::default().deconstruct();
-
-        let metric_collection: MetricCollection = serde_json::from_str(&metric_collection_json).unwrap();
-
-        assert_eq!(metric_collection, expected_metric_collection);
     }
 
     #[test]
@@ -1150,47 +858,6 @@ http_tracker_core_announce_requests_received_total{server_binding_ip="0.0.0.0",s
             ]);
 
             assert!(result.is_err());
-        }
-    }
-
-    mod metric_kind_collection {
-
-        use crate::counter::Counter;
-        use crate::gauge::Gauge;
-        use crate::metric::Metric;
-        use crate::metric_collection::{Error, MetricKindCollection};
-        use crate::metric_name;
-
-        #[test]
-        fn it_should_not_allow_merging_counter_metric_collections_with_name_collisions() {
-            let mut collection1 = MetricKindCollection::<Counter>::default();
-            collection1.insert(Metric::<Counter>::new_empty_with_name(metric_name!("test_metric")));
-
-            let mut collection2 = MetricKindCollection::<Counter>::default();
-            collection2.insert(Metric::<Counter>::new_empty_with_name(metric_name!("test_metric")));
-
-            let result = collection1.merge(&collection2);
-
-            assert!(
-                result.is_err()
-                    && matches!(result, Err(Error::MetricNameCollisionInMerge { metric_name }) if metric_name == metric_name!("test_metric"))
-            );
-        }
-
-        #[test]
-        fn it_should_not_allow_merging_gauge_metric_collections_with_name_collisions() {
-            let mut collection1 = MetricKindCollection::<Gauge>::default();
-            collection1.insert(Metric::<Gauge>::new_empty_with_name(metric_name!("test_metric")));
-
-            let mut collection2 = MetricKindCollection::<Gauge>::default();
-            collection2.insert(Metric::<Gauge>::new_empty_with_name(metric_name!("test_metric")));
-
-            let result = collection1.merge(&collection2);
-
-            assert!(
-                result.is_err()
-                    && matches!(result, Err(Error::MetricNameCollisionInMerge { metric_name }) if metric_name == metric_name!("test_metric"))
-            );
         }
     }
 }

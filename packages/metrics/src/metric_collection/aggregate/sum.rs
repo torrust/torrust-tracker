@@ -114,5 +114,36 @@ mod tests {
                 Some(1.0)
             );
         }
+
+        #[test]
+        fn nonexistent_counter_metric_returns_none() {
+            use crate::label::LabelSet;
+            use crate::metric_collection::MetricCollection;
+            use crate::metric_name;
+
+            let collection = MetricCollection::default();
+
+            assert_eq!(collection.sum(&metric_name!("does_not_exist"), &LabelSet::empty()), None);
+        }
+
+        #[test]
+        fn nonexistent_gauge_metric_returns_none() {
+            use crate::label::LabelSet;
+            use crate::metric_collection::MetricCollection;
+            use crate::{label_name, metric_name};
+
+            let mut collection = MetricCollection::default();
+
+            // Add a counter (not a gauge) so gauges map remains empty for this name
+            collection
+                .increment_counter(
+                    &metric_name!("some_counter"),
+                    &(label_name!("x"), LabelValue::new("y")).into(),
+                    DurationSinceUnixEpoch::from_secs(1),
+                )
+                .unwrap();
+
+            assert_eq!(collection.sum(&metric_name!("missing_gauge"), &LabelSet::empty()), None);
+        }
     }
 }

@@ -25,6 +25,8 @@
         ".github/labels.json",
         "/project-words.txt",
         "repomix-output.xml",
-        "TEMP-*.md"
+        "TEMP-*.md",
+        "mutants.out",
+        "mutants.out.old"
     ]
 }

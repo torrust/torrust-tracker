@@ -87,6 +87,7 @@ finalises
 flamegraph
 formatjson
 fput
+fract
 Freebox
 frontmatter
 Frostegård
@@ -175,6 +176,7 @@ numwant
 nvCFlJCq7fz7Qx6KoKTDiMZvns8l5Kw7
 obra
 oneshot
+openmetrics
 ostr
 Pando
 parallelise
@@ -201,6 +203,7 @@ RAII
 Rakshasa
 randomised
 Rasterbar
+recognised
 realpath
 reannounce
 recompiles
@@ -259,6 +262,7 @@ sysmalloc
 sysret
 taiki
 taplo
+trunc
 tdyne
 Tebibytes
 tempfile
@@ -276,6 +280,7 @@ torrust
 torrustracker
 trackerid
 Trackon
+triaging
 trixie
 ttwu
 typenum
@@ -283,6 +288,8 @@ udpv
 Unamed
 underflows
 uninit
+unrecognised
+unrepresentable
 Uninit
 unittests
 unparked
@@ -290,6 +297,7 @@ Unparker
 Unsendable
 unsync
 untuple
+unviable
 upcasting
 uroot
 usize
