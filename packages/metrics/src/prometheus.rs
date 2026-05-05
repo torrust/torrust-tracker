@@ -1,5 +1,8 @@
 use torrust_tracker_primitives::DurationSinceUnixEpoch;
 
+use crate::metric_collection::Error as MetricCollectionError;
+use crate::sample_collection::Error as SampleCollectionError;
+
 pub trait PrometheusSerializable {
     /// Convert the implementing type into a Prometheus exposition format string.
     ///
@@ -63,4 +66,20 @@ pub enum PrometheusDeserializationError {
     /// A structural error when assembling collections from parsed data.
     #[error("Failed to build collection data: {message}")]
     CollectionError { message: String },
+}
+
+impl From<MetricCollectionError> for PrometheusDeserializationError {
+    fn from(error: MetricCollectionError) -> Self {
+        Self::CollectionError {
+            message: error.to_string(),
+        }
+    }
+}
+
+impl From<SampleCollectionError> for PrometheusDeserializationError {
+    fn from(error: SampleCollectionError) -> Self {
+        Self::CollectionError {
+            message: error.to_string(),
+        }
+    }
 }

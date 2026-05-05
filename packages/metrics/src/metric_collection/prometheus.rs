@@ -49,10 +49,8 @@ pub(super) fn parse_prometheus_timestamp(t: f64) -> Option<DurationSinceUnixEpoc
         #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
         let nanos = ((t - t.trunc()) * 1_000_000_000.0).round() as u32;
         let (secs, nanos) = if nanos >= 1_000_000_000 {
-            match secs.checked_add(1) {
-                Some(next_secs) => (next_secs, nanos - 1_000_000_000),
-                None => return None,
-            }
+            let next_secs = secs.checked_add(1)?;
+            (next_secs, nanos - 1_000_000_000)
         } else {
             (secs, nanos)
         };
@@ -62,24 +60,18 @@ pub(super) fn parse_prometheus_timestamp(t: f64) -> Option<DurationSinceUnixEpoc
     }
 }
 
-pub(super) fn collection_error<E: ToString>(error: &E) -> PrometheusDeserializationError {
-    PrometheusDeserializationError::CollectionError {
-        message: error.to_string(),
-    }
-}
-
 pub(super) fn build_sample_collection<T>(samples: Vec<Sample<T>>) -> Result<SampleCollection<T>, PrometheusDeserializationError> {
-    SampleCollection::new(samples).map_err(|error| collection_error(&error))
+    Ok(SampleCollection::new(samples)?)
 }
 
 pub(super) fn build_metric_collection(
     counter_metrics: Vec<Metric<Counter>>,
     gauge_metrics: Vec<Metric<Gauge>>,
 ) -> Result<MetricCollection, PrometheusDeserializationError> {
-    let counters = MetricKindCollection::new(counter_metrics).map_err(|error| collection_error(&error))?;
-    let gauges = MetricKindCollection::new(gauge_metrics).map_err(|error| collection_error(&error))?;
+    let counters = MetricKindCollection::new(counter_metrics)?;
+    let gauges = MetricKindCollection::new(gauge_metrics)?;
 
-    MetricCollection::new(counters, gauges).map_err(|error| collection_error(&error))
+    Ok(MetricCollection::new(counters, gauges)?)
 }
 
 /// Converts an `openmetrics_parser::LabelSet` to our `LabelSet`, remapping
