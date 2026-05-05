@@ -35,13 +35,13 @@ impl PrometheusSerializable for MetricCollection {
 /// Converts a Prometheus timestamp (seconds since Unix epoch as `f64`) to a
 /// `DurationSinceUnixEpoch`.
 ///
-/// If `t` is non-finite or negative, `fallback` is returned instead.
-pub(super) fn parse_prometheus_timestamp(t: f64, fallback: DurationSinceUnixEpoch) -> DurationSinceUnixEpoch {
+/// Returns `None` when `t` is non-finite, negative, or out of range.
+pub(super) fn parse_prometheus_timestamp(t: f64) -> Option<DurationSinceUnixEpoch> {
     const FIRST_UNREPRESENTABLE_U64_AS_F64: f64 = 18_446_744_073_709_551_616.0;
 
     if t.is_finite() && t >= 0.0 {
         if t.trunc() >= FIRST_UNREPRESENTABLE_U64_AS_F64 {
-            return fallback;
+            return None;
         }
 
         #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
@@ -51,14 +51,14 @@ pub(super) fn parse_prometheus_timestamp(t: f64, fallback: DurationSinceUnixEpoc
         let (secs, nanos) = if nanos >= 1_000_000_000 {
             match secs.checked_add(1) {
                 Some(next_secs) => (next_secs, nanos - 1_000_000_000),
-                None => return fallback,
+                None => return None,
             }
         } else {
             (secs, nanos)
         };
-        DurationSinceUnixEpoch::new(secs, nanos)
+        Some(DurationSinceUnixEpoch::new(secs, nanos))
     } else {
-        fallback
+        None
     }
 }
 
@@ -208,7 +208,7 @@ fn parse_family_samples<T: FromPrometheusValue>(
         })?;
         let label_set = convert_openmetrics_label_set(family_name, parser_label_set)?;
         let value = T::from_prometheus_value(family_name, &parser_sample.value)?;
-        let time = parser_sample.timestamp.map_or(now, |t| parse_prometheus_timestamp(t, now));
+        let time = parser_sample.timestamp.and_then(parse_prometheus_timestamp).unwrap_or(now);
         samples.push(Sample::new(value, time, label_set));
     }
 
@@ -265,69 +265,60 @@ mod tests {
 
         #[test]
         fn it_should_convert_a_whole_second_timestamp() {
-            let now = DurationSinceUnixEpoch::from_secs(0);
-            let result = parse_prometheus_timestamp(1_000.0, now);
-            assert_eq!(result, DurationSinceUnixEpoch::from_secs(1_000));
+            let result = parse_prometheus_timestamp(1_000.0);
+            assert_eq!(result, Some(DurationSinceUnixEpoch::from_secs(1_000)));
         }
 
         #[test]
         fn it_should_convert_a_fractional_timestamp() {
-            let now = DurationSinceUnixEpoch::from_secs(0);
-            let result = parse_prometheus_timestamp(1.5, now);
-            approx::assert_abs_diff_eq!(result.as_secs_f64(), 1.5, epsilon = 1e-9);
+            let result = parse_prometheus_timestamp(1.5);
+            approx::assert_abs_diff_eq!(result.expect("should convert timestamp").as_secs_f64(), 1.5, epsilon = 1e-9);
         }
 
         #[test]
         fn it_should_use_fallback_for_negative_timestamp() {
-            let fallback = DurationSinceUnixEpoch::from_secs(42);
-            let result = parse_prometheus_timestamp(-1.0, fallback);
-            assert_eq!(result, fallback);
+            let result = parse_prometheus_timestamp(-1.0);
+            assert_eq!(result, None);
         }
 
         #[test]
         fn it_should_use_fallback_for_nan() {
-            let fallback = DurationSinceUnixEpoch::from_secs(42);
-            let result = parse_prometheus_timestamp(f64::NAN, fallback);
-            assert_eq!(result, fallback);
+            let result = parse_prometheus_timestamp(f64::NAN);
+            assert_eq!(result, None);
         }
 
         #[test]
         fn it_should_use_fallback_for_positive_infinity() {
-            let fallback = DurationSinceUnixEpoch::from_secs(42);
-            let result = parse_prometheus_timestamp(f64::INFINITY, fallback);
-            assert_eq!(result, fallback);
+            let result = parse_prometheus_timestamp(f64::INFINITY);
+            assert_eq!(result, None);
         }
 
         #[test]
         fn it_should_use_fallback_for_negative_infinity() {
-            let fallback = DurationSinceUnixEpoch::from_secs(42);
-            let result = parse_prometheus_timestamp(f64::NEG_INFINITY, fallback);
-            assert_eq!(result, fallback);
+            let result = parse_prometheus_timestamp(f64::NEG_INFINITY);
+            assert_eq!(result, None);
         }
 
         #[test]
         fn it_should_use_fallback_when_timestamp_would_overflow_u64_seconds() {
             const FIRST_UNREPRESENTABLE_U64_AS_F64: f64 = 18_446_744_073_709_551_616.0;
-            let fallback = DurationSinceUnixEpoch::from_secs(42);
-            let result = parse_prometheus_timestamp(FIRST_UNREPRESENTABLE_U64_AS_F64, fallback);
-            assert_eq!(result, fallback);
+            let result = parse_prometheus_timestamp(FIRST_UNREPRESENTABLE_U64_AS_F64);
+            assert_eq!(result, None);
         }
 
         #[test]
         fn it_should_handle_nanosecond_boundary_overflow() {
-            let now = DurationSinceUnixEpoch::from_secs(0);
             // 0.9999999995 * 1e9 rounds to exactly 1_000_000_000 nanos, triggering
             // a carry: secs becomes 2, nanos becomes 0. Use exact equality so that
             // the mutant `nanos / 1_000_000_000` (= 1 ns) is caught.
-            let result = parse_prometheus_timestamp(1.999_999_999_5, now);
-            assert_eq!(result, DurationSinceUnixEpoch::from_secs(2));
+            let result = parse_prometheus_timestamp(1.999_999_999_5);
+            assert_eq!(result, Some(DurationSinceUnixEpoch::from_secs(2)));
         }
 
         #[test]
         fn it_should_convert_zero_timestamp() {
-            let fallback = DurationSinceUnixEpoch::from_secs(99);
-            let result = parse_prometheus_timestamp(0.0, fallback);
-            assert_eq!(result, DurationSinceUnixEpoch::from_secs(0));
+            let result = parse_prometheus_timestamp(0.0);
+            assert_eq!(result, Some(DurationSinceUnixEpoch::from_secs(0)));
         }
     }
 
