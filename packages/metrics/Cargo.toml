@@ -27,5 +27,6 @@ tracing = "0.1.41"
 [dev-dependencies]
 approx = "0.5.1"
 formatjson = "0.3.1"
+mutants = "0.0.3"
 pretty_assertions = "1.4.1"
 rstest = "0.25.0"

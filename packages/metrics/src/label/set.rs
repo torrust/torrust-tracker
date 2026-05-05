@@ -14,6 +14,10 @@ pub struct LabelSet {
 
 impl LabelSet {
     #[must_use]
+    // `Self { items: BTreeMap::new() }` and `Default::default()` are observationally
+    // identical because `BTreeMap::default()` is `BTreeMap::new()`. No test can
+    // distinguish the two return values, making this an equivalent mutant.
+    #[cfg_attr(test, mutants::skip)]
     pub fn empty() -> Self {
         Self { items: BTreeMap::new() }
     }

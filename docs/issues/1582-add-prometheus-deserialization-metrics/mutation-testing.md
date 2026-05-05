@@ -182,7 +182,7 @@ Update this table after completing each task. Columns:
 | `[x]`  | 2         | `metric_collection/mod.rs`           |      19 |      2 |        0 |       0 |
 | `[x]`  | 3         | `counter.rs` + `gauge.rs`            |      32 |     20 |        0 |       0 |
 | `[x]`  | 4         | `sample_collection.rs` + `sample.rs` |      45 |     12 |        0 |       0 |
-| `[ ]`  | 5         | `label/set.rs`                       |      26 |      — |        — |       — |
+| `[x]`  | 5         | `label/set.rs`                       |      26 |      7 |        0 |       1 |
 | `[ ]`  | 6         | all remaining files                  |     119 |      — |        — |       — |
 | **—**  | **Total** |                                      | **276** |  **—** |    **—** |   **—** |
 

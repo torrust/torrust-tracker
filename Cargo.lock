@@ -2914,6 +2914,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "mutants"
+version = "0.0.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bc0287524726960e07b119cebd01678f852f147742ae0d925e6a520dca956126"
+
+[[package]]
 name = "native-tls"
 version = "0.2.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5582,6 +5588,7 @@ dependencies = [
  "chrono",
  "derive_more",
  "formatjson",
+ "mutants",
  "openmetrics-parser",
  "pretty_assertions",
  "rstest 0.25.0",
