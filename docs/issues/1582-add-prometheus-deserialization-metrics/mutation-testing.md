@@ -183,7 +183,7 @@ Update this table after completing each task. Columns:
 | `[x]`  | 3         | `counter.rs` + `gauge.rs`            |      32 |     20 |        0 |       0 |
 | `[x]`  | 4         | `sample_collection.rs` + `sample.rs` |      45 |     12 |        0 |       0 |
 | `[x]`  | 5         | `label/set.rs`                       |      26 |      7 |        0 |       1 |
-| `[ ]`  | 6         | all remaining files                  |     119 |      — |        — |       — |
+| `[x]`  | 6         | all remaining files                  |     119 |     45 |        0 |       1 |
 | **—**  | **Total** |                                      | **276** |  **—** |    **—** |   **—** |
 
 > Replace `—` with actual numbers as each task is completed. The goal is **Survived = 0**

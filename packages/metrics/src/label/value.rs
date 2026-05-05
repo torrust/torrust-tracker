@@ -14,6 +14,9 @@ impl LabelValue {
 
     /// Empty label values are ignored in Prometheus.
     #[must_use]
+    // `Self(String::default())` and `Self(Default::default())` are observationally
+    // identical because `String::default()` is an empty string.
+    #[cfg_attr(test, mutants::skip)]
     pub fn ignore() -> Self {
         Self(String::default())
     }
