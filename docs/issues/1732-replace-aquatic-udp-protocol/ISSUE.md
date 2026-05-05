@@ -142,10 +142,22 @@ fork source were needed.
 
 ### Step 3: Apply the `zerocopy` 0.8 migration
 
-- [ ] Update `zerocopy` to `0.8` in the fork's `Cargo.toml`.
-- [ ] Apply the API migration from our PR
-      ([aquatic#235](https://github.com/greatest-ape/aquatic/pull/235)).
-- [ ] Ensure the build is clean under the workspace `rustflags` (`-D warnings`, etc.).
+Analysis of the transitive dependency problem documented in
+[step-3-bittorrent-primitives-problem.md](step-3-bittorrent-primitives-problem.md).
+
+- [x] Update `zerocopy` to `0.8` in `packages/aquatic-udp-protocol/Cargo.toml` and
+      `packages/aquatic-peer-id/Cargo.toml`.
+- [x] Apply the API migration from our PR
+      ([aquatic#235](https://github.com/greatest-ape/aquatic/pull/235)) to all four fork source
+      files (`common.rs`, `request.rs`, `response.rs`, `lib.rs` of `aquatic-peer-id`).
+- [x] Update `zerocopy` to `0.8` in `packages/primitives/Cargo.toml` and fix the one
+      `read_from` → `read_from_bytes` call site in `src/peer.rs`.
+- [x] Create an internal fork of `bittorrent-primitives` at `packages/bittorrent-primitives/`
+      to fix the transitive API breakage (see
+      [step-3-bittorrent-primitives-problem.md](step-3-bittorrent-primitives-problem.md)).
+      Add it to `[patch.crates-io]` and to workspace `members`.
+- [x] Ensure the build is clean under the workspace `rustflags` (`-D warnings`, etc.) —
+      `cargo check --workspace` passes with no errors or warnings.
 
 ### Step 4: Absorb the internal forks into their permanent homes
 
@@ -153,6 +165,15 @@ fork source were needed.
 REST API, core logic), not UDP-protocol-specific. They should live in `packages/primitives` with
 other peer-related types. UDP protocol types (`Request`, `Response`, etc.) belong in
 `packages/udp-protocol`. This split requires two substeps.
+
+> **See also**: [step-3-bittorrent-primitives-problem.md](step-3-bittorrent-primitives-problem.md)
+> for a detailed analysis of the transitive dependency problem discovered during Step 3, the
+> solution applied, and longer-term notes on the `bittorrent-primitives` /
+> `torrust-tracker-primitives` boundary.
+>
+> The boundary re-evaluation (moving generic BitTorrent types such as `PeerId`, `PeerClient`,
+> `AnnounceEvent`, … into `bittorrent-primitives`) is **out of scope for issue 1732** and should
+> be tracked as a separate follow-up issue once Step 4 is complete.
 
 #### Step 4a: Migrate UDP protocol types to `packages/udp-protocol`
 
@@ -175,6 +196,23 @@ other peer-related types. UDP protocol types (`Request`, `Response`, etc.) belon
 - [ ] Remove `aquatic_peer_id` from every `Cargo.toml`.
 - [ ] Remove both interim forks (`packages/aquatic-udp-protocol` and `packages/aquatic-peer-id`)
       from the workspace `Cargo.toml` once no package depends on them.
+
+#### Step 4c: Consolidate `InfoHash` into `bittorrent-primitives`
+
+The internal fork at `packages/bittorrent-primitives/` currently delegates `InfoHash` storage to
+`aquatic_udp_protocol::InfoHash`. After Step 4a removes the UDP-protocol dependency on
+`aquatic_udp_protocol`, that delegation becomes unnecessary.
+
+- [ ] Replace the `data: aquatic_udp_protocol::InfoHash` field with a plain `[u8; 20]` array
+      directly inside `bittorrent-primitives::InfoHash`.
+- [ ] Remove the `aquatic_udp_protocol` dependency from `packages/bittorrent-primitives/Cargo.toml`.
+- [ ] Update all impls in `src/info_hash.rs` that previously delegated to
+      `aquatic_udp_protocol::InfoHash` to operate on the inner `[u8; 20]` directly.
+- [ ] Ensure all existing tests in `bittorrent-primitives` pass.
+- [ ] Publish a new version of `bittorrent-primitives` to crates.io once the crate is
+      self-contained (no external protocol dependencies).
+- [ ] Remove the `packages/bittorrent-primitives/` fork and the `[patch.crates-io]` entry once
+      the published version is available.
 
 ### Step 5: Redesign types to fit the Torrust Tracker domain model
 
