@@ -139,15 +139,34 @@ The following distinct types are imported from `aquatic_udp_protocol` in 26 sour
       ([aquatic#235](https://github.com/greatest-ape/aquatic/pull/235)).
 - [ ] Ensure the build is clean under the workspace `rustflags` (`-D warnings`, etc.).
 
-### Step 4: Migrate `packages/udp-protocol` to own the protocol types
+### Step 4: Absorb the internal forks into their permanent homes
 
-- [ ] Move all BEP 15 types into `packages/udp-protocol`, replacing the internal fork.
+`PeerId` and `PeerClient` are domain concepts used across the workspace (UDP tracker, HTTP tracker,
+REST API, core logic), not UDP-protocol-specific. They should live in `packages/primitives` with
+other peer-related types. UDP protocol types (`Request`, `Response`, etc.) belong in
+`packages/udp-protocol`. This split requires two substeps.
+
+#### Step 4a: Migrate UDP protocol types to `packages/udp-protocol`
+
+- [ ] Move all BEP 15 protocol types (`Request`, `Response`, common types) from
+      `packages/aquatic-udp-protocol` into `packages/udp-protocol/src/`.
       Add an inline attribution comment to each migrated source file crediting the original
       `aquatic_udp_protocol` 0.9.0 as the starting point.
-- [ ] Update all 13 dependent packages to import from `bittorrent-udp-tracker-protocol`
-      instead of `aquatic_udp_protocol`.
-- [ ] Remove `packages/aquatic-udp-protocol` from the workspace once no package depends on it.
+- [ ] Update all packages that import from `aquatic_udp_protocol` to import from
+      `bittorrent-udp-tracker-protocol` instead.
 - [ ] Remove `aquatic_udp_protocol` from every `Cargo.toml`.
+
+#### Step 4b: Migrate peer ID types to `packages/primitives`
+
+- [ ] Move `PeerId` and `PeerClient` from `packages/aquatic-peer-id` into
+      `packages/primitives/src/` (alongside existing peer-related domain types).
+      Add an inline attribution comment crediting the original `aquatic_peer_id` 0.9.0 as the
+      starting point.
+- [ ] Update all packages that import from `aquatic_peer_id` to import from
+      `bittorrent-tracker-primitives` instead.
+- [ ] Remove `aquatic_peer_id` from every `Cargo.toml`.
+- [ ] Remove both interim forks (`packages/aquatic-udp-protocol` and `packages/aquatic-peer-id`)
+      from the workspace `Cargo.toml` once no package depends on them.
 
 ### Step 5: Redesign types to fit the Torrust Tracker domain model
 
@@ -158,13 +177,15 @@ The following distinct types are imported from `aquatic_udp_protocol` in 26 sour
 
 ## Acceptance Criteria
 
-- [ ] `aquatic_udp_protocol` does not appear in any `Cargo.toml` or source file.
+- [ ] `aquatic_udp_protocol` and `aquatic_peer_id` do not appear in any `Cargo.toml` or source file.
 - [ ] All workspace tests pass (`cargo test --workspace`).
 - [ ] `linter all` exits with code `0`.
 - [ ] `cargo machete` reports no unused dependencies.
 - [ ] The `zerocopy` version across the workspace is `0.8`.
-- [ ] The internal fork (`packages/aquatic-udp-protocol`) has been removed by the end of
-      Step 4.
+- [ ] Both interim forks (`packages/aquatic-udp-protocol` and `packages/aquatic-peer-id`) have been
+      removed from the workspace by the end of Step 4b.
+- [ ] `PeerId` and `PeerClient` live in `packages/primitives`.
+- [ ] UDP protocol types live in `packages/udp-protocol`.
 
 ## References
 

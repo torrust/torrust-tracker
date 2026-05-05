@@ -10,8 +10,8 @@ alekitto
 analyse
 appuser
 Arvid
-ASMS
 asdh
+ASMS
 asyn
 autoclean
 AUTOINCREMENT
@@ -41,6 +41,7 @@ CALLSITE
 camino
 canonicalize
 canonicalized
+cdylib
 certbot
 chrono
 Cinstrument
@@ -57,7 +58,6 @@ connectionless
 Containerfile
 conv
 curr
-cdylib
 cvar
 Cyberneering
 cyclomatic
@@ -205,9 +205,9 @@ RAII
 Rakshasa
 randomised
 Rasterbar
-recognised
 realpath
 reannounce
+recognised
 recompiles
 referer
 Registar
@@ -215,8 +215,8 @@ repomix
 repr
 reqs
 reqwest
-reuseaddr
 rerequests
+reuseaddr
 ringbuf
 ringsize
 rlib
@@ -256,6 +256,7 @@ Subissue
 Subissues
 subkey
 subsec
+substeps
 supertrait
 Swatinem
 Swiftbit
@@ -264,7 +265,6 @@ sysmalloc
 sysret
 taiki
 taplo
-trunc
 tdyne
 Tebibytes
 tempfile
@@ -284,21 +284,22 @@ trackerid
 Trackon
 triaging
 trixie
+trunc
 ttwu
 typenum
 udpv
 Unamed
 underflows
 uninit
-unrecognised
-unrepresentable
 Uninit
 unittests
 unparked
 Unparker
+unrecognised
+unrepresentable
+unreviewed
 Unsendable
 unsync
-unreviewed
 untuple
 unviable
 upcasting
@@ -320,7 +321,6 @@ Werror
 whitespaces
 Xacrimon
 XBTT
-zstd
 Xdebug
 Xeon
 Xtorrent
@@ -328,3 +328,4 @@ Xunlei
 xxxxxxxxxxxxxxxxxxxxd
 yyyyyyyyyyyyyyyyyyyyd
 zerocopy
+zstd
