@@ -180,7 +180,7 @@ Update this table after completing each task. Columns:
 | :----: | --------- | ------------------------------------ | ------: | -----: | -------: | ------: |
 | `[x]`  | 1         | `metric_collection/prometheus.rs`    |      35 |     24 |        0 |       0 |
 | `[x]`  | 2         | `metric_collection/mod.rs`           |      19 |      2 |        0 |       0 |
-| `[ ]`  | 3         | `counter.rs` + `gauge.rs`            |      32 |      — |        — |       — |
+| `[x]`  | 3         | `counter.rs` + `gauge.rs`            |      32 |     20 |        0 |       0 |
 | `[ ]`  | 4         | `sample_collection.rs` + `sample.rs` |      45 |      — |        — |       — |
 | `[ ]`  | 5         | `label/set.rs`                       |      26 |      — |        — |       — |
 | `[ ]`  | 6         | all remaining files                  |     119 |      — |        — |       — |
