@@ -96,68 +96,107 @@ fn convert_openmetrics_label_set(
     })
 }
 
-/// Extracts a `Counter` value from a Prometheus sample value.
-fn counter_value_from_prom(
-    family_name: &str,
-    prom_value: &openmetrics_parser::PrometheusValue,
-) -> Result<Counter, PrometheusDeserializationError> {
-    match prom_value {
-        openmetrics_parser::PrometheusValue::Counter(c) => {
-            let counter = match c.value {
-                openmetrics_parser::MetricNumber::Int(value) => match u64::try_from(value) {
-                    Ok(value) => Counter::new(value),
-                    Err(_) => {
+trait FromPrometheusValue: Sized {
+    fn from_prometheus_value(
+        family_name: &str,
+        value: &openmetrics_parser::PrometheusValue,
+    ) -> Result<Self, PrometheusDeserializationError>;
+}
+
+impl FromPrometheusValue for Counter {
+    fn from_prometheus_value(
+        family_name: &str,
+        prom_value: &openmetrics_parser::PrometheusValue,
+    ) -> Result<Self, PrometheusDeserializationError> {
+        match prom_value {
+            openmetrics_parser::PrometheusValue::Counter(c) => {
+                let counter = match c.value {
+                    openmetrics_parser::MetricNumber::Int(value) => match u64::try_from(value) {
+                        Ok(value) => Counter::new(value),
+                        Err(_) => {
+                            return Err(PrometheusDeserializationError::ValueMismatch {
+                                metric_name: family_name.to_owned(),
+                                expected_type: "counter (non-negative integer)".to_owned(),
+                                actual: c.value.to_string(),
+                            });
+                        }
+                    },
+                    openmetrics_parser::MetricNumber::Float(value)
+                        if value.is_finite() && value >= 0.0 && value.fract() == 0.0 && value < 18_446_744_073_709_551_616.0 =>
+                    {
+                        #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+                        Counter::new(value as u64)
+                    }
+                    openmetrics_parser::MetricNumber::Float(_) => {
                         return Err(PrometheusDeserializationError::ValueMismatch {
                             metric_name: family_name.to_owned(),
                             expected_type: "counter (non-negative integer)".to_owned(),
                             actual: c.value.to_string(),
                         });
                     }
-                },
-                openmetrics_parser::MetricNumber::Float(value)
-                    if value.is_finite() && value >= 0.0 && value.fract() == 0.0 && value < 18_446_744_073_709_551_616.0 =>
-                {
-                    #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
-                    Counter::new(value as u64)
-                }
-                openmetrics_parser::MetricNumber::Float(_) => {
-                    return Err(PrometheusDeserializationError::ValueMismatch {
-                        metric_name: family_name.to_owned(),
-                        expected_type: "counter (non-negative integer)".to_owned(),
-                        actual: c.value.to_string(),
-                    });
-                }
-            };
+                };
 
-            Ok(counter)
+                Ok(counter)
+            }
+            openmetrics_parser::PrometheusValue::Unknown(_) => Err(PrometheusDeserializationError::UnknownValue {
+                metric_name: family_name.to_owned(),
+            }),
+            other => Err(PrometheusDeserializationError::ValueMismatch {
+                metric_name: family_name.to_owned(),
+                expected_type: "counter".to_owned(),
+                actual: format!("{other:?}"),
+            }),
         }
-        openmetrics_parser::PrometheusValue::Unknown(_) => Err(PrometheusDeserializationError::UnknownValue {
-            metric_name: family_name.to_owned(),
-        }),
-        other => Err(PrometheusDeserializationError::ValueMismatch {
-            metric_name: family_name.to_owned(),
-            expected_type: "counter".to_owned(),
-            actual: format!("{other:?}"),
-        }),
     }
 }
 
-/// Extracts a `Gauge` value from a Prometheus sample value.
-fn gauge_value_from_prom(
-    family_name: &str,
-    prom_value: &openmetrics_parser::PrometheusValue,
-) -> Result<Gauge, PrometheusDeserializationError> {
-    match prom_value {
-        openmetrics_parser::PrometheusValue::Gauge(n) => Ok(Gauge::new(n.as_f64())),
-        openmetrics_parser::PrometheusValue::Unknown(_) => Err(PrometheusDeserializationError::UnknownValue {
-            metric_name: family_name.to_owned(),
-        }),
-        other => Err(PrometheusDeserializationError::ValueMismatch {
-            metric_name: family_name.to_owned(),
-            expected_type: "gauge".to_owned(),
-            actual: format!("{other:?}"),
-        }),
+impl FromPrometheusValue for Gauge {
+    fn from_prometheus_value(
+        family_name: &str,
+        prom_value: &openmetrics_parser::PrometheusValue,
+    ) -> Result<Self, PrometheusDeserializationError> {
+        match prom_value {
+            openmetrics_parser::PrometheusValue::Gauge(n) => Ok(Gauge::new(n.as_f64())),
+            openmetrics_parser::PrometheusValue::Unknown(_) => Err(PrometheusDeserializationError::UnknownValue {
+                metric_name: family_name.to_owned(),
+            }),
+            other => Err(PrometheusDeserializationError::ValueMismatch {
+                metric_name: family_name.to_owned(),
+                expected_type: "gauge".to_owned(),
+                actual: format!("{other:?}"),
+            }),
+        }
     }
+}
+
+fn parse_family_samples<T: FromPrometheusValue>(
+    family_name: &str,
+    family: &openmetrics_parser::PrometheusMetricFamily,
+    now: DurationSinceUnixEpoch,
+) -> Result<Metric<T>, PrometheusDeserializationError> {
+    let label_names = Arc::new(family.get_label_names().to_vec());
+    let mut samples = Vec::new();
+
+    for parser_sample in family.iter_samples() {
+        let parser_label_set = openmetrics_parser::LabelSet::new(Arc::clone(&label_names), parser_sample).map_err(|e| {
+            PrometheusDeserializationError::LabelConversion {
+                metric_name: family_name.to_owned(),
+                message: e.to_string(),
+            }
+        })?;
+        let label_set = convert_openmetrics_label_set(family_name, parser_label_set)?;
+        let value = T::from_prometheus_value(family_name, &parser_sample.value)?;
+        let time = parser_sample.timestamp.map_or(now, |t| parse_prometheus_timestamp(t, now));
+        samples.push(Sample::new(value, time, label_set));
+    }
+
+    let metric_name = MetricName::new(family_name);
+    let description = if family.help.is_empty() {
+        None
+    } else {
+        Some(MetricDescription::new(&family.help))
+    };
+    Ok(Metric::new(metric_name, None, description, build_sample_collection(samples)?))
 }
 
 impl PrometheusDeserializable for MetricCollection {
@@ -180,51 +219,12 @@ impl PrometheusDeserializable for MetricCollection {
         let mut gauge_metrics: Vec<Metric<Gauge>> = Vec::new();
 
         for (family_name, family) in &exposition.families {
-            let metric_name = MetricName::new(family_name);
-            let description = if family.help.is_empty() {
-                None
-            } else {
-                Some(MetricDescription::new(&family.help))
-            };
-
             match family.family_type {
                 openmetrics_parser::PrometheusType::Counter => {
-                    let label_names = Arc::new(family.get_label_names().to_vec());
-                    let mut samples: Vec<Sample<Counter>> = Vec::new();
-
-                    for parser_sample in family.iter_samples() {
-                        let parser_label_set = openmetrics_parser::LabelSet::new(Arc::clone(&label_names), parser_sample)
-                            .map_err(|e| PrometheusDeserializationError::LabelConversion {
-                                metric_name: family_name.clone(),
-                                message: e.to_string(),
-                            })?;
-                        let label_set = convert_openmetrics_label_set(family_name, parser_label_set)?;
-                        let value = counter_value_from_prom(family_name, &parser_sample.value)?;
-                        let time = parser_sample.timestamp.map_or(now, |t| parse_prometheus_timestamp(t, now));
-                        samples.push(Sample::new(value, time, label_set));
-                    }
-
-                    let sample_collection = build_sample_collection(samples)?;
-                    counter_metrics.push(Metric::new(metric_name, None, description, sample_collection));
+                    counter_metrics.push(parse_family_samples::<Counter>(family_name, family, now)?);
                 }
                 openmetrics_parser::PrometheusType::Gauge => {
-                    let label_names = Arc::new(family.get_label_names().to_vec());
-                    let mut samples: Vec<Sample<Gauge>> = Vec::new();
-
-                    for parser_sample in family.iter_samples() {
-                        let parser_label_set = openmetrics_parser::LabelSet::new(Arc::clone(&label_names), parser_sample)
-                            .map_err(|e| PrometheusDeserializationError::LabelConversion {
-                                metric_name: family_name.clone(),
-                                message: e.to_string(),
-                            })?;
-                        let label_set = convert_openmetrics_label_set(family_name, parser_label_set)?;
-                        let value = gauge_value_from_prom(family_name, &parser_sample.value)?;
-                        let time = parser_sample.timestamp.map_or(now, |t| parse_prometheus_timestamp(t, now));
-                        samples.push(Sample::new(value, time, label_set));
-                    }
-
-                    let sample_collection = build_sample_collection(samples)?;
-                    gauge_metrics.push(Metric::new(metric_name, None, description, sample_collection));
+                    gauge_metrics.push(parse_family_samples::<Gauge>(family_name, family, now)?);
                 }
                 openmetrics_parser::PrometheusType::Histogram | openmetrics_parser::PrometheusType::Summary => {
                     return Err(PrometheusDeserializationError::UnsupportedType {
