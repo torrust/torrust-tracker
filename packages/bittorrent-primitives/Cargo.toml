@@ -1,0 +1,29 @@
+# Internal fork of bittorrent-primitives 0.1.0.
+# Source: https://crates.io/crates/bittorrent-primitives/0.1.0
+# Author: Jose Celano <josecelano@gmail.com>
+# License: MIT OR Apache-2.0
+#
+# Changes from the original:
+# - aquatic_udp_protocol dependency changed to local path dep (our internal fork)
+# - zerocopy bumped from 0.7 to 0.8
+# - src/info_hash.rs: read_from -> read_from_bytes (zerocopy 0.8 API)
+# - publish = false (temporary internal patch, not intended for crates.io)
+
+[package]
+name = "bittorrent-primitives"
+description = "collections of basic types for BitTorrent projects (internal fork patching zerocopy 0.8 compatibility)"
+readme = "README.md"
+version = "0.1.0"
+edition = "2021"
+license = "MIT OR Apache-2.0"
+authors = [ "Jose Celano <josecelano@gmail.com>" ]
+repository = "https://github.com/torrust/bittorrent-primitives"
+publish = false
+
+[dependencies]
+aquatic_udp_protocol = { path = "../aquatic-udp-protocol" }
+binascii = "0.1.4"
+serde = { version = "1", features = [ "derive" ] }
+serde_json = "1.0.132"
+thiserror = "1.0.65"
+zerocopy = { version = "0.8", features = [ "derive" ] }

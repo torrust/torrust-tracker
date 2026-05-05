@@ -12,7 +12,7 @@ rust-version.workspace = true
 aquatic_peer_id = { version = "0.9.0", path = "../aquatic-peer-id" }
 byteorder = "1"
 either = "1"
-zerocopy = { version = "0.7", features = [ "derive" ] }
+zerocopy = { version = "0.8", features = [ "derive" ] }
 
 [dev-dependencies]
 pretty_assertions = "1"

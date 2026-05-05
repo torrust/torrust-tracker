@@ -36,7 +36,7 @@ torrust-tracker-metrics = { version = "3.0.0-develop", path = "../metrics" }
 torrust-tracker-primitives = { version = "3.0.0-develop", path = "../primitives" }
 torrust-tracker-swarm-coordination-registry = { version = "3.0.0-develop", path = "../swarm-coordination-registry" }
 tracing = "0"
-zerocopy = "0.7"
+zerocopy = "0.8"
 
 [dev-dependencies]
 mockall = "0"

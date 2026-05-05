@@ -9,7 +9,7 @@ use tokio::net::UdpSocket;
 use tokio::time;
 use torrust_tracker_configuration::DEFAULT_TIMEOUT;
 use torrust_tracker_primitives::service_binding::ServiceBinding;
-use zerocopy::network_endian::I32;
+use zerocopy::byteorder::network_endian::I32;
 
 use super::Error;
 use crate::udp::MAX_PACKET_SIZE;

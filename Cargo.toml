@@ -80,12 +80,14 @@ members = [
   "console/tracker-client",
   "packages/aquatic-peer-id",
   "packages/aquatic-udp-protocol",
+  "packages/bittorrent-primitives",
   "packages/torrent-repository-benchmarking",
 ]
 
 [patch.crates-io]
 aquatic_peer_id = { path = "packages/aquatic-peer-id" }
 aquatic_udp_protocol = { path = "packages/aquatic-udp-protocol" }
+bittorrent-primitives = { path = "packages/bittorrent-primitives" }
 
 [profile.dev]
 debug = 1

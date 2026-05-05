@@ -2,7 +2,7 @@ use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
 use serde::{Deserialize, Serialize};
 use torrust_tracker_primitives::peer;
-use zerocopy::AsBytes as _;
+use zerocopy::IntoBytes as _;
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct Announce {

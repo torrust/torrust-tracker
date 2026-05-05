@@ -393,7 +393,7 @@ impl TryFrom<Vec<u8>> for Id {
             });
         }
 
-        let data = PeerId::read_from(&bytes).expect("it should have the correct amount of bytes");
+        let data = PeerId::read_from_bytes(&bytes).expect("it should have the correct amount of bytes");
         Ok(Self { data })
     }
 }

@@ -11,9 +11,9 @@ use std::sync::OnceLock;
 use compact_str::{format_compact, CompactString};
 use regex::bytes::Regex;
 use serde::{Deserialize, Serialize};
-use zerocopy::{AsBytes, FromBytes, FromZeroes};
+use zerocopy::{FromBytes, Immutable, IntoBytes};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize, AsBytes, FromBytes, FromZeroes)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize, IntoBytes, FromBytes, Immutable)]
 #[repr(transparent)]
 pub struct PeerId(pub [u8; 20]);
 

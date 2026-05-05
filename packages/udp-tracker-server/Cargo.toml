@@ -37,7 +37,7 @@ torrust-tracker-swarm-coordination-registry = { version = "3.0.0-develop", path 
 tracing = "0"
 url = { version = "2", features = [ "serde" ] }
 uuid = { version = "1", features = [ "v4" ] }
-zerocopy = "0.7"
+zerocopy = "0.8"
 
 [dev-dependencies]
 local-ip-address = "0"

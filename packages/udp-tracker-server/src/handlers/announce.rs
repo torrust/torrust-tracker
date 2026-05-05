@@ -13,7 +13,7 @@ use torrust_tracker_configuration::Core;
 use torrust_tracker_primitives::core::AnnounceData;
 use torrust_tracker_primitives::service_binding::ServiceBinding;
 use tracing::{instrument, Level};
-use zerocopy::network_endian::I32;
+use zerocopy::byteorder::network_endian::I32;
 
 use crate::error::Error;
 use crate::event::{ConnectionContext, Event, UdpRequestKind};

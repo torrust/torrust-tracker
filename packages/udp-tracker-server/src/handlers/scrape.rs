@@ -11,7 +11,7 @@ use bittorrent_udp_tracker_core::{self};
 use torrust_tracker_primitives::core::ScrapeData;
 use torrust_tracker_primitives::service_binding::ServiceBinding;
 use tracing::{instrument, Level};
-use zerocopy::network_endian::I32;
+use zerocopy::byteorder::network_endian::I32;
 
 use crate::error::Error;
 use crate::event::{ConnectionContext, Event, UdpRequestKind};

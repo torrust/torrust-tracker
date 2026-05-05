@@ -50,4 +50,4 @@ torrust-tracker-clock = { version = "3.0.0-develop", path = "../clock" }
 torrust-tracker-events = { version = "3.0.0-develop", path = "../events" }
 torrust-tracker-test-helpers = { version = "3.0.0-develop", path = "../test-helpers" }
 uuid = { version = "1", features = [ "v4" ] }
-zerocopy = "0.7"
+zerocopy = "0.8"
