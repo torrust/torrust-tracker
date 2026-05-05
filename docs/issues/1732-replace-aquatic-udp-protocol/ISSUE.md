@@ -128,9 +128,17 @@ The following distinct types are imported from `aquatic_udp_protocol` in 26 sour
 
 ### Step 2: Strip unused items from the internal fork
 
-- [ ] Identify and remove any code paths, feature flags, or types from the fork that no
+Analysis documented in [step-2-analysis.md](step-2-analysis.md).
+
+- [x] Identify and remove any code paths, feature flags, or types from the fork that no
       package in this workspace uses.
-- [ ] Confirm no regressions.
+- [x] Confirm no regressions.
+
+After a thorough search of all 26 source files across 13 packages, no unused public types,
+functions, or feature-enabled code paths were found that could be safely removed. Every public
+type is used by at least one workspace package. The only internal-only item (`AnnounceEventBytes`)
+is structurally required for zero-copy deserialization and cannot be removed. No changes to the
+fork source were needed.
 
 ### Step 3: Apply the `zerocopy` 0.8 migration
 
