@@ -14,8 +14,7 @@ use zerocopy::byteorder::network_endian::I32;
 use zerocopy::{FromBytes, Immutable, IntoBytes};
 
 use super::common::*;
-
-const PROTOCOL_IDENTIFIER: i64 = 4_497_486_125_440;
+use super::connect::{ConnectRequest, PROTOCOL_IDENTIFIER};
 
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub enum Request {
@@ -148,21 +147,6 @@ impl From<AnnounceRequest> for Request {
 impl From<ScrapeRequest> for Request {
     fn from(r: ScrapeRequest) -> Self {
         Self::Scrape(r)
-    }
-}
-
-#[derive(PartialEq, Eq, Clone, Copy, Debug)]
-pub struct ConnectRequest {
-    pub transaction_id: TransactionId,
-}
-
-impl ConnectRequest {
-    pub fn write_bytes(&self, bytes: &mut impl Write) -> Result<(), io::Error> {
-        bytes.write_i64::<NetworkEndian>(PROTOCOL_IDENTIFIER)?;
-        bytes.write_i32::<NetworkEndian>(0)?;
-        bytes.write_all(self.transaction_id.as_bytes())?;
-
-        Ok(())
     }
 }
 

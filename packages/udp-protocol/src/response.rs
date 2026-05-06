@@ -13,6 +13,7 @@ use byteorder::{NetworkEndian, WriteBytesExt};
 use zerocopy::{FromBytes, FromZeros, Immutable, IntoBytes};
 
 use super::common::*;
+use super::connect::ConnectResponse;
 
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub enum Response {
@@ -154,23 +155,6 @@ impl From<ScrapeResponse> for Response {
 impl From<ErrorResponse> for Response {
     fn from(r: ErrorResponse) -> Self {
         Self::Error(r)
-    }
-}
-
-#[derive(PartialEq, Eq, Clone, Copy, Debug, IntoBytes, FromBytes, Immutable)]
-#[repr(C, packed)]
-pub struct ConnectResponse {
-    pub transaction_id: TransactionId,
-    pub connection_id: ConnectionId,
-}
-
-impl ConnectResponse {
-    #[inline]
-    pub fn write_bytes(&self, bytes: &mut impl Write) -> Result<(), io::Error> {
-        bytes.write_i32::<NetworkEndian>(0)?;
-        bytes.write_all(self.as_bytes())?;
-
-        Ok(())
     }
 }
 

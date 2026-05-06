@@ -179,16 +179,16 @@ Use this checklist to track migration one type at a time.
 
 Status legend: `pending` | `moved` | `re-exported` | `consumers-updated` | `validated`
 
-- [ ] `ConnectRequest`
-  - [ ] moved
-  - [ ] re-exported from `lib.rs`
-  - [ ] consumers updated
-  - [ ] validated (`cargo check --workspace`, `linter all`)
-- [ ] `ConnectResponse`
-  - [ ] moved
-  - [ ] re-exported from `lib.rs`
-  - [ ] consumers updated
-  - [ ] validated (`cargo check --workspace`, `linter all`)
+- [x] `ConnectRequest`
+  - [x] moved
+  - [x] re-exported from `lib.rs`
+  - [x] consumers updated
+  - [x] validated (`cargo check --workspace`, `linter all`)
+- [x] `ConnectResponse`
+  - [x] moved
+  - [x] re-exported from `lib.rs`
+  - [x] consumers updated
+  - [x] validated (`cargo check --workspace`, `linter all`)
 - [ ] `AnnounceRequest`
   - [ ] moved
   - [ ] re-exported from `lib.rs`
