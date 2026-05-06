@@ -54,9 +54,11 @@ impl Environment<Stopped> {
 
         let bind_to = container.tracker_http_api_core_container.http_api_config.bind_address;
 
-        let tls = make_rust_tls(&container.tracker_http_api_core_container.http_api_config.tsl_config)
-            .await
-            .map(|tls| tls.expect("tls config failed"));
+        let tls = if let Some(tls_config) = &container.tracker_http_api_core_container.http_api_config.tsl_config {
+            Some(make_rust_tls(tls_config).await.expect("tls config failed"))
+        } else {
+            None
+        };
 
         let server = ApiServer::new(Launcher::new(bind_to, tls));
 
