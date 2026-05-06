@@ -20,7 +20,6 @@ db-compatibility-tests = [  ]
 [dependencies]
 anyhow = "1"
 async-trait = "0"
-bittorrent_udp_tracker_protocol = { package = "bittorrent-udp-tracker-protocol", path = "../udp-protocol" }
 bittorrent-primitives = "0.1.0"
 chrono = { version = "0", default-features = false, features = [ "clock" ] }
 clap = { version = "4", features = [ "derive" ] }
@@ -49,6 +48,3 @@ mockall = "0"
 torrust-rest-tracker-api-client = { version = "3.0.0-develop", path = "../rest-tracker-api-client" }
 torrust-tracker-test-helpers = { version = "3.0.0-develop", path = "../test-helpers" }
 url = "2.5.4"
-
-[package.metadata.cargo-machete]
-ignored = [ "async-trait" ]

@@ -77,9 +77,9 @@ torrust-tracker-test-helpers = { version = "3.0.0-develop", path = "packages/tes
 
 [workspace]
 members = [
-    "console/tracker-client",
-    "packages/bittorrent-primitives",
-    "packages/torrent-repository-benchmarking",
+  "console/tracker-client",
+  "packages/bittorrent-primitives",
+  "packages/torrent-repository-benchmarking",
 ]
 
 [patch.crates-io]

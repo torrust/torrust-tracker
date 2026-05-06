@@ -32,9 +32,9 @@ const NUMWANT: &str = "numwant";
 /// query params of the request.
 ///
 /// ```rust
-/// use bittorrent_udp_tracker_protocol::{NumberOfBytes, PeerId};
 /// use bittorrent_http_tracker_protocol::v1::requests::announce::{Announce, Compact, Event};
 /// use bittorrent_primitives::info_hash::InfoHash;
+/// use torrust_tracker_primitives::{NumberOfBytes, PeerId};
 ///
 /// let request = Announce {
 ///     // Mandatory params

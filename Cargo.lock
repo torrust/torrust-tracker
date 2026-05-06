@@ -575,7 +575,6 @@ dependencies = [
  "bittorrent-http-tracker-protocol",
  "bittorrent-primitives",
  "bittorrent-tracker-core",
- "bittorrent-udp-tracker-protocol",
  "criterion 0.5.1",
  "formatjson",
  "futures",
@@ -657,7 +656,6 @@ dependencies = [
  "anyhow",
  "async-trait",
  "bittorrent-primitives",
- "bittorrent-udp-tracker-protocol",
  "chrono",
  "clap",
  "derive_more",
@@ -5354,7 +5352,6 @@ dependencies = [
  "bittorrent-primitives",
  "bittorrent-tracker-core",
  "bittorrent-udp-tracker-core",
- "bittorrent-udp-tracker-protocol",
  "derive_more",
  "futures",
  "hyper",
@@ -5614,7 +5611,6 @@ version = "3.0.0-develop"
 dependencies = [
  "async-std",
  "bittorrent-primitives",
- "bittorrent-udp-tracker-protocol",
  "chrono",
  "criterion 0.8.2",
  "crossbeam-skiplist",
@@ -5651,7 +5647,6 @@ version = "3.0.0-develop"
 dependencies = [
  "async-std",
  "bittorrent-primitives",
- "bittorrent-udp-tracker-protocol",
  "criterion 0.8.2",
  "crossbeam-skiplist",
  "dashmap",
@@ -5662,7 +5657,6 @@ dependencies = [
  "torrust-tracker-clock",
  "torrust-tracker-configuration",
  "torrust-tracker-primitives",
- "zerocopy",
 ]
 
 [[package]]

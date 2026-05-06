@@ -16,7 +16,6 @@ rust-version.workspace = true
 version.workspace = true
 
 [dependencies]
-bittorrent_udp_tracker_protocol = { package = "bittorrent-udp-tracker-protocol", path = "../udp-protocol" }
 bittorrent-primitives = "0.1.0"
 crossbeam-skiplist = "0"
 dashmap = "6"
@@ -26,7 +25,6 @@ tokio = { version = "1", features = [ "macros", "net", "rt-multi-thread", "signa
 torrust-tracker-clock = { version = "3.0.0-develop", path = "../clock" }
 torrust-tracker-configuration = { version = "3.0.0-develop", path = "../configuration" }
 torrust-tracker-primitives = { version = "3.0.0-develop", path = "../primitives" }
-zerocopy = "0.8"
 
 [dev-dependencies]
 async-std = { version = "1", features = [ "attributes", "tokio1" ] }
