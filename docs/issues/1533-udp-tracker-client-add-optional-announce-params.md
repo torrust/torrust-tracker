@@ -62,7 +62,7 @@ cargo run -p torrust-tracker-client --bin udp_tracker_client announce \
 ```
 
 Supported `--event` values: `none`, `completed`, `started`, `stopped` (matching
-`aquatic_udp_protocol::AnnounceEvent` variants, case-insensitive).
+`bittorrent_udp_tracker_protocol::AnnounceEvent` variants, case-insensitive).
 
 ## Goals
 
@@ -73,7 +73,8 @@ Supported `--event` values: `none`, `completed`, `started`, `stopped` (matching
 - [ ] Thread the optional values from the CLI into `handle_announce` and then into
       `checker::Client::send_announce_request()`
 - [ ] Add `clap::ValueEnum` (or `FromStr`) for `AnnounceEvent` so it can be parsed from the
-      command line — or introduce a thin wrapper enum in the CLI layer
+      command line — implement directly on the in-house type or introduce a thin wrapper in
+      the CLI layer for clean separation of concerns
 - [ ] Defaults remain unchanged when a flag is omitted
 - [ ] Pass `linter all` and `cargo machete` with zero warnings
 - [ ] Update the module-level doc comment in `app.rs` with new usage examples
@@ -82,12 +83,17 @@ Supported `--event` values: `none`, `completed`, `started`, `stopped` (matching
 
 ### Task 1: Add `clap` parsing for `AnnounceEvent`
 
-`aquatic_udp_protocol::AnnounceEvent` is an external type so we cannot implement foreign traits
-on it directly. Two options:
+`AnnounceEvent` is now an in-house type defined in `packages/udp-protocol/src/announce.rs`
+(re-exported by `bittorrent_udp_tracker_protocol`), so the foreign-trait constraint no longer
+applies. Two implementation paths are available:
 
-- Introduce a thin `CliAnnounceEvent` wrapper enum that implements `clap::ValueEnum`, then map
-  it to `AnnounceEvent` when building the request.
-- Add `FromStr` on a newtype in the CLI crate.
+- Implement `clap::ValueEnum` directly on `AnnounceEvent` in `packages/udp-protocol` by
+  adding `clap` as an optional feature-gated dependency there.
+- Introduce a thin `CliAnnounceEvent` wrapper enum in the CLI crate that implements
+  `clap::ValueEnum`, then map it to `AnnounceEvent` when building the request. This keeps
+  `clap` out of the protocol crate and preserves clean separation of concerns.
+
+The wrapper approach is recommended to avoid leaking CLI concerns into the protocol layer.
 
 - [ ] Choose and implement one of the above in the CLI layer
       (`console/tracker-client/src/console/clients/udp/`)
@@ -155,5 +161,6 @@ Announce {
 
 - Parent EPIC: <https://github.com/torrust/torrust-tracker/issues/669>
 - Related HTTP issue: <https://github.com/torrust/torrust-tracker/issues/1532>
-- `aquatic_udp_protocol::AnnounceEvent`: <https://docs.rs/aquatic_udp_protocol>
+- `bittorrent_udp_tracker_protocol::AnnounceEvent`: `packages/udp-protocol/src/announce.rs`
+- `bittorrent_peer_id::PeerId`: `packages/peer-id/src/peer_id.rs`
 - UDP tracker protocol spec (BEP 15): <https://www.bittorrent.org/beps/bep_0015.html>
