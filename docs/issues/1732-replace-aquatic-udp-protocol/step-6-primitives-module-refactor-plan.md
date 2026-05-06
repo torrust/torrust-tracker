@@ -148,9 +148,9 @@ Exit criteria:
 
 ### Phase 3: Type-by-Type Migration
 
-- [ ] Move `AnnounceData` into `announce.rs`
-- [ ] Re-export `AnnounceData` from `lib.rs`
-- [ ] Validate after the `AnnounceData` move
+- [x] Move `AnnounceData` into `announce.rs`
+- [x] Re-export `AnnounceData` from `lib.rs`
+- [x] Validate after the `AnnounceData` move
 - [ ] Move `AnnounceEvent` from `announce_event.rs` into `announce.rs`
 - [ ] Preserve root `AnnounceEvent` re-export from `lib.rs`
 - [ ] Validate after the `AnnounceEvent` move
@@ -190,7 +190,7 @@ Exit criteria:
 
 - [x] `announce.rs` added
 - [x] `scrape.rs` added
-- [ ] `AnnounceData` moved
+- [x] `AnnounceData` moved
 - [ ] `ScrapeData` moved
 - [ ] `AnnounceEvent` moved
 - [ ] `core.rs` reduced to compatibility exports
@@ -200,11 +200,11 @@ Exit criteria:
 ### Type-by-Type Progress Tracker
 
 - [ ] `AnnounceData`
-  - [ ] moved to `announce.rs`
-  - [ ] re-exported from `lib.rs`
-  - [ ] compatibility preserved
-  - [ ] consumers validated
-  - [ ] validated (`cargo check --workspace`, `linter all`)
+  - [x] moved to `announce.rs`
+  - [x] re-exported from `lib.rs`
+  - [x] compatibility preserved
+  - [x] consumers validated
+  - [x] validated (`cargo check --workspace`, `linter all`)
 - [ ] `ScrapeData`
   - [ ] moved to `scrape.rs`
   - [ ] re-exported from `lib.rs`

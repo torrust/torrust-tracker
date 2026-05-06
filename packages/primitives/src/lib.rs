@@ -23,6 +23,7 @@ use bittorrent_primitives::info_hash::InfoHash;
 /// Duration since the Unix Epoch.
 pub type DurationSinceUnixEpoch = Duration;
 
+pub use announce::AnnounceData;
 pub use announce_event::AnnounceEvent;
 pub use number_of_bytes::NumberOfBytes;
 pub use peer_id::{PeerClient, PeerId};
