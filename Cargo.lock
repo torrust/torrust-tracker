@@ -619,11 +619,9 @@ name = "bittorrent-primitives"
 version = "0.1.0"
 dependencies = [
  "binascii",
- "bittorrent-udp-tracker-protocol",
  "serde",
  "serde_json",
  "thiserror 1.0.69",
- "zerocopy",
 ]
 
 [[package]]

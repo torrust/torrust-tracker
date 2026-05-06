@@ -4,10 +4,7 @@
 // License: MIT OR Apache-2.0
 //
 // Changes from the original:
-// - `use zerocopy::FromBytes` removed (no longer needed at the call site in zerocopy 0.8;
-//   the method is still provided via the trait, imported with `use zerocopy::FromBytes as _`)
-// - `bittorrent_udp_tracker_protocol::InfoHash::read_from(bytes)` changed to
-//   `bittorrent_udp_tracker_protocol::InfoHash::read_from_bytes(bytes)` (zerocopy 0.8 API rename)
+// - Step 4c: InfoHash is now fully self-contained and stores a plain `[u8; 20]`.
 //! A `BitTorrent` `InfoHash`. It's a unique identifier for a `BitTorrent` torrent.
 //!
 //! "The 20-byte sha1 hash of the bencoded form of the info value
@@ -142,17 +139,13 @@
 //!
 //! The result is a 20-char string: `5452869BE36F9F3350CCEE6B4544E7E76CAAADAB`
 use std::hash::{DefaultHasher, Hash, Hasher};
-use std::ops::{Deref, DerefMut};
 use std::panic::Location;
 
 use thiserror::Error;
-use zerocopy::FromBytes as _;
 
 /// `BitTorrent` Info Hash v1
-#[derive(PartialEq, Eq, Hash, Clone, Copy, Debug)]
-pub struct InfoHash {
-    data: bittorrent_udp_tracker_protocol::InfoHash,
-}
+#[derive(Default, PartialEq, Eq, Hash, Clone, Copy, Debug)]
+pub struct InfoHash(pub [u8; 20]);
 
 pub const INFO_HASH_BYTES_LEN: usize = 20;
 
@@ -164,10 +157,10 @@ impl InfoHash {
     /// Will panic if byte slice does not contains the exact amount of bytes need for the `InfoHash`.
     #[must_use]
     pub fn from_bytes(bytes: &[u8]) -> Self {
-        let data =
-            bittorrent_udp_tracker_protocol::InfoHash::read_from_bytes(bytes).expect("it should have the exact amount of bytes");
+        let mut data = [0u8; INFO_HASH_BYTES_LEN];
+        data.copy_from_slice(bytes);
 
-        Self { data }
+        Self(data)
     }
 
     /// Returns the `InfoHash` internal byte array.
@@ -180,34 +173,6 @@ impl InfoHash {
     #[must_use]
     pub fn to_hex_string(&self) -> String {
         self.to_string()
-    }
-}
-
-impl Default for InfoHash {
-    fn default() -> Self {
-        Self {
-            data: bittorrent_udp_tracker_protocol::InfoHash(Default::default()),
-        }
-    }
-}
-
-impl From<bittorrent_udp_tracker_protocol::InfoHash> for InfoHash {
-    fn from(data: bittorrent_udp_tracker_protocol::InfoHash) -> Self {
-        Self { data }
-    }
-}
-
-impl Deref for InfoHash {
-    type Target = bittorrent_udp_tracker_protocol::InfoHash;
-
-    fn deref(&self) -> &Self::Target {
-        &self.data
-    }
-}
-
-impl DerefMut for InfoHash {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.data
     }
 }
 
@@ -261,8 +226,7 @@ impl std::convert::From<&DefaultHasher> for InfoHash {
             n[0], n[1], n[2], n[3], n[4], n[5], n[6], n[7], n[0], n[1], n[2], n[3], n[4], n[5], n[6], n[7], n[0], n[1], n[2],
             n[3],
         ];
-        let data = bittorrent_udp_tracker_protocol::InfoHash(bytes);
-        Self { data }
+        Self(bytes)
     }
 }
 
@@ -270,15 +234,13 @@ impl std::convert::From<&i32> for InfoHash {
     fn from(n: &i32) -> InfoHash {
         let n = n.to_le_bytes();
         let bytes = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, n[0], n[1], n[2], n[3]];
-        let data = bittorrent_udp_tracker_protocol::InfoHash(bytes);
-        Self { data }
+        Self(bytes)
     }
 }
 
 impl std::convert::From<[u8; 20]> for InfoHash {
     fn from(bytes: [u8; 20]) -> Self {
-        let data = bittorrent_udp_tracker_protocol::InfoHash(bytes);
-        Self { data }
+        Self(bytes)
     }
 }
 

@@ -77,7 +77,7 @@ impl ScrapeService {
     }
 
     fn convert_from_aquatic(aquatic_infohashes: &[bittorrent_udp_tracker_protocol::common::InfoHash]) -> Vec<InfoHash> {
-        aquatic_infohashes.iter().map(|&x| x.into()).collect()
+        aquatic_infohashes.iter().map(|&x| InfoHash::from(x.0)).collect()
     }
 
     async fn send_event(&self, client_socket_addr: SocketAddr, server_service_binding: ServiceBinding) {

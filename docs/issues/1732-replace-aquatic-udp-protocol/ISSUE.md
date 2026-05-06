@@ -316,10 +316,12 @@ all other packages, this is the last remaining use of that type from the fork.
 
 - [ ] Replace the `data: aquatic_udp_protocol::InfoHash` field with a plain `[u8; 20]` array
       directly inside `bittorrent-primitives::InfoHash`.
-- [ ] Remove the `aquatic_udp_protocol` dependency from `packages/bittorrent-primitives/Cargo.toml`.
-- [ ] Update all impls in `src/info_hash.rs` that previously delegated to
+- [x] Replace the `data: aquatic_udp_protocol::InfoHash` field with a plain `[u8; 20]` array
+      directly inside `bittorrent-primitives::InfoHash`.
+- [x] Remove the `aquatic_udp_protocol` dependency from `packages/bittorrent-primitives/Cargo.toml`.
+- [x] Update all impls in `src/info_hash.rs` that previously delegated to
       `aquatic_udp_protocol::InfoHash` to operate on the inner `[u8; 20]` directly.
-- [ ] Ensure all existing tests in `bittorrent-primitives` pass.
+- [x] Ensure all existing tests in `bittorrent-primitives` pass.
 - [ ] Publish a new version of `bittorrent-primitives` to crates.io once the crate is
       self-contained (no external protocol dependencies).
 - [ ] Remove the `packages/bittorrent-primitives/` fork and the `[patch.crates-io]` entry once

@@ -66,7 +66,7 @@ impl AnnounceService {
     ) -> Result<AnnounceData, UdpAnnounceError> {
         Self::authenticate(client_socket_addr, request, cookie_valid_range)?;
 
-        let info_hash = request.info_hash.into();
+        let info_hash = InfoHash::from(request.info_hash.0);
 
         self.authorize(&info_hash).await?;
 

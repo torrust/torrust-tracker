@@ -1,8 +1,9 @@
 use std::net::SocketAddr;
+use std::str::FromStr;
 use std::time::Duration;
 
+use bittorrent_primitives::info_hash::InfoHash as TorrustInfoHash;
 use bittorrent_udp_tracker_protocol::TransactionId;
-use hex_literal::hex;
 use serde::Serialize;
 use url::Url;
 
@@ -29,8 +30,7 @@ pub async fn run(udp_trackers: Vec<Url>, timeout: Duration) -> Vec<Result<Checks
 
     tracing::debug!("UDP trackers ...");
 
-    #[allow(clippy::incompatible_msrv)]
-    let info_hash = bittorrent_udp_tracker_protocol::InfoHash(hex!("9c38422213e30bff212b30c360d26f9a02136422")); // DevSkim: ignore DS173237
+    let info_hash = TorrustInfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap(); // DevSkim: ignore DS173237
 
     for remote_url in udp_trackers {
         let remote_addr = resolve_socket_addr(&remote_url);
@@ -73,7 +73,7 @@ pub async fn run(udp_trackers: Vec<Url>, timeout: Duration) -> Vec<Result<Checks
         // Announce
         {
             let check = client
-                .send_announce_request(transaction_id, connection_id, info_hash.into())
+                .send_announce_request(transaction_id, connection_id, info_hash)
                 .await
                 .map(|_| ());
 
@@ -83,7 +83,7 @@ pub async fn run(udp_trackers: Vec<Url>, timeout: Duration) -> Vec<Result<Checks
         // Scrape
         {
             let check = client
-                .send_scrape_request(connection_id, transaction_id, &[info_hash.into()])
+                .send_scrape_request(connection_id, transaction_id, &[info_hash])
                 .await
                 .map(|_| ());
 
