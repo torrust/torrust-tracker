@@ -112,11 +112,11 @@ Current note:
 ### Phase 0: Baseline and Safety Net
 
 - [ ] Record baseline:
-  - [ ] `cargo check --workspace`
+  - [x] `cargo check --workspace`
   - [ ] `cargo test --workspace`
-  - [ ] `linter all`
-- [ ] Capture current public exports in `lib.rs`
-- [ ] Capture current import usage in workspace (`rg` search)
+  - [x] `linter all`
+- [x] Capture current public exports in `lib.rs`
+- [x] Capture current import usage in workspace (`rg` search)
 
 Exit criteria:
 
@@ -124,59 +124,59 @@ Exit criteria:
 
 ### Phase 1: Introduce New Action Modules
 
-- [ ] Create `connect.rs`, `announce.rs`, `scrape.rs`
-- [ ] Keep `Request`/`Response` enums and top-level parse/write wrappers in
+- [x] Create `connect.rs`, `announce.rs`, `scrape.rs`
+- [x] Keep `Request`/`Response` enums and top-level parse/write wrappers in
       `request.rs`/`response.rs`
-- [ ] Move concrete action-specific type implementations from
+- [x] Move concrete action-specific type implementations from
       `request.rs` and `response.rs` into action modules without behavior changes
-- [ ] Re-export moved types from `lib.rs` to preserve public API for workspace consumers
-- [ ] Ensure `lib.rs` re-exports old symbols and new module symbols
+- [x] Re-export moved types from `lib.rs` to preserve public API for workspace consumers
+- [x] Ensure `lib.rs` re-exports old symbols and new module symbols
 
 Exit criteria:
 
-- [ ] `cargo check --workspace` passes
+- [x] `cargo check --workspace` passes
 - [ ] `cargo test --workspace` passes
 
 ### Phase 2: Normalize `common.rs`
 
-- [ ] Move action-specific types out of `common.rs`
-- [ ] Keep only shared wire primitives and generic helpers in `common.rs`
-- [ ] Ensure no announce/scrape-specific parsing logic remains in `common.rs`
+- [x] Move action-specific types out of `common.rs`
+- [x] Keep only shared wire primitives and generic helpers in `common.rs`
+- [x] Ensure no announce/scrape-specific parsing logic remains in `common.rs`
 
 Exit criteria:
 
-- [ ] `common.rs` content matches ownership rules
+- [x] `common.rs` content matches ownership rules
 - [ ] All tests still pass
 
 ### Phase 3: Compatibility and Call Site Stability
 
-- [ ] Verify existing imports in dependent crates still compile via re-exports
-- [ ] Update internal imports to use new module boundaries where beneficial
-- [ ] Keep `request.rs` and `response.rs` as stable wrapper/orchestration modules
+- [x] Verify existing imports in dependent crates still compile via re-exports
+- [x] Update internal imports to use new module boundaries where beneficial
+- [x] Keep `request.rs` and `response.rs` as stable wrapper/orchestration modules
 
 Exit criteria:
 
-- [ ] Zero workspace build regressions
+- [x] Zero workspace build regressions
 - [ ] No behavior changes in protocol encode/decode tests
 
 ### Phase 4: Optional Cleanup
 
-- [ ] Keep wrappers and evaluate only internal simplification (not removal)
-- [ ] Remove dead internal aliases/helpers if any remain after migration
+- [x] Keep wrappers and evaluate only internal simplification (not removal)
+- [x] Remove dead internal aliases/helpers if any remain after migration
 - [ ] Update docs with final module map
 
 Exit criteria:
 
-- [ ] Final module structure agreed and documented
+- [x] Final module structure agreed and documented
 - [ ] Lints/tests/checks green
 
 ## Tracking Checklist
 
 ### Deliverables
 
-- [ ] New action modules implemented
-- [ ] `common.rs` narrowed to shared primitives
-- [ ] Compatibility exports preserved
+- [x] New action modules implemented
+- [x] `common.rs` narrowed to shared primitives
+- [x] Compatibility exports preserved
 - [ ] Docs updated
 
 ### Type-by-Type Progress Tracker
@@ -265,10 +265,10 @@ For each type, execute this sequence before starting the next one:
 
 ### Validation Gate (must be green)
 
-- [ ] `cargo check --workspace`
+- [x] `cargo check --workspace`
 - [ ] `cargo test --workspace`
 - [ ] `cargo test --doc --workspace`
-- [ ] `linter all`
+- [x] `linter all`
 
 Additionally, run `linter all` at the end of every per-type move, not only at the end of the
 full refactor.
@@ -304,15 +304,15 @@ Mitigation:
 
 ## Review Checklist
 
-- [ ] Module boundaries are action-oriented and coherent
-- [ ] Shared types remain in `common.rs`
+- [x] Module boundaries are action-oriented and coherent
+- [x] Shared types remain in `common.rs`
 - [ ] No wire format behavior changes introduced
-- [ ] No unnecessary cross-module coupling
-- [ ] Public API compatibility preserved during migration
+- [x] No unnecessary cross-module coupling
+- [x] Public API compatibility preserved during migration
 
 ## Suggested Commit Slicing
 
-1. `refactor(udp-protocol): move connect types to connect module`
-2. `refactor(udp-protocol): move announce types to announce module`
-3. `refactor(udp-protocol): move scrape types to scrape module`
-4. `docs(issue-1732): document final udp-protocol module layout`
+1. [x] `refactor(udp-protocol): move connect types to connect module`
+2. [x] `refactor(udp-protocol): move announce types to announce module`
+3. [x] `refactor(udp-protocol): move scrape types to scrape module`
+4. [ ] `docs(issue-1732): document final udp-protocol module layout`

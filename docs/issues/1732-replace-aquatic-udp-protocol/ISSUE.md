@@ -329,11 +329,20 @@ all other packages, this is the last remaining use of that type from the fork.
 > parallel or in any order relative to those steps. Step 4c only unblocks removal of the
 > `bittorrent-primitives` fork from `[patch.crates-io]`.
 
-### Step 5: Redesign types to fit the Torrust Tracker domain model
+### Step 5: Post-Migration Refactor and Cleanup (pre-merge)
 
+Now that the aquatic dependency has been fully removed, Step 5 is the umbrella phase for
+follow-up refactors before merging the PR: improving module organization, removing duplication,
+clarifying ownership boundaries, and cleaning up protocol/domain structure while preserving
+behavior.
+
+- [ ] Keep API and wire-format behavior stable while refactoring internals.
 - [ ] Review each type and assess whether a domain-specific redesign is warranted.
 - [ ] Introduce new types iteratively — keeping the existing API intact until each replacement
       is complete.
+- [ ] Remove duplication and simplify module boundaries where it improves maintainability.
+- [ ] Track protocol-module refactor work in
+      [step-5-udp-protocol-module-refactor-plan.md](step-5-udp-protocol-module-refactor-plan.md).
 - [ ] Document design decisions in an ADR if any significant trade-offs arise.
 
 ## Acceptance Criteria
