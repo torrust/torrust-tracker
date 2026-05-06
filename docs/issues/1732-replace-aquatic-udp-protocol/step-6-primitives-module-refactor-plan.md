@@ -125,14 +125,14 @@ Exit criteria:
 
 ### Phase 1: Introduce Action-Oriented Primitive Modules
 
-- [ ] Create `packages/primitives/src/announce.rs`
-- [ ] Create `packages/primitives/src/scrape.rs`
-- [ ] Update `lib.rs` to declare and re-export the new modules
+- [x] Create `packages/primitives/src/announce.rs`
+- [x] Create `packages/primitives/src/scrape.rs`
+- [x] Update `lib.rs` to declare and re-export the new modules
 
 Exit criteria:
 
-- [ ] `cargo check --workspace` passes
-- [ ] `linter all` passes
+- [x] `cargo check --workspace` passes
+- [x] `linter all` passes
 
 ### Phase 2: Preserve Compatibility
 
@@ -188,13 +188,13 @@ Exit criteria:
 
 ### Deliverables
 
-- [ ] `announce.rs` added
-- [ ] `scrape.rs` added
+- [x] `announce.rs` added
+- [x] `scrape.rs` added
 - [ ] `AnnounceData` moved
 - [ ] `ScrapeData` moved
 - [ ] `AnnounceEvent` moved
 - [ ] `core.rs` reduced to compatibility exports
-- [ ] `lib.rs` updated
+- [x] `lib.rs` updated
 - [ ] Docs updated
 
 ### Type-by-Type Progress Tracker

@@ -4,12 +4,14 @@
 //! which is a `BitTorrent` tracker server. These structures are used not only
 //! by the tracker server crate, but also by other crates in the Torrust
 //! ecosystem.
+pub mod announce;
 pub mod announce_event;
 pub mod core;
 pub mod number_of_bytes;
 pub mod pagination;
 pub mod peer;
 pub mod peer_id;
+pub mod scrape;
 pub mod service_binding;
 pub mod swarm_metadata;
 

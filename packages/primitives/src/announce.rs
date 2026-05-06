@@ -1,0 +1,1 @@
+//! Announce-related primitive types.

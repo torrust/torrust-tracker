@@ -1,0 +1,1 @@
+//! Scrape-related primitive types.
