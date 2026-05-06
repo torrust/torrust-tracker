@@ -320,9 +320,9 @@ all other packages, this is the last remaining use of that type from the fork.
 - [x] Update all impls in `src/info_hash.rs` that previously delegated to
       `aquatic_udp_protocol::InfoHash` to operate on the inner `[u8; 20]` directly.
 - [x] Ensure all existing tests in `bittorrent-primitives` pass.
-- [ ] Publish a new version of `bittorrent-primitives` to crates.io once the crate is
+- [x] Publish a new version of `bittorrent-primitives` to crates.io once the crate is
       self-contained (no external protocol dependencies).
-- [ ] Remove the `packages/bittorrent-primitives/` fork and the `[patch.crates-io]` entry once
+- [x] Remove the `packages/bittorrent-primitives/` fork and the `[patch.crates-io]` entry once
       the published version is available.
 
 > **Note on step ordering**: Step 4c is independent of Steps 4b and 4a-prep. It can be done in

@@ -17,7 +17,7 @@ version.workspace = true
 [dependencies]
 anyhow = "1"
 bittorrent-udp-tracker-protocol = { version = "3.0.0-develop", path = "../../packages/udp-protocol" }
-bittorrent-primitives = "0.1.0"
+bittorrent-primitives = "0.2.0"
 bittorrent-tracker-client = { version = "3.0.0-develop", path = "../../packages/tracker-client" }
 clap = { version = "4", features = [ "derive", "env" ] }
 futures = "0"

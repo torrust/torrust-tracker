@@ -14,7 +14,7 @@ rust-version.workspace = true
 version.workspace = true
 
 [dependencies]
-bittorrent-primitives = "0.1.0"
+bittorrent-primitives = "0.2.0"
 bittorrent-tracker-core = { version = "3.0.0-develop", path = "../tracker-core" }
 bittorrent-udp-tracker-protocol = { version = "3.0.0-develop", path = "../udp-protocol" }
 bloom = "0.3.2"

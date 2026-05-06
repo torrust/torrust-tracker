@@ -16,7 +16,7 @@ version.workspace = true
 
 [dependencies]
 binascii = "0"
-bittorrent-primitives = "0.1.0"
+bittorrent-primitives = "0.2.0"
 compact_str = "0.9"
 derive_more = { version = "2", features = [ "constructor" ] }
 hex = "0.4"

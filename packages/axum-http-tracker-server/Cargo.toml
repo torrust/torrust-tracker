@@ -20,7 +20,7 @@ axum-client-ip = "0"
 axum-server = { version = "0", features = [ "tls-rustls-no-provider" ] }
 bittorrent-http-tracker-core = { version = "3.0.0-develop", path = "../http-tracker-core" }
 bittorrent-http-tracker-protocol = { version = "3.0.0-develop", path = "../http-protocol" }
-bittorrent-primitives = "0.1.0"
+bittorrent-primitives = "0.2.0"
 bittorrent-tracker-core = { version = "3.0.0-develop", path = "../tracker-core" }
 derive_more = { version = "2", features = [ "as_ref", "constructor", "from" ] }
 futures = "0"

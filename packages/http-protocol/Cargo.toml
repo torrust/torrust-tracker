@@ -16,7 +16,7 @@ version.workspace = true
 
 [dependencies]
 bittorrent-udp-tracker-protocol = { version = "3.0.0-develop", path = "../udp-protocol" }
-bittorrent-primitives = "0.1.0"
+bittorrent-primitives = "0.2.0"
 bittorrent-tracker-core = { version = "3.0.0-develop", path = "../tracker-core" }
 derive_more = { version = "2", features = [ "as_ref", "constructor", "from" ] }
 multimap = "0"

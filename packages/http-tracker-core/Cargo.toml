@@ -15,7 +15,7 @@ version.workspace = true
 
 [dependencies]
 bittorrent-http-tracker-protocol = { version = "3.0.0-develop", path = "../http-protocol" }
-bittorrent-primitives = "0.1.0"
+bittorrent-primitives = "0.2.0"
 bittorrent-tracker-core = { version = "3.0.0-develop", path = "../tracker-core" }
 criterion = { version = "0.5.1", features = [ "async_tokio" ] }
 futures = "0"

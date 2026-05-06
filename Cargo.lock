@@ -616,7 +616,9 @@ dependencies = [
 
 [[package]]
 name = "bittorrent-primitives"
-version = "0.1.0"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6b47ab263cb9c3bc8be80e312f81c1ee94d3af3d9ee066b81abc06f8fc851023"
 dependencies = [
  "binascii",
  "serde",
