@@ -304,6 +304,9 @@ The conversion in `peer_builder.rs` calls `.0.get()` to extract the `i64` from t
 - [x] Remove both interim forks (`packages/aquatic-udp-protocol` and `packages/aquatic-peer-id`)
       from the workspace `Cargo.toml` once no package depends on them.
 - [x] Verify `cargo check --workspace` and `linter all` pass with no errors.
+- [x] Verify `cargo test --doc --workspace` passes after updating doc tests to use
+      domain types where required.
+- [x] Verify `contrib/dev-tools/git/hooks/pre-commit.sh` passes end-to-end.
 
 #### Step 4c: Consolidate `InfoHash` into `bittorrent-primitives`
 
@@ -335,9 +338,10 @@ all other packages, this is the last remaining use of that type from the fork.
 
 ## Acceptance Criteria
 
-- [ ] `aquatic_udp_protocol` and `aquatic_peer_id` do not appear in any `Cargo.toml` or source file.
-- [ ] All workspace tests pass (`cargo test --workspace`).
-- [ ] `linter all` exits with code `0`.
+- [x] `aquatic_udp_protocol` and `aquatic_peer_id` are removed as dependencies/imports from
+      workspace packages (`Cargo.toml` and Rust code imports).
+- [x] All workspace tests pass (`cargo test --workspace`).
+- [x] `linter all` exits with code `0`.
 - [ ] `cargo machete` reports no unused dependencies.
 - [ ] The `zerocopy` version across the workspace is `0.8`.
 - [ ] Both interim forks (`packages/aquatic-udp-protocol` and `packages/aquatic-peer-id`) have been
