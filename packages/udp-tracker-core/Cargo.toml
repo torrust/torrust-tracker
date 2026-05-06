@@ -14,7 +14,6 @@ rust-version.workspace = true
 version.workspace = true
 
 [dependencies]
-aquatic_udp_protocol = { path = "../aquatic-udp-protocol" }
 bittorrent-primitives = "0.1.0"
 bittorrent-tracker-core = { version = "3.0.0-develop", path = "../tracker-core" }
 bittorrent-udp-tracker-protocol = { version = "3.0.0-develop", path = "../udp-protocol" }

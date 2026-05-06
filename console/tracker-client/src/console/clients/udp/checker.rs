@@ -2,13 +2,13 @@ use std::net::{Ipv4Addr, SocketAddr};
 use std::num::NonZeroU16;
 use std::time::Duration;
 
-use aquatic_udp_protocol::common::InfoHash;
-use aquatic_udp_protocol::{
+use bittorrent_primitives::info_hash::InfoHash as TorrustInfoHash;
+use bittorrent_tracker_client::udp::client::UdpTrackerClient;
+use bittorrent_udp_tracker_protocol::common::InfoHash;
+use bittorrent_udp_tracker_protocol::{
     AnnounceActionPlaceholder, AnnounceEvent, AnnounceRequest, ConnectRequest, ConnectionId, NumberOfBytes, NumberOfPeers,
     PeerId, PeerKey, Port, Response, ScrapeRequest, TransactionId,
 };
-use bittorrent_primitives::info_hash::InfoHash as TorrustInfoHash;
-use bittorrent_tracker_client::udp::client::UdpTrackerClient;
 
 use super::Error;
 

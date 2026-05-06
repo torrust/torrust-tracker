@@ -11,12 +11,11 @@ use std::net::SocketAddr;
 use std::ops::Range;
 use std::sync::Arc;
 
-use aquatic_udp_protocol::AnnounceRequest;
 use bittorrent_primitives::info_hash::InfoHash;
 use bittorrent_tracker_core::announce_handler::{AnnounceHandler, PeersWanted};
 use bittorrent_tracker_core::error::{AnnounceError, WhitelistError};
 use bittorrent_tracker_core::whitelist;
-use bittorrent_udp_tracker_protocol::peer_builder;
+use bittorrent_udp_tracker_protocol::{peer_builder, AnnounceRequest};
 use torrust_tracker_primitives::core::AnnounceData;
 use torrust_tracker_primitives::peer::PeerAnnouncement;
 use torrust_tracker_primitives::service_binding::ServiceBinding;

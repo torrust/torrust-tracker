@@ -104,10 +104,10 @@
 //!
 //! ```rust,no_run
 //! use std::net::SocketAddr;
-//! use aquatic_udp_protocol::PeerId;
+//! use bittorrent_udp_tracker_protocol::PeerId;
 //! use torrust_tracker_primitives::DurationSinceUnixEpoch;
-//! use aquatic_udp_protocol::NumberOfBytes;
-//! use aquatic_udp_protocol::AnnounceEvent;
+//! use bittorrent_udp_tracker_protocol::NumberOfBytes;
+//! use bittorrent_udp_tracker_protocol::AnnounceEvent;
 //!
 //! pub struct Peer {
 //!     pub peer_id: PeerId,                 // The peer ID

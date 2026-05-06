@@ -278,7 +278,7 @@ mod tests {
     use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
     use std::sync::Arc;
 
-    use aquatic_udp_protocol::PeerId;
+    use bittorrent_udp_tracker_protocol::PeerId;
     use torrust_tracker_configuration::AnnouncePolicy;
     use torrust_tracker_primitives::core::AnnounceData;
     use torrust_tracker_primitives::peer::fixture::PeerBuilder;

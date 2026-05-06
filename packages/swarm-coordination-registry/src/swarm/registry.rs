@@ -508,7 +508,7 @@ mod tests {
 
         use std::sync::Arc;
 
-        use aquatic_udp_protocol::PeerId;
+        use bittorrent_udp_tracker_protocol::PeerId;
 
         use crate::swarm::registry::Registry;
         use crate::tests::{sample_info_hash, sample_peer};
@@ -613,7 +613,7 @@ mod tests {
             use std::net::{IpAddr, Ipv4Addr, SocketAddr};
             use std::sync::Arc;
 
-            use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
+            use bittorrent_udp_tracker_protocol::{AnnounceEvent, NumberOfBytes};
             use torrust_tracker_primitives::peer::Peer;
             use torrust_tracker_primitives::DurationSinceUnixEpoch;
 
@@ -674,7 +674,7 @@ mod tests {
                 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
                 use std::sync::Arc;
 
-                use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
+                use bittorrent_udp_tracker_protocol::{AnnounceEvent, NumberOfBytes};
                 use torrust_tracker_configuration::TORRENT_PEERS_LIMIT;
                 use torrust_tracker_primitives::peer::Peer;
                 use torrust_tracker_primitives::DurationSinceUnixEpoch;

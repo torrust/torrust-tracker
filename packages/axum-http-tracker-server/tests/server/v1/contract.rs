@@ -93,8 +93,8 @@ mod for_all_config_modes {
         use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr, SocketAddrV6};
         use std::str::FromStr;
 
-        use aquatic_udp_protocol::PeerId;
         use bittorrent_primitives::info_hash::InfoHash;
+        use bittorrent_udp_tracker_protocol::PeerId;
         use local_ip_address::local_ip;
         use reqwest::{Response, StatusCode};
         use tokio::net::TcpListener;
@@ -951,8 +951,8 @@ mod for_all_config_modes {
         use std::net::{IpAddr, Ipv6Addr, SocketAddrV6};
         use std::str::FromStr;
 
-        use aquatic_udp_protocol::PeerId;
         use bittorrent_primitives::info_hash::InfoHash;
+        use bittorrent_udp_tracker_protocol::PeerId;
         use tokio::net::TcpListener;
         use torrust_axum_http_tracker_server::environment::Started;
         use torrust_tracker_primitives::peer::fixture::PeerBuilder;
@@ -1261,8 +1261,8 @@ mod configured_as_whitelisted {
     mod receiving_an_scrape_request {
         use std::str::FromStr;
 
-        use aquatic_udp_protocol::PeerId;
         use bittorrent_primitives::info_hash::InfoHash;
+        use bittorrent_udp_tracker_protocol::PeerId;
         use torrust_axum_http_tracker_server::environment::Started;
         use torrust_tracker_primitives::peer::fixture::PeerBuilder;
         use torrust_tracker_test_helpers::logging::logs_contains_a_line_with;
@@ -1459,9 +1459,9 @@ mod configured_as_private {
         use std::str::FromStr;
         use std::time::Duration;
 
-        use aquatic_udp_protocol::PeerId;
         use bittorrent_primitives::info_hash::InfoHash;
         use bittorrent_tracker_core::authentication::Key;
+        use bittorrent_udp_tracker_protocol::PeerId;
         use torrust_axum_http_tracker_server::environment::Started;
         use torrust_tracker_primitives::peer::fixture::PeerBuilder;
         use torrust_tracker_test_helpers::{configuration, logging};

@@ -1,4 +1,4 @@
-use aquatic_udp_protocol::{Response, TransactionId};
+use bittorrent_udp_tracker_protocol::{Response, TransactionId};
 
 pub fn get_error_response_message(response: &Response) -> Option<String> {
     match response {

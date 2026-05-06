@@ -1,5 +1,5 @@
 //! `Peer` and Peer `Id` API resources.
-use aquatic_udp_protocol::PeerId;
+use bittorrent_udp_tracker_protocol::PeerId;
 use derive_more::From;
 use serde::{Deserialize, Serialize};
 use torrust_tracker_primitives::peer;
@@ -23,7 +23,7 @@ pub struct Peer {
     /// The peer's left bytes (pending to download).
     pub left: i64,
     /// The peer's event: `started`, `stopped`, `completed`.
-    /// See [`AnnounceEvent`](aquatic_udp_protocol::AnnounceEvent).
+    /// See [`AnnounceEvent`](bittorrent_udp_tracker_protocol::AnnounceEvent).
     pub event: String,
 }
 

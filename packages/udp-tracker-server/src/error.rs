@@ -2,9 +2,9 @@
 use std::fmt::Display;
 use std::panic::Location;
 
-use aquatic_udp_protocol::{ConnectionId, RequestParseError, TransactionId};
 use bittorrent_udp_tracker_core::services::announce::UdpAnnounceError;
 use bittorrent_udp_tracker_core::services::scrape::UdpScrapeError;
+use bittorrent_udp_tracker_protocol::{ConnectionId, RequestParseError, TransactionId};
 use derive_more::derive::Display;
 use thiserror::Error;
 
@@ -27,7 +27,7 @@ pub enum Error {
     #[error("tracker scrape error: {source}")]
     ScrapeFailed { source: UdpScrapeError },
 
-    /// Error returned from a third-party library (`aquatic_udp_protocol`).
+    /// Error returned from a third-party library (`bittorrent_udp_tracker_protocol`).
     #[error("internal server error: {message}, {location}")]
     Internal {
         location: &'static Location<'static>,

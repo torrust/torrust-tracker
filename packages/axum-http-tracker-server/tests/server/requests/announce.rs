@@ -2,8 +2,8 @@ use std::fmt;
 use std::net::{IpAddr, Ipv4Addr};
 use std::str::FromStr;
 
-use aquatic_udp_protocol::PeerId;
 use bittorrent_primitives::info_hash::InfoHash;
+use bittorrent_udp_tracker_protocol::PeerId;
 use serde_repr::Serialize_repr;
 
 use crate::server::{percent_encode_byte_array, ByteArray20};

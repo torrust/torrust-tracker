@@ -1,8 +1,8 @@
 use std::collections::HashSet;
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
-use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes, PeerId};
 use bittorrent_primitives::info_hash::InfoHash;
+use bittorrent_udp_tracker_protocol::{AnnounceEvent, NumberOfBytes, PeerId};
 use torrust_tracker_primitives::peer::Peer;
 use torrust_tracker_primitives::DurationSinceUnixEpoch;
 use zerocopy::byteorder::I64;

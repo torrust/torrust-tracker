@@ -10,9 +10,9 @@ use std::sync::Arc;
 use std::time::Instant;
 
 use announce::handle_announce;
-use aquatic_udp_protocol::{Request, Response, TransactionId};
 use bittorrent_tracker_core::MAX_SCRAPE_TORRENTS;
 use bittorrent_udp_tracker_core::container::UdpTrackerCoreContainer;
+use bittorrent_udp_tracker_protocol::{Request, Response, TransactionId};
 use connect::handle_connect;
 use error::handle_error;
 use scrape::handle_scrape;

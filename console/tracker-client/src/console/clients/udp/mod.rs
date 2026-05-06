@@ -1,7 +1,7 @@
 use std::net::SocketAddr;
 
-use aquatic_udp_protocol::Response;
 use bittorrent_tracker_client::udp;
+use bittorrent_udp_tracker_protocol::Response;
 use serde::Serialize;
 use thiserror::Error;
 

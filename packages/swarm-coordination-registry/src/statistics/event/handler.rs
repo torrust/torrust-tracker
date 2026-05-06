@@ -175,7 +175,7 @@ pub(crate) fn label_set_for_peer(peer: &Peer) -> LabelSet {
 mod tests {
     use std::sync::Arc;
 
-    use aquatic_udp_protocol::NumberOfBytes;
+    use bittorrent_udp_tracker_protocol::NumberOfBytes;
     use torrust_tracker_metrics::label::LabelSet;
     use torrust_tracker_metrics::metric::MetricName;
     use torrust_tracker_primitives::peer::{Peer, PeerRole};

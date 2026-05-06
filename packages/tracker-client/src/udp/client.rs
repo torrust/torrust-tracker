@@ -4,7 +4,7 @@ use std::net::{Ipv4Addr, Ipv6Addr, SocketAddr};
 use std::sync::Arc;
 use std::time::Duration;
 
-use aquatic_udp_protocol::{ConnectRequest, Request, Response, TransactionId};
+use bittorrent_udp_tracker_protocol::{ConnectRequest, Request, Response, TransactionId};
 use tokio::net::UdpSocket;
 use tokio::time;
 use torrust_tracker_configuration::DEFAULT_TIMEOUT;

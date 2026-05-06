@@ -169,7 +169,6 @@ mod tests {
     use std::net::{IpAddr, Ipv4Addr, SocketAddr};
     use std::sync::Arc;
 
-    use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes, PeerId};
     use bittorrent_primitives::info_hash::InfoHash;
     use bittorrent_tracker_core::announce_handler::AnnounceHandler;
     use bittorrent_tracker_core::authentication::key::repository::in_memory::InMemoryKeyRepository;
@@ -180,6 +179,7 @@ mod tests {
     use bittorrent_tracker_core::torrent::repository::in_memory::InMemoryTorrentRepository;
     use bittorrent_tracker_core::whitelist::authorization::WhitelistAuthorization;
     use bittorrent_tracker_core::whitelist::repository::in_memory::InMemoryWhitelist;
+    use bittorrent_udp_tracker_protocol::{AnnounceEvent, NumberOfBytes, PeerId};
     use futures::future::BoxFuture;
     use mockall::mock;
     use torrust_tracker_configuration::Configuration;

@@ -6,8 +6,8 @@
 // Changes from the original:
 // - `use zerocopy::FromBytes` removed (no longer needed at the call site in zerocopy 0.8;
 //   the method is still provided via the trait, imported with `use zerocopy::FromBytes as _`)
-// - `aquatic_udp_protocol::InfoHash::read_from(bytes)` changed to
-//   `aquatic_udp_protocol::InfoHash::read_from_bytes(bytes)` (zerocopy 0.8 API rename)
+// - `bittorrent_udp_tracker_protocol::InfoHash::read_from(bytes)` changed to
+//   `bittorrent_udp_tracker_protocol::InfoHash::read_from_bytes(bytes)` (zerocopy 0.8 API rename)
 //! A `BitTorrent` `InfoHash`. It's a unique identifier for a `BitTorrent` torrent.
 //!
 //! "The 20-byte sha1 hash of the bencoded form of the info value
@@ -151,7 +151,7 @@ use zerocopy::FromBytes as _;
 /// `BitTorrent` Info Hash v1
 #[derive(PartialEq, Eq, Hash, Clone, Copy, Debug)]
 pub struct InfoHash {
-    data: aquatic_udp_protocol::InfoHash,
+    data: bittorrent_udp_tracker_protocol::InfoHash,
 }
 
 pub const INFO_HASH_BYTES_LEN: usize = 20;
@@ -164,7 +164,8 @@ impl InfoHash {
     /// Will panic if byte slice does not contains the exact amount of bytes need for the `InfoHash`.
     #[must_use]
     pub fn from_bytes(bytes: &[u8]) -> Self {
-        let data = aquatic_udp_protocol::InfoHash::read_from_bytes(bytes).expect("it should have the exact amount of bytes");
+        let data =
+            bittorrent_udp_tracker_protocol::InfoHash::read_from_bytes(bytes).expect("it should have the exact amount of bytes");
 
         Self { data }
     }
@@ -185,19 +186,19 @@ impl InfoHash {
 impl Default for InfoHash {
     fn default() -> Self {
         Self {
-            data: aquatic_udp_protocol::InfoHash(Default::default()),
+            data: bittorrent_udp_tracker_protocol::InfoHash(Default::default()),
         }
     }
 }
 
-impl From<aquatic_udp_protocol::InfoHash> for InfoHash {
-    fn from(data: aquatic_udp_protocol::InfoHash) -> Self {
+impl From<bittorrent_udp_tracker_protocol::InfoHash> for InfoHash {
+    fn from(data: bittorrent_udp_tracker_protocol::InfoHash) -> Self {
         Self { data }
     }
 }
 
 impl Deref for InfoHash {
-    type Target = aquatic_udp_protocol::InfoHash;
+    type Target = bittorrent_udp_tracker_protocol::InfoHash;
 
     fn deref(&self) -> &Self::Target {
         &self.data
@@ -260,7 +261,7 @@ impl std::convert::From<&DefaultHasher> for InfoHash {
             n[0], n[1], n[2], n[3], n[4], n[5], n[6], n[7], n[0], n[1], n[2], n[3], n[4], n[5], n[6], n[7], n[0], n[1], n[2],
             n[3],
         ];
-        let data = aquatic_udp_protocol::InfoHash(bytes);
+        let data = bittorrent_udp_tracker_protocol::InfoHash(bytes);
         Self { data }
     }
 }
@@ -269,14 +270,14 @@ impl std::convert::From<&i32> for InfoHash {
     fn from(n: &i32) -> InfoHash {
         let n = n.to_le_bytes();
         let bytes = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, n[0], n[1], n[2], n[3]];
-        let data = aquatic_udp_protocol::InfoHash(bytes);
+        let data = bittorrent_udp_tracker_protocol::InfoHash(bytes);
         Self { data }
     }
 }
 
 impl std::convert::From<[u8; 20]> for InfoHash {
     fn from(bytes: [u8; 20]) -> Self {
-        let data = aquatic_udp_protocol::InfoHash(bytes);
+        let data = bittorrent_udp_tracker_protocol::InfoHash(bytes);
         Self { data }
     }
 }

@@ -1,4 +1,4 @@
-use aquatic_udp_protocol::PeerClient;
+use bittorrent_udp_tracker_protocol::PeerClient;
 use torrust_tracker_metrics::label::LabelSet;
 use torrust_tracker_metrics::{label_name, metric_name};
 use torrust_tracker_primitives::DurationSinceUnixEpoch;

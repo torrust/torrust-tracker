@@ -3,11 +3,11 @@ use std::net::SocketAddr;
 use std::ops::Range;
 use std::sync::Arc;
 
-use aquatic_udp_protocol::{
-    NumberOfDownloads, NumberOfPeers, Response, ScrapeRequest, ScrapeResponse, TorrentScrapeStatistics, TransactionId,
-};
 use bittorrent_udp_tracker_core::services::scrape::ScrapeService;
 use bittorrent_udp_tracker_core::{self};
+use bittorrent_udp_tracker_protocol::{
+    NumberOfDownloads, NumberOfPeers, Response, ScrapeRequest, ScrapeResponse, TorrentScrapeStatistics, TransactionId,
+};
 use torrust_tracker_primitives::core::ScrapeData;
 use torrust_tracker_primitives::service_binding::ServiceBinding;
 use tracing::{instrument, Level};
@@ -89,12 +89,12 @@ mod tests {
         use std::net::{IpAddr, Ipv4Addr, SocketAddr};
         use std::sync::Arc;
 
-        use aquatic_udp_protocol::{
+        use bittorrent_tracker_core::torrent::repository::in_memory::InMemoryTorrentRepository;
+        use bittorrent_udp_tracker_core::connection_cookie::{gen_remote_fingerprint, make};
+        use bittorrent_udp_tracker_protocol::{
             InfoHash, NumberOfDownloads, NumberOfPeers, PeerId, Response, ScrapeRequest, ScrapeResponse, TorrentScrapeStatistics,
             TransactionId,
         };
-        use bittorrent_tracker_core::torrent::repository::in_memory::InMemoryTorrentRepository;
-        use bittorrent_udp_tracker_core::connection_cookie::{gen_remote_fingerprint, make};
         use torrust_tracker_events::bus::SenderStatus;
         use torrust_tracker_primitives::peer::fixture::PeerBuilder;
         use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
@@ -227,7 +227,7 @@ mod tests {
         }
 
         mod with_a_public_tracker {
-            use aquatic_udp_protocol::{NumberOfDownloads, NumberOfPeers, TorrentScrapeStatistics};
+            use bittorrent_udp_tracker_protocol::{NumberOfDownloads, NumberOfPeers, TorrentScrapeStatistics};
 
             use crate::handlers::scrape::tests::scrape_request::{add_a_sample_seeder_and_scrape, match_scrape_response};
             use crate::handlers::tests::initialize_core_tracker_services_for_public_tracker;
@@ -254,7 +254,7 @@ mod tests {
         mod with_a_whitelisted_tracker {
             use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
-            use aquatic_udp_protocol::{InfoHash, NumberOfDownloads, NumberOfPeers, TorrentScrapeStatistics};
+            use bittorrent_udp_tracker_protocol::{InfoHash, NumberOfDownloads, NumberOfPeers, TorrentScrapeStatistics};
             use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
 
             use crate::handlers::handle_scrape;

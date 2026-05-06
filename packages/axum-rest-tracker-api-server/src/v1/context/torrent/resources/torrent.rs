@@ -96,9 +96,9 @@ mod tests {
     use std::net::{IpAddr, Ipv4Addr, SocketAddr};
     use std::str::FromStr;
 
-    use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes, PeerId};
     use bittorrent_primitives::info_hash::InfoHash;
     use bittorrent_tracker_core::torrent::services::{BasicInfo, Info};
+    use bittorrent_udp_tracker_protocol::{AnnounceEvent, NumberOfBytes, PeerId};
     use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch};
 
     use super::Torrent;

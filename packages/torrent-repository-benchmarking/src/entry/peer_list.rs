@@ -2,7 +2,7 @@
 use std::net::SocketAddr;
 use std::sync::Arc;
 
-use aquatic_udp_protocol::PeerId;
+use bittorrent_udp_tracker_protocol::PeerId;
 use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch};
 
 // code-review: the current implementation uses the peer Id as the ``BTreeMap``
@@ -90,7 +90,7 @@ mod tests {
         use std::net::{IpAddr, Ipv4Addr, SocketAddr};
         use std::sync::Arc;
 
-        use aquatic_udp_protocol::PeerId;
+        use bittorrent_udp_tracker_protocol::PeerId;
         use torrust_tracker_primitives::peer::fixture::PeerBuilder;
         use torrust_tracker_primitives::DurationSinceUnixEpoch;
 

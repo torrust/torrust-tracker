@@ -1,7 +1,7 @@
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::time::Duration;
 
-use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
+use bittorrent_udp_tracker_protocol::{AnnounceEvent, NumberOfBytes};
 use rstest::{fixture, rstest};
 use torrust_tracker_clock::clock::stopped::Stopped as _;
 use torrust_tracker_clock::clock::{self, Time as _};

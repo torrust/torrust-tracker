@@ -15,8 +15,8 @@
 //! - <https://datatracker.ietf.org/doc/html/rfc3986#section-2.1>
 //! - <https://en.wikipedia.org/wiki/URL_encoding>
 //! - <https://developer.mozilla.org/en-US/docs/Glossary/percent-encoding>
-use aquatic_udp_protocol::PeerId;
 use bittorrent_primitives::info_hash::{self, InfoHash};
+use bittorrent_udp_tracker_protocol::PeerId;
 use torrust_tracker_primitives::peer;
 
 /// Percent decodes a percent encoded infohash. Internally an
@@ -59,7 +59,7 @@ pub fn percent_decode_info_hash(raw_info_hash: &str) -> Result<InfoHash, info_ha
 /// ```rust
 /// use std::str::FromStr;
 ///
-/// use aquatic_udp_protocol::PeerId;
+/// use bittorrent_udp_tracker_protocol::PeerId;
 /// use bittorrent_http_tracker_protocol::percent_encoding::percent_decode_peer_id;
 /// use bittorrent_primitives::info_hash::InfoHash;
 ///
@@ -82,8 +82,8 @@ pub fn percent_decode_peer_id(raw_peer_id: &str) -> Result<PeerId, peer::IdConve
 mod tests {
     use std::str::FromStr;
 
-    use aquatic_udp_protocol::PeerId;
     use bittorrent_primitives::info_hash::InfoHash;
+    use bittorrent_udp_tracker_protocol::PeerId;
 
     use crate::percent_encoding::{percent_decode_info_hash, percent_decode_peer_id};
 

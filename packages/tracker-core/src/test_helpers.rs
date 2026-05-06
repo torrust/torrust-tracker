@@ -5,8 +5,8 @@ pub(crate) mod tests {
     use std::net::{IpAddr, Ipv4Addr, SocketAddr};
     use std::sync::Arc;
 
-    use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes, PeerId};
     use bittorrent_primitives::info_hash::InfoHash;
+    use bittorrent_udp_tracker_protocol::{AnnounceEvent, NumberOfBytes, PeerId};
     use rand::RngExt;
     use torrust_tracker_configuration::Configuration;
     #[cfg(test)]

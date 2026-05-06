@@ -15,6 +15,6 @@ rust-version.workspace = true
 version.workspace = true
 
 [dependencies]
-aquatic_udp_protocol = { path = "../aquatic-udp-protocol" }
+bittorrent_udp_tracker_protocol = { package = "aquatic_udp_protocol", path = "../aquatic-udp-protocol" }
 torrust-tracker-clock = { version = "3.0.0-develop", path = "../clock" }
 torrust-tracker-primitives = { version = "3.0.0-develop", path = "../primitives" }

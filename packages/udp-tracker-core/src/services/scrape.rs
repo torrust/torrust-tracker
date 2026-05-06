@@ -11,10 +11,10 @@ use std::net::SocketAddr;
 use std::ops::Range;
 use std::sync::Arc;
 
-use aquatic_udp_protocol::ScrapeRequest;
 use bittorrent_primitives::info_hash::InfoHash;
 use bittorrent_tracker_core::error::{ScrapeError, WhitelistError};
 use bittorrent_tracker_core::scrape_handler::ScrapeHandler;
+use bittorrent_udp_tracker_protocol::ScrapeRequest;
 use torrust_tracker_primitives::core::ScrapeData;
 use torrust_tracker_primitives::service_binding::ServiceBinding;
 
@@ -76,7 +76,7 @@ impl ScrapeService {
         )
     }
 
-    fn convert_from_aquatic(aquatic_infohashes: &[aquatic_udp_protocol::common::InfoHash]) -> Vec<InfoHash> {
+    fn convert_from_aquatic(aquatic_infohashes: &[bittorrent_udp_tracker_protocol::common::InfoHash]) -> Vec<InfoHash> {
         aquatic_infohashes.iter().map(|&x| x.into()).collect()
     }
 

@@ -2,10 +2,10 @@ use std::fmt;
 use std::net::SocketAddr;
 use std::time::Duration;
 
-use aquatic_udp_protocol::AnnounceRequest;
 use bittorrent_tracker_core::error::{AnnounceError, ScrapeError};
 use bittorrent_udp_tracker_core::services::announce::UdpAnnounceError;
 use bittorrent_udp_tracker_core::services::scrape::UdpScrapeError;
+use bittorrent_udp_tracker_protocol::AnnounceRequest;
 use torrust_tracker_metrics::label::{LabelSet, LabelValue};
 use torrust_tracker_metrics::label_name;
 use torrust_tracker_primitives::service_binding::ServiceBinding;

@@ -3,7 +3,7 @@
 //! A sample peer:
 //!
 //! ```rust,no_run
-//! use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes, PeerId};
+//! use bittorrent_udp_tracker_protocol::{AnnounceEvent, NumberOfBytes, PeerId};
 //! use torrust_tracker_primitives::peer;
 //! use std::net::SocketAddr;
 //! use std::net::IpAddr;
@@ -28,7 +28,7 @@ use std::ops::{Deref, DerefMut};
 use std::str::FromStr;
 use std::sync::Arc;
 
-use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes, PeerId};
+use bittorrent_udp_tracker_protocol::{AnnounceEvent, NumberOfBytes, PeerId};
 use serde::Serialize;
 use zerocopy::FromBytes as _;
 
@@ -92,7 +92,7 @@ pub enum ParsePeerRoleError {
 /// A sample peer:
 ///
 /// ```rust,no_run
-/// use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes, PeerId};
+/// use bittorrent_udp_tracker_protocol::{AnnounceEvent, NumberOfBytes, PeerId};
 /// use torrust_tracker_primitives::peer;
 /// use std::net::SocketAddr;
 /// use std::net::IpAddr;
@@ -493,7 +493,7 @@ impl<P: Encoding> FromIterator<Peer> for Vec<P> {
 pub mod fixture {
     use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
-    use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
+    use bittorrent_udp_tracker_protocol::{AnnounceEvent, NumberOfBytes};
 
     use super::{Id, Peer, PeerId};
     use crate::DurationSinceUnixEpoch;
@@ -658,7 +658,7 @@ pub mod test {
     }
 
     mod torrent_peer_id {
-        use aquatic_udp_protocol::PeerId;
+        use bittorrent_udp_tracker_protocol::PeerId;
 
         use crate::peer;
 

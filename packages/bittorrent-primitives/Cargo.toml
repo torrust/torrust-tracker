@@ -4,7 +4,7 @@
 # License: MIT OR Apache-2.0
 #
 # Changes from the original:
-# - aquatic_udp_protocol dependency changed to local path dep (our internal fork)
+# - bittorrent_udp_tracker_protocol dependency changed to local path dep (our internal fork)
 # - zerocopy bumped from 0.7 to 0.8
 # - src/info_hash.rs: read_from -> read_from_bytes (zerocopy 0.8 API)
 # - publish = false (temporary internal patch, not intended for crates.io)
@@ -21,7 +21,7 @@ repository = "https://github.com/torrust/bittorrent-primitives"
 publish = false
 
 [dependencies]
-aquatic_udp_protocol = { path = "../aquatic-udp-protocol" }
+bittorrent_udp_tracker_protocol = { package = "aquatic_udp_protocol", path = "../aquatic-udp-protocol" }
 binascii = "0.1.4"
 serde = { version = "1", features = [ "derive" ] }
 serde_json = "1.0.132"

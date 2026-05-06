@@ -2,8 +2,8 @@
 use std::net::SocketAddr;
 use std::ops::Range;
 
-use aquatic_udp_protocol::{ErrorResponse, Response, TransactionId};
 use bittorrent_udp_tracker_core::{self, UDP_TRACKER_LOG_TARGET};
+use bittorrent_udp_tracker_protocol::{ErrorResponse, Response, TransactionId};
 use torrust_tracker_primitives::service_binding::ServiceBinding;
 use tracing::{instrument, Level};
 use uuid::Uuid;

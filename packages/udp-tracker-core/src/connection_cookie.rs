@@ -77,7 +77,7 @@
 //! - The module leverages existing cryptographic primitives while acknowledging and addressing the limitations imposed by the protocol's specifications.
 //!
 
-use aquatic_udp_protocol::ConnectionId as Cookie;
+use bittorrent_udp_tracker_protocol::ConnectionId as Cookie;
 use cookie_builder::{assemble, decode, disassemble, encode};
 use thiserror::Error;
 use tracing::instrument;

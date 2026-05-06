@@ -1,7 +1,6 @@
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::sync::Arc;
 
-use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes, PeerId};
 use bittorrent_http_tracker_core::event::bus::EventBus;
 use bittorrent_http_tracker_core::event::sender::Broadcaster;
 use bittorrent_http_tracker_core::event::Event;
@@ -18,6 +17,7 @@ use bittorrent_tracker_core::statistics::persisted::downloads::DatabaseDownloads
 use bittorrent_tracker_core::torrent::repository::in_memory::InMemoryTorrentRepository;
 use bittorrent_tracker_core::whitelist::authorization::WhitelistAuthorization;
 use bittorrent_tracker_core::whitelist::repository::in_memory::InMemoryWhitelist;
+use bittorrent_udp_tracker_protocol::{AnnounceEvent, NumberOfBytes, PeerId};
 use futures::future::BoxFuture;
 use mockall::mock;
 use tokio_util::sync::CancellationToken;

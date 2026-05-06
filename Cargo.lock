@@ -597,10 +597,10 @@ dependencies = [
 name = "bittorrent-http-tracker-core"
 version = "3.0.0-develop"
 dependencies = [
- "aquatic_udp_protocol",
  "bittorrent-http-tracker-protocol",
  "bittorrent-primitives",
  "bittorrent-tracker-core",
+ "bittorrent-udp-tracker-protocol",
  "criterion 0.5.1",
  "formatjson",
  "futures",
@@ -624,9 +624,9 @@ dependencies = [
 name = "bittorrent-http-tracker-protocol"
 version = "3.0.0-develop"
 dependencies = [
- "aquatic_udp_protocol",
  "bittorrent-primitives",
  "bittorrent-tracker-core",
+ "bittorrent-udp-tracker-protocol",
  "derive_more",
  "multimap",
  "percent-encoding",
@@ -656,8 +656,8 @@ dependencies = [
 name = "bittorrent-tracker-client"
 version = "3.0.0-develop"
 dependencies = [
- "aquatic_udp_protocol",
  "bittorrent-primitives",
+ "bittorrent-udp-tracker-protocol",
  "derive_more",
  "hyper",
  "percent-encoding",
@@ -680,9 +680,9 @@ name = "bittorrent-tracker-core"
 version = "3.0.0-develop"
 dependencies = [
  "anyhow",
- "aquatic_udp_protocol",
  "async-trait",
  "bittorrent-primitives",
+ "bittorrent-udp-tracker-protocol",
  "chrono",
  "clap",
  "derive_more",
@@ -713,7 +713,6 @@ dependencies = [
 name = "bittorrent-udp-tracker-core"
 version = "3.0.0-develop"
 dependencies = [
- "aquatic_udp_protocol",
  "bittorrent-primitives",
  "bittorrent-tracker-core",
  "bittorrent-udp-tracker-protocol",
@@ -5325,7 +5324,6 @@ dependencies = [
 name = "torrust-axum-http-tracker-server"
 version = "3.0.0-develop"
 dependencies = [
- "aquatic_udp_protocol",
  "axum",
  "axum-client-ip",
  "axum-server",
@@ -5333,6 +5331,7 @@ dependencies = [
  "bittorrent-http-tracker-protocol",
  "bittorrent-primitives",
  "bittorrent-tracker-core",
+ "bittorrent-udp-tracker-protocol",
  "derive_more",
  "futures",
  "hyper",
@@ -5365,7 +5364,6 @@ dependencies = [
 name = "torrust-axum-rest-tracker-api-server"
 version = "3.0.0-develop"
 dependencies = [
- "aquatic_udp_protocol",
  "axum",
  "axum-extra",
  "axum-server",
@@ -5373,6 +5371,7 @@ dependencies = [
  "bittorrent-primitives",
  "bittorrent-tracker-core",
  "bittorrent-udp-tracker-core",
+ "bittorrent-udp-tracker-protocol",
  "derive_more",
  "futures",
  "hyper",
@@ -5514,9 +5513,9 @@ name = "torrust-tracker-client"
 version = "3.0.0-develop"
 dependencies = [
  "anyhow",
- "aquatic_udp_protocol",
  "bittorrent-primitives",
  "bittorrent-tracker-client",
+ "bittorrent-udp-tracker-protocol",
  "clap",
  "futures",
  "hex-literal",
@@ -5629,9 +5628,9 @@ dependencies = [
 name = "torrust-tracker-swarm-coordination-registry"
 version = "3.0.0-develop"
 dependencies = [
- "aquatic_udp_protocol",
  "async-std",
  "bittorrent-primitives",
+ "bittorrent-udp-tracker-protocol",
  "chrono",
  "criterion 0.8.2",
  "crossbeam-skiplist",
@@ -5666,9 +5665,9 @@ dependencies = [
 name = "torrust-tracker-torrent-repository-benchmarking"
 version = "3.0.0-develop"
 dependencies = [
- "aquatic_udp_protocol",
  "async-std",
  "bittorrent-primitives",
+ "bittorrent-udp-tracker-protocol",
  "criterion 0.8.2",
  "crossbeam-skiplist",
  "dashmap",
@@ -5686,11 +5685,11 @@ dependencies = [
 name = "torrust-udp-tracker-server"
 version = "3.0.0-develop"
 dependencies = [
- "aquatic_udp_protocol",
  "bittorrent-primitives",
  "bittorrent-tracker-client",
  "bittorrent-tracker-core",
  "bittorrent-udp-tracker-core",
+ "bittorrent-udp-tracker-protocol",
  "derive_more",
  "futures",
  "futures-util",

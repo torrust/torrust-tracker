@@ -1,8 +1,8 @@
 use std::collections::{BTreeMap, HashSet};
 use std::hash::{DefaultHasher, Hash, Hasher};
 
-use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
 use bittorrent_primitives::info_hash::InfoHash;
+use bittorrent_udp_tracker_protocol::{AnnounceEvent, NumberOfBytes};
 use rstest::{fixture, rstest};
 use torrust_tracker_configuration::TrackerPolicy;
 use torrust_tracker_primitives::pagination::Pagination;

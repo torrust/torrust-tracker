@@ -1,7 +1,7 @@
 use std::net::SocketAddr;
 use std::time::Duration;
 
-use aquatic_udp_protocol::TransactionId;
+use bittorrent_udp_tracker_protocol::TransactionId;
 use hex_literal::hex;
 use serde::Serialize;
 use url::Url;
@@ -30,7 +30,7 @@ pub async fn run(udp_trackers: Vec<Url>, timeout: Duration) -> Vec<Result<Checks
     tracing::debug!("UDP trackers ...");
 
     #[allow(clippy::incompatible_msrv)]
-    let info_hash = aquatic_udp_protocol::InfoHash(hex!("9c38422213e30bff212b30c360d26f9a02136422")); // DevSkim: ignore DS173237
+    let info_hash = bittorrent_udp_tracker_protocol::InfoHash(hex!("9c38422213e30bff212b30c360d26f9a02136422")); // DevSkim: ignore DS173237
 
     for remote_url in udp_trackers {
         let remote_addr = resolve_socket_addr(&remote_url);

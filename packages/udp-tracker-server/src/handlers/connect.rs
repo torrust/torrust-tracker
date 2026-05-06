@@ -2,8 +2,8 @@
 use std::net::SocketAddr;
 use std::sync::Arc;
 
-use aquatic_udp_protocol::{ConnectRequest, ConnectResponse, ConnectionId, Response};
 use bittorrent_udp_tracker_core::services::connect::ConnectService;
+use bittorrent_udp_tracker_protocol::{ConnectRequest, ConnectResponse, ConnectionId, Response};
 use torrust_tracker_primitives::service_binding::ServiceBinding;
 use tracing::{instrument, Level};
 
@@ -56,12 +56,12 @@ mod tests {
         use std::net::{IpAddr, Ipv4Addr, SocketAddr};
         use std::sync::Arc;
 
-        use aquatic_udp_protocol::{ConnectRequest, ConnectResponse, Response, TransactionId};
         use bittorrent_udp_tracker_core::connection_cookie::make;
         use bittorrent_udp_tracker_core::event as core_event;
         use bittorrent_udp_tracker_core::event::bus::EventBus;
         use bittorrent_udp_tracker_core::event::sender::Broadcaster;
         use bittorrent_udp_tracker_core::services::connect::ConnectService;
+        use bittorrent_udp_tracker_protocol::{ConnectRequest, ConnectResponse, Response, TransactionId};
         use mockall::predicate::eq;
         use torrust_tracker_events::bus::SenderStatus;
         use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};

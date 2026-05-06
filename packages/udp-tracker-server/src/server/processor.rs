@@ -3,9 +3,9 @@ use std::net::SocketAddr;
 use std::sync::Arc;
 use std::time::Duration;
 
-use aquatic_udp_protocol::Response;
 use bittorrent_udp_tracker_core::container::UdpTrackerCoreContainer;
 use bittorrent_udp_tracker_core::{self};
+use bittorrent_udp_tracker_protocol::Response;
 use tokio::time::Instant;
 use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
 use tracing::{instrument, Level};

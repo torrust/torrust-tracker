@@ -1,11 +1,11 @@
 use std::net::IpAddr;
 use std::sync::Arc;
 
-use aquatic_udp_protocol::AnnounceEvent;
 use bittorrent_primitives::info_hash::InfoHash;
 use bittorrent_tracker_core::announce_handler::PeersWanted;
 use bittorrent_tracker_core::container::TrackerCoreContainer;
 use bittorrent_tracker_core::statistics::persisted::load_persisted_metrics;
+use bittorrent_udp_tracker_protocol::AnnounceEvent;
 use tokio::task::yield_now;
 use tokio_util::sync::CancellationToken;
 use torrust_tracker_configuration::Core;
