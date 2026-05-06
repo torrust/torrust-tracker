@@ -96,12 +96,12 @@ The following distinct types are imported from `aquatic_udp_protocol` in 26 sour
 
 ## Goals
 
-- [ ] Remove the external `aquatic_udp_protocol` dependency from the entire workspace.
-- [ ] Own the BEP 15 implementation in an internal package that we fully control.
-- [ ] Apply the `zerocopy` 0.8 migration (unblocking
+- [x] Remove the external `aquatic_udp_protocol` dependency from the entire workspace.
+- [x] Own the BEP 15 implementation in an internal package that we fully control.
+- [x] Apply the `zerocopy` 0.8 migration (unblocking
       [torrust/torrust-tracker#1682](https://github.com/torrust/torrust-tracker/pull/1682)).
-- [ ] Keep all existing tests green throughout the migration.
-- [ ] Pass `linter all` and `cargo machete` with zero warnings after every step.
+- [x] Keep all existing tests green throughout the migration.
+- [x] Pass `linter all` and `cargo machete` with zero warnings after every step.
 
 ## Implementation Plan
 
@@ -314,8 +314,6 @@ The internal fork at `packages/bittorrent-primitives/` currently delegates `Info
 `aquatic_udp_protocol::InfoHash`. After Step 4a removes the `aquatic_udp_protocol` dependency from
 all other packages, this is the last remaining use of that type from the fork.
 
-- [ ] Replace the `data: aquatic_udp_protocol::InfoHash` field with a plain `[u8; 20]` array
-      directly inside `bittorrent-primitives::InfoHash`.
 - [x] Replace the `data: aquatic_udp_protocol::InfoHash` field with a plain `[u8; 20]` array
       directly inside `bittorrent-primitives::InfoHash`.
 - [x] Remove the `aquatic_udp_protocol` dependency from `packages/bittorrent-primitives/Cargo.toml`.
@@ -344,15 +342,16 @@ all other packages, this is the last remaining use of that type from the fork.
       workspace packages (`Cargo.toml` and Rust code imports).
 - [x] All workspace tests pass (`cargo test --workspace`).
 - [x] `linter all` exits with code `0`.
-- [ ] `cargo machete` reports no unused dependencies.
-- [ ] The `zerocopy` version across the workspace is `0.8`.
-- [ ] Both interim forks (`packages/aquatic-udp-protocol` and `packages/aquatic-peer-id`) have been
-      removed from the workspace by the end of Step 4a.
-- [ ] `PeerId`, `PeerClient`, `AnnounceEvent`, and `NumberOfBytes` live natively in
+- [x] `cargo machete` reports no unused dependencies.
+- [x] The `zerocopy` version across the workspace is `0.8`.
+- [x] Both interim forks (`packages/aquatic-udp-protocol` and `packages/aquatic-peer-id`) have been
+      removed from the workspace members by the end of Step 4a. The fork directories still exist
+      on disk and will be physically deleted as a follow-up cleanup.
+- [x] `PeerId`, `PeerClient`, `AnnounceEvent`, and `NumberOfBytes` live natively in
       `packages/primitives` (no protocol dep).
-- [ ] `packages/primitives` has no dependency on any UDP or HTTP protocol package.
-- [ ] UDP wire-format protocol types live in `packages/udp-protocol`.
-- [ ] `bittorrent-primitives::InfoHash` is self-contained with a plain `[u8; 20]` inner field.
+- [x] `packages/primitives` has no dependency on any UDP or HTTP protocol package.
+- [x] UDP wire-format protocol types live in `packages/udp-protocol`.
+- [x] `bittorrent-primitives::InfoHash` is self-contained with a plain `[u8; 20]` inner field.
 
 ## References
 
