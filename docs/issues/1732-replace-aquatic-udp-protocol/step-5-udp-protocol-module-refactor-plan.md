@@ -93,6 +93,7 @@ Current note:
 - `Request` and `Response` enums stay as top-level wrappers
 - top-level parse/write orchestration stays there
 - concrete type implementations are delegated to action modules
+- `ErrorResponse` remains in `response.rs` as the top-level error wrapper type
 
 ## Constraints
 
@@ -244,11 +245,11 @@ Status legend: `pending` | `moved` | `re-exported` | `consumers-updated` | `vali
   - [x] re-exported from `lib.rs`
   - [x] consumers updated
   - [x] validated (`cargo check --workspace`, `linter all`)
-- [ ] `ErrorResponse`
-  - [ ] moved
-  - [ ] re-exported from `lib.rs`
-  - [ ] consumers updated
-  - [ ] validated (`cargo check --workspace`, `linter all`)
+- [x] `ErrorResponse`
+  - [x] retained in `response.rs` by design
+  - [x] re-exported from `lib.rs`
+  - [x] consumers unchanged
+  - [x] validated (`cargo check --workspace`, `linter all`)
 
 ### Per-Type Migration Workflow (Implementation Strategy)
 
