@@ -8,8 +8,11 @@ metadata:
 
 # Fetching PR Review Threads
 
+This is a component skill within the **process-copilot-suggestions** workflow.
 Use this skill before resolving review feedback. Its purpose is to collect the unresolved
 review thread IDs and enough context to decide whether each thread should stay open or be closed.
+
+**Part of larger workflow**: See **process-copilot-suggestions** for the full end-to-end process.
 
 ## Preferred Sources
 

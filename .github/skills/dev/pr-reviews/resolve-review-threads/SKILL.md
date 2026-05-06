@@ -8,8 +8,11 @@ metadata:
 
 # Resolving PR Review Threads
 
+This is a component skill within the **process-copilot-suggestions** workflow.
 Use this skill after the requested code or documentation changes are already implemented,
 validated, committed, and pushed.
+
+**Part of larger workflow**: See **process-copilot-suggestions** for the full end-to-end process.
 
 ## Preconditions
 
