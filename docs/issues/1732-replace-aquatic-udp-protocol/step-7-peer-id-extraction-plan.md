@@ -2,164 +2,56 @@
 
 ## Goal
 
-Remove the duplicated `PeerId` / `PeerClient` implementation currently present in both
-`packages/primitives/src/peer_id.rs` and `packages/udp-protocol/src/peer_id.rs` by creating an
-in-house `peer-id` crate under `packages/` and moving shared logic there, without creating an
-incorrect dependency from `bittorrent-udp-tracker-protocol` to `torrust-tracker-primitives`.
+Remove duplicated `PeerId` / `PeerClient` implementations by extracting them into an in-house
+shared crate at `packages/peer-id`, while preserving correct dependency direction:
 
-The extraction target is a local workspace package, managed in the same way as other
-`packages/*` crates (for example, `packages/udp-protocol`).
+- `bittorrent-udp-tracker-protocol` must not depend on `torrust-tracker-primitives`
+- both crates consume `bittorrent-peer-id` via local path dependencies
+
+## Context
+
+Aquatic previously kept this logic in a dedicated `peer_id` crate.
+During in-house migration, that logic ended up duplicated in:
+
+- `packages/udp-protocol/src/peer_id.rs`
+- `packages/primitives/src/peer_id.rs`
+
+This plan restores the standalone shared-crate approach in-house.
 
 ## Scope
 
 In scope:
 
-- Analyze the duplicated `PeerId` / `PeerClient` logic and extract the shared implementation
-- Introduce a new in-house crate (`packages/peer-id`) for peer-id parsing and client
-  identification
-- Register the crate as a local Cargo workspace member and consume it via path dependencies
-- Move shared `PeerId` / `PeerClient` logic into that crate
-- Update `torrust-tracker-primitives` to consume the new crate
-- Update `bittorrent-udp-tracker-protocol` to consume the new crate
-- Preserve public behavior and current consumer expectations during migration
-- Add a final follow-up modularization step to split the extracted peer-id crate internals into
-  smaller `PeerId`-focused and `PeerClient`-focused modules
+- Create local workspace package `packages/peer-id`
+- Move shared `PeerId` / `PeerClient` logic into that package
+- Migrate `packages/udp-protocol` to consume it
+- Migrate `packages/primitives` to consume it
+- Keep public API compatibility for existing consumers
+- Add a final internal module split step in `packages/peer-id` (`PeerId` and `PeerClient` modules)
 
 Out of scope:
 
-- Reworking unrelated primitive/domain types
-- Renaming public `PeerId` / `PeerClient` APIs without compatibility planning
-- Folding the udp protocol crate into the tracker primitives crate
-- General package renaming or rebranding in this step
-- Large API redesign of peer-id semantics beyond extraction and modularization
+- Large API redesign of peer-id semantics
+- Inverting crate dependency direction
+- Folding protocol and domain crates together
 
-## Current Problem
+## Implementation Shape
 
-The same `PeerId` / `PeerClient` implementation exists in two places:
+Default:
 
-- `packages/primitives/src/peer_id.rs`
-- `packages/udp-protocol/src/peer_id.rs`
+- canonical `PeerId` / `PeerClient` in `packages/peer-id`
+- optional features for integrations (`serde`, `quickcheck`, `zerocopy`)
 
-This duplication is real and substantial.
+Fallback (if needed):
 
-The two copies are nearly identical in parsing, client identification, and formatting behavior.
-The main difference is that the udp-protocol copy derives wire-oriented `zerocopy` traits because
-it is used directly as a protocol wire type.
+- keep thin local wrappers in consumers, but centralize parsing/client-identification logic in
+  `packages/peer-id`
 
-## Historical Context
+## Workspace Membership Note
 
-Aquatic already had this logic extracted in a dedicated `peer_id` crate.
-
-During the in-house migration, we merged that logic into `packages/udp-protocol` instead of
-keeping a standalone crate, and the workspace now also has the same implementation in
-`packages/primitives`.
-
-This plan explicitly corrects that design decision by re-introducing an in-house `peer-id` crate.
-
-## Architectural Constraint
-
-The obvious shortcut would be to keep only `torrust-tracker-primitives::PeerId` and make
-`bittorrent-udp-tracker-protocol` depend on `torrust-tracker-primitives`.
-
-That is not the right dependency direction.
-
-Why:
-
-- `bittorrent-udp-tracker-protocol` is intended to remain a low-level, generic protocol crate.
-- `torrust-tracker-primitives` is no longer purely generic; it already contains tracker-domain
-  concerns and depends on tracker-specific crates.
-- Making the generic wire-format crate depend on the tracker-domain crate would invert layering.
-
-Conclusion:
-
-- The duplication should probably be removed.
-- It should not be removed by keeping only the copy in `torrust-tracker-primitives`.
-- The correct fix is extraction into a separate in-house `peer-id` crate.
-
-## Proposed Target Layout
-
-Introduce a new crate under `packages/` named:
-
-- `peer-id`
-
-The crate should stay generic in responsibility even though it is maintained in-house.
-
-Proposed ownership after extraction:
-
-- New in-house `peer-id` crate owns:
-  - `PeerId`
-  - `PeerClient`
-  - peer-id parsing and client-detection logic
-  - formatting and helper methods like `first_8_bytes_hex`
-- `torrust-tracker-primitives` re-exports or wraps the extracted types as needed
-- `bittorrent-udp-tracker-protocol` re-exports or wraps the extracted types as needed
-
-## Design Notes
-
-Primary implementation shape:
-
-### Default: Shared Canonical Type With Features
-
-The new generic crate defines the canonical `PeerId` / `PeerClient` types and uses feature flags
-for optional integrations:
-
-- `serde`
-- `quickcheck`
-- `zerocopy`
-
-Pros:
-
-- Removes duplication at the root
-- Preserves one canonical implementation
-- Keeps both dependent crates thin
-- Closest to the original Aquatic `peer_id` crate intent
-
-Cons:
-
-- Requires care to avoid feature leakage or awkward optional derives
-
-Fallback implementation shape:
-
-### Fallback: Shared Logic Plus Thin Local Wrapper Types
-
-The new generic crate exposes parsing/client-identification logic, but each consumer crate keeps
-its own `PeerId` newtype and forwards to the shared logic.
-
-Pros:
-
-- Keeps wire-specific and domain-specific trait derives local
-- Minimizes feature coupling between crates
-
-Cons:
-
-- Retains some small wrapper duplication
-- Less complete deduplication than Option A
-
-## Current Recommendation
-
-Proceed with the default shape (canonical `PeerId` / `PeerClient` in `packages/peer-id`).
-
-If optional `zerocopy` support makes the shared crate awkward or leaky, switch to the fallback
-wrapper strategy while still centralizing all parsing/client-identification logic in
-`packages/peer-id`.
-
-## Constraints
-
-- Preserve current public behavior.
-- Do not introduce a dependency from `bittorrent-udp-tracker-protocol` to
-  `torrust-tracker-primitives`.
-- Keep validation narrow and incremental.
-- Use signed, logically sliced commits.
-
-## Execution Strategy
-
-Follow the same strategy used in previous refactors:
-
-- create the target crate first
-- move one logical piece at a time
-- preserve compatibility with re-exports where useful
-- validate after each slice
-- avoid broad consumer churn until compatibility is in place
+`packages/peer-id` is consumed through local path dependencies.
+Cargo workspace membership is auto-discovered in this repository setup, so explicit addition in
+`[workspace].members` is not required.
 
 ## Execution Plan
 
@@ -168,113 +60,96 @@ Follow the same strategy used in previous refactors:
 - [ ] Record baseline:
   - [ ] `cargo check --workspace`
   - [ ] `cargo test --workspace`
+  - [ ] `cargo test --doc --workspace`
   - [ ] `linter all`
 - [ ] Capture current exports of both peer-id implementations
-- [ ] Capture current consumers of both `PeerId` types across the workspace
+- [ ] Capture current consumers of both `PeerId` types
 
 Exit criteria:
 
 - [ ] Baseline recorded and green
 
-### Phase 1: Create the Generic Extraction Target
+### Phase 1: Create Extraction Target
 
-- [ ] Create new in-house crate at `packages/peer-id`
-- [ ] Add package metadata, README, and initial module layout
-- [ ] Add `packages/peer-id` to workspace members in root `Cargo.toml`
-- [ ] Wire local path dependencies from consumer crates to `packages/peer-id`
-- [ ] Seed crate contents from the former Aquatic `peer_id` design and current in-house logic
-- [ ] Confirm default shape or fallback shape based on trait/feature ergonomics
+- [x] Create new in-house crate at `packages/peer-id`
+- [x] Add crate metadata and README
+- [x] Add root module with exports (`PeerId`, `PeerClient`)
+- [x] Wire local path dependencies from consumer crates
+- [x] Seed crate contents from Aquatic-derived logic and in-house behavior
 
 Exit criteria:
 
-- [ ] New crate exists and builds
-- [ ] Workspace resolution works through local path dependencies
+- [x] New crate exists and builds
+- [x] Workspace resolution works through path dependencies
 - [ ] No existing consumers changed yet
 
 ### Phase 2: Move Shared Logic
 
-- [ ] Move shared `PeerClient` enum and client-detection logic into the new crate
-- [ ] Move shared `PeerId` behavior into the new crate
-- [ ] Preserve helper behavior such as `first_8_bytes_hex`
-- [ ] Add tests to ensure extracted behavior matches current behavior
+- [x] Move shared `PeerClient` detection/parsing logic into `packages/peer-id`
+- [x] Move shared `PeerId` behavior into `packages/peer-id`
+- [x] Preserve helper behavior (`first_8_bytes_hex`)
+- [x] Add tests in `packages/peer-id` for behavior parity
 
 Exit criteria:
 
-- [ ] New crate owns the shared logic
-- [ ] Tests confirm behavioral parity
+- [x] Shared crate owns core logic
+- [x] Behavior parity is validated
 
-### Phase 3: Integrate With `torrust-tracker-primitives`
+### Phase 3: Integrate With `bittorrent-udp-tracker-protocol`
 
-- [ ] Update `packages/primitives` to use the extracted crate
-- [ ] Preserve current public `PeerId` / `PeerClient` API
-- [ ] Decide whether primitives re-exports the extracted types directly or wraps them
-
-Exit criteria:
-
-- [ ] `torrust-tracker-primitives` compiles unchanged for consumers
-- [ ] Workspace build remains green
-
-### Phase 4: Integrate With `bittorrent-udp-tracker-protocol`
-
-- [ ] Update `packages/udp-protocol` to use the extracted crate
-- [ ] Preserve wire-format requirements (`zerocopy` support or wrapper strategy)
-- [ ] Remove duplicated peer-id logic from udp-protocol
+- [x] Replace local peer-id module usage with `bittorrent-peer-id`
+- [x] Preserve wire requirements (`zerocopy` feature)
+- [x] Remove duplicated udp-protocol peer-id implementation
 
 Exit criteria:
 
-- [ ] `bittorrent-udp-tracker-protocol` no longer owns the duplicated implementation
-- [ ] Protocol behavior remains unchanged
+- [x] `bittorrent-udp-tracker-protocol` no longer owns duplicated peer-id logic
+- [x] Protocol behavior remains unchanged
+
+### Phase 4: Integrate With `torrust-tracker-primitives`
+
+- [x] Replace local peer-id implementation with shared crate compatibility re-exports
+- [x] Preserve public API for root exports and module-path imports
+
+Exit criteria:
+
+- [x] `torrust-tracker-primitives` compiles unchanged for consumers
+- [x] Workspace build remains green
 
 ### Phase 5: Cleanup and Final Documentation
 
-- [ ] Remove leftover duplicated peer-id code
-- [ ] Document final ownership boundaries
-- [ ] Record follow-up work if any wrapper types remain by design
+- [x] Remove leftover duplicated peer-id code
+- [ ] Document final ownership boundaries in issue docs
+- [ ] Record any remaining follow-up tasks
 
 Exit criteria:
 
-- [ ] Duplication removed or reduced to intentional thin wrappers only
+- [x] Duplication removed or reduced to intentional thin compatibility layers
 - [ ] Final structure documented
 
 ### Phase 6: Final Internal Module Split (Post-Extraction)
 
-- [ ] Split `packages/peer-id` internals into smaller modules with clear ownership
-- [ ] Move `PeerId` type and `PeerId` helpers into a dedicated module
-- [ ] Move `PeerClient` enum and detection/parsing logic into a dedicated module
-- [ ] Keep the crate public API stable via re-exports from crate root
-- [ ] Update internal tests/module-local tests to match the new module boundaries
+- [ ] Split `packages/peer-id` internals into focused modules
+- [ ] Move `PeerId` type/helpers into dedicated module
+- [ ] Move `PeerClient` enum/detection logic into dedicated module
+- [ ] Preserve crate public API through root re-exports
+- [ ] Update tests to match new internal module boundaries
 
 Exit criteria:
 
-- [ ] Internal module boundaries are clearer and easier to maintain
-- [ ] Public API remains unchanged for downstream crates
-- [ ] Validation gate remains green after the split
+- [ ] Internal module boundaries are clear and maintainable
+- [ ] Public API remains unchanged
+- [ ] Validation gate passes after split
 
-## Tracking Checklist
+## Deliverables
 
-### Deliverables
-
-- [ ] New in-house `packages/peer-id` crate created
-- [ ] Workspace member wiring completed (`Cargo.toml` + path deps)
-- [ ] Shared peer-id logic extracted
-- [ ] `torrust-tracker-primitives` integrated with extracted crate
-- [ ] `bittorrent-udp-tracker-protocol` integrated with extracted crate
-- [ ] Duplicated implementations removed or reduced to thin wrappers only
-- [ ] Extracted peer-id crate internally split into smaller modules
-- [ ] Docs updated
-
-### Work Item Tracker
-
-- [ ] `packages/peer-id` crate scaffolded
-- [ ] Aquatic-to-in-house mapping documented
-- [ ] Shared `PeerId` extraction implemented
-- [ ] Shared `PeerClient` extraction implemented
-- [ ] `zerocopy` strategy decided
-- [ ] primitives integration validated
-- [ ] udp-protocol integration validated
-- [ ] final duplication removed
-- [ ] `PeerId` module split completed
-- [ ] `PeerClient` module split completed
+- [x] In-house shared crate created: `packages/peer-id`
+- [x] Shared peer-id logic extracted
+- [x] `udp-protocol` integrated with shared crate
+- [x] `primitives` integrated with shared crate
+- [x] Duplicate implementations removed from original locations
+- [ ] `packages/peer-id` internal module split completed
+- [ ] Final docs/progress notes updated
 
 ## Validation Gate
 
@@ -283,7 +158,7 @@ Exit criteria:
 - [ ] `cargo test --doc --workspace`
 - [ ] `linter all`
 
-## Risk Register
+## Risks
 
 ### Risk 1: Wrong dependency direction
 
@@ -291,17 +166,8 @@ Impact: high
 
 Mitigation:
 
-- Do not make `bittorrent-udp-tracker-protocol` depend on `torrust-tracker-primitives`
-- Extract into `packages/peer-id` instead
-
-### Risk 4: Repeating migration mistake
-
-Impact: medium
-
-Mitigation:
-
-- Keep peer-id concerns in `packages/peer-id` and do not merge them into feature crates
-- Document in Step 7 that Aquatic's standalone `peer_id` separation is intentionally restored
+- Keep `udp-protocol` independent of `torrust-tracker-primitives`
+- Depend on `bittorrent-peer-id` from both crates
 
 ### Risk 2: Trait support divergence
 
@@ -309,44 +175,22 @@ Impact: high
 
 Mitigation:
 
-- Decide explicitly whether `zerocopy` support belongs in the shared crate or in thin wrappers
-- Validate protocol serialization/deserialization behavior after integration
+- Keep integration features explicit (`zerocopy`, `serde`, `quickcheck`)
+- Validate protocol serialization behavior after every slice
 
-### Risk 3: Hidden consumer differences
-
-Impact: medium
-
-Mitigation:
-
-- Search all workspace consumers before changing public surfaces
-- Preserve compatibility until the new crate is fully integrated
-
-### Risk 5: API breakage during internal module split
+### Risk 3: API breakage during internal module split
 
 Impact: medium
 
 Mitigation:
 
-- Keep all public types re-exported from the crate root while reorganizing internals
-- Run full validation after the module split before closing Step 7
-
-## Review Checklist
-
-- [ ] The protocol crate remains independent from tracker-domain crates
-- [ ] Shared logic is owned in one place only
-- [ ] Wire-format behavior remains unchanged
-- [ ] Public consumer behavior remains unchanged
-- [ ] The final dependency direction is coherent
-- [ ] The historical Aquatic separation is restored in-house
-- [ ] Internal module split is complete without public API changes
+- Keep root `pub use` API stable while reorganizing internals
+- Run full validation before closing Step 7
 
 ## Suggested Commit Slicing
 
 1. `docs(issue-1732): add peer-id extraction plan`
-2. `refactor(peer-id): create in-house peer-id crate`
-3. `refactor(peer-id): extract shared PeerClient logic`
-4. `refactor(peer-id): extract shared PeerId type`
-5. `refactor(primitives): integrate extracted peer-id crate`
-6. `refactor(udp-protocol): integrate extracted peer-id crate`
-7. `refactor(peer-id): split peer-id crate into focused internal modules`
-8. `docs(issue-1732): document final peer-id ownership`
+2. `refactor(peer-id): create in-house crate and migrate udp-protocol`
+3. `refactor(primitives): integrate extracted peer-id crate`
+4. `refactor(peer-id): split peer-id crate into focused internal modules`
+5. `docs(issue-1732): document final peer-id ownership`
