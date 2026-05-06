@@ -5594,11 +5594,9 @@ name = "torrust-tracker-primitives"
 version = "3.0.0-develop"
 dependencies = [
  "binascii",
+ "bittorrent-peer-id",
  "bittorrent-primitives",
- "compact_str",
  "derive_more",
- "hex",
- "regex",
  "rstest 0.25.0",
  "serde",
  "tdyne-peer-id",
