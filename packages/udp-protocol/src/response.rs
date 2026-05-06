@@ -1,9 +1,10 @@
-// Copied from aquatic_udp_protocol 0.9.0 by Joakim Frostegård (greatest-ape).
+// Copied from aquatic_udp_protocol 0.9.0 by Joakim Frostegard (greatest-ape).
 // Source:     https://crates.io/crates/aquatic_udp_protocol/0.9.0
 // Repository: https://github.com/greatest-ape/aquatic
 // License:    Apache License, Version 2.0 (https://www.apache.org/licenses/LICENSE-2.0)
 //
-// This is a verbatim internal fork. Modifications will be applied in subsequent migration steps.
+// This in-house crate started from the aquatic 0.9.0 sources that were previously vendored
+// under packages/aquatic-udp-protocol.
 use std::borrow::Cow;
 use std::io::{self, Write};
 use std::mem::size_of;
@@ -39,11 +40,9 @@ impl Response {
         let action = read_i32_ne(&mut bytes)?;
 
         match action.get() {
-            // Connect
             0 => Ok(Response::Connect(
                 ConnectResponse::read_from_prefix(bytes).map_err(|_| invalid_data())?.0,
             )),
-            // Announce
             1 if ipv4 => {
                 let fixed = AnnounceResponseFixedData::read_from_prefix(bytes)
                     .map_err(|_| invalid_data())?
@@ -94,7 +93,6 @@ impl Response {
 
                 Ok(Response::AnnounceIpv6(AnnounceResponse { fixed, peers }))
             }
-            // Scrape
             2 => {
                 let transaction_id = read_i32_ne(&mut bytes).map(TransactionId)?;
 
@@ -118,7 +116,6 @@ impl Response {
                 })
                 .into())
             }
-            // Error
             3 => {
                 let transaction_id = read_i32_ne(&mut bytes).map(TransactionId)?;
                 let message = String::from_utf8_lossy(bytes).into_owned().into();

@@ -1,9 +1,10 @@
-// Copied from aquatic_peer_id 0.9.0 by Joakim Frostegård (greatest-ape).
+// Copied from aquatic_peer_id 0.9.0 by Joakim Frostegard (greatest-ape).
 // Source:     https://crates.io/crates/aquatic_peer_id/0.9.0
 // Repository: https://github.com/greatest-ape/aquatic
 // License:    Apache License, Version 2.0 (https://www.apache.org/licenses/LICENSE-2.0)
 //
-// This is a verbatim internal fork. Modifications will be applied in subsequent migration steps.
+// This in-house crate started from the aquatic 0.9.0 sources that were previously vendored
+// under packages/aquatic-peer-id.
 use std::borrow::Cow;
 use std::fmt::Display;
 use std::sync::OnceLock;

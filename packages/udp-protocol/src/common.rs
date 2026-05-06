@@ -1,16 +1,18 @@
-// Copied from aquatic_udp_protocol 0.9.0 by Joakim Frostegård (greatest-ape).
+// Copied from aquatic_udp_protocol 0.9.0 by Joakim Frostegard (greatest-ape).
 // Source:     https://crates.io/crates/aquatic_udp_protocol/0.9.0
 // Repository: https://github.com/greatest-ape/aquatic
 // License:    Apache License, Version 2.0 (https://www.apache.org/licenses/LICENSE-2.0)
 //
-// This is a verbatim internal fork. Modifications will be applied in subsequent migration steps.
+// This in-house crate started from the aquatic 0.9.0 sources that were previously vendored
+// under packages/aquatic-udp-protocol.
 use std::fmt::Debug;
 use std::net::{Ipv4Addr, Ipv6Addr};
 use std::num::NonZeroU16;
 
-pub use aquatic_peer_id::{PeerClient, PeerId};
 use zerocopy::network_endian::{I32, I64, U16, U32};
 use zerocopy::{FromBytes, Immutable, IntoBytes};
+
+pub use crate::peer_id::{PeerClient, PeerId};
 
 pub trait Ip: Clone + Copy + Debug + PartialEq + Eq + std::hash::Hash + IntoBytes + Immutable {}
 

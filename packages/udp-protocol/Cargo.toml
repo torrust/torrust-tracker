@@ -14,6 +14,20 @@ repository.workspace = true
 rust-version.workspace = true
 version.workspace = true
 
+[features]
+default = [ "quickcheck" ]
+quickcheck = [ "dep:quickcheck" ]
+
 [dependencies]
-bittorrent_udp_tracker_protocol = { package = "aquatic_udp_protocol", path = "../aquatic-udp-protocol" }
-torrust-tracker-clock = { version = "3.0.0-develop", path = "../clock" }
+byteorder = "1"
+compact_str = "0.9"
+either = "1"
+hex = "0.4"
+quickcheck = { version = "1", optional = true }
+regex = "1"
+serde = { version = "1", features = [ "derive" ] }
+zerocopy = { version = "0.8", features = [ "derive" ] }
+
+[dev-dependencies]
+pretty_assertions = "1"
+quickcheck_macros = "1"

@@ -1,13 +1,13 @@
-// Copied from aquatic_udp_protocol 0.9.0 by Joakim Frostegård (greatest-ape).
+// Copied from aquatic_udp_protocol 0.9.0 by Joakim Frostegard (greatest-ape).
 // Source:     https://crates.io/crates/aquatic_udp_protocol/0.9.0
 // Repository: https://github.com/greatest-ape/aquatic
 // License:    Apache License, Version 2.0 (https://www.apache.org/licenses/LICENSE-2.0)
 //
-// This is a verbatim internal fork. Modifications will be applied in subsequent migration steps.
+// This in-house crate started from the aquatic 0.9.0 sources that were previously vendored
+// under packages/aquatic-udp-protocol.
 use std::io::{self, Cursor, Write};
 use std::mem::size_of;
 
-use aquatic_peer_id::PeerId;
 use byteorder::{NetworkEndian, WriteBytesExt};
 use either::Either;
 use zerocopy::byteorder::network_endian::I32;
@@ -40,7 +40,6 @@ impl Request {
             .ok_or_else(|| RequestParseError::unsendable_text("Couldn't parse action"))?;
 
         match action.get() {
-            // Connect
             0 => {
                 let mut bytes = Cursor::new(bytes);
 
@@ -56,7 +55,6 @@ impl Request {
                     Err(RequestParseError::unsendable_text("Protocol identifier missing"))
                 }
             }
-            // Announce
             1 => {
                 let request = AnnounceRequest::read_from_prefix(bytes)
                     .map_err(|_| RequestParseError::unsendable_text("invalid data"))?
@@ -68,8 +66,7 @@ impl Request {
                         request.connection_id,
                         request.transaction_id,
                     ))
-                } else if !matches!(request.event.0.get(), (0..=3)) {
-                    // Make sure not to allow AnnounceEventBytes with invalid value
+                } else if !matches!(request.event.0.get(), 0..=3) {
                     Err(RequestParseError::sendable_text(
                         "Invalid announce event",
                         request.connection_id,
@@ -79,7 +76,6 @@ impl Request {
                     Ok(Request::Announce(request))
                 }
             }
-            // Scrape
             2 => {
                 let mut bytes = Cursor::new(bytes);
 
@@ -94,8 +90,6 @@ impl Request {
                 let remaining_bytes = {
                     let position = bytes.position() as usize;
                     let inner = bytes.into_inner();
-
-                    // Slice will be empty if position == inner.len()
                     &inner[position..]
                 };
 
@@ -134,7 +128,6 @@ impl Request {
                 })
                 .into())
             }
-
             _ => Err(RequestParseError::unsendable_text("Invalid action")),
         }
     }
@@ -177,8 +170,6 @@ impl ConnectRequest {
 #[repr(C, packed)]
 pub struct AnnounceRequest {
     pub connection_id: ConnectionId,
-    /// This field is only present to enable zero-copy serialization and
-    /// deserialization.
     pub action_placeholder: AnnounceActionPlaceholder,
     pub transaction_id: TransactionId,
     pub info_hash: InfoHash,
@@ -199,7 +190,6 @@ impl AnnounceRequest {
     }
 }
 
-/// Note: Request::from_bytes only creates this struct with value 1
 #[derive(PartialEq, Eq, Clone, Copy, Debug, IntoBytes, FromBytes, Immutable)]
 #[repr(transparent)]
 pub struct AnnounceActionPlaceholder(I32);
@@ -210,7 +200,6 @@ impl Default for AnnounceActionPlaceholder {
     }
 }
 
-/// Note: Request::from_bytes only creates this struct with values 0..=3
 #[derive(PartialEq, Eq, Clone, Copy, Debug, IntoBytes, FromBytes, Immutable)]
 #[repr(transparent)]
 pub struct AnnounceEventBytes(I32);
@@ -397,7 +386,6 @@ mod tests {
                         action_bytes.copy_from_slice(&action.to_be_bytes())
                     }
 
-                    // Should never panic
                     drop(Request::parse_bytes(&request_bytes, max_scrape_torrents));
                 }
             }

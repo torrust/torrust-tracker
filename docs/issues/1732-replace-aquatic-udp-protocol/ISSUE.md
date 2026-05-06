@@ -285,19 +285,25 @@ The conversion in `peer_builder.rs` calls `.0.get()` to extract the `i64` from t
 
 #### Step 4a: Migrate UDP protocol types to `packages/udp-protocol`
 
-- [ ] Move all BEP 15 protocol types (`Request`, `Response`, common types) from
+- [x] Move all BEP 15 protocol types (`Request`, `Response`, common types) from
       `packages/aquatic-udp-protocol` into `packages/udp-protocol/src/`.
       Add an inline attribution comment to each migrated source file crediting the original
       `aquatic_udp_protocol` 0.9.0 as the starting point.
-- [ ] Retain a wire-format `NumberOfBytes` type (or inline `I64` fields) inside `udp-protocol`
+- [x] Retain a wire-format `NumberOfBytes` type (or inline `I64` fields) inside `udp-protocol`
       to keep zero-copy deserialization of `AnnounceRequest`. Do not expose it as a public
       re-export; the public API uses `primitives::NumberOfBytes`.
-- [ ] Update all packages that import from `aquatic_udp_protocol` to import from
+- [x] Inline the remaining `aquatic_peer_id` fork code needed by the protocol layer into
+      `packages/udp-protocol/src/peer_id.rs` so the in-house crate is self-contained.
+- [x] Update all packages that import from `aquatic_udp_protocol` to import from
       `bittorrent-udp-tracker-protocol` instead. `packages/primitives` is now safe to migrate
       (its own domain types are native; no cycle can form).
-- [ ] Remove `aquatic_udp_protocol` from every `Cargo.toml`.
-- [ ] Remove both interim forks (`packages/aquatic-udp-protocol` and `packages/aquatic-peer-id`)
+- [x] Remove `aquatic_udp_protocol` from every `Cargo.toml`.
+- [x] Remove the no-longer-needed dependency edge from `packages/udp-protocol` to the clock crate.
+      That dead edge became visible after moving `peer_builder` and would otherwise reintroduce a
+      package cycle through `clock -> primitives -> bittorrent-primitives -> udp-protocol`.
+- [x] Remove both interim forks (`packages/aquatic-udp-protocol` and `packages/aquatic-peer-id`)
       from the workspace `Cargo.toml` once no package depends on them.
+- [x] Verify `cargo check --workspace` and `linter all` pass with no errors.
 
 #### Step 4c: Consolidate `InfoHash` into `bittorrent-primitives`
 

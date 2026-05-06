@@ -137,31 +137,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "aquatic_peer_id"
-version = "0.9.0"
-dependencies = [
- "compact_str 0.7.1",
- "hex",
- "quickcheck",
- "regex",
- "serde",
- "zerocopy",
-]
-
-[[package]]
-name = "aquatic_udp_protocol"
-version = "0.9.0"
-dependencies = [
- "aquatic_peer_id",
- "byteorder",
- "either",
- "pretty_assertions",
- "quickcheck",
- "quickcheck_macros",
- "zerocopy",
-]
-
-[[package]]
 name = "arc-swap"
 version = "1.9.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -644,8 +619,8 @@ dependencies = [
 name = "bittorrent-primitives"
 version = "0.1.0"
 dependencies = [
- "aquatic_udp_protocol",
  "binascii",
+ "bittorrent-udp-tracker-protocol",
  "serde",
  "serde_json",
  "thiserror 1.0.69",
@@ -743,8 +718,16 @@ dependencies = [
 name = "bittorrent-udp-tracker-protocol"
 version = "3.0.0-develop"
 dependencies = [
- "aquatic_udp_protocol",
- "torrust-tracker-clock",
+ "byteorder",
+ "compact_str",
+ "either",
+ "hex",
+ "pretty_assertions",
+ "quickcheck",
+ "quickcheck_macros",
+ "regex",
+ "serde",
+ "zerocopy",
 ]
 
 [[package]]
@@ -1093,19 +1076,6 @@ checksum = "ba5a308b75df32fe02788e748662718f03fde005016435c444eea572398219fd"
 dependencies = [
  "bytes",
  "memchr",
-]
-
-[[package]]
-name = "compact_str"
-version = "0.7.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f86b9c4c00838774a6d902ef931eff7470720c51d90c2e32cfe15dc304737b3f"
-dependencies = [
- "castaway",
- "cfg-if",
- "itoa",
- "ryu",
- "static_assertions",
 ]
 
 [[package]]
@@ -5625,7 +5595,7 @@ version = "3.0.0-develop"
 dependencies = [
  "binascii",
  "bittorrent-primitives",
- "compact_str 0.9.0",
+ "compact_str",
  "derive_more",
  "hex",
  "regex",
