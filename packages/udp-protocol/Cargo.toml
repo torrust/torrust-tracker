@@ -15,16 +15,15 @@ rust-version.workspace = true
 version.workspace = true
 
 [features]
-default = [ "quickcheck" ]
-quickcheck = [ "dep:quickcheck" ]
+default = [  ]
 
 [dependencies]
-bittorrent-peer-id = { version = "3.0.0-develop", path = "../peer-id", features = [ "quickcheck", "serde", "zerocopy" ] }
+bittorrent-peer-id = { version = "3.0.0-develop", path = "../peer-id", features = [ "zerocopy" ] }
 byteorder = "1"
 either = "1"
-quickcheck = { version = "1", optional = true }
 zerocopy = { version = "0.8", features = [ "derive" ] }
 
 [dev-dependencies]
 pretty_assertions = "1"
+quickcheck = "1"
 quickcheck_macros = "1"

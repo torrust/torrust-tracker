@@ -27,7 +27,7 @@ pub enum Error {
     #[error("tracker scrape error: {source}")]
     ScrapeFailed { source: UdpScrapeError },
 
-    /// Error returned from a third-party library (`bittorrent_udp_tracker_protocol`).
+    /// Error returned from the wire-protocol crate (`bittorrent_udp_tracker_protocol`).
     #[error("internal server error: {message}, {location}")]
     Internal {
         location: &'static Location<'static>,

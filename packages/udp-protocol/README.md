@@ -21,6 +21,8 @@ Relevant upstream context:
 The original source is Apache-2.0 licensed. The in-house package keeps the required origin and
 change notices in code headers, consistent with the license terms.
 
+An explicit copy of Apache-2.0 is included at [LICENSE-APACHE](./LICENSE-APACHE).
+
 ## Acknowledgment
 
 Special thanks to [greatest-ape](https://github.com/greatest-ape)

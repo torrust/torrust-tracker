@@ -77,16 +77,14 @@ and cannot be removed. **There is no dead code to strip.**
 
 #### Feature flags
 
-The upstream crate exposes an optional `quickcheck` feature (for property-based testing helpers).
-It is **not** enabled in the workspace `Cargo.toml`. The feature-gated code is guarded by
-`#[cfg(feature = "quickcheck")]` and therefore never compiled. This is dead code in the workspace
-sense, but it represents upstream test infrastructure that may become useful once we redesign the
-types in Step 5. Removing it now would create unnecessary churn with no functional benefit.
+The upstream crate exposed an optional `quickcheck` feature (for property-based testing helpers).
+At the time of this analysis in the original migration, the feature was retained to preserve
+upstream test-oriented behavior rather than to optimize release dependency footprint.
 
 #### Conclusion
 
-Both public types (`PeerId`, `PeerClient`) are actively used in the workspace. The unused
-`quickcheck` feature gates are intentionally kept for now. **There is no dead code to strip.**
+Both public types (`PeerId`, `PeerClient`) are actively used in the workspace. **There is no dead
+code to strip.**
 
 ---
 

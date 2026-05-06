@@ -1,4 +1,4 @@
-//! Aquatic responses are not serializable. These are the serializable wrappers.
+//! UDP protocol responses are not serializable. These are the serializable wrappers.
 use std::net::{Ipv4Addr, Ipv6Addr};
 
 use bittorrent_udp_tracker_protocol::Response::{self};

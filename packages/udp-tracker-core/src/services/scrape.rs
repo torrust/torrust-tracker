@@ -56,7 +56,7 @@ impl ScrapeService {
 
         let scrape_data = self
             .scrape_handler
-            .handle_scrape(&Self::convert_from_aquatic(&request.info_hashes))
+            .handle_scrape(&Self::convert_from_wire_info_hashes(&request.info_hashes))
             .await?;
 
         self.send_event(client_socket_addr, server_service_binding).await;
@@ -76,8 +76,8 @@ impl ScrapeService {
         )
     }
 
-    fn convert_from_aquatic(aquatic_infohashes: &[bittorrent_udp_tracker_protocol::common::InfoHash]) -> Vec<InfoHash> {
-        aquatic_infohashes.iter().map(|&x| InfoHash::from(x.0)).collect()
+    fn convert_from_wire_info_hashes(wire_info_hashes: &[bittorrent_udp_tracker_protocol::common::InfoHash]) -> Vec<InfoHash> {
+        wire_info_hashes.iter().map(|&x| InfoHash::from(x.0)).collect()
     }
 
     async fn send_event(&self, client_socket_addr: SocketAddr, server_service_binding: ServiceBinding) {

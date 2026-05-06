@@ -42,9 +42,9 @@ camino
 canonicalize
 canonicalized
 cdylib
+Celano
 certbot
 chrono
-Celano
 Cinstrument
 ciphertext
 clippy
@@ -196,6 +196,7 @@ println
 programatik
 proot
 proto
+PRRT
 PUID
 qbittorrent
 QJSF

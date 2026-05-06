@@ -211,12 +211,18 @@ mod tests {
 
     impl quickcheck::Arbitrary for AnnounceRequest {
         fn arbitrary(g: &mut quickcheck::Gen) -> Self {
+            let mut peer_id_bytes = [0u8; 20];
+
+            for byte in &mut peer_id_bytes {
+                *byte = u8::arbitrary(g);
+            }
+
             Self {
                 connection_id: ConnectionId(I64::new(i64::arbitrary(g))),
                 action_placeholder: AnnounceActionPlaceholder::default(),
                 transaction_id: TransactionId(I32::new(i32::arbitrary(g))),
                 info_hash: InfoHash::arbitrary(g),
-                peer_id: PeerId::arbitrary(g),
+                peer_id: PeerId(peer_id_bytes),
                 bytes_downloaded: NumberOfBytes(I64::new(i64::arbitrary(g))),
                 bytes_uploaded: NumberOfBytes(I64::new(i64::arbitrary(g))),
                 bytes_left: NumberOfBytes(I64::new(i64::arbitrary(g))),
