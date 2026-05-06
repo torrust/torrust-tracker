@@ -8,14 +8,14 @@
 use std::io::{self, Cursor, Write};
 use std::mem::size_of;
 
-use byteorder::{NetworkEndian, WriteBytesExt};
 use either::Either;
 use zerocopy::byteorder::network_endian::I32;
-use zerocopy::{FromBytes, IntoBytes};
+use zerocopy::FromBytes;
 
 use super::announce::AnnounceRequest;
 use super::common::*;
 use super::connect::{ConnectRequest, PROTOCOL_IDENTIFIER};
+pub use super::scrape::ScrapeRequest;
 
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub enum Request {
@@ -148,24 +148,6 @@ impl From<AnnounceRequest> for Request {
 impl From<ScrapeRequest> for Request {
     fn from(r: ScrapeRequest) -> Self {
         Self::Scrape(r)
-    }
-}
-
-#[derive(PartialEq, Eq, Clone, Debug)]
-pub struct ScrapeRequest {
-    pub connection_id: ConnectionId,
-    pub transaction_id: TransactionId,
-    pub info_hashes: Vec<InfoHash>,
-}
-
-impl ScrapeRequest {
-    pub fn write_bytes(&self, bytes: &mut impl Write) -> Result<(), io::Error> {
-        bytes.write_all(self.connection_id.as_bytes())?;
-        bytes.write_i32::<NetworkEndian>(2)?;
-        bytes.write_all(self.transaction_id.as_bytes())?;
-        bytes.write_all((*self.info_hashes.as_slice()).as_bytes())?;
-
-        Ok(())
     }
 }
 

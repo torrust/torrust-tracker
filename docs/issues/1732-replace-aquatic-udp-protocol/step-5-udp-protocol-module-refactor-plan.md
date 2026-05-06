@@ -209,11 +209,11 @@ Status legend: `pending` | `moved` | `re-exported` | `consumers-updated` | `vali
   - [x] re-exported from `lib.rs`
   - [x] consumers updated
   - [x] validated (`cargo check --workspace`, `linter all`)
-- [ ] `ScrapeRequest`
-  - [ ] moved
-  - [ ] re-exported from `lib.rs`
-  - [ ] consumers updated
-  - [ ] validated (`cargo check --workspace`, `linter all`)
+- [x] `ScrapeRequest`
+  - [x] moved
+  - [x] re-exported from `lib.rs`
+  - [x] consumers updated
+  - [x] validated (`cargo check --workspace`, `linter all`)
 - [x] `AnnounceResponse<Ipv4AddrBytes>` / `AnnounceResponse<Ipv6AddrBytes>`
   - [x] moved
   - [x] re-exported from `lib.rs`
@@ -224,16 +224,16 @@ Status legend: `pending` | `moved` | `re-exported` | `consumers-updated` | `vali
   - [x] re-exported from `lib.rs`
   - [x] consumers updated
   - [x] validated (`cargo check --workspace`, `linter all`)
-- [ ] `ScrapeResponse`
-  - [ ] moved
-  - [ ] re-exported from `lib.rs`
-  - [ ] consumers updated
-  - [ ] validated (`cargo check --workspace`, `linter all`)
-- [ ] `TorrentScrapeStatistics`
-  - [ ] moved
-  - [ ] re-exported from `lib.rs`
-  - [ ] consumers updated
-  - [ ] validated (`cargo check --workspace`, `linter all`)
+- [x] `ScrapeResponse`
+  - [x] moved
+  - [x] re-exported from `lib.rs`
+  - [x] consumers updated
+  - [x] validated (`cargo check --workspace`, `linter all`)
+- [x] `TorrentScrapeStatistics`
+  - [x] moved
+  - [x] re-exported from `lib.rs`
+  - [x] consumers updated
+  - [x] validated (`cargo check --workspace`, `linter all`)
 - [ ] `ErrorResponse`
   - [ ] moved
   - [ ] re-exported from `lib.rs`

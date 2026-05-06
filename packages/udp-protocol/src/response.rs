@@ -10,11 +10,12 @@ use std::io::{self, Write};
 use std::mem::size_of;
 
 use byteorder::{NetworkEndian, WriteBytesExt};
-use zerocopy::{FromBytes, Immutable, IntoBytes};
+use zerocopy::{FromBytes, IntoBytes};
 
 use super::announce::{AnnounceResponse, AnnounceResponseFixedData};
 use super::common::*;
 use super::connect::ConnectResponse;
+pub use super::scrape::{ScrapeResponse, TorrentScrapeStatistics};
 
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub enum Response {
@@ -157,31 +158,6 @@ impl From<ErrorResponse> for Response {
     fn from(r: ErrorResponse) -> Self {
         Self::Error(r)
     }
-}
-
-#[derive(PartialEq, Eq, Clone, Debug)]
-pub struct ScrapeResponse {
-    pub transaction_id: TransactionId,
-    pub torrent_stats: Vec<TorrentScrapeStatistics>,
-}
-
-impl ScrapeResponse {
-    #[inline]
-    pub fn write_bytes(&self, bytes: &mut impl Write) -> Result<(), io::Error> {
-        bytes.write_i32::<NetworkEndian>(2)?;
-        bytes.write_all(self.transaction_id.as_bytes())?;
-        bytes.write_all((*self.torrent_stats.as_slice()).as_bytes())?;
-
-        Ok(())
-    }
-}
-
-#[derive(PartialEq, Eq, Debug, Copy, Clone, IntoBytes, FromBytes, Immutable)]
-#[repr(C, packed)]
-pub struct TorrentScrapeStatistics {
-    pub seeders: NumberOfPeers,
-    pub completed: NumberOfDownloads,
-    pub leechers: NumberOfPeers,
 }
 
 #[derive(PartialEq, Eq, Clone, Debug)]
