@@ -56,6 +56,7 @@ Planned source files:
 - `ConnectionId`
 - `TransactionId`
 - `InfoHash`
+- `NumberOfBytes`
 - `Port`
 - `PeerKey`
 - `NumberOfPeers`
@@ -70,7 +71,11 @@ Planned source files:
 - `AnnounceInterval`
 - `AnnounceActionPlaceholder`
 - `AnnounceEvent`, `AnnounceEventBytes`
-- wire `NumberOfBytes`
+
+Current note:
+
+- `InfoHash` and `NumberOfBytes` are intentionally retained in `common.rs` for now.
+- These types mirror equivalents in other packages and can be unified in a separate future task.
 
 `connect.rs` owns connect-only types:
 

@@ -18,6 +18,8 @@ pub trait Ip: Clone + Copy + Debug + PartialEq + Eq + std::hash::Hash + IntoByte
 
 #[derive(PartialEq, Eq, Hash, Clone, Copy, Debug, IntoBytes, FromBytes, Immutable)]
 #[repr(transparent)]
+// Intentionally kept in `common`: this protocol-level wire type mirrors
+// `bittorrent-primitives::InfoHash` and may be unified across packages later.
 pub struct InfoHash(pub [u8; 20]);
 
 #[derive(PartialEq, Eq, Hash, Clone, Copy, Debug, IntoBytes, FromBytes, Immutable)]
@@ -42,6 +44,8 @@ impl TransactionId {
 
 #[derive(PartialEq, Eq, Hash, Clone, Copy, Debug, IntoBytes, FromBytes, Immutable)]
 #[repr(transparent)]
+// Intentionally kept in `common`: this mirrors
+// `packages/primitives/src/number_of_bytes.rs` and may be shared across packages later.
 pub struct NumberOfBytes(pub I64);
 
 impl NumberOfBytes {
