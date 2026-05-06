@@ -161,19 +161,122 @@ Analysis of the transitive dependency problem documented in
 
 ### Step 4: Absorb the internal forks into their permanent homes
 
-`PeerId` and `PeerClient` are domain concepts used across the workspace (UDP tracker, HTTP tracker,
-REST API, core logic), not UDP-protocol-specific. They should live in `packages/primitives` with
-other peer-related types. UDP protocol types (`Request`, `Response`, etc.) belong in
-`packages/udp-protocol`. This split requires two substeps.
+#### Architectural context
 
-> **See also**: [step-3-bittorrent-primitives-problem.md](step-3-bittorrent-primitives-problem.md)
-> for a detailed analysis of the transitive dependency problem discovered during Step 3, the
-> solution applied, and longer-term notes on the `bittorrent-primitives` /
-> `torrust-tracker-primitives` boundary.
->
-> The boundary re-evaluation (moving generic BitTorrent types such as `PeerId`, `PeerClient`,
-> `AnnounceEvent`, … into `bittorrent-primitives`) is **out of scope for issue 1732** and should
-> be tracked as a separate follow-up issue once Step 4 is complete.
+Three types currently defined in `packages/aquatic-udp-protocol` are **domain types**, not
+protocol wire types:
+
+| Type            | Current location                | Correct home          |
+| --------------- | ------------------------------- | --------------------- |
+| `PeerId`        | `aquatic-peer-id` (re-exported) | `packages/primitives` |
+| `PeerClient`    | `aquatic-peer-id`               | `packages/primitives` |
+| `AnnounceEvent` | `aquatic-udp-protocol`          | `packages/primitives` |
+| `NumberOfBytes` | `aquatic-udp-protocol`          | `packages/primitives` |
+
+These types ended up in the protocol package only because BEP 15 was where they first appeared.
+In practice they are used across protocols without any UDP-specific wire format:
+
+- `PeerId([u8; 20])` — identifies a peer; used in both UDP and HTTP trackers.
+- `AnnounceEvent` — a pure domain enum (`Started` / `Stopped` / `Completed` / `None`); carries
+  no wire-format information.
+- `NumberOfBytes` — represents transfer statistics (`uploaded`, `downloaded`, `left`) inside the
+  domain `Peer` struct. The current definition `NumberOfBytes(pub I64)` uses a zerocopy
+  network-endian wrapper `I64` only because `AnnounceRequest` needs to derive `FromBytes` /
+  `IntoBytes`. That zerocopy detail has no place in a domain type.
+
+The `Peer` struct in `packages/primitives/src/peer.rs` is a domain type, yet it currently
+depends on protocol wire-format types for three of its fields. That is the root of the
+architectural problem: the **dependency direction is inverted**.
+
+The correct layering is:
+
+```text
+packages/bittorrent-primitives   — InfoHash (standalone BitTorrent primitive)
+         ↑
+packages/primitives              — PeerId, PeerClient, AnnounceEvent, NumberOfBytes(i64), Peer
+         ↑
+packages/udp-protocol            — wire types (AnnounceRequest, …), converts I64 ↔ NumberOfBytes
+         ↑
+packages/udp-tracker-core        — handles the UDP request/response lifecycle
+```
+
+`packages/primitives` must depend on **nothing** in the protocol layer. UDP protocol packages
+must depend **downward** on `primitives` to re-use domain types in conversions.
+
+#### The circular dependency problem
+
+There is a dependency cycle that prevents a direct migration in a single step:
+
+```text
+udp-protocol → primitives           (via peer_builder.rs: constructs torrust_tracker_primitives::Peer)
+primitives   → aquatic-udp-protocol  (for PeerId, AnnounceEvent, NumberOfBytes)
+```
+
+After Step 4a moves all aquatic types into `udp-protocol`, `packages/primitives` would need to
+import those types from `udp-protocol` — but `udp-protocol` already depends on `primitives`.
+That would create a **direct circular dependency**: `udp-protocol → primitives → udp-protocol`.
+
+#### Breaking the cycle: define domain types natively first (Step 4b)
+
+The cleanest fix avoids the cycle entirely by making `packages/primitives` self-contained:
+define `PeerId`, `PeerClient`, `AnnounceEvent`, and `NumberOfBytes` natively in `primitives`
+instead of importing them from any protocol package. Once that is done, `primitives` has no
+dependency on any protocol package — the cycle never forms — and the correct dependency
+direction is established in a single move.
+
+**`NumberOfBytes` representation change**: the domain type becomes `NumberOfBytes(pub i64)` (plain
+Rust `i64`, host byte order). The wire-format type `NumberOfBytes(I64)` (big-endian zerocopy) is
+retained inside `packages/udp-protocol` only, renamed or clearly scoped as a wire-format type.
+The conversion in `peer_builder.rs` calls `.0.get()` to extract the `i64` from the wire `I64`.
+
+**Required step order:**
+
+1. **Step 4b** (domain types to `primitives`): Define `PeerId`, `PeerClient`, `AnnounceEvent`,
+   and `NumberOfBytes(i64)` natively in `packages/primitives`. Remove the
+   `bittorrent_udp_tracker_protocol` / `aquatic-peer-id` dependencies from
+   `packages/primitives/Cargo.toml`. This step severs the architectural inversion and eliminates
+   the cycle root cause.
+
+2. **Step 4a-prep** (move `peer_builder`): `peer_builder.rs` is a domain-adapter, not a
+   protocol-parsing concern. Move it from `packages/udp-protocol` to `packages/udp-tracker-core`.
+   Remove `torrust-tracker-primitives` from `packages/udp-protocol/Cargo.toml`. After this, the
+   dependency graph has no cycle and no architectural inversion.
+
+3. **Step 4a** (absorb aquatic fork): With the clean dependency graph in place, inline the
+   aquatic fork source files into `packages/udp-protocol` and remove the fork packages.
+
+4. **Step 4c** (standalone `InfoHash`): Make `bittorrent-primitives::InfoHash` self-contained
+   by replacing the `aquatic_udp_protocol::InfoHash` inner field with a plain `[u8; 20]`.
+
+#### Step 4b: Define domain types natively in `packages/primitives`
+
+- [ ] Copy `PeerId([u8; 20])` and `PeerClient` from `packages/aquatic-peer-id/src/lib.rs` into
+      a new file `packages/primitives/src/peer_id.rs`. Add an inline attribution comment
+      crediting the original `aquatic_peer_id` 0.9.0.
+- [ ] Define `AnnounceEvent { Started, Stopped, Completed, None }` natively in
+      `packages/primitives/src/` (e.g., `announce_event.rs` or alongside `peer.rs`).
+- [ ] Define `NumberOfBytes(pub i64)` natively in `packages/primitives/src/`. Implement
+      `NumberOfBytes::new(v: i64) -> Self` to match the existing call sites.
+- [ ] Update `packages/primitives/src/peer.rs` to import `PeerId`, `AnnounceEvent`, and
+      `NumberOfBytes` from the local crate rather than from `bittorrent_udp_tracker_protocol`.
+- [ ] Remove `bittorrent_udp_tracker_protocol` from `packages/primitives/Cargo.toml`.
+- [ ] Update `packages/udp-protocol/src/peer_builder.rs` to convert the wire `NumberOfBytes(I64)`
+      to the domain `primitives::NumberOfBytes(i64)` using `.0.get()`.
+- [ ] Update `packages/udp-protocol` to re-export `AnnounceEvent`, `PeerId`, and `PeerClient`
+      from `primitives` so all existing `use bittorrent_udp_tracker_protocol::*` call sites
+      continue to compile unchanged.
+- [ ] Verify `cargo check --workspace` passes with no errors.
+
+#### Step 4a-prep: Move `peer_builder` to `packages/udp-tracker-core`
+
+- [ ] Copy `packages/udp-protocol/src/peer_builder.rs` into
+      `packages/udp-tracker-core/src/peer_builder.rs` (or a suitable submodule).
+- [ ] Remove `pub mod peer_builder;` from `packages/udp-protocol/src/lib.rs`.
+- [ ] Update `packages/udp-tracker-core/src/services/announce.rs` to import `peer_builder`
+      from the local module instead of `bittorrent_udp_tracker_protocol::peer_builder`.
+- [ ] Remove `torrust-tracker-primitives` from `packages/udp-protocol/Cargo.toml`
+      (it is no longer needed once `peer_builder` is gone).
+- [ ] Verify `cargo check --workspace` passes with no errors.
 
 #### Step 4a: Migrate UDP protocol types to `packages/udp-protocol`
 
@@ -181,27 +284,21 @@ other peer-related types. UDP protocol types (`Request`, `Response`, etc.) belon
       `packages/aquatic-udp-protocol` into `packages/udp-protocol/src/`.
       Add an inline attribution comment to each migrated source file crediting the original
       `aquatic_udp_protocol` 0.9.0 as the starting point.
+- [ ] Retain a wire-format `NumberOfBytes` type (or inline `I64` fields) inside `udp-protocol`
+      to keep zero-copy deserialization of `AnnounceRequest`. Do not expose it as a public
+      re-export; the public API uses `primitives::NumberOfBytes`.
 - [ ] Update all packages that import from `aquatic_udp_protocol` to import from
-      `bittorrent-udp-tracker-protocol` instead.
+      `bittorrent-udp-tracker-protocol` instead. `packages/primitives` is now safe to migrate
+      (its own domain types are native; no cycle can form).
 - [ ] Remove `aquatic_udp_protocol` from every `Cargo.toml`.
-
-#### Step 4b: Migrate peer ID types to `packages/primitives`
-
-- [ ] Move `PeerId` and `PeerClient` from `packages/aquatic-peer-id` into
-      `packages/primitives/src/` (alongside existing peer-related domain types).
-      Add an inline attribution comment crediting the original `aquatic_peer_id` 0.9.0 as the
-      starting point.
-- [ ] Update all packages that import from `aquatic_peer_id` to import from
-      `bittorrent-tracker-primitives` instead.
-- [ ] Remove `aquatic_peer_id` from every `Cargo.toml`.
 - [ ] Remove both interim forks (`packages/aquatic-udp-protocol` and `packages/aquatic-peer-id`)
       from the workspace `Cargo.toml` once no package depends on them.
 
 #### Step 4c: Consolidate `InfoHash` into `bittorrent-primitives`
 
 The internal fork at `packages/bittorrent-primitives/` currently delegates `InfoHash` storage to
-`aquatic_udp_protocol::InfoHash`. After Step 4a removes the UDP-protocol dependency on
-`aquatic_udp_protocol`, that delegation becomes unnecessary.
+`aquatic_udp_protocol::InfoHash`. After Step 4a removes the `aquatic_udp_protocol` dependency from
+all other packages, this is the last remaining use of that type from the fork.
 
 - [ ] Replace the `data: aquatic_udp_protocol::InfoHash` field with a plain `[u8; 20]` array
       directly inside `bittorrent-primitives::InfoHash`.
@@ -213,6 +310,10 @@ The internal fork at `packages/bittorrent-primitives/` currently delegates `Info
       self-contained (no external protocol dependencies).
 - [ ] Remove the `packages/bittorrent-primitives/` fork and the `[patch.crates-io]` entry once
       the published version is available.
+
+> **Note on step ordering**: Step 4c is independent of Steps 4b and 4a-prep. It can be done in
+> parallel or in any order relative to those steps. Step 4c only unblocks removal of the
+> `bittorrent-primitives` fork from `[patch.crates-io]`.
 
 ### Step 5: Redesign types to fit the Torrust Tracker domain model
 
@@ -229,9 +330,12 @@ The internal fork at `packages/bittorrent-primitives/` currently delegates `Info
 - [ ] `cargo machete` reports no unused dependencies.
 - [ ] The `zerocopy` version across the workspace is `0.8`.
 - [ ] Both interim forks (`packages/aquatic-udp-protocol` and `packages/aquatic-peer-id`) have been
-      removed from the workspace by the end of Step 4b.
-- [ ] `PeerId` and `PeerClient` live in `packages/primitives`.
-- [ ] UDP protocol types live in `packages/udp-protocol`.
+      removed from the workspace by the end of Step 4a.
+- [ ] `PeerId`, `PeerClient`, `AnnounceEvent`, and `NumberOfBytes` live natively in
+      `packages/primitives` (no protocol dep).
+- [ ] `packages/primitives` has no dependency on any UDP or HTTP protocol package.
+- [ ] UDP wire-format protocol types live in `packages/udp-protocol`.
+- [ ] `bittorrent-primitives::InfoHash` is self-contained with a plain `[u8; 20]` inner field.
 
 ## References
 
