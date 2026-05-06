@@ -224,6 +224,11 @@ Status legend: `pending` | `moved` | `re-exported` | `consumers-updated` | `vali
   - [x] re-exported from `lib.rs`
   - [x] consumers updated
   - [x] validated (`cargo check --workspace`, `linter all`)
+- [x] `AnnounceInterval`
+  - [x] moved
+  - [x] re-exported from `lib.rs`
+  - [x] consumers updated
+  - [x] validated (`cargo check --workspace`, `linter all`)
 - [x] `ScrapeResponse`
   - [x] moved
   - [x] re-exported from `lib.rs`

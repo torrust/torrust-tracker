@@ -70,6 +70,16 @@ pub enum AnnounceEvent {
     None,
 }
 
+#[derive(PartialEq, Eq, Hash, Clone, Copy, Debug, IntoBytes, FromBytes, Immutable)]
+#[repr(transparent)]
+pub struct AnnounceInterval(pub I32);
+
+impl AnnounceInterval {
+    pub fn new(v: i32) -> Self {
+        Self(I32::new(v))
+    }
+}
+
 impl From<AnnounceEventBytes> for AnnounceEvent {
     fn from(value: AnnounceEventBytes) -> Self {
         match value.0.get() {

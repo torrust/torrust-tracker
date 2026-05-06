@@ -18,16 +18,6 @@ pub trait Ip: Clone + Copy + Debug + PartialEq + Eq + std::hash::Hash + IntoByte
 
 #[derive(PartialEq, Eq, Hash, Clone, Copy, Debug, IntoBytes, FromBytes, Immutable)]
 #[repr(transparent)]
-pub struct AnnounceInterval(pub I32);
-
-impl AnnounceInterval {
-    pub fn new(v: i32) -> Self {
-        Self(I32::new(v))
-    }
-}
-
-#[derive(PartialEq, Eq, Hash, Clone, Copy, Debug, IntoBytes, FromBytes, Immutable)]
-#[repr(transparent)]
 pub struct InfoHash(pub [u8; 20]);
 
 #[derive(PartialEq, Eq, Hash, Clone, Copy, Debug, IntoBytes, FromBytes, Immutable)]

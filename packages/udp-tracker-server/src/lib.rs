@@ -452,7 +452,7 @@
 //! Field               | Type                                                                   | Example
 //! --------------------|------------------------------------------------------------------------|--------------
 //! `transaction_id`    | [`TransactionId`](bittorrent_udp_tracker_protocol::common::TransactionId)         | `-1560718264`
-//! `announce_interval` | [`AnnounceInterval`](bittorrent_udp_tracker_protocol::common::AnnounceInterval)   | `120`
+//! `announce_interval` | [`AnnounceInterval`](bittorrent_udp_tracker_protocol::AnnounceInterval)   | `120`
 //! `leechers`          | [`NumberOfPeers`](bittorrent_udp_tracker_protocol::common::NumberOfPeers)         | `0`
 //! `seeders`           | [`NumberOfPeers`](bittorrent_udp_tracker_protocol::common::NumberOfPeers)         | `1`
 //! `peers`             | Vector of [`ResponsePeer`](bittorrent_udp_tracker_protocol::common::ResponsePeer) | `[]`

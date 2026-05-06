@@ -12,6 +12,8 @@ use std::mem::size_of;
 use byteorder::{NetworkEndian, WriteBytesExt};
 use zerocopy::{FromBytes, IntoBytes};
 
+#[cfg(test)]
+use super::announce::AnnounceInterval;
 use super::announce::{AnnounceResponse, AnnounceResponseFixedData};
 use super::common::*;
 use super::connect::ConnectResponse;
