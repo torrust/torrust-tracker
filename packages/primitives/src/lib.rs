@@ -5,8 +5,6 @@
 //! by the tracker server crate, but also by other crates in the Torrust
 //! ecosystem.
 pub mod announce;
-pub mod announce_event;
-pub mod core;
 pub mod number_of_bytes;
 pub mod pagination;
 pub mod peer;

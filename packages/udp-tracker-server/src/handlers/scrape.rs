@@ -8,8 +8,8 @@ use bittorrent_udp_tracker_core::{self};
 use bittorrent_udp_tracker_protocol::{
     NumberOfDownloads, NumberOfPeers, Response, ScrapeRequest, ScrapeResponse, TorrentScrapeStatistics, TransactionId,
 };
-use torrust_tracker_primitives::core::ScrapeData;
 use torrust_tracker_primitives::service_binding::ServiceBinding;
+use torrust_tracker_primitives::ScrapeData;
 use tracing::{instrument, Level};
 use zerocopy::byteorder::network_endian::I32;
 

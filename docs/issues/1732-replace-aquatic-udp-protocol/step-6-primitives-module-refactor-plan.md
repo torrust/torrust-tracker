@@ -46,16 +46,13 @@ Planned source files:
 
 - `announce.rs` (`AnnounceData`, `AnnounceEvent`)
 - `scrape.rs` (`ScrapeData`)
-- `core.rs` (temporary compatibility wrapper only)
 - `lib.rs` (re-exports and module declarations)
 
 ## Final Module Map (Implemented)
 
 - `announce.rs`: owns `AnnounceData` and `AnnounceEvent`
 - `scrape.rs`: owns `ScrapeData`
-- `announce_event.rs`: compatibility wrapper re-exporting `announce::AnnounceEvent`
-- `core.rs`: compatibility wrapper re-exporting `announce::AnnounceData` and `scrape::ScrapeData`
-- `lib.rs`: root compatibility re-exports for `AnnounceData`, `AnnounceEvent`, and `ScrapeData`
+- `lib.rs`: root exports for `AnnounceData`, `AnnounceEvent`, and `ScrapeData`
 
 ## Final Module Intent
 
@@ -67,12 +64,6 @@ Planned source files:
 `scrape.rs` owns scrape-only primitives:
 
 - `ScrapeData`
-
-`core.rs` is temporarily retained only for compatibility:
-
-- re-export `AnnounceData`
-- re-export `ScrapeData`
-- avoid new concrete logic
 
 `lib.rs` preserves root-level compatibility and exposes the new module structure.
 
@@ -174,8 +165,8 @@ Exit criteria:
 ### Phase 4: Optional Consumer Cleanup
 
 - [x] Decide whether internal consumers should migrate from `core::*` to `announce::*` / `scrape::*`
-- [ ] Update internal imports only where it improves clarity
-- [x] Keep compatibility re-exports until a separate cleanup/removal task
+- [x] Update internal imports only where it improves clarity
+- [x] Remove `packages/primitives/src/core.rs` and `packages/primitives/src/announce_event.rs`
 
 Exit criteria:
 
@@ -201,7 +192,7 @@ Exit criteria:
 - [x] `AnnounceData` moved
 - [x] `ScrapeData` moved
 - [x] `AnnounceEvent` moved
-- [x] `core.rs` reduced to compatibility exports
+- [x] compatibility wrapper modules removed
 - [x] `lib.rs` updated
 - [x] Docs updated
 
@@ -289,10 +280,9 @@ Mitigation:
 3. [x] `refactor(primitives): move AnnounceEvent to announce module`
 4. [x] `refactor(primitives): move ScrapeData to scrape module`
 5. [x] `refactor(primitives): keep core module as compatibility wrapper`
-6. [ ] `docs(issue-1732): document final primitives module layout`
+6. [x] `docs(issue-1732): document final primitives module layout`
 
 ## Follow-Up Work
 
-- Optionally migrate internal consumers from `core::*` imports to `announce::*` and `scrape::*`
-  where that improves clarity.
-- Keep compatibility re-exports in place until a separate cleanup task explicitly removes them.
+- Consider whether future public API cleanup should move external consumers from root exports to
+  module-oriented imports, but do not do that as part of this refactor.

@@ -12,8 +12,8 @@ use bittorrent_http_tracker_protocol::v1::responses::{self};
 use bittorrent_http_tracker_protocol::v1::services::peer_ip_resolver::ClientIpSources;
 use bittorrent_tracker_core::authentication::Key;
 use hyper::StatusCode;
-use torrust_tracker_primitives::core::AnnounceData;
 use torrust_tracker_primitives::service_binding::ServiceBinding;
+use torrust_tracker_primitives::AnnounceData;
 
 use crate::v1::extractors::announce_request::ExtractRequest;
 use crate::v1::extractors::authentication_key::Extract as ExtractKey;

@@ -10,8 +10,8 @@ use bittorrent_udp_tracker_protocol::{
     Port, Response, ResponsePeer, TransactionId,
 };
 use torrust_tracker_configuration::Core;
-use torrust_tracker_primitives::core::AnnounceData;
 use torrust_tracker_primitives::service_binding::ServiceBinding;
+use torrust_tracker_primitives::AnnounceData;
 use tracing::{instrument, Level};
 use zerocopy::byteorder::network_endian::I32;
 

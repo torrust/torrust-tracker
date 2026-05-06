@@ -12,8 +12,8 @@ use bittorrent_http_tracker_protocol::v1::responses;
 use bittorrent_http_tracker_protocol::v1::services::peer_ip_resolver::ClientIpSources;
 use bittorrent_tracker_core::authentication::Key;
 use hyper::StatusCode;
-use torrust_tracker_primitives::core::ScrapeData;
 use torrust_tracker_primitives::service_binding::ServiceBinding;
+use torrust_tracker_primitives::ScrapeData;
 
 use crate::v1::extractors::authentication_key::Extract as ExtractKey;
 use crate::v1::extractors::client_ip_sources::Extract as ExtractClientIpSources;
@@ -188,8 +188,8 @@ mod tests {
 
         use bittorrent_http_tracker_core::services::scrape::ScrapeService;
         use bittorrent_tracker_core::authentication;
-        use torrust_tracker_primitives::core::ScrapeData;
         use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
+        use torrust_tracker_primitives::ScrapeData;
 
         use super::{initialize_private_tracker, sample_client_ip_sources, sample_scrape_request};
 
@@ -264,8 +264,8 @@ mod tests {
         use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
         use bittorrent_http_tracker_core::services::scrape::ScrapeService;
-        use torrust_tracker_primitives::core::ScrapeData;
         use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
+        use torrust_tracker_primitives::ScrapeData;
 
         use super::{initialize_listed_tracker, sample_client_ip_sources, sample_scrape_request};
 

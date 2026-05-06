@@ -4,7 +4,7 @@
 use std::borrow::Cow;
 
 use torrust_tracker_contrib_bencode::{ben_int, ben_map, BMutAccess};
-use torrust_tracker_primitives::core::ScrapeData;
+use torrust_tracker_primitives::ScrapeData;
 
 /// The `Scrape` response for the HTTP tracker.
 ///
@@ -12,7 +12,7 @@ use torrust_tracker_primitives::core::ScrapeData;
 /// use bittorrent_http_tracker_protocol::v1::responses::scrape::Bencoded;
 /// use bittorrent_primitives::info_hash::InfoHash;
 /// use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
-/// use torrust_tracker_primitives::core::ScrapeData;
+/// use torrust_tracker_primitives::ScrapeData;
 ///
 /// let info_hash = InfoHash::from_bytes(&[0x69; 20]);
 /// let mut scrape_data = ScrapeData::empty();
@@ -84,8 +84,8 @@ mod tests {
 
     mod scrape_response {
         use bittorrent_primitives::info_hash::InfoHash;
-        use torrust_tracker_primitives::core::ScrapeData;
         use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
+        use torrust_tracker_primitives::ScrapeData;
 
         use crate::v1::responses::scrape::Bencoded;
 

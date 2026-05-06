@@ -62,8 +62,8 @@
 use std::sync::Arc;
 
 use bittorrent_primitives::info_hash::InfoHash;
-use torrust_tracker_primitives::core::ScrapeData;
 use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
+use torrust_tracker_primitives::ScrapeData;
 
 use super::torrent::repository::in_memory::InMemoryTorrentRepository;
 use super::whitelist;
@@ -131,7 +131,7 @@ mod tests {
     use std::sync::Arc;
 
     use bittorrent_primitives::info_hash::InfoHash;
-    use torrust_tracker_primitives::core::ScrapeData;
+    use torrust_tracker_primitives::ScrapeData;
     use torrust_tracker_test_helpers::configuration;
 
     use super::ScrapeHandler;

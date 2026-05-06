@@ -18,8 +18,8 @@ use bittorrent_tracker_core::authentication::{self, Key};
 use bittorrent_tracker_core::error::{ScrapeError, TrackerCoreError, WhitelistError};
 use bittorrent_tracker_core::scrape_handler::ScrapeHandler;
 use torrust_tracker_configuration::Core;
-use torrust_tracker_primitives::core::ScrapeData;
 use torrust_tracker_primitives::service_binding::ServiceBinding;
+use torrust_tracker_primitives::ScrapeData;
 
 use crate::event::{ConnectionContext, Event};
 
@@ -255,9 +255,9 @@ mod tests {
         use bittorrent_tracker_core::announce_handler::PeersWanted;
         use mockall::predicate::eq;
         use torrust_tracker_events::bus::SenderStatus;
-        use torrust_tracker_primitives::core::ScrapeData;
         use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
         use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
+        use torrust_tracker_primitives::ScrapeData;
         use torrust_tracker_test_helpers::configuration;
 
         use crate::event::bus::EventBus;
@@ -446,8 +446,8 @@ mod tests {
         use bittorrent_tracker_core::announce_handler::PeersWanted;
         use mockall::predicate::eq;
         use torrust_tracker_events::bus::SenderStatus;
-        use torrust_tracker_primitives::core::ScrapeData;
         use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
+        use torrust_tracker_primitives::ScrapeData;
         use torrust_tracker_test_helpers::configuration;
 
         use crate::event::bus::EventBus;

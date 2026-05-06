@@ -95,8 +95,7 @@ use std::sync::Arc;
 
 use bittorrent_primitives::info_hash::InfoHash;
 use torrust_tracker_configuration::{Core, TORRENT_PEERS_LIMIT};
-use torrust_tracker_primitives::core::AnnounceData;
-use torrust_tracker_primitives::{peer, NumberOfDownloads};
+use torrust_tracker_primitives::{peer, AnnounceData, NumberOfDownloads};
 
 use super::torrent::repository::in_memory::InMemoryTorrentRepository;
 use crate::databases;
