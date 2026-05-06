@@ -12,7 +12,7 @@ use std::num::NonZeroU16;
 use zerocopy::network_endian::{I32, I64, U16, U32};
 use zerocopy::{FromBytes, Immutable, IntoBytes};
 
-pub use crate::peer_id::{PeerClient, PeerId};
+pub use crate::{PeerClient, PeerId};
 
 pub trait Ip: Clone + Copy + Debug + PartialEq + Eq + std::hash::Hash + IntoBytes + Immutable {}
 

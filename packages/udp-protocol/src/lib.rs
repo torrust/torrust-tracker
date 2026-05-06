@@ -21,15 +21,15 @@
 pub mod announce;
 pub mod common;
 pub mod connect;
-mod peer_id;
 pub mod request;
 pub mod response;
 pub mod scrape;
 
+pub use bittorrent_peer_id::{PeerClient, PeerId};
+
 pub use self::announce::*;
 pub use self::common::*;
 pub use self::connect::*;
-pub use self::peer_id::{PeerClient, PeerId};
 pub use self::request::*;
 pub use self::response::*;
 pub use self::scrape::*;

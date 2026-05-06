@@ -615,6 +615,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "bittorrent-peer-id"
+version = "3.0.0-develop"
+dependencies = [
+ "compact_str",
+ "hex",
+ "pretty_assertions",
+ "quickcheck",
+ "regex",
+ "serde",
+ "zerocopy",
+]
+
+[[package]]
 name = "bittorrent-primitives"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -716,15 +729,12 @@ dependencies = [
 name = "bittorrent-udp-tracker-protocol"
 version = "3.0.0-develop"
 dependencies = [
+ "bittorrent-peer-id",
  "byteorder",
- "compact_str",
  "either",
- "hex",
  "pretty_assertions",
  "quickcheck",
  "quickcheck_macros",
- "regex",
- "serde",
  "zerocopy",
 ]
 

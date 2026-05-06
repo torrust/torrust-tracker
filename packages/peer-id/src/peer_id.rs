@@ -1,24 +1,29 @@
-// Copied from aquatic_peer_id 0.9.0 by Joakim Frostegard (greatest-ape).
-// Source:     https://crates.io/crates/aquatic_peer_id/0.9.0
+// Adapted from aquatic_peer_id 0.9.0 by Joakim Frostegard (greatest-ape).
+// Source: https://crates.io/crates/aquatic_peer_id/0.9.0
 // Repository: https://github.com/greatest-ape/aquatic
-// License:    Apache License, Version 2.0 (https://www.apache.org/licenses/LICENSE-2.0)
-//
-// This in-house crate started from the aquatic 0.9.0 sources that were previously vendored
-// under packages/aquatic-peer-id.
+// License: Apache License, Version 2.0
+
 use std::borrow::Cow;
 use std::fmt::Display;
 use std::sync::OnceLock;
 
 use compact_str::{format_compact, CompactString};
 use regex::bytes::Regex;
+#[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
-use zerocopy::{FromBytes, Immutable, IntoBytes};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize, IntoBytes, FromBytes, Immutable)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "zerocopy", derive(zerocopy::IntoBytes, zerocopy::FromBytes, zerocopy::Immutable))]
 #[repr(transparent)]
 pub struct PeerId(pub [u8; 20]);
 
 impl PeerId {
+    #[must_use]
+    pub fn as_bytes(&self) -> &[u8; 20] {
+        &self.0
+    }
+
     #[must_use]
     pub fn client(&self) -> PeerClient {
         PeerClient::from_peer_id(self)
@@ -184,10 +189,10 @@ impl Display for PeerClient {
             Self::LibTorrentRasterbar(v) => write!(f, "lt (rasterbar) {}", v.as_str()),
             Self::QBitTorrent(v) => write!(f, "QBitTorrent {}", v.as_str()),
             Self::Transmission(v) => write!(f, "Transmission {}", v.as_str()),
-            Self::UTorrent(v) => write!(f, "µTorrent {}", v.as_str()),
-            Self::UTorrentEmbedded(v) => write!(f, "µTorrent Emb. {}", v.as_str()),
-            Self::UTorrentMac(v) => write!(f, "µTorrent Mac {}", v.as_str()),
-            Self::UTorrentWeb(v) => write!(f, "µTorrent Web {}", v.as_str()),
+            Self::UTorrent(v) => write!(f, "\u{00B5}Torrent {}", v.as_str()),
+            Self::UTorrentEmbedded(v) => write!(f, "\u{00B5}Torrent Emb. {}", v.as_str()),
+            Self::UTorrentMac(v) => write!(f, "\u{00B5}Torrent Mac {}", v.as_str()),
+            Self::UTorrentWeb(v) => write!(f, "\u{00B5}Torrent Web {}", v.as_str()),
             Self::Vuze(v) => write!(f, "Vuze {}", v.as_str()),
             Self::WebTorrent(v) => write!(f, "WebTorrent {}", v.as_str()),
             Self::WebTorrentDesktop(v) => write!(f, "WebTorrent Desktop {}", v.as_str()),
@@ -214,7 +219,6 @@ impl quickcheck::Arbitrary for PeerId {
     }
 }
 
-#[cfg(feature = "quickcheck")]
 #[cfg(test)]
 mod tests {
     use super::*;

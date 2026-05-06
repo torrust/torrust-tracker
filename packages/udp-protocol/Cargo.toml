@@ -19,13 +19,10 @@ default = [ "quickcheck" ]
 quickcheck = [ "dep:quickcheck" ]
 
 [dependencies]
+bittorrent-peer-id = { version = "3.0.0-develop", path = "../peer-id", features = [ "quickcheck", "serde", "zerocopy" ] }
 byteorder = "1"
-compact_str = "0.9"
 either = "1"
-hex = "0.4"
 quickcheck = { version = "1", optional = true }
-regex = "1"
-serde = { version = "1", features = [ "derive" ] }
 zerocopy = { version = "0.8", features = [ "derive" ] }
 
 [dev-dependencies]
