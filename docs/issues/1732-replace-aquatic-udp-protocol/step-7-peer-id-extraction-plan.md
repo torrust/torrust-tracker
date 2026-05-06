@@ -119,27 +119,27 @@ Exit criteria:
 ### Phase 5: Cleanup and Final Documentation
 
 - [x] Remove leftover duplicated peer-id code
-- [ ] Document final ownership boundaries in issue docs
-- [ ] Record any remaining follow-up tasks
+- [x] Document final ownership boundaries in issue docs
+- [x] Record any remaining follow-up tasks
 
 Exit criteria:
 
 - [x] Duplication removed or reduced to intentional thin compatibility layers
-- [ ] Final structure documented
+- [x] Final structure documented
 
 ### Phase 6: Final Internal Module Split (Post-Extraction)
 
-- [ ] Split `packages/peer-id` internals into focused modules
-- [ ] Move `PeerId` type/helpers into dedicated module
-- [ ] Move `PeerClient` enum/detection logic into dedicated module
-- [ ] Preserve crate public API through root re-exports
-- [ ] Update tests to match new internal module boundaries
+- [x] Split `packages/peer-id` internals into focused modules
+- [x] Move `PeerId` type/helpers into dedicated module
+- [x] Move `PeerClient` enum/detection logic into dedicated module
+- [x] Preserve crate public API through root re-exports
+- [x] Update tests to match new internal module boundaries
 
 Exit criteria:
 
-- [ ] Internal module boundaries are clear and maintainable
-- [ ] Public API remains unchanged
-- [ ] Validation gate passes after split
+- [x] Internal module boundaries are clear and maintainable
+- [x] Public API remains unchanged
+- [x] Validation gate passes after split
 
 ## Deliverables
 
@@ -148,15 +148,23 @@ Exit criteria:
 - [x] `udp-protocol` integrated with shared crate
 - [x] `primitives` integrated with shared crate
 - [x] Duplicate implementations removed from original locations
-- [ ] `packages/peer-id` internal module split completed
-- [ ] Final docs/progress notes updated
+- [x] `packages/peer-id` internal module split completed
+- [x] Final docs/progress notes updated
 
 ## Validation Gate
 
-- [ ] `cargo check --workspace`
-- [ ] `cargo test --workspace`
-- [ ] `cargo test --doc --workspace`
-- [ ] `linter all`
+- [x] `cargo check --workspace`
+- [x] `cargo test --workspace`
+- [x] `cargo test --doc --workspace`
+- [x] `linter all`
+
+## Final Ownership (Implemented)
+
+- `packages/peer-id`: canonical ownership of `PeerId` and `PeerClient`
+- `packages/peer-id/src/peer_id.rs`: `PeerId` type and helpers
+- `packages/peer-id/src/peer_client.rs`: `PeerClient` enum and client detection/parsing logic
+- `packages/udp-protocol`: consumes `bittorrent-peer-id` (no local duplicated peer-id logic)
+- `packages/primitives`: compatibility re-export module preserving existing public API paths
 
 ## Risks
 
