@@ -508,7 +508,7 @@ mod tests {
 
         use std::sync::Arc;
 
-        use aquatic_udp_protocol::PeerId;
+        use torrust_tracker_primitives::PeerId;
 
         use crate::swarm::registry::Registry;
         use crate::tests::{sample_info_hash, sample_peer};
@@ -613,9 +613,8 @@ mod tests {
             use std::net::{IpAddr, Ipv4Addr, SocketAddr};
             use std::sync::Arc;
 
-            use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
             use torrust_tracker_primitives::peer::Peer;
-            use torrust_tracker_primitives::DurationSinceUnixEpoch;
+            use torrust_tracker_primitives::{AnnounceEvent, DurationSinceUnixEpoch, NumberOfBytes};
 
             use crate::swarm::registry::tests::the_swarm_repository::numeric_peer_id;
             use crate::swarm::registry::Registry;
@@ -674,10 +673,9 @@ mod tests {
                 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
                 use std::sync::Arc;
 
-                use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
                 use torrust_tracker_configuration::TORRENT_PEERS_LIMIT;
                 use torrust_tracker_primitives::peer::Peer;
-                use torrust_tracker_primitives::DurationSinceUnixEpoch;
+                use torrust_tracker_primitives::{AnnounceEvent, DurationSinceUnixEpoch, NumberOfBytes};
 
                 use crate::swarm::registry::tests::the_swarm_repository::numeric_peer_id;
                 use crate::swarm::registry::Registry;

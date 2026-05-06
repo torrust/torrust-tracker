@@ -77,11 +77,11 @@
 //! - The module leverages existing cryptographic primitives while acknowledging and addressing the limitations imposed by the protocol's specifications.
 //!
 
-use aquatic_udp_protocol::ConnectionId as Cookie;
+use bittorrent_udp_tracker_protocol::ConnectionId as Cookie;
 use cookie_builder::{assemble, decode, disassemble, encode};
 use thiserror::Error;
 use tracing::instrument;
-use zerocopy::AsBytes;
+use zerocopy::IntoBytes as _;
 
 use crate::crypto::keys::CipherArrayBlowfish;
 /// Error returned when there was an error with the connection cookie.
@@ -118,8 +118,8 @@ pub fn make(fingerprint: u64, issue_at: f64) -> Result<Cookie, ConnectionCookieE
     let cookie = assemble(fingerprint, issue_at);
     let cookie = encode(cookie);
 
-    // using `read_from` as the array may be not correctly aligned
-    Ok(zerocopy::FromBytes::read_from(cookie.as_slice()).expect("it should be the same size"))
+    // using `read_from_bytes` as the array may be not correctly aligned
+    Ok(zerocopy::FromBytes::read_from_bytes(cookie.as_slice()).expect("it should be the same size"))
 }
 
 use std::hash::{DefaultHasher, Hash, Hasher};
@@ -177,7 +177,7 @@ pub fn gen_remote_fingerprint(remote_addr: &SocketAddr) -> u64 {
 mod cookie_builder {
     use cipher::{BlockCipherDecrypt, BlockCipherEncrypt};
     use tracing::instrument;
-    use zerocopy::{byteorder, AsBytes as _, NativeEndian};
+    use zerocopy::{byteorder, IntoBytes as _, NativeEndian};
 
     pub type CookiePlainText = CipherArrayBlowfish;
     pub type CookieCipherText = CipherArrayBlowfish;
@@ -187,13 +187,13 @@ mod cookie_builder {
     #[instrument()]
     pub(super) fn assemble(fingerprint: u64, issue_at: f64) -> CookiePlainText {
         let issue_at: byteorder::I64<NativeEndian> =
-            *zerocopy::FromBytes::ref_from(&issue_at.to_ne_bytes()).expect("it should be aligned");
+            *zerocopy::FromBytes::ref_from_bytes(&issue_at.to_ne_bytes()).expect("it should be aligned");
         let fingerprint: byteorder::I64<NativeEndian> =
-            *zerocopy::FromBytes::ref_from(&fingerprint.to_ne_bytes()).expect("it should be aligned");
+            *zerocopy::FromBytes::ref_from_bytes(&fingerprint.to_ne_bytes()).expect("it should be aligned");
 
         let cookie = issue_at.get().wrapping_add(fingerprint.get());
         let cookie: byteorder::I64<NativeEndian> =
-            *zerocopy::FromBytes::ref_from(&cookie.to_ne_bytes()).expect("it should be aligned");
+            *zerocopy::FromBytes::ref_from_bytes(&cookie.to_ne_bytes()).expect("it should be aligned");
 
         CipherArrayBlowfish::try_from(cookie.as_bytes()).expect("it should be the same size")
     }
@@ -201,16 +201,16 @@ mod cookie_builder {
     #[instrument()]
     pub(super) fn disassemble(fingerprint: u64, cookie: CookiePlainText) -> f64 {
         let fingerprint: byteorder::I64<NativeEndian> =
-            *zerocopy::FromBytes::ref_from(&fingerprint.to_ne_bytes()).expect("it should be aligned");
+            *zerocopy::FromBytes::ref_from_bytes(&fingerprint.to_ne_bytes()).expect("it should be aligned");
 
         // the array may be not aligned, so we read instead of reference.
         let cookie: byteorder::I64<NativeEndian> =
-            zerocopy::FromBytes::read_from(cookie.as_bytes()).expect("it should be the same size");
+            zerocopy::FromBytes::read_from_bytes(cookie.as_bytes()).expect("it should be the same size");
 
         let issue_time_bytes = cookie.get().wrapping_sub(fingerprint.get()).to_ne_bytes();
 
         let issue_time: byteorder::F64<NativeEndian> =
-            *zerocopy::FromBytes::ref_from(&issue_time_bytes).expect("it should be aligned");
+            *zerocopy::FromBytes::ref_from_bytes(&issue_time_bytes).expect("it should be aligned");
 
         issue_time.get()
     }

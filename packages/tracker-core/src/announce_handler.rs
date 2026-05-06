@@ -18,7 +18,7 @@
 //! use std::net::Ipv4Addr;
 //! use std::str::FromStr;
 //!
-//! use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes, PeerId};
+//! use torrust_tracker_primitives::{AnnounceEvent, NumberOfBytes, PeerId};
 //! use torrust_tracker_primitives::DurationSinceUnixEpoch;
 //! use torrust_tracker_primitives::peer;
 //! use bittorrent_primitives::info_hash::InfoHash;
@@ -95,8 +95,7 @@ use std::sync::Arc;
 
 use bittorrent_primitives::info_hash::InfoHash;
 use torrust_tracker_configuration::{Core, TORRENT_PEERS_LIMIT};
-use torrust_tracker_primitives::core::AnnounceData;
-use torrust_tracker_primitives::{peer, NumberOfDownloads};
+use torrust_tracker_primitives::{peer, AnnounceData, NumberOfDownloads};
 
 use super::torrent::repository::in_memory::InMemoryTorrentRepository;
 use crate::databases;
@@ -283,9 +282,8 @@ mod tests {
         use std::str::FromStr;
         use std::sync::Arc;
 
-        use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes, PeerId};
         use torrust_tracker_primitives::peer::Peer;
-        use torrust_tracker_primitives::DurationSinceUnixEpoch;
+        use torrust_tracker_primitives::{AnnounceEvent, DurationSinceUnixEpoch, NumberOfBytes, PeerId};
         use torrust_tracker_test_helpers::configuration;
 
         use crate::announce_handler::AnnounceHandler;

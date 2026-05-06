@@ -1,5 +1,5 @@
-use aquatic_udp_protocol::TransactionId;
 use bittorrent_primitives::info_hash::InfoHash;
+use bittorrent_udp_tracker_protocol::TransactionId;
 use rand::prelude::*;
 
 /// Returns a random info hash.

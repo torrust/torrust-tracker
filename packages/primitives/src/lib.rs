@@ -4,9 +4,12 @@
 //! which is a `BitTorrent` tracker server. These structures are used not only
 //! by the tracker server crate, but also by other crates in the Torrust
 //! ecosystem.
-pub mod core;
+pub mod announce;
+pub mod number_of_bytes;
 pub mod pagination;
 pub mod peer;
+pub mod peer_id;
+pub mod scrape;
 pub mod service_binding;
 pub mod swarm_metadata;
 
@@ -17,6 +20,11 @@ use bittorrent_primitives::info_hash::InfoHash;
 
 /// Duration since the Unix Epoch.
 pub type DurationSinceUnixEpoch = Duration;
+
+pub use announce::{AnnounceData, AnnounceEvent};
+pub use number_of_bytes::NumberOfBytes;
+pub use peer_id::{PeerClient, PeerId};
+pub use scrape::ScrapeData;
 
 pub type NumberOfDownloads = u32;
 pub type NumberOfDownloadsBTreeMap = BTreeMap<InfoHash, NumberOfDownloads>;

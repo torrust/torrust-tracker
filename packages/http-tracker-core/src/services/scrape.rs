@@ -18,8 +18,8 @@ use bittorrent_tracker_core::authentication::{self, Key};
 use bittorrent_tracker_core::error::{ScrapeError, TrackerCoreError, WhitelistError};
 use bittorrent_tracker_core::scrape_handler::ScrapeHandler;
 use torrust_tracker_configuration::Core;
-use torrust_tracker_primitives::core::ScrapeData;
 use torrust_tracker_primitives::service_binding::ServiceBinding;
+use torrust_tracker_primitives::ScrapeData;
 
 use crate::event::{ConnectionContext, Event};
 
@@ -169,7 +169,6 @@ mod tests {
     use std::net::{IpAddr, Ipv4Addr, SocketAddr};
     use std::sync::Arc;
 
-    use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes, PeerId};
     use bittorrent_primitives::info_hash::InfoHash;
     use bittorrent_tracker_core::announce_handler::AnnounceHandler;
     use bittorrent_tracker_core::authentication::key::repository::in_memory::InMemoryKeyRepository;
@@ -184,7 +183,7 @@ mod tests {
     use mockall::mock;
     use torrust_tracker_configuration::Configuration;
     use torrust_tracker_events::sender::SendError;
-    use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch};
+    use torrust_tracker_primitives::{peer, AnnounceEvent, DurationSinceUnixEpoch, NumberOfBytes, PeerId};
 
     use crate::event::Event;
     use crate::tests::sample_info_hash;
@@ -256,9 +255,9 @@ mod tests {
         use bittorrent_tracker_core::announce_handler::PeersWanted;
         use mockall::predicate::eq;
         use torrust_tracker_events::bus::SenderStatus;
-        use torrust_tracker_primitives::core::ScrapeData;
         use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
         use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
+        use torrust_tracker_primitives::ScrapeData;
         use torrust_tracker_test_helpers::configuration;
 
         use crate::event::bus::EventBus;
@@ -447,8 +446,8 @@ mod tests {
         use bittorrent_tracker_core::announce_handler::PeersWanted;
         use mockall::predicate::eq;
         use torrust_tracker_events::bus::SenderStatus;
-        use torrust_tracker_primitives::core::ScrapeData;
         use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
+        use torrust_tracker_primitives::ScrapeData;
         use torrust_tracker_test_helpers::configuration;
 
         use crate::event::bus::EventBus;

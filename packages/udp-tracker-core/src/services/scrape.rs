@@ -11,12 +11,12 @@ use std::net::SocketAddr;
 use std::ops::Range;
 use std::sync::Arc;
 
-use aquatic_udp_protocol::ScrapeRequest;
 use bittorrent_primitives::info_hash::InfoHash;
 use bittorrent_tracker_core::error::{ScrapeError, WhitelistError};
 use bittorrent_tracker_core::scrape_handler::ScrapeHandler;
-use torrust_tracker_primitives::core::ScrapeData;
+use bittorrent_udp_tracker_protocol::ScrapeRequest;
 use torrust_tracker_primitives::service_binding::ServiceBinding;
+use torrust_tracker_primitives::ScrapeData;
 
 use crate::connection_cookie::{check, gen_remote_fingerprint, ConnectionCookieError};
 use crate::event::{ConnectionContext, Event};
@@ -56,7 +56,7 @@ impl ScrapeService {
 
         let scrape_data = self
             .scrape_handler
-            .handle_scrape(&Self::convert_from_aquatic(&request.info_hashes))
+            .handle_scrape(&Self::convert_from_wire_info_hashes(&request.info_hashes))
             .await?;
 
         self.send_event(client_socket_addr, server_service_binding).await;
@@ -76,8 +76,8 @@ impl ScrapeService {
         )
     }
 
-    fn convert_from_aquatic(aquatic_infohashes: &[aquatic_udp_protocol::common::InfoHash]) -> Vec<InfoHash> {
-        aquatic_infohashes.iter().map(|&x| x.into()).collect()
+    fn convert_from_wire_info_hashes(wire_info_hashes: &[bittorrent_udp_tracker_protocol::common::InfoHash]) -> Vec<InfoHash> {
+        wire_info_hashes.iter().map(|&x| InfoHash::from(x.0)).collect()
     }
 
     async fn send_event(&self, client_socket_addr: SocketAddr, server_service_binding: ServiceBinding) {

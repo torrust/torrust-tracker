@@ -11,18 +11,18 @@ use std::net::SocketAddr;
 use std::ops::Range;
 use std::sync::Arc;
 
-use aquatic_udp_protocol::AnnounceRequest;
 use bittorrent_primitives::info_hash::InfoHash;
 use bittorrent_tracker_core::announce_handler::{AnnounceHandler, PeersWanted};
 use bittorrent_tracker_core::error::{AnnounceError, WhitelistError};
 use bittorrent_tracker_core::whitelist;
-use bittorrent_udp_tracker_protocol::peer_builder;
-use torrust_tracker_primitives::core::AnnounceData;
+use bittorrent_udp_tracker_protocol::AnnounceRequest;
 use torrust_tracker_primitives::peer::PeerAnnouncement;
 use torrust_tracker_primitives::service_binding::ServiceBinding;
+use torrust_tracker_primitives::AnnounceData;
 
 use crate::connection_cookie::{check, gen_remote_fingerprint, ConnectionCookieError};
 use crate::event::{ConnectionContext, Event};
+use crate::peer_builder;
 
 /// The `AnnounceService` is responsible for handling the `announce` requests.
 ///
@@ -66,7 +66,7 @@ impl AnnounceService {
     ) -> Result<AnnounceData, UdpAnnounceError> {
         Self::authenticate(client_socket_addr, request, cookie_valid_range)?;
 
-        let info_hash = request.info_hash.into();
+        let info_hash = InfoHash::from(request.info_hash.0);
 
         self.authorize(&info_hash).await?;
 

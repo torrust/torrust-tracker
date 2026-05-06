@@ -14,8 +14,8 @@ rust-version.workspace = true
 version.workspace = true
 
 [dependencies]
-aquatic_udp_protocol = "0"
-bittorrent-primitives = "0.1.0"
+bittorrent_udp_tracker_protocol = { package = "bittorrent-udp-tracker-protocol", path = "../udp-protocol" }
+bittorrent-primitives = "0.2.0"
 bittorrent-tracker-client = { version = "3.0.0-develop", path = "../tracker-client" }
 bittorrent-tracker-core = { version = "3.0.0-develop", path = "../tracker-core" }
 bittorrent-udp-tracker-core = { version = "3.0.0-develop", path = "../udp-tracker-core" }
@@ -37,7 +37,7 @@ torrust-tracker-swarm-coordination-registry = { version = "3.0.0-develop", path 
 tracing = "0"
 url = { version = "2", features = [ "serde" ] }
 uuid = { version = "1", features = [ "v4" ] }
-zerocopy = "0.7"
+zerocopy = "0.8"
 
 [dev-dependencies]
 local-ip-address = "0"

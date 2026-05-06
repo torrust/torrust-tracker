@@ -24,7 +24,7 @@
 //! > **NOTICE**: [BEP-41](https://www.bittorrent.org/beps/bep_0041.html) is not
 //! > implemented yet.
 //!
-//! > **NOTICE**: we are using the [`aquatic_udp_protocol`](https://crates.io/crates/aquatic_udp_protocol)
+//! > **NOTICE**: we are using the [`bittorrent_udp_tracker_protocol`](https://crates.io/crates/bittorrent_udp_tracker_protocol)
 //! > crate so requests and responses are handled by it.
 //!
 //! > **NOTICE**: all values are send in network byte order ([big endian](https://en.wikipedia.org/wiki/Endianness)).
@@ -52,8 +52,8 @@
 //! is designed to be as simple as possible. It uses a single UDP port and
 //! supports only three types of requests: `Connect`, `Announce` and `Scrape`.
 //!
-//! Request are parsed from UDP packets using the [`aquatic_udp_protocol`](https://crates.io/crates/aquatic_udp_protocol).
-//! And then the response is also build using the [`aquatic_udp_protocol`](https://crates.io/crates/aquatic_udp_protocol)
+//! Request are parsed from UDP packets using the [`bittorrent_udp_tracker_protocol`](https://crates.io/crates/bittorrent_udp_tracker_protocol).
+//! And then the response is also build using the [`bittorrent_udp_tracker_protocol`](https://crates.io/crates/bittorrent_udp_tracker_protocol)
 //! and converted to a UDP packet.
 //!
 //! ```text
@@ -139,12 +139,12 @@
 //!
 //! **Connect request (parsed struct)**
 //!
-//! After parsing the UDP packet, the [`ConnectRequest`](aquatic_udp_protocol::request::ConnectRequest)
+//! After parsing the UDP packet, the [`ConnectRequest`](bittorrent_udp_tracker_protocol::request::ConnectRequest)
 //! request struct will look like this:
 //!
 //! Field            | Type                                                           | Example
 //! -----------------|----------------------------------------------------------------|-------------
-//! `transaction_id` | [`TransactionId`](aquatic_udp_protocol::common::TransactionId) | `1950635409`
+//! `transaction_id` | [`TransactionId`](bittorrent_udp_tracker_protocol::common::TransactionId) | `1950635409`
 //!
 //! #### Connect Response
 //!
@@ -186,13 +186,13 @@
 //!
 //! **Connect response (struct)**
 //!
-//! Before building the UDP packet, the [`ConnectResponse`](aquatic_udp_protocol::response::ConnectResponse)
+//! Before building the UDP packet, the [`ConnectResponse`](bittorrent_udp_tracker_protocol::response::ConnectResponse)
 //! struct will look like this:
 //!
 //! Field            | Type                                                           | Example
 //! -----------------|----------------------------------------------------------------|-------------------------
-//! `connection_id`  | [`ConnectionId`](aquatic_udp_protocol::common::ConnectionId)   | `-4226491872051668937`
-//! `transaction_id` | [`TransactionId`](aquatic_udp_protocol::common::TransactionId) | `-888840697`
+//! `connection_id`  | [`ConnectionId`](bittorrent_udp_tracker_protocol::common::ConnectionId)   | `-4226491872051668937`
+//! `transaction_id` | [`TransactionId`](bittorrent_udp_tracker_protocol::common::TransactionId) | `-888840697`
 //!
 //! **Connect specification**
 //!
@@ -321,26 +321,26 @@
 //!
 //! **Announce request (parsed struct)**
 //!
-//! After parsing the UDP packet, the [`AnnounceRequest`](aquatic_udp_protocol::request::AnnounceRequest)
+//! After parsing the UDP packet, the [`AnnounceRequest`](bittorrent_udp_tracker_protocol::AnnounceRequest)
 //! struct will contain the following fields:
 //!
 //! Field              | Type                                                            | Example
 //! -------------------|---------------------------------------------------------------- |--------------
-//! `connection_id`    | [`ConnectionId`](aquatic_udp_protocol::common::ConnectionId)    | `-4226491872051668937`
-//! `transaction_id`   | [`TransactionId`](aquatic_udp_protocol::common::TransactionId)  | `-1560718264`
-//! `info_hash`        | [`InfoHash`](aquatic_udp_protocol::common::InfoHash)            | `[3,132,5,72,100,58,242,167,182,58,159,92,188,163,72,188,113,80,202,58]`
-//! `peer_id`          | [`PeerId`](aquatic_udp_protocol::common::PeerId)                | `[45,113,66,52,52,49,48,45,41,83,100,126,100,101,52,120,77,112,54,68]`
-//! `bytes_downloaded` | [`NumberOfBytes`](aquatic_udp_protocol::common::NumberOfBytes)  | `0`
-//! `bytes_uploaded`   | [`TransactionId`](aquatic_udp_protocol::common::NumberOfBytes)  | `0`
-//! `event`            | [`AnnounceEvent`](aquatic_udp_protocol::request::AnnounceEvent) | `Started`
-//! `ip_address`       | [`Ipv4Addr`](aquatic_udp_protocol::common::ConnectionId)        | `None`
-//! `peers_wanted`     | [`NumberOfPeers`](aquatic_udp_protocol::common::NumberOfPeers)  | `200`
-//! `port`             | [`Port`](aquatic_udp_protocol::common::Port)                    | `17548`
+//! `connection_id`    | [`ConnectionId`](bittorrent_udp_tracker_protocol::common::ConnectionId)    | `-4226491872051668937`
+//! `transaction_id`   | [`TransactionId`](bittorrent_udp_tracker_protocol::common::TransactionId)  | `-1560718264`
+//! `info_hash`        | [`InfoHash`](bittorrent_udp_tracker_protocol::common::InfoHash)            | `[3,132,5,72,100,58,242,167,182,58,159,92,188,163,72,188,113,80,202,58]`
+//! `peer_id`          | [`PeerId`](bittorrent_udp_tracker_protocol::common::PeerId)                | `[45,113,66,52,52,49,48,45,41,83,100,126,100,101,52,120,77,112,54,68]`
+//! `bytes_downloaded` | [`NumberOfBytes`](bittorrent_udp_tracker_protocol::common::NumberOfBytes)  | `0`
+//! `bytes_uploaded`   | [`TransactionId`](bittorrent_udp_tracker_protocol::common::NumberOfBytes)  | `0`
+//! `event`            | [`AnnounceEvent`](bittorrent_udp_tracker_protocol::AnnounceEvent) | `Started`
+//! `ip_address`       | [`Ipv4Addr`](bittorrent_udp_tracker_protocol::common::ConnectionId)        | `None`
+//! `peers_wanted`     | [`NumberOfPeers`](bittorrent_udp_tracker_protocol::common::NumberOfPeers)  | `200`
+//! `port`             | [`Port`](bittorrent_udp_tracker_protocol::common::Port)                    | `17548`
 //!
 //! > **NOTICE**: the `peers_wanted` field is the `num_want` field in the UDP
 //! > packet.
 //!
-//! We are using a wrapper struct for the aquatic [`AnnounceRequest`](aquatic_udp_protocol::request::AnnounceRequest)
+//! We are using a wrapper struct for the aquatic [`AnnounceRequest`](bittorrent_udp_tracker_protocol::AnnounceRequest)
 //! struct, because we have our internal [`InfoHash`](bittorrent_primitives::info_hash::InfoHash)
 //! struct.
 //!
@@ -446,16 +446,16 @@
 //!
 //! **Announce response (struct)**
 //!
-//! The [`AnnounceResponse`](aquatic_udp_protocol::response::AnnounceResponse)
+//! The [`AnnounceResponse`](bittorrent_udp_tracker_protocol::response::AnnounceResponse)
 //! struct will have the following fields:
 //!
 //! Field               | Type                                                                   | Example
 //! --------------------|------------------------------------------------------------------------|--------------
-//! `transaction_id`    | [`TransactionId`](aquatic_udp_protocol::common::TransactionId)         | `-1560718264`
-//! `announce_interval` | [`AnnounceInterval`](aquatic_udp_protocol::common::AnnounceInterval)   | `120`
-//! `leechers`          | [`NumberOfPeers`](aquatic_udp_protocol::common::NumberOfPeers)         | `0`
-//! `seeders`           | [`NumberOfPeers`](aquatic_udp_protocol::common::NumberOfPeers)         | `1`
-//! `peers`             | Vector of [`ResponsePeer`](aquatic_udp_protocol::common::ResponsePeer) | `[]`
+//! `transaction_id`    | [`TransactionId`](bittorrent_udp_tracker_protocol::common::TransactionId)         | `-1560718264`
+//! `announce_interval` | [`AnnounceInterval`](bittorrent_udp_tracker_protocol::AnnounceInterval)   | `120`
+//! `leechers`          | [`NumberOfPeers`](bittorrent_udp_tracker_protocol::common::NumberOfPeers)         | `0`
+//! `seeders`           | [`NumberOfPeers`](bittorrent_udp_tracker_protocol::common::NumberOfPeers)         | `1`
+//! `peers`             | Vector of [`ResponsePeer`](bittorrent_udp_tracker_protocol::common::ResponsePeer) | `[]`
 //!
 //! **Announce specification**
 //!
@@ -530,14 +530,14 @@
 //!
 //! **Scrape request (parsed struct)**
 //!
-//! After parsing the UDP packet, the [`ScrapeRequest`](aquatic_udp_protocol::request::ScrapeRequest)
+//! After parsing the UDP packet, the [`ScrapeRequest`](bittorrent_udp_tracker_protocol::request::ScrapeRequest)
 //! struct will look like this:
 //!
 //! Field            | Type                                                           | Example
 //! -----------------|----------------------------------------------------------------|----------------------------------------------------------------------------
-//! `connection_id`  | [`ConnectionId`](aquatic_udp_protocol::common::ConnectionId)   | `-4226491872051668937`
-//! `transaction_id` | [`TransactionId`](aquatic_udp_protocol::common::TransactionId) | `-1560718264`
-//! `info_hashes`    | Vector of [`InfoHash`](aquatic_udp_protocol::common::InfoHash) | `[[3,132,5,72,100,58,242,167,182,58,159,92,188,163,72,188,113,80,202,58]]`
+//! `connection_id`  | [`ConnectionId`](bittorrent_udp_tracker_protocol::common::ConnectionId)   | `-4226491872051668937`
+//! `transaction_id` | [`TransactionId`](bittorrent_udp_tracker_protocol::common::TransactionId) | `-1560718264`
+//! `info_hashes`    | Vector of [`InfoHash`](bittorrent_udp_tracker_protocol::common::InfoHash) | `[[3,132,5,72,100,58,242,167,182,58,159,92,188,163,72,188,113,80,202,58]]`
 //!
 //! #### Scrape Response
 //!
@@ -591,13 +591,13 @@
 //!
 //! **Scrape response (struct)**
 //!
-//! Before building the UDP packet, the [`ScrapeResponse`](aquatic_udp_protocol::response::ScrapeResponse)
+//! Before building the UDP packet, the [`ScrapeResponse`](bittorrent_udp_tracker_protocol::response::ScrapeResponse)
 //! struct will look like this:
 //!
 //! Field            | Type                                                                                            | Example
 //! -----------------|-------------------------------------------------------------------------------------------------|---------------
-//! `transaction_id` | [`TransactionId`](aquatic_udp_protocol::common::TransactionId)                                  | `-1560718264`
-//! `torrent_stats`  | Vector of [`TorrentScrapeStatistics`](aquatic_udp_protocol::response::TorrentScrapeStatistics)  | `[]`
+//! `transaction_id` | [`TransactionId`](bittorrent_udp_tracker_protocol::common::TransactionId)                                  | `-1560718264`
+//! `torrent_stats`  | Vector of [`TorrentScrapeStatistics`](bittorrent_udp_tracker_protocol::response::TorrentScrapeStatistics)  | `[]`
 //!
 //! **Scrape specification**
 //!
@@ -679,9 +679,8 @@ pub struct RawRequest {
 pub(crate) mod tests {
     use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
-    use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes, PeerId};
     use bittorrent_udp_tracker_core::event::Event;
-    use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch};
+    use torrust_tracker_primitives::{peer, AnnounceEvent, DurationSinceUnixEpoch, NumberOfBytes, PeerId};
 
     pub fn sample_peer() -> peer::Peer {
         peer::Peer {

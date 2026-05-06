@@ -6,8 +6,7 @@ use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 
 use derive_more::{AsRef, Constructor, From};
 use torrust_tracker_contrib_bencode::{ben_bytes, ben_int, ben_list, ben_map, BMutAccess, BencodeMut};
-use torrust_tracker_primitives::core::AnnounceData;
-use torrust_tracker_primitives::peer;
+use torrust_tracker_primitives::{peer, AnnounceData};
 
 /// An [`Announce`] response, that can be anything that is convertible from [`AnnounceData`].
 ///
@@ -278,11 +277,10 @@ mod tests {
     use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
     use std::sync::Arc;
 
-    use aquatic_udp_protocol::PeerId;
     use torrust_tracker_configuration::AnnouncePolicy;
-    use torrust_tracker_primitives::core::AnnounceData;
     use torrust_tracker_primitives::peer::fixture::PeerBuilder;
     use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
+    use torrust_tracker_primitives::{AnnounceData, PeerId};
 
     use crate::v1::responses::announce::{Announce, Compact, Normal};
 

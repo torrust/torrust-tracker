@@ -3,7 +3,7 @@
 //! The service is responsible for handling the `connect` requests.
 use std::net::SocketAddr;
 
-use aquatic_udp_protocol::ConnectionId;
+use bittorrent_udp_tracker_protocol::ConnectionId;
 use torrust_tracker_primitives::service_binding::ServiceBinding;
 
 use crate::connection_cookie::{gen_remote_fingerprint, make};

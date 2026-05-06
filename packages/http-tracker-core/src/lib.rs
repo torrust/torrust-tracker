@@ -22,9 +22,8 @@ pub const HTTP_TRACKER_LOG_TARGET: &str = "HTTP TRACKER";
 pub(crate) mod tests {
     use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
 
-    use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes, PeerId};
     use bittorrent_primitives::info_hash::InfoHash;
-    use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch};
+    use torrust_tracker_primitives::{peer, AnnounceEvent, DurationSinceUnixEpoch, NumberOfBytes, PeerId};
 
     /// # Panics
     ///

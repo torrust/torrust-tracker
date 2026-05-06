@@ -6,12 +6,11 @@ use std::net::{IpAddr, SocketAddr};
 use std::panic::Location;
 use std::str::FromStr;
 
-use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes, PeerId};
 use bittorrent_primitives::info_hash::{self, InfoHash};
 use thiserror::Error;
 use torrust_tracker_clock::clock::Time;
 use torrust_tracker_located_error::{Located, LocatedError};
-use torrust_tracker_primitives::peer;
+use torrust_tracker_primitives::{peer, AnnounceEvent, NumberOfBytes, PeerId};
 
 use crate::percent_encoding::{percent_decode_info_hash, percent_decode_peer_id};
 use crate::v1::query::{ParseQueryError, Query};
@@ -33,9 +32,9 @@ const NUMWANT: &str = "numwant";
 /// query params of the request.
 ///
 /// ```rust
-/// use aquatic_udp_protocol::{NumberOfBytes, PeerId};
 /// use bittorrent_http_tracker_protocol::v1::requests::announce::{Announce, Compact, Event};
 /// use bittorrent_primitives::info_hash::InfoHash;
+/// use torrust_tracker_primitives::{NumberOfBytes, PeerId};
 ///
 /// let request = Announce {
 ///     // Mandatory params
@@ -191,8 +190,19 @@ impl fmt::Display for Event {
     }
 }
 
-impl From<aquatic_udp_protocol::request::AnnounceEvent> for Event {
-    fn from(event: aquatic_udp_protocol::request::AnnounceEvent) -> Self {
+impl From<bittorrent_udp_tracker_protocol::AnnounceEvent> for Event {
+    fn from(event: bittorrent_udp_tracker_protocol::AnnounceEvent) -> Self {
+        match event {
+            bittorrent_udp_tracker_protocol::AnnounceEvent::Started => Self::Started,
+            bittorrent_udp_tracker_protocol::AnnounceEvent::Stopped => Self::Stopped,
+            bittorrent_udp_tracker_protocol::AnnounceEvent::Completed => Self::Completed,
+            bittorrent_udp_tracker_protocol::AnnounceEvent::None => Self::Empty,
+        }
+    }
+}
+
+impl From<AnnounceEvent> for Event {
+    fn from(event: AnnounceEvent) -> Self {
         match event {
             AnnounceEvent::Started => Self::Started,
             AnnounceEvent::Stopped => Self::Stopped,
@@ -202,7 +212,7 @@ impl From<aquatic_udp_protocol::request::AnnounceEvent> for Event {
     }
 }
 
-impl From<Event> for aquatic_udp_protocol::request::AnnounceEvent {
+impl From<Event> for AnnounceEvent {
     fn from(event: Event) -> Self {
         match event {
             Event::Started => Self::Started,
@@ -430,8 +440,8 @@ mod tests {
 
     mod announce_request {
 
-        use aquatic_udp_protocol::{NumberOfBytes, PeerId};
         use bittorrent_primitives::info_hash::InfoHash;
+        use torrust_tracker_primitives::{NumberOfBytes, PeerId};
 
         use crate::v1::query::Query;
         use crate::v1::requests::announce::{

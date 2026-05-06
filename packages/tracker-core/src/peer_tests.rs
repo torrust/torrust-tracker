@@ -2,10 +2,9 @@
 
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
-use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes, PeerId};
 use torrust_tracker_clock::clock::stopped::Stopped as _;
 use torrust_tracker_clock::clock::{self, Time};
-use torrust_tracker_primitives::peer;
+use torrust_tracker_primitives::{peer, AnnounceEvent, NumberOfBytes, PeerId};
 
 use crate::CurrentClock;
 

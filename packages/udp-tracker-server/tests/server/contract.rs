@@ -5,8 +5,8 @@
 
 use core::panic;
 
-use aquatic_udp_protocol::{ConnectRequest, ConnectionId, Response, TransactionId};
 use bittorrent_tracker_client::udp::client::UdpTrackerClient;
+use bittorrent_udp_tracker_protocol::{ConnectRequest, ConnectionId, Response, TransactionId};
 use torrust_tracker_configuration::DEFAULT_TIMEOUT;
 use torrust_tracker_test_helpers::{configuration, logging};
 use torrust_udp_tracker_server::MAX_PACKET_SIZE;
@@ -67,8 +67,8 @@ async fn should_return_a_bad_request_response_when_the_client_sends_an_empty_req
 }
 
 mod receiving_a_connection_request {
-    use aquatic_udp_protocol::{ConnectRequest, TransactionId};
     use bittorrent_tracker_client::udp::client::UdpTrackerClient;
+    use bittorrent_udp_tracker_protocol::{ConnectRequest, TransactionId};
     use torrust_tracker_configuration::DEFAULT_TIMEOUT;
     use torrust_tracker_test_helpers::{configuration, logging};
 
@@ -108,11 +108,11 @@ mod receiving_a_connection_request {
 mod receiving_an_announce_request {
     use std::net::Ipv4Addr;
 
-    use aquatic_udp_protocol::{
+    use bittorrent_tracker_client::udp::client::UdpTrackerClient;
+    use bittorrent_udp_tracker_protocol::{
         AnnounceActionPlaceholder, AnnounceEvent, AnnounceRequest, ConnectionId, InfoHash, NumberOfBytes, NumberOfPeers, PeerId,
         PeerKey, Port, TransactionId,
     };
-    use bittorrent_tracker_client::udp::client::UdpTrackerClient;
     use torrust_tracker_configuration::DEFAULT_TIMEOUT;
     use torrust_tracker_test_helpers::logging::logs_contains_a_line_with;
     use torrust_tracker_test_helpers::{configuration, logging};
@@ -136,7 +136,7 @@ mod receiving_an_announce_request {
         c_id: ConnectionId,
         info_hash: bittorrent_primitives::info_hash::InfoHash,
         client: &UdpTrackerClient,
-    ) -> aquatic_udp_protocol::Response {
+    ) -> bittorrent_udp_tracker_protocol::Response {
         let announce_request =
             build_sample_announce_request(tx_id, c_id, client.client.socket.local_addr().unwrap().port(), info_hash);
 
@@ -303,8 +303,8 @@ mod receiving_an_announce_request {
 }
 
 mod receiving_an_scrape_request {
-    use aquatic_udp_protocol::{ConnectionId, InfoHash, ScrapeRequest, TransactionId};
     use bittorrent_tracker_client::udp::client::UdpTrackerClient;
+    use bittorrent_udp_tracker_protocol::{ConnectionId, InfoHash, ScrapeRequest, TransactionId};
     use torrust_tracker_configuration::DEFAULT_TIMEOUT;
     use torrust_tracker_test_helpers::{configuration, logging};
 

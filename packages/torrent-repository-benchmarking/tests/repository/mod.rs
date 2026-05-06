@@ -1,13 +1,12 @@
 use std::collections::{BTreeMap, HashSet};
 use std::hash::{DefaultHasher, Hash, Hasher};
 
-use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
 use bittorrent_primitives::info_hash::InfoHash;
 use rstest::{fixture, rstest};
 use torrust_tracker_configuration::TrackerPolicy;
 use torrust_tracker_primitives::pagination::Pagination;
 use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
-use torrust_tracker_primitives::NumberOfDownloadsBTreeMap;
+use torrust_tracker_primitives::{AnnounceEvent, NumberOfBytes, NumberOfDownloadsBTreeMap};
 use torrust_tracker_torrent_repository_benchmarking::entry::Entry as _;
 use torrust_tracker_torrent_repository_benchmarking::repository::dash_map_mutex_std::XacrimonDashMap;
 use torrust_tracker_torrent_repository_benchmarking::repository::rw_lock_std::RwLockStd;

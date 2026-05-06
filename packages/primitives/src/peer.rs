@@ -3,7 +3,7 @@
 //! A sample peer:
 //!
 //! ```rust,no_run
-//! use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes, PeerId};
+//! use torrust_tracker_primitives::{AnnounceEvent, NumberOfBytes, PeerId};
 //! use torrust_tracker_primitives::peer;
 //! use std::net::SocketAddr;
 //! use std::net::IpAddr;
@@ -28,11 +28,9 @@ use std::ops::{Deref, DerefMut};
 use std::str::FromStr;
 use std::sync::Arc;
 
-use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes, PeerId};
 use serde::Serialize;
-use zerocopy::FromBytes as _;
 
-use crate::DurationSinceUnixEpoch;
+use crate::{AnnounceEvent, DurationSinceUnixEpoch, NumberOfBytes, PeerId};
 
 pub type PeerAnnouncement = Peer;
 
@@ -92,7 +90,7 @@ pub enum ParsePeerRoleError {
 /// A sample peer:
 ///
 /// ```rust,no_run
-/// use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes, PeerId};
+/// use torrust_tracker_primitives::{AnnounceEvent, NumberOfBytes, PeerId};
 /// use torrust_tracker_primitives::peer;
 /// use std::net::SocketAddr;
 /// use std::net::IpAddr;
@@ -173,7 +171,7 @@ pub fn ser_announce_event<S: serde::Serializer>(announce_event: &AnnounceEvent, 
 ///
 /// If will return an error if the internal serializer was to fail.
 pub fn ser_number_of_bytes<S: serde::Serializer>(number_of_bytes: &NumberOfBytes, ser: S) -> Result<S::Ok, S::Error> {
-    ser.serialize_i64(number_of_bytes.0.get())
+    ser.serialize_i64(number_of_bytes.0)
 }
 
 /// Serializes a `PeerId` as a `peer::Id`.
@@ -209,7 +207,7 @@ pub trait ReadInfo {
 
 impl ReadInfo for Peer {
     fn is_seeder(&self) -> bool {
-        self.left.0.get() <= 0 && self.event != AnnounceEvent::Stopped
+        self.left.0 <= 0 && self.event != AnnounceEvent::Stopped
     }
 
     fn is_leecher(&self) -> bool {
@@ -235,7 +233,7 @@ impl ReadInfo for Peer {
 
 impl ReadInfo for Arc<Peer> {
     fn is_seeder(&self) -> bool {
-        self.left.0.get() <= 0 && self.event != AnnounceEvent::Stopped
+        self.left.0 <= 0 && self.event != AnnounceEvent::Stopped
     }
 
     fn is_leecher(&self) -> bool {
@@ -262,7 +260,7 @@ impl ReadInfo for Arc<Peer> {
 impl Peer {
     #[must_use]
     pub fn is_seeder(&self) -> bool {
-        self.left.0.get() <= 0 && self.event != AnnounceEvent::Stopped
+        self.left.0 <= 0 && self.event != AnnounceEvent::Stopped
     }
 
     #[must_use]
@@ -393,7 +391,9 @@ impl TryFrom<Vec<u8>> for Id {
             });
         }
 
-        let data = PeerId::read_from(&bytes).expect("it should have the correct amount of bytes");
+        let mut data = [0_u8; PEER_ID_BYTES_LEN];
+        data.copy_from_slice(&bytes);
+        let data = PeerId(data);
         Ok(Self { data })
     }
 }
@@ -493,10 +493,8 @@ impl<P: Encoding> FromIterator<Peer> for Vec<P> {
 pub mod fixture {
     use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
-    use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes};
-
     use super::{Id, Peer, PeerId};
-    use crate::DurationSinceUnixEpoch;
+    use crate::{AnnounceEvent, DurationSinceUnixEpoch, NumberOfBytes};
 
     #[derive(PartialEq, Debug)]
 
@@ -658,9 +656,7 @@ pub mod test {
     }
 
     mod torrent_peer_id {
-        use aquatic_udp_protocol::PeerId;
-
-        use crate::peer;
+        use crate::{peer, PeerId};
 
         #[test]
         #[should_panic = "NotEnoughBytes"]

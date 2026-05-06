@@ -1,19 +1,17 @@
 use std::collections::HashSet;
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
-use aquatic_udp_protocol::{AnnounceEvent, NumberOfBytes, PeerId};
 use bittorrent_primitives::info_hash::InfoHash;
 use torrust_tracker_primitives::peer::Peer;
-use torrust_tracker_primitives::DurationSinceUnixEpoch;
-use zerocopy::I64;
+use torrust_tracker_primitives::{AnnounceEvent, DurationSinceUnixEpoch, NumberOfBytes, PeerId};
 
 pub const DEFAULT_PEER: Peer = Peer {
     peer_id: PeerId([0; 20]),
     peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 8080),
     updated: DurationSinceUnixEpoch::from_secs(0),
-    uploaded: NumberOfBytes(I64::ZERO),
-    downloaded: NumberOfBytes(I64::ZERO),
-    left: NumberOfBytes(I64::ZERO),
+    uploaded: NumberOfBytes::new(0),
+    downloaded: NumberOfBytes::new(0),
+    left: NumberOfBytes::new(0),
     event: AnnounceEvent::Started,
 };
 

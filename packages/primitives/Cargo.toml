@@ -15,9 +15,9 @@ rust-version.workspace = true
 version.workspace = true
 
 [dependencies]
-aquatic_udp_protocol = "0"
+bittorrent-peer-id = { version = "3.0.0-develop", path = "../peer-id" }
 binascii = "0"
-bittorrent-primitives = "0.1.0"
+bittorrent-primitives = "0.2.0"
 derive_more = { version = "2", features = [ "constructor" ] }
 serde = { version = "1", features = [ "derive" ] }
 tdyne-peer-id = "1"
@@ -25,7 +25,6 @@ tdyne-peer-id-registry = "0"
 thiserror = "2"
 torrust-tracker-configuration = { version = "3.0.0-develop", path = "../configuration" }
 url = "2.5.4"
-zerocopy = "0.7"
 
 [dev-dependencies]
 rstest = "0.25.0"

@@ -86,10 +86,10 @@ fn extract_announce_from(maybe_raw_query: Option<&str>) -> Result<Announce, resp
 mod tests {
     use std::str::FromStr;
 
-    use aquatic_udp_protocol::{NumberOfBytes, PeerId};
     use bittorrent_http_tracker_protocol::v1::requests::announce::{Announce, Compact, Event};
     use bittorrent_http_tracker_protocol::v1::responses::error::Error;
     use bittorrent_primitives::info_hash::InfoHash;
+    use torrust_tracker_primitives::{NumberOfBytes, PeerId};
 
     use super::extract_announce_from;
 

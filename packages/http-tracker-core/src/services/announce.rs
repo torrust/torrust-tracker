@@ -21,9 +21,9 @@ use bittorrent_tracker_core::authentication::{self, Key};
 use bittorrent_tracker_core::error::{AnnounceError, TrackerCoreError, WhitelistError};
 use bittorrent_tracker_core::whitelist;
 use torrust_tracker_configuration::Core;
-use torrust_tracker_primitives::core::AnnounceData;
 use torrust_tracker_primitives::peer::PeerAnnouncement;
 use torrust_tracker_primitives::service_binding::ServiceBinding;
+use torrust_tracker_primitives::AnnounceData;
 
 use crate::event;
 use crate::event::Event;
@@ -331,10 +331,9 @@ mod tests {
         use bittorrent_http_tracker_protocol::v1::services::peer_ip_resolver::{RemoteClientAddr, ResolvedIp};
         use mockall::predicate::{self};
         use torrust_tracker_configuration::Configuration;
-        use torrust_tracker_primitives::core::AnnounceData;
-        use torrust_tracker_primitives::peer;
         use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
         use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
+        use torrust_tracker_primitives::{peer, AnnounceData};
         use torrust_tracker_test_helpers::configuration;
 
         use crate::event::test::announce_events_match;

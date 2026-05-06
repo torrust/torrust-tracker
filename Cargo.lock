@@ -137,32 +137,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "aquatic_peer_id"
-version = "0.9.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f0732a73df221dcb25713849c6ebaf57b85355f669716652a7466f688cc06f25"
-dependencies = [
- "compact_str",
- "hex",
- "quickcheck",
- "regex",
- "serde",
- "zerocopy 0.7.35",
-]
-
-[[package]]
-name = "aquatic_udp_protocol"
-version = "0.9.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0af90e5162f5fcbde33524128f08dc52a779f32512d5f8692eadd4b55c89389e"
-dependencies = [
- "aquatic_peer_id",
- "byteorder",
- "either",
- "zerocopy 0.7.35",
-]
-
-[[package]]
 name = "arc-swap"
 version = "1.9.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -598,7 +572,6 @@ dependencies = [
 name = "bittorrent-http-tracker-core"
 version = "3.0.0-develop"
 dependencies = [
- "aquatic_udp_protocol",
  "bittorrent-http-tracker-protocol",
  "bittorrent-primitives",
  "bittorrent-tracker-core",
@@ -625,9 +598,9 @@ dependencies = [
 name = "bittorrent-http-tracker-protocol"
 version = "3.0.0-develop"
 dependencies = [
- "aquatic_udp_protocol",
  "bittorrent-primitives",
  "bittorrent-tracker-core",
+ "bittorrent-udp-tracker-protocol",
  "derive_more",
  "multimap",
  "percent-encoding",
@@ -642,25 +615,36 @@ dependencies = [
 ]
 
 [[package]]
-name = "bittorrent-primitives"
-version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fdc1bd0462f0af0b57abd5f5f8f32b904ba0a17cc8be1714db160a054552f242"
+name = "bittorrent-peer-id"
+version = "3.0.0-develop"
 dependencies = [
- "aquatic_udp_protocol",
+ "compact_str",
+ "hex",
+ "pretty_assertions",
+ "quickcheck",
+ "regex",
+ "serde",
+ "zerocopy",
+]
+
+[[package]]
+name = "bittorrent-primitives"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6b47ab263cb9c3bc8be80e312f81c1ee94d3af3d9ee066b81abc06f8fc851023"
+dependencies = [
  "binascii",
  "serde",
  "serde_json",
  "thiserror 1.0.69",
- "zerocopy 0.7.35",
 ]
 
 [[package]]
 name = "bittorrent-tracker-client"
 version = "3.0.0-develop"
 dependencies = [
- "aquatic_udp_protocol",
  "bittorrent-primitives",
+ "bittorrent-udp-tracker-protocol",
  "derive_more",
  "hyper",
  "percent-encoding",
@@ -675,7 +659,7 @@ dependencies = [
  "torrust-tracker-located-error",
  "torrust-tracker-primitives",
  "tracing",
- "zerocopy 0.7.35",
+ "zerocopy",
 ]
 
 [[package]]
@@ -683,7 +667,6 @@ name = "bittorrent-tracker-core"
 version = "3.0.0-develop"
 dependencies = [
  "anyhow",
- "aquatic_udp_protocol",
  "async-trait",
  "bittorrent-primitives",
  "chrono",
@@ -716,7 +699,6 @@ dependencies = [
 name = "bittorrent-udp-tracker-core"
 version = "3.0.0-develop"
 dependencies = [
- "aquatic_udp_protocol",
  "bittorrent-primitives",
  "bittorrent-tracker-core",
  "bittorrent-udp-tracker-protocol",
@@ -740,16 +722,20 @@ dependencies = [
  "torrust-tracker-swarm-coordination-registry",
  "torrust-tracker-test-helpers",
  "tracing",
- "zerocopy 0.7.35",
+ "zerocopy",
 ]
 
 [[package]]
 name = "bittorrent-udp-tracker-protocol"
 version = "3.0.0-develop"
 dependencies = [
- "aquatic_udp_protocol",
- "torrust-tracker-clock",
- "torrust-tracker-primitives",
+ "bittorrent-peer-id",
+ "byteorder",
+ "either",
+ "pretty_assertions",
+ "quickcheck",
+ "quickcheck_macros",
+ "zerocopy",
 ]
 
 [[package]]
@@ -1102,13 +1088,14 @@ dependencies = [
 
 [[package]]
 name = "compact_str"
-version = "0.7.1"
+version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f86b9c4c00838774a6d902ef931eff7470720c51d90c2e32cfe15dc304737b3f"
+checksum = "3fdb1325a1cece981e8a296ab8f0f9b63ae357bd0784a9faaf548cc7b480707a"
 dependencies = [
  "castaway",
  "cfg-if",
  "itoa",
+ "rustversion",
  "ryu",
  "static_assertions",
 ]
@@ -2103,7 +2090,7 @@ checksum = "6ea2d84b969582b4b1864a92dc5d27cd2b77b622a8d79306834f1be5ba20d84b"
 dependencies = [
  "cfg-if",
  "crunchy",
- "zerocopy 0.8.48",
+ "zerocopy",
 ]
 
 [[package]]
@@ -2161,12 +2148,6 @@ name = "hex"
 version = "0.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7f24254aa9a54b5c858eaee2f5bccdb46aaf0e486a595ed5fd8f86ba55232a70"
-
-[[package]]
-name = "hex-literal"
-version = "1.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e712f64ec3850b98572bffac52e2c6f282b29fe6c5fa6d42334b30be438d95c1"
 
 [[package]]
 name = "hkdf"
@@ -3510,7 +3491,7 @@ version = "0.2.21"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "85eae3c4ed2f50dcfe72643da4befc30deadb458a9b590d720cde2f2b1e97da9"
 dependencies = [
- "zerocopy 0.8.48",
+ "zerocopy",
 ]
 
 [[package]]
@@ -3653,6 +3634,17 @@ dependencies = [
  "env_logger",
  "log",
  "rand 0.10.1",
+]
+
+[[package]]
+name = "quickcheck_macros"
+version = "1.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a9a28b8493dd664c8b171dd944da82d933f7d456b829bfb236738e1fe06c5ba4"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.117",
 ]
 
 [[package]]
@@ -5317,7 +5309,6 @@ dependencies = [
 name = "torrust-axum-http-tracker-server"
 version = "3.0.0-develop"
 dependencies = [
- "aquatic_udp_protocol",
  "axum",
  "axum-client-ip",
  "axum-server",
@@ -5325,6 +5316,7 @@ dependencies = [
  "bittorrent-http-tracker-protocol",
  "bittorrent-primitives",
  "bittorrent-tracker-core",
+ "bittorrent-udp-tracker-protocol",
  "derive_more",
  "futures",
  "hyper",
@@ -5350,14 +5342,13 @@ dependencies = [
  "tower-http",
  "tracing",
  "uuid",
- "zerocopy 0.7.35",
+ "zerocopy",
 ]
 
 [[package]]
 name = "torrust-axum-rest-tracker-api-server"
 version = "3.0.0-develop"
 dependencies = [
- "aquatic_udp_protocol",
  "axum",
  "axum-extra",
  "axum-server",
@@ -5506,12 +5497,11 @@ name = "torrust-tracker-client"
 version = "3.0.0-develop"
 dependencies = [
  "anyhow",
- "aquatic_udp_protocol",
  "bittorrent-primitives",
  "bittorrent-tracker-client",
+ "bittorrent-udp-tracker-protocol",
  "clap",
  "futures",
- "hex-literal",
  "hyper",
  "reqwest",
  "serde",
@@ -5603,8 +5593,8 @@ dependencies = [
 name = "torrust-tracker-primitives"
 version = "3.0.0-develop"
 dependencies = [
- "aquatic_udp_protocol",
  "binascii",
+ "bittorrent-peer-id",
  "bittorrent-primitives",
  "derive_more",
  "rstest 0.25.0",
@@ -5614,14 +5604,12 @@ dependencies = [
  "thiserror 2.0.18",
  "torrust-tracker-configuration",
  "url",
- "zerocopy 0.7.35",
 ]
 
 [[package]]
 name = "torrust-tracker-swarm-coordination-registry"
 version = "3.0.0-develop"
 dependencies = [
- "aquatic_udp_protocol",
  "async-std",
  "bittorrent-primitives",
  "chrono",
@@ -5658,7 +5646,6 @@ dependencies = [
 name = "torrust-tracker-torrent-repository-benchmarking"
 version = "3.0.0-develop"
 dependencies = [
- "aquatic_udp_protocol",
  "async-std",
  "bittorrent-primitives",
  "criterion 0.8.2",
@@ -5671,18 +5658,17 @@ dependencies = [
  "torrust-tracker-clock",
  "torrust-tracker-configuration",
  "torrust-tracker-primitives",
- "zerocopy 0.7.35",
 ]
 
 [[package]]
 name = "torrust-udp-tracker-server"
 version = "3.0.0-develop"
 dependencies = [
- "aquatic_udp_protocol",
  "bittorrent-primitives",
  "bittorrent-tracker-client",
  "bittorrent-tracker-core",
  "bittorrent-udp-tracker-core",
+ "bittorrent-udp-tracker-protocol",
  "derive_more",
  "futures",
  "futures-util",
@@ -5705,7 +5691,7 @@ dependencies = [
  "tracing",
  "url",
  "uuid",
- "zerocopy 0.7.35",
+ "zerocopy",
 ]
 
 [[package]]
@@ -6682,32 +6668,11 @@ dependencies = [
 
 [[package]]
 name = "zerocopy"
-version = "0.7.35"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1b9b4fd18abc82b8136838da5d50bae7bdea537c574d8dc1a34ed098d6c166f0"
-dependencies = [
- "byteorder",
- "zerocopy-derive 0.7.35",
-]
-
-[[package]]
-name = "zerocopy"
 version = "0.8.48"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "eed437bf9d6692032087e337407a86f04cd8d6a16a37199ed57949d415bd68e9"
 dependencies = [
- "zerocopy-derive 0.8.48",
-]
-
-[[package]]
-name = "zerocopy-derive"
-version = "0.7.35"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fa4f8080344d4671fb4e831a13ad1e68092748387dfc4f55e356242fae12ce3e"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 2.0.117",
+ "zerocopy-derive",
 ]
 
 [[package]]

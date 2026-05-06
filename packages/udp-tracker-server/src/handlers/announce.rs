@@ -3,17 +3,17 @@ use std::net::{IpAddr, SocketAddr};
 use std::ops::Range;
 use std::sync::Arc;
 
-use aquatic_udp_protocol::{
+use bittorrent_primitives::info_hash::InfoHash;
+use bittorrent_udp_tracker_core::services::announce::AnnounceService;
+use bittorrent_udp_tracker_protocol::{
     AnnounceInterval, AnnounceRequest, AnnounceResponse, AnnounceResponseFixedData, Ipv4AddrBytes, Ipv6AddrBytes, NumberOfPeers,
     Port, Response, ResponsePeer, TransactionId,
 };
-use bittorrent_primitives::info_hash::InfoHash;
-use bittorrent_udp_tracker_core::services::announce::AnnounceService;
 use torrust_tracker_configuration::Core;
-use torrust_tracker_primitives::core::AnnounceData;
 use torrust_tracker_primitives::service_binding::ServiceBinding;
+use torrust_tracker_primitives::AnnounceData;
 use tracing::{instrument, Level};
-use zerocopy::network_endian::I32;
+use zerocopy::byteorder::network_endian::I32;
 
 use crate::error::Error;
 use crate::event::{ConnectionContext, Event, UdpRequestKind};
@@ -135,11 +135,11 @@ pub(crate) mod tests {
         use std::net::Ipv4Addr;
         use std::num::NonZeroU16;
 
-        use aquatic_udp_protocol::{
+        use bittorrent_udp_tracker_core::connection_cookie::make;
+        use bittorrent_udp_tracker_protocol::{
             AnnounceActionPlaceholder, AnnounceEvent, AnnounceRequest, ConnectionId, NumberOfBytes, NumberOfPeers,
             PeerId as AquaticPeerId, PeerKey, Port, TransactionId,
         };
-        use bittorrent_udp_tracker_core::connection_cookie::make;
 
         use crate::handlers::tests::{sample_ipv4_remote_addr_fingerprint, sample_issue_time};
 
@@ -151,7 +151,7 @@ pub(crate) mod tests {
             pub fn default() -> AnnounceRequestBuilder {
                 let client_ip = Ipv4Addr::new(126, 0, 0, 1);
                 let client_port = 8080;
-                let info_hash_aquatic = aquatic_udp_protocol::InfoHash([0u8; 20]);
+                let info_hash_aquatic = bittorrent_udp_tracker_protocol::InfoHash([0u8; 20]);
 
                 let default_request = AnnounceRequest {
                     connection_id: make(sample_ipv4_remote_addr_fingerprint(), sample_issue_time()).unwrap(),
@@ -178,7 +178,7 @@ pub(crate) mod tests {
                 self
             }
 
-            pub fn with_info_hash(mut self, info_hash: aquatic_udp_protocol::InfoHash) -> Self {
+            pub fn with_info_hash(mut self, info_hash: bittorrent_udp_tracker_protocol::InfoHash) -> Self {
                 self.request.info_hash = info_hash;
                 self
             }
@@ -209,12 +209,12 @@ pub(crate) mod tests {
             use std::net::{IpAddr, Ipv4Addr, SocketAddr};
             use std::sync::Arc;
 
-            use aquatic_udp_protocol::{
+            use bittorrent_tracker_core::torrent::repository::in_memory::InMemoryTorrentRepository;
+            use bittorrent_udp_tracker_core::connection_cookie::{gen_remote_fingerprint, make};
+            use bittorrent_udp_tracker_protocol::{
                 AnnounceInterval, AnnounceResponse, AnnounceResponseFixedData, InfoHash as AquaticInfoHash, Ipv4AddrBytes,
                 Ipv6AddrBytes, NumberOfPeers, PeerId as AquaticPeerId, Response, ResponsePeer,
             };
-            use bittorrent_tracker_core::torrent::repository::in_memory::InMemoryTorrentRepository;
-            use bittorrent_udp_tracker_core::connection_cookie::{gen_remote_fingerprint, make};
             use mockall::predicate::eq;
             use torrust_tracker_events::bus::SenderStatus;
             use torrust_tracker_primitives::peer::fixture::PeerBuilder;
@@ -269,7 +269,7 @@ pub(crate) mod tests {
                     .await;
 
                 let expected_peer = PeerBuilder::default()
-                    .with_peer_id(&peer_id)
+                    .with_peer_id(&torrust_tracker_primitives::PeerId(peer_id.0))
                     .with_peer_address(SocketAddr::new(IpAddr::V4(client_ip), client_port))
                     .updated_on(peers[0].updated)
                     .into();
@@ -375,7 +375,7 @@ pub(crate) mod tests {
                 let peer_id = AquaticPeerId([255u8; 20]);
 
                 let peer_using_ipv6 = PeerBuilder::default()
-                    .with_peer_id(&peer_id)
+                    .with_peer_id(&torrust_tracker_primitives::PeerId(peer_id.0))
                     .with_peer_address(SocketAddr::new(IpAddr::V6(client_ip_v6), client_port))
                     .into();
 
@@ -475,8 +475,8 @@ pub(crate) mod tests {
                 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
                 use std::sync::Arc;
 
-                use aquatic_udp_protocol::{InfoHash as AquaticInfoHash, PeerId as AquaticPeerId};
                 use bittorrent_udp_tracker_core::connection_cookie::{gen_remote_fingerprint, make};
+                use bittorrent_udp_tracker_protocol::{InfoHash as AquaticInfoHash, PeerId as AquaticPeerId};
                 use torrust_tracker_primitives::peer::fixture::PeerBuilder;
                 use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
 
@@ -528,7 +528,7 @@ pub(crate) mod tests {
                     let external_ip_in_tracker_configuration = core_tracker_services.core_config.net.external_ip.unwrap();
 
                     let expected_peer = PeerBuilder::default()
-                        .with_peer_id(&peer_id)
+                        .with_peer_id(&torrust_tracker_primitives::PeerId(peer_id.0))
                         .with_peer_address(SocketAddr::new(external_ip_in_tracker_configuration, client_port))
                         .updated_on(peers[0].updated)
                         .into();
@@ -544,10 +544,6 @@ pub(crate) mod tests {
             use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
             use std::sync::Arc;
 
-            use aquatic_udp_protocol::{
-                AnnounceInterval, AnnounceResponse, AnnounceResponseFixedData, InfoHash as AquaticInfoHash, Ipv4AddrBytes,
-                Ipv6AddrBytes, NumberOfPeers, PeerId as AquaticPeerId, Response, ResponsePeer,
-            };
             use bittorrent_tracker_core::announce_handler::AnnounceHandler;
             use bittorrent_tracker_core::torrent::repository::in_memory::InMemoryTorrentRepository;
             use bittorrent_tracker_core::whitelist;
@@ -555,6 +551,10 @@ pub(crate) mod tests {
             use bittorrent_udp_tracker_core::event::bus::EventBus;
             use bittorrent_udp_tracker_core::event::sender::Broadcaster;
             use bittorrent_udp_tracker_core::services::announce::AnnounceService;
+            use bittorrent_udp_tracker_protocol::{
+                AnnounceInterval, AnnounceResponse, AnnounceResponseFixedData, InfoHash as AquaticInfoHash, Ipv4AddrBytes,
+                Ipv6AddrBytes, NumberOfPeers, PeerId as AquaticPeerId, Response, ResponsePeer,
+            };
             use mockall::predicate::eq;
             use torrust_tracker_configuration::Core;
             use torrust_tracker_events::bus::SenderStatus;
@@ -611,7 +611,7 @@ pub(crate) mod tests {
                     .await;
 
                 let expected_peer = PeerBuilder::default()
-                    .with_peer_id(&peer_id)
+                    .with_peer_id(&torrust_tracker_primitives::PeerId(peer_id.0))
                     .with_peer_address(SocketAddr::new(IpAddr::V6(client_ip_v6), client_port))
                     .updated_on(peers[0].updated)
                     .into();
@@ -720,7 +720,7 @@ pub(crate) mod tests {
                 let peer_id = AquaticPeerId([255u8; 20]);
 
                 let peer_using_ipv4 = PeerBuilder::default()
-                    .with_peer_id(&peer_id)
+                    .with_peer_id(&torrust_tracker_primitives::PeerId(peer_id.0))
                     .with_peer_address(SocketAddr::new(IpAddr::V4(client_ip_v4), client_port))
                     .into();
 
@@ -843,7 +843,6 @@ pub(crate) mod tests {
                 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
                 use std::sync::Arc;
 
-                use aquatic_udp_protocol::{InfoHash as AquaticInfoHash, PeerId as AquaticPeerId};
                 use bittorrent_tracker_core::announce_handler::AnnounceHandler;
                 use bittorrent_tracker_core::databases::setup::initialize_database;
                 use bittorrent_tracker_core::statistics::persisted::downloads::DatabaseDownloadsMetricRepository;
@@ -853,6 +852,7 @@ pub(crate) mod tests {
                 use bittorrent_udp_tracker_core::connection_cookie::{gen_remote_fingerprint, make};
                 use bittorrent_udp_tracker_core::services::announce::AnnounceService;
                 use bittorrent_udp_tracker_core::{self, event as core_event};
+                use bittorrent_udp_tracker_protocol::{InfoHash as AquaticInfoHash, PeerId as AquaticPeerId};
                 use mockall::predicate::{self, eq};
                 use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
 
@@ -879,7 +879,7 @@ pub(crate) mod tests {
                     let info_hash = AquaticInfoHash([0u8; 20]);
                     let peer_id = AquaticPeerId([255u8; 20]);
                     let mut announcement = sample_peer();
-                    announcement.peer_id = peer_id;
+                    announcement.peer_id = torrust_tracker_primitives::PeerId(peer_id.0);
                     announcement.peer_addr = SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0x7e00, 1)), client_port);
 
                     let client_socket_addr = SocketAddr::new(IpAddr::V6(client_ip_v6), client_port);
@@ -916,7 +916,7 @@ pub(crate) mod tests {
                                     client_socket_addr,
                                     server_service_binding.clone(),
                                 ),
-                                info_hash: info_hash.into(),
+                                info_hash: bittorrent_primitives::info_hash::InfoHash::from(info_hash.0),
                                 announcement,
                             };
 

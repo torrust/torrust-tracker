@@ -12,8 +12,8 @@ use bittorrent_http_tracker_protocol::v1::responses::{self};
 use bittorrent_http_tracker_protocol::v1::services::peer_ip_resolver::ClientIpSources;
 use bittorrent_tracker_core::authentication::Key;
 use hyper::StatusCode;
-use torrust_tracker_primitives::core::AnnounceData;
 use torrust_tracker_primitives::service_binding::ServiceBinding;
+use torrust_tracker_primitives::AnnounceData;
 
 use crate::v1::extractors::announce_request::ExtractRequest;
 use crate::v1::extractors::authentication_key::Extract as ExtractKey;
@@ -106,7 +106,6 @@ mod tests {
 
     use std::sync::Arc;
 
-    use aquatic_udp_protocol::PeerId;
     use bittorrent_http_tracker_core::event::bus::EventBus;
     use bittorrent_http_tracker_core::event::sender::Broadcaster;
     use bittorrent_http_tracker_core::services::announce::AnnounceService;
@@ -125,6 +124,7 @@ mod tests {
     use bittorrent_tracker_core::whitelist::repository::in_memory::InMemoryWhitelist;
     use tokio_util::sync::CancellationToken;
     use torrust_tracker_configuration::Configuration;
+    use torrust_tracker_primitives::PeerId;
     use torrust_tracker_test_helpers::configuration;
 
     use crate::tests::helpers::sample_info_hash;

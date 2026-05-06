@@ -14,7 +14,16 @@ repository.workspace = true
 rust-version.workspace = true
 version.workspace = true
 
+[features]
+default = [  ]
+
 [dependencies]
-aquatic_udp_protocol = "0"
-torrust-tracker-clock = { version = "3.0.0-develop", path = "../clock" }
-torrust-tracker-primitives = { version = "3.0.0-develop", path = "../primitives" }
+bittorrent-peer-id = { version = "3.0.0-develop", path = "../peer-id", features = [ "zerocopy" ] }
+byteorder = "1"
+either = "1"
+zerocopy = { version = "0.8", features = [ "derive" ] }
+
+[dev-dependencies]
+pretty_assertions = "1"
+quickcheck = "1"
+quickcheck_macros = "1"

@@ -1,7 +1,7 @@
 use std::net::SocketAddr;
 use std::sync::Arc;
 
-use aquatic_udp_protocol::Request;
+use bittorrent_udp_tracker_protocol::Request;
 use thiserror::Error;
 use torrust_tracker_located_error::DynError;
 

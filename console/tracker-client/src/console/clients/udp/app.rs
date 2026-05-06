@@ -60,8 +60,8 @@ use std::net::{SocketAddr, ToSocketAddrs};
 use std::str::FromStr;
 
 use anyhow::Context;
-use aquatic_udp_protocol::{Response, TransactionId};
 use bittorrent_primitives::info_hash::InfoHash as TorrustInfoHash;
+use bittorrent_udp_tracker_protocol::{Response, TransactionId};
 use clap::{Parser, Subcommand};
 use torrust_tracker_configuration::DEFAULT_TIMEOUT;
 use tracing::level_filters::LevelFilter;

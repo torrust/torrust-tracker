@@ -15,8 +15,8 @@ rust-version.workspace = true
 version.workspace = true
 
 [dependencies]
-aquatic_udp_protocol = "0"
-bittorrent-primitives = "0.1.0"
+bittorrent-udp-tracker-protocol = { version = "3.0.0-develop", path = "../udp-protocol" }
+bittorrent-primitives = "0.2.0"
 derive_more = { version = "2", features = [ "as_ref", "constructor", "from" ] }
 hyper = "1"
 percent-encoding = "2"
@@ -31,7 +31,7 @@ torrust-tracker-configuration = { version = "3.0.0-develop", path = "../configur
 torrust-tracker-located-error = { version = "3.0.0-develop", path = "../located-error" }
 torrust-tracker-primitives = { version = "3.0.0-develop", path = "../primitives" }
 tracing = "0"
-zerocopy = "0.7"
+zerocopy = "0.8"
 
 [package.metadata.cargo-machete]
 ignored = [ "serde_bytes" ]

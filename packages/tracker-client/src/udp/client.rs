@@ -4,12 +4,12 @@ use std::net::{Ipv4Addr, Ipv6Addr, SocketAddr};
 use std::sync::Arc;
 use std::time::Duration;
 
-use aquatic_udp_protocol::{ConnectRequest, Request, Response, TransactionId};
+use bittorrent_udp_tracker_protocol::{ConnectRequest, Request, Response, TransactionId};
 use tokio::net::UdpSocket;
 use tokio::time;
 use torrust_tracker_configuration::DEFAULT_TIMEOUT;
 use torrust_tracker_primitives::service_binding::ServiceBinding;
-use zerocopy::network_endian::I32;
+use zerocopy::byteorder::network_endian::I32;
 
 use super::Error;
 use crate::udp::MAX_PACKET_SIZE;
