@@ -151,9 +151,9 @@ Exit criteria:
 - [x] Move `AnnounceData` into `announce.rs`
 - [x] Re-export `AnnounceData` from `lib.rs`
 - [x] Validate after the `AnnounceData` move
-- [ ] Move `AnnounceEvent` from `announce_event.rs` into `announce.rs`
-- [ ] Preserve root `AnnounceEvent` re-export from `lib.rs`
-- [ ] Validate after the `AnnounceEvent` move
+- [x] Move `AnnounceEvent` from `announce_event.rs` into `announce.rs`
+- [x] Preserve root `AnnounceEvent` re-export from `lib.rs`
+- [x] Validate after the `AnnounceEvent` move
 - [ ] Move `ScrapeData` into `scrape.rs`
 - [ ] Re-export `ScrapeData` from `lib.rs`
 - [ ] Validate after the `ScrapeData` move
@@ -192,7 +192,7 @@ Exit criteria:
 - [x] `scrape.rs` added
 - [x] `AnnounceData` moved
 - [ ] `ScrapeData` moved
-- [ ] `AnnounceEvent` moved
+- [x] `AnnounceEvent` moved
 - [ ] `core.rs` reduced to compatibility exports
 - [x] `lib.rs` updated
 - [ ] Docs updated
@@ -212,11 +212,11 @@ Exit criteria:
   - [ ] consumers validated
   - [ ] validated (`cargo check --workspace`, `linter all`)
 - [ ] `AnnounceEvent`
-  - [ ] moved to `announce.rs`
-  - [ ] re-exported from `lib.rs`
-  - [ ] root re-export preserved
-  - [ ] consumers validated
-  - [ ] validated (`cargo check --workspace`, `linter all`)
+  - [x] moved to `announce.rs`
+  - [x] re-exported from `lib.rs`
+  - [x] root re-export preserved
+  - [x] consumers validated
+  - [x] validated (`cargo check --workspace`, `linter all`)
 
 ### Per-Type Migration Workflow
 
