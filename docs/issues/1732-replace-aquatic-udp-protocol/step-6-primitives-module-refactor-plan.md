@@ -49,6 +49,14 @@ Planned source files:
 - `core.rs` (temporary compatibility wrapper only)
 - `lib.rs` (re-exports and module declarations)
 
+## Final Module Map (Implemented)
+
+- `announce.rs`: owns `AnnounceData` and `AnnounceEvent`
+- `scrape.rs`: owns `ScrapeData`
+- `announce_event.rs`: compatibility wrapper re-exporting `announce::AnnounceEvent`
+- `core.rs`: compatibility wrapper re-exporting `announce::AnnounceData` and `scrape::ScrapeData`
+- `lib.rs`: root compatibility re-exports for `AnnounceData`, `AnnounceEvent`, and `ScrapeData`
+
 ## Final Module Intent
 
 `announce.rs` owns announce-only primitives:
@@ -136,15 +144,15 @@ Exit criteria:
 
 ### Phase 2: Preserve Compatibility
 
-- [ ] Convert `core.rs` into a compatibility wrapper module
-- [ ] Re-export `AnnounceData` and `ScrapeData` from `core.rs`
-- [ ] Preserve `torrust_tracker_primitives::AnnounceEvent` via `lib.rs` re-export
-- [ ] Verify existing consumers still compile unchanged
+- [x] Convert `core.rs` into a compatibility wrapper module
+- [x] Re-export `AnnounceData` and `ScrapeData` from `core.rs`
+- [x] Preserve `torrust_tracker_primitives::AnnounceEvent` via `lib.rs` re-export
+- [x] Verify existing consumers still compile unchanged
 
 Exit criteria:
 
-- [ ] Existing import paths continue to work
-- [ ] No workspace build regressions
+- [x] Existing import paths continue to work
+- [x] No workspace build regressions
 
 ### Phase 3: Type-by-Type Migration
 
@@ -160,29 +168,29 @@ Exit criteria:
 
 Exit criteria:
 
-- [ ] Each moved type remains available through compatibility exports
-- [ ] Each per-type move passes validation before the next move starts
+- [x] Each moved type remains available through compatibility exports
+- [x] Each per-type move passes validation before the next move starts
 
 ### Phase 4: Optional Consumer Cleanup
 
-- [ ] Decide whether internal consumers should migrate from `core::*` to `announce::*` / `scrape::*`
+- [x] Decide whether internal consumers should migrate from `core::*` to `announce::*` / `scrape::*`
 - [ ] Update internal imports only where it improves clarity
-- [ ] Keep compatibility re-exports until a separate cleanup/removal task
+- [x] Keep compatibility re-exports until a separate cleanup/removal task
 
 Exit criteria:
 
-- [ ] New ownership boundaries are clear
-- [ ] Compatibility strategy is documented
+- [x] New ownership boundaries are clear
+- [x] Compatibility strategy is documented
 
 ### Phase 5: Final Documentation
 
-- [ ] Document final module map
-- [ ] Record any follow-up work for eventual compatibility wrapper removal
+- [x] Document final module map
+- [x] Record any follow-up work for eventual compatibility wrapper removal
 
 Exit criteria:
 
-- [ ] Final module structure documented
-- [ ] Remaining follow-up work explicitly listed
+- [x] Final module structure documented
+- [x] Remaining follow-up work explicitly listed
 
 ## Tracking Checklist
 
@@ -193,25 +201,25 @@ Exit criteria:
 - [x] `AnnounceData` moved
 - [x] `ScrapeData` moved
 - [x] `AnnounceEvent` moved
-- [ ] `core.rs` reduced to compatibility exports
+- [x] `core.rs` reduced to compatibility exports
 - [x] `lib.rs` updated
-- [ ] Docs updated
+- [x] Docs updated
 
 ### Type-by-Type Progress Tracker
 
-- [ ] `AnnounceData`
+- [x] `AnnounceData`
   - [x] moved to `announce.rs`
   - [x] re-exported from `lib.rs`
   - [x] compatibility preserved
   - [x] consumers validated
   - [x] validated (`cargo check --workspace`, `linter all`)
-- [ ] `ScrapeData`
+- [x] `ScrapeData`
   - [x] moved to `scrape.rs`
   - [x] re-exported from `lib.rs`
   - [x] compatibility preserved
   - [x] consumers validated
   - [x] validated (`cargo check --workspace`, `linter all`)
-- [ ] `AnnounceEvent`
+- [x] `AnnounceEvent`
   - [x] moved to `announce.rs`
   - [x] re-exported from `lib.rs`
   - [x] root re-export preserved
@@ -232,10 +240,10 @@ For each type, execute this sequence before starting the next one:
 
 ## Validation Gate
 
-- [ ] `cargo check --workspace`
-- [ ] `cargo test --workspace`
-- [ ] `cargo test --doc --workspace`
-- [ ] `linter all`
+- [x] `cargo check --workspace`
+- [x] `cargo test --workspace`
+- [x] `cargo test --doc --workspace`
+- [x] `linter all`
 
 ## Risk Register
 
@@ -268,17 +276,23 @@ Mitigation:
 
 ## Review Checklist
 
-- [ ] Announce-related primitives are co-located
-- [ ] Scrape-related primitives are isolated
-- [ ] Compatibility exports preserve current consumers
-- [ ] No unnecessary behavior changes introduced
-- [ ] Follow-up cleanup work is documented
+- [x] Announce-related primitives are co-located
+- [x] Scrape-related primitives are isolated
+- [x] Compatibility exports preserve current consumers
+- [x] No unnecessary behavior changes introduced
+- [x] Follow-up cleanup work is documented
 
 ## Suggested Commit Slicing
 
-1. `refactor(primitives): add announce and scrape modules`
-2. `refactor(primitives): move AnnounceData to announce module`
-3. `refactor(primitives): move AnnounceEvent to announce module`
-4. `refactor(primitives): move ScrapeData to scrape module`
-5. `refactor(primitives): keep core module as compatibility wrapper`
-6. `docs(issue-1732): document final primitives module layout`
+1. [x] `refactor(primitives): add announce and scrape modules`
+2. [x] `refactor(primitives): move AnnounceData to announce module`
+3. [x] `refactor(primitives): move AnnounceEvent to announce module`
+4. [x] `refactor(primitives): move ScrapeData to scrape module`
+5. [x] `refactor(primitives): keep core module as compatibility wrapper`
+6. [ ] `docs(issue-1732): document final primitives module layout`
+
+## Follow-Up Work
+
+- Optionally migrate internal consumers from `core::*` imports to `announce::*` and `scrape::*`
+  where that improves clarity.
+- Keep compatibility re-exports in place until a separate cleanup task explicitly removes them.
