@@ -49,6 +49,19 @@ Planned source files:
 - `peer_id.rs`
 - `lib.rs`
 
+## Final Module Map (Implemented)
+
+- `common.rs`: shared wire primitives and helpers (`ConnectionId`, `TransactionId`, `InfoHash`,
+  `NumberOfBytes`, `Port`, `PeerKey`, `NumberOfPeers`, `NumberOfDownloads`,
+  `Ipv4AddrBytes`/`Ipv6AddrBytes`, `ResponsePeer<I>`, read helpers, `invalid_data`)
+- `connect.rs`: connect action request/response types
+- `announce.rs`: announce action request/response types and announce-only wire helpers
+  (`AnnounceInterval`, `AnnounceActionPlaceholder`, `AnnounceEvent*`)
+- `scrape.rs`: scrape action request/response types and scrape statistics
+- `request.rs`: stable top-level request wrapper/orchestration
+- `response.rs`: stable top-level response wrapper/orchestration (including `ErrorResponse`)
+- `lib.rs`: compatibility-preserving re-exports
+
 ## Type Ownership Rules
 
 `common.rs` owns protocol-wide shared types and helpers:
@@ -120,7 +133,7 @@ Current note:
 
 Exit criteria:
 
-- [ ] Baseline green and recorded in issue comments/notes
+- [x] Baseline green and recorded in issue comments/notes
 
 ### Phase 1: Introduce New Action Modules
 
@@ -135,7 +148,7 @@ Exit criteria:
 Exit criteria:
 
 - [x] `cargo check --workspace` passes
-- [ ] `cargo test --workspace` passes
+- [x] `cargo test --workspace` passes
 
 ### Phase 2: Normalize `common.rs`
 
@@ -146,7 +159,7 @@ Exit criteria:
 Exit criteria:
 
 - [x] `common.rs` content matches ownership rules
-- [ ] All tests still pass
+- [x] All tests still pass
 
 ### Phase 3: Compatibility and Call Site Stability
 
@@ -157,18 +170,18 @@ Exit criteria:
 Exit criteria:
 
 - [x] Zero workspace build regressions
-- [ ] No behavior changes in protocol encode/decode tests
+- [x] No behavior changes in protocol encode/decode tests
 
 ### Phase 4: Optional Cleanup
 
 - [x] Keep wrappers and evaluate only internal simplification (not removal)
 - [x] Remove dead internal aliases/helpers if any remain after migration
-- [ ] Update docs with final module map
+- [x] Update docs with final module map
 
 Exit criteria:
 
 - [x] Final module structure agreed and documented
-- [ ] Lints/tests/checks green
+- [x] Lints/tests/checks green
 
 ## Tracking Checklist
 
@@ -177,7 +190,7 @@ Exit criteria:
 - [x] New action modules implemented
 - [x] `common.rs` narrowed to shared primitives
 - [x] Compatibility exports preserved
-- [ ] Docs updated
+- [x] Docs updated
 
 ### Type-by-Type Progress Tracker
 
@@ -266,8 +279,8 @@ For each type, execute this sequence before starting the next one:
 ### Validation Gate (must be green)
 
 - [x] `cargo check --workspace`
-- [ ] `cargo test --workspace`
-- [ ] `cargo test --doc --workspace`
+- [x] `cargo test --workspace`
+- [x] `cargo test --doc --workspace`
 - [x] `linter all`
 
 Additionally, run `linter all` at the end of every per-type move, not only at the end of the
@@ -306,7 +319,7 @@ Mitigation:
 
 - [x] Module boundaries are action-oriented and coherent
 - [x] Shared types remain in `common.rs`
-- [ ] No wire format behavior changes introduced
+- [x] No wire format behavior changes introduced
 - [x] No unnecessary cross-module coupling
 - [x] Public API compatibility preserved during migration
 
@@ -315,4 +328,4 @@ Mitigation:
 1. [x] `refactor(udp-protocol): move connect types to connect module`
 2. [x] `refactor(udp-protocol): move announce types to announce module`
 3. [x] `refactor(udp-protocol): move scrape types to scrape module`
-4. [ ] `docs(issue-1732): document final udp-protocol module layout`
+4. [x] `docs(issue-1732): document final udp-protocol module layout`
