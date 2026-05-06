@@ -321,7 +321,7 @@
 //!
 //! **Announce request (parsed struct)**
 //!
-//! After parsing the UDP packet, the [`AnnounceRequest`](bittorrent_udp_tracker_protocol::request::AnnounceRequest)
+//! After parsing the UDP packet, the [`AnnounceRequest`](bittorrent_udp_tracker_protocol::AnnounceRequest)
 //! struct will contain the following fields:
 //!
 //! Field              | Type                                                            | Example
@@ -332,7 +332,7 @@
 //! `peer_id`          | [`PeerId`](bittorrent_udp_tracker_protocol::common::PeerId)                | `[45,113,66,52,52,49,48,45,41,83,100,126,100,101,52,120,77,112,54,68]`
 //! `bytes_downloaded` | [`NumberOfBytes`](bittorrent_udp_tracker_protocol::common::NumberOfBytes)  | `0`
 //! `bytes_uploaded`   | [`TransactionId`](bittorrent_udp_tracker_protocol::common::NumberOfBytes)  | `0`
-//! `event`            | [`AnnounceEvent`](bittorrent_udp_tracker_protocol::request::AnnounceEvent) | `Started`
+//! `event`            | [`AnnounceEvent`](bittorrent_udp_tracker_protocol::AnnounceEvent) | `Started`
 //! `ip_address`       | [`Ipv4Addr`](bittorrent_udp_tracker_protocol::common::ConnectionId)        | `None`
 //! `peers_wanted`     | [`NumberOfPeers`](bittorrent_udp_tracker_protocol::common::NumberOfPeers)  | `200`
 //! `port`             | [`Port`](bittorrent_udp_tracker_protocol::common::Port)                    | `17548`
@@ -340,7 +340,7 @@
 //! > **NOTICE**: the `peers_wanted` field is the `num_want` field in the UDP
 //! > packet.
 //!
-//! We are using a wrapper struct for the aquatic [`AnnounceRequest`](bittorrent_udp_tracker_protocol::request::AnnounceRequest)
+//! We are using a wrapper struct for the aquatic [`AnnounceRequest`](bittorrent_udp_tracker_protocol::AnnounceRequest)
 //! struct, because we have our internal [`InfoHash`](bittorrent_primitives::info_hash::InfoHash)
 //! struct.
 //!

@@ -189,41 +189,41 @@ Status legend: `pending` | `moved` | `re-exported` | `consumers-updated` | `vali
   - [x] re-exported from `lib.rs`
   - [x] consumers updated
   - [x] validated (`cargo check --workspace`, `linter all`)
-- [ ] `AnnounceRequest`
-  - [ ] moved
-  - [ ] re-exported from `lib.rs`
-  - [ ] consumers updated
-  - [ ] validated (`cargo check --workspace`, `linter all`)
-- [ ] `AnnounceActionPlaceholder`
-  - [ ] moved
-  - [ ] re-exported from `lib.rs`
-  - [ ] consumers updated
-  - [ ] validated (`cargo check --workspace`, `linter all`)
-- [ ] `AnnounceEvent`
-  - [ ] moved
-  - [ ] re-exported from `lib.rs`
-  - [ ] consumers updated
-  - [ ] validated (`cargo check --workspace`, `linter all`)
-- [ ] `AnnounceEventBytes`
-  - [ ] moved
-  - [ ] re-exported from `lib.rs`
-  - [ ] consumers updated
-  - [ ] validated (`cargo check --workspace`, `linter all`)
+- [x] `AnnounceRequest`
+  - [x] moved
+  - [x] re-exported from `lib.rs`
+  - [x] consumers updated
+  - [x] validated (`cargo check --workspace`, `linter all`)
+- [x] `AnnounceActionPlaceholder`
+  - [x] moved
+  - [x] re-exported from `lib.rs`
+  - [x] consumers updated
+  - [x] validated (`cargo check --workspace`, `linter all`)
+- [x] `AnnounceEvent`
+  - [x] moved
+  - [x] re-exported from `lib.rs`
+  - [x] consumers updated
+  - [x] validated (`cargo check --workspace`, `linter all`)
+- [x] `AnnounceEventBytes`
+  - [x] moved
+  - [x] re-exported from `lib.rs`
+  - [x] consumers updated
+  - [x] validated (`cargo check --workspace`, `linter all`)
 - [ ] `ScrapeRequest`
   - [ ] moved
   - [ ] re-exported from `lib.rs`
   - [ ] consumers updated
   - [ ] validated (`cargo check --workspace`, `linter all`)
-- [ ] `AnnounceResponse<Ipv4AddrBytes>` / `AnnounceResponse<Ipv6AddrBytes>`
-  - [ ] moved
-  - [ ] re-exported from `lib.rs`
-  - [ ] consumers updated
-  - [ ] validated (`cargo check --workspace`, `linter all`)
-- [ ] `AnnounceResponseFixedData`
-  - [ ] moved
-  - [ ] re-exported from `lib.rs`
-  - [ ] consumers updated
-  - [ ] validated (`cargo check --workspace`, `linter all`)
+- [x] `AnnounceResponse<Ipv4AddrBytes>` / `AnnounceResponse<Ipv6AddrBytes>`
+  - [x] moved
+  - [x] re-exported from `lib.rs`
+  - [x] consumers updated
+  - [x] validated (`cargo check --workspace`, `linter all`)
+- [x] `AnnounceResponseFixedData`
+  - [x] moved
+  - [x] re-exported from `lib.rs`
+  - [x] consumers updated
+  - [x] validated (`cargo check --workspace`, `linter all`)
 - [ ] `ScrapeResponse`
   - [ ] moved
   - [ ] re-exported from `lib.rs`

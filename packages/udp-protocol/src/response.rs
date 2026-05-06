@@ -10,8 +10,9 @@ use std::io::{self, Write};
 use std::mem::size_of;
 
 use byteorder::{NetworkEndian, WriteBytesExt};
-use zerocopy::{FromBytes, FromZeros, Immutable, IntoBytes};
+use zerocopy::{FromBytes, Immutable, IntoBytes};
 
+use super::announce::{AnnounceResponse, AnnounceResponseFixedData};
 use super::common::*;
 use super::connect::ConnectResponse;
 
@@ -156,39 +157,6 @@ impl From<ErrorResponse> for Response {
     fn from(r: ErrorResponse) -> Self {
         Self::Error(r)
     }
-}
-
-#[derive(PartialEq, Eq, Clone, Debug)]
-pub struct AnnounceResponse<I: Ip> {
-    pub fixed: AnnounceResponseFixedData,
-    pub peers: Vec<ResponsePeer<I>>,
-}
-
-impl<I: Ip> AnnounceResponse<I> {
-    pub fn empty() -> Self {
-        Self {
-            fixed: FromZeros::new_zeroed(),
-            peers: Default::default(),
-        }
-    }
-
-    #[inline]
-    pub fn write_bytes(&self, bytes: &mut impl Write) -> Result<(), io::Error> {
-        bytes.write_i32::<NetworkEndian>(1)?;
-        bytes.write_all(self.fixed.as_bytes())?;
-        bytes.write_all((*self.peers.as_slice()).as_bytes())?;
-
-        Ok(())
-    }
-}
-
-#[derive(PartialEq, Eq, Clone, Copy, Debug, IntoBytes, FromBytes, Immutable)]
-#[repr(C, packed)]
-pub struct AnnounceResponseFixedData {
-    pub transaction_id: TransactionId,
-    pub announce_interval: AnnounceInterval,
-    pub leechers: NumberOfPeers,
-    pub seeders: NumberOfPeers,
 }
 
 #[derive(PartialEq, Eq, Clone, Debug)]

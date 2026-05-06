@@ -190,13 +190,13 @@ impl fmt::Display for Event {
     }
 }
 
-impl From<bittorrent_udp_tracker_protocol::request::AnnounceEvent> for Event {
-    fn from(event: bittorrent_udp_tracker_protocol::request::AnnounceEvent) -> Self {
+impl From<bittorrent_udp_tracker_protocol::AnnounceEvent> for Event {
+    fn from(event: bittorrent_udp_tracker_protocol::AnnounceEvent) -> Self {
         match event {
-            bittorrent_udp_tracker_protocol::request::AnnounceEvent::Started => Self::Started,
-            bittorrent_udp_tracker_protocol::request::AnnounceEvent::Stopped => Self::Stopped,
-            bittorrent_udp_tracker_protocol::request::AnnounceEvent::Completed => Self::Completed,
-            bittorrent_udp_tracker_protocol::request::AnnounceEvent::None => Self::Empty,
+            bittorrent_udp_tracker_protocol::AnnounceEvent::Started => Self::Started,
+            bittorrent_udp_tracker_protocol::AnnounceEvent::Stopped => Self::Stopped,
+            bittorrent_udp_tracker_protocol::AnnounceEvent::Completed => Self::Completed,
+            bittorrent_udp_tracker_protocol::AnnounceEvent::None => Self::Empty,
         }
     }
 }

@@ -18,12 +18,14 @@
 #![allow(clippy::semicolon_if_nothing_returned)]
 #![allow(clippy::wildcard_imports)]
 
+pub mod announce;
 pub mod common;
 pub mod connect;
 mod peer_id;
 pub mod request;
 pub mod response;
 
+pub use self::announce::*;
 pub use self::common::*;
 pub use self::connect::*;
 pub use self::peer_id::{PeerClient, PeerId};

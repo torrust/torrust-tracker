@@ -11,8 +11,9 @@ use std::mem::size_of;
 use byteorder::{NetworkEndian, WriteBytesExt};
 use either::Either;
 use zerocopy::byteorder::network_endian::I32;
-use zerocopy::{FromBytes, Immutable, IntoBytes};
+use zerocopy::{FromBytes, IntoBytes};
 
+use super::announce::AnnounceRequest;
 use super::common::*;
 use super::connect::{ConnectRequest, PROTOCOL_IDENTIFIER};
 
@@ -150,74 +151,6 @@ impl From<ScrapeRequest> for Request {
     }
 }
 
-#[derive(PartialEq, Eq, Clone, Copy, Debug, IntoBytes, FromBytes, Immutable)]
-#[repr(C, packed)]
-pub struct AnnounceRequest {
-    pub connection_id: ConnectionId,
-    pub action_placeholder: AnnounceActionPlaceholder,
-    pub transaction_id: TransactionId,
-    pub info_hash: InfoHash,
-    pub peer_id: PeerId,
-    pub bytes_downloaded: NumberOfBytes,
-    pub bytes_left: NumberOfBytes,
-    pub bytes_uploaded: NumberOfBytes,
-    pub event: AnnounceEventBytes,
-    pub ip_address: Ipv4AddrBytes,
-    pub key: PeerKey,
-    pub peers_wanted: NumberOfPeers,
-    pub port: Port,
-}
-
-impl AnnounceRequest {
-    pub fn write_bytes(&self, bytes: &mut impl Write) -> Result<(), io::Error> {
-        bytes.write_all(self.as_bytes())
-    }
-}
-
-#[derive(PartialEq, Eq, Clone, Copy, Debug, IntoBytes, FromBytes, Immutable)]
-#[repr(transparent)]
-pub struct AnnounceActionPlaceholder(I32);
-
-impl Default for AnnounceActionPlaceholder {
-    fn default() -> Self {
-        Self(I32::new(1))
-    }
-}
-
-#[derive(PartialEq, Eq, Clone, Copy, Debug, IntoBytes, FromBytes, Immutable)]
-#[repr(transparent)]
-pub struct AnnounceEventBytes(I32);
-
-impl From<AnnounceEvent> for AnnounceEventBytes {
-    fn from(value: AnnounceEvent) -> Self {
-        Self(I32::new(match value {
-            AnnounceEvent::None => 0,
-            AnnounceEvent::Completed => 1,
-            AnnounceEvent::Started => 2,
-            AnnounceEvent::Stopped => 3,
-        }))
-    }
-}
-
-#[derive(PartialEq, Eq, Hash, Clone, Copy, Debug)]
-pub enum AnnounceEvent {
-    Started,
-    Stopped,
-    Completed,
-    None,
-}
-
-impl From<AnnounceEventBytes> for AnnounceEvent {
-    fn from(value: AnnounceEventBytes) -> Self {
-        match value.0.get() {
-            1 => Self::Completed,
-            2 => Self::Started,
-            3 => Self::Stopped,
-            _ => Self::None,
-        }
-    }
-}
-
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub struct ScrapeRequest {
     pub connection_id: ConnectionId,
@@ -273,6 +206,7 @@ mod tests {
     use zerocopy::network_endian::{I32, I64};
 
     use super::*;
+    use crate::announce::{AnnounceActionPlaceholder, AnnounceEvent};
 
     impl quickcheck::Arbitrary for AnnounceEvent {
         fn arbitrary(g: &mut quickcheck::Gen) -> Self {
