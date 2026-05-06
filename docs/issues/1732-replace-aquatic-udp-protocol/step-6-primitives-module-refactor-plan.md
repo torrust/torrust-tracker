@@ -154,9 +154,9 @@ Exit criteria:
 - [x] Move `AnnounceEvent` from `announce_event.rs` into `announce.rs`
 - [x] Preserve root `AnnounceEvent` re-export from `lib.rs`
 - [x] Validate after the `AnnounceEvent` move
-- [ ] Move `ScrapeData` into `scrape.rs`
-- [ ] Re-export `ScrapeData` from `lib.rs`
-- [ ] Validate after the `ScrapeData` move
+- [x] Move `ScrapeData` into `scrape.rs`
+- [x] Re-export `ScrapeData` from `lib.rs`
+- [x] Validate after the `ScrapeData` move
 
 Exit criteria:
 
@@ -191,7 +191,7 @@ Exit criteria:
 - [x] `announce.rs` added
 - [x] `scrape.rs` added
 - [x] `AnnounceData` moved
-- [ ] `ScrapeData` moved
+- [x] `ScrapeData` moved
 - [x] `AnnounceEvent` moved
 - [ ] `core.rs` reduced to compatibility exports
 - [x] `lib.rs` updated
@@ -206,11 +206,11 @@ Exit criteria:
   - [x] consumers validated
   - [x] validated (`cargo check --workspace`, `linter all`)
 - [ ] `ScrapeData`
-  - [ ] moved to `scrape.rs`
-  - [ ] re-exported from `lib.rs`
-  - [ ] compatibility preserved
-  - [ ] consumers validated
-  - [ ] validated (`cargo check --workspace`, `linter all`)
+  - [x] moved to `scrape.rs`
+  - [x] re-exported from `lib.rs`
+  - [x] compatibility preserved
+  - [x] consumers validated
+  - [x] validated (`cargo check --workspace`, `linter all`)
 - [ ] `AnnounceEvent`
   - [x] moved to `announce.rs`
   - [x] re-exported from `lib.rs`

@@ -26,6 +26,7 @@ pub type DurationSinceUnixEpoch = Duration;
 pub use announce::{AnnounceData, AnnounceEvent};
 pub use number_of_bytes::NumberOfBytes;
 pub use peer_id::{PeerClient, PeerId};
+pub use scrape::ScrapeData;
 
 pub type NumberOfDownloads = u32;
 pub type NumberOfDownloadsBTreeMap = BTreeMap<InfoHash, NumberOfDownloads>;
