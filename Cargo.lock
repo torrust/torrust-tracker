@@ -745,7 +745,6 @@ version = "3.0.0-develop"
 dependencies = [
  "aquatic_udp_protocol",
  "torrust-tracker-clock",
- "torrust-tracker-primitives",
 ]
 
 [[package]]

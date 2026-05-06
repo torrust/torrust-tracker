@@ -15,13 +15,14 @@ use bittorrent_primitives::info_hash::InfoHash;
 use bittorrent_tracker_core::announce_handler::{AnnounceHandler, PeersWanted};
 use bittorrent_tracker_core::error::{AnnounceError, WhitelistError};
 use bittorrent_tracker_core::whitelist;
-use bittorrent_udp_tracker_protocol::{peer_builder, AnnounceRequest};
+use bittorrent_udp_tracker_protocol::AnnounceRequest;
 use torrust_tracker_primitives::core::AnnounceData;
 use torrust_tracker_primitives::peer::PeerAnnouncement;
 use torrust_tracker_primitives::service_binding::ServiceBinding;
 
 use crate::connection_cookie::{check, gen_remote_fingerprint, ConnectionCookieError};
 use crate::event::{ConnectionContext, Event};
+use crate::peer_builder;
 
 /// The `AnnounceService` is responsible for handling the `announce` requests.
 ///

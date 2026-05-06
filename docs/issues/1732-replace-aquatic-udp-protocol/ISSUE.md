@@ -250,33 +250,38 @@ The conversion in `peer_builder.rs` calls `.0.get()` to extract the `i64` from t
 
 #### Step 4b: Define domain types natively in `packages/primitives`
 
-- [ ] Copy `PeerId([u8; 20])` and `PeerClient` from `packages/aquatic-peer-id/src/lib.rs` into
+- [x] Copy `PeerId([u8; 20])` and `PeerClient` from `packages/aquatic-peer-id/src/lib.rs` into
       a new file `packages/primitives/src/peer_id.rs`. Add an inline attribution comment
       crediting the original `aquatic_peer_id` 0.9.0.
-- [ ] Define `AnnounceEvent { Started, Stopped, Completed, None }` natively in
+- [x] Define `AnnounceEvent { Started, Stopped, Completed, None }` natively in
       `packages/primitives/src/` (e.g., `announce_event.rs` or alongside `peer.rs`).
-- [ ] Define `NumberOfBytes(pub i64)` natively in `packages/primitives/src/`. Implement
+- [x] Define `NumberOfBytes(pub i64)` natively in `packages/primitives/src/`. Implement
       `NumberOfBytes::new(v: i64) -> Self` to match the existing call sites.
-- [ ] Update `packages/primitives/src/peer.rs` to import `PeerId`, `AnnounceEvent`, and
+- [x] Update `packages/primitives/src/peer.rs` to import `PeerId`, `AnnounceEvent`, and
       `NumberOfBytes` from the local crate rather than from `bittorrent_udp_tracker_protocol`.
-- [ ] Remove `bittorrent_udp_tracker_protocol` from `packages/primitives/Cargo.toml`.
-- [ ] Update `packages/udp-protocol/src/peer_builder.rs` to convert the wire `NumberOfBytes(I64)`
+- [x] Remove `bittorrent_udp_tracker_protocol` from `packages/primitives/Cargo.toml`.
+- [x] Update `packages/udp-protocol/src/peer_builder.rs` to convert the wire `NumberOfBytes(I64)`
       to the domain `primitives::NumberOfBytes(i64)` using `.0.get()`.
-- [ ] Update `packages/udp-protocol` to re-export `AnnounceEvent`, `PeerId`, and `PeerClient`
-      from `primitives` so all existing `use bittorrent_udp_tracker_protocol::*` call sites
-      continue to compile unchanged.
-- [ ] Verify `cargo check --workspace` passes with no errors.
+- [x] Update all affected packages, tests, benches, and adapters to use the new primitives
+      domain types where they actually model tracker-domain state (`Peer`, HTTP announce parsing,
+      REST resources, benchmarking fixtures, and tracker-core test helpers).
+- [x] Keep compatibility explicit at the protocol/domain boundary instead of re-exporting the
+      domain types from `packages/udp-protocol`. Re-exporting `PeerId` / `AnnounceEvent` from the
+      protocol crate would shadow the real wire types and break code that still needs the BEP 15
+      representation. The current boundary is handled by explicit conversions in adapters such as
+      `peer_builder.rs`.
+- [x] Verify `cargo check --workspace` and `linter all` pass with no errors.
 
 #### Step 4a-prep: Move `peer_builder` to `packages/udp-tracker-core`
 
-- [ ] Copy `packages/udp-protocol/src/peer_builder.rs` into
+- [x] Copy `packages/udp-protocol/src/peer_builder.rs` into
       `packages/udp-tracker-core/src/peer_builder.rs` (or a suitable submodule).
-- [ ] Remove `pub mod peer_builder;` from `packages/udp-protocol/src/lib.rs`.
-- [ ] Update `packages/udp-tracker-core/src/services/announce.rs` to import `peer_builder`
+- [x] Remove `pub mod peer_builder;` from `packages/udp-protocol/src/lib.rs`.
+- [x] Update `packages/udp-tracker-core/src/services/announce.rs` to import `peer_builder`
       from the local module instead of `bittorrent_udp_tracker_protocol::peer_builder`.
-- [ ] Remove `torrust-tracker-primitives` from `packages/udp-protocol/Cargo.toml`
+- [x] Remove `torrust-tracker-primitives` from `packages/udp-protocol/Cargo.toml`
       (it is no longer needed once `peer_builder` is gone).
-- [ ] Verify `cargo check --workspace` passes with no errors.
+- [x] Verify `cargo check --workspace` and `linter all` pass with no errors.
 
 #### Step 4a: Migrate UDP protocol types to `packages/udp-protocol`
 

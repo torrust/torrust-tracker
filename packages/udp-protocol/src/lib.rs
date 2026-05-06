@@ -1,5 +1,4 @@
 //! Primitive types and functions for `BitTorrent` UDP trackers.
-pub mod peer_builder;
 
 pub use bittorrent_udp_tracker_protocol::{common, request, response, *};
 use torrust_tracker_clock::clock;
