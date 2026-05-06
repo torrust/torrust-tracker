@@ -2,8 +2,7 @@
 use std::net::SocketAddr;
 use std::sync::Arc;
 
-use bittorrent_udp_tracker_protocol::PeerId;
-use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch};
+use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, PeerId};
 
 // code-review: the current implementation uses the peer Id as the ``BTreeMap``
 // key. That would allow adding two identical peers except for the Id.
@@ -90,9 +89,8 @@ mod tests {
         use std::net::{IpAddr, Ipv4Addr, SocketAddr};
         use std::sync::Arc;
 
-        use bittorrent_udp_tracker_protocol::PeerId;
         use torrust_tracker_primitives::peer::fixture::PeerBuilder;
-        use torrust_tracker_primitives::DurationSinceUnixEpoch;
+        use torrust_tracker_primitives::{DurationSinceUnixEpoch, PeerId};
 
         use crate::entry::peer_list::PeerList;
 

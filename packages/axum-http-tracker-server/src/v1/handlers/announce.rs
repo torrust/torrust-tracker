@@ -122,9 +122,9 @@ mod tests {
     use bittorrent_tracker_core::torrent::repository::in_memory::InMemoryTorrentRepository;
     use bittorrent_tracker_core::whitelist::authorization::WhitelistAuthorization;
     use bittorrent_tracker_core::whitelist::repository::in_memory::InMemoryWhitelist;
-    use bittorrent_udp_tracker_protocol::PeerId;
     use tokio_util::sync::CancellationToken;
     use torrust_tracker_configuration::Configuration;
+    use torrust_tracker_primitives::PeerId;
     use torrust_tracker_test_helpers::configuration;
 
     use crate::tests::helpers::sample_info_hash;

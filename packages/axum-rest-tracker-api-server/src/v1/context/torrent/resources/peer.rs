@@ -1,8 +1,7 @@
 //! `Peer` and Peer `Id` API resources.
-use bittorrent_udp_tracker_protocol::PeerId;
 use derive_more::From;
 use serde::{Deserialize, Serialize};
-use torrust_tracker_primitives::peer;
+use torrust_tracker_primitives::{peer, PeerId};
 
 /// `Peer` API resource.
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
@@ -23,7 +22,7 @@ pub struct Peer {
     /// The peer's left bytes (pending to download).
     pub left: i64,
     /// The peer's event: `started`, `stopped`, `completed`.
-    /// See [`AnnounceEvent`](bittorrent_udp_tracker_protocol::AnnounceEvent).
+    /// See [`AnnounceEvent`](torrust_tracker_primitives::AnnounceEvent).
     pub event: String,
 }
 
@@ -54,9 +53,9 @@ impl From<peer::Peer> for Peer {
             peer_addr: value.peer_addr.to_string(),
             updated: value.updated.as_millis(),
             updated_milliseconds_ago: value.updated.as_millis(),
-            uploaded: value.uploaded.0.get(),
-            downloaded: value.downloaded.0.get(),
-            left: value.left.0.get(),
+            uploaded: value.uploaded.0,
+            downloaded: value.downloaded.0,
+            left: value.left.0,
             event: format!("{:?}", value.event),
         }
     }

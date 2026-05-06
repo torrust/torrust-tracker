@@ -89,7 +89,7 @@ mod tests {
     use bittorrent_http_tracker_protocol::v1::requests::announce::{Announce, Compact, Event};
     use bittorrent_http_tracker_protocol::v1::responses::error::Error;
     use bittorrent_primitives::info_hash::InfoHash;
-    use bittorrent_udp_tracker_protocol::{NumberOfBytes, PeerId};
+    use torrust_tracker_primitives::{NumberOfBytes, PeerId};
 
     use super::extract_announce_from;
 

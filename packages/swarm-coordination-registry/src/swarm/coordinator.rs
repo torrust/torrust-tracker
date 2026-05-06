@@ -5,11 +5,10 @@ use std::net::SocketAddr;
 use std::sync::Arc;
 
 use bittorrent_primitives::info_hash::InfoHash;
-use bittorrent_udp_tracker_protocol::AnnounceEvent;
 use torrust_tracker_configuration::TrackerPolicy;
 use torrust_tracker_primitives::peer::{self, Peer, PeerAnnouncement};
 use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
-use torrust_tracker_primitives::DurationSinceUnixEpoch;
+use torrust_tracker_primitives::{AnnounceEvent, DurationSinceUnixEpoch};
 
 use crate::event::sender::Sender;
 use crate::event::Event;
@@ -321,10 +320,9 @@ mod tests {
     use std::net::{IpAddr, Ipv4Addr, SocketAddr};
     use std::sync::Arc;
 
-    use bittorrent_udp_tracker_protocol::PeerId;
     use torrust_tracker_primitives::peer::fixture::PeerBuilder;
     use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
-    use torrust_tracker_primitives::DurationSinceUnixEpoch;
+    use torrust_tracker_primitives::{DurationSinceUnixEpoch, PeerId};
 
     use crate::swarm::coordinator::Coordinator;
     use crate::tests::sample_info_hash;
@@ -526,7 +524,7 @@ mod tests {
 
             swarm.upsert_peer(peer.into()).await;
 
-            peer.event = bittorrent_udp_tracker_protocol::AnnounceEvent::Completed;
+            peer.event = torrust_tracker_primitives::AnnounceEvent::Completed;
 
             swarm.upsert_peer(peer.into()).await;
 
@@ -821,8 +819,8 @@ mod tests {
         }
 
         mod for_changes_in_existing_peers {
-            use bittorrent_udp_tracker_protocol::NumberOfBytes;
             use torrust_tracker_primitives::peer::fixture::PeerBuilder;
+            use torrust_tracker_primitives::NumberOfBytes;
 
             use crate::swarm::coordinator::Coordinator;
             use crate::tests::sample_info_hash;
@@ -875,7 +873,7 @@ mod tests {
 
                 let downloads = swarm.metadata().downloads();
 
-                peer.event = bittorrent_udp_tracker_protocol::AnnounceEvent::Completed;
+                peer.event = torrust_tracker_primitives::AnnounceEvent::Completed;
 
                 swarm.upsert_peer(peer.into()).await;
 
@@ -892,7 +890,7 @@ mod tests {
 
                 let downloads = swarm.metadata().downloads();
 
-                peer.event = bittorrent_udp_tracker_protocol::AnnounceEvent::Completed;
+                peer.event = torrust_tracker_primitives::AnnounceEvent::Completed;
 
                 swarm.upsert_peer(peer.into()).await;
 
@@ -907,8 +905,8 @@ mod tests {
 
         use std::sync::Arc;
 
-        use bittorrent_udp_tracker_protocol::AnnounceEvent::Started;
         use torrust_tracker_primitives::peer::fixture::PeerBuilder;
+        use torrust_tracker_primitives::AnnounceEvent::Started;
         use torrust_tracker_primitives::DurationSinceUnixEpoch;
 
         use crate::event::sender::tests::{expect_event_sequence, MockEventSender};

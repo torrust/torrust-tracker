@@ -5,7 +5,6 @@ use bittorrent_primitives::info_hash::InfoHash;
 use bittorrent_tracker_core::announce_handler::PeersWanted;
 use bittorrent_tracker_core::container::TrackerCoreContainer;
 use bittorrent_tracker_core::statistics::persisted::load_persisted_metrics;
-use bittorrent_udp_tracker_protocol::AnnounceEvent;
 use tokio::task::yield_now;
 use tokio_util::sync::CancellationToken;
 use torrust_tracker_configuration::Core;
@@ -14,7 +13,7 @@ use torrust_tracker_metrics::metric::MetricName;
 use torrust_tracker_primitives::core::{AnnounceData, ScrapeData};
 use torrust_tracker_primitives::peer::Peer;
 use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
-use torrust_tracker_primitives::DurationSinceUnixEpoch;
+use torrust_tracker_primitives::{AnnounceEvent, DurationSinceUnixEpoch};
 use torrust_tracker_swarm_coordination_registry::container::SwarmCoordinationRegistryContainer;
 
 pub struct TestEnv {

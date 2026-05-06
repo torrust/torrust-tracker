@@ -29,9 +29,8 @@ pub(crate) mod tests {
     use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
     use bittorrent_primitives::info_hash::InfoHash;
-    use bittorrent_udp_tracker_protocol::{AnnounceEvent, NumberOfBytes, PeerId};
     use torrust_tracker_primitives::peer::Peer;
-    use torrust_tracker_primitives::DurationSinceUnixEpoch;
+    use torrust_tracker_primitives::{AnnounceEvent, DurationSinceUnixEpoch, NumberOfBytes, PeerId};
 
     /// # Panics
     ///

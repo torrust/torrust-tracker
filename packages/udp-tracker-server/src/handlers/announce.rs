@@ -269,7 +269,7 @@ pub(crate) mod tests {
                     .await;
 
                 let expected_peer = PeerBuilder::default()
-                    .with_peer_id(&peer_id)
+                    .with_peer_id(&torrust_tracker_primitives::PeerId(peer_id.0))
                     .with_peer_address(SocketAddr::new(IpAddr::V4(client_ip), client_port))
                     .updated_on(peers[0].updated)
                     .into();
@@ -375,7 +375,7 @@ pub(crate) mod tests {
                 let peer_id = AquaticPeerId([255u8; 20]);
 
                 let peer_using_ipv6 = PeerBuilder::default()
-                    .with_peer_id(&peer_id)
+                    .with_peer_id(&torrust_tracker_primitives::PeerId(peer_id.0))
                     .with_peer_address(SocketAddr::new(IpAddr::V6(client_ip_v6), client_port))
                     .into();
 
@@ -528,7 +528,7 @@ pub(crate) mod tests {
                     let external_ip_in_tracker_configuration = core_tracker_services.core_config.net.external_ip.unwrap();
 
                     let expected_peer = PeerBuilder::default()
-                        .with_peer_id(&peer_id)
+                        .with_peer_id(&torrust_tracker_primitives::PeerId(peer_id.0))
                         .with_peer_address(SocketAddr::new(external_ip_in_tracker_configuration, client_port))
                         .updated_on(peers[0].updated)
                         .into();
@@ -611,7 +611,7 @@ pub(crate) mod tests {
                     .await;
 
                 let expected_peer = PeerBuilder::default()
-                    .with_peer_id(&peer_id)
+                    .with_peer_id(&torrust_tracker_primitives::PeerId(peer_id.0))
                     .with_peer_address(SocketAddr::new(IpAddr::V6(client_ip_v6), client_port))
                     .updated_on(peers[0].updated)
                     .into();
@@ -720,7 +720,7 @@ pub(crate) mod tests {
                 let peer_id = AquaticPeerId([255u8; 20]);
 
                 let peer_using_ipv4 = PeerBuilder::default()
-                    .with_peer_id(&peer_id)
+                    .with_peer_id(&torrust_tracker_primitives::PeerId(peer_id.0))
                     .with_peer_address(SocketAddr::new(IpAddr::V4(client_ip_v4), client_port))
                     .into();
 
@@ -879,7 +879,7 @@ pub(crate) mod tests {
                     let info_hash = AquaticInfoHash([0u8; 20]);
                     let peer_id = AquaticPeerId([255u8; 20]);
                     let mut announcement = sample_peer();
-                    announcement.peer_id = peer_id;
+                    announcement.peer_id = torrust_tracker_primitives::PeerId(peer_id.0);
                     announcement.peer_addr = SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0x7e00, 1)), client_port);
 
                     let client_socket_addr = SocketAddr::new(IpAddr::V6(client_ip_v6), client_port);

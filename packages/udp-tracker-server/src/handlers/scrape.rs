@@ -163,7 +163,7 @@ mod tests {
             let peer_id = PeerId([255u8; 20]);
 
             let peer = PeerBuilder::default()
-                .with_peer_id(&peer_id)
+                .with_peer_id(&torrust_tracker_primitives::PeerId(peer_id.0))
                 .with_peer_address(*remote_addr)
                 .with_bytes_left_to_download(0)
                 .into();

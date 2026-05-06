@@ -179,12 +179,11 @@ mod tests {
     use bittorrent_tracker_core::torrent::repository::in_memory::InMemoryTorrentRepository;
     use bittorrent_tracker_core::whitelist::authorization::WhitelistAuthorization;
     use bittorrent_tracker_core::whitelist::repository::in_memory::InMemoryWhitelist;
-    use bittorrent_udp_tracker_protocol::{AnnounceEvent, NumberOfBytes, PeerId};
     use futures::future::BoxFuture;
     use mockall::mock;
     use torrust_tracker_configuration::Configuration;
     use torrust_tracker_events::sender::SendError;
-    use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch};
+    use torrust_tracker_primitives::{peer, AnnounceEvent, DurationSinceUnixEpoch, NumberOfBytes, PeerId};
 
     use crate::event::Event;
     use crate::tests::sample_info_hash;

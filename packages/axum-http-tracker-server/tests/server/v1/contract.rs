@@ -94,12 +94,13 @@ mod for_all_config_modes {
         use std::str::FromStr;
 
         use bittorrent_primitives::info_hash::InfoHash;
-        use bittorrent_udp_tracker_protocol::PeerId;
+        use bittorrent_udp_tracker_protocol::PeerId as WirePeerId;
         use local_ip_address::local_ip;
         use reqwest::{Response, StatusCode};
         use tokio::net::TcpListener;
         use torrust_axum_http_tracker_server::environment::Started;
         use torrust_tracker_primitives::peer::fixture::PeerBuilder;
+        use torrust_tracker_primitives::PeerId as DomainPeerId;
         use torrust_tracker_test_helpers::{configuration, logging};
 
         use crate::common::fixtures::invalid_info_hashes;
@@ -471,7 +472,9 @@ mod for_all_config_modes {
             let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap(); // DevSkim: ignore DS173237
 
             // Peer 1
-            let previously_announced_peer = PeerBuilder::default().with_peer_id(&PeerId(*b"-qB00000000000000001")).build();
+            let previously_announced_peer = PeerBuilder::default()
+                .with_peer_id(&DomainPeerId(*b"-qB00000000000000001"))
+                .build();
 
             // Add the Peer 1
             env.add_torrent_peer(&info_hash, &previously_announced_peer).await;
@@ -481,7 +484,7 @@ mod for_all_config_modes {
                 .announce(
                     &QueryBuilder::default()
                         .with_info_hash(&info_hash)
-                        .with_peer_id(&PeerId(*b"-qB00000000000000002"))
+                        .with_peer_id(&WirePeerId(*b"-qB00000000000000002"))
                         .query(),
                 )
                 .await;
@@ -514,14 +517,14 @@ mod for_all_config_modes {
 
             // Announce a peer using IPV4
             let peer_using_ipv4 = PeerBuilder::default()
-                .with_peer_id(&PeerId(*b"-qB00000000000000001"))
+                .with_peer_id(&DomainPeerId(*b"-qB00000000000000001"))
                 .with_peer_addr(&SocketAddr::new(IpAddr::V4(Ipv4Addr::new(0x69, 0x69, 0x69, 0x69)), 8080))
                 .build();
             env.add_torrent_peer(&info_hash, &peer_using_ipv4).await;
 
             // Announce a peer using IPV6
             let peer_using_ipv6 = PeerBuilder::default()
-                .with_peer_id(&PeerId(*b"-qB00000000000000002"))
+                .with_peer_id(&DomainPeerId(*b"-qB00000000000000002"))
                 .with_peer_addr(&SocketAddr::new(
                     IpAddr::V6(Ipv6Addr::new(0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969)),
                     8080,
@@ -534,7 +537,7 @@ mod for_all_config_modes {
                 .announce(
                     &QueryBuilder::default()
                         .with_info_hash(&info_hash)
-                        .with_peer_id(&PeerId(*b"-qB00000000000000003"))
+                        .with_peer_id(&WirePeerId(*b"-qB00000000000000003"))
                         .query(),
                 )
                 .await;
@@ -570,14 +573,14 @@ mod for_all_config_modes {
 
             let announce_query_1 = QueryBuilder::default()
                 .with_info_hash(&info_hash)
-                .with_peer_id(&peer.peer_id)
+                .with_peer_id(&WirePeerId(peer.peer_id.0))
                 .with_peer_addr(&peer.peer_addr.ip())
                 .with_port(peer.peer_addr.port())
                 .query();
 
             let announce_query_2 = QueryBuilder::default()
                 .with_info_hash(&info_hash)
-                .with_peer_id(&PeerId(*b"-qB00000000000000002")) // Different peer ID
+                .with_peer_id(&WirePeerId(*b"-qB00000000000000002")) // Different peer ID
                 .with_peer_addr(&peer.peer_addr.ip())
                 .with_port(peer.peer_addr.port())
                 .query();
@@ -622,7 +625,9 @@ mod for_all_config_modes {
             let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap(); // DevSkim: ignore DS173237
 
             // Peer 1
-            let previously_announced_peer = PeerBuilder::default().with_peer_id(&PeerId(*b"-qB00000000000000001")).build();
+            let previously_announced_peer = PeerBuilder::default()
+                .with_peer_id(&DomainPeerId(*b"-qB00000000000000001"))
+                .build();
 
             // Add the Peer 1
             env.add_torrent_peer(&info_hash, &previously_announced_peer).await;
@@ -632,7 +637,7 @@ mod for_all_config_modes {
                 .announce(
                     &QueryBuilder::default()
                         .with_info_hash(&info_hash)
-                        .with_peer_id(&PeerId(*b"-qB00000000000000002"))
+                        .with_peer_id(&WirePeerId(*b"-qB00000000000000002"))
                         .with_compact(Compact::Accepted)
                         .query(),
                 )
@@ -663,7 +668,9 @@ mod for_all_config_modes {
             let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap(); // DevSkim: ignore DS173237
 
             // Peer 1
-            let previously_announced_peer = PeerBuilder::default().with_peer_id(&PeerId(*b"-qB00000000000000001")).build();
+            let previously_announced_peer = PeerBuilder::default()
+                .with_peer_id(&DomainPeerId(*b"-qB00000000000000001"))
+                .build();
 
             // Add the Peer 1
             env.add_torrent_peer(&info_hash, &previously_announced_peer).await;
@@ -675,7 +682,7 @@ mod for_all_config_modes {
                 .announce(
                     &QueryBuilder::default()
                         .with_info_hash(&info_hash)
-                        .with_peer_id(&PeerId(*b"-qB00000000000000002"))
+                        .with_peer_id(&WirePeerId(*b"-qB00000000000000002"))
                         .without_compact()
                         .query(),
                 )
@@ -952,10 +959,10 @@ mod for_all_config_modes {
         use std::str::FromStr;
 
         use bittorrent_primitives::info_hash::InfoHash;
-        use bittorrent_udp_tracker_protocol::PeerId;
         use tokio::net::TcpListener;
         use torrust_axum_http_tracker_server::environment::Started;
         use torrust_tracker_primitives::peer::fixture::PeerBuilder;
+        use torrust_tracker_primitives::PeerId;
         use torrust_tracker_test_helpers::{configuration, logging};
 
         use crate::common::fixtures::invalid_info_hashes;
@@ -1052,7 +1059,7 @@ mod for_all_config_modes {
             env.add_torrent_peer(
                 &info_hash,
                 &PeerBuilder::default()
-                    .with_peer_id(&PeerId(*b"-qB00000000000000001"))
+                    .with_peer_id(&torrust_tracker_primitives::PeerId(*b"-qB00000000000000001"))
                     .with_no_bytes_left_to_download()
                     .build(),
             )
@@ -1262,9 +1269,9 @@ mod configured_as_whitelisted {
         use std::str::FromStr;
 
         use bittorrent_primitives::info_hash::InfoHash;
-        use bittorrent_udp_tracker_protocol::PeerId;
         use torrust_axum_http_tracker_server::environment::Started;
         use torrust_tracker_primitives::peer::fixture::PeerBuilder;
+        use torrust_tracker_primitives::PeerId;
         use torrust_tracker_test_helpers::logging::logs_contains_a_line_with;
         use torrust_tracker_test_helpers::{configuration, logging};
 
@@ -1461,9 +1468,9 @@ mod configured_as_private {
 
         use bittorrent_primitives::info_hash::InfoHash;
         use bittorrent_tracker_core::authentication::Key;
-        use bittorrent_udp_tracker_protocol::PeerId;
         use torrust_axum_http_tracker_server::environment::Started;
         use torrust_tracker_primitives::peer::fixture::PeerBuilder;
+        use torrust_tracker_primitives::PeerId;
         use torrust_tracker_test_helpers::{configuration, logging};
 
         use crate::server::asserts::{assert_authentication_error_response, assert_scrape_response};
@@ -1583,7 +1590,7 @@ mod configured_as_private {
             env.add_torrent_peer(
                 &info_hash,
                 &PeerBuilder::default()
-                    .with_peer_id(&PeerId(*b"-qB00000000000000001"))
+                    .with_peer_id(&torrust_tracker_primitives::PeerId(*b"-qB00000000000000001"))
                     .with_bytes_left_to_download(1)
                     .build(),
             )

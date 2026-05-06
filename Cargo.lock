@@ -140,7 +140,7 @@ dependencies = [
 name = "aquatic_peer_id"
 version = "0.9.0"
 dependencies = [
- "compact_str",
+ "compact_str 0.7.1",
  "hex",
  "quickcheck",
  "regex",
@@ -1105,6 +1105,20 @@ dependencies = [
  "castaway",
  "cfg-if",
  "itoa",
+ "ryu",
+ "static_assertions",
+]
+
+[[package]]
+name = "compact_str"
+version = "0.9.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3fdb1325a1cece981e8a296ab8f0f9b63ae357bd0784a9faaf548cc7b480707a"
+dependencies = [
+ "castaway",
+ "cfg-if",
+ "itoa",
+ "rustversion",
  "ryu",
  "static_assertions",
 ]
@@ -5610,10 +5624,12 @@ dependencies = [
 name = "torrust-tracker-primitives"
 version = "3.0.0-develop"
 dependencies = [
- "aquatic_udp_protocol",
  "binascii",
  "bittorrent-primitives",
+ "compact_str 0.9.0",
  "derive_more",
+ "hex",
+ "regex",
  "rstest 0.25.0",
  "serde",
  "tdyne-peer-id",
@@ -5621,7 +5637,6 @@ dependencies = [
  "thiserror 2.0.18",
  "torrust-tracker-configuration",
  "url",
- "zerocopy",
 ]
 
 [[package]]

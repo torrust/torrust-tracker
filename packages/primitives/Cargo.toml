@@ -15,17 +15,18 @@ rust-version.workspace = true
 version.workspace = true
 
 [dependencies]
-bittorrent_udp_tracker_protocol = { package = "aquatic_udp_protocol", path = "../aquatic-udp-protocol" }
 binascii = "0"
 bittorrent-primitives = "0.1.0"
+compact_str = "0.9"
 derive_more = { version = "2", features = [ "constructor" ] }
+hex = "0.4"
+regex = "1"
 serde = { version = "1", features = [ "derive" ] }
 tdyne-peer-id = "1"
 tdyne-peer-id-registry = "0"
 thiserror = "2"
 torrust-tracker-configuration = { version = "3.0.0-develop", path = "../configuration" }
 url = "2.5.4"
-zerocopy = "0.8"
 
 [dev-dependencies]
 rstest = "0.25.0"

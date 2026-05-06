@@ -16,8 +16,7 @@
 //! - <https://en.wikipedia.org/wiki/URL_encoding>
 //! - <https://developer.mozilla.org/en-US/docs/Glossary/percent-encoding>
 use bittorrent_primitives::info_hash::{self, InfoHash};
-use bittorrent_udp_tracker_protocol::PeerId;
-use torrust_tracker_primitives::peer;
+use torrust_tracker_primitives::{peer, PeerId};
 
 /// Percent decodes a percent encoded infohash. Internally an
 /// [`InfoHash`] is a 20-byte array.
@@ -59,9 +58,9 @@ pub fn percent_decode_info_hash(raw_info_hash: &str) -> Result<InfoHash, info_ha
 /// ```rust
 /// use std::str::FromStr;
 ///
-/// use bittorrent_udp_tracker_protocol::PeerId;
 /// use bittorrent_http_tracker_protocol::percent_encoding::percent_decode_peer_id;
 /// use bittorrent_primitives::info_hash::InfoHash;
+/// use torrust_tracker_primitives::PeerId;
 ///
 /// let encoded_peer_id = "%2DqB00000000000000000";
 ///
@@ -83,7 +82,7 @@ mod tests {
     use std::str::FromStr;
 
     use bittorrent_primitives::info_hash::InfoHash;
-    use bittorrent_udp_tracker_protocol::PeerId;
+    use torrust_tracker_primitives::PeerId;
 
     use crate::percent_encoding::{percent_decode_info_hash, percent_decode_peer_id};
 
