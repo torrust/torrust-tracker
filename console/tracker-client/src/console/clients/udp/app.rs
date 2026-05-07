@@ -19,7 +19,7 @@
 //!   --left 0 \
 //!   --port 6881 \
 //!   --ip-address 10.0.0.1 \
-//!   --peer-id "-RC0000000000000001" \
+//!   '--peer-id=-RC00000000000000001' \
 //!   --key 42 \
 //!   --peers-wanted 50 | jq
 //! ```
@@ -133,7 +133,7 @@ enum Command {
         downloaded: Option<u64>,
         #[arg(long)]
         left: Option<u64>,
-        #[arg(long)]
+        #[arg(long, value_parser = parse_non_zero_port)]
         port: Option<u16>,
         #[arg(long = "ip-address")]
         ip_address: Option<Ipv4Addr>,
@@ -308,5 +308,16 @@ fn parse_peer_id(peer_id_str: &str) -> anyhow::Result<[u8; 20]> {
     }
     let mut arr = [0u8; 20];
     arr.copy_from_slice(bytes);
+
     Ok(arr)
+}
+
+fn parse_non_zero_port(port_str: &str) -> anyhow::Result<u16> {
+    let port = u16::from_str(port_str).with_context(|| format!("invalid port value: `{port_str}`"))?;
+
+    if port == 0 {
+        anyhow::bail!("port must be greater than zero")
+    }
+
+    Ok(port)
 }

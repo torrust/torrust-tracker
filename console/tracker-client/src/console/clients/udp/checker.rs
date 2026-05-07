@@ -13,7 +13,7 @@ use bittorrent_udp_tracker_protocol::{
 use super::Error;
 
 /// Optional parameters for an announce request. When a field is `None`, the
-/// hard-coded default value is used.
+/// default announce value is used (for `port`, the socket local port is used).
 #[derive(Debug, Default)]
 pub struct AnnounceParams {
     pub event: Option<AnnounceEvent>,
@@ -120,7 +120,7 @@ impl Client {
                 .expect("it should get the local address")
                 .port(),
         )
-        .expect("it should no be zero");
+        .expect("it should not be zero");
 
         let port = params.port.and_then(NonZeroU16::new).unwrap_or(local_port);
 
