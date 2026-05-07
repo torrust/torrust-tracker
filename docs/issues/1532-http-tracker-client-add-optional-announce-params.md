@@ -55,7 +55,7 @@ cargo run -p torrust-tracker-client --bin http_tracker_client announce \
   --left 0 \
   --port 6881 \
   --peer-addr 10.0.0.1 \
-  --peer-id "-RC0000000000000001" \
+  '--peer-id=-RC00000000000000001' \
   --compact 1
 ```
 
@@ -239,6 +239,19 @@ This confirms the started -> completed transition was applied and completed/down
 - `--peer-id` with length different from 20 bytes should fail with a CLI argument error
 - Invalid `--event` value should fail and show allowed values
 - Invalid `--compact` value (not `0` or `1`) should fail with a CLI argument error
+
+## Learnings
+
+- Exposing `--compact 1` required the client to support compact HTTP announce response decoding,
+  not only compact request generation. During manual verification, the client initially panicked
+  because it only attempted to deserialize the dictionary-style announce response. The final
+  implementation handles both response shapes.
+- Manual verification is more reliable when comparing before/after deltas instead of assuming all
+  tracker counters start at zero. Tracker state may persist across runs, so scrape/global stats
+  transitions are the meaningful validation signal.
+- For dash-prefixed peer IDs, the most reliable CLI form is
+  `--peer-id=-RC00000000000000001` (typically quoted as a whole shell argument), combined with the
+  explicit 20-byte validation enforced by the client.
 
 ## Acceptance Criteria
 
