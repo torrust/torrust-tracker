@@ -21,63 +21,78 @@ pub enum Error {
     },
 }
 
-#[instrument(skip(opt_tsl_config))]
-pub async fn make_rust_tls(opt_tsl_config: &Option<TslConfig>) -> Option<Result<RustlsConfig, Error>> {
-    match opt_tsl_config {
-        Some(tsl_config) => {
-            let cert = tsl_config.ssl_cert_path.clone();
-            let key = tsl_config.ssl_key_path.clone();
+#[instrument(skip(tsl_config))]
+/// # Errors
+///
+/// Returns [`Error::MissingTlsConfig`] when the certificate or key path does
+/// not exist, and [`Error::BadTlsConfig`] when loading invalid PEM files
+/// fails.
+pub async fn make_rust_tls(tsl_config: &TslConfig) -> Result<RustlsConfig, Error> {
+    let cert = tsl_config.ssl_cert_path.clone();
+    let key = tsl_config.ssl_key_path.clone();
 
-            if !cert.exists() || !key.exists() {
-                return Some(Err(Error::MissingTlsConfig {
-                    location: Location::caller(),
-                }));
-            }
-
-            tracing::info!("Using https: cert path: {cert}.");
-            tracing::info!("Using https: key path: {key}.");
-
-            Some(
-                RustlsConfig::from_pem_file(cert, key)
-                    .await
-                    .map_err(|err| Error::BadTlsConfig {
-                        source: (Arc::new(err) as DynError).into(),
-                    }),
-            )
-        }
-        None => None,
+    if !cert.exists() || !key.exists() {
+        return Err(Error::MissingTlsConfig {
+            location: Location::caller(),
+        });
     }
+
+    tracing::info!("Using https: cert path: {cert}.");
+    tracing::info!("Using https: key path: {key}.");
+
+    RustlsConfig::from_pem_file(cert, key)
+        .await
+        .map_err(|err| Error::BadTlsConfig {
+            source: (Arc::new(err) as DynError).into(),
+        })
 }
 
 #[cfg(test)]
 mod tests {
+    use std::fs;
+    use std::time::{SystemTime, UNIX_EPOCH};
 
     use camino::Utf8PathBuf;
     use torrust_tracker_configuration::TslConfig;
 
     use super::{make_rust_tls, Error};
 
+    fn make_temp_file(prefix: &str, content: &str) -> Utf8PathBuf {
+        let nanos = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .expect("system time should be later than epoch")
+            .as_nanos();
+        let path = std::env::temp_dir().join(format!("{prefix}-{nanos}.pem"));
+        fs::write(&path, content).expect("it should write temporary test file");
+
+        Utf8PathBuf::from_path_buf(path).expect("temporary test file path should be UTF-8")
+    }
+
     #[tokio::test]
     async fn it_should_error_on_bad_tls_config() {
-        let err = make_rust_tls(&Some(TslConfig {
-            ssl_cert_path: Utf8PathBuf::from("bad cert path"),
-            ssl_key_path: Utf8PathBuf::from("bad key path"),
-        }))
+        let cert_path = make_temp_file("bad-cert", "not a valid certificate");
+        let key_path = make_temp_file("bad-key", "not a valid private key");
+
+        let err = make_rust_tls(&TslConfig {
+            ssl_cert_path: cert_path.clone(),
+            ssl_key_path: key_path.clone(),
+        })
         .await
-        .expect("tls_was_enabled")
         .expect_err("bad_cert_and_key_files");
 
-        assert!(matches!(err, Error::MissingTlsConfig { location: _ }));
+        fs::remove_file(cert_path).expect("it should remove temporary cert file");
+        fs::remove_file(key_path).expect("it should remove temporary key file");
+
+        assert!(matches!(err, Error::BadTlsConfig { source: _ }));
     }
 
     #[tokio::test]
     async fn it_should_error_on_missing_cert_or_key_paths() {
-        let err = make_rust_tls(&Some(TslConfig {
+        let err = make_rust_tls(&TslConfig {
             ssl_cert_path: Utf8PathBuf::from(""),
             ssl_key_path: Utf8PathBuf::from(""),
-        }))
+        })
         .await
-        .expect("tls_was_enabled")
         .expect_err("missing_config");
 
         assert!(matches!(err, Error::MissingTlsConfig { location: _ }));

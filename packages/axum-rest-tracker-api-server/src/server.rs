@@ -339,9 +339,11 @@ mod tests {
 
         let bind_to = http_api_config.bind_address;
 
-        let tls = make_rust_tls(&http_api_config.tsl_config)
-            .await
-            .map(|tls| tls.expect("tls config failed"));
+        let tls = if let Some(tls_config) = &http_api_config.tsl_config {
+            Some(make_rust_tls(tls_config).await.expect("tls config failed"))
+        } else {
+            None
+        };
 
         let access_tokens = Arc::new(http_api_config.access_tokens.clone());
 

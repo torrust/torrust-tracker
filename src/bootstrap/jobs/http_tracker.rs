@@ -38,9 +38,15 @@ pub async fn start_job(
 ) -> Option<JoinHandle<()>> {
     let socket = http_tracker_container.http_tracker_config.bind_address;
 
-    let tls = make_rust_tls(&http_tracker_container.http_tracker_config.tsl_config)
-        .await
-        .map(|tls| tls.expect("it should have a valid http tracker tls configuration"));
+    let tls = if let Some(tls_config) = &http_tracker_container.http_tracker_config.tsl_config {
+        Some(
+            make_rust_tls(tls_config)
+                .await
+                .expect("it should have a valid http tracker tls configuration"),
+        )
+    } else {
+        None
+    };
 
     match version {
         Version::V1 => Some(start_v1(socket, tls, http_tracker_container, form).await),

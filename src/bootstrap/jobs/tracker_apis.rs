@@ -61,9 +61,15 @@ pub async fn start_job(
 ) -> Option<JoinHandle<()>> {
     let bind_to = http_api_container.http_api_config.bind_address;
 
-    let tls = make_rust_tls(&http_api_container.http_api_config.tsl_config)
-        .await
-        .map(|tls| tls.expect("it should have a valid tracker api tls configuration"));
+    let tls = if let Some(tls_config) = &http_api_container.http_api_config.tsl_config {
+        Some(
+            make_rust_tls(tls_config)
+                .await
+                .expect("it should have a valid tracker api tls configuration"),
+        )
+    } else {
+        None
+    };
 
     let access_tokens = Arc::new(http_api_container.http_api_config.access_tokens.clone());
 
