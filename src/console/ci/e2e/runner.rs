@@ -42,11 +42,11 @@ const CONTAINER_NAME_PREFIX: &str = "tracker_";
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None)]
 struct Args {
-    /// Path to the JSON configuration file.
+    /// Path to the TOML configuration file.
     #[clap(short, long, env = "TORRUST_TRACKER_CONFIG_TOML_PATH")]
     config_toml_path: Option<PathBuf>,
 
-    /// Direct configuration content in JSON.
+    /// Direct configuration content in TOML.
     #[clap(env = "TORRUST_TRACKER_CONFIG_TOML", hide_env_values = true)]
     config_toml: Option<String>,
 
