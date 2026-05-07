@@ -107,6 +107,7 @@ hexlify
 hlocalhost
 hmac
 hotspot
+httpclientpeerid
 Hydranode
 hyperthread
 Icelake
@@ -308,6 +309,7 @@ unsync
 untuple
 unviable
 upcasting
+urlencode
 uroot
 usize
 Vagaa
