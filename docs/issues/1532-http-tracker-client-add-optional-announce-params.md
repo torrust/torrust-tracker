@@ -239,6 +239,7 @@ This confirms the started -> completed transition was applied and completed/down
 - `--peer-id` with length different from 20 bytes should fail with a CLI argument error
 - Invalid `--event` value should fail and show allowed values
 - Invalid `--compact` value (not `0` or `1`) should fail with a CLI argument error
+- `--port 0` should fail with a CLI argument error
 
 ## Learnings
 

@@ -97,7 +97,7 @@ enum Command {
         downloaded: Option<u64>,
         #[arg(long)]
         left: Option<u64>,
-        #[arg(long)]
+        #[arg(long, value_parser = parse_non_zero_port)]
         port: Option<u16>,
         #[arg(long = "peer-addr")]
         peer_addr: Option<IpAddr>,
@@ -234,6 +234,16 @@ fn parse_peer_id(peer_id_str: &str) -> anyhow::Result<PeerId> {
     arr.copy_from_slice(bytes);
 
     Ok(PeerId(arr))
+}
+
+fn parse_non_zero_port(port_str: &str) -> anyhow::Result<u16> {
+    let port = u16::from_str(port_str).with_context(|| format!("invalid port value: `{port_str}`"))?;
+
+    if port == 0 {
+        anyhow::bail!("port must be greater than zero")
+    }
+
+    Ok(port)
 }
 
 async fn scrape_command(tracker_url: &str, info_hashes: &[String], timeout: Duration) -> anyhow::Result<()> {
