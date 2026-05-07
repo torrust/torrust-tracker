@@ -12,6 +12,21 @@ use bittorrent_udp_tracker_protocol::{
 
 use super::Error;
 
+/// Optional parameters for an announce request. When a field is `None`, the
+/// hard-coded default value is used.
+#[derive(Debug, Default)]
+pub struct AnnounceParams {
+    pub event: Option<AnnounceEvent>,
+    pub uploaded: Option<i64>,
+    pub downloaded: Option<i64>,
+    pub left: Option<i64>,
+    pub port: Option<u16>,
+    pub ip_address: Option<Ipv4Addr>,
+    pub peer_id: Option<[u8; 20]>,
+    pub key: Option<i32>,
+    pub peers_wanted: Option<i32>,
+}
+
 /// A UDP Tracker client to make test requests (checks).
 #[derive(Debug)]
 pub struct Client {
@@ -93,10 +108,11 @@ impl Client {
         transaction_id: TransactionId,
         connection_id: ConnectionId,
         info_hash: TorrustInfoHash,
+        params: &AnnounceParams,
     ) -> Result<Response, Error> {
         tracing::debug!("Sending announce request with transaction id: {transaction_id:#?}");
 
-        let port = NonZeroU16::new(
+        let local_port = NonZeroU16::new(
             self.client
                 .client
                 .socket
@@ -106,19 +122,21 @@ impl Client {
         )
         .expect("it should no be zero");
 
+        let port = params.port.and_then(NonZeroU16::new).unwrap_or(local_port);
+
         let announce_request = AnnounceRequest {
             connection_id,
             action_placeholder: AnnounceActionPlaceholder::default(),
             transaction_id,
             info_hash: InfoHash(info_hash.bytes()),
-            peer_id: PeerId(*b"-qB00000000000000001"),
-            bytes_downloaded: NumberOfBytes(0i64.into()),
-            bytes_uploaded: NumberOfBytes(0i64.into()),
-            bytes_left: NumberOfBytes(0i64.into()),
-            event: AnnounceEvent::Started.into(),
-            ip_address: Ipv4Addr::UNSPECIFIED.into(),
-            key: PeerKey::new(0i32),
-            peers_wanted: NumberOfPeers(1i32.into()),
+            peer_id: params.peer_id.map_or(PeerId(*b"-qB00000000000000001"), PeerId),
+            bytes_downloaded: NumberOfBytes::new(params.downloaded.unwrap_or(0)),
+            bytes_uploaded: NumberOfBytes::new(params.uploaded.unwrap_or(0)),
+            bytes_left: NumberOfBytes::new(params.left.unwrap_or(0)),
+            event: params.event.unwrap_or(AnnounceEvent::Started).into(),
+            ip_address: params.ip_address.unwrap_or(Ipv4Addr::UNSPECIFIED).into(),
+            key: PeerKey::new(params.key.unwrap_or(0)),
+            peers_wanted: NumberOfPeers::new(params.peers_wanted.unwrap_or(1)),
             port: Port::new(port),
         };
 

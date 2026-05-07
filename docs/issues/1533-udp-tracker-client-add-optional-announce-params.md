@@ -150,6 +150,87 @@ Announce {
 
 - [ ] Update the module-level doc comment in `app.rs` with the new extended usage example
 
+## Manual Verification
+
+### Setup
+
+Start a local UDP tracker on the default port 6969:
+
+```bash
+cargo run --bin udp_tracker_server
+```
+
+### Test 1: Default Announce (backward compatibility)
+
+Command:
+
+```bash
+cargo run -p torrust-tracker-client --bin udp_tracker_client announce \
+  127.0.0.1:6969 9c38422213e30bff212b30c360d26f9a02136422
+```
+
+Expected output (JSON):
+
+- `transaction_id`: matches the request transaction ID
+- `announce_interval`: positive integer (e.g., 120)
+- `leechers`: integer >= 0
+- `seeders`: integer >= 0
+- `peers`: array of peers in `"IP:port"` format (may be empty)
+
+Example response:
+
+```json
+{
+  "AnnounceIpv4": {
+    "transaction_id": -888840697,
+    "announce_interval": 120,
+    "leechers": 0,
+    "seeders": 1,
+    "peers": []
+  }
+}
+```
+
+### Test 2: Announce with All Optional Parameters
+
+Command:
+
+```bash
+cargo run -p torrust-tracker-client --bin udp_tracker_client announce \
+  127.0.0.1:6969 443c7602b4fde83d1154d6d9da48808418b181b6 \
+  --event completed \
+  --uploaded 1234 \
+  --downloaded 5678 \
+  --left 0 \
+  --port 6881 \
+  --ip-address 10.0.0.1 \
+  '--peer-id=-RC00000000000000001' \
+  --key 42 \
+  --peers-wanted 50
+```
+
+Note: Peer-id must be exactly 20 bytes. Use `--peer-id='...'` (with equals and quotes) for peer-ids that start with a dash (e.g., `-RC0...` style).
+
+Expected output (JSON):
+
+- Same response structure as Test 1
+- The request is accepted and processed by the tracker
+- Tracker logs (if enabled) should show the announce request with the custom parameters
+
+Example response:
+
+```json
+{
+  "AnnounceIpv4": {
+    "transaction_id": -888840697,
+    "announce_interval": 120,
+    "leechers": 0,
+    "seeders": 1,
+    "peers": []
+  }
+}
+```
+
 ## Acceptance Criteria
 
 - [ ] Running `announce ... --event completed` sends `event=completed` in the UDP packet
