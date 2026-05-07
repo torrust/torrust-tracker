@@ -8,6 +8,7 @@
 use std::path::PathBuf;
 use std::time::Duration;
 
+use anyhow::Context;
 use clap::{Parser, ValueEnum};
 use tracing::level_filters::LevelFilter;
 
@@ -81,6 +82,10 @@ struct Args {
     /// down.  Useful for post-run debugging (e.g. `docker logs <container>`).
     #[clap(long, default_value_t = false)]
     keep_containers: bool,
+
+    /// Skip building the tracker container image (use pre-built image).
+    #[clap(long, default_value_t = false)]
+    skip_build: bool,
 }
 
 /// Runs the qBittorrent E2E smoke orchestration.
@@ -116,8 +121,10 @@ pub async fn run() -> anyhow::Result<()> {
         &qbittorrent_image,
         resources,
         &tracker_config,
+        args.skip_build,
     )
-    .await?;
+    .await
+    .with_context(|| format!("Failed to start services with tracker image: {}", args.tracker_image))?;
 
     scenarios::seeder_to_leecher_transfer::run(&seeder, &leecher, &tracker, resources, &prepared_cases).await?;
 

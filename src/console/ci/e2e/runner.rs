@@ -49,6 +49,14 @@ struct Args {
     /// Direct configuration content in JSON.
     #[clap(env = "TORRUST_TRACKER_CONFIG_TOML", hide_env_values = true)]
     config_toml: Option<String>,
+
+    /// Tracker container image tag (default: torrust-tracker:local).
+    #[clap(short, long)]
+    tracker_image: Option<String>,
+
+    /// Skip building the tracker container image (use pre-built image).
+    #[clap(long)]
+    skip_build: bool,
 }
 
 /// Script to run E2E tests.
@@ -69,9 +77,13 @@ pub fn run() -> anyhow::Result<()> {
 
     tracing::info!("tracker config:\n{tracker_config}");
 
-    let mut tracker_container = TrackerContainer::new(CONTAINER_IMAGE, CONTAINER_NAME_PREFIX);
+    let image_tag = args.tracker_image.as_deref().unwrap_or(CONTAINER_IMAGE);
 
-    tracker_container.build_image();
+    let mut tracker_container = TrackerContainer::new(image_tag, CONTAINER_NAME_PREFIX);
+
+    if !args.skip_build {
+        tracker_container.build_image();
+    }
 
     // code-review: if we want to use port 0 we don't know which ports we have to open.
     // Besides, if we don't use port 0 we should get the port numbers from the tracker configuration.

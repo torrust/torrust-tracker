@@ -31,6 +31,7 @@ pub(crate) async fn start(
     qbittorrent_image: &QbittorrentImage,
     resources: &WorkspaceResources,
     tracker_config: &TrackerConfig,
+    skip_build: bool,
 ) -> anyhow::Result<(RunningCompose, QbittorrentClient, QbittorrentClient, TrackerApiClient)> {
     let compose = configure_compose(
         compose_file,
@@ -40,7 +41,9 @@ pub(crate) async fn start(
         resources,
         tracker_config,
     )?;
-    compose.build().context("failed to build local tracker image")?;
+    if !skip_build {
+        compose.build().context("failed to build local tracker image")?;
+    }
     let running_compose = compose.up().context("failed to start qBittorrent compose stack")?;
     let timeout = resources.timing.polling_deadline.as_duration();
     let (seeder, leecher) = build_clients(&compose, timeout).await?;
