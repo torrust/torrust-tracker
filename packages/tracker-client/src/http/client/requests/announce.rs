@@ -123,6 +123,36 @@ impl QueryBuilder {
     }
 
     #[must_use]
+    pub fn with_event(mut self, event: Event) -> Self {
+        self.announce_query.event = Some(event);
+        self
+    }
+
+    #[must_use]
+    pub fn with_uploaded(mut self, uploaded: BaseTenASCII) -> Self {
+        self.announce_query.uploaded = uploaded;
+        self
+    }
+
+    #[must_use]
+    pub fn with_downloaded(mut self, downloaded: BaseTenASCII) -> Self {
+        self.announce_query.downloaded = downloaded;
+        self
+    }
+
+    #[must_use]
+    pub fn with_left(mut self, left: BaseTenASCII) -> Self {
+        self.announce_query.left = left;
+        self
+    }
+
+    #[must_use]
+    pub fn with_port(mut self, port: PortNumber) -> Self {
+        self.announce_query.port = port;
+        self
+    }
+
+    #[must_use]
     pub fn with_compact(mut self, compact: Compact) -> Self {
         self.announce_query.compact = Some(compact);
         self
