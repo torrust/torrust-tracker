@@ -7,7 +7,7 @@ use bittorrent_udp_tracker_protocol::TransactionId;
 use serde::Serialize;
 use url::Url;
 
-use crate::console::clients::udp::checker::Client;
+use crate::console::clients::udp::checker::{AnnounceParams, Client};
 use crate::console::clients::udp::Error;
 
 #[derive(Debug, Clone, Serialize)]
@@ -73,7 +73,7 @@ pub async fn run(udp_trackers: Vec<Url>, timeout: Duration) -> Vec<Result<Checks
         // Announce
         {
             let check = client
-                .send_announce_request(transaction_id, connection_id, info_hash)
+                .send_announce_request(transaction_id, connection_id, info_hash, &AnnounceParams::default())
                 .await
                 .map(|_| ());
 

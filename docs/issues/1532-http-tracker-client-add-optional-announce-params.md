@@ -139,6 +139,82 @@ Announce {
 
 - [ ] Update the module-level doc comment in `app.rs` with the new extended usage example
 
+## Manual Verification
+
+This section is for manual validation after implementation is completed. It is a test plan only.
+
+### Setup
+
+Start the tracker locally with default development configuration:
+
+```bash
+cargo run
+```
+
+Expected startup log excerpt:
+
+```text
+Loading extra configuration from default configuration file: `./share/default/config/tracker.development.sqlite3.toml` ...
+```
+
+### Test 1: Default Announce (backward compatibility)
+
+Command:
+
+```bash
+cargo run -p torrust-tracker-client --bin http_tracker_client announce \
+      http://127.0.0.1:7070 443c7602b4fde83d1154d6d9da48808418b181b6
+```
+
+Example output (observed with current behaviour):
+
+```json
+{
+  "complete": 1,
+  "incomplete": 0,
+  "interval": 120,
+  "min interval": 120,
+  "peers": []
+}
+```
+
+Expected output (JSON):
+
+- Response is valid announce JSON
+- Existing defaults are used when flags are omitted
+- The command succeeds without requiring optional flags
+
+### Test 2: Announce with All Optional Parameters
+
+Command:
+
+```bash
+cargo run -p torrust-tracker-client --bin http_tracker_client announce \
+      http://127.0.0.1:7070 443c7602b4fde83d1154d6d9da48808418b181b6 \
+      --event completed \
+      --uploaded 1234 \
+      --downloaded 5678 \
+      --left 0 \
+      --port 6881 \
+      --peer-addr 10.0.0.1 \
+      '--peer-id=-RC00000000000000001' \
+      --compact 1
+```
+
+Note: Peer-id must be exactly 20 bytes. Use `--peer-id='...'` (with equals and quotes) for peer-ids that start with a dash (e.g., `-RC0...` style).
+
+Expected output (JSON):
+
+- Response is valid announce JSON
+- Request is accepted and processed by the tracker
+- Query includes overridden values from flags (including `event=completed`)
+
+### Optional Negative-Path Checks
+
+- `--peer-id` with length different from 20 bytes should fail with a CLI argument error
+- Invalid `--event` value should fail and show allowed values
+- Invalid `--compact` value (not `0` or `1`) should fail with a CLI argument error
+
 ## Acceptance Criteria
 
 - [ ] Running `announce ... --event completed` sends `event=completed` in the query string

@@ -2,10 +2,26 @@
 //!
 //! Examples:
 //!
-//! Announce request:
+//! Announce request (minimal):
 //!
 //! ```text
 //! cargo run --bin udp_tracker_client announce 127.0.0.1:6969 9c38422213e30bff212b30c360d26f9a02136422 | jq
+//! ```
+//!
+//! Announce request (all optional parameters):
+//!
+//! ```text
+//! cargo run --bin udp_tracker_client announce \
+//!   127.0.0.1:6969 443c7602b4fde83d1154d6d9da48808418b181b6 \
+//!   --event completed \
+//!   --uploaded 1234 \
+//!   --downloaded 5678 \
+//!   --left 0 \
+//!   --port 6881 \
+//!   --ip-address 10.0.0.1 \
+//!   '--peer-id=-RC00000000000000001' \
+//!   --key 42 \
+//!   --peers-wanted 50 | jq
 //! ```
 //!
 //! Announce response:
@@ -56,23 +72,44 @@
 //! ```
 //!
 //! The protocol (`udp://`) in the URL is mandatory. The path (`\scrape`) is optional. It always uses `\scrape`.
-use std::net::{SocketAddr, ToSocketAddrs};
+use std::net::{Ipv4Addr, SocketAddr, ToSocketAddrs};
 use std::str::FromStr;
 
 use anyhow::Context;
 use bittorrent_primitives::info_hash::InfoHash as TorrustInfoHash;
-use bittorrent_udp_tracker_protocol::{Response, TransactionId};
-use clap::{Parser, Subcommand};
+use bittorrent_udp_tracker_protocol::{AnnounceEvent, Response, TransactionId};
+use clap::{Parser, Subcommand, ValueEnum};
 use torrust_tracker_configuration::DEFAULT_TIMEOUT;
 use tracing::level_filters::LevelFilter;
 use url::Url;
 
 use super::Error;
 use crate::console::clients::udp::checker;
+use crate::console::clients::udp::checker::AnnounceParams;
 use crate::console::clients::udp::responses::dto::SerializableResponse;
 use crate::console::clients::udp::responses::json::ToJson;
 
 const RANDOM_TRANSACTION_ID: i32 = -888_840_697;
+
+/// CLI representation of `AnnounceEvent`. Keeps `clap` out of the protocol layer.
+#[derive(Clone, Copy, Debug, ValueEnum)]
+enum CliAnnounceEvent {
+    None,
+    Completed,
+    Started,
+    Stopped,
+}
+
+impl From<CliAnnounceEvent> for AnnounceEvent {
+    fn from(value: CliAnnounceEvent) -> Self {
+        match value {
+            CliAnnounceEvent::None => AnnounceEvent::None,
+            CliAnnounceEvent::Completed => AnnounceEvent::Completed,
+            CliAnnounceEvent::Started => AnnounceEvent::Started,
+            CliAnnounceEvent::Stopped => AnnounceEvent::Stopped,
+        }
+    }
+}
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -88,6 +125,24 @@ enum Command {
         tracker_socket_addr: SocketAddr,
         #[arg(value_parser = parse_info_hash)]
         info_hash: TorrustInfoHash,
+        #[arg(long)]
+        event: Option<CliAnnounceEvent>,
+        #[arg(long)]
+        uploaded: Option<u64>,
+        #[arg(long)]
+        downloaded: Option<u64>,
+        #[arg(long)]
+        left: Option<u64>,
+        #[arg(long, value_parser = parse_non_zero_port)]
+        port: Option<u16>,
+        #[arg(long = "ip-address")]
+        ip_address: Option<Ipv4Addr>,
+        #[arg(long = "peer-id", value_parser = parse_peer_id)]
+        peer_id: Option<[u8; 20]>,
+        #[arg(long)]
+        key: Option<i32>,
+        #[arg(long = "peers-wanted")]
+        peers_wanted: Option<i32>,
     },
     Scrape {
         #[arg(value_parser = parse_socket_addr)]
@@ -111,7 +166,38 @@ pub async fn run() -> anyhow::Result<()> {
         Command::Announce {
             tracker_socket_addr: remote_addr,
             info_hash,
-        } => handle_announce(remote_addr, &info_hash).await?,
+            event,
+            uploaded,
+            downloaded,
+            left,
+            port,
+            ip_address,
+            peer_id,
+            key,
+            peers_wanted,
+        } => {
+            let params = AnnounceParams {
+                event: event.map(Into::into),
+                uploaded: uploaded
+                    .map(i64::try_from)
+                    .transpose()
+                    .context("--uploaded value is too large to fit in i64")?,
+                downloaded: downloaded
+                    .map(i64::try_from)
+                    .transpose()
+                    .context("--downloaded value is too large to fit in i64")?,
+                left: left
+                    .map(i64::try_from)
+                    .transpose()
+                    .context("--left value is too large to fit in i64")?,
+                port,
+                ip_address,
+                peer_id,
+                key,
+                peers_wanted,
+            };
+            handle_announce(remote_addr, &info_hash, &params).await?
+        }
         Command::Scrape {
             tracker_socket_addr: remote_addr,
             info_hashes,
@@ -131,14 +217,20 @@ fn tracing_stdout_init(filter: LevelFilter) {
     tracing::debug!("Logging initialized");
 }
 
-async fn handle_announce(remote_addr: SocketAddr, info_hash: &TorrustInfoHash) -> Result<Response, Error> {
+async fn handle_announce(
+    remote_addr: SocketAddr,
+    info_hash: &TorrustInfoHash,
+    params: &AnnounceParams,
+) -> Result<Response, Error> {
     let transaction_id = TransactionId::new(RANDOM_TRANSACTION_ID);
 
     let client = checker::Client::new(remote_addr, DEFAULT_TIMEOUT).await?;
 
     let connection_id = client.send_connection_request(transaction_id).await?;
 
-    client.send_announce_request(transaction_id, connection_id, *info_hash).await
+    client
+        .send_announce_request(transaction_id, connection_id, *info_hash, params)
+        .await
 }
 
 async fn handle_scrape(remote_addr: SocketAddr, info_hashes: &[TorrustInfoHash]) -> Result<Response, Error> {
@@ -204,4 +296,28 @@ fn parse_socket_addr(tracker_socket_addr_str: &str) -> anyhow::Result<SocketAddr
 fn parse_info_hash(info_hash_str: &str) -> anyhow::Result<TorrustInfoHash> {
     TorrustInfoHash::from_str(info_hash_str)
         .map_err(|e| anyhow::Error::msg(format!("failed to parse info-hash `{info_hash_str}`: {e:?}")))
+}
+
+fn parse_peer_id(peer_id_str: &str) -> anyhow::Result<[u8; 20]> {
+    let bytes = peer_id_str.as_bytes();
+    if bytes.len() != 20 {
+        return Err(anyhow::anyhow!(
+            "peer-id must be exactly 20 bytes, got {} bytes for `{peer_id_str}`",
+            bytes.len()
+        ));
+    }
+    let mut arr = [0u8; 20];
+    arr.copy_from_slice(bytes);
+
+    Ok(arr)
+}
+
+fn parse_non_zero_port(port_str: &str) -> anyhow::Result<u16> {
+    let port = u16::from_str(port_str).with_context(|| format!("invalid port value: `{port_str}`"))?;
+
+    if port == 0 {
+        anyhow::bail!("port must be greater than zero")
+    }
+
+    Ok(port)
 }
