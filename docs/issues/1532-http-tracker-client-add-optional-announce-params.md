@@ -61,28 +61,39 @@ cargo run -p torrust-tracker-client --bin http_tracker_client announce \
 
 Supported `--event` values: `started`, `stopped`, `completed` (case-insensitive).
 
+`--peer-id` input contract:
+
+- Accept a 20-character ASCII value.
+- Reject any value that is not exactly 20 bytes.
+- Surface validation errors as CLI argument errors.
+
 ## Goals
 
 - [ ] Add optional CLI flags to the `announce` sub-command in
       `console/tracker-client/src/console/clients/http/app.rs`:
       `--event`, `--uploaded`, `--downloaded`, `--left`, `--port`, `--peer-addr`,
       `--peer-id`, `--compact`
-- [ ] Parse each flag and pass its value to the corresponding `QueryBuilder` setter
+- [ ] Parse each flag and map it into `announce::Query` values
+- [ ] Extend `QueryBuilder` with missing setters for
+      `event`, `uploaded`, `downloaded`, `left`, and `port`
 - [ ] Defaults remain unchanged when a flag is omitted
-- [ ] Add `FromStr` / `clap` value parsing for `Event` (already has `Display`; needs `FromStr`)
+- [ ] Add CLI parsing for `Event` in the tracker-client layer
 - [ ] Pass `linter all` and `cargo machete` with zero warnings
 - [ ] Update the module-level doc comment in `app.rs` with new usage examples
 
 ## Implementation Plan
 
-### Task 1: Add `FromStr` for `Event`
+### Task 1: Add CLI parsing for `Event`
 
-`Event` already implements `Display`. Add a `FromStr` implementation (or derive it via `clap`'s
-`ValueEnum`) so it can be parsed directly from the command line.
+Use a CLI-facing enum (for example `CliEvent`) in
+`console/tracker-client/src/console/clients/http/app.rs` and map it into
+`bittorrent_tracker_client::http::client::requests::announce::Event`.
 
-- [ ] Implement `clap::ValueEnum` for `Event` in
-      `packages/tracker-client/src/http/client/requests/announce.rs`
-      (or add `FromStr` and map it in the CLI layer)
+Do not rely on `packages/http-protocol` `Event`, which is a different type and
+belongs to a different layer.
+
+- [ ] Implement `clap::ValueEnum` for the CLI-facing `event` type
+- [ ] Add explicit mapping from CLI event type to tracker-client request `Event`
 
 ### Task 2: Extend the `Announce` sub-command struct
 
@@ -95,7 +106,7 @@ Announce {
     tracker_url: String,
     info_hash: String,
     #[arg(long)]
-    event: Option<Event>,
+  event: Option<CliEvent>,
     #[arg(long)]
     uploaded: Option<u64>,
     #[arg(long)]
@@ -109,14 +120,20 @@ Announce {
     #[arg(long, name = "peer-id")]
     peer_id: Option<String>,
     #[arg(long)]
-    compact: Option<u8>,
+    compact: Option<CliCompact>,
 }
 ```
+
+`CliCompact` should accept only `0` and `1` and map to
+`announce::Compact::{NotAccepted, Accepted}`.
 
 ### Task 3: Thread optional values through `announce_command`
 
 - [ ] Update `announce_command` signature to accept the optional parameters
+- [ ] Add missing `QueryBuilder` setters in
+      `packages/tracker-client/src/http/client/requests/announce.rs`
 - [ ] Apply each `Some(value)` to the `QueryBuilder` chain before calling `.query()`
+- [ ] Parse and validate `--peer-id` into `bittorrent_udp_tracker_protocol::PeerId`
 
 ### Task 4: Update docs
 

@@ -47,6 +47,9 @@ let scrape_response = scrape::Response::try_from_bencoded(&body)
 `scrape::Response::try_from_bencoded` also panics internally via
 `serde_bencode::from_bytes(bytes).expect(...)`.
 
+The scrape parser path also contains nested `.unwrap()` calls while iterating
+decoded file dictionaries. Those must be removed from reachable runtime paths.
+
 ## Proposed Behaviour
 
 The two-step fallback strategy:
@@ -80,14 +83,17 @@ Warning: Could not deserialize HTTP tracker response. Raw bytes: [100, 56, ...]
 
 - [ ] Replace both `panic!(...)` / `.unwrap_or_else(|_| panic!(...))` calls in `app.rs` with
       graceful fallback logic
-- [ ] Remove the `panic!` inside `scrape::Response::try_from_bencoded`; change the internal
-      `expect(...)` to return `Err` properly
+- [ ] Remove panic/unwrap usage from the scrape decode path:
+      `expect(...)` in `try_from_bencoded` and nested `.unwrap()` calls in
+      parser helpers
 - [ ] Add `bencode2json` as a dependency of the `torrust-tracker-client` console crate
 - [ ] On deserialization failure, print the raw bencoded payload as generic JSON (via
       `bencode2json`)
 - [ ] If `bencode2json` conversion also fails, print a warning with the raw byte slice
 - [ ] The process exits with a non-zero exit code when the response cannot be deserialized
       (print the fallback JSON/bytes to stdout, return an `Err` from the command function)
+- [ ] Fallback JSON output is compact by default in this issue; once `--format`
+      is introduced in #1562, fallback JSON must respect the selected format
 - [ ] `linter all` exits with code `0`
 - [ ] `cargo machete` reports no unused dependencies
 - [ ] All existing tests pass
@@ -108,6 +114,9 @@ pub fn try_from_bencoded(bytes: &[u8]) -> Result<Self, BencodeParseError> {
 ```
 
 A new `BencodeParseError` variant may be needed for `serde_bencode::Error`.
+
+Also replace nested `.unwrap()` calls in scrape parsing helpers with proper
+error propagation into `BencodeParseError`.
 
 ### Task 2: Add `bencode2json` dependency
 
@@ -169,6 +178,7 @@ Add examples showing the fallback output in the module-level doc comment.
 - [ ] Running the client against the Torrust Tracker still prints the typed JSON response
       and exits `0`
 - [ ] No `panic!` or `.unwrap()` in the announce or scrape command paths
+- [ ] No reachable panic/unwrap remains in the scrape decoding path
 - [ ] `linter all` exits with code `0`
 - [ ] `cargo machete` reports no unused dependencies
 - [ ] All existing tests pass

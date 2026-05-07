@@ -13,6 +13,14 @@ accept both forms:
 - base URL, for example `https://tracker.torrust-demo.com/`
 - full announce URL, for example `https://tracker.torrust-demo.com/announce`
 
+The `/announce` suffix is common in public tracker lists (for example
+newtrackon), but not guaranteed by protocol-level requirements. The client
+should therefore support a mixed strategy:
+
+- If the input URL path is empty (domain only) or exactly `/`, append
+  `/announce`.
+- If the input URL already contains a path segment, keep it as provided.
+
 - GitHub issue: <https://github.com/torrust/torrust-tracker/issues/1561>
 - Parent EPIC: <https://github.com/torrust/torrust-tracker/issues/669>
 
@@ -69,33 +77,35 @@ Expected accepted inputs for announce:
 - `https://tracker.torrust-demo.com`
 - `https://tracker.torrust-demo.com/`
 - `https://tracker.torrust-demo.com/announce`
+- `https://tracker.torrust-demo.com/custom-tracker-endpoint`
 
 Expected final request path for announce:
 
-- exactly one `/announce`
+- exactly one effective endpoint path, resolved by the rule below
 
-Expected accepted inputs for scrape:
+Path resolution rule for `announce`:
 
-- `https://tracker.torrust-demo.com`
-- `https://tracker.torrust-demo.com/`
-- `https://tracker.torrust-demo.com/scrape`
-
-Expected final request path for scrape:
-
-- exactly one `/scrape`
+- Input path empty or `/` -> resolve to `/announce`
+- Input path non-empty (for example `/announce`, `/foo`, `/foo/bar`) -> keep it
+  unchanged
 
 The client should not rely on callers pre-trimming or pre-normalizing the URL.
+
+Scope note: this issue is about tracker protocol endpoints (`announce` and
+`scrape`). The `health_check` endpoint is out of scope.
 
 ## Goals
 
 - [ ] Accept both bare tracker base URLs and full announce URLs in the HTTP
       client
+- [ ] Append `/announce` only for bare URLs (`host` or `host/`)
+- [ ] Keep provided path unchanged when a non-empty path already exists
 - [ ] Avoid duplicating the `announce` path suffix in the final request URL
-- [ ] Avoid duplicating the `scrape` path suffix in the final request URL
 - [ ] Keep authenticated path handling working, including URLs that append the
       authentication key after the endpoint path
 - [ ] Preserve existing behaviour for valid base URLs
 - [ ] Add tests covering the supported input forms
+- [ ] Keep `health_check` behaviour unchanged in this issue
 - [ ] `linter all` exits with code `0`
 - [ ] `cargo machete` reports no unused dependencies
 - [ ] Existing tests pass
@@ -117,12 +127,14 @@ Instead, add a helper that derives a normalized endpoint URL from the parsed
 
 The key rule is: the final URL must contain the endpoint suffix exactly once.
 
-### Task 2: Normalize announce and scrape independently
+### Task 2: Apply base-URL detection for announce
 
-Ensure announce requests always resolve to exactly one `announce` segment and
-scrape requests always resolve to exactly one `scrape` segment.
+For announce requests:
 
-Do not implement a narrow fix that only handles `announce`.
+- If the input URL path is empty or `/`, append `announce`
+- Otherwise, keep the original path unchanged
+
+Do not append `announce` when any path segment already exists.
 
 ### Task 3: Preserve authenticated endpoint support
 
@@ -151,8 +163,7 @@ Add tests in `packages/tracker-client/src/http/client/mod.rs` covering at least:
 - base URL without trailing slash + announce
 - base URL with trailing slash + announce
 - full `/announce` URL + announce
-- base URL without trailing slash + scrape
-- full `/scrape` URL + scrape
+- full custom path URL + announce (path unchanged)
 - authenticated announce path with a full `/announce` base URL
 
 The tests should assert the exact final URL string.
@@ -163,16 +174,20 @@ Update the module docs in
 `console/tracker-client/src/console/clients/http/app.rs` or package docs so the
 accepted URL forms are explicit.
 
+### Task 6: Keep `health_check` out of scope
+
+Do not change `health_check` behavior as part of this bug fix. If endpoint
+normalization is later generalized to all methods, that should be handled in a
+separate issue with dedicated tests.
+
 ## Acceptance Criteria
 
 - [ ] Passing `https://tracker.torrust-demo.com` to the announce command sends
       the request to `/announce`
 - [ ] Passing `https://tracker.torrust-demo.com/announce` to the announce
       command also sends the request to `/announce`
-- [ ] Passing `https://tracker.torrust-demo.com` to the scrape command sends
-      the request to `/scrape`
-- [ ] Passing `https://tracker.torrust-demo.com/scrape` to the scrape command
-      also sends the request to `/scrape`
+- [ ] Passing a URL with a non-empty path (for example `/foo`) keeps `/foo`
+      unchanged and does not append `announce`
 - [ ] Authenticated requests still generate correct URLs
 - [ ] No duplicated endpoint suffix appears in final request URLs
 - [ ] `linter all` exits with code `0`

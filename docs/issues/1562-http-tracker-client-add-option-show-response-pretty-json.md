@@ -41,6 +41,10 @@ Add `--format` to HTTP commands with the following values:
 - `compact` (default)
 - `pretty`
 
+Formatting applies to both typed responses and fallback JSON generated for
+unrecognized responses (from #672). Raw-byte fallback remains plain text and is
+not reformatted.
+
 Defaulting to `compact` is intentional because:
 
 - It is better for shell pipelines and machine parsing.
@@ -121,6 +125,8 @@ Update examples in `app.rs` module docs to include `--format pretty` usage.
 - [ ] `announce --format pretty` prints multiline indented JSON
 - [ ] `scrape --format pretty` prints multiline indented JSON
 - [ ] Omitting `--format` still produces compact single-line JSON
+- [ ] When fallback JSON is produced, `--format pretty` prints indented JSON and
+      default output remains compact
 - [ ] Invalid format values are rejected by clap with usage guidance
 - [ ] `linter all` exits with code `0`
 - [ ] `cargo machete` reports no unused dependencies

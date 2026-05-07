@@ -64,6 +64,12 @@ cargo run -p torrust-tracker-client --bin udp_tracker_client announce \
 Supported `--event` values: `none`, `completed`, `started`, `stopped` (matching
 `bittorrent_udp_tracker_protocol::AnnounceEvent` variants, case-insensitive).
 
+`--peer-id` input contract:
+
+- Accept a 20-character ASCII value.
+- Reject any value that is not exactly 20 bytes.
+- Surface validation errors as CLI argument errors.
+
 ## Goals
 
 - [ ] Add optional CLI flags to the `Announce` variant in
@@ -137,6 +143,8 @@ Announce {
       `checker::Client::send_announce_request()`
 - [ ] Update `send_announce_request` in `checker.rs` to accept an optional parameter struct
       (or individual `Option` arguments) and apply overrides when `Some`
+- [ ] Validate and parse `--peer-id` into `bittorrent_udp_tracker_protocol::PeerId`
+- [ ] Reject negative values for `uploaded`, `downloaded`, and `left` at the CLI layer
 
 ### Task 4: Update docs
 
