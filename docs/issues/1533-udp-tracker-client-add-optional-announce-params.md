@@ -72,18 +72,18 @@ Supported `--event` values: `none`, `completed`, `started`, `stopped` (matching
 
 ## Goals
 
-- [ ] Add optional CLI flags to the `Announce` variant in
+- [x] Add optional CLI flags to the `Announce` variant in
       `console/tracker-client/src/console/clients/udp/app.rs`:
       `--event`, `--uploaded`, `--downloaded`, `--left`, `--port`, `--ip-address`,
       `--peer-id`, `--key`, `--peers-wanted`
-- [ ] Thread the optional values from the CLI into `handle_announce` and then into
+- [x] Thread the optional values from the CLI into `handle_announce` and then into
       `checker::Client::send_announce_request()`
-- [ ] Add `clap::ValueEnum` (or `FromStr`) for `AnnounceEvent` so it can be parsed from the
+- [x] Add `clap::ValueEnum` (or `FromStr`) for `AnnounceEvent` so it can be parsed from the
       command line — implement directly on the in-house type or introduce a thin wrapper in
       the CLI layer for clean separation of concerns
-- [ ] Defaults remain unchanged when a flag is omitted
-- [ ] Pass `linter all` and `cargo machete` with zero warnings
-- [ ] Update the module-level doc comment in `app.rs` with new usage examples
+- [x] Defaults remain unchanged when a flag is omitted
+- [x] Pass `linter all` and `cargo machete` with zero warnings
+- [x] Update the module-level doc comment in `app.rs` with new usage examples
 
 ## Implementation Plan
 
@@ -101,14 +101,14 @@ applies. Two implementation paths are available:
 
 The wrapper approach is recommended to avoid leaking CLI concerns into the protocol layer.
 
-- [ ] Choose and implement one of the above in the CLI layer
+- [x] Choose and implement one of the above in the CLI layer
       (`console/tracker-client/src/console/clients/udp/`)
 
 ### Task 2: Extend the `Announce` sub-command struct
 
 In `console/tracker-client/src/console/clients/udp/app.rs`:
 
-- [ ] Change the `Announce` variant of the `Command` enum to carry optional fields:
+- [x] Change the `Announce` variant of the `Command` enum to carry optional fields:
 
 ```rust
 Announce {
@@ -139,25 +139,31 @@ Announce {
 
 ### Task 3: Thread optional values through `handle_announce`
 
-- [ ] Update `handle_announce` to accept the new optional parameters and pass them to
+- [x] Update `handle_announce` to accept the new optional parameters and pass them to
       `checker::Client::send_announce_request()`
-- [ ] Update `send_announce_request` in `checker.rs` to accept an optional parameter struct
+- [x] Update `send_announce_request` in `checker.rs` to accept an optional parameter struct
       (or individual `Option` arguments) and apply overrides when `Some`
-- [ ] Validate and parse `--peer-id` into `bittorrent_udp_tracker_protocol::PeerId`
-- [ ] Reject negative values for `uploaded`, `downloaded`, and `left` at the CLI layer
+- [x] Validate and parse `--peer-id` into `bittorrent_udp_tracker_protocol::PeerId`
+- [x] Reject negative values for `uploaded`, `downloaded`, and `left` at the CLI layer
 
 ### Task 4: Update docs
 
-- [ ] Update the module-level doc comment in `app.rs` with the new extended usage example
+- [x] Update the module-level doc comment in `app.rs` with the new extended usage example
 
 ## Manual Verification
 
 ### Setup
 
-Start a local UDP tracker on the default port 6969:
+Start the tracker locally with default development configuration:
 
 ```bash
-cargo run --bin udp_tracker_server
+cargo run
+```
+
+Expected startup log excerpt:
+
+```text
+Loading extra configuration from default configuration file: `./share/default/config/tracker.development.sqlite3.toml` ...
 ```
 
 ### Test 1: Default Announce (backward compatibility)
@@ -233,11 +239,11 @@ Example response:
 
 ## Acceptance Criteria
 
-- [ ] Running `announce ... --event completed` sends `event=completed` in the UDP packet
-- [ ] Running `announce ...` without flags behaves exactly as today (defaults unchanged)
-- [ ] `linter all` exits with code `0`
-- [ ] `cargo machete` reports no unused dependencies
-- [ ] All existing tests pass
+- [x] Running `announce ... --event completed` sends `event=completed` in the UDP packet
+- [x] Running `announce ...` without flags behaves exactly as today (defaults unchanged)
+- [x] `linter all` exits with code `0`
+- [x] `cargo machete` reports no unused dependencies
+- [x] All existing tests pass
 
 ## Key Files
 
