@@ -333,4 +333,6 @@ Xunlei
 xxxxxxxxxxxxxxxxxxxxd
 yyyyyyyyyyyyyyyyyyyyd
 zerocopy
+tlnp
+ulnp
 zstd
