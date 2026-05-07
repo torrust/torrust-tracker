@@ -101,6 +101,7 @@ Each pending sub-issue has a dedicated spec document in this folder:
 - [1533-udp-tracker-client-add-optional-announce-params.md](1533-udp-tracker-client-add-optional-announce-params.md)
 - [671-udp-tracker-client-print-unrecognized-responses.md](671-udp-tracker-client-print-unrecognized-responses.md)
 - [672-http-tracker-client-print-unrecognized-responses.md](672-http-tracker-client-print-unrecognized-responses.md)
+- [1561-http-tracker-client-avoid-duplicating-announce-suffix.md](1561-http-tracker-client-avoid-duplicating-announce-suffix.md)
 - [1562-http-tracker-client-add-option-show-response-pretty-json.md](1562-http-tracker-client-add-option-show-response-pretty-json.md)
 - [1563-udp-tracker-client-add-option-show-response-pretty-json.md](1563-udp-tracker-client-add-option-show-response-pretty-json.md)
 
