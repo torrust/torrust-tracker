@@ -69,17 +69,17 @@ Supported `--event` values: `started`, `stopped`, `completed` (case-insensitive)
 
 ## Goals
 
-- [ ] Add optional CLI flags to the `announce` sub-command in
+- [x] Add optional CLI flags to the `announce` sub-command in
       `console/tracker-client/src/console/clients/http/app.rs`:
       `--event`, `--uploaded`, `--downloaded`, `--left`, `--port`, `--peer-addr`,
       `--peer-id`, `--compact`
-- [ ] Parse each flag and map it into `announce::Query` values
-- [ ] Extend `QueryBuilder` with missing setters for
+- [x] Parse each flag and map it into `announce::Query` values
+- [x] Extend `QueryBuilder` with missing setters for
       `event`, `uploaded`, `downloaded`, `left`, and `port`
-- [ ] Defaults remain unchanged when a flag is omitted
-- [ ] Add CLI parsing for `Event` in the tracker-client layer
-- [ ] Pass `linter all` and `cargo machete` with zero warnings
-- [ ] Update the module-level doc comment in `app.rs` with new usage examples
+- [x] Defaults remain unchanged when a flag is omitted
+- [x] Add CLI parsing for `Event` in the tracker-client layer
+- [x] Pass `linter all` and `cargo machete` with zero warnings
+- [x] Update the module-level doc comment in `app.rs` with new usage examples
 
 ## Implementation Plan
 
@@ -92,14 +92,14 @@ Use a CLI-facing enum (for example `CliEvent`) in
 Do not rely on `packages/http-protocol` `Event`, which is a different type and
 belongs to a different layer.
 
-- [ ] Implement `clap::ValueEnum` for the CLI-facing `event` type
-- [ ] Add explicit mapping from CLI event type to tracker-client request `Event`
+- [x] Implement `clap::ValueEnum` for the CLI-facing `event` type
+- [x] Add explicit mapping from CLI event type to tracker-client request `Event`
 
 ### Task 2: Extend the `Announce` sub-command struct
 
 In `console/tracker-client/src/console/clients/http/app.rs`:
 
-- [ ] Change the `Announce` variant of the `Command` enum to carry optional fields:
+- [x] Change the `Announce` variant of the `Command` enum to carry optional fields:
 
 ```rust
 Announce {
@@ -129,15 +129,15 @@ Announce {
 
 ### Task 3: Thread optional values through `announce_command`
 
-- [ ] Update `announce_command` signature to accept the optional parameters
-- [ ] Add missing `QueryBuilder` setters in
+- [x] Update `announce_command` signature to accept the optional parameters
+- [x] Add missing `QueryBuilder` setters in
       `packages/tracker-client/src/http/client/requests/announce.rs`
-- [ ] Apply each `Some(value)` to the `QueryBuilder` chain before calling `.query()`
-- [ ] Parse and validate `--peer-id` into `bittorrent_udp_tracker_protocol::PeerId`
+- [x] Apply each `Some(value)` to the `QueryBuilder` chain before calling `.query()`
+- [x] Parse and validate `--peer-id` into `bittorrent_udp_tracker_protocol::PeerId`
 
 ### Task 4: Update docs
 
-- [ ] Update the module-level doc comment in `app.rs` with the new extended usage example
+- [x] Update the module-level doc comment in `app.rs` with the new extended usage example
 
 ## Manual Verification
 
@@ -203,11 +203,36 @@ cargo run -p torrust-tracker-client --bin http_tracker_client announce \
 
 Note: Peer-id must be exactly 20 bytes. Use `--peer-id='...'` (with equals and quotes) for peer-ids that start with a dash (e.g., `-RC0...` style).
 
+Observed output after implementation:
+
+```json
+{
+  "complete": 1,
+  "incomplete": 0,
+  "interval": 120,
+  "min interval": 120,
+  "peers": []
+}
+```
+
 Expected output (JSON):
 
 - Response is valid announce JSON
 - Request is accepted and processed by the tracker
 - Query includes overridden values from flags (including `event=completed`)
+
+Observed follow-up verification:
+
+- Scrape transitioned from
+  `{"complete":0,"downloaded":0,"incomplete":1}`
+  to
+  `{"complete":1,"downloaded":1,"incomplete":0}`
+- Global stats transitioned from
+  `"seeders":0,"completed":1,"leechers":1`
+  to
+  `"seeders":1,"completed":2,"leechers":0`
+
+This confirms the started -> completed transition was applied and completed/download counters increased.
 
 ### Optional Negative-Path Checks
 
@@ -217,11 +242,11 @@ Expected output (JSON):
 
 ## Acceptance Criteria
 
-- [ ] Running `announce ... --event completed` sends `event=completed` in the query string
-- [ ] Running `announce ...` without flags behaves exactly as today (defaults unchanged)
-- [ ] `linter all` exits with code `0`
-- [ ] `cargo machete` reports no unused dependencies
-- [ ] All existing tests pass
+- [x] Running `announce ... --event completed` sends `event=completed` in the query string
+- [x] Running `announce ...` without flags behaves exactly as today (defaults unchanged)
+- [x] `linter all` exits with code `0`
+- [x] `cargo machete` reports no unused dependencies
+- [x] All existing tests pass
 
 ## Key Files
 
