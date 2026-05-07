@@ -106,7 +106,7 @@ Announce {
     tracker_url: String,
     info_hash: String,
     #[arg(long)]
-  event: Option<CliEvent>,
+    event: Option<CliEvent>,
     #[arg(long)]
     uploaded: Option<u64>,
     #[arg(long)]
@@ -115,9 +115,9 @@ Announce {
     left: Option<u64>,
     #[arg(long)]
     port: Option<u16>,
-    #[arg(long, name = "peer-addr")]
+    #[arg(long = "peer-addr")]
     peer_addr: Option<IpAddr>,
-    #[arg(long, name = "peer-id")]
+    #[arg(long = "peer-id")]
     peer_id: Option<String>,
     #[arg(long)]
     compact: Option<CliCompact>,

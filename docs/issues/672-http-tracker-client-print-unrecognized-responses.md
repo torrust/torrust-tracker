@@ -22,7 +22,7 @@ the scrape response from `open.acgnxtracker.com` omits the `downloaded` field, w
 required by the Torrust `scrape::File` struct. This causes:
 
 ```text
-thread 'main' panicked at src/shared/bit_torrent/tracker/http/client/responses/scrape.rs:143:60:
+thread 'main' panicked at packages/tracker-client/src/http/client/responses/scrape.rs:143:60:
 called `Result::unwrap()` on an `Err` value: MissingFileField { field_name: "downloaded" }
 ```
 

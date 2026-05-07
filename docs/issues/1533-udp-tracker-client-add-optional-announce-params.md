@@ -126,13 +126,13 @@ Announce {
     left: Option<i64>,
     #[arg(long)]
     port: Option<u16>,
-    #[arg(long, name = "ip-address")]
+    #[arg(long = "ip-address")]
     ip_address: Option<Ipv4Addr>,
-    #[arg(long, name = "peer-id")]
+    #[arg(long = "peer-id")]
     peer_id: Option<String>,
     #[arg(long)]
     key: Option<i32>,
-    #[arg(long, name = "peers-wanted")]
+    #[arg(long = "peers-wanted")]
     peers_wanted: Option<i32>,
 }
 ```
