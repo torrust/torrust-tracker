@@ -84,7 +84,7 @@ Agent self-reporting is not sufficient for link integrity or semantic coupling c
 
 ### Task 2: Add semantic back links in impacted artifacts
 
-Add explicit reminder links in artifacts that this skill depends on, using a small structured marker convention (for example: `affects-skill: run-tracker-locally`).
+Add explicit reminder links in artifacts that this skill depends on, using a small structured marker convention (for example: `skill-link: run-tracker-locally`).
 
 - [ ] Add back-link marker in [`src/bootstrap/config.rs`](../../../src/bootstrap/config.rs) near `DEFAULT_PATH_CONFIG`.
 - [ ] Add back-link marker in [`share/default/config/tracker.development.sqlite3.toml`](../../../share/default/config/tracker.development.sqlite3.toml).

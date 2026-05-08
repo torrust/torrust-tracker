@@ -26,7 +26,7 @@ Convention reference: `docs/skills/semantic-skill-link-convention.md`
 
 Before finalizing changes related to this workflow:
 
-1. Run `bash scripts/validate-skill-links.sh`
+1. Run `bash ./scripts/validate-skill-links.sh`
 2. If validation fails, update either artifact markers or this skill content.
 3. Re-run validation until it passes.
 
@@ -173,4 +173,4 @@ cargo run --bin http_tracker_client announce http://127.0.0.1:7070 9c38422213e30
 
 ## Available Scripts
 
-- `scripts/validate-skill-links.sh` validates that all linked artifacts exist and include the expected `skill-link` marker.
+- `./scripts/validate-skill-links.sh` validates that all linked artifacts exist and include the expected `skill-link` marker.
