@@ -102,18 +102,34 @@ jobs:
         name: Download Dependencies
         run: cargo fetch --verbose
 
+      - id: setup-buildx
+        name: Setup Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - id: build-tracker-image
+        name: Build Tracker Image
+        uses: docker/build-push-action@v7
+        with:
+          file: ./Containerfile
+          push: false
+          load: true
+          target: release
+          tags: torrust-tracker:e2e-local
+          cache-from: type=gha,scope=testing-docker-e2e
+          cache-to: type=gha,scope=testing-docker-e2e,mode=max
+
       - id: run-tracker-e2e-tests
         name: Run E2E Tests
-        run: cargo run --bin e2e_tests_runner -- --config-toml-path "./share/default/config/tracker.e2e.container.sqlite3.toml"
+        run: cargo run --bin e2e_tests_runner -- --config-toml-path "./share/default/config/tracker.e2e.container.sqlite3.toml" --tracker-image "torrust-tracker:e2e-local" --skip-build
 
       - id: run-qbittorrent-e2e-test-sqlite3
         name: Run qBittorrent E2E Test (SQLite)
-        run: cargo run --bin qbittorrent_e2e_runner -- --db-driver sqlite3 --timeout-seconds 600
+        run: cargo run --bin qbittorrent_e2e_runner -- --tracker-image "torrust-tracker:e2e-local" --skip-build --db-driver sqlite3 --timeout-seconds 600
 
       - id: run-qbittorrent-e2e-test-mysql
         name: Run qBittorrent E2E Test (MySQL)
-        run: cargo run --bin qbittorrent_e2e_runner -- --db-driver mysql --timeout-seconds 600
+        run: cargo run --bin qbittorrent_e2e_runner -- --tracker-image "torrust-tracker:e2e-local" --skip-build --db-driver mysql --timeout-seconds 600
 
       - id: run-qbittorrent-e2e-test-postgresql
         name: Run qBittorrent E2E Test (PostgreSQL)
-        run: cargo run --bin qbittorrent_e2e_runner -- --db-driver postgresql --timeout-seconds 600
+        run: cargo run --bin qbittorrent_e2e_runner -- --tracker-image "torrust-tracker:e2e-local" --skip-build --db-driver postgresql --timeout-seconds 600

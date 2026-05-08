@@ -70,8 +70,13 @@ impl DockerCompose {
     /// # Errors
     ///
     /// Returns an error when docker compose fails to start all services.
-    pub fn up(&self) -> io::Result<RunningCompose> {
-        let output = self.run_compose(&["up", "--wait", "--detach"])?;
+    pub fn up(&self, no_build: bool) -> io::Result<RunningCompose> {
+        let mut args = vec!["up", "--wait", "--detach"];
+        if no_build {
+            args.push("--no-build");
+        }
+
+        let output = self.run_compose(&args)?;
 
         if output.status.success() {
             Ok(RunningCompose {

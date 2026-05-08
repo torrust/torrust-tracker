@@ -24,6 +24,10 @@ jobs:
         target: [debug, release]
 
     steps:
+      - id: checkout
+        name: Checkout Repository
+        uses: actions/checkout@v6
+
       - id: setup
         name: Setup Toolchain
         uses: docker/setup-buildx-action@v4
@@ -37,16 +41,12 @@ jobs:
           load: true
           target: ${{ matrix.target }}
           tags: torrust-tracker:local
-          cache-from: type=gha
-          cache-to: type=gha
+          cache-from: type=gha,scope=container-${{ matrix.target }}
+          cache-to: type=gha,scope=container-${{ matrix.target }},mode=max
 
       - id: inspect
         name: Inspect
         run: docker image inspect torrust-tracker:local
-
-      - id: checkout
-        name: Checkout Repository
-        uses: actions/checkout@v6
 
       - id: compose
         name: Compose
@@ -137,6 +137,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - id: checkout
+        name: Checkout Repository
+        uses: actions/checkout@v6
+
       - id: meta
         name: Docker Meta
         uses: docker/metadata-action@v6
@@ -164,8 +168,9 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha
+          target: release
+          cache-from: type=gha,scope=container-publish-dev
+          cache-to: type=gha,scope=container-publish-dev,mode=max
 
   publish_release:
     name: Publish (Release)
@@ -175,6 +180,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - id: checkout
+        name: Checkout Repository
+        uses: actions/checkout@v6
+
       - id: meta
         name: Docker Meta
         uses: docker/metadata-action@v6
@@ -205,5 +214,6 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha
+          target: release
+          cache-from: type=gha,scope=container-publish-release
+          cache-to: type=gha,scope=container-publish-release,mode=max

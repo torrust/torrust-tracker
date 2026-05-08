@@ -15,6 +15,9 @@ WORKDIR /tmp
 RUN apt-get update; apt-get install -y curl sqlite3; apt-get autoclean
 RUN curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
 RUN cargo binstall --no-confirm cargo-nextest
+# Database initialization: Tests at runtime require a pre-initialized SQLite3 database
+# to test against a valid (not corrupted) schema. The VACUUM command optimizes the
+# database file layout. This image layer is inherited by test_debug and test stages.
 
 COPY ./share/ /app/share/torrust
 RUN mkdir -p /app/share/torrust/default/database/; \
@@ -38,6 +41,9 @@ FROM chef AS dependencies_debug
 WORKDIR /build/src
 COPY --from=recipe /build/recipe.json /build/recipe.json
 RUN cargo chef cook --tests --benches --examples --workspace --all-targets --all-features --recipe-path /build/recipe.json
+# Pre-link warm-up: Create and discard a nextest archive to warm up the linker
+# before final compilation. This improves incremental build cache efficiency
+# by pre-faulting the linker phases, avoiding redundant linking work in later stages.
 RUN cargo nextest archive --tests --benches --examples --workspace --all-targets --all-features --archive-file /build/temp.tar.zst ; rm -f /build/temp.tar.zst
 
 ## Cook (release)
@@ -45,6 +51,9 @@ FROM chef AS dependencies
 WORKDIR /build/src
 COPY --from=recipe /build/recipe.json /build/recipe.json
 RUN cargo chef cook --tests --benches --examples --workspace --all-targets --all-features --recipe-path /build/recipe.json --release
+# Pre-link warm-up: Create and discard a nextest archive to warm up the linker
+# before final compilation. This improves incremental build cache efficiency
+# by pre-faulting the linker phases, avoiding redundant linking work in later stages.
 RUN cargo nextest archive --tests --benches --examples --workspace --all-targets --all-features --archive-file /build/temp.tar.zst --release  ; rm -f /build/temp.tar.zst
 
 
