@@ -1,0 +1,61 @@
+# Docs-Lint Workflow
+#
+# Runs lightweight documentation checks on every push and pull request.
+# Serves as the required CI signal for documentation-only pull requests,
+# which are excluded from the heavyweight test and compatibility workflows
+# via `paths-ignore` rules in those workflows.
+#
+# "Docs-only" path policy (mirrored in the `paths-ignore` lists of
+# testing.yaml, os-compatibility.yaml, db-compatibility.yaml, and
+# db-benchmarking.yaml):
+#   - **/*.md        — all Markdown files (docs/, READMEs, AGENTS.md, SKILL.md, …)
+#   - project-words.txt — spell-check dictionary (documentation artefact)
+#
+# A pull request is treated as docs-only when every changed file matches
+# one of the patterns above. Mixed pull requests (docs + code) still run
+# the full CI matrix because the code-side changes escape `paths-ignore`.
+
+name: Docs Lint
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  docs:
+    name: Docs Lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - id: checkout
+        name: Checkout Repository
+        uses: actions/checkout@v6
+
+      - id: setup
+        name: Setup Toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+
+      - id: node
+        name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "20"
+
+      - id: cache
+        name: Enable Job Cache
+        uses: Swatinem/rust-cache@v2
+
+      - id: linter
+        name: Install Internal Linter
+        run: cargo install --locked --git https://github.com/torrust/torrust-linting --bin linter
+
+      - id: lint-markdown
+        name: Lint Markdown
+        run: linter markdown
+
+      - id: lint-spelling
+        name: Check Spelling
+        run: linter cspell

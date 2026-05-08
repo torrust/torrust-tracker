@@ -1,8 +1,16 @@
 name: Testing
 
+# Path policy: skip this workflow when every changed file is documentation.
+# See .github/workflows/docs-lint.yaml for the lightweight docs-only workflow.
 on:
   push:
+    paths-ignore:
+      - "**/*.md"
+      - "project-words.txt"
   pull_request:
+    paths-ignore:
+      - "**/*.md"
+      - "project-words.txt"
 
 env:
   CARGO_TERM_COLOR: always
