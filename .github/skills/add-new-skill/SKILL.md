@@ -113,6 +113,13 @@ Frontmatter rules:
 - `metadata.author`: `torrust`
 - `metadata.version`: `"1.0"`
 
+Semantic coupling rules:
+
+- Identify critical project artifacts that the skill depends on.
+- Add a `skill-link: <skill-name>` marker in each linked artifact using language-appropriate comments.
+- Add a short "Skill Links" section in `SKILL.md` listing those artifacts.
+- Prefer a small validation script in `scripts/` to verify linked files and markers.
+
 ### Step 4: Validate and Commit
 
 ```bash
@@ -138,6 +145,15 @@ git commit -S -m "docs(skills): add {skill-name} skill"
     scripts/            ← Optional: executable scripts
     assets/             ← Optional: templates, data
 ```
+
+## Skill Link Convention
+
+Use a lightweight marker convention for cross-artifact maintenance links:
+
+- Marker format: `skill-link: <skill-name>`
+- Put markers near constants, configuration blocks, or documentation lines that define behavior used by the skill.
+- Keep links minimal and high signal: only link artifacts that can make the skill stale when they change.
+- Validate links with a script when practical.
 
 ## References
 

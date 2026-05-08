@@ -223,6 +223,7 @@
 //!
 //! > NOTICE: The `TORRUST_TRACKER_CONFIG_TOML` env var has priority over the `tracker.toml` file.
 //!
+//! skill-link: run-tracker-locally
 //! By default, if you don’t specify any `tracker.toml` file, the application
 //! will use `./share/default/config/tracker.development.sqlite3.toml`.
 //!
