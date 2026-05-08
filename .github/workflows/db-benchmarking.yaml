@@ -1,16 +1,19 @@
 name: Database Benchmarking
 
-# Path policy: skip this workflow when every changed file is documentation.
+# Path policy: run this workflow only for persistence-relevant changes.
+# Scoped intentionally to tracker-core — the benchmarks exercise the
+# persistence layer directly. General compile/cross-package regressions
+# are covered by the Testing workflow.
 # See .github/workflows/docs-lint.yaml for the lightweight docs-only workflow.
 on:
   push:
-    paths-ignore:
-      - "**/*.md"
-      - "project-words.txt"
+    paths:
+      - "packages/tracker-core/**"
+      - ".github/workflows/db-benchmarking.yaml"
   pull_request:
-    paths-ignore:
-      - "**/*.md"
-      - "project-words.txt"
+    paths:
+      - "packages/tracker-core/**"
+      - ".github/workflows/db-benchmarking.yaml"
 
 env:
   CARGO_TERM_COLOR: always
