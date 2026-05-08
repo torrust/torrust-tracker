@@ -274,6 +274,10 @@ routine status updates.
    - **Recommended** — after completing each small, independent, deployable change
 7. **Security**: Do not report security vulnerabilities through public GitHub issues. Send an
    email to `info@nautilus-cyberneering.de` instead. See [SECURITY.md](SECURITY.md).
+8. **Skill-link synchronization**: When modifying any artifact containing a `skill-link:` marker,
+   also review and update the linked skill instructions in `.github/skills/` so behavior,
+   commands, and references remain aligned. If the linked skill has a validation script, run it
+   before finishing.
 
 ## 🌿 Git Workflow
 
