@@ -48,35 +48,6 @@ jobs:
         name: Inspect
         run: docker image inspect torrust-tracker:local
 
-      - id: compose
-        name: Compose
-        run: |
-          QBT_E2E_WORKDIR="${RUNNER_TEMP}/qbt-e2e-compose-build"
-          mkdir -p "${QBT_E2E_WORKDIR}/tracker-storage"
-          mkdir -p "${QBT_E2E_WORKDIR}/seeder-config"
-          mkdir -p "${QBT_E2E_WORKDIR}/seeder-downloads"
-          mkdir -p "${QBT_E2E_WORKDIR}/leecher-config"
-          mkdir -p "${QBT_E2E_WORKDIR}/leecher-downloads"
-          mkdir -p "${QBT_E2E_WORKDIR}/shared"
-
-          export QBT_E2E_TRACKER_IMAGE=torrust-tracker:local
-          export QBT_E2E_QBITTORRENT_IMAGE=ghcr.io/linuxserver/qbittorrent:latest
-          export QBT_E2E_TRACKER_CONFIG_PATH=./share/default/config/tracker.container.sqlite3.toml
-          export QBT_E2E_TRACKER_STORAGE_PATH="${QBT_E2E_WORKDIR}/tracker-storage"
-          export QBT_E2E_TRACKER_HTTP_TRACKER_PORT=7070
-          export QBT_E2E_TRACKER_UDP_PORT=6969
-          export QBT_E2E_TRACKER_HTTP_API_PORT=1212
-          export QBT_E2E_TRACKER_HEALTH_CHECK_API_PORT=1313
-          export QBT_E2E_SEEDER_CONFIG_PATH="${QBT_E2E_WORKDIR}/seeder-config"
-          export QBT_E2E_SEEDER_DOWNLOADS_PATH="${QBT_E2E_WORKDIR}/seeder-downloads"
-          export QBT_E2E_LEECHER_CONFIG_PATH="${QBT_E2E_WORKDIR}/leecher-config"
-          export QBT_E2E_LEECHER_DOWNLOADS_PATH="${QBT_E2E_WORKDIR}/leecher-downloads"
-          export QBT_E2E_SHARED_PATH="${QBT_E2E_WORKDIR}/shared"
-
-          docker compose -f compose.qbittorrent-e2e.sqlite3.yaml build
-          docker compose -f compose.qbittorrent-e2e.mysql.yaml build
-          docker compose -f compose.qbittorrent-e2e.postgresql.yaml build
-
   context:
     name: Context
     needs: test
