@@ -20,6 +20,8 @@ This skill depends on these artifacts. If any of them change, review this skill.
 
 Use the marker `skill-link: run-tracker-locally` in affected artifacts.
 
+Convention reference: `docs/skills/semantic-skill-link-convention.md`
+
 ## Validation Loop
 
 Before finalizing changes related to this workflow:

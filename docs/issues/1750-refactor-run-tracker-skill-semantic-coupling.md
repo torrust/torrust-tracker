@@ -103,7 +103,14 @@ Notes:
   - allowed values,
   - placement rules,
   - when to add/update/remove links.
+- [ ] Publish this convention in a canonical repository document that can be referenced by skills and reviewers.
 - [ ] Keep convention intentionally small and pragmatic.
+
+### Task 3b: Add a marker catalog
+
+- [ ] Add a repository catalog defining supported marker types (starting with `skill-link`).
+- [ ] Keep the marker catalog intentionally small and grow it only when a concrete need appears.
+- [ ] Document marker semantics and expected usage patterns for reviewers and contributors.
 
 ### Task 4: Update the skill-creation meta-skill
 
@@ -130,6 +137,8 @@ Notes:
 - [ ] [`.github/skills/dev/environment-setup/run-tracker-locally/SKILL.md`](../../../.github/skills/dev/environment-setup/run-tracker-locally/SKILL.md) is refactored with a concise, maintainable structure.
 - [ ] The key dependent artifacts include explicit back-link reminders to `run-tracker-locally`.
 - [ ] A documented minimal semantic-link convention exists and is understandable by contributors.
+- [ ] A canonical document exists for the `skill-link` convention and is referenced from skill-authoring guidance.
+- [ ] A marker catalog exists, starts minimal, and documents how new markers can be added organically.
 - [ ] [`.github/skills/add-new-skill/SKILL.md`](../../../.github/skills/add-new-skill/SKILL.md) includes the new guidance for semantic coupling.
 - [ ] The approach remains lightweight and does not introduce an over-engineered ontology system.
 - [ ] The implementation is submitted as an explicit experimental PR and reviewed by maintainers before any merge decision.

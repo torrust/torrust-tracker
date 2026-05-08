@@ -119,6 +119,8 @@ Semantic coupling rules:
 - Add a `skill-link: <skill-name>` marker in each linked artifact using language-appropriate comments.
 - Add a short "Skill Links" section in `SKILL.md` listing those artifacts.
 - Prefer a small validation script in `scripts/` to verify linked files and markers.
+- Follow the canonical convention in `docs/skills/semantic-skill-link-convention.md`.
+- Keep marker usage aligned with the marker catalog in `docs/skills/semantic-skill-link-convention.md`.
 
 ### Step 4: Validate and Commit
 
@@ -160,3 +162,4 @@ Use a lightweight marker convention for cross-artifact maintenance links:
 - Agent Skills specification: [references/specification.md](references/specification.md)
 - Skill patterns: [references/patterns.md](references/patterns.md)
 - Real examples: [references/examples.md](references/examples.md)
+- Semantic link convention: [`docs/skills/semantic-skill-link-convention.md`](../../../docs/skills/semantic-skill-link-convention.md)
