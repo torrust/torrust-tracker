@@ -22,17 +22,23 @@ Treat every commit request as a review-and-verify workflow, not as a blind reque
 
 ## Required Workflow
 
-1. Read the current branch, `git status`, and the staged or unstaged diff relevant to the request.
-2. Summarize the intended commit scope before taking action.
-3. Ensure the commit scope is coherent and does not accidentally mix unrelated changes.
-4. Run `./contrib/dev-tools/git/hooks/pre-commit.sh` when feasible. If it fails:
+1. **Check issue spec progress.** Before touching `git`, determine whether the commit relates to
+   an issue spec in `docs/issues/`. If it does:
+   - Verify that completed acceptance criteria are checked off in the spec.
+   - Verify that the spec's progress notes or task list reflect the current state.
+   - If the spec is out of date, stop and ask the caller to update it before proceeding.
+     Do not commit with a stale spec.
+2. Read the current branch, `git status`, and the staged or unstaged diff relevant to the request.
+3. Summarize the intended commit scope before taking action.
+4. Ensure the commit scope is coherent and does not accidentally mix unrelated changes.
+5. Run `./contrib/dev-tools/git/hooks/pre-commit.sh` when feasible. If it fails:
    - **You may fix**: formatting, linting, spell-check, import organization, and similar
      metadata-only issues that are direct artifacts of the commit scope.
    - **You must not fix**: build failures, test failures, logic errors, or runtime issues.
      These are implementation defects; stop and return them to the **Implementer** to resolve.
-5. Propose a precise Conventional Commit message.
-6. Create the commit with `git commit -S` only after the scope is clear and blockers are resolved.
-7. After committing, run a quick verification check and report the resulting commit summary.
+6. Propose a precise Conventional Commit message.
+7. Create the commit with `git commit -S` only after the scope is clear and blockers are resolved.
+8. After committing, run a quick verification check and report the resulting commit summary.
 
 ## Constraints
 
