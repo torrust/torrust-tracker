@@ -61,6 +61,8 @@ Do not jump directly to raw API calls if a dedicated MCP or CLI command covers t
   not its visible issue number.
 - Do not claim PR implementation changes that are not present in the current HEAD diff.
 - Do not mix GitHub task execution with unrelated code changes.
+- Do not create a GitHub issue without a corresponding approved local spec in `docs/issues/`.
+  Issue creation on GitHub is a publishing step, not a planning step — the spec comes first.
 - If a PR review comment requires code changes, stop after identifying the actionable request and
   hand control back to the caller or a code-focused agent.
 - Keep the workflow deterministic: inspect, act, verify.

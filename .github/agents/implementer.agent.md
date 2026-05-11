@@ -55,13 +55,16 @@ Before writing any code:
 2. Read the issue spec or task description in full.
 3. Identify the scope: what must change and what must not change.
 4. Ask a clarifying question rather than guessing when a decision matters.
+5. If the issue spec is ambiguous, incomplete, or the scope does not match the actual codebase
+   state, raise the discrepancy with the **Planner** (`@planner`) or the user before proceeding.
 
-### Step 2 — Decompose into Small Steps
+### Step 2 — Decompose into Implementation Steps
 
-Break the task into the smallest independent, verifiable steps possible. Use the todo list to
+The Planner provides coarse-grained _tasks_ with acceptance criteria. Your job here is to break
+each task into the smallest independent, verifiable _implementation steps_. Use the todo list to
 track progress. Each step should:
 
-- Have a single, clear intent.
+- Have a single, clear intent (hours of work, not days).
 - Be verifiable by a test or observable behaviour.
 - Be committable independently when complete.
 
@@ -79,20 +82,24 @@ add tests as a close follow-up step.
 
 ### Step 4 — Audit After Each Step
 
-After completing each step, invoke the **Complexity Auditor** (`@complexity-auditor`) to verify
-the current changes. Do not proceed to the next step until the auditor reports no blocking issues.
+After the complete red-green-refactor cycle for a step is done (tests passing, refactor complete),
+invoke the **Complexity Auditor** (`@complexity-auditor`) to verify the current changes.
+Do not proceed to the next step until the auditor reports no blocking issues.
 
 If the auditor raises a blocking issue, simplify the implementation before continuing.
 
 ### Step 5 — Request Independent Verification
 
-When implementation is complete and tests are passing, invoke the **Reviewer** (`@reviewer`) to
-verify the work before any commit:
+When all steps are complete and tests are passing, invoke the **Reviewer** (`@reviewer`) to
+verify the work before any commit. Provide the following context upfront:
 
-1. Provide the issue spec path and acceptance criteria to verify.
-2. Ask the Reviewer to confirm each acceptance criterion against the current code and tests.
-3. Ask the Reviewer to mark accepted items as done in the issue spec.
-4. Wait for the Reviewer report.
+1. Issue spec path.
+2. List of acceptance criteria to verify.
+3. Summary of what changed: files touched, scope, and which criterion each change addresses
+   (e.g., "Criterion 3 is satisfied by test `foo_test` in `src/bar.rs`").
+4. Request the Reviewer to confirm each criterion against the current code and tests.
+5. Request the Reviewer to mark accepted items as done in the issue spec.
+6. Wait for the Reviewer report.
 
 If the Reviewer reports gaps, pending tasks, failing behaviour, or repository-convention problems,
 address those issues first and request review again.

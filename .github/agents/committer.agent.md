@@ -25,8 +25,11 @@ Treat every commit request as a review-and-verify workflow, not as a blind reque
 1. Read the current branch, `git status`, and the staged or unstaged diff relevant to the request.
 2. Summarize the intended commit scope before taking action.
 3. Ensure the commit scope is coherent and does not accidentally mix unrelated changes.
-4. Run `./contrib/dev-tools/git/hooks/pre-commit.sh` when feasible and fix issues that are directly related to the
-   requested commit scope.
+4. Run `./contrib/dev-tools/git/hooks/pre-commit.sh` when feasible. If it fails:
+   - **You may fix**: formatting, linting, spell-check, import organization, and similar
+     metadata-only issues that are direct artifacts of the commit scope.
+   - **You must not fix**: build failures, test failures, logic errors, or runtime issues.
+     These are implementation defects; stop and return them to the **Implementer** to resolve.
 5. Propose a precise Conventional Commit message.
 6. Create the commit with `git commit -S` only after the scope is clear and blockers are resolved.
 7. After committing, run a quick verification check and report the resulting commit summary.
