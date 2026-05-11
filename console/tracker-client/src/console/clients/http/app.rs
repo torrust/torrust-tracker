@@ -28,11 +28,24 @@
 //! ```text
 //! cargo run --bin http_tracker_client scrape http://127.0.0.1:7070 9c38422213e30bff212b30c360d26f9a02136422 | jq
 //! ```
+//!
+//! Unrecognized response fallback (generic JSON):
+//!
+//! ```json
+//! {"files":{"<info_hash_bytes>":{"incomplete":0,"complete":32}}}
+//! ```
+//!
+//! Unrecognized response fallback (raw bytes):
+//!
+//! ```text
+//! Warning: Could not deserialize HTTP tracker response. Raw bytes: [100, 56, ...]
+//! ```
 use std::net::IpAddr;
 use std::str::FromStr;
 use std::time::Duration;
 
-use anyhow::Context;
+use anyhow::{bail, Context};
+use bencode2json::try_bencode_to_json;
 use bittorrent_primitives::info_hash::InfoHash;
 use bittorrent_tracker_client::http::client::requests::announce::{Compact, Event, QueryBuilder};
 use bittorrent_tracker_client::http::client::responses::announce::{Announce, DeserializedCompact};
@@ -174,8 +187,12 @@ pub async fn run() -> anyhow::Result<()> {
 
 async fn announce_command(options: AnnounceOptions, timeout: Duration) -> anyhow::Result<()> {
     let base_url = Url::parse(&options.tracker_url).context("failed to parse HTTP tracker base URL")?;
-    let info_hash = InfoHash::from_str(&options.info_hash)
-        .expect("Invalid infohash. Example infohash: `9c38422213e30bff212b30c360d26f9a02136422`");
+    let info_hash = InfoHash::from_str(&options.info_hash).map_err(|_| {
+        anyhow::anyhow!(
+            "invalid infohash `{}`. Example infohash: `9c38422213e30bff212b30c360d26f9a02136422`",
+            options.info_hash
+        )
+    })?;
 
     let mut query_builder = QueryBuilder::with_default_values().with_info_hash(&info_hash);
 
@@ -213,7 +230,11 @@ async fn announce_command(options: AnnounceOptions, timeout: Duration) -> anyhow
     } else if let Ok(compact_response) = serde_bencode::from_bytes::<DeserializedCompact>(&body) {
         serde_json::to_string(&compact_response).context("failed to serialize compact announce response into JSON")?
     } else {
-        panic!("response body should be a valid announce response, got: \"{body:#?}\"")
+        let fallback = bencode_to_fallback_json_or_raw_bytes(&body);
+
+        println!("{fallback}");
+
+        bail!("unrecognized announce response from tracker")
     };
 
     println!("{json}");
@@ -255,12 +276,24 @@ async fn scrape_command(tracker_url: &str, info_hashes: &[String], timeout: Dura
 
     let body = response.bytes().await?;
 
-    let scrape_response = scrape::Response::try_from_bencoded(&body)
-        .unwrap_or_else(|_| panic!("response body should be a valid scrape response, got: \"{body:#?}\""));
+    let Ok(scrape_response) = scrape::Response::try_from_bencoded(&body) else {
+        let fallback = bencode_to_fallback_json_or_raw_bytes(&body);
+
+        println!("{fallback}");
+
+        bail!("unrecognized scrape response from tracker")
+    };
 
     let json = serde_json::to_string(&scrape_response).context("failed to serialize scrape response into JSON")?;
 
     println!("{json}");
 
     Ok(())
+}
+
+fn bencode_to_fallback_json_or_raw_bytes(body: &[u8]) -> String {
+    match try_bencode_to_json(body) {
+        Ok(json) => json,
+        Err(_) => format!("Warning: Could not deserialize HTTP tracker response. Raw bytes: {body:?}"),
+    }
 }
