@@ -18,23 +18,35 @@ pub enum Error {
     #[error("Failed to send a connection request, with error: {err}")]
     UnableToSendConnectionRequest { err: udp::Error },
 
-    #[error("Failed to receive a connect response, with error: {err}")]
-    UnableToReceiveConnectResponse { err: udp::Error },
+    #[error("{err}")]
+    UnableToReceiveConnectResponse {
+        #[source]
+        err: udp::Error,
+    },
 
     #[error("Failed to send a announce request, with error: {err}")]
     UnableToSendAnnounceRequest { err: udp::Error },
 
-    #[error("Failed to receive a announce response, with error: {err}")]
-    UnableToReceiveAnnounceResponse { err: udp::Error },
+    #[error("{err}")]
+    UnableToReceiveAnnounceResponse {
+        #[source]
+        err: udp::Error,
+    },
 
     #[error("Failed to send a scrape request, with error: {err}")]
     UnableToSendScrapeRequest { err: udp::Error },
 
-    #[error("Failed to receive a scrape response, with error: {err}")]
-    UnableToReceiveScrapeResponse { err: udp::Error },
+    #[error("{err}")]
+    UnableToReceiveScrapeResponse {
+        #[source]
+        err: udp::Error,
+    },
 
-    #[error("Failed to receive a response, with error: {err}")]
-    UnableToReceiveResponse { err: udp::Error },
+    #[error("{err}")]
+    UnableToReceiveResponse {
+        #[source]
+        err: udp::Error,
+    },
 
     #[error("Failed to get local address for connection: {err}")]
     UnableToGetLocalAddr { err: udp::Error },
@@ -46,5 +58,35 @@ pub enum Error {
 impl From<Error> for String {
     fn from(value: Error) -> Self {
         value.to_string()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::io;
+    use std::sync::Arc;
+
+    use bittorrent_tracker_client::udp;
+
+    use super::Error;
+
+    #[test]
+    fn it_should_display_the_inner_udp_parse_error_for_announce_responses() {
+        // Arrange
+        let inner_error = udp::Error::UnableToParseResponse {
+            err: Arc::new(io::Error::new(io::ErrorKind::Other, "failed to fill whole buffer")),
+            response: vec![0, 0, 0, 1],
+        };
+
+        let error = Error::UnableToReceiveAnnounceResponse { err: inner_error };
+
+        // Act
+        let message = error.to_string();
+
+        // Assert
+        assert_eq!(
+            message,
+            "Unrecognized UDP tracker response. Expected a valid UDP response, got: [0, 0, 0, 1]"
+        );
     }
 }

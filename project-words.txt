@@ -69,6 +69,7 @@ datetime
 dbip
 dbname
 debuginfo
+dler
 Deque
 Dihc
 Dijke
@@ -88,6 +89,7 @@ fdbased
 fdget
 filesd
 finalises
+fnix
 flamegraph
 formatjson
 fput
@@ -218,6 +220,7 @@ recognised
 recompiles
 referer
 Registar
+tryhackx
 repomix
 repr
 reqs

@@ -64,6 +64,12 @@
 //! }
 //! ```
 //!
+//! Unrecognized UDP response:
+//!
+//! ```text
+//! Error: Unrecognized UDP tracker response. Expected a valid UDP response, got: [0, 0, 0, 1]
+//! ```
+//!
 //! You can use an URL with instead of the socket address. For example:
 //!
 //! ```text

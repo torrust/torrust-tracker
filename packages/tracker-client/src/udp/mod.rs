@@ -57,12 +57,42 @@ pub enum Error {
     #[error("Failed to get data from request: {request:?}, with error: {err:?}")]
     UnableToWriteDataFromRequest { err: Arc<std::io::Error>, request: Request },
 
-    #[error("Failed to parse response: {response:?}, with error: {err:?}")]
-    UnableToParseResponse { err: Arc<std::io::Error>, response: Vec<u8> },
+    #[error("Unrecognized UDP tracker response. Expected a valid UDP response, got: {response:?}")]
+    UnableToParseResponse {
+        #[source]
+        err: Arc<std::io::Error>,
+        response: Vec<u8>,
+    },
 }
 
 impl From<Error> for DynError {
     fn from(e: Error) -> Self {
         Arc::new(Box::new(e))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::io;
+    use std::sync::Arc;
+
+    use super::Error;
+
+    #[test]
+    fn it_should_display_unrecognized_udp_tracker_response_without_debug_noise() {
+        // Arrange
+        let error = Error::UnableToParseResponse {
+            err: Arc::new(io::Error::new(io::ErrorKind::Other, "failed to fill whole buffer")),
+            response: vec![0, 0, 0, 1],
+        };
+
+        // Act
+        let message = error.to_string();
+
+        // Assert
+        assert_eq!(
+            message,
+            "Unrecognized UDP tracker response. Expected a valid UDP response, got: [0, 0, 0, 1]"
+        );
     }
 }

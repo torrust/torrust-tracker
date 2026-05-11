@@ -108,16 +108,104 @@ UnableToReceiveAnnounceResponse { err: udp::Error },
 In `console/tracker-client/src/console/clients/udp/app.rs`, add an example showing what
 the error output looks like when an unrecognized response is received.
 
+## Manual Verification
+
+This section is a living test plan and result log for validating the implementation against real
+UDP trackers.
+
+### Goal
+
+- Confirm that the CLI prints a clean, readable error when a UDP tracker returns bytes that cannot
+  be parsed into a known response.
+- Confirm whether the issue can be reproduced with real-world public trackers from the newtrackon
+  UDP list.
+- If all sampled trackers return valid responses, record that outcome here and switch to the
+  fallback plan described later in the issue discussion.
+
+### Step 1: Collect stable UDP trackers
+
+- Query the newtrackon UDP endpoint: <https://newtrackon.com/api#get-/udp>
+- Record the returned tracker list used for the verification run.
+- Note the date, time, and any filtering applied before testing.
+
+### Step 2: Probe each tracker with a sample request
+
+- Send a representative UDP request to each tracker in the sampled list.
+- Record whether the tracker returns a valid UDP response or an unrecognized payload.
+- For invalid responses, record the raw bytes exactly as printed by the CLI.
+
+### Step 3: Record results
+
+Use this table to track progress and outcomes:
+
+| Tracker                                    | Sample request                                      | Result | Notes                             |
+| ------------------------------------------ | --------------------------------------------------- | ------ | --------------------------------- |
+| `udp://tracker.dler.com:6969/announce`     | `announce 9c38422213e30bff212b30c360d26f9a02136422` | valid  | Returned announce JSON with peers |
+| `udp://tracker.tryhackx.org:6969/announce` | `announce 9c38422213e30bff212b30c360d26f9a02136422` | valid  | Returned announce JSON with peers |
+| `udp://tracker.fnix.net:6969/announce`     | `announce 9c38422213e30bff212b30c360d26f9a02136422` | valid  | Returned announce JSON            |
+| `udp://evan.im:6969/announce`              | `announce 9c38422213e30bff212b30c360d26f9a02136422` | valid  | Returned announce JSON            |
+
+Observed on 2026-05-11.
+
+### Step 4: Decide next action
+
+- The sampled newtrackon trackers returned valid UDP responses.
+- No malformed payload has been observed yet, so the real-tracker path is currently not enough to
+  exercise the unrecognized-response display branch.
+
+### Step 5: Local invalid-response verification
+
+If the public trackers stay valid, use a local tracker instance to force a malformed UDP response
+and verify the CLI output end-to-end.
+
+1. Change the code of the UDP tracker in the local code so it returns a deliberately malformed
+   UDP payload.
+2. Run the UDP tracker locally.
+3. Make the request to the locally running tracker with the UDP tracker client.
+4. Verify the client cannot parse the response and prints useful information, including the
+   malformed bytes, so the user can understand what happened.
+
+Observed local verification on 2026-05-11:
+
+Tracker start command (with a temporary local patch applied in the UDP server
+send path to force payload `[0, 0, 0, 1]`):
+
+```bash
+cargo run
+```
+
+Client probe command:
+
+```bash
+target/debug/udp_tracker_client announce \
+  udp://127.0.0.1:6969/announce \
+  9c38422213e30bff212b30c360d26f9a02136422
+```
+
+Observed client output:
+
+```text
+Error: Unrecognized UDP tracker response. Expected a valid UDP response,
+ got: [0, 0, 0, 1]
+
+Caused by:
+   0: Unrecognized UDP tracker response. Expected a valid UDP response,
+ got: [0, 0, 0, 1]
+   1: invalid data
+```
+
+Result: malformed bytes are visible in CLI output as required.
+
 ## Acceptance Criteria
 
-- [ ] Running the client against a tracker that returns an invalid packet produces output
+- [x] Running the client against a tracker that returns an invalid packet produces output
       matching:
       `Error: Unrecognized UDP tracker response. Expected a valid UDP response, got: [...]`
-- [ ] Running the client against a well-behaved tracker still prints the JSON response and
+- [x] Running the client against a well-behaved tracker still prints the JSON response and
       exits `0`
-- [ ] `linter all` exits with code `0`
-- [ ] `cargo machete` reports no unused dependencies
-- [ ] All existing tests pass
+- [x] `linter all` exits with code `0`
+- [x] `cargo machete` reports no unused dependencies
+- [x] All existing tests pass
 
 ## Key Files
 

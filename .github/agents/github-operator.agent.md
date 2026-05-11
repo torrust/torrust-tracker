@@ -39,9 +39,10 @@ Do not jump directly to raw API calls if a dedicated MCP or CLI command covers t
 2. Read any local specification or context file needed to perform the task correctly.
 3. Load the relevant repository skill when one exists.
 4. Choose the highest-level GitHub interface that can perform the task safely.
-5. Execute the operation with the minimum number of calls needed.
-6. Verify the result by reading the updated GitHub object or returned URL.
-7. Report only the outcome and key identifiers back to the caller.
+5. For PR descriptions, reconcile the proposed body with the actual branch diff and commit list before applying updates.
+6. Execute the operation with the minimum number of calls needed.
+7. Verify the result by reading the updated GitHub object or returned URL.
+8. Report only the outcome and key identifiers back to the caller.
 
 ## Repository Guidance
 
@@ -58,6 +59,7 @@ Do not jump directly to raw API calls if a dedicated MCP or CLI command covers t
 - Do not assume the visible issue number is the same identifier required by a GitHub API.
 - For sub-issue linking, remember that the REST API expects the child issue's internal GitHub ID,
   not its visible issue number.
+- Do not claim PR implementation changes that are not present in the current HEAD diff.
 - Do not mix GitHub task execution with unrelated code changes.
 - If a PR review comment requires code changes, stop after identifying the actionable request and
   hand control back to the caller or a code-focused agent.
@@ -70,3 +72,4 @@ When finishing a task, return:
 1. What was changed or verified
 2. The key GitHub identifiers or URLs
 3. Any blockers, permissions issues, or follow-up needed
+4. For PR body updates, a short evidence line showing the checked commit range and changed files
