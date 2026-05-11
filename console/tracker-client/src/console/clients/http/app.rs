@@ -9,6 +9,17 @@
 //! cargo run --bin http_tracker_client announce http://127.0.0.1:7070 9c38422213e30bff212b30c360d26f9a02136422
 //! ```
 //!
+//! Accepted tracker URL forms for `announce` and `scrape`:
+//!
+//! - `https://tracker.example.com`
+//! - `https://tracker.example.com/`
+//! - `https://tracker.example.com/announce`
+//! - `https://tracker.example.com/scrape`
+//! - `https://tracker.example.com/custom-tracker-endpoint`
+//!
+//! The tracker URL input must not include query (`?...`) or fragment (`#...`).
+//! Use dedicated CLI arguments instead of URL query params.
+//!
 //! `Announce` request (pretty JSON output):
 //!
 //! ```text
@@ -217,7 +228,7 @@ pub async fn run() -> anyhow::Result<()> {
 }
 
 async fn announce_command(options: AnnounceOptions, timeout: Duration) -> anyhow::Result<()> {
-    let base_url = Url::parse(&options.tracker_url).context("failed to parse HTTP tracker base URL")?;
+    let base_url = parse_and_validate_tracker_url(&options.tracker_url)?;
     let info_hash = InfoHash::from_str(&options.info_hash).map_err(|_| {
         anyhow::anyhow!(
             "invalid infohash `{}`. Example infohash: `9c38422213e30bff212b30c360d26f9a02136422`",
@@ -300,13 +311,31 @@ fn parse_non_zero_port(port_str: &str) -> anyhow::Result<u16> {
     Ok(port)
 }
 
+fn parse_and_validate_tracker_url(tracker_url: &str) -> anyhow::Result<Url> {
+    let url = Url::parse(tracker_url).context("failed to parse HTTP tracker base URL")?;
+
+    validate_tracker_url_parts(&url)?;
+
+    Ok(url)
+}
+
+fn validate_tracker_url_parts(url: &Url) -> anyhow::Result<()> {
+    if url.query().is_some() || url.fragment().is_some() {
+        bail!(
+            "invalid tracker URL input: include only scheme, host, optional port, and optional path. Do not include query or fragment. Pass tracker request params using dedicated CLI arguments"
+        );
+    }
+
+    Ok(())
+}
+
 async fn scrape_command(
     tracker_url: &str,
     info_hashes: &[String],
     output_format: OutputFormat,
     timeout: Duration,
 ) -> anyhow::Result<()> {
-    let base_url = Url::parse(tracker_url).context("failed to parse HTTP tracker base URL")?;
+    let base_url = parse_and_validate_tracker_url(tracker_url)?;
 
     let query = requests::scrape::Query::try_from(info_hashes).context("failed to parse infohashes")?;
 
@@ -355,9 +384,10 @@ fn serialize_json<T: serde::Serialize>(value: &T, output_format: OutputFormat) -
 
 #[cfg(test)]
 mod tests {
+    use reqwest::Url;
     use serde::Serialize;
 
-    use super::{serialize_json, OutputFormat};
+    use super::{parse_and_validate_tracker_url, serialize_json, validate_tracker_url_parts, OutputFormat};
 
     #[derive(Serialize)]
     struct Sample {
@@ -383,5 +413,35 @@ mod tests {
         assert!(json.contains('\n'));
         assert!(json.contains("  \"seeders\": 1"));
         assert!(json.contains("  \"leechers\": 2"));
+    }
+
+    #[test]
+    fn it_accepts_tracker_url_with_path_and_without_query_or_fragment() {
+        let parsed = parse_and_validate_tracker_url("https://tracker.example.com/announce");
+
+        assert!(parsed.is_ok());
+    }
+
+    #[test]
+    fn it_rejects_tracker_url_with_query() {
+        let parsed = parse_and_validate_tracker_url("https://tracker.example.com/announce?info_hash=abc");
+
+        assert!(parsed.is_err());
+    }
+
+    #[test]
+    fn it_rejects_tracker_url_with_fragment() {
+        let parsed = parse_and_validate_tracker_url("https://tracker.example.com/announce#details");
+
+        assert!(parsed.is_err());
+    }
+
+    #[test]
+    fn it_accepts_direct_validation_for_plain_base_url() {
+        let url = Url::parse("https://tracker.example.com/").expect("url should parse");
+
+        let result = validate_tracker_url_parts(&url);
+
+        assert!(result.is_ok());
     }
 }

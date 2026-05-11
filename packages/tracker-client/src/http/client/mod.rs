@@ -94,7 +94,7 @@ impl Client {
     ///
     /// This method fails if the returned response was not successful
     pub async fn announce(&self, query: &announce::Query) -> Result<Response, Error> {
-        let response = self.get(&self.build_announce_path_and_query(query)).await?;
+        let response = self.get_url(self.build_announce_url(query)).await?;
 
         if response.status().is_success() {
             Ok(response)
@@ -110,7 +110,7 @@ impl Client {
     ///
     /// This method fails if the returned response was not successful
     pub async fn scrape(&self, query: &scrape::Query) -> Result<Response, Error> {
-        let response = self.get(&self.build_scrape_path_and_query(query)).await?;
+        let response = self.get_url(self.build_scrape_url(query)).await?;
 
         if response.status().is_success() {
             Ok(response)
@@ -126,9 +126,7 @@ impl Client {
     ///
     /// This method fails if the returned response was not successful
     pub async fn announce_with_header(&self, query: &announce::Query, key: &str, value: &str) -> Result<Response, Error> {
-        let response = self
-            .get_with_header(&self.build_announce_path_and_query(query), key, value)
-            .await?;
+        let response = self.get_url_with_header(self.build_announce_url(query), key, value).await?;
 
         if response.status().is_success() {
             Ok(response)
@@ -179,12 +177,65 @@ impl Client {
             .map_err(|e| Error::ResponseError { err: e.into() })
     }
 
-    fn build_announce_path_and_query(&self, query: &announce::Query) -> String {
-        format!("{}?{query}", self.build_path("announce"))
+    async fn get_url(&self, url: Url) -> Result<Response, Error> {
+        self.http_client
+            .get(url)
+            .send()
+            .await
+            .map_err(|e| Error::ResponseError { err: e.into() })
     }
 
-    fn build_scrape_path_and_query(&self, query: &scrape::Query) -> String {
-        format!("{}?{query}", self.build_path("scrape"))
+    async fn get_url_with_header(&self, url: Url, key: &str, value: &str) -> Result<Response, Error> {
+        self.http_client
+            .get(url)
+            .header(key, value)
+            .send()
+            .await
+            .map_err(|e| Error::ResponseError { err: e.into() })
+    }
+
+    fn build_announce_url(&self, query: &announce::Query) -> Url {
+        let mut url = self.build_endpoint_url("announce");
+        url.set_query(Some(&query.to_string()));
+        url
+    }
+
+    fn build_scrape_url(&self, query: &scrape::Query) -> Url {
+        let mut url = self.build_endpoint_url("scrape");
+        url.set_query(Some(&query.to_string()));
+        url
+    }
+
+    fn build_endpoint_url(&self, default_endpoint: &str) -> Url {
+        let mut url = self.base_url.clone();
+
+        let current_path = url.path();
+        let normalized_path = if current_path.is_empty() || current_path == "/" {
+            format!("/{default_endpoint}")
+        } else {
+            current_path.to_owned()
+        };
+
+        let final_path = match &self.key {
+            Some(key) => {
+                let path_without_trailing_slash = normalized_path.trim_end_matches('/');
+                let key_segment = key.value();
+                let already_has_key = path_without_trailing_slash
+                    .rsplit('/')
+                    .next()
+                    .is_some_and(|segment| segment == key_segment);
+
+                if already_has_key {
+                    path_without_trailing_slash.to_string()
+                } else {
+                    format!("{path_without_trailing_slash}/{key}")
+                }
+            }
+            None => normalized_path,
+        };
+
+        url.set_path(&final_path);
+        url
     }
 
     fn build_path(&self, path: &str) -> String {
@@ -217,5 +268,104 @@ impl Key {
     #[must_use]
     pub fn value(&self) -> &str {
         &self.0
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::time::Duration;
+
+    use reqwest::Url;
+
+    use super::{Client, Key};
+
+    fn test_timeout() -> Duration {
+        Duration::from_secs(1)
+    }
+
+    #[test]
+    fn it_uses_announce_for_base_url_without_trailing_slash() {
+        let client = Client::new(Url::parse("https://tracker.example.com").unwrap(), test_timeout()).unwrap();
+
+        let url = client.build_endpoint_url("announce");
+
+        assert_eq!(url.to_string(), "https://tracker.example.com/announce");
+    }
+
+    #[test]
+    fn it_uses_announce_for_base_url_with_trailing_slash() {
+        let client = Client::new(Url::parse("https://tracker.example.com/").unwrap(), test_timeout()).unwrap();
+
+        let url = client.build_endpoint_url("announce");
+
+        assert_eq!(url.to_string(), "https://tracker.example.com/announce");
+    }
+
+    #[test]
+    fn it_keeps_existing_announce_path_unchanged() {
+        let client = Client::new(Url::parse("https://tracker.example.com/announce").unwrap(), test_timeout()).unwrap();
+
+        let url = client.build_endpoint_url("announce");
+
+        assert_eq!(url.to_string(), "https://tracker.example.com/announce");
+    }
+
+    #[test]
+    fn it_keeps_custom_path_unchanged_for_announce() {
+        let client = Client::new(
+            Url::parse("https://tracker.example.com/custom-tracker-endpoint").unwrap(),
+            test_timeout(),
+        )
+        .unwrap();
+
+        let url = client.build_endpoint_url("announce");
+
+        assert_eq!(url.to_string(), "https://tracker.example.com/custom-tracker-endpoint");
+    }
+
+    #[test]
+    fn it_appends_auth_key_to_existing_announce_path() {
+        let client = Client::authenticated(
+            Url::parse("https://tracker.example.com/announce").unwrap(),
+            test_timeout(),
+            Key::new("secret-key"),
+        )
+        .unwrap();
+
+        let url = client.build_endpoint_url("announce");
+
+        assert_eq!(url.to_string(), "https://tracker.example.com/announce/secret-key");
+    }
+
+    #[test]
+    fn it_does_not_append_auth_key_when_path_already_ends_with_same_key() {
+        let client = Client::authenticated(
+            Url::parse("https://tracker.example.com/announce/secret-key").unwrap(),
+            test_timeout(),
+            Key::new("secret-key"),
+        )
+        .unwrap();
+
+        let url = client.build_endpoint_url("announce");
+
+        assert_eq!(url.to_string(), "https://tracker.example.com/announce/secret-key");
+    }
+
+    #[test]
+    fn it_uses_scrape_for_base_url_without_trailing_slash() {
+        let client = Client::new(Url::parse("https://tracker.example.com").unwrap(), test_timeout()).unwrap();
+
+        let url = client.build_endpoint_url("scrape");
+
+        assert_eq!(url.to_string(), "https://tracker.example.com/scrape");
+    }
+
+    #[test]
+    fn it_keeps_existing_scrape_path_unchanged() {
+        let client = Client::new(Url::parse("https://tracker.example.com/scrape").unwrap(), test_timeout()).unwrap();
+
+        let url = client.build_endpoint_url("scrape");
+
+        assert_eq!(url.to_string(), "https://tracker.example.com/scrape");
     }
 }
