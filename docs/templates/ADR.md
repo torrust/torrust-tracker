@@ -1,9 +1,9 @@
 ---
 semantic-links:
-	skill-links:
-		- create-adr
-	related-artifacts:
-		- .github/skills/dev/planning/create-adr/SKILL.md
+  skill-links:
+    - create-adr
+  related-artifacts:
+    - .github/skills/dev/planning/create-adr/SKILL.md
 ---
 
 <!-- skill-link: create-adr -->
