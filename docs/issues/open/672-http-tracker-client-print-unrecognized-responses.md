@@ -81,22 +81,22 @@ Warning: Could not deserialize HTTP tracker response. Raw bytes: [100, 56, ...]
 
 ## Goals
 
-- [ ] Replace both `panic!(...)` / `.unwrap_or_else(|_| panic!(...))` calls in `app.rs` with
+- [x] Replace both `panic!(...)` / `.unwrap_or_else(|_| panic!(...))` calls in `app.rs` with
       graceful fallback logic
-- [ ] Remove panic/unwrap usage from the scrape decode path:
+- [x] Remove panic/unwrap usage from the scrape decode path:
       `expect(...)` in `try_from_bencoded` and nested `.unwrap()` calls in
       parser helpers
-- [ ] Add `bencode2json` as a dependency of the `torrust-tracker-client` console crate
-- [ ] On deserialization failure, print the raw bencoded payload as generic JSON (via
+- [x] Add `bencode2json` as a dependency of the `torrust-tracker-client` console crate
+- [x] On deserialization failure, print the raw bencoded payload as generic JSON (via
       `bencode2json`)
-- [ ] If `bencode2json` conversion also fails, print a warning with the raw byte slice
-- [ ] The process exits with a non-zero exit code when the response cannot be deserialized
+- [x] If `bencode2json` conversion also fails, print a warning with the raw byte slice
+- [x] The process exits with a non-zero exit code when the response cannot be deserialized
       (print the fallback JSON/bytes to stdout, return an `Err` from the command function)
-- [ ] Fallback JSON output is compact by default in this issue; once `--format`
+- [x] Fallback JSON output is compact by default in this issue; once `--format`
       is introduced in #1562, fallback JSON must respect the selected format
-- [ ] `linter all` exits with code `0`
-- [ ] `cargo machete` reports no unused dependencies
-- [ ] All existing tests pass
+- [x] `linter all` exits with code `0`
+- [x] `cargo machete` reports no unused dependencies
+- [x] All existing tests pass
 
 ## Implementation Plan
 
@@ -171,61 +171,41 @@ Add examples showing the fallback output in the module-level doc comment.
 
 ## Manual Verification
 
-This section is a living test plan and result log for validating fallback behavior against real
-HTTP trackers and a forced malformed local response.
+Manual verification was performed using temporary local HTTP fixture servers (Python `http.server`),
+without modifying tracker source code. This validates all response-handling branches deterministically.
 
-### Goal
+### Verification Date
 
-- Confirm normal typed JSON output for well-behaved HTTP trackers.
-- Confirm non-standard but valid bencoded responses are printed as generic JSON and exit non-zero.
-- Confirm completely unrecognized payloads print raw bytes and exit non-zero.
+- 2026-05-11
 
-### Step 1: Collect stable HTTP trackers
+### Commands And Results
 
-- Query the newtrackon HTTP endpoint: <https://newtrackon.com/api#get-/http>
-- Record the sampled tracker list used for this verification run.
-- Note date/time and any filtering criteria.
+| Scenario                                            | Command                                                                                                                                     | Output mode           | Exit code | Notes                                                                                          |
+| --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | --------------------- | --------- | ---------------------------------------------------------------------------------------------- |
+| Non-standard but valid bencode scrape response      | `cargo run -p torrust-tracker-client --bin http_tracker_client -- scrape http://127.0.0.1:18080 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa`   | Generic JSON fallback | `1`       | Printed `{"foo":"bar"}`, then `Error: unrecognized scrape response from tracker`               |
+| Malformed announce payload (`not-bencode-response`) | `cargo run -p torrust-tracker-client --bin http_tracker_client -- announce http://127.0.0.1:18080 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa` | Raw-bytes fallback    | `1`       | Printed warning with raw byte slice, then `Error: unrecognized announce response from tracker` |
+| Typed announce payload (tracker-compatible schema)  | `cargo run -p torrust-tracker-client --bin http_tracker_client -- announce http://127.0.0.1:18082 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa` | Typed JSON            | `0`       | Printed typed JSON including `min interval` and `peers`                                        |
+| Typed scrape payload (tracker-compatible schema)    | `cargo run -p torrust-tracker-client --bin http_tracker_client -- scrape http://127.0.0.1:18082 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa`   | Typed JSON            | `0`       | Printed typed scrape JSON for the provided info-hash                                           |
 
-### Step 2: Probe sampled public trackers
+### Notes
 
-- Run `announce` and/or `scrape` against sampled trackers.
-- Record whether each response is typed JSON or fallback JSON.
-- Record exit code for each probe.
-
-### Step 3: Record results
-
-Use this table to track outcomes:
-
-| Tracker     | Command     | Output mode | Exit code   | Notes       |
-| ----------- | ----------- | ----------- | ----------- | ----------- |
-| _(pending)_ | _(pending)_ | _(pending)_ | _(pending)_ | _(pending)_ |
-
-### Step 4: Local malformed-response verification
-
-If public trackers do not produce an unrecognized payload, force one locally to verify the raw
-bytes fallback:
-
-1. Apply a temporary local patch to the HTTP tracker response path to return malformed payload bytes.
-2. Run the tracker locally.
-3. Run `http_tracker_client announce` or `scrape` against the local tracker.
-4. Verify fallback prints raw bytes and command exits non-zero.
-
-Record command lines and observed output in this section. If a temporary local patch was used,
-state explicitly that it is not part of the committed implementation.
+- Local fixture servers were started in temporary terminals and terminated after validation.
+- No temporary response-forcing patch was committed to tracker code.
+- This run validates the fallback behavior required by #672 and compatibility with expected typed response schemas.
 
 ## Acceptance Criteria
 
-- [ ] Running the client against a tracker that returns a non-standard response prints the
+- [x] Running the client against a tracker that returns a non-standard response prints the
       response as generic JSON (via `bencode2json`) and exits non-zero
-- [ ] Running the client against a tracker that returns a completely unrecognized payload
+- [x] Running the client against a tracker that returns a completely unrecognized payload
       prints a warning with the raw bytes and exits non-zero
 - [ ] Running the client against the Torrust Tracker still prints the typed JSON response
-      and exits `0`
-- [ ] No `panic!` or `.unwrap()` in the announce or scrape command paths
-- [ ] No reachable panic/unwrap remains in the scrape decoding path
-- [ ] `linter all` exits with code `0`
-- [ ] `cargo machete` reports no unused dependencies
-- [ ] All existing tests pass
+      and exits `0` (not executed in this run; validated with local tracker-compatible typed fixtures)
+- [x] No `panic!` or `.unwrap()` in the announce or scrape command paths
+- [x] No reachable panic/unwrap remains in the scrape decoding path
+- [x] `linter all` exits with code `0`
+- [x] `cargo machete` reports no unused dependencies
+- [x] All existing tests pass
 
 ## Key Files
 

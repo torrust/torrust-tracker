@@ -1,10 +1,10 @@
 use std::collections::HashMap;
-use std::fmt::Write;
 use std::str;
 
 use serde::ser::SerializeMap;
 use serde::{Deserialize, Serialize, Serializer};
 use serde_bencode::value::Value;
+use thiserror::Error;
 
 use crate::http::{ByteArray20, InfoHash};
 
@@ -24,13 +24,9 @@ impl Response {
     /// # Errors
     ///
     /// Will return an error if the deserialized bencoded response can't not be converted into a valid response.
-    ///
-    /// # Panics
-    ///
-    /// Will panic if it can't deserialize the bencoded response.
     pub fn try_from_bencoded(bytes: &[u8]) -> Result<Self, BencodeParseError> {
         let scrape_response: DeserializedResponse =
-            serde_bencode::from_bytes(bytes).expect("provided bytes should be a valid bencoded response");
+            serde_bencode::from_bytes(bytes).map_err(|source| BencodeParseError::DeserializationError { source })?;
         Self::try_from(scrape_response)
     }
 }
@@ -80,10 +76,17 @@ impl Serialize for Response {
 
 // Helper function to convert ByteArray20 to hex string
 fn byte_array_to_hex_string(byte_array: &ByteArray20) -> String {
+    const HEX: &[u8; 16] = b"0123456789abcdef";
+
     let mut hex_string = String::with_capacity(byte_array.len() * 2);
+
     for byte in byte_array {
-        write!(hex_string, "{byte:02x}").expect("Writing to string should never fail");
+        let high = usize::from(byte >> 4);
+        let low = usize::from(byte & 0x0f);
+        hex_string.push(char::from(HEX[high]));
+        hex_string.push(char::from(HEX[low]));
     }
+
     hex_string
 }
 
@@ -105,11 +108,21 @@ impl ResponseBuilder {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Error)]
 pub enum BencodeParseError {
+    #[error("failed to deserialize bencoded scrape response: {source}")]
+    DeserializationError { source: serde_bencode::Error },
+
+    #[error("invalid value: expected dictionary, got: {value:?}")]
     InvalidValueExpectedDict { value: Value },
+
+    #[error("invalid value: expected integer, got: {value:?}")]
     InvalidValueExpectedInt { value: Value },
+
+    #[error("invalid file field in scrape response: {value:?}")]
     InvalidFileField { value: Value },
+
+    #[error("missing required scrape file field: {field_name}")]
     MissingFileField { field_name: String },
 }
 
@@ -140,7 +153,7 @@ fn parse_bencoded_response(value: &Value) -> Result<Response, BencodeParseError>
                 let info_hash_byte_vec = file_element.0;
                 let file_value = file_element.1;
 
-                let file = parse_bencoded_file(file_value).unwrap();
+                let file = parse_bencoded_file(file_value)?;
 
                 files.insert(InfoHash::new(info_hash_byte_vec).bytes(), file);
             }
@@ -218,9 +231,15 @@ fn parse_bencoded_file(value: &Value) -> Result<File, BencodeParseError> {
             }
 
             File {
-                complete: complete.unwrap(),
-                downloaded: downloaded.unwrap(),
-                incomplete: incomplete.unwrap(),
+                complete: complete.ok_or_else(|| BencodeParseError::MissingFileField {
+                    field_name: "complete".to_string(),
+                })?,
+                downloaded: downloaded.ok_or_else(|| BencodeParseError::MissingFileField {
+                    field_name: "downloaded".to_string(),
+                })?,
+                incomplete: incomplete.ok_or_else(|| BencodeParseError::MissingFileField {
+                    field_name: "incomplete".to_string(),
+                })?,
             }
         }
         _ => return Err(BencodeParseError::InvalidValueExpectedDict { value: value.clone() }),

@@ -548,6 +548,20 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2af50177e190e07a26ab74f8b1efbfe2ef87da2116221318cb1c2e82baf7de06"
 
 [[package]]
+name = "bencode2json"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "928290081480add37a5b8ce7777f1ad566a9ab3f44c4c485e4be0d259fe00e88"
+dependencies = [
+ "clap",
+ "derive_more 1.0.0",
+ "hex",
+ "ringbuffer",
+ "serde_json",
+ "thiserror 1.0.69",
+]
+
+[[package]]
 name = "binascii"
 version = "0.1.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -601,7 +615,7 @@ dependencies = [
  "bittorrent-primitives",
  "bittorrent-tracker-core",
  "bittorrent-udp-tracker-protocol",
- "derive_more",
+ "derive_more 2.1.1",
  "multimap",
  "percent-encoding",
  "serde",
@@ -645,7 +659,7 @@ version = "3.0.0-develop"
 dependencies = [
  "bittorrent-primitives",
  "bittorrent-udp-tracker-protocol",
- "derive_more",
+ "derive_more 2.1.1",
  "hyper",
  "percent-encoding",
  "reqwest",
@@ -671,7 +685,7 @@ dependencies = [
  "bittorrent-primitives",
  "chrono",
  "clap",
- "derive_more",
+ "derive_more 2.1.1",
  "local-ip-address",
  "mockall",
  "rand 0.10.1",
@@ -1507,11 +1521,32 @@ dependencies = [
 
 [[package]]
 name = "derive_more"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4a9b99b9cbbe49445b21764dc0625032a89b145a2642e67603e1c936f5458d05"
+dependencies = [
+ "derive_more-impl 1.0.0",
+]
+
+[[package]]
+name = "derive_more"
 version = "2.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d751e9e49156b02b44f9c1815bcb94b984cdcc4396ecc32521c739452808b134"
 dependencies = [
- "derive_more-impl",
+ "derive_more-impl 2.1.1",
+]
+
+[[package]]
+name = "derive_more-impl"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cb7330aeadfbe296029522e6c40f315320aba36fc43a5b3632f3795348f3bd22"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.117",
+ "unicode-xid",
 ]
 
 [[package]]
@@ -3952,6 +3987,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "ringbuffer"
+version = "0.15.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3df6368f71f205ff9c33c076d170dd56ebf68e8161c733c0caa07a7a5509ed53"
+
+[[package]]
 name = "rsa"
 version = "0.9.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5331,7 +5372,7 @@ dependencies = [
  "bittorrent-primitives",
  "bittorrent-tracker-core",
  "bittorrent-udp-tracker-protocol",
- "derive_more",
+ "derive_more 2.1.1",
  "futures",
  "hyper",
  "local-ip-address",
@@ -5370,7 +5411,7 @@ dependencies = [
  "bittorrent-primitives",
  "bittorrent-tracker-core",
  "bittorrent-udp-tracker-core",
- "derive_more",
+ "derive_more 2.1.1",
  "futures",
  "hyper",
  "local-ip-address",
@@ -5453,7 +5494,7 @@ dependencies = [
 name = "torrust-server-lib"
 version = "3.0.0-develop"
 dependencies = [
- "derive_more",
+ "derive_more 2.1.1",
  "rstest 0.25.0",
  "tokio",
  "torrust-tracker-primitives",
@@ -5511,6 +5552,7 @@ name = "torrust-tracker-client"
 version = "3.0.0-develop"
 dependencies = [
  "anyhow",
+ "bencode2json",
  "bittorrent-primitives",
  "bittorrent-tracker-client",
  "bittorrent-udp-tracker-protocol",
@@ -5545,7 +5587,7 @@ name = "torrust-tracker-configuration"
 version = "3.0.0-develop"
 dependencies = [
  "camino",
- "derive_more",
+ "derive_more 2.1.1",
  "figment",
  "serde",
  "serde_json",
@@ -5590,7 +5632,7 @@ version = "3.0.0-develop"
 dependencies = [
  "approx",
  "chrono",
- "derive_more",
+ "derive_more 2.1.1",
  "formatjson",
  "mutants",
  "openmetrics-parser",
@@ -5610,7 +5652,7 @@ dependencies = [
  "binascii",
  "bittorrent-peer-id",
  "bittorrent-primitives",
- "derive_more",
+ "derive_more 2.1.1",
  "rstest 0.25.0",
  "serde",
  "tdyne-peer-id",
@@ -5683,7 +5725,7 @@ dependencies = [
  "bittorrent-tracker-core",
  "bittorrent-udp-tracker-core",
  "bittorrent-udp-tracker-protocol",
- "derive_more",
+ "derive_more 2.1.1",
  "futures",
  "futures-util",
  "local-ip-address",
