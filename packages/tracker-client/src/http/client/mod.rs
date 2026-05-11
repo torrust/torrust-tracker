@@ -219,7 +219,17 @@ impl Client {
         let final_path = match &self.key {
             Some(key) => {
                 let path_without_trailing_slash = normalized_path.trim_end_matches('/');
-                format!("{path_without_trailing_slash}/{key}")
+                let key_segment = key.value();
+                let already_has_key = path_without_trailing_slash
+                    .rsplit('/')
+                    .next()
+                    .is_some_and(|segment| segment == key_segment);
+
+                if already_has_key {
+                    path_without_trailing_slash.to_string()
+                } else {
+                    format!("{path_without_trailing_slash}/{key}")
+                }
             }
             None => normalized_path,
         };
@@ -317,6 +327,20 @@ mod tests {
     fn it_appends_auth_key_to_existing_announce_path() {
         let client = Client::authenticated(
             Url::parse("https://tracker.example.com/announce").unwrap(),
+            test_timeout(),
+            Key::new("secret-key"),
+        )
+        .unwrap();
+
+        let url = client.build_endpoint_url("announce");
+
+        assert_eq!(url.to_string(), "https://tracker.example.com/announce/secret-key");
+    }
+
+    #[test]
+    fn it_does_not_append_auth_key_when_path_already_ends_with_same_key() {
+        let client = Client::authenticated(
+            Url::parse("https://tracker.example.com/announce/secret-key").unwrap(),
             test_timeout(),
             Key::new("secret-key"),
         )

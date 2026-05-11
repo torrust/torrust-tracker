@@ -14,6 +14,7 @@
 //! - `https://tracker.example.com`
 //! - `https://tracker.example.com/`
 //! - `https://tracker.example.com/announce`
+//! - `https://tracker.example.com/scrape`
 //! - `https://tracker.example.com/custom-tracker-endpoint`
 //!
 //! The tracker URL input must not include query (`?...`) or fragment (`#...`).
