@@ -23,7 +23,7 @@ impl Response {
 
     /// # Errors
     ///
-    /// Will return an error if the deserialized bencoded response can't not be converted into a valid response.
+    /// Will return an error if the deserialized bencoded response cannot be converted into a valid response.
     pub fn try_from_bencoded(bytes: &[u8]) -> Result<Self, BencodeParseError> {
         let scrape_response: DeserializedResponse =
             serde_bencode::from_bytes(bytes).map_err(|source| BencodeParseError::DeserializationError { source })?;
@@ -210,24 +210,6 @@ fn parse_bencoded_file(value: &Value) -> Result<File, BencodeParseError> {
                         value: file_field.1.clone(),
                     });
                 }
-            }
-
-            if complete.is_none() {
-                return Err(BencodeParseError::MissingFileField {
-                    field_name: "complete".to_string(),
-                });
-            }
-
-            if downloaded.is_none() {
-                return Err(BencodeParseError::MissingFileField {
-                    field_name: "downloaded".to_string(),
-                });
-            }
-
-            if incomplete.is_none() {
-                return Err(BencodeParseError::MissingFileField {
-                    field_name: "incomplete".to_string(),
-                });
             }
 
             File {
