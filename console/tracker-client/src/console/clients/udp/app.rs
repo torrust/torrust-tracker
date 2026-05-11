@@ -1,11 +1,20 @@
 //! UDP Tracker client:
+//! skill-link: public-trackers-for-testing
 //!
 //! Examples:
 //!
 //! Announce request (minimal):
 //!
 //! ```text
-//! cargo run --bin udp_tracker_client announce 127.0.0.1:6969 9c38422213e30bff212b30c360d26f9a02136422 | jq
+//! cargo run --bin udp_tracker_client announce 127.0.0.1:6969 9c38422213e30bff212b30c360d26f9a02136422
+//! ```
+//!
+//! Announce request (pretty JSON output):
+//!
+//! ```text
+//! cargo run --bin udp_tracker_client announce \
+//!   127.0.0.1:6969 9c38422213e30bff212b30c360d26f9a02136422 \
+//!   --format pretty
 //! ```
 //!
 //! Announce request (all optional parameters):
@@ -41,7 +50,15 @@
 //! Scrape request:
 //!
 //! ```text
-//! cargo run --bin udp_tracker_client scrape 127.0.0.1:6969 9c38422213e30bff212b30c360d26f9a02136422 | jq
+//! cargo run --bin udp_tracker_client scrape 127.0.0.1:6969 9c38422213e30bff212b30c360d26f9a02136422
+//! ```
+//!
+//! Scrape request (pretty JSON output):
+//!
+//! ```text
+//! cargo run --bin udp_tracker_client scrape \
+//!   127.0.0.1:6969 9c38422213e30bff212b30c360d26f9a02136422 \
+//!   --format pretty
 //! ```
 //!
 //! Scrape response:
@@ -73,8 +90,8 @@
 //! You can use an URL with instead of the socket address. For example:
 //!
 //! ```text
-//! cargo run --bin udp_tracker_client scrape udp://localhost:6969 9c38422213e30bff212b30c360d26f9a02136422 | jq
-//! cargo run --bin udp_tracker_client scrape udp://localhost:6969/scrape 9c38422213e30bff212b30c360d26f9a02136422 | jq
+//! cargo run --bin udp_tracker_client scrape udp://localhost:6969 9c38422213e30bff212b30c360d26f9a02136422
+//! cargo run --bin udp_tracker_client scrape udp://localhost:6969/scrape 9c38422213e30bff212b30c360d26f9a02136422
 //! ```
 //!
 //! The protocol (`udp://`) in the URL is mandatory. The path (`\scrape`) is optional. It always uses `\scrape`.
@@ -117,6 +134,12 @@ impl From<CliAnnounceEvent> for AnnounceEvent {
     }
 }
 
+#[derive(Clone, Copy, Debug, ValueEnum)]
+enum OutputFormat {
+    Compact,
+    Pretty,
+}
+
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 struct Args {
@@ -149,12 +172,16 @@ enum Command {
         key: Option<i32>,
         #[arg(long = "peers-wanted")]
         peers_wanted: Option<i32>,
+        #[arg(long, value_enum, default_value_t = OutputFormat::Compact)]
+        format: OutputFormat,
     },
     Scrape {
         #[arg(value_parser = parse_socket_addr)]
         tracker_socket_addr: SocketAddr,
         #[arg(value_parser = parse_info_hash, num_args = 1..=74, value_delimiter = ' ')]
         info_hashes: Vec<TorrustInfoHash>,
+        #[arg(long, value_enum, default_value_t = OutputFormat::Compact)]
+        format: OutputFormat,
     },
 }
 
@@ -168,7 +195,7 @@ pub async fn run() -> anyhow::Result<()> {
 
     let args = Args::parse();
 
-    let response = match args.command {
+    let (response, output_format) = match args.command {
         Command::Announce {
             tracker_socket_addr: remote_addr,
             info_hash,
@@ -181,6 +208,7 @@ pub async fn run() -> anyhow::Result<()> {
             peer_id,
             key,
             peers_wanted,
+            format,
         } => {
             let params = AnnounceParams {
                 event: event.map(Into::into),
@@ -202,16 +230,17 @@ pub async fn run() -> anyhow::Result<()> {
                 key,
                 peers_wanted,
             };
-            handle_announce(remote_addr, &info_hash, &params).await?
+            (handle_announce(remote_addr, &info_hash, &params).await?, format)
         }
         Command::Scrape {
             tracker_socket_addr: remote_addr,
             info_hashes,
-        } => handle_scrape(remote_addr, &info_hashes).await?,
+            format,
+        } => (handle_scrape(remote_addr, &info_hashes).await?, format),
     };
 
     let response: SerializableResponse = response.into();
-    let response_json = response.to_json_string()?;
+    let response_json = response.to_json_string(matches!(output_format, OutputFormat::Pretty))?;
 
     print!("{response_json}");
 
