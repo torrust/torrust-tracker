@@ -169,6 +169,50 @@ Apply the same two-step fallback to `scrape_command`, replacing the current
 
 Add examples showing the fallback output in the module-level doc comment.
 
+## Manual Verification
+
+This section is a living test plan and result log for validating fallback behavior against real
+HTTP trackers and a forced malformed local response.
+
+### Goal
+
+- Confirm normal typed JSON output for well-behaved HTTP trackers.
+- Confirm non-standard but valid bencoded responses are printed as generic JSON and exit non-zero.
+- Confirm completely unrecognized payloads print raw bytes and exit non-zero.
+
+### Step 1: Collect stable HTTP trackers
+
+- Query the newtrackon HTTP endpoint: <https://newtrackon.com/api#get-/http>
+- Record the sampled tracker list used for this verification run.
+- Note date/time and any filtering criteria.
+
+### Step 2: Probe sampled public trackers
+
+- Run `announce` and/or `scrape` against sampled trackers.
+- Record whether each response is typed JSON or fallback JSON.
+- Record exit code for each probe.
+
+### Step 3: Record results
+
+Use this table to track outcomes:
+
+| Tracker     | Command     | Output mode | Exit code   | Notes       |
+| ----------- | ----------- | ----------- | ----------- | ----------- |
+| _(pending)_ | _(pending)_ | _(pending)_ | _(pending)_ | _(pending)_ |
+
+### Step 4: Local malformed-response verification
+
+If public trackers do not produce an unrecognized payload, force one locally to verify the raw
+bytes fallback:
+
+1. Apply a temporary local patch to the HTTP tracker response path to return malformed payload bytes.
+2. Run the tracker locally.
+3. Run `http_tracker_client announce` or `scrape` against the local tracker.
+4. Verify fallback prints raw bytes and command exits non-zero.
+
+Record command lines and observed output in this section. If a temporary local patch was used,
+state explicitly that it is not part of the committed implementation.
+
 ## Acceptance Criteria
 
 - [ ] Running the client against a tracker that returns a non-standard response prints the
