@@ -332,11 +332,14 @@ async fn scrape_command(
 
 fn bencode_to_fallback_json_or_raw_bytes(body: &[u8], output_format: OutputFormat) -> anyhow::Result<String> {
     match try_bencode_to_json(body) {
-        Ok(json) => {
-            let value: serde_json::Value = serde_json::from_str(&json).context("failed to parse fallback bencode JSON")?;
+        Ok(json) => match output_format {
+            OutputFormat::Compact => Ok(json),
+            OutputFormat::Pretty => {
+                let value: serde_json::Value = serde_json::from_str(&json).context("failed to parse fallback bencode JSON")?;
 
-            serialize_json(&value, output_format).context("failed to format fallback bencode JSON")
-        }
+                serialize_json(&value, output_format).context("failed to format fallback bencode JSON")
+            }
+        },
         Err(_) => Ok(format!(
             "Warning: Could not deserialize HTTP tracker response. Raw bytes: {body:?}"
         )),
