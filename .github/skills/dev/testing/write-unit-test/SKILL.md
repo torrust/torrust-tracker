@@ -36,6 +36,31 @@ Reference: <https://testdesiderata.com/> and Kent Beck's original papers on
 [Test Desiderata](https://medium.com/@kentbeck_7670/test-desiderata-94150638a4b3) and
 [Programmer Test Principles](https://medium.com/@kentbeck_7670/programmer-test-principles-d01c064d7934).
 
+## Coverage and Test-Gap Policy
+
+The repository prefers high maintainable automated coverage.
+
+Practical priority order:
+
+1. Unit tests first (fast, deterministic, low maintenance)
+2. Integration tests where unit tests are insufficient
+3. End-to-end tests for cross-process/system validation
+
+When behaviour is left untested, document why explicitly in one or more of:
+
+- code comments near the boundary/constraint,
+- issue spec notes,
+- PR description.
+
+Acceptable reasons to defer or avoid direct unit tests include:
+
+- behaviour depends on out-of-process services not controlled by the test,
+- deterministic unit tests would be disproportionately brittle,
+- validation is better covered by integration/E2E tests with clear evidence.
+
+If a feature is hard to test, treat that as design feedback first and improve testability when
+practical.
+
 ### Project-specific conventions
 
 - **Behavior-driven naming** — test names document what the code does
@@ -218,4 +243,6 @@ Check the package for available mock servers, fixture generators, and utility ty
 - [ ] Test follows AAA pattern with comments (`// Arrange`, `// Act`, `// Assert`)
 - [ ] No `std::time::SystemTime::now()` in production code — use the `CurrentClock` type alias instead
 - [ ] No shared mutable state between tests
+- [ ] Behaviour coverage is maximized with maintainable tests
+- [ ] Any intentional test gaps are explicitly documented with rationale
 - [ ] `cargo test -p <package>` passes

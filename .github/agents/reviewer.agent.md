@@ -26,7 +26,9 @@ You must review from a peer perspective. The Implementer must not be treated as 
    conventions, import organization, documentation and comment requirements, test naming and
    structure, ADR links, and scope discipline. Complexity metrics are the domain of the
    **Complexity Auditor** and need not be re-checked here.
-4. Update the issue spec to mark only truly verified criteria as done.
+4. Treat missing required API documentation, unjustified test gaps, or unjustified non-latest
+   dependency selections as blocking review findings.
+5. Update the issue spec to mark only truly verified criteria as done.
 
 ## Required Workflow
 
@@ -60,6 +62,10 @@ When finishing a review, respond in this order:
 
 - Do not implement feature code while reviewing.
 - Do not approve based on intent alone; require evidence.
+- Do not pass review when changed public APIs or required internal invariants lack adequate
+  Rust docs coverage.
+- Do not pass review when behaviour is left untested without explicit rationale.
+- Do not pass review when a non-latest dependency version is used without explicit justification.
 - Do not edit issue spec content (problem statement, acceptance criteria text, strategy, etc.).
   Only check off acceptance criteria checkboxes that are explicitly verified.
 - If spec criteria are ambiguous or incorrect, raise the issue with the **Planner** (`@planner`)

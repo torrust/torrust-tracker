@@ -10,6 +10,9 @@ metadata:
 
 This skill guides you through updating project dependencies for the Torrust Tracker project.
 
+Use `.github/skills/dev/maintenance/add-rust-dependency/SKILL.md` when introducing a new crate.
+This skill is for updating already-declared dependencies.
+
 ## Update Categories
 
 Before starting, decide which category the update falls into:

@@ -29,6 +29,7 @@ Reference: [Beck Design Rules](https://martinfowler.com/bliki/BeckDesignRules.ht
 - Follow `AGENTS.md` for repository-wide conventions.
 - The pre-commit validation command is `./contrib/dev-tools/git/hooks/pre-commit.sh`.
 - Relevant skills to load when needed:
+  - `.github/skills/dev/maintenance/add-rust-dependency/SKILL.md` — adding new Rust dependencies safely.
   - `.github/skills/dev/testing/write-unit-test/SKILL.md` — test naming and Arrange/Act/Assert pattern.
   - `.github/skills/dev/rust-code-quality/handle-errors-in-code/SKILL.md` — error handling.
   - `.github/skills/dev/git-workflow/commit-changes/SKILL.md` — commit conventions.
@@ -80,6 +81,23 @@ For each step:
 When TDD is not practical (e.g. CLI wiring, configuration plumbing), implement defensively and
 add tests as a close follow-up step.
 
+### Step 3.5 — Apply Dependency, Container, and Documentation Policies
+
+For changes that introduce dependencies, container image updates, or new APIs:
+
+<!-- skill-link: add-rust-dependency -->
+
+1. **Dependencies**: before adding a crate, check whether the standard library or existing
+   workspace dependencies already cover the need. If a new crate is needed, start from the latest
+   stable version and justify any older-version choice.
+2. **Containers**: when touching container artifacts (`Containerfile`, compose files, related
+   scripts), check whether base images should be updated and document any decision to retain an
+   older image.
+3. **Rust docs**: update Rust docs for changed public APIs and important internal invariants,
+   constraints, or edge cases that are not obvious from the code.
+4. **Shell vs Rust**: keep shell scripts for orchestration only; move non-trivial logic to Rust
+   when it requires stronger typing, testing, or safe reuse.
+
 ### Step 4 — Audit After Each Step
 
 After the complete red-green-refactor cycle for a step is done (tests passing, refactor complete),
@@ -114,8 +132,12 @@ was implemented and verified. Do not commit directly — always delegate to the 
 - Do not implement more than was asked — scope creep is a defect.
 - Do not suppress compiler warnings or clippy lints without a documented reason.
 - Do not add dependencies without running `cargo machete` afterward.
+- Do not add a new dependency without checking the latest stable version first and documenting
+  exceptions.
 - Do not commit code that fails `./contrib/dev-tools/git/hooks/pre-commit.sh`.
 - Do not skip the audit step, even for small changes.
 - Do not self-verify completion of acceptance criteria — verification must be done by the
   Reviewer.
 - Do not mark acceptance criteria as done in the issue spec yourself.
+- Do not leave meaningful behaviour untested without explicitly documenting the reason in code,
+  the issue spec, or PR notes (depending on scope).
