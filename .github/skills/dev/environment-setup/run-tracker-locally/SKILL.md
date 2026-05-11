@@ -1,12 +1,34 @@
 ---
 name: run-tracker-locally
 description: Run the Torrust Tracker locally for development and testing. Use this skill to start the tracker with default configuration, understand configuration loading, and interact with tracker services (UDP and HTTP). Triggers on "run tracker", "start tracker locally", "develop tracker", "test tracker locally", or "run tracker for testing".
+compatibility: Requires cargo, bash, and local workspace access.
 metadata:
   author: torrust
   version: "1.0"
 ---
 
 # Run Tracker Locally
+
+## Skill Links
+
+This skill depends on these artifacts. If any of them change, review this skill.
+
+- `src/bootstrap/config.rs`
+- `share/default/config/tracker.development.sqlite3.toml`
+- `src/lib.rs`
+- `README.md`
+
+Use the marker `skill-link: run-tracker-locally` in affected artifacts.
+
+Convention reference: `docs/skills/semantic-skill-link-convention.md`
+
+## Validation Loop
+
+Before finalizing changes related to this workflow:
+
+1. Run `bash ./scripts/validate-skill-links.sh`
+2. If validation fails, update either artifact markers or this skill content.
+3. Re-run validation until it passes.
 
 ## Quick Start
 
@@ -148,3 +170,7 @@ cargo run --bin http_tracker_client announce http://127.0.0.1:7070 9c38422213e30
 - All runtime data (database, logs, config) is stored in `./storage/` which is git-ignored.
 - Each `cargo run` reuses existing database state; delete `./storage/` to start fresh.
 - Log output shows which services are active and on which ports.
+
+## Available Scripts
+
+- `./scripts/validate-skill-links.sh` validates that all linked artifacts exist and include the expected `skill-link` marker.

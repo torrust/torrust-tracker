@@ -113,6 +113,15 @@ Frontmatter rules:
 - `metadata.author`: `torrust`
 - `metadata.version`: `"1.0"`
 
+Semantic coupling rules:
+
+- Identify critical project artifacts that the skill depends on.
+- Add a `skill-link: <skill-name>` marker in each linked artifact using language-appropriate comments.
+- Add a short "Skill Links" section in `SKILL.md` listing those artifacts.
+- Prefer a small validation script in `scripts/` to verify linked files and markers.
+- Follow the canonical convention in `docs/skills/semantic-skill-link-convention.md`.
+- Keep marker usage aligned with the marker catalog in `docs/skills/semantic-skill-link-convention.md`.
+
 ### Step 4: Validate and Commit
 
 ```bash
@@ -139,8 +148,18 @@ git commit -S -m "docs(skills): add {skill-name} skill"
     assets/             ← Optional: templates, data
 ```
 
+## Skill Link Convention
+
+Use a lightweight marker convention for cross-artifact maintenance links:
+
+- Marker format: `skill-link: <skill-name>`
+- Put markers near constants, configuration blocks, or documentation lines that define behavior used by the skill.
+- Keep links minimal and high signal: only link artifacts that can make the skill stale when they change.
+- Validate links with a script when practical.
+
 ## References
 
 - Agent Skills specification: [references/specification.md](references/specification.md)
 - Skill patterns: [references/patterns.md](references/patterns.md)
 - Real examples: [references/examples.md](references/examples.md)
+- Semantic link convention: [`docs/skills/semantic-skill-link-convention.md`](../../../docs/skills/semantic-skill-link-convention.md)

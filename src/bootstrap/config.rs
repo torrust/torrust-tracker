@@ -4,6 +4,7 @@
 
 use torrust_tracker_configuration::{Configuration, Info};
 
+// skill-link: run-tracker-locally
 pub const DEFAULT_PATH_CONFIG: &str = "./share/default/config/tracker.development.sqlite3.toml";
 
 /// It loads the application configuration from the environment.

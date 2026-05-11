@@ -136,6 +136,8 @@ cargo run
 
 #### Customization
 
+<!-- skill-link: run-tracker-locally -->
+
 ```sh
 # Copy the default configuration into the standard location:
 mkdir -p ./storage/tracker/etc/
