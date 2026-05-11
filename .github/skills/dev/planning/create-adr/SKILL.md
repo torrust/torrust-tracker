@@ -4,6 +4,9 @@ description: Guide for creating Architectural Decision Records (ADRs) in the tor
 metadata:
   author: torrust
   version: "1.0"
+  semantic-links:
+    related-artifacts:
+      - docs/templates/ADR.md
 ---
 
 # Creating Architectural Decision Records

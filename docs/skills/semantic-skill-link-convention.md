@@ -32,6 +32,30 @@ Rules:
 - Use lowercase letters, numbers, and hyphens.
 - Add only high-signal links: artifacts that can make a skill stale when they change.
 
+## Markdown Frontmatter (Optional, Recommended)
+
+For Markdown files, you may also add semantic links in YAML frontmatter to make relationships
+explicit and easier to query.
+
+Recommended shape:
+
+```yaml
+---
+semantic-links:
+  skill-links:
+    - <skill-name>
+  related-artifacts:
+    - <repo-relative-path>
+---
+```
+
+Guidance:
+
+- Keep using inline `skill-link` markers as the primary convention for compatibility.
+- Use frontmatter to express richer relations (for example bidirectional links).
+- Keep paths repository-relative and stable.
+- Keep links high-signal; avoid noisy or speculative links.
+
 ## Where to Place Markers
 
 Use language-appropriate syntax:
@@ -39,6 +63,9 @@ Use language-appropriate syntax:
 - Rust: `// skill-link: <skill-name>`
 - TOML: `# skill-link: <skill-name>`
 - Markdown: `<!-- skill-link: <skill-name> -->`
+
+For Markdown files with frontmatter, place inline marker comments near the workflow-defining
+section even if frontmatter links are present.
 
 Place the marker near:
 

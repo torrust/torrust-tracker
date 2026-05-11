@@ -122,106 +122,45 @@ All packages live under `packages/`. The workspace version is `3.0.0-develop`.
 | `Containerfile`                           | Container image definition                                                                                                          |
 | `codecov.yaml`                            | Code coverage configuration                                                                                                         |
 
-## 🧪 Build & Test
+## 🧪 Build, Test, and Lint
 
-### Setup
+Use this section as a quick policy-level summary. For detailed command workflows and troubleshooting,
+prefer the corresponding skills.
 
-```sh
-rustup show                        # Check active toolchain
-rustup update                      # Update toolchain
-rustup toolchain install nightly   # Optional: needed for manual cargo +nightly commands and the repo pre-push checks (fmt/check/doc)
-```
-
-### Build
+Common commands:
 
 ```sh
-cargo build                        # Build all workspace crates
-cargo build --release              # Release build
-cargo build --package <pkg>        # Build a specific package
-```
-
-### Test
-
-```sh
-cargo test --doc --workspace                                         # Documentation tests
-cargo test --tests --benches --examples --workspace \
-  --all-targets --all-features                                       # All tests
-cargo test -p <package-name>                                         # Single package
-
-# MySQL-specific tests (requires a running MySQL instance)
-TORRUST_TRACKER_CORE_RUN_MYSQL_DRIVER_TEST=true \
-  cargo test --package bittorrent-tracker-core
-
-# Integration tests (root)
-cargo test --test integration      # tests/integration.rs
-```
-
-### E2E Tests
-
-```sh
-cargo run --bin e2e_tests_runner -- \
-  --config-toml-path "./share/default/config/tracker.e2e.container.sqlite3.toml"
-```
-
-### Documentation
-
-```sh
+cargo build
+cargo test --doc --workspace
+cargo test --tests --benches --examples --workspace --all-targets --all-features
+cargo test --test integration
 cargo +nightly doc --no-deps --bins --examples --workspace --all-features
-```
-
-### Benchmarks
-
-```sh
 cargo bench --package torrent-repository-benchmarking
 ```
 
-See [docs/benchmarking.md](docs/benchmarking.md) and [docs/profiling.md](docs/profiling.md).
-
-## 🔍 Lint Commands
-
-The project uses the `linter` binary from
-[torrust/torrust-linting](https://github.com/torrust/torrust-linting).
-
-Agent reminder:
-
-- When asked to lint, prefer loading the `run-linters` skill at
-  `.github/skills/dev/git-workflow/run-linters/SKILL.md`.
-- Start with `linter all`.
-- To lint only markdown files, run `linter markdown`.
-- To isolate a failing tool, run the individual linters directly:
-  `linter markdown`, `linter yaml`, `linter toml`, `linter cspell`, `linter clippy`,
-  `linter rustfmt`, `linter shellcheck`.
-- If `linter all` fails or appears inconclusive, use the individual commands above before editing
-  files so the failing linter is explicit.
-- Treat `linter all` passing with exit code `0` as the required pre-commit gate.
+Mandatory quality gate before every commit:
 
 ```sh
-# Install the linter binary
-cargo install --locked --git https://github.com/torrust/torrust-linting --bin linter
+./contrib/dev-tools/git/hooks/pre-commit.sh
+```
 
-# Run all linters (MANDATORY before every commit and PR)
+Linter entry point:
+
+```sh
 linter all
-
-# Run individual linters
-linter markdown     # markdownlint
-linter yaml        # yamllint
-linter toml        # taplo
-linter cspell      # spell checker
-linter clippy      # Rust linter
-linter rustfmt     # Rust formatter check
-linter shellcheck  # shell scripts
 ```
 
-**`linter all` must exit with code `0` before every commit. PRs that fail CI linting are
-rejected without review.**
+Primary skill references:
 
-## 🔗 Dependencies Check
+- `run-linters`: `.github/skills/dev/git-workflow/run-linters/SKILL.md`
+- `run-pre-commit-checks`: `.github/skills/dev/git-workflow/run-pre-commit-checks/SKILL.md`
+- `setup-dev-environment`: `.github/skills/dev/maintenance/setup-dev-environment/SKILL.md`
 
-```sh
-cargo machete       # Check for unused dependencies (mandatory before commits)
-```
+Supporting docs:
 
-Install via: `cargo install cargo-machete`
+- [docs/benchmarking.md](docs/benchmarking.md)
+- [docs/profiling.md](docs/profiling.md)
+- [docs/containers.md](docs/containers.md)
 
 ## 🎨 Code Style
 
@@ -256,6 +195,30 @@ When acting as an assistant in this repository:
 
 When raising a likely mistake or blocker, say so clearly and early instead of burying it after
 routine status updates.
+
+## 🧭 Engineering Policies
+
+These policies are repository-wide and apply to all agents and workflows.
+
+<!-- skill-link: add-rust-dependency -->
+
+1. **Dependency freshness**: prefer the latest stable Rust crate version when adding or upgrading
+   dependencies unless there is a compatibility reason not to. If not using the latest stable
+   version, document why.
+2. **Container base image freshness**: prefer current supported base images in `Containerfile`
+   and compose artifacts. If an older base image is retained, document the reason.
+3. **Shell vs Rust threshold**: use shell scripts for simple orchestration only. When logic
+   becomes non-trivial, stateful, safety-critical, or worth testing independently, prefer Rust.
+4. **Testing coverage and maintainability**: aim for high maintainable automated coverage. If
+   behaviour is left untested, document why and prefer improving design/testability when practical.
+5. **Rust documentation quality**: document public APIs and important internal module/type
+   invariants. Prefer high-signal Rust docs over boilerplate comments.
+
+Implementation workflow references:
+
+- Dependency updates: `.github/skills/dev/maintenance/update-dependencies/SKILL.md`
+- Adding a new Rust dependency: `.github/skills/dev/maintenance/add-rust-dependency/SKILL.md`
+- Unit testing conventions: `.github/skills/dev/testing/write-unit-test/SKILL.md`
 
 ## 🔧 Essential Rules
 

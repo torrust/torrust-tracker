@@ -1,3 +1,13 @@
+---
+semantic-links:
+  skill-links:
+    - process-copilot-suggestions
+  related-artifacts:
+    - .github/skills/dev/pr-reviews/process-copilot-suggestions/SKILL.md
+---
+
+<!-- skill-link: process-copilot-suggestions -->
+
 # PR #<PR_NUMBER> Copilot Suggestions Tracking
 
 Source: Copilot PR review threads for <PR_URL>
@@ -26,9 +36,9 @@ Status legend:
 
 ## Suggestions
 
-| # | Thread ID | Path | URL | Suggestion Summary | Decision | Status | Thread State |
-|---|---|---|---|---|---|---|---|
-| 1 | <THREAD_ID> | <FILE_PATH> | <COMMENT_URL> | <SHORT_SUMMARY> | <ACTION_OR_NO_ACTION> | <OPEN_OR_DONE> | <OPEN_OR_RESOLVED> |
+| #   | Thread ID   | Path        | URL           | Suggestion Summary | Decision              | Status         | Thread State       |
+| --- | ----------- | ----------- | ------------- | ------------------ | --------------------- | -------------- | ------------------ |
+| 1   | <THREAD_ID> | <FILE_PATH> | <COMMENT_URL> | <SHORT_SUMMARY>    | <ACTION_OR_NO_ACTION> | <OPEN_OR_DONE> | <OPEN_OR_RESOLVED> |
 
 ## Notes
 

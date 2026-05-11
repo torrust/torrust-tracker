@@ -4,6 +4,9 @@ description: End-to-end workflow for processing and resolving all Copilot code r
 metadata:
   author: torrust
   version: "1.0"
+  semantic-links:
+    related-artifacts:
+      - docs/templates/COPILOT-SUGGESTIONS-TEMPLATE.md
 ---
 
 # Processing Copilot PR Suggestions
@@ -32,7 +35,7 @@ Copilot generates suggestions that fall into two categories:
 Copy the template to create a tracker for this PR:
 
 ```bash
-cp docs/pr-reviews/COPILOT-SUGGESTIONS-TEMPLATE.md \
+cp docs/templates/COPILOT-SUGGESTIONS-TEMPLATE.md \
    docs/pr-reviews/pr-<PR_NUMBER>-copilot-suggestions.md
 ```
 
