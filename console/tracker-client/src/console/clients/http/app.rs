@@ -6,7 +6,15 @@
 //! `Announce` request:
 //!
 //! ```text
-//! cargo run --bin http_tracker_client announce http://127.0.0.1:7070 9c38422213e30bff212b30c360d26f9a02136422 | jq
+//! cargo run --bin http_tracker_client announce http://127.0.0.1:7070 9c38422213e30bff212b30c360d26f9a02136422
+//! ```
+//!
+//! `Announce` request (pretty JSON output):
+//!
+//! ```text
+//! cargo run --bin http_tracker_client announce \
+//!   http://127.0.0.1:7070 9c38422213e30bff212b30c360d26f9a02136422 \
+//!   --format pretty
 //! ```
 //!
 //! `Announce` request (all optional parameters):
@@ -27,7 +35,15 @@
 //! `Scrape` request:
 //!
 //! ```text
-//! cargo run --bin http_tracker_client scrape http://127.0.0.1:7070 9c38422213e30bff212b30c360d26f9a02136422 | jq
+//! cargo run --bin http_tracker_client scrape http://127.0.0.1:7070 9c38422213e30bff212b30c360d26f9a02136422
+//! ```
+//!
+//! `Scrape` request (pretty JSON output):
+//!
+//! ```text
+//! cargo run --bin http_tracker_client scrape \
+//!   http://127.0.0.1:7070 9c38422213e30bff212b30c360d26f9a02136422 \
+//!   --format pretty
 //! ```
 //!
 //! Unrecognized response fallback (generic JSON):
@@ -91,6 +107,12 @@ impl From<CliCompact> for Compact {
     }
 }
 
+#[derive(Clone, Copy, Debug, ValueEnum)]
+enum OutputFormat {
+    Compact,
+    Pretty,
+}
+
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 struct Args {
@@ -119,10 +141,14 @@ enum Command {
         peer_id: Option<PeerId>,
         #[arg(long, value_enum)]
         compact: Option<CliCompact>,
+        #[arg(long, value_enum, default_value_t = OutputFormat::Compact)]
+        format: OutputFormat,
     },
     Scrape {
         tracker_url: String,
         info_hashes: Vec<String>,
+        #[arg(long, value_enum, default_value_t = OutputFormat::Compact)]
+        format: OutputFormat,
     },
 }
 
@@ -137,6 +163,7 @@ struct AnnounceOptions {
     peer_addr: Option<IpAddr>,
     peer_id: Option<PeerId>,
     compact: Option<CliCompact>,
+    output_format: OutputFormat,
 }
 
 /// # Errors
@@ -157,6 +184,7 @@ pub async fn run() -> anyhow::Result<()> {
             peer_addr,
             peer_id,
             compact,
+            format,
         } => {
             announce_command(
                 AnnounceOptions {
@@ -170,6 +198,7 @@ pub async fn run() -> anyhow::Result<()> {
                     peer_addr,
                     peer_id,
                     compact,
+                    output_format: format,
                 },
                 DEFAULT_TIMEOUT,
             )
@@ -178,8 +207,9 @@ pub async fn run() -> anyhow::Result<()> {
         Command::Scrape {
             tracker_url,
             info_hashes,
+            format,
         } => {
-            scrape_command(&tracker_url, &info_hashes, DEFAULT_TIMEOUT).await?;
+            scrape_command(&tracker_url, &info_hashes, format, DEFAULT_TIMEOUT).await?;
         }
     }
 
@@ -227,11 +257,13 @@ async fn announce_command(options: AnnounceOptions, timeout: Duration) -> anyhow
     let body = response.bytes().await?;
 
     let json = if let Ok(announce_response) = serde_bencode::from_bytes::<Announce>(&body) {
-        serde_json::to_string(&announce_response).context("failed to serialize announce response into JSON")?
+        serialize_json(&announce_response, options.output_format).context("failed to serialize announce response into JSON")?
     } else if let Ok(compact_response) = serde_bencode::from_bytes::<DeserializedCompact>(&body) {
-        serde_json::to_string(&compact_response).context("failed to serialize compact announce response into JSON")?
+        serialize_json(&compact_response, options.output_format)
+            .context("failed to serialize compact announce response into JSON")?
     } else {
-        let fallback = bencode_to_fallback_json_or_raw_bytes(&body);
+        let fallback = bencode_to_fallback_json_or_raw_bytes(&body, options.output_format)
+            .context("failed to serialize fallback announce response into JSON")?;
 
         println!("{fallback}");
 
@@ -268,7 +300,12 @@ fn parse_non_zero_port(port_str: &str) -> anyhow::Result<u16> {
     Ok(port)
 }
 
-async fn scrape_command(tracker_url: &str, info_hashes: &[String], timeout: Duration) -> anyhow::Result<()> {
+async fn scrape_command(
+    tracker_url: &str,
+    info_hashes: &[String],
+    output_format: OutputFormat,
+    timeout: Duration,
+) -> anyhow::Result<()> {
     let base_url = Url::parse(tracker_url).context("failed to parse HTTP tracker base URL")?;
 
     let query = requests::scrape::Query::try_from(info_hashes).context("failed to parse infohashes")?;
@@ -278,23 +315,73 @@ async fn scrape_command(tracker_url: &str, info_hashes: &[String], timeout: Dura
     let body = response.bytes().await?;
 
     let Ok(scrape_response) = scrape::Response::try_from_bencoded(&body) else {
-        let fallback = bencode_to_fallback_json_or_raw_bytes(&body);
+        let fallback = bencode_to_fallback_json_or_raw_bytes(&body, output_format)
+            .context("failed to serialize fallback scrape response into JSON")?;
 
         println!("{fallback}");
 
         bail!("unrecognized scrape response from tracker")
     };
 
-    let json = serde_json::to_string(&scrape_response).context("failed to serialize scrape response into JSON")?;
+    let json = serialize_json(&scrape_response, output_format).context("failed to serialize scrape response into JSON")?;
 
     println!("{json}");
 
     Ok(())
 }
 
-fn bencode_to_fallback_json_or_raw_bytes(body: &[u8]) -> String {
+fn bencode_to_fallback_json_or_raw_bytes(body: &[u8], output_format: OutputFormat) -> anyhow::Result<String> {
     match try_bencode_to_json(body) {
-        Ok(json) => json,
-        Err(_) => format!("Warning: Could not deserialize HTTP tracker response. Raw bytes: {body:?}"),
+        Ok(json) => match output_format {
+            OutputFormat::Compact => Ok(json),
+            OutputFormat::Pretty => {
+                let value: serde_json::Value = serde_json::from_str(&json).context("failed to parse fallback bencode JSON")?;
+
+                serialize_json(&value, output_format).context("failed to format fallback bencode JSON")
+            }
+        },
+        Err(_) => Ok(format!(
+            "Warning: Could not deserialize HTTP tracker response. Raw bytes: {body:?}"
+        )),
+    }
+}
+
+fn serialize_json<T: serde::Serialize>(value: &T, output_format: OutputFormat) -> anyhow::Result<String> {
+    match output_format {
+        OutputFormat::Compact => serde_json::to_string(value).context("failed to serialize JSON"),
+        OutputFormat::Pretty => serde_json::to_string_pretty(value).context("failed to serialize pretty JSON"),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use serde::Serialize;
+
+    use super::{serialize_json, OutputFormat};
+
+    #[derive(Serialize)]
+    struct Sample {
+        seeders: i32,
+        leechers: i32,
+    }
+
+    #[test]
+    fn it_should_serialize_compact_json() {
+        let data = Sample { seeders: 1, leechers: 2 };
+
+        let json = serialize_json(&data, OutputFormat::Compact).expect("it should serialize compact JSON");
+
+        assert_eq!(json, "{\"seeders\":1,\"leechers\":2}");
+    }
+
+    #[test]
+    fn it_should_serialize_pretty_json() {
+        let data = Sample { seeders: 1, leechers: 2 };
+
+        let json = serialize_json(&data, OutputFormat::Pretty).expect("it should serialize pretty JSON");
+
+        assert!(json.contains('\n'));
+        assert!(json.contains("  \"seeders\": 1"));
+        assert!(json.contains("  \"leechers\": 2"));
     }
 }
