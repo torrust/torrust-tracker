@@ -4,6 +4,7 @@ For more detailed instructions, please view our [crate documentation][docs].
 
 - [Benchmarking](benchmarking.md)
 - [Containers](containers.md)
+- [Issue Specs](issues/README.md)
 - [Packages](packages.md)
 - [Profiling](profiling.md)
 - [Releases process](release_process.md)

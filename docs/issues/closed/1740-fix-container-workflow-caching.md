@@ -7,7 +7,7 @@ cache-scoping gap that prevent the GHA Docker layer cache from working reliably.
 
 - GitHub issue: [#1740](https://github.com/torrust/torrust-tracker/issues/1740)
 - Related workflow: [`.github/workflows/container.yaml`](../../.github/workflows/container.yaml)
-- Related: [#1726 — Reduce Build Times with sccache](1726-reduce-build-times-sccache/ISSUE.md)
+- Related: [#1726 — Reduce Build Times with sccache](../open/1726-reduce-build-times-sccache/ISSUE.md)
 
 ## Background
 
@@ -63,7 +63,7 @@ separates dependency compilation (cached) from workspace-crate compilation (not 
 GitHub's shared 2-core runners this step takes ~15–25 minutes for a full Rust workspace.
 
 Reducing that cost is tracked separately in
-[#1726](1726-reduce-build-times-sccache/ISSUE.md).
+[#1726](../open/1726-reduce-build-times-sccache/ISSUE.md).
 
 ### 4. `docker-e2e` job in `testing.yaml` builds the image without BuildKit cache
 

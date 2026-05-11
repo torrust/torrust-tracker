@@ -21,10 +21,15 @@ metadata:
 
 The process is **spec-first**: write and review a specification before creating the GitHub issue.
 
-1. **Draft specification** document in `docs/issues/` (no template — write from scratch)
+Lifecycle docs:
+
+- Open issue specs: [`docs/issues/open/README.md`](../../../../docs/issues/open/README.md)
+- Closed issue buffer: [`docs/issues/closed/README.md`](../../../../docs/issues/closed/README.md)
+
+1. **Draft specification** document in `docs/issues/drafts/` (no template — write from scratch)
 2. **User reviews** the draft specification
 3. **Create GitHub issue**
-4. **Rename spec file** to include the issue number
+4. **Move spec file to `docs/issues/open/`** and include the issue number
 5. **Pre-commit checks** and commit the spec
 
 **Never create the GitHub issue before the user reviews and approves the specification.**
@@ -36,7 +41,7 @@ The process is **spec-first**: write and review a specification before creating 
 Create a specification file with a **temporary name** (no issue number yet):
 
 ```bash
-touch docs/issues/{short-description}.md
+touch docs/issues/drafts/{short-description}.md
 ```
 
 Use [docs/templates/ISSUE.md](../../../docs/templates/ISSUE.md) as the starting structure.
@@ -71,11 +76,11 @@ gh issue create \
 
 ### Step 4: Rename the Spec File
 
-Rename using the assigned issue number:
+Move from `drafts/` to `open/` using the assigned issue number:
 
 ```bash
-git mv docs/issues/{short-description}.md \
-       docs/issues/{number}-{short-description}.md
+git mv docs/issues/drafts/{short-description}.md \
+  docs/issues/open/{number}-{short-description}.md
 ```
 
 Update any issue number placeholders inside the file.

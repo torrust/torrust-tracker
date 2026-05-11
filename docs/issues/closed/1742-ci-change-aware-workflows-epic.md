@@ -68,7 +68,7 @@ Out of scope:
 ### Research `sccache` impact on remaining heavy workflows
 
 - Existing issue: [#1726](https://github.com/torrust/torrust-tracker/issues/1726)
-- Local spec: [docs/issues/1726-reduce-build-times-sccache/ISSUE.md](./1726-reduce-build-times-sccache/ISSUE.md)
+- Local spec: [docs/issues/open/1726-reduce-build-times-sccache/ISSUE.md](../open/1726-reduce-build-times-sccache/ISSUE.md)
 - Focus: determine, with benchmarks, whether `sccache` reduces compilation cost for workflows that
   still need to run.
 - Relationship to this EPIC: complementary, but not a blocker. The docs-only fast path and
