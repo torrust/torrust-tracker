@@ -1,4 +1,5 @@
 //! UDP Tracker client:
+//! skill-link: public-trackers-for-testing
 //!
 //! Examples:
 //!
