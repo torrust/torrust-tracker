@@ -22,6 +22,8 @@ Before opening a PR:
 - [ ] Branch is pushed to your fork remote
 - [ ] Commits are GPG signed (`git log --show-signature -n 1`)
 - [ ] All pre-commit checks passed (`linter all`, `cargo machete`, tests)
+- [ ] PR body claims are aligned with the actual commit range (`origin/develop..HEAD`)
+- [ ] If manual verification used temporary local-only patches, PR body explicitly says they are not included
 
 > Important: always open the PR in the **upstream repository**, not in your fork.
 > Resolve upstream from `Cargo.toml` (`repository = "https://github.com/torrust/torrust-tracker"`) and use that value for `gh pr create --repo ...`.
@@ -41,6 +43,11 @@ PR body must include:
 - Files/packages touched
 - Validation performed
 - Issue link (`Closes #<issue-number>`)
+
+PR body must not include:
+
+- Claims about code changes that are not present in the branch diff
+- Ambiguous wording that mixes temporary local verification patches with committed implementation
 
 ## Option A (Preferred): GitHub CLI
 
@@ -76,6 +83,15 @@ When MCP pull request management tools are available, create the PR with:
 - [ ] Head branch is correct
 - [ ] CI workflows started
 - [ ] Issue linked in description
+- [ ] PR body still matches branch diff and commit history after final rebases/edits
+
+Quick body-accuracy verification:
+
+```bash
+gh pr view <pr-number> --repo <upstream-owner>/<upstream-repo> --json body
+git diff --name-only origin/develop...HEAD
+git log --oneline origin/develop..HEAD
+```
 
 ## Troubleshooting
 
