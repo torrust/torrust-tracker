@@ -4,12 +4,12 @@ This directory contains tools and templates for managing GitHub Copilot code rev
 
 ## Files
 
-- **COPILOT-SUGGESTIONS-TEMPLATE.md** — Reusable template for tracking and processing copilot suggestions on any PR. Copy and customize for each new PR.
+- [docs/templates/COPILOT-SUGGESTIONS-TEMPLATE.md](../templates/COPILOT-SUGGESTIONS-TEMPLATE.md) — Reusable template for tracking and processing Copilot suggestions on any PR. Copy and customize for each new PR.
 - **pr-1733-copilot-suggestions.md** — Example of a completed suggestion review for PR #1733, showing how to document decisions, process suggestions, and track resolutions.
 
 ## Workflow
 
-1. **Setup** — Copy `COPILOT-SUGGESTIONS-TEMPLATE.md` to a new file named `pr-<PR_NUMBER>-copilot-suggestions.md`.
+1. **Setup** — Copy [docs/templates/COPILOT-SUGGESTIONS-TEMPLATE.md](../templates/COPILOT-SUGGESTIONS-TEMPLATE.md) to a new file named `pr-<PR_NUMBER>-copilot-suggestions.md` in `docs/pr-reviews/`.
 
 2. **Download threads** — Use `contrib/dev-tools/github-api-scripts/get-pr-review-threads.sh <PR_NUMBER>` to fetch all review threads.
 

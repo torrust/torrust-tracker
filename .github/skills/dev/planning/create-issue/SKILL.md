@@ -4,6 +4,10 @@ description: Guide for creating GitHub issues in the torrust-tracker project. Co
 metadata:
   author: torrust
   version: "1.0"
+  semantic-links:
+    related-artifacts:
+      - docs/templates/ISSUE.md
+      - docs/templates/EPIC.md
 ---
 
 # Creating Issues
@@ -26,7 +30,9 @@ Lifecycle docs:
 - Open issue specs: [`docs/issues/open/README.md`](../../../../docs/issues/open/README.md)
 - Closed issue buffer: [`docs/issues/closed/README.md`](../../../../docs/issues/closed/README.md)
 
-1. **Draft specification** document in `docs/issues/drafts/` (no template — write from scratch)
+1. **Draft specification** document in `docs/issues/drafts/` using the repository templates
+   appropriate to the issue type (`docs/templates/ISSUE.md` for Task/Bug/Feature,
+   `docs/templates/EPIC.md` for Epic)
 2. **User reviews** the draft specification
 3. **Create GitHub issue**
 4. **Move spec file to `docs/issues/open/`** and include the issue number
@@ -44,7 +50,19 @@ Create a specification file with a **temporary name** (no issue number yet):
 touch docs/issues/drafts/{short-description}.md
 ```
 
-Use [docs/templates/ISSUE.md](../../../docs/templates/ISSUE.md) as the starting structure.
+Select the template by issue type:
+
+- Task/Bug/Feature: [docs/templates/ISSUE.md](../../../docs/templates/ISSUE.md)
+- Epic: [docs/templates/EPIC.md](../../../docs/templates/EPIC.md)
+
+Before presenting the draft for review, initialize these sections so progress can be tracked
+explicitly during implementation:
+
+- `Metadata` (including `Status` and `Last Updated`)
+- `Implementation Plan` (or `Subissues` for epics) with explicit status values
+- `Progress Tracking` (`Workflow Checkpoints` and first `Progress Log` entry)
+- `Acceptance Criteria` and `Acceptance Verification`
+
 Use **placeholders** for the issue number until after creation (e.g., `[To be assigned]`).
 
 After drafting, run linters:
