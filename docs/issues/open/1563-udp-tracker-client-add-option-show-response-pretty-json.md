@@ -83,14 +83,14 @@ cargo run -p torrust-tracker-client --bin udp_tracker_client announce \
 
 ## Goals
 
-- [ ] Add a `--format` option to UDP `announce` and `scrape`
-- [ ] Change default output to `compact`
-- [ ] Support `pretty` output for human-readable inspection
-- [ ] Keep response DTO conversion unchanged
-- [ ] Update CLI docs/examples
-- [ ] `linter all` exits with code `0`
-- [ ] `cargo machete` reports no unused dependencies
-- [ ] Existing tests keep passing
+- [x] Add a `--format` option to UDP `announce` and `scrape`
+- [x] Change default output to `compact`
+- [x] Support `pretty` output for human-readable inspection
+- [x] Keep response DTO conversion unchanged
+- [x] Update CLI docs/examples
+- [x] `linter all` exits with code `0`
+- [x] `cargo machete` reports no unused dependencies
+- [x] Existing tests keep passing
 
 ## Implementation Plan
 
@@ -128,16 +128,159 @@ Update examples to show both default and explicit `--format pretty` usage.
 
 ## Acceptance Criteria
 
-- [ ] Running UDP `announce --format pretty` prints multiline JSON
-- [ ] Running UDP `announce --format compact` prints single-line JSON
-- [ ] Running UDP `scrape --format pretty` prints multiline JSON
-- [ ] Omitting `--format` produces compact single-line JSON
+- [x] Running UDP `announce --format pretty` prints multiline JSON
+- [x] Running UDP `announce --format compact` prints single-line JSON
+- [x] Running UDP `scrape --format pretty` prints multiline JSON
+- [x] Omitting `--format` produces compact single-line JSON
 - [ ] When fallback JSON is produced, `--format pretty` prints indented JSON and
       default output remains compact
-- [ ] Invalid format values are rejected by clap with usage guidance
-- [ ] `linter all` exits with code `0`
-- [ ] `cargo machete` reports no unused dependencies
-- [ ] Existing tests pass
+- [x] Invalid format values are rejected by clap with usage guidance
+- [x] `linter all` exits with code `0`
+- [x] `cargo machete` reports no unused dependencies
+- [x] Existing tests pass
+
+## Manual Verification
+
+Environment used:
+
+- Local tracker started with default development config (`tracker.development.sqlite3.toml`)
+- Command target: `udp://127.0.0.1:6969/scrape`
+- Info hash: `000620bbc6c52d5a96d98f6c0f1dfa523a40df82`
+
+### Compact output
+
+Command:
+
+```text
+./target/debug/udp_tracker_client scrape \
+  udp://127.0.0.1:6969/scrape \
+  000620bbc6c52d5a96d98f6c0f1dfa523a40df82 \
+  --format compact
+```
+
+Captured output:
+
+```json
+{
+  "Scrape": {
+    "transaction_id": -888840697,
+    "torrent_stats": [{ "seeders": 0, "completed": 0, "leechers": 0 }]
+  }
+}
+```
+
+### Pretty output
+
+Command:
+
+```text
+./target/debug/udp_tracker_client scrape \
+  udp://127.0.0.1:6969/scrape \
+  000620bbc6c52d5a96d98f6c0f1dfa523a40df82 \
+  --format pretty
+```
+
+Captured output:
+
+```json
+{
+  "Scrape": {
+    "transaction_id": -888840697,
+    "torrent_stats": [
+      {
+        "seeders": 0,
+        "completed": 0,
+        "leechers": 0
+      }
+    ]
+  }
+}
+```
+
+### Additional checks
+
+Command:
+
+```text
+./target/debug/udp_tracker_client announce \
+  udp://127.0.0.1:6969/announce \
+  000620bbc6c52d5a96d98f6c0f1dfa523a40df82 \
+  --format compact
+```
+
+Captured output:
+
+```json
+{
+  "AnnounceIpv4": {
+    "transaction_id": -888840697,
+    "announce_interval": 120,
+    "leechers": 0,
+    "seeders": 1,
+    "peers": []
+  }
+}
+```
+
+Command:
+
+```text
+./target/debug/udp_tracker_client announce \
+  udp://127.0.0.1:6969/announce \
+  000620bbc6c52d5a96d98f6c0f1dfa523a40df82 \
+  --format pretty
+```
+
+Captured output:
+
+```json
+{
+  "AnnounceIpv4": {
+    "transaction_id": -888840697,
+    "announce_interval": 120,
+    "leechers": 0,
+    "seeders": 2,
+    "peers": ["0.0.0.0:46251"]
+  }
+}
+```
+
+Command:
+
+```text
+./target/debug/udp_tracker_client scrape \
+  udp://127.0.0.1:6969/scrape \
+  000620bbc6c52d5a96d98f6c0f1dfa523a40df82
+```
+
+Captured output:
+
+```json
+{
+  "Scrape": {
+    "transaction_id": -888840697,
+    "torrent_stats": [{ "seeders": 2, "completed": 0, "leechers": 0 }]
+  }
+}
+```
+
+Command:
+
+```text
+./target/debug/udp_tracker_client scrape \
+  udp://127.0.0.1:6969/scrape \
+  000620bbc6c52d5a96d98f6c0f1dfa523a40df82 \
+  --format invalid
+```
+
+Captured output:
+
+```text
+error: invalid value 'invalid' for '--format <FORMAT>'
+  [possible values: compact, pretty]
+
+For more information, try '--help'.
+```
 
 ## Key Files
 
