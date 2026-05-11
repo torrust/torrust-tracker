@@ -198,14 +198,14 @@ Result: malformed bytes are visible in CLI output as required.
 
 ## Acceptance Criteria
 
-- [ ] Running the client against a tracker that returns an invalid packet produces output
+- [x] Running the client against a tracker that returns an invalid packet produces output
       matching:
       `Error: Unrecognized UDP tracker response. Expected a valid UDP response, got: [...]`
-- [ ] Running the client against a well-behaved tracker still prints the JSON response and
+- [x] Running the client against a well-behaved tracker still prints the JSON response and
       exits `0`
-- [ ] `linter all` exits with code `0`
-- [ ] `cargo machete` reports no unused dependencies
-- [ ] All existing tests pass
+- [x] `linter all` exits with code `0`
+- [x] `cargo machete` reports no unused dependencies
+- [x] All existing tests pass
 
 ## Key Files
 
