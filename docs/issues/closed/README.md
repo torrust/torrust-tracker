@@ -16,7 +16,7 @@ Closed spec files are moved here (rather than deleted immediately) because:
 
 ## Lifecycle
 
-1. **Issue closed / PR merged** → spec file moves from `docs/issues/` to `docs/issues/closed/`.
+1. **Issue closed / PR merged** → spec file moves from `docs/issues/open/` to `docs/issues/closed/`.
 2. **Buffer period** → file lives here while adjacent issues are still in progress.
 3. **Cleanup** → once the spec is no longer referenced by active work, it is deleted.
 

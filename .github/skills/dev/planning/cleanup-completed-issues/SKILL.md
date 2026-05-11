@@ -1,6 +1,6 @@
 ---
 name: cleanup-completed-issues
-description: Guide for cleaning up completed and closed issues in the torrust-tracker project. Covers moving closed issue documentation files from docs/issues/ to docs/issues/closed/ and eventually deleting them. Supports single issue cleanup or batch cleanup. Use when cleaning up closed issues, archiving issue docs, or maintaining the docs/issues/ folder. Triggers on "cleanup issue", "archive issue", "move closed issue", "clean completed issues", "delete closed issue", or "maintain issue docs".
+description: Guide for cleaning up completed and closed issues in the torrust-tracker project. Covers moving closed issue documentation files from docs/issues/open/ to docs/issues/closed/ and eventually deleting them. Supports single issue cleanup or batch cleanup. Use when cleaning up closed issues, archiving issue docs, or maintaining the docs/issues/ folder. Triggers on "cleanup issue", "archive issue", "move closed issue", "clean completed issues", "delete closed issue", or "maintain issue docs".
 metadata:
   author: torrust
   version: "1.1"
@@ -12,7 +12,7 @@ metadata:
 
 Closed issue specs are **not deleted immediately**. They go through a two-stage lifecycle:
 
-1. **Stage 1 — Archive**: When an issue is closed, move its spec file from `docs/issues/` to
+1. **Stage 1 — Archive**: When an issue is closed, move its spec file from `docs/issues/open/` to
    `docs/issues/closed/`. The file stays here as a reference buffer while adjacent issues are
    still in progress.
 2. **Stage 2 — Delete**: Once the spec is no longer referenced by active work (typically after
@@ -20,6 +20,11 @@ Closed issue specs are **not deleted immediately**. They go through a two-stage 
 
 See [`docs/issues/closed/README.md`](../../../../docs/issues/closed/README.md) for the purpose
 of the buffer folder.
+
+Related lifecycle docs:
+
+- Open issue specs: [`docs/issues/open/README.md`](../../../../docs/issues/open/README.md)
+- Closed issue buffer: [`docs/issues/closed/README.md`](../../../../docs/issues/closed/README.md)
 
 ## When to Archive (Stage 1)
 
@@ -57,11 +62,11 @@ done
 
 ```bash
 # Single issue
-git mv docs/issues/42-add-peer-expiry-grace-period.md docs/issues/closed/
+git mv docs/issues/open/42-add-peer-expiry-grace-period.md docs/issues/closed/
 
 # Batch
-git mv docs/issues/21-some-old-issue.md \
-       docs/issues/22-another-old-issue.md \
+git mv docs/issues/open/21-some-old-issue.md \
+  docs/issues/open/22-another-old-issue.md \
        docs/issues/closed/
 ```
 
@@ -88,6 +93,6 @@ git commit -S -m "chore(issues): remove closed issue #42 spec (no longer referen
 
 | Condition                               | Action                        |
 | --------------------------------------- | ----------------------------- |
-| Issue still open                        | Keep in `docs/issues/`        |
+| Issue still open                        | Keep in `docs/issues/open/`   |
 | Issue closed, related work still active | Move to `docs/issues/closed/` |
 | Issue closed, no longer referenced      | Delete permanently            |
