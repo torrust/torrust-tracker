@@ -165,7 +165,36 @@ and verify the CLI output end-to-end.
 4. Verify the client cannot parse the response and prints useful information, including the
    malformed bytes, so the user can understand what happened.
 
-Record the observed output here, including the exact raw bytes if the malformed payload is hit.
+Observed local verification on 2026-05-11:
+
+Tracker start command (with a temporary local patch applied in the UDP server
+send path to force payload `[0, 0, 0, 1]`):
+
+```bash
+cargo run
+```
+
+Client probe command:
+
+```bash
+target/debug/udp_tracker_client announce \
+  udp://127.0.0.1:6969/announce \
+  9c38422213e30bff212b30c360d26f9a02136422
+```
+
+Observed client output:
+
+```text
+Error: Unrecognized UDP tracker response. Expected a valid UDP response,
+ got: [0, 0, 0, 1]
+
+Caused by:
+   0: Unrecognized UDP tracker response. Expected a valid UDP response,
+ got: [0, 0, 0, 1]
+   1: invalid data
+```
+
+Result: malformed bytes are visible in CLI output as required.
 
 ## Acceptance Criteria
 
