@@ -91,6 +91,18 @@ Path resolution rule for `announce`:
 
 The client should not rely on callers pre-trimming or pre-normalizing the URL.
 
+Path resolution rule for `scrape` (same strategy as `announce`):
+
+- Input path empty or `/` -> resolve to `/scrape`
+- Input path non-empty (for example `/scrape`, `/foo`, `/foo/bar`) -> keep it
+  unchanged
+
+CLI URL input validation rule:
+
+- The tracker URL input must not contain query (`?...`) or fragment (`#...`)
+- If query or fragment is present, fail with a friendly error message
+- Tracker protocol parameters must be provided through dedicated CLI arguments
+
 Scope note: this issue is about tracker protocol endpoints (`announce` and
 `scrape`). The `health_check` endpoint is out of scope.
 
@@ -106,6 +118,9 @@ Scope note: this issue is about tracker protocol endpoints (`announce` and
 - [ ] Preserve existing behaviour for valid base URLs
 - [ ] Add tests covering the supported input forms
 - [ ] Keep `health_check` behaviour unchanged in this issue
+- [ ] Apply the same path-resolution strategy to `scrape`
+- [ ] Reject tracker URL inputs containing query or fragment with a friendly
+      CLI error
 - [ ] `linter all` exits with code `0`
 - [ ] `cargo machete` reports no unused dependencies
 - [ ] Existing tests pass
@@ -135,6 +150,15 @@ For announce requests:
 - Otherwise, keep the original path unchanged
 
 Do not append `announce` when any path segment already exists.
+
+### Task 2b: Apply base-URL detection for scrape
+
+For scrape requests:
+
+- If the input URL path is empty or `/`, append `scrape`
+- Otherwise, keep the original path unchanged
+
+Do not append `scrape` when any path segment already exists.
 
 ### Task 3: Preserve authenticated endpoint support
 
@@ -180,6 +204,20 @@ Do not change `health_check` behavior as part of this bug fix. If endpoint
 normalization is later generalized to all methods, that should be handled in a
 separate issue with dedicated tests.
 
+### Task 7: Reject query/fragment in CLI tracker URL input
+
+In the HTTP tracker client console command input parsing:
+
+- Reject tracker URLs that include query or fragment
+- Return a friendly error explaining accepted URL parts
+- Instruct users to pass tracker request params through dedicated CLI arguments
+
+### Task 8: Validation sequence
+
+- Run targeted tests first for the affected packages
+- Run full checks before committing, including `linter all` and
+  `cargo machete`
+
 ## Acceptance Criteria
 
 - [ ] Passing `https://tracker.torrust-demo.com` to the announce command sends
@@ -188,11 +226,48 @@ separate issue with dedicated tests.
       command also sends the request to `/announce`
 - [ ] Passing a URL with a non-empty path (for example `/foo`) keeps `/foo`
       unchanged and does not append `announce`
+- [ ] Passing `https://tracker.torrust-demo.com` to the scrape command sends
+      the request to `/scrape`
+- [ ] Passing `https://tracker.torrust-demo.com/scrape` to the scrape command
+      also sends the request to `/scrape`
+- [ ] Passing a URL with a non-empty path (for example `/foo`) keeps `/foo`
+      unchanged and does not append `scrape`
+- [ ] Passing a tracker URL containing query or fragment fails fast with a
+      friendly CLI error and guidance to use dedicated CLI arguments
 - [ ] Authenticated requests still generate correct URLs
 - [ ] No duplicated endpoint suffix appears in final request URLs
 - [ ] `linter all` exits with code `0`
 - [ ] `cargo machete` reports no unused dependencies
 - [ ] Existing tests pass
+
+## Clarifications (2026-05-11)
+
+- Apply the same endpoint-resolution behavior to `scrape` as `announce`.
+- Reject tracker URL input containing query or fragment.
+- Show a friendly error message indicating URL input must only include
+  scheme/host/optional port/optional path.
+- Require tracker request parameters to be passed through CLI arguments,
+  not URL query.
+- Preferred validation flow: run targeted package tests first; always run full
+  repository checks before committing.
+
+Manual smoke-check examples for query/fragment rejection:
+
+```text
+cargo run -p torrust-tracker-client --bin http_tracker_client announce \
+  'https://tracker.torrust-demo.com/announce?foo=1' \
+  000620bbc6c52d5a96d98f6c0f1dfa523a40df82
+
+Error: invalid tracker URL input: include only scheme, host, optional port, and optional path. Do not include query or fragment. Pass tracker request params using dedicated CLI arguments
+```
+
+```text
+cargo run -p torrust-tracker-client --bin http_tracker_client scrape \
+  'https://tracker.torrust-demo.com/scrape#frag' \
+  000620bbc6c52d5a96d98f6c0f1dfa523a40df82
+
+Error: invalid tracker URL input: include only scheme, host, optional port, and optional path. Do not include query or fragment. Pass tracker request params using dedicated CLI arguments
+```
 
 ## Key Files
 
