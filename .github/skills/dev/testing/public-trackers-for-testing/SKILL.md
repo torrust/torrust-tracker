@@ -43,6 +43,7 @@ When testing against public services, use this order:
 Repository: <https://github.com/torrust/torrust-tracker-demo>
 
 - HTTP: `https://http1.torrust-tracker-demo.com:443/announce`
+- HTTP: `https://http1.torrust-tracker-demo.com:443`
 - UDP: `udp://udp1.torrust-tracker-demo.com:6969/announce`
 
 ### Index+Tracker Demo (secondary)
@@ -50,6 +51,7 @@ Repository: <https://github.com/torrust/torrust-tracker-demo>
 Repository: <https://github.com/torrust/torrust-demo>
 
 - HTTP: `https://tracker.torrust-demo.com/announce`
+- HTTP: `https://tracker.torrust-demo.com`
 - UDP: `udp://tracker.torrust-demo.com:6969/announce`
 
 ## Quick Commands

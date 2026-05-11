@@ -161,12 +161,7 @@ Command:
 Captured output:
 
 ```json
-{
-  "Scrape": {
-    "transaction_id": -888840697,
-    "torrent_stats": [{ "seeders": 0, "completed": 0, "leechers": 0 }]
-  }
-}
+{"Scrape":{"transaction_id":-888840697,"torrent_stats":[{"seeders":0,"completed":0,"leechers":0}]}}
 ```
 
 ### Pretty output
@@ -211,15 +206,7 @@ Command:
 Captured output:
 
 ```json
-{
-  "AnnounceIpv4": {
-    "transaction_id": -888840697,
-    "announce_interval": 120,
-    "leechers": 0,
-    "seeders": 1,
-    "peers": []
-  }
-}
+{"AnnounceIpv4":{"transaction_id":-888840697,"announce_interval":120,"leechers":0,"seeders":1,"peers":[]}}
 ```
 
 Command:
