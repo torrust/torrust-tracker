@@ -192,6 +192,23 @@ mod no_configuration_provided {
     }
 }
 
+/// Tests for the `monitor udp` subcommand.
+///
+/// # Timeout-only test environment
+///
+/// The helper [`spawn_udp_sink`] binds a UDP socket that silently discards every incoming
+/// packet and never sends any response. This means every probe issued by the monitor will
+/// time out. The tests in this module therefore exercise:
+///
+/// - JSON shape of probe events on stderr (`"status":"timeout"`)
+/// - JSON shape of the final summary on stdout (null latency fields, `timeout_percent` > 0)
+/// - Exit code 0 for a completed-but-all-timeout run
+///
+/// They do **not** exercise the success path (a probe receiving a valid `AnnounceResponse`,
+/// non-null `elapsed_ms`, populated min/max/average latency stats). A success-path
+/// integration test requires a proper mock UDP tracker that speaks the `BitTorrent` UDP
+/// protocol. See refactor plan item 14 in
+/// `docs/refactor-plans/open/1178-monitor-udp-post-implementation-improvements.md`.
 mod monitor_udp {
     use std::net::{SocketAddr, UdpSocket};
     use std::sync::mpsc;

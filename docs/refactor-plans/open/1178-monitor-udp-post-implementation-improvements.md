@@ -62,7 +62,7 @@ struct, but it has no dedicated test. It is only validated by a manual run again
 
 ---
 
-### 5. [ ] Document that the integration test exercises only the timeout path [HIGH impact / LOW effort]
+### 5. [x] Document that the integration test exercises only the timeout path [HIGH impact / LOW effort]
 
 **Problem**: `spawn_udp_sink()` silently discards UDP packets without ever sending a valid
 `ConnectResponse`. Every probe in the integration test therefore times out. The test validates
@@ -238,7 +238,7 @@ This is the highest-confidence validation of the happy path and closes the gap l
 | 2     | [x]    | Add `--info-hash` to Options table                     | High   | Trivial |
 | 3     | [x]    | Tick completed Goals and Checkpoints                   | High   | Trivial |
 | 4     | [x]    | Unit test: all-null latency on all-timeouts            | High   | Low     |
-| 5     | [ ]    | Document integration test exercises timeout path only  | High   | Low     |
+| 5     | [x]    | Document integration test exercises timeout path only  | High   | Low     |
 | 6     | [ ]    | Correct Task 6 file reference                          | Medium | Trivial |
 | 7     | [ ]    | Document `last_ms: null` on timeout in AC3             | Medium | Low     |
 | 8     | [ ]    | Document double duration-check intent                  | Medium | Low     |
