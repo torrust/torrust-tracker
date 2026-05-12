@@ -6,8 +6,9 @@
 # via `paths-ignore` rules in those workflows.
 #
 # "Docs-only" path policy (mirrored in the `paths-ignore` lists of
-# testing.yaml, os-compatibility.yaml, db-compatibility.yaml, and
-# db-benchmarking.yaml):
+# testing.yaml, os-compatibility.yaml, container.yaml, and
+# generate_coverage_pr.yaml; db-compatibility.yaml and db-benchmarking.yaml
+# are already scoped to code paths via `paths:` inclusion rules):
 #   - **/*.md        — all Markdown files (docs/, READMEs, AGENTS.md, SKILL.md, …)
 #   - project-words.txt — spell-check dictionary (documentation artefact)
 #
