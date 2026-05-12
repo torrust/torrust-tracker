@@ -292,6 +292,10 @@ Notes:
 - **`elapsed_ms` excludes DNS resolution time**: Probe timing starts after `resolve_socket_addr`
   succeeds, so `elapsed_ms` measures UDP connect + announce network work only. DNS lookup
   failures are reported as probe errors with `elapsed_ms: null`.
+- **Success-path integration test deferral**: A full mock-UDP-tracker success-path integration
+  test is intentionally deferred until the tracker-client is moved into its own repository.
+  Implementing that heavier harness now in the monorepo would likely be duplicated effort; it is
+  planned as follow-up work in the new tracker-client repository.
 
 ## Progress Tracking
 
@@ -314,6 +318,7 @@ Notes:
 - 2026-05-12 17:40 UTC - Agent - Updated probe timing to start after address resolution so `elapsed_ms` excludes DNS lookup time; documented behavior in Risks and Trade-offs
 - 2026-05-12 16:55 UTC - Agent - Performed 60-second manual verification against `udp://udp1.torrust-tracker-demo.com:6969/announce`, captured command/output in spec, and corrected workspace-root command invocation to include `-p torrust-tracker-client`
 - 2026-05-12 17:10 UTC - Agent - Performed 60-second manual verification against `udp://tracker.torrust-demo.com:6969/announce` (confirmed down); all 3 probes timed out, null latency fields and `timeout_percent: 100` observed as designed
+- 2026-05-12 17:45 UTC - Maintainer + Agent - Deferred success-path mock UDP integration test until planned tracker-client repository split to avoid duplicate harness work
 
 ## Open Questions
 

@@ -209,7 +209,7 @@ intent clearly and clean up `run_monitor`.
 
 ---
 
-### 14. [ ] Add a success-path integration test using a mock UDP tracker [LOW impact / HIGH effort]
+### 14. [x] Add a success-path integration test using a mock UDP tracker [DEFERRED]
 
 **Problem**: The only integration test uses a UDP sink that never responds, so the success path
 (probe receives a valid `AnnounceResponse`, `elapsed_ms` is Some, latency stats are populated)
@@ -228,23 +228,28 @@ Then add a test asserting that `elapsed_ms` is non-null, `status` is `"ok"`, and
 
 This is the highest-confidence validation of the happy path and closes the gap left by item 5.
 
+**Deferral decision (2026-05-12)**: Deferred on purpose. The tracker client is planned to move to
+its own repository shortly; implementing this heavier integration harness in the current monorepo
+would likely be duplicated effort. The success-path integration/e2e test will be implemented in
+the future tracker-client repository once the move is completed.
+
 ---
 
 ## Order of Execution
 
-| Order | Status | Item                                                   | Impact | Effort  |
-| ----- | ------ | ------------------------------------------------------ | ------ | ------- |
-| 1     | [x]    | Fix stale `timeout_percent` sample value               | High   | Trivial |
-| 2     | [x]    | Add `--info-hash` to Options table                     | High   | Trivial |
-| 3     | [x]    | Tick completed Goals and Checkpoints                   | High   | Trivial |
-| 4     | [x]    | Unit test: all-null latency on all-timeouts            | High   | Low     |
-| 5     | [x]    | Document integration test exercises timeout path only  | High   | Low     |
-| 6     | [x]    | Correct Task 6 file reference                          | Medium | Trivial |
-| 7     | [x]    | Document `last_ms: null` on timeout in AC3             | Medium | Low     |
-| 8     | [x]    | Document double duration-check intent                  | Medium | Low     |
-| 9     | [x]    | Document `u64::MAX` fallback                           | Medium | Low     |
-| 10    | [x]    | Document `timeout_percent` denominator includes errors | Medium | Low     |
-| 11    | [x]    | Document / fix `elapsed_ms` includes DNS time          | Medium | Medium  |
-| 12    | [x]    | Extract `run_probe_loop` from `run_monitor`            | Low    | Medium  |
-| 13    | [x]    | `From<&Stats> for MonitorStats`                        | Low    | Low     |
-| 14    | [ ]    | Success-path integration test with mock UDP tracker    | Low    | High    |
+| Order | Status | Item                                                                                        | Impact | Effort  |
+| ----- | ------ | ------------------------------------------------------------------------------------------- | ------ | ------- |
+| 1     | [x]    | Fix stale `timeout_percent` sample value                                                    | High   | Trivial |
+| 2     | [x]    | Add `--info-hash` to Options table                                                          | High   | Trivial |
+| 3     | [x]    | Tick completed Goals and Checkpoints                                                        | High   | Trivial |
+| 4     | [x]    | Unit test: all-null latency on all-timeouts                                                 | High   | Low     |
+| 5     | [x]    | Document integration test exercises timeout path only                                       | High   | Low     |
+| 6     | [x]    | Correct Task 6 file reference                                                               | Medium | Trivial |
+| 7     | [x]    | Document `last_ms: null` on timeout in AC3                                                  | Medium | Low     |
+| 8     | [x]    | Document double duration-check intent                                                       | Medium | Low     |
+| 9     | [x]    | Document `u64::MAX` fallback                                                                | Medium | Low     |
+| 10    | [x]    | Document `timeout_percent` denominator includes errors                                      | Medium | Low     |
+| 11    | [x]    | Document / fix `elapsed_ms` includes DNS time                                               | Medium | Medium  |
+| 12    | [x]    | Extract `run_probe_loop` from `run_monitor`                                                 | Low    | Medium  |
+| 13    | [x]    | `From<&Stats> for MonitorStats`                                                             | Low    | Low     |
+| 14    | [x]    | Success-path integration test with mock UDP tracker (deferred to tracker-client repo split) | Low    | High    |
