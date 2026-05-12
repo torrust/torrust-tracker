@@ -109,7 +109,38 @@ and directs the user to the specific problem.
 Do not panic on configuration errors. Print a structured JSON error to stderr and exit with a
 non-zero status code.
 
-Example stderr output:
+**Error JSON format and exit codes follow the Tracker CLI I/O Contract:**
+
+- References:
+  - [ADR: Define Tracker CLI I/O Contract and Error Handling](../../console/tracker-client/docs/adrs/20260512080000_define_tracker_cli_io_contract_and_error_handling.md)
+  - [Tracker CLI I/O Contract](../../console/tracker-client/docs/contracts/tracker-cli-io-contract.md)
+
+**Error payload structure:**
+
+```json
+{
+  "error": {
+    "kind": "invalid_configuration",
+    "source": "<delivery_source>",
+    "message": "<json_parse_detail>"
+  }
+}
+```
+
+- `kind`: Always `"invalid_configuration"` for config errors
+- `source`: How the configuration was delivered (e.g., `"TORRUST_CHECKER_CONFIG"`, `"/etc/tracker/config.json"`)
+- `message`: The detailed parse error from serde_json (e.g., `"JSON parse error: trailing comma at line 7 column 5"`)
+
+**Key architectural principle:** Decouple the **delivery mechanism** (how config arrived) from
+**error presentation** (what configuration was invalid). This allows future refactoring of how
+config is injected (new sources like stdin) without affecting error messaging.
+
+**Exit code policy:**
+
+- `2` for configuration errors (invalid JSON, missing config, invalid config values)
+- `1` reserved for non-config general checker failures
+
+**Example stderr output:**
 
 ```text
 {"error":{"kind":"invalid_configuration","source":"TORRUST_CHECKER_CONFIG","message":"JSON parse error: trailing comma at line 7 column 5"}}
@@ -117,17 +148,6 @@ Example stderr output:
 
 The key requirement is that the specific serde/JSON error message is immediately visible without
 needing `RUST_BACKTRACE=1`.
-
-Standardize checker error payloads with this shape:
-
-```json
-{ "error": { "kind": "...", "source": "...", "message": "..." } }
-```
-
-Exit code policy for this issue:
-
-- `2` for configuration errors (invalid JSON, invalid config source values)
-- `1` reserved for non-config general checker failures
 
 ## Key Files
 
@@ -152,43 +172,46 @@ Exit code policy for this issue:
 
 ## Implementation Plan
 
-### Task 1: Replace generic context string in `setup_config`
+### Task 1: Refactor error handling in `setup_config` and `load_config_from_file`
 
-In `app.rs`, replace `.context("invalid config format")` with a context string that includes
-the origin of the configuration. For example:
+In `console/tracker-client/src/console/clients/checker/app.rs`:
 
-```rust
-parse_from_json(&config_content)
-    .context("invalid TORRUST_CHECKER_CONFIG value — check your JSON")
-```
+- Remove generic `.context("invalid config format")` wrapping
+- Pass the delivery source (e.g., environment variable name or file path) to error handlers
+- Allow the underlying JSON parse error to propagate directly or wrap it with source-aware context
 
-### Task 2: Replace generic context string in `load_config_from_file`
+### Task 2: Replace `expect` panic with clean error exit
 
-Similarly, include the file path in the context:
+In `console/tracker-client/src/bin/tracker_checker.rs`:
 
-```rust
-parse_from_json(&file_content)
-    .context(format!("invalid JSON in config file '{}'", path.display()))
-```
+- Replace `app::run().await.expect("Some checks fail")` with structured error handling
+- On `Err`, serialize the error to JSON with the contract-compliant envelope
+- Write JSON error to stderr
+- Exit with code `2` for configuration errors, `1` for other errors
 
-### Task 3: Consider replacing `expect` with proper error reporting
+### Task 3: Add configuration source tracking to error context
 
-In `tracker_checker.rs`, replace:
+Ensure that configuration source information (delivery mechanism) is captured and included in
+error payloads without altering how the final configuration is presented.
 
-```rust
-app::run().await.expect("Some checks fail");
-```
+### Task 4: Add unit tests
 
-with a non-panicking error exit that prints structured JSON to stderr and exits with
-`std::process::exit(2)` for configuration errors.
+In `console/tracker-client/src/console/clients/checker/`:
 
-For example, the output can be:
+- Test `parse_from_json` with invalid JSON (trailing comma, syntax errors, type mismatches)
+- Verify that parse errors propagate without generic wrapping
+- Test error serialization to the contract envelope format
 
-```text
-{"error":{"kind":"invalid_configuration","source":"TORRUST_CHECKER_CONFIG","message":"JSON parse error: trailing comma at line 7 column 5"}}
-```
+### Task 5: Add integration tests
 
-This step is required by the maintainer decision.
+In `console/tracker-client/tests/` or appropriate test module:
+
+- End-to-end test: TORRUST_CHECKER_CONFIG with invalid JSON → stderr contains JSON error,
+  exit code is 2
+- End-to-end test: Config file with invalid JSON → stderr contains JSON error with file path,
+  exit code is 2
+- End-to-end test: Valid config → checker runs normally, exit code is 0 (even if tracker checks fail)
+- Verify JSON error envelope conforms to the Tracker CLI I/O Contract schema
 
 ## Acceptance Criteria
 
@@ -196,12 +219,14 @@ This step is required by the maintainer decision.
       parse error message (e.g. `trailing comma at line N column M`) without `RUST_BACKTRACE=1`
 - [ ] AC2: Running the checker with a trailing comma in a config file shows both the file path
       and the JSON parse error message
-- [ ] AC3: Configuration errors are reported as JSON to stderr and process exits non-zero
+- [ ] AC3: Configuration errors are reported as JSON to stderr following the Tracker CLI I/O Contract
 - [ ] AC4: Configuration errors use exit code `2`
 - [ ] AC5: Running the checker with a valid configuration produces the same output as before
-- [ ] AC6: `linter all` exits with code `0`
-- [ ] AC7: `cargo machete` reports no unused dependencies
-- [ ] AC8: Existing tests pass
+- [ ] AC6: Unit tests pass for parse error handling and error serialization
+- [ ] AC7: Integration tests pass for end-to-end error scenarios (env var and file sources)
+- [ ] AC8: `linter all` exits with code `0`
+- [ ] AC9: `cargo machete` reports no unused dependencies
+- [ ] AC10: Existing tests pass
 
 ### Acceptance Verification
 
@@ -215,6 +240,8 @@ This step is required by the maintainer decision.
 | AC6   | TODO                   |          |
 | AC7   | TODO                   |          |
 | AC8   | TODO                   |          |
+| AC9   | TODO                   |          |
+| AC10  | TODO                   |          |
 
 ## Progress Tracking
 
