@@ -7,7 +7,7 @@ github-issue: 1178
 spec-path: docs/issues/open/1178-tracker-checker-udp-add-monitor-uptime-command.md
 branch: 1178-tracker-checker-udp-add-monitor-uptime-command
 related-pr: null
-last-updated-utc: 2026-05-12 08:00
+last-updated-utc: 2026-05-12 10:00
 semantic-links:
   skill-links:
     - create-issue
@@ -81,6 +81,10 @@ cargo run --bin torrust-tracker-client -- \
     --timeout  10
 ```
 
+Note: this feature is intentionally added as a `tracker_checker` subcommand for now. A future
+CLI consolidation effort may merge binaries into a single entry point (see
+<https://github.com/torrust/torrust-tracker/discussions/660>).
+
 ### Options
 
 | Option       | Default | Description                                   |
@@ -121,7 +125,8 @@ Create a new module, e.g.
 
 - A `run_monitor` async function that loops forever (until Ctrl+C signal)
 - Each iteration sends a UDP `announce` request using the existing `UdpTrackerClient`
-- Records `start` / `end` timestamps and computes elapsed milliseconds
+- Records `start` / `end` timestamps and computes elapsed milliseconds as integer `u64`
+  (truncating sub-millisecond precision)
 - Treats no response within `--timeout` as a timeout event
 
 ### Task 3: Track statistics
@@ -233,6 +238,8 @@ when the `monitor` subcommand is selected.
 - 2026-05-11 20:00 UTC - Agent - Spec created from GitHub issue #1178 content
 - 2026-05-12 00:00 UTC - Agent - Incorporated maintainer decisions: monitor in tracker_checker, seconds unit, UDP-only scope, duration-controlled run, stderr live output plus final JSON on stdout
 - 2026-05-12 08:00 UTC - Agent - Incorporated answered follow-ups: default duration `86400`, align final JSON with checker shape, keep exit code `0` for timeout-heavy but successful runs
+- 2026-05-12 09:30 UTC - Maintainer + Agent - Confirmed command remains a `tracker_checker` subcommand, documented future binary consolidation context, and confirmed `null` latency fields when all probes timeout
+- 2026-05-12 10:00 UTC - Maintainer + Agent - Finalized elapsed-time precision: `elapsed_ms` uses integer milliseconds (`u64`) with truncation
 
 ## Open Questions
 
