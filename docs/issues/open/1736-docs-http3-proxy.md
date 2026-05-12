@@ -7,7 +7,7 @@ github-issue: 1736
 spec-path: docs/issues/open/1736-docs-http3-proxy.md
 branch: 1736-docs-http3-proxy-follow-up
 related-pr: null
-last-updated-utc: 2026-05-12 15:47
+last-updated-utc: 2026-05-12 16:05
 semantic-links:
   skill-links:
     - create-issue
@@ -49,16 +49,16 @@ Additionally, the Rust HTTP ecosystem (Hyper, Axum, Tokio) is still maturing HTT
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| ID  | Status | Task                                                     | Notes / Expected Output                                                |
-| --- | ------ | -------------------------------------------------------- | ---------------------------------------------------------------------- |
-| T1  | TODO   | Review current [docs/containers.md](../../containers.md) | Identify sections for HTTP/3 documentation additions.                  |
-| T2  | TODO   | Draft HTTP/3 proxy section in containers docs            | Explain protocol boundaries; describe reverse proxy pattern.           |
-| T3  | TODO   | Add Caddy example configuration                          | Include UDP 443 (QUIC) snippet; link to Caddy HTTP/3 documentation.    |
-| T4  | TODO   | Add operational guidance                                 | CPU/load monitoring notes; reversible deployment notes.                |
-| T5  | DONE   | Create follow-up issue spec for native HTTP/3 readiness  | Spec at `docs/issues/open/1765-native-http3-readiness.md`.             |
-| T6  | DONE   | Cross-link follow-up issue in this spec and vice versa   | Follow-up is issue #1765; linked in References below.                  |
-| T7  | TODO   | Add manual HTTP/3 verification steps to the docs         | Document `curl --http3-only` commands for both proxy and native cases. |
-| T8  | TODO   | Run linter and review documentation                      | Ensure markdown, spelling, and formatting pass all checks.             |
+| ID  | Status | Task                                                     | Notes / Expected Output                                             |
+| --- | ------ | -------------------------------------------------------- | ------------------------------------------------------------------- |
+| T1  | DONE   | Review current [docs/containers.md](../../containers.md) | Identified placement after socket mapping guidance.                 |
+| T2  | DONE   | Draft HTTP/3 proxy section in containers docs            | Added protocol boundary and reverse proxy deployment pattern.       |
+| T3  | DONE   | Add Caddy example configuration                          | Included Caddy config with `h3` and UDP/TCP 443 publishing example. |
+| T4  | DONE   | Add operational guidance                                 | Added rollout, monitoring, and rollback guidance for edge HTTP/3.   |
+| T5  | DONE   | Create follow-up issue spec for native HTTP/3 readiness  | Spec at `docs/issues/open/1765-native-http3-readiness.md`.          |
+| T6  | DONE   | Cross-link follow-up issue in this spec and vice versa   | Follow-up is issue #1765; linked in References below.               |
+| T7  | DONE   | Add manual HTTP/3 verification steps to the docs         | Added client-facing verification commands in `docs/containers.md`.  |
+| T8  | DONE   | Run linter and review documentation                      | `linter all` passed after docs updates.                             |
 
 ## Progress Tracking
 
@@ -68,7 +68,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
 - [x] Follow-up issue created and linked
-- [ ] Implementation completed (docs updated)
+- [x] Implementation completed (docs updated)
 - [ ] Reviewer validated acceptance criteria
 - [ ] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
@@ -78,28 +78,30 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-05-12 00:00 UTC - Agent - Spec drafted in `docs/issues/drafts/1736-docs-http3-proxy.md`
 - 2026-05-12 15:35 UTC - Agent - Spec reviewed and approved; GitHub issue #1736 confirmed; follow-up issue #1765 created; spec moved to `docs/issues/open/1736-docs-http3-proxy.md`
 - 2026-05-12 15:47 UTC - Agent - Verified HTTP/3 works on the demo deployment (Caddy proxy); added manual verification section with tested `curl --http3-only` commands
+- 2026-05-12 16:02 UTC - Agent - Updated `docs/containers.md` with HTTP/3 reverse proxy documentation, Caddy example, operational guidance, and manual verification commands
+- 2026-05-12 16:05 UTC - Agent - Ran `linter all`; all linters passed
 
 ## Acceptance Criteria
 
-- [ ] AC1: [docs/containers.md](../../containers.md) contains a new section explaining HTTP/3 support via reverse proxy.
-- [ ] AC2: Docs clearly explain the protocol boundary between edge (HTTP/3 optional) and backend (HTTP/1.1/HTTP/2).
-- [ ] AC3: Example Caddy configuration with UDP 443 (QUIC) is included.
-- [ ] AC4: Operational guidance covers monitoring, reversibility, and optional deployment of HTTP/3.
+- [x] AC1: [docs/containers.md](../../containers.md) contains a new section explaining HTTP/3 support via reverse proxy.
+- [x] AC2: Docs clearly explain the protocol boundary between edge (HTTP/3 optional) and backend (HTTP/1.1/HTTP/2).
+- [x] AC3: Example Caddy configuration with UDP 443 (QUIC) is included.
+- [x] AC4: Operational guidance covers monitoring, reversibility, and optional deployment of HTTP/3.
 - [ ] AC5: A follow-up issue (and spec) exists to test native HTTP/3 support once upstream dependencies support it.
 - [ ] AC6: The follow-up issue includes a minimal test/benchmark checklist.
-- [ ] AC7: `linter all` exits with code `0`.
+- [x] AC7: `linter all` exits with code `0`.
 
 ### Acceptance Verification
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence                                        |
 | ----- | ---------------------- | ----------------------------------------------- |
-| AC1   | TODO                   | docs/containers.md                              |
-| AC2   | TODO                   | docs/containers.md                              |
-| AC3   | TODO                   | docs/containers.md                              |
-| AC4   | TODO                   | docs/containers.md                              |
+| AC1   | DONE                   | docs/containers.md                              |
+| AC2   | DONE                   | docs/containers.md                              |
+| AC3   | DONE                   | docs/containers.md                              |
+| AC4   | DONE                   | docs/containers.md                              |
 | AC5   | DONE                   | docs/issues/open/1765-native-http3-readiness.md |
 | AC6   | DONE                   | docs/issues/open/1765-native-http3-readiness.md |
-| AC7   | TODO                   | linter output                                   |
+| AC7   | DONE                   | `linter all` (2026-05-12 16:05 UTC)             |
 
 ## Manual HTTP/3 Verification
 
