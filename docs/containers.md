@@ -186,6 +186,89 @@ The default ports can be mapped with the following:
 
 > NOTE: Inside the container it is necessary to expose a socket with the wildcard address `0.0.0.0` so that it may be accessible from the host. Verify that the configuration that the sockets are wildcard.
 
+### HTTP/3 at the edge with a reverse proxy
+
+The tracker does not need native HTTP/3 support to offer HTTP/3 to clients. You can terminate
+HTTP/3 at an edge reverse proxy and forward traffic to the tracker over HTTP/1.1 or HTTP/2.
+
+Protocol boundary:
+
+- Client to proxy: HTTP/1.1, HTTP/2, or HTTP/3 (optional).
+- Proxy to tracker backend: HTTP/1.1 or HTTP/2.
+
+This keeps deployment flexible while native HTTP/3 support in the Rust HTTP ecosystem continues
+to mature.
+
+#### Caddy example
+
+Expose both TCP and UDP on port `443` for QUIC/HTTP/3, and forward tracker endpoints to the
+existing tracker HTTP ports.
+
+```text
+{
+    servers :443 {
+        protocols h1 h2 h3
+    }
+}
+
+tracker.example.com {
+    reverse_proxy tracker:7070 {
+        # Forward the original client IP when tracker runs behind a proxy.
+        header_up X-Forwarded-For {remote_host}
+    }
+}
+
+api.example.com {
+    reverse_proxy tracker:1212
+}
+```
+
+> **Tracker configuration required:** set `core.net.on_reverse_proxy = true` in the tracker
+> configuration so it reads the peer IP from the `X-Forwarded-For` header rather than the proxy's
+> TCP connection address. Without this setting, the tracker ignores the forwarded header and
+> records the proxy's IP as every peer's address.
+
+If Caddy runs in a container, publish both protocols on `443`:
+
+```sh
+--publish 0.0.0.0:443:443/tcp \
+--publish 0.0.0.0:443:443/udp
+```
+
+Reference: [Caddy HTTP/3 documentation](https://caddyserver.com/docs/protocol/http3)
+
+Latest reference from Torrust Tracker Demo:
+[torrust-tracker-demo Caddy config](https://raw.githubusercontent.com/torrust/torrust-tracker-demo/refs/heads/main/server/opt/torrust/storage/caddy/etc/Caddyfile)
+
+#### Operational guidance
+
+- HTTP/3 at the edge is optional. Keep the tracker backend unchanged and enable/disable HTTP/3 in
+  the proxy configuration when needed.
+- Roll out gradually. Start with a single environment and compare behaviour before broad rollout.
+- Monitor CPU and memory on the proxy, plus request error rates, as QUIC load can shift resource
+  usage from backend services to the edge.
+- Keep an easy rollback path: remove `h3` support in the proxy and keep serving HTTP/1.1 and
+  HTTP/2 without tracker code changes.
+
+#### Manual verification
+
+Use these commands to verify HTTP/3 against the Torrust demo tracker. Replace
+`http1.torrust-tracker-demo.com` with your own hostname to verify your own deployment:
+
+```bash
+# 1) Confirm alt-svc advertisement for h3
+curl -sI https://http1.torrust-tracker-demo.com/announce | grep -i alt-svc
+
+# 2) Force HTTP/3 only (requires curl built with HTTP/3 support)
+/snap/bin/curl --http3-only -sI https://http1.torrust-tracker-demo.com/announce
+
+# 3) Optional: inspect QUIC and protocol negotiation
+/snap/bin/curl --http3-only -v https://http1.torrust-tracker-demo.com/announce 2>&1 \
+    | grep -E 'QUIC|HTTP/3|h3|Connected|protocol'
+```
+
+Expected for step 2: the response status line starts with `HTTP/3 200`.
+
 ### Host-mapped Volumes
 
 By default the container will use install volumes for `/var/lib/torrust/tracker`, `/var/log/torrust/tracker`, and `/etc/torrust/tracker`, however for better administration it good to make these volumes host-mapped.

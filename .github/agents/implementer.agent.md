@@ -108,24 +108,24 @@ If the auditor raises a blocking issue, simplify the implementation before conti
 
 ### Step 5 — Request Independent Verification
 
-When all steps are complete and tests are passing, invoke the **Reviewer** (`@reviewer`) to
-verify the work before any commit. Provide the following context upfront:
+When all steps are complete and tests are passing, invoke the **Task Reviewer**
+(`@task-reviewer`) to verify the work before any commit. Provide the following context upfront:
 
 1. Issue spec path.
 2. List of acceptance criteria to verify.
 3. Summary of what changed: files touched, scope, and which criterion each change addresses
    (e.g., "Criterion 3 is satisfied by test `foo_test` in `src/bar.rs`").
-4. Request the Reviewer to confirm each criterion against the current code and tests.
-5. Request the Reviewer to mark accepted items as done in the issue spec.
-6. Wait for the Reviewer report.
+4. Request the Task Reviewer to confirm each criterion against the current code and tests.
+5. Request the Task Reviewer to mark accepted items as done in the issue spec.
+6. Wait for the Task Reviewer report.
 
-If the Reviewer reports gaps, pending tasks, failing behaviour, or repository-convention problems,
-address those issues first and request review again.
+If the Task Reviewer reports gaps, pending tasks, failing behaviour, or
+repository-convention problems, address those issues first and request review again.
 
 ### Step 6 — Commit When Ready
 
-Only after Reviewer approval, invoke the **Committer** (`@committer`) with a description of what
-was implemented and verified. Do not commit directly — always delegate to the Committer.
+Only after Task Reviewer approval, invoke the **Committer** (`@committer`) with a description of
+what was implemented and verified. Do not commit directly — always delegate to the Committer.
 
 ## Constraints
 
@@ -137,7 +137,7 @@ was implemented and verified. Do not commit directly — always delegate to the 
 - Do not commit code that fails `./contrib/dev-tools/git/hooks/pre-commit.sh`.
 - Do not skip the audit step, even for small changes.
 - Do not self-verify completion of acceptance criteria — verification must be done by the
-  Reviewer.
+  Task Reviewer.
 - Do not mark acceptance criteria as done in the issue spec yourself.
 - Do not leave meaningful behaviour untested without explicitly documenting the reason in code,
   the issue spec, or PR notes (depending on scope).
