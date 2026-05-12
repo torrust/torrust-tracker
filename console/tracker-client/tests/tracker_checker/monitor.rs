@@ -61,12 +61,12 @@ fn it_should_emit_monitor_probe_events_to_stderr_and_summary_to_stdout() {
         .arg("--timeout")
         .arg("1")
         .arg("--duration")
-        .arg("1")
+        .arg("2")
         .output()
         .expect("Failed to run tracker_checker monitor udp");
 
     let _ = stop_tx.send(());
-    drop(join_handle.join());
+    assert!(join_handle.join().is_ok(), "UDP sink thread should not panic");
 
     assert_eq!(
         output.status.code(),

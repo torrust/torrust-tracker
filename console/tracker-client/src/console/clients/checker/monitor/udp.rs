@@ -383,5 +383,6 @@ mod tests {
         assert_eq!(stats.max_ms, None);
         assert_eq!(stats.average_ms(), None);
         assert_eq!(stats.last_ms, None);
+        assert_eq!(stats.timeout_percent(), 100);
     }
 }

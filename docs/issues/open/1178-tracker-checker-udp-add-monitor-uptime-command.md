@@ -315,9 +315,9 @@ Notes:
 - 2026-05-12 08:00 UTC - Agent - Incorporated answered follow-ups: default duration `86400`, align final JSON with checker shape, keep exit code `0` for timeout-heavy but successful runs
 - 2026-05-12 09:30 UTC - Maintainer + Agent - Confirmed command remains a `tracker_checker` subcommand, documented future binary consolidation context, and confirmed `null` latency fields when all probes timeout
 - 2026-05-12 10:00 UTC - Maintainer + Agent - Finalized elapsed-time precision: `elapsed_ms` uses integer milliseconds (`u64`) with truncation
-- 2026-05-12 17:40 UTC - Agent - Updated probe timing to start after address resolution so `elapsed_ms` excludes DNS lookup time; documented behavior in Risks and Trade-offs
 - 2026-05-12 16:55 UTC - Agent - Performed 60-second manual verification against `udp://udp1.torrust-tracker-demo.com:6969/announce`, captured command/output in spec, and corrected workspace-root command invocation to include `-p torrust-tracker-client`
 - 2026-05-12 17:10 UTC - Agent - Performed 60-second manual verification against `udp://tracker.torrust-demo.com:6969/announce` (confirmed down); all 3 probes timed out, null latency fields and `timeout_percent: 100` observed as designed
+- 2026-05-12 17:40 UTC - Agent - Updated probe timing to start after address resolution so `elapsed_ms` excludes DNS lookup time; documented behavior in Risks and Trade-offs
 - 2026-05-12 17:45 UTC - Maintainer + Agent - Deferred success-path mock UDP integration test until planned tracker-client repository split to avoid duplicate harness work
 
 ## Open Questions
