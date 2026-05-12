@@ -1,9 +1,14 @@
 name: Generate Coverage Report (PR)
 
+# Path policy: skip this workflow when every changed file is documentation.
+# See .github/workflows/docs-lint.yaml for the lightweight docs-only workflow.
 on:
   pull_request:
     branches:
       - develop
+    paths-ignore:
+      - "**/*.md"
+      - "project-words.txt"
 
 env:
   CARGO_TERM_COLOR: always
