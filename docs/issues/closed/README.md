@@ -14,10 +14,7 @@ Closed spec files are moved here (rather than deleted immediately) because:
 - It provides a grace period before permanent removal, reducing the risk of losing context
   that is still actively referenced.
 
-## Lifecycle
+## References
 
-1. **Issue closed / PR merged** → spec file moves from `docs/issues/open/` to `docs/issues/closed/`.
-2. **Buffer period** → file lives here while adjacent issues are still in progress.
-3. **Cleanup** → once the spec is no longer referenced by active work, it is deleted.
-
-Use the `cleanup-completed-issues` skill to manage this lifecycle.
+- Issues index: [../README.md](../README.md)
+- Cleanup workflow source of truth: [`.github/skills/dev/planning/cleanup-completed-issues/SKILL.md`](../../../.github/skills/dev/planning/cleanup-completed-issues/SKILL.md)

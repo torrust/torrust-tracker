@@ -213,6 +213,10 @@ These policies are repository-wide and apply to all agents and workflows.
    behaviour is left untested, document why and prefer improving design/testability when practical.
 5. **Rust documentation quality**: document public APIs and important internal module/type
    invariants. Prefer high-signal Rust docs over boilerplate comments.
+6. **Documentation single source of truth**: avoid duplicating procedural guidance across docs.
+   Keep folder READMEs lightweight (purpose and navigation), and treat `.github/skills/` plus
+   canonical docs (for example `docs/index.md`) as the authoritative workflow sources.
+   When duplications are found, remove or replace them with links to the canonical source.
 
 Implementation workflow references:
 
