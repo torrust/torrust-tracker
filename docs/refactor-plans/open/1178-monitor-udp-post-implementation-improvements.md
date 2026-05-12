@@ -103,7 +103,7 @@ the most recent probe times out.
 
 ---
 
-### 8. [ ] Document the double duration-check intent in `run_monitor` [MEDIUM impact / LOW effort]
+### 8. [x] Document the double duration-check intent in `run_monitor` [MEDIUM impact / LOW effort]
 
 **Problem**: `run_monitor` contains two `if started_at.elapsed() >= config.duration { break; }`
 guards — one before the probe and one before the sleep. This is intentional (avoids sleeping
@@ -241,7 +241,7 @@ This is the highest-confidence validation of the happy path and closes the gap l
 | 5     | [x]    | Document integration test exercises timeout path only  | High   | Low     |
 | 6     | [x]    | Correct Task 6 file reference                          | Medium | Trivial |
 | 7     | [x]    | Document `last_ms: null` on timeout in AC3             | Medium | Low     |
-| 8     | [ ]    | Document double duration-check intent                  | Medium | Low     |
+| 8     | [x]    | Document double duration-check intent                  | Medium | Low     |
 | 9     | [ ]    | Document `u64::MAX` fallback                           | Medium | Low     |
 | 10    | [ ]    | Document `timeout_percent` denominator includes errors | Medium | Low     |
 | 11    | [ ]    | Document / fix `elapsed_ms` includes DNS time          | Medium | Medium  |

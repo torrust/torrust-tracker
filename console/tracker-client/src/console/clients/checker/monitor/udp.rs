@@ -119,6 +119,7 @@ pub async fn run_monitor(config: MonitorUdpConfig) -> Result<(), String> {
     let mut sequence: u64 = 0;
 
     loop {
+        // Exit before starting a new probe if the time budget is already exhausted.
         if started_at.elapsed() >= config.duration {
             break;
         }
@@ -172,6 +173,8 @@ pub async fn run_monitor(config: MonitorUdpConfig) -> Result<(), String> {
             }
         }
 
+        // Exit before sleeping if the duration elapsed during the probe itself,
+        // so we never sleep after the last probe.
         if started_at.elapsed() >= config.duration {
             break;
         }
