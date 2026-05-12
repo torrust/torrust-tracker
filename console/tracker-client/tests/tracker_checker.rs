@@ -1,0 +1,193 @@
+//! Integration tests for the `tracker_checker` binary.
+//!
+//! These tests verify the CLI I/O contract:
+//! - stderr receives a JSON error envelope on configuration errors
+//! - exit code 2 is returned for configuration errors
+//! - exit code 0 is returned when the binary runs successfully (even if tracker checks fail)
+//!
+//! Reference: [Tracker CLI I/O Contract](../docs/contracts/tracker-cli-io-contract.md)
+
+use std::process::Command;
+
+fn tracker_checker_bin() -> Command {
+    Command::new(resolve_tracker_checker_binary())
+}
+
+fn resolve_tracker_checker_binary() -> std::path::PathBuf {
+    if let Some(path) = std::env::var_os("NEXTEST_BIN_EXE_tracker_checker") {
+        return path.into();
+    }
+
+    if let Some(path) = std::env::var_os("CARGO_BIN_EXE_tracker_checker") {
+        return path.into();
+    }
+
+    let compile_time_path = std::path::PathBuf::from(env!("CARGO_BIN_EXE_tracker_checker"));
+    if compile_time_path.exists() {
+        return compile_time_path;
+    }
+
+    let current_exe = std::env::current_exe().expect("Failed to determine current test executable path");
+    let profile_dir = current_exe
+        .parent()
+        .and_then(std::path::Path::parent)
+        .expect("Failed to determine Cargo profile directory from test executable path");
+
+    let mut candidate = profile_dir.join("tracker_checker");
+    if cfg!(windows) {
+        candidate.set_extension("exe");
+    }
+
+    if candidate.exists() {
+        return candidate;
+    }
+
+    panic!(
+        "Unable to locate tracker_checker binary. Tried NEXTEST_BIN_EXE_tracker_checker, CARGO_BIN_EXE_tracker_checker, compile-time CARGO_BIN_EXE_tracker_checker, and sibling binary near test executable"
+    );
+}
+
+mod invalid_configuration_from_env_var {
+    use super::tracker_checker_bin;
+
+    #[test]
+    fn it_should_exit_with_code_2_on_invalid_json() {
+        let output = tracker_checker_bin()
+            .env("TORRUST_CHECKER_CONFIG", r#"{"invalid json":"#)
+            .output()
+            .expect("Failed to run tracker_checker");
+
+        assert_eq!(output.status.code(), Some(2), "Expected exit code 2 for invalid config");
+    }
+
+    #[test]
+    fn it_should_write_json_error_to_stderr_on_invalid_json() {
+        let output = tracker_checker_bin()
+            .env("TORRUST_CHECKER_CONFIG", r#"{"invalid json":"#)
+            .output()
+            .expect("Failed to run tracker_checker");
+
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        assert!(
+            stderr.contains(r#""kind":"invalid_configuration""#),
+            "Expected JSON error envelope on stderr, got: {stderr}"
+        );
+        assert!(
+            stderr.contains(r#""source":"TORRUST_CHECKER_CONFIG""#),
+            "Expected source field to identify env var, got: {stderr}"
+        );
+    }
+
+    #[test]
+    fn it_should_include_parse_detail_in_stderr_error_message_on_trailing_comma() {
+        let config = r#"{
+            "udp_trackers": [],
+            "http_trackers": [
+                "http://127.0.0.1:7070",
+            ],
+            "health_checks": []
+        }"#;
+
+        let output = tracker_checker_bin()
+            .env("TORRUST_CHECKER_CONFIG", config)
+            .output()
+            .expect("Failed to run tracker_checker");
+
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        assert_eq!(output.status.code(), Some(2), "Expected exit code 2 for invalid config");
+        assert!(
+            stderr.contains("trailing comma"),
+            "Expected 'trailing comma' detail in stderr, got: {stderr}"
+        );
+    }
+
+    #[test]
+    fn it_should_produce_no_output_on_stdout_on_config_error() {
+        let output = tracker_checker_bin()
+            .env("TORRUST_CHECKER_CONFIG", r#"{"invalid json":"#)
+            .output()
+            .expect("Failed to run tracker_checker");
+
+        // Per the I/O contract, stdout is for successful results only
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        assert!(stdout.is_empty(), "Expected no stdout on config error, got: {stdout}");
+    }
+}
+
+mod invalid_configuration_from_file {
+    use std::io::Write;
+
+    use super::tracker_checker_bin;
+
+    #[test]
+    fn it_should_exit_with_code_2_on_invalid_json_in_file() {
+        let mut tmp = tempfile::NamedTempFile::new().expect("Failed to create temp file");
+        write!(tmp, r#"{{"invalid json":"#).unwrap();
+
+        let output = tracker_checker_bin()
+            .env("TORRUST_CHECKER_CONFIG_PATH", tmp.path())
+            .output()
+            .expect("Failed to run tracker_checker");
+
+        assert_eq!(output.status.code(), Some(2), "Expected exit code 2 for invalid config file");
+    }
+
+    #[test]
+    fn it_should_include_file_path_in_stderr_source_field() {
+        let mut tmp = tempfile::NamedTempFile::new().expect("Failed to create temp file");
+        write!(tmp, r#"{{"invalid json":"#).unwrap();
+        let path = tmp.path().to_string_lossy().to_string();
+
+        let output = tracker_checker_bin()
+            .env("TORRUST_CHECKER_CONFIG_PATH", &path)
+            .output()
+            .expect("Failed to run tracker_checker");
+
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        assert!(
+            stderr.contains(&path),
+            "Expected file path in stderr source field, got: {stderr}"
+        );
+    }
+
+    #[test]
+    fn it_should_exit_with_code_2_when_config_file_does_not_exist() {
+        let output = tracker_checker_bin()
+            .env("TORRUST_CHECKER_CONFIG_PATH", "/nonexistent/path/config.json")
+            .output()
+            .expect("Failed to run tracker_checker");
+
+        assert_eq!(output.status.code(), Some(2), "Expected exit code 2 for missing config file");
+    }
+}
+
+mod no_configuration_provided {
+    use super::tracker_checker_bin;
+
+    #[test]
+    fn it_should_exit_with_code_2_when_no_config_is_provided() {
+        let output = tracker_checker_bin()
+            // Ensure neither env var is set
+            .env_remove("TORRUST_CHECKER_CONFIG")
+            .env_remove("TORRUST_CHECKER_CONFIG_PATH")
+            .output()
+            .expect("Failed to run tracker_checker");
+
+        assert_eq!(output.status.code(), Some(2), "Expected exit code 2 when no config provided");
+    }
+
+    #[test]
+    fn it_should_write_json_error_to_stderr_when_no_config_is_provided() {
+        let output = tracker_checker_bin()
+            .env_remove("TORRUST_CHECKER_CONFIG")
+            .env_remove("TORRUST_CHECKER_CONFIG_PATH")
+            .output()
+            .expect("Failed to run tracker_checker");
+
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        assert!(
+            stderr.contains(r#""kind":"invalid_configuration""#),
+            "Expected JSON error envelope on stderr, got: {stderr}"
+        );
+    }
+}
