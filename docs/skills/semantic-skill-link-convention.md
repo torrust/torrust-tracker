@@ -32,9 +32,11 @@ Rules:
 - Use lowercase letters, numbers, and hyphens.
 - Add only high-signal links: artifacts that can make a skill stale when they change.
 
-## Markdown Frontmatter (Required for Issue and EPIC Specs)
+## Markdown Frontmatter (Required for New or Updated Issue and EPIC Specs)
 
-For issue and EPIC specification documents, YAML frontmatter is the canonical metadata source.
+For new or updated issue and EPIC specification documents, YAML frontmatter is the canonical
+metadata source. Existing specs may be migrated incrementally as they are touched.
+
 Use frontmatter to keep machine-readable metadata and semantic links queryable and consistent.
 
 For other Markdown artifacts, frontmatter remains optional but recommended.

@@ -58,12 +58,13 @@ Select the template by issue type:
 Before presenting the draft for review, initialize these sections so progress can be tracked
 explicitly during implementation:
 
-- `Metadata` (including `Status` and `Last Updated`)
+- YAML frontmatter metadata (including `status`, `github-issue`, `spec-path`, and `last-updated-utc`)
 - `Implementation Plan` (or `Subissues` for epics) with explicit status values
 - `Progress Tracking` (`Workflow Checkpoints` and first `Progress Log` entry)
 - `Acceptance Criteria` and `Acceptance Verification`
 
-Use **placeholders** for the issue number until after creation (e.g., `[To be assigned]`).
+Use **placeholders** for the issue number until after creation (for example `github-issue: null`
+or `[To be assigned]` in the heading/body content).
 
 After drafting, run linters:
 

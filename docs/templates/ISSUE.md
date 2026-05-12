@@ -1,6 +1,6 @@
 ---
 doc-type: issue
-issue-type: task-or-bug-or-feature
+issue-type: <task|bug|feature|enhancement>
 status: draft
 priority: p2
 github-issue: null
