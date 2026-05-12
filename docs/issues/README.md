@@ -10,7 +10,7 @@ To keep documentation easy to maintain, this file is the index and points to the
 - [open/](open/) — active specs for open GitHub issues.
 - [closed/](closed/) — recently closed specs kept temporarily as reference.
 
-## Workflow Source Of Truth
+## Workflow Source of Truth
 
 Use these skills as the authoritative process definitions:
 

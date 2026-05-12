@@ -115,7 +115,7 @@ When all steps are complete and tests are passing, invoke the **Task Reviewer**
 2. List of acceptance criteria to verify.
 3. Summary of what changed: files touched, scope, and which criterion each change addresses
    (e.g., "Criterion 3 is satisfied by test `foo_test` in `src/bar.rs`").
-4. Request the Reviewer to confirm each criterion against the current code and tests.
+4. Request the Task Reviewer to confirm each criterion against the current code and tests.
 5. Request the Task Reviewer to mark accepted items as done in the issue spec.
 6. Wait for the Task Reviewer report.
 

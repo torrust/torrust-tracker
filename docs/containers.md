@@ -223,6 +223,11 @@ api.example.com {
 }
 ```
 
+> **Tracker configuration required:** set `core.net.on_reverse_proxy = true` in the tracker
+> configuration so it reads the peer IP from the `X-Forwarded-For` header rather than the proxy's
+> TCP connection address. Without this setting, the tracker ignores the forwarded header and
+> records the proxy's IP as every peer's address.
+
 If Caddy runs in a container, publish both protocols on `443`:
 
 ```sh
@@ -247,7 +252,8 @@ Latest reference from Torrust Tracker Demo:
 
 #### Manual verification
 
-Use these commands to verify HTTP/3 from a client perspective:
+Use these commands to verify HTTP/3 against the Torrust demo tracker. Replace
+`http1.torrust-tracker-demo.com` with your own hostname to verify your own deployment:
 
 ```bash
 # 1) Confirm alt-svc advertisement for h3
