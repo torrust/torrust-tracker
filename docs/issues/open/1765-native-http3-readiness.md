@@ -3,11 +3,11 @@ doc-type: issue
 issue-type: task
 status: blocked
 priority: p2
-github-issue: null
-spec-path: docs/issues/drafts/1737-native-http3-readiness.md
-branch: 1737-native-http3-readiness
+github-issue: 1765
+spec-path: docs/issues/open/1765-native-http3-readiness.md
+branch: 1765-native-http3-readiness
 related-pr: null
-last-updated-utc: 2026-05-12 00:00
+last-updated-utc: 2026-05-12 15:35
 semantic-links:
   skill-links:
     - create-issue
@@ -17,7 +17,7 @@ semantic-links:
 
 <!-- skill-link: create-issue -->
 
-# Issue #[To be assigned] - docs(http): test and evaluate native HTTP/3 support in tracker
+# Issue #1765 - docs(http): test and evaluate native HTTP/3 support in tracker
 
 ## Goal
 
@@ -64,9 +64,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 ### Workflow Checkpoints
 
-- [ ] Spec drafted in `docs/issues/drafts/`
-- [ ] Spec reviewed and approved by user/maintainer
-- [ ] GitHub issue created and issue number added to this spec
+- [x] Spec drafted in `docs/issues/drafts/`
+- [x] Spec reviewed and approved by user/maintainer
+- [x] GitHub issue created and issue number added to this spec
 - [ ] Implementation completed (testing and docs)
 - [ ] Reviewer validated acceptance criteria
 - [ ] Committer verified spec progress is up to date before commit
@@ -75,6 +75,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 ### Progress Log
 
 - 2026-05-12 00:00 UTC - Agent - Spec drafted in `docs/issues/drafts/1737-native-http3-readiness.md`
+- 2026-05-12 15:35 UTC - Agent - Spec reviewed and approved; GitHub issue #1765 created; spec moved to `docs/issues/open/1765-native-http3-readiness.md`
 
 ## Acceptance Criteria
 
@@ -109,7 +110,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 ## References
 
-- Parent issue: #1736 (docs: document HTTP/3 support via reverse proxy)
+- Parent issue: #1736 — https://github.com/torrust/torrust-tracker/issues/1736
+- GitHub issue: https://github.com/torrust/torrust-tracker/issues/1765
 - Upstream tracking: https://github.com/hyperium/hyper/pull/3925
 - Axum HTTP/3 support: [Axum changelog / roadmap](https://github.com/tokio-rs/axum)
 - Demo HTTP/3 issue: https://github.com/torrust/torrust-tracker-demo/issues/31

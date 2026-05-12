@@ -1,13 +1,13 @@
 ---
 doc-type: issue
 issue-type: task
-status: draft
+status: in-progress
 priority: p1
-github-issue: null
-spec-path: docs/issues/drafts/1736-docs-http3-proxy.md
+github-issue: 1736
+spec-path: docs/issues/open/1736-docs-http3-proxy.md
 branch: 1736-docs-http3-proxy-follow-up
 related-pr: null
-last-updated-utc: 2026-05-12 00:00
+last-updated-utc: 2026-05-12 15:35
 semantic-links:
   skill-links:
     - create-issue
@@ -17,7 +17,7 @@ semantic-links:
 
 <!-- skill-link: create-issue -->
 
-# Issue #[To be assigned] - docs(http): document HTTP/3 support via reverse proxy
+# Issue #1736 - docs(http): document HTTP/3 support via reverse proxy
 
 ## Goal
 
@@ -55,18 +55,18 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T2  | TODO   | Draft HTTP/3 proxy section in containers docs            | Explain protocol boundaries; describe reverse proxy pattern.        |
 | T3  | TODO   | Add Caddy example configuration                          | Include UDP 443 (QUIC) snippet; link to Caddy HTTP/3 documentation. |
 | T4  | TODO   | Add operational guidance                                 | CPU/load monitoring notes; reversible deployment notes.             |
-| T5  | TODO   | Create follow-up issue spec for native HTTP/3 readiness  | Place in `docs/issues/drafts/1737-native-http3-readiness.md`.       |
-| T6  | TODO   | Cross-link follow-up issue in this spec and vice versa   | Reference issue #[follow-up] from main spec and follow-up spec.     |
+| T5  | DONE   | Create follow-up issue spec for native HTTP/3 readiness  | Spec at `docs/issues/open/1765-native-http3-readiness.md`.          |
+| T6  | DONE   | Cross-link follow-up issue in this spec and vice versa   | Follow-up is issue #1765; linked in References below.               |
 | T7  | TODO   | Run linter and review documentation                      | Ensure markdown, spelling, and formatting pass all checks.          |
 
 ## Progress Tracking
 
 ### Workflow Checkpoints
 
-- [ ] Spec drafted in `docs/issues/drafts/`
-- [ ] Spec reviewed and approved by user/maintainer
-- [ ] GitHub issue created and issue number added to this spec
-- [ ] Follow-up issue created and linked
+- [x] Spec drafted in `docs/issues/drafts/`
+- [x] Spec reviewed and approved by user/maintainer
+- [x] GitHub issue created and issue number added to this spec
+- [x] Follow-up issue created and linked
 - [ ] Implementation completed (docs updated)
 - [ ] Reviewer validated acceptance criteria
 - [ ] Committer verified spec progress is up to date before commit
@@ -75,6 +75,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 ### Progress Log
 
 - 2026-05-12 00:00 UTC - Agent - Spec drafted in `docs/issues/drafts/1736-docs-http3-proxy.md`
+- 2026-05-12 15:35 UTC - Agent - Spec reviewed and approved; GitHub issue #1736 confirmed; follow-up issue #1765 created; spec moved to `docs/issues/open/1736-docs-http3-proxy.md`
 
 ## Acceptance Criteria
 
@@ -94,8 +95,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | AC2   | TODO                   | docs/containers.md       |
 | AC3   | TODO                   | docs/containers.md       |
 | AC4   | TODO                   | docs/containers.md       |
-| AC5   | TODO                   | docs/issues/open/1737-\* |
-| AC6   | TODO                   | docs/issues/open/1737-\* |
+| AC5   | DONE                   | docs/issues/open/1765-native-http3-readiness.md |
+| AC6   | DONE                   | docs/issues/open/1765-native-http3-readiness.md |
 | AC7   | TODO                   | linter output            |
 
 ## Risks and Trade-offs
@@ -107,7 +108,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 ## References
 
-- Related GitHub issues: https://github.com/torrust/torrust-tracker/issues/1736
+- GitHub issue: https://github.com/torrust/torrust-tracker/issues/1736
+- Follow-up issue: #1765 — https://github.com/torrust/torrust-tracker/issues/1765
 - Related GitHub issue (demo): https://github.com/torrust/torrust-tracker-demo/issues/31
 - Upstream tracker: https://github.com/hyperium/hyper/pull/3925 (Hyper HTTP/3 support)
 - Caddy HTTP/3 docs: https://caddyserver.com/docs/protocol/http3
