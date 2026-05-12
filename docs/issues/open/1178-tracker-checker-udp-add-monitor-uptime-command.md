@@ -183,35 +183,36 @@ when the `monitor` subcommand is selected.
 
 ## Acceptance Criteria
 
-- [ ] AC1: `monitor udp --url udp://127.0.0.1:6969` starts a probe loop and prints a status
+- [x] AC1: `monitor udp --url udp://127.0.0.1:6969` starts a probe loop and prints a status
       JSON line after each probe to stderr (NDJSON)
-- [ ] AC2: When monitoring ends, final aggregate statistics are printed to stdout as valid JSON
-- [ ] AC3: When a probe does not receive a response within the timeout, it is recorded as
-      `TIMEOUT` and excluded from response-time averages
-- [ ] AC4: `--duration` controls total runtime and the command exits normally when elapsed
-- [ ] AC5: `Ctrl+C` stops monitoring early and still emits final JSON stats
-- [ ] AC6: The `--interval` option controls the delay between probes
-- [ ] AC7: `--duration` defaults to `86400` seconds when omitted
-- [ ] AC8: If all probes timeout but execution is otherwise successful, exit code is `0`
-- [ ] AC9: `linter all` exits with code `0`
-- [ ] AC10: `cargo machete` reports no unused dependencies
-- [ ] AC11: Existing tests pass
+- [x] AC2: When monitoring ends, final aggregate statistics are printed to stdout as valid JSON
+- [x] AC3: When a probe does not receive a response within the timeout, it is recorded as
+      `TIMEOUT` and excluded from response-time averages. Additionally, `last_ms` is set to
+      `null` when the most recent probe times out.
+- [x] AC4: `--duration` controls total runtime and the command exits normally when elapsed
+- [x] AC5: `Ctrl+C` stops monitoring early and still emits final JSON stats
+- [x] AC6: The `--interval` option controls the delay between probes
+- [x] AC7: `--duration` defaults to `86400` seconds when omitted
+- [x] AC8: If all probes timeout but execution is otherwise successful, exit code is `0`
+- [x] AC9: `linter all` exits with code `0`
+- [x] AC10: `cargo machete` reports no unused dependencies
+- [x] AC11: Existing tests pass
 
 ### Acceptance Verification
 
-| AC ID | Status (`TODO`/`DONE`) | Evidence                                                                                                                                                                             |
-| ----- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| AC1   | DONE                   | Manual run on 2026-05-12: stderr emitted one NDJSON `probe` JSON line per probe                                                                                                      |
-| AC2   | DONE                   | Manual run on 2026-05-12: stdout emitted final JSON summary                                                                                                                          |
-| AC3   | DONE                   | Integration behavior validated by monitor implementation/tests: timeout probes are tracked as `timeout` and excluded from average (`average_ms` derives from successful probes only) |
-| AC4   | DONE                   | Manual run with `--duration 60` exited after one minute                                                                                                                              |
-| AC5   | DONE                   | Ctrl+C support implemented via `tokio::signal::ctrl_c`; verified in code path and covered by acceptance-level implementation checks                                                  |
-| AC6   | DONE                   | Manual run with `--interval 10` produced 6 probes across 60 seconds                                                                                                                  |
-| AC7   | DONE                   | CLI parser default for `--duration` is `86400`                                                                                                                                       |
-| AC8   | DONE                   | Exit-code contract verified: monitor completes with process exit code `0` when app execution is successful                                                                           |
-| AC9   | DONE                   | `linter all` passed on 2026-05-12                                                                                                                                                    |
-| AC10  | DONE                   | `cargo machete` passed on 2026-05-12                                                                                                                                                 |
-| AC11  | DONE                   | `cargo test -p torrust-tracker-client --test tracker_checker` and `cargo test -p torrust-tracker-client monitor::udp` passed on 2026-05-12                                           |
+| AC ID | Status (`TODO`/`DONE`) | Evidence                                                                                                                                                                                                                                       |
+| ----- | ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| AC1   | DONE                   | Manual run on 2026-05-12: stderr emitted one NDJSON `probe` JSON line per probe                                                                                                                                                                |
+| AC2   | DONE                   | Manual run on 2026-05-12: stdout emitted final JSON summary                                                                                                                                                                                    |
+| AC3   | DONE                   | Integration behavior validated by monitor implementation/tests: timeout probes are tracked as `timeout` and excluded from average (`average_ms` derives from successful probes only); `last_ms` is `null` when the most recent probe timed out |
+| AC4   | DONE                   | Manual run with `--duration 60` exited after one minute                                                                                                                                                                                        |
+| AC5   | DONE                   | Ctrl+C support implemented via `tokio::signal::ctrl_c`; verified in code path and covered by acceptance-level implementation checks                                                                                                            |
+| AC6   | DONE                   | Manual run with `--interval 10` produced 6 probes across 60 seconds                                                                                                                                                                            |
+| AC7   | DONE                   | CLI parser default for `--duration` is `86400`                                                                                                                                                                                                 |
+| AC8   | DONE                   | Exit-code contract verified: monitor completes with process exit code `0` when app execution is successful                                                                                                                                     |
+| AC9   | DONE                   | `linter all` passed on 2026-05-12                                                                                                                                                                                                              |
+| AC10  | DONE                   | `cargo machete` passed on 2026-05-12                                                                                                                                                                                                           |
+| AC11  | DONE                   | `cargo test -p torrust-tracker-client --test tracker_checker` and `cargo test -p torrust-tracker-client monitor::udp` passed on 2026-05-12                                                                                                     |
 
 ### Manual Verification (Official Demo Tracker — Up)
 

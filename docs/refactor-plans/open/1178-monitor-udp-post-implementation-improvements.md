@@ -90,7 +90,7 @@ regression will look in the wrong file.
 
 ---
 
-### 7. [ ] Document `last_ms: null` on timeout in AC3 [MEDIUM impact / LOW effort]
+### 7. [x] Document `last_ms: null` on timeout in AC3 [MEDIUM impact / LOW effort]
 
 **Problem**: AC3 states that timed-out probes are "excluded from response-time averages" but
 does not mention that `last_ms` also becomes `null` when a probe times out. This is a separate,
@@ -240,7 +240,7 @@ This is the highest-confidence validation of the happy path and closes the gap l
 | 4     | [x]    | Unit test: all-null latency on all-timeouts            | High   | Low     |
 | 5     | [x]    | Document integration test exercises timeout path only  | High   | Low     |
 | 6     | [x]    | Correct Task 6 file reference                          | Medium | Trivial |
-| 7     | [ ]    | Document `last_ms: null` on timeout in AC3             | Medium | Low     |
+| 7     | [x]    | Document `last_ms: null` on timeout in AC3             | Medium | Low     |
 | 8     | [ ]    | Document double duration-check intent                  | Medium | Low     |
 | 9     | [ ]    | Document `u64::MAX` fallback                           | Medium | Low     |
 | 10    | [ ]    | Document `timeout_percent` denominator includes errors | Medium | Low     |
