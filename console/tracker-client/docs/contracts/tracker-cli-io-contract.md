@@ -137,7 +137,7 @@ stdout:
 {"udp_trackers":[{"url":"udp://127.0.0.1:6969","status":{"code":"timeout","message":"announce timeout"}}]}
 
 stderr:
-{"event":"probe","url":"udp://127.0.0.1:6969","result":"timeout","elapsed_ms":10000}
+{"event":"probe","url":"udp://127.0.0.1:6969","status":"timeout","elapsed_ms":null}
 
 exit code: 0
 ```

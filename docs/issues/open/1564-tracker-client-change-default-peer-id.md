@@ -40,7 +40,7 @@ Proposed candidates:
 - `-TC` — Torrust Client (if/when a full Torrust BitTorrent client ships)
 
 The GitHub issue suggests `-RC` for now and reserves `-TC` for a future full BitTorrent client.
-A concrete example from the issue: `b"-RC53070047639607806"` (the last 12 bytes are random).
+A properly-formed example following the Azureus format: `b"-RC3000-000000000000"` (the 12 bytes after the separator are random per process).
 
 ## Current Behaviour
 
