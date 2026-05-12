@@ -58,11 +58,25 @@ impl AppError {
     pub fn to_stderr_json_and_exit_code(&self) -> (String, i32) {
         match self {
             AppError::InvalidConfig { source, message } => {
-                let json = format!(r#"{{"error":{{"kind":"invalid_configuration","source":"{source}","message":"{message}"}}}}"#);
+                let json = serde_json::json!({
+                    "error": {
+                        "kind": "invalid_configuration",
+                        "source": source.to_string(),
+                        "message": message,
+                    }
+                })
+                .to_string();
                 (json, 2)
             }
             AppError::Runtime(message) => {
-                let json = format!(r#"{{"error":{{"kind":"runtime_failure","source":"runtime","message":"{message}"}}}}"#);
+                let json = serde_json::json!({
+                    "error": {
+                        "kind": "runtime_failure",
+                        "source": "runtime",
+                        "message": message,
+                    }
+                })
+                .to_string();
                 (json, 1)
             }
         }
@@ -120,18 +134,25 @@ mod tests {
             message: "JSON parse error: trailing comma at line 7 column 5".to_string(),
         };
         let (json, _) = error.to_stderr_json_and_exit_code();
-        assert!(json.contains(r#""kind":"invalid_configuration""#));
-        assert!(json.contains(r#""source":"TORRUST_CHECKER_CONFIG""#));
-        assert!(json.contains("trailing comma at line 7 column 5"));
+        let parsed: serde_json::Value = serde_json::from_str(&json).expect("Error JSON should be valid JSON");
+
+        assert_eq!(parsed["error"]["kind"], "invalid_configuration");
+        assert_eq!(parsed["error"]["source"], "TORRUST_CHECKER_CONFIG");
+        assert_eq!(
+            parsed["error"]["message"],
+            "JSON parse error: trailing comma at line 7 column 5"
+        );
     }
 
     #[test]
     fn runtime_error_json_contains_expected_fields() {
         let error = AppError::Runtime("failed to bind socket".to_string());
         let (json, _) = error.to_stderr_json_and_exit_code();
-        assert!(json.contains(r#""kind":"runtime_failure""#));
-        assert!(json.contains(r#""source":"runtime""#));
-        assert!(json.contains("failed to bind socket"));
+        let parsed: serde_json::Value = serde_json::from_str(&json).expect("Error JSON should be valid JSON");
+
+        assert_eq!(parsed["error"]["kind"], "runtime_failure");
+        assert_eq!(parsed["error"]["source"], "runtime");
+        assert_eq!(parsed["error"]["message"], "failed to bind socket");
     }
 
     #[test]
@@ -141,6 +162,25 @@ mod tests {
             message: "JSON parse error: trailing comma at line 3 column 1".to_string(),
         };
         let (json, _) = error.to_stderr_json_and_exit_code();
-        assert!(json.contains(r#""source":"/etc/tracker/config.json""#));
+        let parsed: serde_json::Value = serde_json::from_str(&json).expect("Error JSON should be valid JSON");
+
+        assert_eq!(parsed["error"]["source"], "/etc/tracker/config.json");
+    }
+
+    #[test]
+    fn invalid_config_error_json_escapes_special_characters() {
+        let source_path = r"C:\tracker\config\broken.json";
+        let message = "JSON parse error: unexpected '\"' on line 2\nCheck C:\\temp\\config.json";
+
+        let error = AppError::InvalidConfig {
+            source: ConfigSource::File(PathBuf::from(source_path)),
+            message: message.to_string(),
+        };
+        let (json, _) = error.to_stderr_json_and_exit_code();
+        let parsed: serde_json::Value = serde_json::from_str(&json).expect("Error JSON should be valid JSON");
+
+        assert_eq!(parsed["error"]["kind"], "invalid_configuration");
+        assert_eq!(parsed["error"]["source"], source_path);
+        assert_eq!(parsed["error"]["message"], message);
     }
 }

@@ -111,8 +111,8 @@ non-zero status code.
 **Error JSON format and exit codes follow the Tracker CLI I/O Contract:**
 
 - References:
-  - [ADR: Define Tracker CLI I/O Contract and Error Handling](../../console/tracker-client/docs/adrs/20260512080000_define_tracker_cli_io_contract_and_error_handling.md)
-  - [Tracker CLI I/O Contract](../../console/tracker-client/docs/contracts/tracker-cli-io-contract.md)
+  - [ADR: Define Tracker CLI I/O Contract and Error Handling](../../../console/tracker-client/docs/adrs/20260512080000_define_tracker_cli_io_contract_and_error_handling.md)
+  - [Tracker CLI I/O Contract](../../../console/tracker-client/docs/contracts/tracker-cli-io-contract.md)
 
 **Error payload structure:**
 
