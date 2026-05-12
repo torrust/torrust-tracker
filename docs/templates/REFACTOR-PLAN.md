@@ -2,7 +2,7 @@
 doc-type: refactor-plan
 status: draft
 related-issue: null
-spec-path: docs/refactor-plans/{short-description}.md
+spec-path: docs/refactor-plans/drafts/{short-description}.md
 last-updated-utc: YYYY-MM-DD HH:MM
 semantic-links:
   skill-links:

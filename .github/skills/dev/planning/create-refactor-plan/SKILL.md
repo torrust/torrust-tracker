@@ -88,8 +88,10 @@ This ensures the most valuable, cheapest improvements are visible and tackled fi
 
 ### Step 4: Create the Plan File
 
+Plans follow the same `drafts/` → `open/` → `closed/` lifecycle as issue specs.
+
 ```bash
-touch docs/refactor-plans/{short-description}.md
+touch docs/refactor-plans/drafts/{short-description}.md
 ```
 
 Use the template at [docs/templates/REFACTOR-PLAN.md](../../../../docs/templates/REFACTOR-PLAN.md).
@@ -114,10 +116,16 @@ To mark an item done, flip `[ ]` → `[x]` in **both** the heading and the table
 
 ### Step 5: Validate and Commit
 
+Move the plan from `drafts/` to `open/` when implementation starts:
+
+```bash
+git mv docs/refactor-plans/drafts/{filename}.md docs/refactor-plans/open/{filename}.md
+```
+
 ```bash
 linter all    # Must pass
 
-git add docs/refactor-plans/{filename}.md
+git add docs/refactor-plans/
 git commit -S -m "docs({scope}): add refactor plan for {description}"
 ```
 
@@ -129,6 +137,13 @@ Work through items in order. After completing each item:
 2. Flip `[ ]` → `[x]` in the execution table row.
 3. Run `linter all` and fix any new issues.
 4. Commit the implementation and the updated plan together.
+
+When all items are done, move the plan to `closed/`:
+
+```bash
+git mv docs/refactor-plans/open/{filename}.md docs/refactor-plans/closed/{filename}.md
+git commit -S -m "docs({scope}): close refactor plan for {description}"
+```
 
 ### Step 7: Revisit the Template and Skill
 
@@ -144,7 +159,11 @@ Update `docs/templates/REFACTOR-PLAN.md` and this skill file if improvements are
 
 File name format: `{related-artifact-short-description}.md`
 
-Stored in: `docs/refactor-plans/`
+| Lifecycle stage | Folder                        |
+| --------------- | ----------------------------- |
+| Being written   | `docs/refactor-plans/drafts/` |
+| In progress     | `docs/refactor-plans/open/`   |
+| All done        | `docs/refactor-plans/closed/` |
 
 ## Relationship to Other Artifacts
 
