@@ -1,12 +1,17 @@
 ---
 name: review-pr
-description: Review a pull request for the torrust-tracker project. Covers checklist-based PR quality verification, code style standards, test requirements, documentation, and how to submit review feedback. Use when asked to review a PR, check a pull request, or provide feedback on code changes. Triggers on "review PR", "review pull request", "check PR quality", or "code review".
+description: Review an existing pull request for the torrust-tracker project. Covers checklist-based PR quality verification, code style standards, test requirements, documentation, and review feedback. Use only when a PR already exists.
 metadata:
   author: torrust
   version: "1.0"
 ---
 
 # Reviewing a Pull Request
+
+Use this skill only when a pull request exists (PR number or URL is available).
+
+If there is no PR yet and you need to validate task completion on a local branch, use:
+`.github/skills/dev/task-reviews/review-task/SKILL.md`.
 
 ## Quick Overview Approach
 
