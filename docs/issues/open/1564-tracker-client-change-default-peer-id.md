@@ -85,15 +85,15 @@ The literal `b"-qB00000000000000001"` appears in several places:
 
 ## Goals
 
-- [ ] Replace all hard-coded `b"-qB00000000000000001"` peer IDs with a Torrust-specific prefix
-- [ ] Define tracker-client constants for deterministic test PeerId and production default generation
-- [ ] Update all affected test fixtures so protocol-level tests still pass
-- [ ] Add ADR documenting the PeerId convention for production and tests
-- [ ] Version bytes are hard-coded per release in tracker-client defaults
-- [ ] Production default PeerId suffix is generated once per process run
-- [ ] `linter all` exits with code `0`
-- [ ] `cargo machete` reports no unused dependencies
-- [ ] Existing tests pass
+- [x] Replace all hard-coded `b"-qB00000000000000001"` peer IDs with a Torrust-specific prefix
+- [x] Define tracker-client constants for deterministic test PeerId and production default generation
+- [x] Update all affected test fixtures so protocol-level tests still pass
+- [x] Add ADR documenting the PeerId convention for production and tests
+- [x] Version bytes are hard-coded per release in tracker-client defaults
+- [x] Production default PeerId suffix is generated once per process run
+- [x] `linter all` exits with code `0`
+- [x] `cargo machete` reports no unused dependencies
+- [x] Existing tests pass
 
 ## Implementation Plan
 
@@ -170,18 +170,18 @@ Create an ADR under `docs/adrs/` documenting:
 
 ### Acceptance Verification
 
-| AC ID | Status (`TODO`/`DONE`) | Evidence |
-| ----- | ---------------------- | -------- |
-| AC1   | TODO                   |          |
-| AC2   | TODO                   |          |
-| AC3   | TODO                   |          |
-| AC4   | TODO                   |          |
-| AC5   | TODO                   |          |
-| AC6   | TODO                   |          |
-| AC7   | TODO                   |          |
-| AC8   | TODO                   |          |
-| AC9   | TODO                   |          |
-| AC10  | TODO                   |          |
+| AC ID | Status (`TODO`/`DONE`) | Evidence                                                                                                                                     |
+| ----- | ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| AC1   | DONE                   | `rg -- '-qB00000000000000001' packages/tracker-client/src console/tracker-client/src` returns no matches                                     |
+| AC2   | DONE                   | `packages/tracker-client/src/peer_id.rs` defines deterministic test constants and production helper                                          |
+| AC3   | DONE                   | HTTP `QueryBuilder::with_default_values` and UDP checker default now call `default_production_peer_id()`                                     |
+| AC4   | DONE                   | Protocol fixtures/docs in `packages/http-protocol/src/v1/{requests/announce.rs,responses/announce.rs,query.rs}` use `-RC3000-...`            |
+| AC5   | DONE                   | Added `docs/adrs/20260512102000_define_tracker_client_peer_id_convention.md` and indexed in `docs/adrs/index.md`                             |
+| AC6   | DONE                   | Hard-coded `-RC3000-` prefix/version in `packages/tracker-client/src/peer_id.rs`                                                             |
+| AC7   | DONE                   | `OnceLock` caches process-wide default peer ID in `default_production_peer_id()`                                                             |
+| AC8   | DONE                   | `cargo test -p bittorrent-tracker-client`, `cargo test -p torrust-tracker-client`, and `cargo test -p bittorrent-http-tracker-protocol` pass |
+| AC9   | DONE                   | `linter all` passes                                                                                                                          |
+| AC10  | DONE                   | `cargo machete` reports no unused dependencies                                                                                               |
 
 ## Risks and Trade-offs
 
@@ -197,13 +197,13 @@ Create an ADR under `docs/adrs/` documenting:
 | Field              | Value                                                            |
 | ------------------ | ---------------------------------------------------------------- |
 | Type               | Enhancement                                                      |
-| Status             | Planned                                                          |
+| Status             | Implemented (pending review)                                     |
 | Priority           | P3                                                               |
 | GitHub Issue       | [#1564](https://github.com/torrust/torrust-tracker/issues/1564)  |
 | Spec Path          | `docs/issues/open/1564-tracker-client-change-default-peer-id.md` |
-| Branch             | `1564-tracker-client-change-default-peer-id`                     |
+| Branch             | `1564-change-default-peer-id`                                    |
 | Related PR         | To be assigned                                                   |
-| Last Updated (UTC) | 2026-05-12 08:00                                                 |
+| Last Updated (UTC) | 2026-05-12 10:25                                                 |
 
 ## Progress Tracking
 
@@ -211,7 +211,7 @@ Create an ADR under `docs/adrs/` documenting:
 
 - [ ] Spec drafted in `docs/issues/open/`
 - [ ] Spec reviewed and approved by user/maintainer
-- [ ] Implementation completed
+- [x] Implementation completed
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
