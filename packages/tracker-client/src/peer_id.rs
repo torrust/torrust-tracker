@@ -7,13 +7,13 @@ const DEFAULT_PRODUCTION_PEER_ID_PREFIX_BYTES: &[u8; 8] = b"-RC3000-";
 
 /// Deterministic peer ID for tests and fixtures.
 ///
-/// Format: `-<CC><VVVV>-<random-12-bytes>`.
+/// Format: `-<CC><VVVV>-<random-12-digits>`.
 pub const DEFAULT_TEST_PEER_ID_BYTES: [u8; 20] = *b"-RC3000-000000000001";
 pub const DEFAULT_TEST_PEER_ID: PeerId = PeerId(DEFAULT_TEST_PEER_ID_BYTES);
 
 /// Returns the default production peer ID.
 ///
-/// The 12-byte suffix is generated once per process and reused for the lifetime
+/// The 12-digit suffix is generated once per process and reused for the lifetime
 /// of the process.
 #[must_use]
 pub fn default_production_peer_id() -> PeerId {
@@ -30,10 +30,7 @@ fn generate_default_production_peer_id_bytes() -> [u8; 20] {
 }
 
 fn random_suffix_12_digits() -> String {
-    let nanos_since_epoch = SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .expect("system clock should be after UNIX_EPOCH")
-        .as_nanos();
+    let nanos_since_epoch = SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or_default().as_nanos();
     let process_id = u128::from(std::process::id());
     let mixed = nanos_since_epoch ^ (process_id << 64) ^ nanos_since_epoch.rotate_left(29);
     let value = mixed % 1_000_000_000_000;

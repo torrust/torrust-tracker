@@ -15,7 +15,7 @@ We adopt the following tracker-client peer ID convention:
 
 - Prefix: `RC` (Rust Client)
 - Version field: `3000` for the current `v3.0.0` line
-- Full layout: `-<CC><VVVV>-<12-byte-suffix>` (Azureus-style)
+- Full layout: `-<CC><VVVV>-<12-digit-suffix>` (Azureus-style)
 
 Defaults are split by context:
 
