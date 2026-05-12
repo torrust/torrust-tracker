@@ -169,7 +169,7 @@ ran successfully.
 
 ### Task 6: Wire the new subcommand into the binary entry point
 
-Update `console/tracker-client/src/bin/tracker_checker.rs` to dispatch to the new monitor loop
+Update `console/tracker-client/src/console/clients/checker/app.rs` to dispatch to the new monitor loop
 when the `monitor` subcommand is selected.
 
 ## Key Files
