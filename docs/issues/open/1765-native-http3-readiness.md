@@ -17,7 +17,7 @@ semantic-links:
 
 <!-- skill-link: create-issue -->
 
-# Issue #1765 - docs(http): test and evaluate native HTTP/3 support in tracker
+# Issue #1765 - feat(http-tracker): evaluate and implement native HTTP/3 support
 
 ## Goal
 

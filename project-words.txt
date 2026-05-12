@@ -176,6 +176,8 @@ newtrackon
 newtype
 newtypes
 nextest
+nghttp
+ngtcp
 nocapture
 nologin
 nonblocking
