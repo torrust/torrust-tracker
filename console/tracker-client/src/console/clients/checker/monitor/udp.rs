@@ -342,4 +342,17 @@ mod tests {
 
         assert_eq!(stats.timeout_percent(), 66);
     }
+
+    #[test]
+    fn it_should_return_all_null_latency_fields_when_every_probe_times_out() {
+        let mut stats = Stats::default();
+        stats.record_timeout();
+        stats.record_timeout();
+        stats.record_timeout();
+
+        assert_eq!(stats.min_ms, None);
+        assert_eq!(stats.max_ms, None);
+        assert_eq!(stats.average_ms(), None);
+        assert_eq!(stats.last_ms, None);
+    }
 }

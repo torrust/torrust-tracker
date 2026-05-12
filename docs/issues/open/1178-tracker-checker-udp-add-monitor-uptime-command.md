@@ -44,22 +44,22 @@ same interval, but the interval should be configurable.
 
 ## Goals
 
-- [ ] Add a UDP uptime-monitor command to the tracker-client toolbox
-- [ ] The command accepts a UDP tracker URL and optional configuration (interval, timeout, info-hash)
-- [ ] On every probe the command prints one JSON object per line to stderr (NDJSON)
-- [ ] At the end of execution, the command prints final statistics to stdout in JSON format
-- [ ] Final statistics include:
+- [x] Add a UDP uptime-monitor command to the tracker-client toolbox
+- [x] The command accepts a UDP tracker URL and optional configuration (interval, timeout, info-hash)
+- [x] On every probe the command prints one JSON object per line to stderr (NDJSON)
+- [x] At the end of execution, the command prints final statistics to stdout in JSON format
+- [x] Final statistics include:
   - Total probe count
   - Timeout count (and percentage)
   - Minimum response time
   - Maximum response time
   - Average response time
   - Last response time
-- [ ] The command accepts a duration argument and exits automatically after that duration
-- [ ] `Ctrl+C` is supported to stop monitoring early and still print final JSON results
-- [ ] `linter all` exits with code `0`
-- [ ] `cargo machete` reports no unused dependencies
-- [ ] Existing tests pass
+- [x] The command accepts a duration argument and exits automatically after that duration
+- [x] `Ctrl+C` is supported to stop monitoring early and still print final JSON results
+- [x] `linter all` exits with code `0`
+- [x] `cargo machete` reports no unused dependencies
+- [x] Existing tests pass
 
 ## Proposed CLI
 
@@ -87,12 +87,13 @@ CLI consolidation effort may merge binaries into a single entry point (see
 
 ### Options
 
-| Option       | Default | Description                                   |
-| ------------ | ------- | --------------------------------------------- |
-| `--url`      | —       | UDP tracker URL (required)                    |
-| `--interval` | `300`   | Seconds between probes                        |
-| `--timeout`  | `10`    | Seconds to wait for a response before timeout |
-| `--duration` | `86400` | Total monitor runtime in seconds              |
+| Option        | Default                                    | Description                                   |
+| ------------- | ------------------------------------------ | --------------------------------------------- |
+| `--url`       | —                                          | UDP tracker URL (required)                    |
+| `--interval`  | `300`                                      | Seconds between probes                        |
+| `--timeout`   | `10`                                       | Seconds to wait for a response before timeout |
+| `--duration`  | `86400`                                    | Total monitor runtime in seconds              |
+| `--info-hash` | `9c38422213e30bff212b30c360d26f9a02136422` | Info-hash used in announce requests           |
 
 ### Sample Output
 
@@ -103,7 +104,7 @@ stderr:
 {"event":"probe","sequence":3,"url":"udp://127.0.0.1:6969","status":"timeout","elapsed_ms":null}
 
 stdout:
-{"udp_trackers":[{"url":"udp://127.0.0.1:6969","status":{"code":"ok","message":"monitor completed","stats":{"total":3,"timeouts":1,"timeout_percent":33.3,"min_ms":98,"max_ms":122,"average_ms":110,"last_ms":null}}}]}
+{"udp_trackers":[{"url":"udp://127.0.0.1:6969","status":{"code":"ok","message":"monitor completed","stats":{"total":3,"timeouts":1,"timeout_percent":33,"min_ms":98,"max_ms":122,"average_ms":110,"last_ms":null}}}]}
 ```
 
 ## Implementation Plan
@@ -286,11 +287,11 @@ Notes:
 
 ### Workflow Checkpoints
 
-- [ ] Spec drafted in `docs/issues/open/`
-- [ ] Spec reviewed and approved by user/maintainer
-- [ ] Implementation completed
-- [ ] Reviewer validated acceptance criteria and updated checkboxes
-- [ ] Committer verified spec progress is up to date before commit
+- [x] Spec drafted in `docs/issues/open/`
+- [x] Spec reviewed and approved by user/maintainer
+- [x] Implementation completed
+- [x] Reviewer validated acceptance criteria and updated checkboxes
+- [x] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log

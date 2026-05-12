@@ -10,7 +10,7 @@ Related issue spec: `docs/issues/open/1178-tracker-checker-udp-add-monitor-uptim
 
 ## Items
 
-### 1. [ ] Fix stale `timeout_percent` sample value in spec [HIGH impact / TRIVIAL effort]
+### 1. [x] Fix stale `timeout_percent` sample value in spec [HIGH impact / TRIVIAL effort]
 
 **Problem**: The "Sample Output" section in the issue spec shows `"timeout_percent":33.3` (a
 float). The implementation produces `33` (integer `u64`). Any reader using the spec as a
@@ -22,7 +22,7 @@ reference for the output contract will be misled.
 
 ---
 
-### 2. [ ] Add `--info-hash` to the Options table in the spec [HIGH impact / TRIVIAL effort]
+### 2. [x] Add `--info-hash` to the Options table in the spec [HIGH impact / TRIVIAL effort]
 
 **Problem**: The implementation exposes `--info-hash` with a sensible default, but the spec's
 CLI Options table omits it. A user reading the spec will not know the option exists.
@@ -34,7 +34,7 @@ description "Info-hash used in announce requests").
 
 ---
 
-### 3. [ ] Tick completed Goals and Workflow Checkpoints in the spec [HIGH impact / TRIVIAL effort]
+### 3. [x] Tick completed Goals and Workflow Checkpoints in the spec [HIGH impact / TRIVIAL effort]
 
 **Problem**: Implementation is complete, manually verified, and committed, but both the `Goals`
 checklist and the `Workflow Checkpoints` list still show unchecked `[ ]` items. They look like
@@ -46,7 +46,7 @@ open work to any reader.
 
 ---
 
-### 4. [ ] Add a unit test asserting all-null latency fields when every probe times out [HIGH impact / LOW effort]
+### 4. [x] Add a unit test asserting all-null latency fields when every probe times out [HIGH impact / LOW effort]
 
 **Problem**: The "down tracker" scenario (every probe times out → `min_ms`, `max_ms`,
 `average_ms`, `last_ms` all `null`) is the most important correctness property of the stats
@@ -234,10 +234,10 @@ This is the highest-confidence validation of the happy path and closes the gap l
 
 | Order | Status | Item                                                   | Impact | Effort  |
 | ----- | ------ | ------------------------------------------------------ | ------ | ------- |
-| 1     | [ ]    | Fix stale `timeout_percent` sample value               | High   | Trivial |
-| 2     | [ ]    | Add `--info-hash` to Options table                     | High   | Trivial |
-| 3     | [ ]    | Tick completed Goals and Checkpoints                   | High   | Trivial |
-| 4     | [ ]    | Unit test: all-null latency on all-timeouts            | High   | Low     |
+| 1     | [x]    | Fix stale `timeout_percent` sample value               | High   | Trivial |
+| 2     | [x]    | Add `--info-hash` to Options table                     | High   | Trivial |
+| 3     | [x]    | Tick completed Goals and Checkpoints                   | High   | Trivial |
+| 4     | [x]    | Unit test: all-null latency on all-timeouts            | High   | Low     |
 | 5     | [ ]    | Document integration test exercises timeout path only  | High   | Low     |
 | 6     | [ ]    | Correct Task 6 file reference                          | Medium | Trivial |
 | 7     | [ ]    | Document `last_ms: null` on timeout in AC3             | Medium | Low     |
