@@ -58,8 +58,7 @@ impl AppError {
     pub fn to_stderr_json_and_exit_code(&self) -> (String, i32) {
         match self {
             AppError::InvalidConfig { source, message } => {
-                let json =
-                    format!(r#"{{"error":{{"kind":"invalid_configuration","source":"{source}","message":"{message}"}}}}"#,);
+                let json = format!(r#"{{"error":{{"kind":"invalid_configuration","source":"{source}","message":"{message}"}}}}"#);
                 (json, 2)
             }
             AppError::Runtime(message) => {

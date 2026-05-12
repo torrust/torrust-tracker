@@ -429,7 +429,7 @@ $ TORRUST_CHECKER_CONFIG_PATH=/tmp/invalid-tracker-config.json cargo run --bin t
 **Command:**
 
 ```console
-$ cargo run --bin tracker_checker
+cargo run --bin tracker_checker
 ```
 
 **Output (stderr):**

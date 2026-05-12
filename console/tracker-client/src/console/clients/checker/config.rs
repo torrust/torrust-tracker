@@ -324,7 +324,7 @@ mod tests {
 
         #[test]
         fn it_should_fail_with_malformed_json_and_include_serde_detail_in_error() {
-            let json = r#"not json at all"#;
+            let json = r"not json at all";
 
             let err = parse_from_json(json)
                 .err()
