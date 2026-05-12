@@ -69,11 +69,11 @@ datetime
 dbip
 dbname
 debuginfo
-dler
 Deque
 Dihc
 Dijke
 distroless
+dler
 Dmqcd
 dockerhub
 downloadedi
@@ -89,8 +89,8 @@ fdbased
 fdget
 filesd
 finalises
-fnix
 flamegraph
+fnix
 formatjson
 fput
 fract
@@ -111,6 +111,7 @@ hmac
 hotspot
 httpclientpeerid
 Hydranode
+hyperium
 hyperthread
 Icelake
 iiiiiiiiiiiiiiiiiiiid
@@ -208,6 +209,7 @@ PRRT
 PUID
 qbittorrent
 QJSF
+QUIC
 quickcheck
 Quickstart
 Radeon
@@ -221,7 +223,6 @@ recognised
 recompiles
 referer
 Registar
-tryhackx
 repomix
 repr
 reqs
@@ -283,8 +284,8 @@ Tera
 testcontainer
 testcontainers
 thiserror
-tlnp
 timespec
+tlnp
 tlsv
 toki
 toplevel
@@ -297,6 +298,7 @@ Trackon
 triaging
 trixie
 trunc
+tryhackx
 ttwu
 typenum
 udpv
