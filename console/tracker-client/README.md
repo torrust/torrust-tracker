@@ -2,13 +2,18 @@
 
 A collection of console clients to make requests to BitTorrent trackers.
 
-> **Disclaimer**: This project is actively under development. We’re currently extracting and refining common functionality from the[Torrust Tracker](https://github.com/torrust/torrust-tracker) to make it available to the BitTorrent community in Rust. While these tools are functional, they are not yet ready for use in production or third-party projects.
+> **Disclaimer**: This project is actively under development. We’re currently extracting and refining common functionality from the [Torrust Tracker](https://github.com/torrust/torrust-tracker) to make it available to the BitTorrent community in Rust. While these tools are functional, they are not yet ready for use in production or third-party projects.
 
 There are currently three console clients available:
 
 - UDP Client
 - HTTP Client
 - Tracker Checker
+
+## Documentation
+
+- [Tracker CLI I/O Contract](docs/contracts/tracker-cli-io-contract.md)
+- [Tracker Client ADRs](docs/adrs/README.md)
 
 > **Notice**: [Console apps are planned to be merge into a single tracker client in the short-term](https://github.com/torrust/torrust-tracker/discussions/660).
 
@@ -186,7 +191,7 @@ This program is free software: you can redistribute it and/or modify it under th
 
 This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the [GNU Lesser General Public License][LGPL_3_0] for more details.
 
-You should have received a copy of the *GNU Lesser General Public License* along with this program. If not, see <https://www.gnu.org/licenses/>.
+You should have received a copy of the _GNU Lesser General Public License_ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 Some files include explicit copyright notices and/or license notices.
 
