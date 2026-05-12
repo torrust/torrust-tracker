@@ -109,6 +109,20 @@ struct MonitorStats {
     last_ms: Option<u64>,
 }
 
+impl From<&Stats> for MonitorStats {
+    fn from(stats: &Stats) -> Self {
+        Self {
+            total: stats.total,
+            timeouts: stats.timeouts,
+            timeout_percent: stats.timeout_percent(),
+            min_ms: stats.min_ms,
+            max_ms: stats.max_ms,
+            average_ms: stats.average_ms(),
+            last_ms: stats.last_ms,
+        }
+    }
+}
+
 enum ProbeOutcome {
     Ok { elapsed_ms: u64 },
     Timeout,
@@ -134,15 +148,7 @@ pub async fn run_monitor(config: MonitorUdpConfig) -> Result<(), String> {
             status: MonitorStatus {
                 code: "ok",
                 message: message.to_string(),
-                stats: MonitorStats {
-                    total: stats.total,
-                    timeouts: stats.timeouts,
-                    timeout_percent: stats.timeout_percent(),
-                    min_ms: stats.min_ms,
-                    max_ms: stats.max_ms,
-                    average_ms: stats.average_ms(),
-                    last_ms: stats.last_ms,
-                },
+                stats: MonitorStats::from(&stats),
             },
         }],
     };

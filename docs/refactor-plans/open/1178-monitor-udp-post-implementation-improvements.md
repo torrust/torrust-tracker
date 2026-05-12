@@ -196,7 +196,7 @@ testable without spawning a subprocess.
 
 ---
 
-### 13. [ ] Implement `From<&Stats> for MonitorStats` [LOW impact / LOW effort]
+### 13. [x] Implement `From<&Stats> for MonitorStats` [LOW impact / LOW effort]
 
 **Problem**: The conversion from `Stats` to `MonitorStats` is an inline struct literal embedded
 inside the already-long `run_monitor` function. A `From` implementation would express the
@@ -246,5 +246,5 @@ This is the highest-confidence validation of the happy path and closes the gap l
 | 10    | [x]    | Document `timeout_percent` denominator includes errors | Medium | Low     |
 | 11    | [x]    | Document / fix `elapsed_ms` includes DNS time          | Medium | Medium  |
 | 12    | [x]    | Extract `run_probe_loop` from `run_monitor`            | Low    | Medium  |
-| 13    | [ ]    | `From<&Stats> for MonitorStats`                        | Low    | Low     |
+| 13    | [x]    | `From<&Stats> for MonitorStats`                        | Low    | Low     |
 | 14    | [ ]    | Success-path integration test with mock UDP tracker    | Low    | High    |
