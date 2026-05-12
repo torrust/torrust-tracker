@@ -57,6 +57,13 @@ impl Stats {
         self.sum_ms.checked_div(self.successes)
     }
 
+    /// Returns the percentage of probes that timed out, rounded down to the nearest integer.
+    ///
+    /// The denominator is `total = successes + timeouts + errors`. Error probes (those that
+    /// fail for reasons other than a network timeout) count toward `total` without being
+    /// counted as timeouts, so they reduce `timeout_percent` without being successes. For
+    /// example, three probes where one succeeds, one times out, and one errors gives
+    /// `timeout_percent = 1 × 100 / 3 = 33`, not `50`.
     fn timeout_percent(&self) -> u64 {
         self.timeouts.saturating_mul(100).checked_div(self.total).unwrap_or(0)
     }

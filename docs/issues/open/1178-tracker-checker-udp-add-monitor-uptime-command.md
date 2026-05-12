@@ -283,6 +283,12 @@ Notes:
 - **UDP announcement contents**: The monitor sends a real announce request. The info-hash and
   peer fields will be test values (re-using the existing `QueryBuilder::with_default_values`
   defaults unless overridden). This is acceptable for monitoring purposes.
+- **`timeout_percent` denominator includes error probes**: `timeout_percent` is computed as
+  `timeouts × 100 / total`, where `total = successes + timeouts + errors`. A probe that fails
+  with a non-timeout error (e.g., a DNS failure or connection refused) counts toward `total`
+  without being counted as a timeout. This reduces `timeout_percent` without the probe being a
+  success, which can be surprising. The name `timeout_percent` is intentionally scoped to
+  timeouts; errors are a separate failure mode tracked only implicitly through `total`.
 
 ## Progress Tracking
 

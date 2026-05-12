@@ -138,7 +138,7 @@ is a placeholder that cannot realistically occur.
 
 ---
 
-### 10. [ ] Document that `timeout_percent` denominator includes error probes [MEDIUM impact / LOW effort]
+### 10. [x] Document that `timeout_percent` denominator includes error probes [MEDIUM impact / LOW effort]
 
 **Problem**: `timeout_percent = timeouts × 100 / total`, where
 `total = successes + timeouts + errors`. A probe that errors (not timeout) reduces the percentage
@@ -243,7 +243,7 @@ This is the highest-confidence validation of the happy path and closes the gap l
 | 7     | [x]    | Document `last_ms: null` on timeout in AC3             | Medium | Low     |
 | 8     | [x]    | Document double duration-check intent                  | Medium | Low     |
 | 9     | [x]    | Document `u64::MAX` fallback                           | Medium | Low     |
-| 10    | [ ]    | Document `timeout_percent` denominator includes errors | Medium | Low     |
+| 10    | [x]    | Document `timeout_percent` denominator includes errors | Medium | Low     |
 | 11    | [ ]    | Document / fix `elapsed_ms` includes DNS time          | Medium | Medium  |
 | 12    | [ ]    | Extract `run_probe_loop` from `run_monitor`            | Low    | Medium  |
 | 13    | [ ]    | `From<&Stats> for MonitorStats`                        | Low    | Low     |
