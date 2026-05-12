@@ -133,6 +133,9 @@ pub async fn run_monitor(config: MonitorUdpConfig) -> Result<(), String> {
                 break;
             }
             probe_result = run_probe(&config) => {
+                // `as_millis()` returns u128; overflow into u64 would require a single probe
+                // to run for over 584 million years, which cannot happen in practice.
+                // `u64::MAX` is therefore an unreachable sentinel.
                 let elapsed_ms = u64::try_from(probe_started.elapsed().as_millis()).unwrap_or(u64::MAX);
 
                 match probe_result {

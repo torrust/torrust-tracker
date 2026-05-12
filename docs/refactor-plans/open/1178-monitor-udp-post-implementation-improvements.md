@@ -118,7 +118,7 @@ after the last probe) but reads like an accidental duplication and will confuse 
 
 ---
 
-### 9. [ ] Document `u64::MAX` fallback for `elapsed_ms` [MEDIUM impact / LOW effort]
+### 9. [x] Document `u64::MAX` fallback for `elapsed_ms` [MEDIUM impact / LOW effort]
 
 **Problem**:
 
@@ -242,7 +242,7 @@ This is the highest-confidence validation of the happy path and closes the gap l
 | 6     | [x]    | Correct Task 6 file reference                          | Medium | Trivial |
 | 7     | [x]    | Document `last_ms: null` on timeout in AC3             | Medium | Low     |
 | 8     | [x]    | Document double duration-check intent                  | Medium | Low     |
-| 9     | [ ]    | Document `u64::MAX` fallback                           | Medium | Low     |
+| 9     | [x]    | Document `u64::MAX` fallback                           | Medium | Low     |
 | 10    | [ ]    | Document `timeout_percent` denominator includes errors | Medium | Low     |
 | 11    | [ ]    | Document / fix `elapsed_ms` includes DNS time          | Medium | Medium  |
 | 12    | [ ]    | Extract `run_probe_loop` from `run_monitor`            | Low    | Medium  |
