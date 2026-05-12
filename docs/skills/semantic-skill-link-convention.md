@@ -32,10 +32,41 @@ Rules:
 - Use lowercase letters, numbers, and hyphens.
 - Add only high-signal links: artifacts that can make a skill stale when they change.
 
-## Markdown Frontmatter (Optional, Recommended)
+## Markdown Frontmatter (Required for New or Updated Issue and EPIC Specs)
 
-For Markdown files, you may also add semantic links in YAML frontmatter to make relationships
-explicit and easier to query.
+For new or updated issue and EPIC specification documents, YAML frontmatter is the canonical
+metadata source. Existing specs may be migrated incrementally as they are touched.
+
+Use frontmatter to keep machine-readable metadata and semantic links queryable and consistent.
+
+For other Markdown artifacts, frontmatter remains optional but recommended.
+
+Required metadata fields for issue specs:
+
+```yaml
+doc-type: issue
+issue-type: <task|bug|feature|enhancement>
+status: <draft|planned|in-progress|blocked|in-review|done>
+priority: <p0|p1|p2|p3>
+github-issue: <number|null>
+spec-path: <repo-relative-path>
+branch: <branch-name>
+related-pr: <number|null>
+last-updated-utc: YYYY-MM-DD HH:MM
+```
+
+Required metadata fields for EPIC specs:
+
+```yaml
+doc-type: epic
+status: <draft|planned|in-progress|blocked|in-review|done>
+github-issue: <number|null>
+spec-path: <repo-relative-path>
+epic-owner: <owner|null>
+last-updated-utc: YYYY-MM-DD HH:MM
+```
+
+When frontmatter metadata is present, do not duplicate it in a body section like `## Metadata`.
 
 Recommended shape:
 
@@ -55,6 +86,7 @@ Guidance:
 - Use frontmatter to express richer relations (for example bidirectional links).
 - Keep paths repository-relative and stable.
 - Keep links high-signal; avoid noisy or speculative links.
+- For issue and EPIC specs, include both metadata and `semantic-links` in frontmatter.
 
 ## Where to Place Markers
 
