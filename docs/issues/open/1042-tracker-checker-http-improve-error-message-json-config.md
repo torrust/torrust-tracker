@@ -1,18 +1,17 @@
 ---
 doc-type: issue
 issue-type: bug
-status: planned
+status: in-progress
 priority: p3
 github-issue: 1042
 spec-path: docs/issues/open/1042-tracker-checker-http-improve-error-message-json-config.md
-branch: 1042-tracker-checker-http-improve-error-message-json-config
+branch: 1042-tracker-checker-improve-error-message-json-config
 related-pr: null
-last-updated-utc: 2026-05-12 08:00
+last-updated-utc: 2026-05-12 10:00
 semantic-links:
-  skill-links:
-    - create-issue
   related-artifacts:
-    - .github/skills/dev/planning/create-issue/SKILL.md
+    - console/tracker-client/docs/adrs/20260512080000_define_tracker_cli_io_contract_and_error_handling.md
+    - console/tracker-client/docs/contracts/tracker-cli-io-contract.md
 ---
 
 # Issue #1042 — Tracker Checker (HTTP): Improve Error Message When JSON Config Is Not Well-Formatted
