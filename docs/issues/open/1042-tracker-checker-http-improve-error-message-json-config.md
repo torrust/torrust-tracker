@@ -259,6 +259,242 @@ In `console/tracker-client/tests/` or appropriate test module:
 - 2026-05-12 00:00 UTC - Agent - Incorporated maintainer decisions: JSON error output, no panic, both env and file config paths
 - 2026-05-12 08:00 UTC - Agent - Incorporated answered follow-ups: standardized checker error schema and exit code `2` for configuration errors
 
+## Manual Verification
+
+The following scenarios have been tested manually to verify the implementation meets the specification.
+
+### Scenario 1: Valid Configuration with Tracker Demo URLs
+
+**Command:**
+
+```console
+$ TORRUST_CHECKER_CONFIG='{
+    "udp_trackers": [],
+    "http_trackers": [
+        "https://http1.torrust-tracker-demo.com:443/announce",
+        "https://http1.torrust-tracker-demo.com:443/",
+        "https://http1.torrust-tracker-demo.com:443"
+    ],
+    "health_checks": []
+}' cargo run --bin tracker_checker
+```
+
+**Output:**
+
+```json
+[
+  {
+    "Http": {
+      "Ok": {
+        "url": "https://http1.torrust-tracker-demo.com/announce",
+        "results": [
+          ["Announce", { "Ok": null }],
+          ["Scrape", { "Ok": null }]
+        ]
+      }
+    }
+  },
+  {
+    "Http": {
+      "Ok": {
+        "url": "https://http1.torrust-tracker-demo.com/",
+        "results": [
+          ["Announce", { "Ok": null }],
+          ["Scrape", { "Ok": null }]
+        ]
+      }
+    }
+  },
+  {
+    "Http": {
+      "Ok": {
+        "url": "https://http1.torrust-tracker-demo.com/",
+        "results": [
+          ["Announce", { "Ok": null }],
+          ["Scrape", { "Ok": null }]
+        ]
+      }
+    }
+  }
+]
+```
+
+**Exit Code:** `0` (success)
+
+**Status:** ✅ PASS — Valid configuration runs successfully and produces tracker check results.
+
+---
+
+### Scenario 2: Trailing Comma in JSON Config via Environment Variable
+
+**Command:**
+
+```console
+$ TORRUST_CHECKER_CONFIG='{
+    "udp_trackers": [],
+    "http_trackers": [
+        "https://http1.torrust-tracker-demo.com:443/announce",
+        "https://http1.torrust-tracker-demo.com:443/",
+        "https://http1.torrust-tracker-demo.com:443",
+    ],
+    "health_checks": []
+}' cargo run --bin tracker_checker
+```
+
+**Output (stderr):**
+
+```json
+{
+  "error": {
+    "kind": "invalid_configuration",
+    "source": "TORRUST_CHECKER_CONFIG",
+    "message": "JSON parse error: trailing comma at line 7 column 5"
+  }
+}
+```
+
+**Exit Code:** `2` (configuration error)
+
+**Status:** ✅ PASS — JSON parse error detail visible immediately, source identified as environment variable, exit code is 2.
+
+---
+
+### Scenario 3: Missing Closing Bracket in JSON Config via Environment Variable
+
+**Command:**
+
+```console
+$ TORRUST_CHECKER_CONFIG='{
+    "udp_trackers": [],
+    "http_trackers": ["https://http1.torrust-tracker-demo.com:443/announce"
+}' cargo run --bin tracker_checker
+```
+
+**Output (stderr):**
+
+```json
+{
+  "error": {
+    "kind": "invalid_configuration",
+    "source": "TORRUST_CHECKER_CONFIG",
+    "message": "JSON parse error: expected `,` or `]` at line 4 column 1"
+  }
+}
+```
+
+**Exit Code:** `2` (configuration error)
+
+**Status:** ✅ PASS — Serde JSON parse error visible, source is env var, exit code is 2.
+
+---
+
+### Scenario 4: Invalid JSON from Configuration File
+
+**Command:**
+
+```console
+$ cat > /tmp/invalid-tracker-config.json << 'EOF'
+{
+    "udp_trackers": [],
+    "http_trackers": [
+        "https://http1.torrust-tracker-demo.com:443/announce",
+        "https://http1.torrust-tracker-demo.com:443/",
+    ],
+    "health_checks": []
+}
+EOF
+$ TORRUST_CHECKER_CONFIG_PATH=/tmp/invalid-tracker-config.json cargo run --bin tracker_checker
+```
+
+**Output (stderr):**
+
+```json
+{
+  "error": {
+    "kind": "invalid_configuration",
+    "source": "/tmp/invalid-tracker-config.json",
+    "message": "JSON parse error: trailing comma at line 6 column 5"
+  }
+}
+```
+
+**Exit Code:** `2` (configuration error)
+
+**Status:** ✅ PASS — File path shown in source field, JSON parse error detail visible, exit code is 2.
+
+---
+
+### Scenario 5: No Configuration Provided
+
+**Command:**
+
+```console
+$ cargo run --bin tracker_checker
+```
+
+**Output (stderr):**
+
+```json
+{
+  "error": {
+    "kind": "invalid_configuration",
+    "source": "TORRUST_CHECKER_CONFIG",
+    "message": "no configuration provided"
+  }
+}
+```
+
+**Exit Code:** `2` (configuration error)
+
+**Status:** ✅ PASS — Specific error message when no config provided, exit code is 2.
+
+---
+
+### Scenario 6: Invalid Configuration Content (Bad URL)
+
+**Command:**
+
+```console
+$ TORRUST_CHECKER_CONFIG='{
+    "udp_trackers": [],
+    "http_trackers": [
+        "not a valid url!"
+    ],
+    "health_checks": []
+}' cargo run --bin tracker_checker
+```
+
+**Output (stderr):**
+
+```json
+{
+  "error": {
+    "kind": "invalid_configuration",
+    "source": "TORRUST_CHECKER_CONFIG",
+    "message": "Invalid URL: relative URL without a base"
+  }
+}
+```
+
+**Exit Code:** `2` (configuration error)
+
+**Status:** ✅ PASS — Configuration validation errors surfaced with detail, exit code is 2.
+
+---
+
+## Summary of Manual Verification
+
+All 6 manual test scenarios pass:
+
+- ✅ Valid config runs successfully (exit 0)
+- ✅ Trailing comma error captured with line/column detail (exit 2, stderr JSON, source=env)
+- ✅ Malformed JSON error captured with detail (exit 2, stderr JSON, source=env)
+- ✅ File-sourced invalid JSON shows file path in source field (exit 2, stderr JSON, source=path)
+- ✅ Missing config handled gracefully (exit 2, stderr JSON)
+- ✅ Invalid URL in config surfaced with validation detail (exit 2, stderr JSON)
+
+All error outputs follow the Tracker CLI I/O Contract schema and are sent to stderr with exit code 2 (config errors).
+
 ## Open Questions
 
 No open questions at this time.
