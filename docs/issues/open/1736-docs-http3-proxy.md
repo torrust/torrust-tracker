@@ -7,7 +7,7 @@ github-issue: 1736
 spec-path: docs/issues/open/1736-docs-http3-proxy.md
 branch: 1736-docs-http3-proxy-follow-up
 related-pr: null
-last-updated-utc: 2026-05-12 16:05
+last-updated-utc: 2026-05-12 16:24
 semantic-links:
   skill-links:
     - create-issue
@@ -70,7 +70,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Follow-up issue created and linked
 - [x] Implementation completed (docs updated)
 - [ ] Reviewer validated acceptance criteria
-- [ ] Committer verified spec progress is up to date before commit
+- [x] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
@@ -80,6 +80,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-05-12 15:47 UTC - Agent - Verified HTTP/3 works on the demo deployment (Caddy proxy); added manual verification section with tested `curl --http3-only` commands
 - 2026-05-12 16:02 UTC - Agent - Updated `docs/containers.md` with HTTP/3 reverse proxy documentation, Caddy example, operational guidance, and manual verification commands
 - 2026-05-12 16:05 UTC - Agent - Ran `linter all`; all linters passed
+- 2026-05-12 16:22 UTC - Agent - Aligned progress tracking: marked AC5/AC6 done and updated committer checkpoint after implementation commit
 
 ## Acceptance Criteria
 
@@ -87,8 +88,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] AC2: Docs clearly explain the protocol boundary between edge (HTTP/3 optional) and backend (HTTP/1.1/HTTP/2).
 - [x] AC3: Example Caddy configuration with UDP 443 (QUIC) is included.
 - [x] AC4: Operational guidance covers monitoring, reversibility, and optional deployment of HTTP/3.
-- [ ] AC5: A follow-up issue (and spec) exists to test native HTTP/3 support once upstream dependencies support it.
-- [ ] AC6: The follow-up issue includes a minimal test/benchmark checklist.
+- [x] AC5: A follow-up issue (and spec) exists to test native HTTP/3 support once upstream dependencies support it.
+- [x] AC6: The follow-up issue includes a minimal test/benchmark checklist.
 - [x] AC7: `linter all` exits with code `0`.
 
 ### Acceptance Verification
