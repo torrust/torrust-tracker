@@ -178,7 +178,7 @@ mean.
 
 ---
 
-### 12. [ ] Extract `run_probe_loop` from `run_monitor` [LOW impact / MEDIUM effort]
+### 12. [x] Extract `run_probe_loop` from `run_monitor` [LOW impact / MEDIUM effort]
 
 **Problem**: `run_monitor` is ~90 lines handling multiple concerns: the probe loop, signal
 handling, sleep, outcome dispatch, stats recording, event emission, and final JSON output. This
@@ -245,6 +245,6 @@ This is the highest-confidence validation of the happy path and closes the gap l
 | 9     | [x]    | Document `u64::MAX` fallback                           | Medium | Low     |
 | 10    | [x]    | Document `timeout_percent` denominator includes errors | Medium | Low     |
 | 11    | [x]    | Document / fix `elapsed_ms` includes DNS time          | Medium | Medium  |
-| 12    | [ ]    | Extract `run_probe_loop` from `run_monitor`            | Low    | Medium  |
+| 12    | [x]    | Extract `run_probe_loop` from `run_monitor`            | Low    | Medium  |
 | 13    | [ ]    | `From<&Stats> for MonitorStats`                        | Low    | Low     |
 | 14    | [ ]    | Success-path integration test with mock UDP tracker    | Low    | High    |

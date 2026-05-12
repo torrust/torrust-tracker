@@ -119,6 +119,41 @@ enum ProbeOutcome {
 ///
 /// Returns an error if URL resolution or JSON serialization fails.
 pub async fn run_monitor(config: MonitorUdpConfig) -> Result<(), String> {
+    let url = config.url.to_string();
+    let (stats, interrupted) = run_probe_loop(&config).await?;
+
+    let message = if interrupted {
+        "monitor interrupted"
+    } else {
+        "monitor completed"
+    };
+
+    let output = MonitorResult {
+        udp_trackers: vec![UdpTrackerResult {
+            url,
+            status: MonitorStatus {
+                code: "ok",
+                message: message.to_string(),
+                stats: MonitorStats {
+                    total: stats.total,
+                    timeouts: stats.timeouts,
+                    timeout_percent: stats.timeout_percent(),
+                    min_ms: stats.min_ms,
+                    max_ms: stats.max_ms,
+                    average_ms: stats.average_ms(),
+                    last_ms: stats.last_ms,
+                },
+            },
+        }],
+    };
+
+    let final_json = serde_json::to_string(&output).map_err(|e| format!("final JSON serialization failed: {e}"))?;
+    println!("{final_json}");
+
+    Ok(())
+}
+
+async fn run_probe_loop(config: &MonitorUdpConfig) -> Result<(Stats, bool), String> {
     let started_at = Instant::now();
     let url = config.url.to_string();
     let mut interrupted = false;
@@ -138,7 +173,7 @@ pub async fn run_monitor(config: MonitorUdpConfig) -> Result<(), String> {
                 interrupted = true;
                 break;
             }
-            probe_result = run_probe(&config) => {
+            probe_result = run_probe(config) => {
                 match probe_result {
                     ProbeOutcome::Ok { elapsed_ms } => {
                         stats.record_success(elapsed_ms);
@@ -195,35 +230,7 @@ pub async fn run_monitor(config: MonitorUdpConfig) -> Result<(), String> {
         }
     }
 
-    let message = if interrupted {
-        "monitor interrupted"
-    } else {
-        "monitor completed"
-    };
-
-    let output = MonitorResult {
-        udp_trackers: vec![UdpTrackerResult {
-            url,
-            status: MonitorStatus {
-                code: "ok",
-                message: message.to_string(),
-                stats: MonitorStats {
-                    total: stats.total,
-                    timeouts: stats.timeouts,
-                    timeout_percent: stats.timeout_percent(),
-                    min_ms: stats.min_ms,
-                    max_ms: stats.max_ms,
-                    average_ms: stats.average_ms(),
-                    last_ms: stats.last_ms,
-                },
-            },
-        }],
-    };
-
-    let final_json = serde_json::to_string(&output).map_err(|e| format!("final JSON serialization failed: {e}"))?;
-    println!("{final_json}");
-
-    Ok(())
+    Ok((stats, interrupted))
 }
 
 fn emit_probe_event(event: &ProbeEvent) -> Result<(), String> {
