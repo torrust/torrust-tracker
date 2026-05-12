@@ -6,8 +6,8 @@ priority: p3
 github-issue: 1042
 spec-path: docs/issues/open/1042-tracker-checker-http-improve-error-message-json-config.md
 branch: 1042-tracker-checker-improve-error-message-json-config
-related-pr: null
-last-updated-utc: 2026-05-12 10:00
+related-pr: 1764
+last-updated-utc: 2026-05-12 13:15
 semantic-links:
   related-artifacts:
     - console/tracker-client/docs/adrs/20260512080000_define_tracker_cli_io_contract_and_error_handling.md
