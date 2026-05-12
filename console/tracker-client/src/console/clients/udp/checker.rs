@@ -3,6 +3,7 @@ use std::num::NonZeroU16;
 use std::time::Duration;
 
 use bittorrent_primitives::info_hash::InfoHash as TorrustInfoHash;
+use bittorrent_tracker_client::peer_id::default_production_peer_id;
 use bittorrent_tracker_client::udp::client::UdpTrackerClient;
 use bittorrent_udp_tracker_protocol::common::InfoHash;
 use bittorrent_udp_tracker_protocol::{
@@ -129,7 +130,7 @@ impl Client {
             action_placeholder: AnnounceActionPlaceholder::default(),
             transaction_id,
             info_hash: InfoHash(info_hash.bytes()),
-            peer_id: params.peer_id.map_or(PeerId(*b"-qB00000000000000001"), PeerId),
+            peer_id: params.peer_id.map_or(default_production_peer_id(), PeerId),
             bytes_downloaded: NumberOfBytes::new(params.downloaded.unwrap_or(0)),
             bytes_uploaded: NumberOfBytes::new(params.uploaded.unwrap_or(0)),
             bytes_left: NumberOfBytes::new(params.left.unwrap_or(0)),

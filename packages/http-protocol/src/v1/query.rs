@@ -229,7 +229,7 @@ mod tests {
         #[test]
         fn should_parse_the_query_params_from_an_url_query_string() {
             let raw_query =
-                "info_hash=%3B%24U%04%CF%5F%11%BB%DB%E1%20%1C%EAjk%F4Z%EE%1B%C0&peer_id=-qB00000000000000001&port=17548";
+                "info_hash=%3B%24U%04%CF%5F%11%BB%DB%E1%20%1C%EAjk%F4Z%EE%1B%C0&peer_id=-RC3000-000000000001&port=17548";
 
             let query = raw_query.parse::<Query>().unwrap();
 
@@ -237,7 +237,7 @@ mod tests {
                 query.get_param("info_hash").unwrap(),
                 "%3B%24U%04%CF%5F%11%BB%DB%E1%20%1C%EAjk%F4Z%EE%1B%C0"
             );
-            assert_eq!(query.get_param("peer_id").unwrap(), "-qB00000000000000001");
+            assert_eq!(query.get_param("peer_id").unwrap(), "-RC3000-000000000001");
             assert_eq!(query.get_param("port").unwrap(), "17548");
         }
 

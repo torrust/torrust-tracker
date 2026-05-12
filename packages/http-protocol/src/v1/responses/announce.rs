@@ -134,7 +134,7 @@ impl Into<Vec<u8>> for Compact {
 /// use bittorrent_http_tracker_protocol::v1::responses::announce::{Normal, NormalPeer};
 ///
 /// let peer = NormalPeer {
-///     peer_id: *b"-qB00000000000000001",
+///     peer_id: *b"-RC3000-000000000001",
 ///     ip: IpAddr::V4(Ipv4Addr::new(0x69, 0x69, 0x69, 0x69)), // 105.105.105.105
 ///     port: 0x7070,                                          // 28784
 /// };
@@ -300,12 +300,12 @@ mod tests {
         let policy = AnnouncePolicy::new(111, 222);
 
         let peer_ipv4 = PeerBuilder::default()
-            .with_peer_id(&PeerId(*b"-qB00000000000000001"))
+            .with_peer_id(&PeerId(*b"-RC3000-000000000001"))
             .with_peer_addr(&SocketAddr::new(IpAddr::V4(Ipv4Addr::new(0x69, 0x69, 0x69, 0x69)), 0x7070))
             .build();
 
         let peer_ipv6 = PeerBuilder::default()
-            .with_peer_id(&PeerId(*b"-qB00000000000000002"))
+            .with_peer_id(&PeerId(*b"-RC3000-000000000002"))
             .with_peer_addr(&SocketAddr::new(
                 IpAddr::V6(Ipv6Addr::new(0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969)),
                 0x7070,
@@ -324,7 +324,7 @@ mod tests {
         let bytes = response.data.into();
 
         // cspell:disable-next-line
-        let expected_bytes = b"d8:completei333e10:incompletei444e8:intervali111e12:min intervali222e5:peersld2:ip15:105.105.105.1057:peer id20:-qB000000000000000014:porti28784eed2:ip39:6969:6969:6969:6969:6969:6969:6969:69697:peer id20:-qB000000000000000024:porti28784eeee";
+        let expected_bytes = b"d8:completei333e10:incompletei444e8:intervali111e12:min intervali222e5:peersld2:ip15:105.105.105.1057:peer id20:-RC3000-0000000000014:porti28784eed2:ip39:6969:6969:6969:6969:6969:6969:6969:69697:peer id20:-RC3000-0000000000024:porti28784eeee";
 
         assert_eq!(
             String::from_utf8(bytes).unwrap(),

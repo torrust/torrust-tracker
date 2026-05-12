@@ -39,7 +39,7 @@ const NUMWANT: &str = "numwant";
 /// let request = Announce {
 ///     // Mandatory params
 ///     info_hash: "3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0".parse::<InfoHash>().unwrap(),
-///     peer_id: PeerId(*b"-qB00000000000000001"),
+///     peer_id: PeerId(*b"-RC3000-000000000001"),
 ///     port: 17548,
 ///     // Optional params
 ///     downloaded: Some(NumberOfBytes::new(1)),
@@ -452,7 +452,7 @@ mod tests {
         fn should_be_instantiated_from_the_url_query_with_only_the_mandatory_params() {
             let raw_query = Query::from(vec![
                 (INFO_HASH, "%3B%24U%04%CF%5F%11%BB%DB%E1%20%1C%EAjk%F4Z%EE%1B%C0"),
-                (PEER_ID, "-qB00000000000000001"),
+                (PEER_ID, "-RC3000-000000000001"),
                 (PORT, "17548"),
             ])
             .to_string();
@@ -465,7 +465,7 @@ mod tests {
                 announce_request,
                 Announce {
                     info_hash: "3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0".parse::<InfoHash>().unwrap(), // DevSkim: ignore DS173237
-                    peer_id: PeerId(*b"-qB00000000000000001"),
+                    peer_id: PeerId(*b"-RC3000-000000000001"),
                     port: 17548,
                     downloaded: None,
                     uploaded: None,
@@ -481,7 +481,7 @@ mod tests {
         fn should_be_instantiated_from_the_url_query_params() {
             let raw_query = Query::from(vec![
                 (INFO_HASH, "%3B%24U%04%CF%5F%11%BB%DB%E1%20%1C%EAjk%F4Z%EE%1B%C0"),
-                (PEER_ID, "-qB00000000000000001"),
+                (PEER_ID, "-RC3000-000000000001"),
                 (PORT, "17548"),
                 (DOWNLOADED, "1"),
                 (UPLOADED, "2"),
@@ -500,7 +500,7 @@ mod tests {
                 announce_request,
                 Announce {
                     info_hash: "3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0".parse::<InfoHash>().unwrap(), // DevSkim: ignore DS173237
-                    peer_id: PeerId(*b"-qB00000000000000001"),
+                    peer_id: PeerId(*b"-RC3000-000000000001"),
                     port: 17548,
                     downloaded: Some(NumberOfBytes::new(1)),
                     uploaded: Some(NumberOfBytes::new(2)),
@@ -521,7 +521,7 @@ mod tests {
 
             #[test]
             fn it_should_fail_if_the_query_does_not_include_all_the_mandatory_params() {
-                let raw_query_without_info_hash = "peer_id=-qB00000000000000001&port=17548";
+                let raw_query_without_info_hash = "peer_id=-RC3000-000000000001&port=17548";
 
                 assert!(Announce::try_from(raw_query_without_info_hash.parse::<Query>().unwrap()).is_err());
 
@@ -530,7 +530,7 @@ mod tests {
                 assert!(Announce::try_from(raw_query_without_peer_id.parse::<Query>().unwrap()).is_err());
 
                 let raw_query_without_port =
-                    "info_hash=%3B%24U%04%CF%5F%11%BB%DB%E1%20%1C%EAjk%F4Z%EE%1B%C0&peer_id=-qB00000000000000001";
+                    "info_hash=%3B%24U%04%CF%5F%11%BB%DB%E1%20%1C%EAjk%F4Z%EE%1B%C0&peer_id=-RC3000-000000000001";
 
                 assert!(Announce::try_from(raw_query_without_port.parse::<Query>().unwrap()).is_err());
             }
@@ -539,7 +539,7 @@ mod tests {
             fn it_should_fail_if_the_info_hash_param_is_invalid() {
                 let raw_query = Query::from(vec![
                     (INFO_HASH, "INVALID_INFO_HASH_VALUE"),
-                    (PEER_ID, "-qB00000000000000001"),
+                    (PEER_ID, "-RC3000-000000000001"),
                     (PORT, "17548"),
                 ])
                 .to_string();
@@ -563,7 +563,7 @@ mod tests {
             fn it_should_fail_if_the_port_param_is_invalid() {
                 let raw_query = Query::from(vec![
                     (INFO_HASH, "%3B%24U%04%CF%5F%11%BB%DB%E1%20%1C%EAjk%F4Z%EE%1B%C0"),
-                    (PEER_ID, "-qB00000000000000001"),
+                    (PEER_ID, "-RC3000-000000000001"),
                     (PORT, "INVALID_PORT_VALUE"),
                 ])
                 .to_string();
@@ -575,7 +575,7 @@ mod tests {
             fn it_should_fail_if_the_downloaded_param_is_invalid() {
                 let raw_query = Query::from(vec![
                     (INFO_HASH, "%3B%24U%04%CF%5F%11%BB%DB%E1%20%1C%EAjk%F4Z%EE%1B%C0"),
-                    (PEER_ID, "-qB00000000000000001"),
+                    (PEER_ID, "-RC3000-000000000001"),
                     (PORT, "17548"),
                     (DOWNLOADED, "INVALID_DOWNLOADED_VALUE"),
                 ])
@@ -588,7 +588,7 @@ mod tests {
             fn it_should_fail_if_the_uploaded_param_is_invalid() {
                 let raw_query = Query::from(vec![
                     (INFO_HASH, "%3B%24U%04%CF%5F%11%BB%DB%E1%20%1C%EAjk%F4Z%EE%1B%C0"),
-                    (PEER_ID, "-qB00000000000000001"),
+                    (PEER_ID, "-RC3000-000000000001"),
                     (PORT, "17548"),
                     (UPLOADED, "INVALID_UPLOADED_VALUE"),
                 ])
@@ -601,7 +601,7 @@ mod tests {
             fn it_should_fail_if_the_left_param_is_invalid() {
                 let raw_query = Query::from(vec![
                     (INFO_HASH, "%3B%24U%04%CF%5F%11%BB%DB%E1%20%1C%EAjk%F4Z%EE%1B%C0"),
-                    (PEER_ID, "-qB00000000000000001"),
+                    (PEER_ID, "-RC3000-000000000001"),
                     (PORT, "17548"),
                     (LEFT, "INVALID_LEFT_VALUE"),
                 ])
@@ -614,7 +614,7 @@ mod tests {
             fn it_should_fail_if_the_event_param_is_invalid() {
                 let raw_query = Query::from(vec![
                     (INFO_HASH, "%3B%24U%04%CF%5F%11%BB%DB%E1%20%1C%EAjk%F4Z%EE%1B%C0"),
-                    (PEER_ID, "-qB00000000000000001"),
+                    (PEER_ID, "-RC3000-000000000001"),
                     (PORT, "17548"),
                     (EVENT, "INVALID_EVENT_VALUE"),
                 ])
@@ -627,7 +627,7 @@ mod tests {
             fn it_should_fail_if_the_compact_param_is_invalid() {
                 let raw_query = Query::from(vec![
                     (INFO_HASH, "%3B%24U%04%CF%5F%11%BB%DB%E1%20%1C%EAjk%F4Z%EE%1B%C0"),
-                    (PEER_ID, "-qB00000000000000001"),
+                    (PEER_ID, "-RC3000-000000000001"),
                     (PORT, "17548"),
                     (COMPACT, "INVALID_COMPACT_VALUE"),
                 ])
@@ -640,7 +640,7 @@ mod tests {
             fn it_should_fail_if_the_numwant_param_is_invalid() {
                 let raw_query = Query::from(vec![
                     (INFO_HASH, "%3B%24U%04%CF%5F%11%BB%DB%E1%20%1C%EAjk%F4Z%EE%1B%C0"),
-                    (PEER_ID, "-qB00000000000000001"),
+                    (PEER_ID, "-RC3000-000000000001"),
                     (PORT, "17548"),
                     (NUMWANT, "-1"),
                 ])

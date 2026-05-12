@@ -7,6 +7,7 @@ use bittorrent_udp_tracker_protocol::PeerId;
 use serde_repr::Serialize_repr;
 
 use crate::http::{percent_encode_byte_array, ByteArray20};
+use crate::peer_id::default_production_peer_id;
 
 pub struct Query {
     pub info_hash: ByteArray20,
@@ -99,7 +100,7 @@ impl QueryBuilder {
             peer_addr: IpAddr::V4(Ipv4Addr::new(192, 168, 1, 88)),
             downloaded: 0,
             uploaded: 0,
-            peer_id: PeerId(*b"-qB00000000000000001").0,
+            peer_id: default_production_peer_id().0,
             port: 17548,
             left: 0,
             event: Some(Event::Started),
