@@ -1,4 +1,13 @@
 ---
+doc-type: issue
+issue-type: task-or-bug-or-feature
+status: draft
+priority: p2
+github-issue: null
+spec-path: docs/issues/drafts/{short-description}.md
+branch: "{issue-number}-{short-description}"
+related-pr: null
+last-updated-utc: YYYY-MM-DD HH:MM
 semantic-links:
   skill-links:
     - create-issue
@@ -9,19 +18,6 @@ semantic-links:
 <!-- skill-link: create-issue -->
 
 # Issue #[To be assigned] - {Title}
-
-## Metadata
-
-| Field              | Value                                                      |
-| ------------------ | ---------------------------------------------------------- |
-| Type               | Task / Bug / Feature                                       |
-| Status             | Draft / Planned / In Progress / Blocked / In Review / Done |
-| Priority           | P0 / P1 / P2 / P3                                          |
-| GitHub Issue       | #[To be assigned]                                          |
-| Spec Path          | `docs/issues/drafts/{short-description}.md`                |
-| Branch             | `{issue-number}-{short-description}`                       |
-| Related PR         | [To be assigned]                                           |
-| Last Updated (UTC) | YYYY-MM-DD HH:MM                                           |
 
 ## Goal
 

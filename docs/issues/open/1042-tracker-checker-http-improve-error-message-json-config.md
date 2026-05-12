@@ -1,3 +1,20 @@
+---
+doc-type: issue
+issue-type: bug
+status: planned
+priority: p3
+github-issue: 1042
+spec-path: docs/issues/open/1042-tracker-checker-http-improve-error-message-json-config.md
+branch: 1042-tracker-checker-http-improve-error-message-json-config
+related-pr: null
+last-updated-utc: 2026-05-12 08:00
+semantic-links:
+  skill-links:
+    - create-issue
+  related-artifacts:
+    - .github/skills/dev/planning/create-issue/SKILL.md
+---
+
 # Issue #1042 — Tracker Checker (HTTP): Improve Error Message When JSON Config Is Not Well-Formatted
 
 ## Overview
@@ -198,19 +215,6 @@ This step is required by the maintainer decision.
 | AC6   | TODO                   |          |
 | AC7   | TODO                   |          |
 | AC8   | TODO                   |          |
-
-## Metadata
-
-| Field              | Value                                                                             |
-| ------------------ | --------------------------------------------------------------------------------- |
-| Type               | Bug / Enhancement                                                                 |
-| Status             | Planned                                                                           |
-| Priority           | P3                                                                                |
-| GitHub Issue       | [#1042](https://github.com/torrust/torrust-tracker/issues/1042)                   |
-| Spec Path          | `docs/issues/open/1042-tracker-checker-http-improve-error-message-json-config.md` |
-| Branch             | `1042-tracker-checker-http-improve-error-message-json-config`                     |
-| Related PR         | To be assigned                                                                    |
-| Last Updated (UTC) | 2026-05-12 08:00                                                                  |
 
 ## Progress Tracking
 

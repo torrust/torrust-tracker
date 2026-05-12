@@ -1,3 +1,20 @@
+---
+doc-type: issue
+issue-type: enhancement
+status: in-review
+priority: p3
+github-issue: 1564
+spec-path: docs/issues/open/1564-tracker-client-change-default-peer-id.md
+branch: 1564-change-default-peer-id
+related-pr: null
+last-updated-utc: 2026-05-12 10:25
+semantic-links:
+  skill-links:
+    - create-issue
+  related-artifacts:
+    - .github/skills/dev/planning/create-issue/SKILL.md
+---
+
 # Issue #1564 — Tracker Client: Change the Default `PeerId` Used in Clients
 
 ## Overview

@@ -1,3 +1,20 @@
+---
+doc-type: issue
+issue-type: feature
+status: planned
+priority: p2
+github-issue: 1178
+spec-path: docs/issues/open/1178-tracker-checker-udp-add-monitor-uptime-command.md
+branch: 1178-tracker-checker-udp-add-monitor-uptime-command
+related-pr: null
+last-updated-utc: 2026-05-12 08:00
+semantic-links:
+  skill-links:
+    - create-issue
+  related-artifacts:
+    - .github/skills/dev/planning/create-issue/SKILL.md
+---
+
 # Issue #1178 — Tracker Checker (UDP): Add Command to Monitor Uptime
 
 ## Overview
@@ -66,12 +83,12 @@ cargo run --bin torrust-tracker-client -- \
 
 ### Options
 
-| Option       | Default | Description                                  |
-| ------------ | ------- | -------------------------------------------- |
-| `--url`      | —       | UDP tracker URL (required)                   |
-| `--interval` | `300`   | Seconds between probes                       |
+| Option       | Default | Description                                   |
+| ------------ | ------- | --------------------------------------------- |
+| `--url`      | —       | UDP tracker URL (required)                    |
+| `--interval` | `300`   | Seconds between probes                        |
 | `--timeout`  | `10`    | Seconds to wait for a response before timeout |
-| `--duration` | `86400` | Total monitor runtime in seconds             |
+| `--duration` | `86400` | Total monitor runtime in seconds              |
 
 ### Sample Output
 
@@ -151,20 +168,20 @@ when the `monitor` subcommand is selected.
 
 ## Key Files
 
-| File                                                                                  | Role                              |
-| ------------------------------------------------------------------------------------- | --------------------------------- |
-| `console/tracker-client/src/console/clients/checker/app.rs`                          | CLI argument parsing, entry point |
-| `console/tracker-client/src/console/clients/checker/`                                | Checker module root               |
-| `packages/tracker-client/src/udp/`                                                   | Existing UDP tracker client       |
-| `console/tracker-client/src/bin/tracker_checker.rs`                                  | Binary entry point                |
+| File                                                        | Role                              |
+| ----------------------------------------------------------- | --------------------------------- |
+| `console/tracker-client/src/console/clients/checker/app.rs` | CLI argument parsing, entry point |
+| `console/tracker-client/src/console/clients/checker/`       | Checker module root               |
+| `packages/tracker-client/src/udp/`                          | Existing UDP tracker client       |
+| `console/tracker-client/src/bin/tracker_checker.rs`         | Binary entry point                |
 
 ## Acceptance Criteria
 
 - [ ] AC1: `monitor udp --url udp://127.0.0.1:6969` starts a probe loop and prints a status
-           JSON line after each probe to stderr (NDJSON)
+      JSON line after each probe to stderr (NDJSON)
 - [ ] AC2: When monitoring ends, final aggregate statistics are printed to stdout as valid JSON
 - [ ] AC3: When a probe does not receive a response within the timeout, it is recorded as
-           `TIMEOUT` and excluded from response-time averages
+      `TIMEOUT` and excluded from response-time averages
 - [ ] AC4: `--duration` controls total runtime and the command exits normally when elapsed
 - [ ] AC5: `Ctrl+C` stops monitoring early and still emits final JSON stats
 - [ ] AC6: The `--interval` option controls the delay between probes
@@ -199,19 +216,6 @@ when the `monitor` subcommand is selected.
 - **UDP announcement contents**: The monitor sends a real announce request. The info-hash and
   peer fields will be test values (re-using the existing `QueryBuilder::with_default_values`
   defaults unless overridden). This is acceptable for monitoring purposes.
-
-## Metadata
-
-| Field              | Value                                                                  |
-| ------------------ | ---------------------------------------------------------------------- |
-| Type               | Feature                                                                |
-| Status             | Planned                                                                |
-| Priority           | P2                                                                     |
-| GitHub Issue       | [#1178](https://github.com/torrust/torrust-tracker/issues/1178)        |
-| Spec Path          | `docs/issues/open/1178-tracker-checker-udp-add-monitor-uptime-command.md` |
-| Branch             | `1178-tracker-checker-udp-add-monitor-uptime-command`                 |
-| Related PR         | To be assigned                                                         |
-| Last Updated (UTC) | 2026-05-12 08:00                                                       |
 
 ## Progress Tracking
 

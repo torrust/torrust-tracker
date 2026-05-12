@@ -1,4 +1,10 @@
 ---
+doc-type: epic
+status: draft
+github-issue: null
+spec-path: docs/issues/drafts/{short-description}.md
+epic-owner: null
+last-updated-utc: YYYY-MM-DD HH:MM
 semantic-links:
   skill-links:
     - create-issue
@@ -9,17 +15,6 @@ semantic-links:
 <!-- skill-link: create-issue -->
 
 # EPIC #[To be assigned] - {Title}
-
-## Metadata
-
-| Field              | Value                                                      |
-| ------------------ | ---------------------------------------------------------- |
-| Type               | Epic                                                       |
-| Status             | Draft / Planned / In Progress / Blocked / In Review / Done |
-| GitHub Issue       | #[To be assigned]                                          |
-| Spec Path          | `docs/issues/drafts/{short-description}.md`                |
-| Epic Owner         | [To be assigned]                                           |
-| Last Updated (UTC) | YYYY-MM-DD HH:MM                                           |
 
 ## Goal
 
