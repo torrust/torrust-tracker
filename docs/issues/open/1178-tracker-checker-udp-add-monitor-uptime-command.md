@@ -289,6 +289,9 @@ Notes:
   without being counted as a timeout. This reduces `timeout_percent` without the probe being a
   success, which can be surprising. The name `timeout_percent` is intentionally scoped to
   timeouts; errors are a separate failure mode tracked only implicitly through `total`.
+- **`elapsed_ms` excludes DNS resolution time**: Probe timing starts after `resolve_socket_addr`
+  succeeds, so `elapsed_ms` measures UDP connect + announce network work only. DNS lookup
+  failures are reported as probe errors with `elapsed_ms: null`.
 
 ## Progress Tracking
 
@@ -308,6 +311,7 @@ Notes:
 - 2026-05-12 08:00 UTC - Agent - Incorporated answered follow-ups: default duration `86400`, align final JSON with checker shape, keep exit code `0` for timeout-heavy but successful runs
 - 2026-05-12 09:30 UTC - Maintainer + Agent - Confirmed command remains a `tracker_checker` subcommand, documented future binary consolidation context, and confirmed `null` latency fields when all probes timeout
 - 2026-05-12 10:00 UTC - Maintainer + Agent - Finalized elapsed-time precision: `elapsed_ms` uses integer milliseconds (`u64`) with truncation
+- 2026-05-12 17:40 UTC - Agent - Updated probe timing to start after address resolution so `elapsed_ms` excludes DNS lookup time; documented behavior in Risks and Trade-offs
 - 2026-05-12 16:55 UTC - Agent - Performed 60-second manual verification against `udp://udp1.torrust-tracker-demo.com:6969/announce`, captured command/output in spec, and corrected workspace-root command invocation to include `-p torrust-tracker-client`
 - 2026-05-12 17:10 UTC - Agent - Performed 60-second manual verification against `udp://tracker.torrust-demo.com:6969/announce` (confirmed down); all 3 probes timed out, null latency fields and `timeout_percent: 100` observed as designed
 

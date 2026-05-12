@@ -158,7 +158,7 @@ spec or code.
 
 ---
 
-### 11. [ ] Document that `elapsed_ms` includes DNS resolution time [MEDIUM impact / MEDIUM effort]
+### 11. [x] Document that `elapsed_ms` includes DNS resolution time [MEDIUM impact / MEDIUM effort]
 
 **Problem**: The `probe_started` timer is captured before `resolve_socket_addr()`. For trackers
 with non-trivial DNS lookup times, the reported latency includes DNS resolution, not just
@@ -244,7 +244,7 @@ This is the highest-confidence validation of the happy path and closes the gap l
 | 8     | [x]    | Document double duration-check intent                  | Medium | Low     |
 | 9     | [x]    | Document `u64::MAX` fallback                           | Medium | Low     |
 | 10    | [x]    | Document `timeout_percent` denominator includes errors | Medium | Low     |
-| 11    | [ ]    | Document / fix `elapsed_ms` includes DNS time          | Medium | Medium  |
+| 11    | [x]    | Document / fix `elapsed_ms` includes DNS time          | Medium | Medium  |
 | 12    | [ ]    | Extract `run_probe_loop` from `run_monitor`            | Low    | Medium  |
 | 13    | [ ]    | `From<&Stats> for MonitorStats`                        | Low    | Low     |
 | 14    | [ ]    | Success-path integration test with mock UDP tracker    | Low    | High    |

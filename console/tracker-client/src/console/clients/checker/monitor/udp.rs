@@ -110,7 +110,7 @@ struct MonitorStats {
 }
 
 enum ProbeOutcome {
-    Ok,
+    Ok { elapsed_ms: u64 },
     Timeout,
     Error { message: String },
 }
@@ -133,20 +133,14 @@ pub async fn run_monitor(config: MonitorUdpConfig) -> Result<(), String> {
 
         sequence += 1;
 
-        let probe_started = Instant::now();
         tokio::select! {
             _ = tokio::signal::ctrl_c() => {
                 interrupted = true;
                 break;
             }
             probe_result = run_probe(&config) => {
-                // `as_millis()` returns u128; overflow into u64 would require a single probe
-                // to run for over 584 million years, which cannot happen in practice.
-                // `u64::MAX` is therefore an unreachable sentinel.
-                let elapsed_ms = u64::try_from(probe_started.elapsed().as_millis()).unwrap_or(u64::MAX);
-
                 match probe_result {
-                    ProbeOutcome::Ok => {
+                    ProbeOutcome::Ok { elapsed_ms } => {
                         stats.record_success(elapsed_ms);
                         emit_probe_event(&ProbeEvent {
                             event: "probe",
@@ -244,6 +238,9 @@ async fn run_probe(config: &MonitorUdpConfig) -> ProbeOutcome {
         Err(message) => return ProbeOutcome::Error { message },
     };
 
+    // Measure network probe time only (connect + announce), excluding DNS resolution.
+    let probe_started = Instant::now();
+
     let client = match Client::new(remote_addr, config.timeout).await {
         Ok(client) => client,
         Err(err) => {
@@ -274,7 +271,13 @@ async fn run_probe(config: &MonitorUdpConfig) -> ProbeOutcome {
         .send_announce_request(transaction_id, connection_id, config.info_hash, &AnnounceParams::default())
         .await
     {
-        Ok(_response) => ProbeOutcome::Ok,
+        Ok(_response) => {
+            // `as_millis()` returns u128; overflow into u64 would require a single probe
+            // to run for over 584 million years, which cannot happen in practice.
+            // `u64::MAX` is therefore an unreachable sentinel.
+            let elapsed_ms = u64::try_from(probe_started.elapsed().as_millis()).unwrap_or(u64::MAX);
+            ProbeOutcome::Ok { elapsed_ms }
+        }
         Err(err) => {
             if is_timeout_error(&err) {
                 ProbeOutcome::Timeout
