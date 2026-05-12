@@ -59,12 +59,12 @@
 use std::path::PathBuf;
 use std::sync::Arc;
 
-use anyhow::{Context, Result};
 use clap::Parser;
 use tracing::level_filters::LevelFilter;
 
 use super::config::Configuration;
 use super::console::Console;
+use super::error::{AppError, ConfigSource};
 use super::service::{CheckResult, Service};
 use crate::console::clients::checker::config::parse_from_json;
 
@@ -82,8 +82,9 @@ struct Args {
 
 /// # Errors
 ///
-/// Will return an error if the configuration was not provided.
-pub async fn run() -> Result<Vec<CheckResult>> {
+/// Will return an `AppError::InvalidConfig` if the configuration cannot be parsed,
+/// or an `AppError::Runtime` if the checks fail to execute.
+pub async fn run() -> Result<Vec<CheckResult>, AppError> {
     tracing_stdout_init(LevelFilter::INFO);
 
     let args = Args::parse();
@@ -97,7 +98,7 @@ pub async fn run() -> Result<Vec<CheckResult>> {
         console: console_printer,
     };
 
-    service.run_checks().await.context("it should run the check tasks")
+    service.run_checks().await.map_err(|e| AppError::Runtime(e.to_string()))
 }
 
 fn tracing_stdout_init(filter: LevelFilter) {
@@ -105,16 +106,28 @@ fn tracing_stdout_init(filter: LevelFilter) {
     tracing::debug!("Logging initialized");
 }
 
-fn setup_config(args: Args) -> Result<Configuration> {
+fn setup_config(args: Args) -> Result<Configuration, AppError> {
     match (args.config_path, args.config_content) {
         (Some(config_path), _) => load_config_from_file(&config_path),
-        (_, Some(config_content)) => parse_from_json(&config_content).context("invalid config format"),
-        _ => Err(anyhow::anyhow!("no configuration provided")),
+        (_, Some(config_content)) => parse_from_json(&config_content).map_err(|e| AppError::InvalidConfig {
+            source: ConfigSource::EnvVar("TORRUST_CHECKER_CONFIG"),
+            message: e.to_string(),
+        }),
+        _ => Err(AppError::InvalidConfig {
+            source: ConfigSource::EnvVar("TORRUST_CHECKER_CONFIG"),
+            message: "no configuration provided".to_string(),
+        }),
     }
 }
 
-fn load_config_from_file(path: &PathBuf) -> Result<Configuration> {
-    let file_content = std::fs::read_to_string(path).with_context(|| format!("can't read config file {}", path.display()))?;
+fn load_config_from_file(path: &PathBuf) -> Result<Configuration, AppError> {
+    let file_content = std::fs::read_to_string(path).map_err(|e| AppError::InvalidConfig {
+        source: ConfigSource::File(path.clone()),
+        message: format!("can't read config file {}: {e}", path.display()),
+    })?;
 
-    parse_from_json(&file_content).context("invalid config format")
+    parse_from_json(&file_content).map_err(|e| AppError::InvalidConfig {
+        source: ConfigSource::File(path.clone()),
+        message: e.to_string(),
+    })
 }

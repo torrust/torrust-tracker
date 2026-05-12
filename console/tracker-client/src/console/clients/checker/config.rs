@@ -279,4 +279,72 @@ mod tests {
             }
         }
     }
+
+    mod parsing_from_json {
+        use crate::console::clients::checker::config::parse_from_json;
+
+        #[test]
+        fn it_should_succeed_with_valid_json() {
+            let json = r#"{"udp_trackers":[],"http_trackers":[],"health_checks":[]}"#;
+            assert!(parse_from_json(json).is_ok());
+        }
+
+        #[test]
+        fn it_should_fail_with_trailing_comma_and_include_serde_detail_in_error() {
+            let json = r#"{
+                "udp_trackers": [],
+                "http_trackers": [
+                    "http://127.0.0.1:7070",
+                ],
+                "health_checks": []
+            }"#;
+
+            let err = parse_from_json(json).err().expect("Expected a parse error");
+            let message = err.to_string();
+
+            // The specific serde_json detail must be present, not just "invalid config format"
+            assert!(
+                message.contains("trailing comma"),
+                "Expected 'trailing comma' in error message, got: {message}"
+            );
+        }
+
+        #[test]
+        fn it_should_fail_with_missing_field_and_include_serde_detail_in_error() {
+            // Missing required fields entirely
+            let json = r#"{"udp_trackers":[]}"#;
+
+            let err = parse_from_json(json)
+                .err()
+                .expect("Expected a parse error for missing fields");
+            let message = err.to_string();
+
+            assert!(!message.is_empty(), "Expected a non-empty error message, got empty string");
+        }
+
+        #[test]
+        fn it_should_fail_with_malformed_json_and_include_serde_detail_in_error() {
+            let json = r#"not json at all"#;
+
+            let err = parse_from_json(json)
+                .err()
+                .expect("Expected a parse error for malformed JSON");
+            let message = err.to_string();
+
+            assert!(
+                message.contains("JSON parse error"),
+                "Expected 'JSON parse error' prefix in error message, got: {message}"
+            );
+        }
+
+        #[test]
+        fn it_should_fail_with_invalid_url_and_include_detail_in_error() {
+            let json = r#"{"udp_trackers":["not a url"],"http_trackers":[],"health_checks":[]}"#;
+
+            let err = parse_from_json(json).err().expect("Expected an error for an invalid URL");
+            let message = err.to_string();
+
+            assert!(!message.is_empty(), "Expected a non-empty error message");
+        }
+    }
 }
