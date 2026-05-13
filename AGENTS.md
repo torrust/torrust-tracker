@@ -14,7 +14,7 @@ native IPv4/IPv6 support, private/whitelisted mode, and a management REST API.
 - **Web framework**: [Axum](https://github.com/tokio-rs/axum)
 - **Async runtime**: Tokio
 - **Protocols**: BitTorrent UDP (BEP 15), HTTP (BEP 3/23), REST management API
-- **Databases**: SQLite3, MySQL
+- **Databases**: SQLite3, MySQL, PostgreSQL
 - **Workspace type**: Cargo workspace (multi-crate monorepo)
 
 ## 🏗️ Tech Stack
@@ -23,7 +23,7 @@ native IPv4/IPv6 support, private/whitelisted mode, and a management REST API.
 - **Web framework**: Axum (HTTP server + REST API)
 - **Async runtime**: Tokio (multi-thread)
 - **Testing**: testcontainers (E2E)
-- **Databases**: SQLite3, MySQL
+- **Databases**: SQLite3, MySQL, PostgreSQL
 - **Containerization**: Docker / Podman (`Containerfile`)
 - **CI**: GitHub Actions
 - **Linting tools**: markdownlint, yamllint, taplo, cspell, shellcheck, clippy, rustfmt (unified
@@ -54,32 +54,32 @@ native IPv4/IPv6 support, private/whitelisted mode, and a management REST API.
 
 All packages live under `packages/`. The workspace version is `3.0.0-develop`.
 
-| Package                           | Prefix / Layer | Description                                      |
-| --------------------------------- | -------------- | ------------------------------------------------ |
-| `axum-server`                     | `axum-*`       | Base Axum HTTP server infrastructure             |
-| `axum-http-tracker-server`        | `axum-*`       | BitTorrent HTTP tracker server (BEP 3/23)        |
-| `axum-rest-tracker-api-server`    | `axum-*`       | Management REST API server                       |
-| `axum-health-check-api-server`    | `axum-*`       | Health monitoring endpoint                       |
-| `http-tracker-core`               | `*-core`       | HTTP-specific tracker domain logic               |
-| `udp-tracker-core`                | `*-core`       | UDP-specific tracker domain logic                |
-| `tracker-core`                    | `*-core`       | Central tracker peer-management logic            |
-| `http-protocol`                   | `*-protocol`   | HTTP tracker protocol (BEP 3/23) parsing         |
-| `udp-protocol`                    | `*-protocol`   | UDP tracker protocol (BEP 15) framing/parsing    |
-| `swarm-coordination-registry`     | domain         | Torrent/peer coordination registry               |
-| `configuration`                   | domain         | Config file parsing, environment variables       |
-| `primitives`                      | domain         | Core domain types (InfoHash, PeerId, …)          |
-| `clock`                           | utilities      | Mockable time source for deterministic testing   |
-| `located-error`                   | utilities      | Diagnostic errors with source locations          |
-| `test-helpers`                    | utilities      | Mock servers, test data generation               |
-| `server-lib`                      | shared         | Shared server library utilities                  |
-| `tracker-client`                  | client tools   | CLI tracker interaction/testing client           |
-| `rest-tracker-api-client`         | client tools   | REST API client library                          |
-| `rest-tracker-api-core`           | client tools   | REST API core logic                              |
-| `udp-tracker-server`              | server         | UDP tracker server implementation                |
-| `torrent-repository`              | domain         | Torrent metadata storage and InfoHash management |
-| `events`                          | domain         | Domain event definitions                         |
-| `metrics`                         | domain         | Prometheus metrics integration                   |
-| `torrent-repository-benchmarking` | benchmarking   | Torrent storage benchmarks                       |
+| Package                           | Crate Name                                        | Prefix / Layer | Description                                    |
+| --------------------------------- | ------------------------------------------------- | -------------- | ---------------------------------------------- |
+| `axum-health-check-api-server`    | `torrust-axum-health-check-api-server`            | `axum-*`       | Health monitoring endpoint                     |
+| `axum-http-tracker-server`        | `torrust-axum-http-tracker-server`                | `axum-*`       | BitTorrent HTTP tracker server (BEP 3/23)      |
+| `axum-rest-tracker-api-server`    | `torrust-axum-rest-tracker-api-server`            | `axum-*`       | Management REST API server                     |
+| `axum-server`                     | `torrust-axum-server`                             | `axum-*`       | Base Axum HTTP server infrastructure           |
+| `clock`                           | `torrust-tracker-clock`                           | utilities      | Mockable time source for deterministic testing |
+| `configuration`                   | `torrust-tracker-configuration`                   | domain         | Config file parsing, environment variables     |
+| `events`                          | `torrust-tracker-events`                          | domain         | Domain event definitions                       |
+| `http-protocol`                   | `bittorrent-http-tracker-protocol`                | `*-protocol`   | HTTP tracker protocol (BEP 3/23) parsing       |
+| `http-tracker-core`               | `bittorrent-http-tracker-core`                    | `*-core`       | HTTP-specific tracker domain logic             |
+| `located-error`                   | `torrust-tracker-located-error`                   | utilities      | Diagnostic errors with source locations        |
+| `metrics`                         | `torrust-tracker-metrics`                         | domain         | Prometheus metrics integration                 |
+| `peer-id`                         | `bittorrent-peer-id`                              | domain         | Peer ID parsing and formatting utilities       |
+| `primitives`                      | `torrust-tracker-primitives`                      | domain         | Core domain types (InfoHash, PeerId, ...)      |
+| `rest-tracker-api-client`         | `torrust-rest-tracker-api-client`                 | client tools   | REST API client library                        |
+| `rest-tracker-api-core`           | `torrust-rest-tracker-api-core`                   | client tools   | REST API core logic                            |
+| `server-lib`                      | `torrust-server-lib`                              | shared         | Shared server library utilities                |
+| `swarm-coordination-registry`     | `torrust-tracker-swarm-coordination-registry`     | domain         | Torrent/peer coordination registry             |
+| `test-helpers`                    | `torrust-tracker-test-helpers`                    | utilities      | Mock servers, test data generation             |
+| `torrent-repository-benchmarking` | `torrust-tracker-torrent-repository-benchmarking` | benchmarking   | Torrent storage benchmarks                     |
+| `tracker-client`                  | `bittorrent-tracker-client`                       | client tools   | CLI tracker interaction/testing client         |
+| `tracker-core`                    | `bittorrent-tracker-core`                         | `*-core`       | Central tracker peer-management logic          |
+| `udp-protocol`                    | `bittorrent-udp-tracker-protocol`                 | `*-protocol`   | UDP tracker protocol (BEP 15) framing/parsing  |
+| `udp-tracker-core`                | `bittorrent-udp-tracker-core`                     | `*-core`       | UDP-specific tracker domain logic              |
+| `udp-tracker-server`              | `torrust-udp-tracker-server`                      | server         | UDP tracker server implementation              |
 
 **Console tools** (under `console/`):
 
@@ -295,6 +295,9 @@ Scope should reflect the affected package or area (e.g., `tracker-core`, `udp-pr
 **Branch strategy**:
 
 - Feature branches are cut from `develop`
+- Direct pushes to `develop` and `main` are not allowed; changes must be merged via PR
+- PRs targeting `develop` or `main` must come from a fork branch (`<fork-owner>:<branch>`), not a branch in `torrust/torrust-tracker`
+- Remote names are contributor-local (`josecelano`, `origin`, `upstream`, `torrust`, etc.); do not assume fixed remote names
 - PRs target `develop`
 - `develop` → `staging/main` → `main` (release pipeline)
 - PRs must pass all CI status checks before merge

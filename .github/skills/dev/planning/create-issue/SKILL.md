@@ -144,6 +144,12 @@ contains only the issue specification changes:
 7. Merge PR after review
 8. Start implementation work in a separate branch/PR
 
+Policy notes:
+
+- Never push directly to `develop` or `main`.
+- To merge into `develop` or `main`, open a PR in `torrust/torrust-tracker` from a fork branch (`<fork-owner>:<branch>`).
+- Remote names are contributor-specific (`josecelano`, `origin`, `torrust`, etc.); use your configured fork remote.
+
 Recommended GitHub CLI command for fork-based PRs:
 
 ```bash

@@ -22,10 +22,16 @@ Before opening a PR:
 - [ ] Branch is pushed to your fork remote
 - [ ] Commits are GPG signed (`git log --show-signature -n 1`)
 - [ ] All pre-commit checks passed (`linter all`, `cargo machete`, tests)
-- [ ] PR body claims are aligned with the actual commit range (`origin/develop..HEAD`)
+- [ ] PR body claims are aligned with the actual commit range (`<upstream-remote>/develop..HEAD`)
 - [ ] If manual verification used temporary local-only patches, PR body explicitly says they are not included
 
-> Important: always open the PR in the **upstream repository**, not in your fork.
+> Important:
+>
+> - Never push directly to `develop` or `main`.
+> - Always open the PR in the **upstream repository**, not in your fork.
+> - For merges into `develop` or `main`, the PR head must be a fork branch (`<fork-owner>:<branch>`), not an upstream branch.
+> - Remote names vary by contributor (`josecelano`, `origin`, `torrust`, `upstream`, etc.); resolve remotes dynamically.
+>
 > Resolve upstream from `Cargo.toml` (`repository = "https://github.com/torrust/torrust-tracker"`) and use that value for `gh pr create --repo ...`.
 
 ## Title and Description Convention
@@ -89,8 +95,8 @@ Quick body-accuracy verification:
 
 ```bash
 gh pr view <pr-number> --repo <upstream-owner>/<upstream-repo> --json body
-git diff --name-only origin/develop...HEAD
-git log --oneline origin/develop..HEAD
+git diff --name-only <upstream-remote>/develop...HEAD
+git log --oneline <upstream-remote>/develop..HEAD
 ```
 
 ## Troubleshooting
