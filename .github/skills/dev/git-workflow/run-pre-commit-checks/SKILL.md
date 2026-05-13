@@ -20,6 +20,15 @@ automatically on every `git commit`. Install it once after cloning:
 After installation the hook fires automatically; you do not need to invoke the script
 manually before each commit.
 
+> **For AI agents**: before invoking the script manually, check whether the hook is installed:
+>
+> ```bash
+> [[ -x "$(git rev-parse --git-path hooks)/pre-commit" ]] && echo "installed" || echo "not installed"
+> ```
+>
+> If installed, skip the manual run — `git commit` will trigger it automatically.
+> Running both would execute every check twice.
+
 ## Automated Checks
 
 > **⏱️ Expected runtime: ~1 minute** on a modern developer machine with warm caches.
