@@ -68,12 +68,18 @@ Flag behavior:
 - Duplicate `--format`/`--verbosity` flags: last value wins
 - Invalid values or unknown flags exit with code `2` and print usage guidance to stderr
 - In `--format=json`, structured output remains JSON regardless of verbosity value
-- Per-step logs are written to `PRE_COMMIT_LOG_DIR` (default: `/tmp`)
+- Per-step logs are written to `PRE_COMMIT_LOG_DIR` (default: `TORRUST_GIT_HOOKS_LOG_DIR`, then `/tmp`)
 
 For restricted agent environments that cannot write outside the workspace, run with:
 
 ```bash
 PRE_COMMIT_LOG_DIR=.tmp ./contrib/dev-tools/git/hooks/pre-commit.sh
+```
+
+Or use the shared hook log-dir env var (applies to both pre-commit and pre-push):
+
+```bash
+TORRUST_GIT_HOOKS_LOG_DIR=.tmp ./contrib/dev-tools/git/hooks/pre-commit.sh
 ```
 
 The `.tmp/` directory is git-ignored.

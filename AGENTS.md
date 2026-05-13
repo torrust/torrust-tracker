@@ -153,11 +153,13 @@ Pre-commit defaults to concise text output and runs the fast local profile:
 Use `--format=text --verbosity=verbose` for full streaming output, or `--format=json` for a
 single structured JSON payload.
 
-Pre-commit per-step logs are written to `PRE_COMMIT_LOG_DIR` (default: `/tmp`).
-In restricted AI-agent sandboxes, set `PRE_COMMIT_LOG_DIR=.tmp` to keep temporary logs inside the
-workspace (`.tmp/` is git-ignored).
-When using `.tmp`, periodically clean old logs (for example, remove stale `pre-commit-*.log`
-files) because OS-managed `/tmp` cleanup does not apply.
+Pre-commit per-step logs are written to `PRE_COMMIT_LOG_DIR` (default: `TORRUST_GIT_HOOKS_LOG_DIR`,
+then `/tmp`). Pre-push per-step logs are written to `TORRUST_GIT_HOOKS_LOG_DIR` (default: `/tmp`).
+In restricted AI-agent sandboxes, set `TORRUST_GIT_HOOKS_LOG_DIR=.tmp` to keep temporary logs
+inside the workspace for both hooks (`.tmp/` is git-ignored). `PRE_COMMIT_LOG_DIR` still takes
+priority over `TORRUST_GIT_HOOKS_LOG_DIR` for pre-commit.
+When using `.tmp`, periodically clean old logs (for example, remove stale `pre-commit-*.log` and
+`pre-push-*.log` files) because OS-managed `/tmp` cleanup does not apply.
 
 Gate ownership:
 
@@ -175,6 +177,7 @@ Primary skill references:
 
 - `run-linters`: `.github/skills/dev/git-workflow/run-linters/SKILL.md`
 - `run-pre-commit-checks`: `.github/skills/dev/git-workflow/run-pre-commit-checks/SKILL.md`
+- `run-pre-push-checks`: `.github/skills/dev/git-workflow/run-pre-push-checks/SKILL.md`
 - `setup-dev-environment`: `.github/skills/dev/maintenance/setup-dev-environment/SKILL.md`
 
 Supporting docs:
