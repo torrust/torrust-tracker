@@ -195,6 +195,7 @@ ostr
 Pando
 parallelise
 parallelised
+parseable
 peekable
 peerlist
 peersld
@@ -230,8 +231,8 @@ repomix
 repr
 reqs
 reqwest
-rescope
 rerequests
+rescope
 reuseaddr
 ringbuf
 ringsize
