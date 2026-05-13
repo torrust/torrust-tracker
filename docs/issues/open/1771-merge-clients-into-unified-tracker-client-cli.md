@@ -7,7 +7,7 @@ github-issue: 1771
 spec-path: docs/issues/open/1771-merge-clients-into-unified-tracker-client-cli.md
 branch: "1771-merge-clients-into-unified-tracker-client-cli"
 related-pr: 1772
-last-updated-utc: 2026-05-13 13:00
+last-updated-utc: 2026-05-13 15:00
 semantic-links:
   skill-links:
     - create-issue
@@ -17,6 +17,7 @@ semantic-links:
     - console/tracker-client/src/bin/tracker_checker.rs
     - packages/tracker-client/
     - console/tracker-client/
+    - console/tracker-client/src/console/clients/unified/mod.rs
 ---
 
 <!-- skill-link: create-issue -->
@@ -113,6 +114,20 @@ is released and documented. The removal milestone should be tracked in a follow-
 **REST API client:** extending the CLI with a `tracker_client api` subcommand to interact
 with the Torrust Tracker management REST API was mentioned in discussion #660. This is out of scope
 for this issue but should be kept in mind for the CLI shape.
+
+**`unified/` module structure — flat files, no per-action nesting.** The sub-modules
+`http.rs`, `udp.rs`, and `check.rs` are kept as flat single files rather than split into
+per-action nested directories (e.g. `http/announce.rs`, `http/scrape.rs`). Reasons:
+
+- `unified/` is a migration scaffold planned for cleanup in issue #1775; adding nested
+  directories now would introduce churn for code that will be restructured again during that
+  cleanup.
+- Current file sizes are within the normal single-responsibility range (`http.rs` ~366 lines,
+  `udp.rs` ~231 lines, `check.rs` ~199 lines).
+- Nesting by subcommand should be revisited when #1775 flattens `unified/` into the final
+  module structure.
+
+See: `console/tracker-client/src/console/clients/unified/mod.rs`
 
 ## Scope
 
@@ -244,6 +259,7 @@ Notes:
 - 2026-05-13 12:35 UTC - Copilot - Renamed internal module `tracker` → `unified` to better convey migration state; added Rust doc comments explaining deprecation plan.
 - 2026-05-13 12:40 UTC - Copilot - All automated gates pass: 46 unit tests, 10 checker integration tests, 3 unified binary integration tests, `linter all` exits 0.
 - 2026-05-13 13:00 UTC - Copilot - T6 DONE: ran manual verification matrix M1–M7 against local tracker; all 7 scenarios exit 0 with correct output. Spec updated with evidence.
+- 2026-05-13 15:00 UTC - Copilot - Recorded design decision: `unified/` sub-modules kept flat (no per-action nesting); deferred to #1775 cleanup. Cross-referenced `unified/mod.rs` in spec `related-artifacts`.
 
 ## Acceptance Criteria
 
