@@ -7,7 +7,7 @@ github-issue: 1769
 spec-path: docs/issues/open/1769-refactor-pre-commit-checks-performance-and-verbosity.md
 branch: "1769-refactor-pre-commit-checks-performance-and-verbosity"
 related-pr: null
-last-updated-utc: 2026-05-13 12:30
+last-updated-utc: 2026-05-13 11:20
 semantic-links:
   skill-links:
     - create-issue
@@ -15,7 +15,16 @@ semantic-links:
     - contrib/dev-tools/git/hooks/pre-commit.sh
     - contrib/dev-tools/git/hooks/pre-push.sh
     - .github/workflows/testing.yaml
+    - AGENTS.md
+    - .gitignore
+    - .github/agents/implementer.agent.md
+    - .github/agents/committer.agent.md
+    - .github/skills/dev/git-workflow/commit-changes/SKILL.md
     - .github/skills/dev/git-workflow/run-pre-commit-checks/SKILL.md
+    - .github/skills/dev/maintenance/setup-dev-environment/SKILL.md
+    - .github/skills/dev/maintenance/add-rust-dependency/SKILL.md
+    - .github/skills/dev/maintenance/update-dependencies/SKILL.md
+    - docs/issues/open/1770-refactor-pre-push-checks-performance-and-verbosity.md
 ---
 
 <!-- skill-link: create-issue -->
