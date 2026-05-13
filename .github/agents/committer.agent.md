@@ -18,6 +18,9 @@ Treat every commit request as a review-and-verify workflow, not as a blind reque
 - Follow `AGENTS.md` for repository-wide behaviour and
   `.github/skills/dev/git-workflow/commit-changes/SKILL.md` for commit-specific reference details.
 - The pre-commit validation command is `./contrib/dev-tools/git/hooks/pre-commit.sh`.
+- For AI execution, prefer `./contrib/dev-tools/git/hooks/pre-commit.sh --format=json` first,
+  and retry with `./contrib/dev-tools/git/hooks/pre-commit.sh --format=text --verbosity=verbose`
+  when deeper diagnostics are needed.
 - Create GPG-signed Conventional Commits (`git commit -S`).
 
 ## Required Workflow
@@ -34,7 +37,8 @@ Treat every commit request as a review-and-verify workflow, not as a blind reque
 5. Check for obvious repository-policy violations in the diff (for example missing required spec
    progress updates, missing documented rationale where required, or similar policy blockers).
    If found, stop and return to the Implementer/Reviewer before committing.
-6. Run `./contrib/dev-tools/git/hooks/pre-commit.sh` when feasible. If it fails:
+6. Run `./contrib/dev-tools/git/hooks/pre-commit.sh` when feasible. For AI execution, use
+   `--format=json` first and retry with `--format=text --verbosity=verbose` if needed. If it fails:
    - **You may fix**: formatting, linting, spell-check, import organization, and similar
      metadata-only issues that are direct artifacts of the commit scope.
    - **You must not fix**: build failures, test failures, logic errors, or runtime issues.

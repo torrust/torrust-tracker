@@ -69,7 +69,13 @@ After editing `Cargo.toml`/`Cargo.lock`:
 ```bash
 cargo update -p <crate-name>
 cargo machete
-./contrib/dev-tools/git/hooks/pre-commit.sh
+./contrib/dev-tools/git/hooks/pre-commit.sh --format=json
+```
+
+If the run fails and more diagnostics are needed, retry with:
+
+```bash
+./contrib/dev-tools/git/hooks/pre-commit.sh --format=text --verbosity=verbose
 ```
 
 If checks fail, resolve issues or revert the dependency addition.

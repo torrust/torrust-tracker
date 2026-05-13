@@ -4,6 +4,9 @@ description: Resolve addressed GitHub pull request review threads for the torrus
 metadata:
   author: torrust
   version: "1.0"
+  semantic-links:
+    related-artifacts:
+      - .github/skills/dev/pr-reviews/resolve-review-threads/scripts/resolve-all-unresolved-threads.sh
 ---
 
 # Resolving PR Review Threads
@@ -53,6 +56,15 @@ Successful output should report `isResolved: true`.
 ## Batch Pattern
 
 For multiple threads, resolve them one by one and check each result:
+
+Preferred script usage:
+
+```bash
+bash scripts/resolve-all-unresolved-threads.sh \
+  --threads-file /tmp/pr_threads_<PR_NUMBER>.json
+```
+
+Use `--dry-run` to preview without mutating GitHub state.
 
 ```bash
 for thread_id in \

@@ -22,10 +22,9 @@ manually before each commit.
 
 ## Automated Checks
 
-> **⏱️ Expected runtime: ~3 minutes** on a modern developer machine. AI agents must set a
-> command timeout of **at least 5 minutes** before invoking `./contrib/dev-tools/git/hooks/pre-commit.sh`. Agents
-> with a default per-command timeout below 5 minutes will likely time out and report a false
-> failure.
+> **⏱️ Expected runtime: ~1 minute** on a modern developer machine with warm caches.
+> AI agents should set a command timeout of **at least 3 minutes** before invoking
+> `./contrib/dev-tools/git/hooks/pre-commit.sh`.
 
 Run the pre-commit script. **It must exit with code `0` before every commit.**
 
@@ -35,10 +34,60 @@ Run the pre-commit script. **It must exit with code `0` before every commit.**
 
 The script runs these steps in order:
 
-1. `cargo machete` — unused dependency check
-2. `linter all` — all linters (markdown, YAML, TOML, clippy, rustfmt, shellcheck, cspell)
-3. `cargo test --doc --workspace` — documentation tests
-4. `cargo test --tests --benches --examples --workspace --all-targets --all-features` — all tests
+1. `cargo machete` - unused dependency check
+2. `linter all` - all linters (markdown, YAML, TOML, clippy, rustfmt, shellcheck, cspell)
+3. `cargo test --doc --workspace` - documentation tests
+
+## Output Modes
+
+The pre-commit script supports concise human output, verbose human output, and JSON output for
+automation.
+
+```bash
+# Default: text + concise
+./contrib/dev-tools/git/hooks/pre-commit.sh
+
+# Explicit text + concise
+./contrib/dev-tools/git/hooks/pre-commit.sh --format=text --verbosity=concise
+
+# Text + verbose streaming command output
+./contrib/dev-tools/git/hooks/pre-commit.sh --format=text --verbosity=verbose
+
+# Compatibility alias
+./contrib/dev-tools/git/hooks/pre-commit.sh --format=text --verbose
+
+# Structured output (single JSON document to stdout)
+./contrib/dev-tools/git/hooks/pre-commit.sh --format=json
+```
+
+Flag behavior:
+
+- `--format=<text|json>` defaults to `text`
+- `--verbosity=<concise|verbose>` defaults to `concise`
+- `--verbose` is an alias for `--verbosity=verbose`
+- Duplicate `--format`/`--verbosity` flags: last value wins
+- Invalid values or unknown flags exit with code `2` and print usage guidance to stderr
+- In `--format=json`, structured output remains JSON regardless of verbosity value
+- Per-step logs are written to `PRE_COMMIT_LOG_DIR` (default: `/tmp`)
+
+For restricted agent environments that cannot write outside the workspace, run with:
+
+```bash
+PRE_COMMIT_LOG_DIR=.tmp ./contrib/dev-tools/git/hooks/pre-commit.sh
+```
+
+The `.tmp/` directory is git-ignored.
+Because `.tmp/` is workspace-local, clean stale `pre-commit-*.log` files periodically.
+
+## Check Tier Ownership
+
+Check ownership is intentionally split by gate:
+
+- Pre-commit: fast local gate (`cargo machete`, `linter all`, `cargo test --doc --workspace`)
+- Pre-push: comprehensive developer gate (nightly format/check/doc + stable tests + E2E)
+- CI: merge authority with full validation and E2E matrix jobs
+
+E2E is intentionally excluded from pre-commit and remains a pre-push/CI responsibility.
 
 > **MySQL tests**: MySQL-specific tests require a running instance and a feature flag:
 >
@@ -62,6 +111,15 @@ Verify these by hand before committing:
 ```bash
 cargo +nightly doc --no-deps --bins --examples --workspace --all-features
 ```
+
+## Troubleshooting Output Modes
+
+- Concise mode shows high-signal per-step summaries only. On failure, it prints the log path and
+  a short failure tail.
+- Verbose mode streams full command output to the terminal. Use this for deep local debugging.
+- JSON mode emits one structured document to stdout; diagnostics and usage errors go to stderr.
+- If concise output is too short for debugging, re-run the same command with
+  `--format=text --verbosity=verbose`.
 
 ## Debugging Individual Linters
 

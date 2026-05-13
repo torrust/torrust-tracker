@@ -28,6 +28,9 @@ Reference: [Beck Design Rules](https://martinfowler.com/bliki/BeckDesignRules.ht
 
 - Follow `AGENTS.md` for repository-wide conventions.
 - The pre-commit validation command is `./contrib/dev-tools/git/hooks/pre-commit.sh`.
+- For AI execution, prefer `./contrib/dev-tools/git/hooks/pre-commit.sh --format=json` first,
+  and retry with `./contrib/dev-tools/git/hooks/pre-commit.sh --format=text --verbosity=verbose`
+  when deeper diagnostics are needed.
 - Relevant skills to load when needed:
   - `.github/skills/dev/maintenance/add-rust-dependency/SKILL.md` — adding new Rust dependencies safely.
   - `.github/skills/dev/testing/write-unit-test/SKILL.md` — test naming and Arrange/Act/Assert pattern.
