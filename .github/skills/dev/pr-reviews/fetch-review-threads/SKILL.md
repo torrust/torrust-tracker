@@ -4,6 +4,10 @@ description: Fetch unresolved GitHub pull request review thread IDs for the torr
 metadata:
   author: torrust
   version: "1.0"
+  semantic-links:
+    related-artifacts:
+      - .github/skills/dev/pr-reviews/fetch-review-threads/scripts/get-pr-review-threads.sh
+      - .github/skills/dev/pr-reviews/fetch-review-threads/scripts/list-unresolved-threads.sh
 ---
 
 # Fetching PR Review Threads
@@ -47,6 +51,22 @@ Only unresolved threads should be considered for follow-up work.
 ## GitHub CLI GraphQL Fallback
 
 Use GitHub CLI if you need to retrieve threads directly from the terminal.
+
+## Available Scripts
+
+- `scripts/get-pr-review-threads.sh` - Fetches review threads into a JSON file.
+- `scripts/list-unresolved-threads.sh` - Emits unresolved threads as JSON lines.
+
+Recommended usage:
+
+```bash
+bash scripts/get-pr-review-threads.sh \
+  --pr-number 1707 \
+  --output-file /tmp/pr_threads_1707.json
+
+bash scripts/list-unresolved-threads.sh \
+  --threads-file /tmp/pr_threads_1707.json
+```
 
 ```bash
 gh api graphql \

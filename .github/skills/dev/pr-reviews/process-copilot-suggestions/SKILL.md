@@ -7,6 +7,9 @@ metadata:
   semantic-links:
     related-artifacts:
       - docs/templates/COPILOT-SUGGESTIONS-TEMPLATE.md
+      - .github/skills/dev/pr-reviews/fetch-review-threads/scripts/get-pr-review-threads.sh
+      - .github/skills/dev/pr-reviews/fetch-review-threads/scripts/list-unresolved-threads.sh
+      - .github/skills/dev/pr-reviews/resolve-review-threads/scripts/resolve-all-unresolved-threads.sh
 ---
 
 # Processing Copilot PR Suggestions
@@ -49,7 +52,9 @@ Open the tracker file and fill in:
 Use the **fetch-review-threads** skill or the helper script:
 
 ```bash
-contrib/dev-tools/github-api-scripts/get-pr-review-threads.sh <PR_NUMBER>
+bash ../fetch-review-threads/scripts/get-pr-review-threads.sh \
+  --pr-number <PR_NUMBER> \
+  --output-file /tmp/pr_threads_<PR_NUMBER>.json
 ```
 
 This saves all review threads (resolved, unresolved, outdated) to `/tmp/pr_threads_<PR_NUMBER>.json`.
@@ -59,7 +64,8 @@ This saves all review threads (resolved, unresolved, outdated) to `/tmp/pr_threa
 Extract unresolved threads from the JSON:
 
 ```bash
-contrib/dev-tools/github-api-scripts/list-unresolved-threads.sh /tmp/pr_threads_<PR_NUMBER>.json
+bash ../fetch-review-threads/scripts/list-unresolved-threads.sh \
+  --threads-file /tmp/pr_threads_<PR_NUMBER>.json
 ```
 
 Add one row per thread to your tracker file with:
@@ -111,8 +117,12 @@ For each `action` item:
 After all decisions are made and `action` items are committed:
 
 ```bash
-contrib/dev-tools/github-api-scripts/get-pr-review-threads.sh <PR_NUMBER>
-contrib/dev-tools/github-api-scripts/resolve-all-unresolved-threads.sh /tmp/pr_threads_<PR_NUMBER>.json
+bash ../fetch-review-threads/scripts/get-pr-review-threads.sh \
+  --pr-number <PR_NUMBER> \
+  --output-file /tmp/pr_threads_<PR_NUMBER>.json
+
+bash ../resolve-review-threads/scripts/resolve-all-unresolved-threads.sh \
+  --threads-file /tmp/pr_threads_<PR_NUMBER>.json
 ```
 
 This resolves all unresolved threads (both `action` and `no-action` categories).
@@ -123,11 +133,11 @@ Update the tracker file with completion notes:
 
 - Add timestamps to the Processing Log
 - Mark all threads as `resolved` in the Thread State column
-- Commit the tracker and all helper scripts as final documentation
+
+Commit the tracker and related review docs as final documentation:
 
 ```bash
 git add docs/pr-reviews/pr-<PR_NUMBER>-copilot-suggestions.md
-git add contrib/dev-tools/github-api-scripts/
 git commit -S -m "docs(review): document PR #<PR_NUMBER> copilot suggestions audit"
 ```
 
@@ -143,13 +153,9 @@ git commit -S -m "docs(review): document PR #<PR_NUMBER> copilot suggestions aud
 
 ## Helper Scripts Reference
 
-Located in `contrib/dev-tools/github-api-scripts/`:
-
-- **get-pr-review-threads.sh** — Fetch all threads for a PR
-- **list-unresolved-threads.sh** — Filter to unresolved threads only
-- **resolve-all-unresolved-threads.sh** — Resolve all unresolved threads via GraphQL
-
-See `contrib/dev-tools/github-api-scripts/README.md` for details.
+- `../fetch-review-threads/scripts/get-pr-review-threads.sh` — Fetch all threads for a PR
+- `../fetch-review-threads/scripts/list-unresolved-threads.sh` — Filter to unresolved threads only
+- `../resolve-review-threads/scripts/resolve-all-unresolved-threads.sh` — Resolve all unresolved threads via GraphQL
 
 ## Related Skills
 
