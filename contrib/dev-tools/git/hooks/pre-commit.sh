@@ -80,9 +80,12 @@ json_escape() {
     local input=$1
     input=${input//\\/\\\\}
     input=${input//\"/\\\"}
+    input=${input//$'\b'/\\b}
+    input=${input//$'\f'/\\f}
     input=${input//$'\n'/\\n}
     input=${input//$'\r'/\\r}
     input=${input//$'\t'/\\t}
+    input=$(printf '%s' "${input}" | tr -d '\000-\010\013\016-\037')
     printf '%s' "${input}"
 }
 
@@ -163,7 +166,10 @@ run_step() {
     local safe_name
     safe_name=$(sanitize_name_for_log "${description}")
     local log_path
-    log_path=$(mktemp "${LOG_DIR%/}/pre-commit-${safe_name}-XXXXXX.log")
+    if ! log_path=$(mktemp "${LOG_DIR%/}/pre-commit-${safe_name}-XXXXXX"); then
+        echo "Error: failed to create a temporary log file in '${LOG_DIR}'." >&2
+        return 2
+    fi
 
     run_command "${command}" "${log_path}"
     local command_exit_code=$?
@@ -181,12 +187,14 @@ run_step() {
         STEP_STATUSES+=("fail")
     fi
 
+    local step_status=${STEP_STATUSES[$(( ${#STEP_STATUSES[@]} - 1 ))]}
+
     if [[ "${FORMAT}" == "text" ]]; then
         print_step_summary \
             "${step_number}" \
             "${total_steps}" \
             "${description}" \
-            "${STEP_STATUSES[-1]}" \
+            "${step_status}" \
             "${step_elapsed}" \
             "${log_path}"
         if [[ "${VERBOSITY}" == "verbose" ]]; then
