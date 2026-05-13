@@ -26,7 +26,7 @@ declare -a STEPS=(
 FORMAT="text"
 VERBOSITY="concise"
 FAILURE_TAIL_LINES=10
-LOG_DIR="${PRE_COMMIT_LOG_DIR:-/tmp}"
+LOG_DIR="${PRE_COMMIT_LOG_DIR:-${TORRUST_GIT_HOOKS_LOG_DIR:-/tmp}}"
 
 declare -a STEP_NAMES=()
 declare -a STEP_COMMANDS=()
@@ -60,7 +60,8 @@ Options:
   -h, --help                    Show this help
 
 Environment:
-  PRE_COMMIT_LOG_DIR            Directory for per-step log files. Default: /tmp
+  PRE_COMMIT_LOG_DIR            Per-commit log directory override (highest priority). Default: /tmp
+  TORRUST_GIT_HOOKS_LOG_DIR     Shared fallback log directory for all git hooks. Default: /tmp
 EOF
 }
 
