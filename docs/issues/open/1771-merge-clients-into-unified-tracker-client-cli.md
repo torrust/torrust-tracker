@@ -1,13 +1,13 @@
 ---
 doc-type: issue
 issue-type: feature
-status: in_progress
+status: todo
 priority: p2
 github-issue: 1771
 spec-path: docs/issues/open/1771-merge-clients-into-unified-tracker-client-cli.md
 branch: "1771-merge-clients-into-unified-tracker-client-cli"
 related-pr: 1772
-last-updated-utc: 2026-05-13 10:37
+last-updated-utc: 2026-05-13 11:05
 semantic-links:
   skill-links:
     - create-issue
@@ -136,18 +136,35 @@ for this issue but should be kept in mind for the CLI shape.
 - Changes to the `packages/tracker-client` library itself (only the CLI entrypoint is in scope
   unless structural changes are required for the CLI unification).
 
+## Implementation Strategy
+
+**Progressive copy-and-port approach:**
+
+1. The new `tracker_client` binary is built by **copying command handler code** from the old
+   binaries into the new unified binary, one command at a time.
+2. After each command is copied, it is tested independently in the new binary to verify behavior
+   parity with the old implementation.
+3. Test code is also ported to use the new binary, ensuring no behavior regression.
+4. The old binary code is marked as deprecated and **frozen — never modified, never called from
+   new code**. This ensures a clean separation and avoids bugs from dual maintenance.
+5. After approximately one year (when the migration is complete and users have migrated), the old
+   binaries are deleted in a follow-up issue.
+
+**Key principle:** The old code is a source for copying, not a runtime dependency. The new binary
+must contain its own independent implementation of all command logic.
+
 ## Implementation Plan
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| ID  | Status      | Task                                           | Notes / Expected Output                                                                             |
-| --- | ----------- | ---------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| T1  | IN_PROGRESS | Implement unified `tracker_client` entry point | New `console/tracker-client/src/bin/tracker_client.rs` with `http`, `udp`, and `check` subcommands. |
-| T2  | TODO        | Add unified `--format=<json\|text>` flag       | JSON default; flag works identically across all subcommands.                                        |
-| T3  | TODO        | Add deprecation notices to legacy binaries     | Each old binary prints a deprecation warning on startup; no new features added to them.             |
-| T4  | TODO        | Update in-repo docs, skills, and CI references | All in-repo references to old binary names updated or annotated.                                    |
-| T5  | TODO        | Validate gates and regression                  | `linter all` and relevant tests pass; existing tests ported or replaced.                            |
-| T6  | TODO        | Run manual verification scenarios              | Execute the local-tracker manual test matrix and record status/evidence for every scenario.         |
+| ID  | Status | Task                                                 | Notes / Expected Output                                                                      |
+| --- | ------ | ---------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| T1  | TODO   | Copy HTTP announce/scrape commands to unified binary | New command handlers in `console/tracker-client/src/console/clients/tracker/`; tests copied. |
+| T2  | TODO   | Copy UDP announce/scrape commands to unified binary  | New command handlers in `console/tracker-client/src/console/clients/tracker/`; tests copied. |
+| T3  | TODO   | Copy checker command to unified binary               | New command handler in `console/tracker-client/src/console/clients/tracker/`; tests copied.  |
+| T4  | TODO   | Add deprecation notices to legacy binaries           | Each old binary prints a deprecation warning on startup; no new features added to them.      |
+| T5  | TODO   | Update in-repo docs, skills, and CI references       | All in-repo references to old binary names updated or annotated.                             |
+| T6  | TODO   | Run manual verification scenarios and validate gates | Execute the local-tracker manual test matrix and record status/evidence for every scenario.  |
 
 ## Manual Verification Plan (Local Tracker)
 
@@ -200,7 +217,7 @@ Notes:
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
 - [x] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
-- [ ] Implementation completed
+- [ ] Implementation completed (copy-and-port approach, one command at a time)
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
@@ -215,25 +232,34 @@ Notes:
 - 2026-05-13 10:35 UTC - Copilot - Opened GitHub issue #1771 and moved spec from drafts to open.
 - 2026-05-13 10:36 UTC - User - Merged upstream spec-only PR #1772 into `develop`.
 - 2026-05-13 10:37 UTC - Copilot - Created implementation branch `1771-merge-clients-into-unified-tracker-client-cli` from updated `develop` and started T1.
+- 2026-05-13 11:00 UTC - User - Clarified implementation strategy: progressive copy-and-port approach (not dispatcher pattern). Old code must be frozen and never called from new code.
+- 2026-05-13 11:05 UTC - Copilot - Reset working tree; updated issue spec with new implementation strategy section. Reorganized tasks (T1-T6) to reflect copy-and-port approach with one command at a time. Enhanced acceptance criteria to explicitly require independent implementations and frozen old code.
 
 ## Acceptance Criteria
 
 - [ ] AC1: A single `tracker_client` binary exists with `http announce`, `http scrape`,
-      `udp announce`, `udp scrape`, and `check` subcommands, all behaving equivalently to the
-      current per-protocol binaries.
-- [ ] AC2: `--format=json` (default) produces valid JSON on stdout for all subcommands.
-- [ ] AC3: `--format=text` produces human-readable output for all subcommands.
-- [ ] AC4: Each legacy binary (`http_tracker_client`, `udp_tracker_client`, `tracker_checker`)
-      prints a deprecation notice on startup directing users to `tracker_client`; their existing
-      behaviour is otherwise unchanged.
-- [ ] AC5: A follow-up issue for removing the legacy binaries (no earlier than ~1 year after
+      `udp announce`, `udp scrape`, and `check` subcommands.
+- [ ] AC2: All command logic is **copied** (not called/dispatched) from the old binaries into
+      the new unified binary. The new binary contains its own independent implementation of all
+      command handlers.
+- [ ] AC3: `--format=json` (default) produces valid JSON on stdout for all subcommands.
+- [ ] AC4: `--format=text` produces human-readable output for all subcommands.
+- [ ] AC5: Each legacy binary (`http_tracker_client`, `udp_tracker_client`, `tracker_checker`)
+      prints a deprecation notice on startup directing users to `tracker_client`. The old code
+      is otherwise **unchanged and frozen** — no new functions or modifications are added to
+      the old binary implementations.
+- [ ] AC6: Old binary code is **never called from the new binary**. The old code is source
+      material for copying only.
+- [ ] AC7: Tests for all three command sets are ported to use the new `tracker_client` binary,
+      with no behaviour regression versus the old binaries.
+- [ ] AC8: In-repo docs and skill files that reference old binary names are updated.
+- [ ] AC9: A follow-up issue for removing the legacy binaries (no earlier than ~1 year after
       `tracker_client` ships) is linked from this spec or the EPIC.
-- [ ] AC6: In-repo docs and skill files that reference old binary names are updated.
-- [ ] AC7: Top-level `announce`/`scrape` auto-dispatch aliases are not implemented in this
+- [ ] AC10: Top-level `announce`/`scrape` auto-dispatch aliases are not implemented in this
       issue (kept for follow-up to prevent scope drift).
-- [ ] AC8: `linter all` exits with code `0`.
-- [ ] AC9: Relevant tests pass.
-- [ ] AC10: Manual verification matrix scenarios (M1-M7) are executed against a local tracker,
+- [ ] AC11: `linter all` exits with code `0`.
+- [ ] AC12: All tests pass.
+- [ ] AC13: Manual verification matrix scenarios (M1-M7) are executed against a local tracker,
       with status and evidence recorded for each.
 
 ### Acceptance Verification
@@ -241,13 +267,18 @@ Notes:
 | AC ID | Status (`TODO`/`DONE`) | Evidence                                                            |
 | ----- | ---------------------- | ------------------------------------------------------------------- |
 | AC1   | TODO                   | {test/log/PR link}                                                  |
-| AC2   | TODO                   | {test/log/PR link}                                                  |
+| AC2   | TODO                   | {code review / diff showing copied logic, not dispatchers}          |
 | AC3   | TODO                   | {test/log/PR link}                                                  |
 | AC4   | TODO                   | {test/log/PR link}                                                  |
-| AC5   | TODO                   | {follow-up issue link}                                              |
-| AC6   | TODO                   | {test/log/PR link}                                                  |
-| AC7   | TODO                   | {CLI help/output showing only explicit protocol path in this issue} |
+| AC5   | TODO                   | {test/log/PR link}                                                  |
+| AC6   | TODO                   | {code review / diff showing no old function calls in new binary}    |
+| AC7   | TODO                   | {test/log/PR link}                                                  |
 | AC8   | TODO                   | {test/log/PR link}                                                  |
+| AC9   | TODO                   | {follow-up issue link}                                              |
+| AC10  | TODO                   | {CLI help/output showing only explicit protocol path in this issue} |
+| AC11  | TODO                   | {test/log/PR link}                                                  |
+| AC12  | TODO                   | {test/log/PR link}                                                  |
+| AC13  | TODO                   | {manual verification matrix completed}                              |
 | AC9   | TODO                   | {test/log/PR link}                                                  |
 | AC10  | TODO                   | {manual verification matrix with statuses and evidence completed}   |
 
