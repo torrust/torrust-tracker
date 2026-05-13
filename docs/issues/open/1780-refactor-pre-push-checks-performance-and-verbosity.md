@@ -84,18 +84,18 @@ Decisions agreed with maintainer during planning (2026-05-13):
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| ID  | Status | Task                                                   | Notes / Expected Output                                                                               |
-| --- | ------ | ------------------------------------------------------ | ----------------------------------------------------------------------------------------------------- |
-| T1  | DONE   | Define pre-push CLI/output contract                    | Decisions captured in [Design Decisions](#design-decisions)                                           |
-| T2  | DONE   | Refactor `pre-push.sh`                                 | Adds format/verbosity/log-dir parity; mirrors `pre-commit.sh` implementation                          |
-| T3  | DONE   | Update `pre-commit.sh` for `TORRUST_GIT_HOOKS_LOG_DIR` | Replaced `PRE_COMMIT_LOG_DIR` with `TORRUST_GIT_HOOKS_LOG_DIR`; all hooks now share one env var       |
-| T4  | DONE   | Create `run-pre-push-checks` skill                     | `.github/skills/dev/git-workflow/run-pre-push-checks/SKILL.md` created                                |
-| T5  | DONE   | Update `run-pre-commit-checks` skill                   | `TORRUST_GIT_HOOKS_LOG_DIR` fallback documented                                                       |
-| T6  | DONE   | Update `AGENTS.md`                                     | Log-dir env var and pre-push skill reference added                                                    |
-| T7  | DONE   | Validate behavior in pass and fail paths               | shellcheck clean; all output modes (text+concise, text+verbose, json) verified on pass and fail paths |
-| T8  | DONE   | Run quality checks and finalize evidence               | `linter all` exits `0`; shellcheck passes on both hook scripts                                        |
-| T9  | DONE   | Add `.githooks/pre-push` hook dispatcher               | Mirrors `.githooks/pre-commit`; registered via `install-git-hooks.sh`                                 |
-| T10 | DONE   | Explicit output mode in `.githooks/` dispatchers       | Both dispatchers pass `--format=json`; JSON is the explicit default for hook invocations              |
+| ID  | Status | Task                                                   | Notes / Expected Output                                                                                                       |
+| --- | ------ | ------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------- |
+| T1  | DONE   | Define pre-push CLI/output contract                    | Decisions captured in [Design Decisions](#design-decisions)                                                                   |
+| T2  | DONE   | Refactor `pre-push.sh`                                 | Adds format/verbosity/log-dir parity; mirrors `pre-commit.sh` implementation                                                  |
+| T3  | DONE   | Update `pre-commit.sh` for `TORRUST_GIT_HOOKS_LOG_DIR` | Replaced `PRE_COMMIT_LOG_DIR` with `TORRUST_GIT_HOOKS_LOG_DIR`; all hooks now share one env var                               |
+| T4  | DONE   | Create `run-pre-push-checks` skill                     | `.github/skills/dev/git-workflow/run-pre-push-checks/SKILL.md` created                                                        |
+| T5  | DONE   | Update `run-pre-commit-checks` skill                   | `TORRUST_GIT_HOOKS_LOG_DIR` fallback documented                                                                               |
+| T6  | DONE   | Update `AGENTS.md`                                     | Log-dir env var and pre-push skill reference added                                                                            |
+| T7  | DONE   | Validate behavior in pass and fail paths               | shellcheck clean; all output modes (text+concise, text+verbose, json) verified on pass and fail paths                         |
+| T8  | DONE   | Run quality checks and finalize evidence               | `linter all` exits `0`; shellcheck passes on both hook scripts                                                                |
+| T9  | DONE   | Add `.githooks/pre-push` hook dispatcher               | Mirrors `.githooks/pre-commit`; registered via `install-git-hooks.sh`                                                         |
+| T10 | DONE   | Explicit output mode in `.githooks/` dispatchers       | Both dispatchers use TTY detection: `--format=text` for interactive terminals, `--format=json` for non-interactive/agent runs |
 
 ## Progress Tracking
 

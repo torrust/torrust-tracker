@@ -171,11 +171,13 @@ run_step() {
 
     local safe_name
     safe_name=$(sanitize_name_for_log "${description}")
-    local log_path
-    if ! log_path=$(mktemp "${LOG_DIR%/}/pre-push-${safe_name}-XXXXXX.log"); then
+    local _tmp log_path
+    if ! _tmp=$(mktemp "${LOG_DIR%/}/pre-push-${safe_name}-XXXXXX"); then
         echo "Error: failed to create a temporary log file in '${LOG_DIR}'." >&2
         return 2
     fi
+    log_path="${_tmp}.log"
+    mv "$_tmp" "$log_path"
 
     run_command "${command}" "${log_path}"
     local command_exit_code=$?
@@ -338,7 +340,9 @@ for i in "${!STEPS[@]}"; do
     run_step $((i + 1)) "${TOTAL_STEPS}" "${description}" "${command}" || run_step_rc=$?
     if [[ $run_step_rc -ne 0 ]]; then
         overall_status="fail"
-        exit_code=$run_step_rc
+        # exit_code 2 = infrastructure/script error (e.g. mktemp failed); 1 = check failure.
+        # Normalize any non-zero, non-2 command exit code to 1 so consumers see a stable contract.
+        exit_code=$(( run_step_rc == 2 ? 2 : 1 ))
         failed_step_name="${description}"
         break
     fi

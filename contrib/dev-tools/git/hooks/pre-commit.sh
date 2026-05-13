@@ -165,11 +165,13 @@ run_step() {
 
     local safe_name
     safe_name=$(sanitize_name_for_log "${description}")
-    local log_path
-    if ! log_path=$(mktemp "${LOG_DIR%/}/pre-commit-${safe_name}-XXXXXX.log"); then
+    local _tmp log_path
+    if ! _tmp=$(mktemp "${LOG_DIR%/}/pre-commit-${safe_name}-XXXXXX"); then
         echo "Error: failed to create a temporary log file in '${LOG_DIR}'." >&2
         return 2
     fi
+    log_path="${_tmp}.log"
+    mv "$_tmp" "$log_path"
 
     run_command "${command}" "${log_path}"
     local command_exit_code=$?
