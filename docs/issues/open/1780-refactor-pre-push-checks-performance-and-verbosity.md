@@ -7,7 +7,7 @@ github-issue: 1780
 spec-path: docs/issues/open/1780-refactor-pre-push-checks-performance-and-verbosity.md
 branch: "1780-refactor-pre-push-checks-performance-and-verbosity"
 related-pr: null
-last-updated-utc: 2026-05-13 20:00
+last-updated-utc: 2026-05-13 20:30
 semantic-links:
   skill-links:
     - create-issue
@@ -95,6 +95,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T7  | DONE   | Validate behavior in pass and fail paths               | shellcheck clean; all output modes (text+concise, text+verbose, json) verified on pass and fail paths |
 | T8  | DONE   | Run quality checks and finalize evidence               | `linter all` exits `0`; shellcheck passes on both hook scripts                                        |
 | T9  | DONE   | Add `.githooks/pre-push` hook dispatcher               | Mirrors `.githooks/pre-commit`; registered via `install-git-hooks.sh`                                 |
+| T10 | DONE   | Explicit output mode in `.githooks/` dispatchers       | Both dispatchers pass `--format=text --verbosity=concise` to lock in the intended mode                |
 
 ## Progress Tracking
 
@@ -114,6 +115,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-05-13 19:00 UTC - Copilot - Agreed design decisions with maintainer: `TORRUST_GIT_HOOKS_LOG_DIR` shared env var, new `run-pre-push-checks` skill, JSON-only in `--format=json`, fail-fast behavior. Implementation plan refined into T1–T8.
 - 2026-05-13 19:30 UTC - Copilot - Implemented T2–T8: refactored `pre-push.sh`, updated `pre-commit.sh`, created `run-pre-push-checks` skill, updated `run-pre-commit-checks` skill and `AGENTS.md`. All pre-commit checks pass; shellcheck clean.
 - 2026-05-13 20:00 UTC - Copilot - Manually verified all output modes (pass+fail paths for text+concise, text+verbose, json; TORRUST_GIT_HOOKS_LOG_DIR log file creation). Added `.githooks/pre-push` dispatcher (T9) and installed via `install-git-hooks.sh`.
+- 2026-05-13 20:30 UTC - Copilot - Added explicit `--format=text --verbosity=concise` to both `.githooks/` dispatchers (T10); added manual verification test matrix to spec.
 
 ## Acceptance Criteria
 
@@ -132,6 +134,25 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] `linter all` exits with code `0`
 - [ ] Relevant tests pass
 - [x] Documentation is updated when behavior/workflow changes
+
+### Manual Verification Test Matrix
+
+Tested with a fast-step stub (2–3 no-op steps), `TORRUST_GIT_HOOKS_LOG_DIR=.tmp`.
+
+| Test case                                       | Expected                                                                  | Result |
+| ----------------------------------------------- | ------------------------------------------------------------------------- | ------ |
+| `--help` / `-h`                                 | exit 0, usage text on stderr                                              | PASS   |
+| `--format=bad`                                  | exit 2, error + usage on stderr                                           | PASS   |
+| `--verbosity=bad`                               | exit 2, error + usage on stderr                                           | PASS   |
+| `--unknown`                                     | exit 2, error + usage on stderr                                           | PASS   |
+| `text concise` pass path                        | `[Step N/M] … PASS (Xs)` per step + SUCCESS footer, exit 0                | PASS   |
+| `text verbose` pass path                        | step header + streaming stdout + PASS summary + blank line, exit 0        | PASS   |
+| `--format=json` pass path                       | valid JSON, `status: pass`, `exit_code: 0`, all steps in array            | PASS   |
+| `text concise` fail path                        | FAIL line + log path + tail lines; subsequent steps skipped; exit 1       | PASS   |
+| `--format=json` fail path                       | valid JSON, `status: fail`, `exit_code: 1`, `failed_step`, `failure_tail` | PASS   |
+| `--format=json --verbose`                       | JSON only — verbosity silently ignored                                    | PASS   |
+| `TORRUST_GIT_HOOKS_LOG_DIR` in pre-push         | log files created in `.tmp/pre-push-*`                                    | PASS   |
+| `TORRUST_GIT_HOOKS_LOG_DIR` fallback pre-commit | logs in `.tmp/pre-commit-*`, JSON output valid                            | PASS   |
 
 ### Acceptance Verification
 
