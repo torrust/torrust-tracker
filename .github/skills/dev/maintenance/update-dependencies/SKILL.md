@@ -13,6 +13,12 @@ This skill guides you through updating project dependencies for the Torrust Trac
 Use `.github/skills/dev/maintenance/add-rust-dependency/SKILL.md` when introducing a new crate.
 This skill is for updating already-declared dependencies.
 
+Delivery policy:
+
+- Never push directly to `develop` or `main`.
+- Merges into `develop` or `main` must go through a PR opened in `torrust/torrust-tracker` from a fork branch (`<fork-owner>:<branch>`).
+- Remote names are contributor-specific (`josecelano`, `origin`, `torrust`, etc.); use your configured fork remote.
+
 ## Update Categories
 
 Before starting, decide which category the update falls into:

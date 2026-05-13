@@ -11,6 +11,13 @@ metadata:
 This skill guides you through creating feature branches following the Torrust Tracker branching
 conventions.
 
+## Delivery Policy
+
+- Never push directly to `develop` or `main`.
+- To merge into `develop` or `main`, you must open a PR in `torrust/torrust-tracker`.
+- That PR must come from a branch in a fork (`<fork-owner>:<branch>`), not a branch in the same repository.
+- Remote names are contributor-specific. Do not assume `origin` or `torrust`; identify remotes from `git remote -v`.
+
 ## Branch Naming Convention
 
 **Format**: `{issue-number}-{short-description}` (preferred)
@@ -93,9 +100,17 @@ cargo test --tests --benches --examples --workspace --all-targets --all-features
 git push {your-fork-remote} 42-add-peer-expiry-grace-period
 ```
 
+To avoid assuming remote names, resolve upstream from `Cargo.toml` and then select your fork remote:
+
+```bash
+UPSTREAM_REPO=$(grep '^repository\s*=\s*"https://github.com/' Cargo.toml | sed -E 's#.*github.com/([^\"]+).*#\1#')
+git remote -v
+# Choose the remote that points to your fork (not "$UPSTREAM_REPO")
+```
+
 ### 5. Create Pull Request
 
-Target branch: `torrust/torrust-tracker:develop`
+Target branch: `torrust/torrust-tracker:develop` from `<fork-owner>:<branch-name>`.
 
 ### 6. Cleanup After Merge
 

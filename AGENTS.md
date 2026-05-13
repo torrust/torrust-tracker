@@ -295,6 +295,9 @@ Scope should reflect the affected package or area (e.g., `tracker-core`, `udp-pr
 **Branch strategy**:
 
 - Feature branches are cut from `develop`
+- Direct pushes to `develop` and `main` are not allowed; changes must be merged via PR
+- PRs targeting `develop` or `main` must come from a fork branch (`<fork-owner>:<branch>`), not a branch in `torrust/torrust-tracker`
+- Remote names are contributor-local (`josecelano`, `origin`, `upstream`, `torrust`, etc.); do not assume fixed remote names
 - PRs target `develop`
 - `develop` → `staging/main` → `main` (release pipeline)
 - PRs must pass all CI status checks before merge
