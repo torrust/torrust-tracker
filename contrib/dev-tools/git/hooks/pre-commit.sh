@@ -26,7 +26,7 @@ declare -a STEPS=(
 FORMAT="text"
 VERBOSITY="concise"
 FAILURE_TAIL_LINES=10
-LOG_DIR="${PRE_COMMIT_LOG_DIR:-${TORRUST_GIT_HOOKS_LOG_DIR:-/tmp}}"
+LOG_DIR="${TORRUST_GIT_HOOKS_LOG_DIR:-/tmp}"
 
 declare -a STEP_NAMES=()
 declare -a STEP_COMMANDS=()
@@ -60,8 +60,7 @@ Options:
   -h, --help                    Show this help
 
 Environment:
-  PRE_COMMIT_LOG_DIR            Per-commit log directory override (highest priority). Default: /tmp
-  TORRUST_GIT_HOOKS_LOG_DIR     Shared fallback log directory for all git hooks. Default: /tmp
+  TORRUST_GIT_HOOKS_LOG_DIR     Directory for per-step log files (shared by all git hooks). Default: /tmp
 EOF
 }
 
@@ -167,7 +166,7 @@ run_step() {
     local safe_name
     safe_name=$(sanitize_name_for_log "${description}")
     local log_path
-    if ! log_path=$(mktemp "${LOG_DIR%/}/pre-commit-${safe_name}-XXXXXX"); then
+    if ! log_path=$(mktemp "${LOG_DIR%/}/pre-commit-${safe_name}-XXXXXX.log"); then
         echo "Error: failed to create a temporary log file in '${LOG_DIR}'." >&2
         return 2
     fi

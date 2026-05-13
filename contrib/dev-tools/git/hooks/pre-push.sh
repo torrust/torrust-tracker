@@ -172,7 +172,7 @@ run_step() {
     local safe_name
     safe_name=$(sanitize_name_for_log "${description}")
     local log_path
-    if ! log_path=$(mktemp "${LOG_DIR%/}/pre-push-${safe_name}-XXXXXX"); then
+    if ! log_path=$(mktemp "${LOG_DIR%/}/pre-push-${safe_name}-XXXXXX.log"); then
         echo "Error: failed to create a temporary log file in '${LOG_DIR}'." >&2
         return 2
     fi
@@ -334,9 +334,11 @@ fi
 
 for i in "${!STEPS[@]}"; do
     IFS='|' read -r description command <<< "${STEPS[$i]}"
-    if ! run_step $((i + 1)) "${TOTAL_STEPS}" "${description}" "${command}"; then
+    run_step_rc=0
+    run_step $((i + 1)) "${TOTAL_STEPS}" "${description}" "${command}" || run_step_rc=$?
+    if [[ $run_step_rc -ne 0 ]]; then
         overall_status="fail"
-        exit_code=1
+        exit_code=$run_step_rc
         failed_step_name="${description}"
         break
     fi

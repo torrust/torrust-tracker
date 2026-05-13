@@ -4,4 +4,9 @@ set -euo pipefail
 
 repo_root="$(git rev-parse --show-toplevel)"
 
-"$repo_root/contrib/dev-tools/git/hooks/pre-push.sh" --format=json
+# Use human-friendly text format when stdout is a terminal; JSON for non-interactive / agent runs.
+if [[ -t 1 ]]; then
+    "$repo_root/contrib/dev-tools/git/hooks/pre-push.sh" --format=text
+else
+    "$repo_root/contrib/dev-tools/git/hooks/pre-push.sh" --format=json
+fi
