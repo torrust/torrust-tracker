@@ -230,6 +230,7 @@ repomix
 repr
 reqs
 reqwest
+rescope
 rerequests
 reuseaddr
 ringbuf
@@ -238,6 +239,7 @@ rlib
 rngs
 rosegment
 routable
+RPIT
 rsplit
 rstest
 rusqlite
