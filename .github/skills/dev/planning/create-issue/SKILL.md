@@ -38,6 +38,15 @@ Lifecycle docs:
 4. **Move spec file to `docs/issues/open/`** and include the issue number
 5. **Pre-commit checks** and commit the spec
 
+For complex or high-impact issues, a **spec-first PR** is recommended:
+
+- Open a branch containing only issue-spec/EPIC documentation changes
+- Submit and merge that PR into `develop` first
+- Start implementation only after the specification PR has been reviewed and merged
+
+This improves visibility and allows maintainers/contributors to review scope and acceptance
+criteria before code changes begin.
+
 **Never create the GitHub issue before the user reviews and approves the specification.**
 
 ## Step-by-Step Process
@@ -113,6 +122,17 @@ git add docs/issues/
 git commit -S -m "docs(issues): add issue specification for #{number}"
 git push {your-fork-remote} {branch}
 ```
+
+### Optional Step 6 (Recommended for Complex Issues): Spec-Only PR
+
+When the issue is complex, cross-cutting, or likely to need scope negotiation, open a PR that
+contains only the issue specification changes:
+
+1. Branch from `develop`
+2. Commit only spec changes (`docs/issues/`, and if needed templates/skills)
+3. Push branch and open PR targeting `develop`
+4. Merge PR after review
+5. Start implementation work in a separate branch/PR
 
 ## Naming Convention
 

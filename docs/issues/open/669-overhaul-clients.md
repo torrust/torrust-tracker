@@ -59,9 +59,10 @@ This EPIC systematically improves each tool and eventually unifies them.
 
 ### Unified Tracker Client
 
-| Issue                                                           | Title                                       | Status |
-| --------------------------------------------------------------- | ------------------------------------------- | ------ |
-| [#1564](https://github.com/torrust/torrust-tracker/issues/1564) | Change the default `PeerId` used in clients | Open   |
+| Issue                                                           | Title                                                               | Status |
+| --------------------------------------------------------------- | ------------------------------------------------------------------- | ------ |
+| [#1564](https://github.com/torrust/torrust-tracker/issues/1564) | Change the default `PeerId` used in clients                         | Open   |
+| [#1771](https://github.com/torrust/torrust-tracker/issues/1771) | Merge clients into a unified `tracker_client` CLI (mechanical port) | Open   |
 
 ## Already Closed Sub-Issues
 
@@ -104,6 +105,7 @@ Each pending sub-issue has a dedicated spec document in this folder:
 - [1561-http-tracker-client-avoid-duplicating-announce-suffix.md](1561-http-tracker-client-avoid-duplicating-announce-suffix.md)
 - [1562-http-tracker-client-add-option-show-response-pretty-json.md](1562-http-tracker-client-add-option-show-response-pretty-json.md)
 - [1563-udp-tracker-client-add-option-show-response-pretty-json.md](1563-udp-tracker-client-add-option-show-response-pretty-json.md)
+- [1771-merge-clients-into-unified-tracker-client-cli.md](1771-merge-clients-into-unified-tracker-client-cli.md)
 
 ## References
 
