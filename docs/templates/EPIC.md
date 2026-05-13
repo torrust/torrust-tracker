@@ -49,6 +49,12 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 Describe rollout phases, dependency order, and merge strategy.
 
+For each subissue implementation in this EPIC, the default completion policy is:
+
+1. Run automatic checks (`linter all`, relevant tests, pre-push checks when applicable).
+2. Run manual verification scenarios and record evidence.
+3. Re-review acceptance criteria after implementation and update verification evidence.
+
 ### Phase 1
 
 - Outcome
@@ -68,6 +74,9 @@ Describe rollout phases, dependency order, and merge strategy.
 - [ ] GitHub epic issue created and issue number added to this spec
 - [ ] Subissues created and linked in this spec
 - [ ] Subissue statuses kept up to date in the `Subissues` table
+- [ ] For each implemented subissue: automatic checks completed and recorded
+- [ ] For each implemented subissue: manual verification completed and recorded
+- [ ] For each implemented subissue: acceptance criteria reviewed post-implementation
 - [ ] Epic acceptance criteria reviewed and checked off
 - [ ] Epic issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
@@ -83,6 +92,9 @@ Append one line per meaningful update.
 - [ ] Implementation order is explicit and justified.
 - [ ] Dependencies and blockers are documented and current.
 - [ ] Epic status reflects actual state of linked subissues.
+- [ ] Every completed subissue includes automated verification evidence.
+- [ ] Every completed subissue includes manual verification evidence.
+- [ ] Every completed subissue includes post-implementation acceptance criteria review.
 - [ ] Documentation and governance updates are included when required.
 
 ### Acceptance Verification

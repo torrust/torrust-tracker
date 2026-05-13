@@ -72,6 +72,12 @@ explicitly during implementation:
 - `Progress Tracking` (`Workflow Checkpoints` and first `Progress Log` entry)
 - `Acceptance Criteria` and `Acceptance Verification`
 
+The draft must also include a verification policy that is explicit and enforceable:
+
+- Automatic checks to run after implementation (`linter all`, relevant tests, pre-push checks when applicable)
+- Manual verification scenarios with status + evidence tracking (mandatory)
+- A post-implementation acceptance criteria review step
+
 Use **placeholders** for the issue number until after creation (for example `github-issue: null`
 or `[To be assigned]` in the heading/body content).
 
@@ -133,6 +139,19 @@ contains only the issue specification changes:
 3. Push branch and open PR targeting `develop`
 4. Merge PR after review
 5. Start implementation work in a separate branch/PR
+
+## Verification Requirements for Issue Specs
+
+When creating or updating issue/epic specs, ensure these requirements are present in the spec
+before implementation starts:
+
+1. **Automatic verification**: list required automated checks.
+2. **Manual verification**: define concrete manual scenarios with commands/steps and expected results.
+3. **Evidence tracking**: include status/evidence fields for manual scenarios.
+4. **Post-implementation AC review**: explicitly require acceptance criteria to be re-reviewed
+   against observed behavior before closing the issue.
+
+Do not treat an issue as complete only because automated tests pass; manual validation is required.
 
 ## Naming Convention
 

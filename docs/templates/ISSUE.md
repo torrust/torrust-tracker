@@ -57,6 +57,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [ ] GitHub issue created and issue number added to this spec
 - [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
 - [ ] Implementation completed
+- [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
+- [ ] Manual verification scenarios executed and recorded (status + evidence)
+- [ ] Acceptance criteria reviewed after implementation and updated with evidence
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
@@ -73,7 +76,33 @@ Append one line per meaningful update.
 - [ ] AC2: {Behavior/outcome that must be true}
 - [ ] `linter all` exits with code `0`
 - [ ] Relevant tests pass
+- [ ] Manual verification scenarios are executed and documented (status + evidence)
+- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
 - [ ] Documentation is updated when behavior/workflow changes
+
+## Verification Plan
+
+Define verification before implementation starts and execute it before closing the issue.
+
+### Automatic Checks
+
+- `linter all`
+- Relevant tests for changed components
+- Pre-push checks (when applicable)
+
+### Manual Verification Scenarios
+
+Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
+
+| ID  | Scenario          | Command/Steps                        | Expected Result     | Status | Evidence                     |
+| --- | ----------------- | ------------------------------------ | ------------------- | ------ | ---------------------------- |
+| M1  | {Manual scenario} | {Exact command or interaction steps} | {Expected behavior} | TODO   | {log/output/screenshot/path} |
+| M2  | {Manual scenario} | {Exact command or interaction steps} | {Expected behavior} | TODO   | {log/output/screenshot/path} |
+
+Notes:
+
+- Manual verification is mandatory even when automated tests pass.
+- If a scenario fails, record the failure and diagnosis in the progress log before proceeding.
 
 ### Acceptance Verification
 
