@@ -3,11 +3,11 @@ doc-type: issue
 issue-type: enhancement
 status: planned
 priority: p1
-github-issue: null
-spec-path: docs/issues/open/1770-refactor-pre-push-checks-performance-and-verbosity.md
-branch: "1770-refactor-pre-push-checks-performance-and-verbosity"
+github-issue: 1780
+spec-path: docs/issues/open/1780-refactor-pre-push-checks-performance-and-verbosity.md
+branch: "1780-refactor-pre-push-checks-performance-and-verbosity"
 related-pr: null
-last-updated-utc: 2026-05-13 13:00
+last-updated-utc: 2026-05-13 17:55
 semantic-links:
   skill-links:
     - create-issue
@@ -20,7 +20,7 @@ semantic-links:
 
 <!-- skill-link: create-issue -->
 
-# Issue #[To be assigned] - Refactor pre-push checks for output-mode parity and clearer failure feedback
+# Issue #1780 - Refactor pre-push checks for output-mode parity and clearer failure feedback
 
 ## Goal
 
