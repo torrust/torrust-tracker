@@ -1,13 +1,13 @@
 ---
 doc-type: issue
 issue-type: feature
-status: planned
+status: in_progress
 priority: p2
 github-issue: 1771
 spec-path: docs/issues/open/1771-merge-clients-into-unified-tracker-client-cli.md
 branch: "1771-merge-clients-into-unified-tracker-client-cli"
-related-pr: null
-last-updated-utc: 2026-05-13 10:35
+related-pr: 1772
+last-updated-utc: 2026-05-13 10:37
 semantic-links:
   skill-links:
     - create-issue
@@ -140,14 +140,14 @@ for this issue but should be kept in mind for the CLI shape.
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| ID  | Status | Task                                           | Notes / Expected Output                                                                             |
-| --- | ------ | ---------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| T1  | TODO   | Implement unified `tracker_client` entry point | New `console/tracker-client/src/bin/tracker_client.rs` with `http`, `udp`, and `check` subcommands. |
-| T2  | TODO   | Add unified `--format=<json\|text>` flag       | JSON default; flag works identically across all subcommands.                                        |
-| T3  | TODO   | Add deprecation notices to legacy binaries     | Each old binary prints a deprecation warning on startup; no new features added to them.             |
-| T4  | TODO   | Update in-repo docs, skills, and CI references | All in-repo references to old binary names updated or annotated.                                    |
-| T5  | TODO   | Validate gates and regression                  | `linter all` and relevant tests pass; existing tests ported or replaced.                            |
-| T6  | TODO   | Run manual verification scenarios              | Execute the local-tracker manual test matrix and record status/evidence for every scenario.         |
+| ID  | Status      | Task                                           | Notes / Expected Output                                                                             |
+| --- | ----------- | ---------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| T1  | IN_PROGRESS | Implement unified `tracker_client` entry point | New `console/tracker-client/src/bin/tracker_client.rs` with `http`, `udp`, and `check` subcommands. |
+| T2  | TODO        | Add unified `--format=<json\|text>` flag       | JSON default; flag works identically across all subcommands.                                        |
+| T3  | TODO        | Add deprecation notices to legacy binaries     | Each old binary prints a deprecation warning on startup; no new features added to them.             |
+| T4  | TODO        | Update in-repo docs, skills, and CI references | All in-repo references to old binary names updated or annotated.                                    |
+| T5  | TODO        | Validate gates and regression                  | `linter all` and relevant tests pass; existing tests ported or replaced.                            |
+| T6  | TODO        | Run manual verification scenarios              | Execute the local-tracker manual test matrix and record status/evidence for every scenario.         |
 
 ## Manual Verification Plan (Local Tracker)
 
@@ -199,6 +199,7 @@ Notes:
 - [x] Spec drafted in `docs/issues/drafts/`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
+- [x] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
 - [ ] Implementation completed
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Committer verified spec progress is up to date before commit
@@ -212,6 +213,8 @@ Notes:
 - 2026-05-13 10:20 UTC - Copilot - Added explicit acceptance criterion to prevent scope drift: top-level `announce`/`scrape` auto-dispatch aliases are not part of this issue.
 - 2026-05-13 10:30 UTC - Copilot - Added local-tracker manual verification plan with concrete commands and a scenario status matrix.
 - 2026-05-13 10:35 UTC - Copilot - Opened GitHub issue #1771 and moved spec from drafts to open.
+- 2026-05-13 10:36 UTC - User - Merged upstream spec-only PR #1772 into `develop`.
+- 2026-05-13 10:37 UTC - Copilot - Created implementation branch `1771-merge-clients-into-unified-tracker-client-cli` from updated `develop` and started T1.
 
 ## Acceptance Criteria
 
