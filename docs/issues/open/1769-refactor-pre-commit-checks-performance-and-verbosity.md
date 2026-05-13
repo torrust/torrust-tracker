@@ -7,7 +7,7 @@ github-issue: 1769
 spec-path: docs/issues/open/1769-refactor-pre-commit-checks-performance-and-verbosity.md
 branch: "1769-refactor-pre-commit-checks-performance-and-verbosity"
 related-pr: null
-last-updated-utc: 2026-05-13 09:28
+last-updated-utc: 2026-05-13 12:30
 semantic-links:
   skill-links:
     - create-issue
@@ -28,7 +28,7 @@ Improve local commit-time feedback by making pre-commit output concise by defaul
 
 ## Background
 
-Current pre-commit flow in [contrib/dev-tools/git/hooks/pre-commit.sh](../../../contrib/dev-tools/git/hooks/pre-commit.sh):
+Previous pre-commit flow (before this issue) in [contrib/dev-tools/git/hooks/pre-commit.sh](../../../contrib/dev-tools/git/hooks/pre-commit.sh):
 
 1. `cargo machete`
 2. `linter all`
@@ -76,17 +76,48 @@ Automation policy constraint:
 - Heavy checks are duplicated in pre-push/CI.
 - For docs/small changes, local wait time is disproportionate to change risk.
 
-Observed baseline run (2026-05-13, local):
+Multi-run timing comparison (2026-05-13, local):
 
-| Step  | Command                                                                            | Elapsed |
-| ----- | ---------------------------------------------------------------------------------- | ------- |
-| 1     | `cargo machete`                                                                    | 0s      |
-| 2     | `linter all`                                                                       | 7s      |
-| 3     | `cargo test --doc --workspace`                                                     | 50s     |
-| 4     | `cargo test --tests --benches --examples --workspace --all-targets --all-features` | 17s     |
-| Total | pre-commit script                                                                  | 1m 14s  |
+Baseline profile (4 steps):
 
-Observation from this run: documentation tests were slower than the broader test command. Profile decisions must be based on multi-run data, not assumptions.
+- `cargo machete`
+- `linter all`
+- `cargo test --doc --workspace`
+- `cargo test --tests --benches --examples --workspace --all-targets --all-features`
+
+| Run    | Elapsed |
+| ------ | ------- |
+| 1      | 177s    |
+| 2      | 77s     |
+| 3      | 73s     |
+| Avg    | 109s    |
+| Median | 77s     |
+
+Candidate profile A (3 steps):
+
+- `cargo machete`
+- `linter all`
+- `cargo test --doc --workspace`
+
+| Run    | Elapsed |
+| ------ | ------- |
+| 1      | 57s     |
+| 2      | 58s     |
+| 3      | 57s     |
+| Avg    | 57s     |
+| Median | 57s     |
+
+Result: candidate profile A reduces median local pre-commit latency from 77s to 57s
+(about 26% faster) while preserving dependency, lint, and doc-test coverage. Full tests
+remain enforced in pre-push and CI.
+
+Output-size comparison (same profile, different output modes):
+
+| Mode                                | Stdout Lines | Elapsed |
+| ----------------------------------- | ------------ | ------- |
+| `--format=text --verbosity=concise` | 10           | 59s     |
+| `--format=text --verbosity=verbose` | 235          | 56s     |
+| `--format=json`                     | 26           | 58s     |
 
 ### C. Boundary between pre-commit and heavier tiers
 
@@ -99,17 +130,17 @@ Observation from this run: documentation tests were slower than the broader test
 
 CLI contract:
 
-- [ ] Add `--format=<text|json>` where:
+- [x] Add `--format=<text|json>` where:
   - `--format=text` is the default (human-friendly terminal output)
   - `--format=json` emits a single JSON document to stdout
-- [ ] Add `--verbosity=<concise|verbose>` where:
+- [x] Add `--verbosity=<concise|verbose>` where:
   - `--verbosity=concise` is the default
   - `--verbosity=verbose` streams full command output
-- [ ] Keep `--verbose` as a compatibility alias for `--verbosity=verbose`.
-- [ ] Define precedence explicitly:
+- [x] Keep `--verbose` as a compatibility alias for `--verbosity=verbose`.
+- [x] Define precedence explicitly:
   - when `--format=json`, output remains structured JSON regardless of verbosity value
   - for `--format=text`, verbosity controls concise vs full streaming output
-- [ ] Define argument conflict/error behavior explicitly:
+- [x] Define argument conflict/error behavior explicitly:
   - duplicate `--format`/`--verbosity` flags: last value wins
   - `--verbose` alias sets `--verbosity=verbose`
   - invalid values (for example `--format=xml`): fail with exit code `2` and usage hint
@@ -124,12 +155,12 @@ Modes matrix:
 | `text` | `verbose`              | Full streaming command output  |
 | `json` | `concise` or `verbose` | Single JSON document to stdout |
 
-- [ ] Add `--format` and `--verbosity` flags to [contrib/dev-tools/git/hooks/pre-commit.sh](../../../contrib/dev-tools/git/hooks/pre-commit.sh).
-- [ ] In concise mode, capture per-step logs and print only:
+- [x] Add `--format` and `--verbosity` flags to [contrib/dev-tools/git/hooks/pre-commit.sh](../../../contrib/dev-tools/git/hooks/pre-commit.sh).
+- [x] In concise mode, capture per-step logs and print only:
   - step name, pass/fail, elapsed time
   - log path and a short failure tail when a step fails
-- [ ] Keep full streaming output in `--verbosity=verbose` mode for `--format=text`.
-- [ ] In `--format=json` mode, write a single JSON document to stdout (see examples below).
+- [x] Keep full streaming output in `--verbosity=verbose` mode for `--format=text`.
+- [x] In `--format=json` mode, write a single JSON document to stdout (see examples below).
 
 #### Example command calls
 
@@ -159,13 +190,12 @@ Modes matrix:
 ```text
 Running pre-commit checks...
 
-[Step 1/4] Checking for unused dependencies (cargo machete)  ... PASS  (0s)
-[Step 2/4] Running all linters (linter all)                  ... PASS  (7s)
-[Step 3/4] Running documentation tests                       ... PASS (50s)
-[Step 4/4] Running all tests                                 ... PASS (17s)
+[Step 1/3] Checking for unused dependencies (cargo machete) ... PASS (0s)
+[Step 2/3] Running all linters ... PASS (7s)
+[Step 3/3] Running documentation tests ... PASS (52s)
 
 ==========================================
-SUCCESS: All pre-commit checks passed! (1m 14s)
+SUCCESS: All pre-commit checks passed! (59s)
 ==========================================
 ```
 
@@ -178,8 +208,8 @@ SUCCESS: All pre-commit checks passed! (1m 14s)
 ```text
 Running pre-commit checks...
 
-[Step 1/4] Checking for unused dependencies (cargo machete)  ... PASS  (0s)
-[Step 2/4] Running all linters (linter all)                  ... FAIL (11s)  log: /tmp/pre-commit-linter-all-20260513-083055.log
+[Step 1/3] Checking for unused dependencies (cargo machete) ... PASS (0s)
+[Step 2/3] Running all linters ... FAIL (11s)  log: /tmp/pre-commit-linter-all-20260513-083055.log
     error[E0001]: unused variable `x` at src/lib.rs:42
     error: aborting due to 1 previous error
     (2 lines shown — full log: /tmp/pre-commit-linter-all-20260513-083055.log)
@@ -201,7 +231,7 @@ Fix the errors above before committing.
   "schema_version": 1,
   "status": "pass",
   "exit_code": 0,
-  "elapsed_seconds": 74,
+  "elapsed_seconds": 59,
   "steps": [
     {
       "name": "Checking for unused dependencies",
@@ -220,12 +250,6 @@ Fix the errors above before committing.
       "command": "cargo test --doc --workspace",
       "status": "pass",
       "elapsed_seconds": 50
-    },
-    {
-      "name": "Running all tests",
-      "command": "cargo test --tests --benches --examples --workspace --all-targets --all-features",
-      "status": "pass",
-      "elapsed_seconds": 17
     }
   ]
 }
@@ -268,9 +292,9 @@ Fix the errors above before committing.
 
 ### Task 2: Baseline timing and propose tuned pre-commit profile
 
-- [ ] Measure current pre-commit runtime over at least 3 runs.
-- [ ] Measure candidate profile runtime over at least 3 runs.
-- [ ] Compare results and choose a profile with documented rationale.
+- [x] Measure current pre-commit runtime over at least 3 runs.
+- [x] Measure candidate profile runtime over at least 3 runs.
+- [x] Compare results and choose a profile with documented rationale.
 
 Candidate profiles:
 
@@ -283,17 +307,17 @@ Evaluation note:
 
 ### Task 3: Clarify check tiers and ownership
 
-- [ ] Document which checks are mandatory at each tier:
+- [x] Document which checks are mandatory at each tier:
   - pre-commit (fast local gate)
   - pre-push (comprehensive developer gate)
   - CI (merge authority)
-- [ ] Keep E2E explicitly out of pre-commit and documented as pre-push/CI responsibility.
+- [x] Keep E2E explicitly out of pre-commit and documented as pre-push/CI responsibility.
 
 ### Task 4: Update workflow docs and skills
 
-- [ ] Update [.github/skills/dev/git-workflow/run-pre-commit-checks/SKILL.md](../../../.github/skills/dev/git-workflow/run-pre-commit-checks/SKILL.md) with new behavior and flags.
-- [ ] Update references in [AGENTS.md](../../../AGENTS.md) and related skills if command expectations changed.
-- [ ] Add troubleshooting notes for concise vs verbose mode.
+- [x] Update [.github/skills/dev/git-workflow/run-pre-commit-checks/SKILL.md](../../../.github/skills/dev/git-workflow/run-pre-commit-checks/SKILL.md) with new behavior and flags.
+- [x] Update references in [AGENTS.md](../../../AGENTS.md) and related skills if command expectations changed.
+- [x] Add troubleshooting notes for concise vs verbose mode.
 
 ## Implementation Plan
 
@@ -301,11 +325,11 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task                              | Notes / Expected Output                             |
 | --- | ------ | --------------------------------- | --------------------------------------------------- |
-| T1  | TODO   | Baseline current pre-commit stats | Runtime and output-size baseline collected.         |
-| T2  | TODO   | Implement output mode refactor    | Concise default + verbose opt-in implemented.       |
-| T3  | TODO   | Select and apply runtime profile  | Profile selected with measured trade-off rationale. |
-| T4  | TODO   | Update docs/skills                | Workflow docs and skills aligned.                   |
-| T5  | TODO   | Validate gates and regression     | `linter all` and relevant test checks pass.         |
+| T1  | DONE   | Baseline current pre-commit stats | Runtime and output-size baseline collected.         |
+| T2  | DONE   | Implement output mode refactor    | Concise default + verbose opt-in implemented.       |
+| T3  | DONE   | Select and apply runtime profile  | Profile selected with measured trade-off rationale. |
+| T4  | DONE   | Update docs/skills                | Workflow docs and skills aligned.                   |
+| T5  | DONE   | Validate gates and regression     | `linter all` and relevant test checks pass.         |
 
 ## Progress Tracking
 
@@ -314,7 +338,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Spec drafted in `docs/issues/drafts/`
 - [ ] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
-- [ ] Implementation completed
+- [x] Implementation completed
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
@@ -324,30 +348,33 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-05-13 07:33 UTC - Copilot - Created focused pre-commit refactor draft split from combined proposal.
 - 2026-05-13 08:42 UTC - Copilot - Executed `./contrib/dev-tools/git/hooks/pre-commit.sh` and captured baseline output (`1m 14s` total; docs `50s`, tests `17s`).
 - 2026-05-13 09:26 UTC - Copilot - Opened GitHub issue #1769 and moved this spec to `docs/issues/open/`.
+- 2026-05-13 12:04 UTC - Copilot - Implemented `--format`/`--verbosity` pre-commit modes with concise summaries, verbose streaming, per-step log capture, and JSON output.
+- 2026-05-13 12:16 UTC - Copilot - Collected 3-run baseline and 3-run candidate timing data; selected candidate profile A for pre-commit.
+- 2026-05-13 12:24 UTC - Copilot - Updated skill/docs (`run-pre-commit-checks` and `AGENTS.md`) with tier ownership and mode troubleshooting.
 
 ## Acceptance Criteria
 
-- [ ] AC1: Pre-commit supports `--format=<text|json>` and `--verbosity=<concise|verbose>` with documented defaults and precedence rules.
-- [ ] AC2: `--format=text --verbosity=concise` prints high-signal step summaries and log paths on failure; `--format=json` emits a single valid JSON document matching the schema in Task 1.
-- [ ] AC2.1: Invalid flags/values fail with exit code `2`, print usage guidance, and write diagnostics to stderr.
-- [ ] AC3: Chosen pre-commit profile is backed by timing data from multiple runs.
-- [ ] AC4: Check-tier ownership is documented and consistent across scripts and docs.
-- [ ] AC5: E2E remains excluded from pre-commit and explicitly mapped to pre-push/CI.
-- [ ] AC6: `linter all` exits with code `0` after changes.
-- [ ] AC7: Relevant checks pass for modified hook behavior.
+- [x] AC1: Pre-commit supports `--format=<text|json>` and `--verbosity=<concise|verbose>` with documented defaults and precedence rules.
+- [x] AC2: `--format=text --verbosity=concise` prints high-signal step summaries and log paths on failure; `--format=json` emits a single valid JSON document matching the schema in Task 1.
+- [x] AC2.1: Invalid flags/values fail with exit code `2`, print usage guidance, and write diagnostics to stderr.
+- [x] AC3: Chosen pre-commit profile is backed by timing data from multiple runs.
+- [x] AC4: Check-tier ownership is documented and consistent across scripts and docs.
+- [x] AC5: E2E remains excluded from pre-commit and explicitly mapped to pre-push/CI.
+- [x] AC6: `linter all` exits with code `0` after changes.
+- [x] AC7: Relevant checks pass for modified hook behavior.
 
 ### Acceptance Verification
 
-| AC ID | Status (`TODO`/`DONE`) | Evidence                                                                                            |
-| ----- | ---------------------- | --------------------------------------------------------------------------------------------------- |
-| AC1   | TODO                   | Updated pre-commit script usage/flags (`--format`, `--verbosity`, `--verbose` alias)                |
-| AC2   | TODO                   | Sample `--format=text --verbosity=concise` logs and `--format=json` output against schema in Task 1 |
-| AC2.1 | TODO                   | Negative tests for invalid/unknown flags and stderr/exit-code checks                                |
-| AC3   | TODO                   | Runtime comparison table                                                                            |
-| AC4   | TODO                   | Updated docs/skills references                                                                      |
-| AC5   | TODO                   | Hook/CI command mapping                                                                             |
-| AC6   | TODO                   | `linter all` output                                                                                 |
-| AC7   | TODO                   | Test/check outputs                                                                                  |
+| AC ID | Status (`TODO`/`DONE`) | Evidence                                                                                                      |
+| ----- | ---------------------- | ------------------------------------------------------------------------------------------------------------- |
+| AC1   | DONE                   | `contrib/dev-tools/git/hooks/pre-commit.sh` implements `--format`, `--verbosity`, and `--verbose` alias       |
+| AC2   | DONE                   | Successful runs captured for concise text mode and JSON mode with expected step summaries/payload             |
+| AC2.1 | DONE                   | Invalid/unknown flag checks return exit code `2` with usage diagnostics on stderr                             |
+| AC3   | DONE                   | 3-run baseline vs 3-run candidate timing table recorded in this spec                                          |
+| AC4   | DONE                   | Tier ownership documented in `.github/skills/dev/git-workflow/run-pre-commit-checks/SKILL.md` and `AGENTS.md` |
+| AC5   | DONE                   | Pre-commit excludes E2E; E2E remains in pre-push script and CI workflow                                       |
+| AC6   | DONE                   | `linter all` executes successfully inside multiple pre-commit and profile timing runs                         |
+| AC7   | DONE                   | Hook behavior validated for text concise/verbose, JSON success, and forced-failure JSON/text payloads         |
 
 ## Risks and Trade-offs
 

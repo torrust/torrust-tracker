@@ -144,6 +144,27 @@ Mandatory quality gate before every commit:
 ./contrib/dev-tools/git/hooks/pre-commit.sh
 ```
 
+Pre-commit defaults to concise text output and runs the fast local profile:
+
+1. `cargo machete`
+2. `linter all`
+3. `cargo test --doc --workspace`
+
+Use `--format=text --verbosity=verbose` for full streaming output, or `--format=json` for a
+single structured JSON payload.
+
+Pre-commit per-step logs are written to `PRE_COMMIT_LOG_DIR` (default: `/tmp`).
+In restricted AI-agent sandboxes, set `PRE_COMMIT_LOG_DIR=.tmp` to keep temporary logs inside the
+workspace (`.tmp/` is git-ignored).
+When using `.tmp`, periodically clean old logs (for example, remove stale `pre-commit-*.log`
+files) because OS-managed `/tmp` cleanup does not apply.
+
+Gate ownership:
+
+- Pre-commit: fast local feedback
+- Pre-push: comprehensive developer gate (includes broad tests and E2E)
+- CI: merge authority (includes E2E matrix)
+
 Linter entry point:
 
 ```sh
