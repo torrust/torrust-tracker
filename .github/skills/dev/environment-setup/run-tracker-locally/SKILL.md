@@ -136,11 +136,11 @@ Once the tracker is running, test it with the UDP tracker client:
 
 ```bash
 # Default announce (backward compatibility)
-cargo run -p torrust-tracker-client --bin udp_tracker_client announce 127.0.0.1:6969 9c38422213e30bff212b30c360d26f9a02136422
+cargo run -p torrust-tracker-client --bin tracker_client udp announce 127.0.0.1:6969 9c38422213e30bff212b30c360d26f9a02136422
 
 # Announce with all optional parameters
 # NOTE: Use '--peer-id=VALUE' syntax (with equals and single quotes) when peer-id starts with a dash
-cargo run -p torrust-tracker-client --bin udp_tracker_client announce \
+cargo run -p torrust-tracker-client --bin tracker_client udp announce \
   127.0.0.1:6969 443c7602b4fde83d1154d6d9da48808418b181b6 \
   --event completed \
   --uploaded 1234 \
@@ -161,7 +161,7 @@ Test the HTTP tracker:
 
 ```bash
 # Default announce
-cargo run --bin http_tracker_client announce http://127.0.0.1:7070 9c38422213e30bff212b30c360d26f9a02136422
+cargo run -p torrust-tracker-client --bin tracker_client http announce http://127.0.0.1:7070 9c38422213e30bff212b30c360d26f9a02136422
 ```
 
 ## Notes
