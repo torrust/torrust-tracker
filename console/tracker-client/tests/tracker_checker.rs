@@ -1,4 +1,4 @@
-//! Integration tests for the `tracker_checker` binary.
+//! Integration tests for the `tracker_client check` command.
 //!
 //! These tests verify the CLI I/O contract:
 //! - stderr receives a JSON error envelope on configuration errors
@@ -9,20 +9,23 @@
 
 use std::process::Command;
 
-fn tracker_checker_bin() -> Command {
-    Command::new(resolve_tracker_checker_binary())
+fn tracker_client_check_bin() -> Command {
+    let mut command = Command::new(resolve_tracker_client_binary());
+    command.arg("check");
+    command.arg("--");
+    command
 }
 
-fn resolve_tracker_checker_binary() -> std::path::PathBuf {
-    if let Some(path) = std::env::var_os("NEXTEST_BIN_EXE_tracker_checker") {
+fn resolve_tracker_client_binary() -> std::path::PathBuf {
+    if let Some(path) = std::env::var_os("NEXTEST_BIN_EXE_tracker_client") {
         return path.into();
     }
 
-    if let Some(path) = std::env::var_os("CARGO_BIN_EXE_tracker_checker") {
+    if let Some(path) = std::env::var_os("CARGO_BIN_EXE_tracker_client") {
         return path.into();
     }
 
-    let compile_time_path = std::path::PathBuf::from(env!("CARGO_BIN_EXE_tracker_checker"));
+    let compile_time_path = std::path::PathBuf::from(env!("CARGO_BIN_EXE_tracker_client"));
     if compile_time_path.exists() {
         return compile_time_path;
     }
@@ -33,7 +36,7 @@ fn resolve_tracker_checker_binary() -> std::path::PathBuf {
         .and_then(std::path::Path::parent)
         .expect("Failed to determine Cargo profile directory from test executable path");
 
-    let mut candidate = profile_dir.join("tracker_checker");
+    let mut candidate = profile_dir.join("tracker_client");
     if cfg!(windows) {
         candidate.set_extension("exe");
     }
@@ -43,7 +46,7 @@ fn resolve_tracker_checker_binary() -> std::path::PathBuf {
     }
 
     panic!(
-        "Unable to locate tracker_checker binary. Tried NEXTEST_BIN_EXE_tracker_checker, CARGO_BIN_EXE_tracker_checker, compile-time CARGO_BIN_EXE_tracker_checker, and sibling binary near test executable"
+        "Unable to locate tracker_client binary. Tried NEXTEST_BIN_EXE_tracker_client, CARGO_BIN_EXE_tracker_client, compile-time CARGO_BIN_EXE_tracker_client, and sibling binary near test executable"
     );
 }
 

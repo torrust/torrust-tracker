@@ -22,7 +22,7 @@ use std::time::Duration;
 
 use serde_json::Value;
 
-use super::tracker_checker_bin;
+use super::tracker_client_check_bin;
 
 fn spawn_udp_sink() -> (SocketAddr, mpsc::Sender<()>, thread::JoinHandle<()>) {
     let socket = UdpSocket::bind("127.0.0.1:0").expect("Failed to bind UDP sink socket");
@@ -51,7 +51,7 @@ fn spawn_udp_sink() -> (SocketAddr, mpsc::Sender<()>, thread::JoinHandle<()>) {
 fn it_should_emit_monitor_probe_events_to_stderr_and_summary_to_stdout() {
     let (addr, stop_tx, join_handle) = spawn_udp_sink();
 
-    let output = tracker_checker_bin()
+    let output = tracker_client_check_bin()
         .arg("monitor")
         .arg("udp")
         .arg("--url")
@@ -63,7 +63,7 @@ fn it_should_emit_monitor_probe_events_to_stderr_and_summary_to_stdout() {
         .arg("--duration")
         .arg("2")
         .output()
-        .expect("Failed to run tracker_checker monitor udp");
+        .expect("Failed to run tracker_client check monitor udp");
 
     let _ = stop_tx.send(());
     assert!(join_handle.join().is_ok(), "UDP sink thread should not panic");

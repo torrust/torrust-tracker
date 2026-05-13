@@ -10,10 +10,10 @@ This document describes an alternative to many CLI flags for announce requests.
 Instead of passing request parameters only as command-line flags, the client could
 accept a full JSON object.
 
-The proposal applies to both clients:
+The proposal applies to both protocols under the unified client:
 
-- `http_tracker_client`
-- `udp_tracker_client`
+- `tracker_client http`
+- `tracker_client udp`
 
 ## Motivation
 
@@ -26,22 +26,22 @@ and future automation.
 ### 1) JSON file input
 
 ```bash
-http_tracker_client announce \
-  --tracker-url http://127.0.0.1:7070 \
+tracker_client http announce \
+  http://127.0.0.1:7070 \
   --request-file ./announce.json
 ```
 
 ```bash
-udp_tracker_client announce \
-  --tracker-socket-addr 127.0.0.1:6969 \
+tracker_client udp announce \
+  127.0.0.1:6969 \
   --request-file ./announce.json
 ```
 
 ### 2) Inline JSON input
 
 ```bash
-http_tracker_client announce \
-  --tracker-url http://127.0.0.1:7070 \
+tracker_client http announce \
+  http://127.0.0.1:7070 \
   --request-json '{"info_hash":"443c7602b4fde83d1154d6d9da48808418b181b6","event":"completed"}'
 ```
 
@@ -49,11 +49,11 @@ http_tracker_client announce \
 
 ```bash
 echo '{"info_hash":"443c7602b4fde83d1154d6d9da48808418b181b6","event":"completed"}' \
-  | http_tracker_client announce --tracker-url http://127.0.0.1:7070 --request-stdin
+  | tracker_client http announce http://127.0.0.1:7070 --request-stdin
 ```
 
 ```bash
-cat announce.json | udp_tracker_client announce --tracker-socket-addr 127.0.0.1:6969 --request-stdin
+cat announce.json | tracker_client udp announce 127.0.0.1:6969 --request-stdin
 ```
 
 ## Input Shape (Draft)

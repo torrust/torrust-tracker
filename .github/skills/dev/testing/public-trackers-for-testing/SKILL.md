@@ -65,25 +65,25 @@ INFO_HASH=000620bbc6c52d5a96d98f6c0f1dfa523a40df82
 ### UDP scrape (preferred public demo)
 
 ```bash
-cargo run -q -p torrust-tracker-client --bin udp_tracker_client scrape \
+cargo run -q -p torrust-tracker-client --bin tracker_client udp scrape \
   udp://udp1.torrust-tracker-demo.com:6969/scrape \
   "$INFO_HASH" \
-  --format pretty
+  --format text
 ```
 
 ### UDP announce (preferred public demo)
 
 ```bash
-cargo run -q -p torrust-tracker-client --bin udp_tracker_client announce \
+cargo run -q -p torrust-tracker-client --bin tracker_client udp announce \
   udp://udp1.torrust-tracker-demo.com:6969/announce \
   "$INFO_HASH" \
-  --format compact
+  --format json
 ```
 
 ### HTTP announce (preferred public demo)
 
 ```bash
-cargo run -q -p torrust-tracker-client --bin http_tracker_client announce \
+cargo run -q -p torrust-tracker-client --bin tracker_client http announce \
   https://http1.torrust-tracker-demo.com:443 \
   "$INFO_HASH"
 ```
