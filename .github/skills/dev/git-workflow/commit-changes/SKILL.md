@@ -80,8 +80,8 @@ Once installed, the hook fires on every commit and you do not need to run the sc
 If the hook is not installed, run the script explicitly before committing.
 **It must exit with code `0`.**
 
-> **⏱️ Expected runtime: ~3 minutes** on a modern developer machine. AI agents must set a
-> command timeout of **at least 5 minutes** before invoking this script.
+> **⏱️ Expected runtime: ~1 minute** on a modern developer machine with warm caches.
+> AI agents should set a command timeout of **at least 3 minutes** before invoking this script.
 
 ```bash
 ./contrib/dev-tools/git/hooks/pre-commit.sh
@@ -92,7 +92,18 @@ The script runs:
 1. `cargo machete` — unused dependency check
 2. `linter all` — all linters (markdown, YAML, TOML, clippy, rustfmt, shellcheck, cspell)
 3. `cargo test --doc --workspace` — documentation tests
-4. `cargo test --tests --benches --examples --workspace --all-targets --all-features` — all tests
+
+For AI execution, prefer structured output first:
+
+```bash
+./contrib/dev-tools/git/hooks/pre-commit.sh --format=json
+```
+
+If it fails and deeper diagnostics are needed, retry with:
+
+```bash
+./contrib/dev-tools/git/hooks/pre-commit.sh --format=text --verbosity=verbose
+```
 
 ### Manual Checks (Cannot Be Automated)
 

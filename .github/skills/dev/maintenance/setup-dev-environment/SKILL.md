@@ -76,6 +76,13 @@ Install the project pre-commit hook (one-time, re-run after hook changes):
 ```
 
 The hook runs `./contrib/dev-tools/git/hooks/pre-commit.sh` automatically on every `git commit`.
+If an AI agent runs the command manually, prefer:
+
+```bash
+./contrib/dev-tools/git/hooks/pre-commit.sh --format=json
+```
+
+Retry with `--format=text --verbosity=verbose` only when deeper diagnostics are needed.
 
 ## Step 8: Smoke Test
 
