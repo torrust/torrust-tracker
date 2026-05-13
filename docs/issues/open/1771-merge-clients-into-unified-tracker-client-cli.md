@@ -260,6 +260,7 @@ Notes:
 - 2026-05-13 12:40 UTC - Copilot - All automated gates pass: 46 unit tests, 10 checker integration tests, 3 unified binary integration tests, `linter all` exits 0.
 - 2026-05-13 13:00 UTC - Copilot - T6 DONE: ran manual verification matrix M1–M7 against local tracker; all 7 scenarios exit 0 with correct output. Spec updated with evidence.
 - 2026-05-13 15:00 UTC - Copilot - Recorded design decision: `unified/` sub-modules kept flat (no per-action nesting); deferred to #1775 cleanup. Cross-referenced `unified/mod.rs` in spec `related-artifacts`.
+- 2026-05-13 15:30 UTC - Copilot - Implementation complete. All tasks (T1–T6) DONE, all ACs (AC1–AC13) verified, all manual scenarios (M1–M7) passed. Remaining workflow step: open implementation PR, merge, close GitHub issue #1771, move spec to `docs/issues/closed/`.
 
 ## Acceptance Criteria
 
