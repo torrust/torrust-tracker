@@ -136,9 +136,24 @@ contains only the issue specification changes:
 
 1. Branch from `develop`
 2. Commit only spec changes (`docs/issues/`, and if needed templates/skills)
-3. Push branch and open PR targeting `develop`
-4. Merge PR after review
-5. Start implementation work in a separate branch/PR
+3. Push branch to your fork remote (for example `josecelano`)
+4. Open PR in the **upstream repository** (`torrust/torrust-tracker`) targeting `develop`
+5. If using fork-based workflow, set head as `{fork-owner}:{branch}` (for example
+   `josecelano:1771-spec-first-pr-workflow`)
+6. Do not open the PR in the fork repository unless explicitly requested
+7. Merge PR after review
+8. Start implementation work in a separate branch/PR
+
+Recommended GitHub CLI command for fork-based PRs:
+
+```bash
+gh pr create \
+  --repo torrust/torrust-tracker \
+  --base develop \
+  --head {fork-owner}:{branch} \
+  --title "{title}" \
+  --body-file {body-file}
+```
 
 ## Verification Requirements for Issue Specs
 
