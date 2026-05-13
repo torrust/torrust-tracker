@@ -48,12 +48,37 @@ PR body must include:
 - Summary of changes
 - Files/packages touched
 - Validation performed
-- Issue link (`Closes #<issue-number>`)
+- Issue link (see rules below)
 
 PR body must not include:
 
 - Claims about code changes that are not present in the branch diff
 - Ambiguous wording that mixes temporary local verification patches with committed implementation
+
+## Issue Linking Rules
+
+GitHub auto-closes an issue when a merged PR body contains `Closes #N`, `Fixes #N`, or `Resolves #N`.
+Choose the correct keyword based on what the PR contains:
+
+| PR type                                                                                 | Keyword to use  | Example            |
+| --------------------------------------------------------------------------------------- | --------------- | ------------------ |
+| **Spec-only** — PR contains only the issue spec document, no implementation             | `Related to #N` | `Related to #1780` |
+| **Implementation** — PR implements the issue (whether or not it also includes the spec) | `Closes #N`     | `Closes #1780`     |
+
+> **Rule:** only use `Closes`/`Fixes`/`Resolves` when the PR fully resolves the issue.
+> A spec-only PR does **not** resolve the issue — use `Related to #N` to avoid auto-closing it.
+
+### Identifying the PR type
+
+Before writing the PR body, check the diff:
+
+```bash
+git diff <upstream-remote>/develop...HEAD --name-only
+```
+
+- Diff touches only `docs/issues/` → spec-only → use `Related to #N`
+- Diff touches source code, tests, or other non-spec files → implementation → use `Closes #N`
+- Diff touches both spec and implementation → combined → use `Closes #N`
 
 ## Option A (Preferred): GitHub CLI
 
@@ -88,7 +113,7 @@ When MCP pull request management tools are available, create the PR with:
 - [ ] PR targets `torrust/torrust-tracker:develop`
 - [ ] Head branch is correct
 - [ ] CI workflows started
-- [ ] Issue linked in description
+- [ ] Issue linked with the correct keyword (`Related to` for spec-only, `Closes` for implementation)
 - [ ] PR body still matches branch diff and commit history after final rebases/edits
 
 Quick body-accuracy verification:

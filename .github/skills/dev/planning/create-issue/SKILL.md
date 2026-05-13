@@ -43,6 +43,8 @@ For complex or high-impact issues, a **spec-first PR** is recommended:
 - Open a branch containing only issue-spec/EPIC documentation changes
 - Submit and merge that PR into `develop` first
 - Start implementation only after the specification PR has been reviewed and merged
+- Use `Related to #<number>` (not `Closes #<number>`) in the spec-only PR body to avoid
+  auto-closing the issue on merge (see the `open-pull-request` skill)
 
 This improves visibility and allows maintainers/contributors to review scope and acceptance
 criteria before code changes begin.
@@ -143,6 +145,12 @@ contains only the issue specification changes:
 6. Do not open the PR in the fork repository unless explicitly requested
 7. Merge PR after review
 8. Start implementation work in a separate branch/PR
+
+> **Important — do NOT auto-close the issue from a spec-only PR.**
+> Use `Related to #<number>` in the PR body, never `Closes #<number>` / `Fixes #<number>` /
+> `Resolves #<number>`. Those keywords trigger GitHub auto-close on merge.
+> The issue must remain open until the implementation is merged.
+> See the `open-pull-request` skill for the full issue-linking rules.
 
 Policy notes:
 
