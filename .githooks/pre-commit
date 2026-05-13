@@ -4,4 +4,4 @@ set -euo pipefail
 
 repo_root="$(git rev-parse --show-toplevel)"
 
-"$repo_root/contrib/dev-tools/git/hooks/pre-commit.sh" --format=text --verbosity=concise
+"$repo_root/contrib/dev-tools/git/hooks/pre-commit.sh" --format=json

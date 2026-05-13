@@ -7,7 +7,7 @@ github-issue: 1780
 spec-path: docs/issues/open/1780-refactor-pre-push-checks-performance-and-verbosity.md
 branch: "1780-refactor-pre-push-checks-performance-and-verbosity"
 related-pr: null
-last-updated-utc: 2026-05-13 20:30
+last-updated-utc: 2026-05-13 21:00
 semantic-links:
   skill-links:
     - create-issue
@@ -95,7 +95,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T7  | DONE   | Validate behavior in pass and fail paths               | shellcheck clean; all output modes (text+concise, text+verbose, json) verified on pass and fail paths |
 | T8  | DONE   | Run quality checks and finalize evidence               | `linter all` exits `0`; shellcheck passes on both hook scripts                                        |
 | T9  | DONE   | Add `.githooks/pre-push` hook dispatcher               | Mirrors `.githooks/pre-commit`; registered via `install-git-hooks.sh`                                 |
-| T10 | DONE   | Explicit output mode in `.githooks/` dispatchers       | Both dispatchers pass `--format=text --verbosity=concise` to lock in the intended mode                |
+| T10 | DONE   | Explicit output mode in `.githooks/` dispatchers       | Both dispatchers pass `--format=json`; JSON is the explicit default for hook invocations              |
 
 ## Progress Tracking
 
@@ -116,6 +116,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-05-13 19:30 UTC - Copilot - Implemented T2–T8: refactored `pre-push.sh`, updated `pre-commit.sh`, created `run-pre-push-checks` skill, updated `run-pre-commit-checks` skill and `AGENTS.md`. All pre-commit checks pass; shellcheck clean.
 - 2026-05-13 20:00 UTC - Copilot - Manually verified all output modes (pass+fail paths for text+concise, text+verbose, json; TORRUST_GIT_HOOKS_LOG_DIR log file creation). Added `.githooks/pre-push` dispatcher (T9) and installed via `install-git-hooks.sh`.
 - 2026-05-13 20:30 UTC - Copilot - Added explicit `--format=text --verbosity=concise` to both `.githooks/` dispatchers (T10); added manual verification test matrix to spec.
+- 2026-05-13 21:00 UTC - Copilot - Changed `.githooks/` dispatchers to use `--format=json` as the explicit default (updated T10).
 
 ## Acceptance Criteria
 
