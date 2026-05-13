@@ -92,7 +92,9 @@ fn parse_args(raw_args: Vec<String>) -> Result<Args, AppError> {
     let mut argv = vec!["tracker_client-check".to_string()];
     argv.extend(raw_args);
 
-    Args::try_parse_from(argv).map_err(|e| AppError::Runtime(e.to_string()))
+    // Let clap handle parse errors directly: it prints the message to stderr
+    // and exits with code 2 for usage errors, preserving the CLI I/O contract.
+    Args::try_parse_from(argv).map_err(|e| e.exit())
 }
 
 fn setup_config(args: Args) -> Result<Configuration, AppError> {

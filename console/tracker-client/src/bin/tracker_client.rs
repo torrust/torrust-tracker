@@ -11,7 +11,15 @@ async fn main() {
                 std::process::exit(exit_code);
             }
             app::Error::Other(err) => {
-                eprintln!("{err}");
+                let json = serde_json::json!({
+                    "error": {
+                        "kind": "runtime_failure",
+                        "source": "runtime",
+                        "message": err.to_string(),
+                    }
+                })
+                .to_string();
+                eprintln!("{json}");
                 std::process::exit(1);
             }
         }
