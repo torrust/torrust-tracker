@@ -7,7 +7,7 @@ github-issue: 1780
 spec-path: docs/issues/open/1780-refactor-pre-push-checks-performance-and-verbosity.md
 branch: "1780-refactor-pre-push-checks-performance-and-verbosity"
 related-pr: null
-last-updated-utc: 2026-05-13 17:55
+last-updated-utc: 2026-05-13 21:00
 semantic-links:
   skill-links:
     - create-issue
@@ -16,6 +16,7 @@ semantic-links:
     - contrib/dev-tools/git/hooks/pre-commit.sh
     - .github/workflows/testing.yaml
     - .github/skills/dev/git-workflow/run-pre-commit-checks/SKILL.md
+    - .github/skills/dev/git-workflow/run-pre-push-checks/SKILL.md
 ---
 
 <!-- skill-link: create-issue -->
@@ -51,9 +52,14 @@ while improving clarity, observability, and parity with pre-commit.
 - Keep `--verbose` as alias for `--verbosity=verbose`.
 - Add concise failure summaries (step, status, elapsed, log path, failure tail).
 - Add JSON output mode with one structured payload to stdout.
-- Add configurable per-step log directory env var (follow pre-commit contract).
+- Add `TORRUST_GIT_HOOKS_LOG_DIR` env var for configurable per-step log directory (see
+  [Design Decisions](#design-decisions)).
+- Update `pre-commit.sh` to use `TORRUST_GIT_HOOKS_LOG_DIR` (replacing the script-specific
+  `PRE_COMMIT_LOG_DIR` var) so all hooks share the same env var.
 - Preserve existing pre-push validation steps, including E2E.
-- Update docs/skills so pre-commit and pre-push behavior is consistent.
+- Create a new `run-pre-push-checks` skill (parallel structure to `run-pre-commit-checks`).
+- Update `run-pre-commit-checks` skill to document `TORRUST_GIT_HOOKS_LOG_DIR`.
+- Update `AGENTS.md` to reference the new env var and pre-push output modes.
 
 ### Out of Scope
 
@@ -62,26 +68,43 @@ while improving clarity, observability, and parity with pre-commit.
 - CI workflow redesign.
 - Broader hook framework rewrite into Rust CLI (future option only).
 
+## Design Decisions
+
+Decisions agreed with maintainer during planning (2026-05-13):
+
+| Decision                                | Choice                                                                        | Rationale                                                                                                   |
+| --------------------------------------- | ----------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| Log directory env var                   | `TORRUST_GIT_HOOKS_LOG_DIR` (shared across all hooks, default `/tmp`)         | `TORRUST_` prefix keeps tracker namespace clean; `GIT_HOOKS_` infix distinguishes from tracker runtime vars |
+| `pre-commit.sh` updated                 | Replace script-specific `PRE_COMMIT_LOG_DIR` with `TORRUST_GIT_HOOKS_LOG_DIR` | Single env var for all hooks; simpler mental model for developers                                           |
+| Skill docs strategy                     | New `run-pre-push-checks` skill (parallel to `run-pre-commit-checks`)         | Keeps skills focused; mirrors pre-commit/pre-push symmetry                                                  |
+| `--format=json` + `--verbosity=verbose` | JSON only; verbosity flag silently ignored in JSON mode                       | Consistent with pre-commit behavior; keeps JSON output machine-parseable                                    |
+| Failure behavior                        | Fail-fast — stop on first failure                                             | Consistent with pre-commit; saves time on a broken state                                                    |
+
 ## Implementation Plan
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| ID  | Status | Task                                     | Notes / Expected Output                                        |
-| --- | ------ | ---------------------------------------- | -------------------------------------------------------------- |
-| T1  | TODO   | Define pre-push CLI/output contract      | Final behavior matrix and error handling documented            |
-| T2  | TODO   | Implement hook refactor                  | `pre-push.sh` supports format/verbosity/log-dir parity         |
-| T3  | TODO   | Validate behavior in pass and fail paths | Text concise/verbose + JSON tested with exit-code verification |
-| T4  | TODO   | Update docs and skills                   | Workflow docs aligned with pre-push capabilities               |
-| T5  | TODO   | Run quality checks and finalize evidence | `linter all` and targeted checks pass                          |
+| ID  | Status | Task                                                   | Notes / Expected Output                                                                                                       |
+| --- | ------ | ------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------- |
+| T1  | DONE   | Define pre-push CLI/output contract                    | Decisions captured in [Design Decisions](#design-decisions)                                                                   |
+| T2  | DONE   | Refactor `pre-push.sh`                                 | Adds format/verbosity/log-dir parity; mirrors `pre-commit.sh` implementation                                                  |
+| T3  | DONE   | Update `pre-commit.sh` for `TORRUST_GIT_HOOKS_LOG_DIR` | Replaced `PRE_COMMIT_LOG_DIR` with `TORRUST_GIT_HOOKS_LOG_DIR`; all hooks now share one env var                               |
+| T4  | DONE   | Create `run-pre-push-checks` skill                     | `.github/skills/dev/git-workflow/run-pre-push-checks/SKILL.md` created                                                        |
+| T5  | DONE   | Update `run-pre-commit-checks` skill                   | `TORRUST_GIT_HOOKS_LOG_DIR` fallback documented                                                                               |
+| T6  | DONE   | Update `AGENTS.md`                                     | Log-dir env var and pre-push skill reference added                                                                            |
+| T7  | DONE   | Validate behavior in pass and fail paths               | shellcheck clean; all output modes (text+concise, text+verbose, json) verified on pass and fail paths                         |
+| T8  | DONE   | Run quality checks and finalize evidence               | `linter all` exits `0`; shellcheck passes on both hook scripts                                                                |
+| T9  | DONE   | Add `.githooks/pre-push` hook dispatcher               | Mirrors `.githooks/pre-commit`; registered via `install-git-hooks.sh`                                                         |
+| T10 | DONE   | Explicit output mode in `.githooks/` dispatchers       | Both dispatchers use TTY detection: `--format=text` for interactive terminals, `--format=json` for non-interactive/agent runs |
 
 ## Progress Tracking
 
 ### Workflow Checkpoints
 
 - [x] Spec drafted in `docs/issues/drafts/`
-- [ ] Spec reviewed and approved by user/maintainer
+- [x] Spec reviewed and approved by user/maintainer
 - [ ] GitHub issue created and issue number added to this spec
-- [ ] Implementation completed
+- [x] Implementation completed
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
@@ -89,29 +112,61 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 ### Progress Log
 
 - 2026-05-13 13:00 UTC - Copilot - Drafted follow-up issue for pre-push parity with #1769 (output modes, summaries, JSON, log-dir configurability).
+- 2026-05-13 19:00 UTC - Copilot - Agreed design decisions with maintainer: `TORRUST_GIT_HOOKS_LOG_DIR` shared env var, new `run-pre-push-checks` skill, JSON-only in `--format=json`, fail-fast behavior. Implementation plan refined into T1–T8.
+- 2026-05-13 19:30 UTC - Copilot - Implemented T2–T8: refactored `pre-push.sh`, updated `pre-commit.sh`, created `run-pre-push-checks` skill, updated `run-pre-commit-checks` skill and `AGENTS.md`. All pre-commit checks pass; shellcheck clean.
+- 2026-05-13 20:00 UTC - Copilot - Manually verified all output modes (pass+fail paths for text+concise, text+verbose, json; TORRUST_GIT_HOOKS_LOG_DIR log file creation). Added `.githooks/pre-push` dispatcher (T9) and installed via `install-git-hooks.sh`.
+- 2026-05-13 20:30 UTC - Copilot - Added explicit `--format=text --verbosity=concise` to both `.githooks/` dispatchers (T10); added manual verification test matrix to spec.
+- 2026-05-13 21:00 UTC - Copilot - Changed `.githooks/` dispatchers to use `--format=json` as the explicit default (updated T10).
 
 ## Acceptance Criteria
 
-- [ ] AC1: `pre-push.sh` supports `--format=<text|json>` and `--verbosity=<concise|verbose>` with `--verbose` alias.
-- [ ] AC2: `--format=text --verbosity=concise` prints high-signal per-step summary; failures include log path and short tail.
-- [ ] AC3: `--format=json` emits one valid JSON document to stdout with step-level status and timing.
-- [ ] AC4: Invalid/unknown flags fail with exit code `2`, usage hint, and stderr diagnostics.
-- [ ] AC5: Existing pre-push check ownership is preserved (including E2E in pre-push).
-- [ ] AC6: Log-directory override env var is supported and documented (parity with pre-commit behavior).
-- [ ] `linter all` exits with code `0`
+- [x] AC1: `pre-push.sh` supports `--format=<text|json>` and `--verbosity=<concise|verbose>` with `--verbose` alias.
+- [x] AC2: `--format=text --verbosity=concise` prints high-signal per-step summary; failures include log path and short tail.
+- [x] AC3: `--format=json` emits one valid JSON document to stdout with step-level status and timing.
+- [x] AC4: Invalid/unknown flags fail with exit code `2`, usage hint, and stderr diagnostics.
+- [x] AC5: Existing pre-push check ownership is preserved (including E2E in pre-push).
+- [x] AC6: `TORRUST_GIT_HOOKS_LOG_DIR` is the shared log-directory env var for all hooks, defaulting to
+      `/tmp`. Both `pre-push.sh` and `pre-commit.sh` use it. Both hooks document it in their usage
+      text and in skill docs.
+- [x] AC7: `--format=json` emits JSON only regardless of `--verbosity` value (verbosity silently
+      ignored in JSON mode).
+- [x] AC8: On first step failure, the hook stops immediately (fail-fast) and reports the failing
+      step; subsequent steps are not run.
+- [x] `linter all` exits with code `0`
 - [ ] Relevant tests pass
-- [ ] Documentation is updated when behavior/workflow changes
+- [x] Documentation is updated when behavior/workflow changes
+
+### Manual Verification Test Matrix
+
+Tested with a fast-step stub (2–3 no-op steps), `TORRUST_GIT_HOOKS_LOG_DIR=.tmp`.
+
+| Test case                                       | Expected                                                                  | Result |
+| ----------------------------------------------- | ------------------------------------------------------------------------- | ------ |
+| `--help` / `-h`                                 | exit 0, usage text on stderr                                              | PASS   |
+| `--format=bad`                                  | exit 2, error + usage on stderr                                           | PASS   |
+| `--verbosity=bad`                               | exit 2, error + usage on stderr                                           | PASS   |
+| `--unknown`                                     | exit 2, error + usage on stderr                                           | PASS   |
+| `text concise` pass path                        | `[Step N/M] … PASS (Xs)` per step + SUCCESS footer, exit 0                | PASS   |
+| `text verbose` pass path                        | step header + streaming stdout + PASS summary + blank line, exit 0        | PASS   |
+| `--format=json` pass path                       | valid JSON, `status: pass`, `exit_code: 0`, all steps in array            | PASS   |
+| `text concise` fail path                        | FAIL line + log path + tail lines; subsequent steps skipped; exit 1       | PASS   |
+| `--format=json` fail path                       | valid JSON, `status: fail`, `exit_code: 1`, `failed_step`, `failure_tail` | PASS   |
+| `--format=json --verbose`                       | JSON only — verbosity silently ignored                                    | PASS   |
+| `TORRUST_GIT_HOOKS_LOG_DIR` in pre-push         | log files created in `.tmp/pre-push-*`                                    | PASS   |
+| `TORRUST_GIT_HOOKS_LOG_DIR` fallback pre-commit | logs in `.tmp/pre-commit-*`, JSON output valid                            | PASS   |
 
 ### Acceptance Verification
 
-| AC ID | Status (`TODO`/`DONE`) | Evidence |
-| ----- | ---------------------- | -------- |
-| AC1   | TODO                   |          |
-| AC2   | TODO                   |          |
-| AC3   | TODO                   |          |
-| AC4   | TODO                   |          |
-| AC5   | TODO                   |          |
-| AC6   | TODO                   |          |
+| AC ID | Status (`TODO`/`DONE`) | Evidence                                                                                                                                                     |
+| ----- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| AC1   | DONE                   | `--format`, `--verbosity`, `--verbose` parsed in `parse_args`; invalid values exit `2`                                                                       |
+| AC2   | DONE                   | `print_step_summary` in concise mode; failure path prints log path + tail                                                                                    |
+| AC3   | DONE                   | `emit_json_result` outputs one JSON doc to stdout on `--format=json`                                                                                         |
+| AC4   | DONE                   | `--format=bad` → exit `2` + usage; `--verbosity=bad` → exit `2`; `--unknown` → exit `2` (all manually verified)                                              |
+| AC5   | DONE                   | All 8 original steps preserved unchanged in `STEPS` array                                                                                                    |
+| AC6   | DONE                   | Both hooks use `TORRUST_GIT_HOOKS_LOG_DIR`; log files written to `.tmp/` in tests; usage texts and skills updated; `.githooks/pre-push` dispatcher installed |
+| AC7   | DONE                   | `emit_json_result` is called regardless of `VERBOSITY` when `FORMAT=json`                                                                                    |
+| AC8   | DONE                   | `break` on first `run_step` failure in main loop                                                                                                             |
 
 ## Risks and Trade-offs
 

@@ -20,6 +20,15 @@ automatically on every `git commit`. Install it once after cloning:
 After installation the hook fires automatically; you do not need to invoke the script
 manually before each commit.
 
+> **For AI agents**: before invoking the script manually, check whether the hook is installed:
+>
+> ```bash
+> [[ -x "$(git rev-parse --git-path hooks)/pre-commit" ]] && echo "installed" || echo "not installed"
+> ```
+>
+> If installed, skip the manual run — `git commit` will trigger it automatically.
+> Running both would execute every check twice.
+
 ## Automated Checks
 
 > **⏱️ Expected runtime: ~1 minute** on a modern developer machine with warm caches.
@@ -68,12 +77,12 @@ Flag behavior:
 - Duplicate `--format`/`--verbosity` flags: last value wins
 - Invalid values or unknown flags exit with code `2` and print usage guidance to stderr
 - In `--format=json`, structured output remains JSON regardless of verbosity value
-- Per-step logs are written to `PRE_COMMIT_LOG_DIR` (default: `/tmp`)
+- Per-step logs are written to `TORRUST_GIT_HOOKS_LOG_DIR` (default: `/tmp`)
 
 For restricted agent environments that cannot write outside the workspace, run with:
 
 ```bash
-PRE_COMMIT_LOG_DIR=.tmp ./contrib/dev-tools/git/hooks/pre-commit.sh
+TORRUST_GIT_HOOKS_LOG_DIR=.tmp ./contrib/dev-tools/git/hooks/pre-commit.sh
 ```
 
 The `.tmp/` directory is git-ignored.

@@ -37,12 +37,22 @@ Treat every commit request as a review-and-verify workflow, not as a blind reque
 5. Check for obvious repository-policy violations in the diff (for example missing required spec
    progress updates, missing documented rationale where required, or similar policy blockers).
    If found, stop and return to the Implementer/Reviewer before committing.
-6. Run `./contrib/dev-tools/git/hooks/pre-commit.sh` when feasible. For AI execution, use
-   `--format=json` first and retry with `--format=text --verbosity=verbose` if needed. If it fails:
-   - **You may fix**: formatting, linting, spell-check, import organization, and similar
-     metadata-only issues that are direct artifacts of the commit scope.
-   - **You must not fix**: build failures, test failures, logic errors, or runtime issues.
-     These are implementation defects; stop and return them to the **Implementer** to resolve.
+6. **Check if the pre-commit git hook is already installed** before running checks manually:
+
+   ```bash
+   [[ -x "$(git rev-parse --git-path hooks)/pre-commit" ]] && echo "installed" || echo "not installed"
+   ```
+
+   - **If installed**: do NOT run the script manually — `git commit -S` will trigger it
+     automatically. Running it first would execute every check twice.
+   - **If not installed**: run `./contrib/dev-tools/git/hooks/pre-commit.sh` manually.
+     For AI execution, use `--format=json` first and retry with
+     `--format=text --verbosity=verbose` if needed. If it fails:
+     - **You may fix**: formatting, linting, spell-check, import organization, and similar
+       metadata-only issues that are direct artifacts of the commit scope.
+     - **You must not fix**: build failures, test failures, logic errors, or runtime issues.
+       These are implementation defects; stop and return them to the **Implementer** to resolve.
+
 7. Propose a precise Conventional Commit message.
 8. Create the commit with `git commit -S` only after the scope is clear and blockers are resolved.
 9. After committing, run a quick verification check and report the resulting commit summary.
