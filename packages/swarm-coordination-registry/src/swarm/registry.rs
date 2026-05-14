@@ -7,12 +7,12 @@ use torrust_tracker_clock::conv::convert_from_timestamp_to_datetime_utc;
 use torrust_tracker_configuration::TrackerPolicy;
 use torrust_tracker_primitives::pagination::Pagination;
 use torrust_tracker_primitives::swarm_metadata::{AggregateActiveSwarmMetadata, SwarmMetadata};
-use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, NumberOfDownloads, NumberOfDownloadsBTreeMap};
+use torrust_tracker_primitives::{DurationSinceUnixEpoch, NumberOfDownloads, NumberOfDownloadsBTreeMap, peer};
 
-use crate::event::sender::Sender;
-use crate::event::Event;
-use crate::swarm::coordinator::Coordinator;
 use crate::CoordinatorHandle;
+use crate::event::Event;
+use crate::event::sender::Sender;
+use crate::swarm::coordinator::Coordinator;
 
 #[derive(Default)]
 pub struct Registry {
@@ -616,8 +616,8 @@ mod tests {
             use torrust_tracker_primitives::peer::Peer;
             use torrust_tracker_primitives::{AnnounceEvent, DurationSinceUnixEpoch, NumberOfBytes};
 
-            use crate::swarm::registry::tests::the_swarm_repository::numeric_peer_id;
             use crate::swarm::registry::Registry;
+            use crate::swarm::registry::tests::the_swarm_repository::numeric_peer_id;
             use crate::tests::{sample_info_hash, sample_peer};
 
             #[tokio::test]
@@ -677,8 +677,8 @@ mod tests {
                 use torrust_tracker_primitives::peer::Peer;
                 use torrust_tracker_primitives::{AnnounceEvent, DurationSinceUnixEpoch, NumberOfBytes};
 
-                use crate::swarm::registry::tests::the_swarm_repository::numeric_peer_id;
                 use crate::swarm::registry::Registry;
+                use crate::swarm::registry::tests::the_swarm_repository::numeric_peer_id;
                 use crate::tests::{sample_info_hash, sample_peer};
 
                 #[tokio::test]
@@ -802,11 +802,13 @@ mod tests {
                     .await
                     .unwrap();
 
-                assert!(!swarms
-                    .get_swarm_peers(&info_hash, 74)
-                    .await
-                    .unwrap()
-                    .contains(&Arc::new(peer)));
+                assert!(
+                    !swarms
+                        .get_swarm_peers(&info_hash, 74)
+                        .await
+                        .unwrap()
+                        .contains(&Arc::new(peer))
+                );
             }
 
             async fn initialize_repository_with_one_torrent_without_peers(info_hash: &InfoHash) -> Arc<Registry> {
@@ -871,12 +873,11 @@ mod tests {
             #[allow(clippy::from_over_into)]
             impl Into<TorrentEntryInfo> for Coordinator {
                 fn into(self) -> TorrentEntryInfo {
-                    let torrent_entry_info = TorrentEntryInfo {
+                    TorrentEntryInfo {
                         swarm_metadata: self.metadata(),
                         peers: self.peers(None).iter().map(|peer| *peer.clone()).collect(),
                         number_of_peers: self.len(),
-                    };
-                    torrent_entry_info
+                    }
                 }
             }
 
@@ -910,10 +911,10 @@ mod tests {
 
                 use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
 
-                use crate::swarm::registry::tests::the_swarm_repository::returning_torrent_entries::{
-                    torrent_entry_info, TorrentEntryInfo,
-                };
                 use crate::swarm::registry::Registry;
+                use crate::swarm::registry::tests::the_swarm_repository::returning_torrent_entries::{
+                    TorrentEntryInfo, torrent_entry_info,
+                };
                 use crate::tests::{sample_info_hash, sample_peer};
 
                 #[tokio::test]
@@ -950,10 +951,10 @@ mod tests {
                     use torrust_tracker_primitives::pagination::Pagination;
                     use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
 
-                    use crate::swarm::registry::tests::the_swarm_repository::returning_torrent_entries::{
-                        torrent_entry_info, TorrentEntryInfo,
-                    };
                     use crate::swarm::registry::Registry;
+                    use crate::swarm::registry::tests::the_swarm_repository::returning_torrent_entries::{
+                        TorrentEntryInfo, torrent_entry_info,
+                    };
                     use crate::tests::{
                         sample_info_hash_alphabetically_ordered_after_sample_info_hash_one, sample_info_hash_one,
                         sample_peer_one, sample_peer_two,
@@ -1346,11 +1347,11 @@ mod tests {
 
         use std::sync::Arc;
 
-        use torrust_tracker_primitives::peer::fixture::PeerBuilder;
         use torrust_tracker_primitives::DurationSinceUnixEpoch;
+        use torrust_tracker_primitives::peer::fixture::PeerBuilder;
 
-        use crate::event::sender::tests::{expect_event_sequence, MockEventSender};
         use crate::event::Event;
+        use crate::event::sender::tests::{MockEventSender, expect_event_sequence};
         use crate::swarm::registry::Registry;
         use crate::tests::sample_info_hash;
 

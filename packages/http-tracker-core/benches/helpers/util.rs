@@ -1,9 +1,9 @@
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::sync::Arc;
 
+use bittorrent_http_tracker_core::event::Event;
 use bittorrent_http_tracker_core::event::bus::EventBus;
 use bittorrent_http_tracker_core::event::sender::Broadcaster;
-use bittorrent_http_tracker_core::event::Event;
 use bittorrent_http_tracker_core::statistics::event::listener::run_event_listener;
 use bittorrent_http_tracker_core::statistics::repository::Repository;
 use bittorrent_http_tracker_protocol::v1::requests::announce::Announce;
@@ -23,7 +23,7 @@ use tokio_util::sync::CancellationToken;
 use torrust_tracker_configuration::{Configuration, Core};
 use torrust_tracker_events::sender::SendError;
 use torrust_tracker_primitives::peer::Peer;
-use torrust_tracker_primitives::{peer, AnnounceEvent, DurationSinceUnixEpoch, NumberOfBytes, PeerId};
+use torrust_tracker_primitives::{AnnounceEvent, DurationSinceUnixEpoch, NumberOfBytes, PeerId, peer};
 use torrust_tracker_test_helpers::configuration;
 
 pub struct CoreTrackerServices {

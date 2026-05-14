@@ -8,7 +8,7 @@ use crate::authentication::handler::KeysHandler;
 use crate::authentication::key::repository::in_memory::InMemoryKeyRepository;
 use crate::authentication::key::repository::persisted::DatabaseKeyRepository;
 use crate::authentication::service::AuthenticationService;
-use crate::databases::setup::{initialize_database, DatabaseStores};
+use crate::databases::setup::{DatabaseStores, initialize_database};
 use crate::scrape_handler::ScrapeHandler;
 use crate::statistics::persisted::downloads::DatabaseDownloadsMetricRepository;
 use crate::torrent::manager::TorrentsManager;

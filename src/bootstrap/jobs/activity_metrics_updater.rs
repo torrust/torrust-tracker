@@ -6,8 +6,8 @@ use tokio::task::JoinHandle;
 use torrust_tracker_clock::clock::Time;
 use torrust_tracker_configuration::Configuration;
 
-use crate::container::AppContainer;
 use crate::CurrentClock;
+use crate::container::AppContainer;
 
 #[must_use]
 pub fn start_job(config: &Configuration, app_container: &Arc<AppContainer>) -> JoinHandle<()> {

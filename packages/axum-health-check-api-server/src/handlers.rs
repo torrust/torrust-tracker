@@ -1,9 +1,9 @@
 use std::collections::VecDeque;
 
-use axum::extract::State;
 use axum::Json;
+use axum::extract::State;
 use torrust_server_lib::registar::{ServiceHealthCheckJob, ServiceRegistration, ServiceRegistry};
-use tracing::{instrument, Level};
+use tracing::{Level, instrument};
 
 use super::resources::{CheckReport, Report};
 use super::responses;

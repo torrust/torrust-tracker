@@ -5,8 +5,8 @@
 //! Refer to the [API endpoint documentation](crate::v1::context::stats).
 use std::sync::Arc;
 
-use axum::routing::get;
 use axum::Router;
+use axum::routing::get;
 use torrust_rest_tracker_api_core::container::TrackerHttpApiCoreContainer;
 
 use super::handlers::{get_metrics_handler, get_stats_handler};

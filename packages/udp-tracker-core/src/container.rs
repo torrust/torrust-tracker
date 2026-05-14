@@ -12,7 +12,7 @@ use crate::services::banning::BanService;
 use crate::services::connect::ConnectService;
 use crate::services::scrape::ScrapeService;
 use crate::statistics::repository::Repository;
-use crate::{event, services, statistics, MAX_CONNECTION_ID_ERRORS_PER_IP};
+use crate::{MAX_CONNECTION_ID_ERRORS_PER_IP, event, services, statistics};
 
 pub struct UdpTrackerCoreContainer {
     pub udp_tracker_config: Arc<UdpTracker>,

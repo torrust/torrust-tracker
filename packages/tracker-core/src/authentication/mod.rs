@@ -33,8 +33,8 @@ mod tests {
         use std::sync::Arc;
         use std::time::Duration;
 
-        use torrust_tracker_configuration::v2_0_0::core::PrivateMode;
         use torrust_tracker_configuration::Configuration;
+        use torrust_tracker_configuration::v2_0_0::core::PrivateMode;
         use torrust_tracker_test_helpers::configuration;
 
         use crate::authentication::handler::KeysHandler;
@@ -50,8 +50,8 @@ mod tests {
             instantiate_keys_manager_and_authentication_with_configuration(&config).await
         }
 
-        async fn instantiate_keys_manager_and_authentication_with_checking_keys_expiration_disabled(
-        ) -> (Arc<KeysHandler>, Arc<AuthenticationService>) {
+        async fn instantiate_keys_manager_and_authentication_with_checking_keys_expiration_disabled()
+        -> (Arc<KeysHandler>, Arc<AuthenticationService>) {
             let mut config = configuration::ephemeral_private();
 
             config.core.private_mode = Some(PrivateMode {
@@ -118,11 +118,11 @@ mod tests {
             mod randomly_generated_keys {
                 use std::time::Duration;
 
+                use crate::authentication::Key;
                 use crate::authentication::tests::the_tracker_configured_as_private::{
                     instantiate_keys_manager_and_authentication,
                     instantiate_keys_manager_and_authentication_with_checking_keys_expiration_disabled,
                 };
-                use crate::authentication::Key;
 
                 #[tokio::test]
                 async fn it_should_authenticate_a_peer_with_the_key() {
@@ -156,12 +156,12 @@ mod tests {
 
             mod pre_generated_keys {
 
+                use crate::authentication::Key;
                 use crate::authentication::handler::AddKeyRequest;
                 use crate::authentication::tests::the_tracker_configured_as_private::{
                     instantiate_keys_manager_and_authentication,
                     instantiate_keys_manager_and_authentication_with_checking_keys_expiration_disabled,
                 };
-                use crate::authentication::Key;
 
                 #[tokio::test]
                 async fn it_should_authenticate_a_peer_with_the_key() {
@@ -216,9 +216,9 @@ mod tests {
             }
 
             mod pre_generated_keys {
+                use crate::authentication::Key;
                 use crate::authentication::handler::AddKeyRequest;
                 use crate::authentication::tests::the_tracker_configured_as_private::instantiate_keys_manager_and_authentication;
-                use crate::authentication::Key;
 
                 #[tokio::test]
                 async fn it_should_authenticate_a_peer_with_the_key() {

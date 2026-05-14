@@ -70,8 +70,8 @@ mod tests {
         use crate::event::{ConnectionContext, Event};
         use crate::services::connect::ConnectService;
         use crate::services::tests::{
-            sample_ipv4_remote_addr, sample_ipv4_remote_addr_fingerprint, sample_ipv4_socket_address, sample_ipv6_remote_addr,
-            sample_ipv6_remote_addr_fingerprint, sample_issue_time, MockUdpCoreStatsEventSender,
+            MockUdpCoreStatsEventSender, sample_ipv4_remote_addr, sample_ipv4_remote_addr_fingerprint,
+            sample_ipv4_socket_address, sample_ipv6_remote_addr, sample_ipv6_remote_addr_fingerprint, sample_issue_time,
         };
 
         #[tokio::test]

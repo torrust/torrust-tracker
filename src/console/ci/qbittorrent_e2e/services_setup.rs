@@ -10,7 +10,7 @@ use std::time::Duration;
 use anyhow::Context;
 
 use super::client_role::ClientRole;
-use super::qbittorrent::{QbittorrentClient, QBITTORRENT_WEBUI_PORT};
+use super::qbittorrent::{QBITTORRENT_WEBUI_PORT, QbittorrentClient};
 use super::tracker::{TrackerApiClient, TrackerConfig};
 use super::types::{ComposeProjectName, QbittorrentImage, TrackerImage};
 use super::workspace::WorkspaceResources;

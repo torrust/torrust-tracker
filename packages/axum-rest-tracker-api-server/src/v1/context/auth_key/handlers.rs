@@ -5,8 +5,8 @@ use std::time::Duration;
 
 use axum::extract::{self, Path, State};
 use axum::response::Response;
-use bittorrent_tracker_core::authentication::handler::{AddKeyRequest, KeysHandler};
 use bittorrent_tracker_core::authentication::Key;
+use bittorrent_tracker_core::authentication::handler::{AddKeyRequest, KeysHandler};
 use serde::Deserialize;
 
 use super::forms::AddKeyForm;

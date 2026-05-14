@@ -12,7 +12,7 @@ use tokio::sync::oneshot;
 use tokio::time::interval;
 use torrust_server_lib::logging::STARTED_ON;
 use torrust_server_lib::registar::ServiceHealthCheckJob;
-use torrust_server_lib::signals::{shutdown_signal_with_message, Halted, Started};
+use torrust_server_lib::signals::{Halted, Started, shutdown_signal_with_message};
 use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
 use tracing::instrument;
 

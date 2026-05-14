@@ -69,7 +69,7 @@ use url::Url;
 use super::config::Configuration;
 use super::console::Console;
 use super::error::{AppError, ConfigSource};
-use super::monitor::udp::{run_monitor, MonitorUdpConfig, DEFAULT_INFO_HASH};
+use super::monitor::udp::{DEFAULT_INFO_HASH, MonitorUdpConfig, run_monitor};
 use super::service::Service;
 use crate::console::clients::checker::config::parse_from_json;
 

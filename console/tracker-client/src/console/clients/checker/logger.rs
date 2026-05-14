@@ -1,6 +1,6 @@
 use std::cell::RefCell;
 
-use super::printer::{Printer, CLEAR_SCREEN};
+use super::printer::{CLEAR_SCREEN, Printer};
 
 pub struct Logger {
     output: RefCell<String>,
@@ -50,7 +50,7 @@ impl Printer for Logger {
 #[cfg(test)]
 mod tests {
     use crate::console::clients::checker::logger::Logger;
-    use crate::console::clients::checker::printer::{Printer, CLEAR_SCREEN};
+    use crate::console::clients::checker::printer::{CLEAR_SCREEN, Printer};
 
     #[test]
     fn should_capture_the_clear_screen_command() {

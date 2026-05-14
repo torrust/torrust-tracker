@@ -4,8 +4,8 @@ use std::sync::Arc;
 use bittorrent_primitives::info_hash::InfoHash;
 use torrust_tracker_primitives::{NumberOfDownloads, NumberOfDownloadsBTreeMap};
 
-use crate::databases::error::Error;
 use crate::databases::TorrentMetricsStore;
+use crate::databases::error::Error;
 
 /// It persists torrent metrics in a database.
 ///

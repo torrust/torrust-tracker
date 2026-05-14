@@ -4,7 +4,7 @@ mod given_that_the_token_is_only_provided_in_the_authentication_header {
     use torrust_rest_tracker_api_client::common::http::Query;
     use torrust_rest_tracker_api_client::connection_info::ConnectionInfo;
     use torrust_rest_tracker_api_client::v1::client::{
-        headers_with_auth_token, headers_with_request_id, Client, AUTH_BEARER_TOKEN_HEADER_PREFIX,
+        AUTH_BEARER_TOKEN_HEADER_PREFIX, Client, headers_with_auth_token, headers_with_request_id,
     };
     use torrust_tracker_test_helpers::logging::logs_contains_a_line_with;
     use torrust_tracker_test_helpers::{configuration, logging};
@@ -103,7 +103,7 @@ mod given_that_the_token_is_only_provided_in_the_query_param {
     use torrust_axum_rest_tracker_api_server::environment::Started;
     use torrust_rest_tracker_api_client::common::http::{Query, QueryParam};
     use torrust_rest_tracker_api_client::connection_info::ConnectionInfo;
-    use torrust_rest_tracker_api_client::v1::client::{headers_with_request_id, Client, TOKEN_PARAM_NAME};
+    use torrust_rest_tracker_api_client::v1::client::{Client, TOKEN_PARAM_NAME, headers_with_request_id};
     use torrust_tracker_test_helpers::logging::logs_contains_a_line_with;
     use torrust_tracker_test_helpers::{configuration, logging};
     use uuid::Uuid;
@@ -227,7 +227,7 @@ mod given_that_not_token_is_provided {
     use torrust_axum_rest_tracker_api_server::environment::Started;
     use torrust_rest_tracker_api_client::common::http::Query;
     use torrust_rest_tracker_api_client::connection_info::ConnectionInfo;
-    use torrust_rest_tracker_api_client::v1::client::{headers_with_request_id, Client};
+    use torrust_rest_tracker_api_client::v1::client::{Client, headers_with_request_id};
     use torrust_tracker_test_helpers::logging::logs_contains_a_line_with;
     use torrust_tracker_test_helpers::{configuration, logging};
     use uuid::Uuid;
@@ -263,7 +263,7 @@ mod given_that_not_token_is_provided {
 mod given_that_token_is_provided_via_get_param_and_authentication_header {
     use torrust_axum_rest_tracker_api_server::environment::Started;
     use torrust_rest_tracker_api_client::common::http::{Query, QueryParam};
-    use torrust_rest_tracker_api_client::v1::client::{headers_with_auth_token, Client, TOKEN_PARAM_NAME};
+    use torrust_rest_tracker_api_client::v1::client::{Client, TOKEN_PARAM_NAME, headers_with_auth_token};
     use torrust_tracker_test_helpers::{configuration, logging};
 
     #[tokio::test]

@@ -1,5 +1,5 @@
-use futures::future::BoxFuture;
 use futures::FutureExt;
+use futures::future::BoxFuture;
 use tokio::sync::broadcast::{self};
 
 use crate::receiver::{Receiver, RecvError};
@@ -60,7 +60,7 @@ impl From<broadcast::error::RecvError> for RecvError {
 
 #[cfg(test)]
 mod tests {
-    use tokio::time::{timeout, Duration};
+    use tokio::time::{Duration, timeout};
 
     use super::*;
 

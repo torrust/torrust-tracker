@@ -8,7 +8,7 @@ use torrust_tracker_metrics::metric_name;
 use torrust_tracker_primitives::DurationSinceUnixEpoch;
 
 use super::metrics::Metrics;
-use super::{describe_metrics, TRACKER_CORE_PERSISTENT_TORRENTS_DOWNLOADS_TOTAL};
+use super::{TRACKER_CORE_PERSISTENT_TORRENTS_DOWNLOADS_TOTAL, describe_metrics};
 
 /// A repository for the torrent repository metrics.
 #[derive(Clone)]

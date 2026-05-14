@@ -26,10 +26,10 @@
 use std::net::SocketAddr;
 use std::sync::Arc;
 
-use axum_server::tls_rustls::RustlsConfig;
 use axum_server::Handle;
-use derive_more::derive::Display;
+use axum_server::tls_rustls::RustlsConfig;
 use derive_more::Constructor;
+use derive_more::derive::Display;
 use futures::future::BoxFuture;
 use thiserror::Error;
 use tokio::sync::oneshot::{Receiver, Sender};
@@ -41,7 +41,7 @@ use torrust_server_lib::registar::{ServiceHealthCheckJob, ServiceRegistration, S
 use torrust_server_lib::signals::{Halted, Started};
 use torrust_tracker_configuration::AccessTokens;
 use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
-use tracing::{instrument, Level};
+use tracing::{Level, instrument};
 
 use super::routes::router;
 use crate::API_LOG_TARGET;
@@ -310,7 +310,7 @@ mod tests {
     use torrust_axum_server::tsl::make_rust_tls;
     use torrust_rest_tracker_api_core::container::TrackerHttpApiCoreContainer;
     use torrust_server_lib::registar::Registar;
-    use torrust_tracker_configuration::{logging, Configuration};
+    use torrust_tracker_configuration::{Configuration, logging};
     use torrust_tracker_test_helpers::configuration::ephemeral_public;
 
     use crate::server::{ApiServer, Launcher};

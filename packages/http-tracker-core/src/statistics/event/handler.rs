@@ -5,8 +5,8 @@ use torrust_tracker_metrics::{label_name, metric_name};
 use torrust_tracker_primitives::DurationSinceUnixEpoch;
 
 use crate::event::Event;
-use crate::statistics::repository::Repository;
 use crate::statistics::HTTP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL;
+use crate::statistics::repository::Repository;
 
 pub async fn handle_event(event: Event, stats_repository: &Arc<Repository>, now: DurationSinceUnixEpoch) {
     match event {
@@ -25,7 +25,7 @@ pub async fn handle_event(event: Event, stats_repository: &Arc<Repository>, now:
                     );
                 }
                 Err(err) => tracing::error!("Failed to increase the counter: {}", err),
-            };
+            }
         }
         Event::TcpScrape { connection } => {
             let mut label_set = LabelSet::from(connection);
@@ -42,7 +42,7 @@ pub async fn handle_event(event: Event, stats_repository: &Arc<Repository>, now:
                     );
                 }
                 Err(err) => tracing::error!("Failed to increase the counter: {}", err),
-            };
+            }
         }
     }
 
@@ -58,11 +58,11 @@ mod tests {
     use torrust_tracker_clock::clock::Time;
     use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
 
+    use crate::CurrentClock;
     use crate::event::{ConnectionContext, Event};
     use crate::statistics::event::handler::handle_event;
     use crate::statistics::repository::Repository;
     use crate::tests::{sample_info_hash, sample_peer_using_ipv4, sample_peer_using_ipv6};
-    use crate::CurrentClock;
 
     #[tokio::test]
     async fn should_increase_the_tcp4_announces_counter_when_it_receives_a_tcp4_announce_event() {

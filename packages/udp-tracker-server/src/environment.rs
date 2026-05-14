@@ -6,13 +6,13 @@ use bittorrent_udp_tracker_core::container::UdpTrackerCoreContainer;
 use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
 use torrust_server_lib::registar::Registar;
-use torrust_tracker_configuration::{logging, Configuration, DEFAULT_TIMEOUT};
+use torrust_tracker_configuration::{Configuration, DEFAULT_TIMEOUT, logging};
 use torrust_tracker_swarm_coordination_registry::container::SwarmCoordinationRegistryContainer;
 
 use crate::container::UdpTrackerServerContainer;
+use crate::server::Server;
 use crate::server::spawner::Spawner;
 use crate::server::states::{Running, Stopped};
-use crate::server::Server;
 
 pub type Started = Environment<Running>;
 

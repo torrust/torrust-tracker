@@ -12,7 +12,7 @@ use super::app::OutputFormat;
 use crate::console::clients::udp::checker::AnnounceParams;
 use crate::console::clients::udp::responses::dto::SerializableResponse;
 use crate::console::clients::udp::responses::json::ToJson;
-use crate::console::clients::udp::{checker, Error};
+use crate::console::clients::udp::{Error, checker};
 
 const RANDOM_TRANSACTION_ID: i32 = -888_840_697;
 

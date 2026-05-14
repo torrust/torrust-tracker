@@ -13,15 +13,15 @@ use hyper::{Request, StatusCode};
 use torrust_server_lib::logging::Latency;
 use torrust_tracker_configuration::DEFAULT_TIMEOUT;
 use torrust_tracker_primitives::service_binding::ServiceBinding;
-use tower::timeout::TimeoutLayer;
 use tower::ServiceBuilder;
+use tower::timeout::TimeoutLayer;
+use tower_http::LatencyUnit;
 use tower_http::classify::ServerErrorsFailureClass;
 use tower_http::compression::CompressionLayer;
 use tower_http::propagate_header::PropagateHeaderLayer;
 use tower_http::request_id::{MakeRequestUuid, SetRequestIdLayer};
 use tower_http::trace::{DefaultMakeSpan, TraceLayer};
-use tower_http::LatencyUnit;
-use tracing::{instrument, Level, Span};
+use tracing::{Level, Span, instrument};
 
 use super::handlers::{announce, health_check, scrape};
 use crate::HTTP_TRACKER_LOG_TARGET;

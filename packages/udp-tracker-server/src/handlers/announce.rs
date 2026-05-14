@@ -10,9 +10,9 @@ use bittorrent_udp_tracker_protocol::{
     Port, Response, ResponsePeer, TransactionId,
 };
 use torrust_tracker_configuration::Core;
-use torrust_tracker_primitives::service_binding::ServiceBinding;
 use torrust_tracker_primitives::AnnounceData;
-use tracing::{instrument, Level};
+use torrust_tracker_primitives::service_binding::ServiceBinding;
+use tracing::{Level, instrument};
 use zerocopy::byteorder::network_endian::I32;
 
 use crate::error::Error;
@@ -224,9 +224,10 @@ pub(crate) mod tests {
             use crate::handlers::announce::tests::announce_request::AnnounceRequestBuilder;
             use crate::handlers::handle_announce;
             use crate::handlers::tests::{
+                CoreTrackerServices, CoreUdpTrackerServices, MockUdpServerStatsEventSender,
                 initialize_core_tracker_services_for_default_tracker_configuration,
                 initialize_core_tracker_services_for_public_tracker, sample_cookie_valid_range, sample_ipv4_socket_address,
-                sample_issue_time, CoreTrackerServices, CoreUdpTrackerServices, MockUdpServerStatsEventSender,
+                sample_issue_time,
             };
 
             #[tokio::test]
@@ -318,8 +319,8 @@ pub(crate) mod tests {
             }
 
             #[tokio::test]
-            async fn the_tracker_should_always_use_the_remote_client_ip_but_not_the_port_in_the_udp_request_header_instead_of_the_peer_address_in_the_announce_request(
-            ) {
+            async fn the_tracker_should_always_use_the_remote_client_ip_but_not_the_port_in_the_udp_request_header_instead_of_the_peer_address_in_the_announce_request()
+             {
                 // From the BEP 15 (https://www.bittorrent.org/beps/bep_0015.html):
                 // "Do note that most trackers will only honor the IP address field under limited circumstances."
 
@@ -565,9 +566,9 @@ pub(crate) mod tests {
             use crate::handlers::announce::tests::announce_request::AnnounceRequestBuilder;
             use crate::handlers::handle_announce;
             use crate::handlers::tests::{
-                initialize_core_tracker_services_for_default_tracker_configuration,
+                MockUdpServerStatsEventSender, initialize_core_tracker_services_for_default_tracker_configuration,
                 initialize_core_tracker_services_for_public_tracker, sample_cookie_valid_range, sample_ipv6_remote_addr,
-                sample_issue_time, MockUdpServerStatsEventSender,
+                sample_issue_time,
             };
 
             #[tokio::test]
@@ -663,8 +664,8 @@ pub(crate) mod tests {
             }
 
             #[tokio::test]
-            async fn the_tracker_should_always_use_the_remote_client_ip_but_not_the_port_in_the_udp_request_header_instead_of_the_peer_address_in_the_announce_request(
-            ) {
+            async fn the_tracker_should_always_use_the_remote_client_ip_but_not_the_port_in_the_udp_request_header_instead_of_the_peer_address_in_the_announce_request()
+             {
                 // From the BEP 15 (https://www.bittorrent.org/beps/bep_0015.html):
                 // "Do note that most trackers will only honor the IP address field under limited circumstances."
 
@@ -860,8 +861,8 @@ pub(crate) mod tests {
                 use crate::handlers::announce::tests::announce_request::AnnounceRequestBuilder;
                 use crate::handlers::handle_announce;
                 use crate::handlers::tests::{
-                    sample_cookie_valid_range, sample_issue_time, MockUdpCoreStatsEventSender, MockUdpServerStatsEventSender,
-                    TrackerConfigurationBuilder,
+                    MockUdpCoreStatsEventSender, MockUdpServerStatsEventSender, TrackerConfigurationBuilder,
+                    sample_cookie_valid_range, sample_issue_time,
                 };
                 use crate::tests::{announce_events_match, sample_peer};
 

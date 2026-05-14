@@ -656,7 +656,7 @@ pub mod test {
     }
 
     mod torrent_peer_id {
-        use crate::{peer, PeerId};
+        use crate::{PeerId, peer};
 
         #[test]
         #[should_panic = "NotEnoughBytes"]

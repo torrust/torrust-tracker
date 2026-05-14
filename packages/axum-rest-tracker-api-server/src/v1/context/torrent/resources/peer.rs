@@ -1,7 +1,7 @@
 //! `Peer` and Peer `Id` API resources.
 use derive_more::From;
 use serde::{Deserialize, Serialize};
-use torrust_tracker_primitives::{peer, PeerId};
+use torrust_tracker_primitives::{PeerId, peer};
 
 /// `Peer` API resource.
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]

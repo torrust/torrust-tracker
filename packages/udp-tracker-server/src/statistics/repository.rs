@@ -99,20 +99,21 @@ mod tests {
     use torrust_tracker_metrics::metric_name;
 
     use super::*;
-    use crate::statistics::*;
     use crate::CurrentClock;
+    use crate::statistics::*;
 
     #[test]
     fn it_should_implement_default() {
         let repo = Repository::default();
-        assert!(!std::ptr::eq(&repo.stats, &Repository::new().stats));
+        let new_repo = Repository::new();
+        assert!(!std::ptr::eq(&raw const repo.stats, &raw const new_repo.stats));
     }
 
     #[test]
     fn it_should_be_cloneable() {
         let repo = Repository::new();
         let cloned_repo = repo.clone();
-        assert!(!std::ptr::eq(&repo.stats, &cloned_repo.stats));
+        assert!(!std::ptr::eq(&raw const repo.stats, &raw const cloned_repo.stats));
     }
 
     #[tokio::test]
@@ -121,33 +122,51 @@ mod tests {
         let stats = repo.get_stats().await;
 
         // Check that the described metrics are present
-        assert!(stats
-            .metric_collection
-            .contains_counter(&metric_name!(UDP_TRACKER_SERVER_REQUESTS_ABORTED_TOTAL)));
-        assert!(stats
-            .metric_collection
-            .contains_counter(&metric_name!(UDP_TRACKER_SERVER_REQUESTS_BANNED_TOTAL)));
-        assert!(stats
-            .metric_collection
-            .contains_gauge(&metric_name!(UDP_TRACKER_SERVER_IPS_BANNED_TOTAL)));
-        assert!(stats
-            .metric_collection
-            .contains_counter(&metric_name!(UDP_TRACKER_SERVER_CONNECTION_ID_ERRORS_TOTAL)));
-        assert!(stats
-            .metric_collection
-            .contains_counter(&metric_name!(UDP_TRACKER_SERVER_REQUESTS_RECEIVED_TOTAL)));
-        assert!(stats
-            .metric_collection
-            .contains_counter(&metric_name!(UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL)));
-        assert!(stats
-            .metric_collection
-            .contains_counter(&metric_name!(UDP_TRACKER_SERVER_RESPONSES_SENT_TOTAL)));
-        assert!(stats
-            .metric_collection
-            .contains_counter(&metric_name!(UDP_TRACKER_SERVER_ERRORS_TOTAL)));
-        assert!(stats
-            .metric_collection
-            .contains_gauge(&metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS)));
+        assert!(
+            stats
+                .metric_collection
+                .contains_counter(&metric_name!(UDP_TRACKER_SERVER_REQUESTS_ABORTED_TOTAL))
+        );
+        assert!(
+            stats
+                .metric_collection
+                .contains_counter(&metric_name!(UDP_TRACKER_SERVER_REQUESTS_BANNED_TOTAL))
+        );
+        assert!(
+            stats
+                .metric_collection
+                .contains_gauge(&metric_name!(UDP_TRACKER_SERVER_IPS_BANNED_TOTAL))
+        );
+        assert!(
+            stats
+                .metric_collection
+                .contains_counter(&metric_name!(UDP_TRACKER_SERVER_CONNECTION_ID_ERRORS_TOTAL))
+        );
+        assert!(
+            stats
+                .metric_collection
+                .contains_counter(&metric_name!(UDP_TRACKER_SERVER_REQUESTS_RECEIVED_TOTAL))
+        );
+        assert!(
+            stats
+                .metric_collection
+                .contains_counter(&metric_name!(UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL))
+        );
+        assert!(
+            stats
+                .metric_collection
+                .contains_counter(&metric_name!(UDP_TRACKER_SERVER_RESPONSES_SENT_TOTAL))
+        );
+        assert!(
+            stats
+                .metric_collection
+                .contains_counter(&metric_name!(UDP_TRACKER_SERVER_ERRORS_TOTAL))
+        );
+        assert!(
+            stats
+                .metric_collection
+                .contains_gauge(&metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS))
+        );
     }
 
     #[tokio::test]
@@ -729,9 +748,9 @@ mod tests {
         fn assert_server_ordering_is_correct(server1_avg: f64, server2_avg: f64) {
             // Server 2 should have higher average since it has higher processing times [2000-6000] vs [1000-5000]
             assert!(
-            server2_avg > server1_avg,
-            "Server 2 average ({server2_avg}ns) should be higher than Server 1 ({server1_avg}ns) due to higher processing time ranges"
-        );
+                server2_avg > server1_avg,
+                "Server 2 average ({server2_avg}ns) should be higher than Server 1 ({server1_avg}ns) due to higher processing time ranges"
+            );
         }
 
         fn assert_server_result_matches_stored_average(results: &[f64], stats: &Metrics, labels: &LabelSet, server_name: &str) {
@@ -745,12 +764,16 @@ mod tests {
         }
 
         fn assert_metric_collection_integrity(stats: &Metrics) {
-            assert!(stats
-                .metric_collection
-                .contains_gauge(&metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS)));
-            assert!(stats
-                .metric_collection
-                .contains_counter(&metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSED_REQUESTS_TOTAL)));
+            assert!(
+                stats
+                    .metric_collection
+                    .contains_gauge(&metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS))
+            );
+            assert!(
+                stats
+                    .metric_collection
+                    .contains_counter(&metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSED_REQUESTS_TOTAL))
+            );
         }
 
         fn get_processed_requests_count(stats: &Metrics, labels: &LabelSet) -> u64 {

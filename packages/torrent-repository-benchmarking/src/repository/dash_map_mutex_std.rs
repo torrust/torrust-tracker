@@ -5,7 +5,7 @@ use dashmap::DashMap;
 use torrust_tracker_configuration::TrackerPolicy;
 use torrust_tracker_primitives::pagination::Pagination;
 use torrust_tracker_primitives::swarm_metadata::{AggregateActiveSwarmMetadata, SwarmMetadata};
-use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, NumberOfDownloads, NumberOfDownloadsBTreeMap};
+use torrust_tracker_primitives::{DurationSinceUnixEpoch, NumberOfDownloads, NumberOfDownloadsBTreeMap, peer};
 
 use super::Repository;
 use crate::entry::peer_list::PeerList;
@@ -29,10 +29,9 @@ where
             entry.upsert_peer(peer)
         } else {
             let _unused = self.torrents.insert(*info_hash, Arc::default());
-            if let Some(entry) = self.torrents.get(info_hash) {
-                entry.upsert_peer(peer)
-            } else {
-                false
+            match self.torrents.get(info_hash) {
+                Some(entry) => entry.upsert_peer(peer),
+                _ => false,
             }
         }
     }

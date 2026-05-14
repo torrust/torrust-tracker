@@ -1,4 +1,4 @@
-use super::printer::{Printer, CLEAR_SCREEN};
+use super::printer::{CLEAR_SCREEN, Printer};
 
 pub struct Console {}
 

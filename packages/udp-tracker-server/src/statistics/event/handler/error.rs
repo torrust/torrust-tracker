@@ -70,7 +70,7 @@ async fn update_connection_id_errors_counter(
             {
                 Ok(()) => {}
                 Err(err) => tracing::error!("Failed to increase the counter: {}", err),
-            };
+            }
         }
     }
 }
@@ -107,11 +107,11 @@ mod tests {
     use torrust_tracker_clock::clock::Time;
     use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
 
+    use crate::CurrentClock;
     use crate::event::{ConnectionContext, Event};
     use crate::statistics::event::handler::error::ErrorKind;
     use crate::statistics::event::handler::handle_event;
     use crate::statistics::repository::Repository;
-    use crate::CurrentClock;
 
     #[tokio::test]
     async fn should_increase_the_udp4_errors_counter_when_it_receives_a_udp4_error_event() {

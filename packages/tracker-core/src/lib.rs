@@ -187,8 +187,8 @@ mod tests {
                 use std::net::{IpAddr, Ipv4Addr};
 
                 use bittorrent_primitives::info_hash::InfoHash;
-                use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
                 use torrust_tracker_primitives::ScrapeData;
+                use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
 
                 use crate::announce_handler::PeersWanted;
                 use crate::test_helpers::tests::{complete_peer, incomplete_peer};
@@ -248,8 +248,8 @@ mod tests {
             mod handling_a_scrape_request {
 
                 use bittorrent_primitives::info_hash::InfoHash;
-                use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
                 use torrust_tracker_primitives::ScrapeData;
+                use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
 
                 use crate::tests::the_tracker::initialize_handlers_for_listed_tracker;
 

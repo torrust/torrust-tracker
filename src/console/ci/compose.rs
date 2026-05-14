@@ -84,15 +84,12 @@ impl DockerCompose {
                 is_active: true,
             })
         } else {
-            Err(io::Error::new(
-                io::ErrorKind::Other,
-                format!(
-                    "docker compose up failed for file '{}' and project '{}': {}",
-                    self.file.display(),
-                    self.project,
-                    String::from_utf8_lossy(&output.stderr)
-                ),
-            ))
+            Err(io::Error::other(format!(
+                "docker compose up failed for file '{}' and project '{}': {}",
+                self.file.display(),
+                self.project,
+                String::from_utf8_lossy(&output.stderr)
+            )))
         }
     }
 
@@ -117,14 +114,11 @@ impl DockerCompose {
         if status.success() {
             Ok(())
         } else {
-            Err(io::Error::new(
-                io::ErrorKind::Other,
-                format!(
-                    "docker compose build failed for file '{}' and project '{}'",
-                    self.file.display(),
-                    self.project,
-                ),
-            ))
+            Err(io::Error::other(format!(
+                "docker compose build failed for file '{}' and project '{}'",
+                self.file.display(),
+                self.project,
+            )))
         }
     }
 
@@ -139,15 +133,12 @@ impl DockerCompose {
         if output.status.success() {
             Ok(())
         } else {
-            Err(io::Error::new(
-                io::ErrorKind::Other,
-                format!(
-                    "docker compose down failed for file '{}' and project '{}': {}",
-                    self.file.display(),
-                    self.project,
-                    String::from_utf8_lossy(&output.stderr)
-                ),
-            ))
+            Err(io::Error::other(format!(
+                "docker compose down failed for file '{}' and project '{}': {}",
+                self.file.display(),
+                self.project,
+                String::from_utf8_lossy(&output.stderr)
+            )))
         }
     }
 
@@ -160,32 +151,29 @@ impl DockerCompose {
         let output = self.run_compose(&["port", service, &container_port.to_string()])?;
 
         if !output.status.success() {
-            return Err(io::Error::new(
-                io::ErrorKind::Other,
-                format!(
-                    "docker compose port failed for file '{}' and project '{}', service '{}' and port '{}': stderr: {} stdout: {}",
-                    self.file.display(),
-                    self.project,
-                    service,
-                    container_port,
-                    String::from_utf8_lossy(&output.stderr),
-                    String::from_utf8_lossy(&output.stdout)
-                ),
-            ));
+            return Err(io::Error::other(format!(
+                "docker compose port failed for file '{}' and project '{}', service '{}' and port '{}': stderr: {} stdout: {}",
+                self.file.display(),
+                self.project,
+                service,
+                container_port,
+                String::from_utf8_lossy(&output.stderr),
+                String::from_utf8_lossy(&output.stdout)
+            )));
         }
 
         let stdout = String::from_utf8_lossy(&output.stdout);
         let first_line = stdout
             .lines()
             .next()
-            .ok_or_else(|| io::Error::new(io::ErrorKind::Other, "docker compose port returned no output"))?;
+            .ok_or_else(|| io::Error::other("docker compose port returned no output"))?;
 
         let host_port = first_line
             .rsplit(':')
             .next()
-            .ok_or_else(|| io::Error::new(io::ErrorKind::Other, "docker compose port output has no ':' separator"))?
+            .ok_or_else(|| io::Error::other("docker compose port output has no ':' separator"))?
             .parse::<u16>()
-            .map_err(|_| io::Error::new(io::ErrorKind::Other, format!("invalid host port in output: '{first_line}'")))?;
+            .map_err(|_| io::Error::other(format!("invalid host port in output: '{first_line}'")))?;
 
         Ok(host_port)
     }
@@ -216,12 +204,9 @@ impl DockerCompose {
                         .logs(&[service])
                         .unwrap_or_else(|error| format!("failed to collect compose logs output: {error}"));
 
-                    return Err(io::Error::new(
-                        io::ErrorKind::Other,
-                        format!(
-                            "compose service '{service}' exited while waiting for port mapping '{container_port}'.\nCompose ps:\n{ps_output}\nCompose logs:\n{logs_output}"
-                        ),
-                    ));
+                    return Err(io::Error::other(format!(
+                        "compose service '{service}' exited while waiting for port mapping '{container_port}'.\nCompose ps:\n{ps_output}\nCompose logs:\n{logs_output}"
+                    )));
                 }
             }
 
@@ -284,15 +269,12 @@ impl DockerCompose {
         if output.status.success() {
             Ok(String::from_utf8_lossy(&output.stdout).to_string())
         } else {
-            Err(io::Error::new(
-                io::ErrorKind::Other,
-                format!(
-                    "docker compose ps failed for file '{}' and project '{}': {}",
-                    self.file.display(),
-                    self.project,
-                    String::from_utf8_lossy(&output.stderr)
-                ),
-            ))
+            Err(io::Error::other(format!(
+                "docker compose ps failed for file '{}' and project '{}': {}",
+                self.file.display(),
+                self.project,
+                String::from_utf8_lossy(&output.stderr)
+            )))
         }
     }
 
@@ -310,15 +292,12 @@ impl DockerCompose {
         if output.status.success() {
             Ok(String::from_utf8_lossy(&output.stdout).to_string())
         } else {
-            Err(io::Error::new(
-                io::ErrorKind::Other,
-                format!(
-                    "docker compose logs failed for file '{}' and project '{}': {}",
-                    self.file.display(),
-                    self.project,
-                    String::from_utf8_lossy(&output.stderr)
-                ),
-            ))
+            Err(io::Error::other(format!(
+                "docker compose logs failed for file '{}' and project '{}': {}",
+                self.file.display(),
+                self.project,
+                String::from_utf8_lossy(&output.stderr)
+            )))
         }
     }
 

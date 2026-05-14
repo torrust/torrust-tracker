@@ -5,10 +5,10 @@ use async_trait::async_trait;
 use bittorrent_primitives::info_hash::InfoHash;
 use torrust_tracker_primitives::{NumberOfDownloads, NumberOfDownloadsBTreeMap};
 
-use super::{Mysql, DRIVER};
+use super::{DRIVER, Mysql};
+use crate::databases::TorrentMetricsStore;
 use crate::databases::driver::TORRENTS_DOWNLOADS_TOTAL;
 use crate::databases::error::Error;
-use crate::databases::TorrentMetricsStore;
 
 #[async_trait]
 impl TorrentMetricsStore for Mysql {

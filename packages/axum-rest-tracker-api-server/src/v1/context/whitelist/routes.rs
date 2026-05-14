@@ -7,8 +7,8 @@
 //! Refer to the [API endpoint documentation](crate::v1::context::torrent).
 use std::sync::Arc;
 
-use axum::routing::{delete, get, post};
 use axum::Router;
+use axum::routing::{delete, get, post};
 use bittorrent_tracker_core::whitelist::manager::WhitelistManager;
 
 use super::handlers::{add_torrent_to_whitelist_handler, reload_whitelist_handler, remove_torrent_from_whitelist_handler};

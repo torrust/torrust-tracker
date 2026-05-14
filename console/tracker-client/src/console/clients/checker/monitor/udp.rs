@@ -7,8 +7,8 @@ use bittorrent_udp_tracker_protocol::TransactionId;
 use reqwest::Url;
 use serde::Serialize;
 
-use crate::console::clients::udp::checker::{AnnounceParams, Client};
 use crate::console::clients::udp::Error as UdpError;
+use crate::console::clients::udp::checker::{AnnounceParams, Client};
 
 pub const DEFAULT_INFO_HASH: &str = "9c38422213e30bff212b30c360d26f9a02136422"; // DevSkim: ignore DS173237
 

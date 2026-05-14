@@ -74,14 +74,17 @@ impl JobManager {
 
             info!(job = %name, "Waiting for job to finish (timeout of {} seconds) ...", grace_period.as_secs());
 
-            if let Ok(result) = timeout(grace_period, job.handle).await {
-                if let Err(e) = result {
-                    warn!(job = %name, "Job return an error: {:?}", e);
-                } else {
-                    info!(job = %name, "Job completed gracefully");
+            match timeout(grace_period, job.handle).await {
+                Ok(result) => {
+                    if let Err(e) = result {
+                        warn!(job = %name, "Job return an error: {:?}", e);
+                    } else {
+                        info!(job = %name, "Job completed gracefully");
+                    }
                 }
-            } else {
-                warn!(job = %name, "Job did not complete in time");
+                _ => {
+                    warn!(job = %name, "Job did not complete in time");
+                }
             }
         }
     }

@@ -71,15 +71,15 @@ mod tests {
     use std::fmt;
 
     use pretty_assertions::assert_eq;
-    use serde::ser::{self, Impossible, SerializeSeq};
     use serde::Serialize;
+    use serde::ser::{self, Impossible, SerializeSeq};
     use torrust_tracker_primitives::DurationSinceUnixEpoch;
 
     use crate::counter::Counter;
     use crate::gauge::Gauge;
     use crate::label::LabelSet;
-    use crate::metric::description::MetricDescription;
     use crate::metric::Metric;
+    use crate::metric::description::MetricDescription;
     use crate::metric_collection::{MetricCollection, MetricKindCollection};
     use crate::sample::Sample;
     use crate::sample_collection::SampleCollection;

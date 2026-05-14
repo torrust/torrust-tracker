@@ -43,8 +43,8 @@ mod tests {
     use std::any::TypeId;
     use std::time::Duration;
 
-    use crate::clock::{self, Stopped, Time, Working};
     use crate::CurrentClock;
+    use crate::clock::{self, Stopped, Time, Working};
 
     #[test]
     fn it_should_be_the_stopped_clock_as_default_when_testing() {

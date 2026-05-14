@@ -6,8 +6,8 @@ use std::task::{Context, Poll};
 
 use futures::Stream;
 
-use super::bound_socket::BoundSocket;
 use super::RawRequest;
+use super::bound_socket::BoundSocket;
 use crate::MAX_PACKET_SIZE;
 
 pub struct Receiver {

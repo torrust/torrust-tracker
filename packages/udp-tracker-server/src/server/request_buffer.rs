@@ -1,6 +1,6 @@
 use bittorrent_udp_tracker_core::UDP_TRACKER_LOG_TARGET;
-use ringbuf::traits::{Consumer, Observer, Producer};
 use ringbuf::StaticRb;
+use ringbuf::traits::{Consumer, Observer, Producer};
 use tokio::task::AbortHandle;
 
 /// A ring buffer for managing active UDP request abort handles.

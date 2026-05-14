@@ -8,13 +8,13 @@
 //! > for the configuration options.
 use std::sync::Arc;
 
-use bittorrent_udp_tracker_core::container::UdpTrackerCoreContainer;
 use bittorrent_udp_tracker_core::UDP_TRACKER_LOG_TARGET;
+use bittorrent_udp_tracker_core::container::UdpTrackerCoreContainer;
 use tokio::task::JoinHandle;
 use torrust_server_lib::registar::ServiceRegistrationForm;
 use torrust_udp_tracker_server::container::UdpTrackerServerContainer;
-use torrust_udp_tracker_server::server::spawner::Spawner;
 use torrust_udp_tracker_server::server::Server;
+use torrust_udp_tracker_server::server::spawner::Spawner;
 use tracing::instrument;
 
 /// It starts a new UDP server with the provided configuration.

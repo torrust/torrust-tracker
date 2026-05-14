@@ -25,8 +25,8 @@ use std::sync::Arc;
 
 use axum_server::tls_rustls::RustlsConfig;
 use tokio::task::JoinHandle;
-use torrust_axum_rest_tracker_api_server::server::{ApiServer, Launcher};
 use torrust_axum_rest_tracker_api_server::Version;
+use torrust_axum_rest_tracker_api_server::server::{ApiServer, Launcher};
 use torrust_axum_server::tsl::make_rust_tls;
 use torrust_rest_tracker_api_core::container::TrackerHttpApiCoreContainer;
 use torrust_server_lib::registar::ServiceRegistrationForm;

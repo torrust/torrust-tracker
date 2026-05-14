@@ -2,8 +2,8 @@ use std::env;
 use std::str::FromStr as _;
 
 use bittorrent_primitives::info_hash::InfoHash;
-use bittorrent_tracker_client::http::client::requests::announce::QueryBuilder;
 use bittorrent_tracker_client::http::client::Client as HttpTrackerClient;
+use bittorrent_tracker_client::http::client::requests::announce::QueryBuilder;
 use reqwest::Url;
 use serde::Deserialize;
 use tokio::time::Duration;
@@ -49,7 +49,9 @@ async fn the_stats_api_endpoint_should_return_the_global_stats() {
         admin = "MyAccessToken"
             "#;
 
-    env::set_var("TORRUST_TRACKER_CONFIG_TOML", config_with_two_http_trackers);
+    // SAFETY: This test mutates process-wide environment variables before starting the app
+    // and does not perform concurrent environment access from other threads.
+    unsafe { env::set_var("TORRUST_TRACKER_CONFIG_TOML", config_with_two_http_trackers) };
 
     let (_app_container, _jobs) = app::run().await;
 

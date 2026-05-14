@@ -8,9 +8,9 @@ use bittorrent_udp_tracker_core::{self};
 use bittorrent_udp_tracker_protocol::{
     NumberOfDownloads, NumberOfPeers, Response, ScrapeRequest, ScrapeResponse, TorrentScrapeStatistics, TransactionId,
 };
-use torrust_tracker_primitives::service_binding::ServiceBinding;
 use torrust_tracker_primitives::ScrapeData;
-use tracing::{instrument, Level};
+use torrust_tracker_primitives::service_binding::ServiceBinding;
+use tracing::{Level, instrument};
 use zerocopy::byteorder::network_endian::I32;
 
 use crate::error::Error;
@@ -103,8 +103,8 @@ mod tests {
         use crate::event::sender::Broadcaster;
         use crate::handlers::handle_scrape;
         use crate::handlers::tests::{
-            initialize_core_tracker_services_for_public_tracker, sample_cookie_valid_range, sample_ipv4_remote_addr,
-            sample_issue_time, CoreTrackerServices, CoreUdpTrackerServices,
+            CoreTrackerServices, CoreUdpTrackerServices, initialize_core_tracker_services_for_public_tracker,
+            sample_cookie_valid_range, sample_ipv4_remote_addr, sample_issue_time,
         };
 
         fn zeroed_torrent_statistics() -> TorrentScrapeStatistics {
@@ -373,8 +373,8 @@ mod tests {
             use crate::event::{ConnectionContext, Event, UdpRequestKind};
             use crate::handlers::handle_scrape;
             use crate::handlers::tests::{
-                initialize_core_tracker_services_for_default_tracker_configuration, sample_cookie_valid_range,
-                sample_ipv4_remote_addr, MockUdpServerStatsEventSender,
+                MockUdpServerStatsEventSender, initialize_core_tracker_services_for_default_tracker_configuration,
+                sample_cookie_valid_range, sample_ipv4_remote_addr,
             };
 
             #[tokio::test]
@@ -423,8 +423,8 @@ mod tests {
             use crate::event::{ConnectionContext, Event, UdpRequestKind};
             use crate::handlers::handle_scrape;
             use crate::handlers::tests::{
-                initialize_core_tracker_services_for_default_tracker_configuration, sample_cookie_valid_range,
-                sample_ipv6_remote_addr, MockUdpServerStatsEventSender,
+                MockUdpServerStatsEventSender, initialize_core_tracker_services_for_default_tracker_configuration,
+                sample_cookie_valid_range, sample_ipv6_remote_addr,
             };
 
             #[tokio::test]

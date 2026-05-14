@@ -1,5 +1,5 @@
 //! Common responses for the API v1 shared by all the contexts.
-use axum::http::{header, StatusCode};
+use axum::http::{StatusCode, header};
 use axum::response::{IntoResponse, Response};
 use serde::Serialize;
 

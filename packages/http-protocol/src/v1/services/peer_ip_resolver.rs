@@ -218,7 +218,7 @@ mod tests {
         use std::str::FromStr;
 
         use crate::v1::services::peer_ip_resolver::{
-            resolve_remote_client_addr, ClientIpSources, PeerIpResolutionError, RemoteClientAddr, ResolvedIp, ReverseProxyMode,
+            ClientIpSources, PeerIpResolutionError, RemoteClientAddr, ResolvedIp, ReverseProxyMode, resolve_remote_client_addr,
         };
 
         #[test]

@@ -1,5 +1,5 @@
-use std::collections::btree_map::Entry;
 use std::collections::BTreeMap;
+use std::collections::btree_map::Entry;
 use std::str;
 
 use crate::error::{BencodeParseError, BencodeParseResult};
@@ -126,7 +126,7 @@ fn decode_dict(
                 return Err(BencodeParseError::InvalidKeyOrdering {
                     pos: curr_pos,
                     key: key_bytes.to_vec(),
-                })
+                });
             }
             _ => (),
         }
@@ -140,7 +140,7 @@ fn decode_dict(
                 return Err(BencodeParseError::InvalidKeyDuplicates {
                     pos: curr_pos,
                     key: key_bytes.to_vec(),
-                })
+                });
             }
         };
 

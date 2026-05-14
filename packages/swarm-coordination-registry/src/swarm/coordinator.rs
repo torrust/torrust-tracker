@@ -10,8 +10,8 @@ use torrust_tracker_primitives::peer::{self, Peer, PeerAnnouncement};
 use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
 use torrust_tracker_primitives::{AnnounceEvent, DurationSinceUnixEpoch};
 
-use crate::event::sender::Sender;
 use crate::event::Event;
+use crate::event::sender::Sender;
 
 #[derive(Clone)]
 pub struct Coordinator {
@@ -504,8 +504,8 @@ mod tests {
         use torrust_tracker_configuration::TrackerPolicy;
         use torrust_tracker_primitives::peer::fixture::PeerBuilder;
 
-        use crate::tests::sample_info_hash;
         use crate::Coordinator;
+        use crate::tests::sample_info_hash;
 
         fn empty_swarm() -> Coordinator {
             Coordinator::new(&sample_info_hash(), 0, None)
@@ -566,8 +566,8 @@ mod tests {
             }
 
             #[tokio::test]
-            async fn it_should_not_be_removed_even_if_the_swarm_is_empty_if_we_need_to_track_stats_for_downloads_and_there_has_been_downloads(
-            ) {
+            async fn it_should_not_be_removed_even_if_the_swarm_is_empty_if_we_need_to_track_stats_for_downloads_and_there_has_been_downloads()
+             {
                 let policy = TrackerPolicy {
                     remove_peerless_torrents: true,
                     persistent_torrent_completed_stat: true,
@@ -591,9 +591,11 @@ mod tests {
 
             #[tokio::test]
             async fn it_should_not_be_removed_is_the_swarm_is_not_empty() {
-                assert!(!not_empty_swarm()
-                    .await
-                    .should_be_removed(&don_not_remove_peerless_torrents_policy()));
+                assert!(
+                    !not_empty_swarm()
+                        .await
+                        .should_be_removed(&don_not_remove_peerless_torrents_policy())
+                );
             }
         }
     }
@@ -728,8 +730,8 @@ mod tests {
             }
 
             #[tokio::test]
-            async fn it_should_not_increasing_the_number_of_downloads_if_the_new_peer_has_completed_downloading_as_it_was_not_previously_known(
-            ) {
+            async fn it_should_not_increasing_the_number_of_downloads_if_the_new_peer_has_completed_downloading_as_it_was_not_previously_known()
+             {
                 let mut swarm = Coordinator::new(&sample_info_hash(), 0, None);
 
                 let downloads = swarm.metadata().downloads();
@@ -819,8 +821,8 @@ mod tests {
         }
 
         mod for_changes_in_existing_peers {
-            use torrust_tracker_primitives::peer::fixture::PeerBuilder;
             use torrust_tracker_primitives::NumberOfBytes;
+            use torrust_tracker_primitives::peer::fixture::PeerBuilder;
 
             use crate::swarm::coordinator::Coordinator;
             use crate::tests::sample_info_hash;
@@ -905,12 +907,12 @@ mod tests {
 
         use std::sync::Arc;
 
-        use torrust_tracker_primitives::peer::fixture::PeerBuilder;
         use torrust_tracker_primitives::AnnounceEvent::Started;
         use torrust_tracker_primitives::DurationSinceUnixEpoch;
+        use torrust_tracker_primitives::peer::fixture::PeerBuilder;
 
-        use crate::event::sender::tests::{expect_event_sequence, MockEventSender};
         use crate::event::Event;
+        use crate::event::sender::tests::{MockEventSender, expect_event_sequence};
         use crate::swarm::coordinator::Coordinator;
         use crate::tests::sample_info_hash;
 

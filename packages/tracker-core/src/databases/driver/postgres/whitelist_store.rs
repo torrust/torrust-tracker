@@ -5,9 +5,9 @@ use ::sqlx::Row;
 use async_trait::async_trait;
 use bittorrent_primitives::info_hash::InfoHash;
 
-use super::{Postgres, DRIVER};
-use crate::databases::error::Error;
+use super::{DRIVER, Postgres};
 use crate::databases::WhitelistStore;
+use crate::databases::error::Error;
 
 #[async_trait]
 impl WhitelistStore for Postgres {

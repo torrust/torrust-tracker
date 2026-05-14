@@ -82,7 +82,7 @@ mod tests {
     fn it_should_display_unrecognized_udp_tracker_response_without_debug_noise() {
         // Arrange
         let error = Error::UnableToParseResponse {
-            err: Arc::new(io::Error::new(io::ErrorKind::Other, "failed to fill whole buffer")),
+            err: Arc::new(io::Error::other("failed to fill whole buffer")),
             response: vec![0, 0, 0, 1],
         };
 

@@ -108,11 +108,7 @@ fn counter_integer_mismatch(family_name: &str, actual: String) -> PrometheusDese
 }
 
 fn description_from_help(help: &str) -> Option<MetricDescription> {
-    if help.is_empty() {
-        None
-    } else {
-        Some(help.into())
-    }
+    if help.is_empty() { None } else { Some(help.into()) }
 }
 
 fn ensure_trailing_newline(input: &str) -> Cow<'_, str> {
@@ -428,8 +424,8 @@ mod tests {
         use crate::counter::Counter;
         use crate::gauge::Gauge;
         use crate::label::{LabelSet, LabelValue};
-        use crate::metric::description::MetricDescription;
         use crate::metric::Metric;
+        use crate::metric::description::MetricDescription;
         use crate::metric_collection::{MetricCollection, MetricKindCollection};
         use crate::prometheus::{PrometheusDeserializable, PrometheusDeserializationError, PrometheusSerializable};
         use crate::sample::Sample;

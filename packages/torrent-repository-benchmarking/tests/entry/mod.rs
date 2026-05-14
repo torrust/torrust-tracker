@@ -4,16 +4,16 @@ use std::time::Duration;
 use rstest::{fixture, rstest};
 use torrust_tracker_clock::clock::stopped::Stopped as _;
 use torrust_tracker_clock::clock::{self, Time as _};
-use torrust_tracker_configuration::{TrackerPolicy, TORRENT_PEERS_LIMIT};
+use torrust_tracker_configuration::{TORRENT_PEERS_LIMIT, TrackerPolicy};
 use torrust_tracker_primitives::peer::Peer;
-use torrust_tracker_primitives::{peer, AnnounceEvent, NumberOfBytes};
+use torrust_tracker_primitives::{AnnounceEvent, NumberOfBytes, peer};
 use torrust_tracker_torrent_repository_benchmarking::{
     EntryMutexParkingLot, EntryMutexStd, EntryMutexTokio, EntryRwLockParkingLot, EntrySingle,
 };
 
+use crate::CurrentClock;
 use crate::common::torrent::Torrent;
 use crate::common::torrent_peer_builder::{a_completed_peer, a_started_peer};
-use crate::CurrentClock;
 
 #[fixture]
 fn single() -> Torrent {

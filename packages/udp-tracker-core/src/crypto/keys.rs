@@ -10,7 +10,7 @@ use cipher::{BlockCipherDecrypt, BlockCipherEncrypt};
 use self::detail_cipher::CURRENT_CIPHER;
 use self::detail_seed::CURRENT_SEED;
 pub use crate::crypto::ephemeral_instance_keys::CipherArrayBlowfish;
-use crate::crypto::ephemeral_instance_keys::{CipherBlowfish, Seed, RANDOM_CIPHER_BLOWFISH, RANDOM_SEED};
+use crate::crypto::ephemeral_instance_keys::{CipherBlowfish, RANDOM_CIPHER_BLOWFISH, RANDOM_SEED, Seed};
 
 /// This trait is for structures that can keep and provide a seed.
 pub trait Keeper {
@@ -107,8 +107,8 @@ mod detail_seed {
     #[cfg(test)]
     mod tests {
         use crate::crypto::ephemeral_instance_keys::RANDOM_SEED;
-        use crate::crypto::keys::detail_seed::ZEROED_TEST_SEED;
         use crate::crypto::keys::CURRENT_SEED;
+        use crate::crypto::keys::detail_seed::ZEROED_TEST_SEED;
 
         #[test]
         fn it_should_have_a_zero_test_seed() {

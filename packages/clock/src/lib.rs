@@ -26,9 +26,6 @@ pub mod clock;
 pub mod conv;
 pub mod static_time;
 
-#[macro_use]
-extern crate lazy_static;
-
 use tracing::instrument;
 
 /// This code needs to be copied into each crate.
@@ -52,5 +49,5 @@ pub(crate) type CurrentClock = clock::Stopped;
 #[instrument(skip())]
 pub fn initialize_static() {
     // Set the time of Torrust app starting
-    lazy_static::initialize(&static_time::TIME_AT_APP_START);
+    std::sync::LazyLock::force(&static_time::TIME_AT_APP_START);
 }

@@ -3,7 +3,7 @@
 //! Data structures and logic to build the `scrape` response.
 use std::borrow::Cow;
 
-use torrust_tracker_contrib_bencode::{ben_int, ben_map, BMutAccess};
+use torrust_tracker_contrib_bencode::{BMutAccess, ben_int, ben_map};
 use torrust_tracker_primitives::ScrapeData;
 
 /// The `Scrape` response for the HTTP tracker.
@@ -84,8 +84,8 @@ mod tests {
 
     mod scrape_response {
         use bittorrent_primitives::info_hash::InfoHash;
-        use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
         use torrust_tracker_primitives::ScrapeData;
+        use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
 
         use crate::v1::responses::scrape::Bencoded;
 

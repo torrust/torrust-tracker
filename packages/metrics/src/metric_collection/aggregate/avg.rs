@@ -1,8 +1,8 @@
 use crate::counter::Counter;
 use crate::gauge::Gauge;
 use crate::label::LabelSet;
-use crate::metric::aggregate::avg::Avg as MetricAvgTrait;
 use crate::metric::MetricName;
+use crate::metric::aggregate::avg::Avg as MetricAvgTrait;
 use crate::metric_collection::{MetricCollection, MetricKindCollection};
 
 pub trait Avg {

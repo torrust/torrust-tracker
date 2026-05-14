@@ -177,7 +177,7 @@ pub fn gen_remote_fingerprint(remote_addr: &SocketAddr) -> u64 {
 mod cookie_builder {
     use cipher::{BlockCipherDecrypt, BlockCipherEncrypt};
     use tracing::instrument;
-    use zerocopy::{byteorder, IntoBytes as _, NativeEndian};
+    use zerocopy::{IntoBytes as _, NativeEndian, byteorder};
 
     pub type CookiePlainText = CipherArrayBlowfish;
     pub type CookieCipherText = CipherArrayBlowfish;

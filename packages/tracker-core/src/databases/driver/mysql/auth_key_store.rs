@@ -2,10 +2,10 @@ use ::sqlx::Row;
 use async_trait::async_trait;
 use torrust_tracker_primitives::DurationSinceUnixEpoch;
 
-use super::{Mysql, DRIVER};
+use super::{DRIVER, Mysql};
 use crate::authentication::{self, Key};
-use crate::databases::error::Error;
 use crate::databases::AuthKeyStore;
+use crate::databases::error::Error;
 
 #[async_trait]
 impl AuthKeyStore for Mysql {

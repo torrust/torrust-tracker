@@ -3,8 +3,8 @@ use torrust_tracker_metrics::{label_name, metric_name};
 use torrust_tracker_primitives::DurationSinceUnixEpoch;
 
 use crate::event::Event;
-use crate::statistics::repository::Repository;
 use crate::statistics::UDP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL;
+use crate::statistics::repository::Repository;
 
 /// # Panics
 ///
@@ -21,7 +21,7 @@ pub async fn handle_event(event: Event, stats_repository: &Repository, now: Dura
             {
                 Ok(()) => {}
                 Err(err) => tracing::error!("Failed to increase the counter: {}", err),
-            };
+            }
         }
         Event::UdpAnnounce { connection: context, .. } => {
             let mut label_set = LabelSet::from(context);
@@ -33,7 +33,7 @@ pub async fn handle_event(event: Event, stats_repository: &Repository, now: Dura
             {
                 Ok(()) => {}
                 Err(err) => tracing::error!("Failed to increase the counter: {}", err),
-            };
+            }
         }
         Event::UdpScrape { connection: context } => {
             let mut label_set = LabelSet::from(context);
@@ -45,7 +45,7 @@ pub async fn handle_event(event: Event, stats_repository: &Repository, now: Dura
             {
                 Ok(()) => {}
                 Err(err) => tracing::error!("Failed to increase the counter: {}", err),
-            };
+            }
         }
     }
 
@@ -60,11 +60,11 @@ mod tests {
     use torrust_tracker_primitives::peer::PeerAnnouncement;
     use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
 
+    use crate::CurrentClock;
     use crate::event::{ConnectionContext, Event};
     use crate::statistics::event::handler::handle_event;
     use crate::statistics::repository::Repository;
     use crate::tests::sample_info_hash;
-    use crate::CurrentClock;
 
     #[tokio::test]
     async fn should_increase_the_udp4_connections_counter_when_it_receives_a_udp4_connect_event() {

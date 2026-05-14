@@ -87,7 +87,7 @@ mod tests {
         use bittorrent_primitives::info_hash::InfoHash;
 
         use crate::v1::query::Query;
-        use crate::v1::requests::scrape::{Scrape, INFO_HASH};
+        use crate::v1::requests::scrape::{INFO_HASH, Scrape};
 
         #[test]
         fn should_be_instantiated_from_the_url_query_with_only_one_infohash() {
@@ -108,7 +108,7 @@ mod tests {
         mod when_it_is_instantiated_from_the_url_query_params {
 
             use crate::v1::query::Query;
-            use crate::v1::requests::scrape::{Scrape, INFO_HASH};
+            use crate::v1::requests::scrape::{INFO_HASH, Scrape};
 
             #[test]
             fn it_should_fail_if_the_query_does_not_include_the_info_hash_param() {

@@ -1,7 +1,7 @@
 use std::str::FromStr;
 use std::time::Instant;
 
-use anyhow::{anyhow, Context, Result};
+use anyhow::{Context, Result, anyhow};
 use bittorrent_primitives::info_hash::InfoHash;
 
 use super::RawOperationSamples;

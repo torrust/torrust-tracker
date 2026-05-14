@@ -3,8 +3,8 @@ use torrust_tracker_metrics::{label_name, metric_name};
 use torrust_tracker_primitives::DurationSinceUnixEpoch;
 
 use crate::event::{ConnectionContext, UdpRequestKind, UdpResponseKind};
-use crate::statistics::repository::Repository;
 use crate::statistics::UDP_TRACKER_SERVER_RESPONSES_SENT_TOTAL;
+use crate::statistics::repository::Repository;
 
 pub async fn handle_event(
     context: ConnectionContext,
@@ -61,7 +61,7 @@ pub async fn handle_event(
     {
         Ok(()) => {}
         Err(err) => tracing::error!("Failed to increase the counter: {}", err),
-    };
+    }
 }
 
 #[cfg(test)]
@@ -71,11 +71,11 @@ mod tests {
     use torrust_tracker_clock::clock::Time;
     use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
 
+    use crate::CurrentClock;
     use crate::event::{ConnectionContext, Event};
     use crate::handlers::announce::tests::announce_request::AnnounceRequestBuilder;
     use crate::statistics::event::handler::handle_event;
     use crate::statistics::repository::Repository;
-    use crate::CurrentClock;
 
     #[tokio::test]
     async fn should_increase_the_udp4_responses_counter_when_it_receives_a_udp4_response_event() {

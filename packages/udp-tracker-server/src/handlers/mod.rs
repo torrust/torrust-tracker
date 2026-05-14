@@ -18,14 +18,14 @@ use error::handle_error;
 use scrape::handle_scrape;
 use torrust_tracker_clock::clock::Time;
 use torrust_tracker_primitives::service_binding::ServiceBinding;
-use tracing::{instrument, Level};
+use tracing::{Level, instrument};
 use uuid::Uuid;
 
 use super::RawRequest;
+use crate::CurrentClock;
 use crate::container::UdpTrackerServerContainer;
 use crate::error::Error;
 use crate::event::UdpRequestKind;
-use crate::CurrentClock;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct CookieTimeValues {
@@ -101,10 +101,9 @@ pub(crate) async fn handle_packet(
             Err(e) => {
                 // The request payload could not be parsed, so we handle it as an error.
 
-                let opt_transaction_id = if let Error::InvalidRequest { request_parse_error } = e.clone() {
-                    request_parse_error.opt_transaction_id
-                } else {
-                    None
+                let opt_transaction_id = match e.clone() {
+                    Error::InvalidRequest { request_parse_error } => request_parse_error.opt_transaction_id,
+                    _ => None,
                 };
 
                 let response = handle_error(
@@ -250,18 +249,18 @@ pub(crate) mod tests {
         configuration::ephemeral()
     }
 
-    pub(crate) async fn initialize_core_tracker_services_for_default_tracker_configuration(
-    ) -> (CoreTrackerServices, CoreUdpTrackerServices, ServerUdpTrackerServices) {
+    pub(crate) async fn initialize_core_tracker_services_for_default_tracker_configuration()
+    -> (CoreTrackerServices, CoreUdpTrackerServices, ServerUdpTrackerServices) {
         initialize_core_tracker_services(&default_testing_tracker_configuration()).await
     }
 
-    pub(crate) async fn initialize_core_tracker_services_for_public_tracker(
-    ) -> (CoreTrackerServices, CoreUdpTrackerServices, ServerUdpTrackerServices) {
+    pub(crate) async fn initialize_core_tracker_services_for_public_tracker()
+    -> (CoreTrackerServices, CoreUdpTrackerServices, ServerUdpTrackerServices) {
         initialize_core_tracker_services(&configuration::ephemeral_public()).await
     }
 
-    pub(crate) async fn initialize_core_tracker_services_for_listed_tracker(
-    ) -> (CoreTrackerServices, CoreUdpTrackerServices, ServerUdpTrackerServices) {
+    pub(crate) async fn initialize_core_tracker_services_for_listed_tracker()
+    -> (CoreTrackerServices, CoreUdpTrackerServices, ServerUdpTrackerServices) {
         initialize_core_tracker_services(&configuration::ephemeral_listed()).await
     }
 

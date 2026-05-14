@@ -8,7 +8,7 @@ use torrust_tracker_primitives::DurationSinceUnixEpoch;
 
 use super::repository::in_memory::InMemoryTorrentRepository;
 use crate::statistics::persisted::downloads::DatabaseDownloadsMetricRepository;
-use crate::{databases, CurrentClock};
+use crate::{CurrentClock, databases};
 
 /// The `TorrentsManager` is responsible for managing torrent entries by
 /// integrating persistent storage and in-memory state. It provides methods to

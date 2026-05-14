@@ -17,7 +17,6 @@ version.workspace = true
 
 [dependencies]
 chrono = { version = "0", default-features = false, features = [ "clock" ] }
-lazy_static = "1"
 tracing = "0"
 
 torrust-tracker-primitives = { version = "3.0.0-develop", path = "../primitives" }

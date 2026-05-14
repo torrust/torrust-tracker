@@ -1,7 +1,7 @@
 use std::time::Duration;
 
-use rand::distr::Alphanumeric;
 use rand::RngExt;
+use rand::distr::Alphanumeric;
 
 use super::docker::{RunOptions, RunningContainer};
 use super::logs_parser::RunningServices;

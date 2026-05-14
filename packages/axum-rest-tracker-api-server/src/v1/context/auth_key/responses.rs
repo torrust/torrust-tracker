@@ -1,7 +1,7 @@
 //! API responses for the [`auth_key`](crate::v1::context::auth_key) API context.
 use std::error::Error;
 
-use axum::http::{header, StatusCode};
+use axum::http::{StatusCode, header};
 use axum::response::{IntoResponse, Response};
 
 use crate::v1::context::auth_key::resources::AuthKey;

@@ -13,9 +13,9 @@ use url::Url;
 
 use super::app::OutputFormat;
 use crate::console::clients::checker::checks::{health, http, udp};
-use crate::console::clients::checker::config::{parse_from_json, Configuration};
+use crate::console::clients::checker::config::{Configuration, parse_from_json};
 use crate::console::clients::checker::error::{AppError, ConfigSource};
-use crate::console::clients::checker::monitor::udp::{run_monitor, MonitorUdpConfig, DEFAULT_INFO_HASH};
+use crate::console::clients::checker::monitor::udp::{DEFAULT_INFO_HASH, MonitorUdpConfig, run_monitor};
 
 #[derive(Debug, Clone, Serialize)]
 enum CheckResult {

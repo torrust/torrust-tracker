@@ -1,8 +1,8 @@
 use anyhow::{Context, Result};
 use bittorrent_tracker_core::databases::TorrentMetricsStore;
 
-use super::super::sampling::{downloads_from_index, info_hash_from_index, measure_operation_async};
 use super::super::RawOperationSamples;
+use super::super::sampling::{downloads_from_index, info_hash_from_index, measure_operation_async};
 
 /// Benchmarks torrent statistics persistence operations.
 ///

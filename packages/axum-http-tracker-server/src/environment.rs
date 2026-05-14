@@ -8,7 +8,7 @@ use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
 use torrust_axum_server::tsl::make_rust_tls;
 use torrust_server_lib::registar::Registar;
-use torrust_tracker_configuration::{logging, Configuration};
+use torrust_tracker_configuration::{Configuration, logging};
 use torrust_tracker_primitives::peer;
 use torrust_tracker_swarm_coordination_registry::container::SwarmCoordinationRegistryContainer;
 

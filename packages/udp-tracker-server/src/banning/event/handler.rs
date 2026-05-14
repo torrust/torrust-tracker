@@ -7,8 +7,8 @@ use torrust_tracker_metrics::metric_name;
 use torrust_tracker_primitives::DurationSinceUnixEpoch;
 
 use crate::event::{ErrorKind, Event};
-use crate::statistics::repository::Repository;
 use crate::statistics::UDP_TRACKER_SERVER_IPS_BANNED_TOTAL;
+use crate::statistics::repository::Repository;
 
 pub async fn handle_event(
     event: Event,

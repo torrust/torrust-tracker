@@ -74,7 +74,7 @@ mod tests {
     fn it_should_display_the_inner_udp_parse_error_for_announce_responses() {
         // Arrange
         let inner_error = udp::Error::UnableToParseResponse {
-            err: Arc::new(io::Error::new(io::ErrorKind::Other, "failed to fill whole buffer")),
+            err: Arc::new(io::Error::other("failed to fill whole buffer")),
             response: vec![0, 0, 0, 1],
         };
 

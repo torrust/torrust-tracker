@@ -4,7 +4,7 @@ use std::time::Duration;
 use bittorrent_primitives::info_hash::InfoHash;
 use bittorrent_tracker_client::http::client::responses::announce::Announce;
 use bittorrent_tracker_client::http::client::responses::scrape;
-use bittorrent_tracker_client::http::client::{requests, Client};
+use bittorrent_tracker_client::http::client::{Client, requests};
 use serde::Serialize;
 use url::Url;
 
