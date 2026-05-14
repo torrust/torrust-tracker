@@ -105,9 +105,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Spec reviewed and approved by user/maintainer
 - [ ] GitHub issue created and issue number added to this spec
 - [x] Implementation completed
-- [x] Reviewer validated acceptance criteria and updated checkboxes
-- [x] Committer verified spec progress is up to date before commit
-- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [ ] Reviewer validated acceptance criteria and updated checkboxes
+- [ ] Committer verified spec progress is up to date before commit
+- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 

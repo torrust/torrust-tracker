@@ -49,8 +49,13 @@ async fn the_stats_api_endpoint_should_return_the_global_stats() {
         admin = "MyAccessToken"
             "#;
 
-    // SAFETY: This test mutates process-wide environment variables before starting the app
-    // and does not perform concurrent environment access from other threads.
+    // SAFETY: `std::env::set_var` is unsafe in Rust 2024 because concurrent reads from
+    // other threads in the same process are undefined behaviour. This test is the only
+    // function in this integration binary that writes `TORRUST_TRACKER_CONFIG_TOML`, and
+    // each test in this file binds to unique fixed ports, making parallel execution
+    // impossible (port conflicts). In practice the tests therefore run serially, but the
+    // safety guarantee is not formally enforced by the test runner. For strict soundness,
+    // run the integration suite with `RUST_TEST_THREADS=1`.
     unsafe { env::set_var("TORRUST_TRACKER_CONFIG_TOML", config_with_two_http_trackers) };
 
     let (_app_container, _jobs) = app::run().await;
