@@ -1,10 +1,10 @@
 ---
 doc-type: issue
 issue-type: task
-status: in-review
+status: closed
 priority: p3
 github-issue: 1778
-spec-path: docs/issues/open/1778-migrate-to-rust-edition-2024.md
+spec-path: docs/issues/closed/1778-migrate-to-rust-edition-2024.md
 branch: "1778-migrate-to-rust-edition-2024"
 related-pr: 1784
 last-updated-utc: 2026-05-14 18:30
