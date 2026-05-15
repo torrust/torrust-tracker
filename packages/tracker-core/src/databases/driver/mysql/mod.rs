@@ -78,7 +78,7 @@ impl Mysql {
 mod tests {
     use std::sync::Arc;
 
-    use testcontainers::core::IntoContainerPort;
+    use testcontainers::core::{IntoContainerPort, WaitFor};
     /*
     We run a MySQL container and run all the tests against the same container and database.
 
@@ -114,8 +114,12 @@ mod tests {
 
             let container = GenericImage::new("mysql", image_tag.as_str())
                 .with_exposed_port(config.internal_port.tcp())
-                // todo: this does not work
-                //.with_wait_for(WaitFor::message_on_stdout("ready for connections"))
+                // MySQL 8.0 outputs "ready for connections" to stderr (not stdout).
+                // The first occurrence is during internal init (port: 0); the second
+                // includes "port: 3306" and indicates the server is ready for TCP
+                // connections. We wait for the second message to avoid connecting
+                // before MySQL accepts client traffic.
+                .with_wait_for(WaitFor::message_on_stderr("port: 3306"))
                 .with_env_var("MYSQL_ROOT_PASSWORD", config.db_root_password.clone())
                 .with_env_var("MYSQL_DATABASE", config.database.clone())
                 .with_env_var("MYSQL_ROOT_HOST", "%")

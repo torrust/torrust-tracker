@@ -96,11 +96,11 @@ pub(crate) mod tests {
     }
 
     async fn create_database_tables(driver: &Arc<Box<dyn Database>>) -> Result<(), Box<dyn std::error::Error>> {
-        for _ in 0..5 {
+        for _ in 0..20 {
             if driver.create_database_tables().await.is_ok() {
                 return Ok(());
             }
-            tokio::time::sleep(Duration::from_secs(2)).await;
+            tokio::time::sleep(Duration::from_secs(3)).await;
         }
         Err("Database is not ready after retries.".into())
     }
