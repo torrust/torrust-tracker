@@ -76,6 +76,7 @@ distroless
 dler
 Dmqcd
 dockerhub
+doctest
 downloadedi
 dtolnay
 dylib
@@ -158,6 +159,7 @@ Mebibytes
 metainfo
 middlewares
 millis
+mktemp
 misresolved
 mmap
 mmdb

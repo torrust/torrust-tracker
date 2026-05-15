@@ -1,10 +1,10 @@
 use async_trait::async_trait;
-use sqlx::migrate::Migrate;
 use sqlx::SqlitePool;
+use sqlx::migrate::Migrate;
 
-use super::{Sqlite, DRIVER, MIGRATOR};
-use crate::databases::error::Error;
+use super::{DRIVER, MIGRATOR, Sqlite};
 use crate::databases::SchemaMigrator;
+use crate::databases::error::Error;
 
 /// The four tables created by the three pre-v4 manual migrations.
 ///
@@ -159,14 +159,14 @@ async fn bootstrap_legacy_schema(pool: &SqlitePool) -> Result<(), Error> {
 mod tests {
     use std::path::PathBuf;
 
-    use ::sqlx::sqlite::{SqliteConnectOptions, SqlitePoolOptions};
     use ::sqlx::SqlitePool;
+    use ::sqlx::sqlite::{SqliteConnectOptions, SqlitePoolOptions};
     use torrust_tracker_test_helpers::configuration::ephemeral_sqlite_database;
 
-    use super::{bootstrap_legacy_schema, LEGACY_TABLES};
+    use super::{LEGACY_TABLES, bootstrap_legacy_schema};
+    use crate::databases::SchemaMigrator;
     use crate::databases::driver::sqlite::Sqlite;
     use crate::databases::error::Error;
-    use crate::databases::SchemaMigrator;
 
     /// Connect to a fresh on-disk ephemeral `SQLite` database. We use a real
     /// file (not `:memory:`) so the same connection pool used by `Sqlite`

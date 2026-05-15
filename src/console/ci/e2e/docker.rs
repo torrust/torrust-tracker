@@ -45,10 +45,9 @@ impl Docker {
         if status.success() {
             Ok(())
         } else {
-            Err(io::Error::new(
-                io::ErrorKind::Other,
-                format!("Failed to build Docker image from dockerfile {dockerfile}"),
-            ))
+            Err(io::Error::other(format!(
+                "Failed to build Docker image from dockerfile {dockerfile}"
+            )))
         }
     }
 
@@ -98,10 +97,7 @@ impl Docker {
                 output,
             })
         } else {
-            Err(io::Error::new(
-                io::ErrorKind::Other,
-                format!("Failed to run Docker image {image}"),
-            ))
+            Err(io::Error::other(format!("Failed to run Docker image {image}")))
         }
     }
 
@@ -116,10 +112,10 @@ impl Docker {
         if status.success() {
             Ok(())
         } else {
-            Err(io::Error::new(
-                io::ErrorKind::Other,
-                format!("Failed to stop Docker container {}", container.name),
-            ))
+            Err(io::Error::other(format!(
+                "Failed to stop Docker container {}",
+                container.name
+            )))
         }
     }
 
@@ -134,10 +130,7 @@ impl Docker {
         if status.success() {
             Ok(())
         } else {
-            Err(io::Error::new(
-                io::ErrorKind::Other,
-                format!("Failed to remove Docker container {container}"),
-            ))
+            Err(io::Error::other(format!("Failed to remove Docker container {container}")))
         }
     }
 
@@ -152,10 +145,9 @@ impl Docker {
         if output.status.success() {
             Ok(String::from_utf8_lossy(&output.stdout).to_string())
         } else {
-            Err(io::Error::new(
-                io::ErrorKind::Other,
-                format!("Failed to fetch logs from Docker container {container}"),
-            ))
+            Err(io::Error::other(format!(
+                "Failed to fetch logs from Docker container {container}"
+            )))
         }
     }
 

@@ -2,11 +2,11 @@ use bittorrent_primitives::info_hash::InfoHash;
 use torrust_tracker_configuration::TrackerPolicy;
 use torrust_tracker_primitives::pagination::Pagination;
 use torrust_tracker_primitives::swarm_metadata::{AggregateActiveSwarmMetadata, SwarmMetadata};
-use torrust_tracker_primitives::{peer, DurationSinceUnixEpoch, NumberOfDownloads, NumberOfDownloadsBTreeMap};
+use torrust_tracker_primitives::{DurationSinceUnixEpoch, NumberOfDownloads, NumberOfDownloadsBTreeMap, peer};
 
 use super::Repository;
-use crate::entry::peer_list::PeerList;
 use crate::entry::Entry;
+use crate::entry::peer_list::PeerList;
 use crate::{EntrySingle, TorrentsRwLockStd};
 
 #[derive(Default, Debug)]

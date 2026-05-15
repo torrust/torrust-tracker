@@ -99,8 +99,8 @@ mod for_all_config_modes {
         use reqwest::{Response, StatusCode};
         use tokio::net::TcpListener;
         use torrust_axum_http_tracker_server::environment::Started;
-        use torrust_tracker_primitives::peer::fixture::PeerBuilder;
         use torrust_tracker_primitives::PeerId as DomainPeerId;
+        use torrust_tracker_primitives::peer::fixture::PeerBuilder;
         use torrust_tracker_test_helpers::{configuration, logging};
 
         use crate::common::fixtures::invalid_info_hashes;
@@ -562,8 +562,8 @@ mod for_all_config_modes {
         }
 
         #[tokio::test]
-        async fn should_consider_two_peers_to_be_the_same_when_they_have_the_same_socket_address_even_if_the_peer_id_is_different(
-        ) {
+        async fn should_consider_two_peers_to_be_the_same_when_they_have_the_same_socket_address_even_if_the_peer_id_is_different()
+         {
             logging::setup();
 
             let env = Started::new(&configuration::ephemeral_public().into()).await;
@@ -805,8 +805,8 @@ mod for_all_config_modes {
         }
 
         #[tokio::test]
-        async fn when_the_client_ip_is_a_loopback_ipv4_it_should_assign_to_the_peer_ip_the_external_ip_in_the_tracker_configuration(
-        ) {
+        async fn when_the_client_ip_is_a_loopback_ipv4_it_should_assign_to_the_peer_ip_the_external_ip_in_the_tracker_configuration()
+         {
             logging::setup();
 
             /*  We assume that both the client and tracker share the same public IP.
@@ -851,8 +851,8 @@ mod for_all_config_modes {
         }
 
         #[tokio::test]
-        async fn when_the_client_ip_is_a_loopback_ipv6_it_should_assign_to_the_peer_ip_the_external_ip_in_the_tracker_configuration(
-        ) {
+        async fn when_the_client_ip_is_a_loopback_ipv6_it_should_assign_to_the_peer_ip_the_external_ip_in_the_tracker_configuration()
+         {
             logging::setup();
 
             /* We assume that both the client and tracker share the same public IP.
@@ -901,8 +901,8 @@ mod for_all_config_modes {
         }
 
         #[tokio::test]
-        async fn when_the_tracker_is_behind_a_reverse_proxy_it_should_assign_to_the_peer_ip_the_ip_in_the_x_forwarded_for_http_header(
-        ) {
+        async fn when_the_tracker_is_behind_a_reverse_proxy_it_should_assign_to_the_peer_ip_the_ip_in_the_x_forwarded_for_http_header()
+         {
             logging::setup();
 
             /*
@@ -961,8 +961,8 @@ mod for_all_config_modes {
         use bittorrent_primitives::info_hash::InfoHash;
         use tokio::net::TcpListener;
         use torrust_axum_http_tracker_server::environment::Started;
-        use torrust_tracker_primitives::peer::fixture::PeerBuilder;
         use torrust_tracker_primitives::PeerId;
+        use torrust_tracker_primitives::peer::fixture::PeerBuilder;
         use torrust_tracker_test_helpers::{configuration, logging};
 
         use crate::common::fixtures::invalid_info_hashes;
@@ -1270,8 +1270,8 @@ mod configured_as_whitelisted {
 
         use bittorrent_primitives::info_hash::InfoHash;
         use torrust_axum_http_tracker_server::environment::Started;
-        use torrust_tracker_primitives::peer::fixture::PeerBuilder;
         use torrust_tracker_primitives::PeerId;
+        use torrust_tracker_primitives::peer::fixture::PeerBuilder;
         use torrust_tracker_test_helpers::logging::logs_contains_a_line_with;
         use torrust_tracker_test_helpers::{configuration, logging};
 
@@ -1469,8 +1469,8 @@ mod configured_as_private {
         use bittorrent_primitives::info_hash::InfoHash;
         use bittorrent_tracker_core::authentication::Key;
         use torrust_axum_http_tracker_server::environment::Started;
-        use torrust_tracker_primitives::peer::fixture::PeerBuilder;
         use torrust_tracker_primitives::PeerId;
+        use torrust_tracker_primitives::peer::fixture::PeerBuilder;
         use torrust_tracker_test_helpers::{configuration, logging};
 
         use crate::server::asserts::{assert_authentication_error_response, assert_scrape_response};

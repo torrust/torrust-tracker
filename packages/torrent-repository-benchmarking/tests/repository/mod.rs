@@ -7,12 +7,12 @@ use torrust_tracker_configuration::TrackerPolicy;
 use torrust_tracker_primitives::pagination::Pagination;
 use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
 use torrust_tracker_primitives::{AnnounceEvent, NumberOfBytes, NumberOfDownloadsBTreeMap};
+use torrust_tracker_torrent_repository_benchmarking::EntrySingle;
 use torrust_tracker_torrent_repository_benchmarking::entry::Entry as _;
 use torrust_tracker_torrent_repository_benchmarking::repository::dash_map_mutex_std::XacrimonDashMap;
 use torrust_tracker_torrent_repository_benchmarking::repository::rw_lock_std::RwLockStd;
 use torrust_tracker_torrent_repository_benchmarking::repository::rw_lock_tokio::RwLockTokio;
 use torrust_tracker_torrent_repository_benchmarking::repository::skip_map_mutex_std::CrossbeamSkipList;
-use torrust_tracker_torrent_repository_benchmarking::EntrySingle;
 
 use crate::common::repo::Repo;
 use crate::common::torrent_peer_builder::{a_completed_peer, a_started_peer};

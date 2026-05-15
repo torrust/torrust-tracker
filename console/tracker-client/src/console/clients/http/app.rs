@@ -72,13 +72,13 @@ use std::net::IpAddr;
 use std::str::FromStr;
 use std::time::Duration;
 
-use anyhow::{bail, Context};
+use anyhow::{Context, bail};
 use bencode2json::try_bencode_to_json;
 use bittorrent_primitives::info_hash::InfoHash;
 use bittorrent_tracker_client::http::client::requests::announce::{Compact, Event, QueryBuilder};
 use bittorrent_tracker_client::http::client::responses::announce::{Announce, DeserializedCompact};
 use bittorrent_tracker_client::http::client::responses::scrape;
-use bittorrent_tracker_client::http::client::{requests, Client};
+use bittorrent_tracker_client::http::client::{Client, requests};
 use bittorrent_udp_tracker_protocol::PeerId;
 use clap::{Parser, Subcommand, ValueEnum};
 use reqwest::Url;
@@ -387,7 +387,7 @@ mod tests {
     use reqwest::Url;
     use serde::Serialize;
 
-    use super::{parse_and_validate_tracker_url, serialize_json, validate_tracker_url_parts, OutputFormat};
+    use super::{OutputFormat, parse_and_validate_tracker_url, serialize_json, validate_tracker_url_parts};
 
     #[derive(Serialize)]
     struct Sample {

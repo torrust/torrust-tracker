@@ -3,7 +3,7 @@ use std::time::Duration;
 use bittorrent_tracker_core::authentication::Key;
 use serde::Serialize;
 use torrust_axum_rest_tracker_api_server::environment::Started;
-use torrust_rest_tracker_api_client::v1::client::{headers_with_request_id, AddKeyForm, Client};
+use torrust_rest_tracker_api_client::v1::client::{AddKeyForm, Client, headers_with_request_id};
 use torrust_tracker_test_helpers::logging::logs_contains_a_line_with;
 use torrust_tracker_test_helpers::{configuration, logging};
 use uuid::Uuid;
@@ -37,13 +37,14 @@ async fn should_allow_generating_a_new_random_auth_key() {
 
     let auth_key_resource = assert_auth_key_utf8(response).await;
 
-    assert!(env
-        .container
-        .tracker_core_container
-        .authentication_service
-        .authenticate(&auth_key_resource.key.parse::<Key>().unwrap())
-        .await
-        .is_ok());
+    assert!(
+        env.container
+            .tracker_core_container
+            .authentication_service
+            .authenticate(&auth_key_resource.key.parse::<Key>().unwrap())
+            .await
+            .is_ok()
+    );
 
     env.stop().await;
 }
@@ -69,13 +70,14 @@ async fn should_allow_uploading_a_preexisting_auth_key() {
 
     let auth_key_resource = assert_auth_key_utf8(response).await;
 
-    assert!(env
-        .container
-        .tracker_core_container
-        .authentication_service
-        .authenticate(&auth_key_resource.key.parse::<Key>().unwrap())
-        .await
-        .is_ok());
+    assert!(
+        env.container
+            .tracker_core_container
+            .authentication_service
+            .authenticate(&auth_key_resource.key.parse::<Key>().unwrap())
+            .await
+            .is_ok()
+    );
 
     env.stop().await;
 }
@@ -499,7 +501,7 @@ mod deprecated_generate_key_endpoint {
 
     use bittorrent_tracker_core::authentication::Key;
     use torrust_axum_rest_tracker_api_server::environment::Started;
-    use torrust_rest_tracker_api_client::v1::client::{headers_with_request_id, Client};
+    use torrust_rest_tracker_api_client::v1::client::{Client, headers_with_request_id};
     use torrust_tracker_test_helpers::logging::logs_contains_a_line_with;
     use torrust_tracker_test_helpers::{configuration, logging};
     use uuid::Uuid;
@@ -526,13 +528,14 @@ mod deprecated_generate_key_endpoint {
 
         let auth_key_resource = assert_auth_key_utf8(response).await;
 
-        assert!(env
-            .container
-            .tracker_core_container
-            .authentication_service
-            .authenticate(&auth_key_resource.key.parse::<Key>().unwrap())
-            .await
-            .is_ok());
+        assert!(
+            env.container
+                .tracker_core_container
+                .authentication_service
+                .authenticate(&auth_key_resource.key.parse::<Key>().unwrap())
+                .await
+                .is_ok()
+        );
 
         env.stop().await;
     }

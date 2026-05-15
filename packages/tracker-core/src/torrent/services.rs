@@ -206,7 +206,7 @@ pub async fn get_torrents(
 mod tests {
     use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
-    use torrust_tracker_primitives::{peer, AnnounceEvent, DurationSinceUnixEpoch, NumberOfBytes, PeerId};
+    use torrust_tracker_primitives::{AnnounceEvent, DurationSinceUnixEpoch, NumberOfBytes, PeerId, peer};
 
     fn sample_peer() -> peer::Peer {
         peer::Peer {
@@ -229,7 +229,7 @@ mod tests {
 
         use crate::torrent::repository::in_memory::InMemoryTorrentRepository;
         use crate::torrent::services::tests::sample_peer;
-        use crate::torrent::services::{get_torrent_info, Info};
+        use crate::torrent::services::{Info, get_torrent_info};
 
         #[tokio::test]
         async fn it_should_return_none_if_the_tracker_does_not_have_the_torrent() {
@@ -278,7 +278,7 @@ mod tests {
 
         use crate::torrent::repository::in_memory::InMemoryTorrentRepository;
         use crate::torrent::services::tests::sample_peer;
-        use crate::torrent::services::{get_torrents_page, BasicInfo, Pagination};
+        use crate::torrent::services::{BasicInfo, Pagination, get_torrents_page};
 
         #[tokio::test]
         async fn it_should_return_an_empty_result_if_the_tracker_does_not_have_any_torrent() {
@@ -417,7 +417,7 @@ mod tests {
         use crate::test_helpers::tests::sample_info_hash;
         use crate::torrent::repository::in_memory::InMemoryTorrentRepository;
         use crate::torrent::services::tests::sample_peer;
-        use crate::torrent::services::{get_torrents, BasicInfo};
+        use crate::torrent::services::{BasicInfo, get_torrents};
 
         #[tokio::test]
         async fn it_should_return_an_empty_list_if_none_of_the_requested_torrents_is_found() {

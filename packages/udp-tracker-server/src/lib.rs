@@ -680,7 +680,7 @@ pub(crate) mod tests {
     use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
     use bittorrent_udp_tracker_core::event::Event;
-    use torrust_tracker_primitives::{peer, AnnounceEvent, DurationSinceUnixEpoch, NumberOfBytes, PeerId};
+    use torrust_tracker_primitives::{AnnounceEvent, DurationSinceUnixEpoch, NumberOfBytes, PeerId, peer};
 
     pub fn sample_peer() -> peer::Peer {
         peer::Peer {

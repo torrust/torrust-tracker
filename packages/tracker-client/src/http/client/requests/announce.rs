@@ -6,7 +6,7 @@ use bittorrent_primitives::info_hash::InfoHash;
 use bittorrent_udp_tracker_protocol::PeerId;
 use serde_repr::Serialize_repr;
 
-use crate::http::{percent_encode_byte_array, ByteArray20};
+use crate::http::{ByteArray20, percent_encode_byte_array};
 use crate::peer_id::default_production_peer_id;
 
 pub struct Query {

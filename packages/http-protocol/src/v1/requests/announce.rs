@@ -10,12 +10,12 @@ use bittorrent_primitives::info_hash::{self, InfoHash};
 use thiserror::Error;
 use torrust_tracker_clock::clock::Time;
 use torrust_tracker_located_error::{Located, LocatedError};
-use torrust_tracker_primitives::{peer, AnnounceEvent, NumberOfBytes, PeerId};
+use torrust_tracker_primitives::{AnnounceEvent, NumberOfBytes, PeerId, peer};
 
+use crate::CurrentClock;
 use crate::percent_encoding::{percent_decode_info_hash, percent_decode_peer_id};
 use crate::v1::query::{ParseQueryError, Query};
 use crate::v1::responses;
-use crate::CurrentClock;
 
 // Query param names
 const INFO_HASH: &str = "info_hash";
@@ -445,7 +445,7 @@ mod tests {
 
         use crate::v1::query::Query;
         use crate::v1::requests::announce::{
-            Announce, Compact, Event, COMPACT, DOWNLOADED, EVENT, INFO_HASH, LEFT, NUMWANT, PEER_ID, PORT, UPLOADED,
+            Announce, COMPACT, Compact, DOWNLOADED, EVENT, Event, INFO_HASH, LEFT, NUMWANT, PEER_ID, PORT, UPLOADED,
         };
 
         #[test]

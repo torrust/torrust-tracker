@@ -15,7 +15,7 @@ use torrust_tracker_primitives::DurationSinceUnixEpoch;
 
 use super::key::repository::in_memory::InMemoryKeyRepository;
 use super::key::repository::persisted::DatabaseKeyRepository;
-use super::{key, CurrentClock, Key, PeerKey};
+use super::{CurrentClock, Key, PeerKey, key};
 use crate::databases;
 use crate::error::PeerKeyError;
 
@@ -333,8 +333,8 @@ mod tests {
 
             use torrust_tracker_clock::clock::Time;
 
-            use crate::authentication::handler::tests::the_keys_handler_when_the_tracker_is_configured_as_private::instantiate_keys_handler;
             use crate::CurrentClock;
+            use crate::authentication::handler::tests::the_keys_handler_when_the_tracker_is_configured_as_private::instantiate_keys_handler;
 
             #[tokio::test]
             async fn it_should_generate_the_key() {
@@ -360,15 +360,15 @@ mod tests {
                 use torrust_tracker_clock::clock::stopped::Stopped;
                 use torrust_tracker_clock::clock::{self, Time};
 
+                use crate::CurrentClock;
+                use crate::authentication::PeerKey;
+                use crate::authentication::handler::AddKeyRequest;
                 use crate::authentication::handler::tests::the_keys_handler_when_the_tracker_is_configured_as_private::{
                     instantiate_keys_handler, instantiate_keys_handler_with_database, mock_auth_key_store,
                 };
-                use crate::authentication::handler::AddKeyRequest;
-                use crate::authentication::PeerKey;
                 use crate::databases::driver::Driver;
                 use crate::databases::{self, AuthKeyStore};
                 use crate::error::PeerKeyError;
-                use crate::CurrentClock;
 
                 #[tokio::test]
                 async fn it_should_add_a_randomly_generated_key() {
@@ -434,15 +434,15 @@ mod tests {
                 use torrust_tracker_clock::clock::stopped::Stopped;
                 use torrust_tracker_clock::clock::{self, Time};
 
+                use crate::CurrentClock;
+                use crate::authentication::handler::AddKeyRequest;
                 use crate::authentication::handler::tests::the_keys_handler_when_the_tracker_is_configured_as_private::{
                     instantiate_keys_handler, instantiate_keys_handler_with_database, mock_auth_key_store,
                 };
-                use crate::authentication::handler::AddKeyRequest;
                 use crate::authentication::{Key, PeerKey};
                 use crate::databases::driver::Driver;
                 use crate::databases::{self, AuthKeyStore};
                 use crate::error::PeerKeyError;
-                use crate::CurrentClock;
 
                 #[tokio::test]
                 async fn it_should_add_a_pre_generated_key() {
@@ -542,11 +542,11 @@ mod tests {
 
                 use mockall::predicate::function;
 
+                use crate::authentication::PeerKey;
+                use crate::authentication::handler::AddKeyRequest;
                 use crate::authentication::handler::tests::the_keys_handler_when_the_tracker_is_configured_as_private::{
                     instantiate_keys_handler, instantiate_keys_handler_with_database, mock_auth_key_store,
                 };
-                use crate::authentication::handler::AddKeyRequest;
-                use crate::authentication::PeerKey;
                 use crate::databases::driver::Driver;
                 use crate::databases::{self, AuthKeyStore};
                 use crate::error::PeerKeyError;
@@ -612,10 +612,10 @@ mod tests {
 
                 use mockall::predicate;
 
+                use crate::authentication::handler::AddKeyRequest;
                 use crate::authentication::handler::tests::the_keys_handler_when_the_tracker_is_configured_as_private::{
                     instantiate_keys_handler, instantiate_keys_handler_with_database, mock_auth_key_store,
                 };
-                use crate::authentication::handler::AddKeyRequest;
                 use crate::authentication::{Key, PeerKey};
                 use crate::databases::driver::Driver;
                 use crate::databases::{self, AuthKeyStore};

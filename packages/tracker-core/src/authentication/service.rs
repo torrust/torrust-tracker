@@ -5,7 +5,7 @@ use std::sync::Arc;
 use torrust_tracker_configuration::Core;
 
 use super::key::repository::in_memory::InMemoryKeyRepository;
-use super::{key, Error, Key};
+use super::{Error, Key, key};
 
 /// The authentication service responsible for validating peer keys.
 ///
@@ -157,8 +157,8 @@ mod tests {
             use std::sync::Arc;
             use std::time::Duration;
 
-            use torrust_tracker_configuration::v2_0_0::core::PrivateMode;
             use torrust_tracker_configuration::Core;
+            use torrust_tracker_configuration::v2_0_0::core::PrivateMode;
 
             use crate::authentication::key::repository::in_memory::InMemoryKeyRepository;
             use crate::authentication::service::AuthenticationService;
@@ -238,8 +238,8 @@ mod tests {
             }
 
             #[tokio::test]
-            async fn it_should_not_authenticate_a_registered_but_expired_key_when_the_tracker_is_explicitly_configured_to_check_keys_expiration(
-            ) {
+            async fn it_should_not_authenticate_a_registered_but_expired_key_when_the_tracker_is_explicitly_configured_to_check_keys_expiration()
+             {
                 let config = Core {
                     private: true,
                     private_mode: Some(PrivateMode {
@@ -272,8 +272,8 @@ mod tests {
                 use std::sync::Arc;
                 use std::time::Duration;
 
-                use torrust_tracker_configuration::v2_0_0::core::PrivateMode;
                 use torrust_tracker_configuration::Core;
+                use torrust_tracker_configuration::v2_0_0::core::PrivateMode;
 
                 use crate::authentication::key::repository::in_memory::InMemoryKeyRepository;
                 use crate::authentication::service::AuthenticationService;

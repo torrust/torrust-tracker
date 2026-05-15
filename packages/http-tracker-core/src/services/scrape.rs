@@ -11,15 +11,15 @@ use std::sync::Arc;
 
 use bittorrent_http_tracker_protocol::v1::requests::scrape::Scrape;
 use bittorrent_http_tracker_protocol::v1::services::peer_ip_resolver::{
-    resolve_remote_client_addr, ClientIpSources, PeerIpResolutionError, RemoteClientAddr,
+    ClientIpSources, PeerIpResolutionError, RemoteClientAddr, resolve_remote_client_addr,
 };
 use bittorrent_tracker_core::authentication::service::AuthenticationService;
 use bittorrent_tracker_core::authentication::{self, Key};
 use bittorrent_tracker_core::error::{ScrapeError, TrackerCoreError, WhitelistError};
 use bittorrent_tracker_core::scrape_handler::ScrapeHandler;
 use torrust_tracker_configuration::Core;
-use torrust_tracker_primitives::service_binding::ServiceBinding;
 use torrust_tracker_primitives::ScrapeData;
+use torrust_tracker_primitives::service_binding::ServiceBinding;
 
 use crate::event::{ConnectionContext, Event};
 
@@ -183,7 +183,7 @@ mod tests {
     use mockall::mock;
     use torrust_tracker_configuration::Configuration;
     use torrust_tracker_events::sender::SendError;
-    use torrust_tracker_primitives::{peer, AnnounceEvent, DurationSinceUnixEpoch, NumberOfBytes, PeerId};
+    use torrust_tracker_primitives::{AnnounceEvent, DurationSinceUnixEpoch, NumberOfBytes, PeerId, peer};
 
     use crate::event::Event;
     use crate::tests::sample_info_hash;
@@ -255,18 +255,18 @@ mod tests {
         use bittorrent_tracker_core::announce_handler::PeersWanted;
         use mockall::predicate::eq;
         use torrust_tracker_events::bus::SenderStatus;
+        use torrust_tracker_primitives::ScrapeData;
         use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
         use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
-        use torrust_tracker_primitives::ScrapeData;
         use torrust_tracker_test_helpers::configuration;
 
         use crate::event::bus::EventBus;
         use crate::event::sender::Broadcaster;
         use crate::event::{ConnectionContext, Event};
-        use crate::services::scrape::tests::{
-            initialize_services_with_configuration, sample_info_hashes, sample_peer, MockHttpStatsEventSender,
-        };
         use crate::services::scrape::ScrapeService;
+        use crate::services::scrape::tests::{
+            MockHttpStatsEventSender, initialize_services_with_configuration, sample_info_hashes, sample_peer,
+        };
         use crate::tests::sample_info_hash;
 
         #[tokio::test]
@@ -446,22 +446,22 @@ mod tests {
         use bittorrent_tracker_core::announce_handler::PeersWanted;
         use mockall::predicate::eq;
         use torrust_tracker_events::bus::SenderStatus;
-        use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
         use torrust_tracker_primitives::ScrapeData;
+        use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
         use torrust_tracker_test_helpers::configuration;
 
         use crate::event::bus::EventBus;
         use crate::event::sender::Broadcaster;
         use crate::event::{ConnectionContext, Event};
-        use crate::services::scrape::tests::{
-            initialize_services_with_configuration, sample_info_hashes, sample_peer, MockHttpStatsEventSender,
-        };
         use crate::services::scrape::ScrapeService;
+        use crate::services::scrape::tests::{
+            MockHttpStatsEventSender, initialize_services_with_configuration, sample_info_hashes, sample_peer,
+        };
         use crate::tests::sample_info_hash;
 
         #[tokio::test]
-        async fn it_should_return_the_zeroed_scrape_data_when_the_tracker_is_running_in_private_mode_and_the_peer_is_not_authenticated(
-        ) {
+        async fn it_should_return_the_zeroed_scrape_data_when_the_tracker_is_running_in_private_mode_and_the_peer_is_not_authenticated()
+         {
             let config = configuration::ephemeral_private();
 
             let container = initialize_services_with_configuration(&config).await;

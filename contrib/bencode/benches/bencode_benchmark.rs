@@ -1,6 +1,6 @@
 use std::hint::black_box;
 
-use criterion::{criterion_group, criterion_main, Criterion};
+use criterion::{Criterion, criterion_group, criterion_main};
 use torrust_tracker_contrib_bencode::{BDecodeOpt, BencodeRef};
 
 const B_NESTED_LISTS: &[u8; 100] =

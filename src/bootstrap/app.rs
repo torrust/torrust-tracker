@@ -13,7 +13,7 @@
 //! 4. Initialize the domain tracker.
 use bittorrent_udp_tracker_core::crypto::keys::{self, Keeper as _};
 use torrust_tracker_configuration::validator::Validator;
-use torrust_tracker_configuration::{logging, Configuration};
+use torrust_tracker_configuration::{Configuration, logging};
 use tracing::instrument;
 
 use super::config::initialize_configuration;

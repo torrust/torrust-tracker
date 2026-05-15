@@ -31,7 +31,7 @@ rustup update                      # Update to latest stable
 rustup toolchain install nightly   # Required for docs generation
 ```
 
-The project MSRV is **1.72**. The nightly toolchain is needed only for
+The project MSRV is **1.85**. The nightly toolchain is needed only for
 `cargo +nightly doc` and certain pre-commit hook checks.
 
 ## Step 3: Build

@@ -1,13 +1,13 @@
 ---
 doc-type: issue
 issue-type: task
-status: draft
+status: in-review
 priority: p3
 github-issue: 1778
 spec-path: docs/issues/open/1778-migrate-to-rust-edition-2024.md
 branch: "1778-migrate-to-rust-edition-2024"
-related-pr: null
-last-updated-utc: 2026-05-13 18:00
+related-pr: 1784
+last-updated-utc: 2026-05-14 18:30
 blocks: https://github.com/torrust/torrust-tracker/issues/1669
 semantic-links:
   skill-links:
@@ -236,20 +236,20 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task                                                                             | Notes / Expected Output                                                                                                                                                                                                                                                                                  |
 | --- | ------ | -------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| T1  | TODO   | Run `cargo update`                                                               | Ensure dependencies are current before migration                                                                                                                                                                                                                                                         |
-| T2  | TODO   | Bump `rust-version` to `"1.85"` in root `Cargo.toml`; commit                     | Prerequisite for edition 2024; compiles and tests pass against edition 2021                                                                                                                                                                                                                              |
-| T3  | TODO   | Run `cargo fix --edition --allow-dirty --workspace --all-targets --all-features` | Produces all auto-fix diffs (requires `--allow-dirty` if tree is already modified); do not commit yet — stage selectively in T4–T7                                                                                                                                                                       |
-| T4  | TODO   | Stage and commit auto-fixes for `contrib/bencode`                                | `edition_2024_expr_fragment_specifier` fixes; compiles and tests pass                                                                                                                                                                                                                                    |
-| T5  | TODO   | Stage and commit auto-fixes for tier 3 packages                                  | `if_let_rescope` in `torrent-repository-benchmarking` (also has `tail_expr_drop_order` which is reviewed later in T9); compiles and tests pass                                                                                                                                                           |
-| T6  | TODO   | Stage and commit auto-fixes for tier 4–5 packages                                | `if_let_rescope` in `swarm-coordination-registry`, `tracker-core` benchmark files; compiles and tests pass                                                                                                                                                                                               |
-| T7  | TODO   | Stage and commit auto-fixes for tier 7+ and top-level                            | `if_let_rescope` in `axum-rest-tracker-api-server`, `udp-tracker-server/src/handlers/mod.rs`, `udp-tracker-server/src/server/mod.rs`, `src/bootstrap/`; `deprecated_safe_2024` in `tests/` (add `unsafe {}`); compiles and tests pass                                                                    |
-| T8  | TODO   | Manually review and commit `tail_expr_drop_order` locations — tier 0 (leaf)      | `packages/rest-tracker-api-client/src/v1/client.rs:222`; confirm or fix; compiles and tests pass                                                                                                                                                                                                         |
-| T9  | TODO   | Manually review and commit `tail_expr_drop_order` locations — tier 3–5           | `torrent-repository-benchmarking`, `swarm-coordination-registry`, `tracker-core` (4 files); confirm or fix; compiles and tests pass                                                                                                                                                                      |
-| T10 | TODO   | Manually review and commit `tail_expr_drop_order` locations — tier 7             | `udp-tracker-server` (4 locations), `console/tracker-client` (3 locations); confirm or fix; compiles and tests pass                                                                                                                                                                                      |
-| T11 | TODO   | Manually review and commit `tail_expr_drop_order` locations — top-level          | `src/bin/http_health_check.rs` only (`src/bootstrap/` and `tests/` have only auto-fixable lints, handled in T7); confirm or fix; compiles and tests pass                                                                                                                                                 |
-| T12 | TODO   | Change `edition = "2021"` to `edition = "2024"` in root `Cargo.toml`; commit     | Capstone: activates edition 2024 and resolver v3 for all packages; `cargo build --workspace --all-targets --all-features && cargo test --workspace --all-targets --all-features` must pass; verify `cargo tree` output is unchanged (resolver v3 may select different dependency versions based on MSRV) |
-| T13 | TODO   | Run `cargo fmt --all`; commit formatting changes separately                      | Isolates cosmetic churn from semantic changes; makes PR diff reviewable                                                                                                                                                                                                                                  |
-| T14 | TODO   | Run `linter all` and pre-commit checks                                           | All linting gates must pass before opening the PR                                                                                                                                                                                                                                                        |
+| T1  | DONE   | Run `cargo update`                                                               | Ensure dependencies are current before migration                                                                                                                                                                                                                                                         |
+| T2  | DONE   | Bump `rust-version` to `"1.85"` in root `Cargo.toml`; commit                     | Prerequisite for edition 2024; compiles and tests pass against edition 2021                                                                                                                                                                                                                              |
+| T3  | DONE   | Run `cargo fix --edition --allow-dirty --workspace --all-targets --all-features` | Produces all auto-fix diffs (requires `--allow-dirty` if tree is already modified); do not commit yet — stage selectively in T4–T7                                                                                                                                                                       |
+| T4  | DONE   | Stage and commit auto-fixes for `contrib/bencode`                                | `edition_2024_expr_fragment_specifier` fixes; compiles and tests pass                                                                                                                                                                                                                                    |
+| T5  | DONE   | Stage and commit auto-fixes for tier 3 packages                                  | `if_let_rescope` in `torrent-repository-benchmarking` (also has `tail_expr_drop_order` which is reviewed later in T9); compiles and tests pass                                                                                                                                                           |
+| T6  | DONE   | Stage and commit auto-fixes for tier 4–5 packages                                | `if_let_rescope` in `swarm-coordination-registry`, `tracker-core` benchmark files; compiles and tests pass                                                                                                                                                                                               |
+| T7  | DONE   | Stage and commit auto-fixes for tier 7+ and top-level                            | `if_let_rescope` in `axum-rest-tracker-api-server`, `udp-tracker-server/src/handlers/mod.rs`, `udp-tracker-server/src/server/mod.rs`, `src/bootstrap/`; `deprecated_safe_2024` in `tests/` (add `unsafe {}`); compiles and tests pass                                                                    |
+| T8  | DONE   | Manually review and commit `tail_expr_drop_order` locations — tier 0 (leaf)      | `packages/rest-tracker-api-client/src/v1/client.rs:222`; confirm or fix; compiles and tests pass                                                                                                                                                                                                         |
+| T9  | DONE   | Manually review and commit `tail_expr_drop_order` locations — tier 3–5           | `torrent-repository-benchmarking`, `swarm-coordination-registry`, `tracker-core` (4 files); confirm or fix; compiles and tests pass                                                                                                                                                                      |
+| T10 | DONE   | Manually review and commit `tail_expr_drop_order` locations — tier 7             | `udp-tracker-server` (4 locations), `console/tracker-client` (3 locations); confirm or fix; compiles and tests pass                                                                                                                                                                                      |
+| T11 | DONE   | Manually review and commit `tail_expr_drop_order` locations — top-level          | `src/bin/http_health_check.rs` only (`src/bootstrap/` and `tests/` have only auto-fixable lints, handled in T7); confirm or fix; compiles and tests pass                                                                                                                                                 |
+| T12 | DONE   | Change `edition = "2021"` to `edition = "2024"` in root `Cargo.toml`; commit     | Capstone: activates edition 2024 and resolver v3 for all packages; `cargo build --workspace --all-targets --all-features && cargo test --workspace --all-targets --all-features` must pass; verify `cargo tree` output is unchanged (resolver v3 may select different dependency versions based on MSRV) |
+| T13 | DONE   | Run `cargo fmt --all`; commit formatting changes separately                      | Isolates cosmetic churn from semantic changes; makes PR diff reviewable                                                                                                                                                                                                                                  |
+| T14 | DONE   | Run `linter all` and pre-commit checks                                           | All linting gates must pass before opening the PR                                                                                                                                                                                                                                                        |
 
 **Review `expr` → `expr_2021` in `contrib/bencode`** (part of T4): after `cargo fix --edition`
 converts `expr` to `expr_2021`, decide whether to keep `expr_2021` (conservative, accepts
@@ -264,8 +264,8 @@ Document the decision in the commit message.
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
 - [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
+- [x] Implementation completed
+- [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [ ] Manual verification scenarios executed and recorded (status + evidence)
 - [ ] Acceptance criteria reviewed after implementation and updated with evidence
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
@@ -280,17 +280,18 @@ Append one line per meaningful update.
 - 2026-05-13 17:00 UTC - Agent - Added sequencing context with EPIC #1669 and dependency tier order for manual review
 - 2026-05-13 17:30 UTC - Agent - Clarified third-party dependency warnings (Situation A/B), added effort estimate, added incremental commit plan (T1–T14)
 - 2026-05-13 18:00 UTC - Agent - GitHub issue #1778 created; spec moved to docs/issues/open/
+- 2026-05-14 17:50 UTC - Agent - Full migration implemented: workspace edition set to 2024, MSRV bumped to 1.85, cargo fix --edition applied, lazy_static replaced with std::sync::LazyLock in udp-tracker-core, all cargo::fix-generated patterns audited for correctness, io::Error::new(Other,...) replaced with io::Error::other() everywhere, redundant semicolons and map_or patterns cleaned up; 954 tests pass, linter all exits 0, pre-commit gate passes.
 
 ## Acceptance Criteria
 
-- [ ] AC1: `edition = "2024"` is set in workspace root `Cargo.toml`
-- [ ] AC2: `rust-version = "1.85"` is set in workspace root `Cargo.toml`
-- [ ] AC3: `cargo build --workspace --all-targets --all-features` exits with code `0`
-- [ ] AC4: `cargo test --workspace --all-targets --all-features` passes with no regressions
-- [ ] AC5: All 18 `tail_expr_drop_order` locations have been reviewed and confirmed correct (or fixed)
-- [ ] AC6: `std::env::set_var` usage in `tests/servers/api/contract/stats/mod.rs` is wrapped in `unsafe {}` with an explanatory safety comment
-- [ ] AC7: `linter all` exits with code `0`
-- [ ] AC8: No `rust-2024-compatibility` warnings remain in project source (dependency noise is acceptable)
+- [x] AC1: `edition = "2024"` is set in workspace root `Cargo.toml`
+- [x] AC2: `rust-version = "1.85"` is set in workspace root `Cargo.toml`
+- [x] AC3: `cargo build --workspace --all-targets --all-features` exits with code `0`
+- [x] AC4: `cargo test --workspace --all-targets --all-features` passes with no regressions
+- [x] AC5: All 18 `tail_expr_drop_order` locations have been reviewed and confirmed correct (or fixed)
+- [x] AC6: `std::env::set_var` usage in `tests/servers/api/contract/stats/mod.rs` is wrapped in `unsafe {}` with an explanatory safety comment
+- [x] AC7: `linter all` exits with code `0`
+- [x] AC8: No `rust-2024-compatibility` warnings remain in project source (dependency noise is acceptable)
 - [ ] Manual verification scenarios are executed and documented (status + evidence)
 - [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
 - [ ] Documentation is updated when behavior/workflow changes
@@ -311,15 +312,15 @@ linter all
 
 Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
-| ID  | Scenario                                                  | Command/Steps                                                                                                                                      | Expected Result                                                               | Status | Evidence |
-| --- | --------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- | ------ | -------- |
-| M1  | No 2024-compatibility warnings in project source          | `RUSTFLAGS="-W rust-2024-compatibility" cargo check --workspace --all-targets --all-features 2>&1 \| grep -v ".cargo/registry" \| grep "^warning"` | Zero warnings from project source files                                       | TODO   |          |
-| M2  | All tests pass after migration                            | `cargo test --workspace --all-targets --all-features`                                                                                              | All tests pass                                                                | TODO   |          |
-| M3  | Rustfmt passes with edition 2024                          | `cargo fmt --all -- --check`                                                                                                                       | Exit code 0                                                                   | TODO   |          |
-| M4  | Tail expression drop order: `activity_metrics_updater.rs` | Read and review `packages/swarm-coordination-registry/src/statistics/activity_metrics_updater.rs` around line 40                                   | Drop order change is safe (weak-ref upgrade in tokio::select!)                | TODO   |          |
-| M5  | Tail expression drop order: `rest-tracker-api-client`     | Read and review `packages/rest-tracker-api-client/src/v1/client.rs` around line 222                                                                | `reqwest::Client` dropped later is safe                                       | TODO   |          |
-| M6  | Tail expression drop order: `scrape_handler.rs`           | Read and review `packages/tracker-core/src/scrape_handler.rs` around line 118                                                                      | Authorize future dropped later is safe                                        | TODO   |          |
-| M7  | `set_var` safety comment present                          | Inspect `tests/servers/api/contract/stats/mod.rs:52`                                                                                               | `unsafe {}` block with safety comment explaining single-threaded test context | TODO   |          |
+| ID  | Scenario                                                  | Command/Steps                                                                                                                                      | Expected Result                                                               | Status | Evidence                                                                    |
+| --- | --------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- | ------ | --------------------------------------------------------------------------- |
+| M1  | No 2024-compatibility warnings in project source          | `RUSTFLAGS="-W rust-2024-compatibility" cargo check --workspace --all-targets --all-features 2>&1 \| grep -v ".cargo/registry" \| grep "^warning"` | Zero warnings from project source files                                       | DONE   | Only `proc-macro-error2` third-party warning, zero project-source warnings  |
+| M2  | All tests pass after migration                            | `cargo test --workspace --all-targets --all-features`                                                                                              | All tests pass                                                                | DONE   | 954 tests passed, 0 failed                                                  |
+| M3  | Rustfmt passes with edition 2024                          | `cargo fmt --all -- --check`                                                                                                                       | Exit code 0                                                                   | DONE   | `linter all` rustfmt step passes                                            |
+| M4  | Tail expression drop order: `activity_metrics_updater.rs` | Read and review `packages/swarm-coordination-registry/src/statistics/activity_metrics_updater.rs` around line 40                                   | Drop order change is safe (weak-ref upgrade in tokio::select!)                | DONE   | Reviewed; weak-ref upgrade is evaluated before any drop; no semantic change |
+| M5  | Tail expression drop order: `rest-tracker-api-client`     | Read and review `packages/rest-tracker-api-client/src/v1/client.rs` around line 222                                                                | `reqwest::Client` dropped later is safe                                       | DONE   | Reviewed; reqwest::Client extra lifetime is benign                          |
+| M6  | Tail expression drop order: `scrape_handler.rs`           | Read and review `packages/tracker-core/src/scrape_handler.rs` around line 118                                                                      | Authorize future dropped later is safe                                        | DONE   | Reviewed; authorization future holds no locks; extra lifetime is safe       |
+| M7  | `set_var` safety comment present                          | Inspect `tests/servers/api/contract/stats/mod.rs:52`                                                                                               | `unsafe {}` block with safety comment explaining single-threaded test context | DONE   | `unsafe` block with safety comment present and confirmed                    |
 
 Notes:
 
@@ -328,16 +329,16 @@ Notes:
 
 ### Acceptance Verification
 
-| AC ID | Status (`TODO`/`DONE`) | Evidence |
-| ----- | ---------------------- | -------- |
-| AC1   | TODO                   |          |
-| AC2   | TODO                   |          |
-| AC3   | TODO                   |          |
-| AC4   | TODO                   |          |
-| AC5   | TODO                   |          |
-| AC6   | TODO                   |          |
-| AC7   | TODO                   |          |
-| AC8   | TODO                   |          |
+| AC ID | Status (`TODO`/`DONE`) | Evidence                                                                           |
+| ----- | ---------------------- | ---------------------------------------------------------------------------------- |
+| AC1   | DONE                   | `edition = "2024"` in workspace `Cargo.toml`                                       |
+| AC2   | DONE                   | `rust-version = "1.85"` in workspace `Cargo.toml`                                  |
+| AC3   | DONE                   | `cargo build --workspace --all-targets --all-features` exits 0                     |
+| AC4   | DONE                   | 954 tests passed, 0 failed                                                         |
+| AC5   | DONE                   | All `tail_expr_drop_order` sites reviewed; confirmed correct                       |
+| AC6   | DONE                   | `unsafe {}` block with safety comment at `tests/servers/api/contract/stats/mod.rs` |
+| AC7   | DONE                   | `linter all` exits 0; pre-commit gate passes                                       |
+| AC8   | DONE                   | Zero project-source warnings under `-W rust-2024-compatibility`                    |
 
 ## Risks and Trade-offs
 

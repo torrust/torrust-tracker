@@ -42,14 +42,14 @@ pub fn start_job(config: &Core, torrents_manager: &Arc<TorrentsManager>) -> Join
                     break;
                 }
                 _ = interval.tick() => {
-                    if let Some(torrents_manager) = weak_torrents_manager.upgrade() {
+                    match weak_torrents_manager.upgrade() { Some(torrents_manager) => {
                         let start_time = Utc::now().time();
                         tracing::info!("Cleaning up torrents (executed every {} secs) ...", interval_in_secs);
                         torrents_manager.cleanup_torrents().await;
                         tracing::info!("Cleaned up torrents in: {} ms", (Utc::now().time() - start_time).num_milliseconds());
-                    } else {
+                    } _ => {
                         break;
-                    }
+                    }}
                 }
             }
         }

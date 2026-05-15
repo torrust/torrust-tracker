@@ -10,9 +10,9 @@
 use std::panic::Location;
 use std::sync::Arc;
 
-use bittorrent_http_tracker_protocol::v1::requests::announce::{peer_from_request, Announce};
+use bittorrent_http_tracker_protocol::v1::requests::announce::{Announce, peer_from_request};
 use bittorrent_http_tracker_protocol::v1::services::peer_ip_resolver::{
-    resolve_remote_client_addr, ClientIpSources, PeerIpResolutionError, RemoteClientAddr,
+    ClientIpSources, PeerIpResolutionError, RemoteClientAddr, resolve_remote_client_addr,
 };
 use bittorrent_primitives::info_hash::InfoHash;
 use bittorrent_tracker_core::announce_handler::{AnnounceHandler, PeersWanted};
@@ -21,9 +21,9 @@ use bittorrent_tracker_core::authentication::{self, Key};
 use bittorrent_tracker_core::error::{AnnounceError, TrackerCoreError, WhitelistError};
 use bittorrent_tracker_core::whitelist;
 use torrust_tracker_configuration::Core;
+use torrust_tracker_primitives::AnnounceData;
 use torrust_tracker_primitives::peer::PeerAnnouncement;
 use torrust_tracker_primitives::service_binding::ServiceBinding;
-use torrust_tracker_primitives::AnnounceData;
 
 use crate::event;
 use crate::event::Event;
@@ -307,9 +307,9 @@ mod tests {
     use mockall::mock;
     use torrust_tracker_events::sender::SendError;
 
+    use crate::event::Event;
     use crate::event::bus::EventBus;
     use crate::event::sender::Broadcaster;
-    use crate::event::Event;
     use crate::statistics::event::listener::run_event_listener;
     use crate::statistics::repository::Repository;
     use crate::tests::sample_info_hash;
@@ -333,16 +333,16 @@ mod tests {
         use torrust_tracker_configuration::Configuration;
         use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
         use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
-        use torrust_tracker_primitives::{peer, AnnounceData};
+        use torrust_tracker_primitives::{AnnounceData, peer};
         use torrust_tracker_test_helpers::configuration;
 
         use crate::event::test::announce_events_match;
         use crate::event::{ConnectionContext, Event};
-        use crate::services::announce::tests::{
-            initialize_core_tracker_services, initialize_core_tracker_services_with_config, sample_announce_request_for_peer,
-            MockHttpStatsEventSender,
-        };
         use crate::services::announce::AnnounceService;
+        use crate::services::announce::tests::{
+            MockHttpStatsEventSender, initialize_core_tracker_services, initialize_core_tracker_services_with_config,
+            sample_announce_request_for_peer,
+        };
         use crate::tests::{sample_info_hash, sample_peer, sample_peer_using_ipv4, sample_peer_using_ipv6};
 
         #[tokio::test]

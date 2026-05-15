@@ -7,9 +7,9 @@ use reqwest::multipart::{Form, Part};
 use tokio::sync::Mutex;
 
 use super::super::types::InfoHash;
+use super::QBITTORRENT_WEBUI_PORT;
 use super::credentials::QbittorrentCredentials;
 use super::torrent::{TorrentInfo, TorrentProgress};
-use super::QBITTORRENT_WEBUI_PORT;
 
 const WEBUI_HEADER_HOST: &str = "localhost";
 const WEBUI_HEADER_SCHEME: &str = "http";

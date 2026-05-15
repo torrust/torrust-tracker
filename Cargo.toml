@@ -23,13 +23,13 @@ authors = [ "Nautilus Cyberneering <info@nautilus-cyberneering.de>, Mick van Dij
 categories = [ "network-programming", "web-programming" ]
 description = "A feature rich BitTorrent tracker."
 documentation = "https://docs.rs/crate/torrust-tracker/"
-edition = "2021"
+edition = "2024"
 homepage = "https://torrust.com/"
 keywords = [ "bittorrent", "file-sharing", "peer-to-peer", "torrent", "tracker" ]
 license = "AGPL-3.0-only"
 publish = true
 repository = "https://github.com/torrust/torrust-tracker"
-rust-version = "1.72"
+rust-version = "1.85"
 version = "3.0.0-develop"
 
 [dependencies]

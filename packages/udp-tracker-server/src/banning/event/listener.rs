@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
-use bittorrent_udp_tracker_core::services::banning::BanService;
 use bittorrent_udp_tracker_core::UDP_TRACKER_LOG_TARGET;
+use bittorrent_udp_tracker_core::services::banning::BanService;
 use tokio::sync::RwLock;
 use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
@@ -9,9 +9,9 @@ use torrust_tracker_clock::clock::Time;
 use torrust_tracker_events::receiver::RecvError;
 
 use super::handler::handle_event;
+use crate::CurrentClock;
 use crate::event::receiver::Receiver;
 use crate::statistics::repository::Repository;
-use crate::CurrentClock;
 
 #[must_use]
 pub fn run_event_listener(

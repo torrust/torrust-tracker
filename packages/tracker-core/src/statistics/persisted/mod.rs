@@ -7,8 +7,8 @@ use torrust_tracker_metrics::label::LabelSet;
 use torrust_tracker_metrics::{metric_collection, metric_name};
 use torrust_tracker_primitives::DurationSinceUnixEpoch;
 
-use super::repository::Repository;
 use super::TRACKER_CORE_PERSISTENT_TORRENTS_DOWNLOADS_TOTAL;
+use super::repository::Repository;
 use crate::databases;
 use crate::statistics::persisted::downloads::DatabaseDownloadsMetricRepository;
 

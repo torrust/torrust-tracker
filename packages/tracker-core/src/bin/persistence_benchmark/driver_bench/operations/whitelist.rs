@@ -1,8 +1,8 @@
 use anyhow::{Context, Result};
 use bittorrent_tracker_core::databases::WhitelistStore;
 
-use super::super::sampling::{info_hash_from_index, measure_operation_async};
 use super::super::RawOperationSamples;
+use super::super::sampling::{info_hash_from_index, measure_operation_async};
 
 /// Benchmarks whitelist-related persistence operations.
 ///

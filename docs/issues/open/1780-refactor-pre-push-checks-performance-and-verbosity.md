@@ -117,6 +117,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-05-13 20:00 UTC - Copilot - Manually verified all output modes (pass+fail paths for text+concise, text+verbose, json; TORRUST_GIT_HOOKS_LOG_DIR log file creation). Added `.githooks/pre-push` dispatcher (T9) and installed via `install-git-hooks.sh`.
 - 2026-05-13 20:30 UTC - Copilot - Added explicit `--format=text --verbosity=concise` to both `.githooks/` dispatchers (T10); added manual verification test matrix to spec.
 - 2026-05-13 21:00 UTC - Copilot - Changed `.githooks/` dispatchers to use `--format=json` as the explicit default (updated T10).
+- 2026-05-14 - Copilot - Addressed Copilot PR review round 2: mktemp portability fix, exit code normalization (1 for check failures, 2 for infra errors), T10 note updated to reflect TTY detection, PR description updated. All 13 review threads resolved.
+- 2026-05-14 - josecelano - PR #1783 merged into `develop`. Spec moved to `docs/issues/closed/`.
 
 ## Acceptance Criteria
 

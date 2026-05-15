@@ -2,15 +2,15 @@ use std::sync::Arc;
 
 use torrust_tracker_metrics::label::{LabelSet, LabelValue};
 use torrust_tracker_metrics::{label_name, metric_name};
-use torrust_tracker_primitives::peer::Peer;
 use torrust_tracker_primitives::DurationSinceUnixEpoch;
+use torrust_tracker_primitives::peer::Peer;
 
 use crate::event::Event;
 use crate::statistics::repository::Repository;
 use crate::statistics::{
-    SWARM_COORDINATION_REGISTRY_PEERS_ADDED_TOTAL, SWARM_COORDINATION_REGISTRY_PEERS_COMPLETED_STATE_REVERTED_TOTAL,
-    SWARM_COORDINATION_REGISTRY_PEERS_REMOVED_TOTAL, SWARM_COORDINATION_REGISTRY_PEERS_UPDATED_TOTAL,
-    SWARM_COORDINATION_REGISTRY_PEER_CONNECTIONS_TOTAL, SWARM_COORDINATION_REGISTRY_TORRENTS_ADDED_TOTAL,
+    SWARM_COORDINATION_REGISTRY_PEER_CONNECTIONS_TOTAL, SWARM_COORDINATION_REGISTRY_PEERS_ADDED_TOTAL,
+    SWARM_COORDINATION_REGISTRY_PEERS_COMPLETED_STATE_REVERTED_TOTAL, SWARM_COORDINATION_REGISTRY_PEERS_REMOVED_TOTAL,
+    SWARM_COORDINATION_REGISTRY_PEERS_UPDATED_TOTAL, SWARM_COORDINATION_REGISTRY_TORRENTS_ADDED_TOTAL,
     SWARM_COORDINATION_REGISTRY_TORRENTS_DOWNLOADS_TOTAL, SWARM_COORDINATION_REGISTRY_TORRENTS_REMOVED_TOTAL,
     SWARM_COORDINATION_REGISTRY_TORRENTS_TOTAL,
 };
@@ -177,8 +177,8 @@ mod tests {
 
     use torrust_tracker_metrics::label::LabelSet;
     use torrust_tracker_metrics::metric::MetricName;
-    use torrust_tracker_primitives::peer::{Peer, PeerRole};
     use torrust_tracker_primitives::NumberOfBytes;
+    use torrust_tracker_primitives::peer::{Peer, PeerRole};
 
     use crate::statistics::repository::Repository;
     use crate::tests::{leecher, seeder};
@@ -255,6 +255,7 @@ mod tests {
         use torrust_tracker_metrics::label::LabelSet;
         use torrust_tracker_metrics::metric_name;
 
+        use crate::CurrentClock;
         use crate::event::Event;
         use crate::statistics::event::handler::handle_event;
         use crate::statistics::event::handler::tests::{expect_counter_metric_to_be, expect_gauge_metric_to_be};
@@ -264,7 +265,6 @@ mod tests {
             SWARM_COORDINATION_REGISTRY_TORRENTS_TOTAL,
         };
         use crate::tests::{sample_info_hash, sample_peer};
-        use crate::CurrentClock;
 
         #[tokio::test]
         async fn it_should_increment_the_number_of_torrents_when_a_torrent_added_event_is_received() {
@@ -374,6 +374,7 @@ mod tests {
         use torrust_tracker_clock::clock::{self, Time};
         use torrust_tracker_metrics::metric_name;
 
+        use crate::CurrentClock;
         use crate::event::Event;
         use crate::statistics::event::handler::tests::expect_counter_metric_to_be;
         use crate::statistics::event::handler::{handle_event, label_set_for_peer};
@@ -383,7 +384,6 @@ mod tests {
             SWARM_COORDINATION_REGISTRY_PEERS_UPDATED_TOTAL,
         };
         use crate::tests::{sample_info_hash, sample_peer};
-        use crate::CurrentClock;
 
         mod peer_connections_total {
 
@@ -396,15 +396,15 @@ mod tests {
             use torrust_tracker_metrics::{label_name, metric_name};
             use torrust_tracker_primitives::peer::PeerRole;
 
+            use crate::CurrentClock;
             use crate::event::Event;
+            use crate::statistics::SWARM_COORDINATION_REGISTRY_PEER_CONNECTIONS_TOTAL;
             use crate::statistics::event::handler::handle_event;
             use crate::statistics::event::handler::tests::{
                 expect_gauge_metric_to_be, get_gauge_metric, make_opposite_role_peer, make_peer,
             };
             use crate::statistics::repository::Repository;
-            use crate::statistics::SWARM_COORDINATION_REGISTRY_PEER_CONNECTIONS_TOTAL;
             use crate::tests::sample_info_hash;
-            use crate::CurrentClock;
 
             #[rstest]
             #[case("seeder")]
@@ -615,13 +615,13 @@ mod tests {
             use torrust_tracker_metrics::{label_name, metric_name};
             use torrust_tracker_primitives::peer::PeerRole;
 
+            use crate::CurrentClock;
             use crate::event::Event;
+            use crate::statistics::SWARM_COORDINATION_REGISTRY_TORRENTS_DOWNLOADS_TOTAL;
             use crate::statistics::event::handler::handle_event;
             use crate::statistics::event::handler::tests::{expect_counter_metric_to_be, make_peer};
             use crate::statistics::repository::Repository;
-            use crate::statistics::SWARM_COORDINATION_REGISTRY_TORRENTS_DOWNLOADS_TOTAL;
             use crate::tests::sample_info_hash;
-            use crate::CurrentClock;
 
             #[rstest]
             #[case("seeder")]

@@ -55,7 +55,7 @@ mod tests {
     use camino::Utf8PathBuf;
     use torrust_tracker_configuration::TslConfig;
 
-    use super::{make_rust_tls, Error};
+    use super::{Error, make_rust_tls};
 
     fn make_temp_file(prefix: &str, content: &str) -> Utf8PathBuf {
         let nanos = SystemTime::now()

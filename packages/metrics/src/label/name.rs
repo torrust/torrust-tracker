@@ -44,11 +44,7 @@ impl PrometheusSerializable for LabelName {
             .enumerate()
             .map(|(i, c)| {
                 if i == 0 {
-                    if c.is_ascii_alphabetic() || c == '_' {
-                        c
-                    } else {
-                        '_'
-                    }
+                    if c.is_ascii_alphabetic() || c == '_' { c } else { '_' }
                 } else if c.is_ascii_alphanumeric() || c == '_' {
                     c
                 } else {

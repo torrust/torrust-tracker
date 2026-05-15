@@ -11,8 +11,8 @@ use bittorrent_tracker_core::whitelist::manager::WhitelistManager;
 use super::responses::{
     failed_to_reload_whitelist_response, failed_to_remove_torrent_from_whitelist_response, failed_to_whitelist_torrent_response,
 };
-use crate::v1::responses::{invalid_info_hash_param_response, ok_response};
 use crate::InfoHashParam;
+use crate::v1::responses::{invalid_info_hash_param_response, ok_response};
 
 /// It handles the request to add a torrent to the whitelist.
 ///

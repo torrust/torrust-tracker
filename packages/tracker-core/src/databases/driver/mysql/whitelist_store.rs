@@ -5,9 +5,9 @@ use ::sqlx::Row;
 use async_trait::async_trait;
 use bittorrent_primitives::info_hash::InfoHash;
 
-use super::{Mysql, DRIVER};
-use crate::databases::error::Error;
+use super::{DRIVER, Mysql};
 use crate::databases::WhitelistStore;
+use crate::databases::error::Error;
 
 #[async_trait]
 impl WhitelistStore for Mysql {

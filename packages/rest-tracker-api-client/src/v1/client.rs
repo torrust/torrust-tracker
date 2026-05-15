@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use hyper::{header, HeaderMap};
+use hyper::{HeaderMap, header};
 use reqwest::{Error, Response};
 use serde::Serialize;
 use url::Url;

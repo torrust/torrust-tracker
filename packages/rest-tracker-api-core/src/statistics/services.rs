@@ -195,8 +195,8 @@ mod tests {
     use bittorrent_http_tracker_core::statistics::repository::Repository;
     use bittorrent_tracker_core::container::TrackerCoreContainer;
     use bittorrent_tracker_core::{self};
-    use bittorrent_udp_tracker_core::services::banning::BanService;
     use bittorrent_udp_tracker_core::MAX_CONNECTION_ID_ERRORS_PER_IP;
+    use bittorrent_udp_tracker_core::services::banning::BanService;
     use tokio::sync::RwLock;
     use tokio_util::sync::CancellationToken;
     use torrust_tracker_configuration::Configuration;
@@ -205,7 +205,7 @@ mod tests {
     use torrust_tracker_test_helpers::configuration;
 
     use crate::statistics::metrics::{ProtocolMetrics, TorrentsMetrics};
-    use crate::statistics::services::{get_metrics, TrackerMetrics};
+    use crate::statistics::services::{TrackerMetrics, get_metrics};
 
     pub fn tracker_configuration() -> Configuration {
         configuration::ephemeral()

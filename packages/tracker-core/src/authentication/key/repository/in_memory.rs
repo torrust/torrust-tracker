@@ -90,9 +90,9 @@ mod tests {
     mod the_in_memory_key_repository_should {
         use std::time::Duration;
 
-        use crate::authentication::key::repository::in_memory::InMemoryKeyRepository;
-        use crate::authentication::key::Key;
         use crate::authentication::PeerKey;
+        use crate::authentication::key::Key;
+        use crate::authentication::key::repository::in_memory::InMemoryKeyRepository;
 
         #[tokio::test]
         async fn insert_a_new_peer_key() {

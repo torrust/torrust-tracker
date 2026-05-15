@@ -7,8 +7,8 @@ use bittorrent_udp_tracker_protocol::TransactionId;
 use serde::Serialize;
 use url::Url;
 
-use crate::console::clients::udp::checker::{AnnounceParams, Client};
 use crate::console::clients::udp::Error;
+use crate::console::clients::udp::checker::{AnnounceParams, Client};
 
 #[derive(Debug, Clone, Serialize)]
 pub struct Checks {

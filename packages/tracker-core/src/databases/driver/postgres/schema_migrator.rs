@@ -1,8 +1,8 @@
 use async_trait::async_trait;
 
-use super::{Postgres, DRIVER, MIGRATOR};
-use crate::databases::error::Error;
+use super::{DRIVER, MIGRATOR, Postgres};
 use crate::databases::SchemaMigrator;
+use crate::databases::error::Error;
 
 #[async_trait]
 impl SchemaMigrator for Postgres {

@@ -2,8 +2,8 @@
 use std::net::SocketAddr;
 use std::sync::Arc;
 
-use axum_server::tls_rustls::RustlsConfig;
 use axum_server::Handle;
+use axum_server::tls_rustls::RustlsConfig;
 use bittorrent_http_tracker_core::container::HttpTrackerCoreContainer;
 use derive_more::Constructor;
 use futures::future::BoxFuture;
@@ -264,7 +264,7 @@ mod tests {
     use tokio_util::sync::CancellationToken;
     use torrust_axum_server::tsl::make_rust_tls;
     use torrust_server_lib::registar::Registar;
-    use torrust_tracker_configuration::{logging, Configuration};
+    use torrust_tracker_configuration::{Configuration, logging};
     use torrust_tracker_swarm_coordination_registry::container::SwarmCoordinationRegistryContainer;
     use torrust_tracker_test_helpers::configuration::ephemeral_public;
 

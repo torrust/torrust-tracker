@@ -79,7 +79,7 @@ const BYTE_LEN_END: u8 = b':';
 /// Construct a `BencodeMut` map by supplying string references as keys and `BencodeMut` as values.
 #[macro_export]
 macro_rules! ben_map {
-( $($key:expr => $val:expr),* ) => {
+( $($key:expr_2021 => $val:expr_2021),* ) => {
         {
             use $crate::{BMutAccess, BencodeMut};
             use $crate::inner::BCowConvert;
@@ -100,7 +100,7 @@ macro_rules! ben_map {
 /// Construct a `BencodeMut` list by supplying a list of `BencodeMut` values.
 #[macro_export]
 macro_rules! ben_list {
-    ( $($ben:expr),* ) => {
+    ( $($ben:expr_2021),* ) => {
         {
             use $crate::{BencodeMut, BMutAccess};
 
@@ -120,9 +120,9 @@ macro_rules! ben_list {
 /// Construct `BencodeMut` bytes by supplying a type convertible to `Vec<u8>`.
 #[macro_export]
 macro_rules! ben_bytes {
-    ( $ben:expr ) => {{
-        use $crate::inner::BCowConvert;
+    ( $ben:expr_2021 ) => {{
         use $crate::BencodeMut;
+        use $crate::inner::BCowConvert;
 
         BencodeMut::new_bytes(BCowConvert::convert($ben))
     }};
@@ -131,7 +131,7 @@ macro_rules! ben_bytes {
 /// Construct a `BencodeMut` integer by supplying an `i64`.
 #[macro_export]
 macro_rules! ben_int {
-    ( $ben:expr ) => {{
+    ( $ben:expr_2021 ) => {{
         use $crate::BencodeMut;
 
         BencodeMut::new_int($ben)

@@ -11,11 +11,7 @@ pub enum SenderStatus {
 
 impl From<bool> for SenderStatus {
     fn from(enabled: bool) -> Self {
-        if enabled {
-            Self::Enabled
-        } else {
-            Self::Disabled
-        }
+        if enabled { Self::Enabled } else { Self::Disabled }
     }
 }
 
@@ -68,7 +64,7 @@ impl<Event: Sync + Send + Clone + 'static> EventBus<Event> {
 
 #[cfg(test)]
 mod tests {
-    use tokio::time::{timeout, Duration};
+    use tokio::time::{Duration, timeout};
 
     use super::*;
 

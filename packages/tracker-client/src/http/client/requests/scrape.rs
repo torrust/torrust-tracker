@@ -4,7 +4,7 @@ use std::str::FromStr;
 
 use bittorrent_primitives::info_hash::InfoHash;
 
-use crate::http::{percent_encode_byte_array, ByteArray20};
+use crate::http::{ByteArray20, percent_encode_byte_array};
 
 pub struct Query {
     pub info_hash: Vec<ByteArray20>,

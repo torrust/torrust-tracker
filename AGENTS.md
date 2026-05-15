@@ -8,7 +8,7 @@
 matchmakes peers and collects statistics, supporting the UDP, HTTP, and TLS socket types with
 native IPv4/IPv6 support, private/whitelisted mode, and a management REST API.
 
-- **Language**: Rust (edition 2021, MSRV 1.72)
+- **Language**: Rust (edition 2024, MSRV 1.85)
 - **License**: AGPL-3.0-only
 - **Version**: 3.0.0-develop
 - **Web framework**: [Axum](https://github.com/tokio-rs/axum)

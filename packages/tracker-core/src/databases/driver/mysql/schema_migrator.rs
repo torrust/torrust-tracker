@@ -1,10 +1,10 @@
 use async_trait::async_trait;
-use sqlx::migrate::Migrate;
 use sqlx::MySqlPool;
+use sqlx::migrate::Migrate;
 
-use super::{Mysql, DRIVER, MIGRATOR};
-use crate::databases::error::Error;
+use super::{DRIVER, MIGRATOR, Mysql};
 use crate::databases::SchemaMigrator;
+use crate::databases::error::Error;
 
 /// The four tables created by the three pre-v4 manual migrations.
 ///

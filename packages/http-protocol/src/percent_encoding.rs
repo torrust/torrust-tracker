@@ -16,7 +16,7 @@
 //! - <https://en.wikipedia.org/wiki/URL_encoding>
 //! - <https://developer.mozilla.org/en-US/docs/Glossary/percent-encoding>
 use bittorrent_primitives::info_hash::{self, InfoHash};
-use torrust_tracker_primitives::{peer, PeerId};
+use torrust_tracker_primitives::{PeerId, peer};
 
 /// Percent decodes a percent encoded infohash. Internally an
 /// [`InfoHash`] is a 20-byte array.

@@ -384,6 +384,7 @@ mod tests {
     use torrust_tracker_metrics::metric_name;
 
     use super::*;
+    use crate::CurrentClock;
     use crate::statistics::{
         UDP_TRACKER_SERVER_ERRORS_TOTAL, UDP_TRACKER_SERVER_IPS_BANNED_TOTAL,
         UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSED_REQUESTS_TOTAL, UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS,
@@ -391,7 +392,6 @@ mod tests {
         UDP_TRACKER_SERVER_REQUESTS_BANNED_TOTAL, UDP_TRACKER_SERVER_REQUESTS_RECEIVED_TOTAL,
         UDP_TRACKER_SERVER_RESPONSES_SENT_TOTAL,
     };
-    use crate::CurrentClock;
 
     #[test]
     fn it_should_implement_default() {

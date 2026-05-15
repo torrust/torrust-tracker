@@ -19,16 +19,16 @@ use torrust_server_lib::logging::Latency;
 use torrust_server_lib::registar::ServiceRegistry;
 use torrust_server_lib::signals::{Halted, Started};
 use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
+use tower_http::LatencyUnit;
 use tower_http::classify::ServerErrorsFailureClass;
 use tower_http::compression::CompressionLayer;
 use tower_http::propagate_header::PropagateHeaderLayer;
 use tower_http::request_id::{MakeRequestUuid, SetRequestIdLayer};
 use tower_http::trace::{DefaultMakeSpan, TraceLayer};
-use tower_http::LatencyUnit;
-use tracing::{instrument, Level, Span};
+use tracing::{Level, Span, instrument};
 
-use crate::handlers::health_check_handler;
 use crate::HEALTH_CHECK_API_LOG_TARGET;
+use crate::handlers::health_check_handler;
 
 /// Starts Health Check API server.
 ///

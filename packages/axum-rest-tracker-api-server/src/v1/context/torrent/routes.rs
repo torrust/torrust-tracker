@@ -6,8 +6,8 @@
 //! Refer to the [API endpoint documentation](crate::v1::context::torrent).
 use std::sync::Arc;
 
-use axum::routing::get;
 use axum::Router;
+use axum::routing::get;
 use bittorrent_tracker_core::torrent::repository::in_memory::InMemoryTorrentRepository;
 
 use super::handlers::{get_torrent_handler, get_torrents_handler};

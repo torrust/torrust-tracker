@@ -8,8 +8,8 @@
 //! Refer to the [API endpoint documentation](crate::v1::context::auth_key).
 use std::sync::Arc;
 
-use axum::routing::{get, post};
 use axum::Router;
+use axum::routing::{get, post};
 use bittorrent_tracker_core::authentication::handler::KeysHandler;
 
 use super::handlers::{add_auth_key_handler, delete_auth_key_handler, generate_auth_key_handler, reload_keys_handler};

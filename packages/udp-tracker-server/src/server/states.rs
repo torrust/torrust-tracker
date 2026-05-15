@@ -3,14 +3,14 @@ use std::net::SocketAddr;
 use std::sync::Arc;
 use std::time::Duration;
 
-use bittorrent_udp_tracker_core::container::UdpTrackerCoreContainer;
 use bittorrent_udp_tracker_core::UDP_TRACKER_LOG_TARGET;
-use derive_more::derive::Display;
+use bittorrent_udp_tracker_core::container::UdpTrackerCoreContainer;
 use derive_more::Constructor;
+use derive_more::derive::Display;
 use tokio::task::JoinHandle;
 use torrust_server_lib::registar::{ServiceRegistration, ServiceRegistrationForm};
 use torrust_server_lib::signals::{Halted, Started};
-use tracing::{instrument, Level};
+use tracing::{Level, instrument};
 
 use super::spawner::Spawner;
 use super::{Server, UdpError};

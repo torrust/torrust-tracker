@@ -1,8 +1,8 @@
 use std::fmt;
 use std::ops::Deref;
 
-use rand::distr::Alphanumeric;
 use rand::RngExt;
+use rand::distr::Alphanumeric;
 
 /// A Docker Compose project name generated for one E2E test run.
 ///

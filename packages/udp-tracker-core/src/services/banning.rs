@@ -18,7 +18,7 @@
 use std::collections::HashMap;
 use std::net::IpAddr;
 
-use bloom::{CountingBloomFilter, ASMS};
+use bloom::{ASMS, CountingBloomFilter};
 use tokio::time::Instant;
 
 use crate::UDP_TRACKER_LOG_TARGET;

@@ -1,8 +1,8 @@
 #![allow(clippy::missing_errors_doc)]
+use crate::BencodeConvertError;
 use crate::access::bencode::{BRefAccess, BRefAccessExt};
 use crate::access::dict::BDictAccess;
 use crate::access::list::BListAccess;
-use crate::BencodeConvertError;
 
 /// Trait for extended casting of bencode objects and converting conversion errors into application specific errors.
 pub trait BConvertExt: BConvert {

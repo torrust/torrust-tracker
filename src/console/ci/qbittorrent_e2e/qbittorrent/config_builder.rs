@@ -3,8 +3,8 @@ use std::fs;
 use std::path::Path;
 
 use anyhow::Context;
-use base64::engine::general_purpose::STANDARD as BASE64_STANDARD;
 use base64::Engine;
+use base64::engine::general_purpose::STANDARD as BASE64_STANDARD;
 use pbkdf2::pbkdf2_hmac;
 use sha2::Sha512;
 

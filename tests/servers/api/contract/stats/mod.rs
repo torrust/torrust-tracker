@@ -2,8 +2,8 @@ use std::env;
 use std::str::FromStr as _;
 
 use bittorrent_primitives::info_hash::InfoHash;
-use bittorrent_tracker_client::http::client::requests::announce::QueryBuilder;
 use bittorrent_tracker_client::http::client::Client as HttpTrackerClient;
+use bittorrent_tracker_client::http::client::requests::announce::QueryBuilder;
 use reqwest::Url;
 use serde::Deserialize;
 use tokio::time::Duration;
@@ -49,7 +49,14 @@ async fn the_stats_api_endpoint_should_return_the_global_stats() {
         admin = "MyAccessToken"
             "#;
 
-    env::set_var("TORRUST_TRACKER_CONFIG_TOML", config_with_two_http_trackers);
+    // SAFETY: `std::env::set_var` is unsafe in Rust 2024 because concurrent reads from
+    // other threads in the same process are undefined behaviour. This test is the only
+    // function in this integration binary that writes `TORRUST_TRACKER_CONFIG_TOML`, and
+    // each test in this file binds to unique fixed ports, making parallel execution
+    // impossible (port conflicts). In practice the tests therefore run serially, but the
+    // safety guarantee is not formally enforced by the test runner. For strict soundness,
+    // run the integration suite with `RUST_TEST_THREADS=1`.
+    unsafe { env::set_var("TORRUST_TRACKER_CONFIG_TOML", config_with_two_http_trackers) };
 
     let (_app_container, _jobs) = app::run().await;
 

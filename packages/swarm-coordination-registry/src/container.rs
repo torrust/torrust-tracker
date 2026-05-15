@@ -6,7 +6,7 @@ use crate::event::bus::EventBus;
 use crate::event::sender::Broadcaster;
 use crate::event::{self};
 use crate::statistics::repository::Repository;
-use crate::{statistics, Registry};
+use crate::{Registry, statistics};
 
 pub struct SwarmCoordinationRegistryContainer {
     pub swarms: Arc<Registry>,

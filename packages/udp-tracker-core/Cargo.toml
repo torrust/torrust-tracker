@@ -22,7 +22,6 @@ blowfish = "0"
 cipher = "0.5"
 criterion = { version = "0.5.1", features = [ "async_tokio" ] }
 futures = "0"
-lazy_static = "1"
 rand = "0"
 serde = "1.0.219"
 thiserror = "2"

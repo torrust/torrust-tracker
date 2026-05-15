@@ -5,9 +5,9 @@ use ::sqlx::Row;
 use async_trait::async_trait;
 use bittorrent_primitives::info_hash::InfoHash;
 
-use super::{Sqlite, DRIVER};
-use crate::databases::error::Error;
+use super::{DRIVER, Sqlite};
 use crate::databases::WhitelistStore;
+use crate::databases::error::Error;
 
 #[async_trait]
 impl WhitelistStore for Sqlite {

@@ -3,8 +3,8 @@ use torrust_tracker_metrics::metric_name;
 use torrust_tracker_primitives::DurationSinceUnixEpoch;
 
 use crate::event::ConnectionContext;
-use crate::statistics::repository::Repository;
 use crate::statistics::UDP_TRACKER_SERVER_REQUESTS_ABORTED_TOTAL;
+use crate::statistics::repository::Repository;
 
 pub async fn handle_event(context: ConnectionContext, stats_repository: &Repository, now: DurationSinceUnixEpoch) {
     match stats_repository
@@ -17,7 +17,7 @@ pub async fn handle_event(context: ConnectionContext, stats_repository: &Reposit
     {
         Ok(()) => {}
         Err(err) => tracing::error!("Failed to increase the counter: {}", err),
-    };
+    }
 }
 
 #[cfg(test)]
@@ -27,10 +27,10 @@ mod tests {
     use torrust_tracker_clock::clock::Time;
     use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
 
+    use crate::CurrentClock;
     use crate::event::{ConnectionContext, Event};
     use crate::statistics::event::handler::handle_event;
     use crate::statistics::repository::Repository;
-    use crate::CurrentClock;
 
     #[tokio::test]
     async fn should_increase_the_number_of_aborted_requests_when_it_receives_a_udp_request_aborted_event() {

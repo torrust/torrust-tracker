@@ -7,7 +7,7 @@ use torrust_server_lib::registar::Registar;
 use torrust_server_lib::signals::{self, Halted as SignalHalted, Started as SignalStarted};
 use torrust_tracker_configuration::HealthCheckApi;
 
-use crate::{server, HEALTH_CHECK_API_LOG_TARGET};
+use crate::{HEALTH_CHECK_API_LOG_TARGET, server};
 
 pub type Started = Environment<Running>;
 

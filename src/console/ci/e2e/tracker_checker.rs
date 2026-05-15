@@ -20,6 +20,6 @@ pub fn run(config_content: &str) -> io::Result<()> {
     if status.success() {
         Ok(())
     } else {
-        Err(io::Error::new(io::ErrorKind::Other, "Failed to run Tracker Checker"))
+        Err(io::Error::other("Failed to run Tracker Checker"))
     }
 }

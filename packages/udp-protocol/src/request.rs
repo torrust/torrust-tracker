@@ -9,8 +9,8 @@ use std::io::{self, Cursor, Write};
 use std::mem::size_of;
 
 use either::Either;
-use zerocopy::byteorder::network_endian::I32;
 use zerocopy::FromBytes;
+use zerocopy::byteorder::network_endian::I32;
 
 use super::announce::AnnounceRequest;
 use super::common::*;
@@ -286,7 +286,7 @@ mod tests {
         for action in 0i32..4 {
             for max_scrape_torrents in 0..3 {
                 for num_bytes in 0..256 {
-                    let mut request_bytes = ::std::iter::repeat(0).take(num_bytes).collect::<Vec<_>>();
+                    let mut request_bytes = ::std::iter::repeat_n(0, num_bytes).collect::<Vec<_>>();
 
                     if let Some(action_bytes) = request_bytes.get_mut(8..12) {
                         action_bytes.copy_from_slice(&action.to_be_bytes())

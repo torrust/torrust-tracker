@@ -7,7 +7,7 @@ use std::borrow::Cow;
 use std::fmt::Display;
 use std::sync::OnceLock;
 
-use compact_str::{format_compact, CompactString};
+use compact_str::{CompactString, format_compact};
 use regex::bytes::Regex;
 
 use crate::peer_id::PeerId;

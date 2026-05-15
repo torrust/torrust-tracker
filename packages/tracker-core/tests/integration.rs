@@ -3,8 +3,8 @@ mod common;
 use common::fixtures::{ephemeral_configuration, remote_client_ip, sample_info_hash, sample_peer};
 use common::test_env::TestEnv;
 use torrust_tracker_configuration::AnnouncePolicy;
-use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
 use torrust_tracker_primitives::AnnounceData;
+use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
 
 #[tokio::test]
 async fn it_should_handle_the_announce_request() {

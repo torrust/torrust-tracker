@@ -59,11 +59,11 @@ mod tests {
 
     use bittorrent_udp_tracker_core::container::UdpTrackerCoreContainer;
     use torrust_server_lib::registar::Registar;
-    use torrust_tracker_configuration::{logging, Configuration};
+    use torrust_tracker_configuration::{Configuration, logging};
     use torrust_tracker_test_helpers::configuration::ephemeral_public;
 
-    use super::spawner::Spawner;
     use super::Server;
+    use super::spawner::Spawner;
     use crate::container::UdpTrackerServerContainer;
 
     fn initialize_global_services(configuration: &Configuration) {

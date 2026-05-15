@@ -14,10 +14,10 @@ use super::counter::Counter;
 use super::gauge::Gauge;
 use super::label::LabelSet;
 use super::metric::{Metric, MetricName};
+use crate::METRICS_TARGET;
 use crate::metric::description::MetricDescription;
 use crate::sample_collection::SampleCollection;
 use crate::unit::Unit;
-use crate::METRICS_TARGET;
 
 // code-review: serialize in a deterministic order? For example:
 // - First the counter metrics ordered by name.

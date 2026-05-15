@@ -241,8 +241,8 @@ pub mod udp_tracker;
 use std::fs;
 use std::net::IpAddr;
 
-use figment::providers::{Env, Format, Serialized, Toml};
 use figment::Figment;
+use figment::providers::{Env, Format, Serialized, Toml};
 use logging::Logging;
 use serde::{Deserialize, Serialize};
 
@@ -433,12 +433,12 @@ mod tests {
 
     use std::net::{IpAddr, Ipv4Addr};
 
-    use crate::v2_0_0::Configuration;
     use crate::Info;
+    use crate::v2_0_0::Configuration;
 
     #[cfg(test)]
     fn default_config_toml() -> String {
-        let config = r#"[metadata]
+        r#"[metadata]
                                 app = "torrust-tracker"
                                 purpose = "configuration"
                                 schema_version = "2.0.0"
@@ -475,8 +475,7 @@ mod tests {
         .lines()
         .map(str::trim_start)
         .collect::<Vec<&str>>()
-        .join("\n");
-        config
+        .join("\n")
     }
 
     #[test]

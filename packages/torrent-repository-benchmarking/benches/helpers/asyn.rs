@@ -5,7 +5,7 @@ use bittorrent_primitives::info_hash::InfoHash;
 use futures::stream::FuturesUnordered;
 use torrust_tracker_torrent_repository_benchmarking::repository::RepositoryAsync;
 
-use super::utils::{generate_unique_info_hashes, DEFAULT_PEER};
+use super::utils::{DEFAULT_PEER, generate_unique_info_hashes};
 
 pub async fn add_one_torrent<V, T>(samples: u64) -> Duration
 where

@@ -27,13 +27,13 @@ use torrust_tracker_clock::clock::Time;
 use torrust_tracker_configuration::{Configuration, HttpTracker, UdpTracker};
 use tracing::instrument;
 
+use crate::CurrentClock;
 use crate::bootstrap::jobs::manager::JobManager;
 use crate::bootstrap::jobs::{
     self, activity_metrics_updater, health_check_api, http_tracker, torrent_cleanup, tracker_apis, udp_tracker,
 };
 use crate::bootstrap::{self};
 use crate::container::AppContainer;
-use crate::CurrentClock;
 
 pub async fn run() -> (Arc<AppContainer>, JobManager) {
     let (config, app_container) = bootstrap::app::setup().await;
@@ -92,8 +92,8 @@ async fn start_jobs(config: &Configuration, app_container: &Arc<AppContainer>) -
 
 fn warn_if_no_services_enabled(config: &Configuration) {
     if config.http_api.is_none()
-        && (config.udp_trackers.is_none() || config.udp_trackers.as_ref().map_or(true, std::vec::Vec::is_empty))
-        && (config.http_trackers.is_none() || config.http_trackers.as_ref().map_or(true, std::vec::Vec::is_empty))
+        && config.udp_trackers.as_ref().is_none_or(std::vec::Vec::is_empty)
+        && config.http_trackers.as_ref().is_none_or(std::vec::Vec::is_empty)
     {
         tracing::warn!("No services enabled in configuration");
     }

@@ -84,7 +84,7 @@ mod tests {
 
     use crate::statistics::describe_metrics;
     use crate::statistics::repository::Repository;
-    use crate::statistics::services::{get_metrics, TrackerMetrics};
+    use crate::statistics::services::{TrackerMetrics, get_metrics};
 
     #[tokio::test]
     async fn the_statistics_service_should_return_the_tracker_metrics() {

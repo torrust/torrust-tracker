@@ -23,7 +23,7 @@
 //! let b: LocatedError<TestError> = Located(e).into();
 //! let l = get_caller_location();
 //!
-//! assert!(b.to_string().contains("src/lib.rs"));
+//! assert!(b.to_string().contains("src/lib.rs") || b.to_string().contains("doctest_bundle"));
 //! ```
 //!
 //! # Credits

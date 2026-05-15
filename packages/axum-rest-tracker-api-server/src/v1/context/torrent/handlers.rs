@@ -10,13 +10,13 @@ use axum_extra::extract::Query;
 use bittorrent_primitives::info_hash::InfoHash;
 use bittorrent_tracker_core::torrent::repository::in_memory::InMemoryTorrentRepository;
 use bittorrent_tracker_core::torrent::services::{get_torrent_info, get_torrents, get_torrents_page};
-use serde::{de, Deserialize, Deserializer};
+use serde::{Deserialize, Deserializer, de};
 use thiserror::Error;
 use torrust_tracker_primitives::pagination::Pagination;
 
 use super::responses::{torrent_info_response, torrent_list_response, torrent_not_known_response};
-use crate::v1::responses::invalid_info_hash_param_response;
 use crate::InfoHashParam;
+use crate::v1::responses::invalid_info_hash_param_response;
 
 /// It handles the request to get the torrent data.
 ///
@@ -120,7 +120,7 @@ fn parse_info_hashes(info_hashes_str: Vec<String>) -> Result<Vec<InfoHash>, Quer
             Err(_err) => {
                 return Err(QueryParamError::InvalidInfoHash {
                     info_hash: info_hash_str,
-                })
+                });
             }
         }
     }

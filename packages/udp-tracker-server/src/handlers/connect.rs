@@ -5,7 +5,7 @@ use std::sync::Arc;
 use bittorrent_udp_tracker_core::services::connect::ConnectService;
 use bittorrent_udp_tracker_protocol::{ConnectRequest, ConnectResponse, ConnectionId, Response};
 use torrust_tracker_primitives::service_binding::ServiceBinding;
-use tracing::{instrument, Level};
+use tracing::{Level, instrument};
 
 use crate::event::{ConnectionContext, Event, UdpRequestKind};
 
@@ -69,8 +69,9 @@ mod tests {
         use crate::event::{ConnectionContext, Event, UdpRequestKind};
         use crate::handlers::handle_connect;
         use crate::handlers::tests::{
-            sample_ipv4_remote_addr, sample_ipv4_remote_addr_fingerprint, sample_ipv4_socket_address, sample_ipv6_remote_addr,
-            sample_ipv6_remote_addr_fingerprint, sample_issue_time, MockUdpCoreStatsEventSender, MockUdpServerStatsEventSender,
+            MockUdpCoreStatsEventSender, MockUdpServerStatsEventSender, sample_ipv4_remote_addr,
+            sample_ipv4_remote_addr_fingerprint, sample_ipv4_socket_address, sample_ipv6_remote_addr,
+            sample_ipv6_remote_addr_fingerprint, sample_issue_time,
         };
 
         fn sample_connect_request() -> ConnectRequest {

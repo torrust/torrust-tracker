@@ -99,7 +99,7 @@ fn duration_to_micros(duration: std::time::Duration) -> u64 {
 mod tests {
     use std::time::Duration;
 
-    use super::{to_json_pretty, BenchReport, ReportMeta, ReportTimings};
+    use super::{BenchReport, ReportMeta, ReportTimings, to_json_pretty};
     use crate::persistence_benchmark::metrics::OperationStats;
 
     #[test]

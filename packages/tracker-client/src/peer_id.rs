@@ -40,7 +40,7 @@ fn random_suffix_12_digits() -> String {
 
 #[cfg(test)]
 mod tests {
-    use super::{default_production_peer_id, DEFAULT_TEST_PEER_ID};
+    use super::{DEFAULT_TEST_PEER_ID, default_production_peer_id};
 
     #[test]
     fn default_test_peer_id_should_use_rc_prefix_and_3000_version() {

@@ -6,10 +6,10 @@ use std::sync::Arc;
 
 use torrust_tracker_configuration::Core;
 
+use super::driver::Driver;
 use super::driver::mysql::Mysql;
 use super::driver::postgres::Postgres;
 use super::driver::sqlite::Sqlite;
-use super::driver::Driver;
 use super::traits::{AuthKeyStore, SchemaMigrator, TorrentMetricsStore, WhitelistStore};
 
 /// A bundle of narrow-trait store references, one per persistence context.

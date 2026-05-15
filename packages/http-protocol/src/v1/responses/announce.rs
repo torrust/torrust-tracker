@@ -5,8 +5,8 @@ use std::io::Write;
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 
 use derive_more::{AsRef, Constructor, From};
-use torrust_tracker_contrib_bencode::{ben_bytes, ben_int, ben_list, ben_map, BMutAccess, BencodeMut};
-use torrust_tracker_primitives::{peer, AnnounceData};
+use torrust_tracker_contrib_bencode::{BMutAccess, BencodeMut, ben_bytes, ben_int, ben_list, ben_map};
+use torrust_tracker_primitives::{AnnounceData, peer};
 
 /// An [`Announce`] response, that can be anything that is convertible from [`AnnounceData`].
 ///

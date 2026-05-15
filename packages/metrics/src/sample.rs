@@ -1,5 +1,5 @@
 use chrono::{DateTime, Utc};
-use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
+use serde::{Deserialize, Deserializer, Serialize, Serializer, de};
 use torrust_tracker_primitives::DurationSinceUnixEpoch;
 
 use super::counter::Counter;
@@ -406,8 +406,8 @@ mod tests {
         use torrust_tracker_primitives::DurationSinceUnixEpoch;
 
         use crate::label::LabelSet;
-        use crate::sample::tests::updated_at_time;
         use crate::sample::Sample;
+        use crate::sample::tests::updated_at_time;
 
         #[test]
         fn test_serialization_round_trip() {

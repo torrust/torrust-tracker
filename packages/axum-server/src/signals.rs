@@ -1,8 +1,8 @@
 use std::net::SocketAddr;
 use std::time::Duration;
 
-use tokio::time::{sleep, Instant};
-use torrust_server_lib::signals::{shutdown_signal_with_message, Halted};
+use tokio::time::{Instant, sleep};
+use torrust_server_lib::signals::{Halted, shutdown_signal_with_message};
 use tracing::instrument;
 
 #[instrument(skip(handle, rx_halt, message))]

@@ -1,5 +1,5 @@
-use std::collections::hash_map::Iter;
 use std::collections::HashMap;
+use std::collections::hash_map::Iter;
 use std::fmt::Write as _;
 
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
@@ -263,8 +263,8 @@ mod tests {
         use crate::counter::Counter;
         use crate::label::LabelSet;
         use crate::sample::Sample;
-        use crate::sample_collection::tests::sample_update_time;
         use crate::sample_collection::SampleCollection;
+        use crate::sample_collection::tests::sample_update_time;
 
         #[test]
         fn it_should_be_serializable_and_deserializable_for_json_format() {
@@ -297,8 +297,8 @@ mod tests {
         use crate::label::LabelSet;
         use crate::prometheus::PrometheusSerializable;
         use crate::sample::Sample;
-        use crate::sample_collection::tests::sample_update_time;
         use crate::sample_collection::SampleCollection;
+        use crate::sample_collection::tests::sample_update_time;
         use crate::tests::format_prometheus_output;
 
         #[test]

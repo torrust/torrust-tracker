@@ -95,7 +95,7 @@ use std::sync::Arc;
 
 use bittorrent_primitives::info_hash::InfoHash;
 use torrust_tracker_configuration::{Core, TORRENT_PEERS_LIMIT};
-use torrust_tracker_primitives::{peer, AnnounceData, NumberOfDownloads};
+use torrust_tracker_primitives::{AnnounceData, NumberOfDownloads, peer};
 
 use super::torrent::repository::in_memory::InMemoryTorrentRepository;
 use crate::databases;
@@ -345,10 +345,10 @@ mod tests {
 
                 use std::sync::Arc;
 
+                use crate::announce_handler::PeersWanted;
                 use crate::announce_handler::tests::the_announce_handler::{
                     peer_ip, public_tracker, sample_peer_1, sample_peer_2, sample_peer_3,
                 };
-                use crate::announce_handler::PeersWanted;
                 use crate::test_helpers::tests::{sample_info_hash, sample_peer};
 
                 mod should_assign_the_ip_to_the_peer {
@@ -394,8 +394,8 @@ mod tests {
                         }
 
                         #[test]
-                        fn it_should_use_the_external_ip_in_the_tracker_configuration_if_it_is_defined_even_if_the_external_ip_is_an_ipv6_ip(
-                        ) {
+                        fn it_should_use_the_external_ip_in_the_tracker_configuration_if_it_is_defined_even_if_the_external_ip_is_an_ipv6_ip()
+                         {
                             let remote_ip = IpAddr::V4(Ipv4Addr::LOCALHOST);
 
                             let tracker_external_ip =
@@ -436,8 +436,8 @@ mod tests {
                         }
 
                         #[test]
-                        fn it_should_use_the_external_ip_in_the_tracker_configuration_if_it_is_defined_even_if_the_external_ip_is_an_ipv4_ip(
-                        ) {
+                        fn it_should_use_the_external_ip_in_the_tracker_configuration_if_it_is_defined_even_if_the_external_ip_is_an_ipv4_ip()
+                         {
                             let remote_ip = IpAddr::V6(Ipv6Addr::LOCALHOST);
 
                             let tracker_external_ip = IpAddr::V4(Ipv4Addr::from_str("126.0.0.1").unwrap());
@@ -529,8 +529,8 @@ mod tests {
 
                 mod it_should_update_the_swarm_stats_for_the_torrent {
 
-                    use crate::announce_handler::tests::the_announce_handler::{peer_ip, public_tracker};
                     use crate::announce_handler::PeersWanted;
+                    use crate::announce_handler::tests::the_announce_handler::{peer_ip, public_tracker};
                     use crate::test_helpers::tests::{completed_peer, leecher, sample_info_hash, seeder, started_peer};
 
                     #[tokio::test]

@@ -1,8 +1,8 @@
 use crate::counter::Counter;
 use crate::gauge::Gauge;
 use crate::label::LabelSet;
-use crate::metric::aggregate::sum::Sum;
 use crate::metric::Metric;
+use crate::metric::aggregate::sum::Sum;
 
 pub trait Avg {
     type Output;
