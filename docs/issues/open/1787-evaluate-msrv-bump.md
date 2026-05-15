@@ -37,7 +37,11 @@ but 1.85 is now several releases behind the current stable toolchain.
 Two classes of crate coexist in this workspace:
 
 1. **Application layer** (`torrust-tracker-*` crates and the main binary) — not
-   consumed as a library by external projects; MSRV has no downstream impact.
+   consumed as a library by external projects; MSRV currently has no downstream
+   impact. All workspace packages carry `publish.workspace = true` but none have
+   been published to crates.io yet. Which packages will actually be released,
+   under what names, and whether some will move to their own repositories is
+   being decided in #1669.
 
 2. **Protocol/domain layer** (`bittorrent-*` crates: `bittorrent-peer-id`,
    `bittorrent-http-tracker-protocol`, `bittorrent-udp-tracker-protocol`,

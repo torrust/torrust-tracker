@@ -1,7 +1,7 @@
 ---
 doc-type: issue
 issue-type: task
-status: open
+status: planned
 priority: p2
 github-issue: 1786
 spec-path: docs/issues/open/1786-tighten-lint-config.md
