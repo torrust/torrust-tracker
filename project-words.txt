@@ -70,6 +70,7 @@ datetime
 dbip
 dbname
 debuginfo
+depgraph
 Deque
 Dihc
 Dijke
@@ -100,6 +101,7 @@ Freebox
 frontmatter
 Frostegård
 gecos
+Garnham
 Gibibytes
 Glrg
 Grcov
