@@ -10,6 +10,7 @@ Aideq
 alekitto
 analyse
 appuser
+argjson
 Arvid
 asdh
 ASMS
@@ -100,10 +101,11 @@ fract
 Freebox
 frontmatter
 Frostegård
-gecos
 Garnham
+gecos
 Gibibytes
 Glrg
+Graphviz
 Grcov
 hasher
 healthcheck
@@ -113,6 +115,7 @@ hexlify
 hlocalhost
 hmac
 hotspot
+hotspots
 httpclientpeerid
 Hydranode
 hyperium
@@ -162,8 +165,8 @@ Mebibytes
 metainfo
 middlewares
 millis
-mktemp
 misresolved
+mktemp
 mmap
 mmdb
 mockall
@@ -174,7 +177,6 @@ multimap
 myacicontext
 mysqladmin
 mysqld
-ñaca
 Naim
 nanos
 newkey
@@ -196,6 +198,7 @@ obra
 oneline
 oneshot
 openmetrics
+organisation
 ostr
 Pando
 parallelise
@@ -211,6 +214,7 @@ pkey
 porti
 prealloc
 println
+prioritise
 programatik
 proot
 proto
@@ -250,6 +254,7 @@ rsplit
 rstest
 rusqlite
 rustc
+rustdoc
 RUSTDOCFLAGS
 RUSTFLAGS
 rustfmt
@@ -341,6 +346,7 @@ vtable
 Vuze
 wakelist
 wakeup
+walkdir
 webtorrent
 WEBUI
 Weidendorfer
@@ -356,3 +362,4 @@ xxxxxxxxxxxxxxxxxxxxd
 yyyyyyyyyyyyyyyyyyyyd
 zerocopy
 zstd
+ñaca
