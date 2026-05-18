@@ -65,9 +65,11 @@ independent `pub type DurationSinceUnixEpoch = Duration` definition. Once all wo
 consumers have been migrated to `torrust_clock::DurationSinceUnixEpoch`, the copy in
 `torrust-tracker-primitives` can be deprecated and removed in a future cleanup.
 
-**Prerequisite**: The clock rename subissue (T12 of
-[1669-09-rename-torrust-tracker-clock-to-torrust-clock.md](1669-09-rename-torrust-tracker-clock-to-torrust-clock.md))
-must be complete before this subissue begins.
+**Prerequisite**: SI-09 technical steps must be complete before this subissue begins: the
+crate must be renamed (`name = "torrust-clock"` in `packages/clock/Cargo.toml`), all
+dependent `Cargo.toml` files updated to use the new key, and all `use`-path references
+migrated to `torrust_clock::` (SI-09 T1–T4). The EPIC table update (SI-09 T12) is not a
+blocker.
 
 This issue is a subissue of EPIC [#1669](../open/1669-overhaul-packages/EPIC.md)
 (Overhaul: Packages).
@@ -102,7 +104,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status  | Task                                                                                                                                                                                                                   | Notes / Expected Output                                                                                              |
 | --- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| T1  | BLOCKED | Confirm clock rename is complete (T12 of clock rename spec)                                                                                                                                                            | `name = "torrust-clock"` in `packages/clock/Cargo.toml`                                                              |
+| T1  | BLOCKED | Confirm SI-09 technical steps complete (T1–T4: crate renamed to `torrust-clock`, dep keys updated, `use`-paths migrated workspace-wide)                                                                                | `name = "torrust-clock"` in `packages/clock/Cargo.toml`; workspace builds cleanly                                    |
 | T2  | TODO    | Define `DurationSinceUnixEpoch` in `packages/clock/src/lib.rs`                                                                                                                                                         | `pub type DurationSinceUnixEpoch = std::time::Duration;`                                                             |
 | T3  | TODO    | Update `packages/clock/src/clock/mod.rs` and `packages/clock/src/conv/mod.rs` to use the local definition                                                                                                              | Replace `use torrust_tracker_primitives::DurationSinceUnixEpoch` with local import                                   |
 | T4  | TODO    | Remove `torrust-tracker-primitives` dep from `packages/clock/Cargo.toml`                                                                                                                                               | Dep entry removed; workspace build still passes                                                                      |

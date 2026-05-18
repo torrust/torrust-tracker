@@ -128,7 +128,7 @@ Resolution (2026-05-18):
 
 ### F5 (Medium) - SI-02 prerequisite points at SI-09 T12 (doc update) instead of technical completion
 
-Status: OPEN
+Status: DONE
 
 Problem:
 
@@ -143,9 +143,18 @@ Proposed minimal fix:
 
 - Change SI-02 prerequisite to SI-09 technical completion criteria (crate rename and dependency/use-path migration), not T12.
 
+Resolution (2026-05-18):
+
+- SI-09 T12 is the EPIC table update only; the actual blocker for SI-02 is T1–T4 (crate
+  rename, Cargo dep key updates, use-path migration).
+- SI-02 prerequisite paragraph rewritten to reference SI-09 T1–T4 explicitly and note that
+  T12 is not a blocker.
+- SI-02 T1 task description updated from "T12 of clock rename spec" to "SI-09 T1–T4
+  complete (crate renamed, dep keys updated, use-paths migrated workspace-wide)".
+
 ### F6 (Low) - SI-03 related-artifacts points to non-matching rename spec path
 
-Status: OPEN
+Status: DONE
 
 Problem:
 
@@ -160,9 +169,17 @@ Proposed minimal fix:
 
 - Replace artifact path with the canonical SI-09 file path.
 
+Resolution (2026-05-18):
+
+- SI-03 `related-artifacts` entry corrected from
+  `docs/issues/drafts/rename-torrust-tracker-clock-to-torrust-clock.md` to
+  `docs/issues/drafts/1669-09-rename-torrust-tracker-clock-to-torrust-clock.md`.
+
 ## Progress Log
 
 - 2026-05-18: Initial review logged with six findings, severity-ranked.
 - 2026-05-18: F1 resolved and committed (f83350ee). F2 resolved and committed (6effa6a0).
 - 2026-05-18: F3 partially resolved (T8 added to SI-01) and committed (ff152f4c). EPIC wording deferred to SI-01 completion.
-- 2026-05-18: F4 in progress — updating package count from 26 to 27 in EPIC.md and SI-01.
+- 2026-05-18: F4 resolved and committed (313e0d46). Package count updated 26→27; 27th is root `torrust-tracker` crate.
+- 2026-05-18: F5 resolved — SI-02 prerequisite rewritten to reference SI-09 T1–T4 (technical completion), not T12.
+- 2026-05-18: F6 resolved — SI-03 related-artifacts path corrected to `1669-09-rename-torrust-tracker-clock-to-torrust-clock.md`.

@@ -16,7 +16,7 @@ semantic-links:
     - packages/clock/src/lib.rs
     - packages/tracker-client/Cargo.toml
     - docs/issues/open/1669-overhaul-packages/EPIC.md
-    - docs/issues/drafts/rename-torrust-tracker-clock-to-torrust-clock.md
+    - docs/issues/drafts/1669-09-rename-torrust-tracker-clock-to-torrust-clock.md
 ---
 
 <!-- skill-link: create-issue -->
