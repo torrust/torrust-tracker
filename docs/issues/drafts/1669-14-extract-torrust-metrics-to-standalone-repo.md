@@ -35,16 +35,18 @@ of the tracker.
 The `torrust-metrics` package provides Prometheus metrics integration types for the
 tracker. Its only workspace-path dependency is `torrust-tracker-primitives`, which is
 already published on crates.io. After the `torrust-tracker-metrics` → `torrust-metrics`
-rename (and the associated first publish of the crate), extraction is unblocked.
+rename (SI-08), extraction is unblocked. Publishing the renamed crate on crates.io is
+the first technical step of the extraction itself (T1b), following the project policy of
+deferring publication as late as possible.
 
 The rename subissue
 ([1669-08-rename-torrust-tracker-metrics-to-torrust-metrics.md](1669-08-rename-torrust-tracker-metrics-to-torrust-metrics.md))
-must be complete — including publishing `torrust-metrics` on crates.io — before this
-subissue begins.
+must be complete before this subissue begins. Publishing `torrust-metrics` on crates.io
+is deferred to this subissue (T1b).
 
 **Prerequisite**: Metrics rename subissue
 ([1669-08-rename-torrust-tracker-metrics-to-torrust-metrics.md](1669-08-rename-torrust-tracker-metrics-to-torrust-metrics.md))
-complete (all tasks through publishing on crates.io).
+complete (SI-08 all tasks done).
 
 This issue is a subissue of EPIC [#1669](../open/1669-overhaul-packages/EPIC.md)
 (Overhaul: Packages).
@@ -91,7 +93,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status  | Task                                                                                           | Notes / Expected Output                                                                |
 | --- | ------- | ---------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
-| T1  | BLOCKED | Confirm metrics rename is complete and `torrust-metrics` is published on crates.io             | `packages/metrics/Cargo.toml` has `name = "torrust-metrics"`; crates.io page exists    |
+| T1  | BLOCKED | Confirm metrics rename (SI-08) is complete                                                     | `packages/metrics/Cargo.toml` has `name = "torrust-metrics"`                           |
+| T1b | TODO    | Publish `torrust-metrics` on crates.io                                                         | Successful `cargo publish -p torrust-metrics`; crates.io page exists                   |
 | T2  | TODO    | Create standalone repository `torrust/torrust-metrics`                                         | Empty repo with license and basic README                                               |
 | T3  | TODO    | Move `packages/metrics/` to the new repository, preserving git history (`git filter-repo`)     | New repo contains full history for `packages/metrics/`                                 |
 | T4  | TODO    | In the new repo: update `torrust-tracker-primitives` dep to use crates.io version (not path)   | `torrust-tracker-primitives = "X.Y.Z"` (published version); no path deps in Cargo.toml |
@@ -112,7 +115,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 - [ ] Spec drafted in `docs/issues/drafts/`
 - [ ] Spec reviewed and approved by user/maintainer
-- [ ] Metrics rename subissue complete (prerequisite)
+- [ ] Metrics rename subissue complete (SI-08; prerequisite)
+- [ ] `torrust-metrics` published on crates.io (T1b; required before extraction)
 - [ ] GitHub issue created and issue number added to this spec
 - [ ] Spec moved to `docs/issues/open/` with issue number prefix
 - [ ] Standalone repository created

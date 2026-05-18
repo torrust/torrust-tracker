@@ -17,7 +17,7 @@ Address one finding at a time, in order.
 
 ### F1 (High) - SI-14 prerequisite cannot be satisfied by SI-08 as written
 
-Status: OPEN
+Status: DONE
 
 Problem:
 
@@ -37,6 +37,14 @@ Proposed minimal fix:
 Recommendation:
 
 - Option A, to keep rename and extraction concerns separate.
+
+Resolution (2026-05-18):
+
+- SI-08 remains rename-only (no publish step). Publishing is deferred as long as
+  possible per project policy (Refactor → Publish → Extract).
+- SI-14 updated: prerequisite changed to "SI-08 complete (rename done)"; new task T1b
+  added within SI-14 to publish `torrust-metrics` on crates.io before extraction begins.
+- Workflow checkpoint added in SI-14 for the publish step.
 
 ### F2 (High) - EPIC shows extracted state that conflicts with SI statuses
 
