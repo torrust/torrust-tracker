@@ -6,7 +6,7 @@ priority: p3
 github-issue: 1790
 spec-path: docs/issues/open/1790-move-duration-since-unix-epoch-to-torrust-tracker-clock.md
 branch: 1790-move-duration-since-unix-epoch
-related-pr: null
+related-pr: 1791
 last-updated-utc: 2026-06-24 00:00
 semantic-links:
   skill-links:
@@ -116,9 +116,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Spec moved to `docs/issues/open/` with issue number prefix
 - [x] Implementation completed
 - [x] Automatic verification completed (`linter all`, `cargo test --workspace`)
-- [ ] Manual verification scenarios executed and recorded
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] EPIC #1669 Active Subissues table updated to `DONE`
+- [x] Manual verification scenarios executed and recorded
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] EPIC #1669 Active Subissues table updated to `DONE`
+- [ ] PR merged
 - [ ] Issue closed and spec moved to `docs/issues/closed/`
 
 ### Progress Log
@@ -133,19 +134,23 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   updated. `torrust-tracker-clock` no longer depends on `torrust-tracker-primitives`.
   `torrust-tracker-metrics` now imports from `torrust-tracker-clock`.
   `cargo build --workspace`, `cargo test --workspace`, and `linter all` all pass.
+- 2026-05-18 20:00 UTC - josecelano - `torrust-tracker-primitives` re-export added as
+  `#[deprecated] pub use torrust_tracker_clock::DurationSinceUnixEpoch` for backward
+  compatibility. `peer.rs` migrated to import directly from `torrust_tracker_clock`.
+  PR #1791 opened against `develop`.
 
 ## Acceptance Criteria
 
-- [ ] `packages/clock/src/lib.rs` (or a submodule) exports `pub type DurationSinceUnixEpoch = std::time::Duration`.
-- [ ] `packages/clock/Cargo.toml` does not list `torrust-tracker-primitives` as a dependency.
-- [ ] No file in `packages/clock/src/` imports `DurationSinceUnixEpoch` from `torrust_tracker_primitives`.
-- [ ] No other workspace file imports `DurationSinceUnixEpoch` from `torrust_tracker_primitives`
+- [x] `packages/clock/src/lib.rs` (or a submodule) exports `pub type DurationSinceUnixEpoch = std::time::Duration`.
+- [x] `packages/clock/Cargo.toml` does not list `torrust-tracker-primitives` as a dependency.
+- [x] No file in `packages/clock/src/` imports `DurationSinceUnixEpoch` from `torrust_tracker_primitives`.
+- [x] No other workspace file imports `DurationSinceUnixEpoch` from `torrust_tracker_primitives`
       (all migrated to `torrust_tracker_clock`).
-- [ ] `torrust-tracker-metrics` no longer lists `torrust-tracker-primitives` as a dependency
+- [x] `torrust-tracker-metrics` no longer lists `torrust-tracker-primitives` as a dependency
       (or only lists it for non-`DurationSinceUnixEpoch` reasons).
-- [ ] `cargo build --workspace` succeeds with zero errors.
-- [ ] `cargo test --workspace` passes with zero failures.
-- [ ] `linter all` exits with code `0`.
+- [x] `cargo build --workspace` succeeds with zero errors.
+- [x] `cargo test --workspace` passes with zero failures.
+- [x] `linter all` exits with code `0`.
 
 ## Verification Plan
 
