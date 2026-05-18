@@ -43,7 +43,7 @@ concerns are mixed together:
   here adds noise to the workspace and makes their independent evolution harder.
 - **Versioning policy is implicit**: all packages share the workspace version; packages
   extracted to separate repos will need their own release cadence.
-- **Only 6 of 26 packages are published on crates.io**: all unpublished (confirmed May 2026),
+- **Only 6 of 27 packages are published on crates.io**: all unpublished (confirmed May 2026),
   in particular every `bittorrent-*` crate. Publishing them in-workspace conflicts with
   giving them independent versions; extraction resolves this tension.
 
@@ -53,7 +53,7 @@ landscape shifts (new packages, splits, significant growth).
 
 ## Package Inventory
 
-The workspace currently contains **26 packages** across three crate-name prefixes.
+The workspace currently contains **27 packages** (including the root `torrust-tracker` crate) across three crate-name prefixes.
 "Published" means a crate with that name exists on crates.io (verified May 2026).
 
 ### `torrust-` prefix (non-`torrust-tracker-`)
@@ -97,7 +97,7 @@ The workspace currently contains **26 packages** across three crate-name prefixe
 | No                     | `bittorrent-udp-tracker-protocol`  | `udp-protocol`      |
 | No                     | `bittorrent-udp-tracker-core`      | `udp-tracker-core`  |
 
-**Observation**: only 6 of 26 packages are currently published on crates.io, all of which
+**Observation**: only 6 of 27 packages are currently published on crates.io, all of which
 carry the `torrust-tracker-` prefix. Every `bittorrent-` and `torrust-axum-` crate is
 unpublished. This confirms issue #1659's note that "many new crates have not been published
 yet after we refactored the packages."

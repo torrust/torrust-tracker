@@ -43,7 +43,7 @@ This issue is a subissue of EPIC [#1669](../open/1669-overhaul-packages/EPIC.md)
 
 ## Background
 
-The workspace contains 26 packages that grew organically over multiple refactoring cycles.
+The workspace contains 27 packages (including the root `torrust-tracker` crate) that grew organically over multiple refactoring cycles.
 Two coupling problems have already been identified manually:
 
 - `torrust-tracker-clock` depends on `torrust-tracker-primitives` only to import
@@ -52,7 +52,7 @@ Two coupling problems have already been identified manually:
   `DEFAULT_TIMEOUT` (SI-03).
 
 These were discovered through code inspection. A systematic analysis would surface similar
-findings across all 26 packages without relying on luck or familiarity with the codebase.
+findings across all 27 packages without relying on luck or familiarity with the codebase.
 
 ### Why the item-level view matters
 
@@ -111,9 +111,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID  | Status | Task                                                                                                                                                                                                                                                                                           | Notes / Expected Output                                                   |
 | --- | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
 | T1  | TODO   | Create Rust binary `contrib/dev-tools/analysis/workspace-coupling/` and add it to workspace members                                                                                                                                                                                            | Binary compiles cleanly (`cargo build -p workspace-coupling`)             |
-| T2  | TODO   | Run binary; review output for obvious errors (missing packages, wrong module names)                                                                                                                                                                                                            | Report covers all 26 workspace packages                                   |
+| T2  | TODO   | Run binary; review output for obvious errors (missing packages, wrong module names)                                                                                                                                                                                                            | Report covers all 27 workspace packages                                   |
 | T3  | TODO   | Save report to `docs/issues/open/1669-overhaul-packages/workspace-coupling-report.md` and commit                                                                                                                                                                                               | File committed in the analysis branch                                     |
-| T4  | TODO   | Manually audit each package README; fill in `docs/issues/open/1669-overhaul-packages/readme-audit.md` table                                                                                                                                                                                    | Table covers all 26 packages; rating = good / minimal / stub              |
+| T4  | TODO   | Manually audit each package README; fill in `docs/issues/open/1669-overhaul-packages/readme-audit.md` table                                                                                                                                                                                    | Table covers all 27 packages; rating = good / minimal / stub              |
 | T5  | TODO   | Review coupling report; annotate thin-dependency findings (SI-02/SI-03 patterns and any new ones found)                                                                                                                                                                                        | Findings recorded in a "Observations" section at the bottom of the report |
 | T6  | TODO   | For each new thin-dependency finding: open (or update) a corresponding subissue in EPIC #1669 Active Subissues                                                                                                                                                                                 | New subissues added to EPIC quick list if applicable                      |
 | T7  | TODO   | Run `linter all`                                                                                                                                                                                                                                                                               | Exit code `0`                                                             |
@@ -182,11 +182,11 @@ explicit "will not split" decision recorded in the coupling report observations.
 - [ ] `contrib/dev-tools/analysis/workspace-coupling/` exists, compiles cleanly
       (`cargo build -p workspace-coupling`), and produces valid markdown output.
 - [ ] `docs/issues/open/1669-overhaul-packages/workspace-coupling-report.md` is committed
-      and covers all 26 workspace packages.
+      and covers all 27 workspace packages.
 - [ ] Every workspace package that has workspace-level dependencies appears in the report with
       at least one import path listed per dependency (or a documented reason why none was found).
 - [ ] `docs/issues/open/1669-overhaul-packages/readme-audit.md` is committed with a rating
-      for each of the 26 packages.
+      for each of the 27 packages.
 - [ ] Any thin-dependency findings not already covered by existing subissues are recorded as
       observations in the coupling report.
 - [ ] T8 research findings (configuration splitting) are recorded in the coupling report or
@@ -203,12 +203,12 @@ explicit "will not split" decision recorded in the coupling report observations.
 
 ### Manual Verification
 
-| ID  | Scenario                                                                                               | Expected Result                                                                 |
-| --- | ------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------- |
-| MV1 | Open `docs/issues/open/1669-overhaul-packages/workspace-coupling-report.md` and count package sections | 26 sections minus leaf packages (those with no workspace deps) should appear    |
-| MV2 | Find `torrust-tracker-configuration` in the report; check the `torrust-tracker-clock` dep section      | Should list `torrust_tracker_clock::DEFAULT_TIMEOUT` (confirms SI-03 detection) |
-| MV3 | Find `torrust-tracker-clock` in the report; check the `torrust-tracker-primitives` dep section         | Should list `torrust_tracker_primitives::DurationSinceUnixEpoch` (SI-02)        |
-| MV4 | Run `cargo run -p workspace-coupling -- /tmp/test-report.md` on a clean checkout                       | Binary exits `0`; output file matches committed report structurally             |
+| ID  | Scenario                                                                                               | Expected Result                                                                                                                   |
+| --- | ------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------- |
+| MV1 | Open `docs/issues/open/1669-overhaul-packages/workspace-coupling-report.md` and count package sections | 27 packages total: 5 leaf packages listed in the "no workspace dependencies" section; 22 packages in the coupling detail sections |
+| MV2 | Find `torrust-tracker-configuration` in the report; check the `torrust-tracker-clock` dep section      | Should list `torrust_tracker_clock::DEFAULT_TIMEOUT` (confirms SI-03 detection)                                                   |
+| MV3 | Find `torrust-tracker-clock` in the report; check the `torrust-tracker-primitives` dep section         | Should list `torrust_tracker_primitives::DurationSinceUnixEpoch` (SI-02)                                                          |
+| MV4 | Run `cargo run -p workspace-coupling -- /tmp/test-report.md` on a clean checkout                       | Binary exits `0`; output file matches committed report structurally                                                               |
 
 ## References
 

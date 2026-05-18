@@ -76,7 +76,7 @@ Resolution (2026-05-18):
 
 ### F3 (Medium) - Baseline is described as established while SI-01 is still TODO
 
-Status: IN PROGRESS
+Status: DONE
 
 Problem:
 
@@ -98,6 +98,7 @@ Action taken (2026-05-18):
   a trade-off table. Outcome either opens a new subissue or records a decision.
 - SI-01 remains open. EPIC first-cycle outcome text still reads "Baseline established" while
   SI-01 is in progress — the EPIC wording fix is deferred until SI-01 is actually complete.
+- Changes committed in ff152f4c.
 
 ### F4 (Medium) - Package count mismatch (26 vs 27)
 
@@ -115,6 +116,15 @@ Why this matters:
 Proposed minimal fix:
 
 - Update EPIC and SI-01 to a single source-of-truth count and timestamp, or phrase counts as point-in-time with explicit date and include/exclude rules.
+
+Resolution (2026-05-18):
+
+- The 27th package is the root `torrust-tracker` crate (the main binary, `src/`). It was
+  excluded from the original 26-package count because EPIC/SI-01 were drafted before the
+  coupling report was generated.
+- All occurrences of "26 packages" updated to "27 packages" in EPIC.md (lines 46, 56, 100)
+  and SI-01 (Background, T2 notes, T4 notes, acceptance criteria ×2, MV1).
+- MV1 verification criterion reworded to: "27 packages total: 5 leaves + 22 with deps."
 
 ### F5 (Medium) - SI-02 prerequisite points at SI-09 T12 (doc update) instead of technical completion
 
@@ -153,3 +163,6 @@ Proposed minimal fix:
 ## Progress Log
 
 - 2026-05-18: Initial review logged with six findings, severity-ranked.
+- 2026-05-18: F1 resolved and committed (f83350ee). F2 resolved and committed (6effa6a0).
+- 2026-05-18: F3 partially resolved (T8 added to SI-01) and committed (ff152f4c). EPIC wording deferred to SI-01 completion.
+- 2026-05-18: F4 in progress — updating package count from 26 to 27 in EPIC.md and SI-01.
