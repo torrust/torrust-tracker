@@ -1,13 +1,13 @@
 ---
 doc-type: issue
 issue-type: task
-status: draft
+status: open
 priority: p3
 github-issue: 1790
 spec-path: docs/issues/open/1790-move-duration-since-unix-epoch-to-torrust-tracker-clock.md
 branch: 1790-move-duration-since-unix-epoch
 related-pr: 1791
-last-updated-utc: 2026-06-24 00:00
+last-updated-utc: 2026-05-18 20:00
 semantic-links:
   skill-links:
     - create-issue
@@ -55,12 +55,14 @@ between `torrust_tracker_primitives::DurationSinceUnixEpoch` and
 `torrust_tracker_clock::DurationSinceUnixEpoch`. All 80+ workspace files that currently
 import the type from `torrust-tracker-primitives` need only a trivial import path change.
 
-**Circular dep constraint**: `torrust-tracker-primitives` must **not** re-export the type
-from `torrust-tracker-clock`. That would introduce a new `torrust-tracker-primitives` →
-`torrust-tracker-clock` dependency edge. Instead, `torrust-tracker-primitives` retains its
-own independent `pub type DurationSinceUnixEpoch = Duration` definition. Once all workspace
-consumers have been migrated to `torrust_tracker_clock::DurationSinceUnixEpoch`, the copy
-in `torrust-tracker-primitives` can be deprecated and removed in a future cleanup.
+**Backward compatibility and deprecation**: Now that `torrust-tracker-clock` no longer
+depends on `torrust-tracker-primitives`, there is no circular dependency, and
+`torrust-tracker-primitives` can safely depend on `torrust-tracker-clock`. Rather than
+leaving a stale independent copy, `torrust-tracker-primitives` now re-exports the type
+from `torrust-tracker-clock` via `#[deprecated] pub use torrust_tracker_clock::DurationSinceUnixEpoch`.
+This preserves backward compatibility for external consumers while actively signalling that
+they should migrate to the `torrust_tracker_clock` import path. Removal of the re-export
+is deferred to a follow-up cleanup subissue of EPIC #1669.
 
 This issue is a subissue of EPIC [#1669](../open/1669-overhaul-packages/EPIC.md)
 (Overhaul: Packages).
