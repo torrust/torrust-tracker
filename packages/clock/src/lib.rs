@@ -28,6 +28,13 @@ pub mod static_time;
 
 use tracing::instrument;
 
+/// A duration measured from the Unix Epoch (1970-01-01 00:00:00 UTC).
+///
+/// This is a type alias for [`std::time::Duration`]. It carries no
+/// tracker-specific logic and lives here so that `torrust-tracker-clock`
+/// has no dependency on `torrust-tracker-primitives`.
+pub type DurationSinceUnixEpoch = std::time::Duration;
+
 /// This code needs to be copied into each crate.
 /// Working version, for production.
 #[cfg(not(test))]

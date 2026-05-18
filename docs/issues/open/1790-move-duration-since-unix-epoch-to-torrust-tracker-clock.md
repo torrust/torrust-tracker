@@ -7,7 +7,7 @@ github-issue: 1790
 spec-path: docs/issues/open/1790-move-duration-since-unix-epoch-to-torrust-tracker-clock.md
 branch: 1790-move-duration-since-unix-epoch
 related-pr: null
-last-updated-utc: 2026-05-18 00:00
+last-updated-utc: 2026-06-24 00:00
 semantic-links:
   skill-links:
     - create-issue
@@ -97,14 +97,14 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task                                                                                                                                                                                                                           | Notes / Expected Output                                                                                              |
 | --- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------- |
-| T1  | TODO   | Define `DurationSinceUnixEpoch` in `packages/clock/src/lib.rs`                                                                                                                                                                 | `pub type DurationSinceUnixEpoch = std::time::Duration;`                                                             |
-| T2  | TODO   | Update `packages/clock/src/clock/mod.rs` and `packages/clock/src/conv/mod.rs` to use the local definition                                                                                                                      | Replace `use torrust_tracker_primitives::DurationSinceUnixEpoch` with local import                                   |
-| T3  | TODO   | Remove `torrust-tracker-primitives` dep from `packages/clock/Cargo.toml`                                                                                                                                                       | Dep entry removed; workspace build still passes                                                                      |
-| T4  | TODO   | Update all 80+ workspace files to import `DurationSinceUnixEpoch` from `torrust_tracker_clock` instead of `torrust_tracker_primitives`                                                                                         | Use M1 grep to find the full file list; one-line change per file                                                     |
-| T5  | TODO   | Run `cargo build --workspace` and `cargo test --workspace`                                                                                                                                                                     | Clean build and all tests pass                                                                                       |
-| T6  | TODO   | Run `linter all`                                                                                                                                                                                                               | Exit code `0`                                                                                                        |
-| T7  | TODO   | Update EPIC #1669 extraction ordering table: note that `torrust-tracker-clock` has no `torrust-tracker-primitives` dep                                                                                                         | `torrust-tracker-clock` row: `torrust-tracker-primitives` dep removed                                                |
-| T8  | TODO   | Update `torrust-tracker-metrics`: replace import of `DurationSinceUnixEpoch` from `torrust_tracker_primitives` with `torrust_tracker_clock`; remove `torrust-tracker-primitives` dep from its `Cargo.toml` if no longer needed | `cargo build -p torrust-tracker-metrics` succeeds; `cargo machete -p torrust-tracker-metrics` reports no unused deps |
+| T1  | DONE   | Define `DurationSinceUnixEpoch` in `packages/clock/src/lib.rs`                                                                                                                                                                 | `pub type DurationSinceUnixEpoch = std::time::Duration;`                                                             |
+| T2  | DONE   | Update `packages/clock/src/clock/mod.rs` and `packages/clock/src/conv/mod.rs` to use the local definition                                                                                                                      | Replace `use torrust_tracker_primitives::DurationSinceUnixEpoch` with local import                                   |
+| T3  | DONE   | Remove `torrust-tracker-primitives` dep from `packages/clock/Cargo.toml`                                                                                                                                                       | Dep entry removed; workspace build still passes                                                                      |
+| T4  | DONE   | Update all 80+ workspace files to import `DurationSinceUnixEpoch` from `torrust_tracker_clock` instead of `torrust_tracker_primitives`                                                                                         | Use M1 grep to find the full file list; one-line change per file                                                     |
+| T5  | DONE   | Run `cargo build --workspace` and `cargo test --workspace`                                                                                                                                                                     | Clean build and all tests pass                                                                                       |
+| T6  | DONE   | Run `linter all`                                                                                                                                                                                                               | Exit code `0`                                                                                                        |
+| T7  | DONE   | Update EPIC #1669 extraction ordering table: note that `torrust-tracker-clock` has no `torrust-tracker-primitives` dep                                                                                                         | `torrust-tracker-clock` row: `torrust-tracker-primitives` dep removed                                                |
+| T8  | DONE   | Update `torrust-tracker-metrics`: replace import of `DurationSinceUnixEpoch` from `torrust_tracker_primitives` with `torrust_tracker_clock`; remove `torrust-tracker-primitives` dep from its `Cargo.toml` if no longer needed | `cargo build -p torrust-tracker-metrics` succeeds; `cargo machete -p torrust-tracker-metrics` reports no unused deps |
 
 ## Progress Tracking
 
@@ -114,8 +114,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
 - [x] Spec moved to `docs/issues/open/` with issue number prefix
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, `cargo test --workspace`)
+- [x] Implementation completed
+- [x] Automatic verification completed (`linter all`, `cargo test --workspace`)
 - [ ] Manual verification scenarios executed and recorded
 - [ ] Acceptance criteria reviewed after implementation and updated with evidence
 - [ ] EPIC #1669 Active Subissues table updated to `DONE`
@@ -129,6 +129,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-05-18 00:00 UTC - josecelano - Spec updated to target current crate name
   `torrust-tracker-clock` (Option A: proceed without SI-09 prerequisite). SI-09 prerequisite
   removed; type will land as `torrust_tracker_clock::DurationSinceUnixEpoch`.
+- 2026-05-18 18:30 UTC - josecelano - Implementation complete. All 77 workspace files
+  updated. `torrust-tracker-clock` no longer depends on `torrust-tracker-primitives`.
+  `torrust-tracker-metrics` now imports from `torrust-tracker-clock`.
+  `cargo build --workspace`, `cargo test --workspace`, and `linter all` all pass.
 
 ## Acceptance Criteria
 
@@ -157,8 +161,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
-| ID  | Scenario                                                            | Command / Steps                                                                   | Expected Result                         | Status | Evidence |
-| --- | ------------------------------------------------------------------- | --------------------------------------------------------------------------------- | --------------------------------------- | ------ | -------- |
-| M1  | No workspace import from `torrust_tracker_primitives` for this type | `grep -r "torrust_tracker_primitives::DurationSinceUnixEpoch" . --include="*.rs"` | Zero matches                            | TODO   |          |
-| M2  | `torrust-tracker-clock` dep list is clean                           | `grep "torrust-tracker-primitives" packages/clock/Cargo.toml`                     | No output                               | TODO   |          |
-| M3  | `torrust-tracker-clock` exports `DurationSinceUnixEpoch`            | `grep "DurationSinceUnixEpoch" packages/clock/src/lib.rs`                         | `pub type DurationSinceUnixEpoch` found | TODO   |          |
+| ID  | Scenario                                                            | Command / Steps                                                                   | Expected Result                         | Status | Evidence                                                                                |
+| --- | ------------------------------------------------------------------- | --------------------------------------------------------------------------------- | --------------------------------------- | ------ | --------------------------------------------------------------------------------------- |
+| M1  | No workspace import from `torrust_tracker_primitives` for this type | `grep -r "torrust_tracker_primitives::DurationSinceUnixEpoch" . --include="*.rs"` | Zero matches                            | DONE   | Zero matches (only `primitives/` defines the type; no consumer imports it from there)   |
+| M2  | `torrust-tracker-clock` dep list is clean                           | `grep "torrust-tracker-primitives" packages/clock/Cargo.toml`                     | No output                               | DONE   | No output confirmed                                                                     |
+| M3  | `torrust-tracker-clock` exports `DurationSinceUnixEpoch`            | `grep "DurationSinceUnixEpoch" packages/clock/src/lib.rs`                         | `pub type DurationSinceUnixEpoch` found | DONE   | `pub type DurationSinceUnixEpoch = std::time::Duration;` in `packages/clock/src/lib.rs` |

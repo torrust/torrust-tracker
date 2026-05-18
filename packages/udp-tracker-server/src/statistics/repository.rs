@@ -2,10 +2,10 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use tokio::sync::{RwLock, RwLockReadGuard};
+use torrust_tracker_clock::DurationSinceUnixEpoch;
 use torrust_tracker_metrics::label::LabelSet;
 use torrust_tracker_metrics::metric::MetricName;
 use torrust_tracker_metrics::metric_collection::Error;
-use torrust_tracker_primitives::DurationSinceUnixEpoch;
 
 use super::describe_metrics;
 use super::metrics::Metrics;

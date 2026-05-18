@@ -7,11 +7,12 @@ pub(crate) mod tests {
 
     use bittorrent_primitives::info_hash::InfoHash;
     use rand::RngExt;
+    use torrust_tracker_clock::DurationSinceUnixEpoch;
     use torrust_tracker_configuration::Configuration;
     #[cfg(test)]
     use torrust_tracker_configuration::Core;
     use torrust_tracker_primitives::peer::Peer;
-    use torrust_tracker_primitives::{AnnounceEvent, DurationSinceUnixEpoch, NumberOfBytes, PeerId};
+    use torrust_tracker_primitives::{AnnounceEvent, NumberOfBytes, PeerId};
     #[cfg(test)]
     use torrust_tracker_test_helpers::configuration::ephemeral_sqlite_database;
 

@@ -35,7 +35,7 @@ impl Sum for Metric<Gauge> {
 #[cfg(test)]
 mod tests {
 
-    use torrust_tracker_primitives::DurationSinceUnixEpoch;
+    use torrust_tracker_clock::DurationSinceUnixEpoch;
 
     use crate::counter::Counter;
     use crate::gauge::Gauge;

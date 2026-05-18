@@ -2,9 +2,9 @@ use std::sync::Arc;
 
 use bittorrent_udp_tracker_core::services::banning::BanService;
 use tokio::sync::RwLock;
+use torrust_tracker_clock::DurationSinceUnixEpoch;
 use torrust_tracker_metrics::label::LabelSet;
 use torrust_tracker_metrics::metric_name;
-use torrust_tracker_primitives::DurationSinceUnixEpoch;
 
 use crate::event::{ErrorKind, Event};
 use crate::statistics::UDP_TRACKER_SERVER_IPS_BANNED_TOTAL;

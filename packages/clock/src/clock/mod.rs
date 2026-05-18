@@ -1,9 +1,8 @@
 use std::time::Duration;
 
-use torrust_tracker_primitives::DurationSinceUnixEpoch;
-
 use self::stopped::StoppedClock;
 use self::working::WorkingClock;
+use crate::DurationSinceUnixEpoch;
 
 pub mod stopped;
 pub mod working;

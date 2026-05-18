@@ -2,9 +2,10 @@ use std::fmt::Debug;
 use std::net::SocketAddr;
 use std::sync::Arc;
 
+use torrust_tracker_clock::DurationSinceUnixEpoch;
 use torrust_tracker_configuration::TrackerPolicy;
+use torrust_tracker_primitives::peer;
 use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
-use torrust_tracker_primitives::{DurationSinceUnixEpoch, peer};
 
 use self::peer_list::PeerList;
 

@@ -73,7 +73,7 @@ mod tests {
     use pretty_assertions::assert_eq;
     use serde::Serialize;
     use serde::ser::{self, Impossible, SerializeSeq};
-    use torrust_tracker_primitives::DurationSinceUnixEpoch;
+    use torrust_tracker_clock::DurationSinceUnixEpoch;
 
     use crate::counter::Counter;
     use crate::gauge::Gauge;

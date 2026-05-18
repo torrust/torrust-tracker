@@ -5,10 +5,11 @@ use std::net::SocketAddr;
 use std::sync::Arc;
 
 use bittorrent_primitives::info_hash::InfoHash;
+use torrust_tracker_clock::DurationSinceUnixEpoch;
 use torrust_tracker_configuration::TrackerPolicy;
+use torrust_tracker_primitives::AnnounceEvent;
 use torrust_tracker_primitives::peer::{self, Peer, PeerAnnouncement};
 use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
-use torrust_tracker_primitives::{AnnounceEvent, DurationSinceUnixEpoch};
 
 use crate::event::Event;
 use crate::event::sender::Sender;
@@ -320,9 +321,10 @@ mod tests {
     use std::net::{IpAddr, Ipv4Addr, SocketAddr};
     use std::sync::Arc;
 
+    use torrust_tracker_clock::DurationSinceUnixEpoch;
+    use torrust_tracker_primitives::PeerId;
     use torrust_tracker_primitives::peer::fixture::PeerBuilder;
     use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
-    use torrust_tracker_primitives::{DurationSinceUnixEpoch, PeerId};
 
     use crate::swarm::coordinator::Coordinator;
     use crate::tests::sample_info_hash;
@@ -907,8 +909,8 @@ mod tests {
 
         use std::sync::Arc;
 
+        use torrust_tracker_clock::DurationSinceUnixEpoch;
         use torrust_tracker_primitives::AnnounceEvent::Started;
-        use torrust_tracker_primitives::DurationSinceUnixEpoch;
         use torrust_tracker_primitives::peer::fixture::PeerBuilder;
 
         use crate::event::Event;

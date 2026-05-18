@@ -105,8 +105,7 @@ mod tests {
     use std::thread;
     use std::time::Duration;
 
-    use torrust_tracker_primitives::DurationSinceUnixEpoch;
-
+    use crate::DurationSinceUnixEpoch;
     use crate::clock::stopped::Stopped as _;
     use crate::clock::{Stopped, Time, Working};
 
@@ -167,9 +166,7 @@ mod detail {
     use std::cell::RefCell;
     use std::time::SystemTime;
 
-    use torrust_tracker_primitives::DurationSinceUnixEpoch;
-
-    use crate::static_time;
+    use crate::{DurationSinceUnixEpoch, static_time};
 
     thread_local!(pub static FIXED_TIME: RefCell<DurationSinceUnixEpoch>   = RefCell::new(get_default_fixed_time()));
 
