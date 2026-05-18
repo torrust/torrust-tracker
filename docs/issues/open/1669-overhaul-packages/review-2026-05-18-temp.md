@@ -76,7 +76,7 @@ Resolution (2026-05-18):
 
 ### F3 (Medium) - Baseline is described as established while SI-01 is still TODO
 
-Status: OPEN
+Status: IN PROGRESS
 
 Problem:
 
@@ -90,6 +90,14 @@ Why this matters:
 Proposed minimal fix:
 
 - Mark SI-01 appropriately (if done), or reword EPIC first-cycle outcome to pending/in progress.
+
+Action taken (2026-05-18):
+
+- SI-01 scope extended with new task T8: research `packages/configuration` splitting into
+  per-service sub-packages, with two prototype scenarios (UDP-only and HTTP+REST-API) and
+  a trade-off table. Outcome either opens a new subissue or records a decision.
+- SI-01 remains open. EPIC first-cycle outcome text still reads "Baseline established" while
+  SI-01 is in progress — the EPIC wording fix is deferred until SI-01 is actually complete.
 
 ### F4 (Medium) - Package count mismatch (26 vs 27)
 

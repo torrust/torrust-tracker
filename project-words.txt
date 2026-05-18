@@ -149,6 +149,7 @@ keyout
 Kibibytes
 kptr
 ksys
+Laravel
 lcov
 leecher
 leechers

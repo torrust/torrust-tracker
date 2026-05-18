@@ -7,7 +7,7 @@ github-issue: null
 spec-path: docs/issues/drafts/1669-01-establish-baseline-analysis.md
 branch: null
 related-pr: null
-last-updated-utc: 2026-05-18 00:00
+last-updated-utc: 2026-05-18 12:00
 semantic-links:
   skill-links:
     - create-issue
@@ -15,6 +15,7 @@ semantic-links:
     - contrib/dev-tools/analysis/workspace-coupling/src/main.rs
     - docs/issues/open/1669-overhaul-packages/workspace-coupling-report.md
     - docs/issues/open/1669-overhaul-packages/readme-audit.md
+    - packages/configuration/src/lib.rs
     - docs/issues/open/1669-overhaul-packages/EPIC.md
 ---
 
@@ -90,10 +91,14 @@ The output is a markdown report saved to
   `docs/issues/open/1669-overhaul-packages/readme-audit.md`.
 - Review the coupling report for thin-dependency findings and record them as observations
   in the coupling report itself or a linked notes section.
+- Research whether `packages/configuration` should be split into per-service sub-packages
+  (e.g., tracker-core config, UDP config, HTTP config, REST API config); see T8.
 
 ### Out of Scope
 
 - Fixing any of the coupling issues found (each fix becomes its own subissue).
+- Deciding to split or restructure `packages/configuration` — that is a separate subissue
+  if the T8 research finds it warranted.
 - Semantic domain graph, git co-change graph, or bounded-context analysis (deferred; revisit
   if the coupling report leaves open questions).
 - Generating visual graphs (e.g. DOT/SVG) — the markdown table is sufficient for the first
@@ -103,15 +108,49 @@ The output is a markdown report saved to
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| ID  | Status | Task                                                                                                           | Notes / Expected Output                                                   |
-| --- | ------ | -------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
-| T1  | TODO   | Create Rust binary `contrib/dev-tools/analysis/workspace-coupling/` and add it to workspace members            | Binary compiles cleanly (`cargo build -p workspace-coupling`)             |
-| T2  | TODO   | Run binary; review output for obvious errors (missing packages, wrong module names)                            | Report covers all 26 workspace packages                                   |
-| T3  | TODO   | Save report to `docs/issues/open/1669-overhaul-packages/workspace-coupling-report.md` and commit               | File committed in the analysis branch                                     |
-| T4  | TODO   | Manually audit each package README; fill in `docs/issues/open/1669-overhaul-packages/readme-audit.md` table    | Table covers all 26 packages; rating = good / minimal / stub              |
-| T5  | TODO   | Review coupling report; annotate thin-dependency findings (SI-02/SI-03 patterns and any new ones found)        | Findings recorded in a "Observations" section at the bottom of the report |
-| T6  | TODO   | For each new thin-dependency finding: open (or update) a corresponding subissue in EPIC #1669 Active Subissues | New subissues added to EPIC quick list if applicable                      |
-| T7  | TODO   | Run `linter all`                                                                                               | Exit code `0`                                                             |
+| ID  | Status | Task                                                                                                                                                                                                                                                                                           | Notes / Expected Output                                                   |
+| --- | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| T1  | TODO   | Create Rust binary `contrib/dev-tools/analysis/workspace-coupling/` and add it to workspace members                                                                                                                                                                                            | Binary compiles cleanly (`cargo build -p workspace-coupling`)             |
+| T2  | TODO   | Run binary; review output for obvious errors (missing packages, wrong module names)                                                                                                                                                                                                            | Report covers all 26 workspace packages                                   |
+| T3  | TODO   | Save report to `docs/issues/open/1669-overhaul-packages/workspace-coupling-report.md` and commit                                                                                                                                                                                               | File committed in the analysis branch                                     |
+| T4  | TODO   | Manually audit each package README; fill in `docs/issues/open/1669-overhaul-packages/readme-audit.md` table                                                                                                                                                                                    | Table covers all 26 packages; rating = good / minimal / stub              |
+| T5  | TODO   | Review coupling report; annotate thin-dependency findings (SI-02/SI-03 patterns and any new ones found)                                                                                                                                                                                        | Findings recorded in a "Observations" section at the bottom of the report |
+| T6  | TODO   | For each new thin-dependency finding: open (or update) a corresponding subissue in EPIC #1669 Active Subissues                                                                                                                                                                                 | New subissues added to EPIC quick list if applicable                      |
+| T7  | TODO   | Run `linter all`                                                                                                                                                                                                                                                                               | Exit code `0`                                                             |
+| T8  | TODO   | Research how to scope `packages/configuration` per service: (a) split into sub-packages, or (b) gate with Cargo features. Audit which config structs each service needs; prototype the two scenarios below for each approach; record findings and open a new subissue if a change is warranted | Findings section added to coupling report; new subissue opened if viable  |
+
+### T8 — prototype targets
+
+The goal is to understand how hard it is today to build a smaller tracker binary by
+assembling only the packages a given deployment really needs. Build one prototype per
+scenario on the current codebase (no refactoring; just wiring what exists):
+
+| #   | Scenario                                            | Required packages (expected)                                                                                                                     | Key question                                           |
+| --- | --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------ |
+| P1  | Public UDP-only tracker (no API)                    | `tracker-core`, `udp-tracker-core`, `udp-tracker-server`, `configuration` (UDP + core subset)                                                    | Can the binary compile without HTTP/REST-API packages? |
+| P2  | Private HTTP tracker + REST management API (no UDP) | `tracker-core`, `http-tracker-core`, `axum-http-tracker-server`, `axum-rest-tracker-api-server`, `configuration` (HTTP + REST-API + core subset) | Can the binary compile without UDP packages?           |
+
+For each prototype record:
+
+- Whether it compiled with zero changes to existing packages.
+- Which `packages/configuration` structs were actually used and which were dead weight.
+- Any circular dependency or versioning problem that would block splitting.
+- An estimate of binary size reduction vs. the full tracker binary.
+
+### T8 — known trade-offs to assess
+
+| Trade-off                                         | Notes                                                                                                                                                                                                                                                                                                                                                                                                  |
+| ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Smaller / safer binaries (reduced attack surface) | Benefit for users who need only one protocol                                                                                                                                                                                                                                                                                                                                                           |
+| Custom container builds required                  | Users must build their own images; no official slim images today                                                                                                                                                                                                                                                                                                                                       |
+| Incomplete config files                           | A UDP-only binary would not parse HTTP config sections; partial configs need clear schema boundaries                                                                                                                                                                                                                                                                                                   |
+| Versioning complexity                             | Per-service versions are too complex; a single version-per-config-file concept does not map well either. Coordinated versioning (all config sub-packages share a version, bumped together on any breaking change) sounds reasonable but is hard to maintain. Core goal: avoid forcing consumers to import the whole tracker config when they only need, e.g., the UDP config.                          |
+| `packages/configuration` as re-export facade      | Splitting does not require removing `packages/configuration`; it can re-export from the specialized sub-packages so that the main full-tracker binary and all existing code continue to work without refactoring.                                                                                                                                                                                      |
+| Cargo features as alternative to splitting        | Instead of separate packages, add Cargo features to `packages/configuration` (e.g., `udp`, `http`, `rest-api`). Consumers enable only the features they need; the main binary enables all. No package-splitting overhead, no versioning coordination problem. Trade-off: one package is still pulled in as a dependency even if only a small feature is used; all feature combinations must be tested. |
+| "Symphony vs Laravel"                             | Symphony: compose from packages; Laravel: enable/disable in one binary. Current tracker is closer to Laravel.                                                                                                                                                                                                                                                                                          |
+
+Conclusion from T8 feeds into a new subissue (if splitting is warranted) or an
+explicit "will not split" decision recorded in the coupling report observations.
 
 ## Progress Tracking
 
@@ -133,6 +172,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-05-18 00:00 UTC - GitHub Copilot - Spec drafted as subissue SI-01 of EPIC #1669.
   Scope refined during discussion: item-level import scan is central (not optional) because
   without it thin-dependency patterns like SI-02/SI-03 cannot be found systematically.
+- 2026-05-18 12:00 UTC - josecelano - Added T8: research whether `packages/configuration`
+  should be split into per-service sub-packages. Includes two prototype scenarios (UDP-only
+  and HTTP+REST-API) and a trade-off table. Outcome either opens a new subissue or records
+  a "will not split" decision.
 
 ## Acceptance Criteria
 
@@ -146,6 +189,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
       for each of the 26 packages.
 - [ ] Any thin-dependency findings not already covered by existing subissues are recorded as
       observations in the coupling report.
+- [ ] T8 research findings (configuration splitting) are recorded in the coupling report or
+      a linked observations file; either a new subissue is opened or a "will not split"
+      decision is documented.
 - [ ] `linter all` exits with code `0`.
 
 ## Verification Plan
