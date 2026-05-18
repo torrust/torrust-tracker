@@ -6686,6 +6686,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "workspace-coupling"
+version = "3.0.0-develop"
+dependencies = [
+ "regex",
+ "serde",
+ "serde_json",
+ "walkdir",
+]
+
+[[package]]
 name = "writeable"
 version = "0.6.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
