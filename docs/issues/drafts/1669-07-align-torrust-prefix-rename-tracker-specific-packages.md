@@ -4,7 +4,7 @@ issue-type: task
 status: draft
 priority: p2
 github-issue: null
-spec-path: docs/issues/drafts/1669-04-align-torrust-prefix-rename-tracker-specific-packages.md
+spec-path: docs/issues/drafts/1669-07-align-torrust-prefix-rename-tracker-specific-packages.md
 branch: null
 related-pr: null
 last-updated-utc: 2026-05-15 12:00

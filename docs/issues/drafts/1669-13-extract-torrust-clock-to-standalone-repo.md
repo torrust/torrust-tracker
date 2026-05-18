@@ -4,7 +4,7 @@ issue-type: task
 status: draft
 priority: p3
 github-issue: null
-spec-path: docs/issues/drafts/1669-09-extract-torrust-clock-to-standalone-repo.md
+spec-path: docs/issues/drafts/1669-13-extract-torrust-clock-to-standalone-repo.md
 branch: null
 related-pr: null
 last-updated-utc: 2026-05-15 12:00
@@ -17,7 +17,7 @@ semantic-links:
     - docs/packages.md
     - AGENTS.md
     - docs/issues/open/1669-overhaul-packages/EPIC.md
-    - docs/issues/drafts/1669-06-rename-torrust-tracker-clock-to-torrust-clock.md
+    - docs/issues/drafts/1669-09-rename-torrust-tracker-clock-to-torrust-clock.md
     - docs/issues/drafts/1669-02-move-duration-since-unix-epoch-to-torrust-clock.md
 ---
 
@@ -47,7 +47,7 @@ deps (`chrono`, `tracing`) are published crates. Extraction is therefore unblock
 **Prerequisites**:
 
 1. Clock rename subissue
-   ([1669-06-rename-torrust-tracker-clock-to-torrust-clock.md](1669-06-rename-torrust-tracker-clock-to-torrust-clock.md))
+   ([1669-09-rename-torrust-tracker-clock-to-torrust-clock.md](1669-09-rename-torrust-tracker-clock-to-torrust-clock.md))
    must be complete — in particular T8 (publish `torrust-clock` on crates.io).
 2. `DurationSinceUnixEpoch` move subissue
    ([1669-02-move-duration-since-unix-epoch-to-torrust-clock.md](1669-02-move-duration-since-unix-epoch-to-torrust-clock.md))

@@ -7,7 +7,7 @@ github-issue: null
 spec-path: docs/issues/drafts/1669-03-move-default-timeout-from-configuration-to-clock.md
 branch: null
 related-pr: null
-last-updated-utc: 2026-05-15 12:00
+last-updated-utc: 2026-05-18 00:00
 semantic-links:
   skill-links:
     - create-issue
@@ -45,6 +45,11 @@ client library.
 Placing `DEFAULT_TIMEOUT` in `clock` also makes semantic sense: `clock` already owns the
 mockable time abstraction; default timeout durations are a natural sibling.
 
+**Side effect (F-01)**: two client packages (`bittorrent-tracker-client` and
+`torrust-tracker-client` in `console/tracker-client`) depend on `torrust-tracker-configuration`
+solely for `DEFAULT_TIMEOUT`. After this move both clients can drop that dependency entirely,
+eliminating a layer violation where client packages depend on the tracker configuration crate.
+
 **This issue is a prerequisite** for renaming `torrust-tracker-clock` to `torrust-clock`
 (see linked spec). It must be completed and merged first so that the constant travels with
 the `clock` package when it is eventually renamed and extracted.
@@ -62,6 +67,8 @@ This issue is a subissue of EPIC #1669 (Overhaul: Packages).
   to use `use torrust_tracker_clock::DEFAULT_TIMEOUT`.
 - Drop `torrust-tracker-configuration` from `packages/tracker-client/Cargo.toml` (it was
   the only reason that dependency existed).
+- Verify that `console/tracker-client/Cargo.toml` also no longer needs `torrust-tracker-configuration`
+  after the import update; drop it if confirmed.
 - Verify the workspace builds and all tests pass.
 
 ### Out of Scope
@@ -75,14 +82,15 @@ This issue is a subissue of EPIC #1669 (Overhaul: Packages).
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| ID  | Status | Task                                                                                    | Notes / Expected Output                                                        |
-| --- | ------ | --------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
-| T1  | TODO   | Add `pub const DEFAULT_TIMEOUT: Duration = Duration::from_secs(5);` to `packages/clock` | Choose an appropriate public module (e.g., top of `lib.rs` or a `timeout` mod) |
-| T2  | TODO   | Remove `DEFAULT_TIMEOUT` from `packages/configuration/src/lib.rs`                       | Constant no longer in `configuration`                                          |
-| T3  | TODO   | Update all 9 import sites to `use torrust_tracker_clock::DEFAULT_TIMEOUT`               | See file list below                                                            |
-| T4  | TODO   | Remove `torrust-tracker-configuration` from `packages/tracker-client/Cargo.toml`        | No longer a dependency; `cargo build -p bittorrent-tracker-client` succeeds    |
-| T5  | TODO   | Run `cargo build --workspace` and `cargo test --workspace`                              | Clean build; all tests pass                                                    |
-| T6  | TODO   | Run `linter all`                                                                        | Exit code `0`                                                                  |
+| ID  | Status | Task                                                                                                | Notes / Expected Output                                                                 |
+| --- | ------ | --------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| T1  | TODO   | Add `pub const DEFAULT_TIMEOUT: Duration = Duration::from_secs(5);` to `packages/clock`             | Choose an appropriate public module (e.g., top of `lib.rs` or a `timeout` mod)          |
+| T2  | TODO   | Remove `DEFAULT_TIMEOUT` from `packages/configuration/src/lib.rs`                                   | Constant no longer in `configuration`                                                   |
+| T3  | TODO   | Update all 9 import sites to `use torrust_tracker_clock::DEFAULT_TIMEOUT`                           | See file list below                                                                     |
+| T4  | TODO   | Remove `torrust-tracker-configuration` from `packages/tracker-client/Cargo.toml`                    | No longer a dependency; `cargo build -p bittorrent-tracker-client` succeeds             |
+| T5  | TODO   | Verify `console/tracker-client/Cargo.toml` no longer needs `torrust-tracker-configuration`; drop it | `cargo build -p torrust-tracker-client` succeeds; `cargo machete` reports no unused dep |
+| T6  | TODO   | Run `cargo build --workspace` and `cargo test --workspace`                                          | Clean build; all tests pass                                                             |
+| T7  | TODO   | Run `linter all`                                                                                    | Exit code `0`                                                                           |
 
 **Source files to update in T3** (9 files):
 
@@ -122,6 +130,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [ ] `packages/configuration` no longer defines `DEFAULT_TIMEOUT`.
 - [ ] No source file in the workspace uses `torrust_tracker_configuration::DEFAULT_TIMEOUT`.
 - [ ] `packages/tracker-client/Cargo.toml` no longer lists `torrust-tracker-configuration`.
+- [ ] `console/tracker-client/Cargo.toml` no longer lists `torrust-tracker-configuration`
+      (confirmed: `DEFAULT_TIMEOUT` was its only use).
 - [ ] `cargo build --workspace` succeeds with zero errors.
 - [ ] `cargo test --workspace` passes with zero failures.
 - [ ] `linter all` exits with code `0`.

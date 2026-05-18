@@ -4,7 +4,7 @@ issue-type: task
 status: draft
 priority: p2
 github-issue: null
-spec-path: docs/issues/drafts/1669-07-rename-torrust-tracker-located-error-to-torrust-located-error.md
+spec-path: docs/issues/drafts/1669-10-rename-torrust-tracker-located-error-to-torrust-located-error.md
 branch: null
 related-pr: null
 last-updated-utc: 2026-05-15 12:00

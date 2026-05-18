@@ -4,7 +4,7 @@ issue-type: task
 status: draft
 priority: p2
 github-issue: null
-spec-path: docs/issues/drafts/1669-08-extract-torrust-tracker-contrib-bencode-to-torrust-bencode.md
+spec-path: docs/issues/drafts/1669-12-extract-torrust-tracker-contrib-bencode-to-torrust-bencode.md
 branch: null
 related-pr: null
 last-updated-utc: 2026-05-15 12:00

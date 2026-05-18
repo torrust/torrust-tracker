@@ -4,7 +4,7 @@ issue-type: task
 status: draft
 priority: p2
 github-issue: null
-spec-path: docs/issues/drafts/1669-06-rename-torrust-tracker-clock-to-torrust-clock.md
+spec-path: docs/issues/drafts/1669-09-rename-torrust-tracker-clock-to-torrust-clock.md
 branch: null
 related-pr: null
 last-updated-utc: 2026-05-15 12:00
@@ -42,7 +42,7 @@ crate's actual purpose. The rename:
 - Makes the crate identity match its scope.
 - Signals to downstream users that it is reusable outside the tracker.
 - Prepares it for potential extraction to a standalone repository in a future cycle
-  (see [1669-09-extract-torrust-clock-to-standalone-repo.md](1669-09-extract-torrust-clock-to-standalone-repo.md)).
+  (see [1669-13-extract-torrust-clock-to-standalone-repo.md](1669-13-extract-torrust-clock-to-standalone-repo.md)).
 
 The current crate name `torrust-tracker-clock` is **published on crates.io** (as of
 May 2026). The rename requires publishing the new name `torrust-clock` and handling the
@@ -88,7 +88,7 @@ This issue is a subissue of EPIC #1669 (Overhaul: Packages).
 ### Out of Scope
 
 - Moving the crate to a separate repository — see
-  [1669-09-extract-torrust-clock-to-standalone-repo.md](1669-09-extract-torrust-clock-to-standalone-repo.md).
+  [1669-13-extract-torrust-clock-to-standalone-repo.md](1669-13-extract-torrust-clock-to-standalone-repo.md).
 - Changes to the crate's API or behaviour.
 
 ### Companion work (other repositories)

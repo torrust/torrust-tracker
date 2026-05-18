@@ -4,7 +4,7 @@ issue-type: task
 status: draft
 priority: p3
 github-issue: null
-spec-path: docs/issues/drafts/1669-10-extract-torrust-metrics-to-standalone-repo.md
+spec-path: docs/issues/drafts/1669-14-extract-torrust-metrics-to-standalone-repo.md
 branch: null
 related-pr: null
 last-updated-utc: 2026-05-15 12:00
@@ -17,7 +17,7 @@ semantic-links:
     - docs/packages.md
     - AGENTS.md
     - docs/issues/open/1669-overhaul-packages/EPIC.md
-    - docs/issues/drafts/1669-05-rename-torrust-tracker-metrics-to-torrust-metrics.md
+    - docs/issues/drafts/1669-08-rename-torrust-tracker-metrics-to-torrust-metrics.md
 ---
 
 <!-- skill-link: create-issue -->
@@ -38,12 +38,12 @@ already published on crates.io. After the `torrust-tracker-metrics` → `torrust
 rename (and the associated first publish of the crate), extraction is unblocked.
 
 The rename subissue
-([1669-05-rename-torrust-tracker-metrics-to-torrust-metrics.md](1669-05-rename-torrust-tracker-metrics-to-torrust-metrics.md))
+([1669-08-rename-torrust-tracker-metrics-to-torrust-metrics.md](1669-08-rename-torrust-tracker-metrics-to-torrust-metrics.md))
 must be complete — including publishing `torrust-metrics` on crates.io — before this
 subissue begins.
 
 **Prerequisite**: Metrics rename subissue
-([1669-05-rename-torrust-tracker-metrics-to-torrust-metrics.md](1669-05-rename-torrust-tracker-metrics-to-torrust-metrics.md))
+([1669-08-rename-torrust-tracker-metrics-to-torrust-metrics.md](1669-08-rename-torrust-tracker-metrics-to-torrust-metrics.md))
 complete (all tasks through publishing on crates.io).
 
 This issue is a subissue of EPIC [#1669](../open/1669-overhaul-packages/EPIC.md)
