@@ -48,7 +48,7 @@ Resolution (2026-05-18):
 
 ### F2 (High) - EPIC shows extracted state that conflicts with SI statuses
 
-Status: OPEN
+Status: DONE
 
 Problem:
 
@@ -66,6 +66,13 @@ Proposed minimal fix:
 Recommendation:
 
 - Retitle section to clearly indicate target state, unless extraction is already merged.
+
+Resolution (2026-05-18):
+
+- Both packages (`torrust-bencode`, `torrust-tracker-client`) are still in the workspace;
+  extraction is not done.
+- EPIC section renamed from "Extracted from workspace" to "Planned for extraction from
+  workspace" with a clarifying note pointing to SI-12 and SI-15.
 
 ### F3 (Medium) - Baseline is described as established while SI-01 is still TODO
 

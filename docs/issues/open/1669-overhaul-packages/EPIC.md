@@ -151,7 +151,10 @@ destination group with a "Renamed from …" note.
 | No                     | `bittorrent-udp-tracker-core`      | `udp-tracker-core`  | —      |
 | No                     | `bittorrent-udp-tracker-protocol`  | `udp-protocol`      | —      |
 
-### Extracted from workspace
+### Planned for extraction from workspace
+
+These packages are not yet extracted. The table describes the target end state once
+the corresponding subissues (SI-12, SI-15) are complete.
 
 | Final crate name         | Extracted from                    | Notes                                                                |
 | ------------------------ | --------------------------------- | -------------------------------------------------------------------- |
