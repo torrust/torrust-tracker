@@ -277,10 +277,9 @@ mod tests {
     use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
     use std::sync::Arc;
 
-    use torrust_tracker_configuration::AnnouncePolicy;
     use torrust_tracker_primitives::peer::fixture::PeerBuilder;
     use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
-    use torrust_tracker_primitives::{AnnounceData, PeerId};
+    use torrust_tracker_primitives::{AnnounceData, AnnouncePolicy, PeerId};
 
     use crate::v1::responses::announce::{Announce, Compact, Normal};
 

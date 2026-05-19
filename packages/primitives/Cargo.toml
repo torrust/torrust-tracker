@@ -24,7 +24,6 @@ tdyne-peer-id = "1"
 tdyne-peer-id-registry = "0"
 thiserror = "2"
 torrust-tracker-clock = { version = "3.0.0-develop", path = "../clock" }
-torrust-tracker-configuration = { version = "3.0.0-develop", path = "../configuration" }
 url = "2.5.4"
 
 [dev-dependencies]

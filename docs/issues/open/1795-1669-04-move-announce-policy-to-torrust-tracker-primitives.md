@@ -81,14 +81,14 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task                                                                                                                             | Notes / Expected Output                                                                         |
 | --- | ------ | -------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| T1  | TODO   | Locate all definition and usage sites of `AnnouncePolicy` across the workspace                                                   | `grep -r "AnnouncePolicy" . --include="*.rs"` — build a full consumer list                      |
-| T2  | TODO   | Move `AnnouncePolicy` definition to `packages/primitives/src/` (e.g. `primitives/src/announce_policy.rs`)                        | Public module exported from `packages/primitives/src/lib.rs`                                    |
-| T3  | TODO   | Remove `AnnouncePolicy` from `packages/configuration/src/`                                                                       | Definition gone; re-export or direct dep on `torrust-tracker-primitives` added to configuration |
-| T4  | TODO   | Add `torrust-tracker-primitives` as a dep of `packages/configuration/Cargo.toml` if not already present                          | `torrust-tracker-primitives` in `[dependencies]`                                                |
-| T5  | TODO   | Remove `torrust-tracker-configuration` dep from `packages/primitives/Cargo.toml` if `AnnouncePolicy` was its sole reason         | `cargo machete` reports no unused dep                                                           |
-| T6  | TODO   | Update all workspace files that import `AnnouncePolicy` from `torrust_tracker_configuration` to use `torrust_tracker_primitives` | One-line change per file                                                                        |
-| T7  | TODO   | Run `cargo build --workspace` and `cargo test --workspace`                                                                       | Clean build; all tests pass                                                                     |
-| T8  | TODO   | Run `linter all`                                                                                                                 | Exit code `0`                                                                                   |
+| T1  | DONE   | Locate all definition and usage sites of `AnnouncePolicy` across the workspace                                                   | `grep -r "AnnouncePolicy" . --include="*.rs"` — build a full consumer list                      |
+| T2  | DONE   | Move `AnnouncePolicy` definition to `packages/primitives/src/` (e.g. `primitives/src/announce_policy.rs`)                        | Public module exported from `packages/primitives/src/lib.rs`                                    |
+| T3  | DONE   | Remove `AnnouncePolicy` from `packages/configuration/src/`                                                                       | Definition gone; re-export or direct dep on `torrust-tracker-primitives` added to configuration |
+| T4  | DONE   | Add `torrust-tracker-primitives` as a dep of `packages/configuration/Cargo.toml` if not already present                          | `torrust-tracker-primitives` in `[dependencies]`                                                |
+| T5  | DONE   | Remove `torrust-tracker-configuration` dep from `packages/primitives/Cargo.toml` if `AnnouncePolicy` was its sole reason         | `cargo machete` reports no unused dep                                                           |
+| T6  | DONE   | Update all workspace files that import `AnnouncePolicy` from `torrust_tracker_configuration` to use `torrust_tracker_primitives` | One-line change per file                                                                        |
+| T7  | DONE   | Run `cargo build --workspace` and `cargo test --workspace`                                                                       | Clean build; all tests pass                                                                     |
+| T8  | DONE   | Run `linter all`                                                                                                                 | Exit code `0`                                                                                   |
 
 ## Progress Tracking
 
@@ -98,8 +98,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
 - [x] Spec moved to `docs/issues/open/` with issue number prefix
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, `cargo test --workspace`)
+- [x] Implementation completed
+- [x] Automatic verification completed (`linter all`, `cargo test --workspace`)
 - [ ] Manual verification scenarios executed and recorded
 - [ ] Acceptance criteria reviewed after implementation and updated with evidence
 - [ ] EPIC #1669 Active Subissues table updated to `DONE`
@@ -109,17 +109,20 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 - 2026-05-18 00:00 UTC - josecelano - Spec drafted as subissue of EPIC #1669, addressing F-03
   from the coupling analysis report.
+- 2026-05-19 UTC - josecelano - Implementation completed: moved `AnnouncePolicy` to
+  `primitives/src/announce.rs`, removed inverted dep, added deprecated re-export in
+  `configuration`, updated all workspace consumers. All checks pass.
 
 ## Acceptance Criteria
 
-- [ ] `packages/primitives/src/` defines `AnnouncePolicy` and exports it publicly.
-- [ ] `packages/primitives/Cargo.toml` does not list `torrust-tracker-configuration` as a dependency.
-- [ ] `packages/configuration/src/` no longer defines `AnnouncePolicy`; it imports from `torrust-tracker-primitives`.
-- [ ] No workspace file imports `AnnouncePolicy` from `torrust_tracker_configuration`
+- [x] `packages/primitives/src/` defines `AnnouncePolicy` and exports it publicly.
+- [x] `packages/primitives/Cargo.toml` does not list `torrust-tracker-configuration` as a dependency.
+- [x] `packages/configuration/src/` no longer defines `AnnouncePolicy`; it imports from `torrust-tracker-primitives`.
+- [x] No workspace file imports `AnnouncePolicy` from `torrust_tracker_configuration`
       (all migrated to `torrust_tracker_primitives` or re-exported through it).
-- [ ] `cargo build --workspace` succeeds with zero errors.
-- [ ] `cargo test --workspace` passes with zero failures.
-- [ ] `linter all` exits with code `0`.
+- [x] `cargo build --workspace` succeeds with zero errors.
+- [x] `cargo test --workspace` passes with zero failures.
+- [x] `linter all` exits with code `0`.
 
 ## Verification Plan
 
@@ -135,8 +138,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
-| ID  | Scenario                                                     | Command / Steps                                                              | Expected Result         | Status | Evidence |
-| --- | ------------------------------------------------------------ | ---------------------------------------------------------------------------- | ----------------------- | ------ | -------- |
-| M1  | No workspace import of `AnnouncePolicy` from `configuration` | `grep -r "torrust_tracker_configuration::AnnouncePolicy" . --include="*.rs"` | Zero matches            | TODO   |          |
-| M2  | `primitives` exports `AnnouncePolicy`                        | `grep "AnnouncePolicy" packages/primitives/src/lib.rs`                       | `pub` declaration found | TODO   |          |
-| M3  | `primitives` dep list does not include `configuration`       | `grep "torrust-tracker-configuration" packages/primitives/Cargo.toml`        | Zero matches            | TODO   |          |
+| ID  | Scenario                                                     | Command / Steps                                                              | Expected Result         | Status | Evidence                                                           |
+| --- | ------------------------------------------------------------ | ---------------------------------------------------------------------------- | ----------------------- | ------ | ------------------------------------------------------------------ |
+| M1  | No workspace import of `AnnouncePolicy` from `configuration` | `grep -r "torrust_tracker_configuration::AnnouncePolicy" . --include="*.rs"` | Zero matches            | DONE   | `grep` returned zero matches                                       |
+| M2  | `primitives` exports `AnnouncePolicy`                        | `grep "AnnouncePolicy" packages/primitives/src/lib.rs`                       | `pub` declaration found | DONE   | `pub use announce::{AnnounceData, AnnounceEvent, AnnouncePolicy};` |
+| M3  | `primitives` dep list does not include `configuration`       | `grep "torrust-tracker-configuration" packages/primitives/Cargo.toml`        | Zero matches            | DONE   | `grep` returned zero matches                                       |
