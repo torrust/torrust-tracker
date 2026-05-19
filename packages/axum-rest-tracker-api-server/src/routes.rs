@@ -23,12 +23,12 @@ use tower::timeout::TimeoutLayer;
 use tower_http::LatencyUnit;
 use tower_http::classify::ServerErrorsFailureClass;
 use tower_http::compression::CompressionLayer;
-
-const DEFAULT_REQUEST_TIMEOUT: Duration = Duration::from_secs(5);
 use tower_http::propagate_header::PropagateHeaderLayer;
 use tower_http::request_id::{MakeRequestUuid, SetRequestIdLayer};
 use tower_http::trace::{DefaultMakeSpan, TraceLayer};
 use tracing::{Level, Span, instrument};
+
+const DEFAULT_REQUEST_TIMEOUT: Duration = Duration::from_secs(5);
 
 use super::v1;
 use super::v1::context::health_check::handlers::health_check_handler;

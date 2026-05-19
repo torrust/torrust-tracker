@@ -1039,8 +1039,6 @@ Workspace deps: 12
 
 - `torrust-tracker-clock` → `torrust-tracker-primitives`: only
   `DurationSinceUnixEpoch` imported. Addressed by SI-02.
-- `torrust-tracker-configuration` → `torrust-tracker-clock`: only
-  `DEFAULT_TIMEOUT` imported. Addressed by SI-03.
 
 ### New findings
 
