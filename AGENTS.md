@@ -162,7 +162,7 @@ When using `.tmp`, periodically clean old logs (for example, remove stale `pre-c
 Gate ownership:
 
 - Pre-commit: fast local feedback
-- Pre-push: comprehensive developer gate (includes broad tests and E2E)
+- Pre-push: nightly toolchain checks + full stable test suite (no pre-commit duplicates; no E2E)
 - CI: merge authority (includes E2E matrix)
 
 Linter entry point:

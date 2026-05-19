@@ -1,13 +1,15 @@
 #!/usr/bin/env bash
 # Pre-push verification script
-# Run comprehensive checks before pushing changes, including nightly toolchain
-# validation and end-to-end tests.
+# Run nightly toolchain validation and the full stable test suite before pushing.
+# Pre-commit checks (machete, linters, doc tests) are intentionally excluded here
+# because they always run before each commit. E2E tests are excluded because they
+# are slow and run in CI, which is the merge authority.
 #
 # Usage:
 #   ./contrib/dev-tools/git/hooks/pre-push.sh [--format=<text|json>] [--verbosity=<concise|verbose>] [--verbose]
 #
-# Expected runtime: ~15 minutes on a modern developer machine.
-# AI agents: set a per-command timeout of at least 30 minutes before invoking this script.
+# Expected runtime: ~5 minutes on a modern developer machine with warm caches.
+# AI agents: set a per-command timeout of at least 15 minutes before invoking this script.
 #
 # All steps must pass (exit 0) before pushing.
 
@@ -19,14 +21,10 @@ set -uo pipefail
 # Each step: "description|command"
 
 declare -a STEPS=(
-    "Checking for unused dependencies (cargo machete)|cargo +stable machete"
-    "Running all linters|linter all"
     "Checking format with nightly toolchain|cargo +nightly fmt --check"
     "Checking workspace with nightly toolchain|cargo +nightly check --tests --benches --examples --workspace --all-targets --all-features"
     "Building documentation with nightly toolchain|cargo +nightly doc --no-deps --bins --examples --workspace --all-features"
-    "Running documentation tests|cargo +stable test --doc --workspace"
     "Running all tests|cargo +stable test --tests --benches --examples --workspace --all-targets --all-features"
-    "Running E2E tests|cargo +stable run --bin e2e_tests_runner -- --config-toml-path ./share/default/config/tracker.e2e.container.sqlite3.toml"
 )
 
 FORMAT="text"
