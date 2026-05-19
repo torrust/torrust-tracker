@@ -19,7 +19,7 @@
 //! use std::str::FromStr;
 //!
 //! use torrust_tracker_primitives::{AnnounceEvent, NumberOfBytes, PeerId};
-//! use torrust_tracker_primitives::DurationSinceUnixEpoch;
+//! use torrust_tracker_clock::DurationSinceUnixEpoch;
 //! use torrust_tracker_primitives::peer;
 //! use bittorrent_primitives::info_hash::InfoHash;
 //!
@@ -282,8 +282,9 @@ mod tests {
         use std::str::FromStr;
         use std::sync::Arc;
 
+        use torrust_tracker_clock::DurationSinceUnixEpoch;
         use torrust_tracker_primitives::peer::Peer;
-        use torrust_tracker_primitives::{AnnounceEvent, DurationSinceUnixEpoch, NumberOfBytes, PeerId};
+        use torrust_tracker_primitives::{AnnounceEvent, NumberOfBytes, PeerId};
         use torrust_tracker_test_helpers::configuration;
 
         use crate::announce_handler::AnnounceHandler;

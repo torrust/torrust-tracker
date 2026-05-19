@@ -21,7 +21,7 @@ openmetrics-parser = "0.4.4"
 serde = { version = "1", features = [ "derive" ] }
 serde_json = "1.0.140"
 thiserror = "2"
-torrust-tracker-primitives = { version = "3.0.0-develop", path = "../primitives" }
+torrust-tracker-clock = { version = "3.0.0-develop", path = "../clock" }
 tracing = "0.1.41"
 
 [dev-dependencies]

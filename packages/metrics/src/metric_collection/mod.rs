@@ -8,7 +8,7 @@ use std::collections::HashSet;
 
 pub use error::Error;
 pub use kind_collection::MetricKindCollection;
-use torrust_tracker_primitives::DurationSinceUnixEpoch;
+use torrust_tracker_clock::DurationSinceUnixEpoch;
 
 use super::counter::Counter;
 use super::gauge::Gauge;

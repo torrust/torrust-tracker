@@ -5586,7 +5586,6 @@ name = "torrust-tracker-clock"
 version = "3.0.0-develop"
 dependencies = [
  "chrono",
- "torrust-tracker-primitives",
  "tracing",
 ]
 
@@ -5649,7 +5648,7 @@ dependencies = [
  "serde",
  "serde_json",
  "thiserror 2.0.18",
- "torrust-tracker-primitives",
+ "torrust-tracker-clock",
  "tracing",
 ]
 
@@ -5666,6 +5665,7 @@ dependencies = [
  "tdyne-peer-id",
  "tdyne-peer-id-registry",
  "thiserror 2.0.18",
+ "torrust-tracker-clock",
  "torrust-tracker-configuration",
  "url",
 ]

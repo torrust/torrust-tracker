@@ -1,8 +1,8 @@
 use std::sync::Arc;
 
+use torrust_tracker_clock::DurationSinceUnixEpoch;
 use torrust_tracker_metrics::label::{LabelSet, LabelValue};
 use torrust_tracker_metrics::{label_name, metric_name};
-use torrust_tracker_primitives::DurationSinceUnixEpoch;
 use torrust_tracker_primitives::peer::Peer;
 
 use crate::event::Event;

@@ -1,6 +1,6 @@
+use torrust_tracker_clock::DurationSinceUnixEpoch;
 use torrust_tracker_metrics::label::{LabelSet, LabelValue};
 use torrust_tracker_metrics::{label_name, metric_name};
-use torrust_tracker_primitives::DurationSinceUnixEpoch;
 
 use crate::event::{ConnectionContext, UdpRequestKind, UdpResponseKind};
 use crate::statistics::UDP_TRACKER_SERVER_RESPONSES_SENT_TOTAL;

@@ -3,10 +3,10 @@ use std::sync::Arc;
 
 use chrono::Utc;
 use tokio::task::JoinHandle;
+use torrust_tracker_clock::DurationSinceUnixEpoch;
 use torrust_tracker_clock::clock::Time;
 use torrust_tracker_metrics::label::LabelSet;
 use torrust_tracker_metrics::metric_name;
-use torrust_tracker_primitives::DurationSinceUnixEpoch;
 use tracing::instrument;
 
 use super::repository::Repository;

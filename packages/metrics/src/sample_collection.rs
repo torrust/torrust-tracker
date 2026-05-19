@@ -3,7 +3,7 @@ use std::collections::hash_map::Iter;
 use std::fmt::Write as _;
 
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
-use torrust_tracker_primitives::DurationSinceUnixEpoch;
+use torrust_tracker_clock::DurationSinceUnixEpoch;
 
 use super::counter::Counter;
 use super::gauge::Gauge;
@@ -168,7 +168,7 @@ impl<T: PrometheusSerializable> PrometheusSerializable for SampleCollection<T> {
 
 #[cfg(test)]
 mod tests {
-    use torrust_tracker_primitives::DurationSinceUnixEpoch;
+    use torrust_tracker_clock::DurationSinceUnixEpoch;
 
     use crate::counter::Counter;
     use crate::label::LabelSet;

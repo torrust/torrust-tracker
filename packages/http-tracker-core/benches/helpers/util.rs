@@ -20,10 +20,11 @@ use bittorrent_tracker_core::whitelist::repository::in_memory::InMemoryWhitelist
 use futures::future::BoxFuture;
 use mockall::mock;
 use tokio_util::sync::CancellationToken;
+use torrust_tracker_clock::DurationSinceUnixEpoch;
 use torrust_tracker_configuration::{Configuration, Core};
 use torrust_tracker_events::sender::SendError;
 use torrust_tracker_primitives::peer::Peer;
-use torrust_tracker_primitives::{AnnounceEvent, DurationSinceUnixEpoch, NumberOfBytes, PeerId, peer};
+use torrust_tracker_primitives::{AnnounceEvent, NumberOfBytes, PeerId, peer};
 use torrust_tracker_test_helpers::configuration;
 
 pub struct CoreTrackerServices {

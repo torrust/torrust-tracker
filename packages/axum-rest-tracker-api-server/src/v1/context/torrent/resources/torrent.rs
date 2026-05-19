@@ -98,7 +98,8 @@ mod tests {
 
     use bittorrent_primitives::info_hash::InfoHash;
     use bittorrent_tracker_core::torrent::services::{BasicInfo, Info};
-    use torrust_tracker_primitives::{AnnounceEvent, DurationSinceUnixEpoch, NumberOfBytes, PeerId, peer};
+    use torrust_tracker_clock::DurationSinceUnixEpoch;
+    use torrust_tracker_primitives::{AnnounceEvent, NumberOfBytes, PeerId, peer};
 
     use super::Torrent;
     use crate::v1::context::torrent::resources::peer::Peer;

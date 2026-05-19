@@ -1,8 +1,8 @@
 use serde::Serialize;
+use torrust_tracker_clock::DurationSinceUnixEpoch;
 use torrust_tracker_metrics::label::LabelSet;
 use torrust_tracker_metrics::metric::MetricName;
 use torrust_tracker_metrics::metric_collection::{Error, MetricCollection};
-use torrust_tracker_primitives::DurationSinceUnixEpoch;
 
 /// Metrics collected by the torrent repository.
 #[derive(Debug, Clone, PartialEq, Default, Serialize)]

@@ -105,7 +105,7 @@
 //! ```rust,no_run
 //! use std::net::SocketAddr;
 //! use torrust_tracker_primitives::PeerId;
-//! use torrust_tracker_primitives::DurationSinceUnixEpoch;
+//! use torrust_tracker_clock::DurationSinceUnixEpoch;
 //! use torrust_tracker_primitives::NumberOfBytes;
 //! use torrust_tracker_primitives::AnnounceEvent;
 //!

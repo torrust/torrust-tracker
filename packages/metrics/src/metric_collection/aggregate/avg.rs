@@ -40,7 +40,7 @@ mod tests {
 
     mod it_should_allow_averaging_all_metric_samples_containing_some_given_labels {
 
-        use torrust_tracker_primitives::DurationSinceUnixEpoch;
+        use torrust_tracker_clock::DurationSinceUnixEpoch;
 
         use crate::label::LabelValue;
         use crate::label_name;

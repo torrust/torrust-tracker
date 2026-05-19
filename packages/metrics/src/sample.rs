@@ -1,6 +1,6 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Deserializer, Serialize, Serializer, de};
-use torrust_tracker_primitives::DurationSinceUnixEpoch;
+use torrust_tracker_clock::DurationSinceUnixEpoch;
 
 use super::counter::Counter;
 use super::gauge::Gauge;
@@ -188,7 +188,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use torrust_tracker_primitives::DurationSinceUnixEpoch;
+    use torrust_tracker_clock::DurationSinceUnixEpoch;
 
     use super::*;
 
@@ -264,7 +264,7 @@ mod tests {
     }
 
     mod for_counter_type_sample {
-        use torrust_tracker_primitives::DurationSinceUnixEpoch;
+        use torrust_tracker_clock::DurationSinceUnixEpoch;
 
         use crate::label::LabelSet;
         use crate::prometheus::PrometheusSerializable;
@@ -323,7 +323,7 @@ mod tests {
         }
     }
     mod for_gauge_type_sample {
-        use torrust_tracker_primitives::DurationSinceUnixEpoch;
+        use torrust_tracker_clock::DurationSinceUnixEpoch;
 
         use crate::label::LabelSet;
         use crate::prometheus::PrometheusSerializable;
@@ -403,7 +403,7 @@ mod tests {
     mod serialization_to_json {
         use pretty_assertions::assert_eq;
         use serde_json::json;
-        use torrust_tracker_primitives::DurationSinceUnixEpoch;
+        use torrust_tracker_clock::DurationSinceUnixEpoch;
 
         use crate::label::LabelSet;
         use crate::sample::Sample;

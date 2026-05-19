@@ -1,8 +1,6 @@
 use std::time::SystemTime;
 
-use torrust_tracker_primitives::DurationSinceUnixEpoch;
-
-use crate::clock;
+use crate::{DurationSinceUnixEpoch, clock};
 
 #[allow(clippy::module_name_repetitions)]
 pub struct WorkingClock;

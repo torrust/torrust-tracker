@@ -1,7 +1,8 @@
 use std::str::FromStr;
 
 use chrono::{DateTime, Utc};
-use torrust_tracker_primitives::DurationSinceUnixEpoch;
+
+use crate::DurationSinceUnixEpoch;
 
 /// It converts a string in ISO 8601 format to a timestamp.
 ///
@@ -50,8 +51,8 @@ pub fn convert_from_timestamp_to_datetime_utc(duration: DurationSinceUnixEpoch) 
 #[cfg(test)]
 mod tests {
     use chrono::DateTime;
-    use torrust_tracker_primitives::DurationSinceUnixEpoch;
 
+    use crate::DurationSinceUnixEpoch;
     use crate::conv::{
         convert_from_datetime_utc_to_timestamp, convert_from_iso_8601_to_timestamp, convert_from_timestamp_to_datetime_utc,
     };
