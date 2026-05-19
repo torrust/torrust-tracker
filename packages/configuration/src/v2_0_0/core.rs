@@ -1,10 +1,11 @@
 use derive_more::{Constructor, Display};
 use serde::{Deserialize, Serialize};
+use torrust_tracker_primitives::AnnouncePolicy;
 
 use super::network::Network;
+use crate::TrackerPolicy;
 use crate::v2_0_0::database::Database;
 use crate::validator::{SemanticValidationError, Validator};
-use crate::{AnnouncePolicy, TrackerPolicy};
 
 #[allow(clippy::struct_excessive_bools)]
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone)]

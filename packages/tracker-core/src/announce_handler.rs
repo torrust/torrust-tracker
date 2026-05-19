@@ -60,7 +60,7 @@
 //!
 //! ```rust,no_run
 //! use torrust_tracker_primitives::peer;
-//! use torrust_tracker_configuration::AnnouncePolicy;
+//! use torrust_tracker_primitives::AnnouncePolicy;
 //!
 //! pub struct AnnounceData {
 //!     pub peers: Vec<peer::Peer>,

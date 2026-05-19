@@ -15,7 +15,7 @@ pub mod swarm_metadata;
 
 use std::collections::BTreeMap;
 
-pub use announce::{AnnounceData, AnnounceEvent};
+pub use announce::{AnnounceData, AnnounceEvent, AnnouncePolicy};
 use bittorrent_primitives::info_hash::InfoHash;
 pub use number_of_bytes::NumberOfBytes;
 pub use peer_id::{PeerClient, PeerId};

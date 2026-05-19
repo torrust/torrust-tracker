@@ -34,6 +34,21 @@ manually before each push.
 > **⏱️ Expected runtime: ~5 minutes** on a modern developer machine with warm caches.
 > AI agents should set a command timeout of **at least 15 minutes** before invoking
 > `./contrib/dev-tools/git/hooks/pre-push.sh`.
+>
+> **For AI agents — `git push` is a long-running command:**
+> When the pre-push hook is installed, `git push` runs the full check suite (~5 minutes)
+> before sending objects to the remote. Do **not** poll, retry, or issue a second `git push`
+> while the first is still running. Wait for the IDE terminal-completion notification
+> (exit code + output) before taking any follow-up action.
+>
+> To avoid parsing shared terminal history (which other commands or the user may have
+> populated), redirect the output to a dedicated file and read that file for results:
+>
+> ```bash
+> git push <remote> <branch> > .tmp/push-output.txt 2>&1; echo "Exit: $?" >> .tmp/push-output.txt
+> ```
+>
+> The `.tmp/` directory is git-ignored. Clean stale files periodically.
 
 Run the pre-push script. **It must exit with code `0` before every push.**
 

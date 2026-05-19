@@ -222,56 +222,18 @@ impl Info {
     }
 }
 
-/// Announce policy
-#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone, Copy, Constructor)]
-pub struct AnnouncePolicy {
-    /// Interval in seconds that the client should wait between sending regular
-    /// announce requests to the tracker.
-    ///
-    /// It's a **recommended** wait time between announcements.
-    ///
-    /// This is the standard amount of time that clients should wait between
-    /// sending consecutive announcements to the tracker. This value is set by
-    /// the tracker and is typically provided in the tracker's response to a
-    /// client's initial request. It serves as a guideline for clients to know
-    /// how often they should contact the tracker for updates on the peer list,
-    /// while ensuring that the tracker is not overwhelmed with requests.
-    #[serde(default = "AnnouncePolicy::default_interval")]
-    pub interval: u32,
-
-    /// Minimum announce interval. Clients must not reannounce more frequently
-    /// than this.
-    ///
-    /// It establishes the shortest allowed wait time.
-    ///
-    /// This is an optional parameter in the protocol that the tracker may
-    /// provide in its response. It sets a lower limit on the frequency at which
-    /// clients are allowed to send announcements. Clients should respect this
-    /// value to prevent sending too many requests in a short period, which
-    /// could lead to excessive load on the tracker or even getting banned by
-    /// the tracker for not adhering to the rules.
-    #[serde(default = "AnnouncePolicy::default_interval_min")]
-    pub interval_min: u32,
-}
-
-impl Default for AnnouncePolicy {
-    fn default() -> Self {
-        Self {
-            interval: Self::default_interval(),
-            interval_min: Self::default_interval_min(),
-        }
-    }
-}
-
-impl AnnouncePolicy {
-    fn default_interval() -> u32 {
-        120
-    }
-
-    fn default_interval_min() -> u32 {
-        120
-    }
-}
+/// Announce policy for the `BitTorrent` announce cycle.
+///
+/// **Deprecated**: import from [`torrust_tracker_primitives::AnnouncePolicy`] instead.
+/// This re-export is kept for backwards compatibility and will be removed in a
+/// future release. Removal is tracked as a follow-up cleanup subissue of EPIC
+/// [#1669](https://github.com/torrust/torrust-tracker/issues/1669).
+#[deprecated(
+    since = "3.0.0-develop",
+    note = "import `AnnouncePolicy` from `torrust_tracker_primitives` instead; \
+            this re-export will be removed in a future release (see EPIC #1669)"
+)]
+pub use torrust_tracker_primitives::AnnouncePolicy;
 
 /// Errors that can occur when loading the configuration.
 #[derive(Error, Debug)]

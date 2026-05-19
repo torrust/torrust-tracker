@@ -622,7 +622,6 @@ dependencies = [
  "serde_bencode",
  "thiserror 2.0.18",
  "torrust-tracker-clock",
- "torrust-tracker-configuration",
  "torrust-tracker-contrib-bencode",
  "torrust-tracker-located-error",
  "torrust-tracker-primitives",
@@ -5600,6 +5599,7 @@ dependencies = [
  "thiserror 2.0.18",
  "toml 0.9.12+spec-1.1.0",
  "torrust-tracker-located-error",
+ "torrust-tracker-primitives",
  "tracing",
  "tracing-subscriber",
  "url",
@@ -5664,7 +5664,6 @@ dependencies = [
  "tdyne-peer-id-registry",
  "thiserror 2.0.18",
  "torrust-tracker-clock",
- "torrust-tracker-configuration",
  "url",
 ]
 
