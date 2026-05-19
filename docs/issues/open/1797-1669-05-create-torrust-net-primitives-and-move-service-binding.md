@@ -1,19 +1,20 @@
 ---
 doc-type: issue
 issue-type: task
-status: draft
+status: open
 priority: p2
-github-issue: null
-spec-path: docs/issues/drafts/1669-05-create-torrust-net-primitives-and-move-service-binding.md
-branch: null
+github-issue: 1797
+spec-path: docs/issues/open/1797-1669-05-create-torrust-net-primitives-and-move-service-binding.md
+branch: 1669-05-create-torrust-net-primitives-and-move-service-binding
 related-pr: null
-last-updated-utc: 2026-05-18 00:00
+last-updated-utc: 2026-05-19 00:00
 semantic-links:
   skill-links:
     - create-issue
   related-artifacts:
-    - packages/primitives/src/service_binding.rs
-    - packages/primitives/Cargo.toml
+    - packages/net-primitives/src/service_binding.rs
+    - packages/net-primitives/Cargo.toml
+    - packages/primitives/src/lib.rs
     - packages/server-lib/Cargo.toml
     - docs/issues/open/1669-overhaul-packages/EPIC.md
     - docs/issues/open/1669-overhaul-packages/workspace-coupling-report.md
@@ -21,7 +22,7 @@ semantic-links:
 
 <!-- skill-link: create-issue -->
 
-# Issue #[To be assigned] - Create `torrust-net-primitives` and move `ServiceBinding` from `torrust-tracker-primitives`
+# Issue #1797 - Create `torrust-net-primitives` and move `ServiceBinding` from `torrust-tracker-primitives`
 
 ## Goal
 
@@ -74,34 +75,35 @@ This issue is a subissue of EPIC [#1669](../open/1669-overhaul-packages/EPIC.md)
 - Moving other types from `torrust-tracker-primitives` into `torrust-net-primitives`; this
   subissue focuses only on `ServiceBinding`.
 - Publishing `torrust-net-primitives` to crates.io; that is handled in the release cycle.
-- Removing `ServiceBinding` from `torrust-tracker-primitives` for external consumers; the
-  crates.io semver bump is deferred.
+- Removing the `#[deprecated]` re-export of `ServiceBinding` from `torrust-tracker-primitives`
+  for external consumers; that requires a crates.io semver bump and is deferred.
 
 ## Implementation Plan
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| ID  | Status | Task                                                                                                                      | Notes / Expected Output                                                                          |
-| --- | ------ | ------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
-| T1  | TODO   | Locate all usage sites of `ServiceBinding` in the workspace                                                               | `grep -r "ServiceBinding" . --include="*.rs"` — build full consumer list                         |
-| T2  | TODO   | Create `packages/net-primitives/Cargo.toml` and `src/lib.rs`                                                              | `name = "torrust-net-primitives"`, `publish = true`; inherits workspace `edition`/`rust-version` |
-| T3  | TODO   | Add `packages/net-primitives` to workspace `[members]` in root `Cargo.toml`                                               | `cargo build -p torrust-net-primitives` succeeds                                                 |
-| T4  | TODO   | Move `service_binding` module to `packages/net-primitives/src/`                                                           | Module exported from `packages/net-primitives/src/lib.rs`                                        |
-| T5  | TODO   | Remove `service_binding` module from `packages/primitives/src/`                                                           | Module and re-export gone; `packages/primitives` no longer exposes `ServiceBinding`              |
-| T6  | TODO   | Update `packages/server-lib/Cargo.toml`: replace `torrust-tracker-primitives` dep with `torrust-net-primitives`           | `cargo build -p torrust-server-lib` succeeds; `cargo machete` clean                              |
-| T7  | TODO   | Update all other workspace files importing `ServiceBinding` from `torrust_tracker_primitives` to `torrust_net_primitives` | One-line change per file                                                                         |
-| T8  | TODO   | Run `cargo build --workspace` and `cargo test --workspace`                                                                | Clean build; all tests pass                                                                      |
-| T9  | TODO   | Run `linter all`                                                                                                          | Exit code `0`                                                                                    |
+| ID  | Status | Task                                                                                                                      | Notes / Expected Output                                                                                                                        |
+| --- | ------ | ------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| T1  | TODO   | Locate all usage sites of `ServiceBinding` in the workspace                                                               | `grep -r "ServiceBinding" . --include="*.rs"` — build full consumer list                                                                       |
+| T2  | TODO   | Create `packages/net-primitives/Cargo.toml` and `src/lib.rs`                                                              | `name = "torrust-net-primitives"`, `publish = true`; inherits workspace `edition`/`rust-version`                                               |
+| T3  | TODO   | Add `packages/net-primitives` to workspace `[members]` in root `Cargo.toml`                                               | `cargo build -p torrust-net-primitives` succeeds                                                                                               |
+| T4  | TODO   | Move `service_binding` module to `packages/net-primitives/src/`                                                           | Module exported from `packages/net-primitives/src/lib.rs`                                                                                      |
+| T5  | TODO   | Remove `service_binding` module definition from `packages/primitives/src/` and replace with a `#[deprecated]` re-export   | `packages/primitives` re-exports `ServiceBinding` via `#[deprecated]` from `torrust_net_primitives` (same pattern as `DurationSinceUnixEpoch`) |
+| T6  | TODO   | Update `packages/server-lib/Cargo.toml`: replace `torrust-tracker-primitives` dep with `torrust-net-primitives`           | `cargo build -p torrust-server-lib` succeeds; `cargo machete` clean                                                                            |
+| T7  | TODO   | Update all other workspace files importing `ServiceBinding` from `torrust_tracker_primitives` to `torrust_net_primitives` | One-line change per file                                                                                                                       |
+| T8  | TODO   | Run `cargo build --workspace` and `cargo test --workspace`                                                                | Clean build; all tests pass                                                                                                                    |
+| T9  | TODO   | Run `linter all`                                                                                                          | Exit code `0`                                                                                                                                  |
 
 ## Progress Tracking
 
 ### Workflow Checkpoints
 
-- [ ] Spec drafted in `docs/issues/drafts/`
-- [ ] Spec reviewed and approved by user/maintainer
+- [x] Spec drafted in `docs/issues/drafts/`
+- [x] Spec reviewed and approved by user/maintainer
 - [x] Package name confirmed: `torrust-net-primitives`
-- [ ] GitHub issue created and issue number added to this spec
-- [ ] Spec moved to `docs/issues/open/` with issue number prefix
+- [x] Backwards-compat strategy confirmed: `#[deprecated]` re-export in `torrust-tracker-primitives` (same pattern as `DurationSinceUnixEpoch`)
+- [x] GitHub issue created and issue number added to this spec
+- [x] Spec moved to `docs/issues/open/` with issue number prefix
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, `cargo test --workspace`)
 - [ ] Manual verification scenarios executed and recorded
@@ -114,15 +116,20 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-05-18 00:00 UTC - josecelano - Spec drafted as subissue of EPIC #1669, addressing F-04
   from the coupling analysis report. Package name `torrust-net-primitives` is a proposal pending
   confirmation.
+- 2026-05-19 00:00 UTC - josecelano - Spec updated: `#[deprecated]` re-export strategy confirmed
+  (same pattern as `DurationSinceUnixEpoch`). GitHub issue #1797 created. Spec moved to
+  `docs/issues/open/`.
 
 ## Acceptance Criteria
 
 - [ ] `packages/net-primitives/` exists and is a member of the workspace.
 - [ ] `torrust-net-primitives` exports `ServiceBinding` publicly.
-- [ ] `packages/primitives/src/` no longer defines `ServiceBinding`.
+- [ ] `packages/primitives/src/` no longer defines `ServiceBinding` (only re-exports it via `#[deprecated]`
+      from `torrust_net_primitives` for external crates.io consumer backwards compatibility).
 - [ ] `packages/server-lib/Cargo.toml` does not list `torrust-tracker-primitives` as a dependency
       (replaced by `torrust-net-primitives`).
-- [ ] No workspace file imports `ServiceBinding` from `torrust_tracker_primitives`.
+- [ ] No workspace file imports `ServiceBinding` from `torrust_tracker_primitives` directly
+      (workspace consumers use `torrust_net_primitives::service_binding`).
 - [ ] `cargo build --workspace` succeeds with zero errors.
 - [ ] `cargo test --workspace` passes with zero failures.
 - [ ] `linter all` exits with code `0`.
