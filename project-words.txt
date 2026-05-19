@@ -86,6 +86,7 @@ dtolnay
 dylib
 elif
 endianness
+eprint
 eprintln
 Eray
 eventfd

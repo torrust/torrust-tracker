@@ -225,13 +225,8 @@ here but are narrower in scope. The decision on disposition is:
 
 ### In Scope
 
-- All first-party, operator-facing CLI entrypoints shipped or documented in this repository,
-  including:
-  - `src/main.rs` — tracker server binary (long-running daemon; expected no-stdout-result class).
-  - `src/bin/http_health_check.rs` — expected stdout-result-data class (JSON health status).
-  - `src/bin/e2e_tests_runner.rs` and `src/bin/qbittorrent_e2e_runner.rs` — classification TBD.
-  - `src/bin/profiling.rs` — likely developer-only; may be out of normative scope.
-  - `console/tracker-client/` — all tracker-client subcommands.
+- All first-party, operator-facing CLI entrypoints shipped or documented in this repository.
+  See the binary classification table below.
 - The TTY refusal rule: **adopted as stated** (commands with stdout result data refuse when
   stdout is a TTY; exit 2 with JSON stderr diagnostic).
 - A shared Rust CLI infrastructure package (or a decision not to create one and why).
@@ -253,21 +248,57 @@ here but are narrower in scope. The decision on disposition is:
 - Implementation work — this issue is to produce the ADR only. A follow-up issue will cover
   migrating existing binaries to the contract.
 
+## Binary Classification (T1)
+
+All first-party binaries and their expected output class under the global contract.
+
+**Output classes:**
+
+- `stdout-result-data` — emits a JSON result object on stdout; TTY refusal applies.
+- `no-stdout-result` — emits nothing on stdout; pass/fail via exit code; all diagnostics
+  go to stderr (via tracing subscriber or `eprintln!` JSON).
+- `out-of-scope` — developer-only or tooling binary; not covered by the normative contract.
+
+**ADR compliance key:** ✓ already compliant · ✗ non-compliant (migration needed) · — not applicable
+
+| Binary                   | Entry Point                                             | Description                                   | Class                | Current State                                                                                    | ADR Compliance                                   |
+| ------------------------ | ------------------------------------------------------- | --------------------------------------------- | -------------------- | ------------------------------------------------------------------------------------------------ | ------------------------------------------------ |
+| `torrust-tracker`        | `src/main.rs`                                           | Long-running tracker daemon                   | `no-stdout-result`   | Uses `tracing::info!` only; no `println!`                                                        | ✓                                                |
+| `http_health_check`      | `src/bin/http_health_check.rs`                          | One-shot HTTP health probe                    | `stdout-result-data` | Uses plain-text `println!` ("Health check…", "STATUS:", "ERROR:")                                | ✗                                                |
+| `e2e_tests_runner`       | `src/bin/e2e_tests_runner.rs`                           | CI E2E test orchestrator (pass/fail)          | `no-stdout-result`   | Uses `tracing::info!` only; no `println!`; plain-text tracing subscriber                         | ✓ (partial — tracing subscriber needs JSON)      |
+| `qbittorrent_e2e_runner` | `src/bin/qbittorrent_e2e_runner.rs`                     | CI qBittorrent E2E orchestrator               | `no-stdout-result`   | Uses `tracing::info!` only; no `println!`; plain-text tracing subscriber                         | ✓ (partial — tracing subscriber needs JSON)      |
+| `profiling`              | `src/bin/profiling.rs`                                  | Developer profiling harness (valgrind)        | `out-of-scope`       | Uses `println!("Torrust successfully shutdown.")` and `eprintln!` for usage errors               | — (not in normative scope)                       |
+| `tracker_client`         | `console/tracker-client/src/bin/tracker_client.rs`      | Unified tracker client CLI                    | `stdout-result-data` | `http announce/scrape`, `udp announce/scrape` emit JSON via `println!`; errors on stderr as JSON | ✓ (partial — TTY refusal not yet implemented)    |
+| `http_tracker_client`    | `console/tracker-client/src/bin/http_tracker_client.rs` | **Deprecated** — wraps `tracker_client http`  | `stdout-result-data` | Delegates to `http::app::run()`; same JSON stdout behaviour                                      | ✗ (deprecated; removal preferred over migration) |
+| `udp_tracker_client`     | `console/tracker-client/src/bin/udp_tracker_client.rs`  | **Deprecated** — wraps `tracker_client udp`   | `stdout-result-data` | Delegates to `udp::app::run()`; same JSON stdout behaviour                                       | ✗ (deprecated; removal preferred over migration) |
+| `tracker_checker`        | `console/tracker-client/src/bin/tracker_checker.rs`     | **Deprecated** — wraps `tracker_client check` | `stdout-result-data` | Delegates to `checker::app::run()`; errors as JSON on stderr                                     | ✗ (deprecated; removal preferred over migration) |
+
+**Notes:**
+
+- `profiling` is excluded from the normative contract; it is a developer-only diagnostic
+  harness. The `println!` in it is ephemeral shutdown confirmation, not user-facing result data.
+- The three deprecated binaries (`http_tracker_client`, `udp_tracker_client`, `tracker_checker`)
+  should be **removed** (not migrated) as part of the follow-up implementation issue. They have
+  already been superseded by the unified `tracker_client` subcommands.
+- For `e2e_tests_runner` and `qbittorrent_e2e_runner`, the stdout channel is clean; the partial
+  non-compliance is that the `tracing` subscriber currently formats to plain text rather than JSON
+  NDJSON on stderr. That is addressed by the tracing subscriber setup, not by `println!` removal.
+
 ## Implementation Plan
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| ID  | Status | Task                                                                           | Notes / Expected Output                                                                                                                                                                                                                                                       |
-| --- | ------ | ------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| T1  | TODO   | Enumerate and classify all in-scope binaries                                   | A table of binaries with their expected class (stdout-result or no-stdout); base for ADR scope section                                                                                                                                                                        |
-| T2  | DONE   | Decide on TTY refusal rule                                                     | Decision: **adopt as stated** (maintainer confirmed 2026-05-19); rationale to be recorded in ADR text (T5)                                                                                                                                                                    |
-| T3  | TODO   | Decide on user-facing verbosity level scheme                                   | Define levels for user-facing progress/result output (distinct from internal `RUST_LOG` tracing levels); all levels must emit JSON; document rationale for the chosen set                                                                                                     |
-| T4  | TODO   | Decide on shared CLI infrastructure package                                    | Create `packages/tracker-cli-common` (mirroring `index-cli-common`) or use a lighter approach; consider whether extraction plan for tracker-client changes this                                                                                                               |
-| T5  | TODO   | Draft the global CLI output contract ADR                                       | File at `docs/adrs/YYYYMMDDHHMMSS_global_cli_output_contract.md`; follow the ADR template; reference this spec and related docs; **must include a migration policy section** stating that current code does not yet comply and migration is progressive via a follow-up issue |
-| T6  | TODO   | Mark tracker-client local ADR as superseded; narrow its companion contract doc | Local ADR marked superseded by the global ADR; companion contract doc scoped to tracker-client–only rules (NDJSON progress, tracker vs. app error taxonomy)                                                                                                                   |
-| T7  | TODO   | Define workspace lint guard policy                                             | Decide whether to deny `clippy::print_stdout` / `clippy::print_stderr` at workspace level; note interaction with issue #1786 (workspace lints migration)                                                                                                                      |
-| T8  | TODO   | Peer-review ADR draft                                                          | At minimum one review pass before accepting; update status to `Accepted`                                                                                                                                                                                                      |
-| T9  | TODO   | Add ADR to `docs/adrs/index.md`                                                | Row added to the index table                                                                                                                                                                                                                                                  |
+| ID  | Status | Task                                                                           | Notes / Expected Output                                                                                                                                                                                           |
+| --- | ------ | ------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| T1  | DONE   | Enumerate and classify all in-scope binaries                                   | Binary classification table added to spec above; base for ADR scope section                                                                                                                                       |
+| T2  | DONE   | Decide on TTY refusal rule                                                     | Decision: **adopt as stated** (maintainer confirmed 2026-05-19); rationale to be recorded in ADR text (T5)                                                                                                        |
+| T3  | DONE   | Decide on user-facing verbosity level scheme                                   | Decision: **no global scheme** — verbosity is command-specific; the ADR only prescribes that any output at any verbosity level must comply with the JSON contract (no plain text on stdout or stderr)             |
+| T4  | DONE   | Decide on shared CLI infrastructure package                                    | Decision: **not an ADR concern** — the ADR references Index `cli-common` as a reference implementation only; start simple; extract common code gradually as project needs arise; no package prescribed by the ADR |
+| T5  | DONE   | Draft the global CLI output contract ADR                                       | File: `docs/adrs/20260519000000_define_global_cli_output_contract.md`; follows ADR template; includes migration policy section; linter passes                                                                     |
+| T6  | DONE   | Mark tracker-client local ADR as superseded; narrow its companion contract doc | Local ADR status changed to `Superseded by 20260519000000`; companion contract doc scope note added                                                                                                               |
+| T7  | TODO   | Define workspace lint guard policy                                             | Decide whether to deny `clippy::print_stdout` / `clippy::print_stderr` at workspace level; note interaction with issue #1786 (workspace lints migration)                                                          |
+| T8  | TODO   | Peer-review ADR draft                                                          | At minimum one review pass before accepting; update status to `Accepted`                                                                                                                                          |
+| T9  | DONE   | Add ADR to `docs/adrs/index.md`                                                | Row added to the index table                                                                                                                                                                                      |
 
 ## Progress Tracking
 
@@ -276,14 +307,14 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Spec drafted in `docs/issues/drafts/`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
-- [ ] ADR draft written
+- [x] ADR draft written (`docs/adrs/20260519000000_define_global_cli_output_contract.md`)
 - [x] TTY refusal decision confirmed by maintainer (adopt as stated, 2026-05-19)
-- [ ] TTY refusal decision recorded in ADR
-- [ ] Verbosity level scheme decided and recorded in ADR
-- [ ] Shared infrastructure decision recorded in ADR
-- [ ] Existing tracker-client local ADR marked superseded; companion contract doc narrowed
+- [x] TTY refusal decision recorded in ADR (section 4)
+- [x] Verbosity level scheme decided: no global scheme; command-specific; JSON constraint only (2026-05-19)
+- [x] Shared infrastructure decided: not an ADR concern; Index `cli-common` as reference only (2026-05-19)
+- [x] Existing tracker-client local ADR marked superseded; companion contract doc scope noted
 - [ ] ADR peer-reviewed and status set to `Accepted`
-- [ ] ADR added to `docs/adrs/index.md`
+- [x] ADR added to `docs/adrs/index.md`
 - [ ] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved from `docs/issues/drafts/` to `docs/issues/closed/`
 
@@ -301,19 +332,35 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-05-19 13:00 UTC - Copilot (GitHub Copilot) - Clarified that the ADR is prescriptive;
   current code does not yet comply; migration is progressive via a follow-up issue; Goal section
   updated with explicit notice; T5 notes require migration policy section; AC12 and M8 added.
-- 2026-05-19 14:00 UTC - Copilot (GitHub Copilot) - Linter passed (fixed British spelling
-  "realising" → "realizing"); GitHub issue #1798 created; spec promoted to
+- 2026-05-19 14:00 UTC - Copilot (GitHub Copilot) - Linter passed (fixed British-spelling
+  variant to American spelling); GitHub issue #1798 created; spec promoted to
   `docs/issues/open/1798-global-cli-output-contract-adr.md`; branch
   `1798-global-cli-output-contract-adr` created.
+- 2026-05-19 (session 3) - Copilot (GitHub Copilot) - T1 DONE: inspected all `src/bin/` entry
+  points and `console/tracker-client/` binaries; produced binary classification table (9
+  binaries); key findings: `http_health_check` is the only `src/bin/` binary needing stdout-JSON
+  migration; `e2e_tests_runner` and `qbittorrent_e2e_runner` are stdout-clean (tracing subscriber
+  needs JSON); three deprecated tracker-client binaries should be removed, not migrated; `profiling`
+  is out of normative scope. Scope section updated; T1 marked DONE.
+- 2026-05-19 (session 3) - Copilot (GitHub Copilot) - T3 DONE: maintainer decision — no global
+  verbosity scheme; verbosity is command-specific; ADR only constrains that all output at any
+  verbosity level must comply with the JSON contract. T4 DONE: shared infra package is not an
+  ADR concern; Index `cli-common` referenced as a reference implementation only; start simple
+  and extract common code gradually. Implementation Plan and Workflow Checkpoints updated.
+- 2026-05-19 (session 3) - Copilot (GitHub Copilot) - T5 DONE: ADR drafted at
+  `docs/adrs/20260519000000_define_global_cli_output_contract.md`; linter passes. T6 DONE:
+  tracker-client local ADR status changed to Superseded. T9 DONE: ADR row added to
+  `docs/adrs/index.md`. `project-words.txt` updated with `eprint`. Spec updated.
 
 ## Acceptance Criteria
 
 - [ ] AC1: A new ADR file exists at `docs/adrs/YYYYMMDDHHMMSS_global_cli_output_contract.md`.
 - [ ] AC2: The ADR states the output class (stdout-result or no-stdout) for every in-scope binary.
 - [ ] AC3: The ADR makes a concrete, documented decision on TTY refusal (adopt / reject / caveats).
-- [ ] AC4: The ADR defines the user-facing output verbosity level scheme (distinct from internal
-      tracing log levels), with rationale for the chosen set of levels.
-- [ ] AC5: The ADR makes a concrete decision on a shared CLI infrastructure package.
+- [ ] AC4: The ADR states that user-facing verbosity is command-specific and not globally
+      prescribed; it constrains only that all output at any verbosity level must be JSON.
+- [ ] AC5: The ADR states that shared CLI infrastructure is not prescribed; it references
+      Index `cli-common` as a reference implementation and defers extraction to project needs.
 - [ ] AC6: The ADR defines the redaction policy for JSON diagnostics.
 - [ ] AC7: The tracker-client local ADR is marked superseded and the companion contract doc is
       narrowed to tracker-client–specific rules.
