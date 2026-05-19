@@ -39,21 +39,21 @@ features must already comply; only pre-existing usages are migrated here.
 A workspace-wide grep found **46 occurrences** of direct print macros across the codebase
 (as of 2026-05-19). The breakdown by area is:
 
-| Area | Files | Occurrences | Action |
-| ---- | ----- | ----------- | ------ |
-| `src/bin/http_health_check.rs` | 1 | 5 | Migrate to JSON stdout/stderr |
-| `src/console/profiling.rs` | 1 | 3 | Out of scope (developer harness; excluded by ADR) |
-| `console/tracker-client/src/bin/tracker_client.rs` | 1 | 2 | Wire TTY refusal; already nearly compliant |
-| `console/tracker-client/src/bin/udp_tracker_client.rs` | 1 | 1 | Remove (deprecated binary) |
-| `console/tracker-client/src/bin/http_tracker_client.rs` | 1 | 1 | Remove (deprecated binary) |
-| `console/tracker-client/src/bin/tracker_checker.rs` | 1 | 2 | Remove (deprecated binary) |
-| `console/tracker-client/src/console/clients/` | ~6 | ~16 | Rewrite console abstraction layer to emit JSON |
-| `packages/configuration/src/lib.rs` | 1 | 3 | Replace with `tracing::info!` |
-| `packages/udp-tracker-core/src/services/banning.rs` | 1 | 1 | Replace or remove debug print |
-| `packages/tracker-core/src/databases/driver/{mysql,postgres}/mod.rs` | 2 | 2 | Replace with `tracing::info!` (test-skip messages) |
-| `packages/tracker-core/src/bin/persistence_benchmark/runner.rs` | 1 | 1 | Assess: JSON output or out of scope |
-| `packages/test-helpers/src/logging.rs` | 1 | 1 | Assess: test-only; may warrant `#[allow]` |
-| `contrib/dev-tools/analysis/workspace-coupling/src/main.rs` | 1 | 6 | Assess: dev tool; may be out of scope |
+| Area                                                                 | Files | Occurrences | Action                                             |
+| -------------------------------------------------------------------- | ----- | ----------- | -------------------------------------------------- |
+| `src/bin/http_health_check.rs`                                       | 1     | 5           | Migrate to JSON stdout/stderr                      |
+| `src/console/profiling.rs`                                           | 1     | 3           | Out of scope (developer harness; excluded by ADR)  |
+| `console/tracker-client/src/bin/tracker_client.rs`                   | 1     | 2           | Wire TTY refusal; already nearly compliant         |
+| `console/tracker-client/src/bin/udp_tracker_client.rs`               | 1     | 1           | Remove (deprecated binary)                         |
+| `console/tracker-client/src/bin/http_tracker_client.rs`              | 1     | 1           | Remove (deprecated binary)                         |
+| `console/tracker-client/src/bin/tracker_checker.rs`                  | 1     | 2           | Remove (deprecated binary)                         |
+| `console/tracker-client/src/console/clients/`                        | ~6    | ~16         | Rewrite console abstraction layer to emit JSON     |
+| `packages/configuration/src/lib.rs`                                  | 1     | 3           | Replace with `tracing::info!`                      |
+| `packages/udp-tracker-core/src/services/banning.rs`                  | 1     | 1           | Replace or remove debug print                      |
+| `packages/tracker-core/src/databases/driver/{mysql,postgres}/mod.rs` | 2     | 2           | Replace with `tracing::info!` (test-skip messages) |
+| `packages/tracker-core/src/bin/persistence_benchmark/runner.rs`      | 1     | 1           | Assess: JSON output or out of scope                |
+| `packages/test-helpers/src/logging.rs`                               | 1     | 1           | Assess: test-only; may warrant `#[allow]`          |
+| `contrib/dev-tools/analysis/workspace-coupling/src/main.rs`          | 1     | 6           | Assess: dev tool; may be out of scope              |
 
 ## Out of Scope
 
@@ -63,30 +63,30 @@ A workspace-wide grep found **46 occurrences** of direct print macros across the
 
 ## Acceptance Criteria
 
-| ID  | Criterion |
-| --- | --------- |
-| AC1 | `src/bin/http_health_check.rs` emits a single JSON object on stdout on success and a JSON record on stderr on failure; no `println!` or `eprintln!` remain. |
-| AC2 | `console/tracker-client/src/bin/tracker_client.rs` refuses to run when stdout is a TTY (exit 2, JSON stderr diagnostic). |
-| AC3 | Deprecated binaries `udp_tracker_client`, `http_tracker_client`, and `tracker_checker` are removed from the repository. |
-| AC4 | `packages/configuration/src/lib.rs` uses `tracing` for configuration loading notifications; no `println!` remain. |
+| ID  | Criterion                                                                                                                                                                                                          |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| AC1 | `src/bin/http_health_check.rs` emits a single JSON object on stdout on success and a JSON record on stderr on failure; no `println!` or `eprintln!` remain.                                                        |
+| AC2 | `console/tracker-client/src/bin/tracker_client.rs` refuses to run when stdout is a TTY (exit 2, JSON stderr diagnostic).                                                                                           |
+| AC3 | Deprecated binaries `udp_tracker_client`, `http_tracker_client`, and `tracker_checker` are removed from the repository.                                                                                            |
+| AC4 | `packages/configuration/src/lib.rs` uses `tracing` for configuration loading notifications; no `println!` remain.                                                                                                  |
 | AC5 | All remaining in-scope `print!`/`println!`/`eprint!`/`eprintln!` usages are either migrated or carry an explicit `#[allow(clippy::print_stdout)]` / `#[allow(clippy::print_stderr)]` with a justification comment. |
-| AC6 | `clippy::print_stdout = "deny"` and `clippy::print_stderr = "deny"` are added to `[workspace.lints.clippy]` in the root `Cargo.toml`. |
-| AC7 | `cargo clippy --workspace --all-targets --all-features` passes with no new warnings or errors. |
-| AC8 | All existing tests pass. |
+| AC6 | `clippy::print_stdout = "deny"` and `clippy::print_stderr = "deny"` are added to `[workspace.lints.clippy]` in the root `Cargo.toml`.                                                                              |
+| AC7 | `cargo clippy --workspace --all-targets --all-features` passes with no new warnings or errors.                                                                                                                     |
+| AC8 | All existing tests pass.                                                                                                                                                                                           |
 
 ## Implementation Plan
 
-| ID  | Status    | Task | Notes |
-| --- | --------- | ---- | ----- |
-| T1  | TODO | Remove deprecated binaries | Delete `udp_tracker_client.rs`, `http_tracker_client.rs`, `tracker_checker.rs` and their `Cargo.toml` entries |
-| T2  | TODO | Migrate `http_health_check` to JSON output | Rewrite to emit `{"status":"ok"}` / `{"status":"error","message":"..."}` on stdout; usage errors as JSON on stderr |
-| T3  | TODO | Wire TTY refusal into `tracker_client` | Check `stdout.is_terminal()` at entry; exit 2 with JSON stderr diagnostic if true |
-| T4  | TODO | Rewrite tracker-client console abstraction layer | Replace `console.rs` and related print calls in `clients/` with JSON emitters |
-| T5  | TODO | Replace `println!` in `packages/configuration` with `tracing` | Three config-loading notification messages |
-| T6  | TODO | Replace debug print in `packages/udp-tracker-core/src/services/banning.rs` | Remove or replace with `tracing::debug!` |
-| T7  | TODO | Replace test-skip `println!` in database drivers | Replace with `tracing::info!` or `eprintln!` under `#[allow]` with justification |
-| T8  | TODO | Assess `persistence_benchmark` and `test-helpers` usages | Decide: JSON output, `tracing`, or `#[allow]` with justification |
-| T9  | TODO | Enable workspace-level lint denials | Add `print_stdout = "deny"` and `print_stderr = "deny"` to `[workspace.lints.clippy]` in root `Cargo.toml`; ensure `cargo clippy` passes |
+| ID  | Status | Task                                                                       | Notes                                                                                                                                    |
+| --- | ------ | -------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| T1  | TODO   | Remove deprecated binaries                                                 | Delete `udp_tracker_client.rs`, `http_tracker_client.rs`, `tracker_checker.rs` and their `Cargo.toml` entries                            |
+| T2  | TODO   | Migrate `http_health_check` to JSON output                                 | Rewrite to emit `{"status":"ok"}` / `{"status":"error","message":"..."}` on stdout; usage errors as JSON on stderr                       |
+| T3  | TODO   | Wire TTY refusal into `tracker_client`                                     | Check `stdout.is_terminal()` at entry; exit 2 with JSON stderr diagnostic if true                                                        |
+| T4  | TODO   | Rewrite tracker-client console abstraction layer                           | Replace `console.rs` and related print calls in `clients/` with JSON emitters                                                            |
+| T5  | TODO   | Replace `println!` in `packages/configuration` with `tracing`              | Three config-loading notification messages                                                                                               |
+| T6  | TODO   | Replace debug print in `packages/udp-tracker-core/src/services/banning.rs` | Remove or replace with `tracing::debug!`                                                                                                 |
+| T7  | TODO   | Replace test-skip `println!` in database drivers                           | Replace with `tracing::info!` or `eprintln!` under `#[allow]` with justification                                                         |
+| T8  | TODO   | Assess `persistence_benchmark` and `test-helpers` usages                   | Decide: JSON output, `tracing`, or `#[allow]` with justification                                                                         |
+| T9  | TODO   | Enable workspace-level lint denials                                        | Add `print_stdout = "deny"` and `print_stderr = "deny"` to `[workspace.lints.clippy]` in root `Cargo.toml`; ensure `cargo clippy` passes |
 
 ## Progress Tracking
 

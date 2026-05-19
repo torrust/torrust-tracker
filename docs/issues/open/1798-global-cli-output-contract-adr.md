@@ -7,7 +7,7 @@ github-issue: 1798
 spec-path: docs/issues/open/1798-global-cli-output-contract-adr.md
 branch: 1798-global-cli-output-contract-adr
 related-pr: null
-last-updated-utc: 2026-05-19 14:00
+last-updated-utc: 2026-05-19 20:30
 semantic-links:
   skill-links:
     - create-issue
@@ -296,8 +296,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T4  | DONE   | Decide on shared CLI infrastructure package                                    | Decision: **not an ADR concern** — the ADR references Index `cli-common` as a reference implementation only; start simple; extract common code gradually as project needs arise; no package prescribed by the ADR |
 | T5  | DONE   | Draft the global CLI output contract ADR                                       | File: `docs/adrs/20260519000000_define_global_cli_output_contract.md`; follows ADR template; includes migration policy section; linter passes                                                                     |
 | T6  | DONE   | Mark tracker-client local ADR as superseded; narrow its companion contract doc | Local ADR status changed to `Superseded by 20260519000000`; companion contract doc scope note added                                                                                                               |
-| T7  | TODO   | Define workspace lint guard policy                                             | Decide whether to deny `clippy::print_stdout` / `clippy::print_stderr` at workspace level; note interaction with issue #1786 (workspace lints migration)                                                          |
-| T8  | TODO   | Peer-review ADR draft                                                          | At minimum one review pass before accepting; update status to `Accepted`                                                                                                                                          |
+| T7  | DONE   | Define workspace lint guard policy                                             | Decision: defer implementation to follow-up issue `docs/issues/drafts/cli-output-contract-migration.md`; ADR section 8 documents the policy                                                                       |
+| T8  | TODO   | Peer-review ADR draft via PR                                                   | Open PR from `1798-global-cli-output-contract-adr` → `develop`; PR review is the acceptance gate; once merged, the ADR is accepted per lifecycle policy (see `docs/adrs/index.md`)                                |
 | T9  | DONE   | Add ADR to `docs/adrs/index.md`                                                | Row added to the index table                                                                                                                                                                                      |
 
 ## Progress Tracking
@@ -313,10 +313,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Verbosity level scheme decided: no global scheme; command-specific; JSON constraint only (2026-05-19)
 - [x] Shared infrastructure decided: not an ADR concern; Index `cli-common` as reference only (2026-05-19)
 - [x] Existing tracker-client local ADR marked superseded; companion contract doc scope noted
-- [ ] ADR peer-reviewed and status set to `Accepted`
+- [ ] PR opened, reviewed, and merged to `develop` (merged = accepted per ADR lifecycle policy)
 - [x] ADR added to `docs/adrs/index.md`
 - [x] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/drafts/` to `docs/issues/closed/`
+- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -351,6 +351,12 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   `docs/adrs/20260519000000_define_global_cli_output_contract.md`; linter passes. T6 DONE:
   tracker-client local ADR status changed to Superseded. T9 DONE: ADR row added to
   `docs/adrs/index.md`. `project-words.txt` updated with `eprint`. Spec updated.
+- 2026-05-19 (session 4) - Copilot (GitHub Copilot) - Removed `- Status: Proposed` from ADR
+  (merged ADRs are implicitly accepted; PR review is the acceptance gate). Added ADR Lifecycle
+  section to `docs/adrs/index.md` and `### ADR Status` subsection to `create-adr` skill.
+  T7 DONE: workspace lint guard deferred to follow-up draft issue
+  `docs/issues/drafts/cli-output-contract-migration.md` (46 print macro occurrences surveyed;
+  9-task migration plan drafted). T8 remains: open PR and get it merged.
 
 ## Acceptance Criteria
 
@@ -366,7 +372,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
       narrowed to tracker-client–specific rules.
 - [ ] AC8: The ADR defines the workspace lint guard policy for `print_stdout` / `print_stderr`.
 - [ ] AC9: The ADR is added to `docs/adrs/index.md`.
-- [ ] AC10: The ADR is status `Accepted` after at least one review pass.
+- [ ] AC10: The ADR is merged to `develop` via PR review (merged = accepted per ADR lifecycle; no explicit status field needed).
 - [ ] AC11: The ADR includes a recommended practice for AI agents driving CLI commands
       (per-command output redirection to `.tmp/<command>.stdout` and `.tmp/<command>.stderr`,
       with rationale tied to the JSON-on-both-channels contract).
