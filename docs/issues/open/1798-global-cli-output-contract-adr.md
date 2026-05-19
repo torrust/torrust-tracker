@@ -315,7 +315,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Existing tracker-client local ADR marked superseded; companion contract doc scope noted
 - [ ] ADR peer-reviewed and status set to `Accepted`
 - [x] ADR added to `docs/adrs/index.md`
-- [ ] Committer verified spec progress is up to date before commit
+- [x] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved from `docs/issues/drafts/` to `docs/issues/closed/`
 
 ### Progress Log

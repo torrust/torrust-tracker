@@ -1,7 +1,5 @@
 # Define the Global CLI Output Contract
 
-- Status: Proposed
-
 ## Description
 
 The Torrust Tracker repository ships several CLI binaries: the tracker server daemon
