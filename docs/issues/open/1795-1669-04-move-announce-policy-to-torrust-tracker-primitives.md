@@ -1,11 +1,11 @@
 ---
 doc-type: issue
 issue-type: task
-status: draft
+status: open
 priority: p2
-github-issue: null
-spec-path: docs/issues/drafts/1669-04-move-announce-policy-to-torrust-tracker-primitives.md
-branch: null
+github-issue: 1795
+spec-path: docs/issues/open/1795-1669-04-move-announce-policy-to-torrust-tracker-primitives.md
+branch: 1669-04-move-announce-policy-to-torrust-tracker-primitives
 related-pr: null
 last-updated-utc: 2026-05-18 00:00
 semantic-links:
@@ -16,12 +16,13 @@ semantic-links:
     - packages/primitives/src/lib.rs
     - packages/primitives/Cargo.toml
     - docs/issues/open/1669-overhaul-packages/EPIC.md
+    - https://github.com/torrust/torrust-tracker/issues/1795
     - docs/issues/open/1669-overhaul-packages/workspace-coupling-report.md
 ---
 
 <!-- skill-link: create-issue -->
 
-# Issue #[To be assigned] - Move `AnnouncePolicy` from `torrust-tracker-configuration` to `torrust-tracker-primitives`
+# Issue #1795 - Move `AnnouncePolicy` from `torrust-tracker-configuration` to `torrust-tracker-primitives`
 
 ## Goal
 
@@ -93,10 +94,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 ### Workflow Checkpoints
 
-- [ ] Spec drafted in `docs/issues/drafts/`
-- [ ] Spec reviewed and approved by user/maintainer
-- [ ] GitHub issue created and issue number added to this spec
-- [ ] Spec moved to `docs/issues/open/` with issue number prefix
+- [x] Spec drafted in `docs/issues/drafts/`
+- [x] Spec reviewed and approved by user/maintainer
+- [x] GitHub issue created and issue number added to this spec
+- [x] Spec moved to `docs/issues/open/` with issue number prefix
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, `cargo test --workspace`)
 - [ ] Manual verification scenarios executed and recorded
