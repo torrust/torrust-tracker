@@ -2,8 +2,8 @@
 //!
 //! For every workspace package that has workspace-level dependencies the tool:
 //!   1. Lists the declared workspace dependencies (normal / dev / build).
-//!   2. Scans the package's `src/` directory for `use DEP_MODULE::` statements and
-//!      fully-qualified `DEP_MODULE::` path references, then lists the distinct
+//!   2. Scans the package's `src/`, `tests/`, and `benches/` directories for `use DEP_MODULE::`
+//!      statements and fully-qualified `DEP_MODULE::` path references, then lists the distinct
 //!      top-level import paths found.
 //!
 //! # Usage
@@ -72,7 +72,7 @@ struct ScanResult {
     has_any_reference: bool,
 }
 
-fn scan_imports(src_dir: &Path, module_name: &str) -> ScanResult {
+fn scan_imports(dirs: &[&Path], module_name: &str) -> ScanResult {
     let import_pattern = format!(r"{module_name}::[A-Za-z_][A-Za-z0-9_]*(?:::[A-Za-z_][A-Za-z0-9_]*)?");
     let import_re = Regex::new(&import_pattern).expect("import regex is valid");
     let any_pattern = format!(r"\b{module_name}\b");
@@ -83,25 +83,27 @@ fn scan_imports(src_dir: &Path, module_name: &str) -> ScanResult {
         has_any_reference: false,
     };
 
-    if !src_dir.is_dir() {
-        return result;
-    }
-
-    for entry in WalkDir::new(src_dir)
-        .into_iter()
-        .filter_map(Result::ok)
-        .filter(|e| e.path().extension().is_some_and(|ext| ext == "rs"))
-    {
-        let Ok(content) = fs::read_to_string(entry.path()) else {
+    for dir in dirs {
+        if !dir.is_dir() {
             continue;
-        };
-
-        for m in import_re.find_iter(&content) {
-            result.imports.insert(m.as_str().to_owned());
         }
 
-        if !result.has_any_reference && any_re.is_match(&content) {
-            result.has_any_reference = true;
+        for entry in WalkDir::new(dir)
+            .into_iter()
+            .filter_map(Result::ok)
+            .filter(|e| e.path().extension().is_some_and(|ext| ext == "rs"))
+        {
+            let Ok(content) = fs::read_to_string(entry.path()) else {
+                continue;
+            };
+
+            for m in import_re.find_iter(&content) {
+                result.imports.insert(m.as_str().to_owned());
+            }
+
+            if !result.has_any_reference && any_re.is_match(&content) {
+                result.has_any_reference = true;
+            }
         }
     }
 
@@ -142,10 +144,14 @@ fn write_header(out: &mut String, total: usize, timestamp: &str) {
     writeln!(out, "- **Dev dep** — required only in tests and benchmarks.").unwrap();
     writeln!(out, "- **Build dep** — required only in `build.rs`.").unwrap();
     writeln!(out).unwrap();
-    writeln!(out, "Items are extracted by scanning the package's `src/` directory for").unwrap();
     writeln!(
         out,
-        "`use MODULE::` statements and `MODULE::` fully-qualified path references."
+        "Items are extracted by scanning the package's `src/`, `tests/`, and `benches/`"
+    )
+    .unwrap();
+    writeln!(
+        out,
+        "directories for `use MODULE::` statements and `MODULE::` fully-qualified path references."
     )
     .unwrap();
     writeln!(
@@ -200,13 +206,13 @@ fn write_leaves(out: &mut String, meta: &Metadata, ws_ids: &HashSet<&str>, ws_na
     writeln!(out).unwrap();
 }
 
-fn write_dep_section(out: &mut String, dep: &Dep, src_dir: &Path) {
+fn write_dep_section(out: &mut String, dep: &Dep, scan_dirs: &[&Path]) {
     let kind = dep_kind_label(dep.kind.as_deref());
     writeln!(out, "#### `{}` [{kind}]", dep.name).unwrap();
     writeln!(out).unwrap();
 
     let module = crate_to_module(&dep.name);
-    let scan = scan_imports(src_dir, &module);
+    let scan = scan_imports(scan_dirs, &module);
 
     if !scan.imports.is_empty() {
         for import in &scan.imports {
@@ -218,14 +224,14 @@ fn write_dep_section(out: &mut String, dep: &Dep, src_dir: &Path) {
             "_Items not extracted — dependency used without a direct `use` path (macro, re-export, or glob import)._"
         )
         .unwrap();
-    } else if src_dir.is_dir() {
+    } else if scan_dirs.iter().any(|d| d.is_dir()) {
         writeln!(
             out,
-            "_No `{module}::` references found in `src/` — may be used only in `Cargo.toml` feature flags or `build.rs`._"
+            "_No `{module}::` references found in source — may be used only in `Cargo.toml` feature flags or `build.rs`._"
         )
         .unwrap();
     } else {
-        writeln!(out, "_Source directory `src/` not found._").unwrap();
+        writeln!(out, "_Source directories not found._").unwrap();
     }
 
     writeln!(out).unwrap();
@@ -243,6 +249,9 @@ fn write_coupling_details(out: &mut String, meta: &Metadata, ws_ids: &HashSet<&s
             .parent()
             .expect("manifest path has a parent directory");
         let src_dir = manifest_dir.join("src");
+        let tests_dir = manifest_dir.join("tests");
+        let benches_dir = manifest_dir.join("benches");
+        let scan_dirs = [src_dir.as_path(), tests_dir.as_path(), benches_dir.as_path()];
 
         let mut ws_deps: Vec<&Dep> = pkg
             .dependencies
@@ -266,7 +275,7 @@ fn write_coupling_details(out: &mut String, meta: &Metadata, ws_ids: &HashSet<&s
         writeln!(out).unwrap();
 
         for dep in ws_deps {
-            write_dep_section(out, dep, &src_dir);
+            write_dep_section(out, dep, &scan_dirs);
         }
     }
 }
@@ -276,7 +285,7 @@ fn write_observations(out: &mut String) {
     writeln!(out).unwrap();
     writeln!(out, "## Observations").unwrap();
     writeln!(out).unwrap();
-    writeln!(out, "_(To be filled in after reviewing the report above.)_").unwrap();
+    writeln!(out, "To be filled in after reviewing the report above.").unwrap();
     writeln!(out).unwrap();
     writeln!(out, "### Known thin dependencies (pre-existing)").unwrap();
     writeln!(out).unwrap();
@@ -289,11 +298,10 @@ fn write_observations(out: &mut String) {
     writeln!(out).unwrap();
     writeln!(
         out,
-        "_(Record any new thin-dependency or cluster-dependency findings here, with a"
+        "Record any new thin-dependency or cluster-dependency findings here, with a"
     )
     .unwrap();
-    writeln!(out, "reference to the subissue opened for each.)_").unwrap();
-    writeln!(out).unwrap();
+    writeln!(out, "reference to the subissue opened for each.").unwrap();
 }
 
 fn generate_report(meta: &Metadata) -> String {

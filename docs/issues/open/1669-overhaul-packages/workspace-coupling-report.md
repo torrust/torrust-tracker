@@ -1,6 +1,6 @@
 # Workspace Coupling Report
 
-Generated: 2026-05-19 20:05 UTC
+Generated: 2026-05-19 20:46 UTC
 
 Workspace packages: 29
 
@@ -15,8 +15,8 @@ dependency. For every dependency the items actually imported from it are listed:
 - **Dev dep** — required only in tests and benchmarks.
 - **Build dep** — required only in `build.rs`.
 
-Items are extracted by scanning the package's `src/` directory for
-`use MODULE::` statements and `MODULE::` fully-qualified path references.
+Items are extracted by scanning the package's `src/`, `tests/`, and `benches/`
+directories for `use MODULE::` statements and `MODULE::` fully-qualified path references.
 The scan is text-based; it may miss items imported through re-exports or macros,
 but it is accurate enough to identify thin-dependency patterns.
 
@@ -248,10 +248,11 @@ Workspace deps: 9
 - `torrust_tracker_swarm_coordination_registry::container::SwarmCoordinationRegistryContainer`
 - `torrust_tracker_swarm_coordination_registry::event::Event`
 - `torrust_tracker_swarm_coordination_registry::event::receiver`
+- `torrust_tracker_swarm_coordination_registry::statistics::event`
 
 #### `torrust-rest-tracker-api-client` [dev]
 
-_No `torrust_rest_tracker_api_client::` references found in `src/` — may be used only in `Cargo.toml` feature flags or `build.rs`._
+_No `torrust_rest_tracker_api_client::` references found in source — may be used only in `Cargo.toml` feature flags or `build.rs`._
 
 #### `torrust-tracker-test-helpers` [dev]
 
@@ -341,7 +342,7 @@ _Items not extracted — dependency used without a direct `use` path (macro, re-
 
 #### `torrust-tracker-test-helpers` [dev]
 
-_No `torrust_tracker_test_helpers::` references found in `src/` — may be used only in `Cargo.toml` feature flags or `build.rs`._
+_No `torrust_tracker_test_helpers::` references found in source — may be used only in `Cargo.toml` feature flags or `build.rs`._
 
 ### `bittorrent-udp-tracker-protocol`
 
@@ -377,27 +378,28 @@ Workspace deps: 10
 
 #### `torrust-axum-health-check-api-server` [dev]
 
-_No `torrust_axum_health_check_api_server::` references found in `src/` — may be used only in `Cargo.toml` feature flags or `build.rs`._
+- `torrust_axum_health_check_api_server::environment::Started`
+- `torrust_axum_health_check_api_server::resources`
 
 #### `torrust-axum-http-tracker-server` [dev]
 
-_No `torrust_axum_http_tracker_server::` references found in `src/` — may be used only in `Cargo.toml` feature flags or `build.rs`._
+- `torrust_axum_http_tracker_server::environment::Started`
 
 #### `torrust-axum-rest-tracker-api-server` [dev]
 
-_No `torrust_axum_rest_tracker_api_server::` references found in `src/` — may be used only in `Cargo.toml` feature flags or `build.rs`._
+- `torrust_axum_rest_tracker_api_server::environment::Started`
 
 #### `torrust-tracker-clock` [dev]
 
-_No `torrust_tracker_clock::` references found in `src/` — may be used only in `Cargo.toml` feature flags or `build.rs`._
+- `torrust_tracker_clock::clock`
 
 #### `torrust-tracker-test-helpers` [dev]
 
-_No `torrust_tracker_test_helpers::` references found in `src/` — may be used only in `Cargo.toml` feature flags or `build.rs`._
+_Items not extracted — dependency used without a direct `use` path (macro, re-export, or glob import)._
 
 #### `torrust-udp-tracker-server` [dev]
 
-_No `torrust_udp_tracker_server::` references found in `src/` — may be used only in `Cargo.toml` feature flags or `build.rs`._
+- `torrust_udp_tracker_server::environment::Started`
 
 ### `torrust-axum-http-tracker-server`
 
@@ -438,7 +440,7 @@ Workspace deps: 14
 
 #### `bittorrent-udp-tracker-protocol` [normal]
 
-_No `bittorrent_udp_tracker_protocol::` references found in `src/` — may be used only in `Cargo.toml` feature flags or `build.rs`._
+- `bittorrent_udp_tracker_protocol::PeerId`
 
 #### `torrust-axum-server` [normal]
 
@@ -461,6 +463,7 @@ _No `bittorrent_udp_tracker_protocol::` references found in `src/` — may be us
 
 #### `torrust-tracker-clock` [normal]
 
+- `torrust_tracker_clock::clock`
 - `torrust_tracker_clock::initialize_static`
 
 #### `torrust-tracker-configuration` [normal]
@@ -475,6 +478,7 @@ _No `bittorrent_udp_tracker_protocol::` references found in `src/` — may be us
 - `torrust_tracker_primitives::PeerId`
 - `torrust_tracker_primitives::ScrapeData`
 - `torrust_tracker_primitives::peer`
+- `torrust_tracker_primitives::peer::fixture`
 - `torrust_tracker_primitives::swarm_metadata::SwarmMetadata`
 
 #### `torrust-tracker-swarm-coordination-registry` [normal]
@@ -483,16 +487,18 @@ _No `bittorrent_udp_tracker_protocol::` references found in `src/` — may be us
 
 #### `torrust-tracker-clock` [dev]
 
+- `torrust_tracker_clock::clock`
 - `torrust_tracker_clock::initialize_static`
 
 #### `torrust-tracker-events` [dev]
 
-_No `torrust_tracker_events::` references found in `src/` — may be used only in `Cargo.toml` feature flags or `build.rs`._
+_No `torrust_tracker_events::` references found in source — may be used only in `Cargo.toml` feature flags or `build.rs`._
 
 #### `torrust-tracker-test-helpers` [dev]
 
 - `torrust_tracker_test_helpers::configuration`
 - `torrust_tracker_test_helpers::configuration::ephemeral_public`
+- `torrust_tracker_test_helpers::logging::logs_contains_a_line_with`
 
 ### `torrust-axum-rest-tracker-api-server`
 
@@ -509,6 +515,7 @@ Workspace deps: 16
 - `bittorrent_tracker_core::authentication::Key`
 - `bittorrent_tracker_core::authentication::handler`
 - `bittorrent_tracker_core::container::TrackerCoreContainer`
+- `bittorrent_tracker_core::databases::SchemaMigrator`
 - `bittorrent_tracker_core::error::PeerKeyError`
 - `bittorrent_tracker_core::statistics::repository`
 - `bittorrent_tracker_core::torrent::repository`
@@ -534,7 +541,10 @@ Workspace deps: 16
 
 #### `torrust-rest-tracker-api-client` [normal]
 
+- `torrust_rest_tracker_api_client::common::http`
 - `torrust_rest_tracker_api_client::connection_info`
+- `torrust_rest_tracker_api_client::connection_info::ConnectionInfo`
+- `torrust_rest_tracker_api_client::v1::client`
 
 #### `torrust-rest-tracker-api-core` [normal]
 
@@ -574,6 +584,7 @@ Workspace deps: 16
 - `torrust_tracker_primitives::AnnounceEvent`
 - `torrust_tracker_primitives::pagination::Pagination`
 - `torrust_tracker_primitives::peer`
+- `torrust_tracker_primitives::peer::fixture`
 
 #### `torrust-tracker-swarm-coordination-registry` [normal]
 
@@ -587,11 +598,15 @@ Workspace deps: 16
 
 #### `torrust-rest-tracker-api-client` [dev]
 
+- `torrust_rest_tracker_api_client::common::http`
 - `torrust_rest_tracker_api_client::connection_info`
+- `torrust_rest_tracker_api_client::connection_info::ConnectionInfo`
+- `torrust_rest_tracker_api_client::v1::client`
 
 #### `torrust-tracker-test-helpers` [dev]
 
 - `torrust_tracker_test_helpers::configuration::ephemeral_public`
+- `torrust_tracker_test_helpers::logging::logs_contains_a_line_with`
 
 ### `torrust-axum-server`
 
@@ -769,7 +784,7 @@ Workspace deps: 16
 
 #### `bittorrent-tracker-client` [dev]
 
-_No `bittorrent_tracker_client::` references found in `src/` — may be used only in `Cargo.toml` feature flags or `build.rs`._
+- `bittorrent_tracker_client::http::client`
 
 #### `torrust-tracker-test-helpers` [dev]
 
@@ -887,7 +902,7 @@ Workspace deps: 6
 
 #### `torrust-tracker-test-helpers` [dev]
 
-_No `torrust_tracker_test_helpers::` references found in `src/` — may be used only in `Cargo.toml` feature flags or `build.rs`._
+_No `torrust_tracker_test_helpers::` references found in source — may be used only in `Cargo.toml` feature flags or `build.rs`._
 
 ### `torrust-tracker-test-helpers`
 
@@ -905,6 +920,7 @@ Workspace deps: 3
 
 - `torrust_tracker_clock::DurationSinceUnixEpoch`
 - `torrust_tracker_clock::clock`
+- `torrust_tracker_clock::clock::stopped`
 
 #### `torrust-tracker-configuration` [normal]
 
@@ -916,8 +932,11 @@ Workspace deps: 3
 - `torrust_tracker_primitives::PeerId`
 - `torrust_tracker_primitives::pagination::Pagination`
 - `torrust_tracker_primitives::peer`
+- `torrust_tracker_primitives::peer::Peer`
+- `torrust_tracker_primitives::peer::ReadInfo`
 - `torrust_tracker_primitives::peer::fixture`
 - `torrust_tracker_primitives::swarm_metadata`
+- `torrust_tracker_primitives::swarm_metadata::AggregateActiveSwarmMetadata`
 - `torrust_tracker_primitives::swarm_metadata::SwarmMetadata`
 
 ### `torrust-udp-tracker-server`
@@ -968,6 +987,7 @@ Workspace deps: 13
 - `bittorrent_udp_tracker_protocol::InfoHash`
 - `bittorrent_udp_tracker_protocol::PeerClient`
 - `bittorrent_udp_tracker_protocol::Response`
+- `bittorrent_udp_tracker_protocol::TransactionId`
 - `bittorrent_udp_tracker_protocol::common::ConnectionId`
 - `bittorrent_udp_tracker_protocol::common::InfoHash`
 - `bittorrent_udp_tracker_protocol::common::NumberOfBytes`
@@ -1047,6 +1067,7 @@ Workspace deps: 13
 
 - `torrust_tracker_test_helpers::configuration`
 - `torrust_tracker_test_helpers::configuration::ephemeral_public`
+- `torrust_tracker_test_helpers::logging::logs_contains_a_line_with`
 
 ---
 
