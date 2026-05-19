@@ -6,7 +6,7 @@ priority: p2
 github-issue: 1797
 spec-path: docs/issues/open/1797-1669-05-create-torrust-net-primitives-and-move-service-binding.md
 branch: 1669-05-create-torrust-net-primitives-and-move-service-binding
-related-pr: null
+related-pr: 1799
 last-updated-utc: 2026-05-19 00:00
 semantic-links:
   skill-links:
