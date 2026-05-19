@@ -40,7 +40,7 @@ Treat every commit request as a review-and-verify workflow, not as a blind reque
 6. **Check if the pre-commit git hook is already installed** before running checks manually:
 
    ```bash
-   [[ -x "$(git rev-parse --git-path hooks)/pre-commit" ]] && echo "installed" || echo "not installed"
+   ./contrib/dev-tools/git/check-git-hooks.sh
    ```
 
    - **If installed**: do NOT run the script manually — `git commit -S` will trigger it

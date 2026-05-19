@@ -7,7 +7,6 @@ use std::time::Duration;
 use bittorrent_udp_tracker_protocol::{ConnectRequest, Request, Response, TransactionId};
 use tokio::net::UdpSocket;
 use tokio::time;
-use torrust_tracker_configuration::DEFAULT_TIMEOUT;
 use torrust_tracker_primitives::service_binding::ServiceBinding;
 use zerocopy::byteorder::network_endian::I32;
 
@@ -15,6 +14,8 @@ use super::Error;
 use crate::udp::MAX_PACKET_SIZE;
 
 pub const UDP_CLIENT_LOG_TARGET: &str = "UDP CLIENT";
+
+const DEFAULT_UDP_TIMEOUT: Duration = Duration::from_secs(5);
 
 #[allow(clippy::module_name_repetitions)]
 #[derive(Debug)]
@@ -236,7 +237,7 @@ pub async fn check(service_binding: &ServiceBinding) -> Result<String, String> {
 
     tracing::debug!("Checking Service (detail): {remote_addr:?}.");
 
-    match UdpTrackerClient::new(remote_addr, DEFAULT_TIMEOUT).await {
+    match UdpTrackerClient::new(remote_addr, DEFAULT_UDP_TIMEOUT).await {
         Ok(client) => {
             let connect_request = ConnectRequest {
                 transaction_id: TransactionId(I32::new(123)),

@@ -17,7 +17,7 @@ use axum::{BoxError, Router, middleware};
 use hyper::{Request, StatusCode};
 use torrust_rest_tracker_api_core::container::TrackerHttpApiCoreContainer;
 use torrust_server_lib::logging::Latency;
-use torrust_tracker_configuration::{AccessTokens, DEFAULT_TIMEOUT};
+use torrust_tracker_configuration::AccessTokens;
 use tower::ServiceBuilder;
 use tower::timeout::TimeoutLayer;
 use tower_http::LatencyUnit;
@@ -27,6 +27,8 @@ use tower_http::propagate_header::PropagateHeaderLayer;
 use tower_http::request_id::{MakeRequestUuid, SetRequestIdLayer};
 use tower_http::trace::{DefaultMakeSpan, TraceLayer};
 use tracing::{Level, Span, instrument};
+
+const DEFAULT_REQUEST_TIMEOUT: Duration = Duration::from_secs(5);
 
 use super::v1;
 use super::v1::context::health_check::handlers::health_check_handler;
@@ -109,6 +111,6 @@ pub fn router(
                 // this middleware goes above `TimeoutLayer` because it will receive
                 // errors returned by `TimeoutLayer`
                 .layer(HandleErrorLayer::new(|_: BoxError| async { StatusCode::REQUEST_TIMEOUT }))
-                .layer(TimeoutLayer::new(DEFAULT_TIMEOUT)),
+                .layer(TimeoutLayer::new(DEFAULT_REQUEST_TIMEOUT)),
         )
 }

@@ -23,7 +23,7 @@ manually before each commit.
 > **For AI agents**: before invoking the script manually, check whether the hook is installed:
 >
 > ```bash
-> [[ -x "$(git rev-parse --git-path hooks)/pre-commit" ]] && echo "installed" || echo "not installed"
+> ./contrib/dev-tools/git/check-git-hooks.sh
 > ```
 >
 > If installed, skip the manual run — `git commit` will trigger it automatically.
@@ -93,10 +93,10 @@ Because `.tmp/` is workspace-local, clean stale `pre-commit-*.log` files periodi
 Check ownership is intentionally split by gate:
 
 - Pre-commit: fast local gate (`cargo machete`, `linter all`, `cargo test --doc --workspace`)
-- Pre-push: comprehensive developer gate (nightly format/check/doc + stable tests + E2E)
+- Pre-push: nightly toolchain checks + full stable test suite (no duplicates of pre-commit; no E2E)
 - CI: merge authority with full validation and E2E matrix jobs
 
-E2E is intentionally excluded from pre-commit and remains a pre-push/CI responsibility.
+E2E tests are intentionally excluded from both pre-commit and pre-push. They run only in CI.
 
 > **MySQL tests**: MySQL-specific tests require a running instance and a feature flag:
 >

@@ -11,7 +11,6 @@ use axum_client_ip::SecureClientIpSource;
 use bittorrent_http_tracker_core::container::HttpTrackerCoreContainer;
 use hyper::{Request, StatusCode};
 use torrust_server_lib::logging::Latency;
-use torrust_tracker_configuration::DEFAULT_TIMEOUT;
 use torrust_tracker_primitives::service_binding::ServiceBinding;
 use tower::ServiceBuilder;
 use tower::timeout::TimeoutLayer;
@@ -25,6 +24,8 @@ use tracing::{Level, Span, instrument};
 
 use super::handlers::{announce, health_check, scrape};
 use crate::HTTP_TRACKER_LOG_TARGET;
+
+const DEFAULT_REQUEST_TIMEOUT: Duration = Duration::from_secs(5);
 
 /// It adds the routes to the router.
 ///
@@ -123,6 +124,6 @@ pub fn router(http_tracker_container: &Arc<HttpTrackerCoreContainer>, server_ser
                 // this middleware goes above `TimeoutLayer` because it will receive
                 // errors returned by `TimeoutLayer`
                 .layer(HandleErrorLayer::new(|_: BoxError| async { StatusCode::REQUEST_TIMEOUT }))
-                .layer(TimeoutLayer::new(DEFAULT_TIMEOUT)),
+                .layer(TimeoutLayer::new(DEFAULT_REQUEST_TIMEOUT)),
         )
 }

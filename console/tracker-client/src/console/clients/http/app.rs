@@ -82,7 +82,8 @@ use bittorrent_tracker_client::http::client::{Client, requests};
 use bittorrent_udp_tracker_protocol::PeerId;
 use clap::{Parser, Subcommand, ValueEnum};
 use reqwest::Url;
-use torrust_tracker_configuration::DEFAULT_TIMEOUT;
+
+use crate::DEFAULT_NETWORK_TIMEOUT;
 
 #[derive(Clone, Copy, Debug, ValueEnum)]
 enum CliEvent {
@@ -211,7 +212,7 @@ pub async fn run() -> anyhow::Result<()> {
                     compact,
                     output_format: format,
                 },
-                DEFAULT_TIMEOUT,
+                DEFAULT_NETWORK_TIMEOUT,
             )
             .await?;
         }
@@ -220,7 +221,7 @@ pub async fn run() -> anyhow::Result<()> {
             info_hashes,
             format,
         } => {
-            scrape_command(&tracker_url, &info_hashes, format, DEFAULT_TIMEOUT).await?;
+            scrape_command(&tracker_url, &info_hashes, format, DEFAULT_NETWORK_TIMEOUT).await?;
         }
     }
 

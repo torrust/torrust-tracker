@@ -1,6 +1,6 @@
 ---
 name: run-pre-push-checks
-description: Run all mandatory pre-push verification steps for the torrust-tracker project. Covers the pre-push script (automated checks), output modes, and log-directory configuration. Use before pushing or when running the comprehensive developer gate including nightly checks and E2E tests. Triggers on "pre-push checks", "run pre-push", "verify before push", or "push checks".
+description: Run all mandatory pre-push verification steps for the torrust-tracker project. Covers the pre-push script (automated checks), output modes, and log-directory configuration. Use before pushing or when running the nightly toolchain checks and the full stable test suite. Triggers on "pre-push checks", "run pre-push", "verify before push", or "push checks".
 metadata:
   author: torrust
   version: "1.0"
@@ -23,7 +23,7 @@ manually before each push.
 > **For AI agents**: before invoking the script manually, check whether the hook is installed:
 >
 > ```bash
-> [[ -x "$(git rev-parse --git-path hooks)/pre-push" ]] && echo "installed" || echo "not installed"
+> ./contrib/dev-tools/git/check-git-hooks.sh
 > ```
 >
 > If installed, skip the manual run — `git push` will trigger it automatically.
@@ -31,8 +31,8 @@ manually before each push.
 
 ## Automated Checks
 
-> **⏱️ Expected runtime: ~15 minutes** on a modern developer machine with warm caches.
-> AI agents should set a command timeout of **at least 30 minutes** before invoking
+> **⏱️ Expected runtime: ~5 minutes** on a modern developer machine with warm caches.
+> AI agents should set a command timeout of **at least 15 minutes** before invoking
 > `./contrib/dev-tools/git/hooks/pre-push.sh`.
 
 Run the pre-push script. **It must exit with code `0` before every push.**
@@ -43,14 +43,14 @@ Run the pre-push script. **It must exit with code `0` before every push.**
 
 The script runs these steps in order:
 
-1. `cargo +stable machete` - unused dependency check
-2. `linter all` - all linters (markdown, YAML, TOML, clippy, rustfmt, shellcheck, cspell)
-3. `cargo +nightly fmt --check` - nightly format check
-4. `cargo +nightly check ...` - nightly workspace check
-5. `cargo +nightly doc ...` - nightly documentation build
-6. `cargo +stable test --doc --workspace` - documentation tests
-7. `cargo +stable test --tests --benches --examples --workspace --all-targets --all-features` - all tests
-8. `cargo +stable run --bin e2e_tests_runner ...` - end-to-end tests
+1. `cargo +nightly fmt --check` - nightly format check
+2. `cargo +nightly check ...` - nightly workspace check
+3. `cargo +nightly doc ...` - nightly documentation build
+4. `cargo +stable test --tests --benches --examples --workspace --all-targets --all-features` - all tests
+
+Steps already covered by pre-commit (machete, linters, doc tests) are intentionally
+omitted — they always run before each commit. E2E tests are excluded because they are
+slow and run in CI, which is the merge authority.
 
 ## Output Modes
 
@@ -98,10 +98,12 @@ Because `.tmp/` is workspace-local, clean stale `pre-push-*.log` files periodica
 Check ownership is intentionally split by gate:
 
 - Pre-commit: fast local gate (`cargo machete`, `linter all`, `cargo test --doc --workspace`)
-- Pre-push: comprehensive developer gate (nightly format/check/doc + stable tests + E2E)
+- Pre-push: nightly toolchain checks + full stable test suite (no duplicates of pre-commit; no E2E)
 - CI: merge authority with full validation and E2E matrix jobs
 
-E2E is intentionally excluded from pre-commit and remains a pre-push/CI responsibility.
+E2E tests are intentionally excluded from both pre-commit and pre-push. They run only in CI.
+Pre-push does not repeat pre-commit steps — since every push is preceded by a commit, those
+checks have already passed.
 
 ## Troubleshooting Output Modes
 

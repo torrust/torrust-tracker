@@ -8,10 +8,10 @@ use clap::{Parser, Subcommand};
 use futures::FutureExt as _;
 use serde::Serialize;
 use tokio::task::JoinSet;
-use torrust_tracker_configuration::DEFAULT_TIMEOUT;
 use url::Url;
 
 use super::app::OutputFormat;
+use crate::DEFAULT_NETWORK_TIMEOUT;
 use crate::console::clients::checker::checks::{health, http, udp};
 use crate::console::clients::checker::config::{Configuration, parse_from_json};
 use crate::console::clients::checker::error::{AppError, ConfigSource};
@@ -128,14 +128,15 @@ async fn run_checks(config: Arc<Configuration>, output_format: OutputFormat) -> 
 
     let mut checks = JoinSet::new();
     checks.spawn(
-        udp::run(config.udp_trackers.clone(), DEFAULT_TIMEOUT).map(|mut f| f.drain(..).map(CheckResult::Udp).collect::<Vec<_>>()),
+        udp::run(config.udp_trackers.clone(), DEFAULT_NETWORK_TIMEOUT)
+            .map(|mut f| f.drain(..).map(CheckResult::Udp).collect::<Vec<_>>()),
     );
     checks.spawn(
-        http::run(config.http_trackers.clone(), DEFAULT_TIMEOUT)
+        http::run(config.http_trackers.clone(), DEFAULT_NETWORK_TIMEOUT)
             .map(|mut f| f.drain(..).map(CheckResult::Http).collect::<Vec<_>>()),
     );
     checks.spawn(
-        health::run(config.health_checks.clone(), DEFAULT_TIMEOUT)
+        health::run(config.health_checks.clone(), DEFAULT_NETWORK_TIMEOUT)
             .map(|mut f| f.drain(..).map(CheckResult::Health).collect::<Vec<_>>()),
     );
 
