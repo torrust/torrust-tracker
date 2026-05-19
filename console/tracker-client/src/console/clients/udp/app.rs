@@ -102,11 +102,11 @@ use anyhow::Context;
 use bittorrent_primitives::info_hash::InfoHash as TorrustInfoHash;
 use bittorrent_udp_tracker_protocol::{AnnounceEvent, Response, TransactionId};
 use clap::{Parser, Subcommand, ValueEnum};
-use torrust_tracker_configuration::DEFAULT_TIMEOUT;
 use tracing::level_filters::LevelFilter;
 use url::Url;
 
 use super::Error;
+use crate::DEFAULT_NETWORK_TIMEOUT;
 use crate::console::clients::udp::checker;
 use crate::console::clients::udp::checker::AnnounceParams;
 use crate::console::clients::udp::responses::dto::SerializableResponse;
@@ -259,7 +259,7 @@ async fn handle_announce(
 ) -> Result<Response, Error> {
     let transaction_id = TransactionId::new(RANDOM_TRANSACTION_ID);
 
-    let client = checker::Client::new(remote_addr, DEFAULT_TIMEOUT).await?;
+    let client = checker::Client::new(remote_addr, DEFAULT_NETWORK_TIMEOUT).await?;
 
     let connection_id = client.send_connection_request(transaction_id).await?;
 
@@ -271,7 +271,7 @@ async fn handle_announce(
 async fn handle_scrape(remote_addr: SocketAddr, info_hashes: &[TorrustInfoHash]) -> Result<Response, Error> {
     let transaction_id = TransactionId::new(RANDOM_TRANSACTION_ID);
 
-    let client = checker::Client::new(remote_addr, DEFAULT_TIMEOUT).await?;
+    let client = checker::Client::new(remote_addr, DEFAULT_NETWORK_TIMEOUT).await?;
 
     let connection_id = client.send_connection_request(transaction_id).await?;
 

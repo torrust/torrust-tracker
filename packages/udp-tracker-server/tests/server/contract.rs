@@ -4,14 +4,16 @@
 // https://www.bittorrent.org/beps/bep_0015.html
 
 use core::panic;
+use std::time::Duration;
 
 use bittorrent_tracker_client::udp::client::UdpTrackerClient;
 use bittorrent_udp_tracker_protocol::{ConnectRequest, ConnectionId, Response, TransactionId};
-use torrust_tracker_configuration::DEFAULT_TIMEOUT;
 use torrust_tracker_test_helpers::{configuration, logging};
 use torrust_udp_tracker_server::MAX_PACKET_SIZE;
 
 use crate::server::asserts::get_error_response_message;
+
+const DEFAULT_UDP_TIMEOUT: Duration = Duration::from_secs(5);
 
 fn empty_udp_request() -> [u8; MAX_PACKET_SIZE] {
     [0; MAX_PACKET_SIZE]
@@ -42,7 +44,7 @@ async fn should_return_a_bad_request_response_when_the_client_sends_an_empty_req
 
     let env = torrust_udp_tracker_server::environment::Started::new(&configuration::ephemeral().into()).await;
 
-    let client = match UdpTrackerClient::new(env.bind_address(), DEFAULT_TIMEOUT).await {
+    let client = match UdpTrackerClient::new(env.bind_address(), DEFAULT_UDP_TIMEOUT).await {
         Ok(udp_client) => udp_client,
         Err(err) => panic!("{err}"),
     };
@@ -71,9 +73,9 @@ async fn should_return_a_bad_request_response_when_the_client_sends_an_empty_req
 mod receiving_a_connection_request {
     use bittorrent_tracker_client::udp::client::UdpTrackerClient;
     use bittorrent_udp_tracker_protocol::{ConnectRequest, TransactionId};
-    use torrust_tracker_configuration::DEFAULT_TIMEOUT;
     use torrust_tracker_test_helpers::{configuration, logging};
 
+    use super::DEFAULT_UDP_TIMEOUT;
     use crate::server::asserts::is_connect_response;
 
     #[tokio::test]
@@ -82,7 +84,7 @@ mod receiving_a_connection_request {
 
         let env = torrust_udp_tracker_server::environment::Started::new(&configuration::ephemeral().into()).await;
 
-        let client = match UdpTrackerClient::new(env.bind_address(), DEFAULT_TIMEOUT).await {
+        let client = match UdpTrackerClient::new(env.bind_address(), DEFAULT_UDP_TIMEOUT).await {
             Ok(udp_tracker_client) => udp_tracker_client,
             Err(err) => panic!("{err}"),
         };
@@ -115,10 +117,10 @@ mod receiving_an_announce_request {
         AnnounceActionPlaceholder, AnnounceEvent, AnnounceRequest, ConnectionId, InfoHash, NumberOfBytes, NumberOfPeers, PeerId,
         PeerKey, Port, TransactionId,
     };
-    use torrust_tracker_configuration::DEFAULT_TIMEOUT;
     use torrust_tracker_test_helpers::logging::logs_contains_a_line_with;
     use torrust_tracker_test_helpers::{configuration, logging};
 
+    use super::DEFAULT_UDP_TIMEOUT;
     use crate::common::fixtures::{random_info_hash, random_transaction_id};
     use crate::server::asserts::is_ipv4_announce_response;
     use crate::server::contract::send_connection_request;
@@ -182,7 +184,7 @@ mod receiving_an_announce_request {
 
         let env = torrust_udp_tracker_server::environment::Started::new(&configuration::ephemeral().into()).await;
 
-        let client = match UdpTrackerClient::new(env.bind_address(), DEFAULT_TIMEOUT).await {
+        let client = match UdpTrackerClient::new(env.bind_address(), DEFAULT_UDP_TIMEOUT).await {
             Ok(udp_tracker_client) => udp_tracker_client,
             Err(err) => panic!("{err}"),
         };
@@ -204,7 +206,7 @@ mod receiving_an_announce_request {
 
         let env = torrust_udp_tracker_server::environment::Started::new(&configuration::ephemeral().into()).await;
 
-        let client = match UdpTrackerClient::new(env.bind_address(), DEFAULT_TIMEOUT).await {
+        let client = match UdpTrackerClient::new(env.bind_address(), DEFAULT_UDP_TIMEOUT).await {
             Ok(udp_tracker_client) => udp_tracker_client,
             Err(err) => panic!("{err}"),
         };
@@ -230,7 +232,7 @@ mod receiving_an_announce_request {
         let env = torrust_udp_tracker_server::environment::Started::new(&configuration::ephemeral().into()).await;
         let ban_service = env.container.udp_tracker_core_container.ban_service.clone();
 
-        let client = match UdpTrackerClient::new(env.bind_address(), DEFAULT_TIMEOUT).await {
+        let client = match UdpTrackerClient::new(env.bind_address(), DEFAULT_UDP_TIMEOUT).await {
             Ok(udp_tracker_client) => udp_tracker_client,
             Err(err) => panic!("{err}"),
         };
@@ -307,9 +309,9 @@ mod receiving_an_announce_request {
 mod receiving_an_scrape_request {
     use bittorrent_tracker_client::udp::client::UdpTrackerClient;
     use bittorrent_udp_tracker_protocol::{ConnectionId, InfoHash, ScrapeRequest, TransactionId};
-    use torrust_tracker_configuration::DEFAULT_TIMEOUT;
     use torrust_tracker_test_helpers::{configuration, logging};
 
+    use super::DEFAULT_UDP_TIMEOUT;
     use crate::server::asserts::is_scrape_response;
     use crate::server::contract::send_connection_request;
 
@@ -319,7 +321,7 @@ mod receiving_an_scrape_request {
 
         let env = torrust_udp_tracker_server::environment::Started::new(&configuration::ephemeral().into()).await;
 
-        let client = match UdpTrackerClient::new(env.bind_address(), DEFAULT_TIMEOUT).await {
+        let client = match UdpTrackerClient::new(env.bind_address(), DEFAULT_UDP_TIMEOUT).await {
             Ok(udp_tracker_client) => udp_tracker_client,
             Err(err) => panic!("{err}"),
         };

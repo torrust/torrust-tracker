@@ -1,18 +1,21 @@
 use std::net::SocketAddr;
 use std::sync::Arc;
+use std::time::Duration;
 
 use bittorrent_tracker_core::container::TrackerCoreContainer;
 use bittorrent_udp_tracker_core::container::UdpTrackerCoreContainer;
 use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
 use torrust_server_lib::registar::Registar;
-use torrust_tracker_configuration::{Configuration, DEFAULT_TIMEOUT, logging};
+use torrust_tracker_configuration::{Configuration, logging};
 use torrust_tracker_swarm_coordination_registry::container::SwarmCoordinationRegistryContainer;
 
 use crate::container::UdpTrackerServerContainer;
 use crate::server::Server;
 use crate::server::spawner::Spawner;
 use crate::server::states::{Running, Stopped};
+
+const DEFAULT_SERVER_LIFECYCLE_TIMEOUT: Duration = Duration::from_secs(5);
 
 pub type Started = Environment<Running>;
 
@@ -112,9 +115,12 @@ impl Environment<Running> {
     ///
     /// Will panic if it cannot start the server within the timeout.
     pub async fn new(configuration: &Arc<Configuration>) -> Self {
-        tokio::time::timeout(DEFAULT_TIMEOUT, Environment::<Stopped>::new(configuration).await.start())
-            .await
-            .expect("Failed to create a UDP tracker server running environment within the timeout")
+        tokio::time::timeout(
+            DEFAULT_SERVER_LIFECYCLE_TIMEOUT,
+            Environment::<Stopped>::new(configuration).await.start(),
+        )
+        .await
+        .expect("Failed to create a UDP tracker server running environment within the timeout")
     }
 
     /// Stops the test environment and return a stopped environment.
@@ -146,7 +152,7 @@ impl Environment<Running> {
         }
 
         // Stop the UDP tracker server
-        let server = tokio::time::timeout(DEFAULT_TIMEOUT, self.server.stop())
+        let server = tokio::time::timeout(DEFAULT_SERVER_LIFECYCLE_TIMEOUT, self.server.stop())
             .await
             .expect("Failed to stop the UDP tracker server within the timeout")
             .expect("Failed to stop the UDP tracker server");

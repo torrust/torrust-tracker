@@ -94,26 +94,29 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task                                                                                                         | Notes / Expected Output                                                                                                  |
 | --- | ------ | ------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------ |
-| T1  | TODO   | **`packages/tracker-client`**: evaluate `DEFAULT_TIMEOUT` usage; define local constant(s)                    | Review all use sites; if multiple distinct purposes, define one constant per purpose; candidates: `DEFAULT_UDP_TIMEOUT`  |
-| T2  | TODO   | **`packages/tracker-client`**: remove `use torrust_tracker_configuration::DEFAULT_TIMEOUT`                   | Use local constant(s) instead; `cargo build -p bittorrent-tracker-client` succeeds                                       |
-| T3  | TODO   | **`packages/tracker-client`**: drop `torrust-tracker-configuration` from `Cargo.toml`                        | No other imports from that crate; `cargo machete` confirms clean                                                         |
-| T4  | TODO   | **`packages/axum-http-tracker-server`**: evaluate `DEFAULT_TIMEOUT` usage; define local constant(s)          | Review all use sites; candidates: `DEFAULT_REQUEST_TIMEOUT`                                                              |
-| T5  | TODO   | **`packages/axum-http-tracker-server`**: remove `use torrust_tracker_configuration::DEFAULT_TIMEOUT`         | Use local constant(s); verify whether `torrust-tracker-configuration` can be dropped; drop if so                         |
-| T6  | TODO   | **`packages/udp-tracker-server`** (tests): evaluate `DEFAULT_TIMEOUT` usage; define local constant(s)        | Review 4 use sites; candidates: `DEFAULT_UDP_TIMEOUT`                                                                    |
-| T7  | TODO   | **`packages/udp-tracker-server`** (tests): remove all 4 `use torrust_tracker_configuration::DEFAULT_TIMEOUT` | Use local constant(s); verify whether dep can be dropped from `dev-dependencies`; drop if so                             |
-| T8  | TODO   | **`console/tracker-client`**: evaluate `DEFAULT_TIMEOUT` usage; define local constant(s)                     | Review 6 use sites across UDP, HTTP, health-check contexts; candidates: `DEFAULT_NETWORK_TIMEOUT` or per-operation names |
-| T9  | TODO   | **`console/tracker-client`**: update all 6 import sites to use the local constant(s)                         | Remove all `use torrust_tracker_configuration::DEFAULT_TIMEOUT` imports                                                  |
-| T10 | TODO   | **`console/tracker-client`**: drop `torrust-tracker-configuration` from `Cargo.toml`                         | `cargo build -p torrust-tracker-client` succeeds; `cargo machete` confirms clean                                         |
-| T11 | TODO   | **`packages/configuration`**: remove `DEFAULT_TIMEOUT` and its `Duration` import if unused                   | Zero consumers remaining; `cargo build --workspace` succeeds; `cargo machete` confirms clean                             |
-| T12 | TODO   | Run `cargo build --workspace` and `cargo test --workspace`                                                   | Clean build; all tests pass                                                                                              |
-| T13 | TODO   | Run `linter all`                                                                                             | Exit code `0`                                                                                                            |
-| T14 | TODO   | Regenerate workspace coupling report                                                                         | `cargo run -p workspace-coupling`; updates `docs/issues/open/1669-overhaul-packages/workspace-coupling-report.md`        |
+| T1  | DONE   | **`packages/tracker-client`**: evaluate `DEFAULT_TIMEOUT` usage; define local constant(s)                    | Review all use sites; if multiple distinct purposes, define one constant per purpose; candidates: `DEFAULT_UDP_TIMEOUT`  |
+| T2  | DONE   | **`packages/tracker-client`**: remove `use torrust_tracker_configuration::DEFAULT_TIMEOUT`                   | Use local constant(s) instead; `cargo build -p bittorrent-tracker-client` succeeds                                       |
+| T3  | DONE   | **`packages/tracker-client`**: drop `torrust-tracker-configuration` from `Cargo.toml`                        | No other imports from that crate; `cargo machete` confirms clean                                                         |
+| T4  | DONE   | **`packages/axum-http-tracker-server`**: evaluate `DEFAULT_TIMEOUT` usage; define local constant(s)          | Review all use sites; candidates: `DEFAULT_REQUEST_TIMEOUT`                                                              |
+| T5  | DONE   | **`packages/axum-http-tracker-server`**: remove `use torrust_tracker_configuration::DEFAULT_TIMEOUT`         | Use local constant(s); verify whether `torrust-tracker-configuration` can be dropped; drop if so                         |
+| T6  | DONE   | **`packages/udp-tracker-server`** (tests): evaluate `DEFAULT_TIMEOUT` usage; define local constant(s)        | Review 4 use sites; candidates: `DEFAULT_UDP_TIMEOUT`                                                                    |
+| T7  | DONE   | **`packages/udp-tracker-server`** (tests): remove all 4 `use torrust_tracker_configuration::DEFAULT_TIMEOUT` | Use local constant(s); verify whether dep can be dropped from `dev-dependencies`; drop if so                             |
+| T8  | DONE   | **`console/tracker-client`**: evaluate `DEFAULT_TIMEOUT` usage; define local constant(s)                     | Review 6 use sites across UDP, HTTP, health-check contexts; candidates: `DEFAULT_NETWORK_TIMEOUT` or per-operation names |
+| T9  | DONE   | **`console/tracker-client`**: update all 6 import sites to use the local constant(s)                         | Remove all `use torrust_tracker_configuration::DEFAULT_TIMEOUT` imports                                                  |
+| T10 | DONE   | **`console/tracker-client`**: drop `torrust-tracker-configuration` from `Cargo.toml`                         | `cargo build -p torrust-tracker-client` succeeds; `cargo machete` confirms clean                                         |
+| T11 | DONE   | **`packages/configuration`**: remove `DEFAULT_TIMEOUT` and its `Duration` import if unused                   | Zero consumers remaining; `cargo build --workspace` succeeds; `cargo machete` confirms clean                             |
+| T12 | DONE   | Run `cargo build --workspace` and `cargo test --workspace`                                                   | Clean build; all tests pass                                                                                              |
+| T13 | DONE   | Run `linter all`                                                                                             | Exit code `0`                                                                                                            |
+| T14 | DONE   | Regenerate workspace coupling report                                                                         | `cargo run -p workspace-coupling`; updates `docs/issues/open/1669-overhaul-packages/workspace-coupling-report.md`        |
 
-**Source files to update** (9 files across 4 packages):
+**Source files updated** (12 files across 5 packages):
 
 - `packages/tracker-client/src/udp/client.rs` (T1–T2)
 - `packages/axum-http-tracker-server/src/v1/routes.rs` (T4–T5)
-- `packages/udp-tracker-server/tests/server/contract.rs` (T6–T7; 4 inline import sites)
+- `packages/axum-rest-tracker-api-server/src/routes.rs` (discovered during implementation; `DEFAULT_REQUEST_TIMEOUT` added)
+- `packages/udp-tracker-server/src/environment.rs` (discovered during implementation; `DEFAULT_SERVER_LIFECYCLE_TIMEOUT` added)
+- `packages/udp-tracker-server/tests/server/contract.rs` (T6–T7; `DEFAULT_UDP_TIMEOUT` added)
+- `console/tracker-client/src/lib.rs` (T8; `DEFAULT_NETWORK_TIMEOUT` defined)
 - `console/tracker-client/src/console/clients/unified/udp.rs` (T9)
 - `console/tracker-client/src/console/clients/unified/check.rs` (T9)
 - `console/tracker-client/src/console/clients/unified/http.rs` (T9)
@@ -129,10 +132,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
 - [x] Spec moved to `docs/issues/open/` with issue number prefix
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, `cargo test --workspace`)
-- [ ] Manual verification scenarios executed and recorded
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Implementation completed
+- [x] Automatic verification completed (`linter all`, `cargo test --workspace`)
+- [x] Manual verification scenarios executed and recorded
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [ ] EPIC #1669 Active Subissues table updated to `DONE`
 - [ ] Issue closed and spec moved to `docs/issues/closed/`
 
@@ -148,16 +151,16 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 ## Acceptance Criteria
 
-- [ ] `packages/tracker-client` defines local timeout constant(s); no import from `torrust_tracker_configuration`; `torrust-tracker-configuration` removed from its `Cargo.toml`.
-- [ ] `packages/axum-http-tracker-server` defines local timeout constant(s); no import from `torrust_tracker_configuration`.
-- [ ] `packages/udp-tracker-server` test file defines local timeout constant(s); no import from `torrust_tracker_configuration` in tests.
-- [ ] `console/tracker-client` defines local timeout constant(s); no file in that package imports `DEFAULT_TIMEOUT` from `torrust_tracker_configuration`; `torrust-tracker-configuration` removed from its `Cargo.toml`.
-- [ ] `packages/configuration/src/lib.rs` no longer defines `DEFAULT_TIMEOUT`.
-- [ ] `grep -r "torrust_tracker_configuration::DEFAULT_TIMEOUT" . --include="*.rs"` returns zero matches.
-- [ ] `cargo build --workspace` succeeds with zero errors.
-- [ ] `cargo test --workspace` passes with zero failures.
-- [ ] `linter all` exits with code `0`.
-- [ ] Workspace coupling report regenerated and committed.
+- [x] `packages/tracker-client` defines local timeout constant(s); no import from `torrust_tracker_configuration`; `torrust-tracker-configuration` removed from its `Cargo.toml`.
+- [x] `packages/axum-http-tracker-server` defines local timeout constant(s); no import from `torrust_tracker_configuration`.
+- [x] `packages/udp-tracker-server` test file defines local timeout constant(s); no import from `torrust_tracker_configuration` in tests.
+- [x] `console/tracker-client` defines local timeout constant(s); no file in that package imports `DEFAULT_TIMEOUT` from `torrust_tracker_configuration`; `torrust-tracker-configuration` removed from its `Cargo.toml`.
+- [x] `packages/configuration/src/lib.rs` no longer defines `DEFAULT_TIMEOUT`.
+- [x] `grep -r "torrust_tracker_configuration::DEFAULT_TIMEOUT" . --include="*.rs"` returns zero matches.
+- [x] `cargo build --workspace` succeeds with zero errors.
+- [x] `cargo test --workspace` passes with zero failures.
+- [x] `linter all` exits with code `0`.
+- [x] Workspace coupling report regenerated and committed.
 
 ## Verification Plan
 
@@ -176,8 +179,8 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID  | Scenario                                                  | Command/Steps                                                                 | Expected Result | Status | Evidence |
 | --- | --------------------------------------------------------- | ----------------------------------------------------------------------------- | --------------- | ------ | -------- |
-| M1  | No stale imports from configuration for timeout           | `grep -r "torrust_tracker_configuration::DEFAULT_TIMEOUT" . --include="*.rs"` | Zero matches    | TODO   |          |
-| M2  | tracker-client no longer depends on configuration         | `grep "torrust-tracker-configuration" packages/tracker-client/Cargo.toml`     | Zero matches    | TODO   |          |
-| M3  | console/tracker-client no longer depends on configuration | `grep "torrust-tracker-configuration" console/tracker-client/Cargo.toml`      | Zero matches    | TODO   |          |
-| M4  | DEFAULT_TIMEOUT removed from configuration package        | `grep "DEFAULT_TIMEOUT" packages/configuration/src/lib.rs`                    | Zero matches    | TODO   |          |
-| M5  | Workspace coupling report up to date                      | `cargo run -p workspace-coupling` produces output matching committed report   | Clean run       | TODO   |          |
+| M1  | No stale imports from configuration for timeout           | `grep -r "torrust_tracker_configuration::DEFAULT_TIMEOUT" . --include="*.rs"` | Zero matches    | DONE   | Verified 2026-05-19 |
+| M2  | tracker-client no longer depends on configuration         | `grep "torrust-tracker-configuration" packages/tracker-client/Cargo.toml`     | Zero matches    | DONE   | Verified 2026-05-19 |
+| M3  | console/tracker-client no longer depends on configuration | `grep "torrust-tracker-configuration" console/tracker-client/Cargo.toml`      | Zero matches    | DONE   | Verified 2026-05-19 |
+| M4  | DEFAULT_TIMEOUT removed from configuration package        | `grep "DEFAULT_TIMEOUT" packages/configuration/src/lib.rs`                    | Zero matches    | DONE   | Verified 2026-05-19 |
+| M5  | Workspace coupling report up to date                      | `cargo run -p workspace-coupling` produces output matching committed report   | Clean run       | DONE   | Regenerated 2026-05-19 |

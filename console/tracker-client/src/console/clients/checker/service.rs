@@ -3,11 +3,11 @@ use std::sync::Arc;
 use futures::FutureExt as _;
 use serde::Serialize;
 use tokio::task::{JoinError, JoinSet};
-use torrust_tracker_configuration::DEFAULT_TIMEOUT;
 
 use super::checks::{health, http, udp};
 use super::config::Configuration;
 use super::console::Console;
+use crate::DEFAULT_NETWORK_TIMEOUT;
 use crate::console::clients::checker::printer::Printer;
 
 pub struct Service {
@@ -38,14 +38,15 @@ impl Service {
 
         let mut checks = JoinSet::new();
         checks.spawn(
-            udp::run(self.config.udp_trackers.clone(), DEFAULT_TIMEOUT).map(|mut f| f.drain(..).map(CheckResult::Udp).collect()),
+            udp::run(self.config.udp_trackers.clone(), DEFAULT_NETWORK_TIMEOUT)
+                .map(|mut f| f.drain(..).map(CheckResult::Udp).collect()),
         );
         checks.spawn(
-            http::run(self.config.http_trackers.clone(), DEFAULT_TIMEOUT)
+            http::run(self.config.http_trackers.clone(), DEFAULT_NETWORK_TIMEOUT)
                 .map(|mut f| f.drain(..).map(CheckResult::Http).collect()),
         );
         checks.spawn(
-            health::run(self.config.health_checks.clone(), DEFAULT_TIMEOUT)
+            health::run(self.config.health_checks.clone(), DEFAULT_NETWORK_TIMEOUT)
                 .map(|mut f| f.drain(..).map(CheckResult::Health).collect()),
         );
 
