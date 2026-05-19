@@ -1,8 +1,8 @@
 # Workspace Coupling Report
 
-Generated: 2026-05-19 11:17 UTC
+Generated: 2026-05-19 20:05 UTC
 
-Workspace packages: 28
+Workspace packages: 29
 
 ---
 
@@ -30,6 +30,7 @@ for elimination (move the item, break the edge).
 These packages are leaves (no workspace dep) and are prime extraction candidates.
 
 - `bittorrent-peer-id`
+- `torrust-net-primitives`
 - `torrust-rest-tracker-api-client`
 - `torrust-tracker-clock`
 - `torrust-tracker-contrib-bencode`
@@ -43,7 +44,7 @@ These packages are leaves (no workspace dep) and are prime extraction candidates
 
 ### `bittorrent-http-tracker-core`
 
-Workspace deps: 9
+Workspace deps: 10
 
 #### `bittorrent-http-tracker-protocol` [normal]
 
@@ -67,6 +68,12 @@ Workspace deps: 9
 - `bittorrent_tracker_core::whitelist`
 - `bittorrent_tracker_core::whitelist::authorization`
 - `bittorrent_tracker_core::whitelist::repository`
+
+#### `torrust-net-primitives` [normal]
+
+- `torrust_net_primitives::service_binding`
+- `torrust_net_primitives::service_binding::Protocol`
+- `torrust_net_primitives::service_binding::ServiceBinding`
 
 #### `torrust-tracker-clock` [normal]
 
@@ -108,9 +115,6 @@ Workspace deps: 9
 - `torrust_tracker_primitives::ScrapeData`
 - `torrust_tracker_primitives::peer::Peer`
 - `torrust_tracker_primitives::peer::PeerAnnouncement`
-- `torrust_tracker_primitives::service_binding`
-- `torrust_tracker_primitives::service_binding::Protocol`
-- `torrust_tracker_primitives::service_binding::ServiceBinding`
 - `torrust_tracker_primitives::swarm_metadata::SwarmMetadata`
 
 #### `torrust-tracker-swarm-coordination-registry` [normal]
@@ -123,7 +127,7 @@ Workspace deps: 9
 
 ### `bittorrent-http-tracker-protocol`
 
-Workspace deps: 7
+Workspace deps: 6
 
 #### `bittorrent-tracker-core` [normal]
 
@@ -145,10 +149,6 @@ Workspace deps: 7
 - `torrust_tracker_clock::clock`
 - `torrust_tracker_clock::clock::Time`
 
-#### `torrust-tracker-configuration` [normal]
-
-- `torrust_tracker_configuration::AnnouncePolicy`
-
 #### `torrust-tracker-contrib-bencode` [normal]
 
 _Items not extracted — dependency used without a direct `use` path (macro, re-export, or glob import)._
@@ -167,12 +167,16 @@ _Items not extracted — dependency used without a direct `use` path (macro, re-
 
 ### `bittorrent-tracker-client`
 
-Workspace deps: 3
+Workspace deps: 4
 
 #### `bittorrent-udp-tracker-protocol` [normal]
 
 - `bittorrent_udp_tracker_protocol::PeerId`
 - `bittorrent_udp_tracker_protocol::Request`
+
+#### `torrust-net-primitives` [normal]
+
+- `torrust_net_primitives::service_binding::ServiceBinding`
 
 #### `torrust-tracker-located-error` [normal]
 
@@ -181,7 +185,6 @@ Workspace deps: 3
 #### `torrust-tracker-primitives` [normal]
 
 - `torrust_tracker_primitives::peer`
-- `torrust_tracker_primitives::service_binding::ServiceBinding`
 
 ### `bittorrent-tracker-core`
 
@@ -197,7 +200,6 @@ Workspace deps: 9
 
 #### `torrust-tracker-configuration` [normal]
 
-- `torrust_tracker_configuration::AnnouncePolicy`
 - `torrust_tracker_configuration::Configuration`
 - `torrust_tracker_configuration::Core`
 - `torrust_tracker_configuration::Driver::MySQL`
@@ -228,6 +230,7 @@ Workspace deps: 9
 #### `torrust-tracker-primitives` [normal]
 
 - `torrust_tracker_primitives::AnnounceEvent`
+- `torrust_tracker_primitives::AnnouncePolicy`
 - `torrust_tracker_primitives::NumberOfBytes`
 - `torrust_tracker_primitives::NumberOfDownloads`
 - `torrust_tracker_primitives::NumberOfDownloadsBTreeMap`
@@ -257,7 +260,7 @@ _No `torrust_rest_tracker_api_client::` references found in `src/` — may be us
 
 ### `bittorrent-udp-tracker-core`
 
-Workspace deps: 9
+Workspace deps: 10
 
 #### `bittorrent-tracker-core` [normal]
 
@@ -279,6 +282,11 @@ Workspace deps: 9
 - `bittorrent_udp_tracker_protocol::ConnectionId`
 - `bittorrent_udp_tracker_protocol::ScrapeRequest`
 - `bittorrent_udp_tracker_protocol::common::InfoHash`
+
+#### `torrust-net-primitives` [normal]
+
+- `torrust_net_primitives::service_binding`
+- `torrust_net_primitives::service_binding::ServiceBinding`
 
 #### `torrust-tracker-clock` [normal]
 
@@ -325,8 +333,6 @@ _Items not extracted — dependency used without a direct `use` path (macro, re-
 - `torrust_tracker_primitives::ScrapeData`
 - `torrust_tracker_primitives::peer`
 - `torrust_tracker_primitives::peer::PeerAnnouncement`
-- `torrust_tracker_primitives::service_binding`
-- `torrust_tracker_primitives::service_binding::ServiceBinding`
 - `torrust_tracker_primitives::swarm_metadata::AggregateActiveSwarmMetadata`
 
 #### `torrust-tracker-swarm-coordination-registry` [normal]
@@ -353,6 +359,10 @@ Workspace deps: 10
 
 - `torrust_axum_server::signals::graceful_shutdown`
 
+#### `torrust-net-primitives` [normal]
+
+- `torrust_net_primitives::service_binding`
+
 #### `torrust-server-lib` [normal]
 
 - `torrust_server_lib::logging::Latency`
@@ -364,10 +374,6 @@ Workspace deps: 10
 #### `torrust-tracker-configuration` [normal]
 
 - `torrust_tracker_configuration::HealthCheckApi`
-
-#### `torrust-tracker-primitives` [normal]
-
-- `torrust_tracker_primitives::service_binding`
 
 #### `torrust-axum-health-check-api-server` [dev]
 
@@ -395,7 +401,7 @@ _No `torrust_udp_tracker_server::` references found in `src/` — may be used on
 
 ### `torrust-axum-http-tracker-server`
 
-Workspace deps: 13
+Workspace deps: 14
 
 #### `bittorrent-http-tracker-core` [normal]
 
@@ -440,6 +446,11 @@ _No `bittorrent_udp_tracker_protocol::` references found in `src/` — may be us
 - `torrust_axum_server::signals::graceful_shutdown`
 - `torrust_axum_server::tsl::make_rust_tls`
 
+#### `torrust-net-primitives` [normal]
+
+- `torrust_net_primitives::service_binding`
+- `torrust_net_primitives::service_binding::ServiceBinding`
+
 #### `torrust-server-lib` [normal]
 
 - `torrust_server_lib::logging::Latency`
@@ -464,8 +475,6 @@ _No `bittorrent_udp_tracker_protocol::` references found in `src/` — may be us
 - `torrust_tracker_primitives::PeerId`
 - `torrust_tracker_primitives::ScrapeData`
 - `torrust_tracker_primitives::peer`
-- `torrust_tracker_primitives::service_binding`
-- `torrust_tracker_primitives::service_binding::ServiceBinding`
 - `torrust_tracker_primitives::swarm_metadata::SwarmMetadata`
 
 #### `torrust-tracker-swarm-coordination-registry` [normal]
@@ -487,7 +496,7 @@ _No `torrust_tracker_events::` references found in `src/` — may be used only i
 
 ### `torrust-axum-rest-tracker-api-server`
 
-Workspace deps: 15
+Workspace deps: 16
 
 #### `bittorrent-http-tracker-core` [normal]
 
@@ -518,6 +527,10 @@ Workspace deps: 15
 - `torrust_axum_server::custom_axum_server`
 - `torrust_axum_server::signals::graceful_shutdown`
 - `torrust_axum_server::tsl::make_rust_tls`
+
+#### `torrust-net-primitives` [normal]
+
+- `torrust_net_primitives::service_binding`
 
 #### `torrust-rest-tracker-api-client` [normal]
 
@@ -561,7 +574,6 @@ Workspace deps: 15
 - `torrust_tracker_primitives::AnnounceEvent`
 - `torrust_tracker_primitives::pagination::Pagination`
 - `torrust_tracker_primitives::peer`
-- `torrust_tracker_primitives::service_binding`
 
 #### `torrust-tracker-swarm-coordination-registry` [normal]
 
@@ -657,9 +669,9 @@ Workspace deps: 10
 
 Workspace deps: 1
 
-#### `torrust-tracker-primitives` [normal]
+#### `torrust-net-primitives` [normal]
 
-- `torrust_tracker_primitives::service_binding::ServiceBinding`
+- `torrust_net_primitives::service_binding::ServiceBinding`
 
 ### `torrust-tracker`
 
@@ -783,11 +795,15 @@ Workspace deps: 2
 
 ### `torrust-tracker-configuration`
 
-Workspace deps: 1
+Workspace deps: 2
 
 #### `torrust-tracker-located-error` [normal]
 
 _Items not extracted — dependency used without a direct `use` path (macro, re-export, or glob import)._
+
+#### `torrust-tracker-primitives` [normal]
+
+- `torrust_tracker_primitives::AnnouncePolicy`
 
 ### `torrust-tracker-metrics`
 
@@ -805,13 +821,13 @@ Workspace deps: 3
 
 _Items not extracted — dependency used without a direct `use` path (macro, re-export, or glob import)._
 
+#### `torrust-net-primitives` [normal]
+
+- `torrust_net_primitives::service_binding`
+
 #### `torrust-tracker-clock` [normal]
 
 - `torrust_tracker_clock::DurationSinceUnixEpoch`
-
-#### `torrust-tracker-configuration` [normal]
-
-- `torrust_tracker_configuration::AnnouncePolicy`
 
 ### `torrust-tracker-swarm-coordination-registry`
 
@@ -906,7 +922,7 @@ Workspace deps: 3
 
 ### `torrust-udp-tracker-server`
 
-Workspace deps: 12
+Workspace deps: 13
 
 #### `bittorrent-tracker-client` [normal]
 
@@ -967,6 +983,11 @@ Workspace deps: 12
 - `bittorrent_udp_tracker_protocol::response::ScrapeResponse`
 - `bittorrent_udp_tracker_protocol::response::TorrentScrapeStatistics`
 
+#### `torrust-net-primitives` [normal]
+
+- `torrust_net_primitives::service_binding`
+- `torrust_net_primitives::service_binding::ServiceBinding`
+
 #### `torrust-server-lib` [normal]
 
 - `torrust_server_lib::logging::STARTED_ON`
@@ -1015,8 +1036,6 @@ Workspace deps: 12
 - `torrust_tracker_primitives::PeerId`
 - `torrust_tracker_primitives::ScrapeData`
 - `torrust_tracker_primitives::peer::fixture`
-- `torrust_tracker_primitives::service_binding`
-- `torrust_tracker_primitives::service_binding::ServiceBinding`
 - `torrust_tracker_primitives::swarm_metadata::AggregateActiveSwarmMetadata`
 - `torrust_tracker_primitives::swarm_metadata::SwarmMetadata`
 
@@ -1033,14 +1052,16 @@ Workspace deps: 12
 
 ## Observations
 
-(To be filled in after reviewing the report above.)
+To be filled in after reviewing the report above.
 
 ### Known thin dependencies (pre-existing)
 
 - `torrust-tracker-clock` → `torrust-tracker-primitives`: only
   `DurationSinceUnixEpoch` imported. Addressed by SI-02.
+- `torrust-tracker-configuration` → `torrust-tracker-clock`: only
+  `DEFAULT_TIMEOUT` imported. Addressed by SI-03.
 
 ### New findings
 
-(Record any new thin-dependency or cluster-dependency findings here, with a
-reference to the subissue opened for each.)
+Record any new thin-dependency or cluster-dependency findings here, with a
+reference to the subissue opened for each.
