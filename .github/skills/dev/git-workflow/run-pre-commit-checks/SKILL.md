@@ -23,7 +23,7 @@ manually before each commit.
 > **For AI agents**: before invoking the script manually, check whether the hook is installed:
 >
 > ```bash
-> [[ -x "$(git rev-parse --git-path hooks)/pre-commit" ]] && echo "installed" || echo "not installed"
+> ./contrib/dev-tools/git/check-git-hooks.sh
 > ```
 >
 > If installed, skip the manual run — `git commit` will trigger it automatically.

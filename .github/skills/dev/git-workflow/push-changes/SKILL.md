@@ -36,7 +36,7 @@ manually before each push.
 > **For AI agents**: before invoking the script manually, check whether the hook is installed:
 >
 > ```bash
-> [[ -x "$(git rev-parse --git-path hooks)/pre-push" ]] && echo "installed" || echo "not installed"
+> ./contrib/dev-tools/git/check-git-hooks.sh
 > ```
 >
 > If installed, skip the manual run — `git push` will trigger it automatically.
