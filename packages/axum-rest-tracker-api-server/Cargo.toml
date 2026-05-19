@@ -37,6 +37,7 @@ torrust-server-lib = { version = "3.0.0-develop", path = "../server-lib" }
 torrust-tracker-clock = { version = "3.0.0-develop", path = "../clock" }
 torrust-tracker-configuration = { version = "3.0.0-develop", path = "../configuration" }
 torrust-tracker-metrics = { version = "3.0.0-develop", path = "../metrics" }
+torrust-net-primitives = { version = "3.0.0-develop", path = "../net-primitives" }
 torrust-tracker-primitives = { version = "3.0.0-develop", path = "../primitives" }
 torrust-tracker-swarm-coordination-registry = { version = "3.0.0-develop", path = "../swarm-coordination-registry" }
 torrust-udp-tracker-server = { version = "3.0.0-develop", path = "../udp-tracker-server" }

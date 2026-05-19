@@ -12,8 +12,8 @@ use bittorrent_http_tracker_protocol::v1::responses::{self};
 use bittorrent_http_tracker_protocol::v1::services::peer_ip_resolver::ClientIpSources;
 use bittorrent_tracker_core::authentication::Key;
 use hyper::StatusCode;
+use torrust_net_primitives::service_binding::ServiceBinding;
 use torrust_tracker_primitives::AnnounceData;
-use torrust_tracker_primitives::service_binding::ServiceBinding;
 
 use crate::v1::extractors::announce_request::ExtractRequest;
 use crate::v1::extractors::authentication_key::Extract as ExtractKey;
@@ -228,7 +228,7 @@ mod tests {
 
         use bittorrent_http_tracker_protocol::v1::responses;
         use bittorrent_tracker_core::authentication;
-        use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
+        use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
 
         use super::{initialize_private_tracker, sample_announce_request, sample_client_ip_sources};
         use crate::v1::handlers::announce::handle_announce;
@@ -300,7 +300,7 @@ mod tests {
         use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
         use bittorrent_http_tracker_protocol::v1::responses;
-        use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
+        use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
 
         use super::{initialize_listed_tracker, sample_announce_request, sample_client_ip_sources};
         use crate::v1::handlers::announce::handle_announce;
@@ -345,7 +345,7 @@ mod tests {
 
         use bittorrent_http_tracker_protocol::v1::responses;
         use bittorrent_http_tracker_protocol::v1::services::peer_ip_resolver::ClientIpSources;
-        use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
+        use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
 
         use super::{initialize_tracker_on_reverse_proxy, sample_announce_request};
         use crate::v1::handlers::announce::handle_announce;
@@ -390,7 +390,7 @@ mod tests {
 
         use bittorrent_http_tracker_protocol::v1::responses;
         use bittorrent_http_tracker_protocol::v1::services::peer_ip_resolver::ClientIpSources;
-        use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
+        use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
 
         use super::{initialize_tracker_not_on_reverse_proxy, sample_announce_request};
         use crate::v1::handlers::announce::handle_announce;

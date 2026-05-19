@@ -10,10 +10,10 @@ use futures::future::BoxFuture;
 use tokio::sync::oneshot::{Receiver, Sender};
 use torrust_axum_server::custom_axum_server::{self, TimeoutAcceptor};
 use torrust_axum_server::signals::graceful_shutdown;
+use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
 use torrust_server_lib::logging::STARTED_ON;
 use torrust_server_lib::registar::{ServiceHealthCheckJob, ServiceRegistration, ServiceRegistrationForm};
 use torrust_server_lib::signals::{Halted, Started};
-use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
 use tracing::instrument;
 
 use super::v1::routes::router;

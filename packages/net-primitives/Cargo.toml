@@ -1,0 +1,24 @@
+[package]
+description = "Generic networking primitive types for Torrust projects."
+keywords = [ "library", "net", "primitives", "torrust" ]
+name = "torrust-net-primitives"
+readme = "README.md"
+
+authors.workspace = true
+categories.workspace = true
+documentation.workspace = true
+edition.workspace = true
+homepage.workspace = true
+license.workspace = true
+publish.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+version.workspace = true
+
+[dependencies]
+serde = { version = "1", features = [ "derive" ] }
+thiserror = "2"
+url = "2.5.4"
+
+[dev-dependencies]
+rstest = "0.25.0"

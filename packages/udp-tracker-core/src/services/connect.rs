@@ -4,7 +4,7 @@
 use std::net::SocketAddr;
 
 use bittorrent_udp_tracker_protocol::ConnectionId;
-use torrust_tracker_primitives::service_binding::ServiceBinding;
+use torrust_net_primitives::service_binding::ServiceBinding;
 
 use crate::connection_cookie::{gen_remote_fingerprint, make};
 use crate::event::{ConnectionContext, Event};
@@ -61,8 +61,8 @@ mod tests {
         use std::sync::Arc;
 
         use mockall::predicate::eq;
+        use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
         use torrust_tracker_events::bus::SenderStatus;
-        use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
 
         use crate::connection_cookie::make;
         use crate::event::bus::EventBus;

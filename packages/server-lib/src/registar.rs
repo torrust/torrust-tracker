@@ -6,7 +6,7 @@ use std::sync::Arc;
 use derive_more::Constructor;
 use tokio::sync::Mutex;
 use tokio::task::JoinHandle;
-use torrust_tracker_primitives::service_binding::ServiceBinding;
+use torrust_net_primitives::service_binding::ServiceBinding;
 
 /// A [`ServiceHeathCheckResult`] is returned by a completed health check.
 pub type ServiceHeathCheckResult = Result<String, String>;

@@ -598,6 +598,7 @@ dependencies = [
  "thiserror 2.0.18",
  "tokio",
  "tokio-util",
+ "torrust-net-primitives",
  "torrust-tracker-clock",
  "torrust-tracker-configuration",
  "torrust-tracker-events",
@@ -668,6 +669,7 @@ dependencies = [
  "serde_repr",
  "thiserror 2.0.18",
  "tokio",
+ "torrust-net-primitives",
  "torrust-tracker-located-error",
  "torrust-tracker-primitives",
  "tracing",
@@ -725,6 +727,7 @@ dependencies = [
  "thiserror 2.0.18",
  "tokio",
  "tokio-util",
+ "torrust-net-primitives",
  "torrust-tracker-clock",
  "torrust-tracker-configuration",
  "torrust-tracker-events",
@@ -5354,10 +5357,10 @@ dependencies = [
  "torrust-axum-http-tracker-server",
  "torrust-axum-rest-tracker-api-server",
  "torrust-axum-server",
+ "torrust-net-primitives",
  "torrust-server-lib",
  "torrust-tracker-clock",
  "torrust-tracker-configuration",
- "torrust-tracker-primitives",
  "torrust-tracker-test-helpers",
  "torrust-udp-tracker-server",
  "tower-http",
@@ -5392,6 +5395,7 @@ dependencies = [
  "tokio",
  "tokio-util",
  "torrust-axum-server",
+ "torrust-net-primitives",
  "torrust-server-lib",
  "torrust-tracker-clock",
  "torrust-tracker-configuration",
@@ -5429,6 +5433,7 @@ dependencies = [
  "thiserror 2.0.18",
  "tokio",
  "torrust-axum-server",
+ "torrust-net-primitives",
  "torrust-rest-tracker-api-client",
  "torrust-rest-tracker-api-core",
  "torrust-server-lib",
@@ -5464,6 +5469,16 @@ dependencies = [
  "torrust-tracker-located-error",
  "tower",
  "tracing",
+]
+
+[[package]]
+name = "torrust-net-primitives"
+version = "3.0.0-develop"
+dependencies = [
+ "rstest 0.25.0",
+ "serde",
+ "thiserror 2.0.18",
+ "url",
 ]
 
 [[package]]
@@ -5503,7 +5518,7 @@ dependencies = [
  "derive_more 2.1.1",
  "rstest 0.25.0",
  "tokio",
- "torrust-tracker-primitives",
+ "torrust-net-primitives",
  "tower-http",
  "tracing",
 ]
@@ -5663,8 +5678,8 @@ dependencies = [
  "tdyne-peer-id",
  "tdyne-peer-id-registry",
  "thiserror 2.0.18",
+ "torrust-net-primitives",
  "torrust-tracker-clock",
- "url",
 ]
 
 [[package]]
@@ -5741,6 +5756,7 @@ dependencies = [
  "thiserror 2.0.18",
  "tokio",
  "tokio-util",
+ "torrust-net-primitives",
  "torrust-server-lib",
  "torrust-tracker-clock",
  "torrust-tracker-configuration",

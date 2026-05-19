@@ -9,9 +9,9 @@ use bittorrent_udp_tracker_protocol::{
     AnnounceInterval, AnnounceRequest, AnnounceResponse, AnnounceResponseFixedData, Ipv4AddrBytes, Ipv6AddrBytes, NumberOfPeers,
     Port, Response, ResponsePeer, TransactionId,
 };
+use torrust_net_primitives::service_binding::ServiceBinding;
 use torrust_tracker_configuration::Core;
 use torrust_tracker_primitives::AnnounceData;
-use torrust_tracker_primitives::service_binding::ServiceBinding;
 use tracing::{Level, instrument};
 use zerocopy::byteorder::network_endian::I32;
 
@@ -216,9 +216,9 @@ pub(crate) mod tests {
                 Ipv6AddrBytes, NumberOfPeers, PeerId as AquaticPeerId, Response, ResponsePeer,
             };
             use mockall::predicate::eq;
+            use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
             use torrust_tracker_events::bus::SenderStatus;
             use torrust_tracker_primitives::peer::fixture::PeerBuilder;
-            use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
 
             use crate::event::{ConnectionContext, Event, UdpRequestKind};
             use crate::handlers::announce::tests::announce_request::AnnounceRequestBuilder;
@@ -478,8 +478,8 @@ pub(crate) mod tests {
 
                 use bittorrent_udp_tracker_core::connection_cookie::{gen_remote_fingerprint, make};
                 use bittorrent_udp_tracker_protocol::{InfoHash as AquaticInfoHash, PeerId as AquaticPeerId};
+                use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
                 use torrust_tracker_primitives::peer::fixture::PeerBuilder;
-                use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
 
                 use crate::handlers::announce::tests::announce_request::AnnounceRequestBuilder;
                 use crate::handlers::handle_announce;
@@ -557,10 +557,10 @@ pub(crate) mod tests {
                 Ipv6AddrBytes, NumberOfPeers, PeerId as AquaticPeerId, Response, ResponsePeer,
             };
             use mockall::predicate::eq;
+            use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
             use torrust_tracker_configuration::Core;
             use torrust_tracker_events::bus::SenderStatus;
             use torrust_tracker_primitives::peer::fixture::PeerBuilder;
-            use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
 
             use crate::event::{ConnectionContext, Event, UdpRequestKind};
             use crate::handlers::announce::tests::announce_request::AnnounceRequestBuilder;
@@ -855,7 +855,7 @@ pub(crate) mod tests {
                 use bittorrent_udp_tracker_core::{self, event as core_event};
                 use bittorrent_udp_tracker_protocol::{InfoHash as AquaticInfoHash, PeerId as AquaticPeerId};
                 use mockall::predicate::{self, eq};
-                use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
+                use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
 
                 use crate::event::{ConnectionContext, Event, UdpRequestKind};
                 use crate::handlers::announce::tests::announce_request::AnnounceRequestBuilder;

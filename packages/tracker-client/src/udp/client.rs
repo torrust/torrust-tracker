@@ -7,7 +7,7 @@ use std::time::Duration;
 use bittorrent_udp_tracker_protocol::{ConnectRequest, Request, Response, TransactionId};
 use tokio::net::UdpSocket;
 use tokio::time;
-use torrust_tracker_primitives::service_binding::ServiceBinding;
+use torrust_net_primitives::service_binding::ServiceBinding;
 use zerocopy::byteorder::network_endian::I32;
 
 use super::Error;

@@ -17,9 +17,9 @@ use bittorrent_tracker_core::authentication::service::AuthenticationService;
 use bittorrent_tracker_core::authentication::{self, Key};
 use bittorrent_tracker_core::error::{ScrapeError, TrackerCoreError, WhitelistError};
 use bittorrent_tracker_core::scrape_handler::ScrapeHandler;
+use torrust_net_primitives::service_binding::ServiceBinding;
 use torrust_tracker_configuration::Core;
 use torrust_tracker_primitives::ScrapeData;
-use torrust_tracker_primitives::service_binding::ServiceBinding;
 
 use crate::event::{ConnectionContext, Event};
 
@@ -255,9 +255,9 @@ mod tests {
         use bittorrent_http_tracker_protocol::v1::services::peer_ip_resolver::{ClientIpSources, RemoteClientAddr, ResolvedIp};
         use bittorrent_tracker_core::announce_handler::PeersWanted;
         use mockall::predicate::eq;
+        use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
         use torrust_tracker_events::bus::SenderStatus;
         use torrust_tracker_primitives::ScrapeData;
-        use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
         use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
         use torrust_tracker_test_helpers::configuration;
 
@@ -446,9 +446,9 @@ mod tests {
         use bittorrent_http_tracker_protocol::v1::services::peer_ip_resolver::{ClientIpSources, RemoteClientAddr, ResolvedIp};
         use bittorrent_tracker_core::announce_handler::PeersWanted;
         use mockall::predicate::eq;
+        use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
         use torrust_tracker_events::bus::SenderStatus;
         use torrust_tracker_primitives::ScrapeData;
-        use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
         use torrust_tracker_test_helpers::configuration;
 
         use crate::event::bus::EventBus;

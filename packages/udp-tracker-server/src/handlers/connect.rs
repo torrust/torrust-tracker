@@ -4,7 +4,7 @@ use std::sync::Arc;
 
 use bittorrent_udp_tracker_core::services::connect::ConnectService;
 use bittorrent_udp_tracker_protocol::{ConnectRequest, ConnectResponse, ConnectionId, Response};
-use torrust_tracker_primitives::service_binding::ServiceBinding;
+use torrust_net_primitives::service_binding::ServiceBinding;
 use tracing::{Level, instrument};
 
 use crate::event::{ConnectionContext, Event, UdpRequestKind};
@@ -63,8 +63,8 @@ mod tests {
         use bittorrent_udp_tracker_core::services::connect::ConnectService;
         use bittorrent_udp_tracker_protocol::{ConnectRequest, ConnectResponse, Response, TransactionId};
         use mockall::predicate::eq;
+        use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
         use torrust_tracker_events::bus::SenderStatus;
-        use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
 
         use crate::event::{ConnectionContext, Event, UdpRequestKind};
         use crate::handlers::handle_connect;

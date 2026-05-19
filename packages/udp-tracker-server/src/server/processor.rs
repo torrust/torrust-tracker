@@ -7,7 +7,7 @@ use bittorrent_udp_tracker_core::container::UdpTrackerCoreContainer;
 use bittorrent_udp_tracker_core::{self};
 use bittorrent_udp_tracker_protocol::Response;
 use tokio::time::Instant;
-use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
+use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
 use tracing::{Level, instrument};
 
 use super::bound_socket::BoundSocket;
