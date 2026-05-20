@@ -96,7 +96,18 @@ linter cspell
 
 ### Step 3: Create the GitHub Issue
 
-After user approval, create the GitHub issue. Options:
+After user approval, format the issue body and create the issue.
+
+#### Format Body Text for GitHub
+
+Before calling the GitHub API or CLI, review and reformat the issue body following the
+`write-markdown-docs` checklist for GitHub surfaces:
+
+- Write each paragraph as a **single continuous line** — do not hard-wrap at any fixed column width
+- Use GitHub Flavored Markdown (GFM) conventions
+- Check for accidental `#NUMBER` autolinks (only use `#NUMBER` for intentional issue/PR references)
+
+#### Create the Issue
 
 **GitHub CLI:**
 
