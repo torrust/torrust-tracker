@@ -69,6 +69,16 @@ Optional sections to add when relevant:
 - **Alternatives Considered**: other options explored and why they were rejected
 - **Consequences**: positive and negative effects of the decision
 
+### ADR Status
+
+Do **not** add a `- Status:` header by default. An ADR merged into `develop` or `main` is
+implicitly accepted — the PR review process is the acceptance gate.
+
+Only add a `- Status:` header for special terminal states:
+
+- `- Status: Superseded by [ADR link]` — this decision has been replaced by a newer ADR.
+- Additional states (e.g. `Deprecated`) may be introduced as needed.
+
 ## Step-by-Step Process
 
 ### Step 1: Generate Filename

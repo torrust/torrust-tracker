@@ -1,6 +1,6 @@
 # ADR 20260512080000: Define Tracker CLI I/O Contract and Error Handling
 
-- Status: Accepted
+- Status: Superseded by [20260519000000 — Define the global CLI output contract](../../../../docs/adrs/20260519000000_define_global_cli_output_contract.md)
 - Date: 2026-05-12
 - Scope: console/tracker-client
 
