@@ -61,10 +61,40 @@ abc1234 (SHA) → links to commit (useful for references)
 owner/repo#42 → cross-repo issue link
 ```
 
+## Frontmatter
+
+All Markdown files in `docs/` should include YAML frontmatter.
+
+It is **required** for issue specs and EPIC specs. It is **recommended** for all other
+`.md` files in the repository.
+
+Follow the frontmatter convention defined in
+[`docs/skills/semantic-skill-link-convention.md`](../../../../docs/skills/semantic-skill-link-convention.md),
+which specifies the required fields for each document type and the shape of
+`semantic-links` entries.
+
+## Repo Markdown vs. GitHub Markdown
+
+The `.markdownlint.json` configuration at the repository root applies **only to `.md` files
+tracked in the repository**. It does not apply to Markdown written on GitHub surfaces such
+as issue descriptions, PR descriptions, PR review comments, or discussion posts.
+
+**Do not wrap lines when writing GitHub issue or PR body text.** Hard-wrapping lines in issue
+or PR descriptions produces visually broken paragraphs on GitHub's web UI and is harder for
+human readers to follow. Write each paragraph as a single continuous line and let GitHub's
+rendering handle the wrapping.
+
+| Surface                | Governed by `.markdownlint.json` | Line wrapping                                                |
+| ---------------------- | -------------------------------- | ------------------------------------------------------------ |
+| `.md` files in repo    | Yes                              | Follow repo config (MD013 disabled, but keep lines readable) |
+| GitHub issue / PR body | No                               | Do **not** hard-wrap lines                                   |
+| GitHub review comments | No                               | Do **not** hard-wrap lines                                   |
+
 ## Checklist Before Committing Docs
 
 - [ ] No `#NUMBER` patterns used for enumeration or step numbering
 - [ ] Ordered lists use Markdown syntax (`1.` `2.` `3.`)
 - [ ] Any `#NUMBER` present is an intentional issue/PR reference
 - [ ] Tables are consistently formatted
+- [ ] Frontmatter is present and follows `docs/skills/semantic-skill-link-convention.md`
 - [ ] `linter markdown` and `linter cspell` pass
