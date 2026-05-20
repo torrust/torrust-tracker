@@ -96,6 +96,7 @@ fdget
 filesd
 finalises
 flamegraph
+flamegraphs
 fnix
 formatjson
 fput
