@@ -6,7 +6,7 @@ priority: p2
 github-issue: 1804
 spec-path: docs/issues/open/1804-use-cargo-machete-with-metadata-and-remove-unused-dev-deps.md
 branch: "1804-use-cargo-machete-with-metadata"
-related-pr: null
+related-pr: 1809
 last-updated-utc: 2026-05-20 12:30
 semantic-links:
   skill-links:
