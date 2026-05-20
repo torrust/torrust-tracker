@@ -48,7 +48,10 @@ serde_bencode = "0"
 serde_bytes = "0"
 serde_repr = "0"
 torrust-tracker-clock = { version = "3.0.0-develop", path = "../clock" }
-torrust-tracker-events = { version = "3.0.0-develop", path = "../events" }
 torrust-tracker-test-helpers = { version = "3.0.0-develop", path = "../test-helpers" }
 uuid = { version = "1", features = [ "v4" ] }
-zerocopy = "0.8"
+
+# cargo-machete cannot detect `serde_bytes` usage via `#[serde(with = "serde_bytes")]`
+# string attributes in test code; suppress the false-positive.
+[package.metadata.cargo-machete]
+ignored = [ "serde_bytes" ]

@@ -47,8 +47,6 @@ tracing = "0"
 url = "2"
 
 [dev-dependencies]
-local-ip-address = "0"
-mockall = "0"
 torrust-rest-tracker-api-client = { version = "3.0.0-develop", path = "../rest-tracker-api-client" }
 torrust-tracker-test-helpers = { version = "3.0.0-develop", path = "../test-helpers" }
 url = { version = "2", features = [ "serde" ] }

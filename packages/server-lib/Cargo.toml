@@ -19,6 +19,3 @@ tokio = { version = "1", features = [ "macros", "net", "rt-multi-thread", "signa
 torrust-net-primitives = { version = "3.0.0-develop", path = "../net-primitives" }
 tower-http = { version = "0", features = [ "compression-full", "cors", "propagate-header", "request-id", "trace" ] }
 tracing = "0"
-
-[dev-dependencies]
-rstest = "0.25.0"

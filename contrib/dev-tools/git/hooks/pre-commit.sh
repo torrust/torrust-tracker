@@ -18,7 +18,7 @@ set -uo pipefail
 # Each step: "description|command"
 
 declare -a STEPS=(
-    "Checking for unused dependencies (cargo machete)|cargo machete"
+    "Checking for unused dependencies (cargo machete)|cargo machete --with-metadata"
     "Running all linters|linter all"
     "Running documentation tests|cargo test --doc --workspace"
 )

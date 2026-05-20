@@ -39,7 +39,6 @@ zerocopy = "0.8"
 
 [dev-dependencies]
 mockall = "0"
-torrust-tracker-test-helpers = { version = "3.0.0-develop", path = "../test-helpers" }
 
 [[bench]]
 harness = false
