@@ -1,13 +1,13 @@
 ---
 doc-type: issue
 issue-type: task
-status: draft
+status: open
 priority: p2
-github-issue: null
-spec-path: docs/issues/drafts/1669-07-align-torrust-prefix-rename-tracker-specific-packages.md
-branch: null
+github-issue: 1816
+spec-path: docs/issues/open/1816-1669-07-align-torrust-prefix-rename-tracker-specific-packages.md
+branch: 1669-07-align-torrust-prefix-rename-tracker-specific-packages
 related-pr: null
-last-updated-utc: 2026-05-15 12:00
+last-updated-utc: 2026-05-20 00:00
 semantic-links:
   skill-links:
     - create-issue
@@ -20,7 +20,7 @@ semantic-links:
 
 <!-- skill-link: create-issue -->
 
-# Issue #[To be assigned] - Align `torrust-` prefix: rename tracker-specific packages to `torrust-tracker-`
+# Issue #1816 - Align `torrust-` prefix: rename tracker-specific packages to `torrust-tracker-`
 
 ## Goal
 
@@ -159,11 +159,11 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 ### Workflow Checkpoints
 
-- [ ] Spec drafted in `docs/issues/drafts/`
+- [x] Spec drafted in `docs/issues/drafts/`
 - [x] Open Question on `torrust-server-lib` resolved; decision recorded in spec
-- [ ] Spec reviewed and approved by user/maintainer
-- [ ] GitHub issue created and issue number added to this spec
-- [ ] Spec moved to `docs/issues/open/` with issue number prefix
+- [x] Spec reviewed and approved by user/maintainer
+- [x] GitHub issue created and issue number added to this spec
+- [x] Spec moved to `docs/issues/open/` with issue number prefix
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, `cargo test --workspace`)
 - [ ] Manual verification scenarios executed and recorded
@@ -176,6 +176,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-05-15 12:00 UTC - josecelano - Spec drafted as subissue of EPIC #1669; all 7 packages
   confirmed unpublished on crates.io (no external migration required). `torrust-server-lib`
   excluded (Option B decision).
+- 2026-05-20 00:00 UTC - josecelano - GitHub issue #1816 created; spec moved to
+  `docs/issues/open/` with issue number prefix. SI-05 confirmed done: `server-lib` now
+  depends on `torrust-net-primitives` (not `torrust-tracker-primitives`), validating the
+  Option B exclusion decision.
 
 ## Acceptance Criteria
 
