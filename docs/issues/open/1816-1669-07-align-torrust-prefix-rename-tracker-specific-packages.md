@@ -5,7 +5,7 @@ status: open
 priority: p2
 github-issue: 1816
 spec-path: docs/issues/open/1816-1669-07-align-torrust-prefix-rename-tracker-specific-packages.md
-branch: 1669-07-align-torrust-prefix-rename-tracker-specific-packages
+branch: 1816-1669-07-align-torrust-prefix-rename-tracker-specific-packages
 related-pr: null
 last-updated-utc: 2026-05-20 00:00
 semantic-links:
