@@ -1,13 +1,13 @@
 ---
 doc-type: issue
 issue-type: task
-status: draft
+status: closed
 priority: p2
-github-issue: null
-spec-path: docs/issues/drafts/1669-06-resolve-bittorrent-tracker-core-rest-api-layer-violation.md
-branch: null
-related-pr: null
-last-updated-utc: 2026-05-18 12:00
+github-issue: 1813
+spec-path: docs/issues/closed/1813-1669-06-resolve-bittorrent-tracker-core-rest-api-layer-violation.md
+branch: 1813-resolve-bittorrent-tracker-core-rest-api-layer-violation
+related-pr: 1804
+last-updated-utc: 2026-05-20 14:00
 semantic-links:
   skill-links:
     - create-issue
@@ -19,7 +19,7 @@ semantic-links:
 
 <!-- skill-link: create-issue -->
 
-# Issue #[To be assigned] - Resolve `bittorrent-tracker-core` ↔ `torrust-rest-tracker-api-client` layer violation
+# Issue #1813 - Resolve `bittorrent-tracker-core` ↔ `torrust-rest-tracker-api-client` layer violation
 
 ## Goal
 
@@ -69,24 +69,24 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task                                                                                                  | Notes / Expected Output     |
 | --- | ------ | ----------------------------------------------------------------------------------------------------- | --------------------------- |
-| T1  | TODO   | Remove `torrust-rest-tracker-api-client` from `packages/tracker-core/Cargo.toml` `[dev-dependencies]` | One-line deletion           |
-| T2  | TODO   | Run `cargo build --workspace` and `cargo test --workspace`                                            | Clean build; all tests pass |
-| T3  | TODO   | Run `linter all`                                                                                      | Exit code `0`               |
+| T1  | DONE   | Remove `torrust-rest-tracker-api-client` from `packages/tracker-core/Cargo.toml` `[dev-dependencies]` | Done in PR #1804            |
+| T2  | DONE   | Run `cargo build --workspace` and `cargo test --workspace`                                            | Clean build; all tests pass |
+| T3  | DONE   | Run `linter all`                                                                                      | Exit code `0`               |
 
 ## Progress Tracking
 
 ### Workflow Checkpoints
 
-- [ ] Spec drafted in `docs/issues/drafts/`
-- [ ] Spec reviewed and approved by user/maintainer
-- [ ] GitHub issue created and issue number added to this spec
-- [ ] Spec moved to `docs/issues/open/` with issue number prefix
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, `cargo test --workspace`)
-- [ ] Manual verification scenarios executed and recorded
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] EPIC #1669 Active Subissues table updated to `DONE`
-- [ ] Issue closed and spec moved to `docs/issues/closed/`
+- [x] Spec drafted in `docs/issues/drafts/`
+- [x] Spec reviewed and approved by user/maintainer
+- [x] GitHub issue created and issue number added to this spec
+- [x] Spec moved to `docs/issues/open/` with issue number prefix
+- [x] Implementation completed (done in PR #1804 before this issue was created)
+- [x] Automatic verification completed (`linter all`, `cargo test --workspace`)
+- [x] Manual verification scenarios executed and recorded
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] EPIC #1669 Active Subissues table updated to `DONE`
+- [x] Issue closed and spec moved to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -95,15 +95,20 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-05-18 12:00 UTC - josecelano - Audit confirmed the dependency is unused (zero imports
   in `src/` and `tests/`). Spec revised: no extraction required; fix is a one-line `Cargo.toml`
   deletion.
+- 2026-05-20 14:00 UTC - josecelano - GitHub issue #1813 created. Fix was already applied in
+  PR #1804 (commit e242db8a) as part of a broader `cargo machete --with-metadata` cleanup.
+  Both `local-ip-address` and `torrust-rest-tracker-api-client` were removed from
+  `packages/tracker-core/Cargo.toml` [dev-dependencies]. All acceptance criteria verified.
+  Issue closed immediately; spec moved to `docs/issues/closed/`.
 
 ## Acceptance Criteria
 
-- [ ] `packages/tracker-core/Cargo.toml` does not list `torrust-rest-tracker-api-client` in
-      `[dev-dependencies]`.
-- [ ] All `bittorrent-tracker-core` integration tests still compile and pass.
-- [ ] `cargo build --workspace` succeeds with zero errors.
-- [ ] `cargo test --workspace` passes with zero failures.
-- [ ] `linter all` exits with code `0`.
+- [x] `packages/tracker-core/Cargo.toml` does not list `torrust-rest-tracker-api-client` in
+      `[dev-dependencies]`. Removed in PR #1804 (commit e242db8a).
+- [x] All `bittorrent-tracker-core` integration tests still compile and pass. Verified in PR #1804.
+- [x] `cargo build --workspace` succeeds with zero errors. Verified in PR #1804.
+- [x] `cargo test --workspace` passes with zero failures. Verified in PR #1804.
+- [x] `linter all` exits with code `0`. Verified in PR #1804.
 
 ## Verification Plan
 
@@ -121,5 +126,5 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID  | Scenario                                                  | Command / Steps                                                           | Expected Result | Status | Evidence |
 | --- | --------------------------------------------------------- | ------------------------------------------------------------------------- | --------------- | ------ | -------- |
-| M1  | No dev dep on `rest-tracker-api-client` in `tracker-core` | `grep "torrust-rest-tracker-api-client" packages/tracker-core/Cargo.toml` | Zero matches    | TODO   |          |
-| M2  | `bittorrent-tracker-core` integration tests pass          | `cargo test -p bittorrent-tracker-core --tests`                           | All pass        | TODO   |          |
+| M1  | No dev dep on `rest-tracker-api-client` in `tracker-core` | `grep "torrust-rest-tracker-api-client" packages/tracker-core/Cargo.toml` | Zero matches    | DONE   | PR #1804; `grep` returns zero matches on develop |
+| M2  | `bittorrent-tracker-core` integration tests pass          | `cargo test -p bittorrent-tracker-core --tests`                           | All pass        | DONE   | Verified in PR #1804 |
