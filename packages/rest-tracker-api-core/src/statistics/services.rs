@@ -5,7 +5,7 @@ use bittorrent_udp_tracker_core::services::banning::BanService;
 use bittorrent_udp_tracker_core::{self};
 use tokio::sync::RwLock;
 use torrust_tracker_metrics::metric_collection::MetricCollection;
-use torrust_udp_tracker_server::statistics::{self as udp_server_statistics};
+use torrust_tracker_udp_server::statistics::{self as udp_server_statistics};
 
 use super::metrics::TorrentsMetrics;
 use crate::statistics::metrics::ProtocolMetrics;
@@ -239,7 +239,7 @@ mod tests {
         }
 
         // UDP server stats
-        let udp_server_stats_repository = Arc::new(torrust_udp_tracker_server::statistics::repository::Repository::new());
+        let udp_server_stats_repository = Arc::new(torrust_tracker_udp_server::statistics::repository::Repository::new());
 
         let tracker_metrics = get_metrics(
             tracker_core_container.in_memory_torrent_repository.clone(),

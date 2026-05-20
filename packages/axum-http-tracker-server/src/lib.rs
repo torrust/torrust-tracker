@@ -238,7 +238,7 @@
 //! `info_hash` parameters: `info_hash=%81%00%0...00%00%00&info_hash=%82%00%0...00%00%00`
 //!
 //! > **NOTICE**: the maximum number of torrents you can scrape at the same time
-//! > is `74`. Defined with a hardcoded const [`MAX_SCRAPE_TORRENTS`](torrust_udp_tracker_server::MAX_SCRAPE_TORRENTS).
+//! > is `74`. Defined with a hardcoded const [`MAX_SCRAPE_TORRENTS`](torrust_tracker_udp_server::MAX_SCRAPE_TORRENTS).
 //!
 //! **Sample response**
 //!

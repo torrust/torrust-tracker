@@ -44,13 +44,13 @@ Machine: local dev (clean workspace)
 
 | Rank | Execution time | Binary / suite                                                                    |
 | ---- | -------------- | --------------------------------------------------------------------------------- |
-| 1    | **5.04 s**     | `tests/integration.rs` — `torrust_udp_tracker_server` (6 tests)                   |
+| 1    | **5.04 s**     | `tests/integration.rs` — `torrust_tracker_udp_server` (6 tests)                   |
 | 2    | **3.21 s**     | `unittests src/lib.rs` — `torrust_tracker_swarm_coordination_registry` (95 tests) |
-| 3    | **2.08 s**     | `unittests src/lib.rs` — `torrust_udp_tracker_server` (122 tests)                 |
-| 4    | **2.05 s**     | `tests/integration.rs` — `torrust_axum_health_check_api_server` (7 tests)         |
-| 5    | **0.36 s**     | `tests/integration.rs` — `torrust_axum_rest_tracker_api_server` (53 tests)        |
+| 3    | **2.08 s**     | `unittests src/lib.rs` — `torrust_tracker_udp_server` (122 tests)                 |
+| 4    | **2.05 s**     | `tests/integration.rs` — `torrust_tracker_axum_health_check_api_server` (7 tests)         |
+| 5    | **0.36 s**     | `tests/integration.rs` — `torrust_tracker_axum_rest_api_server` (53 tests)        |
 | 6    | **0.23 s**     | `tests/integration.rs` — `bittorrent_tracker_core` (5 tests)                      |
-| 7    | **0.21 s**     | `tests/integration.rs` — `torrust_axum_http_tracker_server` (52 tests)            |
+| 7    | **0.21 s**     | `tests/integration.rs` — `torrust_tracker_axum_http_server` (52 tests)            |
 | …    | ≤ 0.10 s       | all remaining binaries                                                            |
 
 Top 4 binaries account for **12.38 s** out of **13.60 s** total execution time (~91 %).
@@ -73,13 +73,13 @@ can be parallelised past them.
 | Rank | Max single unit | Sum (all units) | # units | Crate                                             |
 | ---- | --------------- | --------------- | ------- | ------------------------------------------------- |
 | 1    | 77.19 s         | 606.43 s        | 13      | `torrust-tracker` (workspace root)                |
-| 2    | 67.46 s         | 83.09 s         | 3       | `torrust-axum-health-check-api-server`            |
+| 2    | 67.46 s         | 83.09 s         | 3       | `torrust-tracker-axum-health-check-api-server`            |
 | 3    | 62.94 s         | 182.15 s        | 5       | `bittorrent-tracker-core`                         |
 | 4    | 60.87 s         | 96.73 s         | 4       | `torrust-tracker-torrent-repository-benchmarking` |
-| 5    | 59.04 s         | 116.97 s        | 3       | `torrust-axum-rest-tracker-api-server`            |
-| 6    | 56.97 s         | 116.96 s        | 3       | `torrust-axum-http-tracker-server`                |
-| 7    | 50.02 s         | 99.74 s         | 3       | `torrust-udp-tracker-server`                      |
-| 8    | 33.82 s         | 34.21 s         | 2       | `torrust-rest-tracker-api-core`                   |
+| 5    | 59.04 s         | 116.97 s        | 3       | `torrust-tracker-axum-rest-api-server`            |
+| 6    | 56.97 s         | 116.96 s        | 3       | `torrust-tracker-axum-http-server`                |
+| 7    | 50.02 s         | 99.74 s         | 3       | `torrust-tracker-udp-server`                      |
+| 8    | 33.82 s         | 34.21 s         | 2       | `torrust-tracker-rest-api-core`                   |
 | 9    | 31.01 s         | 60.37 s         | 3       | `bittorrent-http-tracker-core`                    |
 | 10   | 28.50 s         | 48.40 s         | 3       | `bittorrent-udp-tracker-core`                     |
 | 11   | 21.01 s         | 22.01 s         | 3       | `aws-lc-sys` (external C build)                   |
@@ -91,7 +91,7 @@ can be parallelised past them.
 | 17   | 12.71 s         | 14.19 s         | 2       | `torrust-tracker-swarm-coordination-registry`     |
 | 18   | 12.27 s         | 46.54 s         | 5       | `torrust-tracker-client`                          |
 | 19   | 12.08 s         | 13.23 s         | 2       | `torrust-tracker-metrics`                         |
-| 20   | 9.85 s          | 10.18 s         | 2       | `torrust-axum-server`                             |
+| 20   | 9.85 s          | 10.18 s         | 2       | `torrust-tracker-axum-server`                             |
 
 ### Heaviest external/C dependencies
 

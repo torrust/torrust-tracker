@@ -54,17 +54,17 @@ thiserror = "2.0.12"
 tokio = { version = "1", features = [ "macros", "net", "rt-multi-thread", "signal", "sync" ] }
 tokio-util = "0.7.15"
 toml = "1"
-torrust-axum-health-check-api-server = { version = "3.0.0-develop", path = "packages/axum-health-check-api-server" }
-torrust-axum-http-tracker-server = { version = "3.0.0-develop", path = "packages/axum-http-tracker-server" }
-torrust-axum-rest-tracker-api-server = { version = "3.0.0-develop", path = "packages/axum-rest-tracker-api-server" }
-torrust-axum-server = { version = "3.0.0-develop", path = "packages/axum-server" }
-torrust-rest-tracker-api-client = { version = "3.0.0-develop", path = "packages/rest-tracker-api-client" }
-torrust-rest-tracker-api-core = { version = "3.0.0-develop", path = "packages/rest-tracker-api-core" }
+torrust-tracker-axum-health-check-api-server = { version = "3.0.0-develop", path = "packages/axum-health-check-api-server" }
+torrust-tracker-axum-http-server = { version = "3.0.0-develop", path = "packages/axum-http-tracker-server" }
+torrust-tracker-axum-rest-api-server = { version = "3.0.0-develop", path = "packages/axum-rest-tracker-api-server" }
+torrust-tracker-axum-server = { version = "3.0.0-develop", path = "packages/axum-server" }
+torrust-tracker-rest-api-client = { version = "3.0.0-develop", path = "packages/rest-tracker-api-client" }
+torrust-tracker-rest-api-core = { version = "3.0.0-develop", path = "packages/rest-tracker-api-core" }
 torrust-server-lib = { version = "3.0.0-develop", path = "packages/server-lib" }
 torrust-tracker-clock = { version = "3.0.0-develop", path = "packages/clock" }
 torrust-tracker-configuration = { version = "3.0.0-develop", path = "packages/configuration" }
 torrust-tracker-swarm-coordination-registry = { version = "3.0.0-develop", path = "packages/swarm-coordination-registry" }
-torrust-udp-tracker-server = { version = "3.0.0-develop", path = "packages/udp-tracker-server" }
+torrust-tracker-udp-server = { version = "3.0.0-develop", path = "packages/udp-tracker-server" }
 tracing = "0"
 tracing-subscriber = { version = "0", features = [ "json" ] }
 

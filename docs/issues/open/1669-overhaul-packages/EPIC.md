@@ -58,32 +58,33 @@ The workspace currently contains **27 packages** (including the root `torrust-tr
 
 ### `torrust-` prefix (non-`torrust-tracker-`)
 
-| Published on crates.io | Crate Name                             | Folder                         |
-| ---------------------- | -------------------------------------- | ------------------------------ |
-| No                     | `torrust-axum-health-check-api-server` | `axum-health-check-api-server` |
-| No                     | `torrust-axum-http-tracker-server`     | `axum-http-tracker-server`     |
-| No                     | `torrust-axum-rest-tracker-api-server` | `axum-rest-tracker-api-server` |
-| No                     | `torrust-axum-server`                  | `axum-server`                  |
-| No                     | `torrust-rest-tracker-api-client`      | `rest-tracker-api-client`      |
-| No                     | `torrust-rest-tracker-api-core`        | `rest-tracker-api-core`        |
-| No                     | `torrust-server-lib`                   | `server-lib`                   |
-| No                     | `torrust-udp-tracker-server`           | `udp-tracker-server`           |
+| Published on crates.io | Crate Name               | Folder           |
+| ---------------------- | ------------------------ | ---------------- |
+| No                     | `torrust-net-primitives` | `net-primitives` |
+| No                     | `torrust-server-lib`     | `server-lib`     |
 
 ### `torrust-tracker-` prefix
 
 | Published on crates.io | Crate Name                                        | Folder                            |
 | ---------------------- | ------------------------------------------------- | --------------------------------- |
+| No                     | `torrust-tracker-axum-health-check-api-server`    | `axum-health-check-api-server`    |
+| No                     | `torrust-tracker-axum-http-server`                | `axum-http-tracker-server`        |
+| No                     | `torrust-tracker-axum-rest-api-server`            | `axum-rest-tracker-api-server`    |
+| No                     | `torrust-tracker-axum-server`                     | `axum-server`                     |
+| No                     | `torrust-tracker-client`                          | `console/tracker-client`          |
 | Yes                    | `torrust-tracker-clock`                           | `clock`                           |
 | Yes                    | `torrust-tracker-configuration`                   | `configuration`                   |
+| Yes                    | `torrust-tracker-contrib-bencode`                 | `contrib/bencode`                 |
 | No                     | `torrust-tracker-events`                          | `events`                          |
 | Yes                    | `torrust-tracker-located-error`                   | `located-error`                   |
 | No                     | `torrust-tracker-metrics`                         | `metrics`                         |
 | Yes                    | `torrust-tracker-primitives`                      | `primitives`                      |
+| No                     | `torrust-tracker-rest-api-client`                 | `rest-tracker-api-client`         |
+| No                     | `torrust-tracker-rest-api-core`                   | `rest-tracker-api-core`           |
 | No                     | `torrust-tracker-swarm-coordination-registry`     | `swarm-coordination-registry`     |
 | Yes                    | `torrust-tracker-test-helpers`                    | `test-helpers`                    |
 | No                     | `torrust-tracker-torrent-repository-benchmarking` | `torrent-repository-benchmarking` |
-| No                     | `torrust-tracker-client`                          | `console/tracker-client`          |
-| Yes                    | `torrust-tracker-contrib-bencode`                 | `contrib/bencode`                 |
+| No                     | `torrust-tracker-udp-server`                      | `udp-tracker-server`              |
 
 ### `bittorrent-` prefix
 
@@ -123,21 +124,21 @@ destination group with a "Renamed from …" note.
 
 ### `torrust-tracker-` prefix
 
-| Published on crates.io | Crate Name                                        | Folder                            | Change                                              |
-| ---------------------- | ------------------------------------------------- | --------------------------------- | --------------------------------------------------- |
-| No                     | `torrust-tracker-axum-health-check-api-server`    | `axum-health-check-api-server`    | Renamed from `torrust-axum-health-check-api-server` |
-| No                     | `torrust-tracker-axum-http-server`                | `axum-http-tracker-server`        | Renamed from `torrust-axum-http-tracker-server`     |
-| No                     | `torrust-tracker-axum-rest-api-server`            | `axum-rest-tracker-api-server`    | Renamed from `torrust-axum-rest-tracker-api-server` |
-| No                     | `torrust-tracker-axum-server`                     | `axum-server`                     | Renamed from `torrust-axum-server`                  |
-| Yes                    | `torrust-tracker-configuration`                   | `configuration`                   | —                                                   |
-| No                     | `torrust-tracker-events`                          | `events`                          | —                                                   |
-| Yes                    | `torrust-tracker-primitives`                      | `primitives`                      | —                                                   |
-| No                     | `torrust-tracker-rest-api-client`                 | `rest-tracker-api-client`         | Renamed from `torrust-rest-tracker-api-client`      |
-| No                     | `torrust-tracker-rest-api-core`                   | `rest-tracker-api-core`           | Renamed from `torrust-rest-tracker-api-core`        |
-| No                     | `torrust-tracker-swarm-coordination-registry`     | `swarm-coordination-registry`     | —                                                   |
-| Yes                    | `torrust-tracker-test-helpers`                    | `test-helpers`                    | —                                                   |
-| No                     | `torrust-tracker-torrent-repository-benchmarking` | `torrent-repository-benchmarking` | —                                                   |
-| No                     | `torrust-tracker-udp-server`                      | `udp-tracker-server`              | Renamed from `torrust-udp-tracker-server`           |
+| Published on crates.io | Crate Name                                        | Folder                            | Change |
+| ---------------------- | ------------------------------------------------- | --------------------------------- | ------ |
+| No                     | `torrust-tracker-axum-health-check-api-server`    | `axum-health-check-api-server`    | —      |
+| No                     | `torrust-tracker-axum-http-server`                | `axum-http-tracker-server`        | —      |
+| No                     | `torrust-tracker-axum-rest-api-server`            | `axum-rest-tracker-api-server`    | —      |
+| No                     | `torrust-tracker-axum-server`                     | `axum-server`                     | —      |
+| Yes                    | `torrust-tracker-configuration`                   | `configuration`                   | —      |
+| No                     | `torrust-tracker-events`                          | `events`                          | —      |
+| Yes                    | `torrust-tracker-primitives`                      | `primitives`                      | —      |
+| No                     | `torrust-tracker-rest-api-client`                 | `rest-tracker-api-client`         | —      |
+| No                     | `torrust-tracker-rest-api-core`                   | `rest-tracker-api-core`           | —      |
+| No                     | `torrust-tracker-swarm-coordination-registry`     | `swarm-coordination-registry`     | —      |
+| Yes                    | `torrust-tracker-test-helpers`                    | `test-helpers`                    | —      |
+| No                     | `torrust-tracker-torrent-repository-benchmarking` | `torrent-repository-benchmarking` | —      |
+| No                     | `torrust-tracker-udp-server`                      | `udp-tracker-server`              | —      |
 
 ### `bittorrent-` prefix
 
@@ -208,9 +209,9 @@ Status: TODO unless noted. `SI-XX` = recommended implementation sequence number.
 - [x] SI-02 — Move `DurationSinceUnixEpoch` from `torrust-tracker-primitives` to `torrust-tracker-clock` _(Rule M; no hard blockers)_
 - [ ] SI-03 — Define per-package default timeout constants and remove `DEFAULT_TIMEOUT` from `torrust-tracker-configuration` _(Rule M; no blockers)_
 - [ ] SI-04 — [#1795](https://github.com/torrust/torrust-tracker/issues/1795) Move `AnnouncePolicy` from `torrust-tracker-configuration` to `torrust-tracker-primitives` _(Rule M; no blockers)_
-- [ ] SI-05 — [#1797](https://github.com/torrust/torrust-tracker/issues/1797) Create `torrust-net-primitives` and move `ServiceBinding` from `torrust-tracker-primitives` _(Rule M + new package; no blockers)_
-- [x] SI-06 — [#1813](https://github.com/torrust/torrust-tracker/issues/1813) Resolve `bittorrent-tracker-core` ↔ `torrust-rest-tracker-api-client` layer violation _(Rule M; prerequisite for `bittorrent-tracker-core` extraction)_
-- [ ] SI-07 — [#1816](https://github.com/torrust/torrust-tracker/issues/1816) Align `torrust-` prefix: rename 7 tracker-specific packages to `torrust-tracker-` _(Rule U; no blockers)_
+- [x] SI-05 — [#1797](https://github.com/torrust/torrust-tracker/issues/1797) Create `torrust-net-primitives` and move `ServiceBinding` from `torrust-tracker-primitives` _(Rule M + new package; no blockers)_
+- [x] SI-06 — [#1813](https://github.com/torrust/torrust-tracker/issues/1813) Resolve `bittorrent-tracker-core` ↔ `torrust-tracker-rest-api-client` layer violation _(Rule M; prerequisite for `bittorrent-tracker-core` extraction)_
+- [x] SI-07 — [#1816](https://github.com/torrust/torrust-tracker/issues/1816) Align `torrust-` prefix: rename 7 tracker-specific packages to `torrust-tracker-` _(Rule U; no blockers)_
 - [ ] SI-08 — Rename `torrust-tracker-metrics` to `torrust-metrics` _(Rule U; no blockers)_
 - [ ] SI-09 — Rename `torrust-tracker-clock` to `torrust-clock` _(Rule P; no blockers)_
 - [ ] SI-10 — Rename `torrust-tracker-located-error` to `torrust-located-error` _(Rule P; no blockers)_
@@ -229,8 +230,8 @@ Details:
 | SI-03 | [#1793](https://github.com/torrust/torrust-tracker/issues/1793) — Define per-package default timeout constants and remove `DEFAULT_TIMEOUT` from `torrust-tracker-configuration` | [docs/issues/open/1793-1669-03-define-per-package-default-timeout-constants.md](../../open/1793-1669-03-define-per-package-default-timeout-constants.md)                             | TODO   | Rule M; no blockers; SI-09 no longer depends on this                                            |
 | SI-04 | [#1795](https://github.com/torrust/torrust-tracker/issues/1795) — Move `AnnouncePolicy` from `torrust-tracker-configuration` to `torrust-tracker-primitives`                     | [docs/issues/open/1795-1669-04-move-announce-policy-to-torrust-tracker-primitives.md](../../open/1795-1669-04-move-announce-policy-to-torrust-tracker-primitives.md)                 | TODO   | Rule M; fixes inverted dep (primitives → configuration); no blockers                            |
 | SI-05 | [#1797](https://github.com/torrust/torrust-tracker/issues/1797) — Create `torrust-net-primitives` and move `ServiceBinding` from `torrust-tracker-primitives`                    | [docs/issues/open/1797-1669-05-create-torrust-net-primitives-and-move-service-binding.md](../../open/1797-1669-05-create-torrust-net-primitives-and-move-service-binding.md)         | TODO   | Rule M + new package; generic networking type; breaks server-lib → tracker-primitives dep       |
-| SI-06 | [#1813](https://github.com/torrust/torrust-tracker/issues/1813) — Resolve `bittorrent-tracker-core` ↔ `torrust-rest-tracker-api-client` layer violation                          | [docs/issues/closed/1813-1669-06-resolve-bittorrent-tracker-core-rest-api-layer-violation.md](../../closed/1813-1669-06-resolve-bittorrent-tracker-core-rest-api-layer-violation.md) | DONE   | Rule M; stale unused dev dep removed in PR #1804; unblocks `bittorrent-tracker-core` extraction |
-| SI-07 | [#1816](https://github.com/torrust/torrust-tracker/issues/1816) — Align `torrust-` prefix: rename 7 tracker-specific packages to `torrust-tracker-`                                       | [docs/issues/open/1816-1669-07-align-torrust-prefix-rename-tracker-specific-packages.md](../../open/1816-1669-07-align-torrust-prefix-rename-tracker-specific-packages.md)                   | TODO   | Rule U; none of the 7 are published; pure workspace rename; no blockers                         |
+| SI-06 | [#1813](https://github.com/torrust/torrust-tracker/issues/1813) — Resolve `bittorrent-tracker-core` ↔ `torrust-tracker-rest-api-client` layer violation                          | [docs/issues/closed/1813-1669-06-resolve-bittorrent-tracker-core-rest-api-layer-violation.md](../../closed/1813-1669-06-resolve-bittorrent-tracker-core-rest-api-layer-violation.md) | DONE   | Rule M; stale unused dev dep removed in PR #1804; unblocks `bittorrent-tracker-core` extraction |
+| SI-07 | [#1816](https://github.com/torrust/torrust-tracker/issues/1816) — Align `torrust-` prefix: rename 7 tracker-specific packages to `torrust-tracker-`                              | [docs/issues/open/1816-1669-07-align-torrust-prefix-rename-tracker-specific-packages.md](../../open/1816-1669-07-align-torrust-prefix-rename-tracker-specific-packages.md)           | TODO   | Rule U; none of the 7 are published; pure workspace rename; no blockers                         |
 | SI-08 | #TBD — Rename `torrust-tracker-metrics` to `torrust-metrics`                                                                                                                     | [docs/issues/drafts/1669-08-rename-torrust-tracker-metrics-to-torrust-metrics.md](../../drafts/1669-08-rename-torrust-tracker-metrics-to-torrust-metrics.md)                         | TODO   | Rule U; not yet published; no blockers; prerequisite for SI-14                                  |
 | SI-09 | #TBD — Rename `torrust-tracker-clock` to `torrust-clock`                                                                                                                         | [docs/issues/drafts/1669-09-rename-torrust-tracker-clock-to-torrust-clock.md](../../drafts/1669-09-rename-torrust-tracker-clock-to-torrust-clock.md)                                 | TODO   | Rule P; published on crates.io; no blockers; prerequisite for SI-13                             |
 | SI-10 | #TBD — Rename `torrust-tracker-located-error` to `torrust-located-error`                                                                                                         | [docs/issues/drafts/1669-10-rename-torrust-tracker-located-error-to-torrust-located-error.md](../../drafts/1669-10-rename-torrust-tracker-located-error-to-torrust-located-error.md) | TODO   | Rule P; published on crates.io; no blockers                                                     |
@@ -337,7 +338,7 @@ against this constraint (verified May 2026).
 | `torrust-tracker-clock` (→ `torrust-clock`)     | Yes              | None (✅ `torrust-tracker-primitives` dep removed by SI-02 #1790)                                                                                       | ✅ After rename                 | See [extract clock subissue](../../drafts/1669-13-extract-torrust-clock-to-standalone-repo.md)                                          |
 | `torrust-tracker-metrics` (→ `torrust-metrics`) | No               | `torrust-tracker-clock` (published ✅; was `torrust-tracker-primitives` — removed by SI-02 #1790)                                                       | ✅ After rename                 | See [extract metrics subissue](../../drafts/1669-14-extract-torrust-metrics-to-standalone-repo.md)                                      |
 | `bittorrent-udp-tracker-protocol`               | No               | `bittorrent-peer-id` (not published)                                                                                                                    | ❌                              | After `bittorrent-peer-id`                                                                                                              |
-| `bittorrent-tracker-core`                       | No               | `torrust-tracker-events`, `torrust-tracker-metrics`, `torrust-tracker-swarm-coordination-registry`, `torrust-rest-tracker-api-client` (all unpublished) | ❌ Very deep chain              | After all four above; also has `torrust-rest-tracker-api-client` as a runtime dep — a layer violation worth resolving before extraction |
+| `bittorrent-tracker-core`                       | No               | `torrust-tracker-events`, `torrust-tracker-metrics`, `torrust-tracker-swarm-coordination-registry`, `torrust-tracker-rest-api-client` (all unpublished) | ❌ Very deep chain              | After all four above; also has `torrust-tracker-rest-api-client` as a runtime dep — a layer violation worth resolving before extraction |
 | `bittorrent-http-tracker-protocol`              | No               | `bittorrent-udp-tracker-protocol`, `bittorrent-tracker-core` (both unpublished)                                                                         | ❌                              | After `bittorrent-udp-tracker-protocol` and `bittorrent-tracker-core`                                                                   |
 
 **Practical extraction order for `bittorrent-*` crates** (once decided):
@@ -345,7 +346,7 @@ against this constraint (verified May 2026).
 1. `bittorrent-peer-id` — no workspace deps; extract first.
 2. `bittorrent-udp-tracker-protocol` — only blocked by #1.
 3. `bittorrent-tracker-core` — needs the four unpublished deps above + clock rename; complex
-   chain; the layer violation (`torrust-rest-tracker-api-client` runtime dep) should be
+   chain; the layer violation (`torrust-tracker-rest-api-client` runtime dep) should be
    resolved before or during this step.
 4. `bittorrent-http-tracker-protocol` — needs #2 and #3 done.
 

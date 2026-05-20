@@ -5,14 +5,14 @@ use bittorrent_http_tracker_core::container::HttpTrackerCoreContainer;
 use bittorrent_primitives::info_hash::InfoHash;
 use bittorrent_tracker_core::container::TrackerCoreContainer;
 use bittorrent_udp_tracker_core::container::UdpTrackerCoreContainer;
-use torrust_axum_server::tsl::make_rust_tls;
-use torrust_rest_tracker_api_client::connection_info::{ConnectionInfo, Origin};
-use torrust_rest_tracker_api_core::container::TrackerHttpApiCoreContainer;
 use torrust_server_lib::registar::Registar;
+use torrust_tracker_axum_server::tsl::make_rust_tls;
 use torrust_tracker_configuration::{Configuration, logging};
 use torrust_tracker_primitives::peer;
+use torrust_tracker_rest_api_client::connection_info::{ConnectionInfo, Origin};
+use torrust_tracker_rest_api_core::container::TrackerHttpApiCoreContainer;
 use torrust_tracker_swarm_coordination_registry::container::SwarmCoordinationRegistryContainer;
-use torrust_udp_tracker_server::container::UdpTrackerServerContainer;
+use torrust_tracker_udp_server::container::UdpTrackerServerContainer;
 
 use crate::server::{ApiServer, Launcher, Running, Stopped};
 

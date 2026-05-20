@@ -35,9 +35,9 @@ During a coupling analysis review (see
 [workspace-coupling-report.md](../open/1669-overhaul-packages/workspace-coupling-report.md)),
 four workspace dependencies were found to have zero references in any source file:
 
-- `bittorrent-tracker-core` → `torrust-rest-tracker-api-client` [dev]
+- `bittorrent-tracker-core` → `torrust-tracker-rest-api-client` [dev]
 - `bittorrent-udp-tracker-core` → `torrust-tracker-test-helpers` [dev]
-- `torrust-axum-http-tracker-server` → `torrust-tracker-events` [dev]
+- `torrust-tracker-axum-http-server` → `torrust-tracker-events` [dev]
 - `torrust-tracker-swarm-coordination-registry` → `torrust-tracker-test-helpers` [dev]
 
 Running `cargo machete` (plain, text-based scan) did **not** flag these — a false negative. Only

@@ -4,7 +4,7 @@ A wrapper for the Axum server for Torrust HTTP servers to add timeouts.
 
 ## Documentation
 
-[Crate documentation](https://docs.rs/torrust-axum-server).
+[Crate documentation](https://docs.rs/torrust-tracker-axum-server).
 
 ## License
 

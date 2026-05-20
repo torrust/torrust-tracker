@@ -19,12 +19,12 @@ semantic-links:
 
 <!-- skill-link: create-issue -->
 
-# Issue #1813 - Resolve `bittorrent-tracker-core` ↔ `torrust-rest-tracker-api-client` layer violation
+# Issue #1813 - Resolve `bittorrent-tracker-core` ↔ `torrust-tracker-rest-api-client` layer violation
 
 ## Goal
 
 Remove the stale dev dependency from `bittorrent-tracker-core` on
-`torrust-rest-tracker-api-client`. A pre-implementation audit revealed that the dependency is
+`torrust-tracker-rest-api-client`. A pre-implementation audit revealed that the dependency is
 declared in `packages/tracker-core/Cargo.toml` but is never imported or used anywhere in
 `src/` or `tests/`. The fix is a one-line `Cargo.toml` deletion.
 
@@ -32,12 +32,12 @@ declared in `packages/tracker-core/Cargo.toml` but is never imported or used any
 
 The coupling analysis (F-05) found:
 
-> `bittorrent-tracker-core` → `torrust-rest-tracker-api-client` [dev]
+> `bittorrent-tracker-core` → `torrust-tracker-rest-api-client` [dev]
 
 The entry was listed in `[dev-dependencies]` of `packages/tracker-core/Cargo.toml` (line 48),
 which caused the coupling tool to report it as a layer violation. However, auditing
 `packages/tracker-core/tests/` and `packages/tracker-core/src/` shows **zero uses** of
-`torrust_rest_tracker_api_client` anywhere in the crate. The dependency is dead — left over
+`torrust_tracker_rest_api_client` anywhere in the crate. The dependency is dead — left over
 from a previous refactor.
 
 No code movement or extraction is needed. `cargo machete` would also flag this as an unused
@@ -50,7 +50,7 @@ This issue is a subissue of EPIC [#1669](../open/1669-overhaul-packages/EPIC.md)
 
 ### In Scope
 
-- Remove `torrust-rest-tracker-api-client` from `packages/tracker-core/Cargo.toml`
+- Remove `torrust-tracker-rest-api-client` from `packages/tracker-core/Cargo.toml`
   `[dev-dependencies]`.
 - Verify the workspace builds and all tests pass.
 
@@ -69,7 +69,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task                                                                                                  | Notes / Expected Output     |
 | --- | ------ | ----------------------------------------------------------------------------------------------------- | --------------------------- |
-| T1  | DONE   | Remove `torrust-rest-tracker-api-client` from `packages/tracker-core/Cargo.toml` `[dev-dependencies]` | Done in PR #1804            |
+| T1  | DONE   | Remove `torrust-tracker-rest-api-client` from `packages/tracker-core/Cargo.toml` `[dev-dependencies]` | Done in PR #1804            |
 | T2  | DONE   | Run `cargo build --workspace` and `cargo test --workspace`                                            | Clean build; all tests pass |
 | T3  | DONE   | Run `linter all`                                                                                      | Exit code `0`               |
 
@@ -97,13 +97,13 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   deletion.
 - 2026-05-20 14:00 UTC - josecelano - GitHub issue #1813 created. Fix was already applied in
   PR #1804 (commit e242db8a) as part of a broader `cargo machete --with-metadata` cleanup.
-  Both `local-ip-address` and `torrust-rest-tracker-api-client` were removed from
+  Both `local-ip-address` and `torrust-tracker-rest-api-client` were removed from
   `packages/tracker-core/Cargo.toml` [dev-dependencies]. All acceptance criteria verified.
   Issue closed immediately; spec moved to `docs/issues/closed/`.
 
 ## Acceptance Criteria
 
-- [x] `packages/tracker-core/Cargo.toml` does not list `torrust-rest-tracker-api-client` in
+- [x] `packages/tracker-core/Cargo.toml` does not list `torrust-tracker-rest-api-client` in
       `[dev-dependencies]`. Removed in PR #1804 (commit e242db8a).
 - [x] All `bittorrent-tracker-core` integration tests still compile and pass. Verified in PR #1804.
 - [x] `cargo build --workspace` succeeds with zero errors. Verified in PR #1804.
@@ -126,5 +126,5 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID  | Scenario                                                  | Command / Steps                                                           | Expected Result | Status | Evidence                                         |
 | --- | --------------------------------------------------------- | ------------------------------------------------------------------------- | --------------- | ------ | ------------------------------------------------ |
-| M1  | No dev dep on `rest-tracker-api-client` in `tracker-core` | `grep "torrust-rest-tracker-api-client" packages/tracker-core/Cargo.toml` | Zero matches    | DONE   | PR #1804; `grep` returns zero matches on develop |
+| M1  | No dev dep on `rest-tracker-api-client` in `tracker-core` | `grep "torrust-tracker-rest-api-client" packages/tracker-core/Cargo.toml` | Zero matches    | DONE   | PR #1804; `grep` returns zero matches on develop |
 | M2  | `bittorrent-tracker-core` integration tests pass          | `cargo test -p bittorrent-tracker-core --tests`                           | All pass        | DONE   | Verified in PR #1804                             |

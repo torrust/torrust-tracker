@@ -6,7 +6,7 @@ edition.workspace = true
 homepage.workspace = true
 keywords = [ "axum", "bittorrent", "http", "server", "torrust", "tracker" ]
 license.workspace = true
-name = "torrust-axum-http-tracker-server"
+name = "torrust-tracker-axum-http-server"
 publish.workspace = true
 readme = "README.md"
 repository.workspace = true
@@ -29,7 +29,7 @@ reqwest = { version = "0", features = [ "json" ] }
 serde = { version = "1", features = [ "derive" ] }
 tokio = { version = "1", features = [ "macros", "net", "rt-multi-thread", "signal", "sync" ] }
 tokio-util = "0.7.15"
-torrust-axum-server = { version = "3.0.0-develop", path = "../axum-server" }
+torrust-tracker-axum-server = { version = "3.0.0-develop", path = "../axum-server" }
 torrust-server-lib = { version = "3.0.0-develop", path = "../server-lib" }
 torrust-tracker-clock = { version = "3.0.0-develop", path = "../clock" }
 torrust-tracker-configuration = { version = "3.0.0-develop", path = "../configuration" }
@@ -43,7 +43,7 @@ tracing = "0"
 [dev-dependencies]
 local-ip-address = "0"
 percent-encoding = "2"
-rand = "0"
+rand = "0.9"
 serde_bencode = "0"
 serde_bytes = "0"
 serde_repr = "0"

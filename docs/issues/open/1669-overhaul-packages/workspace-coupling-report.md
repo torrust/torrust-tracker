@@ -40,7 +40,7 @@ These packages are leaves (no workspace dep) and are prime extraction candidates
 
 - `bittorrent-peer-id`
 - `torrust-net-primitives`
-- `torrust-rest-tracker-api-client`
+- `torrust-tracker-rest-api-client`
 - `torrust-tracker-clock`
 - `torrust-tracker-contrib-bencode`
 - `torrust-tracker-events`
@@ -259,9 +259,9 @@ Workspace deps: 9
 - `torrust_tracker_swarm_coordination_registry::event::receiver`
 - `torrust_tracker_swarm_coordination_registry::statistics::event`
 
-#### `torrust-rest-tracker-api-client` [dev]
+#### `torrust-tracker-rest-api-client` [dev]
 
-_No `torrust_rest_tracker_api_client::` references found in source — may be used only in `Cargo.toml` feature flags or `build.rs`._
+_No `torrust_tracker_rest_api_client::` references found in source — may be used only in `Cargo.toml` feature flags or `build.rs`._
 
 #### `torrust-tracker-test-helpers` [dev]
 
@@ -361,13 +361,13 @@ Workspace deps: 1
 
 _Items not extracted — dependency used without a direct `use` path (macro, re-export, or glob import)._
 
-### `torrust-axum-health-check-api-server`
+### `torrust-tracker-axum-health-check-api-server`
 
 Workspace deps: 10
 
-#### `torrust-axum-server` [normal]
+#### `torrust-tracker-axum-server` [normal]
 
-- `torrust_axum_server::signals::graceful_shutdown`
+- `torrust_tracker_axum_server::signals::graceful_shutdown`
 
 #### `torrust-net-primitives` [normal]
 
@@ -385,18 +385,18 @@ Workspace deps: 10
 
 - `torrust_tracker_configuration::HealthCheckApi`
 
-#### `torrust-axum-health-check-api-server` [dev]
+#### `torrust-tracker-axum-health-check-api-server` [dev]
 
-- `torrust_axum_health_check_api_server::environment::Started`
-- `torrust_axum_health_check_api_server::resources`
+- `torrust_tracker_axum_health_check_api_server::environment::Started`
+- `torrust_tracker_axum_health_check_api_server::resources`
 
-#### `torrust-axum-http-tracker-server` [dev]
+#### `torrust-tracker-axum-http-server` [dev]
 
-- `torrust_axum_http_tracker_server::environment::Started`
+- `torrust_tracker_axum_http_server::environment::Started`
 
-#### `torrust-axum-rest-tracker-api-server` [dev]
+#### `torrust-tracker-axum-rest-api-server` [dev]
 
-- `torrust_axum_rest_tracker_api_server::environment::Started`
+- `torrust_tracker_axum_rest_api_server::environment::Started`
 
 #### `torrust-tracker-clock` [dev]
 
@@ -406,11 +406,11 @@ Workspace deps: 10
 
 _Items not extracted — dependency used without a direct `use` path (macro, re-export, or glob import)._
 
-#### `torrust-udp-tracker-server` [dev]
+#### `torrust-tracker-udp-server` [dev]
 
-- `torrust_udp_tracker_server::environment::Started`
+- `torrust_tracker_udp_server::environment::Started`
 
-### `torrust-axum-http-tracker-server`
+### `torrust-tracker-axum-http-server`
 
 Workspace deps: 14
 
@@ -451,11 +451,11 @@ Workspace deps: 14
 
 - `bittorrent_udp_tracker_protocol::PeerId`
 
-#### `torrust-axum-server` [normal]
+#### `torrust-tracker-axum-server` [normal]
 
-- `torrust_axum_server::custom_axum_server`
-- `torrust_axum_server::signals::graceful_shutdown`
-- `torrust_axum_server::tsl::make_rust_tls`
+- `torrust_tracker_axum_server::custom_axum_server`
+- `torrust_tracker_axum_server::signals::graceful_shutdown`
+- `torrust_tracker_axum_server::tsl::make_rust_tls`
 
 #### `torrust-net-primitives` [normal]
 
@@ -509,7 +509,7 @@ _No `torrust_tracker_events::` references found in source — may be used only i
 - `torrust_tracker_test_helpers::configuration::ephemeral_public`
 - `torrust_tracker_test_helpers::logging::logs_contains_a_line_with`
 
-### `torrust-axum-rest-tracker-api-server`
+### `torrust-tracker-axum-rest-api-server`
 
 Workspace deps: 16
 
@@ -538,28 +538,28 @@ Workspace deps: 16
 - `bittorrent_udp_tracker_core::services::banning`
 - `bittorrent_udp_tracker_core::statistics::repository`
 
-#### `torrust-axum-server` [normal]
+#### `torrust-tracker-axum-server` [normal]
 
-- `torrust_axum_server::custom_axum_server`
-- `torrust_axum_server::signals::graceful_shutdown`
-- `torrust_axum_server::tsl::make_rust_tls`
+- `torrust_tracker_axum_server::custom_axum_server`
+- `torrust_tracker_axum_server::signals::graceful_shutdown`
+- `torrust_tracker_axum_server::tsl::make_rust_tls`
 
 #### `torrust-net-primitives` [normal]
 
 - `torrust_net_primitives::service_binding`
 
-#### `torrust-rest-tracker-api-client` [normal]
+#### `torrust-tracker-rest-api-client` [normal]
 
-- `torrust_rest_tracker_api_client::common::http`
-- `torrust_rest_tracker_api_client::connection_info`
-- `torrust_rest_tracker_api_client::connection_info::ConnectionInfo`
-- `torrust_rest_tracker_api_client::v1::client`
+- `torrust_tracker_rest_api_client::common::http`
+- `torrust_tracker_rest_api_client::connection_info`
+- `torrust_tracker_rest_api_client::connection_info::ConnectionInfo`
+- `torrust_tracker_rest_api_client::v1::client`
 
-#### `torrust-rest-tracker-api-core` [normal]
+#### `torrust-tracker-rest-api-core` [normal]
 
-- `torrust_rest_tracker_api_core::container::TrackerHttpApiCoreContainer`
-- `torrust_rest_tracker_api_core::statistics::metrics`
-- `torrust_rest_tracker_api_core::statistics::services`
+- `torrust_tracker_rest_api_core::container::TrackerHttpApiCoreContainer`
+- `torrust_tracker_rest_api_core::statistics::metrics`
+- `torrust_tracker_rest_api_core::statistics::services`
 
 #### `torrust-server-lib` [normal]
 
@@ -600,24 +600,24 @@ Workspace deps: 16
 - `torrust_tracker_swarm_coordination_registry::container::SwarmCoordinationRegistryContainer`
 - `torrust_tracker_swarm_coordination_registry::statistics::repository`
 
-#### `torrust-udp-tracker-server` [normal]
+#### `torrust-tracker-udp-server` [normal]
 
-- `torrust_udp_tracker_server::container::UdpTrackerServerContainer`
-- `torrust_udp_tracker_server::statistics::repository`
+- `torrust_tracker_udp_server::container::UdpTrackerServerContainer`
+- `torrust_tracker_udp_server::statistics::repository`
 
-#### `torrust-rest-tracker-api-client` [dev]
+#### `torrust-tracker-rest-api-client` [dev]
 
-- `torrust_rest_tracker_api_client::common::http`
-- `torrust_rest_tracker_api_client::connection_info`
-- `torrust_rest_tracker_api_client::connection_info::ConnectionInfo`
-- `torrust_rest_tracker_api_client::v1::client`
+- `torrust_tracker_rest_api_client::common::http`
+- `torrust_tracker_rest_api_client::connection_info`
+- `torrust_tracker_rest_api_client::connection_info::ConnectionInfo`
+- `torrust_tracker_rest_api_client::v1::client`
 
 #### `torrust-tracker-test-helpers` [dev]
 
 - `torrust_tracker_test_helpers::configuration::ephemeral_public`
 - `torrust_tracker_test_helpers::logging::logs_contains_a_line_with`
 
-### `torrust-axum-server`
+### `torrust-tracker-axum-server`
 
 Workspace deps: 3
 
@@ -633,7 +633,7 @@ Workspace deps: 3
 
 _Items not extracted — dependency used without a direct `use` path (macro, re-export, or glob import)._
 
-### `torrust-rest-tracker-api-core`
+### `torrust-tracker-rest-api-core`
 
 Workspace deps: 10
 
@@ -675,11 +675,11 @@ Workspace deps: 10
 - `torrust_tracker_swarm_coordination_registry::container::SwarmCoordinationRegistryContainer`
 - `torrust_tracker_swarm_coordination_registry::statistics::repository`
 
-#### `torrust-udp-tracker-server` [normal]
+#### `torrust-tracker-udp-server` [normal]
 
-- `torrust_udp_tracker_server::container::UdpTrackerServerContainer`
-- `torrust_udp_tracker_server::statistics`
-- `torrust_udp_tracker_server::statistics::repository`
+- `torrust_tracker_udp_server::container::UdpTrackerServerContainer`
+- `torrust_tracker_udp_server::statistics`
+- `torrust_tracker_udp_server::statistics::repository`
 
 #### `torrust-tracker-events` [dev]
 
@@ -723,37 +723,37 @@ Workspace deps: 16
 - `bittorrent_udp_tracker_core::initialize_static`
 - `bittorrent_udp_tracker_core::statistics::event`
 
-#### `torrust-axum-health-check-api-server` [normal]
+#### `torrust-tracker-axum-health-check-api-server` [normal]
 
-- `torrust_axum_health_check_api_server::HEALTH_CHECK_API_LOG_TARGET`
+- `torrust_tracker_axum_health_check_api_server::HEALTH_CHECK_API_LOG_TARGET`
 
-#### `torrust-axum-http-tracker-server` [normal]
+#### `torrust-tracker-axum-http-server` [normal]
 
-- `torrust_axum_http_tracker_server::HTTP_TRACKER_LOG_TARGET`
-- `torrust_axum_http_tracker_server::Version`
-- `torrust_axum_http_tracker_server::Version::V1`
-- `torrust_axum_http_tracker_server::server`
+- `torrust_tracker_axum_http_server::HTTP_TRACKER_LOG_TARGET`
+- `torrust_tracker_axum_http_server::Version`
+- `torrust_tracker_axum_http_server::Version::V1`
+- `torrust_tracker_axum_http_server::server`
 
-#### `torrust-axum-rest-tracker-api-server` [normal]
+#### `torrust-tracker-axum-rest-api-server` [normal]
 
-- `torrust_axum_rest_tracker_api_server::Version`
-- `torrust_axum_rest_tracker_api_server::Version::V1`
-- `torrust_axum_rest_tracker_api_server::server`
-- `torrust_axum_rest_tracker_api_server::v1::context`
+- `torrust_tracker_axum_rest_api_server::Version`
+- `torrust_tracker_axum_rest_api_server::Version::V1`
+- `torrust_tracker_axum_rest_api_server::server`
+- `torrust_tracker_axum_rest_api_server::v1::context`
 
-#### `torrust-axum-server` [normal]
+#### `torrust-tracker-axum-server` [normal]
 
-- `torrust_axum_server::tsl::make_rust_tls`
+- `torrust_tracker_axum_server::tsl::make_rust_tls`
 
-#### `torrust-rest-tracker-api-client` [normal]
+#### `torrust-tracker-rest-api-client` [normal]
 
-- `torrust_rest_tracker_api_client::connection_info`
-- `torrust_rest_tracker_api_client::v1::Client`
-- `torrust_rest_tracker_api_client::v1::client`
+- `torrust_tracker_rest_api_client::connection_info`
+- `torrust_tracker_rest_api_client::v1::Client`
+- `torrust_tracker_rest_api_client::v1::client`
 
-#### `torrust-rest-tracker-api-core` [normal]
+#### `torrust-tracker-rest-api-core` [normal]
 
-- `torrust_rest_tracker_api_core::container::TrackerHttpApiCoreContainer`
+- `torrust_tracker_rest_api_core::container::TrackerHttpApiCoreContainer`
 
 #### `torrust-server-lib` [normal]
 
@@ -783,13 +783,13 @@ Workspace deps: 16
 - `torrust_tracker_swarm_coordination_registry::statistics::activity_metrics_updater`
 - `torrust_tracker_swarm_coordination_registry::statistics::event`
 
-#### `torrust-udp-tracker-server` [normal]
+#### `torrust-tracker-udp-server` [normal]
 
-- `torrust_udp_tracker_server::banning::event`
-- `torrust_udp_tracker_server::container::UdpTrackerServerContainer`
-- `torrust_udp_tracker_server::server::Server`
-- `torrust_udp_tracker_server::server::spawner`
-- `torrust_udp_tracker_server::statistics::event`
+- `torrust_tracker_udp_server::banning::event`
+- `torrust_tracker_udp_server::container::UdpTrackerServerContainer`
+- `torrust_tracker_udp_server::server::Server`
+- `torrust_tracker_udp_server::server::spawner`
+- `torrust_tracker_udp_server::statistics::event`
 
 #### `bittorrent-tracker-client` [dev]
 
@@ -948,7 +948,7 @@ Workspace deps: 3
 - `torrust_tracker_primitives::swarm_metadata::AggregateActiveSwarmMetadata`
 - `torrust_tracker_primitives::swarm_metadata::SwarmMetadata`
 
-### `torrust-udp-tracker-server`
+### `torrust-tracker-udp-server`
 
 Workspace deps: 13
 

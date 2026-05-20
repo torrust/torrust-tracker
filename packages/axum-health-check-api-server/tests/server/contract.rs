@@ -1,6 +1,6 @@
-use torrust_axum_health_check_api_server::environment::Started;
-use torrust_axum_health_check_api_server::resources::{Report, Status};
 use torrust_server_lib::registar::Registar;
+use torrust_tracker_axum_health_check_api_server::environment::Started;
+use torrust_tracker_axum_health_check_api_server::resources::{Report, Status};
 use torrust_tracker_test_helpers::{configuration, logging};
 
 use crate::server::client::get;
@@ -31,8 +31,8 @@ async fn health_check_endpoint_should_return_status_ok_when_there_is_no_services
 mod api {
     use std::sync::Arc;
 
-    use torrust_axum_health_check_api_server::environment::Started;
-    use torrust_axum_health_check_api_server::resources::{Report, Status};
+    use torrust_tracker_axum_health_check_api_server::environment::Started;
+    use torrust_tracker_axum_health_check_api_server::resources::{Report, Status};
     use torrust_tracker_test_helpers::{configuration, logging};
 
     use crate::server::client::get;
@@ -43,7 +43,7 @@ mod api {
 
         let configuration = Arc::new(configuration::ephemeral());
 
-        let service = torrust_axum_rest_tracker_api_server::environment::Started::new(&configuration).await;
+        let service = torrust_tracker_axum_rest_api_server::environment::Started::new(&configuration).await;
 
         let registar = service.registar.clone();
 
@@ -90,7 +90,7 @@ mod api {
 
         let configuration = Arc::new(configuration::ephemeral());
 
-        let service = torrust_axum_rest_tracker_api_server::environment::Started::new(&configuration).await;
+        let service = torrust_tracker_axum_rest_api_server::environment::Started::new(&configuration).await;
 
         let binding = service.bind_address();
 
@@ -136,8 +136,8 @@ mod api {
 mod http {
     use std::sync::Arc;
 
-    use torrust_axum_health_check_api_server::environment::Started;
-    use torrust_axum_health_check_api_server::resources::{Report, Status};
+    use torrust_tracker_axum_health_check_api_server::environment::Started;
+    use torrust_tracker_axum_health_check_api_server::resources::{Report, Status};
     use torrust_tracker_test_helpers::{configuration, logging};
 
     use crate::server::client::get;
@@ -148,7 +148,7 @@ mod http {
 
         let configuration = Arc::new(configuration::ephemeral());
 
-        let service = torrust_axum_http_tracker_server::environment::Started::new(&configuration).await;
+        let service = torrust_tracker_axum_http_server::environment::Started::new(&configuration).await;
 
         let registar = service.registar.clone();
 
@@ -194,7 +194,7 @@ mod http {
 
         let configuration = Arc::new(configuration::ephemeral());
 
-        let service = torrust_axum_http_tracker_server::environment::Started::new(&configuration).await;
+        let service = torrust_tracker_axum_http_server::environment::Started::new(&configuration).await;
 
         let binding = *service.bind_address();
 
@@ -243,8 +243,8 @@ mod http {
 mod udp {
     use std::sync::Arc;
 
-    use torrust_axum_health_check_api_server::environment::Started;
-    use torrust_axum_health_check_api_server::resources::{Report, Status};
+    use torrust_tracker_axum_health_check_api_server::environment::Started;
+    use torrust_tracker_axum_health_check_api_server::resources::{Report, Status};
     use torrust_tracker_test_helpers::{configuration, logging};
 
     use crate::server::client::get;
@@ -255,7 +255,7 @@ mod udp {
 
         let configuration = Arc::new(configuration::ephemeral());
 
-        let service = torrust_udp_tracker_server::environment::Started::new(&configuration).await;
+        let service = torrust_tracker_udp_server::environment::Started::new(&configuration).await;
 
         let registar = service.registar.clone();
 
@@ -298,7 +298,7 @@ mod udp {
 
         let configuration = Arc::new(configuration::ephemeral());
 
-        let service = torrust_udp_tracker_server::environment::Started::new(&configuration).await;
+        let service = torrust_tracker_udp_server::environment::Started::new(&configuration).await;
 
         let binding = service.bind_address();
 

@@ -41,15 +41,15 @@ The workspace currently has three crate-name prefixes:
 
 Seven crates carry the `torrust-` prefix but belong in the `torrust-tracker-` group:
 
-| Current crate name                     | Why it is tracker-specific                                                                            |
-| -------------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| `torrust-axum-health-check-api-server` | Depends on `torrust-tracker-configuration` and `torrust-tracker-primitives`                           |
-| `torrust-axum-http-tracker-server`     | Implements the BitTorrent HTTP tracker; depends on all tracker-core packages                          |
-| `torrust-axum-rest-tracker-api-server` | Implements the tracker management REST API; deep tracker dependencies                                 |
-| `torrust-axum-server`                  | Axum wrapper configured via `torrust-tracker-configuration`; not generic                              |
-| `torrust-rest-tracker-api-client`      | HTTP client for this tracker's REST API; no torrust deps but implements tracker-specific API contract |
-| `torrust-rest-tracker-api-core`        | Core logic for tracker REST API; depends on all three tracker-core packages                           |
-| `torrust-udp-tracker-server`           | Implements the BitTorrent UDP tracker; deep tracker dependencies                                      |
+| Current crate name                             | Why it is tracker-specific                                                                            |
+| ---------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `torrust-tracker-axum-health-check-api-server` | Depends on `torrust-tracker-configuration` and `torrust-tracker-primitives`                           |
+| `torrust-tracker-axum-http-server`             | Implements the BitTorrent HTTP tracker; depends on all tracker-core packages                          |
+| `torrust-tracker-axum-rest-api-server`         | Implements the tracker management REST API; deep tracker dependencies                                 |
+| `torrust-tracker-axum-server`                  | Axum wrapper configured via `torrust-tracker-configuration`; not generic                              |
+| `torrust-tracker-rest-api-client`              | HTTP client for this tracker's REST API; no torrust deps but implements tracker-specific API contract |
+| `torrust-tracker-rest-api-core`                | Core logic for tracker REST API; depends on all three tracker-core packages                           |
+| `torrust-tracker-udp-server`                   | Implements the BitTorrent UDP tracker; deep tracker dependencies                                      |
 
 **None of these crates are published on crates.io** (verified May 2026). The rename has no
 external consumers to migrate and does not require any crates.io handling.
@@ -61,15 +61,15 @@ This issue is a subissue of EPIC #1669 (Overhaul: Packages).
 Where the old name contained a redundant middle `tracker` segment (already covered by the
 new prefix), that segment is removed to produce a shorter, cleaner name.
 
-| Current name                           | Proposed new name                              | Rust identifier change                                                                  |
-| -------------------------------------- | ---------------------------------------------- | --------------------------------------------------------------------------------------- |
-| `torrust-axum-health-check-api-server` | `torrust-tracker-axum-health-check-api-server` | `torrust_axum_health_check_api_server` → `torrust_tracker_axum_health_check_api_server` |
-| `torrust-axum-http-tracker-server`     | `torrust-tracker-axum-http-server`             | `torrust_axum_http_tracker_server` → `torrust_tracker_axum_http_server`                 |
-| `torrust-axum-rest-tracker-api-server` | `torrust-tracker-axum-rest-api-server`         | `torrust_axum_rest_tracker_api_server` → `torrust_tracker_axum_rest_api_server`         |
-| `torrust-axum-server`                  | `torrust-tracker-axum-server`                  | `torrust_axum_server` → `torrust_tracker_axum_server`                                   |
-| `torrust-rest-tracker-api-client`      | `torrust-tracker-rest-api-client`              | `torrust_rest_tracker_api_client` → `torrust_tracker_rest_api_client`                   |
-| `torrust-rest-tracker-api-core`        | `torrust-tracker-rest-api-core`                | `torrust_rest_tracker_api_core` → `torrust_tracker_rest_api_core`                       |
-| `torrust-udp-tracker-server`           | `torrust-tracker-udp-server`                   | `torrust_udp_tracker_server` → `torrust_tracker_udp_server`                             |
+| Current name                                   | Proposed new name                              | Rust identifier change                                                                          |
+| ---------------------------------------------- | ---------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| `torrust-tracker-axum-health-check-api-server` | `torrust-tracker-axum-health-check-api-server` | `torrust_tracker_axum_health_check_api_server` → `torrust_tracker_axum_health_check_api_server` |
+| `torrust-tracker-axum-http-server`             | `torrust-tracker-axum-http-server`             | `torrust_tracker_axum_http_server` → `torrust_tracker_axum_http_server`                         |
+| `torrust-tracker-axum-rest-api-server`         | `torrust-tracker-axum-rest-api-server`         | `torrust_tracker_axum_rest_api_server` → `torrust_tracker_axum_rest_api_server`                 |
+| `torrust-tracker-axum-server`                  | `torrust-tracker-axum-server`                  | `torrust_tracker_axum_server` → `torrust_tracker_axum_server`                                   |
+| `torrust-tracker-rest-api-client`              | `torrust-tracker-rest-api-client`              | `torrust_tracker_rest_api_client` → `torrust_tracker_rest_api_client`                           |
+| `torrust-tracker-rest-api-core`                | `torrust-tracker-rest-api-core`                | `torrust_tracker_rest_api_core` → `torrust_tracker_rest_api_core`                               |
+| `torrust-tracker-udp-server`                   | `torrust-tracker-udp-server`                   | `torrust_tracker_udp_server` → `torrust_tracker_udp_server`                                     |
 
 ### Note on `torrust-server-lib`
 
@@ -132,28 +132,28 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task                                                                                                | Notes / Expected Output                                                                     |
 | --- | ------ | --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| T1  | TODO   | Rename `name` field in each of the 7 package `Cargo.toml` files                                     | See proposed name mapping above                                                             |
-| T2  | TODO   | Update root `Cargo.toml` workspace dependency keys (7 entries)                                      | Replace old key names with new key names; `path` values stay unchanged                      |
-| T3  | TODO   | Update dependency references in consumer `Cargo.toml` files (6 files)                               | See consumer file list below                                                                |
-| T4  | TODO   | Update Rust source `use` / path references (176 occurrences)                                        | See identifier mapping in proposed name table; affects `src/`, `packages/`, `tests/`        |
-| T5  | TODO   | Update prose in `packages/AGENTS.md`, `AGENTS.md`, `docs/packages.md`, and each package `README.md` | Crate names and any inline code snippets referencing old names                              |
-| T6  | TODO   | Run `cargo build --workspace` and `cargo test --workspace`                                          | Clean build; all tests pass                                                                 |
-| T7  | TODO   | Run `linter all`                                                                                    | Exit code `0`                                                                               |
-| T8  | TODO   | Update EPIC #1669 `Package Inventory` and `Desired Package State` tables                            | Move 7 entries from `torrust-` table to `torrust-tracker-` table; drop `Renamed from` notes |
+| T1  | DONE   | Rename `name` field in each of the 7 package `Cargo.toml` files                                     | See proposed name mapping above                                                             |
+| T2  | DONE   | Update root `Cargo.toml` workspace dependency keys (7 entries)                                      | Replace old key names with new key names; `path` values stay unchanged                      |
+| T3  | DONE   | Update dependency references in consumer `Cargo.toml` files (6 files)                               | See consumer file list below                                                                |
+| T4  | DONE   | Update Rust source `use` / path references (176 occurrences)                                        | See identifier mapping in proposed name table; affects `src/`, `packages/`, `tests/`        |
+| T5  | DONE   | Update prose in `packages/AGENTS.md`, `AGENTS.md`, `docs/packages.md`, and each package `README.md` | Crate names and any inline code snippets referencing old names                              |
+| T6  | DONE   | Run `cargo build --workspace` and `cargo test --workspace`                                          | Clean build; all tests pass                                                                 |
+| T7  | DONE   | Run `linter all`                                                                                    | Exit code `0`                                                                               |
+| T8  | DONE   | Update EPIC #1669 `Package Inventory` and `Desired Package State` tables                            | Move 7 entries from `torrust-` table to `torrust-tracker-` table; drop `Renamed from` notes |
 
 **Consumer `Cargo.toml` files to update in T3** (6 files; some also appear in T1):
 
 - `Cargo.toml` (root — workspace dependencies section)
-- `packages/axum-health-check-api-server/Cargo.toml` — references `torrust-axum-server`
-  (dep); `torrust-axum-health-check-api-server` (self, dev-dep),
-  `torrust-axum-http-tracker-server`, `torrust-axum-rest-tracker-api-server`,
-  `torrust-udp-tracker-server` (dev-deps)
-- `packages/axum-http-tracker-server/Cargo.toml` — references `torrust-axum-server`
-- `packages/axum-rest-tracker-api-server/Cargo.toml` — references `torrust-axum-server`,
-  `torrust-rest-tracker-api-client`, `torrust-rest-tracker-api-core`,
-  `torrust-udp-tracker-server` (deps + dev-deps)
-- `packages/rest-tracker-api-core/Cargo.toml` — references `torrust-udp-tracker-server`
-- `packages/tracker-core/Cargo.toml` — references `torrust-rest-tracker-api-client`
+- `packages/axum-health-check-api-server/Cargo.toml` — references `torrust-tracker-axum-server`
+  (dep); `torrust-tracker-axum-health-check-api-server` (self, dev-dep),
+  `torrust-tracker-axum-http-server`, `torrust-tracker-axum-rest-api-server`,
+  `torrust-tracker-udp-server` (dev-deps)
+- `packages/axum-http-tracker-server/Cargo.toml` — references `torrust-tracker-axum-server`
+- `packages/axum-rest-tracker-api-server/Cargo.toml` — references `torrust-tracker-axum-server`,
+  `torrust-tracker-rest-api-client`, `torrust-tracker-rest-api-core`,
+  `torrust-tracker-udp-server` (deps + dev-deps)
+- `packages/rest-tracker-api-core/Cargo.toml` — references `torrust-tracker-udp-server`
+- `packages/tracker-core/Cargo.toml` — references `torrust-tracker-rest-api-client`
 
 ## Progress Tracking
 
@@ -164,11 +164,11 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
 - [x] Spec moved to `docs/issues/open/` with issue number prefix
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, `cargo test --workspace`)
+- [x] Implementation completed
+- [x] Automatic verification completed (`linter all`, `cargo test --workspace`)
 - [ ] Manual verification scenarios executed and recorded
 - [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] EPIC #1669 Active Subissues table updated to `DONE`
+- [x] EPIC #1669 Active Subissues table updated to `DONE`
 - [ ] Issue closed and spec moved to `docs/issues/closed/`
 
 ### Progress Log
@@ -180,17 +180,23 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   `docs/issues/open/` with issue number prefix. SI-05 confirmed done: `server-lib` now
   depends on `torrust-net-primitives` (not `torrust-tracker-primitives`), validating the
   Option B exclusion decision.
+- 2026-05-20 18:00 UTC - josecelano - Implementation complete. T1–T5 applied via sed across
+  workspace (all 7 packages renamed in Cargo.toml name fields, workspace deps, consumer deps,
+  Rust source identifiers, and prose). Fixed rand version constraint in udp-tracker-server and
+  axum-http-tracker-server (rand = "0" → rand = "0.9") to resolve resolution regression caused
+  by Cargo.lock regeneration after rename. T6: `cargo test --tests --workspace --all-targets
+--all-features` passes. T7: `linter all` exits 0. T8: EPIC tables updated.
 
 ## Acceptance Criteria
 
-- [ ] No `Cargo.toml` in the workspace declares any of the 7 old crate names.
-- [ ] No Rust source file in the workspace uses any of the 7 old Rust identifiers.
-- [ ] `cargo build --workspace` succeeds with zero errors.
-- [ ] `cargo test --workspace` passes with zero failures.
-- [ ] `linter all` exits with code `0`.
-- [ ] `packages/AGENTS.md`, `AGENTS.md`, `docs/packages.md`, and each renamed package's `README.md` reflect the
+- [x] No `Cargo.toml` in the workspace declares any of the 7 old crate names.
+- [x] No Rust source file in the workspace uses any of the 7 old Rust identifiers.
+- [x] `cargo build --workspace` succeeds with zero errors.
+- [x] `cargo test --workspace` passes with zero failures.
+- [x] `linter all` exits with code `0`.
+- [x] `packages/AGENTS.md`, `AGENTS.md`, `docs/packages.md`, and each renamed package's `README.md` reflect the
       new crate names.
-- [ ] EPIC #1669 `Package Inventory` and `Desired Package State` tables are updated.
+- [x] EPIC #1669 `Package Inventory` and `Desired Package State` tables are updated.
 
 ## Verification Plan
 
@@ -206,7 +212,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
-| ID  | Scenario                                 | Command/Steps                                                                                                                                                                                 | Expected Result                                                               | Status | Evidence |
-| --- | ---------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- | ------ | -------- |
-| M1  | No stale references to old names in TOML | `grep -r "torrust-axum-health-check\|torrust-axum-http-tracker\|torrust-axum-rest-tracker\|torrust-axum-server\b\|torrust-rest-tracker-api\|torrust-udp-tracker-server" . --include="*.toml"` | Zero matches (except own `name =` fields before rename, which should be gone) | TODO   |          |
-| M2  | No stale identifiers in Rust source      | `grep -r "torrust_axum_http_tracker_server\|torrust_axum_rest_tracker_api_server\|torrust_rest_tracker_api\|torrust_udp_tracker_server\b" . --include="*.rs"`                                 | Zero matches                                                                  | TODO   |          |
+| ID  | Scenario                                 | Command/Steps                                                                                                                                                                                         | Expected Result                                                               | Status | Evidence |
+| --- | ---------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- | ------ | -------- |
+| M1  | No stale references to old names in TOML | `grep -r "torrust-axum-health-check\|torrust-axum-http-tracker\|torrust-axum-rest-tracker\|torrust-tracker-axum-server\b\|torrust-rest-tracker-api\|torrust-tracker-udp-server" . --include="*.toml"` | Zero matches (except own `name =` fields before rename, which should be gone) | TODO   |          |
+| M2  | No stale identifiers in Rust source      | `grep -r "torrust_tracker_axum_http_server\|torrust_tracker_axum_rest_api_server\|torrust_rest_tracker_api\|torrust_tracker_udp_server\b" . --include="*.rs"`                                         | Zero matches                                                                  | TODO   |          |

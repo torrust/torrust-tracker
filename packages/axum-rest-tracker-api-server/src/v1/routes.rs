@@ -2,7 +2,7 @@
 use std::sync::Arc;
 
 use axum::Router;
-use torrust_rest_tracker_api_core::container::TrackerHttpApiCoreContainer;
+use torrust_tracker_rest_api_core::container::TrackerHttpApiCoreContainer;
 
 use super::context::{auth_key, stats, torrent, whitelist};
 

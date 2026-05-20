@@ -1,8 +1,8 @@
 //! API responses for the [`stats`](crate::v1::context::stats)
 //! API context.
 use axum::response::{IntoResponse, Json, Response};
-use torrust_rest_tracker_api_core::statistics::services::{TrackerLabeledMetrics, TrackerMetrics};
 use torrust_tracker_metrics::prometheus::PrometheusSerializable;
+use torrust_tracker_rest_api_core::statistics::services::{TrackerLabeledMetrics, TrackerMetrics};
 
 use super::resources::{LabeledStats, Stats};
 

@@ -12,7 +12,7 @@ pub fn start_stats_event_listener(
     cancellation_token: CancellationToken,
 ) -> Option<JoinHandle<()>> {
     if config.core.tracker_usage_statistics {
-        let job = torrust_udp_tracker_server::statistics::event::listener::run_event_listener(
+        let job = torrust_tracker_udp_server::statistics::event::listener::run_event_listener(
             app_container.udp_tracker_server_container.event_bus.receiver(),
             cancellation_token,
             &app_container.udp_tracker_server_container.stats_repository,
@@ -26,7 +26,7 @@ pub fn start_stats_event_listener(
 
 #[must_use]
 pub fn start_banning_event_listener(app_container: &Arc<AppContainer>, cancellation_token: CancellationToken) -> JoinHandle<()> {
-    torrust_udp_tracker_server::banning::event::listener::run_event_listener(
+    torrust_tracker_udp_server::banning::event::listener::run_event_listener(
         app_container.udp_tracker_server_container.event_bus.receiver(),
         cancellation_token,
         &app_container.udp_tracker_core_services.ban_service,

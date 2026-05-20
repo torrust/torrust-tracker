@@ -24,10 +24,10 @@ tools. Generated manually on 2026-05-18 as part of SI-01 (baseline analysis).
 
 | Package directory                 | Crate name                                        | Lines | Rating  | Notes                                                        |
 | --------------------------------- | ------------------------------------------------- | ----- | ------- | ------------------------------------------------------------ |
-| `axum-health-check-api-server`    | `torrust-axum-health-check-api-server`            | 49    | minimal | Has purpose and port info; no usage examples                 |
-| `axum-http-tracker-server`        | `torrust-axum-http-tracker-server`                | 11    | stub    | Template only                                                |
-| `axum-rest-tracker-api-server`    | `torrust-axum-rest-tracker-api-server`            | 11    | stub    | Template only                                                |
-| `axum-server`                     | `torrust-axum-server`                             | 11    | stub    | Template only                                                |
+| `axum-health-check-api-server`    | `torrust-tracker-axum-health-check-api-server`            | 49    | minimal | Has purpose and port info; no usage examples                 |
+| `axum-http-tracker-server`        | `torrust-tracker-axum-http-server`                | 11    | stub    | Template only                                                |
+| `axum-rest-tracker-api-server`    | `torrust-tracker-axum-rest-api-server`            | 11    | stub    | Template only                                                |
+| `axum-server`                     | `torrust-tracker-axum-server`                             | 11    | stub    | Template only                                                |
 | `clock`                           | `torrust-tracker-clock`                           | 11    | stub    | Template only                                                |
 | `configuration`                   | `torrust-tracker-configuration`                   | 11    | stub    | Template only                                                |
 | `events`                          | `torrust-tracker-events`                          | 11    | stub    | Template only                                                |
@@ -37,8 +37,8 @@ tools. Generated manually on 2026-05-18 as part of SI-01 (baseline analysis).
 | `metrics`                         | `torrust-tracker-metrics`                         | 210   | good    | Comprehensive — overview, types, usage, examples             |
 | `peer-id`                         | `bittorrent-peer-id`                              | 38    | minimal | Origin story + maintenance note; no usage examples           |
 | `primitives`                      | `torrust-tracker-primitives`                      | 11    | stub    | Template only                                                |
-| `rest-tracker-api-client`         | `torrust-rest-tracker-api-client`                 | 23    | minimal | Has license section; no usage examples                       |
-| `rest-tracker-api-core`           | `torrust-rest-tracker-api-core`                   | 11    | stub    | **Wrong title** — says "BitTorrent UDP Tracker Core library" |
+| `rest-tracker-api-client`         | `torrust-tracker-rest-api-client`                 | 23    | minimal | Has license section; no usage examples                       |
+| `rest-tracker-api-core`           | `torrust-tracker-rest-api-core`                   | 11    | stub    | **Wrong title** — says "BitTorrent UDP Tracker Core library" |
 | `server-lib`                      | `torrust-server-lib`                              | 11    | stub    | Template only                                                |
 | `swarm-coordination-registry`     | `torrust-tracker-swarm-coordination-registry`     | 22    | minimal | **Wrong title** — says "Torrust Tracker Torrent Repository"  |
 | `test-helpers`                    | `torrust-tracker-test-helpers`                    | 11    | stub    | **Wrong title** — says "Torrust Tracker Configuration"       |
@@ -47,7 +47,7 @@ tools. Generated manually on 2026-05-18 as part of SI-01 (baseline analysis).
 | `tracker-core`                    | `bittorrent-tracker-core`                         | 39    | minimal | Has purpose and context; no usage examples                   |
 | `udp-protocol`                    | `bittorrent-udp-tracker-protocol`                 | 38    | minimal | Has purpose section; no usage examples                       |
 | `udp-tracker-core`                | `bittorrent-udp-tracker-core`                     | 15    | minimal | Explains when to use; minimal depth                          |
-| `udp-tracker-server`              | `torrust-udp-tracker-server`                      | 11    | stub    | Template only                                                |
+| `udp-tracker-server`              | `torrust-tracker-udp-server`                      | 11    | stub    | Template only                                                |
 
 ## Console tools (`console/`)
 
