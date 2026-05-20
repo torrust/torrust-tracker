@@ -1,7 +1,7 @@
 ---
 doc-type: issue
 issue-type: task
-status: open
+status: in-progress
 priority: p2
 github-issue: 1803
 spec-path: docs/issues/open/1803-improve-docs-folder-navigation.md
@@ -193,9 +193,9 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 ## References
 
-- Current index: [`docs/index.md`](../index.md)
-- Frontmatter convention: [`docs/skills/semantic-skill-link-convention.md`](../skills/semantic-skill-link-convention.md)
-- Markdown linting configuration: [`.markdownlint.json`](../../.markdownlint.json)
-- Write markdown docs skill: [`.github/skills/dev/planning/write-markdown-docs/SKILL.md`](../../.github/skills/dev/planning/write-markdown-docs/SKILL.md)
-- Existing `packages/AGENTS.md` (pattern reference): [`packages/AGENTS.md`](../../packages/AGENTS.md)
-- Existing `src/AGENTS.md` (pattern reference): [`src/AGENTS.md`](../../src/AGENTS.md)
+- Current index: [`docs/index.md`](../../index.md)
+- Frontmatter convention: [`docs/skills/semantic-skill-link-convention.md`](../../skills/semantic-skill-link-convention.md)
+- Markdown linting configuration: [`.markdownlint.json`](../../../.markdownlint.json)
+- Write markdown docs skill: [`.github/skills/dev/planning/write-markdown-docs/SKILL.md`](../../../.github/skills/dev/planning/write-markdown-docs/SKILL.md)
+- Existing `packages/AGENTS.md` (pattern reference): [`packages/AGENTS.md`](../../../packages/AGENTS.md)
+- Existing `src/AGENTS.md` (pattern reference): [`src/AGENTS.md`](../../../src/AGENTS.md)

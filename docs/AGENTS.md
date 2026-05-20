@@ -38,7 +38,7 @@ For the full project context see the [root AGENTS.md](../AGENTS.md).
 
 ## Markdown Frontmatter
 
-All `.md` files in this directory tree should include YAML frontmatter.
+Frontmatter use varies by document type:
 
 - **Required** for issue specs and EPIC specs — see the required field schema in
   [`docs/skills/semantic-skill-link-convention.md`](skills/semantic-skill-link-convention.md).
@@ -75,7 +75,7 @@ See the `write-markdown-docs` skill for the full checklist and GFM pitfalls.
 
 ## Key Skills
 
-| Skill                                                                                   | When to use                                                                             |
-| --------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
-| [`write-markdown-docs`](../../.github/skills/dev/planning/write-markdown-docs/SKILL.md) | Writing or editing any `.md` file — covers GFM pitfalls, frontmatter, and linting scope |
-| [`create-issue`](../../.github/skills/dev/planning/create-issue/SKILL.md)               | Drafting and creating issue specifications                                              |
+| Skill                                                                                | When to use                                                                             |
+| ------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------- |
+| [`write-markdown-docs`](../.github/skills/dev/planning/write-markdown-docs/SKILL.md) | Writing or editing any `.md` file — covers GFM pitfalls, frontmatter, and linting scope |
+| [`create-issue`](../.github/skills/dev/planning/create-issue/SKILL.md)               | Drafting and creating issue specifications                                              |

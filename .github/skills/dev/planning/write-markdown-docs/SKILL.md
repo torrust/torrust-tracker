@@ -63,13 +63,12 @@ owner/repo#42 → cross-repo issue link
 
 ## Frontmatter
 
-All Markdown files in `docs/` should include YAML frontmatter.
-
-It is **required** for issue specs and EPIC specs. It is **recommended** for all other
-`.md` files in the repository.
+Frontmatter use in `docs/` varies by document type: **required** for issue specs and
+EPIC specs, **recommended** for ADRs and refactor plans, and **optional** for short
+reference pages and README files.
 
 Follow the frontmatter convention defined in
-[`docs/skills/semantic-skill-link-convention.md`](../../../../docs/skills/semantic-skill-link-convention.md),
+[`docs/skills/semantic-skill-link-convention.md`](../../../../../docs/skills/semantic-skill-link-convention.md),
 which specifies the required fields for each document type and the shape of
 `semantic-links` entries.
 
