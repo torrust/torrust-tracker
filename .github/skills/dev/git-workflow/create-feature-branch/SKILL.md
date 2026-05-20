@@ -17,6 +17,8 @@ conventions.
 - To merge into `develop` or `main`, you must open a PR in `torrust/torrust-tracker`.
 - That PR must come from a branch in a fork (`<fork-owner>:<branch>`), not a branch in the same repository.
 - Remote names are contributor-specific. Do not assume `origin` or `torrust`; identify remotes from `git remote -v`.
+- The upstream repository is `https://github.com/torrust/torrust-tracker`. Its remote is commonly named `torrust`, but verify with `git remote -v`.
+- Before branching, always fetch and pull the latest `develop` from the upstream remote to ensure the branch starts from an up-to-date base.
 
 ## Branch Naming Convention
 
@@ -40,9 +42,14 @@ Alternative formats (no tracked issue):
 ### Standard Workflow
 
 ```bash
-# Ensure you're on latest develop
+# Identify the upstream remote (points to https://github.com/torrust/torrust-tracker)
+# It is commonly named "torrust"; verify with: git remote -v
+UPSTREAM_REMOTE=torrust  # replace if your remote has a different name
+
+# Ensure you're on the latest develop from upstream
 git checkout develop
-git pull --ff-only
+git fetch $UPSTREAM_REMOTE
+git pull --ff-only $UPSTREAM_REMOTE develop
 
 # Create and checkout branch for issue #42
 git checkout -b 42-add-peer-expiry-grace-period
@@ -76,8 +83,12 @@ git checkout -b 42-add-peer-expiry-grace-period
 ### 1. Create Branch from `develop`
 
 ```bash
+# Identify the upstream remote (commonly "torrust"; verify with git remote -v)
+UPSTREAM_REMOTE=torrust  # replace if your remote has a different name
+
 git checkout develop
-git pull --ff-only
+git fetch $UPSTREAM_REMOTE
+git pull --ff-only $UPSTREAM_REMOTE develop
 git checkout -b 42-add-peer-expiry-grace-period
 ```
 

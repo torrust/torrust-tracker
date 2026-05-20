@@ -19,11 +19,33 @@ Before opening a PR:
 
 - [ ] Working tree is clean (`git status`)
 - [ ] Upstream target repository confirmed from workspace metadata (`Cargo.toml` → `repository`)
+- [ ] Branch is rebased on the latest `develop` from upstream (`<upstream-remote>/develop`); verify with `git log --oneline <upstream-remote>/develop..HEAD` and rebase if behind
 - [ ] Branch is pushed to your fork remote
 - [ ] Commits are GPG signed (`git log --show-signature -n 1`)
 - [ ] All pre-commit checks passed (`linter all`, `cargo machete`, tests)
 - [ ] PR body claims are aligned with the actual commit range (`<upstream-remote>/develop..HEAD`)
 - [ ] If manual verification used temporary local-only patches, PR body explicitly says they are not included
+
+### Keeping the branch up to date
+
+Always rebase your branch on the latest upstream `develop` before pushing — both when opening
+a PR for the first time and when pushing updates to an existing PR:
+
+```bash
+# Identify the upstream remote (commonly "torrust"; verify with git remote -v)
+UPSTREAM_REMOTE=torrust  # replace if your remote has a different name
+
+git fetch $UPSTREAM_REMOTE
+git rebase $UPSTREAM_REMOTE/develop
+
+# Then push (use --force-with-lease when rewriting history)
+git push --force-with-lease <fork-remote> <branch-name>
+```
+
+> In general, every PR targeting `develop` should sit on top of the latest commit in
+> `<upstream-remote>/develop`. Check this whenever you push or re-push.
+
+<!-- markdownlint-disable-next-line MD028 -->
 
 > Important:
 >
