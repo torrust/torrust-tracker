@@ -1,3 +1,13 @@
+---
+semantic-links:
+  skill-links:
+    - write-markdown-docs
+  related-artifacts:
+    - docs/index.md
+    - Containerfile
+    - share/container/entry_script_sh
+---
+
 # Containers (Docker or Podman)
 
 ## Demo environment

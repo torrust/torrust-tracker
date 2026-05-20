@@ -1,3 +1,22 @@
+---
+doc-type: issue
+issue-type: feature
+status: done
+priority: p3
+github-issue: 1563
+spec-path: docs/issues/closed/1563-udp-tracker-client-add-option-show-response-pretty-json.md
+branch: 1563-udp-tracker-client-add-option-show-response-pretty-json
+related-pr: null
+last-updated-utc: null
+semantic-links:
+  skill-links:
+    - create-issue
+  related-artifacts:
+    - docs/issues/README.md
+    - console/tracker-client/
+    - packages/tracker-client/
+---
+
 # Issue #1563 — UDP Tracker Client: Add Option to Show Response in Pretty JSON
 
 ## Overview
@@ -161,7 +180,12 @@ Command:
 Captured output:
 
 ```json
-{"Scrape":{"transaction_id":-888840697,"torrent_stats":[{"seeders":0,"completed":0,"leechers":0}]}}
+{
+  "Scrape": {
+    "transaction_id": -888840697,
+    "torrent_stats": [{ "seeders": 0, "completed": 0, "leechers": 0 }]
+  }
+}
 ```
 
 ### Pretty output
@@ -206,7 +230,15 @@ Command:
 Captured output:
 
 ```json
-{"AnnounceIpv4":{"transaction_id":-888840697,"announce_interval":120,"leechers":0,"seeders":1,"peers":[]}}
+{
+  "AnnounceIpv4": {
+    "transaction_id": -888840697,
+    "announce_interval": 120,
+    "leechers": 0,
+    "seeders": 1,
+    "peers": []
+  }
+}
 ```
 
 Command:

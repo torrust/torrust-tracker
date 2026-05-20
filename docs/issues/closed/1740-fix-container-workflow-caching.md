@@ -1,3 +1,21 @@
+---
+doc-type: issue
+issue-type: bug
+status: done
+priority: p2
+github-issue: 1740
+spec-path: docs/issues/closed/1740-fix-container-workflow-caching.md
+branch: 1740-fix-container-workflow-caching
+related-pr: null
+last-updated-utc: null
+semantic-links:
+  skill-links:
+    - create-issue
+  related-artifacts:
+    - docs/issues/README.md
+    - .github/workflows/container.yaml
+---
+
 # Fix Container Workflow Caching
 
 ## Overview

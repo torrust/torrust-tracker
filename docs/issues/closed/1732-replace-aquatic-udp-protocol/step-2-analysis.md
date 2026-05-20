@@ -1,3 +1,12 @@
+---
+semantic-links:
+  skill-links:
+    - create-issue
+  related-artifacts:
+    - docs/issues/closed/1732-replace-aquatic-udp-protocol/ISSUE.md
+    - packages/udp-protocol/
+---
+
 # Step 2 Analysis: Unused Code in Internal Forks
 
 ## Objective

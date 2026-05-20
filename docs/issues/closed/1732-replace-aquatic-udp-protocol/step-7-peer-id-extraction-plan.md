@@ -1,3 +1,15 @@
+---
+semantic-links:
+  skill-links:
+    - create-issue
+    - create-refactor-plan
+  related-artifacts:
+    - docs/issues/closed/1732-replace-aquatic-udp-protocol/ISSUE.md
+    - packages/peer-id/
+    - packages/primitives/
+    - packages/udp-protocol/
+---
+
 # Step 7: PeerId Extraction Plan
 
 ## Goal

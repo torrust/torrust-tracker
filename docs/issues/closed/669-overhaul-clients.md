@@ -1,3 +1,22 @@
+---
+doc-type: issue
+issue-type: epic
+status: done
+priority: p2
+github-issue: 669
+spec-path: docs/issues/closed/669-overhaul-clients.md
+branch: null
+related-pr: null
+last-updated-utc: null
+semantic-links:
+  skill-links:
+    - create-issue
+  related-artifacts:
+    - docs/issues/README.md
+    - console/tracker-client/
+    - packages/tracker-client/
+---
+
 # Issue #669 — Overhaul Clients (EPIC)
 
 ## Overview

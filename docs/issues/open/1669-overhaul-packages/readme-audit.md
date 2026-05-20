@@ -1,3 +1,12 @@
+---
+semantic-links:
+  skill-links:
+    - create-issue
+  related-artifacts:
+    - docs/issues/open/1669-overhaul-packages/EPIC.md
+    - packages/
+---
+
 # README Audit
 
 Point-in-time audit of README quality across all workspace packages and console

@@ -1,7 +1,7 @@
 ---
 doc-type: issue
 issue-type: task
-status: open
+status: done
 priority: p3
 github-issue: 1810
 spec-path: docs/issues/open/1810-add-frontmatter-to-docs-markdown-files.md
@@ -257,22 +257,22 @@ application. The detailed per-file checklist is in the [File Inventory](#file-in
 
 | ID  | Status | Task                                                                                                 | Files in batch |
 | --- | ------ | ---------------------------------------------------------------------------------------------------- | -------------- |
-| T0  | TODO   | Semantic research pre-pass: analyze all 67 files, build relationship map                             | all 67         |
-| T1  | TODO   | Add frontmatter + semantic links to top-level `docs/` files                                          | 7              |
-| T2  | TODO   | Add frontmatter + semantic links to `docs/adrs/` ADR files                                           | 5              |
-| T3  | TODO   | Add frontmatter + semantic links to `docs/adrs/` navigation files                                    | 2              |
-| T4  | TODO   | Add frontmatter + semantic links to `docs/issues/` README/nav files                                  | 4              |
-| T5  | TODO   | Add frontmatter + semantic links to `docs/issues/closed/` ≤ 672 specs                                | 4              |
-| T6  | TODO   | Add frontmatter + semantic links to `docs/issues/closed/` 1525–1563                                  | 6              |
-| T7  | TODO   | Add frontmatter + semantic links to `docs/issues/closed/` 1582 group                                 | 5              |
-| T8  | TODO   | Add frontmatter + semantic links to `docs/issues/closed/` 1697–1723                                  | 10             |
-| T9  | TODO   | Add frontmatter + semantic links to `docs/issues/closed/` 1732 group                                 | 6              |
-| T10 | TODO   | Add frontmatter + semantic links to `docs/issues/closed/` 1740–1750                                  | 6              |
-| T11 | TODO   | Add frontmatter + semantic links to `docs/issues/open/` supplementary                                | 4              |
-| T12 | TODO   | Add frontmatter + semantic links to `docs/pr-reviews/` files                                         | 2              |
-| T13 | TODO   | Add frontmatter + semantic links to `docs/refactor-plans/` files                                     | 5              |
-| T14 | TODO   | Add frontmatter + semantic links to `docs/skills/` files                                             | 1              |
-| T15 | TODO   | Clarify inline marker vs. frontmatter skill-links in `docs/skills/semantic-skill-link-convention.md` | 1              |
+| T0  | DONE   | Semantic research pre-pass: analyze all 67 files, build relationship map                             | all 67         |
+| T1  | DONE   | Add frontmatter + semantic links to top-level `docs/` files                                          | 7              |
+| T2  | DONE   | Add frontmatter + semantic links to `docs/adrs/` ADR files                                           | 5              |
+| T3  | DONE   | Add frontmatter + semantic links to `docs/adrs/` navigation files                                    | 2              |
+| T4  | DONE   | Add frontmatter + semantic links to `docs/issues/` README/nav files                                  | 4              |
+| T5  | DONE   | Add frontmatter + semantic links to `docs/issues/closed/` ≤ 672 specs                                | 4              |
+| T6  | DONE   | Add frontmatter + semantic links to `docs/issues/closed/` 1525–1563                                  | 6              |
+| T7  | DONE   | Add frontmatter + semantic links to `docs/issues/closed/` 1582 group                                 | 5              |
+| T8  | DONE   | Add frontmatter + semantic links to `docs/issues/closed/` 1697–1723                                  | 10             |
+| T9  | DONE   | Add frontmatter + semantic links to `docs/issues/closed/` 1732 group                                 | 6              |
+| T10 | DONE   | Add frontmatter + semantic links to `docs/issues/closed/` 1740–1750                                  | 6              |
+| T11 | DONE   | Add frontmatter + semantic links to `docs/issues/open/` supplementary                                | 4              |
+| T12 | DONE   | Add frontmatter + semantic links to `docs/pr-reviews/` files                                         | 2              |
+| T13 | DONE   | Add frontmatter + semantic links to `docs/refactor-plans/` files                                     | 5              |
+| T14 | DONE   | Add frontmatter + semantic links to `docs/skills/` files                                             | 1              |
+| T15 | DONE   | Clarify inline marker vs. frontmatter skill-links in `docs/skills/semantic-skill-link-convention.md` | 1              |
 
 ## File Inventory
 
@@ -280,116 +280,116 @@ Per-file progress checklist. Check each file when its frontmatter has been added
 
 ### T1 — Top-level `docs/` files (7)
 
-- [ ] `docs/AGENTS.md`
-- [ ] `docs/benchmarking.md`
-- [ ] `docs/containers.md`
-- [ ] `docs/index.md`
-- [ ] `docs/packages.md`
-- [ ] `docs/profiling.md`
-- [ ] `docs/release_process.md`
+- [x] `docs/AGENTS.md`
+- [x] `docs/benchmarking.md`
+- [x] `docs/containers.md`
+- [x] `docs/index.md`
+- [x] `docs/packages.md`
+- [x] `docs/profiling.md`
+- [x] `docs/release_process.md`
 
 ### T2 — `docs/adrs/` ADR files (5)
 
-- [ ] `docs/adrs/20240227164834_use_plural_for_modules_containing_collections.md`
-- [ ] `docs/adrs/20260420200013_adopt_custom_github_copilot_aligned_agent_framework.md`
-- [ ] `docs/adrs/20260429000000_keep_database_as_aggregate_supertrait.md`
-- [ ] `docs/adrs/20260512102000_define_tracker_client_peer_id_convention.md`
-- [ ] `docs/adrs/20260519000000_define_global_cli_output_contract.md`
+- [x] `docs/adrs/20240227164834_use_plural_for_modules_containing_collections.md`
+- [x] `docs/adrs/20260420200013_adopt_custom_github_copilot_aligned_agent_framework.md`
+- [x] `docs/adrs/20260429000000_keep_database_as_aggregate_supertrait.md`
+- [x] `docs/adrs/20260512102000_define_tracker_client_peer_id_convention.md`
+- [x] `docs/adrs/20260519000000_define_global_cli_output_contract.md`
 
 ### T3 — `docs/adrs/` navigation files (2)
 
-- [ ] `docs/adrs/README.md`
-- [ ] `docs/adrs/index.md`
+- [x] `docs/adrs/README.md`
+- [x] `docs/adrs/index.md`
 
 ### T4 — `docs/issues/` README/navigation files (4)
 
-- [ ] `docs/issues/README.md`
-- [ ] `docs/issues/closed/README.md`
-- [ ] `docs/issues/drafts/README.md`
-- [ ] `docs/issues/open/README.md`
+- [x] `docs/issues/README.md`
+- [x] `docs/issues/closed/README.md`
+- [x] `docs/issues/drafts/README.md`
+- [x] `docs/issues/open/README.md`
 
 ### T5 — `docs/issues/closed/` — very old specs ≤ 672 (4)
 
-- [ ] `docs/issues/closed/523-internal-linting-tool.md`
-- [ ] `docs/issues/closed/669-overhaul-clients.md`
-- [ ] `docs/issues/closed/671-udp-tracker-client-print-unrecognized-responses.md`
-- [ ] `docs/issues/closed/672-http-tracker-client-print-unrecognized-responses.md`
+- [x] `docs/issues/closed/523-internal-linting-tool.md`
+- [x] `docs/issues/closed/669-overhaul-clients.md`
+- [x] `docs/issues/closed/671-udp-tracker-client-print-unrecognized-responses.md`
+- [x] `docs/issues/closed/672-http-tracker-client-print-unrecognized-responses.md`
 
 ### T6 — `docs/issues/closed/` — 1525–1563 specs (6)
 
-- [ ] `docs/issues/closed/1525-overhaul-persistence.md`
-- [ ] `docs/issues/closed/1532-http-tracker-client-add-optional-announce-params.md`
-- [ ] `docs/issues/closed/1533-udp-tracker-client-add-optional-announce-params.md`
-- [ ] `docs/issues/closed/1561-http-tracker-client-avoid-duplicating-announce-suffix.md`
-- [ ] `docs/issues/closed/1562-http-tracker-client-add-option-show-response-pretty-json.md`
-- [ ] `docs/issues/closed/1563-udp-tracker-client-add-option-show-response-pretty-json.md`
+- [x] `docs/issues/closed/1525-overhaul-persistence.md`
+- [x] `docs/issues/closed/1532-http-tracker-client-add-optional-announce-params.md`
+- [x] `docs/issues/closed/1533-udp-tracker-client-add-optional-announce-params.md`
+- [x] `docs/issues/closed/1561-http-tracker-client-avoid-duplicating-announce-suffix.md`
+- [x] `docs/issues/closed/1562-http-tracker-client-add-option-show-response-pretty-json.md`
+- [x] `docs/issues/closed/1563-udp-tracker-client-add-option-show-response-pretty-json.md`
 
 ### T7 — `docs/issues/closed/` — 1582 group (5)
 
-- [ ] `docs/issues/closed/1582-add-prometheus-deserialization-metrics/ISSUE.md`
-- [ ] `docs/issues/closed/1582-add-prometheus-deserialization-metrics/increase-unit-test-coverage.md`
-- [ ] `docs/issues/closed/1582-add-prometheus-deserialization-metrics/metric-collection-module-split.md`
-- [ ] `docs/issues/closed/1582-add-prometheus-deserialization-metrics/mutation-testing.md`
-- [ ] `docs/issues/closed/1582-add-prometheus-deserialization-metrics/refactoring-proposals.md`
+- [x] `docs/issues/closed/1582-add-prometheus-deserialization-metrics/ISSUE.md`
+- [x] `docs/issues/closed/1582-add-prometheus-deserialization-metrics/increase-unit-test-coverage.md`
+- [x] `docs/issues/closed/1582-add-prometheus-deserialization-metrics/metric-collection-module-split.md`
+- [x] `docs/issues/closed/1582-add-prometheus-deserialization-metrics/mutation-testing.md`
+- [x] `docs/issues/closed/1582-add-prometheus-deserialization-metrics/refactoring-proposals.md`
 
 ### T8 — `docs/issues/closed/` — 1697–1723 group (10)
 
-- [ ] `docs/issues/closed/1697-ai-agent-configuration.md`
-- [ ] `docs/issues/closed/1703-1525-01-persistence-test-coverage.md`
-- [ ] `docs/issues/closed/1706-1525-02-qbittorrent-e2e.md`
-- [ ] `docs/issues/closed/1710-1525-03-persistence-benchmarking.md`
-- [ ] `docs/issues/closed/1713-1525-04-split-persistence-traits.md`
-- [ ] `docs/issues/closed/1715-1525-04b-migrate-consumers-to-narrow-traits.md`
-- [ ] `docs/issues/closed/1717-1525-05-migrate-sqlite-and-mysql-to-sqlx.md`
-- [ ] `docs/issues/closed/1719-1525-06-introduce-schema-migrations.md`
-- [ ] `docs/issues/closed/1721-1525-07-align-rust-and-db-types.md`
-- [ ] `docs/issues/closed/1723-1525-08-add-postgresql-driver.md`
+- [x] `docs/issues/closed/1697-ai-agent-configuration.md`
+- [x] `docs/issues/closed/1703-1525-01-persistence-test-coverage.md`
+- [x] `docs/issues/closed/1706-1525-02-qbittorrent-e2e.md`
+- [x] `docs/issues/closed/1710-1525-03-persistence-benchmarking.md`
+- [x] `docs/issues/closed/1713-1525-04-split-persistence-traits.md`
+- [x] `docs/issues/closed/1715-1525-04b-migrate-consumers-to-narrow-traits.md`
+- [x] `docs/issues/closed/1717-1525-05-migrate-sqlite-and-mysql-to-sqlx.md`
+- [x] `docs/issues/closed/1719-1525-06-introduce-schema-migrations.md`
+- [x] `docs/issues/closed/1721-1525-07-align-rust-and-db-types.md`
+- [x] `docs/issues/closed/1723-1525-08-add-postgresql-driver.md`
 
 ### T9 — `docs/issues/closed/` — 1732 group (6)
 
-- [ ] `docs/issues/closed/1732-replace-aquatic-udp-protocol/ISSUE.md`
-- [ ] `docs/issues/closed/1732-replace-aquatic-udp-protocol/step-2-analysis.md`
-- [ ] `docs/issues/closed/1732-replace-aquatic-udp-protocol/step-3-bittorrent-primitives-problem.md`
-- [ ] `docs/issues/closed/1732-replace-aquatic-udp-protocol/step-5-udp-protocol-module-refactor-plan.md`
-- [ ] `docs/issues/closed/1732-replace-aquatic-udp-protocol/step-6-primitives-module-refactor-plan.md`
-- [ ] `docs/issues/closed/1732-replace-aquatic-udp-protocol/step-7-peer-id-extraction-plan.md`
+- [x] `docs/issues/closed/1732-replace-aquatic-udp-protocol/ISSUE.md`
+- [x] `docs/issues/closed/1732-replace-aquatic-udp-protocol/step-2-analysis.md`
+- [x] `docs/issues/closed/1732-replace-aquatic-udp-protocol/step-3-bittorrent-primitives-problem.md`
+- [x] `docs/issues/closed/1732-replace-aquatic-udp-protocol/step-5-udp-protocol-module-refactor-plan.md`
+- [x] `docs/issues/closed/1732-replace-aquatic-udp-protocol/step-6-primitives-module-refactor-plan.md`
+- [x] `docs/issues/closed/1732-replace-aquatic-udp-protocol/step-7-peer-id-extraction-plan.md`
 
 ### T10 — `docs/issues/closed/` — 1740–1750 group (6)
 
-- [ ] `docs/issues/closed/1740-fix-container-workflow-caching.md`
-- [ ] `docs/issues/closed/1742-ci-change-aware-workflows-epic.md`
-- [ ] `docs/issues/closed/1743-docs-only-ci-fast-path.md`
-- [ ] `docs/issues/closed/1744-scope-persistence-workflows-by-path.md`
-- [ ] `docs/issues/closed/1748-remove-redundant-compose-step-from-container-workflow.md`
-- [ ] `docs/issues/closed/1750-refactor-run-tracker-skill-semantic-coupling.md`
+- [x] `docs/issues/closed/1740-fix-container-workflow-caching.md`
+- [x] `docs/issues/closed/1742-ci-change-aware-workflows-epic.md`
+- [x] `docs/issues/closed/1743-docs-only-ci-fast-path.md`
+- [x] `docs/issues/closed/1744-scope-persistence-workflows-by-path.md`
+- [x] `docs/issues/closed/1748-remove-redundant-compose-step-from-container-workflow.md`
+- [x] `docs/issues/closed/1750-refactor-run-tracker-skill-semantic-coupling.md`
 
 ### T11 — `docs/issues/open/` supplementary files (4)
 
-- [ ] `docs/issues/open/1669-overhaul-packages/readme-audit.md`
-- [ ] `docs/issues/open/1669-overhaul-packages/workspace-coupling-report.md`
-- [ ] `docs/issues/open/1726-reduce-build-times-sccache/ISSUE.md`
-- [ ] `docs/issues/open/1726-reduce-build-times-sccache/benchmark-results.md`
+- [x] `docs/issues/open/1669-overhaul-packages/readme-audit.md`
+- [x] `docs/issues/open/1669-overhaul-packages/workspace-coupling-report.md`
+- [x] `docs/issues/open/1726-reduce-build-times-sccache/ISSUE.md`
+- [x] `docs/issues/open/1726-reduce-build-times-sccache/benchmark-results.md`
 
 ### T12 — `docs/pr-reviews/` files (2)
 
-- [ ] `docs/pr-reviews/README.md`
-- [ ] `docs/pr-reviews/pr-1733-copilot-suggestions.md`
+- [x] `docs/pr-reviews/README.md`
+- [x] `docs/pr-reviews/pr-1733-copilot-suggestions.md`
 
 ### T13 — `docs/refactor-plans/` files (5)
 
-- [ ] `docs/refactor-plans/closed/1178-monitor-udp-post-implementation-improvements.md`
-- [ ] `docs/refactor-plans/closed/README.md`
-- [ ] `docs/refactor-plans/closed/agent-docs-refactor-plan.md`
-- [ ] `docs/refactor-plans/drafts/README.md`
-- [ ] `docs/refactor-plans/open/README.md`
+- [x] `docs/refactor-plans/closed/1178-monitor-udp-post-implementation-improvements.md`
+- [x] `docs/refactor-plans/closed/README.md`
+- [x] `docs/refactor-plans/closed/agent-docs-refactor-plan.md`
+- [x] `docs/refactor-plans/drafts/README.md`
+- [x] `docs/refactor-plans/open/README.md`
 
 ### T14 — `docs/skills/` files (1)
 
-- [ ] `docs/skills/semantic-skill-link-convention.md`
+- [x] `docs/skills/semantic-skill-link-convention.md`
 
 ### T15 — Convention doc content update (1)
 
-- [ ] Update `docs/skills/semantic-skill-link-convention.md` to clarify that when frontmatter
+- [x] Update `docs/skills/semantic-skill-link-convention.md` to clarify that when frontmatter
       is present with `semantic-links.skill-links`, inline `<!-- skill-link: ... -->` top-of-file
       comments are redundant. Body-level inline markers placed near a specific section remain
       valuable for navigation but are not required.

@@ -1,3 +1,13 @@
+---
+semantic-links:
+  skill-links:
+    - write-markdown-docs
+  related-artifacts:
+    - docs/index.md
+    - docs/adrs/20260429000000_keep_database_as_aggregate_supertrait.md
+    - packages/
+---
+
 # Torrust Tracker Package Architecture
 
 - [Package Conventions](#package-conventions)

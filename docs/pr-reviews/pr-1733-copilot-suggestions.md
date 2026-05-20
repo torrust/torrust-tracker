@@ -1,3 +1,11 @@
+---
+semantic-links:
+  skill-links:
+    - process-copilot-suggestions
+  related-artifacts:
+    - docs/pr-reviews/README.md
+---
+
 # PR #1733 Copilot Suggestions Tracking
 
 Source: Copilot PR review threads for https://github.com/torrust/torrust-tracker/pull/1733

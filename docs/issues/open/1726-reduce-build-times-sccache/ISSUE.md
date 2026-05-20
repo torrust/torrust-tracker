@@ -1,3 +1,22 @@
+---
+doc-type: issue
+issue-type: task
+status: open
+priority: p2
+github-issue: 1726
+spec-path: docs/issues/open/1726-reduce-build-times-sccache/ISSUE.md
+branch: 1726-reduce-build-times-sccache
+related-pr: null
+last-updated-utc: 2026-05-01 00:00
+semantic-links:
+  skill-links:
+    - create-issue
+  related-artifacts:
+    - docs/issues/README.md
+    - docs/issues/closed/1742-ci-change-aware-workflows-epic.md
+    - .github/workflows/
+---
+
 # Reduce Build Times with `sccache`
 
 ## Goal

@@ -1,3 +1,14 @@
+---
+semantic-links:
+  skill-links:
+    - create-adr
+  related-artifacts:
+    - .github/skills/dev/planning/create-adr/SKILL.md
+    - packages/peer-id/
+    - packages/tracker-client/
+    - console/tracker-client/
+---
+
 # Define Tracker-Client Peer ID Convention
 
 ## Description

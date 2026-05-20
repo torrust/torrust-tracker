@@ -1,3 +1,13 @@
+---
+semantic-links:
+  skill-links:
+    - create-issue
+    - create-refactor-plan
+  related-artifacts:
+    - docs/issues/closed/1732-replace-aquatic-udp-protocol/ISSUE.md
+    - packages/primitives/
+---
+
 # Step 6: Primitives Module Refactor Plan
 
 ## Goal

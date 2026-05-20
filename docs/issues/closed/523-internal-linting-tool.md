@@ -1,3 +1,22 @@
+---
+doc-type: issue
+issue-type: task
+status: done
+priority: p2
+github-issue: 523
+spec-path: docs/issues/closed/523-internal-linting-tool.md
+branch: 523-internal-linting-tool
+related-pr: null
+last-updated-utc: null
+semantic-links:
+  skill-links:
+    - create-issue
+  related-artifacts:
+    - docs/issues/README.md
+    - .github/workflows/testing.yaml
+    - contrib/dev-tools/
+---
+
 # Issue #523 Implementation Plan (Internal Linting Tool)
 
 ## Goal

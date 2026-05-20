@@ -1,3 +1,22 @@
+---
+doc-type: issue
+issue-type: feature
+status: done
+priority: p2
+github-issue: 1533
+spec-path: docs/issues/closed/1533-udp-tracker-client-add-optional-announce-params.md
+branch: 1533-udp-tracker-client-add-optional-announce-params
+related-pr: null
+last-updated-utc: null
+semantic-links:
+  skill-links:
+    - create-issue
+  related-artifacts:
+    - docs/issues/README.md
+    - console/tracker-client/
+    - packages/tracker-client/
+---
+
 # Issue #1533 — UDP Tracker Client: Add Optional Parameters to Announce Command
 
 ## Overview

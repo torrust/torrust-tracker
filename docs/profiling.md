@@ -1,3 +1,15 @@
+---
+semantic-links:
+  skill-links:
+    - write-markdown-docs
+  related-artifacts:
+    - docs/index.md
+    - docs/benchmarking.md
+    - .cargo/config.toml
+    - share/default/config/tracker.udp.benchmarking.toml
+    - src/bin/profiling.rs
+---
+
 # Profiling
 
 ## Using flamegraph
@@ -38,7 +50,7 @@ cargo build --profile=release-debug --bin=profiling
 sudo TORRUST_TRACKER_CONFIG_TOML_PATH="./share/default/config/tracker.udp.benchmarking.toml" /home/USER/.cargo/bin/flamegraph -- ./target/release-debug/profiling 60
 ```
 
-__NOTICE__: You need to install the `aquatic_udp_load_test` program.
+**NOTICE**: You need to install the `aquatic_udp_load_test` program.
 
 The output should be like the following:
 
@@ -57,7 +69,7 @@ writing flamegraph to "flamegraph.svg"
 
 ![flamegraph](./media/flamegraph.svg)
 
-__NOTICE__: You need to provide the absolute path for the installed `flamegraph` app if you use sudo. Replace `/home/USER/.cargo/bin/flamegraph` with the location of your installed `flamegraph` app. You can run it without sudo but you can get a warning message like the following:
+**NOTICE**: You need to provide the absolute path for the installed `flamegraph` app if you use sudo. Replace `/home/USER/.cargo/bin/flamegraph` with the location of your installed `flamegraph` app. You can run it without sudo but you can get a warning message like the following:
 
 ```output
 WARNING: Kernel address maps (/proc/{kallsyms,modules}) are restricted,
@@ -77,7 +89,7 @@ Check /proc/kallsyms permission or run as root.
 Loading configuration file: `./share/default/config/tracker.udp.benchmarking.toml` ...
 ```
 
-And some bars in the graph  will have the `unknown` label.
+And some bars in the graph will have the `unknown` label.
 
 ![flamegraph generated without sudo](./media/flamegraph_generated_without_sudo.svg)
 

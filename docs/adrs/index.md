@@ -1,3 +1,12 @@
+---
+semantic-links:
+  skill-links:
+    - create-adr
+  related-artifacts:
+    - docs/index.md
+    - docs/adrs/README.md
+---
+
 # ADR Index
 
 | ADR                                                                                     | Date       | Title                                                  | Short Description                                                                                                                                                                                                                          |

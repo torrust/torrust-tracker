@@ -1,3 +1,12 @@
+---
+semantic-links:
+  skill-links:
+    - create-issue
+  related-artifacts:
+    - docs/issues/closed/1582-add-prometheus-deserialization-metrics/ISSUE.md
+    - packages/metrics/
+---
+
 # Mutation Testing Plan for the `metrics` Package
 
 ## Overview

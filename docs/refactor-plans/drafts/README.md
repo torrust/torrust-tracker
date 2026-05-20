@@ -1,3 +1,15 @@
+---
+semantic-links:
+  skill-links:
+    - create-refactor-plan
+  related-artifacts:
+    - docs/index.md
+    - docs/refactor-plans/open/README.md
+    - docs/refactor-plans/closed/README.md
+    - docs/templates/REFACTOR-PLAN.md
+    - .github/skills/dev/planning/create-refactor-plan/SKILL.md
+---
+
 # Draft Refactor Plans
 
 This folder contains refactor plan drafts that are being written or awaiting review before

@@ -1,3 +1,12 @@
+---
+semantic-links:
+  skill-links:
+    - create-adr
+  related-artifacts:
+    - .github/skills/dev/planning/create-adr/SKILL.md
+    - src/
+---
+
 # Use plural for modules containing collections of types
 
 ## Description

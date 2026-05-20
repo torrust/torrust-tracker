@@ -1,3 +1,22 @@
+---
+doc-type: issue
+issue-type: feature
+status: done
+priority: p3
+github-issue: 1562
+spec-path: docs/issues/closed/1562-http-tracker-client-add-option-show-response-pretty-json.md
+branch: 1562-http-tracker-client-add-option-show-response-pretty-json
+related-pr: null
+last-updated-utc: null
+semantic-links:
+  skill-links:
+    - create-issue
+  related-artifacts:
+    - docs/issues/README.md
+    - console/tracker-client/
+    - packages/tracker-client/
+---
+
 # Issue #1562 — HTTP Tracker Client: Add Option to Show Response in Pretty JSON
 
 ## Overview

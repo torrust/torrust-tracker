@@ -1,3 +1,13 @@
+---
+semantic-links:
+  skill-links:
+    - create-issue
+  related-artifacts:
+    - docs/issues/closed/1732-replace-aquatic-udp-protocol/ISSUE.md
+    - packages/primitives/
+    - packages/udp-protocol/
+---
+
 # Step 3: `bittorrent-primitives` Transitive Dependency Problem
 
 ## Problem

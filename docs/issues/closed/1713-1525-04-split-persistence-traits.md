@@ -1,3 +1,23 @@
+---
+doc-type: issue
+issue-type: task
+status: done
+priority: p1
+github-issue: 1713
+spec-path: docs/issues/closed/1713-1525-04-split-persistence-traits.md
+branch: 1713-1525-04-split-persistence-traits
+related-pr: null
+last-updated-utc: null
+semantic-links:
+  skill-links:
+    - create-issue
+  related-artifacts:
+    - docs/issues/README.md
+    - docs/issues/closed/1525-overhaul-persistence.md
+    - packages/tracker-core/
+    - docs/adrs/20260429000000_keep_database_as_aggregate_supertrait.md
+---
+
 # Issue #1713 (Subissue of #1525-04): Split Persistence Traits by Context
 
 ## Goal

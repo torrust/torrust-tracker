@@ -1,3 +1,13 @@
+---
+semantic-links:
+  skill-links:
+    - create-issue
+    - create-refactor-plan
+  related-artifacts:
+    - docs/issues/closed/1732-replace-aquatic-udp-protocol/ISSUE.md
+    - packages/udp-protocol/
+---
+
 # Step 5: UDP Protocol Module Refactor Plan
 
 ## Goal

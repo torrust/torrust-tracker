@@ -1,3 +1,14 @@
+---
+semantic-links:
+  skill-links:
+    - create-refactor-plan
+  related-artifacts:
+    - docs/refactor-plans/closed/README.md
+    - AGENTS.md
+    - .github/agents/
+    - .github/skills/
+---
+
 # Agent Documentation Refactor Plan
 
 ## Goal

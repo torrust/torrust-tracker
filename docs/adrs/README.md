@@ -1,3 +1,13 @@
+---
+semantic-links:
+  skill-links:
+    - create-adr
+  related-artifacts:
+    - docs/index.md
+    - docs/adrs/index.md
+    - .github/skills/dev/planning/create-adr/SKILL.md
+---
+
 # Architectural Decision Records (ADRs)
 
 This directory contains the architectural decision records (ADRs) for the project.

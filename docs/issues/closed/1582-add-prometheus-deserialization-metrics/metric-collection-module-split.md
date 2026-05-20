@@ -1,3 +1,13 @@
+---
+semantic-links:
+  skill-links:
+    - create-issue
+    - create-refactor-plan
+  related-artifacts:
+    - docs/issues/closed/1582-add-prometheus-deserialization-metrics/ISSUE.md
+    - packages/metrics/
+---
+
 # Refactor Plan: Split `metric_collection/mod.rs` into Submodules
 
 ## Goal

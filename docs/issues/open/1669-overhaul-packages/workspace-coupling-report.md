@@ -1,3 +1,12 @@
+---
+semantic-links:
+  skill-links:
+    - create-issue
+  related-artifacts:
+    - docs/issues/open/1669-overhaul-packages/EPIC.md
+    - packages/
+---
+
 # Workspace Coupling Report
 
 Generated: 2026-05-19 20:46 UTC

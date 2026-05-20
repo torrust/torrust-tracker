@@ -1,3 +1,12 @@
+---
+semantic-links:
+  skill-links:
+    - create-refactor-plan
+  related-artifacts:
+    - docs/refactor-plans/closed/README.md
+    - console/tracker-client/
+---
+
 # Refactor Plan — Issue #1178 Monitor UDP: Post-Implementation Improvements
 
 ## Goal

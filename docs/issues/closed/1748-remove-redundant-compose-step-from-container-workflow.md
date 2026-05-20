@@ -1,3 +1,22 @@
+---
+doc-type: issue
+issue-type: task
+status: done
+priority: p2
+github-issue: 1748
+spec-path: docs/issues/closed/1748-remove-redundant-compose-step-from-container-workflow.md
+branch: 1748-remove-redundant-compose-step-from-container-workflow
+related-pr: null
+last-updated-utc: null
+semantic-links:
+  skill-links:
+    - create-issue
+  related-artifacts:
+    - docs/issues/README.md
+    - .github/workflows/container.yaml
+    - .github/workflows/testing.yaml
+---
+
 # Remove Redundant Compose Step From Container Workflow
 
 ## Overview

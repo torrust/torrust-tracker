@@ -1,3 +1,22 @@
+---
+doc-type: issue
+issue-type: feature
+status: done
+priority: p3
+github-issue: 671
+spec-path: docs/issues/closed/671-udp-tracker-client-print-unrecognized-responses.md
+branch: null
+related-pr: null
+last-updated-utc: null
+semantic-links:
+  skill-links:
+    - create-issue
+  related-artifacts:
+    - docs/issues/README.md
+    - console/tracker-client/
+    - packages/udp-tracker-core/
+---
+
 # Issue #671 — UDP Tracker Client: Print Unrecognized Responses
 
 ## Overview
