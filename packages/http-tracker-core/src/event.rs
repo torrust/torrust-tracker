@@ -2,10 +2,10 @@ use std::net::{IpAddr, SocketAddr};
 
 use bittorrent_http_tracker_protocol::v1::services::peer_ip_resolver::RemoteClientAddr;
 use bittorrent_primitives::info_hash::InfoHash;
+use torrust_net_primitives::service_binding::ServiceBinding;
 use torrust_tracker_metrics::label::{LabelSet, LabelValue};
 use torrust_tracker_metrics::label_name;
 use torrust_tracker_primitives::peer::PeerAnnouncement;
-use torrust_tracker_primitives::service_binding::ServiceBinding;
 
 /// A HTTP core event.
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -127,8 +127,8 @@ pub mod bus {
 pub mod test {
 
     use bittorrent_http_tracker_protocol::v1::services::peer_ip_resolver::{RemoteClientAddr, ResolvedIp};
+    use torrust_net_primitives::service_binding::Protocol;
     use torrust_tracker_primitives::peer::Peer;
-    use torrust_tracker_primitives::service_binding::Protocol;
 
     use super::Event;
     use crate::tests::sample_info_hash;
@@ -170,7 +170,7 @@ pub mod test {
     fn events_should_be_comparable() {
         use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
-        use torrust_tracker_primitives::service_binding::ServiceBinding;
+        use torrust_net_primitives::service_binding::ServiceBinding;
 
         use crate::event::{ConnectionContext, Event};
 

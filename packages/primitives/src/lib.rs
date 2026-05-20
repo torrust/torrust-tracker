@@ -10,7 +10,6 @@ pub mod pagination;
 pub mod peer;
 pub mod peer_id;
 pub mod scrape;
-pub mod service_binding;
 pub mod swarm_metadata;
 
 use std::collections::BTreeMap;
@@ -32,6 +31,21 @@ pub use scrape::ScrapeData;
             this re-export will be removed in a future release (see EPIC #1669)"
 )]
 pub use torrust_tracker_clock::DurationSinceUnixEpoch;
+
+/// Network service binding types.
+///
+/// **Deprecated**: import from [`torrust_net_primitives::service_binding`] instead.
+/// This re-export is kept for backwards compatibility and will be removed in a
+/// future release. Removal is tracked as a follow-up cleanup subissue of EPIC
+/// [#1669](https://github.com/torrust/torrust-tracker/issues/1669).
+#[deprecated(
+    since = "3.0.0-develop",
+    note = "import `service_binding` types from `torrust_net_primitives` instead; \
+            this re-export will be removed in a future release (see EPIC #1669)"
+)]
+pub mod service_binding {
+    pub use torrust_net_primitives::service_binding::*;
+}
 
 pub type NumberOfDownloads = u32;
 pub type NumberOfDownloadsBTreeMap = BTreeMap<InfoHash, NumberOfDownloads>;

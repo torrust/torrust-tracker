@@ -68,8 +68,8 @@ pub async fn handle_event(
 mod tests {
     use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
 
+    use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
     use torrust_tracker_clock::clock::Time;
-    use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
 
     use crate::CurrentClock;
     use crate::event::{ConnectionContext, Event};

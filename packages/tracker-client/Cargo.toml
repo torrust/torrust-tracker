@@ -17,7 +17,7 @@ version.workspace = true
 [dependencies]
 bittorrent-udp-tracker-protocol = { version = "3.0.0-develop", path = "../udp-protocol" }
 bittorrent-primitives = "0.2.0"
-derive_more = { version = "2", features = [ "as_ref", "constructor", "from" ] }
+derive_more = { version = "2", features = [ "as_ref", "constructor", "display", "from" ] }
 hyper = "1"
 percent-encoding = "2"
 reqwest = { version = "0", features = [ "json" ] }
@@ -28,6 +28,7 @@ serde_repr = "0"
 thiserror = "2"
 tokio = { version = "1", features = [ "macros", "net", "rt-multi-thread", "signal", "sync" ] }
 torrust-tracker-located-error = { version = "3.0.0-develop", path = "../located-error" }
+torrust-net-primitives = { version = "3.0.0-develop", path = "../net-primitives" }
 torrust-tracker-primitives = { version = "3.0.0-develop", path = "../primitives" }
 tracing = "0"
 zerocopy = "0.8"

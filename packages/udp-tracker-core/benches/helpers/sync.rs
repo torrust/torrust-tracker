@@ -5,8 +5,8 @@ use std::time::{Duration, Instant};
 use bittorrent_udp_tracker_core::event::bus::EventBus;
 use bittorrent_udp_tracker_core::event::sender::Broadcaster;
 use bittorrent_udp_tracker_core::services::connect::ConnectService;
+use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
 use torrust_tracker_events::bus::SenderStatus;
-use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
 
 use crate::helpers::utils::{sample_ipv4_remote_addr, sample_issue_time};
 

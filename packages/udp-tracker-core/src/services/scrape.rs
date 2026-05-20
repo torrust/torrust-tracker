@@ -15,8 +15,8 @@ use bittorrent_primitives::info_hash::InfoHash;
 use bittorrent_tracker_core::error::{ScrapeError, WhitelistError};
 use bittorrent_tracker_core::scrape_handler::ScrapeHandler;
 use bittorrent_udp_tracker_protocol::ScrapeRequest;
+use torrust_net_primitives::service_binding::ServiceBinding;
 use torrust_tracker_primitives::ScrapeData;
-use torrust_tracker_primitives::service_binding::ServiceBinding;
 
 use crate::connection_cookie::{ConnectionCookieError, check, gen_remote_fingerprint};
 use crate::event::{ConnectionContext, Event};

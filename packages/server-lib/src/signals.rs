@@ -1,6 +1,6 @@
 //! This module contains functions to handle signals.
 use derive_more::Display;
-use torrust_tracker_primitives::service_binding::ServiceBinding;
+use torrust_net_primitives::service_binding::ServiceBinding;
 use tracing::instrument;
 
 /// This is the message that the "launcher" spawned task sends to the main

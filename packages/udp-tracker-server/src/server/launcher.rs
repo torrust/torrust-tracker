@@ -10,10 +10,10 @@ use futures_util::StreamExt;
 use tokio::select;
 use tokio::sync::oneshot;
 use tokio::time::interval;
+use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
 use torrust_server_lib::logging::STARTED_ON;
 use torrust_server_lib::registar::ServiceHealthCheckJob;
 use torrust_server_lib::signals::{Halted, Started, shutdown_signal_with_message};
-use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
 use tracing::instrument;
 
 use super::request_buffer::ActiveRequests;

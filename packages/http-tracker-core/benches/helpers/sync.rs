@@ -2,7 +2,7 @@ use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::time::{Duration, Instant};
 
 use bittorrent_http_tracker_core::services::announce::AnnounceService;
-use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
+use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
 
 use crate::helpers::util::{initialize_core_tracker_services, sample_announce_request_for_peer, sample_peer};
 

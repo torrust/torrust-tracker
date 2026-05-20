@@ -24,7 +24,7 @@ tokio = { version = "1", features = [ "macros", "net", "rt-multi-thread", "signa
 torrust-axum-server = { version = "3.0.0-develop", path = "../axum-server" }
 torrust-server-lib = { version = "3.0.0-develop", path = "../server-lib" }
 torrust-tracker-configuration = { version = "3.0.0-develop", path = "../configuration" }
-torrust-tracker-primitives = { version = "3.0.0-develop", path = "../primitives" }
+torrust-net-primitives = { version = "3.0.0-develop", path = "../net-primitives" }
 tower-http = { version = "0", features = [ "compression-full", "cors", "propagate-header", "request-id", "trace" ] }
 tracing = "0"
 url = "2.5.4"

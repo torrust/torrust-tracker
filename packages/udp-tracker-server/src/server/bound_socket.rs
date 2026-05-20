@@ -3,7 +3,7 @@ use std::net::SocketAddr;
 use std::ops::Deref;
 
 use bittorrent_udp_tracker_core::UDP_TRACKER_LOG_TARGET;
-use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
+use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
 use url::Url;
 
 /// Wrapper for Tokio [`UdpSocket`][`tokio::net::UdpSocket`] that is bound to a particular socket.

@@ -8,8 +8,8 @@ use bittorrent_udp_tracker_core::{self};
 use bittorrent_udp_tracker_protocol::{
     NumberOfDownloads, NumberOfPeers, Response, ScrapeRequest, ScrapeResponse, TorrentScrapeStatistics, TransactionId,
 };
+use torrust_net_primitives::service_binding::ServiceBinding;
 use torrust_tracker_primitives::ScrapeData;
-use torrust_tracker_primitives::service_binding::ServiceBinding;
 use tracing::{Level, instrument};
 use zerocopy::byteorder::network_endian::I32;
 
@@ -95,9 +95,9 @@ mod tests {
             InfoHash, NumberOfDownloads, NumberOfPeers, PeerId, Response, ScrapeRequest, ScrapeResponse, TorrentScrapeStatistics,
             TransactionId,
         };
+        use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
         use torrust_tracker_events::bus::SenderStatus;
         use torrust_tracker_primitives::peer::fixture::PeerBuilder;
-        use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
 
         use crate::event::bus::EventBus;
         use crate::event::sender::Broadcaster;
@@ -255,7 +255,7 @@ mod tests {
             use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
             use bittorrent_udp_tracker_protocol::{InfoHash, NumberOfDownloads, NumberOfPeers, TorrentScrapeStatistics};
-            use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
+            use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
 
             use crate::handlers::handle_scrape;
             use crate::handlers::scrape::tests::scrape_request::{
@@ -367,7 +367,7 @@ mod tests {
             use std::sync::Arc;
 
             use mockall::predicate::eq;
-            use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
+            use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
 
             use super::sample_scrape_request;
             use crate::event::{ConnectionContext, Event, UdpRequestKind};
@@ -417,7 +417,7 @@ mod tests {
             use std::sync::Arc;
 
             use mockall::predicate::eq;
-            use torrust_tracker_primitives::service_binding::{Protocol, ServiceBinding};
+            use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
 
             use super::sample_scrape_request;
             use crate::event::{ConnectionContext, Event, UdpRequestKind};
