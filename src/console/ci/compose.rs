@@ -198,16 +198,16 @@ impl DockerCompose {
         let deadline = Instant::now() + timeout;
 
         loop {
-            if let Ok(ps_output) = self.ps() {
-                if compose_service_has_exited(&ps_output, service) {
-                    let logs_output = self
-                        .logs(&[service])
-                        .unwrap_or_else(|error| format!("failed to collect compose logs output: {error}"));
+            if let Ok(ps_output) = self.ps()
+                && compose_service_has_exited(&ps_output, service)
+            {
+                let logs_output = self
+                    .logs(&[service])
+                    .unwrap_or_else(|error| format!("failed to collect compose logs output: {error}"));
 
-                    return Err(io::Error::other(format!(
-                        "compose service '{service}' exited while waiting for port mapping '{container_port}'.\nCompose ps:\n{ps_output}\nCompose logs:\n{logs_output}"
-                    )));
-                }
+                return Err(io::Error::other(format!(
+                    "compose service '{service}' exited while waiting for port mapping '{container_port}'.\nCompose ps:\n{ps_output}\nCompose logs:\n{logs_output}"
+                )));
             }
 
             match self.port(service, container_port) {

@@ -55,22 +55,22 @@ async fn update_connection_id_errors_counter(
     repository: &Repository,
     now: DurationSinceUnixEpoch,
 ) {
-    if let ErrorKind::ConnectionCookie(_) = error_kind {
-        if let Some(UdpRequestKind::Announce { announce_request }) = opt_udp_request_kind {
-            let (client_software_name, client_software_version) = extract_name_and_version(&announce_request.peer_id.client());
+    if let ErrorKind::ConnectionCookie(_) = error_kind
+        && let Some(UdpRequestKind::Announce { announce_request }) = opt_udp_request_kind
+    {
+        let (client_software_name, client_software_version) = extract_name_and_version(&announce_request.peer_id.client());
 
-            let label_set = LabelSet::from([
-                (label_name!("client_software_name"), client_software_name.into()),
-                (label_name!("client_software_version"), client_software_version.into()),
-            ]);
+        let label_set = LabelSet::from([
+            (label_name!("client_software_name"), client_software_name.into()),
+            (label_name!("client_software_version"), client_software_version.into()),
+        ]);
 
-            match repository
-                .increase_counter(&metric_name!(UDP_TRACKER_SERVER_CONNECTION_ID_ERRORS_TOTAL), &label_set, now)
-                .await
-            {
-                Ok(()) => {}
-                Err(err) => tracing::error!("Failed to increase the counter: {}", err),
-            }
+        match repository
+            .increase_counter(&metric_name!(UDP_TRACKER_SERVER_CONNECTION_ID_ERRORS_TOTAL), &label_set, now)
+            .await
+        {
+            Ok(()) => {}
+            Err(err) => tracing::error!("Failed to increase the counter: {}", err),
         }
     }
 }
