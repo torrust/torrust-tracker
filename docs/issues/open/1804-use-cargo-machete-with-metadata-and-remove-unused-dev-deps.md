@@ -1,13 +1,13 @@
 ---
 doc-type: issue
 issue-type: task
-status: open
+status: implemented
 priority: p2
 github-issue: 1804
 spec-path: docs/issues/open/1804-use-cargo-machete-with-metadata-and-remove-unused-dev-deps.md
 branch: "1804-use-cargo-machete-with-metadata"
-related-pr: null
-last-updated-utc: 2026-05-20 00:00
+related-pr: 1809
+last-updated-utc: 2026-05-20 12:30
 semantic-links:
   skill-links:
     - create-issue
@@ -78,29 +78,29 @@ files across the workspace.
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| ID  | Status | Task                                                                                      | Notes / Expected Output                                        |
-| --- | ------ | ----------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
-| T1  | TODO   | Run `cargo machete --with-metadata` and record the full list of flagged dependencies      | Baseline list; confirm each is genuinely unused before removal |
-| T2  | TODO   | Update `contrib/dev-tools/git/hooks/pre-commit.sh` to use `cargo machete --with-metadata` | Hook passes with the new flag                                  |
-| T3  | TODO   | Update CI workflow(s) that call `cargo machete` without `--with-metadata`                 | CI step passes with the new flag                               |
-| T4  | TODO   | Remove flagged unused dependencies from all `Cargo.toml` files                            | `cargo machete --with-metadata` reports clean after removals   |
-| T5  | TODO   | Run `cargo build --workspace` and `cargo test --workspace`                                | Clean build; all tests pass                                    |
-| T6  | TODO   | Run `linter all`                                                                          | Exit code `0`                                                  |
+| ID  | Status | Task                                                                                      | Notes / Expected Output                                                                               |
+| --- | ------ | ----------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| T1  | DONE   | Run `cargo machete --with-metadata` and record the full list of flagged dependencies      | 22 unused deps found across 13 packages; 1 false-positive (`serde_bytes`) handled via ignore list     |
+| T2  | DONE   | Update `contrib/dev-tools/git/hooks/pre-commit.sh` to use `cargo machete --with-metadata` | Hook passes with the new flag                                                                         |
+| T3  | DONE   | Update CI workflow(s) that call `cargo machete` without `--with-metadata`                 | N/A — only `copilot-setup-steps.yml` exists in this repo and only installs the tool; does not call it |
+| T4  | DONE   | Remove flagged unused dependencies from all `Cargo.toml` files                            | `cargo machete --with-metadata` reports clean after removals                                          |
+| T5  | DONE   | Run `cargo build --workspace` and `cargo test --workspace`                                | Clean build; all tests pass                                                                           |
+| T6  | DONE   | Run `linter all`                                                                          | Exit code `0`                                                                                         |
 
 ## Progress Tracking
 
 ### Workflow Checkpoints
 
 - [x] Spec drafted in `docs/issues/drafts/`
-- [ ] Spec reviewed and approved by user/maintainer
-- [ ] GitHub issue created and issue number added to this spec
-- [ ] Spec moved to `docs/issues/open/` with issue number prefix
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, `cargo test --workspace`)
-- [ ] Manual verification scenarios executed and recorded (status + evidence)
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Spec reviewed and approved by user/maintainer
+- [x] GitHub issue created and issue number added to this spec
+- [x] Spec moved to `docs/issues/open/` with issue number prefix
+- [x] Implementation completed
+- [x] Automatic verification completed (`linter all`, `cargo test --workspace`)
+- [x] Manual verification scenarios executed and recorded (status + evidence)
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
-- [ ] Committer verified spec progress is up to date before commit
+- [x] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
@@ -108,17 +108,22 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-05-20 00:00 UTC - josecelano - Spec drafted. Root cause identified: plain `cargo machete`
   has false negatives for dev dependencies; `--with-metadata` mode is accurate. Full list of
   unused deps generated by running `cargo machete --with-metadata` in the workspace.
+- 2026-05-20 12:30 UTC - josecelano - Implementation complete. Removed 21 genuine unused
+  dev-deps across 13 `Cargo.toml` files; 1 machete false-positive (`serde_bytes` in
+  `axum-http-tracker-server`, used via `#[serde(with = "serde_bytes")]` string attribute)
+  kept and suppressed via `[package.metadata.cargo-machete] ignored`. T3 is N/A — no CI
+  workflow in this repo calls plain `cargo machete`. Commit: `225e74fc`.
 
 ## Acceptance Criteria
 
-- [ ] AC1: The pre-commit hook calls `cargo machete --with-metadata` (not plain `cargo machete`).
-- [ ] AC2: All CI workflow steps that call `cargo machete` use `--with-metadata`.
-- [ ] AC3: `cargo machete --with-metadata` exits `0` across the entire workspace (no unused deps).
-- [ ] AC4: `cargo build --workspace` and `cargo test --workspace` pass cleanly after dep removals.
-- [ ] AC5: `linter all` exits with code `0`.
-- [ ] Manual verification scenarios are executed and documented (status + evidence).
-- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior.
-- [ ] Documentation is updated when behaviour or workflow changes.
+- [x] AC1: The pre-commit hook calls `cargo machete --with-metadata` (not plain `cargo machete`).
+- [x] AC2: All CI workflow steps that call `cargo machete` use `--with-metadata` (N/A — no CI step calls it in this repo).
+- [x] AC3: `cargo machete --with-metadata` exits `0` across the entire workspace (no unused deps).
+- [x] AC4: `cargo build --workspace` and `cargo test --workspace` pass cleanly after dep removals.
+- [x] AC5: `linter all` exits with code `0`.
+- [x] Manual verification scenarios are executed and documented (status + evidence).
+- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior.
+- [x] Documentation is updated when behaviour or workflow changes.
 
 ## Verification Plan
 
@@ -133,21 +138,21 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
-| ID  | Scenario                                           | Command/Steps                                            | Expected Result                                  | Status | Evidence |
-| --- | -------------------------------------------------- | -------------------------------------------------------- | ------------------------------------------------ | ------ | -------- |
-| M1  | Pre-commit hook uses `--with-metadata`             | `grep machete contrib/dev-tools/git/hooks/pre-commit.sh` | Output includes `--with-metadata`                | TODO   |          |
-| M2  | No unused deps remain after removals               | `cargo machete --with-metadata`                          | "didn't find any unused dependencies. Good job!" | TODO   |          |
-| M3  | Workspace builds and tests pass after dep removals | `cargo build --workspace && cargo test --workspace`      | Both commands exit `0`                           | TODO   |          |
+| ID  | Scenario                                           | Command/Steps                                            | Expected Result                                  | Status | Evidence                                                                         |
+| --- | -------------------------------------------------- | -------------------------------------------------------- | ------------------------------------------------ | ------ | -------------------------------------------------------------------------------- |
+| M1  | Pre-commit hook uses `--with-metadata`             | `grep machete contrib/dev-tools/git/hooks/pre-commit.sh` | Output includes `--with-metadata`                | DONE   | Line confirms: `cargo machete --with-metadata`                                   |
+| M2  | No unused deps remain after removals               | `cargo machete --with-metadata`                          | "didn't find any unused dependencies. Good job!" | DONE   | `cargo-machete didn't find any unused dependencies in this directory. Good job!` |
+| M3  | Workspace builds and tests pass after dep removals | `cargo build --workspace && cargo test --workspace`      | Both commands exit `0`                           | DONE   | Both exit `0`; full test suite passes                                            |
 
 ### Acceptance Verification
 
-| AC ID | Status (`TODO`/`DONE`) | Evidence |
-| ----- | ---------------------- | -------- |
-| AC1   | TODO                   |          |
-| AC2   | TODO                   |          |
-| AC3   | TODO                   |          |
-| AC4   | TODO                   |          |
-| AC5   | TODO                   |          |
+| AC ID | Status (`TODO`/`DONE`) | Evidence                                                                                               |
+| ----- | ---------------------- | ------------------------------------------------------------------------------------------------------ |
+| AC1   | DONE                   | `grep` on pre-commit.sh confirms `cargo machete --with-metadata`                                       |
+| AC2   | DONE                   | N/A — no CI workflow in this repo calls `cargo machete` directly                                       |
+| AC3   | DONE                   | `cargo machete --with-metadata` exits `0`: "didn't find any unused dependencies. Good job!"            |
+| AC4   | DONE                   | `cargo build --workspace` and `cargo test --workspace` both exit `0`                                   |
+| AC5   | DONE                   | `linter all` exits `0`: all linters (markdown, yaml, toml, cspell, clippy, rustfmt, shellcheck) passed |
 
 ## Risks and Trade-offs
 

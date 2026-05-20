@@ -27,6 +27,3 @@ quickcheck = { version = "1", optional = true }
 regex = "1"
 serde = { version = "1", features = [ "derive" ], optional = true }
 zerocopy = { version = "0.8", features = [ "derive" ], optional = true }
-
-[dev-dependencies]
-pretty_assertions = "1"
