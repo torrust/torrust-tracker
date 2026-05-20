@@ -124,7 +124,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
-| ID  | Scenario                                                  | Command / Steps                                                           | Expected Result | Status | Evidence |
-| --- | --------------------------------------------------------- | ------------------------------------------------------------------------- | --------------- | ------ | -------- |
+| ID  | Scenario                                                  | Command / Steps                                                           | Expected Result | Status | Evidence                                         |
+| --- | --------------------------------------------------------- | ------------------------------------------------------------------------- | --------------- | ------ | ------------------------------------------------ |
 | M1  | No dev dep on `rest-tracker-api-client` in `tracker-core` | `grep "torrust-rest-tracker-api-client" packages/tracker-core/Cargo.toml` | Zero matches    | DONE   | PR #1804; `grep` returns zero matches on develop |
-| M2  | `bittorrent-tracker-core` integration tests pass          | `cargo test -p bittorrent-tracker-core --tests`                           | All pass        | DONE   | Verified in PR #1804 |
+| M2  | `bittorrent-tracker-core` integration tests pass          | `cargo test -p bittorrent-tracker-core --tests`                           | All pass        | DONE   | Verified in PR #1804                             |
