@@ -168,10 +168,9 @@ impl TestEnv {
                     .torrent_metrics_store
                     .load_global_downloads()
                     .await
+                    && u64::from(downloads) >= expected
                 {
-                    if u64::from(downloads) >= expected {
-                        break;
-                    }
+                    break;
                 }
                 tokio::time::sleep(std::time::Duration::from_millis(50)).await;
             }

@@ -25,6 +25,7 @@ Before opening a PR:
 - [ ] All pre-commit checks passed (`linter all`, `cargo machete`, tests)
 - [ ] PR body claims are aligned with the actual commit range (`<upstream-remote>/develop..HEAD`)
 - [ ] If manual verification used temporary local-only patches, PR body explicitly says they are not included
+- [ ] PR body paragraphs are written as single continuous lines (no hard line wrapping)
 
 ### Keeping the branch up to date
 
@@ -57,6 +58,17 @@ git push --force-with-lease <fork-remote> <branch-name>
 > Resolve upstream from `Cargo.toml` (`repository = "https://github.com/torrust/torrust-tracker"`) and use that value for `gh pr create --repo ...`.
 
 ## Title and Description Convention
+
+### Body Formatting for GitHub
+
+Before opening the PR, review and reformat the body text following the `write-markdown-docs`
+checklist for GitHub surfaces:
+
+- Write each paragraph as a **single continuous line** — do not hard-wrap at any fixed column width
+- Use GitHub Flavored Markdown (GFM) conventions
+- Check for accidental `#NUMBER` autolinks (only use `#NUMBER` for intentional issue/PR references)
+
+### Title
 
 PR title: use Conventional Commit style, include issue reference.
 

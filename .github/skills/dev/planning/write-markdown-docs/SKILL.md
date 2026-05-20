@@ -97,3 +97,15 @@ rendering handle the wrapping.
 - [ ] Tables are consistently formatted
 - [ ] Frontmatter is present and follows `docs/skills/semantic-skill-link-convention.md`
 - [ ] `linter markdown` and `linter cspell` pass
+
+## Checklist Before Submitting to GitHub
+
+Apply this checklist to any Markdown body submitted via the GitHub API or CLI (issues, PR
+descriptions, review comments, discussion posts) **before** calling the API:
+
+- [ ] Each paragraph is written as a single continuous line — do **not** hard-wrap at any fixed column width
+- [ ] No `#NUMBER` patterns used for enumeration or step numbering
+- [ ] Any `#NUMBER` present is an intentional issue/PR reference
+- [ ] Ordered lists use Markdown syntax (`1.` `2.` `3.`)
+- [ ] Tables are consistently formatted
+- [ ] No raw HTML unless GitHub's renderer requires it

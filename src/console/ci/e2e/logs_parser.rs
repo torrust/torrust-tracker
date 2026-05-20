@@ -87,11 +87,11 @@ impl RunningServices {
                     let address = Self::replace_wildcard_ip_with_localhost(&captures[1]);
                     http_trackers.push(address);
                 }
-            } else if line.contains(HEALTH_CHECK_API_LOG_TARGET) {
-                if let Some(captures) = health_re.captures(&clean_line) {
-                    let address = format!("{}/health_check", Self::replace_wildcard_ip_with_localhost(&captures[1]));
-                    health_checks.push(address);
-                }
+            } else if line.contains(HEALTH_CHECK_API_LOG_TARGET)
+                && let Some(captures) = health_re.captures(&clean_line)
+            {
+                let address = format!("{}/health_check", Self::replace_wildcard_ip_with_localhost(&captures[1]));
+                health_checks.push(address);
             }
         }
 

@@ -340,6 +340,7 @@ untuple
 unviable
 upcasting
 urlencode
+ureq
 uroot
 usize
 Vagaa

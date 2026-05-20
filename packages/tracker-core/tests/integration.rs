@@ -92,10 +92,10 @@ async fn it_should_persist_the_number_of_completed_peers_for_each_torrent_into_t
                 .await
                 .unwrap();
 
-            if let Some(swarm_metadata) = test_env.get_swarm_metadata(&info_hash).await {
-                if swarm_metadata.downloads() == 1 {
-                    break true;
-                }
+            if let Some(swarm_metadata) = test_env.get_swarm_metadata(&info_hash).await
+                && swarm_metadata.downloads() == 1
+            {
+                break true;
             }
 
             tokio::time::sleep(std::time::Duration::from_millis(50)).await;

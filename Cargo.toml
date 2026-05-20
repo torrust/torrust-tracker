@@ -29,7 +29,7 @@ keywords = [ "bittorrent", "file-sharing", "peer-to-peer", "torrent", "tracker" 
 license = "AGPL-3.0-only"
 publish = true
 repository = "https://github.com/torrust/torrust-tracker"
-rust-version = "1.85"
+rust-version = "1.88"
 version = "3.0.0-develop"
 
 [dependencies]

@@ -1,14 +1,13 @@
 ---
 doc-type: issue
 issue-type: task
-status: blocked
+status: closed
 priority: p2
 github-issue: 1787
-spec-path: docs/issues/open/1787-evaluate-msrv-bump.md
+spec-path: docs/issues/closed/1787-evaluate-msrv-bump.md
 branch: "1787-evaluate-msrv-bump"
-related-pr: 1784
-last-updated-utc: 2026-05-15 08:00
-blocked-by: "#1669 (package restructuring)"
+related-pr: 1815
+last-updated-utc: 2026-05-20 18:00
 semantic-links:
   skill-links:
     - create-issue
@@ -60,18 +59,39 @@ This dual nature creates a tension:
 Until the `bittorrent-*` crates are extracted, a single workspace MSRV applies to
 both classes, so the decision must be made with the extraction timeline in mind.
 
-**This issue is currently blocked on #1669** (ongoing package restructuring).
-Several decisions that directly affect the MSRV strategy have not yet been made:
+The MSRV evaluation was unblocked and resolved in 2026-05-20: `rust-version = "1.88"` was chosen
+as the minimum floor that avoids `cargo update` regressions on the current lockfile. The long-term
+split policy (tracker app tracks recent stable; extracted `bittorrent-*` libraries keep a minimum
+MSRV) is documented in the Policy Decision section below and will be applied in a follow-up issue
+once #1669 closes.
 
-- Which packages will be extracted as independent crates.io libraries.
-- Final names for those packages.
-- Which packages will share a versioning lifecycle with the main tracker and which
-  will evolve independently.
-- Publication targets and minimum toolchain expectations for downstream consumers.
+## Policy Decision
 
-The MSRV evaluation should be re-opened only after #1669 has settled these questions.
-Opening it sooner risks choosing a policy that becomes invalid once extraction scope
-is defined.
+**Decided 2026-05-20. Agreed value: `rust-version = "1.88"`.**
+
+### Rationale
+
+- **1.88 is the minimum floor that avoids `cargo update` regressions** on the current
+  lockfile. All dependency versions currently pinned in `Cargo.lock` require at most
+  Rust 1.88; running `cargo update` with a lower MSRV (1.85, 1.86, or 1.87) downgrades
+  major packages (bollard, tonic, testcontainers, serde_with, time, ureq, etc.).
+- **Cross-project consistency** with
+  [torrust-index](https://github.com/torrust/torrust-index/blob/develop/Cargo.toml),
+  which also uses `rust-version = "1.88"`.
+
+### Future MSRV policy (post-extraction of `bittorrent-*` crates)
+
+When #1669 completes and the `bittorrent-*` crates are extracted into independent
+repositories, the MSRV strategy should be split:
+
+- **Tracker application** (`torrust-tracker-*` and the main binary): track a recent
+  stable Rust release; there is no downstream impact from a higher MSRV here.
+- **Reusable/shared packages** (`bittorrent-*` crates published to crates.io): set the
+  **lowest MSRV that compiles and tests the crate** to maximize compatibility with
+  external consumers.
+
+**Re-evaluation trigger**: open a follow-up issue when #1669 closes to apply the
+split policy described above.
 
 ## Scope
 
@@ -94,21 +114,22 @@ is defined.
 
 ## Blockers
 
-- **#1669 — Package restructuring**: names, extraction scope, versioning lifecycle, and
-  publication targets for the `bittorrent-*` crates must be decided before a rational
-  MSRV policy can be set. Track that issue and re-evaluate when it closes.
+None. The blocker on #1669 was lifted: the current MSRV (1.88) is valid for the
+monorepo in its present form. The post-extraction split policy is documented in the
+"Future MSRV policy" section above and will be implemented in a follow-up issue
+once #1669 closes.
 
 ## Implementation Plan
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| ID  | Status | Task                                                                | Notes / Expected Output                                |
-| --- | ------ | ------------------------------------------------------------------- | ------------------------------------------------------ |
-| T1  | TODO   | Decide MSRV policy (track latest stable vs. pin conservative floor) | Document the rationale in this spec before proceeding  |
-| T2  | TODO   | Update `rust-version` in root `Cargo.toml`                          | Change from `"1.85"` to the agreed value               |
-| T3  | TODO   | Update `AGENTS.md` MSRV reference                                   | Keep in sync with `Cargo.toml`                         |
-| T4  | TODO   | Update setup-dev-environment SKILL.md MSRV reference                | Keep in sync with `Cargo.toml`                         |
-| T5  | TODO   | Verify CI passes                                                    | Full quality gate (`linter all`, tests, pre-push hook) |
+| ID  | Status | Task                                                                | Notes / Expected Output                                                                                                                                                                    |
+| --- | ------ | ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| T1  | DONE   | Decide MSRV policy (track latest stable vs. pin conservative floor) | Policy documented in "Policy Decision" section: 1.88 for the whole workspace now; split policy (app tracks latest stable, extracted libraries keep minimum MSRV) to be applied post-#1669. |
+| T2  | DONE   | Update `rust-version` in root `Cargo.toml`                          | Changed from `"1.85"` to `"1.88"`                                                                                                                                                          |
+| T3  | DONE   | Update `AGENTS.md` MSRV reference                                   | Updated from `1.85` to `1.88`                                                                                                                                                              |
+| T4  | DONE   | Update setup-dev-environment SKILL.md MSRV reference                | Updated from `1.85` to `1.88`                                                                                                                                                              |
+| T5  | TODO   | Verify CI passes                                                    | Full quality gate (`linter all`, tests, pre-push hook)                                                                                                                                     |
 
 ## Progress Tracking
 
@@ -117,8 +138,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [ ] Spec drafted in `docs/issues/drafts/`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and pre-push checks)
+- [x] Implementation completed
+- [x] Automatic verification completed (`linter all`, relevant tests, and pre-push checks)
 - [ ] Manual verification scenarios executed and recorded (status + evidence)
 - [ ] Acceptance criteria reviewed after implementation and updated with evidence
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
@@ -130,6 +151,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-05-15 07:00 UTC - Agent - Spec drafted, follow-up from PR #1784 (Rust edition 2024 migration, MSRV set to 1.85)
 - 2026-05-15 07:30 UTC - Jose Celano - Marked blocked on #1669 (package restructuring); MSRV policy requires knowing extraction scope, names, and versioning lifecycle
 - 2026-05-15 08:00 UTC - Agent - GitHub issue #1787 created; spec moved to docs/issues/open/
+- 2026-05-20 00:00 UTC - Agent - Discovered that with MSRV 1.85 `cargo update` downgrades many packages (bollard 0.20→0.19, tonic 0.14→0.13, testcontainers 0.27→0.25, serde_with 3.20→3.17, time 0.3.47→0.3.45, ureq 3.3→2.12, etc.) because they require Rust > 1.85. Verified by dry-run that MSRV 1.88 is the minimum floor that avoids all such regressions (1.86 and 1.87 still produce downgrades). Bumped rust-version to 1.88; updated AGENTS.md and setup-dev-environment SKILL.md. Final long-term policy (whether to track latest stable, pin N-2, etc.) remains open pending #1669.
+- 2026-05-20 12:00 UTC - Jose Celano - Confirmed 1.88 is fine; aligns with torrust-index. Policy recorded: tracker app to track latest stable post-extraction; reusable bittorrent-\* packages to keep minimum MSRV for external consumer compatibility. Issue ready to close; split policy applied in a follow-up once #1669 closes.
 
 ## Acceptance Criteria
 
@@ -161,15 +184,15 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 ### Acceptance Verification
 
-| AC ID | Status (`TODO`/`DONE`) | Evidence |
-| ----- | ---------------------- | -------- |
-| AC1   | TODO                   |          |
-| AC2   | TODO                   |          |
-| AC3   | TODO                   |          |
-| AC4   | TODO                   |          |
-| AC5   | TODO                   |          |
-| AC6   | TODO                   |          |
-| AC7   | TODO                   |          |
+| AC ID | Status (`TODO`/`DONE`) | Evidence                                                                                                      |
+| ----- | ---------------------- | ------------------------------------------------------------------------------------------------------------- |
+| AC1   | DONE                   | Policy documented in "Policy Decision" section; split policy for post-extraction recorded as follow-up action |
+| AC2   | DONE                   | `rust-version = "1.88"` in `Cargo.toml`                                                                       |
+| AC3   | DONE                   | `AGENTS.md` updated to MSRV 1.88                                                                              |
+| AC4   | DONE                   | `setup-dev-environment` SKILL.md updated to MSRV 1.88                                                         |
+| AC5   | TODO                   |                                                                                                               |
+| AC6   | TODO                   |                                                                                                               |
+| AC7   | TODO                   |                                                                                                               |
 
 ## Risks and Trade-offs
 
