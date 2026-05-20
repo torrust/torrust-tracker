@@ -9,6 +9,7 @@ metadata:
       - docs/templates/COPILOT-SUGGESTIONS-TEMPLATE.md
       - .github/skills/dev/pr-reviews/fetch-review-threads/scripts/get-pr-review-threads.sh
       - .github/skills/dev/pr-reviews/fetch-review-threads/scripts/list-unresolved-threads.sh
+      - .github/skills/dev/pr-reviews/fetch-review-threads/scripts/show-unresolved-thread-bodies.sh
       - .github/skills/dev/pr-reviews/resolve-review-threads/scripts/resolve-all-unresolved-threads.sh
 ---
 
@@ -61,7 +62,14 @@ This saves all review threads (resolved, unresolved, outdated) to `/tmp/pr_threa
 
 ### 3. Populate the Tracker
 
-Extract unresolved threads from the JSON:
+Read the full suggestion bodies to understand each thread:
+
+```bash
+bash ../fetch-review-threads/scripts/show-unresolved-thread-bodies.sh \
+  --threads-file /tmp/pr_threads_<PR_NUMBER>.json
+```
+
+Then extract the compact list for populating the tracker table:
 
 ```bash
 bash ../fetch-review-threads/scripts/list-unresolved-threads.sh \
