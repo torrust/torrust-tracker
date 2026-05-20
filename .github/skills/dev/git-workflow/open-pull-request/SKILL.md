@@ -19,7 +19,7 @@ Before opening a PR:
 
 - [ ] Working tree is clean (`git status`)
 - [ ] Upstream target repository confirmed from workspace metadata (`Cargo.toml` → `repository`)
-- [ ] Branch is rebased on the latest `develop` from upstream (`<upstream-remote>/develop`); verify with `git log --oneline <upstream-remote>/develop..HEAD` and rebase if behind
+- [ ] Branch is rebased on the latest `develop` from upstream (`<upstream-remote>/develop`); verify with `git log --oneline HEAD..<upstream-remote>/develop` (empty output means up to date) and rebase if behind
 - [ ] Branch is pushed to your fork remote
 - [ ] Commits are GPG signed (`git log --show-signature -n 1`)
 - [ ] All pre-commit checks passed (`linter all`, `cargo machete`, tests)
