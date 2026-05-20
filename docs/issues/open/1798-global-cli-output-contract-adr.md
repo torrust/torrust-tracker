@@ -1,7 +1,7 @@
 ---
 doc-type: issue
 issue-type: task
-status: open
+status: planned
 priority: p2
 github-issue: 1798
 spec-path: docs/issues/open/1798-global-cli-output-contract-adr.md
@@ -41,7 +41,7 @@ The tracker already has a local CLI I/O contract, but it is scoped only to
 `console/tracker-client`:
 
 - `console/tracker-client/docs/adrs/20260512080000_define_tracker_cli_io_contract_and_error_handling.md`
-  (status: Accepted) — defines JSON default, stdout/stderr channel split, exit codes 0/1/2, and
+  (superseded by ADR 20260519000000) — defined JSON default, stdout/stderr channel split, exit codes 0/1/2, and
   NDJSON progress for monitor-style commands.
 - `console/tracker-client/docs/contracts/tracker-cli-io-contract.md` — the normative companion
   contract document.

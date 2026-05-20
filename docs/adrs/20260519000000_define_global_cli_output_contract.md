@@ -78,7 +78,8 @@ Rationale: when stdout is a TTY, result JSON would be mixed with the shell promp
 pipelines silently. Refusing makes the contract mechanically enforceable and the error
 immediately visible. Users can suppress the check with `| cat` or `| jq`.
 
-Example stderr record on TTY refusal:
+Example stderr record on TTY refusal (pretty-printed for readability; the actual wire format is
+a single JSON line per the NDJSON contract):
 
 ```json
 {
