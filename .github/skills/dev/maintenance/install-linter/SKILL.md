@@ -41,8 +41,9 @@ The `linter` binary delegates to external tools. Install them if they are not al
 
 ## Configuration Files
 
-The linters read configuration from files in the project root. These are already present in the
-repository — no manual setup is needed:
+The `linter` binary has **no configuration file of its own**. It delegates to each
+external tool, which reads its own config file from the project root. These files are
+already present in the repository — no manual setup is needed:
 
 | File                 | Used by      |
 | -------------------- | ------------ |
@@ -50,6 +51,11 @@ repository — no manual setup is needed:
 | `.yamllint-ci.yml`   | yamllint     |
 | `.taplo.toml`        | taplo        |
 | `cspell.json`        | cspell       |
+| `rustfmt.toml`       | rustfmt      |
+
+> **Note**: Files listed in `.gitignore` are **not** automatically excluded from linting.
+> Each tool has its own ignore mechanism (e.g. `.markdownlintignore` for markdownlint).
+> Add `.gitignore` paths to the appropriate per-linter ignore file when needed.
 
 ## Verify Full Setup
 

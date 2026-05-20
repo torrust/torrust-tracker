@@ -119,3 +119,20 @@ quote variables, avoid `eval`.
 ## Linter Details
 
 See [references/linters.md](references/linters.md) for detailed documentation on each linter.
+
+## Configuration
+
+The `linter` binary has **no configuration file of its own**. It is a thin wrapper that
+delegates to each tool, which reads its own config file from the project root:
+
+| File                 | Used by      |
+| -------------------- | ------------ |
+| `.markdownlint.json` | markdownlint |
+| `.yamllint-ci.yml`   | yamllint     |
+| `.taplo.toml`        | taplo        |
+| `cspell.json`        | cspell       |
+| `rustfmt.toml`       | rustfmt      |
+
+> **Note**: Files listed in `.gitignore` are **not** automatically excluded from linting.
+> Each tool has its own ignore mechanism (e.g. `.markdownlintignore` for markdownlint).
+> Add `.gitignore` paths to the appropriate per-linter ignore file when needed.
