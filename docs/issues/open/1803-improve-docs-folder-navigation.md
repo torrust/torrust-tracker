@@ -7,7 +7,7 @@ github-issue: 1803
 spec-path: docs/issues/open/1803-improve-docs-folder-navigation.md
 branch: "1803-improve-docs-folder-navigation"
 related-pr: null
-last-updated-utc: 2026-05-20 11:00
+last-updated-utc: 2026-05-20 12:00
 semantic-links:
   skill-links:
     - create-issue
@@ -73,9 +73,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task                                                  | Notes / Expected Output                                                                                    |
 | --- | ------ | ----------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| T1  | TODO   | Expand `docs/index.md` with sections and descriptions | Organized sections with one-line descriptions for every entry, including previously missing subdirectories |
-| T2  | TODO   | Create `docs/AGENTS.md`                               | Directory map, frontmatter rules, linting scope (repo vs. GitHub), skill reference                         |
-| T3  | TODO   | Update `write-markdown-docs` skill                    | New "Frontmatter" section and new "Repo Markdown vs. GitHub Markdown" section (see proposed content below) |
+| T1  | DONE   | Expand `docs/index.md` with sections and descriptions | Organized sections with one-line descriptions for every entry, including previously missing subdirectories |
+| T2  | DONE   | Create `docs/AGENTS.md`                               | Directory map, frontmatter rules, linting scope (repo vs. GitHub), skill reference                         |
+| T3  | DONE   | Update `write-markdown-docs` skill                    | New "Frontmatter" section and new "Repo Markdown vs. GitHub Markdown" section (see proposed content below) |
 
 ### Proposed additions to `write-markdown-docs` skill (T3)
 
@@ -125,17 +125,18 @@ Also add a frontmatter item to the existing checklist:
 - [ ] Spec drafted in `docs/issues/drafts/`
 - [ ] Spec reviewed and approved by user/maintainer
 - [ ] GitHub issue created and issue number added to this spec
-- [ ] Implementation completed
+- [x] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [ ] Manual verification scenarios executed and recorded (status + evidence)
 - [ ] Acceptance criteria reviewed after implementation and updated with evidence
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
-- [ ] Committer verified spec progress is up to date before commit
+- [x] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
 - 2026-05-20 10:00 UTC - Agent - Spec drafted based on user discussion
+- 2026-05-20 12:00 UTC - Agent - T1, T2, T3 implemented and committed; spec updated to DONE
 
 ## Acceptance Criteria
 
