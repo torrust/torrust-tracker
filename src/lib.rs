@@ -365,7 +365,7 @@
 //!
 //! If the tracker is running in `private` or `private_listed` mode you will need to provide a valid authentication key.
 //!
-//! Right now the only way to add new keys is via the REST [`API`](torrust_tracker_axum_rest_api_server). The endpoint `POST /api/vi/key/:duration_in_seconds`
+//! Right now the only way to add new keys is via the REST [`API`](torrust_tracker_axum_rest_api_server). The endpoint `POST /api/v1/key/:duration_in_seconds`
 //! will return an expiring key that will be valid for `duration_in_seconds` seconds.
 //!
 //! Using `curl` you can create a 2-minute valid auth key:

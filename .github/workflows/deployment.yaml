@@ -67,7 +67,7 @@ jobs:
           cargo publish -p torrust-tracker-axum-server
           cargo publish -p torrust-tracker-rest-api-client
           cargo publish -p torrust-tracker-rest-api-core
-          cargo publish -p torrust-torrust-server-lib
+          cargo publish -p torrust-server-lib
           cargo publish -p torrust-tracker
           cargo publish -p torrust-tracker-client
           cargo publish -p torrust-tracker-clock
@@ -79,5 +79,5 @@ jobs:
           cargo publish -p torrust-tracker-primitives
           cargo publish -p torrust-tracker-swarm-coordination-registry
           cargo publish -p torrust-tracker-test-helpers
-          cargo publish -p torrust-tracker-torrent-benchmarking
+          cargo publish -p torrust-tracker-torrent-repository-benchmarking
           cargo publish -p torrust-tracker-udp-server

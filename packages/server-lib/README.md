@@ -4,7 +4,7 @@ Common functionality used in all Torrust HTTP servers.
 
 ## Documentation
 
-[Crate documentation](https://docs.rs/torrust-tracker-axum-server).
+[Crate documentation](https://docs.rs/torrust-server-lib).
 
 ## License
 
