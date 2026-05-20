@@ -1,3 +1,14 @@
+---
+semantic-links:
+  skill-links:
+    - create-issue
+    - cleanup-completed-issues
+  related-artifacts:
+    - docs/issues/README.md
+    - .github/skills/dev/planning/create-issue/SKILL.md
+    - .github/skills/dev/planning/cleanup-completed-issues/SKILL.md
+---
+
 # Open Issues
 
 This folder contains issue specification files for GitHub issues that are currently open.

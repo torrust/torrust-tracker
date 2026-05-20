@@ -1,3 +1,13 @@
+---
+semantic-links:
+  skill-links:
+    - process-copilot-suggestions
+  related-artifacts:
+    - docs/index.md
+    - docs/templates/COPILOT-SUGGESTIONS-TEMPLATE.md
+    - .github/skills/dev/pr-reviews/process-copilot-suggestions/SKILL.md
+---
+
 # PR Copilot Suggestions Review Workflow
 
 This directory contains tools and templates for managing GitHub Copilot code review suggestions on pull requests.

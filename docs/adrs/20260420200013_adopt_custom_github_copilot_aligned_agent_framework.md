@@ -1,3 +1,14 @@
+---
+semantic-links:
+  skill-links:
+    - create-adr
+  related-artifacts:
+    - .github/skills/dev/planning/create-adr/SKILL.md
+    - AGENTS.md
+    - .github/skills/
+    - .github/agents/
+---
+
 # Adopt a Custom, GitHub-Copilot-Aligned Agent Framework
 
 ## Description

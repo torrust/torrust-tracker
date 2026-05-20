@@ -1,3 +1,23 @@
+---
+doc-type: issue
+issue-type: task
+status: done
+priority: p2
+github-issue: 1697
+spec-path: docs/issues/closed/1697-ai-agent-configuration.md
+branch: 1697-ai-agent-configuration
+related-pr: null
+last-updated-utc: null
+semantic-links:
+  skill-links:
+    - create-issue
+  related-artifacts:
+    - docs/issues/README.md
+    - AGENTS.md
+    - .github/skills/
+    - .github/agents/
+---
+
 # Set Up Basic AI Agent Configuration
 
 ## Goal

@@ -1,3 +1,22 @@
+---
+doc-type: issue
+issue-type: bug
+status: done
+priority: p3
+github-issue: 1561
+spec-path: docs/issues/closed/1561-http-tracker-client-avoid-duplicating-announce-suffix.md
+branch: 1561-http-tracker-client-avoid-duplicating-announce-suffix
+related-pr: null
+last-updated-utc: null
+semantic-links:
+  skill-links:
+    - create-issue
+  related-artifacts:
+    - docs/issues/README.md
+    - console/tracker-client/
+    - packages/tracker-client/
+---
+
 # Issue #1561 — HTTP Tracker Client: Avoid Duplicating the `announce` Suffix
 
 ## Overview

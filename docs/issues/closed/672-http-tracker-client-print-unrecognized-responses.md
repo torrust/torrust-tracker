@@ -1,3 +1,22 @@
+---
+doc-type: issue
+issue-type: feature
+status: done
+priority: p3
+github-issue: 672
+spec-path: docs/issues/closed/672-http-tracker-client-print-unrecognized-responses.md
+branch: null
+related-pr: null
+last-updated-utc: null
+semantic-links:
+  skill-links:
+    - create-issue
+  related-artifacts:
+    - docs/issues/README.md
+    - console/tracker-client/
+    - packages/http-tracker-core/
+---
+
 # Issue #672 — HTTP Tracker Client: Print Unrecognized Responses in JSON
 
 ## Overview

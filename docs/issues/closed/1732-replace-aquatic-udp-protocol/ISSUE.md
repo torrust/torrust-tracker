@@ -1,3 +1,22 @@
+---
+doc-type: issue
+issue-type: task
+status: done
+priority: p2
+github-issue: 1732
+spec-path: docs/issues/closed/1732-replace-aquatic-udp-protocol/ISSUE.md
+branch: 1732-replace-aquatic-udp-protocol
+related-pr: null
+last-updated-utc: null
+semantic-links:
+  skill-links:
+    - create-issue
+  related-artifacts:
+    - docs/issues/README.md
+    - packages/udp-protocol/
+    - packages/primitives/
+---
+
 # Replace `aquatic_udp_protocol` with an In-House UDP Protocol Crate
 
 ## Overview

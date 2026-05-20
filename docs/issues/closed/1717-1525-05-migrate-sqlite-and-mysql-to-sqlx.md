@@ -1,3 +1,22 @@
+---
+doc-type: issue
+issue-type: task
+status: done
+priority: p1
+github-issue: 1717
+spec-path: docs/issues/closed/1717-1525-05-migrate-sqlite-and-mysql-to-sqlx.md
+branch: 1525-05-migrate-sqlite-and-mysql-to-sqlx
+related-pr: null
+last-updated-utc: null
+semantic-links:
+  skill-links:
+    - create-issue
+  related-artifacts:
+    - docs/issues/README.md
+    - docs/issues/closed/1525-overhaul-persistence.md
+    - packages/tracker-core/
+---
+
 # Subissue Draft for #1525-05: Migrate SQLite and MySQL Drivers to sqlx
 
 ## Goal

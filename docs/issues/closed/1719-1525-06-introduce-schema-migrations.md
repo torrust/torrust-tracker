@@ -1,3 +1,22 @@
+---
+doc-type: issue
+issue-type: task
+status: done
+priority: p1
+github-issue: 1719
+spec-path: docs/issues/closed/1719-1525-06-introduce-schema-migrations.md
+branch: 1525-06-introduce-schema-migrations
+related-pr: null
+last-updated-utc: null
+semantic-links:
+  skill-links:
+    - create-issue
+  related-artifacts:
+    - docs/issues/README.md
+    - docs/issues/closed/1525-overhaul-persistence.md
+    - packages/tracker-core/
+---
+
 # Subissue Draft for #1525-06: Introduce Schema Migrations
 
 ## Goal

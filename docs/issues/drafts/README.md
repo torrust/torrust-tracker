@@ -1,3 +1,12 @@
+---
+semantic-links:
+  skill-links:
+    - create-issue
+  related-artifacts:
+    - docs/issues/README.md
+    - .github/skills/dev/planning/create-issue/SKILL.md
+---
+
 # Issue Drafts
 
 This folder contains draft issue specification files that are not yet linked to a created GitHub issue.

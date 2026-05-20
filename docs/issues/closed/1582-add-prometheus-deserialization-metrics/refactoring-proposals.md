@@ -1,3 +1,13 @@
+---
+semantic-links:
+  skill-links:
+    - create-issue
+    - create-refactor-plan
+  related-artifacts:
+    - docs/issues/closed/1582-add-prometheus-deserialization-metrics/ISSUE.md
+    - packages/metrics/
+---
+
 # Refactoring Proposals: `metric_collection/prometheus.rs`
 
 Ordered from **least effort / biggest impact** to **most effort / lower impact**.

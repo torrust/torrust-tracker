@@ -1,3 +1,23 @@
+---
+doc-type: issue
+issue-type: task
+status: done
+priority: p1
+github-issue: 1706
+spec-path: docs/issues/closed/1706-1525-02-qbittorrent-e2e.md
+branch: 1706-1525-02-qbittorrent-e2e
+related-pr: null
+last-updated-utc: null
+semantic-links:
+  skill-links:
+    - create-issue
+  related-artifacts:
+    - docs/issues/README.md
+    - docs/issues/closed/1525-overhaul-persistence.md
+    - packages/tracker-core/
+    - compose.qbittorrent-e2e.sqlite3.yaml
+---
+
 # Subissue Draft for #1525-02: Add qBittorrent End-to-End Test
 
 - GitHub issue: #1706

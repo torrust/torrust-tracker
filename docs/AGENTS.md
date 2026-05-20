@@ -1,3 +1,12 @@
+---
+semantic-links:
+  skill-links:
+    - write-markdown-docs
+  related-artifacts:
+    - docs/index.md
+    - docs/skills/semantic-skill-link-convention.md
+---
+
 # `docs/` — Documentation Directory
 
 This directory contains all project documentation: operational guides, architectural decision

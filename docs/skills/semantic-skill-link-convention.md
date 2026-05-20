@@ -1,3 +1,12 @@
+---
+semantic-links:
+  skill-links:
+    - write-markdown-docs
+  related-artifacts:
+    - docs/AGENTS.md
+    - docs/index.md
+---
+
 # Semantic Skill Link Convention
 
 ## Purpose
@@ -82,7 +91,11 @@ semantic-links:
 
 Guidance:
 
-- Keep using inline `skill-link` markers as the primary convention for compatibility.
+- For Markdown files with frontmatter `semantic-links.skill-links`, the frontmatter is the
+  canonical source; inline `<!-- skill-link: ... -->` top-of-file markers are redundant and need
+  not be added.
+- For non-Markdown artifacts and Markdown files without frontmatter, inline markers remain the
+  primary convention.
 - Use frontmatter to express richer relations (for example bidirectional links).
 - Keep paths repository-relative and stable.
 - Keep links high-signal; avoid noisy or speculative links.
@@ -96,8 +109,9 @@ Use language-appropriate syntax:
 - TOML: `# skill-link: <skill-name>`
 - Markdown: `<!-- skill-link: <skill-name> -->`
 
-For Markdown files with frontmatter, place inline marker comments near the workflow-defining
-section even if frontmatter links are present.
+For Markdown files with frontmatter `semantic-links.skill-links`, top-of-file inline markers are
+redundant and need not be added. Inline markers placed near specific workflow-defining sections
+within the body remain useful for navigation but are not required when frontmatter links are present.
 
 Place the marker near:
 

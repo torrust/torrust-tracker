@@ -1,3 +1,14 @@
+---
+semantic-links:
+  skill-links:
+    - create-refactor-plan
+  related-artifacts:
+    - docs/index.md
+    - docs/refactor-plans/open/README.md
+    - docs/refactor-plans/drafts/README.md
+    - .github/skills/dev/planning/create-refactor-plan/SKILL.md
+---
+
 # Closed Refactor Plans
 
 This folder holds refactor plans where all items have been completed. Plans are kept here

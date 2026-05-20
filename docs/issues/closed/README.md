@@ -1,3 +1,12 @@
+---
+semantic-links:
+  skill-links:
+    - cleanup-completed-issues
+  related-artifacts:
+    - docs/issues/README.md
+    - .github/skills/dev/planning/cleanup-completed-issues/SKILL.md
+---
+
 # Recently Closed Issues
 
 This folder holds issue specification files for issues that have been closed but are kept

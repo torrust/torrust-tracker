@@ -30,6 +30,7 @@ bencode
 bencoded
 bencoding
 beps
+bidirectionality
 binascii
 binstall
 Bitflu

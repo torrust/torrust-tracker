@@ -1,3 +1,22 @@
+---
+doc-type: issue
+issue-type: feature
+status: done
+priority: p1
+github-issue: 1723
+spec-path: docs/issues/closed/1723-1525-08-add-postgresql-driver.md
+branch: 1525-08-add-postgresql-driver
+related-pr: null
+last-updated-utc: null
+semantic-links:
+  skill-links:
+    - create-issue
+  related-artifacts:
+    - docs/issues/README.md
+    - docs/issues/closed/1525-overhaul-persistence.md
+    - packages/tracker-core/
+---
+
 # Subissue 1525-08: Add PostgreSQL Driver
 
 ## Goal

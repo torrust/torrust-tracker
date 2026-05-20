@@ -1,3 +1,23 @@
+---
+doc-type: issue
+issue-type: task
+status: done
+priority: p2
+github-issue: 1744
+spec-path: docs/issues/closed/1744-scope-persistence-workflows-by-path.md
+branch: 1744-scope-persistence-workflows-by-path
+related-pr: null
+last-updated-utc: null
+semantic-links:
+  skill-links:
+    - create-issue
+  related-artifacts:
+    - docs/issues/README.md
+    - docs/issues/closed/1742-ci-change-aware-workflows-epic.md
+    - .github/workflows/db-compatibility.yaml
+    - .github/workflows/db-benchmarking.yaml
+---
+
 # Scope Persistence Workflows by Path
 
 ## Goal

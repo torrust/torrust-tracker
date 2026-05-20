@@ -1,3 +1,21 @@
+---
+doc-type: issue
+issue-type: epic
+status: done
+priority: p2
+github-issue: 1742
+spec-path: docs/issues/closed/1742-ci-change-aware-workflows-epic.md
+branch: null
+related-pr: null
+last-updated-utc: null
+semantic-links:
+  skill-links:
+    - create-issue
+  related-artifacts:
+    - docs/issues/README.md
+    - .github/workflows/
+---
+
 # EPIC: Make CI Change-Aware
 
 ## Goal

@@ -1,3 +1,14 @@
+---
+semantic-links:
+  skill-links:
+    - write-markdown-docs
+  related-artifacts:
+    - docs/index.md
+    - docs/profiling.md
+    - packages/torrent-repository-benchmarking/
+    - share/default/config/tracker.udp.benchmarking.toml
+---
+
 # Benchmarking
 
 We have two types of benchmarking:
@@ -211,11 +222,11 @@ Announce responses per info hash:
 
 Announce request per second:
 
-| Tracker       |  Announce |
-|---------------|-----------|
-| Aquatic       |   192,817 |
-| Torrust       |   177,508 |
-| Torrust-Actix |    89,539 |
+| Tracker       | Announce |
+| ------------- | -------- |
+| Aquatic       | 192,817  |
+| Torrust       | 177,508  |
+| Torrust-Actix | 89,539   |
 
 Using a PC with:
 
@@ -244,7 +255,7 @@ You can run it with:
 cargo bench -p torrust-tracker-torrent-repository
 ```
 
-It tests the different implementations for the internal torrent storage.  The output should be something like this:
+It tests the different implementations for the internal torrent storage. The output should be something like this:
 
 ```output
      Running benches/repository_benchmark.rs (target/release/deps/repository_benchmark-2f7830898bbdfba4)

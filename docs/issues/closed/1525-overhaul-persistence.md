@@ -1,3 +1,22 @@
+---
+doc-type: issue
+issue-type: epic
+status: done
+priority: p1
+github-issue: 1525
+spec-path: docs/issues/closed/1525-overhaul-persistence.md
+branch: null
+related-pr: null
+last-updated-utc: null
+semantic-links:
+  skill-links:
+    - create-issue
+  related-artifacts:
+    - docs/issues/README.md
+    - packages/tracker-core/
+    - packages/configuration/
+---
+
 # Issue #1525 Implementation Plan (Overhaul Persistence)
 
 ## Goal

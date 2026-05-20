@@ -1,3 +1,21 @@
+---
+doc-type: issue
+issue-type: task
+status: done
+priority: p2
+github-issue: 1750
+spec-path: docs/issues/closed/1750-refactor-run-tracker-skill-semantic-coupling.md
+branch: 1750-refactor-run-tracker-skill-semantic-coupling
+related-pr: null
+last-updated-utc: null
+semantic-links:
+  skill-links:
+    - create-issue
+  related-artifacts:
+    - docs/issues/README.md
+    - .github/skills/
+---
+
 # Refactor `run-tracker-locally` Skill with Semantic Artifact Coupling
 
 ## Goal

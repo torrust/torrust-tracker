@@ -1,3 +1,22 @@
+---
+doc-type: issue
+issue-type: task
+status: done
+priority: p1
+github-issue: 1715
+spec-path: docs/issues/closed/1715-1525-04b-migrate-consumers-to-narrow-traits.md
+branch: 1715-1525-04b-migrate-consumers-to-narrow-traits
+related-pr: null
+last-updated-utc: null
+semantic-links:
+  skill-links:
+    - create-issue
+  related-artifacts:
+    - docs/issues/README.md
+    - docs/issues/closed/1525-overhaul-persistence.md
+    - packages/tracker-core/
+---
+
 # Subissue Draft for #1525-04b: Migrate Consumers to Narrow Persistence Traits
 
 ## Goal

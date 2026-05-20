@@ -1,3 +1,11 @@
+---
+semantic-links:
+  skill-links:
+    - create-issue
+  related-artifacts:
+    - docs/issues/open/1726-reduce-build-times-sccache/ISSUE.md
+---
+
 # Cargo Build & Test Benchmark Results
 
 Recorded on: 2026-05-01  

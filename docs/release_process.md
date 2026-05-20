@@ -1,10 +1,20 @@
+---
+semantic-links:
+  skill-links:
+    - write-markdown-docs
+  related-artifacts:
+    - docs/index.md
+    - .github/workflows/deployment.yaml
+    - Cargo.toml
+---
+
 # Torrust Tracker Release Process (v2.2.2)
 
 ## Version
 
 > **The `[semantic version]` is bumped according to releases, new features, and breaking changes.**
 >
-> *The `develop` branch uses the (semantic version) suffix `-develop`.*
+> _The `develop` branch uses the (semantic version) suffix `-develop`._
 
 ## Process
 
