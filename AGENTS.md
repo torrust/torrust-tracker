@@ -106,6 +106,15 @@ All packages live under `packages/`. The workspace version is `3.0.0-develop`.
 
 ## 📄 Key Configuration Files
 
+The `linter` binary has **no configuration file of its own**. It is a thin wrapper that
+delegates to each tool, which reads its own config file from the project root. The
+config files are already present in the repository — no manual setup is needed.
+
+Files listed in `.gitignore` are **not** automatically excluded from linting. Each linter
+has its own ignore mechanism (e.g. `.markdownlintignore` for markdownlint,
+`.cspell.gitignore` for cspell). Add `.gitignore` paths that must be excluded from a
+linter to the appropriate ignore file.
+
 | File                                      | Used by                                                                                                                             |
 | ----------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
 | `.markdownlint.json`                      | markdownlint                                                                                                                        |
