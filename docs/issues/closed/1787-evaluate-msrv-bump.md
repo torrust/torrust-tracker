@@ -1,13 +1,13 @@
 ---
 doc-type: issue
 issue-type: task
-status: done
+status: closed
 priority: p2
 github-issue: 1787
-spec-path: docs/issues/open/1787-evaluate-msrv-bump.md
+spec-path: docs/issues/closed/1787-evaluate-msrv-bump.md
 branch: "1787-evaluate-msrv-bump"
-related-pr: 1784
-last-updated-utc: 2026-05-20 12:00
+related-pr: 1815
+last-updated-utc: 2026-05-20 18:00
 semantic-links:
   skill-links:
     - create-issue
@@ -59,18 +59,11 @@ This dual nature creates a tension:
 Until the `bittorrent-*` crates are extracted, a single workspace MSRV applies to
 both classes, so the decision must be made with the extraction timeline in mind.
 
-**This issue is currently blocked on #1669** (ongoing package restructuring).
-Several decisions that directly affect the MSRV strategy have not yet been made:
-
-- Which packages will be extracted as independent crates.io libraries.
-- Final names for those packages.
-- Which packages will share a versioning lifecycle with the main tracker and which
-  will evolve independently.
-- Publication targets and minimum toolchain expectations for downstream consumers.
-
-The MSRV evaluation should be re-opened only after #1669 has settled these questions.
-Opening it sooner risks choosing a policy that becomes invalid once extraction scope
-is defined.
+The MSRV evaluation was unblocked and resolved in 2026-05-20: `rust-version = "1.88"` was chosen
+as the minimum floor that avoids `cargo update` regressions on the current lockfile. The long-term
+split policy (tracker app tracks recent stable; extracted `bittorrent-*` libraries keep a minimum
+MSRV) is documented in the Policy Decision section below and will be applied in a follow-up issue
+once #1669 closes.
 
 ## Policy Decision
 
