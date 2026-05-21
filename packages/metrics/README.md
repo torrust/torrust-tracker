@@ -105,7 +105,7 @@ The library uses Rust's type system to ensure metric safety:
 // Counter operations return u64
 let counter_sum: Option<u64> = counter_collection.sum(&name, &labels);
 
-// Gauge operations return f64  
+// Gauge operations return f64
 let gauge_sum: Option<f64> = gauge_collection.sum(&name, &labels);
 
 // Mixed collections convert to f64 for compatibility
@@ -117,7 +117,7 @@ let mixed_sum: Option<f64> = metric_collection.sum(&name, &labels);
 ```output
 src/
 ├── counter.rs             # Counter metric type
-├── gauge.rs               # Gauge metric type  
+├── gauge.rs               # Gauge metric type
 ├── metric/                # Generic metric container
 │   ├── mod.rs
 │   ├── name.rs            # Metric naming
