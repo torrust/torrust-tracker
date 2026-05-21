@@ -1,7 +1,7 @@
 use bittorrent_udp_tracker_protocol::PeerClient;
+use torrust_metrics::label::LabelSet;
+use torrust_metrics::{label_name, metric_name};
 use torrust_tracker_clock::DurationSinceUnixEpoch;
-use torrust_tracker_metrics::label::LabelSet;
-use torrust_tracker_metrics::{label_name, metric_name};
 
 use crate::event::{ConnectionContext, ErrorKind, UdpRequestKind};
 use crate::statistics::repository::Repository;

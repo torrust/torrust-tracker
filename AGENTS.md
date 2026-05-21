@@ -60,17 +60,17 @@ All packages live under `packages/`. The workspace version is `3.0.0-develop`.
 
 | Package                           | Crate Name                                        | Prefix / Layer | Description                                    |
 | --------------------------------- | ------------------------------------------------- | -------------- | ---------------------------------------------- |
-| `axum-health-check-api-server`    | `torrust-tracker-axum-health-check-api-server`            | `axum-*`       | Health monitoring endpoint                     |
+| `axum-health-check-api-server`    | `torrust-tracker-axum-health-check-api-server`    | `axum-*`       | Health monitoring endpoint                     |
 | `axum-http-tracker-server`        | `torrust-tracker-axum-http-server`                | `axum-*`       | BitTorrent HTTP tracker server (BEP 3/23)      |
 | `axum-rest-tracker-api-server`    | `torrust-tracker-axum-rest-api-server`            | `axum-*`       | Management REST API server                     |
-| `axum-server`                     | `torrust-tracker-axum-server`                             | `axum-*`       | Base Axum HTTP server infrastructure           |
+| `axum-server`                     | `torrust-tracker-axum-server`                     | `axum-*`       | Base Axum HTTP server infrastructure           |
 | `clock`                           | `torrust-tracker-clock`                           | utilities      | Mockable time source for deterministic testing |
 | `configuration`                   | `torrust-tracker-configuration`                   | domain         | Config file parsing, environment variables     |
 | `events`                          | `torrust-tracker-events`                          | domain         | Domain event definitions                       |
 | `http-protocol`                   | `bittorrent-http-tracker-protocol`                | `*-protocol`   | HTTP tracker protocol (BEP 3/23) parsing       |
 | `http-tracker-core`               | `bittorrent-http-tracker-core`                    | `*-core`       | HTTP-specific tracker domain logic             |
 | `located-error`                   | `torrust-tracker-located-error`                   | utilities      | Diagnostic errors with source locations        |
-| `metrics`                         | `torrust-tracker-metrics`                         | domain         | Prometheus metrics integration                 |
+| `metrics`                         | `torrust-metrics`                                 | domain         | Prometheus metrics integration                 |
 | `peer-id`                         | `bittorrent-peer-id`                              | domain         | Peer ID parsing and formatting utilities       |
 | `primitives`                      | `torrust-tracker-primitives`                      | domain         | Core domain types (InfoHash, PeerId, ...)      |
 | `rest-tracker-api-client`         | `torrust-tracker-rest-api-client`                 | client tools   | REST API client library                        |

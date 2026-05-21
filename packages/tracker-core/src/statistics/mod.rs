@@ -4,9 +4,9 @@ pub mod persisted;
 pub mod repository;
 
 use metrics::Metrics;
-use torrust_tracker_metrics::metric::description::MetricDescription;
-use torrust_tracker_metrics::metric_name;
-use torrust_tracker_metrics::unit::Unit;
+use torrust_metrics::metric::description::MetricDescription;
+use torrust_metrics::metric_name;
+use torrust_metrics::unit::Unit;
 
 // Torrent metrics
 

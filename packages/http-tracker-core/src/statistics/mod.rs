@@ -3,9 +3,9 @@ pub mod metrics;
 pub mod repository;
 
 use metrics::Metrics;
-use torrust_tracker_metrics::metric::description::MetricDescription;
-use torrust_tracker_metrics::metric_name;
-use torrust_tracker_metrics::unit::Unit;
+use torrust_metrics::metric::description::MetricDescription;
+use torrust_metrics::metric_name;
+use torrust_metrics::unit::Unit;
 
 pub const HTTP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL: &str = "http_tracker_core_requests_received_total";
 

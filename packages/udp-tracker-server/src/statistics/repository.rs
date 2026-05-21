@@ -2,10 +2,10 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use tokio::sync::{RwLock, RwLockReadGuard};
+use torrust_metrics::label::LabelSet;
+use torrust_metrics::metric::MetricName;
+use torrust_metrics::metric_collection::Error;
 use torrust_tracker_clock::DurationSinceUnixEpoch;
-use torrust_tracker_metrics::label::LabelSet;
-use torrust_tracker_metrics::metric::MetricName;
-use torrust_tracker_metrics::metric_collection::Error;
 
 use super::describe_metrics;
 use super::metrics::Metrics;
@@ -94,9 +94,9 @@ mod tests {
     use core::f64;
     use std::time::Duration;
 
+    use torrust_metrics::metric_collection::aggregate::sum::Sum;
+    use torrust_metrics::metric_name;
     use torrust_tracker_clock::clock::Time;
-    use torrust_tracker_metrics::metric_collection::aggregate::sum::Sum;
-    use torrust_tracker_metrics::metric_name;
 
     use super::*;
     use crate::CurrentClock;
@@ -590,8 +590,8 @@ mod tests {
         use std::time::Duration;
 
         use tokio::task::JoinHandle;
+        use torrust_metrics::metric_name;
         use torrust_tracker_clock::clock::Time;
-        use torrust_tracker_metrics::metric_name;
 
         use super::*;
         use crate::CurrentClock;

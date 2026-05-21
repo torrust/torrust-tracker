@@ -1,8 +1,8 @@
 use std::sync::Arc;
 
+use torrust_metrics::label::{LabelSet, LabelValue};
+use torrust_metrics::{label_name, metric_name};
 use torrust_tracker_clock::DurationSinceUnixEpoch;
-use torrust_tracker_metrics::label::{LabelSet, LabelValue};
-use torrust_tracker_metrics::{label_name, metric_name};
 use torrust_tracker_primitives::peer::Peer;
 
 use crate::event::Event;
@@ -151,7 +151,7 @@ pub async fn handle_event(event: Event, stats_repository: &Arc<Repository>, now:
         Event::PeerDownloadCompleted { info_hash, peer } => {
             tracing::debug!(info_hash = ?info_hash, peer = ?peer, "Peer download completed", );
 
-            let _unused: Result<(), torrust_tracker_metrics::metric_collection::Error> = stats_repository
+            let _unused: Result<(), torrust_metrics::metric_collection::Error> = stats_repository
                 .increment_counter(
                     &metric_name!(SWARM_COORDINATION_REGISTRY_TORRENTS_DOWNLOADS_TOTAL),
                     &label_set_for_peer(&peer),
@@ -175,8 +175,8 @@ pub(crate) fn label_set_for_peer(peer: &Peer) -> LabelSet {
 mod tests {
     use std::sync::Arc;
 
-    use torrust_tracker_metrics::label::LabelSet;
-    use torrust_tracker_metrics::metric::MetricName;
+    use torrust_metrics::label::LabelSet;
+    use torrust_metrics::metric::MetricName;
     use torrust_tracker_primitives::NumberOfBytes;
     use torrust_tracker_primitives::peer::{Peer, PeerRole};
 
@@ -250,10 +250,10 @@ mod tests {
 
         use std::sync::Arc;
 
+        use torrust_metrics::label::LabelSet;
+        use torrust_metrics::metric_name;
         use torrust_tracker_clock::clock::stopped::Stopped;
         use torrust_tracker_clock::clock::{self, Time};
-        use torrust_tracker_metrics::label::LabelSet;
-        use torrust_tracker_metrics::metric_name;
 
         use crate::CurrentClock;
         use crate::event::Event;
@@ -370,9 +370,9 @@ mod tests {
     mod for_peer_metrics {
         use std::sync::Arc;
 
+        use torrust_metrics::metric_name;
         use torrust_tracker_clock::clock::stopped::Stopped;
         use torrust_tracker_clock::clock::{self, Time};
-        use torrust_tracker_metrics::metric_name;
 
         use crate::CurrentClock;
         use crate::event::Event;
@@ -390,10 +390,10 @@ mod tests {
             use std::sync::Arc;
 
             use rstest::rstest;
+            use torrust_metrics::label::LabelValue;
+            use torrust_metrics::{label_name, metric_name};
             use torrust_tracker_clock::clock::stopped::Stopped;
             use torrust_tracker_clock::clock::{self, Time};
-            use torrust_tracker_metrics::label::LabelValue;
-            use torrust_tracker_metrics::{label_name, metric_name};
             use torrust_tracker_primitives::peer::PeerRole;
 
             use crate::CurrentClock;
@@ -609,10 +609,10 @@ mod tests {
             use std::sync::Arc;
 
             use rstest::rstest;
+            use torrust_metrics::label::LabelValue;
+            use torrust_metrics::{label_name, metric_name};
             use torrust_tracker_clock::clock::stopped::Stopped;
             use torrust_tracker_clock::clock::{self, Time};
-            use torrust_tracker_metrics::label::LabelValue;
-            use torrust_tracker_metrics::{label_name, metric_name};
             use torrust_tracker_primitives::peer::PeerRole;
 
             use crate::CurrentClock;

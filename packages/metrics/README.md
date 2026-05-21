@@ -1,10 +1,10 @@
-# Torrust Tracker Metrics
+# Torrust Metrics
 
-A comprehensive metrics library providing type-safe metric collection, aggregation, and Prometheus export functionality for the [Torrust Tracker](https://github.com/torrust/torrust-tracker) ecosystem.
+A comprehensive metrics library providing type-safe metric collection, aggregation, and Prometheus export functionality. Reusable across any Rust project in the Torrust organisation.
 
 ## Overview
 
-This library offers a robust metrics system designed specifically for tracking and monitoring BitTorrent tracker performance. It provides type-safe metric collection with support for labels, time-series data, and multiple export formats including Prometheus.
+This library offers a robust metrics system for tracking and monitoring application performance. It provides type-safe metric collection with support for labels, time-series data, and multiple export formats including Prometheus.
 
 ## Key Features
 
@@ -20,15 +20,17 @@ This library offers a robust metrics system designed specifically for tracking a
 
 Add this to your `Cargo.toml`:
 
+> **Note**: This crate is not yet published on crates.io. Use a path or git dependency.
+
 ```toml
 [dependencies]
-torrust-tracker-metrics = "3.0.0"
+torrust-metrics = { path = "packages/metrics" }
 ```
 
 ### Basic Usage
 
 ```rust
-use torrust_tracker_metrics::{
+use torrust_metrics::{
     metric_collection::MetricCollection,
     label::{LabelSet, LabelValue},
     metric_name, label_name,
@@ -67,7 +69,7 @@ println!("{}", prometheus_output);
 ### Metric Aggregation
 
 ```rust
-use torrust_tracker_metrics::metric_collection::aggregate::{Sum, Avg};
+use torrust_metrics::metric_collection::aggregate::{Sum, Avg};
 
 // Sum all counter values matching specific labels
 let total_requests = metrics.sum(
@@ -105,7 +107,7 @@ The library uses Rust's type system to ensure metric safety:
 // Counter operations return u64
 let counter_sum: Option<u64> = counter_collection.sum(&name, &labels);
 
-// Gauge operations return f64  
+// Gauge operations return f64
 let gauge_sum: Option<f64> = gauge_collection.sum(&name, &labels);
 
 // Mixed collections convert to f64 for compatibility
@@ -117,7 +119,7 @@ let mixed_sum: Option<f64> = metric_collection.sum(&name, &labels);
 ```output
 src/
 ├── counter.rs             # Counter metric type
-├── gauge.rs               # Gauge metric type  
+├── gauge.rs               # Gauge metric type
 ├── metric/                # Generic metric container
 │   ├── mod.rs
 │   ├── name.rs            # Metric naming
@@ -138,8 +140,8 @@ src/
 
 ## Documentation
 
-- [Crate documentation](https://docs.rs/torrust-tracker-metrics)
-- [API Reference](https://docs.rs/torrust-tracker-metrics/latest/torrust_tracker_metrics/)
+- [Crate documentation](https://docs.rs/torrust-metrics)
+- [API Reference](https://docs.rs/torrust-metrics/latest/torrust_metrics/)
 
 ## Development
 
@@ -148,14 +150,14 @@ src/
 Run basic coverage report:
 
 ```console
-cargo llvm-cov --package torrust-tracker-metrics 
+cargo llvm-cov --package torrust-metrics
 ```
 
 Generate LCOV report (for IDE integration):
 
 ```console
 mkdir -p ./.coverage
-cargo llvm-cov --package torrust-tracker-metrics --lcov --output-path=./.coverage/lcov.info
+cargo llvm-cov --package torrust-metrics --lcov --output-path=./.coverage/lcov.info
 ```
 
 Generate detailed HTML coverage report:
@@ -164,7 +166,7 @@ Generate detailed HTML coverage report:
 
 ```console
 mkdir -p ./.coverage
-cargo llvm-cov --package torrust-tracker-metrics --html --output-dir ./.coverage
+cargo llvm-cov --package torrust-metrics --html --output-dir ./.coverage
 ```
 
 Open the coverage report in your browser:
