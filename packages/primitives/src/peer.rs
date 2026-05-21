@@ -8,7 +8,7 @@
 //! use std::net::SocketAddr;
 //! use std::net::IpAddr;
 //! use std::net::Ipv4Addr;
-//! use torrust_tracker_clock::DurationSinceUnixEpoch;
+//! use torrust_clock::DurationSinceUnixEpoch;
 //!
 //!
 //! peer::Peer {
@@ -29,7 +29,7 @@ use std::str::FromStr;
 use std::sync::Arc;
 
 use serde::Serialize;
-use torrust_tracker_clock::DurationSinceUnixEpoch;
+use torrust_clock::DurationSinceUnixEpoch;
 
 use crate::{AnnounceEvent, NumberOfBytes, PeerId};
 
@@ -96,7 +96,7 @@ pub enum ParsePeerRoleError {
 /// use std::net::SocketAddr;
 /// use std::net::IpAddr;
 /// use std::net::Ipv4Addr;
-/// use torrust_tracker_clock::DurationSinceUnixEpoch;
+/// use torrust_clock::DurationSinceUnixEpoch;
 ///
 ///
 /// peer::Peer {
@@ -494,7 +494,7 @@ impl<P: Encoding> FromIterator<Peer> for Vec<P> {
 pub mod fixture {
     use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
-    use torrust_tracker_clock::DurationSinceUnixEpoch;
+    use torrust_clock::DurationSinceUnixEpoch;
 
     use super::{Id, Peer, PeerId};
     use crate::{AnnounceEvent, NumberOfBytes};

@@ -1,4 +1,4 @@
-use torrust_tracker_clock::DurationSinceUnixEpoch;
+use torrust_clock::DurationSinceUnixEpoch;
 
 use crate::metric_collection::Error as MetricCollectionError;
 use crate::sample_collection::Error as SampleCollectionError;

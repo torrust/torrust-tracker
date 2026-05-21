@@ -1,6 +1,6 @@
+use torrust_clock::DurationSinceUnixEpoch;
 use torrust_metrics::label::{LabelSet, LabelValue};
 use torrust_metrics::{label_name, metric_name};
-use torrust_tracker_clock::DurationSinceUnixEpoch;
 
 use crate::event::Event;
 use crate::statistics::UDP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL;
@@ -56,8 +56,8 @@ pub async fn handle_event(event: Event, stats_repository: &Repository, now: Dura
 mod tests {
     use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
 
+    use torrust_clock::clock::Time;
     use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
-    use torrust_tracker_clock::clock::Time;
     use torrust_tracker_primitives::peer::PeerAnnouncement;
 
     use crate::CurrentClock;

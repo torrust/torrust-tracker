@@ -98,18 +98,18 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status   | Task                                                                                              | Notes / Expected Output                                                              |
 | --- | -------- | ------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
-| T1  | TODO     | Rename `name` in `packages/clock/Cargo.toml`                                                      | `name = "torrust-clock"`                                                             |
-| T2  | TODO     | Update root `Cargo.toml` workspace dependency key                                                 | `torrust-clock = { version = ..., path = "packages/clock" }`                         |
-| T3  | TODO     | Update all dependent package `Cargo.toml` files (10 packages, excluding root — see T2)            | Replace `torrust-tracker-clock` key with `torrust-clock` in each                     |
-| T4  | TODO     | Update Rust source `use` / path references (`torrust_tracker_clock::` → `torrust_clock::`)        | Affects `src/`, package sources, and integration tests                               |
-| T5  | TODO     | Update prose in `packages/AGENTS.md`, `AGENTS.md`, `docs/packages.md`, `packages/clock/README.md` | Crate name and any inline code snippets                                              |
-| T6  | TODO     | Run `cargo build --workspace` and `cargo test --workspace`                                        | Clean build and all tests pass                                                       |
-| T7  | TODO     | Run `linter all`                                                                                  | Exit code `0`                                                                        |
+| T1  | DONE     | Rename `name` in `packages/clock/Cargo.toml`                                                      | `name = "torrust-clock"`                                                             |
+| T2  | DONE     | Update root `Cargo.toml` workspace dependency key                                                 | `torrust-clock = { version = ..., path = "packages/clock" }`                         |
+| T3  | DONE     | Update all dependent package `Cargo.toml` files (10 packages, excluding root — see T2)            | Replace `torrust-tracker-clock` key with `torrust-clock` in each                     |
+| T4  | DONE     | Update Rust source `use` / path references (`torrust_tracker_clock::` → `torrust_clock::`)        | Affects `src/`, package sources, and integration tests                               |
+| T5  | DONE     | Update prose in `packages/AGENTS.md`, `AGENTS.md`, `docs/packages.md`, `packages/clock/README.md` | Crate name and any inline code snippets                                              |
+| T6  | DONE     | Run `cargo build --workspace` and `cargo test --workspace`                                        | Clean build and all tests pass                                                       |
+| T7  | DONE     | Run `linter all`                                                                                  | Exit code `0`                                                                        |
 | T8  | DEFERRED | Publish `torrust-clock` on crates.io                                                              | Deferred to SI-13                                                                    |
 | T9  | DEFERRED | Add deprecation notice to `torrust-tracker-clock` on crates.io                                    | Deferred to SI-13                                                                    |
 | T10 | DEFERRED | Update `torrust-index`: replace copied clock code with `torrust-clock` dep                        | Deferred to SI-13; open issue on `torrust/torrust-index` after crate is published    |
 | T11 | DEFERRED | Yank all versions of `torrust-tracker-clock` on crates.io                                         | Deferred to SI-13                                                                    |
-| T12 | TODO     | Update EPIC #1669 `Package Inventory` and `Desired Package State` tables                          | Move `torrust-clock` from `torrust-tracker-` to `torrust-`; drop `Renamed from` note |
+| T12 | DONE     | Update EPIC #1669 `Package Inventory` and `Desired Package State` tables                          | Move `torrust-clock` from `torrust-tracker-` to `torrust-`; drop `Renamed from` note |
 
 **Dependent packages to update in T3** (10 files; root `Cargo.toml` is handled in T2):
 
@@ -132,20 +132,21 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
 - [x] Spec moved to `docs/issues/open/` with issue number prefix
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, `cargo test --workspace`)
+- [x] Implementation completed
+- [x] Automatic verification completed (`linter all`, `cargo test --workspace`)
 - [ ] Manual verification scenarios executed and recorded
 - [ ] Acceptance criteria reviewed after implementation and updated with evidence
 - [ ] `torrust-clock` published on crates.io; deprecation notice added to old name (deferred to SI-13)
 - [ ] `torrust-index` migrated to `torrust-clock` (companion PR merged) (deferred to SI-13)
 - [ ] `torrust-tracker-clock` yanked on crates.io (deferred to SI-13)
-- [ ] EPIC #1669 Active Subissues table updated to `DONE`
+- [x] EPIC #1669 Active Subissues table updated to `DONE`
 - [ ] Issue closed and spec moved to `docs/issues/closed/`
 
 ### Progress Log
 
 - 2026-05-15 12:00 UTC - josecelano - Spec drafted as subissue of EPIC #1669
 - 2026-05-21 12:00 UTC - josecelano - GitHub issue #1821 created; spec moved to `docs/issues/open/`; branch `1821-rename-torrust-tracker-clock-to-torrust-clock` created; crates.io tasks deferred to SI-13
+- 2026-05-21 15:50 UTC - josecelano - Implementation complete: T1–T7 + T12 done; `cargo build --workspace`, `cargo test --workspace`, `linter all` all pass; EPIC updated
 
 ## Acceptance Criteria
 

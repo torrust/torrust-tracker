@@ -16,8 +16,8 @@ use rand::distr::Alphanumeric;
 use rand::{RngExt, rng};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
-use torrust_tracker_clock::DurationSinceUnixEpoch;
-use torrust_tracker_clock::conv::convert_from_timestamp_to_datetime_utc;
+use torrust_clock::DurationSinceUnixEpoch;
+use torrust_clock::conv::convert_from_timestamp_to_datetime_utc;
 
 use super::AUTH_KEY_LENGTH;
 

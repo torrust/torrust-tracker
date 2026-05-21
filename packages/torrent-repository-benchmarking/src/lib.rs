@@ -4,7 +4,7 @@ use repository::dash_map_mutex_std::XacrimonDashMap;
 use repository::rw_lock_std::RwLockStd;
 use repository::rw_lock_tokio::RwLockTokio;
 use repository::skip_map_mutex_std::CrossbeamSkipList;
-use torrust_tracker_clock::clock;
+use torrust_clock::clock;
 
 pub mod entry;
 pub mod repository;

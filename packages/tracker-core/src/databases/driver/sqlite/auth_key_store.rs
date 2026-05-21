@@ -2,7 +2,7 @@ use std::panic::Location;
 
 use ::sqlx::Row;
 use async_trait::async_trait;
-use torrust_tracker_clock::DurationSinceUnixEpoch;
+use torrust_clock::DurationSinceUnixEpoch;
 
 use super::{DRIVER, Sqlite};
 use crate::authentication::{self, Key};

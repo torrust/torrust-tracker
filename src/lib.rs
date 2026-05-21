@@ -487,7 +487,7 @@
 //! In addition to the production code documentation you can find a lot of
 //! examples on the integration and unit tests.
 
-use torrust_tracker_clock::clock;
+use torrust_clock::clock;
 
 pub mod app;
 pub mod bootstrap;

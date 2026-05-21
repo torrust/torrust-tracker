@@ -1,13 +1,13 @@
 use std::time::Duration;
 
 use serde::Serialize;
+use torrust_clock::DurationSinceUnixEpoch;
 use torrust_metrics::label::LabelSet;
 use torrust_metrics::metric::MetricName;
 use torrust_metrics::metric_collection::aggregate::avg::Avg;
 use torrust_metrics::metric_collection::aggregate::sum::Sum;
 use torrust_metrics::metric_collection::{Error, MetricCollection};
 use torrust_metrics::metric_name;
-use torrust_tracker_clock::DurationSinceUnixEpoch;
 
 use crate::statistics::{
     UDP_TRACKER_SERVER_ERRORS_TOTAL, UDP_TRACKER_SERVER_IPS_BANNED_TOTAL,
@@ -380,8 +380,8 @@ impl Metrics {
 
 #[cfg(test)]
 mod tests {
+    use torrust_clock::clock::Time;
     use torrust_metrics::metric_name;
-    use torrust_tracker_clock::clock::Time;
 
     use super::*;
     use crate::CurrentClock;

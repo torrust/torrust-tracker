@@ -23,7 +23,7 @@
 //! - Tracker REST API: the tracker API can be enabled/disabled.
 use std::sync::Arc;
 
-use torrust_tracker_clock::clock::Time;
+use torrust_clock::clock::Time;
 use torrust_tracker_configuration::{Configuration, HttpTracker, UdpTracker};
 use tracing::instrument;
 

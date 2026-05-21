@@ -2,7 +2,7 @@
 
 use bittorrent_tracker_core::authentication::{self, Key};
 use serde::{Deserialize, Serialize};
-use torrust_tracker_clock::conv::convert_from_iso_8601_to_timestamp;
+use torrust_clock::conv::convert_from_iso_8601_to_timestamp;
 
 /// A resource that represents an authentication key.
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
@@ -50,8 +50,8 @@ mod tests {
     use std::time::Duration;
 
     use bittorrent_tracker_core::authentication::{self, Key};
-    use torrust_tracker_clock::clock::stopped::Stopped as _;
-    use torrust_tracker_clock::clock::{self, Time};
+    use torrust_clock::clock::stopped::Stopped as _;
+    use torrust_clock::clock::{self, Time};
 
     use super::AuthKey;
     use crate::CurrentClock;

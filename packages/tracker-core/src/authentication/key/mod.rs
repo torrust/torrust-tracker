@@ -30,7 +30,7 @@
 //!
 //! ```rust
 //! use bittorrent_tracker_core::authentication::Key;
-//! use torrust_tracker_clock::DurationSinceUnixEpoch;
+//! use torrust_clock::DurationSinceUnixEpoch;
 //!
 //! pub struct PeerKey {
 //!     /// A random 32-character authentication token (e.g., `YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ`)
@@ -48,8 +48,8 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use thiserror::Error;
-use torrust_tracker_clock::DurationSinceUnixEpoch;
-use torrust_tracker_clock::clock::Time;
+use torrust_clock::DurationSinceUnixEpoch;
+use torrust_clock::clock::Time;
 use torrust_tracker_located_error::{DynError, LocatedError};
 
 use crate::CurrentClock;
@@ -206,8 +206,8 @@ mod tests {
 
         use std::time::Duration;
 
-        use torrust_tracker_clock::clock;
-        use torrust_tracker_clock::clock::stopped::Stopped as _;
+        use torrust_clock::clock;
+        use torrust_clock::clock::stopped::Stopped as _;
 
         use crate::authentication;
 
@@ -255,8 +255,8 @@ mod tests {
 
         use std::time::Duration;
 
-        use torrust_tracker_clock::clock;
-        use torrust_tracker_clock::clock::stopped::Stopped as _;
+        use torrust_clock::clock;
+        use torrust_clock::clock::stopped::Stopped as _;
 
         use crate::authentication;
 

@@ -527,8 +527,8 @@ async fn it_should_remove_inactive_peers(
 ) {
     use std::time::Duration;
 
-    use torrust_tracker_clock::clock::stopped::Stopped as _;
-    use torrust_tracker_clock::clock::{self, Time as _};
+    use torrust_clock::clock::stopped::Stopped as _;
+    use torrust_clock::clock::{self, Time as _};
     use torrust_tracker_primitives::peer;
 
     use crate::CurrentClock;

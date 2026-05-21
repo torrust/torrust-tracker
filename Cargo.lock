@@ -471,9 +471,9 @@ dependencies = [
  "thiserror 2.0.18",
  "tokio",
  "tokio-util",
+ "torrust-clock",
  "torrust-metrics",
  "torrust-net-primitives",
- "torrust-tracker-clock",
  "torrust-tracker-configuration",
  "torrust-tracker-events",
  "torrust-tracker-primitives",
@@ -495,7 +495,7 @@ dependencies = [
  "serde",
  "serde_bencode",
  "thiserror 2.0.18",
- "torrust-tracker-clock",
+ "torrust-clock",
  "torrust-tracker-contrib-bencode",
  "torrust-tracker-located-error",
  "torrust-tracker-primitives",
@@ -567,8 +567,8 @@ dependencies = [
  "thiserror 2.0.18",
  "tokio",
  "tokio-util",
+ "torrust-clock",
  "torrust-metrics",
- "torrust-tracker-clock",
  "torrust-tracker-configuration",
  "torrust-tracker-events",
  "torrust-tracker-located-error",
@@ -597,9 +597,9 @@ dependencies = [
  "thiserror 2.0.18",
  "tokio",
  "tokio-util",
+ "torrust-clock",
  "torrust-metrics",
  "torrust-net-primitives",
- "torrust-tracker-clock",
  "torrust-tracker-configuration",
  "torrust-tracker-events",
  "torrust-tracker-primitives",
@@ -5103,6 +5103,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "torrust-clock"
+version = "3.0.0-develop"
+dependencies = [
+ "chrono",
+ "tracing",
+]
+
+[[package]]
 name = "torrust-metrics"
 version = "3.0.0-develop"
 dependencies = [
@@ -5117,7 +5125,7 @@ dependencies = [
  "serde",
  "serde_json",
  "thiserror 2.0.18",
- "torrust-tracker-clock",
+ "torrust-clock",
  "tracing",
 ]
 
@@ -5169,12 +5177,12 @@ dependencies = [
  "tokio",
  "tokio-util",
  "toml 1.1.2+spec-1.1.0",
+ "torrust-clock",
  "torrust-server-lib",
  "torrust-tracker-axum-health-check-api-server",
  "torrust-tracker-axum-http-server",
  "torrust-tracker-axum-rest-api-server",
  "torrust-tracker-axum-server",
- "torrust-tracker-clock",
  "torrust-tracker-configuration",
  "torrust-tracker-rest-api-client",
  "torrust-tracker-rest-api-core",
@@ -5197,13 +5205,13 @@ dependencies = [
  "serde",
  "serde_json",
  "tokio",
+ "torrust-clock",
  "torrust-net-primitives",
  "torrust-server-lib",
  "torrust-tracker-axum-health-check-api-server",
  "torrust-tracker-axum-http-server",
  "torrust-tracker-axum-rest-api-server",
  "torrust-tracker-axum-server",
- "torrust-tracker-clock",
  "torrust-tracker-configuration",
  "torrust-tracker-test-helpers",
  "torrust-tracker-udp-server",
@@ -5237,10 +5245,10 @@ dependencies = [
  "serde_repr",
  "tokio",
  "tokio-util",
+ "torrust-clock",
  "torrust-net-primitives",
  "torrust-server-lib",
  "torrust-tracker-axum-server",
- "torrust-tracker-clock",
  "torrust-tracker-configuration",
  "torrust-tracker-primitives",
  "torrust-tracker-swarm-coordination-registry",
@@ -5271,11 +5279,11 @@ dependencies = [
  "serde_with",
  "thiserror 2.0.18",
  "tokio",
+ "torrust-clock",
  "torrust-metrics",
  "torrust-net-primitives",
  "torrust-server-lib",
  "torrust-tracker-axum-server",
- "torrust-tracker-clock",
  "torrust-tracker-configuration",
  "torrust-tracker-primitives",
  "torrust-tracker-rest-api-client",
@@ -5336,14 +5344,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "torrust-tracker-clock"
-version = "3.0.0-develop"
-dependencies = [
- "chrono",
- "tracing",
-]
-
-[[package]]
 name = "torrust-tracker-configuration"
 version = "3.0.0-develop"
 dependencies = [
@@ -5400,8 +5400,8 @@ dependencies = [
  "tdyne-peer-id",
  "tdyne-peer-id-registry",
  "thiserror 2.0.18",
+ "torrust-clock",
  "torrust-net-primitives",
- "torrust-tracker-clock",
 ]
 
 [[package]]
@@ -5448,8 +5448,8 @@ dependencies = [
  "thiserror 2.0.18",
  "tokio",
  "tokio-util",
+ "torrust-clock",
  "torrust-metrics",
- "torrust-tracker-clock",
  "torrust-tracker-configuration",
  "torrust-tracker-events",
  "torrust-tracker-primitives",
@@ -5478,7 +5478,7 @@ dependencies = [
  "parking_lot",
  "rstest 0.26.1",
  "tokio",
- "torrust-tracker-clock",
+ "torrust-clock",
  "torrust-tracker-configuration",
  "torrust-tracker-primitives",
 ]
@@ -5502,10 +5502,10 @@ dependencies = [
  "thiserror 2.0.18",
  "tokio",
  "tokio-util",
+ "torrust-clock",
  "torrust-metrics",
  "torrust-net-primitives",
  "torrust-server-lib",
- "torrust-tracker-clock",
  "torrust-tracker-configuration",
  "torrust-tracker-events",
  "torrust-tracker-primitives",

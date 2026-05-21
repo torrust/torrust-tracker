@@ -60,6 +60,7 @@ The workspace currently contains **27 packages** (including the root `torrust-tr
 
 | Published on crates.io | Crate Name               | Folder           |
 | ---------------------- | ------------------------ | ---------------- |
+| Yes                    | `torrust-clock`          | `clock`          |
 | No                     | `torrust-metrics`        | `metrics`        |
 | No                     | `torrust-net-primitives` | `net-primitives` |
 | No                     | `torrust-server-lib`     | `server-lib`     |
@@ -73,7 +74,6 @@ The workspace currently contains **27 packages** (including the root `torrust-tr
 | No                     | `torrust-tracker-axum-rest-api-server`            | `axum-rest-tracker-api-server`    |
 | No                     | `torrust-tracker-axum-server`                     | `axum-server`                     |
 | No                     | `torrust-tracker-client`                          | `console/tracker-client`          |
-| Yes                    | `torrust-tracker-clock`                           | `clock`                           |
 | Yes                    | `torrust-tracker-configuration`                   | `configuration`                   |
 | Yes                    | `torrust-tracker-contrib-bencode`                 | `contrib/bencode`                 |
 | No                     | `torrust-tracker-events`                          | `events`                          |
@@ -115,12 +115,12 @@ destination group with a "Renamed from …" note.
 
 ### `torrust-` prefix (non-`torrust-tracker-`)
 
-| Published on crates.io | Crate Name               | Folder           | Change                                       |
-| ---------------------- | ------------------------ | ---------------- | -------------------------------------------- |
-| Yes                    | `torrust-clock`          | `clock`          | Renamed from `torrust-tracker-clock`         |
-| Yes                    | `torrust-located-error`  | `located-error`  | Renamed from `torrust-tracker-located-error` |
-| Yes                    | `torrust-net-primitives` | `net-primitives` | New package (created by SI-05)               |
-| No                     | `torrust-metrics`        | `metrics`        | —                                            |
+| Published on crates.io | Crate Name               | Folder           | Change                                               |
+| ---------------------- | ------------------------ | ---------------- | ---------------------------------------------------- |
+| Yes                    | `torrust-clock`          | `clock`          | Renamed from `torrust-tracker-clock` ✓ (SI-09 #1821) |
+| Yes                    | `torrust-located-error`  | `located-error`  | Renamed from `torrust-tracker-located-error`         |
+| Yes                    | `torrust-net-primitives` | `net-primitives` | New package (created by SI-05)                       |
+| No                     | `torrust-metrics`        | `metrics`        | —                                                    |
 
 ### `torrust-tracker-` prefix
 
@@ -215,7 +215,7 @@ Status: TODO unless noted. `SI-XX` = recommended implementation sequence number.
 - [x] SI-06 — [#1813](https://github.com/torrust/torrust-tracker/issues/1813) Resolve `bittorrent-tracker-core` ↔ `torrust-tracker-rest-api-client` layer violation _(Rule M; prerequisite for `bittorrent-tracker-core` extraction)_
 - [x] SI-07 — [#1816](https://github.com/torrust/torrust-tracker/issues/1816) Align `torrust-` prefix: rename 7 tracker-specific packages to `torrust-tracker-` _(Rule U; no blockers)_
 - [x] SI-08 — [#1819](https://github.com/torrust/torrust-tracker/issues/1819) Rename `torrust-tracker-metrics` to `torrust-metrics` _(Rule U; no blockers)_
-- [ ] SI-09 — [#1821](https://github.com/torrust/torrust-tracker/issues/1821) Rename `torrust-tracker-clock` to `torrust-clock` _(Rule P; no blockers)_
+- [x] SI-09 — [#1821](https://github.com/torrust/torrust-tracker/issues/1821) Rename `torrust-tracker-clock` to `torrust-clock` _(Rule P; no blockers)_
 - [ ] SI-10 — Rename `torrust-tracker-located-error` to `torrust-located-error` _(Rule P; no blockers)_
 - [ ] SI-11 — Update all package READMEs _(documentation; after SI-07–SI-10; before SI-12)_
 - [ ] SI-12 — Extract and rename `torrust-tracker-contrib-bencode` to `torrust-bencode` _(Rule E; no blockers within this EPIC)_
@@ -235,7 +235,7 @@ Details:
 | SI-06 | [#1813](https://github.com/torrust/torrust-tracker/issues/1813) — Resolve `bittorrent-tracker-core` ↔ `torrust-tracker-rest-api-client` layer violation                          | [docs/issues/closed/1813-1669-06-resolve-bittorrent-tracker-core-rest-api-layer-violation.md](../../closed/1813-1669-06-resolve-bittorrent-tracker-core-rest-api-layer-violation.md) | DONE   | Rule M; stale unused dev dep removed in PR #1804; unblocks `bittorrent-tracker-core` extraction |
 | SI-07 | [#1816](https://github.com/torrust/torrust-tracker/issues/1816) — Align `torrust-` prefix: rename 7 tracker-specific packages to `torrust-tracker-`                              | [docs/issues/open/1816-1669-07-align-torrust-prefix-rename-tracker-specific-packages.md](../../open/1816-1669-07-align-torrust-prefix-rename-tracker-specific-packages.md)           | DONE   | Rule U; none of the 7 are published; pure workspace rename; no blockers                         |
 | SI-08 | [#1819](https://github.com/torrust/torrust-tracker/issues/1819) — Rename `torrust-tracker-metrics` to `torrust-metrics`                                                          | [docs/issues/open/1819-1669-08-rename-torrust-tracker-metrics-to-torrust-metrics.md](../../open/1819-1669-08-rename-torrust-tracker-metrics-to-torrust-metrics.md)                   | DONE   | Rule U; not yet published; no blockers; prerequisite for SI-14                                  |
-| SI-09 | [#1821](https://github.com/torrust/torrust-tracker/issues/1821) — Rename `torrust-tracker-clock` to `torrust-clock`                                                              | [docs/issues/open/1821-1669-09-rename-torrust-tracker-clock-to-torrust-clock.md](../../open/1821-1669-09-rename-torrust-tracker-clock-to-torrust-clock.md)                           | TODO   | Rule P; published on crates.io; no blockers; prerequisite for SI-13                             |
+| SI-09 | [#1821](https://github.com/torrust/torrust-tracker/issues/1821) — Rename `torrust-tracker-clock` to `torrust-clock`                                                              | [docs/issues/open/1821-1669-09-rename-torrust-tracker-clock-to-torrust-clock.md](../../open/1821-1669-09-rename-torrust-tracker-clock-to-torrust-clock.md)                           | DONE   | Rule P; published on crates.io; no blockers; prerequisite for SI-13                             |
 | SI-10 | #TBD — Rename `torrust-tracker-located-error` to `torrust-located-error`                                                                                                         | [docs/issues/drafts/1669-10-rename-torrust-tracker-located-error-to-torrust-located-error.md](../../drafts/1669-10-rename-torrust-tracker-located-error-to-torrust-located-error.md) | TODO   | Rule P; published on crates.io; no blockers                                                     |
 | SI-11 | #TBD — Update all package READMEs                                                                                                                                                | [docs/issues/drafts/1669-11-update-all-package-readmes.md](../../drafts/1669-11-update-all-package-readmes.md)                                                                       | TODO   | Documentation; requires SI-07–SI-10; before SI-12                                               |
 | SI-12 | #TBD — Extract and rename `torrust-tracker-contrib-bencode` to `torrust-bencode`                                                                                                 | [docs/issues/drafts/1669-12-extract-torrust-tracker-contrib-bencode-to-torrust-bencode.md](../../drafts/1669-12-extract-torrust-tracker-contrib-bencode-to-torrust-bencode.md)       | TODO   | Rule E; no workspace-dep blockers; Apache-2.0; one internal consumer                            |

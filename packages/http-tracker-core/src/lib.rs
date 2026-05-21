@@ -3,7 +3,7 @@ pub mod event;
 pub mod services;
 pub mod statistics;
 
-use torrust_tracker_clock::clock;
+use torrust_clock::clock;
 
 /// This code needs to be copied into each crate.
 /// Working version, for production.
@@ -23,7 +23,7 @@ pub(crate) mod tests {
     use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
 
     use bittorrent_primitives::info_hash::InfoHash;
-    use torrust_tracker_clock::DurationSinceUnixEpoch;
+    use torrust_clock::DurationSinceUnixEpoch;
     use torrust_tracker_primitives::{AnnounceEvent, NumberOfBytes, PeerId, peer};
 
     /// # Panics

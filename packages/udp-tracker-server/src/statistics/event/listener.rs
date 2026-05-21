@@ -3,7 +3,7 @@ use std::sync::Arc;
 use bittorrent_udp_tracker_core::UDP_TRACKER_LOG_TARGET;
 use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
-use torrust_tracker_clock::clock::Time;
+use torrust_clock::clock::Time;
 use torrust_tracker_events::receiver::RecvError;
 
 use super::handler::handle_event;

@@ -2,8 +2,8 @@
 use std::sync::Arc;
 use std::time::Duration;
 
-use torrust_tracker_clock::DurationSinceUnixEpoch;
-use torrust_tracker_clock::clock::Time;
+use torrust_clock::DurationSinceUnixEpoch;
+use torrust_clock::clock::Time;
 use torrust_tracker_configuration::Core;
 
 use super::repository::in_memory::InMemoryTorrentRepository;
@@ -222,9 +222,9 @@ mod tests {
         use std::time::Duration;
 
         use bittorrent_primitives::info_hash::InfoHash;
-        use torrust_tracker_clock::DurationSinceUnixEpoch;
-        use torrust_tracker_clock::clock::stopped::Stopped;
-        use torrust_tracker_clock::clock::{self};
+        use torrust_clock::DurationSinceUnixEpoch;
+        use torrust_clock::clock::stopped::Stopped;
+        use torrust_clock::clock::{self};
 
         use crate::test_helpers::tests::{ephemeral_configuration, sample_info_hash, sample_peer};
         use crate::torrent::manager::tests::{initialize_torrents_manager, initialize_torrents_manager_with};

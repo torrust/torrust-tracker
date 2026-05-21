@@ -4,7 +4,7 @@
 //! cargo test --test integration
 //! ```
 
-use torrust_tracker_clock::clock;
+use torrust_clock::clock;
 
 pub mod common;
 mod entry;

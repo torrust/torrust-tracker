@@ -1,7 +1,7 @@
 use bittorrent_udp_tracker_protocol::PeerClient;
+use torrust_clock::DurationSinceUnixEpoch;
 use torrust_metrics::label::LabelSet;
 use torrust_metrics::{label_name, metric_name};
-use torrust_tracker_clock::DurationSinceUnixEpoch;
 
 use crate::event::{ConnectionContext, ErrorKind, UdpRequestKind};
 use crate::statistics::repository::Repository;
@@ -104,8 +104,8 @@ fn extract_name_and_version(peer_client: &PeerClient) -> (String, String) {
 mod tests {
     use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
+    use torrust_clock::clock::Time;
     use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
-    use torrust_tracker_clock::clock::Time;
 
     use crate::CurrentClock;
     use crate::event::{ConnectionContext, Event};

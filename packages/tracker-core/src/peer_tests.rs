@@ -2,8 +2,8 @@
 
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
-use torrust_tracker_clock::clock::stopped::Stopped as _;
-use torrust_tracker_clock::clock::{self, Time};
+use torrust_clock::clock::stopped::Stopped as _;
+use torrust_clock::clock::{self, Time};
 use torrust_tracker_primitives::{AnnounceEvent, NumberOfBytes, PeerId, peer};
 
 use crate::CurrentClock;

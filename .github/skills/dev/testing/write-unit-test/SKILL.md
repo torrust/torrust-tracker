@@ -141,17 +141,17 @@ automatically selects `Working` in production and `Stopped` in tests:
 ```rust
 /// Working version, for production.
 #[cfg(not(test))]
-pub(crate) type CurrentClock = torrust_tracker_clock::clock::Working;
+pub(crate) type CurrentClock = torrust_clock::clock::Working;
 
 /// Stopped version, for testing.
 #[cfg(test)]
-pub(crate) type CurrentClock = torrust_tracker_clock::clock::Stopped;
+pub(crate) type CurrentClock = torrust_clock::clock::Stopped;
 ```
 
 In production code, obtain the current time via the `Time` trait:
 
 ```rust
-use torrust_tracker_clock::clock::Time as _;
+use torrust_clock::clock::Time as _;
 
 pub fn is_peer_expired(last_seen: std::time::Duration, ttl: u32) -> bool {
     let now = CurrentClock::now(); // returns DurationSinceUnixEpoch (= std::time::Duration)
@@ -169,8 +169,8 @@ thread-local, so tests are isolated from each other by default.
 mod tests {
     use std::time::Duration;
 
-    use torrust_tracker_clock::clock::{stopped::Stopped as _, Time as _};
-    use torrust_tracker_clock::clock::Stopped;
+    use torrust_clock::clock::{stopped::Stopped as _, Time as _};
+    use torrust_clock::clock::Stopped;
 
     use super::*;
 

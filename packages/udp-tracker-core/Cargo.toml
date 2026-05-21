@@ -27,7 +27,7 @@ serde = "1.0.219"
 thiserror = "2"
 tokio = { version = "1", features = [ "macros", "net", "rt-multi-thread", "signal", "sync", "time" ] }
 tokio-util = "0.7.15"
-torrust-tracker-clock = { version = "3.0.0-develop", path = "../clock" }
+torrust-clock = { version = "3.0.0-develop", path = "../clock" }
 torrust-tracker-configuration = { version = "3.0.0-develop", path = "../configuration" }
 torrust-tracker-events = { version = "3.0.0-develop", path = "../events" }
 torrust-metrics = { version = "3.0.0-develop", path = "../metrics" }

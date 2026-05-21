@@ -645,7 +645,7 @@ pub mod statistics;
 
 use std::net::SocketAddr;
 
-use torrust_tracker_clock::clock;
+use torrust_clock::clock;
 
 /// The maximum number of bytes in a UDP packet.
 pub const MAX_PACKET_SIZE: usize = 1496;
@@ -680,7 +680,7 @@ pub(crate) mod tests {
     use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
     use bittorrent_udp_tracker_core::event::Event;
-    use torrust_tracker_clock::DurationSinceUnixEpoch;
+    use torrust_clock::DurationSinceUnixEpoch;
     use torrust_tracker_primitives::{AnnounceEvent, NumberOfBytes, PeerId, peer};
 
     pub fn sample_peer() -> peer::Peer {

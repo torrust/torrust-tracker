@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
-use torrust_tracker_clock::clock::Time;
+use torrust_clock::clock::Time;
 use torrust_tracker_events::receiver::RecvError;
 use torrust_tracker_swarm_coordination_registry::event::receiver::Receiver;
 

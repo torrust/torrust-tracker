@@ -173,5 +173,5 @@ fn initialize_global_services(configuration: &Configuration) {
 }
 
 fn initialize_static() {
-    torrust_tracker_clock::initialize_static();
+    torrust_clock::initialize_static();
 }

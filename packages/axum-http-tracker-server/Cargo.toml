@@ -31,7 +31,7 @@ tokio = { version = "1", features = [ "macros", "net", "rt-multi-thread", "signa
 tokio-util = "0.7.15"
 torrust-tracker-axum-server = { version = "3.0.0-develop", path = "../axum-server" }
 torrust-server-lib = { version = "3.0.0-develop", path = "../server-lib" }
-torrust-tracker-clock = { version = "3.0.0-develop", path = "../clock" }
+torrust-clock = { version = "3.0.0-develop", path = "../clock" }
 torrust-tracker-configuration = { version = "3.0.0-develop", path = "../configuration" }
 torrust-net-primitives = { version = "3.0.0-develop", path = "../net-primitives" }
 torrust-tracker-primitives = { version = "3.0.0-develop", path = "../primitives" }
@@ -47,7 +47,7 @@ rand = "0.9"
 serde_bencode = "0"
 serde_bytes = "0"
 serde_repr = "0"
-torrust-tracker-clock = { version = "3.0.0-develop", path = "../clock" }
+torrust-clock = { version = "3.0.0-develop", path = "../clock" }
 torrust-tracker-test-helpers = { version = "3.0.0-develop", path = "../test-helpers" }
 uuid = { version = "1", features = [ "v4" ] }
 
