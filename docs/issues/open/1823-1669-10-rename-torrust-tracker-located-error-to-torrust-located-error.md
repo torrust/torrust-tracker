@@ -7,7 +7,7 @@ github-issue: 1823
 spec-path: docs/issues/open/1823-1669-10-rename-torrust-tracker-located-error-to-torrust-located-error.md
 branch: 1823-rename-torrust-tracker-located-error-to-torrust-located-error
 related-pr: null
-last-updated-utc: 2026-05-21 17:00
+last-updated-utc: 2026-05-21 17:15
 semantic-links:
   skill-links:
     - create-issue
@@ -50,6 +50,95 @@ the old published name (deprecation notice, then yank after downstream migration
 
 This issue is a subissue of EPIC [#1669](../open/1669-overhaul-packages/EPIC.md)
 (Overhaul: Packages).
+
+## Pre-Implementation Review: Keep vs. Delete
+
+Before starting the rename, we reconsidered whether the package itself should exist or be
+removed. The conclusion below should be reviewed and confirmed in the PR before T1–T13 are
+executed.
+
+### Recommendation
+
+**Keep the package and proceed with the rename to `torrust-located-error`.**
+
+### What the package actually provides
+
+The crate is ~110 lines in a single file (`packages/located-error/src/lib.rs`) with one
+runtime dependency (`tracing`). It exports:
+
+- `Located<E>` — newtype wrapper used as the conversion entry point.
+- `LocatedError<'a, E>` — the decorated error: `Arc<E>` source + `Box<Location<'a>>`.
+- `DynError` — `Arc<dyn Error + Send + Sync>` type alias.
+- A `#[track_caller]` `Into` impl that captures `Location::caller()` and emits
+  `tracing::debug!` on construction.
+
+Non-trivial value vs. `std` / `thiserror` alone:
+
+1. `#[track_caller]` capture into a stored `Location` (std has no first-class equivalent).
+2. `Arc`-shared source making the error cheaply `Clone` even for `!Clone` inner errors.
+3. Automatic `tracing::debug!` log on construction (single attachment point for tracing).
+4. Works for both concrete `E: Error` and `dyn Error + Send + Sync`.
+
+### Current workspace usage
+
+Active in **5 packages**, ~20 call sites:
+
+| Package          | Files                                                                                                      | Usage                          |
+| ---------------- | ---------------------------------------------------------------------------------------------------------- | ------------------------------ |
+| `configuration`  | `src/lib.rs`                                                                                               | 3 error variants (dyn)         |
+| `axum-server`    | `src/tsl.rs`                                                                                               | TLS error variant (dyn)        |
+| `http-protocol`  | `src/v1/requests/announce.rs`, `src/v1/requests/scrape.rs`                                                 | info_hash / peer-id conversion |
+| `tracker-core`   | `src/error.rs`, `src/authentication/key/mod.rs`, `src/authentication/handler.rs`, `src/databases/error.rs` | many error variants            |
+| `tracker-client` | `src/udp/mod.rs`                                                                                           | uses `DynError` alias          |
+
+The package is also referenced from
+[`.github/skills/dev/rust-code-quality/handle-errors-in-code/SKILL.md`](../../../.github/skills/dev/rust-code-quality/handle-errors-in-code/SKILL.md)
+as the recommended pattern for diagnostics-rich errors.
+
+### Why keep it
+
+- **Real, non-trivial functionality.** The `#[track_caller]` + `Arc`-clone + auto-trace
+  combo is not a one-liner. Replacing it everywhere would either duplicate the pattern
+  across 5 packages or drop diagnostic features.
+- **Stable surface, near-zero maintenance cost.** Single file, one dep, hasn't changed
+  materially in a long time.
+- **Crates.io alternatives are worse fits.** `error-stack` / `eyre` / `anyhow` are heavier
+  and don't compose cleanly with the `thiserror`-enum policy. The error-handling skill
+  explicitly disallows `anyhow` in libraries.
+- **Removal cost is high, benefit is low.** Deleting would touch ~20 call sites across
+  core domain packages just to swap to a less expressive pattern.
+- **The rename premise still holds.** Nothing in the implementation is tracker-specific.
+  `torrust-located-error` correctly reflects scope and is reusable by `torrust-index`.
+
+### Why delete it (the alternative case)
+
+For completeness, reasons one might prefer deletion:
+
+- **Niche pattern.** Locating an error to a `Location` is most useful when the wrapped
+  error type is `!Display`/opaque (e.g. `Box<dyn Error>`). Where call sites use concrete
+  `thiserror` enums with `#[from]`, the `?` operator already propagates source-chain
+  information and the `Location` adds limited extra signal.
+- **Tracing overlap.** `tracing` spans / `instrument` can carry caller metadata; some of
+  the value of `Located` is already available from structured logging at error sites.
+- **Few real beneficiaries.** Of the ~20 call sites, several store `LocatedError<dyn ...>`
+  variants that are rarely matched on; a plain `Box<dyn Error + Send + Sync>` source
+  field plus a `tracing::error!` at construction may be sufficient.
+- **One less crate to publish/maintain** on crates.io if the value is mostly cosmetic.
+
+These points are weaker than the "keep" reasons above given the current usage, but they
+are why this question is worth confirming with a reviewer before committing to a rename
+
+- publish + downstream migration.
+
+### Decision needed before implementation
+
+If the reviewer agrees with **Keep**, T1–T13 proceed as planned.
+
+If the reviewer prefers **Delete**, this subissue is closed and replaced by a new
+subissue with scope: remove `packages/located-error`, migrate ~20 call sites to a
+simpler pattern (likely `Box<dyn Error + Send + Sync>` + explicit `tracing::error!` at
+construction sites), yank `torrust-tracker-located-error` from crates.io with a final
+deprecation note.
 
 ## Scope
 
@@ -129,6 +218,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 - 2026-05-15 12:00 UTC - josecelano - Spec drafted as subissue of EPIC #1669
 - 2026-05-21 17:00 UTC - josecelano - GitHub issue #1823 created and linked as sub-issue of #1669; spec moved to `docs/issues/open/`
+- 2026-05-21 17:15 UTC - josecelano - Added pre-implementation "Keep vs. Delete" analysis; awaiting reviewer decision before T1 starts
 
 ## Acceptance Criteria
 
