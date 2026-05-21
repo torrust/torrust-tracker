@@ -1,13 +1,13 @@
 ---
 doc-type: issue
 issue-type: task
-status: draft
+status: open
 priority: p2
-github-issue: null
-spec-path: docs/issues/drafts/1669-09-rename-torrust-tracker-clock-to-torrust-clock.md
-branch: null
+github-issue: 1821
+spec-path: docs/issues/open/1821-1669-09-rename-torrust-tracker-clock-to-torrust-clock.md
+branch: 1821-rename-torrust-tracker-clock-to-torrust-clock
 related-pr: null
-last-updated-utc: 2026-05-15 12:00
+last-updated-utc: 2026-05-21 12:00
 semantic-links:
   skill-links:
     - create-issue
@@ -21,7 +21,7 @@ semantic-links:
 
 <!-- skill-link: create-issue -->
 
-# Issue #[To be assigned] - Rename `torrust-tracker-clock` to `torrust-clock`
+# Issue #1821 - Rename `torrust-tracker-clock` to `torrust-clock`
 
 ## Goal
 
@@ -45,8 +45,9 @@ crate's actual purpose. The rename:
   (see [1669-13-extract-torrust-clock-to-standalone-repo.md](1669-13-extract-torrust-clock-to-standalone-repo.md)).
 
 The current crate name `torrust-tracker-clock` is **published on crates.io** (as of
-May 2026). The rename requires publishing the new name `torrust-clock` and handling the
-old published name (yank or deprecation notice).
+May 2026). Publishing the new name `torrust-clock` and handling the old published name
+(yank or deprecation notice) are **deferred to SI-13** (extract `torrust-clock` to
+standalone repository). This issue covers only the in-workspace rename.
 
 **This issue has a prerequisite**: the `DEFAULT_TIMEOUT` constant must be moved from
 `torrust-tracker-configuration` to `torrust-tracker-clock` before this rename is started,
@@ -80,43 +81,35 @@ This issue is a subissue of EPIC #1669 (Overhaul: Packages).
 - Update prose references in `packages/AGENTS.md`, `AGENTS.md`, `docs/packages.md`, and the `clock` package
   `README.md`.
 - Verify the workspace builds and all tests pass.
-- Publish `torrust-clock` on crates.io.
-- Handle the old crates.io name `torrust-tracker-clock`: first add a deprecation notice /
-  README update pointing to `torrust-clock`; yank all versions only after `torrust-index`
-  migration is merged (see Companion work).
 
 ### Out of Scope
 
+- Publishing `torrust-clock` on crates.io — deferred to SI-13.
+- Deprecating or yanking `torrust-tracker-clock` on crates.io — deferred to SI-13.
+- Updating `torrust-index` to use `torrust-clock` — deferred to SI-13; an issue will be
+  opened on `torrust/torrust-index` once the crate is published under the new name.
 - Moving the crate to a separate repository — see
-  [1669-13-extract-torrust-clock-to-standalone-repo.md](1669-13-extract-torrust-clock-to-standalone-repo.md).
+  [1669-13-extract-torrust-clock-to-standalone-repo.md](../drafts/1669-13-extract-torrust-clock-to-standalone-repo.md).
 - Changes to the crate's API or behaviour.
-
-### Companion work (other repositories)
-
-`torrust-index` currently contains a copy of the clock code rather than a proper dependency
-(see Background). After `torrust-clock` is published, `torrust-index` must be updated to
-depend on `torrust-clock` and delete its local copy. This work happens in the
-`torrust/torrust-index` repository and must be completed **before** the old crates.io name
-`torrust-tracker-clock` is yanked. See T10.
 
 ## Implementation Plan
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| ID  | Status | Task                                                                                              | Notes / Expected Output                                                              |
-| --- | ------ | ------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
-| T1  | TODO   | Rename `name` in `packages/clock/Cargo.toml`                                                      | `name = "torrust-clock"`                                                             |
-| T2  | TODO   | Update root `Cargo.toml` workspace dependency key                                                 | `torrust-clock = { version = ..., path = "packages/clock" }`                         |
-| T3  | TODO   | Update all dependent package `Cargo.toml` files (10 packages, excluding root — see T2)            | Replace `torrust-tracker-clock` key with `torrust-clock` in each                     |
-| T4  | TODO   | Update Rust source `use` / path references (`torrust_tracker_clock::` → `torrust_clock::`)        | Affects `src/`, package sources, and integration tests                               |
-| T5  | TODO   | Update prose in `packages/AGENTS.md`, `AGENTS.md`, `docs/packages.md`, `packages/clock/README.md` | Crate name and any inline code snippets                                              |
-| T6  | TODO   | Run `cargo build --workspace` and `cargo test --workspace`                                        | Clean build and all tests pass                                                       |
-| T7  | TODO   | Run `linter all`                                                                                  | Exit code `0`                                                                        |
-| T8  | TODO   | Publish `torrust-clock` on crates.io                                                              | Successful `cargo publish -p torrust-clock`                                          |
-| T9  | TODO   | Add deprecation notice to `torrust-tracker-clock` on crates.io                                    | README / description points to `torrust-clock`; do **not** yank yet                  |
-| T10 | TODO   | Update `torrust-index`: replace copied clock code with `torrust-clock` dep                        | Companion PR in `torrust/torrust-index`; must be merged before T11                   |
-| T11 | TODO   | Yank all versions of `torrust-tracker-clock` on crates.io                                         | All versions yanked; downstream migration (T10) must be complete first               |
-| T12 | TODO   | Update EPIC #1669 `Package Inventory` and `Desired Package State` tables                          | Move `torrust-clock` from `torrust-tracker-` to `torrust-`; drop `Renamed from` note |
+| ID  | Status   | Task                                                                                              | Notes / Expected Output                                                              |
+| --- | -------- | ------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| T1  | TODO     | Rename `name` in `packages/clock/Cargo.toml`                                                      | `name = "torrust-clock"`                                                             |
+| T2  | TODO     | Update root `Cargo.toml` workspace dependency key                                                 | `torrust-clock = { version = ..., path = "packages/clock" }`                         |
+| T3  | TODO     | Update all dependent package `Cargo.toml` files (10 packages, excluding root — see T2)            | Replace `torrust-tracker-clock` key with `torrust-clock` in each                     |
+| T4  | TODO     | Update Rust source `use` / path references (`torrust_tracker_clock::` → `torrust_clock::`)        | Affects `src/`, package sources, and integration tests                               |
+| T5  | TODO     | Update prose in `packages/AGENTS.md`, `AGENTS.md`, `docs/packages.md`, `packages/clock/README.md` | Crate name and any inline code snippets                                              |
+| T6  | TODO     | Run `cargo build --workspace` and `cargo test --workspace`                                        | Clean build and all tests pass                                                       |
+| T7  | TODO     | Run `linter all`                                                                                  | Exit code `0`                                                                        |
+| T8  | DEFERRED | Publish `torrust-clock` on crates.io                                                              | Deferred to SI-13                                                                    |
+| T9  | DEFERRED | Add deprecation notice to `torrust-tracker-clock` on crates.io                                    | Deferred to SI-13                                                                    |
+| T10 | DEFERRED | Update `torrust-index`: replace copied clock code with `torrust-clock` dep                        | Deferred to SI-13; open issue on `torrust/torrust-index` after crate is published    |
+| T11 | DEFERRED | Yank all versions of `torrust-tracker-clock` on crates.io                                         | Deferred to SI-13                                                                    |
+| T12 | TODO     | Update EPIC #1669 `Package Inventory` and `Desired Package State` tables                          | Move `torrust-clock` from `torrust-tracker-` to `torrust-`; drop `Renamed from` note |
 
 **Dependent packages to update in T3** (10 files; root `Cargo.toml` is handled in T2):
 
@@ -135,23 +128,24 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 ### Workflow Checkpoints
 
-- [ ] Spec drafted in `docs/issues/drafts/`
-- [ ] Spec reviewed and approved by user/maintainer
-- [ ] GitHub issue created and issue number added to this spec
-- [ ] Spec moved to `docs/issues/open/` with issue number prefix
+- [x] Spec drafted in `docs/issues/drafts/`
+- [x] Spec reviewed and approved by user/maintainer
+- [x] GitHub issue created and issue number added to this spec
+- [x] Spec moved to `docs/issues/open/` with issue number prefix
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, `cargo test --workspace`)
 - [ ] Manual verification scenarios executed and recorded
 - [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] `torrust-clock` published on crates.io; deprecation notice added to old name
-- [ ] `torrust-index` migrated to `torrust-clock` (companion PR merged)
-- [ ] `torrust-tracker-clock` yanked on crates.io
+- [ ] `torrust-clock` published on crates.io; deprecation notice added to old name (deferred to SI-13)
+- [ ] `torrust-index` migrated to `torrust-clock` (companion PR merged) (deferred to SI-13)
+- [ ] `torrust-tracker-clock` yanked on crates.io (deferred to SI-13)
 - [ ] EPIC #1669 Active Subissues table updated to `DONE`
 - [ ] Issue closed and spec moved to `docs/issues/closed/`
 
 ### Progress Log
 
 - 2026-05-15 12:00 UTC - josecelano - Spec drafted as subissue of EPIC #1669
+- 2026-05-21 12:00 UTC - josecelano - GitHub issue #1821 created; spec moved to `docs/issues/open/`; branch `1821-rename-torrust-tracker-clock-to-torrust-clock` created; crates.io tasks deferred to SI-13
 
 ## Acceptance Criteria
 
@@ -161,10 +155,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [ ] `cargo build --workspace` succeeds with zero errors.
 - [ ] `cargo test --workspace` passes with zero failures.
 - [ ] `linter all` exits with code `0`.
-- [ ] `torrust-clock` is published and visible on crates.io.
-- [ ] `torrust-tracker-clock` has a deprecation notice pointing to `torrust-clock`.
-- [ ] `torrust-index` no longer contains a local copy of clock code; it depends on `torrust-clock`.
-- [ ] `torrust-tracker-clock` is yanked on crates.io (only after `torrust-index` migration is merged).
+- [ ] `torrust-clock` is published and visible on crates.io (deferred to SI-13).
+- [ ] `torrust-tracker-clock` has a deprecation notice pointing to `torrust-clock` (deferred to SI-13).
+- [ ] `torrust-index` no longer contains a local copy of clock code; it depends on `torrust-clock` (deferred to SI-13).
+- [ ] `torrust-tracker-clock` is yanked on crates.io (only after `torrust-index` migration is merged) (deferred to SI-13).
 - [ ] `packages/AGENTS.md`, `AGENTS.md`, `docs/packages.md`, and `packages/clock/README.md` reflect the new crate name.
 - [ ] EPIC #1669 `Desired Package State` table lists `torrust-clock` in the `torrust-` section.
 
