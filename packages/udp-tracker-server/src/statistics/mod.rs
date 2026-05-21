@@ -4,9 +4,9 @@ pub mod repository;
 pub mod services;
 
 use metrics::Metrics;
-use torrust_tracker_metrics::metric::description::MetricDescription;
-use torrust_tracker_metrics::metric_name;
-use torrust_tracker_metrics::unit::Unit;
+use torrust_metrics::metric::description::MetricDescription;
+use torrust_metrics::metric_name;
+use torrust_metrics::unit::Unit;
 
 pub const UDP_TRACKER_SERVER_REQUESTS_ABORTED_TOTAL: &str = "udp_tracker_server_requests_aborted_total";
 pub const UDP_TRACKER_SERVER_REQUESTS_BANNED_TOTAL: &str = "udp_tracker_server_requests_banned_total";

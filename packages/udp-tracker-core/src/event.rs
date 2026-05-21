@@ -1,9 +1,9 @@
 use std::net::SocketAddr;
 
 use bittorrent_primitives::info_hash::InfoHash;
+use torrust_metrics::label::{LabelSet, LabelValue};
+use torrust_metrics::label_name;
 use torrust_net_primitives::service_binding::ServiceBinding;
-use torrust_tracker_metrics::label::{LabelSet, LabelValue};
-use torrust_tracker_metrics::label_name;
 use torrust_tracker_primitives::peer::PeerAnnouncement;
 
 /// A UDP core event.

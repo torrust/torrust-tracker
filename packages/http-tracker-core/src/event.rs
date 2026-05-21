@@ -2,9 +2,9 @@ use std::net::{IpAddr, SocketAddr};
 
 use bittorrent_http_tracker_protocol::v1::services::peer_ip_resolver::RemoteClientAddr;
 use bittorrent_primitives::info_hash::InfoHash;
+use torrust_metrics::label::{LabelSet, LabelValue};
+use torrust_metrics::label_name;
 use torrust_net_primitives::service_binding::ServiceBinding;
-use torrust_tracker_metrics::label::{LabelSet, LabelValue};
-use torrust_tracker_metrics::label_name;
 use torrust_tracker_primitives::peer::PeerAnnouncement;
 
 /// A HTTP core event.

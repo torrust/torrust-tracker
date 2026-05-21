@@ -471,11 +471,11 @@ dependencies = [
  "thiserror 2.0.18",
  "tokio",
  "tokio-util",
+ "torrust-metrics",
  "torrust-net-primitives",
  "torrust-tracker-clock",
  "torrust-tracker-configuration",
  "torrust-tracker-events",
- "torrust-tracker-metrics",
  "torrust-tracker-primitives",
  "torrust-tracker-swarm-coordination-registry",
  "torrust-tracker-test-helpers",
@@ -567,11 +567,11 @@ dependencies = [
  "thiserror 2.0.18",
  "tokio",
  "tokio-util",
+ "torrust-metrics",
  "torrust-tracker-clock",
  "torrust-tracker-configuration",
  "torrust-tracker-events",
  "torrust-tracker-located-error",
- "torrust-tracker-metrics",
  "torrust-tracker-primitives",
  "torrust-tracker-swarm-coordination-registry",
  "torrust-tracker-test-helpers",
@@ -597,11 +597,11 @@ dependencies = [
  "thiserror 2.0.18",
  "tokio",
  "tokio-util",
+ "torrust-metrics",
  "torrust-net-primitives",
  "torrust-tracker-clock",
  "torrust-tracker-configuration",
  "torrust-tracker-events",
- "torrust-tracker-metrics",
  "torrust-tracker-primitives",
  "torrust-tracker-swarm-coordination-registry",
  "tracing",
@@ -5103,6 +5103,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "torrust-metrics"
+version = "3.0.0-develop"
+dependencies = [
+ "approx",
+ "chrono",
+ "derive_more 2.1.1",
+ "formatjson",
+ "mutants",
+ "openmetrics-parser",
+ "pretty_assertions",
+ "rstest 0.25.0",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
+ "torrust-tracker-clock",
+ "tracing",
+]
+
+[[package]]
 name = "torrust-net-primitives"
 version = "3.0.0-develop"
 dependencies = [
@@ -5252,12 +5271,12 @@ dependencies = [
  "serde_with",
  "thiserror 2.0.18",
  "tokio",
+ "torrust-metrics",
  "torrust-net-primitives",
  "torrust-server-lib",
  "torrust-tracker-axum-server",
  "torrust-tracker-clock",
  "torrust-tracker-configuration",
- "torrust-tracker-metrics",
  "torrust-tracker-primitives",
  "torrust-tracker-rest-api-client",
  "torrust-tracker-rest-api-core",
@@ -5370,25 +5389,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "torrust-tracker-metrics"
-version = "3.0.0-develop"
-dependencies = [
- "approx",
- "chrono",
- "derive_more 2.1.1",
- "formatjson",
- "mutants",
- "openmetrics-parser",
- "pretty_assertions",
- "rstest 0.25.0",
- "serde",
- "serde_json",
- "thiserror 2.0.18",
- "torrust-tracker-clock",
- "tracing",
-]
-
-[[package]]
 name = "torrust-tracker-primitives"
 version = "3.0.0-develop"
 dependencies = [
@@ -5425,9 +5425,9 @@ dependencies = [
  "bittorrent-udp-tracker-core",
  "tokio",
  "tokio-util",
+ "torrust-metrics",
  "torrust-tracker-configuration",
  "torrust-tracker-events",
- "torrust-tracker-metrics",
  "torrust-tracker-primitives",
  "torrust-tracker-swarm-coordination-registry",
  "torrust-tracker-test-helpers",
@@ -5448,10 +5448,10 @@ dependencies = [
  "thiserror 2.0.18",
  "tokio",
  "tokio-util",
+ "torrust-metrics",
  "torrust-tracker-clock",
  "torrust-tracker-configuration",
  "torrust-tracker-events",
- "torrust-tracker-metrics",
  "torrust-tracker-primitives",
  "tracing",
 ]
@@ -5502,12 +5502,12 @@ dependencies = [
  "thiserror 2.0.18",
  "tokio",
  "tokio-util",
+ "torrust-metrics",
  "torrust-net-primitives",
  "torrust-server-lib",
  "torrust-tracker-clock",
  "torrust-tracker-configuration",
  "torrust-tracker-events",
- "torrust-tracker-metrics",
  "torrust-tracker-primitives",
  "torrust-tracker-swarm-coordination-registry",
  "torrust-tracker-test-helpers",
