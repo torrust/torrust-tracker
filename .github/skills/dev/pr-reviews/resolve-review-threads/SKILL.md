@@ -36,10 +36,15 @@ concern is fixed or intentionally declined with a clear reason.
 
 ## Preferred Resolution Path
 
-If PR tools are available, first gather thread IDs from the active pull request metadata.
+Use GitHub CLI GraphQL to gather thread IDs and resolve threads directly from the terminal.
+This is reliable for all PRs, including fork-based PRs.
 
-- Use the active PR tools to identify unresolved `reviewThreads`.
-- Resolve only threads where `isResolved == false` and the fix is already on the branch.
+> **Fork-based PR limitation**: The VS Code `currentActivePullRequest` and `pullRequestInViewport`
+> tools do **not** detect PRs opened from a fork (e.g. `contributor:branch` → `upstream/repo`).
+> In this repository all contributor PRs are fork-based, so the GitHub CLI GraphQL approach
+> is the reliable primary path. Do not rely on the VS Code active PR tools for thread IDs.
+
+Resolve only threads where `isResolved == false` and the fix is already on the branch.
 
 ## GitHub CLI GraphQL Command
 

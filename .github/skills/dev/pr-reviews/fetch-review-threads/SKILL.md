@@ -23,11 +23,14 @@ review thread IDs and enough context to decide whether each thread should stay o
 
 Use one of these approaches:
 
-1. Active pull request tools when they are available in the environment.
-2. GitHub CLI GraphQL when you need a terminal-based fallback.
+1. GitHub CLI GraphQL — reliable for all PRs, including fork-based PRs (see note below).
+2. Active pull request tools when they are available in the environment and the PR is not fork-based.
 
-Prefer the active PR tools first because they provide thread metadata together with file paths,
-resolution state, and comments.
+> **Fork-based PR limitation**: The VS Code `currentActivePullRequest` and `pullRequestInViewport`
+> tools do **not** detect PRs opened from a fork (e.g. `contributor:branch` → `upstream/repo`).
+> In this repository all contributor PRs are fork-based, so the GitHub CLI GraphQL approach
+> is the reliable primary path. Use the VS Code tools only when you know the branch lives in
+> the same repository as the target.
 
 ## What to Collect
 
