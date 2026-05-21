@@ -60,10 +60,10 @@ All packages live under `packages/`. The workspace version is `3.0.0-develop`.
 
 | Package                           | Crate Name                                        | Prefix / Layer | Description                                    |
 | --------------------------------- | ------------------------------------------------- | -------------- | ---------------------------------------------- |
-| `axum-health-check-api-server`    | `torrust-axum-health-check-api-server`            | `axum-*`       | Health monitoring endpoint                     |
-| `axum-http-tracker-server`        | `torrust-axum-http-tracker-server`                | `axum-*`       | BitTorrent HTTP tracker server (BEP 3/23)      |
-| `axum-rest-tracker-api-server`    | `torrust-axum-rest-tracker-api-server`            | `axum-*`       | Management REST API server                     |
-| `axum-server`                     | `torrust-axum-server`                             | `axum-*`       | Base Axum HTTP server infrastructure           |
+| `axum-health-check-api-server`    | `torrust-tracker-axum-health-check-api-server`            | `axum-*`       | Health monitoring endpoint                     |
+| `axum-http-tracker-server`        | `torrust-tracker-axum-http-server`                | `axum-*`       | BitTorrent HTTP tracker server (BEP 3/23)      |
+| `axum-rest-tracker-api-server`    | `torrust-tracker-axum-rest-api-server`            | `axum-*`       | Management REST API server                     |
+| `axum-server`                     | `torrust-tracker-axum-server`                             | `axum-*`       | Base Axum HTTP server infrastructure           |
 | `clock`                           | `torrust-tracker-clock`                           | utilities      | Mockable time source for deterministic testing |
 | `configuration`                   | `torrust-tracker-configuration`                   | domain         | Config file parsing, environment variables     |
 | `events`                          | `torrust-tracker-events`                          | domain         | Domain event definitions                       |
@@ -73,8 +73,8 @@ All packages live under `packages/`. The workspace version is `3.0.0-develop`.
 | `metrics`                         | `torrust-tracker-metrics`                         | domain         | Prometheus metrics integration                 |
 | `peer-id`                         | `bittorrent-peer-id`                              | domain         | Peer ID parsing and formatting utilities       |
 | `primitives`                      | `torrust-tracker-primitives`                      | domain         | Core domain types (InfoHash, PeerId, ...)      |
-| `rest-tracker-api-client`         | `torrust-rest-tracker-api-client`                 | client tools   | REST API client library                        |
-| `rest-tracker-api-core`           | `torrust-rest-tracker-api-core`                   | client tools   | REST API core logic                            |
+| `rest-tracker-api-client`         | `torrust-tracker-rest-api-client`                 | client tools   | REST API client library                        |
+| `rest-tracker-api-core`           | `torrust-tracker-rest-api-core`                   | client tools   | REST API core logic                            |
 | `server-lib`                      | `torrust-server-lib`                              | shared         | Shared server library utilities                |
 | `swarm-coordination-registry`     | `torrust-tracker-swarm-coordination-registry`     | domain         | Torrent/peer coordination registry             |
 | `test-helpers`                    | `torrust-tracker-test-helpers`                    | utilities      | Mock servers, test data generation             |
@@ -83,7 +83,7 @@ All packages live under `packages/`. The workspace version is `3.0.0-develop`.
 | `tracker-core`                    | `bittorrent-tracker-core`                         | `*-core`       | Central tracker peer-management logic          |
 | `udp-protocol`                    | `bittorrent-udp-tracker-protocol`                 | `*-protocol`   | UDP tracker protocol (BEP 15) framing/parsing  |
 | `udp-tracker-core`                | `bittorrent-udp-tracker-core`                     | `*-core`       | UDP-specific tracker domain logic              |
-| `udp-tracker-server`              | `torrust-udp-tracker-server`                      | server         | UDP tracker server implementation              |
+| `udp-tracker-server`              | `torrust-tracker-udp-server`                      | server         | UDP tracker server implementation              |
 
 **Console tools** (under `console/`):
 

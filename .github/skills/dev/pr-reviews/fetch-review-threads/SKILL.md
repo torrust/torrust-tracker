@@ -8,6 +8,7 @@ metadata:
     related-artifacts:
       - .github/skills/dev/pr-reviews/fetch-review-threads/scripts/get-pr-review-threads.sh
       - .github/skills/dev/pr-reviews/fetch-review-threads/scripts/list-unresolved-threads.sh
+      - .github/skills/dev/pr-reviews/fetch-review-threads/scripts/show-unresolved-thread-bodies.sh
 ---
 
 # Fetching PR Review Threads
@@ -55,15 +56,22 @@ Use GitHub CLI if you need to retrieve threads directly from the terminal.
 ## Available Scripts
 
 - `scripts/get-pr-review-threads.sh` - Fetches review threads into a JSON file.
-- `scripts/list-unresolved-threads.sh` - Emits unresolved threads as JSON lines.
+- `scripts/list-unresolved-threads.sh` - Emits unresolved threads as compact JSON lines (ID, path, URL). Use for triage and tracking.
+- `scripts/show-unresolved-thread-bodies.sh` - Prints full thread details including comment bodies in human-readable form. Use to read suggestions before deciding.
 
 Recommended usage:
 
 ```bash
+# 1. Fetch all threads once
 bash scripts/get-pr-review-threads.sh \
   --pr-number 1707 \
   --output-file /tmp/pr_threads_1707.json
 
+# 2. Read full suggestion bodies
+bash scripts/show-unresolved-thread-bodies.sh \
+  --threads-file /tmp/pr_threads_1707.json
+
+# 3. Get compact IDs/paths for tracker population
 bash scripts/list-unresolved-threads.sh \
   --threads-file /tmp/pr_threads_1707.json
 ```

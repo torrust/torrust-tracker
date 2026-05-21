@@ -1,12 +1,12 @@
 //! Tracker REST API client, scoped to E2E test needs.
 //!
-//! Wraps the official [`torrust_rest_tracker_api_client::v1::Client`] so that
+//! Wraps the official [`torrust_tracker_rest_api_client::v1::Client`] so that
 //! future scenario steps can call any REST API endpoint through the same client
 //! without having to reconstruct connection details each time.
 use anyhow::Context;
-use torrust_axum_rest_tracker_api_server::v1::context::torrent::resources::torrent::Torrent;
-use torrust_rest_tracker_api_client::connection_info::{ConnectionInfo, Origin};
-use torrust_rest_tracker_api_client::v1::client::Client;
+use torrust_tracker_axum_rest_api_server::v1::context::torrent::resources::torrent::Torrent;
+use torrust_tracker_rest_api_client::connection_info::{ConnectionInfo, Origin};
+use torrust_tracker_rest_api_client::v1::client::Client;
 
 use super::super::types::InfoHash;
 use super::config_builder::TrackerConfig;

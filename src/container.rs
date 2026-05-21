@@ -6,11 +6,11 @@ use bittorrent_http_tracker_core::container::{HttpTrackerCoreContainer, HttpTrac
 use bittorrent_tracker_core::container::TrackerCoreContainer;
 use bittorrent_udp_tracker_core::container::{UdpTrackerCoreContainer, UdpTrackerCoreServices};
 use bittorrent_udp_tracker_core::{self};
-use torrust_rest_tracker_api_core::container::TrackerHttpApiCoreContainer;
 use torrust_server_lib::registar::Registar;
 use torrust_tracker_configuration::{Configuration, HttpApi};
+use torrust_tracker_rest_api_core::container::TrackerHttpApiCoreContainer;
 use torrust_tracker_swarm_coordination_registry::container::SwarmCoordinationRegistryContainer;
-use torrust_udp_tracker_server::container::UdpTrackerServerContainer;
+use torrust_tracker_udp_server::container::UdpTrackerServerContainer;
 use tracing::instrument;
 
 #[derive(thiserror::Error, Debug, Clone)]

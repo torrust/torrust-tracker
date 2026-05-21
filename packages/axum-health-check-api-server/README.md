@@ -42,7 +42,7 @@ Example response:
 
 ## Documentation
 
-[Crate documentation](https://docs.rs/torrust-axum-health-check-api-server).
+[Crate documentation](https://docs.rs/torrust-tracker-axum-health-check-api-server).
 
 ## License
 

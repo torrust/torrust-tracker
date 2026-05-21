@@ -52,8 +52,8 @@ In zerocopy 0.8, `read_from` was renamed to `read_from_bytes` and its return typ
 
 | Package                                           | Published on crates.io |
 | ------------------------------------------------- | ---------------------- |
-| `torrust-axum-http-tracker-server`                | No                     |
-| `torrust-axum-rest-tracker-api-server`            | No                     |
+| `torrust-tracker-axum-http-server`                | No                     |
+| `torrust-tracker-axum-rest-api-server`            | No                     |
 | `bittorrent-http-tracker-protocol`                | No                     |
 | `bittorrent-http-tracker-core`                    | No                     |
 | `torrust-tracker-primitives`                      | **Yes**                |
@@ -62,7 +62,7 @@ In zerocopy 0.8, `read_from` was renamed to `read_from_bytes` and its return typ
 | `bittorrent-tracker-client`                       | No                     |
 | `bittorrent-tracker-core`                         | No                     |
 | `bittorrent-udp-tracker-core`                     | No                     |
-| `torrust-udp-tracker-server`                      | No                     |
+| `torrust-tracker-udp-server`                      | No                     |
 
 Also, the root workspace crate (`torrust-tracker`) has `bittorrent-primitives = "0.1.0"` in
 its `[dev-dependencies]`.

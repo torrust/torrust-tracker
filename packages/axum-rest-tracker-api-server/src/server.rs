@@ -33,14 +33,14 @@ use derive_more::derive::Display;
 use futures::future::BoxFuture;
 use thiserror::Error;
 use tokio::sync::oneshot::{Receiver, Sender};
-use torrust_axum_server::custom_axum_server::{self, TimeoutAcceptor};
-use torrust_axum_server::signals::graceful_shutdown;
 use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
-use torrust_rest_tracker_api_core::container::TrackerHttpApiCoreContainer;
 use torrust_server_lib::logging::STARTED_ON;
 use torrust_server_lib::registar::{ServiceHealthCheckJob, ServiceRegistration, ServiceRegistrationForm};
 use torrust_server_lib::signals::{Halted, Started};
+use torrust_tracker_axum_server::custom_axum_server::{self, TimeoutAcceptor};
+use torrust_tracker_axum_server::signals::graceful_shutdown;
 use torrust_tracker_configuration::AccessTokens;
+use torrust_tracker_rest_api_core::container::TrackerHttpApiCoreContainer;
 use tracing::{Level, instrument};
 
 use super::routes::router;
@@ -307,10 +307,10 @@ impl Launcher {
 mod tests {
     use std::sync::Arc;
 
-    use torrust_axum_server::tsl::make_rust_tls;
-    use torrust_rest_tracker_api_core::container::TrackerHttpApiCoreContainer;
     use torrust_server_lib::registar::Registar;
+    use torrust_tracker_axum_server::tsl::make_rust_tls;
     use torrust_tracker_configuration::{Configuration, logging};
+    use torrust_tracker_rest_api_core::container::TrackerHttpApiCoreContainer;
     use torrust_tracker_test_helpers::configuration::ephemeral_public;
 
     use crate::server::{ApiServer, Launcher};

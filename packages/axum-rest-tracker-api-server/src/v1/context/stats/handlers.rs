@@ -9,7 +9,7 @@ use bittorrent_tracker_core::torrent::repository::in_memory::InMemoryTorrentRepo
 use bittorrent_udp_tracker_core::services::banning::BanService;
 use serde::Deserialize;
 use tokio::sync::RwLock;
-use torrust_rest_tracker_api_core::statistics::services::{get_labeled_metrics, get_metrics};
+use torrust_tracker_rest_api_core::statistics::services::{get_labeled_metrics, get_metrics};
 
 use super::responses::{labeled_metrics_response, labeled_stats_response, metrics_response, stats_response};
 
@@ -43,7 +43,7 @@ pub async fn get_stats_handler(
         Arc<InMemoryTorrentRepository>,
         Arc<bittorrent_tracker_core::statistics::repository::Repository>,
         Arc<bittorrent_http_tracker_core::statistics::repository::Repository>,
-        Arc<torrust_udp_tracker_server::statistics::repository::Repository>,
+        Arc<torrust_tracker_udp_server::statistics::repository::Repository>,
     )>,
     params: Query<QueryParams>,
 ) -> Response {
@@ -73,7 +73,7 @@ pub async fn get_metrics_handler(
         Arc<bittorrent_tracker_core::statistics::repository::Repository>,
         Arc<bittorrent_http_tracker_core::statistics::repository::Repository>,
         Arc<bittorrent_udp_tracker_core::statistics::repository::Repository>,
-        Arc<torrust_udp_tracker_server::statistics::repository::Repository>,
+        Arc<torrust_tracker_udp_server::statistics::repository::Repository>,
     )>,
     params: Query<QueryParams>,
 ) -> Response {

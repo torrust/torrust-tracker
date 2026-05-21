@@ -6,7 +6,7 @@ edition.workspace = true
 homepage.workspace = true
 keywords = [ "axum", "bittorrent", "healthcheck", "http", "server", "torrust", "tracker" ]
 license.workspace = true
-name = "torrust-axum-health-check-api-server"
+name = "torrust-tracker-axum-health-check-api-server"
 publish.workspace = true
 readme = "README.md"
 repository.workspace = true
@@ -21,7 +21,7 @@ hyper = "1"
 serde = { version = "1", features = [ "derive" ] }
 serde_json = { version = "1", features = [ "preserve_order" ] }
 tokio = { version = "1", features = [ "macros", "net", "rt-multi-thread", "signal", "sync" ] }
-torrust-axum-server = { version = "3.0.0-develop", path = "../axum-server" }
+torrust-tracker-axum-server = { version = "3.0.0-develop", path = "../axum-server" }
 torrust-server-lib = { version = "3.0.0-develop", path = "../server-lib" }
 torrust-tracker-configuration = { version = "3.0.0-develop", path = "../configuration" }
 torrust-net-primitives = { version = "3.0.0-develop", path = "../net-primitives" }
@@ -31,9 +31,9 @@ url = "2.5.4"
 
 [dev-dependencies]
 reqwest = { version = "0", features = [ "json" ] }
-torrust-axum-health-check-api-server = { version = "3.0.0-develop", path = "../axum-health-check-api-server" }
-torrust-axum-http-tracker-server = { version = "3.0.0-develop", path = "../axum-http-tracker-server" }
-torrust-axum-rest-tracker-api-server = { version = "3.0.0-develop", path = "../axum-rest-tracker-api-server" }
+torrust-tracker-axum-health-check-api-server = { version = "3.0.0-develop", path = "../axum-health-check-api-server" }
+torrust-tracker-axum-http-server = { version = "3.0.0-develop", path = "../axum-http-tracker-server" }
+torrust-tracker-axum-rest-api-server = { version = "3.0.0-develop", path = "../axum-rest-tracker-api-server" }
 torrust-tracker-clock = { version = "3.0.0-develop", path = "../clock" }
 torrust-tracker-test-helpers = { version = "3.0.0-develop", path = "../test-helpers" }
-torrust-udp-tracker-server = { version = "3.0.0-develop", path = "../udp-tracker-server" }
+torrust-tracker-udp-server = { version = "3.0.0-develop", path = "../udp-tracker-server" }

@@ -8,12 +8,12 @@ use bittorrent_http_tracker_core::container::HttpTrackerCoreContainer;
 use derive_more::Constructor;
 use futures::future::BoxFuture;
 use tokio::sync::oneshot::{Receiver, Sender};
-use torrust_axum_server::custom_axum_server::{self, TimeoutAcceptor};
-use torrust_axum_server::signals::graceful_shutdown;
 use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
 use torrust_server_lib::logging::STARTED_ON;
 use torrust_server_lib::registar::{ServiceHealthCheckJob, ServiceRegistration, ServiceRegistrationForm};
 use torrust_server_lib::signals::{Halted, Started};
+use torrust_tracker_axum_server::custom_axum_server::{self, TimeoutAcceptor};
+use torrust_tracker_axum_server::signals::graceful_shutdown;
 use tracing::instrument;
 
 use super::v1::routes::router;
@@ -262,8 +262,8 @@ mod tests {
     use bittorrent_http_tracker_core::statistics::repository::Repository;
     use bittorrent_tracker_core::container::TrackerCoreContainer;
     use tokio_util::sync::CancellationToken;
-    use torrust_axum_server::tsl::make_rust_tls;
     use torrust_server_lib::registar::Registar;
+    use torrust_tracker_axum_server::tsl::make_rust_tls;
     use torrust_tracker_configuration::{Configuration, logging};
     use torrust_tracker_swarm_coordination_registry::container::SwarmCoordinationRegistryContainer;
     use torrust_tracker_test_helpers::configuration::ephemeral_public;

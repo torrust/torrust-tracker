@@ -475,7 +475,7 @@
 //!
 //! > **NOTICE**: up to about 74 torrents can be scraped at once. A full scrape
 //! > can't be done with this protocol. This is a limitation of the UDP protocol.
-//! > Defined with a hardcoded const [`MAX_SCRAPE_TORRENTS`](torrust_udp_tracker_server::MAX_SCRAPE_TORRENTS).
+//! > Defined with a hardcoded const [`MAX_SCRAPE_TORRENTS`](torrust_tracker_udp_server::MAX_SCRAPE_TORRENTS).
 //! > Refer to [issue 262](https://github.com/torrust/torrust-tracker/issues/262)
 //! > for more information about this limitation.
 //!

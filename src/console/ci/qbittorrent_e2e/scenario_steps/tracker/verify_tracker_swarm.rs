@@ -1,5 +1,5 @@
 use anyhow::Context;
-use torrust_axum_rest_tracker_api_server::v1::context::torrent::resources::torrent::Torrent;
+use torrust_tracker_axum_rest_api_server::v1::context::torrent::resources::torrent::Torrent;
 
 use super::super::super::tracker::TrackerApiClient;
 use super::super::super::types::InfoHash;

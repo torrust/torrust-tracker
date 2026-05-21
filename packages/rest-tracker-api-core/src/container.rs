@@ -8,7 +8,7 @@ use bittorrent_udp_tracker_core::{self};
 use tokio::sync::RwLock;
 use torrust_tracker_configuration::{Core, HttpApi, HttpTracker, UdpTracker};
 use torrust_tracker_swarm_coordination_registry::container::SwarmCoordinationRegistryContainer;
-use torrust_udp_tracker_server::container::UdpTrackerServerContainer;
+use torrust_tracker_udp_server::container::UdpTrackerServerContainer;
 
 pub struct TrackerHttpApiCoreContainer {
     pub http_api_config: Arc<HttpApi>,
@@ -25,7 +25,7 @@ pub struct TrackerHttpApiCoreContainer {
     // UDP tracker core
     pub ban_service: Arc<RwLock<BanService>>,
     pub udp_core_stats_repository: Arc<bittorrent_udp_tracker_core::statistics::repository::Repository>,
-    pub udp_server_stats_repository: Arc<torrust_udp_tracker_server::statistics::repository::Repository>,
+    pub udp_server_stats_repository: Arc<torrust_tracker_udp_server::statistics::repository::Repository>,
 }
 
 impl TrackerHttpApiCoreContainer {

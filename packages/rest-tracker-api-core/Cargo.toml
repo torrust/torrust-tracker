@@ -6,7 +6,7 @@ edition.workspace = true
 homepage.workspace = true
 keywords = [ "api", "bittorrent", "core", "library", "tracker" ]
 license.workspace = true
-name = "torrust-rest-tracker-api-core"
+name = "torrust-tracker-rest-api-core"
 publish.workspace = true
 readme = "README.md"
 repository.workspace = true
@@ -23,7 +23,7 @@ torrust-tracker-configuration = { version = "3.0.0-develop", path = "../configur
 torrust-tracker-metrics = { version = "3.0.0-develop", path = "../metrics" }
 torrust-tracker-primitives = { version = "3.0.0-develop", path = "../primitives" }
 torrust-tracker-swarm-coordination-registry = { version = "3.0.0-develop", path = "../swarm-coordination-registry" }
-torrust-udp-tracker-server = { version = "3.0.0-develop", path = "../udp-tracker-server" }
+torrust-tracker-udp-server = { version = "3.0.0-develop", path = "../udp-tracker-server" }
 
 [dev-dependencies]
 torrust-tracker-events = { version = "3.0.0-develop", path = "../events" }

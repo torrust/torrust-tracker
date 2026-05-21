@@ -1,4 +1,4 @@
-use torrust_axum_http_tracker_server::environment::Started;
+use torrust_tracker_axum_http_server::environment::Started;
 use torrust_tracker_test_helpers::{configuration, logging};
 
 #[tokio::test]
@@ -12,8 +12,8 @@ async fn environment_should_be_started_and_stopped() {
 
 mod for_all_config_modes {
 
-    use torrust_axum_http_tracker_server::environment::Started;
-    use torrust_axum_http_tracker_server::v1::handlers::health_check::{Report, Status};
+    use torrust_tracker_axum_http_server::environment::Started;
+    use torrust_tracker_axum_http_server::v1::handlers::health_check::{Report, Status};
     use torrust_tracker_test_helpers::{configuration, logging};
 
     use crate::server::client::Client;
@@ -34,7 +34,7 @@ mod for_all_config_modes {
     }
 
     mod and_running_on_reverse_proxy {
-        use torrust_axum_http_tracker_server::environment::Started;
+        use torrust_tracker_axum_http_server::environment::Started;
         use torrust_tracker_test_helpers::{configuration, logging};
 
         use crate::server::asserts::assert_could_not_find_remote_address_on_x_forwarded_for_header_error_response;
@@ -98,7 +98,7 @@ mod for_all_config_modes {
         use local_ip_address::local_ip;
         use reqwest::{Response, StatusCode};
         use tokio::net::TcpListener;
-        use torrust_axum_http_tracker_server::environment::Started;
+        use torrust_tracker_axum_http_server::environment::Started;
         use torrust_tracker_primitives::PeerId as DomainPeerId;
         use torrust_tracker_primitives::peer::fixture::PeerBuilder;
         use torrust_tracker_test_helpers::{configuration, logging};
@@ -960,7 +960,7 @@ mod for_all_config_modes {
 
         use bittorrent_primitives::info_hash::InfoHash;
         use tokio::net::TcpListener;
-        use torrust_axum_http_tracker_server::environment::Started;
+        use torrust_tracker_axum_http_server::environment::Started;
         use torrust_tracker_primitives::PeerId;
         use torrust_tracker_primitives::peer::fixture::PeerBuilder;
         use torrust_tracker_test_helpers::{configuration, logging};
@@ -1203,7 +1203,7 @@ mod configured_as_whitelisted {
         use std::str::FromStr;
 
         use bittorrent_primitives::info_hash::InfoHash;
-        use torrust_axum_http_tracker_server::environment::Started;
+        use torrust_tracker_axum_http_server::environment::Started;
         use torrust_tracker_test_helpers::logging::logs_contains_a_line_with;
         use torrust_tracker_test_helpers::{configuration, logging};
         use uuid::Uuid;
@@ -1269,7 +1269,7 @@ mod configured_as_whitelisted {
         use std::str::FromStr;
 
         use bittorrent_primitives::info_hash::InfoHash;
-        use torrust_axum_http_tracker_server::environment::Started;
+        use torrust_tracker_axum_http_server::environment::Started;
         use torrust_tracker_primitives::PeerId;
         use torrust_tracker_primitives::peer::fixture::PeerBuilder;
         use torrust_tracker_test_helpers::logging::logs_contains_a_line_with;
@@ -1376,7 +1376,7 @@ mod configured_as_private {
 
         use bittorrent_primitives::info_hash::InfoHash;
         use bittorrent_tracker_core::authentication::Key;
-        use torrust_axum_http_tracker_server::environment::Started;
+        use torrust_tracker_axum_http_server::environment::Started;
         use torrust_tracker_test_helpers::{configuration, logging};
 
         use crate::server::asserts::{
@@ -1468,7 +1468,7 @@ mod configured_as_private {
 
         use bittorrent_primitives::info_hash::InfoHash;
         use bittorrent_tracker_core::authentication::Key;
-        use torrust_axum_http_tracker_server::environment::Started;
+        use torrust_tracker_axum_http_server::environment::Started;
         use torrust_tracker_primitives::PeerId;
         use torrust_tracker_primitives::peer::fixture::PeerBuilder;
         use torrust_tracker_test_helpers::{configuration, logging};

@@ -16,10 +16,10 @@
 
 use tokio::sync::oneshot;
 use tokio::task::JoinHandle;
-use torrust_axum_health_check_api_server::{HEALTH_CHECK_API_LOG_TARGET, server};
 use torrust_server_lib::logging::STARTED_ON;
 use torrust_server_lib::registar::ServiceRegistry;
 use torrust_server_lib::signals::{Halted, Started};
+use torrust_tracker_axum_health_check_api_server::{HEALTH_CHECK_API_LOG_TARGET, server};
 use torrust_tracker_configuration::HealthCheckApi;
 use tracing::instrument;
 

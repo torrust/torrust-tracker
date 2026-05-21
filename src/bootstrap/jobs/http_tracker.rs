@@ -16,10 +16,10 @@ use std::sync::Arc;
 use axum_server::tls_rustls::RustlsConfig;
 use bittorrent_http_tracker_core::container::HttpTrackerCoreContainer;
 use tokio::task::JoinHandle;
-use torrust_axum_http_tracker_server::Version;
-use torrust_axum_http_tracker_server::server::{HttpServer, Launcher};
-use torrust_axum_server::tsl::make_rust_tls;
 use torrust_server_lib::registar::ServiceRegistrationForm;
+use torrust_tracker_axum_http_server::Version;
+use torrust_tracker_axum_http_server::server::{HttpServer, Launcher};
+use torrust_tracker_axum_server::tsl::make_rust_tls;
 use tracing::instrument;
 
 /// It starts a new HTTP server with the provided configuration and version.
@@ -84,8 +84,8 @@ mod tests {
     use std::sync::Arc;
 
     use bittorrent_http_tracker_core::container::HttpTrackerCoreContainer;
-    use torrust_axum_http_tracker_server::Version;
     use torrust_server_lib::registar::Registar;
+    use torrust_tracker_axum_http_server::Version;
     use torrust_tracker_test_helpers::configuration::ephemeral_public;
 
     use crate::bootstrap::app::initialize_global_services;

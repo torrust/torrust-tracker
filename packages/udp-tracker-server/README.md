@@ -4,7 +4,7 @@ The Torrust Bittorrent UDP tracker.
 
 ## Documentation
 
-[Crate documentation](https://docs.rs/torrust-udp-tracker-server).
+[Crate documentation](https://docs.rs/torrust-tracker-udp-server).
 
 ## License
 

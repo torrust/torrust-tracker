@@ -1,10 +1,10 @@
 use std::str::FromStr;
 
 use bittorrent_primitives::info_hash::InfoHash;
-use torrust_axum_rest_tracker_api_server::environment::Started;
-use torrust_axum_rest_tracker_api_server::v1::context::stats::resources::Stats;
-use torrust_rest_tracker_api_client::v1::client::{Client, headers_with_request_id};
+use torrust_tracker_axum_rest_api_server::environment::Started;
+use torrust_tracker_axum_rest_api_server::v1::context::stats::resources::Stats;
 use torrust_tracker_primitives::peer::fixture::PeerBuilder;
+use torrust_tracker_rest_api_client::v1::client::{Client, headers_with_request_id};
 use torrust_tracker_test_helpers::logging::logs_contains_a_line_with;
 use torrust_tracker_test_helpers::{configuration, logging};
 use uuid::Uuid;

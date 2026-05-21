@@ -6,7 +6,7 @@ edition.workspace = true
 homepage.workspace = true
 keywords = [ "axum", "bittorrent", "server", "torrust", "tracker", "udp" ]
 license.workspace = true
-name = "torrust-udp-tracker-server"
+name = "torrust-tracker-udp-server"
 publish.workspace = true
 readme = "README.md"
 repository.workspace = true
@@ -42,5 +42,5 @@ zerocopy = "0.8"
 
 [dev-dependencies]
 mockall = "0"
-rand = "0"
+rand = "0.9"
 torrust-tracker-test-helpers = { version = "3.0.0-develop", path = "../test-helpers" }
