@@ -1,5 +1,5 @@
 [package]
-description = "A library with the primitive types shared by the Torrust tracker packages."
+description = "Prometheus metrics integration library providing type-safe metric collection and aggregation."
 keywords = [ "api", "library", "metrics" ]
 name = "torrust-metrics"
 readme = "README.md"

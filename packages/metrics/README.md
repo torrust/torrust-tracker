@@ -20,9 +20,11 @@ This library offers a robust metrics system for tracking and monitoring applicat
 
 Add this to your `Cargo.toml`:
 
+> **Note**: This crate is not yet published on crates.io. Use a path or git dependency.
+
 ```toml
 [dependencies]
-torrust-metrics = "3.0.0"
+torrust-metrics = { path = "packages/metrics" }
 ```
 
 ### Basic Usage
