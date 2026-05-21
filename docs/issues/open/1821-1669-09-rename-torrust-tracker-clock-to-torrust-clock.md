@@ -6,8 +6,8 @@ priority: p2
 github-issue: 1821
 spec-path: docs/issues/open/1821-1669-09-rename-torrust-tracker-clock-to-torrust-clock.md
 branch: 1821-rename-torrust-tracker-clock-to-torrust-clock
-related-pr: null
-last-updated-utc: 2026-05-21 12:00
+related-pr: 1822
+last-updated-utc: 2026-05-21 16:00
 semantic-links:
   skill-links:
     - create-issue
