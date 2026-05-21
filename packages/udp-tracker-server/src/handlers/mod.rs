@@ -16,8 +16,8 @@ use bittorrent_udp_tracker_protocol::{Request, Response, TransactionId};
 use connect::handle_connect;
 use error::handle_error;
 use scrape::handle_scrape;
+use torrust_clock::clock::Time;
 use torrust_net_primitives::service_binding::ServiceBinding;
-use torrust_tracker_clock::clock::Time;
 use tracing::{Level, instrument};
 use uuid::Uuid;
 

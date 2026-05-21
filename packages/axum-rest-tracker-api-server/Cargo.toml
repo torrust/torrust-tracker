@@ -34,7 +34,7 @@ torrust-tracker-axum-server = { version = "3.0.0-develop", path = "../axum-serve
 torrust-tracker-rest-api-client = { version = "3.0.0-develop", path = "../rest-tracker-api-client" }
 torrust-tracker-rest-api-core = { version = "3.0.0-develop", path = "../rest-tracker-api-core" }
 torrust-server-lib = { version = "3.0.0-develop", path = "../server-lib" }
-torrust-tracker-clock = { version = "3.0.0-develop", path = "../clock" }
+torrust-clock = { version = "3.0.0-develop", path = "../clock" }
 torrust-tracker-configuration = { version = "3.0.0-develop", path = "../configuration" }
 torrust-metrics = { version = "3.0.0-develop", path = "../metrics" }
 torrust-net-primitives = { version = "3.0.0-develop", path = "../net-primitives" }

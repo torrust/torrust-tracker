@@ -3,8 +3,8 @@ use std::sync::Arc;
 use bittorrent_primitives::info_hash::InfoHash;
 use crossbeam_skiplist::SkipMap;
 use tokio::sync::Mutex;
-use torrust_tracker_clock::DurationSinceUnixEpoch;
-use torrust_tracker_clock::conv::convert_from_timestamp_to_datetime_utc;
+use torrust_clock::DurationSinceUnixEpoch;
+use torrust_clock::conv::convert_from_timestamp_to_datetime_utc;
 use torrust_tracker_configuration::TrackerPolicy;
 use torrust_tracker_primitives::pagination::Pagination;
 use torrust_tracker_primitives::swarm_metadata::{AggregateActiveSwarmMetadata, SwarmMetadata};
@@ -614,7 +614,7 @@ mod tests {
             use std::net::{IpAddr, Ipv4Addr, SocketAddr};
             use std::sync::Arc;
 
-            use torrust_tracker_clock::DurationSinceUnixEpoch;
+            use torrust_clock::DurationSinceUnixEpoch;
             use torrust_tracker_primitives::peer::Peer;
             use torrust_tracker_primitives::{AnnounceEvent, NumberOfBytes};
 
@@ -675,7 +675,7 @@ mod tests {
                 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
                 use std::sync::Arc;
 
-                use torrust_tracker_clock::DurationSinceUnixEpoch;
+                use torrust_clock::DurationSinceUnixEpoch;
                 use torrust_tracker_configuration::TORRENT_PEERS_LIMIT;
                 use torrust_tracker_primitives::peer::Peer;
                 use torrust_tracker_primitives::{AnnounceEvent, NumberOfBytes};
@@ -755,7 +755,7 @@ mod tests {
             use std::time::Duration;
 
             use bittorrent_primitives::info_hash::InfoHash;
-            use torrust_tracker_clock::DurationSinceUnixEpoch;
+            use torrust_clock::DurationSinceUnixEpoch;
             use torrust_tracker_configuration::TrackerPolicy;
 
             use crate::swarm::registry::Registry;
@@ -1183,7 +1183,7 @@ mod tests {
             mod it_should_count_peerless_torrents {
                 use std::sync::Arc;
 
-                use torrust_tracker_clock::DurationSinceUnixEpoch;
+                use torrust_clock::DurationSinceUnixEpoch;
 
                 use crate::swarm::registry::Registry;
                 use crate::tests::{sample_info_hash, sample_peer};
@@ -1350,7 +1350,7 @@ mod tests {
 
         use std::sync::Arc;
 
-        use torrust_tracker_clock::DurationSinceUnixEpoch;
+        use torrust_clock::DurationSinceUnixEpoch;
         use torrust_tracker_primitives::peer::fixture::PeerBuilder;
 
         use crate::event::Event;

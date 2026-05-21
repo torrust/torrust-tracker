@@ -3,9 +3,9 @@ pub mod downloads;
 use std::sync::Arc;
 
 use thiserror::Error;
+use torrust_clock::DurationSinceUnixEpoch;
 use torrust_metrics::label::LabelSet;
 use torrust_metrics::{metric_collection, metric_name};
-use torrust_tracker_clock::DurationSinceUnixEpoch;
 
 use super::TRACKER_CORE_PERSISTENT_TORRENTS_DOWNLOADS_TOTAL;
 use super::repository::Repository;

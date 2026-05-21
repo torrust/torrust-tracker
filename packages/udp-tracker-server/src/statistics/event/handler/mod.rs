@@ -5,7 +5,7 @@ mod request_banned;
 mod request_received;
 mod response_sent;
 
-use torrust_tracker_clock::DurationSinceUnixEpoch;
+use torrust_clock::DurationSinceUnixEpoch;
 
 use crate::event::Event;
 use crate::statistics::repository::Repository;

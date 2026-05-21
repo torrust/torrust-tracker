@@ -1,8 +1,8 @@
 use std::sync::Arc;
 
+use torrust_clock::DurationSinceUnixEpoch;
 use torrust_metrics::label::{LabelSet, LabelValue};
 use torrust_metrics::{label_name, metric_name};
-use torrust_tracker_clock::DurationSinceUnixEpoch;
 use torrust_tracker_primitives::peer::Peer;
 
 use crate::event::Event;
@@ -250,10 +250,10 @@ mod tests {
 
         use std::sync::Arc;
 
+        use torrust_clock::clock::stopped::Stopped;
+        use torrust_clock::clock::{self, Time};
         use torrust_metrics::label::LabelSet;
         use torrust_metrics::metric_name;
-        use torrust_tracker_clock::clock::stopped::Stopped;
-        use torrust_tracker_clock::clock::{self, Time};
 
         use crate::CurrentClock;
         use crate::event::Event;
@@ -370,9 +370,9 @@ mod tests {
     mod for_peer_metrics {
         use std::sync::Arc;
 
+        use torrust_clock::clock::stopped::Stopped;
+        use torrust_clock::clock::{self, Time};
         use torrust_metrics::metric_name;
-        use torrust_tracker_clock::clock::stopped::Stopped;
-        use torrust_tracker_clock::clock::{self, Time};
 
         use crate::CurrentClock;
         use crate::event::Event;
@@ -390,10 +390,10 @@ mod tests {
             use std::sync::Arc;
 
             use rstest::rstest;
+            use torrust_clock::clock::stopped::Stopped;
+            use torrust_clock::clock::{self, Time};
             use torrust_metrics::label::LabelValue;
             use torrust_metrics::{label_name, metric_name};
-            use torrust_tracker_clock::clock::stopped::Stopped;
-            use torrust_tracker_clock::clock::{self, Time};
             use torrust_tracker_primitives::peer::PeerRole;
 
             use crate::CurrentClock;
@@ -609,10 +609,10 @@ mod tests {
             use std::sync::Arc;
 
             use rstest::rstest;
+            use torrust_clock::clock::stopped::Stopped;
+            use torrust_clock::clock::{self, Time};
             use torrust_metrics::label::LabelValue;
             use torrust_metrics::{label_name, metric_name};
-            use torrust_tracker_clock::clock::stopped::Stopped;
-            use torrust_tracker_clock::clock::{self, Time};
             use torrust_tracker_primitives::peer::PeerRole;
 
             use crate::CurrentClock;

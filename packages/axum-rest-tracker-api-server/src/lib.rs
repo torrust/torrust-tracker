@@ -159,7 +159,7 @@ pub mod server;
 pub mod v1;
 
 use serde::{Deserialize, Serialize};
-use torrust_tracker_clock::clock;
+use torrust_clock::clock;
 
 /// This code needs to be copied into each crate.
 /// Working version, for production.

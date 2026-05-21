@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use torrust_tracker_clock::clock::Time;
+use torrust_clock::clock::Time;
 
 use crate::CurrentClock;
 

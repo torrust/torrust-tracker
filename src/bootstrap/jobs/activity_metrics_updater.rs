@@ -3,7 +3,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use tokio::task::JoinHandle;
-use torrust_tracker_clock::clock::Time;
+use torrust_clock::clock::Time;
 use torrust_tracker_configuration::Configuration;
 
 use crate::CurrentClock;

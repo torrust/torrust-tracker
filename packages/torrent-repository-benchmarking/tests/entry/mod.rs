@@ -2,8 +2,8 @@ use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::time::Duration;
 
 use rstest::{fixture, rstest};
-use torrust_tracker_clock::clock::stopped::Stopped as _;
-use torrust_tracker_clock::clock::{self, Time as _};
+use torrust_clock::clock::stopped::Stopped as _;
+use torrust_clock::clock::{self, Time as _};
 use torrust_tracker_configuration::{TORRENT_PEERS_LIMIT, TrackerPolicy};
 use torrust_tracker_primitives::peer::Peer;
 use torrust_tracker_primitives::{AnnounceEvent, NumberOfBytes, peer};

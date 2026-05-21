@@ -9,8 +9,8 @@
 use std::sync::Arc;
 use std::time::Duration;
 
-use torrust_tracker_clock::DurationSinceUnixEpoch;
-use torrust_tracker_clock::clock::Time;
+use torrust_clock::DurationSinceUnixEpoch;
+use torrust_clock::clock::Time;
 use torrust_tracker_located_error::Located;
 
 use super::key::repository::in_memory::InMemoryKeyRepository;
@@ -331,7 +331,7 @@ mod tests {
         mod handling_expiring_peer_keys {
             use std::time::Duration;
 
-            use torrust_tracker_clock::clock::Time;
+            use torrust_clock::clock::Time;
 
             use crate::CurrentClock;
             use crate::authentication::handler::tests::the_keys_handler_when_the_tracker_is_configured_as_private::instantiate_keys_handler;
@@ -357,8 +357,8 @@ mod tests {
                 use std::time::Duration;
 
                 use mockall::predicate::function;
-                use torrust_tracker_clock::clock::stopped::Stopped;
-                use torrust_tracker_clock::clock::{self, Time};
+                use torrust_clock::clock::stopped::Stopped;
+                use torrust_clock::clock::{self, Time};
 
                 use crate::CurrentClock;
                 use crate::authentication::PeerKey;
@@ -431,8 +431,8 @@ mod tests {
                 use std::time::Duration;
 
                 use mockall::predicate;
-                use torrust_tracker_clock::clock::stopped::Stopped;
-                use torrust_tracker_clock::clock::{self, Time};
+                use torrust_clock::clock::stopped::Stopped;
+                use torrust_clock::clock::{self, Time};
 
                 use crate::CurrentClock;
                 use crate::authentication::handler::AddKeyRequest;

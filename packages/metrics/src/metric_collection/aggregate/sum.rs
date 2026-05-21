@@ -43,7 +43,7 @@ mod tests {
 
     mod it_should_allow_summing_all_metric_samples_containing_some_given_labels {
 
-        use torrust_tracker_clock::DurationSinceUnixEpoch;
+        use torrust_clock::DurationSinceUnixEpoch;
 
         use crate::label::LabelValue;
         use crate::label_name;

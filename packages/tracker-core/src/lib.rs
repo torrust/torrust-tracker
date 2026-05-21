@@ -131,7 +131,7 @@ pub mod whitelist;
 pub mod peer_tests;
 pub mod test_helpers;
 
-use torrust_tracker_clock::clock;
+use torrust_clock::clock;
 
 /// The maximum number of torrents that can be returned in an `scrape` response.
 ///

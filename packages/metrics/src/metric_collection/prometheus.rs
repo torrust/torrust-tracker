@@ -1,7 +1,7 @@
 use std::borrow::Cow;
 use std::sync::Arc;
 
-use torrust_tracker_clock::DurationSinceUnixEpoch;
+use torrust_clock::DurationSinceUnixEpoch;
 
 use crate::counter::Counter;
 use crate::gauge::Gauge;
@@ -299,7 +299,7 @@ mod tests {
     }
 
     mod stage3_conversion {
-        use torrust_tracker_clock::DurationSinceUnixEpoch;
+        use torrust_clock::DurationSinceUnixEpoch;
 
         use super::super::ParsedExposition;
         use crate::counter::Counter;
@@ -354,7 +354,7 @@ mod tests {
     }
 
     mod prometheus_timestamp {
-        use torrust_tracker_clock::DurationSinceUnixEpoch;
+        use torrust_clock::DurationSinceUnixEpoch;
 
         use super::super::parse_prometheus_timestamp;
 
@@ -418,7 +418,7 @@ mod tests {
     }
 
     mod prometheus_deserialization {
-        use torrust_tracker_clock::DurationSinceUnixEpoch;
+        use torrust_clock::DurationSinceUnixEpoch;
 
         use super::super::build_metric_collection;
         use crate::counter::Counter;

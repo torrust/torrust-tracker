@@ -6,7 +6,7 @@ pub mod swarm;
 use std::sync::Arc;
 
 use tokio::sync::Mutex;
-use torrust_tracker_clock::clock;
+use torrust_clock::clock;
 
 pub type Registry = swarm::registry::Registry;
 pub type CoordinatorHandle = Arc<Mutex<Coordinator>>;
@@ -29,7 +29,7 @@ pub(crate) mod tests {
     use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
     use bittorrent_primitives::info_hash::InfoHash;
-    use torrust_tracker_clock::DurationSinceUnixEpoch;
+    use torrust_clock::DurationSinceUnixEpoch;
     use torrust_tracker_primitives::peer::Peer;
     use torrust_tracker_primitives::{AnnounceEvent, NumberOfBytes, PeerId};
 

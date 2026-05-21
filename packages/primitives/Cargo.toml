@@ -24,4 +24,4 @@ tdyne-peer-id = "1"
 tdyne-peer-id-registry = "0"
 thiserror = "2"
 torrust-net-primitives = { version = "3.0.0-develop", path = "../net-primitives" }
-torrust-tracker-clock = { version = "3.0.0-develop", path = "../clock" }
+torrust-clock = { version = "3.0.0-develop", path = "../clock" }

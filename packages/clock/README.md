@@ -1,10 +1,10 @@
-# Torrust Tracker Clock
+# Torrust Clock
 
-A library to provide a working and mockable clock for the [Torrust Tracker](https://github.com/torrust/torrust-tracker).
+A library to provide a working and mockable clock. It is a generic utility with no tracker-specific logic, reusable in any Rust project.
 
 ## Documentation
 
-[Crate documentation](https://docs.rs/torrust-tracker-torrent-clock).
+[Crate documentation](https://docs.rs/torrust-clock).
 
 ## License
 

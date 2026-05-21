@@ -337,7 +337,7 @@ mod tests {
     }
 
     fn initialize_static() {
-        torrust_tracker_clock::initialize_static();
+        torrust_clock::initialize_static();
     }
 
     #[tokio::test]

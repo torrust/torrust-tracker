@@ -82,7 +82,7 @@ Make sure the [deployment](https://github.com/torrust/torrust-tracker/actions/wo
 - [torrust-tracker-contrib-bencode](https://crates.io/crates/torrust-tracker-contrib-bencode)
 - [torrust-tracker-located-error](https://crates.io/crates/torrust-tracker-located-error)
 - [torrust-tracker-primitives](https://crates.io/crates/torrust-tracker-primitives)
-- [torrust-tracker-clock](https://crates.io/crates/torrust-tracker-clock)
+- [torrust-clock](https://crates.io/crates/torrust-clock)
 - [torrust-tracker-configuration](https://crates.io/crates/torrust-tracker-configuration)
 - [torrust-tracker-torrent-repository](https://crates.io/crates/torrust-tracker-torrent-repository)
 - [torrust-tracker-test-helpers](https://crates.io/crates/torrust-tracker-test-helpers)

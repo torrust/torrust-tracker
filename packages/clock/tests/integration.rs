@@ -11,9 +11,9 @@ mod clock;
 /// Working version, for production.
 #[cfg(not(test))]
 #[allow(dead_code)]
-pub(crate) type CurrentClock = torrust_tracker_clock::clock::Working;
+pub(crate) type CurrentClock = torrust_clock::clock::Working;
 
 /// Stopped version, for testing.
 #[cfg(test)]
 #[allow(dead_code)]
-pub(crate) type CurrentClock = torrust_tracker_clock::clock::Stopped;
+pub(crate) type CurrentClock = torrust_clock::clock::Stopped;

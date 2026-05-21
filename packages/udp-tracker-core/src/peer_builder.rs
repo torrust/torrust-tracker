@@ -1,7 +1,7 @@
 //! Logic to extract the peer info from the announce request.
 use std::net::{IpAddr, SocketAddr};
 
-use torrust_tracker_clock::clock::Time;
+use torrust_clock::clock::Time;
 use torrust_tracker_primitives::peer;
 
 use crate::CurrentClock;

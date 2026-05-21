@@ -289,10 +289,9 @@ fn write_observations(out: &mut String) {
     writeln!(out).unwrap();
     writeln!(out, "### Known thin dependencies (pre-existing)").unwrap();
     writeln!(out).unwrap();
-    writeln!(out, "- `torrust-tracker-clock` → `torrust-tracker-primitives`: only").unwrap();
-    writeln!(out, "  `DurationSinceUnixEpoch` imported. Addressed by SI-02.").unwrap();
-    writeln!(out, "- `torrust-tracker-configuration` → `torrust-tracker-clock`: only").unwrap();
-    writeln!(out, "  `DEFAULT_TIMEOUT` imported. Addressed by SI-03.").unwrap();
+    writeln!(out, "None — previously known thin dependencies have been resolved:").unwrap();
+    writeln!(out, "- `torrust-clock` → `torrust-tracker-primitives` (resolved by SI-02)").unwrap();
+    writeln!(out, "- `torrust-tracker-configuration` → `torrust-clock` (resolved by SI-03)").unwrap();
     writeln!(out).unwrap();
     writeln!(out, "### New findings").unwrap();
     writeln!(out).unwrap();

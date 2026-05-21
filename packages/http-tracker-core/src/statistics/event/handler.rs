@@ -1,8 +1,8 @@
 use std::sync::Arc;
 
+use torrust_clock::DurationSinceUnixEpoch;
 use torrust_metrics::label::{LabelSet, LabelValue};
 use torrust_metrics::{label_name, metric_name};
-use torrust_tracker_clock::DurationSinceUnixEpoch;
 
 use crate::event::Event;
 use crate::statistics::HTTP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL;
@@ -55,8 +55,8 @@ mod tests {
     use std::sync::Arc;
 
     use bittorrent_http_tracker_protocol::v1::services::peer_ip_resolver::{RemoteClientAddr, ResolvedIp};
+    use torrust_clock::clock::Time;
     use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
-    use torrust_tracker_clock::clock::Time;
 
     use crate::CurrentClock;
     use crate::event::{ConnectionContext, Event};

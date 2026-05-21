@@ -3,7 +3,7 @@ pub mod description;
 pub mod name;
 
 use serde::{Deserialize, Serialize};
-use torrust_tracker_clock::DurationSinceUnixEpoch;
+use torrust_clock::DurationSinceUnixEpoch;
 
 use super::counter::Counter;
 use super::label::LabelSet;

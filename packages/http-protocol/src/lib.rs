@@ -2,7 +2,7 @@
 pub mod percent_encoding;
 pub mod v1;
 
-use torrust_tracker_clock::clock;
+use torrust_clock::clock;
 
 /// This code needs to be copied into each crate.
 /// Working version, for production.

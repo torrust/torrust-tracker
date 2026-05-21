@@ -2,7 +2,7 @@
 use std::net::SocketAddr;
 use std::sync::Arc;
 
-use torrust_tracker_clock::DurationSinceUnixEpoch;
+use torrust_clock::DurationSinceUnixEpoch;
 use torrust_tracker_primitives::{PeerId, peer};
 
 // code-review: the current implementation uses the peer Id as the ``BTreeMap``
@@ -90,7 +90,7 @@ mod tests {
         use std::net::{IpAddr, Ipv4Addr, SocketAddr};
         use std::sync::Arc;
 
-        use torrust_tracker_clock::DurationSinceUnixEpoch;
+        use torrust_clock::DurationSinceUnixEpoch;
         use torrust_tracker_primitives::PeerId;
         use torrust_tracker_primitives::peer::fixture::PeerBuilder;
 

@@ -1,8 +1,8 @@
 use std::sync::Arc;
 
+use torrust_clock::DurationSinceUnixEpoch;
 use torrust_metrics::label::LabelSet;
 use torrust_metrics::metric_name;
-use torrust_tracker_clock::DurationSinceUnixEpoch;
 use torrust_tracker_swarm_coordination_registry::event::Event;
 
 use crate::statistics::TRACKER_CORE_PERSISTENT_TORRENTS_DOWNLOADS_TOTAL;
