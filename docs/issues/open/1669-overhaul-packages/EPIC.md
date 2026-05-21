@@ -60,7 +60,7 @@ The workspace currently contains **27 packages** (including the root `torrust-tr
 
 | Published on crates.io | Crate Name               | Folder           |
 | ---------------------- | ------------------------ | ---------------- |
-| Yes                    | `torrust-clock`          | `clock`          |
+| No                     | `torrust-clock`          | `clock`          |
 | No                     | `torrust-metrics`        | `metrics`        |
 | No                     | `torrust-net-primitives` | `net-primitives` |
 | No                     | `torrust-server-lib`     | `server-lib`     |
