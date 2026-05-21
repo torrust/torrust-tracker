@@ -1,11 +1,11 @@
 ---
 doc-type: issue
 issue-type: task
-status: draft
+status: open
 priority: p2
-github-issue: null
-spec-path: docs/issues/drafts/1669-08-rename-torrust-tracker-metrics-to-torrust-metrics.md
-branch: null
+github-issue: 1819
+spec-path: docs/issues/open/1819-1669-08-rename-torrust-tracker-metrics-to-torrust-metrics.md
+branch: 1819-rename-torrust-tracker-metrics-to-torrust-metrics
 related-pr: null
 last-updated-utc: 2026-05-15 12:00
 semantic-links:
@@ -21,7 +21,7 @@ semantic-links:
 
 <!-- skill-link: create-issue -->
 
-# Issue #[To be assigned] - Rename `torrust-tracker-metrics` to `torrust-metrics`
+# Issue #1819 - Rename `torrust-tracker-metrics` to `torrust-metrics`
 
 ## Goal
 
@@ -99,10 +99,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 ### Workflow Checkpoints
 
-- [ ] Spec drafted in `docs/issues/drafts/`
-- [ ] Spec reviewed and approved by user/maintainer
-- [ ] GitHub issue created and issue number added to this spec
-- [ ] Spec moved to `docs/issues/open/` with issue number prefix
+- [x] Spec drafted in `docs/issues/drafts/`
+- [x] Spec reviewed and approved by user/maintainer
+- [x] GitHub issue created and issue number added to this spec
+- [x] Spec moved to `docs/issues/open/` with issue number prefix
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, `cargo test --workspace`)
 - [ ] Manual verification scenarios executed and recorded
@@ -113,6 +113,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 ### Progress Log
 
 - 2026-05-15 12:00 UTC - josecelano - Spec drafted as subissue of EPIC #1669
+- 2026-05-21 UTC - josecelano - GitHub issue #1819 created; spec moved to open/
 
 ## Acceptance Criteria
 
