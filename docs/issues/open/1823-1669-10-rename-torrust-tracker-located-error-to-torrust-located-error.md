@@ -1,13 +1,13 @@
 ---
 doc-type: issue
 issue-type: task
-status: draft
+status: open
 priority: p2
-github-issue: null
-spec-path: docs/issues/drafts/1669-10-rename-torrust-tracker-located-error-to-torrust-located-error.md
-branch: null
+github-issue: 1823
+spec-path: docs/issues/open/1823-1669-10-rename-torrust-tracker-located-error-to-torrust-located-error.md
+branch: 1823-rename-torrust-tracker-located-error-to-torrust-located-error
 related-pr: null
-last-updated-utc: 2026-05-15 12:00
+last-updated-utc: 2026-05-21 17:00
 semantic-links:
   skill-links:
     - create-issue
@@ -21,7 +21,7 @@ semantic-links:
 
 <!-- skill-link: create-issue -->
 
-# Issue #[To be assigned] - Rename `torrust-tracker-located-error` to `torrust-located-error`
+# Issue #1823 - Rename `torrust-tracker-located-error` to `torrust-located-error`
 
 ## Goal
 
@@ -128,6 +128,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 ### Progress Log
 
 - 2026-05-15 12:00 UTC - josecelano - Spec drafted as subissue of EPIC #1669
+- 2026-05-21 17:00 UTC - josecelano - GitHub issue #1823 created and linked as sub-issue of #1669; spec moved to `docs/issues/open/`
 
 ## Acceptance Criteria
 
