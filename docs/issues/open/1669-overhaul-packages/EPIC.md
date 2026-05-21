@@ -140,6 +140,8 @@ destination group with a "Renamed from …" note.
 | No                     | `torrust-tracker-torrent-repository-benchmarking` | `torrent-repository-benchmarking` | —      |
 | No                     | `torrust-tracker-udp-server`                      | `udp-tracker-server`              | —      |
 
+> **Note on `torrust-tracker-axum-server`**: This package is classified as `torrust-tracker-` because `tsl.rs` imports `TslConfig` from `torrust-tracker-configuration` and `LocatedError`/`DynError` from `torrust-tracker-located-error`. Both dependencies are temporary: `TslConfig` is a small two-field struct with no tracker-specific logic that could be moved to a generic package, and `torrust-tracker-located-error` will be renamed to `torrust-located-error` (SI-10). Once those changes land the package could move to the `torrust-` group as a generic `torrust-axum-server` reusable across the Torrust organisation. A near-identical module already exists in [torrust-index](https://github.com/torrust/torrust-index/blob/develop/src/web/api/server/custom_axum.rs).
+
 ### `bittorrent-` prefix
 
 | Published on crates.io | Crate Name                         | Folder              | Change |
