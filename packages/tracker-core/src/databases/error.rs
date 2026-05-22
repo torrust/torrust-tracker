@@ -13,7 +13,7 @@ use std::sync::Arc;
 
 use sqlx::Error as SqlxError;
 use sqlx::migrate::MigrateError;
-use torrust_tracker_located_error::{DynError, LocatedError};
+use torrust_located_error::{DynError, LocatedError};
 
 use super::driver::Driver;
 

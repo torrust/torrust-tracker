@@ -80,7 +80,7 @@ git push --tags torrust
 Make sure the [deployment](https://github.com/torrust/torrust-tracker/actions/workflows/deployment.yaml) workflow was successfully executed and the new version for the following crates were published:
 
 - [torrust-tracker-contrib-bencode](https://crates.io/crates/torrust-tracker-contrib-bencode)
-- [torrust-tracker-located-error](https://crates.io/crates/torrust-tracker-located-error)
+- [torrust-located-error](https://crates.io/crates/torrust-located-error)
 - [torrust-tracker-primitives](https://crates.io/crates/torrust-tracker-primitives)
 - [torrust-clock](https://crates.io/crates/torrust-clock)
 - [torrust-tracker-configuration](https://crates.io/crates/torrust-tracker-configuration)

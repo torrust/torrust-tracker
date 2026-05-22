@@ -17,7 +17,7 @@ use derive_more::{Constructor, Display};
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
 use thiserror::Error;
-use torrust_tracker_located_error::{DynError, LocatedError};
+use torrust_located_error::{DynError, LocatedError};
 
 /// The maximum number of returned peers for a torrent.
 pub const TORRENT_PEERS_LIMIT: usize = 74;

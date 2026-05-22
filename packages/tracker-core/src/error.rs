@@ -10,7 +10,7 @@
 use std::panic::Location;
 
 use bittorrent_primitives::info_hash::InfoHash;
-use torrust_tracker_located_error::LocatedError;
+use torrust_located_error::LocatedError;
 
 use super::authentication::key::ParseKeyError;
 use super::databases;
@@ -146,7 +146,7 @@ mod tests {
     }
 
     mod peer_key_error {
-        use torrust_tracker_located_error::Located;
+        use torrust_located_error::Located;
 
         use crate::databases::driver::Driver;
         use crate::error::PeerKeyError;

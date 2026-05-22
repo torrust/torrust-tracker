@@ -5,7 +5,7 @@
 //! use std::error::Error;
 //! use std::panic::Location;
 //! use std::sync::Arc;
-//! use torrust_tracker_located_error::{Located, LocatedError};
+//! use torrust_located_error::{Located, LocatedError};
 //!
 //! #[derive(thiserror::Error, Debug)]
 //! enum TestError {

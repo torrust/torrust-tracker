@@ -1,10 +1,10 @@
-# Torrust Tracker Located Error
+# Torrust Located Error
 
 A library to provide an error decorator with the location and the source of the original error.
 
 ## Documentation
 
-[Crate documentation](https://docs.rs/torrust-tracker-located-error).
+[Crate documentation](https://docs.rs/torrust-located-error).
 
 ## License
 
