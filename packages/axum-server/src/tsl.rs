@@ -3,8 +3,8 @@ use std::sync::Arc;
 
 use axum_server::tls_rustls::RustlsConfig;
 use thiserror::Error;
+use torrust_located_error::{DynError, LocatedError};
 use torrust_tracker_configuration::TslConfig;
-use torrust_tracker_located_error::{DynError, LocatedError};
 use tracing::instrument;
 
 /// Error returned by the Bootstrap Process.

@@ -101,7 +101,7 @@ Check the
 ran successfully and the following crates were published:
 
 - `torrust-tracker-contrib-bencode`
-- `torrust-tracker-located-error`
+- `torrust-located-error`
 - `torrust-tracker-primitives`
 - `torrust-clock`
 - `torrust-tracker-configuration`

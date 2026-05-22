@@ -11,7 +11,7 @@ use std::time::Duration;
 
 use torrust_clock::DurationSinceUnixEpoch;
 use torrust_clock::clock::Time;
-use torrust_tracker_located_error::Located;
+use torrust_located_error::Located;
 
 use super::key::repository::in_memory::InMemoryKeyRepository;
 use super::key::repository::persisted::DatabaseKeyRepository;

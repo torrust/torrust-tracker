@@ -5,7 +5,7 @@ use std::panic::Location;
 
 use bittorrent_primitives::info_hash::{self, InfoHash};
 use thiserror::Error;
-use torrust_tracker_located_error::{Located, LocatedError};
+use torrust_located_error::{Located, LocatedError};
 
 use crate::percent_encoding::percent_decode_info_hash;
 use crate::v1::query::Query;

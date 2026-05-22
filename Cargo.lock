@@ -496,8 +496,8 @@ dependencies = [
  "serde_bencode",
  "thiserror 2.0.18",
  "torrust-clock",
+ "torrust-located-error",
  "torrust-tracker-contrib-bencode",
- "torrust-tracker-located-error",
  "torrust-tracker-primitives",
 ]
 
@@ -541,8 +541,8 @@ dependencies = [
  "serde_repr",
  "thiserror 2.0.18",
  "tokio",
+ "torrust-located-error",
  "torrust-net-primitives",
- "torrust-tracker-located-error",
  "torrust-tracker-primitives",
  "tracing",
  "zerocopy",
@@ -568,10 +568,10 @@ dependencies = [
  "tokio",
  "tokio-util",
  "torrust-clock",
+ "torrust-located-error",
  "torrust-metrics",
  "torrust-tracker-configuration",
  "torrust-tracker-events",
- "torrust-tracker-located-error",
  "torrust-tracker-primitives",
  "torrust-tracker-swarm-coordination-registry",
  "torrust-tracker-test-helpers",
@@ -5111,6 +5111,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "torrust-located-error"
+version = "3.0.0-develop"
+dependencies = [
+ "thiserror 2.0.18",
+ "tracing",
+]
+
+[[package]]
 name = "torrust-metrics"
 version = "3.0.0-develop"
 dependencies = [
@@ -5311,9 +5319,9 @@ dependencies = [
  "pin-project-lite",
  "thiserror 2.0.18",
  "tokio",
+ "torrust-located-error",
  "torrust-server-lib",
  "torrust-tracker-configuration",
- "torrust-tracker-located-error",
  "tower",
  "tracing",
 ]
@@ -5355,7 +5363,7 @@ dependencies = [
  "serde_with",
  "thiserror 2.0.18",
  "toml 0.9.12+spec-1.1.0",
- "torrust-tracker-located-error",
+ "torrust-located-error",
  "torrust-tracker-primitives",
  "tracing",
  "tracing-subscriber",
@@ -5378,14 +5386,6 @@ dependencies = [
  "futures",
  "mockall",
  "tokio",
-]
-
-[[package]]
-name = "torrust-tracker-located-error"
-version = "3.0.0-develop"
-dependencies = [
- "thiserror 2.0.18",
- "tracing",
 ]
 
 [[package]]

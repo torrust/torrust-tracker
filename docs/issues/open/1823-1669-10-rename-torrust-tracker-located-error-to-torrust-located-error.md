@@ -6,8 +6,8 @@ priority: p2
 github-issue: 1823
 spec-path: docs/issues/open/1823-1669-10-rename-torrust-tracker-located-error-to-torrust-located-error.md
 branch: 1823-rename-torrust-tracker-located-error-to-torrust-located-error
-related-pr: null
-last-updated-utc: 2026-05-21 17:15
+related-pr: 1824
+last-updated-utc: 2026-05-22 08:09
 semantic-links:
   skill-links:
     - create-issue
@@ -173,20 +173,20 @@ only after T10 is complete.
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| ID  | Status | Task                                                                                                       | Notes / Expected Output                                                      |
-| --- | ------ | ---------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
-| T1  | TODO   | Rename `name` in `packages/located-error/Cargo.toml`                                                       | `name = "torrust-located-error"`                                             |
-| T2  | TODO   | Update root `Cargo.toml` workspace dependency key                                                          | `torrust-located-error = { version = ..., path = "packages/located-error" }` |
-| T3  | TODO   | Update all 5 dependent package `Cargo.toml` files (excluding root — see T2)                                | Replace `torrust-tracker-located-error` key with `torrust-located-error`     |
-| T4  | TODO   | Update Rust source `use` / path references (`torrust_tracker_located_error::` → `torrust_located_error::`) | Affects package sources and integration tests                                |
-| T5  | TODO   | Update prose in `packages/AGENTS.md`, `AGENTS.md`, `docs/packages.md`, `packages/located-error/README.md`  | Crate name and any inline code snippets                                      |
-| T6  | TODO   | Run `cargo build --workspace` and `cargo test --workspace`                                                 | Clean build and all tests pass                                               |
-| T7  | TODO   | Run `linter all`                                                                                           | Exit code `0`                                                                |
-| T8  | TODO   | Publish `torrust-located-error` on crates.io                                                               | Successful `cargo publish -p torrust-located-error`                          |
-| T9  | TODO   | Add deprecation notice to `torrust-tracker-located-error` on crates.io                                     | README / description points to `torrust-located-error`; do **not** yank yet  |
-| T10 | TODO   | Check and migrate any downstream Torrust repositories using `torrust-tracker-located-error`                | Companion PRs in downstream repos merged; must be complete before T11        |
-| T11 | TODO   | Yank all versions of `torrust-tracker-located-error` on crates.io                                          | All versions yanked; T10 must be complete first                              |
-| T12 | TODO   | Update EPIC #1669 `Package Inventory` and `Desired Package State` tables                                   | Move `torrust-located-error` from `torrust-tracker-` to `torrust-` prefix    |
+| ID  | Status | Task                                                                                                       | Notes / Expected Output                                                     |
+| --- | ------ | ---------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| T1  | DONE   | Rename `name` in `packages/located-error/Cargo.toml`                                                       | `name = "torrust-located-error"`                                            |
+| T2  | N/A    | Update root `Cargo.toml` workspace dependency key                                                          | No workspace-level dep existed; all 5 packages reference the crate directly |
+| T3  | DONE   | Update all 5 dependent package `Cargo.toml` files (excluding root — see T2)                                | Replace `torrust-tracker-located-error` key with `torrust-located-error`    |
+| T4  | DONE   | Update Rust source `use` / path references (`torrust_tracker_located_error::` → `torrust_located_error::`) | Affects package sources and integration tests                               |
+| T5  | DONE   | Update prose in `packages/AGENTS.md`, `AGENTS.md`, `docs/packages.md`, `packages/located-error/README.md`  | Crate name and any inline code snippets                                     |
+| T6  | DONE   | Run `cargo build --workspace` and `cargo test --workspace`                                                 | Clean build and all tests pass                                              |
+| T7  | DONE   | Run `linter all`                                                                                           | Exit code `0`                                                               |
+| T8  | TODO   | Publish `torrust-located-error` on crates.io                                                               | Successful `cargo publish -p torrust-located-error`                         |
+| T9  | TODO   | Add deprecation notice to `torrust-tracker-located-error` on crates.io                                     | README / description points to `torrust-located-error`; do **not** yank yet |
+| T10 | TODO   | Check and migrate any downstream Torrust repositories using `torrust-tracker-located-error`                | Companion PRs in downstream repos merged; must be complete before T11       |
+| T11 | TODO   | Yank all versions of `torrust-tracker-located-error` on crates.io                                          | All versions yanked; T10 must be complete first                             |
+| T12 | TODO   | Update EPIC #1669 `Package Inventory` and `Desired Package State` tables                                   | Move `torrust-located-error` from `torrust-tracker-` to `torrust-` prefix   |
 
 **Dependent packages to update in T3** (5 files; root `Cargo.toml` is handled in T2):
 
@@ -200,12 +200,12 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 ### Workflow Checkpoints
 
-- [ ] Spec drafted in `docs/issues/drafts/`
-- [ ] Spec reviewed and approved by user/maintainer
-- [ ] GitHub issue created and issue number added to this spec
-- [ ] Spec moved to `docs/issues/open/` with issue number prefix
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, `cargo test --workspace`)
+- [x] Spec drafted in `docs/issues/drafts/`
+- [x] Spec reviewed and approved by user/maintainer
+- [x] GitHub issue created and issue number added to this spec
+- [x] Spec moved to `docs/issues/open/` with issue number prefix
+- [x] Implementation completed
+- [x] Automatic verification completed (`linter all`, `cargo test --workspace`)
 - [ ] Manual verification scenarios executed and recorded
 - [ ] Acceptance criteria reviewed after implementation and updated with evidence
 - [ ] `torrust-located-error` published on crates.io; deprecation notice added to old name
@@ -219,6 +219,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-05-15 12:00 UTC - josecelano - Spec drafted as subissue of EPIC #1669
 - 2026-05-21 17:00 UTC - josecelano - GitHub issue #1823 created and linked as sub-issue of #1669; spec moved to `docs/issues/open/`
 - 2026-05-21 17:15 UTC - josecelano - Added pre-implementation "Keep vs. Delete" analysis; awaiting reviewer decision before T1 starts
+- 2026-05-22 08:09 UTC - josecelano - Rename implemented: T1 (Cargo.toml name), T3 (5 dependent Cargo.toml dep keys), T4 (10 Rust source use statements), T5 (README, AGENTS.md, deployment.yaml, release_process.md, 2 skills); T2 is N/A (no workspace-level dep existed). T6 (`cargo build --workspace`, `cargo test --workspace`) and T7 (`linter all`) all pass. Draft PR #1824 open.
 
 ## Acceptance Criteria
 
@@ -252,9 +253,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
-| ID  | Scenario                              | Command / Steps                                                                                                | Expected Result                            | Status | Evidence |
-| --- | ------------------------------------- | -------------------------------------------------------------------------------------------------------------- | ------------------------------------------ | ------ | -------- |
-| M1  | No stale references to old crate name | `grep -r "torrust-tracker-located-error\|torrust_tracker_located_error" . --include="*.toml" --include="*.rs"` | Zero matches                               | TODO   |          |
-| M2  | New crate name visible on crates.io   | Visit `https://crates.io/crates/torrust-located-error`                                                         | Crate page exists and shows latest version | TODO   |          |
-| M3  | Old crate name yanked                 | Visit `https://crates.io/crates/torrust-tracker-located-error`                                                 | All versions show "yanked"                 | TODO   |          |
-| M4  | Downstream Torrust repositories clean | Check `torrust-index` and other Torrust repos for `torrust-tracker-located-error` dependency                   | No references found after T10              | TODO   |          |
+| ID  | Scenario                              | Command / Steps                                                                                                | Expected Result                            | Status | Evidence                          |
+| --- | ------------------------------------- | -------------------------------------------------------------------------------------------------------------- | ------------------------------------------ | ------ | --------------------------------- |
+| M1  | No stale references to old crate name | `grep -r "torrust-tracker-located-error\|torrust_tracker_located_error" . --include="*.toml" --include="*.rs"` | Zero matches                               | DONE   | Zero matches confirmed 2026-05-22 |
+| M2  | New crate name visible on crates.io   | Visit `https://crates.io/crates/torrust-located-error`                                                         | Crate page exists and shows latest version | TODO   |                                   |
+| M3  | Old crate name yanked                 | Visit `https://crates.io/crates/torrust-tracker-located-error`                                                 | All versions show "yanked"                 | TODO   |                                   |
+| M4  | Downstream Torrust repositories clean | Check `torrust-index` and other Torrust repos for `torrust-tracker-located-error` dependency                   | No references found after T10              | TODO   |                                   |

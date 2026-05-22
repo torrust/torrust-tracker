@@ -69,11 +69,11 @@ For errors that benefit from source location tracking, use the `located-error` p
 
 ```toml
 [dependencies]
-torrust-tracker-located-error = { workspace = true }
+torrust-located-error = { workspace = true }
 ```
 
 ```rust
-use torrust_tracker_located_error::Located;
+use torrust_located_error::Located;
 
 // Wraps any error with file and line information
 let err = Located(my_error).into();

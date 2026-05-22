@@ -50,7 +50,7 @@ use std::time::Duration;
 use thiserror::Error;
 use torrust_clock::DurationSinceUnixEpoch;
 use torrust_clock::clock::Time;
-use torrust_tracker_located_error::{DynError, LocatedError};
+use torrust_located_error::{DynError, LocatedError};
 
 use crate::CurrentClock;
 

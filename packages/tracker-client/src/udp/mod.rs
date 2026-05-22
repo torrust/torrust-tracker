@@ -3,7 +3,7 @@ use std::sync::Arc;
 
 use bittorrent_udp_tracker_protocol::Request;
 use thiserror::Error;
-use torrust_tracker_located_error::DynError;
+use torrust_located_error::DynError;
 
 pub mod client;
 

@@ -27,7 +27,7 @@ serde_bytes = "0"
 serde_repr = "0"
 thiserror = "2"
 tokio = { version = "1", features = [ "macros", "net", "rt-multi-thread", "signal", "sync" ] }
-torrust-tracker-located-error = { version = "3.0.0-develop", path = "../located-error" }
+torrust-located-error = { version = "3.0.0-develop", path = "../located-error" }
 torrust-net-primitives = { version = "3.0.0-develop", path = "../net-primitives" }
 torrust-tracker-primitives = { version = "3.0.0-develop", path = "../primitives" }
 tracing = "0"

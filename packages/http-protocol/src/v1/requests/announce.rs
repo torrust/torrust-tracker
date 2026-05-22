@@ -9,7 +9,7 @@ use std::str::FromStr;
 use bittorrent_primitives::info_hash::{self, InfoHash};
 use thiserror::Error;
 use torrust_clock::clock::Time;
-use torrust_tracker_located_error::{Located, LocatedError};
+use torrust_located_error::{Located, LocatedError};
 use torrust_tracker_primitives::{AnnounceEvent, NumberOfBytes, PeerId, peer};
 
 use crate::CurrentClock;
