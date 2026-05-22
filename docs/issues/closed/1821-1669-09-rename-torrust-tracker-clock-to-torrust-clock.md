@@ -1,10 +1,10 @@
 ---
 doc-type: issue
 issue-type: task
-status: open
+status: closed
 priority: p2
 github-issue: 1821
-spec-path: docs/issues/open/1821-1669-09-rename-torrust-tracker-clock-to-torrust-clock.md
+spec-path: docs/issues/closed/1821-1669-09-rename-torrust-tracker-clock-to-torrust-clock.md
 branch: 1821-rename-torrust-tracker-clock-to-torrust-clock
 related-pr: 1822
 last-updated-utc: 2026-05-21 16:00
