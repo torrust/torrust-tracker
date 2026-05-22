@@ -69,7 +69,7 @@ For errors that benefit from source location tracking, use the `located-error` p
 
 ```toml
 [dependencies]
-torrust-located-error = { workspace = true }
+torrust-located-error = { version = "3.0.0-develop", path = "../located-error" }
 ```
 
 ```rust
