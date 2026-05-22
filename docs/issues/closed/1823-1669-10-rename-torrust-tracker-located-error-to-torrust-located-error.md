@@ -1,10 +1,10 @@
 ---
 doc-type: issue
 issue-type: task
-status: open
+status: closed
 priority: p2
 github-issue: 1823
-spec-path: docs/issues/open/1823-1669-10-rename-torrust-tracker-located-error-to-torrust-located-error.md
+spec-path: docs/issues/closed/1823-1669-10-rename-torrust-tracker-located-error-to-torrust-located-error.md
 branch: 1823-rename-torrust-tracker-located-error-to-torrust-located-error
 related-pr: 1824
 last-updated-utc: 2026-05-22 08:09
