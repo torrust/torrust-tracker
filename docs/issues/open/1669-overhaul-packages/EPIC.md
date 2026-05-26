@@ -209,20 +209,20 @@ These packages will remain in the `torrust-tracker` workspace long-term.
 This section shows the final state directly. It keeps the current workspace packages and the
 packages that will be moved in, while distinguishing the two cases in the table.
 
-| Package status | Final crate name    | Folder                          | Source / change       | Notes |
-| -------------- | ------------------- | ------------------------------- | --------------------- | ----- |
-| Existing       | `torrust-bencode`   | `packages/bencode`              | Rename in destination | [1]   |
-| Existing       | `torrust-dht`       | `packages/dht`                  | Rename in destination |       |
-| Existing       | `torrust-disk`      | `packages/disk`                 | Rename in destination |       |
-| Existing       | `torrust-handshake` | `packages/handshake`            | Rename in destination |       |
-| Existing       | `torrust-magnet`    | `packages/magnet`               | Rename in destination |       |
-| Existing       | `torrust-metainfo`  | `packages/metainfo`             | Rename in destination |       |
-| Existing       | `torrust-peer`      | `packages/peer`                 | Rename in destination |       |
-| Existing       | `torrust-select`    | `packages/select`               | Rename in destination |       |
-| Existing       | `torrust-util`      | `packages/util`                 | Rename in destination | [2]   |
-| Incoming       | `torrust-bencode`   | `contrib/bencode`               | SI-12                 | [3]   |
-| Incoming       | `torrust-peer-id`   | `packages/peer-id`              | Move from tracker     | [4]   |
-| Incoming       | `torrust-infohash`  | `torrust/bittorrent-primitives` | Replace old copy      | [5]   |
+| Package status | Final crate name    | Folder               | Source / change       | Notes |
+| -------------- | ------------------- | -------------------- | --------------------- | ----- |
+| Existing       | `torrust-bencode`   | `packages/bencode`   | Rename in destination | [1]   |
+| Existing       | `torrust-dht`       | `packages/dht`       | Rename in destination |       |
+| Existing       | `torrust-disk`      | `packages/disk`      | Rename in destination |       |
+| Existing       | `torrust-handshake` | `packages/handshake` | Rename in destination |       |
+| Existing       | `torrust-magnet`    | `packages/magnet`    | Rename in destination |       |
+| Existing       | `torrust-metainfo`  | `packages/metainfo`  | Rename in destination |       |
+| Existing       | `torrust-peer`      | `packages/peer`      | Rename in destination |       |
+| Existing       | `torrust-select`    | `packages/select`    | Rename in destination |       |
+| Existing       | `torrust-util`      | `packages/util`      | Rename in destination | [2]   |
+| Incoming       | `torrust-bencode`   | `packages/bencode`   | SI-12                 | [3]   |
+| Incoming       | `torrust-peer-id`   | `packages/peer-id`   | Move from tracker     | [4]   |
+| Incoming       | `torrust-infohash`  | `packages/infohash`  | Replace old copy      | [5]   |
 
 Notes:
 
