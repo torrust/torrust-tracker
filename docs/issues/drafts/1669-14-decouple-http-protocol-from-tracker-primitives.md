@@ -37,6 +37,16 @@ subissues SI-12 and SI-13.
 
 This is a subissue of EPIC [#1669](../open/1669-overhaul-packages/EPIC.md).
 
+## Design Decision (Scope Clarification)
+
+This subissue follows DEC-06 from
+[`docs/issues/open/1669-overhaul-packages/DECISIONS.md`](../open/1669-overhaul-packages/DECISIONS.md):
+
+- Alternative considered: move `torrust_tracker_primitives::AnnounceEvent` to a
+  new shared protocol package.
+- Adopted approach: keep domain `AnnounceEvent` in primitives, keep protocol
+  event types local to protocol crates, and map at boundary layers.
+
 ## Layer Impact Summary
 
 Current edge:
@@ -86,20 +96,22 @@ Symbol-level usage inside protocol:
 - Decoupling `http-protocol` from `udp-protocol` (covered in SI-13).
 - BEP behavior changes.
 - Broader tracker-wide domain type redesign outside this boundary.
+- Moving `torrust_tracker_primitives::AnnounceEvent` to a new shared package.
 
 ## Implementation Plan
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| ID  | Status | Task                                                                                                  | Notes / Expected Output                                                  |
-| --- | ------ | ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
-| T1  | TODO   | Confirm all `torrust-tracker-primitives` usages in `http-protocol` and document symbol-level evidence | Evidence captured in PR description                                      |
-| T2  | TODO   | Remove direct primitive conversion impls from `packages/http-protocol/src/v1/requests/announce.rs`    | No direct `torrust_tracker_primitives::` references remain in source     |
-| T3  | TODO   | Remove `torrust-tracker-primitives` from `packages/http-protocol/Cargo.toml`                          | `cargo tree -p bittorrent-http-tracker-protocol --depth 1` shows no edge |
-| T4  | TODO   | Add/adjust mapping in higher layers (`http-tracker-core` and/or `axum-http-tracker-server`)           | Event behavior remains equivalent                                        |
-| T5  | TODO   | Update tests and fixtures                                                                             | Tests compile and pass without direct protocol->domain coupling          |
-| T6  | TODO   | Run verification commands                                                                             | Build/tests/lints pass                                                   |
-| T7  | TODO   | Update EPIC tracking rows and draft list as needed                                                    | Active Subissues remain consistent                                       |
+| ID  | Status | Task                                                                                                  | Notes / Expected Output                                                                                                                  |
+| --- | ------ | ----------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| T1  | TODO   | Confirm all `torrust-tracker-primitives` usages in `http-protocol` and document symbol-level evidence | Evidence captured in PR description                                                                                                      |
+| T2  | TODO   | Remove direct primitive conversion impls from `packages/http-protocol/src/v1/requests/announce.rs`    | No direct `torrust_tracker_primitives::` references remain in source                                                                     |
+| T3  | TODO   | Remove `torrust-tracker-primitives` from `packages/http-protocol/Cargo.toml`                          | `cargo tree -p bittorrent-http-tracker-protocol --depth 1` shows no edge                                                                 |
+| T4  | TODO   | Add/adjust mapping in higher layers (`http-tracker-core` and/or `axum-http-tracker-server`)           | Event behavior remains equivalent                                                                                                        |
+| T5  | TODO   | Update tests and fixtures                                                                             | Tests compile and pass without direct protocol->domain coupling                                                                          |
+| T6  | TODO   | Run verification commands                                                                             | Build/tests/lints pass                                                                                                                   |
+| T7  | TODO   | Update EPIC tracking rows and draft list as needed                                                    | Active Subissues remain consistent                                                                                                       |
+| T8  | TODO   | Update EPIC after implementation                                                                      | Update Active Subissues progress and EPIC sections: Package Inventory, Desired Package State, Torrust Dependency Lists (Direct, Non-dev) |
 
 ## Acceptance Criteria
 

@@ -20,6 +20,43 @@ the proposal, the reasoning, and a reference to any supporting artifact.
 
 ---
 
+## DEC-06 - Keep domain AnnounceEvent in primitives; map at boundaries
+
+**Date**: 2026-05-26
+**Status**: Adopted
+
+### Proposal considered
+
+Move `torrust_tracker_primitives::AnnounceEvent` to a new shared package for
+protocol-facing event types, then reuse that type in both HTTP and UDP protocol
+crates.
+
+### Alternative chosen
+
+Keep `torrust_tracker_primitives::AnnounceEvent` in the domain primitives
+package, keep protocol-local event types inside each protocol crate, and perform
+protocol-to-domain mapping only in boundary layers (`http-tracker-core` and/or
+`axum-http-tracker-server`).
+
+### Why this alternative was adopted
+
+1. **Layer clarity**: protocol crates should expose protocol DTOs/types, while
+   domain event types stay in domain primitives.
+2. **Smaller change scope**: SI-14 is a focused decoupling task; moving the
+   domain type itself is broader redesign work.
+3. **Current code reality**: UDP protocol already has its own announce event
+   type; HTTP can follow the same protocol-local pattern.
+4. **Lower migration risk**: `torrust_tracker_primitives::AnnounceEvent` is
+   heavily used by tracker-core/domain code, so relocating it now would create a
+   large compatibility and migration surface.
+
+### Supporting artifacts
+
+- [EPIC.md](EPIC.md) Layer guardrails and Active Subissues
+- [1669-14-decouple-http-protocol-from-tracker-primitives.md](../../drafts/1669-14-decouple-http-protocol-from-tracker-primitives.md)
+
+---
+
 ## DEC-05 — Keep protocol and tracker-core crates in tracker workspace for now
 
 **Date**: 2026-05-26

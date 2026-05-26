@@ -103,14 +103,15 @@ Additional context:
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| ID  | Status | Task                                                                                                   | Notes / Expected Output                                                               |
-| --- | ------ | ------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------- |
-| T1  | TODO   | Confirm all UDP protocol usage in `http-protocol` is limited to one conversion impl                    | Evidence recorded in PR description                                                   |
-| T2  | TODO   | Remove UDP `AnnounceEvent` conversion impl from `packages/http-protocol/src/v1/requests/announce.rs`   | No direct references to `bittorrent_udp_tracker_protocol::` remain                    |
-| T3  | TODO   | Remove `bittorrent-udp-tracker-protocol` from `packages/http-protocol/Cargo.toml`                      | `cargo tree -p bittorrent-http-tracker-protocol --depth 1` shows no UDP protocol edge |
-| T4  | TODO   | Update tests to use supported conversion paths (`Event <-> torrust-tracker-primitives::AnnounceEvent`) | Tests compile and pass without UDP protocol types                                     |
-| T5  | TODO   | Run verification commands                                                                              | Build/tests/lints pass                                                                |
-| T6  | TODO   | Update EPIC tracking rows and draft list as needed                                                     | Active Subissues remain consistent                                                    |
+| ID  | Status | Task                                                                                                   | Notes / Expected Output                                                                                                                  |
+| --- | ------ | ------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| T1  | TODO   | Confirm all UDP protocol usage in `http-protocol` is limited to one conversion impl                    | Evidence recorded in PR description                                                                                                      |
+| T2  | TODO   | Remove UDP `AnnounceEvent` conversion impl from `packages/http-protocol/src/v1/requests/announce.rs`   | No direct references to `bittorrent_udp_tracker_protocol::` remain                                                                       |
+| T3  | TODO   | Remove `bittorrent-udp-tracker-protocol` from `packages/http-protocol/Cargo.toml`                      | `cargo tree -p bittorrent-http-tracker-protocol --depth 1` shows no UDP protocol edge                                                    |
+| T4  | TODO   | Update tests to use supported conversion paths (`Event <-> torrust-tracker-primitives::AnnounceEvent`) | Tests compile and pass without UDP protocol types                                                                                        |
+| T5  | TODO   | Run verification commands                                                                              | Build/tests/lints pass                                                                                                                   |
+| T6  | TODO   | Update EPIC tracking rows and draft list as needed                                                     | Active Subissues remain consistent                                                                                                       |
+| T7  | TODO   | Update EPIC after implementation                                                                       | Update Active Subissues progress and EPIC sections: Package Inventory, Desired Package State, Torrust Dependency Lists (Direct, Non-dev) |
 
 ## Acceptance Criteria
 
