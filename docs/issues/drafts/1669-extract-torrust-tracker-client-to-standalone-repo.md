@@ -4,7 +4,7 @@ issue-type: task
 status: draft
 priority: p2
 github-issue: null
-spec-path: docs/issues/drafts/1669-15-extract-torrust-tracker-client-to-standalone-repo.md
+spec-path: docs/issues/drafts/1669-extract-torrust-tracker-client-to-standalone-repo.md
 branch: null
 related-pr: null
 last-updated-utc: 2026-05-15 12:00

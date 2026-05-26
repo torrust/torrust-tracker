@@ -4,7 +4,7 @@ issue-type: task
 status: draft
 priority: p3
 github-issue: null
-spec-path: docs/issues/drafts/1669-11-update-all-package-readmes.md
+spec-path: docs/issues/drafts/1669-update-all-package-readmes.md
 branch: null
 related-pr: null
 last-updated-utc: 2026-05-18 00:00
