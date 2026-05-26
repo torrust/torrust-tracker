@@ -65,9 +65,9 @@ This issue is a subissue of EPIC [#1669](../open/1669-overhaul-packages/EPIC.md)
 ### Prerequisites
 
 - SI-07 (align `torrust-` prefix rename) complete
-- SI-08 (rename `torrust-tracker-metrics`) complete
-- SI-09 (rename `torrust-tracker-clock`) complete
-- SI-10 (rename `torrust-tracker-located-error`) complete
+- SI-08 (rename to `torrust-metrics`) complete
+- SI-09 (rename to `torrust-clock`) complete
+- SI-10 (rename to `torrust-located-error`) complete
 
 ## Implementation Plan
 

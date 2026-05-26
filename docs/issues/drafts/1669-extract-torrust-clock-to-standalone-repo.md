@@ -17,8 +17,8 @@ semantic-links:
     - docs/packages.md
     - AGENTS.md
     - docs/issues/open/1669-overhaul-packages/EPIC.md
-    - docs/issues/drafts/1669-09-rename-torrust-tracker-clock-to-torrust-clock.md
-    - docs/issues/drafts/1669-02-move-duration-since-unix-epoch-to-torrust-clock.md
+    - docs/issues/closed/1821-1669-09-rename-torrust-tracker-clock-to-torrust-clock.md
+    - docs/issues/closed/1790-move-duration-since-unix-epoch-to-torrust-tracker-clock.md
 ---
 
 <!-- skill-link: create-issue -->
@@ -47,10 +47,10 @@ deps (`chrono`, `tracing`) are published crates. Extraction is therefore unblock
 **Prerequisites**:
 
 1. Clock rename subissue
-   ([1669-09-rename-torrust-tracker-clock-to-torrust-clock.md](1669-09-rename-torrust-tracker-clock-to-torrust-clock.md))
+   ([1821-1669-09-rename-torrust-tracker-clock-to-torrust-clock.md](../closed/1821-1669-09-rename-torrust-tracker-clock-to-torrust-clock.md))
    must be complete — in particular T8 (publish `torrust-clock` on crates.io).
 2. `DurationSinceUnixEpoch` move subissue
-   ([1669-02-move-duration-since-unix-epoch-to-torrust-clock.md](1669-02-move-duration-since-unix-epoch-to-torrust-clock.md))
+   ([1790-move-duration-since-unix-epoch-to-torrust-tracker-clock.md](../closed/1790-move-duration-since-unix-epoch-to-torrust-tracker-clock.md))
    must be complete — in particular T4 (`torrust-tracker-primitives` dep removed from
    `packages/clock/Cargo.toml`).
 
@@ -101,21 +101,21 @@ crates.io version dep:
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| ID  | Status  | Task                                                                                                   | Notes / Expected Output                                                        |
-| --- | ------- | ------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------ |
-| T1  | BLOCKED | Confirm clock rename is complete (T8 of rename spec: `torrust-clock` published on crates.io)           | `packages/clock/Cargo.toml` has `name = "torrust-clock"`                       |
-| T2  | BLOCKED | Confirm `DurationSinceUnixEpoch` move is complete (T4 of move spec: primitives dep removed from clock) | `packages/clock/Cargo.toml` does not list `torrust-tracker-primitives`         |
-| T3  | TODO    | Create standalone repository `torrust/torrust-clock`                                                   | Empty repo with license and basic README                                       |
-| T4  | TODO    | Move `packages/clock/` to the new repository, preserving git history (`git filter-repo`)               | New repo contains full history for `packages/clock/`                           |
-| T5  | TODO    | Verify standalone repository: `cargo build` and `cargo test` pass with no path deps                    | Clean build in the new repo; Cargo.toml has only external (non-path) deps      |
-| T6  | TODO    | Set up CI in the new repository                                                                        | Copy/adapt relevant GitHub Actions workflows; CI passes                        |
-| T7  | TODO    | Update all 11 workspace consumers (see list above): path dep → crates.io version dep                   | `torrust-clock = "X.Y.Z"` (or workspace dep) in each Cargo.toml                |
-| T8  | TODO    | Remove `packages/clock` entry from workspace `members` in root `Cargo.toml`                            | `packages/clock` absent from `[workspace]` members list                        |
-| T9  | TODO    | Delete `packages/clock/` directory from the tracker repository                                         | Directory removed; `git status` shows deletions                                |
-| T10 | TODO    | Update `packages/AGENTS.md`, `AGENTS.md`, `docs/packages.md`                                           | `torrust-clock` moved to an "Extracted packages" section                       |
-| T11 | TODO    | Run `cargo build --workspace` and `cargo test --workspace`                                             | Clean build and all tests pass                                                 |
-| T12 | TODO    | Run `linter all`                                                                                       | Exit code `0`                                                                  |
-| T13 | TODO    | Update EPIC #1669 tables                                                                               | Package inventory and desired state tables updated; subissue row set to `DONE` |
+| ID  | Status | Task                                                                                             | Notes / Expected Output                                                        |
+| --- | ------ | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------ |
+| T1  | TODO   | Verify clock rename completion state (T8 of rename spec: `torrust-clock` published on crates.io) | `packages/clock/Cargo.toml` has `name = "torrust-clock"`                       |
+| T2  | TODO   | Verify `DurationSinceUnixEpoch` move completion state (T4 of move spec)                          | `packages/clock/Cargo.toml` does not list `torrust-tracker-primitives`         |
+| T3  | TODO   | Create standalone repository `torrust/torrust-clock`                                             | Empty repo with license and basic README                                       |
+| T4  | TODO   | Move `packages/clock/` to the new repository, preserving git history (`git filter-repo`)         | New repo contains full history for `packages/clock/`                           |
+| T5  | TODO   | Verify standalone repository: `cargo build` and `cargo test` pass with no path deps              | Clean build in the new repo; Cargo.toml has only external (non-path) deps      |
+| T6  | TODO   | Set up CI in the new repository                                                                  | Copy/adapt relevant GitHub Actions workflows; CI passes                        |
+| T7  | TODO   | Update all 11 workspace consumers (see list above): path dep → crates.io version dep             | `torrust-clock = "X.Y.Z"` (or workspace dep) in each Cargo.toml                |
+| T8  | TODO   | Remove `packages/clock` entry from workspace `members` in root `Cargo.toml`                      | `packages/clock` absent from `[workspace]` members list                        |
+| T9  | TODO   | Delete `packages/clock/` directory from the tracker repository                                   | Directory removed; `git status` shows deletions                                |
+| T10 | TODO   | Update `packages/AGENTS.md`, `AGENTS.md`, `docs/packages.md`                                     | `torrust-clock` moved to an "Extracted packages" section                       |
+| T11 | TODO   | Run `cargo build --workspace` and `cargo test --workspace`                                       | Clean build and all tests pass                                                 |
+| T12 | TODO   | Run `linter all`                                                                                 | Exit code `0`                                                                  |
+| T13 | TODO   | Update EPIC #1669 tables                                                                         | Package inventory and desired state tables updated; subissue row set to `DONE` |
 
 ## Progress Tracking
 

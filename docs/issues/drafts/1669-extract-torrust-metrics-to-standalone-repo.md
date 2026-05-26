@@ -17,7 +17,7 @@ semantic-links:
     - docs/packages.md
     - AGENTS.md
     - docs/issues/open/1669-overhaul-packages/EPIC.md
-    - docs/issues/drafts/1669-08-rename-torrust-tracker-metrics-to-torrust-metrics.md
+    - docs/issues/closed/1819-1669-08-rename-torrust-tracker-metrics-to-torrust-metrics.md
 ---
 
 <!-- skill-link: create-issue -->
@@ -33,19 +33,19 @@ of the tracker.
 ## Background
 
 The `torrust-metrics` package provides Prometheus metrics integration types for the
-tracker. Its only workspace-path dependency is `torrust-tracker-primitives`, which is
-already published on crates.io. After the `torrust-tracker-metrics` → `torrust-metrics`
-rename (SI-08), extraction is unblocked. Publishing the renamed crate on crates.io is
-the first technical step of the extraction itself (T1b), following the project policy of
-deferring publication as late as possible.
+tracker. Its relevant internal dependency is `torrust-clock`, which is already published
+on crates.io. After the `torrust-tracker-metrics` -> `torrust-metrics` rename (SI-08),
+extraction is unblocked. Publishing the renamed crate on crates.io is the first technical
+step of the extraction itself (T1b), following the project policy of deferring publication
+as late as possible.
 
 The rename subissue
-([1669-08-rename-torrust-tracker-metrics-to-torrust-metrics.md](1669-08-rename-torrust-tracker-metrics-to-torrust-metrics.md))
+([1819-1669-08-rename-torrust-tracker-metrics-to-torrust-metrics.md](../closed/1819-1669-08-rename-torrust-tracker-metrics-to-torrust-metrics.md))
 must be complete before this subissue begins. Publishing `torrust-metrics` on crates.io
 is deferred to this subissue (T1b).
 
 **Prerequisite**: Metrics rename subissue
-([1669-08-rename-torrust-tracker-metrics-to-torrust-metrics.md](1669-08-rename-torrust-tracker-metrics-to-torrust-metrics.md))
+([1819-1669-08-rename-torrust-tracker-metrics-to-torrust-metrics.md](../closed/1819-1669-08-rename-torrust-tracker-metrics-to-torrust-metrics.md))
 complete (SI-08 all tasks done).
 
 This issue is a subissue of EPIC [#1669](../open/1669-overhaul-packages/EPIC.md)
@@ -91,23 +91,23 @@ a crates.io version dep (root `Cargo.toml` is handled in T8):
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| ID  | Status  | Task                                                                                           | Notes / Expected Output                                                                |
-| --- | ------- | ---------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
-| T1  | BLOCKED | Confirm metrics rename (SI-08) is complete                                                     | `packages/metrics/Cargo.toml` has `name = "torrust-metrics"`                           |
-| T1b | TODO    | Publish `torrust-metrics` on crates.io                                                         | Successful `cargo publish -p torrust-metrics`; crates.io page exists                   |
-| T2  | TODO    | Create standalone repository `torrust/torrust-metrics`                                         | Empty repo with license and basic README                                               |
-| T3  | TODO    | Move `packages/metrics/` to the new repository, preserving git history (`git filter-repo`)     | New repo contains full history for `packages/metrics/`                                 |
-| T4  | TODO    | In the new repo: update `torrust-tracker-primitives` dep to use crates.io version (not path)   | `torrust-tracker-primitives = "X.Y.Z"` (published version); no path deps in Cargo.toml |
-| T5  | TODO    | Verify standalone repository: `cargo build` and `cargo test` pass with no path deps            | Clean build in the new repo                                                            |
-| T6  | TODO    | Set up CI in the new repository                                                                | Copy/adapt relevant GitHub Actions workflows; CI passes                                |
-| T7  | TODO    | Update all 7 workspace consumers (see list above): path dep → crates.io version dep            | `torrust-metrics = "X.Y.Z"` (or workspace dep) in each Cargo.toml                      |
-| T8  | TODO    | Update root `Cargo.toml` workspace dep registration for `torrust-metrics` to crates.io version | No `path = "packages/metrics"` in root `[workspace.dependencies]`                      |
-| T9  | TODO    | Remove `packages/metrics` entry from workspace `members` in root `Cargo.toml`                  | `packages/metrics` absent from `[workspace]` members list                              |
-| T10 | TODO    | Delete `packages/metrics/` directory from the tracker repository                               | Directory removed; `git status` shows deletions                                        |
-| T11 | TODO    | Update `packages/AGENTS.md`, `AGENTS.md`, `docs/packages.md`                                   | `torrust-metrics` moved to an "Extracted packages" section                             |
-| T12 | TODO    | Run `cargo build --workspace` and `cargo test --workspace`                                     | Clean build and all tests pass                                                         |
-| T13 | TODO    | Run `linter all`                                                                               | Exit code `0`                                                                          |
-| T14 | TODO    | Update EPIC #1669 tables                                                                       | Package inventory and desired state tables updated; subissue row set to `DONE`         |
+| ID  | Status | Task                                                                                           | Notes / Expected Output                                                        |
+| --- | ------ | ---------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| T1  | TODO   | Verify metrics rename completion state (SI-08)                                                 | `packages/metrics/Cargo.toml` has `name = "torrust-metrics"`                   |
+| T1b | TODO   | Publish `torrust-metrics` on crates.io                                                         | Successful `cargo publish -p torrust-metrics`; crates.io page exists           |
+| T2  | TODO   | Create standalone repository `torrust/torrust-metrics`                                         | Empty repo with license and basic README                                       |
+| T3  | TODO   | Move `packages/metrics/` to the new repository, preserving git history (`git filter-repo`)     | New repo contains full history for `packages/metrics/`                         |
+| T4  | TODO   | In the new repo: update `torrust-clock` dep to use crates.io version (not path)                | `torrust-clock = "X.Y.Z"` (published version); no path deps in Cargo.toml      |
+| T5  | TODO   | Verify standalone repository: `cargo build` and `cargo test` pass with no path deps            | Clean build in the new repo                                                    |
+| T6  | TODO   | Set up CI in the new repository                                                                | Copy/adapt relevant GitHub Actions workflows; CI passes                        |
+| T7  | TODO   | Update all 7 workspace consumers (see list above): path dep → crates.io version dep            | `torrust-metrics = "X.Y.Z"` (or workspace dep) in each Cargo.toml              |
+| T8  | TODO   | Update root `Cargo.toml` workspace dep registration for `torrust-metrics` to crates.io version | No `path = "packages/metrics"` in root `[workspace.dependencies]`              |
+| T9  | TODO   | Remove `packages/metrics` entry from workspace `members` in root `Cargo.toml`                  | `packages/metrics` absent from `[workspace]` members list                      |
+| T10 | TODO   | Delete `packages/metrics/` directory from the tracker repository                               | Directory removed; `git status` shows deletions                                |
+| T11 | TODO   | Update `packages/AGENTS.md`, `AGENTS.md`, `docs/packages.md`                                   | `torrust-metrics` moved to an "Extracted packages" section                     |
+| T12 | TODO   | Run `cargo build --workspace` and `cargo test --workspace`                                     | Clean build and all tests pass                                                 |
+| T13 | TODO   | Run `linter all`                                                                               | Exit code `0`                                                                  |
+| T14 | TODO   | Update EPIC #1669 tables                                                                       | Package inventory and desired state tables updated; subissue row set to `DONE` |
 
 ## Progress Tracking
 
