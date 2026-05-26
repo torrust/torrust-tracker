@@ -1,10 +1,10 @@
 ---
 doc-type: issue
 issue-type: task
-status: draft
+status: open
 priority: p1
-github-issue: null
-spec-path: docs/issues/drafts/1669-12-decouple-http-protocol-from-tracker-core.md
+github-issue: 1830
+spec-path: docs/issues/open/1830-1669-12-decouple-http-protocol-from-tracker-core.md
 branch: null
 related-pr: null
 last-updated-utc: 2026-05-26 00:00
@@ -23,7 +23,7 @@ semantic-links:
 
 <!-- skill-link: create-issue -->
 
-# Issue #[To be assigned] - Decouple `http-protocol` from `tracker-core`
+# Issue #1830 - Decouple `http-protocol` from `tracker-core`
 
 Subissue ID: SI-12 (1669-12).
 
@@ -37,7 +37,7 @@ This draft is intentionally the first step of a two-step cleanup strategy:
 1. Remove forbidden dependency edges with minimal behavior change.
 2. Follow with explicit protocol-vs-domain type separation where needed.
 
-This is a subissue of EPIC [#1669](../open/1669-overhaul-packages/EPIC.md).
+This is a subissue of EPIC [#1669](1669-overhaul-packages/EPIC.md).
 
 ## Layer Impact Summary
 
@@ -160,7 +160,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 ## References
 
-- EPIC: [docs/issues/open/1669-overhaul-packages/EPIC.md](../open/1669-overhaul-packages/EPIC.md)
+- EPIC: [docs/issues/open/1669-overhaul-packages/EPIC.md](1669-overhaul-packages/EPIC.md)
 - Protocol error mapping: [packages/http-protocol/src/v1/responses/error.rs](../../packages/http-protocol/src/v1/responses/error.rs)
 - HTTP core announce service: [packages/http-tracker-core/src/services/announce.rs](../../packages/http-tracker-core/src/services/announce.rs)
 - HTTP core scrape service: [packages/http-tracker-core/src/services/scrape.rs](../../packages/http-tracker-core/src/services/scrape.rs)

@@ -1,10 +1,10 @@
 ---
 doc-type: issue
 issue-type: task
-status: draft
+status: open
 priority: p2
-github-issue: null
-spec-path: docs/issues/drafts/1669-11-rename-crates-and-folders-to-match-desired-tracker-workspace.md
+github-issue: 1829
+spec-path: docs/issues/open/1829-1669-11-rename-crates-and-folders-to-match-desired-tracker-workspace.md
 branch: null
 related-pr: null
 last-updated-utc: 2026-05-26 00:00
@@ -21,7 +21,7 @@ semantic-links:
 
 <!-- skill-link: create-issue -->
 
-# Issue #[To be assigned] - Rename crates and folders to match EPIC desired tracker workspace state
+# Issue #1829 - Rename crates and folders to match EPIC desired tracker workspace state
 
 Subissue ID: SI-11 (1669-11).
 
@@ -51,7 +51,7 @@ Important constraint from EPIC discussion:
 - The packages touched in this issue are unpublished, so there is no external crates.io
   migration window required.
 
-This issue is a subissue of EPIC [#1669](../open/1669-overhaul-packages/EPIC.md)
+This issue is a subissue of EPIC [#1669](1669-overhaul-packages/EPIC.md)
 (Overhaul: Packages).
 
 ## Scope
@@ -134,10 +134,10 @@ Do not batch multiple package renames in a single PR unless explicitly approved.
 
 ### Workflow Checkpoints
 
-- [ ] Spec drafted in `docs/issues/drafts/`
+- [x] Spec drafted in `docs/issues/drafts/`
 - [ ] Spec reviewed and approved by user/maintainer
-- [ ] GitHub issue created and issue number added to this spec
-- [ ] Spec moved to `docs/issues/open/` with issue number prefix
+- [x] GitHub issue created and issue number added to this spec
+- [x] Spec moved to `docs/issues/open/` with issue number prefix
 - [ ] Package-by-package PR sequence executed (T2-T12)
 - [ ] Final docs synchronization completed (T13)
 - [ ] Automatic verification completed (T14)
@@ -148,6 +148,7 @@ Do not batch multiple package renames in a single PR unless explicitly approved.
 ### Progress Log
 
 - 2026-05-26 00:00 UTC - josecelano - Drafted package-by-package rename plan for crate names and folder names.
+- 2026-05-26 00:00 UTC - josecelano - GitHub issue #1829 created; spec moved to `docs/issues/open/` and metadata updated.
 
 ## Acceptance Criteria
 
@@ -185,5 +186,5 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 ## References
 
-- EPIC spec: [docs/issues/open/1669-overhaul-packages/EPIC.md](../open/1669-overhaul-packages/EPIC.md)
-- Decisions log: [docs/issues/open/1669-overhaul-packages/DECISIONS.md](../open/1669-overhaul-packages/DECISIONS.md)
+- EPIC spec: [docs/issues/open/1669-overhaul-packages/EPIC.md](1669-overhaul-packages/EPIC.md)
+- Decisions log: [docs/issues/open/1669-overhaul-packages/DECISIONS.md](1669-overhaul-packages/DECISIONS.md)
