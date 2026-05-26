@@ -137,11 +137,16 @@ This section captures the target package structure as decisions are made. It is 
 progressively — it does **not** represent a complete end-state plan, only the changes that
 have been agreed so far.
 
-Each table shows the **final crate name** in its **correct prefix group** after all planned
-changes. Where a package moves from one prefix group to another, it appears only in the
-destination group with a "Renamed from …" note.
+Each table shows the **final crate name** after all planned changes. Packages are grouped by
+destination: those remaining in this workspace, those migrating to
+[`torrust/torrust-bittorrent`](https://github.com/torrust/torrust-bittorrent), and those
+moving to their own standalone repository.
 
-### `torrust-` prefix (non-`torrust-tracker-`)
+### Packages remaining in this workspace
+
+These packages will remain in the `torrust-tracker` workspace long-term.
+
+#### `torrust-` prefix
 
 | Published on crates.io | Crate Name               | Folder           | Change                                               |
 | ---------------------- | ------------------------ | ---------------- | ---------------------------------------------------- |
@@ -150,7 +155,7 @@ destination group with a "Renamed from …" note.
 | Yes                    | `torrust-net-primitives` | `net-primitives` | New package (created by SI-05)                       |
 | No                     | `torrust-metrics`        | `metrics`        | —                                                    |
 
-### `torrust-tracker-` prefix
+#### `torrust-tracker-` prefix
 
 | Published on crates.io | Crate Name                                        | Folder                            | Change |
 | ---------------------- | ------------------------------------------------- | --------------------------------- | ------ |
@@ -170,37 +175,39 @@ destination group with a "Renamed from …" note.
 
 > **Note on `torrust-tracker-axum-server`**: This package is classified as `torrust-tracker-` because `tsl.rs` imports `TslConfig` from `torrust-tracker-configuration` and `LocatedError`/`DynError` from `torrust-tracker-located-error`. Both dependencies are temporary: `TslConfig` is a small two-field struct with no tracker-specific logic that could be moved to a generic package, and `torrust-tracker-located-error` will be renamed to `torrust-located-error` (SI-10). Once those changes land the package could move to the `torrust-` group as a generic `torrust-axum-server` reusable across the Torrust organisation. A near-identical module already exists in [torrust-index](https://github.com/torrust/torrust-index/blob/develop/src/web/api/server/custom_axum.rs).
 
-### `bittorrent-` prefix
+#### `bittorrent-` prefix
 
-| Published on crates.io | Crate Name                         | Folder              | Change |
-| ---------------------- | ---------------------------------- | ------------------- | ------ |
-| No                     | `bittorrent-http-tracker-core`     | `http-tracker-core` | —      |
-| No                     | `bittorrent-http-tracker-protocol` | `http-protocol`     | —      |
-| No                     | `bittorrent-peer-id`               | `peer-id`           | —      |
-| No                     | `bittorrent-tracker-client`        | `tracker-client`    | —      |
-| No                     | `bittorrent-tracker-core`          | `tracker-core`      | —      |
-| No                     | `bittorrent-udp-tracker-core`      | `udp-tracker-core`  | —      |
-| No                     | `bittorrent-udp-tracker-protocol`  | `udp-protocol`      | —      |
+| Published on crates.io | Crate Name                     | Folder              | Change |
+| ---------------------- | ------------------------------ | ------------------- | ------ |
+| No                     | `bittorrent-http-tracker-core` | `http-tracker-core` | —      |
+| No                     | `bittorrent-tracker-client`    | `tracker-client`    | —      |
+| No                     | `bittorrent-udp-tracker-core`  | `udp-tracker-core`  | —      |
 
-### Planned for extraction from workspace
+### Packages moving to `torrust/torrust-bittorrent`
 
-These packages are not yet extracted. The table describes the target end state once
-the corresponding subissues are complete.
+These packages are planned for extraction from this workspace into
+[`torrust/torrust-bittorrent`](https://github.com/torrust/torrust-bittorrent). That workspace
+currently contains: `bencode`, `dht`, `disk`, `handshake`, `magnet`, `metainfo`, `peer`,
+`select`, `util`.
 
-Extraction destinations:
+| Final crate name                   | Extracted from                  | Blocked by                                                                                                                                                   | Notes                                                                 |
+| ---------------------------------- | ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------- |
+| `bittorrent-peer-id`               | `packages/peer-id`              | —                                                                                                                                                            | No workspace deps; first in the `bittorrent-*` extraction sequence    |
+| `bittorrent-udp-tracker-protocol`  | `packages/udp-protocol`         | `bittorrent-peer-id` publication                                                                                                                             |                                                                       |
+| `bittorrent-http-tracker-protocol` | `packages/http-protocol`        | `bittorrent-udp-tracker-protocol` and `bittorrent-tracker-core` publication                                                                                  |                                                                       |
+| `bittorrent-tracker-core`          | `packages/tracker-core`         | Deep dep chain; requires `torrust-tracker-events`, `torrust-metrics`, `swarm-coordination-registry`, `torrust-tracker-rest-api-client` to be published first |                                                                       |
+| _(new package for `InfoHash`)_     | `torrust/bittorrent-primitives` | —                                                                                                                                                            | Migrate `InfoHash` here; then archive `torrust/bittorrent-primitives` |
 
-- **Own repo** — a brand-new standalone repository under the Torrust organisation.
-- **`torrust-bittorrent`** — added as a new package inside <https://github.com/torrust/torrust-bittorrent>.
+### Packages moving to standalone repositories
 
-| Final crate name                   | Extracted from                    | Destination          | Notes                                                                                                                                                        |
-| ---------------------------------- | --------------------------------- | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `torrust-bencode`                  | `torrust-tracker-contrib-bencode` | Own repo             | Apache-2.0; one remaining consumer in tracker                                                                                                                |
-| `torrust-tracker-client`           | `torrust-tracker-client`          | Own repo             | Standalone CLI tool; LGPL-3.0; blocked by `bittorrent-*` publication                                                                                         |
-| `bittorrent-peer-id`               | `packages/peer-id`                | `torrust-bittorrent` | No workspace deps; first in the `bittorrent-*` extraction sequence                                                                                           |
-| `bittorrent-udp-tracker-protocol`  | `packages/udp-protocol`           | `torrust-bittorrent` | Blocked by `bittorrent-peer-id` publication                                                                                                                  |
-| `bittorrent-http-tracker-protocol` | `packages/http-protocol`          | `torrust-bittorrent` | Blocked by `bittorrent-udp-tracker-protocol` and `bittorrent-tracker-core` publication                                                                       |
-| `bittorrent-tracker-core`          | `packages/tracker-core`           | `torrust-bittorrent` | Deep dep chain; requires `torrust-tracker-events`, `torrust-metrics`, `swarm-coordination-registry`, `torrust-tracker-rest-api-client` to be published first |
-| _(new package for `InfoHash`)_     | `torrust/bittorrent-primitives`   | `torrust-bittorrent` | Migrate `InfoHash` here; then archive `torrust/bittorrent-primitives`                                                                                        |
+These packages are extracted to their own repositories under the Torrust organisation.
+
+| Final crate name         | Extracted from                    | Blocked by                                    | Notes                                                |
+| ------------------------ | --------------------------------- | --------------------------------------------- | ---------------------------------------------------- |
+| `torrust-bencode`        | `torrust-tracker-contrib-bencode` | —                                             | Apache-2.0; one remaining consumer in tracker        |
+| `torrust-clock`          | `torrust-tracker-clock`           | SI-02 + SI-09 (rename first)                  | Rule P; published; 11 workspace consumers to migrate |
+| `torrust-metrics`        | `torrust-tracker-metrics`         | SI-08 (rename first)                          | 7 workspace consumers to migrate                     |
+| `torrust-tracker-client` | `console/tracker-client`          | `bittorrent-*` publication (external to EPIC) | Standalone CLI tool; LGPL-3.0                        |
 
 ## Scope
 
