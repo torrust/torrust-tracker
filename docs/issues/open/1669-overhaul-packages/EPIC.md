@@ -103,6 +103,34 @@ carry the `torrust-tracker-` prefix. Every `bittorrent-` and `torrust-axum-` cra
 unpublished. This confirms issue #1659's note that "many new crates have not been published
 yet after we refactored the packages."
 
+### External repositories in scope
+
+This EPIC covers coordination with the following external repositories. Packages extracted
+from this workspace may land in one of these rather than in a brand-new standalone repository.
+
+#### `torrust/torrust-bittorrent` — <https://github.com/torrust/torrust-bittorrent>
+
+A Cargo workspace for BitTorrent protocol implementations (forked and maintained by the
+Torrust organisation). It is actively being cleaned up and is ready to accept new packages.
+Current packages (verified May 2026): `bencode`, `dht`, `disk`, `handshake`, `magnet`,
+`metainfo`, `peer`, `select`, `util`.
+
+**Role in this EPIC**: target destination for `bittorrent-*` packages extracted from this
+workspace (`bittorrent-peer-id`, `bittorrent-udp-tracker-protocol`,
+`bittorrent-http-tracker-protocol`, and the `bittorrent-tracker-*` crates once their
+upstream workspace deps are all published).
+
+#### `torrust/bittorrent-primitives` — <https://github.com/torrust/bittorrent-primitives>
+
+A single-package repository containing one crate (`bittorrent-primitives` v0.2.0) whose
+sole public type is `InfoHash`. Originally created as the home for foundational BitTorrent
+primitive types, it has not grown beyond that single type.
+
+**Role in this EPIC**: planned for deprecation. `InfoHash` (and any other BitTorrent
+primitive types) will be migrated to a new package inside `torrust/torrust-bittorrent`;
+the `torrust/bittorrent-primitives` repository will be archived once the migration is
+complete and downstream consumers have updated.
+
 ## Desired Package State
 
 This section captures the target package structure as decisions are made. It is updated
@@ -157,12 +185,22 @@ destination group with a "Renamed from …" note.
 ### Planned for extraction from workspace
 
 These packages are not yet extracted. The table describes the target end state once
-the corresponding subissues (SI-12, SI-15) are complete.
+the corresponding subissues are complete.
 
-| Final crate name         | Extracted from                    | Notes                                                                |
-| ------------------------ | --------------------------------- | -------------------------------------------------------------------- |
-| `torrust-bencode`        | `torrust-tracker-contrib-bencode` | Standalone repo; Apache-2.0; one remaining consumer in tracker       |
-| `torrust-tracker-client` | `torrust-tracker-client`          | Standalone CLI tool; LGPL-3.0; blocked by `bittorrent-*` publication |
+Extraction destinations:
+
+- **Own repo** — a brand-new standalone repository under the Torrust organisation.
+- **`torrust-bittorrent`** — added as a new package inside <https://github.com/torrust/torrust-bittorrent>.
+
+| Final crate name                   | Extracted from                    | Destination          | Notes                                                                                                                                                        |
+| ---------------------------------- | --------------------------------- | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `torrust-bencode`                  | `torrust-tracker-contrib-bencode` | Own repo             | Apache-2.0; one remaining consumer in tracker                                                                                                                |
+| `torrust-tracker-client`           | `torrust-tracker-client`          | Own repo             | Standalone CLI tool; LGPL-3.0; blocked by `bittorrent-*` publication                                                                                         |
+| `bittorrent-peer-id`               | `packages/peer-id`                | `torrust-bittorrent` | No workspace deps; first in the `bittorrent-*` extraction sequence                                                                                           |
+| `bittorrent-udp-tracker-protocol`  | `packages/udp-protocol`           | `torrust-bittorrent` | Blocked by `bittorrent-peer-id` publication                                                                                                                  |
+| `bittorrent-http-tracker-protocol` | `packages/http-protocol`          | `torrust-bittorrent` | Blocked by `bittorrent-udp-tracker-protocol` and `bittorrent-tracker-core` publication                                                                       |
+| `bittorrent-tracker-core`          | `packages/tracker-core`           | `torrust-bittorrent` | Deep dep chain; requires `torrust-tracker-events`, `torrust-metrics`, `swarm-coordination-registry`, `torrust-tracker-rest-api-client` to be published first |
+| _(new package for `InfoHash`)_     | `torrust/bittorrent-primitives`   | `torrust-bittorrent` | Migrate `InfoHash` here; then archive `torrust/bittorrent-primitives`                                                                                        |
 
 ## Scope
 
