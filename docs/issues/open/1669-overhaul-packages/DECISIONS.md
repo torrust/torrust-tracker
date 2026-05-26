@@ -20,6 +20,36 @@ the proposal, the reasoning, and a reference to any supporting artifact.
 
 ---
 
+## DEC-02 — Use `torrust-` as the default prefix for Torrust organisation crates
+
+**Date**: 2026-05-26
+**Status**: Adopted
+
+### Proposal
+
+Use `torrust-` as the default prefix for crates published by Torrust organisation
+repositories. In practice, that means preferring names such as `torrust-bencode`,
+`torrust-dht`, and `torrust-metainfo` rather than extending the prefix to
+`torrust-bittorrent-` for every crate in the BitTorrent sub-project.
+
+### Why it was adopted
+
+1. **Shorter crate names**: the extra `bittorrent` segment adds length without adding
+   enough value for the common case.
+2. **Consistent organisation-level naming**: `torrust-` already scopes the crate to the
+   Torrust organisation, which is the most important part for discoverability.
+3. **Avoids redundant repetition**: the BitTorrent context is already obvious from the
+   surrounding repository and package documentation.
+4. **Leaves room for exceptions**: if a future crate really needs a more specific prefix,
+   that can be recorded explicitly as an exception rather than becoming the default.
+
+### Supporting discussion
+
+[torrust/bittorrent#64](https://github.com/torrust/torrust-bittorrent/issues/64)
+and its comments.
+
+---
+
 ## DEC-01 — Do not merge protocol and core packages into feature-gated crates
 
 **Date**: 2026-05-21

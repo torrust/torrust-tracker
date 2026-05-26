@@ -167,8 +167,12 @@ This section captures the target package structure as decisions are made. It is 
 progressively — it does **not** represent a complete end-state plan, only the changes that
 have been agreed so far.
 
-Each table shows the **final crate name** after all planned changes. Packages are grouped by
-destination: those remaining in this workspace, those migrating to
+This section is about the **final state only**. The current state already lives in
+`Package Inventory`, so the tables here do not repeat current crate names unless that is
+needed to explain a move or rename. Instead, each row focuses on the final crate name and
+the change that leads to it.
+
+Packages are grouped by destination: those remaining in this workspace, those migrating to
 [`torrust/torrust-bittorrent`](https://github.com/torrust/torrust-bittorrent), and those
 moving to their own standalone repository.
 
@@ -215,45 +219,41 @@ These packages will remain in the `torrust-tracker` workspace long-term.
 
 ### `torrust/torrust-bittorrent` workspace
 
-This section covers both the existing packages in that workspace (all pending a naming and
-publishing decision) and the packages coming in from this tracker workspace.
+This section shows the final state directly. It keeps the current workspace packages and the
+packages that will be moved in, while distinguishing the two cases in the table.
 
-#### Existing packages — renaming pending
+| Package status | Final crate name                   | Folder                          | Source / change   | Notes |
+| -------------- | ---------------------------------- | ------------------------------- | ----------------- | ----- |
+| Existing       | `bencode`                          | `packages/bencode`              | Already in place  | [1]   |
+| Existing       | `dht`                              | `packages/dht`                  | Already in place  |       |
+| Existing       | `disk`                             | `packages/disk`                 | Already in place  |       |
+| Existing       | `handshake`                        | `packages/handshake`            | Already in place  |       |
+| Existing       | `magnet`                           | `packages/magnet`               | Already in place  |       |
+| Existing       | `metainfo`                         | `packages/metainfo`             | Already in place  |       |
+| Existing       | `peer`                             | `packages/peer`                 | Already in place  |       |
+| Existing       | `select`                           | `packages/select`               | Already in place  |       |
+| Existing       | `util`                             | `packages/util`                 | Already in place  | [2]   |
+| Incoming       | `torrust-tracker-contrib-bencode`  | `contrib/bencode`               | SI-12             | [3]   |
+| Incoming       | `bittorrent-peer-id`               | `packages/peer-id`              | Move from tracker | [4]   |
+| Incoming       | `bittorrent-udp-tracker-protocol`  | `packages/udp-protocol`         | Move from tracker | [5]   |
+| Incoming       | `bittorrent-http-tracker-protocol` | `packages/http-protocol`        | Move from tracker | [6]   |
+| Incoming       | `bittorrent-tracker-core`          | `packages/tracker-core`         | Move from tracker | [7]   |
+| Incoming       | `bittorrent-primitives`            | `torrust/bittorrent-primitives` | Replace old copy  | [8]   |
 
-All 9 existing packages use generic unprefixed working names and have `publish = false`. A
-naming prefix must be chosen before any can be published (see README
-[issue #64](https://github.com/torrust/torrust-bittorrent/issues/64)). No decision has been
-made here; the table records the current state for analysis.
+Notes:
 
-| Current crate name | Folder               | Proposed final name | Notes                                                                                  |
-| ------------------ | -------------------- | ------------------- | -------------------------------------------------------------------------------------- |
-| `bencode`          | `packages/bencode`   | TBD                 | Will be replaced by the newer `contrib/bencode` code from tracker (same crate lineage) |
-| `dht`              | `packages/dht`       | TBD                 |                                                                                        |
-| `disk`             | `packages/disk`      | TBD                 |                                                                                        |
-| `handshake`        | `packages/handshake` | TBD                 |                                                                                        |
-| `magnet`           | `packages/magnet`    | TBD                 |                                                                                        |
-| `metainfo`         | `packages/metainfo`  | TBD                 |                                                                                        |
-| `peer`             | `packages/peer`      | TBD                 |                                                                                        |
-| `select`           | `packages/select`    | TBD                 |                                                                                        |
-| `util`             | `packages/util`      | TBD                 | May be inlined into consumers rather than published independently                      |
+1. Will be replaced by the newer `contrib/bencode` code from tracker.
+2. May be inlined into consumers rather than published independently.
+3. Migrates newer tracker implementation and replaces old `packages/bencode`.
+4. No workspace deps; first in the `bittorrent-*` extraction sequence.
+5. Blocked by `bittorrent-peer-id` publication.
+6. Blocked by `bittorrent-udp-tracker-protocol` and `bittorrent-tracker-core` publication.
+7. Deep dep chain; requires `torrust-tracker-events`, `torrust-metrics`, `swarm-coordination-registry`, `torrust-tracker-rest-api-client` to be published first.
+8. Migrate `InfoHash` here; then archive `torrust/bittorrent-primitives`.
 
-> **Prefix options and implications**: a single naming policy is still required for the
-> merged `bencode` lineage. Whether the final published name is `torrust-bencode` or
-> `torrust-bittorrent-bencode` depends on the prefix decision for this workspace.
-
-#### Incoming packages — extracted from tracker workspace
-
-These packages are planned for extraction from this workspace into
-[`torrust/torrust-bittorrent`](https://github.com/torrust/torrust-bittorrent).
-
-| Final crate name                   | Extracted from                  | Blocked by                                                                                                                                                   | Notes                                                                   |
-| ---------------------------------- | ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------- |
-| TBD (replaces current `bencode`)   | `contrib/bencode`               | SI-12                                                                                                                                                        | Migrate newer tracker implementation and replace old `packages/bencode` |
-| `bittorrent-peer-id`               | `packages/peer-id`              | —                                                                                                                                                            | No workspace deps; first in the `bittorrent-*` extraction sequence      |
-| `bittorrent-udp-tracker-protocol`  | `packages/udp-protocol`         | `bittorrent-peer-id` publication                                                                                                                             |                                                                         |
-| `bittorrent-http-tracker-protocol` | `packages/http-protocol`        | `bittorrent-udp-tracker-protocol` and `bittorrent-tracker-core` publication                                                                                  |                                                                         |
-| `bittorrent-tracker-core`          | `packages/tracker-core`         | Deep dep chain; requires `torrust-tracker-events`, `torrust-metrics`, `swarm-coordination-registry`, `torrust-tracker-rest-api-client` to be published first |                                                                         |
-| _(new package for `InfoHash`)_     | `torrust/bittorrent-primitives` | —                                                                                                                                                            | Migrate `InfoHash` here; then archive `torrust/bittorrent-primitives`   |
+> **Naming policy**: use `torrust-` as the default prefix for Torrust organisation
+> crates. The final-state table below should be read with that policy in mind; any future
+> `torrust-bittorrent-` name would need to be recorded as an explicit exception.
 
 ### Packages moving to standalone repositories
 
