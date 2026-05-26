@@ -20,6 +20,45 @@ the proposal, the reasoning, and a reference to any supporting artifact.
 
 ---
 
+## DEC-05 — Keep protocol and tracker-core crates in tracker workspace for now
+
+**Date**: 2026-05-26
+**Status**: Adopted
+
+### Proposal
+
+Do not move the following crates to `torrust/torrust-bittorrent` yet:
+
+- `torrust-udp-tracker-protocol`
+- `torrust-http-tracker-protocol`
+- `torrust-tracker-core`
+
+Keep them in `torrust/torrust-tracker` until coupling and layering are clarified.
+
+### Why it was adopted
+
+1. **Current move value is unclear**: extraction now would likely shift complexity rather than reduce it.
+2. **Dependency knot remains unresolved**: `torrust-http-tracker-protocol` currently depends on:
+   - `torrust-tracker-core`
+   - `torrust-tracker-primitives`
+   - `torrust-udp-tracker-protocol`
+3. **Prefix policy consistency**: ownership/subdomain prefixes should follow real package boundaries; keep tracker-owned crates in tracker workspace while boundaries remain mixed.
+
+### Revisit trigger
+
+Reconsider moving `torrust-udp-tracker-protocol` and `torrust-http-tracker-protocol` to
+`torrust/torrust-bittorrent` after:
+
+1. Protocol crates no longer require tracker-core dependencies for core protocol behavior.
+2. The `torrust-http-tracker-protocol` dependency chain above is removed or justified by a cleaner boundary design.
+3. The resulting split reduces coupling and maintenance overhead in practice.
+
+### Supporting artifact
+
+[EPIC.md](EPIC.md) Desired Package State and Torrust Dependency Lists sections.
+
+---
+
 ## DEC-04 — Match package folder names to crate names without prefix
 
 **Date**: 2026-05-26
