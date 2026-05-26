@@ -42,7 +42,7 @@ actual purpose. The rename:
 - Makes the crate identity match its scope.
 - Signals to downstream users that it is reusable outside the tracker.
 - Prepares it for potential extraction to a standalone repository in a future cycle
-  (see [1669-14-extract-torrust-metrics-to-standalone-repo.md](1669-14-extract-torrust-metrics-to-standalone-repo.md)).
+  (see [1669-extract-torrust-metrics-to-standalone-repo.md](1669-extract-torrust-metrics-to-standalone-repo.md)).
 
 The current crate name `torrust-tracker-metrics` is **not published on crates.io** (as of
 May 2026), so the rename does not require handling a previously published name.
@@ -65,7 +65,7 @@ This issue is a subissue of EPIC #1669 (Overhaul: Packages).
 ### Out of Scope
 
 - Moving the crate to a separate repository — see
-  [1669-14-extract-torrust-metrics-to-standalone-repo.md](1669-14-extract-torrust-metrics-to-standalone-repo.md).
+  [1669-extract-torrust-metrics-to-standalone-repo.md](1669-extract-torrust-metrics-to-standalone-repo.md).
 - Changes to the crate's API or behaviour.
 - Publishing the crate on crates.io — that is a separate concern not required for the rename.
 - Updating downstream repositories — that is a separate task per repository.

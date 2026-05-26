@@ -46,10 +46,10 @@ This issue is a subissue of EPIC [#1669](../open/1669-overhaul-packages/EPIC.md)
 The workspace contains 27 packages (including the root `torrust-tracker` crate) that grew organically over multiple refactoring cycles.
 Two coupling problems have already been identified manually:
 
-- `torrust-tracker-clock` depends on `torrust-tracker-primitives` only to import
-  `DurationSinceUnixEpoch` (SI-02).
-- `torrust-tracker-configuration` depends on `torrust-tracker-clock` only to import
-  `DEFAULT_TIMEOUT` (SI-03).
+- `torrust-clock` previously depended on `torrust-tracker-primitives` only to import
+  `DurationSinceUnixEpoch` (resolved by SI-02).
+- `torrust-tracker-configuration` depended on `torrust-clock` only to import
+  `DEFAULT_TIMEOUT` (tracked in SI-03).
 
 These were discovered through code inspection. A systematic analysis would surface similar
 findings across all 27 packages without relying on luck or familiarity with the codebase.
@@ -203,12 +203,12 @@ explicit "will not split" decision recorded in the coupling report observations.
 
 ### Manual Verification
 
-| ID  | Scenario                                                                                               | Expected Result                                                                                                                   |
-| --- | ------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------- |
-| MV1 | Open `docs/issues/open/1669-overhaul-packages/workspace-coupling-report.md` and count package sections | 27 packages total: 5 leaf packages listed in the "no workspace dependencies" section; 22 packages in the coupling detail sections |
-| MV2 | Find `torrust-tracker-configuration` in the report; check the `torrust-tracker-clock` dep section      | Should list `torrust_tracker_clock::DEFAULT_TIMEOUT` (confirms SI-03 detection)                                                   |
-| MV3 | Find `torrust-tracker-clock` in the report; check the `torrust-tracker-primitives` dep section         | Should list `torrust_tracker_primitives::DurationSinceUnixEpoch` (SI-02)                                                          |
-| MV4 | Run `cargo run -p workspace-coupling -- /tmp/test-report.md` on a clean checkout                       | Binary exits `0`; output file matches committed report structurally                                                               |
+| ID  | Scenario                                                                                                 | Expected Result                                                                                                                   |
+| --- | -------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| MV1 | Open `docs/issues/open/1669-overhaul-packages/workspace-coupling-report.md` and count package sections   | 27 packages total: 5 leaf packages listed in the "no workspace dependencies" section; 22 packages in the coupling detail sections |
+| MV2 | Find `torrust-tracker-configuration` in the report; check the `torrust-clock` dep section                | Should list `torrust_clock::DEFAULT_TIMEOUT` (confirms SI-03 detection)                                                           |
+| MV3 | Find `torrust-clock` in the report; check historical observations for the old primitives dependency edge | Should mention `DurationSinceUnixEpoch` move as the SI-02 resolution context                                                      |
+| MV4 | Run `cargo run -p workspace-coupling -- /tmp/test-report.md` on a clean checkout                         | Binary exits `0`; output file matches committed report structurally                                                               |
 
 ## References
 

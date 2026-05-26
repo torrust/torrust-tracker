@@ -47,7 +47,7 @@ accident of history, not a design intent.
 
 `torrust-tracker-clock` currently carries a `torrust-tracker-primitives` dependency solely
 for this type alias. Removing it makes `torrust-tracker-clock` dependency-lighter and
-prepares it for future rename/extraction (SI-09, SI-13).
+prepares it for future rename/extraction (SI-09, SI-17).
 
 **Key implementation note**: Since `DurationSinceUnixEpoch` is a trivial type alias (both
 the old and new definitions are `= std::time::Duration`), there is no type incompatibility

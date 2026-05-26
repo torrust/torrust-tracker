@@ -4,7 +4,7 @@ issue-type: task
 status: draft
 priority: p2
 github-issue: null
-spec-path: docs/issues/drafts/1669-15-extract-torrust-tracker-client-to-standalone-repo.md
+spec-path: docs/issues/drafts/1669-extract-torrust-tracker-client-to-standalone-repo.md
 branch: null
 related-pr: null
 last-updated-utc: 2026-05-15 12:00
@@ -48,12 +48,12 @@ console clients for making requests to BitTorrent trackers. Key facts:
 
 The extraction is currently **blocked** by two unpublished workspace dependencies:
 
-| Dependency                        | Current status             |
-| --------------------------------- | -------------------------- |
-| `bittorrent-udp-tracker-protocol` | Not published on crates.io |
-| `bittorrent-tracker-client`       | Not published on crates.io |
+| Dependency                                           | Current status             |
+| ---------------------------------------------------- | -------------------------- |
+| `torrust-tracker-udp-tracker-protocol`               | Not published on crates.io |
+| `torrust-tracker-client` (`packages/tracker-client`) | Not published on crates.io |
 
-The third workspace dependency (`torrust-tracker-configuration`) is already published ✅.
+The third workspace dependency (`torrust-tracker-configuration`) is already published.
 Do not start T3 or later tasks until T1 is satisfied.
 
 This issue is a subissue of EPIC [#1669](../open/1669-overhaul-packages/EPIC.md)
@@ -77,7 +77,8 @@ This issue is a subissue of EPIC [#1669](../open/1669-overhaul-packages/EPIC.md)
 ### Out of Scope
 
 - Changes to the CLI tool's features or behaviour.
-- Publishing `bittorrent-udp-tracker-protocol` or `bittorrent-tracker-client` on crates.io
+- Publishing `torrust-tracker-udp-tracker-protocol` or the library crate
+  `torrust-tracker-client` (`packages/tracker-client`) on crates.io
   — those are separate subissues.
 - Renaming the crate: `torrust-tracker-client` is an appropriate name and is kept.
 
@@ -85,8 +86,8 @@ This issue is a subissue of EPIC [#1669](../open/1669-overhaul-packages/EPIC.md)
 
 This issue is **blocked** until the following crates are published on crates.io:
 
-1. `bittorrent-udp-tracker-protocol`
-2. `bittorrent-tracker-client`
+1. `torrust-tracker-udp-tracker-protocol`
+2. `torrust-tracker-client` (`packages/tracker-client`)
 
 Do not begin T3 or later until both are available.
 
@@ -94,18 +95,18 @@ Do not begin T3 or later until both are available.
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| ID  | Status  | Task                                                                                           | Notes / Expected Output                                                                   |
-| --- | ------- | ---------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| T1  | BLOCKED | Confirm `bittorrent-udp-tracker-protocol` and `bittorrent-tracker-client` are published        | Prerequisite; unblocks T3 and all later tasks                                             |
-| T2  | TODO    | Create (or confirm) the target standalone repository                                           | Repo exists with README and LICENSE committed                                             |
-| T3  | TODO    | Move crate source to the new repository, preserving git history                                | Use `git filter-repo` or subtree split; history preserved under `console/tracker-client/` |
-| T4  | TODO    | Update `Cargo.toml` in the new repo: replace path deps with published crates.io version deps   | `bittorrent-udp-tracker-protocol = "X.Y.Z"`, `bittorrent-tracker-client = "X.Y.Z"`        |
-| T5  | TODO    | Set up CI in the new repository (build, test, lint, release workflow)                          | CI green on first push                                                                    |
-| T6  | TODO    | Remove `console/tracker-client/` from workspace members and workspace dep in root `Cargo.toml` | `cargo build --workspace` succeeds without the local crate                                |
-| T7  | TODO    | Delete `console/tracker-client/` directory from the tracker repo                               | Directory gone; workspace still builds                                                    |
-| T8  | TODO    | Update `packages/AGENTS.md`, `AGENTS.md`, `docs/packages.md`, and any README references        | No stale references to the console client remain in the tracker docs                      |
-| T9  | TODO    | Run `cargo build --workspace`, `cargo test --workspace`, `linter all`                          | All green                                                                                 |
-| T10 | TODO    | Update EPIC #1669 `Package Inventory` and `Desired Package State` tables                       | Mark `torrust-tracker-client` as extracted; remove from workspace member list             |
+| ID  | Status  | Task                                                                                                        | Notes / Expected Output                                                                   |
+| --- | ------- | ----------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| T1  | BLOCKED | Confirm `torrust-tracker-udp-tracker-protocol` and the library crate `torrust-tracker-client` are published | Prerequisite; unblocks T3 and all later tasks                                             |
+| T2  | TODO    | Create (or confirm) the target standalone repository                                                        | Repo exists with README and LICENSE committed                                             |
+| T3  | TODO    | Move crate source to the new repository, preserving git history                                             | Use `git filter-repo` or subtree split; history preserved under `console/tracker-client/` |
+| T4  | TODO    | Update `Cargo.toml` in the new repo: replace path deps with published crates.io version deps                | `torrust-tracker-udp-tracker-protocol = "X.Y.Z"`, `torrust-tracker-client = "X.Y.Z"`      |
+| T5  | TODO    | Set up CI in the new repository (build, test, lint, release workflow)                                       | CI green on first push                                                                    |
+| T6  | TODO    | Remove `console/tracker-client/` from workspace members and workspace dep in root `Cargo.toml`              | `cargo build --workspace` succeeds without the local crate                                |
+| T7  | TODO    | Delete `console/tracker-client/` directory from the tracker repo                                            | Directory gone; workspace still builds                                                    |
+| T8  | TODO    | Update `packages/AGENTS.md`, `AGENTS.md`, `docs/packages.md`, and any README references                     | No stale references to the console client remain in the tracker docs                      |
+| T9  | TODO    | Run `cargo build --workspace`, `cargo test --workspace`, `linter all`                                       | All green                                                                                 |
+| T10 | TODO    | Update EPIC #1669 `Package Inventory` and `Desired Package State` tables                                    | Mark `torrust-tracker-client` as extracted; remove from workspace member list             |
 
 ## Progress Tracking
 
@@ -113,7 +114,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 - [ ] Spec drafted in `docs/issues/drafts/`
 - [ ] Spec reviewed and approved by user/maintainer
-- [ ] Blocking dependencies (`bittorrent-udp-tracker-protocol`, `bittorrent-tracker-client`) published on crates.io
+- [ ] Blocking dependencies (`torrust-tracker-udp-tracker-protocol`, library crate `torrust-tracker-client`) published on crates.io
 - [ ] GitHub issue created and issue number added to this spec
 - [ ] Spec moved to `docs/issues/open/` with issue number prefix
 - [ ] Implementation completed
