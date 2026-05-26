@@ -452,6 +452,7 @@ entire EPIC at once. The EPIC is considered healthy (not stale) when:
 
 ## References
 
+- Design decisions log: [`DECISIONS.md`](DECISIONS.md) — considered-and-discarded options; source material for a future repo-level ADR
 - EPIC issue: <https://github.com/torrust/torrust-tracker/issues/1669>
 - Relates to: <https://github.com/torrust/torrust-tracker/issues/1659> (Release v4.0.0-rc.1)
 - Package architecture: [`docs/packages.md`](../../../packages.md)
