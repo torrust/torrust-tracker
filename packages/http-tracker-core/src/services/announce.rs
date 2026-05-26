@@ -10,18 +10,18 @@
 use std::panic::Location;
 use std::sync::Arc;
 
-use bittorrent_http_tracker_protocol::v1::requests::announce::{Announce, peer_from_request};
-use bittorrent_http_tracker_protocol::v1::services::peer_ip_resolver::{
-    ClientIpSources, PeerIpResolutionError, RemoteClientAddr, resolve_remote_client_addr,
-};
 use bittorrent_primitives::info_hash::InfoHash;
-use bittorrent_tracker_core::announce_handler::{AnnounceHandler, PeersWanted};
-use bittorrent_tracker_core::authentication::service::AuthenticationService;
-use bittorrent_tracker_core::authentication::{self, Key};
-use bittorrent_tracker_core::error::{AnnounceError, TrackerCoreError, WhitelistError};
-use bittorrent_tracker_core::whitelist;
 use torrust_net_primitives::service_binding::ServiceBinding;
 use torrust_tracker_configuration::Core;
+use torrust_tracker_core::announce_handler::{AnnounceHandler, PeersWanted};
+use torrust_tracker_core::authentication::service::AuthenticationService;
+use torrust_tracker_core::authentication::{self, Key};
+use torrust_tracker_core::error::{AnnounceError, TrackerCoreError, WhitelistError};
+use torrust_tracker_core::whitelist;
+use torrust_tracker_http_tracker_protocol::v1::requests::announce::{Announce, peer_from_request};
+use torrust_tracker_http_tracker_protocol::v1::services::peer_ip_resolver::{
+    ClientIpSources, PeerIpResolutionError, RemoteClientAddr, resolve_remote_client_addr,
+};
 use torrust_tracker_primitives::AnnounceData;
 use torrust_tracker_primitives::peer::PeerAnnouncement;
 
@@ -206,18 +206,18 @@ mod tests {
     use std::net::SocketAddr;
     use std::sync::Arc;
 
-    use bittorrent_http_tracker_protocol::v1::requests::announce::Announce;
-    use bittorrent_http_tracker_protocol::v1::services::peer_ip_resolver::ClientIpSources;
-    use bittorrent_tracker_core::announce_handler::AnnounceHandler;
-    use bittorrent_tracker_core::authentication::key::repository::in_memory::InMemoryKeyRepository;
-    use bittorrent_tracker_core::authentication::service::AuthenticationService;
-    use bittorrent_tracker_core::databases::setup::initialize_database;
-    use bittorrent_tracker_core::statistics::persisted::downloads::DatabaseDownloadsMetricRepository;
-    use bittorrent_tracker_core::torrent::repository::in_memory::InMemoryTorrentRepository;
-    use bittorrent_tracker_core::whitelist::authorization::WhitelistAuthorization;
-    use bittorrent_tracker_core::whitelist::repository::in_memory::InMemoryWhitelist;
     use tokio_util::sync::CancellationToken;
     use torrust_tracker_configuration::{Configuration, Core};
+    use torrust_tracker_core::announce_handler::AnnounceHandler;
+    use torrust_tracker_core::authentication::key::repository::in_memory::InMemoryKeyRepository;
+    use torrust_tracker_core::authentication::service::AuthenticationService;
+    use torrust_tracker_core::databases::setup::initialize_database;
+    use torrust_tracker_core::statistics::persisted::downloads::DatabaseDownloadsMetricRepository;
+    use torrust_tracker_core::torrent::repository::in_memory::InMemoryTorrentRepository;
+    use torrust_tracker_core::whitelist::authorization::WhitelistAuthorization;
+    use torrust_tracker_core::whitelist::repository::in_memory::InMemoryWhitelist;
+    use torrust_tracker_http_tracker_protocol::v1::requests::announce::Announce;
+    use torrust_tracker_http_tracker_protocol::v1::services::peer_ip_resolver::ClientIpSources;
     use torrust_tracker_primitives::peer::Peer;
     use torrust_tracker_test_helpers::configuration;
 
@@ -328,10 +328,10 @@ mod tests {
         use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
         use std::sync::Arc;
 
-        use bittorrent_http_tracker_protocol::v1::services::peer_ip_resolver::{RemoteClientAddr, ResolvedIp};
         use mockall::predicate::{self};
         use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
         use torrust_tracker_configuration::Configuration;
+        use torrust_tracker_http_tracker_protocol::v1::services::peer_ip_resolver::{RemoteClientAddr, ResolvedIp};
         use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
         use torrust_tracker_primitives::{AnnounceData, peer};
         use torrust_tracker_test_helpers::configuration;

@@ -77,7 +77,7 @@ where
 ///
 /// ```rust,no_run
 /// use torrust_tracker_configuration::Core;
-/// use bittorrent_tracker_core::databases::setup::initialize_database;
+/// use torrust_tracker_core::databases::setup::initialize_database;
 ///
 /// // Create a default configuration (ensure it is properly set up for your environment)
 /// let config = Core::default();

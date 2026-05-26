@@ -17,7 +17,7 @@
 //! Generating a new key valid for `9999` seconds:
 //!
 //! ```rust
-//! use bittorrent_tracker_core::authentication;
+//! use torrust_tracker_core::authentication;
 //! use std::time::Duration;
 //!
 //! let expiring_key = authentication::key::generate_key(Some(Duration::new(9999, 0)));
@@ -29,7 +29,7 @@
 //! The core key types are defined as follows:
 //!
 //! ```rust
-//! use bittorrent_tracker_core::authentication::Key;
+//! use torrust_tracker_core::authentication::Key;
 //! use torrust_clock::DurationSinceUnixEpoch;
 //!
 //! pub struct PeerKey {
@@ -96,7 +96,7 @@ pub(crate) fn generate_expiring_key(lifetime: Duration) -> PeerKey {
 /// # Examples
 ///
 /// ```rust
-/// use bittorrent_tracker_core::authentication::key;
+/// use torrust_tracker_core::authentication::key;
 /// use std::time::Duration;
 ///
 /// // Generate an expiring key valid for 3600 seconds.
@@ -139,7 +139,7 @@ pub fn generate_key(lifetime: Option<Duration>) -> PeerKey {
 /// # Examples
 ///
 /// ```rust
-/// use bittorrent_tracker_core::authentication::key;
+/// use torrust_tracker_core::authentication::key;
 /// use std::time::Duration;
 ///
 /// let expiring_key = key::generate_key(Some(Duration::from_secs(100)));

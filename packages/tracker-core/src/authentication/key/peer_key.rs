@@ -13,7 +13,7 @@ use std::time::Duration;
 
 use derive_more::Display;
 use rand::distr::Alphanumeric;
-use rand::{RngExt, rng};
+use rand::{Rng, rng};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 use torrust_clock::DurationSinceUnixEpoch;
@@ -31,7 +31,7 @@ use super::AUTH_KEY_LENGTH;
 ///
 /// ```rust
 /// use std::time::Duration;
-/// use bittorrent_tracker_core::authentication::key::peer_key::{Key, PeerKey};
+/// use torrust_tracker_core::authentication::key::peer_key::{Key, PeerKey};
 ///
 /// let expiring_key = PeerKey {
 ///     key: Key::random(),
@@ -114,14 +114,14 @@ impl PeerKey {
 /// Creating a key from a valid string:
 ///
 /// ```
-/// use bittorrent_tracker_core::authentication::key::peer_key::Key;
+/// use torrust_tracker_core::authentication::key::peer_key::Key;
 /// let key = Key::new("YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ").unwrap();
 /// ```
 ///
 /// Generating a random key:
 ///
 /// ```
-/// use bittorrent_tracker_core::authentication::key::peer_key::Key;
+/// use torrust_tracker_core::authentication::key::peer_key::Key;
 /// let random_key = Key::random();
 /// ```
 #[derive(Serialize, Deserialize, Debug, Eq, PartialEq, Clone, Display, Hash)]
@@ -176,7 +176,7 @@ impl Key {
 /// # Examples
 ///
 /// ```rust
-/// use bittorrent_tracker_core::authentication::Key;
+/// use torrust_tracker_core::authentication::Key;
 /// use std::str::FromStr;
 ///
 /// let key_string = "YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ";

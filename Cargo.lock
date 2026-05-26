@@ -458,50 +458,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "bittorrent-http-tracker-core"
-version = "3.0.0-develop"
-dependencies = [
- "bittorrent-http-tracker-protocol",
- "bittorrent-primitives",
- "bittorrent-tracker-core",
- "criterion 0.5.1",
- "futures",
- "mockall",
- "serde",
- "thiserror 2.0.18",
- "tokio",
- "tokio-util",
- "torrust-clock",
- "torrust-metrics",
- "torrust-net-primitives",
- "torrust-tracker-configuration",
- "torrust-tracker-events",
- "torrust-tracker-primitives",
- "torrust-tracker-swarm-coordination-registry",
- "torrust-tracker-test-helpers",
- "tracing",
-]
-
-[[package]]
-name = "bittorrent-http-tracker-protocol"
-version = "3.0.0-develop"
-dependencies = [
- "bittorrent-primitives",
- "bittorrent-tracker-core",
- "bittorrent-udp-tracker-protocol",
- "derive_more 2.1.1",
- "multimap",
- "percent-encoding",
- "serde",
- "serde_bencode",
- "thiserror 2.0.18",
- "torrust-clock",
- "torrust-located-error",
- "torrust-tracker-contrib-bencode",
- "torrust-tracker-primitives",
-]
-
-[[package]]
 name = "bittorrent-peer-id"
 version = "3.0.0-develop"
 dependencies = [
@@ -523,102 +479,6 @@ dependencies = [
  "serde",
  "serde_json",
  "thiserror 1.0.69",
-]
-
-[[package]]
-name = "bittorrent-tracker-client"
-version = "3.0.0-develop"
-dependencies = [
- "bittorrent-primitives",
- "bittorrent-udp-tracker-protocol",
- "derive_more 2.1.1",
- "hyper",
- "percent-encoding",
- "reqwest",
- "serde",
- "serde_bencode",
- "serde_bytes",
- "serde_repr",
- "thiserror 2.0.18",
- "tokio",
- "torrust-located-error",
- "torrust-net-primitives",
- "torrust-tracker-primitives",
- "tracing",
- "zerocopy",
-]
-
-[[package]]
-name = "bittorrent-tracker-core"
-version = "3.0.0-develop"
-dependencies = [
- "anyhow",
- "async-trait",
- "bittorrent-primitives",
- "chrono",
- "clap",
- "derive_more 2.1.1",
- "mockall",
- "rand 0.10.1",
- "serde",
- "serde_json",
- "sqlx",
- "testcontainers",
- "thiserror 2.0.18",
- "tokio",
- "tokio-util",
- "torrust-clock",
- "torrust-located-error",
- "torrust-metrics",
- "torrust-tracker-configuration",
- "torrust-tracker-events",
- "torrust-tracker-primitives",
- "torrust-tracker-swarm-coordination-registry",
- "torrust-tracker-test-helpers",
- "tracing",
- "url",
-]
-
-[[package]]
-name = "bittorrent-udp-tracker-core"
-version = "3.0.0-develop"
-dependencies = [
- "bittorrent-primitives",
- "bittorrent-tracker-core",
- "bittorrent-udp-tracker-protocol",
- "bloom",
- "blowfish",
- "cipher",
- "criterion 0.5.1",
- "futures",
- "mockall",
- "rand 0.10.1",
- "serde",
- "thiserror 2.0.18",
- "tokio",
- "tokio-util",
- "torrust-clock",
- "torrust-metrics",
- "torrust-net-primitives",
- "torrust-tracker-configuration",
- "torrust-tracker-events",
- "torrust-tracker-primitives",
- "torrust-tracker-swarm-coordination-registry",
- "tracing",
- "zerocopy",
-]
-
-[[package]]
-name = "bittorrent-udp-tracker-protocol"
-version = "3.0.0-develop"
-dependencies = [
- "bittorrent-peer-id",
- "byteorder",
- "either",
- "pretty_assertions",
- "quickcheck",
- "quickcheck_macros",
- "zerocopy",
 ]
 
 [[package]]
@@ -5165,11 +5025,7 @@ dependencies = [
  "anyhow",
  "axum-server",
  "base64",
- "bittorrent-http-tracker-core",
  "bittorrent-primitives",
- "bittorrent-tracker-client",
- "bittorrent-tracker-core",
- "bittorrent-udp-tracker-core",
  "chrono",
  "clap",
  "pbkdf2",
@@ -5191,12 +5047,16 @@ dependencies = [
  "torrust-tracker-axum-http-server",
  "torrust-tracker-axum-rest-api-server",
  "torrust-tracker-axum-server",
+ "torrust-tracker-client-lib",
  "torrust-tracker-configuration",
+ "torrust-tracker-core",
+ "torrust-tracker-http-tracker-core",
  "torrust-tracker-rest-api-client",
  "torrust-tracker-rest-api-core",
  "torrust-tracker-swarm-coordination-registry",
  "torrust-tracker-test-helpers",
  "torrust-tracker-udp-server",
+ "torrust-tracker-udp-tracker-core",
  "tracing",
  "tracing-subscriber",
 ]
@@ -5235,11 +5095,7 @@ dependencies = [
  "axum",
  "axum-client-ip",
  "axum-server",
- "bittorrent-http-tracker-core",
- "bittorrent-http-tracker-protocol",
  "bittorrent-primitives",
- "bittorrent-tracker-core",
- "bittorrent-udp-tracker-protocol",
  "derive_more 2.1.1",
  "futures",
  "hyper",
@@ -5258,9 +5114,13 @@ dependencies = [
  "torrust-server-lib",
  "torrust-tracker-axum-server",
  "torrust-tracker-configuration",
+ "torrust-tracker-core",
+ "torrust-tracker-http-tracker-core",
+ "torrust-tracker-http-tracker-protocol",
  "torrust-tracker-primitives",
  "torrust-tracker-swarm-coordination-registry",
  "torrust-tracker-test-helpers",
+ "torrust-tracker-udp-tracker-protocol",
  "tower",
  "tower-http",
  "tracing",
@@ -5274,10 +5134,7 @@ dependencies = [
  "axum",
  "axum-extra",
  "axum-server",
- "bittorrent-http-tracker-core",
  "bittorrent-primitives",
- "bittorrent-tracker-core",
- "bittorrent-udp-tracker-core",
  "derive_more 2.1.1",
  "futures",
  "hyper",
@@ -5293,12 +5150,15 @@ dependencies = [
  "torrust-server-lib",
  "torrust-tracker-axum-server",
  "torrust-tracker-configuration",
+ "torrust-tracker-core",
+ "torrust-tracker-http-tracker-core",
  "torrust-tracker-primitives",
  "torrust-tracker-rest-api-client",
  "torrust-tracker-rest-api-core",
  "torrust-tracker-swarm-coordination-registry",
  "torrust-tracker-test-helpers",
  "torrust-tracker-udp-server",
+ "torrust-tracker-udp-tracker-core",
  "tower",
  "tower-http",
  "tracing",
@@ -5333,8 +5193,6 @@ dependencies = [
  "anyhow",
  "bencode2json",
  "bittorrent-primitives",
- "bittorrent-tracker-client",
- "bittorrent-udp-tracker-protocol",
  "clap",
  "futures",
  "hyper",
@@ -5346,9 +5204,34 @@ dependencies = [
  "tempfile",
  "thiserror 2.0.18",
  "tokio",
+ "torrust-tracker-client-lib",
+ "torrust-tracker-udp-tracker-protocol",
  "tracing",
  "tracing-subscriber",
  "url",
+]
+
+[[package]]
+name = "torrust-tracker-client-lib"
+version = "3.0.0-develop"
+dependencies = [
+ "bittorrent-primitives",
+ "derive_more 2.1.1",
+ "hyper",
+ "percent-encoding",
+ "reqwest",
+ "serde",
+ "serde_bencode",
+ "serde_bytes",
+ "serde_repr",
+ "thiserror 2.0.18",
+ "tokio",
+ "torrust-located-error",
+ "torrust-net-primitives",
+ "torrust-tracker-primitives",
+ "torrust-tracker-udp-tracker-protocol",
+ "tracing",
+ "zerocopy",
 ]
 
 [[package]]
@@ -5380,12 +5263,87 @@ dependencies = [
 ]
 
 [[package]]
+name = "torrust-tracker-core"
+version = "3.0.0-develop"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "bittorrent-primitives",
+ "chrono",
+ "clap",
+ "derive_more 2.1.1",
+ "mockall",
+ "rand 0.9.4",
+ "serde",
+ "serde_json",
+ "sqlx",
+ "testcontainers",
+ "thiserror 2.0.18",
+ "tokio",
+ "tokio-util",
+ "torrust-clock",
+ "torrust-located-error",
+ "torrust-metrics",
+ "torrust-tracker-configuration",
+ "torrust-tracker-events",
+ "torrust-tracker-primitives",
+ "torrust-tracker-swarm-coordination-registry",
+ "torrust-tracker-test-helpers",
+ "tracing",
+ "url",
+]
+
+[[package]]
 name = "torrust-tracker-events"
 version = "3.0.0-develop"
 dependencies = [
  "futures",
  "mockall",
  "tokio",
+]
+
+[[package]]
+name = "torrust-tracker-http-tracker-core"
+version = "3.0.0-develop"
+dependencies = [
+ "bittorrent-primitives",
+ "criterion 0.5.1",
+ "futures",
+ "mockall",
+ "serde",
+ "thiserror 2.0.18",
+ "tokio",
+ "tokio-util",
+ "torrust-clock",
+ "torrust-metrics",
+ "torrust-net-primitives",
+ "torrust-tracker-configuration",
+ "torrust-tracker-core",
+ "torrust-tracker-events",
+ "torrust-tracker-http-tracker-protocol",
+ "torrust-tracker-primitives",
+ "torrust-tracker-swarm-coordination-registry",
+ "torrust-tracker-test-helpers",
+ "tracing",
+]
+
+[[package]]
+name = "torrust-tracker-http-tracker-protocol"
+version = "3.0.0-develop"
+dependencies = [
+ "bittorrent-primitives",
+ "derive_more 2.1.1",
+ "multimap",
+ "percent-encoding",
+ "serde",
+ "serde_bencode",
+ "thiserror 2.0.18",
+ "torrust-clock",
+ "torrust-located-error",
+ "torrust-tracker-contrib-bencode",
+ "torrust-tracker-core",
+ "torrust-tracker-primitives",
+ "torrust-tracker-udp-tracker-protocol",
 ]
 
 [[package]]
@@ -5420,18 +5378,18 @@ dependencies = [
 name = "torrust-tracker-rest-api-core"
 version = "3.0.0-develop"
 dependencies = [
- "bittorrent-http-tracker-core",
- "bittorrent-tracker-core",
- "bittorrent-udp-tracker-core",
  "tokio",
  "tokio-util",
  "torrust-metrics",
  "torrust-tracker-configuration",
+ "torrust-tracker-core",
  "torrust-tracker-events",
+ "torrust-tracker-http-tracker-core",
  "torrust-tracker-primitives",
  "torrust-tracker-swarm-coordination-registry",
  "torrust-tracker-test-helpers",
  "torrust-tracker-udp-server",
+ "torrust-tracker-udp-tracker-core",
 ]
 
 [[package]]
@@ -5488,10 +5446,6 @@ name = "torrust-tracker-udp-server"
 version = "3.0.0-develop"
 dependencies = [
  "bittorrent-primitives",
- "bittorrent-tracker-client",
- "bittorrent-tracker-core",
- "bittorrent-udp-tracker-core",
- "bittorrent-udp-tracker-protocol",
  "derive_more 2.1.1",
  "futures",
  "futures-util",
@@ -5506,14 +5460,60 @@ dependencies = [
  "torrust-metrics",
  "torrust-net-primitives",
  "torrust-server-lib",
+ "torrust-tracker-client-lib",
  "torrust-tracker-configuration",
+ "torrust-tracker-core",
  "torrust-tracker-events",
  "torrust-tracker-primitives",
  "torrust-tracker-swarm-coordination-registry",
  "torrust-tracker-test-helpers",
+ "torrust-tracker-udp-tracker-core",
+ "torrust-tracker-udp-tracker-protocol",
  "tracing",
  "url",
  "uuid",
+ "zerocopy",
+]
+
+[[package]]
+name = "torrust-tracker-udp-tracker-core"
+version = "3.0.0-develop"
+dependencies = [
+ "bittorrent-primitives",
+ "bloom",
+ "blowfish",
+ "cipher",
+ "criterion 0.5.1",
+ "futures",
+ "mockall",
+ "rand 0.9.4",
+ "serde",
+ "thiserror 2.0.18",
+ "tokio",
+ "tokio-util",
+ "torrust-clock",
+ "torrust-metrics",
+ "torrust-net-primitives",
+ "torrust-tracker-configuration",
+ "torrust-tracker-core",
+ "torrust-tracker-events",
+ "torrust-tracker-primitives",
+ "torrust-tracker-swarm-coordination-registry",
+ "torrust-tracker-udp-tracker-protocol",
+ "tracing",
+ "zerocopy",
+]
+
+[[package]]
+name = "torrust-tracker-udp-tracker-protocol"
+version = "3.0.0-develop"
+dependencies = [
+ "bittorrent-peer-id",
+ "byteorder",
+ "either",
+ "pretty_assertions",
+ "quickcheck",
+ "quickcheck_macros",
  "zerocopy",
 ]
 

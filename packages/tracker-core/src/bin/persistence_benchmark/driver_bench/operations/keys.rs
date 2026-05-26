@@ -1,6 +1,6 @@
 use anyhow::{Context, Result};
-use bittorrent_tracker_core::authentication;
-use bittorrent_tracker_core::databases::AuthKeyStore;
+use torrust_tracker_core::authentication;
+use torrust_tracker_core::databases::AuthKeyStore;
 
 use super::super::RawOperationSamples;
 use super::super::sampling::measure_operation_async;

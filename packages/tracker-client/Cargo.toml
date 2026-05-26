@@ -2,7 +2,7 @@
 description = "A library with the generic tracker clients."
 keywords = [ "bittorrent", "client", "tracker" ]
 license = "LGPL-3.0"
-name = "bittorrent-tracker-client"
+name = "torrust-tracker-client-lib"
 readme = "README.md"
 
 authors.workspace = true
@@ -14,8 +14,11 @@ repository.workspace = true
 rust-version.workspace = true
 version.workspace = true
 
+[lib]
+name = "torrust_tracker_client"
+
 [dependencies]
-bittorrent-udp-tracker-protocol = { version = "3.0.0-develop", path = "../udp-protocol" }
+torrust-tracker-udp-tracker-protocol = { version = "3.0.0-develop", path = "../udp-protocol" }
 bittorrent-primitives = "0.2.0"
 derive_more = { version = "2", features = [ "as_ref", "constructor", "display", "from" ] }
 hyper = "1"

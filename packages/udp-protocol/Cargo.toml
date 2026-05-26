@@ -1,7 +1,7 @@
 [package]
 description = "A library with the primitive types and functions for the BitTorrent UDP tracker protocol."
 keywords = [ "bittorrent", "library", "primitives", "udp" ]
-name = "bittorrent-udp-tracker-protocol"
+name = "torrust-tracker-udp-tracker-protocol"
 readme = "README.md"
 
 authors.workspace = true

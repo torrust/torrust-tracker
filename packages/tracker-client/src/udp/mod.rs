@@ -1,9 +1,9 @@
 use std::net::SocketAddr;
 use std::sync::Arc;
 
-use bittorrent_udp_tracker_protocol::Request;
 use thiserror::Error;
 use torrust_located_error::DynError;
+use torrust_tracker_udp_tracker_protocol::Request;
 
 pub mod client;
 

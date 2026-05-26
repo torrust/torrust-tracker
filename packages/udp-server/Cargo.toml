@@ -1,0 +1,46 @@
+[package]
+authors.workspace = true
+description = "The Torrust Bittorrent UDP tracker."
+documentation.workspace = true
+edition.workspace = true
+homepage.workspace = true
+keywords = [ "axum", "bittorrent", "server", "torrust", "tracker", "udp" ]
+license.workspace = true
+name = "torrust-tracker-udp-server"
+publish.workspace = true
+readme = "README.md"
+repository.workspace = true
+rust-version.workspace = true
+version.workspace = true
+
+[dependencies]
+torrust_tracker_udp_tracker_protocol = { package = "torrust-tracker-udp-tracker-protocol", path = "../udp-protocol" }
+bittorrent-primitives = "0.2.0"
+torrust-tracker-client = { package = "torrust-tracker-client-lib", version = "3.0.0-develop", path = "../tracker-client" }
+torrust-tracker-core = { version = "3.0.0-develop", path = "../tracker-core" }
+torrust-tracker-udp-tracker-core = { version = "3.0.0-develop", path = "../udp-tracker-core" }
+derive_more = { version = "2", features = [ "as_ref", "constructor", "from" ] }
+futures = "0"
+futures-util = "0"
+ringbuf = "0"
+serde = "1.0.219"
+thiserror = "2"
+tokio = { version = "1", features = [ "macros", "net", "rt-multi-thread", "signal", "sync" ] }
+tokio-util = "0.7.15"
+torrust-server-lib = { version = "3.0.0-develop", path = "../server-lib" }
+torrust-clock = { version = "3.0.0-develop", path = "../clock" }
+torrust-tracker-configuration = { version = "3.0.0-develop", path = "../configuration" }
+torrust-tracker-events = { version = "3.0.0-develop", path = "../events" }
+torrust-metrics = { version = "3.0.0-develop", path = "../metrics" }
+torrust-net-primitives = { version = "3.0.0-develop", path = "../net-primitives" }
+torrust-tracker-primitives = { version = "3.0.0-develop", path = "../primitives" }
+torrust-tracker-swarm-coordination-registry = { version = "3.0.0-develop", path = "../swarm-coordination-registry" }
+tracing = "0"
+url = { version = "2", features = [ "serde" ] }
+uuid = { version = "1", features = [ "v4" ] }
+zerocopy = "0.8"
+
+[dev-dependencies]
+mockall = "0"
+rand = "0.9"
+torrust-tracker-test-helpers = { version = "3.0.0-develop", path = "../test-helpers" }

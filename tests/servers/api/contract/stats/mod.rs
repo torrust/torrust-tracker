@@ -2,11 +2,11 @@ use std::env;
 use std::str::FromStr as _;
 
 use bittorrent_primitives::info_hash::InfoHash;
-use bittorrent_tracker_client::http::client::Client as HttpTrackerClient;
-use bittorrent_tracker_client::http::client::requests::announce::QueryBuilder;
 use reqwest::Url;
 use serde::Deserialize;
 use tokio::time::Duration;
+use torrust_tracker_client::http::client::Client as HttpTrackerClient;
+use torrust_tracker_client::http::client::requests::announce::QueryBuilder;
 use torrust_tracker_lib::app;
 use torrust_tracker_rest_api_client::connection_info::{ConnectionInfo, Origin};
 use torrust_tracker_rest_api_client::v1::client::Client as TrackerApiClient;

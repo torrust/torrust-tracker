@@ -1,7 +1,7 @@
 //! Program to run persistence benchmarks directly against database drivers.
 //!
 //! This binary is a developer tool for measuring the persistence-layer methods
-//! implemented by the [`Database`](bittorrent_tracker_core::databases::Database)
+//! implemented by the [`Database`](torrust_tracker_core::databases::Database)
 //! trait. It benchmarks one driver per invocation and prints a JSON report to
 //! standard output with per-operation timing statistics.
 //!
@@ -25,10 +25,10 @@
 //! Typical usage:
 //!
 //! ```text
-//! cargo run -p bittorrent-tracker-core --bin persistence_benchmark_runner -- \
+//! cargo run -p torrust-tracker-core --bin persistence_benchmark_runner -- \
 //!   --driver sqlite3
 //!
-//! cargo run -p bittorrent-tracker-core --bin persistence_benchmark_runner -- \
+//! cargo run -p torrust-tracker-core --bin persistence_benchmark_runner -- \
 //!   --driver mysql \
 //!   --db-version 8.4
 //! ```
@@ -36,7 +36,7 @@
 //! Store output in a file with shell redirection:
 //!
 //! ```text
-//! cargo run -p bittorrent-tracker-core --bin persistence_benchmark_runner -- \
+//! cargo run -p torrust-tracker-core --bin persistence_benchmark_runner -- \
 //!   --driver sqlite3 \
 //!   > .benchmarks/bench-results-sqlite3.json
 //! ```

@@ -28,7 +28,7 @@ impl Error {
     /// Returns the bencoded representation of the `Error` struct.
     ///
     /// ```rust
-    /// use bittorrent_http_tracker_protocol::v1::responses::error::Error;
+    /// use torrust_tracker_http_tracker_protocol::v1::responses::error::Error;
     ///
     /// let err = Error {
     ///    failure_reason: "error message".to_owned(),
@@ -64,32 +64,32 @@ impl From<PeerIpResolutionError> for Error {
     }
 }
 
-impl From<bittorrent_tracker_core::error::AnnounceError> for Error {
-    fn from(err: bittorrent_tracker_core::error::AnnounceError) -> Self {
+impl From<torrust_tracker_core::error::AnnounceError> for Error {
+    fn from(err: torrust_tracker_core::error::AnnounceError) -> Self {
         Error {
             failure_reason: format!("Tracker announce error: {err}"),
         }
     }
 }
 
-impl From<bittorrent_tracker_core::error::ScrapeError> for Error {
-    fn from(err: bittorrent_tracker_core::error::ScrapeError) -> Self {
+impl From<torrust_tracker_core::error::ScrapeError> for Error {
+    fn from(err: torrust_tracker_core::error::ScrapeError) -> Self {
         Error {
             failure_reason: format!("Tracker scrape error: {err}"),
         }
     }
 }
 
-impl From<bittorrent_tracker_core::error::WhitelistError> for Error {
-    fn from(err: bittorrent_tracker_core::error::WhitelistError) -> Self {
+impl From<torrust_tracker_core::error::WhitelistError> for Error {
+    fn from(err: torrust_tracker_core::error::WhitelistError) -> Self {
         Error {
             failure_reason: format!("Tracker whitelist error: {err}"),
         }
     }
 }
 
-impl From<bittorrent_tracker_core::authentication::Error> for Error {
-    fn from(err: bittorrent_tracker_core::authentication::Error) -> Self {
+impl From<torrust_tracker_core::authentication::Error> for Error {
+    fn from(err: torrust_tracker_core::authentication::Error) -> Self {
         Error {
             failure_reason: format!("Tracker authentication error: {err}"),
         }

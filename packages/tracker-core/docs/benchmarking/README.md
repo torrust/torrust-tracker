@@ -1,7 +1,7 @@
 # Persistence Benchmarking Reports
 
 This folder stores benchmark artifacts produced by
-`persistence_benchmark_runner` for `bittorrent-tracker-core`.
+`persistence_benchmark_runner` for `torrust-tracker-core`.
 
 Goals:
 
@@ -65,11 +65,11 @@ Raw JSON artifacts:
 
 2. Run benchmarks and save JSON artifacts:
 
-   `cargo run -p bittorrent-tracker-core --bin persistence_benchmark_runner -- --driver sqlite3 > packages/tracker-core/docs/benchmarking/runs/YYYY-MM-DD/sqlite3.json`
+   `cargo run -p torrust-tracker-core --bin persistence_benchmark_runner -- --driver sqlite3 > packages/tracker-core/docs/benchmarking/runs/YYYY-MM-DD/sqlite3.json`
 
-   `cargo run -p bittorrent-tracker-core --bin persistence_benchmark_runner -- --driver mysql --db-version 8.4 > packages/tracker-core/docs/benchmarking/runs/YYYY-MM-DD/mysql-8.4.json`
+   `cargo run -p torrust-tracker-core --bin persistence_benchmark_runner -- --driver mysql --db-version 8.4 > packages/tracker-core/docs/benchmarking/runs/YYYY-MM-DD/mysql-8.4.json`
 
-   `cargo run -p bittorrent-tracker-core --bin persistence_benchmark_runner -- --driver postgresql --db-version 17 > packages/tracker-core/docs/benchmarking/runs/YYYY-MM-DD/postgresql-17.json`
+   `cargo run -p torrust-tracker-core --bin persistence_benchmark_runner -- --driver postgresql --db-version 17 > packages/tracker-core/docs/benchmarking/runs/YYYY-MM-DD/postgresql-17.json`
 
 3. Capture machine profile:
 

@@ -2,11 +2,11 @@ use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
-use bittorrent_udp_tracker_core::event::bus::EventBus;
-use bittorrent_udp_tracker_core::event::sender::Broadcaster;
-use bittorrent_udp_tracker_core::services::connect::ConnectService;
 use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
 use torrust_tracker_events::bus::SenderStatus;
+use torrust_tracker_udp_tracker_core::event::bus::EventBus;
+use torrust_tracker_udp_tracker_core::event::sender::Broadcaster;
+use torrust_tracker_udp_tracker_core::services::connect::ConnectService;
 
 use crate::helpers::utils::{sample_ipv4_remote_addr, sample_issue_time};
 

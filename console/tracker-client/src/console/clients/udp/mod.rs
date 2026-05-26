@@ -1,9 +1,9 @@
 use std::net::SocketAddr;
 
-use bittorrent_tracker_client::udp;
-use bittorrent_udp_tracker_protocol::Response;
 use serde::Serialize;
 use thiserror::Error;
+use torrust_tracker_client::udp;
+use torrust_tracker_udp_tracker_protocol::Response;
 
 pub mod app;
 pub mod checker;
@@ -66,7 +66,7 @@ mod tests {
     use std::io;
     use std::sync::Arc;
 
-    use bittorrent_tracker_client::udp;
+    use torrust_tracker_client::udp;
 
     use super::Error;
 

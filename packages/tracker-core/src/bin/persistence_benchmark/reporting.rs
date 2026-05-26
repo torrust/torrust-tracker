@@ -1,4 +1,4 @@
-use bittorrent_tracker_core::databases::driver::Driver;
+use torrust_tracker_core::databases::driver::Driver;
 
 use super::types::DbVersion;
 use super::{metrics, report};
@@ -30,7 +30,7 @@ mod tests {
     use std::str::FromStr;
     use std::time::Duration;
 
-    use bittorrent_tracker_core::databases::driver::Driver;
+    use torrust_tracker_core::databases::driver::Driver;
 
     use super::build_report;
     use crate::persistence_benchmark::metrics::OperationStats;

@@ -2,10 +2,10 @@ use std::str::FromStr as _;
 use std::time::Duration;
 
 use bittorrent_primitives::info_hash::InfoHash;
-use bittorrent_tracker_client::http::client::responses::announce::Announce;
-use bittorrent_tracker_client::http::client::responses::scrape;
-use bittorrent_tracker_client::http::client::{Client, requests};
 use serde::Serialize;
+use torrust_tracker_client::http::client::responses::announce::Announce;
+use torrust_tracker_client::http::client::responses::scrape;
+use torrust_tracker_client::http::client::{Client, requests};
 use url::Url;
 
 use crate::console::clients::http::Error;

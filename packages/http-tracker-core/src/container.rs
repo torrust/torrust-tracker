@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
-use bittorrent_tracker_core::container::TrackerCoreContainer;
 use torrust_tracker_configuration::{Core, HttpTracker};
+use torrust_tracker_core::container::TrackerCoreContainer;
 use torrust_tracker_swarm_coordination_registry::container::SwarmCoordinationRegistryContainer;
 
 use crate::event::bus::EventBus;

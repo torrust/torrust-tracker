@@ -5,13 +5,13 @@ use std::time::Duration;
 use anyhow::{Context, bail};
 use bencode2json::try_bencode_to_json;
 use bittorrent_primitives::info_hash::InfoHash;
-use bittorrent_tracker_client::http::client::requests::announce::{Compact, Event, QueryBuilder};
-use bittorrent_tracker_client::http::client::responses::announce::{Announce, DeserializedCompact};
-use bittorrent_tracker_client::http::client::responses::scrape;
-use bittorrent_tracker_client::http::client::{Client, requests};
-use bittorrent_udp_tracker_protocol::PeerId;
 use clap::{Subcommand, ValueEnum};
 use reqwest::Url;
+use torrust_tracker_client::http::client::requests::announce::{Compact, Event, QueryBuilder};
+use torrust_tracker_client::http::client::responses::announce::{Announce, DeserializedCompact};
+use torrust_tracker_client::http::client::responses::scrape;
+use torrust_tracker_client::http::client::{Client, requests};
+use torrust_tracker_udp_tracker_protocol::PeerId;
 
 use super::app::OutputFormat;
 use crate::DEFAULT_NETWORK_TIMEOUT;

@@ -19,8 +19,8 @@ semantic-links:
 ```output
 packages/
 ├── axum-health-check-api-server
-├── axum-http-tracker-server
-├── axum-rest-tracker-api-server
+├── axum-http-server
+├── axum-rest-api-server
 ├── axum-server
 ├── clock
 ├── configuration
@@ -28,8 +28,8 @@ packages/
 ├── http-tracker-core
 ├── located-error
 ├── primitives
-├── rest-tracker-api-client
-├── rest-tracker-api-core
+├── rest-api-client
+├── rest-api-core
 ├── server-lib
 ├── test-helpers
 ├── torrent-repository
@@ -37,7 +37,7 @@ packages/
 ├── tracker-core
 ├── udp-protocol
 ├── udp-tracker-core
-└── udp-tracker-server
+└── udp-server
 ```
 
 ```output
@@ -78,8 +78,8 @@ Key Architectural Principles:
 | ------------------------------ | ------------------------------------ | ------------------------------------------ |
 | **axum-\***                    |                                      |                                            |
 | `axum-server`                  | Base Axum HTTP server infrastructure | HTTP server lifecycle management           |
-| `axum-http-tracker-server`     | BitTorrent HTTP tracker (BEP 3/23)   | Handle announce/scrape requests            |
-| `axum-rest-tracker-api-server` | Management REST API                  | Tracker configuration & monitoring         |
+| `axum-http-server`     | BitTorrent HTTP tracker (BEP 3/23)   | Handle announce/scrape requests            |
+| `axum-rest-api-server` | Management REST API                  | Tracker configuration & monitoring         |
 | `axum-health-check-api-server` | Health monitoring endpoint           | System health reporting                    |
 | **Core Components**            |                                      |                                            |
 | `http-tracker-core`            | HTTP-specific implementation         | Request validation, Response formatting    |
@@ -98,7 +98,7 @@ Key Architectural Principles:
 | `test-helpers`                 | Testing utilities                    | Mock servers, Test data generation         |
 | **Client Tools**               |                                      |                                            |
 | `tracker-client`               | CLI client                           | Tracker interaction/testing                |
-| `rest-tracker-api-client`      | API client library                   | REST API integration                       |
+| `rest-api-client`      | API client library                   | REST API integration                       |
 
 ## Protocol Implementation Details
 

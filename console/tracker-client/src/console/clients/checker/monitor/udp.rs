@@ -2,10 +2,10 @@ use std::net::SocketAddr;
 use std::time::{Duration, Instant};
 
 use bittorrent_primitives::info_hash::InfoHash as TorrustInfoHash;
-use bittorrent_tracker_client::udp;
-use bittorrent_udp_tracker_protocol::TransactionId;
 use reqwest::Url;
 use serde::Serialize;
+use torrust_tracker_client::udp;
+use torrust_tracker_udp_tracker_protocol::TransactionId;
 
 use crate::console::clients::udp::Error as UdpError;
 use crate::console::clients::udp::checker::{AnnounceParams, Client};

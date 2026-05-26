@@ -2,10 +2,10 @@ use std::path::PathBuf;
 use std::time::Duration;
 
 use anyhow::{Context, Result, anyhow};
-use bittorrent_tracker_core::databases::SchemaMigrator;
-use bittorrent_tracker_core::databases::driver::Driver;
-use bittorrent_tracker_core::databases::setup::DatabaseStores;
 use testcontainers::{ContainerAsync, GenericImage};
+use torrust_tracker_core::databases::SchemaMigrator;
+use torrust_tracker_core::databases::driver::Driver;
+use torrust_tracker_core::databases::setup::DatabaseStores;
 
 mod mysql;
 mod postgres;

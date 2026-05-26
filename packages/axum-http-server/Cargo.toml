@@ -1,0 +1,57 @@
+[package]
+authors.workspace = true
+description = "The Torrust Bittorrent HTTP tracker."
+documentation.workspace = true
+edition.workspace = true
+homepage.workspace = true
+keywords = [ "axum", "bittorrent", "http", "server", "torrust", "tracker" ]
+license.workspace = true
+name = "torrust-tracker-axum-http-server"
+publish.workspace = true
+readme = "README.md"
+repository.workspace = true
+rust-version.workspace = true
+version.workspace = true
+
+[dependencies]
+torrust_tracker_udp_tracker_protocol = { package = "torrust-tracker-udp-tracker-protocol", path = "../udp-protocol" }
+axum = { version = "0", features = [ "macros" ] }
+axum-client-ip = "0"
+axum-server = { version = "0", features = [ "tls-rustls-no-provider" ] }
+torrust-tracker-http-tracker-core = { version = "3.0.0-develop", path = "../http-tracker-core" }
+torrust-tracker-http-tracker-protocol = { version = "3.0.0-develop", path = "../http-protocol" }
+bittorrent-primitives = "0.2.0"
+torrust-tracker-core = { version = "3.0.0-develop", path = "../tracker-core" }
+derive_more = { version = "2", features = [ "as_ref", "constructor", "from" ] }
+futures = "0"
+hyper = "1"
+reqwest = { version = "0", features = [ "json" ] }
+serde = { version = "1", features = [ "derive" ] }
+tokio = { version = "1", features = [ "macros", "net", "rt-multi-thread", "signal", "sync" ] }
+tokio-util = "0.7.15"
+torrust-tracker-axum-server = { version = "3.0.0-develop", path = "../axum-server" }
+torrust-server-lib = { version = "3.0.0-develop", path = "../server-lib" }
+torrust-clock = { version = "3.0.0-develop", path = "../clock" }
+torrust-tracker-configuration = { version = "3.0.0-develop", path = "../configuration" }
+torrust-net-primitives = { version = "3.0.0-develop", path = "../net-primitives" }
+torrust-tracker-primitives = { version = "3.0.0-develop", path = "../primitives" }
+torrust-tracker-swarm-coordination-registry = { version = "3.0.0-develop", path = "../swarm-coordination-registry" }
+tower = { version = "0", features = [ "timeout" ] }
+tower-http = { version = "0", features = [ "compression-full", "cors", "propagate-header", "request-id", "trace" ] }
+tracing = "0"
+
+[dev-dependencies]
+local-ip-address = "0"
+percent-encoding = "2"
+rand = "0.9"
+serde_bencode = "0"
+serde_bytes = "0"
+serde_repr = "0"
+torrust-clock = { version = "3.0.0-develop", path = "../clock" }
+torrust-tracker-test-helpers = { version = "3.0.0-develop", path = "../test-helpers" }
+uuid = { version = "1", features = [ "v4" ] }
+
+# cargo-machete cannot detect `serde_bytes` usage via `#[serde(with = "serde_bytes")]`
+# string attributes in test code; suppress the false-positive.
+[package.metadata.cargo-machete]
+ignored = [ "serde_bytes" ]

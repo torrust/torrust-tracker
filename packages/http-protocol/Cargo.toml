@@ -1,7 +1,7 @@
 [package]
 description = "A library with the primitive types and functions for the BitTorrent HTTP tracker protocol."
 keywords = [ "api", "library", "primitives" ]
-name = "bittorrent-http-tracker-protocol"
+name = "torrust-tracker-http-tracker-protocol"
 readme = "README.md"
 
 authors.workspace = true
@@ -15,9 +15,9 @@ rust-version.workspace = true
 version.workspace = true
 
 [dependencies]
-bittorrent-udp-tracker-protocol = { version = "3.0.0-develop", path = "../udp-protocol" }
+torrust-tracker-udp-tracker-protocol = { version = "3.0.0-develop", path = "../udp-protocol" }
 bittorrent-primitives = "0.2.0"
-bittorrent-tracker-core = { version = "3.0.0-develop", path = "../tracker-core" }
+torrust-tracker-core = { version = "3.0.0-develop", path = "../tracker-core" }
 derive_more = { version = "2", features = [ "as_ref", "constructor", "from" ] }
 multimap = "0"
 percent-encoding = "2"

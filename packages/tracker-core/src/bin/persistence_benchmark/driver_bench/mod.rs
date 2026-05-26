@@ -1,7 +1,7 @@
 use std::time::Duration;
 
 use anyhow::Result;
-use bittorrent_tracker_core::databases::driver::Driver;
+use torrust_tracker_core::databases::driver::Driver;
 
 use super::types::OpsCount;
 

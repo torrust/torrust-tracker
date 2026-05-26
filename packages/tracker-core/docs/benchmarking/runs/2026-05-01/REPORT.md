@@ -12,7 +12,7 @@ PostgreSQL baseline alongside the existing SQLite and MySQL numbers.
 
 - Commit (HEAD at run time): `74f5c8a9305912db8873024156cc006662ad1902`
 - Ops per operation: `100`
-- Benchmark runner: `cargo run -p bittorrent-tracker-core --bin persistence_benchmark_runner`
+- Benchmark runner: `cargo run -p torrust-tracker-core --bin persistence_benchmark_runner`
 - Machine profile: `../../machine/2026-05-01-josecelano-desktop.txt`
 - Same machine as all prior runs (AMD Ryzen 9 7950X, Ubuntu 25.10).
 

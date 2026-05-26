@@ -7,7 +7,7 @@ use std::sync::LazyLock;
 
 use blowfish::BlowfishLE;
 use cipher::{Block, KeyInit};
-use rand::RngExt;
+use rand::Rng;
 use rand::rngs::ThreadRng;
 
 pub type Seed = [u8; 32];

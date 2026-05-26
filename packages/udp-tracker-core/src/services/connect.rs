@@ -3,8 +3,8 @@
 //! The service is responsible for handling the `connect` requests.
 use std::net::SocketAddr;
 
-use bittorrent_udp_tracker_protocol::ConnectionId;
 use torrust_net_primitives::service_binding::ServiceBinding;
+use torrust_tracker_udp_tracker_protocol::ConnectionId;
 
 use crate::connection_cookie::{gen_remote_fingerprint, make};
 use crate::event::{ConnectionContext, Event};

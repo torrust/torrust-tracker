@@ -12,13 +12,13 @@ use std::ops::Range;
 use std::sync::Arc;
 
 use bittorrent_primitives::info_hash::InfoHash;
-use bittorrent_tracker_core::announce_handler::{AnnounceHandler, PeersWanted};
-use bittorrent_tracker_core::error::{AnnounceError, WhitelistError};
-use bittorrent_tracker_core::whitelist;
-use bittorrent_udp_tracker_protocol::AnnounceRequest;
 use torrust_net_primitives::service_binding::ServiceBinding;
+use torrust_tracker_core::announce_handler::{AnnounceHandler, PeersWanted};
+use torrust_tracker_core::error::{AnnounceError, WhitelistError};
+use torrust_tracker_core::whitelist;
 use torrust_tracker_primitives::AnnounceData;
 use torrust_tracker_primitives::peer::PeerAnnouncement;
+use torrust_tracker_udp_tracker_protocol::AnnounceRequest;
 
 use crate::connection_cookie::{ConnectionCookieError, check, gen_remote_fingerprint};
 use crate::event::{ConnectionContext, Event};

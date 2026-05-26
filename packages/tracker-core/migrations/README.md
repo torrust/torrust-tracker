@@ -29,7 +29,7 @@ is applied exactly once per database.
 4. Use SQL syntax supported by `sqlx`'s statement splitter — separate
    statements with `;` and use `--` for line comments (this applies to both
    the SQLite and MySQL backends; `#`-style comments are not accepted).
-5. Run the test suite: `cargo test -p bittorrent-tracker-core`. A rebuild is
+5. Run the test suite: `cargo test -p torrust-tracker-core`. A rebuild is
    required for the new migration to be embedded into the binary.
 
 ## Migration file immutability

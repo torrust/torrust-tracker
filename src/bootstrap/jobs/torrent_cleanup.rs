@@ -12,10 +12,10 @@
 
 use std::sync::Arc;
 
-use bittorrent_tracker_core::torrent::manager::TorrentsManager;
 use chrono::Utc;
 use tokio::task::JoinHandle;
 use torrust_tracker_configuration::Core;
+use torrust_tracker_core::torrent::manager::TorrentsManager;
 use tracing::instrument;
 
 /// It starts a jobs for cleaning up the torrent data in the tracker.
