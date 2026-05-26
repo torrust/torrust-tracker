@@ -20,6 +20,58 @@ the proposal, the reasoning, and a reference to any supporting artifact.
 
 ---
 
+## DEC-04 — Match package folder names to crate names without prefix
+
+**Date**: 2026-05-26
+**Status**: Adopted
+
+### Proposal
+
+Use package folder names that match the crate name with the ownership prefix removed.
+Examples:
+
+- `torrust-tracker-rest-api-client` -> `rest-api-client`
+- `torrust-tracker-udp-server` -> `udp-server`
+
+### Why it was adopted
+
+1. **Lower navigation friction**: the folder name can be inferred directly from crate name.
+2. **Consistent workspace layout**: the same naming rule applies across packages.
+3. **Cleaner documentation tables**: desired-state tables can show old vs new folder names
+   explicitly with less ambiguity.
+
+### Supporting artifact
+
+[EPIC.md](EPIC.md) Desired Package State section.
+
+---
+
+## DEC-03 — Prefix indicates ownership/subdomain, not expected reusability
+
+**Date**: 2026-05-26
+**Status**: Adopted
+
+### Proposal
+
+Treat crate prefixes as ownership and release-identity markers. Reusability potential is not
+encoded in the prefix. Tracker-domain crates use `torrust-tracker-` while organisation-level
+shared crates use `torrust-`.
+
+### Why it was adopted
+
+1. **Clear ownership semantics**: prefixes map to workspace/product area rather than guesses
+   about future external reuse.
+2. **Stable naming over time**: avoids churn from renaming crates whenever perceived
+   reusability changes.
+3. **Consistent release identity**: tracker-owned crates remain identifiable as tracker crates
+   even if reused outside this repository.
+
+### Supporting artifact
+
+[EPIC.md](EPIC.md) naming policy and Desired Package State tables.
+
+---
+
 ## DEC-02 — Use `torrust-` as the default prefix for Torrust organisation crates
 
 **Date**: 2026-05-26
