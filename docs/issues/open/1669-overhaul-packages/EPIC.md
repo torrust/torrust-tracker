@@ -220,7 +220,7 @@ packages that will be moved in, while distinguishing the two cases in the table.
 | Existing       | `torrust-peer`      | `packages/peer`      | Rename in destination |       |
 | Existing       | `torrust-select`    | `packages/select`    | Rename in destination |       |
 | Existing       | `torrust-util`      | `packages/util`      | Rename in destination | [2]   |
-| Incoming       | `torrust-bencode`   | `packages/bencode`   | SI-12                 | [3]   |
+| Incoming       | `torrust-bencode`   | `packages/bencode`   | SI-16                 | [3]   |
 | Incoming       | `torrust-peer-id`   | `packages/peer-id`   | Move from tracker     | [4]   |
 | Incoming       | `torrust-infohash`  | `packages/infohash`  | Replace old copy      | [5]   |
 
@@ -460,11 +460,64 @@ rule priority.
 | P    | 3        | **Rename published packages** — crate is on crates.io; old and new names coexist for a migration window; external consumers must eventually migrate.                                     |
 | E    | 4        | **Extract packages to standalone repositories** — highest effort; requires CI setup, history preservation, and migrating all workspace consumers from path dep to crates.io version dep. |
 
+### Layer guardrails
+
+All package moves, splits, and new package proposals in this EPIC must preserve the
+layered architecture below.
+
+#### Layer responsibilities
+
+- Server layer:
+  - Delivery and framework integration (Axum, transport wiring, HTTP/UDP endpoint handling).
+  - Keep business logic minimal.
+- Core layer:
+  - Protocol-specific tracker behavior independent from delivery frameworks.
+  - Place as much reusable tracker behavior here as practical.
+- Tracker-core layer:
+  - Central tracker domain and persistence-facing logic (whitelist, keys, tracking, repositories).
+- Protocol layer:
+  - BEP-defined protocol parsing/encoding and protocol value objects.
+  - Should change only with BEP changes or protocol-extension decisions.
+
+#### Dependency direction rules
+
+- `server` may depend on `core`, `tracker-core`, `protocol`, and shared utilities.
+- `core` may depend on `tracker-core`, `protocol`, and shared primitives/utilities.
+- `tracker-core` may depend on shared primitives/utilities.
+- `protocol` may depend on protocol-level primitives/utilities only.
+
+Forbidden edges:
+
+- `core -> server`
+- `tracker-core -> core`
+- `tracker-core -> protocol`
+- `tracker-core -> server`
+- `protocol -> core`
+- `protocol -> tracker-core`
+- `protocol -> server`
+
+#### Subissue architecture checklist
+
+Every subissue touching package boundaries should include:
+
+1. Layer impact summary:
+   - Current dependency edge(s).
+   - Why each edge violates or respects this model.
+   - Target dependency edge(s) after the change.
+2. Concrete symbol usage evidence for each problematic edge.
+3. Acceptance criteria proving forbidden edges are removed.
+4. Verification steps showing dependency diff before/after.
+
+Current known smell to prioritize under these rules:
+
+- `http-protocol` depending on `tracker-core` and `udp-protocol`.
+
 ### Quick list
 
 Status: TODO unless noted.
 
-- [ ] Establish baseline: dependency graph + README audit _(analysis; no blockers; informs all other subissues)_
+#### 1. Implemented
+
 - [x] Move `DurationSinceUnixEpoch` from `torrust-tracker-primitives` to `torrust-tracker-clock` _(Rule M; no hard blockers)_
 - [x] Define per-package default timeout constants and remove `DEFAULT_TIMEOUT` from `torrust-tracker-configuration` _(Rule M; no blockers)_
 - [x] [#1795](https://github.com/torrust/torrust-tracker/issues/1795) Move `AnnouncePolicy` from `torrust-tracker-configuration` to `torrust-tracker-primitives` _(Rule M; no blockers)_
@@ -474,33 +527,50 @@ Status: TODO unless noted.
 - [x] [#1819](https://github.com/torrust/torrust-tracker/issues/1819) Rename `torrust-tracker-metrics` to `torrust-metrics` _(Rule U; no blockers)_
 - [x] [#1821](https://github.com/torrust/torrust-tracker/issues/1821) Rename `torrust-tracker-clock` to `torrust-clock` _(Rule P; no blockers)_
 - [x] [#1823](https://github.com/torrust/torrust-tracker/issues/1823) Rename `torrust-tracker-located-error` to `torrust-located-error` _(Rule P; no blockers)_
+
+#### 2. Open GitHub Issue
+
+- [ ] _(none currently)_
+
+#### 3. Numbered Subissue (No GitHub Issue Yet)
+
+- [ ] SI-11: Rename crates and folder names to match desired `torrust-tracker` workspace state _(Rule U; one package at a time)_
+- [ ] SI-12: Decouple `http-protocol` from `tracker-core` _(Rule M; remove forbidden `protocol -> tracker-core` edge)_
+- [ ] SI-13: Decouple `http-protocol` from `udp-protocol` _(Rule M; remove cross-protocol dependency edge)_
+- [ ] SI-14: Decouple `http-protocol` from `torrust-tracker-primitives` _(Rule M; remove protocol -> domain coupling as step 2)_
+
+#### 4. Draft Specs (No Subissue Number, No GitHub Issue)
+
+- [ ] Establish baseline: dependency graph + README audit _(analysis; no blockers; informs all other subissues)_
 - [ ] Update all package READMEs _(documentation; after completed rename work; before extractions)_
 - [ ] Migrate `contrib/bencode` back to `torrust/torrust-bittorrent`, replacing legacy `packages/bencode` _(Rule E; no blockers within this EPIC)_
 - [ ] Extract `torrust-clock` to standalone repository _(Rule E; requires completed clock rename and type move work)_
 - [ ] Extract `torrust-metrics` to standalone repository _(Rule E; requires completed metrics rename work)_
-- [ ] Extract `torrust-tracker-client` to standalone repository _(Rule E; blocked by `bittorrent-*` publication — external to this EPIC)_
-- [ ] Rename crates and folder names to match desired `torrust-tracker` workspace state _(Rule U; one package at a time)_
+- [ ] Extract `torrust-tracker-client` to standalone repository _(Rule E; blocked by `bittorrent-*` publication - external to this EPIC)_
 
 Details:
 
-| Item                      | Issue                                                                                                                                                                            | Local Spec                                                                                                                                                                                     | Status | Notes                                                                                           |
-| ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ----------------------------------------------------------------------------------------------- |
-| Baseline analysis         | #TBD — Establish baseline: dependency graph + README audit                                                                                                                       | [docs/issues/drafts/1669-01-establish-baseline-analysis.md](../../drafts/1669-01-establish-baseline-analysis.md)                                                                               | TODO   | No blockers; informs extraction decisions                                                       |
-| Duration move             | [#1790](https://github.com/torrust/torrust-tracker/issues/1790) — Move `DurationSinceUnixEpoch` from `torrust-tracker-primitives` to `torrust-tracker-clock`                     | [docs/issues/open/1790-move-duration-since-unix-epoch-to-torrust-tracker-clock.md](../../open/1790-move-duration-since-unix-epoch-to-torrust-tracker-clock.md)                                 | DONE   | Rule M; no hard blockers; prerequisite for clock extraction                                     |
-| Timeout constants         | [#1793](https://github.com/torrust/torrust-tracker/issues/1793) — Define per-package default timeout constants and remove `DEFAULT_TIMEOUT` from `torrust-tracker-configuration` | [docs/issues/open/1793-1669-03-define-per-package-default-timeout-constants.md](../../open/1793-1669-03-define-per-package-default-timeout-constants.md)                                       | DONE   | Rule M; completed                                                                               |
-| Announce policy move      | [#1795](https://github.com/torrust/torrust-tracker/issues/1795) — Move `AnnouncePolicy` from `torrust-tracker-configuration` to `torrust-tracker-primitives`                     | [docs/issues/open/1795-1669-04-move-announce-policy-to-torrust-tracker-primitives.md](../../open/1795-1669-04-move-announce-policy-to-torrust-tracker-primitives.md)                           | DONE   | Rule M; completed                                                                               |
-| Net primitives split      | [#1797](https://github.com/torrust/torrust-tracker/issues/1797) — Create `torrust-net-primitives` and move `ServiceBinding` from `torrust-tracker-primitives`                    | [docs/issues/open/1797-1669-05-create-torrust-net-primitives-and-move-service-binding.md](../../open/1797-1669-05-create-torrust-net-primitives-and-move-service-binding.md)                   | TODO   | Rule M + new package; generic networking type; breaks server-lib -> tracker-primitives dep      |
-| Layer violation fix       | [#1813](https://github.com/torrust/torrust-tracker/issues/1813) — Resolve `bittorrent-tracker-core` ↔ `torrust-tracker-rest-api-client` layer violation                          | [docs/issues/closed/1813-1669-06-resolve-bittorrent-tracker-core-rest-api-layer-violation.md](../../closed/1813-1669-06-resolve-bittorrent-tracker-core-rest-api-layer-violation.md)           | DONE   | Rule M; stale unused dev dep removed in PR #1804; unblocks `bittorrent-tracker-core` extraction |
-| Prefix alignment          | [#1816](https://github.com/torrust/torrust-tracker/issues/1816) — Align `torrust-` prefix: rename 7 tracker-specific packages to `torrust-tracker-`                              | [docs/issues/open/1816-1669-07-align-torrust-prefix-rename-tracker-specific-packages.md](../../open/1816-1669-07-align-torrust-prefix-rename-tracker-specific-packages.md)                     | DONE   | Rule U; none of the 7 are published; pure workspace rename; no blockers                         |
-| Metrics rename            | [#1819](https://github.com/torrust/torrust-tracker/issues/1819) — Rename `torrust-tracker-metrics` to `torrust-metrics`                                                          | [docs/issues/open/1819-1669-08-rename-torrust-tracker-metrics-to-torrust-metrics.md](../../open/1819-1669-08-rename-torrust-tracker-metrics-to-torrust-metrics.md)                             | DONE   | Rule U; not yet published; no blockers; prerequisite for metrics extraction                     |
-| Clock rename              | [#1821](https://github.com/torrust/torrust-tracker/issues/1821) — Rename `torrust-tracker-clock` to `torrust-clock`                                                              | [docs/issues/open/1821-1669-09-rename-torrust-tracker-clock-to-torrust-clock.md](../../open/1821-1669-09-rename-torrust-tracker-clock-to-torrust-clock.md)                                     | DONE   | Rule P; published on crates.io; no blockers; prerequisite for clock extraction                  |
-| Located error rename      | [#1823](https://github.com/torrust/torrust-tracker/issues/1823) — Rename `torrust-tracker-located-error` to `torrust-located-error`                                              | [docs/issues/closed/1823-1669-10-rename-torrust-tracker-located-error-to-torrust-located-error.md](../../closed/1823-1669-10-rename-torrust-tracker-located-error-to-torrust-located-error.md) | DONE   | Rule P; completed                                                                               |
-| README refresh            | #TBD — Update all package READMEs                                                                                                                                                | [docs/issues/drafts/1669-update-all-package-readmes.md](../../drafts/1669-update-all-package-readmes.md)                                                                                       | TODO   | Documentation; requires completed rename work; before extraction work                           |
-| Bencode migration         | #TBD — Migrate `contrib/bencode` to `torrust/torrust-bittorrent` and replace legacy `packages/bencode`                                                                           | [docs/issues/drafts/1669-extract-torrust-tracker-contrib-bencode-to-torrust-bencode.md](../../drafts/1669-extract-torrust-tracker-contrib-bencode-to-torrust-bencode.md)                       | TODO   | Rule E; replaces old `torrust-bittorrent` implementation with newer tracker lineage             |
-| Clock extraction          | #TBD — Extract `torrust-clock` to standalone repository                                                                                                                          | [docs/issues/drafts/1669-extract-torrust-clock-to-standalone-repo.md](../../drafts/1669-extract-torrust-clock-to-standalone-repo.md)                                                           | TODO   | Rule E; requires completed duration move and clock rename; 11 workspace consumers to migrate    |
-| Metrics extraction        | #TBD — Extract `torrust-metrics` to standalone repository                                                                                                                        | [docs/issues/drafts/1669-extract-torrust-metrics-to-standalone-repo.md](../../drafts/1669-extract-torrust-metrics-to-standalone-repo.md)                                                       | TODO   | Rule E; requires completed metrics rename; 7 workspace consumers to migrate                     |
-| Tracker client extraction | #TBD — Extract `torrust-tracker-client` to standalone repository                                                                                                                 | [docs/issues/drafts/1669-extract-torrust-tracker-client-to-standalone-repo.md](../../drafts/1669-extract-torrust-tracker-client-to-standalone-repo.md)                                         | TODO   | Rule E; blocked by `bittorrent-udp-tracker-protocol` publication (external to this EPIC)        |
-| Rename-to-desired-state   | #TBD — Rename crates and folder names to match desired `torrust-tracker` workspace state                                                                                         | [docs/issues/drafts/1669-rename-crates-and-folders-to-match-desired-tracker-workspace.md](../../drafts/1669-rename-crates-and-folders-to-match-desired-tracker-workspace.md)                   | TODO   | Rule U; crate-only or folder-only rename per package; execute one package at a time             |
+| Item                       | Issue                                                                                                                                                                            | Local Spec                                                                                                                                                                                     | Status | Notes                                                                                           |
+| -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ----------------------------------------------------------------------------------------------- |
+| Baseline analysis          | #TBD — Establish baseline: dependency graph + README audit                                                                                                                       | [docs/issues/drafts/1669-01-establish-baseline-analysis.md](../../drafts/1669-01-establish-baseline-analysis.md)                                                                               | TODO   | No blockers; informs extraction decisions                                                       |
+| Duration move              | [#1790](https://github.com/torrust/torrust-tracker/issues/1790) — Move `DurationSinceUnixEpoch` from `torrust-tracker-primitives` to `torrust-tracker-clock`                     | [docs/issues/open/1790-move-duration-since-unix-epoch-to-torrust-tracker-clock.md](../../open/1790-move-duration-since-unix-epoch-to-torrust-tracker-clock.md)                                 | DONE   | Rule M; no hard blockers; prerequisite for clock extraction                                     |
+| Timeout constants          | [#1793](https://github.com/torrust/torrust-tracker/issues/1793) — Define per-package default timeout constants and remove `DEFAULT_TIMEOUT` from `torrust-tracker-configuration` | [docs/issues/open/1793-1669-03-define-per-package-default-timeout-constants.md](../../open/1793-1669-03-define-per-package-default-timeout-constants.md)                                       | DONE   | Rule M; completed                                                                               |
+| Announce policy move       | [#1795](https://github.com/torrust/torrust-tracker/issues/1795) — Move `AnnouncePolicy` from `torrust-tracker-configuration` to `torrust-tracker-primitives`                     | [docs/issues/open/1795-1669-04-move-announce-policy-to-torrust-tracker-primitives.md](../../open/1795-1669-04-move-announce-policy-to-torrust-tracker-primitives.md)                           | DONE   | Rule M; completed                                                                               |
+| Net primitives split       | [#1797](https://github.com/torrust/torrust-tracker/issues/1797) — Create `torrust-net-primitives` and move `ServiceBinding` from `torrust-tracker-primitives`                    | [docs/issues/closed/1797-1669-05-create-torrust-net-primitives-and-move-service-binding.md](../../closed/1797-1669-05-create-torrust-net-primitives-and-move-service-binding.md)               | DONE   | Rule M + new package; generic networking type; completed                                        |
+| Layer violation fix        | [#1813](https://github.com/torrust/torrust-tracker/issues/1813) — Resolve `bittorrent-tracker-core` ↔ `torrust-tracker-rest-api-client` layer violation                          | [docs/issues/closed/1813-1669-06-resolve-bittorrent-tracker-core-rest-api-layer-violation.md](../../closed/1813-1669-06-resolve-bittorrent-tracker-core-rest-api-layer-violation.md)           | DONE   | Rule M; stale unused dev dep removed in PR #1804; unblocks `bittorrent-tracker-core` extraction |
+| Prefix alignment           | [#1816](https://github.com/torrust/torrust-tracker/issues/1816) — Align `torrust-` prefix: rename 7 tracker-specific packages to `torrust-tracker-`                              | [docs/issues/open/1816-1669-07-align-torrust-prefix-rename-tracker-specific-packages.md](../../open/1816-1669-07-align-torrust-prefix-rename-tracker-specific-packages.md)                     | DONE   | Rule U; none of the 7 are published; pure workspace rename; no blockers                         |
+| Metrics rename             | [#1819](https://github.com/torrust/torrust-tracker/issues/1819) — Rename `torrust-tracker-metrics` to `torrust-metrics`                                                          | [docs/issues/open/1819-1669-08-rename-torrust-tracker-metrics-to-torrust-metrics.md](../../open/1819-1669-08-rename-torrust-tracker-metrics-to-torrust-metrics.md)                             | DONE   | Rule U; not yet published; no blockers; prerequisite for metrics extraction                     |
+| Clock rename               | [#1821](https://github.com/torrust/torrust-tracker/issues/1821) — Rename `torrust-tracker-clock` to `torrust-clock`                                                              | [docs/issues/open/1821-1669-09-rename-torrust-tracker-clock-to-torrust-clock.md](../../open/1821-1669-09-rename-torrust-tracker-clock-to-torrust-clock.md)                                     | DONE   | Rule P; published on crates.io; no blockers; prerequisite for clock extraction                  |
+| Located error rename       | [#1823](https://github.com/torrust/torrust-tracker/issues/1823) — Rename `torrust-tracker-located-error` to `torrust-located-error`                                              | [docs/issues/closed/1823-1669-10-rename-torrust-tracker-located-error-to-torrust-located-error.md](../../closed/1823-1669-10-rename-torrust-tracker-located-error-to-torrust-located-error.md) | DONE   | Rule P; completed                                                                               |
+| README refresh             | #TBD — Update all package READMEs                                                                                                                                                | [docs/issues/drafts/1669-update-all-package-readmes.md](../../drafts/1669-update-all-package-readmes.md)                                                                                       | TODO   | Documentation; requires completed rename work; before extraction work                           |
+| Bencode migration          | #TBD — Migrate `contrib/bencode` to `torrust/torrust-bittorrent` and replace legacy `packages/bencode`                                                                           | [docs/issues/drafts/1669-extract-torrust-tracker-contrib-bencode-to-torrust-bencode.md](../../drafts/1669-extract-torrust-tracker-contrib-bencode-to-torrust-bencode.md)                       | TODO   | Rule E; replaces old `torrust-bittorrent` implementation with newer tracker lineage             |
+| Clock extraction           | #TBD — Extract `torrust-clock` to standalone repository                                                                                                                          | [docs/issues/drafts/1669-extract-torrust-clock-to-standalone-repo.md](../../drafts/1669-extract-torrust-clock-to-standalone-repo.md)                                                           | TODO   | Rule E; requires completed duration move and clock rename; 11 workspace consumers to migrate    |
+| Metrics extraction         | #TBD — Extract `torrust-metrics` to standalone repository                                                                                                                        | [docs/issues/drafts/1669-extract-torrust-metrics-to-standalone-repo.md](../../drafts/1669-extract-torrust-metrics-to-standalone-repo.md)                                                       | TODO   | Rule E; requires completed metrics rename; 7 workspace consumers to migrate                     |
+| Tracker client extraction  | #TBD — Extract `torrust-tracker-client` to standalone repository                                                                                                                 | [docs/issues/drafts/1669-extract-torrust-tracker-client-to-standalone-repo.md](../../drafts/1669-extract-torrust-tracker-client-to-standalone-repo.md)                                         | TODO   | Rule E; blocked by `bittorrent-udp-tracker-protocol` publication (external to this EPIC)        |
+| Rename-to-desired-state    | #TBD — Rename crates and folder names to match desired `torrust-tracker` workspace state                                                                                         | [docs/issues/drafts/1669-11-rename-crates-and-folders-to-match-desired-tracker-workspace.md](../../drafts/1669-11-rename-crates-and-folders-to-match-desired-tracker-workspace.md)                   | TODO   | SI-11. Rule U; crate-only or folder-only rename per package; execute one package at a time      |
+| HTTP protocol decoupling   | #TBD — Decouple `http-protocol` from `tracker-core`                                                                                                                              | [docs/issues/drafts/1669-12-decouple-http-protocol-from-tracker-core.md](../../drafts/1669-12-decouple-http-protocol-from-tracker-core.md)                                                           | TODO   | SI-12. Rule M; remove forbidden `protocol -> tracker-core` dependency edge                      |
+| HTTP/UDP decoupling        | #TBD — Decouple `http-protocol` from `udp-protocol`                                                                                                                              | [docs/issues/drafts/1669-13-decouple-http-protocol-from-udp-protocol.md](../../drafts/1669-13-decouple-http-protocol-from-udp-protocol.md)                                                           | TODO   | SI-13. Rule M; remove cross-protocol dependency edge                                            |
+| HTTP/primitives decoupling | #TBD — Decouple `http-protocol` from `torrust-tracker-primitives`                                                                                                                | [docs/issues/drafts/1669-14-decouple-http-protocol-from-tracker-primitives.md](../../drafts/1669-14-decouple-http-protocol-from-tracker-primitives.md)                                               | TODO   | SI-14. Rule M; remove protocol -> domain coupling in step 2                                     |
 
 ### Draft issues
 
@@ -510,7 +580,10 @@ Details:
 - [docs/issues/drafts/1669-extract-torrust-clock-to-standalone-repo.md](../../drafts/1669-extract-torrust-clock-to-standalone-repo.md)
 - [docs/issues/drafts/1669-extract-torrust-metrics-to-standalone-repo.md](../../drafts/1669-extract-torrust-metrics-to-standalone-repo.md)
 - [docs/issues/drafts/1669-extract-torrust-tracker-client-to-standalone-repo.md](../../drafts/1669-extract-torrust-tracker-client-to-standalone-repo.md)
-- [docs/issues/drafts/1669-rename-crates-and-folders-to-match-desired-tracker-workspace.md](../../drafts/1669-rename-crates-and-folders-to-match-desired-tracker-workspace.md)
+- [docs/issues/drafts/1669-11-rename-crates-and-folders-to-match-desired-tracker-workspace.md](../../drafts/1669-11-rename-crates-and-folders-to-match-desired-tracker-workspace.md)
+- [docs/issues/drafts/1669-12-decouple-http-protocol-from-tracker-core.md](../../drafts/1669-12-decouple-http-protocol-from-tracker-core.md)
+- [docs/issues/drafts/1669-13-decouple-http-protocol-from-udp-protocol.md](../../drafts/1669-13-decouple-http-protocol-from-udp-protocol.md)
+- [docs/issues/drafts/1669-14-decouple-http-protocol-from-tracker-primitives.md](../../drafts/1669-14-decouple-http-protocol-from-tracker-primitives.md)
 
 > New subissues are created as analysis reveals the next improvement. The EPIC is never
 > fully planned up front.
@@ -604,7 +677,7 @@ against this constraint (verified May 2026).
 
 | Package                                         | Crates.io status | Unpublished runtime workspace deps                                                                                                                      | Can be published independently? | Ordering constraint                                                                                                                     |
 | ----------------------------------------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| `torrust-tracker-contrib-bencode`               | Yes              | None                                                                                                                                                    | ✅ Now                          | SI-12 can migrate it into `torrust/torrust-bittorrent` and replace legacy `packages/bencode`                                            |
+| `torrust-tracker-contrib-bencode`               | Yes              | None                                                                                                                                                    | ✅ Now                          | SI-16 can migrate it into `torrust/torrust-bittorrent` and replace legacy `packages/bencode`                                            |
 | `bittorrent-peer-id`                            | No               | None                                                                                                                                                    | ✅ Now                          | No spec yet; can be extracted first in the `bittorrent-*` sequence                                                                      |
 | `torrust-located-error`                         | Yes              | None                                                                                                                                                    | ✅ Already published            | No extraction spec yet                                                                                                                  |
 | `torrust-tracker-clock` (→ `torrust-clock`)     | Yes              | None (✅ `torrust-tracker-primitives` dep removed by SI-02 #1790)                                                                                       | ✅ After rename                 | See [extract clock subissue](../../drafts/1669-extract-torrust-clock-to-standalone-repo.md)                                             |

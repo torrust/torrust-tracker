@@ -35,7 +35,7 @@ Several packages have placeholder READMEs with wrong titles or no meaningful con
 
 This subissue is intentionally ordered **after** the rename subissues (SI-07 through SI-10)
 so that all READMEs are written against the final package names, and **before** the extraction
-subissues (SI-12 through SI-15) so that extracted standalone repositories launch with
+subissues (SI-16 through SI-19) so that extracted standalone repositories launch with
 good documentation from day one.
 
 This issue is a subissue of EPIC [#1669](../open/1669-overhaul-packages/EPIC.md)
@@ -99,8 +99,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 ### Progress Log
 
 - 2026-05-18 00:00 UTC - josecelano - Spec drafted as subissue of EPIC #1669; uses
-  readme-audit.md baseline from SI-01. Ordered after renaming (SI-07–SI-10) and before
-  extraction (SI-12+).
+  readme-audit.md baseline from SI-01. Ordered after renaming (SI-07-SI-10) and before
+  extraction (SI-16+).
 
 ## Acceptance Criteria
 

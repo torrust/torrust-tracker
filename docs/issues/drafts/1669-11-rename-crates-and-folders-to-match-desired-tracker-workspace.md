@@ -4,7 +4,7 @@ issue-type: task
 status: draft
 priority: p2
 github-issue: null
-spec-path: docs/issues/drafts/1669-rename-crates-and-folders-to-match-desired-tracker-workspace.md
+spec-path: docs/issues/drafts/1669-11-rename-crates-and-folders-to-match-desired-tracker-workspace.md
 branch: null
 related-pr: null
 last-updated-utc: 2026-05-26 00:00
@@ -22,6 +22,8 @@ semantic-links:
 <!-- skill-link: create-issue -->
 
 # Issue #[To be assigned] - Rename crates and folders to match EPIC desired tracker workspace state
+
+Subissue ID: SI-11 (1669-11).
 
 ## Goal
 
