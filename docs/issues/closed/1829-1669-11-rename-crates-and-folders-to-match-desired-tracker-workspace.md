@@ -1,13 +1,13 @@
 ---
 doc-type: issue
 issue-type: task
-status: open
+status: closed
 priority: p2
 github-issue: 1829
-spec-path: docs/issues/open/1829-1669-11-rename-crates-and-folders-to-match-desired-tracker-workspace.md
+spec-path: docs/issues/closed/1829-1669-11-rename-crates-and-folders-to-match-desired-tracker-workspace.md
 branch: 1829-rename-crates-and-folders
 related-pr: null
-last-updated-utc: 2026-05-26 20:15
+last-updated-utc: 2026-05-27 00:00
 semantic-links:
   skill-links:
     - create-issue
@@ -51,7 +51,7 @@ Important constraint from EPIC discussion:
 - The packages touched in this issue are unpublished, so there is no external crates.io
   migration window required.
 
-This issue is a subissue of EPIC [#1669](1669-overhaul-packages/EPIC.md)
+This issue is a subissue of EPIC [#1669](../open/1669-overhaul-packages/EPIC.md)
 (Overhaul: Packages).
 
 ## Scope
@@ -143,7 +143,7 @@ Do not batch multiple package renames in a single PR unless explicitly approved.
 - [x] Automatic verification completed (T14)
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [x] EPIC #1669 Active Subissues table updated to `DONE`
-- [ ] Issue closed and spec moved to `docs/issues/closed/`
+- [x] Issue closed and spec moved to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -152,6 +152,7 @@ Do not batch multiple package renames in a single PR unless explicitly approved.
 - 2026-05-26 19:59 UTC - github-copilot - Implemented crate and folder renames from matrices A+B and updated workspace references.
 - 2026-05-26 19:59 UTC - github-copilot - Verification: `cargo build --workspace` passed; `linter all` passed; `cargo test --workspace` blocked by rustc compiler crash (signal 7).
 - 2026-05-26 20:15 UTC - github-copilot - Aligned client naming split to `torrust-tracker-client` (console package) and `torrust-tracker-client-lib` (library package).
+- 2026-05-27 00:00 UTC - github-copilot - Archived spec to `docs/issues/closed/` after GitHub issue #1829 was confirmed closed.
 
 ## Acceptance Criteria
 
@@ -189,5 +190,5 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 ## References
 
-- EPIC spec: [docs/issues/open/1669-overhaul-packages/EPIC.md](1669-overhaul-packages/EPIC.md)
-- Decisions log: [docs/issues/open/1669-overhaul-packages/DECISIONS.md](1669-overhaul-packages/DECISIONS.md)
+- EPIC spec: [docs/issues/open/1669-overhaul-packages/EPIC.md](../open/1669-overhaul-packages/EPIC.md)
+- Decisions log: [docs/issues/open/1669-overhaul-packages/DECISIONS.md](../open/1669-overhaul-packages/DECISIONS.md)
