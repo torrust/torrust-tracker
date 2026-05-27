@@ -270,6 +270,7 @@ savepath
 sccache
 Seedable
 serde
+serialisation
 setgroups
 Shareaza
 sharktorrent
@@ -290,6 +291,7 @@ Subissues
 subkey
 subsec
 substeps
+summarising
 supertrait
 Swatinem
 Swiftbit
