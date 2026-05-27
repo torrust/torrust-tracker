@@ -17,7 +17,6 @@ version.workspace = true
 [dependencies]
 torrust-tracker-udp-tracker-protocol = { version = "3.0.0-develop", path = "../udp-protocol" }
 bittorrent-primitives = "0.2.0"
-torrust-tracker-core = { version = "3.0.0-develop", path = "../tracker-core" }
 derive_more = { version = "2", features = [ "as_ref", "constructor", "from" ] }
 multimap = "0"
 percent-encoding = "2"

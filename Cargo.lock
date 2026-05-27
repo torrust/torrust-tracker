@@ -5341,7 +5341,6 @@ dependencies = [
  "torrust-clock",
  "torrust-located-error",
  "torrust-tracker-contrib-bencode",
- "torrust-tracker-core",
  "torrust-tracker-primitives",
  "torrust-tracker-udp-tracker-protocol",
 ]

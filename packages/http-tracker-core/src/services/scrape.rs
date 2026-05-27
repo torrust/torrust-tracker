@@ -16,12 +16,14 @@ use torrust_tracker_core::authentication::{self, Key};
 use torrust_tracker_core::error::{ScrapeError, TrackerCoreError, WhitelistError};
 use torrust_tracker_core::scrape_handler::ScrapeHandler;
 use torrust_tracker_http_tracker_protocol::v1::requests::scrape::Scrape;
+use torrust_tracker_http_tracker_protocol::v1::responses::error::Error as HttpProtocolErrorResponse;
 use torrust_tracker_http_tracker_protocol::v1::services::peer_ip_resolver::{
     ClientIpSources, PeerIpResolutionError, RemoteClientAddr, resolve_remote_client_addr,
 };
 use torrust_tracker_primitives::ScrapeData;
 
 use crate::event::{ConnectionContext, Event};
+use crate::services::error_mapping::protocol_error_from_tracker_core_error;
 
 /// The HTTP tracker `scrape` service.
 ///
@@ -159,6 +161,15 @@ impl From<authentication::key::Error> for HttpScrapeError {
     fn from(whitelist_error: authentication::key::Error) -> Self {
         Self::TrackerCoreError {
             source: whitelist_error.into(),
+        }
+    }
+}
+
+impl From<HttpScrapeError> for HttpProtocolErrorResponse {
+    fn from(error: HttpScrapeError) -> Self {
+        match error {
+            HttpScrapeError::PeerIpResolutionError { source } => source.into(),
+            HttpScrapeError::TrackerCoreError { source } => protocol_error_from_tracker_core_error(source),
         }
     }
 }

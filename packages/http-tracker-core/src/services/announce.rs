@@ -19,6 +19,7 @@ use torrust_tracker_core::authentication::{self, Key};
 use torrust_tracker_core::error::{AnnounceError, TrackerCoreError, WhitelistError};
 use torrust_tracker_core::whitelist;
 use torrust_tracker_http_tracker_protocol::v1::requests::announce::{Announce, peer_from_request};
+use torrust_tracker_http_tracker_protocol::v1::responses::error::Error as HttpProtocolErrorResponse;
 use torrust_tracker_http_tracker_protocol::v1::services::peer_ip_resolver::{
     ClientIpSources, PeerIpResolutionError, RemoteClientAddr, resolve_remote_client_addr,
 };
@@ -27,6 +28,7 @@ use torrust_tracker_primitives::peer::PeerAnnouncement;
 
 use crate::event;
 use crate::event::Event;
+use crate::services::error_mapping::protocol_error_from_tracker_core_error;
 
 /// The HTTP tracker `announce` service.
 ///
@@ -197,6 +199,15 @@ impl From<authentication::key::Error> for HttpAnnounceError {
     fn from(whitelist_error: authentication::key::Error) -> Self {
         Self::TrackerCoreError {
             source: whitelist_error.into(),
+        }
+    }
+}
+
+impl From<HttpAnnounceError> for HttpProtocolErrorResponse {
+    fn from(error: HttpAnnounceError) -> Self {
+        match error {
+            HttpAnnounceError::PeerIpResolutionError { source } => source.into(),
+            HttpAnnounceError::TrackerCoreError { source } => protocol_error_from_tracker_core_error(source),
         }
     }
 }

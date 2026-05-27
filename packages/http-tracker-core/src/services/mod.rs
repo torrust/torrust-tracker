@@ -6,4 +6,5 @@
 //!
 //! Refer to [`torrust_tracker`](crate) documentation.
 pub mod announce;
+pub(crate) mod error_mapping;
 pub mod scrape;

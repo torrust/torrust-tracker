@@ -68,9 +68,7 @@ async fn handle(
     {
         Ok(announce_data) => announce_data,
         Err(error) => {
-            let error_response = responses::error::Error {
-                failure_reason: error.to_string(),
-            };
+            let error_response = responses::error::Error::from(error);
             return (StatusCode::OK, error_response.write()).into_response();
         }
     };
@@ -253,14 +251,9 @@ mod tests {
             .await
             .unwrap_err();
 
-            let error_response = responses::error::Error {
-                failure_reason: response.to_string(),
-            };
+            let error_response = responses::error::Error::from(response);
 
-            assert_error_response(
-                &error_response,
-                "Tracker core error: Tracker core authentication error: Missing authentication key",
-            );
+            assert_error_response(&error_response, "Tracker authentication error: Missing authentication key");
         }
 
         #[tokio::test]
@@ -284,13 +277,11 @@ mod tests {
             .await
             .unwrap_err();
 
-            let error_response = responses::error::Error {
-                failure_reason: response.to_string(),
-            };
+            let error_response = responses::error::Error::from(response);
 
             assert_error_response(
                 &error_response,
-                "Tracker core error: Tracker core authentication error: Failed to read key: YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ",
+                "Tracker authentication error: Failed to read key: YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ",
             );
         }
     }
@@ -325,14 +316,12 @@ mod tests {
             .await
             .unwrap_err();
 
-            let error_response = responses::error::Error {
-                failure_reason: response.to_string(),
-            };
+            let error_response = responses::error::Error::from(response);
 
             assert_error_response(
                 &error_response,
                 &format!(
-                    "Tracker core error: Tracker core whitelist error: The torrent: {}, is not whitelisted",
+                    "Tracker whitelist error: The torrent: {}, is not whitelisted",
                     announce_request.info_hash
                 ),
             );
@@ -373,9 +362,7 @@ mod tests {
             .await
             .unwrap_err();
 
-            let error_response = responses::error::Error {
-                failure_reason: response.to_string(),
-            };
+            let error_response = responses::error::Error::from(response);
 
             assert_error_response(
                 &error_response,
@@ -418,9 +405,7 @@ mod tests {
             .await
             .unwrap_err();
 
-            let error_response = responses::error::Error {
-                failure_reason: response.to_string(),
-            };
+            let error_response = responses::error::Error::from(response);
 
             assert_error_response(
                 &error_response,
