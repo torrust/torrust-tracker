@@ -239,7 +239,7 @@ The following crates remain in `torrust/torrust-tracker` for now:
 - `torrust-tracker-core`
 
 Rationale: current dependencies indicate unresolved layering/coupling. In particular,
-`torrust-http-tracker-protocol` currently depends on
+`torrust-tracker-http-tracker-protocol` currently depends on
 `torrust-tracker-primitives`. The move can be
 revisited after these dependencies are clarified and reduced.
 
