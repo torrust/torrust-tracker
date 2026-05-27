@@ -545,6 +545,7 @@ Status: TODO unless noted.
 - [ ] Extract `torrust-clock` to standalone repository _(Rule E; requires completed clock rename and type move work)_
 - [ ] Extract `torrust-metrics` to standalone repository _(Rule E; requires completed metrics rename work)_
 - [ ] Extract `torrust-tracker-client` to standalone repository _(Rule E; blocked by `bittorrent-*` publication - external to this EPIC)_
+- [ ] Define package versioning strategy (linked vs independent SemVer evolution) _(policy; no blockers; informs extraction and publication cadence)_
 
 Details:
 
@@ -565,6 +566,7 @@ Details:
 | Clock extraction           | #TBD — Extract `torrust-clock` to standalone repository                                                                                                                          | [docs/issues/drafts/1669-extract-torrust-clock-to-standalone-repo.md](../../drafts/1669-extract-torrust-clock-to-standalone-repo.md)                                                           | TODO   | Rule E; requires completed duration move and clock rename; 11 workspace consumers to migrate   |
 | Metrics extraction         | #TBD — Extract `torrust-metrics` to standalone repository                                                                                                                        | [docs/issues/drafts/1669-extract-torrust-metrics-to-standalone-repo.md](../../drafts/1669-extract-torrust-metrics-to-standalone-repo.md)                                                       | TODO   | Rule E; requires completed metrics rename; 7 workspace consumers to migrate                    |
 | Tracker client extraction  | #TBD — Extract `torrust-tracker-client` to standalone repository                                                                                                                 | [docs/issues/drafts/1669-extract-torrust-tracker-client-to-standalone-repo.md](../../drafts/1669-extract-torrust-tracker-client-to-standalone-repo.md)                                         | TODO   | Rule E; blocked by `torrust-tracker-udp-tracker-protocol` publication (external to this EPIC)  |
+| Versioning policy          | #TBD — Define package versioning strategy (linked vs independent SemVer evolution)                                                                                               | [docs/issues/drafts/1669-define-package-versioning-strategy.md](../../drafts/1669-define-package-versioning-strategy.md)                                                                       | TODO   | Policy issue; defines release-train vs independent package cadence and migration plan          |
 | Rename-to-desired-state    | [#1829](https://github.com/torrust/torrust-tracker/issues/1829) — Rename crates and folder names to match desired `torrust-tracker` workspace state                              | [docs/issues/closed/1829-1669-11-rename-crates-and-folders-to-match-desired-tracker-workspace.md](../../closed/1829-1669-11-rename-crates-and-folders-to-match-desired-tracker-workspace.md)   | DONE   | SI-11 complete; spec archived to `docs/issues/closed/` after issue closure                     |
 | HTTP protocol decoupling   | [#1830](https://github.com/torrust/torrust-tracker/issues/1830) — Decouple `http-protocol` from `tracker-core`                                                                   | [docs/issues/closed/1830-1669-12-decouple-http-protocol-from-tracker-core.md](../../closed/1830-1669-12-decouple-http-protocol-from-tracker-core.md)                                           | DONE   | SI-12 complete; removed `http-protocol -> tracker-core` edge and moved mapping to higher layer |
 | HTTP/UDP decoupling        | [#1834](https://github.com/torrust/torrust-tracker/issues/1834) — Decouple `http-protocol` from `udp-protocol`                                                                   | [docs/issues/open/1834-1669-13-decouple-http-protocol-from-udp-protocol.md](../../open/1834-1669-13-decouple-http-protocol-from-udp-protocol.md)                                               | TODO   | SI-13. Rule M; remove cross-protocol dependency edge                                           |
@@ -578,6 +580,7 @@ Details:
 - [docs/issues/drafts/1669-extract-torrust-clock-to-standalone-repo.md](../../drafts/1669-extract-torrust-clock-to-standalone-repo.md)
 - [docs/issues/drafts/1669-extract-torrust-metrics-to-standalone-repo.md](../../drafts/1669-extract-torrust-metrics-to-standalone-repo.md)
 - [docs/issues/drafts/1669-extract-torrust-tracker-client-to-standalone-repo.md](../../drafts/1669-extract-torrust-tracker-client-to-standalone-repo.md)
+- [docs/issues/drafts/1669-define-package-versioning-strategy.md](../../drafts/1669-define-package-versioning-strategy.md)
 
 > New subissues are created as analysis reveals the next improvement. The EPIC is never
 > fully planned up front.
@@ -661,6 +664,10 @@ The proposed policy — to be confirmed in an ADR — is:
 This policy needs a formal ADR before it is enforced. The key open question is: should any
 `torrust-tracker-*` package be broken out of the shared workspace version before being
 extracted to its own repository?
+
+Current intent (tracked in SI-15 draft) is to define the policy now but defer implementation
+until boundary-refactor preconditions are met (at minimum SI-13 and SI-14), so version
+migration does not run ahead of layer decoupling.
 
 ### Extraction ordering: crates.io publication constraints
 
