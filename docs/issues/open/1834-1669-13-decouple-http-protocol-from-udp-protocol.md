@@ -5,7 +5,7 @@ status: planned
 priority: p1
 github-issue: 1834
 spec-path: docs/issues/open/1834-1669-13-decouple-http-protocol-from-udp-protocol.md
-branch: null
+branch: 1834-decouple-http-protocol-from-udp-protocol
 related-pr: null
 last-updated-utc: 2026-05-27 00:00
 semantic-links:
@@ -103,27 +103,27 @@ Additional context:
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| ID  | Status | Task                                                                                                   | Notes / Expected Output                                                                                                                  |
-| --- | ------ | ------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| T1  | TODO   | Confirm all UDP protocol usage in `http-protocol` is limited to one conversion impl                    | Evidence recorded in PR description                                                                                                      |
-| T2  | TODO   | Remove UDP `AnnounceEvent` conversion impl from `packages/http-protocol/src/v1/requests/announce.rs`   | No direct references to `torrust_tracker_udp_tracker_protocol::` remain                                                                  |
-| T3  | TODO   | Remove `torrust-tracker-udp-tracker-protocol` from `packages/http-protocol/Cargo.toml`                 | `cargo tree -p torrust-tracker-http-tracker-protocol --depth 1` shows no UDP protocol edge                                               |
-| T4  | TODO   | Update tests to use supported conversion paths (`Event <-> torrust-tracker-primitives::AnnounceEvent`) | Tests compile and pass without UDP protocol types                                                                                        |
-| T5  | TODO   | Run verification commands                                                                              | Build/tests/lints pass                                                                                                                   |
-| T6  | TODO   | Update EPIC tracking rows and draft list as needed                                                     | Active Subissues remain consistent                                                                                                       |
-| T7  | TODO   | Update EPIC after implementation                                                                       | Update Active Subissues progress and EPIC sections: Package Inventory, Desired Package State, Torrust Dependency Lists (Direct, Non-dev) |
+| ID  | Status | Task                                                                                                   | Notes / Expected Output                                                                                      |
+| --- | ------ | ------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------ |
+| T1  | DONE   | Confirm all UDP protocol usage in `http-protocol` is limited to one conversion impl                    | Confirmed by `rg` before edits (`torrust_tracker_udp_tracker_protocol::*` only in announce conversion impl)  |
+| T2  | DONE   | Remove UDP `AnnounceEvent` conversion impl from `packages/http-protocol/src/v1/requests/announce.rs`   | Removed `impl From<torrust_tracker_udp_tracker_protocol::AnnounceEvent> for Event`                           |
+| T3  | DONE   | Remove `torrust-tracker-udp-tracker-protocol` from `packages/http-protocol/Cargo.toml`                 | Removed dependency; `cargo tree -p torrust-tracker-http-tracker-protocol --depth 1` has no UDP protocol edge |
+| T4  | DONE   | Update tests to use supported conversion paths (`Event <-> torrust-tracker-primitives::AnnounceEvent`) | No test fixtures used UDP event types; existing tests passed without changes                                 |
+| T5  | DONE   | Run verification commands                                                                              | `cargo build --workspace`, targeted HTTP protocol/core/server tests, and `linter all` passed                 |
+| T6  | DONE   | Update EPIC tracking rows and draft list as needed                                                     | Updated Active Subissues and details table status for SI-13                                                  |
+| T7  | DONE   | Update EPIC after implementation                                                                       | Updated dependency narrative and direct dependency lists for `torrust-tracker-http-tracker-protocol`         |
 
 ## Acceptance Criteria
 
-- [ ] `packages/http-protocol/Cargo.toml` has no `torrust-tracker-udp-tracker-protocol` dependency.
-- [ ] `packages/http-protocol` has no source-level references to
+- [x] `packages/http-protocol/Cargo.toml` has no `torrust-tracker-udp-tracker-protocol` dependency.
+- [x] `packages/http-protocol` has no source-level references to
       `torrust_tracker_udp_tracker_protocol::`.
-- [ ] HTTP protocol announce event behavior remains unchanged for
+- [x] HTTP protocol announce event behavior remains unchanged for
       `started/stopped/completed/none` mappings.
-- [ ] `cargo build --workspace` passes.
-- [ ] `cargo test -p torrust-tracker-http-tracker-protocol` passes.
-- [ ] `linter all` exits with code `0`.
-- [ ] EPIC tracking includes this subissue.
+- [x] `cargo build --workspace` passes.
+- [x] `cargo test -p torrust-tracker-http-tracker-protocol` passes.
+- [x] `linter all` exits with code `0`.
+- [x] EPIC tracking includes this subissue.
 
 ## Verification Plan
 
@@ -139,11 +139,11 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
-| ID  | Scenario                               | Command / Steps                                                      | Expected Result                                              | Status | Evidence |
-| --- | -------------------------------------- | -------------------------------------------------------------------- | ------------------------------------------------------------ | ------ | -------- |
-| M1  | No cross-protocol edge remains         | `cargo tree -p torrust-tracker-http-tracker-protocol --depth 1`      | No dependency on `torrust-tracker-udp-tracker-protocol`      | TODO   |          |
-| M2  | No UDP symbols in HTTP protocol source | `rg "torrust_tracker_udp_tracker_protocol::" packages/http-protocol` | No matches                                                   | TODO   |          |
-| M3  | Event conversion behavior preserved    | Run existing announce request parsing/unit tests                     | Mappings for `started/stopped/completed/none` remain correct | TODO   |          |
+| ID  | Scenario                               | Command / Steps                                                      | Expected Result                                              | Status | Evidence                                                     |
+| --- | -------------------------------------- | -------------------------------------------------------------------- | ------------------------------------------------------------ | ------ | ------------------------------------------------------------ |
+| M1  | No cross-protocol edge remains         | `cargo tree -p torrust-tracker-http-tracker-protocol --depth 1`      | No dependency on `torrust-tracker-udp-tracker-protocol`      | DONE   | Tree output shows no UDP protocol dependency                 |
+| M2  | No UDP symbols in HTTP protocol source | `rg "torrust_tracker_udp_tracker_protocol::" packages/http-protocol` | No matches                                                   | DONE   | `rg` returned no output                                      |
+| M3  | Event conversion behavior preserved    | Run existing announce request parsing/unit tests                     | Mappings for `started/stopped/completed/none` remain correct | DONE   | `cargo test -p torrust-tracker-http-tracker-protocol` passed |
 
 ## Risks and Trade-offs
 
