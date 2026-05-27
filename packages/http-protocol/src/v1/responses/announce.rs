@@ -2,11 +2,60 @@
 //!
 //! Data structures and logic to build the `announce` response.
 use std::io::Write;
-use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
+use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
 
+use bittorrent_peer_id::PeerId;
 use derive_more::{AsRef, Constructor, From};
 use torrust_tracker_contrib_bencode::{BMutAccess, BencodeMut, ben_bytes, ben_int, ben_list, ben_map};
-use torrust_tracker_primitives::{AnnounceData, peer};
+
+// Protocol-local announce response DTOs intentionally duplicate some domain
+// field shapes. This keeps protocol crates decoupled from tracker domain types
+// and centralizes conversions in boundary adapters.
+#[derive(Clone, Debug, PartialEq, Constructor, Default)]
+pub struct AnnounceData {
+    pub peers: Vec<Peer>,
+    pub stats: SwarmMetadata,
+    pub policy: AnnouncePolicy,
+}
+
+#[derive(PartialEq, Eq, Debug, Clone, Copy, Constructor)]
+pub struct AnnouncePolicy {
+    pub interval: u32,
+    pub interval_min: u32,
+}
+
+impl Default for AnnouncePolicy {
+    fn default() -> Self {
+        Self {
+            interval: 120,
+            interval_min: 120,
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
+pub struct SwarmMetadata {
+    pub complete: u32,
+    pub downloaded: u32,
+    pub incomplete: u32,
+}
+
+impl SwarmMetadata {
+    #[must_use]
+    pub const fn new(complete: u32, downloaded: u32, incomplete: u32) -> Self {
+        Self {
+            complete,
+            downloaded,
+            incomplete,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct Peer {
+    pub peer_id: PeerId,
+    pub peer_addr: SocketAddr,
+}
 
 /// An [`Announce`] response, that can be anything that is convertible from [`AnnounceData`].
 ///
@@ -56,7 +105,7 @@ impl From<AnnounceData> for Normal {
             incomplete: data.stats.incomplete.into(),
             interval: data.policy.interval.into(),
             min_interval: data.policy.interval_min.into(),
-            peers: data.peers.iter().map(AsRef::as_ref).copied().collect(),
+            peers: data.peers.into_iter().map(NormalPeer::from).collect(),
         }
     }
 }
@@ -93,7 +142,7 @@ pub struct Compact {
 
 impl From<AnnounceData> for Compact {
     fn from(data: AnnounceData) -> Self {
-        let compact_peers: Vec<CompactPeer> = data.peers.iter().map(AsRef::as_ref).copied().collect();
+        let compact_peers: Vec<CompactPeer> = data.peers.into_iter().map(CompactPeer::from).collect();
 
         let (peers, peers6): (Vec<CompactPeerData<Ipv4Addr>>, Vec<CompactPeerData<Ipv6Addr>>) =
             compact_peers.into_iter().collect();
@@ -150,10 +199,8 @@ pub struct NormalPeer {
     pub port: u16,
 }
 
-impl peer::Encoding for NormalPeer {}
-
-impl From<peer::Peer> for NormalPeer {
-    fn from(peer: peer::Peer) -> Self {
+impl From<Peer> for NormalPeer {
+    fn from(peer: Peer) -> Self {
         NormalPeer {
             peer_id: peer.peer_id.0,
             ip: peer.peer_addr.ip(),
@@ -202,10 +249,8 @@ pub enum CompactPeer {
     V6(CompactPeerData<Ipv6Addr>),
 }
 
-impl peer::Encoding for CompactPeer {}
-
-impl From<peer::Peer> for CompactPeer {
-    fn from(peer: peer::Peer) -> Self {
+impl From<Peer> for CompactPeer {
+    fn from(peer: Peer) -> Self {
         match (peer.peer_addr.ip(), peer.peer_addr.port()) {
             (IpAddr::V4(ip), port) => Self::V4(CompactPeerData { ip, port }),
             (IpAddr::V6(ip), port) => Self::V6(CompactPeerData { ip, port }),
@@ -275,13 +320,10 @@ impl FromIterator<CompactPeerData<Ipv6Addr>> for CompactPeersEncoded {
 mod tests {
 
     use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
-    use std::sync::Arc;
 
-    use torrust_tracker_primitives::peer::fixture::PeerBuilder;
-    use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
-    use torrust_tracker_primitives::{AnnounceData, AnnouncePolicy, PeerId};
+    use bittorrent_peer_id::PeerId;
 
-    use crate::v1::responses::announce::{Announce, Compact, Normal};
+    use crate::v1::responses::announce::{Announce, AnnounceData, AnnouncePolicy, Compact, Normal, Peer, SwarmMetadata};
 
     // Some ascii values used in tests:
     //
@@ -298,20 +340,20 @@ mod tests {
     fn setup_announce_data() -> AnnounceData {
         let policy = AnnouncePolicy::new(111, 222);
 
-        let peer_ipv4 = PeerBuilder::default()
-            .with_peer_id(&PeerId(*b"-RC3000-000000000001"))
-            .with_peer_addr(&SocketAddr::new(IpAddr::V4(Ipv4Addr::new(0x69, 0x69, 0x69, 0x69)), 0x7070))
-            .build();
+        let peer_ipv4 = Peer {
+            peer_id: PeerId(*b"-RC3000-000000000001"),
+            peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(0x69, 0x69, 0x69, 0x69)), 0x7070),
+        };
 
-        let peer_ipv6 = PeerBuilder::default()
-            .with_peer_id(&PeerId(*b"-RC3000-000000000002"))
-            .with_peer_addr(&SocketAddr::new(
+        let peer_ipv6 = Peer {
+            peer_id: PeerId(*b"-RC3000-000000000002"),
+            peer_addr: SocketAddr::new(
                 IpAddr::V6(Ipv6Addr::new(0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969)),
                 0x7070,
-            ))
-            .build();
+            ),
+        };
 
-        let peers = vec![Arc::new(peer_ipv4), Arc::new(peer_ipv6)];
+        let peers = vec![peer_ipv4, peer_ipv6];
         let stats = SwarmMetadata::new(333, 333, 444);
 
         AnnounceData::new(peers, stats, policy)

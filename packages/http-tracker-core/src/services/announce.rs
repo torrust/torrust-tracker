@@ -11,6 +11,7 @@ use std::panic::Location;
 use std::sync::Arc;
 
 use bittorrent_primitives::info_hash::InfoHash;
+use torrust_clock::clock::Time;
 use torrust_net_primitives::service_binding::ServiceBinding;
 use torrust_tracker_configuration::Core;
 use torrust_tracker_core::announce_handler::{AnnounceHandler, PeersWanted};
@@ -18,13 +19,15 @@ use torrust_tracker_core::authentication::service::AuthenticationService;
 use torrust_tracker_core::authentication::{self, Key};
 use torrust_tracker_core::error::{AnnounceError, TrackerCoreError, WhitelistError};
 use torrust_tracker_core::whitelist;
-use torrust_tracker_http_tracker_protocol::v1::requests::announce::{Announce, peer_from_request};
+use torrust_tracker_http_tracker_protocol::v1::requests::announce::{
+    Announce, Event as ProtocolAnnounceEvent, NumberOfBytes as ProtocolNumberOfBytes,
+};
 use torrust_tracker_http_tracker_protocol::v1::responses::error::Error as HttpProtocolErrorResponse;
 use torrust_tracker_http_tracker_protocol::v1::services::peer_ip_resolver::{
     ClientIpSources, PeerIpResolutionError, RemoteClientAddr, resolve_remote_client_addr,
 };
-use torrust_tracker_primitives::AnnounceData;
 use torrust_tracker_primitives::peer::PeerAnnouncement;
+use torrust_tracker_primitives::{AnnounceData, AnnounceEvent, NumberOfBytes};
 
 use crate::event;
 use crate::event::Event;
@@ -83,7 +86,7 @@ impl AnnounceService {
 
         let remote_client_addr = resolve_remote_client_addr(&self.core_config.net.on_reverse_proxy.into(), client_ip_sources)?;
 
-        let mut peer = peer_from_request(announce_request, &remote_client_addr.ip());
+        let mut peer = Self::peer_from_request(announce_request, &remote_client_addr.ip());
 
         let peers_wanted = Self::peers_wanted(announce_request);
 
@@ -106,6 +109,34 @@ impl AnnounceService {
         .await;
 
         Ok(announce_data)
+    }
+
+    fn peer_from_request(announce_request: &Announce, peer_ip: &std::net::IpAddr) -> PeerAnnouncement {
+        // Intentional adapter boundary: map protocol-owned request DTOs into
+        // domain announcements here instead of sharing domain types with the
+        // protocol crate. This limits coupling and keeps protocol evolution
+        // from forcing domain-wide refactors.
+        let uploaded = announce_request.uploaded.unwrap_or(ProtocolNumberOfBytes::new(0));
+        let downloaded = announce_request.downloaded.unwrap_or(ProtocolNumberOfBytes::new(0));
+        let left = announce_request.left.unwrap_or(ProtocolNumberOfBytes::new(0));
+
+        PeerAnnouncement {
+            peer_id: announce_request.peer_id,
+            peer_addr: std::net::SocketAddr::new(*peer_ip, announce_request.port),
+            updated: crate::CurrentClock::now(),
+            uploaded: NumberOfBytes::new(uploaded.0),
+            downloaded: NumberOfBytes::new(downloaded.0),
+            left: NumberOfBytes::new(left.0),
+            event: match &announce_request.event {
+                Some(event) => match event {
+                    ProtocolAnnounceEvent::Started => AnnounceEvent::Started,
+                    ProtocolAnnounceEvent::Stopped => AnnounceEvent::Stopped,
+                    ProtocolAnnounceEvent::Completed => AnnounceEvent::Completed,
+                    ProtocolAnnounceEvent::Empty => AnnounceEvent::None,
+                },
+                None => AnnounceEvent::None,
+            },
+        }
     }
 
     async fn authenticate(&self, maybe_key: Option<Key>) -> Result<(), authentication::key::Error> {
@@ -298,10 +329,25 @@ mod tests {
             info_hash: sample_info_hash(),
             peer_id: peer.peer_id,
             port: peer.peer_addr.port(),
-            uploaded: Some(peer.uploaded),
-            downloaded: Some(peer.downloaded),
-            left: Some(peer.left),
-            event: Some(peer.event.into()),
+            uploaded: Some(torrust_tracker_http_tracker_protocol::v1::requests::announce::NumberOfBytes::new(peer.uploaded.0)),
+            downloaded: Some(
+                torrust_tracker_http_tracker_protocol::v1::requests::announce::NumberOfBytes::new(peer.downloaded.0),
+            ),
+            left: Some(torrust_tracker_http_tracker_protocol::v1::requests::announce::NumberOfBytes::new(peer.left.0)),
+            event: Some(match peer.event {
+                torrust_tracker_primitives::AnnounceEvent::Started => {
+                    torrust_tracker_http_tracker_protocol::v1::requests::announce::Event::Started
+                }
+                torrust_tracker_primitives::AnnounceEvent::Stopped => {
+                    torrust_tracker_http_tracker_protocol::v1::requests::announce::Event::Stopped
+                }
+                torrust_tracker_primitives::AnnounceEvent::Completed => {
+                    torrust_tracker_http_tracker_protocol::v1::requests::announce::Event::Completed
+                }
+                torrust_tracker_primitives::AnnounceEvent::None => {
+                    torrust_tracker_http_tracker_protocol::v1::requests::announce::Event::Empty
+                }
+            }),
             compact: None,
             numwant: None,
         };

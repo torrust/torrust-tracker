@@ -45,7 +45,9 @@ impl TransactionId {
 #[derive(PartialEq, Eq, Hash, Clone, Copy, Debug, IntoBytes, FromBytes, Immutable)]
 #[repr(transparent)]
 // Intentionally kept in `common`: this mirrors
-// `packages/primitives/src/number_of_bytes.rs` and may be shared across packages later.
+// `packages/primitives/src/number_of_bytes.rs` and HTTP protocol byte counters,
+// but remains UDP-local so protocol wire representations can evolve
+// independently per protocol.
 pub struct NumberOfBytes(pub I64);
 
 impl NumberOfBytes {

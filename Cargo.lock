@@ -5331,6 +5331,7 @@ dependencies = [
 name = "torrust-tracker-http-tracker-protocol"
 version = "3.0.0-develop"
 dependencies = [
+ "bittorrent-peer-id",
  "bittorrent-primitives",
  "derive_more 2.1.1",
  "multimap",
@@ -5341,7 +5342,6 @@ dependencies = [
  "torrust-clock",
  "torrust-located-error",
  "torrust-tracker-contrib-bencode",
- "torrust-tracker-primitives",
 ]
 
 [[package]]

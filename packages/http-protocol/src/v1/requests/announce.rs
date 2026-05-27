@@ -2,18 +2,15 @@
 //!
 //! Data structures and logic for parsing the `announce` request.
 use std::fmt;
-use std::net::{IpAddr, SocketAddr};
 use std::panic::Location;
 use std::str::FromStr;
 
+use bittorrent_peer_id::PeerId;
 use bittorrent_primitives::info_hash::{self, InfoHash};
 use thiserror::Error;
-use torrust_clock::clock::Time;
 use torrust_located_error::{Located, LocatedError};
-use torrust_tracker_primitives::{AnnounceEvent, NumberOfBytes, PeerId, peer};
 
-use crate::CurrentClock;
-use crate::percent_encoding::{percent_decode_info_hash, percent_decode_peer_id};
+use crate::percent_encoding::{PeerIdConversionError, percent_decode_info_hash, percent_decode_peer_id};
 use crate::v1::query::{ParseQueryError, Query};
 use crate::v1::responses;
 
@@ -28,13 +25,28 @@ const EVENT: &str = "event";
 const COMPACT: &str = "compact";
 const NUMWANT: &str = "numwant";
 
+// Intentionally protocol-local: this currently mirrors the UDP protocol
+// `NumberOfBytes` concept and domain byte counters, but it is kept local so
+// HTTP wire semantics can evolve independently without forcing cross-protocol
+// or domain-wide refactors.
+#[derive(PartialEq, Eq, Hash, Clone, Copy, Debug)]
+pub struct NumberOfBytes(pub i64);
+
+impl NumberOfBytes {
+    #[must_use]
+    pub const fn new(v: i64) -> Self {
+        Self(v)
+    }
+}
+
 /// The `Announce` request. Fields use the domain types after parsing the
 /// query params of the request.
 ///
 /// ```rust
 /// use torrust_tracker_http_tracker_protocol::v1::requests::announce::{Announce, Compact, Event};
 /// use bittorrent_primitives::info_hash::InfoHash;
-/// use torrust_tracker_primitives::{NumberOfBytes, PeerId};
+/// use bittorrent_peer_id::PeerId;
+/// use torrust_tracker_http_tracker_protocol::v1::requests::announce::NumberOfBytes;
 ///
 /// let request = Announce {
 ///     // Mandatory params
@@ -133,7 +145,7 @@ pub enum ParseAnnounceQueryError {
     InvalidPeerIdParam {
         param_name: String,
         param_value: String,
-        source: LocatedError<'static, peer::IdConversionError>,
+        source: LocatedError<'static, PeerIdConversionError>,
     },
 }
 
@@ -186,28 +198,6 @@ impl fmt::Display for Event {
             Event::Stopped => write!(f, "stopped"),
             Event::Completed => write!(f, "completed"),
             Event::Empty => write!(f, "empty"),
-        }
-    }
-}
-
-impl From<AnnounceEvent> for Event {
-    fn from(event: AnnounceEvent) -> Self {
-        match event {
-            AnnounceEvent::Started => Self::Started,
-            AnnounceEvent::Stopped => Self::Stopped,
-            AnnounceEvent::Completed => Self::Completed,
-            AnnounceEvent::None => Self::Empty,
-        }
-    }
-}
-
-impl From<Event> for AnnounceEvent {
-    fn from(event: Event) -> Self {
-        match event {
-            Event::Started => Self::Started,
-            Event::Stopped => Self::Stopped,
-            Event::Completed => Self::Completed,
-            Event::Empty => Self::None,
         }
     }
 }
@@ -405,36 +395,18 @@ fn extract_numwant(query: &Query) -> Result<Option<u32>, ParseAnnounceQueryError
     }
 }
 
-/// It builds a `Peer` from the announce request.
-///
-/// It ignores the peer address in the announce request params.
-#[must_use]
-pub fn peer_from_request(announce_request: &Announce, peer_ip: &IpAddr) -> peer::Peer {
-    peer::Peer {
-        peer_id: announce_request.peer_id,
-        peer_addr: SocketAddr::new(*peer_ip, announce_request.port),
-        updated: CurrentClock::now(),
-        uploaded: announce_request.uploaded.unwrap_or(NumberOfBytes::new(0)),
-        downloaded: announce_request.downloaded.unwrap_or(NumberOfBytes::new(0)),
-        left: announce_request.left.unwrap_or(NumberOfBytes::new(0)),
-        event: match &announce_request.event {
-            Some(event) => event.clone().into(),
-            None => AnnounceEvent::None,
-        },
-    }
-}
-
 #[cfg(test)]
 mod tests {
 
     mod announce_request {
 
+        use bittorrent_peer_id::PeerId;
         use bittorrent_primitives::info_hash::InfoHash;
-        use torrust_tracker_primitives::{NumberOfBytes, PeerId};
 
         use crate::v1::query::Query;
         use crate::v1::requests::announce::{
-            Announce, COMPACT, Compact, DOWNLOADED, EVENT, Event, INFO_HASH, LEFT, NUMWANT, PEER_ID, PORT, UPLOADED,
+            Announce, COMPACT, Compact, DOWNLOADED, EVENT, Event, INFO_HASH, LEFT, NUMWANT, NumberOfBytes, PEER_ID, PORT,
+            UPLOADED,
         };
 
         #[test]

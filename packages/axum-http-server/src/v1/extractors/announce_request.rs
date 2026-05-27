@@ -87,9 +87,9 @@ mod tests {
     use std::str::FromStr;
 
     use bittorrent_primitives::info_hash::InfoHash;
-    use torrust_tracker_http_tracker_protocol::v1::requests::announce::{Announce, Compact, Event};
+    use torrust_tracker_http_tracker_protocol::v1::requests::announce::{Announce, Compact, Event, NumberOfBytes};
     use torrust_tracker_http_tracker_protocol::v1::responses::error::Error;
-    use torrust_tracker_primitives::{NumberOfBytes, PeerId};
+    use torrust_tracker_primitives::PeerId;
 
     use super::extract_announce_from;
 

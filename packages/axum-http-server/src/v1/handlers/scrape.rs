@@ -13,7 +13,7 @@ use torrust_tracker_http_tracker_core::services::scrape::ScrapeService;
 use torrust_tracker_http_tracker_protocol::v1::requests::scrape::Scrape;
 use torrust_tracker_http_tracker_protocol::v1::responses;
 use torrust_tracker_http_tracker_protocol::v1::services::peer_ip_resolver::ClientIpSources;
-use torrust_tracker_primitives::ScrapeData;
+use torrust_tracker_primitives::ScrapeData as DomainScrapeData;
 
 use crate::v1::extractors::authentication_key::Extract as ExtractKey;
 use crate::v1::extractors::client_ip_sources::Extract as ExtractClientIpSources;
@@ -69,10 +69,27 @@ async fn handle(
     build_response(scrape_data)
 }
 
-fn build_response(scrape_data: ScrapeData) -> Response {
-    let response = responses::scrape::Bencoded::from(scrape_data);
+fn build_response(scrape_data: DomainScrapeData) -> Response {
+    let response = responses::scrape::Bencoded::from(to_protocol_scrape_data(scrape_data));
 
     (StatusCode::OK, response.body()).into_response()
+}
+
+fn to_protocol_scrape_data(domain_data: DomainScrapeData) -> responses::scrape::ScrapeData {
+    let mut protocol_data = responses::scrape::ScrapeData::empty();
+
+    for (info_hash, metadata) in domain_data.files {
+        protocol_data.add_file(
+            &info_hash,
+            responses::scrape::SwarmMetadata {
+                complete: metadata.complete,
+                downloaded: metadata.downloaded,
+                incomplete: metadata.incomplete,
+            },
+        );
+    }
+
+    protocol_data
 }
 
 #[cfg(test)]

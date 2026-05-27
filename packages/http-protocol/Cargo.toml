@@ -16,6 +16,7 @@ version.workspace = true
 
 [dependencies]
 bittorrent-primitives = "0.2.0"
+bittorrent-peer-id = { version = "3.0.0-develop", path = "../peer-id" }
 derive_more = { version = "2", features = [ "as_ref", "constructor", "from" ] }
 multimap = "0"
 percent-encoding = "2"
@@ -25,4 +26,3 @@ thiserror = "2"
 torrust-clock = { version = "3.0.0-develop", path = "../clock" }
 torrust-tracker-contrib-bencode = { version = "3.0.0-develop", path = "../../contrib/bencode" }
 torrust-located-error = { version = "3.0.0-develop", path = "../located-error" }
-torrust-tracker-primitives = { version = "3.0.0-develop", path = "../primitives" }
