@@ -41,6 +41,10 @@ manually before each push.
 > while the first is still running. Wait for the IDE terminal-completion notification
 > (exit code + output) before taking any follow-up action.
 >
+> Use a **generous timeout** for `git push` itself (at least 20 minutes), because cold-cache
+> runs can be significantly slower than warm-cache runs. Quiet output during tests is normal;
+> do not cancel early unless there is concrete failure output.
+>
 > To avoid parsing shared terminal history (which other commands or the user may have
 > populated), redirect the output to a dedicated file and read that file for results:
 >
@@ -128,3 +132,9 @@ checks have already passed.
 - JSON mode emits one structured document to stdout; diagnostics and usage errors go to stderr.
 - If concise output is too short for debugging, re-run the same command with
   `--format=text --verbosity=verbose`.
+
+## Troubleshooting Long `git push` Runs
+
+- If `git push` appears quiet, check whether the pre-push suite is still running before retrying.
+- Do not assume SSH/GPG/passphrase prompts are the only cause of delay; long test phases are common.
+- Only treat it as SSH idle-timeout after seeing explicit connection-close errors.
