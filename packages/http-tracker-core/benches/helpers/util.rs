@@ -21,7 +21,9 @@ use torrust_tracker_http_tracker_core::event::bus::EventBus;
 use torrust_tracker_http_tracker_core::event::sender::Broadcaster;
 use torrust_tracker_http_tracker_core::statistics::event::listener::run_event_listener;
 use torrust_tracker_http_tracker_core::statistics::repository::Repository;
-use torrust_tracker_http_tracker_protocol::v1::requests::announce::Announce;
+use torrust_tracker_http_tracker_protocol::v1::requests::announce::{
+    Announce, Event as ProtocolAnnounceEvent, NumberOfBytes as ProtocolNumberOfBytes,
+};
 use torrust_tracker_http_tracker_protocol::v1::services::peer_ip_resolver::ClientIpSources;
 use torrust_tracker_primitives::peer::Peer;
 use torrust_tracker_primitives::{AnnounceEvent, NumberOfBytes, PeerId, peer};
@@ -105,10 +107,15 @@ pub fn sample_announce_request_for_peer(peer: Peer) -> (Announce, ClientIpSource
         info_hash: sample_info_hash(),
         peer_id: peer.peer_id,
         port: peer.peer_addr.port(),
-        uploaded: Some(peer.uploaded),
-        downloaded: Some(peer.downloaded),
-        left: Some(peer.left),
-        event: Some(peer.event.into()),
+        uploaded: Some(ProtocolNumberOfBytes::new(peer.uploaded.0)),
+        downloaded: Some(ProtocolNumberOfBytes::new(peer.downloaded.0)),
+        left: Some(ProtocolNumberOfBytes::new(peer.left.0)),
+        event: Some(match peer.event {
+            AnnounceEvent::Started => ProtocolAnnounceEvent::Started,
+            AnnounceEvent::Stopped => ProtocolAnnounceEvent::Stopped,
+            AnnounceEvent::Completed => ProtocolAnnounceEvent::Completed,
+            AnnounceEvent::None => ProtocolAnnounceEvent::Empty,
+        }),
         compact: None,
         numwant: None,
     };

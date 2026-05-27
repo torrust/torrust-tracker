@@ -2,17 +2,45 @@
 //!
 //! Data structures and logic to build the `scrape` response.
 use std::borrow::Cow;
+use std::collections::BTreeMap;
 
+use bittorrent_primitives::info_hash::InfoHash;
 use torrust_tracker_contrib_bencode::{BMutAccess, ben_int, ben_map};
-use torrust_tracker_primitives::ScrapeData;
+
+// These protocol DTOs intentionally mirror some domain fields but must remain
+// protocol-owned. Keeping this type local avoids protocol->domain coupling and
+// confines translation to boundary adapters.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
+pub struct SwarmMetadata {
+    pub complete: u32,
+    pub downloaded: u32,
+    pub incomplete: u32,
+}
+
+// Intentional boundary duplication: this represents scrape response payload
+// semantics for the HTTP protocol crate, not tracker-domain semantics.
+#[derive(Clone, Debug, PartialEq, Default)]
+pub struct ScrapeData {
+    pub files: BTreeMap<InfoHash, SwarmMetadata>,
+}
+
+impl ScrapeData {
+    #[must_use]
+    pub fn empty() -> Self {
+        Self::default()
+    }
+
+    pub fn add_file(&mut self, info_hash: &InfoHash, swarm_metadata: SwarmMetadata) {
+        self.files.insert(*info_hash, swarm_metadata);
+    }
+}
 
 /// The `Scrape` response for the HTTP tracker.
 ///
 /// ```rust
 /// use torrust_tracker_http_tracker_protocol::v1::responses::scrape::Bencoded;
 /// use bittorrent_primitives::info_hash::InfoHash;
-/// use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
-/// use torrust_tracker_primitives::ScrapeData;
+/// use torrust_tracker_http_tracker_protocol::v1::responses::scrape::{ScrapeData, SwarmMetadata};
 ///
 /// let info_hash = InfoHash::from_bytes(&[0x69; 20]);
 /// let mut scrape_data = ScrapeData::empty();
@@ -84,10 +112,8 @@ mod tests {
 
     mod scrape_response {
         use bittorrent_primitives::info_hash::InfoHash;
-        use torrust_tracker_primitives::ScrapeData;
-        use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
 
-        use crate::v1::responses::scrape::Bencoded;
+        use crate::v1::responses::scrape::{Bencoded, ScrapeData, SwarmMetadata};
 
         fn sample_scrape_data() -> ScrapeData {
             let info_hash = InfoHash::from_bytes(&[0x69; 20]);

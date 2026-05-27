@@ -15,8 +15,16 @@
 //! - <https://datatracker.ietf.org/doc/html/rfc3986#section-2.1>
 //! - <https://en.wikipedia.org/wiki/URL_encoding>
 //! - <https://developer.mozilla.org/en-US/docs/Glossary/percent-encoding>
+use bittorrent_peer_id::PeerId;
 use bittorrent_primitives::info_hash::{self, InfoHash};
-use torrust_tracker_primitives::{PeerId, peer};
+
+#[derive(thiserror::Error, Debug, Clone, PartialEq, Eq)]
+pub enum PeerIdConversionError {
+    #[error("Peer id too short: expected 20 bytes, got {actual}")]
+    NotEnoughBytes { actual: usize },
+    #[error("Peer id too long: expected 20 bytes, got {actual}")]
+    TooManyBytes { actual: usize },
+}
 
 /// Percent decodes a percent encoded infohash. Internally an
 /// [`InfoHash`] is a 20-byte array.
@@ -28,7 +36,6 @@ use torrust_tracker_primitives::{PeerId, peer};
 /// use std::str::FromStr;
 /// use torrust_tracker_http_tracker_protocol::percent_encoding::percent_decode_info_hash;
 /// use bittorrent_primitives::info_hash::InfoHash;
-/// use torrust_tracker_primitives::peer;
 ///
 /// let encoded_infohash = "%3B%24U%04%CF%5F%11%BB%DB%E1%20%1C%EAjk%F4Z%EE%1B%C0";
 ///
@@ -60,7 +67,7 @@ pub fn percent_decode_info_hash(raw_info_hash: &str) -> Result<InfoHash, info_ha
 ///
 /// use torrust_tracker_http_tracker_protocol::percent_encoding::percent_decode_peer_id;
 /// use bittorrent_primitives::info_hash::InfoHash;
-/// use torrust_tracker_primitives::PeerId;
+/// use bittorrent_peer_id::PeerId;
 ///
 /// let encoded_peer_id = "%2DqB00000000000000000";
 ///
@@ -72,17 +79,29 @@ pub fn percent_decode_info_hash(raw_info_hash: &str) -> Result<InfoHash, info_ha
 /// # Errors
 ///
 /// Will return `Err` if if the decoded bytes do not represent a valid [`PeerId`].
-pub fn percent_decode_peer_id(raw_peer_id: &str) -> Result<PeerId, peer::IdConversionError> {
+pub fn percent_decode_peer_id(raw_peer_id: &str) -> Result<PeerId, PeerIdConversionError> {
     let bytes = percent_encoding::percent_decode_str(raw_peer_id).collect::<Vec<u8>>();
-    Ok(*peer::Id::try_from(bytes)?)
+
+    if bytes.len() < 20 {
+        return Err(PeerIdConversionError::NotEnoughBytes { actual: bytes.len() });
+    }
+
+    if bytes.len() > 20 {
+        return Err(PeerIdConversionError::TooManyBytes { actual: bytes.len() });
+    }
+
+    let mut peer_id = [0_u8; 20];
+    peer_id.copy_from_slice(&bytes);
+
+    Ok(PeerId(peer_id))
 }
 
 #[cfg(test)]
 mod tests {
     use std::str::FromStr;
 
+    use bittorrent_peer_id::PeerId;
     use bittorrent_primitives::info_hash::InfoHash;
-    use torrust_tracker_primitives::PeerId;
 
     use crate::percent_encoding::{percent_decode_info_hash, percent_decode_peer_id};
 
