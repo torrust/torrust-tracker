@@ -32,7 +32,7 @@ Remove direct protocol-to-domain dependency from `http-protocol` by eliminating
 `torrust-tracker-primitives` usage in `packages/http-protocol` and introducing
 explicit boundary mapping in higher layers.
 
-This draft is step 2 of the protocol decoupling strategy after edge cleanup
+This spec is step 2 of the protocol decoupling strategy after edge cleanup
 subissues SI-12 and SI-13.
 
 This is a subissue of EPIC [#1669](1669-overhaul-packages/EPIC.md).

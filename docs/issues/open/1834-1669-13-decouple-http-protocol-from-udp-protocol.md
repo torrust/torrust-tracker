@@ -30,7 +30,7 @@ Remove the cross-protocol dependency edge `http-protocol -> udp-protocol` by
 eliminating the `torrust-tracker-udp-tracker-protocol` dependency from
 `packages/http-protocol`.
 
-This draft is intentionally step 1 of a two-step cleanup strategy:
+This spec is intentionally step 1 of a two-step cleanup strategy:
 
 1. Remove concrete forbidden/smelly edges with minimal behavior change.
 2. Follow with explicit protocol-level vs domain-level type separation.
@@ -117,7 +117,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 - [ ] `packages/http-protocol/Cargo.toml` has no `torrust-tracker-udp-tracker-protocol` dependency.
 - [ ] `packages/http-protocol` has no source-level references to
-      `bittorrent_udp_tracker_protocol::`.
+      `torrust_tracker_udp_tracker_protocol::`.
 - [ ] HTTP protocol announce event behavior remains unchanged for
       `started/stopped/completed/none` mappings.
 - [ ] `cargo build --workspace` passes.
