@@ -108,16 +108,16 @@ Symbol-level usage inside protocol:
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| ID  | Status | Task                                                                                                  | Notes / Expected Output                                                                                                                  |
-| --- | ------ | ----------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| T1  | TODO   | Confirm all `torrust-tracker-primitives` usages in `http-protocol` and document symbol-level evidence | Evidence captured in PR description                                                                                                      |
-| T2  | TODO   | Remove direct primitive conversion impls from `packages/http-protocol/src/v1/requests/announce.rs`    | No direct `torrust_tracker_primitives::` references remain in source                                                                     |
-| T3  | TODO   | Remove `torrust-tracker-primitives` from `packages/http-protocol/Cargo.toml`                          | `cargo tree -p torrust-tracker-http-tracker-protocol --depth 1` shows no edge                                                          |
+| ID  | Status | Task                                                                                                          | Notes / Expected Output                                                                                                                  |
+| --- | ------ | ------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| T1  | TODO   | Confirm all `torrust-tracker-primitives` usages in `http-protocol` and document symbol-level evidence         | Evidence captured in PR description                                                                                                      |
+| T2  | TODO   | Remove direct primitive conversion impls from `packages/http-protocol/src/v1/requests/announce.rs`            | No direct `torrust_tracker_primitives::` references remain in source                                                                     |
+| T3  | TODO   | Remove `torrust-tracker-primitives` from `packages/http-protocol/Cargo.toml`                                  | `cargo tree -p torrust-tracker-http-tracker-protocol --depth 1` shows no edge                                                            |
 | T4  | TODO   | Add/adjust mapping in higher layers (`http-tracker-core` as primary owner; `axum-http-server` only if needed) | Event behavior remains equivalent                                                                                                        |
-| T5  | TODO   | Update tests and fixtures                                                                             | Tests compile and pass without direct protocol->domain coupling                                                                          |
-| T6  | TODO   | Run verification commands                                                                             | Build/tests/lints pass                                                                                                                   |
-| T7  | TODO   | Update EPIC tracking rows and draft list as needed                                                    | Active Subissues remain consistent                                                                                                       |
-| T8  | TODO   | Update EPIC after implementation                                                                      | Update Active Subissues progress and EPIC sections: Package Inventory, Desired Package State, Torrust Dependency Lists (Direct, Non-dev) |
+| T5  | TODO   | Update tests and fixtures                                                                                     | Tests compile and pass without direct protocol->domain coupling                                                                          |
+| T6  | TODO   | Run verification commands                                                                                     | Build/tests/lints pass                                                                                                                   |
+| T7  | TODO   | Update EPIC tracking rows and draft list as needed                                                            | Active Subissues remain consistent                                                                                                       |
+| T8  | TODO   | Update EPIC after implementation                                                                              | Update Active Subissues progress and EPIC sections: Package Inventory, Desired Package State, Torrust Dependency Lists (Direct, Non-dev) |
 
 ## Acceptance Criteria
 
@@ -145,11 +145,11 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
-| ID  | Scenario                                 | Command / Steps                                            | Expected Result                                            | Status | Evidence |
-| --- | ---------------------------------------- | ---------------------------------------------------------- | ---------------------------------------------------------- | ------ | -------- |
+| ID  | Scenario                                 | Command / Steps                                                 | Expected Result                                            | Status | Evidence |
+| --- | ---------------------------------------- | --------------------------------------------------------------- | ---------------------------------------------------------- | ------ | -------- |
 | M1  | No protocol->domain edge remains         | `cargo tree -p torrust-tracker-http-tracker-protocol --depth 1` | No dependency on `torrust-tracker-primitives`              | TODO   |          |
-| M2  | No primitives symbols in protocol source | `rg "torrust_tracker_primitives::" packages/http-protocol` | No matches                                                 | TODO   |          |
-| M3  | Event conversion behavior preserved      | Run existing announce request parsing/unit tests           | Mappings for `started/stopped/completed/none` stay correct | TODO   |          |
+| M2  | No primitives symbols in protocol source | `rg "torrust_tracker_primitives::" packages/http-protocol`      | No matches                                                 | TODO   |          |
+| M3  | Event conversion behavior preserved      | Run existing announce request parsing/unit tests                | Mappings for `started/stopped/completed/none` stay correct | TODO   |          |
 
 ## Risks and Trade-offs
 

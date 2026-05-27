@@ -106,8 +106,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID  | Status | Task                                                                                                   | Notes / Expected Output                                                                                                                  |
 | --- | ------ | ------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------- |
 | T1  | TODO   | Confirm all UDP protocol usage in `http-protocol` is limited to one conversion impl                    | Evidence recorded in PR description                                                                                                      |
-| T2  | TODO   | Remove UDP `AnnounceEvent` conversion impl from `packages/http-protocol/src/v1/requests/announce.rs`   | No direct references to `torrust_tracker_udp_tracker_protocol::` remain                                                                   |
-| T3  | TODO   | Remove `torrust-tracker-udp-tracker-protocol` from `packages/http-protocol/Cargo.toml`                | `cargo tree -p torrust-tracker-http-tracker-protocol --depth 1` shows no UDP protocol edge                                               |
+| T2  | TODO   | Remove UDP `AnnounceEvent` conversion impl from `packages/http-protocol/src/v1/requests/announce.rs`   | No direct references to `torrust_tracker_udp_tracker_protocol::` remain                                                                  |
+| T3  | TODO   | Remove `torrust-tracker-udp-tracker-protocol` from `packages/http-protocol/Cargo.toml`                 | `cargo tree -p torrust-tracker-http-tracker-protocol --depth 1` shows no UDP protocol edge                                               |
 | T4  | TODO   | Update tests to use supported conversion paths (`Event <-> torrust-tracker-primitives::AnnounceEvent`) | Tests compile and pass without UDP protocol types                                                                                        |
 | T5  | TODO   | Run verification commands                                                                              | Build/tests/lints pass                                                                                                                   |
 | T6  | TODO   | Update EPIC tracking rows and draft list as needed                                                     | Active Subissues remain consistent                                                                                                       |
@@ -139,11 +139,11 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
-| ID  | Scenario                               | Command / Steps                                                 | Expected Result                                              | Status | Evidence |
-| --- | -------------------------------------- | --------------------------------------------------------------- | ------------------------------------------------------------ | ------ | -------- |
-| M1  | No cross-protocol edge remains         | `cargo tree -p torrust-tracker-http-tracker-protocol --depth 1` | No dependency on `torrust-tracker-udp-tracker-protocol`      | TODO   |          |
+| ID  | Scenario                               | Command / Steps                                                      | Expected Result                                              | Status | Evidence |
+| --- | -------------------------------------- | -------------------------------------------------------------------- | ------------------------------------------------------------ | ------ | -------- |
+| M1  | No cross-protocol edge remains         | `cargo tree -p torrust-tracker-http-tracker-protocol --depth 1`      | No dependency on `torrust-tracker-udp-tracker-protocol`      | TODO   |          |
 | M2  | No UDP symbols in HTTP protocol source | `rg "torrust_tracker_udp_tracker_protocol::" packages/http-protocol` | No matches                                                   | TODO   |          |
-| M3  | Event conversion behavior preserved    | Run existing announce request parsing/unit tests                | Mappings for `started/stopped/completed/none` remain correct | TODO   |          |
+| M3  | Event conversion behavior preserved    | Run existing announce request parsing/unit tests                     | Mappings for `started/stopped/completed/none` remain correct | TODO   |          |
 
 ## Risks and Trade-offs
 
