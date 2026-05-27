@@ -1,13 +1,13 @@
 ---
 doc-type: issue
 issue-type: task
-status: draft
+status: planned
 priority: p1
-github-issue: null
-spec-path: docs/issues/drafts/1669-13-decouple-http-protocol-from-udp-protocol.md
+github-issue: 1834
+spec-path: docs/issues/open/1834-1669-13-decouple-http-protocol-from-udp-protocol.md
 branch: null
 related-pr: null
-last-updated-utc: 2026-05-26 00:00
+last-updated-utc: 2026-05-27 00:00
 semantic-links:
   skill-links:
     - create-issue
@@ -20,22 +20,22 @@ semantic-links:
 
 <!-- skill-link: create-issue -->
 
-# Issue #[To be assigned] - Decouple `http-protocol` from `udp-protocol`
+# Issue #1834 - Decouple `http-protocol` from `udp-protocol`
 
 Subissue ID: SI-13 (1669-13).
 
 ## Goal
 
 Remove the cross-protocol dependency edge `http-protocol -> udp-protocol` by
-eliminating the `bittorrent-udp-tracker-protocol` dependency from
+eliminating the `torrust-tracker-udp-tracker-protocol` dependency from
 `packages/http-protocol`.
 
-This draft is intentionally step 1 of a two-step cleanup strategy:
+This spec is intentionally step 1 of a two-step cleanup strategy:
 
 1. Remove concrete forbidden/smelly edges with minimal behavior change.
 2. Follow with explicit protocol-level vs domain-level type separation.
 
-This is a subissue of EPIC [#1669](../open/1669-overhaul-packages/EPIC.md).
+This is a subissue of EPIC [#1669](1669-overhaul-packages/EPIC.md).
 
 ## Layer Impact Summary
 
@@ -66,12 +66,12 @@ Two-step intent for this subissue:
 
 Manifest-level dependency:
 
-- `packages/http-protocol/Cargo.toml`: `bittorrent-udp-tracker-protocol = { ... path = "../udp-protocol" }`
+- `packages/http-protocol/Cargo.toml`: `torrust-tracker-udp-tracker-protocol = { ... path = "../udp-protocol" }`
 
 Symbol-level usage inside protocol:
 
 - `packages/http-protocol/src/v1/requests/announce.rs`
-  - `impl From<bittorrent_udp_tracker_protocol::AnnounceEvent> for Event`
+  - `impl From<torrust_tracker_udp_tracker_protocol::AnnounceEvent> for Event`
   - Match arms on `Started`, `Stopped`, `Completed`, `None`
 
 Additional context:
@@ -84,9 +84,9 @@ Additional context:
 
 ### In Scope
 
-- Remove `From<bittorrent_udp_tracker_protocol::AnnounceEvent> for Event` in
+- Remove `From<torrust_tracker_udp_tracker_protocol::AnnounceEvent> for Event` in
   `packages/http-protocol/src/v1/requests/announce.rs`.
-- Remove `bittorrent-udp-tracker-protocol` from
+- Remove `torrust-tracker-udp-tracker-protocol` from
   `packages/http-protocol/Cargo.toml`.
 - Adjust tests and call sites (if any) to use local `Event` or
   `torrust-tracker-primitives::AnnounceEvent` conversions.
@@ -106,8 +106,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID  | Status | Task                                                                                                   | Notes / Expected Output                                                                                                                  |
 | --- | ------ | ------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------- |
 | T1  | TODO   | Confirm all UDP protocol usage in `http-protocol` is limited to one conversion impl                    | Evidence recorded in PR description                                                                                                      |
-| T2  | TODO   | Remove UDP `AnnounceEvent` conversion impl from `packages/http-protocol/src/v1/requests/announce.rs`   | No direct references to `bittorrent_udp_tracker_protocol::` remain                                                                       |
-| T3  | TODO   | Remove `bittorrent-udp-tracker-protocol` from `packages/http-protocol/Cargo.toml`                      | `cargo tree -p bittorrent-http-tracker-protocol --depth 1` shows no UDP protocol edge                                                    |
+| T2  | TODO   | Remove UDP `AnnounceEvent` conversion impl from `packages/http-protocol/src/v1/requests/announce.rs`   | No direct references to `torrust_tracker_udp_tracker_protocol::` remain                                                                  |
+| T3  | TODO   | Remove `torrust-tracker-udp-tracker-protocol` from `packages/http-protocol/Cargo.toml`                 | `cargo tree -p torrust-tracker-http-tracker-protocol --depth 1` shows no UDP protocol edge                                               |
 | T4  | TODO   | Update tests to use supported conversion paths (`Event <-> torrust-tracker-primitives::AnnounceEvent`) | Tests compile and pass without UDP protocol types                                                                                        |
 | T5  | TODO   | Run verification commands                                                                              | Build/tests/lints pass                                                                                                                   |
 | T6  | TODO   | Update EPIC tracking rows and draft list as needed                                                     | Active Subissues remain consistent                                                                                                       |
@@ -115,13 +115,13 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 ## Acceptance Criteria
 
-- [ ] `packages/http-protocol/Cargo.toml` has no `bittorrent-udp-tracker-protocol` dependency.
+- [ ] `packages/http-protocol/Cargo.toml` has no `torrust-tracker-udp-tracker-protocol` dependency.
 - [ ] `packages/http-protocol` has no source-level references to
-      `bittorrent_udp_tracker_protocol::`.
+      `torrust_tracker_udp_tracker_protocol::`.
 - [ ] HTTP protocol announce event behavior remains unchanged for
       `started/stopped/completed/none` mappings.
 - [ ] `cargo build --workspace` passes.
-- [ ] `cargo test -p bittorrent-http-tracker-protocol` passes.
+- [ ] `cargo test -p torrust-tracker-http-tracker-protocol` passes.
 - [ ] `linter all` exits with code `0`.
 - [ ] EPIC tracking includes this subissue.
 
@@ -130,8 +130,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 ### Automatic Checks
 
 - `cargo build --workspace`
-- `cargo test -p bittorrent-http-tracker-protocol`
-- `cargo test -p bittorrent-http-tracker-core`
+- `cargo test -p torrust-tracker-http-tracker-protocol`
+- `cargo test -p torrust-tracker-http-tracker-core`
 - `cargo test -p torrust-tracker-axum-http-server`
 - `linter all`
 
@@ -139,11 +139,11 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
-| ID  | Scenario                               | Command / Steps                                                 | Expected Result                                              | Status | Evidence |
-| --- | -------------------------------------- | --------------------------------------------------------------- | ------------------------------------------------------------ | ------ | -------- |
-| M1  | No cross-protocol edge remains         | `cargo tree -p bittorrent-http-tracker-protocol --depth 1`      | No dependency on `bittorrent-udp-tracker-protocol`           | TODO   |          |
-| M2  | No UDP symbols in HTTP protocol source | `rg "bittorrent_udp_tracker_protocol::" packages/http-protocol` | No matches                                                   | TODO   |          |
-| M3  | Event conversion behavior preserved    | Run existing announce request parsing/unit tests                | Mappings for `started/stopped/completed/none` remain correct | TODO   |          |
+| ID  | Scenario                               | Command / Steps                                                      | Expected Result                                              | Status | Evidence |
+| --- | -------------------------------------- | -------------------------------------------------------------------- | ------------------------------------------------------------ | ------ | -------- |
+| M1  | No cross-protocol edge remains         | `cargo tree -p torrust-tracker-http-tracker-protocol --depth 1`      | No dependency on `torrust-tracker-udp-tracker-protocol`      | TODO   |          |
+| M2  | No UDP symbols in HTTP protocol source | `rg "torrust_tracker_udp_tracker_protocol::" packages/http-protocol` | No matches                                                   | TODO   |          |
+| M3  | Event conversion behavior preserved    | Run existing announce request parsing/unit tests                     | Mappings for `started/stopped/completed/none` remain correct | TODO   |          |
 
 ## Risks and Trade-offs
 
@@ -161,7 +161,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 ## References
 
-- EPIC: [docs/issues/open/1669-overhaul-packages/EPIC.md](../open/1669-overhaul-packages/EPIC.md)
+- EPIC: [docs/issues/open/1669-overhaul-packages/EPIC.md](1669-overhaul-packages/EPIC.md)
 - HTTP protocol announce request: [packages/http-protocol/src/v1/requests/announce.rs](../../packages/http-protocol/src/v1/requests/announce.rs)
 - HTTP protocol manifest: [packages/http-protocol/Cargo.toml](../../packages/http-protocol/Cargo.toml)
 - Shared announce event type: [packages/primitives/src/announce.rs](../../packages/primitives/src/announce.rs)
