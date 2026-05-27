@@ -1,13 +1,13 @@
 ---
 doc-type: issue
 issue-type: task
-status: draft
+status: planned
 priority: p1
-github-issue: null
-spec-path: docs/issues/drafts/1669-14-decouple-http-protocol-from-tracker-primitives.md
+github-issue: 1835
+spec-path: docs/issues/open/1835-1669-14-decouple-http-protocol-from-tracker-primitives.md
 branch: null
 related-pr: null
-last-updated-utc: 2026-05-26 00:00
+last-updated-utc: 2026-05-27 00:00
 semantic-links:
   skill-links:
     - create-issue
@@ -17,12 +17,12 @@ semantic-links:
     - packages/http-protocol/src/v1/requests/announce.rs
     - packages/primitives/src/announce.rs
     - packages/http-tracker-core/src/services/announce.rs
-    - packages/axum-http-tracker-server/src/v1/handlers/announce.rs
+    - packages/axum-http-server/src/v1/handlers/announce.rs
 ---
 
 <!-- skill-link: create-issue -->
 
-# Issue #[To be assigned] - Decouple `http-protocol` from `torrust-tracker-primitives`
+# Issue #1835 - Decouple `http-protocol` from `torrust-tracker-primitives`
 
 Subissue ID: SI-14 (1669-14).
 
@@ -35,12 +35,17 @@ explicit boundary mapping in higher layers.
 This draft is step 2 of the protocol decoupling strategy after edge cleanup
 subissues SI-12 and SI-13.
 
-This is a subissue of EPIC [#1669](../open/1669-overhaul-packages/EPIC.md).
+This is a subissue of EPIC [#1669](1669-overhaul-packages/EPIC.md).
+
+## Execution Order
+
+- Execute SI-13 first, then SI-14, to reduce merge-conflict risk and keep
+  the dependency cleanup sequence explicit.
 
 ## Design Decision (Scope Clarification)
 
 This subissue follows DEC-06 from
-[`docs/issues/open/1669-overhaul-packages/DECISIONS.md`](../open/1669-overhaul-packages/DECISIONS.md):
+[`docs/issues/open/1669-overhaul-packages/DECISIONS.md`](1669-overhaul-packages/DECISIONS.md):
 
 - Alternative considered: move `torrust_tracker_primitives::AnnounceEvent` to a
   new shared protocol package.
@@ -63,7 +68,8 @@ Target edge:
 
 - Remove `http-protocol -> torrust-tracker-primitives`.
 - Keep mappings between protocol event types and domain event types in boundary
-  layers (`http-tracker-core` and/or `axum-http-tracker-server`).
+  layers, with ownership primarily in `http-tracker-core` and transport
+  adaptation only in `axum-http-server` where needed.
 
 ## Concrete Dependency Evidence
 
@@ -106,8 +112,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | --- | ------ | ----------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
 | T1  | TODO   | Confirm all `torrust-tracker-primitives` usages in `http-protocol` and document symbol-level evidence | Evidence captured in PR description                                                                                                      |
 | T2  | TODO   | Remove direct primitive conversion impls from `packages/http-protocol/src/v1/requests/announce.rs`    | No direct `torrust_tracker_primitives::` references remain in source                                                                     |
-| T3  | TODO   | Remove `torrust-tracker-primitives` from `packages/http-protocol/Cargo.toml`                          | `cargo tree -p bittorrent-http-tracker-protocol --depth 1` shows no edge                                                                 |
-| T4  | TODO   | Add/adjust mapping in higher layers (`http-tracker-core` and/or `axum-http-tracker-server`)           | Event behavior remains equivalent                                                                                                        |
+| T3  | TODO   | Remove `torrust-tracker-primitives` from `packages/http-protocol/Cargo.toml`                          | `cargo tree -p torrust-tracker-http-tracker-protocol --depth 1` shows no edge                                                          |
+| T4  | TODO   | Add/adjust mapping in higher layers (`http-tracker-core` as primary owner; `axum-http-server` only if needed) | Event behavior remains equivalent                                                                                                        |
 | T5  | TODO   | Update tests and fixtures                                                                             | Tests compile and pass without direct protocol->domain coupling                                                                          |
 | T6  | TODO   | Run verification commands                                                                             | Build/tests/lints pass                                                                                                                   |
 | T7  | TODO   | Update EPIC tracking rows and draft list as needed                                                    | Active Subissues remain consistent                                                                                                       |
@@ -130,8 +136,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 ### Automatic Checks
 
 - `cargo build --workspace`
-- `cargo test -p bittorrent-http-tracker-protocol`
-- `cargo test -p bittorrent-http-tracker-core`
+- `cargo test -p torrust-tracker-http-tracker-protocol`
+- `cargo test -p torrust-tracker-http-tracker-core`
 - `cargo test -p torrust-tracker-axum-http-server`
 - `linter all`
 
@@ -141,7 +147,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID  | Scenario                                 | Command / Steps                                            | Expected Result                                            | Status | Evidence |
 | --- | ---------------------------------------- | ---------------------------------------------------------- | ---------------------------------------------------------- | ------ | -------- |
-| M1  | No protocol->domain edge remains         | `cargo tree -p bittorrent-http-tracker-protocol --depth 1` | No dependency on `torrust-tracker-primitives`              | TODO   |          |
+| M1  | No protocol->domain edge remains         | `cargo tree -p torrust-tracker-http-tracker-protocol --depth 1` | No dependency on `torrust-tracker-primitives`              | TODO   |          |
 | M2  | No primitives symbols in protocol source | `rg "torrust_tracker_primitives::" packages/http-protocol` | No matches                                                 | TODO   |          |
 | M3  | Event conversion behavior preserved      | Run existing announce request parsing/unit tests           | Mappings for `started/stopped/completed/none` stay correct | TODO   |          |
 
@@ -153,7 +159,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 ## References
 
-- EPIC: [docs/issues/open/1669-overhaul-packages/EPIC.md](../open/1669-overhaul-packages/EPIC.md)
+- EPIC: [docs/issues/open/1669-overhaul-packages/EPIC.md](1669-overhaul-packages/EPIC.md)
 - HTTP protocol announce request: [packages/http-protocol/src/v1/requests/announce.rs](../../packages/http-protocol/src/v1/requests/announce.rs)
 - HTTP protocol manifest: [packages/http-protocol/Cargo.toml](../../packages/http-protocol/Cargo.toml)
 - Shared announce event type: [packages/primitives/src/announce.rs](../../packages/primitives/src/announce.rs)

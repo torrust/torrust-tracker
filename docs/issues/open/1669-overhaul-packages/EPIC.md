@@ -532,10 +532,10 @@ Status: TODO unless noted.
 - [x] [#1829](https://github.com/torrust/torrust-tracker/issues/1829) SI-11: Rename crates and folder names to match desired `torrust-tracker` workspace state _(Rule U; one package at a time)_
 - [x] [#1830](https://github.com/torrust/torrust-tracker/issues/1830) SI-12: Decouple `http-protocol` from `tracker-core` _(Rule M; remove forbidden `protocol -> tracker-core` edge)_
 
-#### 3. Numbered Subissue (No GitHub Issue Yet)
+#### 3. Numbered Subissues (GitHub Issues Open)
 
-- [ ] SI-13: Decouple `http-protocol` from `udp-protocol` _(Rule M; remove cross-protocol dependency edge)_
-- [ ] SI-14: Decouple `http-protocol` from `torrust-tracker-primitives` _(Rule M; remove protocol -> domain coupling as step 2)_
+- [ ] [#1834](https://github.com/torrust/torrust-tracker/issues/1834) SI-13: Decouple `http-protocol` from `udp-protocol` _(Rule M; remove cross-protocol dependency edge)_
+- [ ] [#1835](https://github.com/torrust/torrust-tracker/issues/1835) SI-14: Decouple `http-protocol` from `torrust-tracker-primitives` _(Rule M; remove protocol -> domain coupling as step 2)_
 
 #### 4. Draft Specs (No Subissue Number, No GitHub Issue)
 
@@ -567,8 +567,8 @@ Details:
 | Tracker client extraction  | #TBD — Extract `torrust-tracker-client` to standalone repository                                                                                                                 | [docs/issues/drafts/1669-extract-torrust-tracker-client-to-standalone-repo.md](../../drafts/1669-extract-torrust-tracker-client-to-standalone-repo.md)                                         | TODO   | Rule E; blocked by `torrust-tracker-udp-tracker-protocol` publication (external to this EPIC)  |
 | Rename-to-desired-state    | [#1829](https://github.com/torrust/torrust-tracker/issues/1829) — Rename crates and folder names to match desired `torrust-tracker` workspace state                              | [docs/issues/open/1829-1669-11-rename-crates-and-folders-to-match-desired-tracker-workspace.md](../../open/1829-1669-11-rename-crates-and-folders-to-match-desired-tracker-workspace.md)       | TODO   | SI-11. Rule U; crate-only or folder-only rename per package; execute one package at a time     |
 | HTTP protocol decoupling   | [#1830](https://github.com/torrust/torrust-tracker/issues/1830) — Decouple `http-protocol` from `tracker-core`                                                                   | [docs/issues/open/1830-1669-12-decouple-http-protocol-from-tracker-core.md](../../open/1830-1669-12-decouple-http-protocol-from-tracker-core.md)                                               | DONE   | SI-12 complete; removed `http-protocol -> tracker-core` edge and moved mapping to higher layer |
-| HTTP/UDP decoupling        | #TBD — Decouple `http-protocol` from `udp-protocol`                                                                                                                              | [docs/issues/drafts/1669-13-decouple-http-protocol-from-udp-protocol.md](../../drafts/1669-13-decouple-http-protocol-from-udp-protocol.md)                                                     | TODO   | SI-13. Rule M; remove cross-protocol dependency edge                                           |
-| HTTP/primitives decoupling | #TBD — Decouple `http-protocol` from `torrust-tracker-primitives`                                                                                                                | [docs/issues/drafts/1669-14-decouple-http-protocol-from-tracker-primitives.md](../../drafts/1669-14-decouple-http-protocol-from-tracker-primitives.md)                                         | TODO   | SI-14. Rule M; remove protocol -> domain coupling in step 2                                    |
+| HTTP/UDP decoupling        | [#1834](https://github.com/torrust/torrust-tracker/issues/1834) — Decouple `http-protocol` from `udp-protocol`                                                                 | [docs/issues/open/1834-1669-13-decouple-http-protocol-from-udp-protocol.md](../../open/1834-1669-13-decouple-http-protocol-from-udp-protocol.md)                                               | TODO   | SI-13. Rule M; remove cross-protocol dependency edge                                           |
+| HTTP/primitives decoupling | [#1835](https://github.com/torrust/torrust-tracker/issues/1835) — Decouple `http-protocol` from `torrust-tracker-primitives`                                                   | [docs/issues/open/1835-1669-14-decouple-http-protocol-from-tracker-primitives.md](../../open/1835-1669-14-decouple-http-protocol-from-tracker-primitives.md)                                   | TODO   | SI-14. Rule M; execute after SI-13; remove protocol -> domain coupling in step 2              |
 
 ### Draft issues
 
@@ -578,8 +578,6 @@ Details:
 - [docs/issues/drafts/1669-extract-torrust-clock-to-standalone-repo.md](../../drafts/1669-extract-torrust-clock-to-standalone-repo.md)
 - [docs/issues/drafts/1669-extract-torrust-metrics-to-standalone-repo.md](../../drafts/1669-extract-torrust-metrics-to-standalone-repo.md)
 - [docs/issues/drafts/1669-extract-torrust-tracker-client-to-standalone-repo.md](../../drafts/1669-extract-torrust-tracker-client-to-standalone-repo.md)
-- [docs/issues/drafts/1669-13-decouple-http-protocol-from-udp-protocol.md](../../drafts/1669-13-decouple-http-protocol-from-udp-protocol.md)
-- [docs/issues/drafts/1669-14-decouple-http-protocol-from-tracker-primitives.md](../../drafts/1669-14-decouple-http-protocol-from-tracker-primitives.md)
 
 > New subissues are created as analysis reveals the next improvement. The EPIC is never
 > fully planned up front.
