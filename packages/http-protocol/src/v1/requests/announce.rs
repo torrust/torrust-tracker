@@ -190,17 +190,6 @@ impl fmt::Display for Event {
     }
 }
 
-impl From<torrust_tracker_udp_tracker_protocol::AnnounceEvent> for Event {
-    fn from(event: torrust_tracker_udp_tracker_protocol::AnnounceEvent) -> Self {
-        match event {
-            torrust_tracker_udp_tracker_protocol::AnnounceEvent::Started => Self::Started,
-            torrust_tracker_udp_tracker_protocol::AnnounceEvent::Stopped => Self::Stopped,
-            torrust_tracker_udp_tracker_protocol::AnnounceEvent::Completed => Self::Completed,
-            torrust_tracker_udp_tracker_protocol::AnnounceEvent::None => Self::Empty,
-        }
-    }
-}
-
 impl From<AnnounceEvent> for Event {
     fn from(event: AnnounceEvent) -> Self {
         match event {

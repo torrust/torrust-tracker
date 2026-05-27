@@ -240,7 +240,7 @@ The following crates remain in `torrust/torrust-tracker` for now:
 
 Rationale: current dependencies indicate unresolved layering/coupling. In particular,
 `torrust-http-tracker-protocol` currently depends on
-`torrust-tracker-primitives` and `torrust-udp-tracker-protocol`. The move can be
+`torrust-tracker-primitives`. The move can be
 revisited after these dependencies are clarified and reduced.
 
 > **Naming policy**: prefix reflects ownership and release identity, not estimated
@@ -352,7 +352,6 @@ This section lists direct crate dependencies that have a `torrust*` prefix.
   - `torrust-clock`
   - `torrust-located-error`
   - `torrust-tracker-primitives`
-  - `torrust-tracker-udp-tracker-protocol`
 - `torrust-tracker-udp-tracker-core`
   - `torrust-clock`
   - `torrust-metrics`
@@ -534,7 +533,7 @@ Status: TODO unless noted.
 
 #### 3. Numbered Subissues (GitHub Issues Open)
 
-- [ ] [#1834](https://github.com/torrust/torrust-tracker/issues/1834) SI-13: Decouple `http-protocol` from `udp-protocol` _(Rule M; remove cross-protocol dependency edge)_
+- [x] [#1834](https://github.com/torrust/torrust-tracker/issues/1834) SI-13: Decouple `http-protocol` from `udp-protocol` _(Rule M; remove cross-protocol dependency edge)_
 - [ ] [#1835](https://github.com/torrust/torrust-tracker/issues/1835) SI-14: Decouple `http-protocol` from `torrust-tracker-primitives` _(Rule M; remove protocol -> domain coupling as step 2)_
 
 #### 4. Draft Specs (No Subissue Number, No GitHub Issue)
@@ -571,7 +570,7 @@ Details:
 | REST API architecture      | #TBD — Define REST API contract-first package architecture                                                                                                                       | [docs/issues/drafts/1669-define-rest-api-contract-first-package-architecture.md](../../drafts/1669-define-rest-api-contract-first-package-architecture.md)                                     | TODO   | Policy reminder only in this EPIC; validate via PoC, then execute migration in a dedicated API EPIC; defer API package extraction/publication |
 | Rename-to-desired-state    | [#1829](https://github.com/torrust/torrust-tracker/issues/1829) — Rename crates and folder names to match desired `torrust-tracker` workspace state                              | [docs/issues/closed/1829-1669-11-rename-crates-and-folders-to-match-desired-tracker-workspace.md](../../closed/1829-1669-11-rename-crates-and-folders-to-match-desired-tracker-workspace.md)   | DONE   | SI-11 complete; spec archived to `docs/issues/closed/` after issue closure                                                                    |
 | HTTP protocol decoupling   | [#1830](https://github.com/torrust/torrust-tracker/issues/1830) — Decouple `http-protocol` from `tracker-core`                                                                   | [docs/issues/closed/1830-1669-12-decouple-http-protocol-from-tracker-core.md](../../closed/1830-1669-12-decouple-http-protocol-from-tracker-core.md)                                           | DONE   | SI-12 complete; removed `http-protocol -> tracker-core` edge and moved mapping to higher layer                                                |
-| HTTP/UDP decoupling        | [#1834](https://github.com/torrust/torrust-tracker/issues/1834) — Decouple `http-protocol` from `udp-protocol`                                                                   | [docs/issues/open/1834-1669-13-decouple-http-protocol-from-udp-protocol.md](../../open/1834-1669-13-decouple-http-protocol-from-udp-protocol.md)                                               | TODO   | SI-13. Rule M; remove cross-protocol dependency edge                                                                                          |
+| HTTP/UDP decoupling        | [#1834](https://github.com/torrust/torrust-tracker/issues/1834) — Decouple `http-protocol` from `udp-protocol`                                                                   | [docs/issues/open/1834-1669-13-decouple-http-protocol-from-udp-protocol.md](../../open/1834-1669-13-decouple-http-protocol-from-udp-protocol.md)                                               | DONE   | SI-13 complete; removed `http-protocol -> udp-protocol` edge                                                                                  |
 | HTTP/primitives decoupling | [#1835](https://github.com/torrust/torrust-tracker/issues/1835) — Decouple `http-protocol` from `torrust-tracker-primitives`                                                     | [docs/issues/open/1835-1669-14-decouple-http-protocol-from-tracker-primitives.md](../../open/1835-1669-14-decouple-http-protocol-from-tracker-primitives.md)                                   | TODO   | SI-14. Rule M; execute after SI-13; remove protocol -> domain coupling in step 2                                                              |
 
 ### Draft issues
@@ -688,7 +687,7 @@ against this constraint (verified May 2026).
 | `torrust-tracker-metrics` (→ `torrust-metrics`) | No               | `torrust-tracker-clock` (published ✅; was `torrust-tracker-primitives` — removed by SI-02 #1790)                                                       | ✅ After rename                 | See [extract metrics subissue](../../drafts/1669-extract-torrust-metrics-to-standalone-repo.md)                                         |
 | `torrust-tracker-udp-tracker-protocol`          | No               | `bittorrent-peer-id` (not published)                                                                                                                    | ❌                              | After `bittorrent-peer-id`                                                                                                              |
 | `torrust-tracker-core`                          | No               | `torrust-tracker-events`, `torrust-tracker-metrics`, `torrust-tracker-swarm-coordination-registry`, `torrust-tracker-rest-api-client` (all unpublished) | ❌ Very deep chain              | After all four above; also has `torrust-tracker-rest-api-client` as a runtime dep — a layer violation worth resolving before extraction |
-| `torrust-tracker-http-tracker-protocol`         | No               | `torrust-tracker-udp-tracker-protocol`, `torrust-tracker-core` (both unpublished)                                                                       | ❌                              | After `torrust-tracker-udp-tracker-protocol` and `torrust-tracker-core`                                                                 |
+| `torrust-tracker-http-tracker-protocol`         | No               | `torrust-tracker-core` (unpublished)                                                                                                                    | ❌                              | After `torrust-tracker-core`                                                                                                            |
 
 **Practical extraction order for `bittorrent-*` crates** (once decided):
 
@@ -697,7 +696,7 @@ against this constraint (verified May 2026).
 3. `torrust-tracker-core` — needs the four unpublished deps above + clock rename; complex
    chain; the layer violation (`torrust-tracker-rest-api-client` runtime dep) should be
    resolved before or during this step.
-4. `torrust-tracker-http-tracker-protocol` — needs #2 and #3 done.
+4. `torrust-tracker-http-tracker-protocol` — needs #3 done.
 
 > Workspace renames (this EPIC's current subissues) are independent of extraction ordering —
 > a crate can be renamed in-workspace before it is published or extracted.

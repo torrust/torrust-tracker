@@ -15,7 +15,6 @@ rust-version.workspace = true
 version.workspace = true
 
 [dependencies]
-torrust-tracker-udp-tracker-protocol = { version = "3.0.0-develop", path = "../udp-protocol" }
 bittorrent-primitives = "0.2.0"
 derive_more = { version = "2", features = [ "as_ref", "constructor", "from" ] }
 multimap = "0"
