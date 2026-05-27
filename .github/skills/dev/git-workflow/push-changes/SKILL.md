@@ -48,6 +48,17 @@ manually before each push.
 > AI agents should set a command timeout of **at least 15 minutes** before invoking
 > `./contrib/dev-tools/git/hooks/pre-push.sh`.
 
+When the pre-push hook is installed, `git push` itself becomes a long-running command
+because it executes the full pre-push suite before uploading objects. On cold caches,
+runtime can exceed the warm-cache expectation.
+
+Recommended for AI-agent terminal execution:
+
+- Prefer running `git push` with a **generous timeout** (at least 20 minutes).
+- Do not treat sparse output as a hang too quickly; some phases can be quiet.
+- Do not start a second `git push` while one is still running.
+- Wait for terminal completion (exit code + final output) before retrying.
+
 The pre-push script runs these steps in order:
 
 1. `cargo +nightly fmt --check` — nightly format check
@@ -84,6 +95,12 @@ Git opens an SSH connection to GitHub **before** running the pre-push hook. If t
 takes longer than GitHub's SSH idle timeout (~300 seconds), the connection is torn down
 while the hook is still running. When Git tries to use the connection after the hook exits,
 the push fails.
+
+### Distinguish SSH timeout from normal long runtime
+
+Not every quiet terminal indicates an SSH failure. Pre-push checks can run for several
+minutes, especially on cold caches. Confirm failure from actual error output (for example,
+"Connection to ssh.github.com closed by remote host") before concluding the push is broken.
 
 ### Fix 1 — SSH keep-alive (local developer machine)
 
