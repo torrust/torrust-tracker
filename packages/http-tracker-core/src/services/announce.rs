@@ -28,6 +28,7 @@ use torrust_tracker_primitives::peer::PeerAnnouncement;
 
 use crate::event;
 use crate::event::Event;
+use crate::services::error_mapping::protocol_error_from_tracker_core_error;
 
 /// The HTTP tracker `announce` service.
 ///
@@ -206,20 +207,7 @@ impl From<HttpAnnounceError> for HttpProtocolErrorResponse {
     fn from(error: HttpAnnounceError) -> Self {
         match error {
             HttpAnnounceError::PeerIpResolutionError { source } => source.into(),
-            HttpAnnounceError::TrackerCoreError { source } => match source {
-                TrackerCoreError::AnnounceError { source } => Self {
-                    failure_reason: format!("Tracker announce error: {source}"),
-                },
-                TrackerCoreError::ScrapeError { source } => Self {
-                    failure_reason: format!("Tracker scrape error: {source}"),
-                },
-                TrackerCoreError::WhitelistError { source } => Self {
-                    failure_reason: format!("Tracker whitelist error: {source}"),
-                },
-                TrackerCoreError::AuthenticationError { source } => Self {
-                    failure_reason: format!("Tracker authentication error: {source}"),
-                },
-            },
+            HttpAnnounceError::TrackerCoreError { source } => protocol_error_from_tracker_core_error(source),
         }
     }
 }

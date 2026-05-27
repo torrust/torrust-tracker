@@ -23,6 +23,7 @@ use torrust_tracker_http_tracker_protocol::v1::services::peer_ip_resolver::{
 use torrust_tracker_primitives::ScrapeData;
 
 use crate::event::{ConnectionContext, Event};
+use crate::services::error_mapping::protocol_error_from_tracker_core_error;
 
 /// The HTTP tracker `scrape` service.
 ///
@@ -168,20 +169,7 @@ impl From<HttpScrapeError> for HttpProtocolErrorResponse {
     fn from(error: HttpScrapeError) -> Self {
         match error {
             HttpScrapeError::PeerIpResolutionError { source } => source.into(),
-            HttpScrapeError::TrackerCoreError { source } => match source {
-                TrackerCoreError::AnnounceError { source } => Self {
-                    failure_reason: format!("Tracker announce error: {source}"),
-                },
-                TrackerCoreError::ScrapeError { source } => Self {
-                    failure_reason: format!("Tracker scrape error: {source}"),
-                },
-                TrackerCoreError::WhitelistError { source } => Self {
-                    failure_reason: format!("Tracker whitelist error: {source}"),
-                },
-                TrackerCoreError::AuthenticationError { source } => Self {
-                    failure_reason: format!("Tracker authentication error: {source}"),
-                },
-            },
+            HttpScrapeError::TrackerCoreError { source } => protocol_error_from_tracker_core_error(source),
         }
     }
 }
