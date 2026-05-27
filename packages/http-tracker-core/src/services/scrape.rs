@@ -16,6 +16,7 @@ use torrust_tracker_core::authentication::{self, Key};
 use torrust_tracker_core::error::{ScrapeError, TrackerCoreError, WhitelistError};
 use torrust_tracker_core::scrape_handler::ScrapeHandler;
 use torrust_tracker_http_tracker_protocol::v1::requests::scrape::Scrape;
+use torrust_tracker_http_tracker_protocol::v1::responses::error::Error as HttpProtocolErrorResponse;
 use torrust_tracker_http_tracker_protocol::v1::services::peer_ip_resolver::{
     ClientIpSources, PeerIpResolutionError, RemoteClientAddr, resolve_remote_client_addr,
 };
@@ -159,6 +160,28 @@ impl From<authentication::key::Error> for HttpScrapeError {
     fn from(whitelist_error: authentication::key::Error) -> Self {
         Self::TrackerCoreError {
             source: whitelist_error.into(),
+        }
+    }
+}
+
+impl From<HttpScrapeError> for HttpProtocolErrorResponse {
+    fn from(error: HttpScrapeError) -> Self {
+        match error {
+            HttpScrapeError::PeerIpResolutionError { source } => source.into(),
+            HttpScrapeError::TrackerCoreError { source } => match source {
+                TrackerCoreError::AnnounceError { source } => Self {
+                    failure_reason: format!("Tracker announce error: {source}"),
+                },
+                TrackerCoreError::ScrapeError { source } => Self {
+                    failure_reason: format!("Tracker scrape error: {source}"),
+                },
+                TrackerCoreError::WhitelistError { source } => Self {
+                    failure_reason: format!("Tracker whitelist error: {source}"),
+                },
+                TrackerCoreError::AuthenticationError { source } => Self {
+                    failure_reason: format!("Tracker authentication error: {source}"),
+                },
+            },
         }
     }
 }

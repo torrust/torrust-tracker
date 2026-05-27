@@ -5,9 +5,9 @@ status: open
 priority: p1
 github-issue: 1830
 spec-path: docs/issues/open/1830-1669-12-decouple-http-protocol-from-tracker-core.md
-branch: null
+branch: 1830-1669-12-decouple-http-protocol-from-tracker-core
 related-pr: null
-last-updated-utc: 2026-05-26 00:00
+last-updated-utc: 2026-05-27 00:00
 semantic-links:
   skill-links:
     - create-issue
@@ -104,35 +104,35 @@ Usage purpose:
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| ID  | Status | Task                                                                                                                                      | Notes / Expected Output                                                                                                                  |
-| --- | ------ | ----------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| T1  | TODO   | Confirm all tracker-core usage in `http-protocol` is limited to `responses/error.rs`                                                      | Evidence captured in PR description                                                                                                      |
-| T2  | TODO   | Remove `From<tracker-core error>` impls from `packages/http-protocol/src/v1/responses/error.rs`                                           | No direct imports or type references to `bittorrent_tracker_core::*` remain                                                              |
-| T3  | TODO   | Remove `bittorrent-tracker-core` from `packages/http-protocol/Cargo.toml`                                                                 | `cargo metadata` shows no `http-protocol -> tracker-core` edge                                                                           |
-| T4  | TODO   | Add/adjust mapping at higher layer (`http-tracker-core` and/or `axum-http-tracker-server`) for equivalent client-visible failure messages | Existing behavior preserved for announce/scrape/auth/whitelist errors                                                                    |
-| T5  | TODO   | Update or add tests for failure mapping behavior                                                                                          | Coverage in affected crates; assertions on error message fragments                                                                       |
-| T6  | TODO   | Run verification commands                                                                                                                 | Build/tests/lints pass                                                                                                                   |
-| T7  | TODO   | Update EPIC tracking rows and draft list as needed                                                                                        | Active Subissues remain consistent                                                                                                       |
-| T8  | TODO   | Update EPIC after implementation                                                                                                          | Update Active Subissues progress and EPIC sections: Package Inventory, Desired Package State, Torrust Dependency Lists (Direct, Non-dev) |
+| ID  | Status | Task                                                                                                                                      | Notes / Expected Output                                                                                                    |
+| --- | ------ | ----------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| T1  | DONE   | Confirm all tracker-core usage in `http-protocol` is limited to `responses/error.rs`                                                      | Confirmed by `rg` before edits (`torrust_tracker_core::*` only in `responses/error.rs`)                                    |
+| T2  | DONE   | Remove `From<tracker-core error>` impls from `packages/http-protocol/src/v1/responses/error.rs`                                           | Removed announce/scrape/whitelist/authentication conversion impls                                                          |
+| T3  | DONE   | Remove `bittorrent-tracker-core` from `packages/http-protocol/Cargo.toml`                                                                 | Removed dependency; `cargo tree -p torrust-tracker-http-tracker-protocol --depth 1` has no tracker-core edge               |
+| T4  | DONE   | Add/adjust mapping at higher layer (`http-tracker-core` and/or `axum-http-tracker-server`) for equivalent client-visible failure messages | Added `From<HttpAnnounceError>` and `From<HttpScrapeError>` into protocol `responses::error::Error` in `http-tracker-core` |
+| T5  | DONE   | Update or add tests for failure mapping behavior                                                                                          | Updated axum handler unit/integration assertions to use boundary mapping with expected message fragments                   |
+| T6  | DONE   | Run verification commands                                                                                                                 | `cargo build --workspace`, targeted crate tests, `linter all` all passed                                                   |
+| T7  | DONE   | Update EPIC tracking rows and draft list as needed                                                                                        | Updated in EPIC Active Subissues and details table                                                                         |
+| T8  | DONE   | Update EPIC after implementation                                                                                                          | Updated EPIC dependency narrative and `torrust-tracker-http-tracker-protocol` direct dependency list                       |
 
 ## Acceptance Criteria
 
-- [ ] `packages/http-protocol/Cargo.toml` has no `bittorrent-tracker-core` dependency.
-- [ ] `packages/http-protocol` has no source-level references to `bittorrent_tracker_core::`.
-- [ ] Client-visible HTTP error responses still include meaningful failure reasons
+- [x] `packages/http-protocol/Cargo.toml` has no `bittorrent-tracker-core` dependency.
+- [x] `packages/http-protocol` has no source-level references to `bittorrent_tracker_core::`.
+- [x] Client-visible HTTP error responses still include meaningful failure reasons
       for announce/scrape/auth/whitelist failures.
-- [ ] `cargo build --workspace` passes.
-- [ ] Relevant tests in HTTP protocol/core/server packages pass.
-- [ ] `linter all` exits with code `0`.
-- [ ] EPIC tracking is updated to include this subissue.
+- [x] `cargo build --workspace` passes.
+- [x] Relevant tests in HTTP protocol/core/server packages pass.
+- [x] `linter all` exits with code `0`.
+- [x] EPIC tracking is updated to include this subissue.
 
 ## Verification Plan
 
 ### Automatic Checks
 
 - `cargo build --workspace`
-- `cargo test -p bittorrent-http-tracker-protocol`
-- `cargo test -p bittorrent-http-tracker-core`
+- `cargo test -p torrust-tracker-http-tracker-protocol`
+- `cargo test -p torrust-tracker-http-tracker-core`
 - `cargo test -p torrust-tracker-axum-http-server`
 - `linter all`
 
@@ -140,11 +140,11 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
-| ID  | Scenario                                   | Command / Steps                                              | Expected Result                                        | Status | Evidence |
-| --- | ------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------ | ------ | -------- |
-| M1  | No forbidden edge remains                  | `cargo tree -p bittorrent-http-tracker-protocol --depth 1`   | No dependency on `bittorrent-tracker-core`             | TODO   |          |
-| M2  | No tracker-core symbols in protocol source | `rg "bittorrent_tracker_core::" packages/http-protocol`      | No matches                                             | TODO   |          |
-| M3  | Error mapping behavior preserved           | Trigger announce/scrape/auth failure cases in existing tests | Error responses still include expected message context | TODO   |          |
+| ID  | Scenario                                   | Command / Steps                                                                 | Expected Result                                        | Status | Evidence                                                                     |
+| --- | ------------------------------------------ | ------------------------------------------------------------------------------- | ------------------------------------------------------ | ------ | ---------------------------------------------------------------------------- |
+| M1  | No forbidden edge remains                  | `cargo tree -p torrust-tracker-http-tracker-protocol --depth 1`                 | No dependency on `torrust-tracker-core`                | DONE   | Tree output shows no tracker-core dependency                                 |
+| M2  | No tracker-core symbols in protocol source | `rg "torrust_tracker_core::\|bittorrent_tracker_core::" packages/http-protocol` | No matches                                             | DONE   | `rg` returned no output                                                      |
+| M3  | Error mapping behavior preserved           | Trigger announce/scrape/auth failure cases in existing tests                    | Error responses still include expected message context | DONE   | `cargo test -p torrust-tracker-axum-http-server` passed (unit + integration) |
 
 ## Risks and Trade-offs
 

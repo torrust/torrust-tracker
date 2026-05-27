@@ -150,7 +150,7 @@ pub async fn assert_tracker_core_authentication_error_response(response: Respons
 
     assert_bencoded_error(
         &response.text().await.unwrap(),
-        "Tracker core error: Tracker core authentication error",
+        "Tracker authentication error",
         Location::caller(),
     );
 }

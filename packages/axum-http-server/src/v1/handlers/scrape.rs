@@ -61,9 +61,7 @@ async fn handle(
     {
         Ok(scrape_data) => scrape_data,
         Err(error) => {
-            let error_response = responses::error::Error {
-                failure_reason: error.to_string(),
-            };
+            let error_response = responses::error::Error::from(error);
             return (StatusCode::OK, error_response.write()).into_response();
         }
     };
@@ -332,9 +330,7 @@ mod tests {
                 .await
                 .unwrap_err();
 
-            let error_response = responses::error::Error {
-                failure_reason: response.to_string(),
-            };
+            let error_response = responses::error::Error::from(response);
 
             assert_error_response(
                 &error_response,
@@ -379,9 +375,7 @@ mod tests {
                 .await
                 .unwrap_err();
 
-            let error_response = responses::error::Error {
-                failure_reason: response.to_string(),
-            };
+            let error_response = responses::error::Error::from(response);
 
             assert_error_response(
                 &error_response,
