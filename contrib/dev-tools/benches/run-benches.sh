@@ -4,6 +4,6 @@
 
 cargo bench --package torrust-tracker-torrent-repository
 
-cargo bench --package bittorrent-http-tracker-core
+cargo bench --package torrust-tracker-http-tracker-core
 
-cargo bench --package bittorrent-udp-tracker-core
+cargo bench --package torrust-tracker-udp-tracker-core

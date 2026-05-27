@@ -3,7 +3,7 @@ mod torrent;
 mod whitelist;
 
 use anyhow::Result;
-use bittorrent_tracker_core::databases::{AuthKeyStore, TorrentMetricsStore, WhitelistStore};
+use torrust_tracker_core::databases::{AuthKeyStore, TorrentMetricsStore, WhitelistStore};
 
 use super::RawOperationSamples;
 

@@ -1,5 +1,5 @@
 //! Unified tracker client binary.
-use torrust_tracker_client::console::clients::unified::app;
+use torrust_tracker_console_client::console::clients::unified::app;
 
 #[tokio::main]
 async fn main() {

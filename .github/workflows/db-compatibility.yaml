@@ -48,7 +48,7 @@ jobs:
         env:
           TORRUST_TRACKER_CORE_RUN_MYSQL_DRIVER_TEST: "true"
           TORRUST_TRACKER_CORE_MYSQL_DRIVER_IMAGE_TAG: ${{ matrix.mysql-version }}
-        run: cargo test -p bittorrent-tracker-core --features db-compatibility-tests run_mysql_driver_tests -- --nocapture
+        run: cargo test -p torrust-tracker-core --features db-compatibility-tests run_mysql_driver_tests -- --nocapture
 
   database-compatibility-postgres:
     name: Database Compatibility PostgreSQL (${{ matrix.postgres-version }})
@@ -78,4 +78,4 @@ jobs:
         env:
           TORRUST_TRACKER_CORE_RUN_POSTGRES_DRIVER_TEST: "true"
           TORRUST_TRACKER_CORE_POSTGRES_DRIVER_IMAGE_TAG: ${{ matrix.postgres-version }}
-        run: cargo test -p bittorrent-tracker-core --features db-compatibility-tests run_postgres_driver_tests -- --nocapture
+        run: cargo test -p torrust-tracker-core --features db-compatibility-tests run_postgres_driver_tests -- --nocapture

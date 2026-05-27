@@ -6,7 +6,7 @@ pub(crate) mod tests {
     use std::sync::Arc;
 
     use bittorrent_primitives::info_hash::InfoHash;
-    use rand::RngExt;
+    use rand::Rng;
     use torrust_clock::DurationSinceUnixEpoch;
     use torrust_tracker_configuration::Configuration;
     #[cfg(test)]

@@ -3,10 +3,10 @@ use std::num::NonZeroU16;
 use std::time::Duration;
 
 use bittorrent_primitives::info_hash::InfoHash as TorrustInfoHash;
-use bittorrent_tracker_client::peer_id::default_production_peer_id;
-use bittorrent_tracker_client::udp::client::UdpTrackerClient;
-use bittorrent_udp_tracker_protocol::common::InfoHash;
-use bittorrent_udp_tracker_protocol::{
+use torrust_tracker_client::peer_id::default_production_peer_id;
+use torrust_tracker_client::udp::client::UdpTrackerClient;
+use torrust_tracker_udp_tracker_protocol::common::InfoHash;
+use torrust_tracker_udp_tracker_protocol::{
     AnnounceActionPlaceholder, AnnounceEvent, AnnounceRequest, ConnectRequest, ConnectionId, NumberOfBytes, NumberOfPeers,
     PeerId, PeerKey, Port, Response, ScrapeRequest, TransactionId,
 };

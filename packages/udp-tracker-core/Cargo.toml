@@ -6,7 +6,7 @@ edition.workspace = true
 homepage.workspace = true
 keywords = [ "api", "bittorrent", "core", "library", "tracker" ]
 license.workspace = true
-name = "bittorrent-udp-tracker-core"
+name = "torrust-tracker-udp-tracker-core"
 publish.workspace = true
 readme = "README.md"
 repository.workspace = true
@@ -15,14 +15,14 @@ version.workspace = true
 
 [dependencies]
 bittorrent-primitives = "0.2.0"
-bittorrent-tracker-core = { version = "3.0.0-develop", path = "../tracker-core" }
-bittorrent-udp-tracker-protocol = { version = "3.0.0-develop", path = "../udp-protocol" }
+torrust-tracker-core = { version = "3.0.0-develop", path = "../tracker-core" }
+torrust-tracker-udp-tracker-protocol = { version = "3.0.0-develop", path = "../udp-protocol" }
 bloom = "0.3.2"
 blowfish = "0"
 cipher = "0.5"
 criterion = { version = "0.5.1", features = [ "async_tokio" ] }
 futures = "0"
-rand = "0"
+rand = "0.9"
 serde = "1.0.219"
 thiserror = "2"
 tokio = { version = "1", features = [ "macros", "net", "rt-multi-thread", "signal", "sync", "time" ] }

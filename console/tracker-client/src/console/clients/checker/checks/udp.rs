@@ -3,8 +3,8 @@ use std::str::FromStr;
 use std::time::Duration;
 
 use bittorrent_primitives::info_hash::InfoHash as TorrustInfoHash;
-use bittorrent_udp_tracker_protocol::TransactionId;
 use serde::Serialize;
+use torrust_tracker_udp_tracker_protocol::TransactionId;
 use url::Url;
 
 use crate::console::clients::udp::Error;

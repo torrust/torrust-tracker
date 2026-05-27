@@ -8,7 +8,7 @@ This is the baseline benchmark run captured after implementing:
 
 - Commit: `51c27fda813876afc1cb26ea1d5bbb0fa49dfdd2`
 - Ops per operation: `100`
-- Benchmark runner: `cargo run -p bittorrent-tracker-core --bin persistence_benchmark_runner`
+- Benchmark runner: `cargo run -p torrust-tracker-core --bin persistence_benchmark_runner`
 - Machine profile: `../../machine/2026-04-28-josecelano-desktop.txt`
 
 ## Raw artifacts

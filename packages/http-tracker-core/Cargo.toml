@@ -6,7 +6,7 @@ edition.workspace = true
 homepage.workspace = true
 keywords = [ "api", "bittorrent", "core", "library", "tracker" ]
 license.workspace = true
-name = "bittorrent-http-tracker-core"
+name = "torrust-tracker-http-tracker-core"
 publish.workspace = true
 readme = "README.md"
 repository.workspace = true
@@ -14,9 +14,9 @@ rust-version.workspace = true
 version.workspace = true
 
 [dependencies]
-bittorrent-http-tracker-protocol = { version = "3.0.0-develop", path = "../http-protocol" }
+torrust-tracker-http-tracker-protocol = { version = "3.0.0-develop", path = "../http-protocol" }
 bittorrent-primitives = "0.2.0"
-bittorrent-tracker-core = { version = "3.0.0-develop", path = "../tracker-core" }
+torrust-tracker-core = { version = "3.0.0-develop", path = "../tracker-core" }
 criterion = { version = "0.5.1", features = [ "async_tokio" ] }
 futures = "0"
 serde = "1.0.219"

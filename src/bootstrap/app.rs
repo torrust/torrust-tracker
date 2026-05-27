@@ -11,9 +11,9 @@
 //! 2. Initialize static variables.
 //! 3. Initialize logging.
 //! 4. Initialize the domain tracker.
-use bittorrent_udp_tracker_core::crypto::keys::{self, Keeper as _};
 use torrust_tracker_configuration::validator::Validator;
 use torrust_tracker_configuration::{Configuration, logging};
+use torrust_tracker_udp_tracker_core::crypto::keys::{self, Keeper as _};
 use tracing::instrument;
 
 use super::config::initialize_configuration;
@@ -74,5 +74,5 @@ pub fn initialize_global_services(configuration: &Configuration) {
 #[instrument(skip())]
 pub fn initialize_static() {
     torrust_clock::initialize_static();
-    bittorrent_udp_tracker_core::initialize_static();
+    torrust_tracker_udp_tracker_core::initialize_static();
 }

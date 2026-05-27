@@ -3,8 +3,8 @@ use std::str::FromStr;
 
 use anyhow::Context;
 use bittorrent_primitives::info_hash::InfoHash as TorrustInfoHash;
-use bittorrent_udp_tracker_protocol::{AnnounceEvent, Response, TransactionId};
 use clap::{Subcommand, ValueEnum};
+use torrust_tracker_udp_tracker_protocol::{AnnounceEvent, Response, TransactionId};
 use url::Url;
 
 use super::app::OutputFormat;

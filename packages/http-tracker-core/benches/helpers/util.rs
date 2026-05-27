@@ -1,28 +1,28 @@
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::sync::Arc;
 
-use bittorrent_http_tracker_core::event::Event;
-use bittorrent_http_tracker_core::event::bus::EventBus;
-use bittorrent_http_tracker_core::event::sender::Broadcaster;
-use bittorrent_http_tracker_core::statistics::event::listener::run_event_listener;
-use bittorrent_http_tracker_core::statistics::repository::Repository;
-use bittorrent_http_tracker_protocol::v1::requests::announce::Announce;
-use bittorrent_http_tracker_protocol::v1::services::peer_ip_resolver::ClientIpSources;
 use bittorrent_primitives::info_hash::InfoHash;
-use bittorrent_tracker_core::announce_handler::AnnounceHandler;
-use bittorrent_tracker_core::authentication::key::repository::in_memory::InMemoryKeyRepository;
-use bittorrent_tracker_core::authentication::service::AuthenticationService;
-use bittorrent_tracker_core::databases::setup::initialize_database;
-use bittorrent_tracker_core::statistics::persisted::downloads::DatabaseDownloadsMetricRepository;
-use bittorrent_tracker_core::torrent::repository::in_memory::InMemoryTorrentRepository;
-use bittorrent_tracker_core::whitelist::authorization::WhitelistAuthorization;
-use bittorrent_tracker_core::whitelist::repository::in_memory::InMemoryWhitelist;
 use futures::future::BoxFuture;
 use mockall::mock;
 use tokio_util::sync::CancellationToken;
 use torrust_clock::DurationSinceUnixEpoch;
 use torrust_tracker_configuration::{Configuration, Core};
+use torrust_tracker_core::announce_handler::AnnounceHandler;
+use torrust_tracker_core::authentication::key::repository::in_memory::InMemoryKeyRepository;
+use torrust_tracker_core::authentication::service::AuthenticationService;
+use torrust_tracker_core::databases::setup::initialize_database;
+use torrust_tracker_core::statistics::persisted::downloads::DatabaseDownloadsMetricRepository;
+use torrust_tracker_core::torrent::repository::in_memory::InMemoryTorrentRepository;
+use torrust_tracker_core::whitelist::authorization::WhitelistAuthorization;
+use torrust_tracker_core::whitelist::repository::in_memory::InMemoryWhitelist;
 use torrust_tracker_events::sender::SendError;
+use torrust_tracker_http_tracker_core::event::Event;
+use torrust_tracker_http_tracker_core::event::bus::EventBus;
+use torrust_tracker_http_tracker_core::event::sender::Broadcaster;
+use torrust_tracker_http_tracker_core::statistics::event::listener::run_event_listener;
+use torrust_tracker_http_tracker_core::statistics::repository::Repository;
+use torrust_tracker_http_tracker_protocol::v1::requests::announce::Announce;
+use torrust_tracker_http_tracker_protocol::v1::services::peer_ip_resolver::ClientIpSources;
 use torrust_tracker_primitives::peer::Peer;
 use torrust_tracker_primitives::{AnnounceEvent, NumberOfBytes, PeerId, peer};
 use torrust_tracker_test_helpers::configuration;
@@ -35,7 +35,7 @@ pub struct CoreTrackerServices {
 }
 
 pub struct CoreHttpTrackerServices {
-    pub http_stats_event_sender: bittorrent_http_tracker_core::event::sender::Sender,
+    pub http_stats_event_sender: torrust_tracker_http_tracker_core::event::sender::Sender,
 }
 
 pub async fn initialize_core_tracker_services() -> (CoreTrackerServices, CoreHttpTrackerServices) {

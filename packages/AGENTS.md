@@ -13,12 +13,12 @@ depend on packages in the same layer or a lower one.
 ```text
 ┌────────────────────────────────────────────────────────────────┐
 │  Servers (delivery layer)                                      │
-│  axum-http-tracker-server  axum-rest-tracker-api-server        │
-│  axum-health-check-api-server  udp-tracker-server              │
+│  axum-http-server  axum-rest-api-server        │
+│  axum-health-check-api-server  udp-server              │
 ├────────────────────────────────────────────────────────────────┤
 │  Core (domain layer)                                           │
 │  http-tracker-core  udp-tracker-core  tracker-core             │
-│  rest-tracker-api-core  swarm-coordination-registry            │
+│  rest-api-core  swarm-coordination-registry            │
 ├────────────────────────────────────────────────────────────────┤
 │  Protocols                                                     │
 │  http-protocol  udp-protocol                                   │
@@ -39,18 +39,18 @@ See [docs/packages.md](../docs/packages.md) for a full diagram.
 
 ## Package Catalog
 
-### Servers (`axum-*`, `udp-tracker-server`)
+### Servers (`axum-*`, `udp-server`)
 
 Delivery layer — accept network connections, dispatch to core handlers, return responses.
 These packages must not contain business logic.
 
 | Package                        | Entry point  | Protocol    |
 | ------------------------------ | ------------ | ----------- |
-| `axum-http-tracker-server`     | `src/lib.rs` | HTTP BEP 3  |
-| `axum-rest-tracker-api-server` | `src/lib.rs` | REST (JSON) |
+| `axum-http-server`     | `src/lib.rs` | HTTP BEP 3  |
+| `axum-rest-api-server` | `src/lib.rs` | REST (JSON) |
 | `axum-health-check-api-server` | `src/lib.rs` | HTTP        |
 | `axum-server`                  | `src/lib.rs` | Axum base   |
-| `udp-tracker-server`           | `src/lib.rs` | UDP BEP 15  |
+| `udp-server`           | `src/lib.rs` | UDP BEP 15  |
 
 ### Core (`*-core`)
 
@@ -63,7 +63,7 @@ dependency injection.
 | `tracker-core`                | Central peer management: announce/scrape handlers, auth, whitelist, database abstraction (SQLite/MySQL drivers in `src/databases/driver/`) |
 | `http-tracker-core`           | HTTP-specific validation and response formatting                                                                                           |
 | `udp-tracker-core`            | UDP connection cookies, crypto, banning logic                                                                                              |
-| `rest-tracker-api-core`       | REST API statistics and container wiring                                                                                                   |
+| `rest-api-core`       | REST API statistics and container wiring                                                                                                   |
 | `swarm-coordination-registry` | Registry of torrents and their peer swarms                                                                                                 |
 
 ### Protocols (`*-protocol`)
@@ -93,7 +93,7 @@ Strict BEP implementations — parse and serialize wire formats only. No tracker
 | Package                   | Purpose                                                  |
 | ------------------------- | -------------------------------------------------------- |
 | `tracker-client`          | Generic HTTP and UDP tracker clients (used by E2E tests) |
-| `rest-tracker-api-client` | Typed REST API client library                            |
+| `rest-api-client` | Typed REST API client library                            |
 
 ### Utilities / Test support
 
@@ -134,7 +134,7 @@ cargo test -p <package-name>
 cargo test --doc -p <package-name>
 
 # MySQL-specific tests in tracker-core (requires a running MySQL instance)
-TORRUST_TRACKER_CORE_RUN_MYSQL_DRIVER_TEST=true cargo test -p bittorrent-tracker-core
+TORRUST_TRACKER_CORE_RUN_MYSQL_DRIVER_TEST=true cargo test -p torrust-tracker-core
 ```
 
 Use `clock::Stopped` (from the `clock` package) in unit tests that need deterministic time.

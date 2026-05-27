@@ -2,15 +2,15 @@ use std::collections::HashMap;
 use std::net::SocketAddr;
 use std::sync::Arc;
 
-use bittorrent_http_tracker_core::container::{HttpTrackerCoreContainer, HttpTrackerCoreServices};
-use bittorrent_tracker_core::container::TrackerCoreContainer;
-use bittorrent_udp_tracker_core::container::{UdpTrackerCoreContainer, UdpTrackerCoreServices};
-use bittorrent_udp_tracker_core::{self};
 use torrust_server_lib::registar::Registar;
 use torrust_tracker_configuration::{Configuration, HttpApi};
+use torrust_tracker_core::container::TrackerCoreContainer;
+use torrust_tracker_http_tracker_core::container::{HttpTrackerCoreContainer, HttpTrackerCoreServices};
 use torrust_tracker_rest_api_core::container::TrackerHttpApiCoreContainer;
 use torrust_tracker_swarm_coordination_registry::container::SwarmCoordinationRegistryContainer;
 use torrust_tracker_udp_server::container::UdpTrackerServerContainer;
+use torrust_tracker_udp_tracker_core::container::{UdpTrackerCoreContainer, UdpTrackerCoreServices};
+use torrust_tracker_udp_tracker_core::{self};
 use tracing::instrument;
 
 #[derive(thiserror::Error, Debug, Clone)]

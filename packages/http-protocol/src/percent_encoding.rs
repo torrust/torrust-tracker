@@ -26,7 +26,7 @@ use torrust_tracker_primitives::{PeerId, peer};
 ///
 /// ```rust
 /// use std::str::FromStr;
-/// use bittorrent_http_tracker_protocol::percent_encoding::percent_decode_info_hash;
+/// use torrust_tracker_http_tracker_protocol::percent_encoding::percent_decode_info_hash;
 /// use bittorrent_primitives::info_hash::InfoHash;
 /// use torrust_tracker_primitives::peer;
 ///
@@ -58,7 +58,7 @@ pub fn percent_decode_info_hash(raw_info_hash: &str) -> Result<InfoHash, info_ha
 /// ```rust
 /// use std::str::FromStr;
 ///
-/// use bittorrent_http_tracker_protocol::percent_encoding::percent_decode_peer_id;
+/// use torrust_tracker_http_tracker_protocol::percent_encoding::percent_decode_peer_id;
 /// use bittorrent_primitives::info_hash::InfoHash;
 /// use torrust_tracker_primitives::PeerId;
 ///

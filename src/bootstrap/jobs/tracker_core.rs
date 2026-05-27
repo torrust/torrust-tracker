@@ -12,7 +12,7 @@ pub fn start_event_listener(
     cancellation_token: CancellationToken,
 ) -> Option<JoinHandle<()>> {
     if config.core.tracker_usage_statistics || config.core.tracker_policy.persistent_torrent_completed_stat {
-        let job = bittorrent_tracker_core::statistics::event::listener::run_event_listener(
+        let job = torrust_tracker_core::statistics::event::listener::run_event_listener(
             app_container.swarm_coordination_registry_container.event_bus.receiver(),
             cancellation_token,
             &app_container.tracker_core_container.stats_repository,

@@ -38,7 +38,7 @@
 //! ```
 use std::sync::Arc;
 
-use bittorrent_tracker_core::torrent::repository::in_memory::InMemoryTorrentRepository;
+use torrust_tracker_core::torrent::repository::in_memory::InMemoryTorrentRepository;
 use torrust_tracker_primitives::swarm_metadata::AggregateActiveSwarmMetadata;
 
 use crate::statistics::metrics::Metrics;
@@ -78,8 +78,8 @@ pub async fn get_metrics(
 mod tests {
     use std::sync::Arc;
 
-    use bittorrent_tracker_core::torrent::repository::in_memory::InMemoryTorrentRepository;
-    use bittorrent_tracker_core::{self};
+    use torrust_tracker_core::torrent::repository::in_memory::InMemoryTorrentRepository;
+    use torrust_tracker_core::{self};
     use torrust_tracker_primitives::swarm_metadata::AggregateActiveSwarmMetadata;
 
     use crate::statistics::describe_metrics;

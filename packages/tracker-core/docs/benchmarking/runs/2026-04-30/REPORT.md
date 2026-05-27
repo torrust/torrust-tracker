@@ -11,7 +11,7 @@ It is the post-SQLx counterpart of the `2026-04-28` baseline.
 
 - Commit (HEAD at run time): `a4dbc63a6c713e115bfc11374b72743aa51ebfb5`
 - Ops per operation: `100`
-- Benchmark runner: `cargo run -p bittorrent-tracker-core --bin persistence_benchmark_runner`
+- Benchmark runner: `cargo run -p torrust-tracker-core --bin persistence_benchmark_runner`
 - Machine profile: `../../machine/2026-04-30-josecelano-desktop.txt`
 - Same machine as the `2026-04-28` baseline (AMD Ryzen 9 7950X, Ubuntu 25.10).
 

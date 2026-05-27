@@ -32,7 +32,7 @@ const NUMWANT: &str = "numwant";
 /// query params of the request.
 ///
 /// ```rust
-/// use bittorrent_http_tracker_protocol::v1::requests::announce::{Announce, Compact, Event};
+/// use torrust_tracker_http_tracker_protocol::v1::requests::announce::{Announce, Compact, Event};
 /// use bittorrent_primitives::info_hash::InfoHash;
 /// use torrust_tracker_primitives::{NumberOfBytes, PeerId};
 ///
@@ -190,13 +190,13 @@ impl fmt::Display for Event {
     }
 }
 
-impl From<bittorrent_udp_tracker_protocol::AnnounceEvent> for Event {
-    fn from(event: bittorrent_udp_tracker_protocol::AnnounceEvent) -> Self {
+impl From<torrust_tracker_udp_tracker_protocol::AnnounceEvent> for Event {
+    fn from(event: torrust_tracker_udp_tracker_protocol::AnnounceEvent) -> Self {
         match event {
-            bittorrent_udp_tracker_protocol::AnnounceEvent::Started => Self::Started,
-            bittorrent_udp_tracker_protocol::AnnounceEvent::Stopped => Self::Stopped,
-            bittorrent_udp_tracker_protocol::AnnounceEvent::Completed => Self::Completed,
-            bittorrent_udp_tracker_protocol::AnnounceEvent::None => Self::Empty,
+            torrust_tracker_udp_tracker_protocol::AnnounceEvent::Started => Self::Started,
+            torrust_tracker_udp_tracker_protocol::AnnounceEvent::Stopped => Self::Stopped,
+            torrust_tracker_udp_tracker_protocol::AnnounceEvent::Completed => Self::Completed,
+            torrust_tracker_udp_tracker_protocol::AnnounceEvent::None => Self::Empty,
         }
     }
 }

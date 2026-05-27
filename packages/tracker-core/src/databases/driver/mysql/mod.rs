@@ -85,7 +85,7 @@ mod tests {
     Test for this driver are executed with:
 
     `TORRUST_TRACKER_CORE_RUN_MYSQL_DRIVER_TEST=true \
-     cargo test -p bittorrent-tracker-core --features db-compatibility-tests run_mysql_driver_tests`
+     cargo test -p torrust-tracker-core --features db-compatibility-tests run_mysql_driver_tests`
 
     The `Database` trait is very simple and we only have one driver that needs
     a container. In the future we might want to use different approaches like:

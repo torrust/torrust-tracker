@@ -40,7 +40,7 @@ jobs:
 
       - id: benchmark
         name: Run Persistence Benchmark (SQLite3)
-        run: cargo run -p bittorrent-tracker-core --bin persistence_benchmark_runner -- --driver sqlite3 --ops 10
+        run: cargo run -p torrust-tracker-core --bin persistence_benchmark_runner -- --driver sqlite3 --ops 10
 
   persistence-benchmark-mysql:
     name: Persistence Benchmark MySQL
@@ -63,7 +63,7 @@ jobs:
 
       - id: benchmark
         name: Run Persistence Benchmark (MySQL)
-        run: cargo run -p bittorrent-tracker-core --bin persistence_benchmark_runner -- --driver mysql --db-version 8.4 --ops 10
+        run: cargo run -p torrust-tracker-core --bin persistence_benchmark_runner -- --driver mysql --db-version 8.4 --ops 10
 
   persistence-benchmark-postgresql:
     name: Persistence Benchmark PostgreSQL
@@ -86,4 +86,4 @@ jobs:
 
       - id: benchmark
         name: Run Persistence Benchmark (PostgreSQL)
-        run: cargo run -p bittorrent-tracker-core --bin persistence_benchmark_runner -- --driver postgresql --db-version 17 --ops 10
+        run: cargo run -p torrust-tracker-core --bin persistence_benchmark_runner -- --driver postgresql --db-version 17 --ops 10

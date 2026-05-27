@@ -9,16 +9,16 @@
 //! because events are specific for the HTTP tracker.
 use std::sync::Arc;
 
-use bittorrent_http_tracker_protocol::v1::requests::scrape::Scrape;
-use bittorrent_http_tracker_protocol::v1::services::peer_ip_resolver::{
-    ClientIpSources, PeerIpResolutionError, RemoteClientAddr, resolve_remote_client_addr,
-};
-use bittorrent_tracker_core::authentication::service::AuthenticationService;
-use bittorrent_tracker_core::authentication::{self, Key};
-use bittorrent_tracker_core::error::{ScrapeError, TrackerCoreError, WhitelistError};
-use bittorrent_tracker_core::scrape_handler::ScrapeHandler;
 use torrust_net_primitives::service_binding::ServiceBinding;
 use torrust_tracker_configuration::Core;
+use torrust_tracker_core::authentication::service::AuthenticationService;
+use torrust_tracker_core::authentication::{self, Key};
+use torrust_tracker_core::error::{ScrapeError, TrackerCoreError, WhitelistError};
+use torrust_tracker_core::scrape_handler::ScrapeHandler;
+use torrust_tracker_http_tracker_protocol::v1::requests::scrape::Scrape;
+use torrust_tracker_http_tracker_protocol::v1::services::peer_ip_resolver::{
+    ClientIpSources, PeerIpResolutionError, RemoteClientAddr, resolve_remote_client_addr,
+};
 use torrust_tracker_primitives::ScrapeData;
 
 use crate::event::{ConnectionContext, Event};
@@ -170,19 +170,19 @@ mod tests {
     use std::sync::Arc;
 
     use bittorrent_primitives::info_hash::InfoHash;
-    use bittorrent_tracker_core::announce_handler::AnnounceHandler;
-    use bittorrent_tracker_core::authentication::key::repository::in_memory::InMemoryKeyRepository;
-    use bittorrent_tracker_core::authentication::service::AuthenticationService;
-    use bittorrent_tracker_core::databases::setup::initialize_database;
-    use bittorrent_tracker_core::scrape_handler::ScrapeHandler;
-    use bittorrent_tracker_core::statistics::persisted::downloads::DatabaseDownloadsMetricRepository;
-    use bittorrent_tracker_core::torrent::repository::in_memory::InMemoryTorrentRepository;
-    use bittorrent_tracker_core::whitelist::authorization::WhitelistAuthorization;
-    use bittorrent_tracker_core::whitelist::repository::in_memory::InMemoryWhitelist;
     use futures::future::BoxFuture;
     use mockall::mock;
     use torrust_clock::DurationSinceUnixEpoch;
     use torrust_tracker_configuration::Configuration;
+    use torrust_tracker_core::announce_handler::AnnounceHandler;
+    use torrust_tracker_core::authentication::key::repository::in_memory::InMemoryKeyRepository;
+    use torrust_tracker_core::authentication::service::AuthenticationService;
+    use torrust_tracker_core::databases::setup::initialize_database;
+    use torrust_tracker_core::scrape_handler::ScrapeHandler;
+    use torrust_tracker_core::statistics::persisted::downloads::DatabaseDownloadsMetricRepository;
+    use torrust_tracker_core::torrent::repository::in_memory::InMemoryTorrentRepository;
+    use torrust_tracker_core::whitelist::authorization::WhitelistAuthorization;
+    use torrust_tracker_core::whitelist::repository::in_memory::InMemoryWhitelist;
     use torrust_tracker_events::sender::SendError;
     use torrust_tracker_primitives::{AnnounceEvent, NumberOfBytes, PeerId, peer};
 
@@ -251,12 +251,14 @@ mod tests {
         use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
         use std::sync::Arc;
 
-        use bittorrent_http_tracker_protocol::v1::requests::scrape::Scrape;
-        use bittorrent_http_tracker_protocol::v1::services::peer_ip_resolver::{ClientIpSources, RemoteClientAddr, ResolvedIp};
-        use bittorrent_tracker_core::announce_handler::PeersWanted;
         use mockall::predicate::eq;
         use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
+        use torrust_tracker_core::announce_handler::PeersWanted;
         use torrust_tracker_events::bus::SenderStatus;
+        use torrust_tracker_http_tracker_protocol::v1::requests::scrape::Scrape;
+        use torrust_tracker_http_tracker_protocol::v1::services::peer_ip_resolver::{
+            ClientIpSources, RemoteClientAddr, ResolvedIp,
+        };
         use torrust_tracker_primitives::ScrapeData;
         use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
         use torrust_tracker_test_helpers::configuration;
@@ -442,12 +444,14 @@ mod tests {
         use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
         use std::sync::Arc;
 
-        use bittorrent_http_tracker_protocol::v1::requests::scrape::Scrape;
-        use bittorrent_http_tracker_protocol::v1::services::peer_ip_resolver::{ClientIpSources, RemoteClientAddr, ResolvedIp};
-        use bittorrent_tracker_core::announce_handler::PeersWanted;
         use mockall::predicate::eq;
         use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
+        use torrust_tracker_core::announce_handler::PeersWanted;
         use torrust_tracker_events::bus::SenderStatus;
+        use torrust_tracker_http_tracker_protocol::v1::requests::scrape::Scrape;
+        use torrust_tracker_http_tracker_protocol::v1::services::peer_ip_resolver::{
+            ClientIpSources, RemoteClientAddr, ResolvedIp,
+        };
         use torrust_tracker_primitives::ScrapeData;
         use torrust_tracker_test_helpers::configuration;
 

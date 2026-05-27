@@ -123,7 +123,7 @@ async fn load_whitelisted_torrents(config: &Configuration, app_container: &Arc<A
 
 async fn load_torrent_metrics(config: &Configuration, app_container: &Arc<AppContainer>) {
     if config.core.tracker_policy.persistent_torrent_completed_stat {
-        bittorrent_tracker_core::statistics::persisted::load_persisted_metrics(
+        torrust_tracker_core::statistics::persisted::load_persisted_metrics(
             &app_container.tracker_core_container.stats_repository,
             &app_container.tracker_core_container.db_downloads_metric_repository,
             CurrentClock::now(),

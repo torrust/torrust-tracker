@@ -1,4 +1,4 @@
-//! The core `bittorrent-tracker-core` crate contains the generic `BitTorrent`
+//! The core `torrust-tracker-core` crate contains the generic `BitTorrent`
 //! tracker logic which is independent of the delivery layer.
 //!
 //! It contains the tracker services and their dependencies. It's a domain layer

@@ -1,5 +1,5 @@
-use bittorrent_tracker_core::databases::setup::initialize_database;
 use torrust_tracker_configuration as configuration;
+use torrust_tracker_core::databases::setup::initialize_database;
 
 use super::{ActiveDatabase, BenchmarkResource};
 
