@@ -39,8 +39,8 @@ impl NumberOfBytes {
     }
 }
 
-/// The `Announce` request. Fields use the domain types after parsing the
-/// query params of the request.
+/// The `Announce` request. Fields use protocol-local types after parsing the
+/// query params of the request; boundary layers map them to domain types.
 ///
 /// ```rust
 /// use torrust_tracker_http_tracker_protocol::v1::requests::announce::{Announce, Compact, Event};

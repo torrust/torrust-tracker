@@ -11,7 +11,6 @@ use std::panic::Location;
 use std::sync::Arc;
 
 use bittorrent_primitives::info_hash::InfoHash;
-use torrust_clock::clock::Time;
 use torrust_net_primitives::service_binding::ServiceBinding;
 use torrust_tracker_configuration::Core;
 use torrust_tracker_core::announce_handler::{AnnounceHandler, PeersWanted};
@@ -123,7 +122,7 @@ impl AnnounceService {
         PeerAnnouncement {
             peer_id: announce_request.peer_id,
             peer_addr: std::net::SocketAddr::new(*peer_ip, announce_request.port),
-            updated: crate::CurrentClock::now(),
+            updated: <crate::CurrentClock as torrust_clock::clock::Time>::now(),
             uploaded: NumberOfBytes::new(uploaded.0),
             downloaded: NumberOfBytes::new(downloaded.0),
             left: NumberOfBytes::new(left.0),
