@@ -1,0 +1,17 @@
+[meta] start_utc=2026-05-27T21:01:23Z
+[meta] workflow=container
+[cold] cache_reset_start
+[cold] cache_reset_done
+[cold] build_debug_start
+[cold] build_debug_seconds=239
+[cold] inspect_start
+[cold] inspect_seconds=0
+[cold] build_release_start
+[cold] build_release_seconds=260
+[warm] build_debug_start
+[warm] build_debug_seconds=2
+[warm] inspect_start
+[warm] inspect_seconds=0
+[warm] build_release_start
+[warm] build_release_seconds=0
+[meta] end_utc=2026-05-27T21:10:40Z

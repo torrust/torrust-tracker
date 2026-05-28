@@ -16,7 +16,7 @@ semantic-links:
     - .github/workflows/container.yaml
     - .github/workflows/testing.yaml
     - docs/issues/open/1840-improve-pr-workflow-performance-epic/EPIC.md
-    - docs/issues/open/1841-1840-workflow-performance-baseline-analysis/benchmark-results.md
+    - docs/issues/open/1841-1840-workflow-performance-baseline-analysis/benchmark-results-baseline.md
 ---
 
 <!-- skill-link: create-issue -->
