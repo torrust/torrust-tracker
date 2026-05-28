@@ -54,8 +54,10 @@ time_phase() {
     echo "[$scope] ${name}_start"
     local t0 t1 rc
     t0=$(date +%s)
+    set +e
     "$@"
     rc=$?
+    set -e
     t1=$(date +%s)
     echo "[$scope] ${name}_seconds=$((t1 - t0))"
     echo "[$scope] ${name}_exit_code=$rc"

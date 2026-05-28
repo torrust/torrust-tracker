@@ -94,6 +94,7 @@ time_phase() {
     time_phase "${RUN_TYPE}" install_linter \
         cargo install --locked \
             --git https://github.com/torrust/torrust-linting \
+            --rev 70f84a29925b16a903110e494c9b8de519633a7f \
             --bin linter
 
     # nightly-only in CI; run unconditionally to measure time
