@@ -253,9 +253,13 @@ near-instant. Investigation revealed that the `.tmp/` directory (used by the
 `run-testing-baseline.sh` cold-run benchmark to isolate `CARGO_HOME` and
 `CARGO_TARGET_DIR`) was not listed in `.dockerignore`.
 
-Because `.tmp/` contains a full cargo registry cache and build artifacts it can
-reach several gigabytes, causing Docker to include it in the build context and
-then copy it verbatim into intermediate stages.
+`.tmp/` is the workspace-local temp directory used by AI agent tools (e.g.
+`TORRUST_GIT_HOOKS_LOG_DIR=.tmp` routes pre-commit/pre-push logs there). The
+benchmark script `run-testing-baseline.sh` also writes its isolated
+`CARGO_HOME` and `CARGO_TARGET_DIR` under `.tmp/workflow-benchmarks/`. After
+a cold run, that sub-directory can reach several gigabytes of cargo registry
+and build artifacts, causing Docker to include it in the build context and copy
+it into intermediate stages.
 
 **Fix applied (2026-05-28)**: `/.tmp/` was added to `.dockerignore`. Re-running
 the cold benchmark after this fix should reduce all `COPY . /…` steps to under
