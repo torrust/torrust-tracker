@@ -28,8 +28,8 @@ RUN time mkdir -p /app/share/torrust/default/database/ \
 ## Su Exe Compile
 FROM docker.io/library/gcc:trixie AS gcc
 COPY ./contrib/dev-tools/su-exec/ /usr/local/src/su-exec/
-RUN time cc -Wall -Werror -g /usr/local/src/su-exec/su-exec.c -o /usr/local/bin/su-exec \
- && time chmod +x /usr/local/bin/su-exec
+RUN cc -Wall -Werror -g /usr/local/src/su-exec/su-exec.c -o /usr/local/bin/su-exec \
+ && chmod +x /usr/local/bin/su-exec
 
 
 ## Chef Prepare (look at project and see wat we need)
