@@ -12,7 +12,9 @@ RUN cargo binstall --no-confirm cargo-chef cargo-nextest
 FROM docker.io/library/rust:slim-trixie AS tester
 WORKDIR /tmp
 
-RUN apt-get update; apt-get install -y curl sqlite3; apt-get autoclean
+RUN time apt-get update \
+ && time apt-get install -y curl sqlite3 \
+ && time apt-get autoclean
 RUN curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
 RUN cargo binstall --no-confirm cargo-nextest
 # Database initialization: Tests at runtime require a pre-initialized SQLite3 database
@@ -20,13 +22,14 @@ RUN cargo binstall --no-confirm cargo-nextest
 # database file layout. This image layer is inherited by test_debug and test stages.
 
 COPY ./share/ /app/share/torrust
-RUN mkdir -p /app/share/torrust/default/database/; \
-    sqlite3 /app/share/torrust/default/database/tracker.sqlite3.db  "VACUUM;"
+RUN time mkdir -p /app/share/torrust/default/database/ \
+ && time sqlite3 /app/share/torrust/default/database/tracker.sqlite3.db "VACUUM;"
 
 ## Su Exe Compile
 FROM docker.io/library/gcc:trixie AS gcc
 COPY ./contrib/dev-tools/su-exec/ /usr/local/src/su-exec/
-RUN cc -Wall -Werror -g /usr/local/src/su-exec/su-exec.c -o /usr/local/bin/su-exec; chmod +x /usr/local/bin/su-exec
+RUN time cc -Wall -Werror -g /usr/local/src/su-exec/su-exec.c -o /usr/local/bin/su-exec \
+ && time chmod +x /usr/local/bin/su-exec
 
 
 ## Chef Prepare (look at project and see wat we need)
@@ -80,9 +83,13 @@ COPY --from=build_debug \
 RUN cargo nextest run --workspace-remap /test/src/ --extract-to /test/src/ --no-run --archive-file /test/torrust-tracker-debug.tar.zst
 RUN cargo nextest run --workspace-remap /test/src/ --target-dir-remap /test/src/target/ --cargo-metadata /test/src/target/nextest/cargo-metadata.json --binaries-metadata /test/src/target/nextest/binaries-metadata.json
 
-RUN mkdir -p /app/bin/; cp -l /test/src/target/debug/torrust-tracker /app/bin/torrust-tracker
-RUN mkdir /app/lib/; cp -l $(realpath $(ldd /app/bin/torrust-tracker | grep "libz\.so\.1" | awk '{print $3}')) /app/lib/libz.so.1
-RUN chown -R root:root /app; chmod -R u=rw,go=r,a+X /app; chmod -R a+x /app/bin
+RUN time mkdir -p /app/bin/ \
+ && time cp -l /test/src/target/debug/torrust-tracker /app/bin/torrust-tracker
+RUN time mkdir /app/lib/ \
+ && time cp -l $(realpath $(ldd /app/bin/torrust-tracker | grep "libz\.so\.1" | awk '{print $3}')) /app/lib/libz.so.1
+RUN time chown -R root:root /app \
+ && time chmod -R u=rw,go=r,a+X /app \
+ && time chmod -R a+x /app/bin
 
 # Extract and Test (release)
 FROM tester AS test
@@ -94,9 +101,14 @@ COPY --from=build \
 RUN cargo nextest run --workspace-remap /test/src/ --extract-to /test/src/ --no-run --archive-file /test/torrust-tracker.tar.zst
 RUN cargo nextest run --workspace-remap /test/src/ --target-dir-remap /test/src/target/ --cargo-metadata /test/src/target/nextest/cargo-metadata.json --binaries-metadata /test/src/target/nextest/binaries-metadata.json
 
-RUN mkdir -p /app/bin/; cp -l /test/src/target/release/torrust-tracker /app/bin/torrust-tracker; cp -l /test/src/target/release/http_health_check /app/bin/http_health_check
-RUN mkdir -p /app/lib/; cp -l $(realpath $(ldd /app/bin/torrust-tracker | grep "libz\.so\.1" | awk '{print $3}')) /app/lib/libz.so.1
-RUN chown -R root:root /app; chmod -R u=rw,go=r,a+X /app; chmod -R a+x /app/bin
+RUN time mkdir -p /app/bin/ \
+ && time cp -l /test/src/target/release/torrust-tracker /app/bin/torrust-tracker \
+ && time cp -l /test/src/target/release/http_health_check /app/bin/http_health_check
+RUN time mkdir -p /app/lib/ \
+ && time cp -l $(realpath $(ldd /app/bin/torrust-tracker | grep "libz\.so\.1" | awk '{print $3}')) /app/lib/libz.so.1
+RUN time chown -R root:root /app \
+ && time chmod -R u=rw,go=r,a+X /app \
+ && time chmod -R a+x /app/bin
 
 
 ## Runtime
