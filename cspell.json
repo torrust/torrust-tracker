@@ -27,6 +27,7 @@
         "repomix-output.xml",
         "TEMP-*.md",
         "mutants.out",
-        "mutants.out.old"
+        "mutants.out.old",
+        "docs/issues/**/evidence/*.html"
     ]
 }

@@ -1,4 +1,5 @@
 /.coverage/
+/.tmp/
 /.git
 /.git-blame-ignore
 /.github
