@@ -6,10 +6,9 @@ use std::sync::Arc;
 
 use bittorrent_primitives::info_hash::InfoHash;
 use torrust_clock::DurationSinceUnixEpoch;
-use torrust_tracker_configuration::TrackerPolicy;
-use torrust_tracker_primitives::AnnounceEvent;
 use torrust_tracker_primitives::peer::{self, Peer, PeerAnnouncement};
 use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
+use torrust_tracker_primitives::{AnnounceEvent, TrackerPolicy};
 
 use crate::event::Event;
 use crate::event::sender::Sender;
@@ -503,7 +502,7 @@ mod tests {
 
     mod for_retaining_policy {
 
-        use torrust_tracker_configuration::TrackerPolicy;
+        use torrust_tracker_primitives::TrackerPolicy;
         use torrust_tracker_primitives::peer::fixture::PeerBuilder;
 
         use crate::Coordinator;
@@ -551,7 +550,7 @@ mod tests {
 
         mod when_removing_peerless_torrents_is_enabled {
 
-            use torrust_tracker_configuration::TrackerPolicy;
+            use torrust_tracker_primitives::TrackerPolicy;
 
             use crate::swarm::coordinator::tests::for_retaining_policy::{
                 empty_swarm, not_empty_swarm, not_empty_swarm_with_downloads, remove_peerless_torrents_policy,

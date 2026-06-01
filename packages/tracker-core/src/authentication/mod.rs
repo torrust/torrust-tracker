@@ -34,7 +34,7 @@ mod tests {
         use std::time::Duration;
 
         use torrust_tracker_configuration::Configuration;
-        use torrust_tracker_configuration::v2_0_0::core::PrivateMode;
+        use torrust_tracker_primitives::PrivateMode;
         use torrust_tracker_test_helpers::configuration;
 
         use crate::authentication::handler::KeysHandler;

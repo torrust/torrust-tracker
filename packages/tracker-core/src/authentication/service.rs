@@ -158,7 +158,7 @@ mod tests {
             use std::time::Duration;
 
             use torrust_tracker_configuration::Core;
-            use torrust_tracker_configuration::v2_0_0::core::PrivateMode;
+            use torrust_tracker_primitives::PrivateMode;
 
             use crate::authentication::key::repository::in_memory::InMemoryKeyRepository;
             use crate::authentication::service::AuthenticationService;
@@ -273,7 +273,7 @@ mod tests {
                 use std::time::Duration;
 
                 use torrust_tracker_configuration::Core;
-                use torrust_tracker_configuration::v2_0_0::core::PrivateMode;
+                use torrust_tracker_primitives::PrivateMode;
 
                 use crate::authentication::key::repository::in_memory::InMemoryKeyRepository;
                 use crate::authentication::service::AuthenticationService;

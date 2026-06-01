@@ -1,9 +1,8 @@
-use derive_more::{Constructor, Display};
 use serde::{Deserialize, Serialize};
-use torrust_tracker_primitives::AnnouncePolicy;
+use torrust_tracker_primitives::announce::AnnouncePolicy;
+use torrust_tracker_primitives::{PrivateMode, TrackerPolicy};
 
 use super::network::Network;
-use crate::TrackerPolicy;
 use crate::v2_0_0::database::Database;
 use crate::validator::{SemanticValidationError, Validator};
 
@@ -106,31 +105,6 @@ impl Core {
     }
 
     fn default_tracker_usage_statistics() -> bool {
-        true
-    }
-}
-
-/// Configuration specific when the tracker is running in private mode.
-#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone, Copy, Constructor, Display)]
-pub struct PrivateMode {
-    /// A flag to disable expiration date for peer keys.
-    ///
-    /// When true, if the keys is not permanent the expiration date will be
-    /// ignored. The key will be accepted even if it has expired.
-    #[serde(default = "PrivateMode::default_check_keys_expiration")]
-    pub check_keys_expiration: bool,
-}
-
-impl Default for PrivateMode {
-    fn default() -> Self {
-        Self {
-            check_keys_expiration: Self::default_check_keys_expiration(),
-        }
-    }
-}
-
-impl PrivateMode {
-    fn default_check_keys_expiration() -> bool {
         true
     }
 }
