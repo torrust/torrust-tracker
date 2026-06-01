@@ -15,14 +15,14 @@ There are currently three console clients available:
 - [Tracker CLI I/O Contract](docs/contracts/tracker-cli-io-contract.md)
 - [Tracker Client ADRs](docs/adrs/README.md)
 
-> **Notice**: [Console apps are planned to be merge into a single tracker client in the short-term](https://github.com/torrust/torrust-tracker/discussions/660).
+> **Notice**: The separate `udp_tracker_client` and `http_tracker_client` binaries are deprecated. Use the unified `tracker_client` binary with the `udp` and `http` subcommands instead.
 
 ## UDP Client
 
 `Announce` request:
 
 ```text
-cargo run --bin udp_tracker_client announce udp://127.0.0.1:6969 9c38422213e30bff212b30c360d26f9a02136422 | jq
+cargo run --bin tracker_client -- udp announce udp://127.0.0.1:6969 9c38422213e30bff212b30c360d26f9a02136422 | jq
 ```
 
 `Announce` response:
@@ -42,7 +42,7 @@ cargo run --bin udp_tracker_client announce udp://127.0.0.1:6969 9c38422213e30bf
 `Scrape` request:
 
 ```text
-cargo run --bin udp_tracker_client scrape udp://127.0.0.1:6969 9c38422213e30bff212b30c360d26f9a02136422 | jq
+cargo run --bin tracker_client -- udp scrape udp://127.0.0.1:6969 9c38422213e30bff212b30c360d26f9a02136422 | jq
 ```
 
 `Scrape` response:
@@ -67,7 +67,7 @@ cargo run --bin udp_tracker_client scrape udp://127.0.0.1:6969 9c38422213e30bff2
 `Announce` request:
 
 ```text
-cargo run --bin http_tracker_client announce http://127.0.0.1:7070 9c38422213e30bff212b30c360d26f9a02136422 | jq
+cargo run --bin tracker_client -- http announce http://127.0.0.1:7070 9c38422213e30bff212b30c360d26f9a02136422 | jq
 ```
 
 `Announce` response:
@@ -85,7 +85,7 @@ cargo run --bin http_tracker_client announce http://127.0.0.1:7070 9c38422213e30
 `Scrape` request:
 
 ```text
- cargo run --bin http_tracker_client scrape http://127.0.0.1:7070 9c38422213e30bff212b30c360d26f9a02136422 | jq
+cargo run --bin tracker_client -- http scrape http://127.0.0.1:7070 9c38422213e30bff212b30c360d26f9a02136422 | jq
 ```
 
 `Scrape` response:
