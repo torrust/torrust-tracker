@@ -1,28 +1,60 @@
-/.coverage/
-/.tmp/
+# .dockerignore — paths excluded from the Docker build context
+#
+# Intentionally INCLUDED (required by one or more Containerfile stages):
+#   .cargo/                    — Cargo config (rustflags, build settings)
+#   Cargo.toml, Cargo.lock     — workspace manifest and dependency lockfile
+#   Containerfile              — read by BuildKit as the build definition
+#   console/                   — workspace member crates
+#   contrib/bencode/           — workspace member crate
+#   contrib/dev-tools/su-exec/ — C source compiled in the gcc stage
+#   packages/                  — workspace member crates
+#   share/                     — app data (COPY ./share/) and container entry script
+#   src/                       — main crate source
+#   tests/                     — integration tests
+
+# ── Git metadata ──────────────────────────────────────────────────────────────
 /.git
 /.git-blame-ignore
-/.github
-/.githooks/
 /.gitignore
-/.markdownlint.json
-/.taplo.toml
-/.vscode
-/.yamllint-ci.yml
-/AGENTS.md
-/bin/
+/.githooks/
+
+# ── CI / developer tooling ────────────────────────────────────────────────────
+/.github/
+/.coverage/
+/.tmp/
+/.vscode/
 /codecov.yaml
 /compose.*.yaml
 /cspell.json
-/data.db
+/.markdownlint.json
+/.taplo.toml
+/.yamllint-ci.yml
+/project-words.txt
+/rustfmt.toml
+
+# ── Documentation and project metadata ───────────────────────────────────────
 /docs/
+/AGENTS.md
+/packages/AGENTS.md
+/src/AGENTS.md
+/README.md
+/NOTICE
+/SECURITY.md
+/LICENSE
+
+# ── Dev tooling (not needed in any build stage) ───────────────────────────────
+# su-exec is compiled in the gcc stage: COPY ./contrib/dev-tools/su-exec/
+/contrib/dev-tools/
+!/contrib/dev-tools/su-exec/
+
+# ── Build artifacts and runtime state ─────────────────────────────────────────
+/bin/
 /docker/bin/
 /etc/
-/integration_tests_sqlite3.db
-/NOTICE
-/project-words.txt
-/README.md
-/rustfmt.toml
 /storage/
 /target/
+
+# ── Test and runtime data files ───────────────────────────────────────────────
+/data.db
+/integration_tests_sqlite3.db
 /tracker.*
