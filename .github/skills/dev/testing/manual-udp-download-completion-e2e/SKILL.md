@@ -1,6 +1,6 @@
 ---
 name: manual-udp-download-completion-e2e
-description: Manual end-to-end verification of started -> completed peer lifecycle using udp_tracker_client and tracker stats API. Use when contributors need to simulate a peer completing a download without running containerized qBittorrent E2E. Triggers on "manual e2e", "simulate peer completion", "udp started completed test", or "verify downloads increment manually".
+description: Manual end-to-end verification of started -> completed peer lifecycle using tracker_client (unified) and tracker stats API. Use when contributors need to simulate a peer completing a download without running containerized qBittorrent E2E. Triggers on "manual e2e", "simulate peer completion", "udp started completed test", or "verify downloads increment manually".
 metadata:
   author: torrust
   version: "1.0"
@@ -77,7 +77,7 @@ Example output:
 ### 3.2 Torrent-specific stats (scrape)
 
 ```bash
-cargo run -q -p torrust-tracker-client --bin udp_tracker_client scrape "$TRACKER" "$INFO_HASH"
+cargo run -q -p torrust-tracker-client --bin tracker_client -- udp scrape "$TRACKER" "$INFO_HASH"
 ```
 
 Example output:
@@ -100,7 +100,7 @@ Example output:
 ## 4. Send started announce
 
 ```bash
-cargo run -q -p torrust-tracker-client --bin udp_tracker_client announce \
+cargo run -q -p torrust-tracker-client --bin tracker_client -- udp announce \
   "$TRACKER" "$INFO_HASH" \
   --event started \
   --uploaded 0 \
@@ -129,7 +129,7 @@ Example output:
 Verify after `started`:
 
 ```bash
-cargo run -q -p torrust-tracker-client --bin udp_tracker_client scrape "$TRACKER" "$INFO_HASH"
+cargo run -q -p torrust-tracker-client --bin tracker_client -- udp scrape "$TRACKER" "$INFO_HASH"
 curl -s "$STATS_URL"
 ```
 
@@ -143,7 +143,7 @@ Expected checks:
 ## 5. Send completed announce
 
 ```bash
-cargo run -q -p torrust-tracker-client --bin udp_tracker_client announce \
+cargo run -q -p torrust-tracker-client --bin tracker_client -- udp announce \
   "$TRACKER" "$INFO_HASH" \
   --event completed \
   --uploaded 0 \
@@ -172,7 +172,7 @@ Example output:
 Verify after `completed`:
 
 ```bash
-cargo run -q -p torrust-tracker-client --bin udp_tracker_client scrape "$TRACKER" "$INFO_HASH"
+cargo run -q -p torrust-tracker-client --bin tracker_client -- udp scrape "$TRACKER" "$INFO_HASH"
 curl -s "$STATS_URL"
 ```
 
@@ -191,7 +191,7 @@ If `jq` is available, use these helpers:
 ```bash
 curl -s "$STATS_URL" | jq '{torrents, seeders, completed, leechers}'
 
-cargo run -q -p torrust-tracker-client --bin udp_tracker_client scrape "$TRACKER" "$INFO_HASH" \
+cargo run -q -p torrust-tracker-client --bin tracker_client -- udp scrape "$TRACKER" "$INFO_HASH" \
   | jq '.Scrape.torrent_stats[0]'
 ```
 

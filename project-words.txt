@@ -88,6 +88,7 @@ dtolnay
 dylib
 elif
 endianness
+envcontainer
 eprint
 eprintln
 Eray
@@ -100,6 +101,7 @@ finalises
 flamegraph
 flamegraphs
 fnix
+footgun
 formatjson
 fput
 fract
@@ -317,6 +319,7 @@ tlnp
 tlsv
 toki
 toplevel
+tslconfig
 Torrentstorm
 torru
 torrust
