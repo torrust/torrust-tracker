@@ -39,6 +39,7 @@ Bragilevsky
 bufs
 buildid
 Buildx
+BuildKit
 byteorder
 callgrind
 CALLSITE
@@ -167,6 +168,7 @@ Lphant
 lscr
 LVJDMDAwMDAwMDAwMDAwMDAwMDE
 matchmakes
+Mbps
 Mebibytes
 metainfo
 middlewares
@@ -239,6 +241,7 @@ randomised
 Rasterbar
 realpath
 reannounce
+readelf
 recognised
 recompiles
 referer

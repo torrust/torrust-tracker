@@ -4,7 +4,7 @@ issue-type: task
 status: open
 priority: p2
 github-issue: 1726
-spec-path: docs/issues/open/1726-reduce-build-times-sccache/ISSUE.md
+spec-path: docs/issues/open/1726-1840-workflow-performance-sccache/ISSUE.md
 branch: 1726-reduce-build-times-sccache
 related-pr: null
 last-updated-utc: 2026-05-01 00:00
@@ -80,7 +80,7 @@ Full benchmark data and compile-hotspot analysis are in
 - GitHub issue: https://github.com/torrust/torrust-tracker/issues/1726
 - `sccache` repository: https://github.com/mozilla/sccache
 - `mozilla-actions/sccache-action`: https://github.com/mozilla-actions/sccache-action
-- Benchmark artifact: [`docs/issues/1726-reduce-build-times-sccache/benchmark-results.md`](./benchmark-results.md)
+- Benchmark artifact: [`docs/issues/1726-1840-workflow-performance-sccache/benchmark-results.md`](./benchmark-results.md)
 - CI workflow: [`.github/workflows/testing.yaml`](../../../.github/workflows/testing.yaml)
 
 ---
