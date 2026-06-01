@@ -1,11 +1,11 @@
 ---
 doc-type: issue
 issue-type: task
-status: draft
+status: open
 priority: p1
-github-issue: null
-spec-path: docs/issues/drafts/1840-workflow-performance-container-test-gating/ISSUE.md
-branch: "{issue-number}-container-test-gating"
+github-issue: 1854
+spec-path: docs/issues/open/1854-1840-workflow-performance-container-test-gating/ISSUE.md
+branch: "1854-container-test-gating"
 related-pr: null
 last-updated-utc: 2026-05-27 00:00
 semantic-links:
@@ -21,7 +21,7 @@ semantic-links:
 
 <!-- skill-link: create-issue -->
 
-# Issue #[To be assigned] - Evaluate test execution policy in container image build
+# Issue #1854 - Evaluate test execution policy in container image build
 
 ## Goal
 
@@ -74,9 +74,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 ### Workflow Checkpoints
 
-- [ ] Spec drafted in `docs/issues/drafts/`
-- [ ] Spec reviewed and approved by user/maintainer
-- [ ] GitHub issue created and issue number added to this spec
+- [x] Spec drafted in `docs/issues/drafts/`
+- [x] Spec reviewed and approved by user/maintainer
+- [x] GitHub issue created and issue number added to this spec
 - [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
@@ -92,6 +92,7 @@ Append one line per meaningful update.
 
 - 2026-05-27 00:00 UTC - GitHub Copilot - Drafted issue to evaluate container-build test execution policy and alternatives - draft file created
 - 2026-05-27 00:00 UTC - GitHub Copilot - Expanded the issue to evaluate separation of validation from packaging targets - draft updated
+- 2026-06-01 00:00 UTC - GitHub Copilot - GitHub issue #1854 created; spec moved from drafts/ to open/
 
 ## Acceptance Criteria
 

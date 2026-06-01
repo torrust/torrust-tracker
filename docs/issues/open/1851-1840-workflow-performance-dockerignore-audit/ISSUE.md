@@ -1,11 +1,11 @@
 ---
 doc-type: issue
 issue-type: task
-status: draft
+status: open
 priority: p2
-github-issue: null
-spec-path: docs/issues/drafts/1840-workflow-performance-dockerignore-audit/ISSUE.md
-branch: "{issue-number}-workflow-performance-dockerignore-audit"
+github-issue: 1851
+spec-path: docs/issues/open/1851-1840-workflow-performance-dockerignore-audit/ISSUE.md
+branch: "1851-workflow-performance-dockerignore-audit"
 related-pr: null
 last-updated-utc: 2026-05-29 00:00
 semantic-links:
@@ -22,7 +22,7 @@ semantic-links:
 
 <!-- skill-link: create-issue -->
 
-# Issue #[To be assigned] - Audit .dockerignore to minimize Docker build context
+# Issue #1851 - Audit .dockerignore to minimize Docker build context
 
 ## Goal
 
@@ -111,9 +111,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 ### Workflow Checkpoints
 
-- [ ] Spec drafted in `docs/issues/drafts/`
-- [ ] Spec reviewed and approved by user/maintainer
-- [ ] GitHub issue created and issue number added to this spec
+- [x] Spec drafted in `docs/issues/drafts/`
+- [x] Spec reviewed and approved by user/maintainer
+- [x] GitHub issue created and issue number added to this spec
 - [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
@@ -128,6 +128,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 Append one line per meaningful update.
 
 - 2026-05-29 00:00 UTC - GitHub Copilot - Drafted .dockerignore audit issue from baseline analysis findings - draft file created
+- 2026-06-01 00:00 UTC - GitHub Copilot - GitHub issue #1851 created; spec moved from drafts/ to open/
 
 ## Acceptance Criteria
 

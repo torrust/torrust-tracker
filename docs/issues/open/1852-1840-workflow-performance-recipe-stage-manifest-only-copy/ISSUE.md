@@ -1,11 +1,11 @@
 ---
 doc-type: issue
 issue-type: task
-status: draft
+status: open
 priority: p1
-github-issue: null
-spec-path: docs/issues/drafts/1840-workflow-performance-recipe-stage-manifest-only-copy/ISSUE.md
-branch: "{issue-number}-recipe-stage-manifest-only-copy"
+github-issue: 1852
+spec-path: docs/issues/open/1852-1840-workflow-performance-recipe-stage-manifest-only-copy/ISSUE.md
+branch: "1852-recipe-stage-manifest-only-copy"
 related-pr: null
 last-updated-utc: 2026-06-01 00:00
 semantic-links:
@@ -23,7 +23,7 @@ semantic-links:
 
 <!-- skill-link: create-issue -->
 
-# Issue #[To be assigned] - Restrict recipe stage to manifest-only COPY to prevent spurious cook cache invalidation
+# Issue #1852 - Restrict recipe stage to manifest-only COPY to prevent spurious cook cache invalidation
 
 ## Goal
 
@@ -179,9 +179,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 ### Workflow Checkpoints
 
-- [ ] Spec drafted in `docs/issues/drafts/`
-- [ ] Spec reviewed and approved by user/maintainer
-- [ ] GitHub issue created and issue number added to this spec
+- [x] Spec drafted in `docs/issues/drafts/`
+- [x] Spec reviewed and approved by user/maintainer
+- [x] GitHub issue created and issue number added to this spec
 - [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
