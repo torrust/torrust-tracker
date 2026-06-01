@@ -16,7 +16,7 @@ semantic-links:
     - .github/workflows/container.yaml
     - docs/issues/open/1840-improve-pr-workflow-performance-epic/EPIC.md
     - docs/issues/open/1841-1840-workflow-performance-baseline-analysis/benchmark-results-baseline.md
-    - docs/issues/open/1726-reduce-build-times-sccache/ISSUE.md
+    - docs/issues/open/1726-1840-workflow-performance-sccache/ISSUE.md
 ---
 
 <!-- skill-link: create-issue -->
