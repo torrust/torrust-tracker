@@ -7,7 +7,7 @@ github-issue: 1856
 spec-path: docs/issues/open/1856-1669-analyse-configuration-package-coupling/ISSUE.md
 branch: 1856-analyse-configuration-package-coupling
 related-pr: null
-last-updated-utc: 2026-06-03 00:00
+last-updated-utc: 2026-06-04 00:00
 semantic-links:
   skill-links:
     - create-issue
@@ -246,9 +246,16 @@ If the decision warrants a permanent architectural record, draft a new ADR under
 - [x] Versioning implications are documented for each viable alternative (Step 4).
 - [x] A decision entry is added to `DECISIONS.md` with: the chosen alternative, the
       reasoning, and the trade-offs explicitly acknowledged (Step 6).
-- [ ] If a new ADR is warranted, a draft exists under `docs/adrs/` (Step 6).
-- [ ] `EPIC.md` "Desired Package State" table is updated if the decision changes the
+- [x] If a new ADR is warranted, a draft exists under `docs/adrs/` (Step 6).
+      — No new ADR created. The decision (DEC-07) is "keep status quo + move domain
+      primitives". This is a scoped refinement, not an architectural direction change;
+      the permanent record is DEC-07 in `DECISIONS.md`.
+- [x] `EPIC.md` "Desired Package State" table is updated if the decision changes the
       target state of `torrust-tracker-configuration` or introduces new packages.
+      — Three follow-up subissues created (#1859, #1860, #1861) and noted in EPIC.md
+      Active Subissues table. The `primitives` row in the Desired Package State table
+      gains a note that FU-1 (#1859) will add `TrackerPolicy`/`TORRENT_PEERS_LIMIT`/
+      `PrivateMode` to it.
 
 ## Out of Scope
 
