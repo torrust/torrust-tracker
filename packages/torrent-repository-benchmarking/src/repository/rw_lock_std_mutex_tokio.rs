@@ -67,15 +67,14 @@ where
         }
     }
 
-    async fn get(&self, key: &InfoHash) -> Option<EntryMutexTokio> {
+    fn get(&self, key: &InfoHash) -> impl Future<Output = Option<EntryMutexTokio>> + Send {
         let db = self.get_torrents();
-        db.get(key).cloned()
+        std::future::ready(db.get(key).cloned())
     }
 
-    async fn get_paginated(&self, pagination: Option<&Pagination>) -> Vec<(InfoHash, EntryMutexTokio)> {
+    fn get_paginated(&self, pagination: Option<&Pagination>) -> impl Future<Output = Vec<(InfoHash, EntryMutexTokio)>> + Send {
         let db = self.get_torrents();
-
-        match pagination {
+        std::future::ready(match pagination {
             Some(pagination) => db
                 .iter()
                 .skip(pagination.offset as usize)
@@ -83,7 +82,7 @@ where
                 .map(|(a, b)| (*a, b.clone()))
                 .collect(),
             None => db.iter().map(|(a, b)| (*a, b.clone())).collect(),
-        }
+        })
     }
 
     async fn get_metrics(&self) -> AggregateActiveSwarmMetadata {
@@ -102,7 +101,7 @@ where
         metrics
     }
 
-    async fn import_persistent(&self, persistent_torrents: &NumberOfDownloadsBTreeMap) {
+    fn import_persistent(&self, persistent_torrents: &NumberOfDownloadsBTreeMap) -> impl Future<Output = ()> + Send {
         let mut db = self.get_torrents_mut();
 
         for (info_hash, completed) in persistent_torrents {
@@ -121,11 +120,13 @@ where
 
             db.insert(*info_hash, entry);
         }
+
+        std::future::ready(())
     }
 
-    async fn remove(&self, key: &InfoHash) -> Option<EntryMutexTokio> {
+    fn remove(&self, key: &InfoHash) -> impl Future<Output = Option<EntryMutexTokio>> + Send {
         let mut db = self.get_torrents_mut();
-        db.remove(key)
+        std::future::ready(db.remove(key))
     }
 
     async fn remove_inactive_peers(&self, current_cutoff: DurationSinceUnixEpoch) {
