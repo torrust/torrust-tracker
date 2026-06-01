@@ -184,7 +184,7 @@ moving to their own standalone repository.
 These packages will remain in the `torrust-tracker` workspace long-term.
 
 | Published on crates.io | Crate Name                                        | Folder                            | Old crate name                     | Old folder name                |
-| ---------------------- | ------------------------------------------------- | --------------------------------- | ---------------------------------- | ------------------------------ | ------ |
+| ---------------------- | ------------------------------------------------- | --------------------------------- | ---------------------------------- | ------------------------------ |
 | No                     | `torrust-tracker-axum-health-check-api-server`    | `axum-health-check-api-server`    | —                                  | —                              |
 | No                     | `torrust-tracker-axum-http-server`                | `axum-http-server`                | —                                  | `axum-http-tracker-server`     |
 | No                     | `torrust-tracker-axum-rest-api-server`            | `axum-rest-api-server`            | —                                  | `axum-rest-tracker-api-server` |
@@ -192,7 +192,7 @@ These packages will remain in the `torrust-tracker` workspace long-term.
 | Yes                    | `torrust-tracker-configuration`                   | `configuration`                   | —                                  | —                              |
 | No                     | `torrust-tracker-events`                          | `events`                          | —                                  | —                              |
 | No                     | `torrust-tracker-http-tracker-core`               | `http-tracker-core`               | `bittorrent-http-tracker-core`     | —                              |
-| Yes                    | `torrust-tracker-primitives`                      | `primitives`                      | —                                  | —                              | [^fu1] |
+| Yes                    | `torrust-tracker-primitives`[^fu1]                | `primitives`                      | —                                  | —                              |
 | No                     | `torrust-tracker-rest-api-client`                 | `rest-api-client`                 | —                                  | `rest-tracker-api-client`      |
 | No                     | `torrust-tracker-rest-api-core`                   | `rest-api-core`                   | —                                  | `rest-tracker-api-core`        |
 | No                     | `torrust-tracker-swarm-coordination-registry`     | `swarm-coordination-registry`     | —                                  | —                              |

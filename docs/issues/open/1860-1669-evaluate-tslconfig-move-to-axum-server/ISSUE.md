@@ -13,7 +13,7 @@ semantic-links:
     - create-issue
   related-artifacts:
     - packages/axum-server/src/tsl.rs
-    - packages/configuration/src/v2_0_0/tls.rs
+    - packages/configuration/src/lib.rs
     - docs/issues/open/1669-overhaul-packages/DECISIONS.md
     - docs/issues/open/1669-overhaul-packages/EPIC.md
 ---
@@ -43,7 +43,7 @@ This issue is a subissue of EPIC [#1669](../1669-overhaul-packages/EPIC.md).
 code in the workspace depends on `TslConfig` directly.
 
 This makes `torrust-tracker-axum-server` depend on the full configuration package for a
-two-field struct (`ssl_certificate_file_path` and `ssl_private_key_file_path`) that has
+two-field struct (`ssl_cert_path` and `ssl_key_path`) that has
 no relationship to the config file schema or TOML deserialization.
 
 The EPIC.md already flags this as a temporary coupling:

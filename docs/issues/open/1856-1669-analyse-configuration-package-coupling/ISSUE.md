@@ -552,7 +552,7 @@ eliminating the root coupling problem.
 2. **Cross-layer coupling is structural** — `rest-api-core` must import all
    service config types to serve tracker status endpoints. This coupling survives
    any package reorganization.
-3. **`trackerPolicy`, `TORRENT_PEERS_LIMIT`, and `PrivateMode` are domain
+3. **`TrackerPolicy`, `TORRENT_PEERS_LIMIT`, and `PrivateMode` are domain
    primitives misplaced in the config crate** — three packages that have no
    other use for the config crate depend on these types. Moving them to
    `torrust-tracker-primitives` would free `swarm-coordination-registry` and
