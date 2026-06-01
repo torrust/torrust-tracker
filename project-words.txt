@@ -100,6 +100,7 @@ finalises
 flamegraph
 flamegraphs
 fnix
+footgun
 formatjson
 fput
 fract

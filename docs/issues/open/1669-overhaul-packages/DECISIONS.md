@@ -20,6 +20,94 @@ the proposal, the reasoning, and a reference to any supporting artifact.
 
 ---
 
+## DEC-07 — Keep `torrust-tracker-configuration` as a single central package; move domain primitives to `torrust-tracker-primitives`
+
+**Date**: 2026-06-03
+**Status**: Adopted
+
+### Proposal considered
+
+Split `torrust-tracker-configuration` into service-specific sub-packages (Alternatives A
+and D from issue #1856) or add Cargo feature gates (Alternative B) to allow binaries
+that only need a subset of services to avoid compiling irrelevant config types.
+
+### Alternative chosen
+
+Keep the configuration package as a single central package (Alternative C — status quo),
+and separately move the three domain primitives that are misplaced in it to
+`torrust-tracker-primitives`:
+
+- `TrackerPolicy`
+- `TORRENT_PEERS_LIMIT`
+- `v2_0_0::core::PrivateMode`
+
+### Why this alternative was adopted
+
+1. **Cross-layer coupling cannot be broken by package splitting**: `rest-api-core`
+   imports both `HttpTracker` and `UdpTracker` config types to expose tracker status
+   via the REST API endpoints. Even if those types lived in separate packages,
+   `rest-api-core` would still depend on all of them. A package split would rename
+   the dependencies, not reduce them.
+
+2. **`Core` is deeply shared**: five packages use `Core` in production code paths.
+   Any split that included `Core` would be a thin facade over the same type and would
+   not reduce coupling.
+
+3. **Versioning complexity of a split is high**: the schema version (`2.0.0`,
+   `LATEST_VERSION`) and TOML deserialization entry point (`Figment`) must stay in a
+   single facade that owns all types. If sub-packages carry independent semver
+   releases, users risk importing mismatched sub-package versions that are not
+   aligned with the schema version. Migration tooling complexity increases.
+
+4. **Feature gates are incompatible with TOML deserialization**: `#[cfg(feature)]`
+   on struct fields in `Configuration` would cause TOML deserialization failures when
+   a config file written with all features enabled is loaded by a feature-limited
+   binary. `Configuration::default()` and Serde derive macros compound this problem.
+
+5. **The coupling cost is low in practice**: `torrust-tracker-configuration` has no
+   heavy external dependencies (serde, figment, camino, thiserror). Unused config
+   types compile in milliseconds and add negligible binary size.
+
+6. **Domain primitives belong in `primitives`**: `TrackerPolicy`, `TORRENT_PEERS_LIMIT`,
+   and `PrivateMode` are domain policy objects, not service configuration options.
+   Moving them to `torrust-tracker-primitives` frees two packages
+   (`swarm-coordination-registry`, `torrent-repository-benchmarking`) from depending
+   on `torrust-tracker-configuration` at all, since those two packages use no other
+   config types in production code.
+
+### Trade-offs acknowledged
+
+- `swarm-coordination-registry` and `torrent-repository-benchmarking` continue to
+  depend on `torrust-tracker-configuration` until the domain primitive move is done
+  in a follow-up task.
+- The "build-your-own tracker" use case remains blocked not by the config package
+  boundary but by the structural design of `tracker-core` (always needing `Core` config)
+  and the cross-layer coupling in `rest-api-core`. Enabling true service-level
+  composability requires a broader redesign of how `tracker-core` and `rest-api-core`
+  are initialized — out of scope for this issue.
+
+### Follow-up tasks
+
+- **FU-1**: Move `TrackerPolicy`, `TORRENT_PEERS_LIMIT`, and `PrivateMode` from
+  `torrust-tracker-configuration` to `torrust-tracker-primitives`. Update all import
+  sites. Track as a new subissue of EPIC #1669.
+- **FU-2**: Evaluate moving `TslConfig` into `axum-server` (already flagged in EPIC.md
+  as a temporary coupling).
+- **FU-3**: Evaluate whether `EnvContainer::initialize` should accept narrower config
+  slices (`Arc<Core>`, `Arc<UdpTracker>`) instead of `&Configuration` to reduce the
+  coupling forcing function at the initialisation boundary.
+
+### Supporting artifacts
+
+- [Issue #1856 spec](../../open/1856-1669-analyse-configuration-package-coupling/ISSUE.md) —
+  full analysis including item-level coupling table, split-boundary table, two Cargo
+  examples, and versioning implications for all four alternatives.
+- `packages/udp-server/examples/udp_only_public_tracker.rs` — UDP-only coupling demo.
+- `packages/axum-http-server/examples/http_only_public_tracker.rs` — HTTP-only
+  coupling and cross-layer REST API coupling demo.
+
+---
+
 ## DEC-06 - Keep domain AnnounceEvent in primitives; map at boundaries
 
 **Date**: 2026-05-26
