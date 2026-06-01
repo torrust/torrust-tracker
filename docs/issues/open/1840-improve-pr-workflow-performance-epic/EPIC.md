@@ -78,6 +78,7 @@ Ordering policy:
 | 8     | #[To be assigned] - Evaluate removing duplicate container build from container workflow                  | `docs/issues/drafts/1840-workflow-performance-container-workflow-build-deduplication/ISSUE.md` | TODO   | Assess whether PR-time container build in container workflow is redundant because testing workflow already builds an image for Docker E2E, and keep publish paths intact.                                                                                           |
 | 9     | #[To be assigned] - Switch to a faster linker (mold or lld) to reduce link time                          | `docs/issues/drafts/1840-workflow-performance-alternative-linker/ISSUE.md`                     | TODO   | Baseline shows 35–117 s link time per binary (sections: null). Fair local relink: BFD = mold (54 s each) — compile dominates incremental builds. mold docs: 10–31× faster than BFD in cold builds (MySQL: 10.8 s → 0.46 s). 20+ binaries linked in container build. |
 | 10    | #[To be assigned] - Investigate splitting cook layer to isolate external dependency cache (p4, deferred) | `docs/issues/drafts/1840-workflow-performance-split-external-dep-cache-layer/ISSUE.md`         | TODO   | Low priority. C build scripts dominate cook time; workspace stub cost is near-zero. Revisit once other bottlenecks are resolved and workspace shrinks via EPIC #1669.                                                                                               |
+| 11    | #[To be assigned] - Publish stable base stages as pre-built Docker Hub images (p3, deferred)             | `docs/issues/drafts/1840-workflow-performance-prebuilt-base-images/ISSUE.md`                   | TODO   | Low priority. Base stages (`chef`, `tester`, `gcc`) are fast (3–7 min cold). Compile dominates (35+ min). Revisit if base stages grow or if CI runner cold-cache frequency increases.                                                                               |
 
 ## Delivery Strategy
 
@@ -135,6 +136,7 @@ Append one line per meaningful update.
 - 2026-05-27 00:00 UTC - GitHub Copilot - Created GitHub EPIC issue #1840 and moved spec to `docs/issues/open/` - draft updated
 - 2026-05-27 00:00 UTC - GitHub Copilot - Created baseline subissue #1841 and linked it as a GitHub child issue of #1840 - draft updated
 - 2026-06-01 00:00 UTC - GitHub Copilot - Marked #1841 DONE (merged PR #1848); added sub-issues: recipe-stage-manifest-only-copy (p1), dockerignore-audit (p2), split-external-dep-cache-layer (p4 deferred); reordered table by expected impact
+- 2026-06-01 00:00 UTC - GitHub Copilot - Added sub-issues: alternative-linker (p1, row 9), prebuilt-base-images (p3 deferred, row 11)
 
 ## Acceptance Criteria
 
