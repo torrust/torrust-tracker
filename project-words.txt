@@ -39,6 +39,7 @@ Bragilevsky
 bufs
 buildid
 Buildx
+BuildKit
 byteorder
 callgrind
 CALLSITE
