@@ -6,7 +6,7 @@
 FROM docker.io/library/rust:trixie AS chef
 WORKDIR /tmp
 RUN curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
-RUN cargo binstall --no-confirm cargo-chef cargo-nextest
+RUN cargo binstall --no-confirm --locked cargo-chef cargo-nextest
 
 ## Tester Image
 FROM docker.io/library/rust:slim-trixie AS tester
@@ -16,7 +16,7 @@ RUN apt-get update \
  && apt-get install -y curl sqlite3 time \
  && apt-get autoclean
 RUN curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
-RUN cargo binstall --no-confirm cargo-nextest
+RUN cargo binstall --no-confirm --locked cargo-nextest
 # Database initialization: Tests at runtime require a pre-initialized SQLite3 database
 # to test against a valid (not corrupted) schema. The VACUUM command optimizes the
 # database file layout. This image layer is inherited by test_debug and test stages.
