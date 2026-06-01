@@ -239,6 +239,7 @@ randomised
 Rasterbar
 realpath
 reannounce
+readelf
 recognised
 recompiles
 referer
