@@ -119,7 +119,7 @@ For each subissue implementation in this EPIC, the default completion policy is:
 - [x] Epic spec drafted in `docs/issues/drafts/`
 - [x] Epic spec reviewed and approved by user/maintainer
 - [x] GitHub epic issue created and issue number added to this spec
-- [ ] Subissues created and linked in this spec
+- [x] Subissues created and linked in this spec
 - [ ] Subissue statuses kept up to date in the `Subissues` table
 - [ ] For each implemented subissue: automatic checks completed and recorded
 - [ ] For each implemented subissue: manual verification completed and recorded
@@ -140,6 +140,7 @@ Append one line per meaningful update.
 - 2026-06-01 00:00 UTC - GitHub Copilot - Added sub-issues: alternative-linker (p1, row 9), prebuilt-base-images (p3 deferred, row 11)
 - 2026-06-01 00:00 UTC - GitHub Copilot - Added sub-issue: buildkit-cargo-cache-mounts (p2, row 12); local benchmark: cold fetch 6.9 s → warm 0.16 s; CI limitation documented
 - 2026-06-01 00:00 UTC - GitHub Copilot - Promoted rows 2/3/4/6 from drafts to open: #1851 dockerignore-audit, #1852 recipe-manifest-only-copy, #1853 containerfile-target-scope, #1854 container-test-gating
+- 2026-06-01 00:00 UTC - GitHub Copilot - PR #1855 merged; all sub-issue specs (rows 2–12) are now in develop; renamed #1726 folder to match EPIC sub-issue naming convention
 
 ## Acceptance Criteria
 
