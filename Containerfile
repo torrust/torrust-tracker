@@ -35,7 +35,44 @@ RUN cc -Wall -Werror -g /usr/local/src/su-exec/su-exec.c -o /usr/local/bin/su-ex
 ## Chef Prepare (look at project and see wat we need)
 FROM chef AS recipe
 WORKDIR /build/src
-COPY . /build/src
+# Manifest-only copy: `cargo chef prepare` only needs Cargo.toml manifests and Cargo.lock
+# to build recipe.json — it does not read any .rs source files.
+# Copying the full source tree here would cause Docker to invalidate this layer (and
+# therefore the expensive `cargo chef cook` dependency layers) on every source-code change.
+# By copying only manifests, the cook layers stay cached for source-only edits.
+#
+# MAINTENANCE: Keep this list in sync with the workspace members in the root Cargo.toml.
+# Every new workspace package must have a corresponding COPY line here; every removed or
+# moved package must have its line removed or updated accordingly.
+COPY Cargo.toml Cargo.lock ./
+COPY console/tracker-client/Cargo.toml console/tracker-client/
+COPY contrib/bencode/Cargo.toml contrib/bencode/
+COPY contrib/dev-tools/analysis/workspace-coupling/Cargo.toml contrib/dev-tools/analysis/workspace-coupling/
+COPY packages/axum-health-check-api-server/Cargo.toml packages/axum-health-check-api-server/
+COPY packages/axum-http-server/Cargo.toml packages/axum-http-server/
+COPY packages/axum-rest-api-server/Cargo.toml packages/axum-rest-api-server/
+COPY packages/axum-server/Cargo.toml packages/axum-server/
+COPY packages/clock/Cargo.toml packages/clock/
+COPY packages/configuration/Cargo.toml packages/configuration/
+COPY packages/events/Cargo.toml packages/events/
+COPY packages/http-protocol/Cargo.toml packages/http-protocol/
+COPY packages/http-tracker-core/Cargo.toml packages/http-tracker-core/
+COPY packages/located-error/Cargo.toml packages/located-error/
+COPY packages/metrics/Cargo.toml packages/metrics/
+COPY packages/net-primitives/Cargo.toml packages/net-primitives/
+COPY packages/peer-id/Cargo.toml packages/peer-id/
+COPY packages/primitives/Cargo.toml packages/primitives/
+COPY packages/rest-api-client/Cargo.toml packages/rest-api-client/
+COPY packages/rest-api-core/Cargo.toml packages/rest-api-core/
+COPY packages/server-lib/Cargo.toml packages/server-lib/
+COPY packages/swarm-coordination-registry/Cargo.toml packages/swarm-coordination-registry/
+COPY packages/test-helpers/Cargo.toml packages/test-helpers/
+COPY packages/torrent-repository-benchmarking/Cargo.toml packages/torrent-repository-benchmarking/
+COPY packages/tracker-client/Cargo.toml packages/tracker-client/
+COPY packages/tracker-core/Cargo.toml packages/tracker-core/
+COPY packages/udp-protocol/Cargo.toml packages/udp-protocol/
+COPY packages/udp-server/Cargo.toml packages/udp-server/
+COPY packages/udp-tracker-core/Cargo.toml packages/udp-tracker-core/
 RUN cargo chef prepare --recipe-path /build/recipe.json
 
 
