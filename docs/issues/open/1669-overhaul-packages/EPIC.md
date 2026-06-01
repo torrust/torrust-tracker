@@ -548,6 +548,7 @@ Status: TODO unless noted.
 - [ ] Extract `torrust-tracker-client` to standalone repository _(Rule E; blocked by `bittorrent-*` publication - external to this EPIC)_
 - [ ] Define package versioning strategy (linked vs independent SemVer evolution) _(policy; no blockers; informs extraction and publication cadence)_
 - [ ] Define REST API contract-first package architecture _(policy reminder; PoC-first and dedicated API EPIC before migration/extraction)_
+- [ ] [#1856](https://github.com/torrust/torrust-tracker/issues/1856) Analyse configuration package coupling and evaluate splitting strategies _(research; no blockers; informs "build-your-own tracker" goal and versioning strategy)_
 
 Details:
 
@@ -570,6 +571,7 @@ Details:
 | Tracker client extraction  | #TBD — Extract `torrust-tracker-client` to standalone repository                                                                                                                 | [docs/issues/drafts/1669-extract-torrust-tracker-client-to-standalone-repo.md](../../drafts/1669-extract-torrust-tracker-client-to-standalone-repo.md)                                         | TODO   | Rule E; blocked by `torrust-tracker-udp-tracker-protocol` publication (external to this EPIC)                                                 |
 | Versioning policy          | #TBD — Define package versioning strategy (linked vs independent SemVer evolution)                                                                                               | [docs/issues/drafts/1669-define-package-versioning-strategy.md](../../drafts/1669-define-package-versioning-strategy.md)                                                                       | TODO   | Policy issue; defines release-train vs independent package cadence and migration plan                                                         |
 | REST API architecture      | #TBD — Define REST API contract-first package architecture                                                                                                                       | [docs/issues/drafts/1669-define-rest-api-contract-first-package-architecture.md](../../drafts/1669-define-rest-api-contract-first-package-architecture.md)                                     | TODO   | Policy reminder only in this EPIC; validate via PoC, then execute migration in a dedicated API EPIC; defer API package extraction/publication |
+| Configuration coupling     | [#1856](https://github.com/torrust/torrust-tracker/issues/1856) — Analyse configuration package coupling and evaluate splitting strategies                                       | [docs/issues/open/1856-1669-analyse-configuration-package-coupling.md](../../open/1856-1669-analyse-configuration-package-coupling.md)                                                         | TODO   | Research issue; informs "build-your-own tracker" goal; output is a DECISIONS.md entry and optional ADR                                        |
 | Rename-to-desired-state    | [#1829](https://github.com/torrust/torrust-tracker/issues/1829) — Rename crates and folder names to match desired `torrust-tracker` workspace state                              | [docs/issues/closed/1829-1669-11-rename-crates-and-folders-to-match-desired-tracker-workspace.md](../../closed/1829-1669-11-rename-crates-and-folders-to-match-desired-tracker-workspace.md)   | DONE   | SI-11 complete; spec archived to `docs/issues/closed/` after issue closure                                                                    |
 | HTTP protocol decoupling   | [#1830](https://github.com/torrust/torrust-tracker/issues/1830) — Decouple `http-protocol` from `tracker-core`                                                                   | [docs/issues/closed/1830-1669-12-decouple-http-protocol-from-tracker-core.md](../../closed/1830-1669-12-decouple-http-protocol-from-tracker-core.md)                                           | DONE   | SI-12 complete; removed `http-protocol -> tracker-core` edge and moved mapping to higher layer                                                |
 | HTTP/UDP decoupling        | [#1834](https://github.com/torrust/torrust-tracker/issues/1834) — Decouple `http-protocol` from `udp-protocol`                                                                   | [docs/issues/open/1834-1669-13-decouple-http-protocol-from-udp-protocol.md](../../open/1834-1669-13-decouple-http-protocol-from-udp-protocol.md)                                               | DONE   | SI-13 complete; removed `http-protocol -> udp-protocol` edge                                                                                  |
@@ -588,9 +590,8 @@ After SI-14, there is a proposal to evaluate a dedicated repository for protocol
 - [docs/issues/drafts/1669-extract-torrust-tracker-client-to-standalone-repo.md](../../drafts/1669-extract-torrust-tracker-client-to-standalone-repo.md)
 - [docs/issues/drafts/1669-define-package-versioning-strategy.md](../../drafts/1669-define-package-versioning-strategy.md)
 - [docs/issues/drafts/1669-define-rest-api-contract-first-package-architecture.md](../../drafts/1669-define-rest-api-contract-first-package-architecture.md)
-
-> New subissues are created as analysis reveals the next improvement. The EPIC is never
-> fully planned up front.
+  > New subissues are created as analysis reveals the next improvement. The EPIC is never
+  > fully planned up front.
 
 ## Delivery Strategy
 
