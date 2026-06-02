@@ -73,6 +73,30 @@ COPY packages/tracker-core/Cargo.toml packages/tracker-core/
 COPY packages/udp-protocol/Cargo.toml packages/udp-protocol/
 COPY packages/udp-server/Cargo.toml packages/udp-server/
 COPY packages/udp-tracker-core/Cargo.toml packages/udp-tracker-core/
+# Create stub source files for targets that are EXPLICITLY declared in Cargo.toml.
+# `cargo chef prepare` runs `cargo metadata` internally, which fails with an error
+# if a declared [lib] or [[bench]] target's source file does not exist on disk.
+# Packages that rely on Cargo's auto-detection (no explicit section in Cargo.toml)
+# do not need stubs here — metadata silently omits undiscovered targets instead.
+#
+# MAINTENANCE: Keep in sync with explicit [lib] and [[bench]] declarations across
+# all workspace Cargo.toml files. Add a line here whenever a new explicit target
+# declaration is added to any Cargo.toml; remove the line when the declaration is
+# removed or replaced with an explicit path.
+RUN mkdir -p src \
+             packages/tracker-client/src \
+             console/tracker-client/src \
+             packages/http-tracker-core/benches \
+             packages/udp-tracker-core/benches \
+             packages/torrent-repository-benchmarking/benches \
+             contrib/bencode/benches \
+ && touch src/lib.rs \
+          packages/tracker-client/src/lib.rs \
+          console/tracker-client/src/lib.rs \
+          packages/http-tracker-core/benches/http_tracker_core_benchmark.rs \
+          packages/udp-tracker-core/benches/udp_tracker_core_benchmark.rs \
+          packages/torrent-repository-benchmarking/benches/repository_benchmark.rs \
+          contrib/bencode/benches/bencode_benchmark.rs
 RUN cargo chef prepare --recipe-path /build/recipe.json
 
 
