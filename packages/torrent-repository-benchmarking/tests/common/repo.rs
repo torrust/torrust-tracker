@@ -1,9 +1,8 @@
 use bittorrent_primitives::info_hash::InfoHash;
 use torrust_clock::DurationSinceUnixEpoch;
-use torrust_tracker_configuration::TrackerPolicy;
 use torrust_tracker_primitives::pagination::Pagination;
 use torrust_tracker_primitives::swarm_metadata::{AggregateActiveSwarmMetadata, SwarmMetadata};
-use torrust_tracker_primitives::{NumberOfDownloads, NumberOfDownloadsBTreeMap, peer};
+use torrust_tracker_primitives::{NumberOfDownloads, NumberOfDownloadsBTreeMap, TrackerPolicy, peer};
 use torrust_tracker_torrent_repository_benchmarking::repository::{Repository as _, RepositoryAsync as _};
 use torrust_tracker_torrent_repository_benchmarking::{
     EntrySingle, TorrentsDashMapMutexStd, TorrentsRwLockStd, TorrentsRwLockStdMutexStd, TorrentsRwLockStdMutexTokio,

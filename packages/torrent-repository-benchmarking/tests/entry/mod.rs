@@ -4,9 +4,8 @@ use std::time::Duration;
 use rstest::{fixture, rstest};
 use torrust_clock::clock::stopped::Stopped as _;
 use torrust_clock::clock::{self, Time as _};
-use torrust_tracker_configuration::{TORRENT_PEERS_LIMIT, TrackerPolicy};
 use torrust_tracker_primitives::peer::Peer;
-use torrust_tracker_primitives::{AnnounceEvent, NumberOfBytes, peer};
+use torrust_tracker_primitives::{AnnounceEvent, NumberOfBytes, TORRENT_PEERS_LIMIT, TrackerPolicy, peer};
 use torrust_tracker_torrent_repository_benchmarking::{
     EntryMutexParkingLot, EntryMutexStd, EntryMutexTokio, EntryRwLockParkingLot, EntrySingle,
 };

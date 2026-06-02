@@ -4,10 +4,9 @@ use std::sync::Arc;
 
 use bittorrent_primitives::info_hash::InfoHash;
 use torrust_clock::DurationSinceUnixEpoch;
-use torrust_tracker_configuration::{TORRENT_PEERS_LIMIT, TrackerPolicy};
 use torrust_tracker_primitives::pagination::Pagination;
 use torrust_tracker_primitives::swarm_metadata::{AggregateActiveSwarmMetadata, SwarmMetadata};
-use torrust_tracker_primitives::{NumberOfDownloads, NumberOfDownloadsBTreeMap, peer};
+use torrust_tracker_primitives::{NumberOfDownloads, NumberOfDownloadsBTreeMap, TORRENT_PEERS_LIMIT, TrackerPolicy, peer};
 use torrust_tracker_swarm_coordination_registry::{CoordinatorHandle, Registry};
 
 /// In-memory repository for torrent entries.

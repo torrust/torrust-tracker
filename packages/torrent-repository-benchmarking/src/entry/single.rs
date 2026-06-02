@@ -2,10 +2,9 @@ use std::net::SocketAddr;
 use std::sync::Arc;
 
 use torrust_clock::DurationSinceUnixEpoch;
-use torrust_tracker_configuration::TrackerPolicy;
-use torrust_tracker_primitives::AnnounceEvent;
 use torrust_tracker_primitives::peer::{self};
 use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
+use torrust_tracker_primitives::{AnnounceEvent, TrackerPolicy};
 
 use super::Entry;
 use crate::EntrySingle;

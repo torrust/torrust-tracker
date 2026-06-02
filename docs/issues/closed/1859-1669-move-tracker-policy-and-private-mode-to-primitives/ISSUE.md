@@ -1,10 +1,10 @@
 ---
 doc-type: issue
 issue-type: task
-status: open
+status: closed
 priority: p2
 github-issue: 1859
-spec-path: docs/issues/open/1859-1669-move-tracker-policy-and-private-mode-to-primitives/ISSUE.md
+spec-path: docs/issues/closed/1859-1669-move-tracker-policy-and-private-mode-to-primitives/ISSUE.md
 branch: null
 related-pr: null
 last-updated-utc: 2026-06-01 00:00
@@ -118,16 +118,16 @@ list `torrust-tracker-configuration` in their `[dependencies]`.
 
 ## Acceptance Criteria
 
-- [ ] `TrackerPolicy` is defined in `torrust-tracker-primitives`
-- [ ] `TORRENT_PEERS_LIMIT` is defined in `torrust-tracker-primitives`
-- [ ] `PrivateMode` is defined in `torrust-tracker-primitives`
-- [ ] All import sites across the workspace import from `torrust-tracker-primitives`
-- [ ] `swarm-coordination-registry` no longer lists `torrust-tracker-configuration` as a
+- [x] `TrackerPolicy` is defined in `torrust-tracker-primitives`
+- [x] `TORRENT_PEERS_LIMIT` is defined in `torrust-tracker-primitives`
+- [x] `PrivateMode` is defined in `torrust-tracker-primitives`
+- [x] All import sites across the workspace import from `torrust-tracker-primitives`
+- [x] `swarm-coordination-registry` no longer lists `torrust-tracker-configuration` as a
       direct (non-dev) dependency
-- [ ] `torrent-repository-benchmarking` no longer lists `torrust-tracker-configuration`
+- [x] `torrent-repository-benchmarking` no longer lists `torrust-tracker-configuration`
       as a direct (non-dev) dependency
-- [ ] All tests pass (`cargo test --workspace --all-features`)
-- [ ] No new clippy warnings
+- [x] All tests pass (`cargo test --workspace --all-features`)
+- [x] No new clippy warnings
 
 ## Out of Scope
 

@@ -94,8 +94,8 @@ use std::net::IpAddr;
 use std::sync::Arc;
 
 use bittorrent_primitives::info_hash::InfoHash;
-use torrust_tracker_configuration::{Core, TORRENT_PEERS_LIMIT};
-use torrust_tracker_primitives::{AnnounceData, NumberOfDownloads, peer};
+use torrust_tracker_configuration::Core;
+use torrust_tracker_primitives::{AnnounceData, NumberOfDownloads, TORRENT_PEERS_LIMIT, peer};
 
 use super::torrent::repository::in_memory::InMemoryTorrentRepository;
 use crate::databases;
@@ -597,7 +597,7 @@ mod tests {
 
         mod should_allow_the_client_peers_to_specified_the_number_of_peers_wanted {
 
-            use torrust_tracker_configuration::TORRENT_PEERS_LIMIT;
+            use torrust_tracker_primitives::TORRENT_PEERS_LIMIT;
 
             use crate::announce_handler::PeersWanted;
 
