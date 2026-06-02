@@ -207,7 +207,7 @@ These packages will remain in the `torrust-tracker` workspace long-term.
 
 > **Note on `torrust-tracker-axum-server`**: This package is classified as `torrust-tracker-` because `tsl.rs` imports `TslConfig` from `torrust-tracker-configuration` and `LocatedError`/`DynError` from `torrust-located-error` (renamed in SI-10, #1823). `TslConfig` remains the temporary tracker-specific dependency: it is a small two-field struct with no tracker-specific logic and could be moved to a generic package. Once that change lands, the package could move to the `torrust-` group as a generic `torrust-axum-server` reusable across the Torrust organisation. A near-identical module already exists in [torrust-index](https://github.com/torrust/torrust-index/blob/develop/src/web/api/server/custom_axum.rs).
 
-[^fu1]: FU-1 (#1859): `TrackerPolicy`, `TORRENT_PEERS_LIMIT`, and `PrivateMode` will be moved here from `torrust-tracker-configuration`. See [DECISIONS.md](./DECISIONS.md) DEC-07.
+[^fu1]: FU-1 (#1859): `TrackerPolicy`, `TORRENT_PEERS_LIMIT`, and `PrivateMode` were moved here from `torrust-tracker-configuration` (completed in #1859, PR #1865). See [DECISIONS.md](./DECISIONS.md) DEC-07.
 
 ### `torrust/torrust-bittorrent` workspace
 

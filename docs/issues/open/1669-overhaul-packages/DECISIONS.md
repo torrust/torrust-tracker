@@ -77,9 +77,9 @@ and separately move the three domain primitives that are misplaced in it to
 
 ### Trade-offs acknowledged
 
-- `swarm-coordination-registry` and `torrent-repository-benchmarking` continue to
-  depend on `torrust-tracker-configuration` until the domain primitive move is done
-  in a follow-up task.
+- `swarm-coordination-registry` and `torrent-repository-benchmarking` no longer
+  depend on `torrust-tracker-configuration` after FU-1 (#1859, PR #1865) moved the
+  domain primitives to `torrust-tracker-primitives`.
 - The "build-your-own tracker" use case remains blocked not by the config package
   boundary but by the structural design of `tracker-core` (always needing `Core` config)
   and the cross-layer coupling in `rest-api-core`. Enabling true service-level
@@ -88,9 +88,12 @@ and separately move the three domain primitives that are misplaced in it to
 
 ### Follow-up tasks
 
-- **FU-1**: Move `TrackerPolicy`, `TORRENT_PEERS_LIMIT`, and `PrivateMode` from
-  `torrust-tracker-configuration` to `torrust-tracker-primitives`. Update all import
-  sites. Track as a new subissue of EPIC #1669.
+- **FU-1** ✅ (#1859, PR #1865): Moved `TrackerPolicy`, `TORRENT_PEERS_LIMIT`, and
+  `PrivateMode` from `torrust-tracker-configuration` to `torrust-tracker-primitives`.
+  All import sites updated; `swarm-coordination-registry` and
+  `torrent-repository-benchmarking` no longer depend on the configuration crate.
+  Follow-up issue #1864 tracks whether `TORRENT_PEERS_LIMIT` should become a
+  runtime config option.
 - **FU-2**: Evaluate moving `TslConfig` into `axum-server` (already flagged in EPIC.md
   as a temporary coupling).
 - **FU-3**: Evaluate whether `EnvContainer::initialize` should accept narrower config

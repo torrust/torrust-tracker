@@ -28,7 +28,7 @@ semantic-links:
 ## Goal
 
 Decide whether `TORRENT_PEERS_LIMIT` should remain a global compile-time constant,
-be localised to each consuming package, or become a runtime configuration field.
+be localized to each consuming package, or become a runtime configuration field.
 Record the decision and implement it.
 
 This is a follow-up to issue [#1859](../closed/1859-1669-move-tracker-policy-and-private-mode-to-primitives/ISSUE.md)
