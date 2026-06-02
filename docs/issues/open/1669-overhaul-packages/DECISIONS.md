@@ -20,6 +20,70 @@ the proposal, the reasoning, and a reference to any supporting artifact.
 
 ---
 
+## DEC-09 — Narrow `EnvContainer::initialize` and `Environment::new` to accept per-service config slices
+
+**Date**: 2026-06-02
+**Status**: Adopted
+
+### Proposal considered
+
+Change `EnvContainer::initialize` (and the wrapping `Environment::new`) for the
+UDP and HTTP server packages so that they accept the specific config types they
+actually need instead of the full `&Arc<Configuration>` aggregate:
+
+- `UdpTrackerEnvironment::new(core_config: &Arc<Core>, udp_tracker_config: &Arc<UdpTracker>)`
+- `HttpTrackerEnvironment::new(core_config: &Arc<Core>, http_tracker_config: &Arc<HttpTracker>)`
+
+### Alternative chosen
+
+Adopt narrowing for the UDP tracker server and the HTTP tracker server environment
+constructors. The REST API server environment is **not narrowed** in this issue
+because it legitimately depends on all service config types to expose tracker status
+via the REST API (see DEC-07 trade-offs).
+
+### Why this alternative was adopted
+
+1. **Eliminates the root forcing function**: the `&Arc<Configuration>` parameter was
+   the primary reason a UDP-only binary compiled `HttpTracker`, `HttpApi`,
+   `HealthCheckApi`, `TslConfig`, and `AccessTokens` types at all. Narrowing the
+   constructor signature removes that dependency at the package boundary.
+
+2. **Explicit contracts**: the narrowed signatures document exactly which config
+   types each server environment actually uses, making unintentional coupling visible
+   at compile time.
+
+3. **Low migration cost**: all existing test call sites extract the narrower slices
+   with two lines (`Arc::new(cfg.core.clone())` and
+   `Arc::new(cfg.udp_trackers.unwrap()[0].clone())`). Logging setup, which was
+   previously bundled in `initialize_global_services`, was already called separately
+   by every test and is not a concern of the server environment constructor.
+
+4. **Main binary unaffected**: `AppContainer::initialize` (in `src/container.rs`)
+   does not use `Environment::new`; it initializes containers directly. No change
+   needed for the production startup path.
+
+### Trade-offs acknowledged
+
+- Every test call site that used `Started::new(&configuration)` must be updated to
+  extract the narrower slices first. The update is mechanical and consistent.
+- Logging setup (`logging::setup`) is no longer called inside `Environment::new`.
+  Callers that need logging must set it up independently (as tests already did).
+- The REST API server environment (`axum-rest-api-server`) still takes
+  `&Arc<Configuration>` because it needs `Core`, `HttpTracker`, `UdpTracker`, and
+  `HttpApi` — narrowing would provide no benefit there.
+
+### Supporting artifacts
+
+- [Issue #1861 spec](../../open/1861-1669-narrow-envcontainer-initialize-config-slices/ISSUE.md)
+- `packages/udp-server/src/environment.rs`
+- `packages/axum-http-server/src/environment.rs`
+- `packages/udp-server/examples/udp_only_public_tracker.rs` — now compiles without
+  `HttpTracker`, `HttpApi`, `HealthCheckApi`, `TslConfig`, `AccessTokens`
+- `packages/axum-http-server/examples/http_only_public_tracker.rs` — now compiles
+  without `UdpTracker`, `HttpApi`, `AccessTokens`, `HealthCheckApi`
+
+---
+
 ## DEC-07 — Keep `torrust-tracker-configuration` as a single central package; move domain primitives to `torrust-tracker-primitives`
 
 **Date**: 2026-06-03

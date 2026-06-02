@@ -5,7 +5,7 @@ use std::time::Duration;
 use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
 use torrust_server_lib::registar::Registar;
-use torrust_tracker_configuration::{Configuration, logging};
+use torrust_tracker_configuration::{Core, UdpTracker};
 use torrust_tracker_core::container::TrackerCoreContainer;
 use torrust_tracker_swarm_coordination_registry::container::SwarmCoordinationRegistryContainer;
 use torrust_tracker_udp_tracker_core::container::UdpTrackerCoreContainer;
@@ -35,10 +35,10 @@ where
 impl Environment<Stopped> {
     #[allow(dead_code)]
     #[must_use]
-    pub async fn new(configuration: &Arc<Configuration>) -> Self {
-        initialize_global_services(configuration);
+    pub async fn new(core_config: &Arc<Core>, udp_tracker_config: &Arc<UdpTracker>) -> Self {
+        initialize_static();
 
-        let container = Arc::new(EnvContainer::initialize(configuration).await);
+        let container = Arc::new(EnvContainer::initialize(core_config, udp_tracker_config).await);
 
         let bind_to = container.udp_tracker_core_container.udp_tracker_config.bind_address;
 
@@ -116,10 +116,10 @@ impl Environment<Running> {
     /// # Panics
     ///
     /// Will panic if it cannot start the server within the timeout.
-    pub async fn new(configuration: &Arc<Configuration>) -> Self {
+    pub async fn new(core_config: &Arc<Core>, udp_tracker_config: &Arc<UdpTracker>) -> Self {
         tokio::time::timeout(
             DEFAULT_SERVER_LIFECYCLE_TIMEOUT,
-            Environment::<Stopped>::new(configuration).await.start(),
+            Environment::<Stopped>::new(core_config, udp_tracker_config).await.start(),
         )
         .await
         .expect("Failed to create a UDP tracker server running environment within the timeout")
@@ -183,26 +183,19 @@ pub struct EnvContainer {
 }
 
 impl EnvContainer {
-    /// # Panics
-    ///
-    /// Will panic if the configuration is missing the UDP tracker configuration.
     #[must_use]
-    pub async fn initialize(configuration: &Configuration) -> Self {
-        let core_config = Arc::new(configuration.core.clone());
-        let udp_tracker_configurations = configuration.udp_trackers.clone().expect("missing UDP tracker configuration");
-        let udp_tracker_config = Arc::new(udp_tracker_configurations[0].clone());
-
+    pub async fn initialize(core_config: &Arc<Core>, udp_tracker_config: &Arc<UdpTracker>) -> Self {
         let swarm_coordination_registry_container = Arc::new(SwarmCoordinationRegistryContainer::initialize(
             core_config.tracker_usage_statistics.into(),
         ));
 
         let tracker_core_container =
-            Arc::new(TrackerCoreContainer::initialize_from(&core_config, &swarm_coordination_registry_container).await);
+            Arc::new(TrackerCoreContainer::initialize_from(core_config, &swarm_coordination_registry_container).await);
 
         let udp_tracker_core_container =
-            UdpTrackerCoreContainer::initialize_from_tracker_core(&tracker_core_container, &udp_tracker_config);
+            UdpTrackerCoreContainer::initialize_from_tracker_core(&tracker_core_container, udp_tracker_config);
 
-        let udp_tracker_server_container = UdpTrackerServerContainer::initialize(&core_config);
+        let udp_tracker_server_container = UdpTrackerServerContainer::initialize(core_config);
 
         Self {
             tracker_core_container,
@@ -212,11 +205,6 @@ impl EnvContainer {
     }
 }
 
-fn initialize_global_services(configuration: &Configuration) {
-    initialize_static();
-    logging::setup(&configuration.logging);
-}
-
 fn initialize_static() {
     torrust_clock::initialize_static();
     torrust_tracker_udp_tracker_core::initialize_static();
@@ -224,6 +212,7 @@ fn initialize_static() {
 
 #[cfg(test)]
 mod tests {
+    use std::sync::Arc;
     use std::time::Duration;
 
     use tokio::time::sleep;
@@ -235,7 +224,11 @@ mod tests {
     async fn it_should_make_and_stop_udp_server() {
         logging::setup();
 
-        let env = Started::new(&configuration::ephemeral().into()).await;
+        let cfg = configuration::ephemeral();
+        let core_config = Arc::new(cfg.core.clone());
+        let udp_tracker_config = Arc::new(cfg.udp_trackers.unwrap()[0].clone());
+
+        let env = Started::new(&core_config, &udp_tracker_config).await;
         sleep(Duration::from_secs(1)).await;
         env.stop().await;
         sleep(Duration::from_secs(1)).await;

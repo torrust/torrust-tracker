@@ -146,9 +146,11 @@ mod http {
     pub(crate) async fn it_should_return_good_health_for_http_service() {
         logging::setup();
 
-        let configuration = Arc::new(configuration::ephemeral());
+        let configuration = configuration::ephemeral();
+        let core_config = Arc::new(configuration.core.clone());
+        let http_tracker_config = Arc::new(configuration.http_trackers.clone().unwrap()[0].clone());
 
-        let service = torrust_tracker_axum_http_server::environment::Started::new(&configuration).await;
+        let service = torrust_tracker_axum_http_server::environment::Started::new(&core_config, &http_tracker_config).await;
 
         let registar = service.registar.clone();
 
@@ -192,9 +194,11 @@ mod http {
     pub(crate) async fn it_should_return_error_when_http_service_was_stopped_after_registration() {
         logging::setup();
 
-        let configuration = Arc::new(configuration::ephemeral());
+        let configuration = configuration::ephemeral();
+        let core_config = Arc::new(configuration.core.clone());
+        let http_tracker_config = Arc::new(configuration.http_trackers.clone().unwrap()[0].clone());
 
-        let service = torrust_tracker_axum_http_server::environment::Started::new(&configuration).await;
+        let service = torrust_tracker_axum_http_server::environment::Started::new(&core_config, &http_tracker_config).await;
 
         let binding = *service.bind_address();
 
@@ -253,9 +257,11 @@ mod udp {
     pub(crate) async fn it_should_return_good_health_for_udp_service() {
         logging::setup();
 
-        let configuration = Arc::new(configuration::ephemeral());
+        let configuration = configuration::ephemeral();
+        let core_config = Arc::new(configuration.core.clone());
+        let udp_tracker_config = Arc::new(configuration.udp_trackers.clone().unwrap()[0].clone());
 
-        let service = torrust_tracker_udp_server::environment::Started::new(&configuration).await;
+        let service = torrust_tracker_udp_server::environment::Started::new(&core_config, &udp_tracker_config).await;
 
         let registar = service.registar.clone();
 
@@ -296,9 +302,11 @@ mod udp {
     pub(crate) async fn it_should_return_error_when_udp_service_was_stopped_after_registration() {
         logging::setup();
 
-        let configuration = Arc::new(configuration::ephemeral());
+        let configuration = configuration::ephemeral();
+        let core_config = Arc::new(configuration.core.clone());
+        let udp_tracker_config = Arc::new(configuration.udp_trackers.clone().unwrap()[0].clone());
 
-        let service = torrust_tracker_udp_server::environment::Started::new(&configuration).await;
+        let service = torrust_tracker_udp_server::environment::Started::new(&core_config, &udp_tracker_config).await;
 
         let binding = service.bind_address();
 

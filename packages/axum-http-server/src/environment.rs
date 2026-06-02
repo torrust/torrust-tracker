@@ -5,7 +5,7 @@ use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
 use torrust_server_lib::registar::Registar;
 use torrust_tracker_axum_server::tsl::make_rust_tls;
-use torrust_tracker_configuration::{Configuration, logging};
+use torrust_tracker_configuration::{Core, HttpTracker};
 use torrust_tracker_core::container::TrackerCoreContainer;
 use torrust_tracker_http_tracker_core::container::HttpTrackerCoreContainer;
 use torrust_tracker_http_tracker_core::statistics::event::listener::run_event_listener;
@@ -38,13 +38,13 @@ impl<S> Environment<S> {
 impl Environment<Stopped> {
     /// # Panics
     ///
-    /// Will panic if it fails to make the TSL config from the configuration.
+    /// Will panic if it fails to build the TLS config from the `tsl_config` field of `http_tracker_config`.
     #[allow(dead_code)]
     #[must_use]
-    pub async fn new(configuration: &Arc<Configuration>) -> Self {
-        initialize_global_services(configuration);
+    pub async fn new(core_config: &Arc<Core>, http_tracker_config: &Arc<HttpTracker>) -> Self {
+        initialize_static();
 
-        let container = Arc::new(EnvContainer::initialize(configuration).await);
+        let container = Arc::new(EnvContainer::initialize(core_config, http_tracker_config).await);
 
         let bind_to = container.http_tracker_core_container.http_tracker_config.bind_address;
 
@@ -97,8 +97,11 @@ impl Environment<Stopped> {
 }
 
 impl Environment<Running> {
-    pub async fn new(configuration: &Arc<Configuration>) -> Self {
-        Environment::<Stopped>::new(configuration).await.start().await
+    pub async fn new(core_config: &Arc<Core>, http_tracker_config: &Arc<HttpTracker>) -> Self {
+        Environment::<Stopped>::new(core_config, http_tracker_config)
+            .await
+            .start()
+            .await
     }
 
     /// Stops the test environment and return a stopped environment.
@@ -138,38 +141,23 @@ pub struct EnvContainer {
 }
 
 impl EnvContainer {
-    /// # Panics
-    ///
-    /// Will panic if the configuration is missing the HTTP tracker configuration.
     #[must_use]
-    pub async fn initialize(configuration: &Configuration) -> Self {
-        let core_config = Arc::new(configuration.core.clone());
-        let http_tracker_config = configuration
-            .http_trackers
-            .clone()
-            .expect("missing HTTP tracker configuration");
-        let http_tracker_config = Arc::new(http_tracker_config[0].clone());
-
+    pub async fn initialize(core_config: &Arc<Core>, http_tracker_config: &Arc<HttpTracker>) -> Self {
         let swarm_coordination_registry_container = Arc::new(SwarmCoordinationRegistryContainer::initialize(
-            configuration.core.tracker_usage_statistics.into(),
+            core_config.tracker_usage_statistics.into(),
         ));
 
         let tracker_core_container =
-            Arc::new(TrackerCoreContainer::initialize_from(&core_config, &swarm_coordination_registry_container).await);
+            Arc::new(TrackerCoreContainer::initialize_from(core_config, &swarm_coordination_registry_container).await);
 
         let http_tracker_container =
-            HttpTrackerCoreContainer::initialize_from_tracker_core(&tracker_core_container, &http_tracker_config);
+            HttpTrackerCoreContainer::initialize_from_tracker_core(&tracker_core_container, http_tracker_config);
 
         Self {
             tracker_core_container,
             http_tracker_core_container: http_tracker_container,
         }
     }
-}
-
-fn initialize_global_services(configuration: &Configuration) {
-    initialize_static();
-    logging::setup(&configuration.logging);
 }
 
 fn initialize_static() {
