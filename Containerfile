@@ -78,30 +78,106 @@ COPY packages/tracker-core/Cargo.toml packages/tracker-core/
 COPY packages/udp-protocol/Cargo.toml packages/udp-protocol/
 COPY packages/udp-server/Cargo.toml packages/udp-server/
 COPY packages/udp-tracker-core/Cargo.toml packages/udp-tracker-core/
-# Create stub source files for targets that are EXPLICITLY declared in Cargo.toml.
-# `cargo chef prepare` runs `cargo metadata` internally, which fails with an error
-# if a declared [lib] or [[bench]] target's source file does not exist on disk.
-# Packages that rely on Cargo's auto-detection (no explicit section in Cargo.toml)
-# do not need stubs here — metadata silently omits undiscovered targets instead.
+# Create stub source files for every in-repo target.
+# `cargo chef prepare` runs `cargo metadata` internally, which requires every
+# package to have at least one resolvable target file on disk — whether the
+# target is explicitly declared in Cargo.toml (e.g. [lib], [[bin]], [[bench]])
+# or auto-detected by Cargo (e.g. src/lib.rs, src/main.rs, src/bin/*.rs).
+# Packages with no source files at all cause `cargo metadata` to abort with
+# "no targets specified in the manifest". Examples and tests also need stubs
+# when auto-detected, because Cargo validates them during manifest loading.
 #
-# MAINTENANCE: Keep in sync with explicit [lib] and [[bench]] declarations across
-# all workspace Cargo.toml files. Add a line here whenever a new explicit target
-# declaration is added to any Cargo.toml; remove the line when the declaration is
-# removed or replaced with an explicit path.
-RUN mkdir -p src \
-             packages/tracker-client/src \
-             console/tracker-client/src \
-             packages/http-tracker-core/benches \
-             packages/udp-tracker-core/benches \
-             packages/torrent-repository-benchmarking/benches \
-             contrib/bencode/benches \
- && touch src/lib.rs \
-          packages/tracker-client/src/lib.rs \
-          console/tracker-client/src/lib.rs \
-          packages/http-tracker-core/benches/http_tracker_core_benchmark.rs \
-          packages/udp-tracker-core/benches/udp_tracker_core_benchmark.rs \
-          packages/torrent-repository-benchmarking/benches/repository_benchmark.rs \
-          contrib/bencode/benches/bencode_benchmark.rs
+# The canonical list below was derived from:
+#   cargo metadata --no-deps --format-version 1 | jq -r '.packages[].targets[].src_path'
+# filtered to paths inside this repository. Re-run that command whenever a
+# new package, binary, example, or bench target is added to the workspace and
+# add the corresponding mkdir / touch lines here.
+#
+# MAINTENANCE: When adding a new in-repo crate or target, add the corresponding
+# stub lines below AND the Cargo.toml COPY line in the manifest-only block above.
+RUN mkdir -p \
+      src/bin \
+      contrib/bencode/src \
+      contrib/bencode/benches \
+      contrib/dev-tools/analysis/workspace-coupling/src \
+      console/tracker-client/src/bin \
+      packages/axum-health-check-api-server/src \
+      packages/axum-http-server/src \
+      packages/axum-http-server/examples \
+      packages/axum-rest-api-server/src \
+      packages/axum-server/src \
+      packages/clock/src \
+      packages/configuration/src \
+      packages/events/src \
+      packages/http-protocol/src \
+      packages/http-tracker-core/src \
+      packages/http-tracker-core/benches \
+      packages/located-error/src \
+      packages/metrics/src \
+      packages/net-primitives/src \
+      packages/peer-id/src \
+      packages/primitives/src \
+      packages/rest-api-client/src \
+      packages/rest-api-core/src \
+      packages/server-lib/src \
+      packages/swarm-coordination-registry/src \
+      packages/test-helpers/src \
+      packages/torrent-repository-benchmarking/src \
+      packages/torrent-repository-benchmarking/benches \
+      packages/tracker-client/src \
+      packages/tracker-core/src \
+      packages/tracker-core/src/bin \
+      packages/udp-protocol/src \
+      packages/udp-server/src \
+      packages/udp-server/examples \
+      packages/udp-tracker-core/src \
+      packages/udp-tracker-core/benches \
+ && touch \
+      src/lib.rs \
+      src/main.rs \
+      src/bin/e2e_tests_runner.rs \
+      src/bin/http_health_check.rs \
+      src/bin/profiling.rs \
+      src/bin/qbittorrent_e2e_runner.rs \
+      contrib/bencode/src/lib.rs \
+      contrib/bencode/benches/bencode_benchmark.rs \
+      contrib/dev-tools/analysis/workspace-coupling/src/main.rs \
+      console/tracker-client/src/lib.rs \
+      console/tracker-client/src/bin/http_tracker_client.rs \
+      console/tracker-client/src/bin/tracker_checker.rs \
+      console/tracker-client/src/bin/tracker_client.rs \
+      console/tracker-client/src/bin/udp_tracker_client.rs \
+      packages/axum-health-check-api-server/src/lib.rs \
+      packages/axum-http-server/src/lib.rs \
+      packages/axum-http-server/examples/http_only_public_tracker.rs \
+      packages/axum-rest-api-server/src/lib.rs \
+      packages/axum-server/src/lib.rs \
+      packages/clock/src/lib.rs \
+      packages/configuration/src/lib.rs \
+      packages/events/src/lib.rs \
+      packages/http-protocol/src/lib.rs \
+      packages/http-tracker-core/src/lib.rs \
+      packages/http-tracker-core/benches/http_tracker_core_benchmark.rs \
+      packages/located-error/src/lib.rs \
+      packages/metrics/src/lib.rs \
+      packages/net-primitives/src/lib.rs \
+      packages/peer-id/src/lib.rs \
+      packages/primitives/src/lib.rs \
+      packages/rest-api-client/src/lib.rs \
+      packages/rest-api-core/src/lib.rs \
+      packages/server-lib/src/lib.rs \
+      packages/swarm-coordination-registry/src/lib.rs \
+      packages/test-helpers/src/lib.rs \
+      packages/torrent-repository-benchmarking/src/lib.rs \
+      packages/torrent-repository-benchmarking/benches/repository_benchmark.rs \
+      packages/tracker-client/src/lib.rs \
+      packages/tracker-core/src/lib.rs \
+      packages/tracker-core/src/bin/persistence_benchmark_runner.rs \
+      packages/udp-protocol/src/lib.rs \
+      packages/udp-server/src/lib.rs \
+      packages/udp-server/examples/udp_only_public_tracker.rs \
+      packages/udp-tracker-core/src/lib.rs \
+      packages/udp-tracker-core/benches/udp_tracker_core_benchmark.rs
 RUN cargo chef prepare --recipe-path /build/recipe.json
 
 
