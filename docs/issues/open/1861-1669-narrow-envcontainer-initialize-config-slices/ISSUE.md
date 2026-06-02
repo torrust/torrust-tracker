@@ -1,13 +1,13 @@
 ---
 doc-type: issue
 issue-type: task
-status: open
+status: closed
 priority: p3
 github-issue: 1861
 spec-path: docs/issues/open/1861-1669-narrow-envcontainer-initialize-config-slices/ISSUE.md
-branch: null
+branch: 1861-1669-narrow-envcontainer-initialize-config-slices
 related-pr: null
-last-updated-utc: 2026-06-01 00:00
+last-updated-utc: 2026-06-05 00:00
 semantic-links:
   skill-links:
     - create-issue
@@ -101,14 +101,14 @@ call sites. Confirm the Cargo examples no longer compile idle types.
 
 ## Acceptance Criteria
 
-- [ ] A decision entry is added to `docs/issues/open/1669-overhaul-packages/DECISIONS.md`
-      with chosen approach and rationale
-- [ ] If narrowing is adopted: `UdpTrackerEnvironment::new` accepts narrower config types
+- [x] A decision entry is added to `docs/issues/open/1669-overhaul-packages/DECISIONS.md`
+      with chosen approach and rationale (DEC-09)
+- [x] If narrowing is adopted: `UdpTrackerEnvironment::new` accepts narrower config types
       and the UDP Cargo example no longer compiles `HttpTracker`/`HttpApi`/etc.
-- [ ] If narrowing is adopted: `HttpTrackerEnvironment::new` accepts narrower config types
+- [x] If narrowing is adopted: `HttpTrackerEnvironment::new` accepts narrower config types
       and the HTTP Cargo example no longer compiles `UdpTracker`/`HealthCheckApi`/etc.
-- [ ] All tests pass (`cargo test --workspace`); no new clippy warnings
-- [ ] The Cargo examples still run correctly end-to-end (as verified by the manual test
+- [x] All tests pass (`cargo test --workspace`); no new clippy warnings
+- [x] The Cargo examples still run correctly end-to-end (as verified by the manual test
       results in `docs/issues/open/1856-.../manual-test-results.md`)
 
 ## Out of Scope
