@@ -166,14 +166,15 @@ A CI check that validates all workspace member directories have a corresponding
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| ID  | Status | Task                                                           | Notes / Expected Output                                                                                                           |
-| --- | ------ | -------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| T1  | TODO   | Replace full-tree COPY with manifest-only COPY in recipe stage | One `COPY <manifest> <dest>/` line per workspace member, plus root `Cargo.toml` and `Cargo.lock`.                                 |
-| T2  | TODO   | Verify recipe.json equivalence                                 | Build locally; diff `recipe.json` output before and after to confirm it is identical.                                             |
-| T3  | TODO   | Verify full build pipeline                                     | Run `docker build --target release .` locally; confirm all stages succeed.                                                        |
-| T4  | TODO   | Measure warm build time improvement                            | Run warm baseline (`run-container-baseline.sh`) with a source-only change; confirm cook layers show cache hit; record time saved. |
-| T5  | TODO   | Document maintenance requirement in Containerfile              | Add inline comment above the manifest COPY block explaining the sync requirement.                                                 |
-| T6  | TODO   | Optionally add CI drift check                                  | Script or CI step that compares workspace members in `Cargo.toml` against `COPY` lines in `Containerfile` and fails on mismatch.  |
+| ID  | Status | Task                                                                     | Notes / Expected Output                                                                                                                                                                        |
+| --- | ------ | ------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| T1  | DONE   | Replace full-tree COPY with manifest-only COPY in recipe stage           | One `COPY <manifest> <dest>/` line per in-repo path crate (packages/, console/, contrib/), plus root `Cargo.toml` and `Cargo.lock`.                                                            |
+| T2  | TODO   | Verify recipe.json equivalence                                           | Build locally; diff `recipe.json` output before and after to confirm it is identical.                                                                                                          |
+| T3  | TODO   | Verify full build pipeline                                               | Run `docker build --target release .` locally; confirm all stages succeed.                                                                                                                     |
+| T4  | TODO   | Measure warm build time improvement                                      | Run warm baseline (`run-container-baseline.sh`) with a source-only change; confirm cook layers show cache hit; record time saved.                                                              |
+| T5  | DONE   | Document maintenance requirement in Containerfile                        | Add inline comment above the manifest COPY block explaining the sync requirement.                                                                                                              |
+| T6  | TODO   | Optionally add CI drift check                                            | Script or CI step that compares workspace members in `Cargo.toml` against `COPY` lines in `Containerfile` and fails on mismatch.                                                               |
+| T7  | DONE   | Add source file stubs to recipe stage to fix `cargo metadata` validation | `cargo chef prepare` calls `cargo metadata` internally, which validates that all declared targets have source files present. Add a `RUN mkdir -p / touch` step for every declared target path. |
 
 ## Progress Tracking
 
@@ -196,14 +197,16 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 Append one line per meaningful update.
 
 - 2026-06-01 00:00 UTC - GitHub Copilot - Drafted recipe stage manifest-only copy issue from EPIC #1840 discussion - draft file created
+- 2026-06-01 00:00 UTC - GitHub Copilot - Implemented T1 and T5: replaced full-tree COPY with manifest-only COPY in Containerfile recipe stage; added maintenance comment
+- 2026-06-01 00:00 UTC - GitHub Copilot - Implemented T7: added source file stubs RUN step; cargo metadata validation fix for recipe stage
 
 ## Acceptance Criteria
 
-- [ ] AC1: The `recipe` stage uses manifest-only COPY (no full-tree copy); every workspace member `Cargo.toml` and root `Cargo.lock` is explicitly listed.
+- [x] AC1: The `recipe` stage uses manifest-only COPY (no full-tree copy); every workspace member `Cargo.toml` and root `Cargo.lock` is explicitly listed.
 - [ ] AC2: `recipe.json` produced by the new stage is identical to the one produced by the old full-tree copy stage (verified by diff).
 - [ ] AC3: Full build pipeline (`docker build --target release .`) completes successfully with no regressions.
 - [ ] AC4: Warm baseline run with a source-only change shows cook layers hitting cache; time saved is recorded.
-- [ ] AC5: Containerfile contains an inline comment documenting the manifest list maintenance requirement.
+- [x] AC5: Containerfile contains an inline comment documenting the manifest list maintenance requirement.
 - [ ] `linter all` exits with code `0`
 - [ ] All CI checks pass for the changed `Containerfile`
 - [ ] Manual verification scenarios are executed and documented (status + evidence)
@@ -231,10 +234,10 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 ### Acceptance Verification
 
-| AC ID | Status (`TODO`/`DONE`) | Evidence         |
-| ----- | ---------------------- | ---------------- |
-| AC1   | TODO                   | {diff link}      |
-| AC2   | TODO                   | {diff link}      |
-| AC3   | TODO                   | {CI run link}    |
-| AC4   | TODO                   | {benchmark link} |
-| AC5   | TODO                   | {diff link}      |
+| AC ID | Status (`TODO`/`DONE`) | Evidence                                                                                                                                                                                                |
+| ----- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| AC1   | DONE                   | Containerfile recipe stage updated; all 28 in-repo path-crate Cargo.toml files (packages/, console/, contrib/) plus root Cargo.toml and Cargo.lock are listed (verified via `cargo metadata --no-deps`) |
+| AC2   | TODO                   | {diff link}                                                                                                                                                                                             |
+| AC3   | TODO                   | {CI run link}                                                                                                                                                                                           |
+| AC4   | TODO                   | {benchmark link}                                                                                                                                                                                        |
+| AC5   | DONE                   | Maintenance comment block added above the COPY lines in Containerfile                                                                                                                                   |
