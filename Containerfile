@@ -185,34 +185,34 @@ RUN cargo chef prepare --recipe-path /build/recipe.json
 FROM chef AS dependencies_debug
 WORKDIR /build/src
 COPY --from=recipe /build/recipe.json /build/recipe.json
-RUN cargo chef cook --tests --benches --examples --workspace --all-targets --all-features --recipe-path /build/recipe.json
+RUN cargo chef cook --tests --workspace --all-features --recipe-path /build/recipe.json
 # Pre-link warm-up: Create and discard a nextest archive to warm up the linker
 # before final compilation. This improves incremental build cache efficiency
 # by pre-faulting the linker phases, avoiding redundant linking work in later stages.
-RUN cargo nextest archive --tests --benches --examples --workspace --all-targets --all-features --archive-file /build/temp.tar.zst ; rm -f /build/temp.tar.zst
+RUN cargo nextest archive --tests --workspace --all-features --archive-file /build/temp.tar.zst && rm -f /build/temp.tar.zst
 
 ## Cook (release)
 FROM chef AS dependencies
 WORKDIR /build/src
 COPY --from=recipe /build/recipe.json /build/recipe.json
-RUN cargo chef cook --tests --benches --examples --workspace --all-targets --all-features --recipe-path /build/recipe.json --release
+RUN cargo chef cook --tests --workspace --all-features --recipe-path /build/recipe.json --release
 # Pre-link warm-up: Create and discard a nextest archive to warm up the linker
 # before final compilation. This improves incremental build cache efficiency
 # by pre-faulting the linker phases, avoiding redundant linking work in later stages.
-RUN cargo nextest archive --tests --benches --examples --workspace --all-targets --all-features --archive-file /build/temp.tar.zst --release  ; rm -f /build/temp.tar.zst
+RUN cargo nextest archive --tests --workspace --all-features --archive-file /build/temp.tar.zst --release && rm -f /build/temp.tar.zst
 
 
 ## Build Archive (debug)
 FROM dependencies_debug AS build_debug
 WORKDIR /build/src
 COPY . /build/src
-RUN cargo nextest archive --tests --benches --examples --workspace --all-targets --all-features --archive-file /build/torrust-tracker-debug.tar.zst
+RUN cargo nextest archive --tests --workspace --all-features --archive-file /build/torrust-tracker-debug.tar.zst
 
 ## Build Archive (release)
 FROM dependencies AS build
 WORKDIR /build/src
 COPY . /build/src
-RUN cargo nextest archive --tests --benches --examples --workspace --all-targets --all-features --archive-file /build/torrust-tracker.tar.zst --release
+RUN cargo nextest archive --tests --workspace --all-features --archive-file /build/torrust-tracker.tar.zst --release
 
 
 # Extract and Test (debug)

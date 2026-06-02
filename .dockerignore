@@ -44,8 +44,10 @@
 
 # ── Dev tooling (not needed in any build stage) ───────────────────────────────
 # su-exec is compiled in the gcc stage: COPY ./contrib/dev-tools/su-exec/
+# workspace-coupling/Cargo.toml is copied in the recipe stage for cargo chef prepare
 /contrib/dev-tools/
 !/contrib/dev-tools/su-exec/
+!/contrib/dev-tools/analysis/workspace-coupling/Cargo.toml
 
 # ── Build artifacts and runtime state ─────────────────────────────────────────
 /bin/
