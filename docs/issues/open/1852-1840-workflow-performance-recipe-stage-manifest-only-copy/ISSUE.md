@@ -168,7 +168,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task                                                                     | Notes / Expected Output                                                                                                                                                                        |
 | --- | ------ | ------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| T1  | DONE   | Replace full-tree COPY with manifest-only COPY in recipe stage           | One `COPY <manifest> <dest>/` line per workspace member, plus root `Cargo.toml` and `Cargo.lock`.                                                                                              |
+| T1  | DONE   | Replace full-tree COPY with manifest-only COPY in recipe stage           | One `COPY <manifest> <dest>/` line per in-repo path crate (packages/, console/, contrib/), plus root `Cargo.toml` and `Cargo.lock`.                                                            |
 | T2  | TODO   | Verify recipe.json equivalence                                           | Build locally; diff `recipe.json` output before and after to confirm it is identical.                                                                                                          |
 | T3  | TODO   | Verify full build pipeline                                               | Run `docker build --target release .` locally; confirm all stages succeed.                                                                                                                     |
 | T4  | TODO   | Measure warm build time improvement                                      | Run warm baseline (`run-container-baseline.sh`) with a source-only change; confirm cook layers show cache hit; record time saved.                                                              |
@@ -234,10 +234,10 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 ### Acceptance Verification
 
-| AC ID | Status (`TODO`/`DONE`) | Evidence                                                                                                                    |
-| ----- | ---------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| AC1   | DONE                   | Containerfile recipe stage updated; all 28 workspace member Cargo.toml files plus root Cargo.toml and Cargo.lock are listed |
-| AC2   | TODO                   | {diff link}                                                                                                                 |
-| AC3   | TODO                   | {CI run link}                                                                                                               |
-| AC4   | TODO                   | {benchmark link}                                                                                                            |
-| AC5   | DONE                   | Maintenance comment block added above the COPY lines in Containerfile                                                       |
+| AC ID | Status (`TODO`/`DONE`) | Evidence                                                                                                                                                                                                |
+| ----- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| AC1   | DONE                   | Containerfile recipe stage updated; all 28 in-repo path-crate Cargo.toml files (packages/, console/, contrib/) plus root Cargo.toml and Cargo.lock are listed (verified via `cargo metadata --no-deps`) |
+| AC2   | TODO                   | {diff link}                                                                                                                                                                                             |
+| AC3   | TODO                   | {CI run link}                                                                                                                                                                                           |
+| AC4   | TODO                   | {benchmark link}                                                                                                                                                                                        |
+| AC5   | DONE                   | Maintenance comment block added above the COPY lines in Containerfile                                                                                                                                   |

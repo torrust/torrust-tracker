@@ -41,9 +41,14 @@ WORKDIR /build/src
 # therefore the expensive `cargo chef cook` dependency layers) on every source-code change.
 # By copying only manifests, the cook layers stay cached for source-only edits.
 #
-# MAINTENANCE: Keep this list in sync with the workspace members in the root Cargo.toml.
-# Every new workspace package must have a corresponding COPY line here; every removed or
-# moved package must have its line removed or updated accordingly.
+# MAINTENANCE: Keep this list in sync with all in-repo path crates (packages/, console/,
+# contrib/). This includes the root crate itself plus every crate reachable as a path
+# dependency from the root — i.e. all packages discovered by `cargo metadata --no-deps`
+# whose manifest path is inside this repository. Note: the `[workspace].members` key in
+# the root Cargo.toml only lists packages not auto-discovered via path dependencies; it
+# is a much smaller set and should NOT be used as the authoritative list here.
+# Every new in-repo path crate must have a corresponding COPY line added; every removed
+# or moved crate must have its line updated or removed accordingly.
 COPY Cargo.toml Cargo.lock ./
 COPY console/tracker-client/Cargo.toml console/tracker-client/
 COPY contrib/bencode/Cargo.toml contrib/bencode/
