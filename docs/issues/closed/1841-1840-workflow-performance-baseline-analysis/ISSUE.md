@@ -4,7 +4,7 @@ issue-type: task
 status: open
 priority: p1
 github-issue: 1841
-spec-path: docs/issues/open/1841-1840-workflow-performance-baseline-analysis/ISSUE.md
+spec-path: docs/issues/closed/1841-1840-workflow-performance-baseline-analysis/ISSUE.md
 branch: "1841-1840-workflow-performance-baseline-analysis"
 related-pr: null
 last-updated-utc: 2026-05-28 00:00
@@ -15,7 +15,7 @@ semantic-links:
     - .github/workflows/container.yaml
     - .github/workflows/testing.yaml
     - docs/issues/open/1840-improve-pr-workflow-performance-epic/EPIC.md
-    - docs/issues/open/1841-1840-workflow-performance-baseline-analysis/benchmark-results-baseline.md
+    - docs/issues/closed/1841-1840-workflow-performance-baseline-analysis/benchmark-results-baseline.md
     - contrib/dev-tools/workflow-benchmarks/run-container-baseline.sh
     - contrib/dev-tools/workflow-benchmarks/run-testing-baseline.sh
     - .github/skills/dev/planning/create-issue/SKILL.md

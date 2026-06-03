@@ -1,7 +1,7 @@
 ---
 semantic-links:
   related-artifacts:
-    - docs/issues/open/1841-1840-workflow-performance-baseline-analysis/ISSUE.md
+    - docs/issues/closed/1841-1840-workflow-performance-baseline-analysis/ISSUE.md
     - .github/workflows/container.yaml
     - .github/workflows/testing.yaml
     - contrib/dev-tools/workflow-benchmarks/run-container-baseline.sh
@@ -51,7 +51,7 @@ cargo build --timings --all-targets --release --workspace --all-features
 ```
 
 Evidence logs are stored under
-`docs/issues/open/1841-1840-workflow-performance-baseline-analysis/evidence/`.
+`docs/issues/closed/1841-1840-workflow-performance-baseline-analysis/evidence/`.
 
 ## Cache Reset Procedure (Cold Run)
 
@@ -139,7 +139,7 @@ Notes:
 
 Source: `cargo build --timings --all-targets --release --workspace --all-features`
 run on 2026-05-28. Full HTML report:
-`docs/issues/open/1841-1840-workflow-performance-baseline-analysis/evidence/cargo-timing-release-20260528T074109Z.html`
+`docs/issues/closed/1841-1840-workflow-performance-baseline-analysis/evidence/cargo-timing-release-20260528T074109Z.html`
 
 Total `cargo build` wall time reported by `--timings`: **188 s** (warm incremental,
 local machine).

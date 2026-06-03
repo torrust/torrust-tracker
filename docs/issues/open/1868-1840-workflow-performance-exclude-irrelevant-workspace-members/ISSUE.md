@@ -15,7 +15,7 @@ semantic-links:
     - Containerfile
     - .github/workflows/container.yaml
     - docs/issues/open/1840-improve-pr-workflow-performance-epic/EPIC.md
-    - docs/issues/open/1853-1840-workflow-performance-containerfile-target-scope/ISSUE.md
+    - docs/issues/closed/1853-1840-workflow-performance-containerfile-target-scope/ISSUE.md
     - docs/issues/drafts/1840-workflow-performance-dependency-layer-cache-reuse/ISSUE.md
     - docs/issues/open/1854-1840-workflow-performance-container-test-gating/ISSUE.md
 ---

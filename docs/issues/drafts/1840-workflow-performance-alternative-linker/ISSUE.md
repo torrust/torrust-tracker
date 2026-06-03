@@ -17,7 +17,7 @@ semantic-links:
     - .github/workflows/container.yaml
     - .github/workflows/testing.yaml
     - docs/issues/open/1840-improve-pr-workflow-performance-epic/EPIC.md
-    - docs/issues/open/1841-1840-workflow-performance-baseline-analysis/benchmark-results-baseline.md
+    - docs/issues/closed/1841-1840-workflow-performance-baseline-analysis/benchmark-results-baseline.md
 ---
 
 <!-- skill-link: create-issue -->
@@ -35,7 +35,7 @@ reduce the dominant per-binary link time recorded in the baseline report.
 ### The baseline finding
 
 The baseline profiling report
-(`docs/issues/open/1841-1840-workflow-performance-baseline-analysis/benchmark-results-baseline.md`)
+(`docs/issues/closed/1841-1840-workflow-performance-baseline-analysis/benchmark-results-baseline.md`)
 identified the build as **linker-dominated**:
 
 > "Individual crate compilation (frontend + codegen): ≤ 8 s per crate.
