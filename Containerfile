@@ -195,10 +195,11 @@ COPY --from=recipe /build/recipe.json /build/recipe.json
 # Note: `cargo chef cook` does not support `--exclude` (the cargo-chef CLI only
 # exposes `--workspace` and `--package`, not `--exclude`). The two irrelevant
 # workspace members (workspace-coupling and torrust-tracker-torrent-repository-
-# benchmarking) are therefore excluded only at the nextest archive stage below,
-# where standard Cargo `--exclude` is supported. Their stubs are still compiled
-# as part of the cook skeleton, but their unique transitive dependencies are not
-# pulled into the final archive, which is where the build-time cost matters.
+# benchmarking) are therefore still compiled as part of the cook skeleton
+# (their Cargo.toml manifests are in the recipe, so cargo-chef cooks them).
+# The build-time savings come from the archive/build stages: `cargo nextest
+# archive` below is passed `--exclude` so those packages are not compiled from
+# real source in the final archive. See Cook (release) and Build stages.
 RUN cargo chef cook --tests --workspace --all-features --recipe-path /build/recipe.json
 # Pre-link warm-up: Create and discard a nextest archive to warm up the linker
 # before final compilation. This improves incremental build cache efficiency
