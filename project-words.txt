@@ -33,8 +33,10 @@ beps
 bidirectionality
 binascii
 binstall
+bitcode
 Bitflu
 bools
+Beránek
 Bragilevsky
 bufs
 buildid
@@ -147,6 +149,7 @@ Irwe
 isready
 iterationsadd
 jdbe
+Jakub
 Joakim
 josecelano
 kallsyms
@@ -218,6 +221,7 @@ parallelise
 parallelised
 parseable
 peekable
+pessimize
 peerlist
 peersld
 penalise
