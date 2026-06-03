@@ -152,7 +152,7 @@ the type lands — which would invert a dependency edge.
 | `make_rust_tls`              | `packages/axum-server/src/tsl.rs`                           | Uses `ssl_cert_path` / `ssl_key_path` to build `RustlsConfig` |
 | `axum-http-server` (2 sites) | `packages/axum-http-server/src/server.rs`, `environment.rs` | Passes `&tsl_config` to `make_rust_tls`                       |
 
-`make_rust_tls` in `axum-server` is the only **behavioural** consumer.
+`make_rust_tls` in `axum-server` is the only **behavioral** consumer.
 `HttpApi` and `HttpTracker` are **structural** consumers — they hold the type purely
 for deserialization.
 
@@ -222,14 +222,14 @@ This changes the shape of the decision in two ways:
 
    With a clean separation, a mapping step at the boundary converts the public DTO
    into the internal service config. This is the DEC-06 pattern applied to
-   configuration. The cost is the mapping boilerplate and the version synchronisation
+   configuration. The cost is the mapping boilerplate and the version synchronization
    discipline between the two representations.
 
    Without this separation (status quo), the configuration type _is_ the service
    config. Evolution is simpler (one type to change), but changing any field is
    immediately a public schema break.
 
-### The version-synchronisation problem
+### The version-synchronization problem
 
 If the service packages define their own internal config types, each change to a
 service's runtime behaviour that requires a new config option must be coordinated in
