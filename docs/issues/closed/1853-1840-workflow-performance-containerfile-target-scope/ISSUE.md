@@ -4,7 +4,7 @@ issue-type: task
 status: open
 priority: p1
 github-issue: 1853
-spec-path: docs/issues/open/1853-1840-workflow-performance-containerfile-target-scope/ISSUE.md
+spec-path: docs/issues/closed/1853-1840-workflow-performance-containerfile-target-scope/ISSUE.md
 branch: "1853-containerfile-target-scope"
 related-pr: null
 last-updated-utc: 2026-06-02 00:00
@@ -16,7 +16,7 @@ semantic-links:
     - .github/workflows/container.yaml
     - .github/workflows/testing.yaml
     - docs/issues/open/1840-improve-pr-workflow-performance-epic/EPIC.md
-    - docs/issues/open/1841-1840-workflow-performance-baseline-analysis/benchmark-results-baseline.md
+    - docs/issues/closed/1841-1840-workflow-performance-baseline-analysis/benchmark-results-baseline.md
     - docs/issues/open/1726-1840-workflow-performance-sccache/ISSUE.md
 ---
 
@@ -118,7 +118,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID  | Scenario                       | Command/Steps                                                                              | Expected Result                                            | Status | Evidence                                                                                                                                                                                                                         |
 | --- | ------------------------------ | ------------------------------------------------------------------------------------------ | ---------------------------------------------------------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| M1  | Bottleneck confirmation        | Use baseline report to compare phase timings and identify unneeded target build/link cost. | Decision to proceed is backed by measured data.            | DONE   | [benchmark-results-baseline.md](../../open/1841-1840-workflow-performance-baseline-analysis/benchmark-results-baseline.md): 27/30 top compile units unrelated to runtime image; benches+examples ~250-300s link cost per profile |
+| M1  | Bottleneck confirmation        | Use baseline report to compare phase timings and identify unneeded target build/link cost. | Decision to proceed is backed by measured data.            | DONE   | [benchmark-results-baseline.md](../1841-1840-workflow-performance-baseline-analysis/benchmark-results-baseline.md): 27/30 top compile units unrelated to runtime image; benches+examples ~250-300s link cost per profile |
 | M2  | Reduced-scope build validation | Build tracker image with narrowed Containerfile target scope.                              | Required executables are present and image build succeeds. | DONE   | Cold build (`--no-cache`) succeeded in 5m23s; `docker run --rm torrust-tracker:1853-test ls /usr/bin/torrust-tracker /usr/bin/http_health_check` → both present; image size 173MB                                                |
 | M3  | E2E compatibility check        | Run Docker E2E flow against the reduced-scope image.                                       | E2E tests pass with no functional regression.              | TODO   | {log/output/path}                                                                                                                                                                                                                |
 | M4  | Performance comparison         | Compare before/after container and testing workflow runtimes.                              | Improvement is measurable and documented.                  | TODO   | {log/output/path}                                                                                                                                                                                                                |
@@ -127,7 +127,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence                                                                                                                                                                       |
 | ----- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| AC1   | DONE                   | [benchmark-results-baseline.md](../../open/1841-1840-workflow-performance-baseline-analysis/benchmark-results-baseline.md): 27/30 top compile units unrelated to runtime image |
+| AC1   | DONE                   | [benchmark-results-baseline.md](../1841-1840-workflow-performance-baseline-analysis/benchmark-results-baseline.md): 27/30 top compile units unrelated to runtime image |
 | AC2   | DONE                   | Cold build in 5m23s; `/usr/bin/torrust-tracker` and `/usr/bin/http_health_check` confirmed in release image (173MB)                                                            |
 | AC3   | TODO                   | {workflow timing comparison}                                                                                                                                                   |
 | AC4   | TODO                   | {e2e results link}                                                                                                                                                             |
