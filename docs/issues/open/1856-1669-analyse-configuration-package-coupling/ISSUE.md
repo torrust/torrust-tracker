@@ -606,7 +606,10 @@ This decision is recorded in
   import sites. This is a code-change follow-up to be tracked as a new subissue
   of EPIC #1669.
 - **FU-2**: Evaluate whether `TslConfig` should move into `axum-server` (already
-  flagged in EPIC.md as a temporary coupling). This can be done independently.
+  flagged in EPIC.md as a temporary coupling). The current conclusion from issue
+  #1860 is to keep `TslConfig` in `torrust-tracker-configuration` and keep
+  `torrust-tracker-axum-server` tracker-scoped rather than creating a new package
+  just for the TLS DTO.
 - **FU-3**: Revisit whether `EnvContainer::initialize` should accept narrower
   config slices (`Arc<Core>`, `Arc<UdpTracker>`) instead of `&Configuration`,
   which would reduce the coupling forcing function at the initialisation boundary.

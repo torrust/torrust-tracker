@@ -20,6 +20,57 @@ the proposal, the reasoning, and a reference to any supporting artifact.
 
 ---
 
+## DEC-08 — Keep `TslConfig` in tracker configuration and keep `torrust-tracker-axum-server` tracker-scoped
+
+**Date**: 2026-06-03
+**Status**: Adopted
+
+### Proposal considered
+
+Move `TslConfig` out of `torrust-tracker-configuration` and either:
+
+- place it in `torrust-tracker-axum-server`, or
+- extract it into a new generic package such as `torrust-server-lib` or a dedicated TLS
+  DTO crate.
+
+### Alternative chosen
+
+Keep `TslConfig` in `torrust-tracker-configuration`, keep `torrust-tracker-axum-server`
+tracker-scoped, and avoid creating a new package just for the TLS DTO.
+
+### Why this alternative was adopted
+
+1. **The configuration type is already the public DTO**: `HttpTracker` is now used as the
+   public configuration object for custom tracker composition, so `TslConfig` remains part
+   of the tracker-facing configuration contract.
+2. **Moving to `axum-server` would worsen the dependency story**: the configuration crate
+   would need to import a delivery-layer package to deserialize `HttpTracker.tsl_config`,
+   which inverts the desired layering.
+3. **A separate DTO/internal-type split is overkill here**: `TslConfig` is a two-field
+   struct with no business logic. Treating it like `SocketAddr` is reasonable and avoids
+   needless mapping boilerplate.
+4. **A generic home is premature**: `server-lib` is broader infrastructure for all Torrust
+   HTTP servers, and there is no current cross-project reuse requirement that justifies a
+   new TLS-specific package.
+5. **Tracker-scoped naming matches reality**: the package is now explicitly scoped to the
+   Torrust tracker HTTP services, so depending on tracker configuration types is acceptable
+   when it keeps the service API cohesive.
+
+### Trade-offs acknowledged
+
+- `TslConfig` remains coupled to the tracker supervisor configuration schema.
+- If the same TLS DTO is ever reused across other Torrust projects, a generic package can
+  be reconsidered then.
+- The current choice favors simplicity and cohesive tracker APIs over early abstraction.
+
+### Supporting artifacts
+
+- [Issue #1860 spec](../open/1860-1669-evaluate-tslconfig-move-to-axum-server/ISSUE.md)
+- `packages/axum-server/README.md`
+- `packages/configuration/src/lib.rs`
+
+---
+
 ## DEC-09 — Narrow `EnvContainer::initialize` and `Environment::new` to accept per-service config slices
 
 **Date**: 2026-06-02

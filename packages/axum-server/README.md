@@ -1,6 +1,6 @@
-# Torrust Axum Server
+# Torrust Tracker Axum Server
 
-A wrapper for the Axum server for Torrust HTTP servers to add timeouts.
+A wrapper for the Axum server used by Torrust tracker HTTP services to add timeouts.
 
 ## Documentation
 
@@ -8,22 +8,22 @@ A wrapper for the Axum server for Torrust HTTP servers to add timeouts.
 
 ## Notes
 
-This package is currently scoped under the `torrust-tracker-` prefix because `tsl.rs`
-depends on two tracker-specific items:
+This package is tracker-scoped infrastructure for HTTP services in the Torrust tracker.
+It is the base Axum server wrapper used by the tracker's HTTP service packages, so it
+is fine for it to depend on tracker configuration types when that keeps the service API
+cohesive.
 
-- `TslConfig` from `torrust-tracker-configuration` — a small two-field struct (SSL
-  certificate and key paths). It has no inherent tracker dependency and could be moved
-  to a generic package.
+The TLS helper in `tsl.rs` currently depends on:
+
+- `TslConfig` from `torrust-tracker-configuration` — the tracker supervisor's public
+  TLS configuration DTO
 - `LocatedError` / `DynError` from `torrust-tracker-located-error` — planned to be
-  renamed to `torrust-located-error` (a generic package) under
-  EPIC [#1669](https://github.com/torrust/torrust-tracker/issues/1669) SI-10.
+  renamed to `torrust-located-error` (a generic package) under EPIC
+  [#1669](https://github.com/torrust/torrust-tracker/issues/1669) SI-10
 
-Once `TslConfig` is extracted to a generic location and `torrust-tracker-located-error`
-is renamed, this package could become a generic `torrust-axum-server` reusable across
-the Torrust organisation. A near-identical module already exists in
-[torrust-index](https://github.com/torrust/torrust-index/blob/develop/src/web/api/server/custom_axum.rs),
-which confirms the generic utility of this pattern. This reorganization is tracked in
-EPIC [#1669](https://github.com/torrust/torrust-tracker/issues/1669).
+If this server wrapper is reused outside the tracker in the future, the package
+boundary can be revisited and a more generic home for `TslConfig` can be evaluated
+then.
 
 ## License
 
