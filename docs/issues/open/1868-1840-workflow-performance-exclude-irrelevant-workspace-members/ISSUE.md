@@ -5,7 +5,7 @@ status: open
 priority: p1
 github-issue: 1868
 spec-path: docs/issues/open/1868-1840-workflow-performance-exclude-irrelevant-workspace-members/ISSUE.md
-branch: "{issue-number}-1840-exclude-irrelevant-workspace-members"
+branch: "1868-1840-exclude-irrelevant-workspace-members"
 related-pr: null
 last-updated-utc: 2026-06-03 00:00
 semantic-links:
@@ -16,7 +16,7 @@ semantic-links:
     - .github/workflows/container.yaml
     - docs/issues/open/1840-improve-pr-workflow-performance-epic/EPIC.md
     - docs/issues/closed/1853-1840-workflow-performance-containerfile-target-scope/ISSUE.md
-    - docs/issues/drafts/1840-workflow-performance-dependency-layer-cache-reuse/ISSUE.md
+    - docs/issues/open/1869-1840-workflow-performance-dependency-layer-cache-reuse/ISSUE.md
     - docs/issues/open/1854-1840-workflow-performance-container-test-gating/ISSUE.md
 ---
 
@@ -84,7 +84,7 @@ significantly.
 ### Out of Scope
 
 - Removing tests from the container build (tracked in #1854).
-- Implementing cross-workflow cache sharing (tracked in the dependency-layer-cache-reuse draft).
+- Implementing cross-workflow cache sharing (tracked in #1869).
 - Changing which packages are part of the workspace `[members]` list.
 - Broad Containerfile restructuring unrelated to the exclusion change.
 
