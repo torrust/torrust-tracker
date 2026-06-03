@@ -92,12 +92,12 @@ significantly.
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| ID  | Status | Task                                                      | Notes / Expected Output                                                                                                                                                                                    |
-| --- | ------ | --------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| T1  | TODO   | Verify `cargo nextest archive` supports `--exclude`       | Confirm the flag works for cargo-nextest; check docs and local test.                                                                                                                                       |
-| T2  | TODO   | Add `--exclude` flags to all Containerfile cargo commands | Six commands: `cargo chef cook` × 2 and `cargo nextest archive` × 4. Both excluded packages named explicitly.                                                                                              |
-| T3  | TODO   | Decide on `cargo chef prepare` exclusion                  | Determine if `--exclude` is supported/needed for `cargo chef prepare`. If yes, remove the COPY/stub entries for the two packages from the recipe stage. If no, document why the COPY/stub lines must stay. |
-| T4  | TODO   | Run full CI build and record timing evidence              | CI log showing build time after exclusion. Compare against pre-fix baseline (19m03s build step, 38m total).                                                                                                |
+| ID  | Status | Task                                                      | Notes / Expected Output                                                                                                                                                                                                                                                                   |
+| --- | ------ | --------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| T1  | DONE   | Verify `cargo nextest archive` supports `--exclude`       | Confirmed: `--exclude` is standard Cargo package-selection syntax; `cargo nextest archive` passes it through to Cargo. Verified by inspecting cargo-nextest behaviour and Cargo docs.                                                                                                     |
+| T2  | DONE   | Add `--exclude` flags to all Containerfile cargo commands | Applied to all 4 `cargo nextest archive` commands. `cargo chef cook` does **not** support `--exclude` (cargo-chef CLI limitation; see T3). Documented with comments in the Containerfile.                                                                                                 |
+| T3  | DONE   | Decide on `cargo chef prepare` exclusion                  | Neither `cargo chef prepare` nor `cargo chef cook` exposes an `--exclude` flag. The COPY/stub lines for both excluded packages **must stay** so that `cargo metadata` (invoked by `prepare`) can resolve the workspace without missing manifest files. See Containerfile comment and AC4. |
+| T4  | TODO   | Run full CI build and record timing evidence              | CI log showing build time after exclusion. Compare against pre-fix baseline (19m03s build step, 38m total).                                                                                                                                                                               |
 
 ## Progress Tracking
 
@@ -107,8 +107,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
 - [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
+- [x] Implementation completed
+- [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [ ] Manual verification scenarios executed and recorded (status + evidence)
 - [ ] Acceptance criteria reviewed after implementation and updated with evidence
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
@@ -119,15 +119,16 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 - 2026-06-03 00:00 UTC - GitHub Copilot - Drafted issue spec based on post-merge CI analysis of #1853 - draft file created
 - 2026-06-03 00:00 UTC - GitHub Copilot - Narrowed scope to `--exclude` fix only; layer split analysis moved to dependency-layer-cache-reuse draft - draft updated
+- 2026-06-03 00:00 UTC - GitHub Copilot - Implemented: added `--exclude workspace-coupling --exclude torrust-tracker-torrent-repository-benchmarking` to all 4 `cargo nextest archive` commands in Containerfile; investigated and documented that `cargo chef cook` and `cargo chef prepare` do not support `--exclude` (cargo-chef CLI limitation); COPY/stub lines for excluded packages retained in recipe stage because `cargo chef prepare` invokes `cargo metadata` which requires all workspace manifests to be present
 
 ## Acceptance Criteria
 
 - [ ] AC1: `workspace-coupling` and `torrust-tracker-torrent-repository-benchmarking` do not appear in the container build compilation output.
 - [ ] AC2: The final `cargo nextest archive` step in the CI build completes in measurably less time than the 19m03s baseline recorded after #1853.
 - [ ] AC3: The tracker runtime image is produced correctly and all unit tests still pass inside the container build.
-- [ ] AC4: The decision on `cargo chef prepare` exclusion is documented with rationale (either in the Containerfile comments or in this spec).
-- [ ] `linter all` exits with code `0`
-- [ ] Relevant tests pass
+- [x] AC4: The decision on `cargo chef prepare` and `cargo chef cook` exclusion is documented: neither tool exposes `--exclude` in its CLI (cargo-chef limitation). `cargo chef prepare` uses `cargo metadata` internally, which requires every workspace member's manifest to exist on disk — the COPY/stub lines for the excluded packages are therefore retained in the recipe stage. `cargo chef cook` similarly has no `--exclude` flag; the exclusion is achieved entirely through the 4 `cargo nextest archive` commands where standard Cargo `--exclude` is supported. This is documented in Containerfile comments.
+- [x] `linter all` exits with code `0`
+- [x] Relevant tests pass
 - [ ] Manual verification scenarios are executed and documented (status + evidence)
 - [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
 - [ ] Documentation is updated when behavior/workflow changes
@@ -154,12 +155,12 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 ### Acceptance Verification
 
-| AC ID | Status (`TODO`/`DONE`) | Evidence                             |
-| ----- | ---------------------- | ------------------------------------ |
-| AC1   | TODO                   | {CI log link}                        |
-| AC2   | TODO                   | {timing comparison}                  |
-| AC3   | TODO                   | {CI test stage log}                  |
-| AC4   | TODO                   | {Containerfile comment or spec note} |
+| AC ID | Status (`TODO`/`DONE`) | Evidence                                                                            |
+| ----- | ---------------------- | ----------------------------------------------------------------------------------- |
+| AC1   | TODO                   | {CI log link}                                                                       |
+| AC2   | TODO                   | {timing comparison}                                                                 |
+| AC3   | TODO                   | {CI test stage log}                                                                 |
+| AC4   | DONE                   | See AC4 text above and Containerfile comments in the Cook (debug) and recipe stages |
 
 ## Risks and Trade-offs
 
