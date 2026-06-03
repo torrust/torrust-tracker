@@ -1,13 +1,13 @@
 ---
 doc-type: issue
 issue-type: task
-status: draft
+status: open
 priority: p1
-github-issue: null
-spec-path: docs/issues/drafts/1840-workflow-performance-dependency-layer-cache-reuse/ISSUE.md
+github-issue: 1869
+spec-path: docs/issues/open/1869-1840-workflow-performance-dependency-layer-cache-reuse/ISSUE.md
 branch: "{issue-number}-dependency-layer-cache-reuse"
 related-pr: null
-last-updated-utc: 2026-05-27 00:00
+last-updated-utc: 2026-06-03 00:00
 semantic-links:
   skill-links:
     - create-issue
@@ -21,7 +21,7 @@ semantic-links:
 
 <!-- skill-link: create-issue -->
 
-# Issue #[To be assigned] - Improve dependency-layer cache reuse within each workflow
+# Issue #1869 - Improve dependency-layer cache reuse within each workflow
 
 ## Goal
 
@@ -35,6 +35,8 @@ Current workflows use isolated cache scopes to avoid conflicts and race conditio
 
 This issue should determine whether current cache misses are caused by layer invalidation inputs, cache configuration, or both, and then propose a safe strategy to improve reuse within workflow boundaries.
 
+A further concern emerged from post-#1853 CI analysis: in this repository, most logic lives in in-repo workspace packages (not external crates), and those packages change on nearly every PR. The `cargo-chef` cook stage can only pre-compile external dependencies; workspace members must always be compiled from source in the build stage. This raises the question of whether the cook/build split provides meaningful cache benefit at all given this churn pattern, or whether an alternative scoping strategy — for example, limiting the cook stage to external-only packages via `--package` selectors — would be more effective. This issue must include that evaluation as part of T3.
+
 ## Scope
 
 ### In Scope
@@ -42,6 +44,7 @@ This issue should determine whether current cache misses are caused by layer inv
 - Measure dependency-layer cache hit and miss behavior for unchanged dependency inputs.
 - Identify invalidation triggers for dependency stages in the Containerfile and workflow build configuration.
 - Preserve current workflow concurrency while improving cache effectiveness.
+- Evaluate whether the current `cargo-chef` cook/build split strategy delivers meaningful cache benefit given typical PR churn on workspace packages, and document findings with evidence. If the split is not effective, propose an alternative (for example, scoping the cook stage to external-only packages via `--package` selectors, or eliminating the split in favour of a single build step).
 - Propose a practical cache policy and expected impact.
 - Prepare follow-up scope for optional cross-workflow cache reuse only after in-workflow behavior is reliable.
 
@@ -57,21 +60,21 @@ This issue should determine whether current cache misses are caused by layer inv
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| ID  | Status | Task                               | Notes / Expected Output                                                                                                  |
-| --- | ------ | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| T1  | TODO   | Reproduce current cache behavior   | Demonstrate dependency-layer misses when dependencies are unchanged and only app code differs.                           |
-| T2  | TODO   | Identify invalidation inputs       | Document which files, build args, or stage structure invalidate dependency layers.                                       |
-| T3  | TODO   | Propose in-workflow reuse strategy | Recommendation for container and testing workflows independently, keeping current cache-scope isolation and concurrency. |
-| T4  | TODO   | Validate impact on PR wait time    | Before/after evidence for dependency-stage reuse and effect on end-to-end check completion time.                         |
-| T5  | TODO   | Draft follow-up scope              | Outline a separate follow-up issue for optional cross-workflow cache reuse, including race and sequencing trade-offs.    |
+| ID  | Status | Task                               | Notes / Expected Output                                                                                                                                                                                                                                                                                                                                                                           |
+| --- | ------ | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| T1  | TODO   | Reproduce current cache behavior   | Demonstrate dependency-layer misses when dependencies are unchanged and only app code differs.                                                                                                                                                                                                                                                                                                    |
+| T2  | TODO   | Identify invalidation inputs       | Document which files, build args, or stage structure invalidate dependency layers.                                                                                                                                                                                                                                                                                                                |
+| T3  | TODO   | Propose in-workflow reuse strategy | Recommendation for container and testing workflows independently, keeping current cache-scope isolation and concurrency. The strategy must also assess whether the `cargo-chef` cook/build split is appropriate given workspace-package churn: if the split provides little reuse benefit, propose an alternative (for example, scoping cook to external-only packages or eliminating the split). |
+| T4  | TODO   | Validate impact on PR wait time    | Before/after evidence for dependency-stage reuse and effect on end-to-end check completion time.                                                                                                                                                                                                                                                                                                  |
+| T5  | TODO   | Draft follow-up scope              | Outline a separate follow-up issue for optional cross-workflow cache reuse, including race and sequencing trade-offs.                                                                                                                                                                                                                                                                             |
 
 ## Progress Tracking
 
 ### Workflow Checkpoints
 
 - [ ] Spec drafted in `docs/issues/drafts/`
-- [ ] Spec reviewed and approved by user/maintainer
-- [ ] GitHub issue created and issue number added to this spec
+- [x] Spec reviewed and approved by user/maintainer
+- [x] GitHub issue created and issue number added to this spec
 - [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
@@ -87,6 +90,8 @@ Append one line per meaningful update.
 
 - 2026-05-27 00:00 UTC - GitHub Copilot - Drafted dependency-layer cache reuse issue from EPIC discussion - draft file created
 - 2026-05-27 00:00 UTC - GitHub Copilot - Refocused this issue on in-workflow cache reuse first and moved cross-workflow sharing to follow-up scope - draft updated
+- 2026-06-03 00:00 UTC - GitHub Copilot - Added workspace-churn angle: T3 now requires evaluating whether the cook/build split itself is effective, not only whether cache config is correct - draft updated
+- 2026-06-03 00:00 UTC - GitHub Copilot - Created GitHub issue #1869 and promoted spec to `docs/issues/open/`
 
 ## Acceptance Criteria
 
@@ -139,6 +144,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 - Risk: reducing per-workflow runtime may still not improve total wait time if critical-path behavior is ignored. Mitigation: measure and optimize end-to-end wait until all required checks complete.
 - Risk: forcing sequential workflows for cache reuse can increase total wait time despite lower compute usage. Mitigation: keep this issue focused on in-workflow reuse and evaluate sequential orchestration only in follow-up.
 - Risk: measured gains may be lower than expected if invalidation is driven by unavoidable inputs. Mitigation: validate root causes before implementation.
+- Risk: even with correct cache configuration, workspace-package churn on most PRs may mean the cook stage provides little reuse benefit, making the overall optimization marginal. Mitigation: T3 explicitly evaluates this and proposes an alternative strategy if the current split is not effective.
 
 ## References
 
