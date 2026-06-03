@@ -49,6 +49,7 @@ callsites
 camino
 canonicalize
 canonicalized
+categorisation
 cdylib
 Celano
 certbot
@@ -76,6 +77,7 @@ datetime
 dbip
 dbname
 debuginfo
+defence
 depgraph
 Deque
 Dihc
@@ -190,6 +192,7 @@ multimap
 myacicontext
 mysqladmin
 mysqld
+optimisation
 ñaca
 Naim
 nanos
