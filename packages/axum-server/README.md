@@ -17,9 +17,8 @@ The TLS helper in `tsl.rs` currently depends on:
 
 - `TslConfig` from `torrust-tracker-configuration` — the tracker supervisor's public
   TLS configuration DTO
-- `LocatedError` / `DynError` from `torrust-tracker-located-error` — planned to be
-  renamed to `torrust-located-error` (a generic package) under EPIC
-  [#1669](https://github.com/torrust/torrust-tracker/issues/1669) SI-10
+- `LocatedError` / `DynError` from `torrust-located-error` — already extracted into a
+  generic package
 
 If this server wrapper is reused outside the tracker in the future, the package
 boundary can be revisited and a more generic home for `TslConfig` can be evaluated

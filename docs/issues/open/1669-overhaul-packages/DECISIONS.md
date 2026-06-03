@@ -65,7 +65,7 @@ tracker-scoped, and avoid creating a new package just for the TLS DTO.
 
 ### Supporting artifacts
 
-- [Issue #1860 spec](../open/1860-1669-evaluate-tslconfig-move-to-axum-server/ISSUE.md)
+- [Issue #1860 spec](../../open/1860-1669-evaluate-tslconfig-move-to-axum-server/ISSUE.md)
 - `packages/axum-server/README.md`
 - `packages/configuration/src/lib.rs`
 

@@ -38,7 +38,7 @@ This issue is a subissue of EPIC [#1669](../1669-overhaul-packages/EPIC.md).
 ## Background
 
 `TslConfig` is currently defined in `torrust-tracker-configuration`
-(`packages/configuration/src/v2_0_0/tls.rs`). Its only production consumer is
+(`packages/configuration/src/lib.rs`). Its only production consumer is
 `torrust-tracker-axum-server` (`packages/axum-server/src/tsl.rs`). No other production
 code in the workspace depends on `TslConfig` directly.
 
@@ -93,8 +93,8 @@ Move the type, update import sites, update Cargo manifests, run tests.
 
 - [x] A decision entry is added to `docs/issues/open/1669-overhaul-packages/DECISIONS.md`
       with chosen approach and rationale
-- [x] Option C chosen: `TslConfig` stays in `torrust-tracker-configuration`, the
-      package boundary stays tracker-scoped, and no new TLS DTO package was added
+- [x] DEC-08 chosen approach: `TslConfig` stays in `torrust-tracker-configuration`,
+      the package boundary stays tracker-scoped, and no new TLS DTO package was added
 - [x] All tests pass; no new clippy warnings — not applicable because no code changes
       were required for the selected option
 
