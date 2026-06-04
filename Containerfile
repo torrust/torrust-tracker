@@ -58,7 +58,7 @@ COPY contrib/bencode/Cargo.toml contrib/bencode/
 #   - workspace-coupling (analysis/coupling tool, no production value)
 #   - torrust-tracker-torrent-repository-benchmarking (benchmarking only)
 #   - torrust-tracker-client (CLI dev tools: tracker_client, tracker_checker, etc.)
-#   - torrust-tracker-contrib-bencode (contrib utility, not a tracker dependency)
+#   - torrust-tracker-contrib-bencode (contrib utility; its own tests/bins are not needed in the container)
 #   - torrust-tracker-e2e-tools (E2E runners + profiling tool, GHA host-only)
 #   - torrust-tracker-persistence-benchmark (persistence layer dev benchmarking tool)
 # Their Cargo.toml manifests and stub source files must still be present here
