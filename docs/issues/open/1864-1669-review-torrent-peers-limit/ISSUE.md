@@ -90,9 +90,9 @@ global value shared across multiple packages.
 
 ## Acceptance Criteria
 
-- [ ] A decision (ADR or `DECISIONS.md` entry under EPIC #1669) recording the chosen
+- [x] A decision (ADR or `DECISIONS.md` entry under EPIC #1669) recording the chosen
       approach and the rationale.
-- [ ] If the decision is to change the current design: implementation is complete,
+- [x] If the decision is to change the current design: implementation is complete,
       all tests pass, and the doc reference in `axum-http-server/src/lib.rs` is updated.
-- [ ] `cargo test --workspace` passes.
-- [ ] `linter all` passes.
+- [x] `cargo test --workspace` passes.
+- [x] `linter all` passes.

@@ -1,12 +1,11 @@
 //! In-memory torrents repository.
-use std::cmp::max;
 use std::sync::Arc;
 
 use bittorrent_primitives::info_hash::InfoHash;
 use torrust_clock::DurationSinceUnixEpoch;
 use torrust_tracker_primitives::pagination::Pagination;
 use torrust_tracker_primitives::swarm_metadata::{AggregateActiveSwarmMetadata, SwarmMetadata};
-use torrust_tracker_primitives::{NumberOfDownloads, NumberOfDownloadsBTreeMap, TORRENT_PEERS_LIMIT, TrackerPolicy, peer};
+use torrust_tracker_primitives::{NumberOfDownloads, NumberOfDownloadsBTreeMap, TrackerPolicy, peer};
 use torrust_tracker_swarm_coordination_registry::{CoordinatorHandle, Registry};
 
 /// In-memory repository for torrent entries.
@@ -161,8 +160,7 @@ impl InMemoryTorrentRepository {
     /// requesting client.
     ///
     /// This method filters out the client making the request (based on its
-    /// network address) and returns up to a maximum number of peers, defined by
-    /// the greater of the provided limit or the global `TORRENT_PEERS_LIMIT`.
+    /// network address) and returns up to `limit` peers.
     ///
     /// # Arguments
     ///
@@ -181,19 +179,20 @@ impl InMemoryTorrentRepository {
     #[must_use]
     pub(crate) async fn get_peers_for(&self, info_hash: &InfoHash, peer: &peer::Peer, limit: usize) -> Vec<Arc<peer::Peer>> {
         self.swarms
-            .get_peers_peers_excluding(info_hash, peer, max(limit, TORRENT_PEERS_LIMIT))
+            .get_peers_peers_excluding(info_hash, peer, limit)
             .await
             .expect("Failed to get other peers in swarm")
     }
 
     /// Retrieves the list of peers for a given torrent.
     ///
-    /// This method returns up to `TORRENT_PEERS_LIMIT` peers for the torrent
+    /// This method returns up to `max_peers` peers for the torrent
     /// specified by the info-hash.
     ///
     /// # Arguments
     ///
     /// * `info_hash` - The info hash of the torrent.
+    /// * `max_peers` - The maximum number of peers to return.
     ///
     /// # Returns
     ///
@@ -204,10 +203,9 @@ impl InMemoryTorrentRepository {
     ///
     /// This function panics if the underling swarms return an error.
     #[must_use]
-    pub async fn get_torrent_peers(&self, info_hash: &InfoHash) -> Vec<Arc<peer::Peer>> {
-        // todo: pass the limit as an argument like `get_peers_for`
+    pub async fn get_torrent_peers(&self, info_hash: &InfoHash, max_peers: usize) -> Vec<Arc<peer::Peer>> {
         self.swarms
-            .get_swarm_peers(info_hash, TORRENT_PEERS_LIMIT)
+            .get_swarm_peers(info_hash, max_peers)
             .await
             .expect("Failed to get other peers in swarm")
     }

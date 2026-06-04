@@ -24,7 +24,8 @@ async fn it_should_handle_the_announce_request() {
             },
             policy: AnnouncePolicy {
                 interval: 120,
-                interval_min: 120
+                interval_min: 120,
+                max_peers_per_announce: 74,
             }
         }
     );
