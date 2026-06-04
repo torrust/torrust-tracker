@@ -888,7 +888,7 @@ mod for_all_config_modes {
                 .container
                 .tracker_core_container
                 .in_memory_torrent_repository
-                .get_torrent_peers(&info_hash)
+                .get_torrent_peers(&info_hash, usize::MAX)
                 .await;
             let peer_addr = peers[0].peer_addr;
 
@@ -933,7 +933,7 @@ mod for_all_config_modes {
                 .container
                 .tracker_core_container
                 .in_memory_torrent_repository
-                .get_torrent_peers(&info_hash)
+                .get_torrent_peers(&info_hash, usize::MAX)
                 .await;
             let peer_addr = peers[0].peer_addr;
 
@@ -983,7 +983,7 @@ mod for_all_config_modes {
                 .container
                 .tracker_core_container
                 .in_memory_torrent_repository
-                .get_torrent_peers(&info_hash)
+                .get_torrent_peers(&info_hash, usize::MAX)
                 .await;
             let peer_addr = peers[0].peer_addr;
 
@@ -1034,7 +1034,7 @@ mod for_all_config_modes {
                 .container
                 .tracker_core_container
                 .in_memory_torrent_repository
-                .get_torrent_peers(&info_hash)
+                .get_torrent_peers(&info_hash, usize::MAX)
                 .await;
             let peer_addr = peers[0].peer_addr;
 

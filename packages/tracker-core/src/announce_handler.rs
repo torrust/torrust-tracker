@@ -95,7 +95,7 @@ use std::sync::Arc;
 
 use bittorrent_primitives::info_hash::InfoHash;
 use torrust_tracker_configuration::Core;
-use torrust_tracker_primitives::{AnnounceData, NumberOfDownloads, TORRENT_PEERS_LIMIT, peer};
+use torrust_tracker_primitives::{AnnounceData, NumberOfDownloads, peer};
 
 use super::torrent::repository::in_memory::InMemoryTorrentRepository;
 use crate::databases;
@@ -189,7 +189,11 @@ impl AnnounceHandler {
     async fn build_announce_data(&self, info_hash: &InfoHash, peer: &peer::Peer, peers_wanted: &PeersWanted) -> AnnounceData {
         let peers = self
             .in_memory_torrent_repository
-            .get_peers_for(info_hash, peer, peers_wanted.limit())
+            .get_peers_for(
+                info_hash,
+                peer,
+                peers_wanted.limit(self.config.announce_policy.max_peers_per_announce),
+            )
             .await;
 
         let swarm_metadata = self
@@ -217,46 +221,38 @@ pub enum PeersWanted {
 }
 
 impl PeersWanted {
-    /// Request a specific number of peers.
+    /// Request a specific number of peers, without applying the tracker-side cap.
+    ///
+    /// The cap is applied when [`limit`](PeersWanted::limit) is called.
     #[must_use]
-    pub fn only(limit: u32) -> Self {
-        limit.into()
+    pub fn only(amount: u32) -> Self {
+        PeersWanted::Only { amount: amount as usize }
     }
 
-    /// Returns the maximum number of peers allowed based on the request and tracker limit.
-    fn limit(&self) -> usize {
-        match self {
-            PeersWanted::AsManyAsPossible => TORRENT_PEERS_LIMIT,
-            PeersWanted::Only { amount } => *amount,
-        }
-    }
-}
-
-impl From<i32> for PeersWanted {
-    fn from(value: i32) -> Self {
+    /// Constructs a `PeersWanted` from a raw client-supplied value.
+    ///
+    /// A value of `0` or negative means "as many as possible";
+    /// any positive value is stored as-is and capped at the tracker limit
+    /// when [`limit`](PeersWanted::limit) is called.
+    #[must_use]
+    pub fn from_client_request(value: i32) -> Self {
         if value <= 0 {
-            return PeersWanted::AsManyAsPossible;
-        }
-
-        // This conversion is safe because `value > 0`
-        let amount = usize::try_from(value).unwrap();
-
-        PeersWanted::Only {
-            amount: amount.min(TORRENT_PEERS_LIMIT),
+            PeersWanted::AsManyAsPossible
+        } else {
+            // Safe: value > 0, so casting to usize is lossless on all supported platforms.
+            #[allow(clippy::cast_sign_loss)]
+            PeersWanted::Only { amount: value as usize }
         }
     }
-}
 
-impl From<u32> for PeersWanted {
-    fn from(value: u32) -> Self {
-        if value == 0 {
-            return PeersWanted::AsManyAsPossible;
-        }
-
-        let amount = value as usize;
-
-        PeersWanted::Only {
-            amount: amount.min(TORRENT_PEERS_LIMIT),
+    /// Returns the effective number of peers to return, capped at `max_peers`.
+    ///
+    /// - `AsManyAsPossible` resolves to `max_peers`.
+    /// - `Only { amount }` resolves to `amount.min(max_peers)`.
+    pub(crate) fn limit(&self, max_peers: usize) -> usize {
+        match self {
+            PeersWanted::AsManyAsPossible => max_peers,
+            PeersWanted::Only { amount } => (*amount).min(max_peers),
         }
     }
 }
@@ -597,91 +593,91 @@ mod tests {
 
         mod should_allow_the_client_peers_to_specified_the_number_of_peers_wanted {
 
-            use torrust_tracker_primitives::TORRENT_PEERS_LIMIT;
-
             use crate::announce_handler::PeersWanted;
+
+            const MAX_PEERS: usize = 74;
 
             #[test]
             fn it_should_return_the_maximin_number_of_peers_by_default() {
                 let peers_wanted = PeersWanted::default();
 
-                assert_eq!(peers_wanted.limit(), TORRENT_PEERS_LIMIT);
+                assert_eq!(peers_wanted.limit(MAX_PEERS), MAX_PEERS);
             }
 
             #[test]
             fn it_should_return_74_at_the_most_if_the_client_wants_them_all() {
                 let peers_wanted = PeersWanted::AsManyAsPossible;
 
-                assert_eq!(peers_wanted.limit(), TORRENT_PEERS_LIMIT);
+                assert_eq!(peers_wanted.limit(MAX_PEERS), MAX_PEERS);
             }
 
             #[test]
             fn it_should_allow_limiting_the_peer_list() {
                 let peers_wanted = PeersWanted::only(10);
 
-                assert_eq!(peers_wanted.limit(), 10);
+                assert_eq!(peers_wanted.limit(MAX_PEERS), 10);
             }
 
             fn maximum_as_u32() -> u32 {
-                u32::try_from(TORRENT_PEERS_LIMIT).unwrap()
+                u32::try_from(MAX_PEERS).unwrap()
             }
 
             fn maximum_as_i32() -> i32 {
-                i32::try_from(TORRENT_PEERS_LIMIT).unwrap()
+                i32::try_from(MAX_PEERS).unwrap()
             }
 
             #[test]
             fn it_should_return_the_maximum_when_wanting_more_than_the_maximum() {
                 let peers_wanted = PeersWanted::only(maximum_as_u32() + 1);
-                assert_eq!(peers_wanted.limit(), TORRENT_PEERS_LIMIT);
+                assert_eq!(peers_wanted.limit(MAX_PEERS), MAX_PEERS);
             }
 
             #[test]
-            fn it_should_return_the_maximum_when_wanting_only_zero() {
+            fn it_should_return_zero_when_wanting_only_zero() {
                 let peers_wanted = PeersWanted::only(0);
-                assert_eq!(peers_wanted.limit(), TORRENT_PEERS_LIMIT);
+                assert_eq!(peers_wanted.limit(MAX_PEERS), 0);
             }
 
             #[test]
-            fn it_should_convert_the_peers_wanted_number_from_i32() {
-                // Negative. It should return the maximum
-                let peers_wanted: PeersWanted = (-1i32).into();
-                assert_eq!(peers_wanted.limit(), TORRENT_PEERS_LIMIT);
+            fn it_should_convert_the_peers_wanted_number_from_i32_via_from_client_request() {
+                // Negative. It should return the maximum (AsManyAsPossible)
+                let peers_wanted = PeersWanted::from_client_request(-1i32);
+                assert_eq!(peers_wanted.limit(MAX_PEERS), MAX_PEERS);
 
-                // Zero. It should return the maximum
-                let peers_wanted: PeersWanted = 0i32.into();
-                assert_eq!(peers_wanted.limit(), TORRENT_PEERS_LIMIT);
+                // Zero. It should return the maximum (AsManyAsPossible)
+                let peers_wanted = PeersWanted::from_client_request(0i32);
+                assert_eq!(peers_wanted.limit(MAX_PEERS), MAX_PEERS);
 
-                // Greater than the maximum. It should return the maximum
-                let peers_wanted: PeersWanted = (maximum_as_i32() + 1).into();
-                assert_eq!(peers_wanted.limit(), TORRENT_PEERS_LIMIT);
+                // Greater than the maximum. It should be capped at limit time
+                let peers_wanted = PeersWanted::from_client_request(maximum_as_i32() + 1);
+                assert_eq!(peers_wanted.limit(MAX_PEERS), MAX_PEERS);
 
                 // The maximum
-                let peers_wanted: PeersWanted = (maximum_as_i32()).into();
-                assert_eq!(peers_wanted.limit(), TORRENT_PEERS_LIMIT);
+                let peers_wanted = PeersWanted::from_client_request(maximum_as_i32());
+                assert_eq!(peers_wanted.limit(MAX_PEERS), MAX_PEERS);
 
                 // Smaller than the maximum
-                let peers_wanted: PeersWanted = (maximum_as_i32() - 1).into();
-                assert_eq!(i32::try_from(peers_wanted.limit()).unwrap(), maximum_as_i32() - 1);
+                let peers_wanted = PeersWanted::from_client_request(maximum_as_i32() - 1);
+                assert_eq!(i32::try_from(peers_wanted.limit(MAX_PEERS)).unwrap(), maximum_as_i32() - 1);
             }
 
             #[test]
-            fn it_should_convert_the_peers_wanted_number_from_u32() {
-                // Zero. It should return the maximum
-                let peers_wanted: PeersWanted = 0u32.into();
-                assert_eq!(peers_wanted.limit(), TORRENT_PEERS_LIMIT);
+            fn it_should_cap_only_peers_wanted_at_limit_time() {
+                // Zero — returns 0 (explicit request for zero peers)
+                let peers_wanted = PeersWanted::only(0u32);
+                assert_eq!(peers_wanted.limit(MAX_PEERS), 0);
 
-                // Greater than the maximum. It should return the maximum
-                let peers_wanted: PeersWanted = (maximum_as_u32() + 1).into();
-                assert_eq!(peers_wanted.limit(), TORRENT_PEERS_LIMIT);
+                // Greater than the maximum — capped at limit time
+                let peers_wanted = PeersWanted::only(maximum_as_u32() + 1);
+                assert_eq!(peers_wanted.limit(MAX_PEERS), MAX_PEERS);
 
                 // The maximum
-                let peers_wanted: PeersWanted = (maximum_as_u32()).into();
-                assert_eq!(peers_wanted.limit(), TORRENT_PEERS_LIMIT);
+                let peers_wanted = PeersWanted::only(maximum_as_u32());
+                assert_eq!(peers_wanted.limit(MAX_PEERS), MAX_PEERS);
 
                 // Smaller than the maximum
-                let peers_wanted: PeersWanted = (maximum_as_u32() - 1).into();
-                assert_eq!(i32::try_from(peers_wanted.limit()).unwrap(), maximum_as_i32() - 1);
+                let peers_wanted = PeersWanted::only(maximum_as_u32() - 1);
+                assert_eq!(i32::try_from(peers_wanted.limit(MAX_PEERS)).unwrap(), maximum_as_i32() - 1);
             }
         }
     }

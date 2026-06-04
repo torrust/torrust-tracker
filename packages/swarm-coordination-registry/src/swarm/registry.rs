@@ -197,8 +197,7 @@ impl Registry {
     /// requesting client.
     ///
     /// This method filters out the client making the request (based on its
-    /// network address) and returns up to a maximum number of peers, defined by
-    /// the greater of the provided limit or the global `TORRENT_PEERS_LIMIT`.
+    /// network address) and returns up to `limit` peers.
     ///
     /// # Returns
     ///
@@ -226,7 +225,7 @@ impl Registry {
 
     /// Retrieves the list of peers for a given torrent.
     ///
-    /// This method returns up to `TORRENT_PEERS_LIMIT` peers for the torrent
+    /// This method returns up to the provided limit of peers for the torrent
     /// specified by the info-hash.
     ///
     /// # Returns
@@ -676,7 +675,9 @@ mod tests {
 
                 use torrust_clock::DurationSinceUnixEpoch;
                 use torrust_tracker_primitives::peer::Peer;
-                use torrust_tracker_primitives::{AnnounceEvent, NumberOfBytes, TORRENT_PEERS_LIMIT};
+                use torrust_tracker_primitives::{AnnounceEvent, NumberOfBytes};
+
+                const MAX_PEERS: usize = 74;
 
                 use crate::swarm::registry::Registry;
                 use crate::swarm::registry::tests::the_swarm_repository::numeric_peer_id;
@@ -687,7 +688,7 @@ mod tests {
                     let swarms = Arc::new(Registry::default());
 
                     let peers = swarms
-                        .get_peers_peers_excluding(&sample_info_hash(), &sample_peer(), TORRENT_PEERS_LIMIT)
+                        .get_peers_peers_excluding(&sample_info_hash(), &sample_peer(), MAX_PEERS)
                         .await
                         .unwrap();
 
@@ -703,10 +704,7 @@ mod tests {
 
                     swarms.handle_announcement(&info_hash, &peer, None).await.unwrap();
 
-                    let peers = swarms
-                        .get_peers_peers_excluding(&info_hash, &peer, TORRENT_PEERS_LIMIT)
-                        .await
-                        .unwrap();
+                    let peers = swarms.get_peers_peers_excluding(&info_hash, &peer, MAX_PEERS).await.unwrap();
 
                     assert_eq!(peers, vec![]);
                 }
@@ -737,7 +735,7 @@ mod tests {
                     }
 
                     let peers = swarms
-                        .get_peers_peers_excluding(&info_hash, &excluded_peer, TORRENT_PEERS_LIMIT)
+                        .get_peers_peers_excluding(&info_hash, &excluded_peer, MAX_PEERS)
                         .await
                         .unwrap();
 

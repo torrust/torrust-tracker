@@ -5,7 +5,9 @@ use rstest::{fixture, rstest};
 use torrust_clock::clock::stopped::Stopped as _;
 use torrust_clock::clock::{self, Time as _};
 use torrust_tracker_primitives::peer::Peer;
-use torrust_tracker_primitives::{AnnounceEvent, NumberOfBytes, TORRENT_PEERS_LIMIT, TrackerPolicy, peer};
+use torrust_tracker_primitives::{AnnounceEvent, NumberOfBytes, TrackerPolicy, peer};
+
+const MAX_PEERS: usize = 74;
 use torrust_tracker_torrent_repository_benchmarking::{
     EntryMutexParkingLot, EntryMutexStd, EntryMutexTokio, EntryRwLockParkingLot, EntrySingle,
 };
@@ -401,9 +403,9 @@ async fn it_should_limit_the_number_of_peers_returned(
         torrent.upsert_peer(&peer).await;
     }
 
-    let peers = torrent.get_peers(Some(TORRENT_PEERS_LIMIT)).await;
+    let peers = torrent.get_peers(Some(MAX_PEERS)).await;
 
-    assert_eq!(peers.len(), 74);
+    assert_eq!(peers.len(), MAX_PEERS);
 }
 
 #[rstest]

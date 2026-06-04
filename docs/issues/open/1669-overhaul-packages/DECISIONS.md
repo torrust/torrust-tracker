@@ -20,6 +20,52 @@ the proposal, the reasoning, and a reference to any supporting artifact.
 
 ---
 
+## DEC-10 — Move peer-count cap from a global constant to `AnnouncePolicy::max_peers_per_announce`
+
+**Date**: 2026-06-09
+**Status**: Adopted
+**Related issue**: [#1864](https://github.com/torrust/torrust-tracker/issues/1864)
+
+### Proposal considered
+
+The hardcoded constant `TORRENT_PEERS_LIMIT = 74` in `torrust-tracker-primitives` was
+the sole compile-time control over how many peers the tracker returns per announce
+response. The options evaluated were:
+
+1. **Keep the constant** but expose it as a public API so callers can pass it explicitly.
+2. **Add a runtime field** `max_peers_per_announce: usize` to `AnnouncePolicy` and remove
+   the constant entirely.
+3. **Move the cap to `TrackerPolicy`** alongside the existing cleanup policy fields.
+
+### Alternative chosen
+
+Option 2: add `max_peers_per_announce: usize` (default `74`) to `AnnouncePolicy` and
+remove `TORRENT_PEERS_LIMIT`. The cap is applied inside `AnnounceHandler::build_announce_data`
+via `PeersWanted::limit(max_peers)` at call time, not at `PeersWanted` construction time.
+
+### Why this alternative was adopted
+
+1. **Semantic fit**: `AnnouncePolicy` already governs announce-response behaviour
+   (`interval`, `interval_min`). The peer count cap belongs in the same bucket.
+2. **Runtime configurability**: operators can tune the cap per deployment without
+   recompiling. The previous constant made that impossible.
+3. **Cleaner type boundaries**: `PeersWanted` no longer needs to know about a global
+   limit when constructed; the limit is injected once at the point of use
+   (`build_announce_data`), keeping the type simple and context-free.
+4. **Avoiding `TrackerPolicy` scope creep**: `TrackerPolicy` is about data-retention
+   behaviour (persistence, ghost peers, etc.). Mixing in a response-size limit there
+   would blur its responsibility.
+5. **No `From<i32/u32>` impls**: the old `From` impls baked in the compile-time constant.
+   Replacing them with `PeersWanted::from_client_request(i32)` makes the cap injection
+   point explicit and removes hidden global state from the type system.
+
+### Tradeoffs accepted
+
+- `AnnouncePolicy::new()` now takes a third argument; callers were updated.
+- A small scope increase to `AnnouncePolicy` (previously two fields, now three).
+
+---
+
 ## DEC-08 — Keep `TslConfig` in tracker configuration and keep `torrust-tracker-axum-server` tracker-scoped
 
 **Date**: 2026-06-03

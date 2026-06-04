@@ -70,10 +70,11 @@
 //! > request or the right-most-ip in the `X-Forwarded-For` header if the tracker
 //! > is behind a reverse proxy.
 //!
-//! > **NOTICE**: the maximum number of peers that the tracker can return is
-//! > `74`. Defined with a hardcoded const [`TORRENT_PEERS_LIMIT`](torrust_tracker_primitives::TORRENT_PEERS_LIMIT).
-//! > Refer to [issue 262](https://github.com/torrust/torrust-tracker/issues/262)
-//! > for more information about this limitation.
+//! > **NOTICE**: the maximum number of peers that the tracker can return per
+//! > announce response is controlled by the `max_peers_per_announce` field in
+//! > the `[core.announce_policy]` configuration section (default: `74`).
+//! > Refer to [`AnnouncePolicy::max_peers_per_announce`](torrust_tracker_primitives::AnnouncePolicy::max_peers_per_announce)
+//! > for more information.
 //!
 //! > **NOTICE**: the `info_hash` parameter is NOT a `URL` encoded string param.
 //! > It is percent encode of the raw `info_hash` bytes (40 bytes). URL `GET` params

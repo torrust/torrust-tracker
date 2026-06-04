@@ -74,7 +74,7 @@ impl AnnounceService {
 
         let mut peer = peer_builder::from_request(request, &remote_client_ip);
 
-        let peers_wanted: PeersWanted = i32::from(request.peers_wanted.0).into();
+        let peers_wanted = PeersWanted::from_client_request(i32::from(request.peers_wanted.0));
 
         let announce_data = self
             .announce_handler

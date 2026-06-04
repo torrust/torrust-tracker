@@ -38,6 +38,18 @@ pub struct AnnouncePolicy {
     /// the tracker for not adhering to the rules.
     #[serde(default = "AnnouncePolicy::default_interval_min")]
     pub interval_min: u32,
+
+    /// Maximum number of peers returned in a single announce response.
+    ///
+    /// When a client requests peers (via the `numwant` parameter or by
+    /// omitting it), the tracker caps the response at this value. Clients
+    /// requesting more peers than this limit will still receive at most
+    /// `max_peers_per_announce` peers. Clients that omit `numwant` (asking
+    /// for "as many as possible") also receive at most this many peers.
+    ///
+    /// Defaults to `74` (the standard `BitTorrent` peer-list size).
+    #[serde(default = "AnnouncePolicy::default_max_peers_per_announce")]
+    pub max_peers_per_announce: usize,
 }
 
 impl Default for AnnouncePolicy {
@@ -45,6 +57,7 @@ impl Default for AnnouncePolicy {
         Self {
             interval: Self::default_interval(),
             interval_min: Self::default_interval_min(),
+            max_peers_per_announce: Self::default_max_peers_per_announce(),
         }
     }
 }
@@ -56,6 +69,10 @@ impl AnnouncePolicy {
 
     fn default_interval_min() -> u32 {
         120
+    }
+
+    fn default_max_peers_per_announce() -> usize {
+        74
     }
 }
 

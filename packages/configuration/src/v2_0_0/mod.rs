@@ -207,6 +207,7 @@
 //! [core.announce_policy]
 //! interval = 120
 //! interval_min = 120
+//! max_peers_per_announce = 74
 //!
 //! [core.database]
 //! driver = "sqlite3"
@@ -455,6 +456,7 @@ mod tests {
                                 [core.announce_policy]
                                 interval = 120
                                 interval_min = 120
+                                max_peers_per_announce = 74
 
                                 [core.database]
                                 driver = "sqlite3"

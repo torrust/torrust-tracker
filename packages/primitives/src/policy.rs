@@ -1,13 +1,9 @@
 //! Tracker policy types.
 //!
-//! This module contains the [`TrackerPolicy`] struct and the
-//! [`TORRENT_PEERS_LIMIT`] constant that govern tracker-wide retention
-//! and cleanup behaviour.
+//! This module contains the [`TrackerPolicy`] struct that governs
+//! tracker-wide retention and cleanup behaviour.
 use derive_more::Constructor;
 use serde::{Deserialize, Serialize};
-
-/// The maximum number of returned peers for a torrent.
-pub const TORRENT_PEERS_LIMIT: usize = 74;
 
 /// Policy settings that control tracker-wide torrent and peer retention.
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone, Constructor)]

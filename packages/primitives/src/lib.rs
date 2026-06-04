@@ -21,7 +21,7 @@ use bittorrent_primitives::info_hash::InfoHash;
 pub use mode::PrivateMode;
 pub use number_of_bytes::NumberOfBytes;
 pub use peer_id::{PeerClient, PeerId};
-pub use policy::{TORRENT_PEERS_LIMIT, TrackerPolicy};
+pub use policy::TrackerPolicy;
 pub use scrape::ScrapeData;
 /// Duration since the Unix Epoch.
 ///
