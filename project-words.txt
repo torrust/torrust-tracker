@@ -30,9 +30,11 @@ bencode
 bencoded
 bencoding
 beps
+Beránek
 bidirectionality
 binascii
 binstall
+bitcode
 Bitflu
 bools
 Bragilevsky
@@ -146,6 +148,7 @@ intervali
 Irwe
 isready
 iterationsadd
+Jakub
 jdbe
 Joakim
 josecelano
@@ -221,6 +224,7 @@ peekable
 peerlist
 peersld
 penalise
+pessimize
 PGID
 pipefail
 pkey
