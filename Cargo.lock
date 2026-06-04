@@ -5266,11 +5266,9 @@ dependencies = [
 name = "torrust-tracker-core"
 version = "3.0.0-develop"
 dependencies = [
- "anyhow",
  "async-trait",
  "bittorrent-primitives",
  "chrono",
- "clap",
  "derive_more 2.1.1",
  "mockall",
  "rand 0.9.4",
@@ -5291,6 +5289,15 @@ dependencies = [
  "torrust-tracker-test-helpers",
  "tracing",
  "url",
+]
+
+[[package]]
+name = "torrust-tracker-e2e-tools"
+version = "3.0.0-develop"
+dependencies = [
+ "anyhow",
+ "tokio",
+ "torrust-tracker",
 ]
 
 [[package]]
@@ -5342,6 +5349,23 @@ dependencies = [
  "torrust-clock",
  "torrust-located-error",
  "torrust-tracker-contrib-bencode",
+]
+
+[[package]]
+name = "torrust-tracker-persistence-benchmark"
+version = "3.0.0-develop"
+dependencies = [
+ "anyhow",
+ "bittorrent-primitives",
+ "chrono",
+ "clap",
+ "serde",
+ "serde_json",
+ "sqlx",
+ "testcontainers",
+ "tokio",
+ "torrust-tracker-configuration",
+ "torrust-tracker-core",
 ]
 
 [[package]]

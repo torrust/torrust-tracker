@@ -1,0 +1,28 @@
+[package]
+description = "Developer tool for benchmarking the Torrust Tracker persistence layer."
+keywords = [ "benchmarking", "bittorrent", "persistence", "sqlite", "tracker" ]
+name = "torrust-tracker-persistence-benchmark"
+readme = "README.md"
+
+authors.workspace = true
+documentation.workspace = true
+edition.workspace = true
+homepage.workspace = true
+license.workspace = true
+publish = false
+repository.workspace = true
+rust-version.workspace = true
+version.workspace = true
+
+[dependencies]
+anyhow = "1"
+bittorrent-primitives = "0.2.0"
+chrono = { version = "0", default-features = false, features = [ "clock" ] }
+clap = { version = "4", features = [ "derive", "env" ] }
+serde = { version = "1", features = [ "derive" ] }
+serde_json = { version = "1", features = [ "preserve_order" ] }
+sqlx = { version = "0.8", features = [ "macros", "mysql", "postgres", "runtime-tokio-native-tls", "sqlite" ] }
+testcontainers = "0"
+tokio = { version = "1", features = [ "macros", "rt-multi-thread" ] }
+torrust-tracker-configuration = { version = "3.0.0-develop", path = "../configuration" }
+torrust-tracker-core = { path = "../tracker-core" }

@@ -77,7 +77,9 @@ torrust-tracker-test-helpers = { version = "3.0.0-develop", path = "packages/tes
 members = [
   "console/tracker-client",
   "contrib/dev-tools/analysis/workspace-coupling",
+  "packages/e2e-tools",
   "packages/net-primitives",
+  "packages/persistence-benchmark",
   "packages/torrent-repository-benchmarking",
 ]
 
