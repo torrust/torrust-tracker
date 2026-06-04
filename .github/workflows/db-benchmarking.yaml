@@ -1,18 +1,19 @@
 name: Database Benchmarking
 
 # Path policy: run this workflow only for persistence-relevant changes.
-# Scoped intentionally to tracker-core — the benchmarks exercise the
-# persistence layer directly. General compile/cross-package regressions
-# are covered by the Testing workflow.
+# Scoped to tracker-core (persistence layer) and persistence-benchmark (runner).
+# General compile/cross-package regressions are covered by the Testing workflow.
 # See .github/workflows/docs-lint.yaml for the lightweight docs-only workflow.
 on:
   push:
     paths:
       - "packages/tracker-core/**"
+      - "packages/persistence-benchmark/**"
       - ".github/workflows/db-benchmarking.yaml"
   pull_request:
     paths:
       - "packages/tracker-core/**"
+      - "packages/persistence-benchmark/**"
       - ".github/workflows/db-benchmarking.yaml"
 
 env:
@@ -40,7 +41,7 @@ jobs:
 
       - id: benchmark
         name: Run Persistence Benchmark (SQLite3)
-        run: cargo run -p torrust-tracker-core --bin persistence_benchmark_runner -- --driver sqlite3 --ops 10
+        run: cargo run -p torrust-tracker-persistence-benchmark --bin persistence_benchmark_runner -- --driver sqlite3 --ops 10
 
   persistence-benchmark-mysql:
     name: Persistence Benchmark MySQL
@@ -63,7 +64,7 @@ jobs:
 
       - id: benchmark
         name: Run Persistence Benchmark (MySQL)
-        run: cargo run -p torrust-tracker-core --bin persistence_benchmark_runner -- --driver mysql --db-version 8.4 --ops 10
+        run: cargo run -p torrust-tracker-persistence-benchmark --bin persistence_benchmark_runner -- --driver mysql --db-version 8.4 --ops 10
 
   persistence-benchmark-postgresql:
     name: Persistence Benchmark PostgreSQL
@@ -86,4 +87,4 @@ jobs:
 
       - id: benchmark
         name: Run Persistence Benchmark (PostgreSQL)
-        run: cargo run -p torrust-tracker-core --bin persistence_benchmark_runner -- --driver postgresql --db-version 17 --ops 10
+        run: cargo run -p torrust-tracker-persistence-benchmark --bin persistence_benchmark_runner -- --driver postgresql --db-version 17 --ops 10

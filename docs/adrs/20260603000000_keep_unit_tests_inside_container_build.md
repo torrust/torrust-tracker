@@ -1,3 +1,13 @@
+---
+semantic-links:
+  skill-links:
+    - create-adr
+  related-artifacts:
+    - .github/skills/dev/planning/create-adr/SKILL.md
+    - Containerfile
+    - .github/workflows/container.yaml
+---
+
 # Keep unit tests inside the container build process
 
 ## Description
