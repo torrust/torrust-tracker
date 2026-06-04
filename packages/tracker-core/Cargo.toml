@@ -18,11 +18,9 @@ default = [  ]
 db-compatibility-tests = [  ]
 
 [dependencies]
-anyhow = "1"
 async-trait = "0"
 bittorrent-primitives = "0.2.0"
 chrono = { version = "0", default-features = false, features = [ "clock" ] }
-clap = { version = "4", features = [ "derive" ] }
 derive_more = { version = "2", features = [ "as_ref", "constructor", "from" ] }
 mockall = "0"
 rand = "0.9"
@@ -39,10 +37,10 @@ torrust-located-error = { version = "3.0.0-develop", path = "../located-error" }
 torrust-metrics = { version = "3.0.0-develop", path = "../metrics" }
 torrust-tracker-primitives = { version = "3.0.0-develop", path = "../primitives" }
 torrust-tracker-swarm-coordination-registry = { version = "3.0.0-develop", path = "../swarm-coordination-registry" }
-testcontainers = "0"
 tracing = "0"
 
 [dev-dependencies]
 mockall = "0"
+testcontainers = "0"
 torrust-tracker-test-helpers = { version = "3.0.0-develop", path = "../test-helpers" }
 url = "2.5.4"

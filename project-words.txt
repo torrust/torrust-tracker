@@ -8,10 +8,12 @@ Agentic
 agentskills
 Aideq
 alekitto
+alloca
 alives
 analyse
 appuser
 argjson
+artefacts
 Arvid
 asdh
 ASMS
@@ -49,6 +51,7 @@ callsites
 camino
 canonicalize
 canonicalized
+categorisation
 cdylib
 Celano
 certbot
@@ -76,6 +79,7 @@ datetime
 dbip
 dbname
 debuginfo
+defence
 depgraph
 Deque
 Dihc
@@ -190,6 +194,7 @@ multimap
 myacicontext
 mysqladmin
 mysqld
+optimisation
 ñaca
 Naim
 nanos
@@ -209,6 +214,7 @@ notnull
 numwant
 nvCFlJCq7fz7Qx6KoKTDiMZvns8l5Kw7
 obra
+objcopy
 oneline
 oneshot
 openmetrics
@@ -218,6 +224,7 @@ ostr
 overengineered
 Pando
 parallelise
+parallelisable
 parallelised
 parseable
 peekable

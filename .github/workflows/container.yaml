@@ -24,24 +24,61 @@ env:
 
 jobs:
   test:
+    # Builds the container image and runs E2E tests against it before any publish step.
+    # "release" here is the Containerfile stage name (Cargo release profile: opt-level 3, fat LTO).
+    #
+    # Unit tests run inside the Containerfile build itself (via `cargo nextest run` in the `test`
+    # stage, using `rust:slim-trixie` as the tester base image). Note: this environment differs
+    # from the production runtime (`distroless/cc-debian13`); the unit tests do not prove the
+    # binary works in distroless — that is covered by the E2E steps below. The in-container
+    # unit tests validate the compiled binary in the build pipeline before it enters the runtime
+    # stage, and share the same Debian trixie glibc as the production image. See ADR
+    # 20260603000000_keep_unit_tests_inside_container_build.md.
+    #
+    # Cache flow: the `build` step writes the BuildKit layer cache to the `container-release`
+    # GHA scope (mode=max, all intermediate layers). The publish_development and publish_release
+    # jobs read from this scope first, so they get a cache hit and avoid a full rebuild when
+    # running on the same commit. The cache is written during `docker build`, before the E2E
+    # steps below, so it is available to publish jobs even if E2E tests fail (though in that
+    # case the publish jobs are blocked anyway by the `needs: test` dependency chain).
+    #
+    # When this workflow runs (push to develop/main/releases, PR targeting develop/main),
+    # the docker-e2e job in testing.yaml is skipped to avoid running the same E2E suite twice.
+    # For feature branch pushes where this workflow does not trigger, testing.yaml provides
+    # equivalent coverage. See issue #1854.
     name: Test (Docker)
     runs-on: ubuntu-latest
+    timeout-minutes: 90
 
     strategy:
       matrix:
-        target: [debug, release]
+        target: [release]
 
     steps:
       - id: checkout
         name: Checkout Repository
         uses: actions/checkout@v6
 
-      - id: setup
-        name: Setup Toolchain
+      - id: setup-buildx
+        name: Setup Buildx
         uses: docker/setup-buildx-action@v4
 
+      - id: setup-toolchain
+        name: Setup Toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+
+      - id: cache
+        name: Enable Job Cache
+        uses: Swatinem/rust-cache@v2
+
+      - id: fetch
+        name: Download Dependencies
+        run: cargo fetch --verbose
+
       - id: build
-        name: Build
+        name: Build Tracker Image
         uses: docker/build-push-action@v7
         with:
           file: ./Containerfile
@@ -52,9 +89,24 @@ jobs:
           cache-from: type=gha,scope=container-${{ matrix.target }}
           cache-to: type=gha,scope=container-${{ matrix.target }},mode=max
 
-      - id: inspect
-        name: Inspect
-        run: docker image inspect torrust-tracker:local
+      - id: run-tracker-e2e-tests
+        name: Run E2E Tests
+        run: >-
+          cargo run -p torrust-tracker-e2e-tools --bin e2e_tests_runner
+          -- --config-toml-path "./share/default/config/tracker.e2e.container.sqlite3.toml"
+          --tracker-image "torrust-tracker:local" --skip-build
+
+      - id: run-qbittorrent-e2e-test-sqlite3
+        name: Run qBittorrent E2E Test (SQLite)
+        run: cargo run -p torrust-tracker-e2e-tools --bin qbittorrent_e2e_runner -- --tracker-image "torrust-tracker:local" --skip-build --db-driver sqlite3 --timeout-seconds 600
+
+      - id: run-qbittorrent-e2e-test-mysql
+        name: Run qBittorrent E2E Test (MySQL)
+        run: cargo run -p torrust-tracker-e2e-tools --bin qbittorrent_e2e_runner -- --tracker-image "torrust-tracker:local" --skip-build --db-driver mysql --timeout-seconds 600
+
+      - id: run-qbittorrent-e2e-test-postgresql
+        name: Run qBittorrent E2E Test (PostgreSQL)
+        run: cargo run -p torrust-tracker-e2e-tools --bin qbittorrent_e2e_runner -- --tracker-image "torrust-tracker:local" --skip-build --db-driver postgresql --timeout-seconds 600
 
   context:
     name: Context
@@ -109,6 +161,12 @@ jobs:
           fi
 
   publish_development:
+    # Publishes a Docker Hub image tagged with the branch name (e.g. "develop").
+    # "Development" here means "built from a development branch, not a versioned release" —
+    # it is not the Cargo dev profile. Both publish jobs always use `target: release`
+    # (the optimized Containerfile stage) because Docker Hub images must be production-grade
+    # binaries regardless of whether they originate from develop or a release branch.
+    # The Cargo release profile (opt-level 3, fat LTO) applies in both cases.
     name: Publish (Development)
     environment: dockerhub-torrust
     needs: context
@@ -148,7 +206,12 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           target: release
-          cache-from: type=gha,scope=container-publish-dev
+          # Read from the test job's cache first (container-release scope) so that when
+          # the test and publish jobs run on the same commit the publish step gets a
+          # cache hit and avoids a full rebuild. Falls back to the publish-specific scope.
+          cache-from: |
+            type=gha,scope=container-release
+            type=gha,scope=container-publish-dev
           cache-to: type=gha,scope=container-publish-dev,mode=max
 
   publish_release:
@@ -194,5 +257,9 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           target: release
-          cache-from: type=gha,scope=container-publish-release
+          # Read from the test job's cache first (container-release scope) for the same
+          # reason as publish_development above.
+          cache-from: |
+            type=gha,scope=container-release
+            type=gha,scope=container-publish-release
           cache-to: type=gha,scope=container-publish-release,mode=max

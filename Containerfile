@@ -52,14 +52,23 @@ WORKDIR /build/src
 COPY Cargo.toml Cargo.lock ./
 COPY console/tracker-client/Cargo.toml console/tracker-client/
 COPY contrib/bencode/Cargo.toml contrib/bencode/
-# workspace-coupling and torrust-tracker-torrent-repository-benchmarking are
-# excluded from cargo nextest archive (see Cook and Build stages below), but
-# their Cargo.toml manifests and stub source files must still be present here
+# The following packages are excluded from cargo nextest archive (see Cook and
+# Build stages below) because they are not part of the production tracker service
+# and do not need to be tested inside the container image:
+#   - workspace-coupling (analysis/coupling tool, no production value)
+#   - torrust-tracker-torrent-repository-benchmarking (benchmarking only)
+#   - torrust-tracker-client (CLI dev tools: tracker_client, tracker_checker, etc.)
+#   - torrust-tracker-contrib-bencode (contrib utility; its own tests/bins are not needed in the container)
+#   - torrust-tracker-e2e-tools (E2E runners + profiling tool, GHA host-only)
+#   - torrust-tracker-persistence-benchmark (persistence layer dev benchmarking tool)
+# Their Cargo.toml manifests and stub source files must still be present here
 # because `cargo chef prepare` uses `cargo metadata` internally to enumerate
 # all workspace members, and `cargo metadata` aborts if any member's manifest
 # or declared target file is missing. `cargo chef prepare` has no `--exclude`
 # flag (only `--bin`), so these stubs cannot be omitted from the recipe stage.
 COPY contrib/dev-tools/analysis/workspace-coupling/Cargo.toml contrib/dev-tools/analysis/workspace-coupling/
+COPY packages/e2e-tools/Cargo.toml packages/e2e-tools/
+COPY packages/persistence-benchmark/Cargo.toml packages/persistence-benchmark/
 COPY packages/axum-health-check-api-server/Cargo.toml packages/axum-health-check-api-server/
 COPY packages/axum-http-server/Cargo.toml packages/axum-http-server/
 COPY packages/axum-rest-api-server/Cargo.toml packages/axum-rest-api-server/
@@ -104,6 +113,8 @@ COPY packages/udp-tracker-core/Cargo.toml packages/udp-tracker-core/
 # stub lines below AND the Cargo.toml COPY line in the manifest-only block above.
 RUN mkdir -p \
       src/bin \
+      packages/e2e-tools/src/bin \
+      packages/persistence-benchmark/src/bin \
       contrib/bencode/src \
       contrib/bencode/benches \
       contrib/dev-tools/analysis/workspace-coupling/src \
@@ -133,7 +144,6 @@ RUN mkdir -p \
       packages/torrent-repository-benchmarking/benches \
       packages/tracker-client/src \
       packages/tracker-core/src \
-      packages/tracker-core/src/bin \
       packages/udp-protocol/src \
       packages/udp-server/src \
       packages/udp-server/examples \
@@ -142,10 +152,11 @@ RUN mkdir -p \
  && touch \
       src/lib.rs \
       src/main.rs \
-      src/bin/e2e_tests_runner.rs \
       src/bin/http_health_check.rs \
-      src/bin/profiling.rs \
-      src/bin/qbittorrent_e2e_runner.rs \
+      packages/e2e-tools/src/bin/e2e_tests_runner.rs \
+      packages/e2e-tools/src/bin/profiling.rs \
+      packages/e2e-tools/src/bin/qbittorrent_e2e_runner.rs \
+      packages/persistence-benchmark/src/bin/persistence_benchmark_runner.rs \
       contrib/bencode/src/lib.rs \
       contrib/bencode/benches/bencode_benchmark.rs \
       contrib/dev-tools/analysis/workspace-coupling/src/main.rs \
@@ -179,7 +190,6 @@ RUN mkdir -p \
       packages/torrent-repository-benchmarking/benches/repository_benchmark.rs \
       packages/tracker-client/src/lib.rs \
       packages/tracker-core/src/lib.rs \
-      packages/tracker-core/src/bin/persistence_benchmark_runner.rs \
       packages/udp-protocol/src/lib.rs \
       packages/udp-server/src/lib.rs \
       packages/udp-server/examples/udp_only_public_tracker.rs \
@@ -193,13 +203,15 @@ FROM chef AS dependencies_debug
 WORKDIR /build/src
 COPY --from=recipe /build/recipe.json /build/recipe.json
 # Note: `cargo chef cook` does not support `--exclude` (the cargo-chef CLI only
-# exposes `--workspace` and `--package`, not `--exclude`). The two irrelevant
-# workspace members (workspace-coupling and torrust-tracker-torrent-repository-
-# benchmarking) are therefore still compiled as part of the cook skeleton
-# (their Cargo.toml manifests are in the recipe, so cargo-chef cooks them).
-# The build-time savings come from the archive/build stages: `cargo nextest
-# archive` below is passed `--exclude` so those packages are not compiled from
-# real source in the final archive. See Cook (release) and Build stages.
+# exposes `--workspace` and `--package`, not `--exclude`). The excluded workspace
+# members (workspace-coupling, torrust-tracker-torrent-repository-benchmarking,
+# torrust-tracker-client, torrust-tracker-contrib-bencode,
+# torrust-tracker-e2e-tools, torrust-tracker-persistence-benchmark) are therefore
+# still compiled as part of the cook skeleton (their Cargo.toml manifests are in
+# the recipe, so cargo-chef cooks them). The build-time savings come from the
+# archive/build stages: `cargo nextest archive` below is passed `--exclude` so
+# those packages are not compiled from real source in the final archive. See Cook
+# (release) and Build stages.
 RUN cargo chef cook --tests --workspace --all-features --recipe-path /build/recipe.json
 # Pre-link warm-up: Create and discard a nextest archive to warm up the linker
 # before final compilation. This improves incremental build cache efficiency
@@ -207,6 +219,10 @@ RUN cargo chef cook --tests --workspace --all-features --recipe-path /build/reci
 RUN cargo nextest archive --tests --workspace --all-features \
     --exclude workspace-coupling \
     --exclude torrust-tracker-torrent-repository-benchmarking \
+    --exclude torrust-tracker-client \
+    --exclude torrust-tracker-contrib-bencode \
+    --exclude torrust-tracker-e2e-tools \
+    --exclude torrust-tracker-persistence-benchmark \
     --archive-file /build/temp.tar.zst && rm -f /build/temp.tar.zst
 
 ## Cook (release)
@@ -221,6 +237,10 @@ RUN cargo chef cook --tests --workspace --all-features --recipe-path /build/reci
 RUN cargo nextest archive --tests --workspace --all-features \
     --exclude workspace-coupling \
     --exclude torrust-tracker-torrent-repository-benchmarking \
+    --exclude torrust-tracker-client \
+    --exclude torrust-tracker-contrib-bencode \
+    --exclude torrust-tracker-e2e-tools \
+    --exclude torrust-tracker-persistence-benchmark \
     --archive-file /build/temp.tar.zst --release && rm -f /build/temp.tar.zst
 
 
@@ -231,6 +251,10 @@ COPY . /build/src
 RUN cargo nextest archive --tests --workspace --all-features \
     --exclude workspace-coupling \
     --exclude torrust-tracker-torrent-repository-benchmarking \
+    --exclude torrust-tracker-client \
+    --exclude torrust-tracker-contrib-bencode \
+    --exclude torrust-tracker-e2e-tools \
+    --exclude torrust-tracker-persistence-benchmark \
     --archive-file /build/torrust-tracker-debug.tar.zst
 
 ## Build Archive (release)
@@ -240,6 +264,10 @@ COPY . /build/src
 RUN cargo nextest archive --tests --workspace --all-features \
     --exclude workspace-coupling \
     --exclude torrust-tracker-torrent-repository-benchmarking \
+    --exclude torrust-tracker-client \
+    --exclude torrust-tracker-contrib-bencode \
+    --exclude torrust-tracker-e2e-tools \
+    --exclude torrust-tracker-persistence-benchmark \
     --archive-file /build/torrust-tracker.tar.zst --release
 
 

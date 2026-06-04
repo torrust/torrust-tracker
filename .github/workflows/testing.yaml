@@ -87,9 +87,21 @@ jobs:
         run: cargo test --tests --benches --examples --workspace --all-targets --all-features
 
   docker-e2e:
+    # Skip this job when container.yaml is also running for the same event — it builds
+    # the same image and runs the same E2E tests. container.yaml triggers on pushes to
+    # develop/main/releases and on PRs targeting develop/main.
+    # For feature branch pushes and PRs targeting other branches, container.yaml does not
+    # run, so this job provides the only E2E coverage. See issue #1854.
     name: Docker E2E
     runs-on: ubuntu-latest
     timeout-minutes: 90
+    if: >-
+      !(github.event_name == 'pull_request' &&
+      (github.base_ref == 'develop' || github.base_ref == 'main')) &&
+      !(github.event_name == 'push' &&
+      (github.ref == 'refs/heads/develop' ||
+      github.ref == 'refs/heads/main' ||
+      startsWith(github.ref, 'refs/heads/releases/')))
 
     steps:
       - id: checkout
