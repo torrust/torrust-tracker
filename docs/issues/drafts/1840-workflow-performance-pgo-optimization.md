@@ -66,15 +66,15 @@ A talk at a Rust conference (June 2026) highlighted:
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| ID  | Status | Task                                                                                             | Notes / Expected Output                                                                                        |
-| --- | ------ | ------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------- |
-| T1  | TODO   | Install and configure `cargo-pgo` in the development environment                                 | `cargo pgo` command available; verify `rustc` supports instrumentation PGO on current MSRV (1.88)              |
-| T2  | TODO   | Define a representative training workload script                                                 | Script that sends realistic announce/scrape traffic to a running instrumented tracker                          |
-| T3  | TODO   | Run instrumented build, collect PGO profile, run optimized build                                 | PGO-optimized release binary produced; profile stored under a well-known path                                  |
-| T4  | TODO   | Benchmark PGO-optimized binary against baseline (no PGO) using the existing benchmark suite      | Measured throughput/latency delta; regression risk assessed                                                    |
-| T5  | TODO   | If T4 shows meaningful improvement: commit PGO profile and update `Containerfile` to use it      | `Containerfile` release build uses stored PGO profile; double-compile cost documented                         |
-| T6  | TODO   | Document PGO profile refresh policy and add it to the release process                            | `docs/release_process.md` or a dedicated section documents when to regenerate the profile                      |
-| T7  | TODO   | Run pre-commit checks                                                                             | `./contrib/dev-tools/git/hooks/pre-commit.sh` exits with code 0                                               |
+| ID  | Status | Task                                                                                        | Notes / Expected Output                                                                           |
+| --- | ------ | ------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| T1  | TODO   | Install and configure `cargo-pgo` in the development environment                            | `cargo pgo` command available; verify `rustc` supports instrumentation PGO on current MSRV (1.88) |
+| T2  | TODO   | Define a representative training workload script                                            | Script that sends realistic announce/scrape traffic to a running instrumented tracker             |
+| T3  | TODO   | Run instrumented build, collect PGO profile, run optimized build                            | PGO-optimized release binary produced; profile stored under a well-known path                     |
+| T4  | TODO   | Benchmark PGO-optimized binary against baseline (no PGO) using the existing benchmark suite | Measured throughput/latency delta; regression risk assessed                                       |
+| T5  | TODO   | If T4 shows meaningful improvement: commit PGO profile and update `Containerfile` to use it | `Containerfile` release build uses stored PGO profile; double-compile cost documented             |
+| T6  | TODO   | Document PGO profile refresh policy and add it to the release process                       | `docs/release_process.md` or a dedicated section documents when to regenerate the profile         |
+| T7  | TODO   | Run pre-commit checks                                                                       | `./contrib/dev-tools/git/hooks/pre-commit.sh` exits with code 0                                   |
 
 ## Progress Tracking
 
@@ -117,11 +117,11 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
-| ID  | Scenario                                                      | Command/Steps                                                                                | Expected Result                                             | Status | Evidence |
-| --- | ------------------------------------------------------------- | -------------------------------------------------------------------------------------------- | ----------------------------------------------------------- | ------ | -------- |
-| M1  | PGO-optimized binary benchmarked against baseline             | Run benchmark suite against PGO binary and baseline; compare throughput and latency          | PGO binary meets or exceeds baseline performance            | TODO   |          |
-| M2  | Container release build uses PGO profile without errors       | `docker build --target release --tag torrust-tracker:release --file Containerfile .`         | Build completes; no PGO-related errors                      | TODO   |          |
-| M3  | Stored PGO profile is used reproducibly across fresh builds   | Clean build using committed PGO profile; compare binary performance to first PGO build       | Performance is stable across builds using the same profile  | TODO   |          |
+| ID  | Scenario                                                    | Command/Steps                                                                          | Expected Result                                            | Status | Evidence |
+| --- | ----------------------------------------------------------- | -------------------------------------------------------------------------------------- | ---------------------------------------------------------- | ------ | -------- |
+| M1  | PGO-optimized binary benchmarked against baseline           | Run benchmark suite against PGO binary and baseline; compare throughput and latency    | PGO binary meets or exceeds baseline performance           | TODO   |          |
+| M2  | Container release build uses PGO profile without errors     | `docker build --target release --tag torrust-tracker:release --file Containerfile .`   | Build completes; no PGO-related errors                     | TODO   |          |
+| M3  | Stored PGO profile is used reproducibly across fresh builds | Clean build using committed PGO profile; compare binary performance to first PGO build | Performance is stable across builds using the same profile | TODO   |          |
 
 ### Acceptance Verification
 
