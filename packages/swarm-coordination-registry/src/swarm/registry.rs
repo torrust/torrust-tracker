@@ -197,8 +197,7 @@ impl Registry {
     /// requesting client.
     ///
     /// This method filters out the client making the request (based on its
-    /// network address) and returns up to a maximum number of peers, defined by
-    /// the greater of the provided limit or the configured max peers per announce.
+    /// network address) and returns up to `limit` peers.
     ///
     /// # Returns
     ///

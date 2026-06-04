@@ -73,7 +73,7 @@
 //! > **NOTICE**: the maximum number of peers that the tracker can return per
 //! > announce response is controlled by the `max_peers_per_announce` field in
 //! > the `[core.announce_policy]` configuration section (default: `74`).
-//! > Refer to [`AnnouncePolicy::max_peers_per_announce`](torrust_tracker_primitives::AnnouncePolicy)
+//! > Refer to [`AnnouncePolicy::max_peers_per_announce`](torrust_tracker_primitives::AnnouncePolicy::max_peers_per_announce)
 //! > for more information.
 //!
 //! > **NOTICE**: the `info_hash` parameter is NOT a `URL` encoded string param.

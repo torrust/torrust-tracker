@@ -405,7 +405,7 @@ async fn it_should_limit_the_number_of_peers_returned(
 
     let peers = torrent.get_peers(Some(MAX_PEERS)).await;
 
-    assert_eq!(peers.len(), 74);
+    assert_eq!(peers.len(), MAX_PEERS);
 }
 
 #[rstest]
