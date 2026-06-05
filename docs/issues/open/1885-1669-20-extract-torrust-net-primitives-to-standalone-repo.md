@@ -1,11 +1,11 @@
 ---
 doc-type: issue
 issue-type: task
-status: draft
+status: open
 priority: p3
-github-issue: null
-spec-path: docs/issues/drafts/1669-extract-torrust-net-primitives-to-standalone-repo.md
-branch: null
+github-issue: 1885
+spec-path: docs/issues/open/1885-1669-20-extract-torrust-net-primitives-to-standalone-repo.md
+branch: 1885-1669-extract-torrust-net-primitives-to-standalone-repo
 related-pr: null
 last-updated-utc: 2026-06-05 00:00
 semantic-links:
@@ -31,7 +31,7 @@ semantic-links:
 
 <!-- skill-link: create-issue -->
 
-# Issue #[To be assigned] - Extract `torrust-net-primitives` to a standalone repository
+# Issue #1885 - Extract `torrust-net-primitives` to a standalone repository
 
 ## Goal
 
@@ -127,9 +127,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 ### Workflow Checkpoints
 
 - [x] Spec drafted in `docs/issues/drafts/`
-- [ ] Spec reviewed and approved by user/maintainer
-- [ ] GitHub issue created and issue number added to this spec
-- [ ] Spec moved to `docs/issues/open/` with issue number prefix
+- [x] Spec reviewed and approved by user/maintainer
+- [x] GitHub issue created and issue number added to this spec
+- [x] Spec moved to `docs/issues/open/` with issue number prefix
 - [ ] Standalone repository created
 - [ ] Source moved with history preserved
 - [ ] CI set up and passing in new repository
@@ -146,6 +146,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 - 2026-06-05 00:00 UTC - josecelano - Spec drafted as subissue of EPIC #1669; follows
   net-primitives creation in SI-05 (#1797)
+- 2026-06-05 00:00 UTC - josecelano - GitHub issue #1885 created; spec promoted to docs/issues/open/
 
 > **Note — deferred setup for `torrust/torrust-net-primitives`**: The following work may be
 > intentionally deferred to a follow-up, to be done when the first change or publication is
