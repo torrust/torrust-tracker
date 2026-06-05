@@ -73,7 +73,6 @@ COPY packages/axum-health-check-api-server/Cargo.toml packages/axum-health-check
 COPY packages/axum-http-server/Cargo.toml packages/axum-http-server/
 COPY packages/axum-rest-api-server/Cargo.toml packages/axum-rest-api-server/
 COPY packages/axum-server/Cargo.toml packages/axum-server/
-COPY packages/clock/Cargo.toml packages/clock/
 COPY packages/configuration/Cargo.toml packages/configuration/
 COPY packages/events/Cargo.toml packages/events/
 COPY packages/http-protocol/Cargo.toml packages/http-protocol/
@@ -124,7 +123,6 @@ RUN mkdir -p \
       packages/axum-http-server/examples \
       packages/axum-rest-api-server/src \
       packages/axum-server/src \
-      packages/clock/src \
       packages/configuration/src \
       packages/events/src \
       packages/http-protocol/src \
@@ -170,7 +168,6 @@ RUN mkdir -p \
       packages/axum-http-server/examples/http_only_public_tracker.rs \
       packages/axum-rest-api-server/src/lib.rs \
       packages/axum-server/src/lib.rs \
-      packages/clock/src/lib.rs \
       packages/configuration/src/lib.rs \
       packages/events/src/lib.rs \
       packages/http-protocol/src/lib.rs \
