@@ -1,11 +1,11 @@
 ---
 doc-type: issue
 issue-type: task
-status: draft
+status: open
 priority: p2
-github-issue: null
-spec-path: docs/issues/drafts/1669-extract-bittorrent-peer-id-to-torrust-bittorrent.md
-branch: null
+github-issue: 1884
+spec-path: docs/issues/open/1884-1669-19-move-bittorrent-peer-id-to-torrust-bittorrent.md
+branch: 1884-1669-move-bittorrent-peer-id-to-torrust-bittorrent
 related-pr: null
 last-updated-utc: 2026-06-05 00:00
 semantic-links:
@@ -24,7 +24,7 @@ semantic-links:
 
 <!-- skill-link: create-issue -->
 
-# Issue #[To be assigned] - Move `packages/peer-id` to `torrust/torrust-bittorrent` as `torrust-peer-id`
+# Issue #1884 - Move `packages/peer-id` to `torrust/torrust-bittorrent` as `torrust-peer-id`
 
 ## Goal
 
@@ -110,9 +110,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 ### Workflow Checkpoints
 
 - [x] Spec drafted in `docs/issues/drafts/`
-- [ ] Spec reviewed and approved by user/maintainer
-- [ ] GitHub issue created and issue number added to this spec
-- [ ] Spec moved to `docs/issues/open/` with issue number prefix
+- [x] Spec reviewed and approved by user/maintainer
+- [x] GitHub issue created and issue number added to this spec
+- [x] Spec moved to `docs/issues/open/` with issue number prefix
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, `cargo test --workspace`)
 - [ ] Manual verification scenarios executed and recorded
@@ -124,6 +124,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 ### Progress Log
 
 - 2026-06-05 00:00 UTC - josecelano - Spec drafted as subissue of EPIC #1669
+- 2026-06-05 00:00 UTC - josecelano - GitHub issue #1884 created; spec promoted to docs/issues/open/
 
 ## Acceptance Criteria
 
