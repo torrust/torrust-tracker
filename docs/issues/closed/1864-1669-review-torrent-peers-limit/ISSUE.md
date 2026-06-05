@@ -1,13 +1,13 @@
 ---
 doc-type: issue
 issue-type: task
-status: open
+status: done
 priority: p3
 github-issue: 1864
-spec-path: docs/issues/open/1864-1669-review-torrent-peers-limit/ISSUE.md
+spec-path: docs/issues/closed/1864-1669-review-torrent-peers-limit/ISSUE.md
 branch: null
-related-pr: null
-last-updated-utc: 2026-06-01 00:00
+related-pr: 1877
+last-updated-utc: 2026-06-05 00:00
 semantic-links:
   skill-links:
     - create-issue

@@ -1,13 +1,13 @@
 ---
 doc-type: issue
 issue-type: task
-status: open
+status: done
 priority: p1
 github-issue: 1854
-spec-path: docs/issues/open/1854-1840-workflow-performance-container-test-gating/ISSUE.md
+spec-path: docs/issues/closed/1854-1840-workflow-performance-container-test-gating/ISSUE.md
 branch: "1854-container-test-gating"
-related-pr: null
-last-updated-utc: 2026-05-27 00:00
+related-pr: 1874
+last-updated-utc: 2026-06-05 00:00
 semantic-links:
   skill-links:
     - create-issue
