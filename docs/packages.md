@@ -46,7 +46,7 @@ console/
 
 ```output
 contrib/
-└── (empty — bencode migrated to torrust/torrust-bittorrent as torrust-bencode)
+└── dev-tools           # Developer tooling (git hooks, container scripts, etc.)
 ```
 
 ## Package Conventions
