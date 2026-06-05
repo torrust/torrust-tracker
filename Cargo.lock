@@ -4963,6 +4963,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "torrust-bencode"
+version = "3.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1521e07635bc119c26ff5c70e805e05d627a7d0627d8ff78e7f5102b7a30bea6"
+dependencies = [
+ "thiserror 2.0.18",
+]
+
+[[package]]
 name = "torrust-clock"
 version = "3.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5257,14 +5266,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "torrust-tracker-contrib-bencode"
-version = "3.0.0-develop"
-dependencies = [
- "criterion 0.8.2",
- "thiserror 2.0.18",
-]
-
-[[package]]
 name = "torrust-tracker-core"
 version = "3.0.0-develop"
 dependencies = [
@@ -5348,9 +5349,9 @@ dependencies = [
  "serde",
  "serde_bencode",
  "thiserror 2.0.18",
+ "torrust-bencode",
  "torrust-clock",
  "torrust-located-error",
- "torrust-tracker-contrib-bencode",
 ]
 
 [[package]]

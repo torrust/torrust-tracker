@@ -5,7 +5,7 @@ use std::borrow::Cow;
 use std::collections::BTreeMap;
 
 use bittorrent_primitives::info_hash::InfoHash;
-use torrust_tracker_contrib_bencode::{BMutAccess, ben_int, ben_map};
+use torrust_bencode::{BMutAccess, ben_int, ben_map};
 
 // These protocol DTOs intentionally mirror some domain fields but must remain
 // protocol-owned. Keeping this type local avoids protocol->domain coupling and

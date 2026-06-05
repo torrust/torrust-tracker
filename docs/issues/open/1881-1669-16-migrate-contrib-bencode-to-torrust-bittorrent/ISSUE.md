@@ -1,13 +1,13 @@
 ---
 doc-type: issue
 issue-type: task
-status: draft
+status: open
 priority: p2
-github-issue: null
-spec-path: docs/issues/drafts/1669-extract-torrust-tracker-contrib-bencode-to-torrust-bencode.md
-branch: null
+github-issue: 1881
+spec-path: docs/issues/open/1881-1669-16-migrate-contrib-bencode-to-torrust-bittorrent/ISSUE.md
+branch: 1881-1669-16-migrate-contrib-bencode-to-torrust-bittorrent
 related-pr: null
-last-updated-utc: 2026-05-15 12:00
+last-updated-utc: 2026-06-05 00:00
 semantic-links:
   skill-links:
     - create-issue
@@ -22,7 +22,7 @@ semantic-links:
 
 <!-- skill-link: create-issue -->
 
-# Issue #[To be assigned] - Migrate `contrib/bencode` to `torrust/torrust-bittorrent` as `torrust-bencode`
+# Issue #1881 - Migrate `contrib/bencode` to `torrust/torrust-bittorrent` as `torrust-bencode`
 
 ## Goal
 
@@ -64,8 +64,8 @@ This issue is a subissue of EPIC #1669 (Overhaul: Packages).
 
 - Rename the crate `name` in `contrib/bencode/Cargo.toml` to `torrust-bencode`.
 - Use `torrust/torrust-bittorrent` as the destination workspace.
-- Move/merge the crate source to `packages/bencode` in `torrust/torrust-bittorrent`, preserving
-  relevant history.
+- Move the crate source to `packages/bencode` in `torrust/torrust-bittorrent` as a clean copy
+  (no cross-repo history transplant; commit history in the tracker repo is sufficient context).
 - Ensure CI passes in the destination repository after migration.
 - Publish `torrust-bencode` from the destination repository.
 - Update `packages/http-protocol/Cargo.toml` to depend on the published `torrust-bencode`
@@ -87,41 +87,43 @@ This issue is a subissue of EPIC #1669 (Overhaul: Packages).
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| ID  | Status | Task                                                                                          | Notes / Expected Output                                                                   |
-| --- | ------ | --------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| T1  | TODO   | Rename `name` in `contrib/bencode/Cargo.toml` to `torrust-bencode`                            | `name = "torrust-bencode"`                                                                |
-| T2  | TODO   | Update `repository` URL in `contrib/bencode/Cargo.toml` and destination crate metadata        | Point to `https://github.com/torrust/torrust-bittorrent`                                  |
-| T3  | TODO   | Confirm destination workspace `torrust/torrust-bittorrent` migration path                     | Target path agreed: `packages/bencode`                                                    |
-| T4  | TODO   | Move/merge crate source into destination workspace, preserving history where practical        | `packages/bencode` replaced by tracker lineage                                            |
-| T5  | TODO   | Set up/adjust CI in destination repository if needed                                          | CI green after migration                                                                  |
-| T6  | TODO   | Publish `torrust-bencode` on crates.io from destination repository                            | Successful `cargo publish`; crate visible at crates.io/crates/torrust-bencode             |
-| T7  | TODO   | Update `packages/http-protocol/Cargo.toml`: replace path dep with published `torrust-bencode` | `torrust-bencode = "X.Y.Z"` (no path)                                                     |
-| T8  | TODO   | Remove `contrib/bencode/` from tracker workspace (`members` + workspace dep in `Cargo.toml`)  | `cargo build --workspace` succeeds without the local crate                                |
-| T9  | TODO   | Delete `contrib/bencode/` directory from the tracker repo                                     | Directory gone; workspace still builds                                                    |
-| T10 | TODO   | Update `packages/AGENTS.md`, `AGENTS.md`, `docs/packages.md`, and any README references       | No stale references to `torrust-tracker-contrib-bencode`                                  |
-| T11 | TODO   | Run `cargo build --workspace`, `cargo test --workspace`, `linter all`                         | All green                                                                                 |
-| T12 | TODO   | Handle old crates.io name `torrust-tracker-contrib-bencode`                                   | Yank and/or deprecate old name with redirect to `torrust-bencode`                         |
-| T13 | TODO   | Update EPIC #1669 `Package Inventory` and `Desired Package State` tables                      | Remove `torrust-tracker-contrib-bencode` from `torrust-tracker-` table; mark as extracted |
+| ID  | Status | Task                                                                                                                           | Notes / Expected Output                                                                   |
+| --- | ------ | ------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------- |
+| T1  | DONE   | Rename `name` in `contrib/bencode/Cargo.toml` to `torrust-bencode`                                                             | `name = "torrust-bencode"`                                                                |
+| T2  | DONE   | Update `repository` URL in `contrib/bencode/Cargo.toml` and destination crate metadata                                         | Point to `https://github.com/torrust/torrust-bittorrent`                                  |
+| T3  | DONE   | Confirm destination workspace `torrust/torrust-bittorrent` migration path                                                      | Target path agreed: `packages/bencode`                                                    |
+| T4  | DONE   | Copy crate source into destination workspace as a clean copy (no cross-repo history transplant)                                | `packages/bencode` replaced by tracker lineage                                            |
+| T5  | DONE   | Set up/adjust CI in destination repository if needed                                                                           | CI green after migration                                                                  |
+| T6  | DONE   | Publish `torrust-bencode` on crates.io from destination repository (same version as current `torrust-tracker-contrib-bencode`) | Successful `cargo publish`; crate visible at crates.io/crates/torrust-bencode             |
+| T7  | DONE   | Update `packages/http-protocol/Cargo.toml`: replace path dep with published `torrust-bencode`                                  | `torrust-bencode = "X.Y.Z"` (no path)                                                     |
+| T8  | DONE   | Remove `contrib/bencode/` from tracker workspace (`members` + workspace dep in `Cargo.toml`)                                   | `cargo build --workspace` succeeds without the local crate                                |
+| T9  | DONE   | Delete `contrib/bencode/` directory from the tracker repo                                                                      | Directory gone; workspace still builds                                                    |
+| T10 | DONE   | Update `packages/AGENTS.md`, `AGENTS.md`, `docs/packages.md`, and any README references                                        | No stale references to `torrust-tracker-contrib-bencode`                                  |
+| T11 | DONE   | Run `cargo build --workspace`, `cargo test --workspace`, `linter all`                                                          | All green                                                                                 |
+| T12 | TODO   | Handle old crates.io name `torrust-tracker-contrib-bencode`                                                                    | Yank and/or deprecate old name with redirect to `torrust-bencode`                         |
+| T13 | DONE   | Update EPIC #1669 `Package Inventory` and `Desired Package State` tables                                                       | Remove `torrust-tracker-contrib-bencode` from `torrust-tracker-` table; mark as extracted |
 
 ## Progress Tracking
 
 ### Workflow Checkpoints
 
-- [ ] Spec drafted in `docs/issues/drafts/`
-- [ ] Spec reviewed and approved by user/maintainer
-- [ ] GitHub issue created and issue number added to this spec
-- [ ] Spec moved to `docs/issues/open/` with issue number prefix
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, `cargo test --workspace`)
+- [x] Spec drafted in `docs/issues/drafts/`
+- [x] Spec reviewed and approved by user/maintainer
+- [x] GitHub issue created and issue number added to this spec
+- [x] Spec moved to `docs/issues/open/` with issue number prefix
+- [x] Implementation completed
+- [x] Automatic verification completed (`linter all`, `cargo test --workspace`)
 - [ ] Manual verification scenarios executed and recorded
 - [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] `torrust-bencode` published from `torrust/torrust-bittorrent`; old name yanked
-- [ ] EPIC #1669 Active Subissues table updated to `DONE`
+- [x] `torrust-bencode` published from `torrust/torrust-bittorrent`; old name yanked
+- [x] EPIC #1669 Active Subissues table updated to `DONE`
 - [ ] Issue closed and spec moved to `docs/issues/closed/`
 
 ### Progress Log
 
 - 2026-05-15 12:00 UTC - josecelano - Spec drafted as subissue of EPIC #1669
+- 2026-06-05 00:00 UTC - josecelano - Spec reviewed; GitHub issue #1881 created; moved to open/
+- 2026-06-05 00:00 UTC - josecelano - Implementation complete: torrust-bencode 3.0.0 published; contrib/bencode removed from tracker workspace; T12 (yank old crate) pending
 
 ## Acceptance Criteria
 

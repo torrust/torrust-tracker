@@ -46,7 +46,7 @@ console/
 
 ```output
 contrib/
-└── bencode             # Community-contributed Bencode utilities
+└── dev-tools           # Developer tooling (git hooks, container scripts, etc.)
 ```
 
 ## Package Conventions

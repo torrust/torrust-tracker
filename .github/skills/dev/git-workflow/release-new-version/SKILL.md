@@ -67,7 +67,6 @@ Edit `version` in:
 - `Cargo.toml` (workspace)
 - All packages under `packages/` that publish crates
 - `console/tracker-client/Cargo.toml`
-- `contrib/bencode/Cargo.toml`
 
 Also update any internal path dependency `version` constraints.
 
@@ -100,7 +99,6 @@ Check the
 [deployment workflow](https://github.com/torrust/torrust-tracker/actions/workflows/deployment.yaml)
 ran successfully and the following crates were published:
 
-- `torrust-tracker-contrib-bencode`
 - `torrust-located-error`
 - `torrust-tracker-primitives`
 - `torrust-clock`
