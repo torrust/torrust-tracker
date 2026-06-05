@@ -47,7 +47,6 @@ rand = "0.9"
 serde_bencode = "0"
 serde_bytes = "0"
 serde_repr = "0"
-torrust-clock = "3.0.0"
 torrust-tracker-test-helpers = { version = "3.0.0-develop", path = "../test-helpers" }
 uuid = { version = "1", features = [ "v4" ] }
 

@@ -1,7 +1,7 @@
 ---
 doc-type: issue
 issue-type: task
-status: closed
+status: done
 priority: p3
 github-issue: 1790
 spec-path: docs/issues/closed/1790-move-duration-since-unix-epoch-to-torrust-tracker-clock.md
@@ -13,9 +13,6 @@ semantic-links:
     - create-issue
   related-artifacts:
     - packages/primitives/src/lib.rs
-    - packages/clock/Cargo.toml
-    - packages/clock/src/clock/mod.rs
-    - packages/clock/src/conv/mod.rs
     - docs/issues/open/1669-overhaul-packages/EPIC.md
 ---
 
