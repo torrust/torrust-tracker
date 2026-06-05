@@ -1,13 +1,13 @@
 ---
 doc-type: issue
 issue-type: task
-status: draft
+status: open
 priority: p3
-github-issue: null
-spec-path: docs/issues/drafts/1669-extract-torrust-metrics-to-standalone-repo.md
+github-issue: 1882
+spec-path: docs/issues/open/1882-1669-18-extract-torrust-metrics-to-standalone-repo.md
 branch: null
 related-pr: null
-last-updated-utc: 2026-05-15 12:00
+last-updated-utc: 2026-06-05 00:00
 semantic-links:
   skill-links:
     - create-issue
@@ -22,7 +22,7 @@ semantic-links:
 
 <!-- skill-link: create-issue -->
 
-# Issue #[To be assigned] - Extract `torrust-metrics` to a standalone repository
+# Issue #1882 - Extract `torrust-metrics` to a standalone repository
 
 ## Goal
 
@@ -113,12 +113,12 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 ### Workflow Checkpoints
 
-- [ ] Spec drafted in `docs/issues/drafts/`
-- [ ] Spec reviewed and approved by user/maintainer
+- [x] Spec drafted in `docs/issues/drafts/`
+- [x] Spec reviewed and approved by user/maintainer
 - [ ] Metrics rename subissue complete (SI-08; prerequisite)
 - [ ] `torrust-metrics` published on crates.io (T1b; required before extraction)
-- [ ] GitHub issue created and issue number added to this spec
-- [ ] Spec moved to `docs/issues/open/` with issue number prefix
+- [x] GitHub issue created and issue number added to this spec
+- [x] Spec moved to `docs/issues/open/` with issue number prefix
 - [ ] Standalone repository created
 - [ ] Source moved with history preserved
 - [ ] CI set up and passing in new repository
@@ -134,6 +134,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 - 2026-05-15 12:00 UTC - josecelano - Spec drafted as subissue of EPIC #1669; follows
   metrics rename subissue
+- 2026-06-05 00:00 UTC - josecelano - GitHub issue #1882 created; spec moved to docs/issues/open/
 
 ## Acceptance Criteria
 
