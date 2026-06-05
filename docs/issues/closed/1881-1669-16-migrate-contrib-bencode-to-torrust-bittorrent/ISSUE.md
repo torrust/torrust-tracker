@@ -1,12 +1,12 @@
 ---
 doc-type: issue
 issue-type: task
-status: open
+status: done
 priority: p2
 github-issue: 1881
-spec-path: docs/issues/open/1881-1669-16-migrate-contrib-bencode-to-torrust-bittorrent/ISSUE.md
+spec-path: docs/issues/closed/1881-1669-16-migrate-contrib-bencode-to-torrust-bittorrent/ISSUE.md
 branch: 1881-1669-16-migrate-contrib-bencode-to-torrust-bittorrent
-related-pr: null
+related-pr: 1883
 last-updated-utc: 2026-06-05 00:00
 semantic-links:
   skill-links:
