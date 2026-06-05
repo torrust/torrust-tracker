@@ -51,14 +51,12 @@ WORKDIR /build/src
 # or moved crate must have its line updated or removed accordingly.
 COPY Cargo.toml Cargo.lock ./
 COPY console/tracker-client/Cargo.toml console/tracker-client/
-COPY contrib/bencode/Cargo.toml contrib/bencode/
 # The following packages are excluded from cargo nextest archive (see Cook and
 # Build stages below) because they are not part of the production tracker service
 # and do not need to be tested inside the container image:
 #   - workspace-coupling (analysis/coupling tool, no production value)
 #   - torrust-tracker-torrent-repository-benchmarking (benchmarking only)
 #   - torrust-tracker-client (CLI dev tools: tracker_client, tracker_checker, etc.)
-#   - torrust-tracker-contrib-bencode (contrib utility; its own tests/bins are not needed in the container)
 #   - torrust-tracker-e2e-tools (E2E runners + profiling tool, GHA host-only)
 #   - torrust-tracker-persistence-benchmark (persistence layer dev benchmarking tool)
 # Their Cargo.toml manifests and stub source files must still be present here
@@ -114,8 +112,6 @@ RUN mkdir -p \
       src/bin \
       packages/e2e-tools/src/bin \
       packages/persistence-benchmark/src/bin \
-      contrib/bencode/src \
-      contrib/bencode/benches \
       contrib/dev-tools/analysis/workspace-coupling/src \
       console/tracker-client/src/bin \
       packages/axum-health-check-api-server/src \
@@ -155,8 +151,6 @@ RUN mkdir -p \
       packages/e2e-tools/src/bin/profiling.rs \
       packages/e2e-tools/src/bin/qbittorrent_e2e_runner.rs \
       packages/persistence-benchmark/src/bin/persistence_benchmark_runner.rs \
-      contrib/bencode/src/lib.rs \
-      contrib/bencode/benches/bencode_benchmark.rs \
       contrib/dev-tools/analysis/workspace-coupling/src/main.rs \
       console/tracker-client/src/lib.rs \
       console/tracker-client/src/bin/http_tracker_client.rs \
