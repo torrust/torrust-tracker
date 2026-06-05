@@ -6,7 +6,7 @@ priority: p1
 github-issue: 1669
 spec-path: docs/issues/open/1669-overhaul-packages/EPIC.md
 epic-owner: josecelano
-last-updated-utc: 2026-05-27 18:00
+last-updated-utc: 2026-06-05 00:00
 semantic-links:
   skill-links:
     - create-issue
@@ -79,7 +79,6 @@ The workspace currently contains **27 packages** (including the root `torrust-tr
 | No                     | `torrust-tracker-axum-server`                     | `axum-server`                     |
 | No                     | `torrust-tracker-client`                          | `console/tracker-client`          |
 | Yes                    | `torrust-tracker-configuration`                   | `configuration`                   |
-| Yes                    | `torrust-tracker-contrib-bencode`                 | `contrib/bencode`                 |
 | No                     | `torrust-tracker-events`                          | `events`                          |
 | No                     | `torrust-tracker-http-tracker-core`               | `http-tracker-core`               |
 | No                     | `torrust-tracker-http-tracker-protocol`           | `http-protocol`                   |
@@ -547,7 +546,7 @@ Status: TODO unless noted.
 
 - [ ] Establish baseline: dependency graph + README audit _(analysis; no blockers; informs all other subissues)_
 - [ ] Update all package READMEs _(documentation; after completed rename work; before extractions)_
-- [ ] [#1881](https://github.com/torrust/torrust-tracker/issues/1881) SI-16: Migrate `contrib/bencode` to `torrust/torrust-bittorrent` as `torrust-bencode` _(Rule E; no blockers within this EPIC)_
+- [x] [#1881](https://github.com/torrust/torrust-tracker/issues/1881) SI-16: Migrate `contrib/bencode` to `torrust/torrust-bittorrent` as `torrust-bencode` _(Rule E; no blockers within this EPIC)_
 - [x] Extract `torrust-clock` to standalone repository — [#1879](https://github.com/torrust/torrust-tracker/issues/1879) _(Rule E; requires completed clock rename and type move work)_
 - [ ] Extract `torrust-metrics` to standalone repository _(Rule E; requires completed metrics rename work)_
 - [ ] Extract `torrust-tracker-client` to standalone repository _(Rule E; blocked by `bittorrent-*` publication - external to this EPIC)_
@@ -570,7 +569,7 @@ Details:
 | Clock rename               | [#1821](https://github.com/torrust/torrust-tracker/issues/1821) — Rename `torrust-tracker-clock` to `torrust-clock`                                                              | [docs/issues/open/1821-1669-09-rename-torrust-tracker-clock-to-torrust-clock.md](../../open/1821-1669-09-rename-torrust-tracker-clock-to-torrust-clock.md)                                     | DONE   | Rule P; published on crates.io; no blockers; prerequisite for clock extraction                                                                |
 | Located error rename       | [#1823](https://github.com/torrust/torrust-tracker/issues/1823) — Rename `torrust-tracker-located-error` to `torrust-located-error`                                              | [docs/issues/closed/1823-1669-10-rename-torrust-tracker-located-error-to-torrust-located-error.md](../../closed/1823-1669-10-rename-torrust-tracker-located-error-to-torrust-located-error.md) | DONE   | Rule P; completed                                                                                                                             |
 | README refresh             | #TBD — Update all package READMEs                                                                                                                                                | [docs/issues/drafts/1669-update-all-package-readmes.md](../../drafts/1669-update-all-package-readmes.md)                                                                                       | TODO   | Documentation; requires completed rename work; before extraction work                                                                         |
-| Bencode migration          | [#1881](https://github.com/torrust/torrust-tracker/issues/1881) SI-16: Migrate `contrib/bencode` to `torrust/torrust-bittorrent` as `torrust-bencode`                            | [docs/issues/open/1881-1669-16-migrate-contrib-bencode-to-torrust-bittorrent/ISSUE.md](../../open/1881-1669-16-migrate-contrib-bencode-to-torrust-bittorrent/ISSUE.md)                         | TODO   | Rule E; replaces old `torrust-bittorrent` implementation with newer tracker lineage                                                           |
+| Bencode migration          | [#1881](https://github.com/torrust/torrust-tracker/issues/1881) SI-16: Migrate `contrib/bencode` to `torrust/torrust-bittorrent` as `torrust-bencode`                            | [docs/issues/open/1881-1669-16-migrate-contrib-bencode-to-torrust-bittorrent/ISSUE.md](../../open/1881-1669-16-migrate-contrib-bencode-to-torrust-bittorrent/ISSUE.md)                         | DONE   | Rule E; torrust-bencode 3.0.0 published; contrib/bencode removed from tracker workspace                                                       |
 | Clock extraction           | [#1879](https://github.com/torrust/torrust-tracker/issues/1879) — Extract `torrust-clock` to standalone repository                                                               | [docs/issues/open/1879-1669-17-extract-torrust-clock-to-standalone-repo.md](../../open/1879-1669-17-extract-torrust-clock-to-standalone-repo.md)                                               | DONE   | Rule E; torrust-clock v3.0.0 published; 13 consumers migrated; packages/clock removed                                                         |
 | Metrics extraction         | #TBD — Extract `torrust-metrics` to standalone repository                                                                                                                        | [docs/issues/drafts/1669-extract-torrust-metrics-to-standalone-repo.md](../../drafts/1669-extract-torrust-metrics-to-standalone-repo.md)                                                       | TODO   | Rule E; requires completed metrics rename; 7 workspace consumers to migrate                                                                   |
 | Tracker client extraction  | #TBD — Extract `torrust-tracker-client` to standalone repository                                                                                                                 | [docs/issues/drafts/1669-extract-torrust-tracker-client-to-standalone-repo.md](../../drafts/1669-extract-torrust-tracker-client-to-standalone-repo.md)                                         | TODO   | Rule E; blocked by `torrust-tracker-udp-tracker-protocol` publication (external to this EPIC)                                                 |
@@ -645,9 +644,7 @@ Early intuitions (to be confirmed by the baseline analysis):
 - **`bittorrent-*` protocol crates** (`torrust-tracker-http-tracker-protocol`,
   `torrust-tracker-udp-tracker-protocol`, `bittorrent-peer-id`) — implement BEP specs with no
   tracker-specific logic; obvious candidates for migration into `torrust/torrust-bittorrent`.
-- **`contrib/bencode`** (`torrust-tracker-contrib-bencode`) — already published on crates.io;
-  same crate lineage as `packages/bencode` in `torrust/torrust-bittorrent`; planned to
-  replace that older implementation there.
+- ~~**`contrib/bencode`** (`torrust-tracker-contrib-bencode`)~~ — migrated to `torrust/torrust-bittorrent` as `torrust-bencode` 3.0.0 (#1881 ✅).
 - **Utility crates** (`torrust-clock`, `torrust-located-error`) — generic
   enough to be reused outside the tracker; already published.
 
@@ -692,7 +689,7 @@ against this constraint (verified May 2026).
 
 | Package                                         | Crates.io status | Unpublished runtime workspace deps                                                                                                                      | Can be published independently? | Ordering constraint                                                                                                                     |
 | ----------------------------------------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| `torrust-tracker-contrib-bencode`               | Yes              | None                                                                                                                                                    | ✅ Now                          | SI-16 can migrate it into `torrust/torrust-bittorrent` and replace legacy `packages/bencode`                                            |
+| `torrust-tracker-contrib-bencode`               | Yes (yanked)     | None                                                                                                                                                    | ✅ Done (#1881)                 | Migrated to `torrust/torrust-bittorrent` as `torrust-bencode` 3.0.0; old name yanked (T12 pending)                                      |
 | `bittorrent-peer-id`                            | No               | None                                                                                                                                                    | ✅ Now                          | No spec yet; can be extracted first in the `bittorrent-*` sequence                                                                      |
 | `torrust-located-error`                         | Yes              | None                                                                                                                                                    | ✅ Already published            | No extraction spec yet                                                                                                                  |
 | `torrust-tracker-clock` (→ `torrust-clock`)     | Yes              | None (✅ `torrust-tracker-primitives` dep removed by SI-02 #1790)                                                                                       | ✅ Extracted (#1879)            | Extracted to [torrust/torrust-clock](https://github.com/torrust/torrust-clock); v3.0.0 published on crates.io                           |
