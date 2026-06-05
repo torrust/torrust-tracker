@@ -30,7 +30,7 @@ sqlx = { version = "0.8", features = [ "macros", "mysql", "postgres", "runtime-t
 thiserror = "2"
 tokio = { version = "1", features = [ "macros", "net", "rt-multi-thread", "signal", "sync" ] }
 tokio-util = "0.7.15"
-torrust-clock = { version = "3.0.0-develop", path = "../clock" }
+torrust-clock = "3.0.0"
 torrust-tracker-configuration = { version = "3.0.0-develop", path = "../configuration" }
 torrust-tracker-events = { version = "3.0.0-develop", path = "../events" }
 torrust-located-error = { version = "3.0.0-develop", path = "../located-error" }

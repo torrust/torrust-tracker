@@ -23,6 +23,6 @@ percent-encoding = "2"
 serde = { version = "1", features = [ "derive" ] }
 serde_bencode = "0"
 thiserror = "2"
-torrust-clock = { version = "3.0.0-develop", path = "../clock" }
+torrust-clock = "3.0.0"
 torrust-tracker-contrib-bencode = { version = "3.0.0-develop", path = "../../contrib/bencode" }
 torrust-located-error = { version = "3.0.0-develop", path = "../located-error" }

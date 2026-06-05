@@ -4964,7 +4964,9 @@ dependencies = [
 
 [[package]]
 name = "torrust-clock"
-version = "3.0.0-develop"
+version = "3.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0c94e1da396f3ae791413341e4cc0e2fb6bbf58e01f68f39e03a6dc8c5d68d41"
 dependencies = [
  "chrono",
  "tracing",

@@ -28,7 +28,7 @@ thiserror = "2"
 tokio = { version = "1", features = [ "macros", "net", "rt-multi-thread", "signal", "sync" ] }
 tokio-util = "0.7.15"
 torrust-server-lib = { version = "3.0.0-develop", path = "../server-lib" }
-torrust-clock = { version = "3.0.0-develop", path = "../clock" }
+torrust-clock = "3.0.0"
 torrust-tracker-configuration = { version = "3.0.0-develop", path = "../configuration" }
 torrust-tracker-events = { version = "3.0.0-develop", path = "../events" }
 torrust-metrics = { version = "3.0.0-develop", path = "../metrics" }

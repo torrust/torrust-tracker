@@ -34,6 +34,6 @@ reqwest = { version = "0", features = [ "json" ] }
 torrust-tracker-axum-health-check-api-server = { version = "3.0.0-develop", path = "../axum-health-check-api-server" }
 torrust-tracker-axum-http-server = { version = "3.0.0-develop", path = "../axum-http-server" }
 torrust-tracker-axum-rest-api-server = { version = "3.0.0-develop", path = "../axum-rest-api-server" }
-torrust-clock = { version = "3.0.0-develop", path = "../clock" }
+torrust-clock = "3.0.0"
 torrust-tracker-test-helpers = { version = "3.0.0-develop", path = "../test-helpers" }
 torrust-tracker-udp-server = { version = "3.0.0-develop", path = "../udp-server" }

@@ -25,7 +25,7 @@ depend on packages in the same layer or a lower one.
 ├────────────────────────────────────────────────────────────────┤
 │  Domain / Shared                                               │
 │  torrent-repository  configuration  primitives                 │
-│  events  metrics  clock  located-error  server-lib             │
+│  events  metrics  located-error  server-lib                    │
 ├────────────────────────────────────────────────────────────────┤
 │  Utilities / Test support                                      │
 │  test-helpers                                                  │
@@ -46,11 +46,11 @@ These packages must not contain business logic.
 
 | Package                        | Entry point  | Protocol    |
 | ------------------------------ | ------------ | ----------- |
-| `axum-http-server`     | `src/lib.rs` | HTTP BEP 3  |
-| `axum-rest-api-server` | `src/lib.rs` | REST (JSON) |
+| `axum-http-server`             | `src/lib.rs` | HTTP BEP 3  |
+| `axum-rest-api-server`         | `src/lib.rs` | REST (JSON) |
 | `axum-health-check-api-server` | `src/lib.rs` | HTTP        |
 | `axum-server`                  | `src/lib.rs` | Axum base   |
-| `udp-server`           | `src/lib.rs` | UDP BEP 15  |
+| `udp-server`                   | `src/lib.rs` | UDP BEP 15  |
 
 ### Core (`*-core`)
 
@@ -63,7 +63,7 @@ dependency injection.
 | `tracker-core`                | Central peer management: announce/scrape handlers, auth, whitelist, database abstraction (SQLite/MySQL drivers in `src/databases/driver/`) |
 | `http-tracker-core`           | HTTP-specific validation and response formatting                                                                                           |
 | `udp-tracker-core`            | UDP connection cookies, crypto, banning logic                                                                                              |
-| `rest-api-core`       | REST API statistics and container wiring                                                                                                   |
+| `rest-api-core`               | REST API statistics and container wiring                                                                                                   |
 | `swarm-coordination-registry` | Registry of torrents and their peer swarms                                                                                                 |
 
 ### Protocols (`*-protocol`)
@@ -85,14 +85,13 @@ Strict BEP implementations — parse and serialize wire formats only. No tracker
 | `events`             | Async event bus (broadcaster / receiver / shutdown) used across packages                                                                                             |
 | `metrics`            | Prometheus-compatible metrics: counters, gauges, labels, samples                                                                                                     |
 | `server-lib`         | Shared HTTP server utilities: logging, service registrar, signal handling                                                                                            |
-| `clock`              | Mockable time source — use `clock::Working` in production, `clock::Stopped` in tests                                                                                 |
 | `located-error`      | Error decorator that captures the source file/line of the original error                                                                                             |
 
 ### Client Tools
 
-| Package                   | Purpose                                                  |
-| ------------------------- | -------------------------------------------------------- |
-| `tracker-client`          | Generic HTTP and UDP tracker clients (used by E2E tests) |
+| Package           | Purpose                                                  |
+| ----------------- | -------------------------------------------------------- |
+| `tracker-client`  | Generic HTTP and UDP tracker clients (used by E2E tests) |
 | `rest-api-client` | Typed REST API client library                            |
 
 ### Utilities / Test support
@@ -137,7 +136,7 @@ cargo test --doc -p <package-name>
 TORRUST_TRACKER_CORE_RUN_MYSQL_DRIVER_TEST=true cargo test -p torrust-tracker-core
 ```
 
-Use `clock::Stopped` (from the `clock` package) in unit tests that need deterministic time.
+Use `clock::Stopped` (from the [`torrust-clock`](https://crates.io/crates/torrust-clock) crate) in unit tests that need deterministic time.
 Use `test-helpers` for mock tracker servers in integration tests.
 
 ## Key Dependency Notes
