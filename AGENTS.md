@@ -41,7 +41,7 @@ native IPv4/IPv6 support, private/whitelisted mode, and a management REST API.
 - `src/console/` — Console entry points
 - `packages/` — Cargo workspace packages (all domain logic lives here; see package catalog below)
 - `console/` — Console tools (e.g., `tracker-client`)
-- `contrib/` — Community-contributed utilities (`bencode`) and developer tooling
+- `contrib/` — Developer tooling
 - `contrib/dev-tools/` — Developer tools: git hooks (`pre-commit.sh`, `pre-push.sh`, `install-git-hooks.sh`),
   container scripts, and init scripts
 - `tests/` — Integration tests (`integration.rs`, `servers/`)
@@ -94,9 +94,9 @@ All packages live under `packages/`. The workspace version is `3.0.0-develop`.
 
 **Community contributions** (under `contrib/`):
 
-| Crate     | Description                     |
-| --------- | ------------------------------- |
-| `bencode` | Bencode encode/decode utilities |
+| Crate | Description                                                                                            |
+| ----- | ------------------------------------------------------------------------------------------------------ |
+| —     | None (bencode migrated to [torrust/torrust-bittorrent](https://github.com/torrust/torrust-bittorrent)) |
 
 ## 🏷️ Package Naming Conventions
 
