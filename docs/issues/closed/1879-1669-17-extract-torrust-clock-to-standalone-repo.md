@@ -1,18 +1,17 @@
 ---
 doc-type: issue
 issue-type: task
-status: open
+status: done
 priority: p3
 github-issue: 1879
-spec-path: docs/issues/open/1879-1669-17-extract-torrust-clock-to-standalone-repo.md
+spec-path: docs/issues/closed/1879-1669-17-extract-torrust-clock-to-standalone-repo.md
 branch: 1879-1669-extract-torrust-clock-to-standalone-repo
-related-pr: null
+related-pr: 1880
 last-updated-utc: 2026-06-05 00:00
-semantic-links:
+semantics-links:
   skill-links:
     - create-issue
   related-artifacts:
-    - packages/clock/Cargo.toml
     - Cargo.toml
     - docs/packages.md
     - AGENTS.md
@@ -149,7 +148,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-06-05 00:00 UTC - josecelano - T6 deferred: CI, AI agent setup, and release process will be established when the first change to torrust-clock is needed; initial commit pushed to GitHub
 - 2026-06-05 00:00 UTC - josecelano - torrust-clock v3.0.0 published on crates.io; T7–T9 DONE: all 13 consumers migrated to crates.io dep, packages/clock removed from workspace members, directory deleted; M1+M2 verified
 - 2026-06-05 00:00 UTC - josecelano - T10 DONE: AGENTS.md, packages/AGENTS.md, docs/packages.md updated; T13 DONE: EPIC #1669 tables updated; T11+T12 deferred to CI (PR checks)
-- 2026-06-05 00:00 UTC - josecelano - T10 DONE: AGENTS.md, packages/AGENTS.md, docs/packages.md updated; T13 DONE: EPIC #1669 tables updated; T11+T12 deferred to CI (PR #TBD)
+- 2026-06-05 00:00 UTC - josecelano - PR #1880 merged into develop; issue closed; spec moved to docs/issues/closed/
 
 > **Note — deferred setup for `torrust/torrust-clock`**: The following work is intentionally deferred to a future issue opened against the `torrust/torrust-clock` repository, to be done when the first change or publication is needed:
 >
