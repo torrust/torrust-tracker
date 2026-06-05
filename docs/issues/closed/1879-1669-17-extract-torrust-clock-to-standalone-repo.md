@@ -8,7 +8,7 @@ spec-path: docs/issues/closed/1879-1669-17-extract-torrust-clock-to-standalone-r
 branch: 1879-1669-extract-torrust-clock-to-standalone-repo
 related-pr: 1880
 last-updated-utc: 2026-06-05 00:00
-semantics-links:
+semantic-links:
   skill-links:
     - create-issue
   related-artifacts:

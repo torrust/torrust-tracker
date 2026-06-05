@@ -57,7 +57,7 @@ The crate has **zero workspace-path dependencies** — all its runtime deps (`se
 The crate is **not yet published on crates.io**; publication from the standalone repository
 is part of this issue's scope.
 
-This issue is a subissue of EPIC [#1669](../open/1669-overhaul-packages/EPIC.md)
+This issue is a subissue of EPIC [#1669](1669-overhaul-packages/EPIC.md)
 (Overhaul: Packages).
 
 ## Scope
@@ -160,7 +160,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 - [ ] A standalone repository `torrust/torrust-net-primitives` exists on GitHub.
 - [ ] The repository contains the crate source (history preservation where practical).
-- [ ] CI in the new repository passes.
+- [ ] CI in the new repository passes _(may be deferred — see note below)_.
 - [ ] `torrust-net-primitives` is published and visible on crates.io.
 - [ ] No `Cargo.toml` in the tracker workspace references `torrust-net-primitives` with a path dep.
 - [ ] `packages/net-primitives` is absent from the `[workspace]` members list in root `Cargo.toml`.
