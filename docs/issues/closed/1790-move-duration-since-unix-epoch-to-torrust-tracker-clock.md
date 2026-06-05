@@ -1,13 +1,13 @@
 ---
 doc-type: issue
 issue-type: task
-status: open
+status: closed
 priority: p3
 github-issue: 1790
-spec-path: docs/issues/open/1790-move-duration-since-unix-epoch-to-torrust-tracker-clock.md
+spec-path: docs/issues/closed/1790-move-duration-since-unix-epoch-to-torrust-tracker-clock.md
 branch: 1790-move-duration-since-unix-epoch
 related-pr: 1791
-last-updated-utc: 2026-05-18 20:00
+last-updated-utc: 2026-06-05 00:00
 semantic-links:
   skill-links:
     - create-issue

@@ -1,13 +1,13 @@
 ---
 doc-type: issue
 issue-type: task
-status: draft
+status: open
 priority: p3
-github-issue: null
-spec-path: docs/issues/drafts/1669-extract-torrust-clock-to-standalone-repo.md
-branch: null
+github-issue: 1879
+spec-path: docs/issues/open/1879-1669-17-extract-torrust-clock-to-standalone-repo.md
+branch: 1879-1669-extract-torrust-clock-to-standalone-repo
 related-pr: null
-last-updated-utc: 2026-05-15 12:00
+last-updated-utc: 2026-06-05 00:00
 semantic-links:
   skill-links:
     - create-issue
@@ -23,7 +23,7 @@ semantic-links:
 
 <!-- skill-link: create-issue -->
 
-# Issue #[To be assigned] - Extract `torrust-clock` to a standalone repository
+# Issue #1879 - Extract `torrust-clock` to a standalone repository
 
 ## Goal
 
@@ -67,7 +67,7 @@ This issue is a subissue of EPIC [#1669](../open/1669-overhaul-packages/EPIC.md)
   `git filter-repo`).
 - Verify the standalone repository builds and tests pass independently.
 - Set up CI in the new repository (mirror the relevant CI workflows from the tracker repo).
-- Update all 11 workspace consumers (root `Cargo.toml` + 10 packages) to reference
+- Update all 13 workspace consumers (root `Cargo.toml` + 12 packages) to reference
   `torrust-clock` as a crates.io version dependency instead of a path dependency.
 - Remove `packages/clock` from the workspace `members` list in root `Cargo.toml`.
 - Delete the `packages/clock/` directory from the tracker repository.
@@ -82,20 +82,22 @@ This issue is a subissue of EPIC [#1669](../open/1669-overhaul-packages/EPIC.md)
 
 ### Workspace consumers to migrate in T5
 
-The following 11 files must have their `torrust-clock` dep changed from a path dep to a
+The following 13 files must have their `torrust-clock` dep changed from a path dep to a
 crates.io version dep:
 
 - `Cargo.toml` (root — workspace dep registration)
 - `packages/axum-health-check-api-server/Cargo.toml`
-- `packages/axum-http-tracker-server/Cargo.toml`
-- `packages/axum-rest-tracker-api-server/Cargo.toml`
+- `packages/axum-http-server/Cargo.toml`
+- `packages/axum-rest-api-server/Cargo.toml`
 - `packages/http-protocol/Cargo.toml`
 - `packages/http-tracker-core/Cargo.toml`
+- `packages/metrics/Cargo.toml`
+- `packages/primitives/Cargo.toml`
 - `packages/swarm-coordination-registry/Cargo.toml`
 - `packages/tracker-core/Cargo.toml`
 - `packages/torrent-repository-benchmarking/Cargo.toml`
+- `packages/udp-server/Cargo.toml`
 - `packages/udp-tracker-core/Cargo.toml`
-- `packages/udp-tracker-server/Cargo.toml`
 
 ## Implementation Plan
 
@@ -109,7 +111,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T4  | TODO   | Move `packages/clock/` to the new repository, preserving git history (`git filter-repo`)         | New repo contains full history for `packages/clock/`                           |
 | T5  | TODO   | Verify standalone repository: `cargo build` and `cargo test` pass with no path deps              | Clean build in the new repo; Cargo.toml has only external (non-path) deps      |
 | T6  | TODO   | Set up CI in the new repository                                                                  | Copy/adapt relevant GitHub Actions workflows; CI passes                        |
-| T7  | TODO   | Update all 11 workspace consumers (see list above): path dep → crates.io version dep             | `torrust-clock = "X.Y.Z"` (or workspace dep) in each Cargo.toml                |
+| T7  | TODO   | Update all 13 workspace consumers (see list above): path dep → crates.io version dep             | `torrust-clock = "X.Y.Z"` (or workspace dep) in each Cargo.toml                |
 | T8  | TODO   | Remove `packages/clock` entry from workspace `members` in root `Cargo.toml`                      | `packages/clock` absent from `[workspace]` members list                        |
 | T9  | TODO   | Delete `packages/clock/` directory from the tracker repository                                   | Directory removed; `git status` shows deletions                                |
 | T10 | TODO   | Update `packages/AGENTS.md`, `AGENTS.md`, `docs/packages.md`                                     | `torrust-clock` moved to an "Extracted packages" section                       |
@@ -121,12 +123,12 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 ### Workflow Checkpoints
 
-- [ ] Spec drafted in `docs/issues/drafts/`
-- [ ] Spec reviewed and approved by user/maintainer
-- [ ] Clock rename subissue complete (prerequisite 1)
-- [ ] `DurationSinceUnixEpoch` move subissue complete (prerequisite 2)
-- [ ] GitHub issue created and issue number added to this spec
-- [ ] Spec moved to `docs/issues/open/` with issue number prefix
+- [x] Spec drafted in `docs/issues/drafts/`
+- [x] Spec reviewed and approved by user/maintainer
+- [x] Clock rename subissue complete (prerequisite 1)
+- [x] `DurationSinceUnixEpoch` move subissue complete (prerequisite 2)
+- [x] GitHub issue created and issue number added to this spec
+- [x] Spec moved to `docs/issues/open/` with issue number prefix
 - [ ] Standalone repository created
 - [ ] Source moved with history preserved
 - [ ] CI set up and passing in new repository
@@ -142,6 +144,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 - 2026-05-15 12:00 UTC - josecelano - Spec drafted as subissue of EPIC #1669; follows
   clock rename and DurationSinceUnixEpoch move subissues
+- 2026-06-05 00:00 UTC - josecelano - Spec reviewed and corrected (consumer count 11→13, stale package names fixed); GitHub issue #1879 created; spec moved to open/
 
 ## Acceptance Criteria
 
