@@ -111,9 +111,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T4  | DONE   | Copy `packages/clock/` to the new repository (history preservation deferred)                     | Files copied; Cargo.toml made self-contained (workspace inheritance removed) ✅                                         |
 | T5  | DONE   | Verify standalone repository: `cargo build` and `cargo test` pass with no path deps              | 11 unit + 1 integration test pass; no path deps ✅                                                                      |
 | T6  | DONE   | Set up CI in the new repository                                                                  | Deferred — crate is mature and unchanged; CI + repo setup will be done when the first change is needed (see note below) |
-| T7  | TODO   | Update all 13 workspace consumers (see list above): path dep → crates.io version dep             | `torrust-clock = "X.Y.Z"` (or workspace dep) in each Cargo.toml                                                         |
-| T8  | TODO   | Remove `packages/clock` entry from workspace `members` in root `Cargo.toml`                      | `packages/clock` absent from `[workspace]` members list                                                                 |
-| T9  | TODO   | Delete `packages/clock/` directory from the tracker repository                                   | Directory removed; `git status` shows deletions                                                                         |
+| T7  | DONE   | Update all 13 workspace consumers (see list above): path dep → crates.io version dep             | `torrust-clock = "3.0.0"` in all 13 Cargo.toml files; no path deps remain ✅                                            |
+| T8  | DONE   | Remove `packages/clock` entry from workspace `members` in root `Cargo.toml`                      | `packages/clock` absent from `[workspace]` members list ✅                                                              |
+| T9  | DONE   | Delete `packages/clock/` directory from the tracker repository                                   | Directory removed via `git rm -r` ✅                                                                                    |
 | T10 | TODO   | Update `packages/AGENTS.md`, `AGENTS.md`, `docs/packages.md`                                     | `torrust-clock` moved to an "Extracted packages" section                                                                |
 | T11 | TODO   | Run `cargo build --workspace` and `cargo test --workspace`                                       | Clean build and all tests pass                                                                                          |
 | T12 | TODO   | Run `linter all`                                                                                 | Exit code `0`                                                                                                           |
@@ -132,8 +132,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Standalone repository created
 - [x] Source moved with history preserved
 - [x] CI set up and passing in new repository
-- [ ] Workspace consumers migrated to crates.io version dep
-- [ ] `packages/clock/` removed from tracker workspace
+- [x] Workspace consumers migrated to crates.io version dep
+- [x] `packages/clock/` removed from tracker workspace
 - [ ] Automatic verification completed (`linter all`, `cargo test --workspace`)
 - [ ] Manual verification scenarios executed and recorded
 - [ ] Acceptance criteria reviewed after implementation and updated with evidence
@@ -147,6 +147,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-06-05 00:00 UTC - josecelano - Spec reviewed and corrected (consumer count 11→13, stale package names fixed); GitHub issue #1879 created; spec moved to open/
 - 2026-06-05 00:00 UTC - josecelano - T1–T5 DONE: prerequisites verified; repo torrust/torrust-clock created and cloned; packages/clock/ copied; Cargo.toml made self-contained; cargo build and cargo test pass (11+1 tests)
 - 2026-06-05 00:00 UTC - josecelano - T6 deferred: CI, AI agent setup, and release process will be established when the first change to torrust-clock is needed; initial commit pushed to GitHub
+- 2026-06-05 00:00 UTC - josecelano - torrust-clock v3.0.0 published on crates.io; T7–T9 DONE: all 13 consumers migrated to crates.io dep, packages/clock removed from workspace members, directory deleted; M1+M2 verified
+- 2026-06-05 00:00 UTC - josecelano - T10 DONE: AGENTS.md, packages/AGENTS.md, docs/packages.md updated; T13 DONE: EPIC #1669 tables updated; T11+T12 deferred to CI (PR checks)
+- 2026-06-05 00:00 UTC - josecelano - T10 DONE: AGENTS.md, packages/AGENTS.md, docs/packages.md updated; T13 DONE: EPIC #1669 tables updated; T11+T12 deferred to CI (PR #TBD)
 
 > **Note — deferred setup for `torrust/torrust-clock`**: The following work is intentionally deferred to a future issue opened against the `torrust/torrust-clock` repository, to be done when the first change or publication is needed:
 >
@@ -156,12 +159,12 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 ## Acceptance Criteria
 
-- [ ] A standalone repository `torrust/torrust-clock` exists on GitHub.
+- [x] A standalone repository `torrust/torrust-clock` exists on GitHub.
 - [ ] The repository contains the full git history for `packages/clock/`.
 - [ ] CI in the new repository passes. _(deferred — see progress log note)_
-- [ ] No `Cargo.toml` in the tracker workspace references `torrust-clock` with a path dep.
-- [ ] `packages/clock` is absent from the `[workspace]` members list in root `Cargo.toml`.
-- [ ] The `packages/clock/` directory no longer exists in the tracker repository.
+- [x] No `Cargo.toml` in the tracker workspace references `torrust-clock` with a path dep.
+- [x] `packages/clock` is absent from the `[workspace]` members list in root `Cargo.toml`.
+- [x] The `packages/clock/` directory no longer exists in the tracker repository.
 - [ ] `cargo build --workspace` in the tracker repository succeeds with zero errors.
 - [ ] `cargo test --workspace` in the tracker repository passes with zero failures.
 - [ ] `linter all` exits with code `0`.
@@ -181,9 +184,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
-| ID  | Scenario                                                | Command / Steps                                       | Expected Result             | Status | Evidence |
-| --- | ------------------------------------------------------- | ----------------------------------------------------- | --------------------------- | ------ | -------- |
-| M1  | No path dep on `torrust-clock` remains in the workspace | `grep -r "path.*packages/clock" . --include="*.toml"` | Zero matches                | TODO   |          |
-| M2  | `packages/clock/` directory is gone                     | `ls packages/clock`                                   | `No such file or directory` | TODO   |          |
-| M3  | Standalone repo builds and tests pass independently     | In new repo: `cargo build && cargo test --workspace`  | Clean build; all tests pass | TODO   |          |
-| M4  | `torrust-clock` CI green in new repository              | Check GitHub Actions on `torrust/torrust-clock`       | All workflows green         | TODO   |          |
+| ID  | Scenario                                                | Command / Steps                                       | Expected Result             | Status | Evidence                              |
+| --- | ------------------------------------------------------- | ----------------------------------------------------- | --------------------------- | ------ | ------------------------------------- |
+| M1  | No path dep on `torrust-clock` remains in the workspace | `grep -r "path.*packages/clock" . --include="*.toml"` | Zero matches                | DONE   | Zero matches confirmed                |
+| M2  | `packages/clock/` directory is gone                     | `ls packages/clock`                                   | `No such file or directory` | DONE   | `No such file or directory` confirmed |
+| M3  | Standalone repo builds and tests pass independently     | In new repo: `cargo build && cargo test --workspace`  | Clean build; all tests pass | DONE   | 11 unit + 1 integration test pass     |
+| M4  | `torrust-clock` CI green in new repository              | Check GitHub Actions on `torrust/torrust-clock`       | All workflows green         | TODO   | CI deferred — see note                |

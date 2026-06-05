@@ -22,7 +22,6 @@ packages/
 ├── axum-http-server
 ├── axum-rest-api-server
 ├── axum-server
-├── clock
 ├── configuration
 ├── http-protocol
 ├── http-tracker-core
@@ -78,8 +77,8 @@ Key Architectural Principles:
 | ------------------------------ | ------------------------------------ | ------------------------------------------ |
 | **axum-\***                    |                                      |                                            |
 | `axum-server`                  | Base Axum HTTP server infrastructure | HTTP server lifecycle management           |
-| `axum-http-server`     | BitTorrent HTTP tracker (BEP 3/23)   | Handle announce/scrape requests            |
-| `axum-rest-api-server` | Management REST API                  | Tracker configuration & monitoring         |
+| `axum-http-server`             | BitTorrent HTTP tracker (BEP 3/23)   | Handle announce/scrape requests            |
+| `axum-rest-api-server`         | Management REST API                  | Tracker configuration & monitoring         |
 | `axum-health-check-api-server` | Health monitoring endpoint           | System health reporting                    |
 | **Core Components**            |                                      |                                            |
 | `http-tracker-core`            | HTTP-specific implementation         | Request validation, Response formatting    |
@@ -93,12 +92,11 @@ Key Architectural Principles:
 | `configuration`                | Runtime configuration                | Config file parsing, Environment variables |
 | `primitives`                   | Domain-specific types                | InfoHash, PeerId, Byte handling            |
 | **Utilities**                  |                                      |                                            |
-| `clock`                        | Time abstraction                     | Mockable time source for testing           |
 | `located-error`                | Diagnostic errors                    | Error tracing with source locations        |
 | `test-helpers`                 | Testing utilities                    | Mock servers, Test data generation         |
 | **Client Tools**               |                                      |                                            |
 | `tracker-client`               | CLI client                           | Tracker interaction/testing                |
-| `rest-api-client`      | API client library                   | REST API integration                       |
+| `rest-api-client`              | API client library                   | REST API integration                       |
 
 ## Protocol Implementation Details
 
