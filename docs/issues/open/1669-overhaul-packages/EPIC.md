@@ -94,12 +94,6 @@ The workspace currently contains **27 packages** (including the root `torrust-tr
 | No                     | `torrust-tracker-udp-tracker-protocol`            | `udp-protocol`                    |
 | No                     | `torrust-tracker-udp-server`                      | `udp-server`                      |
 
-### `bittorrent-` prefix
-
-| Published on crates.io | Crate Name           | Folder    |
-| ---------------------- | -------------------- | --------- |
-| No                     | `bittorrent-peer-id` | `peer-id` |
-
 **Observation**: only 6 of 27 packages are currently published on crates.io, all of which
 carry the `torrust-tracker-` prefix. Every `bittorrent-` and `torrust-axum-` crate is
 unpublished. This confirms issue #1659's note that "many new crates have not been published
@@ -233,7 +227,7 @@ Notes:
 1. Will be replaced by the newer `contrib/bencode` code from tracker.
 2. May be inlined into consumers rather than published independently.
 3. Migrates newer tracker implementation and replaces old `packages/bencode`.
-4. No workspace deps; first in the `bittorrent-*` extraction sequence.
+4. **Completed June 2026**: `torrust-peer-id 0.1.0` published to crates.io from `torrust/torrust-bittorrent`. Tracker consumers migrated; `packages/peer-id` removed from tracker workspace.
 5. Migrate `InfoHash` here; then archive `torrust/bittorrent-primitives`.
 
 The following crates remain in `torrust/torrust-tracker` for now:
@@ -542,7 +536,7 @@ Status: TODO unless noted.
 - [x] [#1834](https://github.com/torrust/torrust-tracker/issues/1834) SI-13: Decouple `http-protocol` from `udp-protocol` _(Rule M; remove cross-protocol dependency edge)_
 - [x] [#1835](https://github.com/torrust/torrust-tracker/issues/1835) SI-14: Decouple `http-protocol` from `torrust-tracker-primitives` _(Rule M; remove protocol -> domain coupling as step 2)_
 - [ ] [#1882](https://github.com/torrust/torrust-tracker/issues/1882) SI-18: Extract `torrust-metrics` to standalone repository _(Rule E; requires completed metrics rename work)_
-- [ ] [#1884](https://github.com/torrust/torrust-tracker/issues/1884) SI-19: Move `bittorrent-peer-id` to `torrust/torrust-bittorrent` as `torrust-peer-id` _(Rule E; no workspace deps; first `bittorrent-*` extraction)_
+- [x] [#1884](https://github.com/torrust/torrust-tracker/issues/1884) SI-19: Move `bittorrent-peer-id` to `torrust/torrust-bittorrent` as `torrust-peer-id` _(Rule E; no workspace deps; first `bittorrent-*` extraction)_
 - [ ] [#1885](https://github.com/torrust/torrust-tracker/issues/1885) SI-20: Extract `torrust-net-primitives` to standalone repository _(Rule E; no workspace deps; no prerequisites)_
 
 #### 4. Other Tracked Items (Drafts and Promoted Issues)
@@ -574,7 +568,7 @@ Details:
 | Located error rename       | [#1823](https://github.com/torrust/torrust-tracker/issues/1823) — Rename `torrust-tracker-located-error` to `torrust-located-error`                                              | [docs/issues/closed/1823-1669-10-rename-torrust-tracker-located-error-to-torrust-located-error.md](../../closed/1823-1669-10-rename-torrust-tracker-located-error-to-torrust-located-error.md) | DONE   | Rule P; completed                                                                                                                             |
 | README refresh             | #TBD — Update all package READMEs                                                                                                                                                | [docs/issues/drafts/1669-update-all-package-readmes.md](../../drafts/1669-update-all-package-readmes.md)                                                                                       | TODO   | Documentation; requires completed rename work; before extraction work                                                                         |
 | Bencode migration          | [#1881](https://github.com/torrust/torrust-tracker/issues/1881) SI-16: Migrate `contrib/bencode` to `torrust/torrust-bittorrent` as `torrust-bencode`                            | [docs/issues/closed/1881-1669-16-migrate-contrib-bencode-to-torrust-bittorrent/ISSUE.md](../../closed/1881-1669-16-migrate-contrib-bencode-to-torrust-bittorrent/ISSUE.md)                     | DONE   | Rule E; torrust-bencode 3.0.0 published; contrib/bencode removed from tracker workspace                                                       |
-| Peer-ID move               | [#1884](https://github.com/torrust/torrust-tracker/issues/1884) — Move `bittorrent-peer-id` to `torrust/torrust-bittorrent` as `torrust-peer-id`                                 | [docs/issues/open/1884-1669-19-move-bittorrent-peer-id-to-torrust-bittorrent.md](../../open/1884-1669-19-move-bittorrent-peer-id-to-torrust-bittorrent.md)                                     | TODO   | Rule E; no workspace deps in crate; 3 consumers to migrate; first `bittorrent-*` extraction sequence item                                     |
+| Peer-ID move               | [#1884](https://github.com/torrust/torrust-tracker/issues/1884) — Move `bittorrent-peer-id` to `torrust/torrust-bittorrent` as `torrust-peer-id`                                 | [docs/issues/open/1884-1669-19-move-bittorrent-peer-id-to-torrust-bittorrent.md](../../open/1884-1669-19-move-bittorrent-peer-id-to-torrust-bittorrent.md)                                     | DONE   | Rule E; published as torrust-peer-id 0.1.0 on crates.io; 3 tracker consumers migrated; packages/peer-id removed                               |
 | Clock extraction           | [#1879](https://github.com/torrust/torrust-tracker/issues/1879) — Extract `torrust-clock` to standalone repository                                                               | [docs/issues/closed/1879-1669-17-extract-torrust-clock-to-standalone-repo.md](../../closed/1879-1669-17-extract-torrust-clock-to-standalone-repo.md)                                           | DONE   | Rule E; torrust-clock v3.0.0 published; 13 consumers migrated; packages/clock removed                                                         |
 | Metrics extraction         | [#1882](https://github.com/torrust/torrust-tracker/issues/1882) — Extract `torrust-metrics` to standalone repository                                                             | [docs/issues/open/1882-1669-18-extract-torrust-metrics-to-standalone-repo.md](../../open/1882-1669-18-extract-torrust-metrics-to-standalone-repo.md)                                           | TODO   | Rule E; requires completed metrics rename; 7 workspace consumers to migrate                                                                   |
 | Net-primitives extraction  | [#1885](https://github.com/torrust/torrust-tracker/issues/1885) — Extract `torrust-net-primitives` to standalone repository                                                      | [docs/issues/open/1885-1669-20-extract-torrust-net-primitives-to-standalone-repo.md](../../open/1885-1669-20-extract-torrust-net-primitives-to-standalone-repo.md)                             | TODO   | Rule E; no workspace deps; no prerequisites; 10 consumers to migrate; new repo torrust/torrust-net-primitives                                 |

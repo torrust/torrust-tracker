@@ -7,7 +7,7 @@ github-issue: 1884
 spec-path: docs/issues/open/1884-1669-19-move-bittorrent-peer-id-to-torrust-bittorrent.md
 branch: 1884-1669-move-bittorrent-peer-id-to-torrust-bittorrent
 related-pr: null
-last-updated-utc: 2026-06-05 00:00
+last-updated-utc: 2026-06-08 00:00
 semantic-links:
   skill-links:
     - create-issue
@@ -94,23 +94,23 @@ This issue is a subissue of EPIC #1669 (Overhaul: Packages).
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| ID  | Status | Task                                                                                                                   | Notes / Expected Output                                                               |
-| --- | ------ | ---------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
-| T1  | DONE   | Rename `name` in `packages/peer-id/Cargo.toml` to `torrust-peer-id`                                                    | `name = "torrust-peer-id"`                                                            |
-| T2  | DONE   | Update `repository` URL in `packages/peer-id/Cargo.toml` and crate metadata                                            | Point to `https://github.com/torrust/torrust-bittorrent`                              |
-| T2b | DONE   | Drop AGPL-3.0 `LICENSE` from the package; inherit Apache-2.0 from the destination workspace                            | `LICENSE` file removed; `license.workspace = true`; `LICENSE-APACHE` attribution kept |
-| T3  | DONE   | Confirm destination workspace `torrust/torrust-bittorrent` migration path                                              | Target path agreed: `packages/peer-id`                                                |
-| T4  | DONE   | Move/merge crate source into destination workspace, preserving history where practical                                 | `packages/peer-id` added to `torrust/torrust-bittorrent`                              |
-| T5  | DONE   | Set up/adjust CI in destination repository if needed                                                                   | CI green after migration                                                              |
-| T6  | DONE   | Publish `torrust-peer-id` on crates.io from destination repository                                                     | Successful `cargo publish`; crate visible at crates.io/crates/torrust-peer-id         |
-| T7  | DONE   | Update `packages/http-protocol/Cargo.toml`: replace path dep with published `torrust-peer-id`                          | `torrust-peer-id = "0.1.0"` (no path)                                                 |
-| T8  | DONE   | Update `packages/primitives/Cargo.toml`: replace path dep with published `torrust-peer-id`                             | `torrust-peer-id = "0.1.0"` (no path)                                                 |
-| T9  | DONE   | Update `packages/udp-protocol/Cargo.toml`: replace path dep with published `torrust-peer-id` (keep `zerocopy` feature) | `torrust-peer-id = { version = "0.1.0", features = ["zerocopy"] }` (no path)          |
-| T10 | DONE   | Remove `packages/peer-id/` from tracker workspace (`members` + workspace dep in `Cargo.toml`)                          | `cargo build --workspace` succeeds without the local crate                            |
-| T11 | DONE   | Delete `packages/peer-id/` directory from the tracker repo                                                             | Directory gone; workspace still builds                                                |
-| T12 | DONE   | Update `packages/AGENTS.md`, `AGENTS.md`, `docs/packages.md`, and any README references                                | No stale references to `bittorrent-peer-id`                                           |
-| T13 | DONE   | Run `cargo build --workspace`, `cargo test --workspace`, `linter all`                                                  | All green                                                                             |
-| T14 | TODO   | Update EPIC #1669 `Package Inventory` and `Desired Package State` tables                                               | Remove `bittorrent-peer-id` from tracker table; mark as extracted in bittorrent table |
+| ID  | Status | Task                                                                                                                   | Notes / Expected Output                                                                                 |
+| --- | ------ | ---------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| T1  | DONE   | Rename `name` in `packages/peer-id/Cargo.toml` to `torrust-peer-id`                                                    | `name = "torrust-peer-id"`                                                                              |
+| T2  | DONE   | Update `repository` URL in `packages/peer-id/Cargo.toml` and crate metadata                                            | Point to `https://github.com/torrust/torrust-bittorrent`                                                |
+| T2b | DONE   | Drop AGPL-3.0 `LICENSE` from the package; inherit Apache-2.0 from the destination workspace                            | `LICENSE` file removed; `license.workspace = true`; `LICENSE-APACHE` attribution kept                   |
+| T3  | DONE   | Confirm destination workspace `torrust/torrust-bittorrent` migration path                                              | Target path agreed: `packages/peer-id`                                                                  |
+| T4  | DONE   | Move/merge crate source into destination workspace, preserving history where practical                                 | `packages/peer-id` added to `torrust/torrust-bittorrent`                                                |
+| T5  | DONE   | Set up/adjust CI in destination repository if needed                                                                   | CI green after migration                                                                                |
+| T6  | DONE   | Publish `torrust-peer-id` on crates.io from destination repository                                                     | Successful `cargo publish`; crate visible at crates.io/crates/torrust-peer-id                           |
+| T7  | DONE   | Update `packages/http-protocol/Cargo.toml`: replace path dep with published `torrust-peer-id`                          | `torrust-peer-id = "0.1.0"` (no path)                                                                   |
+| T8  | DONE   | Update `packages/primitives/Cargo.toml`: replace path dep with published `torrust-peer-id`                             | `torrust-peer-id = "0.1.0"` (no path)                                                                   |
+| T9  | DONE   | Update `packages/udp-protocol/Cargo.toml`: replace path dep with published `torrust-peer-id` (keep `zerocopy` feature) | `torrust-peer-id = { version = "0.1.0", features = ["zerocopy"] }` (no path)                            |
+| T10 | DONE   | Remove `packages/peer-id/` from tracker workspace (`members` + workspace dep in `Cargo.toml`)                          | `cargo build --workspace` succeeds without the local crate                                              |
+| T11 | DONE   | Delete `packages/peer-id/` directory from the tracker repo                                                             | Directory gone; workspace still builds                                                                  |
+| T12 | DONE   | Update `packages/AGENTS.md`, `AGENTS.md`, `docs/packages.md`, and any README references                                | No stale references to `bittorrent-peer-id`                                                             |
+| T13 | DONE   | Run `cargo build --workspace`, `cargo test --workspace`, `linter all`                                                  | All green                                                                                               |
+| T14 | DONE   | Update EPIC #1669 `Package Inventory` and `Desired Package State` tables                                               | `bittorrent-` prefix section removed; Desired Package State table updated; Active Subissues marked DONE |
 
 ## Progress Tracking
 
@@ -125,7 +125,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Manual verification scenarios executed and recorded
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [x] `torrust-peer-id` published from `torrust/torrust-bittorrent`
-- [ ] EPIC #1669 Active Subissues table updated to `DONE`
+- [x] EPIC #1669 Active Subissues table updated to `DONE`
 - [ ] Issue closed and spec moved to `docs/issues/closed/`
 
 ### Progress Log
