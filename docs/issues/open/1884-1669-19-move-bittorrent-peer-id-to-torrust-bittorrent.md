@@ -6,7 +6,7 @@ priority: p2
 github-issue: 1884
 spec-path: docs/issues/open/1884-1669-19-move-bittorrent-peer-id-to-torrust-bittorrent.md
 branch: 1884-1669-move-bittorrent-peer-id-to-torrust-bittorrent
-related-pr: null
+related-pr: https://github.com/torrust/torrust-tracker/pull/1887
 last-updated-utc: 2026-06-08 00:00
 semantic-links:
   skill-links:
