@@ -64,6 +64,12 @@ This issue is a subissue of EPIC #1669 (Overhaul: Packages).
   relevant history.
 - Update `repository` URL and crate metadata in `Cargo.toml` to point to
   `https://github.com/torrust/torrust-bittorrent`.
+- **Change the license from AGPL-3.0 to Apache-2.0**: the tracker workspace inherits AGPL-3.0
+  globally, but this was never an intentional choice for this standalone library crate. The
+  upstream source (`aquatic_peer_id`) is Apache-2.0, the existing `LICENSE-APACHE` file already
+  preserves that attribution, and all packages in `torrust/torrust-bittorrent` are uniformly
+  Apache-2.0. The AGPL-3.0 `LICENSE` file from the tracker workspace is dropped; the package
+  inherits `license = "Apache-2.0"` from the `torrust-bittorrent` workspace.
 - Ensure CI passes in the destination repository after migration.
 - Publish `torrust-peer-id` on crates.io from the destination repository.
 - Update the three consumers in the tracker workspace to depend on the published
@@ -92,6 +98,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | --- | ------ | ---------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
 | T1  | TODO   | Rename `name` in `packages/peer-id/Cargo.toml` to `torrust-peer-id`                                                    | `name = "torrust-peer-id"`                                                            |
 | T2  | TODO   | Update `repository` URL in `packages/peer-id/Cargo.toml` and crate metadata                                            | Point to `https://github.com/torrust/torrust-bittorrent`                              |
+| T2b | TODO   | Drop AGPL-3.0 `LICENSE` from the package; inherit Apache-2.0 from the destination workspace                            | `LICENSE` file removed; `license.workspace = true`; `LICENSE-APACHE` attribution kept |
 | T3  | TODO   | Confirm destination workspace `torrust/torrust-bittorrent` migration path                                              | Target path agreed: `packages/peer-id`                                                |
 | T4  | TODO   | Move/merge crate source into destination workspace, preserving history where practical                                 | `packages/peer-id` added to `torrust/torrust-bittorrent`                              |
 | T5  | TODO   | Set up/adjust CI in destination repository if needed                                                                   | CI green after migration                                                              |
@@ -138,6 +145,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [ ] `cargo test --workspace` passes with zero failures.
 - [ ] `linter all` exits with code `0`.
 - [ ] `torrust-peer-id` is published and visible on crates.io.
+- [ ] `torrust-peer-id` is published under the Apache-2.0 license; no AGPL-3.0 `LICENSE` file is present in the package.
 - [ ] Destination repository (`torrust/torrust-bittorrent`) has passing CI and a published release.
 - [ ] `packages/AGENTS.md`, `AGENTS.md`, and `docs/packages.md` no longer list `bittorrent-peer-id`.
 
