@@ -5,10 +5,10 @@ use std::fmt;
 use std::panic::Location;
 use std::str::FromStr;
 
-use bittorrent_peer_id::PeerId;
 use bittorrent_primitives::info_hash::{self, InfoHash};
 use thiserror::Error;
 use torrust_located_error::{Located, LocatedError};
+use torrust_peer_id::PeerId;
 
 use crate::percent_encoding::{PeerIdConversionError, percent_decode_info_hash, percent_decode_peer_id};
 use crate::v1::query::{ParseQueryError, Query};
@@ -45,7 +45,7 @@ impl NumberOfBytes {
 /// ```rust
 /// use torrust_tracker_http_tracker_protocol::v1::requests::announce::{Announce, Compact, Event};
 /// use bittorrent_primitives::info_hash::InfoHash;
-/// use bittorrent_peer_id::PeerId;
+/// use torrust_peer_id::PeerId;
 /// use torrust_tracker_http_tracker_protocol::v1::requests::announce::NumberOfBytes;
 ///
 /// let request = Announce {
@@ -400,8 +400,8 @@ mod tests {
 
     mod announce_request {
 
-        use bittorrent_peer_id::PeerId;
         use bittorrent_primitives::info_hash::InfoHash;
+        use torrust_peer_id::PeerId;
 
         use crate::v1::query::Query;
         use crate::v1::requests::announce::{

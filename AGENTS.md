@@ -72,7 +72,6 @@ All packages live under `packages/`. The workspace version is `3.0.0-develop`.
 | `http-tracker-core`               | `torrust-tracker-http-tracker-core`               | `*-core`       | HTTP-specific tracker domain logic            |
 | `located-error`                   | `torrust-located-error`                           | utilities      | Diagnostic errors with source locations       |
 | `metrics`                         | `torrust-metrics`                                 | domain         | Prometheus metrics integration                |
-| `peer-id`                         | `bittorrent-peer-id`                              | domain         | Peer ID parsing and formatting utilities      |
 | `primitives`                      | `torrust-tracker-primitives`                      | domain         | Core domain types (InfoHash, PeerId, ...)     |
 | `rest-api-client`                 | `torrust-tracker-rest-api-client`                 | client tools   | REST API client library                       |
 | `rest-api-core`                   | `torrust-tracker-rest-api-core`                   | client tools   | REST API core logic                           |

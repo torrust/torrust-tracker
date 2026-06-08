@@ -16,7 +16,7 @@ version.workspace = true
 
 [dependencies]
 bittorrent-primitives = "0.2.0"
-bittorrent-peer-id = { version = "3.0.0-develop", path = "../peer-id" }
+torrust-peer-id = "0.1.0"
 derive_more = { version = "2", features = [ "as_ref", "constructor", "from" ] }
 multimap = "0"
 percent-encoding = "2"

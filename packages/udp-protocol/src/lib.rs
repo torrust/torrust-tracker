@@ -25,7 +25,7 @@ pub mod request;
 pub mod response;
 pub mod scrape;
 
-pub use bittorrent_peer_id::{PeerClient, PeerId};
+pub use torrust_peer_id::{PeerClient, PeerId};
 
 pub use self::announce::*;
 pub use self::common::*;

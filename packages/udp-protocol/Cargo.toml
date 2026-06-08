@@ -18,7 +18,7 @@ version.workspace = true
 default = [  ]
 
 [dependencies]
-bittorrent-peer-id = { version = "3.0.0-develop", path = "../peer-id", features = [ "zerocopy" ] }
+torrust-peer-id = { version = "0.1.0", features = [ "zerocopy" ] }
 byteorder = "1"
 either = "1"
 zerocopy = { version = "0.8", features = [ "derive" ] }
