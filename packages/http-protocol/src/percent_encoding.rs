@@ -15,8 +15,8 @@
 //! - <https://datatracker.ietf.org/doc/html/rfc3986#section-2.1>
 //! - <https://en.wikipedia.org/wiki/URL_encoding>
 //! - <https://developer.mozilla.org/en-US/docs/Glossary/percent-encoding>
-use bittorrent_peer_id::PeerId;
 use bittorrent_primitives::info_hash::{self, InfoHash};
+use torrust_peer_id::PeerId;
 
 #[derive(thiserror::Error, Debug, Clone, PartialEq, Eq)]
 pub enum PeerIdConversionError {
@@ -67,7 +67,7 @@ pub fn percent_decode_info_hash(raw_info_hash: &str) -> Result<InfoHash, info_ha
 ///
 /// use torrust_tracker_http_tracker_protocol::percent_encoding::percent_decode_peer_id;
 /// use bittorrent_primitives::info_hash::InfoHash;
-/// use bittorrent_peer_id::PeerId;
+/// use torrust_peer_id::PeerId;
 ///
 /// let encoded_peer_id = "%2DqB00000000000000000";
 ///
@@ -100,8 +100,8 @@ pub fn percent_decode_peer_id(raw_peer_id: &str) -> Result<PeerId, PeerIdConvers
 mod tests {
     use std::str::FromStr;
 
-    use bittorrent_peer_id::PeerId;
     use bittorrent_primitives::info_hash::InfoHash;
+    use torrust_peer_id::PeerId;
 
     use crate::percent_encoding::{percent_decode_info_hash, percent_decode_peer_id};
 

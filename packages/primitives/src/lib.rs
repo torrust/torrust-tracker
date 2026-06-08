@@ -9,7 +9,6 @@ pub mod mode;
 pub mod number_of_bytes;
 pub mod pagination;
 pub mod peer;
-pub mod peer_id;
 pub mod policy;
 pub mod scrape;
 pub mod swarm_metadata;
@@ -20,7 +19,6 @@ pub use announce::{AnnounceData, AnnounceEvent, AnnouncePolicy};
 use bittorrent_primitives::info_hash::InfoHash;
 pub use mode::PrivateMode;
 pub use number_of_bytes::NumberOfBytes;
-pub use peer_id::{PeerClient, PeerId};
 pub use policy::TrackerPolicy;
 pub use scrape::ScrapeData;
 /// Duration since the Unix Epoch.
@@ -35,6 +33,7 @@ pub use scrape::ScrapeData;
             this re-export will be removed in a future release (see EPIC #1669)"
 )]
 pub use torrust_clock::DurationSinceUnixEpoch;
+pub use torrust_peer_id::{PeerClient, PeerId};
 
 /// Network service binding types.
 ///

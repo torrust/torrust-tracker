@@ -4,9 +4,9 @@
 use std::io::Write;
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
 
-use bittorrent_peer_id::PeerId;
 use derive_more::{AsRef, Constructor, From};
 use torrust_bencode::{BMutAccess, BencodeMut, ben_bytes, ben_int, ben_list, ben_map};
+use torrust_peer_id::PeerId;
 
 // Protocol-local announce response DTOs intentionally duplicate some domain
 // field shapes. This keeps protocol crates decoupled from tracker domain types
@@ -321,7 +321,7 @@ mod tests {
 
     use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
 
-    use bittorrent_peer_id::PeerId;
+    use torrust_peer_id::PeerId;
 
     use crate::v1::responses::announce::{Announce, AnnounceData, AnnouncePolicy, Compact, Normal, Peer, SwarmMetadata};
 
