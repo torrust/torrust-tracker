@@ -326,6 +326,7 @@ tempfile
 Tera
 testcontainer
 testcontainers
+thirdparty
 thiserror
 timespec
 tlnp

@@ -1,13 +1,13 @@
 ---
 doc-type: issue
 issue-type: task
-status: draft
+status: superseded
 priority: p4
 github-issue: null
 spec-path: docs/issues/drafts/1840-workflow-performance-split-external-dep-cache-layer/ISSUE.md
 branch: "{issue-number}-split-external-dep-cache-layer"
 related-pr: null
-last-updated-utc: 2026-06-01 12:00
+last-updated-utc: 2026-06-09 12:00
 semantic-links:
   skill-links:
     - create-issue
@@ -20,11 +20,21 @@ semantic-links:
     - docs/issues/open/1840-improve-pr-workflow-performance-epic/EPIC.md
     - docs/issues/closed/1841-1840-workflow-performance-baseline-analysis/benchmark-results-baseline.md
     - docs/issues/open/1669-overhaul-packages/EPIC.md
+    - docs/issues/open/1869-1840-workflow-performance-dependency-layer-cache-reuse/ISSUE.md
 ---
 
 <!-- skill-link: create-issue -->
 
 # Issue #[To be assigned] - Investigate splitting cook layer to isolate external dependency cache
+
+> **SUPERSEDED** — This investigation has been resolved by the `--external-only` flag
+> implemented in the [`torrust-cargo-chef`](https://github.com/torrust/cargo-chef) fork.
+> The solution is being applied as part of
+> **[Issue #1869](https://github.com/torrust/torrust-tracker/issues/1869)**
+> (`docs/issues/open/1869-1840-workflow-performance-dependency-layer-cache-reuse/ISSUE.md`).
+>
+> This draft is kept as a transitional archive. It will be **physically removed**
+> (folder deleted) when #1869 implementation completes.
 
 ## Goal
 
@@ -186,6 +196,7 @@ Append one line per meaningful update.
 
 - 2026-06-01 00:00 UTC - GitHub Copilot - Drafted cook layer split investigation issue from EPIC #1840 discussion - draft file created
 - 2026-06-01 12:00 UTC - GitHub Copilot - Downgraded priority to p4 after cargo timings analysis: C build scripts dominate cook time; workspace stub cost is near-zero; split benefit is marginal until other bottlenecks are resolved first
+- 2026-06-09 12:00 UTC - GitHub Copilot - Superseded by `--external-only` flag in `torrust-cargo-chef` fork (investigation resolved). The solution is now tracked under issue #1869 (`docs/issues/open/`).
 
 ## Acceptance Criteria
 
