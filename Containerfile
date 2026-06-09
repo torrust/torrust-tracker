@@ -183,7 +183,11 @@ RUN mkdir -p \
 RUN cargo chef prepare --recipe-path /build/recipe.json
 # Generate an external-only recipe for the third-party dependency layer.
 # The `--external-only` flag strips all `path = "..."` dependency entries,
-# producing a stable recipe that only changes when Cargo.lock changes.
+# producing a stable recipe that is immune to workspace-internal Cargo.toml
+# changes (e.g., reorganising workspace members, renaming packages). The recipe
+# still changes when external dependency metadata changes — for example, adding
+# or removing a crate, updating a version, or toggling feature flags on external
+# dependencies — regardless of whether Cargo.lock is modified.
 # This is from the `torrust-cargo-chef` fork (see chef stage above).
 RUN cargo chef prepare --external-only --recipe-path /build/recipe-thirdparty.json
 

@@ -1,7 +1,7 @@
 ---
 doc-type: issue
 issue-type: task
-status: superseded
+status: done
 priority: p4
 github-issue: null
 spec-path: docs/issues/drafts/1840-workflow-performance-split-external-dep-cache-layer/ISSUE.md
@@ -34,7 +34,8 @@ semantic-links:
 > (`docs/issues/open/1869-1840-workflow-performance-dependency-layer-cache-reuse/ISSUE.md`).
 >
 > This draft is kept as a transitional archive. It will be **physically removed**
-> (folder deleted) when #1869 implementation completes.
+> (folder deleted) when issue #1869 is closed (implementation + verification
+> completed).
 
 ## Goal
 

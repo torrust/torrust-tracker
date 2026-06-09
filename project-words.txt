@@ -8,8 +8,8 @@ Agentic
 agentskills
 Aideq
 alekitto
-alloca
 alives
+alloca
 analyse
 appuser
 argjson
@@ -194,7 +194,6 @@ multimap
 myacicontext
 mysqladmin
 mysqld
-optimisation
 ñaca
 Naim
 nanos
@@ -213,18 +212,19 @@ Norberg
 notnull
 numwant
 nvCFlJCq7fz7Qx6KoKTDiMZvns8l5Kw7
-obra
 objcopy
+obra
 oneline
 oneshot
 openmetrics
+optimisation
 optimisations
 organisation
 ostr
 overengineered
 Pando
-parallelise
 parallelisable
+parallelise
 parallelised
 parseable
 peekable
@@ -261,6 +261,7 @@ recognised
 recompiles
 referer
 Registar
+reorganising
 repomix
 repr
 reqs
