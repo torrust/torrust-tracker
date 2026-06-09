@@ -11,7 +11,7 @@ use std::net::SocketAddr;
 use std::ops::Range;
 use std::sync::Arc;
 
-use bittorrent_primitives::info_hash::InfoHash;
+use torrust_info_hash::InfoHash;
 use torrust_net_primitives::service_binding::ServiceBinding;
 use torrust_tracker_core::announce_handler::{AnnounceHandler, PeersWanted};
 use torrust_tracker_core::error::{AnnounceError, WhitelistError};

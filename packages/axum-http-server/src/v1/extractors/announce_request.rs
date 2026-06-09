@@ -86,7 +86,7 @@ fn extract_announce_from(maybe_raw_query: Option<&str>) -> Result<Announce, resp
 mod tests {
     use std::str::FromStr;
 
-    use bittorrent_primitives::info_hash::InfoHash;
+    use torrust_info_hash::InfoHash;
     use torrust_tracker_http_tracker_protocol::v1::requests::announce::{Announce, Compact, Event, NumberOfBytes};
     use torrust_tracker_http_tracker_protocol::v1::responses::error::Error;
     use torrust_tracker_primitives::PeerId;

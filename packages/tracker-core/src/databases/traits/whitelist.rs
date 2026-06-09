@@ -1,7 +1,7 @@
 //! The [`WhitelistStore`] trait — torrent whitelist context.
 use async_trait::async_trait;
-use bittorrent_primitives::info_hash::InfoHash;
 use mockall::automock;
+use torrust_info_hash::InfoHash;
 
 use super::super::error::Error;
 

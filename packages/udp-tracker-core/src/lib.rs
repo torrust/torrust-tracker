@@ -43,7 +43,7 @@ pub fn initialize_static() {
 
 #[cfg(test)]
 pub(crate) mod tests {
-    use bittorrent_primitives::info_hash::InfoHash;
+    use torrust_info_hash::InfoHash;
 
     /// # Panics
     ///

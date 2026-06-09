@@ -458,18 +458,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "bittorrent-primitives"
-version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6b47ab263cb9c3bc8be80e312f81c1ee94d3af3d9ee066b81abc06f8fc851023"
-dependencies = [
- "binascii",
- "serde",
- "serde_json",
- "thiserror 1.0.69",
-]
-
-[[package]]
 name = "block-buffer"
 version = "0.10.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4969,6 +4957,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "torrust-info-hash"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1a7d0de6ae3ee4cf86805f87900b60ccc3dbee38e718023bf4636d050fb96b28"
+dependencies = [
+ "binascii",
+ "serde",
+ "thiserror 2.0.18",
+]
+
+[[package]]
 name = "torrust-located-error"
 version = "3.0.0-develop"
 dependencies = [
@@ -5036,7 +5035,6 @@ dependencies = [
  "anyhow",
  "axum-server",
  "base64",
- "bittorrent-primitives",
  "chrono",
  "clap",
  "pbkdf2",
@@ -5053,6 +5051,7 @@ dependencies = [
  "tokio-util",
  "toml 1.1.2+spec-1.1.0",
  "torrust-clock",
+ "torrust-info-hash",
  "torrust-server-lib",
  "torrust-tracker-axum-health-check-api-server",
  "torrust-tracker-axum-http-server",
@@ -5106,7 +5105,6 @@ dependencies = [
  "axum",
  "axum-client-ip",
  "axum-server",
- "bittorrent-primitives",
  "derive_more 2.1.1",
  "futures",
  "hyper",
@@ -5121,6 +5119,7 @@ dependencies = [
  "tokio",
  "tokio-util",
  "torrust-clock",
+ "torrust-info-hash",
  "torrust-net-primitives",
  "torrust-server-lib",
  "torrust-tracker-axum-server",
@@ -5145,7 +5144,6 @@ dependencies = [
  "axum",
  "axum-extra",
  "axum-server",
- "bittorrent-primitives",
  "derive_more 2.1.1",
  "futures",
  "hyper",
@@ -5156,6 +5154,7 @@ dependencies = [
  "thiserror 2.0.18",
  "tokio",
  "torrust-clock",
+ "torrust-info-hash",
  "torrust-metrics",
  "torrust-net-primitives",
  "torrust-server-lib",
@@ -5203,7 +5202,6 @@ version = "3.0.0-develop"
 dependencies = [
  "anyhow",
  "bencode2json",
- "bittorrent-primitives",
  "clap",
  "futures",
  "hyper",
@@ -5215,6 +5213,7 @@ dependencies = [
  "tempfile",
  "thiserror 2.0.18",
  "tokio",
+ "torrust-info-hash",
  "torrust-tracker-client-lib",
  "torrust-tracker-udp-tracker-protocol",
  "tracing",
@@ -5226,7 +5225,6 @@ dependencies = [
 name = "torrust-tracker-client-lib"
 version = "3.0.0-develop"
 dependencies = [
- "bittorrent-primitives",
  "derive_more 2.1.1",
  "hyper",
  "percent-encoding",
@@ -5237,6 +5235,7 @@ dependencies = [
  "serde_repr",
  "thiserror 2.0.18",
  "tokio",
+ "torrust-info-hash",
  "torrust-located-error",
  "torrust-net-primitives",
  "torrust-tracker-primitives",
@@ -5270,7 +5269,6 @@ name = "torrust-tracker-core"
 version = "3.0.0-develop"
 dependencies = [
  "async-trait",
- "bittorrent-primitives",
  "chrono",
  "derive_more 2.1.1",
  "mockall",
@@ -5283,6 +5281,7 @@ dependencies = [
  "tokio",
  "tokio-util",
  "torrust-clock",
+ "torrust-info-hash",
  "torrust-located-error",
  "torrust-metrics",
  "torrust-tracker-configuration",
@@ -5316,7 +5315,6 @@ dependencies = [
 name = "torrust-tracker-http-tracker-core"
 version = "3.0.0-develop"
 dependencies = [
- "bittorrent-primitives",
  "criterion 0.5.1",
  "futures",
  "mockall",
@@ -5325,6 +5323,7 @@ dependencies = [
  "tokio",
  "tokio-util",
  "torrust-clock",
+ "torrust-info-hash",
  "torrust-metrics",
  "torrust-net-primitives",
  "torrust-tracker-configuration",
@@ -5341,7 +5340,6 @@ dependencies = [
 name = "torrust-tracker-http-tracker-protocol"
 version = "3.0.0-develop"
 dependencies = [
- "bittorrent-primitives",
  "derive_more 2.1.1",
  "multimap",
  "percent-encoding",
@@ -5350,6 +5348,7 @@ dependencies = [
  "thiserror 2.0.18",
  "torrust-bencode",
  "torrust-clock",
+ "torrust-info-hash",
  "torrust-located-error",
  "torrust-peer-id",
 ]
@@ -5359,7 +5358,6 @@ name = "torrust-tracker-persistence-benchmark"
 version = "3.0.0-develop"
 dependencies = [
  "anyhow",
- "bittorrent-primitives",
  "chrono",
  "clap",
  "serde",
@@ -5367,6 +5365,7 @@ dependencies = [
  "sqlx",
  "testcontainers",
  "tokio",
+ "torrust-info-hash",
  "torrust-tracker-configuration",
  "torrust-tracker-core",
 ]
@@ -5376,13 +5375,13 @@ name = "torrust-tracker-primitives"
 version = "3.0.0-develop"
 dependencies = [
  "binascii",
- "bittorrent-primitives",
  "derive_more 2.1.1",
  "serde",
  "tdyne-peer-id",
  "tdyne-peer-id-registry",
  "thiserror 2.0.18",
  "torrust-clock",
+ "torrust-info-hash",
  "torrust-net-primitives",
  "torrust-peer-id",
 ]
@@ -5421,7 +5420,6 @@ dependencies = [
 name = "torrust-tracker-swarm-coordination-registry"
 version = "3.0.0-develop"
 dependencies = [
- "bittorrent-primitives",
  "chrono",
  "crossbeam-skiplist",
  "futures",
@@ -5432,6 +5430,7 @@ dependencies = [
  "tokio",
  "tokio-util",
  "torrust-clock",
+ "torrust-info-hash",
  "torrust-metrics",
  "torrust-tracker-events",
  "torrust-tracker-primitives",
@@ -5452,7 +5451,6 @@ dependencies = [
 name = "torrust-tracker-torrent-repository-benchmarking"
 version = "3.0.0-develop"
 dependencies = [
- "bittorrent-primitives",
  "criterion 0.8.2",
  "crossbeam-skiplist",
  "dashmap",
@@ -5461,6 +5459,7 @@ dependencies = [
  "rstest 0.26.1",
  "tokio",
  "torrust-clock",
+ "torrust-info-hash",
  "torrust-tracker-primitives",
 ]
 
@@ -5468,7 +5467,6 @@ dependencies = [
 name = "torrust-tracker-udp-server"
 version = "3.0.0-develop"
 dependencies = [
- "bittorrent-primitives",
  "derive_more 2.1.1",
  "futures",
  "futures-util",
@@ -5480,6 +5478,7 @@ dependencies = [
  "tokio",
  "tokio-util",
  "torrust-clock",
+ "torrust-info-hash",
  "torrust-metrics",
  "torrust-net-primitives",
  "torrust-server-lib",
@@ -5502,7 +5501,6 @@ dependencies = [
 name = "torrust-tracker-udp-tracker-core"
 version = "3.0.0-develop"
 dependencies = [
- "bittorrent-primitives",
  "bloom",
  "blowfish",
  "cipher",
@@ -5515,6 +5513,7 @@ dependencies = [
  "tokio",
  "tokio-util",
  "torrust-clock",
+ "torrust-info-hash",
  "torrust-metrics",
  "torrust-net-primitives",
  "torrust-tracker-configuration",

@@ -19,7 +19,7 @@ db-compatibility-tests = [  ]
 
 [dependencies]
 async-trait = "0"
-bittorrent-primitives = "0.2.0"
+torrust-info-hash = "=0.2.0"
 chrono = { version = "0", default-features = false, features = [ "clock" ] }
 derive_more = { version = "2", features = [ "as_ref", "constructor", "from" ] }
 mockall = "0"

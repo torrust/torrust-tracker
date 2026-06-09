@@ -9,7 +9,7 @@
 //!  debugging.
 use std::panic::Location;
 
-use bittorrent_primitives::info_hash::InfoHash;
+use torrust_info_hash::InfoHash;
 use torrust_located_error::LocatedError;
 
 use super::authentication::key::ParseKeyError;

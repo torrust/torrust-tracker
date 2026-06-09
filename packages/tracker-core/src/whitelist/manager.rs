@@ -4,7 +4,7 @@
 //! managing the whitelist of torrents.
 use std::sync::Arc;
 
-use bittorrent_primitives::info_hash::InfoHash;
+use torrust_info_hash::InfoHash;
 
 use super::repository::in_memory::InMemoryWhitelist;
 use super::repository::persisted::DatabaseWhitelist;

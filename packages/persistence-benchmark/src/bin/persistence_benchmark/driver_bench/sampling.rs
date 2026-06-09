@@ -2,7 +2,7 @@ use std::str::FromStr;
 use std::time::Instant;
 
 use anyhow::{Context, Result, anyhow};
-use bittorrent_primitives::info_hash::InfoHash;
+use torrust_info_hash::InfoHash;
 
 use super::RawOperationSamples;
 

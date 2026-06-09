@@ -323,7 +323,7 @@ pub enum Version {
 pub(crate) mod tests {
 
     pub(crate) mod helpers {
-        use bittorrent_primitives::info_hash::InfoHash;
+        use torrust_info_hash::InfoHash;
 
         /// # Panics
         ///

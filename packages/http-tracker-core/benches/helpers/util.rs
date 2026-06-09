@@ -1,11 +1,11 @@
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::sync::Arc;
 
-use bittorrent_primitives::info_hash::InfoHash;
 use futures::future::BoxFuture;
 use mockall::mock;
 use tokio_util::sync::CancellationToken;
 use torrust_clock::DurationSinceUnixEpoch;
+use torrust_info_hash::InfoHash;
 use torrust_tracker_configuration::{Configuration, Core};
 use torrust_tracker_core::announce_handler::AnnounceHandler;
 use torrust_tracker_core::authentication::key::repository::in_memory::InMemoryKeyRepository;

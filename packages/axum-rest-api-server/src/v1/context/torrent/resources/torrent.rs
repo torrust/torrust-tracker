@@ -96,8 +96,8 @@ mod tests {
     use std::net::{IpAddr, Ipv4Addr, SocketAddr};
     use std::str::FromStr;
 
-    use bittorrent_primitives::info_hash::InfoHash;
     use torrust_clock::DurationSinceUnixEpoch;
+    use torrust_info_hash::InfoHash;
     use torrust_tracker_core::torrent::services::{BasicInfo, Info};
     use torrust_tracker_primitives::{AnnounceEvent, NumberOfBytes, PeerId, peer};
 

@@ -16,7 +16,7 @@ rust-version.workspace = true
 version.workspace = true
 
 [dependencies]
-bittorrent-primitives = "0.2.0"
+torrust-info-hash = "=0.2.0"
 chrono = { version = "0", default-features = false, features = [ "clock" ] }
 crossbeam-skiplist = "0"
 futures = "0"

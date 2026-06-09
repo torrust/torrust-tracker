@@ -1,10 +1,10 @@
 use std::sync::Arc;
 
-use bittorrent_primitives::info_hash::InfoHash;
 use crossbeam_skiplist::SkipMap;
 use tokio::sync::Mutex;
 use torrust_clock::DurationSinceUnixEpoch;
 use torrust_clock::conv::convert_from_timestamp_to_datetime_utc;
+use torrust_info_hash::InfoHash;
 use torrust_tracker_primitives::pagination::Pagination;
 use torrust_tracker_primitives::swarm_metadata::{AggregateActiveSwarmMetadata, SwarmMetadata};
 use torrust_tracker_primitives::{NumberOfDownloads, NumberOfDownloadsBTreeMap, TrackerPolicy, peer};
@@ -750,8 +750,8 @@ mod tests {
             use std::sync::Arc;
             use std::time::Duration;
 
-            use bittorrent_primitives::info_hash::InfoHash;
             use torrust_clock::DurationSinceUnixEpoch;
+            use torrust_info_hash::InfoHash;
             use torrust_tracker_primitives::TrackerPolicy;
 
             use crate::swarm::registry::Registry;
@@ -1056,7 +1056,7 @@ mod tests {
 
             use std::sync::Arc;
 
-            use bittorrent_primitives::info_hash::fixture::gen_seeded_infohash;
+            use torrust_info_hash::fixture::gen_seeded_infohash;
             use torrust_tracker_primitives::swarm_metadata::AggregateActiveSwarmMetadata;
 
             use crate::swarm::registry::Registry;
@@ -1154,7 +1154,7 @@ mod tests {
                 let start_time = std::time::Instant::now();
                 for i in 0..1_000_000 {
                     swarms
-                        .handle_announcement(&gen_seeded_infohash(&i), &leecher(), None)
+                        .handle_announcement(&gen_seeded_infohash(i), &leecher(), None)
                         .await
                         .unwrap();
                 }

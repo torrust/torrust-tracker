@@ -1,7 +1,7 @@
 //! The repository that stored persistent torrents' data into the database.
 use std::sync::Arc;
 
-use bittorrent_primitives::info_hash::InfoHash;
+use torrust_info_hash::InfoHash;
 use torrust_tracker_primitives::{NumberOfDownloads, NumberOfDownloadsBTreeMap};
 
 use crate::databases::TorrentMetricsStore;

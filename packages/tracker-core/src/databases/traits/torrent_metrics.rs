@@ -5,8 +5,8 @@
 //! in ADR
 //! [`20260429000000_keep_database_as_aggregate_supertrait`](../../../../docs/adrs/20260429000000_keep_database_as_aggregate_supertrait.md).
 use async_trait::async_trait;
-use bittorrent_primitives::info_hash::InfoHash;
 use mockall::automock;
+use torrust_info_hash::InfoHash;
 use torrust_tracker_primitives::{NumberOfDownloads, NumberOfDownloadsBTreeMap};
 
 use super::super::error::Error;

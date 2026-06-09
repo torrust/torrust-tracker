@@ -1,5 +1,5 @@
-use bittorrent_primitives::info_hash::InfoHash;
 use rand::prelude::*;
+use torrust_info_hash::InfoHash;
 
 pub fn invalid_info_hashes() -> Vec<String> {
     [

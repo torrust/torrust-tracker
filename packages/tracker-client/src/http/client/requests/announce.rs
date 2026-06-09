@@ -2,8 +2,8 @@ use std::fmt;
 use std::net::{IpAddr, Ipv4Addr};
 use std::str::FromStr;
 
-use bittorrent_primitives::info_hash::InfoHash;
 use serde_repr::Serialize_repr;
+use torrust_info_hash::InfoHash;
 use torrust_tracker_udp_tracker_protocol::PeerId;
 
 use crate::http::{ByteArray20, percent_encode_byte_array};

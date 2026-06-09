@@ -1,9 +1,9 @@
 use std::net::SocketAddr;
 use std::time::{Duration, Instant};
 
-use bittorrent_primitives::info_hash::InfoHash as TorrustInfoHash;
 use reqwest::Url;
 use serde::Serialize;
+use torrust_info_hash::InfoHash as TorrustInfoHash;
 use torrust_tracker_client::udp;
 use torrust_tracker_udp_tracker_protocol::TransactionId;
 

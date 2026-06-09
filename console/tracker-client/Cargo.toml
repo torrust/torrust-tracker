@@ -21,7 +21,7 @@ name = "torrust_tracker_console_client"
 anyhow = "1"
 bencode2json = "0.1"
 torrust-tracker-udp-tracker-protocol = { version = "3.0.0-develop", path = "../../packages/udp-protocol" }
-bittorrent-primitives = "0.2.0"
+torrust-info-hash = "=0.2.0"
 torrust-tracker-client = { package = "torrust-tracker-client-lib", version = "3.0.0-develop", path = "../../packages/tracker-client" }
 clap = { version = "4", features = [ "derive", "env" ] }
 futures = "0"

@@ -186,7 +186,7 @@ mod tests {
 
                 use std::net::{IpAddr, Ipv4Addr};
 
-                use bittorrent_primitives::info_hash::InfoHash;
+                use torrust_info_hash::InfoHash;
                 use torrust_tracker_primitives::ScrapeData;
                 use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
 
@@ -247,7 +247,7 @@ mod tests {
 
             mod handling_a_scrape_request {
 
-                use bittorrent_primitives::info_hash::InfoHash;
+                use torrust_info_hash::InfoHash;
                 use torrust_tracker_primitives::ScrapeData;
                 use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
 

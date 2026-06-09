@@ -112,10 +112,10 @@ mod for_all_config_modes {
         use std::str::FromStr;
         use std::sync::Arc;
 
-        use bittorrent_primitives::info_hash::InfoHash;
         use local_ip_address::local_ip;
         use reqwest::{Response, StatusCode};
         use tokio::net::TcpListener;
+        use torrust_info_hash::InfoHash;
         use torrust_tracker_axum_http_server::environment::Started;
         use torrust_tracker_primitives::PeerId as DomainPeerId;
         use torrust_tracker_primitives::peer::fixture::PeerBuilder;
@@ -1058,8 +1058,8 @@ mod for_all_config_modes {
         use std::str::FromStr;
         use std::sync::Arc;
 
-        use bittorrent_primitives::info_hash::InfoHash;
         use tokio::net::TcpListener;
+        use torrust_info_hash::InfoHash;
         use torrust_tracker_axum_http_server::environment::Started;
         use torrust_tracker_primitives::PeerId;
         use torrust_tracker_primitives::peer::fixture::PeerBuilder;
@@ -1327,7 +1327,7 @@ mod configured_as_whitelisted {
         use std::str::FromStr;
         use std::sync::Arc;
 
-        use bittorrent_primitives::info_hash::InfoHash;
+        use torrust_info_hash::InfoHash;
         use torrust_tracker_axum_http_server::environment::Started;
         use torrust_tracker_test_helpers::logging::logs_contains_a_line_with;
         use torrust_tracker_test_helpers::{configuration, logging};
@@ -1400,7 +1400,7 @@ mod configured_as_whitelisted {
         use std::str::FromStr;
         use std::sync::Arc;
 
-        use bittorrent_primitives::info_hash::InfoHash;
+        use torrust_info_hash::InfoHash;
         use torrust_tracker_axum_http_server::environment::Started;
         use torrust_tracker_primitives::PeerId;
         use torrust_tracker_primitives::peer::fixture::PeerBuilder;
@@ -1513,7 +1513,7 @@ mod configured_as_private {
         use std::sync::Arc;
         use std::time::Duration;
 
-        use bittorrent_primitives::info_hash::InfoHash;
+        use torrust_info_hash::InfoHash;
         use torrust_tracker_axum_http_server::environment::Started;
         use torrust_tracker_core::authentication::Key;
         use torrust_tracker_test_helpers::{configuration, logging};
@@ -1618,7 +1618,7 @@ mod configured_as_private {
         use std::sync::Arc;
         use std::time::Duration;
 
-        use bittorrent_primitives::info_hash::InfoHash;
+        use torrust_info_hash::InfoHash;
         use torrust_tracker_axum_http_server::environment::Started;
         use torrust_tracker_core::authentication::Key;
         use torrust_tracker_primitives::PeerId;
