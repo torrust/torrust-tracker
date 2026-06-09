@@ -49,7 +49,7 @@ jobs:
 
       - id: upload
         name: Upload Coverage Report
-        uses: codecov/codecov-action@v6
+        uses: codecov/codecov-action@v7
         with:
           verbose: true
           token: ${{ secrets.CODECOV_TOKEN }}
