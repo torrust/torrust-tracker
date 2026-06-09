@@ -6,7 +6,10 @@
 FROM docker.io/library/rust:trixie AS chef
 WORKDIR /tmp
 RUN curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
-RUN cargo binstall --no-confirm --locked cargo-chef cargo-nextest
+RUN cargo binstall --no-confirm --locked torrust-cargo-chef@0.1.78-torrust cargo-nextest
+# Note: We use the `torrust-cargo-chef` fork (v0.1.78-torrust) while upstream PR
+# https://github.com/LukeMathWalker/cargo-chef/pull/360 is pending. Once merged,
+# switch back to upstream `cargo-chef` and remove this comment.
 
 ## Tester Image
 FROM docker.io/library/rust:slim-trixie AS tester
@@ -178,11 +181,24 @@ RUN mkdir -p \
       packages/udp-tracker-core/src/lib.rs \
       packages/udp-tracker-core/benches/udp_tracker_core_benchmark.rs
 RUN cargo chef prepare --recipe-path /build/recipe.json
+# Generate an external-only recipe for the third-party dependency layer.
+# The `--external-only` flag strips all `path = "..."` dependency entries,
+# producing a stable recipe that only changes when Cargo.lock changes.
+# This is from the `torrust-cargo-chef` fork (see chef stage above).
+RUN cargo chef prepare --external-only --recipe-path /build/recipe-thirdparty.json
 
+
+## Cook Third-party (debug)
+FROM chef AS dependencies_thirdparty_debug
+WORKDIR /build/src
+# Only third-party recipe: immune to workspace Cargo.toml changes.
+COPY --from=recipe /build/recipe-thirdparty.json /build/recipe.json
+RUN cargo chef cook --tests --workspace --all-features --recipe-path /build/recipe.json
 
 ## Cook (debug)
-FROM chef AS dependencies_debug
+FROM dependencies_thirdparty_debug AS dependencies_debug
 WORKDIR /build/src
+# Full recipe on top — reuses third-party artifacts from parent layer.
 COPY --from=recipe /build/recipe.json /build/recipe.json
 # Note: `cargo chef cook` does not support `--exclude` (the cargo-chef CLI only
 # exposes `--workspace` and `--package`, not `--exclude`). The excluded workspace
@@ -207,9 +223,17 @@ RUN cargo nextest archive --tests --workspace --all-features \
     --exclude torrust-tracker-persistence-benchmark \
     --archive-file /build/temp.tar.zst && rm -f /build/temp.tar.zst
 
-## Cook (release)
-FROM chef AS dependencies
+## Cook Third-party (release)
+FROM chef AS dependencies_thirdparty
 WORKDIR /build/src
+# Only third-party recipe: immune to workspace Cargo.toml changes.
+COPY --from=recipe /build/recipe-thirdparty.json /build/recipe.json
+RUN cargo chef cook --tests --workspace --all-features --recipe-path /build/recipe.json --release
+
+## Cook (release)
+FROM dependencies_thirdparty AS dependencies
+WORKDIR /build/src
+# Full recipe on top — reuses third-party artifacts from parent layer.
 COPY --from=recipe /build/recipe.json /build/recipe.json
 # Note: `cargo chef cook` does not support `--exclude` — see Cook (debug) above.
 RUN cargo chef cook --tests --workspace --all-features --recipe-path /build/recipe.json --release
