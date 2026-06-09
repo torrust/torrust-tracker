@@ -1,12 +1,12 @@
 ---
 doc-type: issue
 issue-type: task
-status: closed
+status: done
 priority: p3
 github-issue: 1885
 spec-path: docs/issues/closed/1885-1669-20-extract-torrust-net-primitives-to-standalone-repo.md
 branch: "1885-extract-torrust-net-primitives-to-standalone-repo"
-related-pr: "TBD"
+related-pr: null
 last-updated-utc: 2026-06-09 16:00
 semantic-links:
   skill-links:
