@@ -18,7 +18,7 @@ impl<T> RwLockStd<T> {
     /// # Panics
     ///
     /// Panics if unable to get a lock.
-    pub fn write(&self) -> std::sync::RwLockWriteGuard<'_, std::collections::BTreeMap<torrust_info_hash::InfoHash, T>> {
+    pub fn write(&self) -> std::sync::RwLockWriteGuard<'_, std::collections::BTreeMap<InfoHash, T>> {
         self.torrents.write().expect("it should get lock")
     }
 }

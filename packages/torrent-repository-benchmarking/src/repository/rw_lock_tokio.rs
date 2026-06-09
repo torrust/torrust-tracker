@@ -17,8 +17,7 @@ pub struct RwLockTokio<T> {
 impl<T> RwLockTokio<T> {
     pub fn write(
         &self,
-    ) -> impl std::future::Future<Output = tokio::sync::RwLockWriteGuard<'_, std::collections::BTreeMap<torrust_info_hash::InfoHash, T>>>
-    {
+    ) -> impl std::future::Future<Output = tokio::sync::RwLockWriteGuard<'_, std::collections::BTreeMap<InfoHash, T>>> {
         self.torrents.write()
     }
 }

@@ -25,7 +25,7 @@ semantic-links:
 
 ## Goal
 
-Replace the `bittorrent-primitives` crate dependency with the new `torrust-info-hash` crate (v0.1.0) across the entire workspace. The `InfoHash` type originally came from `bittorrent-primitives` and has now been published as a standalone crate `torrust-info-hash` from the `torrust/torrust-bittorrent` monorepo (see torrust/torrust-bittorrent#87 / #88).
+Replace the `bittorrent-primitives` crate dependency with the new `torrust-info-hash` crate (v0.2.0) across the entire workspace. The `InfoHash` type originally came from `bittorrent-primitives` and has now been published as a standalone crate `torrust-info-hash` from the `torrust/torrust-bittorrent` monorepo (see torrust/torrust-bittorrent#87 / #88).
 
 ## Background
 
@@ -39,7 +39,7 @@ Note: the `udp-protocol` package (`torrust-tracker-udp-tracker-protocol`) define
 
 ### In Scope
 
-- Replace `bittorrent-primitives = "0.2.0"` with `torrust-info-hash = "=0.1.0"` in all workspace `Cargo.toml` files that use it for `InfoHash`
+- Replace `bittorrent-primitives = "0.2.0"` with `torrust-info-hash = "=0.2.0"` in all workspace `Cargo.toml` files that use it for `InfoHash`
 - Update all Rust source files: `use bittorrent_primitives::info_hash::InfoHash` → `use torrust_info_hash::InfoHash`
 - Update doc comments that reference the old import path (`bittorrent_primitives::info_hash::InfoHash`)
 - Remove `bittorrent-primitives` from root `Cargo.toml` dev-dependencies if no longer needed
@@ -81,8 +81,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T18 | DONE   | Run `cargo machete`                                                         | Verify no unused dependencies                              |
 | T19 | DONE   | Run `linter all`                                                            | Verify linting passes                                      |
 | T20 | DONE   | Run `cargo test --workspace`                                                | Verify tests pass (2520/2520)                              |
-| T21 | N/A    | Update `project-words.txt`                                                  | No new terms needed                                     |
-| T22 | N/A    | Update `AGENTS.md` if needed                                                | No references to either crate found                     |
+| T21 | N/A    | Update `project-words.txt`                                                  | No new terms needed                                        |
+| T22 | N/A    | Update `AGENTS.md` if needed                                                | No references to either crate found                        |
 
 ## Progress Tracking
 
@@ -134,9 +134,9 @@ Define verification before implementation starts and execute it before closing t
 
 Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
-| ID  | Scenario                                            | Command/Steps                                                                                   | Expected Result                          | Status | Evidence                     |
-| --- | --------------------------------------------------- | ----------------------------------------------------------------------------------------------- | ---------------------------------------- | ------ | ---------------------------- |
-| M1  | Verify no `bittorrent-primitives` references remain | `grep -r "bittorrent-primitives" --include="*.toml" --include="*.rs"`                           | No matches (except udp-protocol comment) | DONE   | `grep` shows only udp-protocol comment |
-| M2  | Verify all imports use new crate                    | `sed -i` bulk replacement across all files                                                      | All files updated                        | DONE   | `cargo check --workspace` passes |
-| M3  | Full workspace build                                | `cargo check --workspace`                                                                       | Exit code 0                              | DONE   | `Finished dev profile`       |
-| M4  | Full workspace test                                 | `cargo nextest run --workspace`                                                                 | Exit code 0                              | DONE   | 2520/2520 passed             |
+| ID  | Scenario                                            | Command/Steps                                                         | Expected Result                          | Status | Evidence                               |
+| --- | --------------------------------------------------- | --------------------------------------------------------------------- | ---------------------------------------- | ------ | -------------------------------------- |
+| M1  | Verify no `bittorrent-primitives` references remain | `grep -r "bittorrent-primitives" --include="*.toml" --include="*.rs"` | No matches (except udp-protocol comment) | DONE   | `grep` shows only udp-protocol comment |
+| M2  | Verify all imports use new crate                    | `sed -i` bulk replacement across all files                            | All files updated                        | DONE   | `cargo check --workspace` passes       |
+| M3  | Full workspace build                                | `cargo check --workspace`                                             | Exit code 0                              | DONE   | `Finished dev profile`                 |
+| M4  | Full workspace test                                 | `cargo nextest run --workspace`                                       | Exit code 0                              | DONE   | 2520/2520 passed                       |
