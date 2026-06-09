@@ -76,7 +76,6 @@ COPY packages/events/Cargo.toml packages/events/
 COPY packages/http-protocol/Cargo.toml packages/http-protocol/
 COPY packages/http-tracker-core/Cargo.toml packages/http-tracker-core/
 COPY packages/located-error/Cargo.toml packages/located-error/
-COPY packages/net-primitives/Cargo.toml packages/net-primitives/
 COPY packages/primitives/Cargo.toml packages/primitives/
 COPY packages/rest-api-client/Cargo.toml packages/rest-api-client/
 COPY packages/rest-api-core/Cargo.toml packages/rest-api-core/
@@ -123,7 +122,6 @@ RUN mkdir -p \
       packages/http-tracker-core/src \
       packages/http-tracker-core/benches \
       packages/located-error/src \
-      packages/net-primitives/src \
       packages/primitives/src \
       packages/rest-api-client/src \
       packages/rest-api-core/src \
@@ -164,7 +162,6 @@ RUN mkdir -p \
       packages/http-tracker-core/src/lib.rs \
       packages/http-tracker-core/benches/http_tracker_core_benchmark.rs \
       packages/located-error/src/lib.rs \
-      packages/net-primitives/src/lib.rs \
       packages/primitives/src/lib.rs \
       packages/rest-api-client/src/lib.rs \
       packages/rest-api-core/src/lib.rs \

@@ -31,7 +31,7 @@ torrust-clock = "3.0.0"
 torrust-tracker-configuration = { version = "3.0.0-develop", path = "../configuration" }
 torrust-tracker-events = { version = "3.0.0-develop", path = "../events" }
 torrust-metrics = "0.1.0"
-torrust-net-primitives = { version = "3.0.0-develop", path = "../net-primitives" }
+torrust-net-primitives = "0.1.0"
 torrust-tracker-primitives = { version = "3.0.0-develop", path = "../primitives" }
 torrust-tracker-swarm-coordination-registry = { version = "3.0.0-develop", path = "../swarm-coordination-registry" }
 tracing = "0"

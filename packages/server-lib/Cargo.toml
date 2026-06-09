@@ -16,6 +16,6 @@ version.workspace = true
 [dependencies]
 derive_more = { version = "2", features = [ "as_ref", "constructor", "display", "from" ] }
 tokio = { version = "1", features = [ "macros", "net", "rt-multi-thread", "signal", "sync" ] }
-torrust-net-primitives = { version = "3.0.0-develop", path = "../net-primitives" }
+torrust-net-primitives = "0.1.0"
 tower-http = { version = "0", features = [ "compression-full", "cors", "propagate-header", "request-id", "trace" ] }
 tracing = "0"
