@@ -120,7 +120,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] GitHub issue created and issue number added to this spec
 - [x] Spec moved to `docs/issues/open/` with issue number prefix
 - [x] Standalone repository created
-- [x] Source moved with history preserved (files copied)
+- [x] Source moved via file copy to new repository
 - [x] CI set up and passing in new repository
 - [x] Workspace consumers migrated to crates.io version dep
 - [x] `packages/metrics/` removed from tracker workspace
@@ -137,7 +137,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-06-05 00:00 UTC - josecelano - GitHub issue #1882 created; spec moved to docs/issues/open/
 - 2026-06-09 13:00 UTC - josecelano - All tasks T1-T13 complete: standalone repo created, crate published
   on crates.io (v0.1.0), consumers migrated, old directory removed, build/tests/linter pass.
-  Remaining: T14 (update EPIC #1669 tables).
+  Final task T14 (update EPIC #1669 tables) also completed.
 
 ## Acceptance Criteria
 

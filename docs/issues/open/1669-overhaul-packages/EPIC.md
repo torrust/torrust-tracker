@@ -66,7 +66,7 @@ The workspace currently contains **27 packages** (including the root `torrust-tr
 | ---------------------- | ------------------------ | ---------------- |
 | No                     | `torrust-clock`          | `clock`          |
 | No                     | `torrust-located-error`  | `located-error`  |
-| Yes                    | `torrust-metrics`        | `metrics`        |
+| Yes                    | `torrust-metrics`        | (extracted)      |
 | No                     | `torrust-net-primitives` | `net-primitives` |
 | No                     | `torrust-server-lib`     | `server-lib`     |
 
