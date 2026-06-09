@@ -26,7 +26,7 @@ tokio = { version = "1", features = [ "macros", "net", "rt-multi-thread", "signa
 tokio-util = "0.7.15"
 torrust-clock = "3.0.0"
 torrust-tracker-events = { version = "3.0.0-develop", path = "../events" }
-torrust-metrics = { version = "3.0.0-develop", path = "../metrics" }
+torrust-metrics = "0.1.0"
 torrust-tracker-primitives = { version = "3.0.0-develop", path = "../primitives" }
 tracing = "0"
 

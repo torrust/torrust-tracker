@@ -25,7 +25,8 @@ depend on packages in the same layer or a lower one.
 ├────────────────────────────────────────────────────────────────┤
 │  Domain / Shared                                               │
 │  torrent-repository  configuration  primitives                 │
-│  events  metrics  located-error  server-lib                    │
+│  events  located-error  server-lib                             │
+│  (extracted: metrics)                                          │
 ├────────────────────────────────────────────────────────────────┤
 │  Utilities / Test support                                      │
 │  test-helpers                                                  │
@@ -83,9 +84,16 @@ Strict BEP implementations — parse and serialize wire formats only. No tracker
 | `configuration`      | Config file parsing (`share/default/config/`) and env var loading (`TORRUST_TRACKER_CONFIG_TOML`, `TORRUST_TRACKER_CONFIG_TOML_PATH`); versioned under `src/v2_0_0/` |
 | `primitives`         | Core domain types: `InfoHash`, `PeerId`, `Peer`, `SwarmMetadata`, `ServiceBinding`                                                                                   |
 | `events`             | Async event bus (broadcaster / receiver / shutdown) used across packages                                                                                             |
-| `metrics`            | Prometheus-compatible metrics: counters, gauges, labels, samples                                                                                                     |
 | `server-lib`         | Shared HTTP server utilities: logging, service registrar, signal handling                                                                                            |
 | `located-error`      | Error decorator that captures the source file/line of the original error                                                                                             |
+
+### Extracted Packages
+
+Packages that have been extracted to their own standalone repositories.
+
+| Package   | Standalone Repository                                                 | Crate Name        | Description                                                      |
+| --------- | --------------------------------------------------------------------- | ----------------- | ---------------------------------------------------------------- |
+| `metrics` | [torrust/torrust-metrics](https://github.com/torrust/torrust-metrics) | `torrust-metrics` | Prometheus-compatible metrics: counters, gauges, labels, samples |
 
 ### Client Tools
 

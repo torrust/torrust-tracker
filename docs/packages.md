@@ -98,6 +98,14 @@ Key Architectural Principles:
 | `tracker-client`               | CLI client                           | Tracker interaction/testing                |
 | `rest-api-client`              | API client library                   | REST API integration                       |
 
+### Extracted Packages
+
+Packages that have been extracted to their own standalone repositories.
+
+| Package   | Standalone Repository                                                 | Crate Name        | Description                                                      |
+| --------- | --------------------------------------------------------------------- | ----------------- | ---------------------------------------------------------------- |
+| `metrics` | [torrust/torrust-metrics](https://github.com/torrust/torrust-metrics) | `torrust-metrics` | Prometheus-compatible metrics: counters, gauges, labels, samples |
+
 ## Protocol Implementation Details
 
 ### HTTP Tracker (BEP 3/23)

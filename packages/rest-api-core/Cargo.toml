@@ -20,7 +20,7 @@ torrust-tracker-udp-tracker-core = { version = "3.0.0-develop", path = "../udp-t
 tokio = { version = "1", features = [ "macros", "net", "rt-multi-thread", "signal", "sync" ] }
 tokio-util = "0.7.15"
 torrust-tracker-configuration = { version = "3.0.0-develop", path = "../configuration" }
-torrust-metrics = { version = "3.0.0-develop", path = "../metrics" }
+torrust-metrics = "0.1.0"
 torrust-tracker-primitives = { version = "3.0.0-develop", path = "../primitives" }
 torrust-tracker-swarm-coordination-registry = { version = "3.0.0-develop", path = "../swarm-coordination-registry" }
 torrust-tracker-udp-server = { version = "3.0.0-develop", path = "../udp-server" }

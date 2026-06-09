@@ -36,7 +36,7 @@ torrust-tracker-rest-api-core = { version = "3.0.0-develop", path = "../rest-api
 torrust-server-lib = { version = "3.0.0-develop", path = "../server-lib" }
 torrust-clock = "3.0.0"
 torrust-tracker-configuration = { version = "3.0.0-develop", path = "../configuration" }
-torrust-metrics = { version = "3.0.0-develop", path = "../metrics" }
+torrust-metrics = "0.1.0"
 torrust-net-primitives = { version = "3.0.0-develop", path = "../net-primitives" }
 torrust-tracker-primitives = { version = "3.0.0-develop", path = "../primitives" }
 torrust-tracker-swarm-coordination-registry = { version = "3.0.0-develop", path = "../swarm-coordination-registry" }
