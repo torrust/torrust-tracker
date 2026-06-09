@@ -3,8 +3,8 @@
 //! Data structures and logic for parsing the `scrape` request.
 use std::panic::Location;
 
-use bittorrent_primitives::info_hash::{self, InfoHash};
 use thiserror::Error;
+use torrust_info_hash::InfoHash;
 use torrust_located_error::{Located, LocatedError};
 
 use crate::percent_encoding::percent_decode_info_hash;
@@ -32,7 +32,7 @@ pub enum ParseScrapeQueryError {
     InvalidInfoHashParam {
         param_name: String,
         param_value: String,
-        source: LocatedError<'static, info_hash::ConversionError>,
+        source: LocatedError<'static, torrust_info_hash::ConversionError>,
     },
 }
 
@@ -84,7 +84,7 @@ mod tests {
 
     mod scrape_request {
 
-        use bittorrent_primitives::info_hash::InfoHash;
+        use torrust_info_hash::InfoHash;
 
         use crate::v1::query::Query;
         use crate::v1::requests::scrape::{INFO_HASH, Scrape};

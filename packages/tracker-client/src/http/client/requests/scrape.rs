@@ -2,7 +2,7 @@ use std::error::Error;
 use std::fmt::{self};
 use std::str::FromStr;
 
-use bittorrent_primitives::info_hash::InfoHash;
+use torrust_info_hash::InfoHash;
 
 use crate::http::{ByteArray20, percent_encode_byte_array};
 

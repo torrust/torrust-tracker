@@ -14,7 +14,7 @@
 //! bulk queries.
 use std::sync::Arc;
 
-use bittorrent_primitives::info_hash::InfoHash;
+use torrust_info_hash::InfoHash;
 use torrust_tracker_primitives::pagination::Pagination;
 use torrust_tracker_primitives::peer;
 
@@ -226,7 +226,7 @@ mod tests {
         use std::str::FromStr;
         use std::sync::Arc;
 
-        use bittorrent_primitives::info_hash::InfoHash;
+        use torrust_info_hash::InfoHash;
 
         use crate::torrent::repository::in_memory::InMemoryTorrentRepository;
         use crate::torrent::services::tests::sample_peer;
@@ -275,7 +275,7 @@ mod tests {
         use std::str::FromStr;
         use std::sync::Arc;
 
-        use bittorrent_primitives::info_hash::InfoHash;
+        use torrust_info_hash::InfoHash;
 
         use crate::torrent::repository::in_memory::InMemoryTorrentRepository;
         use crate::torrent::services::tests::sample_peer;

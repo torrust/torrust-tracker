@@ -1,7 +1,7 @@
 use std::net::SocketAddr;
 use std::sync::Arc;
 
-use bittorrent_primitives::info_hash::InfoHash;
+use torrust_info_hash::InfoHash;
 use torrust_server_lib::registar::Registar;
 use torrust_tracker_axum_server::tsl::make_rust_tls;
 use torrust_tracker_configuration::{Configuration, logging};

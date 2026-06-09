@@ -1,10 +1,10 @@
 use std::env;
 use std::str::FromStr as _;
 
-use bittorrent_primitives::info_hash::InfoHash;
 use reqwest::Url;
 use serde::Deserialize;
 use tokio::time::Duration;
+use torrust_info_hash::InfoHash;
 use torrust_tracker_client::http::client::Client as HttpTrackerClient;
 use torrust_tracker_client::http::client::requests::announce::QueryBuilder;
 use torrust_tracker_lib::app;

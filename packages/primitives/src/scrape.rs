@@ -2,7 +2,7 @@
 
 use std::collections::HashMap;
 
-use bittorrent_primitives::info_hash::InfoHash;
+use torrust_info_hash::InfoHash;
 
 use crate::swarm_metadata::SwarmMetadata;
 
@@ -46,7 +46,7 @@ impl ScrapeData {
 
 #[cfg(test)]
 mod tests {
-    use bittorrent_primitives::info_hash::InfoHash;
+    use torrust_info_hash::InfoHash;
 
     use crate::scrape::ScrapeData;
 

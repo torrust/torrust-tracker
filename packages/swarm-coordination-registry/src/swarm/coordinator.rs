@@ -4,8 +4,8 @@ use std::collections::BTreeMap;
 use std::net::SocketAddr;
 use std::sync::Arc;
 
-use bittorrent_primitives::info_hash::InfoHash;
 use torrust_clock::DurationSinceUnixEpoch;
+use torrust_info_hash::InfoHash;
 use torrust_tracker_primitives::peer::{self, Peer, PeerAnnouncement};
 use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
 use torrust_tracker_primitives::{AnnounceEvent, TrackerPolicy};

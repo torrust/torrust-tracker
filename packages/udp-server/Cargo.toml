@@ -15,7 +15,7 @@ version.workspace = true
 
 [dependencies]
 torrust_tracker_udp_tracker_protocol = { package = "torrust-tracker-udp-tracker-protocol", path = "../udp-protocol" }
-bittorrent-primitives = "0.2.0"
+torrust-info-hash = "=0.2.0"
 torrust-tracker-client = { package = "torrust-tracker-client-lib", version = "3.0.0-develop", path = "../tracker-client" }
 torrust-tracker-core = { version = "3.0.0-develop", path = "../tracker-core" }
 torrust-tracker-udp-tracker-core = { version = "3.0.0-develop", path = "../udp-tracker-core" }

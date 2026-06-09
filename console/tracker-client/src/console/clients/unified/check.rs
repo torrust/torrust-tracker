@@ -3,11 +3,11 @@ use std::str::FromStr;
 use std::sync::Arc;
 use std::time::Duration;
 
-use bittorrent_primitives::info_hash::InfoHash as TorrustInfoHash;
 use clap::{Parser, Subcommand};
 use futures::FutureExt as _;
 use serde::Serialize;
 use tokio::task::JoinSet;
+use torrust_info_hash::InfoHash as TorrustInfoHash;
 use url::Url;
 
 use super::app::OutputFormat;

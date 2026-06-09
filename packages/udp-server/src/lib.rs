@@ -341,7 +341,7 @@
 //! > packet.
 //!
 //! We are using a wrapper struct for the aquatic [`AnnounceRequest`](torrust_tracker_udp_tracker_protocol::AnnounceRequest)
-//! struct, because we have our internal [`InfoHash`](bittorrent_primitives::info_hash::InfoHash)
+//! struct, because we have our internal [`InfoHash`](torrust_info_hash::InfoHash)
 //! struct.
 //!
 //! ```text

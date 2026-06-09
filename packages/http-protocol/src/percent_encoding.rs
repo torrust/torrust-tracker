@@ -15,7 +15,7 @@
 //! - <https://datatracker.ietf.org/doc/html/rfc3986#section-2.1>
 //! - <https://en.wikipedia.org/wiki/URL_encoding>
 //! - <https://developer.mozilla.org/en-US/docs/Glossary/percent-encoding>
-use bittorrent_primitives::info_hash::{self, InfoHash};
+use torrust_info_hash::InfoHash;
 use torrust_peer_id::PeerId;
 
 #[derive(thiserror::Error, Debug, Clone, PartialEq, Eq)]
@@ -35,7 +35,7 @@ pub enum PeerIdConversionError {
 /// ```rust
 /// use std::str::FromStr;
 /// use torrust_tracker_http_tracker_protocol::percent_encoding::percent_decode_info_hash;
-/// use bittorrent_primitives::info_hash::InfoHash;
+/// use torrust_info_hash::InfoHash;
 ///
 /// let encoded_infohash = "%3B%24U%04%CF%5F%11%BB%DB%E1%20%1C%EAjk%F4Z%EE%1B%C0";
 ///
@@ -51,7 +51,7 @@ pub enum PeerIdConversionError {
 ///
 /// Will return `Err` if the decoded bytes do not represent a valid
 /// [`InfoHash`].
-pub fn percent_decode_info_hash(raw_info_hash: &str) -> Result<InfoHash, info_hash::ConversionError> {
+pub fn percent_decode_info_hash(raw_info_hash: &str) -> Result<InfoHash, torrust_info_hash::ConversionError> {
     let bytes = percent_encoding::percent_decode_str(raw_info_hash).collect::<Vec<u8>>();
     InfoHash::try_from(bytes)
 }
@@ -66,7 +66,7 @@ pub fn percent_decode_info_hash(raw_info_hash: &str) -> Result<InfoHash, info_ha
 /// use std::str::FromStr;
 ///
 /// use torrust_tracker_http_tracker_protocol::percent_encoding::percent_decode_peer_id;
-/// use bittorrent_primitives::info_hash::InfoHash;
+/// use torrust_info_hash::InfoHash;
 /// use torrust_peer_id::PeerId;
 ///
 /// let encoded_peer_id = "%2DqB00000000000000000";
@@ -100,7 +100,7 @@ pub fn percent_decode_peer_id(raw_peer_id: &str) -> Result<PeerId, PeerIdConvers
 mod tests {
     use std::str::FromStr;
 
-    use bittorrent_primitives::info_hash::InfoHash;
+    use torrust_info_hash::InfoHash;
     use torrust_peer_id::PeerId;
 
     use crate::percent_encoding::{percent_decode_info_hash, percent_decode_peer_id};

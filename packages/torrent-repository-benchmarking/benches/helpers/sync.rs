@@ -1,8 +1,8 @@
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
-use bittorrent_primitives::info_hash::InfoHash;
 use futures::stream::FuturesUnordered;
+use torrust_info_hash::InfoHash;
 use torrust_tracker_torrent_repository_benchmarking::repository::Repository;
 
 use super::utils::{DEFAULT_PEER, generate_unique_info_hashes};

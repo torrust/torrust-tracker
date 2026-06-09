@@ -3,7 +3,7 @@ use std::net::{IpAddr, SocketAddr};
 use std::ops::Range;
 use std::sync::Arc;
 
-use bittorrent_primitives::info_hash::InfoHash;
+use torrust_info_hash::InfoHash;
 use torrust_net_primitives::service_binding::ServiceBinding;
 use torrust_tracker_configuration::Core;
 use torrust_tracker_primitives::AnnounceData;
@@ -917,7 +917,7 @@ pub(crate) mod tests {
                                     client_socket_addr,
                                     server_service_binding.clone(),
                                 ),
-                                info_hash: bittorrent_primitives::info_hash::InfoHash::from(info_hash.0),
+                                info_hash: torrust_info_hash::InfoHash::from(info_hash.0),
                                 announcement,
                             };
 

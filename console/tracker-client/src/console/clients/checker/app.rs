@@ -61,8 +61,8 @@ use std::str::FromStr;
 use std::sync::Arc;
 use std::time::Duration;
 
-use bittorrent_primitives::info_hash::InfoHash as TorrustInfoHash;
 use clap::{Parser, Subcommand};
+use torrust_info_hash::InfoHash as TorrustInfoHash;
 use tracing::level_filters::LevelFilter;
 use url::Url;
 

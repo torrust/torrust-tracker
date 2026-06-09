@@ -1,8 +1,8 @@
 use std::collections::HashSet;
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
-use bittorrent_primitives::info_hash::InfoHash;
 use torrust_clock::DurationSinceUnixEpoch;
+use torrust_info_hash::InfoHash;
 use torrust_tracker_primitives::peer::Peer;
 use torrust_tracker_primitives::{AnnounceEvent, NumberOfBytes, PeerId};
 

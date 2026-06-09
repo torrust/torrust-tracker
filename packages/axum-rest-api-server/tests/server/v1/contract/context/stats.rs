@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use bittorrent_primitives::info_hash::InfoHash;
+use torrust_info_hash::InfoHash;
 use torrust_tracker_axum_rest_api_server::environment::Started;
 use torrust_tracker_axum_rest_api_server::v1::context::stats::resources::Stats;
 use torrust_tracker_primitives::peer::fixture::PeerBuilder;

@@ -1,8 +1,8 @@
 use std::collections::{BTreeMap, HashSet};
 use std::hash::{DefaultHasher, Hash, Hasher};
 
-use bittorrent_primitives::info_hash::InfoHash;
 use rstest::{fixture, rstest};
+use torrust_info_hash::InfoHash;
 use torrust_tracker_primitives::pagination::Pagination;
 use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
 use torrust_tracker_primitives::{AnnounceEvent, NumberOfBytes, NumberOfDownloadsBTreeMap, TrackerPolicy};

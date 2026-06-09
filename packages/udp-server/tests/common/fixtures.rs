@@ -1,5 +1,5 @@
-use bittorrent_primitives::info_hash::InfoHash;
 use rand::prelude::*;
+use torrust_info_hash::InfoHash;
 use torrust_tracker_udp_tracker_protocol::TransactionId;
 
 /// Returns a random info hash.

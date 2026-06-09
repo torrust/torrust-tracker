@@ -1,7 +1,7 @@
 //! The repository that persists the whitelist.
 use std::sync::Arc;
 
-use bittorrent_primitives::info_hash::InfoHash;
+use torrust_info_hash::InfoHash;
 
 use crate::databases::{self, WhitelistStore};
 

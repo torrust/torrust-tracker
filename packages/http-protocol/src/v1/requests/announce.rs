@@ -5,8 +5,8 @@ use std::fmt;
 use std::panic::Location;
 use std::str::FromStr;
 
-use bittorrent_primitives::info_hash::{self, InfoHash};
 use thiserror::Error;
+use torrust_info_hash::InfoHash;
 use torrust_located_error::{Located, LocatedError};
 use torrust_peer_id::PeerId;
 
@@ -44,7 +44,7 @@ impl NumberOfBytes {
 ///
 /// ```rust
 /// use torrust_tracker_http_tracker_protocol::v1::requests::announce::{Announce, Compact, Event};
-/// use bittorrent_primitives::info_hash::InfoHash;
+/// use torrust_info_hash::InfoHash;
 /// use torrust_peer_id::PeerId;
 /// use torrust_tracker_http_tracker_protocol::v1::requests::announce::NumberOfBytes;
 ///
@@ -138,7 +138,7 @@ pub enum ParseAnnounceQueryError {
     InvalidInfoHashParam {
         param_name: String,
         param_value: String,
-        source: LocatedError<'static, info_hash::ConversionError>,
+        source: LocatedError<'static, torrust_info_hash::ConversionError>,
     },
     /// The `peer_id` is invalid.
     #[error("invalid param value {param_value} for {param_name} in {source}")]
@@ -400,7 +400,7 @@ mod tests {
 
     mod announce_request {
 
-        use bittorrent_primitives::info_hash::InfoHash;
+        use torrust_info_hash::InfoHash;
         use torrust_peer_id::PeerId;
 
         use crate::v1::query::Query;

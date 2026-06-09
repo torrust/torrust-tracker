@@ -1,4 +1,4 @@
-use bittorrent_primitives::info_hash::InfoHash;
+use torrust_info_hash::InfoHash;
 use torrust_tracker_primitives::peer::{Peer, PeerAnnouncement};
 
 #[derive(Debug, PartialEq, Eq, Clone)]

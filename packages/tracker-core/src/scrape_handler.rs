@@ -10,7 +10,7 @@
 //! The returned struct is:
 //!
 //! ```rust,no_run
-//! use bittorrent_primitives::info_hash::InfoHash;
+//! use torrust_info_hash::InfoHash;
 //! use std::collections::HashMap;
 //!
 //! pub struct ScrapeData {
@@ -41,7 +41,7 @@
 //! There are two data structures for infohashes: byte arrays and hex strings:
 //!
 //! ```rust,no_run
-//! use bittorrent_primitives::info_hash::InfoHash;
+//! use torrust_info_hash::InfoHash;
 //! use std::str::FromStr;
 //!
 //! let info_hash: InfoHash = [255u8; 20].into();
@@ -61,7 +61,7 @@
 //! - [Vuze docs](https://wiki.vuze.com/w/Scrape)
 use std::sync::Arc;
 
-use bittorrent_primitives::info_hash::InfoHash;
+use torrust_info_hash::InfoHash;
 use torrust_tracker_primitives::ScrapeData;
 use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
 
@@ -130,7 +130,7 @@ impl ScrapeHandler {
 mod tests {
     use std::sync::Arc;
 
-    use bittorrent_primitives::info_hash::InfoHash;
+    use torrust_info_hash::InfoHash;
     use torrust_tracker_primitives::ScrapeData;
     use torrust_tracker_test_helpers::configuration;
 

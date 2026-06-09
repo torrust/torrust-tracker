@@ -4,8 +4,8 @@
 use std::borrow::Cow;
 use std::collections::BTreeMap;
 
-use bittorrent_primitives::info_hash::InfoHash;
 use torrust_bencode::{BMutAccess, ben_int, ben_map};
+use torrust_info_hash::InfoHash;
 
 // These protocol DTOs intentionally mirror some domain fields but must remain
 // protocol-owned. Keeping this type local avoids protocol->domain coupling and
@@ -39,7 +39,7 @@ impl ScrapeData {
 ///
 /// ```rust
 /// use torrust_tracker_http_tracker_protocol::v1::responses::scrape::Bencoded;
-/// use bittorrent_primitives::info_hash::InfoHash;
+/// use torrust_info_hash::InfoHash;
 /// use torrust_tracker_http_tracker_protocol::v1::responses::scrape::{ScrapeData, SwarmMetadata};
 ///
 /// let info_hash = InfoHash::from_bytes(&[0x69; 20]);
@@ -111,7 +111,7 @@ impl From<ScrapeData> for Bencoded {
 mod tests {
 
     mod scrape_response {
-        use bittorrent_primitives::info_hash::InfoHash;
+        use torrust_info_hash::InfoHash;
 
         use crate::v1::responses::scrape::{Bencoded, ScrapeData, SwarmMetadata};
 

@@ -221,10 +221,10 @@ mod tests {
         use std::sync::Arc;
         use std::time::Duration;
 
-        use bittorrent_primitives::info_hash::InfoHash;
         use torrust_clock::DurationSinceUnixEpoch;
         use torrust_clock::clock::stopped::Stopped;
         use torrust_clock::clock::{self};
+        use torrust_info_hash::InfoHash;
 
         use crate::test_helpers::tests::{ephemeral_configuration, sample_info_hash, sample_peer};
         use crate::torrent::manager::tests::{initialize_torrents_manager, initialize_torrents_manager_with};

@@ -21,7 +21,7 @@
 //! use torrust_tracker_primitives::{AnnounceEvent, NumberOfBytes, PeerId};
 //! use torrust_clock::DurationSinceUnixEpoch;
 //! use torrust_tracker_primitives::peer;
-//! use bittorrent_primitives::info_hash::InfoHash;
+//! use torrust_info_hash::InfoHash;
 //!
 //! let info_hash = InfoHash::from_str("3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0").unwrap();
 //!
@@ -93,7 +93,7 @@
 use std::net::IpAddr;
 use std::sync::Arc;
 
-use bittorrent_primitives::info_hash::InfoHash;
+use torrust_info_hash::InfoHash;
 use torrust_tracker_configuration::Core;
 use torrust_tracker_primitives::{AnnounceData, NumberOfDownloads, peer};
 

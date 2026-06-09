@@ -3,7 +3,7 @@ use std::str::FromStr;
 
 use ::sqlx::Row;
 use async_trait::async_trait;
-use bittorrent_primitives::info_hash::InfoHash;
+use torrust_info_hash::InfoHash;
 
 use super::{DRIVER, Sqlite};
 use crate::databases::WhitelistStore;

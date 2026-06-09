@@ -1,10 +1,10 @@
 use std::net::IpAddr;
 use std::sync::Arc;
 
-use bittorrent_primitives::info_hash::InfoHash;
 use tokio::task::yield_now;
 use tokio_util::sync::CancellationToken;
 use torrust_clock::DurationSinceUnixEpoch;
+use torrust_info_hash::InfoHash;
 use torrust_metrics::label::LabelSet;
 use torrust_metrics::metric::MetricName;
 use torrust_tracker_configuration::Core;

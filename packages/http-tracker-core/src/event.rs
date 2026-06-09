@@ -1,6 +1,6 @@
 use std::net::{IpAddr, SocketAddr};
 
-use bittorrent_primitives::info_hash::InfoHash;
+use torrust_info_hash::InfoHash;
 use torrust_metrics::label::{LabelSet, LabelValue};
 use torrust_metrics::label_name;
 use torrust_net_primitives::service_binding::ServiceBinding;

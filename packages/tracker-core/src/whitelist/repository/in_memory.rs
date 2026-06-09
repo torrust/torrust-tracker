@@ -1,5 +1,5 @@
 //! The in-memory list of allowed torrents.
-use bittorrent_primitives::info_hash::InfoHash;
+use torrust_info_hash::InfoHash;
 
 /// In-memory whitelist to manage allowed torrents.
 ///

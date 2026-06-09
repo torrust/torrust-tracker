@@ -138,7 +138,7 @@ mod receiving_an_announce_request {
     pub async fn assert_send_and_get_announce(
         tx_id: TransactionId,
         c_id: ConnectionId,
-        info_hash: bittorrent_primitives::info_hash::InfoHash,
+        info_hash: torrust_info_hash::InfoHash,
         client: &UdpTrackerClient,
     ) {
         let response = send_and_get_announce(tx_id, c_id, info_hash, client).await;
@@ -148,7 +148,7 @@ mod receiving_an_announce_request {
     pub async fn send_and_get_announce(
         tx_id: TransactionId,
         c_id: ConnectionId,
-        info_hash: bittorrent_primitives::info_hash::InfoHash,
+        info_hash: torrust_info_hash::InfoHash,
         client: &UdpTrackerClient,
     ) -> torrust_tracker_udp_tracker_protocol::Response {
         let announce_request =
@@ -169,7 +169,7 @@ mod receiving_an_announce_request {
         tx_id: TransactionId,
         c_id: ConnectionId,
         port: u16,
-        info_hash: bittorrent_primitives::info_hash::InfoHash,
+        info_hash: torrust_info_hash::InfoHash,
     ) -> AnnounceRequest {
         AnnounceRequest {
             connection_id: ConnectionId(c_id.0),

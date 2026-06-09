@@ -22,7 +22,6 @@ pub mod swarm_metadata;
 use std::collections::BTreeMap;
 
 pub use announce::{AnnounceData, AnnounceEvent, AnnouncePolicy};
-use bittorrent_primitives::info_hash::InfoHash;
 pub use mode::PrivateMode;
 pub use number_of_bytes::NumberOfBytes;
 pub use policy::TrackerPolicy;
@@ -39,6 +38,7 @@ pub use scrape::ScrapeData;
             this re-export will be removed in a future release (see EPIC #1669)"
 )]
 pub use torrust_clock::DurationSinceUnixEpoch;
+use torrust_info_hash::InfoHash;
 /// **Deprecated**: import from [`torrust_peer_id`] instead via the [`peer_id`] module.
 /// This re-export is kept for backwards compatibility and will be removed in a
 /// future release. Removal is tracked as a follow-up cleanup subissue of EPIC
