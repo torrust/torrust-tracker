@@ -4777,9 +4777,10 @@ dependencies = [
 
 [[package]]
 name = "torrust-located-error"
-version = "3.0.0-develop"
+version = "3.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a88c4200ee6f75ef290f0fc36b8717f2748fa850d9bf3c51c26253e5a566de74"
 dependencies = [
- "thiserror 2.0.18",
  "tracing",
 ]
 

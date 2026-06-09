@@ -25,4 +25,4 @@ serde_bencode = "0"
 thiserror = "2"
 torrust-clock = "3.0.0"
 torrust-bencode = "3.0.0"
-torrust-located-error = { version = "3.0.0-develop", path = "../located-error" }
+torrust-located-error = "3.0.0"
