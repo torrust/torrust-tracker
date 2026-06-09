@@ -21,4 +21,4 @@ thiserror = "2"
 url = "2.5.4"
 
 [dev-dependencies]
-rstest = "0.25.0"
+rstest = "0.26.1"
