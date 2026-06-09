@@ -102,9 +102,10 @@ Key Architectural Principles:
 
 Packages that have been extracted to their own standalone repositories.
 
-| Package   | Standalone Repository                                                 | Crate Name        | Description                                                      |
-| --------- | --------------------------------------------------------------------- | ----------------- | ---------------------------------------------------------------- |
-| `metrics` | [torrust/torrust-metrics](https://github.com/torrust/torrust-metrics) | `torrust-metrics` | Prometheus-compatible metrics: counters, gauges, labels, samples |
+| Package          | Standalone Repository                                                               | Crate Name               | Description                                                      |
+| ---------------- | ----------------------------------------------------------------------------------- | ------------------------ | ---------------------------------------------------------------- |
+| `metrics`        | [torrust/torrust-metrics](https://github.com/torrust/torrust-metrics)               | `torrust-metrics`        | Prometheus-compatible metrics: counters, gauges, labels, samples |
+| `net-primitives` | [torrust/torrust-net-primitives](https://github.com/torrust/torrust-net-primitives) | `torrust-net-primitives` | Generic networking primitive types (ServiceBinding, Protocol)    |
 
 ## Protocol Implementation Details
 

@@ -1,13 +1,13 @@
 ---
 doc-type: issue
 issue-type: task
-status: open
+status: done
 priority: p3
 github-issue: 1885
-spec-path: docs/issues/open/1885-1669-20-extract-torrust-net-primitives-to-standalone-repo.md
-branch: 1885-1669-extract-torrust-net-primitives-to-standalone-repo
+spec-path: docs/issues/closed/1885-1669-20-extract-torrust-net-primitives-to-standalone-repo.md
+branch: "1885-extract-torrust-net-primitives-to-standalone-repo"
 related-pr: null
-last-updated-utc: 2026-06-05 00:00
+last-updated-utc: 2026-06-09 16:00
 semantic-links:
   skill-links:
     - create-issue
@@ -107,19 +107,19 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task                                                                                         | Notes / Expected Output                                                                          |
 | --- | ------ | -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
-| T1  | TODO   | Verify crate has no workspace path dependencies                                              | `packages/net-primitives/Cargo.toml` lists only external crates (`serde`, `thiserror`, `url`) ✅ |
-| T2  | TODO   | Create standalone repository `torrust/torrust-net-primitives`                                | Repo created at https://github.com/torrust/torrust-net-primitives                                |
-| T3  | TODO   | Copy `packages/net-primitives/` to the new repository (history preservation where practical) | Files copied to new repo                                                                         |
-| T4  | TODO   | Make `Cargo.toml` self-contained (remove workspace inheritance; pin explicit values)         | All fields explicit; no `workspace = true` entries; `cargo build` passes in isolation            |
-| T5  | TODO   | Verify standalone repository: `cargo build` and `cargo test` pass with no path deps          | Build and tests pass; no path deps remain                                                        |
-| T6  | TODO   | Set up CI in the new repository                                                              | CI green after migration (may be deferred — see note on deferred setup below)                    |
-| T7  | TODO   | Publish `torrust-net-primitives` on crates.io from the standalone repository                 | Successful `cargo publish`; crate visible at crates.io/crates/torrust-net-primitives             |
-| T8  | TODO   | Update all 10 workspace consumers (see list above): path dep → crates.io version dep         | `torrust-net-primitives = "X.Y.Z"` in all 10 `Cargo.toml` files; no path deps remain             |
-| T9  | TODO   | Remove `packages/net-primitives` entry from workspace `members` in root `Cargo.toml`         | `packages/net-primitives` absent from `[workspace]` members list                                 |
-| T10 | TODO   | Delete `packages/net-primitives/` directory from the tracker repository                      | Directory removed via `git rm -r`                                                                |
-| T11 | TODO   | Update `packages/AGENTS.md`, `AGENTS.md`, `docs/packages.md`                                 | `torrust-net-primitives` moved to an "Extracted packages" section; no stale references           |
-| T12 | TODO   | Run `cargo build --workspace` and `cargo test --workspace`                                   | Clean build and all tests pass                                                                   |
-| T13 | TODO   | Run `linter all`                                                                             | Exit code `0`                                                                                    |
+| T1  | DONE   | Verify crate has no workspace path dependencies                                              | `packages/net-primitives/Cargo.toml` lists only external crates (`serde`, `thiserror`, `url`) ✅ |
+| T2  | DONE   | Create standalone repository `torrust/torrust-net-primitives`                                | Repo created at https://github.com/torrust/torrust-net-primitives                                |
+| T3  | DONE   | Copy `packages/net-primitives/` to the new repository (history preservation where practical) | Files copied to new repo                                                                         |
+| T4  | DONE   | Make `Cargo.toml` self-contained (remove workspace inheritance; pin explicit values)         | All fields explicit; no `workspace = true` entries                                               |
+| T5  | DONE   | Verify standalone repository: `cargo build` and `cargo test` pass with no path deps          | Build and tests pass; no path deps remain                                                        |
+| T6  | DONE   | Set up CI in the new repository                                                              | CI workflow with `linter all` + `cargo test`                                                     |
+| T7  | DONE   | Publish `torrust-net-primitives` on crates.io from the standalone repository                 | Published v0.1.0                                                                                 |
+| T8  | DONE   | Update all 10 workspace consumers (see list above): path dep → crates.io version dep         | `torrust-net-primitives = "0.1.0"` in all 10 files; no path deps remain                          |
+| T9  | DONE   | Remove `packages/net-primitives` entry from workspace `members` in root `Cargo.toml`         | `packages/net-primitives` absent from `[workspace]` members list                                 |
+| T10 | DONE   | Delete `packages/net-primitives/` directory from the tracker repository                      | Directory removed via `git rm -r`                                                                |
+| T11 | DONE   | Update `packages/AGENTS.md`, `AGENTS.md`, `docs/packages.md`                                 | `torrust-net-primitives` moved to an "Extracted packages" section                                |
+| T12 | DONE   | Run `cargo build --workspace` and `cargo test --workspace`                                   | Clean build and all tests pass                                                                   |
+| T13 | DONE   | Run `linter all`                                                                             | Exit code `0`                                                                                    |
 | T14 | TODO   | Update EPIC #1669 tables                                                                     | Package inventory and desired state tables updated; subissue row set to `DONE`                   |
 
 ## Progress Tracking

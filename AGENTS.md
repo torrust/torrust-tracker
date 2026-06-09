@@ -86,9 +86,10 @@ All packages live under `packages/`. The workspace version is `3.0.0-develop`.
 
 **Extracted packages** — previously part of this workspace, now in their own standalone repositories:
 
-| Package   | Crate Name        | Standalone Repository                                                 | Description                                                      |
-| --------- | ----------------- | --------------------------------------------------------------------- | ---------------------------------------------------------------- |
-| `metrics` | `torrust-metrics` | [torrust/torrust-metrics](https://github.com/torrust/torrust-metrics) | Prometheus-compatible metrics: counters, gauges, labels, samples |
+| Package          | Crate Name               | Standalone Repository                                                               | Description                                                      |
+| ---------------- | ------------------------ | ----------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| `metrics`        | `torrust-metrics`        | [torrust/torrust-metrics](https://github.com/torrust/torrust-metrics)               | Prometheus-compatible metrics: counters, gauges, labels, samples |
+| `net-primitives` | `torrust-net-primitives` | [torrust/torrust-net-primitives](https://github.com/torrust/torrust-net-primitives) | Generic networking primitive types (ServiceBinding, Protocol)    |
 
 **Console tools** (under `console/`):
 
