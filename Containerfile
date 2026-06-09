@@ -6,8 +6,8 @@
 FROM docker.io/library/rust:trixie AS chef
 WORKDIR /tmp
 RUN curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
-RUN cargo binstall --no-confirm --locked torrust-cargo-chef@0.1.78-torrust cargo-nextest
-# Note: We use the `torrust-cargo-chef` fork (v0.1.78-torrust) while upstream PR
+RUN cargo binstall --no-confirm --locked torrust-cargo-chef@0.1.78 cargo-nextest
+# Note: We use the `torrust-cargo-chef` fork (v0.1.78) while upstream PR
 # https://github.com/LukeMathWalker/cargo-chef/pull/360 is pending. Once merged,
 # switch back to upstream `cargo-chef` and remove this comment.
 
