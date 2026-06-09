@@ -6,7 +6,7 @@ priority: p1
 github-issue: 1669
 spec-path: docs/issues/open/1669-overhaul-packages/EPIC.md
 epic-owner: josecelano
-last-updated-utc: 2026-06-09 00:00
+last-updated-utc: 2026-06-09 13:00
 semantic-links:
   skill-links:
     - create-issue
@@ -66,7 +66,7 @@ The workspace currently contains **27 packages** (including the root `torrust-tr
 | ---------------------- | ------------------------ | ---------------- |
 | No                     | `torrust-clock`          | `clock`          |
 | No                     | `torrust-located-error`  | `located-error`  |
-| No                     | `torrust-metrics`        | `metrics`        |
+| Yes                    | `torrust-metrics`        | `metrics`        |
 | No                     | `torrust-net-primitives` | `net-primitives` |
 | No                     | `torrust-server-lib`     | `server-lib`     |
 
@@ -255,7 +255,7 @@ These packages are extracted to their own repositories under the Torrust organis
 | ------------------------ | ------------------------------- | --------------------------------------------- | ------------------------------------------------------------- |
 | `torrust-clock`          | `torrust-tracker-clock`         | SI-02 + SI-09 (rename first)                  | Rule P; published; 11 workspace consumers to migrate          |
 | `torrust-located-error`  | `torrust-tracker-located-error` | SI-10 (rename first)                          | Rule P; published; extraction spec TBD                        |
-| `torrust-metrics`        | `torrust-tracker-metrics`       | SI-08 (rename first)                          | 7 workspace consumers to migrate                              |
+| `torrust-metrics`        | `torrust-tracker-metrics`       | SI-08 (rename first)                          | **DONE** — published v0.1.0; all 7 consumers migrated         |
 | `torrust-net-primitives` | `torrust-net-primitives`        | Extraction issue TBD (SI-20)                  | Created by SI-05; standalone extraction planned; spec drafted |
 | `torrust-server-lib`     | `torrust-server-lib`            | Extraction issue TBD                          | Generic server utility crate; standalone extraction candidate |
 | `torrust-tracker-client` | `console/tracker-client`        | `bittorrent-*` publication (external to EPIC) | Standalone CLI tool; LGPL-3.0                                 |
@@ -536,7 +536,7 @@ Status: TODO unless noted.
 
 - [x] [#1834](https://github.com/torrust/torrust-tracker/issues/1834) SI-13: Decouple `http-protocol` from `udp-protocol` _(Rule M; remove cross-protocol dependency edge)_
 - [x] [#1835](https://github.com/torrust/torrust-tracker/issues/1835) SI-14: Decouple `http-protocol` from `torrust-tracker-primitives` _(Rule M; remove protocol -> domain coupling as step 2)_
-- [ ] [#1882](https://github.com/torrust/torrust-tracker/issues/1882) SI-18: Extract `torrust-metrics` to standalone repository _(Rule E; requires completed metrics rename work)_
+- [x] [#1882](https://github.com/torrust/torrust-tracker/issues/1882) SI-18: Extract `torrust-metrics` to standalone repository _(Rule E; requires completed metrics rename work)_
 - [x] [#1884](https://github.com/torrust/torrust-tracker/issues/1884) SI-19: Move `bittorrent-peer-id` to `torrust/torrust-bittorrent` as `torrust-peer-id` _(Rule E; no workspace deps; first `bittorrent-*` extraction)_
 - [ ] [#1885](https://github.com/torrust/torrust-tracker/issues/1885) SI-20: Extract `torrust-net-primitives` to standalone repository _(Rule E; no workspace deps; no prerequisites)_
 
@@ -546,7 +546,7 @@ Status: TODO unless noted.
 - [ ] Update all package READMEs _(documentation; after completed rename work; before extractions)_
 - [x] [#1881](https://github.com/torrust/torrust-tracker/issues/1881) SI-16: Migrate `contrib/bencode` to `torrust/torrust-bittorrent` as `torrust-bencode` _(Rule E; no blockers within this EPIC)_
 - [x] Extract `torrust-clock` to standalone repository — [#1879](https://github.com/torrust/torrust-tracker/issues/1879) _(Rule E; requires completed clock rename and type move work)_
-- [x] Extract `torrust-metrics` to standalone repository — [#1882](https://github.com/torrust/torrust-tracker/issues/1882) _(Rule E; requires completed metrics rename work)_
+- [x] Extract `torrust-metrics` to standalone repository — [#1882](https://github.com/torrust/torrust-tracker/issues/1882) _(Rule E; requires completed metrics rename work)_ — **DONE**
 - [x] Move `bittorrent-peer-id` to `torrust/torrust-bittorrent` as `torrust-peer-id` — [#1884](https://github.com/torrust/torrust-tracker/issues/1884) _(Rule E; no workspace deps; first `bittorrent-*` extraction)_
 - [ ] Extract `torrust-tracker-client` to standalone repository _(Rule E; blocked by `bittorrent-*` publication - external to this EPIC)_
 - [ ] Define package versioning strategy (linked vs independent SemVer evolution) _(policy; no blockers; informs extraction and publication cadence)_
@@ -571,9 +571,9 @@ Details:
 | Bencode migration          | [#1881](https://github.com/torrust/torrust-tracker/issues/1881) SI-16: Migrate `contrib/bencode` to `torrust/torrust-bittorrent` as `torrust-bencode`                            | [docs/issues/closed/1881-1669-16-migrate-contrib-bencode-to-torrust-bittorrent/ISSUE.md](../../closed/1881-1669-16-migrate-contrib-bencode-to-torrust-bittorrent/ISSUE.md)                     | DONE   | Rule E; torrust-bencode 3.0.0 published; contrib/bencode removed from tracker workspace                                                       |
 | Peer-ID move               | [#1884](https://github.com/torrust/torrust-tracker/issues/1884) — Move `bittorrent-peer-id` to `torrust/torrust-bittorrent` as `torrust-peer-id`                                 | [docs/issues/open/1884-1669-19-move-bittorrent-peer-id-to-torrust-bittorrent.md](../../open/1884-1669-19-move-bittorrent-peer-id-to-torrust-bittorrent.md)                                     | DONE   | Rule E; published as torrust-peer-id 0.1.0 on crates.io; 3 tracker consumers migrated; packages/peer-id removed                               |
 | Clock extraction           | [#1879](https://github.com/torrust/torrust-tracker/issues/1879) — Extract `torrust-clock` to standalone repository                                                               | [docs/issues/closed/1879-1669-17-extract-torrust-clock-to-standalone-repo.md](../../closed/1879-1669-17-extract-torrust-clock-to-standalone-repo.md)                                           | DONE   | Rule E; torrust-clock v3.0.0 published; 13 consumers migrated; packages/clock removed                                                         |
-| Metrics extraction         | [#1882](https://github.com/torrust/torrust-tracker/issues/1882) — Extract `torrust-metrics` to standalone repository                                                             | [docs/issues/open/1882-1669-18-extract-torrust-metrics-to-standalone-repo.md](../../open/1882-1669-18-extract-torrust-metrics-to-standalone-repo.md)                                           | TODO   | Rule E; requires completed metrics rename; 7 workspace consumers to migrate                                                                   |
+| Metrics extraction         | [#1882](https://github.com/torrust/torrust-tracker/issues/1882) — Extract `torrust-metrics` to standalone repository                                                             | [docs/issues/open/1882-1669-18-extract-torrust-metrics-to-standalone-repo.md](../../open/1882-1669-18-extract-torrust-metrics-to-standalone-repo.md)                                           | DONE   | Rule E; torrust-metrics v0.1.0 published; 7 consumers migrated; packages/metrics removed                                                      |
 | Net-primitives extraction  | [#1885](https://github.com/torrust/torrust-tracker/issues/1885) — Extract `torrust-net-primitives` to standalone repository                                                      | [docs/issues/open/1885-1669-20-extract-torrust-net-primitives-to-standalone-repo.md](../../open/1885-1669-20-extract-torrust-net-primitives-to-standalone-repo.md)                             | TODO   | Rule E; no workspace deps; no prerequisites; 10 consumers to migrate; new repo torrust/torrust-net-primitives                                 |
-| InfoHash migration         | [#1889](https://github.com/torrust/torrust-tracker/issues/1889) — Migrate from `bittorrent-primitives` to `torrust-info-hash`                                                    | [docs/issues/open/1889-1669-21-migrate-from-bittorrent-primitives-to-torrust-info-hash.md](../../open/1889-1669-21-migrate-from-bittorrent-primitives-to-torrust-info-hash.md)                                 | DONE   | SI-21; replaces `bittorrent-primitives` deps across 14 Cargo.toml files with `torrust-info-hash`; unblocks `bittorrent-primitives` archiving  |
+| InfoHash migration         | [#1889](https://github.com/torrust/torrust-tracker/issues/1889) — Migrate from `bittorrent-primitives` to `torrust-info-hash`                                                    | [docs/issues/open/1889-1669-21-migrate-from-bittorrent-primitives-to-torrust-info-hash.md](../../open/1889-1669-21-migrate-from-bittorrent-primitives-to-torrust-info-hash.md)                 | DONE   | SI-21; replaces `bittorrent-primitives` deps across 14 Cargo.toml files with `torrust-info-hash`; unblocks `bittorrent-primitives` archiving  |
 | Tracker client extraction  | #TBD — Extract `torrust-tracker-client` to standalone repository                                                                                                                 | [docs/issues/drafts/1669-extract-torrust-tracker-client-to-standalone-repo.md](../../drafts/1669-extract-torrust-tracker-client-to-standalone-repo.md)                                         | TODO   | Rule E; blocked by `torrust-tracker-udp-tracker-protocol` publication (external to this EPIC)                                                 |
 | Versioning policy          | #TBD — Define package versioning strategy (linked vs independent SemVer evolution)                                                                                               | [docs/issues/drafts/1669-define-package-versioning-strategy.md](../../drafts/1669-define-package-versioning-strategy.md)                                                                       | TODO   | Policy issue; defines release-train vs independent package cadence and migration plan                                                         |
 | REST API architecture      | #TBD — Define REST API contract-first package architecture                                                                                                                       | [docs/issues/drafts/1669-define-rest-api-contract-first-package-architecture.md](../../drafts/1669-define-rest-api-contract-first-package-architecture.md)                                     | TODO   | Policy reminder only in this EPIC; validate via PoC, then execute migration in a dedicated API EPIC; defer API package extraction/publication |

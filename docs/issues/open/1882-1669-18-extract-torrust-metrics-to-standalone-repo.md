@@ -107,7 +107,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T11 | DONE   | Update `packages/AGENTS.md`, `AGENTS.md`, `docs/packages.md`                                   | `torrust-metrics` moved to an "Extracted packages" section                     |
 | T12 | DONE   | Run `cargo build --workspace` and `cargo test --workspace`                                     | Clean build + all tests pass (0 failures)                                      |
 | T13 | DONE   | Run `linter all`                                                                               | Exit code `0`                                                                  |
-| T14 | TODO   | Update EPIC #1669 tables                                                                       | Package inventory and desired state tables updated; subissue row set to `DONE` |
+| T14 | DONE   | Update EPIC #1669 tables                                                                       | Package inventory and desired state tables updated; subissue row set to `DONE` |
 
 ## Progress Tracking
 
@@ -125,9 +125,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Workspace consumers migrated to crates.io version dep
 - [x] `packages/metrics/` removed from tracker workspace
 - [x] Automatic verification completed (`linter all`, `cargo test --workspace`)
-- [ ] Manual verification scenarios executed and recorded
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] EPIC #1669 Active Subissues table updated to `DONE`
+- [x] Manual verification scenarios executed and recorded
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] EPIC #1669 Active Subissues table updated to `DONE`
 - [ ] Issue closed and spec moved to `docs/issues/closed/`
 
 ### Progress Log
