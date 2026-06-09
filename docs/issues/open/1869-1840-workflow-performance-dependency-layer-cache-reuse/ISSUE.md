@@ -122,6 +122,7 @@ Append one line per meaningful update.
 - 2026-06-03 00:00 UTC - GitHub Copilot - Created GitHub issue #1869 and promoted spec to `docs/issues/open/`
 - 2026-06-09 00:00 UTC - GitHub Copilot - Updated spec with `--external-only` cargo-chef flag implementation (published as `torrust-cargo-chef` fork); marked T1/T2 as DONE as they are resolved by the draft and fork; converted T3 from "Propose" to "Implement" with the three-layer cook pattern; closed the duplicate draft `docs/issues/drafts/1840-workflow-performance-split-external-dep-cache-layer/ISSUE.md` as superseded
 - 2026-06-09 00:00 UTC - GitHub Copilot - Implemented T3: three-layer cook pattern in Containerfile (switch to `torrust-cargo-chef@0.1.78`, dual recipe generation, `dependencies_thirdparty` layers). Marked T3 as DONE.
+- 2026-06-09 00:00 UTC - GitHub Copilot - Addressed PR review comments (softened comment, fixed EPIC row 10/frontmatter, draft frontmatter/banner, M2 wording). Verified M1/M5 locally: third-party layer fully CACHED on app-code-only rebuild. Marked M1, M5 as DONE.
 
 ## Acceptance Criteria
 
@@ -162,13 +163,13 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 ### Acceptance Verification
 
-| AC ID | Status (`TODO`/`DONE`) | Evidence                     |
-| ----- | ---------------------- | ---------------------------- |
-| AC1   | TODO                   | {benchmark/log link}         |
-| AC2   | TODO                   | {invalidation analysis link} |
-| AC3   | TODO                   | {cache strategy link}        |
-| AC4   | TODO                   | {policy decision link}       |
-| AC5   | TODO                   | {timing comparison link}     |
+| AC ID | Status (`TODO`/`DONE`) | Evidence                                                                                                                                |
+| ----- | ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| AC1   | DONE                   | M1 verified: third-party layer fully CACHED on app-code-only rebuild (local Docker).                                                    |
+| AC2   | DONE                   | Draft analysis + post-#1853 CI analysis confirmed `recipe.json` invalidation from workspace Cargo.toml changes.                         |
+| AC3   | DONE                   | Three-layer cook pattern implemented with `torrust-cargo-chef@0.1.78`. Verified via M3/M4 (release + debug builds, 693/693 tests each). |
+| AC4   | TODO                   | Awaiting CI run to compare before/after PR wait time.                                                                                   |
+| AC5   | TODO                   | {timing comparison link}                                                                                                                |
 
 ## Risks and Trade-offs
 
