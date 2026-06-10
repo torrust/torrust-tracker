@@ -884,33 +884,34 @@ reduction in workspace coupling thanks to completed EPIC subissues:
 Record any new thin-dependency or cluster-dependency findings here, with a
 reference to the subissue opened for each.
 
-#### Thin dependencies (1–3 imports, easy to eliminate)
+#### Thin dependencies worth investigating
 
 1. **`axum-http-server` → `udp-tracker-protocol`** (1 import: `PeerId`)
    The HTTP server depends on the UDP protocol crate solely for `PeerId`.
    Should use `torrust-peer-id` directly (already an external dep).
 
-2. **`tracker-core` → `events`** (1 import: `RecvError`)
-   Pulled in for a single error type. Could be re-exported via
-   `swarm-coordination-registry` which already depends on `events`,
-   eliminating this direct edge.
-
-3. **`configuration` → `primitives`** (1 import path: `AnnouncePolicy`)
-   Thin but architecturally expected — config types reference domain types.
-   Low priority.
-
-4. **`test-helpers` → `configuration`** (1 import: `TraceStyle`)
-   Thin edge, acceptable for a test utility crate.
-
-5. **`axum-server` → `configuration`** (1 import: `TslConfig`)
+2. **`axum-server` → `configuration`** (1 import: `TslConfig`)
    Already flagged by FU-2 (#1860) for evaluation — moving `TslConfig` into
    `axum-server` would eliminate this edge entirely.
 
-6. **`e2e-tools` → `tracker` (root)** (`torrust_tracker_lib::` not found by scan)
-   The scan looks for `torrust_tracker::` (the crate module name), but the
-   root crate lib is named `torrust_tracker_lib`, so binaries import it as
-   `use torrust_tracker_lib::console::ci::e2e` etc. This is a real dependency
-   — e2e-tools binaries call into the tracker's console entry points.
+#### Acceptable thin dependencies (not worth addressing)
+
+- **`tracker-core` → `events`** (1 import: `RecvError`)
+  Pulled in for a single error type. Could be re-exported via
+  `swarm-coordination-registry` which already depends on `events`,
+  but the edge is simple and low-risk.
+
+- **`configuration` → `primitives`** (1 import path: `AnnouncePolicy`)
+  Architecturally expected — config types reference domain types.
+
+- **`test-helpers` → `configuration`** (1 import: `TraceStyle`)
+  Test utilities referencing production types — natural and acceptable.
+
+- **`e2e-tools` → `tracker` (root)** (uses `torrust_tracker_lib::`)
+  The scan looks for `torrust_tracker::` (the crate module name), but the
+  root crate lib is named `torrust_tracker_lib`, so binaries import it as
+  `use torrust_tracker_lib::console::ci::e2e` etc. This is a real dependency
+  — e2e-tools binaries call into the tracker's console entry points.
 
 #### Cluster dependencies (architectural concerns)
 
@@ -946,11 +947,10 @@ reference to the subissue opened for each.
 
 #### Recommended prioritization
 
-| Priority | Edge                                           | Change                                                  | Est. effort |
-| -------- | ---------------------------------------------- | ------------------------------------------------------- | ----------- |
-| 1        | `axum-http-server` → `udp-tracker-protocol`    | Replace with `torrust-peer-id`                          | Very low    |
-| 2        | `tracker-core` → `events`                      | Re-export `RecvError` via `swarm-coordination-registry` | Very low    |
-| 3        | `tracker-core` → `Driver` in `configuration`   | Move `Driver` enum to `tracker-core`                    | Low         |
-| 4        | `axum-server` → `TslConfig` in `configuration` | FU-2: move `TslConfig` into `axum-server`               | Low         |
-| 5        | REST layer → UDP internals                     | Trait-based abstraction for stats/banning               | Medium      |
-| 6        | `udp-server` → `client-lib`                    | Evaluate whether the check function can move            | Medium      |
+| Priority | Edge                                           | Change                                       | Est. effort |
+| -------- | ---------------------------------------------- | -------------------------------------------- | ----------- |
+| 1        | `axum-http-server` → `udp-tracker-protocol`    | Replace with `torrust-peer-id`               | Very low    |
+| 2        | `tracker-core` → `Driver` in `configuration`   | Move `Driver` enum to `tracker-core`         | Low         |
+| 3        | `axum-server` → `TslConfig` in `configuration` | FU-2: move `TslConfig` into `axum-server`    | Low         |
+| 4        | REST layer → UDP internals                     | Trait-based abstraction for stats/banning    | Medium      |
+| 5        | `udp-server` → `client-lib`                    | Evaluate whether the check function can move | Medium      |
