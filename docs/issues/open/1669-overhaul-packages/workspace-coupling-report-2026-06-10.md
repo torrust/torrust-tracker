@@ -4,6 +4,7 @@ semantic-links:
     - create-issue
   related-artifacts:
     - docs/issues/open/1669-overhaul-packages/EPIC.md
+    - docs/issues/open/1669-overhaul-packages/DECISIONS.md
     - packages/
 ---
 
