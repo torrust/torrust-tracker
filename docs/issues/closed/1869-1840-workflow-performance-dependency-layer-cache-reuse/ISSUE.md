@@ -1,13 +1,13 @@
 ---
 doc-type: issue
 issue-type: task
-status: open
+status: done
 priority: p1
 github-issue: 1869
-spec-path: docs/issues/open/1869-1840-workflow-performance-dependency-layer-cache-reuse/ISSUE.md
-branch: "{issue-number}-dependency-layer-cache-reuse"
+spec-path: docs/issues/closed/1869-1840-workflow-performance-dependency-layer-cache-reuse/ISSUE.md
+branch: "1869-dependency-layer-cache-reuse"
 related-pr: 1895
-last-updated-utc: 2026-06-09 00:00
+last-updated-utc: 2026-06-10 00:00
 semantic-links:
   skill-links:
     - create-issue

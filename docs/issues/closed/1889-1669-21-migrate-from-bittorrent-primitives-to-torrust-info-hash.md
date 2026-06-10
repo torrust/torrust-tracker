@@ -1,13 +1,13 @@
 ---
 doc-type: issue
 issue-type: task
-status: open
+status: done
 priority: p1
 github-issue: 1889
-spec-path: docs/issues/open/1889-1669-21-migrate-from-bittorrent-primitives-to-torrust-info-hash.md
+spec-path: docs/issues/closed/1889-1669-21-migrate-from-bittorrent-primitives-to-torrust-info-hash.md
 branch: "1889-migrate-from-bittorrent-primitives-to-torrust-info-hash"
-related-pr: null
-last-updated-utc: 2026-06-09 11:00
+related-pr: 1891
+last-updated-utc: 2026-06-10 00:00
 semantic-links:
   skill-links:
     - create-issue

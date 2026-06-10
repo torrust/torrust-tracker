@@ -1,13 +1,13 @@
 ---
 doc-type: issue
 issue-type: task
-status: in-progress
+status: done
 priority: p3
 github-issue: 1898
-spec-path: docs/issues/open/1898-document-security-analysis-process.md
+spec-path: docs/issues/closed/1898-document-security-analysis-process.md
 branch: "1898-document-security-analysis-process"
 related-pr: 1899
-last-updated-utc: 2026-06-10 16:30
+last-updated-utc: 2026-06-10 00:00
 semantic-links:
   skill-links:
     - create-issue

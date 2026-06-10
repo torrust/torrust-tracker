@@ -1,13 +1,13 @@
 ---
 doc-type: issue
 issue-type: task
-status: open
+status: done
 priority: p3
 github-issue: 1894
-spec-path: docs/issues/open/1894-1669-22-extract-torrust-located-error-to-standalone-repo.md
+spec-path: docs/issues/closed/1894-1669-22-extract-torrust-located-error-to-standalone-repo.md
 branch: "1894-extract-torrust-located-error-to-standalone-repo"
-related-pr: null
-last-updated-utc: 2026-06-09 19:00
+related-pr: 1897
+last-updated-utc: 2026-06-10 00:00
 semantic-links:
   skill-links:
     - create-issue
