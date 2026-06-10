@@ -93,7 +93,7 @@ Key Architectural Principles:
 | **Domain**                        |                                      |                                            |
 | `swarm-coordination-registry`     | Peer swarm registry                  | Torrent/peer coordination                  |
 | `configuration`                   | Runtime configuration                | Config file parsing, Environment variables |
-| `primitives`                  | Domain-specific types              | PeerId, Peer, SwarmMetadata                |
+| `primitives`                      | Domain-specific types                | PeerId, Peer, SwarmMetadata                |
 | `events`                          | Async event bus                      | Inter-package communication                |
 | **Utilities**                     |                                      |                                            |
 | `server-lib`                      | Shared HTTP server utilities         | Logging, signal handling                   |

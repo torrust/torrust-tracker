@@ -904,10 +904,11 @@ reference to the subissue opened for each.
    Already flagged by FU-2 (#1860) for evaluation — moving `TslConfig` into
    `axum-server` would eliminate this edge entirely.
 
-6. **`e2e-tools` → `tracker` (root)** (no direct `use` found in source)
-   The scan reports no direct source imports — dependency may be used only
-   via `Cargo.toml` feature flags or `build.rs`. Worth verifying before
-   extraction of `e2e-tools`.
+6. **`e2e-tools` → `tracker` (root)** (`torrust_tracker_lib::` not found by scan)
+   The scan looks for `torrust_tracker::` (the crate module name), but the
+   root crate lib is named `torrust_tracker_lib`, so binaries import it as
+   `use torrust_tracker_lib::console::ci::e2e` etc. This is a real dependency
+   — e2e-tools binaries call into the tracker's console entry points.
 
 #### Cluster dependencies (architectural concerns)
 
