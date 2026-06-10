@@ -891,11 +891,14 @@ reference to the subissue opened for each.
    Should use `torrust-peer-id` directly (already an external dep).
    Draft spec: [docs/issues/drafts/1669-remove-udp-protocol-peer-id-re-export.md](../../drafts/1669-remove-udp-protocol-peer-id-re-export.md)
 
-2. **`axum-server` → `configuration`** (1 import: `TslConfig`)
-   Already flagged by FU-2 (#1860) for evaluation — moving `TslConfig` into
-   `axum-server` would eliminate this edge entirely.
-
 #### Acceptable thin dependencies (not worth addressing)
+
+- **`axum-server` → `configuration`** (1 import: `TslConfig`)
+  Deliberately kept per [DEC-08](../DECISIONS.md#dec-08--keep-tslconfig-in-tracker-configuration-and-keep-torrust-tracker-axum-server-tracker-scoped):
+  `TslConfig` is the public DTO in the tracker configuration contract
+  (see [issue #1860](../../closed/1860-1669-evaluate-tslconfig-move-to-axum-server/ISSUE.md)).
+  Moving it would invert the dependency direction or require a separate
+  package — overkill for a two-field stable struct.
 
 - **`tracker-core` → `events`** (1 import: `RecvError`)
   Kept as a direct dependency — `tracker-core` uses the events system directly
@@ -948,10 +951,9 @@ reference to the subissue opened for each.
 
 #### Recommended prioritization
 
-| Priority | Edge                                           | Change                                       | Est. effort |
-| -------- | ---------------------------------------------- | -------------------------------------------- | ----------- |
-| 1        | `axum-http-server` → `udp-tracker-protocol`    | Replace with `torrust-peer-id`               | Very low    |
-| 2        | `tracker-core` → `Driver` in `configuration`   | Move `Driver` enum to `tracker-core`         | Low         |
-| 3        | `axum-server` → `TslConfig` in `configuration` | FU-2: move `TslConfig` into `axum-server`    | Low         |
-| 4        | REST layer → UDP internals                     | Trait-based abstraction for stats/banning    | Medium      |
-| 5        | `udp-server` → `client-lib`                    | Evaluate whether the check function can move | Medium      |
+| Priority | Edge                                         | Change                                       | Est. effort |
+| -------- | -------------------------------------------- | -------------------------------------------- | ----------- |
+| 1        | `axum-http-server` → `udp-tracker-protocol`  | Replace with `torrust-peer-id`               | Very low    |
+| 2        | `tracker-core` → `Driver` in `configuration` | Move `Driver` enum to `tracker-core`         | Low         |
+| 3        | REST layer → UDP internals                   | Trait-based abstraction for stats/banning    | Medium      |
+| 4        | `udp-server` → `client-lib`                  | Evaluate whether the check function can move | Medium      |
