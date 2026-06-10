@@ -111,7 +111,63 @@ production code (not test-only) and belongs in the client library alongside
 
 ---
 
-## DEC-08 — Keep `TslConfig` in tracker configuration and keep `torrust-tracker-axum-server` tracker-scoped
+## DEC-12 — Accept `http-tracker-core` → `tracker-core` coupling as by design
+
+**Date**: 2026-06-10
+**Status**: Adopted
+
+### Proposal considered
+
+Reduce the 16 import paths between `http-tracker-core` and `tracker-core`,
+either by passing narrower service interfaces or by moving test-only
+dependencies (in-memory repositories, database setup) to `test-helpers`.
+
+### Alternative chosen
+
+Leave the coupling as-is. `http-tracker-core` is architecturally a thin
+protocol-specific layer that delegates to `tracker-core`. The dependency
+is inherent, not accidental.
+
+### Why this alternative was adopted
+
+1. **Architectural intent**: the package exists precisely to wrap `tracker-core`
+   with HTTP-specific validation and response formatting. Delegating to the
+   central tracker's handlers (`AnnounceHandler`, `ScrapeHandler`), auth,
+   whitelist, and error types is its purpose.
+
+2. **Runtime imports are the API boundary** (12 paths): container composition,
+   handler delegation, authentication, whitelist, error types, and metrics
+   persistence are all part of the intended contract between the two layers.
+
+3. **Test-only imports are minor** (4 paths): `initialize_database`,
+   `InMemoryKeyRepository`, `InMemoryTorrentRepository`, `InMemoryWhitelist`
+   are used only in `#[cfg(test)]` blocks. Moving them to `test-helpers` is
+   possible but would duplicate test fixtures without changing the runtime
+   dependency count.
+
+4. **Any workable alternative is worse**: passing individual services instead
+   of the container bloats constructors. Splitting `tracker-core` to separate
+   announce/auth/scrape/whitelist into separate crates is premature — these
+   are all aspects of the same domain.
+
+### Trade-offs acknowledged
+
+- Any change to `tracker-core`'s handler API, error types, or auth/whitelist
+  interfaces directly impacts `http-tracker-core`.
+- Test-only in-memory repositories live in `tracker-core` rather than in a
+  shared test utilities package.
+- This coupling is inherent to the chosen architecture; it cannot be eliminated
+  without redesigning how protocol-specific wrappers relate to the central core.
+
+### Supporting artifacts
+
+- `packages/http-tracker-core/src/container.rs` — wraps `TrackerCoreContainer`
+- `packages/http-tracker-core/src/services/announce.rs` — delegates to `tracker-core`
+- `packages/http-tracker-core/src/services/scrape.rs` — delegates to `tracker-core`
+- [workspace-coupling-report-2026-06-10.md](../open/1669-overhaul-packages/workspace-coupling-report-2026-06-10.md)
+  — "Cluster dependencies" section
+
+---
 
 **Date**: 2026-06-03
 **Status**: Adopted

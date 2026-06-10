@@ -946,10 +946,17 @@ reference to the subissue opened for each.
    the REST layer breaks too.
 
 2. **`http-tracker-core` → `tracker-core`** (16 import paths)
-   Architecturally expected but very deep. `http-tracker-core` imports from
-   nearly every module in `tracker-core` (announce, authentication, databases,
-   error, scrape, statistics, torrent, whitelist). Any significant change to
-   `tracker-core` directly impacts `http-tracker-core`.
+   This is an **architecturally expected** coupling, not a problem to fix.
+   `http-tracker-core` is a thin protocol-specific layer that delegates
+   to `tracker-core`. The imports break down as:
+   - **Runtime** (12 paths): container wrapping (`TrackerCoreContainer`),
+     handler delegation (`AnnounceHandler`, `ScrapeHandler`), auth
+     (`AuthenticationService`, `Key`), whitelist, error types, and
+     metrics persistence. These are the API boundary — expected.
+   - **Test-only** (4 paths): `initialize_database`, `InMemoryKeyRepository`,
+     `InMemoryTorrentRepository`, `InMemoryWhitelist`. Used only in `#[cfg(test)]`.
+     Moving test helpers to `test-helpers` is possible but minor.
+     Per [DEC-12](../DECISIONS.md#dec-12--accept-http-tracker-core-to-tracker-core-coupling-as-by-design).
 
 #### Recommended prioritization
 
