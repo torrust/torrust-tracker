@@ -80,20 +80,13 @@ git checkout -b 42-add-peer-expiry-grace-period
 
 ## Branch Name Validation
 
-Before creating a branch, verify that the issue number (if used) actually exists as an open issue
-spec in `docs/issues/open/`:
+Before creating a branch, verify that the issue number (if used) actually exists as an open
+issue in GitHub and has a matching spec in `docs/issues/open/`. This prevents accidentally
+referencing a wrong, closed, or non-existent issue number.
 
-```bash
-# When creating a branch with an issue-number prefix, verify the spec exists:
-ISSUE_NUM=42
-if [ ! -d "docs/issues/open/${ISSUE_NUM}-*" ] && \
-   [ ! -f "docs/issues/open/${ISSUE_NUM}-*" ]; then
-  echo "WARNING: No open issue spec found for #${ISSUE_NUM} in docs/issues/open/."
-  echo "Either use a chore/ prefix for untracked maintenance, or confirm the issue exists."
-fi
-```
-
-This prevents accidentally referencing a wrong, closed, or non-existent issue number.
+> **Note**: The git hooks runner (issue #1843) will eventually automate this check. Until
+> then, verify manually by checking whether `docs/issues/open/` contains a spec file or
+> directory starting with the issue number.
 
 ## Complete Branch Lifecycle
 
