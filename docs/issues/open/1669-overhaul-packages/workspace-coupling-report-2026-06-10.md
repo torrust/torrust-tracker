@@ -892,6 +892,17 @@ reference to the subissue opened for each.
    Should use `torrust-peer-id` directly (already an external dep).
    Draft spec: [docs/issues/drafts/1669-remove-udp-protocol-peer-id-re-export.md](../../drafts/1669-remove-udp-protocol-peer-id-re-export.md)
 
+#### Domain concept misplacement
+
+1. **`tracker-core` → `Driver` enum in `configuration`**
+   `Driver` is a cross-cutting domain concept (database backend selection), not
+   a configuration DTO. It is used by `configuration`, `tracker-core`, and
+   `persistence-benchmark`. The current duplication in `tracker-core` (its own
+   copy of the enum with a pointless mapping in `setup.rs`) is a symptom of
+   misplaced ownership. `Driver` should live in `primitives` — a shared home
+   for stable, cross-cutting domain types.
+   Draft spec: [docs/issues/drafts/1669-move-driver-enum-to-primitives.md](../../drafts/1669-move-driver-enum-to-primitives.md)
+
 #### Acceptable thin dependencies (not worth addressing)
 
 - **`axum-server` → `configuration`** (1 import: `TslConfig`)
@@ -940,21 +951,11 @@ reference to the subissue opened for each.
    error, scrape, statistics, torrent, whitelist). Any significant change to
    `tracker-core` directly impacts `http-tracker-core`.
 
-#### Layer violation (forbidden edge per EPIC rules)
-
-1. **`tracker-core` → `Driver` enum in `configuration`**
-   `tracker-core` imports `configuration::Driver::*` variants directly.
-   The `Driver` type is a database connectivity enum that logically belongs
-   in `tracker-core` (or `primitives`), not in `configuration`. This creates
-   a bidirectional conceptual dependency: `tracker-core` needs the driver to
-   know which DB backend to use, but `configuration` shouldn't leak internal
-   database implementation details.
-
 #### Recommended prioritization
 
 | Priority | Edge                                         | Change                                       | Est. effort |
 | -------- | -------------------------------------------- | -------------------------------------------- | ----------- |
 | 1        | `axum-http-server` → `udp-tracker-protocol`  | Replace with `torrust-peer-id`               | Very low    |
-| 2        | `tracker-core` → `Driver` in `configuration` | Move `Driver` enum to `tracker-core`         | Low         |
+| 2        | `tracker-core` → `Driver` in `configuration` | Move `Driver` enum to `primitives`           | Low         |
 | 3        | REST layer → UDP internals                   | Trait-based abstraction for stats/banning    | Medium      |
 | 4        | `udp-server` → `client-lib`                  | Evaluate whether the check function can move | Medium      |
