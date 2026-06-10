@@ -25,7 +25,7 @@ thiserror = "2"
 tokio = { version = "1", features = [ "macros", "net", "rt-multi-thread", "signal", "sync" ] }
 torrust-server-lib = { version = "3.0.0-develop", path = "../server-lib" }
 torrust-tracker-configuration = { version = "3.0.0-develop", path = "../configuration" }
-torrust-located-error = { version = "3.0.0-develop", path = "../located-error" }
+torrust-located-error = "3.0.0"
 tower = { version = "0", features = [ "timeout" ] }
 tracing = "0"
 

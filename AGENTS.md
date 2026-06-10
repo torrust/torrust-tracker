@@ -70,7 +70,6 @@ All packages live under `packages/`. The workspace version is `3.0.0-develop`.
 | `events`                          | `torrust-tracker-events`                          | domain         | Domain event definitions                      |
 | `http-protocol`                   | `torrust-tracker-http-tracker-protocol`           | `*-protocol`   | HTTP tracker protocol (BEP 3/23) parsing      |
 | `http-tracker-core`               | `torrust-tracker-http-tracker-core`               | `*-core`       | HTTP-specific tracker domain logic            |
-| `located-error`                   | `torrust-located-error`                           | utilities      | Diagnostic errors with source locations       |
 | `primitives`                      | `torrust-tracker-primitives`                      | domain         | Core domain types (InfoHash, PeerId, ...)     |
 | `rest-api-client`                 | `torrust-tracker-rest-api-client`                 | client tools   | REST API client library                       |
 | `rest-api-core`                   | `torrust-tracker-rest-api-core`                   | client tools   | REST API core logic                           |
@@ -88,6 +87,7 @@ All packages live under `packages/`. The workspace version is `3.0.0-develop`.
 
 | Package          | Crate Name               | Standalone Repository                                                               | Description                                                      |
 | ---------------- | ------------------------ | ----------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| `located-error`  | `torrust-located-error`  | [torrust/torrust-located-error](https://github.com/torrust/torrust-located-error)   | Diagnostic errors with source locations                          |
 | `metrics`        | `torrust-metrics`        | [torrust/torrust-metrics](https://github.com/torrust/torrust-metrics)               | Prometheus-compatible metrics: counters, gauges, labels, samples |
 | `net-primitives` | `torrust-net-primitives` | [torrust/torrust-net-primitives](https://github.com/torrust/torrust-net-primitives) | Generic networking primitive types (ServiceBinding, Protocol)    |
 

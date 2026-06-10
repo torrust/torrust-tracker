@@ -25,8 +25,8 @@ depend on packages in the same layer or a lower one.
 ├────────────────────────────────────────────────────────────────┤
 │  Domain / Shared                                               │
 │  torrent-repository  configuration  primitives                 │
-│  events  located-error  server-lib                             │
-│  (extracted: metrics)                                          │
+│  events  server-lib                                            │
+│  (extracted: located-error, metrics)                           │
 ├────────────────────────────────────────────────────────────────┤
 │  Utilities / Test support                                      │
 │  test-helpers                                                  │
@@ -85,7 +85,6 @@ Strict BEP implementations — parse and serialize wire formats only. No tracker
 | `primitives`         | Core domain types: `InfoHash`, `PeerId`, `Peer`, `SwarmMetadata`, `ServiceBinding`                                                                                   |
 | `events`             | Async event bus (broadcaster / receiver / shutdown) used across packages                                                                                             |
 | `server-lib`         | Shared HTTP server utilities: logging, service registrar, signal handling                                                                                            |
-| `located-error`      | Error decorator that captures the source file/line of the original error                                                                                             |
 
 ### Extracted Packages
 
@@ -147,7 +146,7 @@ Use `test-helpers` for mock tracker servers in integration tests.
   delegates peer lookups to it.
 - `configuration` is the only package that reads from the filesystem or environment at startup;
   other packages receive config structs as arguments.
-- `located-error` wraps any `std::error::Error` — use it at module boundaries to preserve
+- `torrust-located-error` (extracted crate) wraps any `std::error::Error` — use it at module boundaries to preserve
   error origin context without losing the original error type.
 - `events` provides the only sanctioned inter-package async communication channel; avoid direct
   `tokio::sync` coupling between packages.

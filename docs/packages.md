@@ -25,7 +25,6 @@ packages/
 ├── configuration
 ├── http-protocol
 ├── http-tracker-core
-├── located-error
 ├── primitives
 ├── rest-api-client
 ├── rest-api-core
@@ -92,7 +91,6 @@ Key Architectural Principles:
 | `configuration`                | Runtime configuration                | Config file parsing, Environment variables |
 | `primitives`                   | Domain-specific types                | InfoHash, PeerId, Byte handling            |
 | **Utilities**                  |                                      |                                            |
-| `located-error`                | Diagnostic errors                    | Error tracing with source locations        |
 | `test-helpers`                 | Testing utilities                    | Mock servers, Test data generation         |
 | **Client Tools**               |                                      |                                            |
 | `tracker-client`               | CLI client                           | Tracker interaction/testing                |
@@ -104,6 +102,7 @@ Packages that have been extracted to their own standalone repositories.
 
 | Package          | Standalone Repository                                                               | Crate Name               | Description                                                      |
 | ---------------- | ----------------------------------------------------------------------------------- | ------------------------ | ---------------------------------------------------------------- |
+| `located-error`  | [torrust/torrust-located-error](https://github.com/torrust/torrust-located-error)   | `torrust-located-error`  | Diagnostic errors with source locations                          |
 | `metrics`        | [torrust/torrust-metrics](https://github.com/torrust/torrust-metrics)               | `torrust-metrics`        | Prometheus-compatible metrics: counters, gauges, labels, samples |
 | `net-primitives` | [torrust/torrust-net-primitives](https://github.com/torrust/torrust-net-primitives) | `torrust-net-primitives` | Generic networking primitive types (ServiceBinding, Protocol)    |
 
