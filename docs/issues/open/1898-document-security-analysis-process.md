@@ -1,12 +1,12 @@
 ---
 doc-type: issue
 issue-type: task
-status: draft
+status: in-progress
 priority: p3
 github-issue: 1898
 spec-path: docs/issues/open/1898-document-security-analysis-process.md
 branch: "1898-document-security-analysis-process"
-related-pr: null
+related-pr: 1899
 last-updated-utc: 2026-06-10 16:30
 semantic-links:
   skill-links:
@@ -96,9 +96,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T5  | DONE   | Add semantic links between all related docs             | `semantic-links` updated in ADR, security analysis, and README                                           |
 | T6  | DONE   | Create security analysis skill                          | `.github/skills/dev/maintenance/catalog-security-vulnerabilities/SKILL.md`                               |
 | T7  | DONE   | User reviews the draft issue spec                       | Approval before creating GitHub issue                                                                    |
-| T8  | TODO   | Create GitHub issue                                     | Using `gh` CLI or MCP tools                                                                              |
-| T9  | TODO   | Rename spec from `drafts/` to `open/` with issue number | `git mv` + update frontmatter                                                                            |
-| T10 | TODO   | Commit and push                                         | `git add`, `git commit -S`, push to fork                                                                 |
+| T8  | DONE   | Create GitHub issue                                     | Issue #1898 created with task+security labels                                                            |
+| T9  | DONE   | Rename spec from `drafts/` to `open/` with issue number | Moved to `docs/issues/open/1898-document-security-analysis-process.md`                                   |
+| T10 | DONE   | Commit and push                                         | Commit `fdee528f`, pushed, PR #1899 opened                                                               |
 
 ## Progress Tracking
 

@@ -123,7 +123,7 @@ the build image) could produce compromised binaries. However:
 - Docker Hub `gcc:trixie` (linux/amd64): <https://hub.docker.com/layers/library/gcc/trixie/images/sha256-74b6d3e67f73206d3474a9fd8ce21695de3816bbc52616169110460594d66c32>
 - ADR: Keep unit tests inside container build: `docs/adrs/20260603000000_keep_unit_tests_inside_container_build.md`
 
-  <!-- skill-link: create-adr -->
+  <!-- skill-link: catalog-security-vulnerabilities -->
 
 - Issue draft about pre-built base images: `docs/issues/drafts/1840-workflow-performance-prebuilt-base-images/ISSUE.md`
 

@@ -24,7 +24,7 @@ provides a quick reference.
 docs/security/analysis/
   README.md              ← Process + template
   non-affecting/         ← CVEs that do NOT affect us (catalog)
-  affecting/             ← CVEs that DO affect us (future)
+  affecting/             ← CVEs that DO affect us (create when needed)
 ```
 
 ## Process (3 Steps)
@@ -49,7 +49,7 @@ If the vulnerability is **not yet cataloged**:
 
 If a vulnerability **does** affect us (rare — the runtime is distroless):
 
-1. Create a file in `docs/security/analysis/affecting/` with the same template.
+1. Create the `docs/security/analysis/affecting/` directory if it does not exist, then create a file there with the same template.
 2. Open a GitHub issue with the `security` and `bug` labels.
 3. Notify maintainers — these are high priority.
 
