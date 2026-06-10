@@ -84,17 +84,6 @@ Strict BEP implementations — parse and serialize wire formats only. No tracker
 | `events`        | Async event bus (broadcaster / receiver / shutdown) used across packages                                                                                             |
 | `server-lib`    | Shared HTTP server utilities: logging, service registrar, signal handling                                                                                            |
 
-### Extracted Packages
-
-Packages that have been extracted to their own standalone repositories.
-
-| Package          | Standalone Repository                                                               | Crate Name               | Description                                                      |
-| ---------------- | ----------------------------------------------------------------------------------- | ------------------------ | ---------------------------------------------------------------- |
-| `clock`          | [torrust/torrust-clock](https://github.com/torrust/torrust-clock)                   | `torrust-clock`          | Deterministic clock abstraction                                  |
-| `located-error`  | [torrust/torrust-located-error](https://github.com/torrust/torrust-located-error)   | `torrust-located-error`  | Diagnostic errors with source locations                          |
-| `metrics`        | [torrust/torrust-metrics](https://github.com/torrust/torrust-metrics)               | `torrust-metrics`        | Prometheus-compatible metrics: counters, gauges, labels, samples |
-| `net-primitives` | [torrust/torrust-net-primitives](https://github.com/torrust/torrust-net-primitives) | `torrust-net-primitives` | Generic networking primitive types (ServiceBinding, Protocol)    |
-
 ### Client Tools
 
 | Package                           | Purpose                                                    |
