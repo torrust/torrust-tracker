@@ -897,9 +897,9 @@ reference to the subissue opened for each.
 #### Acceptable thin dependencies (not worth addressing)
 
 - **`tracker-core` → `events`** (1 import: `RecvError`)
-  Pulled in for a single error type. Could be re-exported via
-  `swarm-coordination-registry` which already depends on `events`,
-  but the edge is simple and low-risk.
+  Kept as a direct dependency — `tracker-core` uses the events system directly
+  and re-exporting `RecvError` through an intermediate package would create a
+  hidden transitive dependency that makes the graph harder to reason about.
 
 - **`configuration` → `primitives`** (1 import path: `AnnouncePolicy`)
   Architecturally expected — config types reference domain types.
