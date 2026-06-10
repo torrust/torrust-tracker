@@ -78,6 +78,16 @@ git checkout -b 42-add-peer-expiry-grace-period
 - `fix_bug` — underscores instead of hyphens
 - `42_add_support` — underscores
 
+## Branch Name Validation
+
+Before creating a branch, verify that the issue number (if used) actually exists as an open
+issue in GitHub and has a matching spec in `docs/issues/open/`. This prevents accidentally
+referencing a wrong, closed, or non-existent issue number.
+
+> **Note**: The git hooks runner (issue #1843) will eventually automate this check. Until
+> then, verify manually by checking whether `docs/issues/open/` contains a spec file or
+> directory starting with the issue number.
+
 ## Complete Branch Lifecycle
 
 ### 1. Create Branch from `develop`

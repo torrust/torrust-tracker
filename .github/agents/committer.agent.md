@@ -31,13 +31,21 @@ Treat every commit request as a review-and-verify workflow, not as a blind reque
    - Verify that the spec's progress notes or task list reflect the current state.
    - If the spec is out of date, stop and ask the caller to update it before proceeding.
      Do not commit with a stale spec.
-2. Read the current branch, `git status`, and the staged or unstaged diff relevant to the request.
-3. Summarize the intended commit scope before taking action.
-4. Ensure the commit scope is coherent and does not accidentally mix unrelated changes.
-5. Check for obvious repository-policy violations in the diff (for example missing required spec
+2. **Validate the branch name.** If the current branch name starts with an issue number prefix
+   (e.g., `42-some-description`), verify that `docs/issues/open/` contains a matching spec
+   (file or directory starting with that number). If no match is found:
+   - The issue may be closed — check `docs/issues/closed/`; if found, the branch should be
+     on a different base or renamed.
+   - The issue may not exist at all — the branch name is likely wrong. Ask the caller to
+     confirm or rename using a `chore/` prefix for untracked work.
+   - This prevents committing under a wrong/missing issue number.
+3. Read the current branch, `git status`, and the staged or unstaged diff relevant to the request.
+4. Summarize the intended commit scope before taking action.
+5. Ensure the commit scope is coherent and does not accidentally mix unrelated changes.
+6. Check for obvious repository-policy violations in the diff (for example missing required spec
    progress updates, missing documented rationale where required, or similar policy blockers).
    If found, stop and return to the Implementer/Reviewer before committing.
-6. **Check if the pre-commit git hook is already installed** before running checks manually:
+7. **Check if the pre-commit git hook is already installed** before running checks manually:
 
    ```bash
    ./contrib/dev-tools/git/check-git-hooks.sh
@@ -53,9 +61,9 @@ Treat every commit request as a review-and-verify workflow, not as a blind reque
      - **You must not fix**: build failures, test failures, logic errors, or runtime issues.
        These are implementation defects; stop and return them to the **Implementer** to resolve.
 
-7. Propose a precise Conventional Commit message.
-8. Create the commit with `git commit -S` only after the scope is clear and blockers are resolved.
-9. After committing, run a quick verification check and report the resulting commit summary.
+8. Propose a precise Conventional Commit message.
+9. Create the commit with `git commit -S` only after the scope is clear and blockers are resolved.
+10. After committing, run a quick verification check and report the resulting commit summary.
 
 ## Constraints
 

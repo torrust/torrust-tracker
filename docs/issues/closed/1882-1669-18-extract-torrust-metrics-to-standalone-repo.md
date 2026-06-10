@@ -1,13 +1,13 @@
 ---
 doc-type: issue
 issue-type: task
-status: open
+status: done
 priority: p3
 github-issue: 1882
-spec-path: docs/issues/open/1882-1669-18-extract-torrust-metrics-to-standalone-repo.md
-branch: null
-related-pr: null
-last-updated-utc: 2026-06-05 00:00
+spec-path: docs/issues/closed/1882-1669-18-extract-torrust-metrics-to-standalone-repo.md
+branch: "1882-extract-torrust-metrics-to-standalone-repo"
+related-pr: 1892
+last-updated-utc: 2026-06-10 00:00
 semantic-links:
   skill-links:
     - create-issue

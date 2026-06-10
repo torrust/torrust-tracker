@@ -114,6 +114,11 @@ Verify these by hand before committing:
 - **Documentation updated**: if public API or behaviour changed, doc comments and `docs/` pages reflect it
 - **`AGENTS.md` updated**: if architecture or key workflows changed, the relevant `AGENTS.md` is updated
 - **New technical terms in `project-words.txt`**: new jargon added alphabetically
+- **Branch name validation**: if the branch uses an issue-number prefix (e.g. `42-some-description`),
+  verify that `docs/issues/open/` contains a matching spec file or directory. This prevents committing
+  under a non-existent, closed, or wrong issue number.
+  - **Future**: a `TODO` is recorded in `contrib/dev-tools/git/hooks/pre-commit.sh` to automate this
+    check. Until then, AI agents must verify branch names manually (see the committer agent spec).
 
 ## Before Opening a PR (Recommended)
 

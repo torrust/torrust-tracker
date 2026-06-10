@@ -6,8 +6,8 @@ priority: p3
 github-issue: 1885
 spec-path: docs/issues/closed/1885-1669-20-extract-torrust-net-primitives-to-standalone-repo.md
 branch: "1885-extract-torrust-net-primitives-to-standalone-repo"
-related-pr: null
-last-updated-utc: 2026-06-09 16:00
+related-pr: 1893
+last-updated-utc: 2026-06-10 00:00
 semantic-links:
   skill-links:
     - create-issue
