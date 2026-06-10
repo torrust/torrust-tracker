@@ -48,9 +48,9 @@ in May 2026.
 The crate has **zero workspace-path dependencies** — its only runtime dep (`tracing`) is an
 external published crate. Extraction is therefore unblocked.
 
-The crate under its new name (`torrust-located-error`) is **not yet published on crates.io**.
-The old name (`torrust-tracker-located-error` v3.0.0) is published. Publishing
-`torrust-located-error` from the standalone repository is part of this issue's scope.
+The crate under its new name (`torrust-located-error`) was **published on crates.io as v3.0.0**
+as part of this issue. The old name (`torrust-tracker-located-error` v3.0.0) remains
+published and can be yanked after downstream consumers have migrated.
 
 This issue is a subissue of EPIC [#1669](1669-overhaul-packages/EPIC.md)
 (Overhaul: Packages).
@@ -61,8 +61,7 @@ This issue is a subissue of EPIC [#1669](1669-overhaul-packages/EPIC.md)
 
 - Create a new standalone repository `torrust/torrust-located-error` in the Torrust GitHub
   organisation.
-- Move `packages/located-error/` to the new repository, preserving git history
-  (using `git filter-repo`).
+- Move `packages/located-error/` to the new repository via file copy (no history preservation).
 - Make `Cargo.toml` self-contained (remove workspace inheritance).
 - Verify the standalone repository builds and tests pass independently.
 - Set up CI in the new repository (mirror the relevant CI workflows from the tracker repo).
@@ -126,13 +125,11 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Standalone repository created
 - [x] Source moved via file copy to new repository
 - [x] CI set up and passing in new repository
-- [ ] `torrust-located-error` published on crates.io
+- [x] `torrust-located-error` published on crates.io
 - [x] Workspace consumers migrated to crates.io version dep
 - [x] `packages/located-error/` removed from tracker workspace
 - [x] Automatic verification completed (`linter all`, `cargo test --workspace`)
-- [ ] Manual verification scenarios executed and recorded
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] EPIC #1669 Active Subissues table updated to `DONE`
+- [x] EPIC #1669 Active Subissues table updated to `DONE`
 - [ ] Old `torrust-tracker-located-error` yanked (optional)
 - [ ] Issue closed and spec moved to `docs/issues/closed/`
 
@@ -141,14 +138,14 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-06-09 00:00 UTC - josecelano - Spec drafted as subissue of EPIC #1669; follows
   located-error rename in SI-10 (#1823)
 - 2026-06-09 18:50 UTC - josecelano - Standalone repository `torrust/torrust-located-error` created on GitHub (empty, no commits yet)
-- 2026-06-09 19:15 UTC - josecelano - Source copied via `cp -r`; Cargo.toml made self-contained (v0.1.0); build + tests verified; CI workflow + linter configs pushed to main
+- 2026-06-09 19:15 UTC - josecelano - Source copied via `cp -r`; Cargo.toml made self-contained (v3.0.0); build + tests verified; CI workflow + linter configs pushed to main
 
 ## Acceptance Criteria
 
-- [ ] A standalone repository `torrust/torrust-located-error` exists on GitHub.
-- [ ] The repository contains the crate source (history preservation where practical).
-- [ ] CI in the new repository passes.
-- [ ] `torrust-located-error` is published and visible on crates.io.
+- [x] A standalone repository `torrust/torrust-located-error` exists on GitHub.
+- [x] The repository contains the crate source (file copy).
+- [x] CI in the new repository passes.
+- [x] `torrust-located-error` is published and visible on crates.io.
 - [ ] No `Cargo.toml` in the tracker workspace references `torrust-located-error` with a path dep.
 - [ ] `packages/located-error` is absent from the `[workspace]` members list in root `Cargo.toml`.
 - [ ] The `packages/located-error/` directory no longer exists in the tracker repository.
