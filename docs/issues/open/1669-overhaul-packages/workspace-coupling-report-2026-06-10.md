@@ -889,6 +889,7 @@ reference to the subissue opened for each.
 1. **`axum-http-server` → `udp-tracker-protocol`** (1 import: `PeerId`)
    The HTTP server depends on the UDP protocol crate solely for `PeerId`.
    Should use `torrust-peer-id` directly (already an external dep).
+   Draft spec: [docs/issues/drafts/1669-remove-udp-protocol-peer-id-re-export.md](../../drafts/1669-remove-udp-protocol-peer-id-re-export.md)
 
 2. **`axum-server` → `configuration`** (1 import: `TslConfig`)
    Already flagged by FU-2 (#1860) for evaluation — moving `TslConfig` into
