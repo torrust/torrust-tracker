@@ -923,6 +923,12 @@ reference to the subissue opened for each.
 - **`test-helpers` → `configuration`** (1 import: `TraceStyle`)
   Test utilities referencing production types — natural and acceptable.
 
+- **`udp-server` → `client-lib`** (uses `torrust_tracker_client::udp::client::check`
+  — the old crate name before `torrust-tracker-client-lib`)
+  The UDP server imports a `check` function from the client library for its
+  own health check. This is a standard pattern: the server uses its client
+  to self-test its availability. Acceptable per [DEC-11](../DECISIONS.md#dec-11--accept-server--client-library-dependency-for-health-checks).
+
 - **`e2e-tools` → `tracker` (root)** (uses `torrust_tracker_lib::`)
   The scan looks for `torrust_tracker::` (the crate module name), but the
   root crate lib is named `torrust_tracker_lib`, so binaries import it as
@@ -939,13 +945,7 @@ reference to the subissue opened for each.
    implementations. If the UDP server is ever extracted or refactored,
    the REST layer breaks too.
 
-1. **`udp-server` → `client-lib`** (no direct `torrust_tracker_client_lib::`
-   references found, but actually uses `torrust_tracker_client::udp::client::check`
-   — the old crate name before `torrust-tracker-client-lib`)
-   The UDP server imports a check function from the tracker client library.
-   This is a circular concern: a server depending on its own client.
-
-1. **`http-tracker-core` → `tracker-core`** (16 import paths)
+2. **`http-tracker-core` → `tracker-core`** (16 import paths)
    Architecturally expected but very deep. `http-tracker-core` imports from
    nearly every module in `tracker-core` (announce, authentication, databases,
    error, scrape, statistics, torrent, whitelist). Any significant change to
@@ -953,9 +953,8 @@ reference to the subissue opened for each.
 
 #### Recommended prioritization
 
-| Priority | Edge                                         | Change                                       | Est. effort |
-| -------- | -------------------------------------------- | -------------------------------------------- | ----------- |
-| 1        | `axum-http-server` → `udp-tracker-protocol`  | Replace with `torrust-peer-id`               | Very low    |
-| 2        | `tracker-core` → `Driver` in `configuration` | Move `Driver` enum to `primitives`           | Low         |
-| 3        | REST layer → UDP internals                   | Trait-based abstraction for stats/banning    | Medium      |
-| 4        | `udp-server` → `client-lib`                  | Evaluate whether the check function can move | Medium      |
+| Priority | Edge                                         | Change                                    | Est. effort |
+| -------- | -------------------------------------------- | ----------------------------------------- | ----------- |
+| 1        | `axum-http-server` → `udp-tracker-protocol`  | Replace with `torrust-peer-id`            | Very low    |
+| 2        | `tracker-core` → `Driver` in `configuration` | Move `Driver` enum to `primitives`        | Low         |
+| 3        | REST layer → UDP internals                   | Trait-based abstraction for stats/banning | Medium      |

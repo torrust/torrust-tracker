@@ -66,6 +66,51 @@ via `PeersWanted::limit(max_peers)` at call time, not at `PeersWanted` construct
 
 ---
 
+## DEC-11 — Accept server → client-library dependency for health checks
+
+**Date**: 2026-06-10
+**Status**: Adopted
+
+### Proposal considered
+
+Remove the `torrust-tracker-client-lib` runtime dependency from
+`torrust-tracker-udp-server` and inline or relocate the `check` function used
+for server health checks.
+
+### Alternative chosen
+
+Keep the dependency. The `check` function in `torrust-tracker-client-lib` is a
+health-check utility that uses the client to send a `ConnectRequest` to a running
+server and verify a `ConnectResponse` — a standard self-test pattern. It is
+production code (not test-only) and belongs in the client library alongside
+`UdpTrackerClient` which it uses internally.
+
+### Why this alternative was adopted
+
+1. **Standard direction**: servers legitimately depend on their own client libraries
+   for runtime health checks; this is the normal dependency order (server → client).
+2. **Client library is the natural home**: the function instantiates
+   `UdpTrackerClient`, which is defined in the same crate. Moving it elsewhere
+   would require making that type public from a different package or duplicating
+   the logic.
+3. **Not a circular concern**: the client library has no dependency on any server
+   package. The edge is unidirectional (server → client).
+
+### Trade-offs acknowledged
+
+- Any change to the client health-check API can affect the server's launcher module.
+- The health-check function is small enough that its current location is pragmatic.
+
+### Supporting artifacts
+
+- `packages/udp-server/src/server/launcher.rs` — uses
+  `torrust_tracker_client::udp::client::check`
+- `packages/tracker-client/src/udp/client.rs` — defines the `check` function
+- [workspace-coupling-report-2026-06-10.md](../open/1669-overhaul-packages/workspace-coupling-report-2026-06-10.md)
+  — "Acceptable thin dependencies" section
+
+---
+
 ## DEC-08 — Keep `TslConfig` in tracker configuration and keep `torrust-tracker-axum-server` tracker-scoped
 
 **Date**: 2026-06-03
