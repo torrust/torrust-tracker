@@ -826,7 +826,9 @@ None — previously known thin dependencies have been resolved:
 - `torrust-tracker-configuration` → `torrust-clock` (resolved by SI-03, #1793)
 - `torrust-tracker-configuration` → `torrust-tracker-primitives`: only
   `TrackerPolicy`/`PrivateMode`/`TORRENT_PEERS_LIMIT` imported. Addressed by FU-1
-  (#1859) — items moved to `primitives`, config now depends only on `located-error`.
+  (#1859) — items moved to `primitives`. Remaining dependency is `AnnouncePolicy`
+  from `primitives` (architecturally expected — config types reference domain
+  types).
 
 ### Improvements since the previous report (2026-05-19)
 

@@ -1,3 +1,12 @@
+---
+semantic-links:
+  related-artifacts:
+    - docs/packages.md
+    - packages/AGENTS.md
+    - docs/issues/open/1669-overhaul-packages/EPIC.md
+    - docs/issues/open/1669-overhaul-packages/workspace-coupling-report-2026-06-10.md
+---
+
 # Torrust Tracker — Workspace Package Dependencies
 
 ```mermaid

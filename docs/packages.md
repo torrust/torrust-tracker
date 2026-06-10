@@ -99,7 +99,7 @@ Key Architectural Principles:
 | `server-lib`                      | Shared HTTP server utilities         | Logging, signal handling                   |
 | `test-helpers`                    | Testing utilities                    | Mock servers, Test data generation         |
 | **Client Tools**                  |                                      |                                            |
-| `tracker-client`                  | CLI client                           | Tracker interaction/testing                |
+| `tracker-client` (`packages/`)    | Tracker client library               | Generic tracker client library             |
 | `rest-api-client`                 | API client library                   | REST API integration                       |
 | **Benchmarking**                  |                                      |                                            |
 | `torrent-repository-benchmarking` | Torrent storage benchmarks           | Criterion benchmarks                       |
