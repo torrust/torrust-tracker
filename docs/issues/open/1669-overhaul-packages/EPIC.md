@@ -18,6 +18,8 @@ semantic-links:
     - docs/adrs/20260527175600_keep_protocol_and_domain_types_decoupled.md
     - docs/adrs/index.md
     - AGENTS.md
+    - packages/AGENTS.md
+    - docs/media/packages/dependencies-workspace-packages.md
 ---
 
 <!-- skill-link: create-issue -->
@@ -465,6 +467,15 @@ This section lists direct crate dependencies that have a `torrust*` prefix.
 - Decide and document the versioning strategy for packages that remain in this workspace
   after extractions.
 - Update `docs/packages.md` and `AGENTS.md` Package Catalog after each structural change.
+- Keep the dependency diagram at `docs/media/packages/dependencies-workspace-packages.md`
+  in sync with the actual Cargo workspace by regenerating it after every package move,
+  rename, or dependency change.
+- **Documentation audit**: before closing any subissue, verify that:
+  1. `docs/packages.md` lists every actual package (run `cargo metadata --no-deps` and
+     cross-check against the File Listing and Package Catalog tables).
+  2. `packages/AGENTS.md` matches, with no ghost packages that have been removed or renamed.
+  3. The extracted packages table in both docs reflects the current set of extracted crates.
+  4. The dependency diagram is consistent with the actual `Cargo.toml` dependencies.
 - Re-evaluate the workspace after each extraction to find the next improvement.
 
 ### Out of Scope
