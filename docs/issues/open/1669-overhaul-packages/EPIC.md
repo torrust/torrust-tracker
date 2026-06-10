@@ -47,12 +47,12 @@ concerns are mixed together:
   here adds noise to the workspace and makes their independent evolution harder.
 - **Versioning policy is implicit**: all packages share the workspace version; packages
   extracted to separate repos will need their own release cadence.
-- **Only 6 of originally 27 packages were published on crates.io** (as of May 2026):
-  all unpublished, in particular every `bittorrent-*` crate. As of June 2026, 4 more packages
-  have been published from standalone repositories (`torrust-clock`, `torrust-located-error`,
-  `torrust-metrics`, `torrust-net-primitives`), bringing the total
-  published across the organisation to 10. Publishing them in-workspace conflicted with
-  giving them independent versions; extraction resolved this tension.
+- **Only 6 of originally 27 packages were published on crates.io** (as of May 2026);
+  the remaining 21 packages were unpublished, in particular every `bittorrent-*` crate.
+  As of June 2026, 4 more packages have been published from standalone repositories
+  (`torrust-clock`, `torrust-located-error`, `torrust-metrics`, `torrust-net-primitives`),
+  bringing the total published across the organisation to 10. Publishing them in-workspace
+  conflicted with giving them independent versions; extraction resolved this tension.
 
 The approach is not all-or-nothing. Each small extraction or structural improvement is a
 self-contained win. Re-evaluation happens naturally after each change, or when the package
