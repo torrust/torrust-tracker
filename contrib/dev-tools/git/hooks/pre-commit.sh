@@ -9,6 +9,12 @@
 # AI agents: set a per-command timeout of at least 3 minutes before invoking this script.
 #
 # All steps must pass (exit 0) before committing.
+#
+# TODO: Implement branch-name validation in the Rust git-hooks binary (#1843).
+# When the branch uses an issue-number prefix (e.g. "42-some-description"), verify that
+# docs/issues/open/ contains a matching spec file or directory starting with that number.
+# This prevents committing under a wrong, closed, or non-existent issue number.
+# See also: docs/issues/open/1843-migrate-git-hooks-scripts-from-bash-to-rust.md
 
 set -uo pipefail
 

@@ -19,6 +19,9 @@ semantic-links:
     - .githooks/pre-push
     - .github/workflows/copilot-setup-steps.yml
     - docs/adrs/20260519000000_define_global_cli_output_contract.md
+    - docs/issues/open/1774-automate-cleanup-completed-issues-skill-script.md
+    - .github/skills/dev/git-workflow/create-feature-branch/SKILL.md
+    - .github/agents/committer.agent.md
 ---
 
 <!-- skill-link: create-issue -->
@@ -210,14 +213,15 @@ Bash scripts are removed. **Phase 2** adds new capabilities on top of the alread
 
 ### Phase 2 — Enhancements (new features not present in the original Bash scripts)
 
-| ID  | Status | Task                                                         | Notes / Expected Output                                                                                                                                                               |
-| --- | ------ | ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| T17 | TODO   | Implement heartbeat emitter                                  | Background ticker fires every 20–30s while a step is running; emits `heartbeat` NDJSON event (step name, elapsed seconds); extends T3 schema                                          |
-| T18 | TODO   | Implement staged file type analysis and smart step selection | `git diff --cached --name-only`; classify changeset (Markdown-only / docs-only / mixed); skip inapplicable steps; emit `step_skip` NDJSON events for skipped steps; extends T3 schema |
-| T19 | TODO   | Implement pre-commit idempotency cache                       | Compute staged tree SHA (`git write-tree`) + step-config hash; check/write `.git/torrust-hooks/pre-commit-cache`; exit 0 immediately on cache hit                                     |
-| T20 | TODO   | Implement pre-push idempotency cache                         | Check/write per-commit-SHA records in `.git/torrust-hooks/pre-push-cache`; exit 0 immediately when all pushed commits have passing records                                            |
-| T21 | TODO   | Add Phase 2 unit and integration tests                       | Cover: heartbeat timing and event shape, staged file classification, smart step selection, cache read/write/invalidation, cache-and-smart-skip interaction                            |
-| T22 | TODO   | Verify Phase 2 quality gates                                 | `linter all`, full test suite; all Phase 2 ACs met                                                                                                                                    |
+| ID  | Status | Task                                                         | Notes / Expected Output                                                                                                                                                                                                                                                                                                                                                                       |
+| --- | ------ | ------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| T17 | TODO   | Implement heartbeat emitter                                  | Background ticker fires every 20–30s while a step is running; emits `heartbeat` NDJSON event (step name, elapsed seconds); extends T3 schema                                                                                                                                                                                                                                                  |
+| T18 | TODO   | Implement staged file type analysis and smart step selection | `git diff --cached --name-only`; classify changeset (Markdown-only / docs-only / mixed); skip inapplicable steps; emit `step_skip` NDJSON events for skipped steps; extends T3 schema                                                                                                                                                                                                         |
+| T19 | TODO   | Implement pre-commit idempotency cache                       | Compute staged tree SHA (`git write-tree`) + step-config hash; check/write `.git/torrust-hooks/pre-commit-cache`; exit 0 immediately on cache hit                                                                                                                                                                                                                                             |
+| T20 | TODO   | Implement pre-push idempotency cache                         | Check/write per-commit-SHA records in `.git/torrust-hooks/pre-push-cache`; exit 0 immediately when all pushed commits have passing records                                                                                                                                                                                                                                                    |
+| T21 | TODO   | Add Phase 2 unit and integration tests                       | Cover: heartbeat timing and event shape, staged file classification, smart step selection, cache read/write/invalidation, cache-and-smart-skip interaction                                                                                                                                                                                                                                    |
+| T22 | TODO   | Implement branch-name validation                             | When the branch uses an issue-number prefix (e.g. `42-some-description`), verify that `docs/issues/open/` contains a matching spec file or directory. If none found, emit a warning event and optionally block the commit. Prevents committing under a wrong, closed, or non-existent issue number. See `docs/issues/open/1774-automate-cleanup-completed-issues-skill-script.md` for context |
+| T23 | TODO   | Verify Phase 2 quality gates                                 | `linter all`, full test suite; all Phase 2 ACs met                                                                                                                                                                                                                                                                                                                                            |
 
 ## Progress Tracking
 
@@ -267,6 +271,7 @@ Bash scripts are removed. **Phase 2** adds new capabilities on top of the alread
 - [ ] AC19: When only `*.md` files (and documentation-adjacent files) are staged, `pre-commit` skips Rust-specific steps and runs only markdown-relevant linters; a `step_skip` NDJSON event is emitted for each skipped step
 - [ ] AC20: A second `torrust-git-hooks pre-commit` invocation with an unchanged staged tree (same `git write-tree` SHA and step config) exits 0 immediately without re-running any step
 - [ ] AC21: A `torrust-git-hooks pre-push` invocation where all commits in the push already have passing cache records exits 0 immediately without re-running any step
+- [ ] AC22: When the current branch has an issue-number prefix (e.g. `42-some-description`), the `pre-commit` subcommand verifies that a matching spec exists in `docs/issues/open/`. If none is found, it emits a warning event and blocks the commit with exit code 1.
 
 ## Verification Plan
 
