@@ -28,6 +28,7 @@ Azureus
 backlinks
 bdecode
 behaviour
+behavioural
 bencode
 bencoded
 bencoding
@@ -71,6 +72,7 @@ Containerfile
 conv
 curr
 cvar
+cves
 Cyberneering
 cyclomatic
 dashmap
@@ -168,6 +170,8 @@ Laravel
 lcov
 leecher
 leechers
+libheif
+libraw
 libsqlite
 libtorrent
 libz
@@ -216,6 +220,7 @@ objcopy
 obra
 oneline
 oneshot
+openexr
 openmetrics
 optimisation
 optimisations
@@ -374,6 +379,7 @@ VARCHAR
 Vitaly
 vmlinux
 vtable
+vulns
 Vuze
 wakelist
 wakeup

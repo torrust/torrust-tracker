@@ -6,6 +6,8 @@ semantic-links:
     - .github/skills/dev/planning/create-adr/SKILL.md
     - Containerfile
     - .github/workflows/container.yaml
+    - docs/security/analysis/non-affecting/2026-06-10_containerfile-trixie-cves.md
+    - docs/security/analysis/README.md
 ---
 
 # Keep unit tests inside the container build process
@@ -60,13 +62,33 @@ The three-layer strategy is therefore:
 3. **E2E tests against the distroless `release` image** (`container.yaml` `test` job) —
    the only layer that proves the binary works in the actual production runtime.
 
+### Security Rationale
+
+Keeping unit tests inside the container build also provides a **security-in-depth** benefit:
+
+- The `tester` stage runs the **exact compiled binary** produced by `rust:trixie` — including
+  all its runtime dependencies — in an environment that shares the same Debian trixie glibc
+  as the production runtime. This acts as a **build-pipeline integrity check**: if a
+  maliciously compromised build tool or compromised dependency introduced unexpected
+  behavioural changes, unit test failures would likely surface them before the binary reaches
+  the runtime image.
+- The unit tests exercise code paths that would be exercised in production, providing a
+  baseline of expected behaviour against which anomalous test results could be detected.
+- This is a weaker guarantee than running in the distroless runtime itself (the unit tests
+  run in `rust:slim-trixie`, not `distroless/cc-debian13`), but it is a strictly stronger
+  guarantee than running tests on a separate GHA host with a different glibc and library set.
+
+For a full security analysis of the Containerfile's build-stage vulnerabilities, see
+`docs/security/analysis/non-affecting/2026-06-10_containerfile-trixie-cves.md`.
+
 ### Alternatives Considered
 
 **Move unit tests entirely to the GHA host and remove the `tester` stage.**
 This would make the container build significantly faster (eliminating ~50 fat-LTO binary
-compilations). However, it removes layer 2 above. The decision for now is to keep all three
-layers. If the build time becomes unacceptable, this option can be revisited as part of the
-LTO optimization work tracked in issue #1840.
+compilations), but would also remove the build-pipeline integrity check described in the
+Security Rationale above. The decision for now is to keep all three layers. If the build time
+becomes unacceptable, this option can be revisited as part of the LTO optimization work
+tracked in issue #1840.
 
 ### Consequences
 
