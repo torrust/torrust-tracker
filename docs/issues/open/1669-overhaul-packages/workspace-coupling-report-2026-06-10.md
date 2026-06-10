@@ -1,3 +1,12 @@
+---
+semantic-links:
+  skill-links:
+    - create-issue
+  related-artifacts:
+    - docs/issues/open/1669-overhaul-packages/EPIC.md
+    - packages/
+---
+
 # Workspace Coupling Report
 
 Generated: 2026-06-10 12:23 UTC
@@ -826,8 +835,8 @@ reduction in workspace coupling thanks to completed EPIC subissues:
 
 | Metric                     | Before (May 19) | After (Jun 10)               |
 | -------------------------- | --------------- | ---------------------------- |
-| Workspace packages         | 29              | 24                           |
-| Leaf packages (no ws deps) | 8               | 8 (completely different set) |
+| Workspace packages         | 29              | 25                           |
+| Leaf packages (no ws deps) | 8               | 7 (completely different set) |
 | Highest dep count          | 16 (2 packages) | 15                           |
 
 **Packages extracted to standalone repositories** (removed from workspace):
