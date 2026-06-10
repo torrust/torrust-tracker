@@ -872,3 +872,73 @@ reduction in workspace coupling thanks to completed EPIC subissues:
 
 Record any new thin-dependency or cluster-dependency findings here, with a
 reference to the subissue opened for each.
+
+#### Thin dependencies (1–3 imports, easy to eliminate)
+
+1. **`axum-http-server` → `udp-tracker-protocol`** (1 import: `PeerId`)
+   The HTTP server depends on the UDP protocol crate solely for `PeerId`.
+   Should use `torrust-peer-id` directly (already an external dep).
+
+2. **`tracker-core` → `events`** (1 import: `RecvError`)
+   Pulled in for a single error type. Could be re-exported via
+   `swarm-coordination-registry` which already depends on `events`,
+   eliminating this direct edge.
+
+3. **`configuration` → `primitives`** (1 import path: `AnnouncePolicy`)
+   Thin but architecturally expected — config types reference domain types.
+   Low priority.
+
+4. **`test-helpers` → `configuration`** (1 import: `TraceStyle`)
+   Thin edge, acceptable for a test utility crate.
+
+5. **`axum-server` → `configuration`** (1 import: `TslConfig`)
+   Already flagged by FU-2 (#1860) for evaluation — moving `TslConfig` into
+   `axum-server` would eliminate this edge entirely.
+
+6. **`e2e-tools` → `tracker` (root)** (no direct `use` found in source)
+   The scan reports no direct source imports — dependency may be used only
+   via `Cargo.toml` feature flags or `build.rs`. Worth verifying before
+   extraction of `e2e-tools`.
+
+#### Cluster dependencies (architectural concerns)
+
+1. **`axum-rest-api-server` + `rest-api-core` → `udp-server` + `udp-tracker-core`**
+   (7 distinct import paths combined)
+   The REST management layer reaches into concrete UDP server internals for
+   statistics, banning, and container wiring. This is a **layer violation**:
+   the REST API should query abstractions, not concrete server
+   implementations. If the UDP server is ever extracted or refactored,
+   the REST layer breaks too.
+
+1. **`udp-server` → `client-lib`** (no direct `torrust_tracker_client_lib::`
+   references found, but actually uses `torrust_tracker_client::udp::client::check`
+   — the old crate name before `torrust-tracker-client-lib`)
+   The UDP server imports a check function from the tracker client library.
+   This is a circular concern: a server depending on its own client.
+
+1. **`http-tracker-core` → `tracker-core`** (16 import paths)
+   Architecturally expected but very deep. `http-tracker-core` imports from
+   nearly every module in `tracker-core` (announce, authentication, databases,
+   error, scrape, statistics, torrent, whitelist). Any significant change to
+   `tracker-core` directly impacts `http-tracker-core`.
+
+#### Layer violation (forbidden edge per EPIC rules)
+
+1. **`tracker-core` → `Driver` enum in `configuration`**
+   `tracker-core` imports `configuration::Driver::*` variants directly.
+   The `Driver` type is a database connectivity enum that logically belongs
+   in `tracker-core` (or `primitives`), not in `configuration`. This creates
+   a bidirectional conceptual dependency: `tracker-core` needs the driver to
+   know which DB backend to use, but `configuration` shouldn't leak internal
+   database implementation details.
+
+#### Recommended prioritization
+
+| Priority | Edge                                           | Change                                                  | Est. effort |
+| -------- | ---------------------------------------------- | ------------------------------------------------------- | ----------- |
+| 1        | `axum-http-server` → `udp-tracker-protocol`    | Replace with `torrust-peer-id`                          | Very low    |
+| 2        | `tracker-core` → `events`                      | Re-export `RecvError` via `swarm-coordination-registry` | Very low    |
+| 3        | `tracker-core` → `Driver` in `configuration`   | Move `Driver` enum to `tracker-core`                    | Low         |
+| 4        | `axum-server` → `TslConfig` in `configuration` | FU-2: move `TslConfig` into `axum-server`               | Low         |
+| 5        | REST layer → UDP internals                     | Trait-based abstraction for stats/banning               | Medium      |
+| 6        | `udp-server` → `client-lib`                    | Evaluate whether the check function can move            | Medium      |
