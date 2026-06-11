@@ -262,48 +262,76 @@ the Containerfile build.
 
 ##### Strategy selection
 
-We adopt **Strategy B1 (mount sccache cache dir into Docker)** as the primary approach.
-Strategy B2 (GHA backend inside Docker) is documented as a discarded alternative below.
+Three local Docker experiments were conducted (see `contrib/dev-tools/experiments/sccache-docker/`):
 
-**Why B1 (mount) is preferred over B2 (GHA backend inside Docker)**:
+**Experiment 1 — Single-stage build**: sccache with `--mount=type=cache,target=/sccache` works
+within a single build. Cold: 16.95 s (0 % hits). Warm within same RUN layer: 0.05 s.
 
-| Criterion                | B1 — Mount host sccache                                                                                 | B2 — GHA backend inside Docker                                                                                                                     |
-| ------------------------ | ------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Changes to Containerfile | Minimal — add `RUSTC_WRAPPER=sccache` and `SCCACHE_DIR` env to compiler stages                          | Requires installing `sccache` binary inside each Docker stage, configuring GHA credentials, and handling network access from within `docker build` |
-| Authentication           | None needed — uses local disk cache on the runner                                                       | Needs GitHub token (`ACTIONS_RUNTIME_TOKEN`, `ACTIONS_CACHE_URL`) passed via `--secret` into Docker build context                                  |
-| Network dependency       | None — local disk only                                                                                  | Each `docker build` layer that compiles Rust must fetch cache objects from GHA cache API over HTTPS                                                |
-| Layer cache interaction  | Complements BuildKit layer cache — sccache caches at codegen-unit level, BuildKit at Docker layer level | Same as B1 but with added HTTP overhead per compiler invocation                                                                                    |
-| Complexity               | Low — `docker build` with `--volume` mount and env passthrough                                          | High — custom Containerfile stages, secret mounts, GHA auth passthrough                                                                            |
-| Runner portability       | Works on any runner with Docker (local, GHA, self-hosted)                                               | Tied to GHA-specific environment variables                                                                                                         |
+**Experiment 2 — Multi-stage build**: BuildKit cache mounts are **stage-scoped** — each `FROM`
+stage gets a fresh cache mount. The sccache cache from `cook` stage is NOT visible to `build`
+stage. This rules out using cache mounts alone for cross-stage caching.
 
-**Why not B2**: The GHA cache backend inside Docker requires passing secrets (`ACTIONS_RUNTIME_TOKEN`,
-`ACTIONS_CACHE_URL`) securely into the build context. While `docker/build-push-action` supports
-`--secret`, the sccache client inside Docker would need these mounted at the right paths and
-the `SCCACHE_GHA_ENABLED=true` env var set. This adds complexity without clear benefit over B1 —
-the local disk on the GHA runner is ephemeral, but the sccache daemon on the host runner writes to
-the GHA cache backend automatically (via `mozilla-actions/sccache-action`), and the Docker build
-reads from the host's local sccache cache which is prepopulated by the daemon. The host daemon
-handles the GHA backend sync; the Docker build just needs the local cache dir.
+**Experiment 3 — GHA backend inside Docker**: `SCCACHE_GHA_ENABLED=true` **fails hard** when GHA
+credentials are absent (`error: cache url for ghac not found`). The Containerfile must NOT
+hardcode `SCCACHE_GHA_ENABLED=true`.
 
-**Strategy B1 in detail**:
+Based on these findings, both original strategies are refined:
 
-- The GHA runner has sccache installed and running (from `mozilla-actions/sccache-action`).
-  The action starts an sccache daemon that uses the GHA cache backend (`SCCACHE_GHA_ENABLED=true`).
-- Docker `build` mounts the sccache cache directory into the build container via
-  `--volume /home/runner/.cache/sccache:/home/runner/.cache/sccache`.
-- The Containerfile compiler stages set `RUSTC_WRAPPER=sccache` and `SCCACHE_DIR=/home/runner/.cache/sccache`.
-- sccache reads cached objects from the local disk (which is synced to GHA cache by the host
-  daemon). Writes from inside Docker go to the same directory, and the host daemon syncs them
-  to the GHA cache backend after the job.
+| Criterion              | B1 — Mount host sccache (discarded)                                                                 | B2 — GHA backend via `--secret-env` (recommended)                           |
+| ---------------------- | --------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| Docker compatibility   | **INFEASIBLE** — `--volume` not supported in `docker build`; BuildKit cache mounts are stage-scoped | ✅ Fully supported via `docker/build-push-action` with `secret-env`         |
+| GHA credential passing | N/A — host daemon handles GHA sync, but Docker build can't read host daemon                         | `ACTIONS_RUNTIME_TOKEN` and `ACTIONS_CACHE_URL` passed securely via secrets |
+| Local build behavior   | Works — local disk cache                                                                            | Works — secrets not passed → local disk fallback                            |
+| Cross-run cache        | None — BuildKit cache mounts aren't exported via `cache-from: type=gha`                             | ✅ GHA backend: **93.38 % hit rate** (proven in Task 3a)                    |
 
+**Decision: Use B2 (GHA backend via `--secret-env`)**.
+
+The GHA backend approach was proven in Task 3a (93.38 % hit rate on cross-run builds). Passing
+secrets into Docker is a well-documented pattern with `docker/build-push-action`. For local
+builds, sccache falls back to local disk automatically since the secrets are absent.
+
+**Implementation approach for the Containerfile**:
+
+```dockerfile
+# Add to every compiler stage (chef, dependencies_thirdparty, dependencies, build):
+RUN --mount=type=secret,id=SCCACHE_GHA_ENABLED \
+    --mount=type=secret,id=ACTIONS_RUNTIME_TOKEN \
+    --mount=type=secret,id=ACTIONS_CACHE_URL \
+    export SCCACHE_GHA_ENABLED=true && \
+    RUSTC_WRAPPER=sccache cargo build --release
+```
+
+**Workflow integration**:
+
+```yaml
+- name: Install sccache
+  uses: mozilla-actions/sccache-action@v0.0.10
+
+- name: Build Tracker Image
+  uses: docker/build-push-action@v7
+  with:
+    file: ./Containerfile.sccache-experiment
+    secret-env: |
+      "SCCACHE_GHA_ENABLED=${{ env.SCCACHE_GHA_ENABLED }}"
+      "ACTIONS_RUNTIME_TOKEN=${{ env.ACTIONS_RUNTIME_TOKEN }}"
+      "ACTIONS_CACHE_URL=${{ env.ACTIONS_CACHE_URL }}"
+```
+
+- [ ] Create `Containerfile.sccache-experiment` — modified Containerfile with sccache
+      installed in the `chef` stage and GHA secret mounts in every compiler stage.
+- [ ] Build the modified Containerfile locally to verify it works without GHA creds
+      (sccache falls back to local disk via `SCCACHE_DIR=/sccache`).
 - [ ] Create `experiment-sccache-docker.yaml` workflow that builds the full Docker image
-      (same `target: release`) with: - `mozilla-actions/sccache-action` before Docker build - `docker/build-push-action` with extra `--volume` mount for sccache cache dir - A modified `Containerfile.sccache-experiment` that sets `RUSTC_WRAPPER=sccache`
-      and `SCCACHE_DIR` in the compiler stages
-- [ ] Push and verify the workflow passes end-to-end.
+      (same `target: release`) with sccache GHA backend via `--secret-env`.
+- [ ] Push to `josecelano` fork and verify the workflow passes end-to-end.
 - [ ] Record first-run timing for the `docker build` step (cold — no sccache cache yet).
 - [ ] Re-trigger the same workflow (same commit) to measure warm-run timing with
       sccache cache populated by the first run.
 - [ ] Compare with baseline (current `container.yaml` timing from a recent run on `develop`).
+
+---
+
+#### Task 3c: Full E2E with sccache-warmed Docker build
 
 ---
 
