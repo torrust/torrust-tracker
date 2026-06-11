@@ -1,10 +1,13 @@
 ---
 doc-type: spec
 issue-type: task
-status: draft
+status: open
 priority: p2
 epic: 1669
-spec-path: docs/issues/drafts/1669-remove-udp-protocol-peer-id-re-export.md
+github-issue: 1907
+spec-path: docs/issues/open/1907-1669-si-26-remove-udp-protocol-peer-id-re-export.md
+branch: null
+related-pr: null
 last-updated-utc: 2026-06-10
 semantic-links:
   skill-links:
@@ -14,7 +17,9 @@ semantic-links:
     - docs/issues/open/1669-overhaul-packages/workspace-coupling-report-2026-06-10.md
 ---
 
-# Remove `udp-protocol` Re-export of `PeerId`/`PeerClient`
+<!-- skill-link: create-issue -->
+
+# Issue #1907 (SI-26) - Remove `udp-protocol` Re-export of `PeerId`/`PeerClient`
 
 ## Subissue of EPIC #1669 — Overhaul: Packages
 

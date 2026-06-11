@@ -1,10 +1,11 @@
 ---
 doc-type: issue
 issue-type: task
-status: draft
+status: open
 priority: p2
-github-issue: null
-spec-path: docs/issues/drafts/1669-rename-udp-and-http-core-protocol-crates-to-remove-redundant-tracker.md
+epic: 1669
+github-issue: 1910
+spec-path: docs/issues/open/1910-1669-si-29-rename-udp-and-http-core-protocol-crates-to-remove-redundant-tracker.md
 branch: null
 related-pr: null
 last-updated-utc: 2026-06-11
@@ -26,7 +27,7 @@ semantic-links:
 
 <!-- skill-link: create-issue -->
 
-# Issue #[To be assigned] - Remove redundant `-tracker-` from HTTP and UDP crate names
+# Issue #1910 (SI-29) - Remove redundant `-tracker-` from HTTP and UDP crate names
 
 ## Goal
 

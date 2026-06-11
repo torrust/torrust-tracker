@@ -1,10 +1,13 @@
 ---
 doc-type: spec
 issue-type: task
-status: draft
+status: open
 priority: p2
 epic: 1669
-spec-path: docs/issues/drafts/1669-move-driver-enum-to-primitives.md
+github-issue: 1908
+spec-path: docs/issues/open/1908-1669-si-27-move-driver-enum-to-primitives.md
+branch: null
+related-pr: null
 last-updated-utc: 2026-06-10
 semantic-links:
   skill-links:
@@ -15,7 +18,9 @@ semantic-links:
     - docs/issues/open/1669-overhaul-packages/workspace-coupling-report-2026-06-10.md
 ---
 
-# Move `Driver` Enum from `configuration` to `primitives`
+<!-- skill-link: create-issue -->
+
+# Issue #1908 (SI-27) - Move `Driver` Enum from `configuration` to `primitives`
 
 ## Subissue of EPIC #1669 — Overhaul: Packages
 

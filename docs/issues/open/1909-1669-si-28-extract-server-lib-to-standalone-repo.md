@@ -1,10 +1,11 @@
 ---
 doc-type: issue
 issue-type: task
-status: draft
+status: open
 priority: p2
-github-issue: null
-spec-path: docs/issues/drafts/1669-extract-server-lib-to-standalone-repo.md
+epic: 1669
+github-issue: 1909
+spec-path: docs/issues/open/1909-1669-si-28-extract-server-lib-to-standalone-repo.md
 branch: null
 related-pr: null
 last-updated-utc: 2026-06-11

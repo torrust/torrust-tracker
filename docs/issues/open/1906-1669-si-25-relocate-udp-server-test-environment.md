@@ -1,10 +1,13 @@
 ---
 doc-type: spec
 issue-type: task
-status: draft
+status: open
 priority: p2
 epic: 1669
-spec-path: docs/issues/drafts/1669-relocate-http-server-test-environment.md
+github-issue: 1906
+spec-path: docs/issues/open/1906-1669-si-25-relocate-udp-server-test-environment.md
+branch: null
+related-pr: null
 last-updated-utc: 2026-06-11
 semantic-links:
   skill-links:
@@ -15,7 +18,9 @@ semantic-links:
     - docs/issues/open/1669-overhaul-packages/workspace-coupling-report-2026-06-10.md
 ---
 
-# Relocate `axum-http-server` Test Environment Infrastructure
+<!-- skill-link: create-issue -->
+
+# Issue #1906 (SI-25) - Relocate `udp-server` Test Environment Infrastructure
 
 ## Subissue of EPIC #1669 — Overhaul: Packages
 
@@ -23,16 +28,16 @@ semantic-links:
 
 1. [1669-relocate-rest-api-core-from-udp-internals.md](./1669-relocate-rest-api-core-from-udp-internals.md) (prerequisite)
 2. [1669-relocate-axum-rest-api-server-test-environment.md](./1669-relocate-axum-rest-api-server-test-environment.md)
-3. [1669-relocate-udp-server-test-environment.md](./1669-relocate-udp-server-test-environment.md)
-4. **This subissue**
+3. **This subissue**
+4. [1669-relocate-http-server-test-environment.md](./1669-relocate-http-server-test-environment.md)
 
 ## Problem
 
-Same pattern as the other server packages: `packages/axum-http-server/src/environment.rs`
+Same pattern as `axum-rest-api-server`: `packages/udp-server/src/environment.rs`
 lives in production code but is only consumed by tests and examples:
 
-- `packages/axum-http-server/tests/`
-- `packages/axum-http-server/examples/`
+- `packages/udp-server/tests/`
+- `packages/udp-server/examples/`
 - `packages/axum-health-check-api-server/tests/`
 
 It depends on the full tracker stack for test convenience, forcing unnecessary
@@ -48,7 +53,7 @@ runtime dependencies.
 ### 2. Update consumers
 
 - `packages/axum-health-check-api-server/tests/` — update import paths
-- `packages/axum-http-server/examples/` — update import paths
+- `packages/udp-server/examples/` — update import paths
 
 ### 3. Clean up
 
@@ -58,7 +63,7 @@ runtime dependencies.
 
 ## Acceptance Criteria
 
-1. `axum-http-server/src/environment.rs` no longer exists (moved to `src/testing/`).
+1. `udp-server/src/environment.rs` no longer exists (moved to `src/testing/`).
 2. `cargo test --workspace` passes.
 3. `cargo machete` passes.
 4. `linter all` passes.
