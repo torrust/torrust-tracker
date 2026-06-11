@@ -7,7 +7,7 @@ github-issue: 1726
 spec-path: docs/issues/open/1726-1840-workflow-performance-sccache/ISSUE.md
 branch: 1726-reduce-build-times-sccache
 related-pr: null
-last-updated-utc: 2026-06-11 15:53
+last-updated-utc: 2026-06-11 16:51
 semantic-links:
   skill-links:
     - create-issue
@@ -191,57 +191,153 @@ Commit message: `docs(build): document local sccache decision (reject)`
 
 ---
 
-### Task 3: CI Research (A/B)
+### Task 3: CI Research — Docker workflow (A/B)
 
-Benchmark CI behavior on GitHub-hosted runners before deciding on replacement.
+**Context**: The primary target is the `container.yaml` workflow, which builds inside Docker
+using `cargo-chef` for layer caching. The E2E tests run inside the container image. sccache
+must work _inside_ the Docker build to be useful here — adding it only to the GHA runner
+outside Docker would not accelerate the `docker build` step.
 
-- [ ] Run and record baseline CI timings with current setup (`Swatinem/rust-cache`) for
-      at least two comparable pushes (cold-ish and repeat).
+The approach is **progressive**: start with a simple bare build on the runner, integrate
+sccache into Docker, then run the full E2E suite.
 
-- [ ] Create an experiment branch/workflow variant using `sccache` (GHA backend):
-  - Add the following two steps **before** any `cargo` step in jobs that compile Rust
-    (`format`, `check`, `build`, `unit`, `database-compatibility`, `e2e`):
+**Self-sufficiency**: Each experiment workflow is designed to run its own A/B comparison in
+a single push. When possible, the workflow runs two builds back-to-back (cold then warm) and
+outputs both results. When the GHA cache is only persisted via post-job actions (e.g. `sccache`
+writes to GHA cache on job completion), the second run requires a manual re-trigger — the
+instructions for each step make this explicit.
 
-    ```yaml
-    - name: Install sccache
-      uses: mozilla-actions/sccache-action@v0.0.10
+**Measuring results**: Cold builds are timed from the workflow run output (look for
+`real=` from `/usr/bin/time`). Warm builds are measured similarly after a
+re-trigger. The comparison is documented in the issue spec.
 
-    - name: Enable sccache
-      run: |
-        echo "RUSTC_WRAPPER=sccache" >> "$GITHUB_ENV"
-        echo "SCCACHE_GHA_ENABLED=true" >> "$GITHUB_ENV"
-        echo "CARGO_INCREMENTAL=0" >> "$GITHUB_ENV"
-    ```
+---
 
-  To purge the remote cache (e.g. after a toolchain or `Cargo.lock` bump), increment
-  `SCCACHE_GHA_VERSION` in the workflow env:
+#### Task 3a: Bare cargo build with sccache on GHA runner
 
-  ```yaml
-  env:
-    SCCACHE_GHA_VERSION: 1 # bump to bust the cache
-  ```
+Build the `release` profile directly on the GHA runner (no Docker) to isolate sccache's
+effectiveness from Docker-specific overhead.
 
-- [ ] Verify that the `linter` install step (`cargo install --locked --git ...`) still works
-      correctly with the chosen env setup.
-- [ ] Push the experiment branch and check that the CI workflow passes end-to-end.
-- [ ] Compare CI timing before and after by inspecting workflow run durations on GitHub.
-      Record per-job times, especially `unit`, for first and repeat runs.
-- [ ] Optional: if results are mixed, test a hybrid strategy (retain small Cargo dependency
-      cache, avoid full `target` cache, and keep `sccache` for compilation units).
+```yaml
+# In the experiment workflow, before any cargo step:
+- name: Install sccache
+  uses: mozilla-actions/sccache-action@v0.0.10
 
-- Checkpoint: recommendation documented: keep current cache, switch to `sccache`, or use hybrid.
+- name: Enable sccache
+  run: |
+    echo "RUSTC_WRAPPER=sccache" >> "$GITHUB_ENV"
+    echo "SCCACHE_GHA_ENABLED=true" >> "$GITHUB_ENV"
+    echo "CARGO_INCREMENTAL=0" >> "$GITHUB_ENV"
+```
 
-Commit message: `ci(testing): benchmark sccache against current cache strategy`
+- [ ] Create `experiment-sccache-bare-build.yaml` workflow (based on a simplified
+      `container.yaml` but using bare `cargo build --release` instead of `docker build`).
+      The workflow runs cold `cargo build --release` first, then a warm rebuild
+      (no `cargo clean`) to measure cache effectiveness. Both results are output as
+      workflow annotations.
+- [ ] Push the experiment branch to the `josecelano` fork and verify the workflow passes.
+      **Cold run**: first push — no sccache cache on GHA yet.
+- [ ] Push the exact same commit again (or a trivial follow-up commit with a single-file
+      change, e.g., edit a doc comment in `packages/primitives/src/lib.rs`) to trigger a
+      **warm run** where the sccache GHA backend should provide cached artifacts.
+- [ ] Record cold vs warm timing and sccache stats from the GHA run output. Capture the
+      `cargo build --release` wall time and the `sccache --show-stats` output from each run.
+
+---
+
+#### Task 3b: sccache inside Docker build
+
+Create an experiment workflow that builds the Docker image with sccache enabled _inside_
+the Containerfile build.
+
+##### Strategy selection
+
+We adopt **Strategy B1 (mount sccache cache dir into Docker)** as the primary approach.
+Strategy B2 (GHA backend inside Docker) is documented as a discarded alternative below.
+
+**Why B1 (mount) is preferred over B2 (GHA backend inside Docker)**:
+
+| Criterion                | B1 — Mount host sccache                                                                                 | B2 — GHA backend inside Docker                                                                                                                     |
+| ------------------------ | ------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Changes to Containerfile | Minimal — add `RUSTC_WRAPPER=sccache` and `SCCACHE_DIR` env to compiler stages                          | Requires installing `sccache` binary inside each Docker stage, configuring GHA credentials, and handling network access from within `docker build` |
+| Authentication           | None needed — uses local disk cache on the runner                                                       | Needs GitHub token (`ACTIONS_RUNTIME_TOKEN`, `ACTIONS_CACHE_URL`) passed via `--secret` into Docker build context                                  |
+| Network dependency       | None — local disk only                                                                                  | Each `docker build` layer that compiles Rust must fetch cache objects from GHA cache API over HTTPS                                                |
+| Layer cache interaction  | Complements BuildKit layer cache — sccache caches at codegen-unit level, BuildKit at Docker layer level | Same as B1 but with added HTTP overhead per compiler invocation                                                                                    |
+| Complexity               | Low — `docker build` with `--volume` mount and env passthrough                                          | High — custom Containerfile stages, secret mounts, GHA auth passthrough                                                                            |
+| Runner portability       | Works on any runner with Docker (local, GHA, self-hosted)                                               | Tied to GHA-specific environment variables                                                                                                         |
+
+**Why not B2**: The GHA cache backend inside Docker requires passing secrets (`ACTIONS_RUNTIME_TOKEN`,
+`ACTIONS_CACHE_URL`) securely into the build context. While `docker/build-push-action` supports
+`--secret`, the sccache client inside Docker would need these mounted at the right paths and
+the `SCCACHE_GHA_ENABLED=true` env var set. This adds complexity without clear benefit over B1 —
+the local disk on the GHA runner is ephemeral, but the sccache daemon on the host runner writes to
+the GHA cache backend automatically (via `mozilla-actions/sccache-action`), and the Docker build
+reads from the host's local sccache cache which is prepopulated by the daemon. The host daemon
+handles the GHA backend sync; the Docker build just needs the local cache dir.
+
+**Strategy B1 in detail**:
+
+- The GHA runner has sccache installed and running (from `mozilla-actions/sccache-action`).
+  The action starts an sccache daemon that uses the GHA cache backend (`SCCACHE_GHA_ENABLED=true`).
+- Docker `build` mounts the sccache cache directory into the build container via
+  `--volume /home/runner/.cache/sccache:/home/runner/.cache/sccache`.
+- The Containerfile compiler stages set `RUSTC_WRAPPER=sccache` and `SCCACHE_DIR=/home/runner/.cache/sccache`.
+- sccache reads cached objects from the local disk (which is synced to GHA cache by the host
+  daemon). Writes from inside Docker go to the same directory, and the host daemon syncs them
+  to the GHA cache backend after the job.
+
+- [ ] Create `experiment-sccache-docker.yaml` workflow that builds the full Docker image
+      (same `target: release`) with: - `mozilla-actions/sccache-action` before Docker build - `docker/build-push-action` with extra `--volume` mount for sccache cache dir - A modified `Containerfile.sccache-experiment` that sets `RUSTC_WRAPPER=sccache`
+      and `SCCACHE_DIR` in the compiler stages
+- [ ] Push and verify the workflow passes end-to-end.
+- [ ] Record first-run timing for the `docker build` step (cold — no sccache cache yet).
+- [ ] Re-trigger the same workflow (same commit) to measure warm-run timing with
+      sccache cache populated by the first run.
+- [ ] Compare with baseline (current `container.yaml` timing from a recent run on `develop`).
+
+---
+
+#### Task 3c: Full E2E with sccache-warmed Docker build
+
+Run the complete E2E test suite (qBittorrent SQLite3, MySQL, PostgreSQL) with a
+sccache-warmed Docker build to measure end-to-end workflow improvement.
+
+- [ ] Add the E2E steps to the experiment workflow (same as `container.yaml`:
+      `e2e_tests_runner`, `qbittorrent_e2e_runner` for all 3 database drivers).
+- [ ] Push and run the workflow (cold), then re-trigger (warm). Record total workflow
+      duration for both runs.
+- [ ] Compare with recent `container.yaml` run durations on `develop`.
+
+---
+
+#### Task 3d: Decision and cleanup
+
+- [ ] Document recommendation: adopt sccache for Docker builds, adopt hybrid, or reject.
+- [ ] If adopted, modify the real `container.yaml` workflow and `Containerfile` with
+      the proven sccache integration.
+- [ ] If rejected, document why for the Docker context (e.g., "GitHub-hosted runner
+      non-sticky disk + sccache GHA backend fetch time outweighs benefit for this
+      workspace's build pattern; B1 mount strategy adds Docker complexity without
+      proportional gain").
+- [ ] Remove experiment workflow files.
+- [ ] Verify `linter all` still exits `0`.
+
+- Checkpoint: final decision with evidence for CI/Docker context.
+
+Commit message: `ci(container): validate sccache for docker build workflow`
 
 ---
 
 ## Acceptance Criteria
 
 - [x] Local benchmark report exists with baseline vs `sccache` (cold, warm, warm-after-change).
-- [ ] CI benchmark report exists with current strategy vs `sccache` strategy (first and repeat runs).
+- [ ] ~~CI benchmark report exists~~ — **replaced by progressive sub-tasks** (3a → 3d below).
 - [x] Recommendation is documented with evidence: **reject sccache for local development**.
-- [ ] If adoption is recommended, implementation changes are applied and verified (`linter all`, tests, CI).
+- [ ] Task 3a: Bare cargo build with sccache on GHA runner (cold vs warm timing).
+- [ ] Task 3b: sccache inside Docker build (2 strategies: mount vs GHA backend).
+- [ ] Task 3c: Full E2E with sccache-warmed Docker build.
+- [ ] Task 3d: Final decision and cleanup (adopt, reject, or hybrid for Docker context).
 - [x] If adoption is not recommended, issue documents why and proposes next optimization steps.
   - Conclusion: `torrust-tracker` bin crate (77 s critical-path) is never cached; workspace is too
-    tightly coupled for sccache to provide meaningful benefit locally. CI may still be worth
-    exploring (Task 3).
+    tightly coupled for sccache to provide meaningful benefit locally. CI/Docker is still under
+    evaluation (Task 3a–3d).
