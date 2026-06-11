@@ -560,9 +560,11 @@ Every subissue touching package boundaries should include:
 3. Acceptance criteria proving forbidden edges are removed.
 4. Verification steps showing dependency diff before/after.
 
-Current known smell to prioritize under these rules:
+Current known smells to prioritize under these rules:
 
-- `http-protocol` depending on `udp-protocol`.
+- ~~`http-protocol` depending on `udp-protocol`~~ — **fixed** by SI-13 (#1834).
+- `rest-api-core` depending on `udp-server` (core → server violation). Tracked in
+  [`docs/issues/drafts/1669-decouple-rest-api-core-from-udp-internals.md`](../../drafts/1669-decouple-rest-api-core-from-udp-internals.md).
 
 ### Quick list
 
@@ -609,6 +611,7 @@ Status: TODO unless noted.
 - [x] Extract `torrust-net-primitives` to standalone repository — [#1885](https://github.com/torrust/torrust-tracker/issues/1885) _(Rule E; no workspace deps; no prerequisites)_ — **DONE**
 - [ ] Extract `torrust-tracker-client` to standalone repository _(Rule E; blocked by `bittorrent-*` publication - external to this EPIC)_
 - [ ] Remove redundant `-tracker-` from HTTP and UDP crate names _(Rule U; rename 4 unpublished packages to match DEC-15 folder convention)_
+- [ ] Configure `cargo deny` for workspace layer boundary enforcement _(tooling; create deny.toml with bans for all forbidden edges)_
 - [ ] Define package versioning strategy (linked vs independent SemVer evolution) _(policy; no blockers; informs extraction and publication cadence)_
 - [ ] Define REST API contract-first package architecture _(policy reminder; PoC-first and dedicated API EPIC before migration/extraction)_
 - [x] [#1856](https://github.com/torrust/torrust-tracker/issues/1856) Analyse configuration package coupling and evaluate splitting strategies _(research; no blockers; informs "build-your-own tracker" goal and versioning strategy)_
@@ -664,6 +667,7 @@ After SI-14, there is a proposal to evaluate a dedicated repository for protocol
 - [docs/issues/drafts/1669-define-package-versioning-strategy.md](../../drafts/1669-define-package-versioning-strategy.md)
 - [docs/issues/drafts/1669-define-rest-api-contract-first-package-architecture.md](../../drafts/1669-define-rest-api-contract-first-package-architecture.md)
 - [docs/issues/drafts/1669-rename-udp-and-http-core-protocol-crates-to-remove-redundant-tracker.md](../../drafts/1669-rename-udp-and-http-core-protocol-crates-to-remove-redundant-tracker.md)
+- [docs/issues/drafts/1669-configure-cargo-deny-for-layer-boundary-enforcement.md](../../drafts/1669-configure-cargo-deny-for-layer-boundary-enforcement.md)
   > New subissues are created as analysis reveals the next improvement. The EPIC is never
   > fully planned up front.
 
