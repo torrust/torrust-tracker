@@ -80,28 +80,77 @@
 
 ---
 
-## Cross-Run Test (Run 2 — to be measured)
+## Cross-Run Cache Test (Run 4 — workflow_dispatch re-trigger on same commit)
 
-After Run 1 finishes, the `mozilla-actions/sccache-action` post-job step uploads the sccache
-cache to the GHA backend. **Re-trigger this workflow** (same commit) to test whether the GHA
-backend restore on the next run provides any benefit.
+> **Run 4**: https://github.com/josecelano/torrust-tracker/actions/runs/27363491009
 
-| Expected                       | Value                                                                                       |
-| ------------------------------ | ------------------------------------------------------------------------------------------- |
-| Cold build after cache restore | TBD (should show cache hits for external deps)                                              |
-| Expected improvement           | If GHA restore works well, external dep compiles should be cached → ~154 s instead of 479 s |
+### Cold Build (with sccache GHA backend cache restored from Run 1)
 
-- [ ] Re-trigger workflow (same commit) via `workflow_dispatch`
-- [ ] Record cold build wall time and sccache stats for Run 2
-- [ ] Compare with Run 1 cold build
+| Metric                    | Value                                 |
+| ------------------------- | ------------------------------------- |
+| **Wall time**             | **192.21 s** (~3.2 min)               |
+| `cargo build --release`   | `real=192.21  user=193.60  sys=15.39` |
+| Compile requests          | 1007                                  |
+| Compile requests executed | 911                                   |
+| **Cache hits**            | **846 (93.38 %)**                     |
+| Cache hits (Assembler)    | 103 (100 %)                           |
+| Cache hits (C/C++)        | **225 (79.23 %)**                     |
+| Cache hits (Rust)         | **518 (99.81 %)**                     |
+| Cache misses              | 60                                    |
+| Cache misses (C/C++)      | 59                                    |
+| Cache misses (Rust)       | 1                                     |
+| Cache write errors        | **0**                                 |
+| Non-cacheable calls       | 90                                    |
+| Compilations              | 60                                    |
+
+> **This is the key result**: The sccache GHA backend **works**. External/C dependencies (846 cache
+> hits) were restored from the GHA cache, and only the workspace crates — including the `bin`
+> crate `torrust-tracker` — had to compile from scratch (60 misses, mostly C/C++ sys crates that
+> are never cached by sccache).
+>
+> **93.38 % cache hit rate** on a cold checkout is the exact scenario that matters for CI.
+
+### Warm Rebuild (after touching `packages/primitives/src/lib.rs`)
+
+| Metric                  | Value                                |
+| ----------------------- | ------------------------------------ |
+| **Wall time**           | **137.35 s** (~2.3 min)              |
+| `cargo build --release` | `real=137.35  user=168.64  sys=1.90` |
+| Cache hits              | 860 (93.48 %)                        |
+| Cache hits (Rust)       | 532 (99.81 %)                        |
+| Cache misses            | 60                                   |
+| Cache write errors      | 0                                    |
+
+> After touching a leaf crate, sccache still provides 93.48 % hits. The misses are identical to
+> the cold build (59 C/C++ + 1 Rust) — these are the non-cacheable `crate-type` units that
+> recompile each time regardless.
 
 ---
 
-## Run 2 (Cross-Run Cache)
+## Full Comparison Table
 
-| Metric                  | Value   |
-| ----------------------- | ------- |
-| **Wall time**           | **TBD** |
-| `cargo build --release` | TBD     |
-| Cache hits              | TBD     |
-| Cache misses            | TBD     |
+| Scenario                               | Run       | Wall time    | Cache hits        | vs Cold (Run 1) |
+| -------------------------------------- | --------- | ------------ | ----------------- | --------------- |
+| Cold — no prior cache                  | Run 1     | **479.44 s** | 50 (5.52 %)       | —               |
+| Warm-after-change                      | Run 1     | **153.86 s** | 64 (6.96 %)       | -68 %           |
+| Cold — cross-run (GHA cache restored)  | **Run 4** | **192.21 s** | **846 (93.38 %)** | **-60 %**       |
+| Warm-after-change (GHA cache restored) | Run 4     | **137.35 s** | 860 (93.48 %)     | -71 %           |
+
+## Conclusion for Task 3a
+
+**sccache with the GHA backend works well for cross-run CI caching**: a second run on the same
+commit saves **60 % of cold build time** (479 → 192 s) by restoring cached compilation artifacts
+for all external and C dependencies.
+
+However, the fundamental limitation remains: the `torrust-tracker` bin crate (rank 1, ~77 s
+critical-path) is **never cached** by sccache. The 60 non-cacheable calls per build are
+dominated by this crate. Even with perfect sccache caching, the minimum build time on GHA is
+~130 s (the workspace crate recompile overhead).
+
+**Full comparison vs local**:
+
+- Local cold (no sccache): 112.50 s
+- GHA cold (no sccache): ~479 s (4x slower — fewer cores)
+- GHA cold (sccache cross-run): 192 s (2.4x improvement vs no-cache GHA)
+  | Cache hits | TBD |
+  | Cache misses | TBD |

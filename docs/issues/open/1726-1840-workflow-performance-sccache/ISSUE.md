@@ -239,12 +239,19 @@ effectiveness from Docker-specific overhead.
       **Cold run**: first push — no sccache cache on GHA yet.
       Results: **479.44 s** (5.52 % cache hits, 133 cache write errors).
       See [`experiment-results-gha.md`](./experiment-results-gha.md).
-- [ ] Push the exact same commit again (or a trivial follow-up commit with a single-file
-      change, e.g., edit a doc comment in `packages/primitives/src/lib.rs`) to trigger a
-      **warm run** where the sccache GHA backend should provide cached artifacts.
-- [ ] Record cold vs warm timing and sccache stats from the GHA run output. Capture the
+- [x] Re-trigger workflow via `workflow_dispatch` (same commit) to test cross-run sccache
+      GHA backend caching.
+      **Cross-run cold**: **192.21 s** (93.38 % cache hits, 0 write errors).
+      **Cross-run warm-after-change**: **137.35 s** (93.48 % cache hits).
+- [x] Record cold vs warm timing and sccache stats from the GHA run output. Capture the
       `cargo build --release` wall time and the `sccache --show-stats` output from each run.
       Warm-after-change: **153.86 s** (6.96 % cache hits — Cargo avoids external deps naturally).
+
+- Checkpoint: ✅ **TASK 3a COMPLETE** — sccache GHA backend provides **93.38 % cache hit rate**
+  on cross-run builds, reducing cold build time from **479 s to 192 s** (60 % reduction).
+  See [`experiment-results-gha.md`](./experiment-results-gha.md) for full data.
+
+Commit message: `ci(experiment): benchmark sccache cross-run GHA caching`
 
 ---
 
@@ -336,8 +343,9 @@ Commit message: `ci(container): validate sccache for docker build workflow`
 - [x] Local benchmark report exists with baseline vs `sccache` (cold, warm, warm-after-change).
 - [ ] ~~CI benchmark report exists~~ — **replaced by progressive sub-tasks** (3a → 3d below).
 - [x] Recommendation is documented with evidence: **reject sccache for local development**.
-- [ ] Task 3a: Bare cargo build with sccache on GHA runner (cold vs warm timing).
-- [ ] Task 3b: sccache inside Docker build (2 strategies: mount vs GHA backend).
+- [x] **Task 3a: Bare cargo build with sccache on GHA runner (cold vs warm timing).**
+  - Cold: **479.44 s** → Cross-run with sccache: **192.21 s** ✅ (60 % reduction, 93.38 % hit rate)
+- [ ] Task 3b: sccache inside Docker build (Strategy B1 — mount host cache).
 - [ ] Task 3c: Full E2E with sccache-warmed Docker build.
 - [ ] Task 3d: Final decision and cleanup (adopt, reject, or hybrid for Docker context).
 - [x] If adoption is not recommended, issue documents why and proposes next optimization steps.
