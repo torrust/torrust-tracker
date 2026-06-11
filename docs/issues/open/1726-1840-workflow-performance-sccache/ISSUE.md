@@ -230,7 +230,7 @@ effectiveness from Docker-specific overhead.
     echo "CARGO_INCREMENTAL=0" >> "$GITHUB_ENV"
 ```
 
-- [ ] Create `experiment-sccache-bare-build.yaml` workflow (based on a simplified
+- [x] Create `experiment-sccache-bare-build.yaml` workflow (based on a simplified
       `container.yaml` but using bare `cargo build --release` instead of `docker build`).
       The workflow runs cold `cargo build --release` first, then a warm rebuild
       (no `cargo clean`) to measure cache effectiveness. Both results are output as

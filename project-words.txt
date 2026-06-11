@@ -96,6 +96,7 @@ dtolnay
 dylib
 elif
 endianness
+endgroup
 envcontainer
 eprint
 eprintln
