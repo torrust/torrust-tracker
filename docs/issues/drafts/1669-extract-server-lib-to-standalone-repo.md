@@ -109,21 +109,21 @@ packages consume it):
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| ID  | Status | Task                                                                                               | Notes / Expected Output                                                              |
-| --- | ------ | -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
-| T1  | TODO   | Verify crate has no workspace path dependencies                                                    | `packages/server-lib/Cargo.toml` lists only external crates + `torrust-net-primitives` (published) ✅ |
-| T2  | TODO   | Create standalone repository `torrust/torrust-server-lib`                                          | Repo created at https://github.com/torrust/torrust-server-lib                        |
-| T3  | TODO   | Copy `packages/server-lib/` to the new repository (history preservation where practical)           | Files copied to new repo                                                             |
-| T4  | TODO   | Make `Cargo.toml` self-contained (remove workspace inheritance; pin explicit values)               | All fields explicit; no `workspace = true` entries                                   |
-| T5  | TODO   | Verify standalone repository: `cargo build` and `cargo test` pass with no path deps                | Build and tests pass; no path deps remain                                            |
-| T6  | TODO   | Set up CI in the new repository                                                                    | CI workflow with `linter all` + `cargo test`                                         |
-| T7  | TODO   | Update all 6 workspace consumers (see list above): path dep → crates.io version dep                | `torrust-server-lib = "X.Y.Z"` in all 6 files; no path deps remain                  |
-| T8  | TODO   | Remove `packages/server-lib` entry from workspace `members` in root `Cargo.toml`                   | `packages/server-lib` absent from `[workspace]` members list                         |
-| T9  | TODO   | Delete `packages/server-lib/` directory from the tracker repository                                | Directory removed via `git rm -r`                                                     |
-| T10 | TODO   | Update `packages/AGENTS.md`, `AGENTS.md`, `docs/packages.md`                                       | `torrust-server-lib` moved to an "Extracted packages" section                        |
-| T11 | TODO   | Run `cargo build --workspace` and `cargo test --workspace`                                         | Clean build and all tests pass                                                       |
-| T12 | TODO   | Run `linter all`                                                                                   | Exit code `0`                                                                         |
-| T13 | TODO   | Update EPIC #1669 tables                                                                           | Package inventory and desired state tables updated; subissue row set to `DONE`       |
+| ID  | Status | Task                                                                                     | Notes / Expected Output                                                                               |
+| --- | ------ | ---------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| T1  | TODO   | Verify crate has no workspace path dependencies                                          | `packages/server-lib/Cargo.toml` lists only external crates + `torrust-net-primitives` (published) ✅ |
+| T2  | TODO   | Create standalone repository `torrust/torrust-server-lib`                                | Repo created at https://github.com/torrust/torrust-server-lib                                         |
+| T3  | TODO   | Copy `packages/server-lib/` to the new repository (history preservation where practical) | Files copied to new repo                                                                              |
+| T4  | TODO   | Make `Cargo.toml` self-contained (remove workspace inheritance; pin explicit values)     | All fields explicit; no `workspace = true` entries                                                    |
+| T5  | TODO   | Verify standalone repository: `cargo build` and `cargo test` pass with no path deps      | Build and tests pass; no path deps remain                                                             |
+| T6  | TODO   | Set up CI in the new repository                                                          | CI workflow with `linter all` + `cargo test`                                                          |
+| T7  | TODO   | Update all 6 workspace consumers (see list above): path dep → crates.io version dep      | `torrust-server-lib = "X.Y.Z"` in all 6 files; no path deps remain                                    |
+| T8  | TODO   | Remove `packages/server-lib` entry from workspace `members` in root `Cargo.toml`         | `packages/server-lib` absent from `[workspace]` members list                                          |
+| T9  | TODO   | Delete `packages/server-lib/` directory from the tracker repository                      | Directory removed via `git rm -r`                                                                     |
+| T10 | TODO   | Update `packages/AGENTS.md`, `AGENTS.md`, `docs/packages.md`                             | `torrust-server-lib` moved to an "Extracted packages" section                                         |
+| T11 | TODO   | Run `cargo build --workspace` and `cargo test --workspace`                               | Clean build and all tests pass                                                                        |
+| T12 | TODO   | Run `linter all`                                                                         | Exit code `0`                                                                                         |
+| T13 | TODO   | Update EPIC #1669 tables                                                                 | Package inventory and desired state tables updated; subissue row set to `DONE`                        |
 
 ## Progress Tracking
 
@@ -175,9 +175,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
-| ID  | Scenario                                                   | Command / Steps                                              | Expected Result                         | Status | Evidence |
-| --- | ---------------------------------------------------------- | ------------------------------------------------------------ | --------------------------------------- | ------ | -------- |
-| M1  | No path dep on `torrust-server-lib` remains in workspace   | `grep -r "path.*packages/server-lib" . --include="*.toml"`   | Zero matches                            | TODO   |          |
-| M2  | `packages/server-lib/` directory is gone                   | `ls packages/server-lib`                                     | `No such file or directory`             | TODO   |          |
-| M3  | Standalone repo builds and tests pass independently        | In new repo: `cargo build && cargo test --workspace`         | Clean build; all tests pass             | TODO   |          |
-| M4  | `torrust-server-lib` CI green in new repository            | Check GitHub Actions on `torrust/torrust-server-lib`         | All workflows green                     | TODO   |          |
+| ID  | Scenario                                                 | Command / Steps                                            | Expected Result             | Status | Evidence |
+| --- | -------------------------------------------------------- | ---------------------------------------------------------- | --------------------------- | ------ | -------- |
+| M1  | No path dep on `torrust-server-lib` remains in workspace | `grep -r "path.*packages/server-lib" . --include="*.toml"` | Zero matches                | TODO   |          |
+| M2  | `packages/server-lib/` directory is gone                 | `ls packages/server-lib`                                   | `No such file or directory` | TODO   |          |
+| M3  | Standalone repo builds and tests pass independently      | In new repo: `cargo build && cargo test --workspace`       | Clean build; all tests pass | TODO   |          |
+| M4  | `torrust-server-lib` CI green in new repository          | Check GitHub Actions on `torrust/torrust-server-lib`       | All workflows green         | TODO   |          |
