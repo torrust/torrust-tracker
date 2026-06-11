@@ -30,7 +30,7 @@ semantic-links:
 
 <!-- skill-link: create-issue -->
 
-# Issue #[To be assigned] - Extract `torrust-server-lib` to a standalone repository
+# Issue #1909 (SI-28) - Extract `torrust-server-lib` to a standalone repository
 
 ## Goal
 
@@ -60,7 +60,7 @@ The crate has **zero workspace-path dependencies**. All consumers currently use 
 dependencies, but `torrust-server-lib` itself depends only on published crates.
 Extraction is therefore unblocked.
 
-This issue is a subissue of EPIC [#1669](../open/1669-overhaul-packages/EPIC.md)
+This issue is a subissue of EPIC [#1669](../1669-overhaul-packages/EPIC.md)
 (Overhaul: Packages).
 
 ## Scope

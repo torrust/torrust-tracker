@@ -96,7 +96,7 @@ and can be run as a GitHub Action or pre-commit hook.
 
 One violation exists today: `rest-api-core` (a core-layer package) depends on
 `udp-server` (a server-layer package). This is tracked in the dedicated subissue
-[docs/issues/drafts/1669-decouple-rest-api-core-from-udp-internals.md](../drafts/1669-decouple-rest-api-core-from-udp-internals.md).
+[docs/issues/drafts/1669-decouple-rest-api-core-from-udp-internals.md](./1669-decouple-rest-api-core-from-udp-internals.md).
 Until that violation is fixed, the `wrappers` list for `udp-server` will include
 `rest-api-core` as a legitimate direct dependent (see the Proposed configuration
 below for the exact entry). Once the decoupling is done, `rest-api-core` should be

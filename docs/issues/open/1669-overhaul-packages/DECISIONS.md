@@ -297,7 +297,8 @@ Allow folder names to differ freely from crate names.
 ### Alternative chosen
 
 Adopt a simple, consistent rule: **every workspace package's folder name equals its crate
-name without the `torrust-tracker-` prefix**.
+name without the `torrust-tracker-` prefix** (after applying SI-29 to remove the
+redundant inner `-tracker-` segment where it exists today).
 
 For example:
 

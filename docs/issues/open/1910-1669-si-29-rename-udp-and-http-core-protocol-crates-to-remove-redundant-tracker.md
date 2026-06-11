@@ -60,7 +60,7 @@ None of these packages are published on crates.io, so this is a **Rule U** renam
 (unpublished crate rename) — only workspace consumers are affected, no external
 migration window needed.
 
-This issue is a subissue of EPIC [#1669](../open/1669-overhaul-packages/EPIC.md)
+This issue is a subissue of EPIC [#1669](../1669-overhaul-packages/EPIC.md)
 (Overhaul: Packages).
 
 ## Scope
