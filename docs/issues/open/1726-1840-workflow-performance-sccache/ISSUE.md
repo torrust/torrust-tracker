@@ -235,13 +235,16 @@ effectiveness from Docker-specific overhead.
       The workflow runs cold `cargo build --release` first, then a warm rebuild
       (no `cargo clean`) to measure cache effectiveness. Both results are output as
       workflow annotations.
-- [ ] Push the experiment branch to the `josecelano` fork and verify the workflow passes.
+- [x] Push the experiment branch to the `josecelano` fork and verify the workflow passes.
       **Cold run**: first push — no sccache cache on GHA yet.
+      Results: **479.44 s** (5.52 % cache hits, 133 cache write errors).
+      See [`experiment-results-gha.md`](./experiment-results-gha.md).
 - [ ] Push the exact same commit again (or a trivial follow-up commit with a single-file
       change, e.g., edit a doc comment in `packages/primitives/src/lib.rs`) to trigger a
       **warm run** where the sccache GHA backend should provide cached artifacts.
 - [ ] Record cold vs warm timing and sccache stats from the GHA run output. Capture the
       `cargo build --release` wall time and the `sccache --show-stats` output from each run.
+      Warm-after-change: **153.86 s** (6.96 % cache hits — Cargo avoids external deps naturally).
 
 ---
 

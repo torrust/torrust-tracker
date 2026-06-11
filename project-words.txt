@@ -264,6 +264,7 @@ Rasterbar
 readelf
 realpath
 reannounce
+recaches
 recognised
 recompiles
 referer
