@@ -1,10 +1,13 @@
 ---
-doc-type: spec
+doc-type: issue
 issue-type: task
-status: draft
+status: open
 priority: p2
 epic: 1669
-spec-path: docs/issues/drafts/1669-relocate-http-server-test-environment.md
+github-issue: 1904
+spec-path: docs/issues/open/1904-1669-si-24-relocate-http-server-test-environment.md
+branch: null
+related-pr: null
 last-updated-utc: 2026-06-11
 semantic-links:
   skill-links:
@@ -15,7 +18,9 @@ semantic-links:
     - docs/issues/open/1669-overhaul-packages/workspace-coupling-report-2026-06-10.md
 ---
 
-# Relocate `axum-http-server` Test Environment Infrastructure
+<!-- skill-link: create-issue -->
+
+# Issue #1904 (SI-24) - Relocate `axum-http-server` Test Environment Infrastructure
 
 ## Subissue of EPIC #1669 — Overhaul: Packages
 

@@ -6,7 +6,7 @@ priority: p1
 github-issue: 1669
 spec-path: docs/issues/open/1669-overhaul-packages/EPIC.md
 epic-owner: josecelano
-last-updated-utc: 2026-06-09 22:00
+last-updated-utc: 2026-06-11 22:00
 semantic-links:
   skill-links:
     - create-issue
@@ -17,6 +17,7 @@ semantic-links:
     - docs/issues/open/1889-1669-21-migrate-from-bittorrent-primitives-to-torrust-info-hash.md
     - docs/adrs/20260527175600_keep_protocol_and_domain_types_decoupled.md
     - docs/adrs/index.md
+    - docs/issues/open/1669-overhaul-packages/DECISIONS.md
     - AGENTS.md
     - packages/AGENTS.md
     - docs/media/packages/dependencies-workspace-packages.md
@@ -43,10 +44,13 @@ concerns are mixed together:
   accuracy; some are stubs.
 - **Boundary clarity is uncertain**: it is not always obvious whether packages are
   appropriately cohesive, or whether coupling is intentional.
-- **Some packages are clearly generic and reusable**: the `bittorrent-*` protocol crates,
-  `bencode`, and several utility crates have no tracker-specific logic and would be more
-  useful to the wider community as standalone crates in their own repositories. Keeping them
-  here adds noise to the workspace and makes their independent evolution harder.
+- **Some packages are clearly generic and reusable**: `bencode`, `clock`, `metrics`,
+  `located-error`, `net-primitives`, and several utility crates have no tracker-specific
+  logic and would be more useful to the wider community as standalone crates in their own
+  repositories. Keeping them here adds noise to the workspace and makes their independent
+  evolution harder. Protocol packages (`udp-protocol`, `http-protocol`) also have high
+  reuse potential but are intentionally kept in the tracker workspace — see the naming
+  and ownership policy in the Decision Log (DEC-14).
 - **Versioning policy is implicit**: all packages share the workspace version; packages
   extracted to separate repos will need their own release cadence.
 - **Only 6 of originally 27 packages were published on crates.io** (as of May 2026);
@@ -234,21 +238,26 @@ Notes:
 3. Migrated from `packages/peer-id` in the tracker workspace via SI-19 (#1884). Published on crates.io as `torrust-peer-id` 0.1.0.
 4. Migrated from `bittorrent-primitives` v0.2.0 via SI-21 (#1889). Published on crates.io as `torrust-info-hash` 0.2.0. The old `torrust/bittorrent-primitives` repository can be archived.
 
-The following crates remain in `torrust/torrust-tracker` for now:
+The following crates remain in `torrust/torrust-tracker` (and are expected to stay):
 
 - `torrust-tracker-udp-tracker-protocol`
 - `torrust-tracker-http-tracker-protocol`
 - `torrust-tracker-core`
+- `torrust-tracker-udp-tracker-core`
+- `torrust-tracker-http-tracker-core`
 
-Rationale: current dependencies indicate unresolved layering/coupling. In particular,
-`torrust-tracker-http-tracker-protocol` no longer depends on
-`torrust-tracker-primitives` (completed in SI-14, #1835). The move can be
-revisited after these dependencies are clarified and reduced.
+These packages are **owned by the tracker workspace** per the naming and ownership
+policy (DEC-14). They are not planned for migration to `torrust/torrust-bittorrent`
+even though some (particularly the protocol crates) have high reuse potential.
+The parent repository groups packages by concern and ownership, not by estimated
+reusability.
 
-> **Naming policy**: prefix reflects ownership and release identity, not estimated
-> reusability. Tracker-owned packages keep the `torrust-tracker-` prefix even when they
-> are reusable by non-Torrust tracker implementations. Organisation-level shared crates use
-> `torrust-` by default.
+> **Naming policy**: all Torrust organisation packages use the `torrust-` prefix. The
+> `bittorrent-` prefix is not used; it is redundant since most code in this organisation
+> relates to BitTorrent. Tracker-owned packages use the `torrust-tracker-` prefix.
+> Organisation-level shared crates use `torrust-` alone. Package location in a repository
+> is determined by grouping by concern (ownership of the workspace), not by estimated
+> reusability. See DEC-14 in the Decision Log for the full rationale.
 
 ### Packages moving to standalone repositories
 
@@ -551,9 +560,11 @@ Every subissue touching package boundaries should include:
 3. Acceptance criteria proving forbidden edges are removed.
 4. Verification steps showing dependency diff before/after.
 
-Current known smell to prioritize under these rules:
+Current known smells to prioritize under these rules:
 
-- `http-protocol` depending on `udp-protocol`.
+- ~~`http-protocol` depending on `udp-protocol`~~ — **fixed** by SI-13 (#1834).
+- `rest-api-core` depending on `udp-server` (core → server violation). Tracked in
+  [`docs/issues/drafts/1669-decouple-rest-api-core-from-udp-internals.md`](../../drafts/1669-decouple-rest-api-core-from-udp-internals.md).
 
 ### Quick list
 
@@ -599,6 +610,8 @@ Status: TODO unless noted.
 - [x] Move `bittorrent-peer-id` to `torrust/torrust-bittorrent` as `torrust-peer-id` — [#1884](https://github.com/torrust/torrust-tracker/issues/1884) _(Rule E; no workspace deps; first `bittorrent-*` extraction)_ — **DONE**
 - [x] Extract `torrust-net-primitives` to standalone repository — [#1885](https://github.com/torrust/torrust-tracker/issues/1885) _(Rule E; no workspace deps; no prerequisites)_ — **DONE**
 - [ ] Extract `torrust-tracker-client` to standalone repository _(Rule E; blocked by `bittorrent-*` publication - external to this EPIC)_
+- [ ] Remove redundant `-tracker-` from HTTP and UDP crate names _(Rule U; rename 4 unpublished packages to match DEC-15 folder convention)_
+- [ ] Configure `cargo deny` for workspace layer boundary enforcement _(tooling; create deny.toml with bans for all forbidden edges)_
 - [ ] Define package versioning strategy (linked vs independent SemVer evolution) _(policy; no blockers; informs extraction and publication cadence)_
 - [ ] Define REST API contract-first package architecture _(policy reminder; PoC-first and dedicated API EPIC before migration/extraction)_
 - [x] [#1856](https://github.com/torrust/torrust-tracker/issues/1856) Analyse configuration package coupling and evaluate splitting strategies _(research; no blockers; informs "build-your-own tracker" goal and versioning strategy)_
@@ -653,6 +666,8 @@ After SI-14, there is a proposal to evaluate a dedicated repository for protocol
 - [docs/issues/drafts/1669-extract-torrust-tracker-client-to-standalone-repo.md](../../drafts/1669-extract-torrust-tracker-client-to-standalone-repo.md)
 - [docs/issues/drafts/1669-define-package-versioning-strategy.md](../../drafts/1669-define-package-versioning-strategy.md)
 - [docs/issues/drafts/1669-define-rest-api-contract-first-package-architecture.md](../../drafts/1669-define-rest-api-contract-first-package-architecture.md)
+- [docs/issues/open/1910-1669-si-29-rename-udp-and-http-core-protocol-crates-to-remove-redundant-tracker.md](../../open/1910-1669-si-29-rename-udp-and-http-core-protocol-crates-to-remove-redundant-tracker.md)
+- [docs/issues/drafts/1669-configure-cargo-deny-for-layer-boundary-enforcement.md](../../drafts/1669-configure-cargo-deny-for-layer-boundary-enforcement.md)
   > New subissues are created as analysis reveals the next improvement. The EPIC is never
   > fully planned up front.
 
@@ -695,16 +710,22 @@ There is no predetermined end date or total subissue count.
 These questions do not block starting work, but need answers before specific subissues can
 be fully scoped.
 
-### Which packages are the first extraction candidates?
+### Which packages are extraction candidates?
 
-Early intuitions (to be confirmed by the baseline analysis):
+The following decisions have been made (see DEC-14 for the naming and ownership policy):
 
-- **`bittorrent-*` protocol crates** (`torrust-tracker-http-tracker-protocol`,
-  `torrust-tracker-udp-tracker-protocol`, `bittorrent-peer-id`) — implement BEP specs with no
-  tracker-specific logic; obvious candidates for migration into `torrust/torrust-bittorrent`.
-- ~~**`contrib/bencode`** (`torrust-tracker-contrib-bencode`)~~ — migrated to `torrust/torrust-bittorrent` as `torrust-bencode` 3.0.0 (#1881 ✅).
-- **Utility crates** (`torrust-clock`, `torrust-located-error`) — generic
-  enough to be reused outside the tracker; already published.
+- **Protocol crates** (`torrust-tracker-http-tracker-protocol`, `torrust-tracker-udp-tracker-protocol`,
+  `torrust-tracker-core`, `torrust-tracker-udp-tracker-core`, `torrust-tracker-http-tracker-core`) —
+  remain in the tracker workspace per the ownership policy. Not extraction candidates.
+- ~~**`contrib/bencode`** (`torrust-tracker-contrib-bencode`)~~ — migrated to `torrust/torrust-bittorrent`
+  as `torrust-bencode` 3.0.0 (#1881 ✅).
+- ~~**`bittorrent-peer-id`** (`torrust-tracker-peer-id`)~~ — migrated to `torrust/torrust-bittorrent` as
+  `torrust-peer-id` 0.1.0 (#1884 ✅).
+- **Utility crates** (`torrust-clock`, `torrust-located-error`, `torrust-metrics`, `torrust-net-primitives`) —
+  already extracted to standalone repositories.
+- **`torrust-server-lib`** — extraction candidate (depends only on published crates).
+- **`torrust-tracker-client`** (console CLI) — extraction candidate (blocked by publication of
+  `torrust-tracker-udp-tracker-protocol`).
 
 Decision criteria to apply per candidate:
 
@@ -742,28 +763,36 @@ migration does not run ahead of layer decoupling.
 
 When a package is extracted to a standalone repository, all its **runtime** workspace
 dependencies must already be published on crates.io (path deps become version deps after
-extraction). The table below analyses every current or near-term extraction candidate
-against this constraint (verified May 2026).
+extraction). The table below analyses every extraction candidate against this constraint.
 
-| Package                                         | Crates.io status | Unpublished runtime workspace deps                                                                                                                      | Can be published independently? | Ordering constraint                                                                                                                                     |
-| ----------------------------------------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `torrust-tracker-contrib-bencode`               | Yes              | None                                                                                                                                                    | ✅ Extracted (#1881)            | Migrated to `torrust/torrust-bittorrent` as `torrust-bencode` 3.0.0                                                                                     |
-| `bittorrent-peer-id`                            | Yes              | None                                                                                                                                                    | ✅ Extracted (#1884)            | Migrated to `torrust/torrust-bittorrent` as `torrust-peer-id` 0.1.0; all 3 tracker consumers migrated                                                   |
-| `torrust-located-error`                         | Yes              | None                                                                                                                                                    | ✅ Extracted (#1894)            | Extracted to [torrust/torrust-located-error](https://github.com/torrust/torrust-located-error); v3.0.0 published on crates.io; all 5 consumers migrated |
-| `torrust-tracker-clock` (→ `torrust-clock`)     | Yes              | None (✅ `torrust-tracker-primitives` dep removed by SI-02 #1790)                                                                                       | ✅ Extracted (#1879)            | Extracted to [torrust/torrust-clock](https://github.com/torrust/torrust-clock); v3.0.0 published on crates.io                                           |
-| `torrust-tracker-metrics` (→ `torrust-metrics`) | Yes              | `torrust-clock` (published ✅; was `torrust-tracker-primitives` — removed by SI-02 #1790)                                                               | ✅ Extracted (#1882)            | Extracted to [torrust/torrust-metrics](https://github.com/torrust/torrust-metrics); v0.1.0 published; all 7 consumers migrated                          |
-| `torrust-tracker-udp-tracker-protocol`          | No               | `bittorrent-peer-id` (not published)                                                                                                                    | ❌                              | After `bittorrent-peer-id`                                                                                                                              |
-| `torrust-tracker-core`                          | No               | `torrust-tracker-events`, `torrust-tracker-metrics`, `torrust-tracker-swarm-coordination-registry`, `torrust-tracker-rest-api-client` (all unpublished) | ❌ Very deep chain              | After all four above; also has `torrust-tracker-rest-api-client` as a runtime dep — a layer violation worth resolving before extraction                 |
-| `torrust-tracker-http-tracker-protocol`         | No               | `torrust-tracker-core` (unpublished)                                                                                                                    | ❌                              | After `torrust-tracker-core`                                                                                                                            |
+**Already extracted** (completed):
 
-**Practical extraction order for `bittorrent-*` crates** (once decided):
+| Package                                                     | Status   |
+| ----------------------------------------------------------- | -------- |
+| `torrust-tracker-contrib-bencode` → `torrust-bencode` 3.0.0 | ✅ #1881 |
+| `bittorrent-peer-id` → `torrust-peer-id` 0.1.0              | ✅ #1884 |
+| `torrust-located-error` → `torrust-located-error` 3.0.0     | ✅ #1894 |
+| `torrust-tracker-clock` → `torrust-clock` 3.0.0             | ✅ #1879 |
+| `torrust-tracker-metrics` → `torrust-metrics` 0.1.0         | ✅ #1882 |
+| `torrust-net-primitives` → `torrust-net-primitives` 0.1.0   | ✅ #1885 |
 
-1. `bittorrent-peer-id` — no workspace deps; extract first.
-2. `torrust-tracker-udp-tracker-protocol` — only blocked by #1.
-3. `torrust-tracker-core` — needs the four unpublished deps above + clock rename; complex
-   chain; the layer violation (`torrust-tracker-rest-api-client` runtime dep) should be
-   resolved before or during this step.
-4. `torrust-tracker-http-tracker-protocol` — needs #3 done.
+**Current candidates** (under consideration):
+
+| Package                                | Crates.io status | Unpublished runtime workspace deps                                   | Can be extracted? | Blocked by                             |
+| -------------------------------------- | ---------------- | -------------------------------------------------------------------- | ----------------- | -------------------------------------- |
+| `torrust-server-lib`                   | Yes              | None (dep only on published crates)                                  | ✅                | No blockers                            |
+| `torrust-tracker-client` (console CLI) | No               | `torrust-tracker-udp-tracker-protocol`, `torrust-tracker-client-lib` | ❌                | Publication of the two blocking crates |
+
+**Not extraction candidates** (per DEC-14, remain in tracker workspace):
+
+| Package                                      | Reason                                                   |
+| -------------------------------------------- | -------------------------------------------------------- |
+| `torrust-tracker-udp-tracker-protocol`       | Tracker-owned protocol crate; stays in tracker workspace |
+| `torrust-tracker-http-tracker-protocol`      | Tracker-owned protocol crate; stays in tracker workspace |
+| `torrust-tracker-core`                       | Tracker-owned core crate; stays in tracker workspace     |
+| `torrust-tracker-udp-tracker-core`           | Tracker-owned core crate; stays in tracker workspace     |
+| `torrust-tracker-http-tracker-core`          | Tracker-owned core crate; stays in tracker workspace     |
+| `torrust-tracker-axum-*` (all server crates) | Tracker-owned server crates; stays in tracker workspace  |
 
 > Workspace renames (this EPIC's current subissues) are independent of extraction ordering —
 > a crate can be renamed in-workspace before it is published or extracted.
@@ -803,6 +832,14 @@ Previously referenced tools (screenshots from CodeScene already in the issue com
 - [`cargo-depgraph`](https://sr.ht/~jplatte/cargo-depgraph/) — Rust dependency graphs
 - [GitNexus](https://github.com/abhigyanpatwari/GitNexus) — Git relationship visualizer
 - [CodeScene](https://codescene.io/) — Code quality and hotspot analysis
+
+> **Future consideration — workspace coupling CI check**: Once the baseline coupling analysis
+> tool (`contrib/dev-tools/analysis/workspace-coupling/`) is mature and stable, consider
+> adding the coupling report generation or a coupling-regression check to CI (e.g.,
+> a pre-commit hook or a GitHub Action that fails when new thin dependencies are introduced).
+> This would prevent new coupling regressions as the EPIC progresses. Not in scope for the
+> current cycle — revisit after the baseline analysis is complete and the tool has proven
+> useful.
 
 ## Progress Tracking
 

@@ -7,7 +7,7 @@ github-issue: null
 spec-path: docs/issues/drafts/1669-update-all-package-readmes.md
 branch: null
 related-pr: null
-last-updated-utc: 2026-05-18 00:00
+last-updated-utc: 2026-06-11
 semantic-links:
   skill-links:
     - create-issue
@@ -19,19 +19,26 @@ semantic-links:
 
 <!-- skill-link: create-issue -->
 
-# Issue #[To be assigned] - Update all package READMEs
+# Issue #[To be assigned] - Standardize package READMEs and Cargo.toml metadata
 
 ## Goal
 
-Bring every package's `README.md` up to a consistent quality bar — clear title, short
-description, scope summary, and usage or integration notes — so that packages are
-well-documented before they are extracted to standalone repositories.
+Bring every package's `README.md` and `Cargo.toml` metadata up to a consistent quality
+bar — accurate title, clear description, proper keywords, correct documentation URL,
+scope summary, and usage or integration notes — so that packages are well-documented
+before they are extracted to standalone repositories and present a professional,
+consistent appearance on crates.io.
 
 ## Background
 
 The baseline README audit (`docs/issues/open/1669-overhaul-packages/readme-audit.md`,
 produced in SI-01) rated each of the 26+ packages as **good**, **minimal**, or **stub**.
 Several packages have placeholder READMEs with wrong titles or no meaningful content.
+
+Additionally, many packages inherit metadata from the workspace root via
+`documentation.workspace = true`, which resolves each crate's `docs.rs` link to the
+`torrust-tracker` root crate documentation URL rather than the sub-crate's own docs.
+Keywords, categories, and descriptions are also inconsistent across packages.
 
 This subissue is intentionally ordered **after** the rename subissues (SI-07 through SI-10)
 so that all READMEs are written against the final package names, and **before** the extraction
@@ -53,6 +60,13 @@ This issue is a subissue of EPIC [#1669](../open/1669-overhaul-packages/EPIC.md)
   - Scope summary: key public types / traits / constants.
   - Dependency context: what it depends on, what depends on it.
   - Quick-start or integration example where meaningful.
+- Audit and fix `Cargo.toml` metadata for every package:
+  - `description` — ensure accurate, one-sentence description of the package's purpose.
+  - `keywords` — relevant, non-redundant keywords for crates.io discoverability.
+  - `documentation` — replace `documentation.workspace = true` with the per-crate
+    `docs.rs` URL where appropriate (sub-crates should link to their own docs.rs page,
+    not the root crate's).
+  - `categories` — ensure appropriate categories are set.
 - Prioritise packages rated **stub** first, then **minimal**, then **good** (review/polish only).
 
 ### Out of Scope
@@ -73,13 +87,14 @@ This issue is a subissue of EPIC [#1669](../open/1669-overhaul-packages/EPIC.md)
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| ID  | Status  | Task                                                                       | Notes / Expected Output                                                |
-| --- | ------- | -------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| T1  | BLOCKED | Confirm rename subissues SI-07–SI-10 are complete                          | Blocked on SI-07, SI-08, SI-09, SI-10                                  |
-| T2  | TODO    | Update all **stub**-rated package READMEs (see audit)                      | Three or more packages; titles and descriptions rewritten from scratch |
-| T3  | TODO    | Update all **minimal**-rated package READMEs (see audit)                   | Expand description, add scope and dependency context                   |
-| T4  | TODO    | Review all **good**-rated package READMEs for title accuracy after renames | Minor edits only (title, crate name references)                        |
-| T5  | TODO    | Run `linter all` (markdownlint, cspell)                                    | Exit code `0`                                                          |
+| ID  | Status  | Task                                                                              | Notes / Expected Output                                                |
+| --- | ------- | --------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| T1  | BLOCKED | Confirm rename subissues SI-07–SI-10 are complete                                 | Blocked on SI-07, SI-08, SI-09, SI-10                                  |
+| T2  | TODO    | Update all **stub**-rated package READMEs (see audit)                             | Three or more packages; titles and descriptions rewritten from scratch |
+| T3  | TODO    | Update all **minimal**-rated package READMEs (see audit)                          | Expand description, add scope and dependency context                   |
+| T4  | TODO    | Review all **good**-rated package READMEs for title accuracy after renames        | Minor edits only (title, crate name references)                        |
+| T5  | TODO    | Fix `Cargo.toml` metadata: per-crate `documentation` URLs, descriptions, keywords | Each package gets accurate metadata instead of workspace inheritance   |
+| T6  | TODO    | Run `linter all` (markdownlint, cspell)                                           | Exit code `0`                                                          |
 
 ## Progress Tracking
 
@@ -109,6 +124,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [ ] Every package README contains at minimum a description paragraph, scope summary, and
       dependency context.
 - [ ] No package is rated **stub** in a post-implementation re-audit.
+- [ ] Every package `Cargo.toml` has accurate `description`, `keywords`, and `documentation`
+      fields — no stale workspace-inherited docs.rs URLs for sub-crates.
 - [ ] `linter all` exits with code `0` (markdownlint passes on all package READMEs).
 
 ## Verification Plan

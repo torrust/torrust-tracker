@@ -1,10 +1,13 @@
 ---
-doc-type: spec
+doc-type: issue
 issue-type: task
-status: draft
+status: open
 priority: p2
 epic: 1669
-spec-path: docs/issues/drafts/1669-relocate-udp-server-test-environment.md
+github-issue: 1906
+spec-path: docs/issues/open/1906-1669-si-25-relocate-udp-server-test-environment.md
+branch: null
+related-pr: null
 last-updated-utc: 2026-06-11
 semantic-links:
   skill-links:
@@ -15,7 +18,9 @@ semantic-links:
     - docs/issues/open/1669-overhaul-packages/workspace-coupling-report-2026-06-10.md
 ---
 
-# Relocate `udp-server` Test Environment Infrastructure
+<!-- skill-link: create-issue -->
+
+# Issue #1906 (SI-25) - Relocate `udp-server` Test Environment Infrastructure
 
 ## Subissue of EPIC #1669 — Overhaul: Packages
 

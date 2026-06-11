@@ -217,6 +217,129 @@ as test infrastructure.
 
 ---
 
+## DEC-14 — Naming, prefix, and ownership policy for workspace packages
+
+**Date**: 2026-06-11
+**Status**: Adopted
+
+### Proposal considered
+
+Continue with the mixed `bittorrent-` / `torrust-` / `torrust-tracker-` prefix scheme
+and migrate generic protocol crates to `torrust/torrust-bittorrent` when possible.
+
+### Alternative chosen
+
+Adopt a unified naming and ownership policy:
+
+1. **All Torrust organisation packages use the `torrust-` prefix**. The `bittorrent-`
+   prefix is not used — it is redundant since most code in this organisation relates
+   to BitTorrent.
+2. **Package location is determined by grouping by concern (workspace ownership)**, not
+   by estimated reusability. Packages live in the repository whose team owns and
+   maintains them. Protocol crates remain in the tracker workspace because they are
+   tracker-owned; they are not moved to `torrust/torrust-bittorrent` even though they
+   have high reuse potential.
+3. **Tracker-owned packages** use the `torrust-tracker-` prefix (e.g.,
+   `torrust-tracker-udp-tracker-protocol`). Organisation-level shared crates that are
+   not tracker-specific use `torrust-` alone (e.g., `torrust-net-primitives`,
+   `torrust-server-lib`).
+4. **A package can be reusable without being in a different repository**. Being in the
+   tracker workspace does not mean a package cannot be consumed externally via
+   crates.io.
+
+### Why this alternative was adopted
+
+1. **Simplicity**: one prefix scheme (`torrust-*`) across the entire organisation instead
+   of three competing schemes. Contributors do not need to guess which prefix applies.
+2. **Ownership clarity**: the repository that owns a package is responsible for its
+   maintenance, CI, and release cadence. Moving a package to another repository just
+   because it is "reusable" creates additional maintenance surface without clear benefit.
+3. **Avoiding premature extraction**: protocol crates depend on tracker-core package
+   internals. Extracting them would require publishing several intermediate crates and
+   creating a multi-repo dependency chain. The cost currently outweighs the benefit.
+4. **No `bittorrent-` redundancy**: the organisation name `torrust` already signals
+   the BitTorrent domain. Adding `bittorrent-` to crate names is redundant and makes
+   crate names longer without adding information.
+5. **Flexible extraction path**: if a package later proves to be genuinely useful
+   outside the tracker ecosystem and its maintenance as part of the tracker workspace
+   becomes a burden, it can still be extracted to a standalone repository. The naming
+   policy does not prevent extraction — it just removes the automatic assumption that
+   generic = must be extracted.
+
+### Tradeoffs accepted
+
+- Crates like `torrust-tracker-udp-tracker-protocol` have long names due to the
+  layered prefix (`torrust-tracker-` + `udp-tracker-` + `protocol`).
+- Protocol crates will not benefit from the `torrust/torrust-bittorrent` community
+  discoverability (e.g., someone browsing that repo will not see tracker protocol
+  crates listed alongside bencode, info-hash, etc.).
+- External consumers who want only the protocol crate must depend on a tracker-owned
+  package, which may signal a tighter coupling to the tracker than actually exists.
+
+### Supporting artifacts
+
+- `docs/issues/open/1669-overhaul-packages/EPIC.md` — updated naming policy note and
+  "remain in tracker" section
+- `docs/adrs/20260527175600_keep_protocol_and_domain_types_decoupled.md` — related ADR
+  on protocol/domain decoupling
+
+---
+
+## DEC-15 — Workspace package folder naming convention
+
+**Date**: 2026-06-11
+**Status**: Adopted
+
+### Proposal considered
+
+Allow folder names to differ freely from crate names.
+
+### Alternative chosen
+
+Adopt a simple, consistent rule: **every workspace package's folder name equals its crate
+name without the `torrust-tracker-` prefix** (after applying SI-29 to remove the
+redundant inner `-tracker-` segment where it exists today).
+
+For example:
+
+| Crate name                                    | Folder                        |
+| --------------------------------------------- | ----------------------------- |
+| `torrust-tracker-http-tracker-core`           | `http-tracker-core`           |
+| `torrust-tracker-http-tracker-protocol`       | `http-protocol`               |
+| `torrust-tracker-udp-tracker-core`            | `udp-tracker-core`            |
+| `torrust-tracker-udp-tracker-protocol`        | `udp-protocol`                |
+| `torrust-tracker-primitives`                  | `primitives`                  |
+| `torrust-tracker-swarm-coordination-registry` | `swarm-coordination-registry` |
+
+When a crate is renamed, its folder should be renamed to match. This rule keeps folder
+naming predictable and removes the need to look up what folder a crate lives in.
+
+### Why this alternative was adopted
+
+1. **Predictable mapping**: anyone who knows the crate name can find the folder without
+   looking it up — just strip the `torrust-tracker-` prefix.
+2. **Consistency**: eliminates the current inconsistency where some folders match their
+   crate name suffix (`http-protocol` matches `torrust-tracker-http-tracker-protocol`
+   suffix) and others differ (`tracker-client` folder contains
+   `torrust-tracker-client-lib` crate).
+3. **No ambiguity**: inside the workspace context, the short folder name is unambiguous.
+   External consumers see only the full crate name on crates.io.
+4. **Simple to enforce**: review all new package additions for folder name compliance.
+
+### Tradeoffs accepted
+
+- When a crate is renamed, its folder must be renamed in lockstep — an extra step in
+  the rename process.
+- Some folder names without the `torrust-` prefix may look generic (e.g., `primitives`),
+  but the workspace context disambiguates them.
+
+### Supporting artifacts
+
+- `docs/issues/open/1669-overhaul-packages/EPIC.md` — package inventory tables use
+  folder names
+
+---
+
 **Date**: 2026-06-03
 **Status**: Adopted
 
