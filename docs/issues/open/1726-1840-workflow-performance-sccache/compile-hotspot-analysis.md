@@ -8,8 +8,17 @@ semantic-links:
 
 # Cargo Build & Test Benchmark Results
 
-Recorded on: 2026-05-01  
-Machine: local dev (clean workspace)
+Recorded on: 2026-06-11 (updated)  
+Machine: local dev (clean workspace, AMD Ryzen 9 7950X 16-Core / 32 threads, 61 GiB RAM)
+
+**Updated baseline** (2026-06-11 vs 2026-05-01):
+
+| Metric                       | 2026-05-01 | 2026-06-11   | Delta |
+| ---------------------------- | ---------- | ------------ | ----- |
+| Cold build (`--no-run`)      | 126.72 s   | **112.50 s** | -11 % |
+| Warm build (full test suite) | 15.26 s    | **16.18 s**  | +6 %  |
+
+See [`sccache-a-b-report.md`](./sccache-a-b-report.md) for the full sccache A/B measurement protocol, commands, output, and comparison.
 
 ---
 
@@ -111,21 +120,30 @@ can be parallelised past them.
 
 ## Recommendations
 
+> **Updated 2026-06-11**: The recommendation below reflects actual A/B benchmark data
+> collected in [`sccache-a-b-report.md`](./sccache-a-b-report.md).
+
 ### Ranked optimization plan (compile — biggest gains first)
 
-**1 — `sccache` (easiest, zero code changes, works on CI and locally)**
+#### 1 — sccache: NOT recommended for local development (measured conclusion)
 
-Caches compiled artifacts keyed by source hash. After the first cold build, every
-subsequent clean build skips already-cached units. For the 126 s cold build here, a
-warm `sccache` run would be roughly 5–10 s (only changed crates recompile).
+The A/B benchmark (2026-06-11) showed:
 
-```sh
-cargo install sccache
-export RUSTC_WRAPPER=sccache
-cargo test --tests --benches --examples --workspace --all-targets --all-features
-```
+| Scenario                       | Baseline | sccache  | Delta              |
+| ------------------------------ | -------- | -------- | ------------------ |
+| Cold build                     | 112.50 s | 137.11 s | **+22 %** (slower) |
+| Warm (no changes)              | 0.42 s   | 0.26 s   | Equivalent         |
+| Warm-after-change (leaf touch) | ~112 s   | 85.81 s  | **-24 %**          |
 
-Add `RUSTC_WRAPPER=sccache` to `.cargo/config.toml` or CI env to make it permanent.
+**Why sccache underperforms**:
+
+- `torrust-tracker` (rank 1, 77 s critical-path) is a `bin` crate — sccache **never** caches it.
+- Touching any leaf crate forces recompilation of the entire workspace (19 crates).
+- sccache only saves external/C dependencies (~60 s total), yielding ~27 s on a practical rebuild.
+- Non-cacheable calls due to `crate-type` (bin/proc-macro) dominate at 191 per rebuild.
+
+**Recommendation**: Do **not** enable sccache for local development. sccache for CI
+(via GHA cache backend) may still provide modest gains — see [ISSUE.md Task 3](./ISSUE.md#tasks).
 
 #### 2 — CI caching: the current setup doesn't help and here is why
 

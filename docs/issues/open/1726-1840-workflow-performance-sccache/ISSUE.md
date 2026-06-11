@@ -7,7 +7,7 @@ github-issue: 1726
 spec-path: docs/issues/open/1726-1840-workflow-performance-sccache/ISSUE.md
 branch: 1726-reduce-build-times-sccache
 related-pr: null
-last-updated-utc: 2026-05-01 00:00
+last-updated-utc: 2026-06-11 15:53
 semantic-links:
   skill-links:
     - create-issue
@@ -73,14 +73,16 @@ Therefore, the decision to adopt `sccache` must be based on measured repeat-run 
 assumptions.
 
 Full benchmark data and compile-hotspot analysis are in
-[`benchmark-results.md`](./benchmark-results.md).
+[`compile-hotspot-analysis.md`](./compile-hotspot-analysis.md). The live sccache A/B experiment report with all commands,
+timestamps, and measured output is in
+[`sccache-a-b-report.md`](./sccache-a-b-report.md).
 
 ## References
 
 - GitHub issue: https://github.com/torrust/torrust-tracker/issues/1726
 - `sccache` repository: https://github.com/mozilla/sccache
 - `mozilla-actions/sccache-action`: https://github.com/mozilla-actions/sccache-action
-- Benchmark artifact: [`docs/issues/1726-1840-workflow-performance-sccache/benchmark-results.md`](./benchmark-results.md)
+- Compile hotspot analysis: [`docs/issues/1726-1840-workflow-performance-sccache/compile-hotspot-analysis.md`](./compile-hotspot-analysis.md)
 - CI workflow: [`.github/workflows/testing.yaml`](../../../.github/workflows/testing.yaml)
 
 ---
@@ -107,7 +109,7 @@ Full benchmark data and compile-hotspot analysis are in
 
 Measure whether `sccache` improves local rebuild times versus baseline.
 
-- [ ] Baseline (no `sccache`) measurement:
+- [x] Baseline (no `sccache`) measurement:
 
   ```sh
   unset RUSTC_WRAPPER
@@ -119,15 +121,15 @@ Measure whether `sccache` improves local rebuild times versus baseline.
     --workspace --all-targets --all-features --no-run
   ```
 
-  Record cold and warm baseline times.
+  Baseline cold: **112.50 s** / Warm: **0.42 s** (see [`sccache-a-b-report.md`](./sccache-a-b-report.md#a1-cold-build--baseline)).
 
-- [ ] Install `sccache`:
+- [x] Install `sccache`:
 
   ```sh
-  cargo install sccache
+  sudo apt install -y sccache    # version 0.13.0
   ```
 
-- [ ] Run a cold build through `sccache`:
+- [x] Run a cold build through `sccache`:
 
   ```sh
   sccache --stop-server 2>/dev/null; sccache --start-server
@@ -139,9 +141,9 @@ Measure whether `sccache` improves local rebuild times versus baseline.
   sccache --show-stats
   ```
 
-  Record the wall time and the cache hit/miss ratio from `sccache --show-stats`.
+  Cold via sccache: **137.11 s** (0.20 % cache hits — expected first-run misses).
 
-- [ ] Run a warm build (no `cargo clean`) through `sccache` to confirm cache hits:
+- [x] Run a warm build (no `cargo clean`) through `sccache` to confirm cache hits:
 
   ```sh
   /usr/bin/time -f 'real=%e' cargo test --tests --benches --examples \
@@ -149,13 +151,23 @@ Measure whether `sccache` improves local rebuild times versus baseline.
   sccache --show-stats
   ```
 
-- [ ] Run a warm build after a single-file change in a leaf crate
+  Warm via sccache: **0.26 s** (nothing changed, no compilations triggered).
+
+- [x] Run a warm build after a single-file change in a leaf crate
       (e.g., touch a file in `packages/primitives/`) to confirm only the affected
       downstream units miss the cache.
 
-- [ ] Compare baseline vs `sccache` results in a table (cold, warm, warm-after-change).
+  Warm-after-change: **85.81 s** (1.83 % cache hits — only external/C deps saved).
 
-- Checkpoint: data shows whether `sccache` materially improves local rebuilds.
+- [x] Compare baseline vs `sccache` results in a table (cold, warm, warm-after-change).
+
+  See [Results Summary](./sccache-a-b-report.md#results-summary) in the sccache A/B report.
+
+- Checkpoint: ✅ **TASK 1 COMPLETE** — Data shows that sccache **does not materially improve local rebuilds**.
+  See [Analysis](./sccache-a-b-report.md#analysis) for detailed reasoning.
+  - Cold: +22 % (worse)
+  - Warm-after-change: -24 % (modest, only external deps saved)
+  - Root cause: `torrust-tracker` bin crate (77 s critical path) is never cached by sccache
 
 Commit message: `docs(build): record local sccache benchmark results`
 
@@ -234,8 +246,11 @@ Commit message: `ci(testing): benchmark sccache against current cache strategy`
 
 ## Acceptance Criteria
 
-- [ ] Local benchmark report exists with baseline vs `sccache` (cold, warm, warm-after-change).
+- [x] Local benchmark report exists with baseline vs `sccache` (cold, warm, warm-after-change).
 - [ ] CI benchmark report exists with current strategy vs `sccache` strategy (first and repeat runs).
-- [ ] Recommendation is documented with evidence: adopt `sccache`, adopt hybrid, or reject for now.
+- [x] Recommendation is documented with evidence: **reject sccache for local development**.
 - [ ] If adoption is recommended, implementation changes are applied and verified (`linter all`, tests, CI).
-- [ ] If adoption is not recommended, issue documents why and proposes next optimization steps.
+- [x] If adoption is not recommended, issue documents why and proposes next optimization steps.
+  - Conclusion: `torrust-tracker` bin crate (77 s critical-path) is never cached; workspace is too
+    tightly coupled for sccache to provide meaningful benefit locally. CI may still be worth
+    exploring (Task 3).
