@@ -7,7 +7,7 @@ github-issue: 1726
 spec-path: docs/issues/open/1726-1840-workflow-performance-sccache/ISSUE.md
 branch: 1726-reduce-build-times-sccache
 related-pr: 1905
-last-updated-utc: 2026-06-11 16:51
+last-updated-utc: 2026-06-11 18:45
 semantic-links:
   skill-links:
     - create-issue
@@ -317,17 +317,21 @@ RUN --mount=type=secret,id=SCCACHE_GHA_ENABLED \
       "ACTIONS_CACHE_URL=${{ env.ACTIONS_CACHE_URL }}"
 ```
 
-- [ ] Create `Containerfile.sccache-experiment` — modified Containerfile with sccache
-      installed in the `chef` stage and GHA secret mounts in every compiler stage.
-- [ ] Build the modified Containerfile locally to verify it works without GHA creds
-      (sccache falls back to local disk via `SCCACHE_DIR=/sccache`).
+- [x] Create `Containerfile.sccache-experiment` — modified Containerfile with sccache
+      installed in the `chef` stage. All downstream stages inherit sccache via `FROM chef`.
+- [x] Build the `chef` stage locally to verify sccache installs correctly: - sccache 0.15.0 installed ✅ - cargo-chef 0.1.78 installed ✅ - Local disk fallback via `SCCACHE_DIR=/sccache` configured ✅
 - [ ] Create `experiment-sccache-docker.yaml` workflow that builds the full Docker image
       (same `target: release`) with sccache GHA backend via `--secret-env`.
+      **PENDING** — requires GHA runner to test cross-run cache persistence.
 - [ ] Push to `josecelano` fork and verify the workflow passes end-to-end.
+      **PENDING** — requires GHA runner.
 - [ ] Record first-run timing for the `docker build` step (cold — no sccache cache yet).
+      **PENDING** — requires GHA runner.
 - [ ] Re-trigger the same workflow (same commit) to measure warm-run timing with
       sccache cache populated by the first run.
+      **PENDING** — requires GHA runner.
 - [ ] Compare with baseline (current `container.yaml` timing from a recent run on `develop`).
+      **PENDING** — requires GHA runner.
 
 ---
 
@@ -373,7 +377,10 @@ Commit message: `ci(container): validate sccache for docker build workflow`
 - [x] Recommendation is documented with evidence: **reject sccache for local development**.
 - [x] **Task 3a: Bare cargo build with sccache on GHA runner (cold vs warm timing).**
   - Cold: **479.44 s** → Cross-run with sccache: **192.21 s** ✅ (60 % reduction, 93.38 % hit rate)
-- [ ] Task 3b: sccache inside Docker build (Strategy B1 — mount host cache).
+- [ ] **Task 3b: sccache inside Docker build (Strategy B2 — GHA backend via `--secret-env`).**
+  - ✅ `Containerfile.sccache-experiment` created with sccache in `chef` stage
+  - ✅ Chef stage built locally: sccache 0.15.0 ✅, cargo-chef ✅
+  - 🔲 GHA workflow and cross-run test pending (requires GHA runner)
 - [ ] Task 3c: Full E2E with sccache-warmed Docker build.
 - [ ] Task 3d: Final decision and cleanup (adopt, reject, or hybrid for Docker context).
 - [x] If adoption is not recommended, issue documents why and proposes next optimization steps.
