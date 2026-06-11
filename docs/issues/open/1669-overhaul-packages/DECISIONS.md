@@ -301,13 +301,13 @@ name without the `torrust-tracker-` prefix**.
 
 For example:
 
-| Crate name | Folder |
-|---|---|
-| `torrust-tracker-http-tracker-core` | `http-tracker-core` |
-| `torrust-tracker-http-tracker-protocol` | `http-protocol` |
-| `torrust-tracker-udp-tracker-core` | `udp-tracker-core` |
-| `torrust-tracker-udp-tracker-protocol` | `udp-protocol` |
-| `torrust-tracker-primitives` | `primitives` |
+| Crate name                                    | Folder                        |
+| --------------------------------------------- | ----------------------------- |
+| `torrust-tracker-http-tracker-core`           | `http-tracker-core`           |
+| `torrust-tracker-http-tracker-protocol`       | `http-protocol`               |
+| `torrust-tracker-udp-tracker-core`            | `udp-tracker-core`            |
+| `torrust-tracker-udp-tracker-protocol`        | `udp-protocol`                |
+| `torrust-tracker-primitives`                  | `primitives`                  |
 | `torrust-tracker-swarm-coordination-registry` | `swarm-coordination-registry` |
 
 When a crate is renamed, its folder should be renamed to match. This rule keeps folder
