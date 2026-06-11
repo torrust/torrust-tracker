@@ -285,6 +285,60 @@ Adopt a unified naming and ownership policy:
 
 ---
 
+## DEC-15 — Workspace package folder naming convention
+
+**Date**: 2026-06-11
+**Status**: Adopted
+
+### Proposal considered
+
+Allow folder names to differ freely from crate names.
+
+### Alternative chosen
+
+Adopt a simple, consistent rule: **every workspace package's folder name equals its crate
+name without the `torrust-tracker-` prefix**.
+
+For example:
+
+| Crate name | Folder |
+|---|---|
+| `torrust-tracker-http-tracker-core` | `http-tracker-core` |
+| `torrust-tracker-http-tracker-protocol` | `http-protocol` |
+| `torrust-tracker-udp-tracker-core` | `udp-tracker-core` |
+| `torrust-tracker-udp-tracker-protocol` | `udp-protocol` |
+| `torrust-tracker-primitives` | `primitives` |
+| `torrust-tracker-swarm-coordination-registry` | `swarm-coordination-registry` |
+
+When a crate is renamed, its folder should be renamed to match. This rule keeps folder
+naming predictable and removes the need to look up what folder a crate lives in.
+
+### Why this alternative was adopted
+
+1. **Predictable mapping**: anyone who knows the crate name can find the folder without
+   looking it up — just strip the `torrust-tracker-` prefix.
+2. **Consistency**: eliminates the current inconsistency where some folders match their
+   crate name suffix (`http-protocol` matches `torrust-tracker-http-tracker-protocol`
+   suffix) and others differ (`tracker-client` folder contains
+   `torrust-tracker-client-lib` crate).
+3. **No ambiguity**: inside the workspace context, the short folder name is unambiguous.
+   External consumers see only the full crate name on crates.io.
+4. **Simple to enforce**: review all new package additions for folder name compliance.
+
+### Tradeoffs accepted
+
+- When a crate is renamed, its folder must be renamed in lockstep — an extra step in
+  the rename process.
+- Some folder names without the `torrust-` prefix may look generic (e.g., `primitives`),
+  but the workspace context disambiguates them.
+
+### Supporting artifacts
+
+- `docs/issues/open/1669-overhaul-packages/EPIC.md` — package inventory tables use
+  folder names
+
+---
+
 **Date**: 2026-06-03
 **Status**: Adopted
 
