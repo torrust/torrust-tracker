@@ -177,26 +177,17 @@ Commit message: `docs(build): record local sccache benchmark results`
 
 Decide whether to enable `sccache` in `.cargo/config.toml` for developers.
 
-- [ ] If local research is positive, add to `.cargo/config.toml` under `[build]`:
+- [-] ~If local research is positive~ — **not applicable (research was negative)**.
+- [-] ~If enabled, update `AGENTS.md` and/or `README.md`~ — **not applicable (rejected)**.
+- [x] Verify `linter all` still exits `0` — **confirmed: all linters pass** (run on 2026-06-11).
 
-  ```toml
-  [build]
-  rustc-wrapper = "sccache"
-  ```
+- Checkpoint: ✅ **TASK 2 COMPLETE** — explicit decision: **do not enable sccache for local
+  development**. The benchmark evidence (cold: +22 % slower, warm-after-change: -24 % modest)
+  does not justify the overhead. See [Analysis](./sccache-a-b-report.md#analysis) for full
+  reasoning. The root `torrust-tracker` bin crate (77 s critical-path) is never cached by sccache,
+  and the workspace dependency graph is too tight for meaningful benefit.
 
-  Add a comment explaining that `sccache` must be installed (`cargo install sccache`);
-  the build falls back to the plain compiler if the wrapper is not found only when
-  `RUSTC_WRAPPER` is unset — with the config key set, a missing binary is an error.
-  Consider using `RUSTC_WRAPPER` in the config only if `sccache` is present
-  (use a wrapper script or document the requirement clearly).
-
-- [ ] If enabled, update `AGENTS.md` and/or `README.md` with the `sccache` install step under
-      "Setup".
-- [ ] Verify `linter all` still exits `0`.
-
-- Checkpoint: explicit decision recorded: enable by default, keep opt-in, or defer.
-
-Commit message: `chore(build): configure local sccache usage`
+Commit message: `docs(build): document local sccache decision (reject)`
 
 ---
 
