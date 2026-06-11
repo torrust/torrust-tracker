@@ -1,5 +1,5 @@
 ---
-doc-type: spec
+doc-type: issue
 issue-type: task
 status: open
 priority: p2
