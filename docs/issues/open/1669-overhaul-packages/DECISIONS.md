@@ -169,6 +169,54 @@ is inherent, not accidental.
 
 ---
 
+## DEC-13 — Relocate server test environment infrastructure to `src/testing/`
+
+**Date**: 2026-06-11
+**Status**: Adopted
+
+### Proposal considered
+
+Leave `environment.rs` files as production code in `src/` despite being test-only.
+
+### Alternative chosen
+
+Relocate `environment.rs` (and associated `EnvContainer`, `Started` types) from
+`src/environment.rs` to `src/testing/environment.rs` for all three server packages:
+`axum-rest-api-server`, `axum-http-server`, and `udp-server`. The `src/testing/`
+module pattern is already used by other packages (e.g. `tracker-core/src/test_helpers.rs`)
+and makes the module importable by external test packages while clearly marking it
+as test infrastructure.
+
+### Why this alternative was adopted
+
+1. **Honest placement**: code that is only used by test code should live under
+   a testing module, not in production `src/`. This forces honest dependency
+   declarations in `Cargo.toml` (dev-deps vs runtime deps).
+
+2. **Existing pattern**: `tracker-core/src/test_helpers.rs` already uses this
+   approach. No new conventions needed.
+
+3. **External test packages**: keeping the module in `src/testing/` (rather than
+   `tests/common/`) allows `axum-health-check-api-server` and similar packages to
+   import it without duplicating setup logic.
+
+### Trade-offs acknowledged
+
+- The `src/testing/` module is compiled into the binary even in release builds.
+  This is already the case with the current `src/environment.rs` files.
+- External packages that import the testing module depend on infrastructure that
+  is technically test-only — but this is already the case today.
+
+### Supporting artifacts
+
+- `packages/axum-rest-api-server/src/environment.rs` — target for relocation
+- `packages/axum-http-server/src/environment.rs` — target for relocation
+- `packages/udp-server/src/environment.rs` — target for relocation
+- [workspace-coupling-report-2026-06-10.md](../open/1669-overhaul-packages/workspace-coupling-report-2026-06-10.md)
+  — "Cluster dependencies" section
+
+---
+
 **Date**: 2026-06-03
 **Status**: Adopted
 
