@@ -937,15 +937,17 @@ reference to the subissue opened for each.
 
 #### Cluster dependencies (architectural concerns)
 
-1. **`axum-rest-api-server` + `rest-api-core` → `udp-server` + `udp-tracker-core`**
-   (7 distinct import paths combined)
-   The REST management layer reaches into concrete UDP server internals for
-   statistics, banning, and container wiring. This is a **layer violation**:
-   the REST API should query abstractions, not concrete server
-   implementations. If the UDP server is ever extracted or refactored,
-   the REST layer breaks too.
+1. **`axum-rest-api-server` -> `udp-server` + `udp-tracker-core`**
+   The REST server container depends on concrete UDP containers for wiring and
+   initialization. See draft:
+   [1669-decouple-axum-rest-api-server-from-udp-containers.md](../../drafts/1669-decouple-axum-rest-api-server-from-udp-containers.md)
 
-2. **`http-tracker-core` → `tracker-core`** (16 import paths)
+2. **`rest-api-core` -> `udp-server` + `udp-tracker-core`**
+   The REST core depends on concrete UDP types for statistics and banning.
+   See draft:
+   [1669-decouple-rest-api-core-from-udp-internals.md](../../drafts/1669-decouple-rest-api-core-from-udp-internals.md)
+
+3. **`http-tracker-core` -> `tracker-core`** (16 import paths)
    This is an **architecturally expected** coupling, not a problem to fix.
    `http-tracker-core` is a thin protocol-specific layer that delegates
    to `tracker-core`. The imports break down as:
