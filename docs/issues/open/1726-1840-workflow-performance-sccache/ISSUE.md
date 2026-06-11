@@ -6,7 +6,7 @@ priority: p2
 github-issue: 1726
 spec-path: docs/issues/open/1726-1840-workflow-performance-sccache/ISSUE.md
 branch: 1726-reduce-build-times-sccache
-related-pr: null
+related-pr: 1905
 last-updated-utc: 2026-06-11 16:51
 semantic-links:
   skill-links:
