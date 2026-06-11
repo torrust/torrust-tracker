@@ -66,7 +66,156 @@ via `PeersWanted::limit(max_peers)` at call time, not at `PeersWanted` construct
 
 ---
 
-## DEC-08 — Keep `TslConfig` in tracker configuration and keep `torrust-tracker-axum-server` tracker-scoped
+## DEC-11 — Accept server → client-library dependency for health checks
+
+**Date**: 2026-06-10
+**Status**: Adopted
+
+### Proposal considered
+
+Remove the `torrust-tracker-client-lib` runtime dependency from
+`torrust-tracker-udp-server` and inline or relocate the `check` function used
+for server health checks.
+
+### Alternative chosen
+
+Keep the dependency. The `check` function in `torrust-tracker-client-lib` is a
+health-check utility that uses the client to send a `ConnectRequest` to a running
+server and verify a `ConnectResponse` — a standard self-test pattern. It is
+production code (not test-only) and belongs in the client library alongside
+`UdpTrackerClient` which it uses internally.
+
+### Why this alternative was adopted
+
+1. **Standard direction**: servers legitimately depend on their own client libraries
+   for runtime health checks; this is the normal dependency order (server → client).
+2. **Client library is the natural home**: the function instantiates
+   `UdpTrackerClient`, which is defined in the same crate. Moving it elsewhere
+   would require making that type public from a different package or duplicating
+   the logic.
+3. **Not a circular concern**: the client library has no dependency on any server
+   package. The edge is unidirectional (server → client).
+
+### Trade-offs acknowledged
+
+- Any change to the client health-check API can affect the server's launcher module.
+- The health-check function is small enough that its current location is pragmatic.
+
+### Supporting artifacts
+
+- `packages/udp-server/src/server/launcher.rs` — uses
+  `torrust_tracker_client::udp::client::check`
+- `packages/tracker-client/src/udp/client.rs` — defines the `check` function
+- [workspace-coupling-report-2026-06-10.md](../open/1669-overhaul-packages/workspace-coupling-report-2026-06-10.md)
+  — "Acceptable thin dependencies" section
+
+---
+
+## DEC-12 — Accept `http-tracker-core` → `tracker-core` coupling as by design
+
+**Date**: 2026-06-10
+**Status**: Adopted
+
+### Proposal considered
+
+Reduce the 16 import paths between `http-tracker-core` and `tracker-core`,
+either by passing narrower service interfaces or by moving test-only
+dependencies (in-memory repositories, database setup) to `test-helpers`.
+
+### Alternative chosen
+
+Leave the coupling as-is. `http-tracker-core` is architecturally a thin
+protocol-specific layer that delegates to `tracker-core`. The dependency
+is inherent, not accidental.
+
+### Why this alternative was adopted
+
+1. **Architectural intent**: the package exists precisely to wrap `tracker-core`
+   with HTTP-specific validation and response formatting. Delegating to the
+   central tracker's handlers (`AnnounceHandler`, `ScrapeHandler`), auth,
+   whitelist, and error types is its purpose.
+
+2. **Runtime imports are the API boundary** (12 paths): container composition,
+   handler delegation, authentication, whitelist, error types, and metrics
+   persistence are all part of the intended contract between the two layers.
+
+3. **Test-only imports are minor** (4 paths): `initialize_database`,
+   `InMemoryKeyRepository`, `InMemoryTorrentRepository`, `InMemoryWhitelist`
+   are used only in `#[cfg(test)]` blocks. Moving them to `test-helpers` is
+   possible but would duplicate test fixtures without changing the runtime
+   dependency count.
+
+4. **Any workable alternative is worse**: passing individual services instead
+   of the container bloats constructors. Splitting `tracker-core` to separate
+   announce/auth/scrape/whitelist into separate crates is premature — these
+   are all aspects of the same domain.
+
+### Trade-offs acknowledged
+
+- Any change to `tracker-core`'s handler API, error types, or auth/whitelist
+  interfaces directly impacts `http-tracker-core`.
+- Test-only in-memory repositories live in `tracker-core` rather than in a
+  shared test utilities package.
+- This coupling is inherent to the chosen architecture; it cannot be eliminated
+  without redesigning how protocol-specific wrappers relate to the central core.
+
+### Supporting artifacts
+
+- `packages/http-tracker-core/src/container.rs` — wraps `TrackerCoreContainer`
+- `packages/http-tracker-core/src/services/announce.rs` — delegates to `tracker-core`
+- `packages/http-tracker-core/src/services/scrape.rs` — delegates to `tracker-core`
+- [workspace-coupling-report-2026-06-10.md](../open/1669-overhaul-packages/workspace-coupling-report-2026-06-10.md)
+  — "Cluster dependencies" section
+
+---
+
+## DEC-13 — Relocate server test environment infrastructure to `src/testing/`
+
+**Date**: 2026-06-11
+**Status**: Adopted
+
+### Proposal considered
+
+Leave `environment.rs` files as production code in `src/` despite being test-only.
+
+### Alternative chosen
+
+Relocate `environment.rs` (and associated `EnvContainer`, `Started` types) from
+`src/environment.rs` to `src/testing/environment.rs` for all three server packages:
+`axum-rest-api-server`, `axum-http-server`, and `udp-server`. The `src/testing/`
+module pattern is already used by other packages (e.g. `tracker-core/src/test_helpers.rs`)
+and makes the module importable by external test packages while clearly marking it
+as test infrastructure.
+
+### Why this alternative was adopted
+
+1. **Honest placement**: code that is only used by test code should live under
+   a testing module, not in production `src/`. This forces honest dependency
+   declarations in `Cargo.toml` (dev-deps vs runtime deps).
+
+2. **Existing pattern**: `tracker-core/src/test_helpers.rs` already uses this
+   approach. No new conventions needed.
+
+3. **External test packages**: keeping the module in `src/testing/` (rather than
+   `tests/common/`) allows `axum-health-check-api-server` and similar packages to
+   import it without duplicating setup logic.
+
+### Trade-offs acknowledged
+
+- The `src/testing/` module is compiled into the binary even in release builds.
+  This is already the case with the current `src/environment.rs` files.
+- External packages that import the testing module depend on infrastructure that
+  is technically test-only — but this is already the case today.
+
+### Supporting artifacts
+
+- `packages/axum-rest-api-server/src/environment.rs` — target for relocation
+- `packages/axum-http-server/src/environment.rs` — target for relocation
+- `packages/udp-server/src/environment.rs` — target for relocation
+- [workspace-coupling-report-2026-06-10.md](../open/1669-overhaul-packages/workspace-coupling-report-2026-06-10.md)
+  — "Cluster dependencies" section
+
+---
 
 **Date**: 2026-06-03
 **Status**: Adopted
