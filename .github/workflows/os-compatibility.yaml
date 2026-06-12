@@ -1,5 +1,8 @@
 name: OS Compatibility
 
+# adr: docs/adrs/20260612000000_adopt_sccache_for_ci_bare_builds.md
+# sccache added for cross-run compilation caching on bare CI builds.
+
 # Path policy: skip this workflow when every changed file is documentation.
 # See .github/workflows/docs-lint.yaml for the lightweight docs-only workflow.
 on:
@@ -34,6 +37,17 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: ${{ matrix.toolchain }}
+
+      - id: sccache
+        name: Install sccache (GHA backend)
+        uses: mozilla-actions/sccache-action@v0.0.10
+
+      - id: enable-sccache
+        name: Enable sccache
+        run: |
+          echo "RUSTC_WRAPPER=sccache" >> "$GITHUB_ENV"
+          echo "SCCACHE_GHA_ENABLED=true" >> "$GITHUB_ENV"
+          echo "CARGO_INCREMENTAL=0" >> "$GITHUB_ENV"
 
       - name: Build project
         run: cargo build --verbose
