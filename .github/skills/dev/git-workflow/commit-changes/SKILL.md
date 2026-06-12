@@ -82,9 +82,11 @@ If the hook is not installed, run the script explicitly before committing.
 
 > **⏱️ Expected runtime: ~1 minute** on a modern developer machine with warm caches.
 > AI agents should set a command timeout of **at least 3 minutes** before invoking this script.
+> AI agents should also set `TORRUST_GIT_HOOKS_LOG_DIR=.tmp` so per-step log files
+> are written inside the workspace (git-ignored) instead of `/tmp`.
 
 ```bash
-./contrib/dev-tools/git/hooks/pre-commit.sh
+TORRUST_GIT_HOOKS_LOG_DIR=.tmp ./contrib/dev-tools/git/hooks/pre-commit.sh
 ```
 
 The script runs:

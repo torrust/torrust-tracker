@@ -37,8 +37,12 @@ manually before each commit.
 
 Run the pre-commit script. **It must exit with code `0` before every commit.**
 
+For AI agents: set `TORRUST_GIT_HOOKS_LOG_DIR=.tmp` so per-step log files are
+written inside the workspace (git-ignored) instead of `/tmp` (outside workspace,
+requiring permission prompts):
+
 ```bash
-./contrib/dev-tools/git/hooks/pre-commit.sh
+TORRUST_GIT_HOOKS_LOG_DIR=.tmp ./contrib/dev-tools/git/hooks/pre-commit.sh
 ```
 
 The script runs these steps in order:
