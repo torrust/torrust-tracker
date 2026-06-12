@@ -7,7 +7,7 @@ github-issue: 1726
 spec-path: docs/issues/open/1726-1840-workflow-performance-sccache/ISSUE.md
 branch: 1726-reduce-build-times-sccache
 related-pr: 1905
-last-updated-utc: 2026-06-11 19:30
+last-updated-utc: 2026-06-11 20:00
 semantic-links:
   skill-links:
     - create-issue
@@ -336,9 +336,10 @@ RUN --mount=type=secret,id=SCCACHE_GHA_ENABLED \
 
 - [x] `Containerfile.sccache-experiment` created with sccache in `chef` stage
 - [x] Chef stage built locally: sccache 0.15.0 ✅, cargo-chef ✅, local disk fallback ✅
-- [ ] Create `experiment-sccache-docker.yaml` workflow (GHA runner required)
-- [ ] Push to `josecelano` fork and verify end-to-end
-- [ ] Record cold + warm timing for `docker build` step
+- [x] Local Docker stage build times measured: - `dependencies_thirdparty` (external deps, release): **52.75 s** - `dependencies` (workspace cook + pre-link, release): **+31.19 s** - Note: on local Ryzen 9 7950X; GHA runners will be significantly slower
+- [x] Create `experiment-sccache-docker.yaml` workflow (Docker build + E2E tests)
+- [ ] Push to `josecelano` fork and run cold test
+- [ ] Re-trigger for warm test
 - [ ] Compare with baseline `container.yaml` timing
 
 ---
@@ -383,8 +384,9 @@ Commit message: `ci(container): validate sccache for docker build workflow`
   - Cold: **479.44 s** → Cross-run with sccache: **192.21 s** ✅ (60 % reduction, 93.38 % hit rate)
 - [ ] **Task 3b: sccache inside Docker build (Strategy B2 — GHA backend via `--secret-env`).**
   - ✅ `Containerfile.sccache-experiment` created with sccache in `chef` stage
-  - ✅ Chef stage built locally: sccache 0.15.0 ✅, cargo-chef ✅
-  - 🔲 GHA workflow and cross-run test pending (requires GHA runner)
+  - ✅ Local Docker stage timings measured: third-party deps: 52.75 s
+  - ✅ experiment-sccache-docker.yaml workflow created
+  - 🔲 GHA workflow run and cross-run test pending
 - [ ] Task 3c: Full E2E with sccache-warmed Docker build.
 - [ ] Task 3d: Final decision and cleanup (adopt, reject, or hybrid for Docker context).
 - [x] If adoption is not recommended, issue documents why and proposes next optimization steps.

@@ -1,0 +1,99 @@
+name: Experiment — sccache Docker Build (Task 3b)
+
+# Self-contained A/B benchmark for sccache inside Docker builds:
+#   Cold push → full docker build from scratch with sccache inside Containerfile
+#   Re-trigger → measures cross-run sccache GHA backend hits inside Docker
+#
+# Manual process to capture results:
+#   1. Push this branch → workflow runs. Check the workflow run total duration.
+#      The docker build step output shows BuildKit cache status.
+#   2. Re-trigger via workflow_dispatch → second run should show BuildKit cache hits
+#      for the dependencies layers (cargo chef cook layers) AND sccache hits inside
+#   3. Record times in the issue spec
+
+on:
+  push:
+    branches:
+      - "1726-reduce-build-times-sccache"
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  benchmark:
+    name: sccache Docker Build Benchmark
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+
+    steps:
+      - id: checkout
+        name: Checkout Repository
+        uses: actions/checkout@v6
+
+      - id: setup-sccache
+        name: Install sccache (GHA backend)
+        uses: mozilla-actions/sccache-action@v0.0.10
+
+      - id: setup-buildx
+        name: Setup Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - id: setup-rust
+        name: Setup Rust Toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+
+      - id: fetch
+        name: Download Dependencies
+        run: cargo fetch --verbose
+
+      # ── Docker build ─────────────────────────────────────────────
+      - id: build
+        name: Build Tracker Image
+        uses: docker/build-push-action@v7
+        with:
+          file: ./Containerfile.sccache-experiment
+          push: false
+          load: true
+          target: release
+          tags: torrust-tracker:sccache-experiment
+          cache-from: type=gha,scope=experiment-sccache-release
+          cache-to: type=gha,scope=experiment-sccache-release,mode=max
+          # Pass GHA creds into Docker for sccache. ACTIONS_RUNTIME_TOKEN is
+          # short-lived (~5 min). Build-args are visible in docker history but
+          # acceptable for experiment branches (not production).
+          build-args: |
+            SCCACHE_GHA_ENABLED=${{ env.SCCACHE_GHA_ENABLED }}
+            ACTIONS_RUNTIME_TOKEN=${{ env.ACTIONS_RUNTIME_TOKEN }}
+            ACTIONS_CACHE_URL=${{ env.ACTIONS_CACHE_URL }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - id: sccache-stats
+        name: sccache Stats (Host Daemon)
+        run: |
+          echo "::group::sccache Host Daemon Stats"
+          sccache --show-stats || echo "sccache daemon not running on host"
+          echo "::endgroup::"
+          echo "::notice::NOTE: sccache stats above are from the HOST daemon, not from inside Docker."
+          echo "Inside-Docker sccache hits/misses will be visible in the BuildKit build output."
+          echo "Search build logs for 'CACHED' vs 'cargo chef cook' to see layer cache status."
+
+      - id: timing
+        name: Timing Record
+        run: |
+          echo "::notice::=== TIMING RECORD ==="
+          echo "Workflow run ID: ${{ github.run_id }}"
+          echo "Job started at: $(date -u)"
+          echo "Build step duration is shown in the workflow run overview."
+          echo ""
+          echo "=== BASELINE (container.yaml on develop) ==="
+          echo "Check recent container.yaml runs at:"
+          echo "  https://github.com/torrust/torrust-tracker/actions/workflows/container.yaml"
+          echo ""
+          echo "=== COMPARISON ==="
+          echo "Cold run (this push): TBD"
+          echo "Warm run (re-trigger): TBD"
+          echo "Re-trigger via workflow_dispatch:"
+          echo "  https://github.com/josecelano/torrust-tracker/actions/workflows/experiment-sccache-docker.yaml"

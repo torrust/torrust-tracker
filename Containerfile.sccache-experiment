@@ -1,20 +1,33 @@
 # syntax=docker/dockerfile:latest
 
-# Torrust Tracker
+# Torrust Tracker — sccache Experiment Variant
+#
+# Differences from Containerfile:
+# 1. sccache installed in chef stage (inherited by all downstream stages)
+# 2. RUSTC_WRAPPER=sccache and SCCACHE_DIR=/sccache env vars in chef
+# 3. GHA credentials accepted as ephemeral build-args for sccache cross-run cache
+#    NOTE: build-args are visible in `docker history`. Acceptable for experiment branches.
+#    For production (Task 3d), use docker/build-push-action secret-envs input instead.
+# 4. sccache --show-stats after every compiler step for experiment measurement
+#
+# GHA creds: passed as build-args from workflow. Locally: unset → local disk fallback.
+ARG SCCACHE_GHA_ENABLED
+ARG ACTIONS_RUNTIME_TOKEN
+ARG ACTIONS_CACHE_URL
 
 ## Builder Image
 FROM docker.io/library/rust:trixie AS chef
+ARG SCCACHE_GHA_ENABLED
+ARG ACTIONS_RUNTIME_TOKEN
+ARG ACTIONS_CACHE_URL
+ENV SCCACHE_GHA_ENABLED=${SCCACHE_GHA_ENABLED}
+ENV ACTIONS_RUNTIME_TOKEN=${ACTIONS_RUNTIME_TOKEN}
+ENV ACTIONS_CACHE_URL=${ACTIONS_CACHE_URL}
+
 WORKDIR /tmp
 RUN curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
 RUN cargo binstall --no-confirm --locked torrust-cargo-chef@0.1.78 cargo-nextest sccache
-# Note: We use the `torrust-cargo-chef` fork (v0.1.78) while upstream PR
-# https://github.com/LukeMathWalker/cargo-chef/pull/360 is pending. Once merged,
-# switch back to upstream `cargo-chef` and remove this comment.
 
-# sccache configuration
-# RUSTC_WRAPPER=sccache is set for all compiler stages
-# SCCACHE_GHA_ENABLED=true is only set on GHA via --secret-env (see workflow)
-# When not on GHA, sccache uses local disk via SCCACHE_DIR=/sccache
 ENV RUSTC_WRAPPER=sccache
 ENV SCCACHE_DIR=/sccache
 ENV CARGO_INCREMENTAL=0
