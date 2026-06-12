@@ -140,7 +140,7 @@ Guidelines:
 
 GitHub Actions YAML workflows do not support YAML frontmatter — the `---` document
 separator would create a second YAML document, causing a parse error. The workflow
-schema only recognises documented keys (`name`, `on`, `jobs`, etc.) and rejects
+schema only recognizes documented keys (`name`, `on`, `jobs`, etc.) and rejects
 unknown top-level keys.
 
 Use a `# adr:` comment at the top of the file, near the `name:` line:
