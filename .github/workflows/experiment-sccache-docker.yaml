@@ -61,13 +61,15 @@ jobs:
           tags: torrust-tracker:sccache-experiment
           cache-from: type=gha,scope=experiment-sccache-release
           cache-to: type=gha,scope=experiment-sccache-release,mode=max
-          # Pass GHA creds into Docker for sccache. ACTIONS_RUNTIME_TOKEN is
-          # short-lived (~5 min). Build-args are visible in docker history but
-          # acceptable for experiment branches (not production).
+          # Pass GHA creds into Docker for sccache cross-run caching.
+          # SCCACHE_GHA_ENABLED is hardcoded true because it's always set on GHA.
+          # ACTIONS_RUNTIME_TOKEN, ACTIONS_CACHE_URL, ACTIONS_RESULTS_URL are
+          # injected by GHA before workflow parsing, so ${{ env.X }} works.
           build-args: |
-            SCCACHE_GHA_ENABLED=${{ env.SCCACHE_GHA_ENABLED }}
+            SCCACHE_GHA_ENABLED=true
             ACTIONS_RUNTIME_TOKEN=${{ env.ACTIONS_RUNTIME_TOKEN }}
             ACTIONS_CACHE_URL=${{ env.ACTIONS_CACHE_URL }}
+            ACTIONS_RESULTS_URL=${{ env.ACTIONS_RESULTS_URL }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - id: sccache-stats
