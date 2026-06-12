@@ -53,10 +53,6 @@ jobs:
           echo "SCCACHE_GHA_ENABLED=true" >> "$GITHUB_ENV"
           echo "CARGO_INCREMENTAL=0" >> "$GITHUB_ENV"
 
-      - id: cache
-        name: Enable Job Cache
-        uses: Swatinem/rust-cache@v2
-
       - id: database
         name: Run Database Compatibility Test
         env:
@@ -93,10 +89,6 @@ jobs:
           echo "RUSTC_WRAPPER=sccache" >> "$GITHUB_ENV"
           echo "SCCACHE_GHA_ENABLED=true" >> "$GITHUB_ENV"
           echo "CARGO_INCREMENTAL=0" >> "$GITHUB_ENV"
-
-      - id: cache
-        name: Enable Job Cache
-        uses: Swatinem/rust-cache@v2
 
       - id: database
         name: Run Database Compatibility Test

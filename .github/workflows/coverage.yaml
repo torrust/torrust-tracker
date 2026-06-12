@@ -45,10 +45,6 @@ jobs:
           echo "SCCACHE_GHA_ENABLED=true" >> "$GITHUB_ENV"
           # CARGO_INCREMENTAL=0 already set in job env for coverage
 
-      - id: cache
-        name: Enable Workflow Cache
-        uses: Swatinem/rust-cache@v2
-
       - id: tools
         name: Install Tools
         uses: taiki-e/install-action@v2

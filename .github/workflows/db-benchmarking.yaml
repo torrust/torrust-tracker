@@ -49,10 +49,6 @@ jobs:
           echo "SCCACHE_GHA_ENABLED=true" >> "$GITHUB_ENV"
           echo "CARGO_INCREMENTAL=0" >> "$GITHUB_ENV"
 
-      - id: cache
-        name: Enable Job Cache
-        uses: Swatinem/rust-cache@v2
-
       - id: benchmark
         name: Run Persistence Benchmark (SQLite3)
         run: cargo run -p torrust-tracker-persistence-benchmark --bin persistence_benchmark_runner -- --driver sqlite3 --ops 10
@@ -83,10 +79,6 @@ jobs:
           echo "SCCACHE_GHA_ENABLED=true" >> "$GITHUB_ENV"
           echo "CARGO_INCREMENTAL=0" >> "$GITHUB_ENV"
 
-      - id: cache
-        name: Enable Job Cache
-        uses: Swatinem/rust-cache@v2
-
       - id: benchmark
         name: Run Persistence Benchmark (MySQL)
         run: cargo run -p torrust-tracker-persistence-benchmark --bin persistence_benchmark_runner -- --driver mysql --db-version 8.4 --ops 10
@@ -116,10 +108,6 @@ jobs:
           echo "RUSTC_WRAPPER=sccache" >> "$GITHUB_ENV"
           echo "SCCACHE_GHA_ENABLED=true" >> "$GITHUB_ENV"
           echo "CARGO_INCREMENTAL=0" >> "$GITHUB_ENV"
-
-      - id: cache
-        name: Enable Job Cache
-        uses: Swatinem/rust-cache@v2
 
       - id: benchmark
         name: Run Persistence Benchmark (PostgreSQL)

@@ -122,8 +122,9 @@ The warm run showed identical compilation times because:
    `mozilla-actions/sccache-action`, already precompiled binary — marginal cost).
 2. `CARGO_INCREMENTAL=0` in CI — no impact (CI always starts fresh).
 3. Cache eviction within the 10 GB shared limit (same pool as
-   `Swatinem/rust-cache`). Evaluate whether to remove `Swatinem/rust-cache` from jobs
-   where sccache is added.
+   `Swatinem/rust-cache`). **`Swatinem/rust-cache` was removed** from sccache-enabled jobs
+   because the repo cache was at 13.03 GB / 10 GB (over limit) and sccache proved superior
+   (93.38 % hit rate vs ~0 % for Swatinem). See Q&A in the issue spec for the full analysis.
 
 ### Neutral
 
@@ -133,9 +134,9 @@ The warm run showed identical compilation times because:
 
 ## Alternatives Considered
 
-| Alternative                           | Rejection Reason                                                                          |
-| ------------------------------------- | ----------------------------------------------------------------------------------------- |
-| sccache for local dev                 | Cold build +22 % slower (Task 1).                                                         |
-| sccache inside Docker builds          | No measurable benefit on GHA (Task 3b). Token expiration prevents cross-run access.       |
-| Remove `Swatinem/rust-cache` entirely | Not evaluated — could be a follow-up if sccache replaces its function in non-Docker jobs. |
-| Depot Cache / S3 backend for sccache  | Adds infrastructure cost. GHA backend is free and proven (93.38 %).                       |
+| Alternative                           | Rejection Reason                                                                                         |
+| ------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| sccache for local dev                 | Cold build +22 % slower (Task 1).                                                                        |
+| sccache inside Docker builds          | No measurable benefit on GHA (Task 3b). Token expiration prevents cross-run access.                      |
+| Remove `Swatinem/rust-cache` entirely | **Done** — removed from sccache-enabled jobs. Cache pool at 130 % capacity made keeping both impossible. |
+| Depot Cache / S3 backend for sccache  | Adds infrastructure cost. GHA backend is free and proven (93.38 %).                                      |
