@@ -63,12 +63,13 @@ jobs:
           cache-to: type=gha,scope=experiment-sccache-release,mode=max
           # Pass GHA creds into Docker for sccache cross-run caching.
           # SCCACHE_GHA_ENABLED is hardcoded true because it's always set on GHA.
-          # ACTIONS_RUNTIME_TOKEN, ACTIONS_CACHE_URL, ACTIONS_RESULTS_URL are
-          # injected by GHA before workflow parsing, so ${{ env.X }} works.
+          # ACTIONS_RESULTS_URL is the V2 cache API URL (set on modern runners).
+          # ACTIONS_CACHE_URL (V1) is NOT set on modern runners; we pass the V2 URL
+          # in its place because sccache's ghac library looks for ACTIONS_CACHE_URL.
           build-args: |
             SCCACHE_GHA_ENABLED=true
             ACTIONS_RUNTIME_TOKEN=${{ env.ACTIONS_RUNTIME_TOKEN }}
-            ACTIONS_CACHE_URL=${{ env.ACTIONS_CACHE_URL }}
+            ACTIONS_CACHE_URL=${{ env.ACTIONS_RESULTS_URL }}
             ACTIONS_RESULTS_URL=${{ env.ACTIONS_RESULTS_URL }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
