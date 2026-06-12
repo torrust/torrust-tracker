@@ -7,7 +7,7 @@ github-issue: 1726
 spec-path: docs/issues/open/1726-1840-workflow-performance-sccache/ISSUE.md
 branch: 1726-reduce-build-times-sccache
 related-pr: 1905
-last-updated-utc: 2026-06-11 20:00
+last-updated-utc: 2026-06-12 10:00
 semantic-links:
   skill-links:
     - create-issue
@@ -336,42 +336,52 @@ RUN --mount=type=secret,id=SCCACHE_GHA_ENABLED \
 
 - [x] `Containerfile.sccache-experiment` created with sccache in `chef` stage
 - [x] Chef stage built locally: sccache 0.15.0 ✅, cargo-chef ✅, local disk fallback ✅
-- [x] Local Docker stage build times measured:
-      - `dependencies_thirdparty` (external deps, release): **52.75 s**
-      - `dependencies` (workspace cook + pre-link, release): **+31.19 s**
+- [x] Local Docker stage build times measured: - `dependencies_thirdparty` (external deps, release): **52.75 s** - `dependencies` (workspace cook + pre-link, release): **+31.19 s**
 - [x] Create `experiment-sccache-docker.yaml` workflow (Docker build + E2E tests)
 - [x] Push to `josecelano` fork and run cold test — **succeeded** (29 min 28 s)
 - [x] Re-trigger for warm test — **succeeded but no improvement** (30 min 13 s)
-- [ ] **CONCLUSION PENDING**: sccache inside Docker adds no measurable benefit.
+- [x] **CONCLUSION: sccache inside Docker adds no measurable benefit.**
       Both sccache GHA backend and BuildKit `cache-from: type=gha` limited by same issues:
       non-sticky runners, slow cache restore, token expiration between runs.
       See [`experiment-docker-gha-results.md`](./experiment-docker-gha-results.md).
+
+- Checkpoint: ✅ **TASK 3b COMPLETE** — **Reject sccache for Docker builds.**
+  The experiment proved that neither sccache nor BuildKit GHA cache improve cross-run
+  build times on GitHub-hosted runners. Token expiration prevents sccache cross-run
+  access, and cache restore time exceeds recompilation time.
 
 ---
 
 #### Task 3c: Full E2E with sccache-warmed Docker build
 
-Run the complete E2E test suite (qBittorrent SQLite3, MySQL, PostgreSQL) with a
-sccache-warmed Docker build to measure end-to-end workflow improvement.
-
-- [ ] Add the E2E steps to the experiment workflow (same as `container.yaml`:
-      `e2e_tests_runner`, `qbittorrent_e2e_runner` for all 3 database drivers).
-- [ ] Push and run the workflow (cold), then re-trigger (warm). Record total workflow
-      duration for both runs.
-- [ ] Compare with recent `container.yaml` run durations on `develop`.
+- [x] **MERGED INTO TASK 3b** — The E2E test steps (tracker + qBittorrent SQLite3/MySQL/PostgreSQL)
+      were included in the `experiment-sccache-docker.yaml` workflow from the start.
+      No separate experiment needed.
 
 ---
 
 #### Task 3d: Decision and cleanup
 
-- [ ] Document recommendation: adopt sccache for Docker builds, adopt hybrid, or reject.
-- [ ] If adopted, modify the real `container.yaml` workflow and `Containerfile` with
-      the proven sccache integration.
-- [ ] If rejected, document why for the Docker context (e.g., "GitHub-hosted runner
-      non-sticky disk + sccache GHA backend fetch time outweighs benefit for this
-      workspace's build pattern; B1 mount strategy adds Docker complexity without
-      proportional gain").
-- [ ] Remove experiment workflow files.
+- [x] **Final recommendation** (see ADR `docs/adrs/20260612000000_adopt_sccache_for_ci_bare_builds.md`): - **Reject sccache for local development** — cold build +22 % slower. - **Reject sccache for Docker builds** — no benefit on GHA runners. - **Adopt sccache for non-Docker CI jobs** that do bare `cargo build` on GHA runners.
+      93.38 % hit rate proven in Task 3a, reducing cold build from 479 s to 192 s.
+
+---
+
+#### Task 3d: Decision and cleanup
+
+- [x] **Final recommendation documented in ADR**
+      `docs/adrs/20260612000000_adopt_sccache_for_ci_bare_builds.md`: - **Reject sccache for local development** — no benefit (cold: +22 %). - **Reject sccache for Docker builds** — no benefit on GHA runners. - **Adopt sccache for non-Docker CI builds** — 93.38 % hit rate proven.
+- [-] If adopted, modify the real `container.yaml` — **not applicable (rejected for Docker)**.
+- [x] If rejected, document why: token expiration between runs and slow cache transfer.
+      See [`experiment-docker-gha-results.md`](./experiment-docker-gha-results.md).
+- [ ] Remove experiment workflow files (`experiment-sccache-bare-build.yaml`,
+      `experiment-sccache-docker.yaml`, `Containerfile.sccache-experiment`).
+- [ ] Verify `linter all` still exits `0`.
+
+- Checkpoint: ✅ **TASK 3d — Final decision: adopt sccache for bare CI builds only.**
+
+Commit message: `ci: adopt sccache for non-docker ci builds`
+
 - [ ] Verify `linter all` still exits `0`.
 
 - Checkpoint: final decision with evidence for CI/Docker context.
@@ -395,9 +405,11 @@ Commit message: `ci(container): validate sccache for docker build workflow`
   - ✅ GHA warm re-trigger: 30 min 13 s — **no improvement** (same recompilation)
   - ⚠️ **Conclusion: sccache inside Docker adds no measurable benefit** on GHA runners.
     See [`experiment-docker-gha-results.md`](./experiment-docker-gha-results.md).
-- [ ] Task 3c: Full E2E with sccache-warmed Docker build — **merged into Task 3b** (E2E tests already included in experiment workflow).
-- [ ] Task 3d: Final decision and cleanup (adopt, reject, or hybrid for Docker context).
+- [x] **Task 3c: Full E2E with sccache-warmed Docker build** — **merged into Task 3b** (E2E tests already included in experiment workflow).
+- [x] **Task 3d: Final decision** — **Reject sccache for Docker builds, adopt for bare CI builds.**
+      See ADR `docs/adrs/20260612000000_adopt_sccache_for_ci_bare_builds.md`.
 - [x] If adoption is not recommended, issue documents why and proposes next optimization steps.
   - Conclusion: `torrust-tracker` bin crate (77 s critical-path) is never cached; workspace is too
-    tightly coupled for sccache to provide meaningful benefit locally. CI/Docker is still under
-    evaluation (Task 3a–3d).
+    tightly coupled for sccache to provide meaningful benefit locally. On GHA bare builds sccache
+    provides 93.38 % hit rate (60 % reduction) — adopted for non-Docker CI jobs. On Docker builds
+    no measurable benefit — rejected for container workflow.
