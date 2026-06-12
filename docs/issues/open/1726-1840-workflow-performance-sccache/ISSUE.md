@@ -362,31 +362,17 @@ RUN --mount=type=secret,id=SCCACHE_GHA_ENABLED \
 
 #### Task 3d: Decision and cleanup
 
-- [x] **Final recommendation** (see ADR `docs/adrs/20260612000000_adopt_sccache_for_ci_bare_builds.md`): - **Reject sccache for local development** — cold build +22 % slower. - **Reject sccache for Docker builds** — no benefit on GHA runners. - **Adopt sccache for non-Docker CI jobs** that do bare `cargo build` on GHA runners.
-      93.38 % hit rate proven in Task 3a, reducing cold build from 479 s to 192 s.
-
----
-
-#### Task 3d: Decision and cleanup
-
-- [x] **Final recommendation documented in ADR**
-      `docs/adrs/20260612000000_adopt_sccache_for_ci_bare_builds.md`: - **Reject sccache for local development** — no benefit (cold: +22 %). - **Reject sccache for Docker builds** — no benefit on GHA runners. - **Adopt sccache for non-Docker CI builds** — 93.38 % hit rate proven.
+- [x] **Final recommendation** (see ADR `docs/adrs/20260612000000_adopt_sccache_for_ci_bare_builds.md`): - **Reject sccache for local development** — cold build +22 % slower. - **Reject sccache for Docker builds** — no benefit on GHA runners. - **Adopt sccache for non-Docker CI jobs** — 93.38 % hit rate proven.
 - [-] If adopted, modify the real `container.yaml` — **not applicable (rejected for Docker)**.
 - [x] If rejected, document why: token expiration between runs and slow cache transfer.
       See [`experiment-docker-gha-results.md`](./experiment-docker-gha-results.md).
-- [ ] Remove experiment workflow files (`experiment-sccache-bare-build.yaml`,
-      `experiment-sccache-docker.yaml`, `Containerfile.sccache-experiment`).
+- [x] Experiment files archived: `experiment-sccache-bare-build.yaml`, `experiment-sccache-docker.yaml`,
+      `Containerfile.sccache-experiment` → `contrib/dev-tools/experiments/sccache-docker/04-gha-workflow-experiments/`.
 - [ ] Verify `linter all` still exits `0`.
 
 - Checkpoint: ✅ **TASK 3d — Final decision: adopt sccache for bare CI builds only.**
 
 Commit message: `ci: adopt sccache for non-docker ci builds`
-
-- [ ] Verify `linter all` still exits `0`.
-
-- Checkpoint: final decision with evidence for CI/Docker context.
-
-Commit message: `ci(container): validate sccache for docker build workflow`
 
 ---
 
