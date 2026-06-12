@@ -98,6 +98,63 @@ Guidance:
   primary convention.
 - Use frontmatter to express richer relations (for example bidirectional links).
 - Keep paths repository-relative and stable.
+
+> **Stability warning**: Issue spec documents can move between `docs/issues/open/` and
+> `docs/issues/closed/` as their state changes. When linking to an issue spec from a
+> long-lived artifact like an ADR or workflow, prefer the issue number (`issue #NNNN`)
+> over a file path, because the path may become stale after the issue is closed.
+>
+> For in-flight linking within the same issue (e.g., experiment results linking to the
+> issue spec), file paths are acceptable because the artifacts move together.
+
+## Cross-Referencing ADRs
+
+ADRs are long-lived records that outlast individual issues and task branches. They should
+be linked bidirectionally to the artifacts they affect.
+
+### From ADR to workflows and issue specs
+
+Use the `semantic-links.related-artifacts` frontmatter list:
+
+```yaml
+---
+semantic-links:
+  skill-links:
+    - create-adr
+  related-artifacts:
+    - issue #1726                    # Use issue number, not file path
+    - .github/workflows/testing.yaml  # Workflow files are stable paths
+    - contrib/dev-tools/experiments/  # Canonical experiment directory
+---
+```
+
+Guidelines:
+
+- Use `issue #NNNN` for issue specs (paths can change when moved to `closed/`).
+- Use repository-relative paths for files that do not move (workflows, config files,
+  experiment directories).
+- Do **not** duplicate the `related-artifacts` in a body section like `## References` —
+  the frontmatter is the canonical source.
+
+### From workflow files to ADR
+
+GitHub Actions YAML workflows do not support YAML frontmatter. Use a `# adr:` comment
+at the top of the file, near the `name:` line:
+
+```yaml
+name: Testing
+
+# adr: docs/adrs/20260612000000_adopt_sccache_for_ci_bare_builds.md
+# Brief one-liner about what the ADR decided for this workflow.
+
+# Path policy: ...
+```
+
+Guidelines:
+
+- Use the full repository-relative path to the ADR (ADRs are never renamed or moved).
+- Add a brief comment explaining the relevance.
+- Multiple ADR references can be stacked as separate `# adr:` lines.
 - Keep links high-signal; avoid noisy or speculative links.
 - For issue and EPIC specs, include both metadata and `semantic-links` in frontmatter.
 
