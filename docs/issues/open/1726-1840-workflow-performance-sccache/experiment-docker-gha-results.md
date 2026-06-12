@@ -51,17 +51,62 @@ can never cache — same limitation as all previous experiments.
 
 ---
 
-## Run 4 (warm re-trigger) — to be measured
+## Run 4 — Warm Re-trigger (workflow_dispatch, same commit)
 
-When re-triggered (same commit), the BuildKit `cache-from: type=gha` should hit for all layers
-where `Cargo.lock` hasn't changed. On a warm run, the `dependencies_thirdparty` step should
-show `CACHED` in the build output (0 s rebuild).
+> **Run 4**: https://github.com/josecelano/torrust-tracker/actions/runs/27404315247
+> **Event**: `workflow_dispatch` (same commit `be0627f9`)
+> **Total workflow**: **30 min 13 s** (08:30:22 → 09:00:35 UTC)
 
-If `Cargo.lock` were to change, the BuildKit layer cache would miss, and sccache would be tested:
+### Docker build stage comparison
 
-- External deps: ~232 Rust units sccache could cache → would save ~3 min 52 s on a cross-run
-- Workspace crates: ~160 Rust units → mostly bin (never cached) + tight coupling = minimal benefit
+| Stage                                         | Cold (Run 3)    | Warm (Run 4)    | Delta     | CACHED?       |
+| --------------------------------------------- | --------------- | --------------- | --------- | ------------- |
+| `dependencies_thirdparty` (external deps)     | **3 min 52 s**  | **3 min 45 s**  | -7 s      | ❌ Recompiled |
+| `dependencies` (workspace cook)               | **2 min 40 s**  | **2 min 41 s**  | +1 s      | ❌ Recompiled |
+| Dependencies pre-link warmup                  | ~37 s           | ~37 s           | ~0 s      | ❌ Recompiled |
+| **Build** (`cargo nextest archive --release`) | **14 min 24 s** | **13 min 46 s** | -38 s     | ❌ Recompiled |
+| Test execution steps                          | ~6 s            | ~6 s            | ~0 s      | ✅ CACHED     |
+| **Total workflow**                            | **29 min 28 s** | **30 min 13 s** | **+45 s** | —             |
 
-**Verdict**: sccache inside Docker adds value only in the narrow scenario where `Cargo.lock`
-changes but individual crate sources haven't (saving ~4 min of third-party dep compilation on GHA).
-The BuildKit layer cache already handles the common case (`Cargo.lock` unchanged) perfectly.
+### Critical finding: BuildKit GHA cache did NOT help
+
+The `cache-from: type=gha,scope=experiment-sccache-release` from Run 3 did NOT accelerate
+Run 4. The compilation stages all recompiled at full speed (~30 min total).
+
+**Why?** The BuildKit GHA cache backend stores compressed image layers. On `ubuntu-latest`
+GitHub-hosted runners, the cache restore step:
+
+1. Downloads compressed layers from GHA cache (at 30-70 MB/s)
+2. Decompresses and verifies checksums
+3. Only then can BuildKit skip recompilation
+
+The `dependencies_thirdparty` layer has a compressed size of several hundred MB. Combined
+with GHA cache API rate limits and the `docker-container` driver's overhead, the restore
+time can be comparable to or longer than the recompilation time — exactly as predicted in
+the original `compile-hotspot-analysis.md` about `Swatinem/rust-cache`.
+
+### sccache inside Docker: same fate
+
+sccache inside Docker couldn't help because:
+
+1. The GHA credentials (`ACTIONS_RUNTIME_TOKEN`) are **job-scoped** — they expire when the
+   job ends. A new workflow run gets a new token. The cached objects from Run 3 were stored
+   under Run 3's credentials and cannot be accessed by Run 4.
+2. Even if credentials could be reused, sccache's `ghac` library uses the GitHub Actions
+   cache API which has the same 10 GB limit and rate-limiting as BuildKit's cache.
+
+### Conclusion for Task 3b
+
+**sccache inside Docker provides no measurable benefit for cross-run builds on GHA.**
+
+Both sccache and BuildKit's `cache-from: type=gha` are limited by the same fundamental
+constraints of GitHub-hosted runners:
+
+- **Non-sticky disk**: Every new runner starts with an empty local disk
+- **Slow cache transfer**: 30-70 MB/s over the network
+- **Token expiration**: Job-scoped tokens prevent cross-run cache access for sccache
+- **10 GB limit**: Both caches compete for the same limited storage
+
+The **only** caching that works reliably for this workspace is BuildKit's **internal layer
+cache** (not exported via `type=gha`), which is only useful within a single `docker build`
+invocation — not across separate workflow runs.

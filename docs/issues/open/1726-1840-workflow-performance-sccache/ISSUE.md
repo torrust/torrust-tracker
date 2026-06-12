@@ -336,11 +336,16 @@ RUN --mount=type=secret,id=SCCACHE_GHA_ENABLED \
 
 - [x] `Containerfile.sccache-experiment` created with sccache in `chef` stage
 - [x] Chef stage built locally: sccache 0.15.0 ✅, cargo-chef ✅, local disk fallback ✅
-- [x] Local Docker stage build times measured: - `dependencies_thirdparty` (external deps, release): **52.75 s** - `dependencies` (workspace cook + pre-link, release): **+31.19 s** - Note: on local Ryzen 9 7950X; GHA runners will be significantly slower
+- [x] Local Docker stage build times measured:
+      - `dependencies_thirdparty` (external deps, release): **52.75 s**
+      - `dependencies` (workspace cook + pre-link, release): **+31.19 s**
 - [x] Create `experiment-sccache-docker.yaml` workflow (Docker build + E2E tests)
-- [ ] Push to `josecelano` fork and run cold test
-- [ ] Re-trigger for warm test
-- [ ] Compare with baseline `container.yaml` timing
+- [x] Push to `josecelano` fork and run cold test — **succeeded** (29 min 28 s)
+- [x] Re-trigger for warm test — **succeeded but no improvement** (30 min 13 s)
+- [ ] **CONCLUSION PENDING**: sccache inside Docker adds no measurable benefit.
+      Both sccache GHA backend and BuildKit `cache-from: type=gha` limited by same issues:
+      non-sticky runners, slow cache restore, token expiration between runs.
+      See [`experiment-docker-gha-results.md`](./experiment-docker-gha-results.md).
 
 ---
 
@@ -382,12 +387,15 @@ Commit message: `ci(container): validate sccache for docker build workflow`
 - [x] Recommendation is documented with evidence: **reject sccache for local development**.
 - [x] **Task 3a: Bare cargo build with sccache on GHA runner (cold vs warm timing).**
   - Cold: **479.44 s** → Cross-run with sccache: **192.21 s** ✅ (60 % reduction, 93.38 % hit rate)
-- [ ] **Task 3b: sccache inside Docker build (Strategy B2 — GHA backend via `--secret-env`).**
+- [ ] **Task 3b: sccache inside Docker build (Strategy B2 — GHA backend).**
   - ✅ `Containerfile.sccache-experiment` created with sccache in `chef` stage
   - ✅ Local Docker stage timings measured: third-party deps: 52.75 s
   - ✅ experiment-sccache-docker.yaml workflow created
-  - 🔲 GHA workflow run and cross-run test pending
-- [ ] Task 3c: Full E2E with sccache-warmed Docker build.
+  - ✅ GHA cold run: 29 min 28 s — Docker build succeeded with sccache inside ✅
+  - ✅ GHA warm re-trigger: 30 min 13 s — **no improvement** (same recompilation)
+  - ⚠️ **Conclusion: sccache inside Docker adds no measurable benefit** on GHA runners.
+    See [`experiment-docker-gha-results.md`](./experiment-docker-gha-results.md).
+- [ ] Task 3c: Full E2E with sccache-warmed Docker build — **merged into Task 3b** (E2E tests already included in experiment workflow).
 - [ ] Task 3d: Final decision and cleanup (adopt, reject, or hybrid for Docker context).
 - [x] If adoption is not recommended, issue documents why and proposes next optimization steps.
   - Conclusion: `torrust-tracker` bin crate (77 s critical-path) is never cached; workspace is too
