@@ -123,8 +123,8 @@ semantic-links:
     - create-adr
   related-artifacts:
     - issue #1726                    # Use issue number, not file path
-    - .github/workflows/testing.yaml  # Workflow files are stable paths
-    - contrib/dev-tools/experiments/  # Canonical experiment directory
+    - .github/workflows/testing.yaml # Workflow files are stable paths
+    - contrib/dev-tools/experiments/ # Canonical experiment directory
 ---
 ```
 
@@ -138,8 +138,12 @@ Guidelines:
 
 ### From workflow files to ADR
 
-GitHub Actions YAML workflows do not support YAML frontmatter. Use a `# adr:` comment
-at the top of the file, near the `name:` line:
+GitHub Actions YAML workflows do not support YAML frontmatter — the `---` document
+separator would create a second YAML document, causing a parse error. The workflow
+schema only recognises documented keys (`name`, `on`, `jobs`, etc.) and rejects
+unknown top-level keys.
+
+Use a `# adr:` comment at the top of the file, near the `name:` line:
 
 ```yaml
 name: Testing
