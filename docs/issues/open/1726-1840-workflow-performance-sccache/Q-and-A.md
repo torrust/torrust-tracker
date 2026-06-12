@@ -23,8 +23,10 @@ seem to expose those settings. Would increasing the cache limit help?
 
 1. **Cache transfer speed** (30-70 MB/s): A 9 GB `target/` takes 130-300 s to restore —
    longer than recompiling. More space doesn't help throughput.
-2. **Token expiration**: sccache's GHA backend uses `ACTIONS_RUNTIME_TOKEN` which expires
-   when the job ends — no amount of cache space fixes cross-run access.
+2. **Token scope**: sccache's GHA backend uses `ACTIONS_RUNTIME_TOKEN` which is job-scoped.
+   Task 3a proved cross-run sccache restores DO work (93.38 % hit rate) because new jobs
+   receive a new token that can read existing cache entries. However, the cache API has
+   rate limits and the 10 GB pool is shared, so token renewal alone is not a bottleneck.
 
 Where it **might** help is reducing eviction of `Swatinem/rust-cache` entries (600-730 MB each,
 105 active caches), which compete with sccache entries for the same 10 GB pool. If eviction

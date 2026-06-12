@@ -125,10 +125,10 @@ cargo install sccache
 **Output**:
 
 ```text
-TBD
+(Skipped — apt install was used instead, see B1 above)
 ```
 
-**Version**: TBD (typically newer than apt)
+**Version**: N/A (not installed via cargo)
 
 ---
 

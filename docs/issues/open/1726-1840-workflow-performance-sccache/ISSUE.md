@@ -177,8 +177,8 @@ Commit message: `docs(build): record local sccache benchmark results`
 
 Decide whether to enable `sccache` in `.cargo/config.toml` for developers.
 
-- [-] ~If local research is positive~ — **not applicable (research was negative)**.
-- [-] ~If enabled, update `AGENTS.md` and/or `README.md`~ — **not applicable (rejected)**.
+- [ ] ~If local research is positive~ — **not applicable (research was negative)**.
+- [ ] ~If enabled, update `AGENTS.md` and/or `README.md`~ — **not applicable (rejected)**.
 - [x] Verify `linter all` still exits `0` — **confirmed: all linters pass** (run on 2026-06-11).
 
 - Checkpoint: ✅ **TASK 2 COMPLETE** — explicit decision: **do not enable sccache for local
@@ -363,7 +363,7 @@ RUN --mount=type=secret,id=SCCACHE_GHA_ENABLED \
 #### Task 3d: Decision and cleanup
 
 - [x] **Final recommendation** (see ADR `docs/adrs/20260612000000_adopt_sccache_for_ci_bare_builds.md`): - **Reject sccache for local development** — cold build +22 % slower. - **Reject sccache for Docker builds** — no benefit on GHA runners. - **Adopt sccache for non-Docker CI jobs** — 93.38 % hit rate proven.
-- [-] If adopted, modify the real `container.yaml` — **not applicable (rejected for Docker)**.
+- [ ] ~If adopted, modify the real `container.yaml`~ — **not applicable (rejected for Docker)**.
 - [x] If rejected, document why: token expiration between runs and slow cache transfer.
       See [`experiment-docker-gha-results.md`](./experiment-docker-gha-results.md).
 - [x] Experiment files archived: `experiment-sccache-bare-build.yaml`, `experiment-sccache-docker.yaml`,

@@ -58,11 +58,11 @@
 | Cache misses (C/C++)      | 281                                  |
 | Cache misses (Rust)       | 478                                  |
 
-> **Observations**: Only **+14 additional cache hits** vs cold build. This is because Cargo's
-> incremental compilation (even with `CARGO_INCREMENTAL=0`) detects that external dependencies
-> haven't changed and skips them entirely — sccache doesn't even get invoked for those units.
-> The 14 new hits likely come from pre-compiled system-level artifacts that sccache cached on
-> the cold run.
+> **Observations**: Only **+14 additional cache hits** vs cold build. Cargo's dependency
+> fingerprinting / build graph analysis detects that external dependencies haven't changed
+> and skips them entirely at the build graph level — `rustc` (and thus sccache) is never
+> invoked for those units. The 14 new hits likely come from pre-compiled system-level
+> artifacts that sccache cached on the cold run.
 
 ---
 
@@ -152,5 +152,3 @@ dominated by this crate. Even with perfect sccache caching, the minimum build ti
 - Local cold (no sccache): 112.50 s
 - GHA cold (no sccache): ~479 s (4x slower — fewer cores)
 - GHA cold (sccache cross-run): 192 s (2.4x improvement vs no-cache GHA)
-  | Cache hits | TBD |
-  | Cache misses | TBD |
