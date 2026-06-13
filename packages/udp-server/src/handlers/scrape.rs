@@ -8,13 +8,13 @@ use torrust_tracker_primitives::ScrapeData;
 use torrust_tracker_udp_tracker_core::services::scrape::ScrapeService;
 use torrust_tracker_udp_tracker_core::{self};
 use torrust_tracker_udp_tracker_protocol::{
-    NumberOfDownloads, NumberOfPeers, Response, ScrapeRequest, ScrapeResponse, TorrentScrapeStatistics, TransactionId,
+    NumberOfDownloads, NumberOfPeers, Response, ScrapeRequest, ScrapeResponse, TorrentScrapeStatistics,
 };
 use tracing::{Level, instrument};
 use zerocopy::byteorder::network_endian::I32;
 
-use crate::error::Error;
 use crate::event::{ConnectionContext, Event, UdpRequestKind};
+use crate::handlers::HandlerError;
 
 /// It handles the `Scrape` request.
 ///
@@ -29,7 +29,7 @@ pub async fn handle_scrape(
     request: &ScrapeRequest,
     opt_udp_server_stats_event_sender: &crate::event::sender::Sender,
     cookie_valid_range: Range<f64>,
-) -> Result<Response, (Error, TransactionId, UdpRequestKind)> {
+) -> Result<Response, HandlerError> {
     tracing::Span::current()
         .record("transaction_id", request.transaction_id.0.to_string())
         .record("connection_id", request.connection_id.0.to_string());
@@ -48,7 +48,7 @@ pub async fn handle_scrape(
     let scrape_data = scrape_service
         .handle_scrape(client_socket_addr, server_service_binding, request, cookie_valid_range)
         .await
-        .map_err(|e| (e.into(), request.transaction_id, UdpRequestKind::Scrape))?;
+        .map_err(|e| Box::new((e.into(), request.transaction_id, UdpRequestKind::Scrape)))?;
 
     Ok(build_response(request, &scrape_data))
 }

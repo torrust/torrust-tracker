@@ -7,6 +7,7 @@ use super::super::error::Error;
 
 /// Trait covering persistence operations for the torrent whitelist.
 #[async_trait]
+#[allow(clippy::extra_unused_lifetimes)]
 #[automock]
 pub trait WhitelistStore: Sync + Send {
     /// Loads the whitelisted torrents from the database.

@@ -381,7 +381,7 @@ Commit message: `ci: adopt sccache for non-docker ci builds`
 - [x] Local benchmark report exists with baseline vs `sccache` (cold, warm, warm-after-change).
 - [ ] ~~CI benchmark report exists~~ — **replaced by progressive sub-tasks** (3a → 3d below).
 - [x] Recommendation is documented with evidence: **reject sccache for local development**.
-- [x] **Task 3a: Bare cargo build with sccache on GHA runner (cold vs warm timing).**
+- [x] **Task 3a: Bare cargo build with sccache on GHA runner (cold vs warm timing).**mozilla-actions/sccache-action@*,
   - Cold: **479.44 s** → Cross-run with sccache: **192.21 s** ✅ (60 % reduction, 93.38 % hit rate)
 - [ ] **Task 3b: sccache inside Docker build (Strategy B2 — GHA backend).**
   - ✅ `Containerfile.sccache-experiment` created with sccache in `chef` stage

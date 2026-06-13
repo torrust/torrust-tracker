@@ -14,6 +14,7 @@ use super::super::error::Error;
 /// Trait covering persistence operations for per-torrent and global download
 /// counters.
 #[async_trait]
+#[allow(clippy::extra_unused_lifetimes)]
 #[automock]
 pub trait TorrentMetricsStore: Sync + Send {
     /// Loads torrent metrics data from the database for all torrents.

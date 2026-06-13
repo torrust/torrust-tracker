@@ -10,7 +10,7 @@ use crate::authentication::{self, Key};
 // which triggers `clippy::struct_field_names` (pedantic). Suppressed here
 // because the generated mock struct is outside our control.
 #[async_trait]
-#[allow(clippy::struct_field_names)]
+#[allow(clippy::struct_field_names, clippy::extra_unused_lifetimes)]
 #[automock]
 pub trait AuthKeyStore: Sync + Send {
     /// Loads all authentication keys from the database.

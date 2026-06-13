@@ -328,8 +328,8 @@ fn is_timeout_udp_client_error(err: &udp::Error) -> bool {
 
 fn is_timeout_error(err: &UdpError) -> bool {
     match err {
-        UdpError::UnableToBindAndConnect { err, .. }
-        | UdpError::UnableToSendConnectionRequest { err }
+        UdpError::UnableToBindAndConnect { err, .. } => is_timeout_udp_client_error(err),
+        UdpError::UnableToSendConnectionRequest { err }
         | UdpError::UnableToReceiveConnectResponse { err }
         | UdpError::UnableToSendAnnounceRequest { err }
         | UdpError::UnableToReceiveAnnounceResponse { err }
