@@ -44,7 +44,10 @@ impl Client {
     pub async fn new(remote_addr: SocketAddr, timeout: Duration) -> Result<Self, Error> {
         let client = UdpTrackerClient::new(remote_addr, timeout)
             .await
-            .map_err(|err| Error::UnableToBindAndConnect { remote_addr, err })?;
+            .map_err(|err| Error::UnableToBindAndConnect {
+                remote_addr,
+                err: Box::new(err),
+            })?;
 
         Ok(Self { client })
     }

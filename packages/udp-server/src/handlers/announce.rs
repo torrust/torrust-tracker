@@ -10,13 +10,13 @@ use torrust_tracker_primitives::AnnounceData;
 use torrust_tracker_udp_tracker_core::services::announce::AnnounceService;
 use torrust_tracker_udp_tracker_protocol::{
     AnnounceInterval, AnnounceRequest, AnnounceResponse, AnnounceResponseFixedData, Ipv4AddrBytes, Ipv6AddrBytes, NumberOfPeers,
-    Port, Response, ResponsePeer, TransactionId,
+    Port, Response, ResponsePeer,
 };
 use tracing::{Level, instrument};
 use zerocopy::byteorder::network_endian::I32;
 
-use crate::error::Error;
 use crate::event::{ConnectionContext, Event, UdpRequestKind};
+use crate::handlers::HandlerError;
 
 /// It handles the `Announce` request.
 ///
@@ -32,7 +32,7 @@ pub async fn handle_announce(
     core_config: &Arc<Core>,
     opt_udp_server_stats_event_sender: &crate::event::sender::Sender,
     cookie_valid_range: Range<f64>,
-) -> Result<Response, (Error, TransactionId, UdpRequestKind)> {
+) -> Result<Response, HandlerError> {
     tracing::Span::current()
         .record("transaction_id", request.transaction_id.0.to_string())
         .record("connection_id", request.connection_id.0.to_string())
@@ -55,13 +55,13 @@ pub async fn handle_announce(
         .handle_announce(client_socket_addr, server_service_binding, request, cookie_valid_range)
         .await
         .map_err(|e| {
-            (
+            Box::new((
                 e.into(),
                 request.transaction_id,
                 UdpRequestKind::Announce {
                     announce_request: *request,
                 },
-            )
+            ))
         })?;
 
     Ok(build_response(client_socket_addr, request, core_config, &announce_data))

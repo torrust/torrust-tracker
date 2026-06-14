@@ -1,0 +1,120 @@
+name: Experiment — sccache Bare Build (Task 3a)
+
+# Self-contained A/B benchmark:
+#   Cold push → builds from scratch with sccache → sccache populates GHA cache backend.
+#   Same-push warm rebuild (touch leaf crate) → measures sccache warm-after-change benefit.
+#   Re-trigger (same commit) → measures true GHA cross-run cache hit (sccache downloads from GHA backend).
+#
+# Manual process to capture results:
+#   1. Push this branch → workflow runs → inspect "Cold Build" and "Warm Rebuild" step outputs
+#   2. Re-trigger workflow (same commit) via `workflow_dispatch` → inspect "Cold Build" step
+#      for sccache GHA backend cross-run cache stats
+#   3. Record wall times and sccache stats in the issue spec
+
+on:
+  push:
+    branches:
+      - "1726-reduce-build-times-sccache"
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  benchmark:
+    name: sccache Bare Build Benchmark
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+
+    steps:
+      - id: checkout
+        name: Checkout Repository
+        uses: actions/checkout@v6
+
+      - id: setup-rust
+        name: Setup Rust Toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+
+      - id: setup-sccache
+        name: Install sccache (GHA backend)
+        uses: mozilla-actions/sccache-action@v0.0.10
+
+      - id: enable-sccache
+        name: Enable sccache
+        run: |
+          echo "RUSTC_WRAPPER=sccache" >> "$GITHUB_ENV"
+          echo "SCCACHE_GHA_ENABLED=true" >> "$GITHUB_ENV"
+          echo "CARGO_INCREMENTAL=0" >> "$GITHUB_ENV"
+
+      - id: fetch
+        name: Download Dependencies
+        run: cargo fetch --verbose
+
+      # ── Cold build ──────────────────────────────────────────────
+      - id: build-cold
+        name: Cold Build — cargo build --release
+        run: |
+          echo "::group::Cold Build Output"
+          /usr/bin/time -f 'real=%e  user=%U  sys=%S' cargo build --release 2>&1
+          echo "::endgroup::"
+          echo "::notice title=Cold Build::Completed"
+
+      - id: stats-cold
+        name: Cold Build — sccache Stats
+        run: |
+          echo "::group::sccache Stats (Cold)"
+          sccache --show-stats
+          echo "::endgroup::"
+          echo "SCCACHE_COLD_HITS<<EOF" >> "$GITHUB_ENV"
+          sccache --show-stats | grep -E "Cache hits|Cache misses|Cache hits rate" >> "$GITHUB_ENV"
+          echo "EOF" >> "$GITHUB_ENV"
+
+      # ── Warm rebuild after leaf-crate change ────────────────────
+      # Simulates a real code change: touch the deepest leaf crate so the maximum
+      # number of downstream crates must recompile.
+      - id: touch-primitives
+        name: Touch Leaf Crate (primitives/lib.rs)
+        run: |
+          touch packages/primitives/src/lib.rs
+          echo "Touched packages/primitives/src/lib.rs"
+
+      - id: build-warm
+        name: Warm Rebuild — cargo build --release (leaf change)
+        run: |
+          echo "::group::Warm Rebuild Output"
+          /usr/bin/time -f 'real=%e  user=%U  sys=%S' cargo build --release 2>&1
+          echo "::endgroup::"
+          echo "::notice title=Warm Rebuild::Completed"
+
+      - id: stats-warm
+        name: Warm Rebuild — sccache Stats
+        run: |
+          echo "::group::sccache Stats (Warm)"
+          sccache --show-stats
+          echo "::endgroup::"
+          echo "SCCACHE_WARM_HITS<<EOF" >> "$GITHUB_ENV"
+          sccache --show-stats | grep -E "Cache hits|Cache misses|Cache hits rate" >> "$GITHUB_ENV"
+          echo "EOF" >> "$GITHUB_ENV"
+
+      # ── Summary ─────────────────────────────────────────────────
+      - id: summary
+        name: Results Summary
+        run: |
+          echo "::notice::=== SCCACHE BARE BUILD A/B RESULTS ==="
+          echo "See step outputs above for wall times."
+          echo "Cold sccache stats:"
+          echo "$SCCACHE_COLD_HITS"
+          echo ""
+          echo "Warm sccache stats:"
+          echo "$SCCACHE_WARM_HITS"
+          echo ""
+          echo "=== HOW TO INTERPRET ==="
+          echo "Cold: first build, all misses expected. Wall time ~130-150s."
+          echo "Warm: external/C deps should be cached hits. Wall time ~85-100s."
+          echo ""
+          echo "=== CROSS-RUN CACHE TEST ==="
+          echo "Re-trigger this workflow (same commit) via workflow_dispatch."
+          echo "If sccache GHA backend works, the second run's Cold build"
+          echo "will have cache hits from the first run's upload."

@@ -1,5 +1,8 @@
 name: Coverage
 
+# adr: docs/adrs/20260612000000_adopt_sccache_for_ci_bare_builds.md
+# sccache added for cross-run compilation caching on bare CI builds.
+
 on:
   push:
     branches:
@@ -31,9 +34,16 @@ jobs:
           toolchain: nightly
           components: llvm-tools-preview
 
-      - id: cache
-        name: Enable Workflow Cache
-        uses: Swatinem/rust-cache@v2
+      - id: sccache
+        name: Install sccache (GHA backend)
+        uses: mozilla-actions/sccache-action@v0.0.10
+
+      - id: enable-sccache
+        name: Enable sccache
+        run: |
+          echo "RUSTC_WRAPPER=sccache" >> "$GITHUB_ENV"
+          echo "SCCACHE_GHA_ENABLED=true" >> "$GITHUB_ENV"
+          # CARGO_INCREMENTAL=0 already set in job env for coverage
 
       - id: tools
         name: Install Tools

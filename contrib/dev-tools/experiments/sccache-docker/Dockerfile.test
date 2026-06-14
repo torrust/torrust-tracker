@@ -1,0 +1,36 @@
+# Minimal test: verify sccache works inside Docker with BuildKit cache mounts
+# Based on the same rust:trixie base as the real Containerfile
+
+FROM docker.io/library/rust:trixie AS test
+
+# Install sccache
+RUN cargo install sccache --locked
+
+# sccache config
+ENV RUSTC_WRAPPER=sccache
+ENV SCCACHE_DIR=/sccache
+ENV SCCACHE_IDLE_TIMEOUT=0
+ENV CARGO_INCREMENTAL=0
+ENV CARGO_TERM_COLOR=always
+
+WORKDIR /app
+
+# Copy manifests only for dependency caching
+COPY Cargo.toml Cargo.lock ./
+RUN mkdir -p src && touch src/lib.rs
+
+# First build: should be cold (all misses)
+RUN --mount=type=cache,target=/sccache \
+    --mount=type=cache,target=/usr/local/cargo/registry \
+    --mount=type=cache,target=/usr/local/cargo/git \
+    cargo build --release 2>&1 && \
+    echo "=== COLD BUILD DONE ===" && \
+    sccache --show-stats
+
+# Second build: should show cache hits (external deps already cached)
+RUN --mount=type=cache,target=/sccache \
+    --mount=type=cache,target=/usr/local/cargo/registry \
+    --mount=type=cache,target=/usr/local/cargo/git \
+    cargo build --release 2>&1 && \
+    echo "=== WARM BUILD DONE ===" && \
+    sccache --show-stats

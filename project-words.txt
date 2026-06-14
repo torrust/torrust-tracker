@@ -70,6 +70,7 @@ Condvar
 connectionless
 Containerfile
 conv
+creds
 curr
 cvar
 cves
@@ -95,6 +96,7 @@ downloadedi
 dtolnay
 dylib
 elif
+endgroup
 endianness
 envcontainer
 eprint
@@ -118,6 +120,7 @@ frontmatter
 Frostegård
 Garnham
 gecos
+ghac
 Gibibytes
 Glrg
 Graphviz
@@ -263,6 +266,7 @@ Rasterbar
 readelf
 realpath
 reannounce
+recaches
 recognised
 recompiles
 referer

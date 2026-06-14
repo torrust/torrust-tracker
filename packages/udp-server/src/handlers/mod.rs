@@ -27,6 +27,9 @@ use crate::container::UdpTrackerServerContainer;
 use crate::error::Error;
 use crate::event::UdpRequestKind;
 
+/// Type alias for the common handler error returned by UDP request handlers.
+pub(crate) type HandlerError = Box<(Error, TransactionId, UdpRequestKind)>;
+
 #[derive(Debug, Clone, PartialEq)]
 pub struct CookieTimeValues {
     pub(super) issue_time: f64,
@@ -82,7 +85,8 @@ pub(crate) async fn handle_packet(
             .await
             {
                 Ok((response, req_kid)) => return (response, Some(req_kid)),
-                Err((error, transaction_id, req_kind)) => {
+                Err(boxed_err) => {
+                    let (error, transaction_id, req_kind) = *boxed_err;
                     let response = handle_error(
                         Some(req_kind.clone()),
                         udp_request.from,
@@ -148,7 +152,7 @@ pub async fn handle_request(
     udp_tracker_core_container: Arc<UdpTrackerCoreContainer>,
     udp_tracker_server_container: Arc<UdpTrackerServerContainer>,
     cookie_time_values: CookieTimeValues,
-) -> Result<(Response, UdpRequestKind), (Error, TransactionId, UdpRequestKind)> {
+) -> Result<(Response, UdpRequestKind), HandlerError> {
     tracing::trace!("handle request");
 
     match request {

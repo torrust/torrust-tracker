@@ -13,7 +13,7 @@ pub mod responses;
 #[serde(into = "String")]
 pub enum Error {
     #[error("Failed to Connect to: {remote_addr}, with error: {err}")]
-    UnableToBindAndConnect { remote_addr: SocketAddr, err: udp::Error },
+    UnableToBindAndConnect { remote_addr: SocketAddr, err: Box<udp::Error> },
 
     #[error("Failed to send a connection request, with error: {err}")]
     UnableToSendConnectionRequest { err: udp::Error },

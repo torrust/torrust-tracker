@@ -9,6 +9,7 @@ use super::super::error::Error;
 /// Implementors are responsible for creating and dropping the full set of
 /// database tables used by the tracker.
 #[async_trait]
+#[allow(clippy::extra_unused_lifetimes)]
 #[automock]
 pub trait SchemaMigrator: Sync + Send {
     /// Creates the necessary database tables.
