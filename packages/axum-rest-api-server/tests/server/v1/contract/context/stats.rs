@@ -1,7 +1,7 @@
 use std::str::FromStr;
 
 use torrust_info_hash::InfoHash;
-use torrust_tracker_axum_rest_api_server::environment::Started;
+use torrust_tracker_axum_rest_api_server::testing::environment::Started;
 use torrust_tracker_axum_rest_api_server::v1::context::stats::resources::Stats;
 use torrust_tracker_primitives::peer::fixture::PeerBuilder;
 use torrust_tracker_rest_api_client::v1::client::{Client, headers_with_request_id};

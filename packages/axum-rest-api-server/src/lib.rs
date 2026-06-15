@@ -153,9 +153,9 @@
 //! > **NOTICE**: we are using [curl](https://curl.se/) in the API examples.
 //! > And you have to use quotes around the URL in order to avoid unexpected
 //! > errors. For example: `curl "http://127.0.0.1:1212/api/v1/stats?token=MyAccessToken"`.
-pub mod environment;
 pub mod routes;
 pub mod server;
+pub mod testing;
 pub mod v1;
 
 use serde::{Deserialize, Serialize};
