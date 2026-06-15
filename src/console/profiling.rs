@@ -1,3 +1,5 @@
+#![allow(clippy::print_stdout, clippy::print_stderr)]
+
 //! This binary is used for profiling with [valgrind](https://valgrind.org/)
 //! and [kcachegrind](https://kcachegrind.github.io/).
 //!

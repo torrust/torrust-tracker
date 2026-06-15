@@ -42,18 +42,18 @@ impl Stats {
         self.last_ms = Some(elapsed_ms);
     }
 
-    fn record_timeout(&mut self) {
+    const fn record_timeout(&mut self) {
         self.total += 1;
         self.timeouts += 1;
         self.last_ms = None;
     }
 
-    fn record_error(&mut self) {
+    const fn record_error(&mut self) {
         self.total += 1;
         self.last_ms = None;
     }
 
-    fn average_ms(&self) -> Option<u64> {
+    const fn average_ms(&self) -> Option<u64> {
         self.sum_ms.checked_div(self.successes)
     }
 
@@ -314,7 +314,7 @@ fn resolve_socket_addr(url: &Url) -> Result<SocketAddr, String> {
         .ok_or_else(|| format!("no socket addresses resolved for tracker URL `{url}`"))
 }
 
-fn is_timeout_udp_client_error(err: &udp::Error) -> bool {
+const fn is_timeout_udp_client_error(err: &udp::Error) -> bool {
     matches!(
         err,
         udp::Error::TimeoutWhileBindingToSocket { .. }

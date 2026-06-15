@@ -90,8 +90,8 @@ async fn create_database_tables_with_retry(schema_migrator: &dyn SchemaMigrator)
         tokio::time::sleep(Duration::from_secs(2)).await;
     }
 
-    match last_error {
-        Some(error) => Err(anyhow!("database is not ready after retries; last error: {error}")),
-        None => Err(anyhow!("database is not ready after retries")),
-    }
+    last_error.map_or_else(
+        || Err(anyhow!("database is not ready after retries")),
+        |error| Err(anyhow!("database is not ready after retries; last error: {error}")),
+    )
 }

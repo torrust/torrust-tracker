@@ -12,7 +12,7 @@ pub enum OutputFormat {
 
 impl OutputFormat {
     #[must_use]
-    pub fn is_pretty(self) -> bool {
+    pub const fn is_pretty(self) -> bool {
         matches!(self, Self::Text)
     }
 }

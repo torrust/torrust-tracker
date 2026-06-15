@@ -47,9 +47,9 @@ impl Error for ConfigurationError {}
 impl fmt::Display for ConfigurationError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            ConfigurationError::JsonParseError(e) => write!(f, "JSON parse error: {e}"),
-            ConfigurationError::InvalidUdpAddress(e) => write!(f, "Invalid UDP address: {e}"),
-            ConfigurationError::InvalidUrl(e) => write!(f, "Invalid URL: {e}"),
+            Self::JsonParseError(e) => write!(f, "JSON parse error: {e}"),
+            Self::InvalidUdpAddress(e) => write!(f, "Invalid UDP address: {e}"),
+            Self::InvalidUrl(e) => write!(f, "Invalid URL: {e}"),
         }
     }
 }
@@ -77,7 +77,7 @@ impl TryFrom<PlainConfiguration> for Configuration {
             .map(|s| s.parse::<ServiceUrl>().map_err(ConfigurationError::InvalidUrl))
             .collect::<Result<Vec<_>, _>>()?;
 
-        Ok(Configuration {
+        Ok(Self {
             udp_trackers,
             http_trackers,
             health_checks,

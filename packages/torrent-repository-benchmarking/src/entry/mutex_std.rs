@@ -46,6 +46,6 @@ impl EntrySync for EntryMutexStd {
 
 impl From<EntrySingle> for EntryMutexStd {
     fn from(entry: EntrySingle) -> Self {
-        Arc::new(std::sync::Mutex::new(entry))
+        Self::new(std::sync::Mutex::new(entry))
     }
 }

@@ -44,6 +44,6 @@ impl EntrySync for EntryMutexParkingLot {
 
 impl From<EntrySingle> for EntryMutexParkingLot {
     fn from(entry: EntrySingle) -> Self {
-        Arc::new(parking_lot::Mutex::new(entry))
+        Self::new(parking_lot::Mutex::new(entry))
     }
 }

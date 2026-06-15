@@ -44,7 +44,7 @@ impl RunningCompose {
 
     /// Disables the automatic teardown so containers are left running after this
     /// guard is dropped.  Useful for post-run debugging.
-    pub fn keep(&mut self) {
+    pub const fn keep(&mut self) {
         self.is_active = false;
     }
 }

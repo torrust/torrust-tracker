@@ -13,7 +13,7 @@ impl PieceLength {
 
     /// Returns the piece length as a `usize`.
     #[must_use]
-    pub(crate) fn as_usize(self) -> usize {
+    pub(crate) const fn as_usize(self) -> usize {
         self.0
     }
 }

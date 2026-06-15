@@ -30,7 +30,7 @@ impl TorrentProgress {
 
     /// Returns the raw fraction in the range `0.0`-`1.0`.
     #[must_use]
-    pub fn as_fraction(self) -> f64 {
+    pub const fn as_fraction(self) -> f64 {
         self.0
     }
 }

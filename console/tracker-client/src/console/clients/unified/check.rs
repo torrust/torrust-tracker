@@ -129,15 +129,15 @@ async fn run_checks(config: Arc<Configuration>, output_format: OutputFormat) -> 
     let mut checks = JoinSet::new();
     checks.spawn(
         udp::run(config.udp_trackers.clone(), DEFAULT_NETWORK_TIMEOUT)
-            .map(|mut f| f.drain(..).map(CheckResult::Udp).collect::<Vec<_>>()),
+            .map(|f| f.into_iter().map(CheckResult::Udp).collect::<Vec<_>>()),
     );
     checks.spawn(
         http::run(config.http_trackers.clone(), DEFAULT_NETWORK_TIMEOUT)
-            .map(|mut f| f.drain(..).map(CheckResult::Http).collect::<Vec<_>>()),
+            .map(|f| f.into_iter().map(CheckResult::Http).collect::<Vec<_>>()),
     );
     checks.spawn(
         health::run(config.health_checks.clone(), DEFAULT_NETWORK_TIMEOUT)
-            .map(|mut f| f.drain(..).map(CheckResult::Health).collect::<Vec<_>>()),
+            .map(|f| f.into_iter().map(CheckResult::Health).collect::<Vec<_>>()),
     );
 
     while let Some(results) = checks.join_next().await {

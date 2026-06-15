@@ -95,7 +95,7 @@ where
     }
 
     fn remove(&self, key: &InfoHash) -> Option<EntryMutexStd> {
-        self.torrents.remove(key).map(|(_key, value)| value.clone())
+        self.torrents.remove(key).map(|(_key, value)| value)
     }
 
     fn remove_inactive_peers(&self, current_cutoff: DurationSinceUnixEpoch) {

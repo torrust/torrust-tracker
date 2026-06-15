@@ -27,8 +27,8 @@ pub enum ConfigSource {
 impl fmt::Display for ConfigSource {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            ConfigSource::EnvVar(name) => write!(f, "{name}"),
-            ConfigSource::File(path) => write!(f, "{}", path.display()),
+            Self::EnvVar(name) => write!(f, "{name}"),
+            Self::File(path) => write!(f, "{}", path.display()),
         }
     }
 }
@@ -57,7 +57,7 @@ impl AppError {
     #[must_use]
     pub fn to_stderr_json_and_exit_code(&self) -> (String, i32) {
         match self {
-            AppError::InvalidConfig { source, message } => {
+            Self::InvalidConfig { source, message } => {
                 let json = serde_json::json!({
                     "error": {
                         "kind": "invalid_configuration",
@@ -68,7 +68,7 @@ impl AppError {
                 .to_string();
                 (json, 2)
             }
-            AppError::Runtime(message) => {
+            Self::Runtime(message) => {
                 let json = serde_json::json!({
                     "error": {
                         "kind": "runtime_failure",
@@ -86,10 +86,10 @@ impl AppError {
 impl fmt::Display for AppError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            AppError::InvalidConfig { source, message } => {
+            Self::InvalidConfig { source, message } => {
                 write!(f, "invalid configuration from {source}: {message}")
             }
-            AppError::Runtime(msg) => write!(f, "runtime failure: {msg}"),
+            Self::Runtime(msg) => write!(f, "runtime failure: {msg}"),
         }
     }
 }

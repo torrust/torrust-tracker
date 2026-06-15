@@ -133,7 +133,7 @@ impl Client {
             action_placeholder: AnnounceActionPlaceholder::default(),
             transaction_id,
             info_hash: InfoHash(info_hash.bytes()),
-            peer_id: params.peer_id.map_or(default_production_peer_id(), PeerId),
+            peer_id: params.peer_id.map_or_else(default_production_peer_id, PeerId),
             bytes_downloaded: NumberOfBytes::new(params.downloaded.unwrap_or(0)),
             bytes_uploaded: NumberOfBytes::new(params.uploaded.unwrap_or(0)),
             bytes_left: NumberOfBytes::new(params.left.unwrap_or(0)),

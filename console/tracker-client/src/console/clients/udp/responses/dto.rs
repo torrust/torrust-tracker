@@ -19,11 +19,11 @@ pub enum SerializableResponse {
 impl From<Response> for SerializableResponse {
     fn from(response: Response) -> Self {
         match response {
-            Response::Connect(response) => SerializableResponse::Connect(ConnectSerializableResponse::from(response)),
-            Response::AnnounceIpv4(response) => SerializableResponse::AnnounceIpv4(AnnounceSerializableResponse::from(response)),
-            Response::AnnounceIpv6(response) => SerializableResponse::AnnounceIpv6(AnnounceSerializableResponse::from(response)),
-            Response::Scrape(response) => SerializableResponse::Scrape(ScrapeSerializableResponse::from(response)),
-            Response::Error(response) => SerializableResponse::Error(ErrorSerializableResponse::from(response)),
+            Response::Connect(response) => Self::Connect(ConnectSerializableResponse::from(response)),
+            Response::AnnounceIpv4(response) => Self::AnnounceIpv4(AnnounceSerializableResponse::from(response)),
+            Response::AnnounceIpv6(response) => Self::AnnounceIpv6(AnnounceSerializableResponse::from(response)),
+            Response::Scrape(response) => Self::Scrape(ScrapeSerializableResponse::from(response)),
+            Response::Error(response) => Self::Error(ErrorSerializableResponse::from(response)),
         }
     }
 }

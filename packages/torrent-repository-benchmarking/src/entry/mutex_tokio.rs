@@ -44,6 +44,6 @@ impl EntryAsync for EntryMutexTokio {
 
 impl From<EntrySingle> for EntryMutexTokio {
     fn from(entry: EntrySingle) -> Self {
-        Arc::new(tokio::sync::Mutex::new(entry))
+        Self::new(tokio::sync::Mutex::new(entry))
     }
 }

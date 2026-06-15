@@ -126,10 +126,10 @@ enum CliAnnounceEvent {
 impl From<CliAnnounceEvent> for AnnounceEvent {
     fn from(value: CliAnnounceEvent) -> Self {
         match value {
-            CliAnnounceEvent::None => AnnounceEvent::None,
-            CliAnnounceEvent::Completed => AnnounceEvent::Completed,
-            CliAnnounceEvent::Started => AnnounceEvent::Started,
-            CliAnnounceEvent::Stopped => AnnounceEvent::Stopped,
+            CliAnnounceEvent::None => Self::None,
+            CliAnnounceEvent::Completed => Self::Completed,
+            CliAnnounceEvent::Started => Self::Started,
+            CliAnnounceEvent::Stopped => Self::Stopped,
         }
     }
 }

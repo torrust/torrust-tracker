@@ -71,7 +71,7 @@ pub(crate) enum PreparedWorkspace {
 }
 
 impl PreparedWorkspace {
-    pub(crate) fn resources(&self) -> &WorkspaceResources {
+    pub(crate) const fn resources(&self) -> &WorkspaceResources {
         match self {
             Self::Ephemeral(workspace) => &workspace.resources,
             Self::Permanent(workspace) => &workspace.resources,

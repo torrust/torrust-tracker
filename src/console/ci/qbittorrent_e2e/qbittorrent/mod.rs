@@ -1,4 +1,8 @@
 //! Staged feature module for qBittorrent-specific internals.
+
+// Individual struct `pub(crate)` annotations are intentional documentation of
+// visibility intent even though they are technically redundant (private module).
+#![allow(clippy::redundant_pub_crate)]
 //!
 //! During the migration this module re-exports symbols from legacy files so
 //! call sites can switch imports incrementally.

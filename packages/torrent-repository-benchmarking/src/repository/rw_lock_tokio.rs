@@ -15,6 +15,7 @@ pub struct RwLockTokio<T> {
 }
 
 impl<T> RwLockTokio<T> {
+    #[allow(clippy::future_not_send)]
     pub fn write(
         &self,
     ) -> impl std::future::Future<Output = tokio::sync::RwLockWriteGuard<'_, std::collections::BTreeMap<InfoHash, T>>> {

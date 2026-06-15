@@ -1,3 +1,5 @@
+#![allow(clippy::print_stderr, clippy::exit)]
+
 //! Unified tracker client binary.
 use torrust_tracker_console_client::console::clients::unified::app;
 

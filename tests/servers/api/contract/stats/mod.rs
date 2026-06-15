@@ -56,7 +56,10 @@ async fn the_stats_api_endpoint_should_return_the_global_stats() {
     // impossible (port conflicts). In practice the tests therefore run serially, but the
     // safety guarantee is not formally enforced by the test runner. For strict soundness,
     // run the integration suite with `RUST_TEST_THREADS=1`.
-    unsafe { env::set_var("TORRUST_TRACKER_CONFIG_TOML", config_with_two_http_trackers) };
+    #[allow(unsafe_code)]
+    unsafe {
+        env::set_var("TORRUST_TRACKER_CONFIG_TOML", config_with_two_http_trackers);
+    }
 
     let (_app_container, _jobs) = app::run().await;
 

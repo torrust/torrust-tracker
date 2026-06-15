@@ -39,15 +39,15 @@ impl Service {
         let mut checks = JoinSet::new();
         checks.spawn(
             udp::run(self.config.udp_trackers.clone(), DEFAULT_NETWORK_TIMEOUT)
-                .map(|mut f| f.drain(..).map(CheckResult::Udp).collect()),
+                .map(|f| f.into_iter().map(CheckResult::Udp).collect()),
         );
         checks.spawn(
             http::run(self.config.http_trackers.clone(), DEFAULT_NETWORK_TIMEOUT)
-                .map(|mut f| f.drain(..).map(CheckResult::Http).collect()),
+                .map(|f| f.into_iter().map(CheckResult::Http).collect()),
         );
         checks.spawn(
             health::run(self.config.health_checks.clone(), DEFAULT_NETWORK_TIMEOUT)
-                .map(|mut f| f.drain(..).map(CheckResult::Health).collect()),
+                .map(|f| f.into_iter().map(CheckResult::Health).collect()),
         );
 
         while let Some(results) = checks.join_next().await {

@@ -6,7 +6,7 @@ pub struct OpsCount(NonZeroUsize);
 
 impl OpsCount {
     #[must_use]
-    pub fn get(self) -> usize {
+    pub const fn get(self) -> usize {
         self.0.get()
     }
 }

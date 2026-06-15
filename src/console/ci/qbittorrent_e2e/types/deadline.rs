@@ -11,12 +11,12 @@ pub(crate) struct Deadline(Duration);
 
 impl Deadline {
     /// Creates a new [`Deadline`] from a [`Duration`].
-    pub(crate) fn new(duration: Duration) -> Self {
+    pub(crate) const fn new(duration: Duration) -> Self {
         Self(duration)
     }
 
     /// Returns the underlying [`Duration`].
-    pub(crate) fn as_duration(&self) -> Duration {
+    pub(crate) const fn as_duration(&self) -> Duration {
         self.0
     }
 }

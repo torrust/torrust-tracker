@@ -14,7 +14,7 @@
 pub(crate) enum BencodeValue {
     Integer(i64),
     Bytes(Vec<u8>),
-    Dictionary(Vec<(Vec<u8>, BencodeValue)>),
+    Dictionary(Vec<(Vec<u8>, Self)>),
     Raw(Vec<u8>),
 }
 
