@@ -1,7 +1,7 @@
 //! Program to run persistence benchmarks directly against database drivers.
 //!
 //! This binary is a developer tool for measuring the persistence-layer methods
-//! implemented by the [`Database`](torrust_tracker_core::databases::Database)
+//! implemented by the [`Database`](torrust_tracker_core::databases::traits::database::Database)
 //! trait. It benchmarks one driver per invocation and prints a JSON report to
 //! standard output with per-operation timing statistics.
 //!

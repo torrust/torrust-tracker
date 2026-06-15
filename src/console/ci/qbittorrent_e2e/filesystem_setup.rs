@@ -5,7 +5,7 @@
 //!
 //! # Workspace Layout
 //!
-//! After [`prepare`] returns, the workspace root contains:
+//! After `prepare` returns, the workspace root contains:
 //!
 //! ```text
 //! <workspace-root>/
