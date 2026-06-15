@@ -304,8 +304,8 @@
 //!
 //! - [Bencode](https://en.wikipedia.org/wiki/Bencode).
 //! - [Bencode to Json Online converter](https://chocobo1.github.io/bencode_online).
-pub mod environment;
 pub mod server;
+pub mod testing;
 pub mod v1;
 
 use serde::{Deserialize, Serialize};
