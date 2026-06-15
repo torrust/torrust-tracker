@@ -33,7 +33,7 @@ enum DbDriverArg {
 }
 
 impl DbDriverArg {
-    fn default_compose_file(self) -> &'static str {
+    const fn default_compose_file(self) -> &'static str {
         match self {
             Self::Sqlite3 => SQLITE3_COMPOSE_FILE,
             Self::MySQL => MYSQL_COMPOSE_FILE,
@@ -41,7 +41,7 @@ impl DbDriverArg {
         }
     }
 
-    fn database_driver(self) -> DatabaseDriver {
+    const fn database_driver(self) -> DatabaseDriver {
         match self {
             Self::Sqlite3 => DatabaseDriver::Sqlite3,
             Self::MySQL => DatabaseDriver::MySQL,

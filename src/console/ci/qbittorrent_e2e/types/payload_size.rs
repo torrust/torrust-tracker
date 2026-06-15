@@ -13,7 +13,7 @@ impl PayloadSize {
 
     /// Returns the byte count as a `usize`.
     #[must_use]
-    pub(crate) fn as_usize(self) -> usize {
+    pub(crate) const fn as_usize(self) -> usize {
         self.0
     }
 }

@@ -18,6 +18,9 @@ version.workspace = true
 [lib]
 name = "torrust_tracker_lib"
 
+[lints]
+workspace = true
+
 [workspace.package]
 authors = [ "Nautilus Cyberneering <info@nautilus-cyberneering.de>, Mick van Dijke <mick@dutchbits.nl>" ]
 categories = [ "network-programming", "web-programming" ]
@@ -82,6 +85,32 @@ members = [
   "packages/torrent-repository-benchmarking",
 ]
 
+[workspace.lints.rust]
+deprecated-safe = { level = "deny", priority = -1 }
+future-incompatible = { level = "deny", priority = -1 }
+let-underscore = { level = "deny", priority = -1 }
+nonstandard-style = { level = "deny", priority = -1 }
+rust-2018-compatibility = { level = "deny", priority = -1 }
+rust-2018-idioms = { level = "deny", priority = -1 }
+rust-2021-compatibility = { level = "deny", priority = -1 }
+rust-2024-compatibility = { level = "deny", priority = -1 }
+unsafe-code = { level = "warn", priority = -1 }
+unused = { level = "deny", priority = -2 }
+warnings = { level = "deny", priority = -1 }
+
+[workspace.lints.clippy]
+all = { level = "deny", priority = -1 }
+complexity = { level = "deny", priority = -1 }
+correctness = { level = "deny", priority = -1 }
+exit = { level = "deny", priority = 0 }
+nursery = { level = "warn", priority = -1 }
+pedantic = { level = "deny", priority = -1 }
+perf = { level = "deny", priority = -1 }
+print_stderr = { level = "deny", priority = 0 }
+print_stdout = { level = "deny", priority = 0 }
+style = { level = "deny", priority = -1 }
+suspicious = { level = "deny", priority = -1 }
+
 [profile.dev]
 debug = 1
 lto = "fat"
@@ -95,14 +124,3 @@ opt-level = 3
 [profile.release-debug]
 debug = true
 inherits = "release"
-
-[lints.clippy]
-complexity = { level = "deny", priority = -1 }
-correctness = { level = "deny", priority = -1 }
-pedantic = { level = "deny", priority = -1 }
-perf = { level = "deny", priority = -1 }
-style = { level = "deny", priority = -1 }
-suspicious = { level = "deny", priority = -1 }
-
-# temp allow this lint
-needless_return = "allow"

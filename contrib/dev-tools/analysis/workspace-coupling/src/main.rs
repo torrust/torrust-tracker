@@ -1,3 +1,5 @@
+#![allow(clippy::print_stderr, clippy::exit)]
+
 //! Generates a workspace coupling report for the Torrust Tracker workspace.
 //!
 //! For every workspace package that has workspace-level dependencies the tool:

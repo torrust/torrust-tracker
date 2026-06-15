@@ -9,12 +9,12 @@ pub(crate) struct PollInterval(Duration);
 
 impl PollInterval {
     /// Creates a new [`PollInterval`] from a [`Duration`].
-    pub(crate) fn new(duration: Duration) -> Self {
+    pub(crate) const fn new(duration: Duration) -> Self {
         Self(duration)
     }
 
     /// Returns the underlying [`Duration`].
-    pub(crate) fn as_duration(&self) -> Duration {
+    pub(crate) const fn as_duration(&self) -> Duration {
         self.0
     }
 }

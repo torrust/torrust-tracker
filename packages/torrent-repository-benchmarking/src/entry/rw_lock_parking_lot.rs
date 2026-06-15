@@ -44,6 +44,6 @@ impl EntrySync for EntryRwLockParkingLot {
 
 impl From<EntrySingle> for EntryRwLockParkingLot {
     fn from(entry: EntrySingle) -> Self {
-        Arc::new(parking_lot::RwLock::new(entry))
+        Self::new(parking_lot::RwLock::new(entry))
     }
 }

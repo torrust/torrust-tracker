@@ -1,3 +1,5 @@
+#![allow(clippy::print_stdout, clippy::print_stderr, clippy::exit)]
+
 //! Minimal `curl` or `wget` to be used for container health checks.
 //!
 //! It's convenient to avoid using third-party libraries because:

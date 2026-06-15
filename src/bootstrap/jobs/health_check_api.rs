@@ -49,7 +49,7 @@ pub async fn start_job(config: &HealthCheckApi, register: ServiceRegistry) -> Jo
 
         let handle = server::start(bind_addr, tx_start, rx_halt, register);
 
-        if let Ok(()) = handle.await {
+        if matches!(handle.await, Ok(())) {
             tracing::info!(target: HEALTH_CHECK_API_LOG_TARGET, "Stopped server running on: {protocol}://{}", bind_addr);
         }
     });

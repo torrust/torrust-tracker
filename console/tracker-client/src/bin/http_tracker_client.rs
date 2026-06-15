@@ -1,3 +1,5 @@
+#![allow(clippy::print_stderr)]
+
 //! Program to make request to HTTP trackers.
 use torrust_tracker_console_client::console::clients::http::app;
 

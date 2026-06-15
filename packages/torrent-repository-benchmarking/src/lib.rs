@@ -1,3 +1,10 @@
+#![allow(
+    clippy::option_if_let_else,
+    clippy::or_fun_call,
+    clippy::significant_drop_tightening,
+    clippy::iter_with_drain
+)]
+
 use std::sync::Arc;
 
 use repository::dash_map_mutex_std::XacrimonDashMap;

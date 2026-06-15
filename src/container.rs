@@ -47,7 +47,7 @@ pub struct AppContainer {
 
 impl AppContainer {
     #[instrument(skip(configuration))]
-    pub async fn initialize(configuration: &Configuration) -> AppContainer {
+    pub async fn initialize(configuration: &Configuration) -> Self {
         // Configuration
 
         let core_config = Arc::new(configuration.core.clone());
@@ -88,7 +88,7 @@ impl AppContainer {
         let udp_tracker_instance_containers =
             Self::initialize_udp_tracker_instance_containers(configuration, &tracker_core_container, &udp_tracker_core_services);
 
-        AppContainer {
+        Self {
             // Configuration
             http_api_config,
 
@@ -122,10 +122,10 @@ impl AppContainer {
     /// Return an error if there is no HTTP tracker server instance bound to the
     /// socket address.
     pub fn http_tracker_container(&self, bind_address: SocketAddr) -> Result<Arc<HttpTrackerCoreContainer>, Error> {
-        match self.http_tracker_instance_containers.get(&bind_address) {
-            Some(http_tracker_container) => Ok(http_tracker_container.clone()),
-            None => Err(Error::MissingHttpTrackerCoreContainer { bind_address }),
-        }
+        self.http_tracker_instance_containers.get(&bind_address).map_or_else(
+            || Err(Error::MissingHttpTrackerCoreContainer { bind_address }),
+            |http_tracker_container| Ok(http_tracker_container.clone()),
+        )
     }
 
     /// # Errors
@@ -133,10 +133,10 @@ impl AppContainer {
     /// Return an error if there is no UDP tracker server instance bound to the
     /// socket address.
     pub fn udp_tracker_container(&self, bind_address: SocketAddr) -> Result<Arc<UdpTrackerCoreContainer>, Error> {
-        match self.udp_tracker_instance_containers.get(&bind_address) {
-            Some(udp_tracker_container) => Ok(udp_tracker_container.clone()),
-            None => Err(Error::MissingUdpTrackerCoreContainer { bind_address }),
-        }
+        self.udp_tracker_instance_containers.get(&bind_address).map_or_else(
+            || Err(Error::MissingUdpTrackerCoreContainer { bind_address }),
+            |udp_tracker_container| Ok(udp_tracker_container.clone()),
+        )
     }
 
     #[must_use]

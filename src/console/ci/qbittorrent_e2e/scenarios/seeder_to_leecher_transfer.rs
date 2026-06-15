@@ -31,7 +31,7 @@ enum Protocol {
 }
 
 impl Protocol {
-    fn label(self) -> &'static str {
+    const fn label(self) -> &'static str {
         match self {
             Self::Http => "http",
             Self::Udp => "udp",

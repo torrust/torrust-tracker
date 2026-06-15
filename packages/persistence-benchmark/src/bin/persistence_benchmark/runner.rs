@@ -1,3 +1,5 @@
+#![allow(clippy::print_stdout)]
+
 use std::time::Instant;
 
 use anyhow::Result;

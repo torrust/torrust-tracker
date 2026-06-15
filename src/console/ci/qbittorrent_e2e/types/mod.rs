@@ -3,6 +3,10 @@
 //! Most types here follow the newtype pattern: a thin wrapper around a primitive
 //! that gives the value a precise, self-documenting type at every call site.
 
+// Individual struct `pub(crate)` annotations are intentional documentation of
+// visibility intent even though they are technically redundant (private module).
+#![allow(clippy::redundant_pub_crate)]
+
 mod compose_project_name;
 mod container_path;
 mod deadline;

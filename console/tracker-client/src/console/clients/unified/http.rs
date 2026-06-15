@@ -26,9 +26,9 @@ pub enum CliEvent {
 impl From<CliEvent> for Event {
     fn from(value: CliEvent) -> Self {
         match value {
-            CliEvent::Started => Event::Started,
-            CliEvent::Stopped => Event::Stopped,
-            CliEvent::Completed => Event::Completed,
+            CliEvent::Started => Self::Started,
+            CliEvent::Stopped => Self::Stopped,
+            CliEvent::Completed => Self::Completed,
         }
     }
 }
@@ -44,8 +44,8 @@ pub enum CliCompact {
 impl From<CliCompact> for Compact {
     fn from(value: CliCompact) -> Self {
         match value {
-            CliCompact::NotAccepted => Compact::NotAccepted,
-            CliCompact::Accepted => Compact::Accepted,
+            CliCompact::NotAccepted => Self::NotAccepted,
+            CliCompact::Accepted => Self::Accepted,
         }
     }
 }

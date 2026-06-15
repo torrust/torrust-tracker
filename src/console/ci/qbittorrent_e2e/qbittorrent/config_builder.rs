@@ -29,7 +29,7 @@ pub(crate) struct QbittorrentConfigBuilder<'a> {
 
 impl<'a> QbittorrentConfigBuilder<'a> {
     /// Creates a builder with default port (`8080`) and download paths (`/downloads`).
-    pub(crate) fn new(username: &'a str, password: &'a str) -> Self {
+    pub(crate) const fn new(username: &'a str, password: &'a str) -> Self {
         Self {
             username,
             password,
@@ -43,19 +43,19 @@ impl<'a> QbittorrentConfigBuilder<'a> {
     // config file. They are needed when future scenarios require non-standard
     // paths or a different WebUI port. Tracked: <https://github.com/torrust/torrust-tracker/issues/1706>.
     #[expect(dead_code, reason = "reserved for future scenario configuration; see #1706")]
-    pub(crate) fn webui_port(mut self, port: u16) -> Self {
+    pub(crate) const fn webui_port(mut self, port: u16) -> Self {
         self.webui_port = port;
         self
     }
 
     #[expect(dead_code, reason = "reserved for future scenario configuration; see #1706")]
-    pub(crate) fn downloads_path(mut self, path: &'a str) -> Self {
+    pub(crate) const fn downloads_path(mut self, path: &'a str) -> Self {
         self.downloads_path = path;
         self
     }
 
     #[expect(dead_code, reason = "reserved for future scenario configuration; see #1706")]
-    pub(crate) fn downloads_temp_path(mut self, path: &'a str) -> Self {
+    pub(crate) const fn downloads_temp_path(mut self, path: &'a str) -> Self {
         self.downloads_temp_path = path;
         self
     }

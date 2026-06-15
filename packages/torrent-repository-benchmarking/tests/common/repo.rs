@@ -32,73 +32,73 @@ impl Repo {
         opt_persistent_torrent: Option<NumberOfDownloads>,
     ) -> bool {
         match self {
-            Repo::RwLockStd(repo) => repo.upsert_peer(info_hash, peer, opt_persistent_torrent),
-            Repo::RwLockStdMutexStd(repo) => repo.upsert_peer(info_hash, peer, opt_persistent_torrent),
-            Repo::RwLockStdMutexTokio(repo) => repo.upsert_peer(info_hash, peer, opt_persistent_torrent).await,
-            Repo::RwLockTokio(repo) => repo.upsert_peer(info_hash, peer, opt_persistent_torrent).await,
-            Repo::RwLockTokioMutexStd(repo) => repo.upsert_peer(info_hash, peer, opt_persistent_torrent).await,
-            Repo::RwLockTokioMutexTokio(repo) => repo.upsert_peer(info_hash, peer, opt_persistent_torrent).await,
-            Repo::SkipMapMutexStd(repo) => repo.upsert_peer(info_hash, peer, opt_persistent_torrent),
-            Repo::SkipMapMutexParkingLot(repo) => repo.upsert_peer(info_hash, peer, opt_persistent_torrent),
-            Repo::SkipMapRwLockParkingLot(repo) => repo.upsert_peer(info_hash, peer, opt_persistent_torrent),
-            Repo::DashMapMutexStd(repo) => repo.upsert_peer(info_hash, peer, opt_persistent_torrent),
+            Self::RwLockStd(repo) => repo.upsert_peer(info_hash, peer, opt_persistent_torrent),
+            Self::RwLockStdMutexStd(repo) => repo.upsert_peer(info_hash, peer, opt_persistent_torrent),
+            Self::RwLockStdMutexTokio(repo) => repo.upsert_peer(info_hash, peer, opt_persistent_torrent).await,
+            Self::RwLockTokio(repo) => repo.upsert_peer(info_hash, peer, opt_persistent_torrent).await,
+            Self::RwLockTokioMutexStd(repo) => repo.upsert_peer(info_hash, peer, opt_persistent_torrent).await,
+            Self::RwLockTokioMutexTokio(repo) => repo.upsert_peer(info_hash, peer, opt_persistent_torrent).await,
+            Self::SkipMapMutexStd(repo) => repo.upsert_peer(info_hash, peer, opt_persistent_torrent),
+            Self::SkipMapMutexParkingLot(repo) => repo.upsert_peer(info_hash, peer, opt_persistent_torrent),
+            Self::SkipMapRwLockParkingLot(repo) => repo.upsert_peer(info_hash, peer, opt_persistent_torrent),
+            Self::DashMapMutexStd(repo) => repo.upsert_peer(info_hash, peer, opt_persistent_torrent),
         }
     }
 
     pub(crate) async fn get_swarm_metadata(&self, info_hash: &InfoHash) -> Option<SwarmMetadata> {
         match self {
-            Repo::RwLockStd(repo) => repo.get_swarm_metadata(info_hash),
-            Repo::RwLockStdMutexStd(repo) => repo.get_swarm_metadata(info_hash),
-            Repo::RwLockStdMutexTokio(repo) => repo.get_swarm_metadata(info_hash).await,
-            Repo::RwLockTokio(repo) => repo.get_swarm_metadata(info_hash).await,
-            Repo::RwLockTokioMutexStd(repo) => repo.get_swarm_metadata(info_hash).await,
-            Repo::RwLockTokioMutexTokio(repo) => repo.get_swarm_metadata(info_hash).await,
-            Repo::SkipMapMutexStd(repo) => repo.get_swarm_metadata(info_hash),
-            Repo::SkipMapMutexParkingLot(repo) => repo.get_swarm_metadata(info_hash),
-            Repo::SkipMapRwLockParkingLot(repo) => repo.get_swarm_metadata(info_hash),
-            Repo::DashMapMutexStd(repo) => repo.get_swarm_metadata(info_hash),
+            Self::RwLockStd(repo) => repo.get_swarm_metadata(info_hash),
+            Self::RwLockStdMutexStd(repo) => repo.get_swarm_metadata(info_hash),
+            Self::RwLockStdMutexTokio(repo) => repo.get_swarm_metadata(info_hash).await,
+            Self::RwLockTokio(repo) => repo.get_swarm_metadata(info_hash).await,
+            Self::RwLockTokioMutexStd(repo) => repo.get_swarm_metadata(info_hash).await,
+            Self::RwLockTokioMutexTokio(repo) => repo.get_swarm_metadata(info_hash).await,
+            Self::SkipMapMutexStd(repo) => repo.get_swarm_metadata(info_hash),
+            Self::SkipMapMutexParkingLot(repo) => repo.get_swarm_metadata(info_hash),
+            Self::SkipMapRwLockParkingLot(repo) => repo.get_swarm_metadata(info_hash),
+            Self::DashMapMutexStd(repo) => repo.get_swarm_metadata(info_hash),
         }
     }
 
     pub(crate) async fn get(&self, key: &InfoHash) -> Option<EntrySingle> {
         match self {
-            Repo::RwLockStd(repo) => repo.get(key),
-            Repo::RwLockStdMutexStd(repo) => Some(repo.get(key)?.lock().unwrap().clone()),
-            Repo::RwLockStdMutexTokio(repo) => Some(repo.get(key).await?.lock().await.clone()),
-            Repo::RwLockTokio(repo) => repo.get(key).await,
-            Repo::RwLockTokioMutexStd(repo) => Some(repo.get(key).await?.lock().unwrap().clone()),
-            Repo::RwLockTokioMutexTokio(repo) => Some(repo.get(key).await?.lock().await.clone()),
-            Repo::SkipMapMutexStd(repo) => Some(repo.get(key)?.lock().unwrap().clone()),
-            Repo::SkipMapMutexParkingLot(repo) => Some(repo.get(key)?.lock().clone()),
-            Repo::SkipMapRwLockParkingLot(repo) => Some(repo.get(key)?.read().clone()),
-            Repo::DashMapMutexStd(repo) => Some(repo.get(key)?.lock().unwrap().clone()),
+            Self::RwLockStd(repo) => repo.get(key),
+            Self::RwLockStdMutexStd(repo) => Some(repo.get(key)?.lock().unwrap().clone()),
+            Self::RwLockStdMutexTokio(repo) => Some(repo.get(key).await?.lock().await.clone()),
+            Self::RwLockTokio(repo) => repo.get(key).await,
+            Self::RwLockTokioMutexStd(repo) => Some(repo.get(key).await?.lock().unwrap().clone()),
+            Self::RwLockTokioMutexTokio(repo) => Some(repo.get(key).await?.lock().await.clone()),
+            Self::SkipMapMutexStd(repo) => Some(repo.get(key)?.lock().unwrap().clone()),
+            Self::SkipMapMutexParkingLot(repo) => Some(repo.get(key)?.lock().clone()),
+            Self::SkipMapRwLockParkingLot(repo) => Some(repo.get(key)?.read().clone()),
+            Self::DashMapMutexStd(repo) => Some(repo.get(key)?.lock().unwrap().clone()),
         }
     }
 
     pub(crate) async fn get_metrics(&self) -> AggregateActiveSwarmMetadata {
         match self {
-            Repo::RwLockStd(repo) => repo.get_metrics(),
-            Repo::RwLockStdMutexStd(repo) => repo.get_metrics(),
-            Repo::RwLockStdMutexTokio(repo) => repo.get_metrics().await,
-            Repo::RwLockTokio(repo) => repo.get_metrics().await,
-            Repo::RwLockTokioMutexStd(repo) => repo.get_metrics().await,
-            Repo::RwLockTokioMutexTokio(repo) => repo.get_metrics().await,
-            Repo::SkipMapMutexStd(repo) => repo.get_metrics(),
-            Repo::SkipMapMutexParkingLot(repo) => repo.get_metrics(),
-            Repo::SkipMapRwLockParkingLot(repo) => repo.get_metrics(),
-            Repo::DashMapMutexStd(repo) => repo.get_metrics(),
+            Self::RwLockStd(repo) => repo.get_metrics(),
+            Self::RwLockStdMutexStd(repo) => repo.get_metrics(),
+            Self::RwLockStdMutexTokio(repo) => repo.get_metrics().await,
+            Self::RwLockTokio(repo) => repo.get_metrics().await,
+            Self::RwLockTokioMutexStd(repo) => repo.get_metrics().await,
+            Self::RwLockTokioMutexTokio(repo) => repo.get_metrics().await,
+            Self::SkipMapMutexStd(repo) => repo.get_metrics(),
+            Self::SkipMapMutexParkingLot(repo) => repo.get_metrics(),
+            Self::SkipMapRwLockParkingLot(repo) => repo.get_metrics(),
+            Self::DashMapMutexStd(repo) => repo.get_metrics(),
         }
     }
 
     pub(crate) async fn get_paginated(&self, pagination: Option<&Pagination>) -> Vec<(InfoHash, EntrySingle)> {
         match self {
-            Repo::RwLockStd(repo) => repo.get_paginated(pagination),
-            Repo::RwLockStdMutexStd(repo) => repo
+            Self::RwLockStd(repo) => repo.get_paginated(pagination),
+            Self::RwLockStdMutexStd(repo) => repo
                 .get_paginated(pagination)
                 .iter()
                 .map(|(i, t)| (*i, t.lock().expect("it should get a lock").clone()))
                 .collect(),
-            Repo::RwLockStdMutexTokio(repo) => {
+            Self::RwLockStdMutexTokio(repo) => {
                 let mut v: Vec<(InfoHash, EntrySingle)> = vec![];
 
                 for (i, t) in repo.get_paginated(pagination).await {
@@ -106,14 +106,14 @@ impl Repo {
                 }
                 v
             }
-            Repo::RwLockTokio(repo) => repo.get_paginated(pagination).await,
-            Repo::RwLockTokioMutexStd(repo) => repo
+            Self::RwLockTokio(repo) => repo.get_paginated(pagination).await,
+            Self::RwLockTokioMutexStd(repo) => repo
                 .get_paginated(pagination)
                 .await
                 .iter()
                 .map(|(i, t)| (*i, t.lock().expect("it should get a lock").clone()))
                 .collect(),
-            Repo::RwLockTokioMutexTokio(repo) => {
+            Self::RwLockTokioMutexTokio(repo) => {
                 let mut v: Vec<(InfoHash, EntrySingle)> = vec![];
 
                 for (i, t) in repo.get_paginated(pagination).await {
@@ -121,22 +121,22 @@ impl Repo {
                 }
                 v
             }
-            Repo::SkipMapMutexStd(repo) => repo
+            Self::SkipMapMutexStd(repo) => repo
                 .get_paginated(pagination)
                 .iter()
                 .map(|(i, t)| (*i, t.lock().expect("it should get a lock").clone()))
                 .collect(),
-            Repo::SkipMapMutexParkingLot(repo) => repo
+            Self::SkipMapMutexParkingLot(repo) => repo
                 .get_paginated(pagination)
                 .iter()
                 .map(|(i, t)| (*i, t.lock().clone()))
                 .collect(),
-            Repo::SkipMapRwLockParkingLot(repo) => repo
+            Self::SkipMapRwLockParkingLot(repo) => repo
                 .get_paginated(pagination)
                 .iter()
                 .map(|(i, t)| (*i, t.read().clone()))
                 .collect(),
-            Repo::DashMapMutexStd(repo) => repo
+            Self::DashMapMutexStd(repo) => repo
                 .get_paginated(pagination)
                 .iter()
                 .map(|(i, t)| (*i, t.lock().expect("it should get a lock").clone()))
@@ -146,94 +146,94 @@ impl Repo {
 
     pub(crate) async fn import_persistent(&self, persistent_torrents: &NumberOfDownloadsBTreeMap) {
         match self {
-            Repo::RwLockStd(repo) => repo.import_persistent(persistent_torrents),
-            Repo::RwLockStdMutexStd(repo) => repo.import_persistent(persistent_torrents),
-            Repo::RwLockStdMutexTokio(repo) => repo.import_persistent(persistent_torrents).await,
-            Repo::RwLockTokio(repo) => repo.import_persistent(persistent_torrents).await,
-            Repo::RwLockTokioMutexStd(repo) => repo.import_persistent(persistent_torrents).await,
-            Repo::RwLockTokioMutexTokio(repo) => repo.import_persistent(persistent_torrents).await,
-            Repo::SkipMapMutexStd(repo) => repo.import_persistent(persistent_torrents),
-            Repo::SkipMapMutexParkingLot(repo) => repo.import_persistent(persistent_torrents),
-            Repo::SkipMapRwLockParkingLot(repo) => repo.import_persistent(persistent_torrents),
-            Repo::DashMapMutexStd(repo) => repo.import_persistent(persistent_torrents),
+            Self::RwLockStd(repo) => repo.import_persistent(persistent_torrents),
+            Self::RwLockStdMutexStd(repo) => repo.import_persistent(persistent_torrents),
+            Self::RwLockStdMutexTokio(repo) => repo.import_persistent(persistent_torrents).await,
+            Self::RwLockTokio(repo) => repo.import_persistent(persistent_torrents).await,
+            Self::RwLockTokioMutexStd(repo) => repo.import_persistent(persistent_torrents).await,
+            Self::RwLockTokioMutexTokio(repo) => repo.import_persistent(persistent_torrents).await,
+            Self::SkipMapMutexStd(repo) => repo.import_persistent(persistent_torrents),
+            Self::SkipMapMutexParkingLot(repo) => repo.import_persistent(persistent_torrents),
+            Self::SkipMapRwLockParkingLot(repo) => repo.import_persistent(persistent_torrents),
+            Self::DashMapMutexStd(repo) => repo.import_persistent(persistent_torrents),
         }
     }
 
     pub(crate) async fn remove(&self, key: &InfoHash) -> Option<EntrySingle> {
         match self {
-            Repo::RwLockStd(repo) => repo.remove(key),
-            Repo::RwLockStdMutexStd(repo) => Some(repo.remove(key)?.lock().unwrap().clone()),
-            Repo::RwLockStdMutexTokio(repo) => Some(repo.remove(key).await?.lock().await.clone()),
-            Repo::RwLockTokio(repo) => repo.remove(key).await,
-            Repo::RwLockTokioMutexStd(repo) => Some(repo.remove(key).await?.lock().unwrap().clone()),
-            Repo::RwLockTokioMutexTokio(repo) => Some(repo.remove(key).await?.lock().await.clone()),
-            Repo::SkipMapMutexStd(repo) => Some(repo.remove(key)?.lock().unwrap().clone()),
-            Repo::SkipMapMutexParkingLot(repo) => Some(repo.remove(key)?.lock().clone()),
-            Repo::SkipMapRwLockParkingLot(repo) => Some(repo.remove(key)?.write().clone()),
-            Repo::DashMapMutexStd(repo) => Some(repo.remove(key)?.lock().unwrap().clone()),
+            Self::RwLockStd(repo) => repo.remove(key),
+            Self::RwLockStdMutexStd(repo) => Some(repo.remove(key)?.lock().unwrap().clone()),
+            Self::RwLockStdMutexTokio(repo) => Some(repo.remove(key).await?.lock().await.clone()),
+            Self::RwLockTokio(repo) => repo.remove(key).await,
+            Self::RwLockTokioMutexStd(repo) => Some(repo.remove(key).await?.lock().unwrap().clone()),
+            Self::RwLockTokioMutexTokio(repo) => Some(repo.remove(key).await?.lock().await.clone()),
+            Self::SkipMapMutexStd(repo) => Some(repo.remove(key)?.lock().unwrap().clone()),
+            Self::SkipMapMutexParkingLot(repo) => Some(repo.remove(key)?.lock().clone()),
+            Self::SkipMapRwLockParkingLot(repo) => Some(repo.remove(key)?.write().clone()),
+            Self::DashMapMutexStd(repo) => Some(repo.remove(key)?.lock().unwrap().clone()),
         }
     }
 
     pub(crate) async fn remove_inactive_peers(&self, current_cutoff: DurationSinceUnixEpoch) {
         match self {
-            Repo::RwLockStd(repo) => repo.remove_inactive_peers(current_cutoff),
-            Repo::RwLockStdMutexStd(repo) => repo.remove_inactive_peers(current_cutoff),
-            Repo::RwLockStdMutexTokio(repo) => repo.remove_inactive_peers(current_cutoff).await,
-            Repo::RwLockTokio(repo) => repo.remove_inactive_peers(current_cutoff).await,
-            Repo::RwLockTokioMutexStd(repo) => repo.remove_inactive_peers(current_cutoff).await,
-            Repo::RwLockTokioMutexTokio(repo) => repo.remove_inactive_peers(current_cutoff).await,
-            Repo::SkipMapMutexStd(repo) => repo.remove_inactive_peers(current_cutoff),
-            Repo::SkipMapMutexParkingLot(repo) => repo.remove_inactive_peers(current_cutoff),
-            Repo::SkipMapRwLockParkingLot(repo) => repo.remove_inactive_peers(current_cutoff),
-            Repo::DashMapMutexStd(repo) => repo.remove_inactive_peers(current_cutoff),
+            Self::RwLockStd(repo) => repo.remove_inactive_peers(current_cutoff),
+            Self::RwLockStdMutexStd(repo) => repo.remove_inactive_peers(current_cutoff),
+            Self::RwLockStdMutexTokio(repo) => repo.remove_inactive_peers(current_cutoff).await,
+            Self::RwLockTokio(repo) => repo.remove_inactive_peers(current_cutoff).await,
+            Self::RwLockTokioMutexStd(repo) => repo.remove_inactive_peers(current_cutoff).await,
+            Self::RwLockTokioMutexTokio(repo) => repo.remove_inactive_peers(current_cutoff).await,
+            Self::SkipMapMutexStd(repo) => repo.remove_inactive_peers(current_cutoff),
+            Self::SkipMapMutexParkingLot(repo) => repo.remove_inactive_peers(current_cutoff),
+            Self::SkipMapRwLockParkingLot(repo) => repo.remove_inactive_peers(current_cutoff),
+            Self::DashMapMutexStd(repo) => repo.remove_inactive_peers(current_cutoff),
         }
     }
 
     pub(crate) async fn remove_peerless_torrents(&self, policy: &TrackerPolicy) {
         match self {
-            Repo::RwLockStd(repo) => repo.remove_peerless_torrents(policy),
-            Repo::RwLockStdMutexStd(repo) => repo.remove_peerless_torrents(policy),
-            Repo::RwLockStdMutexTokio(repo) => repo.remove_peerless_torrents(policy).await,
-            Repo::RwLockTokio(repo) => repo.remove_peerless_torrents(policy).await,
-            Repo::RwLockTokioMutexStd(repo) => repo.remove_peerless_torrents(policy).await,
-            Repo::RwLockTokioMutexTokio(repo) => repo.remove_peerless_torrents(policy).await,
-            Repo::SkipMapMutexStd(repo) => repo.remove_peerless_torrents(policy),
-            Repo::SkipMapMutexParkingLot(repo) => repo.remove_peerless_torrents(policy),
-            Repo::SkipMapRwLockParkingLot(repo) => repo.remove_peerless_torrents(policy),
-            Repo::DashMapMutexStd(repo) => repo.remove_peerless_torrents(policy),
+            Self::RwLockStd(repo) => repo.remove_peerless_torrents(policy),
+            Self::RwLockStdMutexStd(repo) => repo.remove_peerless_torrents(policy),
+            Self::RwLockStdMutexTokio(repo) => repo.remove_peerless_torrents(policy).await,
+            Self::RwLockTokio(repo) => repo.remove_peerless_torrents(policy).await,
+            Self::RwLockTokioMutexStd(repo) => repo.remove_peerless_torrents(policy).await,
+            Self::RwLockTokioMutexTokio(repo) => repo.remove_peerless_torrents(policy).await,
+            Self::SkipMapMutexStd(repo) => repo.remove_peerless_torrents(policy),
+            Self::SkipMapMutexParkingLot(repo) => repo.remove_peerless_torrents(policy),
+            Self::SkipMapRwLockParkingLot(repo) => repo.remove_peerless_torrents(policy),
+            Self::DashMapMutexStd(repo) => repo.remove_peerless_torrents(policy),
         }
     }
 
     pub(crate) async fn insert(&self, info_hash: &InfoHash, torrent: EntrySingle) -> Option<EntrySingle> {
         match self {
-            Repo::RwLockStd(repo) => {
+            Self::RwLockStd(repo) => {
                 repo.write().insert(*info_hash, torrent);
             }
-            Repo::RwLockStdMutexStd(repo) => {
+            Self::RwLockStdMutexStd(repo) => {
                 repo.write().insert(*info_hash, torrent.into());
             }
-            Repo::RwLockStdMutexTokio(repo) => {
+            Self::RwLockStdMutexTokio(repo) => {
                 repo.write().insert(*info_hash, torrent.into());
             }
-            Repo::RwLockTokio(repo) => {
+            Self::RwLockTokio(repo) => {
                 repo.write().await.insert(*info_hash, torrent);
             }
-            Repo::RwLockTokioMutexStd(repo) => {
+            Self::RwLockTokioMutexStd(repo) => {
                 repo.write().await.insert(*info_hash, torrent.into());
             }
-            Repo::RwLockTokioMutexTokio(repo) => {
+            Self::RwLockTokioMutexTokio(repo) => {
                 repo.write().await.insert(*info_hash, torrent.into());
             }
-            Repo::SkipMapMutexStd(repo) => {
+            Self::SkipMapMutexStd(repo) => {
                 repo.torrents.insert(*info_hash, torrent.into());
             }
-            Repo::SkipMapMutexParkingLot(repo) => {
+            Self::SkipMapMutexParkingLot(repo) => {
                 repo.torrents.insert(*info_hash, torrent.into());
             }
-            Repo::SkipMapRwLockParkingLot(repo) => {
+            Self::SkipMapRwLockParkingLot(repo) => {
                 repo.torrents.insert(*info_hash, torrent.into());
             }
-            Repo::DashMapMutexStd(repo) => {
+            Self::DashMapMutexStd(repo) => {
                 repo.torrents.insert(*info_hash, torrent.into());
             }
         }

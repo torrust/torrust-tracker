@@ -25,7 +25,7 @@ pub(crate) enum DatabaseDriver {
 }
 
 impl DatabaseDriver {
-    fn configuration_driver(self) -> Driver {
+    const fn configuration_driver(self) -> Driver {
         match self {
             Self::Sqlite3 => Driver::Sqlite3,
             Self::MySQL => Driver::MySQL,
@@ -33,7 +33,7 @@ impl DatabaseDriver {
         }
     }
 
-    fn default_database_path(self) -> &'static str {
+    const fn default_database_path(self) -> &'static str {
         match self {
             Self::Sqlite3 => DEFAULT_SQLITE3_DATABASE_PATH,
             Self::MySQL => DEFAULT_MYSQL_DATABASE_PATH,
@@ -73,19 +73,19 @@ impl TrackerConfig {
         }
     }
 
-    pub(crate) fn udp_bind_address(&self) -> SocketAddr {
+    pub(crate) const fn udp_bind_address(&self) -> SocketAddr {
         self.udp_bind_address
     }
 
-    pub(crate) fn http_tracker_bind_address(&self) -> SocketAddr {
+    pub(crate) const fn http_tracker_bind_address(&self) -> SocketAddr {
         self.http_tracker_bind_address
     }
 
-    pub(crate) fn health_check_api_bind_address(&self) -> SocketAddr {
+    pub(crate) const fn health_check_api_bind_address(&self) -> SocketAddr {
         self.health_check_api_bind_address
     }
 
-    pub(crate) fn http_api_bind_address(&self) -> SocketAddr {
+    pub(crate) const fn http_api_bind_address(&self) -> SocketAddr {
         self.http_api_bind_address
     }
 
@@ -145,7 +145,7 @@ pub(crate) struct TrackerConfigBuilder {
 
 impl TrackerConfigBuilder {
     /// Creates a builder from a typed E2E tracker configuration object.
-    pub(crate) fn new(tracker_config: TrackerConfig) -> Self {
+    pub(crate) const fn new(tracker_config: TrackerConfig) -> Self {
         Self { tracker_config }
     }
 
@@ -159,25 +159,25 @@ impl TrackerConfigBuilder {
     }
 
     #[expect(dead_code, reason = "reserved for future scenario configuration; see #1706")]
-    pub(crate) fn udp_bind_address(mut self, addr: SocketAddr) -> Self {
+    pub(crate) const fn udp_bind_address(mut self, addr: SocketAddr) -> Self {
         self.tracker_config.udp_bind_address = addr;
         self
     }
 
     #[expect(dead_code, reason = "reserved for future scenario configuration; see #1706")]
-    pub(crate) fn http_tracker_bind_address(mut self, addr: SocketAddr) -> Self {
+    pub(crate) const fn http_tracker_bind_address(mut self, addr: SocketAddr) -> Self {
         self.tracker_config.http_tracker_bind_address = addr;
         self
     }
 
     #[expect(dead_code, reason = "reserved for future scenario configuration; see #1706")]
-    pub(crate) fn http_api_bind_address(mut self, addr: SocketAddr) -> Self {
+    pub(crate) const fn http_api_bind_address(mut self, addr: SocketAddr) -> Self {
         self.tracker_config.http_api_bind_address = addr;
         self
     }
 
     #[expect(dead_code, reason = "reserved for future scenario configuration; see #1706")]
-    pub(crate) fn health_check_api_bind_address(mut self, addr: SocketAddr) -> Self {
+    pub(crate) const fn health_check_api_bind_address(mut self, addr: SocketAddr) -> Self {
         self.tracker_config.health_check_api_bind_address = addr;
         self
     }
@@ -207,6 +207,6 @@ impl TrackerConfigBuilder {
     }
 }
 
-fn bind_address(port: u16) -> SocketAddr {
+const fn bind_address(port: u16) -> SocketAddr {
     SocketAddr::new(TRACKER_BIND_HOST, port)
 }
