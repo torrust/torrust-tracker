@@ -7,7 +7,7 @@ epic: 1669
 github-issue: 1904
 spec-path: docs/issues/open/1904-1669-si-24-relocate-http-server-test-environment.md
 branch: 1904-relocate-http-server-test-environment
-related-pr: null
+related-pr: 1915
 last-updated-utc: 2026-06-15
 semantic-links:
   skill-links:
