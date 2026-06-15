@@ -16,6 +16,7 @@ semantic-links:
     - docs/issues/open/1669-overhaul-packages/EPIC.md
     - docs/issues/open/1669-overhaul-packages/DECISIONS.md
     - docs/issues/open/1669-overhaul-packages/workspace-coupling-report-2026-06-10.md
+    - docs/issues/drafts/1669-decouple-rest-api-core-from-udp-internals.md
 ---
 
 <!-- skill-link: create-issue -->
