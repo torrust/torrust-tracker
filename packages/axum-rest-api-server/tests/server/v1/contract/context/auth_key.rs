@@ -1,7 +1,7 @@
 use std::time::Duration;
 
 use serde::Serialize;
-use torrust_tracker_axum_rest_api_server::environment::Started;
+use torrust_tracker_axum_rest_api_server::testing::environment::Started;
 use torrust_tracker_core::authentication::Key;
 use torrust_tracker_rest_api_client::v1::client::{AddKeyForm, Client, headers_with_request_id};
 use torrust_tracker_test_helpers::logging::logs_contains_a_line_with;
@@ -499,7 +499,7 @@ async fn should_not_allow_reloading_keys_for_unauthenticated_users() {
 
 mod deprecated_generate_key_endpoint {
 
-    use torrust_tracker_axum_rest_api_server::environment::Started;
+    use torrust_tracker_axum_rest_api_server::testing::environment::Started;
     use torrust_tracker_core::authentication::Key;
     use torrust_tracker_rest_api_client::v1::client::{Client, headers_with_request_id};
     use torrust_tracker_test_helpers::logging::logs_contains_a_line_with;

@@ -1,14 +1,14 @@
 ---
 doc-type: issue
 issue-type: task
-status: open
+status: completed
 priority: p2
 epic: 1669
 github-issue: 1903
 spec-path: docs/issues/open/1903-1669-si-23-relocate-axum-rest-api-server-test-environment.md
-branch: null
-related-pr: null
-last-updated-utc: 2026-06-11
+branch: 1903-relocate-axum-rest-api-server-test-environment
+related-pr: 1913
+last-updated-utc: 2026-06-15
 semantic-links:
   skill-links:
     - create-issue
@@ -16,6 +16,7 @@ semantic-links:
     - docs/issues/open/1669-overhaul-packages/EPIC.md
     - docs/issues/open/1669-overhaul-packages/DECISIONS.md
     - docs/issues/open/1669-overhaul-packages/workspace-coupling-report-2026-06-10.md
+    - docs/issues/drafts/1669-decouple-rest-api-core-from-udp-internals.md
 ---
 
 <!-- skill-link: create-issue -->
@@ -93,10 +94,10 @@ Update import paths in packages that use `Started` from the current location:
 
 ## Verification
 
-- [ ] DEC-13 added to `docs/issues/open/1669-overhaul-packages/DECISIONS.md`
-- [ ] `environment.rs` moved to `src/testing/environment.rs`
-- [ ] `axum-rest-api-server/Cargo.toml`: UDP deps demoted to dev-dependencies
-- [ ] External consumers updated (`axum-health-check-api-server`)
-- [ ] `cargo test --workspace` — pass
-- [ ] `cargo machete` — pass
-- [ ] `linter all` — pass
+- [x] DEC-13 added to `docs/issues/open/1669-overhaul-packages/DECISIONS.md`
+- [x] `environment.rs` moved to `src/testing/environment.rs`
+- [ ] ~`axum-rest-api-server/Cargo.toml`: UDP deps demoted to dev-dependencies~ — **Blocked**: production handlers in `src/v1/context/stats/handlers.rs` still reference `BanService` and UDP stats repository types directly. Full demotion requires prerequisite decoupling in `rest-api-core` (separate subissue).
+- [x] External consumers updated (`axum-health-check-api-server`)
+- [x] `cargo test --workspace` — pass
+- [x] `cargo machete` — pass
+- [ ] `linter all` — pass (pending full CI pipeline)

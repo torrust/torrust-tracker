@@ -1,7 +1,7 @@
 //! Minimal bencode encoder for generating `.torrent` files in E2E tests.
 //!
 //! This module intentionally avoids pulling in `serde_bencode` or
-//! `torrust-bencode`. The key reason is the [`BencodeValue::Raw`]
+//! `torrust-bencode`. The key reason is the `BencodeValue::Raw`
 //! variant: it embeds pre-encoded bytes verbatim inside an outer dictionary,
 //! which is required for the two-pass `InfoHash` pattern (encode the `info` dict,
 //! SHA-1 hash it, then embed the raw bytes into the outer torrent dict). Neither
