@@ -7,7 +7,7 @@ epic: 1669
 github-issue: 1903
 spec-path: docs/issues/open/1903-1669-si-23-relocate-axum-rest-api-server-test-environment.md
 branch: 1903-relocate-axum-rest-api-server-test-environment
-related-pr: null
+related-pr: 1913
 last-updated-utc: 2026-06-15
 semantic-links:
   skill-links:
