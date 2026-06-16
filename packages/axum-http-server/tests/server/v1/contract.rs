@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use torrust_tracker_axum_http_server::environment::Started;
+use torrust_tracker_axum_http_server::testing::environment::Started;
 use torrust_tracker_test_helpers::{configuration, logging};
 
 #[tokio::test]
@@ -19,7 +19,7 @@ mod for_all_config_modes {
 
     use std::sync::Arc;
 
-    use torrust_tracker_axum_http_server::environment::Started;
+    use torrust_tracker_axum_http_server::testing::environment::Started;
     use torrust_tracker_axum_http_server::v1::handlers::health_check::{Report, Status};
     use torrust_tracker_test_helpers::{configuration, logging};
 
@@ -46,7 +46,7 @@ mod for_all_config_modes {
     mod and_running_on_reverse_proxy {
         use std::sync::Arc;
 
-        use torrust_tracker_axum_http_server::environment::Started;
+        use torrust_tracker_axum_http_server::testing::environment::Started;
         use torrust_tracker_test_helpers::{configuration, logging};
 
         use crate::server::asserts::assert_could_not_find_remote_address_on_x_forwarded_for_header_error_response;
@@ -116,7 +116,7 @@ mod for_all_config_modes {
         use reqwest::{Response, StatusCode};
         use tokio::net::TcpListener;
         use torrust_info_hash::InfoHash;
-        use torrust_tracker_axum_http_server::environment::Started;
+        use torrust_tracker_axum_http_server::testing::environment::Started;
         use torrust_tracker_primitives::PeerId as DomainPeerId;
         use torrust_tracker_primitives::peer::fixture::PeerBuilder;
         use torrust_tracker_test_helpers::{configuration, logging};
@@ -1060,7 +1060,7 @@ mod for_all_config_modes {
 
         use tokio::net::TcpListener;
         use torrust_info_hash::InfoHash;
-        use torrust_tracker_axum_http_server::environment::Started;
+        use torrust_tracker_axum_http_server::testing::environment::Started;
         use torrust_tracker_primitives::PeerId;
         use torrust_tracker_primitives::peer::fixture::PeerBuilder;
         use torrust_tracker_test_helpers::{configuration, logging};
@@ -1328,7 +1328,7 @@ mod configured_as_whitelisted {
         use std::sync::Arc;
 
         use torrust_info_hash::InfoHash;
-        use torrust_tracker_axum_http_server::environment::Started;
+        use torrust_tracker_axum_http_server::testing::environment::Started;
         use torrust_tracker_test_helpers::logging::logs_contains_a_line_with;
         use torrust_tracker_test_helpers::{configuration, logging};
         use uuid::Uuid;
@@ -1401,7 +1401,7 @@ mod configured_as_whitelisted {
         use std::sync::Arc;
 
         use torrust_info_hash::InfoHash;
-        use torrust_tracker_axum_http_server::environment::Started;
+        use torrust_tracker_axum_http_server::testing::environment::Started;
         use torrust_tracker_primitives::PeerId;
         use torrust_tracker_primitives::peer::fixture::PeerBuilder;
         use torrust_tracker_test_helpers::logging::logs_contains_a_line_with;
@@ -1514,7 +1514,7 @@ mod configured_as_private {
         use std::time::Duration;
 
         use torrust_info_hash::InfoHash;
-        use torrust_tracker_axum_http_server::environment::Started;
+        use torrust_tracker_axum_http_server::testing::environment::Started;
         use torrust_tracker_core::authentication::Key;
         use torrust_tracker_test_helpers::{configuration, logging};
 
@@ -1619,7 +1619,7 @@ mod configured_as_private {
         use std::time::Duration;
 
         use torrust_info_hash::InfoHash;
-        use torrust_tracker_axum_http_server::environment::Started;
+        use torrust_tracker_axum_http_server::testing::environment::Started;
         use torrust_tracker_core::authentication::Key;
         use torrust_tracker_primitives::PeerId;
         use torrust_tracker_primitives::peer::fixture::PeerBuilder;

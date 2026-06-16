@@ -150,7 +150,8 @@ mod http {
         let core_config = Arc::new(configuration.core.clone());
         let http_tracker_config = Arc::new(configuration.http_trackers.clone().unwrap()[0].clone());
 
-        let service = torrust_tracker_axum_http_server::environment::Started::new(&core_config, &http_tracker_config).await;
+        let service =
+            torrust_tracker_axum_http_server::testing::environment::Started::new(&core_config, &http_tracker_config).await;
 
         let registar = service.registar.clone();
 
@@ -198,7 +199,8 @@ mod http {
         let core_config = Arc::new(configuration.core.clone());
         let http_tracker_config = Arc::new(configuration.http_trackers.clone().unwrap()[0].clone());
 
-        let service = torrust_tracker_axum_http_server::environment::Started::new(&core_config, &http_tracker_config).await;
+        let service =
+            torrust_tracker_axum_http_server::testing::environment::Started::new(&core_config, &http_tracker_config).await;
 
         let binding = *service.bind_address();
 
