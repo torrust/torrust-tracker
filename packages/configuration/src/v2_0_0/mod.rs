@@ -692,9 +692,13 @@ mod tests {
     }
 
     #[test]
-    fn external_ip_should_accept_none_as_default() {
-        let config = Configuration::default();
-        assert_eq!(config.core.net.external_ip, None);
+    fn external_ip_should_parse_from_str() {
+        let ip: Result<ExternalIp, _> = "203.0.113.5".parse();
+        assert!(ip.is_ok());
+        let ip: Result<ExternalIp, _> = "0.0.0.0".parse();
+        assert!(ip.is_err());
+        let ip: Result<ExternalIp, _> = "::".parse();
+        assert!(ip.is_err());
     }
 
     #[cfg(test)]

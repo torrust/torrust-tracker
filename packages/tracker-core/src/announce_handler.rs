@@ -264,8 +264,8 @@ impl PeersWanted {
 ///
 /// If the client IP is a loopback address and the tracker has an external IP
 /// configured, the external IP will be assigned to the peer. Wildcard
-/// addresses (`0.0.0.0`, `::`) are rejected at the configuration validation
-/// level and should never reach this function.
+/// addresses (`0.0.0.0`, `::`) are rejected at parse/construction time
+/// by the `ExternalIp` newtype and should never reach this function.
 ///
 /// If no external IP is configured (`None`), the original remote client IP
 /// is returned unchanged, even for loopback addresses.
@@ -273,8 +273,8 @@ impl PeersWanted {
 fn assign_ip_address_to_peer(remote_client_ip: &IpAddr, tracker_external_ip: Option<IpAddr>) -> IpAddr {
     // Use the external IP only if it is configured with a valid (non-unspecified) address
     // and the client is connecting from a loopback address.
-    // Unspecified addresses like 0.0.0.0 or :: are rejected at config validation,
-    // but we also guard here for defense-in-depth.
+    // Unspecified addresses like 0.0.0.0 or :: are rejected by the ExternalIp newtype
+    // at parse time, but we also guard here for defense-in-depth.
     if let Some(host_ip) = tracker_external_ip.filter(|_| remote_client_ip.is_loopback())
         && !host_ip.is_unspecified()
     {

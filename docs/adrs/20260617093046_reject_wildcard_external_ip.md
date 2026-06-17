@@ -64,23 +64,29 @@ Reject wildcard addresses as invalid `external_ip` values and change the default
 
 ### Consequences
 
-- **Positive**: Fail fast — operators who leave `external_ip` unset get clear
-  validation errors at startup, not silent runtime bugs.
+- **Positive**: Fail fast — operators who explicitly set `external_ip = "0.0.0.0"` get a clear
+  parse-time error from the `ExternalIp` newtype, not silent runtime bugs.
 - **Positive**: The `None` default is semantically correct — `external_ip` is truly
   optional and only needed when LAN/loopback clients share the tracker's public IP.
 - **Positive**: In the common case (production deployments without LAN clients),
   no configuration is needed and behavior is correct.
-- **Negative**: Breaking change — operators using the implicit default `0.0.0.0`
-  value will get a startup error and must either set a valid IP or remove the value.
+- **Positive**: No startup error for unset `external_ip` — leaving it unset is valid
+  and means "no loopback replacement".
+- **Negative**: Breaking change — operators who explicitly set `external_ip = "0.0.0.0"`
+  will get a parse-time error and must either set a valid IP or remove the value.
   This is acceptable because a new major version is upcoming.
 
 ### What changes
 
 1. **Default value**: `Network::default_external_ip()` returns `None` instead of `Some(0.0.0.0)`
-2. **Config validation**: `Core::validate()` returns a new
-   `SemanticValidationError::UnspecifiedExternalIp` variant when `external_ip` is `0.0.0.0` or `::`
-3. **Function `assign_ip_address_to_peer`**: No logic change needed (already handles `None`
-   correctly), but doc updated to reflect that unspecified addresses are rejected at the config level
+2. **New `ExternalIp` newtype**: Replaces `Option<IpAddr>` with `Option<ExternalIp>` in
+   the config field. The newtype rejects unspecified addresses (`0.0.0.0`, `::`) at
+   construction/parse time via `TryFrom<IpAddr>`, `FromStr`, and custom `Deserialize`.
+3. **Config validation simplified**: No `UnspecifiedExternalIp` variant needed — the
+   constraint is enforced at the type level, which is consistent with the philosophy
+   that the `Validator` trait is for cross-field invariants.
+4. **Function `assign_ip_address_to_peer`**: Added defense-in-depth guard: even if an
+   unspecified address somehow reaches the function, it falls back to the original IP.
 
 ### What does NOT change
 
