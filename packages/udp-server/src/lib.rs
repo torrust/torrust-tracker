@@ -329,7 +329,7 @@
 //! `connection_id`    | [`ConnectionId`](torrust_tracker_udp_tracker_protocol::common::ConnectionId)    | `-4226491872051668937`
 //! `transaction_id`   | [`TransactionId`](torrust_tracker_udp_tracker_protocol::common::TransactionId)  | `-1560718264`
 //! `info_hash`        | [`InfoHash`](torrust_tracker_udp_tracker_protocol::common::InfoHash)            | `[3,132,5,72,100,58,242,167,182,58,159,92,188,163,72,188,113,80,202,58]`
-//! `peer_id`          | [`PeerId`](torrust_tracker_udp_tracker_protocol::common::PeerId)                | `[45,113,66,52,52,49,48,45,41,83,100,126,100,101,52,120,77,112,54,68]`
+//! `peer_id`          | [`PeerId`](torrust_peer_id::PeerId)                                                | `[45,113,66,52,52,49,48,45,41,83,100,126,100,101,52,120,77,112,54,68]`
 //! `bytes_downloaded` | [`NumberOfBytes`](torrust_tracker_udp_tracker_protocol::common::NumberOfBytes)  | `0`
 //! `bytes_uploaded`   | [`TransactionId`](torrust_tracker_udp_tracker_protocol::common::NumberOfBytes)  | `0`
 //! `event`            | [`AnnounceEvent`](torrust_tracker_udp_tracker_protocol::AnnounceEvent) | `Started`

@@ -90,12 +90,13 @@ mod tests {
         use std::sync::Arc;
 
         use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
+        use torrust_peer_id::PeerId;
         use torrust_tracker_core::torrent::repository::in_memory::InMemoryTorrentRepository;
         use torrust_tracker_events::bus::SenderStatus;
         use torrust_tracker_primitives::peer::fixture::PeerBuilder;
         use torrust_tracker_udp_tracker_core::connection_cookie::{gen_remote_fingerprint, make};
         use torrust_tracker_udp_tracker_protocol::{
-            InfoHash, NumberOfDownloads, NumberOfPeers, PeerId, Response, ScrapeRequest, ScrapeResponse, TorrentScrapeStatistics,
+            InfoHash, NumberOfDownloads, NumberOfPeers, Response, ScrapeRequest, ScrapeResponse, TorrentScrapeStatistics,
             TransactionId,
         };
 

@@ -135,10 +135,11 @@ pub(crate) mod tests {
         use std::net::Ipv4Addr;
         use std::num::NonZeroU16;
 
+        use torrust_peer_id::PeerId as AquaticPeerId;
         use torrust_tracker_udp_tracker_core::connection_cookie::make;
         use torrust_tracker_udp_tracker_protocol::{
-            AnnounceActionPlaceholder, AnnounceEvent, AnnounceRequest, ConnectionId, NumberOfBytes, NumberOfPeers,
-            PeerId as AquaticPeerId, PeerKey, Port, TransactionId,
+            AnnounceActionPlaceholder, AnnounceEvent, AnnounceRequest, ConnectionId, NumberOfBytes, NumberOfPeers, PeerKey, Port,
+            TransactionId,
         };
 
         use crate::handlers::tests::{sample_ipv4_remote_addr_fingerprint, sample_issue_time};
@@ -211,13 +212,14 @@ pub(crate) mod tests {
 
             use mockall::predicate::eq;
             use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
+            use torrust_peer_id::PeerId as AquaticPeerId;
             use torrust_tracker_core::torrent::repository::in_memory::InMemoryTorrentRepository;
             use torrust_tracker_events::bus::SenderStatus;
             use torrust_tracker_primitives::peer::fixture::PeerBuilder;
             use torrust_tracker_udp_tracker_core::connection_cookie::{gen_remote_fingerprint, make};
             use torrust_tracker_udp_tracker_protocol::{
                 AnnounceInterval, AnnounceResponse, AnnounceResponseFixedData, InfoHash as AquaticInfoHash, Ipv4AddrBytes,
-                Ipv6AddrBytes, NumberOfPeers, PeerId as AquaticPeerId, Response, ResponsePeer,
+                Ipv6AddrBytes, NumberOfPeers, Response, ResponsePeer,
             };
 
             use crate::event::{ConnectionContext, Event, UdpRequestKind};
@@ -477,9 +479,10 @@ pub(crate) mod tests {
                 use std::sync::Arc;
 
                 use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
+                use torrust_peer_id::PeerId as AquaticPeerId;
                 use torrust_tracker_primitives::peer::fixture::PeerBuilder;
                 use torrust_tracker_udp_tracker_core::connection_cookie::{gen_remote_fingerprint, make};
-                use torrust_tracker_udp_tracker_protocol::{InfoHash as AquaticInfoHash, PeerId as AquaticPeerId};
+                use torrust_tracker_udp_tracker_protocol::InfoHash as AquaticInfoHash;
 
                 use crate::handlers::announce::tests::announce_request::AnnounceRequestBuilder;
                 use crate::handlers::handle_announce;
@@ -547,6 +550,7 @@ pub(crate) mod tests {
 
             use mockall::predicate::eq;
             use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
+            use torrust_peer_id::PeerId as AquaticPeerId;
             use torrust_tracker_configuration::Core;
             use torrust_tracker_core::announce_handler::AnnounceHandler;
             use torrust_tracker_core::torrent::repository::in_memory::InMemoryTorrentRepository;
@@ -559,7 +563,7 @@ pub(crate) mod tests {
             use torrust_tracker_udp_tracker_core::services::announce::AnnounceService;
             use torrust_tracker_udp_tracker_protocol::{
                 AnnounceInterval, AnnounceResponse, AnnounceResponseFixedData, InfoHash as AquaticInfoHash, Ipv4AddrBytes,
-                Ipv6AddrBytes, NumberOfPeers, PeerId as AquaticPeerId, Response, ResponsePeer,
+                Ipv6AddrBytes, NumberOfPeers, Response, ResponsePeer,
             };
 
             use crate::event::{ConnectionContext, Event, UdpRequestKind};
@@ -846,6 +850,7 @@ pub(crate) mod tests {
 
                 use mockall::predicate::{self, eq};
                 use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
+                use torrust_peer_id::PeerId as AquaticPeerId;
                 use torrust_tracker_core::announce_handler::AnnounceHandler;
                 use torrust_tracker_core::databases::setup::initialize_database;
                 use torrust_tracker_core::statistics::persisted::downloads::DatabaseDownloadsMetricRepository;
@@ -855,7 +860,7 @@ pub(crate) mod tests {
                 use torrust_tracker_udp_tracker_core::connection_cookie::{gen_remote_fingerprint, make};
                 use torrust_tracker_udp_tracker_core::services::announce::AnnounceService;
                 use torrust_tracker_udp_tracker_core::{self, event as core_event};
-                use torrust_tracker_udp_tracker_protocol::{InfoHash as AquaticInfoHash, PeerId as AquaticPeerId};
+                use torrust_tracker_udp_tracker_protocol::InfoHash as AquaticInfoHash;
 
                 use crate::event::{ConnectionContext, Event, UdpRequestKind};
                 use crate::handlers::announce::tests::announce_request::AnnounceRequestBuilder;

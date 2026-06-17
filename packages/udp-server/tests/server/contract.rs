@@ -122,12 +122,13 @@ mod receiving_an_announce_request {
     use std::net::Ipv4Addr;
     use std::sync::Arc;
 
+    use torrust_peer_id::PeerId;
     use torrust_tracker_client::udp::client::UdpTrackerClient;
     use torrust_tracker_test_helpers::logging::logs_contains_a_line_with;
     use torrust_tracker_test_helpers::{configuration, logging};
     use torrust_tracker_udp_tracker_protocol::{
-        AnnounceActionPlaceholder, AnnounceEvent, AnnounceRequest, ConnectionId, InfoHash, NumberOfBytes, NumberOfPeers, PeerId,
-        PeerKey, Port, TransactionId,
+        AnnounceActionPlaceholder, AnnounceEvent, AnnounceRequest, ConnectionId, InfoHash, NumberOfBytes, NumberOfPeers, PeerKey,
+        Port, TransactionId,
     };
 
     use super::DEFAULT_UDP_TIMEOUT;
