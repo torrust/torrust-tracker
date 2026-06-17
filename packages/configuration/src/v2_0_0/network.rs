@@ -15,7 +15,7 @@ pub struct Network {
     #[serde(default = "Network::default_external_ip")]
     pub external_ip: Option<ExternalIp>,
 
-    /// Weather the tracker is behind a reverse proxy or not.
+    /// Whether the tracker is behind a reverse proxy or not.
     /// If the tracker is behind a reverse proxy, the `X-Forwarded-For` header
     /// sent from the proxy will be used to get the client's IP address.
     #[serde(default = "Network::default_on_reverse_proxy")]
