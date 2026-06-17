@@ -20,6 +20,7 @@ name = "torrust_tracker_client"
 [dependencies]
 torrust-tracker-udp-tracker-protocol = { version = "3.0.0-develop", path = "../udp-protocol" }
 torrust-info-hash = "=0.2.0"
+torrust-peer-id = "0.1.0"
 derive_more = { version = "2", features = [ "as_ref", "constructor", "display", "from" ] }
 hyper = "1"
 percent-encoding = "2"

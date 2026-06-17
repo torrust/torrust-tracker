@@ -1,7 +1,7 @@
 use std::sync::OnceLock;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use torrust_tracker_udp_tracker_protocol::PeerId;
+use torrust_peer_id::PeerId;
 
 const DEFAULT_PRODUCTION_PEER_ID_PREFIX_BYTES: &[u8; 8] = b"-RC3000-";
 

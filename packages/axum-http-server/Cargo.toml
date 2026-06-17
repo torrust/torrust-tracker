@@ -14,7 +14,6 @@ rust-version.workspace = true
 version.workspace = true
 
 [dependencies]
-torrust_tracker_udp_tracker_protocol = { package = "torrust-tracker-udp-tracker-protocol", path = "../udp-protocol" }
 axum = { version = "0", features = [ "macros" ] }
 axum-client-ip = "0"
 axum-server = { version = "0", features = [ "tls-rustls-no-provider" ] }
@@ -47,6 +46,7 @@ rand = "0.9"
 serde_bencode = "0"
 serde_bytes = "0"
 serde_repr = "0"
+torrust-peer-id = "0.1.0"
 torrust-tracker-test-helpers = { version = "3.0.0-develop", path = "../test-helpers" }
 uuid = { version = "1", features = [ "v4" ] }
 

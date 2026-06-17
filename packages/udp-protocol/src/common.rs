@@ -9,10 +9,9 @@ use std::fmt::Debug;
 use std::net::{Ipv4Addr, Ipv6Addr};
 use std::num::NonZeroU16;
 
+pub use torrust_peer_id::{PeerClient, PeerId};
 use zerocopy::byteorder::network_endian::{I32, I64, U16, U32};
 use zerocopy::{FromBytes, Immutable, IntoBytes};
-
-pub use crate::{PeerClient, PeerId};
 
 pub trait Ip: Clone + Copy + Debug + PartialEq + Eq + std::hash::Hash + IntoBytes + Immutable {}
 

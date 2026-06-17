@@ -7,11 +7,11 @@ use bencode2json::try_bencode_to_json;
 use clap::{Subcommand, ValueEnum};
 use reqwest::Url;
 use torrust_info_hash::InfoHash;
+use torrust_peer_id::PeerId;
 use torrust_tracker_client::http::client::requests::announce::{Compact, Event, QueryBuilder};
 use torrust_tracker_client::http::client::responses::announce::{Announce, DeserializedCompact};
 use torrust_tracker_client::http::client::responses::scrape;
 use torrust_tracker_client::http::client::{Client, requests};
-use torrust_tracker_udp_tracker_protocol::PeerId;
 
 use super::app::OutputFormat;
 use crate::DEFAULT_NETWORK_TIMEOUT;
