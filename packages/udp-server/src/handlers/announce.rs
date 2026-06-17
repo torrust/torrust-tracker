@@ -135,7 +135,7 @@ pub(crate) mod tests {
         use std::net::Ipv4Addr;
         use std::num::NonZeroU16;
 
-        use torrust_peer_id::PeerId as AquaticPeerId;
+        use torrust_peer_id::PeerId;
         use torrust_tracker_udp_tracker_core::connection_cookie::make;
         use torrust_tracker_udp_tracker_protocol::{
             AnnounceActionPlaceholder, AnnounceEvent, AnnounceRequest, ConnectionId, NumberOfBytes, NumberOfPeers, PeerKey, Port,
@@ -159,7 +159,7 @@ pub(crate) mod tests {
                     action_placeholder: AnnounceActionPlaceholder::default(),
                     transaction_id: TransactionId(0i32.into()),
                     info_hash: info_hash_aquatic,
-                    peer_id: AquaticPeerId([255u8; 20]),
+                    peer_id: PeerId([255u8; 20]),
                     bytes_downloaded: NumberOfBytes(0i64.into()),
                     bytes_uploaded: NumberOfBytes(0i64.into()),
                     bytes_left: NumberOfBytes(0i64.into()),
@@ -184,7 +184,7 @@ pub(crate) mod tests {
                 self
             }
 
-            pub fn with_peer_id(mut self, peer_id: AquaticPeerId) -> Self {
+            pub fn with_peer_id(mut self, peer_id: PeerId) -> Self {
                 self.request.peer_id = peer_id;
                 self
             }
@@ -212,7 +212,7 @@ pub(crate) mod tests {
 
             use mockall::predicate::eq;
             use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
-            use torrust_peer_id::PeerId as AquaticPeerId;
+            use torrust_peer_id::PeerId;
             use torrust_tracker_core::torrent::repository::in_memory::InMemoryTorrentRepository;
             use torrust_tracker_events::bus::SenderStatus;
             use torrust_tracker_primitives::peer::fixture::PeerBuilder;
@@ -240,7 +240,7 @@ pub(crate) mod tests {
                 let client_ip = Ipv4Addr::new(126, 0, 0, 1);
                 let client_port = 8080;
                 let info_hash = AquaticInfoHash([0u8; 20]);
-                let peer_id = AquaticPeerId([255u8; 20]);
+                let peer_id = PeerId([255u8; 20]);
 
                 let client_socket_addr = SocketAddr::new(IpAddr::V4(client_ip), client_port);
                 let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969);
@@ -330,7 +330,7 @@ pub(crate) mod tests {
                     initialize_core_tracker_services_for_public_tracker().await;
 
                 let info_hash = AquaticInfoHash([0u8; 20]);
-                let peer_id = AquaticPeerId([255u8; 20]);
+                let peer_id = PeerId([255u8; 20]);
                 let client_port = 8080;
 
                 let remote_client_ip = Ipv4Addr::new(126, 0, 0, 1);
@@ -375,7 +375,7 @@ pub(crate) mod tests {
                 let client_ip_v4 = Ipv4Addr::new(126, 0, 0, 1);
                 let client_ip_v6 = client_ip_v4.to_ipv6_compatible();
                 let client_port = 8080;
-                let peer_id = AquaticPeerId([255u8; 20]);
+                let peer_id = PeerId([255u8; 20]);
 
                 let peer_using_ipv6 = PeerBuilder::default()
                     .with_peer_id(&torrust_tracker_primitives::PeerId(peer_id.0))
@@ -479,7 +479,7 @@ pub(crate) mod tests {
                 use std::sync::Arc;
 
                 use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
-                use torrust_peer_id::PeerId as AquaticPeerId;
+                use torrust_peer_id::PeerId;
                 use torrust_tracker_primitives::peer::fixture::PeerBuilder;
                 use torrust_tracker_udp_tracker_core::connection_cookie::{gen_remote_fingerprint, make};
                 use torrust_tracker_udp_tracker_protocol::InfoHash as AquaticInfoHash;
@@ -498,7 +498,7 @@ pub(crate) mod tests {
                     let client_ip = Ipv4Addr::LOCALHOST;
                     let client_port = 8080;
                     let info_hash = AquaticInfoHash([0u8; 20]);
-                    let peer_id = AquaticPeerId([255u8; 20]);
+                    let peer_id = PeerId([255u8; 20]);
 
                     let client_socket_addr = SocketAddr::new(IpAddr::V4(client_ip), client_port);
                     let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969);
@@ -550,7 +550,7 @@ pub(crate) mod tests {
 
             use mockall::predicate::eq;
             use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
-            use torrust_peer_id::PeerId as AquaticPeerId;
+            use torrust_peer_id::PeerId;
             use torrust_tracker_configuration::Core;
             use torrust_tracker_core::announce_handler::AnnounceHandler;
             use torrust_tracker_core::torrent::repository::in_memory::InMemoryTorrentRepository;
@@ -584,7 +584,7 @@ pub(crate) mod tests {
                 let client_ip_v6 = client_ip_v4.to_ipv6_compatible();
                 let client_port = 8080;
                 let info_hash = AquaticInfoHash([0u8; 20]);
-                let peer_id = AquaticPeerId([255u8; 20]);
+                let peer_id = PeerId([255u8; 20]);
 
                 let client_socket_addr = SocketAddr::new(IpAddr::V6(client_ip_v6), client_port);
                 let server_socket_addr = SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 196)), 6969);
@@ -677,7 +677,7 @@ pub(crate) mod tests {
                     initialize_core_tracker_services_for_public_tracker().await;
 
                 let info_hash = AquaticInfoHash([0u8; 20]);
-                let peer_id = AquaticPeerId([255u8; 20]);
+                let peer_id = PeerId([255u8; 20]);
                 let client_port = 8080;
 
                 let remote_client_ip = "::100".parse().unwrap(); // IPV4 ::0.0.1.0 -> IPV6 = ::100 = ::ffff:0:100 = 0:0:0:0:0:ffff:0:0100
@@ -722,7 +722,7 @@ pub(crate) mod tests {
 
                 let client_ip_v4 = Ipv4Addr::new(126, 0, 0, 1);
                 let client_port = 8080;
-                let peer_id = AquaticPeerId([255u8; 20]);
+                let peer_id = PeerId([255u8; 20]);
 
                 let peer_using_ipv4 = PeerBuilder::default()
                     .with_peer_id(&torrust_tracker_primitives::PeerId(peer_id.0))
@@ -850,7 +850,7 @@ pub(crate) mod tests {
 
                 use mockall::predicate::{self, eq};
                 use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
-                use torrust_peer_id::PeerId as AquaticPeerId;
+                use torrust_peer_id::PeerId;
                 use torrust_tracker_core::announce_handler::AnnounceHandler;
                 use torrust_tracker_core::databases::setup::initialize_database;
                 use torrust_tracker_core::statistics::persisted::downloads::DatabaseDownloadsMetricRepository;
@@ -883,7 +883,7 @@ pub(crate) mod tests {
                     let client_port = 8080;
 
                     let info_hash = AquaticInfoHash([0u8; 20]);
-                    let peer_id = AquaticPeerId([255u8; 20]);
+                    let peer_id = PeerId([255u8; 20]);
                     let mut announcement = sample_peer();
                     announcement.peer_id = torrust_tracker_primitives::PeerId(peer_id.0);
                     announcement.peer_addr = SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0x7e00, 1)), client_port);
