@@ -480,20 +480,16 @@ pub(crate) mod tests {
 
                 use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
                 use torrust_peer_id::PeerId;
-                use torrust_tracker_core::announce_handler::AnnounceHandler;
-                use torrust_tracker_core::databases::setup::initialize_database;
-                use torrust_tracker_core::statistics::persisted::downloads::DatabaseDownloadsMetricRepository;
-                use torrust_tracker_core::torrent::repository::in_memory::InMemoryTorrentRepository;
-                use torrust_tracker_core::whitelist::authorization::WhitelistAuthorization;
-                use torrust_tracker_core::whitelist::repository::in_memory::InMemoryWhitelist;
                 use torrust_tracker_primitives::peer::fixture::PeerBuilder;
                 use torrust_tracker_udp_tracker_core::connection_cookie::{gen_remote_fingerprint, make};
-                use torrust_tracker_udp_tracker_core::services::announce::AnnounceService;
                 use torrust_tracker_udp_tracker_protocol::InfoHash as AquaticInfoHash;
 
                 use crate::handlers::announce::tests::announce_request::AnnounceRequestBuilder;
                 use crate::handlers::handle_announce;
-                use crate::handlers::tests::{TrackerConfigurationBuilder, sample_cookie_valid_range, sample_issue_time};
+                use crate::handlers::tests::{
+                    TrackerConfigurationBuilder, initialize_core_tracker_services_with_config, sample_cookie_valid_range,
+                    sample_issue_time,
+                };
 
                 #[tokio::test]
                 async fn the_peer_ip_should_be_changed_to_the_external_ip_in_the_tracker_configuration_if_defined() {
@@ -520,44 +516,28 @@ pub(crate) mod tests {
                         .with_port(client_port)
                         .into();
 
-                    let database = initialize_database(&config.core).await;
-                    let in_memory_whitelist = Arc::new(InMemoryWhitelist::default());
-                    let whitelist_authorization =
-                        Arc::new(WhitelistAuthorization::new(&config.core, &in_memory_whitelist.clone()));
-                    let in_memory_torrent_repository = Arc::new(InMemoryTorrentRepository::default());
-                    let db_downloads_metric_repository =
-                        Arc::new(DatabaseDownloadsMetricRepository::new(&database.torrent_metrics_store));
-                    let announce_handler = Arc::new(AnnounceHandler::new(
-                        &config.core,
-                        &whitelist_authorization,
-                        &in_memory_torrent_repository,
-                        &db_downloads_metric_repository,
-                    ));
-                    let core_config = Arc::new(config.core.clone());
-                    let announce_service = Arc::new(AnnounceService::new(
-                        announce_handler.clone(),
-                        whitelist_authorization.clone(),
-                        None,
-                    ));
-                    let udp_server_stats_event_sender: crate::event::sender::Sender = None;
+                    let (core_tracker_services, core_udp_tracker_services, _server_udp_tracker_services) =
+                        initialize_core_tracker_services_with_config(&config).await;
 
                     handle_announce(
-                        &announce_service,
+                        &core_udp_tracker_services.announce_service,
                         client_socket_addr,
                         server_service_binding,
                         &request,
-                        &core_config,
-                        &udp_server_stats_event_sender,
+                        &core_tracker_services.core_config,
+                        &None,
                         sample_cookie_valid_range(),
                     )
                     .await
                     .unwrap();
 
-                    let peers = in_memory_torrent_repository
+                    let peers = core_tracker_services
+                        .in_memory_torrent_repository
                         .get_torrent_peers(&info_hash.0.into(), usize::MAX)
                         .await;
 
-                    let external_ip_in_tracker_configuration: IpAddr = core_config.net.external_ip.unwrap().into();
+                    let external_ip_in_tracker_configuration: IpAddr =
+                        core_tracker_services.core_config.net.external_ip.unwrap().into();
 
                     let expected_peer = PeerBuilder::default()
                         .with_peer_id(&torrust_tracker_primitives::PeerId(peer_id.0))

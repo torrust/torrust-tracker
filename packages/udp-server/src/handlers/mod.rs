@@ -268,6 +268,12 @@ pub(crate) mod tests {
         initialize_core_tracker_services(&configuration::ephemeral_listed()).await
     }
 
+    pub(crate) async fn initialize_core_tracker_services_with_config(
+        config: &Configuration,
+    ) -> (CoreTrackerServices, CoreUdpTrackerServices, ServerUdpTrackerServices) {
+        initialize_core_tracker_services(config).await
+    }
+
     async fn initialize_core_tracker_services(
         config: &Configuration,
     ) -> (CoreTrackerServices, CoreUdpTrackerServices, ServerUdpTrackerServices) {
