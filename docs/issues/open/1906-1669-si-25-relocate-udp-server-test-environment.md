@@ -6,9 +6,9 @@ priority: p2
 epic: 1669
 github-issue: 1906
 spec-path: docs/issues/open/1906-1669-si-25-relocate-udp-server-test-environment.md
-branch: null
+branch: 1906-relocate-udp-server-test-environment
 related-pr: null
-last-updated-utc: 2026-06-11
+last-updated-utc: 2026-06-17
 semantic-links:
   skill-links:
     - create-issue
@@ -70,8 +70,8 @@ runtime dependencies.
 
 ## Verification
 
-- [ ] `environment.rs` moved to `src/testing/environment.rs`
-- [ ] External consumers updated
-- [ ] `cargo test --workspace` — pass
-- [ ] `cargo machete` — pass
-- [ ] `linter all` — pass
+- [x] `environment.rs` moved to `src/testing/environment.rs`
+- [x] External consumers updated
+- [x] `cargo test --workspace` — pass
+- [x] `cargo machete` — pass
+- [x] `linter all` — pass

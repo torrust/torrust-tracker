@@ -263,7 +263,7 @@ mod udp {
         let core_config = Arc::new(configuration.core.clone());
         let udp_tracker_config = Arc::new(configuration.udp_trackers.clone().unwrap()[0].clone());
 
-        let service = torrust_tracker_udp_server::environment::Started::new(&core_config, &udp_tracker_config).await;
+        let service = torrust_tracker_udp_server::testing::environment::Started::new(&core_config, &udp_tracker_config).await;
 
         let registar = service.registar.clone();
 
@@ -308,7 +308,7 @@ mod udp {
         let core_config = Arc::new(configuration.core.clone());
         let udp_tracker_config = Arc::new(configuration.udp_trackers.clone().unwrap()[0].clone());
 
-        let service = torrust_tracker_udp_server::environment::Started::new(&core_config, &udp_tracker_config).await;
+        let service = torrust_tracker_udp_server::testing::environment::Started::new(&core_config, &udp_tracker_config).await;
 
         let binding = service.bind_address();
 

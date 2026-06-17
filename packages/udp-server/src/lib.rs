@@ -636,12 +636,12 @@
 //! taken from the [libtorrent](https://www.rasterbar.com/products/libtorrent/udp_tracker_protocol.html).
 pub mod banning;
 pub mod container;
-pub mod environment;
 pub mod error;
 pub mod event;
 pub mod handlers;
 pub mod server;
 pub mod statistics;
+pub mod testing;
 
 use std::net::SocketAddr;
 

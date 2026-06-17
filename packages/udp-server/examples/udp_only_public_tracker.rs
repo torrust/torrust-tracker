@@ -38,7 +38,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use torrust_tracker_configuration::{Core, UdpTracker};
-use torrust_tracker_udp_server::environment::Started;
+use torrust_tracker_udp_server::testing::environment::Started;
 
 #[tokio::main]
 async fn main() {
