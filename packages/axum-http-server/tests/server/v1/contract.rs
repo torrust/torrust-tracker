@@ -116,11 +116,11 @@ mod for_all_config_modes {
         use reqwest::{Response, StatusCode};
         use tokio::net::TcpListener;
         use torrust_info_hash::InfoHash;
+        use torrust_peer_id::PeerId;
         use torrust_tracker_axum_http_server::testing::environment::Started;
         use torrust_tracker_primitives::PeerId as DomainPeerId;
         use torrust_tracker_primitives::peer::fixture::PeerBuilder;
         use torrust_tracker_test_helpers::{configuration, logging};
-        use torrust_tracker_udp_tracker_protocol::PeerId as WirePeerId;
 
         use crate::common::fixtures::invalid_info_hashes;
         use crate::server::asserts::{
@@ -554,7 +554,7 @@ mod for_all_config_modes {
                 .announce(
                     &QueryBuilder::default()
                         .with_info_hash(&info_hash)
-                        .with_peer_id(&WirePeerId(*b"-qB00000000000000002"))
+                        .with_peer_id(&PeerId(*b"-qB00000000000000002"))
                         .query(),
                 )
                 .await;
@@ -610,7 +610,7 @@ mod for_all_config_modes {
                 .announce(
                     &QueryBuilder::default()
                         .with_info_hash(&info_hash)
-                        .with_peer_id(&WirePeerId(*b"-qB00000000000000003"))
+                        .with_peer_id(&PeerId(*b"-qB00000000000000003"))
                         .query(),
                 )
                 .await;
@@ -649,14 +649,14 @@ mod for_all_config_modes {
 
             let announce_query_1 = QueryBuilder::default()
                 .with_info_hash(&info_hash)
-                .with_peer_id(&WirePeerId(peer.peer_id.0))
+                .with_peer_id(&PeerId(peer.peer_id.0))
                 .with_peer_addr(&peer.peer_addr.ip())
                 .with_port(peer.peer_addr.port())
                 .query();
 
             let announce_query_2 = QueryBuilder::default()
                 .with_info_hash(&info_hash)
-                .with_peer_id(&WirePeerId(*b"-qB00000000000000002")) // Different peer ID
+                .with_peer_id(&PeerId(*b"-qB00000000000000002")) // Different peer ID
                 .with_peer_addr(&peer.peer_addr.ip())
                 .with_port(peer.peer_addr.port())
                 .query();
@@ -716,7 +716,7 @@ mod for_all_config_modes {
                 .announce(
                     &QueryBuilder::default()
                         .with_info_hash(&info_hash)
-                        .with_peer_id(&WirePeerId(*b"-qB00000000000000002"))
+                        .with_peer_id(&PeerId(*b"-qB00000000000000002"))
                         .with_compact(Compact::Accepted)
                         .query(),
                 )
@@ -764,7 +764,7 @@ mod for_all_config_modes {
                 .announce(
                     &QueryBuilder::default()
                         .with_info_hash(&info_hash)
-                        .with_peer_id(&WirePeerId(*b"-qB00000000000000002"))
+                        .with_peer_id(&PeerId(*b"-qB00000000000000002"))
                         .without_compact()
                         .query(),
                 )

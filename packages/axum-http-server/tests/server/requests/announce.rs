@@ -4,7 +4,7 @@ use std::str::FromStr;
 
 use serde_repr::Serialize_repr;
 use torrust_info_hash::InfoHash;
-use torrust_tracker_udp_tracker_protocol::PeerId;
+use torrust_peer_id::PeerId;
 
 use crate::server::{ByteArray20, percent_encode_byte_array};
 

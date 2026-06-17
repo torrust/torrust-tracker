@@ -98,8 +98,9 @@ available dependency declared in its `Cargo.toml`.
 
 ## Verification
 
-- [ ] All 4 consumers updated to import from `torrust-peer-id` directly
-- [ ] Re-exports removed from `udp-protocol`
-- [ ] `cargo test --workspace` — pass
-- [ ] `cargo machete` — pass
-- [ ] `linter all` — pass
+- [x] All 4 (+1 extra) consumers updated to import from `torrust-peer-id` directly
+  - The `console/tracker-client` was an additional consumer beyond the original 4 listed in Scope.
+- [x] Re-exports removed from `udp-protocol`
+- [x] `cargo test --workspace` — pass
+- [x] `cargo machete` — pass
+- [x] `linter all` — pass

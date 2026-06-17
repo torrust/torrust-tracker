@@ -1,7 +1,7 @@
 use torrust_clock::DurationSinceUnixEpoch;
 use torrust_metrics::label::LabelSet;
 use torrust_metrics::{label_name, metric_name};
-use torrust_tracker_udp_tracker_protocol::PeerClient;
+use torrust_peer_id::PeerClient;
 
 use crate::event::{ConnectionContext, ErrorKind, UdpRequestKind};
 use crate::statistics::repository::Repository;
