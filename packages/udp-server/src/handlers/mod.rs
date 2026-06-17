@@ -371,7 +371,7 @@ pub(crate) mod tests {
         }
 
         pub fn with_external_ip(mut self, external_ip: &str) -> Self {
-            self.configuration.core.net.external_ip = Some(external_ip.to_owned().parse().expect("valid IP address"));
+            self.configuration.core.net.external_ip = Some(external_ip.parse().expect("valid external IP address"));
             self
         }
 

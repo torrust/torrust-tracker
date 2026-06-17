@@ -937,10 +937,15 @@ mod for_all_config_modes {
                 .await;
             let peer_addr = peers[0].peer_addr;
 
-            assert_eq!(
-                peer_addr.ip(),
-                env.container.tracker_core_container.core_config.net.external_ip.unwrap()
-            );
+            let ext_ip: IpAddr = env
+                .container
+                .tracker_core_container
+                .core_config
+                .net
+                .external_ip
+                .unwrap()
+                .into();
+            assert_eq!(peer_addr.ip(), ext_ip);
             assert_ne!(peer_addr.ip(), IpAddr::from_str("2.2.2.2").unwrap());
 
             env.stop().await;
@@ -987,10 +992,15 @@ mod for_all_config_modes {
                 .await;
             let peer_addr = peers[0].peer_addr;
 
-            assert_eq!(
-                peer_addr.ip(),
-                env.container.tracker_core_container.core_config.net.external_ip.unwrap()
-            );
+            let ext_ip: IpAddr = env
+                .container
+                .tracker_core_container
+                .core_config
+                .net
+                .external_ip
+                .unwrap()
+                .into();
+            assert_eq!(peer_addr.ip(), ext_ip);
             assert_ne!(peer_addr.ip(), IpAddr::from_str("2.2.2.2").unwrap());
 
             env.stop().await;

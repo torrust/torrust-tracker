@@ -126,7 +126,7 @@ Every code path affected by this change must be covered by tests. Prefer **unit 
 | `ExternalIp` newtype rejects `0.0.0.0`                  | **No tests** — new feature                      | Add unit test for `ExternalIp::try_from`                        | ✅     |
 | `ExternalIp` newtype rejects `::`                       | **No tests** — new feature                      | Add unit test for `ExternalIp::try_from`                        | ✅     |
 | `ExternalIp` newtype accepts valid IP                   | **No tests** — new feature                      | Add unit test for `ExternalIp::try_from`                        | ✅     |
-| TOML deserialization rejects `external_ip = "0.0.0.0"` | **No tests** — new feature                      | Add `Configuration::load` test with invalid TOML                | ✅     |
+| TOML deserialization rejects `external_ip = "0.0.0.0"`  | **No tests** — new feature                      | Add `Configuration::load` test with invalid TOML                | ✅     |
 | TOML deserialization rejects `external_ip = "::"`       | **No tests** — new feature                      | Add `Configuration::load` test with invalid TOML                | ✅     |
 | TOML deserialization accepts valid `external_ip`        | **No tests** — new feature                      | Add `Configuration::load` test with valid TOML                  | ✅     |
 

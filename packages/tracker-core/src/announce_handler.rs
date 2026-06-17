@@ -163,7 +163,10 @@ impl AnnounceHandler {
     ) -> Result<AnnounceData, AnnounceError> {
         self.whitelist_authorization.authorize(info_hash).await?;
 
-        peer.change_ip(&assign_ip_address_to_peer(remote_client_ip, self.config.net.external_ip));
+        peer.change_ip(&assign_ip_address_to_peer(
+            remote_client_ip,
+            self.config.net.external_ip.map(Into::into),
+        ));
 
         self.in_memory_torrent_repository
             .handle_announcement(info_hash, peer, self.load_downloads_metric_if_needed(info_hash).await?)
@@ -260,14 +263,24 @@ impl PeersWanted {
 /// Assigns the correct IP address to a peer based on tracker settings.
 ///
 /// If the client IP is a loopback address and the tracker has an external IP
-/// configured, the external IP will be assigned to the peer.
+/// configured, the external IP will be assigned to the peer. Wildcard
+/// addresses (`0.0.0.0`, `::`) are rejected at the configuration validation
+/// level and should never reach this function.
+///
+/// If no external IP is configured (`None`), the original remote client IP
+/// is returned unchanged, even for loopback addresses.
 #[must_use]
 fn assign_ip_address_to_peer(remote_client_ip: &IpAddr, tracker_external_ip: Option<IpAddr>) -> IpAddr {
-    if let Some(host_ip) = tracker_external_ip.filter(|_| remote_client_ip.is_loopback()) {
-        host_ip
-    } else {
-        *remote_client_ip
+    // Use the external IP only if it is configured with a valid (non-unspecified) address
+    // and the client is connecting from a loopback address.
+    // Unspecified addresses like 0.0.0.0 or :: are rejected at config validation,
+    // but we also guard here for defense-in-depth.
+    if let Some(host_ip) = tracker_external_ip.filter(|_| remote_client_ip.is_loopback())
+        && !host_ip.is_unspecified()
+    {
+        return host_ip;
     }
+    *remote_client_ip
 }
 
 #[cfg(test)]
@@ -442,6 +455,70 @@ mod tests {
                             let peer_ip = assign_ip_address_to_peer(&remote_ip, Some(tracker_external_ip));
 
                             assert_eq!(peer_ip, tracker_external_ip);
+                        }
+                    }
+
+                    mod and_when_the_external_ip_is_unspecified {
+                        use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
+
+                        use crate::announce_handler::assign_ip_address_to_peer;
+
+                        #[test]
+                        fn it_should_keep_the_ipv4_loopback_ip_when_the_external_ip_is_the_unspecified_ipv4_address() {
+                            let remote_ip = IpAddr::V4(Ipv4Addr::LOCALHOST);
+
+                            let peer_ip = assign_ip_address_to_peer(&remote_ip, Some(IpAddr::V4(Ipv4Addr::UNSPECIFIED)));
+
+                            assert_eq!(peer_ip, remote_ip);
+                            assert_eq!(peer_ip, IpAddr::V4(Ipv4Addr::LOCALHOST));
+                        }
+
+                        #[test]
+                        fn it_should_keep_the_ipv6_loopback_ip_when_the_external_ip_is_the_unspecified_ipv6_address() {
+                            let remote_ip = IpAddr::V6(Ipv6Addr::LOCALHOST);
+
+                            let peer_ip = assign_ip_address_to_peer(&remote_ip, Some(IpAddr::V6(Ipv6Addr::UNSPECIFIED)));
+
+                            assert_eq!(peer_ip, remote_ip);
+                            assert_eq!(peer_ip, IpAddr::V6(Ipv6Addr::LOCALHOST));
+                        }
+
+                        #[test]
+                        fn it_should_keep_the_ipv4_loopback_ip_when_the_external_ip_is_the_unspecified_ipv6_address() {
+                            let remote_ip = IpAddr::V4(Ipv4Addr::LOCALHOST);
+
+                            let peer_ip = assign_ip_address_to_peer(&remote_ip, Some(IpAddr::V6(Ipv6Addr::UNSPECIFIED)));
+
+                            assert_eq!(peer_ip, remote_ip);
+                            assert_eq!(peer_ip, IpAddr::V4(Ipv4Addr::LOCALHOST));
+                        }
+
+                        #[test]
+                        fn it_should_keep_the_ipv6_loopback_ip_when_the_external_ip_is_the_unspecified_ipv4_address() {
+                            let remote_ip = IpAddr::V6(Ipv6Addr::LOCALHOST);
+
+                            let peer_ip = assign_ip_address_to_peer(&remote_ip, Some(IpAddr::V4(Ipv4Addr::UNSPECIFIED)));
+
+                            assert_eq!(peer_ip, remote_ip);
+                            assert_eq!(peer_ip, IpAddr::V6(Ipv6Addr::LOCALHOST));
+                        }
+
+                        #[test]
+                        fn it_should_keep_the_non_loopback_ip_when_the_external_ip_is_unspecified_ipv4() {
+                            let remote_ip = IpAddr::V4(Ipv4Addr::new(126, 0, 0, 2));
+
+                            let peer_ip = assign_ip_address_to_peer(&remote_ip, Some(IpAddr::V4(Ipv4Addr::UNSPECIFIED)));
+
+                            assert_eq!(peer_ip, remote_ip);
+                        }
+
+                        #[test]
+                        fn it_should_keep_the_non_loopback_ip_when_the_external_ip_is_unspecified_ipv6() {
+                            let remote_ip = IpAddr::V4(Ipv4Addr::new(126, 0, 0, 2));
+
+                            let peer_ip = assign_ip_address_to_peer(&remote_ip, Some(IpAddr::V6(Ipv6Addr::UNSPECIFIED)));
+
+                            assert_eq!(peer_ip, remote_ip);
                         }
                     }
                 }

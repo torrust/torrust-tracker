@@ -141,11 +141,15 @@ pub fn ephemeral_private_and_listed() -> Configuration {
 }
 
 /// Ephemeral configuration with a custom external (public) IP for the tracker.
+///
+/// # Panics
+///
+/// Panics if the provided IP is a wildcard/unspecified address (`0.0.0.0` or `::`).
 #[must_use]
 pub fn ephemeral_with_external_ip(ip: IpAddr) -> Configuration {
     let mut cfg = ephemeral();
 
-    cfg.core.net.external_ip = Some(ip);
+    cfg.core.net.external_ip = Some(ip.try_into().expect("wildcard IP is not a valid external IP"));
 
     cfg
 }
