@@ -7,7 +7,7 @@ epic: 1669
 github-issue: 1906
 spec-path: docs/issues/open/1906-1669-si-25-relocate-udp-server-test-environment.md
 branch: 1906-relocate-udp-server-test-environment
-related-pr: null
+related-pr: 4
 last-updated-utc: 2026-06-17
 semantic-links:
   skill-links:
