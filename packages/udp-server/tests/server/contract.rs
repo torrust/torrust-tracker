@@ -46,7 +46,7 @@ async fn should_return_a_bad_request_response_when_the_client_sends_an_empty_req
     let cfg = configuration::ephemeral();
     let core_config = Arc::new(cfg.core.clone());
     let udp_tracker_config = Arc::new(cfg.udp_trackers.unwrap()[0].clone());
-    let env = torrust_tracker_udp_server::environment::Started::new(&core_config, &udp_tracker_config).await;
+    let env = torrust_tracker_udp_server::testing::environment::Started::new(&core_config, &udp_tracker_config).await;
 
     let client = match UdpTrackerClient::new(env.bind_address(), DEFAULT_UDP_TIMEOUT).await {
         Ok(udp_client) => udp_client,
@@ -91,7 +91,7 @@ mod receiving_a_connection_request {
         let cfg = configuration::ephemeral();
         let core_config = Arc::new(cfg.core.clone());
         let udp_tracker_config = Arc::new(cfg.udp_trackers.unwrap()[0].clone());
-        let env = torrust_tracker_udp_server::environment::Started::new(&core_config, &udp_tracker_config).await;
+        let env = torrust_tracker_udp_server::testing::environment::Started::new(&core_config, &udp_tracker_config).await;
 
         let client = match UdpTrackerClient::new(env.bind_address(), DEFAULT_UDP_TIMEOUT).await {
             Ok(udp_tracker_client) => udp_tracker_client,
@@ -195,7 +195,7 @@ mod receiving_an_announce_request {
         let cfg = configuration::ephemeral();
         let core_config = Arc::new(cfg.core.clone());
         let udp_tracker_config = Arc::new(cfg.udp_trackers.unwrap()[0].clone());
-        let env = torrust_tracker_udp_server::environment::Started::new(&core_config, &udp_tracker_config).await;
+        let env = torrust_tracker_udp_server::testing::environment::Started::new(&core_config, &udp_tracker_config).await;
 
         let client = match UdpTrackerClient::new(env.bind_address(), DEFAULT_UDP_TIMEOUT).await {
             Ok(udp_tracker_client) => udp_tracker_client,
@@ -220,7 +220,7 @@ mod receiving_an_announce_request {
         let cfg = configuration::ephemeral();
         let core_config = Arc::new(cfg.core.clone());
         let udp_tracker_config = Arc::new(cfg.udp_trackers.unwrap()[0].clone());
-        let env = torrust_tracker_udp_server::environment::Started::new(&core_config, &udp_tracker_config).await;
+        let env = torrust_tracker_udp_server::testing::environment::Started::new(&core_config, &udp_tracker_config).await;
 
         let client = match UdpTrackerClient::new(env.bind_address(), DEFAULT_UDP_TIMEOUT).await {
             Ok(udp_tracker_client) => udp_tracker_client,
@@ -248,7 +248,7 @@ mod receiving_an_announce_request {
         let cfg = configuration::ephemeral();
         let core_config = Arc::new(cfg.core.clone());
         let udp_tracker_config = Arc::new(cfg.udp_trackers.unwrap()[0].clone());
-        let env = torrust_tracker_udp_server::environment::Started::new(&core_config, &udp_tracker_config).await;
+        let env = torrust_tracker_udp_server::testing::environment::Started::new(&core_config, &udp_tracker_config).await;
         let ban_service = env.container.udp_tracker_core_container.ban_service.clone();
 
         let client = match UdpTrackerClient::new(env.bind_address(), DEFAULT_UDP_TIMEOUT).await {
@@ -343,7 +343,7 @@ mod receiving_an_scrape_request {
         let cfg = configuration::ephemeral();
         let core_config = Arc::new(cfg.core.clone());
         let udp_tracker_config = Arc::new(cfg.udp_trackers.unwrap()[0].clone());
-        let env = torrust_tracker_udp_server::environment::Started::new(&core_config, &udp_tracker_config).await;
+        let env = torrust_tracker_udp_server::testing::environment::Started::new(&core_config, &udp_tracker_config).await;
 
         let client = match UdpTrackerClient::new(env.bind_address(), DEFAULT_UDP_TIMEOUT).await {
             Ok(udp_tracker_client) => udp_tracker_client,

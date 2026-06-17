@@ -218,7 +218,7 @@ mod tests {
     use tokio::time::sleep;
     use torrust_tracker_test_helpers::{configuration, logging};
 
-    use crate::environment::Started;
+    use super::Started;
 
     #[tokio::test]
     async fn it_should_make_and_stop_udp_server() {
