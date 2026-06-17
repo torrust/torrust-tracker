@@ -360,6 +360,7 @@ typenum
 udpv
 ulnp
 Unamed
+unconfigured
 underflows
 uninit
 Uninit
