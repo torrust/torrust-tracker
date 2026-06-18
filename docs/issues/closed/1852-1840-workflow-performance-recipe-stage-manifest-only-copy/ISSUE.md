@@ -1,13 +1,13 @@
 ---
 doc-type: issue
 issue-type: task
-status: open
+status: done
 priority: p1
 github-issue: 1852
-spec-path: docs/issues/open/1852-1840-workflow-performance-recipe-stage-manifest-only-copy/ISSUE.md
+spec-path: docs/issues/closed/1852-1840-workflow-performance-recipe-stage-manifest-only-copy/ISSUE.md
 branch: "1852-recipe-stage-manifest-only-copy"
 related-pr: null
-last-updated-utc: 2026-06-01 00:00
+last-updated-utc: 2026-06-18 08:30
 semantic-links:
   skill-links:
     - create-issue

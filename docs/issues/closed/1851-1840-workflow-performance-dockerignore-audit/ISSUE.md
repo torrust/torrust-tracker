@@ -1,13 +1,13 @@
 ---
 doc-type: issue
 issue-type: task
-status: open
+status: done
 priority: p2
 github-issue: 1851
-spec-path: docs/issues/open/1851-1840-workflow-performance-dockerignore-audit/ISSUE.md
+spec-path: docs/issues/closed/1851-1840-workflow-performance-dockerignore-audit/ISSUE.md
 branch: "1851-workflow-performance-dockerignore-audit"
 related-pr: null
-last-updated-utc: 2026-05-29 00:00
+last-updated-utc: 2026-06-18 08:30
 semantic-links:
   skill-links:
     - create-issue

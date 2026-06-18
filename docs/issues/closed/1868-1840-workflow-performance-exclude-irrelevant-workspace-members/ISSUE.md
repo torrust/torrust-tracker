@@ -1,13 +1,13 @@
 ---
 doc-type: issue
 issue-type: task
-status: open
+status: done
 priority: p1
 github-issue: 1868
-spec-path: docs/issues/open/1868-1840-workflow-performance-exclude-irrelevant-workspace-members/ISSUE.md
+spec-path: docs/issues/closed/1868-1840-workflow-performance-exclude-irrelevant-workspace-members/ISSUE.md
 branch: "1868-1840-exclude-irrelevant-workspace-members"
 related-pr: null
-last-updated-utc: 2026-06-03 00:00
+last-updated-utc: 2026-06-18 08:30
 semantic-links:
   skill-links:
     - create-issue
