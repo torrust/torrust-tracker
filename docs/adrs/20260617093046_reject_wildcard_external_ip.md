@@ -90,9 +90,7 @@ Reject wildcard addresses as invalid `external_ip` values and change the default
 
 ### What does NOT change
 
-- **Config schema version**: remains `2.0.0`. No fields are added, removed, or renamed; no types
-  change. The change is behavioral (rejecting previously-accepted invalid values) but the config
-  file format is backward-compatible.
+- **Config schema version**: remains `2.0.0`. The TOML schema is unchanged — no fields are added or removed. The internal Rust type changes from `Option<IpAddr>` to `Option<ExternalIp>`, but this is transparent to config file authors since `ExternalIp` serializes/deserializes identically to a plain IP string.
 - **Config file structure**: TOML sections and field names stay identical.
 - **Default config files**: remain unchanged (they don't specify `external_ip` explicitly, so
   the serde default will now be `None` instead of `0.0.0.0`).

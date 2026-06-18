@@ -63,7 +63,7 @@ Since a new major version is coming, this is the right time to:
 1. Change the default to `None` (no external IP = no loopback replacement)
 2. Add validation to reject wildcard addresses with a clear startup error
 
-> **Note on config schema version**: The config file format (`schema_version = "2.0.0"`) stays unchanged. No fields are added, removed, renamed, or changed in type. This is a **behavioral** breaking change — operators who explicitly set `external_ip = "0.0.0.0"` will get a startup validation error — not a config **schema** breaking change. The config version is bumped only for structural changes (field additions/removals/renames, type changes, TOML restructuring).
+> **Note on config schema version**: The TOML config file format (`schema_version = "2.0.0"`) stays unchanged. No fields are added, removed, or renamed in the TOML schema. The internal Rust type changes from `Option<IpAddr>` to `Option<ExternalIp>`, but this is transparent to config file authors since `ExternalIp` serializes/deserializes as a plain IP string. This is a **behavioral** breaking change — operators who explicitly set `external_ip = "0.0.0.0"` will get a parse-time error from the newtype — not a config **schema** breaking change. The config version is bumped only for structural changes (field additions/removals/renames, TOML restructuring).
 
 ### Code review: how `external_ip` is used
 

@@ -907,8 +907,7 @@ pub(crate) mod tests {
 
                     let database = initialize_database(&config.core).await;
                     let in_memory_whitelist = Arc::new(InMemoryWhitelist::default());
-                    let whitelist_authorization =
-                        Arc::new(WhitelistAuthorization::new(&config.core, &in_memory_whitelist.clone()));
+                    let whitelist_authorization = Arc::new(WhitelistAuthorization::new(&config.core, &in_memory_whitelist));
                     let in_memory_torrent_repository = Arc::new(InMemoryTorrentRepository::default());
                     let db_downloads_metric_repository =
                         Arc::new(DatabaseDownloadsMetricRepository::new(&database.torrent_metrics_store));
