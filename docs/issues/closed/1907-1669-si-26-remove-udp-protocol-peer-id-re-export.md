@@ -1,14 +1,14 @@
 ---
 doc-type: issue
 issue-type: task
-status: open
+status: done
 priority: p2
 epic: 1669
 github-issue: 1907
-spec-path: docs/issues/open/1907-1669-si-26-remove-udp-protocol-peer-id-re-export.md
+spec-path: docs/issues/closed/1907-1669-si-26-remove-udp-protocol-peer-id-re-export.md
 branch: null
 related-pr: null
-last-updated-utc: 2026-06-10
+last-updated-utc: 2026-06-18 18:00
 semantic-links:
   skill-links:
     - create-issue

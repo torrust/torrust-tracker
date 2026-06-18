@@ -1,13 +1,13 @@
 ---
 doc-type: issue
 issue-type: bug
-status: planned
+status: done
 priority: p1
 github-issue: 1507
-spec-path: docs/issues/open/1507-review-localhost-peer-ip.md
+spec-path: docs/issues/closed/1507-review-localhost-peer-ip.md
 branch: "1507-review-localhost-peer-ip"
 related-pr: null
-last-updated-utc: 2026-06-17 18:05
+last-updated-utc: 2026-06-18 18:00
 semantic-links:
   skill-links:
     - create-issue

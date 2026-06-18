@@ -1,13 +1,13 @@
 ---
 doc-type: issue
 issue-type: task
-status: planned
+status: done
 priority: p2
 github-issue: 1786
-spec-path: docs/issues/open/1786-tighten-lint-config.md
+spec-path: docs/issues/closed/1786-tighten-lint-config.md
 branch: "1786-tighten-lint-config"
 related-pr: 1784
-last-updated-utc: 2026-05-15 08:00
+last-updated-utc: 2026-06-18 18:00
 semantic-links:
   skill-links:
     - create-issue
