@@ -3,7 +3,7 @@ name: cleanup-completed-issues
 description: Guide for cleaning up completed and closed issues in the torrust-tracker project. Covers moving closed issue documentation files from docs/issues/open/ to docs/issues/closed/ and eventually deleting them. Supports single issue cleanup or batch cleanup. Use when cleaning up closed issues, archiving issue docs, or maintaining the docs/issues/ folder. Triggers on "cleanup issue", "archive issue", "move closed issue", "clean completed issues", "delete closed issue", or "maintain issue docs".
 metadata:
   author: torrust
-  version: "1.1"
+  version: "1.2"
 ---
 
 # Cleaning Up Completed Issues
@@ -39,6 +39,22 @@ Related lifecycle docs:
 
 ## Step-by-Step Process
 
+### Step 0: Create a Working Branch
+
+This cleanup task may not have a dedicated GitHub issue. Use a descriptive branch name
+without an issue prefix:
+
+```bash
+git checkout -b chore/cleanup-completed-issues-from-open
+```
+
+If there is a linked issue (e.g., automating this process), prefix the branch accordingly:
+
+```bash
+# When automating this process uses a tracking issue
+git checkout -b 1774-automate-cleanup-completed-issues
+```
+
 ### Step 1: Verify Issue is Closed on GitHub
 
 **Single issue:**
@@ -60,17 +76,51 @@ done
 
 ### Step 2: Move Issue File to `docs/issues/closed/`
 
-```bash
-# Single issue
-git mv docs/issues/open/42-add-peer-expiry-grace-period.md docs/issues/closed/
+**Single file:**
 
-# Batch
+```bash
+git mv docs/issues/open/42-add-peer-expiry-grace-period.md docs/issues/closed/
+```
+
+**Directory (multi-file subissue spec):**
+
+```bash
+git mv docs/issues/open/42-my-subissue-folder/ docs/issues/closed/
+```
+
+**Batch files:**
+
+```bash
 git mv docs/issues/open/21-some-old-issue.md \
   docs/issues/open/22-another-old-issue.md \
        docs/issues/closed/
 ```
 
-### Step 3: Commit and Push
+Note: `git mv` on a directory moves all files inside it atomically.
+
+### Step 3: Update Frontmatter of Moved Files
+
+After moving, the spec's YAML frontmatter fields must reflect the closed state:
+
+| Field                 | Before                   | After                     |
+| --------------------- | ------------------------ | ------------------------- |
+| `status`              | `open`, `planned`, etc.  | `done`                    |
+| `spec-path`           | `docs/issues/open/...`   | `docs/issues/closed/...`  |
+| `last-updated-utc`    | previous date            | current date              |
+
+For directories with multiple files, update at minimum the main `ISSUE.md` plus any
+supplementary files whose frontmatter references the `docs/issues/open/` path (e.g.,
+`related-artifacts` links to the open spec).
+
+### Step 4: Update Any Parent Epic Spec
+
+If the closed issue was a subissue of an EPIC, update the epic's spec to reflect the
+new `docs/issues/closed/` path and `DONE` status in its subissue table.
+
+Example: if `docs/issues/open/EPIC.md` has a table row referencing a subissue at
+`docs/issues/open/...` with `TODO` status, update both the path and status after archiving.
+
+### Step 5: Commit and Push
 
 ```bash
 # Single issue
@@ -82,7 +132,7 @@ git commit -S -m "chore(issues): archive closed issue specs #21, #22, #23 to doc
 git push {your-fork-remote} {branch}
 ```
 
-### Step 4 (Stage 2): Delete When No Longer Needed
+### Step 6 (Stage 2): Delete When No Longer Needed
 
 ```bash
 git rm docs/issues/closed/42-add-peer-expiry-grace-period.md

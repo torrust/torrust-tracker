@@ -3,7 +3,7 @@ semantic-links:
   skill-links:
     - create-issue
   related-artifacts:
-    - docs/issues/open/1726-1840-workflow-performance-sccache/ISSUE.md
+    - docs/issues/closed/1726-1840-workflow-performance-sccache/ISSUE.md
 ---
 
 # Cargo Build & Test Benchmark Results
