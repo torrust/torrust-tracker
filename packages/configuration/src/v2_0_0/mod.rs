@@ -214,7 +214,6 @@
 //! path = "./storage/tracker/lib/database/sqlite3.db"
 //!
 //! [core.net]
-//! external_ip = "0.0.0.0"
 //! on_reverse_proxy = false
 //!
 //! [core.tracker_policy]
@@ -298,7 +297,7 @@ impl Configuration {
     /// and `None` otherwise.
     #[must_use]
     pub fn get_ext_ip(&self) -> Option<IpAddr> {
-        self.core.net.external_ip.as_ref().map(|external_ip| *external_ip)
+        self.core.net.external_ip.map(Into::into)
     }
 
     /// Saves the default configuration at the given path.
@@ -432,10 +431,12 @@ impl Validator for Configuration {
 #[cfg(test)]
 mod tests {
 
-    use std::net::{IpAddr, Ipv4Addr};
+    use std::convert::TryFrom;
+    use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 
     use crate::Info;
     use crate::v2_0_0::Configuration;
+    use crate::v2_0_0::network::ExternalIp;
 
     #[cfg(test)]
     fn default_config_toml() -> String {
@@ -463,7 +464,6 @@ mod tests {
                                 path = "./storage/tracker/lib/database/sqlite3.db"
 
                                 [core.net]
-                                external_ip = "0.0.0.0"
                                 on_reverse_proxy = false
 
                                 [core.tracker_policy]
@@ -490,10 +490,10 @@ mod tests {
     }
 
     #[test]
-    fn configuration_should_contain_the_external_ip() {
+    fn configuration_should_not_contain_an_external_ip_by_default() {
         let configuration = Configuration::default();
 
-        assert_eq!(configuration.core.net.external_ip, Some(IpAddr::V4(Ipv4Addr::UNSPECIFIED)));
+        assert_eq!(configuration.core.net.external_ip, None);
     }
 
     #[test]
@@ -671,5 +671,151 @@ mod tests {
 
             Ok(())
         });
+    }
+
+    #[test]
+    fn external_ip_should_reject_unspecified_ipv4_address() {
+        let result = ExternalIp::try_from(IpAddr::V4(Ipv4Addr::UNSPECIFIED));
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn external_ip_should_reject_unspecified_ipv6_address() {
+        let result = ExternalIp::try_from(IpAddr::V6(Ipv6Addr::UNSPECIFIED));
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn external_ip_should_accept_valid_ipv4_address() {
+        let result = ExternalIp::try_from(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 5)));
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn external_ip_should_parse_from_str() {
+        let ip: Result<ExternalIp, _> = "203.0.113.5".parse();
+        assert!(ip.is_ok());
+        let ip: Result<ExternalIp, _> = "0.0.0.0".parse();
+        assert!(ip.is_err());
+        let ip: Result<ExternalIp, _> = "::".parse();
+        assert!(ip.is_err());
+    }
+
+    #[cfg(test)]
+    mod deserialization {
+        use std::net::{IpAddr, Ipv4Addr};
+
+        use figment::Jail;
+
+        use crate::Info;
+        use crate::v2_0_0::Configuration;
+
+        #[allow(clippy::result_large_err)]
+        #[test]
+        fn should_deserialize_valid_external_ip_from_toml() {
+            Jail::expect_with(|jail| {
+                jail.create_file(
+                    "tracker.toml",
+                    r#"
+                    [metadata]
+                    schema_version = "2.0.0"
+
+                    [logging]
+                    threshold = "info"
+
+                    [core]
+                    listed = false
+                    private = false
+
+                    [core.net]
+                    external_ip = "203.0.113.5"
+                    on_reverse_proxy = false
+                "#,
+                )?;
+
+                let info = Info {
+                    config_toml: None,
+                    config_toml_path: "tracker.toml".to_string(),
+                };
+
+                let config = Configuration::load(&info).expect("Should load config");
+                assert_eq!(
+                    config.core.net.external_ip,
+                    Some(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 5)).try_into().expect("valid IP"))
+                );
+
+                Ok(())
+            });
+        }
+
+        #[allow(clippy::result_large_err)]
+        #[test]
+        fn should_reject_unspecified_ipv4_external_ip_in_toml() {
+            Jail::expect_with(|jail| {
+                jail.create_file(
+                    "tracker.toml",
+                    r#"
+                    [metadata]
+                    schema_version = "2.0.0"
+
+                    [logging]
+                    threshold = "info"
+
+                    [core]
+                    listed = false
+                    private = false
+
+                    [core.net]
+                    external_ip = "0.0.0.0"
+                    on_reverse_proxy = false
+                "#,
+                )?;
+
+                let info = Info {
+                    config_toml: None,
+                    config_toml_path: "tracker.toml".to_string(),
+                };
+
+                let result = Configuration::load(&info);
+                assert!(result.is_err());
+
+                Ok(())
+            });
+        }
+
+        #[allow(clippy::result_large_err)]
+        #[test]
+        fn should_reject_unspecified_ipv6_external_ip_in_toml() {
+            Jail::expect_with(|jail| {
+                jail.create_file(
+                    "tracker.toml",
+                    r#"
+                    [metadata]
+                    schema_version = "2.0.0"
+
+                    [logging]
+                    threshold = "info"
+
+                    [core]
+                    listed = false
+                    private = false
+
+                    [core.net]
+                    external_ip = "::"
+                    on_reverse_proxy = false
+                "#,
+                )?;
+
+                let info = Info {
+                    config_toml: None,
+                    config_toml_path: "tracker.toml".to_string(),
+                };
+
+                let result = Configuration::load(&info);
+                assert!(result.is_err());
+
+                Ok(())
+            });
+        }
     }
 }

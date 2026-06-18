@@ -491,9 +491,11 @@ mod tests {
 
         fn tracker_with_an_ipv6_external_ip() -> Configuration {
             let mut configuration = configuration::ephemeral();
-            configuration.core.net.external_ip = Some(IpAddr::V6(Ipv6Addr::new(
-                0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969,
-            )));
+            configuration.core.net.external_ip = Some(
+                IpAddr::V6(Ipv6Addr::new(0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969))
+                    .try_into()
+                    .expect("valid external IP"),
+            );
             configuration
         }
 

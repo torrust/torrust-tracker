@@ -190,7 +190,6 @@
 //! path = "./storage/tracker/lib/database/sqlite3.db"
 //!
 //! [core.net]
-//! external_ip = "0.0.0.0"
 //! on_reverse_proxy = false
 //!
 //! [core.tracker_policy]

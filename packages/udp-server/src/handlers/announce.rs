@@ -487,13 +487,17 @@ pub(crate) mod tests {
                 use crate::handlers::announce::tests::announce_request::AnnounceRequestBuilder;
                 use crate::handlers::handle_announce;
                 use crate::handlers::tests::{
-                    initialize_core_tracker_services_for_public_tracker, sample_cookie_valid_range, sample_issue_time,
+                    TrackerConfigurationBuilder, initialize_core_tracker_services_with_config, sample_cookie_valid_range,
+                    sample_issue_time,
                 };
 
                 #[tokio::test]
                 async fn the_peer_ip_should_be_changed_to_the_external_ip_in_the_tracker_configuration_if_defined() {
-                    let (core_tracker_services, core_udp_tracker_services, server_udp_tracker_services) =
-                        initialize_core_tracker_services_for_public_tracker().await;
+                    let config = Arc::new(
+                        TrackerConfigurationBuilder::default()
+                            .with_external_ip("203.0.113.196")
+                            .into(),
+                    );
 
                     let client_ip = Ipv4Addr::LOCALHOST;
                     let client_port = 8080;
@@ -512,13 +516,16 @@ pub(crate) mod tests {
                         .with_port(client_port)
                         .into();
 
+                    let (core_tracker_services, core_udp_tracker_services, _server_udp_tracker_services) =
+                        initialize_core_tracker_services_with_config(&config).await;
+
                     handle_announce(
                         &core_udp_tracker_services.announce_service,
                         client_socket_addr,
                         server_service_binding,
                         &request,
                         &core_tracker_services.core_config,
-                        &server_udp_tracker_services.udp_server_stats_event_sender,
+                        &None,
                         sample_cookie_valid_range(),
                     )
                     .await
@@ -529,7 +536,8 @@ pub(crate) mod tests {
                         .get_torrent_peers(&info_hash.0.into(), usize::MAX)
                         .await;
 
-                    let external_ip_in_tracker_configuration = core_tracker_services.core_config.net.external_ip.unwrap();
+                    let external_ip_in_tracker_configuration: IpAddr =
+                        core_tracker_services.core_config.net.external_ip.unwrap().into();
 
                     let expected_peer = PeerBuilder::default()
                         .with_peer_id(&torrust_tracker_primitives::PeerId(peer_id.0))
@@ -899,8 +907,7 @@ pub(crate) mod tests {
 
                     let database = initialize_database(&config.core).await;
                     let in_memory_whitelist = Arc::new(InMemoryWhitelist::default());
-                    let whitelist_authorization =
-                        Arc::new(WhitelistAuthorization::new(&config.core, &in_memory_whitelist.clone()));
+                    let whitelist_authorization = Arc::new(WhitelistAuthorization::new(&config.core, &in_memory_whitelist));
                     let in_memory_torrent_repository = Arc::new(InMemoryTorrentRepository::default());
                     let db_downloads_metric_repository =
                         Arc::new(DatabaseDownloadsMetricRepository::new(&database.torrent_metrics_store));
@@ -978,7 +985,7 @@ pub(crate) mod tests {
                         .get_torrent_peers(&info_hash.0.into(), usize::MAX)
                         .await;
 
-                    let external_ip_in_tracker_configuration = core_config.net.external_ip.unwrap();
+                    let external_ip_in_tracker_configuration: IpAddr = core_config.net.external_ip.unwrap().into();
 
                     assert!(external_ip_in_tracker_configuration.is_ipv6());
 

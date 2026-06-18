@@ -268,6 +268,12 @@ pub(crate) mod tests {
         initialize_core_tracker_services(&configuration::ephemeral_listed()).await
     }
 
+    pub(crate) async fn initialize_core_tracker_services_with_config(
+        config: &Configuration,
+    ) -> (CoreTrackerServices, CoreUdpTrackerServices, ServerUdpTrackerServices) {
+        initialize_core_tracker_services(config).await
+    }
+
     async fn initialize_core_tracker_services(
         config: &Configuration,
     ) -> (CoreTrackerServices, CoreUdpTrackerServices, ServerUdpTrackerServices) {
@@ -371,7 +377,7 @@ pub(crate) mod tests {
         }
 
         pub fn with_external_ip(mut self, external_ip: &str) -> Self {
-            self.configuration.core.net.external_ip = Some(external_ip.to_owned().parse().expect("valid IP address"));
+            self.configuration.core.net.external_ip = Some(external_ip.parse().expect("valid external IP address"));
             self
         }
 
