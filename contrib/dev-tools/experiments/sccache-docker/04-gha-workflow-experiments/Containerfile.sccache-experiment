@@ -102,7 +102,7 @@ COPY packages/axum-server/Cargo.toml packages/axum-server/
 COPY packages/configuration/Cargo.toml packages/configuration/
 COPY packages/events/Cargo.toml packages/events/
 COPY packages/http-protocol/Cargo.toml packages/http-protocol/
-COPY packages/http-tracker-core/Cargo.toml packages/http-tracker-core/
+COPY packages/http-core/Cargo.toml packages/http-core/
 COPY packages/primitives/Cargo.toml packages/primitives/
 COPY packages/rest-api-client/Cargo.toml packages/rest-api-client/
 COPY packages/rest-api-core/Cargo.toml packages/rest-api-core/
@@ -114,7 +114,7 @@ COPY packages/tracker-client/Cargo.toml packages/tracker-client/
 COPY packages/tracker-core/Cargo.toml packages/tracker-core/
 COPY packages/udp-protocol/Cargo.toml packages/udp-protocol/
 COPY packages/udp-server/Cargo.toml packages/udp-server/
-COPY packages/udp-tracker-core/Cargo.toml packages/udp-tracker-core/
+COPY packages/udp-core/Cargo.toml packages/udp-core/
 # Create stub source files for every in-repo target.
 # `cargo chef prepare` runs `cargo metadata` internally, which requires every
 # package to have at least one resolvable target file on disk — whether the
@@ -146,8 +146,8 @@ RUN mkdir -p \
       packages/configuration/src \
       packages/events/src \
       packages/http-protocol/src \
-      packages/http-tracker-core/src \
-      packages/http-tracker-core/benches \
+      packages/http-core/src \
+      packages/http-core/benches \
       packages/primitives/src \
       packages/rest-api-client/src \
       packages/rest-api-core/src \
@@ -161,8 +161,8 @@ RUN mkdir -p \
       packages/udp-protocol/src \
       packages/udp-server/src \
       packages/udp-server/examples \
-      packages/udp-tracker-core/src \
-      packages/udp-tracker-core/benches \
+      packages/udp-core/src \
+      packages/udp-core/benches \
  && touch \
       src/lib.rs \
       src/main.rs \
@@ -185,8 +185,8 @@ RUN mkdir -p \
       packages/configuration/src/lib.rs \
       packages/events/src/lib.rs \
       packages/http-protocol/src/lib.rs \
-      packages/http-tracker-core/src/lib.rs \
-      packages/http-tracker-core/benches/http_tracker_core_benchmark.rs \
+      packages/http-core/src/lib.rs \
+      packages/http-core/benches/http_tracker_core_benchmark.rs \
       packages/primitives/src/lib.rs \
       packages/rest-api-client/src/lib.rs \
       packages/rest-api-core/src/lib.rs \
@@ -200,8 +200,8 @@ RUN mkdir -p \
       packages/udp-protocol/src/lib.rs \
       packages/udp-server/src/lib.rs \
       packages/udp-server/examples/udp_only_public_tracker.rs \
-      packages/udp-tracker-core/src/lib.rs \
-      packages/udp-tracker-core/benches/udp_tracker_core_benchmark.rs
+      packages/udp-core/src/lib.rs \
+      packages/udp-core/benches/udp_tracker_core_benchmark.rs
 RUN cargo chef prepare --recipe-path /build/recipe.json
 # Generate an external-only recipe for the third-party dependency layer.
 # The `--external-only` flag strips all `path = "..."` dependency entries,
