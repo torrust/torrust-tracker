@@ -53,13 +53,14 @@ Move the `Driver` enum to `torrust-tracker-primitives`, eliminate the duplicate 
 4. **`tracker-core` no longer needs `configuration` just for `Driver`**: the dependency
    on `torrust-tracker-configuration` from `tracker-core` was partially due to `Driver`.
    After the move, only the `Core` config type remains as a dependency.
-5. **CLI parity**: `persistence-benchmark` gains `clap::ValueEnum` on the `primitives::Driver`,
-   making the CLI `--driver` argument natively supported without manual `FromStr`.
+5. **Shared parsing helpers**: `primitives::Driver` provides `FromStr` and `as_str()`,
+   making the CLI `--driver` argument easy to consume in `persistence-benchmark`
+   without manual string-to-enum mapping.
 
 ### Trade-offs accepted
 
-- `torrust-tracker-primitives` gains two new Cargo dependencies: `serde` (was already
-  present) and `clap` (for `ValueEnum` on the benchmark CLI).
+- `torrust-tracker-primitives` gains one new dev-dependency: `serde_json`
+  (for serialization tests on the `Driver` enum).
 - Breakage: all consumers that imported `torrust_tracker_configuration::Driver` or
   `torrust_tracker_core::databases::driver::Driver` must be updated.
 

@@ -88,7 +88,7 @@ keep that dependency. But the coupling for `Driver` specifically is eliminated.
 ## Verification
 
 - [x] DEC-14 added to `docs/issues/open/1669-overhaul-packages/DECISIONS.md`
-- [x] `Driver` defined in `primitives`, re-exported from `configuration` (as import via `torrust_tracker_primitives`)
+- [x] `Driver` defined in `primitives`, all consumers import it directly
 - [x] Duplicate in `tracker-core` removed
 - [x] Mapping in `setup.rs` simplified
 - [x] `cargo test --workspace` — pass
