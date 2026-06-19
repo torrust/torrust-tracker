@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use torrust_tracker_primitives::Driver;
 use url::Url;
 
 #[allow(clippy::struct_excessive_bools)]
@@ -57,18 +58,6 @@ impl Database {
             }
         }
     }
-}
-
-/// The database management system used by the tracker.
-#[derive(Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Debug, Hash, Clone)]
-#[serde(rename_all = "lowercase")]
-pub enum Driver {
-    /// The `Sqlite3` database driver.
-    Sqlite3,
-    /// The `MySQL` database driver.
-    MySQL,
-    /// The `PostgreSQL` database driver.
-    PostgreSQL,
 }
 
 #[cfg(test)]

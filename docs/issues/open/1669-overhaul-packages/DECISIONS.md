@@ -20,6 +20,60 @@ the proposal, the reasoning, and a reference to any supporting artifact.
 
 ---
 
+## DEC-14 — Move `Driver` enum from `configuration` to `primitives`
+
+**Date**: 2026-06-18
+**Status**: Adopted
+**Related issue**: [#1908](https://github.com/torrust/torrust-tracker/issues/1908)
+
+### Proposal considered
+
+The `Driver` enum (`Sqlite3`, `MySQL`, `PostgreSQL`) was defined in
+`torrust-tracker-configuration` as a TOML deserialization type, with a duplicate
+copy living in `torrust-tracker-core::databases::driver`. The duplication required
+pointless mapping code between two semantically identical enums.
+
+### Alternative chosen
+
+Move the `Driver` enum to `torrust-tracker-primitives`, eliminate the duplicate in
+`tracker-core`, and remove the `configuration` re-export. All consumers import
+`torrust_tracker_primitives::Driver` directly.
+
+### Why this alternative was adopted
+
+1. **Cross-cutting domain concept**: `Driver` is used by `configuration` (deserialization),
+   `tracker-core` (database initialization), and `persistence-benchmark` (CLI argument).
+   Placement in `primitives` reflects that it is a shared domain type, not
+   configuration plumbing.
+2. **Eliminates duplication**: the `tracker-core` copy was a perfect duplicate of the
+   `configuration` enum. Removing it eliminates a maintenance hazard.
+3. **Eliminates mapping code**: `setup.rs` previously had a `match` that converted
+   `configuration::Driver` → `tracker_core::databases::driver::Driver` — a pointless
+   identity mapping.
+4. **`tracker-core` no longer needs `configuration` just for `Driver`**: the dependency
+   on `torrust-tracker-configuration` from `tracker-core` was partially due to `Driver`.
+   After the move, only the `Core` config type remains as a dependency.
+5. **Shared parsing helpers**: `primitives::Driver` provides `FromStr` and `as_str()`,
+   making the CLI `--driver` argument easy to consume in `persistence-benchmark`
+   without manual string-to-enum mapping.
+
+### Trade-offs accepted
+
+- `torrust-tracker-primitives` gains one new dev-dependency: `serde_json`
+  (for serialization tests on the `Driver` enum).
+- Breakage: all consumers that imported `torrust_tracker_configuration::Driver` or
+  `torrust_tracker_core::databases::driver::Driver` must be updated.
+
+### Supporting artifacts
+
+- `packages/primitives/src/driver.rs` — new module with the unified `Driver` enum
+- `packages/tracker-core/src/databases/driver/mod.rs` — removed (duplicate)
+- `packages/configuration/src/lib.rs` — removed `pub type Driver` re-export
+- `packages/configuration/src/v2_0_0/database.rs` — `Driver` definition removed, now
+  imported from primitives
+
+---
+
 ## DEC-10 — Move peer-count cap from a global constant to `AnnouncePolicy::max_peers_per_announce`
 
 **Date**: 2026-06-09

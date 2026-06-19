@@ -36,7 +36,6 @@ pub type HttpApi = v2_0_0::tracker_api::HttpApi;
 pub type HttpTracker = v2_0_0::http_tracker::HttpTracker;
 pub type UdpTracker = v2_0_0::udp_tracker::UdpTracker;
 pub type Database = v2_0_0::database::Database;
-pub type Driver = v2_0_0::database::Driver;
 pub type Threshold = v2_0_0::logging::Threshold;
 
 pub type AccessTokens = HashMap<String, String>;

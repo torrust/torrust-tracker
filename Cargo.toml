@@ -66,6 +66,7 @@ torrust-tracker-rest-api-core = { version = "3.0.0-develop", path = "packages/re
 torrust-server-lib = { version = "3.0.0-develop", path = "packages/server-lib" }
 torrust-clock = "3.0.0"
 torrust-tracker-configuration = { version = "3.0.0-develop", path = "packages/configuration" }
+torrust-tracker-primitives = { version = "3.0.0-develop", path = "packages/primitives" }
 torrust-tracker-swarm-coordination-registry = { version = "3.0.0-develop", path = "packages/swarm-coordination-registry" }
 torrust-tracker-udp-server = { version = "3.0.0-develop", path = "packages/udp-server" }
 tracing = "0"

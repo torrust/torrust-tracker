@@ -147,8 +147,8 @@ mod tests {
 
     mod peer_key_error {
         use torrust_located_error::Located;
+        use torrust_tracker_primitives::Driver;
 
-        use crate::databases::driver::Driver;
         use crate::error::PeerKeyError;
         use crate::{authentication, databases};
 

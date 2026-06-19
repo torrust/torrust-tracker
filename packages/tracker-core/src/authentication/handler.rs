@@ -359,6 +359,7 @@ mod tests {
                 use mockall::predicate::function;
                 use torrust_clock::clock::stopped::Stopped;
                 use torrust_clock::clock::{self, Time};
+                use torrust_tracker_primitives::Driver;
 
                 use crate::CurrentClock;
                 use crate::authentication::PeerKey;
@@ -366,7 +367,6 @@ mod tests {
                 use crate::authentication::handler::tests::the_keys_handler_when_the_tracker_is_configured_as_private::{
                     instantiate_keys_handler, instantiate_keys_handler_with_database, mock_auth_key_store,
                 };
-                use crate::databases::driver::Driver;
                 use crate::databases::{self, AuthKeyStore};
                 use crate::error::PeerKeyError;
 
@@ -433,6 +433,7 @@ mod tests {
                 use mockall::predicate;
                 use torrust_clock::clock::stopped::Stopped;
                 use torrust_clock::clock::{self, Time};
+                use torrust_tracker_primitives::Driver;
 
                 use crate::CurrentClock;
                 use crate::authentication::handler::AddKeyRequest;
@@ -440,7 +441,6 @@ mod tests {
                     instantiate_keys_handler, instantiate_keys_handler_with_database, mock_auth_key_store,
                 };
                 use crate::authentication::{Key, PeerKey};
-                use crate::databases::driver::Driver;
                 use crate::databases::{self, AuthKeyStore};
                 use crate::error::PeerKeyError;
 
@@ -541,13 +541,13 @@ mod tests {
                 use std::sync::Arc;
 
                 use mockall::predicate::function;
+                use torrust_tracker_primitives::Driver;
 
                 use crate::authentication::PeerKey;
                 use crate::authentication::handler::AddKeyRequest;
                 use crate::authentication::handler::tests::the_keys_handler_when_the_tracker_is_configured_as_private::{
                     instantiate_keys_handler, instantiate_keys_handler_with_database, mock_auth_key_store,
                 };
-                use crate::databases::driver::Driver;
                 use crate::databases::{self, AuthKeyStore};
                 use crate::error::PeerKeyError;
 
@@ -611,13 +611,13 @@ mod tests {
                 use std::sync::Arc;
 
                 use mockall::predicate;
+                use torrust_tracker_primitives::Driver;
 
                 use crate::authentication::handler::AddKeyRequest;
                 use crate::authentication::handler::tests::the_keys_handler_when_the_tracker_is_configured_as_private::{
                     instantiate_keys_handler, instantiate_keys_handler_with_database, mock_auth_key_store,
                 };
                 use crate::authentication::{Key, PeerKey};
-                use crate::databases::driver::Driver;
                 use crate::databases::{self, AuthKeyStore};
                 use crate::error::PeerKeyError;
 
