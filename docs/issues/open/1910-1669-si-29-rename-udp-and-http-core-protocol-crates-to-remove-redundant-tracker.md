@@ -40,12 +40,12 @@ per the folder naming convention (DEC-15).
 
 Four workspace packages have a redundant `-tracker-` segment in their crate name:
 
-| Current crate name              | Current folder  | Proposed crate name             | Proposed folder             |
-| ------------------------------- | --------------- | ------------------------------- | --------------------------- |
-| `torrust-tracker-http-core`     | `http-core`     | `torrust-tracker-http-core`     | `http-core`                 |
-| `torrust-tracker-http-protocol` | `http-protocol` | `torrust-tracker-http-protocol` | `http-protocol` (unchanged) |
-| `torrust-tracker-udp-core`      | `udp-core`      | `torrust-tracker-udp-core`      | `udp-core`                  |
-| `torrust-tracker-udp-protocol`  | `udp-protocol`  | `torrust-tracker-udp-protocol`  | `udp-protocol` (unchanged)  |
+| Current crate name                      | Current folder      | Proposed crate name             | Proposed folder             |
+| --------------------------------------- | ------------------- | ------------------------------- | --------------------------- |
+| `torrust-tracker-http-tracker-core`     | `http-tracker-core` | `torrust-tracker-http-core`     | `http-core`                 |
+| `torrust-tracker-http-tracker-protocol` | `http-protocol`     | `torrust-tracker-http-protocol` | `http-protocol` (unchanged) |
+| `torrust-tracker-udp-tracker-core`      | `udp-tracker-core`  | `torrust-tracker-udp-core`      | `udp-core`                  |
+| `torrust-tracker-udp-tracker-protocol`  | `udp-protocol`      | `torrust-tracker-udp-protocol`  | `udp-protocol` (unchanged)  |
 
 The word `tracker` appears twice in each current name: once in the prefix
 (`torrust-tracker-`) and again in the middle (`-tracker-`). Since the prefix already
@@ -53,7 +53,7 @@ scopes these to the tracker workspace, the middle `-tracker-` adds no informatio
 
 The renaming also aligns the crate names with their folders per DEC-15 (folder name =
 crate name without the `torrust-tracker-` prefix). Two folders must be renamed:
-`http-core` → `http-core` and `udp-core` → `udp-core`. The protocol
+`http-tracker-core` → `http-core` and `udp-tracker-core` → `udp-core`. The protocol
 folders already match (`http-protocol`, `udp-protocol`).
 
 None of these packages are published on crates.io, so this is a **Rule U** rename
@@ -68,7 +68,7 @@ This issue is a subissue of EPIC [#1669](../1669-overhaul-packages/EPIC.md)
 ### In Scope
 
 - Rename all 4 crate `name` fields in their `Cargo.toml` files.
-- Rename the two folder paths (`http-core/` → `http-core/`, `udp-core/` → `udp-core/`).
+- Rename the two folder paths (`http-tracker-core/` → `http-core/`, `udp-tracker-core/` → `udp-core/`).
 - Update all workspace `Cargo.toml` dependency references (root `Cargo.toml` + consumer packages).
 - Update all Rust `use` imports referencing the snake_case versions of the crate names.
 - Update all documentation files that reference the crate names or folder paths.
@@ -91,40 +91,40 @@ This section lists every file type and location that must be updated.
 
 ### Package Cargo.toml files (crate names + dependency keys)
 
-| File                                           | Current reference                         | Change                                    |
-| ---------------------------------------------- | ----------------------------------------- | ----------------------------------------- |
-| `packages/http-core/Cargo.toml` (after rename) | `name = "torrust-tracker-http-core"`      | `name = "torrust-tracker-http-core"`      |
-| Same file                                      | `torrust-tracker-http-protocol = { ... }` | `torrust-tracker-http-protocol = { ... }` |
-| `packages/http-protocol/Cargo.toml`            | `name = "torrust-tracker-http-protocol"`  | `name = "torrust-tracker-http-protocol"`  |
-| `packages/udp-core/Cargo.toml` (after rename)  | `name = "torrust-tracker-udp-core"`       | `name = "torrust-tracker-udp-core"`       |
-| Same file                                      | `torrust-tracker-udp-protocol = { ... }`  | `torrust-tracker-udp-protocol = { ... }`  |
-| `packages/udp-protocol/Cargo.toml`             | `name = "torrust-tracker-udp-protocol"`   | `name = "torrust-tracker-udp-protocol"`   |
+| File                                          | Current reference                                 | Change                                    |
+| --------------------------------------------- | ------------------------------------------------- | ----------------------------------------- |
+| `packages/http-tracker-core/Cargo.toml` (was) | `name = "torrust-tracker-http-tracker-core"`      | `name = "torrust-tracker-http-core"`      |
+| Same file                                     | `torrust-tracker-http-tracker-protocol = { ... }` | `torrust-tracker-http-protocol = { ... }` |
+| `packages/http-protocol/Cargo.toml`           | `name = "torrust-tracker-http-tracker-protocol"`  | `name = "torrust-tracker-http-protocol"`  |
+| `packages/udp-tracker-core/Cargo.toml` (was)  | `name = "torrust-tracker-udp-tracker-core"`       | `name = "torrust-tracker-udp-core"`       |
+| Same file                                     | `torrust-tracker-udp-tracker-protocol = { ... }`  | `torrust-tracker-udp-protocol = { ... }`  |
+| `packages/udp-protocol/Cargo.toml`            | `name = "torrust-tracker-udp-tracker-protocol"`   | `name = "torrust-tracker-udp-protocol"`   |
 
 ### Root workspace Cargo.toml
 
-| Line                | Current reference                                                 | Change                                                            |
-| ------------------- | ----------------------------------------------------------------- | ----------------------------------------------------------------- |
-| Workspace `members` | `"packages/http-core"`                                            | `"packages/http-core"`                                            |
-| Workspace `members` | `"packages/udp-core"`                                             | `"packages/udp-core"`                                             |
-| Workspace dep       | `torrust-tracker-http-core = { ... path = "packages/http-core" }` | `torrust-tracker-http-core = { ... path = "packages/http-core" }` |
-| Workspace dep       | `torrust-tracker-udp-core = { ... path = "packages/udp-core" }`   | `torrust-tracker-udp-core = { ... path = "packages/udp-core" }`   |
+| Line                | Current reference                                                                 | Change                                                            |
+| ------------------- | --------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| Workspace `members` | `"packages/http-tracker-core"`                                                    | `"packages/http-core"`                                            |
+| Workspace `members` | `"packages/udp-tracker-core"`                                                     | `"packages/udp-core"`                                             |
+| Workspace dep       | `torrust-tracker-http-tracker-core = { ... path = "packages/http-tracker-core" }` | `torrust-tracker-http-core = { ... path = "packages/http-core" }` |
+| Workspace dep       | `torrust-tracker-udp-tracker-core = { ... path = "packages/udp-tracker-core" }`   | `torrust-tracker-udp-core = { ... path = "packages/udp-core" }`   |
 
 ### Consumer Cargo.toml files (dependency keys)
 
-| File                                         | Current dep key                                                                            | Change to                                                                          |
-| -------------------------------------------- | ------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------- |
-| `packages/axum-http-server/Cargo.toml`       | `torrust-tracker-http-core`                                                                | `torrust-tracker-http-core`                                                        |
-| Same file                                    | `torrust-tracker-http-protocol`                                                            | `torrust-tracker-http-protocol`                                                    |
-| Same file                                    | `torrust_tracker_udp_tracker_protocol = { package = "torrust-tracker-udp-protocol", ... }` | `torrust_tracker_udp_protocol = { package = "torrust-tracker-udp-protocol", ... }` |
-| `packages/axum-rest-api-server/Cargo.toml`   | `torrust-tracker-http-core`                                                                | `torrust-tracker-http-core`                                                        |
-| Same file                                    | `torrust-tracker-udp-core`                                                                 | `torrust-tracker-udp-core`                                                         |
-| `packages/rest-api-core/Cargo.toml`          | `torrust-tracker-http-core`                                                                | `torrust-tracker-http-core`                                                        |
-| Same file                                    | `torrust-tracker-udp-core`                                                                 | `torrust-tracker-udp-core`                                                         |
-| `packages/udp-server/Cargo.toml`             | `torrust_tracker_udp_tracker_protocol = { package = "torrust-tracker-udp-protocol", ... }` | `torrust_tracker_udp_protocol = { package = "torrust-tracker-udp-protocol", ... }` |
-| Same file                                    | `torrust-tracker-udp-core`                                                                 | `torrust-tracker-udp-core`                                                         |
-| `packages/tracker-client/Cargo.toml`         | `torrust-tracker-udp-protocol`                                                             | `torrust-tracker-udp-protocol`                                                     |
-| `packages/http-core/src/...` (all .rs files) | Internal `crate::` references                                                              | Internal — no change needed (crate rename doesn't affect internal `crate::` paths) |
-| `console/tracker-client/Cargo.toml`          | `torrust-tracker-udp-protocol`                                                             | `torrust-tracker-udp-protocol`                                                     |
+| File                                                 | Current dep key                                                                                    | Change to                                                                          |
+| ---------------------------------------------------- | -------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| `packages/axum-http-server/Cargo.toml`               | `torrust-tracker-http-tracker-core`                                                                | `torrust-tracker-http-core`                                                        |
+| Same file                                            | `torrust-tracker-http-tracker-protocol`                                                            | `torrust-tracker-http-protocol`                                                    |
+| Same file                                            | `torrust_tracker_udp_tracker_protocol = { package = "torrust-tracker-udp-tracker-protocol", ... }` | `torrust_tracker_udp_protocol = { package = "torrust-tracker-udp-protocol", ... }` |
+| `packages/axum-rest-api-server/Cargo.toml`           | `torrust-tracker-http-tracker-core`                                                                | `torrust-tracker-http-core`                                                        |
+| Same file                                            | `torrust-tracker-udp-tracker-core`                                                                 | `torrust-tracker-udp-core`                                                         |
+| `packages/rest-api-core/Cargo.toml`                  | `torrust-tracker-http-tracker-core`                                                                | `torrust-tracker-http-core`                                                        |
+| Same file                                            | `torrust-tracker-udp-tracker-core`                                                                 | `torrust-tracker-udp-core`                                                         |
+| `packages/udp-server/Cargo.toml`                     | `torrust_tracker_udp_tracker_protocol = { package = "torrust-tracker-udp-tracker-protocol", ... }` | `torrust_tracker_udp_protocol = { package = "torrust-tracker-udp-protocol", ... }` |
+| Same file                                            | `torrust-tracker-udp-tracker-core`                                                                 | `torrust-tracker-udp-core`                                                         |
+| `packages/tracker-client/Cargo.toml`                 | `torrust-tracker-udp-tracker-protocol`                                                             | `torrust-tracker-udp-protocol`                                                     |
+| `packages/http-tracker-core/src/...` (all .rs files) | Internal `crate::` references                                                                      | Internal — no change needed (crate rename doesn't affect internal `crate::` paths) |
+| `console/tracker-client/Cargo.toml`                  | `torrust-tracker-udp-tracker-protocol`                                                             | `torrust-tracker-udp-protocol`                                                     |
 
 ### Rust source files — `use` imports
 

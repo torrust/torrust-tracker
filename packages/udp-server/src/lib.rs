@@ -27,7 +27,7 @@
 //! > **NOTICE**: we are using the [`torrust_tracker_udp_protocol`](https://crates.io/crates/torrust_tracker_udp_protocol)
 //! > crate so requests and responses are handled by it.
 //!
-//! > **NOTICE**: all values are send in network byte order ([big endian](https://en.wikipedia.org/wiki/Endianness)).
+//! > **NOTICE**: all values are sent in network byte order ([big endian](https://en.wikipedia.org/wiki/Endianness)).
 //!
 //! ## Table of Contents
 //!
@@ -52,8 +52,8 @@
 //! is designed to be as simple as possible. It uses a single UDP port and
 //! supports only three types of requests: `Connect`, `Announce` and `Scrape`.
 //!
-//! Request are parsed from UDP packets using the [`torrust_tracker_udp_protocol`](https://crates.io/crates/torrust_tracker_udp_protocol).
-//! And then the response is also build using the [`torrust_tracker_udp_protocol`](https://crates.io/crates/torrust_tracker_udp_protocol)
+//! Requests are parsed from UDP packets using the [`torrust_tracker_udp_protocol`](https://crates.io/crates/torrust_tracker_udp_protocol).
+//! And then the response is also built using the [`torrust_tracker_udp_protocol`](https://crates.io/crates/torrust_tracker_udp_protocol)
 //! and converted to a UDP packet.
 //!
 //! ```text
