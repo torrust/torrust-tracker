@@ -86,6 +86,7 @@ All packages live under `packages/`. The workspace version is `3.0.0-develop`.
 
 | Package          | Crate Name               | Standalone Repository                                                               | Description                                                      |
 | ---------------- | ------------------------ | ----------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| `clock`          | `torrust-clock`          | [torrust/torrust-clock](https://github.com/torrust/torrust-clock)                   | Deterministic clock abstraction                                  |
 | `located-error`  | `torrust-located-error`  | [torrust/torrust-located-error](https://github.com/torrust/torrust-located-error)   | Diagnostic errors with source locations                          |
 | `metrics`        | `torrust-metrics`        | [torrust/torrust-metrics](https://github.com/torrust/torrust-metrics)               | Prometheus-compatible metrics: counters, gauges, labels, samples |
 | `net-primitives` | `torrust-net-primitives` | [torrust/torrust-net-primitives](https://github.com/torrust/torrust-net-primitives) | Generic networking primitive types (ServiceBinding, Protocol)    |
