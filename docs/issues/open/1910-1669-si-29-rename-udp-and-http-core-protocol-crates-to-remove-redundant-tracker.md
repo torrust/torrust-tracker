@@ -7,7 +7,7 @@ epic: 1669
 github-issue: 1910
 spec-path: docs/issues/open/1910-1669-si-29-rename-udp-and-http-core-protocol-crates-to-remove-redundant-tracker.md
 branch: 1910-rename-udp-and-http-core-protocol-crates
-related-pr: null
+related-pr: 1923
 last-updated-utc: 2026-06-19
 semantic-links:
   skill-links:
