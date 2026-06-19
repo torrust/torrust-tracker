@@ -16,8 +16,8 @@ use scrape::handle_scrape;
 use torrust_clock::clock::Time;
 use torrust_net_primitives::service_binding::ServiceBinding;
 use torrust_tracker_core::MAX_SCRAPE_TORRENTS;
-use torrust_tracker_udp_tracker_core::container::UdpTrackerCoreContainer;
-use torrust_tracker_udp_tracker_protocol::{Request, Response, TransactionId};
+use torrust_tracker_udp_core::container::UdpTrackerCoreContainer;
+use torrust_tracker_udp_protocol::{Request, Response, TransactionId};
 use tracing::{Level, instrument};
 use uuid::Uuid;
 
@@ -223,12 +223,12 @@ pub(crate) mod tests {
     use torrust_tracker_events::bus::SenderStatus;
     use torrust_tracker_events::sender::SendError;
     use torrust_tracker_test_helpers::configuration;
-    use torrust_tracker_udp_tracker_core::connection_cookie::gen_remote_fingerprint;
-    use torrust_tracker_udp_tracker_core::event::bus::EventBus;
-    use torrust_tracker_udp_tracker_core::event::sender::Broadcaster;
-    use torrust_tracker_udp_tracker_core::services::announce::AnnounceService;
-    use torrust_tracker_udp_tracker_core::services::scrape::ScrapeService;
-    use torrust_tracker_udp_tracker_core::{self, event as core_event};
+    use torrust_tracker_udp_core::connection_cookie::gen_remote_fingerprint;
+    use torrust_tracker_udp_core::event::bus::EventBus;
+    use torrust_tracker_udp_core::event::sender::Broadcaster;
+    use torrust_tracker_udp_core::services::announce::AnnounceService;
+    use torrust_tracker_udp_core::services::scrape::ScrapeService;
+    use torrust_tracker_udp_core::{self, event as core_event};
 
     use crate::event as server_event;
 

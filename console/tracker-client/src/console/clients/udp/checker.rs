@@ -6,8 +6,8 @@ use torrust_info_hash::InfoHash as TorrustInfoHash;
 use torrust_peer_id::PeerId;
 use torrust_tracker_client::peer_id::default_production_peer_id;
 use torrust_tracker_client::udp::client::UdpTrackerClient;
-use torrust_tracker_udp_tracker_protocol::common::InfoHash;
-use torrust_tracker_udp_tracker_protocol::{
+use torrust_tracker_udp_protocol::common::InfoHash;
+use torrust_tracker_udp_protocol::{
     AnnounceActionPlaceholder, AnnounceEvent, AnnounceRequest, ConnectRequest, ConnectionId, NumberOfBytes, NumberOfPeers,
     PeerKey, Port, Response, ScrapeRequest, TransactionId,
 };

@@ -9,10 +9,10 @@ use axum::response::{IntoResponse, Response};
 use hyper::StatusCode;
 use torrust_net_primitives::service_binding::ServiceBinding;
 use torrust_tracker_core::authentication::Key;
-use torrust_tracker_http_tracker_core::services::scrape::ScrapeService;
-use torrust_tracker_http_tracker_protocol::v1::requests::scrape::Scrape;
-use torrust_tracker_http_tracker_protocol::v1::responses;
-use torrust_tracker_http_tracker_protocol::v1::services::peer_ip_resolver::ClientIpSources;
+use torrust_tracker_http_core::services::scrape::ScrapeService;
+use torrust_tracker_http_protocol::v1::requests::scrape::Scrape;
+use torrust_tracker_http_protocol::v1::responses;
+use torrust_tracker_http_protocol::v1::services::peer_ip_resolver::ClientIpSources;
 use torrust_tracker_primitives::ScrapeData as DomainScrapeData;
 
 use crate::v1::extractors::authentication_key::Extract as ExtractKey;
@@ -107,13 +107,13 @@ mod tests {
     use torrust_tracker_core::torrent::repository::in_memory::InMemoryTorrentRepository;
     use torrust_tracker_core::whitelist::authorization::WhitelistAuthorization;
     use torrust_tracker_core::whitelist::repository::in_memory::InMemoryWhitelist;
-    use torrust_tracker_http_tracker_core::event::bus::EventBus;
-    use torrust_tracker_http_tracker_core::event::sender::Broadcaster;
-    use torrust_tracker_http_tracker_core::statistics::event::listener::run_event_listener;
-    use torrust_tracker_http_tracker_core::statistics::repository::Repository;
-    use torrust_tracker_http_tracker_protocol::v1::requests::scrape::Scrape;
-    use torrust_tracker_http_tracker_protocol::v1::responses;
-    use torrust_tracker_http_tracker_protocol::v1::services::peer_ip_resolver::ClientIpSources;
+    use torrust_tracker_http_core::event::bus::EventBus;
+    use torrust_tracker_http_core::event::sender::Broadcaster;
+    use torrust_tracker_http_core::statistics::event::listener::run_event_listener;
+    use torrust_tracker_http_core::statistics::repository::Repository;
+    use torrust_tracker_http_protocol::v1::requests::scrape::Scrape;
+    use torrust_tracker_http_protocol::v1::responses;
+    use torrust_tracker_http_protocol::v1::services::peer_ip_resolver::ClientIpSources;
     use torrust_tracker_test_helpers::configuration;
 
     struct CoreTrackerServices {
@@ -123,7 +123,7 @@ mod tests {
     }
 
     struct CoreHttpTrackerServices {
-        pub http_stats_event_sender: torrust_tracker_http_tracker_core::event::sender::Sender,
+        pub http_stats_event_sender: torrust_tracker_http_core::event::sender::Sender,
     }
 
     fn initialize_private_tracker() -> (CoreTrackerServices, CoreHttpTrackerServices) {
@@ -203,7 +203,7 @@ mod tests {
 
         use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
         use torrust_tracker_core::authentication;
-        use torrust_tracker_http_tracker_core::services::scrape::ScrapeService;
+        use torrust_tracker_http_core::services::scrape::ScrapeService;
         use torrust_tracker_primitives::ScrapeData;
 
         use super::{initialize_private_tracker, sample_client_ip_sources, sample_scrape_request};
@@ -279,7 +279,7 @@ mod tests {
         use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
         use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
-        use torrust_tracker_http_tracker_core::services::scrape::ScrapeService;
+        use torrust_tracker_http_core::services::scrape::ScrapeService;
         use torrust_tracker_primitives::ScrapeData;
 
         use super::{initialize_listed_tracker, sample_client_ip_sources, sample_scrape_request};
@@ -316,9 +316,9 @@ mod tests {
         use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
         use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
-        use torrust_tracker_http_tracker_core::services::scrape::ScrapeService;
-        use torrust_tracker_http_tracker_protocol::v1::responses;
-        use torrust_tracker_http_tracker_protocol::v1::services::peer_ip_resolver::ClientIpSources;
+        use torrust_tracker_http_core::services::scrape::ScrapeService;
+        use torrust_tracker_http_protocol::v1::responses;
+        use torrust_tracker_http_protocol::v1::services::peer_ip_resolver::ClientIpSources;
 
         use super::{initialize_tracker_on_reverse_proxy, sample_scrape_request};
         use crate::v1::handlers::scrape::tests::assert_error_response;
@@ -361,9 +361,9 @@ mod tests {
         use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
         use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
-        use torrust_tracker_http_tracker_core::services::scrape::ScrapeService;
-        use torrust_tracker_http_tracker_protocol::v1::responses;
-        use torrust_tracker_http_tracker_protocol::v1::services::peer_ip_resolver::ClientIpSources;
+        use torrust_tracker_http_core::services::scrape::ScrapeService;
+        use torrust_tracker_http_protocol::v1::responses;
+        use torrust_tracker_http_protocol::v1::services::peer_ip_resolver::ClientIpSources;
 
         use super::{initialize_tracker_not_on_reverse_proxy, sample_scrape_request};
         use crate::v1::handlers::scrape::tests::assert_error_response;

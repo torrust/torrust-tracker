@@ -18,11 +18,11 @@ use torrust_tracker_core::authentication::service::AuthenticationService;
 use torrust_tracker_core::authentication::{self, Key};
 use torrust_tracker_core::error::{AnnounceError, TrackerCoreError, WhitelistError};
 use torrust_tracker_core::whitelist;
-use torrust_tracker_http_tracker_protocol::v1::requests::announce::{
+use torrust_tracker_http_protocol::v1::requests::announce::{
     Announce, Event as ProtocolAnnounceEvent, NumberOfBytes as ProtocolNumberOfBytes,
 };
-use torrust_tracker_http_tracker_protocol::v1::responses::error::Error as HttpProtocolErrorResponse;
-use torrust_tracker_http_tracker_protocol::v1::services::peer_ip_resolver::{
+use torrust_tracker_http_protocol::v1::responses::error::Error as HttpProtocolErrorResponse;
+use torrust_tracker_http_protocol::v1::services::peer_ip_resolver::{
     ClientIpSources, PeerIpResolutionError, RemoteClientAddr, resolve_remote_client_addr,
 };
 use torrust_tracker_primitives::peer::PeerAnnouncement;
@@ -257,8 +257,8 @@ mod tests {
     use torrust_tracker_core::torrent::repository::in_memory::InMemoryTorrentRepository;
     use torrust_tracker_core::whitelist::authorization::WhitelistAuthorization;
     use torrust_tracker_core::whitelist::repository::in_memory::InMemoryWhitelist;
-    use torrust_tracker_http_tracker_protocol::v1::requests::announce::Announce;
-    use torrust_tracker_http_tracker_protocol::v1::services::peer_ip_resolver::ClientIpSources;
+    use torrust_tracker_http_protocol::v1::requests::announce::Announce;
+    use torrust_tracker_http_protocol::v1::services::peer_ip_resolver::ClientIpSources;
     use torrust_tracker_primitives::peer::Peer;
     use torrust_tracker_test_helpers::configuration;
 
@@ -328,23 +328,27 @@ mod tests {
             info_hash: sample_info_hash(),
             peer_id: peer.peer_id,
             port: peer.peer_addr.port(),
-            uploaded: Some(torrust_tracker_http_tracker_protocol::v1::requests::announce::NumberOfBytes::new(peer.uploaded.0)),
-            downloaded: Some(
-                torrust_tracker_http_tracker_protocol::v1::requests::announce::NumberOfBytes::new(peer.downloaded.0),
-            ),
-            left: Some(torrust_tracker_http_tracker_protocol::v1::requests::announce::NumberOfBytes::new(peer.left.0)),
+            uploaded: Some(torrust_tracker_http_protocol::v1::requests::announce::NumberOfBytes::new(
+                peer.uploaded.0,
+            )),
+            downloaded: Some(torrust_tracker_http_protocol::v1::requests::announce::NumberOfBytes::new(
+                peer.downloaded.0,
+            )),
+            left: Some(torrust_tracker_http_protocol::v1::requests::announce::NumberOfBytes::new(
+                peer.left.0,
+            )),
             event: Some(match peer.event {
                 torrust_tracker_primitives::AnnounceEvent::Started => {
-                    torrust_tracker_http_tracker_protocol::v1::requests::announce::Event::Started
+                    torrust_tracker_http_protocol::v1::requests::announce::Event::Started
                 }
                 torrust_tracker_primitives::AnnounceEvent::Stopped => {
-                    torrust_tracker_http_tracker_protocol::v1::requests::announce::Event::Stopped
+                    torrust_tracker_http_protocol::v1::requests::announce::Event::Stopped
                 }
                 torrust_tracker_primitives::AnnounceEvent::Completed => {
-                    torrust_tracker_http_tracker_protocol::v1::requests::announce::Event::Completed
+                    torrust_tracker_http_protocol::v1::requests::announce::Event::Completed
                 }
                 torrust_tracker_primitives::AnnounceEvent::None => {
-                    torrust_tracker_http_tracker_protocol::v1::requests::announce::Event::Empty
+                    torrust_tracker_http_protocol::v1::requests::announce::Event::Empty
                 }
             }),
             compact: None,
@@ -387,7 +391,7 @@ mod tests {
         use mockall::predicate::{self};
         use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
         use torrust_tracker_configuration::Configuration;
-        use torrust_tracker_http_tracker_protocol::v1::services::peer_ip_resolver::{RemoteClientAddr, ResolvedIp};
+        use torrust_tracker_http_protocol::v1::services::peer_ip_resolver::{RemoteClientAddr, ResolvedIp};
         use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
         use torrust_tracker_primitives::{AnnounceData, peer};
         use torrust_tracker_test_helpers::configuration;

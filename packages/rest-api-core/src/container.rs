@@ -3,12 +3,12 @@ use std::sync::Arc;
 use tokio::sync::RwLock;
 use torrust_tracker_configuration::{Core, HttpApi, HttpTracker, UdpTracker};
 use torrust_tracker_core::container::TrackerCoreContainer;
-use torrust_tracker_http_tracker_core::container::HttpTrackerCoreContainer;
+use torrust_tracker_http_core::container::HttpTrackerCoreContainer;
 use torrust_tracker_swarm_coordination_registry::container::SwarmCoordinationRegistryContainer;
+use torrust_tracker_udp_core::container::UdpTrackerCoreContainer;
+use torrust_tracker_udp_core::services::banning::BanService;
+use torrust_tracker_udp_core::{self};
 use torrust_tracker_udp_server::container::UdpTrackerServerContainer;
-use torrust_tracker_udp_tracker_core::container::UdpTrackerCoreContainer;
-use torrust_tracker_udp_tracker_core::services::banning::BanService;
-use torrust_tracker_udp_tracker_core::{self};
 
 pub struct TrackerHttpApiCoreContainer {
     pub http_api_config: Arc<HttpApi>,
@@ -20,11 +20,11 @@ pub struct TrackerHttpApiCoreContainer {
     pub tracker_core_container: Arc<TrackerCoreContainer>,
 
     // HTTP tracker core
-    pub http_stats_repository: Arc<torrust_tracker_http_tracker_core::statistics::repository::Repository>,
+    pub http_stats_repository: Arc<torrust_tracker_http_core::statistics::repository::Repository>,
 
     // UDP tracker core
     pub ban_service: Arc<RwLock<BanService>>,
-    pub udp_core_stats_repository: Arc<torrust_tracker_udp_tracker_core::statistics::repository::Repository>,
+    pub udp_core_stats_repository: Arc<torrust_tracker_udp_core::statistics::repository::Repository>,
     pub udp_server_stats_repository: Arc<torrust_tracker_udp_server::statistics::repository::Repository>,
 }
 

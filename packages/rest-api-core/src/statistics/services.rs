@@ -3,9 +3,9 @@ use std::sync::Arc;
 use tokio::sync::RwLock;
 use torrust_metrics::metric_collection::MetricCollection;
 use torrust_tracker_core::torrent::repository::in_memory::InMemoryTorrentRepository;
+use torrust_tracker_udp_core::services::banning::BanService;
+use torrust_tracker_udp_core::{self};
 use torrust_tracker_udp_server::statistics::{self as udp_server_statistics};
-use torrust_tracker_udp_tracker_core::services::banning::BanService;
-use torrust_tracker_udp_tracker_core::{self};
 
 use super::metrics::TorrentsMetrics;
 use crate::statistics::metrics::ProtocolMetrics;
@@ -28,7 +28,7 @@ pub struct TrackerMetrics {
 pub async fn get_metrics(
     in_memory_torrent_repository: Arc<InMemoryTorrentRepository>,
     tracker_core_stats_repository: Arc<torrust_tracker_core::statistics::repository::Repository>,
-    http_stats_repository: Arc<torrust_tracker_http_tracker_core::statistics::repository::Repository>,
+    http_stats_repository: Arc<torrust_tracker_http_core::statistics::repository::Repository>,
     udp_server_stats_repository: Arc<udp_server_statistics::repository::Repository>,
 ) -> TrackerMetrics {
     TrackerMetrics {
@@ -53,7 +53,7 @@ async fn get_torrents_metrics(
 #[allow(deprecated)]
 #[allow(clippy::too_many_lines)]
 async fn get_protocol_metrics(
-    http_stats_repository: Arc<torrust_tracker_http_tracker_core::statistics::repository::Repository>,
+    http_stats_repository: Arc<torrust_tracker_http_core::statistics::repository::Repository>,
     udp_server_stats_repository: Arc<udp_server_statistics::repository::Repository>,
 ) -> ProtocolMetrics {
     let http_stats = http_stats_repository.get_stats().await;
@@ -150,8 +150,8 @@ pub async fn get_labeled_metrics(
     ban_service: Arc<RwLock<BanService>>,
     swarms_stats_repository: Arc<torrust_tracker_swarm_coordination_registry::statistics::repository::Repository>,
     tracker_core_stats_repository: Arc<torrust_tracker_core::statistics::repository::Repository>,
-    http_stats_repository: Arc<torrust_tracker_http_tracker_core::statistics::repository::Repository>,
-    udp_stats_repository: Arc<torrust_tracker_udp_tracker_core::statistics::repository::Repository>,
+    http_stats_repository: Arc<torrust_tracker_http_core::statistics::repository::Repository>,
+    udp_stats_repository: Arc<torrust_tracker_udp_core::statistics::repository::Repository>,
     udp_server_stats_repository: Arc<udp_server_statistics::repository::Repository>,
 ) -> TrackerLabeledMetrics {
     let _torrents_metrics = in_memory_torrent_repository.get_aggregate_swarm_metadata();
@@ -195,14 +195,14 @@ mod tests {
     use torrust_tracker_core::container::TrackerCoreContainer;
     use torrust_tracker_core::{self};
     use torrust_tracker_events::bus::SenderStatus;
-    use torrust_tracker_http_tracker_core::event::bus::EventBus;
-    use torrust_tracker_http_tracker_core::event::sender::Broadcaster;
-    use torrust_tracker_http_tracker_core::statistics::event::listener::run_event_listener;
-    use torrust_tracker_http_tracker_core::statistics::repository::Repository;
+    use torrust_tracker_http_core::event::bus::EventBus;
+    use torrust_tracker_http_core::event::sender::Broadcaster;
+    use torrust_tracker_http_core::statistics::event::listener::run_event_listener;
+    use torrust_tracker_http_core::statistics::repository::Repository;
     use torrust_tracker_swarm_coordination_registry::container::SwarmCoordinationRegistryContainer;
     use torrust_tracker_test_helpers::configuration;
-    use torrust_tracker_udp_tracker_core::MAX_CONNECTION_ID_ERRORS_PER_IP;
-    use torrust_tracker_udp_tracker_core::services::banning::BanService;
+    use torrust_tracker_udp_core::MAX_CONNECTION_ID_ERRORS_PER_IP;
+    use torrust_tracker_udp_core::services::banning::BanService;
 
     use crate::statistics::metrics::{ProtocolMetrics, TorrentsMetrics};
     use crate::statistics::services::{TrackerMetrics, get_metrics};

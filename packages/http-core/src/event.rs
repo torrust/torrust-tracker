@@ -4,7 +4,7 @@ use torrust_info_hash::InfoHash;
 use torrust_metrics::label::{LabelSet, LabelValue};
 use torrust_metrics::label_name;
 use torrust_net_primitives::service_binding::ServiceBinding;
-use torrust_tracker_http_tracker_protocol::v1::services::peer_ip_resolver::RemoteClientAddr;
+use torrust_tracker_http_protocol::v1::services::peer_ip_resolver::RemoteClientAddr;
 use torrust_tracker_primitives::peer::PeerAnnouncement;
 
 /// A HTTP core event.
@@ -127,7 +127,7 @@ pub mod bus {
 pub mod test {
 
     use torrust_net_primitives::service_binding::Protocol;
-    use torrust_tracker_http_tracker_protocol::v1::services::peer_ip_resolver::{RemoteClientAddr, ResolvedIp};
+    use torrust_tracker_http_protocol::v1::services::peer_ip_resolver::{RemoteClientAddr, ResolvedIp};
     use torrust_tracker_primitives::peer::Peer;
 
     use super::Event;

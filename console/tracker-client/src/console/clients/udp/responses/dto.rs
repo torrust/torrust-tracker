@@ -2,8 +2,8 @@
 use std::net::{Ipv4Addr, Ipv6Addr};
 
 use serde::Serialize;
-use torrust_tracker_udp_tracker_protocol::Response::{self};
-use torrust_tracker_udp_tracker_protocol::{
+use torrust_tracker_udp_protocol::Response::{self};
+use torrust_tracker_udp_protocol::{
     AnnounceResponse, ConnectResponse, ErrorResponse, Ipv4AddrBytes, Ipv6AddrBytes, ScrapeResponse,
 };
 

@@ -58,7 +58,7 @@ clear, direct `use` statements:
 | ---------------------------------- | --------------------------------- | -------------------------------------------------- |
 | `bittorrent-http-tracker-protocol` | `torrust-tracker-contrib-bencode` | `use crate::{BMutAccess, …}`                       |
 | `bittorrent-http-tracker-protocol` | `torrust-tracker-located-error`   | `use crate::{Located, LocatedError}`               |
-| `bittorrent-udp-tracker-core`      | `torrust-tracker-configuration`   | `use crate::{Core, UdpTracker}`                    |
+| `bittorrent-udp-core`      | `torrust-tracker-configuration`   | `use crate::{Core, UdpTracker}`                    |
 | `bittorrent-udp-tracker-protocol`  | `bittorrent-peer-id`              | `pub use bittorrent_peer_id::{PeerClient, PeerId}` |
 | `torrust-tracker-axum-server`              | `torrust-tracker-located-error`   | `use crate::{DynError, LocatedError}`              |
 | `torrust-tracker-primitives`       | `bittorrent-peer-id`              | `pub use bittorrent_peer_id::{…}`                  |

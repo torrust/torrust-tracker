@@ -62,8 +62,8 @@ It holds one `Arc<…Container>` per architectural layer:
 | `registar`                                                                                       | `server-lib` — tracks active server socket registrations |
 | `swarm_coordination_registry_container`                                                          | `swarm-coordination-registry`                            |
 | `tracker_core_container`                                                                         | `tracker-core`                                           |
-| `http_tracker_core_services` / `http_tracker_instance_containers`                                | `http-tracker-core`                                      |
-| `udp_tracker_core_services` / `udp_tracker_server_container` / `udp_tracker_instance_containers` | `udp-tracker-core` / `udp-server`                |
+| `http_tracker_core_services` / `http_tracker_instance_containers`                                | `http-core`                                              |
+| `udp_tracker_core_services` / `udp_tracker_server_container` / `udp_tracker_instance_containers` | `udp-core` / `udp-server`                                |
 
 `AppContainer::initialize` is the only place where domain containers are constructed.
 Every `bootstrap/jobs/` starter receives an `&Arc<AppContainer>` and pulls out exactly what it

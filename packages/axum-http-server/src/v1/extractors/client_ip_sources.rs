@@ -42,7 +42,7 @@ use axum::extract::{ConnectInfo, FromRequestParts};
 use axum::http::request::Parts;
 use axum::response::Response;
 use axum_client_ip::RightmostXForwardedFor;
-use torrust_tracker_http_tracker_protocol::v1::services::peer_ip_resolver::ClientIpSources;
+use torrust_tracker_http_protocol::v1::services::peer_ip_resolver::ClientIpSources;
 
 /// Extractor for the [`ClientIpSources`]
 /// struct.

@@ -17,10 +17,10 @@ version.workspace = true
 axum = { version = "0", features = [ "macros" ] }
 axum-extra = { version = "0", features = [ "query" ] }
 axum-server = { version = "0", features = [ "tls-rustls-no-provider" ] }
-torrust-tracker-http-tracker-core = { version = "3.0.0-develop", path = "../http-tracker-core" }
+torrust-tracker-http-core = { version = "3.0.0-develop", path = "../http-core" }
 torrust-info-hash = "=0.2.0"
 torrust-tracker-core = { version = "3.0.0-develop", path = "../tracker-core" }
-torrust-tracker-udp-tracker-core = { version = "3.0.0-develop", path = "../udp-tracker-core" }
+torrust-tracker-udp-core = { version = "3.0.0-develop", path = "../udp-core" }
 derive_more = { version = "2", features = [ "as_ref", "constructor", "from" ] }
 futures = "0"
 hyper = "1"

@@ -9,8 +9,8 @@ use std::time::Duration;
 
 use torrust_tracker_client::udp::client::UdpTrackerClient;
 use torrust_tracker_test_helpers::{configuration, logging};
+use torrust_tracker_udp_protocol::{ConnectRequest, ConnectionId, Response, TransactionId};
 use torrust_tracker_udp_server::MAX_PACKET_SIZE;
-use torrust_tracker_udp_tracker_protocol::{ConnectRequest, ConnectionId, Response, TransactionId};
 
 use crate::server::asserts::get_error_response_message;
 
@@ -79,7 +79,7 @@ mod receiving_a_connection_request {
 
     use torrust_tracker_client::udp::client::UdpTrackerClient;
     use torrust_tracker_test_helpers::{configuration, logging};
-    use torrust_tracker_udp_tracker_protocol::{ConnectRequest, TransactionId};
+    use torrust_tracker_udp_protocol::{ConnectRequest, TransactionId};
 
     use super::DEFAULT_UDP_TIMEOUT;
     use crate::server::asserts::is_connect_response;
@@ -126,7 +126,7 @@ mod receiving_an_announce_request {
     use torrust_tracker_client::udp::client::UdpTrackerClient;
     use torrust_tracker_test_helpers::logging::logs_contains_a_line_with;
     use torrust_tracker_test_helpers::{configuration, logging};
-    use torrust_tracker_udp_tracker_protocol::{
+    use torrust_tracker_udp_protocol::{
         AnnounceActionPlaceholder, AnnounceEvent, AnnounceRequest, ConnectionId, InfoHash, NumberOfBytes, NumberOfPeers, PeerKey,
         Port, TransactionId,
     };
@@ -151,7 +151,7 @@ mod receiving_an_announce_request {
         c_id: ConnectionId,
         info_hash: torrust_info_hash::InfoHash,
         client: &UdpTrackerClient,
-    ) -> torrust_tracker_udp_tracker_protocol::Response {
+    ) -> torrust_tracker_udp_protocol::Response {
         let announce_request =
             build_sample_announce_request(tx_id, c_id, client.client.socket.local_addr().unwrap().port(), info_hash);
 
@@ -331,7 +331,7 @@ mod receiving_an_scrape_request {
 
     use torrust_tracker_client::udp::client::UdpTrackerClient;
     use torrust_tracker_test_helpers::{configuration, logging};
-    use torrust_tracker_udp_tracker_protocol::{ConnectionId, InfoHash, ScrapeRequest, TransactionId};
+    use torrust_tracker_udp_protocol::{ConnectionId, InfoHash, ScrapeRequest, TransactionId};
 
     use super::DEFAULT_UDP_TIMEOUT;
     use crate::server::asserts::is_scrape_response;

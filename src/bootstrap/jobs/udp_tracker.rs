@@ -10,11 +10,11 @@ use std::sync::Arc;
 
 use tokio::task::JoinHandle;
 use torrust_server_lib::registar::ServiceRegistrationForm;
+use torrust_tracker_udp_core::UDP_TRACKER_LOG_TARGET;
+use torrust_tracker_udp_core::container::UdpTrackerCoreContainer;
 use torrust_tracker_udp_server::container::UdpTrackerServerContainer;
 use torrust_tracker_udp_server::server::Server;
 use torrust_tracker_udp_server::server::spawner::Spawner;
-use torrust_tracker_udp_tracker_core::UDP_TRACKER_LOG_TARGET;
-use torrust_tracker_udp_tracker_core::container::UdpTrackerCoreContainer;
 use tracing::instrument;
 
 /// It starts a new UDP server with the provided configuration.

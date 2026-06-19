@@ -165,20 +165,20 @@ production code (not test-only) and belongs in the client library alongside
 
 ---
 
-## DEC-12 — Accept `http-tracker-core` → `tracker-core` coupling as by design
+## DEC-12 — Accept `http-core` → `tracker-core` coupling as by design
 
 **Date**: 2026-06-10
 **Status**: Adopted
 
 ### Proposal considered
 
-Reduce the 16 import paths between `http-tracker-core` and `tracker-core`,
+Reduce the 16 import paths between `http-core` and `tracker-core`,
 either by passing narrower service interfaces or by moving test-only
 dependencies (in-memory repositories, database setup) to `test-helpers`.
 
 ### Alternative chosen
 
-Leave the coupling as-is. `http-tracker-core` is architecturally a thin
+Leave the coupling as-is. `http-core` is architecturally a thin
 protocol-specific layer that delegates to `tracker-core`. The dependency
 is inherent, not accidental.
 
@@ -207,7 +207,7 @@ is inherent, not accidental.
 ### Trade-offs acknowledged
 
 - Any change to `tracker-core`'s handler API, error types, or auth/whitelist
-  interfaces directly impacts `http-tracker-core`.
+  interfaces directly impacts `http-core`.
 - Test-only in-memory repositories live in `tracker-core` rather than in a
   shared test utilities package.
 - This coupling is inherent to the chosen architecture; it cannot be eliminated
@@ -215,9 +215,9 @@ is inherent, not accidental.
 
 ### Supporting artifacts
 
-- `packages/http-tracker-core/src/container.rs` — wraps `TrackerCoreContainer`
-- `packages/http-tracker-core/src/services/announce.rs` — delegates to `tracker-core`
-- `packages/http-tracker-core/src/services/scrape.rs` — delegates to `tracker-core`
+- `packages/http-core/src/container.rs` — wraps `TrackerCoreContainer`
+- `packages/http-core/src/services/announce.rs` — delegates to `tracker-core`
+- `packages/http-core/src/services/scrape.rs` — delegates to `tracker-core`
 - [workspace-coupling-report-2026-06-10.md](../open/1669-overhaul-packages/workspace-coupling-report-2026-06-10.md)
   — "Cluster dependencies" section
 
@@ -294,7 +294,7 @@ Adopt a unified naming and ownership policy:
    tracker-owned; they are not moved to `torrust/torrust-bittorrent` even though they
    have high reuse potential.
 3. **Tracker-owned packages** use the `torrust-tracker-` prefix (e.g.,
-   `torrust-tracker-udp-tracker-protocol`). Organisation-level shared crates that are
+   `torrust-tracker-udp-protocol`). Organisation-level shared crates that are
    not tracker-specific use `torrust-` alone (e.g., `torrust-net-primitives`,
    `torrust-server-lib`).
 4. **A package can be reusable without being in a different repository**. Being in the
@@ -322,7 +322,7 @@ Adopt a unified naming and ownership policy:
 
 ### Tradeoffs accepted
 
-- Crates like `torrust-tracker-udp-tracker-protocol` have long names due to the
+- Crates like `torrust-tracker-udp-protocol` have long names due to the
   layered prefix (`torrust-tracker-` + `udp-tracker-` + `protocol`).
 - Protocol crates will not benefit from the `torrust/torrust-bittorrent` community
   discoverability (e.g., someone browsing that repo will not see tracker protocol
@@ -358,10 +358,10 @@ For example:
 
 | Crate name                                    | Folder                        |
 | --------------------------------------------- | ----------------------------- |
-| `torrust-tracker-http-tracker-core`           | `http-tracker-core`           |
-| `torrust-tracker-http-tracker-protocol`       | `http-protocol`               |
-| `torrust-tracker-udp-tracker-core`            | `udp-tracker-core`            |
-| `torrust-tracker-udp-tracker-protocol`        | `udp-protocol`                |
+| `torrust-tracker-http-core`           | `http-core`           |
+| `torrust-tracker-http-protocol`       | `http-protocol`               |
+| `torrust-tracker-udp-core`            | `udp-core`            |
+| `torrust-tracker-udp-protocol`        | `udp-protocol`                |
 | `torrust-tracker-primitives`                  | `primitives`                  |
 | `torrust-tracker-swarm-coordination-registry` | `swarm-coordination-registry` |
 
@@ -373,7 +373,7 @@ naming predictable and removes the need to look up what folder a crate lives in.
 1. **Predictable mapping**: anyone who knows the crate name can find the folder without
    looking it up — just strip the `torrust-tracker-` prefix.
 2. **Consistency**: eliminates the current inconsistency where some folders match their
-   crate name suffix (`http-protocol` matches `torrust-tracker-http-tracker-protocol`
+   crate name suffix (`http-protocol` matches `torrust-tracker-http-protocol`
    suffix) and others differ (`tracker-client` folder contains
    `torrust-tracker-client-lib` crate).
 3. **No ambiguity**: inside the workspace context, the short folder name is unambiguous.
@@ -613,7 +613,7 @@ crates.
 
 Keep `torrust_tracker_primitives::AnnounceEvent` in the domain primitives
 package, keep protocol-local event types inside each protocol crate, and perform
-protocol-to-domain mapping only in boundary layers (`http-tracker-core` and/or
+protocol-to-domain mapping only in boundary layers (`http-core` and/or
 `axum-http-tracker-server`).
 
 ### Why this alternative was adopted
@@ -770,8 +770,8 @@ crates controlled by Cargo features (`udp` and `http`, both disabled by default)
 | ---------------------------------- | ------------------------------------------------------------- |
 | `packages/udp-protocol`            | _(removed)_                                                   |
 | `packages/http-protocol`           | _(removed)_                                                   |
-| `packages/udp-tracker-core`        | _(removed)_                                                   |
-| `packages/http-tracker-core`       | _(removed)_                                                   |
+| `packages/udp-core`        | _(removed)_                                                   |
+| `packages/http-core`       | _(removed)_                                                   |
 | _(new)_                            | `packages/protocol`                                           |
 | `packages/tracker-core` (existing) | `packages/tracker-core` (expanded with `udp`/`http` features) |
 
@@ -779,7 +779,7 @@ Crate renames implied:
 `bittorrent-udp-tracker-protocol` + `bittorrent-http-tracker-protocol`
 → `bittorrent-tracker-protocol`
 
-`bittorrent-udp-tracker-core` + `bittorrent-http-tracker-core` absorbed into
+`bittorrent-udp-core` + `bittorrent-http-core` absorbed into
 `bittorrent-tracker-core` as `udp` and `http` features.
 
 ### Why it was discarded

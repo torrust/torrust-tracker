@@ -1,6 +1,6 @@
 use rand::prelude::*;
 use torrust_info_hash::InfoHash;
-use torrust_tracker_udp_tracker_protocol::TransactionId;
+use torrust_tracker_udp_protocol::TransactionId;
 
 /// Returns a random info hash.
 pub fn random_info_hash() -> InfoHash {

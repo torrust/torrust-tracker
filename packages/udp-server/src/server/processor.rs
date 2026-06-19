@@ -5,9 +5,9 @@ use std::time::Duration;
 
 use tokio::time::Instant;
 use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
-use torrust_tracker_udp_tracker_core::container::UdpTrackerCoreContainer;
-use torrust_tracker_udp_tracker_core::{self};
-use torrust_tracker_udp_tracker_protocol::Response;
+use torrust_tracker_udp_core::container::UdpTrackerCoreContainer;
+use torrust_tracker_udp_core::{self};
+use torrust_tracker_udp_protocol::Response;
 use tracing::{Level, instrument};
 
 use super::bound_socket::BoundSocket;

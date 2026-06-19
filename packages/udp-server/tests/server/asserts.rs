@@ -1,4 +1,4 @@
-use torrust_tracker_udp_tracker_protocol::{Response, TransactionId};
+use torrust_tracker_udp_protocol::{Response, TransactionId};
 
 pub fn get_error_response_message(response: &Response) -> Option<String> {
     match response {

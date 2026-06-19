@@ -51,7 +51,7 @@ These packages are leaves (no workspace dep) and are prime extraction candidates
 
 ## Package coupling details
 
-### `bittorrent-http-tracker-core`
+### `bittorrent-http-core`
 
 Workspace deps: 10
 
@@ -268,7 +268,7 @@ _No `torrust_tracker_rest_api_client::` references found in source — may be us
 - `torrust_tracker_test_helpers::configuration`
 - `torrust_tracker_test_helpers::configuration::ephemeral_sqlite_database`
 
-### `bittorrent-udp-tracker-core`
+### `bittorrent-udp-core`
 
 Workspace deps: 10
 
@@ -414,7 +414,7 @@ _Items not extracted — dependency used without a direct `use` path (macro, re-
 
 Workspace deps: 14
 
-#### `bittorrent-http-tracker-core` [normal]
+#### `bittorrent-http-core` [normal]
 
 - `bittorrent_http_tracker_core::container::HttpTrackerCoreContainer`
 - `bittorrent_http_tracker_core::event::bus`
@@ -513,7 +513,7 @@ _No `torrust_tracker_events::` references found in source — may be used only i
 
 Workspace deps: 16
 
-#### `bittorrent-http-tracker-core` [normal]
+#### `bittorrent-http-core` [normal]
 
 - `bittorrent_http_tracker_core::container::HttpTrackerCoreContainer`
 - `bittorrent_http_tracker_core::statistics::repository`
@@ -531,7 +531,7 @@ Workspace deps: 16
 - `bittorrent_tracker_core::torrent::services`
 - `bittorrent_tracker_core::whitelist::manager`
 
-#### `bittorrent-udp-tracker-core` [normal]
+#### `bittorrent-udp-core` [normal]
 
 - `bittorrent_udp_tracker_core::container::UdpTrackerCoreContainer`
 - `bittorrent_udp_tracker_core::initialize_static`
@@ -637,7 +637,7 @@ _Items not extracted — dependency used without a direct `use` path (macro, re-
 
 Workspace deps: 10
 
-#### `bittorrent-http-tracker-core` [normal]
+#### `bittorrent-http-core` [normal]
 
 - `bittorrent_http_tracker_core::container::HttpTrackerCoreContainer`
 - `bittorrent_http_tracker_core::event::bus`
@@ -651,7 +651,7 @@ Workspace deps: 10
 - `bittorrent_tracker_core::statistics::repository`
 - `bittorrent_tracker_core::torrent::repository`
 
-#### `bittorrent-udp-tracker-core` [normal]
+#### `bittorrent-udp-core` [normal]
 
 - `bittorrent_udp_tracker_core::MAX_CONNECTION_ID_ERRORS_PER_IP`
 - `bittorrent_udp_tracker_core::container::UdpTrackerCoreContainer`
@@ -701,7 +701,7 @@ Workspace deps: 1
 
 Workspace deps: 16
 
-#### `bittorrent-http-tracker-core` [normal]
+#### `bittorrent-http-core` [normal]
 
 - `bittorrent_http_tracker_core::container`
 - `bittorrent_http_tracker_core::container::HttpTrackerCoreContainer`
@@ -714,7 +714,7 @@ Workspace deps: 16
 - `bittorrent_tracker_core::statistics::persisted`
 - `bittorrent_tracker_core::torrent::manager`
 
-#### `bittorrent-udp-tracker-core` [normal]
+#### `bittorrent-udp-core` [normal]
 
 - `bittorrent_udp_tracker_core::UDP_TRACKER_LOG_TARGET`
 - `bittorrent_udp_tracker_core::container`
@@ -970,7 +970,7 @@ Workspace deps: 13
 - `bittorrent_tracker_core::whitelist::authorization`
 - `bittorrent_tracker_core::whitelist::repository`
 
-#### `bittorrent-udp-tracker-core` [normal]
+#### `bittorrent-udp-core` [normal]
 
 - `bittorrent_udp_tracker_core::UDP_TRACKER_LOG_TARGET`
 - `bittorrent_udp_tracker_core::connection_cookie`

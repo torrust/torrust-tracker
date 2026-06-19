@@ -41,10 +41,10 @@ These packages are leaves (no workspace dep) and are prime extraction candidates
 
 - `torrust-server-lib`
 - `torrust-tracker-events`
-- `torrust-tracker-http-tracker-protocol`
+- `torrust-tracker-http-protocol`
 - `torrust-tracker-primitives`
 - `torrust-tracker-rest-api-client`
-- `torrust-tracker-udp-tracker-protocol`
+- `torrust-tracker-udp-protocol`
 - `workspace-coupling`
 
 ---
@@ -100,7 +100,7 @@ Workspace deps: 15
 - `torrust_tracker_core::statistics::persisted`
 - `torrust_tracker_core::torrent::manager`
 
-#### `torrust-tracker-http-tracker-core` [normal]
+#### `torrust-tracker-http-core` [normal]
 
 - `torrust_tracker_http_tracker_core::container`
 - `torrust_tracker_http_tracker_core::container::HttpTrackerCoreContainer`
@@ -130,7 +130,7 @@ Workspace deps: 15
 - `torrust_tracker_udp_server::server::spawner`
 - `torrust_tracker_udp_server::statistics::event`
 
-#### `torrust-tracker-udp-tracker-core` [normal]
+#### `torrust-tracker-udp-core` [normal]
 
 - `torrust_tracker_udp_tracker_core::UDP_TRACKER_LOG_TARGET`
 - `torrust_tracker_udp_tracker_core::container`
@@ -226,7 +226,7 @@ Workspace deps: 10
 - `torrust_tracker_core::whitelist::authorization`
 - `torrust_tracker_core::whitelist::repository`
 
-#### `torrust-tracker-http-tracker-core` [normal]
+#### `torrust-tracker-http-core` [normal]
 
 - `torrust_tracker_http_tracker_core::container::HttpTrackerCoreContainer`
 - `torrust_tracker_http_tracker_core::event::bus`
@@ -236,7 +236,7 @@ Workspace deps: 10
 - `torrust_tracker_http_tracker_core::statistics::event`
 - `torrust_tracker_http_tracker_core::statistics::repository`
 
-#### `torrust-tracker-http-tracker-protocol` [normal]
+#### `torrust-tracker-http-protocol` [normal]
 
 - `torrust_tracker_http_tracker_protocol::v1`
 - `torrust_tracker_http_tracker_protocol::v1::query`
@@ -258,7 +258,7 @@ Workspace deps: 10
 
 - `torrust_tracker_swarm_coordination_registry::container::SwarmCoordinationRegistryContainer`
 
-#### `torrust-tracker-udp-tracker-protocol` [normal]
+#### `torrust-tracker-udp-protocol` [normal]
 
 - `torrust_tracker_udp_tracker_protocol::PeerId`
 
@@ -305,7 +305,7 @@ Workspace deps: 13
 - `torrust_tracker_core::torrent::services`
 - `torrust_tracker_core::whitelist::manager`
 
-#### `torrust-tracker-http-tracker-core` [normal]
+#### `torrust-tracker-http-core` [normal]
 
 - `torrust_tracker_http_tracker_core::container::HttpTrackerCoreContainer`
 - `torrust_tracker_http_tracker_core::statistics::repository`
@@ -340,7 +340,7 @@ Workspace deps: 13
 - `torrust_tracker_udp_server::container::UdpTrackerServerContainer`
 - `torrust_tracker_udp_server::statistics::repository`
 
-#### `torrust-tracker-udp-tracker-core` [normal]
+#### `torrust-tracker-udp-core` [normal]
 
 - `torrust_tracker_udp_tracker_core::container::UdpTrackerCoreContainer`
 - `torrust_tracker_udp_tracker_core::initialize_static`
@@ -379,7 +379,7 @@ Workspace deps: 2
 
 _No `torrust_tracker_client_lib::` references found in source — may be used only in `Cargo.toml` feature flags or `build.rs`._
 
-#### `torrust-tracker-udp-tracker-protocol` [normal]
+#### `torrust-tracker-udp-protocol` [normal]
 
 - `torrust_tracker_udp_tracker_protocol::PeerId`
 - `torrust_tracker_udp_tracker_protocol::Response`
@@ -394,7 +394,7 @@ Workspace deps: 2
 
 - `torrust_tracker_primitives::peer`
 
-#### `torrust-tracker-udp-tracker-protocol` [normal]
+#### `torrust-tracker-udp-protocol` [normal]
 
 - `torrust_tracker_udp_tracker_protocol::PeerId`
 - `torrust_tracker_udp_tracker_protocol::Request`
@@ -461,7 +461,7 @@ Workspace deps: 1
 
 _No `torrust_tracker::` references found in source — may be used only in `Cargo.toml` feature flags or `build.rs`._
 
-### `torrust-tracker-http-tracker-core`
+### `torrust-tracker-http-core`
 
 Workspace deps: 7
 
@@ -499,7 +499,7 @@ Workspace deps: 7
 - `torrust_tracker_events::sender::SendError`
 - `torrust_tracker_events::sender::Sender`
 
-#### `torrust-tracker-http-tracker-protocol` [normal]
+#### `torrust-tracker-http-protocol` [normal]
 
 - `torrust_tracker_http_tracker_protocol::v1::requests`
 - `torrust_tracker_http_tracker_protocol::v1::responses`
@@ -558,7 +558,7 @@ Workspace deps: 9
 - `torrust_tracker_core::statistics::repository`
 - `torrust_tracker_core::torrent::repository`
 
-#### `torrust-tracker-http-tracker-core` [normal]
+#### `torrust-tracker-http-core` [normal]
 
 - `torrust_tracker_http_tracker_core::container::HttpTrackerCoreContainer`
 - `torrust_tracker_http_tracker_core::event::bus`
@@ -581,7 +581,7 @@ Workspace deps: 9
 - `torrust_tracker_udp_server::statistics`
 - `torrust_tracker_udp_server::statistics::repository`
 
-#### `torrust-tracker-udp-tracker-core` [normal]
+#### `torrust-tracker-udp-core` [normal]
 
 - `torrust_tracker_udp_tracker_core::MAX_CONNECTION_ID_ERRORS_PER_IP`
 - `torrust_tracker_udp_tracker_core::container::UdpTrackerCoreContainer`
@@ -708,7 +708,7 @@ _No `torrust_tracker_client_lib::` references found in source — may be used on
 
 - `torrust_tracker_swarm_coordination_registry::container::SwarmCoordinationRegistryContainer`
 
-#### `torrust-tracker-udp-tracker-core` [normal]
+#### `torrust-tracker-udp-core` [normal]
 
 - `torrust_tracker_udp_tracker_core::UDP_TRACKER_LOG_TARGET`
 - `torrust_tracker_udp_tracker_core::connection_cookie`
@@ -726,7 +726,7 @@ _No `torrust_tracker_client_lib::` references found in source — may be used on
 - `torrust_tracker_udp_tracker_core::services::scrape`
 - `torrust_tracker_udp_tracker_core::statistics::event`
 
-#### `torrust-tracker-udp-tracker-protocol` [normal]
+#### `torrust-tracker-udp-protocol` [normal]
 
 - `torrust_tracker_udp_tracker_protocol::AnnounceEvent`
 - `torrust_tracker_udp_tracker_protocol::AnnounceInterval`
@@ -756,7 +756,7 @@ _No `torrust_tracker_client_lib::` references found in source — may be used on
 - `torrust_tracker_test_helpers::configuration::ephemeral_public`
 - `torrust_tracker_test_helpers::logging::logs_contains_a_line_with`
 
-### `torrust-tracker-udp-tracker-core`
+### `torrust-tracker-udp-core`
 
 Workspace deps: 6
 
@@ -801,7 +801,7 @@ _Items not extracted — dependency used without a direct `use` path (macro, re-
 
 - `torrust_tracker_swarm_coordination_registry::container::SwarmCoordinationRegistryContainer`
 
-#### `torrust-tracker-udp-tracker-protocol` [normal]
+#### `torrust-tracker-udp-protocol` [normal]
 
 - `torrust_tracker_udp_tracker_protocol::AnnounceEvent::Completed`
 - `torrust_tracker_udp_tracker_protocol::AnnounceEvent::None`
@@ -853,14 +853,14 @@ reduction in workspace coupling thanks to completed EPIC subissues:
 
 **Protocol packages decoupled from domain** (SI-12, SI-13, SI-14):
 
-- `torrust-tracker-http-tracker-protocol`: **6 → 0** workspace deps (now a leaf)
-- `torrust-tracker-udp-tracker-protocol`: **1 → 0** workspace deps (now a leaf)
+- `torrust-tracker-http-protocol`: **6 → 0** workspace deps (now a leaf)
+- `torrust-tracker-udp-protocol`: **1 → 0** workspace deps (now a leaf)
 
 **Core dependency reductions**:
 
 - `torrust-tracker-core` (was `bittorrent-tracker-core`): **9 → 5** deps
-- `torrust-tracker-http-tracker-core` (was `bittorrent-http-tracker-core`): **10 → 7** deps
-- `torrust-tracker-udp-tracker-core` (was `bittorrent-udp-tracker-core`): **10 → 6** deps
+- `torrust-tracker-http-core` (was `bittorrent-http-core`): **10 → 7** deps
+- `torrust-tracker-udp-core` (was `bittorrent-udp-core`): **10 → 6** deps
 
 **Server dependency reductions** (from renamed/moved dependencies):
 
@@ -937,19 +937,19 @@ reference to the subissue opened for each.
 
 #### Cluster dependencies (architectural concerns)
 
-1. **`axum-rest-api-server` -> `udp-server` + `udp-tracker-core`**
+1. **`axum-rest-api-server` -> `udp-server` + `udp-core`**
    The REST server container depends on concrete UDP containers for wiring and
    initialization. See draft:
    [1669-decouple-axum-rest-api-server-from-udp-containers.md](../../drafts/1669-decouple-axum-rest-api-server-from-udp-containers.md)
 
-2. **`rest-api-core` -> `udp-server` + `udp-tracker-core`**
+2. **`rest-api-core` -> `udp-server` + `udp-core`**
    The REST core depends on concrete UDP types for statistics and banning.
    See draft:
    [1669-decouple-rest-api-core-from-udp-internals.md](../../drafts/1669-decouple-rest-api-core-from-udp-internals.md)
 
-3. **`http-tracker-core` -> `tracker-core`** (16 import paths)
+3. **`http-core` -> `tracker-core`** (16 import paths)
    This is an **architecturally expected** coupling, not a problem to fix.
-   `http-tracker-core` is a thin protocol-specific layer that delegates
+   `http-core` is a thin protocol-specific layer that delegates
    to `tracker-core`. The imports break down as:
    - **Runtime** (12 paths): container wrapping (`TrackerCoreContainer`),
      handler delegation (`AnnounceHandler`, `ScrapeHandler`), auth
@@ -958,7 +958,7 @@ reference to the subissue opened for each.
    - **Test-only** (4 paths): `initialize_database`, `InMemoryKeyRepository`,
      `InMemoryTorrentRepository`, `InMemoryWhitelist`. Used only in `#[cfg(test)]`.
      Moving test helpers to `test-helpers` is possible but minor.
-     Per [DEC-12](../DECISIONS.md#dec-12--accept-http-tracker-core-to-tracker-core-coupling-as-by-design).
+     Per [DEC-12](../DECISIONS.md#dec-12--accept-http-core-to-tracker-core-coupling-as-by-design).
 
 #### Recommended prioritization
 

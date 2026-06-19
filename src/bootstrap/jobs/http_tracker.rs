@@ -19,7 +19,7 @@ use torrust_server_lib::registar::ServiceRegistrationForm;
 use torrust_tracker_axum_http_server::Version;
 use torrust_tracker_axum_http_server::server::{HttpServer, Launcher};
 use torrust_tracker_axum_server::tsl::make_rust_tls;
-use torrust_tracker_http_tracker_core::container::HttpTrackerCoreContainer;
+use torrust_tracker_http_core::container::HttpTrackerCoreContainer;
 use tracing::instrument;
 
 /// It starts a new HTTP server with the provided configuration and version.
@@ -85,7 +85,7 @@ mod tests {
 
     use torrust_server_lib::registar::Registar;
     use torrust_tracker_axum_http_server::Version;
-    use torrust_tracker_http_tracker_core::container::HttpTrackerCoreContainer;
+    use torrust_tracker_http_core::container::HttpTrackerCoreContainer;
     use torrust_tracker_test_helpers::configuration::ephemeral_public;
 
     use crate::bootstrap::app::initialize_global_services;

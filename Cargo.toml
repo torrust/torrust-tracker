@@ -39,9 +39,9 @@ version = "3.0.0-develop"
 anyhow = "1"
 axum-server = { version = "0", features = [ "tls-rustls-no-provider" ] }
 base64 = "0.22.1"
-torrust-tracker-http-tracker-core = { version = "3.0.0-develop", path = "packages/http-tracker-core" }
+torrust-tracker-http-core = { version = "3.0.0-develop", path = "packages/http-core" }
 torrust-tracker-core = { version = "3.0.0-develop", path = "packages/tracker-core" }
-torrust-tracker-udp-tracker-core = { version = "3.0.0-develop", path = "packages/udp-tracker-core" }
+torrust-tracker-udp-core = { version = "3.0.0-develop", path = "packages/udp-core" }
 chrono = { version = "0", default-features = false, features = [ "clock" ] }
 clap = { version = "4", features = [ "derive", "env" ] }
 pbkdf2 = "0.13.0"

@@ -4867,14 +4867,14 @@ dependencies = [
  "torrust-tracker-client-lib",
  "torrust-tracker-configuration",
  "torrust-tracker-core",
- "torrust-tracker-http-tracker-core",
+ "torrust-tracker-http-core",
  "torrust-tracker-primitives",
  "torrust-tracker-rest-api-client",
  "torrust-tracker-rest-api-core",
  "torrust-tracker-swarm-coordination-registry",
  "torrust-tracker-test-helpers",
+ "torrust-tracker-udp-core",
  "torrust-tracker-udp-server",
- "torrust-tracker-udp-tracker-core",
  "tracing",
  "tracing-subscriber",
 ]
@@ -4934,8 +4934,8 @@ dependencies = [
  "torrust-tracker-axum-server",
  "torrust-tracker-configuration",
  "torrust-tracker-core",
- "torrust-tracker-http-tracker-core",
- "torrust-tracker-http-tracker-protocol",
+ "torrust-tracker-http-core",
+ "torrust-tracker-http-protocol",
  "torrust-tracker-primitives",
  "torrust-tracker-swarm-coordination-registry",
  "torrust-tracker-test-helpers",
@@ -4969,14 +4969,14 @@ dependencies = [
  "torrust-tracker-axum-server",
  "torrust-tracker-configuration",
  "torrust-tracker-core",
- "torrust-tracker-http-tracker-core",
+ "torrust-tracker-http-core",
  "torrust-tracker-primitives",
  "torrust-tracker-rest-api-client",
  "torrust-tracker-rest-api-core",
  "torrust-tracker-swarm-coordination-registry",
  "torrust-tracker-test-helpers",
+ "torrust-tracker-udp-core",
  "torrust-tracker-udp-server",
- "torrust-tracker-udp-tracker-core",
  "tower",
  "tower-http",
  "tracing",
@@ -5024,7 +5024,7 @@ dependencies = [
  "torrust-info-hash",
  "torrust-peer-id",
  "torrust-tracker-client-lib",
- "torrust-tracker-udp-tracker-protocol",
+ "torrust-tracker-udp-protocol",
  "tracing",
  "tracing-subscriber",
  "url",
@@ -5049,7 +5049,7 @@ dependencies = [
  "torrust-net-primitives",
  "torrust-peer-id",
  "torrust-tracker-primitives",
- "torrust-tracker-udp-tracker-protocol",
+ "torrust-tracker-udp-protocol",
  "tracing",
  "zerocopy",
 ]
@@ -5122,7 +5122,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "torrust-tracker-http-tracker-core"
+name = "torrust-tracker-http-core"
 version = "3.0.0-develop"
 dependencies = [
  "criterion 0.5.1",
@@ -5139,7 +5139,7 @@ dependencies = [
  "torrust-tracker-configuration",
  "torrust-tracker-core",
  "torrust-tracker-events",
- "torrust-tracker-http-tracker-protocol",
+ "torrust-tracker-http-protocol",
  "torrust-tracker-primitives",
  "torrust-tracker-swarm-coordination-registry",
  "torrust-tracker-test-helpers",
@@ -5147,7 +5147,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "torrust-tracker-http-tracker-protocol"
+name = "torrust-tracker-http-protocol"
 version = "3.0.0-develop"
 dependencies = [
  "derive_more 2.1.1",
@@ -5220,12 +5220,12 @@ dependencies = [
  "torrust-tracker-configuration",
  "torrust-tracker-core",
  "torrust-tracker-events",
- "torrust-tracker-http-tracker-core",
+ "torrust-tracker-http-core",
  "torrust-tracker-primitives",
  "torrust-tracker-swarm-coordination-registry",
  "torrust-tracker-test-helpers",
+ "torrust-tracker-udp-core",
  "torrust-tracker-udp-server",
- "torrust-tracker-udp-tracker-core",
 ]
 
 [[package]]
@@ -5276,6 +5276,48 @@ dependencies = [
 ]
 
 [[package]]
+name = "torrust-tracker-udp-core"
+version = "3.0.0-develop"
+dependencies = [
+ "bloom",
+ "blowfish",
+ "cipher",
+ "criterion 0.5.1",
+ "futures",
+ "mockall",
+ "rand 0.9.4",
+ "serde",
+ "thiserror 2.0.18",
+ "tokio",
+ "tokio-util",
+ "torrust-clock",
+ "torrust-info-hash",
+ "torrust-metrics",
+ "torrust-net-primitives",
+ "torrust-tracker-configuration",
+ "torrust-tracker-core",
+ "torrust-tracker-events",
+ "torrust-tracker-primitives",
+ "torrust-tracker-swarm-coordination-registry",
+ "torrust-tracker-udp-protocol",
+ "tracing",
+ "zerocopy",
+]
+
+[[package]]
+name = "torrust-tracker-udp-protocol"
+version = "3.0.0-develop"
+dependencies = [
+ "byteorder",
+ "either",
+ "pretty_assertions",
+ "quickcheck",
+ "quickcheck_macros",
+ "torrust-peer-id",
+ "zerocopy",
+]
+
+[[package]]
 name = "torrust-tracker-udp-server"
 version = "3.0.0-develop"
 dependencies = [
@@ -5302,53 +5344,11 @@ dependencies = [
  "torrust-tracker-primitives",
  "torrust-tracker-swarm-coordination-registry",
  "torrust-tracker-test-helpers",
- "torrust-tracker-udp-tracker-core",
- "torrust-tracker-udp-tracker-protocol",
+ "torrust-tracker-udp-core",
+ "torrust-tracker-udp-protocol",
  "tracing",
  "url",
  "uuid",
- "zerocopy",
-]
-
-[[package]]
-name = "torrust-tracker-udp-tracker-core"
-version = "3.0.0-develop"
-dependencies = [
- "bloom",
- "blowfish",
- "cipher",
- "criterion 0.5.1",
- "futures",
- "mockall",
- "rand 0.9.4",
- "serde",
- "thiserror 2.0.18",
- "tokio",
- "tokio-util",
- "torrust-clock",
- "torrust-info-hash",
- "torrust-metrics",
- "torrust-net-primitives",
- "torrust-tracker-configuration",
- "torrust-tracker-core",
- "torrust-tracker-events",
- "torrust-tracker-primitives",
- "torrust-tracker-swarm-coordination-registry",
- "torrust-tracker-udp-tracker-protocol",
- "tracing",
- "zerocopy",
-]
-
-[[package]]
-name = "torrust-tracker-udp-tracker-protocol"
-version = "3.0.0-develop"
-dependencies = [
- "byteorder",
- "either",
- "pretty_assertions",
- "quickcheck",
- "quickcheck_macros",
- "torrust-peer-id",
  "zerocopy",
 ]
 

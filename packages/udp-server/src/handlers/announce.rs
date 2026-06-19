@@ -7,8 +7,8 @@ use torrust_info_hash::InfoHash;
 use torrust_net_primitives::service_binding::ServiceBinding;
 use torrust_tracker_configuration::Core;
 use torrust_tracker_primitives::AnnounceData;
-use torrust_tracker_udp_tracker_core::services::announce::AnnounceService;
-use torrust_tracker_udp_tracker_protocol::{
+use torrust_tracker_udp_core::services::announce::AnnounceService;
+use torrust_tracker_udp_protocol::{
     AnnounceInterval, AnnounceRequest, AnnounceResponse, AnnounceResponseFixedData, Ipv4AddrBytes, Ipv6AddrBytes, NumberOfPeers,
     Port, Response, ResponsePeer,
 };
@@ -136,8 +136,8 @@ pub(crate) mod tests {
         use std::num::NonZeroU16;
 
         use torrust_peer_id::PeerId;
-        use torrust_tracker_udp_tracker_core::connection_cookie::make;
-        use torrust_tracker_udp_tracker_protocol::{
+        use torrust_tracker_udp_core::connection_cookie::make;
+        use torrust_tracker_udp_protocol::{
             AnnounceActionPlaceholder, AnnounceEvent, AnnounceRequest, ConnectionId, NumberOfBytes, NumberOfPeers, PeerKey, Port,
             TransactionId,
         };
@@ -152,7 +152,7 @@ pub(crate) mod tests {
             pub fn default() -> AnnounceRequestBuilder {
                 let client_ip = Ipv4Addr::new(126, 0, 0, 1);
                 let client_port = 8080;
-                let info_hash_aquatic = torrust_tracker_udp_tracker_protocol::InfoHash([0u8; 20]);
+                let info_hash_aquatic = torrust_tracker_udp_protocol::InfoHash([0u8; 20]);
 
                 let default_request = AnnounceRequest {
                     connection_id: make(sample_ipv4_remote_addr_fingerprint(), sample_issue_time()).unwrap(),
@@ -179,7 +179,7 @@ pub(crate) mod tests {
                 self
             }
 
-            pub fn with_info_hash(mut self, info_hash: torrust_tracker_udp_tracker_protocol::InfoHash) -> Self {
+            pub fn with_info_hash(mut self, info_hash: torrust_tracker_udp_protocol::InfoHash) -> Self {
                 self.request.info_hash = info_hash;
                 self
             }
@@ -216,8 +216,8 @@ pub(crate) mod tests {
             use torrust_tracker_core::torrent::repository::in_memory::InMemoryTorrentRepository;
             use torrust_tracker_events::bus::SenderStatus;
             use torrust_tracker_primitives::peer::fixture::PeerBuilder;
-            use torrust_tracker_udp_tracker_core::connection_cookie::{gen_remote_fingerprint, make};
-            use torrust_tracker_udp_tracker_protocol::{
+            use torrust_tracker_udp_core::connection_cookie::{gen_remote_fingerprint, make};
+            use torrust_tracker_udp_protocol::{
                 AnnounceInterval, AnnounceResponse, AnnounceResponseFixedData, InfoHash as AquaticInfoHash, Ipv4AddrBytes,
                 Ipv6AddrBytes, NumberOfPeers, Response, ResponsePeer,
             };
@@ -481,8 +481,8 @@ pub(crate) mod tests {
                 use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
                 use torrust_peer_id::PeerId;
                 use torrust_tracker_primitives::peer::fixture::PeerBuilder;
-                use torrust_tracker_udp_tracker_core::connection_cookie::{gen_remote_fingerprint, make};
-                use torrust_tracker_udp_tracker_protocol::InfoHash as AquaticInfoHash;
+                use torrust_tracker_udp_core::connection_cookie::{gen_remote_fingerprint, make};
+                use torrust_tracker_udp_protocol::InfoHash as AquaticInfoHash;
 
                 use crate::handlers::announce::tests::announce_request::AnnounceRequestBuilder;
                 use crate::handlers::handle_announce;
@@ -565,11 +565,11 @@ pub(crate) mod tests {
             use torrust_tracker_core::whitelist;
             use torrust_tracker_events::bus::SenderStatus;
             use torrust_tracker_primitives::peer::fixture::PeerBuilder;
-            use torrust_tracker_udp_tracker_core::connection_cookie::{gen_remote_fingerprint, make};
-            use torrust_tracker_udp_tracker_core::event::bus::EventBus;
-            use torrust_tracker_udp_tracker_core::event::sender::Broadcaster;
-            use torrust_tracker_udp_tracker_core::services::announce::AnnounceService;
-            use torrust_tracker_udp_tracker_protocol::{
+            use torrust_tracker_udp_core::connection_cookie::{gen_remote_fingerprint, make};
+            use torrust_tracker_udp_core::event::bus::EventBus;
+            use torrust_tracker_udp_core::event::sender::Broadcaster;
+            use torrust_tracker_udp_core::services::announce::AnnounceService;
+            use torrust_tracker_udp_protocol::{
                 AnnounceInterval, AnnounceResponse, AnnounceResponseFixedData, InfoHash as AquaticInfoHash, Ipv4AddrBytes,
                 Ipv6AddrBytes, NumberOfPeers, Response, ResponsePeer,
             };
@@ -865,10 +865,10 @@ pub(crate) mod tests {
                 use torrust_tracker_core::torrent::repository::in_memory::InMemoryTorrentRepository;
                 use torrust_tracker_core::whitelist::authorization::WhitelistAuthorization;
                 use torrust_tracker_core::whitelist::repository::in_memory::InMemoryWhitelist;
-                use torrust_tracker_udp_tracker_core::connection_cookie::{gen_remote_fingerprint, make};
-                use torrust_tracker_udp_tracker_core::services::announce::AnnounceService;
-                use torrust_tracker_udp_tracker_core::{self, event as core_event};
-                use torrust_tracker_udp_tracker_protocol::InfoHash as AquaticInfoHash;
+                use torrust_tracker_udp_core::connection_cookie::{gen_remote_fingerprint, make};
+                use torrust_tracker_udp_core::services::announce::AnnounceService;
+                use torrust_tracker_udp_core::{self, event as core_event};
+                use torrust_tracker_udp_protocol::InfoHash as AquaticInfoHash;
 
                 use crate::event::{ConnectionContext, Event, UdpRequestKind};
                 use crate::handlers::announce::tests::announce_request::AnnounceRequestBuilder;
@@ -937,7 +937,7 @@ pub(crate) mod tests {
                         }))
                         .times(1)
                         .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
-                    let udp_core_stats_event_sender: torrust_tracker_udp_tracker_core::event::sender::Sender =
+                    let udp_core_stats_event_sender: torrust_tracker_udp_core::event::sender::Sender =
                         Some(Arc::new(udp_core_stats_event_sender_mock));
 
                     let mut udp_server_stats_event_sender_mock = MockUdpServerStatsEventSender::new();
