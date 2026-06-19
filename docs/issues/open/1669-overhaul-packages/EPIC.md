@@ -73,13 +73,13 @@ Packages that have been extracted to standalone repositories are listed as `(ext
 
 ### `torrust-` prefix (non-`torrust-tracker-`)
 
-| Published on crates.io | Crate Name               | Folder       |
-| ---------------------- | ------------------------ | ------------ |
-| Yes                    | `torrust-clock`          | (extracted)  |
-| Yes                    | `torrust-located-error`  | (extracted)  |
-| Yes                    | `torrust-metrics`        | (extracted)  |
-| Yes                    | `torrust-net-primitives` | (extracted)  |
-| No                     | `torrust-server-lib`     | `server-lib` |
+| Published on crates.io | Crate Name               | Folder      |
+| ---------------------- | ------------------------ | ----------- |
+| Yes                    | `torrust-clock`          | (extracted) |
+| Yes                    | `torrust-located-error`  | (extracted) |
+| Yes                    | `torrust-metrics`        | (extracted) |
+| Yes                    | `torrust-net-primitives` | (extracted) |
+| Yes                    | `torrust-server-lib`     | (extracted) |
 
 ### `torrust-tracker-` prefix
 
@@ -269,7 +269,7 @@ These packages are extracted to their own repositories under the Torrust organis
 | `torrust-located-error`  | `torrust-tracker-located-error` | SI-10 (rename first)                          | **DONE** — published v3.0.0; standalone repo at [torrust/torrust-located-error](https://github.com/torrust/torrust-located-error); all 5 consumers migrated    |
 | `torrust-metrics`        | `torrust-tracker-metrics`       | SI-08 (rename first)                          | **DONE** — published v0.1.0; all 7 consumers migrated                                                                                                          |
 | `torrust-net-primitives` | `torrust-net-primitives`        | Extraction issue TBD (SI-20)                  | **DONE** — published v0.1.0; standalone repo at [torrust/torrust-net-primitives](https://github.com/torrust/torrust-net-primitives); all 10 consumers migrated |
-| `torrust-server-lib`     | `torrust-server-lib`            | Extraction issue TBD                          | Generic server utility crate; standalone extraction candidate                                                                                                  |
+| `torrust-server-lib`     | `torrust-server-lib`            | None                                          | **DONE** — published v0.1.0; standalone repo at [torrust/torrust-server-lib](https://github.com/torrust/torrust-server-lib); all 6 consumers migrated          |
 | `torrust-tracker-client` | `console/tracker-client`        | `bittorrent-*` publication (external to EPIC) | Standalone CLI tool; LGPL-3.0                                                                                                                                  |
 
 ### Torrust Dependency Lists (Direct, Non-dev)
@@ -637,6 +637,7 @@ Details:
 | Metrics extraction         | [#1882](https://github.com/torrust/torrust-tracker/issues/1882) — Extract `torrust-metrics` to standalone repository                                                             | [docs/issues/open/1882-1669-18-extract-torrust-metrics-to-standalone-repo.md](../../open/1882-1669-18-extract-torrust-metrics-to-standalone-repo.md)                                           | DONE   | Rule E; torrust-metrics v0.1.0 published; 7 consumers migrated; packages/metrics removed                                                      |
 | Located error extraction   | [#1894](https://github.com/torrust/torrust-tracker/issues/1894) — Extract `torrust-located-error` to standalone repository                                                       | [docs/issues/open/1894-1669-22-extract-torrust-located-error-to-standalone-repo.md](../../open/1894-1669-22-extract-torrust-located-error-to-standalone-repo.md)                               | DONE   | Rule E; no workspace deps; requires completed rename SI-10 (#1823); 5 consumers migrated; crate v3.0.0 published                              |
 | Net-primitives extraction  | [#1885](https://github.com/torrust/torrust-tracker/issues/1885) — Extract `torrust-net-primitives` to standalone repository                                                      | [docs/issues/open/1885-1669-20-extract-torrust-net-primitives-to-standalone-repo.md](../../open/1885-1669-20-extract-torrust-net-primitives-to-standalone-repo.md)                             | DONE   | Rule E; no workspace deps; no prerequisites; 10 consumers migrated; crate v0.1.0 published                                                    |
+| Server-lib extraction      | [#1909](https://github.com/torrust/torrust-tracker/issues/1909) — Extract `torrust-server-lib` to standalone repository                                                          | [docs/issues/open/1909-1669-si-28-extract-server-lib-to-standalone-repo.md](../../open/1909-1669-si-28-extract-server-lib-to-standalone-repo.md)                                               | DONE   | Rule E; no workspace deps; 6 consumers migrated; crate v0.1.0 published                                                                       |
 | InfoHash migration         | [#1889](https://github.com/torrust/torrust-tracker/issues/1889) — Migrate from `bittorrent-primitives` to `torrust-info-hash`                                                    | [docs/issues/open/1889-1669-21-migrate-from-bittorrent-primitives-to-torrust-info-hash.md](../../open/1889-1669-21-migrate-from-bittorrent-primitives-to-torrust-info-hash.md)                 | DONE   | SI-21; replaces `bittorrent-primitives` deps across 14 Cargo.toml files with `torrust-info-hash`; unblocks `bittorrent-primitives` archiving  |
 | Tracker client extraction  | #TBD — Extract `torrust-tracker-client` to standalone repository                                                                                                                 | [docs/issues/drafts/1669-extract-torrust-tracker-client-to-standalone-repo.md](../../drafts/1669-extract-torrust-tracker-client-to-standalone-repo.md)                                         | TODO   | Rule E; blocked by `torrust-tracker-udp-tracker-protocol` publication (external to this EPIC)                                                 |
 | Versioning policy          | #TBD — Define package versioning strategy (linked vs independent SemVer evolution)                                                                                               | [docs/issues/drafts/1669-define-package-versioning-strategy.md](../../drafts/1669-define-package-versioning-strategy.md)                                                                       | TODO   | Policy issue; defines release-train vs independent package cadence and migration plan                                                         |

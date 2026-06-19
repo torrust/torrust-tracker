@@ -31,7 +31,6 @@ packages/
 ├── primitives
 ├── rest-api-client
 ├── rest-api-core
-├── server-lib
 ├── swarm-coordination-registry
 ├── test-helpers
 ├── torrent-repository-benchmarking
@@ -96,7 +95,6 @@ Key Architectural Principles:
 | `primitives`                      | Domain-specific types                | PeerId, Peer, SwarmMetadata                |
 | `events`                          | Async event bus                      | Inter-package communication                |
 | **Utilities**                     |                                      |                                            |
-| `server-lib`                      | Shared HTTP server utilities         | Logging, signal handling                   |
 | `test-helpers`                    | Testing utilities                    | Mock servers, Test data generation         |
 | **Client Tools**                  |                                      |                                            |
 | `tracker-client` (`packages/`)    | Tracker client library               | Generic tracker client library             |
@@ -115,6 +113,7 @@ Packages that have been extracted to their own standalone repositories.
 | `located-error`  | [torrust/torrust-located-error](https://github.com/torrust/torrust-located-error)   | `torrust-located-error`  | Diagnostic errors with source locations                          |
 | `metrics`        | [torrust/torrust-metrics](https://github.com/torrust/torrust-metrics)               | `torrust-metrics`        | Prometheus-compatible metrics: counters, gauges, labels, samples |
 | `net-primitives` | [torrust/torrust-net-primitives](https://github.com/torrust/torrust-net-primitives) | `torrust-net-primitives` | Generic networking primitive types (ServiceBinding, Protocol)    |
+| `server-lib`     | [torrust/torrust-server-lib](https://github.com/torrust/torrust-server-lib)         | `torrust-server-lib`     | Shared server library utilities                                  |
 
 ## Protocol Implementation Details
 

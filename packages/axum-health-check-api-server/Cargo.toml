@@ -22,7 +22,7 @@ serde = { version = "1", features = [ "derive" ] }
 serde_json = { version = "1", features = [ "preserve_order" ] }
 tokio = { version = "1", features = [ "macros", "net", "rt-multi-thread", "signal", "sync" ] }
 torrust-tracker-axum-server = { version = "3.0.0-develop", path = "../axum-server" }
-torrust-server-lib = { version = "3.0.0-develop", path = "../server-lib" }
+torrust-server-lib = "0.1.0"
 torrust-tracker-configuration = { version = "3.0.0-develop", path = "../configuration" }
 torrust-net-primitives = "0.1.0"
 tower-http = { version = "0", features = [ "compression-full", "cors", "propagate-header", "request-id", "trace" ] }
