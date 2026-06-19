@@ -52,7 +52,7 @@ pub(super) async fn initialize(db_version: &str) -> Result<ActiveDatabase> {
         .context("postgres container did not accept connections in time")?;
 
     let mut config = configuration::Core::default();
-    config.database.driver = configuration::Driver::PostgreSQL;
+    config.database.driver = torrust_tracker_primitives::Driver::PostgreSQL;
     config.database.path = postgres_database_url;
     let database = initialize_database(&config).await;
 

@@ -5,8 +5,8 @@
 use std::sync::Arc;
 
 use torrust_tracker_configuration::Core;
+use torrust_tracker_primitives::Driver;
 
-use super::driver::Driver;
 use super::driver::mysql::Mysql;
 use super::driver::postgres::Postgres;
 use super::driver::sqlite::Sqlite;
@@ -89,11 +89,7 @@ where
 /// ```
 #[must_use]
 pub async fn initialize_database(config: &Core) -> DatabaseStores {
-    let driver = match config.database.driver {
-        torrust_tracker_configuration::Driver::Sqlite3 => Driver::Sqlite3,
-        torrust_tracker_configuration::Driver::MySQL => Driver::MySQL,
-        torrust_tracker_configuration::Driver::PostgreSQL => Driver::PostgreSQL,
-    };
+    let driver = &config.database.driver;
 
     match driver {
         Driver::Sqlite3 => {

@@ -58,7 +58,7 @@ pub(super) async fn initialize(db_version: &str) -> Result<ActiveDatabase> {
         .context("mysql container did not accept connections in time")?;
 
     let mut config = configuration::Core::default();
-    config.database.driver = configuration::Driver::MySQL;
+    config.database.driver = torrust_tracker_primitives::Driver::MySQL;
     config.database.path = mysql_database_url;
     let database = initialize_database(&config).await;
 

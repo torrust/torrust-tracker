@@ -10,7 +10,7 @@ pub(super) async fn initialize() -> ActiveDatabase {
     ));
     let sqlite_db_path_as_string = sqlite_db_path.to_string_lossy().to_string();
     let mut config = configuration::Core::default();
-    config.database.driver = configuration::Driver::Sqlite3;
+    config.database.driver = torrust_tracker_primitives::Driver::Sqlite3;
     config.database.path = sqlite_db_path_as_string;
 
     let database = initialize_database(&config).await;

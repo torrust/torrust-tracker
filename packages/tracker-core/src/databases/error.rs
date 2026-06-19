@@ -14,8 +14,7 @@ use std::sync::Arc;
 use sqlx::Error as SqlxError;
 use sqlx::migrate::MigrateError;
 use torrust_located_error::{DynError, LocatedError};
-
-use super::driver::Driver;
+use torrust_tracker_primitives::Driver;
 
 /// Database error type that encapsulates various failures encountered during
 /// database operations.
@@ -149,7 +148,8 @@ impl From<(MigrateError, Driver)> for Error {
 
 #[cfg(test)]
 mod tests {
-    use crate::databases::driver::Driver;
+    use torrust_tracker_primitives::Driver;
+
     use crate::databases::error::Error;
 
     #[test]

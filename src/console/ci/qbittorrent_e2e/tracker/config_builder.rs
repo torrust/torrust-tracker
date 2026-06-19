@@ -4,7 +4,8 @@ use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::path::{Path, PathBuf};
 
 use anyhow::Context;
-use torrust_tracker_configuration::{Configuration, Driver, HealthCheckApi, HttpApi, HttpTracker, UdpTracker};
+use torrust_tracker_configuration::{Configuration, HealthCheckApi, HttpApi, HttpTracker, UdpTracker};
+use torrust_tracker_primitives::Driver;
 
 const CONFIG_FILE_NAME: &str = "tracker-config.toml";
 const DEFAULT_SQLITE3_DATABASE_PATH: &str = "/var/lib/torrust/tracker/database/sqlite3.db";

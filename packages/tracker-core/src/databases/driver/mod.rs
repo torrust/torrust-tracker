@@ -1,55 +1,11 @@
 //! Database driver factory.
-use std::str::FromStr;
 
-use serde::{Deserialize, Serialize};
+use torrust_tracker_primitives::Driver;
 
 use super::error::Error;
 
 /// Metric name in DB for the total number of downloads across all torrents.
 pub(super) const TORRENTS_DOWNLOADS_TOTAL: &str = "torrents_downloads_total";
-
-/// The database management system used by the tracker.
-///
-/// Refer to:
-///
-/// - [Torrust Tracker Configuration](https://docs.rs/torrust-tracker-configuration).
-/// - [Torrust Tracker](https://docs.rs/torrust-tracker).
-///
-/// For more information about persistence.
-#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, derive_more::Display, Clone)]
-pub enum Driver {
-    /// The Sqlite3 database driver.
-    Sqlite3,
-    /// The `MySQL` database driver.
-    MySQL,
-    /// The `PostgreSQL` database driver.
-    PostgreSQL,
-}
-
-impl Driver {
-    /// Returns the stable lowercase identifier used by CLI and reports.
-    #[must_use]
-    pub fn as_str(&self) -> &'static str {
-        match self {
-            Self::Sqlite3 => "sqlite3",
-            Self::MySQL => "mysql",
-            Self::PostgreSQL => "postgresql",
-        }
-    }
-}
-
-impl FromStr for Driver {
-    type Err = String;
-
-    fn from_str(value: &str) -> Result<Self, Self::Err> {
-        match value {
-            "sqlite3" => Ok(Self::Sqlite3),
-            "mysql" => Ok(Self::MySQL),
-            "postgresql" => Ok(Self::PostgreSQL),
-            _ => Err("driver must be one of: sqlite3, mysql, postgresql".to_string()),
-        }
-    }
-}
 
 pub mod mysql;
 pub mod postgres;

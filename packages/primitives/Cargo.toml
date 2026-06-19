@@ -18,10 +18,13 @@ version.workspace = true
 torrust-peer-id = "0.1.0"
 binascii = "0"
 torrust-info-hash = "=0.2.0"
-derive_more = { version = "2", features = [ "constructor" ] }
+derive_more = { version = "2", features = [ "constructor", "display" ] }
 serde = { version = "1", features = [ "derive" ] }
 tdyne-peer-id = "1"
 tdyne-peer-id-registry = "0"
 thiserror = "2"
 torrust-net-primitives = "0.1.0"
 torrust-clock = "3.0.0"
+
+[dev-dependencies]
+serde_json = "1"

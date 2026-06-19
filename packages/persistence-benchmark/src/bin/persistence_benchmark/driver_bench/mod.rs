@@ -1,7 +1,7 @@
 use std::time::Duration;
 
 use anyhow::Result;
-use torrust_tracker_core::databases::driver::Driver;
+use torrust_tracker_primitives::Driver;
 
 use super::types::OpsCount;
 

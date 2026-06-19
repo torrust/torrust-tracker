@@ -4868,6 +4868,7 @@ dependencies = [
  "torrust-tracker-configuration",
  "torrust-tracker-core",
  "torrust-tracker-http-tracker-core",
+ "torrust-tracker-primitives",
  "torrust-tracker-rest-api-client",
  "torrust-tracker-rest-api-core",
  "torrust-tracker-swarm-coordination-registry",
@@ -5177,6 +5178,7 @@ dependencies = [
  "torrust-info-hash",
  "torrust-tracker-configuration",
  "torrust-tracker-core",
+ "torrust-tracker-primitives",
 ]
 
 [[package]]
@@ -5186,6 +5188,7 @@ dependencies = [
  "binascii",
  "derive_more 2.1.1",
  "serde",
+ "serde_json",
  "tdyne-peer-id",
  "tdyne-peer-id-registry",
  "thiserror 2.0.18",
