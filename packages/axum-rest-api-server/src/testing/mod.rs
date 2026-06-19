@@ -8,7 +8,7 @@
 //! > from `lib.rs` so that external test packages can import it. It is primarily intended
 //! > for test use, but is compiled in all build profiles.
 //!
-//! > **Note**: The UDP dependencies (`udp-server`, `udp-tracker-core`) are still
+//! > **Note**: The UDP dependencies (`udp-server`, `udp-core`) are still
 //! > needed at runtime because the production handlers in this crate reference
 //! > their types directly. Full demotion to dev-dependencies requires the
 //! > prerequisite decoupling in `rest-api-core` first.
