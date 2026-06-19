@@ -36,6 +36,7 @@ beps
 Beránek
 bidirectionality
 binascii
+bindv6only
 binstall
 bitcode
 Bitflu
@@ -95,6 +96,7 @@ doctest
 downloadedi
 dtolnay
 dylib
+EADDRINUSE
 elif
 endgroup
 endianness
