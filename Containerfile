@@ -81,7 +81,6 @@ COPY packages/http-tracker-core/Cargo.toml packages/http-tracker-core/
 COPY packages/primitives/Cargo.toml packages/primitives/
 COPY packages/rest-api-client/Cargo.toml packages/rest-api-client/
 COPY packages/rest-api-core/Cargo.toml packages/rest-api-core/
-COPY packages/server-lib/Cargo.toml packages/server-lib/
 COPY packages/swarm-coordination-registry/Cargo.toml packages/swarm-coordination-registry/
 COPY packages/test-helpers/Cargo.toml packages/test-helpers/
 COPY packages/torrent-repository-benchmarking/Cargo.toml packages/torrent-repository-benchmarking/
@@ -126,7 +125,6 @@ RUN mkdir -p \
       packages/primitives/src \
       packages/rest-api-client/src \
       packages/rest-api-core/src \
-      packages/server-lib/src \
       packages/swarm-coordination-registry/src \
       packages/test-helpers/src \
       packages/torrent-repository-benchmarking/src \
@@ -165,7 +163,7 @@ RUN mkdir -p \
       packages/primitives/src/lib.rs \
       packages/rest-api-client/src/lib.rs \
       packages/rest-api-core/src/lib.rs \
-      packages/server-lib/src/lib.rs \
+
       packages/swarm-coordination-registry/src/lib.rs \
       packages/test-helpers/src/lib.rs \
       packages/torrent-repository-benchmarking/src/lib.rs \

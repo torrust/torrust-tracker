@@ -73,7 +73,6 @@ All packages live under `packages/`. The workspace version is `3.0.0-develop`.
 | `primitives`                      | `torrust-tracker-primitives`                      | domain         | Core domain types (InfoHash, PeerId, ...)     |
 | `rest-api-client`                 | `torrust-tracker-rest-api-client`                 | client tools   | REST API client library                       |
 | `rest-api-core`                   | `torrust-tracker-rest-api-core`                   | client tools   | REST API core logic                           |
-| `server-lib`                      | `torrust-server-lib`                              | shared         | Shared server library utilities               |
 | `swarm-coordination-registry`     | `torrust-tracker-swarm-coordination-registry`     | domain         | Torrent/peer coordination registry            |
 | `test-helpers`                    | `torrust-tracker-test-helpers`                    | utilities      | Mock servers, test data generation            |
 | `torrent-repository-benchmarking` | `torrust-tracker-torrent-repository-benchmarking` | benchmarking   | Torrent storage benchmarks                    |
@@ -90,6 +89,7 @@ All packages live under `packages/`. The workspace version is `3.0.0-develop`.
 | `located-error`  | `torrust-located-error`  | [torrust/torrust-located-error](https://github.com/torrust/torrust-located-error)   | Diagnostic errors with source locations                          |
 | `metrics`        | `torrust-metrics`        | [torrust/torrust-metrics](https://github.com/torrust/torrust-metrics)               | Prometheus-compatible metrics: counters, gauges, labels, samples |
 | `net-primitives` | `torrust-net-primitives` | [torrust/torrust-net-primitives](https://github.com/torrust/torrust-net-primitives) | Generic networking primitive types (ServiceBinding, Protocol)    |
+| `server-lib`     | `torrust-server-lib`     | [torrust/torrust-server-lib](https://github.com/torrust/torrust-server-lib)         | Shared server library utilities                                  |
 
 **Console tools** (under `console/`):
 
