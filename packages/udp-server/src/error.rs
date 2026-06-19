@@ -4,9 +4,9 @@ use std::panic::Location;
 
 use derive_more::derive::Display;
 use thiserror::Error;
-use torrust_tracker_udp_tracker_core::services::announce::UdpAnnounceError;
-use torrust_tracker_udp_tracker_core::services::scrape::UdpScrapeError;
-use torrust_tracker_udp_tracker_protocol::{ConnectionId, RequestParseError, TransactionId};
+use torrust_tracker_udp_core::services::announce::UdpAnnounceError;
+use torrust_tracker_udp_core::services::scrape::UdpScrapeError;
+use torrust_tracker_udp_protocol::{ConnectionId, RequestParseError, TransactionId};
 
 #[derive(Display, Debug)]
 #[display(":?")]
@@ -27,7 +27,7 @@ pub enum Error {
     #[error("tracker scrape error: {source}")]
     ScrapeFailed { source: UdpScrapeError },
 
-    /// Error returned from the wire-protocol crate (`torrust_tracker_udp_tracker_protocol`).
+    /// Error returned from the wire-protocol crate (`torrust_tracker_udp_protocol`).
     #[error("internal server error: {message}, {location}")]
     Internal {
         location: &'static Location<'static>,

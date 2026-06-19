@@ -32,7 +32,7 @@ tools. Generated manually on 2026-05-18 as part of SI-01 (baseline analysis).
 | `configuration`                   | `torrust-tracker-configuration`                   | 11    | stub    | Template only                                                |
 | `events`                          | `torrust-tracker-events`                          | 11    | stub    | Template only                                                |
 | `http-protocol`                   | `bittorrent-http-tracker-protocol`                | 11    | stub    | Template only                                                |
-| `http-tracker-core`               | `bittorrent-http-tracker-core`                    | 15    | minimal | Explains when to use vs. when not to; minimal depth          |
+| `http-core`               | `bittorrent-http-core`                    | 15    | minimal | Explains when to use vs. when not to; minimal depth          |
 | `located-error`                   | `torrust-tracker-located-error`                   | 11    | stub    | Template only                                                |
 | `metrics`                         | `torrust-tracker-metrics`                         | 210   | good    | Comprehensive — overview, types, usage, examples             |
 | `peer-id`                         | `bittorrent-peer-id`                              | 38    | minimal | Origin story + maintenance note; no usage examples           |
@@ -46,7 +46,7 @@ tools. Generated manually on 2026-05-18 as part of SI-01 (baseline analysis).
 | `tracker-client`                  | `bittorrent-tracker-client`                       | 25    | minimal | Has WIP disclaimer; no usage examples                        |
 | `tracker-core`                    | `bittorrent-tracker-core`                         | 39    | minimal | Has purpose and context; no usage examples                   |
 | `udp-protocol`                    | `bittorrent-udp-tracker-protocol`                 | 38    | minimal | Has purpose section; no usage examples                       |
-| `udp-tracker-core`                | `bittorrent-udp-tracker-core`                     | 15    | minimal | Explains when to use; minimal depth                          |
+| `udp-core`                | `bittorrent-udp-core`                     | 15    | minimal | Explains when to use; minimal depth                          |
 | `udp-tracker-server`              | `torrust-tracker-udp-server`                      | 11    | stub    | Template only                                                |
 
 ## Console tools (`console/`)

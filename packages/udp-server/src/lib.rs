@@ -24,10 +24,10 @@
 //! > **NOTICE**: [BEP-41](https://www.bittorrent.org/beps/bep_0041.html) is not
 //! > implemented yet.
 //!
-//! > **NOTICE**: we are using the [`torrust_tracker_udp_tracker_protocol`](https://crates.io/crates/torrust_tracker_udp_tracker_protocol)
+//! > **NOTICE**: we are using the [`torrust_tracker_udp_protocol`](https://crates.io/crates/torrust_tracker_udp_protocol)
 //! > crate so requests and responses are handled by it.
 //!
-//! > **NOTICE**: all values are send in network byte order ([big endian](https://en.wikipedia.org/wiki/Endianness)).
+//! > **NOTICE**: all values are sent in network byte order ([big endian](https://en.wikipedia.org/wiki/Endianness)).
 //!
 //! ## Table of Contents
 //!
@@ -52,8 +52,8 @@
 //! is designed to be as simple as possible. It uses a single UDP port and
 //! supports only three types of requests: `Connect`, `Announce` and `Scrape`.
 //!
-//! Request are parsed from UDP packets using the [`torrust_tracker_udp_tracker_protocol`](https://crates.io/crates/torrust_tracker_udp_tracker_protocol).
-//! And then the response is also build using the [`torrust_tracker_udp_tracker_protocol`](https://crates.io/crates/torrust_tracker_udp_tracker_protocol)
+//! Requests are parsed from UDP packets using the [`torrust_tracker_udp_protocol`](https://crates.io/crates/torrust_tracker_udp_protocol).
+//! And then the response is also built using the [`torrust_tracker_udp_protocol`](https://crates.io/crates/torrust_tracker_udp_protocol)
 //! and converted to a UDP packet.
 //!
 //! ```text
@@ -105,7 +105,7 @@
 //! connection ID = hash(client IP + current time slot + secret seed)
 //! ```
 //!
-//! The BEP-15 recommends a two-minute time slot. Refer to [`connection_cookie`](torrust_tracker_udp_tracker_core::connection_cookie)
+//! The BEP-15 recommends a two-minute time slot. Refer to [`connection_cookie`](torrust_tracker_udp_core::connection_cookie)
 //! for more information about the connection ID generation with this method.
 //!
 //! #### Connect Request
@@ -139,12 +139,12 @@
 //!
 //! **Connect request (parsed struct)**
 //!
-//! After parsing the UDP packet, the [`ConnectRequest`](torrust_tracker_udp_tracker_protocol::request::ConnectRequest)
+//! After parsing the UDP packet, the [`ConnectRequest`](torrust_tracker_udp_protocol::request::ConnectRequest)
 //! request struct will look like this:
 //!
 //! Field            | Type                                                           | Example
 //! -----------------|----------------------------------------------------------------|-------------
-//! `transaction_id` | [`TransactionId`](torrust_tracker_udp_tracker_protocol::common::TransactionId) | `1950635409`
+//! `transaction_id` | [`TransactionId`](torrust_tracker_udp_protocol::common::TransactionId) | `1950635409`
 //!
 //! #### Connect Response
 //!
@@ -186,13 +186,13 @@
 //!
 //! **Connect response (struct)**
 //!
-//! Before building the UDP packet, the [`ConnectResponse`](torrust_tracker_udp_tracker_protocol::response::ConnectResponse)
+//! Before building the UDP packet, the [`ConnectResponse`](torrust_tracker_udp_protocol::response::ConnectResponse)
 //! struct will look like this:
 //!
 //! Field            | Type                                                           | Example
 //! -----------------|----------------------------------------------------------------|-------------------------
-//! `connection_id`  | [`ConnectionId`](torrust_tracker_udp_tracker_protocol::common::ConnectionId)   | `-4226491872051668937`
-//! `transaction_id` | [`TransactionId`](torrust_tracker_udp_tracker_protocol::common::TransactionId) | `-888840697`
+//! `connection_id`  | [`ConnectionId`](torrust_tracker_udp_protocol::common::ConnectionId)   | `-4226491872051668937`
+//! `transaction_id` | [`TransactionId`](torrust_tracker_udp_protocol::common::TransactionId) | `-888840697`
 //!
 //! **Connect specification**
 //!
@@ -321,26 +321,26 @@
 //!
 //! **Announce request (parsed struct)**
 //!
-//! After parsing the UDP packet, the [`AnnounceRequest`](torrust_tracker_udp_tracker_protocol::AnnounceRequest)
+//! After parsing the UDP packet, the [`AnnounceRequest`](torrust_tracker_udp_protocol::AnnounceRequest)
 //! struct will contain the following fields:
 //!
 //! Field              | Type                                                            | Example
 //! -------------------|---------------------------------------------------------------- |--------------
-//! `connection_id`    | [`ConnectionId`](torrust_tracker_udp_tracker_protocol::common::ConnectionId)    | `-4226491872051668937`
-//! `transaction_id`   | [`TransactionId`](torrust_tracker_udp_tracker_protocol::common::TransactionId)  | `-1560718264`
-//! `info_hash`        | [`InfoHash`](torrust_tracker_udp_tracker_protocol::common::InfoHash)            | `[3,132,5,72,100,58,242,167,182,58,159,92,188,163,72,188,113,80,202,58]`
+//! `connection_id`    | [`ConnectionId`](torrust_tracker_udp_protocol::common::ConnectionId)    | `-4226491872051668937`
+//! `transaction_id`   | [`TransactionId`](torrust_tracker_udp_protocol::common::TransactionId)  | `-1560718264`
+//! `info_hash`        | [`InfoHash`](torrust_tracker_udp_protocol::common::InfoHash)            | `[3,132,5,72,100,58,242,167,182,58,159,92,188,163,72,188,113,80,202,58]`
 //! `peer_id`          | [`PeerId`](torrust_peer_id::PeerId)                                                | `[45,113,66,52,52,49,48,45,41,83,100,126,100,101,52,120,77,112,54,68]`
-//! `bytes_downloaded` | [`NumberOfBytes`](torrust_tracker_udp_tracker_protocol::common::NumberOfBytes)  | `0`
-//! `bytes_uploaded`   | [`TransactionId`](torrust_tracker_udp_tracker_protocol::common::NumberOfBytes)  | `0`
-//! `event`            | [`AnnounceEvent`](torrust_tracker_udp_tracker_protocol::AnnounceEvent) | `Started`
-//! `ip_address`       | [`Ipv4Addr`](torrust_tracker_udp_tracker_protocol::common::ConnectionId)        | `None`
-//! `peers_wanted`     | [`NumberOfPeers`](torrust_tracker_udp_tracker_protocol::common::NumberOfPeers)  | `200`
-//! `port`             | [`Port`](torrust_tracker_udp_tracker_protocol::common::Port)                    | `17548`
+//! `bytes_downloaded` | [`NumberOfBytes`](torrust_tracker_udp_protocol::common::NumberOfBytes)  | `0`
+//! `bytes_uploaded`   | [`TransactionId`](torrust_tracker_udp_protocol::common::NumberOfBytes)  | `0`
+//! `event`            | [`AnnounceEvent`](torrust_tracker_udp_protocol::AnnounceEvent) | `Started`
+//! `ip_address`       | [`Ipv4Addr`](torrust_tracker_udp_protocol::common::ConnectionId)        | `None`
+//! `peers_wanted`     | [`NumberOfPeers`](torrust_tracker_udp_protocol::common::NumberOfPeers)  | `200`
+//! `port`             | [`Port`](torrust_tracker_udp_protocol::common::Port)                    | `17548`
 //!
 //! > **NOTICE**: the `peers_wanted` field is the `num_want` field in the UDP
 //! > packet.
 //!
-//! We are using a wrapper struct for the aquatic [`AnnounceRequest`](torrust_tracker_udp_tracker_protocol::AnnounceRequest)
+//! We are using a wrapper struct for the aquatic [`AnnounceRequest`](torrust_tracker_udp_protocol::AnnounceRequest)
 //! struct, because we have our internal [`InfoHash`](torrust_info_hash::InfoHash)
 //! struct.
 //!
@@ -446,16 +446,16 @@
 //!
 //! **Announce response (struct)**
 //!
-//! The [`AnnounceResponse`](torrust_tracker_udp_tracker_protocol::response::AnnounceResponse)
+//! The [`AnnounceResponse`](torrust_tracker_udp_protocol::response::AnnounceResponse)
 //! struct will have the following fields:
 //!
 //! Field               | Type                                                                   | Example
 //! --------------------|------------------------------------------------------------------------|--------------
-//! `transaction_id`    | [`TransactionId`](torrust_tracker_udp_tracker_protocol::common::TransactionId)         | `-1560718264`
-//! `announce_interval` | [`AnnounceInterval`](torrust_tracker_udp_tracker_protocol::AnnounceInterval)   | `120`
-//! `leechers`          | [`NumberOfPeers`](torrust_tracker_udp_tracker_protocol::common::NumberOfPeers)         | `0`
-//! `seeders`           | [`NumberOfPeers`](torrust_tracker_udp_tracker_protocol::common::NumberOfPeers)         | `1`
-//! `peers`             | Vector of [`ResponsePeer`](torrust_tracker_udp_tracker_protocol::common::ResponsePeer) | `[]`
+//! `transaction_id`    | [`TransactionId`](torrust_tracker_udp_protocol::common::TransactionId)         | `-1560718264`
+//! `announce_interval` | [`AnnounceInterval`](torrust_tracker_udp_protocol::AnnounceInterval)   | `120`
+//! `leechers`          | [`NumberOfPeers`](torrust_tracker_udp_protocol::common::NumberOfPeers)         | `0`
+//! `seeders`           | [`NumberOfPeers`](torrust_tracker_udp_protocol::common::NumberOfPeers)         | `1`
+//! `peers`             | Vector of [`ResponsePeer`](torrust_tracker_udp_protocol::common::ResponsePeer) | `[]`
 //!
 //! **Announce specification**
 //!
@@ -530,14 +530,14 @@
 //!
 //! **Scrape request (parsed struct)**
 //!
-//! After parsing the UDP packet, the [`ScrapeRequest`](torrust_tracker_udp_tracker_protocol::request::ScrapeRequest)
+//! After parsing the UDP packet, the [`ScrapeRequest`](torrust_tracker_udp_protocol::request::ScrapeRequest)
 //! struct will look like this:
 //!
 //! Field            | Type                                                           | Example
 //! -----------------|----------------------------------------------------------------|----------------------------------------------------------------------------
-//! `connection_id`  | [`ConnectionId`](torrust_tracker_udp_tracker_protocol::common::ConnectionId)   | `-4226491872051668937`
-//! `transaction_id` | [`TransactionId`](torrust_tracker_udp_tracker_protocol::common::TransactionId) | `-1560718264`
-//! `info_hashes`    | Vector of [`InfoHash`](torrust_tracker_udp_tracker_protocol::common::InfoHash) | `[[3,132,5,72,100,58,242,167,182,58,159,92,188,163,72,188,113,80,202,58]]`
+//! `connection_id`  | [`ConnectionId`](torrust_tracker_udp_protocol::common::ConnectionId)   | `-4226491872051668937`
+//! `transaction_id` | [`TransactionId`](torrust_tracker_udp_protocol::common::TransactionId) | `-1560718264`
+//! `info_hashes`    | Vector of [`InfoHash`](torrust_tracker_udp_protocol::common::InfoHash) | `[[3,132,5,72,100,58,242,167,182,58,159,92,188,163,72,188,113,80,202,58]]`
 //!
 //! #### Scrape Response
 //!
@@ -591,13 +591,13 @@
 //!
 //! **Scrape response (struct)**
 //!
-//! Before building the UDP packet, the [`ScrapeResponse`](torrust_tracker_udp_tracker_protocol::response::ScrapeResponse)
+//! Before building the UDP packet, the [`ScrapeResponse`](torrust_tracker_udp_protocol::response::ScrapeResponse)
 //! struct will look like this:
 //!
 //! Field            | Type                                                                                            | Example
 //! -----------------|-------------------------------------------------------------------------------------------------|---------------
-//! `transaction_id` | [`TransactionId`](torrust_tracker_udp_tracker_protocol::common::TransactionId)                                  | `-1560718264`
-//! `torrent_stats`  | Vector of [`TorrentScrapeStatistics`](torrust_tracker_udp_tracker_protocol::response::TorrentScrapeStatistics)  | `[]`
+//! `transaction_id` | [`TransactionId`](torrust_tracker_udp_protocol::common::TransactionId)                                  | `-1560718264`
+//! `torrent_stats`  | Vector of [`TorrentScrapeStatistics`](torrust_tracker_udp_protocol::response::TorrentScrapeStatistics)  | `[]`
 //!
 //! **Scrape specification**
 //!
@@ -681,7 +681,7 @@ pub(crate) mod tests {
 
     use torrust_clock::DurationSinceUnixEpoch;
     use torrust_tracker_primitives::{AnnounceEvent, NumberOfBytes, PeerId, peer};
-    use torrust_tracker_udp_tracker_core::event::Event;
+    use torrust_tracker_udp_core::event::Event;
 
     pub fn sample_peer() -> peer::Peer {
         peer::Peer {

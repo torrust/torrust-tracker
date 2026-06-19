@@ -9,10 +9,10 @@ use axum::response::{IntoResponse, Response};
 use hyper::StatusCode;
 use torrust_net_primitives::service_binding::ServiceBinding;
 use torrust_tracker_core::authentication::Key;
-use torrust_tracker_http_tracker_core::services::announce::{AnnounceService, HttpAnnounceError};
-use torrust_tracker_http_tracker_protocol::v1::requests::announce::{Announce, Compact};
-use torrust_tracker_http_tracker_protocol::v1::responses::{self};
-use torrust_tracker_http_tracker_protocol::v1::services::peer_ip_resolver::ClientIpSources;
+use torrust_tracker_http_core::services::announce::{AnnounceService, HttpAnnounceError};
+use torrust_tracker_http_protocol::v1::requests::announce::{Announce, Compact};
+use torrust_tracker_http_protocol::v1::responses::{self};
+use torrust_tracker_http_protocol::v1::services::peer_ip_resolver::ClientIpSources;
 use torrust_tracker_primitives::AnnounceData as DomainAnnounceData;
 
 use crate::v1::extractors::announce_request::ExtractRequest;
@@ -138,14 +138,14 @@ mod tests {
     use torrust_tracker_core::torrent::repository::in_memory::InMemoryTorrentRepository;
     use torrust_tracker_core::whitelist::authorization::WhitelistAuthorization;
     use torrust_tracker_core::whitelist::repository::in_memory::InMemoryWhitelist;
-    use torrust_tracker_http_tracker_core::event::bus::EventBus;
-    use torrust_tracker_http_tracker_core::event::sender::Broadcaster;
-    use torrust_tracker_http_tracker_core::services::announce::AnnounceService;
-    use torrust_tracker_http_tracker_core::statistics::event::listener::run_event_listener;
-    use torrust_tracker_http_tracker_core::statistics::repository::Repository;
-    use torrust_tracker_http_tracker_protocol::v1::requests::announce::Announce;
-    use torrust_tracker_http_tracker_protocol::v1::responses;
-    use torrust_tracker_http_tracker_protocol::v1::services::peer_ip_resolver::ClientIpSources;
+    use torrust_tracker_http_core::event::bus::EventBus;
+    use torrust_tracker_http_core::event::sender::Broadcaster;
+    use torrust_tracker_http_core::services::announce::AnnounceService;
+    use torrust_tracker_http_core::statistics::event::listener::run_event_listener;
+    use torrust_tracker_http_core::statistics::repository::Repository;
+    use torrust_tracker_http_protocol::v1::requests::announce::Announce;
+    use torrust_tracker_http_protocol::v1::responses;
+    use torrust_tracker_http_protocol::v1::services::peer_ip_resolver::ClientIpSources;
     use torrust_tracker_primitives::PeerId;
     use torrust_tracker_test_helpers::configuration;
 
@@ -250,7 +250,7 @@ mod tests {
 
         use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
         use torrust_tracker_core::authentication;
-        use torrust_tracker_http_tracker_protocol::v1::responses;
+        use torrust_tracker_http_protocol::v1::responses;
 
         use super::{initialize_private_tracker, sample_announce_request, sample_client_ip_sources};
         use crate::v1::handlers::announce::handle_announce;
@@ -315,7 +315,7 @@ mod tests {
         use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
         use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
-        use torrust_tracker_http_tracker_protocol::v1::responses;
+        use torrust_tracker_http_protocol::v1::responses;
 
         use super::{initialize_listed_tracker, sample_announce_request, sample_client_ip_sources};
         use crate::v1::handlers::announce::handle_announce;
@@ -357,8 +357,8 @@ mod tests {
         use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
         use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
-        use torrust_tracker_http_tracker_protocol::v1::responses;
-        use torrust_tracker_http_tracker_protocol::v1::services::peer_ip_resolver::ClientIpSources;
+        use torrust_tracker_http_protocol::v1::responses;
+        use torrust_tracker_http_protocol::v1::services::peer_ip_resolver::ClientIpSources;
 
         use super::{initialize_tracker_on_reverse_proxy, sample_announce_request};
         use crate::v1::handlers::announce::handle_announce;
@@ -400,8 +400,8 @@ mod tests {
         use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
         use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
-        use torrust_tracker_http_tracker_protocol::v1::responses;
-        use torrust_tracker_http_tracker_protocol::v1::services::peer_ip_resolver::ClientIpSources;
+        use torrust_tracker_http_protocol::v1::responses;
+        use torrust_tracker_http_protocol::v1::services::peer_ip_resolver::ClientIpSources;
 
         use super::{initialize_tracker_not_on_reverse_proxy, sample_announce_request};
         use crate::v1::handlers::announce::handle_announce;

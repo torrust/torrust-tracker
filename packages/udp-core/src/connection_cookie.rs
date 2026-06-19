@@ -79,7 +79,7 @@
 
 use cookie_builder::{assemble, decode, disassemble, encode};
 use thiserror::Error;
-use torrust_tracker_udp_tracker_protocol::ConnectionId as Cookie;
+use torrust_tracker_udp_protocol::ConnectionId as Cookie;
 use tracing::instrument;
 use zerocopy::IntoBytes as _;
 

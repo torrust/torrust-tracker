@@ -5,7 +5,7 @@ use reqwest::Url;
 use serde::Serialize;
 use torrust_info_hash::InfoHash as TorrustInfoHash;
 use torrust_tracker_client::udp;
-use torrust_tracker_udp_tracker_protocol::TransactionId;
+use torrust_tracker_udp_protocol::TransactionId;
 
 use crate::console::clients::udp::Error as UdpError;
 use crate::console::clients::udp::checker::{AnnounceParams, Client};

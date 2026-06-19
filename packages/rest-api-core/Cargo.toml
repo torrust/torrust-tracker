@@ -14,9 +14,9 @@ rust-version.workspace = true
 version.workspace = true
 
 [dependencies]
-torrust-tracker-http-tracker-core = { version = "3.0.0-develop", path = "../http-tracker-core" }
+torrust-tracker-http-core = { version = "3.0.0-develop", path = "../http-core" }
 torrust-tracker-core = { version = "3.0.0-develop", path = "../tracker-core" }
-torrust-tracker-udp-tracker-core = { version = "3.0.0-develop", path = "../udp-tracker-core" }
+torrust-tracker-udp-core = { version = "3.0.0-develop", path = "../udp-core" }
 tokio = { version = "1", features = [ "macros", "net", "rt-multi-thread", "signal", "sync" ] }
 tokio-util = "0.7.15"
 torrust-tracker-configuration = { version = "3.0.0-develop", path = "../configuration" }

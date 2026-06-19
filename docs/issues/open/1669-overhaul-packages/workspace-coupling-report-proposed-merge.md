@@ -43,11 +43,11 @@ Merge the two protocol-specific core packages into the existing common core
 
 | Before                         | After                                                               |
 | ------------------------------ | ------------------------------------------------------------------- |
-| `packages/udp-tracker-core`    | _(removed)_                                                         |
-| `packages/http-tracker-core`   | _(removed)_                                                         |
+| `packages/udp-core`    | _(removed)_                                                         |
+| `packages/http-core`   | _(removed)_                                                         |
 | `packages/tracker-core`        | `packages/tracker-core` (expanded)                                  |
-| `bittorrent-udp-tracker-core`  | _(crate deleted)_                                                   |
-| `bittorrent-http-tracker-core` | _(crate deleted)_                                                   |
+| `bittorrent-udp-core`  | _(crate deleted)_                                                   |
+| `bittorrent-http-core` | _(crate deleted)_                                                   |
 | `bittorrent-tracker-core`      | `bittorrent-tracker-core` (expanded with `udp` and `http` features) |
 
 **Net effect**: workspace shrinks from **29** to **25** packages.
@@ -161,14 +161,14 @@ glob import)._
 
 ---
 
-### `bittorrent-tracker-core` _(expanded — absorbs udp-tracker-core and http-tracker-core as features)_
+### `bittorrent-tracker-core` _(expanded — absorbs udp-core and http-core as features)_
 
 Workspace deps: **11** (up from 9 for the base package; `udp` and `http` features add
 `bittorrent-tracker-protocol` and `torrust-net-primitives`)
 
 The base code (always compiled) is unchanged. The `udp` and `http` features bring in the
-logic that was previously in `bittorrent-udp-tracker-core` and
-`bittorrent-http-tracker-core` respectively.
+logic that was previously in `bittorrent-udp-core` and
+`bittorrent-http-core` respectively.
 
 #### `bittorrent-tracker-protocol` [normal, `udp` and `http` features — _(new dep)_]
 
@@ -312,11 +312,11 @@ Workspace deps: **10** — unchanged. No dependency on the merged packages.
 
 ### `torrust-tracker-axum-http-server`
 
-Workspace deps: **12** (down from 14; `bittorrent-http-tracker-core` and
+Workspace deps: **12** (down from 14; `bittorrent-http-core` and
 `bittorrent-http-tracker-protocol` each collapse to one dep on the merged crates;
 `bittorrent-udp-tracker-protocol` also collapses into `bittorrent-tracker-protocol`)
 
-#### `bittorrent-tracker-core` [normal — _(was: `bittorrent-http-tracker-core` + `bittorrent-tracker-core`)_]
+#### `bittorrent-tracker-core` [normal — _(was: `bittorrent-http-core` + `bittorrent-tracker-core`)_]
 
 Merged: items from both former packages, now under `bittorrent-tracker-core` with the
 `http` feature active.
@@ -413,10 +413,10 @@ feature flags or `build.rs`._
 
 ### `torrust-tracker-axum-rest-api-server`
 
-Workspace deps: **15** (down from 16; `bittorrent-http-tracker-core` and
-`bittorrent-udp-tracker-core` collapse into a single `bittorrent-tracker-core[http,udp]` dep)
+Workspace deps: **15** (down from 16; `bittorrent-http-core` and
+`bittorrent-udp-core` collapse into a single `bittorrent-tracker-core[http,udp]` dep)
 
-#### `bittorrent-tracker-core` [normal — _(was: `bittorrent-http-tracker-core` + `bittorrent-udp-tracker-core` + `bittorrent-tracker-core`)_]
+#### `bittorrent-tracker-core` [normal — _(was: `bittorrent-http-core` + `bittorrent-udp-core` + `bittorrent-tracker-core`)_]
 
 - `bittorrent_tracker_core::authentication`
 - `bittorrent_tracker_core::authentication::Key`
@@ -527,10 +527,10 @@ Workspace deps: **3** — unchanged. No dependency on the merged packages.
 
 ### `torrust-tracker-rest-api-core`
 
-Workspace deps: **9** (down from 10; `bittorrent-http-tracker-core` and
-`bittorrent-udp-tracker-core` collapse into `bittorrent-tracker-core[http,udp]`)
+Workspace deps: **9** (down from 10; `bittorrent-http-core` and
+`bittorrent-udp-core` collapse into `bittorrent-tracker-core[http,udp]`)
 
-#### `bittorrent-tracker-core` [normal — _(was: `bittorrent-http-tracker-core` + `bittorrent-udp-tracker-core` + `bittorrent-tracker-core`)_]
+#### `bittorrent-tracker-core` [normal — _(was: `bittorrent-http-core` + `bittorrent-udp-core` + `bittorrent-tracker-core`)_]
 
 - `bittorrent_tracker_core::container::TrackerCoreContainer`
 - `bittorrent_tracker_core::http::container::HttpTrackerCoreContainer`
@@ -588,10 +588,10 @@ Workspace deps: **1** — unchanged.
 
 ### `torrust-tracker`
 
-Workspace deps: **14** (down from 16; `bittorrent-http-tracker-core` and
-`bittorrent-udp-tracker-core` collapse into `bittorrent-tracker-core[http,udp]`)
+Workspace deps: **14** (down from 16; `bittorrent-http-core` and
+`bittorrent-udp-core` collapse into `bittorrent-tracker-core[http,udp]`)
 
-#### `bittorrent-tracker-core` [normal — _(was: `bittorrent-http-tracker-core` + `bittorrent-udp-tracker-core` + `bittorrent-tracker-core`)_]
+#### `bittorrent-tracker-core` [normal — _(was: `bittorrent-http-core` + `bittorrent-udp-core` + `bittorrent-tracker-core`)_]
 
 - `bittorrent_tracker_core::container::TrackerCoreContainer`
 - `bittorrent_tracker_core::http::container`
@@ -755,10 +755,10 @@ Workspace deps: **3** — unchanged.
 
 ### `torrust-tracker-udp-server`
 
-Workspace deps: **11** (down from 13; `bittorrent-udp-tracker-core` and
+Workspace deps: **11** (down from 13; `bittorrent-udp-core` and
 `bittorrent-udp-tracker-protocol` collapse into the merged crates)
 
-#### `bittorrent-tracker-core` [normal — _(was: `bittorrent-udp-tracker-core` + `bittorrent-tracker-core`)_]
+#### `bittorrent-tracker-core` [normal — _(was: `bittorrent-udp-core` + `bittorrent-tracker-core`)_]
 
 - `bittorrent_tracker_core::MAX_SCRAPE_TORRENTS`
 - `bittorrent_tracker_core::announce_handler::AnnounceHandler`
@@ -909,8 +909,8 @@ Workspace deps: **11** (down from 13; `bittorrent-udp-tracker-core` and
 #### Effect on the dependency graph
 
 The number of distinct workspace-dependency edges decreases at every consumer. In the
-`torrust-tracker` root crate alone, two separate entries (`bittorrent-http-tracker-core` and
-`bittorrent-udp-tracker-core`) collapse into a single `bittorrent-tracker-core` entry with
+`torrust-tracker` root crate alone, two separate entries (`bittorrent-http-core` and
+`bittorrent-udp-core`) collapse into a single `bittorrent-tracker-core` entry with
 feature flags. The same compression happens in `torrust-tracker-axum-http-server`,
 `torrust-tracker-rest-api-core`, and `torrust-tracker-udp-server`.
 
@@ -951,8 +951,8 @@ connect/announce exchange, or a new HTTP scrape extension).
 #### Status quo (separate crates)
 
 A BEP 15 (UDP) revision touches exactly `packages/udp-protocol` and possibly
-`packages/udp-tracker-core`. A BEP 23 (HTTP compact peer lists) change touches
-`packages/http-protocol` and `packages/http-tracker-core`. The two streams are completely
+`packages/udp-core`. A BEP 23 (HTTP compact peer lists) change touches
+`packages/http-protocol` and `packages/http-core`. The two streams are completely
 independent: different folders, different `Cargo.toml` files, different CI build units.
 A developer can branch, implement, and review without touching any HTTP code, and the
 compiler enforces the boundary.
@@ -1004,10 +1004,10 @@ whitelist checking, or a refactor of the scrape-handler signature.
 The **truly shared** announce/scrape/whitelist/statistics logic already lives in
 `bittorrent-tracker-core` (`packages/tracker-core`). When a change is needed across
 protocols at the shared layer, a developer modifies that one package and both
-`udp-tracker-core` and `http-tracker-core` benefit automatically by virtue of their
+`udp-core` and `http-core` benefit automatically by virtue of their
 dependency on it. This is the current design working as intended.
 
-What lives in `udp-tracker-core` and `http-tracker-core` is, by definition,
+What lives in `udp-core` and `http-core` is, by definition,
 **protocol-specific**: UDP connection-cookie handling, HTTP query-parameter parsing, UDP
 event bus, HTTP event bus. These are not the same code. They require different changes for
 different reasons.
@@ -1030,8 +1030,8 @@ now lives in a crate that also contains HTTP core logic. The reviewer must confi
 code was not touched (or understand why it was). With separate crates, scope is enforced
 structurally.
 
-**Con — test isolation degraded**: The current `bittorrent-udp-tracker-core` tests only
-ever exercise UDP paths; `bittorrent-http-tracker-core` tests only HTTP paths. After the
+**Con — test isolation degraded**: The current `bittorrent-udp-core` tests only
+ever exercise UDP paths; `bittorrent-http-core` tests only HTTP paths. After the
 merge, a misconfigured test that enables both features could inadvertently test cross-feature
 interactions that the developer did not intend and that do not represent a real deployment.
 

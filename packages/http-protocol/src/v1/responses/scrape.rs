@@ -38,9 +38,9 @@ impl ScrapeData {
 /// The `Scrape` response for the HTTP tracker.
 ///
 /// ```rust
-/// use torrust_tracker_http_tracker_protocol::v1::responses::scrape::Bencoded;
+/// use torrust_tracker_http_protocol::v1::responses::scrape::Bencoded;
 /// use torrust_info_hash::InfoHash;
-/// use torrust_tracker_http_tracker_protocol::v1::responses::scrape::{ScrapeData, SwarmMetadata};
+/// use torrust_tracker_http_protocol::v1::responses::scrape::{ScrapeData, SwarmMetadata};
 ///
 /// let info_hash = InfoHash::from_bytes(&[0x69; 20]);
 /// let mut scrape_data = ScrapeData::empty();

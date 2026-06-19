@@ -8,8 +8,8 @@ use derive_more::derive::Display;
 use tokio::task::JoinHandle;
 use torrust_server_lib::registar::{ServiceRegistration, ServiceRegistrationForm};
 use torrust_server_lib::signals::{Halted, Started};
-use torrust_tracker_udp_tracker_core::UDP_TRACKER_LOG_TARGET;
-use torrust_tracker_udp_tracker_core::container::UdpTrackerCoreContainer;
+use torrust_tracker_udp_core::UDP_TRACKER_LOG_TARGET;
+use torrust_tracker_udp_core::container::UdpTrackerCoreContainer;
 use tracing::{Level, instrument};
 
 use super::spawner::Spawner;

@@ -6,13 +6,13 @@ use torrust_server_lib::registar::Registar;
 use torrust_tracker_axum_server::tsl::make_rust_tls;
 use torrust_tracker_configuration::{Configuration, logging};
 use torrust_tracker_core::container::TrackerCoreContainer;
-use torrust_tracker_http_tracker_core::container::HttpTrackerCoreContainer;
+use torrust_tracker_http_core::container::HttpTrackerCoreContainer;
 use torrust_tracker_primitives::peer;
 use torrust_tracker_rest_api_client::connection_info::{ConnectionInfo, Origin};
 use torrust_tracker_rest_api_core::container::TrackerHttpApiCoreContainer;
 use torrust_tracker_swarm_coordination_registry::container::SwarmCoordinationRegistryContainer;
+use torrust_tracker_udp_core::container::UdpTrackerCoreContainer;
 use torrust_tracker_udp_server::container::UdpTrackerServerContainer;
-use torrust_tracker_udp_tracker_core::container::UdpTrackerCoreContainer;
 
 use crate::server::{ApiServer, Launcher, Running, Stopped};
 
@@ -211,5 +211,5 @@ fn initialize_global_services(configuration: &Configuration) {
 
 fn initialize_static() {
     torrust_clock::initialize_static();
-    torrust_tracker_udp_tracker_core::initialize_static();
+    torrust_tracker_udp_core::initialize_static();
 }

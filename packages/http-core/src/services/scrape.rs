@@ -15,9 +15,9 @@ use torrust_tracker_core::authentication::service::AuthenticationService;
 use torrust_tracker_core::authentication::{self, Key};
 use torrust_tracker_core::error::{ScrapeError, TrackerCoreError, WhitelistError};
 use torrust_tracker_core::scrape_handler::ScrapeHandler;
-use torrust_tracker_http_tracker_protocol::v1::requests::scrape::Scrape;
-use torrust_tracker_http_tracker_protocol::v1::responses::error::Error as HttpProtocolErrorResponse;
-use torrust_tracker_http_tracker_protocol::v1::services::peer_ip_resolver::{
+use torrust_tracker_http_protocol::v1::requests::scrape::Scrape;
+use torrust_tracker_http_protocol::v1::responses::error::Error as HttpProtocolErrorResponse;
+use torrust_tracker_http_protocol::v1::services::peer_ip_resolver::{
     ClientIpSources, PeerIpResolutionError, RemoteClientAddr, resolve_remote_client_addr,
 };
 use torrust_tracker_primitives::ScrapeData;
@@ -266,10 +266,8 @@ mod tests {
         use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
         use torrust_tracker_core::announce_handler::PeersWanted;
         use torrust_tracker_events::bus::SenderStatus;
-        use torrust_tracker_http_tracker_protocol::v1::requests::scrape::Scrape;
-        use torrust_tracker_http_tracker_protocol::v1::services::peer_ip_resolver::{
-            ClientIpSources, RemoteClientAddr, ResolvedIp,
-        };
+        use torrust_tracker_http_protocol::v1::requests::scrape::Scrape;
+        use torrust_tracker_http_protocol::v1::services::peer_ip_resolver::{ClientIpSources, RemoteClientAddr, ResolvedIp};
         use torrust_tracker_primitives::ScrapeData;
         use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
         use torrust_tracker_test_helpers::configuration;
@@ -459,10 +457,8 @@ mod tests {
         use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
         use torrust_tracker_core::announce_handler::PeersWanted;
         use torrust_tracker_events::bus::SenderStatus;
-        use torrust_tracker_http_tracker_protocol::v1::requests::scrape::Scrape;
-        use torrust_tracker_http_tracker_protocol::v1::services::peer_ip_resolver::{
-            ClientIpSources, RemoteClientAddr, ResolvedIp,
-        };
+        use torrust_tracker_http_protocol::v1::requests::scrape::Scrape;
+        use torrust_tracker_http_protocol::v1::services::peer_ip_resolver::{ClientIpSources, RemoteClientAddr, ResolvedIp};
         use torrust_tracker_primitives::ScrapeData;
         use torrust_tracker_test_helpers::configuration;
 

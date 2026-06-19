@@ -26,7 +26,7 @@ packages/
 ├── e2e-tools
 ├── events
 ├── http-protocol
-├── http-tracker-core
+├── http-core
 ├── persistence-benchmark
 ├── primitives
 ├── rest-api-client
@@ -37,7 +37,7 @@ packages/
 ├── tracker-client
 ├── tracker-core
 ├── udp-protocol
-├── udp-tracker-core
+├── udp-core
 └── udp-server
 ```
 
@@ -83,8 +83,8 @@ Key Architectural Principles:
 | `axum-rest-api-server`            | Management REST API                  | Tracker configuration & monitoring         |
 | `axum-health-check-api-server`    | Health monitoring endpoint           | System health reporting                    |
 | **Core Components**               |                                      |                                            |
-| `http-tracker-core`               | HTTP-specific implementation         | Request validation, Response formatting    |
-| `udp-tracker-core`                | UDP-specific implementation          | Connectionless request handling            |
+| `http-core`               | HTTP-specific implementation         | Request validation, Response formatting    |
+| `udp-core`                | UDP-specific implementation          | Connectionless request handling            |
 | `tracker-core`                    | Central tracker logic                | Peer management                            |
 | **Protocols**                     |                                      |                                            |
 | `http-protocol`                   | HTTP tracker protocol (BEP 3/23)     | Announce/scrape request parsing            |

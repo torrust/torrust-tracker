@@ -17,7 +17,7 @@ depend on packages in the same layer or a lower one.
 │  axum-health-check-api-server  udp-server                      │
 ├────────────────────────────────────────────────────────────────┤
 │  Core (domain layer)                                           │
-│  http-tracker-core  udp-tracker-core  tracker-core             │
+│  http-core  udp-core  tracker-core             │
 │  rest-api-core  swarm-coordination-registry                    │
 ├────────────────────────────────────────────────────────────────┤
 │  Protocols                                                     │
@@ -62,8 +62,8 @@ dependency injection.
 | Package                       | Purpose                                                                                                                                    |
 | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
 | `tracker-core`                | Central peer management: announce/scrape handlers, auth, whitelist, database abstraction (SQLite/MySQL drivers in `src/databases/driver/`) |
-| `http-tracker-core`           | HTTP-specific validation and response formatting                                                                                           |
-| `udp-tracker-core`            | UDP connection cookies, crypto, banning logic                                                                                              |
+| `http-core`                   | HTTP-specific validation and response formatting                                                                                           |
+| `udp-core`                    | UDP connection cookies, crypto, banning logic                                                                                              |
 | `rest-api-core`               | REST API statistics and container wiring                                                                                                   |
 | `swarm-coordination-registry` | Registry of torrents and their peer swarms                                                                                                 |
 

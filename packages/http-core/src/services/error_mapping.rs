@@ -1,5 +1,5 @@
 use torrust_tracker_core::error::TrackerCoreError;
-use torrust_tracker_http_tracker_protocol::v1::responses::error::Error as HttpProtocolErrorResponse;
+use torrust_tracker_http_protocol::v1::responses::error::Error as HttpProtocolErrorResponse;
 
 pub(crate) fn protocol_error_from_tracker_core_error(error: TrackerCoreError) -> HttpProtocolErrorResponse {
     match error {

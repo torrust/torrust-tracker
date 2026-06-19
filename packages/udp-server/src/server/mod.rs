@@ -60,7 +60,7 @@ mod tests {
     use torrust_server_lib::registar::Registar;
     use torrust_tracker_configuration::{Configuration, logging};
     use torrust_tracker_test_helpers::configuration::ephemeral_public;
-    use torrust_tracker_udp_tracker_core::container::UdpTrackerCoreContainer;
+    use torrust_tracker_udp_core::container::UdpTrackerCoreContainer;
 
     use super::Server;
     use super::spawner::Spawner;
@@ -73,7 +73,7 @@ mod tests {
 
     fn initialize_static() {
         torrust_clock::initialize_static();
-        torrust_tracker_udp_tracker_core::initialize_static();
+        torrust_tracker_udp_core::initialize_static();
     }
 
     #[tokio::test]

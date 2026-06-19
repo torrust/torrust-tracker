@@ -3,7 +3,7 @@ use std::sync::Arc;
 
 use thiserror::Error;
 use torrust_located_error::DynError;
-use torrust_tracker_udp_tracker_protocol::Request;
+use torrust_tracker_udp_protocol::Request;
 
 pub mod client;
 

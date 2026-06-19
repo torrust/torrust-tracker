@@ -6,9 +6,9 @@ use torrust_metrics::label::{LabelSet, LabelValue};
 use torrust_metrics::label_name;
 use torrust_net_primitives::service_binding::ServiceBinding;
 use torrust_tracker_core::error::{AnnounceError, ScrapeError};
-use torrust_tracker_udp_tracker_core::services::announce::UdpAnnounceError;
-use torrust_tracker_udp_tracker_core::services::scrape::UdpScrapeError;
-use torrust_tracker_udp_tracker_protocol::AnnounceRequest;
+use torrust_tracker_udp_core::services::announce::UdpAnnounceError;
+use torrust_tracker_udp_core::services::scrape::UdpScrapeError;
+use torrust_tracker_udp_protocol::AnnounceRequest;
 
 use crate::error::Error;
 

@@ -12,8 +12,8 @@ use torrust_server_lib::logging::STARTED_ON;
 use torrust_server_lib::registar::ServiceHealthCheckJob;
 use torrust_server_lib::signals::{Halted, Started, shutdown_signal_with_message};
 use torrust_tracker_client::udp::client::check;
-use torrust_tracker_udp_tracker_core::container::UdpTrackerCoreContainer;
-use torrust_tracker_udp_tracker_core::{self, UDP_TRACKER_LOG_TARGET};
+use torrust_tracker_udp_core::container::UdpTrackerCoreContainer;
+use torrust_tracker_udp_core::{self, UDP_TRACKER_LOG_TARGET};
 use tracing::instrument;
 
 use super::request_buffer::ActiveRequests;

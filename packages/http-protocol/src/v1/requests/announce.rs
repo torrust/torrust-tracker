@@ -43,10 +43,10 @@ impl NumberOfBytes {
 /// query params of the request; boundary layers map them to domain types.
 ///
 /// ```rust
-/// use torrust_tracker_http_tracker_protocol::v1::requests::announce::{Announce, Compact, Event};
+/// use torrust_tracker_http_protocol::v1::requests::announce::{Announce, Compact, Event};
 /// use torrust_info_hash::InfoHash;
 /// use torrust_peer_id::PeerId;
-/// use torrust_tracker_http_tracker_protocol::v1::requests::announce::NumberOfBytes;
+/// use torrust_tracker_http_protocol::v1::requests::announce::NumberOfBytes;
 ///
 /// let request = Announce {
 ///     // Mandatory params

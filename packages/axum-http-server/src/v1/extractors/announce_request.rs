@@ -4,10 +4,10 @@
 //! It parses the query parameters returning an [`Announce`]
 //! request.
 //!
-//! Refer to [`Announce`](torrust_tracker_http_tracker_protocol::v1::requests::announce) for more
+//! Refer to [`Announce`](torrust_tracker_http_protocol::v1::requests::announce) for more
 //! information about the returned structure.
 //!
-//! It returns a bencoded [`Error`](torrust_tracker_http_tracker_protocol::v1::responses::error)
+//! It returns a bencoded [`Error`](torrust_tracker_http_protocol::v1::responses::error)
 //! response (`500`) if the query parameters are missing or invalid.
 //!
 //! **Sample announce request**
@@ -35,9 +35,9 @@ use axum::http::request::Parts;
 use axum::response::{IntoResponse, Response};
 use futures::FutureExt;
 use hyper::StatusCode;
-use torrust_tracker_http_tracker_protocol::v1::query::Query;
-use torrust_tracker_http_tracker_protocol::v1::requests::announce::{Announce, ParseAnnounceQueryError};
-use torrust_tracker_http_tracker_protocol::v1::responses;
+use torrust_tracker_http_protocol::v1::query::Query;
+use torrust_tracker_http_protocol::v1::requests::announce::{Announce, ParseAnnounceQueryError};
+use torrust_tracker_http_protocol::v1::responses;
 
 /// Extractor for the [`Announce`]
 /// request.
@@ -87,8 +87,8 @@ mod tests {
     use std::str::FromStr;
 
     use torrust_info_hash::InfoHash;
-    use torrust_tracker_http_tracker_protocol::v1::requests::announce::{Announce, Compact, Event, NumberOfBytes};
-    use torrust_tracker_http_tracker_protocol::v1::responses::error::Error;
+    use torrust_tracker_http_protocol::v1::requests::announce::{Announce, Compact, Event, NumberOfBytes};
+    use torrust_tracker_http_protocol::v1::responses::error::Error;
     use torrust_tracker_primitives::PeerId;
 
     use super::extract_announce_from;

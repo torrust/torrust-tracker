@@ -4,10 +4,10 @@
 //! It parses the query parameters returning an [`Scrape`]
 //! request.
 //!
-//! Refer to [`Scrape`](torrust_tracker_http_tracker_protocol::v1::requests::scrape)  for more
+//! Refer to [`Scrape`](torrust_tracker_http_protocol::v1::requests::scrape)  for more
 //! information about the returned structure.
 //!
-//! It returns a bencoded [`Error`](torrust_tracker_http_tracker_protocol::v1::responses::error)
+//! It returns a bencoded [`Error`](torrust_tracker_http_protocol::v1::responses::error)
 //! response (`500`) if the query parameters are missing or invalid.
 //!
 //! **Sample scrape request**
@@ -35,9 +35,9 @@ use axum::http::request::Parts;
 use axum::response::{IntoResponse, Response};
 use futures::FutureExt;
 use hyper::StatusCode;
-use torrust_tracker_http_tracker_protocol::v1::query::Query;
-use torrust_tracker_http_tracker_protocol::v1::requests::scrape::{ParseScrapeQueryError, Scrape};
-use torrust_tracker_http_tracker_protocol::v1::responses;
+use torrust_tracker_http_protocol::v1::query::Query;
+use torrust_tracker_http_protocol::v1::requests::scrape::{ParseScrapeQueryError, Scrape};
+use torrust_tracker_http_protocol::v1::responses;
 
 /// Extractor for the [`Scrape`]
 /// request.
@@ -87,8 +87,8 @@ mod tests {
     use std::str::FromStr;
 
     use torrust_info_hash::InfoHash;
-    use torrust_tracker_http_tracker_protocol::v1::requests::scrape::Scrape;
-    use torrust_tracker_http_tracker_protocol::v1::responses::error::Error;
+    use torrust_tracker_http_protocol::v1::requests::scrape::Scrape;
+    use torrust_tracker_http_protocol::v1::responses::error::Error;
 
     use super::extract_scrape_from;
 

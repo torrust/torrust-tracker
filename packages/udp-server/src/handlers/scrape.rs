@@ -5,9 +5,9 @@ use std::sync::Arc;
 
 use torrust_net_primitives::service_binding::ServiceBinding;
 use torrust_tracker_primitives::ScrapeData;
-use torrust_tracker_udp_tracker_core::services::scrape::ScrapeService;
-use torrust_tracker_udp_tracker_core::{self};
-use torrust_tracker_udp_tracker_protocol::{
+use torrust_tracker_udp_core::services::scrape::ScrapeService;
+use torrust_tracker_udp_core::{self};
+use torrust_tracker_udp_protocol::{
     NumberOfDownloads, NumberOfPeers, Response, ScrapeRequest, ScrapeResponse, TorrentScrapeStatistics,
 };
 use tracing::{Level, instrument};
@@ -94,8 +94,8 @@ mod tests {
         use torrust_tracker_core::torrent::repository::in_memory::InMemoryTorrentRepository;
         use torrust_tracker_events::bus::SenderStatus;
         use torrust_tracker_primitives::peer::fixture::PeerBuilder;
-        use torrust_tracker_udp_tracker_core::connection_cookie::{gen_remote_fingerprint, make};
-        use torrust_tracker_udp_tracker_protocol::{
+        use torrust_tracker_udp_core::connection_cookie::{gen_remote_fingerprint, make};
+        use torrust_tracker_udp_protocol::{
             InfoHash, NumberOfDownloads, NumberOfPeers, Response, ScrapeRequest, ScrapeResponse, TorrentScrapeStatistics,
             TransactionId,
         };
@@ -228,7 +228,7 @@ mod tests {
         }
 
         mod with_a_public_tracker {
-            use torrust_tracker_udp_tracker_protocol::{NumberOfDownloads, NumberOfPeers, TorrentScrapeStatistics};
+            use torrust_tracker_udp_protocol::{NumberOfDownloads, NumberOfPeers, TorrentScrapeStatistics};
 
             use crate::handlers::scrape::tests::scrape_request::{add_a_sample_seeder_and_scrape, match_scrape_response};
             use crate::handlers::tests::initialize_core_tracker_services_for_public_tracker;
@@ -256,7 +256,7 @@ mod tests {
             use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
             use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
-            use torrust_tracker_udp_tracker_protocol::{InfoHash, NumberOfDownloads, NumberOfPeers, TorrentScrapeStatistics};
+            use torrust_tracker_udp_protocol::{InfoHash, NumberOfDownloads, NumberOfPeers, TorrentScrapeStatistics};
 
             use crate::handlers::handle_scrape;
             use crate::handlers::scrape::tests::scrape_request::{

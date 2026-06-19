@@ -8,7 +8,7 @@ use derive_more::derive::Display;
 use tokio::sync::oneshot;
 use tokio::task::JoinHandle;
 use torrust_server_lib::signals::{Halted, Started};
-use torrust_tracker_udp_tracker_core::container::UdpTrackerCoreContainer;
+use torrust_tracker_udp_core::container::UdpTrackerCoreContainer;
 
 use super::launcher::Launcher;
 use crate::container::UdpTrackerServerContainer;

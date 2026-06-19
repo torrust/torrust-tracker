@@ -4,7 +4,7 @@ use std::time::Duration;
 
 use serde::Serialize;
 use torrust_info_hash::InfoHash as TorrustInfoHash;
-use torrust_tracker_udp_tracker_protocol::TransactionId;
+use torrust_tracker_udp_protocol::TransactionId;
 use url::Url;
 
 use crate::console::clients::udp::Error;

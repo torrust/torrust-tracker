@@ -56,12 +56,12 @@ jobs:
           CARGO_REGISTRY_TOKEN: "${{ secrets.TORRUST_UPDATE_CARGO_REGISTRY_TOKEN }}"
         run: |
           cargo publish -p torrust-located-error
-          cargo publish -p torrust-tracker-http-tracker-core
-          cargo publish -p torrust-tracker-http-tracker-protocol
+          cargo publish -p torrust-tracker-http-core
+          cargo publish -p torrust-tracker-http-protocol
           cargo publish -p torrust-tracker-client-lib
           cargo publish -p torrust-tracker-core
-          cargo publish -p torrust-tracker-udp-tracker-core
-          cargo publish -p torrust-tracker-udp-tracker-protocol
+          cargo publish -p torrust-tracker-udp-core
+          cargo publish -p torrust-tracker-udp-protocol
           cargo publish -p torrust-tracker-axum-health-check-api-server
           cargo publish -p torrust-tracker-axum-http-server
           cargo publish -p torrust-tracker-axum-rest-api-server

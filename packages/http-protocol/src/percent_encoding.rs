@@ -34,7 +34,7 @@ pub enum PeerIdConversionError {
 ///
 /// ```rust
 /// use std::str::FromStr;
-/// use torrust_tracker_http_tracker_protocol::percent_encoding::percent_decode_info_hash;
+/// use torrust_tracker_http_protocol::percent_encoding::percent_decode_info_hash;
 /// use torrust_info_hash::InfoHash;
 ///
 /// let encoded_infohash = "%3B%24U%04%CF%5F%11%BB%DB%E1%20%1C%EAjk%F4Z%EE%1B%C0";
@@ -65,7 +65,7 @@ pub fn percent_decode_info_hash(raw_info_hash: &str) -> Result<InfoHash, torrust
 /// ```rust
 /// use std::str::FromStr;
 ///
-/// use torrust_tracker_http_tracker_protocol::percent_encoding::percent_decode_peer_id;
+/// use torrust_tracker_http_protocol::percent_encoding::percent_decode_peer_id;
 /// use torrust_info_hash::InfoHash;
 /// use torrust_peer_id::PeerId;
 ///

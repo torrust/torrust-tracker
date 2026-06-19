@@ -18,7 +18,7 @@ use torrust_tracker_core::error::{AnnounceError, WhitelistError};
 use torrust_tracker_core::whitelist;
 use torrust_tracker_primitives::AnnounceData;
 use torrust_tracker_primitives::peer::PeerAnnouncement;
-use torrust_tracker_udp_tracker_protocol::AnnounceRequest;
+use torrust_tracker_udp_protocol::AnnounceRequest;
 
 use crate::connection_cookie::{ConnectionCookieError, check, gen_remote_fingerprint};
 use crate::event::{ConnectionContext, Event};

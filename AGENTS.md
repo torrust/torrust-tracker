@@ -68,8 +68,8 @@ All packages live under `packages/`. The workspace version is `3.0.0-develop`.
 | `axum-server`                     | `torrust-tracker-axum-server`                     | `axum-*`       | Base Axum HTTP server infrastructure          |
 | `configuration`                   | `torrust-tracker-configuration`                   | domain         | Config file parsing, environment variables    |
 | `events`                          | `torrust-tracker-events`                          | domain         | Domain event definitions                      |
-| `http-protocol`                   | `torrust-tracker-http-tracker-protocol`           | `*-protocol`   | HTTP tracker protocol (BEP 3/23) parsing      |
-| `http-tracker-core`               | `torrust-tracker-http-tracker-core`               | `*-core`       | HTTP-specific tracker domain logic            |
+| `http-protocol`                   | `torrust-tracker-http-protocol`                   | `*-protocol`   | HTTP tracker protocol (BEP 3/23) parsing      |
+| `http-core`                       | `torrust-tracker-http-core`                       | `*-core`       | HTTP-specific tracker domain logic            |
 | `primitives`                      | `torrust-tracker-primitives`                      | domain         | Core domain types (InfoHash, PeerId, ...)     |
 | `rest-api-client`                 | `torrust-tracker-rest-api-client`                 | client tools   | REST API client library                       |
 | `rest-api-core`                   | `torrust-tracker-rest-api-core`                   | client tools   | REST API core logic                           |
@@ -78,8 +78,8 @@ All packages live under `packages/`. The workspace version is `3.0.0-develop`.
 | `torrent-repository-benchmarking` | `torrust-tracker-torrent-repository-benchmarking` | benchmarking   | Torrent storage benchmarks                    |
 | `tracker-client`                  | `torrust-tracker-client`                          | client tools   | CLI tracker interaction/testing client        |
 | `tracker-core`                    | `torrust-tracker-core`                            | `*-core`       | Central tracker peer-management logic         |
-| `udp-protocol`                    | `torrust-tracker-udp-tracker-protocol`            | `*-protocol`   | UDP tracker protocol (BEP 15) framing/parsing |
-| `udp-tracker-core`                | `torrust-tracker-udp-tracker-core`                | `*-core`       | UDP-specific tracker domain logic             |
+| `udp-protocol`                    | `torrust-tracker-udp-protocol`                    | `*-protocol`   | UDP tracker protocol (BEP 15) framing/parsing |
+| `udp-core`                        | `torrust-tracker-udp-core`                        | `*-core`       | UDP-specific tracker domain logic             |
 | `udp-server`                      | `torrust-tracker-udp-server`                      | server         | UDP tracker server implementation             |
 
 **Extracted packages** — previously part of this workspace, now in their own standalone repositories:

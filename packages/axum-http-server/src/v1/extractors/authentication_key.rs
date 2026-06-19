@@ -9,7 +9,7 @@
 //! It's a wrapper for Axum `Path` extractor in order to return custom
 //! authentication errors.
 //!
-//! It returns a bencoded [`Error`](torrust_tracker_http_tracker_protocol::v1::responses::error)
+//! It returns a bencoded [`Error`](torrust_tracker_http_protocol::v1::responses::error)
 //! response (`500`) if the `key` parameter are missing or invalid.
 //!
 //! **Sample authentication error responses**
@@ -52,7 +52,7 @@ use axum::response::{IntoResponse, Response};
 use hyper::StatusCode;
 use serde::Deserialize;
 use torrust_tracker_core::authentication::Key;
-use torrust_tracker_http_tracker_protocol::v1::{auth, responses};
+use torrust_tracker_http_protocol::v1::{auth, responses};
 
 /// Extractor for the [`Key`] struct.
 pub struct Extract(pub Key);
@@ -124,7 +124,7 @@ fn custom_error(rejection: &PathRejection) -> responses::error::Error {
 #[cfg(test)]
 mod tests {
 
-    use torrust_tracker_http_tracker_protocol::v1::responses::error::Error;
+    use torrust_tracker_http_protocol::v1::responses::error::Error;
 
     use super::parse_key;
 

@@ -11,7 +11,7 @@ use axum_client_ip::SecureClientIpSource;
 use hyper::{Request, StatusCode};
 use torrust_net_primitives::service_binding::ServiceBinding;
 use torrust_server_lib::logging::Latency;
-use torrust_tracker_http_tracker_core::container::HttpTrackerCoreContainer;
+use torrust_tracker_http_core::container::HttpTrackerCoreContainer;
 use tower::ServiceBuilder;
 use tower::timeout::TimeoutLayer;
 use tower_http::LatencyUnit;

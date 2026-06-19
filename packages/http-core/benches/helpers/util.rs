@@ -16,15 +16,15 @@ use torrust_tracker_core::torrent::repository::in_memory::InMemoryTorrentReposit
 use torrust_tracker_core::whitelist::authorization::WhitelistAuthorization;
 use torrust_tracker_core::whitelist::repository::in_memory::InMemoryWhitelist;
 use torrust_tracker_events::sender::SendError;
-use torrust_tracker_http_tracker_core::event::Event;
-use torrust_tracker_http_tracker_core::event::bus::EventBus;
-use torrust_tracker_http_tracker_core::event::sender::Broadcaster;
-use torrust_tracker_http_tracker_core::statistics::event::listener::run_event_listener;
-use torrust_tracker_http_tracker_core::statistics::repository::Repository;
-use torrust_tracker_http_tracker_protocol::v1::requests::announce::{
+use torrust_tracker_http_core::event::Event;
+use torrust_tracker_http_core::event::bus::EventBus;
+use torrust_tracker_http_core::event::sender::Broadcaster;
+use torrust_tracker_http_core::statistics::event::listener::run_event_listener;
+use torrust_tracker_http_core::statistics::repository::Repository;
+use torrust_tracker_http_protocol::v1::requests::announce::{
     Announce, Event as ProtocolAnnounceEvent, NumberOfBytes as ProtocolNumberOfBytes,
 };
-use torrust_tracker_http_tracker_protocol::v1::services::peer_ip_resolver::ClientIpSources;
+use torrust_tracker_http_protocol::v1::services::peer_ip_resolver::ClientIpSources;
 use torrust_tracker_primitives::peer::Peer;
 use torrust_tracker_primitives::{AnnounceEvent, NumberOfBytes, PeerId, peer};
 use torrust_tracker_test_helpers::configuration;
@@ -37,7 +37,7 @@ pub struct CoreTrackerServices {
 }
 
 pub struct CoreHttpTrackerServices {
-    pub http_stats_event_sender: torrust_tracker_http_tracker_core::event::sender::Sender,
+    pub http_stats_event_sender: torrust_tracker_http_core::event::sender::Sender,
 }
 
 pub async fn initialize_core_tracker_services() -> (CoreTrackerServices, CoreHttpTrackerServices) {

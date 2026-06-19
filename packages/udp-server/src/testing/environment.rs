@@ -8,7 +8,7 @@ use torrust_server_lib::registar::Registar;
 use torrust_tracker_configuration::{Core, UdpTracker};
 use torrust_tracker_core::container::TrackerCoreContainer;
 use torrust_tracker_swarm_coordination_registry::container::SwarmCoordinationRegistryContainer;
-use torrust_tracker_udp_tracker_core::container::UdpTrackerCoreContainer;
+use torrust_tracker_udp_core::container::UdpTrackerCoreContainer;
 
 use crate::container::UdpTrackerServerContainer;
 use crate::server::Server;
@@ -65,13 +65,11 @@ impl Environment<Stopped> {
         let cookie_lifetime = self.container.udp_tracker_core_container.udp_tracker_config.cookie_lifetime;
 
         // Start the UDP tracker core event listener
-        let udp_core_event_listener_job = Some(
-            torrust_tracker_udp_tracker_core::statistics::event::listener::run_event_listener(
-                self.container.udp_tracker_core_container.event_bus.receiver(),
-                self.cancellation_token.clone(),
-                &self.container.udp_tracker_core_container.stats_repository,
-            ),
-        );
+        let udp_core_event_listener_job = Some(torrust_tracker_udp_core::statistics::event::listener::run_event_listener(
+            self.container.udp_tracker_core_container.event_bus.receiver(),
+            self.cancellation_token.clone(),
+            &self.container.udp_tracker_core_container.stats_repository,
+        ));
 
         // Start the UDP tracker server event listener (statistics)
         let udp_server_stats_event_listener_job = Some(crate::statistics::event::listener::run_event_listener(
@@ -207,7 +205,7 @@ impl EnvContainer {
 
 fn initialize_static() {
     torrust_clock::initialize_static();
-    torrust_tracker_udp_tracker_core::initialize_static();
+    torrust_tracker_udp_core::initialize_static();
 }
 
 #[cfg(test)]

@@ -1,12 +1,12 @@
 [package]
 authors.workspace = true
-description = "A library with the core functionality needed to implement a BitTorrent UDP tracker."
+description = "A library with the core functionality needed to implement a BitTorrent HTTP tracker."
 documentation.workspace = true
 edition.workspace = true
 homepage.workspace = true
 keywords = [ "api", "bittorrent", "core", "library", "tracker" ]
 license.workspace = true
-name = "torrust-tracker-udp-tracker-core"
+name = "torrust-tracker-http-core"
 publish.workspace = true
 readme = "README.md"
 repository.workspace = true
@@ -14,18 +14,14 @@ rust-version.workspace = true
 version.workspace = true
 
 [dependencies]
+torrust-tracker-http-protocol = { version = "3.0.0-develop", path = "../http-protocol" }
 torrust-info-hash = "=0.2.0"
 torrust-tracker-core = { version = "3.0.0-develop", path = "../tracker-core" }
-torrust-tracker-udp-tracker-protocol = { version = "3.0.0-develop", path = "../udp-protocol" }
-bloom = "0.3.2"
-blowfish = "0"
-cipher = "0.5"
 criterion = { version = "0.5.1", features = [ "async_tokio" ] }
 futures = "0"
-rand = "0.9"
 serde = "1.0.219"
 thiserror = "2"
-tokio = { version = "1", features = [ "macros", "net", "rt-multi-thread", "signal", "sync", "time" ] }
+tokio = { version = "1", features = [ "macros", "net", "rt-multi-thread", "signal", "sync" ] }
 tokio-util = "0.7.15"
 torrust-clock = "3.0.0"
 torrust-tracker-configuration = { version = "3.0.0-develop", path = "../configuration" }
@@ -35,11 +31,11 @@ torrust-net-primitives = "0.1.0"
 torrust-tracker-primitives = { version = "3.0.0-develop", path = "../primitives" }
 torrust-tracker-swarm-coordination-registry = { version = "3.0.0-develop", path = "../swarm-coordination-registry" }
 tracing = "0"
-zerocopy = "0.8"
 
 [dev-dependencies]
 mockall = "0"
+torrust-tracker-test-helpers = { version = "3.0.0-develop", path = "../test-helpers" }
 
 [[bench]]
 harness = false
-name = "udp_tracker_core_benchmark"
+name = "http_tracker_core_benchmark"

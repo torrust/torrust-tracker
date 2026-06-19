@@ -101,7 +101,7 @@ use std::str::FromStr;
 use anyhow::Context;
 use clap::{Parser, Subcommand, ValueEnum};
 use torrust_info_hash::InfoHash as TorrustInfoHash;
-use torrust_tracker_udp_tracker_protocol::{AnnounceEvent, Response, TransactionId};
+use torrust_tracker_udp_protocol::{AnnounceEvent, Response, TransactionId};
 use tracing::level_filters::LevelFilter;
 use url::Url;
 

@@ -3,7 +3,7 @@ use std::net::SocketAddr;
 use serde::Serialize;
 use thiserror::Error;
 use torrust_tracker_client::udp;
-use torrust_tracker_udp_tracker_protocol::Response;
+use torrust_tracker_udp_protocol::Response;
 
 pub mod app;
 pub mod checker;

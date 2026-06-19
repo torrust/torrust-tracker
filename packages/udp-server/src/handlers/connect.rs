@@ -3,8 +3,8 @@ use std::net::SocketAddr;
 use std::sync::Arc;
 
 use torrust_net_primitives::service_binding::ServiceBinding;
-use torrust_tracker_udp_tracker_core::services::connect::ConnectService;
-use torrust_tracker_udp_tracker_protocol::{ConnectRequest, ConnectResponse, ConnectionId, Response};
+use torrust_tracker_udp_core::services::connect::ConnectService;
+use torrust_tracker_udp_protocol::{ConnectRequest, ConnectResponse, ConnectionId, Response};
 use tracing::{Level, instrument};
 
 use crate::event::{ConnectionContext, Event, UdpRequestKind};
@@ -59,12 +59,12 @@ mod tests {
         use mockall::predicate::eq;
         use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
         use torrust_tracker_events::bus::SenderStatus;
-        use torrust_tracker_udp_tracker_core::connection_cookie::make;
-        use torrust_tracker_udp_tracker_core::event as core_event;
-        use torrust_tracker_udp_tracker_core::event::bus::EventBus;
-        use torrust_tracker_udp_tracker_core::event::sender::Broadcaster;
-        use torrust_tracker_udp_tracker_core::services::connect::ConnectService;
-        use torrust_tracker_udp_tracker_protocol::{ConnectRequest, ConnectResponse, Response, TransactionId};
+        use torrust_tracker_udp_core::connection_cookie::make;
+        use torrust_tracker_udp_core::event as core_event;
+        use torrust_tracker_udp_core::event::bus::EventBus;
+        use torrust_tracker_udp_core::event::sender::Broadcaster;
+        use torrust_tracker_udp_core::services::connect::ConnectService;
+        use torrust_tracker_udp_protocol::{ConnectRequest, ConnectResponse, Response, TransactionId};
 
         use crate::event::{ConnectionContext, Event, UdpRequestKind};
         use crate::handlers::handle_connect;
@@ -221,7 +221,7 @@ mod tests {
                 }))
                 .times(1)
                 .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
-            let udp_core_stats_event_sender: torrust_tracker_udp_tracker_core::event::sender::Sender =
+            let udp_core_stats_event_sender: torrust_tracker_udp_core::event::sender::Sender =
                 Some(Arc::new(udp_core_stats_event_sender_mock));
 
             let mut udp_server_stats_event_sender_mock = MockUdpServerStatsEventSender::new();
@@ -262,7 +262,7 @@ mod tests {
                 }))
                 .times(1)
                 .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
-            let udp_core_stats_event_sender: torrust_tracker_udp_tracker_core::event::sender::Sender =
+            let udp_core_stats_event_sender: torrust_tracker_udp_core::event::sender::Sender =
                 Some(Arc::new(udp_core_stats_event_sender_mock));
 
             let mut udp_server_stats_event_sender_mock = MockUdpServerStatsEventSender::new();

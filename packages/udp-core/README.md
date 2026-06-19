@@ -1,6 +1,6 @@
-# BitTorrent HTTP Tracker Core library
+# BitTorrent UDP Tracker Core library
 
-A library with the core functionality needed to implement a BitTorrent HTTP tracker.
+A library with the core functionality needed to implement a BitTorrent UDP tracker.
 
 You usually don’t need to use this library directly. Instead, you should use the [Torrust Tracker](https://github.com/torrust/torrust-tracker). If you want to build your own tracker, you can use this library as the core functionality.
 
@@ -8,7 +8,7 @@ You usually don’t need to use this library directly. Instead, you should use t
 
 ## Documentation
 
-[Crate documentation](https://docs.rs/torrust-tracker-http-tracker-core).
+[Crate documentation](https://docs.rs/torrust-tracker-udp-core).
 
 ## License
 
