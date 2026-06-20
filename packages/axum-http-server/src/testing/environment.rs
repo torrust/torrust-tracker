@@ -54,7 +54,11 @@ impl Environment<Stopped> {
             None
         };
 
-        let server = HttpServer::new(Launcher::new(bind_to, tls));
+        let server = HttpServer::new(Launcher::new(
+            bind_to,
+            tls,
+            container.http_tracker_core_container.http_tracker_config.ipv6_v6only,
+        ));
 
         Self {
             container,

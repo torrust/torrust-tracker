@@ -6,6 +6,7 @@ use axum_server::Handle;
 use axum_server::tls_rustls::RustlsConfig;
 use derive_more::Constructor;
 use futures::future::BoxFuture;
+use socket2::{Domain, Socket, Type};
 use tokio::sync::oneshot::{Receiver, Sender};
 use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
 use torrust_server_lib::logging::STARTED_ON;
@@ -41,9 +42,33 @@ pub enum Error {
 pub struct Launcher {
     pub bind_to: SocketAddr,
     pub tls: Option<RustlsConfig>,
+    pub ipv6_v6only: bool,
 }
 
 impl Launcher {
+    /// Creates a [`std::net::TcpListener`] with `IPV6_V6ONLY` set according to
+    /// the `ipv6_v6only` parameter. When `true`, IPv6 sockets are restricted
+    /// to IPv6 only, allowing a separate IPv4 socket to bind on the same port
+    /// (e.g. `0.0.0.0:7070` and `[::]:7070`). When `false` (default), the
+    /// socket operates in dual-stack mode.
+    /// # Errors
+    ///
+    /// Will return an error if the socket cannot be created, configured, or bound.
+    fn create_tcp_listener(addr: SocketAddr, ipv6_v6only: bool) -> Result<std::net::TcpListener, Box<dyn std::error::Error>> {
+        let domain = if addr.is_ipv6() { Domain::IPV6 } else { Domain::IPV4 };
+        let socket = Socket::new(domain, Type::STREAM, Some(socket2::Protocol::TCP))?;
+
+        if addr.is_ipv6() {
+            socket.set_only_v6(ipv6_v6only)?;
+        }
+
+        socket.set_nonblocking(true)?;
+        socket.bind(&addr.into())?;
+        socket.listen(1024)?;
+
+        Ok(std::net::TcpListener::from(socket))
+    }
+
     #[instrument(skip(self, http_tracker_container, tx_start, rx_halt))]
     fn start(
         &self,
@@ -51,10 +76,7 @@ impl Launcher {
         tx_start: Sender<Started>,
         rx_halt: Receiver<Halted>,
     ) -> BoxFuture<'static, ()> {
-        let socket = std::net::TcpListener::bind(self.bind_to).expect("Could not bind tcp_listener to address.");
-        socket
-            .set_nonblocking(true)
-            .expect("Failed to set socket to non-blocking mode");
+        let socket = Self::create_tcp_listener(self.bind_to, self.ipv6_v6only).expect("Could not create TCP listener.");
         let address = socket.local_addr().expect("Could not get local_addr from tcp_listener.");
 
         let handle = Handle::new();
@@ -364,7 +386,7 @@ mod tests {
         };
 
         let register = &Registar::default();
-        let stopped = HttpServer::new(Launcher::new(bind_to, tls));
+        let stopped = HttpServer::new(Launcher::new(bind_to, tls, http_tracker_config.ipv6_v6only));
 
         let started = stopped
             .start(http_tracker_container, register.give_form())

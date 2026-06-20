@@ -29,70 +29,37 @@ changing the default or leaving the behaviour implicit.
 ## Agreement
 
 We add a new boolean config field `ipv6_v6only` to both `UdpTracker` and
-`HttpTracker` configuration structs, defaulting to `false`.
+`HttpTracker` configuration structs, defaulting to `false` (dual-stack).
 
-### Behaviour
+When `ipv6_v6only = true`, the socket is restricted to IPv6 only, allowing a
+separate IPv4 socket (`0.0.0.0:<port>`) to bind on the same port.
 
-| `ipv6_v6only` | Socket behaviour | Who should use this |
-|---|---|---|
-| `false` (default) | Dual-stack — single `[::]` socket accepts both IPv4 and IPv6 clients. | Operators with simple setups, no per-family metric needs. |
-| `true` | IPv6-only — each `[::]` socket rejects IPv4. Must also bind `0.0.0.0:<port>` to serve IPv4 clients. | Operators who want separate metrics per IP family, or per-family rate limiting. |
-
-### Config example
-
-```toml
-[[udp_trackers]]
-bind_address = "0.0.0.0:6969"
-ipv6_v6only = false   # irrelevant for IPv4 sockets, but accepted
-
-[[udp_trackers]]
-bind_address = "[::]:6969"
-ipv6_v6only = true    # explicit IPv6-only socket
-tracker_usage_statistics = true
-```
-
-### Implementation
-
-1. Add `ipv6_v6only: bool` field to `UdpTracker` and `HttpTracker` with
-   `#[serde(default = "default_false")]`.
-2. In `BoundSocket::create_socket` (UDP) and `Launcher::create_tcp_listener` (HTTP),
-   only call `socket.set_only_v6(true)` when `ipv6_v6only` is `true`.
-3. For IPv4 sockets (`0.0.0.0`), the option is a no-op — `IPV6_V6ONLY` only applies
-   to `AF_INET6` sockets.
-
-### Platform notes
-
-- `IPV6_V6ONLY=1` is the **default** on Windows, macOS, FreeBSD, and Solaris.
-  Setting it explicitly to `true` on those platforms is a no-op.
-- `IPV6_V6ONLY=0` (dual-stack) is the **default** only on Linux. Setting it to
-  `true` there enables the separate-socket behaviour described above.
-- On **OpenBSD**, `IPV6_V6ONLY=0` is not supported; setting `ipv6_v6only = false`
-  will result in a runtime error. The config option is documented accordingly.
+Detailed implementation steps, config examples, and platform portability notes
+are documented in the issue spec ([#1671](https://github.com/torrust/torrust-tracker/issues/1671))
+and in the research document
+[docs/issues/open/1671-ipv4-ipv6-client-metrics/research-dual-stack-portability.md](https://github.com/torrust/torrust-tracker/blob/develop/docs/issues/open/1671-ipv4-ipv6-client-metrics/research-dual-stack-portability.md).
 
 ### Alternatives Considered
 
-**A) Always set `IPV6_V6ONLY=1` (remove dual-stack support entirely).**
+**A) Always set `IPV6_V6ONLY=1` unconditionally (no config option).**
 
 Rejected because it forces every operator to explicitly configure both address
-families. While this would be consistent across platforms and simplify the code,
-it breaks existing configs unnecessarily. The project will eventually release
-4.0.0 with breaking changes, but this particular change does not need to be
-forced on all users — those who want separate sockets can opt in.
+families, breaking existing configs. While the project plans a 4.0.0 release
+where breaking changes are acceptable, this particular change does not need to
+be forced — operators who want separate sockets can opt in.
 
-**B) Always set `IPV6_V6ONLY=1` unconditionally + migration guide in changelog.**
+**B) Always set `IPV6_V6ONLY=1` in 4.0.0 with a migration guide.**
 
-Rejected for the same reason as (A). Adding the config option is minimal effort
-and preserves choice.
+Rejected for the same reason. Adding the config option is minimal effort and
+preserves operator choice without unnecessary breakage.
 
 ### Consequences
 
-- **Positive**: Operators can opt into separate IPv4/IPv6 sockets for per-family
-  metrics without changing the default behaviour for everyone.
-- **Positive**: The config option name (`ipv6_v6only`) matches the underlying
-  socket option, making it searchable for operators familiar with the concept.
-- **Positive**: The experiment code in `contrib/dev-tools/experiments/dual-stack-sockets/`
-  can be removed — the `ipv6_v6only` option replaces it.
-- **Negative**: Additional maintenance surface — the option needs to be
-  documented and tested.
+- **Positive**: Operators opt into separate IPv4/IPv6 sockets without changing
+  the default for everyone.
+- **Positive**: The name `ipv6_v6only` matches the underlying socket option,
+  making it searchable.
+- **Negative**: Small maintenance surface — the option must be documented and
+  tested.
 - **Negative**: Platform-dependent behaviour — OpenBSD cannot use dual-stack
-  mode — must be documented.
+  mode, must be documented.

@@ -3,7 +3,7 @@ use std::net::{IpAddr, SocketAddr};
 use torrust_info_hash::InfoHash;
 use torrust_metrics::label::{LabelSet, LabelValue};
 use torrust_metrics::label_name;
-use torrust_net_primitives::service_binding::ServiceBinding;
+use torrust_net_primitives::service_binding::{IpFamily, IpType, ServiceBinding};
 use torrust_tracker_http_protocol::v1::services::peer_ip_resolver::RemoteClientAddr;
 use torrust_tracker_primitives::peer::PeerAnnouncement;
 
@@ -50,6 +50,19 @@ impl ConnectionContext {
     #[must_use]
     pub fn server_socket_addr(&self) -> SocketAddr {
         self.server.service_binding.bind_address()
+    }
+
+    #[must_use]
+    pub fn client_address_ip_family(&self) -> IpFamily {
+        self.client.ip_addr().into()
+    }
+
+    #[must_use]
+    pub fn client_address_ip_type(&self) -> IpType {
+        match self.client.ip_addr() {
+            IpAddr::V6(v6) if v6.to_ipv4_mapped().is_some() => IpType::V4MappedV6,
+            _ => IpType::Plain,
+        }
     }
 }
 
@@ -98,6 +111,14 @@ impl From<ConnectionContext> for LabelSet {
                 label_name!("server_binding_port"),
                 LabelValue::new(&connection_context.server.service_binding.bind_address().port().to_string()),
             ),
+            (
+                label_name!("client_address_ip_family"),
+                LabelValue::new(&connection_context.client_address_ip_family().to_string()),
+            ),
+            (
+                label_name!("client_address_ip_type"),
+                LabelValue::new(&connection_context.client_address_ip_type().to_string()),
+            ),
         ])
     }
 }
@@ -126,11 +147,14 @@ pub mod bus {
 #[cfg(test)]
 pub mod test {
 
-    use torrust_net_primitives::service_binding::Protocol;
+    use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
+
+    use torrust_net_primitives::service_binding::{IpFamily, IpType, Protocol, ServiceBinding};
     use torrust_tracker_http_protocol::v1::services::peer_ip_resolver::{RemoteClientAddr, ResolvedIp};
     use torrust_tracker_primitives::peer::Peer;
 
     use super::Event;
+    use crate::event::ConnectionContext;
     use crate::tests::sample_info_hash;
 
     #[must_use]
@@ -168,12 +192,6 @@ pub mod test {
 
     #[test]
     fn events_should_be_comparable() {
-        use std::net::{IpAddr, Ipv4Addr, SocketAddr};
-
-        use torrust_net_primitives::service_binding::ServiceBinding;
-
-        use crate::event::{ConnectionContext, Event};
-
         let remote_client_ip = IpAddr::V4(Ipv4Addr::LOCALHOST);
         let info_hash = sample_info_hash();
 
@@ -202,5 +220,57 @@ pub mod test {
 
         assert_eq!(event1, event1_clone);
         assert_ne!(event1, event2);
+    }
+
+    #[test]
+    fn client_address_ip_family_should_be_inet_for_ipv4() {
+        let ctx = ConnectionContext::new(
+            RemoteClientAddr::new(ResolvedIp::FromSocketAddr(IpAddr::V4(Ipv4Addr::LOCALHOST)), Some(8080)),
+            ServiceBinding::new(Protocol::HTTP, SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070)).unwrap(),
+        );
+
+        assert_eq!(ctx.client_address_ip_family(), IpFamily::Inet);
+    }
+
+    #[test]
+    fn client_address_ip_family_should_be_inet6_for_ipv6() {
+        let ctx = ConnectionContext::new(
+            RemoteClientAddr::new(ResolvedIp::FromSocketAddr(IpAddr::V6(Ipv6Addr::LOCALHOST)), Some(8080)),
+            ServiceBinding::new(Protocol::HTTP, SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070)).unwrap(),
+        );
+
+        assert_eq!(ctx.client_address_ip_family(), IpFamily::Inet6);
+    }
+
+    #[test]
+    fn client_address_ip_type_should_be_plain_for_direct_ipv4() {
+        let ctx = ConnectionContext::new(
+            RemoteClientAddr::new(ResolvedIp::FromSocketAddr(IpAddr::V4(Ipv4Addr::LOCALHOST)), Some(8080)),
+            ServiceBinding::new(Protocol::HTTP, SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070)).unwrap(),
+        );
+
+        assert_eq!(ctx.client_address_ip_type(), IpType::Plain);
+    }
+
+    #[test]
+    fn client_address_ip_type_should_be_plain_for_native_ipv6() {
+        let ctx = ConnectionContext::new(
+            RemoteClientAddr::new(ResolvedIp::FromSocketAddr(IpAddr::V6(Ipv6Addr::LOCALHOST)), Some(8080)),
+            ServiceBinding::new(Protocol::HTTP, SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070)).unwrap(),
+        );
+
+        assert_eq!(ctx.client_address_ip_type(), IpType::Plain);
+    }
+
+    #[test]
+    fn client_address_ip_type_should_be_v4_mapped_v6_for_ipv4_mapped_ipv6() {
+        let v4_mapped_v6_addr = IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 0, 0xffff, 0xc0a8, 0x0101)); // ::ffff:192.168.1.1
+
+        let ctx = ConnectionContext::new(
+            RemoteClientAddr::new(ResolvedIp::FromSocketAddr(v4_mapped_v6_addr), Some(8080)),
+            ServiceBinding::new(Protocol::HTTP, SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070)).unwrap(),
+        );
+
+        assert_eq!(ctx.client_address_ip_type(), IpType::V4MappedV6);
     }
 }

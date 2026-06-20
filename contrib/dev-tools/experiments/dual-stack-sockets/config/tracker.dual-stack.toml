@@ -1,0 +1,46 @@
+[metadata]
+app = "torrust-tracker"
+purpose = "configuration"
+schema_version = "2.0.0"
+
+[logging]
+threshold = "info"
+
+[core]
+inactive_peer_cleanup_interval = 120
+listed = false
+private = false
+
+[core.tracker_policy]
+max_peer_timeout = 60
+persistent_torrent_completed_stat = true
+remove_peerless_torrents = true
+
+[[udp_trackers]]
+bind_address = "0.0.0.0:6969"
+tracker_usage_statistics = true
+ipv6_v6only = false
+
+[[udp_trackers]]
+bind_address = "[::]:6969"
+tracker_usage_statistics = true
+ipv6_v6only = true
+
+[[http_trackers]]
+bind_address = "0.0.0.0:7070"
+tracker_usage_statistics = true
+ipv6_v6only = false
+
+[[http_trackers]]
+bind_address = "[::]:7070"
+tracker_usage_statistics = true
+ipv6_v6only = true
+
+[http_api]
+bind_address = "0.0.0.0:1212"
+
+[http_api.access_tokens]
+admin = "MyAccessToken"
+
+[health_check_api]
+bind_address = "0.0.0.0:1313"

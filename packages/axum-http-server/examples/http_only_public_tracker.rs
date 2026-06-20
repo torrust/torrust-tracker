@@ -69,6 +69,7 @@ async fn main() {
         bind_address: SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 0),
         tsl_config: None,
         tracker_usage_statistics: false,
+        ipv6_v6only: false,
     };
 
     println!("Types from torrust-tracker-configuration used by this binary:");

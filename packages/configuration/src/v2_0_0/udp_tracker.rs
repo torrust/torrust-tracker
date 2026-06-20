@@ -20,6 +20,19 @@ pub struct UdpTracker {
     /// Weather the tracker should collect statistics about tracker usage.
     #[serde(default = "UdpTracker::default_tracker_usage_statistics")]
     pub tracker_usage_statistics: bool,
+
+    /// Whether to set `IPV6_V6ONLY=1` on IPv6 sockets.
+    ///
+    /// When `true` (IPv6-only), the tracker must also bind an IPv4 socket
+    /// (e.g. `0.0.0.0:<port>`) to accept IPv4 connections.
+    /// When `false` (default, dual-stack), a single `[::]:<port>` socket
+    /// accepts both IPv4 and IPv6 clients (IPv4 clients appear as
+    /// IPv4-mapped IPv6 addresses `::ffff:<ipv4>`).
+    ///
+    /// > **Platform note**: On OpenBSD, `IPV6_V6ONLY` cannot be disabled;
+    /// > setting this to `false` will cause a runtime error.
+    #[serde(default = "UdpTracker::default_ipv6_v6only")]
+    pub ipv6_v6only: bool,
 }
 impl Default for UdpTracker {
     fn default() -> Self {
@@ -27,6 +40,7 @@ impl Default for UdpTracker {
             bind_address: Self::default_bind_address(),
             cookie_lifetime: Self::default_cookie_lifetime(),
             tracker_usage_statistics: Self::default_tracker_usage_statistics(),
+            ipv6_v6only: Self::default_ipv6_v6only(),
         }
     }
 }
@@ -41,6 +55,10 @@ impl UdpTracker {
     }
 
     fn default_tracker_usage_statistics() -> bool {
+        false
+    }
+
+    fn default_ipv6_v6only() -> bool {
         false
     }
 }

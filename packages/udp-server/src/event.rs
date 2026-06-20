@@ -1,10 +1,10 @@
 use std::fmt;
-use std::net::SocketAddr;
+use std::net::{IpAddr, SocketAddr};
 use std::time::Duration;
 
 use torrust_metrics::label::{LabelSet, LabelValue};
 use torrust_metrics::label_name;
-use torrust_net_primitives::service_binding::ServiceBinding;
+use torrust_net_primitives::service_binding::{IpFamily, IpType, ServiceBinding};
 use torrust_tracker_core::error::{AnnounceError, ScrapeError};
 use torrust_tracker_udp_core::services::announce::UdpAnnounceError;
 use torrust_tracker_udp_core::services::scrape::UdpScrapeError;
@@ -105,6 +105,19 @@ impl ConnectionContext {
     pub fn server_socket_addr(&self) -> SocketAddr {
         self.server_service_binding.bind_address()
     }
+
+    #[must_use]
+    pub fn client_address_ip_family(&self) -> IpFamily {
+        self.client_socket_addr.ip().into()
+    }
+
+    #[must_use]
+    pub fn client_address_ip_type(&self) -> IpType {
+        match self.client_socket_addr.ip() {
+            IpAddr::V6(v6) if v6.to_ipv4_mapped().is_some() => IpType::V4MappedV6,
+            _ => IpType::Plain,
+        }
+    }
 }
 
 impl From<ConnectionContext> for LabelSet {
@@ -129,6 +142,14 @@ impl From<ConnectionContext> for LabelSet {
             (
                 label_name!("server_binding_port"),
                 LabelValue::new(&connection_context.server_service_binding.bind_address().port().to_string()),
+            ),
+            (
+                label_name!("client_address_ip_family"),
+                LabelValue::new(&connection_context.client_address_ip_family().to_string()),
+            ),
+            (
+                label_name!("client_address_ip_type"),
+                LabelValue::new(&connection_context.client_address_ip_type().to_string()),
             ),
         ])
     }
