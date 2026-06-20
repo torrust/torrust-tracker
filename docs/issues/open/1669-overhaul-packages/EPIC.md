@@ -672,10 +672,8 @@ After SI-14, there is a proposal to evaluate a dedicated repository for protocol
 - [docs/issues/open/1925-1669-si-31-configure-cargo-deny-for-layer-boundary-enforcement.md](../../open/1925-1669-si-31-configure-cargo-deny-for-layer-boundary-enforcement.md)
 - [docs/issues/open/1926-1669-si-32-define-package-versioning-strategy.md](../../open/1926-1669-si-32-define-package-versioning-strategy.md)
 - [docs/issues/drafts/1669-extract-torrust-tracker-client-to-standalone-repo.md](../../drafts/1669-extract-torrust-tracker-client-to-standalone-repo.md)
-- [docs/issues/open/1926-1669-si-32-define-package-versioning-strategy.md](../../open/1926-1669-si-32-define-package-versioning-strategy.md)
 - [docs/issues/drafts/1669-define-rest-api-contract-first-package-architecture.md](../../drafts/1669-define-rest-api-contract-first-package-architecture.md)
 - [docs/issues/closed/1910-1669-si-29-rename-udp-and-http-core-protocol-crates-to-remove-redundant-tracker.md](../../closed/1910-1669-si-29-rename-udp-and-http-core-protocol-crates-to-remove-redundant-tracker.md)
-- [docs/issues/open/1925-1669-si-31-configure-cargo-deny-for-layer-boundary-enforcement.md](../../open/1925-1669-si-31-configure-cargo-deny-for-layer-boundary-enforcement.md)
   > New subissues are created as analysis reveals the next improvement. The EPIC is never
   > fully planned up front.
 

@@ -107,7 +107,7 @@ Independent versioning splits the current unified release model into two distinc
 
 ### Why This Matters Now
 
-The client extraction draft ([`docs/issues/drafts/1669-extract-torrust-tracker-client-to-standalone-repo.md`](../../drafts/1669-extract-torrust-tracker-client-to-standalone-repo.md))
+The client extraction draft ([`docs/issues/drafts/1669-extract-torrust-tracker-client-to-standalone-repo.md`](../drafts/1669-extract-torrust-tracker-client-to-standalone-repo.md))
 is blocked on two unpublished workspace crates:
 
 | Blocker crate                                            | Published? | Can publish after this policy?  |
