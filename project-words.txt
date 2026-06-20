@@ -36,6 +36,7 @@ beps
 Beránek
 bidirectionality
 binascii
+Biriukov
 bindv6only
 binstall
 bitcode
@@ -86,9 +87,11 @@ debuginfo
 defence
 depgraph
 Deque
+DGRAM
 Dihc
 Dijke
 distroless
+distros
 dler
 Dmqcd
 dockerhub
@@ -158,6 +161,8 @@ infoschema
 initialisation
 Intermodal
 intervali
+IPPROTO
+IPV6
 Irwe
 isready
 iterationsadd
@@ -307,6 +312,7 @@ Seedable
 serde
 serialisation
 setgroups
+setsockopt
 Shareaza
 sharktorrent
 shellcheck
@@ -363,6 +369,7 @@ ttwu
 typenum
 udpv
 ulnp
+UNCONN
 Unamed
 unconfigured
 underflows
@@ -399,6 +406,7 @@ WEBUI
 Weidendorfer
 Werror
 whitespaces
+Winsock
 Xacrimon
 XBTT
 Xdebug
