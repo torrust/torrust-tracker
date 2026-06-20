@@ -1,13 +1,13 @@
 ---
 doc-type: issue
 issue-type: task
-status: draft
+status: open
 priority: p2
-github-issue: null
-spec-path: docs/issues/drafts/1669-configure-cargo-deny-for-layer-boundary-enforcement.md
+github-issue: 1925
+spec-path: docs/issues/open/1925-1669-si-31-configure-cargo-deny-for-layer-boundary-enforcement.md
 branch: null
 related-pr: null
-last-updated-utc: 2026-06-11
+last-updated-utc: 2026-06-20
 semantic-links:
   skill-links:
     - create-issue
@@ -22,7 +22,7 @@ semantic-links:
 
 <!-- skill-link: create-issue -->
 
-# Issue #[To be assigned] - Configure `cargo deny` for workspace layer boundary enforcement
+# Issue #1925 - Configure `cargo deny` for workspace layer boundary enforcement
 
 ## Goal
 
@@ -102,6 +102,12 @@ Until that violation is fixed, the `wrappers` list for `udp-server` will include
 below for the exact entry). Once the decoupling is done, `rest-api-core` should be
 removed from the wrappers list.
 
+> **Execution order**: This issue should be implemented **after** the `rest-api-core`
+> decoupling ([`1669-decouple-rest-api-core-from-udp-internals.md`](./1669-decouple-rest-api-core-from-udp-internals.md)),
+> or the final PR must include a second commit that removes `rest-api-core` from the
+> `udp-server` wrappers. If implemented first, deny will pass but the stale exception
+> would remain until explicitly cleaned up.
+
 ## Layer map and forbidden edges
 
 ### Layer classification
@@ -109,10 +115,11 @@ removed from the wrappers list.
 | Layer                             | Packages                                                                                                                                                                                |
 | --------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Server** (`axum-*`, `*-server`) | `torrust-tracker-axum-http-server`, `torrust-tracker-axum-rest-api-server`, `torrust-tracker-axum-health-check-api-server`, `torrust-tracker-axum-server`, `torrust-tracker-udp-server` |
-| **Core** (`*-core`)               | `torrust-tracker-core`, `torrust-tracker-http-tracker-core`, `torrust-tracker-udp-tracker-core`, `torrust-tracker-rest-api-core`                                                        |
-| **Protocol** (`*-protocol`)       | `torrust-tracker-http-tracker-protocol`, `torrust-tracker-udp-tracker-protocol`                                                                                                         |
-| **Domain / Shared**               | `torrust-tracker-configuration`, `torrust-tracker-primitives`, `torrust-tracker-events`, `torrust-tracker-swarm-coordination-registry`, `torrust-server-lib`                            |
-| **Utilities / Test**              | `torrust-tracker-test-helpers`, `torrust-tracker-torrent-repository-benchmarking`                                                                                                       |
+| **Core** (`*-core`)               | `torrust-tracker-core`, `torrust-tracker-http-core`, `torrust-tracker-udp-core`, `torrust-tracker-rest-api-core`                                                                        |
+| **Protocol** (`*-protocol`)       | `torrust-tracker-http-protocol`, `torrust-tracker-udp-protocol`                                                                                                                         |
+| **Domain / Shared**               | `torrust-tracker-configuration`, `torrust-tracker-primitives`, `torrust-tracker-events`, `torrust-tracker-swarm-coordination-registry`, `torrust-tracker-client-lib`                    |
+| **Tools / Benchmarks**            | `torrust-tracker-test-helpers`, `torrust-tracker-torrent-repository-benchmarking`, `e2e-tools`, `persistence-benchmark`                                                                 |
+| **CLI tools**                     | `torrust-tracker-client` (console binary)                                                                                                                                               |
 
 ### Forbidden dependency edges
 
@@ -174,12 +181,12 @@ deny = [
 
     # Protocol crates must not be used by tracker-core or core layers.
     # Only server and the respective *-core should depend on them.
-    { crate = "torrust-tracker-http-tracker-protocol", wrappers = [
+    { crate = "torrust-tracker-http-protocol", wrappers = [
         "torrust-tracker-axum-http-server",
-        "torrust-tracker-http-tracker-core",
+        "torrust-tracker-http-core",
     ] },
-    { crate = "torrust-tracker-udp-tracker-protocol", wrappers = [
-        "torrust-tracker-udp-tracker-core",
+    { crate = "torrust-tracker-udp-protocol", wrappers = [
+        "torrust-tracker-udp-core",
         "torrust-tracker-udp-server",
         "torrust-tracker-axum-http-server",
         "torrust-tracker-client-lib",
@@ -187,13 +194,13 @@ deny = [
     ] },
 
     # Core protocol-specific wrappers must not be depended on by tracker-core
-    { crate = "torrust-tracker-http-tracker-core", wrappers = [
+    { crate = "torrust-tracker-http-core", wrappers = [
         "torrust-tracker-axum-http-server",
         "torrust-tracker-axum-rest-api-server",
         "torrust-tracker-rest-api-core",
         "torrust-tracker",
     ] },
-    { crate = "torrust-tracker-udp-tracker-core", wrappers = [
+    { crate = "torrust-tracker-udp-core", wrappers = [
         "torrust-tracker-udp-server",
         "torrust-tracker-axum-rest-api-server",
         "torrust-tracker-rest-api-core",
@@ -202,9 +209,13 @@ deny = [
 ]
 ```
 
-> **Note**: Crate names above use the current naming convention. If the rename subissue
-> (remove redundant `-tracker-` from HTTP/UDP crate names) is implemented first, update
-> the `deny.toml` entries accordingly.
+> **Crate name note**: The crate names above use the current naming convention (after SI-29).
+> SI-29 is already done, so no name updates are needed.
+>
+> **Cross-reference to client extraction**: The wrappers list for `torrust-tracker-udp-protocol`
+> includes `torrust-tracker-client-lib` and `torrust-tracker-client` (console). When the
+> client extraction ([`1669-extract-torrust-tracker-client-to-standalone-repo.md`](./1669-extract-torrust-tracker-client-to-standalone-repo.md))
+> removes both from the workspace, these wrapper entries must be removed from `deny.toml`.
 
 ## Implementation Plan
 

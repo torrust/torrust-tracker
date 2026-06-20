@@ -1,11 +1,12 @@
 ---
 doc-type: spec
 issue-type: task
-status: draft
+status: open
 priority: p2
 epic: 1669
-spec-path: docs/issues/drafts/1669-decouple-rest-api-core-from-udp-internals.md
-last-updated-utc: 2026-06-15
+github-issue: 1924
+spec-path: docs/issues/open/1924-1669-si-30-decouple-rest-api-core-from-udp-internals.md
+last-updated-utc: 2026-06-20
 semantic-links:
   skill-links:
     - create-issue
@@ -16,7 +17,7 @@ semantic-links:
     - docs/issues/open/1903-1669-si-23-relocate-axum-rest-api-server-test-environment.md
 ---
 
-# Decouple `rest-api-core` and `axum-rest-api-server` from Concrete UDP Server Internals
+# Issue #1924 - Decouple `rest-api-core` and `axum-rest-api-server` from Concrete UDP Server Internals
 
 ## Subissue of EPIC #1669 — Overhaul: Packages
 
@@ -30,7 +31,7 @@ test infrastructure moves, while this is a production dependency decoupling.
 ## Problem
 
 Two packages import concrete UDP types, forcing runtime dependencies on `udp-server` and
-`udp-tracker-core`:
+`udp-core`:
 
 ### `rest-api-core`
 
@@ -56,11 +57,11 @@ Two packages import concrete UDP types, forcing runtime dependencies on `udp-ser
 
 **Production imports** in `src/v1/context/stats/handlers.rs`:
 
-| Import                                                                 | Concern                          |
-| ---------------------------------------------------------------------- | -------------------------------- |
-| `BanService`                                                           | Handler state type               |
-| `torrust_tracker_udp_server::statistics::repository::Repository`       | Handler state type (get_stats)   |
-| `torrust_tracker_udp_tracker_core::statistics::repository::Repository` | Handler state type (get_metrics) |
+| Import                                                           | Concern                          |
+| ---------------------------------------------------------------- | -------------------------------- |
+| `BanService`                                                     | Handler state type               |
+| `torrust_tracker_udp_server::statistics::repository::Repository` | Handler state type (get_stats)   |
+| `torrust_tracker_udp_core::statistics::repository::Repository`   | Handler state type (get_metrics) |
 
 **Production references** in `src/v1/context/stats/routes.rs`:
 
@@ -73,7 +74,7 @@ Two packages import concrete UDP types, forcing runtime dependencies on `udp-ser
 ### Consequence
 
 Both `rest-api-core/Cargo.toml` and `axum-rest-api-server/Cargo.toml` list `udp-server` and
-`udp-tracker-core` as runtime dependencies. After the decoupling, they can be demoted to
+`udp-core` as runtime dependencies. After the decoupling, they can be demoted to
 dev-dependencies (or removed entirely) in both files.
 
 ## Scope
@@ -95,10 +96,20 @@ Define shared trait abstractions for the three concrete UDP types that leak into
 Each trait exposes only the methods the REST layer actually calls (e.g. `get_stats()`,
 `ban()`, etc.). This keeps the interface minimal and avoids leaking UDP internals.
 
-### 3. Move constants
+### 3. Turn `MAX_CONNECTION_ID_ERRORS_PER_IP` into a configuration option
 
-Move `MAX_CONNECTION_ID_ERRORS_PER_IP` from `udp_tracker_core` to a shared location
-(e.g. `tracker-core` or `primitives`) since `rest-api-core` tests reference it.
+Move `MAX_CONNECTION_ID_ERRORS_PER_IP` from a hardcoded `pub const` in `udp_core` to
+a new config field in the `UdpTracker` configuration struct
+(`packages/configuration/src/v2_0_0/udp_tracker.rs`):
+
+- Add field `pub max_connection_id_errors_per_ip: u32` with default `10` via `#[serde(default)]`.
+- `UdpTrackerCoreContainer` already holds `Arc<UdpTracker>`, so `container.rs` reads
+  `udp_tracker_config.max_connection_id_errors_per_ip` instead of the constant.
+- Tests in `rest-api-core` use a literal `10` (or a local test constant) instead of
+  importing `MAX_CONNECTION_ID_ERRORS_PER_IP` from `udp_core`.
+
+This eliminates the dependency edge entirely and is more aligned with the project's
+observability and testability principles (configuration-driven, not hardcoded).
 
 ### 4. Update `rest-api-core`
 
@@ -107,10 +118,10 @@ Move `MAX_CONNECTION_ID_ERRORS_PER_IP` from `udp_tracker_core` to a shared locat
   `UdpTrackerCoreContainer` and `UdpTrackerServerContainer` are no longer imported.
 - `src/statistics/services.rs`: function signatures use trait references instead of concrete
   `udp_server_statistics::repository::Repository`.
-- Test code: instantiate concrete types via `udp_tracker_core` / `udp_server` (dev-deps).
-- `Cargo.toml`: demote `udp-server` and `udp-tracker-core` to `[dev-dependencies]`.
+- Test code: instantiate concrete types via `udp_core` / `udp_server` (dev-deps).
+- `Cargo.toml`: demote `udp-server` and `udp-core` to `[dev-dependencies]`.
 
-### 5. Update `udp-server` and `udp-tracker-core`
+### 5. Update `udp-server` and `udp-core`
 
 - Implement the new traits on their existing concrete types.
 - The `BanService` struct gets `impl BanningService for BanService`.
@@ -122,7 +133,7 @@ Move `MAX_CONNECTION_ID_ERRORS_PER_IP` from `udp_tracker_core` to a shared locat
   concrete types are removed.
 - `src/v1/context/stats/routes.rs`: Routes pass trait objects from
   `TrackerHttpApiCoreContainer` fields (already trait objects after step 4).
-- `Cargo.toml`: demote `udp-server` and `udp-tracker-core` to `[dev-dependencies]`.
+- `Cargo.toml`: demote `udp-server` and `udp-core` to `[dev-dependencies]`.
 
 ### 7. Clean up
 
@@ -132,8 +143,8 @@ Move `MAX_CONNECTION_ID_ERRORS_PER_IP` from `udp_tracker_core` to a shared locat
 
 ## Acceptance Criteria
 
-1. `rest-api-core/Cargo.toml` has no `udp-server` or `udp-tracker-core` runtime dependency.
-2. `axum-rest-api-server/Cargo.toml` has no `udp-server` or `udp-tracker-core` runtime dependency.
+1. `rest-api-core/Cargo.toml` has no `udp-server` or `udp-core` runtime dependency.
+2. `axum-rest-api-server/Cargo.toml` has no `udp-server` or `udp-core` runtime dependency.
 3. `rest-api-core/src/` imports only trait abstractions from UDP packages, not concrete types.
 4. `axum-rest-api-server/src/v1/context/stats/` uses trait objects in handler state tuples and
    routes, not concrete UDP types.
@@ -153,13 +164,13 @@ Move `MAX_CONNECTION_ID_ERRORS_PER_IP` from `udp_tracker_core` to a shared locat
 - [ ] `BanningService` trait defined in shared location
 - [ ] `UdpCoreStatsRepository` trait defined in shared location
 - [ ] `UdpServerStatsRepository` trait defined in shared location
-- [ ] `MAX_CONNECTION_ID_ERRORS_PER_IP` moved to shared location
+- [ ] `MAX_CONNECTION_ID_ERRORS_PER_IP` added as a configuration option in `UdpTracker` config struct (default `10`)
 - [ ] `rest-api-core/src/container.rs`: stores `Arc<dyn BanningService>` + `Arc<dyn UdpStatsRepository>`
 - [ ] `rest-api-core/src/statistics/services.rs`: uses trait refs, not concrete types
-- [ ] `rest-api-core/Cargo.toml`: `udp-server` + `udp-tracker-core` are dev-deps only
+- [ ] `rest-api-core/Cargo.toml`: `udp-server` + `udp-core` are dev-deps only
 - [ ] `axum-rest-api-server/src/v1/context/stats/handlers.rs`: uses trait objects, not concrete types
 - [ ] `axum-rest-api-server/src/v1/context/stats/routes.rs`: uses trait objects from container
-- [ ] `axum-rest-api-server/Cargo.toml`: `udp-server` + `udp-tracker-core` are dev-deps only
+- [ ] `axum-rest-api-server/Cargo.toml`: `udp-server` + `udp-core` are dev-deps only
 - [ ] `cargo test --workspace` — pass
 - [ ] `cargo machete` — pass
 - [ ] `linter all` — pass

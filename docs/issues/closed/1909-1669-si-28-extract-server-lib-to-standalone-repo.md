@@ -5,10 +5,10 @@ status: done
 priority: p2
 epic: 1669
 github-issue: 1909
-spec-path: docs/issues/open/1909-1669-si-28-extract-server-lib-to-standalone-repo.md
+spec-path: docs/issues/closed/1909-1669-si-28-extract-server-lib-to-standalone-repo.md
 branch: "1909-extract-server-lib-to-standalone-repo"
 related-pr: null
-last-updated-utc: 2026-06-19
+last-updated-utc: 2026-06-20
 semantic-links:
   skill-links:
     - create-issue

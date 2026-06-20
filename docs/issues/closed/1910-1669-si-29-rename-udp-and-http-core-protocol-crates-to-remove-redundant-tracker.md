@@ -1,14 +1,14 @@
 ---
 doc-type: issue
 issue-type: task
-status: open
+status: done
 priority: p2
 epic: 1669
 github-issue: 1910
-spec-path: docs/issues/open/1910-1669-si-29-rename-udp-and-http-core-protocol-crates-to-remove-redundant-tracker.md
+spec-path: docs/issues/closed/1910-1669-si-29-rename-udp-and-http-core-protocol-crates-to-remove-redundant-tracker.md
 branch: 1910-rename-udp-and-http-core-protocol-crates
 related-pr: 1923
-last-updated-utc: 2026-06-19
+last-updated-utc: 2026-06-20
 semantic-links:
   skill-links:
     - create-issue

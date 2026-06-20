@@ -112,6 +112,8 @@ flamegraph
 flamegraphs
 fnix
 footgun
+formalised
+formalises
 formatjson
 fput
 fract
