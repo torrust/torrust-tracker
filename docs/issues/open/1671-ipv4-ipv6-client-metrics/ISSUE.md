@@ -94,14 +94,14 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 ### Task 3 — Config Option for `IPV6_V6ONLY`
 
-| ID  | Status | Task                                                                   | Notes / Expected Output                                                                                   |
-| --- | ------ | ---------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| T12 | DONE   | Add `ipv6_v6only: bool` field to `UdpTracker` and `HttpTracker` config | Add field with `#[serde(default)]` defaulting to `false` (dual-stack mode).                               |
-| T13 | DONE   | Wire config into UDP socket creation                                   | Pass `ipv6_v6only` through `Launcher` to `BoundSocket::create_socket`, only call `set_only_v6` when true. |
-| T14 | DONE   | Wire config into HTTP socket creation                                  | Pass `ipv6_v6only` into `Launcher::create_tcp_listener`, only call `set_only_v6` when true.               |
-| T15 | DONE   | Remove unconditional `IPV6_V6ONLY=1` experiment code                   | The config option replaces the hardcoded `set_only_v6(true)` in both socket creation paths.               |
-| T16 | DONE   | Update dual-stack experiment config to use `ipv6_v6only = true`        | Modify `contrib/dev-tools/experiments/dual-stack-sockets/config/tracker.dual-stack.toml`                  |
-| T17 | TODO   | Add tests for `ipv6_v6only` config propagation                         | Unit tests verifying the config value reaches socket creation.                                            |
+| ID  | Status | Task                                                                   | Notes / Expected Output                                                                                                                                                                   |
+| --- | ------ | ---------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| T12 | DONE   | Add `ipv6_v6only: bool` field to `UdpTracker` and `HttpTracker` config | Add field with `#[serde(default)]` defaulting to `false` (dual-stack mode).                                                                                                               |
+| T13 | DONE   | Wire config into UDP socket creation                                   | Pass `ipv6_v6only` through `Launcher` to `BoundSocket::create_socket`, only call `set_only_v6` when true.                                                                                 |
+| T14 | DONE   | Wire config into HTTP socket creation                                  | Pass `ipv6_v6only` into `Launcher::create_tcp_listener`, only call `set_only_v6` when true.                                                                                               |
+| T15 | DONE   | Remove unconditional `IPV6_V6ONLY=1` experiment code                   | The config option replaces the hardcoded `set_only_v6(true)` in both socket creation paths.                                                                                               |
+| T16 | DONE   | Update dual-stack experiment config to use `ipv6_v6only = true`        | Modify `contrib/dev-tools/experiments/dual-stack-sockets/config/tracker.dual-stack.toml`                                                                                                  |
+| T17 | DONE   | Add tests for `ipv6_v6only` config propagation                         | Integration test `should_accept_ipv6_connections_with_ipv6_v6only_enabled` in `packages/udp-server/tests/server/contract.rs` and `packages/axum-http-server/tests/server/v1/contract.rs`. |
 
 ## Progress Tracking
 
@@ -126,6 +126,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-06-19 19:00 UTC - Copilot - Ran dual-stack experiment locally (see `contrib/dev-tools/experiments/dual-stack-sockets/README.md`)
 - 2026-06-20 UTC - Copilot - Updated spec verification table with experiment evidence, added UDP unit tests for client address labels, ran linter all
 - 2026-06-20 UTC - Copilot - Removed duplicate UDP server tests (derivation tested once in udp-tracker-core), added cross-fingerprint cookie rejection test for AC5, fixed linter issues, updated spec
+- 2026-06-20 UTC - Copilot - Added UDP integration test for `ipv6_v6only` config propagation (T17)
 
 ## Acceptance Criteria
 
