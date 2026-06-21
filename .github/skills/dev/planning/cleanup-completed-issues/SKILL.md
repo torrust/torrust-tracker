@@ -1,6 +1,6 @@
 ---
 name: cleanup-completed-issues
-description: Guide for archiving closed issue specification files from docs/issues/open/ to docs/issues/closed/. Covers verifying closure on GitHub, moving files, updating frontmatter, creating a branch, and opening a PR. Does NOT cover permanent deletion of closed specs — that is a manual user-driven action. Use when cleaning up closed issue specs, archiving issue docs, or maintaining the docs/issues/ folder. Triggers on "cleanup issue", "archive issue", "move closed issue", "clean completed issues", or "maintain issue docs".
+description: Guide for archiving closed issue specification files from docs/issues/open/ to docs/issues/closed/. Covers verifying closure on GitHub, moving files, updating frontmatter, creating a branch, and opening a PR. Permanent deletion of closed specs is not automated — the user must explicitly request it. Use when cleaning up closed issue specs, archiving issue docs, or maintaining the docs/issues/ folder. Triggers on "cleanup issue", "archive issue", "move closed issue", "clean completed issues", or "maintain issue docs".
 metadata:
   author: torrust
   version: "1.3"
@@ -10,12 +10,13 @@ metadata:
 
 ## Lifecycle
 
-Closed issue specs follow a single automated stage:
+Closed issue specs follow this lifecycle:
 
-1. **Archive**: When an issue is closed, move its spec file from `docs/issues/open/` to
-   `docs/issues/closed/`. The file stays in the closed buffer as a reference.
-2. **Permanent deletion**: Not part of this skill. If the user wants specs permanently
-   deleted, they will explicitly ask for it.
+1. **Archive** (automated by this skill): When an issue is closed, move its spec file from
+   `docs/issues/open/` to `docs/issues/closed/`. The file stays in the closed buffer as a
+   reference for ongoing and upcoming work.
+2. **Permanent deletion** (user-driven): If the user wants specs permanently deleted, they
+   will explicitly ask for it. This skill does not automate deletion.
 
 See [`docs/issues/closed/README.md`](../../../../docs/issues/closed/README.md) for the purpose
 of the closed buffer folder.
@@ -41,9 +42,12 @@ Related lifecycle docs:
 
 Always create a new branch for this work. Never commit directly to `develop`.
 
+Start from an up-to-date `develop`:
+
 ```bash
+UPSTREAM_REMOTE="${UPSTREAM_REMOTE:-torrust}"
 git checkout develop
-git pull torrust develop
+git pull --ff-only "$UPSTREAM_REMOTE" develop
 git checkout -b chore/cleanup-completed-issues
 ```
 
@@ -102,7 +106,9 @@ After moving, update the spec's YAML frontmatter to reflect the closed state:
 
 For directories with multiple files, update at minimum the main `ISSUE.md` plus any
 supplementary files whose frontmatter references the `docs/issues/open/` path (e.g.,
-`related-artifacts` links to the open spec).
+`related-artifacts` links to the open spec). For supplementary docs without existing
+frontmatter, add a minimal block with `spec-path`, `last-updated-utc`, and a
+`sematic-links` section linking back to the parent issue spec.
 
 Also check the spec's **Workflow Checkpoints** section and tick any checkboxes that
 reflect completed work (manual verification, acceptance criteria review, etc.) based
@@ -136,7 +142,8 @@ Run the pre-commit hooks before finishing:
 ### Step 6: Push and Open a Pull Request
 
 ```bash
-git push {your-fork-remote} chore/cleanup-completed-issues
+FORK_REMOTE="${FORK_REMOTE:-josecelano}"
+git push "$FORK_REMOTE" chore/cleanup-completed-issues
 ```
 
 Open a PR targeting `develop`:
@@ -145,11 +152,12 @@ Open a PR targeting `develop`:
 gh pr create \
   --repo torrust/torrust-tracker \
   --base develop \
-  --head {your-fork-remote}:chore/cleanup-completed-issues \
-  --title "chore(issues): archive closed issue #{N} spec to docs/issues/closed" \
+  --head "${FORK_REMOTE}:chore/cleanup-completed-issues" \
+  --title "chore(issues): archive closed issue #${N} spec to docs/issues/closed" \
   --body "Archives the spec for issue #${N} (closed on GitHub) from \`docs/issues/open/\` to \`docs/issues/closed/\`.
 
 - Verified issue #${N} is \`CLOSED\` on GitHub
 - Updated frontmatter (\`status: done\`, \`spec-path\`, \`last-updated-utc\`)
 - Updated workflow checkboxes where applicable
 - Pre-commit hooks passed"
+```
