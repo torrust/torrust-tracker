@@ -1,3 +1,8 @@
+---
+spec-path: docs/issues/closed/1671-ipv4-ipv6-client-metrics/research-dual-stack-portability.md
+last-updated-utc: 2026-06-21 10:00
+---
+
 # Research: `IPV6_V6ONLY` Defaults and Dual-Stack Portability
 
 > Related to [#1671](https://github.com/torrust/torrust-tracker/issues/1671) — IPv4/IPv6 client metrics.
