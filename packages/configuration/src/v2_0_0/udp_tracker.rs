@@ -25,12 +25,11 @@ pub struct UdpTracker {
     ///
     /// When `true` (IPv6-only), the tracker must also bind an IPv4 socket
     /// (e.g. `0.0.0.0:<port>`) to accept IPv4 connections.
-    /// When `false` (default, dual-stack), a single `[::]:<port>` socket
-    /// accepts both IPv4 and IPv6 clients (IPv4 clients appear as
-    /// IPv4-mapped IPv6 addresses `::ffff:<ipv4>`).
+    /// When `false` (default), the socket option is not overridden and the
+    /// OS default applies (dual-stack on Linux, IPv6-only on other platforms).
     ///
-    /// > **Platform note**: On OpenBSD, `IPV6_V6ONLY` cannot be disabled;
-    /// > setting this to `false` will cause a runtime error.
+    /// > **Platform note**: On OpenBSD, `IPV6_V6ONLY` is always `1` and cannot
+    /// > be disabled; setting this to `false` is a no-op.
     #[serde(default = "UdpTracker::default_ipv6_v6only")]
     pub ipv6_v6only: bool,
 }

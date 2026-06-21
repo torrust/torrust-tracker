@@ -15,8 +15,8 @@ semantic-links:
     - packages/udp-server/src/event.rs
     - packages/udp-server/src/server/bound_socket.rs
     - packages/udp-server/src/server/launcher.rs
-    - packages/udp-tracker-core/src/event.rs
-    - packages/http-tracker-core/src/event.rs
+    - packages/udp-core/src/event.rs
+    - packages/http-core/src/event.rs
     - packages/axum-http-server/src/server.rs
     - packages/configuration/src/v2_0_0/udp_tracker.rs
     - packages/configuration/src/v2_0_0/http_tracker.rs
@@ -53,10 +53,8 @@ Issue [#1375](https://github.com/torrust/torrust-tracker/issues/1375) introduced
 
 - **Task 1 — Investigate separate IPv4/IPv6 socket bindings:**
   - Experimentally verify whether setting `IPV6_V6ONLY=1` on IPv6 sockets at the Rust code level (via `socket2`) allows a single tracker process to bind both `0.0.0.0:<port>` and `[::]:<port>` on the same port without `EADDRINUSE`.
-  - This is a pure investigation: keep the `IPV6_V6ONLY` change as experiment code in the branch, _not_ as a final configuration option or permanent behaviour change.
   - The experiment lives in `contrib/dev-tools/experiments/dual-stack-sockets/`.
-  - If confirmed possible, document the finding and optionally design a config toggle for a follow-up issue. Do not merge IPV6_V6ONLY into the default code path.
-  - Note: Task 2 (client address parsing) works regardless of the investigation outcome and is the primary fix for Grafana visibility.
+  - The experiment confirmed it works, leading to the config option in Task 3.
 
 - **Task 3 — Config option for `IPV6_V6ONLY` socket option:**
   - Add `ipv6_v6only: bool` field to `UdpTracker` and `HttpTracker` config structs (default `false`).
@@ -88,8 +86,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | --- | ------ | --------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
 | T7  | DONE   | Add client address helper to `ConnectionContext` types                      | Add `client_address_ip_family()` and `client_address_ip_type()` helpers to context |
 | T8  | DONE   | Add client labels to `ConnectionContext → LabelSet` conversion (UDP server) | Modify `packages/udp-server/src/event.rs` `From<ConnectionContext> for LabelSet`   |
-| T9  | DONE   | Add client labels to `ConnectionContext → LabelSet` conversion (UDP core)   | Modify `packages/udp-tracker-core/src/event.rs`                                    |
-| T10 | DONE   | Add client labels to `ConnectionContext → LabelSet` conversion (HTTP core)  | Modify `packages/http-tracker-core/src/event.rs`                                   |
+| T9  | DONE   | Add client labels to `ConnectionContext → LabelSet` conversion (UDP core)   | Modify `packages/udp-core/src/event.rs`                                            |
+| T10 | DONE   | Add client labels to `ConnectionContext → LabelSet` conversion (HTTP core)  | Modify `packages/http-core/src/event.rs`                                           |
 | T11 | DONE   | Add tests for client address label derivation                               | Unit tests for `client_address_ip_type` derivation from `IpAddr`                   |
 
 ### Task 3 — Config Option for `IPV6_V6ONLY`
@@ -125,7 +123,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-06-19 17:45 UTC - Copilot - Implemented Task 2 (client address labels: T7-T11) and Task 1/IPV6_V6ONLY (T1, T4, T5) - UDP server, HTTP server, UDP core, HTTP core
 - 2026-06-19 19:00 UTC - Copilot - Ran dual-stack experiment locally (see `contrib/dev-tools/experiments/dual-stack-sockets/README.md`)
 - 2026-06-20 UTC - Copilot - Updated spec verification table with experiment evidence, added UDP unit tests for client address labels, ran linter all
-- 2026-06-20 UTC - Copilot - Removed duplicate UDP server tests (derivation tested once in udp-tracker-core), added cross-fingerprint cookie rejection test for AC5, fixed linter issues, updated spec
+- 2026-06-20 UTC - Copilot - Removed duplicate UDP server tests (derivation tested once in udp-core), added cross-fingerprint cookie rejection test for AC5, fixed linter issues, updated spec
 - 2026-06-20 UTC - Copilot - Added UDP integration test for `ipv6_v6only` config propagation (T17)
 
 ## Acceptance Criteria

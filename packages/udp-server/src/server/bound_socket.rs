@@ -15,7 +15,7 @@ pub struct BoundSocket {
 impl BoundSocket {
     /// # Errors
     ///
-    /// Will return an error if the socket can't be bound the the provided address.
+    /// Will return an error if the socket can't be bound to the provided address.
     pub fn new(addr: SocketAddr, ipv6_v6only: bool) -> Result<Self, Box<std::io::Error>> {
         let bind_addr = format!("udp://{addr}");
         tracing::debug!(target: UDP_TRACKER_LOG_TARGET, bind_addr, "UdpSocket::new (binding)");

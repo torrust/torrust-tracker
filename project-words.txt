@@ -36,8 +36,8 @@ beps
 Beránek
 bidirectionality
 binascii
-Biriukov
 bindv6only
+Biriukov
 binstall
 bitcode
 Bitflu
