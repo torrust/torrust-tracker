@@ -180,6 +180,4 @@ Both tasks confirmed working:
 
 ### Next steps
 
-- Design a configuration option to let operators toggle `IPV6_V6ONLY` behaviour
-  (default: off / dual-stack mode — current behaviour).
 - Consider performance benchmarks to confirm separate sockets improve throughput.

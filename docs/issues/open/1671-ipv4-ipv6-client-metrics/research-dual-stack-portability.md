@@ -57,7 +57,8 @@ rejects `IPV6_V6ONLY=0`. On OpenBSD, an IPv6 socket is always IPv6-only.
 
 - **No breakage** for existing users (default preserves current behaviour).
 - Config toggle only works on platforms that support it (Linux, Windows, macOS,
-  FreeBSD). On OpenBSD, forcing `IPV6_V6ONLY=0` is a runtime error.
+  FreeBSD). On OpenBSD, `IPV6_V6ONLY` cannot be disabled; setting `ipv6_v6only`
+  to `false` is a no-op since the code never forces `IPV6_V6ONLY=0`.
 - OS-dependent features are not unprecedented (e.g., `io_uring` is Linux-only),
   but they add maintenance burden.
 
@@ -73,7 +74,8 @@ rejects `IPV6_V6ONLY=0`. On OpenBSD, an IPv6 socket is always IPv6-only.
 `udp_tracker.ipv6_v6only` / `http_tracker.ipv6_v6only`) defaulting to `false`
 (preserving current dual-stack behaviour). Operators who want separate sockets
 can opt in. The option is documented as Linux/macOS/Windows-only; on OpenBSD the
-application logs a warning and ignores the setting.
+setting is a no-op since the code only applies `IPV6_V6ONLY` when
+`ipv6_v6only=true` and never forces `IPV6_V6ONLY=0`.
 
 That said, Option C (always-on) has appeal for simplicity and cross-platform
 consistency, but the breaking change needs careful handling.
