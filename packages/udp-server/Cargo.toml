@@ -40,6 +40,7 @@ tracing = "0"
 url = { version = "2", features = [ "serde" ] }
 uuid = { version = "1", features = [ "v4" ] }
 zerocopy = "0.8"
+socket2 = "0.6.4"
 
 [dev-dependencies]
 mockall = "0"

@@ -63,11 +63,31 @@
 //!   - As a result, attackers might attempt to forge or manipulate connection IDs.
 //!   - However, the probability of an arbitrary 64-bit value decrypting to a valid `issue_time` within the acceptable range is extremely low, effectively serving as a form of authentication.
 //!
+//! - **Fingerprint is NOT client authentication:**
+//!   - The fingerprint is mixed into the cookie via simple integer `wrapping_add` / `wrapping_sub`, **not** via a cryptographic MAC.
+//!   - A cookie made for fingerprint A can, by coincidence, pass validation when verified with fingerprint B if the arithmetic delta lands the recovered `issue_time` within the valid range.
+//!   - This is because `wrapping_sub(fingerprint_b)` produces an `i64` that, when reinterpreted as `f64`, still satisfies `is_normal()` and falls inside `valid_range`.
+//!   - The fingerprint mixing raises the bar against naive replay (an attacker cannot trivially reuse a cookie from a different client address without guessing the offset), but it is **not** a substitute for client identity authentication.
+//!
+//! - **Scope of the fingerprint:**
+//!   - The `gen_remote_fingerprint()` function (used in production) hashes the full [`SocketAddr`] (IP + port) via [`DefaultHasher`].
+//!   - Two connections from the same IP on different ports get different fingerprints.
+//!   - Two connections from different IPs on the same port likewise.
+//!   - The unit tests with small integer fingerprints (e.g. `1_000_000` vs `2_000_000`) may coincidentally pass the range check with a wrong fingerprint — this is expected behaviour given the arithmetic mixing, not a bug. The realistic-address test (using `gen_remote_fingerprint`) is the authoritative verification.
+//!
+//! - **Probability of Successful Attack:**
+//!   - For a uniformly random 64-bit ciphertext, approximately `2^42` out of `2^64` possible values represent normal `f64` numbers (the rest are NaN, infinity, or subnormal).
+//!   - With a typical 120-second cookie lifetime, the fraction of those that land within the valid window is roughly `window_duration / f64_range ≈ 120s / ~10^21 years`.
+//!   - Combined probability per guess: ~1 in 4 million for a 120s window.
+//!   - This is low enough for practical purposes, but it is **probabilistic**, not cryptographic.
+//!
 //! - **Handling Special `f64` Values:**
 //!   - By checking `issue_time.is_finite()`, the implementation excludes `NaN` and infinite values, ensuring that only valid, finite timestamps are considered.
 //!
-//! - **Probability of Successful Attack:**
-//!   - Given the narrow valid time window (usually around 2 minutes) compared to the vast range of `f64` values, the chance of successfully guessing a valid `issue_time` is negligible.
+//! - **Replay protection is time-based, not connection-bound:**
+//!   - A valid cookie remains valid for its entire lifetime regardless of how many times it is used (until it expires).
+//!   - The same cookie can be reused across multiple announce/scrape requests within the same session.
+//!   - There is no server-side session state or nonce tracking.
 //!
 //! **Key Points:**
 //!
@@ -237,6 +257,8 @@ mod cookie_builder {
 #[cfg(test)]
 mod tests {
 
+    use std::net::{IpAddr, Ipv4Addr, SocketAddr};
+
     use super::*;
 
     #[test]
@@ -329,5 +351,38 @@ mod tests {
             ConnectionCookieError::ValueFromFuture { .. } => {} // Expected error
             _ => panic!("Expected ConnectionIdFromFuture error"),
         }
+    }
+
+    #[test]
+    fn it_should_reject_a_cookie_with_a_wrong_fingerprint_realistic_addresses() {
+        // A cookie obtained from one client address should not validate
+        // when presented from a different client address.
+        //
+        // This relies on the fingerprint (which covers the full SocketAddr)
+        // being different for each address. Because the fingerprint is mixed
+        // via wrapping arithmetic (not a MAC), the test must use realistic
+        // fingerprints produced by gen_remote_fingerprint() — small integer
+        // fingerprints may coincidentally pass (see module-level docs under
+        // "Fingerprint is NOT client authentication").
+        let issue_at = 1_000_000_000_f64;
+        let client_addr_a = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 4000);
+        let client_addr_b = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 2)), 4000);
+
+        let fingerprint_a = gen_remote_fingerprint(&client_addr_a);
+        let fingerprint_b = gen_remote_fingerprint(&client_addr_b);
+
+        assert_ne!(fingerprint_a, fingerprint_b, "test requires different fingerprints");
+
+        let cookie = make(fingerprint_a, issue_at).unwrap();
+
+        let min = issue_at - 120.0;
+        let max = issue_at + 120.0;
+
+        let result = check(&cookie, fingerprint_b, min..max);
+
+        assert!(
+            result.is_err(),
+            "cookie issued for client A should be invalid when verified with client B's fingerprint"
+        );
     }
 }

@@ -2,6 +2,7 @@ use std::fmt::Debug;
 use std::net::SocketAddr;
 use std::ops::Deref;
 
+use socket2::{Domain, Socket, Type};
 use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
 use torrust_tracker_udp_core::UDP_TRACKER_LOG_TARGET;
 use url::Url;
@@ -14,22 +15,64 @@ pub struct BoundSocket {
 impl BoundSocket {
     /// # Errors
     ///
-    /// Will return an error if the socket can't be bound the the provided address.
-    pub async fn new(addr: SocketAddr) -> Result<Self, Box<std::io::Error>> {
+    /// Will return an error if the socket can't be bound to the provided address.
+    pub fn new(addr: SocketAddr, ipv6_v6only: bool) -> Result<Self, Box<std::io::Error>> {
         let bind_addr = format!("udp://{addr}");
         tracing::debug!(target: UDP_TRACKER_LOG_TARGET, bind_addr, "UdpSocket::new (binding)");
 
-        let socket = tokio::net::UdpSocket::bind(addr).await;
+        let socket = Self::create_socket(addr, ipv6_v6only)?;
+        let tokio_socket = tokio::net::UdpSocket::from_std(socket)?;
 
-        let socket = match socket {
-            Ok(socket) => socket,
-            Err(e) => Err(e)?,
-        };
-
-        let local_addr = format!("udp://{}", socket.local_addr()?);
+        let local_addr = format!("udp://{}", tokio_socket.local_addr()?);
         tracing::debug!(target: UDP_TRACKER_LOG_TARGET, local_addr, "UdpSocket::new (bound)");
 
-        Ok(Self { socket })
+        Ok(Self { socket: tokio_socket })
+    }
+
+    /// Creates a [`std::net::UdpSocket`] with `IPV6_V6ONLY` set according to
+    /// the `ipv6_v6only` parameter.
+    ///
+    /// When `ipv6_v6only` is `true`, the socket is restricted to IPv6 only,
+    /// allowing a separate IPv4 socket to bind on the same port
+    /// (e.g. `0.0.0.0:6969` and `[::]:6969`).
+    ///
+    /// When `ipv6_v6only` is `false` (the default), the socket option is
+    /// **not** explicitly set — the OS default applies. This means:
+    ///
+    /// | Platform | Default `IPV6_V6ONLY` | Behaviour with `false` |
+    /// |---|---|---|
+    /// | Linux | `0` (dual-stack) | Dual-stack — single `[::]` socket accepts IPv4 + IPv6 |
+    /// | Windows, macOS, FreeBSD, Solaris | `1` (IPv6-only) | IPv6-only — must also bind `0.0.0.0:<port>` for IPv4 |
+    /// | OpenBSD | `1` (forced) | IPv6-only — `IPV6_V6ONLY` cannot be disabled |
+    ///
+    /// We intentionally do **not** call `set_only_v6(false)` on any platform
+    /// because:
+    /// - On OpenBSD, `setsockopt(IPV6_V6ONLY, 0)` returns `EINVAL` (not
+    ///   supported), which would cause a runtime panic.
+    /// - On other non-Linux platforms, not touching the option preserves the
+    ///   OS default (IPv6-only), which is the safe default.
+    /// - On Linux, the OS default (dual-stack) is preserved without an extra
+    ///   syscall.
+    ///
+    /// This means that operators on Windows, macOS, FreeBSD, and Solaris who
+    /// want dual-stack behaviour must set `ipv6_v6only = false` explicitly
+    /// (which is already the default) — the socket will remain IPv6-only on
+    /// those platforms, matching their OS behaviour. To serve both IPv4 and
+    /// IPv6 on those platforms, operators must configure a separate
+    /// `0.0.0.0:<port>` entry. On Linux, a single `[::]:<port>` entry with
+    /// `ipv6_v6only = false` (default) works as a dual-stack socket.
+    fn create_socket(addr: SocketAddr, ipv6_v6only: bool) -> Result<std::net::UdpSocket, Box<std::io::Error>> {
+        let domain = if addr.is_ipv6() { Domain::IPV6 } else { Domain::IPV4 };
+        let socket = Socket::new(domain, Type::DGRAM, Some(socket2::Protocol::UDP))?;
+
+        if addr.is_ipv6() && ipv6_v6only {
+            socket.set_only_v6(true)?;
+        }
+
+        socket.set_nonblocking(true)?;
+        socket.bind(&addr.into())?;
+
+        Ok(socket.into())
     }
 
     /// # Panics

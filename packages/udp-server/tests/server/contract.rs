@@ -381,3 +381,42 @@ mod receiving_an_scrape_request {
         env.stop().await;
     }
 }
+
+mod using_ipv6_v6only {
+    use std::net::{IpAddr, Ipv6Addr, SocketAddr};
+    use std::sync::Arc;
+
+    use torrust_tracker_client::udp::client::UdpTrackerClient;
+    use torrust_tracker_test_helpers::{configuration, logging};
+    use torrust_tracker_udp_protocol::{ConnectRequest, TransactionId};
+
+    use super::DEFAULT_UDP_TIMEOUT;
+    use crate::server::asserts::is_connect_response;
+
+    #[tokio::test]
+    async fn should_accept_ipv6_connections_with_ipv6_v6only_enabled() {
+        logging::setup();
+
+        let cfg = configuration::ephemeral();
+        let core_config = Arc::new(cfg.core.clone());
+        let mut udp_tracker_config = cfg.udp_trackers.unwrap()[0].clone();
+        udp_tracker_config.bind_address = SocketAddr::new(IpAddr::V6(Ipv6Addr::UNSPECIFIED), 0);
+        udp_tracker_config.ipv6_v6only = true;
+        let udp_tracker_config = Arc::new(udp_tracker_config);
+        let env = torrust_tracker_udp_server::testing::environment::Started::new(&core_config, &udp_tracker_config).await;
+
+        let client = UdpTrackerClient::new(env.bind_address(), DEFAULT_UDP_TIMEOUT).await.unwrap();
+
+        let connect_request = ConnectRequest {
+            transaction_id: TransactionId::new(123),
+        };
+
+        client.send(connect_request.into()).await.unwrap();
+
+        let response = client.receive().await.unwrap();
+
+        assert!(is_connect_response(&response, TransactionId::new(123)));
+
+        env.stop().await;
+    }
+}

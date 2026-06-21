@@ -56,6 +56,7 @@ pub fn ephemeral() -> Configuration {
         bind_address: SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), udp_port),
         cookie_lifetime: Duration::from_secs(120),
         tracker_usage_statistics: true,
+        ipv6_v6only: false,
     }]);
 
     // Ephemeral socket address for HTTP tracker
@@ -64,6 +65,7 @@ pub fn ephemeral() -> Configuration {
         bind_address: SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), http_port),
         tsl_config: None,
         tracker_usage_statistics: true,
+        ipv6_v6only: false,
     }]);
 
     let temp_file = ephemeral_sqlite_database();

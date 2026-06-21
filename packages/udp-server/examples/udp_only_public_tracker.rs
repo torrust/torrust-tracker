@@ -60,6 +60,7 @@ async fn main() {
         bind_address: SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 0),
         cookie_lifetime: Duration::from_secs(120),
         tracker_usage_statistics: false,
+        ipv6_v6only: false,
     };
 
     println!("Types from torrust-tracker-configuration used by this binary:");

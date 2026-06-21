@@ -61,10 +61,14 @@ async fn start_v1(
     http_tracker_container: Arc<HttpTrackerCoreContainer>,
     form: ServiceRegistrationForm,
 ) -> JoinHandle<()> {
-    let server = HttpServer::new(Launcher::new(socket, tls))
-        .start(http_tracker_container, form)
-        .await
-        .expect("it should be able to start to the http tracker");
+    let server = HttpServer::new(Launcher::new(
+        socket,
+        tls,
+        http_tracker_container.http_tracker_config.ipv6_v6only,
+    ))
+    .start(http_tracker_container, form)
+    .await
+    .expect("it should be able to start to the http tracker");
 
     tokio::spawn(async move {
         assert!(
