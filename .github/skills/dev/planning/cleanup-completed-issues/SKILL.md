@@ -1,58 +1,54 @@
 ---
 name: cleanup-completed-issues
-description: Guide for cleaning up completed and closed issues in the torrust-tracker project. Covers moving closed issue documentation files from docs/issues/open/ to docs/issues/closed/ and eventually deleting them. Supports single issue cleanup or batch cleanup. Use when cleaning up closed issues, archiving issue docs, or maintaining the docs/issues/ folder. Triggers on "cleanup issue", "archive issue", "move closed issue", "clean completed issues", "delete closed issue", or "maintain issue docs".
+description: Guide for archiving closed issue specification files from docs/issues/open/ to docs/issues/closed/. Covers verifying closure on GitHub, moving files, updating frontmatter, creating a branch, and opening a PR. Permanent deletion of closed specs is not automated — the user must explicitly request it. Use when cleaning up closed issue specs, archiving issue docs, or maintaining the docs/issues/ folder. Triggers on "cleanup issue", "archive issue", "move closed issue", "clean completed issues", or "maintain issue docs".
 metadata:
   author: torrust
-  version: "1.2"
+  version: "1.3"
 ---
 
 # Cleaning Up Completed Issues
 
-## Two-Stage Lifecycle
+## Lifecycle
 
-Closed issue specs are **not deleted immediately**. They go through a two-stage lifecycle:
+Closed issue specs follow this lifecycle:
 
-1. **Stage 1 — Archive**: When an issue is closed, move its spec file from `docs/issues/open/` to
-   `docs/issues/closed/`. The file stays here as a reference buffer while adjacent issues are
-   still in progress.
-2. **Stage 2 — Delete**: Once the spec is no longer referenced by active work (typically after
-   the next one or two related issues are also closed), delete it permanently.
+1. **Archive** (automated by this skill): When an issue is closed, move its spec file from
+   `docs/issues/open/` to `docs/issues/closed/`. The file stays in the closed buffer as a
+   reference for ongoing and upcoming work.
+2. **Permanent deletion** (user-driven): If the user wants specs permanently deleted, they
+   will explicitly ask for it. This skill does not automate deletion.
 
 See [`docs/issues/closed/README.md`](../../../../docs/issues/closed/README.md) for the purpose
-of the buffer folder.
+of the closed buffer folder.
 
 Related lifecycle docs:
 
 - Open issue specs: [`docs/issues/open/README.md`](../../../../docs/issues/open/README.md)
 - Closed issue buffer: [`docs/issues/closed/README.md`](../../../../docs/issues/closed/README.md)
 
-## When to Archive (Stage 1)
+## When to Archive
 
-- **After PR merge**: Move the issue file when its PR is merged and the issue is closed.
+- **After PR merge**: Move the issue file when its PR is merged and the issue is closed on GitHub.
 - **Batch archive**: Periodically move multiple closed issue files during maintenance.
 - **Before releases**: Tidy `docs/issues/` before major releases.
 
-## When to Delete (Stage 2)
+## Prerequisites
 
-- The spec is no longer referenced by any open issue or active work.
-- The related issue series has progressed far enough that the context is no longer needed.
+- GitHub CLI (`gh`) must be authenticated and have access to the `torrust/torrust-tracker` repository.
 
 ## Step-by-Step Process
 
-### Step 0: Create a Working Branch
+### Step 0: Create a Working Branch (Mandatory)
 
-This cleanup task may not have a dedicated GitHub issue. Use a descriptive branch name
-without an issue prefix:
+Always create a new branch for this work. Never commit directly to `develop`.
 
-```bash
-git checkout -b chore/cleanup-completed-issues-from-open
-```
-
-If there is a linked issue (e.g., automating this process), prefix the branch accordingly:
+Start from an up-to-date `develop`:
 
 ```bash
-# When automating this process uses a tracking issue
-git checkout -b 1774-automate-cleanup-completed-issues
+UPSTREAM_REMOTE="${UPSTREAM_REMOTE:-torrust}"
+git checkout develop
+git pull --ff-only "$UPSTREAM_REMOTE" develop
+git checkout -b chore/cleanup-completed-issues
 ```
 
 ### Step 1: Verify Issue is Closed on GitHub
@@ -76,16 +72,16 @@ done
 
 ### Step 2: Move Issue File to `docs/issues/closed/`
 
-**Single file:**
-
-```bash
-git mv docs/issues/open/42-add-peer-expiry-grace-period.md docs/issues/closed/
-```
-
 **Directory (multi-file subissue spec):**
 
 ```bash
 git mv docs/issues/open/42-my-subissue-folder/ docs/issues/closed/
+```
+
+**Single file:**
+
+```bash
+git mv docs/issues/open/42-add-peer-expiry-grace-period.md docs/issues/closed/
 ```
 
 **Batch files:**
@@ -93,14 +89,14 @@ git mv docs/issues/open/42-my-subissue-folder/ docs/issues/closed/
 ```bash
 git mv docs/issues/open/21-some-old-issue.md \
   docs/issues/open/22-another-old-issue.md \
-       docs/issues/closed/
+  docs/issues/closed/
 ```
 
 Note: `git mv` on a directory moves all files inside it atomically.
 
 ### Step 3: Update Frontmatter of Moved Files
 
-After moving, the spec's YAML frontmatter fields must reflect the closed state:
+After moving, update the spec's YAML frontmatter to reflect the closed state:
 
 | Field                 | Before                   | After                     |
 | --------------------- | ------------------------ | ------------------------- |
@@ -110,7 +106,14 @@ After moving, the spec's YAML frontmatter fields must reflect the closed state:
 
 For directories with multiple files, update at minimum the main `ISSUE.md` plus any
 supplementary files whose frontmatter references the `docs/issues/open/` path (e.g.,
-`related-artifacts` links to the open spec).
+`related-artifacts` links to the open spec). For supplementary docs without existing
+frontmatter, add a minimal block with `spec-path`, `last-updated-utc`, and a
+`sematic-links` section linking back to the parent issue spec.
+
+Also check the spec's **Workflow Checkpoints** section and tick any checkboxes that
+reflect completed work (manual verification, acceptance criteria review, etc.) based
+on the actual content of the spec body. Add a progress log entry documenting the
+archival action.
 
 ### Step 4: Update Any Parent Epic Spec
 
@@ -120,7 +123,7 @@ new `docs/issues/closed/` path and `DONE` status in its subissue table.
 Example: if `docs/issues/open/EPIC.md` has a table row referencing a subissue at
 `docs/issues/open/...` with `TODO` status, update both the path and status after archiving.
 
-### Step 5: Commit and Push
+### Step 5: Commit
 
 ```bash
 # Single issue
@@ -128,21 +131,33 @@ git commit -S -m "chore(issues): archive closed issue #42 spec to docs/issues/cl
 
 # Batch
 git commit -S -m "chore(issues): archive closed issue specs #21, #22, #23 to docs/issues/closed"
-
-git push {your-fork-remote} {branch}
 ```
 
-### Step 6 (Stage 2): Delete When No Longer Needed
+Run the pre-commit hooks before finishing:
 
 ```bash
-git rm docs/issues/closed/42-add-peer-expiry-grace-period.md
-git commit -S -m "chore(issues): remove closed issue #42 spec (no longer referenced)"
+./contrib/dev-tools/git/hooks/pre-commit.sh
 ```
 
-## Determining File Placement
+### Step 6: Push and Open a Pull Request
 
-| Condition                               | Action                        |
-| --------------------------------------- | ----------------------------- |
-| Issue still open                        | Keep in `docs/issues/open/`   |
-| Issue closed, related work still active | Move to `docs/issues/closed/` |
-| Issue closed, no longer referenced      | Delete permanently            |
+```bash
+FORK_REMOTE="${FORK_REMOTE:-josecelano}"
+git push "$FORK_REMOTE" chore/cleanup-completed-issues
+```
+
+Open a PR targeting `develop`:
+
+```bash
+gh pr create \
+  --repo torrust/torrust-tracker \
+  --base develop \
+  --head "${FORK_REMOTE}:chore/cleanup-completed-issues" \
+  --title "chore(issues): archive closed issue #${N} spec to docs/issues/closed" \
+  --body "Archives the spec for issue #${N} (closed on GitHub) from \`docs/issues/open/\` to \`docs/issues/closed/\`.
+
+- Verified issue #${N} is \`CLOSED\` on GitHub
+- Updated frontmatter (\`status: done\`, \`spec-path\`, \`last-updated-utc\`)
+- Updated workflow checkboxes where applicable
+- Pre-commit hooks passed"
+```

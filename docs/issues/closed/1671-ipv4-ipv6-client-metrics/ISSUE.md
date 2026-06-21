@@ -1,13 +1,13 @@
 ---
 doc-type: issue
 issue-type: feature
-status: open
+status: done
 priority: p2
 github-issue: 1671
-spec-path: docs/issues/open/1671-ipv4-ipv6-client-metrics/ISSUE.md
+spec-path: docs/issues/closed/1671-ipv4-ipv6-client-metrics/ISSUE.md
 branch: "1671-ipv4-ipv6-client-metrics"
 related-pr: null
-last-updated-utc: 2026-06-20 10:00
+last-updated-utc: 2026-06-21 10:00
 semantic-links:
   skill-links:
     - create-issue
@@ -111,11 +111,11 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
 - [x] Implementation completed
 - [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
-- [ ] Manual verification scenarios executed and recorded (status + evidence)
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Manual verification scenarios executed and recorded (status + evidence)
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
-- [ ] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Committer verified spec progress is up to date before commit
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -125,6 +125,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-06-20 UTC - Copilot - Updated spec verification table with experiment evidence, added UDP unit tests for client address labels, ran linter all
 - 2026-06-20 UTC - Copilot - Removed duplicate UDP server tests (derivation tested once in udp-core), added cross-fingerprint cookie rejection test for AC5, fixed linter issues, updated spec
 - 2026-06-20 UTC - Copilot - Added UDP integration test for `ipv6_v6only` config propagation (T17)
+- 2026-06-21 UTC - Copilot - Archived spec to `docs/issues/closed/` after issue closure on GitHub
 
 ## Acceptance Criteria
 
