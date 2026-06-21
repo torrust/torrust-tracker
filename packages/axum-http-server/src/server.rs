@@ -47,10 +47,23 @@ pub struct Launcher {
 
 impl Launcher {
     /// Creates a [`std::net::TcpListener`] with `IPV6_V6ONLY` set according to
-    /// the `ipv6_v6only` parameter. When `true`, IPv6 sockets are restricted
-    /// to IPv6 only, allowing a separate IPv4 socket to bind on the same port
-    /// (e.g. `0.0.0.0:7070` and `[::]:7070`). When `false` (default), the
-    /// socket operates in dual-stack mode.
+    /// the `ipv6_v6only` parameter.
+    ///
+    /// When `ipv6_v6only` is `true`, IPv6 sockets are restricted to IPv6 only,
+    /// allowing a separate IPv4 socket to bind on the same port
+    /// (e.g. `0.0.0.0:7070` and `[::]:7070`).
+    ///
+    /// When `ipv6_v6only` is `false` (the default), the socket option is
+    /// **not** explicitly set — the OS default applies:
+    ///
+    /// | Platform | Default `IPV6_V6ONLY` | Behaviour with `false` |
+    /// |---|---|---|
+    /// | Linux | `0` (dual-stack) | Dual-stack — single `[::]` socket accepts IPv4 + IPv6 |
+    /// | Windows, macOS, FreeBSD, Solaris | `1` (IPv6-only) | IPv6-only — must also bind `0.0.0.0:<port>` for IPv4 |
+    /// | OpenBSD | `1` (forced) | IPv6-only — `IPV6_V6ONLY` cannot be disabled |
+    ///
+    /// We intentionally do **not** call `set_only_v6(false)` because on OpenBSD
+    /// that syscall would return `EINVAL` and cause a runtime panic.
     /// # Errors
     ///
     /// Will return an error if the socket cannot be created, configured, or bound.
@@ -58,8 +71,8 @@ impl Launcher {
         let domain = if addr.is_ipv6() { Domain::IPV6 } else { Domain::IPV4 };
         let socket = Socket::new(domain, Type::STREAM, Some(socket2::Protocol::TCP))?;
 
-        if addr.is_ipv6() {
-            socket.set_only_v6(ipv6_v6only)?;
+        if addr.is_ipv6() && ipv6_v6only {
+            socket.set_only_v6(true)?;
         }
 
         socket.set_nonblocking(true)?;
