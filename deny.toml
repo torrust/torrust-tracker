@@ -17,9 +17,10 @@
 # License checking is a separate concern and not configured here.
 
 [bans]
-# `multiple-versions` is set to "warn" because fixing pre-existing duplicate
-# external dependency versions is out of scope for this layer enforcement issue.
-# See: docs/packages.md
+# `multiple-versions` is set to "warn" because the workspace has pre-existing
+# duplicate external dependency versions (e.g. `block-buffer`, `sha1`, `toml`).
+# Fixing those is out of scope for this layer enforcement configuration and
+# would require a separate workspace-wide dependency audit.
 multiple-versions = "warn"
 wildcards = "deny"
 
@@ -56,8 +57,8 @@ deny = [
     "torrust-tracker-rest-api-core",
   ] },
 
-  # Protocol crates must not be used by tracker-core or core layers.
-  # Only server and the respective *-core should depend on them.
+  # Protocol crates must not be used directly by torrust-tracker-core.
+  # Only servers and the respective protocol-specific *-core may depend on them.
   { crate = "torrust-tracker-http-protocol", wrappers = [
     "torrust-tracker-axum-http-server",
     "torrust-tracker-http-core",

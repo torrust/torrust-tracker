@@ -47,7 +47,7 @@ jobs:
         run: cargo install cargo-machete
 
       - name: Install cargo-deny
-        run: cargo install cargo-deny
+        run: cargo install --locked cargo-deny
 
       - name: Install Git pre-commit hooks
         run: ./contrib/dev-tools/git/install-git-hooks.sh

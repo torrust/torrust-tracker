@@ -6,7 +6,7 @@ priority: p2
 github-issue: 1925
 spec-path: docs/issues/open/1925-1669-si-31-configure-cargo-deny-for-layer-boundary-enforcement.md
 branch: 1925-configure-cargo-deny-for-layer-boundary-enforcement
-related-pr: null
+related-pr: 1932
 last-updated-utc: 2026-06-22
 semantic-links:
   skill-links:
@@ -276,9 +276,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 ### Manual Verification Scenarios
 
-| ID  | Scenario                                | Command / Steps                                                                                               | Expected Result                   | Status  |
-| --- | --------------------------------------- | ------------------------------------------------------------------------------------------------------------- | --------------------------------- | ------- |
-| M1  | Baseline pass on current workspace      | `cargo deny check bans`                                                                                       | Exit code 0                       | PASS    |
-| M2  | Forbidden edge detected                 | Temporarily add `torrust-tracker-udp-server` to `packages/http-core/Cargo.toml`, then `cargo deny check bans` | `error[banned]` and `bans FAILED` | PASS    |
-| M3  | Legitimate edge allowed                 | No action needed — current legitimate edges (e.g., `axum-rest-api-server -> udp-server`) pass                 | No errors on those edges          | PASS    |
-| M4  | Pre-commit hooks pass after adding deny | `./contrib/dev-tools/git/hooks/pre-commit.sh`                                                                 | Exit code 0                       | PENDING |
+| ID  | Scenario                                | Command / Steps                                                                                               | Expected Result                   | Status |
+| --- | --------------------------------------- | ------------------------------------------------------------------------------------------------------------- | --------------------------------- | ------ |
+| M1  | Baseline pass on current workspace      | `cargo deny check bans`                                                                                       | Exit code 0                       | PASS   |
+| M2  | Forbidden edge detected                 | Temporarily add `torrust-tracker-udp-server` to `packages/http-core/Cargo.toml`, then `cargo deny check bans` | `error[banned]` and `bans FAILED` | PASS   |
+| M3  | Legitimate edge allowed                 | No action needed — current legitimate edges (e.g., `axum-rest-api-server -> udp-server`) pass                 | No errors on those edges          | PASS   |
+| M4  | Pre-commit hooks pass after adding deny | `./contrib/dev-tools/git/hooks/pre-commit.sh`                                                                 | Exit code 0                       | PASS   |
