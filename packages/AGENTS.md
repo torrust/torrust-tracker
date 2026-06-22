@@ -122,6 +122,11 @@ Strict BEP implementations — parse and serialize wire formats only. No tracker
    - At minimum one unit test (doc-test acceptable for simple utility crates).
 5. Run `cargo machete` after adding dependencies — unused deps must not be committed.
 6. Run `linter all` before committing.
+7. **Layer boundary enforcement**: `deny.toml` at the workspace root configures `cargo deny check bans` to
+   prevent cross-layer dependency violations. If you add a dependency on a server-layer or protocol crate
+   to a package that isn't listed in that crate's `wrappers` list, the check will fail.
+   See [`docs/packages.md`](../docs/packages.md) for the forbidden edge table and
+   [`deny.toml`](../deny.toml) for the full configuration.
 
 ## Testing Packages
 

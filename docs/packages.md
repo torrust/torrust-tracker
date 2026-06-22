@@ -3,6 +3,7 @@ semantic-links:
   skill-links:
     - write-markdown-docs
   related-artifacts:
+    - deny.toml
     - docs/index.md
     - docs/adrs/20260429000000_keep_database_as_aggregate_supertrait.md
     - packages/
@@ -68,6 +69,78 @@ Key Architectural Principles:
 2. **Protocol Compliance**: `*-protocol` packages strictly implement BEP specifications.
 3. **Extensibility**: Core logic is framework-agnostic for easy protocol additions.
 
+## Layer Boundary Enforcement
+
+Dependencies between layers are enforced programmatically via
+[`cargo deny check bans`](https://embarkstudios.github.io/cargo-deny/) — configured in
+[`deny.toml`](../deny.toml) at the workspace root.
+
+### Motivation
+
+The layered architecture (servers → core → protocol → domain) prevents
+coupling between concerns. Without automated enforcement, a misplaced
+dependency (e.g., a core crate importing a server crate) compiles and
+passes CI silently. `cargo deny` prohibits these edges at the lockfile
+level, catching violations in pre-commit hooks and CI before merge.
+
+### Forbidden edges
+
+| Edge                       | Description                                                    | Current violations            |
+| -------------------------- | -------------------------------------------------------------- | ----------------------------- |
+| `core -> server`           | Core must not depend on delivery-layer packages                | `rest-api-core -> udp-server` |
+| `tracker-core -> core`     | Tracker core must not depend on its protocol-specific wrappers | None                          |
+| `tracker-core -> protocol` | Tracker core must not depend on protocol parsing crates        | None                          |
+| `tracker-core -> server`   | Tracker core must not depend on server crates                  | None                          |
+| `protocol -> core`         | Protocol crates must not depend on core logic                  | None                          |
+| `protocol -> tracker-core` | Protocol crates must not depend on tracker core                | None                          |
+| `protocol -> server`       | Protocol crates must not depend on server crates               | None                          |
+| `domain -> server`         | Domain/shared packages must not depend on server crates        | None                          |
+
+### How it works
+
+`cargo deny` uses a **bans with wrappers** mechanism. For each server-layer
+or protocol crate that should be restricted, `deny.toml` lists:
+
+- The **banned crate** (the server/protocol package).
+- A **wrappers list** — the set of packages that are legitimately allowed
+  to depend on that crate directly. Any direct dependency outside this
+  list, and any transitive dependency from a non-server package, is rejected.
+
+For example, `torrust-tracker-udp-server` can only be depended on by:
+
+- `torrust-tracker` (root binary)
+- `torrust-tracker-axum-rest-api-server`
+- `torrust-tracker-axum-health-check-api-server`
+- `torrust-tracker-rest-api-core` (known violation — see below)
+
+A core package like `torrust-tracker-http-core` adding `udp-server` as a
+dependency would be immediately rejected by `cargo deny check bans`.
+
+### Known exceptions
+
+- `torrust-tracker-rest-api-core` depends on `torrust-tracker-udp-server`
+  — a known violation tracked separately. Until it is fixed, the wrapper
+  list for `udp-server` includes `rest-api-core`.
+
+### Maintenance
+
+When adding a new dependency to a workspace package, run:
+
+```sh
+cargo deny check bans
+```
+
+If it fails, either:
+
+1. The new dependency is on a restricted crate — check whether your
+   package belongs in that crate's wrappers list.
+2. The dependency is legitimate — add your package to the appropriate
+   wrapper entry in `deny.toml`.
+
+Adding a package to a wrapper list should be a deliberate architectural
+decision, reviewed with the same care as any layer-crossing dependency.
+See `deny.toml` for the complete configuration.
+
 ## Design Decisions
 
 - Persistence trait boundaries and the aggregate supertrait choice:
@@ -83,8 +156,8 @@ Key Architectural Principles:
 | `axum-rest-api-server`            | Management REST API                  | Tracker configuration & monitoring         |
 | `axum-health-check-api-server`    | Health monitoring endpoint           | System health reporting                    |
 | **Core Components**               |                                      |                                            |
-| `http-core`               | HTTP-specific implementation         | Request validation, Response formatting    |
-| `udp-core`                | UDP-specific implementation          | Connectionless request handling            |
+| `http-core`                       | HTTP-specific implementation         | Request validation, Response formatting    |
+| `udp-core`                        | UDP-specific implementation          | Connectionless request handling            |
 | `tracker-core`                    | Central tracker logic                | Peer management                            |
 | **Protocols**                     |                                      |                                            |
 | `http-protocol`                   | HTTP tracker protocol (BEP 3/23)     | Announce/scrape request parsing            |

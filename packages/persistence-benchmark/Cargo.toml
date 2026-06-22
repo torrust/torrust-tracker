@@ -28,5 +28,5 @@ sqlx = { version = "0.8", features = [ "macros", "mysql", "postgres", "runtime-t
 testcontainers = "0"
 tokio = { version = "1", features = [ "macros", "rt-multi-thread" ] }
 torrust-tracker-configuration = { version = "3.0.0-develop", path = "../configuration" }
-torrust-tracker-core = { path = "../tracker-core" }
+torrust-tracker-core = { version = "3.0.0-develop", path = "../tracker-core" }
 torrust-tracker-primitives = { version = "3.0.0-develop", path = "../primitives" }

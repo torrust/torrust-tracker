@@ -97,6 +97,29 @@ jobs:
         name: Run Unit Tests
         run: cargo test --tests --benches --examples --workspace --all-targets --all-features
 
+  layer-bans:
+    name: Layer Boundary Bans
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - id: checkout
+        name: Checkout Repository
+        uses: actions/checkout@v6
+
+      - id: setup
+        name: Setup Toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+
+      - id: deny
+        name: Install cargo-deny
+        run: cargo install --locked cargo-deny
+
+      - id: deny-check
+        name: Check layer boundary bans
+        run: cargo deny check bans
+
   docker-e2e:
     # Skip this job when container.yaml is also running for the same event — it builds
     # the same image and runs the same E2E tests. container.yaml triggers on pushes to

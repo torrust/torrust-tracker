@@ -5,13 +5,17 @@ status: open
 priority: p2
 github-issue: 1925
 spec-path: docs/issues/open/1925-1669-si-31-configure-cargo-deny-for-layer-boundary-enforcement.md
-branch: null
+branch: 1925-configure-cargo-deny-for-layer-boundary-enforcement
 related-pr: null
-last-updated-utc: 2026-06-20
+last-updated-utc: 2026-06-22
 semantic-links:
   skill-links:
     - create-issue
   related-artifacts:
+    - deny.toml
+    - .github/workflows/testing.yaml
+    - .github/workflows/copilot-setup-steps.yml
+    - contrib/dev-tools/git/hooks/pre-commit.sh
     - Cargo.toml
     - packages/AGENTS.md
     - docs/packages.md
@@ -213,23 +217,25 @@ deny = [
 > SI-29 is already done, so no name updates are needed.
 >
 > **Cross-reference to client extraction**: The wrappers list for `torrust-tracker-udp-protocol`
-> includes `torrust-tracker-client-lib` and `torrust-tracker-client` (console). When the
-> client extraction ([`1669-extract-torrust-tracker-client-to-standalone-repo.md`](./1669-extract-torrust-tracker-client-to-standalone-repo.md))
-> removes both from the workspace, these wrapper entries must be removed from `deny.toml`.
+> currently includes `torrust-tracker-client-lib`. The console binary crate `torrust-tracker-client`
+> was initially included but removed from wrappers during implementation because it is not
+> consumed as a dependency by any other crate (standalone binary). When the
+> client extraction removes `torrust-tracker-client-lib` from the workspace, its wrapper entry
+> must also be removed.
 
 ## Implementation Plan
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| ID  | Status | Task                                                                                            | Notes / Expected Output                                           |
-| --- | ------ | ----------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
-| T1  | TODO   | Install `cargo deny` (or confirm it's available)                                                | `cargo install --locked cargo-deny` or via system package manager |
-| T2  | TODO   | Create `deny.toml` at the workspace root with bans configuration                                | Configuration matching the proposed section above                 |
-| T3  | TODO   | Run `cargo deny check bans` and verify it passes                                                | All dependency edges match the allowed wrappers                   |
-| T4  | TODO   | Add `cargo deny check bans` to CI testing workflow (GitHub Actions)                             | CI catches violations before merge                                |
-| T5  | TODO   | Add `cargo deny check bans` to pre-commit (fast) or pre-push (slow), per ongoing #1843 decision | Gated by performance; integrated with future hook orchestrator    |
-| T6  | TODO   | Verify that adding a test `core -> server` dep triggers a deny error                            | Proof the enforcement works                                       |
-| T7  | TODO   | Document the `deny.toml` configuration in `packages/AGENTS.md`                                  | Future developers understand the rules                            |
+| ID  | Status | Task                                                                                            | Notes / Expected Output                                      |
+| --- | ------ | ----------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
+| T1  | DONE   | Install `cargo deny` (or confirm it's available)                                                | `cargo install --locked cargo-deny` (v0.19.9)                |
+| T2  | DONE   | Create `deny.toml` at the workspace root with bans configuration                                | Created with minor adjustments (see final config below)      |
+| T3  | DONE   | Run `cargo deny check bans` and verify it passes                                                | `bans ok`, exit code 0, zero errors                          |
+| T4  | DONE   | Add `cargo deny check bans` to CI testing workflow (GitHub Actions)                             | Added to `testing.yaml` and `copilot-setup-steps.yml`        |
+| T5  | DONE   | Add `cargo deny check bans` to pre-commit (fast) or pre-push (slow), per ongoing #1843 decision | Added to pre-commit (0.57s runtime — fast enough)            |
+| T6  | DONE   | Verify that adding a test `core -> server` dep triggers a deny error                            | Verified: `http-core -> udp-server` triggers `error[banned]` |
+| T7  | DONE   | Document the `deny.toml` configuration in `packages/AGENTS.md`                                  | Step 7 in "Adding or Modifying a Package" section            |
 
 ## Progress Tracking
 
@@ -239,25 +245,26 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [ ] Spec reviewed and approved by user/maintainer
 - [ ] GitHub issue created and issue number added to this spec
 - [ ] Spec moved to `docs/issues/open/` with issue number prefix
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`cargo deny check bans`, `linter all`, `cargo test --workspace`)
+- [x] Implementation completed
+- [x] Automatic verification completed (`cargo deny check bans` ✓, `linter all` ✓, `cargo test --workspace` ✓)
 - [ ] Manual verification scenarios executed and recorded
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [ ] EPIC #1669 Active Subissues table updated to `DONE`
 - [ ] Issue closed and spec moved to `docs/issues/closed/`
 
 ### Progress Log
 
 - 2026-06-11 00:00 UTC - josecelano - Spec drafted as subissue of EPIC #1669
+- 2026-06-22 16:34 UTC - josecelano - Implementation completed on branch `1925-configure-cargo-deny-for-layer-boundary-enforcement`
 
 ## Acceptance Criteria
 
-- [ ] `deny.toml` exists at the workspace root with bans configuration.
-- [ ] `cargo deny check bans` passes (exit code 0) on the current workspace state.
-- [ ] Adding a forbidden dependency edge (e.g., `core -> server`) causes `cargo deny check bans` to fail.
-- [ ] CI (GitHub Actions testing workflow) runs `cargo deny check bans` and rejects changes with new banned edges.
-- [ ] The pre-commit or pre-push hook (per performance and #1843 outcome) runs `cargo deny check bans`.
-- [ ] `packages/AGENTS.md` references the `deny.toml` enforcement in its Adding/Modifying a Package section.
+- [x] `deny.toml` exists at the workspace root with bans configuration.
+- [x] `cargo deny check bans` passes (exit code 0) on the current workspace state.
+- [x] Adding a forbidden dependency edge (e.g., `core -> server`) causes `cargo deny check bans` to fail.
+- [x] CI (GitHub Actions testing workflow) runs `cargo deny check bans` and rejects changes with new banned edges.
+- [x] The pre-commit hook runs `cargo deny check bans` (0.57s runtime).
+- [x] `packages/AGENTS.md` references the `deny.toml` enforcement in its Adding/Modifying a Package section.
 
 ## Verification Plan
 
@@ -269,9 +276,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 ### Manual Verification Scenarios
 
-| ID  | Scenario                                | Command / Steps                                                                                                  | Expected Result                                    | Status |
-| --- | --------------------------------------- | ---------------------------------------------------------------------------------------------------------------- | -------------------------------------------------- | ------ |
-| M1  | Baseline pass on current workspace      | `cargo deny check bans`                                                                                          | Exit code 0                                        | TODO   |
-| M2  | Forbidden edge detected                 | Temporarily add `torrust-tracker-udp-server` to a core package's `Cargo.toml` deps, then `cargo deny check bans` | Exit code non-zero; error message about banned dep | TODO   |
-| M3  | Legitimate edge allowed                 | No action needed — current legitimate edges (e.g., `axum-rest-api-server -> udp-server`) pass                    | No errors on those edges                           | TODO   |
-| M4  | Pre-commit hooks pass after adding deny | `./contrib/dev-tools/git/hooks/pre-commit.sh`                                                                    | Exit code 0                                        | TODO   |
+| ID  | Scenario                                | Command / Steps                                                                                               | Expected Result                   | Status  |
+| --- | --------------------------------------- | ------------------------------------------------------------------------------------------------------------- | --------------------------------- | ------- |
+| M1  | Baseline pass on current workspace      | `cargo deny check bans`                                                                                       | Exit code 0                       | PASS    |
+| M2  | Forbidden edge detected                 | Temporarily add `torrust-tracker-udp-server` to `packages/http-core/Cargo.toml`, then `cargo deny check bans` | `error[banned]` and `bans FAILED` | PASS    |
+| M3  | Legitimate edge allowed                 | No action needed — current legitimate edges (e.g., `axum-rest-api-server -> udp-server`) pass                 | No errors on those edges          | PASS    |
+| M4  | Pre-commit hooks pass after adding deny | `./contrib/dev-tools/git/hooks/pre-commit.sh`                                                                 | Exit code 0                       | PENDING |

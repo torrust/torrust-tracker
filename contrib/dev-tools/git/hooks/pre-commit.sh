@@ -25,6 +25,7 @@ set -uo pipefail
 
 declare -a STEPS=(
     "Checking for unused dependencies (cargo machete --with-metadata)|cargo machete --with-metadata"
+    "Checking workspace layer boundary bans (cargo deny check bans)|cargo deny check bans"
     "Running all linters|linter all"
     "Running documentation tests|cargo test --doc --workspace"
 )

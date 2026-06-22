@@ -1,0 +1,84 @@
+# deny.toml
+# Configuration for `cargo deny check bans`
+#
+# This file enforces the workspace's layered architecture rules by preventing
+# accidental dependency edges between layers. Dependencies may only flow downward:
+# servers may depend on core/protocol/domain, but inner layers must not depend on
+# outer layers.
+#
+# See:
+#   - docs/packages.md for the layer architecture and forbidden edge table
+#   - packages/AGENTS.md for the package catalog
+
+[advisories]
+# Advisory scanning is a separate concern and not configured here.
+
+[licenses]
+# License checking is a separate concern and not configured here.
+
+[bans]
+# `multiple-versions` is set to "warn" because fixing pre-existing duplicate
+# external dependency versions is out of scope for this layer enforcement issue.
+# See: docs/packages.md
+multiple-versions = "warn"
+wildcards = "deny"
+
+# Ban server-layer crates from being depended on by non-server packages.
+# The `wrappers` list specifies which packages are allowed to use each
+# server crate as a direct dependency. All other uses (direct or transitive)
+# are denied.
+deny = [
+  # axum server crates — only the root binary and other axum servers may depend on them
+  { crate = "torrust-tracker-axum-health-check-api-server", wrappers = [
+    "torrust-tracker",
+    "torrust-tracker-axum-health-check-api-server",
+  ] },
+  { crate = "torrust-tracker-axum-http-server", wrappers = [
+    "torrust-tracker",
+    "torrust-tracker-axum-health-check-api-server",
+  ] },
+  { crate = "torrust-tracker-axum-rest-api-server", wrappers = [
+    "torrust-tracker",
+    "torrust-tracker-axum-health-check-api-server",
+  ] },
+  { crate = "torrust-tracker-axum-server", wrappers = [
+    "torrust-tracker",
+    "torrust-tracker-axum-health-check-api-server",
+    "torrust-tracker-axum-http-server",
+    "torrust-tracker-axum-rest-api-server",
+  ] },
+
+  # udp server — only server-layer + root + rest-api-core (pending fix) may depend on it
+  { crate = "torrust-tracker-udp-server", wrappers = [
+    "torrust-tracker",
+    "torrust-tracker-axum-health-check-api-server",
+    "torrust-tracker-axum-rest-api-server",
+    "torrust-tracker-rest-api-core",
+  ] },
+
+  # Protocol crates must not be used by tracker-core or core layers.
+  # Only server and the respective *-core should depend on them.
+  { crate = "torrust-tracker-http-protocol", wrappers = [
+    "torrust-tracker-axum-http-server",
+    "torrust-tracker-http-core",
+  ] },
+  { crate = "torrust-tracker-udp-protocol", wrappers = [
+    "torrust-tracker-client-lib",
+    "torrust-tracker-udp-core",
+    "torrust-tracker-udp-server",
+  ] },
+
+  # Core protocol-specific wrappers must not be depended on by tracker-core
+  { crate = "torrust-tracker-http-core", wrappers = [
+    "torrust-tracker",
+    "torrust-tracker-axum-http-server",
+    "torrust-tracker-axum-rest-api-server",
+    "torrust-tracker-rest-api-core",
+  ] },
+  { crate = "torrust-tracker-udp-core", wrappers = [
+    "torrust-tracker",
+    "torrust-tracker-axum-rest-api-server",
+    "torrust-tracker-rest-api-core",
+    "torrust-tracker-udp-server",
+  ] },
+]
