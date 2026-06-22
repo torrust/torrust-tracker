@@ -1,13 +1,12 @@
 ---
-doc-type: issue
+doc-type: spec
 issue-type: task
-status: draft
+status: open
 priority: p1
-github-issue: null
-spec-path: docs/issues/drafts/1669-define-rest-api-contract-first-package-architecture.md
-branch: null
-related-pr: null
-last-updated-utc: 2026-05-27 00:00
+epic: 1669
+github-issue: 1930
+spec-path: docs/issues/open/1930-1669-si-33-rest-api-contract-first-architecture.md
+last-updated-utc: 2026-06-22
 semantic-links:
   skill-links:
     - create-issue
@@ -19,29 +18,33 @@ semantic-links:
     - packages/axum-rest-api-server/src/v1/middlewares/auth.rs
     - packages/rest-api-client/src/v1/client.rs
     - docs/issues/open/1669-overhaul-packages/EPIC.md
+    - docs/issues/open/1669-overhaul-packages/DECISIONS.md
     - docs/packages.md
+    - docs/issues/open/1924-1669-si-30-decouple-rest-api-core-from-udp-internals.md
 ---
 
-<!-- skill-link: create-issue -->
+# Issue #1930 - Define REST API contract-first package architecture for EPIC #1669
 
-# Issue #[To be assigned] - Define REST API contract-first package architecture for EPIC #1669
+## Subissue of EPIC #1669 — Overhaul: Packages
 
-## Goal
+This issue defines and documents a contract-first package architecture for the
+tracker REST API, so the REST API can evolve toward a reusable standard in
+future versions while remaining compatible with the current tracker
+implementation during migration.
 
-Define and document a contract-first package architecture for the tracker REST API,
-so the REST API can evolve toward a reusable standard in future versions while
-remaining compatible with the current tracker implementation during migration.
+This issue defines architecture and migration policy now, but does not
+implement full API v2 behavior changes yet. It establishes package boundaries
+and dependency rules that make v2 and standardization feasible.
 
-This issue defines architecture and migration policy now, but does not implement
-full API v2 behavior changes yet. It establishes package boundaries and dependency
-rules that make v2 and standardization feasible.
-
-This draft is intentionally a reminder/specification artifact for future work.
 The full API package refactor is expected to be handled by a dedicated EPIC,
 separate from EPIC #1669.
 
-This issue is a subissue of EPIC [#1669](../open/1669-overhaul-packages/EPIC.md)
-(Overhaul: Packages).
+## Prerequisites
+
+This issue depends on [SI-30 (#1924)](1924-1669-si-30-decouple-rest-api-core-from-udp-internals.md),
+which delivers the UDP-side trait abstractions (`BanningStats`,
+`UdpCoreStatsRepository`, `UdpServerStatsRepository`) that the future
+`TrackerStatsAdapter` will implement.
 
 ## Problem Statement
 
@@ -166,7 +169,8 @@ Main type groups (examples):
 
 Main type groups (examples):
 
-- port traits: `TorrentQueryPort`, `WhitelistCommandPort`, `AuthKeyCommandPort`, `StatsQueryPort`, `HealthQueryPort`
+- port traits: `TorrentQueryPort`, `WhitelistCommandPort`, `AuthKeyCommandPort`,
+  `StatsQueryPort`, `HealthQueryPort`
 - use-case services: `TorrentApiService`, `WhitelistApiService`, `StatsApiService`
 - app-level errors and mappers: `ApiUseCaseError` and mapping to contract errors
 
@@ -174,9 +178,15 @@ Main type groups (examples):
 
 Main type groups (examples):
 
-- adapter implementations for ports: `TrackerTorrentQueryAdapter`, `TrackerWhitelistAdapter`, `TrackerStatsAdapter`
+- adapter implementations for ports: `TrackerTorrentQueryAdapter`,
+  `TrackerWhitelistAdapter`, `TrackerStatsAdapter`
 - dependency composition container: `TrackerRestApiRuntimeContainer`
-- tracker internal integrations for `tracker-core`, `http-tracker-core`, `udp-tracker-core`, and `udp-server`
+- tracker internal integrations for `tracker-core`, `http-tracker-core`,
+  `udp-tracker-core`, and `udp-server`
+
+Note: the underlying UDP traits (`BanningStats`, `UdpCoreStatsRepository`,
+`UdpServerStatsRepository`) are delivered by [SI-30 (#1924)](1924-1669-si-30-decouple-rest-api-core-from-udp-internals.md).
+This issue wires them through the `TrackerStatsAdapter`.
 
 ### `torrust-tracker-axum-rest-api-server` in `axum-rest-api-server` (existing; transport adapter)
 
@@ -214,13 +224,10 @@ Main type groups (examples):
 - `rest-api-client` request/response types align to protocol DTOs (instead of
   primarily returning raw `reqwest::Response`).
 
-## Execution Strategy (Agreed Direction)
+## Execution Strategy
 
 To reduce risk and avoid overloading EPIC #1669, implementation should proceed
-in two stages:
-
-1. Proof-of-concept branch first (single endpoint).
-2. New dedicated API refactor EPIC after PoC validation.
+in two stages.
 
 ### Stage 1 - Proof-of-concept branch (single endpoint)
 
@@ -251,7 +258,7 @@ Until the dedicated API refactor EPIC is opened and executed:
 
 - Do not extract REST API packages to standalone repositories.
 - Do not publish REST API packages as stable external contracts.
-- Treat this draft as a planning reminder and architecture direction only.
+- Treat this spec as a planning reminder and architecture direction only.
 
 Rationale:
 
@@ -313,20 +320,26 @@ Forbidden edges (once migration is complete):
 - `torrust-tracker-axum-rest-api-server -> torrust-tracker-udp-tracker-core` (direct)
 - `torrust-tracker-axum-rest-api-server -> torrust-tracker-udp-server` (direct)
 
+The forbidden edges are currently present and represent the coupling that this
+issue resolves by introducing the application and adapter layers.
+
 ## Migration Strategy
 
 Use incremental migration to avoid destabilizing running APIs.
 
 Phase 1: Define contract package and freeze v1 contract.
 
-1. Extract current v1 wire contract types into `torrust-tracker-rest-api-protocol` (`rest-api-protocol`).
+1. Extract current v1 wire contract types into `torrust-tracker-rest-api-protocol`
+   (`rest-api-protocol`).
 2. Keep v1 behavior parity (including legacy semantics where required).
 3. Add compatibility tests to ensure no unintentional v1 break.
 
 Phase 2: Introduce application ports and adapters.
 
 1. Define ports/traits for API use-cases in application layer.
-2. Implement tracker runtime adapters using current internals.
+2. Implement tracker runtime adapters using current internals. The UDP-side
+   traits (`BanningStats`, `UdpCoreStatsRepository`, `UdpServerStatsRepository`)
+   delivered by SI-30 (#1924) are consumed here by `TrackerStatsAdapter`.
 3. Switch Axum handlers to application ports, remove direct internal wiring.
 
 Phase 3: Enable v2 on top of the same architecture.
@@ -398,65 +411,19 @@ Why discarded:
 - Define target package architecture for REST API contract/application/adapters.
 - Define allowed and forbidden dependency edges.
 - Define migration phases and compatibility approach for v1/v2.
-- Add EPIC references and follow-up implementation subissue plan.
+- PoC branch with one endpoint (torrent detail recommended).
+- Consume UDP-side traits from SI-30 (#1924).
 
 ### Out of Scope
 
-- Implementing full API v2 endpoint behavior changes.
-- Executing Migration Phase 3 (enable v2 behavior rollout) within EPIC #1669.
-- Executing full API package migration within EPIC #1669.
-- Extracting or publishing REST API packages before dedicated API refactor EPIC.
-- Finalizing external/public REST standard specification text.
-- Removing v1 support in this issue.
-- Implementing all package extraction and crate renames in this issue.
+- Full API v2 behavior changes (tracked in issue #144).
+- Extracting any package to a standalone repository during EPIC #1669.
+- Publishing any REST API package as a stable external contract.
+- Changing the HTTP tracker or UDP tracker layers.
 
-## Acceptance Criteria
+## Verification
 
-- [ ] REST API package role model is documented (contract/application/server/client).
-- [ ] Desired package map includes concrete main type groups and ownership rules.
-- [ ] Dependency rule table includes allowed and forbidden edges.
-- [ ] Migration phases preserve v1 compatibility while enabling v2.
-- [ ] At least three alternatives are documented with discard reasons.
-- [ ] EPIC #1669 references this architecture draft.
-- [ ] Follow-up implementation subissues are identified.
-- [ ] PoC-first then dedicated EPIC execution strategy is documented.
-- [ ] The draft explicitly states REST API packages must not be extracted/published yet.
-
-## Verification Plan
-
-### Automatic Checks
-
-- `linter all`
-- `cargo metadata --no-deps --format-version 1`
-
-### Manual Verification
-
-| ID  | Scenario                                    | Expected Result                                                                         |
-| --- | ------------------------------------------- | --------------------------------------------------------------------------------------- |
-| MV1 | Review dependency rules in this spec        | Clear allowed/forbidden edges for REST API packages                                     |
-| MV2 | Cross-check with current package deps       | Current violations are identifiable and migration targets are explicit                  |
-| MV3 | Review compatibility strategy for v1 and v2 | Incremental path exists without forced big-bang migration                               |
-| MV4 | Cross-check against issue #144 v2 goals     | Architecture enables status/error/endpoint improvements without contract mixing         |
-| MV5 | Review desired package/type ownership map   | Main DTOs, ports, adapters, and transport types have unambiguous package owners         |
-| MV6 | Review execution strategy and guardrails    | PoC-first + dedicated API EPIC strategy is explicit; extraction/publication is deferred |
-
-## Follow-up Subissues (Planned)
-
-- Open PoC branch to validate architecture with a single endpoint (`get_torrent_handler` equivalent flow).
-- Open dedicated API package-refactor EPIC after PoC conclusions are documented.
-- Introduce `torrust-tracker-rest-api-protocol` package and migrate v1 DTOs.
-- Introduce REST API application ports and tracker runtime adapters.
-- Refactor Axum REST API server handlers to use application ports only.
-- Refactor REST API client to typed versioned contract APIs.
-- Add versioned API conformance test suites (v1 and v2).
-
-## References
-
-- EPIC: [docs/issues/open/1669-overhaul-packages/EPIC.md](../open/1669-overhaul-packages/EPIC.md)
-- API v2 issue: [#144](https://github.com/torrust/torrust-tracker/issues/144)
-- `rest-api-core` wiring: [packages/rest-api-core/src/container.rs](../../../packages/rest-api-core/src/container.rs)
-- Stats service aggregation: [packages/rest-api-core/src/statistics/services.rs](../../../packages/rest-api-core/src/statistics/services.rs)
-- Axum stats route state coupling: [packages/axum-rest-api-server/src/v1/context/stats/routes.rs](../../../packages/axum-rest-api-server/src/v1/context/stats/routes.rs)
-- Auth middleware behavior: [packages/axum-rest-api-server/src/v1/middlewares/auth.rs](../../../packages/axum-rest-api-server/src/v1/middlewares/auth.rs)
-- V1 response wrapper behavior: [packages/axum-rest-api-server/src/v1/responses.rs](../../../packages/axum-rest-api-server/src/v1/responses.rs)
-- Client v1 transport API: [packages/rest-api-client/src/v1/client.rs](../../../packages/rest-api-client/src/v1/client.rs)
+- [ ] Target architecture documented in `docs/packages.md` (or a dedicated ADR).
+- [ ] PoC branch created with torrent detail endpoint migrated.
+- [ ] Package boundaries validated by `cargo check` and `cargo test --workspace`.
+- [ ] `linter all` passes.
