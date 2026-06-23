@@ -1,46 +1,7 @@
 //! `Torrent` and `ListItem` API resources.
 //!
-//! Re-exports the protocol DTOs plus domain-conversion utilities.
-//!
-//! - `Torrent` is the full torrent resource.
-//! - `ListItem` is a list item resource on a torrent list.
-use torrust_tracker_core::torrent::services::{BasicInfo, Info};
+//! Re-exports the protocol DTOs.
 pub use torrust_tracker_rest_api_protocol::v1::resources::torrent::{ListItem, Torrent};
-
-use super::peer;
-
-/// Convert a domain [`Info`] into a protocol [`Torrent`].
-#[must_use]
-pub fn from_domain_info(info: Info) -> Torrent {
-    let peers: Option<peer::Vector> = info.peers.map(|peers| peers.into_iter().collect());
-
-    let peers: Option<Vec<torrust_tracker_rest_api_protocol::v1::resources::peer::Peer>> = peers.map(|peers| peers.0);
-
-    Torrent {
-        info_hash: info.info_hash.to_string(),
-        seeders: info.seeders,
-        completed: info.completed,
-        leechers: info.leechers,
-        peers,
-    }
-}
-
-/// Build a [`ListItem`] from a domain [`BasicInfo`].
-#[must_use]
-pub fn list_item_from_domain(basic_info: &BasicInfo) -> ListItem {
-    ListItem {
-        info_hash: basic_info.info_hash.to_string(),
-        seeders: basic_info.seeders,
-        completed: basic_info.completed,
-        leechers: basic_info.leechers,
-    }
-}
-
-/// Build a vector of [`ListItem`] from domain [`BasicInfo`] slices.
-#[must_use]
-pub fn list_items_from_domain(basic_info_vec: &[BasicInfo]) -> Vec<ListItem> {
-    basic_info_vec.iter().map(list_item_from_domain).collect()
-}
 
 #[cfg(test)]
 mod tests {
@@ -51,9 +12,8 @@ mod tests {
     use torrust_info_hash::InfoHash;
     use torrust_tracker_core::torrent::services::{BasicInfo, Info};
     use torrust_tracker_primitives::{AnnounceEvent, NumberOfBytes, PeerId, peer};
+    use torrust_tracker_rest_api_runtime_adapter::conversion;
 
-    use super::peer::from_domain_peer;
-    use super::{from_domain_info, list_item_from_domain};
     use crate::v1::context::torrent::resources::torrent::{ListItem, Torrent};
 
     fn sample_peer() -> peer::Peer {
@@ -71,7 +31,7 @@ mod tests {
     #[test]
     fn torrent_resource_should_be_converted_from_torrent_info() {
         assert_eq!(
-            from_domain_info(Info {
+            conversion::from_domain_info(Info {
                 info_hash: InfoHash::from_str("9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d").unwrap(), // DevSkim: ignore DS173237
                 seeders: 1,
                 completed: 2,
@@ -83,7 +43,7 @@ mod tests {
                 seeders: 1,
                 completed: 2,
                 leechers: 3,
-                peers: Some(vec![from_domain_peer(sample_peer())]),
+                peers: Some(vec![conversion::from_domain_peer(sample_peer())]),
             }
         );
     }
@@ -91,7 +51,7 @@ mod tests {
     #[test]
     fn torrent_resource_list_item_should_be_converted_from_the_basic_torrent_info() {
         assert_eq!(
-            list_item_from_domain(&BasicInfo {
+            conversion::list_item_from_domain(&BasicInfo {
                 info_hash: InfoHash::from_str("9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d").unwrap(), // DevSkim: ignore DS173237
                 seeders: 1,
                 completed: 2,

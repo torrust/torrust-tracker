@@ -83,7 +83,9 @@ members = [
   "contrib/dev-tools/analysis/workspace-coupling",
   "packages/e2e-tools",
   "packages/persistence-benchmark",
+  "packages/rest-api-application",
   "packages/rest-api-protocol",
+  "packages/rest-api-runtime-adapter",
   "packages/torrent-repository-benchmarking",
 ]
 

@@ -1,0 +1,20 @@
+[package]
+authors.workspace = true
+description = "Application/use-case layer for the Torrust Tracker REST API."
+documentation.workspace = true
+edition.workspace = true
+homepage.workspace = true
+keywords = [ "api", "application", "bittorrent", "torrust", "tracker", "use-case" ]
+license.workspace = true
+name = "torrust-tracker-rest-api-application"
+publish.workspace = true
+readme = "README.md"
+repository.workspace = true
+rust-version.workspace = true
+version.workspace = true
+
+[dependencies]
+torrust-tracker-rest-api-protocol = { version = "3.0.0-develop", path = "../rest-api-protocol" }
+torrust-info-hash = "=0.2.0"
+torrust-tracker-primitives = { version = "3.0.0-develop", path = "../primitives" }
+async-trait = "0.1"

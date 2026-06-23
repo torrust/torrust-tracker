@@ -423,11 +423,11 @@ Why discarded:
 
 ## Verification / Progress
 
-- [x] PoC branch `1930-rest-api-contract-first-poc` created.
+- [x] PoC branch `1930-rest-api-contract-first-poc` created. Draft PR: [#1936](https://github.com/torrust/torrust-tracker/pull/1936).
 - [x] `torrust-tracker-rest-api-protocol` package scaffolded with v1 DTOs (Torrent, Peer, ListItem, ActionStatus).
 - [x] README, AGPL-3.0 LICENSE, Containerfile stubs added.
 - [x] Pre-commit checks pass (machete, deny, linter, doc tests).
+- [x] `axum-rest-api-server` depends on protocol DTOs instead of owning them locally.
+- [ ] Pre-push checks pass (nightly fmt + check + doc, `cargo test --tests --benches --examples --workspace --all-targets --all-features`). **Results**: pre-push passed on push, waiting for CI confirmation.
 - [ ] PoC torrent detail endpoint (`GET /api/v1/torrent/{info_hash}`) migrated through all four target layers.
-- [ ] `axum-rest-api-server` depends on protocol DTOs instead of owning them locally.
 - [ ] Target architecture documented in `docs/packages.md` (or a dedicated ADR).
-- [ ] Full `cargo test --workspace` passes with migrated endpoint.

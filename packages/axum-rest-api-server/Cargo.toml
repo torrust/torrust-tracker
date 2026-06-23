@@ -33,7 +33,9 @@ tokio = { version = "1", features = [ "macros", "net", "rt-multi-thread", "signa
 torrust-tracker-axum-server = { version = "3.0.0-develop", path = "../axum-server" }
 torrust-tracker-rest-api-client = { version = "3.0.0-develop", path = "../rest-api-client" }
 torrust-tracker-rest-api-core = { version = "3.0.0-develop", path = "../rest-api-core" }
+torrust-tracker-rest-api-application = { version = "3.0.0-develop", path = "../rest-api-application" }
 torrust-tracker-rest-api-protocol = { version = "3.0.0-develop", path = "../rest-api-protocol" }
+torrust-tracker-rest-api-runtime-adapter = { version = "3.0.0-develop", path = "../rest-api-runtime-adapter" }
 torrust-server-lib = "0.1.0"
 torrust-clock = "3.0.0"
 torrust-tracker-configuration = { version = "3.0.0-develop", path = "../configuration" }
