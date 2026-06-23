@@ -2,7 +2,7 @@ use std::str::FromStr;
 
 use torrust_info_hash::InfoHash;
 use torrust_tracker_axum_rest_api_server::testing::environment::Started;
-use torrust_tracker_axum_rest_api_server::v1::context::torrent::resources::peer::Peer;
+use torrust_tracker_axum_rest_api_server::v1::context::torrent::resources::peer;
 use torrust_tracker_axum_rest_api_server::v1::context::torrent::resources::torrent::{self, Torrent};
 use torrust_tracker_primitives::peer::fixture::PeerBuilder;
 use torrust_tracker_rest_api_client::common::http::{Query, QueryParam};
@@ -323,7 +323,7 @@ async fn should_allow_getting_a_torrent_info() {
             seeders: 1,
             completed: 0,
             leechers: 0,
-            peers: Some(vec![Peer::from(peer)]),
+            peers: Some(vec![peer::from_domain_peer(peer)]),
         },
     )
     .await;

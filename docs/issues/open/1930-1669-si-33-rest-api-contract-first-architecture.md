@@ -421,9 +421,13 @@ Why discarded:
 - Publishing any REST API package as a stable external contract.
 - Changing the HTTP tracker or UDP tracker layers.
 
-## Verification
+## Verification / Progress
 
+- [x] PoC branch `1930-rest-api-contract-first-poc` created.
+- [x] `torrust-tracker-rest-api-protocol` package scaffolded with v1 DTOs (Torrent, Peer, ListItem, ActionStatus).
+- [x] README, AGPL-3.0 LICENSE, Containerfile stubs added.
+- [x] Pre-commit checks pass (machete, deny, linter, doc tests).
+- [ ] PoC torrent detail endpoint (`GET /api/v1/torrent/{info_hash}`) migrated through all four target layers.
+- [ ] `axum-rest-api-server` depends on protocol DTOs instead of owning them locally.
 - [ ] Target architecture documented in `docs/packages.md` (or a dedicated ADR).
-- [ ] PoC branch created with torrent detail endpoint migrated.
-- [ ] Package boundaries validated by `cargo check` and `cargo test --workspace`.
-- [ ] `linter all` passes.
+- [ ] Full `cargo test --workspace` passes with migrated endpoint.

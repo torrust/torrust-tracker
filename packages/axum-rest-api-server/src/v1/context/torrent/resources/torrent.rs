@@ -1,94 +1,45 @@
 //! `Torrent` and `ListItem` API resources.
 //!
+//! Re-exports the protocol DTOs plus domain-conversion utilities.
+//!
 //! - `Torrent` is the full torrent resource.
-//! - `ListItem` is a list item resource on a torrent list. `ListItem` does
-//!   include a `peers` field but it is always `None` in the struct and `null` in
-//!   the JSON response.
-use serde::{Deserialize, Serialize};
+//! - `ListItem` is a list item resource on a torrent list.
 use torrust_tracker_core::torrent::services::{BasicInfo, Info};
+pub use torrust_tracker_rest_api_protocol::v1::resources::torrent::{ListItem, Torrent};
 
-/// `Torrent` API resource.
-#[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
-pub struct Torrent {
-    /// The torrent's info hash v1.
-    pub info_hash: String,
-    /// The torrent's seeders counter. Active peers with a full copy of the
-    /// torrent.
-    pub seeders: u64,
-    /// The torrent's completed counter. Peers that have ever completed the
-    /// download.
-    pub completed: u64,
-    /// The torrent's leechers counter. Active peers that are downloading the
-    /// torrent.
-    pub leechers: u64,
-    /// The torrent's peers. See [`Peer`](crate::v1::context::torrent::resources::peer::Peer).
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub peers: Option<Vec<super::peer::Peer>>,
-}
+use super::peer;
 
-/// `ListItem` API resource. A list item on a torrent list.
-/// `ListItem` does include a `peers` field but it is always `None` in the
-///  struct and `null` in the JSON response.
-#[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
-pub struct ListItem {
-    /// The torrent's info hash v1.
-    pub info_hash: String,
-    /// The torrent's seeders counter. Active peers with a full copy of the
-    /// torrent.
-    pub seeders: u64,
-    /// The torrent's completed counter. Peers that have ever completed the
-    /// download.
-    pub completed: u64,
-    /// The torrent's leechers counter. Active peers that are downloading the
-    /// torrent.
-    pub leechers: u64,
-}
-
-impl ListItem {
-    #[must_use]
-    pub fn new_vec(basic_info_vec: &[BasicInfo]) -> Vec<Self> {
-        basic_info_vec
-            .iter()
-            .map(|basic_info| ListItem::from((*basic_info).clone()))
-            .collect()
-    }
-}
-
-/// Maps an array of the domain type [`BasicInfo`]
-/// to the API resource type [`ListItem`].
+/// Convert a domain [`Info`] into a protocol [`Torrent`].
 #[must_use]
-pub fn to_resource(basic_info_vec: &[BasicInfo]) -> Vec<ListItem> {
-    basic_info_vec
-        .iter()
-        .map(|basic_info| ListItem::from((*basic_info).clone()))
-        .collect()
-}
+pub fn from_domain_info(info: Info) -> Torrent {
+    let peers: Option<peer::Vector> = info.peers.map(|peers| peers.into_iter().collect());
 
-impl From<Info> for Torrent {
-    fn from(info: Info) -> Self {
-        let peers: Option<super::peer::Vector> = info.peers.map(|peers| peers.into_iter().collect());
+    let peers: Option<Vec<torrust_tracker_rest_api_protocol::v1::resources::peer::Peer>> = peers.map(|peers| peers.0);
 
-        let peers: Option<Vec<super::peer::Peer>> = peers.map(|peers| peers.0);
-
-        Self {
-            info_hash: info.info_hash.to_string(),
-            seeders: info.seeders,
-            completed: info.completed,
-            leechers: info.leechers,
-            peers,
-        }
+    Torrent {
+        info_hash: info.info_hash.to_string(),
+        seeders: info.seeders,
+        completed: info.completed,
+        leechers: info.leechers,
+        peers,
     }
 }
 
-impl From<BasicInfo> for ListItem {
-    fn from(basic_info: BasicInfo) -> Self {
-        Self {
-            info_hash: basic_info.info_hash.to_string(),
-            seeders: basic_info.seeders,
-            completed: basic_info.completed,
-            leechers: basic_info.leechers,
-        }
+/// Build a [`ListItem`] from a domain [`BasicInfo`].
+#[must_use]
+pub fn list_item_from_domain(basic_info: &BasicInfo) -> ListItem {
+    ListItem {
+        info_hash: basic_info.info_hash.to_string(),
+        seeders: basic_info.seeders,
+        completed: basic_info.completed,
+        leechers: basic_info.leechers,
     }
+}
+
+/// Build a vector of [`ListItem`] from domain [`BasicInfo`] slices.
+#[must_use]
+pub fn list_items_from_domain(basic_info_vec: &[BasicInfo]) -> Vec<ListItem> {
+    basic_info_vec.iter().map(list_item_from_domain).collect()
 }
 
 #[cfg(test)]
@@ -101,9 +52,9 @@ mod tests {
     use torrust_tracker_core::torrent::services::{BasicInfo, Info};
     use torrust_tracker_primitives::{AnnounceEvent, NumberOfBytes, PeerId, peer};
 
-    use super::Torrent;
-    use crate::v1::context::torrent::resources::peer::Peer;
-    use crate::v1::context::torrent::resources::torrent::ListItem;
+    use super::peer::from_domain_peer;
+    use super::{from_domain_info, list_item_from_domain};
+    use crate::v1::context::torrent::resources::torrent::{ListItem, Torrent};
 
     fn sample_peer() -> peer::Peer {
         peer::Peer {
@@ -120,7 +71,7 @@ mod tests {
     #[test]
     fn torrent_resource_should_be_converted_from_torrent_info() {
         assert_eq!(
-            Torrent::from(Info {
+            from_domain_info(Info {
                 info_hash: InfoHash::from_str("9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d").unwrap(), // DevSkim: ignore DS173237
                 seeders: 1,
                 completed: 2,
@@ -132,7 +83,7 @@ mod tests {
                 seeders: 1,
                 completed: 2,
                 leechers: 3,
-                peers: Some(vec![Peer::from(sample_peer())]),
+                peers: Some(vec![from_domain_peer(sample_peer())]),
             }
         );
     }
@@ -140,7 +91,7 @@ mod tests {
     #[test]
     fn torrent_resource_list_item_should_be_converted_from_the_basic_torrent_info() {
         assert_eq!(
-            ListItem::from(BasicInfo {
+            list_item_from_domain(&BasicInfo {
                 info_hash: InfoHash::from_str("9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d").unwrap(), // DevSkim: ignore DS173237
                 seeders: 1,
                 completed: 2,
