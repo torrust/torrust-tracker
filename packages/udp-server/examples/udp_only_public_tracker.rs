@@ -61,6 +61,7 @@ async fn main() {
         cookie_lifetime: Duration::from_secs(120),
         tracker_usage_statistics: false,
         ipv6_v6only: false,
+        max_connection_id_errors_per_ip: 10,
     };
 
     println!("Types from torrust-tracker-configuration used by this binary:");

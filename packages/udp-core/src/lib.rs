@@ -22,10 +22,6 @@ pub(crate) type CurrentClock = clock::Stopped;
 use crypto::ephemeral_instance_keys;
 use tracing::instrument;
 
-/// The maximum number of connection id errors per ip. Clients will be banned if
-/// they exceed this limit.
-pub const MAX_CONNECTION_ID_ERRORS_PER_IP: u32 = 10;
-
 pub const UDP_TRACKER_LOG_TARGET: &str = "UDP TRACKER";
 
 /// It initializes the static values.

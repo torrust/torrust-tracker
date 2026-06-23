@@ -57,6 +57,7 @@ pub fn ephemeral() -> Configuration {
         cookie_lifetime: Duration::from_secs(120),
         tracker_usage_statistics: true,
         ipv6_v6only: false,
+        max_connection_id_errors_per_ip: 10,
     }]);
 
     // Ephemeral socket address for HTTP tracker

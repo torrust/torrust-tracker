@@ -81,7 +81,20 @@ impl AppContainer {
 
         // UDP
 
-        let udp_tracker_core_services = UdpTrackerCoreServices::initialize_from(&tracker_core_container);
+        use torrust_tracker_configuration::UdpTracker as UdpTrackerConfig;
+
+        let default_max_connection_id_errors = UdpTrackerConfig::default().max_connection_id_errors_per_ip;
+
+        let max_connection_id_errors = configuration
+            .udp_trackers
+            .as_ref()
+            .and_then(|trackers| trackers.first())
+            .map_or(default_max_connection_id_errors, |config| {
+                config.max_connection_id_errors_per_ip
+            });
+
+        let udp_tracker_core_services =
+            UdpTrackerCoreServices::initialize_from(&tracker_core_container, max_connection_id_errors);
 
         let udp_tracker_server_container = UdpTrackerServerContainer::initialize(&core_config);
 

@@ -4,10 +4,16 @@ use tokio::sync::{RwLock, RwLockReadGuard};
 use torrust_clock::DurationSinceUnixEpoch;
 use torrust_metrics::label::LabelSet;
 use torrust_metrics::metric::MetricName;
-use torrust_metrics::metric_collection::Error;
+use torrust_metrics::metric_collection::{Error, MetricCollection};
 
 use super::describe_metrics;
 use super::metrics::Metrics;
+
+/// Trait exposing only the UDP core statistics that external consumers need.
+#[async_trait::async_trait]
+pub trait UdpCoreStatsRepository: Send + Sync {
+    async fn get_metrics_collection(&self) -> MetricCollection;
+}
 
 /// A repository for the tracker metrics.
 #[derive(Clone)]
@@ -50,5 +56,12 @@ impl Repository {
         drop(stats_lock);
 
         result
+    }
+}
+
+#[async_trait::async_trait]
+impl UdpCoreStatsRepository for Repository {
+    async fn get_metrics_collection(&self) -> MetricCollection {
+        self.stats.read().await.metric_collection.clone()
     }
 }

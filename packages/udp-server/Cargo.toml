@@ -38,6 +38,7 @@ torrust-tracker-primitives = { version = "3.0.0-develop", path = "../primitives"
 torrust-tracker-swarm-coordination-registry = { version = "3.0.0-develop", path = "../swarm-coordination-registry" }
 tracing = "0"
 url = { version = "2", features = [ "serde" ] }
+async-trait = "0"
 uuid = { version = "1", features = [ "v4" ] }
 zerocopy = "0.8"
 socket2 = "0.6.4"

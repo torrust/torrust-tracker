@@ -12,7 +12,7 @@ use crate::services::banning::BanService;
 use crate::services::connect::ConnectService;
 use crate::services::scrape::ScrapeService;
 use crate::statistics::repository::Repository;
-use crate::{MAX_CONNECTION_ID_ERRORS_PER_IP, event, services, statistics};
+use crate::{event, services, statistics};
 
 pub struct UdpTrackerCoreContainer {
     pub udp_tracker_config: Arc<UdpTracker>,
@@ -47,7 +47,9 @@ impl UdpTrackerCoreContainer {
         tracker_core_container: &Arc<TrackerCoreContainer>,
         udp_tracker_config: &Arc<UdpTracker>,
     ) -> Arc<UdpTrackerCoreContainer> {
-        let udp_tracker_core_services = UdpTrackerCoreServices::initialize_from(tracker_core_container);
+        let max_connection_id_errors_per_ip = udp_tracker_config.max_connection_id_errors_per_ip;
+        let udp_tracker_core_services =
+            UdpTrackerCoreServices::initialize_from(tracker_core_container, max_connection_id_errors_per_ip);
 
         Self::initialize_from_services(tracker_core_container, &udp_tracker_core_services, udp_tracker_config)
     }
@@ -87,7 +89,10 @@ pub struct UdpTrackerCoreServices {
 
 impl UdpTrackerCoreServices {
     #[must_use]
-    pub fn initialize_from(tracker_core_container: &Arc<TrackerCoreContainer>) -> Arc<Self> {
+    pub fn initialize_from(
+        tracker_core_container: &Arc<TrackerCoreContainer>,
+        max_connection_id_errors_per_ip: u32,
+    ) -> Arc<Self> {
         let udp_core_broadcaster = Broadcaster::default();
         let udp_core_stats_repository = Arc::new(Repository::new());
         let event_bus = Arc::new(EventBus::new(
@@ -96,7 +101,7 @@ impl UdpTrackerCoreServices {
         ));
 
         let udp_core_stats_event_sender = event_bus.sender();
-        let ban_service = Arc::new(RwLock::new(BanService::new(MAX_CONNECTION_ID_ERRORS_PER_IP)));
+        let ban_service = Arc::new(RwLock::new(BanService::new(max_connection_id_errors_per_ip)));
         let connect_service = Arc::new(ConnectService::new(udp_core_stats_event_sender.clone()));
         let announce_service = Arc::new(AnnounceService::new(
             tracker_core_container.announce_handler.clone(),
