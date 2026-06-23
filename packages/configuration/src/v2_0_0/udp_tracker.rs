@@ -32,6 +32,11 @@ pub struct UdpTracker {
     /// > be disabled; setting this to `false` is a no-op.
     #[serde(default = "UdpTracker::default_ipv6_v6only")]
     pub ipv6_v6only: bool,
+
+    /// The maximum number of connection ID errors per IP before the client is
+    /// banned. Default is `10`.
+    #[serde(default = "UdpTracker::default_max_connection_id_errors_per_ip")]
+    pub max_connection_id_errors_per_ip: u32,
 }
 impl Default for UdpTracker {
     fn default() -> Self {
@@ -40,6 +45,7 @@ impl Default for UdpTracker {
             cookie_lifetime: Self::default_cookie_lifetime(),
             tracker_usage_statistics: Self::default_tracker_usage_statistics(),
             ipv6_v6only: Self::default_ipv6_v6only(),
+            max_connection_id_errors_per_ip: Self::default_max_connection_id_errors_per_ip(),
         }
     }
 }
@@ -59,5 +65,9 @@ impl UdpTracker {
 
     fn default_ipv6_v6only() -> bool {
         false
+    }
+
+    fn default_max_connection_id_errors_per_ip() -> u32 {
+        10
     }
 }

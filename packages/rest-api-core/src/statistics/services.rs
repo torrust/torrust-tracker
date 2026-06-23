@@ -201,7 +201,6 @@ mod tests {
     use torrust_tracker_http_core::statistics::repository::Repository;
     use torrust_tracker_swarm_coordination_registry::container::SwarmCoordinationRegistryContainer;
     use torrust_tracker_test_helpers::configuration;
-    use torrust_tracker_udp_core::MAX_CONNECTION_ID_ERRORS_PER_IP;
     use torrust_tracker_udp_core::services::banning::BanService;
 
     use crate::statistics::metrics::{ProtocolMetrics, TorrentsMetrics};
@@ -224,7 +223,7 @@ mod tests {
         let tracker_core_container =
             TrackerCoreContainer::initialize_from(&core_config, &swarm_coordination_registry_container.clone()).await;
 
-        let _ban_service = Arc::new(RwLock::new(BanService::new(MAX_CONNECTION_ID_ERRORS_PER_IP)));
+        let _ban_service = Arc::new(RwLock::new(BanService::new(10)));
 
         // HTTP core stats
         let http_core_broadcaster = Broadcaster::default();
