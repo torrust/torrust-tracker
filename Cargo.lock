@@ -4873,6 +4873,7 @@ dependencies = [
  "torrust-tracker-primitives",
  "torrust-tracker-rest-api-client",
  "torrust-tracker-rest-api-core",
+ "torrust-tracker-rest-api-protocol",
  "torrust-tracker-swarm-coordination-registry",
  "torrust-tracker-test-helpers",
  "torrust-tracker-udp-core",

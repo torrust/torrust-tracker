@@ -1,7 +1,7 @@
 //! `Torrent` and `ListItem` API resources.
 //!
-//! Re-exports the protocol DTOs.
-pub use torrust_tracker_rest_api_protocol::v1::resources::torrent::{ListItem, Torrent};
+//! Protocol DTOs are defined in `torrust-tracker-rest-api-protocol`.
+//! This module only contains unit tests for domain→DTO conversions.
 
 #[cfg(test)]
 mod tests {
@@ -12,9 +12,8 @@ mod tests {
     use torrust_info_hash::InfoHash;
     use torrust_tracker_core::torrent::services::{BasicInfo, Info};
     use torrust_tracker_primitives::{AnnounceEvent, NumberOfBytes, PeerId, peer};
+    use torrust_tracker_rest_api_protocol::v1::resources::torrent::{ListItem, Torrent};
     use torrust_tracker_rest_api_runtime_adapter::conversion;
-
-    use crate::v1::context::torrent::resources::torrent::{ListItem, Torrent};
 
     fn sample_peer() -> peer::Peer {
         peer::Peer {
