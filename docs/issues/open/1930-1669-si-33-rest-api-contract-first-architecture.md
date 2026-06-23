@@ -428,6 +428,10 @@ Why discarded:
 - [x] README, AGPL-3.0 LICENSE, Containerfile stubs added.
 - [x] Pre-commit checks pass (machete, deny, linter, doc tests).
 - [x] `axum-rest-api-server` depends on protocol DTOs instead of owning them locally.
-- [ ] Pre-push checks pass (nightly fmt + check + doc, `cargo test --tests --benches --examples --workspace --all-targets --all-features`). **Results**: pre-push passed on push, waiting for CI confirmation.
-- [ ] PoC torrent detail endpoint (`GET /api/v1/torrent/{info_hash}`) migrated through all four target layers.
+- [x] Pre-push checks pass (nightly fmt + check + doc, `cargo test --tests --benches --examples --workspace --all-targets --all-features`). **Results**: pre-push passed on push, waiting for CI confirmation.
+- [x] PoC torrent detail endpoint (`GET /api/v1/torrent/{info_hash}`) migrated through all four target layers:
+  - `rest-api-protocol`: Torrent/Peer/ListItem DTOs
+  - `rest-api-application`: `TorrentQueryPort` + `TorrentApiService` use case
+  - `rest-api-runtime-adapter`: `TrackerTorrentQueryAdapter` + conversion functions
+  - `axum-rest-api-server`: handler dispatches via use case instead of direct `tracker-core`
 - [ ] Target architecture documented in `docs/packages.md` (or a dedicated ADR).

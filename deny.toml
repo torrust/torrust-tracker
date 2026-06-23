@@ -69,6 +69,15 @@ deny = [
     "torrust-tracker-udp-server",
   ] },
 
+  # REST API protocol — only the REST API layers and client may depend on it
+  { crate = "torrust-tracker-rest-api-protocol", wrappers = [
+    "torrust-tracker",
+    "torrust-tracker-axum-rest-api-server",
+    "torrust-tracker-rest-api-application",
+    "torrust-tracker-rest-api-client",
+    "torrust-tracker-rest-api-runtime-adapter",
+  ] },
+
   # Core protocol-specific wrappers must not be depended on by tracker-core
   { crate = "torrust-tracker-http-core", wrappers = [
     "torrust-tracker",
