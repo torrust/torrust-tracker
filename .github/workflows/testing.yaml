@@ -113,8 +113,8 @@ jobs:
           toolchain: stable
 
       - id: deny
-        name: Install cargo-deny
-        run: cargo install --locked cargo-deny
+        name: Install cargo-deny (v0.19.9)
+        run: cargo install --locked cargo-deny@0.19.9
 
       - id: deny-check
         name: Check layer boundary bans
