@@ -1,13 +1,13 @@
 ---
 doc-type: issue
 issue-type: task
-status: open
+status: completed
 priority: p2
 github-issue: 1925
 spec-path: docs/issues/open/1925-1669-si-31-configure-cargo-deny-for-layer-boundary-enforcement.md
 branch: 1925-configure-cargo-deny-for-layer-boundary-enforcement
 related-pr: 1932
-last-updated-utc: 2026-06-22
+last-updated-utc: 2026-06-23
 semantic-links:
   skill-links:
     - create-issue

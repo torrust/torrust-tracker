@@ -57,7 +57,7 @@ jobs:
     steps:
       - id: checkout
         name: Checkout Repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - id: setup-buildx
         name: Setup Buildx
@@ -176,7 +176,7 @@ jobs:
     steps:
       - id: checkout
         name: Checkout Repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - id: meta
         name: Docker Meta
@@ -224,7 +224,7 @@ jobs:
     steps:
       - id: checkout
         name: Checkout Repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - id: meta
         name: Docker Meta

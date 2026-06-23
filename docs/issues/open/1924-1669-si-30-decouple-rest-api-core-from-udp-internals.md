@@ -1,12 +1,12 @@
 ---
 doc-type: spec
 issue-type: task
-status: open
+status: completed
 priority: p2
 epic: 1669
 github-issue: 1924
 spec-path: docs/issues/open/1924-1669-si-30-decouple-rest-api-core-from-udp-internals.md
-last-updated-utc: 2026-06-22
+last-updated-utc: 2026-06-23
 semantic-links:
   skill-links:
     - create-issue
