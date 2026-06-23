@@ -5232,6 +5232,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "torrust-tracker-rest-api-protocol"
+version = "3.0.0-develop"
+dependencies = [
+ "serde",
+]
+
+[[package]]
 name = "torrust-tracker-swarm-coordination-registry"
 version = "3.0.0-develop"
 dependencies = [

@@ -83,6 +83,7 @@ members = [
   "contrib/dev-tools/analysis/workspace-coupling",
   "packages/e2e-tools",
   "packages/persistence-benchmark",
+  "packages/rest-api-protocol",
   "packages/torrent-repository-benchmarking",
 ]
 
