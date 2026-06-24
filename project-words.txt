@@ -11,6 +11,7 @@ alekitto
 alives
 alloca
 analyse
+analysed
 appuser
 argjson
 artefacts
