@@ -63,20 +63,20 @@ layers and enforced dependency direction. See
 for the full architectural decision and alternatives considered.
 
 ```mermaid
-flowchart LR
-    Protocol[rest-api-protocol]
-    Application[rest-api-application]
-    Adapter[rest-api-runtime-adapter]
-    Transport[axum-rest-api-server]
-    Client[rest-api-client]
-    TrackerInternals[tracker-core / http-core / udp-core / udp-server]
+flowchart TB
+    Transport["axum-rest-api-server<br><em>transport</em>"]
+    Client["rest-api-client<br><em>client</em>"]
+    Application["rest-api-application<br><em>ports / use cases</em>"]
+    Adapter["rest-api-runtime-adapter<br><em>port impls</em>"]
+    Internals["tracker-core / http-core / udp-core / udp-server<br><em>tracker internals</em>"]
+    Protocol["rest-api-protocol<br><em>wire contract</em>"]
 
-    Transport --> Application
-    Transport --> Protocol
-    Client --> Protocol
-    Application --> Protocol
-    Adapter --> Application
-    Adapter --> TrackerInternals
+    Transport -->|calls| Application
+    Adapter -->|implements| Application
+    Adapter -->|wraps| Internals
+    Transport -.->|serializes| Protocol
+    Client -.->|deserializes| Protocol
+    Application -->|defines| Protocol
 ```
 
 ### Layer responsibilities
