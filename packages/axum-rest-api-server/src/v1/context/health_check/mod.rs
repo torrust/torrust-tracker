@@ -28,7 +28,6 @@
 //!
 //! **Resource**
 //!
-//! Refer to the API [`Stats`](crate::context::health_check::resources::Report)
-//! resource for more information about the response attributes.
+//! Refer to the API `Report` resource in [`torrust_tracker_rest_api_protocol::v1::resources::health_check`]
+//! for more information about the response attributes.
 pub mod handlers;
-pub mod resources;

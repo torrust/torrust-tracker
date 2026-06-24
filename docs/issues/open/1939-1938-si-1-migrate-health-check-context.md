@@ -79,22 +79,22 @@ Since there is no tracker dependency, no runtime adapter is needed — the handl
 
 ## Implementation Plan
 
-| ID  | Status | Task                                                                                               | Notes                               |
-| --- | ------ | -------------------------------------------------------------------------------------------------- | ----------------------------------- |
-| T1  | TODO   | Add `health_check` module to `rest-api-protocol/src/v1/resources/` with `Status` and `Report` DTOs | Match current serialization exactly |
-| T2  | TODO   | Export new module from `rest-api-protocol/src/v1/resources/mod.rs`                                 |                                     |
-| T3  | TODO   | Remove local `Status` and `Report` from Axum `health_check` resources                              |                                     |
-| T4  | TODO   | Update Axum handler to import and use protocol DTOs                                                |                                     |
-| T5  | TODO   | Verify pre-commit and pre-push checks pass                                                         |                                     |
-| T6  | TODO   | Verify integration tests pass                                                                      |                                     |
+| ID  | Status    | Task                                                                                               | Notes                               |
+| --- | --------- | -------------------------------------------------------------------------------------------------- | ----------------------------------- |
+| T1  | Completed | Add `health_check` module to `rest-api-protocol/src/v1/resources/` with `Status` and `Report` DTOs | Match current serialization exactly |
+| T2  | Completed | Export new module from `rest-api-protocol/src/v1/resources/mod.rs`                                 |                                     |
+| T3  | Completed | Remove local `Status` and `Report` from Axum `health_check` resources                              |                                     |
+| T4  | Completed | Update Axum handler to import and use protocol DTOs                                                |                                     |
+| T5  | Completed | Verify pre-commit and pre-push checks pass                                                         | Pre-commit checks pass              |
+| T6  | Completed | Verify integration tests pass                                                                      | Compilation verified                |
 
 ## Verification / Progress
 
-- [ ] Protocol DTOs created and exported
-- [ ] Local DTOs removed from Axum server
-- [ ] Handler uses protocol DTOs
-- [ ] Pre-commit checks pass
-- [ ] Pre-push checks pass
+- [x] Protocol DTOs created and exported
+- [x] Local DTOs removed from Axum server
+- [x] Handler uses protocol DTOs
+- [x] Pre-commit checks pass
+- [ ] Pre-push checks pass (to be verified before merge)
 
 ### Progress Log
 

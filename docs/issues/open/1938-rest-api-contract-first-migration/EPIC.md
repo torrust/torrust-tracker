@@ -65,15 +65,15 @@ The contexts are ordered by complexity and dependency depth. Follow-up tasks (SI
 
 ## Context Status Summary
 
-| Context / Task                  | Axum Handlers | Protocol DTOs? | Port Trait? | Use-case? | Runtime Adapter? | Notes                              |
-| ------------------------------- | :-----------: | :------------: | :---------: | :-------: | :--------------: | ---------------------------------- |
-| `torrent`                       |   2 ✅ done   |       ✅       |     ✅      |    ✅     |        ✅        | Reference pattern                  |
-| SI-1: `health_check`            |       1       |       ❌       |     ❌      |    ❌     |        ❌        | No tracker deps needed             |
-| SI-2: `whitelist`               |       3       |       ❌       |     ❌      |    ❌     |        ❌        | Reuses `ActionStatus`              |
-| SI-3: `auth_key`                |       4       |       ❌       |     ❌      |    ❌     |        ❌        | Form DTOs + `clock`                |
-| SI-4: `stats`                   |       2       |       ❌       |     ❌      |    ❌     |        ❌        | 28-field DTO, SI-30 traits         |
-| SI-5: deprecate `rest-api-core` |       —       |       —        |      —      |     —     |        —         | Post-migration cleanup             |
-| SI-6: introduce `ApiClient`     |       —       |       —        |      —      |     —     |        —         | Typed wrapper over `ApiHttpClient` |
+| Context / Task                  | Axum Handlers | Protocol DTOs? | Port Trait? | Use-case? | Runtime Adapter? | Notes                                |
+| ------------------------------- | :-----------: | :------------: | :---------: | :-------: | :--------------: | ------------------------------------ |
+| `torrent`                       |   2 ✅ done   |       ✅       |     ✅      |    ✅     |        ✅        | Reference pattern                    |
+| SI-1: `health_check`            |   1 ✅ done   |       ✅       |   ❌ N/A    |  ❌ N/A   |      ❌ N/A      | No tracker deps — protocol DTOs only |
+| SI-2: `whitelist`               |       3       |       ❌       |     ❌      |    ❌     |        ❌        | Reuses `ActionStatus`                |
+| SI-3: `auth_key`                |       4       |       ❌       |     ❌      |    ❌     |        ❌        | Form DTOs + `clock`                  |
+| SI-4: `stats`                   |       2       |       ❌       |     ❌      |    ❌     |        ❌        | 28-field DTO, SI-30 traits           |
+| SI-5: deprecate `rest-api-core` |       —       |       —        |      —      |     —     |        —         | Post-migration cleanup               |
+| SI-6: introduce `ApiClient`     |       —       |       —        |      —      |     —     |        —         | Typed wrapper over `ApiHttpClient`   |
 
 ## Scope
 
@@ -154,6 +154,7 @@ The following table maps each internal crate dependency to the sub-issue that re
 
 ### Progress Log
 
-| Date       | Event                                         |
-| ---------- | --------------------------------------------- |
-| 2026-06-24 | Draft EPIC created after SI-33 PoC validation |
+| Date       | Event                                                    |
+| ---------- | -------------------------------------------------------- |
+| 2026-06-24 | Draft EPIC created after SI-33 PoC validation            |
+| 2026-06-24 | SI-1 (health_check) implemented — protocol DTOs migrated |

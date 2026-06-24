@@ -2,8 +2,7 @@
 //! API context.
 
 use axum::Json;
-
-use super::resources::{Report, Status};
+use torrust_tracker_rest_api_protocol::v1::resources::health_check::{Report, Status};
 
 /// Endpoint for container health check.
 pub async fn health_check_handler() -> Json<Report> {
