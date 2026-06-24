@@ -46,7 +46,6 @@ semantic-links:
     - src/lib.rs
     - share/default/config/
     - docs/containers.md
-    - issue #1417
 ---
 
 <!-- skill-link: create-issue -->
