@@ -435,3 +435,21 @@ Why discarded:
   - `rest-api-runtime-adapter`: `TrackerTorrentQueryAdapter` + conversion functions
   - `axum-rest-api-server`: handler dispatches via use case instead of direct `tracker-core`
 - [x] Target architecture documented in `docs/packages.md` and `docs/adrs/`. Verdict: ADR 20260623200526 + packages.md REST API section.
+
+## Follow-up Tasks
+
+### Rename `updated_milliseconds_ago` to clarify wire semantics
+
+The `Peer.updated_milliseconds_ago` field was introduced in commit `bc3d246f` (Nov 2022) as a rename of the original `updated` field. Both fields hold the **same value**: a Unix timestamp in milliseconds (from `DurationSinceUnixEpoch::as_millis()`). The `_ago` suffix is misleading — it suggests a relative duration, not an absolute timestamp.
+
+The original intent was to add the unit "milliseconds" to the field name (hypothesis #2), not to introduce a new duration-based field.
+
+**Proposed fix:** Rename `updated_milliseconds_ago` to `updated_milliseconds` in the v1 protocol DTO, and remove the deprecated `updated` field. This is a breaking change for v3.0.0.
+
+**Scope:**
+
+- `rest-api-protocol`: rename field in `Peer` DTO
+- `rest-api-runtime-adapter`: update `from_domain_peer` conversion
+- `axum-rest-api-server` test assertions that reference the old name
+- REST API client if parsing the field by name
+- Documentation / API docs
