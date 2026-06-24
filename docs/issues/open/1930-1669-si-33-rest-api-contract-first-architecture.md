@@ -323,6 +323,41 @@ Forbidden edges (once migration is complete):
 The forbidden edges are currently present and represent the coupling that this
 issue resolves by introducing the application and adapter layers.
 
+### Rationale for Forbidden Edges
+
+The direction `axum-rest-api-server → tracker-core` is **structurally allowed**
+(higher-level package depending on a lower-level one). The edge is forbidden
+anyway because of **separation of concerns**:
+
+1. **Prevents domain types from leaking into the API contract.** When the Axum
+   handler imports `tracker_core::whitelist::WhitelistManager` directly, changes
+   to `tracker-core` internals could ripple into the wire format. The protocol
+   package should be the sole source of truth for API types.
+
+2. **Enables testability without the tracker stack.** An Axum handler that takes
+   `State<Arc<WhitelistManager>>` can only be tested by spinning up real tracker
+   infrastructure. The same handler taking `State<Arc<WhitelistApiService>>`
+   (which depends on a port trait from `rest-api-application`) can be tested
+   against a mock adapter.
+
+3. **Keeps the Axum server thin — it is a transport adapter only.** Its job is:
+   extract HTTP request → call a use-case → serialize to HTTP response. Not:
+   construct a `KeysHandler`, call `WhitelistManager::add_torrent_to_whitelist`,
+   or map `PeerKeyError` variants.
+
+4. **Enables a tracker-agnostic API in the future.** If `axum-rest-api-server`
+   depends on `tracker-core`, the REST API is permanently tied to Torrust's
+   tracker implementation. With the contract-first architecture, the same
+   protocol and application layers could serve as the REST API for any
+   BitTorrent tracker that implements the port traits from
+   `rest-api-application`.
+
+In short: `axum-rest-api-server` **can** depend on lower-level packages, but
+the correct lower-level package is `rest-api-application` (port traits and
+use-cases), not `tracker-core` (domain internals). The bridge between the two
+is `rest-api-runtime-adapter`, which is the **only** layer that should import
+tracker-internal crates directly.
+
 ## Migration Strategy
 
 Use incremental migration to avoid destabilizing running APIs.
