@@ -1,12 +1,12 @@
 ---
 doc-type: spec
 issue-type: task
-status: open
+status: done
 priority: p1
 epic: 1669
 github-issue: 1930
-spec-path: docs/issues/open/1930-1669-si-33-rest-api-contract-first-architecture.md
-last-updated-utc: 2026-06-22
+spec-path: docs/issues/closed/1930-1669-si-33-rest-api-contract-first-architecture.md
+last-updated-utc: 2026-06-24
 semantic-links:
   skill-links:
     - create-issue
