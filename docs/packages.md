@@ -59,7 +59,7 @@ contrib/
 
 The REST API uses a **contract-first layered architecture** with four distinct
 layers and enforced dependency direction. See
-[ADR 20260623200526](docs/adrs/20260623200526_adopt_contract-first_architecture_for_rest_api.md)
+[ADR 20260623200526](adrs/20260623200526_adopt_contract-first_architecture_for_rest_api.md)
 for the full architectural decision and alternatives considered.
 
 ```mermaid

@@ -8,10 +8,10 @@ pub struct Peer {
     pub peer_id: Id,
     /// The peer's socket address. For example: `192.168.1.88:17548`.
     pub peer_addr: String,
-    /// The peer's last update time in milliseconds.
+    /// The peer's last update time as a Unix timestamp in milliseconds since epoch.
     #[deprecated(since = "2.0.0", note = "please use `updated_milliseconds_ago` instead")]
     pub updated: u128,
-    /// The peer's last update time in milliseconds.
+    /// Milliseconds since the peer's last update (relative to the response generation time).
     pub updated_milliseconds_ago: u128,
     /// The peer's uploaded bytes.
     pub uploaded: i64,

@@ -434,4 +434,4 @@ Why discarded:
   - `rest-api-application`: `TorrentQueryPort` + `TorrentApiService` use case
   - `rest-api-runtime-adapter`: `TrackerTorrentQueryAdapter` + conversion functions
   - `axum-rest-api-server`: handler dispatches via use case instead of direct `tracker-core`
-- [ ] Target architecture documented in `docs/packages.md` (or a dedicated ADR).
+- [x] Target architecture documented in `docs/packages.md` and `docs/adrs/`. Verdict: ADR 20260623200526 + packages.md REST API section.
