@@ -12,6 +12,10 @@ pub struct Peer {
     #[deprecated(since = "2.0.0", note = "please use `updated_milliseconds_ago` instead")]
     pub updated: u128,
     /// Milliseconds since the peer's last update (relative to the response generation time).
+    /// Note: despite the `_ago` suffix, this field is populated with the **absolute Unix timestamp**
+    /// in milliseconds (the same value as the deprecated `updated` field), not a relative duration.
+    /// The name is a historical artifact — see issue #1930 follow-up tasks for the planned rename.
+    #[allow(clippy::doc_markdown)]
     pub updated_milliseconds_ago: u128,
     /// The peer's uploaded bytes.
     pub uploaded: i64,
@@ -19,7 +23,7 @@ pub struct Peer {
     pub downloaded: i64,
     /// The peer's left bytes (pending to download).
     pub left: i64,
-    /// The peer's event: `started`, `stopped`, `completed`.
+    /// The peer's event: `Started`, `Stopped`, `Completed`, `None` (`PascalCase`).
     pub event: String,
 }
 
