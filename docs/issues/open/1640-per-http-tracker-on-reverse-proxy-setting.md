@@ -13,11 +13,11 @@ semantic-links:
     - create-issue
   related-artifacts:
     - docs/adrs/20260617093046_reject_wildcard_external_ip.md
-    - github issues/1417 (public service URL)
-    - github issues/1671 (IPv4/IPv6 client metrics)
-    - github torrust/torrust-tracker-deployer
-    - github torrust/torrust-tracker-deployer pull/273
-    - github torrust/torrust-tracker-deployer docs/ai-training/dataset/environment-configs/02-full-stack-lxd.json
+    - issue #1417
+    - issue #1671
+    - issue torrust/torrust-tracker-deployer
+    - issue torrust/torrust-tracker-deployer pull/273
+    - issue torrust/torrust-tracker-deployer docs/ai-training/dataset/environment-configs/02-full-stack-lxd.json
     - packages/configuration/src/v2_0_0/http_tracker.rs
     - packages/configuration/src/v2_0_0/udp_tracker.rs
     - packages/configuration/src/v2_0_0/network.rs
@@ -46,7 +46,7 @@ semantic-links:
     - src/lib.rs
     - share/default/config/
     - docs/containers.md
-    - docs/issues/1417
+    - issue #1417
 ---
 
 <!-- skill-link: create-issue -->
@@ -547,7 +547,7 @@ Append one line per meaningful update.
 - [ ] AC4: `Core.net` (the `Network` struct) is removed from `Core`
 - [ ] AC5: `AnnounceHandler::handle_announcement()` accepts `tracker_external_ip` per-call instead of reading from global config
 - [ ] AC6: Two HTTP trackers with different `on_reverse_proxy` settings behave independently: - Tracker A (`on_reverse_proxy = true`) reads `X-Forwarded-For` headers - Tracker B (`on_reverse_proxy = false` or unset) reads connection info IP
-- [ ] AC7: Example `http_only_public_tracker.rs` builds with the new `HttpTracker::net::on_reverse_proxy` field
+- [ ] AC7: Example `http_only_public_tracker.rs` builds with the new `HttpTracker.net.on_reverse_proxy` field
 - [ ] AC8: All default config files and docs use the new format
 - [ ] `linter all` exits with code `0`
 - [ ] Relevant tests pass

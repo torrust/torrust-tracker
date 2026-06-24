@@ -12,9 +12,9 @@ semantic-links:
   skill-links:
     - create-issue
   related-artifacts:
-    - docs/issues/open/1640-move-network-to-per-instance-config.md
-    - github torrust/torrust-tracker-deployer
-    - github torrust/torrust-tracker-deployer docs/ai-training/dataset/environment-configs/02-full-stack-lxd.json
+    - issue #1640
+    - issue torrust/torrust-tracker-deployer
+    - issue torrust/torrust-tracker-deployer docs/ai-training/dataset/environment-configs/02-full-stack-lxd.json
     - packages/configuration/src/v2_0_0/http_tracker.rs
     - packages/configuration/src/v2_0_0/udp_tracker.rs
 ---
