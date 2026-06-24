@@ -323,6 +323,41 @@ Forbidden edges (once migration is complete):
 The forbidden edges are currently present and represent the coupling that this
 issue resolves by introducing the application and adapter layers.
 
+### Rationale for Forbidden Edges
+
+The direction `axum-rest-api-server → tracker-core` is **structurally allowed**
+(higher-level package depending on a lower-level one). The edge is forbidden
+anyway because of **separation of concerns**:
+
+1. **Prevents domain types from leaking into the API contract.** When the Axum
+   handler imports `tracker_core::whitelist::WhitelistManager` directly, changes
+   to `tracker-core` internals could ripple into the wire format. The protocol
+   package should be the sole source of truth for API types.
+
+2. **Enables testability without the tracker stack.** An Axum handler that takes
+   `State<Arc<WhitelistManager>>` can only be tested by spinning up real tracker
+   infrastructure. The same handler taking `State<Arc<WhitelistApiService>>`
+   (which depends on a port trait from `rest-api-application`) can be tested
+   against a mock adapter.
+
+3. **Keeps the Axum server thin — it is a transport adapter only.** Its job is:
+   extract HTTP request → call a use-case → serialize to HTTP response. Not:
+   construct a `KeysHandler`, call `WhitelistManager::add_torrent_to_whitelist`,
+   or map `PeerKeyError` variants.
+
+4. **Enables a tracker-agnostic API in the future.** If `axum-rest-api-server`
+   depends on `tracker-core`, the REST API is permanently tied to Torrust's
+   tracker implementation. With the contract-first architecture, the same
+   protocol and application layers could serve as the REST API for any
+   BitTorrent tracker that implements the port traits from
+   `rest-api-application`.
+
+In short: `axum-rest-api-server` **can** depend on lower-level packages, but
+the correct lower-level package is `rest-api-application` (port traits and
+use-cases), not `tracker-core` (domain internals). The bridge between the two
+is `rest-api-runtime-adapter`, which is the **only** layer that should import
+tracker-internal crates directly.
+
 ## Migration Strategy
 
 Use incremental migration to avoid destabilizing running APIs.
@@ -421,9 +456,35 @@ Why discarded:
 - Publishing any REST API package as a stable external contract.
 - Changing the HTTP tracker or UDP tracker layers.
 
-## Verification
+## Verification / Progress
 
-- [ ] Target architecture documented in `docs/packages.md` (or a dedicated ADR).
-- [ ] PoC branch created with torrent detail endpoint migrated.
-- [ ] Package boundaries validated by `cargo check` and `cargo test --workspace`.
-- [ ] `linter all` passes.
+- [x] PoC branch `1930-rest-api-contract-first-poc` created. Draft PR: [#1936](https://github.com/torrust/torrust-tracker/pull/1936).
+- [x] `torrust-tracker-rest-api-protocol` package scaffolded with v1 DTOs (Torrent, Peer, ListItem, ActionStatus).
+- [x] README, AGPL-3.0 LICENSE, Containerfile stubs added.
+- [x] Pre-commit checks pass (machete, deny, linter, doc tests).
+- [x] `axum-rest-api-server` depends on protocol DTOs instead of owning them locally.
+- [x] Pre-push checks pass (nightly fmt + check + doc, `cargo test --tests --benches --examples --workspace --all-targets --all-features`). **Results**: pre-push passed on push, waiting for CI confirmation.
+- [x] PoC torrent detail endpoint (`GET /api/v1/torrent/{info_hash}`) migrated through all four target layers:
+  - `rest-api-protocol`: Torrent/Peer/ListItem DTOs
+  - `rest-api-application`: `TorrentQueryPort` + `TorrentApiService` use case
+  - `rest-api-runtime-adapter`: `TrackerTorrentQueryAdapter` + conversion functions
+  - `axum-rest-api-server`: handler dispatches via use case instead of direct `tracker-core`
+- [x] Target architecture documented in `docs/packages.md` and `docs/adrs/`. Verdict: ADR 20260623200526 + packages.md REST API section.
+
+## Follow-up Tasks
+
+### Rename `updated_milliseconds_ago` to clarify wire semantics
+
+The `Peer.updated_milliseconds_ago` field was introduced in commit `bc3d246f` (Nov 2022) as a rename of the original `updated` field. Both fields hold the **same value**: a Unix timestamp in milliseconds (from `DurationSinceUnixEpoch::as_millis()`). The `_ago` suffix is misleading — it suggests a relative duration, not an absolute timestamp.
+
+The original intent was to add the unit "milliseconds" to the field name (hypothesis #2), not to introduce a new duration-based field.
+
+**Proposed fix:** Rename `updated_milliseconds_ago` to `updated_milliseconds` in the v1 protocol DTO, and remove the deprecated `updated` field. This is a breaking change for v3.0.0.
+
+**Scope:**
+
+- `rest-api-protocol`: rename field in `Peer` DTO
+- `rest-api-runtime-adapter`: update `from_domain_peer` conversion
+- `axum-rest-api-server` test assertions that reference the old name
+- REST API client if parsing the field by name
+- Documentation / API docs

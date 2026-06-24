@@ -2,7 +2,9 @@
 use std::sync::Arc;
 
 use axum::Router;
+use torrust_tracker_rest_api_application::use_cases::torrent::TorrentApiService;
 use torrust_tracker_rest_api_core::container::TrackerHttpApiCoreContainer;
+use torrust_tracker_rest_api_runtime_adapter::adapters::torrent::TrackerTorrentQueryAdapter;
 
 use super::context::{auth_key, stats, torrent, whitelist};
 
@@ -22,9 +24,9 @@ pub fn add(prefix: &str, router: Router, http_api_container: &Arc<TrackerHttpApi
         &http_api_container.tracker_core_container.whitelist_manager,
     );
 
-    torrent::routes::add(
-        &v1_prefix,
-        router,
-        &http_api_container.tracker_core_container.in_memory_torrent_repository.clone(),
-    )
+    let tracker_adapter =
+        TrackerTorrentQueryAdapter::new(&http_api_container.tracker_core_container.in_memory_torrent_repository);
+    let torrent_service = Arc::new(TorrentApiService::new(Box::new(tracker_adapter)));
+
+    torrent::routes::add(&v1_prefix, router, &torrent_service)
 }

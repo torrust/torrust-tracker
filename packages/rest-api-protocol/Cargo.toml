@@ -1,0 +1,17 @@
+[package]
+authors.workspace = true
+description = "Contract/protocol types for the Torrust Tracker REST API."
+documentation.workspace = true
+edition.workspace = true
+homepage.workspace = true
+keywords = [ "api", "bittorrent", "contract", "protocol", "torrust", "tracker" ]
+license.workspace = true
+name = "torrust-tracker-rest-api-protocol"
+publish.workspace = true
+readme = "README.md"
+repository.workspace = true
+rust-version.workspace = true
+version.workspace = true
+
+[dependencies]
+serde = { version = "1", features = [ "derive" ] }

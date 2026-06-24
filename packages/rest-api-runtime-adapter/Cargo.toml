@@ -1,0 +1,22 @@
+[package]
+authors.workspace = true
+description = "Tracker-specific runtime adapter for the REST API application layer."
+documentation.workspace = true
+edition.workspace = true
+homepage.workspace = true
+keywords = [ "adapter", "api", "bittorrent", "runtime", "torrust", "tracker" ]
+license.workspace = true
+name = "torrust-tracker-rest-api-runtime-adapter"
+publish.workspace = true
+readme = "README.md"
+repository.workspace = true
+rust-version.workspace = true
+version.workspace = true
+
+[dependencies]
+torrust-tracker-rest-api-application = { version = "3.0.0-develop", path = "../rest-api-application" }
+torrust-tracker-rest-api-protocol = { version = "3.0.0-develop", path = "../rest-api-protocol" }
+torrust-tracker-core = { version = "3.0.0-develop", path = "../tracker-core" }
+torrust-tracker-primitives = { version = "3.0.0-develop", path = "../primitives" }
+torrust-info-hash = "=0.2.0"
+async-trait = "0.1"

@@ -4873,6 +4873,7 @@ dependencies = [
  "torrust-tracker-primitives",
  "torrust-tracker-rest-api-client",
  "torrust-tracker-rest-api-core",
+ "torrust-tracker-rest-api-protocol",
  "torrust-tracker-swarm-coordination-registry",
  "torrust-tracker-test-helpers",
  "torrust-tracker-udp-core",
@@ -4974,8 +4975,11 @@ dependencies = [
  "torrust-tracker-core",
  "torrust-tracker-http-core",
  "torrust-tracker-primitives",
+ "torrust-tracker-rest-api-application",
  "torrust-tracker-rest-api-client",
  "torrust-tracker-rest-api-core",
+ "torrust-tracker-rest-api-protocol",
+ "torrust-tracker-rest-api-runtime-adapter",
  "torrust-tracker-swarm-coordination-registry",
  "torrust-tracker-test-helpers",
  "torrust-tracker-udp-core",
@@ -5202,6 +5206,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "torrust-tracker-rest-api-application"
+version = "3.0.0-develop"
+dependencies = [
+ "async-trait",
+ "torrust-info-hash",
+ "torrust-tracker-primitives",
+ "torrust-tracker-rest-api-protocol",
+]
+
+[[package]]
 name = "torrust-tracker-rest-api-client"
 version = "3.0.0-develop"
 dependencies = [
@@ -5229,6 +5243,25 @@ dependencies = [
  "torrust-tracker-test-helpers",
  "torrust-tracker-udp-core",
  "torrust-tracker-udp-server",
+]
+
+[[package]]
+name = "torrust-tracker-rest-api-protocol"
+version = "3.0.0-develop"
+dependencies = [
+ "serde",
+]
+
+[[package]]
+name = "torrust-tracker-rest-api-runtime-adapter"
+version = "3.0.0-develop"
+dependencies = [
+ "async-trait",
+ "torrust-info-hash",
+ "torrust-tracker-core",
+ "torrust-tracker-primitives",
+ "torrust-tracker-rest-api-application",
+ "torrust-tracker-rest-api-protocol",
 ]
 
 [[package]]

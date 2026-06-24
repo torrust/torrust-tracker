@@ -63,6 +63,7 @@ torrust-tracker-axum-rest-api-server = { version = "3.0.0-develop", path = "pack
 torrust-tracker-axum-server = { version = "3.0.0-develop", path = "packages/axum-server" }
 torrust-tracker-rest-api-client = { version = "3.0.0-develop", path = "packages/rest-api-client" }
 torrust-tracker-rest-api-core = { version = "3.0.0-develop", path = "packages/rest-api-core" }
+torrust-tracker-rest-api-protocol = { version = "3.0.0-develop", path = "packages/rest-api-protocol" }
 torrust-server-lib = "0.1.0"
 torrust-clock = "3.0.0"
 torrust-tracker-configuration = { version = "3.0.0-develop", path = "packages/configuration" }
@@ -83,6 +84,9 @@ members = [
   "contrib/dev-tools/analysis/workspace-coupling",
   "packages/e2e-tools",
   "packages/persistence-benchmark",
+  "packages/rest-api-application",
+  "packages/rest-api-protocol",
+  "packages/rest-api-runtime-adapter",
   "packages/torrent-repository-benchmarking",
 ]
 
