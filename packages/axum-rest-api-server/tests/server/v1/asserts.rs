@@ -3,7 +3,7 @@
 use reqwest::Response;
 use torrust_tracker_axum_rest_api_server::v1::context::auth_key::resources::AuthKey;
 use torrust_tracker_axum_rest_api_server::v1::context::stats::resources::Stats;
-use torrust_tracker_rest_api_protocol::v1::resources::torrent::{ListItem, Torrent};
+use torrust_tracker_rest_api_protocol::v1::context::torrent::resources::torrent::{ListItem, Torrent};
 
 // Resource responses
 

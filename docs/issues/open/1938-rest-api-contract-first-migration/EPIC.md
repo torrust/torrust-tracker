@@ -65,24 +65,60 @@ The contexts are ordered by complexity and dependency depth. Follow-up tasks (SI
 
 ## Context Status Summary
 
-| Context / Task                  | Axum Handlers | Protocol DTOs? | Port Trait? | Use-case? | Runtime Adapter? | Notes                              |
-| ------------------------------- | :-----------: | :------------: | :---------: | :-------: | :--------------: | ---------------------------------- |
-| `torrent`                       |   2 ✅ done   |       ✅       |     ✅      |    ✅     |        ✅        | Reference pattern                  |
-| SI-1: `health_check`            |       1       |       ❌       |     ❌      |    ❌     |        ❌        | No tracker deps needed             |
-| SI-2: `whitelist`               |       3       |       ❌       |     ❌      |    ❌     |        ❌        | Reuses `ActionStatus`              |
-| SI-3: `auth_key`                |       4       |       ❌       |     ❌      |    ❌     |        ❌        | Form DTOs + `clock`                |
-| SI-4: `stats`                   |       2       |       ❌       |     ❌      |    ❌     |        ❌        | 28-field DTO, SI-30 traits         |
-| SI-5: deprecate `rest-api-core` |       —       |       —        |      —      |     —     |        —         | Post-migration cleanup             |
-| SI-6: introduce `ApiClient`     |       —       |       —        |      —      |     —     |        —         | Typed wrapper over `ApiHttpClient` |
+| Context / Task                  | Axum Handlers | Protocol DTOs? | Port Trait? | Use-case? | Runtime Adapter? | Notes                                                                             |
+| ------------------------------- | :-----------: | :------------: | :---------: | :-------: | :--------------: | --------------------------------------------------------------------------------- |
+| `torrent`                       |   2 ✅ done   |       ✅       |     ✅      |    ✅     |        ✅        | Reference pattern — lives under `v1::context::torrent::resources::torrent`        |
+| SI-1: `health_check`            |   1 ✅ done   |       ✅       |   ❌ N/A    |  ❌ N/A   |      ❌ N/A      | No tracker deps — DTOs under `v1::context::health_check::resources::health_check` |
+| SI-2: `whitelist`               |       3       |       ❌       |     ❌      |    ❌     |        ❌        | Reuses `ActionStatus`                                                             |
+| SI-3: `auth_key`                |       4       |       ❌       |     ❌      |    ❌     |        ❌        | Form DTOs + `clock`                                                               |
+| SI-4: `stats`                   |       2       |       ❌       |     ❌      |    ❌     |        ❌        | 28-field DTO, SI-30 traits                                                        |
+| SI-5: deprecate `rest-api-core` |       —       |       —        |      —      |     —     |        —         | Post-migration cleanup                                                            |
+| SI-6: introduce `ApiClient`     |       —       |       —        |      —      |     —     |        —         | Typed wrapper over `ApiHttpClient`                                                |
 
 ## Scope
 
 ### In Scope
 
 - Create protocol DTOs (request/response/error types) in `rest-api-protocol` for each remaining context.
+  Each context follows a normalized module structure under `packages/rest-api-protocol/src/v1/context/`:
+
+  ```text
+  context/
+  └── <context-name>/
+      ├── mod.rs              # context docs + pub mod resources;
+      └── resources/
+          ├── mod.rs          # pub mod <resource>;
+          └── <resource>.rs   # DTO definitions
+  ```
+
+  See the `torrent` context for the reference pattern.
 - Define port traits in `rest-api-application` for each context's query/command operations.
+  These are flat files named after the context in `packages/rest-api-application/src/ports/`:
+
+  ```text
+  ports/
+  ├── mod.rs           # pub mod torrent; pub mod whitelist; ...
+  └── <context>.rs     # port trait definition
+  ```
+
 - Implement use-case services in `rest-api-application`.
+  Similarly flat files in `packages/rest-api-application/src/use_cases/`:
+
+  ```text
+  use_cases/
+  ├── mod.rs           # pub mod torrent; pub mod whitelist; ...
+  └── <context>.rs     # use-case service implementation
+  ```
+
 - Implement runtime adapters in `rest-api-runtime-adapter` wrapping tracker internals.
+  Flat files in `packages/rest-api-runtime-adapter/src/adapters/`:
+
+  ```text
+  adapters/
+  ├── mod.rs           # pub mod torrent; pub mod whitelist; ...
+  └── <context>.rs     # adapter implementation
+  ```
+
 - Rewire Axum handlers to dispatch through use cases instead of direct internals.
 - Update tests to use adapter conversion functions.
 - Remove internal crate dependencies from `axum-rest-api-server` as contexts are migrated.
@@ -154,6 +190,8 @@ The following table maps each internal crate dependency to the sub-issue that re
 
 ### Progress Log
 
-| Date       | Event                                         |
-| ---------- | --------------------------------------------- |
-| 2026-06-24 | Draft EPIC created after SI-33 PoC validation |
+| Date       | Event                                                                                  |
+| ---------- | -------------------------------------------------------------------------------------- |
+| 2026-06-24 | Draft EPIC created after SI-33 PoC validation                                          |
+| 2026-06-24 | SI-1 (health_check) implemented — protocol DTOs migrated                               |
+| 2026-06-24 | Specs updated to document normalized `context/` module structure for all protocol DTOs |

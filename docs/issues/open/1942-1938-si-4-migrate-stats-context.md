@@ -7,6 +7,7 @@ epic: 1938
 github-issue: 1942
 spec-path: docs/issues/open/1942-1938-si-4-migrate-stats-context.md
 last-updated-utc: 2026-06-24
+  updated-reason: Updated paths to context/ and added module structure convention note
 semantic-links:
   skill-links:
     - create-issue
@@ -49,6 +50,26 @@ Per the contract-first architecture, this context needs:
 
 **Location**: `packages/axum-rest-api-server/src/v1/context/stats/`
 
+All protocol DTOs follow the normalized context-based module structure under `packages/rest-api-protocol/src/v1/context/`:
+
+```text
+context/stats/
+├── mod.rs               # pub mod resources;
+└── resources/
+    ├── mod.rs           # pub mod stats;
+    └── stats.rs         # Stats, LabeledStats DTOs (~28 fields)
+```
+
+Ports, use-cases, and adapters are flat files named after the context:
+
+```text
+packages/rest-api-application/src/ports/stats.rs
+packages/rest-api-application/src/use_cases/stats.rs
+packages/rest-api-runtime-adapter/src/adapters/stats.rs
+```
+
+See the `torrent` and `health_check` contexts for the reference pattern.
+
 | Artifact                 | Details                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 | ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Handlers                 | 2: `get_stats_handler`, `get_metrics_handler`                                                                                                                                                                                                                                                                                                                                                                                             |
@@ -73,7 +94,7 @@ Two output formats are supported: JSON (serialize `Stats` struct) and Prometheus
 
 ### In Scope
 
-- Define `Stats` DTO (~28 fields) and `LabeledStats` DTO in `rest-api-protocol/src/v1/resources/stats.rs`.
+- Define `Stats` DTO (~28 fields) and `LabeledStats` DTO in `rest-api-protocol/src/v1/context/stats/resources/stats.rs`.
 - Define `StatsQueryPort` trait in `rest-api-application/src/ports/` (methods: `get_stats`, `get_labeled_stats`).
 - Implement `StatsApiService` use-case in `rest-api-application/src/use_cases/`.
 - Implement `TrackerStatsAdapter` in `rest-api-runtime-adapter/src/adapters/`.
@@ -122,18 +143,18 @@ The use-case maps domain errors to protocol error codes and returns protocol DTO
 
 ## Implementation Plan
 
-| ID  | Status | Task                                                                                    | Notes                               |
-| --- | ------ | --------------------------------------------------------------------------------------- | ----------------------------------- |
-| T1  | TODO   | Define `Stats` and `LabeledStats` DTOs in `rest-api-protocol/src/v1/resources/stats.rs` | Match current serialization exactly |
-| T2  | TODO   | Define `StatsQueryPort` trait in `rest-api-application/src/ports/`                      |                                     |
-| T3  | TODO   | Implement `StatsApiService` use-case in `rest-api-application/src/use_cases/`           |                                     |
-| T4  | TODO   | Implement `TrackerStatsAdapter` in `rest-api-runtime-adapter/src/adapters/`             | Consume SI-30 traits                |
-| T5  | TODO   | Add conversion functions for domain→protocol stats types                                |                                     |
-| T6  | TODO   | Handle Prometheus serialization — keep as transport concern in Axum (Option A)          |                                     |
-| T7  | TODO   | Rewire Axum handlers to use `StatsApiService`                                           |                                     |
-| T8  | TODO   | Update Axum state to inject `TrackerStatsAdapter` (replacing 6+ tuples)                 |                                     |
-| T9  | TODO   | Remove direct internal deps from `axum-rest-api-server` stats wiring                    |                                     |
-| T10 | TODO   | Verify pre-commit and pre-push checks pass                                              |                                     |
+| ID  | Status | Task                                                                                                  | Notes                               |
+| --- | ------ | ----------------------------------------------------------------------------------------------------- | ----------------------------------- |
+| T1  | TODO   | Define `Stats` and `LabeledStats` DTOs in `rest-api-protocol/src/v1/context/stats/resources/stats.rs` | Match current serialization exactly |
+| T2  | TODO   | Define `StatsQueryPort` trait in `rest-api-application/src/ports/`                                    |                                     |
+| T3  | TODO   | Implement `StatsApiService` use-case in `rest-api-application/src/use_cases/`                         |                                     |
+| T4  | TODO   | Implement `TrackerStatsAdapter` in `rest-api-runtime-adapter/src/adapters/`                           | Consume SI-30 traits                |
+| T5  | TODO   | Add conversion functions for domain→protocol stats types                                              |                                     |
+| T6  | TODO   | Handle Prometheus serialization — keep as transport concern in Axum (Option A)                        |                                     |
+| T7  | TODO   | Rewire Axum handlers to use `StatsApiService`                                                         |                                     |
+| T8  | TODO   | Update Axum state to inject `TrackerStatsAdapter` (replacing 6+ tuples)                               |                                     |
+| T9  | TODO   | Remove direct internal deps from `axum-rest-api-server` stats wiring                                  |                                     |
+| T10 | TODO   | Verify pre-commit and pre-push checks pass                                                            |                                     |
 
 ## Verification / Progress
 

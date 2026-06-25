@@ -22,13 +22,12 @@
 //!
 //! ```json
 //! {
-//!     "status": "Ok",
-//!   }
+//!     "status": "Ok"
+//! }
 //! ```
 //!
 //! **Resource**
 //!
-//! Refer to the API [`Stats`](crate::context::health_check::resources::Report)
-//! resource for more information about the response attributes.
+//! Refer to the API `Report` resource in [`torrust_tracker_rest_api_protocol::v1::context::health_check::resources::report`]
+//! for more information about the response attributes.
 pub mod handlers;
-pub mod resources;
