@@ -10,5 +10,5 @@
 //! - Error schemas and status codes belong here.
 //! - `From` conversions from domain types belong in the runtime adapter layer,
 //!   not in this package.
-pub mod resources;
+pub mod context;
 pub mod responses;

@@ -6,7 +6,7 @@
 use anyhow::Context;
 use torrust_tracker_rest_api_client::connection_info::{ConnectionInfo, Origin};
 use torrust_tracker_rest_api_client::v1::client::Client;
-use torrust_tracker_rest_api_protocol::v1::resources::torrent::Torrent;
+use torrust_tracker_rest_api_protocol::v1::context::torrent::resources::torrent::Torrent;
 
 use super::super::types::InfoHash;
 use super::config_builder::TrackerConfig;

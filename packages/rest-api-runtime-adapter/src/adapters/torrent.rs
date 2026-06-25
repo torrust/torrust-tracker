@@ -7,7 +7,7 @@ use torrust_tracker_core::torrent::repository::in_memory::InMemoryTorrentReposit
 use torrust_tracker_core::torrent::services;
 use torrust_tracker_primitives::pagination::Pagination;
 use torrust_tracker_rest_api_application::ports::torrent::TorrentQueryPort;
-use torrust_tracker_rest_api_protocol::v1::resources::torrent::{ListItem, Torrent};
+use torrust_tracker_rest_api_protocol::v1::context::torrent::resources::torrent::{ListItem, Torrent};
 
 use super::super::conversion;
 

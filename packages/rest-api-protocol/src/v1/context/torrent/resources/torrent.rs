@@ -1,7 +1,7 @@
 //! `Torrent` and `ListItem` API resources.
 use serde::{Deserialize, Serialize};
 
-use crate::v1::resources::peer::Peer;
+use crate::v1::context::torrent::resources::peer::Peer;
 
 /// `Torrent` API resource.
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]

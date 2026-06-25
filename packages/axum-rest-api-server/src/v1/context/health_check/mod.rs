@@ -28,6 +28,6 @@
 //!
 //! **Resource**
 //!
-//! Refer to the API `Report` resource in [`torrust_tracker_rest_api_protocol::v1::resources::health_check`]
+//! Refer to the API `Report` resource in [`torrust_tracker_rest_api_protocol::v1::context::health_check::resources::report`]
 //! for more information about the response attributes.
 pub mod handlers;

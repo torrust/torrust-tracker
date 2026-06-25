@@ -7,6 +7,7 @@ epic: 1938
 github-issue: 1940
 spec-path: docs/issues/open/1940-1938-si-2-migrate-whitelist-context.md
 last-updated-utc: 2026-06-24
+  updated-reason: Added normalized module structure convention note
 semantic-links:
   skill-links:
     - create-issue
@@ -37,6 +38,26 @@ Per the contract-first architecture, the migration needs to:
 - Define a whitelist command port in `rest-api-application`.
 - Implement a runtime adapter wrapping `WhitelistManager`.
 - Rewire Axum handlers to dispatch through the use-case service.
+
+All protocol types follow the normalized context-based module structure under `packages/rest-api-protocol/src/v1/context/`:
+
+```text
+context/<context-name>/
+├── mod.rs
+└── resources/
+    ├── mod.rs
+    └── <resource>.rs
+```
+
+Ports, use-cases, and adapters are flat files named after the context:
+
+```text
+packages/rest-api-application/src/ports/<context>.rs
+packages/rest-api-application/src/use_cases/<context>.rs
+packages/rest-api-runtime-adapter/src/adapters/<context>.rs
+```
+
+See the `torrent` and `health_check` contexts for the reference pattern.
 
 ## Current State
 

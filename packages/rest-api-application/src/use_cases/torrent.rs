@@ -1,7 +1,7 @@
 //! Use-case service for torrent API operations.
 use torrust_info_hash::InfoHash;
 use torrust_tracker_primitives::pagination::Pagination;
-use torrust_tracker_rest_api_protocol::v1::resources::torrent::{ListItem, Torrent};
+use torrust_tracker_rest_api_protocol::v1::context::torrent::resources::torrent::{ListItem, Torrent};
 
 use crate::ports::torrent::TorrentQueryPort;
 

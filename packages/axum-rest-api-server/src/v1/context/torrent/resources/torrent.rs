@@ -12,7 +12,7 @@ mod tests {
     use torrust_info_hash::InfoHash;
     use torrust_tracker_core::torrent::services::{BasicInfo, Info};
     use torrust_tracker_primitives::{AnnounceEvent, NumberOfBytes, PeerId, peer};
-    use torrust_tracker_rest_api_protocol::v1::resources::torrent::{ListItem, Torrent};
+    use torrust_tracker_rest_api_protocol::v1::context::torrent::resources::torrent::{ListItem, Torrent};
     use torrust_tracker_rest_api_runtime_adapter::conversion;
 
     fn sample_peer() -> peer::Peer {
