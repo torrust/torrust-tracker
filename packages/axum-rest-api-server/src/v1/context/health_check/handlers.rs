@@ -1,4 +1,4 @@
-//! API handlers for the [`stats`](crate::v1::context::health_check)
+//! API handlers for the [`health_check`](crate::v1::context::health_check)
 //! API context.
 
 use axum::Json;

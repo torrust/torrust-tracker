@@ -102,14 +102,14 @@ packages/rest-api-runtime-adapter/src/adapters/<context>.rs
 
 ## Implementation Plan
 
-| ID  | Status    | Task                                                                                                                        | Notes                               |
-| --- | --------- | --------------------------------------------------------------------------------------------------------------------------- | ----------------------------------- |
-| T1  | Completed | Add `health_check` context module to `rest-api-protocol/src/v1/context/` with `Status` and `Report` DTOs (resources subdir) | Match current serialization exactly |
-| T2  | Completed | Export new context from `rest-api-protocol/src/v1/context/mod.rs` and set up normalized `resources/` module tree            |                                     |
-| T3  | Completed | Remove local `Status` and `Report` from Axum `health_check` resources                                                       |                                     |
-| T4  | Completed | Update Axum handler to import and use protocol DTOs                                                                         |                                     |
-| T5  | Completed | Verify pre-commit and pre-push checks pass                                                                                  | Pre-commit checks pass              |
-| T6  | Completed | Verify integration tests pass                                                                                               | Compilation verified                |
+| ID  | Status | Task                                                                                                                        | Notes                               |
+| --- | ------ | --------------------------------------------------------------------------------------------------------------------------- | ----------------------------------- |
+| T1  | DONE   | Add `health_check` context module to `rest-api-protocol/src/v1/context/` with `Status` and `Report` DTOs (resources subdir) | Match current serialization exactly |
+| T2  | DONE   | Export new context from `rest-api-protocol/src/v1/context/mod.rs` and set up normalized `resources/` module tree            |                                     |
+| T3  | DONE   | Remove local `Status` and `Report` from Axum `health_check` resources                                                       |                                     |
+| T4  | DONE   | Update Axum handler to import and use protocol DTOs                                                                         |                                     |
+| T5  | DONE   | Verify pre-commit checks pass                                                                                               | Pre-commit checks pass              |
+| T6  | DONE   | Verify integration tests compile                                                                                            | Compilation verified                |
 
 ## Verification / Progress
 
