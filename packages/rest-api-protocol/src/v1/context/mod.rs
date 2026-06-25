@@ -4,3 +4,4 @@
 //! live under its `resources/` subdirectory.
 pub mod health_check;
 pub mod torrent;
+pub mod whitelist;

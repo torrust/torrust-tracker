@@ -4,3 +4,4 @@
 //! the tracker-internal implementation. Implementations live in the
 //! runtime adapter package.
 pub mod torrent;
+pub mod whitelist;

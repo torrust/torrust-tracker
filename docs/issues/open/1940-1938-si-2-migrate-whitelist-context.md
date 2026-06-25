@@ -104,26 +104,27 @@ This maps naturally to a single port trait with three methods. The `ActionStatus
 
 | ID  | Status | Task                                                                               | Notes                                     |
 | --- | ------ | ---------------------------------------------------------------------------------- | ----------------------------------------- |
-| T1  | TODO   | Add `WhitelistCommandPort` to `rest-api-application/src/ports/`                    | Three methods matching current operations |
-| T2  | TODO   | Add `WhitelistApiService` to `rest-api-application/src/use_cases/`                 | Calls port trait, maps errors             |
-| T3  | TODO   | Add domain→protocol error mapping for whitelist errors                             | Leverage existing `ActionStatus`          |
-| T4  | TODO   | Implement `TrackerWhitelistAdapter` in `rest-api-runtime-adapter/src/adapters/`    | Wraps `WhitelistManager`                  |
-| T5  | TODO   | Add conversion functions to `rest-api-runtime-adapter/src/conversion.rs` if needed |                                           |
-| T6  | TODO   | Update Axum handlers to use `WhitelistApiService`                                  |                                           |
-| T7  | TODO   | Update Axum state to inject `TrackerWhitelistAdapter`                              |                                           |
+| T1  | DONE   | Add `WhitelistCommandPort` to `rest-api-application/src/ports/`                    | Three methods matching current operations |
+| T2  | DONE   | Add `WhitelistApiService` to `rest-api-application/src/use_cases/`                 | Calls port trait, maps errors             |
+| T3  | DONE   | Add domain→protocol error mapping for whitelist errors                             | `WhitelistError` in protocol package      |
+| T4  | DONE   | Implement `TrackerWhitelistAdapter` in `rest-api-runtime-adapter/src/adapters/`    | Wraps `WhitelistManager`                  |
+| T5  | DONE   | Add conversion functions to `rest-api-runtime-adapter/src/conversion.rs` if needed | Not needed — adapter maps inline          |
+| T6  | DONE   | Update Axum handlers to use `WhitelistApiService`                                  |                                           |
+| T7  | DONE   | Update Axum state to inject `TrackerWhitelistAdapter`                              | In `v1/routes.rs`                         |
 | T8  | TODO   | Verify pre-commit and pre-push checks pass                                         |                                           |
 
 ## Verification / Progress
 
-- [ ] `WhitelistCommandPort` trait defined in `rest-api-application`
-- [ ] `WhitelistApiService` use-case implemented
-- [ ] `TrackerWhitelistAdapter` implemented in `rest-api-runtime-adapter`
-- [ ] Axum handlers dispatch through use-case instead of direct `WhitelistManager`
+- [x] `WhitelistCommandPort` trait defined in `rest-api-application`
+- [x] `WhitelistApiService` use-case implemented
+- [x] `TrackerWhitelistAdapter` implemented in `rest-api-runtime-adapter`
+- [x] Axum handlers dispatch through use-case instead of direct `WhitelistManager`
 - [ ] Pre-commit checks pass
 - [ ] Pre-push checks pass
 
 ### Progress Log
 
-| Date       | Event              |
-| ---------- | ------------------ |
-| 2026-06-24 | Draft spec created |
+| Date       | Event                                                     |
+| ---------- | --------------------------------------------------------- |
+| 2026-06-24 | Draft spec created                                        |
+| 2026-06-25 | Whitelist context migrated to contract-first architecture |
