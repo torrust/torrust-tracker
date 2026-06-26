@@ -244,6 +244,16 @@ _We kindly ask you to take time and consider The Torrust Project [Contributor Ag
 
 This project was a joint effort by [Nautilus Cyberneering GmbH][nautilus] and [Dutch Bits]. Also thanks to [Naim A.] and [greatest-ape] for some parts of the code. Further added features and functions thanks to [Power2All].
 
+## Star History
+
+<a href="https://star-history.com/#torrust/torrust-tracker&Date" rel="nofollow noreferrer noopener" target="_blank">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=torrust/torrust-tracker&type=Date&theme=dark" />
+    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=torrust/torrust-tracker&type=Date" />
+    <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=torrust/torrust-tracker&type=Date" />
+  </picture>
+</a>
+
 [container_wf]: ../../actions/workflows/container.yaml
 [container_wf_b]: ../../actions/workflows/container.yaml/badge.svg
 [coverage_wf]: ../../actions/workflows/coverage.yaml
