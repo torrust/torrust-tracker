@@ -246,11 +246,11 @@ This project was a joint effort by [Nautilus Cyberneering GmbH][nautilus] and [D
 
 ## Star History
 
-<a href="https://star-history.com/#torrust/torrust-tracker&Date" rel="nofollow noreferrer noopener" target="_blank">
+<a href="https://www.star-history.com/?repos=torrust%2Ftorrust-tracker&type=date&logscale=&legend=top-left" rel="nofollow noreferrer noopener" target="_blank">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=torrust/torrust-tracker&type=Date&theme=dark" />
-    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=torrust/torrust-tracker&type=Date" />
-    <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=torrust/torrust-tracker&type=Date" />
+    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=torrust/torrust-tracker&type=date&theme=dark&legend=top-left" />
+    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=torrust/torrust-tracker&type=date&legend=top-left" />
+    <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=torrust/torrust-tracker&type=date&legend=top-left" />
   </picture>
 </a>
 
