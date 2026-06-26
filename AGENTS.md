@@ -269,8 +269,10 @@ Implementation workflow references:
 ## 🔧 Essential Rules
 
 1. **Linting gate**: `linter all` must exit `0` before every commit. No exceptions.
-2. **GPG commit signing**: All commits **must** be signed with GPG (`git commit -S`).
-3. **Never commit `storage/` or `target/`**: These directories contain runtime data and build
+2. **GPG commit signing**: All commits **must** be signed with GPG (`git commit -S`).   **GPG timeout handling**: If the GPG passphrase prompt times out during a commit, the agent
+   **must stop immediately**, notify the user, and ask them to retry the commit manually.
+   Never bypass GPG signing with `--no-gpg-sign` or skip the signing step under any
+   circumstances. This rule is absolute.3. **Never commit `storage/` or `target/`**: These directories contain runtime data and build
    artifacts. They are git-ignored; never force-add them.
 4. **Unused dependencies**: Run `cargo machete` before committing. Remove any unused
    dependencies immediately.

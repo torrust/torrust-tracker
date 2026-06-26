@@ -22,6 +22,10 @@ Treat every commit request as a review-and-verify workflow, not as a blind reque
   and retry with `./contrib/dev-tools/git/hooks/pre-commit.sh --format=text --verbosity=verbose`
   when deeper diagnostics are needed.
 - Create GPG-signed Conventional Commits (`git commit -S`).
+  **GPG timeout handling**: If a `git commit -S` invocation fails because the GPG passphrase
+  prompt timed out, stop immediately and notify the user. Do not retry with `--no-gpg-sign`,
+  do not amend the commit without a signature, and do not proceed with the work. The user
+  must manually retry the commit to provide the passphrase.
 
 ## Required Workflow
 

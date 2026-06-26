@@ -62,6 +62,17 @@ Scope should reflect the affected package or area (e.g., `tracker-core`, `udp-pr
 git commit -S -m "your commit message"
 ```
 
+### GPG Timeout Handling
+
+If the GPG passphrase prompt times out (`gpg: signing failed: Timeout`), the agent **must**:
+
+1. **Stop immediately.** Do not retry, do not use `--no-gpg-sign`, do not skip signing.
+2. **Notify the user.** Tell them the GPG passphrase prompt timed out and they need to retry
+   the commit manually by running the same `git commit -S` command themselves.
+3. **Wait for the user** to confirm the commit was completed before proceeding.
+
+This rule is absolute. Never bypass GPG signing for any reason.
+
 ## Pre-commit Verification (MANDATORY)
 
 ### Git Hook
