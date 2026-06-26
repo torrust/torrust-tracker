@@ -111,7 +111,7 @@ This maps naturally to a single port trait with three methods. The `ActionStatus
 | T5  | DONE   | Add conversion functions to `rest-api-runtime-adapter/src/conversion.rs` if needed | Not needed — adapter maps inline          |
 | T6  | DONE   | Update Axum handlers to use `WhitelistApiService`                                  |                                           |
 | T7  | DONE   | Update Axum state to inject `TrackerWhitelistAdapter`                              | In `v1/routes.rs`                         |
-| T8  | TODO   | Verify pre-commit and pre-push checks pass                                         |                                           |
+| T8  | DONE   | Verify pre-commit and pre-push checks pass                                         |                                           |
 
 ## Verification / Progress
 
