@@ -75,6 +75,12 @@ impl CompactPeerList {
     }
 }
 
+/// Tracker client compact peer entry (IPv4 only).
+///
+/// This struct only supports IPv4 compact peer entries from the `peers` key
+/// (BEP 23). IPv6 compact peer lists (the `peers6` key from BEP 7) are not
+/// supported. If the client needs to parse IPv6 compact peers, this struct
+/// would need to be extended or replaced in a follow-up.
 #[derive(Clone, Debug, PartialEq)]
 pub struct CompactPeer {
     ip: Ipv4Addr,
