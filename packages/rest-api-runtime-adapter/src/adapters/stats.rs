@@ -7,18 +7,15 @@
 use std::sync::Arc;
 
 use async_trait::async_trait;
-use tokio::sync::RwLock;
 use torrust_metrics::metric_collection::MetricCollection;
 use torrust_tracker_core::torrent::repository::in_memory::InMemoryTorrentRepository;
 use torrust_tracker_rest_api_application::ports::stats::StatsQueryPort;
 use torrust_tracker_rest_api_protocol::v1::context::stats::resources::stats::{LabeledStats, Stats};
-use torrust_tracker_udp_core::services::banning::BanService;
-
 /// Adapter that queries all tracker-internal data sources and converts
 /// domain types to protocol DTOs.
+#[allow(clippy::struct_field_names)]
 pub struct TrackerStatsAdapter {
     in_memory_torrent_repository: Arc<InMemoryTorrentRepository>,
-    ban_service: Arc<RwLock<BanService>>,
     swarms_stats_repository: Arc<torrust_tracker_swarm_coordination_registry::statistics::repository::Repository>,
     tracker_core_stats_repository: Arc<torrust_tracker_core::statistics::repository::Repository>,
     http_stats_repository: Arc<torrust_tracker_http_core::statistics::repository::Repository>,
@@ -32,7 +29,6 @@ impl TrackerStatsAdapter {
     #[must_use]
     pub fn new(
         in_memory_torrent_repository: &Arc<InMemoryTorrentRepository>,
-        ban_service: &Arc<RwLock<BanService>>,
         swarms_stats_repository: &Arc<torrust_tracker_swarm_coordination_registry::statistics::repository::Repository>,
         tracker_core_stats_repository: &Arc<torrust_tracker_core::statistics::repository::Repository>,
         http_stats_repository: &Arc<torrust_tracker_http_core::statistics::repository::Repository>,
@@ -41,7 +37,6 @@ impl TrackerStatsAdapter {
     ) -> Self {
         Self {
             in_memory_torrent_repository: in_memory_torrent_repository.clone(),
-            ban_service: ban_service.clone(),
             swarms_stats_repository: swarms_stats_repository.clone(),
             tracker_core_stats_repository: tracker_core_stats_repository.clone(),
             http_stats_repository: http_stats_repository.clone(),
@@ -61,7 +56,6 @@ impl StatsQueryPort for TrackerStatsAdapter {
         let http_stats = self.http_stats_repository.get_stats().await;
         let udp_server_stats = self.udp_server_stats_repository.get_stats().await;
 
-        #[allow(deprecated)]
         Stats {
             // Torrent metrics
             torrents: aggregate_swarm_metadata.total_torrents,
@@ -106,9 +100,6 @@ impl StatsQueryPort for TrackerStatsAdapter {
     }
 
     async fn get_labeled_stats(&self) -> LabeledStats {
-        let _torrents_metrics = self.in_memory_torrent_repository.get_aggregate_swarm_metadata();
-        let _udp_banned_ips_total = self.ban_service.read().await.get_banned_ips_total();
-
         let swarms_stats = self.swarms_stats_repository.get_metrics().await;
         let tracker_core_stats = self.tracker_core_stats_repository.get_metrics().await;
         let http_stats = self.http_stats_repository.get_stats().await;
@@ -119,13 +110,13 @@ impl StatsQueryPort for TrackerStatsAdapter {
 
         metrics
             .merge(&swarms_stats.metric_collection)
-            .expect("msg: failed to merge torrent repository metrics");
+            .expect("failed to merge torrent repository metrics");
         metrics
             .merge(&tracker_core_stats.metric_collection)
-            .expect("msg: failed to merge tracker core metrics");
+            .expect("failed to merge tracker core metrics");
         metrics
             .merge(&http_stats.metric_collection)
-            .expect("msg: failed to merge HTTP core metrics");
+            .expect("failed to merge HTTP core metrics");
         metrics
             .merge(&udp_stats.metric_collection)
             .expect("failed to merge UDP core metrics");

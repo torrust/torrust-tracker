@@ -24,7 +24,6 @@ pub fn add(prefix: &str, router: Router, http_api_container: &Arc<TrackerHttpApi
 
     let stats_adapter = TrackerStatsAdapter::new(
         &http_api_container.tracker_core_container.in_memory_torrent_repository,
-        &http_api_container.ban_service,
         &http_api_container.swarm_coordination_registry_container.stats_repository,
         &http_api_container.tracker_core_container.stats_repository,
         &http_api_container.http_stats_repository,

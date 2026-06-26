@@ -185,7 +185,7 @@ The use-case maps domain errors to protocol error codes and returns protocol DTO
 - [x] Prometheus serialization handled appropriately (Option A — kept in Axum)
 - [x] Axum handlers dispatch through use-case
 - [x] Direct internal crate deps removed from Axum server stats wiring
-- [ ] Pre-commit checks pass
+- [x] Pre-commit checks pass
 - [ ] Pre-push checks pass
 
 ### Progress Log

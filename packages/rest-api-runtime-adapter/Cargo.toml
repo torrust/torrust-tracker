@@ -23,6 +23,5 @@ torrust-tracker-udp-core = { version = "3.0.0-develop", path = "../udp-core" }
 torrust-tracker-udp-server = { version = "3.0.0-develop", path = "../udp-server" }
 torrust-tracker-swarm-coordination-registry = { version = "3.0.0-develop", path = "../swarm-coordination-registry" }
 torrust-metrics = "0.1.0"
-tokio = { version = "1", features = [ "sync" ] }
 torrust-info-hash = "=0.2.0"
 async-trait = "0.1"
