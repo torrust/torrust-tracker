@@ -1,13 +1,13 @@
 ---
 doc-type: issue
 issue-type: task
-status: planned
+status: completed
 priority: p3
 github-issue: 1505
 spec-path: docs/issues/open/1505-optimize-peer-ip-list-from-swarm/ISSUE.md
 branch: "1505-optimize-peer-ip-list-from-swarm"
-related-pr: null
-last-updated-utc: 2026-06-26 14:30
+related-pr: https://github.com/torrust/torrust-tracker/pull/1949
+last-updated-utc: 2026-06-26 17:00
 semantic-links:
   skill-links:
     - create-issue
@@ -35,13 +35,27 @@ semantic-links:
 
 # Issue #1505 — Optimization: return peer IP list from swarm (lowest-level layer) to servers (highest-level layer)
 
-> **Important — commit & merge policy**: This issue's artifacts are committed in a strict sequence, each as a separate commit. This ensures each artifact is independently reviewable and that the analysis is preserved regardless of whether the implementation is ultimately merged.
+> **Important — commit & merge policy**: This issue's artifacts are committed in a strict
+> sequence, each as a separate commit. This ensures each artifact is independently
+> reviewable and that the analysis is preserved regardless of whether the implementation
+> is ultimately merged.
 >
-> 1. **Commit 1 — Spec documents**: `ISSUE.md`, `pre-implementation-analysis.md`, `baseline-performance.md`, `post-performance.md`. These are committed first regardless of whether the implementation proceeds. They document the analysis, design decisions, and the intended before/after measurement framework.
-> 2. **Commit 2 — Baseline performance**: Run benchmarks on the current (unchanged) codebase, fill in `baseline-performance.md`, and commit it. This locks in the measurement before any code changes.
-> 3. **Commit 3 — Implementation**: The compact-path code changes. Developed and iterated on the same branch.
-> 4. **Commit 4 — Post-implementation performance**: Run the same benchmarks after the implementation, fill in `post-performance.md`, and commit it.
-> 5. **Merge decision**: The entire branch may or may not be merged. If the implementation is **not** merged (e.g., no performance improvement or poor code clarity), commits 1–2 are still merged — they serve as a permanent record of why the optimization was considered and rejected, preventing future re-litigation. If the implementation **is** merged, the commit history makes it clear which parts were analysis and which were code.
+> 1. **Commit 1 — Spec documents**: `ISSUE.md`, `pre-implementation-analysis.md`,
+>    `baseline-performance.md`, `post-performance.md`. These are committed first
+>    regardless of whether the implementation proceeds. They document the analysis,
+>    design decisions, and the intended before/after measurement framework.
+> 2. **Commit 2 — Baseline performance**: Run benchmarks on the current (unchanged)
+>    codebase, fill in `baseline-performance.md`, and commit it. This locks in the
+>    measurement before any code changes.
+> 3. **Commit 3 — Implementation (reverted)**: The compact-path code changes. Implemented
+>    but benchmarked as **~2× slower** than the old path. Code was reverted from the branch.
+>    The implementation commit `813f7851` is documented in this spec for reference.
+> 4. **Commit 4 — Post-implementation performance**: Run the same benchmarks after the
+>    implementation, fill in `post-performance.md`, and commit it.
+> 5. **Merge decision**: This branch is **rejected for implementation** but merged for the
+>    spec documents (commits 1, 2, 4). The implementation commit (3) was reverted.
+>    Commits 1–2 and 4 serve as a permanent record of why the optimization was considered
+>    and rejected, preventing future re-litigation.
 
 ## Goal
 
@@ -165,10 +179,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T7  | DONE   | Wire HTTP service + handler                         | New method on HTTP `AnnounceService`                               |
 | T8  | DONE   | Update UDP response builder                         | Uses `AnnounceDataCompact.peers`                                   |
 | T9  | DONE   | Update HTTP response builder                        | Uses `AnnounceDataCompact.peers`                                   |
-| T10 | TODO   | Cleanup: remove old path, rename                    | Delete old methods; `AnnounceDataCompact` to `AnnounceData`        |
-| T11 | TODO   | Run full test suite                                 | All targets, all features                                          |
-| T12 | TODO   | Run pre-commit checks                               | `./contrib/dev-tools/git/hooks/pre-commit.sh`                      |
-| T13 | TODO   | Run benchmark comparison                            | Aquatic bencher (UDP) + microbenchmarks                            |
+| T10 | REJECTED | Cleanup: remove old path, rename                    | Not done — implementation rejected because compact path was ~2× slower |
+| T11 | DONE   | Run full test suite                                 | All targets, all features — all pass                                |
+| T12 | DONE   | Run pre-commit checks                               | `./contrib/dev-tools/git/hooks/pre-commit.sh` — all pass            |
+| T13 | DONE   | Run benchmark comparison                            | Compact path was **~2× slower** (407 ns → 824 ns for 74 peers). Implementation rejected. |
 | T14 | TODO   | Fix broken HTTP announce microbenchmark (follow-up) | Current bench measures future creation, not execution (#follow-up) |
 
 ## Acceptance Criteria
@@ -177,11 +191,11 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] AC2: Compact methods on Coordinator, Registry, InMemoryTorrentRepository
 - [x] AC3: Compact response data type exists
 - [x] AC4: UDP and HTTP response builders work correctly
-- [ ] AC5: Old path removed and compact types renamed back to canonical
+- [ ] AC5: Old path removed and compact types renamed back to canonical — **REJECTED**: implementation was 2× slower
 - [x] AC6: Full test suite passes
 - [x] AC7: `linter all` passes
 - [x] AC8: Pre-commit checks pass
-- [ ] AC9: Performance baseline and post-implementation reports completed
+- [x] AC9: Performance baseline and post-implementation reports completed
 
 ## Verification Plan
 
