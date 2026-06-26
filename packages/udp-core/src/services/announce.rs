@@ -16,8 +16,8 @@ use torrust_net_primitives::service_binding::ServiceBinding;
 use torrust_tracker_core::announce_handler::{AnnounceHandler, PeersWanted};
 use torrust_tracker_core::error::{AnnounceError, WhitelistError};
 use torrust_tracker_core::whitelist;
+use torrust_tracker_primitives::AnnounceData;
 use torrust_tracker_primitives::peer::PeerAnnouncement;
-use torrust_tracker_primitives::{AnnounceData, AnnounceDataCompact};
 use torrust_tracker_udp_protocol::AnnounceRequest;
 
 use crate::connection_cookie::{ConnectionCookieError, check, gen_remote_fingerprint};
@@ -79,48 +79,6 @@ impl AnnounceService {
         let announce_data = self
             .announce_handler
             .handle_announcement(&info_hash, &mut peer, &remote_client_ip, &peers_wanted)
-            .await?;
-
-        self.send_event(info_hash, peer, client_socket_addr, server_service_binding)
-            .await;
-
-        Ok(announce_data)
-    }
-
-    /// It handles the `Announce` request and returns compact peer data.
-    ///
-    /// Like [`handle_announce`](Self::handle_announce), but returns
-    /// [`AnnounceDataCompact`] with [`CompactPeer`] values (stack-only,
-    /// no `Arc` indirection).
-    ///
-    /// # Errors
-    ///
-    /// It will return an error if:
-    ///
-    /// - The tracker is running in listed mode and the torrent is not in the
-    ///   whitelist.
-    pub async fn handle_announce_compact(
-        &self,
-        client_socket_addr: SocketAddr,
-        server_service_binding: ServiceBinding,
-        request: &AnnounceRequest,
-        cookie_valid_range: Range<f64>,
-    ) -> Result<AnnounceDataCompact, UdpAnnounceError> {
-        Self::authenticate(client_socket_addr, request, cookie_valid_range)?;
-
-        let info_hash = InfoHash::from(request.info_hash.0);
-
-        self.authorize(&info_hash).await?;
-
-        let remote_client_ip = client_socket_addr.ip();
-
-        let mut peer = peer_builder::from_request(request, &remote_client_ip);
-
-        let peers_wanted = PeersWanted::from_client_request(i32::from(request.peers_wanted.0));
-
-        let announce_data = self
-            .announce_handler
-            .handle_announcement_compact(&info_hash, &mut peer, &remote_client_ip, &peers_wanted)
             .await?;
 
         self.send_event(info_hash, peer, client_socket_addr, server_service_binding)

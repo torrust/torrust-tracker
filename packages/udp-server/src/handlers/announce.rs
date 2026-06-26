@@ -6,7 +6,7 @@ use std::sync::Arc;
 use torrust_info_hash::InfoHash;
 use torrust_net_primitives::service_binding::ServiceBinding;
 use torrust_tracker_configuration::Core;
-use torrust_tracker_primitives::{AnnounceData, AnnounceDataCompact};
+use torrust_tracker_primitives::AnnounceData;
 use torrust_tracker_udp_core::services::announce::AnnounceService;
 use torrust_tracker_udp_protocol::{
     AnnounceInterval, AnnounceRequest, AnnounceResponse, AnnounceResponseFixedData, Ipv4AddrBytes, Ipv6AddrBytes, NumberOfPeers,
@@ -72,124 +72,6 @@ fn build_response(
     request: &AnnounceRequest,
     core_config: &Arc<Core>,
     announce_data: &AnnounceData,
-) -> Response {
-    #[allow(clippy::cast_possible_truncation)]
-    if remote_addr.is_ipv4() {
-        let announce_response = AnnounceResponse {
-            fixed: AnnounceResponseFixedData {
-                transaction_id: request.transaction_id,
-                announce_interval: AnnounceInterval(I32::new(i64::from(core_config.announce_policy.interval) as i32)),
-                leechers: NumberOfPeers(I32::new(i64::from(announce_data.stats.incomplete) as i32)),
-                seeders: NumberOfPeers(I32::new(i64::from(announce_data.stats.complete) as i32)),
-            },
-            peers: announce_data
-                .peers
-                .iter()
-                .filter_map(|peer| {
-                    if let IpAddr::V4(ip) = peer.peer_addr.ip() {
-                        Some(ResponsePeer::<Ipv4AddrBytes> {
-                            ip_address: ip.into(),
-                            port: Port(peer.peer_addr.port().into()),
-                        })
-                    } else {
-                        None
-                    }
-                })
-                .collect(),
-        };
-
-        Response::from(announce_response)
-    } else {
-        let announce_response = AnnounceResponse {
-            fixed: AnnounceResponseFixedData {
-                transaction_id: request.transaction_id,
-                announce_interval: AnnounceInterval(I32::new(i64::from(core_config.announce_policy.interval) as i32)),
-                leechers: NumberOfPeers(I32::new(i64::from(announce_data.stats.incomplete) as i32)),
-                seeders: NumberOfPeers(I32::new(i64::from(announce_data.stats.complete) as i32)),
-            },
-            peers: announce_data
-                .peers
-                .iter()
-                .filter_map(|peer| {
-                    if let IpAddr::V6(ip) = peer.peer_addr.ip() {
-                        Some(ResponsePeer::<Ipv6AddrBytes> {
-                            ip_address: ip.into(),
-                            port: Port(peer.peer_addr.port().into()),
-                        })
-                    } else {
-                        None
-                    }
-                })
-                .collect(),
-        };
-
-        Response::from(announce_response)
-    }
-}
-
-/// It handles the `Announce` request using the compact peer path.
-///
-/// Like [`handle_announce`], but uses the compact peer path internally and
-/// builds the response from [`AnnounceDataCompact`].
-///
-/// # Errors
-///
-/// If a error happens in the `handle_announce_compact` function, it will just
-/// return the `ServerError`.
-#[instrument(fields(transaction_id, connection_id, info_hash), skip(announce_service, opt_udp_server_stats_event_sender), ret(level = Level::TRACE))]
-pub async fn handle_announce_compact(
-    announce_service: &Arc<AnnounceService>,
-    client_socket_addr: SocketAddr,
-    server_service_binding: ServiceBinding,
-    request: &AnnounceRequest,
-    core_config: &Arc<Core>,
-    opt_udp_server_stats_event_sender: &crate::event::sender::Sender,
-    cookie_valid_range: Range<f64>,
-) -> Result<Response, HandlerError> {
-    tracing::Span::current()
-        .record("transaction_id", request.transaction_id.0.to_string())
-        .record("connection_id", request.connection_id.0.to_string())
-        .record("info_hash", InfoHash::from_bytes(&request.info_hash.0).to_hex_string());
-
-    tracing::trace!("handle announce compact");
-
-    if let Some(udp_server_stats_event_sender) = opt_udp_server_stats_event_sender.as_deref() {
-        udp_server_stats_event_sender
-            .send(Event::UdpRequestAccepted {
-                context: ConnectionContext::new(client_socket_addr, server_service_binding.clone()),
-                kind: UdpRequestKind::Announce {
-                    announce_request: *request,
-                },
-            })
-            .await;
-    }
-
-    let announce_data = announce_service
-        .handle_announce_compact(client_socket_addr, server_service_binding, request, cookie_valid_range)
-        .await
-        .map_err(|e| {
-            Box::new((
-                e.into(),
-                request.transaction_id,
-                UdpRequestKind::Announce {
-                    announce_request: *request,
-                },
-            ))
-        })?;
-
-    Ok(build_response_compact(
-        client_socket_addr,
-        request,
-        core_config,
-        &announce_data,
-    ))
-}
-
-fn build_response_compact(
-    remote_addr: SocketAddr,
-    request: &AnnounceRequest,
-    core_config: &Arc<Core>,
-    announce_data: &AnnounceDataCompact,
 ) -> Response {
     #[allow(clippy::cast_possible_truncation)]
     if remote_addr.is_ipv4() {

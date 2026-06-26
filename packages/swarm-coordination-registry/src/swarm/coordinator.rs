@@ -8,7 +8,7 @@ use torrust_clock::DurationSinceUnixEpoch;
 use torrust_info_hash::InfoHash;
 use torrust_tracker_primitives::peer::{self, Peer, PeerAnnouncement};
 use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
-use torrust_tracker_primitives::{AnnounceEvent, CompactPeer, TrackerPolicy};
+use torrust_tracker_primitives::{AnnounceEvent, TrackerPolicy};
 
 use crate::event::Event;
 use crate::event::sender::Sender;
@@ -83,46 +83,6 @@ impl Coordinator {
                 .filter(|peer| peer::ReadInfo::get_address(peer.as_ref()) != *peer_addr)
                 .cloned()
                 .collect(),
-        }
-    }
-
-    /// Returns compact peers for a torrent, excluding the requesting client.
-    ///
-    /// Like [`peers_excluding`](Self::peers_excluding), but returns [`CompactPeer`]
-    /// values (stack-only, no `Arc` indirection) instead of `Arc<peer::Peer>`.
-    #[must_use]
-    pub fn peers_excluding_compact(&self, peer_addr: &SocketAddr, limit: Option<usize>) -> Vec<CompactPeer> {
-        match limit {
-            Some(limit) => self
-                .peers
-                .values()
-                .filter(|peer| peer::ReadInfo::get_address(peer.as_ref()) != *peer_addr)
-                .take(limit)
-                .map(|peer| CompactPeer::from(peer.as_ref()))
-                .collect(),
-            None => self
-                .peers
-                .values()
-                .filter(|peer| peer::ReadInfo::get_address(peer.as_ref()) != *peer_addr)
-                .map(|peer| CompactPeer::from(peer.as_ref()))
-                .collect(),
-        }
-    }
-
-    /// Returns compact peers for a torrent.
-    ///
-    /// Like [`peers`](Self::peers), but returns [`CompactPeer`]
-    /// values (stack-only, no `Arc` indirection) instead of `Arc<peer::Peer>`.
-    #[must_use]
-    pub fn peers_compact(&self, limit: Option<usize>) -> Vec<CompactPeer> {
-        match limit {
-            Some(limit) => self
-                .peers
-                .values()
-                .take(limit)
-                .map(|peer| CompactPeer::from(peer.as_ref()))
-                .collect(),
-            None => self.peers.values().map(|peer| CompactPeer::from(peer.as_ref())).collect(),
         }
     }
 

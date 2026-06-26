@@ -5,7 +5,6 @@
 //! by the tracker server crate, but also by other crates in the Torrust
 //! ecosystem.
 pub mod announce;
-pub mod compact_peer;
 pub mod driver;
 pub mod mode;
 pub mod number_of_bytes;
@@ -23,8 +22,7 @@ pub mod swarm_metadata;
 
 use std::collections::BTreeMap;
 
-pub use announce::{AnnounceData, AnnounceDataCompact, AnnounceEvent, AnnouncePolicy};
-pub use compact_peer::CompactPeer;
+pub use announce::{AnnounceData, AnnounceEvent, AnnouncePolicy};
 pub use driver::Driver;
 pub use mode::PrivateMode;
 pub use number_of_bytes::NumberOfBytes;

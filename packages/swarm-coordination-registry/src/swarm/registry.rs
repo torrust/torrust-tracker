@@ -7,7 +7,7 @@ use torrust_clock::conv::convert_from_timestamp_to_datetime_utc;
 use torrust_info_hash::InfoHash;
 use torrust_tracker_primitives::pagination::Pagination;
 use torrust_tracker_primitives::swarm_metadata::{AggregateActiveSwarmMetadata, SwarmMetadata};
-use torrust_tracker_primitives::{CompactPeer, NumberOfDownloads, NumberOfDownloadsBTreeMap, TrackerPolicy, peer};
+use torrust_tracker_primitives::{NumberOfDownloads, NumberOfDownloadsBTreeMap, TrackerPolicy, peer};
 
 use crate::CoordinatorHandle;
 use crate::event::Event;
@@ -219,31 +219,6 @@ impl Registry {
             Some(swarm_handle) => {
                 let swarm = swarm_handle.lock().await;
                 Ok(swarm.peers_excluding(&peer.peer_addr, Some(limit)))
-            }
-        }
-    }
-
-    /// Retrieves compact torrent peers for a given torrent and client,
-    /// excluding the requesting client.
-    ///
-    /// Like [`get_peers_peers_excluding`](Self::get_peers_peers_excluding), but
-    /// returns [`CompactPeer`] values (stack-only, no `Arc` indirection).
-    ///
-    /// # Errors
-    ///
-    /// This function returns an error if it fails to acquire the lock for the
-    /// swarm handle.
-    pub async fn get_peers_peers_excluding_compact(
-        &self,
-        info_hash: &InfoHash,
-        peer: &peer::Peer,
-        limit: usize,
-    ) -> Result<Vec<CompactPeer>, Error> {
-        match self.get(info_hash) {
-            None => Ok(vec![]),
-            Some(swarm_handle) => {
-                let swarm = swarm_handle.lock().await;
-                Ok(swarm.peers_excluding_compact(&peer.peer_addr, Some(limit)))
             }
         }
     }

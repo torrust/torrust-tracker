@@ -5,7 +5,6 @@ use std::sync::Arc;
 use derive_more::derive::Constructor;
 use serde::{Deserialize, Serialize};
 
-use crate::compact_peer::CompactPeer;
 use crate::peer;
 use crate::swarm_metadata::SwarmMetadata;
 
@@ -83,21 +82,6 @@ pub struct AnnounceData {
     /// The list of peers that are downloading the same torrent.
     /// It excludes the peer that made the request.
     pub peers: Vec<Arc<peer::Peer>>,
-    /// Swarm statistics
-    pub stats: SwarmMetadata,
-    pub policy: AnnouncePolicy,
-}
-
-/// Structure that holds the data returned by the `announce` request,
-/// using compact peers.
-///
-/// Like [`AnnounceData`] but uses [`CompactPeer`] (stack-only, no `Arc`
-/// indirection) instead of `Vec<Arc<peer::Peer>>`.
-#[derive(Clone, Debug, PartialEq, Constructor, Default)]
-pub struct AnnounceDataCompact {
-    /// The list of peers that are downloading the same torrent.
-    /// It excludes the peer that made the request.
-    pub peers: Vec<CompactPeer>,
     /// Swarm statistics
     pub stats: SwarmMetadata,
     pub policy: AnnouncePolicy,

@@ -13,7 +13,7 @@ use torrust_tracker_http_core::services::announce::{AnnounceService, HttpAnnounc
 use torrust_tracker_http_protocol::v1::requests::announce::{Announce, Compact};
 use torrust_tracker_http_protocol::v1::responses::{self};
 use torrust_tracker_http_protocol::v1::services::peer_ip_resolver::ClientIpSources;
-use torrust_tracker_primitives::{AnnounceData as DomainAnnounceData, AnnounceDataCompact as DomainAnnounceDataCompact};
+use torrust_tracker_primitives::AnnounceData as DomainAnnounceData;
 
 use crate::v1::extractors::announce_request::ExtractRequest;
 use crate::v1::extractors::authentication_key::Extract as ExtractKey;
@@ -102,80 +102,6 @@ fn build_response(announce_request: &Announce, announce_data: DomainAnnounceData
 }
 
 fn to_protocol_announce_data(domain_data: DomainAnnounceData) -> responses::announce::AnnounceData {
-    responses::announce::AnnounceData {
-        peers: domain_data
-            .peers
-            .into_iter()
-            .map(|peer| responses::announce::Peer {
-                peer_id: peer.peer_id,
-                peer_addr: peer.peer_addr,
-            })
-            .collect(),
-        stats: responses::announce::SwarmMetadata {
-            complete: domain_data.stats.complete,
-            downloaded: domain_data.stats.downloaded,
-            incomplete: domain_data.stats.incomplete,
-        },
-        policy: responses::announce::AnnouncePolicy {
-            interval: domain_data.policy.interval,
-            interval_min: domain_data.policy.interval_min,
-        },
-    }
-}
-
-/// Handles the announce request using the compact peer path.
-async fn handle_compact(
-    announce_service: &Arc<AnnounceService>,
-    announce_request: &Announce,
-    client_ip_sources: &ClientIpSources,
-    server_service_binding: &ServiceBinding,
-    maybe_key: Option<Key>,
-) -> Response {
-    let announce_data = match handle_announce_compact_inner(
-        announce_service,
-        announce_request,
-        client_ip_sources,
-        server_service_binding,
-        maybe_key,
-    )
-    .await
-    {
-        Ok(announce_data) => announce_data,
-        Err(error) => {
-            let error_response = responses::error::Error::from(error);
-            return (StatusCode::OK, error_response.write()).into_response();
-        }
-    };
-    build_response_compact(announce_request, announce_data)
-}
-
-async fn handle_announce_compact_inner(
-    announce_service: &Arc<AnnounceService>,
-    announce_request: &Announce,
-    client_ip_sources: &ClientIpSources,
-    server_service_binding: &ServiceBinding,
-    maybe_key: Option<Key>,
-) -> Result<DomainAnnounceDataCompact, HttpAnnounceError> {
-    announce_service
-        .handle_announce_compact(announce_request, client_ip_sources, server_service_binding, maybe_key)
-        .await
-}
-
-fn build_response_compact(announce_request: &Announce, announce_data: DomainAnnounceDataCompact) -> Response {
-    let protocol_data = to_protocol_announce_data_from_compact(announce_data);
-
-    if announce_request.compact.as_ref().is_some_and(|f| *f == Compact::Accepted) {
-        let response: responses::Announce<responses::Compact> = protocol_data.into();
-        let bytes: Vec<u8> = response.data.into();
-        (StatusCode::OK, bytes).into_response()
-    } else {
-        let response: responses::Announce<responses::Normal> = protocol_data.into();
-        let bytes: Vec<u8> = response.data.into();
-        (StatusCode::OK, bytes).into_response()
-    }
-}
-
-fn to_protocol_announce_data_from_compact(domain_data: DomainAnnounceDataCompact) -> responses::announce::AnnounceData {
     responses::announce::AnnounceData {
         peers: domain_data
             .peers

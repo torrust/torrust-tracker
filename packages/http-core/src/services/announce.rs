@@ -26,7 +26,7 @@ use torrust_tracker_http_protocol::v1::services::peer_ip_resolver::{
     ClientIpSources, PeerIpResolutionError, RemoteClientAddr, resolve_remote_client_addr,
 };
 use torrust_tracker_primitives::peer::PeerAnnouncement;
-use torrust_tracker_primitives::{AnnounceData, AnnounceDataCompact, AnnounceEvent, NumberOfBytes};
+use torrust_tracker_primitives::{AnnounceData, AnnounceEvent, NumberOfBytes};
 
 use crate::event;
 use crate::event::Event;
@@ -92,56 +92,6 @@ impl AnnounceService {
         let announce_data = self
             .announce_handler
             .handle_announcement(
-                &announce_request.info_hash,
-                &mut peer,
-                &remote_client_addr.ip(),
-                &peers_wanted,
-            )
-            .await?;
-
-        self.send_event(
-            announce_request.info_hash,
-            remote_client_addr,
-            server_service_binding.clone(),
-            peer,
-        )
-        .await;
-
-        Ok(announce_data)
-    }
-
-    /// Handles an announce request and returns compact peer data.
-    ///
-    /// Like [`handle_announce`](Self::handle_announce), but returns
-    /// [`AnnounceDataCompact`] with [`CompactPeer`] values (stack-only,
-    /// no `Arc` indirection).
-    ///
-    /// # Errors
-    ///
-    /// This function will return an error if:
-    ///
-    /// - The tracker is running in `listed` mode and the torrent is not whitelisted.
-    /// - There is an error when resolving the client IP address.
-    pub async fn handle_announce_compact(
-        &self,
-        announce_request: &Announce,
-        client_ip_sources: &ClientIpSources,
-        server_service_binding: &ServiceBinding,
-        maybe_key: Option<Key>,
-    ) -> Result<AnnounceDataCompact, HttpAnnounceError> {
-        self.authenticate(maybe_key).await?;
-
-        self.authorize(announce_request.info_hash).await?;
-
-        let remote_client_addr = resolve_remote_client_addr(&self.core_config.net.on_reverse_proxy.into(), client_ip_sources)?;
-
-        let mut peer = Self::peer_from_request(announce_request, &remote_client_addr.ip());
-
-        let peers_wanted = Self::peers_wanted(announce_request);
-
-        let announce_data = self
-            .announce_handler
-            .handle_announcement_compact(
                 &announce_request.info_hash,
                 &mut peer,
                 &remote_client_addr.ip(),
