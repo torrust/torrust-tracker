@@ -88,17 +88,22 @@ fn main() {
 
     println!("=== Coordinator::peers_excluding (old) vs peers_excluding_compact (new) ===");
     println!("iterations={iterations}\n");
-    println!("{:>6} | {:>14} | {:>14} | {:>14} | {:>10}", "Peers", "Old (ns)", "Compact (ns)", "Delta (ns)", "Speedup");
+    println!(
+        "{:>6} | {:>14} | {:>14} | {:>14} | {:>10}",
+        "Peers", "Old (ns)", "Compact (ns)", "Delta (ns)", "Speedup"
+    );
     println!("{:-<6} | {:-<14} | {:-<14} | {:-<14} | {:-<10}", "", "", "", "", "");
 
     for num_peers in [10, 74, 100, 500, 1000] {
         let old_ns = bench_peers_excluding(num_peers, 74, iterations);
         let compact_ns = bench_peers_excluding_compact(num_peers, 74, iterations);
         let delta = old_ns - compact_ns;
-        let speedup = if compact_ns > 0.0 { old_ns / compact_ns } else { f64::INFINITY };
-        println!(
-            "{num_peers:>6} | {old_ns:>14.2} | {compact_ns:>14.2} | {delta:>+14.2} | {speedup:>9.2}x"
-        );
+        let speedup = if compact_ns > 0.0 {
+            old_ns / compact_ns
+        } else {
+            f64::INFINITY
+        };
+        println!("{num_peers:>6} | {old_ns:>14.2} | {compact_ns:>14.2} | {delta:>+14.2} | {speedup:>9.2}x");
     }
 
     // Memory estimate
