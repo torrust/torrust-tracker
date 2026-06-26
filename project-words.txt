@@ -107,6 +107,7 @@ elif
 endgroup
 endianness
 envcontainer
+epoll
 eprint
 eprintln
 Eray
@@ -164,6 +165,7 @@ infoschema
 initialisation
 Intermodal
 intervali
+io_uring
 IPPROTO
 IPV6
 Irwe
@@ -187,11 +189,13 @@ leafification
 leecher
 leechers
 libheif
+libhwloc
 libraw
 libsqlite
 libtorrent
 libz
 llist
+LoadTest
 LOGNAME
 Lphant
 lscr
@@ -200,6 +204,7 @@ matchmakes
 Mbps
 Mebibytes
 metainfo
+microbenchmark
 microbenchmarks
 middlewares
 millis
@@ -240,6 +245,7 @@ oneshot
 openexr
 openmetrics
 opentracker
+opentrackers
 optimisation
 optimisations
 organisation
@@ -258,6 +264,7 @@ pessimize
 PGID
 pipefail
 pkey
+pkill
 porti
 prealloc
 println
@@ -283,6 +290,7 @@ reannounce
 recaches
 recognised
 recompiles
+recvspace
 referer
 Registar
 reorganising
@@ -293,9 +301,11 @@ reqwest
 rerequests
 rescope
 reuseaddr
+REUSEPORT
 ringbuf
 ringsize
 rlib
+rmem
 rngs
 rosegment
 routable

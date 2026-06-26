@@ -7,7 +7,7 @@ github-issue: 1505
 spec-path: docs/issues/open/1505-optimize-peer-ip-list-from-swarm/ISSUE.md
 branch: "1505-optimize-peer-ip-list-from-swarm"
 related-pr: null
-last-updated-utc: 2026-06-26 12:00
+last-updated-utc: 2026-06-26 14:30
 semantic-links:
   skill-links:
     - create-issue
@@ -137,6 +137,12 @@ The `tracker-client` crate (`packages/tracker-client/src/http/client/responses/a
 
 If the `tracker-client` needs to fully deserialize HTTP tracker responses containing IPv6 compact peers, a follow-up should extend or replace the client-side `CompactPeer` to support both `peers` (IPv4) and `peers6` (IPv6) keys. This is **not** required for the server-side optimization in this issue — the server response builders already handle both IPv4 and IPv6 correctly. The follow-up is a client-side concern.
 
+### Fix HTTP announce microbenchmark
+
+The HTTP announce benchmark at `packages/http-core/benches/http_tracker_core_benchmark.rs` uses a sync-adapted helper (`helpers::sync::return_announce_data_once`) that does not properly await the async `AnnounceService::handle_announce` call. The benchmark returns 260 ns/iter — which is the cost of creating a future, not the cost of executing the announce path. This makes the benchmark useless for measuring optimisation impact.
+
+A follow-up should rewrite the HTTP announce benchmark to use `to_async` with a proper Tokio runtime so that it measures real announce execution time.
+
 ## Memory Impact
 
 | Config   | Current                         | Proposed               |
@@ -148,21 +154,22 @@ If the `tracker-client` needs to fully deserialize HTTP tracker responses contai
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| ID  | Status | Task                                               | Notes                                                            |
-| --- | ------ | -------------------------------------------------- | ---------------------------------------------------------------- |
-| T1  | TODO   | Add `CompactPeer` struct to `packages/primitives/` | New file; `From<&peer::Peer>` and `From<peer::Peer>` conversions |
-| T2  | TODO   | Add compact methods to `Coordinator`               | `peers_excluding_compact()`, `peers_compact()`                   |
-| T3  | TODO   | Add compact method to `Registry`                   | `get_peers_peers_excluding_compact()`                            |
-| T4  | TODO   | Add compact method to `InMemoryTorrentRepository`  | `get_peers_for_compact()`                                        |
-| T5  | TODO   | Add `AnnounceDataCompact`                          | Same as `AnnounceData` with `Vec<CompactPeer>`                   |
-| T6  | TODO   | Wire UDP service + handler                         | New method on UDP `AnnounceService`                              |
-| T7  | TODO   | Wire HTTP service + handler                        | New method on HTTP `AnnounceService`                             |
-| T8  | TODO   | Update UDP response builder                        | Uses `AnnounceDataCompact.peers`                                 |
-| T9  | TODO   | Update HTTP response builder                       | Uses `AnnounceDataCompact.peers`                                 |
-| T10 | TODO   | Cleanup: remove old path, rename                   | Delete old methods; `AnnounceDataCompact` to `AnnounceData`      |
-| T11 | TODO   | Run full test suite                                | All targets, all features                                        |
-| T12 | TODO   | Run pre-commit checks                              | `./contrib/dev-tools/git/hooks/pre-commit.sh`                    |
-| T13 | TODO   | Run benchmark comparison                           | Aquatic bencher (UDP) + microbenchmarks                          |
+| ID  | Status | Task                                                | Notes                                                              |
+| --- | ------ | --------------------------------------------------- | ------------------------------------------------------------------ |
+| T1  | TODO   | Add `CompactPeer` struct to `packages/primitives/`  | New file; `From<&peer::Peer>` and `From<peer::Peer>` conversions   |
+| T2  | TODO   | Add compact methods to `Coordinator`                | `peers_excluding_compact()`, `peers_compact()`                     |
+| T3  | TODO   | Add compact method to `Registry`                    | `get_peers_peers_excluding_compact()`                              |
+| T4  | TODO   | Add compact method to `InMemoryTorrentRepository`   | `get_peers_for_compact()`                                          |
+| T5  | TODO   | Add `AnnounceDataCompact`                           | Same as `AnnounceData` with `Vec<CompactPeer>`                     |
+| T6  | TODO   | Wire UDP service + handler                          | New method on UDP `AnnounceService`                                |
+| T7  | TODO   | Wire HTTP service + handler                         | New method on HTTP `AnnounceService`                               |
+| T8  | TODO   | Update UDP response builder                         | Uses `AnnounceDataCompact.peers`                                   |
+| T9  | TODO   | Update HTTP response builder                        | Uses `AnnounceDataCompact.peers`                                   |
+| T10 | TODO   | Cleanup: remove old path, rename                    | Delete old methods; `AnnounceDataCompact` to `AnnounceData`        |
+| T11 | TODO   | Run full test suite                                 | All targets, all features                                          |
+| T12 | TODO   | Run pre-commit checks                               | `./contrib/dev-tools/git/hooks/pre-commit.sh`                      |
+| T13 | TODO   | Run benchmark comparison                            | Aquatic bencher (UDP) + microbenchmarks                            |
+| T14 | TODO   | Fix broken HTTP announce microbenchmark (follow-up) | Current bench measures future creation, not execution (#follow-up) |
 
 ## Acceptance Criteria
 
@@ -185,13 +192,14 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | M1  | UDP announce works     | Start tracker, `tracker_client udp announce`  |
 | M2  | HTTP announce works    | Start tracker, `tracker_client http announce` |
 | M3  | Both HTTP formats work | Query with `compact=0` and `compact=1`        |
-| M4  | Benchmark comparison   | Aquatic bencher before vs after               |
+| M4  | Benchmark comparison   | B4 microbenchmark + aquatic bencher           |
 
 ## Risks and Trade-offs
 
 - **No measurable improvement**: The optimization reduces memory and indirection but the bottleneck may be elsewhere (mutex contention, serialization/IO). If benchmarks show no improvement, the change is still worthwhile for code clarity (interfaces no longer promise data they don't deliver).
 - **Backward compatibility**: `AnnounceData.peers` type changes. Acceptable for `3.0.0-develop`.
 - **Lock contention unchanged**: The coordinator lock is released before response building regardless.
+- **Broken benchmark tooling**: The existing HTTP announce microbenchmark (`packages/http-core/benches`) does not properly await async calls, producing a meaningless result of ~260 ns/iter (the cost of future construction, not execution). It must be fixed before it can be used for before/after comparison (see follow-up issue above). The aquatic bencher (UDP load testing) also requires system dependencies and has not been built yet — this is a one-time setup cost.
 
 ## Related documents
 
