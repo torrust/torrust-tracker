@@ -156,15 +156,15 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task                                                | Notes                                                              |
 | --- | ------ | --------------------------------------------------- | ------------------------------------------------------------------ |
-| T1  | TODO   | Add `CompactPeer` struct to `packages/primitives/`  | New file; `From<&peer::Peer>` and `From<peer::Peer>` conversions   |
-| T2  | TODO   | Add compact methods to `Coordinator`                | `peers_excluding_compact()`, `peers_compact()`                     |
-| T3  | TODO   | Add compact method to `Registry`                    | `get_peers_peers_excluding_compact()`                              |
-| T4  | TODO   | Add compact method to `InMemoryTorrentRepository`   | `get_peers_for_compact()`                                          |
-| T5  | TODO   | Add `AnnounceDataCompact`                           | Same as `AnnounceData` with `Vec<CompactPeer>`                     |
-| T6  | TODO   | Wire UDP service + handler                          | New method on UDP `AnnounceService`                                |
-| T7  | TODO   | Wire HTTP service + handler                         | New method on HTTP `AnnounceService`                               |
-| T8  | TODO   | Update UDP response builder                         | Uses `AnnounceDataCompact.peers`                                   |
-| T9  | TODO   | Update HTTP response builder                        | Uses `AnnounceDataCompact.peers`                                   |
+| T1  | DONE   | Add `CompactPeer` struct to `packages/primitives/`  | New file; `From<&peer::Peer>` and `From<peer::Peer>` conversions   |
+| T2  | DONE   | Add compact methods to `Coordinator`                | `peers_excluding_compact()`, `peers_compact()`                     |
+| T3  | DONE   | Add compact method to `Registry`                    | `get_peers_peers_excluding_compact()`                              |
+| T4  | DONE   | Add compact method to `InMemoryTorrentRepository`   | `get_peers_for_compact()`                                          |
+| T5  | DONE   | Add `AnnounceDataCompact`                           | Same as `AnnounceData` with `Vec<CompactPeer>`                     |
+| T6  | DONE   | Wire UDP service + handler                          | New method on UDP `AnnounceService`                                |
+| T7  | DONE   | Wire HTTP service + handler                         | New method on HTTP `AnnounceService`                               |
+| T8  | DONE   | Update UDP response builder                         | Uses `AnnounceDataCompact.peers`                                   |
+| T9  | DONE   | Update HTTP response builder                        | Uses `AnnounceDataCompact.peers`                                   |
 | T10 | TODO   | Cleanup: remove old path, rename                    | Delete old methods; `AnnounceDataCompact` to `AnnounceData`        |
 | T11 | TODO   | Run full test suite                                 | All targets, all features                                          |
 | T12 | TODO   | Run pre-commit checks                               | `./contrib/dev-tools/git/hooks/pre-commit.sh`                      |
@@ -173,14 +173,14 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 ## Acceptance Criteria
 
-- [ ] AC1: `CompactPeer` struct exists with `From` conversions
-- [ ] AC2: Compact methods on Coordinator, Registry, InMemoryTorrentRepository
-- [ ] AC3: Compact response data type exists
-- [ ] AC4: UDP and HTTP response builders work correctly
+- [x] AC1: `CompactPeer` struct exists with `From` conversions
+- [x] AC2: Compact methods on Coordinator, Registry, InMemoryTorrentRepository
+- [x] AC3: Compact response data type exists
+- [x] AC4: UDP and HTTP response builders work correctly
 - [ ] AC5: Old path removed and compact types renamed back to canonical
-- [ ] AC6: Full test suite passes
-- [ ] AC7: `linter all` passes
-- [ ] AC8: Pre-commit checks pass
+- [x] AC6: Full test suite passes
+- [x] AC7: `linter all` passes
+- [x] AC8: Pre-commit checks pass
 - [ ] AC9: Performance baseline and post-implementation reports completed
 
 ## Verification Plan

@@ -5,7 +5,7 @@ use torrust_clock::DurationSinceUnixEpoch;
 use torrust_info_hash::InfoHash;
 use torrust_tracker_primitives::pagination::Pagination;
 use torrust_tracker_primitives::swarm_metadata::{AggregateActiveSwarmMetadata, SwarmMetadata};
-use torrust_tracker_primitives::{NumberOfDownloads, NumberOfDownloadsBTreeMap, TrackerPolicy, peer};
+use torrust_tracker_primitives::{CompactPeer, NumberOfDownloads, NumberOfDownloadsBTreeMap, TrackerPolicy, peer};
 use torrust_tracker_swarm_coordination_registry::{CoordinatorHandle, Registry};
 
 /// In-memory repository for torrent entries.
@@ -180,6 +180,23 @@ impl InMemoryTorrentRepository {
     pub(crate) async fn get_peers_for(&self, info_hash: &InfoHash, peer: &peer::Peer, limit: usize) -> Vec<Arc<peer::Peer>> {
         self.swarms
             .get_peers_peers_excluding(info_hash, peer, limit)
+            .await
+            .expect("Failed to get other peers in swarm")
+    }
+
+    /// Retrieves compact torrent peers for a given torrent and client,
+    /// excluding the requesting client.
+    ///
+    /// Like [`get_peers_for`](Self::get_peers_for), but returns
+    /// [`CompactPeer`] values (stack-only, no `Arc` indirection).
+    ///
+    /// # Panics
+    ///
+    /// This function panics if the underling swarms return an error.
+    #[must_use]
+    pub(crate) async fn get_peers_for_compact(&self, info_hash: &InfoHash, peer: &peer::Peer, limit: usize) -> Vec<CompactPeer> {
+        self.swarms
+            .get_peers_peers_excluding_compact(info_hash, peer, limit)
             .await
             .expect("Failed to get other peers in swarm")
     }

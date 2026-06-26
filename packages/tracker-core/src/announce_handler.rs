@@ -95,7 +95,7 @@ use std::sync::Arc;
 
 use torrust_info_hash::InfoHash;
 use torrust_tracker_configuration::Core;
-use torrust_tracker_primitives::{AnnounceData, NumberOfDownloads, peer};
+use torrust_tracker_primitives::{AnnounceData, AnnounceDataCompact, NumberOfDownloads, peer};
 
 use super::torrent::repository::in_memory::InMemoryTorrentRepository;
 use crate::databases;
@@ -175,6 +175,37 @@ impl AnnounceHandler {
         Ok(self.build_announce_data(info_hash, peer, peers_wanted).await)
     }
 
+    /// Processes an announce request and returns compact peer data.
+    ///
+    /// Like [`handle_announcement`](Self::handle_announcement), but returns
+    /// [`AnnounceDataCompact`] with [`CompactPeer`] values (stack-only,
+    /// no `Arc` indirection) instead of `Vec<Arc<peer::Peer>>`.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the tracker is running in `listed` mode and the
+    /// torrent is not whitelisted.
+    pub async fn handle_announcement_compact(
+        &self,
+        info_hash: &InfoHash,
+        peer: &mut peer::Peer,
+        remote_client_ip: &IpAddr,
+        peers_wanted: &PeersWanted,
+    ) -> Result<AnnounceDataCompact, AnnounceError> {
+        self.whitelist_authorization.authorize(info_hash).await?;
+
+        peer.change_ip(&assign_ip_address_to_peer(
+            remote_client_ip,
+            self.config.net.external_ip.map(Into::into),
+        ));
+
+        self.in_memory_torrent_repository
+            .handle_announcement(info_hash, peer, self.load_downloads_metric_if_needed(info_hash).await?)
+            .await;
+
+        Ok(self.build_announce_data_compact(info_hash, peer, peers_wanted).await)
+    }
+
     /// Loads the number of downloads for a torrent if needed.
     async fn load_downloads_metric_if_needed(
         &self,
@@ -205,6 +236,34 @@ impl AnnounceHandler {
             .await;
 
         AnnounceData {
+            peers,
+            stats: swarm_metadata,
+            policy: self.config.announce_policy,
+        }
+    }
+
+    /// Builds compact announce data for the peer making the request.
+    async fn build_announce_data_compact(
+        &self,
+        info_hash: &InfoHash,
+        peer: &peer::Peer,
+        peers_wanted: &PeersWanted,
+    ) -> AnnounceDataCompact {
+        let peers = self
+            .in_memory_torrent_repository
+            .get_peers_for_compact(
+                info_hash,
+                peer,
+                peers_wanted.limit(self.config.announce_policy.max_peers_per_announce),
+            )
+            .await;
+
+        let swarm_metadata = self
+            .in_memory_torrent_repository
+            .get_swarm_metadata_or_default(info_hash)
+            .await;
+
+        AnnounceDataCompact {
             peers,
             stats: swarm_metadata,
             policy: self.config.announce_policy,
