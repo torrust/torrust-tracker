@@ -1,12 +1,10 @@
-#![allow(clippy::print_stderr, clippy::exit)]
-
 //! Generates a workspace coupling report for the Torrust Tracker workspace.
 //!
 //! For every workspace package that has workspace-level dependencies the tool:
 //!   1. Lists the declared workspace dependencies (normal / dev / build).
-//!   2. Scans the package's `src/`, `tests/`, and `benches/` directories for `use DEP_MODULE::`
-//!      statements and fully-qualified `DEP_MODULE::` path references, then lists the distinct
-//!      top-level import paths found.
+//!   2. Parses the package's `src/`, `tests/`, and `benches/` Rust files for `use DEP_MODULE::`
+//!      statements, root aliases, and fully-qualified `DEP_MODULE::` path references, then lists
+//!      the distinct dependency paths found.
 //!
 //! # Usage
 //!
@@ -21,12 +19,30 @@
 use std::collections::{BTreeSet, HashSet};
 use std::fmt::Write;
 use std::fs;
+use std::io::{self, Write as _};
 use std::path::{Path, PathBuf};
-use std::process::Command;
+use std::process::{Command, ExitCode};
 
-use regex::Regex;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use walkdir::WalkDir;
+use workspace_coupling::try_parse_imports_from_source;
+
+const EXIT_RUNTIME_FAILURE: u8 = 1;
+const EXIT_USAGE_ERROR: u8 = 2;
+
+#[derive(Serialize)]
+struct CliEvent {
+    kind: &'static str,
+    message: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    detail: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    workspace_root: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    output_file: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    exit_code: Option<u8>,
+}
 
 #[derive(Deserialize)]
 struct Metadata {
@@ -47,6 +63,62 @@ struct Package {
 struct Dep {
     name: String,
     kind: Option<String>,
+}
+
+fn emit_event(event: &CliEvent) -> io::Result<()> {
+    let mut stderr = io::stderr().lock();
+    serde_json::to_writer(&mut stderr, event)?;
+    stderr.write_all(b"\n")
+}
+
+fn emit_status(message: &str) -> io::Result<()> {
+    emit_event(&CliEvent {
+        kind: "status",
+        message: message.to_owned(),
+        detail: None,
+        workspace_root: None,
+        output_file: None,
+        exit_code: None,
+    })
+}
+
+fn emit_workspace_status(message: &str, workspace_root: &Path, output_file: &Path) -> io::Result<()> {
+    emit_event(&CliEvent {
+        kind: "status",
+        message: message.to_owned(),
+        detail: None,
+        workspace_root: Some(workspace_root.display().to_string()),
+        output_file: Some(output_file.display().to_string()),
+        exit_code: None,
+    })
+}
+
+fn emit_report_status(message: &str, output_file: &Path) -> io::Result<()> {
+    emit_event(&CliEvent {
+        kind: "status",
+        message: message.to_owned(),
+        detail: None,
+        workspace_root: None,
+        output_file: Some(output_file.display().to_string()),
+        exit_code: None,
+    })
+}
+
+fn failure(message: &str, detail: String, exit_code: u8) -> ExitCode {
+    if emit_event(&CliEvent {
+        kind: "error",
+        message: message.to_owned(),
+        detail: Some(detail),
+        workspace_root: None,
+        output_file: None,
+        exit_code: Some(exit_code),
+    })
+    .is_err()
+    {
+        return ExitCode::FAILURE;
+    }
+
+    ExitCode::from(exit_code)
 }
 
 fn crate_to_module(name: &str) -> String {
@@ -74,12 +146,7 @@ struct ScanResult {
     has_any_reference: bool,
 }
 
-fn scan_imports(dirs: &[&Path], module_name: &str) -> ScanResult {
-    let import_pattern = format!(r"{module_name}::[A-Za-z_][A-Za-z0-9_]*(?:::[A-Za-z_][A-Za-z0-9_]*)?");
-    let import_re = Regex::new(&import_pattern).expect("import regex is valid");
-    let any_pattern = format!(r"\b{module_name}\b");
-    let any_re = Regex::new(&any_pattern).expect("any-reference regex is valid");
-
+fn scan_imports(dirs: &[&Path], module_name: &str) -> Result<ScanResult, String> {
     let mut result = ScanResult {
         imports: BTreeSet::new(),
         has_any_reference: false,
@@ -95,21 +162,34 @@ fn scan_imports(dirs: &[&Path], module_name: &str) -> ScanResult {
             .filter_map(Result::ok)
             .filter(|e| e.path().extension().is_some_and(|ext| ext == "rs"))
         {
-            let Ok(content) = fs::read_to_string(entry.path()) else {
-                continue;
-            };
+            let path = entry.path();
+            let content =
+                fs::read_to_string(path).map_err(|err| format!("failed to read Rust source `{}`: {err}", path.display()))?;
+            let imports = try_parse_imports_from_source(&content, module_name)
+                .map_err(|err| format!("failed to parse Rust source `{}`: {err}", path.display()))?;
 
-            for m in import_re.find_iter(&content) {
-                result.imports.insert(m.as_str().to_owned());
-            }
+            result.imports.extend(imports);
 
-            if !result.has_any_reference && any_re.is_match(&content) {
+            if !result.has_any_reference && contains_identifier(&content, module_name) {
                 result.has_any_reference = true;
             }
         }
     }
 
-    result
+    Ok(result)
+}
+
+fn contains_identifier(source: &str, ident: &str) -> bool {
+    source.match_indices(ident).any(|(start, _)| {
+        let before = source[..start].chars().next_back();
+        let after = source[start + ident.len()..].chars().next();
+
+        !is_rust_identifier_char(before) && !is_rust_identifier_char(after)
+    })
+}
+
+fn is_rust_identifier_char(ch: Option<char>) -> bool {
+    ch.is_some_and(|ch| ch == '_' || ch.is_ascii_alphanumeric())
 }
 
 fn utc_timestamp() -> String {
@@ -148,20 +228,25 @@ fn write_header(out: &mut String, total: usize, timestamp: &str) {
     writeln!(out).unwrap();
     writeln!(
         out,
-        "Items are extracted by scanning the package's `src/`, `tests/`, and `benches/`"
+        "Items are extracted by parsing the package's `src/`, `tests/`, and `benches/`"
     )
     .unwrap();
     writeln!(
         out,
-        "directories for `use MODULE::` statements and `MODULE::` fully-qualified path references."
+        "directories for `use MODULE::` statements, root aliases, and `MODULE::` fully-qualified path references."
     )
     .unwrap();
     writeln!(
         out,
-        "The scan is text-based; it may miss items imported through re-exports or macros,"
+        "The scan is AST-based with a targeted macro-body path scan; it may miss items generated by macro expansions"
     )
     .unwrap();
-    writeln!(out, "but it is accurate enough to identify thin-dependency patterns.").unwrap();
+    writeln!(out, "or inactive conditional code,").unwrap();
+    writeln!(
+        out,
+        "but it handles normal Rust `use` forms, including groups and re-exports."
+    )
+    .unwrap();
     writeln!(out).unwrap();
     writeln!(
         out,
@@ -208,13 +293,13 @@ fn write_leaves(out: &mut String, meta: &Metadata, ws_ids: &HashSet<&str>, ws_na
     writeln!(out).unwrap();
 }
 
-fn write_dep_section(out: &mut String, dep: &Dep, scan_dirs: &[&Path]) {
+fn write_dep_section(out: &mut String, dep: &Dep, scan_dirs: &[&Path]) -> Result<(), String> {
     let kind = dep_kind_label(dep.kind.as_deref());
     writeln!(out, "#### `{}` [{kind}]", dep.name).unwrap();
     writeln!(out).unwrap();
 
     let module = crate_to_module(&dep.name);
-    let scan = scan_imports(scan_dirs, &module);
+    let scan = scan_imports(scan_dirs, &module)?;
 
     if !scan.imports.is_empty() {
         for import in &scan.imports {
@@ -237,9 +322,15 @@ fn write_dep_section(out: &mut String, dep: &Dep, scan_dirs: &[&Path]) {
     }
 
     writeln!(out).unwrap();
+    Ok(())
 }
 
-fn write_coupling_details(out: &mut String, meta: &Metadata, ws_ids: &HashSet<&str>, ws_names: &HashSet<&str>) {
+fn write_coupling_details(
+    out: &mut String,
+    meta: &Metadata,
+    ws_ids: &HashSet<&str>,
+    ws_names: &HashSet<&str>,
+) -> Result<(), String> {
     writeln!(out, "## Package coupling details").unwrap();
     writeln!(out).unwrap();
 
@@ -277,9 +368,11 @@ fn write_coupling_details(out: &mut String, meta: &Metadata, ws_ids: &HashSet<&s
         writeln!(out).unwrap();
 
         for dep in ws_deps {
-            write_dep_section(out, dep, &scan_dirs);
+            write_dep_section(out, dep, &scan_dirs)?;
         }
     }
+
+    Ok(())
 }
 
 fn write_observations(out: &mut String) {
@@ -305,7 +398,7 @@ fn write_observations(out: &mut String) {
     writeln!(out, "reference to the subissue opened for each.").unwrap();
 }
 
-fn generate_report(meta: &Metadata) -> String {
+fn generate_report(meta: &Metadata) -> Result<String, String> {
     let ws_ids: HashSet<&str> = meta.workspace_members.iter().map(String::as_str).collect();
     let ws_names: HashSet<&str> = meta
         .packages
@@ -319,42 +412,82 @@ fn generate_report(meta: &Metadata) -> String {
     let mut report = String::new();
     write_header(&mut report, total, &timestamp);
     write_leaves(&mut report, meta, &ws_ids, &ws_names);
-    write_coupling_details(&mut report, meta, &ws_ids, &ws_names);
+    write_coupling_details(&mut report, meta, &ws_ids, &ws_names)?;
     write_observations(&mut report);
-    report
+    Ok(report)
 }
 
-fn main() {
+fn main() -> ExitCode {
     let args: Vec<String> = std::env::args().collect();
 
-    eprintln!("Running cargo metadata...");
-    let output = Command::new("cargo")
-        .args(["metadata", "--format-version", "1"])
-        .output()
-        .expect("failed to run cargo metadata");
-
-    if !output.status.success() {
-        eprintln!("cargo metadata failed:\n{}", String::from_utf8_lossy(&output.stderr));
-        std::process::exit(1);
+    if args.len() > 2 {
+        return failure(
+            "invalid arguments",
+            format!("expected at most one output file argument, got {}", args.len() - 1),
+            EXIT_USAGE_ERROR,
+        );
     }
 
-    let meta: Metadata = serde_json::from_slice(&output.stdout).expect("failed to parse cargo metadata JSON");
+    if emit_status("running cargo metadata").is_err() {
+        return ExitCode::FAILURE;
+    }
+
+    let output = match Command::new("cargo").args(["metadata", "--format-version", "1"]).output() {
+        Ok(output) => output,
+        Err(err) => {
+            return failure("failed to run cargo metadata", err.to_string(), EXIT_RUNTIME_FAILURE);
+        }
+    };
+
+    if !output.status.success() {
+        return failure(
+            "cargo metadata failed",
+            String::from_utf8_lossy(&output.stderr).trim().to_owned(),
+            EXIT_RUNTIME_FAILURE,
+        );
+    }
+
+    let meta: Metadata = match serde_json::from_slice(&output.stdout) {
+        Ok(meta) => meta,
+        Err(err) => {
+            return failure("failed to parse cargo metadata JSON", err.to_string(), EXIT_RUNTIME_FAILURE);
+        }
+    };
 
     let workspace_root = PathBuf::from(&meta.workspace_root);
     let default_output = workspace_root.join("docs/issues/open/1669-overhaul-packages/workspace-coupling-report.md");
     let output_path: PathBuf = args.get(1).map_or(default_output, PathBuf::from);
 
-    eprintln!("Workspace root: {}", workspace_root.display());
-    eprintln!("Output file: {}", output_path.display());
-
-    let report = generate_report(&meta);
-
-    if let Some(parent) = output_path.parent() {
-        fs::create_dir_all(parent).expect("failed to create output directories");
+    if emit_workspace_status("workspace resolved", &workspace_root, &output_path).is_err() {
+        return ExitCode::FAILURE;
     }
 
-    fs::write(&output_path, report).expect("failed to write report file");
+    let report = match generate_report(&meta) {
+        Ok(report) => report,
+        Err(err) => return failure("failed to generate report", err, EXIT_RUNTIME_FAILURE),
+    };
 
-    eprintln!("Done.");
-    eprintln!("Report: {}", output_path.display());
+    if let Some(parent) = output_path.parent()
+        && let Err(err) = fs::create_dir_all(parent)
+    {
+        return failure(
+            "failed to create output directories",
+            format!("{}: {err}", parent.display()),
+            EXIT_RUNTIME_FAILURE,
+        );
+    }
+
+    if let Err(err) = fs::write(&output_path, report) {
+        return failure(
+            "failed to write report file",
+            format!("{}: {err}", output_path.display()),
+            EXIT_RUNTIME_FAILURE,
+        );
+    }
+
+    if emit_report_status("report written", &output_path).is_err() {
+        return ExitCode::FAILURE;
+    }
+
+    ExitCode::SUCCESS
 }
