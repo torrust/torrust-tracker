@@ -53,6 +53,18 @@ fn parses_nested_aliased_and_glob_imports() {
 }
 
 #[test]
+fn parses_root_aliased_imports() {
+    let source = r"
+        use torrust_tracker_configuration as configuration;
+    ";
+
+    assert_eq!(
+        parse_imports_from_source(source, "torrust_tracker_configuration"),
+        expected_imports(&["torrust_tracker_configuration"])
+    );
+}
+
+#[test]
 fn parses_fully_qualified_path_references() {
     let source = r"
         fn build() {
@@ -63,6 +75,20 @@ fn parses_fully_qualified_path_references() {
     assert_eq!(
         parse_imports_from_source(source, "dep_crate"),
         expected_imports(&["dep_crate::nested::Thing"])
+    );
+}
+
+#[test]
+fn parses_fully_qualified_path_references_inside_macros() {
+    let source = r"
+        fn build() -> bool {
+            matches!(dep_crate::Thing::A, dep_crate::Thing::A)
+        }
+    ";
+
+    assert_eq!(
+        parse_imports_from_source(source, "dep_crate"),
+        expected_imports(&["dep_crate::Thing::A"])
     );
 }
 
@@ -95,8 +121,13 @@ fn binary_extracts_grouped_reexported_aliased_and_glob_imports() {
             use torrust_tracker_located_error::{DynError, Located, LocatedError};
             use torrust_tracker_configuration::{Core, UdpTracker};
             use torrust_tracker_configuration::*;
+            use torrust_tracker_configuration as configuration;
             pub use bittorrent_peer_id::{PeerClient, PeerId};
             use bittorrent_peer_id::client::{ClientKind as Kind, identify};
+
+            fn checks_mode() -> bool {
+                matches!(torrust_tracker_configuration::Mode::Strict, _)
+            }
         ",
     );
 
@@ -122,8 +153,10 @@ fn binary_extracts_grouped_reexported_aliased_and_glob_imports() {
         "bittorrent_peer_id::PeerId",
         "bittorrent_peer_id::client::ClientKind",
         "bittorrent_peer_id::client::identify",
+        "torrust_tracker_configuration",
         "torrust_tracker_configuration::*",
         "torrust_tracker_configuration::Core",
+        "torrust_tracker_configuration::Mode::Strict",
         "torrust_tracker_configuration::UdpTracker",
         "torrust_tracker_contrib_bencode::BMutAccess",
         "torrust_tracker_contrib_bencode::ben_int",
