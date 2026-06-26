@@ -126,8 +126,6 @@
 //!     "status": "ok"
 //! }
 //! ```
-pub mod forms;
 pub mod handlers;
-pub mod resources;
 pub mod responses;
 pub mod routes;

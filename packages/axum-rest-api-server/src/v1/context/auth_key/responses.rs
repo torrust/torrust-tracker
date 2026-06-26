@@ -3,8 +3,8 @@ use std::error::Error;
 
 use axum::http::{StatusCode, header};
 use axum::response::{IntoResponse, Response};
+use torrust_tracker_rest_api_protocol::v1::context::auth_key::resources::auth_key::AuthKey;
 
-use crate::v1::context::auth_key::resources::AuthKey;
 use crate::v1::responses::{bad_request_response, unhandled_rejection_response};
 
 /// `200` response that contains the `AuthKey` resource as json.
@@ -50,8 +50,8 @@ pub fn failed_to_reload_keys_response<E: Error>(e: E) -> Response {
 }
 
 #[must_use]
-pub fn invalid_auth_key_response<E: Error>(auth_key: &str, e: E) -> Response {
-    bad_request_response(&format!("Invalid URL: invalid auth key: string \"{auth_key}\", {e}"))
+pub fn invalid_auth_key_response(auth_key: &str, reason: &str) -> Response {
+    bad_request_response(&format!("Invalid URL: invalid auth key: string \"{auth_key}\", {reason}"))
 }
 
 #[must_use]

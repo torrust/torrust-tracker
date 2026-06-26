@@ -55,7 +55,7 @@ The context has locally-defined DTOs (`AuthKey`, `AddKeyForm`, `KeyParam`) and 7
 
 - Move `AuthKey`, `AddKeyForm`, `KeyParam` DTOs to `rest-api-protocol/src/v1/context/auth_key/resources/auth_key.rs`.
 - Add auth-key-specific response/error DTOs to protocol (or reuse `ActionStatus` where applicable).
-- Define `AuthKeyCommandPort` trait in `rest-api-application/src/ports/`.
+- Define `AuthKeyPort` trait in `rest-api-application/src/ports/`.
 - Implement `AuthKeyApiService` use-case in `rest-api-application/src/use_cases/`.
 - Implement `TrackerAuthKeyAdapter` in `rest-api-runtime-adapter/src/adapters/`.
 - Add conversion functions for domain→protocol types.
@@ -71,14 +71,18 @@ The context has locally-defined DTOs (`AuthKey`, `AddKeyForm`, `KeyParam`) and 7
 
 The auth key context has both command and query operations, and includes form validation (duration parsing via `clock`). The 7 response functions produce 4 distinct error types plus a success response. Some can be consolidated into protocol-level error codes.
 
-All protocol DTOs follow the normalized context-based module structure under `packages/rest-api-protocol/src/v1/context/`:
+All protocol types follow the normalized context-based module structure under `packages/rest-api-protocol/src/v1/context/`.
+Each context can have a `forms/` subdirectory alongside `resources/` for input DTOs:
 
 ```text
 context/auth_key/
-├── mod.rs               # pub mod resources;
+├── mod.rs               # pub mod forms; pub mod resources;
+├── forms/
+│   ├── mod.rs           # pub mod add_key_form;
+│   └── add_key_form.rs  # AddKeyForm input DTO
 └── resources/
     ├── mod.rs           # pub mod auth_key;
-    └── auth_key.rs      # AuthKey, AddKeyForm, DTOs
+    └── auth_key.rs      # AuthKey, AuthKeyError
 ```
 
 Ports, use-cases, and adapters are flat files named after the context:
@@ -99,30 +103,31 @@ See the `torrent` and `health_check` contexts for the reference pattern.
 
 ## Implementation Plan
 
-| ID  | Status | Task                                                                                                       | Notes                         |
-| --- | ------ | ---------------------------------------------------------------------------------------------------------- | ----------------------------- |
-| T1  | TODO   | Add `auth_key` context module to `rest-api-protocol/src/v1/context/` with `AuthKey` DTO (resources subdir) |                               |
-| T2  | TODO   | Add `AddKeyRequest` DTO to protocol (or reuse from domain with wrapper)                                    |                               |
-| T3  | TODO   | Add auth-key error response types to protocol                                                              |                               |
-| T4  | TODO   | Define `AuthKeyCommandPort` in `rest-api-application/src/ports/`                                           | Methods for CRUD + reload     |
-| T5  | TODO   | Implement `AuthKeyApiService` in `rest-api-application/src/use_cases/`                                     |                               |
-| T6  | TODO   | Implement `TrackerAuthKeyAdapter` in `rest-api-runtime-adapter/src/adapters/`                              | Wraps `KeysHandler` + `clock` |
-| T7  | TODO   | Update Axum handlers to use `AuthKeyApiService`                                                            |                               |
-| T8  | TODO   | Update Axum state/routes to wire the new adapter                                                           |                               |
-| T9  | TODO   | Verify pre-commit and pre-push checks pass                                                                 |                               |
+| ID  | Status | Task                                                                                                       | Notes                                           |
+| --- | ------ | ---------------------------------------------------------------------------------------------------------- | ----------------------------------------------- |
+| T1  | DONE   | Add `auth_key` context module to `rest-api-protocol/src/v1/context/` with `AuthKey` DTO (resources subdir) |                                                 |
+| T2  | DONE   | Add `AddKeyForm` input DTO to protocol (forms/ subdir)                                                     | `AddKeyForm` moved to protocol `forms/`         |
+| T3  | DONE   | Add `AuthKeyError` response types to protocol                                                              | 3-variant enum matching `PeerKeyError`          |
+| T4  | DONE   | Define `AuthKeyPort` in `rest-api-application/src/ports/`                                                  | Methods for add, generate, delete, reload       |
+| T5  | DONE   | Implement `AuthKeyApiService` in `rest-api-application/src/use_cases/`                                     |                                                 |
+| T6  | DONE   | Implement `TrackerAuthKeyAdapter` in `rest-api-runtime-adapter/src/adapters/`                              | Wraps `KeysHandler` + `peer_key_to_auth_key` fn |
+| T7  | DONE   | Update Axum handlers to use `AuthKeyApiService`                                                            |                                                 |
+| T8  | DONE   | Update Axum state/routes to wire the new adapter                                                           | In `v1/routes.rs`                               |
+| T9  | TODO   | Verify pre-commit and pre-push checks pass                                                                 |                                                 |
 
 ## Verification / Progress
 
-- [ ] Protocol DTOs created and exported
-- [ ] `AuthKeyCommandPort` trait defined in `rest-api-application`
-- [ ] `AuthKeyApiService` use-case implemented
-- [ ] `TrackerAuthKeyAdapter` implemented in `rest-api-runtime-adapter`
-- [ ] Axum handlers dispatch through use-case
+- [x] Protocol DTOs created and exported (resources + forms)
+- [x] `AuthKeyPort` trait defined in `rest-api-application`
+- [x] `AuthKeyApiService` use-case implemented
+- [x] `TrackerAuthKeyAdapter` implemented in `rest-api-runtime-adapter`
+- [x] Axum handlers dispatch through use-case
 - [ ] Pre-commit checks pass
 - [ ] Pre-push checks pass
 
 ### Progress Log
 
-| Date       | Event              |
-| ---------- | ------------------ |
-| 2026-06-24 | Draft spec created |
+| Date       | Event                                                    |
+| ---------- | -------------------------------------------------------- |
+| 2026-06-24 | Draft spec created                                       |
+| 2026-06-26 | Auth key context migrated to contract-first architecture |
