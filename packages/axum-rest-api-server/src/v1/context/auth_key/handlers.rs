@@ -1,20 +1,16 @@
 //! API handlers for the [`auth_key`](crate::v1::context::auth_key) API context.
-use std::str::FromStr;
 use std::sync::Arc;
-use std::time::Duration;
 
 use axum::extract::{self, Path, State};
 use axum::response::Response;
 use serde::Deserialize;
-use torrust_tracker_core::authentication::Key;
-use torrust_tracker_core::authentication::handler::{AddKeyRequest, KeysHandler};
+use torrust_tracker_rest_api_application::use_cases::auth_key::AuthKeyApiService;
+use torrust_tracker_rest_api_protocol::v1::context::auth_key::forms::add_key_form::AddKeyForm;
 
-use super::forms::AddKeyForm;
 use super::responses::{
-    auth_key_response, failed_to_delete_key_response, failed_to_generate_key_response, failed_to_reload_keys_response,
-    invalid_auth_key_duration_response, invalid_auth_key_response,
+    auth_key_response, failed_to_add_key_response, failed_to_delete_key_response, failed_to_generate_key_response,
+    failed_to_reload_keys_response, invalid_auth_key_duration_response, invalid_auth_key_response,
 };
-use crate::v1::context::auth_key::resources::AuthKey;
 use crate::v1::responses::{invalid_auth_key_param_response, ok_response};
 
 /// It handles the request to add a new authentication key.
@@ -31,23 +27,22 @@ use crate::v1::responses::{invalid_auth_key_param_response, ok_response};
 /// Refer to the [API endpoint documentation](crate::v1::context::auth_key#generate-a-new-authentication-key)
 /// for more information about this endpoint.
 pub async fn add_auth_key_handler(
-    State(keys_handler): State<Arc<KeysHandler>>,
+    State(auth_key_service): State<Arc<AuthKeyApiService>>,
     extract::Json(add_key_form): extract::Json<AddKeyForm>,
 ) -> Response {
-    match keys_handler
-        .add_peer_key(AddKeyRequest {
-            opt_key: add_key_form.opt_key.clone(),
-            opt_seconds_valid: add_key_form.opt_seconds_valid,
-        })
-        .await
-    {
-        Ok(auth_key) => auth_key_response(&AuthKey::from(auth_key)),
-        Err(err) => match err {
-            torrust_tracker_core::error::PeerKeyError::DurationOverflow { seconds_valid } => {
-                invalid_auth_key_duration_response(seconds_valid)
+    match auth_key_service.add_key(&add_key_form).await {
+        Ok(auth_key) => auth_key_response(&auth_key),
+        Err(err) => match &err {
+            torrust_tracker_rest_api_protocol::v1::context::auth_key::resources::auth_key::AuthKeyError::DurationOverflow {
+                seconds_valid,
+            } => invalid_auth_key_duration_response(*seconds_valid),
+            torrust_tracker_rest_api_protocol::v1::context::auth_key::resources::auth_key::AuthKeyError::InvalidKey {
+                key,
+                reason,
+            } => invalid_auth_key_response(key, reason),
+            torrust_tracker_rest_api_protocol::v1::context::auth_key::resources::auth_key::AuthKeyError::Database(_) => {
+                failed_to_add_key_response(AuthKeyErrorDisplay(&err))
             }
-            torrust_tracker_core::error::PeerKeyError::InvalidKey { key, source } => invalid_auth_key_response(&key, source),
-            torrust_tracker_core::error::PeerKeyError::DatabaseError { source } => failed_to_generate_key_response(source),
         },
     }
 }
@@ -66,34 +61,19 @@ pub async fn add_auth_key_handler(
 ///
 /// This endpoint has been deprecated. Use [`add_auth_key_handler`].
 pub async fn generate_auth_key_handler(
-    State(keys_handler): State<Arc<KeysHandler>>,
+    State(auth_key_service): State<Arc<AuthKeyApiService>>,
     Path(seconds_valid_or_key): Path<u64>,
 ) -> Response {
     let seconds_valid = seconds_valid_or_key;
-    match keys_handler
-        .generate_expiring_peer_key(Some(Duration::from_secs(seconds_valid)))
-        .await
-    {
-        Ok(auth_key) => auth_key_response(&AuthKey::from(auth_key)),
-        Err(e) => failed_to_generate_key_response(e),
+    match auth_key_service.generate_key(seconds_valid).await {
+        Ok(auth_key) => auth_key_response(&auth_key),
+        Err(e) => failed_to_generate_key_response(AuthKeyErrorDisplay(&e)),
     }
 }
 
 /// A container for the `key` parameter extracted from the URL PATH.
 ///
 /// It does not perform any validation, it just stores the value.
-///
-/// In the current API version, the `key` parameter can be either a valid key
-/// like `xqD6NWH9TcKrOCwDmqcdH5hF5RrbL0A6` or the number of seconds the
-/// key will be valid, for example two minutes `120`.
-///
-/// For example, the `key` is used in the following requests:
-///
-/// - `POST /api/v1/key/120`. It will generate a new key valid for two minutes.
-/// - `DELETE /api/v1/key/xqD6NWH9TcKrOCwDmqcdH5hF5RrbL0A6`. It will delete the
-///   key `xqD6NWH9TcKrOCwDmqcdH5hF5RrbL0A6`.
-///
-/// > **NOTICE**: this may change in the future, in the [API v2](https://github.com/torrust/torrust-tracker/issues/144).
 #[derive(Deserialize)]
 pub struct KeyParam(String);
 
@@ -109,15 +89,16 @@ pub struct KeyParam(String);
 /// Refer to the [API endpoint documentation](crate::v1::context::auth_key#delete-an-authentication-key)
 /// for more information about this endpoint.
 pub async fn delete_auth_key_handler(
-    State(keys_handler): State<Arc<KeysHandler>>,
+    State(auth_key_service): State<Arc<AuthKeyApiService>>,
     Path(seconds_valid_or_key): Path<KeyParam>,
 ) -> Response {
-    match Key::from_str(&seconds_valid_or_key.0) {
-        Err(_) => invalid_auth_key_param_response(&seconds_valid_or_key.0),
-        Ok(key) => match keys_handler.remove_peer_key(&key).await {
-            Ok(()) => ok_response(),
-            Err(e) => failed_to_delete_key_response(e),
-        },
+    match auth_key_service.delete_key(&seconds_valid_or_key.0).await {
+        Ok(()) => ok_response(),
+        Err(torrust_tracker_rest_api_protocol::v1::context::auth_key::resources::auth_key::AuthKeyError::InvalidKey {
+            key: _,
+            reason: _,
+        }) => invalid_auth_key_param_response(&seconds_valid_or_key.0),
+        Err(e) => failed_to_delete_key_response(AuthKeyErrorDisplay(&e)),
     }
 }
 
@@ -133,9 +114,27 @@ pub async fn delete_auth_key_handler(
 ///
 /// Refer to the [API endpoint documentation](crate::v1::context::auth_key#reload-authentication-keys)
 /// for more information about this endpoint.
-pub async fn reload_keys_handler(State(keys_handler): State<Arc<KeysHandler>>) -> Response {
-    match keys_handler.load_peer_keys_from_database().await {
+pub async fn reload_keys_handler(State(auth_key_service): State<Arc<AuthKeyApiService>>) -> Response {
+    match auth_key_service.reload_keys().await {
         Ok(()) => ok_response(),
-        Err(e) => failed_to_reload_keys_response(e),
+        Err(e) => failed_to_reload_keys_response(AuthKeyErrorDisplay(&e)),
+    }
+}
+
+/// Wrapper to allow passing an [`AuthKeyError`] reference to response
+/// functions that expect `E: std::error::Error`.
+struct AuthKeyErrorDisplay<'a>(&'a torrust_tracker_rest_api_protocol::v1::context::auth_key::resources::auth_key::AuthKeyError);
+
+impl std::fmt::Display for AuthKeyErrorDisplay<'_> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.0, f)
+    }
+}
+
+impl std::error::Error for AuthKeyErrorDisplay<'_> {}
+
+impl std::fmt::Debug for AuthKeyErrorDisplay<'_> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Debug::fmt(self.0, f)
     }
 }

@@ -11,7 +11,7 @@ use uuid::Uuid;
 use crate::server::connection_info::{connection_with_invalid_token, connection_with_no_token};
 use crate::server::force_database_error;
 use crate::server::v1::asserts::{
-    assert_auth_key_utf8, assert_failed_to_delete_key, assert_failed_to_generate_key, assert_failed_to_reload_keys,
+    assert_auth_key_utf8, assert_failed_to_add_key, assert_failed_to_delete_key, assert_failed_to_reload_keys,
     assert_invalid_auth_key_get_param, assert_invalid_auth_key_post_param, assert_ok, assert_token_not_valid,
     assert_unauthorized, assert_unprocessable_auth_key_duration_param,
 };
@@ -152,7 +152,7 @@ async fn should_fail_when_the_auth_key_cannot_be_generated() {
         )
         .await;
 
-    assert_failed_to_generate_key(response).await;
+    assert_failed_to_add_key(response).await;
 
     assert!(
         logs_contains_a_line_with(&["ERROR", "API", &format!("{request_id}")]),

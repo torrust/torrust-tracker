@@ -1,3 +1,6 @@
+//! Form for adding a new authentication key.
+//!
+//! This is the input DTO for the `POST /api/v1/keys` endpoint.
 use serde::{Deserialize, Serialize};
 use serde_with::{DefaultOnNull, serde_as};
 
@@ -5,7 +8,7 @@ use serde_with::{DefaultOnNull, serde_as};
 ///
 /// You can upload a pre-generated key or let the app to generate a new one.
 /// You can also set an expiration date or leave it empty (`None`) if you want
-/// to create permanent key that does not expire.
+/// to create a permanent key that does not expire.
 #[serde_as]
 #[derive(Serialize, Deserialize, Debug)]
 pub struct AddKeyForm {

@@ -1,8 +1,8 @@
 // code-review: should we use macros to return the exact line where the assert fails?
 
 use reqwest::Response;
-use torrust_tracker_axum_rest_api_server::v1::context::auth_key::resources::AuthKey;
 use torrust_tracker_axum_rest_api_server::v1::context::stats::resources::Stats;
+use torrust_tracker_rest_api_protocol::v1::context::auth_key::resources::auth_key::AuthKey;
 use torrust_tracker_rest_api_protocol::v1::context::torrent::resources::torrent::{ListItem, Torrent};
 
 // Resource responses
@@ -144,6 +144,10 @@ pub async fn assert_failed_to_reload_whitelist(response: Response) {
 
 pub async fn assert_failed_to_generate_key(response: Response) {
     assert_unhandled_rejection(response, "failed to generate key").await;
+}
+
+pub async fn assert_failed_to_add_key(response: Response) {
+    assert_unhandled_rejection(response, "failed to add key").await;
 }
 
 pub async fn assert_failed_to_delete_key(response: Response) {

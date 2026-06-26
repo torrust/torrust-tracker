@@ -4962,7 +4962,6 @@ dependencies = [
  "reqwest",
  "serde",
  "serde_json",
- "serde_with",
  "thiserror 2.0.18",
  "tokio",
  "torrust-clock",
@@ -5250,6 +5249,7 @@ name = "torrust-tracker-rest-api-protocol"
 version = "3.0.0-develop"
 dependencies = [
  "serde",
+ "serde_with",
 ]
 
 [[package]]

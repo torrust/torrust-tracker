@@ -269,21 +269,23 @@ Implementation workflow references:
 ## 🔧 Essential Rules
 
 1. **Linting gate**: `linter all` must exit `0` before every commit. No exceptions.
-2. **GPG commit signing**: All commits **must** be signed with GPG (`git commit -S`).
-3. **Never commit `storage/` or `target/`**: These directories contain runtime data and build
+2. **GPG commit signing**: All commits **must** be signed with GPG (`git commit -S`). **GPG timeout handling**: If the GPG passphrase prompt times out during a commit, the agent
+   **must stop immediately**, notify the user, and ask them to retry the commit manually.
+   Never bypass GPG signing with `--no-gpg-sign` or skip the signing step under any
+   circumstances. This rule is absolute.3. **Never commit `storage/` or `target/`**: These directories contain runtime data and build
    artifacts. They are git-ignored; never force-add them.
-4. **Unused dependencies**: Run `cargo machete` before committing. Remove any unused
+3. **Unused dependencies**: Run `cargo machete` before committing. Remove any unused
    dependencies immediately.
-5. **Rust imports**: All imports at the top of the file, grouped (std → external crates →
+4. **Rust imports**: All imports at the top of the file, grouped (std → external crates →
    internal crate). Prefer short imported names over fully-qualified paths.
-6. **Continuous self-review**: Review your own work against project quality standards. Apply
+5. **Continuous self-review**: Review your own work against project quality standards. Apply
    self-review at three levels:
    - **Mandatory** — before opening a pull request
    - **Strongly recommended** — before each commit
    - **Recommended** — after completing each small, independent, deployable change
-7. **Security**: Do not report security vulnerabilities through public GitHub issues. Send an
+6. **Security**: Do not report security vulnerabilities through public GitHub issues. Send an
    email to `info@nautilus-cyberneering.de` instead. See [SECURITY.md](SECURITY.md).
-8. **Skill-link synchronization**: When modifying any artifact containing a `skill-link:` marker,
+7. **Skill-link synchronization**: When modifying any artifact containing a `skill-link:` marker,
    also review and update the linked skill instructions in `.github/skills/` so behavior,
    commands, and references remain aligned. If the linked skill has a validation script, run it
    before finishing.
