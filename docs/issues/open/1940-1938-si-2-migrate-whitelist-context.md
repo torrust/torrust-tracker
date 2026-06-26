@@ -119,8 +119,8 @@ This maps naturally to a single port trait with three methods. The `ActionStatus
 - [x] `WhitelistApiService` use-case implemented
 - [x] `TrackerWhitelistAdapter` implemented in `rest-api-runtime-adapter`
 - [x] Axum handlers dispatch through use-case instead of direct `WhitelistManager`
-- [ ] Pre-commit checks pass
-- [ ] Pre-push checks pass
+- [x] Pre-commit checks pass
+- [x] Pre-push checks pass
 
 ### Progress Log
 
