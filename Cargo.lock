@@ -6298,9 +6298,9 @@ dependencies = [
 name = "workspace-coupling"
 version = "3.0.0-develop"
 dependencies = [
- "regex",
  "serde",
  "serde_json",
+ "syn",
  "walkdir",
 ]
 
