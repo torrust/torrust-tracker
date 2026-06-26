@@ -5258,7 +5258,6 @@ name = "torrust-tracker-rest-api-runtime-adapter"
 version = "3.0.0-develop"
 dependencies = [
  "async-trait",
- "tokio",
  "torrust-info-hash",
  "torrust-metrics",
  "torrust-tracker-core",
