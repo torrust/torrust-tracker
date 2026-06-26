@@ -1,13 +1,13 @@
 ---
 doc-type: issue
 issue-type: task
-status: open
+status: done
 priority: p3
 github-issue: 1805
-spec-path: docs/issues/open/1805-fix-workspace-coupling-report-for-brace-and-reexport-imports.md
+spec-path: docs/issues/closed/1805-fix-workspace-coupling-report-for-brace-and-reexport-imports.md
 branch: "1805-fix-workspace-coupling-report-imports"
-related-pr: null
-last-updated-utc: 2026-05-20 00:00
+related-pr: 1948
+last-updated-utc: 2026-06-26 00:00
 semantic-links:
   skill-links:
     - create-issue
@@ -58,9 +58,9 @@ clear, direct `use` statements:
 | ---------------------------------- | --------------------------------- | -------------------------------------------------- |
 | `bittorrent-http-tracker-protocol` | `torrust-tracker-contrib-bencode` | `use crate::{BMutAccess, …}`                       |
 | `bittorrent-http-tracker-protocol` | `torrust-tracker-located-error`   | `use crate::{Located, LocatedError}`               |
-| `bittorrent-udp-core`      | `torrust-tracker-configuration`   | `use crate::{Core, UdpTracker}`                    |
+| `bittorrent-udp-core`              | `torrust-tracker-configuration`   | `use crate::{Core, UdpTracker}`                    |
 | `bittorrent-udp-tracker-protocol`  | `bittorrent-peer-id`              | `pub use bittorrent_peer_id::{PeerClient, PeerId}` |
-| `torrust-tracker-axum-server`              | `torrust-tracker-located-error`   | `use crate::{DynError, LocatedError}`              |
+| `torrust-tracker-axum-server`      | `torrust-tracker-located-error`   | `use crate::{DynError, LocatedError}`              |
 | `torrust-tracker-primitives`       | `bittorrent-peer-id`              | `pub use bittorrent_peer_id::{…}`                  |
 
 Patching the regex for the known patterns (braces, re-exports) would fix the current failures
