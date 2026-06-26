@@ -6,7 +6,7 @@ use std::sync::Arc;
 use axum::extract::{Path, State};
 use axum::response::Response;
 use torrust_info_hash::InfoHash;
-use torrust_tracker_core::whitelist::manager::WhitelistManager;
+use torrust_tracker_rest_api_application::use_cases::whitelist::WhitelistApiService;
 
 use super::responses::{
     failed_to_reload_whitelist_response, failed_to_remove_torrent_from_whitelist_response, failed_to_whitelist_torrent_response,
@@ -24,12 +24,12 @@ use crate::v1::responses::{invalid_info_hash_param_response, ok_response};
 /// Refer to the [API endpoint documentation](crate::v1::context::whitelist#add-a-torrent-to-the-whitelist)
 /// for more information about this endpoint.
 pub async fn add_torrent_to_whitelist_handler(
-    State(whitelist_manager): State<Arc<WhitelistManager>>,
+    State(whitelist_service): State<Arc<WhitelistApiService>>,
     Path(info_hash): Path<InfoHashParam>,
 ) -> Response {
     match InfoHash::from_str(&info_hash.0) {
         Err(_) => invalid_info_hash_param_response(&info_hash.0),
-        Ok(info_hash) => match whitelist_manager.add_torrent_to_whitelist(&info_hash).await {
+        Ok(info_hash) => match whitelist_service.add_torrent(&info_hash).await {
             Ok(()) => ok_response(),
             Err(e) => failed_to_whitelist_torrent_response(e),
         },
@@ -47,12 +47,12 @@ pub async fn add_torrent_to_whitelist_handler(
 /// Refer to the [API endpoint documentation](crate::v1::context::whitelist#remove-a-torrent-from-the-whitelist)
 /// for more information about this endpoint.
 pub async fn remove_torrent_from_whitelist_handler(
-    State(whitelist_manager): State<Arc<WhitelistManager>>,
+    State(whitelist_service): State<Arc<WhitelistApiService>>,
     Path(info_hash): Path<InfoHashParam>,
 ) -> Response {
     match InfoHash::from_str(&info_hash.0) {
         Err(_) => invalid_info_hash_param_response(&info_hash.0),
-        Ok(info_hash) => match whitelist_manager.remove_torrent_from_whitelist(&info_hash).await {
+        Ok(info_hash) => match whitelist_service.remove_torrent(&info_hash).await {
             Ok(()) => ok_response(),
             Err(e) => failed_to_remove_torrent_from_whitelist_response(e),
         },
@@ -69,8 +69,8 @@ pub async fn remove_torrent_from_whitelist_handler(
 ///
 /// Refer to the [API endpoint documentation](crate::v1::context::whitelist#reload-the-whitelist)
 /// for more information about this endpoint.
-pub async fn reload_whitelist_handler(State(whitelist_manager): State<Arc<WhitelistManager>>) -> Response {
-    match whitelist_manager.load_whitelist_from_database().await {
+pub async fn reload_whitelist_handler(State(whitelist_service): State<Arc<WhitelistApiService>>) -> Response {
+    match whitelist_service.reload().await {
         Ok(()) => ok_response(),
         Err(e) => failed_to_reload_whitelist_response(e),
     }
