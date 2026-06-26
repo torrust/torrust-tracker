@@ -25,6 +25,11 @@ fn make_peer(ip_last_octet: u8, port: u16, seed: u8) -> Peer {
     }
 }
 
+// Clippy notes on the casts below:
+// - `i % 254 + 1` is safe: `i` iterates over small `usize` values (< 1000).
+// - `i % 10000` is safe for u16: all values fit.
+// - `elapsed.as_nanos()` -> f64 sacrifices precision beyond 2^52 ns (~52 days) but
+//   total run time is ~0.04s, so the mantissa is more than sufficient.
 #[allow(clippy::cast_possible_truncation, clippy::cast_precision_loss, clippy::cast_sign_loss)]
 fn bench_peers_excluding(num_peers: usize, limit: usize, iterations: u64) -> f64 {
     use torrust_info_hash::InfoHash;
@@ -32,10 +37,12 @@ fn bench_peers_excluding(num_peers: usize, limit: usize, iterations: u64) -> f64
     let sender = Sender::default();
     let mut coordinator = Coordinator::new(&info_hash, 0, sender);
 
+    // Reuse a single runtime for setup (creating one per peer is slow but outside the timed section)
+    let rt = tokio::runtime::Runtime::new().unwrap();
+
     // Populate swarm
     for i in 0..num_peers {
         let peer = make_peer((i % 254) as u8 + 1, 6881 + (i % 10000) as u16, (i % 255) as u8);
-        let rt = tokio::runtime::Runtime::new().unwrap();
         rt.block_on(coordinator.handle_announcement(&peer));
     }
 

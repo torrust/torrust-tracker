@@ -40,7 +40,7 @@ The Aquatic repository provides two benchmarking tools:
 ### Repository location
 
 ```text
-/home/josecelano/Documents/git/committer/me/github/greatest-ape/aquatic/
+/path/to/aquatic/
 ```
 
 ## 1. Installation
@@ -100,14 +100,14 @@ crates/bencher/src/protocols/udp.rs:56:    #[arg(long, default_value = "torrust-
 ### 2.1 Build the Torrust Tracker release binary
 
 ```bash
-cd /home/josecelano/Documents/git/committer/me/github/torrust/torrust-tracker-agent-02
+cd /path/to/torrust-tracker
 cargo build --release
 ```
 
 ### 2.2 Generate default load test config
 
 ```bash
-cd /home/josecelano/Documents/git/committer/me/github/greatest-ape/aquatic
+cd /path/to/aquatic
 ./target/release/aquatic_udp_load_test -p
 ```
 
@@ -152,7 +152,7 @@ multiple_client_ipv4s = true
 sockets_per_worker = 4
 # Size of socket recv buffer. Use 0 for OS default.
 #
-# This setting can have a big impact on dropped packages. It might
+# This setting can have a big impact on dropped packets. It might
 # require changing system defaults. Some examples of commands to set
 # values for different operating systems:
 #
@@ -193,7 +193,7 @@ peer_seeder_probability = 0.75
 ### 2.3 Start the Torrust Tracker with benchmarking config
 
 ```bash
-cd /home/josecelano/Documents/git/committer/me/github/torrust/torrust-tracker-agent-02
+cd /path/to/torrust-tracker
 TORRUST_TRACKER_CONFIG_TOML_PATH="./share/default/config/tracker.udp.benchmarking.toml" \
   ./target/release/torrust-tracker
 ```
@@ -204,7 +204,7 @@ and peerless torrent removal. It binds the UDP tracker to `0.0.0.0:3000`.
 ### 2.4 Run the UDP load test
 
 ```bash
-cd /home/josecelano/Documents/git/committer/me/github/greatest-ape/aquatic
+cd /path/to/aquatic
 ./target/release/aquatic_udp_load_test -c load-test-config.toml
 ```
 
@@ -320,8 +320,8 @@ The bencher requires all trackers to be built before running:
 Then run:
 
 ```bash
-cd /home/josecelano/Documents/git/committer/me/github/greatest-ape/aquatic
-./target/aquatic_bencher/target/release-debug/aquatic_bencher \
+cd /path/to/aquatic
+./target/release-debug/aquatic_bencher \
   --min-priority medium --cpu-mode subsequent-one-per-pair
 ```
 

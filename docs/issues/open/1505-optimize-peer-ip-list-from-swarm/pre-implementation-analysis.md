@@ -149,7 +149,7 @@ The `CompactPeer` type is safe to introduce — it covers every field that any c
 
 ### Aquatic bencher
 
-The aquatic repository is at `/home/josecelano/Documents/git/committer/me/github/greatest-ape/aquatic/`.
+The aquatic repository can be cloned from `https://github.com/greatest-ape/aquatic`.
 
 **Current state**: The bencher binary has not been built yet (`target/release-debug/` does not exist).
 

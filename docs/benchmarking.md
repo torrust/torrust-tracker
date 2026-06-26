@@ -5,7 +5,7 @@ semantic-links:
   related-artifacts:
     - docs/index.md
     - docs/profiling.md
-    - docs/issues/open/1505-optimize-peer-ip-list-from-swarm/aquatic-benchmarking-guide.md
+    - issues/open/1505-optimize-peer-ip-list-from-swarm/aquatic-benchmarking-guide.md
     - packages/torrent-repository-benchmarking/
     - packages/swarm-coordination-registry/examples/bench_peers.rs
     - share/default/config/tracker.udp.benchmarking.toml
@@ -21,7 +21,7 @@ We have several types of benchmarking:
 - **Peer retrieval microbenchmarks** — measuring the `peers_excluding` path directly.
 
 > For a detailed step-by-step guide with full command output and troubleshooting, see the
-> [Aquatic Benchmarking Guide](docs/issues/open/1505-optimize-peer-ip-list-from-swarm/aquatic-benchmarking-guide.md)
+> [Aquatic Benchmarking Guide](issues/open/1505-optimize-peer-ip-list-from-swarm/aquatic-benchmarking-guide.md)
 > (created during issue #1505).
 
 ## Prerequisites
