@@ -146,6 +146,10 @@ pub async fn assert_failed_to_generate_key(response: Response) {
     assert_unhandled_rejection(response, "failed to generate key").await;
 }
 
+pub async fn assert_failed_to_add_key(response: Response) {
+    assert_unhandled_rejection(response, "failed to add key").await;
+}
+
 pub async fn assert_failed_to_delete_key(response: Response) {
     assert_unhandled_rejection(response, "failed to delete key").await;
 }

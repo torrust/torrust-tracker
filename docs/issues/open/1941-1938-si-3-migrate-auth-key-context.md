@@ -113,7 +113,7 @@ See the `torrent` and `health_check` contexts for the reference pattern.
 | T6  | DONE   | Implement `TrackerAuthKeyAdapter` in `rest-api-runtime-adapter/src/adapters/`                              | Wraps `KeysHandler` + `peer_key_to_auth_key` fn |
 | T7  | DONE   | Update Axum handlers to use `AuthKeyApiService`                                                            |                                                 |
 | T8  | DONE   | Update Axum state/routes to wire the new adapter                                                           | In `v1/routes.rs`                               |
-| T9  | TODO   | Verify pre-commit and pre-push checks pass                                                                 |                                                 |
+| T9  | DONE   | Verify pre-commit and pre-push checks pass                                                                 | Pre-commit passed                               |
 
 ## Verification / Progress
 

@@ -8,8 +8,8 @@ use torrust_tracker_rest_api_application::use_cases::auth_key::AuthKeyApiService
 use torrust_tracker_rest_api_protocol::v1::context::auth_key::forms::add_key_form::AddKeyForm;
 
 use super::responses::{
-    auth_key_response, failed_to_delete_key_response, failed_to_generate_key_response, failed_to_reload_keys_response,
-    invalid_auth_key_duration_response, invalid_auth_key_response,
+    auth_key_response, failed_to_add_key_response, failed_to_delete_key_response, failed_to_generate_key_response,
+    failed_to_reload_keys_response, invalid_auth_key_duration_response, invalid_auth_key_response,
 };
 use crate::v1::responses::{invalid_auth_key_param_response, ok_response};
 
@@ -41,7 +41,7 @@ pub async fn add_auth_key_handler(
                 reason,
             } => invalid_auth_key_response(key, reason),
             torrust_tracker_rest_api_protocol::v1::context::auth_key::resources::auth_key::AuthKeyError::Database(_) => {
-                failed_to_generate_key_response(AuthKeyErrorDisplay(&err))
+                failed_to_add_key_response(AuthKeyErrorDisplay(&err))
             }
         },
     }
