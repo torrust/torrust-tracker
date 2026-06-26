@@ -3,10 +3,12 @@ use std::sync::Arc;
 
 use axum::Router;
 use torrust_tracker_rest_api_application::use_cases::auth_key::AuthKeyApiService;
+use torrust_tracker_rest_api_application::use_cases::stats::StatsApiService;
 use torrust_tracker_rest_api_application::use_cases::torrent::TorrentApiService;
 use torrust_tracker_rest_api_application::use_cases::whitelist::WhitelistApiService;
 use torrust_tracker_rest_api_core::container::TrackerHttpApiCoreContainer;
 use torrust_tracker_rest_api_runtime_adapter::adapters::auth_key::TrackerAuthKeyAdapter;
+use torrust_tracker_rest_api_runtime_adapter::adapters::stats::TrackerStatsAdapter;
 use torrust_tracker_rest_api_runtime_adapter::adapters::torrent::TrackerTorrentQueryAdapter;
 use torrust_tracker_rest_api_runtime_adapter::adapters::whitelist::TrackerWhitelistAdapter;
 
@@ -20,7 +22,17 @@ pub fn add(prefix: &str, router: Router, http_api_container: &Arc<TrackerHttpApi
     let auth_key_service = Arc::new(AuthKeyApiService::new(Box::new(auth_key_adapter)));
     let router = auth_key::routes::add(&v1_prefix, router, &auth_key_service);
 
-    let router = stats::routes::add(&v1_prefix, router, http_api_container);
+    let stats_adapter = TrackerStatsAdapter::new(
+        &http_api_container.tracker_core_container.in_memory_torrent_repository,
+        &http_api_container.ban_service,
+        &http_api_container.swarm_coordination_registry_container.stats_repository,
+        &http_api_container.tracker_core_container.stats_repository,
+        &http_api_container.http_stats_repository,
+        &http_api_container.udp_core_stats_repository,
+        &http_api_container.udp_server_stats_repository,
+    );
+    let stats_service = Arc::new(StatsApiService::new(Box::new(stats_adapter)));
+    let router = stats::routes::add(&v1_prefix, router, &stats_service);
 
     let whitelist_adapter = TrackerWhitelistAdapter::new(&http_api_container.tracker_core_container.whitelist_manager);
     let whitelist_service = Arc::new(WhitelistApiService::new(Box::new(whitelist_adapter)));

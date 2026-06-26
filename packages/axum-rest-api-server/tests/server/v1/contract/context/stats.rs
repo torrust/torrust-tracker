@@ -2,9 +2,9 @@ use std::str::FromStr;
 
 use torrust_info_hash::InfoHash;
 use torrust_tracker_axum_rest_api_server::testing::environment::Started;
-use torrust_tracker_axum_rest_api_server::v1::context::stats::resources::Stats;
 use torrust_tracker_primitives::peer::fixture::PeerBuilder;
 use torrust_tracker_rest_api_client::v1::client::{Client, headers_with_request_id};
+use torrust_tracker_rest_api_protocol::v1::context::stats::resources::stats::Stats;
 use torrust_tracker_test_helpers::logging::logs_contains_a_line_with;
 use torrust_tracker_test_helpers::{configuration, logging};
 use uuid::Uuid;

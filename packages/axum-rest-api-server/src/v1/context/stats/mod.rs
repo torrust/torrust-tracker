@@ -47,6 +47,5 @@
 //! Refer to the API [`Stats`](crate::v1::context::stats::resources::Stats)
 //! resource for more information about the response attributes.
 pub mod handlers;
-pub mod resources;
 pub mod responses;
 pub mod routes;

@@ -97,15 +97,35 @@ Two output formats are supported: JSON (serialize `Stats` struct) and Prometheus
 - Define `Stats` DTO (~28 fields) and `LabeledStats` DTO in `rest-api-protocol/src/v1/context/stats/resources/stats.rs`.
 - Define `StatsQueryPort` trait in `rest-api-application/src/ports/` (methods: `get_stats`, `get_labeled_stats`).
 - Implement `StatsApiService` use-case in `rest-api-application/src/use_cases/`.
-- Implement `TrackerStatsAdapter` in `rest-api-runtime-adapter/src/adapters/`.
-  - Consumes UDP-side traits from SI-30 (`BanningStats`, `UdpCoreStatsRepository`, `UdpServerStatsRepository`).
-  - Wraps all 6+ internal repository/services.
+- Implement `TrackerStatsAdapter` in `rest-api-runtime-adapter/src/adapters/` — see **Aggregation Strategy** below.
+  - Adds `torrust-metrics`, `http-core`, `udp-core`, `udp-server`, `swarm-coordination-registry` as adapter deps.
 - Handle Prometheus serialization:
-  - Option A: Keep Prometheus formatting in the Axum server as a response serializer (since it's a transport concern).
-  - Option B: Move to `rest-api-runtime-adapter` if formatting logic needs access to internal types.
+  - Option A (applied): Keep Prometheus formatting in the Axum server as a response serializer.
 - Rewire Axum handlers to use `StatsApiService`.
-- Remove direct internal dependencies from `axum-rest-api-server` stats wiring.
+- Remove direct internal dependencies from `axum-rest-api-server` stats wiring (7+ tuples → single `Arc<StatsApiService>`).
+- Add `torrust-metrics` as a protocol dependency for `MetricCollection` in `LabeledStats`.
 - Verify no behavioural change.
+
+### Aggregation Strategy (Option 3 — Applied)
+
+The aggregation logic (`get_metrics()`, `get_labeled_metrics()`, and the
+intermediate `TorrentsMetrics`/`ProtocolMetrics` types) was previously in
+`rest-api-core`. Three options were considered:
+
+**Option 1**: Add `rest-api-core` as a temporary dependency of the adapter,
+keeping aggregation in `rest-api-core`. Creates a dep that must be undone in SI-5.
+
+**Option 2**: Inline the aggregation logic directly in the adapter, duplicating
+the code from `rest-api-core`. Creates duplication that must be reconciled in SI-5.
+
+**Option 3 (applied)**: Move the aggregation logic from `rest-api-core` into
+`TrackerStatsAdapter` directly. This:
+
+- Removes the need for a `rest-api-core` dep on the adapter
+- Advances the SI-5 goal of deprecating `rest-api-core` (the orchestrator functions
+  are now owned by the adapter)
+- Leaves `rest-api-core` as a slimmer package containing only `TrackerHttpApiCoreContainer`
+  (DI container) — SI-5 will absorb the container into `rest-api-runtime-adapter`
 
 ### Out of Scope
 
@@ -143,33 +163,34 @@ The use-case maps domain errors to protocol error codes and returns protocol DTO
 
 ## Implementation Plan
 
-| ID  | Status | Task                                                                                                  | Notes                               |
-| --- | ------ | ----------------------------------------------------------------------------------------------------- | ----------------------------------- |
-| T1  | TODO   | Define `Stats` and `LabeledStats` DTOs in `rest-api-protocol/src/v1/context/stats/resources/stats.rs` | Match current serialization exactly |
-| T2  | TODO   | Define `StatsQueryPort` trait in `rest-api-application/src/ports/`                                    |                                     |
-| T3  | TODO   | Implement `StatsApiService` use-case in `rest-api-application/src/use_cases/`                         |                                     |
-| T4  | TODO   | Implement `TrackerStatsAdapter` in `rest-api-runtime-adapter/src/adapters/`                           | Consume SI-30 traits                |
-| T5  | TODO   | Add conversion functions for domain→protocol stats types                                              |                                     |
-| T6  | TODO   | Handle Prometheus serialization — keep as transport concern in Axum (Option A)                        |                                     |
-| T7  | TODO   | Rewire Axum handlers to use `StatsApiService`                                                         |                                     |
-| T8  | TODO   | Update Axum state to inject `TrackerStatsAdapter` (replacing 6+ tuples)                               |                                     |
-| T9  | TODO   | Remove direct internal deps from `axum-rest-api-server` stats wiring                                  |                                     |
-| T10 | TODO   | Verify pre-commit and pre-push checks pass                                                            |                                     |
+| ID  | Status | Task                                                                                                  | Notes                                             |
+| --- | ------ | ----------------------------------------------------------------------------------------------------- | ------------------------------------------------- |
+| T1  | DONE   | Define `Stats` and `LabeledStats` DTOs in `rest-api-protocol/src/v1/context/stats/resources/stats.rs` | Match current serialization exactly               |
+| T2  | DONE   | Define `StatsQueryPort` trait in `rest-api-application/src/ports/`                                    | `get_stats`, `get_labeled_stats` methods          |
+| T3  | DONE   | Implement `StatsApiService` use-case in `rest-api-application/src/use_cases/`                         | Delegates to port trait                           |
+| T4  | DONE   | Implement `TrackerStatsAdapter` in `rest-api-runtime-adapter/src/adapters/`                           | Aggregation moved from rest-api-core (Option 3)   |
+| T5  | DONE   | Add conversion functions for domain→protocol stats types                                              | Inline in adapter — Stats fields mapped directly  |
+| T6  | DONE   | Handle Prometheus serialization — keep as transport concern in Axum (Option A)                        | `metrics_response` stays in Axum responses.rs     |
+| T7  | DONE   | Rewire Axum handlers to use `StatsApiService`                                                         | No more tuple-state or rest-api-core calls        |
+| T8  | DONE   | Update Axum state to inject `TrackerStatsAdapter` (replacing 6+ tuples)                               | Single `Arc<StatsApiService>` in `v1/routes.rs`   |
+| T9  | DONE   | Remove direct internal deps from `axum-rest-api-server` stats wiring                                  | 7+ tuple-state removed, handler uses only service |
+| T10 | TODO   | Verify pre-commit and pre-push checks pass                                                            |                                                   |
 
 ## Verification / Progress
 
-- [ ] `Stats` and `LabeledStats` DTOs defined in `rest-api-protocol`
-- [ ] `StatsQueryPort` trait defined in `rest-api-application`
-- [ ] `StatsApiService` use-case implemented
-- [ ] `TrackerStatsAdapter` implemented consuming SI-30 traits
-- [ ] Prometheus serialization handled appropriately
-- [ ] Axum handlers dispatch through use-case
-- [ ] Direct internal crate deps removed from Axum server stats wiring
+- [x] `Stats` and `LabeledStats` DTOs defined in `rest-api-protocol`
+- [x] `StatsQueryPort` trait defined in `rest-api-application`
+- [x] `StatsApiService` use-case implemented
+- [x] `TrackerStatsAdapter` implemented (Option 3 — aggregation moved from rest-api-core)
+- [x] Prometheus serialization handled appropriately (Option A — kept in Axum)
+- [x] Axum handlers dispatch through use-case
+- [x] Direct internal crate deps removed from Axum server stats wiring
 - [ ] Pre-commit checks pass
 - [ ] Pre-push checks pass
 
 ### Progress Log
 
-| Date       | Event              |
-| ---------- | ------------------ |
-| 2026-06-24 | Draft spec created |
+| Date       | Event                                                                                    |
+| ---------- | ---------------------------------------------------------------------------------------- |
+| 2026-06-24 | Draft spec created                                                                       |
+| 2026-06-26 | Stats context migrated to contract-first architecture (Option 3: aggregation in adapter) |
