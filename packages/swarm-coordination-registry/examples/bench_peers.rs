@@ -7,7 +7,7 @@ use std::time::Instant;
 
 use torrust_clock::DurationSinceUnixEpoch;
 use torrust_tracker_primitives::peer::Peer;
-use torrust_tracker_primitives::{AnnounceEvent, CompactPeer, NumberOfBytes, PeerId};
+use torrust_tracker_primitives::{AnnounceEvent, NumberOfBytes, PeerId};
 use torrust_tracker_swarm_coordination_registry::event::sender::Sender;
 use torrust_tracker_swarm_coordination_registry::swarm::coordinator::Coordinator;
 
@@ -54,56 +54,16 @@ fn bench_peers_excluding(num_peers: usize, limit: usize, iterations: u64) -> f64
     elapsed.as_nanos() as f64 / iterations as f64
 }
 
-#[allow(clippy::cast_possible_truncation, clippy::cast_precision_loss, clippy::cast_sign_loss)]
-fn bench_peers_excluding_compact(num_peers: usize, limit: usize, iterations: u64) -> f64 {
-    use torrust_info_hash::InfoHash;
-    let info_hash = InfoHash::default();
-    let sender = Sender::default();
-    let mut coordinator = Coordinator::new(&info_hash, 0, sender);
-
-    // Populate swarm
-    for i in 0..num_peers {
-        let peer = make_peer((i % 254) as u8 + 1, 6881 + (i % 10000) as u16, (i % 255) as u8);
-        let rt = tokio::runtime::Runtime::new().unwrap();
-        rt.block_on(coordinator.handle_announcement(&peer));
-    }
-
-    let requesting_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(10, 0, 0, 254)), 6999);
-
-    // Warm up
-    for _ in 0..1000 {
-        black_box(coordinator.peers_excluding_compact(&requesting_addr, Some(limit)));
-    }
-
-    let start = Instant::now();
-    for _ in 0..iterations {
-        black_box(coordinator.peers_excluding_compact(&requesting_addr, Some(limit)));
-    }
-    let elapsed = start.elapsed();
-    elapsed.as_nanos() as f64 / iterations as f64
-}
-
 fn main() {
     let iterations = 100_000;
 
-    println!("=== Coordinator::peers_excluding (old) vs peers_excluding_compact (new) ===");
-    println!("iterations={iterations}\n");
-    println!(
-        "{:>6} | {:>14} | {:>14} | {:>14} | {:>10}",
-        "Peers", "Old (ns)", "Compact (ns)", "Delta (ns)", "Speedup"
-    );
-    println!("{:-<6} | {:-<14} | {:-<14} | {:-<14} | {:-<10}", "", "", "", "", "");
+    println!("=== Baseline: Coordinator::peers_excluding ===");
+    println!("iterations={iterations}");
 
     for num_peers in [10, 74, 100, 500, 1000] {
-        let old_ns = bench_peers_excluding(num_peers, 74, iterations);
-        let compact_ns = bench_peers_excluding_compact(num_peers, 74, iterations);
-        let delta = old_ns - compact_ns;
-        let speedup = if compact_ns > 0.0 {
-            old_ns / compact_ns
-        } else {
-            f64::INFINITY
-        };
-        println!("{num_peers:>6} | {old_ns:>14.2} | {compact_ns:>14.2} | {delta:>+14.2} | {speedup:>9.2}x");
+        let ns = bench_peers_excluding(num_peers, 74, iterations);
+        let per_peer = ns / f64::from(u32::try_from(num_peers).expect("num_peers fits in u32"));
+        println!("{num_peers:>4} peers: {ns:>10.2} ns/iter  ({per_peer:.2} ns/peer)");
     }
 
     // Memory estimate
