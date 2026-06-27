@@ -54,16 +54,16 @@ impl Response {
                     .0;
 
                 let peers = if let Some(bytes) = bytes.get(size_of::<AnnounceResponseFixedData>()..) {
-                    #[allow(clippy::chunks_exact_to_as_chunks)]
-                    let chunks = bytes.chunks_exact(size_of::<ResponsePeer<Ipv4AddrBytes>>());
+                    let (chunks, remainder) = bytes.as_chunks::<{ size_of::<ResponsePeer<Ipv4AddrBytes>>() }>();
 
-                    if !chunks.remainder().is_empty() {
+                    if !remainder.is_empty() {
                         return Err(invalid_data());
                     }
 
                     chunks
+                        .iter()
                         .map(|chunk| {
-                            ResponsePeer::<Ipv4AddrBytes>::read_from_prefix(chunk)
+                            ResponsePeer::<Ipv4AddrBytes>::read_from_prefix(chunk.as_slice())
                                 .map(|(peer, _)| peer)
                                 .map_err(|_| invalid_data())
                         })
@@ -80,16 +80,16 @@ impl Response {
                     .0;
 
                 let peers = if let Some(bytes) = bytes.get(size_of::<AnnounceResponseFixedData>()..) {
-                    #[allow(clippy::chunks_exact_to_as_chunks)]
-                    let chunks = bytes.chunks_exact(size_of::<ResponsePeer<Ipv6AddrBytes>>());
+                    let (chunks, remainder) = bytes.as_chunks::<{ size_of::<ResponsePeer<Ipv6AddrBytes>>() }>();
 
-                    if !chunks.remainder().is_empty() {
+                    if !remainder.is_empty() {
                         return Err(invalid_data());
                     }
 
                     chunks
+                        .iter()
                         .map(|chunk| {
-                            ResponsePeer::<Ipv6AddrBytes>::read_from_prefix(chunk)
+                            ResponsePeer::<Ipv6AddrBytes>::read_from_prefix(chunk.as_slice())
                                 .map(|(peer, _)| peer)
                                 .map_err(|_| invalid_data())
                         })
@@ -103,16 +103,16 @@ impl Response {
             2 => {
                 let transaction_id = read_i32_ne(&mut bytes).map(TransactionId)?;
 
-                #[allow(clippy::chunks_exact_to_as_chunks)]
-                let chunks = bytes.chunks_exact(size_of::<TorrentScrapeStatistics>());
+                let (chunks, remainder) = bytes.as_chunks::<{ size_of::<TorrentScrapeStatistics>() }>();
 
-                if !chunks.remainder().is_empty() {
+                if !remainder.is_empty() {
                     return Err(invalid_data());
                 }
 
                 let torrent_stats = chunks
+                    .iter()
                     .map(|chunk| {
-                        TorrentScrapeStatistics::read_from_prefix(chunk)
+                        TorrentScrapeStatistics::read_from_prefix(chunk.as_slice())
                             .map(|(stats, _)| stats)
                             .map_err(|_| invalid_data())
                     })

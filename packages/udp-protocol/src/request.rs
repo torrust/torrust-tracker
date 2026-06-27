@@ -101,10 +101,9 @@ impl Request {
                     ));
                 }
 
-                #[allow(clippy::chunks_exact_to_as_chunks)]
-                let chunks = remaining_bytes.chunks_exact(size_of::<InfoHash>());
+                let (chunks, remainder) = remaining_bytes.as_chunks::<{ size_of::<InfoHash>() }>();
 
-                if !chunks.remainder().is_empty() {
+                if !remainder.is_empty() {
                     return Err(RequestParseError::sendable_text(
                         "Invalid info hash list",
                         connection_id,
@@ -112,13 +111,7 @@ impl Request {
                     ));
                 }
 
-                let info_hashes = chunks
-                    .map(|chunk| {
-                        let mut bytes = [0u8; 20];
-                        bytes.copy_from_slice(chunk);
-                        InfoHash(bytes)
-                    })
-                    .collect::<Vec<_>>();
+                let info_hashes = chunks.iter().copied().map(InfoHash).collect::<Vec<_>>();
 
                 let info_hashes = Vec::from(&info_hashes[..(max_scrape_torrents as usize).min(info_hashes.len())]);
 
