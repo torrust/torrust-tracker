@@ -5250,6 +5250,7 @@ version = "3.0.0-develop"
 dependencies = [
  "serde",
  "serde_with",
+ "torrust-metrics",
 ]
 
 [[package]]
@@ -5258,10 +5259,15 @@ version = "3.0.0-develop"
 dependencies = [
  "async-trait",
  "torrust-info-hash",
+ "torrust-metrics",
  "torrust-tracker-core",
+ "torrust-tracker-http-core",
  "torrust-tracker-primitives",
  "torrust-tracker-rest-api-application",
  "torrust-tracker-rest-api-protocol",
+ "torrust-tracker-swarm-coordination-registry",
+ "torrust-tracker-udp-core",
+ "torrust-tracker-udp-server",
 ]
 
 [[package]]

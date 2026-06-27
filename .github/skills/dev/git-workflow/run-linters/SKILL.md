@@ -51,6 +51,23 @@ linter rustfmt
 linter shellcheck
 ```
 
+### Fix Clippy Warnings
+
+When clippy warnings appear, **always try the suggested fix first** before adding allowances:
+
+```bash
+# Run clippy to see specific warnings
+linter clippy
+
+# Apply suggested fixes from clippy output
+# See: .github/skills/dev/rust-code-quality/fix-clippy-warnings/SKILL.md
+```
+
+## Related Skills
+
+- [`fix-clippy-warnings`](../rust-code-quality/fix-clippy-warnings/SKILL.md) - Detailed guide for fixing clippy warnings properly
+- [`commit-changes`](../git-workflow/commit-changes/SKILL.md) - Commit changes with proper conventions
+
 ### During Development (Rust only)
 
 ```bash

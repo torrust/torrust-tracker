@@ -342,6 +342,7 @@ sockfd
 specialised
 sqllite
 sqlx
+srcset
 stabilised
 subissue
 Subissue

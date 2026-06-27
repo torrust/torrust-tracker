@@ -18,5 +18,10 @@ torrust-tracker-rest-api-application = { version = "3.0.0-develop", path = "../r
 torrust-tracker-rest-api-protocol = { version = "3.0.0-develop", path = "../rest-api-protocol" }
 torrust-tracker-core = { version = "3.0.0-develop", path = "../tracker-core" }
 torrust-tracker-primitives = { version = "3.0.0-develop", path = "../primitives" }
+torrust-tracker-http-core = { version = "3.0.0-develop", path = "../http-core" }
+torrust-tracker-udp-core = { version = "3.0.0-develop", path = "../udp-core" }
+torrust-tracker-udp-server = { version = "3.0.0-develop", path = "../udp-server" }
+torrust-tracker-swarm-coordination-registry = { version = "3.0.0-develop", path = "../swarm-coordination-registry" }
+torrust-metrics = "0.1.0"
 torrust-info-hash = "=0.2.0"
 async-trait = "0.1"
