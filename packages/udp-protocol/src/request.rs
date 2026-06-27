@@ -101,6 +101,7 @@ impl Request {
                     ));
                 }
 
+                #[allow(clippy::chunks_exact_to_as_chunks)]
                 let chunks = remaining_bytes.chunks_exact(size_of::<InfoHash>());
 
                 if !chunks.remainder().is_empty() {
