@@ -224,37 +224,37 @@ See `deny.toml` for the complete configuration.
 
 ## Package Catalog
 
-| Package                           | Description                          | Key Responsibilities                                                          |
-| --------------------------------- | ------------------------------------ | ----------------------------------------------------------------------------- |
-| **axum-\***                       |                                      |                                                                               |
-| `axum-server`                     | Base Axum HTTP server infrastructure | HTTP server lifecycle management                                              |
-| `axum-http-server`                | BitTorrent HTTP tracker (BEP 3/23)   | Handle announce/scrape requests                                               |
-| `axum-rest-api-server`            | Management REST API (transport)      | HTTP routing, request extraction, response serialization, middleware          |
-| `axum-health-check-api-server`    | Health monitoring endpoint           | System health reporting                                                       |
-| **REST API**                      | Contract-first layers                | See [REST API architecture](#rest-api-contract-first-architecture)            |
-| `rest-api-protocol`               | REST API protocol contract           | Versioned DTOs, error schemas, auth semantics                                 |
-| `rest-api-application`            | REST API application                 | Port traits, use-case services, domain-error mapping                          |
-| `rest-api-runtime-adapter`        | REST API runtime adapter             | Tracker-specific port implementations, domain→DTO conversions                 |
-| **Core Components**               |                                      |                                                                               |
-| `http-core`                       | HTTP-specific implementation         | Request validation, Response formatting                                       |
-| `udp-core`                        | UDP-specific implementation          | Connectionless request handling                                               |
-| `tracker-core`                    | Central tracker logic                | Peer management                                                               |
-| **Protocols**                     |                                      |                                                                               |
-| `http-protocol`                   | HTTP tracker protocol (BEP 3/23)     | Announce/scrape request parsing                                               |
-| `udp-protocol`                    | UDP tracker protocol (BEP 15)        | UDP message framing/parsing                                                   |
-| **Domain**                        |                                      |                                                                               |
-| `swarm-coordination-registry`     | Peer swarm registry                  | Torrent/peer coordination                                                     |
-| `configuration`                   | Runtime configuration                | Config file parsing, Environment variables                                    |
-| `primitives`                      | Domain-specific types                | PeerId, Peer, SwarmMetadata                                                   |
-| `events`                          | Async event bus                      | Inter-package communication                                                   |
-| **Utilities**                     |                                      |                                                                               |
-| `test-helpers`                    | Testing utilities                    | Mock servers, Test data generation                                            |
-| **Client Tools**                  |                                      |                                                                               |
-| `tracker-client` (`packages/`)    | Tracker client library               | Generic tracker client library                                                |
-| `rest-api-client`                 | API client library                   | REST API integration                                                          |
-| **Benchmarking**                  |                                      |                                                                               |
-| `torrent-repository-benchmarking` | Torrent storage benchmarks           | Criterion benchmarks                                                          |
-| `persistence-benchmark`           | Persistence layer benchmarks         | SQLite/MySQL/PostgreSQL benchmarks                                            |
+| Package                           | Description                          | Key Responsibilities                                                 |
+| --------------------------------- | ------------------------------------ | -------------------------------------------------------------------- |
+| **axum-\***                       |                                      |                                                                      |
+| `axum-server`                     | Base Axum HTTP server infrastructure | HTTP server lifecycle management                                     |
+| `axum-http-server`                | BitTorrent HTTP tracker (BEP 3/23)   | Handle announce/scrape requests                                      |
+| `axum-rest-api-server`            | Management REST API (transport)      | HTTP routing, request extraction, response serialization, middleware |
+| `axum-health-check-api-server`    | Health monitoring endpoint           | System health reporting                                              |
+| **REST API**                      | Contract-first layers                | See [REST API architecture](#rest-api-contract-first-architecture)   |
+| `rest-api-protocol`               | REST API protocol contract           | Versioned DTOs, error schemas, auth semantics                        |
+| `rest-api-application`            | REST API application                 | Port traits, use-case services, domain-error mapping                 |
+| `rest-api-runtime-adapter`        | REST API runtime adapter             | Tracker-specific port implementations, domain→DTO conversions        |
+| **Core Components**               |                                      |                                                                      |
+| `http-core`                       | HTTP-specific implementation         | Request validation, Response formatting                              |
+| `udp-core`                        | UDP-specific implementation          | Connectionless request handling                                      |
+| `tracker-core`                    | Central tracker logic                | Peer management                                                      |
+| **Protocols**                     |                                      |                                                                      |
+| `http-protocol`                   | HTTP tracker protocol (BEP 3/23)     | Announce/scrape request parsing                                      |
+| `udp-protocol`                    | UDP tracker protocol (BEP 15)        | UDP message framing/parsing                                          |
+| **Domain**                        |                                      |                                                                      |
+| `swarm-coordination-registry`     | Peer swarm registry                  | Torrent/peer coordination                                            |
+| `configuration`                   | Runtime configuration                | Config file parsing, Environment variables                           |
+| `primitives`                      | Domain-specific types                | PeerId, Peer, SwarmMetadata                                          |
+| `events`                          | Async event bus                      | Inter-package communication                                          |
+| **Utilities**                     |                                      |                                                                      |
+| `test-helpers`                    | Testing utilities                    | Mock servers, Test data generation                                   |
+| **Client Tools**                  |                                      |                                                                      |
+| `tracker-client` (`packages/`)    | Tracker client library               | Generic tracker client library                                       |
+| `rest-api-client`                 | API client library                   | REST API integration                                                 |
+| **Benchmarking**                  |                                      |                                                                      |
+| `torrent-repository-benchmarking` | Torrent storage benchmarks           | Criterion benchmarks                                                 |
+| `persistence-benchmark`           | Persistence layer benchmarks         | SQLite/MySQL/PostgreSQL benchmarks                                   |
 
 ### Extracted Packages
 
