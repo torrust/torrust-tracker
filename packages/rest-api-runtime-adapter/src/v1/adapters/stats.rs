@@ -9,7 +9,7 @@ use std::sync::Arc;
 use async_trait::async_trait;
 use torrust_metrics::metric_collection::MetricCollection;
 use torrust_tracker_core::torrent::repository::in_memory::InMemoryTorrentRepository;
-use torrust_tracker_rest_api_application::ports::stats::StatsQueryPort;
+use torrust_tracker_rest_api_application::v1::ports::stats::StatsQueryPort;
 use torrust_tracker_rest_api_protocol::v1::context::stats::resources::stats::{LabeledStats, Stats};
 /// Adapter that queries all tracker-internal data sources and converts
 /// domain types to protocol DTOs.

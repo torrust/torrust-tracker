@@ -5,7 +5,7 @@ use std::sync::Arc;
 use async_trait::async_trait;
 use torrust_tracker_core::authentication::handler::{AddKeyRequest, KeysHandler};
 use torrust_tracker_core::authentication::{Key, PeerKey};
-use torrust_tracker_rest_api_application::ports::auth_key::AuthKeyPort;
+use torrust_tracker_rest_api_application::v1::ports::auth_key::AuthKeyPort;
 use torrust_tracker_rest_api_protocol::v1::context::auth_key::forms::add_key_form::AddKeyForm;
 use torrust_tracker_rest_api_protocol::v1::context::auth_key::resources::auth_key::{AuthKey, AuthKeyError};
 

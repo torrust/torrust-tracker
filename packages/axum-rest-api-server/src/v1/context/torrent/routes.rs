@@ -8,7 +8,7 @@ use std::sync::Arc;
 
 use axum::Router;
 use axum::routing::get;
-use torrust_tracker_rest_api_application::use_cases::torrent::TorrentApiService;
+use torrust_tracker_rest_api_application::v1::use_cases::torrent::TorrentApiService;
 
 use super::handlers::{get_torrent_handler, get_torrents_handler};
 

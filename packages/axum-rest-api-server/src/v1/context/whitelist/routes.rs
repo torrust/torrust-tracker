@@ -9,7 +9,7 @@ use std::sync::Arc;
 
 use axum::Router;
 use axum::routing::{delete, get, post};
-use torrust_tracker_rest_api_application::use_cases::whitelist::WhitelistApiService;
+use torrust_tracker_rest_api_application::v1::use_cases::whitelist::WhitelistApiService;
 
 use super::handlers::{add_torrent_to_whitelist_handler, reload_whitelist_handler, remove_torrent_from_whitelist_handler};
 

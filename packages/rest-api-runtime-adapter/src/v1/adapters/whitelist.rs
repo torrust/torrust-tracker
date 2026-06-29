@@ -4,7 +4,7 @@ use std::sync::Arc;
 use async_trait::async_trait;
 use torrust_info_hash::InfoHash;
 use torrust_tracker_core::whitelist::manager::WhitelistManager;
-use torrust_tracker_rest_api_application::ports::whitelist::WhitelistCommandPort;
+use torrust_tracker_rest_api_application::v1::ports::whitelist::WhitelistCommandPort;
 use torrust_tracker_rest_api_protocol::v1::context::whitelist::resources::whitelist::WhitelistError;
 
 /// Adapter that wraps [`WhitelistManager`] and implements the

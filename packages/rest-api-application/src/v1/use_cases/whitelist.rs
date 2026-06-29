@@ -5,7 +5,7 @@
 use torrust_info_hash::InfoHash;
 use torrust_tracker_rest_api_protocol::v1::context::whitelist::resources::whitelist::WhitelistError;
 
-use crate::ports::whitelist::WhitelistCommandPort;
+use crate::v1::ports::whitelist::WhitelistCommandPort;
 
 /// Use-case service for whitelist-related API operations.
 ///

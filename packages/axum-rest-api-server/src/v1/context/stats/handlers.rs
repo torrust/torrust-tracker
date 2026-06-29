@@ -5,7 +5,7 @@ use std::sync::Arc;
 use axum::extract::{Query, State};
 use axum::response::Response;
 use serde::Deserialize;
-use torrust_tracker_rest_api_application::use_cases::stats::StatsApiService;
+use torrust_tracker_rest_api_application::v1::use_cases::stats::StatsApiService;
 
 use super::responses::{labeled_metrics_response, labeled_stats_response, metrics_response, stats_response};
 

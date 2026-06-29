@@ -27,3 +27,6 @@ torrust-metrics = "0.1.0"
 torrust-info-hash = "=0.2.0"
 async-trait = "0.1"
 tokio = { version = "1", features = [ "sync" ] }
+
+[dev-dependencies]
+torrust-clock = "3.0.0"
