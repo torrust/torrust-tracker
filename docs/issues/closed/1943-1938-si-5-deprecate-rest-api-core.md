@@ -5,13 +5,14 @@ status: completed
 priority: p2
 epic: 1938
 github-issue: 1943
-spec-path: docs/issues/open/1943-1938-si-5-deprecate-rest-api-core/ISSUE.md
+spec-path: docs/issues/closed/1943-1938-si-5-deprecate-rest-api-core.md
 last-updated-utc: 2026-06-29
+  updated-reason: Closed — issue implemented
 semantic-links:
   skill-links:
     - create-issue
   related-artifacts:
-    - docs/issues/drafts/rest-api-contract-first-migration/EPIC.md
+    - docs/issues/open/1938-rest-api-contract-first-migration/EPIC.md
     - packages/rest-api-core/
     - packages/rest-api-runtime-adapter/
     - packages/rest-api-application/

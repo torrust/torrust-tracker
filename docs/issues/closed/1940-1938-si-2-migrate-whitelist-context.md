@@ -1,18 +1,18 @@
 ---
 doc-type: spec
 issue-type: task
-status: planned
+status: completed
 priority: p1
 epic: 1938
 github-issue: 1940
-spec-path: docs/issues/open/1940-1938-si-2-migrate-whitelist-context.md
-last-updated-utc: 2026-06-24
-  updated-reason: Added normalized module structure convention note
+spec-path: docs/issues/closed/1940-1938-si-2-migrate-whitelist-context.md
+last-updated-utc: 2026-06-26
+  updated-reason: Closed — issue implemented
 semantic-links:
   skill-links:
     - create-issue
   related-artifacts:
-    - docs/issues/drafts/rest-api-contract-first-migration/EPIC.md
+    - docs/issues/open/1938-rest-api-contract-first-migration/EPIC.md
     - packages/axum-rest-api-server/src/v1/context/whitelist/
     - packages/rest-api-protocol/src/v1/
     - packages/rest-api-application/src/

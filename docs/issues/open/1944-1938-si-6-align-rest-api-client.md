@@ -11,7 +11,7 @@ semantic-links:
   skill-links:
     - create-issue
   related-artifacts:
-    - docs/issues/drafts/rest-api-contract-first-migration/EPIC.md
+    - docs/issues/open/1938-rest-api-contract-first-migration/EPIC.md
     - packages/rest-api-client/
     - packages/rest-api-protocol/
     - packages/rest-api-client/src/v1/client.rs

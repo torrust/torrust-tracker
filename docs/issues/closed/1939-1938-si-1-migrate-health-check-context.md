@@ -1,18 +1,18 @@
 ---
 doc-type: spec
 issue-type: task
-status: planned
+status: completed
 priority: p1
 epic: 1938
 github-issue: 1939
-spec-path: docs/issues/open/1939-1938-si-1-migrate-health-check-context.md
-last-updated-utc: 2026-06-24
-  updated-reason: Updated to reference context/ module structure instead of resources/
+spec-path: docs/issues/closed/1939-1938-si-1-migrate-health-check-context.md
+last-updated-utc: 2026-06-25
+  updated-reason: Closed — issue implemented
 semantic-links:
   skill-links:
     - create-issue
   related-artifacts:
-    - docs/issues/drafts/rest-api-contract-first-migration/EPIC.md
+    - docs/issues/open/1938-rest-api-contract-first-migration/EPIC.md
     - packages/axum-rest-api-server/src/v1/context/health_check/
     - packages/axum-rest-api-server/src/routes.rs
     - packages/rest-api-protocol/src/v1/

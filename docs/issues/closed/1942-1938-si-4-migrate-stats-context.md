@@ -1,18 +1,18 @@
 ---
 doc-type: spec
 issue-type: task
-status: planned
+status: completed
 priority: p1
 epic: 1938
 github-issue: 1942
-spec-path: docs/issues/open/1942-1938-si-4-migrate-stats-context.md
-last-updated-utc: 2026-06-24
-  updated-reason: Updated paths to context/ and added module structure convention note
+spec-path: docs/issues/closed/1942-1938-si-4-migrate-stats-context.md
+last-updated-utc: 2026-06-27
+  updated-reason: Closed — issue implemented
 semantic-links:
   skill-links:
     - create-issue
   related-artifacts:
-    - docs/issues/drafts/rest-api-contract-first-migration/EPIC.md
+    - docs/issues/open/1938-rest-api-contract-first-migration/EPIC.md
     - packages/axum-rest-api-server/src/v1/context/stats/
     - packages/rest-api-protocol/src/v1/
     - packages/rest-api-application/src/
@@ -174,7 +174,7 @@ The use-case maps domain errors to protocol error codes and returns protocol DTO
 | T7  | DONE   | Rewire Axum handlers to use `StatsApiService`                                                         | No more tuple-state or rest-api-core calls        |
 | T8  | DONE   | Update Axum state to inject `TrackerStatsAdapter` (replacing 6+ tuples)                               | Single `Arc<StatsApiService>` in `v1/routes.rs`   |
 | T9  | DONE   | Remove direct internal deps from `axum-rest-api-server` stats wiring                                  | 7+ tuple-state removed, handler uses only service |
-| T10 | TODO   | Verify pre-commit and pre-push checks pass                                                            |                                                   |
+| T10 | DONE   | Verify pre-commit and pre-push checks pass                                                            |                                                   |
 
 ## Verification / Progress
 
@@ -186,7 +186,7 @@ The use-case maps domain errors to protocol error codes and returns protocol DTO
 - [x] Axum handlers dispatch through use-case
 - [x] Direct internal crate deps removed from Axum server stats wiring
 - [x] Pre-commit checks pass
-- [ ] Pre-push checks pass
+- [x] Pre-push checks pass
 
 ### Progress Log
 
@@ -194,3 +194,4 @@ The use-case maps domain errors to protocol error codes and returns protocol DTO
 | ---------- | ---------------------------------------------------------------------------------------- |
 | 2026-06-24 | Draft spec created                                                                       |
 | 2026-06-26 | Stats context migrated to contract-first architecture (Option 3: aggregation in adapter) |
+| 2026-06-27 | Issue closed on GitHub — all checks passing                                              |
