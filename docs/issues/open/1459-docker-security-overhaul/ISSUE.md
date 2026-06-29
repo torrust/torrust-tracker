@@ -1,12 +1,12 @@
 ---
 doc-type: issue
 issue-type: task
-status: planned
+status: implementing
 priority: p2
 github-issue: 1459
 spec-path: docs/issues/open/1459-docker-security-overhaul/ISSUE.md
 branch: 1459-docker-security-overhaul
-related-pr: null
+related-pr: "https://github.com/torrust/torrust-tracker/pull/1958"
 last-updated-utc: 2026-06-29
 semantic-links:
   skill-links:
