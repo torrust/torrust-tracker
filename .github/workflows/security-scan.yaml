@@ -1,0 +1,77 @@
+name: Security Scan
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - "Containerfile"
+      - ".github/workflows/security-scan.yaml"
+
+  pull_request:
+    paths:
+      - "Containerfile"
+      - ".github/workflows/security-scan.yaml"
+
+  # Scheduled scans are important because new CVEs appear
+  # even if the code or images didn't change
+  schedule:
+    - cron: "0 6 * * *" # Daily at 6 AM UTC
+
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Build image locally so Trivy scans exactly
+      # what this repository produces
+      - name: Build Docker image
+        run: |
+          docker build \
+            -t torrust-tracker:latest \
+            -f Containerfile .
+
+      # Human-readable output in logs
+      # This NEVER fails the job; it's only for visibility
+      - name: Display vulnerabilities (table format)
+        uses: aquasecurity/trivy-action@0.35.0
+        with:
+          image-ref: torrust-tracker:latest
+          format: "table"
+          severity: "HIGH,CRITICAL"
+          exit-code: "0"
+
+      # SARIF generation for GitHub Code Scanning
+      #
+      # IMPORTANT:
+      # - exit-code MUST be 0
+      # - Trivy sometimes exits with 1 even when no vulns exist
+      # - GitHub Security UI is responsible for enforcement
+      - name: Generate SARIF (Code Scanning)
+        uses: aquasecurity/trivy-action@0.35.0
+        with:
+          image-ref: torrust-tracker:latest
+          format: "sarif"
+          output: "trivy-results.sarif"
+          severity: "HIGH,CRITICAL"
+          exit-code: "0"
+          scanners: "vuln"
+
+      - name: Upload SARIF artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: sarif-results
+          path: trivy-results.sarif
+          retention-days: 30
