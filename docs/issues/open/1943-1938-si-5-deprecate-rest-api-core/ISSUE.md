@@ -71,33 +71,74 @@ It has only **one consumer** in the entire workspace: `axum-rest-api-server`. On
 ## Verification / Progress
 
 - [x] No crate in workspace references `torrust-tracker-rest-api-core`
-- [ ] Workspace builds cleanly
+- [x] Workspace builds cleanly
 - [ ] Integration tests pass
 - [x] Pre-commit checks pass
 - [ ] Pre-push checks pass
 
 ## Manual Verification
 
+**✅ All API endpoints working correctly after removing `rest-api-core`.**
+
 Before committing, manually verify the REST API works correctly after removing `rest-api-core`:
 
 1. **Run the tracker locally** with the REST API enabled:
 
    ```console
-   cargo run
+   cargo run -- --config share/default/config/tracker.development.sqlite3.toml
    ```
+
+   Tracker started successfully on all ports (UDP 6868/6969, HTTP 7070/7171, API 1212).
 
 2. **Make test requests**:
    - Request the stats endpoint:
 
      ```console
-     curl http://localhost:1212/api/v1/stats
+     curl -s http://localhost:1212/api/v1/stats -H "Authorization: Bearer MyAccessToken"
+     ```
+
+     **Initial response** (all zeros):
+
+     ```json
+     {
+       "torrents": 0,
+       "seeders": 0,
+       "completed": 6,
+       "leechers": 0,
+       "tcp4_connections_handled": 0,
+       "tcp4_announces_handled": 0,
+       "tcp4_scrapes_handled": 0,
+       "tcp6_connections_handled": 0,
+       "tcp6_announces_handled": 0,
+       "tcp6_scrapes_handled": 0,
+       "udp_requests_aborted": 0,
+       "udp_requests_banned": 0,
+       "udp_banned_ips_total": 0,
+       "udp_avg_connect_processing_time_ns": 0,
+       "udp_avg_announce_processing_time_ns": 0,
+       "udp_avg_scrape_processing_time_ns": 0,
+       "udp4_requests": 0,
+       "udp4_connections_handled": 0,
+       "udp4_announces_handled": 0,
+       "udp4_scrapes_handled": 0,
+       "udp4_responses": 0,
+       "udp4_errors_handled": 0,
+       "udp6_requests": 0,
+       "udp6_connections_handled": 0,
+       "udp6_announces_handled": 0,
+       "udp6_scrapes_handled": 0,
+       "udp6_responses": 0,
+       "udp6_errors_handled": 0
+     }
      ```
 
    - Request the metrics endpoint:
 
      ```console
-     curl http://localhost:1212/api/v1/metrics
+     curl -s http://localhost:1212/api/v1/metrics -H "Authorization: Bearer MyAccessToken"
      ```
+
+     **Initial response**: returned all metrics with initial samples (e.g., `tracker_core_persistent_torrents_downloads_total` with `value: 6`).
 
    - Make an announce request using the tracker client:
 
@@ -105,10 +146,71 @@ Before committing, manually verify the REST API works correctly after removing `
      cargo run -p torrust-tracker-client --bin tracker_client -- udp announce udp://localhost:6969/announce 0123456789abcdef0123456789abcdef01234567
      ```
 
-3. **Verify stats and metrics changed**:
-   - Repeat the `/api/v1/stats` request and confirm the values changed (and verify in the tracker console logs that the request was received).
+     **Announce response**:
 
-   - Repeat the `/api/v1/metrics` request and confirm the values changed (and verify in the tracker console logs that the request was received).
+     ```json
+     {
+       "AnnounceIpv4": {
+         "transaction_id": -888840697,
+         "announce_interval": 120,
+         "leechers": 0,
+         "seeders": 1,
+         "peers": []
+       }
+     }
+     ```
+
+3. **Verify stats and metrics changed**:
+   - Repeat the `/api/v1/stats` request:
+
+     ```console
+     curl -s http://localhost:1212/api/v1/stats -H "Authorization: Bearer MyAccessToken"
+     ```
+
+     **Response after announce** (values changed):
+
+     ```json
+     {
+       "torrents": 1,
+       "seeders": 1,
+       "completed": 6,
+       "leechers": 0,
+       "tcp4_connections_handled": 0,
+       "tcp4_announces_handled": 0,
+       "tcp4_scrapes_handled": 0,
+       "tcp6_connections_handled": 0,
+       "tcp6_announces_handled": 0,
+       "tcp6_scrapes_handled": 0,
+       "udp_requests_aborted": 0,
+       "udp_requests_banned": 0,
+       "udp_banned_ips_total": 0,
+       "udp_avg_connect_processing_time_ns": 69019,
+       "udp_avg_announce_processing_time_ns": 188913,
+       "udp_avg_scrape_processing_time_ns": 0,
+       "udp4_requests": 2,
+       "udp4_connections_handled": 1,
+       "udp4_announces_handled": 1,
+       "udp4_scrapes_handled": 0,
+       "udp4_responses": 2,
+       "udp4_errors_handled": 0,
+       "udp6_requests": 0,
+       "udp6_connections_handled": 0,
+       "udp6_announces_handled": 0,
+       "udp6_scrapes_handled": 0,
+       "udp6_responses": 0,
+       "udp6_errors_handled": 0
+     }
+     ```
+
+     **Changed values**: torrents `0→1`, seeders `0→1`, `udp4_requests` `0→2`, `udp4_connections_handled` `0→1`, `udp4_announces_handled` `0→1`, `udp4_responses` `0→2`, plus average processing times populated.
+
+   - Repeat the `/api/v1/metrics` request: returned samples with `swarm_coordination_registry_torrents_total: 1.0`, `swarm_coordination_registry_peers_added_total: 1`, `udp_tracker_core_requests_received_total: 2` (1 connect, 1 announce).
+
+   - Tracker console logs confirmed the announce was received:
+
+     ```text
+     active_peers_total=1 inactive_peers_total=0 active_torrents_total=1 inactive_torrents_total=0
+     ```
 
 ### Progress Log
 
@@ -117,3 +219,4 @@ Before committing, manually verify the REST API works correctly after removing `
 | 2026-06-24 | Draft spec created                                                                         |
 | 2026-06-29 | Implementation confirmed: move `TrackerHttpApiCoreContainer` to `rest-api-runtime-adapter` |
 | 2026-06-29 | Implementation: container moved, deps removed, directory deleted                           |
+| 2026-06-29 | Manual verification: all API endpoints working correctly (stats, metrics, announce)        |
