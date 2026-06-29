@@ -29,6 +29,7 @@ jobs:
     timeout-minutes: 15
     permissions:
       contents: read
+      security-events: write
 
     steps:
       - name: Checkout code
@@ -68,10 +69,8 @@ jobs:
           exit-code: "0"
           scanners: "vuln"
 
-      - name: Upload SARIF artifact
-        uses: actions/upload-artifact@v4
+      - name: Upload SARIF to Code Scanning
+        uses: github/codeql-action/upload-sarif@v3
         if: always()
         with:
-          name: sarif-results
-          path: trivy-results.sarif
-          retention-days: 30
+          sarif_file: trivy-results.sarif
