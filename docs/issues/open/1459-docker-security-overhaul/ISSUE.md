@@ -40,13 +40,13 @@ Implement a scheduled workflow to periodically scan Docker images for vulnerabil
 - [ ] Vulnerability findings are reported in both human-readable and SARIF formats
 - [ ] The workflow integrates with the existing container build process
 - [ ] The README.md badge row includes the new security scan workflow badge
-- [ ] `docs/security/docker/scans/` is created with the first baseline scan report
-- [ ] `docs/security/docker/README.md` provides scanning instructions
-- [ ] `docs/security/README.md` provides a priority-tier security overview
-- [ ] Per-CVE analysis files created in `docs/security/analysis/non-affecting/` for each
+- [x] `docs/security/docker/scans/` is created with the first baseline scan report
+- [x] `docs/security/docker/README.md` provides scanning instructions
+- [x] `docs/security/README.md` provides a priority-tier security overview
+- [x] Per-CVE analysis files created in `docs/security/analysis/non-affecting/` for each
       MEDIUM vulnerability found in the baseline scan
-- [ ] `docs/security/analysis/README.md` documents the catalog strategy and recheck policy
-- [ ] A maintenance skill exists at
+- [x] `docs/security/analysis/README.md` documents the catalog strategy and recheck policy
+- [x] A maintenance skill exists at
       `.github/skills/dev/maintenance/run-manual-docker-security-scan/SKILL.md`
       documenting how to run and document manual Docker security scans
 
