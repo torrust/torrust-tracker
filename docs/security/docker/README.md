@@ -13,7 +13,7 @@ vulnerabilities. This documentation provides:
 
 ## Automated Scanning
 
-See the [Security Scan workflow](../../.github/workflows/security-scan.yaml) for automated
+See the [Security Scan workflow](../../../.github/workflows/security-scan.yaml) for automated
 scheduled scanning via GitHub Actions.
 
 ## Manual Scanning with Trivy
