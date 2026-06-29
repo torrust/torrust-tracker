@@ -6,6 +6,7 @@ semantic-links:
     - Containerfile
     - docs/security/analysis/non-affecting/
     - docs/adrs/20260603000000_keep_unit_tests_inside_container_build.md
+    - docs/security/docker/scans/torrust-tracker.md
 ---
 
 # Security Analysis
@@ -29,39 +30,68 @@ container image vulnerability scanning), we create an analysis document here to:
 docs/security/analysis/
 ├── README.md                  # This file — index and process
 ├── non-affecting/             # Vulnerabilities that do NOT affect us
-│   └── {date}_{descriptive-name}.md
-└── ...                        # (future) Affecting vulnerabilities go here
+│   ├── CVE-{id}.md            # Per-CVE files (preferred for individual CVEs)
+│   └── {date}_{source}.md     # Bulk scan/event files (for bulk triage)
+└── affecting/                 # (future) Vulnerabilities that DO affect us
+```
+
+## Catalog Strategy
+
+We use **one catalog** for all vulnerability sources (Docker scans, cargo-audit, dependabot,
+etc.). A vulnerability is a vulnerability regardless of origin.
+
+### Per-CVE Files (preferred)
+
+Individual CVEs from container scans are documented in their own file:
+
+```text
+non-affecting/
+├── CVE-2026-5435.md   # glibc TSIG
+├── CVE-2026-5450.md   # glibc scanf
+├── CVE-2026-5928.md   # glibc ungetwc
+├── CVE-2026-6238.md   # glibc DNS response
+└── CVE-2026-27171.md  # zlib CRC32
+```
+
+**Advantages**:
+
+- `grep -r CVE-2026-5435` finds it instantly.
+- Fast to check "have we seen this before?" on any new scan.
+- Each file carries its own `review-date`, `review-cadence`, and `requires-recheck-when`
+  in frontmatter.
+
+### Bulk Scan/Event Files
+
+For bulk triage (e.g. a full Docker Scout report with dozens of CVEs), a single event-based
+file can be used instead of creating individual CVE files. Example:
+
+```text
+non-affecting/
+└── 2026-06-10_containerfile-trixie-cves.md  # Bulk triage of 100+ CVEs
 ```
 
 ## Process
 
 ### When a security warning appears
 
-1. **Check the catalog**: search `docs/security/analysis/non-affecting/` to see if this
-   vulnerability has already been analyzed. If it has, you're done — the document explains
-   why it doesn't affect us and what to watch for.
+1. **Check the catalog**: `grep -r '<CVE-ID>' docs/security/analysis/non-affecting/` to
+   see if this vulnerability has already been analyzed. If it has, verify the
+   `requires-recheck-when` conditions still hold. If they do, you're done.
 
-2. **If not yet cataloged**: create a new analysis document in `non-affecting/` (or an
-   appropriate subfolder) following the template below.
+2. **If not yet cataloged**: create a new per-CVE analysis document in `non-affecting/`
+   following the template below.
 
 3. **If it DOES affect us**: escalate immediately. Create an issue and a fix. The analysis
    document should describe the impact, affected components, and remediation plan.
 
-### Analysis Document Template
+### Recheck Policy
 
-Each analysis document should include:
+Non-affecting verdicts can become stale when dependencies or code change. Each per-CVE file
+has a `requires-recheck-when` field that specifies the conditions under which the verdict
+must be re-evaluated.
 
-- **Date of analysis**
-- **Source of the warning** (tool, scanner, CVE database, etc.)
-- **Vulnerability summary** — what CVEs, what packages, what severity
-- **Why it does not affect us** — a clear rationale tied to our architecture
-- **Future actions** — periodic review cadence, conditions that would change the status
-- **References** — links to the original warning, Docker Hub layers, CVE entries, etc.
+**Triggers for recheck**:
 
-### Review Cadence
-
-Non-affecting vulnerabilities should be reviewed:
-
-- At least **quarterly** (or when the relevant base image is updated).
-- Immediately if the affected image begins being used in a **different context** (e.g., if
-  a build-stage image becomes part of the runtime).
+- A change to the `Containerfile` base image.
+- A new system dependency added (e.g., via new `FROM` stage or package install).
+- Any change that affects the `requires-recheck-when` condition documented in the CVE file.

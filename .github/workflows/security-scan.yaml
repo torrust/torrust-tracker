@@ -1,0 +1,91 @@
+name: Security Scan
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - "Containerfile"
+      - ".github/workflows/security-scan.yaml"
+
+  pull_request:
+    paths:
+      - "Containerfile"
+      - ".github/workflows/security-scan.yaml"
+
+  # Scheduled scans are important because new CVEs appear
+  # even if the code or images didn't change
+  schedule:
+    - cron: "0 6 * * *" # Daily at 6 AM UTC
+
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    # Scheduled scans pull the pre-built image; push/PR triggers rebuild from
+    # source (Containerfile change). Rust compilation can exceed 25 min.
+    timeout-minutes: 45
+    permissions:
+      contents: read
+      security-events: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Scheduled scans use the pre-built develop image from Docker Hub.
+      # Push/PR triggers on Containerfile changes need to build from source.
+      - name: Determine image source
+        id: image-source
+        run: |
+          if [ "${{ github.event_name }}" = "schedule" ]; then
+            echo "method=pull" >> "$GITHUB_OUTPUT"
+            echo "image=torrust/tracker:develop" >> "$GITHUB_OUTPUT"
+          else
+            echo "method=build" >> "$GITHUB_OUTPUT"
+            echo "image=torrust-tracker:local" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Pull or build Docker image
+        run: |
+          if [ "${{ steps.image-source.outputs.method }}" = "pull" ]; then
+            docker pull "${{ steps.image-source.outputs.image }}"
+          else
+            docker build -t "${{ steps.image-source.outputs.image }}" -f Containerfile .
+          fi
+
+      # Human-readable output in logs
+      # This NEVER fails the job; it's only for visibility
+      - name: Display vulnerabilities (table format)
+        uses: aquasecurity/trivy-action@0.35.0
+        with:
+          image-ref: ${{ steps.image-source.outputs.image }}
+          format: "table"
+          severity: "HIGH,CRITICAL"
+          exit-code: "0"
+
+      # SARIF generation for GitHub Code Scanning
+      #
+      # IMPORTANT:
+      # - exit-code MUST be 0
+      # - Trivy sometimes exits with 1 even when no vulns exist
+      # - GitHub Security UI is responsible for enforcement
+      - name: Generate SARIF (Code Scanning)
+        uses: aquasecurity/trivy-action@0.35.0
+        with:
+          image-ref: ${{ steps.image-source.outputs.image }}
+          format: "sarif"
+          output: "trivy-results.sarif"
+          severity: "HIGH,CRITICAL"
+          exit-code: "0"
+          scanners: "vuln"
+
+      - name: Upload SARIF to Code Scanning
+        uses: github/codeql-action/upload-sarif@v4
+        if: always()
+        with:
+          sarif_file: trivy-results.sarif

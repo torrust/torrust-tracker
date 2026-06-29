@@ -3,6 +3,7 @@ date-analyzed: 2026-06-10
 source: Docker DX (docker-language-server) / Docker Scout
 status: non-affecting
 review-cadence: quarterly
+requires-recheck-when: any build-stage image (`chef`, `tester`, `gcc`) is used in a runtime context
 image-digest: sha256:19dfb952582d0e17841fdb8cd70febfb6cb0761c4e0cd84f3cb1f07bb3281a8d
 semantic-links:
   related-artifacts:
