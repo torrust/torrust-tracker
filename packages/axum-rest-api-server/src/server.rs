@@ -40,7 +40,7 @@ use torrust_server_lib::signals::{Halted, Started};
 use torrust_tracker_axum_server::custom_axum_server::{self, TimeoutAcceptor};
 use torrust_tracker_axum_server::signals::graceful_shutdown;
 use torrust_tracker_configuration::AccessTokens;
-use torrust_tracker_rest_api_core::container::TrackerHttpApiCoreContainer;
+use torrust_tracker_rest_api_runtime_adapter::container::TrackerHttpApiCoreContainer;
 use tracing::{Level, instrument};
 
 use super::routes::router;
@@ -310,7 +310,7 @@ mod tests {
     use torrust_server_lib::registar::Registar;
     use torrust_tracker_axum_server::tsl::make_rust_tls;
     use torrust_tracker_configuration::{Configuration, logging};
-    use torrust_tracker_rest_api_core::container::TrackerHttpApiCoreContainer;
+    use torrust_tracker_rest_api_runtime_adapter::container::TrackerHttpApiCoreContainer;
     use torrust_tracker_test_helpers::configuration::ephemeral_public;
 
     use crate::server::{ApiServer, Launcher};

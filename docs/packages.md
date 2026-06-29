@@ -186,16 +186,18 @@ For example, `torrust-tracker-udp-server` can only be depended on by:
 - `torrust-tracker` (root binary)
 - `torrust-tracker-axum-rest-api-server`
 - `torrust-tracker-axum-health-check-api-server`
-- `torrust-tracker-rest-api-core` (known violation — see below)
+- `torrust-tracker-rest-api-runtime-adapter`
 
 A core package like `torrust-tracker-http-core` adding `udp-server` as a
 dependency would be immediately rejected by `cargo deny check bans`.
 
 ### Known exceptions
 
-- `torrust-tracker-rest-api-core` depends on `torrust-tracker-udp-server`
-  — a known violation tracked separately. Until it is fixed, the wrapper
-  list for `udp-server` includes `rest-api-core`.
+None. The `rest-api-core` package was removed in SI-5 after its last consumer
+(`axum-rest-api-server`) was migrated to use the `rest-api-runtime-adapter`
+container. See issue [#1943][1943].
+
+[1943]: https://github.com/torrust/torrust-tracker/issues/1943
 
 ### Maintenance
 

@@ -9,7 +9,7 @@ use torrust_tracker_core::container::TrackerCoreContainer;
 use torrust_tracker_http_core::container::HttpTrackerCoreContainer;
 use torrust_tracker_primitives::peer;
 use torrust_tracker_rest_api_client::connection_info::{ConnectionInfo, Origin};
-use torrust_tracker_rest_api_core::container::TrackerHttpApiCoreContainer;
+use torrust_tracker_rest_api_runtime_adapter::container::TrackerHttpApiCoreContainer;
 use torrust_tracker_swarm_coordination_registry::container::SwarmCoordinationRegistryContainer;
 use torrust_tracker_udp_core::container::UdpTrackerCoreContainer;
 use torrust_tracker_udp_server::container::UdpTrackerServerContainer;

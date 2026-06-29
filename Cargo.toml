@@ -62,7 +62,7 @@ torrust-tracker-axum-http-server = { version = "3.0.0-develop", path = "packages
 torrust-tracker-axum-rest-api-server = { version = "3.0.0-develop", path = "packages/axum-rest-api-server" }
 torrust-tracker-axum-server = { version = "3.0.0-develop", path = "packages/axum-server" }
 torrust-tracker-rest-api-client = { version = "3.0.0-develop", path = "packages/rest-api-client" }
-torrust-tracker-rest-api-core = { version = "3.0.0-develop", path = "packages/rest-api-core" }
+torrust-tracker-rest-api-runtime-adapter = { version = "3.0.0-develop", path = "packages/rest-api-runtime-adapter" }
 torrust-tracker-rest-api-protocol = { version = "3.0.0-develop", path = "packages/rest-api-protocol" }
 torrust-server-lib = "0.1.0"
 torrust-clock = "3.0.0"

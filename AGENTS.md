@@ -72,7 +72,7 @@ All packages live under `packages/`. The workspace version is `3.0.0-develop`.
 | `http-core`                       | `torrust-tracker-http-core`                       | `*-core`       | HTTP-specific tracker domain logic            |
 | `primitives`                      | `torrust-tracker-primitives`                      | domain         | Core domain types (InfoHash, PeerId, ...)     |
 | `rest-api-client`                 | `torrust-tracker-rest-api-client`                 | client tools   | REST API client library                       |
-| `rest-api-core`                   | `torrust-tracker-rest-api-core`                   | client tools   | REST API core logic                           |
+| `rest-api-runtime-adapter`        | `torrust-tracker-rest-api-runtime-adapter`        | client tools   | REST API runtime adapter and container wiring |
 | `swarm-coordination-registry`     | `torrust-tracker-swarm-coordination-registry`     | domain         | Torrent/peer coordination registry            |
 | `test-helpers`                    | `torrust-tracker-test-helpers`                    | utilities      | Mock servers, test data generation            |
 | `torrent-repository-benchmarking` | `torrust-tracker-torrent-repository-benchmarking` | benchmarking   | Torrent storage benchmarks                    |

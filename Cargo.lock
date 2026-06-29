@@ -4872,8 +4872,8 @@ dependencies = [
  "torrust-tracker-http-core",
  "torrust-tracker-primitives",
  "torrust-tracker-rest-api-client",
- "torrust-tracker-rest-api-core",
  "torrust-tracker-rest-api-protocol",
+ "torrust-tracker-rest-api-runtime-adapter",
  "torrust-tracker-swarm-coordination-registry",
  "torrust-tracker-test-helpers",
  "torrust-tracker-udp-core",
@@ -4976,7 +4976,6 @@ dependencies = [
  "torrust-tracker-primitives",
  "torrust-tracker-rest-api-application",
  "torrust-tracker-rest-api-client",
- "torrust-tracker-rest-api-core",
  "torrust-tracker-rest-api-protocol",
  "torrust-tracker-rest-api-runtime-adapter",
  "torrust-tracker-swarm-coordination-registry",
@@ -5227,24 +5226,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "torrust-tracker-rest-api-core"
-version = "3.0.0-develop"
-dependencies = [
- "tokio",
- "tokio-util",
- "torrust-metrics",
- "torrust-tracker-configuration",
- "torrust-tracker-core",
- "torrust-tracker-events",
- "torrust-tracker-http-core",
- "torrust-tracker-primitives",
- "torrust-tracker-swarm-coordination-registry",
- "torrust-tracker-test-helpers",
- "torrust-tracker-udp-core",
- "torrust-tracker-udp-server",
-]
-
-[[package]]
 name = "torrust-tracker-rest-api-protocol"
 version = "3.0.0-develop"
 dependencies = [
@@ -5258,8 +5239,10 @@ name = "torrust-tracker-rest-api-runtime-adapter"
 version = "3.0.0-develop"
 dependencies = [
  "async-trait",
+ "tokio",
  "torrust-info-hash",
  "torrust-metrics",
+ "torrust-tracker-configuration",
  "torrust-tracker-core",
  "torrust-tracker-http-core",
  "torrust-tracker-primitives",

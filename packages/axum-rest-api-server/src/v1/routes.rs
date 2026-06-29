@@ -6,11 +6,11 @@ use torrust_tracker_rest_api_application::use_cases::auth_key::AuthKeyApiService
 use torrust_tracker_rest_api_application::use_cases::stats::StatsApiService;
 use torrust_tracker_rest_api_application::use_cases::torrent::TorrentApiService;
 use torrust_tracker_rest_api_application::use_cases::whitelist::WhitelistApiService;
-use torrust_tracker_rest_api_core::container::TrackerHttpApiCoreContainer;
 use torrust_tracker_rest_api_runtime_adapter::adapters::auth_key::TrackerAuthKeyAdapter;
 use torrust_tracker_rest_api_runtime_adapter::adapters::stats::TrackerStatsAdapter;
 use torrust_tracker_rest_api_runtime_adapter::adapters::torrent::TrackerTorrentQueryAdapter;
 use torrust_tracker_rest_api_runtime_adapter::adapters::whitelist::TrackerWhitelistAdapter;
+use torrust_tracker_rest_api_runtime_adapter::container::TrackerHttpApiCoreContainer;
 
 use super::context::{auth_key, stats, torrent, whitelist};
 

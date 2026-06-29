@@ -17,8 +17,8 @@ depend on packages in the same layer or a lower one.
 │  axum-health-check-api-server  udp-server                      │
 ├────────────────────────────────────────────────────────────────┤
 │  Core (domain layer)                                           │
-│  http-core  udp-core  tracker-core             │
-│  rest-api-core  swarm-coordination-registry                    │
+│  http-core  udp-core  tracker-core                             │
+│  rest-api-runtime-adapter  swarm-coordination-registry         │
 ├────────────────────────────────────────────────────────────────┤
 │  Protocols                                                     │
 │  http-protocol  udp-protocol                                   │
@@ -64,7 +64,7 @@ dependency injection.
 | `tracker-core`                | Central peer management: announce/scrape handlers, auth, whitelist, database abstraction (SQLite/MySQL drivers in `src/databases/driver/`) |
 | `http-core`                   | HTTP-specific validation and response formatting                                                                                           |
 | `udp-core`                    | UDP connection cookies, crypto, banning logic                                                                                              |
-| `rest-api-core`               | REST API statistics and container wiring                                                                                                   |
+| `rest-api-runtime-adapter`    | REST API runtime adapter and container wiring                                                                                              |
 | `swarm-coordination-registry` | Registry of torrents and their peer swarms                                                                                                 |
 
 ### Protocols (`*-protocol`)
