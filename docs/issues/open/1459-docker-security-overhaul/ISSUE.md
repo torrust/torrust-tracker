@@ -1,7 +1,7 @@
 ---
 doc-type: issue
 issue-type: task
-status: implementing
+status: completed
 priority: p2
 github-issue: 1459
 spec-path: docs/issues/open/1459-docker-security-overhaul/ISSUE.md
