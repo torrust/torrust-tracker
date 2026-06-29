@@ -92,6 +92,7 @@ The contexts are ordered by complexity and dependency depth. Follow-up tasks (SI
   ```
 
   See the `torrent` context for the reference pattern.
+
 - Define port traits in `rest-api-application` for each context's query/command operations.
   These are flat files named after the context in `packages/rest-api-application/src/ports/`:
 
@@ -140,7 +141,7 @@ The contexts are ordered by complexity and dependency depth. Follow-up tasks (SI
 - [#1940](https://github.com/torrust/torrust-tracker/issues/1940) — [SI-2](../1940-1938-si-2-migrate-whitelist-context.md): Migrate `whitelist` context
 - [#1941](https://github.com/torrust/torrust-tracker/issues/1941) — [SI-3](../1941-1938-si-3-migrate-auth-key-context.md): Migrate `auth_key` context
 - [#1942](https://github.com/torrust/torrust-tracker/issues/1942) — [SI-4](../1942-1938-si-4-migrate-stats-context.md): Migrate `stats` context
-- [#1943](https://github.com/torrust/torrust-tracker/issues/1943) — [SI-5](../1943-1938-si-5-deprecate-rest-api-core.md): Deprecate `rest-api-core` and remove from workspace
+- [#1943](https://github.com/torrust/torrust-tracker/issues/1943) — [SI-5](../1943-1938-si-5-deprecate-rest-api-core/ISSUE.md): Deprecate `rest-api-core` and remove from workspace
 - [#1944](https://github.com/torrust/torrust-tracker/issues/1944) — [SI-6](../1944-1938-si-6-align-rest-api-client.md): Introduce `ApiClient` — a high-level typed client over protocol DTOs
 
 ## Contract Evolution Governance
