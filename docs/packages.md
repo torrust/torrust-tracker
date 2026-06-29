@@ -32,7 +32,6 @@ packages/
 ├── primitives
 ├── rest-api-application
 ├── rest-api-client
-├── rest-api-core
 ├── rest-api-protocol
 ├── rest-api-runtime-adapter
 ├── swarm-coordination-registry
@@ -143,7 +142,7 @@ level, catching violations in pre-commit hooks and CI before merge.
 
 | Edge                              | Description                                                    | Current violations                                           |
 | --------------------------------- | -------------------------------------------------------------- | ------------------------------------------------------------ |
-| `core -> server`                  | Core must not depend on delivery-layer packages                | `rest-api-core -> udp-server`                                |
+| `core -> server`                  | Core must not depend on delivery-layer packages                | None (historical `rest-api-core` removed in SI-5)            |
 | `tracker-core -> core`            | Tracker core must not depend on its protocol-specific wrappers | None                                                         |
 | `tracker-core -> protocol`        | Tracker core must not depend on protocol parsing crates        | None                                                         |
 | `tracker-core -> server`          | Tracker core must not depend on server crates                  | None                                                         |
@@ -236,7 +235,6 @@ See `deny.toml` for the complete configuration.
 | `rest-api-protocol`               | REST API protocol contract           | Versioned DTOs, error schemas, auth semantics                                 |
 | `rest-api-application`            | REST API application                 | Port traits, use-case services, domain-error mapping                          |
 | `rest-api-runtime-adapter`        | REST API runtime adapter             | Tracker-specific port implementations, domain→DTO conversions                 |
-| `rest-api-core`                   | REST API core (deprecated)           | Legacy integration container — to be replaced by application + adapter layers |
 | **Core Components**               |                                      |                                                                               |
 | `http-core`                       | HTTP-specific implementation         | Request validation, Response formatting                                       |
 | `udp-core`                        | UDP-specific implementation          | Connectionless request handling                                               |
