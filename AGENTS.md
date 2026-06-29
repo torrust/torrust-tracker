@@ -60,27 +60,27 @@ native IPv4/IPv6 support, private/whitelisted mode, and a management REST API.
 
 All packages live under `packages/`. The workspace version is `3.0.0-develop`.
 
-| Package                           | Crate Name                                        | Prefix / Layer | Description                                   |
-| --------------------------------- | ------------------------------------------------- | -------------- | --------------------------------------------- |
-| `axum-health-check-api-server`    | `torrust-tracker-axum-health-check-api-server`    | `axum-*`       | Health monitoring endpoint                    |
-| `axum-http-server`                | `torrust-tracker-axum-http-server`                | `axum-*`       | BitTorrent HTTP tracker server (BEP 3/23)     |
-| `axum-rest-api-server`            | `torrust-tracker-axum-rest-api-server`            | `axum-*`       | Management REST API server                    |
-| `axum-server`                     | `torrust-tracker-axum-server`                     | `axum-*`       | Base Axum HTTP server infrastructure          |
-| `configuration`                   | `torrust-tracker-configuration`                   | domain         | Config file parsing, environment variables    |
-| `events`                          | `torrust-tracker-events`                          | domain         | Domain event definitions                      |
-| `http-protocol`                   | `torrust-tracker-http-protocol`                   | `*-protocol`   | HTTP tracker protocol (BEP 3/23) parsing      |
-| `http-core`                       | `torrust-tracker-http-core`                       | `*-core`       | HTTP-specific tracker domain logic            |
-| `primitives`                      | `torrust-tracker-primitives`                      | domain         | Core domain types (InfoHash, PeerId, ...)     |
-| `rest-api-client`                 | `torrust-tracker-rest-api-client`                 | client tools   | REST API client library                       |
-| `rest-api-runtime-adapter`        | `torrust-tracker-rest-api-runtime-adapter`        | client tools   | REST API runtime adapter and container wiring |
-| `swarm-coordination-registry`     | `torrust-tracker-swarm-coordination-registry`     | domain         | Torrent/peer coordination registry            |
-| `test-helpers`                    | `torrust-tracker-test-helpers`                    | utilities      | Mock servers, test data generation            |
-| `torrent-repository-benchmarking` | `torrust-tracker-torrent-repository-benchmarking` | benchmarking   | Torrent storage benchmarks                    |
-| `tracker-client`                  | `torrust-tracker-client`                          | client tools   | CLI tracker interaction/testing client        |
-| `tracker-core`                    | `torrust-tracker-core`                            | `*-core`       | Central tracker peer-management logic         |
-| `udp-protocol`                    | `torrust-tracker-udp-protocol`                    | `*-protocol`   | UDP tracker protocol (BEP 15) framing/parsing |
-| `udp-core`                        | `torrust-tracker-udp-core`                        | `*-core`       | UDP-specific tracker domain logic             |
-| `udp-server`                      | `torrust-tracker-udp-server`                      | server         | UDP tracker server implementation             |
+| Package                           | Crate Name                                        | Prefix / Layer  | Description                                   |
+| --------------------------------- | ------------------------------------------------- | --------------- | --------------------------------------------- |
+| `axum-health-check-api-server`    | `torrust-tracker-axum-health-check-api-server`    | `axum-*`        | Health monitoring endpoint                    |
+| `axum-http-server`                | `torrust-tracker-axum-http-server`                | `axum-*`        | BitTorrent HTTP tracker server (BEP 3/23)     |
+| `axum-rest-api-server`            | `torrust-tracker-axum-rest-api-server`            | `axum-*`        | Management REST API server                    |
+| `axum-server`                     | `torrust-tracker-axum-server`                     | `axum-*`        | Base Axum HTTP server infrastructure          |
+| `configuration`                   | `torrust-tracker-configuration`                   | domain          | Config file parsing, environment variables    |
+| `events`                          | `torrust-tracker-events`                          | domain          | Domain event definitions                      |
+| `http-protocol`                   | `torrust-tracker-http-protocol`                   | `*-protocol`    | HTTP tracker protocol (BEP 3/23) parsing      |
+| `http-core`                       | `torrust-tracker-http-core`                       | `*-core`        | HTTP-specific tracker domain logic            |
+| `primitives`                      | `torrust-tracker-primitives`                      | domain          | Core domain types (InfoHash, PeerId, ...)     |
+| `rest-api-client`                 | `torrust-tracker-rest-api-client`                 | client tools    | REST API client library                       |
+| `rest-api-runtime-adapter`        | `torrust-tracker-rest-api-runtime-adapter`        | runtime adapter | REST API runtime adapter and container wiring |
+| `swarm-coordination-registry`     | `torrust-tracker-swarm-coordination-registry`     | domain          | Torrent/peer coordination registry            |
+| `test-helpers`                    | `torrust-tracker-test-helpers`                    | utilities       | Mock servers, test data generation            |
+| `torrent-repository-benchmarking` | `torrust-tracker-torrent-repository-benchmarking` | benchmarking    | Torrent storage benchmarks                    |
+| `tracker-client`                  | `torrust-tracker-client`                          | client tools    | CLI tracker interaction/testing client        |
+| `tracker-core`                    | `torrust-tracker-core`                            | `*-core`        | Central tracker peer-management logic         |
+| `udp-protocol`                    | `torrust-tracker-udp-protocol`                    | `*-protocol`    | UDP tracker protocol (BEP 15) framing/parsing |
+| `udp-core`                        | `torrust-tracker-udp-core`                        | `*-core`        | UDP-specific tracker domain logic             |
+| `udp-server`                      | `torrust-tracker-udp-server`                      | server          | UDP tracker server implementation             |
 
 **Extracted packages** — previously part of this workspace, now in their own standalone repositories:
 

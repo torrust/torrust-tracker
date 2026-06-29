@@ -16,6 +16,17 @@ A running tracker with the REST API enabled. The default development config star
 cargo run
 ```
 
+## Skill Links
+
+This skill depends on these artifacts. If any of them change, review this skill.
+
+- `share/default/config/tracker.development.sqlite3.toml`
+- `packages/axum-rest-api-server/src/v1/middlewares/auth.rs`
+- `packages/axum-rest-api-server/src/routes.rs`
+- `packages/axum-rest-api-server/src/v1/routes.rs`
+
+Use the marker `skill-link: use-rest-api` in affected artifacts.
+
 ## Authentication
 
 All API endpoints (except `/api/health_check`) require an access token.

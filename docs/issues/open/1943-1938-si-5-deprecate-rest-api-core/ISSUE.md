@@ -1,12 +1,12 @@
 ---
 doc-type: spec
 issue-type: task
-status: planned
+status: completed
 priority: p2
 epic: 1938
 github-issue: 1943
 spec-path: docs/issues/open/1943-1938-si-5-deprecate-rest-api-core/ISSUE.md
-last-updated-utc: 2026-06-24
+last-updated-utc: 2026-06-29
 semantic-links:
   skill-links:
     - create-issue
@@ -39,8 +39,8 @@ It has only **one consumer** in the entire workspace: `axum-rest-api-server`. On
 
 ## Prerequisites
 
-- [ ] SI-4 (stats migration) completed — this removes the last consumer of `rest-api-core` types from `axum-rest-api-server`.
-- [ ] Verify no other crate in the workspace depends on `rest-api-core`.
+- [x] SI-4 (stats migration) completed — this removes the last consumer of `rest-api-core` types from `axum-rest-api-server`.
+- [x] Verify no other crate in the workspace depends on `rest-api-core`.
 
 ## Scope
 
@@ -72,9 +72,9 @@ It has only **one consumer** in the entire workspace: `axum-rest-api-server`. On
 
 - [x] No crate in workspace references `torrust-tracker-rest-api-core`
 - [x] Workspace builds cleanly
-- [ ] Integration tests pass
+- [x] Integration tests pass
 - [x] Pre-commit checks pass
-- [ ] Pre-push checks pass
+- [x] Pre-push checks pass
 
 ## Manual Verification
 
