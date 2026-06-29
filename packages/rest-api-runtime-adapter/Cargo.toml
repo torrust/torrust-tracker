@@ -14,6 +14,7 @@ rust-version.workspace = true
 version.workspace = true
 
 [dependencies]
+torrust-tracker-configuration = { version = "3.0.0-develop", path = "../configuration" }
 torrust-tracker-rest-api-application = { version = "3.0.0-develop", path = "../rest-api-application" }
 torrust-tracker-rest-api-protocol = { version = "3.0.0-develop", path = "../rest-api-protocol" }
 torrust-tracker-core = { version = "3.0.0-develop", path = "../tracker-core" }
@@ -25,3 +26,4 @@ torrust-tracker-swarm-coordination-registry = { version = "3.0.0-develop", path 
 torrust-metrics = "0.1.0"
 torrust-info-hash = "=0.2.0"
 async-trait = "0.1"
+tokio = { version = "1", features = [ "sync" ] }

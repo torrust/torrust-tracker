@@ -49,12 +49,11 @@ deny = [
     "torrust-tracker-axum-rest-api-server",
   ] },
 
-  # udp server — only server-layer + root + rest-api-core (pending fix) + runtime-adapter may depend on it
+  # udp server — only server-layer + root + runtime-adapter may depend on it
   { crate = "torrust-tracker-udp-server", wrappers = [
     "torrust-tracker",
     "torrust-tracker-axum-health-check-api-server",
     "torrust-tracker-axum-rest-api-server",
-    "torrust-tracker-rest-api-core",
     "torrust-tracker-rest-api-runtime-adapter",
   ] },
 
@@ -84,13 +83,11 @@ deny = [
     "torrust-tracker",
     "torrust-tracker-axum-http-server",
     "torrust-tracker-axum-rest-api-server",
-    "torrust-tracker-rest-api-core",
     "torrust-tracker-rest-api-runtime-adapter",
   ] },
   { crate = "torrust-tracker-udp-core", wrappers = [
     "torrust-tracker",
     "torrust-tracker-axum-rest-api-server",
-    "torrust-tracker-rest-api-core",
     "torrust-tracker-rest-api-runtime-adapter",
     "torrust-tracker-udp-server",
   ] },

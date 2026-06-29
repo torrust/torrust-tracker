@@ -8,6 +8,7 @@
 //! 1. As a `Bearer` token in the `Authorization` header.
 //! 2. As a `token` GET param in the URL.
 //!
+//! skill-link: use-rest-api
 //! Using the `Authorization` header:
 //!
 //! ```console

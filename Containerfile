@@ -80,7 +80,6 @@ COPY packages/http-protocol/Cargo.toml packages/http-protocol/
 COPY packages/http-core/Cargo.toml packages/http-core/
 COPY packages/primitives/Cargo.toml packages/primitives/
 COPY packages/rest-api-client/Cargo.toml packages/rest-api-client/
-COPY packages/rest-api-core/Cargo.toml packages/rest-api-core/
 COPY packages/rest-api-application/Cargo.toml packages/rest-api-application/
 COPY packages/rest-api-protocol/Cargo.toml packages/rest-api-protocol/
 COPY packages/rest-api-runtime-adapter/Cargo.toml packages/rest-api-runtime-adapter/
@@ -127,7 +126,6 @@ RUN mkdir -p \
       packages/http-core/benches \
       packages/primitives/src \
       packages/rest-api-client/src \
-      packages/rest-api-core/src \
       packages/rest-api-application/src \
       packages/rest-api-protocol/src \
       packages/rest-api-runtime-adapter/src \
@@ -168,7 +166,6 @@ RUN mkdir -p \
       packages/http-core/benches/http_tracker_core_benchmark.rs \
       packages/primitives/src/lib.rs \
       packages/rest-api-client/src/lib.rs \
-      packages/rest-api-core/src/lib.rs \
       packages/rest-api-application/src/lib.rs \
       packages/rest-api-protocol/src/lib.rs \
       packages/rest-api-runtime-adapter/src/lib.rs \

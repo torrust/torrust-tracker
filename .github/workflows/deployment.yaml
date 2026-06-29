@@ -67,7 +67,6 @@ jobs:
           cargo publish -p torrust-tracker-axum-rest-api-server
           cargo publish -p torrust-tracker-axum-server
           cargo publish -p torrust-tracker-rest-api-client
-          cargo publish -p torrust-tracker-rest-api-core
           cargo publish -p torrust-server-lib
           cargo publish -p torrust-tracker
           cargo publish -p torrust-tracker-client

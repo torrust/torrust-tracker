@@ -32,7 +32,6 @@ packages/
 ├── primitives
 ├── rest-api-application
 ├── rest-api-client
-├── rest-api-core
 ├── rest-api-protocol
 ├── rest-api-runtime-adapter
 ├── swarm-coordination-registry
@@ -143,7 +142,7 @@ level, catching violations in pre-commit hooks and CI before merge.
 
 | Edge                              | Description                                                    | Current violations                                           |
 | --------------------------------- | -------------------------------------------------------------- | ------------------------------------------------------------ |
-| `core -> server`                  | Core must not depend on delivery-layer packages                | `rest-api-core -> udp-server`                                |
+| `core -> server`                  | Core must not depend on delivery-layer packages                | None (historical `rest-api-core` removed in SI-5)            |
 | `tracker-core -> core`            | Tracker core must not depend on its protocol-specific wrappers | None                                                         |
 | `tracker-core -> protocol`        | Tracker core must not depend on protocol parsing crates        | None                                                         |
 | `tracker-core -> server`          | Tracker core must not depend on server crates                  | None                                                         |
@@ -186,16 +185,18 @@ For example, `torrust-tracker-udp-server` can only be depended on by:
 - `torrust-tracker` (root binary)
 - `torrust-tracker-axum-rest-api-server`
 - `torrust-tracker-axum-health-check-api-server`
-- `torrust-tracker-rest-api-core` (known violation — see below)
+- `torrust-tracker-rest-api-runtime-adapter`
 
 A core package like `torrust-tracker-http-core` adding `udp-server` as a
 dependency would be immediately rejected by `cargo deny check bans`.
 
 ### Known exceptions
 
-- `torrust-tracker-rest-api-core` depends on `torrust-tracker-udp-server`
-  — a known violation tracked separately. Until it is fixed, the wrapper
-  list for `udp-server` includes `rest-api-core`.
+None. The `rest-api-core` package was removed in SI-5 after its last consumer
+(`axum-rest-api-server`) was migrated to use the `rest-api-runtime-adapter`
+container. See issue [#1943][1943].
+
+[1943]: https://github.com/torrust/torrust-tracker/issues/1943
 
 ### Maintenance
 
@@ -223,38 +224,37 @@ See `deny.toml` for the complete configuration.
 
 ## Package Catalog
 
-| Package                           | Description                          | Key Responsibilities                                                          |
-| --------------------------------- | ------------------------------------ | ----------------------------------------------------------------------------- |
-| **axum-\***                       |                                      |                                                                               |
-| `axum-server`                     | Base Axum HTTP server infrastructure | HTTP server lifecycle management                                              |
-| `axum-http-server`                | BitTorrent HTTP tracker (BEP 3/23)   | Handle announce/scrape requests                                               |
-| `axum-rest-api-server`            | Management REST API (transport)      | HTTP routing, request extraction, response serialization, middleware          |
-| `axum-health-check-api-server`    | Health monitoring endpoint           | System health reporting                                                       |
-| **REST API**                      | Contract-first layers                | See [REST API architecture](#rest-api-contract-first-architecture)            |
-| `rest-api-protocol`               | REST API protocol contract           | Versioned DTOs, error schemas, auth semantics                                 |
-| `rest-api-application`            | REST API application                 | Port traits, use-case services, domain-error mapping                          |
-| `rest-api-runtime-adapter`        | REST API runtime adapter             | Tracker-specific port implementations, domain→DTO conversions                 |
-| `rest-api-core`                   | REST API core (deprecated)           | Legacy integration container — to be replaced by application + adapter layers |
-| **Core Components**               |                                      |                                                                               |
-| `http-core`                       | HTTP-specific implementation         | Request validation, Response formatting                                       |
-| `udp-core`                        | UDP-specific implementation          | Connectionless request handling                                               |
-| `tracker-core`                    | Central tracker logic                | Peer management                                                               |
-| **Protocols**                     |                                      |                                                                               |
-| `http-protocol`                   | HTTP tracker protocol (BEP 3/23)     | Announce/scrape request parsing                                               |
-| `udp-protocol`                    | UDP tracker protocol (BEP 15)        | UDP message framing/parsing                                                   |
-| **Domain**                        |                                      |                                                                               |
-| `swarm-coordination-registry`     | Peer swarm registry                  | Torrent/peer coordination                                                     |
-| `configuration`                   | Runtime configuration                | Config file parsing, Environment variables                                    |
-| `primitives`                      | Domain-specific types                | PeerId, Peer, SwarmMetadata                                                   |
-| `events`                          | Async event bus                      | Inter-package communication                                                   |
-| **Utilities**                     |                                      |                                                                               |
-| `test-helpers`                    | Testing utilities                    | Mock servers, Test data generation                                            |
-| **Client Tools**                  |                                      |                                                                               |
-| `tracker-client` (`packages/`)    | Tracker client library               | Generic tracker client library                                                |
-| `rest-api-client`                 | API client library                   | REST API integration                                                          |
-| **Benchmarking**                  |                                      |                                                                               |
-| `torrent-repository-benchmarking` | Torrent storage benchmarks           | Criterion benchmarks                                                          |
-| `persistence-benchmark`           | Persistence layer benchmarks         | SQLite/MySQL/PostgreSQL benchmarks                                            |
+| Package                           | Description                          | Key Responsibilities                                                 |
+| --------------------------------- | ------------------------------------ | -------------------------------------------------------------------- |
+| **axum-\***                       |                                      |                                                                      |
+| `axum-server`                     | Base Axum HTTP server infrastructure | HTTP server lifecycle management                                     |
+| `axum-http-server`                | BitTorrent HTTP tracker (BEP 3/23)   | Handle announce/scrape requests                                      |
+| `axum-rest-api-server`            | Management REST API (transport)      | HTTP routing, request extraction, response serialization, middleware |
+| `axum-health-check-api-server`    | Health monitoring endpoint           | System health reporting                                              |
+| **REST API**                      | Contract-first layers                | See [REST API architecture](#rest-api-contract-first-architecture)   |
+| `rest-api-protocol`               | REST API protocol contract           | Versioned DTOs, error schemas, auth semantics                        |
+| `rest-api-application`            | REST API application                 | Port traits, use-case services, domain-error mapping                 |
+| `rest-api-runtime-adapter`        | REST API runtime adapter             | Tracker-specific port implementations, domain→DTO conversions        |
+| **Core Components**               |                                      |                                                                      |
+| `http-core`                       | HTTP-specific implementation         | Request validation, Response formatting                              |
+| `udp-core`                        | UDP-specific implementation          | Connectionless request handling                                      |
+| `tracker-core`                    | Central tracker logic                | Peer management                                                      |
+| **Protocols**                     |                                      |                                                                      |
+| `http-protocol`                   | HTTP tracker protocol (BEP 3/23)     | Announce/scrape request parsing                                      |
+| `udp-protocol`                    | UDP tracker protocol (BEP 15)        | UDP message framing/parsing                                          |
+| **Domain**                        |                                      |                                                                      |
+| `swarm-coordination-registry`     | Peer swarm registry                  | Torrent/peer coordination                                            |
+| `configuration`                   | Runtime configuration                | Config file parsing, Environment variables                           |
+| `primitives`                      | Domain-specific types                | PeerId, Peer, SwarmMetadata                                          |
+| `events`                          | Async event bus                      | Inter-package communication                                          |
+| **Utilities**                     |                                      |                                                                      |
+| `test-helpers`                    | Testing utilities                    | Mock servers, Test data generation                                   |
+| **Client Tools**                  |                                      |                                                                      |
+| `tracker-client` (`packages/`)    | Tracker client library               | Generic tracker client library                                       |
+| `rest-api-client`                 | API client library                   | REST API integration                                                 |
+| **Benchmarking**                  |                                      |                                                                      |
+| `torrent-repository-benchmarking` | Torrent storage benchmarks           | Criterion benchmarks                                                 |
+| `persistence-benchmark`           | Persistence layer benchmarks         | SQLite/MySQL/PostgreSQL benchmarks                                   |
 
 ### Extracted Packages
 

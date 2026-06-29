@@ -1,3 +1,10 @@
+//! Dependency injection container for the REST API server.
+//!
+//! Wires all tracker internal components (swarm registry, HTTP/UDP cores, etc.)
+//! into a single container that the Axum server uses to construct adapters.
+//!
+//! This was previously in `rest-api-core` and was moved here as part of SI-5
+//! (deprecation of `rest-api-core`).
 use std::sync::Arc;
 
 use tokio::sync::RwLock;
@@ -10,6 +17,8 @@ use torrust_tracker_udp_core::services::banning::BanService;
 use torrust_tracker_udp_core::{self};
 use torrust_tracker_udp_server::container::UdpTrackerServerContainer;
 
+/// Container that holds all the internal tracker components needed by the
+/// REST API server.
 pub struct TrackerHttpApiCoreContainer {
     pub http_api_config: Arc<HttpApi>,
 

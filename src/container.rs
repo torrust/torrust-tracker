@@ -6,7 +6,7 @@ use torrust_server_lib::registar::Registar;
 use torrust_tracker_configuration::{Configuration, HttpApi};
 use torrust_tracker_core::container::TrackerCoreContainer;
 use torrust_tracker_http_core::container::{HttpTrackerCoreContainer, HttpTrackerCoreServices};
-use torrust_tracker_rest_api_core::container::TrackerHttpApiCoreContainer;
+use torrust_tracker_rest_api_runtime_adapter::container::TrackerHttpApiCoreContainer;
 use torrust_tracker_swarm_coordination_registry::container::SwarmCoordinationRegistryContainer;
 use torrust_tracker_udp_core::container::{UdpTrackerCoreContainer, UdpTrackerCoreServices};
 use torrust_tracker_udp_core::{self};

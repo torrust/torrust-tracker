@@ -30,7 +30,7 @@ use torrust_tracker_axum_rest_api_server::Version;
 use torrust_tracker_axum_rest_api_server::server::{ApiServer, Launcher};
 use torrust_tracker_axum_server::tsl::make_rust_tls;
 use torrust_tracker_configuration::AccessTokens;
-use torrust_tracker_rest_api_core::container::TrackerHttpApiCoreContainer;
+use torrust_tracker_rest_api_runtime_adapter::container::TrackerHttpApiCoreContainer;
 use tracing::instrument;
 
 /// This is the message that the "launcher" spawned task sends to the main
@@ -104,7 +104,7 @@ mod tests {
 
     use torrust_server_lib::registar::Registar;
     use torrust_tracker_axum_rest_api_server::Version;
-    use torrust_tracker_rest_api_core::container::TrackerHttpApiCoreContainer;
+    use torrust_tracker_rest_api_runtime_adapter::container::TrackerHttpApiCoreContainer;
     use torrust_tracker_test_helpers::configuration::ephemeral_public;
 
     use crate::bootstrap::app::initialize_global_services;
