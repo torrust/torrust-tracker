@@ -34,12 +34,12 @@ Implement a scheduled workflow to periodically scan Docker images for vulnerabil
 
 ## Acceptance Criteria
 
-- [ ] A new GitHub Actions workflow is created in `.github/workflows/security-scan.yaml`
-- [ ] The workflow runs on a schedule (daily) to scan the Docker image
-- [ ] The workflow builds the Docker image and scans it with Trivy
-- [ ] Vulnerability findings are reported in both human-readable and SARIF formats
-- [ ] The workflow integrates with the existing container build process
-- [ ] The README.md badge row includes the new security scan workflow badge
+- [x] A new GitHub Actions workflow is created in `.github/workflows/security-scan.yaml`
+- [x] The workflow runs on a schedule (daily) to scan the Docker image
+- [x] The workflow builds the Docker image and scans it with Trivy
+- [x] Vulnerability findings are reported in both human-readable and SARIF formats
+- [x] The workflow integrates with the existing container build process
+- [x] The README.md badge row includes the new security scan workflow badge
 - [x] `docs/security/docker/scans/` is created with the first baseline scan report
 - [x] `docs/security/docker/README.md` provides scanning instructions
 - [x] `docs/security/README.md` provides a priority-tier security overview
