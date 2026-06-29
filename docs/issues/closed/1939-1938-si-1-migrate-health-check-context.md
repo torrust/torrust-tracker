@@ -1,13 +1,13 @@
 ---
 doc-type: spec
 issue-type: task
-status: completed
+status: done
 priority: p1
 epic: 1938
 github-issue: 1939
 spec-path: docs/issues/closed/1939-1938-si-1-migrate-health-check-context.md
 last-updated-utc: 2026-06-25
-  updated-reason: Closed — issue implemented
+updated-reason: Closed — issue implemented
 semantic-links:
   skill-links:
     - create-issue

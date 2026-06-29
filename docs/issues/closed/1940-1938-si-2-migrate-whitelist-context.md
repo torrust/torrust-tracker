@@ -1,13 +1,13 @@
 ---
 doc-type: spec
 issue-type: task
-status: completed
+status: done
 priority: p1
 epic: 1938
 github-issue: 1940
 spec-path: docs/issues/closed/1940-1938-si-2-migrate-whitelist-context.md
 last-updated-utc: 2026-06-26
-  updated-reason: Closed — issue implemented
+updated-reason: Closed — issue implemented
 semantic-links:
   skill-links:
     - create-issue
