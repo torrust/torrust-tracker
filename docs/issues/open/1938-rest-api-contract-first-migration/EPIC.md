@@ -1,13 +1,13 @@
 ---
 doc-type: epic
 issue-type: task
-status: planned
+status: in_progress
 priority: p1
 epic: 1938
 github-issue: 1938
 spec-path: docs/issues/open/1938-rest-api-contract-first-migration/EPIC.md
 epic-owner: josecelano
-last-updated-utc: 2026-06-24
+last-updated-utc: 2026-06-29
 semantic-links:
   skill-links:
     - create-issue
@@ -28,23 +28,22 @@ semantic-links:
 
 ## Goal
 
-Progressively migrate all remaining REST API contexts (`health_check`, `whitelist`, `auth_key`, `stats`) from direct tracker-internal wiring to the contract-first layered architecture (protocol → application → runtime-adapter → axum transport), following the pattern validated by [SI-33 (#1930)](../../open/1930-1669-si-33-rest-api-contract-first-architecture.md) PoC.
+Migrate all remaining REST API contexts (`health_check`, `whitelist`, `auth_key`, `stats`) from direct tracker-internal wiring to the contract-first layered architecture (protocol → application → runtime-adapter → axum transport), following the pattern validated by [SI-33 (#1930)](../../open/1930-1669-si-33-rest-api-contract-first-architecture.md) PoC.
+
+All context migrations are **complete** (SI-1 through SI-5 closed). The only remaining open item is SI-6 (`ApiClient` high-level typed client).
 
 ## Why This Is Needed
 
-[SI-33](../../open/1930-1669-si-33-rest-api-contract-first-architecture.md) validated the contract-first architecture with a single endpoint (torrent detail). The remaining contexts still have the old coupling:
+Before this EPIC, the REST API had a mixture of architectures:
 
-- Axum handlers call tracker internals directly (`tracker-core`, `udp-core`, `http-core`, `udp-server`).
-- DTO/response types are defined locally in the Axum server, not in `rest-api-protocol`.
-- No port traits or use-case services exist for these contexts.
-- The forbidden dependency edges (`axum-rest-api-server → tracker-core` etc.) still exist for non-torrent contexts.
+- **`torrent` context** (SI-33 PoC) already used the contract-first architecture.
+- **All other contexts** (`health_check`, `whitelist`, `auth_key`, `stats`) still had the old coupling:
+  - Axum handlers calling tracker internals directly (`tracker-core`, `udp-core`, `http-core`, `udp-server`).
+  - DTO/response types defined locally in the Axum server, not in `rest-api-protocol`.
+  - No port traits or use-case services existed for these contexts.
+  - Forbidden dependency edges (`axum-rest-api-server → tracker-core` etc.) still existed for non-torrent contexts.
 
-Migrating all contexts to the new architecture will:
-
-- Allow removing direct internal crate dependencies from `axum-rest-api-server` (currently 7+ internal crate deps for non-torrent contexts).
-- Make each context testable at the application layer without Axum.
-- Provide a clear path toward a tracker-agnostic REST API standard.
-- Complete the architectural vision started by SI-33.
+This EPIC eliminated that coupling. The remaining open item (SI-6) is about improving the client API, not the server architecture.
 
 ## Relationship to SI-33
 
@@ -54,14 +53,15 @@ This EPIC is the follow-up work identified in [SI-33](../../open/1930-1669-si-33
 
 The contexts are ordered by complexity and dependency depth. Follow-up tasks (SI-5, SI-6) come after all contexts are migrated:
 
-| Order | Context / Task                  | Effort | Handlers | Tracker Deps             | Rationale                                        |
-| ----- | ------------------------------- | ------ | -------- | ------------------------ | ------------------------------------------------ |
-| 1     | SI-1: `health_check`            | Small  | 1        | None                     | Trivial starter — no tracker deps                |
-| 2     | SI-2: `whitelist`               | Medium | 3        | `tracker-core` only      | Clean pattern, no DTOs needed                    |
-| 3     | SI-3: `auth_key`                | Medium | 4        | `tracker-core` + `clock` | Form DTOs + validation, 4 endpoints              |
-| 4     | SI-4: `stats`                   | Large  | 2        | 5+ crates                | 28-field DTO, Prometheus, multi-repo aggregation |
-| 5     | SI-5: deprecate `rest-api-core` | Small  | —        | —                        | Cleanup after all contexts migrated              |
-| 6     | SI-6: introduce `ApiClient`     | Medium | —        | —                        | Typed high-level wrapper over `ApiHttpClient`    |
+| Order | Context / Task                   | Effort | Handlers | Tracker Deps             | Status |
+| ----- | -------------------------------- | ------ | -------- | ------------------------ | ------ |
+| 1     | SI-1: `health_check`             | Small  | 1        | None                     | ✅     |
+| 2     | SI-2: `whitelist`                | Medium | 3        | `tracker-core` only      | ✅     |
+| 3     | SI-3: `auth_key`                 | Medium | 4        | `tracker-core` + `clock` | ✅     |
+| 4     | SI-4: `stats`                    | Large  | 2        | 5+ crates                | ✅     |
+| 5     | SI-5: deprecate `rest-api-core`  | Small  | —        | —                        | ✅     |
+| 6     | SI-6: introduce `ApiClient`      | Medium | —        | —                        | ❌     |
+| 7     | SI-7: review tests + align v1 ns | Small  | —        | —                        | 🏗️     |
 
 ## Context Status Summary
 
@@ -69,63 +69,28 @@ The contexts are ordered by complexity and dependency depth. Follow-up tasks (SI
 | ------------------------------- | :-----------: | :------------: | :---------: | :-------: | :--------------: | --------------------------------------------------------------------------------- |
 | `torrent`                       |   2 ✅ done   |       ✅       |     ✅      |    ✅     |        ✅        | Reference pattern — lives under `v1::context::torrent::resources::torrent`        |
 | SI-1: `health_check`            |   1 ✅ done   |       ✅       |   ❌ N/A    |  ❌ N/A   |      ❌ N/A      | No tracker deps — DTOs under `v1::context::health_check::resources::health_check` |
-| SI-2: `whitelist`               |       3       |       ❌       |     ❌      |    ❌     |        ❌        | Reuses `ActionStatus`                                                             |
-| SI-3: `auth_key`                |       4       |       ❌       |     ❌      |    ❌     |        ❌        | Form DTOs + `clock`                                                               |
-| SI-4: `stats`                   |       2       |       ❌       |     ❌      |    ❌     |        ❌        | 28-field DTO, SI-30 traits                                                        |
-| SI-5: deprecate `rest-api-core` |       —       |       —        |      —      |     —     |        —         | Post-migration cleanup                                                            |
-| SI-6: introduce `ApiClient`     |       —       |       —        |      —      |     —     |        —         | Typed wrapper over `ApiHttpClient`                                                |
+| SI-2: `whitelist`               |   3 ✅ done   |       ✅       |     ✅      |    ✅     |        ✅        | Reuses `ActionStatus`                                                             |
+| SI-3: `auth_key`                |   4 ✅ done   |       ✅       |     ✅      |    ✅     |        ✅        | Form DTOs + `clock`                                                               |
+| SI-4: `stats`                   |   2 ✅ done   |       ✅       |     ✅      |    ✅     |        ✅        | 28-field DTO, SI-30 traits                                                        |
+| SI-5: deprecate `rest-api-core` |       —       |       —        |      —      |     —     |        —         | ✅ done — crate removed from workspace                                            |
+| SI-6: introduce `ApiClient`     |       —       |       —        |      —      |     —     |        —         | ❌ pending — typed wrapper over `ApiHttpClient`                                   |
 
 ## Scope
 
-### In Scope
+### In Scope (completed for SI-1 through SI-5)
 
-- Create protocol DTOs (request/response/error types) in `rest-api-protocol` for each remaining context.
-  Each context follows a normalized module structure under `packages/rest-api-protocol/src/v1/context/`:
+The following scope items have been completed across sub-issues SI-1 through SI-5:
 
-  ```text
-  context/
-  └── <context-name>/
-      ├── mod.rs              # context docs + pub mod resources;
-      └── resources/
-          ├── mod.rs          # pub mod <resource>;
-          └── <resource>.rs   # DTO definitions
-  ```
-
-  See the `torrent` context for the reference pattern.
-
-- Define port traits in `rest-api-application` for each context's query/command operations.
-  These are flat files named after the context in `packages/rest-api-application/src/ports/`:
-
-  ```text
-  ports/
-  ├── mod.rs           # pub mod torrent; pub mod whitelist; ...
-  └── <context>.rs     # port trait definition
-  ```
-
-- Implement use-case services in `rest-api-application`.
-  Similarly flat files in `packages/rest-api-application/src/use_cases/`:
-
-  ```text
-  use_cases/
-  ├── mod.rs           # pub mod torrent; pub mod whitelist; ...
-  └── <context>.rs     # use-case service implementation
-  ```
-
-- Implement runtime adapters in `rest-api-runtime-adapter` wrapping tracker internals.
-  Flat files in `packages/rest-api-runtime-adapter/src/adapters/`:
-
-  ```text
-  adapters/
-  ├── mod.rs           # pub mod torrent; pub mod whitelist; ...
-  └── <context>.rs     # adapter implementation
-  ```
-
-- Rewire Axum handlers to dispatch through use cases instead of direct internals.
-- Update tests to use adapter conversion functions.
-- Remove internal crate dependencies from `axum-rest-api-server` as contexts are migrated.
-- Update `deny.toml` layer bans as dependencies are removed.
-- Deprecate and clean up `rest-api-core` after all contexts are migrated (SI-5).
-- Introduce `ApiClient` — a high-level typed client wrapping `ApiHttpClient` with protocol DTOs (SI-6).
+- ✅ Create protocol DTOs (request/response/error types) in `rest-api-protocol` for each context.
+- ✅ Define port traits in `rest-api-application` for each context's operations.
+- ✅ Implement use-case services in `rest-api-application`.
+- ✅ Implement runtime adapters in `rest-api-runtime-adapter` wrapping tracker internals.
+- ✅ Rewire Axum handlers to dispatch through use cases instead of direct internals.
+- ✅ Remove internal crate dependencies from `axum-rest-api-server` as contexts were migrated.
+- ✅ Update `deny.toml` layer bans as dependencies were removed.
+- ✅ Deprecate and clean up `rest-api-core` (SI-5).
+- ❌ **SI-6 (pending)**: Introduce `ApiClient` — a high-level typed client wrapping `ApiHttpClient` with protocol DTOs.
+- 🏗️ **SI-7 (in progress)**: Review tests and align v1 namespace across REST API packages.
 
 ### Out of Scope
 
@@ -137,12 +102,13 @@ The contexts are ordered by complexity and dependency depth. Follow-up tasks (SI
 
 ## Sub-issues
 
-- [#1939](https://github.com/torrust/torrust-tracker/issues/1939) — [SI-1](../1939-1938-si-1-migrate-health-check-context.md): Migrate `health_check` context
-- [#1940](https://github.com/torrust/torrust-tracker/issues/1940) — [SI-2](../1940-1938-si-2-migrate-whitelist-context.md): Migrate `whitelist` context
-- [#1941](https://github.com/torrust/torrust-tracker/issues/1941) — [SI-3](../1941-1938-si-3-migrate-auth-key-context.md): Migrate `auth_key` context
-- [#1942](https://github.com/torrust/torrust-tracker/issues/1942) — [SI-4](../1942-1938-si-4-migrate-stats-context.md): Migrate `stats` context
-- [#1943](https://github.com/torrust/torrust-tracker/issues/1943) — [SI-5](../1943-1938-si-5-deprecate-rest-api-core/ISSUE.md): Deprecate `rest-api-core` and remove from workspace
+- [#1939](https://github.com/torrust/torrust-tracker/issues/1939) — [SI-1](../../closed/1939-1938-si-1-migrate-health-check-context.md): Migrate `health_check` context ✅ closed
+- [#1940](https://github.com/torrust/torrust-tracker/issues/1940) — [SI-2](../../closed/1940-1938-si-2-migrate-whitelist-context.md): Migrate `whitelist` context ✅ closed
+- [#1941](https://github.com/torrust/torrust-tracker/issues/1941) — [SI-3](../../closed/1941-1938-si-3-migrate-auth-key-context.md): Migrate `auth_key` context ✅ closed
+- [#1942](https://github.com/torrust/torrust-tracker/issues/1942) — [SI-4](../../closed/1942-1938-si-4-migrate-stats-context.md): Migrate `stats` context ✅ closed
+- [#1943](https://github.com/torrust/torrust-tracker/issues/1943) — [SI-5](../../closed/1943-1938-si-5-deprecate-rest-api-core.md): Deprecate `rest-api-core` and remove from workspace ✅ closed
 - [#1944](https://github.com/torrust/torrust-tracker/issues/1944) — [SI-6](../1944-1938-si-6-align-rest-api-client.md): Introduce `ApiClient` — a high-level typed client over protocol DTOs
+- [#1959](https://github.com/torrust/torrust-tracker/issues/1959) — [SI-7](../1959-1938-si-7-review-tests-align-v1-namespace.md): Review tests and align v1 namespace across REST API packages
 
 ## Contract Evolution Governance
 
@@ -166,26 +132,28 @@ Types that are not exposed over the wire (e.g., internal Rust enums used only fo
 
 ## Dependency Removal Tracking
 
-The following table maps each internal crate dependency to the sub-issue that removes it from `axum-rest-api-server/Cargo.toml`:
+The following table maps each internal crate dependency to the sub-issue that removed it from `axum-rest-api-server/Cargo.toml`:
 
-| Dependency                    | Removed by                         | Notes                                              |
-| ----------------------------- | ---------------------------------- | -------------------------------------------------- |
-| `tracker-core`                | SI-2 (whitelist) + SI-3 (auth_key) | Both contexts must finish                          |
-| `http-core`                   | SI-4 (stats)                       | Via stats repository port                          |
-| `udp-core`                    | SI-4 (stats)                       | Via SI-30 `BanningStats`, `UdpCoreStatsRepository` |
-| `udp-server`                  | SI-4 (stats)                       | Via SI-30 `UdpServerStatsRepository`               |
-| `rest-api-core`               | SI-5 (deprecate)                   | After all contexts migrated                        |
-| `swarm-coordination-registry` | SI-4 (stats)                       | Via stats repository port                          |
-| `clock`                       | SI-3 (auth_key)                    | Moved to runtime adapter                           |
+| Dependency                    | Removed by                         | Status |
+| ----------------------------- | ---------------------------------- | ------ |
+| `tracker-core`                | SI-2 (whitelist) + SI-3 (auth_key) | ✅     |
+| `http-core`                   | SI-4 (stats)                       | ✅     |
+| `udp-core`                    | SI-4 (stats)                       | ✅     |
+| `udp-server`                  | SI-4 (stats)                       | ✅     |
+| `rest-api-core`               | SI-5 (deprecate)                   | ✅     |
+| `swarm-coordination-registry` | SI-4 (stats)                       | ✅     |
+| `clock`                       | SI-3 (auth_key)                    | ✅     |
 
 ## Success Criteria
 
-- All 10 non-torrent Axum handler functions dispatch through application use-case services.
-- All response DTOs live in `rest-api-protocol`; none are defined locally in Axum server.
-- All direct `tracker-core`, `udp-core`, `http-core`, `udp-server`, `rest-api-core`, and `swarm-coordination-registry` imports are removed from `axum-rest-api-server`.
-- `deny.toml` layer bans enforce the new dependency rules.
-- All pre-commit and pre-push checks pass.
-- Integration tests continue to pass without behavioural changes.
+- ✅ All 10 non-torrent Axum handler functions dispatch through application use-case services.
+- ✅ All response DTOs live in `rest-api-protocol`; none are defined locally in Axum server.
+- ✅ All direct `tracker-core`, `udp-core`, `http-core`, `udp-server`, `rest-api-core`, and `swarm-coordination-registry` imports are removed from `axum-rest-api-server`.
+- ✅ `deny.toml` layer bans enforce the new dependency rules.
+- ✅ All pre-commit and pre-push checks pass.
+- ✅ Integration tests continue to pass without behavioural changes.
+- ❌ **SI-6 pending**: Introduce `ApiClient` high-level typed client.
+- 🏗️ **SI-7 in progress**: Review tests and align v1 namespace.
 
 ## Progress Tracking
 
@@ -196,3 +164,9 @@ The following table maps each internal crate dependency to the sub-issue that re
 | 2026-06-24 | Draft EPIC created after SI-33 PoC validation                                          |
 | 2026-06-24 | SI-1 (health_check) implemented — protocol DTOs migrated                               |
 | 2026-06-24 | Specs updated to document normalized `context/` module structure for all protocol DTOs |
+| 2026-06-25 | SI-1 closed on GitHub                                                                  |
+| 2026-06-26 | SI-2 (whitelist) and SI-3 (auth_key) closed on GitHub                                  |
+| 2026-06-27 | SI-4 (stats) closed on GitHub                                                          |
+| 2026-06-29 | SI-5 (rest-api-core deprecation) closed on GitHub                                      |
+| 2026-06-29 | Closed issue specs moved to `docs/issues/closed/` with updated frontmatter             |
+| 2026-06-29 | SI-7 (review tests + align v1 ns) added — remaining task: SI-6 (ApiClient)             |

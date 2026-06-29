@@ -1,18 +1,18 @@
 ---
 doc-type: spec
 issue-type: task
-status: planned
+status: done
 priority: p1
 epic: 1938
 github-issue: 1941
-spec-path: docs/issues/open/1941-1938-si-3-migrate-auth-key-context.md
-last-updated-utc: 2026-06-24
-  updated-reason: Updated paths to context/ and added module structure convention note
+spec-path: docs/issues/closed/1941-1938-si-3-migrate-auth-key-context.md
+last-updated-utc: 2026-06-26
+updated-reason: Closed — issue implemented
 semantic-links:
   skill-links:
     - create-issue
   related-artifacts:
-    - docs/issues/drafts/rest-api-contract-first-migration/EPIC.md
+    - docs/issues/open/1938-rest-api-contract-first-migration/EPIC.md
     - packages/axum-rest-api-server/src/v1/context/auth_key/
     - packages/rest-api-protocol/src/v1/
     - packages/rest-api-application/src/
@@ -122,8 +122,8 @@ See the `torrent` and `health_check` contexts for the reference pattern.
 - [x] `AuthKeyApiService` use-case implemented
 - [x] `TrackerAuthKeyAdapter` implemented in `rest-api-runtime-adapter`
 - [x] Axum handlers dispatch through use-case
-- [ ] Pre-commit checks pass
-- [ ] Pre-push checks pass
+- [x] Pre-commit checks pass
+- [x] Pre-push checks pass
 
 ### Progress Log
 
