@@ -5221,6 +5221,7 @@ dependencies = [
  "reqwest",
  "serde",
  "thiserror 2.0.18",
+ "torrust-tracker-rest-api-protocol",
  "url",
  "uuid",
 ]

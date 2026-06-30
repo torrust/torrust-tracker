@@ -3,7 +3,7 @@ use std::time::Duration;
 use serde::Serialize;
 use torrust_tracker_axum_rest_api_server::testing::environment::Started;
 use torrust_tracker_core::authentication::Key;
-use torrust_tracker_rest_api_client::v1::client::{AddKeyForm, Client, headers_with_request_id};
+use torrust_tracker_rest_api_client::v1::client::{AddKeyForm, ApiHttpClient, headers_with_request_id};
 use torrust_tracker_test_helpers::logging::logs_contains_a_line_with;
 use torrust_tracker_test_helpers::{configuration, logging};
 use uuid::Uuid;
@@ -24,12 +24,12 @@ async fn should_allow_generating_a_new_random_auth_key() {
 
     let request_id = Uuid::new_v4();
 
-    let response = Client::new(env.get_connection_info())
+    let response = ApiHttpClient::new(env.get_connection_info())
         .unwrap()
         .add_auth_key(
             AddKeyForm {
                 opt_key: None,
-                seconds_valid: Some(60),
+                opt_seconds_valid: Some(60),
             },
             Some(headers_with_request_id(request_id)),
         )
@@ -57,12 +57,12 @@ async fn should_allow_uploading_a_preexisting_auth_key() {
 
     let request_id = Uuid::new_v4();
 
-    let response = Client::new(env.get_connection_info())
+    let response = ApiHttpClient::new(env.get_connection_info())
         .unwrap()
         .add_auth_key(
             AddKeyForm {
                 opt_key: Some("Xc1L4PbQJSFGlrgSRZl8wxSFAuMa21z5".to_string()),
-                seconds_valid: Some(60),
+                opt_seconds_valid: Some(60),
             },
             Some(headers_with_request_id(request_id)),
         )
@@ -90,12 +90,12 @@ async fn should_not_allow_generating_a_new_auth_key_for_unauthenticated_users() 
 
     let request_id = Uuid::new_v4();
 
-    let response = Client::new(connection_with_invalid_token(env.get_connection_info().origin))
+    let response = ApiHttpClient::new(connection_with_invalid_token(env.get_connection_info().origin))
         .unwrap()
         .add_auth_key(
             AddKeyForm {
                 opt_key: None,
-                seconds_valid: Some(60),
+                opt_seconds_valid: Some(60),
             },
             Some(headers_with_request_id(request_id)),
         )
@@ -110,12 +110,12 @@ async fn should_not_allow_generating_a_new_auth_key_for_unauthenticated_users() 
 
     let request_id = Uuid::new_v4();
 
-    let response = Client::new(connection_with_no_token(env.get_connection_info().origin))
+    let response = ApiHttpClient::new(connection_with_no_token(env.get_connection_info().origin))
         .unwrap()
         .add_auth_key(
             AddKeyForm {
                 opt_key: None,
-                seconds_valid: Some(60),
+                opt_seconds_valid: Some(60),
             },
             Some(headers_with_request_id(request_id)),
         )
@@ -141,12 +141,12 @@ async fn should_fail_when_the_auth_key_cannot_be_generated() {
 
     let request_id = Uuid::new_v4();
 
-    let response = Client::new(env.get_connection_info())
+    let response = ApiHttpClient::new(env.get_connection_info())
         .unwrap()
         .add_auth_key(
             AddKeyForm {
                 opt_key: None,
-                seconds_valid: Some(60),
+                opt_seconds_valid: Some(60),
             },
             Some(headers_with_request_id(request_id)),
         )
@@ -179,7 +179,7 @@ async fn should_allow_deleting_an_auth_key() {
 
     let request_id = Uuid::new_v4();
 
-    let response = Client::new(env.get_connection_info())
+    let response = ApiHttpClient::new(env.get_connection_info())
         .unwrap()
         .delete_auth_key(&auth_key.key.to_string(), Some(headers_with_request_id(request_id)))
         .await;
@@ -214,7 +214,7 @@ async fn should_fail_generating_a_new_auth_key_when_the_provided_key_is_invalid(
     for invalid_key in invalid_keys {
         let request_id = Uuid::new_v4();
 
-        let response = Client::new(env.get_connection_info())
+        let response = ApiHttpClient::new(env.get_connection_info())
             .unwrap()
             .post_form(
                 "keys",
@@ -254,7 +254,7 @@ async fn should_fail_generating_a_new_auth_key_when_the_key_duration_is_invalid(
     for invalid_key_duration in invalid_key_durations {
         let request_id = Uuid::new_v4();
 
-        let response = Client::new(env.get_connection_info())
+        let response = ApiHttpClient::new(env.get_connection_info())
             .unwrap()
             .post_form(
                 "keys",
@@ -291,7 +291,7 @@ async fn should_fail_deleting_an_auth_key_when_the_key_id_is_invalid() {
     for invalid_auth_key in &invalid_auth_keys {
         let request_id = Uuid::new_v4();
 
-        let response = Client::new(env.get_connection_info())
+        let response = ApiHttpClient::new(env.get_connection_info())
             .unwrap()
             .delete_auth_key(invalid_auth_key, Some(headers_with_request_id(request_id)))
             .await;
@@ -321,7 +321,7 @@ async fn should_fail_when_the_auth_key_cannot_be_deleted() {
 
     let request_id = Uuid::new_v4();
 
-    let response = Client::new(env.get_connection_info())
+    let response = ApiHttpClient::new(env.get_connection_info())
         .unwrap()
         .delete_auth_key(&auth_key.key.to_string(), Some(headers_with_request_id(request_id)))
         .await;
@@ -355,7 +355,7 @@ async fn should_not_allow_deleting_an_auth_key_for_unauthenticated_users() {
 
     let request_id = Uuid::new_v4();
 
-    let response = Client::new(connection_with_invalid_token(env.get_connection_info().origin))
+    let response = ApiHttpClient::new(connection_with_invalid_token(env.get_connection_info().origin))
         .unwrap()
         .delete_auth_key(&auth_key.key.to_string(), Some(headers_with_request_id(request_id)))
         .await;
@@ -378,7 +378,7 @@ async fn should_not_allow_deleting_an_auth_key_for_unauthenticated_users() {
 
     let request_id = Uuid::new_v4();
 
-    let response = Client::new(connection_with_no_token(env.get_connection_info().origin))
+    let response = ApiHttpClient::new(connection_with_no_token(env.get_connection_info().origin))
         .unwrap()
         .delete_auth_key(&auth_key.key.to_string(), Some(headers_with_request_id(request_id)))
         .await;
@@ -409,7 +409,7 @@ async fn should_allow_reloading_keys() {
 
     let request_id = Uuid::new_v4();
 
-    let response = Client::new(env.get_connection_info())
+    let response = ApiHttpClient::new(env.get_connection_info())
         .unwrap()
         .reload_keys(Some(headers_with_request_id(request_id)))
         .await;
@@ -437,7 +437,7 @@ async fn should_fail_when_keys_cannot_be_reloaded() {
 
     force_database_error(&env.container.tracker_core_container.database_stores.schema_migrator).await;
 
-    let response = Client::new(env.get_connection_info())
+    let response = ApiHttpClient::new(env.get_connection_info())
         .unwrap()
         .reload_keys(Some(headers_with_request_id(request_id)))
         .await;
@@ -468,7 +468,7 @@ async fn should_not_allow_reloading_keys_for_unauthenticated_users() {
 
     let request_id = Uuid::new_v4();
 
-    let response = Client::new(connection_with_invalid_token(env.get_connection_info().origin))
+    let response = ApiHttpClient::new(connection_with_invalid_token(env.get_connection_info().origin))
         .unwrap()
         .reload_keys(Some(headers_with_request_id(request_id)))
         .await;
@@ -482,7 +482,7 @@ async fn should_not_allow_reloading_keys_for_unauthenticated_users() {
 
     let request_id = Uuid::new_v4();
 
-    let response = Client::new(connection_with_no_token(env.get_connection_info().origin))
+    let response = ApiHttpClient::new(connection_with_no_token(env.get_connection_info().origin))
         .unwrap()
         .reload_keys(Some(headers_with_request_id(request_id)))
         .await;
@@ -501,7 +501,7 @@ mod deprecated_generate_key_endpoint {
 
     use torrust_tracker_axum_rest_api_server::testing::environment::Started;
     use torrust_tracker_core::authentication::Key;
-    use torrust_tracker_rest_api_client::v1::client::{Client, headers_with_request_id};
+    use torrust_tracker_rest_api_client::v1::client::{ApiHttpClient, headers_with_request_id};
     use torrust_tracker_test_helpers::logging::logs_contains_a_line_with;
     use torrust_tracker_test_helpers::{configuration, logging};
     use uuid::Uuid;
@@ -521,7 +521,7 @@ mod deprecated_generate_key_endpoint {
 
         let seconds_valid = 60;
 
-        let response = Client::new(env.get_connection_info())
+        let response = ApiHttpClient::new(env.get_connection_info())
             .unwrap()
             .generate_auth_key(seconds_valid, None)
             .await;
@@ -549,14 +549,14 @@ mod deprecated_generate_key_endpoint {
         let request_id = Uuid::new_v4();
         let seconds_valid = 60;
 
-        let response = Client::new(connection_with_invalid_token(env.get_connection_info().origin))
+        let response = ApiHttpClient::new(connection_with_invalid_token(env.get_connection_info().origin))
             .unwrap()
             .generate_auth_key(seconds_valid, Some(headers_with_request_id(request_id)))
             .await;
 
         assert_token_not_valid(response).await;
 
-        let response = Client::new(connection_with_no_token(env.get_connection_info().origin))
+        let response = ApiHttpClient::new(connection_with_no_token(env.get_connection_info().origin))
             .unwrap()
             .generate_auth_key(seconds_valid, None)
             .await;
@@ -584,7 +584,7 @@ mod deprecated_generate_key_endpoint {
         ];
 
         for invalid_key_duration in invalid_key_durations {
-            let response = Client::new(env.get_connection_info())
+            let response = ApiHttpClient::new(env.get_connection_info())
                 .unwrap()
                 .post_empty(&format!("key/{invalid_key_duration}"), None)
                 .await;
@@ -605,7 +605,7 @@ mod deprecated_generate_key_endpoint {
 
         let request_id = Uuid::new_v4();
         let seconds_valid = 60;
-        let response = Client::new(env.get_connection_info())
+        let response = ApiHttpClient::new(env.get_connection_info())
             .unwrap()
             .generate_auth_key(seconds_valid, Some(headers_with_request_id(request_id)))
             .await;

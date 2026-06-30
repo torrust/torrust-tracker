@@ -1,8 +1,15 @@
 use std::time::Duration;
 
 use hyper::{HeaderMap, header};
-use reqwest::{Error, Response};
+use reqwest::{Response, StatusCode};
 use serde::Serialize;
+use serde::de::DeserializeOwned;
+use thiserror::Error;
+// Re-export AddKeyForm from the protocol package for backwards compatibility.
+pub use torrust_tracker_rest_api_protocol::v1::context::auth_key::forms::add_key_form::AddKeyForm;
+use torrust_tracker_rest_api_protocol::v1::context::auth_key::resources::auth_key::AuthKey;
+use torrust_tracker_rest_api_protocol::v1::context::stats::resources::stats::Stats;
+use torrust_tracker_rest_api_protocol::v1::context::torrent::resources::torrent::{ListItem, Torrent};
 use url::Url;
 use uuid::Uuid;
 
@@ -15,19 +22,206 @@ pub const AUTH_BEARER_TOKEN_HEADER_PREFIX: &str = "Bearer";
 const API_PATH: &str = "api/v1/";
 const DEFAULT_REQUEST_TIMEOUT_IN_SECS: u64 = 5;
 
-/// API Client
+/// Error type for [`ApiClient`] operations.
+#[derive(Debug, Error)]
+pub enum ClientError {
+    /// A transport-level error (connection refused, timeout, DNS failure, etc.).
+    #[error("transport error: {0}")]
+    TransportError(#[source] reqwest::Error),
+
+    /// The API returned a non-2xx status code.
+    #[error("API error: {status} - {body}")]
+    ApiError {
+        /// The HTTP status code returned by the API.
+        status: StatusCode,
+        /// The response body (error message).
+        body: String,
+    },
+
+    /// Failed to deserialize the API response body into the expected type.
+    #[error("deserialization error: {0}")]
+    DeserializationError(#[source] reqwest::Error),
+}
+
+/// High-level typed client for the Torrust Tracker REST API.
+///
+/// Wraps [`ApiHttpClient`] and returns protocol DTOs from `rest-api-protocol`.
+/// Never panics — all errors are returned as [`ClientError`].
+pub struct ApiClient {
+    inner: ApiHttpClient,
+}
+
+impl ApiClient {
+    /// Creates a new `ApiClient`.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ClientError::TransportError`] if the HTTP client cannot be built.
+    pub fn new(connection_info: ConnectionInfo) -> Result<Self, ClientError> {
+        Ok(Self {
+            inner: ApiHttpClient::new(connection_info).map_err(ClientError::TransportError)?,
+        })
+    }
+
+    /// Returns a reference to the inner [`ApiHttpClient`] for low-level operations.
+    #[must_use]
+    pub fn inner(&self) -> &ApiHttpClient {
+        &self.inner
+    }
+
+    /// Generates a new random authentication key valid for `seconds_valid`.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ClientError::TransportError`] if the request fails.
+    /// Returns [`ClientError::ApiError`] if the API returns a non-2xx status.
+    /// Returns [`ClientError::DeserializationError`] if the response cannot be parsed.
+    pub async fn generate_auth_key(&self, seconds_valid: i32) -> Result<AuthKey, ClientError> {
+        let response = self.inner.generate_auth_key(seconds_valid, None).await;
+        Self::parse_response(response).await
+    }
+
+    /// Adds a new authentication key using the provided form data.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ClientError::TransportError`] if the request fails.
+    /// Returns [`ClientError::ApiError`] if the API returns a non-2xx status.
+    /// Returns [`ClientError::DeserializationError`] if the response cannot be parsed.
+    pub async fn add_auth_key(&self, form: AddKeyForm) -> Result<AuthKey, ClientError> {
+        let response = self.inner.add_auth_key(form, None).await;
+        Self::parse_response(response).await
+    }
+
+    /// Deletes an authentication key.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ClientError::TransportError`] if the request fails.
+    /// Returns [`ClientError::ApiError`] if the API returns a non-2xx status.
+    pub async fn delete_auth_key(&self, key: &str) -> Result<(), ClientError> {
+        let response = self.inner.delete_auth_key(key, None).await;
+        Self::check_success(response).await
+    }
+
+    /// Reloads authentication keys from the database.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ClientError::TransportError`] if the request fails.
+    /// Returns [`ClientError::ApiError`] if the API returns a non-2xx status.
+    pub async fn reload_keys(&self) -> Result<(), ClientError> {
+        let response = self.inner.reload_keys(None).await;
+        Self::check_success(response).await
+    }
+
+    /// Whitelists a torrent by info hash.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ClientError::TransportError`] if the request fails.
+    /// Returns [`ClientError::ApiError`] if the API returns a non-2xx status.
+    pub async fn whitelist_a_torrent(&self, info_hash: &str) -> Result<(), ClientError> {
+        let response = self.inner.whitelist_a_torrent(info_hash, None).await;
+        Self::check_success(response).await
+    }
+
+    /// Removes a torrent from the whitelist.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ClientError::TransportError`] if the request fails.
+    /// Returns [`ClientError::ApiError`] if the API returns a non-2xx status.
+    pub async fn remove_torrent_from_whitelist(&self, info_hash: &str) -> Result<(), ClientError> {
+        let response = self.inner.remove_torrent_from_whitelist(info_hash, None).await;
+        Self::check_success(response).await
+    }
+
+    /// Reloads the whitelist from the database.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ClientError::TransportError`] if the request fails.
+    /// Returns [`ClientError::ApiError`] if the API returns a non-2xx status.
+    pub async fn reload_whitelist(&self) -> Result<(), ClientError> {
+        let response = self.inner.reload_whitelist(None).await;
+        Self::check_success(response).await
+    }
+
+    /// Gets a single torrent by info hash.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ClientError::TransportError`] if the request fails.
+    /// Returns [`ClientError::ApiError`] if the API returns a non-2xx status.
+    /// Returns [`ClientError::DeserializationError`] if the response cannot be parsed.
+    pub async fn get_torrent(&self, info_hash: &str) -> Result<Torrent, ClientError> {
+        let response = self.inner.get_torrent(info_hash, None).await;
+        Self::parse_response(response).await
+    }
+
+    /// Gets a list of torrents matching the query parameters.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ClientError::TransportError`] if the request fails.
+    /// Returns [`ClientError::ApiError`] if the API returns a non-2xx status.
+    /// Returns [`ClientError::DeserializationError`] if the response cannot be parsed.
+    pub async fn get_torrents(&self, params: Query) -> Result<Vec<ListItem>, ClientError> {
+        let response = self.inner.get_torrents(params, None).await;
+        Self::parse_response(response).await
+    }
+
+    /// Gets tracker statistics.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ClientError::TransportError`] if the request fails.
+    /// Returns [`ClientError::ApiError`] if the API returns a non-2xx status.
+    /// Returns [`ClientError::DeserializationError`] if the response cannot be parsed.
+    pub async fn get_tracker_statistics(&self) -> Result<Stats, ClientError> {
+        let response = self.inner.get_tracker_statistics(None).await;
+        Self::parse_response(response).await
+    }
+
+    /// Parses a successful response into the expected DTO type.
+    async fn parse_response<T: DeserializeOwned>(response: Response) -> Result<T, ClientError> {
+        let status = response.status();
+        if !status.is_success() {
+            let body = response.text().await.map_err(ClientError::TransportError)?;
+            return Err(ClientError::ApiError { status, body });
+        }
+        response.json::<T>().await.map_err(ClientError::DeserializationError)
+    }
+
+    /// Checks that the response has a 2xx status code, ignoring the body.
+    async fn check_success(response: Response) -> Result<(), ClientError> {
+        let status = response.status();
+        if !status.is_success() {
+            let body = response.text().await.map_err(ClientError::TransportError)?;
+            return Err(ClientError::ApiError { status, body });
+        }
+        Ok(())
+    }
+}
+
+/// Low-level HTTP transport for the Torrust Tracker REST API.
+///
+/// Handles connection info, URL building, auth headers, and raw HTTP requests.
+/// Returns [`reqwest::Response`] directly. For a typed high-level API, use
+/// [`ApiClient`].
 #[allow(clippy::struct_field_names)]
-pub struct Client {
+pub struct ApiHttpClient {
     connection_info: ConnectionInfo,
     base_path: String,
     http_client: reqwest::Client,
 }
 
-impl Client {
+impl ApiHttpClient {
     /// # Errors
     ///
     /// Will return an error if the HTTP client can't be created.
-    pub fn new(connection_info: ConnectionInfo) -> Result<Self, Error> {
+    pub fn new(connection_info: ConnectionInfo) -> Result<Self, reqwest::Error> {
         let client = reqwest::Client::builder()
             .timeout(Duration::from_secs(DEFAULT_REQUEST_TIMEOUT_IN_SECS))
             .build()?;
@@ -255,11 +449,4 @@ pub fn headers_with_auth_token(token: &str) -> HeaderMap {
             .expect("the auth token is not a valid header value"),
     );
     headers
-}
-
-#[derive(Serialize, Debug)]
-pub struct AddKeyForm {
-    #[serde(rename = "key")]
-    pub opt_key: Option<String>,
-    pub seconds_valid: Option<u64>,
 }

@@ -4,7 +4,7 @@ use torrust_info_hash::InfoHash;
 use torrust_tracker_axum_rest_api_server::testing::environment::Started;
 use torrust_tracker_primitives::peer::fixture::PeerBuilder;
 use torrust_tracker_rest_api_client::common::http::{Query, QueryParam};
-use torrust_tracker_rest_api_client::v1::client::{Client, headers_with_request_id};
+use torrust_tracker_rest_api_client::v1::client::{ApiHttpClient, headers_with_request_id};
 use torrust_tracker_rest_api_protocol::v1::context::torrent::resources::torrent::{self, Torrent};
 use torrust_tracker_rest_api_runtime_adapter::v1::conversion;
 use torrust_tracker_test_helpers::logging::logs_contains_a_line_with;
@@ -30,7 +30,7 @@ async fn should_allow_getting_all_torrents() {
 
     let request_id = Uuid::new_v4();
 
-    let response = Client::new(env.get_connection_info())
+    let response = ApiHttpClient::new(env.get_connection_info())
         .unwrap()
         .get_torrents(Query::empty(), Some(headers_with_request_id(request_id)))
         .await;
@@ -64,7 +64,7 @@ async fn should_allow_limiting_the_torrents_in_the_result() {
 
     let request_id = Uuid::new_v4();
 
-    let response = Client::new(env.get_connection_info())
+    let response = ApiHttpClient::new(env.get_connection_info())
         .unwrap()
         .get_torrents(
             Query::params([QueryParam::new("limit", "1")].to_vec()),
@@ -101,7 +101,7 @@ async fn should_allow_the_torrents_result_pagination() {
 
     let request_id = Uuid::new_v4();
 
-    let response = Client::new(env.get_connection_info())
+    let response = ApiHttpClient::new(env.get_connection_info())
         .unwrap()
         .get_torrents(
             Query::params([QueryParam::new("offset", "1")].to_vec()),
@@ -137,7 +137,7 @@ async fn should_allow_getting_a_list_of_torrents_providing_infohashes() {
 
     let request_id = Uuid::new_v4();
 
-    let response = Client::new(env.get_connection_info())
+    let response = ApiHttpClient::new(env.get_connection_info())
         .unwrap()
         .get_torrents(
             Query::params(
@@ -184,7 +184,7 @@ async fn should_fail_getting_torrents_when_the_offset_query_parameter_cannot_be_
     for invalid_offset in &invalid_offsets {
         let request_id = Uuid::new_v4();
 
-        let response = Client::new(env.get_connection_info())
+        let response = ApiHttpClient::new(env.get_connection_info())
             .unwrap()
             .get_torrents(
                 Query::params([QueryParam::new("offset", invalid_offset)].to_vec()),
@@ -213,7 +213,7 @@ async fn should_fail_getting_torrents_when_the_limit_query_parameter_cannot_be_p
     for invalid_limit in &invalid_limits {
         let request_id = Uuid::new_v4();
 
-        let response = Client::new(env.get_connection_info())
+        let response = ApiHttpClient::new(env.get_connection_info())
             .unwrap()
             .get_torrents(
                 Query::params([QueryParam::new("limit", invalid_limit)].to_vec()),
@@ -242,7 +242,7 @@ async fn should_fail_getting_torrents_when_the_info_hash_parameter_is_invalid() 
     for invalid_info_hash in &invalid_info_hashes {
         let request_id = Uuid::new_v4();
 
-        let response = Client::new(env.get_connection_info())
+        let response = ApiHttpClient::new(env.get_connection_info())
             .unwrap()
             .get_torrents(
                 Query::params([QueryParam::new("info_hash", invalid_info_hash)].to_vec()),
@@ -268,7 +268,7 @@ async fn should_not_allow_getting_torrents_for_unauthenticated_users() {
 
     let request_id = Uuid::new_v4();
 
-    let response = Client::new(connection_with_invalid_token(env.get_connection_info().origin))
+    let response = ApiHttpClient::new(connection_with_invalid_token(env.get_connection_info().origin))
         .unwrap()
         .get_torrents(Query::empty(), Some(headers_with_request_id(request_id)))
         .await;
@@ -282,7 +282,7 @@ async fn should_not_allow_getting_torrents_for_unauthenticated_users() {
 
     let request_id = Uuid::new_v4();
 
-    let response = Client::new(connection_with_no_token(env.get_connection_info().origin))
+    let response = ApiHttpClient::new(connection_with_no_token(env.get_connection_info().origin))
         .unwrap()
         .get_torrents(Query::default(), Some(headers_with_request_id(request_id)))
         .await;
@@ -311,7 +311,7 @@ async fn should_allow_getting_a_torrent_info() {
 
     let request_id = Uuid::new_v4();
 
-    let response = Client::new(env.get_connection_info())
+    let response = ApiHttpClient::new(env.get_connection_info())
         .unwrap()
         .get_torrent(&info_hash.to_string(), Some(headers_with_request_id(request_id)))
         .await;
@@ -340,7 +340,7 @@ async fn should_fail_while_getting_a_torrent_info_when_the_torrent_does_not_exis
     let request_id = Uuid::new_v4();
     let info_hash = InfoHash::from_str("9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d").unwrap(); // DevSkim: ignore DS173237
 
-    let response = Client::new(env.get_connection_info())
+    let response = ApiHttpClient::new(env.get_connection_info())
         .unwrap()
         .get_torrent(&info_hash.to_string(), Some(headers_with_request_id(request_id)))
         .await;
@@ -359,7 +359,7 @@ async fn should_fail_getting_a_torrent_info_when_the_provided_infohash_is_invali
     for invalid_infohash in &invalid_infohashes_returning_bad_request() {
         let request_id = Uuid::new_v4();
 
-        let response = Client::new(env.get_connection_info())
+        let response = ApiHttpClient::new(env.get_connection_info())
             .unwrap()
             .get_torrent(invalid_infohash, Some(headers_with_request_id(request_id)))
             .await;
@@ -370,7 +370,7 @@ async fn should_fail_getting_a_torrent_info_when_the_provided_infohash_is_invali
     for invalid_infohash in &invalid_infohashes_returning_not_found() {
         let request_id = Uuid::new_v4();
 
-        let response = Client::new(env.get_connection_info())
+        let response = ApiHttpClient::new(env.get_connection_info())
             .unwrap()
             .get_torrent(invalid_infohash, Some(headers_with_request_id(request_id)))
             .await;
@@ -393,7 +393,7 @@ async fn should_not_allow_getting_a_torrent_info_for_unauthenticated_users() {
 
     let request_id = Uuid::new_v4();
 
-    let response = Client::new(connection_with_invalid_token(env.get_connection_info().origin))
+    let response = ApiHttpClient::new(connection_with_invalid_token(env.get_connection_info().origin))
         .unwrap()
         .get_torrent(&info_hash.to_string(), Some(headers_with_request_id(request_id)))
         .await;
@@ -407,7 +407,7 @@ async fn should_not_allow_getting_a_torrent_info_for_unauthenticated_users() {
 
     let request_id = Uuid::new_v4();
 
-    let response = Client::new(connection_with_no_token(env.get_connection_info().origin))
+    let response = ApiHttpClient::new(connection_with_no_token(env.get_connection_info().origin))
         .unwrap()
         .get_torrent(&info_hash.to_string(), Some(headers_with_request_id(request_id)))
         .await;

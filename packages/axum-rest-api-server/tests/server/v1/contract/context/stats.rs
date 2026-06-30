@@ -3,7 +3,7 @@ use std::str::FromStr;
 use torrust_info_hash::InfoHash;
 use torrust_tracker_axum_rest_api_server::testing::environment::Started;
 use torrust_tracker_primitives::peer::fixture::PeerBuilder;
-use torrust_tracker_rest_api_client::v1::client::{Client, headers_with_request_id};
+use torrust_tracker_rest_api_client::v1::client::{ApiHttpClient, headers_with_request_id};
 use torrust_tracker_rest_api_protocol::v1::context::stats::resources::stats::Stats;
 use torrust_tracker_test_helpers::logging::logs_contains_a_line_with;
 use torrust_tracker_test_helpers::{configuration, logging};
@@ -26,7 +26,7 @@ async fn should_allow_getting_tracker_statistics() {
 
     let request_id = Uuid::new_v4();
 
-    let response = Client::new(env.get_connection_info())
+    let response = ApiHttpClient::new(env.get_connection_info())
         .unwrap()
         .get_tracker_statistics(Some(headers_with_request_id(request_id)))
         .await;
@@ -81,7 +81,7 @@ async fn should_not_allow_getting_tracker_statistics_for_unauthenticated_users()
 
     let request_id = Uuid::new_v4();
 
-    let response = Client::new(connection_with_invalid_token(env.get_connection_info().origin))
+    let response = ApiHttpClient::new(connection_with_invalid_token(env.get_connection_info().origin))
         .unwrap()
         .get_tracker_statistics(Some(headers_with_request_id(request_id)))
         .await;
@@ -95,7 +95,7 @@ async fn should_not_allow_getting_tracker_statistics_for_unauthenticated_users()
 
     let request_id = Uuid::new_v4();
 
-    let response = Client::new(connection_with_no_token(env.get_connection_info().origin))
+    let response = ApiHttpClient::new(connection_with_no_token(env.get_connection_info().origin))
         .unwrap()
         .get_tracker_statistics(Some(headers_with_request_id(request_id)))
         .await;
