@@ -77,7 +77,11 @@ impl ApiClient {
     /// Returns [`ClientError::ApiError`] if the API returns a non-2xx status.
     /// Returns [`ClientError::DeserializationError`] if the response cannot be parsed.
     pub async fn generate_auth_key(&self, seconds_valid: i32) -> Result<AuthKey, ClientError> {
-        let response = self.inner.generate_auth_key(seconds_valid, None).await;
+        let response = self
+            .inner
+            .post_empty_result(&format!("key/{seconds_valid}"), None)
+            .await
+            .map_err(ClientError::TransportError)?;
         Self::parse_response(response).await
     }
 
@@ -89,7 +93,11 @@ impl ApiClient {
     /// Returns [`ClientError::ApiError`] if the API returns a non-2xx status.
     /// Returns [`ClientError::DeserializationError`] if the response cannot be parsed.
     pub async fn add_auth_key(&self, form: AddKeyForm) -> Result<AuthKey, ClientError> {
-        let response = self.inner.add_auth_key(form, None).await;
+        let response = self
+            .inner
+            .post_form_result("keys", &form, None)
+            .await
+            .map_err(ClientError::TransportError)?;
         Self::parse_response(response).await
     }
 
@@ -100,7 +108,11 @@ impl ApiClient {
     /// Returns [`ClientError::TransportError`] if the request fails.
     /// Returns [`ClientError::ApiError`] if the API returns a non-2xx status.
     pub async fn delete_auth_key(&self, key: &str) -> Result<(), ClientError> {
-        let response = self.inner.delete_auth_key(key, None).await;
+        let response = self
+            .inner
+            .delete_result(&format!("key/{key}"), None)
+            .await
+            .map_err(ClientError::TransportError)?;
         Self::check_success(response).await
     }
 
@@ -111,7 +123,11 @@ impl ApiClient {
     /// Returns [`ClientError::TransportError`] if the request fails.
     /// Returns [`ClientError::ApiError`] if the API returns a non-2xx status.
     pub async fn reload_keys(&self) -> Result<(), ClientError> {
-        let response = self.inner.reload_keys(None).await;
+        let response = self
+            .inner
+            .get_result("keys/reload", Query::default(), None)
+            .await
+            .map_err(ClientError::TransportError)?;
         Self::check_success(response).await
     }
 
@@ -122,7 +138,11 @@ impl ApiClient {
     /// Returns [`ClientError::TransportError`] if the request fails.
     /// Returns [`ClientError::ApiError`] if the API returns a non-2xx status.
     pub async fn whitelist_a_torrent(&self, info_hash: &str) -> Result<(), ClientError> {
-        let response = self.inner.whitelist_a_torrent(info_hash, None).await;
+        let response = self
+            .inner
+            .post_empty_result(&format!("whitelist/{info_hash}"), None)
+            .await
+            .map_err(ClientError::TransportError)?;
         Self::check_success(response).await
     }
 
@@ -133,7 +153,11 @@ impl ApiClient {
     /// Returns [`ClientError::TransportError`] if the request fails.
     /// Returns [`ClientError::ApiError`] if the API returns a non-2xx status.
     pub async fn remove_torrent_from_whitelist(&self, info_hash: &str) -> Result<(), ClientError> {
-        let response = self.inner.remove_torrent_from_whitelist(info_hash, None).await;
+        let response = self
+            .inner
+            .delete_result(&format!("whitelist/{info_hash}"), None)
+            .await
+            .map_err(ClientError::TransportError)?;
         Self::check_success(response).await
     }
 
@@ -144,7 +168,11 @@ impl ApiClient {
     /// Returns [`ClientError::TransportError`] if the request fails.
     /// Returns [`ClientError::ApiError`] if the API returns a non-2xx status.
     pub async fn reload_whitelist(&self) -> Result<(), ClientError> {
-        let response = self.inner.reload_whitelist(None).await;
+        let response = self
+            .inner
+            .get_result("whitelist/reload", Query::default(), None)
+            .await
+            .map_err(ClientError::TransportError)?;
         Self::check_success(response).await
     }
 
@@ -156,7 +184,11 @@ impl ApiClient {
     /// Returns [`ClientError::ApiError`] if the API returns a non-2xx status.
     /// Returns [`ClientError::DeserializationError`] if the response cannot be parsed.
     pub async fn get_torrent(&self, info_hash: &str) -> Result<Torrent, ClientError> {
-        let response = self.inner.get_torrent(info_hash, None).await;
+        let response = self
+            .inner
+            .get_result(&format!("torrent/{info_hash}"), Query::default(), None)
+            .await
+            .map_err(ClientError::TransportError)?;
         Self::parse_response(response).await
     }
 
@@ -168,7 +200,11 @@ impl ApiClient {
     /// Returns [`ClientError::ApiError`] if the API returns a non-2xx status.
     /// Returns [`ClientError::DeserializationError`] if the response cannot be parsed.
     pub async fn get_torrents(&self, params: Query) -> Result<Vec<ListItem>, ClientError> {
-        let response = self.inner.get_torrents(params, None).await;
+        let response = self
+            .inner
+            .get_result("torrents", params, None)
+            .await
+            .map_err(ClientError::TransportError)?;
         Self::parse_response(response).await
     }
 
@@ -180,7 +216,11 @@ impl ApiClient {
     /// Returns [`ClientError::ApiError`] if the API returns a non-2xx status.
     /// Returns [`ClientError::DeserializationError`] if the response cannot be parsed.
     pub async fn get_tracker_statistics(&self) -> Result<Stats, ClientError> {
-        let response = self.inner.get_tracker_statistics(None).await;
+        let response = self
+            .inner
+            .get_result("stats", Query::default(), None)
+            .await
+            .map_err(ClientError::TransportError)?;
         Self::parse_response(response).await
     }
 
@@ -234,59 +274,80 @@ impl ApiHttpClient {
     }
 
     pub async fn generate_auth_key(&self, seconds_valid: i32, headers: Option<HeaderMap>) -> Response {
-        self.post_empty(&format!("key/{seconds_valid}"), headers).await
+        self.post_empty_result(&format!("key/{seconds_valid}"), headers)
+            .await
+            .unwrap()
     }
 
     pub async fn add_auth_key(&self, add_key_form: AddKeyForm, headers: Option<HeaderMap>) -> Response {
-        self.post_form("keys", &add_key_form, headers).await
+        self.post_form_result("keys", &add_key_form, headers).await.unwrap()
     }
 
     pub async fn delete_auth_key(&self, key: &str, headers: Option<HeaderMap>) -> Response {
-        self.delete(&format!("key/{key}"), headers).await
+        self.delete_result(&format!("key/{key}"), headers).await.unwrap()
     }
 
     pub async fn reload_keys(&self, headers: Option<HeaderMap>) -> Response {
-        self.get("keys/reload", Query::default(), headers).await
+        self.get_result("keys/reload", Query::default(), headers).await.unwrap()
     }
 
     pub async fn whitelist_a_torrent(&self, info_hash: &str, headers: Option<HeaderMap>) -> Response {
-        self.post_empty(&format!("whitelist/{info_hash}"), headers).await
+        self.post_empty_result(&format!("whitelist/{info_hash}"), headers)
+            .await
+            .unwrap()
     }
 
     pub async fn remove_torrent_from_whitelist(&self, info_hash: &str, headers: Option<HeaderMap>) -> Response {
-        self.delete(&format!("whitelist/{info_hash}"), headers).await
+        self.delete_result(&format!("whitelist/{info_hash}"), headers).await.unwrap()
     }
 
     pub async fn reload_whitelist(&self, headers: Option<HeaderMap>) -> Response {
-        self.get("whitelist/reload", Query::default(), headers).await
+        self.get_result("whitelist/reload", Query::default(), headers).await.unwrap()
     }
 
     pub async fn get_torrent(&self, info_hash: &str, headers: Option<HeaderMap>) -> Response {
-        self.get(&format!("torrent/{info_hash}"), Query::default(), headers).await
+        self.get_result(&format!("torrent/{info_hash}"), Query::default(), headers)
+            .await
+            .unwrap()
     }
 
     pub async fn get_torrents(&self, params: Query, headers: Option<HeaderMap>) -> Response {
-        self.get("torrents", params, headers).await
+        self.get_result("torrents", params, headers).await.unwrap()
     }
 
     pub async fn get_tracker_statistics(&self, headers: Option<HeaderMap>) -> Response {
-        self.get("stats", Query::default(), headers).await
+        self.get_result("stats", Query::default(), headers).await.unwrap()
     }
 
     pub async fn get(&self, path: &str, params: Query, headers: Option<HeaderMap>) -> Response {
+        self.get_result(path, params, headers).await.unwrap()
+    }
+
+    /// Fallible version of [`Self::get`] that returns a `Result` instead of panicking.
+    pub(crate) async fn get_result(
+        &self,
+        path: &str,
+        params: Query,
+        headers: Option<HeaderMap>,
+    ) -> Result<Response, reqwest::Error> {
         let mut query: Query = params;
 
         if let Some(token) = &self.connection_info.api_token {
             query.add_param(QueryParam::new(TOKEN_PARAM_NAME, token));
         }
 
-        self.get_request_with_query(path, query, headers).await
+        self.get_request_with_query_result(path, query, headers).await
     }
 
     /// # Panics
     ///
     /// Will panic if the request can't be sent
     pub async fn post_empty(&self, path: &str, headers: Option<HeaderMap>) -> Response {
+        self.post_empty_result(path, headers).await.unwrap()
+    }
+
+    /// Fallible version of [`Self::post_empty`] that returns a `Result` instead of panicking.
+    pub(crate) async fn post_empty_result(&self, path: &str, headers: Option<HeaderMap>) -> Result<Response, reqwest::Error> {
         let builder = self.http_client.post(self.base_url(path).clone());
 
         let builder = match headers {
@@ -299,13 +360,23 @@ impl ApiHttpClient {
             None => builder,
         };
 
-        builder.send().await.unwrap()
+        builder.send().await
     }
 
     /// # Panics
     ///
     /// Will panic if the request can't be sent
     pub async fn post_form<T: Serialize + ?Sized>(&self, path: &str, form: &T, headers: Option<HeaderMap>) -> Response {
+        self.post_form_result(path, form, headers).await.unwrap()
+    }
+
+    /// Fallible version of [`Self::post_form`] that returns a `Result` instead of panicking.
+    pub(crate) async fn post_form_result<T: Serialize + ?Sized>(
+        &self,
+        path: &str,
+        form: &T,
+        headers: Option<HeaderMap>,
+    ) -> Result<Response, reqwest::Error> {
         let builder = self.http_client.post(self.base_url(path).clone()).json(&form);
 
         let builder = match headers {
@@ -318,13 +389,18 @@ impl ApiHttpClient {
             None => builder,
         };
 
-        builder.send().await.unwrap()
+        builder.send().await
     }
 
     /// # Panics
     ///
     /// Will panic if the request can't be sent
     async fn delete(&self, path: &str, headers: Option<HeaderMap>) -> Response {
+        self.delete_result(path, headers).await.unwrap()
+    }
+
+    /// Fallible version of [`Self::delete`] that returns a `Result` instead of panicking.
+    async fn delete_result(&self, path: &str, headers: Option<HeaderMap>) -> Result<Response, reqwest::Error> {
         let builder = self.http_client.delete(self.base_url(path).clone());
 
         let builder = match headers {
@@ -337,13 +413,23 @@ impl ApiHttpClient {
             None => builder,
         };
 
-        builder.send().await.unwrap()
+        builder.send().await
     }
 
     /// # Panics
     ///
     /// Will panic if it can't convert the authentication token to a `HeaderValue`.
     pub async fn get_request_with_query(&self, path: &str, params: Query, headers: Option<HeaderMap>) -> Response {
+        self.get_request_with_query_result(path, params, headers).await.unwrap()
+    }
+
+    /// Fallible version of [`Self::get_request_with_query`] that returns a `Result` instead of panicking.
+    pub(crate) async fn get_request_with_query_result(
+        &self,
+        path: &str,
+        params: Query,
+        headers: Option<HeaderMap>,
+    ) -> Result<Response, reqwest::Error> {
         match &self.connection_info.api_token {
             Some(token) => {
                 let headers = if let Some(headers) = headers {
@@ -379,14 +465,22 @@ impl ApiHttpClient {
                     headers
                 };
 
-                get(self.base_url(path), Some(params), Some(headers)).await
+                get_result(self.base_url(path), Some(params), Some(headers)).await
             }
-            None => get(self.base_url(path), Some(params), headers).await,
+            None => get_result(self.base_url(path), Some(params), headers).await,
         }
     }
 
+    /// # Panics
+    ///
+    /// Will panic if the request can't be sent
     pub async fn get_request(&self, path: &str) -> Response {
         get(self.base_url(path), None, None).await
+    }
+
+    /// Fallible version of [`Self::get_request`] that returns a `Result` instead of panicking.
+    pub(crate) async fn get_request_result(&self, path: &str) -> Result<Response, reqwest::Error> {
+        get_result(self.base_url(path), None, None).await
     }
 
     fn base_url(&self, path: &str) -> Url {
@@ -398,10 +492,14 @@ impl ApiHttpClient {
 ///
 /// Will panic if the request can't be sent
 pub async fn get(path: Url, query: Option<Query>, headers: Option<HeaderMap>) -> Response {
+    get_result(path, query, headers).await.unwrap()
+}
+
+/// Fallible version of [`get`] that returns a `Result` instead of panicking.
+pub(crate) async fn get_result(path: Url, query: Option<Query>, headers: Option<HeaderMap>) -> Result<Response, reqwest::Error> {
     let client = reqwest::Client::builder()
         .timeout(Duration::from_secs(DEFAULT_REQUEST_TIMEOUT_IN_SECS))
-        .build()
-        .unwrap();
+        .build()?;
 
     let mut request_builder = client.get(path);
 
@@ -413,7 +511,7 @@ pub async fn get(path: Url, query: Option<Query>, headers: Option<HeaderMap>) ->
         request_builder = request_builder.headers(headers);
     }
 
-    request_builder.send().await.unwrap()
+    request_builder.send().await
 }
 
 /// Returns a `HeaderMap` with a request id header.
