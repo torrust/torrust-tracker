@@ -15,7 +15,7 @@ This directory contains tools and templates for managing GitHub Copilot code rev
 ## Files
 
 - [docs/templates/COPILOT-SUGGESTIONS-TEMPLATE.md](../templates/COPILOT-SUGGESTIONS-TEMPLATE.md) — Reusable template for tracking and processing Copilot suggestions on any PR. Copy and customize for each new PR.
-- **pr-1733-copilot-suggestions.md** — Example of a completed suggestion review for PR #1733, showing how to document decisions, process suggestions, and track resolutions.
+- **EXAMPLE-COMPLETED.md** — Example of a completed suggestion review, showing how to document decisions, process suggestions, and track resolutions. Use uppercase `EXAMPLE` files as reference; copy the template from `docs/templates/COPILOT-SUGGESTIONS-TEMPLATE.md` for new PRs.
 
 ## Workflow
 
@@ -33,4 +33,4 @@ This directory contains tools and templates for managing GitHub Copilot code rev
 
 ## Example
 
-See `pr-1733-copilot-suggestions.md` for a complete example where all 26 Copilot suggestions were reviewed, processed, and resolved.
+See `EXAMPLE-COMPLETED.md` for a complete example where all 26 Copilot suggestions were reviewed, processed, and resolved.

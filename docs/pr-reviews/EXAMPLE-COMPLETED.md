@@ -6,9 +6,9 @@ semantic-links:
     - docs/pr-reviews/README.md
 ---
 
-# PR #1733 Copilot Suggestions Tracking
+# PR #<PR_NUMBER> Copilot Suggestions Tracking (EXAMPLE - COMPLETED)
 
-Source: Copilot PR review threads for https://github.com/torrust/torrust-tracker/pull/1733
+Source: Copilot PR review threads for https://github.com/torrust/torrust-tracker/pull/<PR_NUMBER>
 
 Status legend:
 
@@ -18,9 +18,9 @@ Status legend:
 
 ## Processing Log
 
-- 2026-05-06: Started processing suggestions (downloaded 26 threads from PR #1733)
-- 2026-05-06: Applied code/doc fixes and committed changes
-- 2026-05-06: Resolved all 26 threads in PR #1733
+- <YYYY-MM-DD>: Started processing suggestions (downloaded 26 threads from PR #<PR_NUMBER>)
+- <YYYY-MM-DD>: Applied code/doc fixes and committed changes
+- <YYYY-MM-DD>: Resolved all 26 threads in PR #<PR_NUMBER>
 
 All suggestions (action and no-action) have been processed and marked resolved.
 
