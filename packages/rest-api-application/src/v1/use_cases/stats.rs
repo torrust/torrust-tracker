@@ -3,7 +3,7 @@
 //! Orchestrates calls to the [`StatsQueryPort`] to retrieve tracker metrics.
 use torrust_tracker_rest_api_protocol::v1::context::stats::resources::stats::{LabeledStats, Stats};
 
-use crate::ports::stats::StatsQueryPort;
+use crate::v1::ports::stats::StatsQueryPort;
 
 /// Use-case service for stats-related API operations.
 ///

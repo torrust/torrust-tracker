@@ -14,5 +14,4 @@
 //! - Axum server routing or middleware.
 //! - Tracker internal database or domain logic.
 //! - Protocol DTOs (those belong to `rest-api-protocol`).
-pub mod ports;
-pub mod use_cases;
+pub mod v1;

@@ -14,6 +14,4 @@
 //! - Protocol DTOs (those belong to `rest-api-protocol`).
 //! - Use-case services (those belong to `rest-api-application`).
 //! - Axum server routing or middleware.
-pub mod adapters;
-pub mod container;
-pub mod conversion;
+pub mod v1;

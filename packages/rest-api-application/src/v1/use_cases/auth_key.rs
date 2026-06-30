@@ -5,7 +5,7 @@
 use torrust_tracker_rest_api_protocol::v1::context::auth_key::forms::add_key_form::AddKeyForm;
 use torrust_tracker_rest_api_protocol::v1::context::auth_key::resources::auth_key::{AuthKey, AuthKeyError};
 
-use crate::ports::auth_key::AuthKeyPort;
+use crate::v1::ports::auth_key::AuthKeyPort;
 
 /// Use-case service for auth-key-related API operations.
 ///

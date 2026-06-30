@@ -5240,6 +5240,7 @@ version = "3.0.0-develop"
 dependencies = [
  "async-trait",
  "tokio",
+ "torrust-clock",
  "torrust-info-hash",
  "torrust-metrics",
  "torrust-tracker-configuration",

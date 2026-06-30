@@ -10,7 +10,7 @@ use std::sync::Arc;
 
 use axum::Router;
 use axum::routing::{get, post};
-use torrust_tracker_rest_api_application::use_cases::auth_key::AuthKeyApiService;
+use torrust_tracker_rest_api_application::v1::use_cases::auth_key::AuthKeyApiService;
 
 use super::handlers::{add_auth_key_handler, delete_auth_key_handler, generate_auth_key_handler, reload_keys_handler};
 

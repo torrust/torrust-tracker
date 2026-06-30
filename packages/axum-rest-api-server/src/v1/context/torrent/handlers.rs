@@ -11,7 +11,7 @@ use serde::{Deserialize, Deserializer, de};
 use thiserror::Error;
 use torrust_info_hash::InfoHash;
 use torrust_tracker_primitives::pagination::Pagination;
-use torrust_tracker_rest_api_application::use_cases::torrent::TorrentApiService;
+use torrust_tracker_rest_api_application::v1::use_cases::torrent::TorrentApiService;
 
 use super::responses::{torrent_info_response, torrent_list_response, torrent_not_known_response};
 use crate::InfoHashParam;

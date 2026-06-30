@@ -4,7 +4,7 @@ use std::sync::Arc;
 use axum::extract::{self, Path, State};
 use axum::response::Response;
 use serde::Deserialize;
-use torrust_tracker_rest_api_application::use_cases::auth_key::AuthKeyApiService;
+use torrust_tracker_rest_api_application::v1::use_cases::auth_key::AuthKeyApiService;
 use torrust_tracker_rest_api_protocol::v1::context::auth_key::forms::add_key_form::AddKeyForm;
 
 use super::responses::{

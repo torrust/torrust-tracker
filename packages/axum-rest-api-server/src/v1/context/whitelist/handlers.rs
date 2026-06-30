@@ -6,7 +6,7 @@ use std::sync::Arc;
 use axum::extract::{Path, State};
 use axum::response::Response;
 use torrust_info_hash::InfoHash;
-use torrust_tracker_rest_api_application::use_cases::whitelist::WhitelistApiService;
+use torrust_tracker_rest_api_application::v1::use_cases::whitelist::WhitelistApiService;
 
 use super::responses::{
     failed_to_reload_whitelist_response, failed_to_remove_torrent_from_whitelist_response, failed_to_whitelist_torrent_response,
