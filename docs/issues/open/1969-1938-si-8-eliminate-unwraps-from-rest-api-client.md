@@ -37,7 +37,7 @@ The calls fall into two categories:
 These are real failure points — network errors, URL parsing failures, etc. They must return `Result`:
 
 1. **11 public `ApiHttpClient` methods** — thin wrappers that delegate to fallible `*_result()` counterparts but `.unwrap()` the result.
-2. **`post_empty()`, `post_form()`, `delete()`** (private) — same wrapper-with-unwrap pattern.
+2. **`post_empty()`, `post_form()`** (private) — same wrapper-with-unwrap pattern.
 3. **`get()` (pub method on `ApiHttpClient`)** — same pattern.
 4. **`get()` (pub free function)** — thin wrapper around `get_result()`.
 5. **`get_request()` (pub on `ApiHttpClient`)** — calls `base_url()` which already returns `Result`.
@@ -56,7 +56,7 @@ These are provably infallible operations where a descriptive `expect` message is
 
 - Change all panicking public `ApiHttpClient` methods to return `Result<Response, ClientError>` instead of `Response`.
 - Update all caller sites across the repository (contract tests, E2E tests, integration tests) to handle the new `Result` return types.
-- Change helper functions (`post_empty`, `post_form`, `delete`, `get`, `get_request`, `get()`) to return `Result`.
+- Change helper functions (`post_empty`, `post_form`, `get`, `get_request`, `get()`) to return `Result`.
 - Replace bare `.unwrap()` with `.expect("infallible: ...")` in `headers_with_request_id()`, `headers_with_auth_token()`, and `get_request_with_query_result()` auth token inserts.
 - Update issue spec and documentation.
 
@@ -97,4 +97,5 @@ These are provably infallible operations where a descriptive `expect` message is
 
 | Date       | Event              |
 | ---------- | ------------------ |
-| 2026-06-30 | Draft spec created |
+| 2026-06-30 | Spec drafted       |
+| 2026-06-30 | Spec moved to open |
