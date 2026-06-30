@@ -24,6 +24,16 @@ semantic-links:
 
 ## Subissue of REST API Contract-First Migration EPIC
 
+## Clarifying Decisions (from AI agent Q&A with user)
+
+- **`AddKeyForm`**: Use the protocol package's `AddKeyForm` (with field `opt_seconds_valid`) and remove the local `AddKeyForm` from client.
+- **`ClientError` enum variants**:
+  - `TransportError(reqwest::Error)` — network/connection failures
+  - `ApiError { status: StatusCode, body: String }` — non-2xx responses with the error body
+  - `DeserializationError(reqwest::Error)` — JSON parsing failures
+- **Public `get()` function**: Keep as a public free function (used by health_check tests directly).
+- **Re-export strategy**: Re-export both `ApiClient` and `ApiHttpClient` from the crate root for ergonomics.
+
 ## Problem
 
 The REST API client package (`torrust-tracker-rest-api-client`) currently exposes only a **low-level** `Client` struct where all 10 methods return raw `reqwest::Response` values. Callers must manually deserialize responses and handle errors. Some internal methods use `.unwrap()`, panicking on transport errors.
@@ -175,23 +185,23 @@ impl ApiClient {
 
 | ID  | Status | Task                                                         | Notes                                            |
 | --- | ------ | ------------------------------------------------------------ | ------------------------------------------------ |
-| T1  | TODO   | Rename `Client` → `ApiHttpClient` in `client.rs`             | Compiler catches all references                  |
-| T2  | TODO   | Add `rest-api-protocol` to `rest-api-client/Cargo.toml`      |                                                  |
-| T3  | TODO   | Define `ClientError` enum                                    | Wraps reqwest error, deserialization, API errors |
-| T4  | TODO   | Add `ApiClient` struct before `ApiHttpClient` in `client.rs` | New high-level typed client                      |
-| T5  | TODO   | Implement typed methods on `ApiClient` for all endpoints     | Returns `Result<DtoType, ClientError>`           |
-| T6  | TODO   | Verify pre-commit and pre-push checks pass                   |                                                  |
+| T1  | DONE   | Rename `Client` → `ApiHttpClient` in `client.rs`             | Compiler catches all references                  |
+| T2  | DONE   | Add `rest-api-protocol` to `rest-api-client/Cargo.toml`      |                                                  |
+| T3  | DONE   | Define `ClientError` enum                                    | Wraps reqwest error, deserialization, API errors |
+| T4  | DONE   | Add `ApiClient` struct before `ApiHttpClient` in `client.rs` | New high-level typed client                      |
+| T5  | DONE   | Implement typed methods on `ApiClient` for all endpoints     | Returns `Result<DtoType, ClientError>`           |
+| T6  | DONE   | Verify pre-commit and pre-push checks pass                   |                                                  |
 
 ## Verification / Progress
 
-- [ ] `Client` renamed to `ApiHttpClient` across the codebase
-- [ ] `rest-api-protocol` added as dependency
-- [ ] `ClientError` enum defined
-- [ ] `ApiClient` struct with typed methods for all endpoints added
-- [ ] `ApiClient` appears before `ApiHttpClient` in `client.rs`
-- [ ] All existing tests pass unchanged
-- [ ] Pre-commit checks pass
-- [ ] Pre-push checks pass
+- [x] `Client` renamed to `ApiHttpClient` across the codebase
+- [x] `rest-api-protocol` added as dependency
+- [x] `ClientError` enum defined
+- [x] `ApiClient` struct with typed methods for all endpoints added
+- [x] `ApiClient` appears before `ApiHttpClient` in `client.rs`
+- [x] All existing tests pass unchanged
+- [x] Pre-commit checks pass
+- [x] Pre-push checks pass
 
 ### Progress Log
 

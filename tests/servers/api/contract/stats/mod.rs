@@ -9,7 +9,7 @@ use torrust_tracker_client::http::client::Client as HttpTrackerClient;
 use torrust_tracker_client::http::client::requests::announce::QueryBuilder;
 use torrust_tracker_lib::app;
 use torrust_tracker_rest_api_client::connection_info::{ConnectionInfo, Origin};
-use torrust_tracker_rest_api_client::v1::client::Client as TrackerApiClient;
+use torrust_tracker_rest_api_client::v1::client::ApiHttpClient as TrackerApiClient;
 
 #[tokio::test]
 async fn the_stats_api_endpoint_should_return_the_global_stats() {

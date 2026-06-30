@@ -4,7 +4,7 @@ mod given_that_the_token_is_only_provided_in_the_authentication_header {
     use torrust_tracker_rest_api_client::common::http::Query;
     use torrust_tracker_rest_api_client::connection_info::ConnectionInfo;
     use torrust_tracker_rest_api_client::v1::client::{
-        AUTH_BEARER_TOKEN_HEADER_PREFIX, Client, headers_with_auth_token, headers_with_request_id,
+        AUTH_BEARER_TOKEN_HEADER_PREFIX, ApiHttpClient, headers_with_auth_token, headers_with_request_id,
     };
     use torrust_tracker_test_helpers::logging::logs_contains_a_line_with;
     use torrust_tracker_test_helpers::{configuration, logging};
@@ -20,7 +20,7 @@ mod given_that_the_token_is_only_provided_in_the_authentication_header {
 
         let token = env.get_connection_info().api_token.unwrap();
 
-        let response = Client::new(env.get_connection_info())
+        let response = ApiHttpClient::new(env.get_connection_info())
             .unwrap()
             .get_request_with_query("stats", Query::default(), Some(headers_with_auth_token(&token)))
             .await;
@@ -48,7 +48,7 @@ mod given_that_the_token_is_only_provided_in_the_authentication_header {
                 .expect("the auth token is not a valid header value"),
         );
 
-        let response = Client::new(env.get_connection_info())
+        let response = ApiHttpClient::new(env.get_connection_info())
             .unwrap()
             .get_request_with_query("stats", Query::default(), Some(headers))
             .await;
@@ -83,7 +83,7 @@ mod given_that_the_token_is_only_provided_in_the_authentication_header {
 
         let connection_info = ConnectionInfo::anonymous(env.get_connection_info().origin);
 
-        let response = Client::new(connection_info)
+        let response = ApiHttpClient::new(connection_info)
             .unwrap()
             .get_request_with_query("stats", Query::default(), Some(headers))
             .await;
@@ -103,7 +103,7 @@ mod given_that_the_token_is_only_provided_in_the_query_param {
     use torrust_tracker_axum_rest_api_server::testing::environment::Started;
     use torrust_tracker_rest_api_client::common::http::{Query, QueryParam};
     use torrust_tracker_rest_api_client::connection_info::ConnectionInfo;
-    use torrust_tracker_rest_api_client::v1::client::{Client, TOKEN_PARAM_NAME, headers_with_request_id};
+    use torrust_tracker_rest_api_client::v1::client::{ApiHttpClient, TOKEN_PARAM_NAME, headers_with_request_id};
     use torrust_tracker_test_helpers::logging::logs_contains_a_line_with;
     use torrust_tracker_test_helpers::{configuration, logging};
     use uuid::Uuid;
@@ -120,7 +120,7 @@ mod given_that_the_token_is_only_provided_in_the_query_param {
 
         let connection_info = ConnectionInfo::anonymous(env.get_connection_info().origin);
 
-        let response = Client::new(connection_info)
+        let response = ApiHttpClient::new(connection_info)
             .unwrap()
             .get_request_with_query(
                 "stats",
@@ -144,7 +144,7 @@ mod given_that_the_token_is_only_provided_in_the_query_param {
 
         let connection_info = ConnectionInfo::anonymous(env.get_connection_info().origin);
 
-        let response = Client::new(connection_info)
+        let response = ApiHttpClient::new(connection_info)
             .unwrap()
             .get_request_with_query(
                 "stats",
@@ -173,7 +173,7 @@ mod given_that_the_token_is_only_provided_in_the_query_param {
 
         let connection_info = ConnectionInfo::anonymous(env.get_connection_info().origin);
 
-        let response = Client::new(connection_info)
+        let response = ApiHttpClient::new(connection_info)
             .unwrap()
             .get_request_with_query(
                 "stats",
@@ -203,7 +203,7 @@ mod given_that_the_token_is_only_provided_in_the_query_param {
         let connection_info = ConnectionInfo::anonymous(env.get_connection_info().origin);
 
         // At the beginning of the query component
-        let response = Client::new(connection_info)
+        let response = ApiHttpClient::new(connection_info)
             .unwrap()
             .get_request(&format!("torrents?token={token}&limit=1"))
             .await;
@@ -211,7 +211,7 @@ mod given_that_the_token_is_only_provided_in_the_query_param {
         assert_eq!(response.status(), 200);
 
         // At the end of the query component
-        let response = Client::new(env.get_connection_info())
+        let response = ApiHttpClient::new(env.get_connection_info())
             .unwrap()
             .get_request(&format!("torrents?limit=1&token={token}"))
             .await;
@@ -227,7 +227,7 @@ mod given_that_not_token_is_provided {
     use torrust_tracker_axum_rest_api_server::testing::environment::Started;
     use torrust_tracker_rest_api_client::common::http::Query;
     use torrust_tracker_rest_api_client::connection_info::ConnectionInfo;
-    use torrust_tracker_rest_api_client::v1::client::{Client, headers_with_request_id};
+    use torrust_tracker_rest_api_client::v1::client::{ApiHttpClient, headers_with_request_id};
     use torrust_tracker_test_helpers::logging::logs_contains_a_line_with;
     use torrust_tracker_test_helpers::{configuration, logging};
     use uuid::Uuid;
@@ -244,7 +244,7 @@ mod given_that_not_token_is_provided {
 
         let connection_info = ConnectionInfo::anonymous(env.get_connection_info().origin);
 
-        let response = Client::new(connection_info)
+        let response = ApiHttpClient::new(connection_info)
             .unwrap()
             .get_request_with_query("stats", Query::default(), Some(headers_with_request_id(request_id)))
             .await;
@@ -263,7 +263,7 @@ mod given_that_not_token_is_provided {
 mod given_that_token_is_provided_via_get_param_and_authentication_header {
     use torrust_tracker_axum_rest_api_server::testing::environment::Started;
     use torrust_tracker_rest_api_client::common::http::{Query, QueryParam};
-    use torrust_tracker_rest_api_client::v1::client::{Client, TOKEN_PARAM_NAME, headers_with_auth_token};
+    use torrust_tracker_rest_api_client::v1::client::{ApiHttpClient, TOKEN_PARAM_NAME, headers_with_auth_token};
     use torrust_tracker_test_helpers::{configuration, logging};
 
     #[tokio::test]
@@ -276,7 +276,7 @@ mod given_that_token_is_provided_via_get_param_and_authentication_header {
 
         let non_authorized_token = "NonAuthorizedToken";
 
-        let response = Client::new(env.get_connection_info())
+        let response = ApiHttpClient::new(env.get_connection_info())
             .unwrap()
             .get_request_with_query(
                 "stats",
