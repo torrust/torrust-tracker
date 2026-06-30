@@ -420,13 +420,6 @@ impl ApiHttpClient {
         Ok(builder.send().await?)
     }
 
-    /// # Panics
-    ///
-    /// Will panic if the request can't be sent
-    async fn delete(&self, path: &str, headers: Option<HeaderMap>) -> Response {
-        self.delete_result(path, headers).await.unwrap()
-    }
-
     /// Fallible version of [`Self::delete`] that returns a `Result` instead of panicking.
     async fn delete_result(&self, path: &str, headers: Option<HeaderMap>) -> Result<Response, ClientError> {
         let builder = self.http_client.delete(self.base_url(path)?.clone());
@@ -505,11 +498,6 @@ impl ApiHttpClient {
     /// Will panic if the request can't be sent
     pub async fn get_request(&self, path: &str) -> Response {
         get(self.base_url(path).unwrap(), None, None).await
-    }
-
-    /// Fallible version of [`Self::get_request`] that returns a `Result` instead of panicking.
-    pub(crate) async fn get_request_result(&self, path: &str) -> Result<Response, ClientError> {
-        get_result(self.base_url(path)?, None, None).await
     }
 
     fn base_url(&self, path: &str) -> Result<Url, ClientError> {
