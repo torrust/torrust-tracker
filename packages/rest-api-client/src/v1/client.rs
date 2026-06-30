@@ -273,52 +273,107 @@ impl ApiHttpClient {
         })
     }
 
+    /// Generates a new random authentication key valid for `seconds_valid`.
+    ///
+    /// # Panics
+    ///
+    /// Will panic if the request can't be sent.
     pub async fn generate_auth_key(&self, seconds_valid: i32, headers: Option<HeaderMap>) -> Response {
         self.post_empty_result(&format!("key/{seconds_valid}"), headers)
             .await
             .unwrap()
     }
 
+    /// Adds a new authentication key using the provided form data.
+    ///
+    /// # Panics
+    ///
+    /// Will panic if the request can't be sent.
     pub async fn add_auth_key(&self, add_key_form: AddKeyForm, headers: Option<HeaderMap>) -> Response {
         self.post_form_result("keys", &add_key_form, headers).await.unwrap()
     }
 
+    /// Deletes an authentication key.
+    ///
+    /// # Panics
+    ///
+    /// Will panic if the request can't be sent.
     pub async fn delete_auth_key(&self, key: &str, headers: Option<HeaderMap>) -> Response {
         self.delete_result(&format!("key/{key}"), headers).await.unwrap()
     }
 
+    /// Reloads authentication keys from the database.
+    ///
+    /// # Panics
+    ///
+    /// Will panic if the request can't be sent.
     pub async fn reload_keys(&self, headers: Option<HeaderMap>) -> Response {
         self.get_result("keys/reload", Query::default(), headers).await.unwrap()
     }
 
+    /// Whitelists a torrent by info hash.
+    ///
+    /// # Panics
+    ///
+    /// Will panic if the request can't be sent.
     pub async fn whitelist_a_torrent(&self, info_hash: &str, headers: Option<HeaderMap>) -> Response {
         self.post_empty_result(&format!("whitelist/{info_hash}"), headers)
             .await
             .unwrap()
     }
 
+    /// Removes a torrent from the whitelist.
+    ///
+    /// # Panics
+    ///
+    /// Will panic if the request can't be sent.
     pub async fn remove_torrent_from_whitelist(&self, info_hash: &str, headers: Option<HeaderMap>) -> Response {
         self.delete_result(&format!("whitelist/{info_hash}"), headers).await.unwrap()
     }
 
+    /// Reloads the whitelist from the database.
+    ///
+    /// # Panics
+    ///
+    /// Will panic if the request can't be sent.
     pub async fn reload_whitelist(&self, headers: Option<HeaderMap>) -> Response {
         self.get_result("whitelist/reload", Query::default(), headers).await.unwrap()
     }
 
+    /// Gets a single torrent by info hash.
+    ///
+    /// # Panics
+    ///
+    /// Will panic if the request can't be sent.
     pub async fn get_torrent(&self, info_hash: &str, headers: Option<HeaderMap>) -> Response {
         self.get_result(&format!("torrent/{info_hash}"), Query::default(), headers)
             .await
             .unwrap()
     }
 
+    /// Gets a list of torrents matching the query parameters.
+    ///
+    /// # Panics
+    ///
+    /// Will panic if the request can't be sent.
     pub async fn get_torrents(&self, params: Query, headers: Option<HeaderMap>) -> Response {
         self.get_result("torrents", params, headers).await.unwrap()
     }
 
+    /// Gets tracker statistics.
+    ///
+    /// # Panics
+    ///
+    /// Will panic if the request can't be sent.
     pub async fn get_tracker_statistics(&self, headers: Option<HeaderMap>) -> Response {
         self.get_result("stats", Query::default(), headers).await.unwrap()
     }
 
+    /// Performs a GET request.
+    ///
+    /// # Panics
+    ///
+    /// Will panic if the request can't be sent.
     pub async fn get(&self, path: &str, params: Query, headers: Option<HeaderMap>) -> Response {
         self.get_result(path, params, headers).await.unwrap()
     }
