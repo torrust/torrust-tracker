@@ -161,8 +161,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [ ] AC3: `PROTOCOL_ID` no longer exists in `tracker-client`
 - [ ] AC4: Each location listed in the "Intentional duplications" section has an `adr:` comment referencing the ADR
 - [ ] AC5: All existing tests pass (`cargo test --workspace`)
-- [ ] AC5: `linter all` exits with code `0`
-- [ ] AC6: Pre-commit and pre-push checks pass
+- [ ] AC6: `linter all` exits with code `0`
+- [ ] AC7: Pre-commit and pre-push checks pass
 - [ ] Manual verification scenarios are executed and documented (status + evidence)
 - [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
 

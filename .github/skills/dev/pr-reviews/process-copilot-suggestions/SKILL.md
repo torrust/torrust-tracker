@@ -174,7 +174,7 @@ Both are integrated into this workflow automatically.
 
 ## Example
 
-See `docs/pr-reviews/pr-1733-copilot-suggestions.md` for a complete worked example
+See `docs/pr-reviews/EXAMPLE-COMPLETED.md` for a complete worked example
 with all 26 Copilot suggestions processed, decided, and resolved.
 
 ## Completion Checklist

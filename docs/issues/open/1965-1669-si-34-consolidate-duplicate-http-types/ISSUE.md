@@ -149,9 +149,9 @@ issue folder. The Evidence column below links to the relevant section of that fi
 
 **Skills used during manual verification**:
 
-- **Run tracker locally**: [`.github/skills/dev/environment-setup/run-tracker-locally/SKILL.md`](../../.github/skills/dev/environment-setup/run-tracker-locally/SKILL.md) — start the tracker with default development configuration
+- **Run tracker locally**: [`../../../../.github/skills/dev/environment-setup/run-tracker-locally/SKILL.md`](../../../../.github/skills/dev/environment-setup/run-tracker-locally/SKILL.md) — start the tracker with default development configuration
 - **Tracker client**: No dedicated skill exists yet. A `use-tracker-client` skill will be created
-  in `.github/skills/usage/` as the final step of this issue, capturing the learnings from the
+  in `../../../../.github/skills/usage/` as the final step of this issue, capturing the learnings from the
   manual verification process.
 
 | ID  | Scenario                                        | Command/Steps                                                                            | Expected Result                                     | Status | Evidence                             |

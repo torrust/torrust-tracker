@@ -1,3 +1,13 @@
+---
+doc-type: issue
+issue-type: task
+status: planned
+priority: p1
+github-issue: 1965
+spec-path: docs/issues/open/1965-1669-si-34-consolidate-duplicate-http-types/manual-verification.md
+last-updated-utc: 2026-06-30 12:00
+---
+
 # Manual Verification — Issue #1965 (EPIC 1669 SI-34)
 
 > This file records manual verification evidence for the issue.
