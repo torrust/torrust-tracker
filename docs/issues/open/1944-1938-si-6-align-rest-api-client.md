@@ -190,7 +190,7 @@ impl ApiClient {
 | T3  | DONE   | Define `ClientError` enum                                    | Wraps reqwest error, deserialization, API errors |
 | T4  | DONE   | Add `ApiClient` struct before `ApiHttpClient` in `client.rs` | New high-level typed client                      |
 | T5  | DONE   | Implement typed methods on `ApiClient` for all endpoints     | Returns `Result<DtoType, ClientError>`           |
-| T6  | TODO   | Verify pre-commit and pre-push checks pass                   |                                                  |
+| T6  | DONE   | Verify pre-commit and pre-push checks pass                   |                                                  |
 
 ## Verification / Progress
 
@@ -200,8 +200,8 @@ impl ApiClient {
 - [x] `ApiClient` struct with typed methods for all endpoints added
 - [x] `ApiClient` appears before `ApiHttpClient` in `client.rs`
 - [x] All existing tests pass unchanged
-- [ ] Pre-commit checks pass
-- [ ] Pre-push checks pass
+- [x] Pre-commit checks pass
+- [x] Pre-push checks pass
 
 ### Progress Log
 
