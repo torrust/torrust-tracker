@@ -118,7 +118,7 @@ jobs:
           toolchain: ${{ matrix.toolchain }}
       - id: test
         name: Run Tests for ${{ needs.extract-crate.outputs.crate-name }}
-        run: cargo test -p "${{ needs.extract-crate.outputs.crate-name }}"
+        run: cargo test -p "${{ needs.extract-crate.outputs.crate-name }}" --all-targets --all-features
 
   publish:
     name: Publish
