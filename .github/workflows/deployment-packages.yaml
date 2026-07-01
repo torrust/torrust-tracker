@@ -1,0 +1,162 @@
+# Deployment (Workspace Packages)
+#
+# adr: docs/adrs/20260629000000_adopt_independent_package_versioning.md
+#
+# PRIMARY publishing path for publishable workspace packages. Every publishable crate versions
+# independently and is published independently via this workflow as it
+# evolves. By the time a tracker release happens, all dependency crates
+# are already on crates.io — the tracker release workflow only needs to
+# publish the final `torrust-tracker` binary crate.
+#
+# This workflow is tier-independent — it handles any publishable workspace crate
+# regardless of whether it's a runtime, API contract, or utility package.
+# The four-tier model (runtime / API contract / platform-utility / unpublished tooling) describes
+# versioning semantics, not publish mechanics.
+#
+# When to use:
+#   - You bumped a publishable crate version and it needs to be published.
+#   - You need to publish a crate for extraction to a standalone repository.
+#
+# Triggered by:
+#   - Pushing a branch matching releases/pkg/<crate-name>/v<semver>
+#   - Manual workflow_dispatch with a package name (for urgent patches)
+#
+# Branch/tag conventions:
+#   Branch: releases/pkg/<crate-name>/v<semver>
+#   Tag:    pkg/<crate-name>/v<semver> (signed, created manually after CI success)
+#
+# See docs/release_process.md for the full manual workflow.
+
+name: Deployment (Packages)
+
+on:
+  push:
+    branches:
+      - "releases/pkg/**"
+  workflow_dispatch:
+    inputs:
+      crate-name:
+        description: "Crate to publish (e.g., torrust-tracker-udp-protocol)"
+        required: true
+        type: string
+
+jobs:
+  extract-crate:
+    name: Extract Crate Name
+    runs-on: ubuntu-latest
+    outputs:
+      crate-name: ${{ steps.extract.outputs.crate-name }}
+    steps:
+      - id: extract
+        name: Extract Crate Name from Branch or Input
+        env:
+          INPUT_CRATE_NAME: ${{ inputs.crate-name }}
+        run: |
+          if [ -n "$INPUT_CRATE_NAME" ]; then
+            # Use heredoc to avoid output injection via newlines in input
+            CRATE=$(echo "$INPUT_CRATE_NAME" | tr -d '\r\n')
+            if [ -z "$CRATE" ]; then
+              echo "ERROR: Crate name is empty after sanitization"
+              exit 1
+            fi
+            {
+              echo 'crate-name<<EOF'
+              echo "$CRATE"
+              echo 'EOF'
+            } >> "$GITHUB_OUTPUT"
+          else
+            # Branch format: releases/pkg/<crate-name>/v<semver>
+            BRANCH="${GITHUB_REF#refs/heads/}"
+            # Validate branch matches expected pattern
+            case "$BRANCH" in
+              releases/pkg/*/v*)
+                # Remove releases/pkg/ prefix -> <crate-name>/v<semver>
+                # Then remove /v<semver> suffix -> <crate-name>
+                CRATE="${BRANCH#releases/pkg/}"
+                CRATE="${CRATE%/v*}"
+                if [ -z "$CRATE" ]; then
+                  echo "ERROR: Could not extract crate name from branch '$BRANCH'"
+                  echo "Expected format: releases/pkg/<crate-name>/v<semver>"
+                  exit 1
+                fi
+                # Reject crate names containing '/' (extra path segments)
+                case "$CRATE" in
+                  */*)
+                    echo "ERROR: Invalid branch format: '$BRANCH'"
+                    echo "Crate name '$CRATE' contains '/' which indicates extra path segments"
+                    echo "Expected format: releases/pkg/<crate-name>/v<semver>"
+                    echo "Example: releases/pkg/torrust-tracker-udp-protocol/v0.2.0"
+                    exit 1
+                    ;;
+                esac
+                echo "crate-name=${CRATE}" >> "$GITHUB_OUTPUT"
+                ;;
+              *)
+                echo "ERROR: Branch '$BRANCH' does not match expected pattern"
+                echo "Expected format: releases/pkg/<crate-name>/v<semver>"
+                echo "Example: releases/pkg/torrust-tracker-udp-protocol/v0.2.0"
+                exit 1
+                ;;
+            esac
+          fi
+
+  test:
+    name: Test
+    needs: extract-crate
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        toolchain: [nightly, stable]
+    steps:
+      - id: checkout
+        name: Checkout Repository
+        uses: actions/checkout@v7
+      - id: setup
+        name: Setup Toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: ${{ matrix.toolchain }}
+      - id: test
+        name: Run Tests for ${{ needs.extract-crate.outputs.crate-name }}
+        run: cargo test -p "${{ needs.extract-crate.outputs.crate-name }}"
+
+  publish:
+    name: Publish
+    environment: deployment
+    needs: [extract-crate, test]
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        toolchain: [stable]
+    steps:
+      - id: checkout
+        name: Checkout Repository
+        uses: actions/checkout@v7
+      - id: setup
+        name: Setup Toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: ${{ matrix.toolchain }}
+      - id: verify-version
+        name: Verify Explicit Version
+        run: |
+          CRATE="${{ needs.extract-crate.outputs.crate-name }}"
+          # Find the Cargo.toml that declares this crate name
+          TOML_FILE=$(grep -rl "name = \"$CRATE\"" --include='Cargo.toml' . | head -1)
+          if [ -z "$TOML_FILE" ]; then
+            echo "ERROR: Could not find Cargo.toml for crate '$CRATE'"
+            exit 1
+          fi
+          if grep -q 'version.workspace = true' "$TOML_FILE"; then
+            echo "ERROR: Crate '$CRATE' still uses 'version.workspace = true' in $TOML_FILE"
+            echo "Each crate must have its own explicit 'version' field before publishing."
+            echo "See docs/issues/open/1926-1669-si-32-define-package-versioning-strategy.md"
+            exit 1
+          fi
+          echo "✓ Crate '$CRATE' has an explicit version field"
+      - id: publish
+        name: Publish ${{ needs.extract-crate.outputs.crate-name }}
+        env:
+          CARGO_REGISTRY_TOKEN: "${{ secrets.TORRUST_UPDATE_CARGO_REGISTRY_TOKEN }}"
+        run: |
+          cargo publish -p "${{ needs.extract-crate.outputs.crate-name }}"
