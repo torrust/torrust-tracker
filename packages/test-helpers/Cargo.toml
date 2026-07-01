@@ -12,10 +12,10 @@ license.workspace = true
 publish.workspace = true
 repository.workspace = true
 rust-version.workspace = true
-version.workspace = true
+version = "3.0.0"
 
 [dependencies]
 rand = "0"
-torrust-tracker-configuration = { version = "3.0.0-develop", path = "../configuration" }
+torrust-tracker-configuration = { version = "3.0.0", path = "../configuration" }
 tracing = "0"
 tracing-subscriber = { version = "0", features = [ "json" ] }

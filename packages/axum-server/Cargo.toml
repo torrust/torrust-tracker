@@ -11,7 +11,7 @@ publish.workspace = true
 readme = "README.md"
 repository.workspace = true
 rust-version.workspace = true
-version.workspace = true
+version = "0.1.0"
 
 [dependencies]
 axum-server = { version = "0", features = [ "tls-rustls-no-provider" ] }
@@ -24,7 +24,7 @@ pin-project-lite = "0"
 thiserror = "2"
 tokio = { version = "1", features = [ "macros", "net", "rt-multi-thread", "signal", "sync" ] }
 torrust-server-lib = "0.1.0"
-torrust-tracker-configuration = { version = "3.0.0-develop", path = "../configuration" }
+torrust-tracker-configuration = { version = "3.0.0", path = "../configuration" }
 torrust-located-error = "3.0.0"
 tower = { version = "0", features = [ "timeout" ] }
 tracing = "0"

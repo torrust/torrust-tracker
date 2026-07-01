@@ -12,7 +12,7 @@ license.workspace = true
 publish = false
 repository.workspace = true
 rust-version.workspace = true
-version.workspace = true
+version = "0.1.0"
 
 [lints]
 workspace = true
@@ -27,6 +27,6 @@ serde_json = { version = "1", features = [ "preserve_order" ] }
 sqlx = { version = "0.8", features = [ "macros", "mysql", "postgres", "runtime-tokio-native-tls", "sqlite" ] }
 testcontainers = "0"
 tokio = { version = "1", features = [ "macros", "rt-multi-thread" ] }
-torrust-tracker-configuration = { version = "3.0.0-develop", path = "../configuration" }
-torrust-tracker-core = { version = "3.0.0-develop", path = "../tracker-core" }
-torrust-tracker-primitives = { version = "3.0.0-develop", path = "../primitives" }
+torrust-tracker-configuration = { version = "3.0.0", path = "../configuration" }
+torrust-tracker-core = { version = "0.1.0", path = "../tracker-core" }
+torrust-tracker-primitives = { version = "3.0.0", path = "../primitives" }

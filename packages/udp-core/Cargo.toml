@@ -11,12 +11,12 @@ publish.workspace = true
 readme = "README.md"
 repository.workspace = true
 rust-version.workspace = true
-version.workspace = true
+version = "0.1.0"
 
 [dependencies]
 torrust-info-hash = "=0.2.0"
-torrust-tracker-core = { version = "3.0.0-develop", path = "../tracker-core" }
-torrust-tracker-udp-protocol = { version = "3.0.0-develop", path = "../udp-protocol" }
+torrust-tracker-core = { version = "0.1.0", path = "../tracker-core" }
+torrust-tracker-udp-protocol = { version = "0.1.0", path = "../udp-protocol" }
 bloom = "0.3.2"
 blowfish = "0"
 cipher = "0.5"
@@ -28,12 +28,12 @@ thiserror = "2"
 tokio = { version = "1", features = [ "macros", "net", "rt-multi-thread", "signal", "sync", "time" ] }
 tokio-util = "0.7.15"
 torrust-clock = "3.0.0"
-torrust-tracker-configuration = { version = "3.0.0-develop", path = "../configuration" }
-torrust-tracker-events = { version = "3.0.0-develop", path = "../events" }
+torrust-tracker-configuration = { version = "3.0.0", path = "../configuration" }
+torrust-tracker-events = { version = "0.1.0", path = "../events" }
 torrust-metrics = "0.1.0"
 torrust-net-primitives = "0.1.0"
-torrust-tracker-primitives = { version = "3.0.0-develop", path = "../primitives" }
-torrust-tracker-swarm-coordination-registry = { version = "3.0.0-develop", path = "../swarm-coordination-registry" }
+torrust-tracker-primitives = { version = "3.0.0", path = "../primitives" }
+torrust-tracker-swarm-coordination-registry = { version = "0.1.0", path = "../swarm-coordination-registry" }
 tracing = "0"
 zerocopy = "0.8"
 async-trait = "0"

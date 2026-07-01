@@ -11,16 +11,16 @@ publish.workspace = true
 readme = "README.md"
 repository.workspace = true
 rust-version.workspace = true
-version.workspace = true
+version = "0.1.0"
 
 [dependencies]
 axum = { version = "0", features = [ "macros" ] }
 axum-client-ip = "0"
 axum-server = { version = "0", features = [ "tls-rustls-no-provider" ] }
-torrust-tracker-http-core = { version = "3.0.0-develop", path = "../http-core" }
-torrust-tracker-http-protocol = { version = "3.0.0-develop", path = "../http-protocol" }
+torrust-tracker-http-core = { version = "0.1.0", path = "../http-core" }
+torrust-tracker-http-protocol = { version = "0.1.0", path = "../http-protocol" }
 torrust-info-hash = "=0.2.0"
-torrust-tracker-core = { version = "3.0.0-develop", path = "../tracker-core" }
+torrust-tracker-core = { version = "0.1.0", path = "../tracker-core" }
 derive_more = { version = "2", features = [ "as_ref", "constructor", "from" ] }
 futures = "0"
 hyper = "1"
@@ -28,13 +28,13 @@ reqwest = { version = "0", features = [ "json" ] }
 serde = { version = "1", features = [ "derive" ] }
 tokio = { version = "1", features = [ "macros", "net", "rt-multi-thread", "signal", "sync" ] }
 tokio-util = "0.7.15"
-torrust-tracker-axum-server = { version = "3.0.0-develop", path = "../axum-server" }
+torrust-tracker-axum-server = { version = "0.1.0", path = "../axum-server" }
 torrust-server-lib = "0.1.0"
 torrust-clock = "3.0.0"
-torrust-tracker-configuration = { version = "3.0.0-develop", path = "../configuration" }
+torrust-tracker-configuration = { version = "3.0.0", path = "../configuration" }
 torrust-net-primitives = "0.1.0"
-torrust-tracker-primitives = { version = "3.0.0-develop", path = "../primitives" }
-torrust-tracker-swarm-coordination-registry = { version = "3.0.0-develop", path = "../swarm-coordination-registry" }
+torrust-tracker-primitives = { version = "3.0.0", path = "../primitives" }
+torrust-tracker-swarm-coordination-registry = { version = "0.1.0", path = "../swarm-coordination-registry" }
 tower = { version = "0", features = [ "timeout" ] }
 tower-http = { version = "0", features = [ "compression-full", "cors", "propagate-header", "request-id", "trace" ] }
 tracing = "0"
@@ -48,7 +48,7 @@ serde_bencode = "0"
 serde_bytes = "0"
 serde_repr = "0"
 torrust-peer-id = "0.1.0"
-torrust-tracker-test-helpers = { version = "3.0.0-develop", path = "../test-helpers" }
+torrust-tracker-test-helpers = { version = "3.0.0", path = "../test-helpers" }
 uuid = { version = "1", features = [ "v4" ] }
 
 # cargo-machete cannot detect `serde_bytes` usage via `#[serde(with = "serde_bytes")]`
