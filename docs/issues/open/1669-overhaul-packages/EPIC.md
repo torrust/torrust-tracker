@@ -15,7 +15,9 @@ semantic-links:
     - docs/issues/open/1669-overhaul-packages/
     - docs/issues/open/1835-1669-14-decouple-http-protocol-from-tracker-primitives.md
     - docs/issues/open/1889-1669-21-migrate-from-bittorrent-primitives-to-torrust-info-hash.md
+    - docs/issues/open/1926-1669-si-32-define-package-versioning-strategy.md
     - docs/adrs/20260527175600_keep_protocol_and_domain_types_decoupled.md
+    - docs/adrs/20260629000000_adopt_independent_package_versioning.md
     - docs/adrs/index.md
     - docs/issues/open/1669-overhaul-packages/DECISIONS.md
     - AGENTS.md
@@ -51,14 +53,17 @@ concerns are mixed together:
   evolution harder. Protocol packages (`udp-protocol`, `http-protocol`) also have high
   reuse potential but are intentionally kept in the tracker workspace — see the naming
   and ownership policy in the Decision Log (DEC-14).
-- **Versioning policy is implicit**: all packages share the workspace version; packages
-  extracted to separate repos will need their own release cadence.
+- **Versioning policy is now explicit**: ADR [20260629000000](../../adrs/20260629000000_adopt_independent_package_versioning.md)
+  establishes independent versioning for all workspace packages. See also issue
+  [#1926](https://github.com/torrust/torrust-tracker/issues/1926).
 - **Only 6 of originally 27 packages were published on crates.io** (as of May 2026);
   the remaining 21 packages were unpublished, in particular every `bittorrent-*` crate.
   As of June 2026, 4 more packages have been published from standalone repositories
   (`torrust-clock`, `torrust-located-error`, `torrust-metrics`, `torrust-net-primitives`),
   bringing the total published across the organisation to 10. Publishing them in-workspace
   conflicted with giving them independent versions; extraction resolved this tension.
+  ADR [20260629000000](../../adrs/20260629000000_adopt_independent_package_versioning.md) now
+  formalises independent versioning for all remaining workspace packages.
 
 The approach is not all-or-nothing. Each small extraction or structural improvement is a
 self-contained win. Re-evaluation happens naturally after each change, or when the package
@@ -742,28 +747,18 @@ Decision criteria to apply per candidate:
 
 ### Versioning strategy for remaining packages
 
-The proposed policy — to be confirmed in an ADR — is:
+The adopted policy (confirmed in ADR [20260629000000](../../adrs/20260629000000_adopt_independent_package_versioning.md),
+issue [#1926](https://github.com/torrust/torrust-tracker/issues/1926)) is:
 
-- **Extracted packages** (destination repository): independent versioning from the day of
-  extraction. Each extracted package gets its own semver starting point.
-- **`torrust-tracker-*` workspace packages**: remain on the shared workspace version.
-  These packages are tightly coupled to the tracker's server releases and should bump
-  together. Known exceptions that will version independently once extracted:
-  - `torrust-tracker-client` — CLI tool being extracted to its own repository.
-  - `torrust-located-error` — generic utility package, expected to version independently once
-    extracted.
-- **`torrust-` workspace packages** (e.g., `torrust-server-lib`): currently follow the
-  workspace version but are not tightly bound to the tracker release cadence. Versioning
-  strategy for these should be reviewed when they are extracted or decoupled.
-- **`bittorrent-*` packages**: independent versions once extracted.
+**All packages version independently.** Each package declares its own `version` field,
+starting from their current value with an appropriate initial release version.
 
-This policy needs a formal ADR before it is enforced. The key open question is: should any
-`torrust-tracker-*` package be broken out of the shared workspace version before being
-extracted to its own repository?
+Rationale: path dependencies guarantee compatibility within the workspace, so linked
+versions add no safety. Independent versioning gives accurate SemVer signals to external
+consumers and avoids unnecessary churn when only part of the workspace changes.
 
-Current intent (tracked in SI-15 draft) is to define the policy now but defer implementation
-until boundary-refactor preconditions are met (at minimum SI-13 and SI-14), so version
-migration does not run ahead of layer decoupling.
+See the ADR for full details, including the two-concept release model split
+(tracker application release vs individual package publish).
 
 ### Extraction ordering: crates.io publication constraints
 

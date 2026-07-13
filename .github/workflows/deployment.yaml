@@ -1,9 +1,18 @@
-name: Deployment
+name: Deployment (Tracker)
+
+# adr: docs/adrs/20260629000000_adopt_independent_package_versioning.md
+#
+# Publishes only the root `torrust-tracker` binary crate to crates.io.
+# All dependency crates are published independently via `deployment-packages.yaml`
+# as they evolve. By the time a tracker release happens, they are already on
+# crates.io — this workflow only needs to publish the final binary crate.
+#
+# See docs/release_process.md for the full release workflow.
 
 on:
   push:
     branches:
-      - "releases/**/*"
+      - "releases/v*"
 
 jobs:
   test:
@@ -51,31 +60,8 @@ jobs:
           toolchain: ${{ matrix.toolchain }}
 
       - id: publish
-        name: Publish Crates
+        name: Publish torrust-tracker
         env:
           CARGO_REGISTRY_TOKEN: "${{ secrets.TORRUST_UPDATE_CARGO_REGISTRY_TOKEN }}"
         run: |
-          cargo publish -p torrust-located-error
-          cargo publish -p torrust-tracker-http-core
-          cargo publish -p torrust-tracker-http-protocol
-          cargo publish -p torrust-tracker-client-lib
-          cargo publish -p torrust-tracker-core
-          cargo publish -p torrust-tracker-udp-core
-          cargo publish -p torrust-tracker-udp-protocol
-          cargo publish -p torrust-tracker-axum-health-check-api-server
-          cargo publish -p torrust-tracker-axum-http-server
-          cargo publish -p torrust-tracker-axum-rest-api-server
-          cargo publish -p torrust-tracker-axum-server
-          cargo publish -p torrust-tracker-rest-api-client
-          cargo publish -p torrust-server-lib
           cargo publish -p torrust-tracker
-          cargo publish -p torrust-tracker-client
-          cargo publish -p torrust-clock
-          cargo publish -p torrust-tracker-configuration
-          cargo publish -p torrust-tracker-events
-          cargo publish -p torrust-metrics
-          cargo publish -p torrust-tracker-primitives
-          cargo publish -p torrust-tracker-swarm-coordination-registry
-          cargo publish -p torrust-tracker-test-helpers
-          cargo publish -p torrust-tracker-torrent-repository-benchmarking
-          cargo publish -p torrust-tracker-udp-server

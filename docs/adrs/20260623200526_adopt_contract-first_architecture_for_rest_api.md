@@ -38,6 +38,12 @@ A dedicated crate for versioned REST contract artifacts. It owns:
 - Auth contract surface (transport-agnostic semantics).
 - Optional API capability/introspection structures for future interoperability.
 
+> **Version coexistence**: multiple API versions coexist in the same codebase under
+> versioned namespace modules (e.g., `v1/`, `v2/`) — a pattern called **version by
+> namespace convention**. See ADR
+> [20260629000000](20260629000000_adopt_independent_package_versioning.md) for the
+> rationale and decision.
+
 It does **not** own Axum, runtime server wiring, or tracker database logic.
 
 ### Layer 2 — Application Package (`torrust-tracker-rest-api-application`)

@@ -12,13 +12,13 @@ homepage.workspace = true
 publish.workspace = true
 repository.workspace = true
 rust-version.workspace = true
-version.workspace = true
+version = "0.1.0"
 
 [dependencies]
 hyper = "1"
 reqwest = { version = "0", features = [ "json", "query" ] }
 serde = { version = "1", features = [ "derive" ] }
 thiserror = "2"
-torrust-tracker-rest-api-protocol = { version = "3.0.0-develop", path = "../rest-api-protocol" }
+torrust-tracker-rest-api-protocol = { version = "0.1.0", path = "../rest-api-protocol" }
 url = { version = "2", features = [ "serde" ] }
 uuid = { version = "1", features = [ "v4" ] }

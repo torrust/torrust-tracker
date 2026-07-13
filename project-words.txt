@@ -116,6 +116,7 @@ epoll
 eprint
 eprintln
 Eray
+esac
 eventfd
 exploitability
 fastrand
@@ -156,6 +157,7 @@ hexdigit
 hexlify
 hlocalhost
 hmac
+hotfixes
 hotspot
 hotspots
 httpclientpeerid
@@ -266,6 +268,7 @@ opentrackers
 optimisation
 optimisations
 organisation
+organised
 ostr
 overengineered
 Pando
@@ -290,6 +293,7 @@ programatik
 proot
 proto
 PRRT
+Publishability
 PUID
 qbittorrent
 QJSF

@@ -12,7 +12,7 @@ license.workspace = true
 publish.workspace = true
 repository.workspace = true
 rust-version.workspace = true
-version.workspace = true
+version = "3.0.0"
 
 [dependencies]
 torrust-peer-id = "0.1.0"

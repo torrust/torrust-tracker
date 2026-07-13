@@ -11,10 +11,10 @@ publish.workspace = true
 readme = "README.md"
 repository.workspace = true
 rust-version.workspace = true
-version.workspace = true
+version = "0.1.0"
 
 [dependencies]
-torrust-tracker-rest-api-protocol = { version = "3.0.0-develop", path = "../rest-api-protocol" }
+torrust-tracker-rest-api-protocol = { version = "0.1.0", path = "../rest-api-protocol" }
 torrust-info-hash = "=0.2.0"
-torrust-tracker-primitives = { version = "3.0.0-develop", path = "../primitives" }
+torrust-tracker-primitives = { version = "3.0.0", path = "../primitives" }
 async-trait = "0.1"

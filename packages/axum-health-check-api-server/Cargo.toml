@@ -11,7 +11,7 @@ publish.workspace = true
 readme = "README.md"
 repository.workspace = true
 rust-version.workspace = true
-version.workspace = true
+version = "0.1.0"
 
 [dependencies]
 axum = { version = "0", features = [ "macros" ] }
@@ -21,9 +21,9 @@ hyper = "1"
 serde = { version = "1", features = [ "derive" ] }
 serde_json = { version = "1", features = [ "preserve_order" ] }
 tokio = { version = "1", features = [ "macros", "net", "rt-multi-thread", "signal", "sync" ] }
-torrust-tracker-axum-server = { version = "3.0.0-develop", path = "../axum-server" }
+torrust-tracker-axum-server = { version = "0.1.0", path = "../axum-server" }
 torrust-server-lib = "0.1.0"
-torrust-tracker-configuration = { version = "3.0.0-develop", path = "../configuration" }
+torrust-tracker-configuration = { version = "3.0.0", path = "../configuration" }
 torrust-net-primitives = "0.1.0"
 tower-http = { version = "0", features = [ "compression-full", "cors", "propagate-header", "request-id", "trace" ] }
 tracing = "0"
@@ -31,9 +31,9 @@ url = "2.5.4"
 
 [dev-dependencies]
 reqwest = { version = "0", features = [ "json" ] }
-torrust-tracker-axum-health-check-api-server = { version = "3.0.0-develop", path = "../axum-health-check-api-server" }
-torrust-tracker-axum-http-server = { version = "3.0.0-develop", path = "../axum-http-server" }
-torrust-tracker-axum-rest-api-server = { version = "3.0.0-develop", path = "../axum-rest-api-server" }
+torrust-tracker-axum-health-check-api-server = { version = "0.1.0", path = "../axum-health-check-api-server" }
+torrust-tracker-axum-http-server = { version = "0.1.0", path = "../axum-http-server" }
+torrust-tracker-axum-rest-api-server = { version = "0.1.0", path = "../axum-rest-api-server" }
 torrust-clock = "3.0.0"
-torrust-tracker-test-helpers = { version = "3.0.0-develop", path = "../test-helpers" }
-torrust-tracker-udp-server = { version = "3.0.0-develop", path = "../udp-server" }
+torrust-tracker-test-helpers = { version = "3.0.0", path = "../test-helpers" }
+torrust-tracker-udp-server = { version = "0.1.0", path = "../udp-server" }

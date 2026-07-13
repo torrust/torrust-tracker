@@ -13,7 +13,7 @@ license.workspace = true
 publish.workspace = true
 repository.workspace = true
 rust-version.workspace = true
-version.workspace = true
+version = "3.0.0-develop"
 
 [lib]
 name = "torrust_tracker_lib"
@@ -33,15 +33,14 @@ license = "AGPL-3.0-only"
 publish = true
 repository = "https://github.com/torrust/torrust-tracker"
 rust-version = "1.88"
-version = "3.0.0-develop"
 
 [dependencies]
 anyhow = "1"
 axum-server = { version = "0", features = [ "tls-rustls-no-provider" ] }
 base64 = "0.22.1"
-torrust-tracker-http-core = { version = "3.0.0-develop", path = "packages/http-core" }
-torrust-tracker-core = { version = "3.0.0-develop", path = "packages/tracker-core" }
-torrust-tracker-udp-core = { version = "3.0.0-develop", path = "packages/udp-core" }
+torrust-tracker-http-core = { version = "0.1.0", path = "packages/http-core" }
+torrust-tracker-core = { version = "0.1.0", path = "packages/tracker-core" }
+torrust-tracker-udp-core = { version = "0.1.0", path = "packages/udp-core" }
 chrono = { version = "0", default-features = false, features = [ "clock" ] }
 clap = { version = "4", features = [ "derive", "env" ] }
 pbkdf2 = "0.13.0"
@@ -57,26 +56,26 @@ thiserror = "2.0.12"
 tokio = { version = "1", features = [ "macros", "net", "rt-multi-thread", "signal", "sync" ] }
 tokio-util = "0.7.15"
 toml = "1"
-torrust-tracker-axum-health-check-api-server = { version = "3.0.0-develop", path = "packages/axum-health-check-api-server" }
-torrust-tracker-axum-http-server = { version = "3.0.0-develop", path = "packages/axum-http-server" }
-torrust-tracker-axum-rest-api-server = { version = "3.0.0-develop", path = "packages/axum-rest-api-server" }
-torrust-tracker-axum-server = { version = "3.0.0-develop", path = "packages/axum-server" }
-torrust-tracker-rest-api-client = { version = "3.0.0-develop", path = "packages/rest-api-client" }
-torrust-tracker-rest-api-runtime-adapter = { version = "3.0.0-develop", path = "packages/rest-api-runtime-adapter" }
-torrust-tracker-rest-api-protocol = { version = "3.0.0-develop", path = "packages/rest-api-protocol" }
+torrust-tracker-axum-health-check-api-server = { version = "0.1.0", path = "packages/axum-health-check-api-server" }
+torrust-tracker-axum-http-server = { version = "0.1.0", path = "packages/axum-http-server" }
+torrust-tracker-axum-rest-api-server = { version = "0.1.0", path = "packages/axum-rest-api-server" }
+torrust-tracker-axum-server = { version = "0.1.0", path = "packages/axum-server" }
+torrust-tracker-rest-api-client = { version = "0.1.0", path = "packages/rest-api-client" }
+torrust-tracker-rest-api-runtime-adapter = { version = "0.1.0", path = "packages/rest-api-runtime-adapter" }
+torrust-tracker-rest-api-protocol = { version = "0.1.0", path = "packages/rest-api-protocol" }
 torrust-server-lib = "0.1.0"
 torrust-clock = "3.0.0"
-torrust-tracker-configuration = { version = "3.0.0-develop", path = "packages/configuration" }
-torrust-tracker-primitives = { version = "3.0.0-develop", path = "packages/primitives" }
-torrust-tracker-swarm-coordination-registry = { version = "3.0.0-develop", path = "packages/swarm-coordination-registry" }
-torrust-tracker-udp-server = { version = "3.0.0-develop", path = "packages/udp-server" }
+torrust-tracker-configuration = { version = "3.0.0", path = "packages/configuration" }
+torrust-tracker-primitives = { version = "3.0.0", path = "packages/primitives" }
+torrust-tracker-swarm-coordination-registry = { version = "0.1.0", path = "packages/swarm-coordination-registry" }
+torrust-tracker-udp-server = { version = "0.1.0", path = "packages/udp-server" }
 tracing = "0"
 tracing-subscriber = { version = "0", features = [ "json" ] }
 
 [dev-dependencies]
 torrust-info-hash = "=0.2.0"
-torrust-tracker-client = { package = "torrust-tracker-client-lib", version = "3.0.0-develop", path = "packages/tracker-client" }
-torrust-tracker-test-helpers = { version = "3.0.0-develop", path = "packages/test-helpers" }
+torrust-tracker-client = { package = "torrust-tracker-client-lib", version = "0.1.0", path = "packages/tracker-client" }
+torrust-tracker-test-helpers = { version = "3.0.0", path = "packages/test-helpers" }
 
 [workspace]
 members = [

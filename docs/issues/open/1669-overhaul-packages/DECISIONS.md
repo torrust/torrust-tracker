@@ -20,6 +20,60 @@ the proposal, the reasoning, and a reference to any supporting artifact.
 
 ---
 
+## DEC-16 — Adopt independent package versioning
+
+**Date**: 2026-06-29
+**Status**: Adopted
+**Related issue**: [#1926](https://github.com/torrust/torrust-tracker/issues/1926)
+
+### Proposal considered
+
+All workspace packages previously shared a single lockstep version
+(`version.workspace = true` → `3.0.0-develop`). Options evaluated:
+
+1. **Keep shared workspace version**: simplest coordination, but inflates SemVer churn
+   and gives weak signals to external consumers.
+2. **Hybrid two-tier**: runtime crates keep a linked version, utility crates version
+   independently — imposes a guess about future coupling.
+3. **Independent versioning for all packages** (chosen).
+
+### Alternative chosen
+
+Option 3: **All packages version independently**. Each package declares its own
+`version` field, starting from their current value with an appropriate initial
+release version.
+
+### Why this alternative was adopted
+
+1. **Path dependencies guarantee compatibility**: since all inter-package dependencies
+   use `path = "..."` within the workspace, Cargo always resolves the local copy
+   regardless of the declared version number. Linked versions add no safety.
+2. **Accurate SemVer signals**: external consumers can infer change risk from version
+   numbers because each package's version reflects its own history.
+3. **Avoids unnecessary churn**: a bugfix in one package no longer forces a version
+   bump on every unrelated package.
+4. **Aligns with EPIC extraction goals**: packages moving to standalone repos already
+   version independently; this formalises the same approach for every package.
+5. **Emergent coupling, not imposed coupling**: if packages naturally evolve together
+   over time, that coupling can be formalised later when there is evidence.
+
+### Trade-offs accepted
+
+- The release model splits into two concepts: tracker application release (existing
+  bundle process) and per-package publishing (new). Both must be documented.
+- CI workflows must be updated to support per-package `workflow_dispatch` triggers.
+- Contributors must consciously set version numbers per package rather than relying
+  on the workspace default.
+
+### Supporting artifacts
+
+- `docs/adrs/20260629000000_adopt_independent_package_versioning.md` — ADR documenting
+  the policy decision
+- `docs/issues/open/1926-1669-si-32-define-package-versioning-strategy.md` — policy
+  definition issue
+
+---
+
 ## DEC-14 — Move `Driver` enum from `configuration` to `primitives`
 
 **Date**: 2026-06-18
@@ -358,10 +412,10 @@ For example:
 
 | Crate name                                    | Folder                        |
 | --------------------------------------------- | ----------------------------- |
-| `torrust-tracker-http-core`           | `http-core`           |
-| `torrust-tracker-http-protocol`       | `http-protocol`               |
-| `torrust-tracker-udp-core`            | `udp-core`            |
-| `torrust-tracker-udp-protocol`        | `udp-protocol`                |
+| `torrust-tracker-http-core`                   | `http-core`                   |
+| `torrust-tracker-http-protocol`               | `http-protocol`               |
+| `torrust-tracker-udp-core`                    | `udp-core`                    |
+| `torrust-tracker-udp-protocol`                | `udp-protocol`                |
 | `torrust-tracker-primitives`                  | `primitives`                  |
 | `torrust-tracker-swarm-coordination-registry` | `swarm-coordination-registry` |
 
@@ -770,8 +824,8 @@ crates controlled by Cargo features (`udp` and `http`, both disabled by default)
 | ---------------------------------- | ------------------------------------------------------------- |
 | `packages/udp-protocol`            | _(removed)_                                                   |
 | `packages/http-protocol`           | _(removed)_                                                   |
-| `packages/udp-core`        | _(removed)_                                                   |
-| `packages/http-core`       | _(removed)_                                                   |
+| `packages/udp-core`                | _(removed)_                                                   |
+| `packages/http-core`               | _(removed)_                                                   |
 | _(new)_                            | `packages/protocol`                                           |
 | `packages/tracker-core` (existing) | `packages/tracker-core` (expanded with `udp`/`http` features) |
 

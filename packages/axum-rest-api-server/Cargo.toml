@@ -11,16 +11,16 @@ publish.workspace = true
 readme = "README.md"
 repository.workspace = true
 rust-version.workspace = true
-version.workspace = true
+version = "0.1.0"
 
 [dependencies]
 axum = { version = "0", features = [ "macros" ] }
 axum-extra = { version = "0", features = [ "query" ] }
 axum-server = { version = "0", features = [ "tls-rustls-no-provider" ] }
-torrust-tracker-http-core = { version = "3.0.0-develop", path = "../http-core" }
+torrust-tracker-http-core = { version = "0.1.0", path = "../http-core" }
 torrust-info-hash = "=0.2.0"
-torrust-tracker-core = { version = "3.0.0-develop", path = "../tracker-core" }
-torrust-tracker-udp-core = { version = "3.0.0-develop", path = "../udp-core" }
+torrust-tracker-core = { version = "0.1.0", path = "../tracker-core" }
+torrust-tracker-udp-core = { version = "0.1.0", path = "../udp-core" }
 derive_more = { version = "2", features = [ "as_ref", "constructor", "from" ] }
 futures = "0"
 hyper = "1"
@@ -29,26 +29,26 @@ serde = { version = "1", features = [ "derive" ] }
 serde_json = { version = "1", features = [ "preserve_order" ] }
 thiserror = "2"
 tokio = { version = "1", features = [ "macros", "net", "rt-multi-thread", "signal", "sync" ] }
-torrust-tracker-axum-server = { version = "3.0.0-develop", path = "../axum-server" }
-torrust-tracker-rest-api-client = { version = "3.0.0-develop", path = "../rest-api-client" }
-torrust-tracker-rest-api-application = { version = "3.0.0-develop", path = "../rest-api-application" }
-torrust-tracker-rest-api-protocol = { version = "3.0.0-develop", path = "../rest-api-protocol" }
-torrust-tracker-rest-api-runtime-adapter = { version = "3.0.0-develop", path = "../rest-api-runtime-adapter" }
+torrust-tracker-axum-server = { version = "0.1.0", path = "../axum-server" }
+torrust-tracker-rest-api-client = { version = "0.1.0", path = "../rest-api-client" }
+torrust-tracker-rest-api-application = { version = "0.1.0", path = "../rest-api-application" }
+torrust-tracker-rest-api-protocol = { version = "0.1.0", path = "../rest-api-protocol" }
+torrust-tracker-rest-api-runtime-adapter = { version = "0.1.0", path = "../rest-api-runtime-adapter" }
 torrust-server-lib = "0.1.0"
 torrust-clock = "3.0.0"
-torrust-tracker-configuration = { version = "3.0.0-develop", path = "../configuration" }
+torrust-tracker-configuration = { version = "3.0.0", path = "../configuration" }
 torrust-metrics = "0.1.0"
 torrust-net-primitives = "0.1.0"
-torrust-tracker-primitives = { version = "3.0.0-develop", path = "../primitives" }
-torrust-tracker-swarm-coordination-registry = { version = "3.0.0-develop", path = "../swarm-coordination-registry" }
-torrust-tracker-udp-server = { version = "3.0.0-develop", path = "../udp-server" }
+torrust-tracker-primitives = { version = "3.0.0", path = "../primitives" }
+torrust-tracker-swarm-coordination-registry = { version = "0.1.0", path = "../swarm-coordination-registry" }
+torrust-tracker-udp-server = { version = "0.1.0", path = "../udp-server" }
 tower = { version = "0", features = [ "timeout" ] }
 tower-http = { version = "0", features = [ "compression-full", "cors", "propagate-header", "request-id", "trace" ] }
 tracing = "0"
 url = "2"
 
 [dev-dependencies]
-torrust-tracker-rest-api-client = { version = "3.0.0-develop", path = "../rest-api-client" }
-torrust-tracker-test-helpers = { version = "3.0.0-develop", path = "../test-helpers" }
+torrust-tracker-rest-api-client = { version = "0.1.0", path = "../rest-api-client" }
+torrust-tracker-test-helpers = { version = "3.0.0", path = "../test-helpers" }
 url = { version = "2", features = [ "serde" ] }
 uuid = { version = "1", features = [ "v4" ] }
