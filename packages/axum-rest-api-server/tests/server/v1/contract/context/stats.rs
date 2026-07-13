@@ -29,7 +29,8 @@ async fn should_allow_getting_tracker_statistics() {
     let response = ApiHttpClient::new(env.get_connection_info())
         .unwrap()
         .get_tracker_statistics(Some(headers_with_request_id(request_id)))
-        .await;
+        .await
+        .unwrap();
 
     assert_stats(
         response,
@@ -84,7 +85,8 @@ async fn should_not_allow_getting_tracker_statistics_for_unauthenticated_users()
     let response = ApiHttpClient::new(connection_with_invalid_token(env.get_connection_info().origin))
         .unwrap()
         .get_tracker_statistics(Some(headers_with_request_id(request_id)))
-        .await;
+        .await
+        .unwrap();
 
     assert_token_not_valid(response).await;
 
@@ -98,7 +100,8 @@ async fn should_not_allow_getting_tracker_statistics_for_unauthenticated_users()
     let response = ApiHttpClient::new(connection_with_no_token(env.get_connection_info().origin))
         .unwrap()
         .get_tracker_statistics(Some(headers_with_request_id(request_id)))
-        .await;
+        .await
+        .unwrap();
 
     assert_unauthorized(response).await;
 

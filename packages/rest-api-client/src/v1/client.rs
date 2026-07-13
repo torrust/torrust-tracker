@@ -248,107 +248,106 @@ impl ApiHttpClient {
 
     /// Generates a new random authentication key valid for `seconds_valid`.
     ///
-    /// # Panics
+    /// # Errors
     ///
-    /// Will panic if the request can't be sent.
-    pub async fn generate_auth_key(&self, seconds_valid: i32, headers: Option<HeaderMap>) -> Response {
-        self.post_empty_result(&format!("key/{seconds_valid}"), headers)
-            .await
-            .unwrap()
+    /// Will return an error if the request can't be sent.
+    pub async fn generate_auth_key(&self, seconds_valid: i32, headers: Option<HeaderMap>) -> Result<Response, ClientError> {
+        self.post_empty_result(&format!("key/{seconds_valid}"), headers).await
     }
 
     /// Adds a new authentication key using the provided form data.
     ///
-    /// # Panics
+    /// # Errors
     ///
-    /// Will panic if the request can't be sent.
-    pub async fn add_auth_key(&self, add_key_form: AddKeyForm, headers: Option<HeaderMap>) -> Response {
-        self.post_form_result("keys", &add_key_form, headers).await.unwrap()
+    /// Will return an error if the request can't be sent.
+    pub async fn add_auth_key(&self, add_key_form: AddKeyForm, headers: Option<HeaderMap>) -> Result<Response, ClientError> {
+        self.post_form_result("keys", &add_key_form, headers).await
     }
 
     /// Deletes an authentication key.
     ///
-    /// # Panics
+    /// # Errors
     ///
-    /// Will panic if the request can't be sent.
-    pub async fn delete_auth_key(&self, key: &str, headers: Option<HeaderMap>) -> Response {
-        self.delete_result(&format!("key/{key}"), headers).await.unwrap()
+    /// Will return an error if the request can't be sent.
+    pub async fn delete_auth_key(&self, key: &str, headers: Option<HeaderMap>) -> Result<Response, ClientError> {
+        self.delete_result(&format!("key/{key}"), headers).await
     }
 
     /// Reloads authentication keys from the database.
     ///
-    /// # Panics
+    /// # Errors
     ///
-    /// Will panic if the request can't be sent.
-    pub async fn reload_keys(&self, headers: Option<HeaderMap>) -> Response {
-        self.get_result("keys/reload", Query::default(), headers).await.unwrap()
+    /// Will return an error if the request can't be sent.
+    pub async fn reload_keys(&self, headers: Option<HeaderMap>) -> Result<Response, ClientError> {
+        self.get_result("keys/reload", Query::default(), headers).await
     }
 
     /// Whitelists a torrent by info hash.
     ///
-    /// # Panics
+    /// # Errors
     ///
-    /// Will panic if the request can't be sent.
-    pub async fn whitelist_a_torrent(&self, info_hash: &str, headers: Option<HeaderMap>) -> Response {
-        self.post_empty_result(&format!("whitelist/{info_hash}"), headers)
-            .await
-            .unwrap()
+    /// Will return an error if the request can't be sent.
+    pub async fn whitelist_a_torrent(&self, info_hash: &str, headers: Option<HeaderMap>) -> Result<Response, ClientError> {
+        self.post_empty_result(&format!("whitelist/{info_hash}"), headers).await
     }
 
     /// Removes a torrent from the whitelist.
     ///
-    /// # Panics
+    /// # Errors
     ///
-    /// Will panic if the request can't be sent.
-    pub async fn remove_torrent_from_whitelist(&self, info_hash: &str, headers: Option<HeaderMap>) -> Response {
-        self.delete_result(&format!("whitelist/{info_hash}"), headers).await.unwrap()
+    /// Will return an error if the request can't be sent.
+    pub async fn remove_torrent_from_whitelist(
+        &self,
+        info_hash: &str,
+        headers: Option<HeaderMap>,
+    ) -> Result<Response, ClientError> {
+        self.delete_result(&format!("whitelist/{info_hash}"), headers).await
     }
 
     /// Reloads the whitelist from the database.
     ///
-    /// # Panics
+    /// # Errors
     ///
-    /// Will panic if the request can't be sent.
-    pub async fn reload_whitelist(&self, headers: Option<HeaderMap>) -> Response {
-        self.get_result("whitelist/reload", Query::default(), headers).await.unwrap()
+    /// Will return an error if the request can't be sent.
+    pub async fn reload_whitelist(&self, headers: Option<HeaderMap>) -> Result<Response, ClientError> {
+        self.get_result("whitelist/reload", Query::default(), headers).await
     }
 
     /// Gets a single torrent by info hash.
     ///
-    /// # Panics
+    /// # Errors
     ///
-    /// Will panic if the request can't be sent.
-    pub async fn get_torrent(&self, info_hash: &str, headers: Option<HeaderMap>) -> Response {
+    /// Will return an error if the request can't be sent.
+    pub async fn get_torrent(&self, info_hash: &str, headers: Option<HeaderMap>) -> Result<Response, ClientError> {
         self.get_result(&format!("torrent/{info_hash}"), Query::default(), headers)
             .await
-            .unwrap()
     }
 
     /// Gets a list of torrents matching the query parameters.
     ///
-    /// # Panics
+    /// # Errors
     ///
-    /// Will panic if the request can't be sent.
-    pub async fn get_torrents(&self, params: Query, headers: Option<HeaderMap>) -> Response {
-        self.get_result("torrents", params, headers).await.unwrap()
+    /// Will return an error if the request can't be sent.
+    pub async fn get_torrents(&self, params: Query, headers: Option<HeaderMap>) -> Result<Response, ClientError> {
+        self.get_result("torrents", params, headers).await
     }
 
     /// Gets tracker statistics.
     ///
-    /// # Panics
+    /// # Errors
     ///
-    /// Will panic if the request can't be sent.
-    pub async fn get_tracker_statistics(&self, headers: Option<HeaderMap>) -> Response {
-        self.get_result("stats", Query::default(), headers).await.unwrap()
+    /// Will return an error if the request can't be sent.
+    pub async fn get_tracker_statistics(&self, headers: Option<HeaderMap>) -> Result<Response, ClientError> {
+        self.get_result("stats", Query::default(), headers).await
     }
 
     /// Performs a GET request.
     ///
-    /// # Panics
+    /// # Errors
     ///
-    /// Will panic if the request can't be sent.
-    pub async fn get(&self, path: &str, params: Query, headers: Option<HeaderMap>) -> Response {
-        self.get_result(path, params, headers).await.unwrap()
+    /// Will return an error if the request can't be sent.
+    pub async fn get(&self, path: &str, params: Query, headers: Option<HeaderMap>) -> Result<Response, ClientError> {
+        self.get_result(path, params, headers).await
     }
 
     /// Fallible version of [`Self::get`] that returns a `Result` instead of panicking.
@@ -367,11 +366,11 @@ impl ApiHttpClient {
         self.get_request_with_query_result(path, query, headers).await
     }
 
-    /// # Panics
+    /// # Errors
     ///
-    /// Will panic if the request can't be sent
-    pub async fn post_empty(&self, path: &str, headers: Option<HeaderMap>) -> Response {
-        self.post_empty_result(path, headers).await.unwrap()
+    /// Will return an error if the request can't be sent.
+    pub async fn post_empty(&self, path: &str, headers: Option<HeaderMap>) -> Result<Response, ClientError> {
+        self.post_empty_result(path, headers).await
     }
 
     /// Fallible version of [`Self::post_empty`] that returns a `Result` instead of panicking.
@@ -391,11 +390,16 @@ impl ApiHttpClient {
         Ok(builder.send().await?)
     }
 
-    /// # Panics
+    /// # Errors
     ///
-    /// Will panic if the request can't be sent
-    pub async fn post_form<T: Serialize + ?Sized>(&self, path: &str, form: &T, headers: Option<HeaderMap>) -> Response {
-        self.post_form_result(path, form, headers).await.unwrap()
+    /// Will return an error if the request can't be sent.
+    pub async fn post_form<T: Serialize + ?Sized>(
+        &self,
+        path: &str,
+        form: &T,
+        headers: Option<HeaderMap>,
+    ) -> Result<Response, ClientError> {
+        self.post_form_result(path, form, headers).await
     }
 
     /// Fallible version of [`Self::post_form`] that returns a `Result` instead of panicking.
@@ -437,11 +441,16 @@ impl ApiHttpClient {
         Ok(builder.send().await?)
     }
 
-    /// # Panics
+    /// # Errors
     ///
-    /// Will panic if it can't convert the authentication token to a `HeaderValue`.
-    pub async fn get_request_with_query(&self, path: &str, params: Query, headers: Option<HeaderMap>) -> Response {
-        self.get_request_with_query_result(path, params, headers).await.unwrap()
+    /// Will return an error if the request can't be sent.
+    pub async fn get_request_with_query(
+        &self,
+        path: &str,
+        params: Query,
+        headers: Option<HeaderMap>,
+    ) -> Result<Response, ClientError> {
+        self.get_request_with_query_result(path, params, headers).await
     }
 
     /// Fallible version of [`Self::get_request_with_query`] that returns a `Result` instead of panicking.
@@ -493,11 +502,12 @@ impl ApiHttpClient {
         }
     }
 
-    /// # Panics
+    /// # Errors
     ///
-    /// Will panic if the request can't be sent
-    pub async fn get_request(&self, path: &str) -> Response {
-        get(self.base_url(path).unwrap(), None, None).await
+    /// Will return an error if the request can't be sent.
+    pub async fn get_request(&self, path: &str) -> Result<Response, ClientError> {
+        let url = self.base_url(path)?;
+        get_result(url, None, None).await
     }
 
     fn base_url(&self, path: &str) -> Result<Url, ClientError> {
@@ -506,11 +516,11 @@ impl ApiHttpClient {
     }
 }
 
-/// # Panics
+/// # Errors
 ///
-/// Will panic if the request can't be sent
-pub async fn get(path: Url, query: Option<Query>, headers: Option<HeaderMap>) -> Response {
-    get_result(path, query, headers).await.unwrap()
+/// Will return an error if the request can't be sent.
+pub async fn get(path: Url, query: Option<Query>, headers: Option<HeaderMap>) -> Result<Response, ClientError> {
+    get_result(path, query, headers).await
 }
 
 /// Fallible version of [`get`] that returns a `Result` instead of panicking.

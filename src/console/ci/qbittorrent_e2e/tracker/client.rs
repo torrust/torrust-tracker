@@ -44,7 +44,7 @@ impl TrackerApiClient {
     /// Returns an error if the HTTP request fails, the server returns a non-2xx
     /// status, or the response body cannot be deserialized.
     pub(crate) async fn get_torrent(&self, hash: &InfoHash) -> anyhow::Result<Torrent> {
-        let response = self.inner.get_torrent(hash.as_str(), None).await;
+        let response = self.inner.get_torrent(hash.as_str(), None).await?;
 
         if !response.status().is_success() {
             return Err(anyhow::anyhow!(

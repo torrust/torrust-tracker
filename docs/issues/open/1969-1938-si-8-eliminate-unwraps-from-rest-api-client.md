@@ -6,7 +6,7 @@ priority: p2
 epic: 1938
 github-issue: 1969
 spec-path: docs/issues/open/1969-1938-si-8-eliminate-unwraps-from-rest-api-client.md
-last-updated-utc: 2026-06-30
+last-updated-utc: 2026-07-13
 semantic-links:
   skill-links:
     - create-issue
@@ -68,22 +68,40 @@ These are provably infallible operations where a descriptive `expect` message is
 
 ## Implementation Plan
 
-| ID  | Status | Task                                                                                           | Notes                                                                    |
-| --- | ------ | ---------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
-| T1  | TODO   | Move `ApiHttpClient` public methods to return `Result`                                         | 10 methods + `get()` method — return `ClientError`                       |
-| T2  | TODO   | Update all callers in contract tests (`packages/axum-rest-api-server/tests/`)                  | ~65 `ApiHttpClient::new(...)` call sites                                 |
-| T3  | TODO   | Update callers in `src/console/ci/qbittorrent_e2e/tracker/client.rs`                           | E2E test runner wrapper                                                  |
-| T4  | TODO   | Update callers in `tests/servers/api/contract/stats/mod.rs`                                    | Integration test                                                         |
-| T5  | TODO   | Replace bare `.unwrap()` with `.expect("infallible: ...")` for provably infallible conversions | `headers_with_request_id`, `headers_with_auth_token`, auth token inserts |
-| T6  | TODO   | Verify pre-commit and pre-push checks pass                                                     |                                                                          |
+| ID  | Status | Task                                                                                           | Notes                                                                                                                                                              |
+| --- | ------ | ---------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| T1  | TODO   | Move `ApiHttpClient` public methods to return `Result`                                         | 10 methods + `get()` method + `get_request()` + `get_request_with_query()` — return `ClientError`                                                                  |
+| T2  | TODO   | Update all callers in contract tests (`packages/axum-rest-api-server/tests/`)                  | ~65 `ApiHttpClient::new(...)` call sites. First iteration: callers `.unwrap()` the `Result`. Prefer `.expect("...")` over bare `.unwrap()` in tests for precision. |
+| T3  | TODO   | Update callers in `src/console/ci/qbittorrent_e2e/tracker/client.rs`                           | E2E test runner wrapper. Production code — propagate errors properly with `?` / `Context`.                                                                         |
+| T4  | TODO   | Update callers in `tests/servers/api/contract/stats/mod.rs`                                    | Integration test. Use `.unwrap()` or `.expect()` since it's test code.                                                                                             |
+| T5  | TODO   | Replace bare `.unwrap()` with `.expect("infallible: ...")` for provably infallible conversions | `headers_with_request_id`, `headers_with_auth_token`, auth token inserts                                                                                           |
+| T6  | TODO   | Verify pre-commit and pre-push checks pass                                                     |                                                                                                                                                                    |
+
+## Design Decisions
+
+### Caller handling strategy (two-phase)
+
+Per discussion with the issue author (2026-07-13):
+
+- **Phase 1 (this PR)**: Change all `ApiHttpClient` public methods to return `Result<Response, ClientError>`. Update all callers to compile — test callers use `.unwrap()` / `.expect()`, production callers propagate errors properly.
+- **Phase 2 (follow-up)**: Evaluate each caller site and decide whether to keep `.unwrap()` (acceptable in tests), switch to `.expect("...")` (preferred in tests), or propagate with `?` (required in production code).
+
+### All public functions must return `Result`
+
+Per discussion with the issue author (2026-07-13):
+
+- `get_request(&self, path: &str)` — changed to return `Result<Response, ClientError>` (was panicking via `base_url().unwrap()`)
+- `get_request_with_query(&self, path, params, headers)` — changed to return `Result<Response, ClientError>` (was panicking via `.unwrap()` on the `_result` counterpart)
+- Free function `get(path, query, headers)` — changed to return `Result<Response, ClientError>` (was panicking via `.unwrap()` on `get_result`)
+- All other public `ApiHttpClient` methods — changed to return `Result<Response, ClientError>`
 
 ## Verification / Progress
 
-- [ ] All `ApiHttpClient` public methods return `Result<Response, ClientError>`
-- [ ] No bare `.unwrap()` calls remain (only `.expect("infallible: ...")` for provably infallible operations)
-- [ ] All contract tests pass unchanged (except for updated `.unwrap()` calls on test side)
-- [ ] E2E tests compile
-- [ ] Pre-commit checks pass
+- [x] All `ApiHttpClient` public methods return `Result<Response, ClientError>`
+- [x] No bare `.unwrap()` calls remain (only `.expect("infallible: ...")` for provably infallible operations)
+- [x] All contract tests pass unchanged (except for updated `.unwrap()` calls on test side)
+- [x] E2E tests compile
+- [x] Pre-commit checks pass
 - [ ] Pre-push checks pass
 
 ## Acceptance Criteria

@@ -33,7 +33,8 @@ async fn should_allow_generating_a_new_random_auth_key() {
             },
             Some(headers_with_request_id(request_id)),
         )
-        .await;
+        .await
+        .unwrap();
 
     let auth_key_resource = assert_auth_key_utf8(response).await;
 
@@ -66,7 +67,8 @@ async fn should_allow_uploading_a_preexisting_auth_key() {
             },
             Some(headers_with_request_id(request_id)),
         )
-        .await;
+        .await
+        .unwrap();
 
     let auth_key_resource = assert_auth_key_utf8(response).await;
 
@@ -99,7 +101,8 @@ async fn should_not_allow_generating_a_new_auth_key_for_unauthenticated_users() 
             },
             Some(headers_with_request_id(request_id)),
         )
-        .await;
+        .await
+        .unwrap();
 
     assert_token_not_valid(response).await;
 
@@ -119,7 +122,8 @@ async fn should_not_allow_generating_a_new_auth_key_for_unauthenticated_users() 
             },
             Some(headers_with_request_id(request_id)),
         )
-        .await;
+        .await
+        .unwrap();
 
     assert_unauthorized(response).await;
 
@@ -150,7 +154,8 @@ async fn should_fail_when_the_auth_key_cannot_be_generated() {
             },
             Some(headers_with_request_id(request_id)),
         )
-        .await;
+        .await
+        .unwrap();
 
     assert_failed_to_add_key(response).await;
 
@@ -182,7 +187,8 @@ async fn should_allow_deleting_an_auth_key() {
     let response = ApiHttpClient::new(env.get_connection_info())
         .unwrap()
         .delete_auth_key(&auth_key.key.to_string(), Some(headers_with_request_id(request_id)))
-        .await;
+        .await
+        .unwrap();
 
     assert_ok(response).await;
 
@@ -224,7 +230,8 @@ async fn should_fail_generating_a_new_auth_key_when_the_provided_key_is_invalid(
                 },
                 Some(headers_with_request_id(request_id)),
             )
-            .await;
+            .await
+            .unwrap();
 
         assert_invalid_auth_key_post_param(response, invalid_key).await;
     }
@@ -264,7 +271,8 @@ async fn should_fail_generating_a_new_auth_key_when_the_key_duration_is_invalid(
                 },
                 Some(headers_with_request_id(request_id)),
             )
-            .await;
+            .await
+            .unwrap();
 
         assert_unprocessable_auth_key_duration_param(response, invalid_key_duration).await;
     }
@@ -294,7 +302,8 @@ async fn should_fail_deleting_an_auth_key_when_the_key_id_is_invalid() {
         let response = ApiHttpClient::new(env.get_connection_info())
             .unwrap()
             .delete_auth_key(invalid_auth_key, Some(headers_with_request_id(request_id)))
-            .await;
+            .await
+            .unwrap();
 
         assert_invalid_auth_key_get_param(response, invalid_auth_key).await;
     }
@@ -324,7 +333,8 @@ async fn should_fail_when_the_auth_key_cannot_be_deleted() {
     let response = ApiHttpClient::new(env.get_connection_info())
         .unwrap()
         .delete_auth_key(&auth_key.key.to_string(), Some(headers_with_request_id(request_id)))
-        .await;
+        .await
+        .unwrap();
 
     assert_failed_to_delete_key(response).await;
 
@@ -358,7 +368,8 @@ async fn should_not_allow_deleting_an_auth_key_for_unauthenticated_users() {
     let response = ApiHttpClient::new(connection_with_invalid_token(env.get_connection_info().origin))
         .unwrap()
         .delete_auth_key(&auth_key.key.to_string(), Some(headers_with_request_id(request_id)))
-        .await;
+        .await
+        .unwrap();
 
     assert_token_not_valid(response).await;
 
@@ -381,7 +392,8 @@ async fn should_not_allow_deleting_an_auth_key_for_unauthenticated_users() {
     let response = ApiHttpClient::new(connection_with_no_token(env.get_connection_info().origin))
         .unwrap()
         .delete_auth_key(&auth_key.key.to_string(), Some(headers_with_request_id(request_id)))
-        .await;
+        .await
+        .unwrap();
 
     assert_unauthorized(response).await;
 
@@ -412,7 +424,8 @@ async fn should_allow_reloading_keys() {
     let response = ApiHttpClient::new(env.get_connection_info())
         .unwrap()
         .reload_keys(Some(headers_with_request_id(request_id)))
-        .await;
+        .await
+        .unwrap();
 
     assert_ok(response).await;
 
@@ -440,7 +453,8 @@ async fn should_fail_when_keys_cannot_be_reloaded() {
     let response = ApiHttpClient::new(env.get_connection_info())
         .unwrap()
         .reload_keys(Some(headers_with_request_id(request_id)))
-        .await;
+        .await
+        .unwrap();
 
     assert_failed_to_reload_keys(response).await;
 
@@ -471,7 +485,8 @@ async fn should_not_allow_reloading_keys_for_unauthenticated_users() {
     let response = ApiHttpClient::new(connection_with_invalid_token(env.get_connection_info().origin))
         .unwrap()
         .reload_keys(Some(headers_with_request_id(request_id)))
-        .await;
+        .await
+        .unwrap();
 
     assert_token_not_valid(response).await;
 
@@ -485,7 +500,8 @@ async fn should_not_allow_reloading_keys_for_unauthenticated_users() {
     let response = ApiHttpClient::new(connection_with_no_token(env.get_connection_info().origin))
         .unwrap()
         .reload_keys(Some(headers_with_request_id(request_id)))
-        .await;
+        .await
+        .unwrap();
 
     assert_unauthorized(response).await;
 
@@ -524,7 +540,8 @@ mod deprecated_generate_key_endpoint {
         let response = ApiHttpClient::new(env.get_connection_info())
             .unwrap()
             .generate_auth_key(seconds_valid, None)
-            .await;
+            .await
+            .unwrap();
 
         let auth_key_resource = assert_auth_key_utf8(response).await;
 
@@ -552,14 +569,16 @@ mod deprecated_generate_key_endpoint {
         let response = ApiHttpClient::new(connection_with_invalid_token(env.get_connection_info().origin))
             .unwrap()
             .generate_auth_key(seconds_valid, Some(headers_with_request_id(request_id)))
-            .await;
+            .await
+            .unwrap();
 
         assert_token_not_valid(response).await;
 
         let response = ApiHttpClient::new(connection_with_no_token(env.get_connection_info().origin))
             .unwrap()
             .generate_auth_key(seconds_valid, None)
-            .await;
+            .await
+            .unwrap();
 
         assert_unauthorized(response).await;
 
@@ -587,7 +606,8 @@ mod deprecated_generate_key_endpoint {
             let response = ApiHttpClient::new(env.get_connection_info())
                 .unwrap()
                 .post_empty(&format!("key/{invalid_key_duration}"), None)
-                .await;
+                .await
+                .unwrap();
 
             assert_invalid_key_duration_param(response, invalid_key_duration).await;
         }
@@ -608,7 +628,8 @@ mod deprecated_generate_key_endpoint {
         let response = ApiHttpClient::new(env.get_connection_info())
             .unwrap()
             .generate_auth_key(seconds_valid, Some(headers_with_request_id(request_id)))
-            .await;
+            .await
+            .unwrap();
 
         assert_failed_to_generate_key(response).await;
 

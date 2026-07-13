@@ -23,7 +23,8 @@ mod given_that_the_token_is_only_provided_in_the_authentication_header {
         let response = ApiHttpClient::new(env.get_connection_info())
             .unwrap()
             .get_request_with_query("stats", Query::default(), Some(headers_with_auth_token(&token)))
-            .await;
+            .await
+            .unwrap();
 
         assert_eq!(response.status(), 200);
 
@@ -51,7 +52,8 @@ mod given_that_the_token_is_only_provided_in_the_authentication_header {
         let response = ApiHttpClient::new(env.get_connection_info())
             .unwrap()
             .get_request_with_query("stats", Query::default(), Some(headers))
-            .await;
+            .await
+            .unwrap();
 
         assert_token_not_valid(response).await;
 
@@ -86,7 +88,8 @@ mod given_that_the_token_is_only_provided_in_the_authentication_header {
         let response = ApiHttpClient::new(connection_info)
             .unwrap()
             .get_request_with_query("stats", Query::default(), Some(headers))
-            .await;
+            .await
+            .unwrap();
 
         assert_token_not_valid(response).await;
 
@@ -127,7 +130,8 @@ mod given_that_the_token_is_only_provided_in_the_query_param {
                 Query::params([QueryParam::new(TOKEN_PARAM_NAME, &token)].to_vec()),
                 None,
             )
-            .await;
+            .await
+            .unwrap();
 
         assert_eq!(response.status(), 200);
 
@@ -151,7 +155,8 @@ mod given_that_the_token_is_only_provided_in_the_query_param {
                 Query::params([QueryParam::new(TOKEN_PARAM_NAME, "")].to_vec()),
                 Some(headers_with_request_id(request_id)),
             )
-            .await;
+            .await
+            .unwrap();
 
         assert_token_not_valid(response).await;
 
@@ -180,7 +185,8 @@ mod given_that_the_token_is_only_provided_in_the_query_param {
                 Query::params([QueryParam::new(TOKEN_PARAM_NAME, "INVALID TOKEN")].to_vec()),
                 Some(headers_with_request_id(request_id)),
             )
-            .await;
+            .await
+            .unwrap();
 
         assert_token_not_valid(response).await;
 
@@ -206,7 +212,8 @@ mod given_that_the_token_is_only_provided_in_the_query_param {
         let response = ApiHttpClient::new(connection_info)
             .unwrap()
             .get_request(&format!("torrents?token={token}&limit=1"))
-            .await;
+            .await
+            .unwrap();
 
         assert_eq!(response.status(), 200);
 
@@ -214,7 +221,8 @@ mod given_that_the_token_is_only_provided_in_the_query_param {
         let response = ApiHttpClient::new(env.get_connection_info())
             .unwrap()
             .get_request(&format!("torrents?limit=1&token={token}"))
-            .await;
+            .await
+            .unwrap();
 
         assert_eq!(response.status(), 200);
 
@@ -247,7 +255,8 @@ mod given_that_not_token_is_provided {
         let response = ApiHttpClient::new(connection_info)
             .unwrap()
             .get_request_with_query("stats", Query::default(), Some(headers_with_request_id(request_id)))
-            .await;
+            .await
+            .unwrap();
 
         assert_unauthorized(response).await;
 
@@ -283,7 +292,8 @@ mod given_that_token_is_provided_via_get_param_and_authentication_header {
                 Query::params([QueryParam::new(TOKEN_PARAM_NAME, non_authorized_token)].to_vec()),
                 Some(headers_with_auth_token(&authorized_token)),
             )
-            .await;
+            .await
+            .unwrap();
 
         // The token provided in the query param should be ignored and the token
         // in the authentication header should be used.
