@@ -68,4 +68,4 @@ pub mod service_binding {
 }
 
 pub type NumberOfDownloads = u32;
-pub type NumberOfDownloadsBTreeMap = BTreeMap<InfoHash, NumberOfDownloads>;
+pub type NumberOfDownloadsPerInfoHash = BTreeMap<InfoHash, NumberOfDownloads>;
