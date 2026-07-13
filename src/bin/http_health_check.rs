@@ -31,10 +31,9 @@ async fn main() {
             if response.status().is_success() {
                 println!("STATUS: {}", response.status());
                 process::exit(0);
-            } else {
-                println!("Non-success status received.");
-                process::exit(1);
             }
+            println!("Non-success status received.");
+            process::exit(1);
         }
         Err(err) => {
             println!("ERROR: {err}");
