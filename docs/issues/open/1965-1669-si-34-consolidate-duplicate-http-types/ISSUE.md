@@ -16,6 +16,8 @@ semantic-links:
   related-artifacts:
     - docs/issues/open/1669-overhaul-packages/EPIC.md
     - docs/issues/open/1669-overhaul-packages/DECISIONS.md
+    - docs/issues/open/1965-1669-si-34-consolidate-duplicate-http-types/analysis-announce-query-vs-announce.md
+    - docs/issues/open/1965-1669-si-34-consolidate-duplicate-http-types/analysis-announce-response-types.md
     - packages/http-protocol/src/v1/requests/
     - packages/http-protocol/src/v1/responses/
     - packages/axum-http-server/tests/server/requests/
@@ -107,6 +109,77 @@ existing `percent_encoding` module.
 
 **Rationale**: It's used by both consumers and belongs with the protocol crate.
 
+### DD6: Merge `announce_builder::Query` into `announce::Announce` (Iteration 2)
+
+**Decision**: The `announce_builder::Query` struct (client-side builder product) will be merged
+into `announce::Announce` (server-side parsed request). The `announce_builder` module will be
+removed entirely.
+
+**Rationale**: Analysis ([`analysis-announce-query-vs-announce.md`](./analysis-announce-query-vs-announce.md))
+determined that all three original differences between the types were resolved by aligning with
+the BEP 3 protocol specification:
+
+- `peer_addr` — BEP 3 defines `ip` as a standard optional parameter; `Announce` should have it
+- Byte counters — BEP 3 treats `uploaded`/`downloaded`/`left` as optional; both sides should use `Option<NumberOfBytes>`
+- Construction patterns — the builder pattern can coexist with `TryFrom<Query>` on the same struct
+
+The unified `Announce` struct will:
+
+- Gain `peer_addr: Option<IpAddr>` (per BEP 3)
+- Gain a `Display` impl for URL query string serialization (replacing `QueryParams`)
+- Gain an `AnnounceBuilder` for ergonomic client-side construction (replacing `QueryBuilder`)
+- Retain its existing `TryFrom<Query>` impl for server-side parsing
+
+### DD7: Restructure Response Types into Layered Modules
+
+**Decision**: The announce response types will be restructured from flat files into a layered
+directory that reveals the architectural separation of concerns:
+
+```text
+responses/
+    announce/
+        data.rs              ← DTO layer: transport-agnostic "what"
+        encoding.rs          ← Encoding layer: format-specific "how"
+        deserialization.rs   ← Client-side: reverse of DTO layer
+```
+
+The same pattern applies to scrape responses.
+
+**Rationale**: Analysis ([`analysis-announce-response-types.md`](./analysis-announce-response-types.md))
+identified that the response side has two layers of abstraction — a DTO layer
+(`AnnounceData`) and an encoding layer (`Normal`/`Compact`) — because the wire accepts two
+formats (BEP 3 non-compact, BEP 23 compact). The client-side deserialization types are the
+reverse of the DTO layer. The current flat file naming (`announce.rs` + `announce_deserialization.rs`)
+hides this architecture and causes naming collisions (`Announce`, `Compact`, `CompactPeer`).
+
+### DD8: Partial Merge of Response DTO Layer
+
+**Decision**: The client-side deserialization types will be consolidated with the server-side DTO
+types into the same module (`announce/`), but the encoding layer remains separate. Key changes:
+
+- `announce_deserialization::Announce` → `announce::deserialization::DeserializedNormal` (avoids collision)
+- `announce_deserialization::Compact` → `announce::deserialization::DeserializedCompactParsed`
+- Client-side `CompactPeer` replaced with shared `encoding::CompactPeer` enum (gains IPv6 support)
+- `peers6` field added to client-side compact types (fixes IPv6 gap)
+- `CompactPeerData<V>` shared between encoding and deserialization layers
+
+**Rationale**: The DTO layer and deserialization types represent the same conceptual data.
+Merging them eliminates duplication and naming collisions. The encoding layer stays separate
+because it uses `torrust_bencode` macros (vs `serde_bencode` derives) — incompatible
+serialization strategies should not be forced onto the same structs.
+
+### DD9: Replace Duplicate HTTP Test Client with Tracker Client Package
+
+**Decision**: The duplicate HTTP client in `packages/axum-http-server/tests/server/client.rs`
+will be removed. Tests will use the canonical `tracker-client` package
+(`packages/tracker-client/src/http/client/mod.rs`) instead.
+
+**Rationale**: The test client is a historical duplicate from before the tracker client was
+extracted into its own package. The `tracker-client` package is the definitive client and is
+planned for publication on crates.io. Tests should exercise the same client that external
+users will use. This should be done last, after all type consolidation is complete, to avoid
+churn from intermediate refactors.
+
 ## Scope
 
 ### In Scope
@@ -116,6 +189,14 @@ existing `percent_encoding` module.
 - Replace duplicate types in `packages/axum-http-server/tests/server/` with imports from `http-protocol`
 - Replace duplicate types in `packages/tracker-client/src/http/client/` with imports from `http-protocol`
 - Add `http-protocol` as a dependency of `tracker-client`
+- **Merge `announce_builder::Query` into `announce::Announce`** (DD6): add `peer_addr`, `Display` impl,
+  `AnnounceBuilder`; remove `announce_builder` module
+- **Restructure response types into layered modules** (DD7): `announce/{data,encoding,deserialization}.rs`
+  and `scrape/{data,encoding,deserialization}.rs`
+- **Partial merge of response DTO layer** (DD8): consolidate deserialization types into announce module,
+  fix IPv6 gap, eliminate naming collisions
+- **Replace duplicate HTTP test client** (DD9): remove `packages/axum-http-server/tests/server/client.rs`;
+  use `tracker-client` package instead
 - Create a `use-tracker-client` skill in `.github/skills/usage/` capturing the manual verification learnings
 - Verify all tests pass and no functionality regresses
 
@@ -130,15 +211,28 @@ existing `percent_encoding` module.
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| ID  | Status | Task                                                | Notes / Expected Output                                                                         |
-| --- | ------ | --------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| T1  | DONE   | Survey duplicate types and decide merge strategy    | Catalog exact types to move; identify which location has the "best" version                     |
-| T2  | DONE   | Add client-side types to `http-protocol`            | Move query builders, response deserialization structs, and shared helpers                       |
-| T3  | DONE   | Add `http-protocol` dependency to `tracker-client`  | Update `Cargo.toml`, verify dependency tree                                                     |
-| T4  | DONE   | Replace duplicate types in `tracker-client`         | Delete local copies, update imports to `http-protocol`                                          |
-| T5  | DONE   | Replace duplicate types in `axum-http-server` tests | Delete local copies, update imports to `http-protocol`                                          |
-| T6  | DONE   | Run full verification                               | `linter all`, `cargo test --workspace`, pre-commit, pre-push                                    |
-| T7  | TODO   | Create `use-tracker-client` skill                   | New skill in `.github/skills/usage/use-tracker-client/` with learnings from manual verification |
+| ID  | Status | Task                                                  | Notes / Expected Output                                                                                                                    |
+| --- | ------ | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| T1  | DONE   | Survey duplicate types and decide merge strategy      | Catalog exact types to move; identify which location has the "best" version                                                                |
+| T2  | DONE   | Add client-side types to `http-protocol`              | Move query builders, response deserialization structs, and shared helpers                                                                  |
+| T3  | DONE   | Add `http-protocol` dependency to `tracker-client`    | Update `Cargo.toml`, verify dependency tree                                                                                                |
+| T4  | DONE   | Replace duplicate types in `tracker-client`           | Delete local copies, update imports to `http-protocol`                                                                                     |
+| T5  | DONE   | Replace duplicate types in `axum-http-server` tests   | Delete local copies, update imports to `http-protocol`                                                                                     |
+| T6  | DONE   | Run full verification (Iteration 1)                   | `linter all`, `cargo test --workspace`, pre-commit, pre-push                                                                               |
+|     |        | **Request-side unification (DD6)**                    |                                                                                                                                            |
+| T7  | TODO   | Merge `announce_builder::Query` into `Announce`       | See [analysis](./analysis-announce-query-vs-announce.md). Add `peer_addr`, `Display`, `AnnounceBuilder`; remove `announce_builder` module  |
+| T8  | TODO   | Update all call sites for unified `Announce`          | ~47 contract test sites, ~5 CLI app sites, 2 client implementations                                                                        |
+| T9  | TODO   | Run full verification after announce request merge    | `linter all`, `cargo test --workspace`, pre-commit, pre-push                                                                               |
+|     |        | **Response-side restructuring (DD7 + DD8)**           |                                                                                                                                            |
+| T10 | TODO   | Restructure announce responses into layered module    | Create `announce/{data,encoding,deserialization}.rs`; move types; update imports                                                           |
+| T11 | TODO   | Partial merge of announce DTO layer                   | Rename `Announce` → `DeserializedNormal`; rename `Compact` → `DeserializedCompactParsed`; share `CompactPeer` enum; add `peers6`, add IPv6 |
+| T12 | TODO   | Restructure scrape responses into layered module      | Same pattern: `scrape/{data,encoding,deserialization}.rs`                                                                                  |
+| T13 | TODO   | Partial merge of scrape DTO layer                     | Same pattern as announce                                                                                                                   |
+| T14 | TODO   | Update all call sites for restructured response types | Update imports in tracker-client, axum-http-server tests, CLI apps                                                                         |
+| T15 | TODO   | Run full verification after response restructure      | `linter all`, `cargo test --workspace`, pre-commit, pre-push                                                                               |
+|     |        | **Finalization**                                      |                                                                                                                                            |
+| T16 | TODO   | Replace duplicate HTTP test client (DD9)              | Remove `packages/axum-http-server/tests/server/client.rs`; update tests to use `tracker-client` package                                    |
+| T17 | TODO   | Create `use-tracker-client` skill                     | New skill in `.github/skills/usage/use-tracker-client/` with learnings from manual verification                                            |
 
 ## Progress Tracking
 
@@ -160,7 +254,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 - 2026-06-30 12:00 UTC - Copilot - Spec draft created
 - 2026-07-13 10:00 UTC - Copilot - Spec reviewed and approved by user; design decisions recorded
-- 2026-07-13 12:00 UTC - Copilot - Implementation completed, PR #1974 opened
+- 2026-07-13 12:00 UTC - Copilot - Implementation (T1-T6) completed, PR #1974 opened
+- 2026-07-13 14:00 UTC - Copilot - Iteration 2 analysis: decided to merge `announce_builder::Query` into `Announce` (DD6). New tasks T7-T9 added.
+- 2026-07-13 16:00 UTC - Copilot - Response-side analysis: decided to restructure into layered modules (DD7) and partial DTO merge (DD8). New tasks T10-T15 added.
 
 ## Acceptance Criteria
 
@@ -240,4 +336,6 @@ issue folder. The Evidence column below links to the relevant section of that fi
 - EPIC spec: `docs/issues/open/1669-overhaul-packages/EPIC.md`
 - Decisions log: `docs/issues/open/1669-overhaul-packages/DECISIONS.md`
 - Duplicate analysis: exploration performed 2026-06-30 by Copilot
+- Request-side analysis: [`analysis-announce-query-vs-announce.md`](./analysis-announce-query-vs-announce.md)
+- Response-side analysis: [`analysis-announce-response-types.md`](./analysis-announce-response-types.md)
 - Related ADR: `docs/adrs/20260527175600_keep_protocol_and_domain_types_decoupled.md`
