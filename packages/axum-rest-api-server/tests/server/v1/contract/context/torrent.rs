@@ -33,7 +33,8 @@ async fn should_allow_getting_all_torrents() {
     let response = ApiHttpClient::new(env.get_connection_info())
         .unwrap()
         .get_torrents(Query::empty(), Some(headers_with_request_id(request_id)))
-        .await;
+        .await
+        .unwrap();
 
     assert_torrent_list(
         response,
@@ -70,7 +71,8 @@ async fn should_allow_limiting_the_torrents_in_the_result() {
             Query::params([QueryParam::new("limit", "1")].to_vec()),
             Some(headers_with_request_id(request_id)),
         )
-        .await;
+        .await
+        .unwrap();
 
     assert_torrent_list(
         response,
@@ -107,7 +109,8 @@ async fn should_allow_the_torrents_result_pagination() {
             Query::params([QueryParam::new("offset", "1")].to_vec()),
             Some(headers_with_request_id(request_id)),
         )
-        .await;
+        .await
+        .unwrap();
 
     assert_torrent_list(
         response,
@@ -149,7 +152,8 @@ async fn should_allow_getting_a_list_of_torrents_providing_infohashes() {
             ),
             Some(headers_with_request_id(request_id)),
         )
-        .await;
+        .await
+        .unwrap();
 
     assert_torrent_list(
         response,
@@ -190,7 +194,8 @@ async fn should_fail_getting_torrents_when_the_offset_query_parameter_cannot_be_
                 Query::params([QueryParam::new("offset", invalid_offset)].to_vec()),
                 Some(headers_with_request_id(request_id)),
             )
-            .await;
+            .await
+            .unwrap();
 
         assert_bad_request(
             response,
@@ -219,7 +224,8 @@ async fn should_fail_getting_torrents_when_the_limit_query_parameter_cannot_be_p
                 Query::params([QueryParam::new("limit", invalid_limit)].to_vec()),
                 Some(headers_with_request_id(request_id)),
             )
-            .await;
+            .await
+            .unwrap();
 
         assert_bad_request(
             response,
@@ -248,7 +254,8 @@ async fn should_fail_getting_torrents_when_the_info_hash_parameter_is_invalid() 
                 Query::params([QueryParam::new("info_hash", invalid_info_hash)].to_vec()),
                 Some(headers_with_request_id(request_id)),
             )
-            .await;
+            .await
+            .unwrap();
 
         assert_bad_request(
             response,
@@ -271,7 +278,8 @@ async fn should_not_allow_getting_torrents_for_unauthenticated_users() {
     let response = ApiHttpClient::new(connection_with_invalid_token(env.get_connection_info().origin))
         .unwrap()
         .get_torrents(Query::empty(), Some(headers_with_request_id(request_id)))
-        .await;
+        .await
+        .unwrap();
 
     assert_token_not_valid(response).await;
 
@@ -285,7 +293,8 @@ async fn should_not_allow_getting_torrents_for_unauthenticated_users() {
     let response = ApiHttpClient::new(connection_with_no_token(env.get_connection_info().origin))
         .unwrap()
         .get_torrents(Query::default(), Some(headers_with_request_id(request_id)))
-        .await;
+        .await
+        .unwrap();
 
     assert_unauthorized(response).await;
 
@@ -314,7 +323,8 @@ async fn should_allow_getting_a_torrent_info() {
     let response = ApiHttpClient::new(env.get_connection_info())
         .unwrap()
         .get_torrent(&info_hash.to_string(), Some(headers_with_request_id(request_id)))
-        .await;
+        .await
+        .unwrap();
 
     assert_torrent_info(
         response,
@@ -343,7 +353,8 @@ async fn should_fail_while_getting_a_torrent_info_when_the_torrent_does_not_exis
     let response = ApiHttpClient::new(env.get_connection_info())
         .unwrap()
         .get_torrent(&info_hash.to_string(), Some(headers_with_request_id(request_id)))
-        .await;
+        .await
+        .unwrap();
 
     assert_torrent_not_known(response).await;
 
@@ -362,7 +373,8 @@ async fn should_fail_getting_a_torrent_info_when_the_provided_infohash_is_invali
         let response = ApiHttpClient::new(env.get_connection_info())
             .unwrap()
             .get_torrent(invalid_infohash, Some(headers_with_request_id(request_id)))
-            .await;
+            .await
+            .unwrap();
 
         assert_invalid_infohash_param(response, invalid_infohash).await;
     }
@@ -373,7 +385,8 @@ async fn should_fail_getting_a_torrent_info_when_the_provided_infohash_is_invali
         let response = ApiHttpClient::new(env.get_connection_info())
             .unwrap()
             .get_torrent(invalid_infohash, Some(headers_with_request_id(request_id)))
-            .await;
+            .await
+            .unwrap();
 
         assert_not_found(response).await;
     }
@@ -396,7 +409,8 @@ async fn should_not_allow_getting_a_torrent_info_for_unauthenticated_users() {
     let response = ApiHttpClient::new(connection_with_invalid_token(env.get_connection_info().origin))
         .unwrap()
         .get_torrent(&info_hash.to_string(), Some(headers_with_request_id(request_id)))
-        .await;
+        .await
+        .unwrap();
 
     assert_token_not_valid(response).await;
 
@@ -410,7 +424,8 @@ async fn should_not_allow_getting_a_torrent_info_for_unauthenticated_users() {
     let response = ApiHttpClient::new(connection_with_no_token(env.get_connection_info().origin))
         .unwrap()
         .get_torrent(&info_hash.to_string(), Some(headers_with_request_id(request_id)))
-        .await;
+        .await
+        .unwrap();
 
     assert_unauthorized(response).await;
 

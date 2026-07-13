@@ -27,7 +27,8 @@ async fn should_allow_whitelisting_a_torrent() {
     let response = ApiHttpClient::new(env.get_connection_info())
         .unwrap()
         .whitelist_a_torrent(&info_hash, Some(headers_with_request_id(request_id)))
-        .await;
+        .await
+        .unwrap();
 
     assert_ok(response).await;
     assert!(
@@ -55,14 +56,16 @@ async fn should_allow_whitelisting_a_torrent_that_has_been_already_whitelisted()
 
     let response = api_client
         .whitelist_a_torrent(&info_hash, Some(headers_with_request_id(request_id)))
-        .await;
+        .await
+        .unwrap();
     assert_ok(response).await;
 
     let request_id = Uuid::new_v4();
 
     let response = api_client
         .whitelist_a_torrent(&info_hash, Some(headers_with_request_id(request_id)))
-        .await;
+        .await
+        .unwrap();
     assert_ok(response).await;
 
     env.stop().await;
@@ -81,7 +84,8 @@ async fn should_not_allow_whitelisting_a_torrent_for_unauthenticated_users() {
     let response = ApiHttpClient::new(connection_with_invalid_token(env.get_connection_info().origin))
         .unwrap()
         .whitelist_a_torrent(&info_hash, Some(headers_with_request_id(request_id)))
-        .await;
+        .await
+        .unwrap();
 
     assert_token_not_valid(response).await;
 
@@ -95,7 +99,8 @@ async fn should_not_allow_whitelisting_a_torrent_for_unauthenticated_users() {
     let response = ApiHttpClient::new(connection_with_no_token(env.get_connection_info().origin))
         .unwrap()
         .whitelist_a_torrent(&info_hash, Some(headers_with_request_id(request_id)))
-        .await;
+        .await
+        .unwrap();
 
     assert_unauthorized(response).await;
 
@@ -122,7 +127,8 @@ async fn should_fail_when_the_torrent_cannot_be_whitelisted() {
     let response = ApiHttpClient::new(env.get_connection_info())
         .unwrap()
         .whitelist_a_torrent(&info_hash, Some(headers_with_request_id(request_id)))
-        .await;
+        .await
+        .unwrap();
 
     assert_failed_to_whitelist_torrent(response).await;
 
@@ -146,7 +152,8 @@ async fn should_fail_whitelisting_a_torrent_when_the_provided_infohash_is_invali
         let response = ApiHttpClient::new(env.get_connection_info())
             .unwrap()
             .whitelist_a_torrent(invalid_infohash, Some(headers_with_request_id(request_id)))
-            .await;
+            .await
+            .unwrap();
 
         assert_invalid_infohash_param(response, invalid_infohash).await;
     }
@@ -157,7 +164,8 @@ async fn should_fail_whitelisting_a_torrent_when_the_provided_infohash_is_invali
         let response = ApiHttpClient::new(env.get_connection_info())
             .unwrap()
             .whitelist_a_torrent(invalid_infohash, Some(headers_with_request_id(request_id)))
-            .await;
+            .await
+            .unwrap();
 
         assert_not_found(response).await;
     }
@@ -186,7 +194,8 @@ async fn should_allow_removing_a_torrent_from_the_whitelist() {
     let response = ApiHttpClient::new(env.get_connection_info())
         .unwrap()
         .remove_torrent_from_whitelist(&hash, Some(headers_with_request_id(request_id)))
-        .await;
+        .await
+        .unwrap();
 
     assert_ok(response).await;
     assert!(
@@ -213,7 +222,8 @@ async fn should_not_fail_trying_to_remove_a_non_whitelisted_torrent_from_the_whi
     let response = ApiHttpClient::new(env.get_connection_info())
         .unwrap()
         .remove_torrent_from_whitelist(&non_whitelisted_torrent_hash, Some(headers_with_request_id(request_id)))
-        .await;
+        .await
+        .unwrap();
 
     assert_ok(response).await;
 
@@ -232,7 +242,8 @@ async fn should_fail_removing_a_torrent_from_the_whitelist_when_the_provided_inf
         let response = ApiHttpClient::new(env.get_connection_info())
             .unwrap()
             .remove_torrent_from_whitelist(invalid_infohash, Some(headers_with_request_id(request_id)))
-            .await;
+            .await
+            .unwrap();
 
         assert_invalid_infohash_param(response, invalid_infohash).await;
     }
@@ -243,7 +254,8 @@ async fn should_fail_removing_a_torrent_from_the_whitelist_when_the_provided_inf
         let response = ApiHttpClient::new(env.get_connection_info())
             .unwrap()
             .remove_torrent_from_whitelist(invalid_infohash, Some(headers_with_request_id(request_id)))
-            .await;
+            .await
+            .unwrap();
 
         assert_not_found(response).await;
     }
@@ -273,7 +285,8 @@ async fn should_fail_when_the_torrent_cannot_be_removed_from_the_whitelist() {
     let response = ApiHttpClient::new(env.get_connection_info())
         .unwrap()
         .remove_torrent_from_whitelist(&hash, Some(headers_with_request_id(request_id)))
-        .await;
+        .await
+        .unwrap();
 
     assert_failed_to_remove_torrent_from_whitelist(response).await;
 
@@ -306,7 +319,8 @@ async fn should_not_allow_removing_a_torrent_from_the_whitelist_for_unauthentica
     let response = ApiHttpClient::new(connection_with_invalid_token(env.get_connection_info().origin))
         .unwrap()
         .remove_torrent_from_whitelist(&hash, Some(headers_with_request_id(request_id)))
-        .await;
+        .await
+        .unwrap();
 
     assert_token_not_valid(response).await;
 
@@ -327,7 +341,8 @@ async fn should_not_allow_removing_a_torrent_from_the_whitelist_for_unauthentica
     let response = ApiHttpClient::new(connection_with_no_token(env.get_connection_info().origin))
         .unwrap()
         .remove_torrent_from_whitelist(&hash, Some(headers_with_request_id(request_id)))
-        .await;
+        .await
+        .unwrap();
 
     assert_unauthorized(response).await;
 
@@ -360,7 +375,8 @@ async fn should_allow_reload_the_whitelist_from_the_database() {
     let response = ApiHttpClient::new(env.get_connection_info())
         .unwrap()
         .reload_whitelist(Some(headers_with_request_id(request_id)))
-        .await;
+        .await
+        .unwrap();
 
     assert_ok(response).await;
     /* todo: this assert fails because the whitelist has not been reloaded yet.
@@ -399,7 +415,8 @@ async fn should_fail_when_the_whitelist_cannot_be_reloaded_from_the_database() {
     let response = ApiHttpClient::new(env.get_connection_info())
         .unwrap()
         .reload_whitelist(Some(headers_with_request_id(request_id)))
-        .await;
+        .await
+        .unwrap();
 
     assert_failed_to_reload_whitelist(response).await;
 

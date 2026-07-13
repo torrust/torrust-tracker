@@ -95,7 +95,8 @@ async fn get_tracker_statistics(aip_url: &str, token: &str) -> PartialGlobalStat
     let response = TrackerApiClient::new(ConnectionInfo::authenticated(Origin::new(aip_url).unwrap(), token))
         .unwrap()
         .get_tracker_statistics(None)
-        .await;
+        .await
+        .expect("failed to get tracker statistics");
 
     response
         .json::<PartialGlobalStatistics>()
