@@ -7,7 +7,7 @@
 use async_trait::async_trait;
 use mockall::automock;
 use torrust_info_hash::InfoHash;
-use torrust_tracker_primitives::{NumberOfDownloads, NumberOfDownloadsBTreeMap};
+use torrust_tracker_primitives::{NumberOfDownloads, NumberOfDownloadsPerInfoHash};
 
 use super::super::error::Error;
 
@@ -26,7 +26,7 @@ pub trait TorrentMetricsStore: Sync + Send {
     /// # Errors
     ///
     /// Returns an [`Error`] if the metrics cannot be loaded.
-    async fn load_all_torrents_downloads(&self) -> Result<NumberOfDownloadsBTreeMap, Error>;
+    async fn load_all_torrents_downloads(&self) -> Result<NumberOfDownloadsPerInfoHash, Error>;
 
     /// Loads torrent metrics data from the database for one torrent.
     ///

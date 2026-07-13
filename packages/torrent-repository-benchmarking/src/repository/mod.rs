@@ -2,7 +2,7 @@ use torrust_clock::DurationSinceUnixEpoch;
 use torrust_info_hash::InfoHash;
 use torrust_tracker_primitives::pagination::Pagination;
 use torrust_tracker_primitives::swarm_metadata::{AggregateActiveSwarmMetadata, SwarmMetadata};
-use torrust_tracker_primitives::{NumberOfDownloads, NumberOfDownloadsBTreeMap, TrackerPolicy, peer};
+use torrust_tracker_primitives::{NumberOfDownloads, NumberOfDownloadsPerInfoHash, TrackerPolicy, peer};
 
 pub mod dash_map_mutex_std;
 pub mod rw_lock_std;
@@ -19,7 +19,7 @@ pub trait Repository<T>: Debug + Default + Sized + 'static {
     fn get(&self, key: &InfoHash) -> Option<T>;
     fn get_metrics(&self) -> AggregateActiveSwarmMetadata;
     fn get_paginated(&self, pagination: Option<&Pagination>) -> Vec<(InfoHash, T)>;
-    fn import_persistent(&self, persistent_torrents: &NumberOfDownloadsBTreeMap);
+    fn import_persistent(&self, persistent_torrents: &NumberOfDownloadsPerInfoHash);
     fn remove(&self, key: &InfoHash) -> Option<T>;
     fn remove_inactive_peers(&self, current_cutoff: DurationSinceUnixEpoch);
     fn remove_peerless_torrents(&self, policy: &TrackerPolicy);
@@ -32,7 +32,10 @@ pub trait RepositoryAsync<T>: Debug + Default + Sized + 'static {
     fn get(&self, key: &InfoHash) -> impl std::future::Future<Output = Option<T>> + Send;
     fn get_metrics(&self) -> impl std::future::Future<Output = AggregateActiveSwarmMetadata> + Send;
     fn get_paginated(&self, pagination: Option<&Pagination>) -> impl std::future::Future<Output = Vec<(InfoHash, T)>> + Send;
-    fn import_persistent(&self, persistent_torrents: &NumberOfDownloadsBTreeMap) -> impl std::future::Future<Output = ()> + Send;
+    fn import_persistent(
+        &self,
+        persistent_torrents: &NumberOfDownloadsPerInfoHash,
+    ) -> impl std::future::Future<Output = ()> + Send;
     fn remove(&self, key: &InfoHash) -> impl std::future::Future<Output = Option<T>> + Send;
     fn remove_inactive_peers(&self, current_cutoff: DurationSinceUnixEpoch) -> impl std::future::Future<Output = ()> + Send;
     fn remove_peerless_torrents(&self, policy: &TrackerPolicy) -> impl std::future::Future<Output = ()> + Send;

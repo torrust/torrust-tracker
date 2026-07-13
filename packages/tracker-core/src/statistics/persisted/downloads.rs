@@ -2,7 +2,7 @@
 use std::sync::Arc;
 
 use torrust_info_hash::InfoHash;
-use torrust_tracker_primitives::{NumberOfDownloads, NumberOfDownloadsBTreeMap};
+use torrust_tracker_primitives::{NumberOfDownloads, NumberOfDownloadsPerInfoHash};
 
 use crate::databases::TorrentMetricsStore;
 use crate::databases::error::Error;
@@ -76,7 +76,7 @@ impl DatabaseDownloadsMetricRepository {
     /// # Errors
     ///
     /// Returns an [`Error`] if the underlying database query fails.
-    pub(crate) async fn load_all_torrents_downloads(&self) -> Result<NumberOfDownloadsBTreeMap, Error> {
+    pub(crate) async fn load_all_torrents_downloads(&self) -> Result<NumberOfDownloadsPerInfoHash, Error> {
         self.database.load_all_torrents_downloads().await
     }
 
@@ -140,7 +140,7 @@ impl DatabaseDownloadsMetricRepository {
 #[cfg(test)]
 mod tests {
 
-    use torrust_tracker_primitives::NumberOfDownloadsBTreeMap;
+    use torrust_tracker_primitives::NumberOfDownloadsPerInfoHash;
 
     use super::DatabaseDownloadsMetricRepository;
     use crate::databases::setup::initialize_database;
@@ -190,7 +190,7 @@ mod tests {
 
         let torrents = repository.load_all_torrents_downloads().await.unwrap();
 
-        let mut expected_torrents = NumberOfDownloadsBTreeMap::new();
+        let mut expected_torrents = NumberOfDownloadsPerInfoHash::new();
         expected_torrents.insert(infohash_one, 1);
         expected_torrents.insert(infohash_two, 2);
 

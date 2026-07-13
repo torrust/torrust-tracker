@@ -5,7 +5,7 @@ use rstest::{fixture, rstest};
 use torrust_info_hash::InfoHash;
 use torrust_tracker_primitives::pagination::Pagination;
 use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
-use torrust_tracker_primitives::{AnnounceEvent, NumberOfBytes, NumberOfDownloadsBTreeMap, TrackerPolicy};
+use torrust_tracker_primitives::{AnnounceEvent, NumberOfBytes, NumberOfDownloadsPerInfoHash, TrackerPolicy};
 use torrust_tracker_torrent_repository_benchmarking::EntrySingle;
 use torrust_tracker_torrent_repository_benchmarking::entry::Entry as _;
 use torrust_tracker_torrent_repository_benchmarking::repository::dash_map_mutex_std::XacrimonDashMap;
@@ -165,12 +165,12 @@ fn many_hashed_in_order() -> Entries {
 }
 
 #[fixture]
-fn persistent_empty() -> NumberOfDownloadsBTreeMap {
-    NumberOfDownloadsBTreeMap::default()
+fn persistent_empty() -> NumberOfDownloadsPerInfoHash {
+    NumberOfDownloadsPerInfoHash::default()
 }
 
 #[fixture]
-fn persistent_single() -> NumberOfDownloadsBTreeMap {
+fn persistent_single() -> NumberOfDownloadsPerInfoHash {
     let hash = &mut DefaultHasher::default();
 
     hash.write_u8(1);
@@ -180,7 +180,7 @@ fn persistent_single() -> NumberOfDownloadsBTreeMap {
 }
 
 #[fixture]
-fn persistent_three() -> NumberOfDownloadsBTreeMap {
+fn persistent_three() -> NumberOfDownloadsPerInfoHash {
     let hash = &mut DefaultHasher::default();
 
     hash.write_u8(1);
@@ -441,7 +441,7 @@ async fn it_should_import_persistent_torrents(
     )]
     repo: Repo,
     #[case] entries: Entries,
-    #[values(persistent_empty(), persistent_single(), persistent_three())] persistent_torrents: NumberOfDownloadsBTreeMap,
+    #[values(persistent_empty(), persistent_single(), persistent_three())] persistent_torrents: NumberOfDownloadsPerInfoHash,
 ) {
     make(&repo, &entries).await;
 

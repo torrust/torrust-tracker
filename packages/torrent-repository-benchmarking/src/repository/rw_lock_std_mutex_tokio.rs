@@ -8,7 +8,7 @@ use torrust_clock::DurationSinceUnixEpoch;
 use torrust_info_hash::InfoHash;
 use torrust_tracker_primitives::pagination::Pagination;
 use torrust_tracker_primitives::swarm_metadata::{AggregateActiveSwarmMetadata, SwarmMetadata};
-use torrust_tracker_primitives::{NumberOfDownloads, NumberOfDownloadsBTreeMap, TrackerPolicy, peer};
+use torrust_tracker_primitives::{NumberOfDownloads, NumberOfDownloadsPerInfoHash, TrackerPolicy, peer};
 
 use super::RepositoryAsync;
 use crate::entry::peer_list::PeerList;
@@ -100,7 +100,7 @@ where
         metrics
     }
 
-    fn import_persistent(&self, persistent_torrents: &NumberOfDownloadsBTreeMap) -> impl Future<Output = ()> + Send {
+    fn import_persistent(&self, persistent_torrents: &NumberOfDownloadsPerInfoHash) -> impl Future<Output = ()> + Send {
         let mut db = self.get_torrents_mut();
 
         for (info_hash, completed) in persistent_torrents {

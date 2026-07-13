@@ -138,7 +138,7 @@ pub trait SchemaMigrator: Sync + Send {
 ```rust
 #[automock]
 pub trait TorrentMetricsStore: Sync + Send {
-    fn load_all_torrents_downloads(&self) -> Result<NumberOfDownloadsBTreeMap, Error>;
+    fn load_all_torrents_downloads(&self) -> Result<NumberOfDownloadsPerInfoHash, Error>;
     fn load_torrent_downloads(&self, info_hash: &InfoHash) -> Result<Option<NumberOfDownloads>, Error>;
     fn save_torrent_downloads(&self, info_hash: &InfoHash, downloaded: NumberOfDownloads) -> Result<(), Error>;
     fn increase_downloads_for_torrent(&self, info_hash: &InfoHash) -> Result<(), Error>;
@@ -224,7 +224,7 @@ impl SchemaMigrator for Sqlite {
 }
 
 impl TorrentMetricsStore for Sqlite {
-    fn load_all_torrents_downloads(&self) -> Result<NumberOfDownloadsBTreeMap, Error> { ... }
+    fn load_all_torrents_downloads(&self) -> Result<NumberOfDownloadsPerInfoHash, Error> { ... }
     // ... remaining 6 methods
 }
 

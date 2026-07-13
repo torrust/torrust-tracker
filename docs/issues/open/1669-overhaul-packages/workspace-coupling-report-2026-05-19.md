@@ -242,7 +242,7 @@ Workspace deps: 9
 - `torrust_tracker_primitives::AnnouncePolicy`
 - `torrust_tracker_primitives::NumberOfBytes`
 - `torrust_tracker_primitives::NumberOfDownloads`
-- `torrust_tracker_primitives::NumberOfDownloadsBTreeMap`
+- `torrust_tracker_primitives::NumberOfDownloadsPerInfoHash`
 - `torrust_tracker_primitives::PeerId`
 - `torrust_tracker_primitives::ScrapeData`
 - `torrust_tracker_primitives::pagination::Pagination`
@@ -898,7 +898,7 @@ Workspace deps: 6
 - `torrust_tracker_primitives::AnnounceEvent::Completed`
 - `torrust_tracker_primitives::AnnounceEvent::Started`
 - `torrust_tracker_primitives::NumberOfBytes`
-- `torrust_tracker_primitives::NumberOfDownloadsBTreeMap`
+- `torrust_tracker_primitives::NumberOfDownloadsPerInfoHash`
 - `torrust_tracker_primitives::PeerId`
 - `torrust_tracker_primitives::pagination::Pagination`
 - `torrust_tracker_primitives::peer`

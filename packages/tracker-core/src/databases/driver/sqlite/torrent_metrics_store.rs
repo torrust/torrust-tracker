@@ -3,7 +3,7 @@ use std::str::FromStr;
 use ::sqlx::Row;
 use async_trait::async_trait;
 use torrust_info_hash::InfoHash;
-use torrust_tracker_primitives::{NumberOfDownloads, NumberOfDownloadsBTreeMap};
+use torrust_tracker_primitives::{NumberOfDownloads, NumberOfDownloadsPerInfoHash};
 
 use super::{DRIVER, Sqlite};
 use crate::databases::TorrentMetricsStore;
@@ -12,7 +12,7 @@ use crate::databases::error::Error;
 
 #[async_trait]
 impl TorrentMetricsStore for Sqlite {
-    async fn load_all_torrents_downloads(&self) -> Result<NumberOfDownloadsBTreeMap, Error> {
+    async fn load_all_torrents_downloads(&self) -> Result<NumberOfDownloadsPerInfoHash, Error> {
         let rows = ::sqlx::query("SELECT info_hash, completed FROM torrents")
             .fetch_all(&self.pool)
             .await
