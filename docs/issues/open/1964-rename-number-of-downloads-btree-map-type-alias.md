@@ -6,7 +6,7 @@ priority: p2
 github-issue: 1964
 spec-path: docs/issues/open/1964-rename-number-of-downloads-btree-map-type-alias.md
 branch: "1964-rename-number-of-downloads-btree-map"
-related-pr: null
+related-pr: "https://github.com/torrust/torrust-tracker/pull/1972"
 last-updated-utc: 2026-06-30 12:00
 semantic-links:
   skill-links:
@@ -104,6 +104,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 ### Progress Log
 
 - 2026-06-30 12:00 UTC - Copilot - Spec draft created
+- 2026-07-13 08:30 UTC - Copilot - Implementation completed, PR #1972 opened
 
 ## Acceptance Criteria
 
@@ -134,13 +135,13 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 ### Acceptance Verification
 
-| AC ID | Status (`TODO`/`DONE`) | Evidence                                                                                                                                               |
-| ----- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| AC1   | DONE                   | grep confirms no `.rs` or doc files contain `NumberOfDownloadsBTreeMap` (only the spec itself)                                                         |
-| AC2   | DONE                   | `NumberOfDownloadsPerInfoHash` is the sole name used across all 23 modified files                                                                      |
-| AC3   | DONE                   | `cargo test --tests --workspace --all-targets --all-features` — all tests pass (0 failures)                                                            |
-| AC4   | DONE                   | `linter all` — markdown, yaml, toml, cspell, rustfmt, shellcheck all pass. Clippy failure is pre-existing in `http_health_check` (unrelated to rename) |
-| AC5   | DONE                   | Pre-commit checks running successfully (build + doc-tests + unit tests pass)                                                                           |
+| AC ID | Status (`TODO`/`DONE`) | Evidence                                                                                                                                                                              |
+| ----- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| AC1   | DONE                   | grep confirms no `.rs` files contain `NumberOfDownloadsBTreeMap`. The only `.md` file with the old name is this spec itself, which intentionally references it to describe the rename |
+| AC2   | DONE                   | `NumberOfDownloadsPerInfoHash` is the sole name used across all 23 modified files                                                                                                     |
+| AC3   | DONE                   | `cargo test --tests --workspace --all-targets --all-features` — all tests pass (0 failures)                                                                                           |
+| AC4   | DONE                   | `linter all` — markdown, yaml, toml, cspell, rustfmt, shellcheck all pass. Clippy failure is pre-existing in `http_health_check` (unrelated to rename)                                |
+| AC5   | DONE                   | Pre-commit checks running successfully (build + doc-tests + unit tests pass)                                                                                                          |
 
 ## Risks and Trade-offs
 
