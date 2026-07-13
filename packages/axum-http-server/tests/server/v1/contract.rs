@@ -570,7 +570,11 @@ mod for_all_config_modes {
                     incomplete: 0,
                     interval: announce_policy.interval,
                     min_interval: announce_policy.interval_min,
-                    peers: vec![DictionaryPeer::from(previously_announced_peer)],
+                    peers: vec![DictionaryPeer {
+                        peer_id: previously_announced_peer.peer_id.as_bytes().to_vec(),
+                        ip: previously_announced_peer.peer_addr.ip().to_string(),
+                        port: previously_announced_peer.peer_addr.port(),
+                    }],
                 },
             )
             .await;
@@ -627,7 +631,18 @@ mod for_all_config_modes {
                     incomplete: 0,
                     interval: announce_policy.interval,
                     min_interval: announce_policy.interval_min,
-                    peers: vec![DictionaryPeer::from(peer_using_ipv4), DictionaryPeer::from(peer_using_ipv6)],
+                    peers: vec![
+                        DictionaryPeer {
+                            peer_id: peer_using_ipv4.peer_id.as_bytes().to_vec(),
+                            ip: peer_using_ipv4.peer_addr.ip().to_string(),
+                            port: peer_using_ipv4.peer_addr.port(),
+                        },
+                        DictionaryPeer {
+                            peer_id: peer_using_ipv6.peer_id.as_bytes().to_vec(),
+                            ip: peer_using_ipv6.peer_addr.ip().to_string(),
+                            port: peer_using_ipv6.peer_addr.port(),
+                        },
+                    ],
                 },
             )
             .await;

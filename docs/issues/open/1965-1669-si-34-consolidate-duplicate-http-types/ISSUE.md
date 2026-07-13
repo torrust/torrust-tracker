@@ -7,8 +7,8 @@ github-issue: 1965
 spec-path: docs/issues/open/1965-1669-si-34-consolidate-duplicate-http-types/ISSUE.md
 issue-folder: docs/issues/open/1965-1669-si-34-consolidate-duplicate-http-types/
 branch: "1965-1669-si-34-consolidate-duplicate-http-types"
-related-pr: null
-last-updated-utc: 2026-07-13 10:00
+related-pr: "https://github.com/torrust/torrust-tracker/pull/1974"
+last-updated-utc: 2026-07-13 12:00
 semantic-links:
   skill-links:
     - create-issue
@@ -160,6 +160,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 - 2026-06-30 12:00 UTC - Copilot - Spec draft created
 - 2026-07-13 10:00 UTC - Copilot - Spec reviewed and approved by user; design decisions recorded
+- 2026-07-13 12:00 UTC - Copilot - Implementation completed, PR #1974 opened
 
 ## Acceptance Criteria
 

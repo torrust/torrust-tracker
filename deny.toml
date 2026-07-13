@@ -60,7 +60,9 @@ deny = [
   # Protocol crates must not be used directly by torrust-tracker-core.
   # Only servers and the respective protocol-specific *-core may depend on them.
   { crate = "torrust-tracker-http-protocol", wrappers = [
+    "torrust-tracker",
     "torrust-tracker-axum-http-server",
+    "torrust-tracker-client-lib",
     "torrust-tracker-http-core",
   ] },
   { crate = "torrust-tracker-udp-protocol", wrappers = [

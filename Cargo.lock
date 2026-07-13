@@ -5123,7 +5123,6 @@ dependencies = [
  "torrust-info-hash",
  "torrust-located-error",
  "torrust-peer-id",
- "torrust-tracker-primitives",
 ]
 
 [[package]]
