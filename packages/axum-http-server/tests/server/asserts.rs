@@ -1,10 +1,9 @@
 use std::panic::Location;
 
 use reqwest::Response;
-
-use super::responses::announce::{Announce, Compact, DeserializedCompact};
-use super::responses::scrape;
-use crate::server::responses::error::Error;
+use torrust_tracker_http_protocol::v1::responses::announce_deserialization::{Announce, Compact, DeserializedCompact};
+use torrust_tracker_http_protocol::v1::responses::error::Error;
+use torrust_tracker_http_protocol::v1::responses::scrape_deserialization;
 
 pub fn assert_bencoded_error(response_text: &String, expected_failure_reason: &str, location: &'static Location<'static>) {
     let error_failure_reason = serde_bencode::from_str::<Error>(response_text)
@@ -58,10 +57,10 @@ pub async fn assert_compact_announce_response(response: Response, expected_respo
 /// ```text
 /// b"d5:filesd20:\x9c8B\"\x13\xe3\x0b\xff!+0\xc3`\xd2o\x9a\x02\x13d\"d8:completei1e10:downloadedi0e10:incompletei0eeee"
 /// ```
-pub async fn assert_scrape_response(response: Response, expected_response: &scrape::Response) {
+pub async fn assert_scrape_response(response: Response, expected_response: &scrape_deserialization::Response) {
     assert_eq!(response.status(), 200);
 
-    let scrape_response = scrape::Response::try_from_bencoded(&response.bytes().await.unwrap()).unwrap();
+    let scrape_response = scrape_deserialization::Response::try_from_bencoded(&response.bytes().await.unwrap()).unwrap();
 
     assert_eq!(scrape_response, *expected_response);
 }

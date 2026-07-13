@@ -11,13 +11,13 @@
 //! > **NOTICE**: error responses are bencoded and always have a `200 OK` status
 //! > code. The official `BitTorrent` specification does not specify the status
 //! > code.
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 use crate::v1::auth;
 use crate::v1::services::peer_ip_resolver::PeerIpResolutionError;
 
 /// `Error` response for the HTTP tracker.
-#[derive(Serialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct Error {
     /// Human readable string which explains why the request failed.
     #[serde(rename = "failure reason")]

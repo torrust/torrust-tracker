@@ -8,7 +8,7 @@ spec-path: docs/issues/open/1965-1669-si-34-consolidate-duplicate-http-types/ISS
 issue-folder: docs/issues/open/1965-1669-si-34-consolidate-duplicate-http-types/
 branch: "1965-1669-si-34-consolidate-duplicate-http-types"
 related-pr: null
-last-updated-utc: 2026-06-30 12:00
+last-updated-utc: 2026-07-13 10:00
 semantic-links:
   skill-links:
     - create-issue
@@ -63,6 +63,50 @@ are byte-for-byte identical between locations (2) and (3).
 The `http-protocol` crate is the canonical home for HTTP tracker protocol types. Client-side
 parsing/serialization types are a natural extension of this crate, not a separate concern.
 
+## Design Decisions
+
+The following decisions were made during implementation planning (2026-07-13):
+
+### DD1: Merge Strategy — Add Builder Types Alongside Parsers (Iteration 1)
+
+**Decision**: In the first iteration, add builder types to `http-protocol` alongside the existing
+parser types. After consolidation, a second iteration can evaluate whether a unified data model
+for both parsing and building makes sense.
+
+**Rationale**: The existing parser types (`TryFrom<Query>`) and builder types (`QueryBuilder`/`QueryParams`)
+serve different purposes. Moving them into the same crate first makes it easier to detect
+unification opportunities later.
+
+### DD2: Use Domain Types (InfoHash/PeerId) in Consolidated Types
+
+**Decision**: The consolidated types in `http-protocol` will use the domain types `InfoHash` and
+`PeerId` from their dedicated crates, rather than raw `ByteArray20`.
+
+**Rationale**: `http-protocol` already depends on `torrust-info-hash` and `torrust-peer-id`.
+Client code can convert at the boundary.
+
+### DD3: Consolidate Error Response Type into http-protocol
+
+**Decision**: The `Error { failure_reason: String }` response type will be consolidated into
+`http-protocol` and both consumers will import from there.
+
+**Rationale**: The type is identical in all three locations. `http-protocol` already has the
+canonical version.
+
+### DD4: Use Full Event Enum from http-protocol
+
+**Decision**: The consolidated `Event` enum will use the full set from `http-protocol`:
+`Started`, `Stopped`, `Completed`, `Empty`.
+
+**Rationale**: This is the most complete variant set and covers all use cases.
+
+### DD5: Move percent_encode_byte_array to http-protocol
+
+**Decision**: The `percent_encode_byte_array` helper will be moved into `http-protocol`'s
+existing `percent_encoding` module.
+
+**Rationale**: It's used by both consumers and belongs with the protocol crate.
+
 ## Scope
 
 ### In Scope
@@ -88,12 +132,12 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task                                                | Notes / Expected Output                                                                         |
 | --- | ------ | --------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| T1  | TODO   | Survey duplicate types and decide merge strategy    | Catalog exact types to move; identify which location has the "best" version                     |
-| T2  | TODO   | Add client-side types to `http-protocol`            | Move query builders, response deserialization structs, and shared helpers                       |
-| T3  | TODO   | Add `http-protocol` dependency to `tracker-client`  | Update `Cargo.toml`, verify dependency tree                                                     |
-| T4  | TODO   | Replace duplicate types in `tracker-client`         | Delete local copies, update imports to `http-protocol`                                          |
-| T5  | TODO   | Replace duplicate types in `axum-http-server` tests | Delete local copies, update imports to `http-protocol`                                          |
-| T6  | TODO   | Run full verification                               | `linter all`, `cargo test --workspace`, pre-commit, pre-push                                    |
+| T1  | DONE   | Survey duplicate types and decide merge strategy    | Catalog exact types to move; identify which location has the "best" version                     |
+| T2  | DONE   | Add client-side types to `http-protocol`            | Move query builders, response deserialization structs, and shared helpers                       |
+| T3  | DONE   | Add `http-protocol` dependency to `tracker-client`  | Update `Cargo.toml`, verify dependency tree                                                     |
+| T4  | DONE   | Replace duplicate types in `tracker-client`         | Delete local copies, update imports to `http-protocol`                                          |
+| T5  | DONE   | Replace duplicate types in `axum-http-server` tests | Delete local copies, update imports to `http-protocol`                                          |
+| T6  | DONE   | Run full verification                               | `linter all`, `cargo test --workspace`, pre-commit, pre-push                                    |
 | T7  | TODO   | Create `use-tracker-client` skill                   | New skill in `.github/skills/usage/use-tracker-client/` with learnings from manual verification |
 
 ## Progress Tracking
@@ -115,6 +159,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 ### Progress Log
 
 - 2026-06-30 12:00 UTC - Copilot - Spec draft created
+- 2026-07-13 10:00 UTC - Copilot - Spec reviewed and approved by user; design decisions recorded
 
 ## Acceptance Criteria
 

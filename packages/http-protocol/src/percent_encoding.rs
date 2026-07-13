@@ -96,6 +96,16 @@ pub fn percent_decode_peer_id(raw_peer_id: &str) -> Result<PeerId, PeerIdConvers
     Ok(PeerId(peer_id))
 }
 
+/// Percent encodes a 20-byte array.
+///
+/// # Panics
+///
+/// Will panic if the byte array is not exactly 20 bytes.
+#[must_use]
+pub fn percent_encode_byte_array(bytes: &[u8; 20]) -> String {
+    percent_encoding::percent_encode(bytes, percent_encoding::NON_ALPHANUMERIC).to_string()
+}
+
 #[cfg(test)]
 mod tests {
     use std::str::FromStr;
@@ -113,7 +123,7 @@ mod tests {
 
         assert_eq!(
             info_hash,
-            InfoHash::from_str("3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0").unwrap()
+            InfoHash::from_str("3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0").unwrap() // DevSkim: ignore DS173237
         );
     }
 

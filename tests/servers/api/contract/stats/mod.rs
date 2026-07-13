@@ -6,7 +6,7 @@ use serde::Deserialize;
 use tokio::time::Duration;
 use torrust_info_hash::InfoHash;
 use torrust_tracker_client::http::client::Client as HttpTrackerClient;
-use torrust_tracker_client::http::client::requests::announce::QueryBuilder;
+use torrust_tracker_http_protocol::v1::requests::announce_builder::QueryBuilder;
 use torrust_tracker_lib::app;
 use torrust_tracker_rest_api_client::connection_info::{ConnectionInfo, Origin};
 use torrust_tracker_rest_api_client::v1::client::ApiHttpClient as TrackerApiClient;

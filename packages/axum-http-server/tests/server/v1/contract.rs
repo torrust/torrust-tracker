@@ -47,11 +47,11 @@ mod for_all_config_modes {
         use std::sync::Arc;
 
         use torrust_tracker_axum_http_server::testing::environment::Started;
+        use torrust_tracker_http_protocol::v1::requests::announce_builder::QueryBuilder;
         use torrust_tracker_test_helpers::{configuration, logging};
 
         use crate::server::asserts::assert_could_not_find_remote_address_on_x_forwarded_for_header_error_response;
         use crate::server::client::Client;
-        use crate::server::requests::announce::QueryBuilder;
 
         #[tokio::test]
         async fn should_fail_when_the_http_request_does_not_include_the_xff_http_request_header() {
@@ -118,6 +118,10 @@ mod for_all_config_modes {
         use torrust_info_hash::InfoHash;
         use torrust_peer_id::PeerId;
         use torrust_tracker_axum_http_server::testing::environment::Started;
+        use torrust_tracker_http_protocol::v1::requests::announce_builder::{Compact, QueryBuilder};
+        use torrust_tracker_http_protocol::v1::responses::announce_deserialization::{
+            Announce, CompactPeer, CompactPeerList, DictionaryPeer,
+        };
         use torrust_tracker_primitives::PeerId as DomainPeerId;
         use torrust_tracker_primitives::peer::fixture::PeerBuilder;
         use torrust_tracker_test_helpers::{configuration, logging};
@@ -129,9 +133,6 @@ mod for_all_config_modes {
             assert_missing_query_params_for_announce_request_error_response,
         };
         use crate::server::client::Client;
-        use crate::server::requests::announce::{Compact, QueryBuilder};
-        use crate::server::responses;
-        use crate::server::responses::announce::{Announce, CompactPeer, CompactPeerList, DictionaryPeer};
 
         #[tokio::test]
         async fn it_should_start_and_stop() {
@@ -722,7 +723,7 @@ mod for_all_config_modes {
                 )
                 .await;
 
-            let expected_response = responses::announce::Compact {
+            let expected_response = torrust_tracker_http_protocol::v1::responses::announce_deserialization::Compact {
                 complete: 2,
                 incomplete: 0,
                 interval: 120,
@@ -777,7 +778,9 @@ mod for_all_config_modes {
 
         async fn is_a_compact_announce_response(response: Response) -> bool {
             let bytes = response.bytes().await.unwrap();
-            let compact_announce = serde_bencode::from_bytes::<responses::announce::DeserializedCompact>(&bytes);
+            let compact_announce = serde_bencode::from_bytes::<
+                torrust_tracker_http_protocol::v1::responses::announce_deserialization::DeserializedCompact,
+            >(&bytes);
             compact_announce.is_ok()
         }
 
@@ -1071,6 +1074,8 @@ mod for_all_config_modes {
         use tokio::net::TcpListener;
         use torrust_info_hash::InfoHash;
         use torrust_tracker_axum_http_server::testing::environment::Started;
+        use torrust_tracker_http_protocol::v1::requests::scrape_builder::QueryBuilder;
+        use torrust_tracker_http_protocol::v1::responses::scrape_deserialization::{self, File, ResponseBuilder};
         use torrust_tracker_primitives::PeerId;
         use torrust_tracker_primitives::peer::fixture::PeerBuilder;
         use torrust_tracker_test_helpers::{configuration, logging};
@@ -1081,9 +1086,6 @@ mod for_all_config_modes {
             assert_scrape_response,
         };
         use crate::server::client::Client;
-        use crate::server::requests;
-        use crate::server::requests::scrape::QueryBuilder;
-        use crate::server::responses::scrape::{self, File, ResponseBuilder};
 
         #[tokio::test]
         #[allow(dead_code)]
@@ -1144,16 +1146,12 @@ mod for_all_config_modes {
             .await;
 
             let response = Client::new(*env.bind_address())
-                .scrape(
-                    &requests::scrape::QueryBuilder::default()
-                        .with_one_info_hash(&info_hash)
-                        .query(),
-                )
+                .scrape(&QueryBuilder::default().with_one_info_hash(&info_hash).query())
                 .await;
 
             let expected_scrape_response = ResponseBuilder::default()
                 .add_file(
-                    info_hash.bytes(),
+                    info_hash,
                     File {
                         complete: 0,
                         downloaded: 0,
@@ -1188,16 +1186,12 @@ mod for_all_config_modes {
             .await;
 
             let response = Client::new(*env.bind_address())
-                .scrape(
-                    &requests::scrape::QueryBuilder::default()
-                        .with_one_info_hash(&info_hash)
-                        .query(),
-                )
+                .scrape(&QueryBuilder::default().with_one_info_hash(&info_hash).query())
                 .await;
 
             let expected_scrape_response = ResponseBuilder::default()
                 .add_file(
-                    info_hash.bytes(),
+                    info_hash,
                     File {
                         complete: 1,
                         downloaded: 0,
@@ -1223,14 +1217,14 @@ mod for_all_config_modes {
             let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap(); // DevSkim: ignore DS173237
 
             let response = Client::new(*env.bind_address())
-                .scrape(
-                    &requests::scrape::QueryBuilder::default()
-                        .with_one_info_hash(&info_hash)
-                        .query(),
-                )
+                .scrape(&QueryBuilder::default().with_one_info_hash(&info_hash).query())
                 .await;
 
-            assert_scrape_response(response, &scrape::Response::with_one_file(info_hash.bytes(), File::zeroed())).await;
+            assert_scrape_response(
+                response,
+                &scrape_deserialization::Response::with_one_file(info_hash, File::zeroed()),
+            )
+            .await;
 
             env.stop().await;
         }
@@ -1249,7 +1243,7 @@ mod for_all_config_modes {
 
             let response = Client::new(*env.bind_address())
                 .scrape(
-                    &requests::scrape::QueryBuilder::default()
+                    &QueryBuilder::default()
                         .add_info_hash(&info_hash1)
                         .add_info_hash(&info_hash2)
                         .query(),
@@ -1257,8 +1251,8 @@ mod for_all_config_modes {
                 .await;
 
             let expected_scrape_response = ResponseBuilder::default()
-                .add_file(info_hash1.bytes(), File::zeroed())
-                .add_file(info_hash2.bytes(), File::zeroed())
+                .add_file(info_hash1, File::zeroed())
+                .add_file(info_hash2, File::zeroed())
                 .build();
 
             assert_scrape_response(response, &expected_scrape_response).await;
@@ -1278,11 +1272,7 @@ mod for_all_config_modes {
             let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap(); // DevSkim: ignore DS173237
 
             Client::new(*env.bind_address())
-                .scrape(
-                    &requests::scrape::QueryBuilder::default()
-                        .with_one_info_hash(&info_hash)
-                        .query(),
-                )
+                .scrape(&QueryBuilder::default().with_one_info_hash(&info_hash).query())
                 .await;
 
             let stats = env.container.http_tracker_core_container.stats_repository.get_stats().await;
@@ -1313,11 +1303,7 @@ mod for_all_config_modes {
             let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap(); // DevSkim: ignore DS173237
 
             Client::bind(*env.bind_address(), IpAddr::from_str("::1").unwrap())
-                .scrape(
-                    &requests::scrape::QueryBuilder::default()
-                        .with_one_info_hash(&info_hash)
-                        .query(),
-                )
+                .scrape(&QueryBuilder::default().with_one_info_hash(&info_hash).query())
                 .await;
 
             let stats = env.container.http_tracker_core_container.stats_repository.get_stats().await;
@@ -1339,6 +1325,7 @@ mod configured_as_whitelisted {
 
         use torrust_info_hash::InfoHash;
         use torrust_tracker_axum_http_server::testing::environment::Started;
+        use torrust_tracker_http_protocol::v1::requests::announce_builder::QueryBuilder;
         use torrust_tracker_test_helpers::logging::logs_contains_a_line_with;
         use torrust_tracker_test_helpers::{configuration, logging};
         use uuid::Uuid;
@@ -1346,7 +1333,6 @@ mod configured_as_whitelisted {
         use crate::common::fixtures::random_info_hash;
         use crate::server::asserts::{assert_is_announce_response, assert_torrent_not_in_whitelist_error_response};
         use crate::server::client::Client;
-        use crate::server::requests::announce::QueryBuilder;
 
         #[tokio::test]
         async fn should_fail_if_the_torrent_is_not_in_the_whitelist() {
@@ -1412,6 +1398,8 @@ mod configured_as_whitelisted {
 
         use torrust_info_hash::InfoHash;
         use torrust_tracker_axum_http_server::testing::environment::Started;
+        use torrust_tracker_http_protocol::v1::requests::scrape_builder::QueryBuilder;
+        use torrust_tracker_http_protocol::v1::responses::scrape_deserialization::{File, ResponseBuilder};
         use torrust_tracker_primitives::PeerId;
         use torrust_tracker_primitives::peer::fixture::PeerBuilder;
         use torrust_tracker_test_helpers::logging::logs_contains_a_line_with;
@@ -1420,8 +1408,6 @@ mod configured_as_whitelisted {
         use crate::common::fixtures::random_info_hash;
         use crate::server::asserts::assert_scrape_response;
         use crate::server::client::Client;
-        use crate::server::requests;
-        use crate::server::responses::scrape::{File, ResponseBuilder};
 
         #[tokio::test]
         async fn should_return_the_zeroed_file_when_the_requested_file_is_not_whitelisted() {
@@ -1444,14 +1430,10 @@ mod configured_as_whitelisted {
             .await;
 
             let response = Client::new(*env.bind_address())
-                .scrape(
-                    &requests::scrape::QueryBuilder::default()
-                        .with_one_info_hash(&info_hash)
-                        .query(),
-                )
+                .scrape(&QueryBuilder::default().with_one_info_hash(&info_hash).query())
                 .await;
 
-            let expected_scrape_response = ResponseBuilder::default().add_file(info_hash.bytes(), File::zeroed()).build();
+            let expected_scrape_response = ResponseBuilder::default().add_file(info_hash, File::zeroed()).build();
 
             assert_scrape_response(response, &expected_scrape_response).await;
 
@@ -1491,16 +1473,12 @@ mod configured_as_whitelisted {
                 .expect("should add the torrent to the whitelist");
 
             let response = Client::new(*env.bind_address())
-                .scrape(
-                    &requests::scrape::QueryBuilder::default()
-                        .with_one_info_hash(&info_hash)
-                        .query(),
-                )
+                .scrape(&QueryBuilder::default().with_one_info_hash(&info_hash).query())
                 .await;
 
             let expected_scrape_response = ResponseBuilder::default()
                 .add_file(
-                    info_hash.bytes(),
+                    info_hash,
                     File {
                         complete: 0,
                         downloaded: 0,
@@ -1526,13 +1504,13 @@ mod configured_as_private {
         use torrust_info_hash::InfoHash;
         use torrust_tracker_axum_http_server::testing::environment::Started;
         use torrust_tracker_core::authentication::Key;
+        use torrust_tracker_http_protocol::v1::requests::announce_builder::QueryBuilder;
         use torrust_tracker_test_helpers::{configuration, logging};
 
         use crate::server::asserts::{
             assert_authentication_error_response, assert_is_announce_response, assert_tracker_core_authentication_error_response,
         };
         use crate::server::client::Client;
-        use crate::server::requests::announce::QueryBuilder;
 
         #[tokio::test]
         async fn should_respond_to_authenticated_peers() {
@@ -1631,14 +1609,14 @@ mod configured_as_private {
         use torrust_info_hash::InfoHash;
         use torrust_tracker_axum_http_server::testing::environment::Started;
         use torrust_tracker_core::authentication::Key;
+        use torrust_tracker_http_protocol::v1::requests::scrape_builder::QueryBuilder;
+        use torrust_tracker_http_protocol::v1::responses::scrape_deserialization::{File, ResponseBuilder};
         use torrust_tracker_primitives::PeerId;
         use torrust_tracker_primitives::peer::fixture::PeerBuilder;
         use torrust_tracker_test_helpers::{configuration, logging};
 
         use crate::server::asserts::{assert_authentication_error_response, assert_scrape_response};
         use crate::server::client::Client;
-        use crate::server::requests;
-        use crate::server::responses::scrape::{File, ResponseBuilder};
 
         #[tokio::test]
         async fn should_fail_if_the_key_query_param_cannot_be_parsed() {
@@ -1681,14 +1659,10 @@ mod configured_as_private {
             .await;
 
             let response = Client::new(*env.bind_address())
-                .scrape(
-                    &requests::scrape::QueryBuilder::default()
-                        .with_one_info_hash(&info_hash)
-                        .query(),
-                )
+                .scrape(&QueryBuilder::default().with_one_info_hash(&info_hash).query())
                 .await;
 
-            let expected_scrape_response = ResponseBuilder::default().add_file(info_hash.bytes(), File::zeroed()).build();
+            let expected_scrape_response = ResponseBuilder::default().add_file(info_hash, File::zeroed()).build();
 
             assert_scrape_response(response, &expected_scrape_response).await;
 
@@ -1724,16 +1698,12 @@ mod configured_as_private {
                 .unwrap();
 
             let response = Client::authenticated(*env.bind_address(), expiring_key.key())
-                .scrape(
-                    &requests::scrape::QueryBuilder::default()
-                        .with_one_info_hash(&info_hash)
-                        .query(),
-                )
+                .scrape(&QueryBuilder::default().with_one_info_hash(&info_hash).query())
                 .await;
 
             let expected_scrape_response = ResponseBuilder::default()
                 .add_file(
-                    info_hash.bytes(),
+                    info_hash,
                     File {
                         complete: 0,
                         downloaded: 0,
@@ -1773,14 +1743,10 @@ mod configured_as_private {
             let false_key: Key = "YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ".parse().unwrap();
 
             let response = Client::authenticated(*env.bind_address(), false_key)
-                .scrape(
-                    &requests::scrape::QueryBuilder::default()
-                        .with_one_info_hash(&info_hash)
-                        .query(),
-                )
+                .scrape(&QueryBuilder::default().with_one_info_hash(&info_hash).query())
                 .await;
 
-            let expected_scrape_response = ResponseBuilder::default().add_file(info_hash.bytes(), File::zeroed()).build();
+            let expected_scrape_response = ResponseBuilder::default().add_file(info_hash, File::zeroed()).build();
 
             assert_scrape_response(response, &expected_scrape_response).await;
 

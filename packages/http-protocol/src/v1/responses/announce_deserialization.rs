@@ -1,3 +1,6 @@
+//! `Announce` response deserialization for the HTTP tracker.
+//!
+//! Types for deserializing announce responses from an HTTP tracker.
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
 use serde::{Deserialize, Serialize};
@@ -10,7 +13,7 @@ pub struct Announce {
     pub interval: u32,
     #[serde(rename = "min interval")]
     pub min_interval: u32,
-    pub peers: Vec<DictionaryPeer>, // Peers using IPV4 and IPV6
+    pub peers: Vec<DictionaryPeer>,
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
@@ -54,8 +57,6 @@ impl DeserializedCompact {
 
 #[derive(Debug, PartialEq)]
 pub struct Compact {
-    // code-review: there could be a way to deserialize this struct directly
-    // by using serde instead of doing it manually. Or at least using a custom deserializer.
     pub complete: u32,
     pub incomplete: u32,
     pub interval: u32,
@@ -79,8 +80,7 @@ impl CompactPeerList {
 ///
 /// This struct only supports IPv4 compact peer entries from the `peers` key
 /// (BEP 23). IPv6 compact peer lists (the `peers6` key from BEP 7) are not
-/// supported. If the client needs to parse IPv6 compact peers, this struct
-/// would need to be extended or replaced in a follow-up.
+/// supported.
 #[derive(Clone, Debug, PartialEq)]
 pub struct CompactPeer {
     ip: Ipv4Addr,
@@ -91,7 +91,6 @@ impl CompactPeer {
     /// # Panics
     ///
     /// Will panic if the provided socket address is a IPv6 IP address.
-    /// It's not supported for compact peers.
     #[must_use]
     pub fn new(socket_addr: &SocketAddr) -> Self {
         match socket_addr.ip() {

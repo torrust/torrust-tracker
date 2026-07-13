@@ -18,22 +18,17 @@ version = "0.1.0"
 name = "torrust_tracker_client"
 
 [dependencies]
+torrust-tracker-http-protocol = { version = "0.1.0", path = "../http-protocol" }
 torrust-tracker-udp-protocol = { version = "0.1.0", path = "../udp-protocol" }
-torrust-info-hash = "=0.2.0"
 torrust-peer-id = "0.1.0"
 derive_more = { version = "2", features = [ "as_ref", "constructor", "display", "from" ] }
 hyper = "1"
-percent-encoding = "2"
 reqwest = { version = "0", features = [ "json" ] }
 serde = { version = "1", features = [ "derive" ] }
-serde_bencode = "0"
-serde_bytes = "0"
-serde_repr = "0"
 thiserror = "2"
 tokio = { version = "1", features = [ "macros", "net", "rt-multi-thread", "signal", "sync" ] }
 torrust-located-error = "3.0.0"
 torrust-net-primitives = "0.1.0"
-torrust-tracker-primitives = { version = "3.0.0", path = "../primitives" }
 tracing = "0"
 zerocopy = "0.8"
 

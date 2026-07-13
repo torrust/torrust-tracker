@@ -3,9 +3,10 @@ use std::time::Duration;
 
 use serde::Serialize;
 use torrust_info_hash::InfoHash;
-use torrust_tracker_client::http::client::responses::announce::Announce;
-use torrust_tracker_client::http::client::responses::scrape;
-use torrust_tracker_client::http::client::{Client, requests};
+use torrust_tracker_client::http::client::Client;
+use torrust_tracker_http_protocol::v1::requests::{announce_builder, scrape_builder};
+use torrust_tracker_http_protocol::v1::responses::announce_deserialization::Announce;
+use torrust_tracker_http_protocol::v1::responses::scrape_deserialization;
 use url::Url;
 
 use crate::console::clients::http::Error;
@@ -68,7 +69,7 @@ async fn check_http_announce(url: &Url, timeout: Duration) -> Result<Announce, E
 
     let response = client
         .announce(
-            &requests::announce::QueryBuilder::with_default_values()
+            &announce_builder::QueryBuilder::with_default_values()
                 .with_info_hash(&info_hash)
                 .query(),
         )
@@ -85,9 +86,9 @@ async fn check_http_announce(url: &Url, timeout: Duration) -> Result<Announce, E
     Ok(response)
 }
 
-async fn check_http_scrape(url: &Url, timeout: Duration) -> Result<scrape::Response, Error> {
+async fn check_http_scrape(url: &Url, timeout: Duration) -> Result<scrape_deserialization::Response, Error> {
     let info_hashes: Vec<String> = vec!["9c38422213e30bff212b30c360d26f9a02136422".to_string()]; // DevSkim: ignore DS173237
-    let query = requests::scrape::Query::try_from(info_hashes).expect("a valid array of info-hashes is required");
+    let query = scrape_builder::Query::try_from(info_hashes).expect("a valid array of info-hashes is required");
 
     let client = Client::new(url.clone(), timeout).map_err(|err| Error::HttpClientError { err })?;
 
@@ -95,7 +96,7 @@ async fn check_http_scrape(url: &Url, timeout: Duration) -> Result<scrape::Respo
 
     let response = response.bytes().await.map_err(|e| Error::ResponseError { err: e.into() })?;
 
-    let response = scrape::Response::try_from_bencoded(&response).map_err(|e| Error::BencodeParseError {
+    let response = scrape_deserialization::Response::try_from_bencoded(&response).map_err(|e| Error::BencodeParseError {
         data: response,
         err: e.into(),
     })?;

@@ -78,10 +78,11 @@ use clap::{Parser, Subcommand, ValueEnum};
 use reqwest::Url;
 use torrust_info_hash::InfoHash;
 use torrust_peer_id::PeerId;
-use torrust_tracker_client::http::client::requests::announce::{Compact, Event, QueryBuilder};
-use torrust_tracker_client::http::client::responses::announce::{Announce, DeserializedCompact};
-use torrust_tracker_client::http::client::responses::scrape;
-use torrust_tracker_client::http::client::{Client, requests};
+use torrust_tracker_client::http::client::Client;
+use torrust_tracker_http_protocol::v1::requests::announce_builder::{Compact, Event, QueryBuilder};
+use torrust_tracker_http_protocol::v1::requests::scrape_builder;
+use torrust_tracker_http_protocol::v1::responses::announce_deserialization::{Announce, DeserializedCompact};
+use torrust_tracker_http_protocol::v1::responses::scrape_deserialization;
 
 use crate::DEFAULT_NETWORK_TIMEOUT;
 
@@ -338,13 +339,13 @@ async fn scrape_command(
 ) -> anyhow::Result<()> {
     let base_url = parse_and_validate_tracker_url(tracker_url)?;
 
-    let query = requests::scrape::Query::try_from(info_hashes).context("failed to parse infohashes")?;
+    let query = scrape_builder::Query::try_from(info_hashes).context("failed to parse infohashes")?;
 
     let response = Client::new(base_url, timeout)?.scrape(&query).await?;
 
     let body = response.bytes().await?;
 
-    let Ok(scrape_response) = scrape::Response::try_from_bencoded(&body) else {
+    let Ok(scrape_response) = scrape_deserialization::Response::try_from_bencoded(&body) else {
         let fallback = bencode_to_fallback_json_or_raw_bytes(&body, output_format)
             .context("failed to serialize fallback scrape response into JSON")?;
 
