@@ -350,7 +350,10 @@ impl ApiHttpClient {
         self.get_result(path, params, headers).await
     }
 
-    /// Fallible version of [`Self::get`] that returns a `Result` instead of panicking.
+    /// Fallible method that also adds the API token to the query if one is configured.
+    ///
+    /// Prefer [`Self::get`] for most use cases; use this when you need access to
+    /// the raw token-injection logic.
     pub(crate) async fn get_result(
         &self,
         path: &str,
@@ -373,7 +376,10 @@ impl ApiHttpClient {
         self.post_empty_result(path, headers).await
     }
 
-    /// Fallible version of [`Self::post_empty`] that returns a `Result` instead of panicking.
+    /// Fallible method that also adds the API token header if one is configured.
+    ///
+    /// Prefer [`Self::post_empty`] for most use cases; use this when you need access
+    /// to the raw token-injection logic.
     pub(crate) async fn post_empty_result(&self, path: &str, headers: Option<HeaderMap>) -> Result<Response, ClientError> {
         let builder = self.http_client.post(self.base_url(path)?.clone());
 
@@ -402,7 +408,10 @@ impl ApiHttpClient {
         self.post_form_result(path, form, headers).await
     }
 
-    /// Fallible version of [`Self::post_form`] that returns a `Result` instead of panicking.
+    /// Fallible method that also adds the API token header if one is configured.
+    ///
+    /// Prefer [`Self::post_form`] for most use cases; use this when you need access
+    /// to the raw token-injection logic.
     pub(crate) async fn post_form_result<T: Serialize + ?Sized>(
         &self,
         path: &str,
@@ -453,7 +462,10 @@ impl ApiHttpClient {
         self.get_request_with_query_result(path, params, headers).await
     }
 
-    /// Fallible version of [`Self::get_request_with_query`] that returns a `Result` instead of panicking.
+    /// Fallible method that also adds the API token to headers or query if one is configured.
+    ///
+    /// Prefer [`Self::get_request_with_query`] for most use cases; use this when you need
+    /// access to the raw token-injection logic.
     pub(crate) async fn get_request_with_query_result(
         &self,
         path: &str,
@@ -523,7 +535,11 @@ pub async fn get(path: Url, query: Option<Query>, headers: Option<HeaderMap>) ->
     get_result(path, query, headers).await
 }
 
-/// Fallible version of [`get`] that returns a `Result` instead of panicking.
+/// Fallible free function that builds its own `reqwest::Client`.
+///
+/// Prefer the methods on [`ApiHttpClient`] when you already have a client instance;
+/// use this free function for one-shot requests where creating a full client is
+/// unnecessary.
 pub(crate) async fn get_result(path: Url, query: Option<Query>, headers: Option<HeaderMap>) -> Result<Response, ClientError> {
     let client = reqwest::Client::builder()
         .timeout(Duration::from_secs(DEFAULT_REQUEST_TIMEOUT_IN_SECS))
