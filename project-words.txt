@@ -355,6 +355,7 @@ Shareaza
 sharktorrent
 shellcheck
 SHLVL
+Signedness
 skiplist
 slowloris
 socat

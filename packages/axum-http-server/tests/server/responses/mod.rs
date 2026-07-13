@@ -1,3 +1,4 @@
 //! HTTP tracker response types used in integration tests.
 //!
-//! Types are re-exported from `torrust-tracker-http-protocol`.
+//! These types have been consolidated into `torrust-tracker-http-protocol`.
+//! Test code imports them directly from that crate.

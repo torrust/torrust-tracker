@@ -98,9 +98,9 @@ pub fn percent_decode_peer_id(raw_peer_id: &str) -> Result<PeerId, PeerIdConvers
 
 /// Percent encodes a 20-byte array.
 ///
-/// # Panics
-///
-/// Will panic if the byte array is not exactly 20 bytes.
+/// For example, given the info hash bytes
+/// `[0x3b, 0x24, 0x55, 0x04, 0xcf, 0x5f, 0x11, 0xbb, 0xdb, 0xe1, 0x20, 0x1c, 0xea, 0x6a, 0x6b, 0xf4, 0x5a, 0xee, 0x1b, 0xc0]`,
+/// the percent-encoded representation is `%3B%24U%04%CF%5F%11%BB%DB%E1%20%1C%EAjk%F4Z%EE%1B%C0`.
 #[must_use]
 pub fn percent_encode_byte_array(bytes: &[u8; 20]) -> String {
     percent_encoding::percent_encode(bytes, percent_encoding::NON_ALPHANUMERIC).to_string()
@@ -113,7 +113,19 @@ mod tests {
     use torrust_info_hash::InfoHash;
     use torrust_peer_id::PeerId;
 
-    use crate::percent_encoding::{percent_decode_info_hash, percent_decode_peer_id};
+    use crate::percent_encoding::{percent_decode_info_hash, percent_decode_peer_id, percent_encode_byte_array};
+
+    #[test]
+    fn it_should_encode_a_20_byte_array() {
+        let bytes: [u8; 20] = [
+            0x3b, 0x24, 0x55, 0x04, 0xcf, 0x5f, 0x11, 0xbb, 0xdb, 0xe1, 0x20, 0x1c, 0xea, 0x6a, 0x6b, 0xf4, 0x5a, 0xee, 0x1b,
+            0xc0,
+        ];
+
+        let encoded = percent_encode_byte_array(&bytes);
+
+        assert_eq!(encoded, "%3B%24U%04%CF%5F%11%BB%DB%E1%20%1C%EAjk%F4Z%EE%1B%C0");
+    }
 
     #[test]
     fn it_should_decode_a_percent_encoded_info_hash() {
