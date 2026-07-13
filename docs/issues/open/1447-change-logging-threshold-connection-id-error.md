@@ -15,6 +15,8 @@ semantic-links:
     - packages/udp-server/src/handlers/error.rs
 ---
 
+<!-- skill-link: create-issue -->
+
 # Issue #1447 - Change the logging threshold for connection ID error to `WARNING`
 
 ## Goal

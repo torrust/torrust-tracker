@@ -3,9 +3,9 @@ use std::net::SocketAddr;
 use std::ops::Range;
 
 use torrust_net_primitives::service_binding::ServiceBinding;
+use torrust_tracker_udp_core::UDP_TRACKER_LOG_TARGET;
 use torrust_tracker_udp_core::services::announce::UdpAnnounceError;
 use torrust_tracker_udp_core::services::scrape::UdpScrapeError;
-use torrust_tracker_udp_core::{self, UDP_TRACKER_LOG_TARGET};
 use torrust_tracker_udp_protocol::{ErrorResponse, Response, TransactionId};
 use tracing::{Level, instrument};
 use uuid::Uuid;
