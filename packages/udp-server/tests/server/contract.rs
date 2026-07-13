@@ -275,8 +275,8 @@ mod receiving_an_announce_request {
             let transaction_id = tx_id.0.to_string();
 
             assert!(
-                logs_contains_a_line_with(&["ERROR", "UDP TRACKER", &transaction_id]),
-                "Expected logs to contain: ERROR ... UDP TRACKER ... transaction_id={transaction_id}"
+                logs_contains_a_line_with(&["WARN", "UDP TRACKER", &transaction_id]),
+                "Expected logs to contain: WARN ... UDP TRACKER ... transaction_id={transaction_id}"
             );
         }
 

@@ -18,7 +18,7 @@ pub fn captured_logs_buffer() -> &'static Mutex<CircularBuffer> {
 
 pub fn setup() {
     INIT.call_once(|| {
-        tracing_init(LevelFilter::ERROR, &TraceStyle::Default);
+        tracing_init(LevelFilter::WARN, &TraceStyle::Default);
     });
 }
 

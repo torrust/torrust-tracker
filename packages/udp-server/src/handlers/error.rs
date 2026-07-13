@@ -3,7 +3,9 @@ use std::net::SocketAddr;
 use std::ops::Range;
 
 use torrust_net_primitives::service_binding::ServiceBinding;
-use torrust_tracker_udp_core::{self, UDP_TRACKER_LOG_TARGET};
+use torrust_tracker_udp_core::UDP_TRACKER_LOG_TARGET;
+use torrust_tracker_udp_core::services::announce::UdpAnnounceError;
+use torrust_tracker_udp_core::services::scrape::UdpScrapeError;
 use torrust_tracker_udp_protocol::{ErrorResponse, Response, TransactionId};
 use tracing::{Level, instrument};
 use uuid::Uuid;
@@ -52,15 +54,38 @@ fn log_error(
     opt_transaction_id: Option<TransactionId>,
     request_id: Uuid,
 ) {
-    match opt_transaction_id {
-        Some(transaction_id) => {
-            let transaction_id = transaction_id.0.to_string();
-            tracing::error!(target: UDP_TRACKER_LOG_TARGET, error = %error, %client_socket_addr, %server_socket_addr, %request_id, %transaction_id, "response error");
+    if is_connection_cookie_error(error) {
+        match opt_transaction_id {
+            Some(transaction_id) => {
+                let transaction_id = transaction_id.0.to_string();
+                tracing::warn!(target: UDP_TRACKER_LOG_TARGET, error = %error, %client_socket_addr, %server_socket_addr, %request_id, %transaction_id, "response error");
+            }
+            None => {
+                tracing::warn!(target: UDP_TRACKER_LOG_TARGET, error = %error, %client_socket_addr, %server_socket_addr, %request_id, "response error");
+            }
         }
-        None => {
-            tracing::error!(target: UDP_TRACKER_LOG_TARGET, error = %error, %client_socket_addr, %server_socket_addr, %request_id, "response error");
+    } else {
+        match opt_transaction_id {
+            Some(transaction_id) => {
+                let transaction_id = transaction_id.0.to_string();
+                tracing::error!(target: UDP_TRACKER_LOG_TARGET, error = %error, %client_socket_addr, %server_socket_addr, %request_id, %transaction_id, "response error");
+            }
+            None => {
+                tracing::error!(target: UDP_TRACKER_LOG_TARGET, error = %error, %client_socket_addr, %server_socket_addr, %request_id, "response error");
+            }
         }
     }
+}
+
+fn is_connection_cookie_error(error: &Error) -> bool {
+    matches!(
+        error,
+        Error::AnnounceFailed {
+            source: UdpAnnounceError::ConnectionCookieError { .. }
+        } | Error::ScrapeFailed {
+            source: UdpScrapeError::ConnectionCookieError { .. }
+        }
+    )
 }
 
 async fn trigger_udp_error_event(
