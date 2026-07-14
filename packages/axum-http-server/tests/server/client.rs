@@ -1,15 +1,21 @@
 use std::net::IpAddr;
+use std::time::Duration;
 
-use reqwest::{Client as ReqwestClient, Response};
+use reqwest::{Response, Url};
+use torrust_tracker_client::http::client::{Client as TrackerClient, Key as TrackerClientKey};
 use torrust_tracker_core::authentication::Key;
 use torrust_tracker_http_protocol::v1::requests::announce::Announce;
 use torrust_tracker_http_protocol::v1::requests::scrape_builder;
 
-/// HTTP Tracker Client
+const TEST_TIMEOUT: Duration = Duration::from_secs(5);
+
+/// Thin wrapper over the canonical [`TrackerClient`] for integration tests.
+///
+/// Preserves the exact same public API as the original test-specific client so
+/// that no call sites needed updating. Internally delegates everything to the
+/// canonical `tracker-client` crate.
 pub struct Client {
-    server_addr: std::net::SocketAddr,
-    reqwest: ReqwestClient,
-    key: Option<Key>,
+    inner: TrackerClient,
 }
 
 /// URL components in this context:
@@ -21,82 +27,52 @@ pub struct Client {
 ///         base url              path                                query
 /// ```
 impl Client {
+    fn base_url(server_addr: std::net::SocketAddr) -> Url {
+        Url::parse(&format!("http://{server_addr}/")).unwrap()
+    }
+
     pub fn new(server_addr: std::net::SocketAddr) -> Self {
         Self {
-            server_addr,
-            reqwest: reqwest::Client::builder().build().unwrap(),
-            key: None,
+            inner: TrackerClient::new(Self::base_url(server_addr), TEST_TIMEOUT).unwrap(),
         }
     }
 
-    /// Creates the new client binding it to an specific local address
+    /// Creates the new client binding it to an specific local address.
     pub fn bind(server_addr: std::net::SocketAddr, local_address: IpAddr) -> Self {
         Self {
-            server_addr,
-            reqwest: reqwest::Client::builder().local_address(local_address).build().unwrap(),
-            key: None,
+            inner: TrackerClient::bind(Self::base_url(server_addr), TEST_TIMEOUT, local_address).unwrap(),
         }
     }
 
+    #[allow(clippy::needless_pass_by_value)]
     pub fn authenticated(server_addr: std::net::SocketAddr, key: Key) -> Self {
         Self {
-            server_addr,
-            reqwest: reqwest::Client::builder().build().unwrap(),
-            key: Some(key),
+            inner: TrackerClient::authenticated(Self::base_url(server_addr), TEST_TIMEOUT, TrackerClientKey::new(key.value()))
+                .unwrap(),
         }
     }
 
     pub async fn announce(&self, query: &Announce) -> Response {
-        self.get(&self.build_announce_path_and_query(query)).await
+        self.inner.announce(query).await.unwrap()
     }
 
     pub async fn scrape(&self, query: &scrape_builder::Query) -> Response {
-        self.get(&self.build_scrape_path_and_query(query)).await
+        self.inner.scrape(query).await.unwrap()
     }
 
     pub async fn announce_with_header(&self, query: &Announce, key: &str, value: &str) -> Response {
-        self.get_with_header(&self.build_announce_path_and_query(query), key, value)
-            .await
+        self.inner.announce_with_header(query, key, value).await.unwrap()
     }
 
     pub async fn health_check(&self) -> Response {
-        self.get(&self.build_path("health_check")).await
+        self.inner.health_check().await.unwrap()
     }
 
     pub async fn get(&self, path: &str) -> Response {
-        self.reqwest.get(self.build_url(path)).send().await.unwrap()
+        self.inner.get(path).await.unwrap()
     }
 
     pub async fn get_with_header(&self, path: &str, key: &str, value: &str) -> Response {
-        self.reqwest
-            .get(self.build_url(path))
-            .header(key, value)
-            .send()
-            .await
-            .unwrap()
-    }
-
-    fn build_announce_path_and_query(&self, query: &Announce) -> String {
-        format!("{}?{query}", self.build_path("announce"))
-    }
-
-    fn build_scrape_path_and_query(&self, query: &scrape_builder::Query) -> String {
-        format!("{}?{query}", self.build_path("scrape"))
-    }
-
-    fn build_path(&self, path: &str) -> String {
-        match &self.key {
-            Some(key) => format!("{path}/{key}"),
-            None => path.to_string(),
-        }
-    }
-
-    fn build_url(&self, path: &str) -> String {
-        let base_url = self.base_url();
-        format!("{base_url}{path}")
-    }
-
-    fn base_url(&self) -> String {
-        format!("http://{}/", self.server_addr)
+        self.inner.get_with_header(path, key, value).await.unwrap()
     }
 }

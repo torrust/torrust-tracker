@@ -121,7 +121,7 @@ mod for_all_config_modes {
         use torrust_tracker_http_protocol::percent_encoding::percent_encode_byte_array;
         use torrust_tracker_http_protocol::v1::requests::announce::{AnnounceBuilder, Compact};
         use torrust_tracker_http_protocol::v1::responses::announce::deserialization::{
-            CompactPeer, CompactPeerList, DeserializedCompactParsed, DeserializedNormal, DictionaryPeer,
+            CompactPeer, CompactPeerList, DeserializedNormal, DictionaryPeer,
         };
         use torrust_tracker_primitives::PeerId as DomainPeerId;
         use torrust_tracker_primitives::peer::fixture::PeerBuilder;
