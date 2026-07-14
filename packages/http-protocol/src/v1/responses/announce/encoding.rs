@@ -1,61 +1,14 @@
-//! `Announce` response for the HTTP tracker [`announce`](crate::v1::requests::announce::Announce) request.
+//! Encoding layer for the HTTP tracker announce response.
 //!
-//! Data structures and logic to build the `announce` response.
+//! Types for encoding announce responses into bencoded bytes.
+//! Supports two encoding forms: [`Normal`] (dictionary-based) and [`Compact`] (packed binary).
 use std::io::Write;
-use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
+use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 
 use derive_more::{AsRef, Constructor, From};
 use torrust_bencode::{BMutAccess, BencodeMut, ben_bytes, ben_int, ben_list, ben_map};
-use torrust_peer_id::PeerId;
 
-// Protocol-local announce response DTOs intentionally duplicate some domain
-// field shapes. This keeps protocol crates decoupled from tracker domain types
-// and centralizes conversions in boundary adapters.
-#[derive(Clone, Debug, PartialEq, Constructor, Default)]
-pub struct AnnounceData {
-    pub peers: Vec<Peer>,
-    pub stats: SwarmMetadata,
-    pub policy: AnnouncePolicy,
-}
-
-#[derive(PartialEq, Eq, Debug, Clone, Copy, Constructor)]
-pub struct AnnouncePolicy {
-    pub interval: u32,
-    pub interval_min: u32,
-}
-
-impl Default for AnnouncePolicy {
-    fn default() -> Self {
-        Self {
-            interval: 120,
-            interval_min: 120,
-        }
-    }
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
-pub struct SwarmMetadata {
-    pub complete: u32,
-    pub downloaded: u32,
-    pub incomplete: u32,
-}
-
-impl SwarmMetadata {
-    #[must_use]
-    pub const fn new(complete: u32, downloaded: u32, incomplete: u32) -> Self {
-        Self {
-            complete,
-            downloaded,
-            incomplete,
-        }
-    }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct Peer {
-    pub peer_id: PeerId,
-    pub peer_addr: SocketAddr,
-}
+use crate::v1::responses::announce::data::{AnnounceData, Peer};
 
 /// An [`Announce`] response, that can be anything that is convertible from [`AnnounceData`].
 ///
