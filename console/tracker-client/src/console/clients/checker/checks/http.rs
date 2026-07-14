@@ -7,7 +7,7 @@ use torrust_tracker_client::http::client::Client;
 use torrust_tracker_http_protocol::v1::requests::announce::AnnounceBuilder;
 use torrust_tracker_http_protocol::v1::requests::scrape_builder;
 use torrust_tracker_http_protocol::v1::responses::announce::deserialization::DeserializedNormal;
-use torrust_tracker_http_protocol::v1::responses::scrape_deserialization;
+use torrust_tracker_http_protocol::v1::responses::scrape::deserialization;
 use url::Url;
 
 use crate::console::clients::http::Error;
@@ -83,7 +83,7 @@ async fn check_http_announce(url: &Url, timeout: Duration) -> Result<Deserialize
     Ok(response)
 }
 
-async fn check_http_scrape(url: &Url, timeout: Duration) -> Result<scrape_deserialization::Response, Error> {
+async fn check_http_scrape(url: &Url, timeout: Duration) -> Result<deserialization::Response, Error> {
     let info_hashes: Vec<String> = vec!["9c38422213e30bff212b30c360d26f9a02136422".to_string()]; // DevSkim: ignore DS173237
     let query = scrape_builder::Query::try_from(info_hashes).expect("a valid array of info-hashes is required");
 
@@ -93,7 +93,7 @@ async fn check_http_scrape(url: &Url, timeout: Duration) -> Result<scrape_deseri
 
     let response = response.bytes().await.map_err(|e| Error::ResponseError { err: e.into() })?;
 
-    let response = scrape_deserialization::Response::try_from_bencoded(&response).map_err(|e| Error::BencodeParseError {
+    let response = deserialization::Response::try_from_bencoded(&response).map_err(|e| Error::BencodeParseError {
         data: response,
         err: e.into(),
     })?;

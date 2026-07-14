@@ -1145,7 +1145,7 @@ mod for_all_config_modes {
         use torrust_info_hash::InfoHash;
         use torrust_tracker_axum_http_server::testing::environment::Started;
         use torrust_tracker_http_protocol::v1::requests::scrape_builder::QueryBuilder;
-        use torrust_tracker_http_protocol::v1::responses::scrape_deserialization::{self, File, ResponseBuilder};
+        use torrust_tracker_http_protocol::v1::responses::scrape::deserialization::{self, File, ResponseBuilder};
         use torrust_tracker_primitives::PeerId;
         use torrust_tracker_primitives::peer::fixture::PeerBuilder;
         use torrust_tracker_test_helpers::{configuration, logging};
@@ -1288,11 +1288,7 @@ mod for_all_config_modes {
                 .scrape(&QueryBuilder::default().with_one_info_hash(&info_hash).query())
                 .await;
 
-            assert_scrape_response(
-                response,
-                &scrape_deserialization::Response::with_one_file(info_hash, File::zeroed()),
-            )
-            .await;
+            assert_scrape_response(response, &deserialization::Response::with_one_file(info_hash, File::zeroed())).await;
 
             env.stop().await;
         }
@@ -1467,7 +1463,7 @@ mod configured_as_whitelisted {
         use torrust_info_hash::InfoHash;
         use torrust_tracker_axum_http_server::testing::environment::Started;
         use torrust_tracker_http_protocol::v1::requests::scrape_builder::QueryBuilder;
-        use torrust_tracker_http_protocol::v1::responses::scrape_deserialization::{File, ResponseBuilder};
+        use torrust_tracker_http_protocol::v1::responses::scrape::deserialization::{File, ResponseBuilder};
         use torrust_tracker_primitives::PeerId;
         use torrust_tracker_primitives::peer::fixture::PeerBuilder;
         use torrust_tracker_test_helpers::logging::logs_contains_a_line_with;
@@ -1678,7 +1674,7 @@ mod configured_as_private {
         use torrust_tracker_axum_http_server::testing::environment::Started;
         use torrust_tracker_core::authentication::Key;
         use torrust_tracker_http_protocol::v1::requests::scrape_builder::QueryBuilder;
-        use torrust_tracker_http_protocol::v1::responses::scrape_deserialization::{File, ResponseBuilder};
+        use torrust_tracker_http_protocol::v1::responses::scrape::deserialization::{File, ResponseBuilder};
         use torrust_tracker_primitives::PeerId;
         use torrust_tracker_primitives::peer::fixture::PeerBuilder;
         use torrust_tracker_test_helpers::{configuration, logging};

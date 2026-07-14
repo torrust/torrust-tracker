@@ -82,7 +82,7 @@ use torrust_tracker_client::http::client::Client;
 use torrust_tracker_http_protocol::v1::requests::announce::{AnnounceBuilder, Compact, Event};
 use torrust_tracker_http_protocol::v1::requests::scrape_builder;
 use torrust_tracker_http_protocol::v1::responses::announce::deserialization::{DeserializedCompact, DeserializedNormal};
-use torrust_tracker_http_protocol::v1::responses::scrape_deserialization;
+use torrust_tracker_http_protocol::v1::responses::scrape::deserialization;
 
 use crate::DEFAULT_NETWORK_TIMEOUT;
 
@@ -345,7 +345,7 @@ async fn scrape_command(
 
     let body = response.bytes().await?;
 
-    let Ok(scrape_response) = scrape_deserialization::Response::try_from_bencoded(&body) else {
+    let Ok(scrape_response) = deserialization::Response::try_from_bencoded(&body) else {
         let fallback = bencode_to_fallback_json_or_raw_bytes(&body, output_format)
             .context("failed to serialize fallback scrape response into JSON")?;
 
