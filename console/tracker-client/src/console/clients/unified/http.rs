@@ -11,7 +11,7 @@ use torrust_peer_id::PeerId;
 use torrust_tracker_client::http::client::Client;
 use torrust_tracker_http_protocol::v1::requests::announce::{AnnounceBuilder, Compact, Event};
 use torrust_tracker_http_protocol::v1::requests::scrape_builder;
-use torrust_tracker_http_protocol::v1::responses::announce_deserialization::{Announce, DeserializedCompact};
+use torrust_tracker_http_protocol::v1::responses::announce::deserialization::{DeserializedCompact, DeserializedNormal};
 use torrust_tracker_http_protocol::v1::responses::scrape_deserialization;
 
 use super::app::OutputFormat;
@@ -185,7 +185,7 @@ async fn announce_command(options: AnnounceOptions, timeout: Duration) -> anyhow
 
     let body = response.bytes().await?;
 
-    let json = if let Ok(announce_response) = serde_bencode::from_bytes::<Announce>(&body) {
+    let json = if let Ok(announce_response) = serde_bencode::from_bytes::<DeserializedNormal>(&body) {
         serialize_json(&announce_response, options.output_format).context("failed to serialize announce response into JSON")?
     } else if let Ok(compact_response) = serde_bencode::from_bytes::<DeserializedCompact>(&body) {
         serialize_json(&compact_response, options.output_format)

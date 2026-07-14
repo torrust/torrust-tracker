@@ -120,8 +120,8 @@ mod for_all_config_modes {
         use torrust_tracker_axum_http_server::testing::environment::Started;
         use torrust_tracker_http_protocol::percent_encoding::percent_encode_byte_array;
         use torrust_tracker_http_protocol::v1::requests::announce::{AnnounceBuilder, Compact};
-        use torrust_tracker_http_protocol::v1::responses::announce_deserialization::{
-            Announce, CompactPeer, CompactPeerList, DictionaryPeer,
+        use torrust_tracker_http_protocol::v1::responses::announce::deserialization::{
+            CompactPeer, CompactPeerList, DeserializedCompactParsed, DeserializedNormal, DictionaryPeer,
         };
         use torrust_tracker_primitives::PeerId as DomainPeerId;
         use torrust_tracker_primitives::peer::fixture::PeerBuilder;
@@ -572,7 +572,7 @@ mod for_all_config_modes {
 
             assert_announce_response(
                 response,
-                &Announce {
+                &DeserializedNormal {
                     complete: 1, // the peer for this test
                     incomplete: 0,
                     interval: announce_policy.interval,
@@ -619,7 +619,7 @@ mod for_all_config_modes {
             // It should only contain the previously announced peer
             assert_announce_response(
                 response,
-                &Announce {
+                &DeserializedNormal {
                     complete: 2,
                     incomplete: 0,
                     interval: announce_policy.interval,
@@ -680,7 +680,7 @@ mod for_all_config_modes {
             // but all the previously announced peers should be included regardless the IP version they are using.
             assert_announce_response(
                 response,
-                &Announce {
+                &DeserializedNormal {
                     complete: 3,
                     incomplete: 0,
                     interval: announce_policy.interval,
@@ -746,7 +746,7 @@ mod for_all_config_modes {
             // The response should contain only the first peer.
             assert_announce_response(
                 response,
-                &Announce {
+                &DeserializedNormal {
                     complete: 1,
                     incomplete: 0,
                     interval: announce_policy.interval,
@@ -792,13 +792,14 @@ mod for_all_config_modes {
                 )
                 .await;
 
-            let expected_response = torrust_tracker_http_protocol::v1::responses::announce_deserialization::Compact {
-                complete: 2,
-                incomplete: 0,
-                interval: 120,
-                min_interval: 120,
-                peers: CompactPeerList::new([CompactPeer::new(&previously_announced_peer.peer_addr)].to_vec()),
-            };
+            let expected_response =
+                torrust_tracker_http_protocol::v1::responses::announce::deserialization::DeserializedCompactParsed {
+                    complete: 2,
+                    incomplete: 0,
+                    interval: 120,
+                    min_interval: 120,
+                    peers: CompactPeerList::new([CompactPeer::new(&previously_announced_peer.peer_addr)].to_vec()),
+                };
 
             assert_compact_announce_response(response, &expected_response).await;
 
@@ -848,7 +849,7 @@ mod for_all_config_modes {
         async fn is_a_compact_announce_response(response: Response) -> bool {
             let bytes = response.bytes().await.unwrap();
             let compact_announce = serde_bencode::from_bytes::<
-                torrust_tracker_http_protocol::v1::responses::announce_deserialization::DeserializedCompact,
+                torrust_tracker_http_protocol::v1::responses::announce::deserialization::DeserializedCompact,
             >(&bytes);
             compact_announce.is_ok()
         }

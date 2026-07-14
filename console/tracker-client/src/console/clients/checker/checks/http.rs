@@ -6,7 +6,7 @@ use torrust_info_hash::InfoHash;
 use torrust_tracker_client::http::client::Client;
 use torrust_tracker_http_protocol::v1::requests::announce::AnnounceBuilder;
 use torrust_tracker_http_protocol::v1::requests::scrape_builder;
-use torrust_tracker_http_protocol::v1::responses::announce_deserialization::Announce;
+use torrust_tracker_http_protocol::v1::responses::announce::deserialization::DeserializedNormal;
 use torrust_tracker_http_protocol::v1::responses::scrape_deserialization;
 use url::Url;
 
@@ -62,7 +62,7 @@ pub async fn run(http_trackers: Vec<Url>, timeout: Duration) -> Vec<Result<Check
     results
 }
 
-async fn check_http_announce(url: &Url, timeout: Duration) -> Result<Announce, Error> {
+async fn check_http_announce(url: &Url, timeout: Duration) -> Result<DeserializedNormal, Error> {
     let info_hash_str = "9c38422213e30bff212b30c360d26f9a02136422".to_string(); // DevSkim: ignore DS173237
     let info_hash = InfoHash::from_str(&info_hash_str).expect("a valid info-hash is required");
 
@@ -75,7 +75,7 @@ async fn check_http_announce(url: &Url, timeout: Duration) -> Result<Announce, E
 
     let response = response.bytes().await.map_err(|e| Error::ResponseError { err: e.into() })?;
 
-    let response = serde_bencode::from_bytes::<Announce>(&response).map_err(|e| Error::ParseBencodeError {
+    let response = serde_bencode::from_bytes::<DeserializedNormal>(&response).map_err(|e| Error::ParseBencodeError {
         data: response,
         err: e.into(),
     })?;

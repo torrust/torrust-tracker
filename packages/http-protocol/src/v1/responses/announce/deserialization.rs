@@ -1,12 +1,13 @@
-//! `Announce` response deserialization for the HTTP tracker.
+//! Client-side announce response deserialization types.
 //!
-//! Types for deserializing announce responses from an HTTP tracker.
-use std::net::{IpAddr, Ipv4Addr, SocketAddr};
+//! These types are the reverse of the DTO layer — they deserialize bencoded
+//! announce responses from the wire. Use wire-friendly types (`Vec<u8>`, `String`).
 
 use serde::{Deserialize, Serialize};
 
+/// Non-compact announce response (BEP 3 dictionary format).
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
-pub struct Announce {
+pub struct DeserializedNormal {
     pub complete: u32,
     pub incomplete: u32,
     pub interval: u32,
@@ -15,6 +16,7 @@ pub struct Announce {
     pub peers: Vec<DictionaryPeer>,
 }
 
+/// A peer in dictionary format (BEP 3).
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct DictionaryPeer {
     pub ip: String,
@@ -24,6 +26,7 @@ pub struct DictionaryPeer {
     pub port: u16,
 }
 
+/// Raw compact announce response (BEP 23) from serde deserialization.
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct DeserializedCompact {
     pub complete: u32,
@@ -33,6 +36,10 @@ pub struct DeserializedCompact {
     pub min_interval: u32,
     #[serde(with = "serde_bytes")]
     pub peers: Vec<u8>,
+    /// IPv6 compact peer list (BEP 7). Raw bytes from deserialization.
+    #[serde(default)]
+    #[serde(with = "serde_bytes")]
+    pub peers6: Vec<u8>,
 }
 
 impl DeserializedCompact {
@@ -44,8 +51,9 @@ impl DeserializedCompact {
     }
 }
 
+/// Parsed compact announce response with peer entries extracted.
 #[derive(Debug, PartialEq)]
-pub struct Compact {
+pub struct DeserializedCompactParsed {
     pub complete: u32,
     pub incomplete: u32,
     pub interval: u32,
@@ -53,6 +61,9 @@ pub struct Compact {
     pub peers: CompactPeerList,
 }
 
+pub use crate::v1::responses::announce::encoding::CompactPeer;
+
+/// A list of compact peer entries.
 #[derive(Debug, PartialEq)]
 pub struct CompactPeerList {
     peers: Vec<CompactPeer>,
@@ -65,42 +76,7 @@ impl CompactPeerList {
     }
 }
 
-/// Tracker client compact peer entry (IPv4 only).
-///
-/// This struct only supports IPv4 compact peer entries from the `peers` key
-/// (BEP 23). IPv6 compact peer lists (the `peers6` key from BEP 7) are not
-/// supported.
-#[derive(Clone, Debug, PartialEq)]
-pub struct CompactPeer {
-    ip: Ipv4Addr,
-    port: u16,
-}
-
-impl CompactPeer {
-    /// # Panics
-    ///
-    /// Will panic if the provided socket address is a IPv6 IP address.
-    #[must_use]
-    pub fn new(socket_addr: &SocketAddr) -> Self {
-        match socket_addr.ip() {
-            IpAddr::V4(ip) => Self {
-                ip,
-                port: socket_addr.port(),
-            },
-            IpAddr::V6(_ip) => panic!("IPV6 is not supported for compact peer"),
-        }
-    }
-
-    #[must_use]
-    pub fn new_from_bytes(bytes: &[u8]) -> Self {
-        Self {
-            ip: Ipv4Addr::new(bytes[0], bytes[1], bytes[2], bytes[3]),
-            port: u16::from_be_bytes([bytes[4], bytes[5]]),
-        }
-    }
-}
-
-impl From<DeserializedCompact> for Compact {
+impl From<DeserializedCompact> for DeserializedCompactParsed {
     fn from(compact_announce: DeserializedCompact) -> Self {
         let mut peers = vec![];
 
