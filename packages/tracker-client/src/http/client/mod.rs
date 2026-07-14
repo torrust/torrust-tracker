@@ -10,7 +10,8 @@ use hyper::StatusCode;
 use reqwest::{Response, Url};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
-use torrust_tracker_http_protocol::v1::requests::{announce_builder, scrape_builder};
+use torrust_tracker_http_protocol::v1::requests::announce::Announce;
+use torrust_tracker_http_protocol::v1::requests::scrape_builder;
 
 #[derive(Debug, Clone, Error)]
 pub enum Error {
@@ -93,7 +94,7 @@ impl Client {
     /// # Errors
     ///
     /// This method fails if the returned response was not successful
-    pub async fn announce(&self, query: &announce_builder::Query) -> Result<Response, Error> {
+    pub async fn announce(&self, query: &Announce) -> Result<Response, Error> {
         let response = self.get_url(self.build_announce_url(query)).await?;
 
         if response.status().is_success() {
@@ -125,7 +126,7 @@ impl Client {
     /// # Errors
     ///
     /// This method fails if the returned response was not successful
-    pub async fn announce_with_header(&self, query: &announce_builder::Query, key: &str, value: &str) -> Result<Response, Error> {
+    pub async fn announce_with_header(&self, query: &Announce, key: &str, value: &str) -> Result<Response, Error> {
         let response = self.get_url_with_header(self.build_announce_url(query), key, value).await?;
 
         if response.status().is_success() {
@@ -194,7 +195,7 @@ impl Client {
             .map_err(|e| Error::ResponseError { err: e.into() })
     }
 
-    fn build_announce_url(&self, query: &announce_builder::Query) -> Url {
+    fn build_announce_url(&self, query: &Announce) -> Url {
         let mut url = self.build_endpoint_url("announce");
         url.set_query(Some(&query.to_string()));
         url

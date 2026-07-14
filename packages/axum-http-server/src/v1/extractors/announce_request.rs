@@ -84,6 +84,7 @@ fn extract_announce_from(maybe_raw_query: Option<&str>) -> Result<Announce, resp
 
 #[cfg(test)]
 mod tests {
+    use std::net::{IpAddr, Ipv4Addr};
     use std::str::FromStr;
 
     use torrust_info_hash::InfoHash;
@@ -112,6 +113,7 @@ mod tests {
                 info_hash: InfoHash::from_str("3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0").unwrap(), // DevSkim: ignore DS173237
                 peer_id: PeerId(*b"-qB00000000000000001"),
                 port: 17548,
+                peer_addr: Some(IpAddr::V4(Ipv4Addr::new(2, 137, 87, 41))),
                 downloaded: Some(NumberOfBytes::new(0)),
                 uploaded: Some(NumberOfBytes::new(0)),
                 left: Some(NumberOfBytes::new(0)),

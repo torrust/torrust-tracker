@@ -4,7 +4,8 @@ use std::time::Duration;
 use serde::Serialize;
 use torrust_info_hash::InfoHash;
 use torrust_tracker_client::http::client::Client;
-use torrust_tracker_http_protocol::v1::requests::{announce_builder, scrape_builder};
+use torrust_tracker_http_protocol::v1::requests::announce::AnnounceBuilder;
+use torrust_tracker_http_protocol::v1::requests::scrape_builder;
 use torrust_tracker_http_protocol::v1::responses::announce_deserialization::Announce;
 use torrust_tracker_http_protocol::v1::responses::scrape_deserialization;
 use url::Url;
@@ -68,11 +69,7 @@ async fn check_http_announce(url: &Url, timeout: Duration) -> Result<Announce, E
     let client = Client::new(url.clone(), timeout).map_err(|err| Error::HttpClientError { err })?;
 
     let response = client
-        .announce(
-            &announce_builder::QueryBuilder::with_default_values()
-                .with_info_hash(&info_hash)
-                .query(),
-        )
+        .announce(&AnnounceBuilder::with_default_values().with_info_hash(&info_hash).query())
         .await
         .map_err(|err| Error::HttpClientError { err })?;
 

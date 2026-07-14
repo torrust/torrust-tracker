@@ -2,7 +2,8 @@ use std::net::IpAddr;
 
 use reqwest::{Client as ReqwestClient, Response};
 use torrust_tracker_core::authentication::Key;
-use torrust_tracker_http_protocol::v1::requests::{announce_builder, scrape_builder};
+use torrust_tracker_http_protocol::v1::requests::announce::Announce;
+use torrust_tracker_http_protocol::v1::requests::scrape_builder;
 
 /// HTTP Tracker Client
 pub struct Client {
@@ -45,7 +46,7 @@ impl Client {
         }
     }
 
-    pub async fn announce(&self, query: &announce_builder::Query) -> Response {
+    pub async fn announce(&self, query: &Announce) -> Response {
         self.get(&self.build_announce_path_and_query(query)).await
     }
 
@@ -53,7 +54,7 @@ impl Client {
         self.get(&self.build_scrape_path_and_query(query)).await
     }
 
-    pub async fn announce_with_header(&self, query: &announce_builder::Query, key: &str, value: &str) -> Response {
+    pub async fn announce_with_header(&self, query: &Announce, key: &str, value: &str) -> Response {
         self.get_with_header(&self.build_announce_path_and_query(query), key, value)
             .await
     }
@@ -75,7 +76,7 @@ impl Client {
             .unwrap()
     }
 
-    fn build_announce_path_and_query(&self, query: &announce_builder::Query) -> String {
+    fn build_announce_path_and_query(&self, query: &Announce) -> String {
         format!("{}?{query}", self.build_path("announce"))
     }
 

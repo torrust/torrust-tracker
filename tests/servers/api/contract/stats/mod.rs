@@ -6,7 +6,7 @@ use serde::Deserialize;
 use tokio::time::Duration;
 use torrust_info_hash::InfoHash;
 use torrust_tracker_client::http::client::Client as HttpTrackerClient;
-use torrust_tracker_http_protocol::v1::requests::announce_builder::QueryBuilder;
+use torrust_tracker_http_protocol::v1::requests::announce::AnnounceBuilder;
 use torrust_tracker_lib::app;
 use torrust_tracker_rest_api_client::connection_info::{ConnectionInfo, Origin};
 use torrust_tracker_rest_api_client::v1::client::ApiHttpClient as TrackerApiClient;
@@ -76,7 +76,7 @@ async fn announce_to_tracker(tracker_url: &str) {
     let response = HttpTrackerClient::new(Url::parse(tracker_url).unwrap(), Duration::from_secs(1))
         .unwrap()
         .announce(
-            &QueryBuilder::with_default_values()
+            &AnnounceBuilder::with_default_values()
                 .with_info_hash(&InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap()) // DevSkim: ignore DS173237
                 .query(),
         )

@@ -47,7 +47,7 @@ mod for_all_config_modes {
         use std::sync::Arc;
 
         use torrust_tracker_axum_http_server::testing::environment::Started;
-        use torrust_tracker_http_protocol::v1::requests::announce_builder::QueryBuilder;
+        use torrust_tracker_http_protocol::v1::requests::announce::AnnounceBuilder;
         use torrust_tracker_test_helpers::{configuration, logging};
 
         use crate::server::asserts::assert_could_not_find_remote_address_on_x_forwarded_for_header_error_response;
@@ -65,7 +65,7 @@ mod for_all_config_modes {
             let http_tracker_config = Arc::new(cfg.http_trackers.unwrap()[0].clone());
             let env = Started::new(&core_config, &http_tracker_config).await;
 
-            let params = QueryBuilder::default().query().params();
+            let params = AnnounceBuilder::default().query().to_string();
 
             let response = Client::new(*env.bind_address()).get(&format!("announce?{params}")).await;
 
@@ -83,7 +83,7 @@ mod for_all_config_modes {
             let http_tracker_config = Arc::new(cfg.http_trackers.unwrap()[0].clone());
             let env = Started::new(&core_config, &http_tracker_config).await;
 
-            let params = QueryBuilder::default().query().params();
+            let params = AnnounceBuilder::default().query().to_string();
 
             let response = Client::new(*env.bind_address())
                 .get_with_header(&format!("announce?{params}"), "X-Forwarded-For", "INVALID IP")
@@ -118,7 +118,8 @@ mod for_all_config_modes {
         use torrust_info_hash::InfoHash;
         use torrust_peer_id::PeerId;
         use torrust_tracker_axum_http_server::testing::environment::Started;
-        use torrust_tracker_http_protocol::v1::requests::announce_builder::{Compact, QueryBuilder};
+        use torrust_tracker_http_protocol::percent_encoding::percent_encode_byte_array;
+        use torrust_tracker_http_protocol::v1::requests::announce::{AnnounceBuilder, Compact};
         use torrust_tracker_http_protocol::v1::responses::announce_deserialization::{
             Announce, CompactPeer, CompactPeerList, DictionaryPeer,
         };
@@ -154,9 +155,13 @@ mod for_all_config_modes {
             let http_tracker_config = Arc::new(cfg.http_trackers.unwrap()[0].clone());
             let env = Started::new(&core_config, &http_tracker_config).await;
 
-            let mut params = QueryBuilder::default().query().params();
-
-            params.remove_optional_params();
+            // Build a URL with only mandatory fields (info_hash, peer_id, port)
+            let params = format!(
+                "info_hash={}&peer_id={}&port={}",
+                percent_encode_byte_array(&AnnounceBuilder::default().query().info_hash.bytes()),
+                percent_encode_byte_array(&AnnounceBuilder::default().query().peer_id.0),
+                AnnounceBuilder::default().query().port,
+            );
 
             let response = Client::new(*env.bind_address()).get(&format!("announce?{params}")).await;
 
@@ -211,30 +216,33 @@ mod for_all_config_modes {
             let env = Started::new(&core_config, &http_tracker_config).await;
 
             // Without `info_hash` param
-
-            let mut params = QueryBuilder::default().query().params();
-
-            params.info_hash = None;
+            let params = format!(
+                "peer_id={}&port={}",
+                percent_encode_byte_array(&AnnounceBuilder::default().query().peer_id.0),
+                AnnounceBuilder::default().query().port,
+            );
 
             let response = Client::new(*env.bind_address()).get(&format!("announce?{params}")).await;
 
             assert_bad_announce_request_error_response(response, "missing param info_hash").await;
 
             // Without `peer_id` param
-
-            let mut params = QueryBuilder::default().query().params();
-
-            params.peer_id = None;
+            let params = format!(
+                "info_hash={}&port={}",
+                percent_encode_byte_array(&AnnounceBuilder::default().query().info_hash.bytes()),
+                AnnounceBuilder::default().query().port,
+            );
 
             let response = Client::new(*env.bind_address()).get(&format!("announce?{params}")).await;
 
             assert_bad_announce_request_error_response(response, "missing param peer_id").await;
 
             // Without `port` param
-
-            let mut params = QueryBuilder::default().query().params();
-
-            params.port = None;
+            let params = format!(
+                "info_hash={}&peer_id={}",
+                percent_encode_byte_array(&AnnounceBuilder::default().query().info_hash.bytes()),
+                percent_encode_byte_array(&AnnounceBuilder::default().query().peer_id.0),
+            );
 
             let response = Client::new(*env.bind_address()).get(&format!("announce?{params}")).await;
 
@@ -252,12 +260,16 @@ mod for_all_config_modes {
             let http_tracker_config = Arc::new(cfg.http_trackers.unwrap()[0].clone());
             let env = Started::new(&core_config, &http_tracker_config).await;
 
-            let mut params = QueryBuilder::default().query().params();
-
             for invalid_value in &invalid_info_hashes() {
-                params.set("info_hash", invalid_value);
+                let url = format!(
+                    "announce?info_hash={}&peer_id={}&port={}&peer_addr={}&event=started&compact=0",
+                    invalid_value,
+                    percent_encode_byte_array(&AnnounceBuilder::default().query().peer_id.0),
+                    AnnounceBuilder::default().query().port,
+                    "192.168.1.88",
+                );
 
-                let response = Client::new(*env.bind_address()).get(&format!("announce?{params}")).await;
+                let response = Client::new(*env.bind_address()).get(&url).await;
 
                 assert_cannot_parse_query_params_error_response(response, "").await;
             }
@@ -279,11 +291,15 @@ mod for_all_config_modes {
             let http_tracker_config = Arc::new(cfg.http_trackers.unwrap()[0].clone());
             let env = Started::new(&core_config, &http_tracker_config).await;
 
-            let mut params = QueryBuilder::default().query().params();
+            let url = format!(
+                "announce?info_hash={}&peer_id={}&port={}&peer_addr={}&event=started&compact=0",
+                percent_encode_byte_array(&AnnounceBuilder::default().query().info_hash.bytes()),
+                percent_encode_byte_array(&AnnounceBuilder::default().query().peer_id.0),
+                AnnounceBuilder::default().query().port,
+                "INVALID-IP-ADDRESS",
+            );
 
-            params.peer_addr = Some("INVALID-IP-ADDRESS".to_string());
-
-            let response = Client::new(*env.bind_address()).get(&format!("announce?{params}")).await;
+            let response = Client::new(*env.bind_address()).get(&url).await;
 
             assert_is_announce_response(response).await;
 
@@ -299,14 +315,19 @@ mod for_all_config_modes {
             let http_tracker_config = Arc::new(cfg.http_trackers.unwrap()[0].clone());
             let env = Started::new(&core_config, &http_tracker_config).await;
 
-            let mut params = QueryBuilder::default().query().params();
+            let default_info_hash = percent_encode_byte_array(&AnnounceBuilder::default().query().info_hash.bytes());
+            let default_peer_id = percent_encode_byte_array(&AnnounceBuilder::default().query().peer_id.0);
+            let default_port = AnnounceBuilder::default().query().port;
 
             let invalid_values = ["-1", "1.1", "a"];
 
             for invalid_value in invalid_values {
-                params.set("downloaded", invalid_value);
+                let url = format!(
+                    "announce?info_hash={}&peer_id={}&port={}&peer_addr={}&downloaded={}&event=started&compact=0",
+                    default_info_hash, default_peer_id, default_port, "192.168.1.88", invalid_value,
+                );
 
-                let response = Client::new(*env.bind_address()).get(&format!("announce?{params}")).await;
+                let response = Client::new(*env.bind_address()).get(&url).await;
 
                 assert_bad_announce_request_error_response(response, "invalid param value").await;
             }
@@ -323,14 +344,19 @@ mod for_all_config_modes {
             let http_tracker_config = Arc::new(cfg.http_trackers.unwrap()[0].clone());
             let env = Started::new(&core_config, &http_tracker_config).await;
 
-            let mut params = QueryBuilder::default().query().params();
+            let default_info_hash = percent_encode_byte_array(&AnnounceBuilder::default().query().info_hash.bytes());
+            let default_peer_id = percent_encode_byte_array(&AnnounceBuilder::default().query().peer_id.0);
+            let default_port = AnnounceBuilder::default().query().port;
 
             let invalid_values = ["-1", "1.1", "a"];
 
             for invalid_value in invalid_values {
-                params.set("uploaded", invalid_value);
+                let url = format!(
+                    "announce?info_hash={}&peer_id={}&port={}&peer_addr={}&uploaded={}&event=started&compact=0",
+                    default_info_hash, default_peer_id, default_port, "192.168.1.88", invalid_value,
+                );
 
-                let response = Client::new(*env.bind_address()).get(&format!("announce?{params}")).await;
+                let response = Client::new(*env.bind_address()).get(&url).await;
 
                 assert_bad_announce_request_error_response(response, "invalid param value").await;
             }
@@ -347,7 +373,8 @@ mod for_all_config_modes {
             let http_tracker_config = Arc::new(cfg.http_trackers.unwrap()[0].clone());
             let env = Started::new(&core_config, &http_tracker_config).await;
 
-            let mut params = QueryBuilder::default().query().params();
+            let default_info_hash = percent_encode_byte_array(&AnnounceBuilder::default().query().info_hash.bytes());
+            let default_port = AnnounceBuilder::default().query().port;
 
             let invalid_values = [
                 "0",
@@ -359,9 +386,12 @@ mod for_all_config_modes {
             ];
 
             for invalid_value in invalid_values {
-                params.set("peer_id", invalid_value);
+                let url = format!(
+                    "announce?info_hash={}&peer_id={}&port={}&peer_addr={}&event=started&compact=0",
+                    default_info_hash, invalid_value, default_port, "192.168.1.88",
+                );
 
-                let response = Client::new(*env.bind_address()).get(&format!("announce?{params}")).await;
+                let response = Client::new(*env.bind_address()).get(&url).await;
 
                 assert_bad_announce_request_error_response(response, "invalid param value").await;
             }
@@ -378,14 +408,18 @@ mod for_all_config_modes {
             let http_tracker_config = Arc::new(cfg.http_trackers.unwrap()[0].clone());
             let env = Started::new(&core_config, &http_tracker_config).await;
 
-            let mut params = QueryBuilder::default().query().params();
+            let default_info_hash = percent_encode_byte_array(&AnnounceBuilder::default().query().info_hash.bytes());
+            let default_peer_id = percent_encode_byte_array(&AnnounceBuilder::default().query().peer_id.0);
 
             let invalid_values = ["-1", "1.1", "a"];
 
             for invalid_value in invalid_values {
-                params.set("port", invalid_value);
+                let url = format!(
+                    "announce?info_hash={}&peer_id={}&port={}&peer_addr={}&event=started&compact=0",
+                    default_info_hash, default_peer_id, invalid_value, "192.168.1.88",
+                );
 
-                let response = Client::new(*env.bind_address()).get(&format!("announce?{params}")).await;
+                let response = Client::new(*env.bind_address()).get(&url).await;
 
                 assert_bad_announce_request_error_response(response, "invalid param value").await;
             }
@@ -402,14 +436,19 @@ mod for_all_config_modes {
             let http_tracker_config = Arc::new(cfg.http_trackers.unwrap()[0].clone());
             let env = Started::new(&core_config, &http_tracker_config).await;
 
-            let mut params = QueryBuilder::default().query().params();
+            let default_info_hash = percent_encode_byte_array(&AnnounceBuilder::default().query().info_hash.bytes());
+            let default_peer_id = percent_encode_byte_array(&AnnounceBuilder::default().query().peer_id.0);
+            let default_port = AnnounceBuilder::default().query().port;
 
             let invalid_values = ["-1", "1.1", "a"];
 
             for invalid_value in invalid_values {
-                params.set("left", invalid_value);
+                let url = format!(
+                    "announce?info_hash={}&peer_id={}&port={}&peer_addr={}&left={}&event=started&compact=0",
+                    default_info_hash, default_peer_id, default_port, "192.168.1.88", invalid_value,
+                );
 
-                let response = Client::new(*env.bind_address()).get(&format!("announce?{params}")).await;
+                let response = Client::new(*env.bind_address()).get(&url).await;
 
                 assert_bad_announce_request_error_response(response, "invalid param value").await;
             }
@@ -426,7 +465,9 @@ mod for_all_config_modes {
             let http_tracker_config = Arc::new(cfg.http_trackers.unwrap()[0].clone());
             let env = Started::new(&core_config, &http_tracker_config).await;
 
-            let mut params = QueryBuilder::default().query().params();
+            let default_info_hash = percent_encode_byte_array(&AnnounceBuilder::default().query().info_hash.bytes());
+            let default_peer_id = percent_encode_byte_array(&AnnounceBuilder::default().query().peer_id.0);
+            let default_port = AnnounceBuilder::default().query().port;
 
             let invalid_values = [
                 "0",
@@ -439,9 +480,12 @@ mod for_all_config_modes {
             ];
 
             for invalid_value in invalid_values {
-                params.set("event", invalid_value);
+                let url = format!(
+                    "announce?info_hash={}&peer_id={}&port={}&peer_addr={}&event={}&compact=0",
+                    default_info_hash, default_peer_id, default_port, "192.168.1.88", invalid_value,
+                );
 
-                let response = Client::new(*env.bind_address()).get(&format!("announce?{params}")).await;
+                let response = Client::new(*env.bind_address()).get(&url).await;
 
                 assert_bad_announce_request_error_response(response, "invalid param value").await;
             }
@@ -458,14 +502,19 @@ mod for_all_config_modes {
             let http_tracker_config = Arc::new(cfg.http_trackers.unwrap()[0].clone());
             let env = Started::new(&core_config, &http_tracker_config).await;
 
-            let mut params = QueryBuilder::default().query().params();
+            let default_info_hash = percent_encode_byte_array(&AnnounceBuilder::default().query().info_hash.bytes());
+            let default_peer_id = percent_encode_byte_array(&AnnounceBuilder::default().query().peer_id.0);
+            let default_port = AnnounceBuilder::default().query().port;
 
             let invalid_values = ["-1", "1.1", "a"];
 
             for invalid_value in invalid_values {
-                params.set("compact", invalid_value);
+                let url = format!(
+                    "announce?info_hash={}&peer_id={}&port={}&peer_addr={}&event=started&compact={}",
+                    default_info_hash, default_peer_id, default_port, "192.168.1.88", invalid_value,
+                );
 
-                let response = Client::new(*env.bind_address()).get(&format!("announce?{params}")).await;
+                let response = Client::new(*env.bind_address()).get(&url).await;
 
                 assert_bad_announce_request_error_response(response, "invalid param value").await;
             }
@@ -482,14 +531,19 @@ mod for_all_config_modes {
             let http_tracker_config = Arc::new(cfg.http_trackers.unwrap()[0].clone());
             let env = Started::new(&core_config, &http_tracker_config).await;
 
-            let mut params = QueryBuilder::default().query().params();
+            let default_info_hash = percent_encode_byte_array(&AnnounceBuilder::default().query().info_hash.bytes());
+            let default_peer_id = percent_encode_byte_array(&AnnounceBuilder::default().query().peer_id.0);
+            let default_port = AnnounceBuilder::default().query().port;
 
             let invalid_values = ["-1", "1.1", "a"];
 
             for invalid_value in invalid_values {
-                params.set("numwant", invalid_value);
+                let url = format!(
+                    "announce?info_hash={}&peer_id={}&port={}&peer_addr={}&event=started&compact=0&numwant={}",
+                    default_info_hash, default_peer_id, default_port, "192.168.1.88", invalid_value,
+                );
 
-                let response = Client::new(*env.bind_address()).get(&format!("announce?{params}")).await;
+                let response = Client::new(*env.bind_address()).get(&url).await;
 
                 assert_bad_announce_request_error_response(response, "invalid param value").await;
             }
@@ -508,7 +562,7 @@ mod for_all_config_modes {
 
             let response = Client::new(*env.bind_address())
                 .announce(
-                    &QueryBuilder::default()
+                    &AnnounceBuilder::default()
                         .with_info_hash(&InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap()) // DevSkim: ignore DS173237
                         .query(),
                 )
@@ -553,7 +607,7 @@ mod for_all_config_modes {
             // Announce the new Peer 2. This new peer is non included on the response peer list
             let response = Client::new(*env.bind_address())
                 .announce(
-                    &QueryBuilder::default()
+                    &AnnounceBuilder::default()
                         .with_info_hash(&info_hash)
                         .with_peer_id(&PeerId(*b"-qB00000000000000002"))
                         .query(),
@@ -613,7 +667,7 @@ mod for_all_config_modes {
             // Announce the new Peer.
             let response = Client::new(*env.bind_address())
                 .announce(
-                    &QueryBuilder::default()
+                    &AnnounceBuilder::default()
                         .with_info_hash(&info_hash)
                         .with_peer_id(&PeerId(*b"-qB00000000000000003"))
                         .query(),
@@ -663,17 +717,17 @@ mod for_all_config_modes {
             let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap(); // DevSkim: ignore DS173237
             let peer = PeerBuilder::default().build();
 
-            let announce_query_1 = QueryBuilder::default()
+            let announce_query_1 = AnnounceBuilder::default()
                 .with_info_hash(&info_hash)
                 .with_peer_id(&PeerId(peer.peer_id.0))
-                .with_peer_addr(&peer.peer_addr.ip())
+                .with_peer_addr(peer.peer_addr.ip())
                 .with_port(peer.peer_addr.port())
                 .query();
 
-            let announce_query_2 = QueryBuilder::default()
+            let announce_query_2 = AnnounceBuilder::default()
                 .with_info_hash(&info_hash)
                 .with_peer_id(&PeerId(*b"-qB00000000000000002")) // Different peer ID
-                .with_peer_addr(&peer.peer_addr.ip())
+                .with_peer_addr(peer.peer_addr.ip())
                 .with_port(peer.peer_addr.port())
                 .query();
 
@@ -730,7 +784,7 @@ mod for_all_config_modes {
             // Announce the new Peer 2 accepting compact responses
             let response = Client::new(*env.bind_address())
                 .announce(
-                    &QueryBuilder::default()
+                    &AnnounceBuilder::default()
                         .with_info_hash(&info_hash)
                         .with_peer_id(&PeerId(*b"-qB00000000000000002"))
                         .with_compact(Compact::Accepted)
@@ -778,7 +832,7 @@ mod for_all_config_modes {
             // https://www.bittorrent.org/beps/bep_0023.html
             let response = Client::new(*env.bind_address())
                 .announce(
-                    &QueryBuilder::default()
+                    &AnnounceBuilder::default()
                         .with_info_hash(&info_hash)
                         .with_peer_id(&PeerId(*b"-qB00000000000000002"))
                         .without_compact()
@@ -809,7 +863,7 @@ mod for_all_config_modes {
             let env = Started::new(&core_config, &http_tracker_config).await;
 
             Client::new(*env.bind_address())
-                .announce(&QueryBuilder::default().query())
+                .announce(&AnnounceBuilder::default().query())
                 .await;
 
             let stats = env.container.http_tracker_core_container.stats_repository.get_stats().await;
@@ -838,7 +892,7 @@ mod for_all_config_modes {
             let env = Started::new(&core_config, &http_tracker_config).await;
 
             Client::bind(*env.bind_address(), IpAddr::from_str("::1").unwrap())
-                .announce(&QueryBuilder::default().query())
+                .announce(&AnnounceBuilder::default().query())
                 .await;
 
             let stats = env.container.http_tracker_core_container.stats_repository.get_stats().await;
@@ -863,8 +917,8 @@ mod for_all_config_modes {
 
             Client::new(*env.bind_address())
                 .announce(
-                    &QueryBuilder::default()
-                        .with_peer_addr(&IpAddr::V6(Ipv6Addr::LOCALHOST))
+                    &AnnounceBuilder::default()
+                        .with_peer_addr(IpAddr::V6(Ipv6Addr::LOCALHOST))
                         .query(),
                 )
                 .await;
@@ -890,9 +944,9 @@ mod for_all_config_modes {
             let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap(); // DevSkim: ignore DS173237
             let client_ip = local_ip().unwrap();
 
-            let announce_query = QueryBuilder::default()
+            let announce_query = AnnounceBuilder::default()
                 .with_info_hash(&info_hash)
-                .with_peer_addr(&IpAddr::from_str("2.2.2.2").unwrap())
+                .with_peer_addr(IpAddr::from_str("2.2.2.2").unwrap())
                 .query();
 
             {
@@ -935,9 +989,9 @@ mod for_all_config_modes {
             let loopback_ip = IpAddr::from_str("127.0.0.1").unwrap();
             let client_ip = loopback_ip;
 
-            let announce_query = QueryBuilder::default()
+            let announce_query = AnnounceBuilder::default()
                 .with_info_hash(&info_hash)
-                .with_peer_addr(&IpAddr::from_str("2.2.2.2").unwrap())
+                .with_peer_addr(IpAddr::from_str("2.2.2.2").unwrap())
                 .query();
 
             {
@@ -990,9 +1044,9 @@ mod for_all_config_modes {
             let loopback_ip = IpAddr::from_str("127.0.0.1").unwrap();
             let client_ip = loopback_ip;
 
-            let announce_query = QueryBuilder::default()
+            let announce_query = AnnounceBuilder::default()
                 .with_info_hash(&info_hash)
-                .with_peer_addr(&IpAddr::from_str("2.2.2.2").unwrap())
+                .with_peer_addr(IpAddr::from_str("2.2.2.2").unwrap())
                 .query();
 
             {
@@ -1042,7 +1096,7 @@ mod for_all_config_modes {
 
             let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap(); // DevSkim: ignore DS173237
 
-            let announce_query = QueryBuilder::default().with_info_hash(&info_hash).query();
+            let announce_query = AnnounceBuilder::default().with_info_hash(&info_hash).query();
 
             {
                 let client = Client::new(*env.bind_address());
@@ -1127,12 +1181,10 @@ mod for_all_config_modes {
             let http_tracker_config = Arc::new(cfg.http_trackers.unwrap()[0].clone());
             let env = Started::new(&core_config, &http_tracker_config).await;
 
-            let mut params = QueryBuilder::default().query().params();
-
             for invalid_value in &invalid_info_hashes() {
-                params.set_one_info_hash_param(invalid_value);
+                let url = format!("scrape?info_hash={invalid_value}");
 
-                let response = Client::new(*env.bind_address()).get(&format!("announce?{params}")).await;
+                let response = Client::new(*env.bind_address()).get(&url).await;
 
                 assert_cannot_parse_query_params_error_response(response, "").await;
             }
@@ -1340,7 +1392,7 @@ mod configured_as_whitelisted {
 
         use torrust_info_hash::InfoHash;
         use torrust_tracker_axum_http_server::testing::environment::Started;
-        use torrust_tracker_http_protocol::v1::requests::announce_builder::QueryBuilder;
+        use torrust_tracker_http_protocol::v1::requests::announce::AnnounceBuilder;
         use torrust_tracker_test_helpers::logging::logs_contains_a_line_with;
         use torrust_tracker_test_helpers::{configuration, logging};
         use uuid::Uuid;
@@ -1363,7 +1415,7 @@ mod configured_as_whitelisted {
 
             let response = Client::new(*env.bind_address())
                 .announce_with_header(
-                    &QueryBuilder::default().with_info_hash(&info_hash).query(),
+                    &AnnounceBuilder::default().with_info_hash(&info_hash).query(),
                     "x-request-id",
                     &request_id.to_string(),
                 )
@@ -1398,7 +1450,7 @@ mod configured_as_whitelisted {
                 .expect("should add the torrent to the whitelist");
 
             let response = Client::new(*env.bind_address())
-                .announce(&QueryBuilder::default().with_info_hash(&info_hash).query())
+                .announce(&AnnounceBuilder::default().with_info_hash(&info_hash).query())
                 .await;
 
             assert_is_announce_response(response).await;
@@ -1519,7 +1571,7 @@ mod configured_as_private {
         use torrust_info_hash::InfoHash;
         use torrust_tracker_axum_http_server::testing::environment::Started;
         use torrust_tracker_core::authentication::Key;
-        use torrust_tracker_http_protocol::v1::requests::announce_builder::QueryBuilder;
+        use torrust_tracker_http_protocol::v1::requests::announce::AnnounceBuilder;
         use torrust_tracker_test_helpers::{configuration, logging};
 
         use crate::server::asserts::{
@@ -1545,7 +1597,7 @@ mod configured_as_private {
                 .unwrap();
 
             let response = Client::authenticated(*env.bind_address(), expiring_key.key())
-                .announce(&QueryBuilder::default().query())
+                .announce(&AnnounceBuilder::default().query())
                 .await;
 
             assert_is_announce_response(response).await;
@@ -1565,7 +1617,7 @@ mod configured_as_private {
             let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap(); // DevSkim: ignore DS173237
 
             let response = Client::new(*env.bind_address())
-                .announce(&QueryBuilder::default().with_info_hash(&info_hash).query())
+                .announce(&AnnounceBuilder::default().with_info_hash(&info_hash).query())
                 .await;
 
             assert_tracker_core_authentication_error_response(response).await;
@@ -1606,7 +1658,7 @@ mod configured_as_private {
             let unregistered_key = Key::from_str("YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ").unwrap();
 
             let response = Client::authenticated(*env.bind_address(), unregistered_key)
-                .announce(&QueryBuilder::default().query())
+                .announce(&AnnounceBuilder::default().query())
                 .await;
 
             assert_tracker_core_authentication_error_response(response).await;

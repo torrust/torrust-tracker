@@ -79,7 +79,7 @@ use reqwest::Url;
 use torrust_info_hash::InfoHash;
 use torrust_peer_id::PeerId;
 use torrust_tracker_client::http::client::Client;
-use torrust_tracker_http_protocol::v1::requests::announce_builder::{Compact, Event, QueryBuilder};
+use torrust_tracker_http_protocol::v1::requests::announce::{AnnounceBuilder, Compact, Event};
 use torrust_tracker_http_protocol::v1::requests::scrape_builder;
 use torrust_tracker_http_protocol::v1::responses::announce_deserialization::{Announce, DeserializedCompact};
 use torrust_tracker_http_protocol::v1::responses::scrape_deserialization;
@@ -238,7 +238,7 @@ async fn announce_command(options: AnnounceOptions, timeout: Duration) -> anyhow
         )
     })?;
 
-    let mut query_builder = QueryBuilder::with_default_values().with_info_hash(&info_hash);
+    let mut query_builder = AnnounceBuilder::with_default_values().with_info_hash(&info_hash);
 
     if let Some(event) = options.event {
         query_builder = query_builder.with_event(event.into());
@@ -256,7 +256,7 @@ async fn announce_command(options: AnnounceOptions, timeout: Duration) -> anyhow
         query_builder = query_builder.with_port(port);
     }
     if let Some(peer_addr) = options.peer_addr {
-        query_builder = query_builder.with_peer_addr(&peer_addr);
+        query_builder = query_builder.with_peer_addr(peer_addr);
     }
     if let Some(peer_id) = options.peer_id {
         query_builder = query_builder.with_peer_id(&peer_id);
