@@ -70,6 +70,8 @@ clippy
 cloneable
 codecov
 codegen
+colour
+colours
 commiter
 completei
 composecheck
@@ -239,6 +241,7 @@ multimap
 myacicontext
 mysqladmin
 mysqld
+ñaca
 Naim
 nanos
 newkey
@@ -314,6 +317,7 @@ recompiles
 recvspace
 referer
 Registar
+reorganisation
 reorganising
 repomix
 repr
@@ -460,5 +464,5 @@ Xunlei
 xxxxxxxxxxxxxxxxxxxxd
 yyyyyyyyyyyyyyyyyyyyd
 zerocopy
+zeroize
 zstd
-ñaca

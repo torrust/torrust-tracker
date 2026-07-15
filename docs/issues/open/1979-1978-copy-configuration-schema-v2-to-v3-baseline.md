@@ -1,0 +1,136 @@
+---
+doc-type: issue
+issue-type: task
+status: open
+priority: p0
+github-issue: 1979
+spec-path: docs/issues/open/1979-1978-copy-configuration-schema-v2-to-v3-baseline.md
+branch: "config-copy-v2-to-v3-baseline"
+related-pr: null
+last-updated-utc: 2026-07-13 21:00
+semantic-links:
+  skill-links:
+    - create-issue
+  related-artifacts:
+    - packages/configuration/src/v2_0_0/
+    - packages/configuration/src/lib.rs
+    - share/default/config/
+---
+
+<!-- skill-link: create-issue -->
+
+# Issue #1979 - Copy configuration schema v2_0_0 to v3_0_0 as baseline
+
+> **EPIC position**: Subissue #1 of 9 in EPIC #1978. **Foundation — all other subissues depend on this.** Must be merged before any other subissue begins.
+
+## Goal
+
+Copy the entire `packages/configuration/src/v2_0_0/` module to `packages/configuration/src/v3_0_0/` as the starting point for all breaking changes in the Configuration Overhaul EPIC. Also copy the crate-root `logging.rs` (which contains `TraceStyle`, `setup()`, and `tracing_init()`) into both `v2_0_0/` and `v3_0_0/` so each versioned module is fully self-contained (data types + behaviour). Wire `v3_0_0` as the default schema version while keeping `v2_0_0` available for backward compatibility during the transition.
+
+## Background
+
+The Configuration Overhaul EPIC groups multiple breaking changes to the configuration schema. Rather than modifying `v2_0_0` in place (which would break existing consumers), we create a new `v3_0_0` module as a copy of `v2_0_0`. Each subsequent subissue in the EPIC applies its changes to the `v3_0_0` module only.
+
+This approach:
+
+- Keeps `v2_0_0` intact for any consumers that still need it
+- Provides a clean baseline for all v3 changes
+- Allows incremental migration — each subissue modifies only the v3 types
+- Makes it easy to compare v2 vs v3 during review
+- Makes each versioned module fully self-contained by copying the crate-root `logging.rs` (which contains `TraceStyle`, `setup()`, and `tracing_init()`) into both `v2_0_0/` and `v3_0_0/`
+
+## Scope
+
+### In Scope
+
+- Copy `packages/configuration/src/v2_0_0/` → `packages/configuration/src/v3_0_0/`
+- Copy `packages/configuration/src/logging.rs` into `v2_0_0/logging.rs` and `v3_0_0/logging.rs` (making each versioned module self-contained)
+- Update `packages/configuration/src/lib.rs` to expose both `v2_0_0` and `v3_0_0` modules
+- Wire `v3_0_0` as the default schema version used by the application
+- Update `share/default/config/` files to reference `schema_version = "3.0.0"`
+- Ensure all existing tests still pass (v2_0_0 unchanged)
+- Add basic smoke tests for v3_0_0 deserialization
+
+### Out of Scope
+
+- Any functional changes to the configuration types (those come in subsequent subissues)
+- Removing `v2_0_0` module (deprecated but kept for transition)
+- Updating consumers outside `packages/configuration` (done in Phase 4 of the EPIC)
+
+## Implementation Plan
+
+| ID  | Status | Task                                                         | Notes                                                                         |
+| --- | ------ | ------------------------------------------------------------ | ----------------------------------------------------------------------------- |
+| T1  | TODO   | Copy `v2_0_0/` directory to `v3_0_0/`                        | `cp -r packages/configuration/src/v2_0_0/ packages/configuration/src/v3_0_0/` |
+| T2  | TODO   | Update `v3_0_0/mod.rs` to use `crate::v3_0_0` internal paths | Fix module references within the copied files                                 |
+| T3  | TODO   | Copy `logging.rs` into `v2_0_0/logging.rs`                   | Crate-root `logging.rs` (TraceStyle, setup, tracing_init) → v2_0_0            |
+| T4  | TODO   | Copy `logging.rs` into `v3_0_0/logging.rs`                   | Same content as T3; v3 gets its own copy                                      |
+| T5  | TODO   | Update `lib.rs` to expose `pub mod v3_0_0`                   | Alongside existing `pub mod v2_0_0`                                           |
+| T6  | TODO   | Update default config files to `schema_version = "3.0.0"`    | In `share/default/config/`                                                    |
+| T7  | TODO   | Wire application entry point to use `v3_0_0` by default      | Update `lib.rs` or `container.rs` default schema selection                    |
+| T8  | TODO   | Add smoke tests: deserialize default v3 config               | Verify v3_0_0 can parse the default config                                    |
+| T9  | TODO   | Run `linter all` and full test suite                         |                                                                               |
+
+## Progress Tracking
+
+### Workflow Checkpoints
+
+- [ ] Spec drafted in `docs/issues/drafts/`
+- [ ] Spec reviewed and approved by user/maintainer
+- [ ] GitHub issue created and issue number added to this spec
+- [ ] Implementation completed
+- [ ] Automatic verification completed (`linter all`, relevant tests)
+- [ ] Manual verification scenarios executed and recorded
+- [ ] Acceptance criteria reviewed after implementation
+- [ ] Issue closed and spec moved to `docs/issues/open/`
+
+### Progress Log
+
+- 2026-07-13 21:00 UTC - josecelano - Initial spec drafted
+- 2026-07-15 00:00 UTC - josecelano - GitHub issue #1979 created; spec moved to `docs/issues/open/1979-configuration-overhaul-copy-v2-to-v3-baseline.md`
+
+## Acceptance Criteria
+
+- [ ] AC1: `packages/configuration/src/v3_0_0/` exists as an exact copy of `v2_0_0/`
+- [ ] AC2: `lib.rs` exposes both `v2_0_0` and `v3_0_0` modules
+- [ ] AC3: Application uses `v3_0_0` by default
+- [ ] AC4: All existing tests pass (v2 unchanged)
+- [ ] AC5: Default config files reference `schema_version = "3.0.0"`
+- [ ] `linter all` exits with code `0`
+- [ ] Relevant tests pass
+
+## Verification Plan
+
+### Automatic Checks
+
+- `linter all`
+- `cargo test --workspace`
+
+### Manual Verification Scenarios
+
+| ID  | Scenario                      | Command/Steps                                               | Expected Result                  | Status | Evidence |
+| --- | ----------------------------- | ----------------------------------------------------------- | -------------------------------- | ------ | -------- |
+| M1  | Verify v3 module exists       | `ls packages/configuration/src/v3_0_0/`                     | Lists same files as `v2_0_0/`    | TODO   |          |
+| M2  | Verify default config uses v3 | `cargo run -- --help` or check default config output        | Shows `schema_version = "3.0.0"` | TODO   |          |
+| M3  | Verify v2 config still loads  | Run tracker with explicit `schema_version = "2.0.0"` config | Tracker starts successfully      | TODO   |          |
+
+### Acceptance Verification
+
+| AC ID | Status | Evidence |
+| ----- | ------ | -------- |
+| AC1   | TODO   |          |
+| AC2   | TODO   |          |
+| AC3   | TODO   |          |
+| AC4   | TODO   |          |
+| AC5   | TODO   |          |
+
+## Risks and Trade-offs
+
+- **Dual maintenance**: Both v2 and v3 modules exist simultaneously, meaning bug fixes may need to be applied to both. Mitigation: v2 is deprecated; only critical fixes are backported.
+- **Module path confusion**: Internal `crate::v2_0_0` references in copied files need updating to `crate::v3_0_0`. Mitigation: thorough search-and-replace after copy.
+
+## References
+
+- EPIC: Configuration Overhaul (schema v3.0.0)
+- Related: `packages/configuration/src/v2_0_0/`
+- Related: `packages/configuration/src/lib.rs`
