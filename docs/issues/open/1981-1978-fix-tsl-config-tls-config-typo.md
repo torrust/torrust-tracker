@@ -131,7 +131,7 @@ The struct name `TslConfig` and all field names `tsl_config` should be `TlsConfi
 ### Progress Log
 
 - 2026-07-14 00:00 UTC - josecelano - Initial spec drafted
-- 2026-07-15 00:00 UTC - josecelano - GitHub issue #1981 created; spec moved to `docs/issues/open/1981-configuration-overhaul-fix-tsl-typo.md`
+- 2026-07-15 00:00 UTC - josecelano - GitHub issue #1981 created; spec moved to `docs/issues/open/1981-1978-fix-tsl-config-tls-config-typo.md`
 
 ## Acceptance Criteria
 

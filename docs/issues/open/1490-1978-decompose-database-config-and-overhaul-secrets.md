@@ -156,7 +156,7 @@ The `rest-api-client` crate and `tracker-core` authentication are **not affected
 - Wrap database password in `Secret<String>` (inside `ConnectionInfo`)
 - Wrap API tokens in `Secret<String>` (in `HttpApi` config struct)
 - Remove manual `mask_secrets()` methods (replaced by type-level protection)
-- Update all ~25 consumers to use the new enum variants and `.expose()` for secret access
+- Update all ~25 consumers to use the new enum variants and `.expose_secret()` for secret access
 - Update default config TOML files (6 files) to the new format
 - Update inline TOML in tests and doc comments
 
@@ -178,7 +178,7 @@ The `rest-api-client` crate and `tracker-core` authentication are **not affected
 | T5  | TODO   | Wrap API tokens in `Secret<String>`                             | In `HttpApi` config struct                                                |
 | T6  | TODO   | Remove manual `mask_secrets()` methods                          | No longer needed with type-level protection                               |
 | T7  | TODO   | Update `tracker-core/src/databases/setup.rs` dispatch           | Match on `Database` enum variant instead of `Driver`                      |
-| T8  | TODO   | Update all ~25 consumers (tests, examples, benchmarks, E2E)     | Construct enum variants; use `.expose()` for secrets                      |
+| T8  | TODO   | Update all ~25 consumers (tests, examples, benchmarks, E2E)     | Construct enum variants; use `.expose_secret()` for secrets               |
 | T9  | TODO   | Update default config TOML files (6 files)                      | New per-driver format                                                     |
 | T10 | TODO   | Update inline TOML in tests and doc comments                    | `mod.rs` tests, `lib.rs`, integration tests                               |
 | T11 | TODO   | Run `linter all` and full test suite                            |                                                                           |
@@ -222,11 +222,11 @@ The `rest-api-client` crate and `tracker-core` authentication are **not affected
 
 ### Manual Verification Scenarios
 
-| ID  | Scenario                             | Command/Steps                                    | Expected Result          | Status | Evidence |
-| --- | ------------------------------------ | ------------------------------------------------ | ------------------------ | ------ | -------- |
-| M1  | Verify secrets masked in logs        | Run tracker, check startup log for config output | Secrets show as `***`    | TODO   |          |
-| M2  | Verify Debug output masks secrets    | `println!("{:?}", config)` in test or debug      | Secrets show as `***`    | TODO   |          |
-| M3  | Verify secrets accessible via expose | Write test that reads a secret via `.expose()`   | Returns the actual value | TODO   |          |
+| ID  | Scenario                                    | Command/Steps                                         | Expected Result          | Status | Evidence |
+| --- | ------------------------------------------- | ----------------------------------------------------- | ------------------------ | ------ | -------- |
+| M1  | Verify secrets masked in logs               | Run tracker, check startup log for config output      | Secrets show as `***`    | TODO   |          |
+| M2  | Verify Debug output masks secrets           | `println!("{:?}", config)` in test or debug           | Secrets show as `***`    | TODO   |          |
+| M3  | Verify secrets accessible via expose_secret | Write test that reads a secret via `.expose_secret()` | Returns the actual value | TODO   |          |
 
 ### Acceptance Verification
 
@@ -242,7 +242,7 @@ The `rest-api-client` crate and `tracker-core` authentication are **not affected
 ## Risks and Trade-offs
 
 - **Breaking change for database config**: The `Database` struct becomes an enum; the old `path` field is removed with no backward-compatibility fallback. Mitigation: this is part of the v3.0.0 config schema bump where breaking changes are expected and documented.
-- **Consumer updates (~25 files)**: Every place that constructs or reads a `Database` value needs updating. Mitigation: the compiler will catch all mismatches; changes are mechanical (construct enum variant, use `.expose()` for secrets).
+- **Consumer updates (~25 files)**: Every place that constructs or reads a `Database` value needs updating. Mitigation: the compiler will catch all mismatches; changes are mechanical (construct enum variant, use `.expose_secret()` for secrets).
 - **Performance**: `secrecy` adds zeroize-on-drop overhead. Mitigation: negligible for config values read once at startup.
 
 ## References

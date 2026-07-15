@@ -66,7 +66,7 @@ A future issue could build an "internal connection URL" from the OS-resolved IP 
   - Health check info structs
   - Metrics labels
   - Domain events (if applicable)
-- No new types — `ServiceBinding` already has `scheme()` and `bind_to()` methods
+- No new types — `ServiceBinding` already has `protocol()` and `bind_address()` methods
 - No changes to `torrust-net-primitives` external crate
 
 ### Out of Scope
@@ -80,14 +80,14 @@ A future issue could build an "internal connection URL" from the OS-resolved IP 
 
 ## Implementation Plan
 
-| ID  | Status | Task                                                                     | Notes                                                 |
-| --- | ------ | ------------------------------------------------------------------------ | ----------------------------------------------------- |
-| T1  | TODO   | Identify all places where bare `SocketAddr` is used for service identity | Logs, health check, metrics, events, server launchers |
-| T2  | TODO   | Replace `SocketAddr` with `ServiceBinding` in those places               | `ServiceBinding` already has `scheme()` + `bind_to()` |
-| T3  | TODO   | Update startup logging to use `ServiceBinding`                           | Replace manual URL string construction                |
-| T4  | TODO   | Update health check info to include `ServiceBinding`                     | For issue #1409                                       |
-| T5  | TODO   | Update metrics to use `ServiceBinding` scheme as a label                 | For issue #1403/#1414                                 |
-| T6  | TODO   | Run `linter all` and tests                                               |                                                       |
+| ID  | Status | Task                                                                     | Notes                                                        |
+| --- | ------ | ------------------------------------------------------------------------ | ------------------------------------------------------------ |
+| T1  | TODO   | Identify all places where bare `SocketAddr` is used for service identity | Logs, health check, metrics, events, server launchers        |
+| T2  | TODO   | Replace `SocketAddr` with `ServiceBinding` in those places               | `ServiceBinding` already has `protocol()` + `bind_address()` |
+| T3  | TODO   | Update startup logging to use `ServiceBinding`                           | Replace manual URL string construction                       |
+| T4  | TODO   | Update health check info to include `ServiceBinding`                     | For issue #1409                                              |
+| T5  | TODO   | Update metrics to use `ServiceBinding` scheme as a label                 | For issue #1403/#1414                                        |
+| T6  | TODO   | Run `linter all` and tests                                               |                                                              |
 
 ## Progress Tracking
 

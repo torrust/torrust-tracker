@@ -87,7 +87,7 @@ This approach:
 ### Progress Log
 
 - 2026-07-13 21:00 UTC - josecelano - Initial spec drafted
-- 2026-07-15 00:00 UTC - josecelano - GitHub issue #1979 created; spec moved to `docs/issues/open/1979-configuration-overhaul-copy-v2-to-v3-baseline.md`
+- 2026-07-15 00:00 UTC - josecelano - GitHub issue #1979 created; spec moved to `docs/issues/open/1979-1978-copy-configuration-schema-v2-to-v3-baseline.md`
 
 ## Acceptance Criteria
 

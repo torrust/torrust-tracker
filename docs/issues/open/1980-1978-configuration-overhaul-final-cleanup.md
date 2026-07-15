@@ -174,7 +174,7 @@ Files that import `torrust_tracker_configuration::logging` (the module, not the 
 ### Progress Log
 
 - 2026-07-14 00:00 UTC - josecelano - Initial spec drafted
-- 2026-07-15 00:00 UTC - josecelano - GitHub issue #1980 created; spec moved to `docs/issues/open/1980-configuration-overhaul-final-cleanup.md`
+- 2026-07-15 00:00 UTC - josecelano - GitHub issue #1980 created; spec moved to `docs/issues/open/1980-1978-configuration-overhaul-final-cleanup.md`
 
 ## Acceptance Criteria
 
@@ -197,11 +197,11 @@ Files that import `torrust_tracker_configuration::logging` (the module, not the 
 
 ### Manual Verification Scenarios
 
-| ID  | Scenario                          | Command/Steps                             | Expected Result            | Status  | Evidence |
-| --- | --------------------------------- | ----------------------------------------- | -------------------------- | ------- | -------- | ----------- | ---------- | -------- | ---------------- | --------------------------------- | ---- | --- |
-| M1  | Verify no global re-export usage  | `rg "torrust_tracker_configuration::(Core | Configuration              | Logging | HttpApi  | HttpTracker | UdpTracker | Database | Threshold)[^:]"` | No matches (all use v3_0_0 paths) | TODO |     |
-| M2  | Verify v2 module still accessible | `cargo doc --document-private-items`      | v2_0_0 types documented    | TODO    |          |
-| M3  | Verify v3 module is the default   | Check `lib.rs` for `LATEST_VERSION`       | `LATEST_VERSION = "3.0.0"` | TODO    |          |
+| ID  | Scenario                          | Command/Steps                                                                                                                   | Expected Result                   | Status | Evidence |
+| --- | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- | --------------------------------- | ------ | -------- |
+| M1  | Verify no global re-export usage  | `rg 'torrust_tracker_configuration::(Core\|Configuration\|Logging\|HttpApi\|HttpTracker\|UdpTracker\|Database\|Threshold)[^:]'` | No matches (all use v3_0_0 paths) | TODO   |          |
+| M2  | Verify v2 module still accessible | `cargo doc --document-private-items`                                                                                            | v2_0_0 types documented           | TODO   |          |
+| M3  | Verify v3 module is the default   | Check `lib.rs` for `LATEST_VERSION`                                                                                             | `LATEST_VERSION = "3.0.0"`        | TODO   |          |
 
 ### Acceptance Verification
 
