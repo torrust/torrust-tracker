@@ -61,7 +61,7 @@ jobs:
       # Human-readable output in logs
       # This NEVER fails the job; it's only for visibility
       - name: Display vulnerabilities (table format)
-        uses: aquasecurity/trivy-action@0.36.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: ${{ steps.image-source.outputs.image }}
           format: "table"
@@ -75,7 +75,7 @@ jobs:
       # - Trivy sometimes exits with 1 even when no vulns exist
       # - GitHub Security UI is responsible for enforcement
       - name: Generate SARIF (Code Scanning)
-        uses: aquasecurity/trivy-action@0.36.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: ${{ steps.image-source.outputs.image }}
           format: "sarif"
