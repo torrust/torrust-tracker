@@ -3,7 +3,7 @@ semantic-links:
   skill-links:
     - create-adr
   related-artifacts:
-    - docs/issues/open/1926-1669-si-32-define-package-versioning-strategy.md
+    - docs/issues/closed/1926-1669-si-32-define-package-versioning-strategy.md
     - docs/issues/open/1669-overhaul-packages/EPIC.md
     - docs/issues/open/1669-overhaul-packages/DECISIONS.md
     - docs/release_process.md

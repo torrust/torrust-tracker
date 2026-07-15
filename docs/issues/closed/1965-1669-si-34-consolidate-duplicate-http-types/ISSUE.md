@@ -4,11 +4,11 @@ issue-type: task
 status: done
 priority: p1
 github-issue: 1965
-spec-path: docs/issues/open/1965-1669-si-34-consolidate-duplicate-http-types/ISSUE.md
-issue-folder: docs/issues/open/1965-1669-si-34-consolidate-duplicate-http-types/
+spec-path: docs/issues/closed/1965-1669-si-34-consolidate-duplicate-http-types/ISSUE.md
+issue-folder: docs/issues/closed/1965-1669-si-34-consolidate-duplicate-http-types/
 branch: "1965-1669-si-34-consolidate-duplicate-http-types"
 related-pr: "https://github.com/torrust/torrust-tracker/pull/1974"
-last-updated-utc: 2026-07-15 10:00
+last-updated-utc: 2026-07-15
 semantic-links:
   skill-links:
     - create-issue
@@ -16,8 +16,8 @@ semantic-links:
   related-artifacts:
     - docs/issues/open/1669-overhaul-packages/EPIC.md
     - docs/issues/open/1669-overhaul-packages/DECISIONS.md
-    - docs/issues/open/1965-1669-si-34-consolidate-duplicate-http-types/analysis-announce-query-vs-announce.md
-    - docs/issues/open/1965-1669-si-34-consolidate-duplicate-http-types/analysis-announce-response-types.md
+    - docs/issues/closed/1965-1669-si-34-consolidate-duplicate-http-types/analysis-announce-query-vs-announce.md
+    - docs/issues/closed/1965-1669-si-34-consolidate-duplicate-http-types/analysis-announce-response-types.md
     - packages/http-protocol/src/v1/requests/
     - packages/http-protocol/src/v1/responses/
     - packages/axum-http-server/tests/server/requests/

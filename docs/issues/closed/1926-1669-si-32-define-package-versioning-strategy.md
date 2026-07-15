@@ -1,13 +1,13 @@
 ---
 doc-type: issue
 issue-type: task
-status: open
+status: done
 priority: p1
 github-issue: 1926
-spec-path: docs/issues/open/1926-1669-si-32-define-package-versioning-strategy.md
+spec-path: docs/issues/closed/1926-1669-si-32-define-package-versioning-strategy.md
 branch: 1926-1669-si-32-define-package-versioning-strategy
 related-pr: null
-last-updated-utc: 2026-06-29 12:00
+last-updated-utc: 2026-07-15
 semantic-links:
   skill-links:
     - create-issue
@@ -15,7 +15,6 @@ semantic-links:
     - Cargo.toml
     - docs/issues/open/1669-overhaul-packages/EPIC.md
     - docs/issues/open/1669-overhaul-packages/DECISIONS.md
-    - docs/issues/open/1926-1669-si-32-review-phase-1.md
     - docs/packages.md
     - AGENTS.md
     - docs/adrs/20260629000000_adopt_independent_package_versioning.md
@@ -529,3 +528,18 @@ keeps `3.0.0-develop`. 5 extracted crates are out of scope.
 > `persistence-benchmark`, `torrent-repository-benchmarking`, `workspace-coupling`) are internal
 > testing, benchmarking, and analysis tools with no external consumers. They are never published to
 > crates.io. All other workspace crates are publishable via `deployment-packages.yaml`.
+
+## Progress Tracking
+
+### Workflow Checkpoints
+
+- [x] Spec drafted
+- [x] Implementation completed (PR #1961 merged)
+- [x] Automatic verification completed (`linter all`, relevant tests, pre-push checks)
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+
+### Progress Log
+
+- 2026-06-20 11:26 UTC - PR #1927 merged - Archival of initial subissue spec
+- 2026-07-13 08:50 UTC - PR #1961 merged - Implementation completed (independent package versioning)
+- 2026-07-15 UTC - Spec archived to `docs/issues/closed/`

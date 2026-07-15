@@ -6,7 +6,7 @@ priority: p1
 github-issue: 1669
 spec-path: docs/issues/open/1669-overhaul-packages/EPIC.md
 epic-owner: josecelano
-last-updated-utc: 2026-06-19 12:00
+last-updated-utc: 2026-07-15
 semantic-links:
   skill-links:
     - create-issue
@@ -15,7 +15,7 @@ semantic-links:
     - docs/issues/open/1669-overhaul-packages/
     - docs/issues/open/1835-1669-14-decouple-http-protocol-from-tracker-primitives.md
     - docs/issues/open/1889-1669-21-migrate-from-bittorrent-primitives-to-torrust-info-hash.md
-    - docs/issues/open/1926-1669-si-32-define-package-versioning-strategy.md
+    - docs/issues/closed/1926-1669-si-32-define-package-versioning-strategy.md
     - docs/adrs/20260527175600_keep_protocol_and_domain_types_decoupled.md
     - docs/adrs/20260629000000_adopt_independent_package_versioning.md
     - docs/adrs/index.md
@@ -619,7 +619,7 @@ Status: TODO unless noted.
 - [x] [#1910](https://github.com/torrust/torrust-tracker/issues/1910) SI-29: Remove redundant `-tracker-` from HTTP and UDP crate names _(Rule U; rename 4 unpublished packages to match DEC-15 folder convention)_ — **DONE**
 - [x] [#1924](https://github.com/torrust/torrust-tracker/issues/1924) SI-30: Extract UDP trait abstractions for REST API _(Rule M; core → server dep kept; interface segregation only)_
 - [x] [#1925](https://github.com/torrust/torrust-tracker/issues/1925) SI-31: Configure `cargo deny` for workspace layer boundary enforcement _(tooling; create deny.toml with bans for all forbidden edges)_
-- [ ] [#1926](https://github.com/torrust/torrust-tracker/issues/1926) SI-32: Define package versioning strategy _(policy; all packages version independently)_
+- [x] [#1926](https://github.com/torrust/torrust-tracker/issues/1926) SI-32: Define package versioning strategy _(policy; all packages version independently)_ — **DONE**
 - [x] [#1930](https://github.com/torrust/torrust-tracker/issues/1930) SI-33: Define REST API contract-first package architecture _(policy reminder; PoC-first and dedicated API EPIC before migration/extraction)_
 - [x] [#1856](https://github.com/torrust/torrust-tracker/issues/1856) Analyse configuration package coupling and evaluate splitting strategies _(research; no blockers; informs "build-your-own tracker" goal and versioning strategy)_
 
@@ -649,7 +649,7 @@ Details:
 | Tracker client extraction  | #TBD — Extract `torrust-tracker-client` to standalone repository                                                                                                                          | [docs/issues/drafts/1669-extract-torrust-tracker-client-to-standalone-repo.md](../../drafts/1669-extract-torrust-tracker-client-to-standalone-repo.md)                                         | TODO   | Rule E; blocked by `torrust-tracker-udp-protocol` publication (external to this EPIC)                                                         |
 | UDP trait abstractions     | [#1924](https://github.com/torrust/torrust-tracker/issues/1924) SI-30: Extract UDP trait abstractions for REST API (`BanningStats`, `UdpCoreStatsRepository`, `UdpServerStatsRepository`) | [docs/issues/closed/1924-1669-si-30-decouple-rest-api-core-from-udp-internals.md](../../closed/1924-1669-si-30-decouple-rest-api-core-from-udp-internals.md)                                   | DONE   | UDP-side only; REST-side wiring deferred to #1930; MAX_CONNECTION_ID_ERRORS_PER_IP → config option                                            |
 | Cargo deny enforcement     | [#1925](https://github.com/torrust/torrust-tracker/issues/1925) SI-31: Configure `cargo deny` for workspace layer boundary enforcement                                                    | [docs/issues/closed/1925-1669-si-31-configure-cargo-deny-for-layer-boundary-enforcement.md](../../closed/1925-1669-si-31-configure-cargo-deny-for-layer-boundary-enforcement.md)               | DONE   | Tooling; create deny.toml with bans for all forbidden edges; add to CI and hooks                                                              |
-| Versioning policy          | [#1926](https://github.com/torrust/torrust-tracker/issues/1926) SI-32: Define package versioning strategy                                                                                 | [docs/issues/open/1926-1669-si-32-define-package-versioning-strategy.md](../../open/1926-1669-si-32-define-package-versioning-strategy.md)                                                     | TODO   | Policy; all packages version independently; path deps make linked versions unnecessary                                                        |
+| Versioning policy          | [#1926](https://github.com/torrust/torrust-tracker/issues/1926) SI-32: Define package versioning strategy                                                                                 | [docs/issues/closed/1926-1669-si-32-define-package-versioning-strategy.md](../../closed/1926-1669-si-32-define-package-versioning-strategy.md)                                                 | DONE   | Policy; all packages version independently; path deps make linked versions unnecessary                                                        |
 | REST API architecture      | [#1930](https://github.com/torrust/torrust-tracker/issues/1930) SI-33: Define REST API contract-first package architecture                                                                | [docs/issues/closed/1930-1669-si-33-rest-api-contract-first-architecture.md](../../closed/1930-1669-si-33-rest-api-contract-first-architecture.md)                                             | DONE   | Policy reminder only in this EPIC; validate via PoC, then execute migration in a dedicated API EPIC; defer API package extraction/publication |
 | Configuration coupling     | [#1856](https://github.com/torrust/torrust-tracker/issues/1856) — Analyse configuration package coupling and evaluate splitting strategies                                                | [docs/issues/open/1856-1669-analyse-configuration-package-coupling/ISSUE.md](../../open/1856-1669-analyse-configuration-package-coupling/ISSUE.md)                                             | DONE   | DEC-07: keep single package; move TrackerPolicy/TORRENT_PEERS_LIMIT/PrivateMode to primitives (FU-1); see DECISIONS.md                        |
 | Move domain primitives     | [#1859](https://github.com/torrust/torrust-tracker/issues/1859) — Move `TrackerPolicy`, `TORRENT_PEERS_LIMIT`, and `PrivateMode` to `torrust-tracker-primitives`                          | [docs/issues/open/1859-1669-move-tracker-policy-and-private-mode-to-primitives/ISSUE.md](../../open/1859-1669-move-tracker-policy-and-private-mode-to-primitives/ISSUE.md)                     | TODO   | Rule M; FU-1 from #1856; removes `swarm-coordination-registry` and `torrent-repository-benchmarking` config dep                               |
@@ -675,7 +675,7 @@ After SI-14, there is a proposal to evaluate a dedicated repository for protocol
 - [docs/issues/open/1894-1669-22-extract-torrust-located-error-to-standalone-repo.md](../../open/1894-1669-22-extract-torrust-located-error-to-standalone-repo.md)
 - [docs/issues/closed/1924-1669-si-30-decouple-rest-api-core-from-udp-internals.md](../../closed/1924-1669-si-30-decouple-rest-api-core-from-udp-internals.md)
 - [docs/issues/closed/1925-1669-si-31-configure-cargo-deny-for-layer-boundary-enforcement.md](../../closed/1925-1669-si-31-configure-cargo-deny-for-layer-boundary-enforcement.md)
-- [docs/issues/open/1926-1669-si-32-define-package-versioning-strategy.md](../../open/1926-1669-si-32-define-package-versioning-strategy.md)
+- [docs/issues/closed/1926-1669-si-32-define-package-versioning-strategy.md](../../closed/1926-1669-si-32-define-package-versioning-strategy.md)
 - [docs/issues/drafts/1669-extract-torrust-tracker-client-to-standalone-repo.md](../../drafts/1669-extract-torrust-tracker-client-to-standalone-repo.md)
 - [docs/issues/closed/1930-1669-si-33-rest-api-contract-first-architecture.md](../../closed/1930-1669-si-33-rest-api-contract-first-architecture.md)
 - [docs/issues/closed/1910-1669-si-29-rename-udp-and-http-core-protocol-crates-to-remove-redundant-tracker.md](../../closed/1910-1669-si-29-rename-udp-and-http-core-protocol-crates-to-remove-redundant-tracker.md)

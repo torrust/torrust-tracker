@@ -4,8 +4,8 @@ issue-type: task
 status: done
 priority: p1
 github-issue: 1965
-spec-path: docs/issues/open/1965-1669-si-34-consolidate-duplicate-http-types/manual-verification.md
-last-updated-utc: 2026-07-15 10:00
+spec-path: docs/issues/closed/1965-1669-si-34-consolidate-duplicate-http-types/manual-verification.md
+last-updated-utc: 2026-07-15
 ---
 
 # Manual Verification — Issue #1965 (EPIC 1669 SI-34)

@@ -1,13 +1,13 @@
 ---
 doc-type: epic
 issue-type: task
-status: in_progress
+status: done
 priority: p1
 epic: 1938
 github-issue: 1938
-spec-path: docs/issues/open/1938-rest-api-contract-first-migration/EPIC.md
+spec-path: docs/issues/closed/1938-rest-api-contract-first-migration/EPIC.md
 epic-owner: josecelano
-last-updated-utc: 2026-06-29
+last-updated-utc: 2026-07-15
 semantic-links:
   skill-links:
     - create-issue
@@ -19,7 +19,7 @@ semantic-links:
     - packages/rest-api-application/
     - packages/rest-api-runtime-adapter/
     - packages/axum-rest-api-server/
-    - docs/issues/open/1938-rest-api-contract-first-migration/
+    - docs/issues/closed/1938-rest-api-contract-first-migration/
 ---
 
 <!-- skill-link: create-issue -->
@@ -43,7 +43,7 @@ Before this EPIC, the REST API had a mixture of architectures:
   - No port traits or use-case services existed for these contexts.
   - Forbidden dependency edges (`axum-rest-api-server → tracker-core` etc.) still existed for non-torrent contexts.
 
-This EPIC eliminated that coupling. The remaining open item (SI-6) is about improving the client API, not the server architecture.
+This EPIC eliminated that coupling. All context migrations and client improvements are complete.
 
 ## Relationship to SI-33
 
@@ -51,7 +51,7 @@ This EPIC is the follow-up work identified in [SI-33](../../open/1930-1669-si-33
 
 ## Migration Order (Recommended)
 
-The contexts are ordered by complexity and dependency depth. Follow-up tasks (SI-5, SI-6) come after all contexts are migrated:
+The contexts are ordered by complexity and dependency depth. Follow-up tasks (SI-5, SI-6, SI-7, SI-8) come after all contexts are migrated:
 
 | Order | Context / Task                   | Effort | Handlers | Tracker Deps             | Status |
 | ----- | -------------------------------- | ------ | -------- | ------------------------ | ------ |
@@ -60,8 +60,9 @@ The contexts are ordered by complexity and dependency depth. Follow-up tasks (SI
 | 3     | SI-3: `auth_key`                 | Medium | 4        | `tracker-core` + `clock` | ✅     |
 | 4     | SI-4: `stats`                    | Large  | 2        | 5+ crates                | ✅     |
 | 5     | SI-5: deprecate `rest-api-core`  | Small  | —        | —                        | ✅     |
-| 6     | SI-6: introduce `ApiClient`      | Medium | —        | —                        | ❌     |
-| 7     | SI-7: review tests + align v1 ns | Small  | —        | —                        | 🏗️     |
+| 6     | SI-6: introduce `ApiClient`      | Medium | —        | —                        | ✅     |
+| 7     | SI-7: review tests + align v1 ns | Small  | —        | —                        | ✅     |
+| 8     | SI-8: eliminate unwraps          | Small  | —        | —                        | ✅     |
 
 ## Context Status Summary
 
@@ -73,7 +74,7 @@ The contexts are ordered by complexity and dependency depth. Follow-up tasks (SI
 | SI-3: `auth_key`                |   4 ✅ done   |       ✅       |     ✅      |    ✅     |        ✅        | Form DTOs + `clock`                                                               |
 | SI-4: `stats`                   |   2 ✅ done   |       ✅       |     ✅      |    ✅     |        ✅        | 28-field DTO, SI-30 traits                                                        |
 | SI-5: deprecate `rest-api-core` |       —       |       —        |      —      |     —     |        —         | ✅ done — crate removed from workspace                                            |
-| SI-6: introduce `ApiClient`     |       —       |       —        |      —      |     —     |        —         | ❌ pending — typed wrapper over `ApiHttpClient`                                   |
+| SI-6: introduce `ApiClient`     |       —       |       —        |      —      |     —     |        —         | ✅ done — typed wrapper over `ApiHttpClient`                                      |
 
 ## Scope
 
@@ -89,8 +90,9 @@ The following scope items have been completed across sub-issues SI-1 through SI-
 - ✅ Remove internal crate dependencies from `axum-rest-api-server` as contexts were migrated.
 - ✅ Update `deny.toml` layer bans as dependencies were removed.
 - ✅ Deprecate and clean up `rest-api-core` (SI-5).
-- ❌ **SI-6 (pending)**: Introduce `ApiClient` — a high-level typed client wrapping `ApiHttpClient` with protocol DTOs.
-- 🏗️ **SI-7 (in progress)**: Review tests and align v1 namespace across REST API packages.
+- ✅ **SI-6 (completed)**: Introduce `ApiClient` — a high-level typed client wrapping `ApiHttpClient` with protocol DTOs.
+- ✅ **SI-7 (completed)**: Review tests and align v1 namespace across REST API packages.
+- ✅ **SI-8 (completed)**: Eliminate all unwraps from the REST API client package.
 
 ### Out of Scope
 
@@ -107,8 +109,9 @@ The following scope items have been completed across sub-issues SI-1 through SI-
 - [#1941](https://github.com/torrust/torrust-tracker/issues/1941) — [SI-3](../../closed/1941-1938-si-3-migrate-auth-key-context.md): Migrate `auth_key` context ✅ closed
 - [#1942](https://github.com/torrust/torrust-tracker/issues/1942) — [SI-4](../../closed/1942-1938-si-4-migrate-stats-context.md): Migrate `stats` context ✅ closed
 - [#1943](https://github.com/torrust/torrust-tracker/issues/1943) — [SI-5](../../closed/1943-1938-si-5-deprecate-rest-api-core.md): Deprecate `rest-api-core` and remove from workspace ✅ closed
-- [#1944](https://github.com/torrust/torrust-tracker/issues/1944) — [SI-6](../1944-1938-si-6-align-rest-api-client.md): Introduce `ApiClient` — a high-level typed client over protocol DTOs
-- [#1959](https://github.com/torrust/torrust-tracker/issues/1959) — [SI-7](../1959-1938-si-7-review-tests-align-v1-namespace.md): Review tests and align v1 namespace across REST API packages
+- [#1944](https://github.com/torrust/torrust-tracker/issues/1944) — [SI-6](../../closed/1944-1938-si-6-align-rest-api-client.md): Introduce `ApiClient` — a high-level typed client over protocol DTOs ✅ closed
+- [#1959](https://github.com/torrust/torrust-tracker/issues/1959) — [SI-7](../../closed/1959-1938-si-7-review-tests-align-v1-namespace.md): Review tests and align v1 namespace across REST API packages ✅ closed
+- [#1969](https://github.com/torrust/torrust-tracker/issues/1969) — [SI-8](../../closed/1969-1938-si-8-eliminate-unwraps-from-rest-api-client.md): Eliminate all unwraps from the REST API client package ✅ closed
 
 ## Contract Evolution Governance
 
