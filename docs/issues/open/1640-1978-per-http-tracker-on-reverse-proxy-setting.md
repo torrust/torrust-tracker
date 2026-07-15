@@ -4,7 +4,7 @@ issue-type: enhancement
 status: open
 priority: p2
 github-issue: 1640
-spec-path: docs/issues/open/1640-per-http-tracker-on-reverse-proxy-setting.md
+spec-path: docs/issues/open/1640-1978-per-http-tracker-on-reverse-proxy-setting.md
 branch: "1640-move-network-to-per-instance-config"
 related-pr: null
 last-updated-utc: 2026-06-23 18:30
@@ -14,14 +14,10 @@ semantic-links:
   related-artifacts:
     - docs/adrs/20260617093046_reject_wildcard_external_ip.md
     - issue #1417
-    - issue #1671
-    - issue torrust/torrust-tracker-deployer
-    - issue torrust/torrust-tracker-deployer pull/273
-    - issue torrust/torrust-tracker-deployer docs/ai-training/dataset/environment-configs/02-full-stack-lxd.json
-    - packages/configuration/src/v2_0_0/http_tracker.rs
-    - packages/configuration/src/v2_0_0/udp_tracker.rs
-    - packages/configuration/src/v2_0_0/network.rs
-    - packages/configuration/src/v2_0_0/core.rs
+    - packages/configuration/src/v3_0_0/http_tracker.rs
+    - packages/configuration/src/v3_0_0/udp_tracker.rs
+    - packages/configuration/src/v3_0_0/network.rs
+    - packages/configuration/src/v3_0_0/core.rs
     - packages/tracker-core/src/announce_handler.rs
     - packages/tracker-core/src/lib.rs
     - packages/http-core/src/container.rs
@@ -51,6 +47,8 @@ semantic-links:
 <!-- skill-link: create-issue -->
 
 # Issue #1640 - Move `on_reverse_proxy` to per-tracker config (and relocate `Network`)
+
+> **EPIC position**: Subissue #3 of 9. Depends on #2 (tsl→tls typo fix). Must be implemented before #1417 (public_url) and #1490 (secrets) — both reference the `Network` block established here. Both #1640 and #1490 touch `Core`, so #1640 goes first.
 
 ## Goal
 
@@ -201,6 +199,8 @@ We considered moving `bind_address` into `Network` since it is a networking conc
 
 This is a **breaking configuration change**. Users upgrading to the new tracker version (4.0.0) must update their `tracker.toml`:
 
+> **Note on versioning**: The tracker application and the configuration schema use independent version systems. The tracker app goes from 3.0.0 → 4.0.0, while the config schema goes from 2.0.0 → 3.0.0. This allows them to evolve independently — the configuration crate can also be used partially in other projects.
+
 **Before:**
 
 ```toml
@@ -268,47 +268,28 @@ These fields (`domain`, `use_tls_proxy`) describe how each tracker instance is e
 >
 > This issue only addresses `on_reverse_proxy`; TLS configuration remains a separate concern.
 
-#### From Issue #1417 — Public Service URL
+### Related Issue: #1417 — Public Service URL (implemented in this EPIC)
 
-Issue [#1417](https://github.com/torrust/torrust-tracker/issues/1417) proposes adding a `public_url` field to each tracker instance:
+Issue [#1417](https://github.com/torrust/torrust-tracker/issues/1417) adds an optional `public_url: Option<String>` field to each tracker instance (`HttpTracker`, `UdpTracker`) and API service (`HttpApi`, `HealthCheckApi`). This field is **implemented in this EPIC** (not a future extension) but lives as a **flat field** on each config struct — **not inside `Network`**.
+
+**Why flat, not inside `Network`**: The `Network` block groups **network topology** concerns (how the tracker connects: external IP, proxy awareness, socket behaviour). `public_url` is about **public exposure** (how users reach the tracker). It's a different axis — one tracker instance might have both a `net.on_reverse_proxy` setting and a `public_url`, and they are independently configurable.
 
 ```toml
 [[http_trackers]]
-public_url = "https://tracker.torrust-demo.com/announce"
 bind_address = "0.0.0.0:7070"
+public_url = "https://tracker.torrust-demo.com/announce"
+
+[http_trackers.net]
+external_ip = "203.0.113.5"
+on_reverse_proxy = true
+ipv6_v6only = false
 ```
 
-This would allow the tracker to emit the correct public URL in metrics, logs, and API responses, regardless of whether it runs behind a reverse proxy. This is also a per-instance networking concern.
+**Design decision (July 2026)**: The field is a full URL string (`"https://tracker1.example.com/announce"`). The URL protocol is validated: HTTP trackers must use `http://` or `https://`, UDP trackers must use `udp://`. This is simpler than decomposed fields (domain + path) and consumers can parse the URL as needed. The full URL also subsumes the deployer's `domain` + `use_tls_proxy` approach — the protocol tells us if TLS is used, and the domain is extracted from the URL.
 
-**Decision for #1417**: Store the full URL as a single string (`public_url = "https://tracker1.example.com/announce"`). Consumers can parse out the protocol (→ TLS status), domain, and path segment as needed — no need to decompose the config field. In fact `public_url` subsumes the deployer's `domain` + `use_tls_proxy` approach entirely: the protocol tells us if TLS is used, and the domain is extracted from the URL. The tracker config should use the simplest user-facing form.
+### Full config types (this issue + #1417)
 
-#### How these would compose
-
-A future expanded `Network` block could look like:
-
-```json
-{
-  "http_trackers": [
-    {
-      "bind_address": "0.0.0.0:7070",
-      "net": {
-        "external_ip": "203.0.113.5",
-        "on_reverse_proxy": true,
-        "ipv6_v6only": false,
-        "public_url": "https://tracker1.example.com/announce"
-      }
-    }
-  ]
-}
-```
-
-(`public_url` subsumes `domain` and `use_tls_proxy` — the URL's protocol tells us if TLS is used, and the domain is extracted from the URL. The deployer's separate fields are a deployer-internal concern.)
-
-Or these could remain as flat fields on `HttpTracker`/`UdpTracker` depending on how they are consumed. The important thing is that the config structure supports per-instance values — which this issue establishes.
-
-### Full future config types (this issue + proposed extensions)
-
-Below is how the full types would look after this issue's changes plus the proposed future fields (from deployer and #1417). Fields marked `†` are implemented in this issue; fields marked `*` are proposals for future issues.
+Below is how the full types would look after this issue's changes plus #1417 (`public_url`). Fields marked `†` are implemented in this issue; fields marked `‡` are implemented in #1417.
 
 ```rust
 /// Per-instance network topology config.
@@ -330,11 +311,11 @@ pub struct HttpTracker {
     // Instance metadata
     pub tracker_usage_statistics: bool,
 
+    // Public exposure — how users reach this tracker
+    pub public_url: Option<String>,               // ‡ #1417 — full URL (e.g. "https://tracker1.example.com/announce")
+
     // Network topology (grouped)
     pub net: Network,                              // † new
-
-    // Future extensions (proposed, not in this issue):
-    // pub public_url: Option<String>,             // * #1417 — full URL for metrics/logs. Subsumes domain + TLS detection via URL parsing.
 }
 
 /// Server-layer config for each UDP tracker.
@@ -344,11 +325,11 @@ pub struct UdpTracker {
     pub tracker_usage_statistics: bool,
     pub max_connection_id_errors_per_ip: u32,
 
+    // Public exposure — how users reach this tracker
+    pub public_url: Option<String>,               // ‡ #1417 — full URL (e.g. "udp://tracker1.example.com:6969")
+
     // Network topology (grouped)
     pub net: Network,                              // † new
-
-    // Future extensions (proposed, not in this issue):
-    // pub public_url: Option<String>,             // * #1417
 }
 
 /// Core — no longer has any networking config.
@@ -365,15 +346,13 @@ pub struct Core {
 }
 ```
 
-**Rationale for grouping `external_ip` + `on_reverse_proxy` + `ipv6_v6only`**:
+**Rationale for keeping `public_url` flat (not inside `Network`)**:
 
-These three fields define how the tracker instance is seen on the network and how it behaves at the socket/protocol level:
+The `Network` block groups **network topology** concerns — how the tracker instance connects to the network (external IP, proxy awareness, socket behaviour). `public_url` is about **public exposure** — how users reach the tracker. These are different axes:
 
-- `external_ip`: the public IP identity
-- `on_reverse_proxy`: whether the instance trusts proxy headers
-- `ipv6_v6only`: whether the socket accepts dual-stack or IPv6-only
-
-Future fields like `public_url` is about **public exposure** (how users reach the tracker) rather than **network topology** (how the tracker connects). It could stay flat or join `Network` depending on how it is consumed. The boundary is deliberately flexible — `Network` is not a fixed category but a pragmatic grouping of related concerns.
+- A tracker behind a reverse proxy might have `net.on_reverse_proxy = true` and `public_url = "https://tracker.example.com/announce"`
+- A directly-exposed tracker might have `net.on_reverse_proxy = false` and `public_url = "http://tracker.example.com:7070/announce"`
+- Both fields are independently configurable; nesting one inside the other would be misleading
 
 The `AnnounceHandler` in `tracker-core` stops reading from `self.config.net.external_ip` and instead accepts it as a parameter:
 
@@ -537,6 +516,7 @@ Append one line per meaningful update.
 - 2026-06-23 16:00 UTC - Copilot - Rewrote spec with full architectural vision: per-instance `Network` for all three fields, phased implementation with baby steps + draft PR.
 - 2026-06-23 17:45 UTC - Copilot - Added design note on `bind_address` staying flat, future extensions section (`domain`, `use_tls_proxy`, `public_url`) referencing deployer and issue #1417.
 - 2026-06-23 18:30 UTC - Copilot - Completed deep review against ADRs 20260617093046, 20260620000000, 20260527175600 and issues #1417, #1671. Added compatibility table and migration note.
+- 2026-07-14 00:00 UTC - josecelano - Resolved #1417 relationship: `public_url` is in this EPIC (not future), stays flat (not inside `Network`). Replaced "Future Extensions" section with "Related Issue: #1417" section. Updated config types to show `public_url` as `‡` field. Added versioning note (app 4.0.0, config schema 3.0.0).
 
 ## Acceptance Criteria
 

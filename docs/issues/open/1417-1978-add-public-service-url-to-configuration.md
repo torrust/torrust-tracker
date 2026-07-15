@@ -1,10 +1,10 @@
 ---
 doc-type: issue
 issue-type: enhancement
-status: draft
+status: open
 priority: p3
 github-issue: 1417
-spec-path: docs/issues/drafts/1417-add-public-service-url-to-configuration.md
+spec-path: docs/issues/open/1417-1978-add-public-service-url-to-configuration.md
 branch: "1417-add-public-service-url"
 related-pr: null
 last-updated-utc: 2026-06-23 18:45
@@ -15,13 +15,17 @@ semantic-links:
     - issue #1640
     - issue torrust/torrust-tracker-deployer
     - issue torrust/torrust-tracker-deployer docs/ai-training/dataset/environment-configs/02-full-stack-lxd.json
-    - packages/configuration/src/v2_0_0/http_tracker.rs
-    - packages/configuration/src/v2_0_0/udp_tracker.rs
+    - packages/configuration/src/v3_0_0/http_tracker.rs
+    - packages/configuration/src/v3_0_0/udp_tracker.rs
+    - packages/configuration/src/v3_0_0/tracker_api.rs
+    - packages/configuration/src/v3_0_0/health_check_api.rs
 ---
 
 <!-- skill-link: create-issue -->
 
 # Issue #1417 - Include public service URL in configuration
+
+> **EPIC position**: Subissue #4 of 9. Depends on #1640 (subissue #3) for the `Network` block placement decision — `public_url` stays flat (not inside `Network`). Implements after #1640 is complete.
 
 ## Goal
 
@@ -57,6 +61,7 @@ For example, the [Torrust Tracker Deployer](https://github.com/torrust/torrust-t
 
 - Add optional `public_url: Option<String>` field to `HttpTracker`, `UdpTracker`, `HttpApi`, and `HealthCheckApi`
 - Use a **single URL string** (e.g. `"https://tracker1.example.com/announce"`) — not decomposed into domain/path components, since consumers can parse those as needed
+- Validate URL protocol at deserialization time (HTTP tracker → `http://`/`https://`, UDP tracker → `udp://`, API → `http://`/`https://`)
 - The URL protocol (`https://`) provides TLS status; the domain is extracted by consumers
 - Document the field in default config examples
 - No runtime behaviour change — the field is stored in config and available for use by consumers (metrics, logging, etc.)
@@ -81,29 +86,39 @@ No changes are needed in this issue — the field just needs to be present in th
 
 **Single URL string vs decomposed fields**: The field is a single URL string. Consumers parse protocol, domain, and path as needed. This is the simplest user-facing form and avoids duplicating the deployer's `domain` + `use_tls_proxy` approach.
 
-**Where the field lives**: This field is about **public exposure** (how users reach the service), not **network topology** (how the service connects). It could stay flat on the config struct or join a `Network` block depending on future architecture decisions. For now, keep it flat — issue #1640 establishes the `Network` block, and this field can be placed accordingly.
+**Where the field lives**: `public_url` is a **flat field** on each config struct (`HttpTracker`, `UdpTracker`, `HttpApi`, `HealthCheckApi`) — **not inside the `Network` block**. The `Network` block (established by #1640) groups **network topology** concerns (external IP, proxy awareness, socket behaviour). `public_url` is about **public exposure** (how users reach the service) — a different axis. A tracker instance can independently configure both `net.on_reverse_proxy` and `public_url`.
+
+**Protocol validation**: The URL protocol is validated at deserialization time:
+
+- HTTP tracker: must use `http://` or `https://`
+- UDP tracker: must use `udp://`
+- HTTP API / Health Check API: must use `http://` or `https://`
+
+This catches misconfigurations early (e.g., accidentally setting `public_url = "udp://..."` on an HTTP tracker).
 
 ## Implementation Plan
 
-| ID  | Status | Task                                                        | Notes          |
-| --- | ------ | ----------------------------------------------------------- | -------------- |
-| T1  | TODO   | Add `public_url: Option<String>` to `HttpTracker` config    | Default `None` |
-| T2  | TODO   | Add `public_url: Option<String>` to `UdpTracker` config     | Default `None` |
-| T3  | TODO   | Add `public_url: Option<String>` to `HttpApi` config        | Default `None` |
-| T4  | TODO   | Add `public_url: Option<String>` to `HealthCheckApi` config | Default `None` |
-| T5  | TODO   | Document field in default config examples and crate docs    |                |
-| T6  | TODO   | Run `linter all` and tests                                  |                |
+| ID  | Status | Task                                                        | Notes                                                        |
+| --- | ------ | ----------------------------------------------------------- | ------------------------------------------------------------ |
+| T1  | TODO   | Add `public_url: Option<String>` to `HttpTracker` config    | Default `None`; validate protocol is `http://` or `https://` |
+| T2  | TODO   | Add `public_url: Option<String>` to `UdpTracker` config     | Default `None`; validate protocol is `udp://`                |
+| T3  | TODO   | Add `public_url: Option<String>` to `HttpApi` config        | Default `None`; validate protocol is `http://` or `https://` |
+| T4  | TODO   | Add `public_url: Option<String>` to `HealthCheckApi` config | Default `None`; validate protocol is `http://` or `https://` |
+| T5  | TODO   | Document field in default config examples and crate docs    |                                                              |
+| T6  | TODO   | Run `linter all` and tests                                  |                                                              |
 
 ## Progress Tracking
 
 ### Progress Log
 
 - 2026-06-23 18:45 UTC - Copilot - Drafted from GitHub issue #1417 and discussions in issue #1640 spec review.
+- 2026-07-14 00:00 UTC - josecelano - Resolved placement: `public_url` stays flat (not inside `Network`). Added protocol validation. Updated related-artifacts to v3 paths.
 
 ## Acceptance Criteria
 
 - [ ] AC1: All config structs gain `public_url: Option<String>` field
-- [ ] AC2: Default config examples include the new field (commented or shown)
-- [ ] AC3: No runtime behaviour change — field is present for consumer use
+- [ ] AC2: Protocol validation rejects mismatched protocols (e.g., `udp://` on HTTP tracker)
+- [ ] AC3: Default config examples include the new field (commented or shown)
+- [ ] AC4: No runtime behaviour change — field is present for consumer use
 - [ ] `linter all` exits with code `0`
 - [ ] Relevant tests pass
