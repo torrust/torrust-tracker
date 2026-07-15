@@ -137,6 +137,16 @@ impl Environment<Running> {
     pub fn bind_address(&self) -> &std::net::SocketAddr {
         &self.server.state.binding
     }
+
+    /// Returns the base URL for the HTTP tracker.
+    ///
+    /// # Panics
+    ///
+    /// Will panic if the socket address cannot be parsed into a URL.
+    #[must_use]
+    pub fn base_url(&self) -> reqwest::Url {
+        reqwest::Url::parse(&format!("http://{}/", self.bind_address())).unwrap() // DevSkim: ignore DS137138
+    }
 }
 
 pub struct EnvContainer {

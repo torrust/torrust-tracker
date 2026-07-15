@@ -20,7 +20,6 @@ mod for_all_config_modes {
     use std::sync::Arc;
     use std::time::Duration;
 
-    use reqwest::Url;
     use torrust_tracker_axum_http_server::testing::environment::Started;
     use torrust_tracker_axum_http_server::v1::handlers::health_check::{Report, Status};
     use torrust_tracker_client::http::client::Client;
@@ -35,14 +34,11 @@ mod for_all_config_modes {
         let http_tracker_config = Arc::new(cfg.http_trackers.unwrap()[0].clone());
         let env = Started::new(&core_config, &http_tracker_config).await;
 
-        let response = Client::new(
-            Url::parse(&format!("http://{}/", env.bind_address())).unwrap(),
-            Duration::from_secs(5),
-        )
-        .unwrap()
-        .health_check()
-        .await
-        .unwrap();
+        let response = Client::new(env.base_url(), Duration::from_secs(5))
+            .unwrap()
+            .health_check()
+            .await
+            .unwrap();
 
         assert_eq!(response.status(), 200);
         assert_eq!(response.headers().get("content-type").unwrap(), "application/json");
@@ -55,7 +51,6 @@ mod for_all_config_modes {
         use std::sync::Arc;
         use std::time::Duration;
 
-        use reqwest::Url;
         use torrust_tracker_axum_http_server::testing::environment::Started;
         use torrust_tracker_client::http::client::Client;
         use torrust_tracker_http_protocol::v1::requests::announce::AnnounceBuilder;
@@ -77,14 +72,11 @@ mod for_all_config_modes {
 
             let params = AnnounceBuilder::default().query().to_string();
 
-            let response = Client::new(
-                Url::parse(&format!("http://{}/", env.bind_address())).unwrap(),
-                Duration::from_secs(5),
-            )
-            .unwrap()
-            .get(&format!("announce?{params}"))
-            .await
-            .unwrap();
+            let response = Client::new(env.base_url(), Duration::from_secs(5))
+                .unwrap()
+                .get(&format!("announce?{params}"))
+                .await
+                .unwrap();
 
             assert_could_not_find_remote_address_on_x_forwarded_for_header_error_response(response).await;
 
@@ -102,14 +94,11 @@ mod for_all_config_modes {
 
             let params = AnnounceBuilder::default().query().to_string();
 
-            let response = Client::new(
-                Url::parse(&format!("http://{}/", env.bind_address())).unwrap(),
-                Duration::from_secs(5),
-            )
-            .unwrap()
-            .get_with_header(&format!("announce?{params}"), "X-Forwarded-For", "INVALID IP")
-            .await
-            .unwrap();
+            let response = Client::new(env.base_url(), Duration::from_secs(5))
+                .unwrap()
+                .get_with_header(&format!("announce?{params}"), "X-Forwarded-For", "INVALID IP")
+                .await
+                .unwrap();
 
             assert_could_not_find_remote_address_on_x_forwarded_for_header_error_response(response).await;
 
@@ -136,7 +125,7 @@ mod for_all_config_modes {
         use std::time::Duration;
 
         use local_ip_address::local_ip;
-        use reqwest::{Response, StatusCode, Url};
+        use reqwest::{Response, StatusCode};
         use tokio::net::TcpListener;
         use torrust_info_hash::InfoHash;
         use torrust_peer_id::PeerId;
@@ -186,14 +175,11 @@ mod for_all_config_modes {
                 AnnounceBuilder::default().query().port,
             );
 
-            let response = Client::new(
-                Url::parse(&format!("http://{}/", env.bind_address())).unwrap(),
-                Duration::from_secs(5),
-            )
-            .unwrap()
-            .get(&format!("announce?{params}"))
-            .await
-            .unwrap();
+            let response = Client::new(env.base_url(), Duration::from_secs(5))
+                .unwrap()
+                .get(&format!("announce?{params}"))
+                .await
+                .unwrap();
 
             assert_is_announce_response(response).await;
 
@@ -209,14 +195,11 @@ mod for_all_config_modes {
             let http_tracker_config = Arc::new(cfg.http_trackers.unwrap()[0].clone());
             let env = Started::new(&core_config, &http_tracker_config).await;
 
-            let response = Client::new(
-                Url::parse(&format!("http://{}/", env.bind_address())).unwrap(),
-                Duration::from_secs(5),
-            )
-            .unwrap()
-            .get("announce")
-            .await
-            .unwrap();
+            let response = Client::new(env.base_url(), Duration::from_secs(5))
+                .unwrap()
+                .get("announce")
+                .await
+                .unwrap();
 
             assert_missing_query_params_for_announce_request_error_response(response).await;
 
@@ -234,14 +217,11 @@ mod for_all_config_modes {
 
             let invalid_query_param = "a=b=c";
 
-            let response = Client::new(
-                Url::parse(&format!("http://{}/", env.bind_address())).unwrap(),
-                Duration::from_secs(5),
-            )
-            .unwrap()
-            .get(&format!("announce?{invalid_query_param}"))
-            .await
-            .unwrap();
+            let response = Client::new(env.base_url(), Duration::from_secs(5))
+                .unwrap()
+                .get(&format!("announce?{invalid_query_param}"))
+                .await
+                .unwrap();
 
             assert_cannot_parse_query_param_error_response(response, "invalid param a=b=c").await;
 
@@ -264,14 +244,11 @@ mod for_all_config_modes {
                 AnnounceBuilder::default().query().port,
             );
 
-            let response = Client::new(
-                Url::parse(&format!("http://{}/", env.bind_address())).unwrap(),
-                Duration::from_secs(5),
-            )
-            .unwrap()
-            .get(&format!("announce?{params}"))
-            .await
-            .unwrap();
+            let response = Client::new(env.base_url(), Duration::from_secs(5))
+                .unwrap()
+                .get(&format!("announce?{params}"))
+                .await
+                .unwrap();
 
             assert_bad_announce_request_error_response(response, "missing param info_hash").await;
 
@@ -282,14 +259,11 @@ mod for_all_config_modes {
                 AnnounceBuilder::default().query().port,
             );
 
-            let response = Client::new(
-                Url::parse(&format!("http://{}/", env.bind_address())).unwrap(),
-                Duration::from_secs(5),
-            )
-            .unwrap()
-            .get(&format!("announce?{params}"))
-            .await
-            .unwrap();
+            let response = Client::new(env.base_url(), Duration::from_secs(5))
+                .unwrap()
+                .get(&format!("announce?{params}"))
+                .await
+                .unwrap();
 
             assert_bad_announce_request_error_response(response, "missing param peer_id").await;
 
@@ -300,14 +274,11 @@ mod for_all_config_modes {
                 percent_encode_byte_array(&AnnounceBuilder::default().query().peer_id.0),
             );
 
-            let response = Client::new(
-                Url::parse(&format!("http://{}/", env.bind_address())).unwrap(),
-                Duration::from_secs(5),
-            )
-            .unwrap()
-            .get(&format!("announce?{params}"))
-            .await
-            .unwrap();
+            let response = Client::new(env.base_url(), Duration::from_secs(5))
+                .unwrap()
+                .get(&format!("announce?{params}"))
+                .await
+                .unwrap();
 
             assert_bad_announce_request_error_response(response, "missing param port").await;
 
@@ -332,14 +303,11 @@ mod for_all_config_modes {
                     "192.168.1.88",
                 );
 
-                let response = Client::new(
-                    Url::parse(&format!("http://{}/", env.bind_address())).unwrap(),
-                    Duration::from_secs(5),
-                )
-                .unwrap()
-                .get(&url)
-                .await
-                .unwrap();
+                let response = Client::new(env.base_url(), Duration::from_secs(5))
+                    .unwrap()
+                    .get(&url)
+                    .await
+                    .unwrap();
 
                 assert_cannot_parse_query_params_error_response(response, "").await;
             }
@@ -369,14 +337,11 @@ mod for_all_config_modes {
                 "INVALID-IP-ADDRESS",
             );
 
-            let response = Client::new(
-                Url::parse(&format!("http://{}/", env.bind_address())).unwrap(),
-                Duration::from_secs(5),
-            )
-            .unwrap()
-            .get(&url)
-            .await
-            .unwrap();
+            let response = Client::new(env.base_url(), Duration::from_secs(5))
+                .unwrap()
+                .get(&url)
+                .await
+                .unwrap();
 
             assert_is_announce_response(response).await;
 
@@ -404,14 +369,11 @@ mod for_all_config_modes {
                     default_info_hash, default_peer_id, default_port, "192.168.1.88", invalid_value,
                 );
 
-                let response = Client::new(
-                    Url::parse(&format!("http://{}/", env.bind_address())).unwrap(),
-                    Duration::from_secs(5),
-                )
-                .unwrap()
-                .get(&url)
-                .await
-                .unwrap();
+                let response = Client::new(env.base_url(), Duration::from_secs(5))
+                    .unwrap()
+                    .get(&url)
+                    .await
+                    .unwrap();
 
                 assert_bad_announce_request_error_response(response, "invalid param value").await;
             }
@@ -440,14 +402,11 @@ mod for_all_config_modes {
                     default_info_hash, default_peer_id, default_port, "192.168.1.88", invalid_value,
                 );
 
-                let response = Client::new(
-                    Url::parse(&format!("http://{}/", env.bind_address())).unwrap(),
-                    Duration::from_secs(5),
-                )
-                .unwrap()
-                .get(&url)
-                .await
-                .unwrap();
+                let response = Client::new(env.base_url(), Duration::from_secs(5))
+                    .unwrap()
+                    .get(&url)
+                    .await
+                    .unwrap();
 
                 assert_bad_announce_request_error_response(response, "invalid param value").await;
             }
@@ -482,14 +441,11 @@ mod for_all_config_modes {
                     default_info_hash, invalid_value, default_port, "192.168.1.88",
                 );
 
-                let response = Client::new(
-                    Url::parse(&format!("http://{}/", env.bind_address())).unwrap(),
-                    Duration::from_secs(5),
-                )
-                .unwrap()
-                .get(&url)
-                .await
-                .unwrap();
+                let response = Client::new(env.base_url(), Duration::from_secs(5))
+                    .unwrap()
+                    .get(&url)
+                    .await
+                    .unwrap();
 
                 assert_bad_announce_request_error_response(response, "invalid param value").await;
             }
@@ -517,14 +473,11 @@ mod for_all_config_modes {
                     default_info_hash, default_peer_id, invalid_value, "192.168.1.88",
                 );
 
-                let response = Client::new(
-                    Url::parse(&format!("http://{}/", env.bind_address())).unwrap(),
-                    Duration::from_secs(5),
-                )
-                .unwrap()
-                .get(&url)
-                .await
-                .unwrap();
+                let response = Client::new(env.base_url(), Duration::from_secs(5))
+                    .unwrap()
+                    .get(&url)
+                    .await
+                    .unwrap();
 
                 assert_bad_announce_request_error_response(response, "invalid param value").await;
             }
@@ -553,14 +506,11 @@ mod for_all_config_modes {
                     default_info_hash, default_peer_id, default_port, "192.168.1.88", invalid_value,
                 );
 
-                let response = Client::new(
-                    Url::parse(&format!("http://{}/", env.bind_address())).unwrap(),
-                    Duration::from_secs(5),
-                )
-                .unwrap()
-                .get(&url)
-                .await
-                .unwrap();
+                let response = Client::new(env.base_url(), Duration::from_secs(5))
+                    .unwrap()
+                    .get(&url)
+                    .await
+                    .unwrap();
 
                 assert_bad_announce_request_error_response(response, "invalid param value").await;
             }
@@ -597,14 +547,11 @@ mod for_all_config_modes {
                     default_info_hash, default_peer_id, default_port, "192.168.1.88", invalid_value,
                 );
 
-                let response = Client::new(
-                    Url::parse(&format!("http://{}/", env.bind_address())).unwrap(),
-                    Duration::from_secs(5),
-                )
-                .unwrap()
-                .get(&url)
-                .await
-                .unwrap();
+                let response = Client::new(env.base_url(), Duration::from_secs(5))
+                    .unwrap()
+                    .get(&url)
+                    .await
+                    .unwrap();
 
                 assert_bad_announce_request_error_response(response, "invalid param value").await;
             }
@@ -633,14 +580,11 @@ mod for_all_config_modes {
                     default_info_hash, default_peer_id, default_port, "192.168.1.88", invalid_value,
                 );
 
-                let response = Client::new(
-                    Url::parse(&format!("http://{}/", env.bind_address())).unwrap(),
-                    Duration::from_secs(5),
-                )
-                .unwrap()
-                .get(&url)
-                .await
-                .unwrap();
+                let response = Client::new(env.base_url(), Duration::from_secs(5))
+                    .unwrap()
+                    .get(&url)
+                    .await
+                    .unwrap();
 
                 assert_bad_announce_request_error_response(response, "invalid param value").await;
             }
@@ -669,14 +613,11 @@ mod for_all_config_modes {
                     default_info_hash, default_peer_id, default_port, "192.168.1.88", invalid_value,
                 );
 
-                let response = Client::new(
-                    Url::parse(&format!("http://{}/", env.bind_address())).unwrap(),
-                    Duration::from_secs(5),
-                )
-                .unwrap()
-                .get(&url)
-                .await
-                .unwrap();
+                let response = Client::new(env.base_url(), Duration::from_secs(5))
+                    .unwrap()
+                    .get(&url)
+                    .await
+                    .unwrap();
 
                 assert_bad_announce_request_error_response(response, "invalid param value").await;
             }
@@ -693,18 +634,15 @@ mod for_all_config_modes {
             let http_tracker_config = Arc::new(cfg.http_trackers.unwrap()[0].clone());
             let env = Started::new(&core_config, &http_tracker_config).await;
 
-            let response = Client::new(
-                Url::parse(&format!("http://{}/", env.bind_address())).unwrap(),
-                Duration::from_secs(5),
-            )
-            .unwrap()
-            .announce(
-                &AnnounceBuilder::default()
-                    .with_info_hash(&InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap()) // DevSkim: ignore DS173237
-                    .query(),
-            )
-            .await
-            .unwrap();
+            let response = Client::new(env.base_url(), Duration::from_secs(5))
+                .unwrap()
+                .announce(
+                    &AnnounceBuilder::default()
+                        .with_info_hash(&InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap()) // DevSkim: ignore DS173237
+                        .query(),
+                )
+                .await
+                .unwrap();
 
             let announce_policy = env.container.tracker_core_container.core_config.announce_policy;
 
@@ -743,19 +681,16 @@ mod for_all_config_modes {
             env.add_torrent_peer(&info_hash, &previously_announced_peer).await;
 
             // Announce the new Peer 2. This new peer is non included on the response peer list
-            let response = Client::new(
-                Url::parse(&format!("http://{}/", env.bind_address())).unwrap(),
-                Duration::from_secs(5),
-            )
-            .unwrap()
-            .announce(
-                &AnnounceBuilder::default()
-                    .with_info_hash(&info_hash)
-                    .with_peer_id(&PeerId(*b"-qB00000000000000002"))
-                    .query(),
-            )
-            .await
-            .unwrap();
+            let response = Client::new(env.base_url(), Duration::from_secs(5))
+                .unwrap()
+                .announce(
+                    &AnnounceBuilder::default()
+                        .with_info_hash(&info_hash)
+                        .with_peer_id(&PeerId(*b"-qB00000000000000002"))
+                        .query(),
+                )
+                .await
+                .unwrap();
 
             let announce_policy = env.container.tracker_core_container.core_config.announce_policy;
 
@@ -808,19 +743,16 @@ mod for_all_config_modes {
             env.add_torrent_peer(&info_hash, &peer_using_ipv6).await;
 
             // Announce the new Peer.
-            let response = Client::new(
-                Url::parse(&format!("http://{}/", env.bind_address())).unwrap(),
-                Duration::from_secs(5),
-            )
-            .unwrap()
-            .announce(
-                &AnnounceBuilder::default()
-                    .with_info_hash(&info_hash)
-                    .with_peer_id(&PeerId(*b"-qB00000000000000003"))
-                    .query(),
-            )
-            .await
-            .unwrap();
+            let response = Client::new(env.base_url(), Duration::from_secs(5))
+                .unwrap()
+                .announce(
+                    &AnnounceBuilder::default()
+                        .with_info_hash(&info_hash)
+                        .with_peer_id(&PeerId(*b"-qB00000000000000003"))
+                        .query(),
+                )
+                .await
+                .unwrap();
 
             let announce_policy = env.container.tracker_core_container.core_config.announce_policy;
 
@@ -886,22 +818,16 @@ mod for_all_config_modes {
             // Different peer ID
             assert_ne!(announce_query_1.peer_id, announce_query_2.peer_id);
 
-            let _response = Client::new(
-                Url::parse(&format!("http://{}/", env.bind_address())).unwrap(),
-                Duration::from_secs(5),
-            )
-            .unwrap()
-            .announce(&announce_query_1)
-            .await
-            .unwrap();
-            let response = Client::new(
-                Url::parse(&format!("http://{}/", env.bind_address())).unwrap(),
-                Duration::from_secs(5),
-            )
-            .unwrap()
-            .announce(&announce_query_2)
-            .await
-            .unwrap();
+            let _response = Client::new(env.base_url(), Duration::from_secs(5))
+                .unwrap()
+                .announce(&announce_query_1)
+                .await
+                .unwrap();
+            let response = Client::new(env.base_url(), Duration::from_secs(5))
+                .unwrap()
+                .announce(&announce_query_2)
+                .await
+                .unwrap();
 
             let announce_policy = env.container.tracker_core_container.core_config.announce_policy;
 
@@ -944,20 +870,17 @@ mod for_all_config_modes {
             env.add_torrent_peer(&info_hash, &previously_announced_peer).await;
 
             // Announce the new Peer 2 accepting compact responses
-            let response = Client::new(
-                Url::parse(&format!("http://{}/", env.bind_address())).unwrap(),
-                Duration::from_secs(5),
-            )
-            .unwrap()
-            .announce(
-                &AnnounceBuilder::default()
-                    .with_info_hash(&info_hash)
-                    .with_peer_id(&PeerId(*b"-qB00000000000000002"))
-                    .with_compact(Compact::Accepted)
-                    .query(),
-            )
-            .await
-            .unwrap();
+            let response = Client::new(env.base_url(), Duration::from_secs(5))
+                .unwrap()
+                .announce(
+                    &AnnounceBuilder::default()
+                        .with_info_hash(&info_hash)
+                        .with_peer_id(&PeerId(*b"-qB00000000000000002"))
+                        .with_compact(Compact::Accepted)
+                        .query(),
+                )
+                .await
+                .unwrap();
 
             let expected_response =
                 torrust_tracker_http_protocol::v1::responses::announce::deserialization::DeserializedCompactParsed {
@@ -998,20 +921,17 @@ mod for_all_config_modes {
             // Announce the new Peer 2 without passing the "compact" param
             // By default it should respond with the compact peer list
             // https://www.bittorrent.org/beps/bep_0023.html
-            let response = Client::new(
-                Url::parse(&format!("http://{}/", env.bind_address())).unwrap(),
-                Duration::from_secs(5),
-            )
-            .unwrap()
-            .announce(
-                &AnnounceBuilder::default()
-                    .with_info_hash(&info_hash)
-                    .with_peer_id(&PeerId(*b"-qB00000000000000002"))
-                    .without_compact()
-                    .query(),
-            )
-            .await
-            .unwrap();
+            let response = Client::new(env.base_url(), Duration::from_secs(5))
+                .unwrap()
+                .announce(
+                    &AnnounceBuilder::default()
+                        .with_info_hash(&info_hash)
+                        .with_peer_id(&PeerId(*b"-qB00000000000000002"))
+                        .without_compact()
+                        .query(),
+                )
+                .await
+                .unwrap();
 
             assert!(!is_a_compact_announce_response(response).await);
 
@@ -1035,14 +955,11 @@ mod for_all_config_modes {
             let http_tracker_config = Arc::new(cfg.http_trackers.unwrap()[0].clone());
             let env = Started::new(&core_config, &http_tracker_config).await;
 
-            Client::new(
-                Url::parse(&format!("http://{}/", env.bind_address())).unwrap(),
-                Duration::from_secs(5),
-            )
-            .unwrap()
-            .announce(&AnnounceBuilder::default().query())
-            .await
-            .unwrap();
+            Client::new(env.base_url(), Duration::from_secs(5))
+                .unwrap()
+                .announce(&AnnounceBuilder::default().query())
+                .await
+                .unwrap();
 
             let stats = env.container.http_tracker_core_container.stats_repository.get_stats().await;
 
@@ -1069,15 +986,11 @@ mod for_all_config_modes {
             let http_tracker_config = Arc::new(cfg.http_trackers.unwrap()[0].clone());
             let env = Started::new(&core_config, &http_tracker_config).await;
 
-            Client::bind(
-                Url::parse(&format!("http://{}/", env.bind_address())).unwrap(),
-                Duration::from_secs(5),
-                IpAddr::from_str("::1").unwrap(),
-            )
-            .unwrap()
-            .announce(&AnnounceBuilder::default().query())
-            .await
-            .unwrap();
+            Client::bind(env.base_url(), Duration::from_secs(5), IpAddr::from_str("::1").unwrap())
+                .unwrap()
+                .announce(&AnnounceBuilder::default().query())
+                .await
+                .unwrap();
 
             let stats = env.container.http_tracker_core_container.stats_repository.get_stats().await;
 
@@ -1099,18 +1012,15 @@ mod for_all_config_modes {
             let http_tracker_config = Arc::new(cfg.http_trackers.unwrap()[0].clone());
             let env = Started::new(&core_config, &http_tracker_config).await;
 
-            Client::new(
-                Url::parse(&format!("http://{}/", env.bind_address())).unwrap(),
-                Duration::from_secs(5),
-            )
-            .unwrap()
-            .announce(
-                &AnnounceBuilder::default()
-                    .with_peer_addr(IpAddr::V6(Ipv6Addr::LOCALHOST))
-                    .query(),
-            )
-            .await
-            .unwrap();
+            Client::new(env.base_url(), Duration::from_secs(5))
+                .unwrap()
+                .announce(
+                    &AnnounceBuilder::default()
+                        .with_peer_addr(IpAddr::V6(Ipv6Addr::LOCALHOST))
+                        .query(),
+                )
+                .await
+                .unwrap();
 
             let stats = env.container.http_tracker_core_container.stats_repository.get_stats().await;
 
@@ -1139,12 +1049,7 @@ mod for_all_config_modes {
                 .query();
 
             {
-                let client = Client::bind(
-                    Url::parse(&format!("http://{}/", env.bind_address())).unwrap(),
-                    Duration::from_secs(5),
-                    client_ip,
-                )
-                .unwrap();
+                let client = Client::bind(env.base_url(), Duration::from_secs(5), client_ip).unwrap();
                 let status = client.announce(&announce_query).await.unwrap().status();
 
                 assert_eq!(status, StatusCode::OK);
@@ -1189,12 +1094,7 @@ mod for_all_config_modes {
                 .query();
 
             {
-                let client = Client::bind(
-                    Url::parse(&format!("http://{}/", env.bind_address())).unwrap(),
-                    Duration::from_secs(5),
-                    client_ip,
-                )
-                .unwrap();
+                let client = Client::bind(env.base_url(), Duration::from_secs(5), client_ip).unwrap();
                 let status = client.announce(&announce_query).await.unwrap().status();
 
                 assert_eq!(status, StatusCode::OK);
@@ -1249,12 +1149,7 @@ mod for_all_config_modes {
                 .query();
 
             {
-                let client = Client::bind(
-                    Url::parse(&format!("http://{}/", env.bind_address())).unwrap(),
-                    Duration::from_secs(5),
-                    client_ip,
-                )
-                .unwrap();
+                let client = Client::bind(env.base_url(), Duration::from_secs(5), client_ip).unwrap();
                 let status = client.announce(&announce_query).await.unwrap().status();
 
                 assert_eq!(status, StatusCode::OK);
@@ -1303,11 +1198,7 @@ mod for_all_config_modes {
             let announce_query = AnnounceBuilder::default().with_info_hash(&info_hash).query();
 
             {
-                let client = Client::new(
-                    Url::parse(&format!("http://{}/", env.bind_address())).unwrap(),
-                    Duration::from_secs(5),
-                )
-                .unwrap();
+                let client = Client::new(env.base_url(), Duration::from_secs(5)).unwrap();
                 let status = client
                     .announce_with_header(
                         &announce_query,
@@ -1350,7 +1241,6 @@ mod for_all_config_modes {
         use std::sync::Arc;
         use std::time::Duration;
 
-        use reqwest::Url;
         use tokio::net::TcpListener;
         use torrust_info_hash::InfoHash;
         use torrust_tracker_axum_http_server::testing::environment::Started;
@@ -1376,14 +1266,11 @@ mod for_all_config_modes {
             let core_config = Arc::new(cfg.core.clone());
             let http_tracker_config = Arc::new(cfg.http_trackers.unwrap()[0].clone());
             let env = Started::new(&core_config, &http_tracker_config).await;
-            let response = Client::new(
-                Url::parse(&format!("http://{}/", env.bind_address())).unwrap(),
-                Duration::from_secs(5),
-            )
-            .unwrap()
-            .get("scrape")
-            .await
-            .unwrap();
+            let response = Client::new(env.base_url(), Duration::from_secs(5))
+                .unwrap()
+                .get("scrape")
+                .await
+                .unwrap();
 
             assert_missing_query_params_for_scrape_request_error_response(response).await;
 
@@ -1402,14 +1289,11 @@ mod for_all_config_modes {
             for invalid_value in &invalid_info_hashes() {
                 let url = format!("scrape?info_hash={invalid_value}");
 
-                let response = Client::new(
-                    Url::parse(&format!("http://{}/", env.bind_address())).unwrap(),
-                    Duration::from_secs(5),
-                )
-                .unwrap()
-                .get(&url)
-                .await
-                .unwrap();
+                let response = Client::new(env.base_url(), Duration::from_secs(5))
+                    .unwrap()
+                    .get(&url)
+                    .await
+                    .unwrap();
 
                 assert_cannot_parse_query_params_error_response(response, "").await;
             }
@@ -1437,14 +1321,11 @@ mod for_all_config_modes {
             )
             .await;
 
-            let response = Client::new(
-                Url::parse(&format!("http://{}/", env.bind_address())).unwrap(),
-                Duration::from_secs(5),
-            )
-            .unwrap()
-            .scrape(&QueryBuilder::default().with_one_info_hash(&info_hash).query())
-            .await
-            .unwrap();
+            let response = Client::new(env.base_url(), Duration::from_secs(5))
+                .unwrap()
+                .scrape(&QueryBuilder::default().with_one_info_hash(&info_hash).query())
+                .await
+                .unwrap();
 
             let expected_scrape_response = ResponseBuilder::default()
                 .add_file(
@@ -1482,14 +1363,11 @@ mod for_all_config_modes {
             )
             .await;
 
-            let response = Client::new(
-                Url::parse(&format!("http://{}/", env.bind_address())).unwrap(),
-                Duration::from_secs(5),
-            )
-            .unwrap()
-            .scrape(&QueryBuilder::default().with_one_info_hash(&info_hash).query())
-            .await
-            .unwrap();
+            let response = Client::new(env.base_url(), Duration::from_secs(5))
+                .unwrap()
+                .scrape(&QueryBuilder::default().with_one_info_hash(&info_hash).query())
+                .await
+                .unwrap();
 
             let expected_scrape_response = ResponseBuilder::default()
                 .add_file(
@@ -1518,14 +1396,11 @@ mod for_all_config_modes {
 
             let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap(); // DevSkim: ignore DS173237
 
-            let response = Client::new(
-                Url::parse(&format!("http://{}/", env.bind_address())).unwrap(),
-                Duration::from_secs(5),
-            )
-            .unwrap()
-            .scrape(&QueryBuilder::default().with_one_info_hash(&info_hash).query())
-            .await
-            .unwrap();
+            let response = Client::new(env.base_url(), Duration::from_secs(5))
+                .unwrap()
+                .scrape(&QueryBuilder::default().with_one_info_hash(&info_hash).query())
+                .await
+                .unwrap();
 
             assert_scrape_response(response, &deserialization::Response::with_one_file(info_hash, File::zeroed())).await;
 
@@ -1544,19 +1419,16 @@ mod for_all_config_modes {
             let info_hash1 = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap(); // DevSkim: ignore DS173237
             let info_hash2 = InfoHash::from_str("3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0").unwrap(); // DevSkim: ignore DS173237
 
-            let response = Client::new(
-                Url::parse(&format!("http://{}/", env.bind_address())).unwrap(),
-                Duration::from_secs(5),
-            )
-            .unwrap()
-            .scrape(
-                &QueryBuilder::default()
-                    .add_info_hash(&info_hash1)
-                    .add_info_hash(&info_hash2)
-                    .query(),
-            )
-            .await
-            .unwrap();
+            let response = Client::new(env.base_url(), Duration::from_secs(5))
+                .unwrap()
+                .scrape(
+                    &QueryBuilder::default()
+                        .add_info_hash(&info_hash1)
+                        .add_info_hash(&info_hash2)
+                        .query(),
+                )
+                .await
+                .unwrap();
 
             let expected_scrape_response = ResponseBuilder::default()
                 .add_file(info_hash1, File::zeroed())
@@ -1579,14 +1451,11 @@ mod for_all_config_modes {
 
             let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap(); // DevSkim: ignore DS173237
 
-            Client::new(
-                Url::parse(&format!("http://{}/", env.bind_address())).unwrap(),
-                Duration::from_secs(5),
-            )
-            .unwrap()
-            .scrape(&QueryBuilder::default().with_one_info_hash(&info_hash).query())
-            .await
-            .unwrap();
+            Client::new(env.base_url(), Duration::from_secs(5))
+                .unwrap()
+                .scrape(&QueryBuilder::default().with_one_info_hash(&info_hash).query())
+                .await
+                .unwrap();
 
             let stats = env.container.http_tracker_core_container.stats_repository.get_stats().await;
 
@@ -1615,15 +1484,11 @@ mod for_all_config_modes {
 
             let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap(); // DevSkim: ignore DS173237
 
-            Client::bind(
-                Url::parse(&format!("http://{}/", env.bind_address())).unwrap(),
-                Duration::from_secs(5),
-                IpAddr::from_str("::1").unwrap(),
-            )
-            .unwrap()
-            .scrape(&QueryBuilder::default().with_one_info_hash(&info_hash).query())
-            .await
-            .unwrap();
+            Client::bind(env.base_url(), Duration::from_secs(5), IpAddr::from_str("::1").unwrap())
+                .unwrap()
+                .scrape(&QueryBuilder::default().with_one_info_hash(&info_hash).query())
+                .await
+                .unwrap();
 
             let stats = env.container.http_tracker_core_container.stats_repository.get_stats().await;
 
@@ -1643,7 +1508,6 @@ mod configured_as_whitelisted {
         use std::sync::Arc;
         use std::time::Duration;
 
-        use reqwest::Url;
         use torrust_info_hash::InfoHash;
         use torrust_tracker_axum_http_server::testing::environment::Started;
         use torrust_tracker_client::http::client::Client;
@@ -1667,18 +1531,15 @@ mod configured_as_whitelisted {
             let request_id = Uuid::new_v4();
             let info_hash = random_info_hash();
 
-            let response = Client::new(
-                Url::parse(&format!("http://{}/", env.bind_address())).unwrap(),
-                Duration::from_secs(5),
-            )
-            .unwrap()
-            .announce_with_header(
-                &AnnounceBuilder::default().with_info_hash(&info_hash).query(),
-                "x-request-id",
-                &request_id.to_string(),
-            )
-            .await
-            .unwrap();
+            let response = Client::new(env.base_url(), Duration::from_secs(5))
+                .unwrap()
+                .announce_with_header(
+                    &AnnounceBuilder::default().with_info_hash(&info_hash).query(),
+                    "x-request-id",
+                    &request_id.to_string(),
+                )
+                .await
+                .unwrap();
 
             assert_torrent_not_in_whitelist_error_response(response).await;
 
@@ -1708,14 +1569,11 @@ mod configured_as_whitelisted {
                 .await
                 .expect("should add the torrent to the whitelist");
 
-            let response = Client::new(
-                Url::parse(&format!("http://{}/", env.bind_address())).unwrap(),
-                Duration::from_secs(5),
-            )
-            .unwrap()
-            .announce(&AnnounceBuilder::default().with_info_hash(&info_hash).query())
-            .await
-            .unwrap();
+            let response = Client::new(env.base_url(), Duration::from_secs(5))
+                .unwrap()
+                .announce(&AnnounceBuilder::default().with_info_hash(&info_hash).query())
+                .await
+                .unwrap();
 
             assert_is_announce_response(response).await;
 
@@ -1728,7 +1586,6 @@ mod configured_as_whitelisted {
         use std::sync::Arc;
         use std::time::Duration;
 
-        use reqwest::Url;
         use torrust_info_hash::InfoHash;
         use torrust_tracker_axum_http_server::testing::environment::Started;
         use torrust_tracker_client::http::client::Client;
@@ -1762,14 +1619,11 @@ mod configured_as_whitelisted {
             )
             .await;
 
-            let response = Client::new(
-                Url::parse(&format!("http://{}/", env.bind_address())).unwrap(),
-                Duration::from_secs(5),
-            )
-            .unwrap()
-            .scrape(&QueryBuilder::default().with_one_info_hash(&info_hash).query())
-            .await
-            .unwrap();
+            let response = Client::new(env.base_url(), Duration::from_secs(5))
+                .unwrap()
+                .scrape(&QueryBuilder::default().with_one_info_hash(&info_hash).query())
+                .await
+                .unwrap();
 
             let expected_scrape_response = ResponseBuilder::default().add_file(info_hash, File::zeroed()).build();
 
@@ -1810,14 +1664,11 @@ mod configured_as_whitelisted {
                 .await
                 .expect("should add the torrent to the whitelist");
 
-            let response = Client::new(
-                Url::parse(&format!("http://{}/", env.bind_address())).unwrap(),
-                Duration::from_secs(5),
-            )
-            .unwrap()
-            .scrape(&QueryBuilder::default().with_one_info_hash(&info_hash).query())
-            .await
-            .unwrap();
+            let response = Client::new(env.base_url(), Duration::from_secs(5))
+                .unwrap()
+                .scrape(&QueryBuilder::default().with_one_info_hash(&info_hash).query())
+                .await
+                .unwrap();
 
             let expected_scrape_response = ResponseBuilder::default()
                 .add_file(
@@ -1844,7 +1695,6 @@ mod configured_as_private {
         use std::sync::Arc;
         use std::time::Duration;
 
-        use reqwest::Url;
         use torrust_info_hash::InfoHash;
         use torrust_tracker_axum_http_server::testing::environment::Started;
         use torrust_tracker_client::http::client::{Client, Key as TrackerClientKey};
@@ -1874,7 +1724,7 @@ mod configured_as_private {
                 .unwrap();
 
             let response = Client::authenticated(
-                Url::parse(&format!("http://{}/", env.bind_address())).unwrap(),
+                env.base_url(),
                 Duration::from_secs(5),
                 TrackerClientKey::new(expiring_key.key().value()),
             )
@@ -1899,14 +1749,11 @@ mod configured_as_private {
 
             let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap(); // DevSkim: ignore DS173237
 
-            let response = Client::new(
-                Url::parse(&format!("http://{}/", env.bind_address())).unwrap(),
-                Duration::from_secs(5),
-            )
-            .unwrap()
-            .announce(&AnnounceBuilder::default().with_info_hash(&info_hash).query())
-            .await
-            .unwrap();
+            let response = Client::new(env.base_url(), Duration::from_secs(5))
+                .unwrap()
+                .announce(&AnnounceBuilder::default().with_info_hash(&info_hash).query())
+                .await
+                .unwrap();
 
             assert_tracker_core_authentication_error_response(response).await;
 
@@ -1924,7 +1771,7 @@ mod configured_as_private {
 
             let invalid_key = "INVALID_KEY";
 
-            let response = Client::new(Url::parse(&format!("http://{}/", env.bind_address())).unwrap(), Duration::from_secs(5)).unwrap()
+            let response = Client::new(env.base_url(), Duration::from_secs(5)).unwrap()
                     .get(&format!(
                         "announce/{invalid_key}?info_hash=%81%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00&peer_addr=2.137.87.41&downloaded=0&uploaded=0&peer_id=-qB00000000000000001&port=17548&left=0&event=completed&compact=0"
                     ))
@@ -1946,7 +1793,7 @@ mod configured_as_private {
             let unregistered_key = Key::from_str("YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ").unwrap();
 
             let response = Client::authenticated(
-                Url::parse(&format!("http://{}/", env.bind_address())).unwrap(),
+                env.base_url(),
                 Duration::from_secs(5),
                 TrackerClientKey::new(unregistered_key.value()),
             )
@@ -1967,7 +1814,6 @@ mod configured_as_private {
         use std::sync::Arc;
         use std::time::Duration;
 
-        use reqwest::Url;
         use torrust_info_hash::InfoHash;
         use torrust_tracker_axum_http_server::testing::environment::Started;
         use torrust_tracker_client::http::client::{Client, Key as TrackerClientKey};
@@ -1991,16 +1837,13 @@ mod configured_as_private {
 
             let invalid_key = "INVALID_KEY";
 
-            let response = Client::new(
-                Url::parse(&format!("http://{}/", env.bind_address())).unwrap(),
-                Duration::from_secs(5),
-            )
-            .unwrap()
-            .get(&format!(
-                "scrape/{invalid_key}?info_hash=%3B%24U%04%CF%5F%11%BB%DB%E1%20%1C%EAjk%F4Z%EE%1B%C0"
-            ))
-            .await
-            .unwrap();
+            let response = Client::new(env.base_url(), Duration::from_secs(5))
+                .unwrap()
+                .get(&format!(
+                    "scrape/{invalid_key}?info_hash=%3B%24U%04%CF%5F%11%BB%DB%E1%20%1C%EAjk%F4Z%EE%1B%C0"
+                ))
+                .await
+                .unwrap();
 
             assert_authentication_error_response(response).await;
         }
@@ -2025,14 +1868,11 @@ mod configured_as_private {
             )
             .await;
 
-            let response = Client::new(
-                Url::parse(&format!("http://{}/", env.bind_address())).unwrap(),
-                Duration::from_secs(5),
-            )
-            .unwrap()
-            .scrape(&QueryBuilder::default().with_one_info_hash(&info_hash).query())
-            .await
-            .unwrap();
+            let response = Client::new(env.base_url(), Duration::from_secs(5))
+                .unwrap()
+                .scrape(&QueryBuilder::default().with_one_info_hash(&info_hash).query())
+                .await
+                .unwrap();
 
             let expected_scrape_response = ResponseBuilder::default().add_file(info_hash, File::zeroed()).build();
 
@@ -2070,7 +1910,7 @@ mod configured_as_private {
                 .unwrap();
 
             let response = Client::authenticated(
-                Url::parse(&format!("http://{}/", env.bind_address())).unwrap(),
+                env.base_url(),
                 Duration::from_secs(5),
                 TrackerClientKey::new(expiring_key.key().value()),
             )
@@ -2121,7 +1961,7 @@ mod configured_as_private {
             let false_key: Key = "YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ".parse().unwrap();
 
             let response = Client::authenticated(
-                Url::parse(&format!("http://{}/", env.bind_address())).unwrap(),
+                env.base_url(),
                 Duration::from_secs(5),
                 TrackerClientKey::new(false_key.value()),
             )
@@ -2151,7 +1991,6 @@ mod using_ipv6_v6only {
     use std::sync::Arc;
     use std::time::Duration;
 
-    use reqwest::Url;
     use torrust_tracker_axum_http_server::testing::environment::Started;
     use torrust_tracker_client::http::client::Client;
     use torrust_tracker_test_helpers::{configuration, logging};
@@ -2168,12 +2007,7 @@ mod using_ipv6_v6only {
         let http_tracker_config = Arc::new(http_tracker_config);
         let env = Started::new(&core_config, &http_tracker_config).await;
 
-        let client = Client::bind(
-            Url::parse(&format!("http://{}/", env.bind_address())).unwrap(),
-            Duration::from_secs(5),
-            IpAddr::V6(Ipv6Addr::UNSPECIFIED),
-        )
-        .unwrap();
+        let client = Client::bind(env.base_url(), Duration::from_secs(5), IpAddr::V6(Ipv6Addr::UNSPECIFIED)).unwrap();
 
         let response = client.health_check().await.unwrap();
 
