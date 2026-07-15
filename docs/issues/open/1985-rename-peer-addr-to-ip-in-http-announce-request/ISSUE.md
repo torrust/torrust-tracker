@@ -55,7 +55,7 @@ BEP 3 specifies the `ip` parameter as accepting "IP (or dns name)". In practice:
 - The tracker's peer list stores `IpAddr` values, not hostnames. Supporting DNS would require either resolving names at announce time (latency, DoS vector) or storing hostnames (incompatible with the peer list model).
 - The current behaviour (silently drop non-IP values) is confusing and undocumented.
 
-An explicit decision is needed. The decision is captured in the ADR drafted as part of this issue: [`docs/adrs/YYYYMMDD_accept_only_ip_addresses_in_http_announce_ip_param.md`](../adrs/).
+An explicit decision is needed. The decision is captured in the ADR drafted as part of this issue: [`docs/adrs/YYYYMMDD_accept_only_ip_addresses_in_http_announce_ip_param.md`](../../adrs/).
 
 ### The "honour the `ip` param" question
 
@@ -223,5 +223,5 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 - BEP 3 — The BitTorrent Protocol Specification: <https://www.bittorrent.org/beps/bep_0003.html>
 - Related issue (honour `ip` param — sub-issue of #1978): to be created
-- Related epic: [#1978 — Configuration Overhaul](../open/1978-configuration-overhaul-epic.md)
+- Related epic: [#1978 — Configuration Overhaul](../1978-configuration-overhaul-epic.md)
 - opentracker `WANT_IP_FROM_QUERY_STRING`: <https://erdgeist.org/arts/software/opentracker/>

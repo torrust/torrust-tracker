@@ -172,9 +172,9 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 - BEP 3 — The BitTorrent Protocol Specification: <https://www.bittorrent.org/beps/bep_0003.html>
 - Feature request: <https://github.com/torrust/torrust-tracker/issues/163#issuecomment-1836642956>
-- Parent epic: [#1978 — Configuration Overhaul](../open/1978-configuration-overhaul-epic.md)
+- Parent epic: [#1978 — Configuration Overhaul](../1978-configuration-overhaul-epic.md)
 - Prerequisite issue: rename `peer_addr` → `ip` (to be linked once created)
-- Related issue: [#1640 — Per-HTTP-tracker `on_reverse_proxy` setting](../open/1640-1978-per-http-tracker-on-reverse-proxy-setting.md)
+- Related issue: [#1640 — Per-HTTP-tracker `on_reverse_proxy` setting](../1640-1978-per-http-tracker-on-reverse-proxy-setting.md)
 - opentracker `WANT_IP_FROM_QUERY_STRING`: <https://erdgeist.org/arts/software/opentracker/>
 - Research evidence — opentracker DNS name support: [evidence-opentracker-no-dns-support.md](evidence-opentracker-no-dns-support.md)
 - Research evidence — chihaya DNS name support: [evidence-chihaya-no-dns-support.md](evidence-chihaya-no-dns-support.md)

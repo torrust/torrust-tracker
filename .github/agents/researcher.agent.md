@@ -26,7 +26,8 @@ You gather facts. You do not make implementation decisions or write production c
 1. Clone external tracker implementations (opentracker, chihaya, etc.) and search their source
    code for specific patterns, behaviors, or configuration options.
 2. Search external GitHub repositories for relevant issues, PRs, and discussions using the
-   `github_text_search` and `github_repo` tools.
+   `github_repo` and `github_text_search` search tools where available, or the `gh` CLI
+   (`gh issue list`, `gh search issues`) when MCP tools are not accessible.
 3. Read external documentation (BEPs, wiki pages, READMEs) to verify claims.
 4. Compare implementations across multiple trackers and identify the de-facto standard behavior.
 5. Return structured, evidence-backed findings with source references (file paths, line numbers,
@@ -51,7 +52,9 @@ Typical research questions include:
 3. **Gather evidence**:
    - For source code research: clone the repo (shallow clone with `--depth 1`), then use `grep`,
      `find`, and `git log` to locate relevant code.
-   - For issue research: use `github_text_search` with the target org/repo and relevant keywords.
+   - For issue research: use the `github_repo` or `github_text_search` search tools where
+     available, or fall back to `gh search issues --repo <owner/repo> <keywords>` via the
+     terminal.
    - For documentation: fetch and read relevant web pages or local docs.
 4. **Cross-reference findings**: Compare evidence across multiple sources. Note agreements and
    disagreements.
