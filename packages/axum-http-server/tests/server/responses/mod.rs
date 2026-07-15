@@ -1,3 +1,4 @@
-pub mod announce;
-pub mod error;
-pub mod scrape;
+//! HTTP tracker response types used in integration tests.
+//!
+//! These types have been consolidated into `torrust-tracker-http-protocol`.
+//! Test code imports them directly from that crate.

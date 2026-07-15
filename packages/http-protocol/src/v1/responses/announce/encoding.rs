@@ -1,61 +1,14 @@
-//! `Announce` response for the HTTP tracker [`announce`](crate::v1::requests::announce::Announce) request.
+//! Encoding layer for the HTTP tracker announce response.
 //!
-//! Data structures and logic to build the `announce` response.
+//! Types for encoding announce responses into bencoded bytes.
+//! Supports two encoding forms: [`Normal`] (dictionary-based) and [`Compact`] (packed binary).
 use std::io::Write;
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
 
 use derive_more::{AsRef, Constructor, From};
 use torrust_bencode::{BMutAccess, BencodeMut, ben_bytes, ben_int, ben_list, ben_map};
-use torrust_peer_id::PeerId;
 
-// Protocol-local announce response DTOs intentionally duplicate some domain
-// field shapes. This keeps protocol crates decoupled from tracker domain types
-// and centralizes conversions in boundary adapters.
-#[derive(Clone, Debug, PartialEq, Constructor, Default)]
-pub struct AnnounceData {
-    pub peers: Vec<Peer>,
-    pub stats: SwarmMetadata,
-    pub policy: AnnouncePolicy,
-}
-
-#[derive(PartialEq, Eq, Debug, Clone, Copy, Constructor)]
-pub struct AnnouncePolicy {
-    pub interval: u32,
-    pub interval_min: u32,
-}
-
-impl Default for AnnouncePolicy {
-    fn default() -> Self {
-        Self {
-            interval: 120,
-            interval_min: 120,
-        }
-    }
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
-pub struct SwarmMetadata {
-    pub complete: u32,
-    pub downloaded: u32,
-    pub incomplete: u32,
-}
-
-impl SwarmMetadata {
-    #[must_use]
-    pub const fn new(complete: u32, downloaded: u32, incomplete: u32) -> Self {
-        Self {
-            complete,
-            downloaded,
-            incomplete,
-        }
-    }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct Peer {
-    pub peer_id: PeerId,
-    pub peer_addr: SocketAddr,
-}
+use crate::v1::responses::announce::data::{AnnounceData, Peer};
 
 /// An [`Announce`] response, that can be anything that is convertible from [`AnnounceData`].
 ///
@@ -247,6 +200,48 @@ pub enum CompactPeer {
     V4(CompactPeerData<Ipv4Addr>),
     /// The peer's port number.
     V6(CompactPeerData<Ipv6Addr>),
+}
+
+impl CompactPeer {
+    /// Creates a compact peer from a socket address.
+    #[must_use]
+    pub fn new(socket_addr: &SocketAddr) -> Self {
+        match socket_addr.ip() {
+            IpAddr::V4(ip) => Self::V4(CompactPeerData {
+                ip,
+                port: socket_addr.port(),
+            }),
+            IpAddr::V6(ip) => Self::V6(CompactPeerData {
+                ip,
+                port: socket_addr.port(),
+            }),
+        }
+    }
+
+    /// Creates a compact peer from 6 bytes (IPv4) or 18 bytes (IPv6).
+    #[must_use]
+    pub fn new_from_bytes(bytes: &[u8]) -> Self {
+        if bytes.len() == 18 {
+            // IPv6: 16 bytes IP + 2 bytes port
+            let ip = Ipv6Addr::new(
+                u16::from_be_bytes([bytes[0], bytes[1]]),
+                u16::from_be_bytes([bytes[2], bytes[3]]),
+                u16::from_be_bytes([bytes[4], bytes[5]]),
+                u16::from_be_bytes([bytes[6], bytes[7]]),
+                u16::from_be_bytes([bytes[8], bytes[9]]),
+                u16::from_be_bytes([bytes[10], bytes[11]]),
+                u16::from_be_bytes([bytes[12], bytes[13]]),
+                u16::from_be_bytes([bytes[14], bytes[15]]),
+            );
+            let port = u16::from_be_bytes([bytes[16], bytes[17]]);
+            Self::V6(CompactPeerData { ip, port })
+        } else {
+            // IPv4: 4 bytes IP + 2 bytes port (BEP 23)
+            let ip = Ipv4Addr::new(bytes[0], bytes[1], bytes[2], bytes[3]);
+            let port = u16::from_be_bytes([bytes[4], bytes[5]]);
+            Self::V4(CompactPeerData { ip, port })
+        }
+    }
 }
 
 impl From<Peer> for CompactPeer {

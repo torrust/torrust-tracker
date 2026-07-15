@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use serde::Serialize;
 use thiserror::Error;
-use torrust_tracker_client::http::client::responses::scrape::BencodeParseError;
+use torrust_tracker_http_protocol::v1::responses::scrape::deserialization::BencodeParseError;
 
 pub mod app;
 

@@ -1,3 +1,6 @@
+//! `Scrape` response deserialization for the HTTP tracker.
+//!
+//! Types for deserializing scrape responses from an HTTP tracker.
 use std::collections::HashMap;
 use std::str;
 
@@ -5,19 +8,18 @@ use serde::ser::SerializeMap;
 use serde::{Deserialize, Serialize, Serializer};
 use serde_bencode::value::Value;
 use thiserror::Error;
-
-use crate::http::{ByteArray20, InfoHash};
+use torrust_info_hash::InfoHash;
 
 #[derive(Debug, PartialEq, Default, Deserialize)]
 pub struct Response {
-    pub files: HashMap<ByteArray20, File>,
+    pub files: HashMap<InfoHash, File>,
 }
 
 impl Response {
     #[must_use]
-    pub fn with_one_file(info_hash_bytes: ByteArray20, file: File) -> Self {
-        let mut files: HashMap<ByteArray20, File> = HashMap::new();
-        files.insert(info_hash_bytes, file);
+    pub fn with_one_file(info_hash: InfoHash, file: File) -> Self {
+        let mut files: HashMap<InfoHash, File> = HashMap::new();
+        files.insert(info_hash, file);
         Self { files }
     }
 
@@ -33,9 +35,9 @@ impl Response {
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Default)]
 pub struct File {
-    pub complete: i64,   // The number of active peers that have completed downloading
-    pub downloaded: i64, // The number of peers that have ever completed downloading
-    pub incomplete: i64, // The number of active peers that have not completed downloading
+    pub complete: i64,
+    pub downloaded: i64,
+    pub incomplete: i64,
 }
 
 impl File {
@@ -58,7 +60,6 @@ struct DeserializedResponse {
     pub files: Value,
 }
 
-// Custom serialization for Response
 impl Serialize for Response {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -66,28 +67,11 @@ impl Serialize for Response {
     {
         let mut map = serializer.serialize_map(Some(self.files.len()))?;
         for (key, value) in &self.files {
-            // Convert ByteArray20 key to hex string
-            let hex_key = byte_array_to_hex_string(key);
+            let hex_key = hex::encode(key.bytes());
             map.serialize_entry(&hex_key, value)?;
         }
         map.end()
     }
-}
-
-// Helper function to convert ByteArray20 to hex string
-fn byte_array_to_hex_string(byte_array: &ByteArray20) -> String {
-    const HEX: &[u8; 16] = b"0123456789abcdef";
-
-    let mut hex_string = String::with_capacity(byte_array.len() * 2);
-
-    for byte in byte_array {
-        let high = usize::from(byte >> 4);
-        let low = usize::from(byte & 0x0f);
-        hex_string.push(char::from(HEX[high]));
-        hex_string.push(char::from(HEX[low]));
-    }
-
-    hex_string
 }
 
 #[derive(Default)]
@@ -97,8 +81,8 @@ pub struct ResponseBuilder {
 
 impl ResponseBuilder {
     #[must_use]
-    pub fn add_file(mut self, info_hash_bytes: ByteArray20, file: File) -> Self {
-        self.response.files.insert(info_hash_bytes, file);
+    pub fn add_file(mut self, info_hash: InfoHash, file: File) -> Self {
+        self.response.files.insert(info_hash, file);
         self
     }
 
@@ -127,35 +111,20 @@ pub enum BencodeParseError {
 }
 
 /// It parses a bencoded scrape response into a `Response` struct.
-///
-/// For example:
-///
-/// ```text
-/// d5:filesd20:xxxxxxxxxxxxxxxxxxxxd8:completei11e10:downloadedi13772e10:incompletei19e
-/// 20:yyyyyyyyyyyyyyyyyyyyd8:completei21e10:downloadedi206e10:incompletei20eee
-/// ```
-///
-/// Response (JSON encoded for readability):
-///
-/// ```text
-/// {
-///   'files': {
-///     'xxxxxxxxxxxxxxxxxxxx': {'complete': 11, 'downloaded': 13772, 'incomplete': 19},
-///     'yyyyyyyyyyyyyyyyyyyy': {'complete': 21, 'downloaded': 206, 'incomplete': 20}
-///   }
-/// }
 fn parse_bencoded_response(value: &Value) -> Result<Response, BencodeParseError> {
-    let mut files: HashMap<ByteArray20, File> = HashMap::new();
+    let mut files: HashMap<InfoHash, File> = HashMap::new();
 
     match value {
         Value::Dict(dict) => {
             for file_element in dict {
-                let info_hash_byte_vec = file_element.0;
+                let info_hash_bytes = file_element.0;
                 let file_value = file_element.1;
 
                 let file = parse_bencoded_file(file_value)?;
 
-                files.insert(InfoHash::new(info_hash_byte_vec).bytes(), file);
+                let info_hash = InfoHash::from(info_hash_bytes.as_slice());
+
+                files.insert(info_hash, file);
             }
         }
         _ => return Err(BencodeParseError::InvalidValueExpectedDict { value: value.clone() }),
@@ -165,23 +134,6 @@ fn parse_bencoded_response(value: &Value) -> Result<Response, BencodeParseError>
 }
 
 /// It parses a bencoded dictionary into a `File` struct.
-///
-/// For example:
-///
-///
-/// ```text
-/// d8:completei11e10:downloadedi13772e10:incompletei19ee
-/// ```
-///
-/// into:
-///
-/// ```text
-/// File {
-///     complete: 11,
-///     downloaded: 13772,
-///     incomplete: 19,
-/// }
-/// ```
 fn parse_bencoded_file(value: &Value) -> Result<File, BencodeParseError> {
     let file = match &value {
         Value::Dict(dict) => {

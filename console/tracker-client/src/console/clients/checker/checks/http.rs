@@ -3,9 +3,11 @@ use std::time::Duration;
 
 use serde::Serialize;
 use torrust_info_hash::InfoHash;
-use torrust_tracker_client::http::client::responses::announce::Announce;
-use torrust_tracker_client::http::client::responses::scrape;
-use torrust_tracker_client::http::client::{Client, requests};
+use torrust_tracker_client::http::client::Client;
+use torrust_tracker_http_protocol::v1::requests::announce::AnnounceBuilder;
+use torrust_tracker_http_protocol::v1::requests::scrape_builder;
+use torrust_tracker_http_protocol::v1::responses::announce::deserialization::DeserializedNormal;
+use torrust_tracker_http_protocol::v1::responses::scrape::deserialization;
 use url::Url;
 
 use crate::console::clients::http::Error;
@@ -60,24 +62,20 @@ pub async fn run(http_trackers: Vec<Url>, timeout: Duration) -> Vec<Result<Check
     results
 }
 
-async fn check_http_announce(url: &Url, timeout: Duration) -> Result<Announce, Error> {
+async fn check_http_announce(url: &Url, timeout: Duration) -> Result<DeserializedNormal, Error> {
     let info_hash_str = "9c38422213e30bff212b30c360d26f9a02136422".to_string(); // DevSkim: ignore DS173237
     let info_hash = InfoHash::from_str(&info_hash_str).expect("a valid info-hash is required");
 
     let client = Client::new(url.clone(), timeout).map_err(|err| Error::HttpClientError { err })?;
 
     let response = client
-        .announce(
-            &requests::announce::QueryBuilder::with_default_values()
-                .with_info_hash(&info_hash)
-                .query(),
-        )
+        .announce(&AnnounceBuilder::with_default_values().with_info_hash(&info_hash).query())
         .await
         .map_err(|err| Error::HttpClientError { err })?;
 
     let response = response.bytes().await.map_err(|e| Error::ResponseError { err: e.into() })?;
 
-    let response = serde_bencode::from_bytes::<Announce>(&response).map_err(|e| Error::ParseBencodeError {
+    let response = serde_bencode::from_bytes::<DeserializedNormal>(&response).map_err(|e| Error::ParseBencodeError {
         data: response,
         err: e.into(),
     })?;
@@ -85,9 +83,9 @@ async fn check_http_announce(url: &Url, timeout: Duration) -> Result<Announce, E
     Ok(response)
 }
 
-async fn check_http_scrape(url: &Url, timeout: Duration) -> Result<scrape::Response, Error> {
+async fn check_http_scrape(url: &Url, timeout: Duration) -> Result<deserialization::Response, Error> {
     let info_hashes: Vec<String> = vec!["9c38422213e30bff212b30c360d26f9a02136422".to_string()]; // DevSkim: ignore DS173237
-    let query = requests::scrape::Query::try_from(info_hashes).expect("a valid array of info-hashes is required");
+    let query = scrape_builder::Query::try_from(info_hashes).expect("a valid array of info-hashes is required");
 
     let client = Client::new(url.clone(), timeout).map_err(|err| Error::HttpClientError { err })?;
 
@@ -95,7 +93,7 @@ async fn check_http_scrape(url: &Url, timeout: Duration) -> Result<scrape::Respo
 
     let response = response.bytes().await.map_err(|e| Error::ResponseError { err: e.into() })?;
 
-    let response = scrape::Response::try_from_bencoded(&response).map_err(|e| Error::BencodeParseError {
+    let response = deserialization::Response::try_from_bencoded(&response).map_err(|e| Error::BencodeParseError {
         data: response,
         err: e.into(),
     })?;

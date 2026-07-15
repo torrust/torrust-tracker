@@ -7,10 +7,11 @@ use std::time::Duration;
 
 use derive_more::Display;
 use hyper::StatusCode;
-use requests::{announce, scrape};
 use reqwest::{Response, Url};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
+use torrust_tracker_http_protocol::v1::requests::announce::Announce;
+use torrust_tracker_http_protocol::v1::requests::scrape_builder;
 
 #[derive(Debug, Clone, Error)]
 pub enum Error {
@@ -93,7 +94,7 @@ impl Client {
     /// # Errors
     ///
     /// This method fails if the returned response was not successful
-    pub async fn announce(&self, query: &announce::Query) -> Result<Response, Error> {
+    pub async fn announce(&self, query: &Announce) -> Result<Response, Error> {
         let response = self.get_url(self.build_announce_url(query)).await?;
 
         if response.status().is_success() {
@@ -109,7 +110,7 @@ impl Client {
     /// # Errors
     ///
     /// This method fails if the returned response was not successful
-    pub async fn scrape(&self, query: &scrape::Query) -> Result<Response, Error> {
+    pub async fn scrape(&self, query: &scrape_builder::Query) -> Result<Response, Error> {
         let response = self.get_url(self.build_scrape_url(query)).await?;
 
         if response.status().is_success() {
@@ -125,7 +126,7 @@ impl Client {
     /// # Errors
     ///
     /// This method fails if the returned response was not successful
-    pub async fn announce_with_header(&self, query: &announce::Query, key: &str, value: &str) -> Result<Response, Error> {
+    pub async fn announce_with_header(&self, query: &Announce, key: &str, value: &str) -> Result<Response, Error> {
         let response = self.get_url_with_header(self.build_announce_url(query), key, value).await?;
 
         if response.status().is_success() {
@@ -194,13 +195,13 @@ impl Client {
             .map_err(|e| Error::ResponseError { err: e.into() })
     }
 
-    fn build_announce_url(&self, query: &announce::Query) -> Url {
+    fn build_announce_url(&self, query: &Announce) -> Url {
         let mut url = self.build_endpoint_url("announce");
         url.set_query(Some(&query.to_string()));
         url
     }
 
-    fn build_scrape_url(&self, query: &scrape::Query) -> Url {
+    fn build_scrape_url(&self, query: &scrape_builder::Query) -> Url {
         let mut url = self.build_endpoint_url("scrape");
         url.set_query(Some(&query.to_string()));
         url

@@ -42,12 +42,11 @@ socket2 = "0.6.4"
 
 [dev-dependencies]
 local-ip-address = "0"
-percent-encoding = "2"
 rand = "0.9"
 serde_bencode = "0"
 serde_bytes = "0"
-serde_repr = "0"
 torrust-peer-id = "0.1.0"
+torrust-tracker-client-lib = { version = "0.1.0", path = "../tracker-client" }
 torrust-tracker-test-helpers = { version = "3.0.0", path = "../test-helpers" }
 uuid = { version = "1", features = [ "v4" ] }
 

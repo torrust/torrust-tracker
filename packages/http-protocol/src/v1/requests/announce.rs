@@ -1,7 +1,10 @@
 //! `Announce` request for the HTTP tracker.
 //!
-//! Data structures and logic for parsing the `announce` request.
+//! Data structures and logic for parsing and building the `announce` request.
+//! This type is used both for server-side parsing (via `TryFrom<Query>`) and
+//! client-side construction (via `AnnounceBuilder` + `Display`).
 use std::fmt;
+use std::net::IpAddr;
 use std::panic::Location;
 use std::str::FromStr;
 
@@ -10,7 +13,9 @@ use torrust_info_hash::InfoHash;
 use torrust_located_error::{Located, LocatedError};
 use torrust_peer_id::PeerId;
 
-use crate::percent_encoding::{PeerIdConversionError, percent_decode_info_hash, percent_decode_peer_id};
+use crate::percent_encoding::{
+    PeerIdConversionError, percent_decode_info_hash, percent_decode_peer_id, percent_encode_byte_array,
+};
 use crate::v1::query::{ParseQueryError, Query};
 use crate::v1::responses;
 
@@ -24,6 +29,7 @@ const LEFT: &str = "left";
 const EVENT: &str = "event";
 const COMPACT: &str = "compact";
 const NUMWANT: &str = "numwant";
+const PEER_ADDR: &str = "peer_addr";
 
 // Intentionally protocol-local: this currently mirrors the UDP protocol
 // `NumberOfBytes` concept and domain byte counters, but it is kept local so
@@ -42,6 +48,12 @@ impl NumberOfBytes {
 /// The `Announce` request. Fields use protocol-local types after parsing the
 /// query params of the request; boundary layers map them to domain types.
 ///
+/// This type is used for both server-side parsing and client-side construction:
+///
+/// - **Server-side**: Parsed from incoming HTTP query strings via `TryFrom<Query>`.
+/// - **Client-side**: Built via `AnnounceBuilder` and serialized to a URL query
+///   string via `Display`.
+///
 /// ```rust
 /// use torrust_tracker_http_protocol::v1::requests::announce::{Announce, Compact, Event};
 /// use torrust_info_hash::InfoHash;
@@ -54,6 +66,7 @@ impl NumberOfBytes {
 ///     peer_id: PeerId(*b"-RC3000-000000000001"),
 ///     port: 17548,
 ///     // Optional params
+///     peer_addr: None,
 ///     downloaded: Some(NumberOfBytes::new(1)),
 ///     uploaded: Some(NumberOfBytes::new(1)),
 ///     left: Some(NumberOfBytes::new(1)),
@@ -64,13 +77,12 @@ impl NumberOfBytes {
 /// ```
 ///
 /// > **NOTICE**: The [BEP 03. The `BitTorrent` Protocol Specification](https://www.bittorrent.org/beps/bep_0003.html)
-/// > specifies that only the peer `IP` and `event`are optional. However, the
+/// > specifies that only the peer `IP` and `event` are optional. However, the
 /// > tracker defines default values for some of the mandatory params.
 ///
-/// > **NOTICE**: The struct does not contain the `IP` of the peer. It's not
-/// > mandatory and it's not used by the tracker. The `IP` is obtained from the
-/// > request itself.
-#[derive(Debug, PartialEq)]
+/// > **NOTICE**: The struct contains `peer_addr` as per BEP 3. The tracker
+/// > implementation may choose to use it or derive the IP from the connection.
+#[derive(Clone, Debug, PartialEq)]
 pub struct Announce {
     // Mandatory params
     /// The `InfoHash` of the torrent.
@@ -83,6 +95,9 @@ pub struct Announce {
     pub port: u16,
 
     // Optional params
+    /// The peer IP address (BEP 3 `ip` parameter).
+    pub peer_addr: Option<IpAddr>,
+
     /// The number of bytes downloaded by the peer.
     pub downloaded: Option<NumberOfBytes>,
 
@@ -211,7 +226,7 @@ impl fmt::Display for Event {
 /// - [`Compact`](crate::v1::responses::announce::Compact) response.
 ///
 /// Refer to [BEP 23. Tracker Returns Compact Peer Lists](https://www.bittorrent.org/beps/bep_0023.html)
-#[derive(PartialEq, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum Compact {
     /// The client advises the tracker that the client prefers compact format.
     Accepted = 1,
@@ -275,7 +290,187 @@ impl TryFrom<Query> for Announce {
             event: extract_event(&query)?,
             compact: extract_compact(&query)?,
             numwant: extract_numwant(&query)?,
+            peer_addr: extract_peer_addr(&query),
         })
+    }
+}
+
+impl fmt::Display for Announce {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let mut params = vec![];
+
+        params.push(("info_hash", percent_encode_byte_array(&self.info_hash.bytes())));
+        params.push(("peer_id", percent_encode_byte_array(&self.peer_id.0)));
+        params.push(("port", self.port.to_string()));
+
+        if let Some(peer_addr) = &self.peer_addr {
+            params.push(("peer_addr", peer_addr.to_string()));
+        }
+        if let Some(downloaded) = self.downloaded {
+            params.push(("downloaded", downloaded.0.to_string()));
+        }
+        if let Some(uploaded) = self.uploaded {
+            params.push(("uploaded", uploaded.0.to_string()));
+        }
+        if let Some(left) = self.left {
+            params.push(("left", left.0.to_string()));
+        }
+        if let Some(event) = &self.event {
+            params.push(("event", event.to_string()));
+        }
+        if let Some(compact) = &self.compact {
+            params.push(("compact", compact.to_string()));
+        }
+        if let Some(numwant) = self.numwant {
+            params.push(("numwant", numwant.to_string()));
+        }
+
+        let query = params
+            .iter()
+            .map(|(k, v)| format!("{k}={v}"))
+            .collect::<Vec<String>>()
+            .join("&");
+
+        write!(f, "{query}")
+    }
+}
+
+/// Builder for constructing an [`Announce`] request for client-side use.
+///
+/// Provides ergonomic construction with sensible defaults. The resulting
+/// [`Announce`] can be serialized to a URL query string via its `Display` impl.
+///
+/// ```rust
+/// use std::net::{IpAddr, Ipv4Addr};
+/// use std::str::FromStr;
+/// use torrust_tracker_http_protocol::v1::requests::announce::{AnnounceBuilder, Event, Compact};
+/// use torrust_info_hash::InfoHash;
+///
+/// let announce = AnnounceBuilder::default()
+///     .with_info_hash(&InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap())
+///     .query();
+///
+/// let query_string = announce.to_string();
+/// ```
+#[derive(Clone, Debug)]
+pub struct AnnounceBuilder {
+    announce: Announce,
+}
+
+impl Default for AnnounceBuilder {
+    fn default() -> Self {
+        Self::with_default_values()
+    }
+}
+
+impl AnnounceBuilder {
+    /// Creates a builder with default test values.
+    ///
+    /// # Panics
+    ///
+    /// Will panic if the default info-hash value is not a valid info-hash.
+    #[must_use]
+    pub fn with_default_values() -> AnnounceBuilder {
+        let default_announce = Announce {
+            info_hash: InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap(), // DevSkim: ignore DS173237
+            peer_id: PeerId(*b"-qB00000000000000001"),
+            port: 17548,
+            peer_addr: Some(IpAddr::V4(std::net::Ipv4Addr::new(192, 168, 1, 88))),
+            downloaded: None,
+            uploaded: None,
+            left: None,
+            event: Some(Event::Started),
+            compact: Some(Compact::NotAccepted),
+            numwant: None,
+        };
+        Self {
+            announce: default_announce,
+        }
+    }
+
+    #[must_use]
+    pub fn with_info_hash(mut self, info_hash: &InfoHash) -> Self {
+        self.announce.info_hash = *info_hash;
+        self
+    }
+
+    #[must_use]
+    pub fn with_peer_id(mut self, peer_id: &PeerId) -> Self {
+        self.announce.peer_id = *peer_id;
+        self
+    }
+
+    #[must_use]
+    pub fn with_port(mut self, port: u16) -> Self {
+        self.announce.port = port;
+        self
+    }
+
+    #[must_use]
+    pub fn with_peer_addr(mut self, peer_addr: IpAddr) -> Self {
+        self.announce.peer_addr = Some(peer_addr);
+        self
+    }
+
+    #[must_use]
+    pub fn with_event(mut self, event: Event) -> Self {
+        self.announce.event = Some(event);
+        self
+    }
+
+    /// # Panics
+    ///
+    /// Panics if `downloaded` exceeds `i64::MAX`.
+    #[must_use]
+    pub fn with_downloaded(mut self, downloaded: u64) -> Self {
+        self.announce.downloaded = Some(NumberOfBytes::new(
+            i64::try_from(downloaded).expect("downloaded value fits in i64"),
+        ));
+        self
+    }
+
+    /// # Panics
+    ///
+    /// Panics if `uploaded` exceeds `i64::MAX`.
+    #[must_use]
+    pub fn with_uploaded(mut self, uploaded: u64) -> Self {
+        self.announce.uploaded = Some(NumberOfBytes::new(
+            i64::try_from(uploaded).expect("uploaded value fits in i64"),
+        ));
+        self
+    }
+
+    /// # Panics
+    ///
+    /// Panics if `left` exceeds `i64::MAX`.
+    #[must_use]
+    pub fn with_left(mut self, left: u64) -> Self {
+        self.announce.left = Some(NumberOfBytes::new(i64::try_from(left).expect("left value fits in i64")));
+        self
+    }
+
+    #[must_use]
+    pub fn with_compact(mut self, compact: Compact) -> Self {
+        self.announce.compact = Some(compact);
+        self
+    }
+
+    #[must_use]
+    pub fn without_compact(mut self) -> Self {
+        self.announce.compact = None;
+        self
+    }
+
+    #[must_use]
+    pub fn with_numwant(mut self, numwant: u32) -> Self {
+        self.announce.numwant = Some(numwant);
+        self
+    }
+
+    /// Consumes the builder and returns the constructed [`Announce`].
+    #[must_use]
+    pub fn query(self) -> Announce {
+        self.announce
     }
 }
 
@@ -367,6 +562,13 @@ fn extract_number_of_bytes_from_param(param_name: &str, query: &Query) -> Result
     }
 }
 
+fn extract_peer_addr(query: &Query) -> Option<IpAddr> {
+    match query.get_param(PEER_ADDR) {
+        Some(raw_param) => IpAddr::from_str(&raw_param).ok(),
+        None => None,
+    }
+}
+
 fn extract_event(query: &Query) -> Result<Option<Event>, ParseAnnounceQueryError> {
     match query.get_param(EVENT) {
         Some(raw_param) => Ok(Some(Event::from_str(&raw_param)?)),
@@ -428,6 +630,7 @@ mod tests {
                     info_hash: "3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0".parse::<InfoHash>().unwrap(), // DevSkim: ignore DS173237
                     peer_id: PeerId(*b"-RC3000-000000000001"),
                     port: 17548,
+                    peer_addr: None,
                     downloaded: None,
                     uploaded: None,
                     left: None,
@@ -463,6 +666,7 @@ mod tests {
                     info_hash: "3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0".parse::<InfoHash>().unwrap(), // DevSkim: ignore DS173237
                     peer_id: PeerId(*b"-RC3000-000000000001"),
                     port: 17548,
+                    peer_addr: None,
                     downloaded: Some(NumberOfBytes::new(1)),
                     uploaded: Some(NumberOfBytes::new(2)),
                     left: Some(NumberOfBytes::new(3)),

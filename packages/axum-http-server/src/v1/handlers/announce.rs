@@ -220,6 +220,7 @@ mod tests {
             info_hash: sample_info_hash(),
             peer_id: PeerId(*b"-qB00000000000000001"),
             port: 17548,
+            peer_addr: None,
             downloaded: None,
             uploaded: None,
             left: None,

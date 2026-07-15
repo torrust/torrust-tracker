@@ -18,11 +18,16 @@ version = "0.1.0"
 torrust-info-hash = "=0.2.0"
 torrust-peer-id = "0.1.0"
 derive_more = { version = "2", features = [ "as_ref", "constructor", "from" ] }
+hex = "0"
 multimap = "0"
 percent-encoding = "2"
 serde = { version = "1", features = [ "derive" ] }
 serde_bencode = "0"
+serde_bytes = "0"
 thiserror = "2"
 torrust-clock = "3.0.0"
 torrust-bencode = "3.0.0"
 torrust-located-error = "3.0.0"
+
+[package.metadata.cargo-machete]
+ignored = [ "serde_bytes" ]

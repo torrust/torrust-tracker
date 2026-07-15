@@ -107,6 +107,7 @@ pub fn sample_announce_request_for_peer(peer: Peer) -> (Announce, ClientIpSource
         info_hash: sample_info_hash(),
         peer_id: peer.peer_id,
         port: peer.peer_addr.port(),
+        peer_addr: None,
         uploaded: Some(ProtocolNumberOfBytes::new(peer.uploaded.0)),
         downloaded: Some(ProtocolNumberOfBytes::new(peer.downloaded.0)),
         left: Some(ProtocolNumberOfBytes::new(peer.left.0)),
