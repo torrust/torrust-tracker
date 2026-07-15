@@ -159,6 +159,7 @@ hexdigit
 hexlify
 hlocalhost
 hmac
+hostnames
 hotfixes
 hotspot
 hotspots
