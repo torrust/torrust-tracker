@@ -3,7 +3,7 @@ name: cleanup-completed-issues
 description: Guide for archiving closed issue specification files from docs/issues/open/ to docs/issues/closed/. Covers verifying closure on GitHub, moving files, updating frontmatter, creating a branch, and opening a PR. Permanent deletion of closed specs is not automated — the user must explicitly request it. Use when cleaning up closed issue specs, archiving issue docs, or maintaining the docs/issues/ folder. Triggers on "cleanup issue", "archive issue", "move closed issue", "clean completed issues", or "maintain issue docs".
 metadata:
   author: torrust
-  version: "1.3"
+  version: "1.4"
 ---
 
 # Cleaning Up Completed Issues
@@ -50,6 +50,24 @@ git checkout develop
 git pull --ff-only "$UPSTREAM_REMOTE" develop
 git checkout -b chore/cleanup-completed-issues
 ```
+
+> **Edge case — branch already exists**: If a branch named `chore/cleanup-completed-issues`
+> already exists (e.g., from a previous aborted run), first delete it, then recreate:
+>
+> ```bash
+> git branch -D chore/cleanup-completed-issues
+> git checkout develop
+> git pull --ff-only "$UPSTREAM_REMOTE" develop
+> git checkout -b chore/cleanup-completed-issues
+> ```
+>
+> This ensures the branch is based on the latest `develop` and carries no stale commits
+> from the prior attempt. If the branch has already been pushed to a remote, you may also
+> need to delete it there:
+>
+> ```bash
+> git push "$FORK_REMOTE" --delete chore/cleanup-completed-issues
+> ```
 
 ### Step 1: Verify Issue is Closed on GitHub
 
@@ -98,11 +116,11 @@ Note: `git mv` on a directory moves all files inside it atomically.
 
 After moving, update the spec's YAML frontmatter to reflect the closed state:
 
-| Field                 | Before                   | After                     |
-| --------------------- | ------------------------ | ------------------------- |
-| `status`              | `open`, `planned`, etc.  | `done`                    |
-| `spec-path`           | `docs/issues/open/...`   | `docs/issues/closed/...`  |
-| `last-updated-utc`    | previous date            | current date              |
+| Field              | Before                  | After                    |
+| ------------------ | ----------------------- | ------------------------ |
+| `status`           | `open`, `planned`, etc. | `done`                   |
+| `spec-path`        | `docs/issues/open/...`  | `docs/issues/closed/...` |
+| `last-updated-utc` | previous date           | current date             |
 
 For directories with multiple files, update at minimum the main `ISSUE.md` plus any
 supplementary files whose frontmatter references the `docs/issues/open/` path (e.g.,
