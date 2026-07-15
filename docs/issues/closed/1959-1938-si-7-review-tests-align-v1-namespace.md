@@ -1,17 +1,17 @@
 ---
 doc-type: spec
 issue-type: task
-status: planned
+status: done
 priority: p3
 epic: 1938
 github-issue: 1959
-spec-path: docs/issues/open/1959-1938-si-7-review-tests-align-v1-namespace.md
-last-updated-utc: 2026-06-29
+spec-path: docs/issues/closed/1959-1938-si-7-review-tests-align-v1-namespace.md
+last-updated-utc: 2026-07-15
 semantic-links:
   skill-links:
     - create-issue
   related-artifacts:
-    - docs/issues/open/1938-rest-api-contract-first-migration/EPIC.md
+    - docs/issues/closed/1938-rest-api-contract-first-migration/EPIC.md
     - packages/axum-rest-api-server/src/v1/context/torrent/resources/torrent.rs
     - packages/axum-rest-api-server/src/v1/context/torrent/resources/peer.rs
     - packages/rest-api-runtime-adapter/src/conversion.rs
@@ -105,12 +105,20 @@ For `rest-api-application` and `rest-api-runtime-adapter`, the content is specif
 
 ## Verification / Progress
 
-- [ ] A1: Conversion tests moved to `rest-api-runtime-adapter`
-- [ ] A2: Empty `peer.rs` stub removed
-- [ ] A3: Module declarations cleaned up
-- [ ] A4: No other misplaced tests found in `axum-rest-api-server`
-- [ ] B1: `rest-api-application` has `v1/` module with ports + use-cases
-- [ ] B2: `rest-api-runtime-adapter` has `v1/` module with adapters + container + conversion
-- [ ] B3: All internal imports updated
-- [ ] B4: Workspace builds cleanly
-- [ ] B5: Pre-commit and pre-push checks pass
+- [x] A1: Conversion tests moved to `rest-api-runtime-adapter`
+- [x] A2: Empty `peer.rs` stub removed
+- [x] A3: Module declarations cleaned up
+- [x] A4: No other misplaced tests found in `axum-rest-api-server`
+- [x] B1: `rest-api-application` has `v1/` module with ports + use-cases
+- [x] B2: `rest-api-runtime-adapter` has `v1/` module with adapters + container + conversion
+- [x] B3: All internal imports updated
+- [x] B4: Workspace builds cleanly
+- [x] B5: Pre-commit and pre-push checks pass
+
+### Progress Log
+
+| Date       | Event                                      |
+| ---------- | ------------------------------------------ |
+| 2026-06-29 | Draft spec created                         |
+| 2026-06-30 | PR #1963 merged - Implementation completed |
+| 2026-07-15 | Spec archived to `docs/issues/closed/`     |

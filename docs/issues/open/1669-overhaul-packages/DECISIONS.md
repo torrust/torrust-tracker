@@ -69,7 +69,7 @@ release version.
 
 - `docs/adrs/20260629000000_adopt_independent_package_versioning.md` — ADR documenting
   the policy decision
-- `docs/issues/open/1926-1669-si-32-define-package-versioning-strategy.md` — policy
+- `docs/issues/closed/1926-1669-si-32-define-package-versioning-strategy.md` — policy
   definition issue
 
 ---

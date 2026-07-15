@@ -2,12 +2,12 @@
 doc-type: benchmark-report
 parent-issue: 1505
 status: completed
-last-updated-utc: 2026-06-26 16:30
+last-updated-utc: 2026-07-15
 semantic-links:
   related-artifacts:
-    - docs/issues/open/1505-optimize-peer-ip-list-from-swarm/ISSUE.md
-    - docs/issues/open/1505-optimize-peer-ip-list-from-swarm/baseline-performance.md
-    - docs/issues/open/1505-optimize-peer-ip-list-from-swarm/aquatic-benchmarking-guide.md
+    - docs/issues/closed/1505-optimize-peer-ip-list-from-swarm/ISSUE.md
+    - docs/issues/closed/1505-optimize-peer-ip-list-from-swarm/baseline-performance.md
+    - docs/issues/closed/1505-optimize-peer-ip-list-from-swarm/aquatic-benchmarking-guide.md
 ---
 
 # Post-Implementation Performance Report for Issue #1505
@@ -32,11 +32,11 @@ Run with `cargo run --package torrust-tracker-swarm-coordination-registry --exam
 
 | Peers | Old (ns) | Compact (ns) | Delta (ns) | Speedup |
 | ----: | -------: | -----------: | ---------: | ------: |
-|    10 |    93.17 |       179.53 |     −86.37 |  0.52×  |
-|    74 |   407.23 |       823.54 |    −416.32 |  0.49×  |
-|   100 |   406.67 |       839.87 |    −433.20 |  0.48×  |
-|   500 |   423.87 |       864.57 |    −440.69 |  0.49×  |
-|  1000 |   424.05 |       869.43 |    −445.38 |  0.49×  |
+|    10 |    93.17 |       179.53 |     −86.37 |   0.52× |
+|    74 |   407.23 |       823.54 |    −416.32 |   0.49× |
+|   100 |   406.67 |       839.87 |    −433.20 |   0.48× |
+|   500 |   423.87 |       864.57 |    −440.69 |   0.49× |
+|  1000 |   424.05 |       869.43 |    −445.38 |   0.49× |
 
 ### Analysis
 
@@ -63,9 +63,9 @@ microbenchmark is broken (see ISSUE.md follow-up). Skipped.
 
 ## Summary
 
-| ID  | Metric                      | Baseline | After | Delta  |
-| --- | --------------------------- | -------- | ----- | ------ |
-| B4  | `peers_excluding` (74 peers) | 407 ns  | 824 ns | **−49%** |
+| ID  | Metric                       | Baseline | After  | Delta    |
+| --- | ---------------------------- | -------- | ------ | -------- |
+| B4  | `peers_excluding` (74 peers) | 407 ns   | 824 ns | **−49%** |
 
 ## Verdict
 

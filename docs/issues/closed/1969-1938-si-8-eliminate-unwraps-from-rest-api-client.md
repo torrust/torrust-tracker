@@ -1,17 +1,17 @@
 ---
 doc-type: spec
 issue-type: task
-status: planned
+status: done
 priority: p2
 epic: 1938
 github-issue: 1969
-spec-path: docs/issues/open/1969-1938-si-8-eliminate-unwraps-from-rest-api-client.md
-last-updated-utc: 2026-07-13
+spec-path: docs/issues/closed/1969-1938-si-8-eliminate-unwraps-from-rest-api-client.md
+last-updated-utc: 2026-07-15
 semantic-links:
   skill-links:
     - create-issue
   related-artifacts:
-    - docs/issues/open/1938-rest-api-contract-first-migration/EPIC.md
+    - docs/issues/closed/1938-rest-api-contract-first-migration/EPIC.md
     - packages/rest-api-client/
     - packages/rest-api-client/src/v1/client.rs
 ---
@@ -102,7 +102,15 @@ Per discussion with the issue author (2026-07-13):
 - [x] All contract tests pass unchanged (except for updated `.unwrap()` calls on test side)
 - [x] E2E tests compile
 - [x] Pre-commit checks pass
-- [ ] Pre-push checks pass
+- [x] Pre-push checks pass
+
+### Progress Log
+
+| Date       | Event                                      |
+| ---------- | ------------------------------------------ |
+| 2026-07-13 | Draft spec created                         |
+| 2026-07-13 | PR #1973 merged - Implementation completed |
+| 2026-07-15 | Spec archived to `docs/issues/closed/`     |
 
 ## Acceptance Criteria
 

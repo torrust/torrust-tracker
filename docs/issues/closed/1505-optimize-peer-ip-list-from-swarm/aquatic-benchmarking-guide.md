@@ -2,12 +2,12 @@
 doc-type: how-to-guide
 parent-issue: 1505
 status: completed
-last-updated-utc: 2026-06-26 14:00
+last-updated-utc: 2026-07-15
 semantic-links:
   related-artifacts:
-    - docs/issues/open/1505-optimize-peer-ip-list-from-swarm/ISSUE.md
-    - docs/issues/open/1505-optimize-peer-ip-list-from-swarm/baseline-performance.md
-    - docs/issues/open/1505-optimize-peer-ip-list-from-swarm/pre-implementation-analysis.md
+    - docs/issues/closed/1505-optimize-peer-ip-list-from-swarm/ISSUE.md
+    - docs/issues/closed/1505-optimize-peer-ip-list-from-swarm/baseline-performance.md
+    - docs/issues/closed/1505-optimize-peer-ip-list-from-swarm/pre-implementation-analysis.md
     - docs/benchmarking.md
     - share/default/config/tracker.udp.benchmarking.toml
 ---

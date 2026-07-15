@@ -1,13 +1,13 @@
 ---
 doc-type: issue
 issue-type: task
-status: planned
+status: done
 priority: p3
 github-issue: 1447
-spec-path: docs/issues/open/1447-change-logging-threshold-connection-id-error.md
+spec-path: docs/issues/closed/1447-change-logging-threshold-connection-id-error.md
 branch: "1447-change-logging-threshold-connection-id-error"
 related-pr: null
-last-updated-utc: 2026-07-13 12:00
+last-updated-utc: 2026-07-15
 semantic-links:
   skill-links:
     - create-issue
@@ -114,10 +114,17 @@ separately — this behaviour is unaffected by the log level change.
 ### Workflow Checkpoints
 
 - [x] Spec drafted in `docs/issues/open/`
-- [ ] Spec reviewed and approved by user/maintainer
-- [ ] GitHub issue exists and issue number matches spec
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
-- [ ] Manual verification scenarios executed and recorded (status + evidence)
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Reviewer validated acceptance criteria and updated checkboxes
+- [x] Spec reviewed and approved by user/maintainer
+- [x] GitHub issue exists and issue number matches spec
+- [x] Implementation completed (PR #1975 merged)
+- [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
+- [x] Manual verification scenarios executed and recorded (status + evidence)
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Reviewer validated acceptance criteria and updated checkboxes
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+
+### Progress Log
+
+- 2026-07-13 12:00 UTC - Copilot - Spec draft created
+- 2026-07-13 18:33 UTC - PR #1975 merged - Implementation completed
+- 2026-07-15 UTC - Spec archived to `docs/issues/closed/`

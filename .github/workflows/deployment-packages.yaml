@@ -150,7 +150,7 @@ jobs:
           if grep -q 'version.workspace = true' "$TOML_FILE"; then
             echo "ERROR: Crate '$CRATE' still uses 'version.workspace = true' in $TOML_FILE"
             echo "Each crate must have its own explicit 'version' field before publishing."
-            echo "See docs/issues/open/1926-1669-si-32-define-package-versioning-strategy.md"
+            echo "See docs/issues/closed/1926-1669-si-32-define-package-versioning-strategy.md"
             exit 1
           fi
           echo "✓ Crate '$CRATE' has an explicit version field"

@@ -12,7 +12,7 @@ semantic-links:
   skill-links:
     - create-issue
   related-artifacts:
-    - docs/issues/open/1938-rest-api-contract-first-migration/EPIC.md
+    - docs/issues/closed/1938-rest-api-contract-first-migration/EPIC.md
     - packages/axum-rest-api-server/src/v1/context/stats/
     - packages/rest-api-protocol/src/v1/
     - packages/rest-api-application/src/

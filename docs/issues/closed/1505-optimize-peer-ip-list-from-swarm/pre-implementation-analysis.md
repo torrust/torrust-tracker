@@ -2,10 +2,10 @@
 doc-type: research-report
 parent-issue: 1505
 status: completed
-last-updated-utc: 2026-06-26 12:00
+last-updated-utc: 2026-07-15
 semantic-links:
   related-artifacts:
-    - docs/issues/open/1505-optimize-peer-ip-list-from-swarm/ISSUE.md
+    - docs/issues/closed/1505-optimize-peer-ip-list-from-swarm/ISSUE.md
     - packages/primitives/src/announce.rs
     - packages/primitives/src/peer.rs
     - packages/swarm-coordination-registry/src/swarm/coordinator.rs

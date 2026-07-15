@@ -1,13 +1,13 @@
 ---
 doc-type: issue
 issue-type: task
-status: planned
+status: done
 priority: p2
 github-issue: 1964
-spec-path: docs/issues/open/1964-rename-number-of-downloads-btree-map-type-alias.md
+spec-path: docs/issues/closed/1964-rename-number-of-downloads-btree-map-type-alias.md
 branch: "1964-rename-number-of-downloads-btree-map"
 related-pr: "https://github.com/torrust/torrust-tracker/pull/1972"
-last-updated-utc: 2026-06-30 12:00
+last-updated-utc: 2026-07-15
 semantic-links:
   skill-links:
     - create-issue
@@ -90,31 +90,32 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 ### Workflow Checkpoints
 
 - [x] Spec drafted in `docs/issues/drafts/`
-- [ ] Spec reviewed and approved by user/maintainer
-- [ ] GitHub issue created and issue number added to this spec
-- [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
+- [x] Spec reviewed and approved by user/maintainer
+- [x] GitHub issue created and issue number added to this spec
+- [x] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
 - [x] Implementation completed
 - [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
-- [ ] Manual verification scenarios executed and recorded (status + evidence)
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Reviewer validated acceptance criteria and updated checkboxes
-- [ ] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Manual verification scenarios executed and recorded (status + evidence)
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Reviewer validated acceptance criteria and updated checkboxes
+- [x] Committer verified spec progress is up to date before commit
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
 - 2026-06-30 12:00 UTC - Copilot - Spec draft created
 - 2026-07-13 08:30 UTC - Copilot - Implementation completed, PR #1972 opened
+- 2026-07-15 UTC - Spec archived to `docs/issues/closed/`
 
 ## Acceptance Criteria
 
-- [ ] AC1: `NumberOfDownloadsBTreeMap` no longer appears anywhere in the codebase
-- [ ] AC2: `NumberOfDownloadsPerInfoHash` is the sole name for the type alias
-- [ ] AC3: All tests pass (`cargo test --workspace`)
-- [ ] AC4: `linter all` exits with code `0`
-- [ ] AC5: Pre-commit checks pass
-- [ ] Manual verification scenarios are executed and documented (status + evidence)
-- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
+- [x] AC1: `NumberOfDownloadsBTreeMap` no longer appears anywhere in the codebase
+- [x] AC2: `NumberOfDownloadsPerInfoHash` is the sole name for the type alias
+- [x] AC3: All tests pass (`cargo test --workspace`)
+- [x] AC4: `linter all` exits with code `0`
+- [x] AC5: Pre-commit checks pass
+- [x] Manual verification scenarios are executed and documented (status + evidence)
+- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
 
 ## Verification Plan
 

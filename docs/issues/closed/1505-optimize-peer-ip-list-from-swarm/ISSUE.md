@@ -1,21 +1,21 @@
 ---
 doc-type: issue
 issue-type: task
-status: completed
+status: done
 priority: p3
 github-issue: 1505
-spec-path: docs/issues/open/1505-optimize-peer-ip-list-from-swarm/ISSUE.md
+spec-path: docs/issues/closed/1505-optimize-peer-ip-list-from-swarm/ISSUE.md
 branch: "1505-optimize-peer-ip-list-from-swarm"
 related-pr: https://github.com/torrust/torrust-tracker/pull/1949
-last-updated-utc: 2026-06-26 17:00
+last-updated-utc: 2026-07-15
 semantic-links:
   skill-links:
     - create-issue
   related-artifacts:
     - issue #1366
-    - docs/issues/open/1505-optimize-peer-ip-list-from-swarm/pre-implementation-analysis.md
-    - docs/issues/open/1505-optimize-peer-ip-list-from-swarm/baseline-performance.md
-    - docs/issues/open/1505-optimize-peer-ip-list-from-swarm/post-performance.md
+    - docs/issues/closed/1505-optimize-peer-ip-list-from-swarm/pre-implementation-analysis.md
+    - docs/issues/closed/1505-optimize-peer-ip-list-from-swarm/baseline-performance.md
+    - docs/issues/closed/1505-optimize-peer-ip-list-from-swarm/post-performance.md
     - packages/primitives/src/announce.rs
     - packages/primitives/src/peer.rs
     - packages/primitives/src/lib.rs
@@ -168,22 +168,22 @@ A follow-up should rewrite the HTTP announce benchmark to use `to_async` with a 
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| ID  | Status | Task                                                | Notes                                                              |
-| --- | ------ | --------------------------------------------------- | ------------------------------------------------------------------ |
-| T1  | DONE   | Add `CompactPeer` struct to `packages/primitives/`  | New file; `From<&peer::Peer>` and `From<peer::Peer>` conversions   |
-| T2  | DONE   | Add compact methods to `Coordinator`                | `peers_excluding_compact()`, `peers_compact()`                     |
-| T3  | DONE   | Add compact method to `Registry`                    | `get_peers_peers_excluding_compact()`                              |
-| T4  | DONE   | Add compact method to `InMemoryTorrentRepository`   | `get_peers_for_compact()`                                          |
-| T5  | DONE   | Add `AnnounceDataCompact`                           | Same as `AnnounceData` with `Vec<CompactPeer>`                     |
-| T6  | DONE   | Wire UDP service + handler                          | New method on UDP `AnnounceService`                                |
-| T7  | DONE   | Wire HTTP service + handler                         | New method on HTTP `AnnounceService`                               |
-| T8  | DONE   | Update UDP response builder                         | Uses `AnnounceDataCompact.peers`                                   |
-| T9  | DONE   | Update HTTP response builder                        | Uses `AnnounceDataCompact.peers`                                   |
-| T10 | REJECTED | Cleanup: remove old path, rename                    | Not done — implementation rejected because compact path was ~2× slower |
-| T11 | DONE   | Run full test suite                                 | All targets, all features — all pass                                |
-| T12 | DONE   | Run pre-commit checks                               | `./contrib/dev-tools/git/hooks/pre-commit.sh` — all pass            |
-| T13 | DONE   | Run benchmark comparison                            | Compact path was **~2× slower** (407 ns → 824 ns for 74 peers). Implementation rejected. |
-| T14 | TODO   | Fix broken HTTP announce microbenchmark (follow-up) | Current bench measures future creation, not execution (#follow-up) |
+| ID  | Status   | Task                                                | Notes                                                                                    |
+| --- | -------- | --------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| T1  | DONE     | Add `CompactPeer` struct to `packages/primitives/`  | New file; `From<&peer::Peer>` and `From<peer::Peer>` conversions                         |
+| T2  | DONE     | Add compact methods to `Coordinator`                | `peers_excluding_compact()`, `peers_compact()`                                           |
+| T3  | DONE     | Add compact method to `Registry`                    | `get_peers_peers_excluding_compact()`                                                    |
+| T4  | DONE     | Add compact method to `InMemoryTorrentRepository`   | `get_peers_for_compact()`                                                                |
+| T5  | DONE     | Add `AnnounceDataCompact`                           | Same as `AnnounceData` with `Vec<CompactPeer>`                                           |
+| T6  | DONE     | Wire UDP service + handler                          | New method on UDP `AnnounceService`                                                      |
+| T7  | DONE     | Wire HTTP service + handler                         | New method on HTTP `AnnounceService`                                                     |
+| T8  | DONE     | Update UDP response builder                         | Uses `AnnounceDataCompact.peers`                                                         |
+| T9  | DONE     | Update HTTP response builder                        | Uses `AnnounceDataCompact.peers`                                                         |
+| T10 | REJECTED | Cleanup: remove old path, rename                    | Not done — implementation rejected because compact path was ~2× slower                   |
+| T11 | DONE     | Run full test suite                                 | All targets, all features — all pass                                                     |
+| T12 | DONE     | Run pre-commit checks                               | `./contrib/dev-tools/git/hooks/pre-commit.sh` — all pass                                 |
+| T13 | DONE     | Run benchmark comparison                            | Compact path was **~2× slower** (407 ns → 824 ns for 74 peers). Implementation rejected. |
+| T14 | TODO     | Fix broken HTTP announce microbenchmark (follow-up) | Current bench measures future creation, not execution (#follow-up)                       |
 
 ## Acceptance Criteria
 
