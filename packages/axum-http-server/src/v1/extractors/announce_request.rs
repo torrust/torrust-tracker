@@ -12,7 +12,7 @@
 //!
 //! **Sample announce request**
 //!
-//! <http://0.0.0.0:7070/announce?info_hash=%81%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00&peer_addr=2.137.87.41&downloaded=0&uploaded=0&peer_id=-qB00000000000000001&port=17548&left=0&event=completed&compact=0>
+//! <http://0.0.0.0:7070/announce?info_hash=%81%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00&ip=2.137.87.41&downloaded=0&uploaded=0&peer_id=-qB00000000000000001&port=17548&left=0&event=completed&compact=0>
 //!
 //! **Sample error response**
 //!
@@ -22,7 +22,7 @@
 //! d14:failure reason149:Bad request. Cannot parse query params for announce request: missing query params for announce request in src/servers/http/v1/extractors/announce_request.rs:54:23e
 //! ```
 //!
-//! Invalid query param (`info_hash`): <http://0.0.0.0:7070/announce?info_hash=invalid&peer_addr=2.137.87.41&downloaded=0&uploaded=0&peer_id=-qB00000000000000001&port=17548&left=0&event=completed&compact=0>
+//! Invalid query param (`info_hash`): <http://0.0.0.0:7070/announce?info_hash=invalid&ip=2.137.87.41&downloaded=0&uploaded=0&peer_id=-qB00000000000000001&port=17548&left=0&event=completed&compact=0>
 //!
 //! ```text
 //! d14:failure reason240:Bad request. Cannot parse query params for announce request: invalid param value invalid for info_hash in not enough bytes for infohash: got 7 bytes, expected 20 src/shared/bit_torrent/info_hash.rs:240:27, src/servers/http/v1/requests/announce.rs:182:42e
@@ -103,7 +103,7 @@ mod tests {
 
     #[test]
     fn it_should_extract_the_announce_request_from_the_url_query_params() {
-        let raw_query = "info_hash=%3B%24U%04%CF%5F%11%BB%DB%E1%20%1C%EAjk%F4Z%EE%1B%C0&peer_addr=2.137.87.41&downloaded=0&uploaded=0&peer_id=-qB00000000000000001&port=17548&left=0&event=completed&compact=0&numwant=50";
+        let raw_query = "info_hash=%3B%24U%04%CF%5F%11%BB%DB%E1%20%1C%EAjk%F4Z%EE%1B%C0&ip=2.137.87.41&downloaded=0&uploaded=0&peer_id=-qB00000000000000001&port=17548&left=0&event=completed&compact=0&numwant=50";
 
         let announce = extract_announce_from(Some(raw_query)).unwrap();
 
@@ -113,7 +113,7 @@ mod tests {
                 info_hash: InfoHash::from_str("3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0").unwrap(), // DevSkim: ignore DS173237
                 peer_id: PeerId(*b"-qB00000000000000001"),
                 port: 17548,
-                peer_addr: Some(IpAddr::V4(Ipv4Addr::new(2, 137, 87, 41))),
+                ip: Some(IpAddr::V4(Ipv4Addr::new(2, 137, 87, 41))),
                 downloaded: Some(NumberOfBytes::new(0)),
                 uploaded: Some(NumberOfBytes::new(0)),
                 left: Some(NumberOfBytes::new(0)),

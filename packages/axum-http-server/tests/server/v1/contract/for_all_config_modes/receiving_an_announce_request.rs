@@ -186,7 +186,7 @@ async fn should_fail_when_the_info_hash_param_is_invalid() {
 
     for invalid_value in &invalid_info_hashes() {
         let url = format!(
-            "announce?info_hash={}&peer_id={}&port={}&peer_addr={}&event=started&compact=0",
+            "announce?info_hash={}&peer_id={}&port={}&ip={}&event=started&compact=0",
             invalid_value,
             percent_encode_byte_array(&AnnounceBuilder::default().query().peer_id.0),
             AnnounceBuilder::default().query().port,
@@ -206,10 +206,10 @@ async fn should_fail_when_the_info_hash_param_is_invalid() {
 }
 
 #[tokio::test]
-async fn should_not_fail_when_the_peer_address_param_is_invalid() {
+async fn should_not_fail_when_the_ip_param_is_invalid() {
     logging::setup();
 
-    // AnnounceQuery does not even contain the `peer_addr`
+    // AnnounceQuery does not even contain the `ip` param when it is invalid
     // The peer IP is obtained in two ways:
     // 1. If tracker is NOT running `on_reverse_proxy` from the remote client IP.
     // 2. If tracker is     running `on_reverse_proxy` from `X-Forwarded-For` request HTTP header.
@@ -220,7 +220,7 @@ async fn should_not_fail_when_the_peer_address_param_is_invalid() {
     let env = Started::new(&core_config, &http_tracker_config).await;
 
     let url = format!(
-        "announce?info_hash={}&peer_id={}&port={}&peer_addr={}&event=started&compact=0",
+        "announce?info_hash={}&peer_id={}&port={}&ip={}&event=started&compact=0",
         percent_encode_byte_array(&AnnounceBuilder::default().query().info_hash.bytes()),
         percent_encode_byte_array(&AnnounceBuilder::default().query().peer_id.0),
         AnnounceBuilder::default().query().port,
@@ -255,7 +255,7 @@ async fn should_fail_when_the_downloaded_param_is_invalid() {
 
     for invalid_value in invalid_values {
         let url = format!(
-            "announce?info_hash={}&peer_id={}&port={}&peer_addr={}&downloaded={}&event=started&compact=0",
+            "announce?info_hash={}&peer_id={}&port={}&ip={}&downloaded={}&event=started&compact=0",
             default_info_hash, default_peer_id, default_port, "192.168.1.88", invalid_value,
         );
 
@@ -288,7 +288,7 @@ async fn should_fail_when_the_uploaded_param_is_invalid() {
 
     for invalid_value in invalid_values {
         let url = format!(
-            "announce?info_hash={}&peer_id={}&port={}&peer_addr={}&uploaded={}&event=started&compact=0",
+            "announce?info_hash={}&peer_id={}&port={}&ip={}&uploaded={}&event=started&compact=0",
             default_info_hash, default_peer_id, default_port, "192.168.1.88", invalid_value,
         );
 
@@ -327,7 +327,7 @@ async fn should_fail_when_the_peer_id_param_is_invalid() {
 
     for invalid_value in invalid_values {
         let url = format!(
-            "announce?info_hash={}&peer_id={}&port={}&peer_addr={}&event=started&compact=0",
+            "announce?info_hash={}&peer_id={}&port={}&ip={}&event=started&compact=0",
             default_info_hash, invalid_value, default_port, "192.168.1.88",
         );
 
@@ -359,7 +359,7 @@ async fn should_fail_when_the_port_param_is_invalid() {
 
     for invalid_value in invalid_values {
         let url = format!(
-            "announce?info_hash={}&peer_id={}&port={}&peer_addr={}&event=started&compact=0",
+            "announce?info_hash={}&peer_id={}&port={}&ip={}&event=started&compact=0",
             default_info_hash, default_peer_id, invalid_value, "192.168.1.88",
         );
 
@@ -392,7 +392,7 @@ async fn should_fail_when_the_left_param_is_invalid() {
 
     for invalid_value in invalid_values {
         let url = format!(
-            "announce?info_hash={}&peer_id={}&port={}&peer_addr={}&left={}&event=started&compact=0",
+            "announce?info_hash={}&peer_id={}&port={}&ip={}&left={}&event=started&compact=0",
             default_info_hash, default_peer_id, default_port, "192.168.1.88", invalid_value,
         );
 
@@ -433,7 +433,7 @@ async fn should_fail_when_the_event_param_is_invalid() {
 
     for invalid_value in invalid_values {
         let url = format!(
-            "announce?info_hash={}&peer_id={}&port={}&peer_addr={}&event={}&compact=0",
+            "announce?info_hash={}&peer_id={}&port={}&ip={}&event={}&compact=0",
             default_info_hash, default_peer_id, default_port, "192.168.1.88", invalid_value,
         );
 
@@ -466,7 +466,7 @@ async fn should_fail_when_the_compact_param_is_invalid() {
 
     for invalid_value in invalid_values {
         let url = format!(
-            "announce?info_hash={}&peer_id={}&port={}&peer_addr={}&event=started&compact={}",
+            "announce?info_hash={}&peer_id={}&port={}&ip={}&event=started&compact={}",
             default_info_hash, default_peer_id, default_port, "192.168.1.88", invalid_value,
         );
 
@@ -499,7 +499,7 @@ async fn should_fail_when_the_numwant_param_is_invalid() {
 
     for invalid_value in invalid_values {
         let url = format!(
-            "announce?info_hash={}&peer_id={}&port={}&peer_addr={}&event=started&compact=0&numwant={}",
+            "announce?info_hash={}&peer_id={}&port={}&ip={}&event=started&compact=0&numwant={}",
             default_info_hash, default_peer_id, default_port, "192.168.1.88", invalid_value,
         );
 
@@ -689,19 +689,19 @@ async fn should_consider_two_peers_to_be_the_same_when_they_have_the_same_socket
     let announce_query_1 = AnnounceBuilder::default()
         .with_info_hash(&info_hash)
         .with_peer_id(&PeerId(peer.peer_id.0))
-        .with_peer_addr(peer.peer_addr.ip())
+        .with_ip(peer.peer_addr.ip())
         .with_port(peer.peer_addr.port())
         .query();
 
     let announce_query_2 = AnnounceBuilder::default()
         .with_info_hash(&info_hash)
         .with_peer_id(&PeerId(*b"-qB00000000000000002")) // Different peer ID
-        .with_peer_addr(peer.peer_addr.ip())
+        .with_ip(peer.peer_addr.ip())
         .with_port(peer.peer_addr.port())
         .query();
 
     // Same peer socket address
-    assert_eq!(announce_query_1.peer_addr, announce_query_2.peer_addr);
+    assert_eq!(announce_query_1.ip, announce_query_2.ip);
     assert_eq!(announce_query_1.port, announce_query_2.port);
 
     // Different peer ID
@@ -899,11 +899,7 @@ async fn should_not_increase_the_number_of_tcp6_announce_requests_handled_if_the
 
     Client::new(env.base_url(), Duration::from_secs(5))
         .unwrap()
-        .announce(
-            &AnnounceBuilder::default()
-                .with_peer_addr(IpAddr::V6(Ipv6Addr::LOCALHOST))
-                .query(),
-        )
+        .announce(&AnnounceBuilder::default().with_ip(IpAddr::V6(Ipv6Addr::LOCALHOST)).query())
         .await
         .unwrap();
 
@@ -930,7 +926,7 @@ async fn should_assign_to_the_peer_ip_the_remote_client_ip_instead_of_the_peer_a
 
     let announce_query = AnnounceBuilder::default()
         .with_info_hash(&info_hash)
-        .with_peer_addr(IpAddr::from_str("2.2.2.2").unwrap())
+        .with_ip(IpAddr::from_str("2.2.2.2").unwrap())
         .query();
 
     {
@@ -974,7 +970,7 @@ async fn when_the_client_ip_is_a_loopback_ipv4_it_should_assign_to_the_peer_ip_t
 
     let announce_query = AnnounceBuilder::default()
         .with_info_hash(&info_hash)
-        .with_peer_addr(IpAddr::from_str("2.2.2.2").unwrap())
+        .with_ip(IpAddr::from_str("2.2.2.2").unwrap())
         .query();
 
     {
@@ -1027,7 +1023,7 @@ async fn when_the_client_ip_is_a_loopback_ipv6_it_should_assign_to_the_peer_ip_t
 
     let announce_query = AnnounceBuilder::default()
         .with_info_hash(&info_hash)
-        .with_peer_addr(IpAddr::from_str("2.2.2.2").unwrap())
+        .with_ip(IpAddr::from_str("2.2.2.2").unwrap())
         .query();
 
     {

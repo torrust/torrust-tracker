@@ -66,8 +66,8 @@ pub enum Command {
         left: Option<u64>,
         #[arg(long, value_parser = parse_non_zero_port)]
         port: Option<u16>,
-        #[arg(long = "peer-addr")]
-        peer_addr: Option<IpAddr>,
+        #[arg(long = "ip")]
+        ip: Option<IpAddr>,
         #[arg(long = "peer-id", value_parser = parse_peer_id)]
         peer_id: Option<PeerId>,
         #[arg(long, value_enum)]
@@ -91,7 +91,7 @@ struct AnnounceOptions {
     downloaded: Option<u64>,
     left: Option<u64>,
     port: Option<u16>,
-    peer_addr: Option<IpAddr>,
+    ip: Option<IpAddr>,
     peer_id: Option<PeerId>,
     compact: Option<CliCompact>,
     output_format: OutputFormat,
@@ -110,7 +110,7 @@ pub async fn run(command: Command) -> anyhow::Result<()> {
             downloaded,
             left,
             port,
-            peer_addr,
+            ip,
             peer_id,
             compact,
             format,
@@ -124,7 +124,7 @@ pub async fn run(command: Command) -> anyhow::Result<()> {
                     downloaded,
                     left,
                     port,
-                    peer_addr,
+                    ip,
                     peer_id,
                     compact,
                     output_format: format,
@@ -171,8 +171,8 @@ async fn announce_command(options: AnnounceOptions, timeout: Duration) -> anyhow
     if let Some(port) = options.port {
         query_builder = query_builder.with_port(port);
     }
-    if let Some(peer_addr) = options.peer_addr {
-        query_builder = query_builder.with_peer_addr(peer_addr);
+    if let Some(ip) = options.ip {
+        query_builder = query_builder.with_ip(ip);
     }
     if let Some(peer_id) = options.peer_id {
         query_builder = query_builder.with_peer_id(&peer_id);

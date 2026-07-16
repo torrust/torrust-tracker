@@ -314,7 +314,7 @@
 //!
 //! A sample `announce` request:
 //!
-//! <http://0.0.0.0:7070/announce?info_hash=%81%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00&peer_addr=2.137.87.41&downloaded=0&uploaded=0&peer_id=-RC3000-000000000001&port=17548&left=0&event=completed&compact=0>
+//! <http://0.0.0.0:7070/announce?info_hash=%81%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00&ip=2.137.87.41&downloaded=0&uploaded=0&peer_id=-RC3000-000000000001&port=17548&left=0&event=completed&compact=0>
 //!
 //! If you want to know more about the `announce` request:
 //!

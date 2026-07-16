@@ -44,7 +44,7 @@
 //! Parameter | Type | Description | Required |  Default | Example
 //! ---|---|---|---|---|---
 //! [`info_hash`](torrust_tracker_http_protocol::v1::requests::announce::Announce::info_hash) | percent encoded of 20-byte array | The `Info Hash` of the torrent. | Yes | No | `%81%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00`
-//! `peer_addr` | string |The IP address of the peer. | No | No | `2.137.87.41`
+//! [`ip`](torrust_tracker_http_protocol::v1::requests::announce::Announce::ip) | string |The IP address of the peer (BEP 3). | No | No | `2.137.87.41`
 //! [`downloaded`](torrust_tracker_http_protocol::v1::requests::announce::Announce::downloaded) | positive integer |The number of bytes downloaded by the peer. | No | `0` | `0`
 //! [`uploaded`](torrust_tracker_http_protocol::v1::requests::announce::Announce::uploaded) | positive integer | The number of bytes uploaded by the peer. | No | `0` | `0`
 //! [`peer_id`](torrust_tracker_http_protocol::v1::requests::announce::Announce::peer_id) | percent encoded of 20-byte array  | The ID of the peer. | Yes | No | `-qB00000000000000001`
@@ -62,13 +62,12 @@
 //! > tracker assigns default values to the optional parameters if they are not
 //! > provided.
 //!
-//! > **NOTICE**: the `peer_addr` parameter is not part of the original
-//! > specification. But the peer IP was added in the
-//! > [UDP Tracker protocol](https://www.bittorrent.org/beps/bep_0015.html). It is
-//! > used to provide the peer's IP address to the tracker, but it is ignored by
-//! > the tracker. The tracker uses the IP address of the peer that sent the
-//! > request or the right-most-ip in the `X-Forwarded-For` header if the tracker
-//! > is behind a reverse proxy.
+//! > **NOTICE**: the [`ip`](torrust_tracker_http_protocol::v1::requests::announce::Announce::ip)
+//! > parameter is defined in [BEP 03](https://www.bittorrent.org/beps/bep_0003.html).
+//! > It is used to provide the peer's IP address to the tracker, but it is
+//! > ignored by the tracker. The tracker uses the IP address of the peer that
+//! > sent the request or the right-most-ip in the `X-Forwarded-For` header if
+//! > the tracker is behind a reverse proxy.
 //!
 //! > **NOTICE**: the maximum number of peers that the tracker can return per
 //! > announce response is controlled by the `max_peers_per_announce` field in
@@ -93,7 +92,7 @@
 //!
 //! A sample `GET` `announce` request:
 //!
-//! <http://0.0.0.0:7070/announce?info_hash=%81%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00&peer_addr=2.137.87.41&downloaded=0&uploaded=0&peer_id=-qB00000000000000001&port=17548&left=0&event=completed&compact=0>
+//! <http://0.0.0.0:7070/announce?info_hash=%81%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00&ip=2.137.87.41&downloaded=0&uploaded=0&peer_id=-qB00000000000000001&port=17548&left=0&event=completed&compact=0>
 //!
 //! **Sample non-compact response**
 //!

@@ -328,7 +328,7 @@ mod tests {
             info_hash: sample_info_hash(),
             peer_id: peer.peer_id,
             port: peer.peer_addr.port(),
-            peer_addr: None,
+            ip: None,
             uploaded: Some(torrust_tracker_http_protocol::v1::requests::announce::NumberOfBytes::new(
                 peer.uploaded.0,
             )),
