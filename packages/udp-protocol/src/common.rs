@@ -21,7 +21,7 @@ pub const MAX_PACKET_SIZE: usize = 1496;
 #[derive(PartialEq, Eq, Hash, Clone, Copy, Debug, IntoBytes, FromBytes, Immutable)]
 #[repr(transparent)]
 // Intentionally kept in `common`: this protocol-level wire type mirrors
-// `bittorrent-primitives::InfoHash` but is kept protocol-local so that wire
+// `torrust_info_hash::InfoHash` but is kept protocol-local so that wire
 // representations can evolve independently of domain types.
 // adr: docs/adrs/20260527175600_keep_protocol_and_domain_types_decoupled.md
 pub struct InfoHash(pub [u8; 20]);
