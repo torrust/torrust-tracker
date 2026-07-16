@@ -2,8 +2,9 @@ use torrust_clock::DurationSinceUnixEpoch;
 use torrust_metrics::label::LabelSet;
 use torrust_metrics::{label_name, metric_name};
 use torrust_peer_id::PeerClient;
+use torrust_tracker_udp_core::event::ConnectionContext;
 
-use crate::event::{ConnectionContext, ErrorKind, UdpRequestKind};
+use crate::event::{ErrorKind, UdpRequestKind};
 use crate::statistics::repository::Repository;
 use crate::statistics::{UDP_TRACKER_SERVER_CONNECTION_ID_ERRORS_TOTAL, UDP_TRACKER_SERVER_ERRORS_TOTAL};
 
@@ -106,9 +107,10 @@ mod tests {
 
     use torrust_clock::clock::Time;
     use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
+    use torrust_tracker_udp_core::event::ConnectionContext;
 
     use crate::CurrentClock;
-    use crate::event::{ConnectionContext, Event};
+    use crate::event::Event;
     use crate::statistics::event::handler::error::ErrorKind;
     use crate::statistics::event::handler::handle_event;
     use crate::statistics::repository::Repository;

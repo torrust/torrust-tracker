@@ -13,12 +13,13 @@ use torrust_server_lib::registar::ServiceHealthCheckJob;
 use torrust_server_lib::signals::{Halted, Started, shutdown_signal_with_message};
 use torrust_tracker_client::udp::client::check;
 use torrust_tracker_udp_core::container::UdpTrackerCoreContainer;
+use torrust_tracker_udp_core::event::ConnectionContext;
 use torrust_tracker_udp_core::{self, UDP_TRACKER_LOG_TARGET};
 use tracing::instrument;
 
 use super::request_buffer::ActiveRequests;
 use crate::container::UdpTrackerServerContainer;
-use crate::event::{ConnectionContext, Event};
+use crate::event::Event;
 use crate::server::bound_socket::BoundSocket;
 use crate::server::processor::Processor;
 use crate::server::receiver::Receiver;

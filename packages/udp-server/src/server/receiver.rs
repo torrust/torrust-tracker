@@ -5,10 +5,10 @@ use std::sync::Arc;
 use std::task::{Context, Poll};
 
 use futures::Stream;
+use torrust_tracker_udp_protocol::MAX_PACKET_SIZE;
 
-use super::RawRequest;
 use super::bound_socket::BoundSocket;
-use crate::MAX_PACKET_SIZE;
+use crate::RawRequest;
 
 pub struct Receiver {
     pub socket: Arc<BoundSocket>,

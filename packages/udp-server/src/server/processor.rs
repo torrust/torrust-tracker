@@ -6,13 +6,14 @@ use std::time::Duration;
 use tokio::time::Instant;
 use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
 use torrust_tracker_udp_core::container::UdpTrackerCoreContainer;
+use torrust_tracker_udp_core::event::ConnectionContext;
 use torrust_tracker_udp_core::{self};
 use torrust_tracker_udp_protocol::Response;
 use tracing::{Level, instrument};
 
 use super::bound_socket::BoundSocket;
 use crate::container::UdpTrackerServerContainer;
-use crate::event::{self, ConnectionContext, Event, UdpRequestKind};
+use crate::event::{self, Event, UdpRequestKind};
 use crate::handlers::CookieTimeValues;
 use crate::{RawRequest, handlers};
 

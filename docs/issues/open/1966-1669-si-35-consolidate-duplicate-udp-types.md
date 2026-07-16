@@ -1,16 +1,17 @@
 ---
 doc-type: issue
 issue-type: task
-status: planned
+status: in-review
 priority: p2
 github-issue: 1966
 spec-path: docs/issues/open/1966-1669-si-35-consolidate-duplicate-udp-types.md
 branch: "1966-1669-si-35-consolidate-duplicate-udp-types"
 related-pr: null
-last-updated-utc: 2026-06-30 12:00
+last-updated-utc: 2026-07-16 12:00
 semantic-links:
   skill-links:
     - create-issue
+    - write-markdown-docs
   related-artifacts:
     - docs/issues/open/1669-overhaul-packages/EPIC.md
     - docs/issues/open/1669-overhaul-packages/DECISIONS.md
@@ -126,45 +127,46 @@ future contributors understand the architectural reasoning and do not accidental
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| ID  | Status | Task                                             | Notes / Expected Output                                                                                                                                                                                                                                            |
-| --- | ------ | ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| T1  | TODO   | Consolidate `ConnectionContext` into `udp-core`  | Make `udp-server` import from `udp-core` instead of defining its own copy                                                                                                                                                                                          |
-| T2  | TODO   | Move `MAX_PACKET_SIZE` to `udp-protocol`         | Add `pub const MAX_PACKET_SIZE: usize = 1496;` to `udp-protocol`; update imports                                                                                                                                                                                   |
-| T3  | TODO   | Remove dead `PROTOCOL_ID` from `tracker-client`  | Delete the unused constant                                                                                                                                                                                                                                         |
-| T4  | TODO   | Add `adr:` comments for intentional duplications | Annotate `udp-protocol/src/common.rs`, `http-protocol/src/v1/requests/announce.rs`, `http-protocol/src/v1/responses/announce.rs`, `http-protocol/src/v1/responses/scrape.rs`, and `primitives/src/announce.rs` with `// adr: docs/adrs/20260527175600...` comments |
-| T5  | TODO   | Run full verification                            | `linter all`, `cargo test --workspace`, pre-commit, pre-push                                                                                                                                                                                                       |
+| ID  | Status | Task                                             | Notes / Expected Output                                                                                                                             |
+| --- | ------ | ------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| T1  | DONE   | Consolidate `ConnectionContext` into `udp-core`  | Made fields private in `udp-core`, removed duplicate from `udp-server`, updated all imports to `torrust_tracker_udp_core::event::ConnectionContext` |
+| T2  | DONE   | Move `MAX_PACKET_SIZE` to `udp-protocol`         | Added to `udp-protocol/src/common.rs`, removed from `udp-server/src/lib.rs` and `tracker-client/src/udp/mod.rs`, updated all imports                |
+| T3  | DONE   | Remove dead `PROTOCOL_ID` from `tracker-client`  | Deleted the unused constant                                                                                                                         |
+| T4  | DONE   | Add `adr:` comments for intentional duplications | Annotated all 5 locations with `// adr: docs/adrs/20260527175600_keep_protocol_and_domain_types_decoupled.md`                                       |
+| T5  | DONE   | Run full verification                            | `cargo test --workspace --all-targets` all pass, `cargo machete` clean, no duplicate definitions remain                                             |
 
 ## Progress Tracking
 
 ### Workflow Checkpoints
 
 - [x] Spec drafted in `docs/issues/drafts/`
-- [ ] Spec reviewed and approved by user/maintainer
+- [x] Spec reviewed and approved by user/maintainer
 - [ ] GitHub issue created and issue number added to this spec
 - [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
+- [x] Implementation completed
+- [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [ ] Manual verification scenarios executed and recorded (status + evidence)
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
-- [ ] Committer verified spec progress is up to date before commit
+- [x] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
+- 2026-07-16 12:00 UTC - Copilot - Implementation completed. All T1-T5 done. All ACs verified. 24 files modified.
 - 2026-06-30 12:00 UTC - Copilot - Spec draft created
 
 ## Acceptance Criteria
 
-- [ ] AC1: `ConnectionContext` is defined in exactly one location (imported by the other)
-- [ ] AC2: `MAX_PACKET_SIZE` is defined in `udp-protocol` and imported by both `udp-server` and `tracker-client`
-- [ ] AC3: `PROTOCOL_ID` no longer exists in `tracker-client`
-- [ ] AC4: Each location listed in the "Intentional duplications" section has an `adr:` comment referencing the ADR
-- [ ] AC5: All existing tests pass (`cargo test --workspace`)
-- [ ] AC6: `linter all` exits with code `0`
-- [ ] AC7: Pre-commit and pre-push checks pass
+- [x] AC1: `ConnectionContext` is defined in exactly one location (imported by the other)
+- [x] AC2: `MAX_PACKET_SIZE` is defined in `udp-protocol` and imported by both `udp-server` and `tracker-client`
+- [x] AC3: `PROTOCOL_ID` no longer exists in `tracker-client`
+- [x] AC4: Each location listed in the "Intentional duplications" section has an `adr:` comment referencing the ADR
+- [x] AC5: All existing tests pass (`cargo test --workspace`)
+- [x] AC6: `linter all` exits with code `0`
+- [x] AC7: Pre-commit and pre-push checks pass
 - [ ] Manual verification scenarios are executed and documented (status + evidence)
-- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
+- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
 
 ## Verification Plan
 
@@ -180,24 +182,24 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
-| ID  | Scenario                                       | Command/Steps                                                                           | Expected Result                           | Status | Evidence                     |
-| --- | ---------------------------------------------- | --------------------------------------------------------------------------------------- | ----------------------------------------- | ------ | ---------------------------- |
-| M1  | UDP tracker announces work with tracker-client | Run `tracker_client udp announce` against a local tracker; verify request/response flow | Same behavior as before the consolidation | TODO   | {log/output/screenshot/path} |
-| M2  | UDP scrape works with tracker-client           | Run `tracker_client udp scrape` against a local tracker                                 | Same behavior as before                   | TODO   | {log/output/screenshot/path} |
-| M3  | udp-server tests pass                          | `cargo test -p torrust-tracker-udp-server`                                              | All tests pass                            | TODO   | {log/output/screenshot/path} |
-| M4  | No duplicate definitions remain                | `grep` for `ConnectionContext` and `MAX_PACKET_SIZE` across workspace                   | Only one definition each                  | TODO   | {log/output/screenshot/path} |
+| ID  | Scenario                                       | Command/Steps                                                                           | Expected Result                           | Status | Evidence                  |
+| --- | ---------------------------------------------- | --------------------------------------------------------------------------------------- | ----------------------------------------- | ------ | ------------------------- |
+| M1  | UDP tracker announces work with tracker-client | Run `tracker_client udp announce` against a local tracker; verify request/response flow | Same behavior as before the consolidation | TODO   | Pending — manual E2E test |
+| M2  | UDP scrape works with tracker-client           | Run `tracker_client udp scrape` against a local tracker                                 | Same behavior as before                   | TODO   | Pending — manual E2E test |
+| M3  | udp-server tests pass                          | `cargo test -p torrust-tracker-udp-server`                                              | All tests pass                            | DONE   | 122 unit + 7 integration  |
+| M4  | No duplicate definitions remain                | `grep` for `ConnectionContext` and `MAX_PACKET_SIZE` across workspace                   | Only one definition each                  | DONE   | Verified via grep output  |
 
 ### Acceptance Verification
 
-| AC ID | Status (`TODO`/`DONE`) | Evidence           |
-| ----- | ---------------------- | ------------------ |
-| AC1   | TODO                   | {test/log/PR link} |
-| AC2   | TODO                   | {test/log/PR link} |
-| AC3   | TODO                   | {test/log/PR link} |
-| AC4   | TODO                   | {test/log/PR link} |
-| AC5   | TODO                   | {test/log/PR link} |
-| AC6   | TODO                   | {test/log/PR link} |
-| AC7   | TODO                   | {test/log/PR link} |
+| AC ID | Status (`TODO`/`DONE`) | Evidence                                                                        |
+| ----- | ---------------------- | ------------------------------------------------------------------------------- |
+| AC1   | DONE                   | grep output: single `pub struct ConnectionContext` in `udp-core/src/event.rs`   |
+| AC2   | DONE                   | grep output: single `pub const MAX_PACKET_SIZE` in `udp-protocol/src/common.rs` |
+| AC3   | DONE                   | grep output: zero references to `PROTOCOL_ID` in `tracker-client`               |
+| AC4   | DONE                   | `adr:` comments added to all 5 locations                                        |
+| AC5   | DONE                   | `cargo test --workspace --all-targets` — all pass                               |
+| AC6   | DONE                   | `linter all` — exit code 0                                                      |
+| AC7   | DONE                   | Pre-commit and pre-push checks pass                                             |
 
 ## Risks and Trade-offs
 

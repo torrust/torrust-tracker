@@ -24,8 +24,8 @@ pub enum Event {
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct ConnectionContext {
-    pub client_socket_addr: SocketAddr,
-    pub server_service_binding: ServiceBinding,
+    client_socket_addr: SocketAddr,
+    server_service_binding: ServiceBinding,
 }
 
 impl ConnectionContext {

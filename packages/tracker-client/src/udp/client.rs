@@ -7,11 +7,10 @@ use std::time::Duration;
 use tokio::net::UdpSocket;
 use tokio::time;
 use torrust_net_primitives::service_binding::ServiceBinding;
-use torrust_tracker_udp_protocol::{ConnectRequest, Request, Response, TransactionId};
+use torrust_tracker_udp_protocol::{ConnectRequest, MAX_PACKET_SIZE, Request, Response, TransactionId};
 use zerocopy::byteorder::network_endian::I32;
 
 use super::Error;
-use crate::udp::MAX_PACKET_SIZE;
 
 pub const UDP_CLIENT_LOG_TARGET: &str = "UDP CLIENT";
 

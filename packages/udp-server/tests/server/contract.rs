@@ -9,8 +9,7 @@ use std::time::Duration;
 
 use torrust_tracker_client::udp::client::UdpTrackerClient;
 use torrust_tracker_test_helpers::{configuration, logging};
-use torrust_tracker_udp_protocol::{ConnectRequest, ConnectionId, Response, TransactionId};
-use torrust_tracker_udp_server::MAX_PACKET_SIZE;
+use torrust_tracker_udp_protocol::{ConnectRequest, ConnectionId, MAX_PACKET_SIZE, Response, TransactionId};
 
 use crate::server::asserts::get_error_response_message;
 

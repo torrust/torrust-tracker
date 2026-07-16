@@ -5,6 +5,7 @@ use std::sync::Arc;
 
 use torrust_net_primitives::service_binding::ServiceBinding;
 use torrust_tracker_primitives::ScrapeData;
+use torrust_tracker_udp_core::event::ConnectionContext;
 use torrust_tracker_udp_core::services::scrape::ScrapeService;
 use torrust_tracker_udp_core::{self};
 use torrust_tracker_udp_protocol::{
@@ -13,7 +14,7 @@ use torrust_tracker_udp_protocol::{
 use tracing::{Level, instrument};
 use zerocopy::byteorder::network_endian::I32;
 
-use crate::event::{ConnectionContext, Event, UdpRequestKind};
+use crate::event::{Event, UdpRequestKind};
 use crate::handlers::HandlerError;
 
 /// It handles the `Scrape` request.
@@ -369,9 +370,10 @@ mod tests {
 
             use mockall::predicate::eq;
             use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
+            use torrust_tracker_udp_core::event::ConnectionContext;
 
             use super::sample_scrape_request;
-            use crate::event::{ConnectionContext, Event, UdpRequestKind};
+            use crate::event::{Event, UdpRequestKind};
             use crate::handlers::handle_scrape;
             use crate::handlers::tests::{
                 MockUdpServerStatsEventSender, initialize_core_tracker_services_for_default_tracker_configuration,
@@ -419,9 +421,10 @@ mod tests {
 
             use mockall::predicate::eq;
             use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
+            use torrust_tracker_udp_core::event::ConnectionContext;
 
             use super::sample_scrape_request;
-            use crate::event::{ConnectionContext, Event, UdpRequestKind};
+            use crate::event::{Event, UdpRequestKind};
             use crate::handlers::handle_scrape;
             use crate::handlers::tests::{
                 MockUdpServerStatsEventSender, initialize_core_tracker_services_for_default_tracker_configuration,
