@@ -785,11 +785,8 @@ async fn should_return_the_compact_response() {
 }
 
 #[tokio::test]
-async fn should_not_return_the_compact_response_by_default() {
+async fn should_return_the_compact_response_by_default() {
     logging::setup();
-
-    // code-review: the HTTP tracker does not return the compact response by default if the "compact"
-    // param is not provided in the announce URL. The BEP 23 suggest to do so.
 
     let cfg = configuration::ephemeral_public();
     let core_config = Arc::new(cfg.core.clone());
@@ -821,7 +818,7 @@ async fn should_not_return_the_compact_response_by_default() {
         .await
         .unwrap();
 
-    assert!(!is_a_compact_announce_response(response).await);
+    assert!(is_a_compact_announce_response(response).await);
 
     env.stop().await;
 }
