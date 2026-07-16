@@ -409,8 +409,14 @@ setgroups
 setsockopt
 sharktorrent
 shellcheck
+SHLVL
+Signedness
+pgrep
+rwxrwxr
+SIGUSR
 signingkey
 skiplist
+taskkill
 slowloris
 socat
 socketaddr
