@@ -90,12 +90,12 @@ async fn handle_announce(
 fn build_response(announce_request: &Announce, announce_data: DomainAnnounceData) -> Response {
     let protocol_data = to_protocol_announce_data(announce_data);
 
-    if announce_request.compact.as_ref().is_some_and(|f| *f == Compact::Accepted) {
-        let response: responses::Announce<responses::Compact> = protocol_data.into();
+    if announce_request.compact.as_ref().is_some_and(|f| *f == Compact::NotAccepted) {
+        let response: responses::Announce<responses::Normal> = protocol_data.into();
         let bytes: Vec<u8> = response.data.into();
         (StatusCode::OK, bytes).into_response()
     } else {
-        let response: responses::Announce<responses::Normal> = protocol_data.into();
+        let response: responses::Announce<responses::Compact> = protocol_data.into();
         let bytes: Vec<u8> = response.data.into();
         (StatusCode::OK, bytes).into_response()
     }
