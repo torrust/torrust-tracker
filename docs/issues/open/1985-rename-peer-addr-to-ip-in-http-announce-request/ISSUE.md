@@ -144,11 +144,11 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T5  | DONE   | Update the `NOTICE` and parameter table in `packages/axum-http-server/src/lib.rs`      | Replace incorrect BEP 15 reference with correct BEP 3 `ip` description                                                                                                                                                                                                                  |
 | T6  | DONE   | Update sample URLs in doc-comments from `peer_addr=` to `ip=`                          | `packages/axum-http-server/src/lib.rs`, `extractors/announce_request.rs`, `packages/tracker-core/src/torrent/mod.rs`                                                                                                                                                                    |
 | T7  | DONE   | Update test fixtures and inline URL strings that use `peer_addr=`                      | `packages/axum-http-server/tests/server/v1/contract/for_all_config_modes/receiving_an_announce_request.rs`, `packages/axum-http-server/tests/server/v1/contract/configured_as_private.rs`, `packages/axum-http-server/src/v1/extractors/announce_request.rs` (inline test query string) |
-| T8  | DONE   | Rename `--peer-addr` CLI flag to `--ip` in tracker-client binaries                     | `console/tracker-client/src/console/clients/http/app.rs`, `console/tracker-client/src/console/clients/unified/http.rs`. Also rename `peer_addr` CLI arg struct field and `AnnounceOptions` field to `ip`.                                                                                                                                             |
-| T9  | DONE   | Update JSON key in tracker-client docs from `peer_addr` to `ip`                        | `console/tracker-client/docs/features/json-request-input/README.md`                                                                                                                                                                                                                    |
-| T10 | DONE   | Commit the ADR to `docs/adrs/`                                                         | File: `docs/adrs/20260716_accept_only_ip_addresses_in_http_announce_ip_param.md`                                                                                                                                                                                                       |
-| T11 | DONE   | Run `cargo test --workspace` — no regressions                                          | All tests pass                                                                                                                                                                                                                                                                         |
-| T12 | DONE   | Run `linter all`                                                                       | Must exit `0`                                                                                                                                                                                                                                                                          |
+| T8  | DONE   | Rename `--peer-addr` CLI flag to `--ip` in tracker-client binaries                     | `console/tracker-client/src/console/clients/http/app.rs`, `console/tracker-client/src/console/clients/unified/http.rs`. Also rename `peer_addr` CLI arg struct field and `AnnounceOptions` field to `ip`.                                                                               |
+| T9  | DONE   | Update JSON key in tracker-client docs from `peer_addr` to `ip`                        | `console/tracker-client/docs/features/json-request-input/README.md`                                                                                                                                                                                                                     |
+| T10 | DONE   | Commit the ADR to `docs/adrs/`                                                         | File: `docs/adrs/20260716_accept_only_ip_addresses_in_http_announce_ip_param.md`                                                                                                                                                                                                        |
+| T11 | DONE   | Run `cargo test --workspace` — no regressions                                          | All tests pass                                                                                                                                                                                                                                                                          |
+| T12 | DONE   | Run `linter all`                                                                       | Must exit `0`                                                                                                                                                                                                                                                                           |
 | T13 | DONE   | Rename test function `should_not_fail_when_the_peer_address_param_is_invalid`          | Rename to `should_not_fail_when_the_ip_param_is_invalid` in `packages/axum-http-server/tests/server/v1/contract/for_all_config_modes/receiving_an_announce_request.rs`                                                                                                                  |
 
 ## Progress Tracking
@@ -161,7 +161,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
 - [x] Implementation completed
 - [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
-- [ ] Manual verification scenarios executed and recorded (status + evidence)
+- [x] Manual verification scenarios executed and recorded (status + evidence)
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [x] Committer verified spec progress is up to date before commit
@@ -171,6 +171,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 - 2026-07-15 00:00 UTC - Copilot/User - Spec drafted; ADR embedded as a section pending extraction to `docs/adrs/` during implementation.
 - 2026-07-16 00:00 UTC - Copilot/User - Spec updated with user feedback (CLI flag renamed to `--ip`; JSON doc key renamed to `ip`; ADR date set to 2026-07-16). Implementation completed. All pre-commit checks pass.
+- 2026-07-16 16:16 UTC - Copilot/User - Manual verification M1/M2/M3 executed against local tracker build. All scenarios pass. Evidence recorded in `manual-verification.md`.
 
 ## Acceptance Criteria
 
@@ -198,24 +199,24 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
-| ID  | Scenario                                                             | Command/Steps                                                                                                        | Expected Result                                                 | Status | Evidence |
-| --- | -------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- | ------ | -------- |
-| M1  | Announce with `ip=<address>` — field is parsed                       | `curl -s "http://localhost:7070/announce?info_hash=...&peer_id=...&port=6881&ip=2.137.87.41"` and check tracker logs | Tracker logs show `ip` was parsed                               | TODO   |          |
-| M2  | Announce with old `peer_addr=<address>` — field is ignored           | Replace `ip=` with `peer_addr=` in M1 URL                                                                            | Tracker ignores the parameter (no parse error, field is `None`) | TODO   |          |
-| M3  | Announce with `ip=hostname.example.com` — non-IP is silently ignored | Use a DNS name as the `ip` value                                                                                     | Field is `None`; no error returned                              | TODO   |          |
+| ID  | Scenario                                                             | Command/Steps                                                                                                        | Expected Result                                                 | Status | Evidence                                                |
+| --- | -------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- | ------ | ------------------------------------------------------- |
+| M1  | Announce with `ip=<address>` — field is parsed                       | `curl -s "http://localhost:7070/announce?info_hash=...&peer_id=...&port=6881&ip=2.137.87.41"` and check tracker logs | Tracker logs show `ip` was parsed                               | DONE   | See [manual-verification.md](manual-verification.md#m1) |
+| M2  | Announce with old `peer_addr=<address>` — field is ignored           | Replace `ip=` with `peer_addr=` in M1 URL                                                                            | Tracker ignores the parameter (no parse error, field is `None`) | DONE   | See [manual-verification.md](manual-verification.md#m2) |
+| M3  | Announce with `ip=hostname.example.com` — non-IP is silently ignored | Use a DNS name as the `ip` value                                                                                     | Field is `None`; no error returned                              | DONE   | See [manual-verification.md](manual-verification.md#m3) |
 
 ### Acceptance Verification
 
-| AC ID | Status (`TODO`/`DONE`) | Evidence |
-| ----- | ---------------------- | -------- |
+| AC ID | Status (`TODO`/`DONE`) | Evidence                                                                                                                 |
+| ----- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------ |
 | AC1   | DONE                   | Verified by `it_should_extract_the_announce_request_from_the_url_query_params` in `announce_request.rs` test using `ip=` |
-| AC2   | DONE                   | `PEER_ADDR` constant removed; `extract_peer_addr` → `extract_ip` reads `IP = "ip"` constant |
-| AC3   | DONE                   | `grep peer_addr` across protocol/server/client sources returns no wire-param references |
-| AC4   | DONE                   | `packages/axum-http-server/src/lib.rs` NOTICE updated to reference BEP 3 |
-| AC5   | DONE                   | All sample URLs updated in lib.rs, extractor, torrent/mod.rs, tracker-client docs |
-| AC6   | DONE                   | `docs/adrs/20260716_accept_only_ip_addresses_in_http_announce_ip_param.md` created |
-| AC7   | DONE                   | `linter all` exits `0` |
-| AC8   | DONE                   | All pre-commit checks pass; 0 test failures |
+| AC2   | DONE                   | `PEER_ADDR` constant removed; `extract_peer_addr` → `extract_ip` reads `IP = "ip"` constant                              |
+| AC3   | DONE                   | `grep peer_addr` across protocol/server/client sources returns no wire-param references                                  |
+| AC4   | DONE                   | `packages/axum-http-server/src/lib.rs` NOTICE updated to reference BEP 3                                                 |
+| AC5   | DONE                   | All sample URLs updated in lib.rs, extractor, torrent/mod.rs, tracker-client docs                                        |
+| AC6   | DONE                   | `docs/adrs/20260716_accept_only_ip_addresses_in_http_announce_ip_param.md` created                                       |
+| AC7   | DONE                   | `linter all` exits `0`                                                                                                   |
+| AC8   | DONE                   | All pre-commit checks pass; 0 test failures                                                                              |
 
 ## Risks and Trade-offs
 
