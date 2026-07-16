@@ -4,6 +4,8 @@ semantic-links:
     - write-markdown-docs
   related-artifacts:
     - docs/AGENTS.md
+    - docs/analysis/AGENTS.md
+    - docs/research/AGENTS.md
     - docs/architecture/README.md
     - docs/adrs/20260821172000_establish_ai_agent_context_capability_and_portability_governance.md
     - docs/benchmarking.md
@@ -55,10 +57,31 @@ complement ADRs, which record accepted architectural decisions.
 
 Records of significant architectural decisions, including context and consequences.
 
-| Document                         | Description                                              |
-| -------------------------------- | -------------------------------------------------------- |
-| [adrs/README.md](adrs/README.md) | Root ADR guidance, including placement by decision scope |
-| [adrs/index.md](adrs/index.md)   | Quick-reference table of repository-level ADRs           |
+| Document                         | Description                                                 |
+| -------------------------------- | ----------------------------------------------------------- |
+| [adrs/README.md](adrs/README.md) | Root ADR guidance, including placement by decision scope    |
+| [adrs/index.md](adrs/index.md)   | Quick-reference table of repository-level ADRs              |
+
+## Analysis Documents
+
+In-depth studies of concrete features, components, or aspects of the application,
+typically produced before defining a refactoring plan, introducing a new feature,
+or making architectural decisions.
+
+| Location                                                                   | Description                                         |
+| -------------------------------------------------------------------------- | --------------------------------------------------- |
+| [analysis/AGENTS.md](analysis/AGENTS.md)                                   | Overview of the analysis folder and its conventions |
+| [analysis/20260716-shutdown-process/](analysis/20260716-shutdown-process/) | Analysis of the tracker shutdown process            |
+
+## Research Documents
+
+Investigations of external topics, technologies, or patterns relevant to the
+project. Research looks outward — at how other projects solve similar problems.
+
+| Location                                                                                     | Description                                                    |
+| -------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| [research/AGENTS.md](research/AGENTS.md)                                                     | Overview of the research folder and its conventions            |
+| [research/20260716-console-shutdown-patterns/](research/20260716-console-shutdown-patterns/) | How console apps handle SIGINT, SIGTERM, and graceful shutdown |
 
 ## Issue Specifications
 
