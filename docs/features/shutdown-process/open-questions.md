@@ -1,7 +1,7 @@
 ---
 doc-type: open-questions
 status: open
-last-updated-utc: 2026-07-16 (Q1 resolved)
+last-updated-utc: 2026-07-16 (Q1, Q2 resolved)
 semantic-links:
   related-artifacts:
     - docs/features/shutdown-process/README.md
@@ -23,7 +23,7 @@ can be created and scheduled for implementation.
 | #           | Severity     | Status      | Title                                                               |
 | ----------- | ------------ | ----------- | ------------------------------------------------------------------- |
 | [Q1](#q1)   | 🔴 Critical  | ✅ Resolved | `global_shutdown_signal()` removal not tracked                      |
-| [Q2](#q2)   | 🔴 Critical  | Open        | Halt-sender wiring unspecified in design                            |
+| [Q2](#q2)   | 🔴 Critical  | ✅ Resolved | Halt-sender wiring unspecified in design                            |
 | [Q3](#q3)   | 🔴 Critical  | Open        | Exit codes on shutdown not defined                                  |
 | [Q4](#q4)   | 🟡 Important | Open        | Docker 10s default vs. tracker grace period                         |
 | [Q5](#q5)   | 🟡 Important | Open        | Orphan risk if `main.rs` crashes before sending halts               |
@@ -249,7 +249,7 @@ a starting point, their binary will have the same SIGTERM gap. SI-3 covers this.
 ## Q2
 
 **Severity**: 🔴 Critical  
-**Status**: Open  
+**Status**: ✅ Resolved (2026-07-16)  
 **Title**: Halt-sender wiring is unspecified in the design
 
 ### Description
@@ -288,12 +288,86 @@ complexity of at least three sub-issues:
 - "Migrate torrent cleanup to `CancellationToken`"
 - Any sub-issue touching Axum server shutdown
 
-### Action
+### Why Option 1 and 2 are not suitable right now
 
-- [ ] Select one of the three wiring approaches (or propose a fourth).
-- [ ] Document the chosen approach in the feature doc "Design Ideas" section.
-- [ ] Check whether the chosen approach affects the `torrust_server_lib::signals`
-      package (which is an external standalone crate).
+**Option 1** (wrap halt senders in `JobManager`): the halt sender (`tx_halt`) is
+currently consumed inside the `async move` closure of each `start_job` function.
+For example, in `src/bootstrap/jobs/udp_tracker.rs`, the `server.state.halt_task`
+is moved into the spawned task and dropped when the task ends. There is no way to
+extract it without a breaking API change to all job starters — returning
+`(JoinHandle<()>, Option<Sender<Halted>>)` from every `start_job`. Significant
+refactor touching many files.
+
+**Option 2** (move servers to watch `CancellationToken` directly): removes the
+oneshot `Halted` channel from Axum servers and requires changes to
+`torrust_server_lib` and `torrust_tracker_axum_server` — both are external
+standalone packages. Touches more packages than necessary for the current goal.
+
+### Decision
+
+**Use Option 3: each server job watches the `CancellationToken` and when
+cancelled, sends `Halted::Normal` to its own halt channel internally.**
+
+The `JobManager` calls `cancel()` as it does now. Each server job needs a small
+addition: a `CancellationToken` parameter and a `tokio::select!` that either
+waits for the existing `server.state.task` to finish or for the token to be
+cancelled — at which point it sends `Halted::Normal` to its own halt sender
+and then waits for the task.
+
+This approach:
+
+- Requires no API change to `JobManager` — it still only holds `JoinHandle<()>`.
+- Requires no changes to external packages (`torrust_server_lib`,
+  `torrust_tracker_axum_server`).
+- Is consistent with how event listener jobs already work (they accept a
+  `CancellationToken` and check `token.cancelled()` in their loops).
+- Keeps the halt channel as the internal per-server shutdown mechanism; the
+  `CancellationToken` becomes the external coordinator trigger.
+
+**Concrete change per server job starter** (e.g., `src/bootstrap/jobs/udp_tracker.rs`):
+
+```rust
+// Before:
+tokio::spawn(async move {
+    server.state.task.await.expect("...");
+})
+
+// After:
+tokio::spawn(async move {
+    tokio::select! {
+        _ = cancellation_token.cancelled() => {
+            // JobManager signalled shutdown — forward to the server via halt channel
+            let _ = server.state.halt_task.send(Halted::Normal);
+            server.state.task.await.expect("...");
+        }
+        _ = &mut server.state.task => {
+            // Server finished on its own (e.g. via global_shutdown_signal)
+        }
+    }
+})
+```
+
+The Health Check API job is wired differently (it creates the halt channel
+itself), but the same pattern applies: watch the token, send halt, await task.
+
+**Impact on sub-issues:**
+
+- SI-1 (SIGTERM to `main.rs`): unchanged — SI-1 only adds signal handling to
+  `main.rs`, it does not touch job starters.
+- SI-2 (remove `global_shutdown_signal()`): this decision means SI-2 must also
+  update each job starter to pass and use the `CancellationToken` as described
+  above — otherwise removing `global_shutdown_signal()` would leave servers with
+  no way to receive the halt signal from `main.rs`.
+- SI-4, SI-5 (torrent cleanup, activity metrics): already use `CancellationToken`
+  directly — no change needed from this decision.
+
+### Actions Taken
+
+- [x] Option 3 selected and documented.
+- [x] Concrete code pattern documented above.
+- [x] No changes needed to `JobManager` API or external packages.
+- [x] SI-2 scope note updated: must include job-starter `CancellationToken`
+      wiring alongside the `global_shutdown_signal()` removal.
 
 ---
 

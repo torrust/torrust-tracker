@@ -26,7 +26,7 @@ semantic-links:
 # Draft SI-2 — Remove `global_shutdown_signal()` from Per-Server Shutdown
 
 > **EPIC position**: SI-2 of #1488. Depends on SI-1.
-> **Blocked**: Q5 must be resolved before implementing (Q1 is resolved).
+> **Blocked**: Q5 must be resolved before implementing (Q1 and Q2 are resolved).
 
 ## Goal
 
@@ -34,13 +34,16 @@ Remove the `global_shutdown_signal()` call from `shutdown_signal()` in
 `torrust_server_lib::signals` so that servers only stop when explicitly told to
 by `main.rs` via the halt channel — not by independently catching OS signals.
 
+Also wire the `CancellationToken` from `JobManager` into each server job starter
+so that when `main.rs` calls `jobs.cancel()`, the halt message is forwarded to
+each server automatically.
+
 After SI-1 (`main.rs` catches `SIGTERM`), both `main.rs` and each server still
-catch SIGINT/SIGTERM independently. This creates a double (or triple) signal
-scenario. This sub-issue cleans that up so that:
+catch SIGINT/SIGTERM independently. This sub-issue cleans that up so that:
 
 - `main.rs` owns all signal handling.
 - Servers shut down only when they receive a `Halted::Normal` message via
-  their oneshot channel.
+  their oneshot channel, triggered by the `CancellationToken`.
 
 ## Background
 
@@ -75,6 +78,32 @@ pub async fn shutdown_signal(rx_halt: tokio::sync::oneshot::Receiver<Halted>) {
 Servers then only stop when `main.rs` explicitly sends `Halted::Normal` via
 the halt channel.
 
+**Also update each server job starter** to watch the `CancellationToken` and
+forward the halt signal internally (Q2 decision, Option 3):
+
+```rust
+// e.g. src/bootstrap/jobs/udp_tracker.rs — after this change:
+tokio::spawn(async move {
+    tokio::select! {
+        _ = cancellation_token.cancelled() => {
+            // JobManager signalled shutdown — forward to server via halt channel
+            let _ = server.state.halt_task.send(Halted::Normal);
+            server.state.task.await.expect("...");
+        }
+        _ = &mut server.state.task => {
+            // Server finished on its own
+        }
+    }
+})
+```
+
+The same pattern applies to HTTP tracker, REST API, and Health Check API job
+starters. This requires adding a `CancellationToken` parameter to each
+`start_job` function (or threading it through from `app.rs`).
+
+See [Q2 decision](../../features/shutdown-process/open-questions.md#q2) for full
+rationale.
+
 ## Important Considerations
 
 ### External package dependency
@@ -98,12 +127,14 @@ they can be updated independently in SI-3.
 
 ## Acceptance Criteria
 
-- [ ] Q1 and Q5 are resolved before implementation begins.
+- [ ] Q1, Q2, and Q5 are resolved before implementation begins.
 - [ ] `shutdown_signal()` in `torrust-server-lib` no longer calls
       `global_shutdown_signal()`.
+- [ ] Each server job starter accepts and uses a `CancellationToken` to
+      forward the halt signal to its server when `jobs.cancel()` is called.
 - [ ] Servers only stop when the halt channel receives `Halted::Normal`.
-- [ ] `main.rs` sends halt messages to all servers before or during
-      `jobs.wait_for_all()`.
+- [ ] `main.rs` does not need to hold or send halt senders directly —
+      `jobs.cancel()` is the only call needed.
 - [ ] All existing server start/stop tests pass.
 - [ ] Experimental validation: `kill <pid>` (after SI-1) still shuts down
       cleanly with a single shutdown sequence in the logs (no duplicate
