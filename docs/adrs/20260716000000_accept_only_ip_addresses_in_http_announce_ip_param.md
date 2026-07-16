@@ -1,7 +1,16 @@
-# ADR: Accept only IP addresses (not DNS names) in the HTTP announce `ip` GET parameter
+---
+semantic-links:
+  skill-links:
+    - create-adr
+  related-artifacts:
+    - packages/http-protocol/src/v1/requests/announce.rs
+    - packages/axum-http-server/src/lib.rs
+    - docs/issues/open/1985-rename-peer-addr-to-ip-in-http-announce-request/ISSUE.md
+---
+
+# Accept only IP addresses (not DNS names) in the HTTP announce `ip` GET parameter
 
 - **Date**: 2026-07-16
-- **Status**: Accepted
 - **Issue**: [#1985](https://github.com/torrust/torrust-tracker/issues/1985)
 - **Spec**: `docs/issues/open/1985-rename-peer-addr-to-ip-in-http-announce-request/ISSUE.md`
 

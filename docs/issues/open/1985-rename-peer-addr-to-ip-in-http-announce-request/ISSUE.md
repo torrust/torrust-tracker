@@ -146,7 +146,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T7  | DONE   | Update test fixtures and inline URL strings that use `peer_addr=`                      | `packages/axum-http-server/tests/server/v1/contract/for_all_config_modes/receiving_an_announce_request.rs`, `packages/axum-http-server/tests/server/v1/contract/configured_as_private.rs`, `packages/axum-http-server/src/v1/extractors/announce_request.rs` (inline test query string) |
 | T8  | DONE   | Rename `--peer-addr` CLI flag to `--ip` in tracker-client binaries                     | `console/tracker-client/src/console/clients/http/app.rs`, `console/tracker-client/src/console/clients/unified/http.rs`. Also rename `peer_addr` CLI arg struct field and `AnnounceOptions` field to `ip`.                                                                               |
 | T9  | DONE   | Update JSON key in tracker-client docs from `peer_addr` to `ip`                        | `console/tracker-client/docs/features/json-request-input/README.md`                                                                                                                                                                                                                     |
-| T10 | DONE   | Commit the ADR to `docs/adrs/`                                                         | File: `docs/adrs/20260716_accept_only_ip_addresses_in_http_announce_ip_param.md`                                                                                                                                                                                                        |
+| T10 | DONE   | Commit the ADR to `docs/adrs/`                                                         | File: `docs/adrs/20260716000000_accept_only_ip_addresses_in_http_announce_ip_param.md`                                                                                                                                                                                                        |
 | T11 | DONE   | Run `cargo test --workspace` — no regressions                                          | All tests pass                                                                                                                                                                                                                                                                          |
 | T12 | DONE   | Run `linter all`                                                                       | Must exit `0`                                                                                                                                                                                                                                                                           |
 | T13 | DONE   | Rename test function `should_not_fail_when_the_peer_address_param_is_invalid`          | Rename to `should_not_fail_when_the_ip_param_is_invalid` in `packages/axum-http-server/tests/server/v1/contract/for_all_config_modes/receiving_an_announce_request.rs`                                                                                                                  |
@@ -180,12 +180,12 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] AC3: The Rust struct field, builder method, extractor function, and constant all use the name `ip` (no remaining `peer_addr` references for the wire parameter). The `Display` impl uses the `IP` constant rather than a hardcoded string literal.
 - [x] AC4: The `NOTICE` in `packages/axum-http-server/src/lib.rs` accurately describes the `ip` parameter with a correct BEP 3 reference (no BEP 15 mention for this parameter).
 - [x] AC5: All sample URLs in documentation use `ip=` instead of `peer_addr=`.
-- [x] AC6: The ADR `docs/adrs/20260716_accept_only_ip_addresses_in_http_announce_ip_param.md` is committed.
+- [x] AC6: The ADR `docs/adrs/20260716000000_accept_only_ip_addresses_in_http_announce_ip_param.md` is committed.
 - [x] AC7: `linter all` exits with code `0`.
 - [x] AC8: Relevant tests pass with no regressions.
-- [ ] Manual verification scenarios are executed and documented (status + evidence).
-- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behaviour.
-- [ ] Documentation is updated when behaviour/workflow changes.
+- [x] Manual verification scenarios are executed and documented (status + evidence).
+- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behaviour.
+- [x] Documentation is updated when behaviour/workflow changes.
 
 ## Verification Plan
 
@@ -214,7 +214,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | AC3   | DONE                   | `grep peer_addr` across protocol/server/client sources returns no wire-param references                                  |
 | AC4   | DONE                   | `packages/axum-http-server/src/lib.rs` NOTICE updated to reference BEP 3                                                 |
 | AC5   | DONE                   | All sample URLs updated in lib.rs, extractor, torrent/mod.rs, tracker-client docs                                        |
-| AC6   | DONE                   | `docs/adrs/20260716_accept_only_ip_addresses_in_http_announce_ip_param.md` created                                       |
+| AC6   | DONE                   | `docs/adrs/20260716000000_accept_only_ip_addresses_in_http_announce_ip_param.md` created                                       |
 | AC7   | DONE                   | `linter all` exits `0`                                                                                                   |
 | AC8   | DONE                   | All pre-commit checks pass; 0 test failures                                                                              |
 
