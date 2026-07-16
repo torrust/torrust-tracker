@@ -15,10 +15,15 @@ use zerocopy::{FromBytes, Immutable, IntoBytes};
 
 pub trait Ip: Clone + Copy + Debug + PartialEq + Eq + std::hash::Hash + IntoBytes + Immutable {}
 
+/// The maximum number of bytes in a UDP packet.
+pub const MAX_PACKET_SIZE: usize = 1496;
+
 #[derive(PartialEq, Eq, Hash, Clone, Copy, Debug, IntoBytes, FromBytes, Immutable)]
 #[repr(transparent)]
 // Intentionally kept in `common`: this protocol-level wire type mirrors
-// `bittorrent-primitives::InfoHash` and may be unified across packages later.
+// `torrust_info_hash::InfoHash` but is kept protocol-local so that wire
+// representations can evolve independently of domain types.
+// adr: docs/adrs/20260527175600_keep_protocol_and_domain_types_decoupled.md
 pub struct InfoHash(pub [u8; 20]);
 
 #[derive(PartialEq, Eq, Hash, Clone, Copy, Debug, IntoBytes, FromBytes, Immutable)]
@@ -47,6 +52,7 @@ impl TransactionId {
 // `packages/primitives/src/number_of_bytes.rs` and HTTP protocol byte counters,
 // but remains UDP-local so protocol wire representations can evolve
 // independently per protocol.
+// adr: docs/adrs/20260527175600_keep_protocol_and_domain_types_decoupled.md
 pub struct NumberOfBytes(pub I64);
 
 impl NumberOfBytes {

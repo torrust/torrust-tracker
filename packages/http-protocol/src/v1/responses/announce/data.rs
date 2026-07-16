@@ -10,6 +10,7 @@ use torrust_peer_id::PeerId;
 // Protocol-local announce response DTOs intentionally duplicate some domain
 // field shapes. This keeps protocol crates decoupled from tracker domain types
 // and centralizes conversions in boundary adapters.
+// adr: docs/adrs/20260527175600_keep_protocol_and_domain_types_decoupled.md
 #[derive(Clone, Debug, PartialEq, Constructor, Default)]
 pub struct AnnounceData {
     pub peers: Vec<Peer>,

@@ -87,6 +87,11 @@ pub struct AnnounceData {
     pub policy: AnnouncePolicy,
 }
 
+/// Intentional boundary duplication: this domain type mirrors
+/// protocol-level `AnnounceEvent` definitions in `udp-protocol` and
+/// `http-protocol`, but is kept here so domain logic does not depend on
+/// protocol wire formats.
+// adr: docs/adrs/20260527175600_keep_protocol_and_domain_types_decoupled.md
 #[derive(PartialEq, Eq, Hash, Clone, Copy, Debug)]
 pub enum AnnounceEvent {
     Started,

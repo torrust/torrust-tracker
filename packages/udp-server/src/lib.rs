@@ -647,9 +647,6 @@ use std::net::SocketAddr;
 
 use torrust_clock::clock;
 
-/// The maximum number of bytes in a UDP packet.
-pub const MAX_PACKET_SIZE: usize = 1496;
-
 /// This code needs to be copied into each crate.
 /// Working version, for production.
 #[cfg(not(test))]

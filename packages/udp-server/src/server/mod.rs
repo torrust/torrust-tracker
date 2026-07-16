@@ -4,8 +4,6 @@ use std::fmt::Debug;
 use derive_more::derive::Display;
 use thiserror::Error;
 
-use super::RawRequest;
-
 pub mod bound_socket;
 pub mod launcher;
 pub mod processor;

@@ -35,6 +35,7 @@ const PEER_ADDR: &str = "peer_addr";
 // `NumberOfBytes` concept and domain byte counters, but it is kept local so
 // HTTP wire semantics can evolve independently without forcing cross-protocol
 // or domain-wide refactors.
+// adr: docs/adrs/20260527175600_keep_protocol_and_domain_types_decoupled.md
 #[derive(PartialEq, Eq, Hash, Clone, Copy, Debug)]
 pub struct NumberOfBytes(pub i64);
 

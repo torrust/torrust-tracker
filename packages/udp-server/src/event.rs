@@ -1,11 +1,9 @@
 use std::fmt;
-use std::net::{IpAddr, SocketAddr};
 use std::time::Duration;
 
-use torrust_metrics::label::{LabelSet, LabelValue};
-use torrust_metrics::label_name;
-use torrust_net_primitives::service_binding::{IpFamily, IpType, ServiceBinding};
+use torrust_metrics::label::LabelValue;
 use torrust_tracker_core::error::{AnnounceError, ScrapeError};
+use torrust_tracker_udp_core::event::ConnectionContext;
 use torrust_tracker_udp_core::services::announce::UdpAnnounceError;
 use torrust_tracker_udp_core::services::scrape::UdpScrapeError;
 use torrust_tracker_udp_protocol::AnnounceRequest;
@@ -79,80 +77,6 @@ pub enum UdpResponseKind {
     Error {
         opt_req_kind: Option<UdpRequestKind>,
     },
-}
-
-#[derive(Debug, PartialEq, Eq, Clone)]
-pub struct ConnectionContext {
-    client_socket_addr: SocketAddr,
-    server_service_binding: ServiceBinding,
-}
-
-impl ConnectionContext {
-    #[must_use]
-    pub fn new(client_socket_addr: SocketAddr, server_service_binding: ServiceBinding) -> Self {
-        Self {
-            client_socket_addr,
-            server_service_binding,
-        }
-    }
-
-    #[must_use]
-    pub fn client_socket_addr(&self) -> SocketAddr {
-        self.client_socket_addr
-    }
-
-    #[must_use]
-    pub fn server_socket_addr(&self) -> SocketAddr {
-        self.server_service_binding.bind_address()
-    }
-
-    #[must_use]
-    pub fn client_address_ip_family(&self) -> IpFamily {
-        self.client_socket_addr.ip().into()
-    }
-
-    #[must_use]
-    pub fn client_address_ip_type(&self) -> IpType {
-        match self.client_socket_addr.ip() {
-            IpAddr::V6(v6) if v6.to_ipv4_mapped().is_some() => IpType::V4MappedV6,
-            _ => IpType::Plain,
-        }
-    }
-}
-
-impl From<ConnectionContext> for LabelSet {
-    fn from(connection_context: ConnectionContext) -> Self {
-        LabelSet::from([
-            (
-                label_name!("server_binding_protocol"),
-                LabelValue::new(&connection_context.server_service_binding.protocol().to_string()),
-            ),
-            (
-                label_name!("server_binding_ip"),
-                LabelValue::new(&connection_context.server_service_binding.bind_address().ip().to_string()),
-            ),
-            (
-                label_name!("server_binding_address_ip_type"),
-                LabelValue::new(&connection_context.server_service_binding.bind_address_ip_type().to_string()),
-            ),
-            (
-                label_name!("server_binding_address_ip_family"),
-                LabelValue::new(&connection_context.server_service_binding.bind_address_ip_family().to_string()),
-            ),
-            (
-                label_name!("server_binding_port"),
-                LabelValue::new(&connection_context.server_service_binding.bind_address().port().to_string()),
-            ),
-            (
-                label_name!("client_address_ip_family"),
-                LabelValue::new(&connection_context.client_address_ip_family().to_string()),
-            ),
-            (
-                label_name!("client_address_ip_type"),
-                LabelValue::new(&connection_context.client_address_ip_type().to_string()),
-            ),
-        ])
-    }
 }
 
 #[derive(Debug, Clone, PartialEq)]

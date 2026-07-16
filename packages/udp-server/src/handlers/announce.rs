@@ -7,6 +7,7 @@ use torrust_info_hash::InfoHash;
 use torrust_net_primitives::service_binding::ServiceBinding;
 use torrust_tracker_configuration::Core;
 use torrust_tracker_primitives::AnnounceData;
+use torrust_tracker_udp_core::event::ConnectionContext;
 use torrust_tracker_udp_core::services::announce::AnnounceService;
 use torrust_tracker_udp_protocol::{
     AnnounceInterval, AnnounceRequest, AnnounceResponse, AnnounceResponseFixedData, Ipv4AddrBytes, Ipv6AddrBytes, NumberOfPeers,
@@ -15,7 +16,7 @@ use torrust_tracker_udp_protocol::{
 use tracing::{Level, instrument};
 use zerocopy::byteorder::network_endian::I32;
 
-use crate::event::{ConnectionContext, Event, UdpRequestKind};
+use crate::event::{Event, UdpRequestKind};
 use crate::handlers::HandlerError;
 
 /// It handles the `Announce` request.
@@ -217,12 +218,13 @@ pub(crate) mod tests {
             use torrust_tracker_events::bus::SenderStatus;
             use torrust_tracker_primitives::peer::fixture::PeerBuilder;
             use torrust_tracker_udp_core::connection_cookie::{gen_remote_fingerprint, make};
+            use torrust_tracker_udp_core::event::ConnectionContext;
             use torrust_tracker_udp_protocol::{
                 AnnounceInterval, AnnounceResponse, AnnounceResponseFixedData, InfoHash as AquaticInfoHash, Ipv4AddrBytes,
                 Ipv6AddrBytes, NumberOfPeers, Response, ResponsePeer,
             };
 
-            use crate::event::{ConnectionContext, Event, UdpRequestKind};
+            use crate::event::{Event, UdpRequestKind};
             use crate::handlers::announce::tests::announce_request::AnnounceRequestBuilder;
             use crate::handlers::handle_announce;
             use crate::handlers::tests::{
@@ -566,6 +568,7 @@ pub(crate) mod tests {
             use torrust_tracker_events::bus::SenderStatus;
             use torrust_tracker_primitives::peer::fixture::PeerBuilder;
             use torrust_tracker_udp_core::connection_cookie::{gen_remote_fingerprint, make};
+            use torrust_tracker_udp_core::event::ConnectionContext;
             use torrust_tracker_udp_core::event::bus::EventBus;
             use torrust_tracker_udp_core::event::sender::Broadcaster;
             use torrust_tracker_udp_core::services::announce::AnnounceService;
@@ -574,7 +577,7 @@ pub(crate) mod tests {
                 Ipv6AddrBytes, NumberOfPeers, Response, ResponsePeer,
             };
 
-            use crate::event::{ConnectionContext, Event, UdpRequestKind};
+            use crate::event::{Event, UdpRequestKind};
             use crate::handlers::announce::tests::announce_request::AnnounceRequestBuilder;
             use crate::handlers::handle_announce;
             use crate::handlers::tests::{
@@ -866,11 +869,12 @@ pub(crate) mod tests {
                 use torrust_tracker_core::whitelist::authorization::WhitelistAuthorization;
                 use torrust_tracker_core::whitelist::repository::in_memory::InMemoryWhitelist;
                 use torrust_tracker_udp_core::connection_cookie::{gen_remote_fingerprint, make};
+                use torrust_tracker_udp_core::event::ConnectionContext;
                 use torrust_tracker_udp_core::services::announce::AnnounceService;
                 use torrust_tracker_udp_core::{self, event as core_event};
                 use torrust_tracker_udp_protocol::InfoHash as AquaticInfoHash;
 
-                use crate::event::{ConnectionContext, Event, UdpRequestKind};
+                use crate::event::{Event, UdpRequestKind};
                 use crate::handlers::announce::tests::announce_request::AnnounceRequestBuilder;
                 use crate::handlers::handle_announce;
                 use crate::handlers::tests::{

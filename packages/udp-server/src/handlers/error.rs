@@ -4,6 +4,7 @@ use std::ops::Range;
 
 use torrust_net_primitives::service_binding::ServiceBinding;
 use torrust_tracker_udp_core::UDP_TRACKER_LOG_TARGET;
+use torrust_tracker_udp_core::event::ConnectionContext;
 use torrust_tracker_udp_core::services::announce::UdpAnnounceError;
 use torrust_tracker_udp_core::services::scrape::UdpScrapeError;
 use torrust_tracker_udp_protocol::{ErrorResponse, Response, TransactionId};
@@ -12,7 +13,7 @@ use uuid::Uuid;
 use zerocopy::byteorder::network_endian::I32;
 
 use crate::error::Error;
-use crate::event::{ConnectionContext, Event, UdpRequestKind};
+use crate::event::{Event, UdpRequestKind};
 
 #[allow(clippy::too_many_arguments)]
 #[instrument(fields(transaction_id), skip(opt_udp_server_stats_event_sender), ret(level = Level::TRACE))]
