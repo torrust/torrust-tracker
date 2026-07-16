@@ -29,7 +29,7 @@ const LEFT: &str = "left";
 const EVENT: &str = "event";
 const COMPACT: &str = "compact";
 const NUMWANT: &str = "numwant";
-const PEER_ADDR: &str = "peer_addr";
+const IP: &str = "ip";
 
 // Intentionally protocol-local: this currently mirrors the UDP protocol
 // `NumberOfBytes` concept and domain byte counters, but it is kept local so
@@ -67,7 +67,7 @@ impl NumberOfBytes {
 ///     peer_id: PeerId(*b"-RC3000-000000000001"),
 ///     port: 17548,
 ///     // Optional params
-///     peer_addr: None,
+///     ip: None,
 ///     downloaded: Some(NumberOfBytes::new(1)),
 ///     uploaded: Some(NumberOfBytes::new(1)),
 ///     left: Some(NumberOfBytes::new(1)),
@@ -81,7 +81,7 @@ impl NumberOfBytes {
 /// > specifies that only the peer `IP` and `event` are optional. However, the
 /// > tracker defines default values for some of the mandatory params.
 ///
-/// > **NOTICE**: The struct contains `peer_addr` as per BEP 3. The tracker
+/// > **NOTICE**: The struct contains `ip` as per BEP 3. The tracker
 /// > implementation may choose to use it or derive the IP from the connection.
 #[derive(Clone, Debug, PartialEq)]
 pub struct Announce {
@@ -97,7 +97,7 @@ pub struct Announce {
 
     // Optional params
     /// The peer IP address (BEP 3 `ip` parameter).
-    pub peer_addr: Option<IpAddr>,
+    pub ip: Option<IpAddr>,
 
     /// The number of bytes downloaded by the peer.
     pub downloaded: Option<NumberOfBytes>,
@@ -291,7 +291,7 @@ impl TryFrom<Query> for Announce {
             event: extract_event(&query)?,
             compact: extract_compact(&query)?,
             numwant: extract_numwant(&query)?,
-            peer_addr: extract_peer_addr(&query),
+            ip: extract_ip(&query),
         })
     }
 }
@@ -304,8 +304,8 @@ impl fmt::Display for Announce {
         params.push(("peer_id", percent_encode_byte_array(&self.peer_id.0)));
         params.push(("port", self.port.to_string()));
 
-        if let Some(peer_addr) = &self.peer_addr {
-            params.push(("peer_addr", peer_addr.to_string()));
+        if let Some(ip) = &self.ip {
+            params.push((IP, ip.to_string()));
         }
         if let Some(downloaded) = self.downloaded {
             params.push(("downloaded", downloaded.0.to_string()));
@@ -376,7 +376,7 @@ impl AnnounceBuilder {
             info_hash: InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap(), // DevSkim: ignore DS173237
             peer_id: PeerId(*b"-qB00000000000000001"),
             port: 17548,
-            peer_addr: Some(IpAddr::V4(std::net::Ipv4Addr::new(192, 168, 1, 88))),
+            ip: Some(IpAddr::V4(std::net::Ipv4Addr::new(192, 168, 1, 88))),
             downloaded: None,
             uploaded: None,
             left: None,
@@ -408,8 +408,8 @@ impl AnnounceBuilder {
     }
 
     #[must_use]
-    pub fn with_peer_addr(mut self, peer_addr: IpAddr) -> Self {
-        self.announce.peer_addr = Some(peer_addr);
+    pub fn with_ip(mut self, ip: IpAddr) -> Self {
+        self.announce.ip = Some(ip);
         self
     }
 
@@ -563,8 +563,8 @@ fn extract_number_of_bytes_from_param(param_name: &str, query: &Query) -> Result
     }
 }
 
-fn extract_peer_addr(query: &Query) -> Option<IpAddr> {
-    match query.get_param(PEER_ADDR) {
+fn extract_ip(query: &Query) -> Option<IpAddr> {
+    match query.get_param(IP) {
         Some(raw_param) => IpAddr::from_str(&raw_param).ok(),
         None => None,
     }
@@ -631,7 +631,7 @@ mod tests {
                     info_hash: "3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0".parse::<InfoHash>().unwrap(), // DevSkim: ignore DS173237
                     peer_id: PeerId(*b"-RC3000-000000000001"),
                     port: 17548,
-                    peer_addr: None,
+                    ip: None,
                     downloaded: None,
                     uploaded: None,
                     left: None,
@@ -667,7 +667,7 @@ mod tests {
                     info_hash: "3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0".parse::<InfoHash>().unwrap(), // DevSkim: ignore DS173237
                     peer_id: PeerId(*b"-RC3000-000000000001"),
                     port: 17548,
-                    peer_addr: None,
+                    ip: None,
                     downloaded: Some(NumberOfBytes::new(1)),
                     uploaded: Some(NumberOfBytes::new(2)),
                     left: Some(NumberOfBytes::new(3)),

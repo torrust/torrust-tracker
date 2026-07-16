@@ -66,7 +66,7 @@ cat announce.json | tracker_client udp announce 127.0.0.1:6969 --request-stdin
   "downloaded": 5678,
   "left": 0,
   "port": 6881,
-  "peer_addr": "10.0.0.1",
+  "ip": "10.0.0.1",
   "peer_id": "-RC00000000000000001",
   "compact": 1,
   "key": 42,
@@ -77,7 +77,7 @@ cat announce.json | tracker_client udp announce 127.0.0.1:6969 --request-stdin
 
 Notes:
 
-- HTTP uses `peer_addr` and `compact`.
+- HTTP uses `ip` and `compact`.
 - UDP uses `ip_address`, `key`, and `peers_wanted`.
 - A shared schema can allow optional protocol-specific fields.
 
