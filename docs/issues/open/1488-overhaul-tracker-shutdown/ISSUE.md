@@ -125,18 +125,18 @@ Items marked **Blocked** depend on an open question in
 [open-questions.md](../../features/shutdown-process/open-questions.md).
 Spec files for draft items live under `docs/issues/drafts/`.
 
-| #     | Title                                                        | Spec                                                                              | Status | Notes                                         |
-| ----- | ------------------------------------------------------------ | --------------------------------------------------------------------------------- | ------ | --------------------------------------------- |
-| #1588 | Review shutdown process for all tasks/jobs                   | [1588/ISSUE.md](../1588-review-shutdown-process-for-all-tasks-jobs/ISSUE.md)      | Open   | Pre-existing; inventory and gap analysis      |
-| SI-1  | Add `SIGTERM` handler to `main.rs`                           | [SI-1/ISSUE.md](../../drafts/1488-si-1-add-sigterm-to-main/ISSUE.md)              | Draft  | Highest priority; fixes the Unix contract     |
-| SI-2  | Remove `global_shutdown_signal()` from per-server shutdown   | [SI-2/ISSUE.md](../../drafts/1488-si-2-remove-global-shutdown-signal/ISSUE.md)    | Draft  | Blocked: Q1, Q5; touches `torrust-server-lib` |
-| SI-3  | Fix `Environment::stop()` in standalone library examples     | [SI-3/ISSUE.md](../../drafts/1488-si-3-fix-environment-stop/ISSUE.md)             | Draft  | Blocked: Q1; abort vs cancel + SIGTERM        |
-| SI-4  | Migrate torrent cleanup to `CancellationToken`               | [SI-4/ISSUE.md](../../drafts/1488-si-4-migrate-torrent-cleanup/ISSUE.md)          | Draft  | Removes direct `ctrl_c` listener              |
-| SI-5  | Migrate activity metrics updater to `CancellationToken`      | [SI-5/ISSUE.md](../../drafts/1488-si-5-migrate-activity-metrics-updater/ISSUE.md) | Draft  | Removes direct `ctrl_c` listener              |
-| SI-6  | Align `JobManager` grace period with Axum server timeout     | [SI-6/ISSUE.md](../../drafts/1488-si-6-align-grace-periods/ISSUE.md)              | Draft  | Blocked: Q4; fixes the 10s vs 90s mismatch    |
-| SI-7  | Implement observable shutdown progress in `JobManager`       | [SI-7/ISSUE.md](../../drafts/1488-si-7-observable-shutdown-progress/ISSUE.md)     | Draft  |                                               |
-| SI-8  | Add configurable grace periods (`[shutdown]` config section) | [SI-8/ISSUE.md](../../drafts/1488-si-8-configurable-grace-periods/ISSUE.md)       | Draft  | Blocked: Q3, Q4                               |
-| SI-9  | Improve UDP server shutdown                                  | [SI-9/ISSUE.md](../../drafts/1488-si-9-improve-udp-shutdown/ISSUE.md)             | Draft  | Low priority; UDP is stateless by nature      |
+| #     | Title                                                        | Spec                                                                              | Status | Notes                                          |
+| ----- | ------------------------------------------------------------ | --------------------------------------------------------------------------------- | ------ | ---------------------------------------------- |
+| #1588 | Review shutdown process for all tasks/jobs                   | [1588/ISSUE.md](../1588-review-shutdown-process-for-all-tasks-jobs/ISSUE.md)      | Open   | Pre-existing; inventory and gap analysis       |
+| SI-1  | Add `SIGTERM` handler to `main.rs`                           | [SI-1/ISSUE.md](../../drafts/1488-si-1-add-sigterm-to-main/ISSUE.md)              | Draft  | Highest priority; fixes the Unix contract      |
+| SI-2  | Remove `global_shutdown_signal()` from per-server shutdown   | [SI-2/ISSUE.md](../../drafts/1488-si-2-remove-global-shutdown-signal/ISSUE.md)    | Draft  | Blocked: Q5 only; touches `torrust-server-lib` |
+| SI-3  | Fix `Environment::stop()` in standalone library examples     | [SI-3/ISSUE.md](../../drafts/1488-si-3-fix-environment-stop/ISSUE.md)             | Draft  | ✅ Unblocked (Q1 resolved)                     |
+| SI-4  | Migrate torrent cleanup to `CancellationToken`               | [SI-4/ISSUE.md](../../drafts/1488-si-4-migrate-torrent-cleanup/ISSUE.md)          | Draft  | Removes direct `ctrl_c` listener               |
+| SI-5  | Migrate activity metrics updater to `CancellationToken`      | [SI-5/ISSUE.md](../../drafts/1488-si-5-migrate-activity-metrics-updater/ISSUE.md) | Draft  | Removes direct `ctrl_c` listener               |
+| SI-6  | Align `JobManager` grace period with Axum server timeout     | [SI-6/ISSUE.md](../../drafts/1488-si-6-align-grace-periods/ISSUE.md)              | Draft  | Blocked: Q4; fixes the 10s vs 90s mismatch     |
+| SI-7  | Implement observable shutdown progress in `JobManager`       | [SI-7/ISSUE.md](../../drafts/1488-si-7-observable-shutdown-progress/ISSUE.md)     | Draft  |                                                |
+| SI-8  | Add configurable grace periods (`[shutdown]` config section) | [SI-8/ISSUE.md](../../drafts/1488-si-8-configurable-grace-periods/ISSUE.md)       | Draft  | Blocked: Q3, Q4                                |
+| SI-9  | Improve UDP server shutdown                                  | [SI-9/ISSUE.md](../../drafts/1488-si-9-improve-udp-shutdown/ISSUE.md)             | Draft  | Low priority; UDP is stateless by nature       |
 
 ## Dependencies
 

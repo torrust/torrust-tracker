@@ -1,7 +1,7 @@
 ---
 doc-type: open-questions
 status: open
-last-updated-utc: 2026-07-16
+last-updated-utc: 2026-07-16 (Q1 resolved)
 semantic-links:
   related-artifacts:
     - docs/features/shutdown-process/README.md
@@ -20,25 +20,57 @@ can be created and scheduled for implementation.
 
 ## Progress
 
-| #           | Severity     | Status | Title                                                               |
-| ----------- | ------------ | ------ | ------------------------------------------------------------------- |
-| [Q1](#q1)   | 🔴 Critical  | Open   | `global_shutdown_signal()` removal not tracked                      |
-| [Q2](#q2)   | 🔴 Critical  | Open   | Halt-sender wiring unspecified in design                            |
-| [Q3](#q3)   | 🔴 Critical  | Open   | Exit codes on shutdown not defined                                  |
-| [Q4](#q4)   | 🟡 Important | Open   | Docker 10s default vs. tracker grace period                         |
-| [Q5](#q5)   | 🟡 Important | Open   | Orphan risk if `main.rs` crashes before sending halts               |
-| [Q6](#q6)   | 🟡 Important | Open   | Two-phase shutdown not discussed for Kubernetes rolling deployments |
-| [Q7](#q7)   | 🟡 Important | Open   | `#[cfg(unix)]` asymmetry on Windows not noted                       |
-| [Q8](#q8)   | 🟢 Minor     | Open   | `SIGHUP` / config reload not explicitly deferred                    |
-| [Q9](#q9)   | 🟢 Minor     | Open   | Docker experimental validation missing                              |
-| [Q10](#q10) | 🟢 Minor     | Open   | Option 4 heading/body mismatch after signal rename                  |
+| #           | Severity     | Status      | Title                                                               |
+| ----------- | ------------ | ----------- | ------------------------------------------------------------------- |
+| [Q1](#q1)   | 🔴 Critical  | ✅ Resolved | `global_shutdown_signal()` removal not tracked                      |
+| [Q2](#q2)   | 🔴 Critical  | Open        | Halt-sender wiring unspecified in design                            |
+| [Q3](#q3)   | 🔴 Critical  | Open        | Exit codes on shutdown not defined                                  |
+| [Q4](#q4)   | 🟡 Important | Open        | Docker 10s default vs. tracker grace period                         |
+| [Q5](#q5)   | 🟡 Important | Open        | Orphan risk if `main.rs` crashes before sending halts               |
+| [Q6](#q6)   | 🟡 Important | Open        | Two-phase shutdown not discussed for Kubernetes rolling deployments |
+| [Q7](#q7)   | 🟡 Important | Open        | `#[cfg(unix)]` asymmetry on Windows not noted                       |
+| [Q8](#q8)   | 🟢 Minor     | Open        | `SIGHUP` / config reload not explicitly deferred                    |
+| [Q9](#q9)   | 🟢 Minor     | Open        | Docker experimental validation missing                              |
+| [Q10](#q10) | 🟢 Minor     | Open        | Option 4 heading/body mismatch after signal rename                  |
+
+## Question → Sub-issue Impact
+
+This table shows which sub-issues each question affects and what the current
+readiness is. Update it whenever a question is resolved.
+
+| Question | Affected sub-issues         | Impact                                                   |
+| -------- | --------------------------- | -------------------------------------------------------- |
+| Q1 ✅    | SI-2 (partial), SI-3 (full) | SI-3 fully unblocked. SI-2 still needs Q5.               |
+| Q2       | SI-2, SI-4, SI-5            | Wiring design decision needed before SI-2 implementation |
+| Q3       | SI-1 (exit code AC), SI-8   | Exit code contract must be defined                       |
+| Q4       | SI-6, SI-8                  | Grace period target values must be agreed                |
+| Q5       | SI-2                        | Orphan risk strategy must be decided before SI-2 lands   |
+| Q6       | SI-6                        | Advisory note — no hard block                            |
+| Q7       | SI-1                        | Windows note to add — no hard block                      |
+| Q8       | feature doc only            | Out-of-scope note to add — no hard block                 |
+| Q9       | SI-1 verification           | Docker test for Phase 2 — no hard block                  |
+| Q10      | feature doc only            | Cosmetic fix — no hard block                             |
+
+## Sub-issue Readiness
+
+| Sub-issue | Can start? | Waiting on                      |
+| --------- | ---------- | ------------------------------- |
+| SI-1      | ✅ Yes     | Nothing                         |
+| SI-3      | ✅ Yes     | Nothing (Q1 resolved)           |
+| SI-4      | ✅ Yes     | Nothing                         |
+| SI-5      | ✅ Yes     | Nothing                         |
+| SI-7      | ✅ Yes     | Nothing                         |
+| SI-9      | ✅ Yes     | Nothing                         |
+| SI-2      | ❌ No      | Q5 (orphan risk strategy)       |
+| SI-6      | ❌ No      | Q4 (grace period target values) |
+| SI-8      | ❌ No      | Q3 (exit codes), Q4             |
 
 ---
 
 ## Q1
 
 **Severity**: 🔴 Critical  
-**Status**: Open  
+**Status**: ✅ Resolved (2026-07-16)  
 **Title**: `global_shutdown_signal()` removal not tracked; standalone binaries have a different contract
 
 ### Description
@@ -170,16 +202,47 @@ is no longer part of this workspace. That must be factored into planning.
   the event listener jobs instead of `abort()`ing them.
 - Update both examples to handle `SIGTERM` alongside `SIGINT`.
 
-### Action
+### Decision
 
-- [ ] Decide whether sub-issues A and B (SIGTERM addition / `global_shutdown_signal()`
-      removal) should be atomic or sequential.
-- [ ] Add "Remove `global_shutdown_signal()` from server shutdown" to the EPIC
-      sub-issue table (noting the `torrust-server-lib` external dependency).
-- [ ] Add "Fix standalone example binary shutdown" as a separate sub-issue or
-      note in the EPIC — covering `Environment::stop()` abort-vs-cancel and SIGTERM.
-- [ ] Update Q5 (orphan risk) once the `global_shutdown_signal()` removal
-      strategy is decided.
+**1. SI-1 (SIGTERM in `main.rs`) can and should land before SI-2.**
+
+The Phase 1 verification evidence confirms the sequence is safe: after SIGTERM,
+the servers' `global_shutdown_signal()` reacts independently (they start draining
+their connections), while `main.rs` does nothing. After SI-1 lands, `main.rs`
+catches SIGTERM first at the top-level `tokio::select!`, calls `jobs.cancel()`,
+and sends halt messages to the servers. The servers' own `global_shutdown_signal()`
+fires afterward as a redundant no-op. The behavior is correct and the logs will
+show duplicate "caught interrupt signal (terminate)" messages — noisy but
+harmless. SI-2 will clean this up later.
+
+**2. SI-1 and SI-2 are separate sub-issues landed sequentially.**
+
+- SI-1: Add `SIGTERM` to `main.rs` — no prerequisites, safe to land now.
+- SI-2: Remove `global_shutdown_signal()` from `shutdown_signal()` in
+  `torrust_server_lib` — requires a coordinated release of `torrust-server-lib`.
+  Must not land before the orphan risk in Q5 is also resolved.
+
+**3. `Environment::stop()` should use `cancel()` instead of `abort()` for event
+listeners.**
+
+The `CancellationToken` is already wired into `Environment` but never cancelled.
+The `TODO` comments in the code call this out explicitly. This is a pre-existing
+bug in the standalone library API. The fix is tracked in SI-3.
+
+**4. Both standalone example binaries should be updated to handle `SIGTERM`.**
+
+They model the intended library usage pattern. If a user copies the example as
+a starting point, their binary will have the same SIGTERM gap. SI-3 covers this.
+
+### Actions Taken
+
+- [x] Decision recorded: SI-1 and SI-2 are sequential, SI-1 is safe to land first.
+- [x] SI-2 already exists in the EPIC sub-issue table with the `torrust-server-lib`
+      external dependency noted.
+- [x] SI-3 already exists covering `Environment::stop()` abort-vs-cancel and
+      SIGTERM for standalone examples.
+- [x] Q5 (orphan risk) remains open — it must be resolved before SI-2 lands,
+      not before SI-1.
 
 ---
 

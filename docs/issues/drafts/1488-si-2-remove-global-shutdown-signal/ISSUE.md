@@ -26,7 +26,7 @@ semantic-links:
 # Draft SI-2 — Remove `global_shutdown_signal()` from Per-Server Shutdown
 
 > **EPIC position**: SI-2 of #1488. Depends on SI-1.
-> **Blocked**: Open questions Q1 and Q5 must be resolved before implementing.
+> **Blocked**: Q5 must be resolved before implementing (Q1 is resolved).
 
 ## Goal
 
@@ -113,7 +113,8 @@ they can be updated independently in SI-3.
 
 - SI-1 must land first.
 - Requires `torrust-server-lib` to be updated and released.
-- Q1 and Q5 in open-questions.md must be resolved.
+- Q1 is resolved: SI-1 and SI-2 are sequential; SI-1 lands first.
+- Q5 (orphan risk) must be resolved before this sub-issue can land.
 
 ## Manual Verification
 

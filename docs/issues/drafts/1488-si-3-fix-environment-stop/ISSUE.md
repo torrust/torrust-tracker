@@ -25,8 +25,8 @@ semantic-links:
 # Draft SI-3 — Fix `Environment::stop()` in Standalone Library Examples
 
 > **EPIC position**: SI-3 of #1488. Depends on Q1 resolution.
-> **Blocked**: Q1 must be resolved — the fix strategy for `Environment::stop()`
-> depends on the decision about `global_shutdown_signal()` in SI-2.
+> ✅ **Unblocked** — Q1 is resolved. See the [Q1 decision](../../features/shutdown-process/open-questions.md#q1):
+> SI-3 and SI-2 are sequential; this sub-issue can land independently of SI-2.
 
 ## Goal
 
@@ -113,9 +113,9 @@ env.stop().await;
 
 ## Dependencies
 
-- Q1 must be resolved (the `global_shutdown_signal()` decision affects whether
-  servers in these examples also need explicit halt-sender changes).
-- Can land independently of SI-1 and SI-2 if Q1 is resolved first.
+- Q1 is resolved: this sub-issue can land independently of SI-1 and SI-2.
+  The standalone examples use `env.stop()` directly — they do not depend on
+  the `global_shutdown_signal()` removal in SI-2.
 
 ## Manual Verification
 
