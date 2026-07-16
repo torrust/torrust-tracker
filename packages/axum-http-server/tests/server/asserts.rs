@@ -69,10 +69,10 @@ pub async fn assert_scrape_response(response: Response, expected_response: &dese
 
 pub async fn assert_is_announce_response(response: Response) {
     assert_eq!(response.status(), 200);
-    let body = response.text().await.unwrap();
-    if serde_bencode::from_str::<DeserializedNormal>(&body).is_err() {
-        let _compact_response: DeserializedCompact = serde_bencode::from_str(&body)
-            .unwrap_or_else(|_| panic!("response body should be a valid announce response, got \"{body}\""));
+    let bytes = response.bytes().await.unwrap();
+    if serde_bencode::from_bytes::<DeserializedNormal>(&bytes).is_err() {
+        let _compact_response: DeserializedCompact = serde_bencode::from_bytes(&bytes)
+            .unwrap_or_else(|_| panic!("response body should be a valid announce response, got {bytes:02x?}"));
     }
 }
 

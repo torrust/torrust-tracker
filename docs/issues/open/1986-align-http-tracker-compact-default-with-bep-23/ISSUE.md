@@ -6,7 +6,7 @@ priority: p2
 github-issue: 1986
 spec-path: docs/issues/open/1986-align-http-tracker-compact-default-with-bep-23/ISSUE.md
 branch: "1986-align-http-tracker-compact-default-with-bep-23"
-related-pr: null
+related-pr: "https://github.com/torrust/torrust-tracker/pull/1990"
 last-updated-utc: 2026-07-15 00:00
 semantic-links:
   skill-links:

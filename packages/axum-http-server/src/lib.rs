@@ -51,7 +51,7 @@
 //! [`port`](torrust_tracker_http_protocol::v1::requests::announce::Announce::port) | positive integer | The port used by the peer. | Yes | No | `17548`
 //! [`left`](torrust_tracker_http_protocol::v1::requests::announce::Announce::left) | positive integer | The number of bytes pending to download. | No | `0` | `0`
 //! [`event`](torrust_tracker_http_protocol::v1::requests::announce::Announce::event) | positive integer | The event that triggered the `Announce` request: `started`, `completed`, `stopped` | No | `None` | `completed`
-//! [`compact`](torrust_tracker_http_protocol::v1::requests::announce::Announce::compact) | `0` or `1` | Whether the tracker should return a compact peer list. Compact by default per [BEP 23](https://www.bittorrent.org/beps/bep_0023.html). | No | compact (BEP 23) | `0`
+//! [`compact`](torrust_tracker_http_protocol::v1::requests::announce::Announce::compact) | `0` or `1` | Whether the tracker should return a compact peer list. Compact by default per [BEP 23](https://www.bittorrent.org/beps/bep_0023.html). | No | `1` (compact) | `0`
 //! `numwant` | positive integer | **Not implemented**. The maximum number of peers you want in the reply. | No | `50` | `50`
 //!
 //! Refer to the [`Announce`](torrust_tracker_http_protocol::v1::requests::announce::Announce)
