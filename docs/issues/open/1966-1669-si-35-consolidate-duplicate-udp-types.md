@@ -6,7 +6,7 @@ priority: p2
 github-issue: 1966
 spec-path: docs/issues/open/1966-1669-si-35-consolidate-duplicate-udp-types.md
 branch: "1966-1669-si-35-consolidate-duplicate-udp-types"
-related-pr: null
+related-pr: 1991
 last-updated-utc: 2026-07-16 12:00
 semantic-links:
   skill-links:
