@@ -192,6 +192,8 @@ iterationsadd
 Jakub
 jdbe
 Joakim
+JobManager
+JoinSet
 josecelano
 kallsyms
 Karatay
