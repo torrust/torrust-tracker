@@ -34,13 +34,14 @@ Status legend:
 
 - 2026-07-20: Started processing Copilot suggestions.
 - 2026-07-20: Reviewed two unresolved Copilot suggestions; hardened artifact extraction and documented one false positive.
+- 2026-07-20: Resolved both processed Copilot review threads in the PR.
 
 ## Suggestions
 
 | #   | Thread ID             | Path                                        | URL                                                                         | Suggestion Summary                                                                          | Decision                                                                                                                                             | Status | Thread State |
 | --- | --------------------- | ------------------------------------------- | --------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ------------ |
-| 1   | PRRT_kwDOGp2yqc6SVFOl | `.github/workflows/upload_coverage_pr.yaml` | https://github.com/torrust/torrust-tracker/pull/2008#discussion_r3616316716 | Extract fork-produced artifact archives into a dedicated directory and strip archive paths. | action: use `unzip -j` in `coverage_artifacts` and upload the report from that directory; `linter yaml` passed.                                      | DONE   | OPEN         |
-| 2   | PRRT_kwDOGp2yqc6SVFPE | `.github/workflows/upload_coverage_pr.yaml` | https://github.com/torrust/torrust-tracker/pull/2008#discussion_r3616316757 | Remove unsupported Codecov `working-directory` input and use `directory` instead.           | no-action: Codecov v7 documents `working-directory` as an input; retaining it ensures the uploader runs from the trusted checkout containing `.git`. | DONE   | OPEN         |
+| 1   | PRRT_kwDOGp2yqc6SVFOl | `.github/workflows/upload_coverage_pr.yaml` | https://github.com/torrust/torrust-tracker/pull/2008#discussion_r3616316716 | Extract fork-produced artifact archives into a dedicated directory and strip archive paths. | action: use `unzip -j` in `coverage_artifacts` and upload the report from that directory; `linter yaml` passed.                                      | DONE   | RESOLVED     |
+| 2   | PRRT_kwDOGp2yqc6SVFPE | `.github/workflows/upload_coverage_pr.yaml` | https://github.com/torrust/torrust-tracker/pull/2008#discussion_r3616316757 | Remove unsupported Codecov `working-directory` input and use `directory` instead.           | no-action: Codecov v7 documents `working-directory` as an input; retaining it ensures the uploader runs from the trusted checkout containing `.git`. | DONE   | RESOLVED     |
 
 ## Notes
 
