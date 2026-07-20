@@ -274,7 +274,7 @@ impl Launcher {
                 Some(tls) => custom_axum_server::from_tcp_rustls_with_timeouts(socket, tls)
                     .expect("Failed to create server from TCP socket with TLS")
                     .handle(handle)
-                    // The TimeoutAcceptor is commented because TSL does not work with it.
+                    // The TimeoutAcceptor is commented because TLS does not work with it.
                     // See: https://github.com/torrust/torrust-index/issues/204#issuecomment-2115529214
                     //.acceptor(TimeoutAcceptor)
                     .serve(router.into_make_service_with_connect_info::<std::net::SocketAddr>())
@@ -308,7 +308,7 @@ mod tests {
     use std::sync::Arc;
 
     use torrust_server_lib::registar::Registar;
-    use torrust_tracker_axum_server::tsl::make_rust_tls;
+    use torrust_tracker_axum_server::tls::make_rust_tls;
     use torrust_tracker_configuration::{Configuration, logging};
     use torrust_tracker_rest_api_runtime_adapter::v1::container::TrackerHttpApiCoreContainer;
     use torrust_tracker_test_helpers::configuration::ephemeral_public;

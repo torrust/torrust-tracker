@@ -44,10 +44,9 @@ semantic-links:
     - docs/containers.md
 ---
 
-
 # Issue #1640 - Move `on_reverse_proxy` to per-tracker config (and relocate `Network`)
 
-> **EPIC position**: Subissue #3 of 9. Depends on #2 (tsl→tls typo fix). Must be implemented before #1417 (public_url) and #1490 (secrets) — both reference the `Network` block established here. Both #1640 and #1490 touch `Core`, so #1640 goes first.
+> **EPIC position**: Subissue #3 of 11. Depends on #2 (`tsl` → `tls` typo fix). Must be implemented before #1417 (public_url) and #1490 (secrets) — both reference the `Network` block established here. Both #1640 and #1490 touch `Core`, so #1640 goes first.
 
 ## Goal
 
@@ -149,7 +148,7 @@ pub struct Network {
 // Server-layer config for each HTTP tracker
 pub struct HttpTracker {
     pub bind_address: SocketAddr,
-    pub tsl_config: Option<TslConfig>,
+    pub tls_config: Option<TlsConfig>,
     pub tracker_usage_statistics: bool,
     pub net: Network,                    // ← replaces individual fields
     // ipv6_v6only REMOVED — now inside net
@@ -184,7 +183,7 @@ pub struct Core {
 We considered moving `bind_address` into `Network` since it is a networking concern. We decided to keep it flat for two reasons:
 
 1. **Primary key role**: `bind_address` is the HashMap key for tracker instance containers in `AppContainer` (`HashMap<SocketAddr, Arc<HttpTrackerCoreContainer>>`). Nesting it inside `net` would make lookup more cumbersome without benefit.
-2. **TLS asymmetry**: `tsl_config` (TLS certificate paths) cannot go into `Network`. Keeping `bind_address` and `tsl_config` at the same level while `on_reverse_proxy`, `external_ip`, and `ipv6_v6only` group into `net` creates a cleaner boundary between _socket binding_ (flat) and _socket behaviour / network identity_ (grouped).
+2. **TLS asymmetry**: `tls_config` (TLS certificate paths) cannot go into `Network`. Keeping `bind_address` and `tls_config` at the same level while `on_reverse_proxy`, `external_ip`, and `ipv6_v6only` group into `net` creates a cleaner boundary between _socket binding_ (flat) and _socket behaviour / network identity_ (grouped).
 
 ### Compatibility with Existing ADRs
 
@@ -255,12 +254,12 @@ These fields (`domain`, `use_tls_proxy`) describe how each tracker instance is e
 
 > **Note on TLS vs reverse proxy**: There are two independent TLS configurations:
 >
-> - `tsl_config` on `HttpTracker` — the tracker terminates TLS **directly** (clients connect via HTTPS directly to the tracker). No proxy involved.
+> - `tls_config` on `HttpTracker` — the tracker terminates TLS **directly** (clients connect via HTTPS directly to the tracker). No proxy involved.
 > - `use_tls_proxy` in the deployer — TLS is terminated at a **reverse proxy** (Caddy, nginx) before forwarding plain HTTP to the tracker.
 >
 > Both are orthogonal to `on_reverse_proxy` (trusting `X-Forwarded-For` headers). You can have:
 >
-> - Direct HTTPS tracker (`tsl_config` set) with or without trusting proxy headers
+> - Direct HTTPS tracker (`tls_config` set) with or without trusting proxy headers
 > - Tracker behind a TLS proxy (`use_tls_proxy`) with `on_reverse_proxy = true` (common case)
 > - Tracker behind a plain HTTP proxy (no TLS) with `on_reverse_proxy = true`
 > - Tracker directly exposed via plain HTTP without any proxy
@@ -305,7 +304,7 @@ pub struct Network {                              // † this issue
 pub struct HttpTracker {
     // Socket binding — how the OS binds the listener
     pub bind_address: SocketAddr,
-    pub tsl_config: Option<TslConfig>,            // direct TLS (tracker terminates)
+    pub tls_config: Option<TlsConfig>,            // direct TLS (tracker terminates)
 
     // Instance metadata
     pub tracker_usage_statistics: bool,

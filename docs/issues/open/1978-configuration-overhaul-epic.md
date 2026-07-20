@@ -4,7 +4,7 @@ status: open
 github-issue: 1978
 spec-path: docs/issues/open/1978-configuration-overhaul-epic.md
 epic-owner: josecelano
-last-updated-utc: 2026-07-20 12:23
+last-updated-utc: 2026-07-20 15:25
 semantic-links:
   skill-links:
     - create-issue
@@ -83,8 +83,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | Order | Issue                                                                                                          | Local Spec                                                                              | Status | Notes                                                                           |
 | ----- | -------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- | ------ | ------------------------------------------------------------------------------- |
-| 1     | [#1979](../../issues/1979) — Copy `v2_0_0` → `v3_0_0` as baseline                                              | `docs/issues/open/1979-1978-copy-configuration-schema-v2-to-v3-baseline.md`             | TODO   | Foundation: all other subissues depend on this                                  |
-| 2     | [#1981](../../issues/1981) — Fix `tsl_config` → `tls_config` typo                                              | `docs/issues/open/1981-1978-fix-tsl-config-tls-config-typo.md`                          | TODO   | Mechanical rename; ~21 files; do early to avoid conflicts with #5               |
+| 1     | [#1979](../../issues/1979) — Copy `v2_0_0` → `v3_0_0` as baseline                                              | `docs/issues/open/1979-1978-copy-configuration-schema-v2-to-v3-baseline.md`             | DONE   | Merged in PR #1999; v3 baseline and smoke tests are in `develop`                |
+| 2     | [#1981](../../issues/1981) — Fix `tsl_config` → `tls_config` typo                                              | `docs/issues/open/1981-1978-fix-tsl-config-tls-config-typo.md`                          | DONE   | Implemented for v3; v2 compatibility retained until final migration             |
 | 3     | [#1640](../../issues/1640) — Support per-HTTP-tracker `on_reverse_proxy` setting                               | `docs/issues/open/1640-1978-per-http-tracker-on-reverse-proxy-setting.md`               | TODO   | Heaviest change (~30 files); establishes per-instance `Network` block           |
 | 4     | [#1417](../../issues/1417) — Include public service URL in configuration                                       | `docs/issues/open/1417-1978-add-public-service-url-to-configuration.md`                 | TODO   | Depends on #3 for `Network` placement decision; adds flat `public_url` field    |
 | 5     | [#1415](../../issues/1415) — Use `ServiceBinding` instead of bare `SocketAddr` for service identity            | `docs/issues/open/1415-1978-use-service-binding-instead-of-socket-addr.md`              | TODO   | Independent; no config changes; can be parallel with #6, #7, #8, #9             |
@@ -174,23 +174,14 @@ For each subissue implementation in this EPIC, the default completion policy is:
 
 ### Workflow Checkpoints
 
-- [ ] Epic spec drafted in `docs/issues/drafts/`
-- [ ] Epic spec reviewed and approved by user/maintainer
-- [ ] GitHub epic issue created and issue number added to this spec
-- [x] Subissues created and linked in this spec
-- [ ] Subissue statuses kept up to date in the `Subissues` table
-- [ ] For each implemented subissue: automatic checks completed and recorded
-- [ ] For each implemented subissue: manual verification completed and recorded
-- [ ] For each implemented subissue: acceptance criteria reviewed post-implementation
-- [ ] Epic acceptance criteria reviewed and checked off
 - [x] Epic spec drafted in `docs/issues/open/1978-configuration-overhaul-epic.md`
 - [x] Epic spec reviewed and approved by user/maintainer
 - [x] GitHub epic issue created: #1978
 - [x] Subissues created and linked in this spec
-- [ ] Subissue statuses kept up to date in the `Subissues` table
-- [ ] For each implemented subissue: automatic checks completed and recorded
+- [x] Subissue statuses kept up to date in the `Subissues` table
+- [x] For each implemented subissue: automatic checks completed and recorded
 - [ ] For each implemented subissue: manual verification completed and recorded
-- [ ] For each implemented subissue: acceptance criteria reviewed post-implementation
+- [x] For each implemented subissue: acceptance criteria reviewed post-implementation
 - [ ] Epic acceptance criteria reviewed and checked off
 - [ ] Epic issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
@@ -207,13 +198,17 @@ For each subissue implementation in this EPIC, the default completion policy is:
 - 2026-07-20 12:12 UTC - agent - Added #1136 as subissue 7 of 11 after #1453; documented the secure-default per-listener UDP connection ID validation policy and reconciled the local EPIC with existing subissue #1987.
 - 2026-07-20 12:23 UTC - agent - Updated the GitHub EPIC body, linked #1136,
   and verified all 11 native subissues in the documented order.
+- 2026-07-20 13:21 UTC - agent - Recorded #1979 as completed by merged PR #1999 and
+  started #1981 as the next subissue; identified its schema compatibility boundary for maintainer review.
+- 2026-07-20 15:25 UTC - agent - Completed #1981 with v3-corrected TLS names and
+  schema-neutral module naming; preserved v2 compatibility and verified the full workspace. #1640 is next.
 
 ## Acceptance Criteria
 
 - [x] All required subissues are created and linked.
-- [ ] Implementation order is explicit and justified.
-- [ ] Dependencies and blockers are documented and current.
-- [ ] Epic status reflects actual state of linked subissues.
+- [x] Implementation order is explicit and justified.
+- [x] Dependencies and blockers are documented and current.
+- [x] Epic status reflects actual state of linked subissues.
 - [ ] Every completed subissue includes automated verification evidence.
 - [ ] Every completed subissue includes manual verification evidence.
 - [ ] Every completed subissue includes post-implementation acceptance criteria review.

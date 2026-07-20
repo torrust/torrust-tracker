@@ -4,7 +4,7 @@ use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
 
-use crate::TslConfig;
+use crate::v3_0_0::tls::TlsConfig;
 
 pub type AccessTokens = HashMap<String, String>;
 
@@ -19,9 +19,9 @@ pub struct HttpApi {
     #[serde(default = "HttpApi::default_bind_address")]
     pub bind_address: SocketAddr,
 
-    /// TSL config. Provide this section to enable TLS for the HTTP API.
-    #[serde(default = "HttpApi::default_tsl_config")]
-    pub tsl_config: Option<TslConfig>,
+    /// TLS config. Provide this section to enable TLS for the HTTP API.
+    #[serde(default = "HttpApi::default_tls_config")]
+    pub tls_config: Option<TlsConfig>,
 
     /// Access tokens for the HTTP API. The key is a label identifying the
     /// token and the value is the token itself. The token is used to
@@ -35,7 +35,7 @@ impl Default for HttpApi {
     fn default() -> Self {
         Self {
             bind_address: Self::default_bind_address(),
-            tsl_config: Self::default_tsl_config(),
+            tls_config: Self::default_tls_config(),
             access_tokens: Self::default_access_tokens(),
         }
     }
@@ -46,8 +46,7 @@ impl HttpApi {
         SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 1212)
     }
 
-    #[allow(clippy::unnecessary_wraps)]
-    fn default_tsl_config() -> Option<TslConfig> {
+    fn default_tls_config() -> Option<TlsConfig> {
         None
     }
 
@@ -68,6 +67,8 @@ impl HttpApi {
 
 #[cfg(test)]
 mod tests {
+    use camino::Utf8PathBuf;
+
     use crate::v3_0_0::tracker_api::HttpApi;
 
     #[test]
@@ -84,5 +85,22 @@ mod tests {
         configuration.add_token("admin", "MyAccessToken");
 
         assert!(configuration.access_tokens.values().any(|t| t == "MyAccessToken"));
+    }
+
+    #[test]
+    fn tls_config_should_deserialize_from_corrected_key() {
+        let configuration: HttpApi = toml::from_str(
+            r#"
+                [tls_config]
+                ssl_cert_path = "certificate.pem"
+                ssl_key_path = "private-key.pem"
+            "#,
+        )
+        .expect("the corrected v3 TLS configuration should deserialize");
+
+        let tls_config = configuration.tls_config.expect("TLS configuration should be present");
+
+        assert_eq!(tls_config.ssl_cert_path, Utf8PathBuf::from("certificate.pem"));
+        assert_eq!(tls_config.ssl_key_path, Utf8PathBuf::from("private-key.pem"));
     }
 }

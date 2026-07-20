@@ -4,7 +4,7 @@ use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
 use torrust_info_hash::InfoHash;
 use torrust_server_lib::registar::Registar;
-use torrust_tracker_axum_server::tsl::make_rust_tls;
+use torrust_tracker_axum_server::tls::make_rust_tls;
 use torrust_tracker_configuration::{Core, HttpTracker};
 use torrust_tracker_core::container::TrackerCoreContainer;
 use torrust_tracker_http_core::container::HttpTrackerCoreContainer;
