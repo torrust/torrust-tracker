@@ -13,7 +13,7 @@ It is the base Axum server wrapper used by the tracker's HTTP service packages, 
 is fine for it to depend on tracker configuration types when that keeps the service API
 cohesive.
 
-The TLS helper in `tsl.rs` currently depends on:
+The TLS helper in `tls.rs` currently depends on:
 
 - `TslConfig` from `torrust-tracker-configuration` — the tracker supervisor's public
   TLS configuration DTO

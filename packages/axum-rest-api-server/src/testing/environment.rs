@@ -3,7 +3,7 @@ use std::sync::Arc;
 
 use torrust_info_hash::InfoHash;
 use torrust_server_lib::registar::Registar;
-use torrust_tracker_axum_server::tsl::make_rust_tls;
+use torrust_tracker_axum_server::tls::make_rust_tls;
 use torrust_tracker_configuration::{Configuration, logging};
 use torrust_tracker_core::container::TrackerCoreContainer;
 use torrust_tracker_http_core::container::HttpTrackerCoreContainer;
@@ -44,7 +44,7 @@ where
 impl Environment<Stopped> {
     /// # Panics
     ///
-    /// Will panic if it cannot make the TSL configuration from the provided
+    /// Will panic if it cannot make the TLS configuration from the provided
     /// configuration.
     #[must_use]
     pub async fn new(configuration: &Arc<Configuration>) -> Self {

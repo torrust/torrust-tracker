@@ -28,7 +28,7 @@ use tokio::task::JoinHandle;
 use torrust_server_lib::registar::ServiceRegistrationForm;
 use torrust_tracker_axum_rest_api_server::Version;
 use torrust_tracker_axum_rest_api_server::server::{ApiServer, Launcher};
-use torrust_tracker_axum_server::tsl::make_rust_tls;
+use torrust_tracker_axum_server::tls::make_rust_tls;
 use torrust_tracker_configuration::AccessTokens;
 use torrust_tracker_rest_api_runtime_adapter::v1::container::TrackerHttpApiCoreContainer;
 use tracing::instrument;

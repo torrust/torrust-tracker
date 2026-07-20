@@ -22,7 +22,7 @@
 //!
 //! - [Sections](#sections)
 //! - [Port binding](#port-binding)
-//! - [TSL support](#tsl-support)
+//! - [TLS support](#tls-support)
 //!     - [Generating self-signed certificates](#generating-self-signed-certificates)
 //! - [Default configuration](#default-configuration)
 //!
@@ -51,10 +51,10 @@
 //! port `0`. For example, if you want to bind to a random port on all
 //! interfaces, use `0.0.0.0:0`. The OS will choose a random free port.
 //!
-//! ## TSL support
+//! ## TLS support
 //!
-//! For the API and HTTP tracker you can enable TSL by providing a
-//! `[http_api.tsl_config]` or `[[http_trackers]].tsl_config` section with
+//! For the API and HTTP tracker you can enable TLS by providing a
+//! `[http_api.tls_config]` or `[[http_trackers]].tls_config` section with
 //! the paths to the certificate and key files.
 //!
 //! Typically, you will have a `storage` directory like the following:
@@ -179,14 +179,14 @@
 //! [[http_trackers]]
 //! ...
 //!
-//! [http_trackers.tsl_config]
+//! [http_trackers.tls_config]
 //! ssl_cert_path = "./storage/tracker/lib/tls/localhost.crt"
 //! ssl_key_path = "./storage/tracker/lib/tls/localhost.key"
 //!
 //! [http_api]
 //! ...
 //!
-//! [http_api.tsl_config]
+//! [http_api.tls_config]
 //! ssl_cert_path = "./storage/tracker/lib/tls/localhost.crt"
 //! ssl_key_path = "./storage/tracker/lib/tls/localhost.key"
 //! ```
@@ -236,6 +236,7 @@ pub mod health_check_api;
 pub mod http_tracker;
 pub mod logging;
 pub mod network;
+pub mod tls;
 pub mod tracker_api;
 pub mod udp_tracker;
 

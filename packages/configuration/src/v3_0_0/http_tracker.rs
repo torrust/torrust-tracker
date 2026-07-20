@@ -3,7 +3,7 @@ use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
 
-use crate::TslConfig;
+use crate::v3_0_0::tls::TlsConfig;
 
 /// Configuration for each HTTP tracker.
 #[serde_as]
@@ -16,9 +16,9 @@ pub struct HttpTracker {
     #[serde(default = "HttpTracker::default_bind_address")]
     pub bind_address: SocketAddr,
 
-    /// TSL config.
-    #[serde(default = "HttpTracker::default_tsl_config")]
-    pub tsl_config: Option<TslConfig>,
+    /// TLS config.
+    #[serde(default = "HttpTracker::default_tls_config")]
+    pub tls_config: Option<TlsConfig>,
 
     /// Whether the tracker should collect statistics about tracker usage.
     #[serde(default = "HttpTracker::default_tracker_usage_statistics")]
@@ -41,7 +41,7 @@ impl Default for HttpTracker {
     fn default() -> Self {
         Self {
             bind_address: Self::default_bind_address(),
-            tsl_config: Self::default_tsl_config(),
+            tls_config: Self::default_tls_config(),
             tracker_usage_statistics: Self::default_tracker_usage_statistics(),
             ipv6_v6only: Self::default_ipv6_v6only(),
         }
@@ -53,7 +53,7 @@ impl HttpTracker {
         SocketAddr::new(IpAddr::V4(Ipv4Addr::UNSPECIFIED), 7070)
     }
 
-    fn default_tsl_config() -> Option<TslConfig> {
+    fn default_tls_config() -> Option<TlsConfig> {
         None
     }
 
@@ -63,5 +63,29 @@ impl HttpTracker {
 
     fn default_ipv6_v6only() -> bool {
         false
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use camino::Utf8PathBuf;
+
+    use crate::v3_0_0::http_tracker::HttpTracker;
+
+    #[test]
+    fn tls_config_should_deserialize_from_corrected_key() {
+        let configuration: HttpTracker = toml::from_str(
+            r#"
+                [tls_config]
+                ssl_cert_path = "certificate.pem"
+                ssl_key_path = "private-key.pem"
+            "#,
+        )
+        .expect("the corrected v3 TLS configuration should deserialize");
+
+        let tls_config = configuration.tls_config.expect("TLS configuration should be present");
+
+        assert_eq!(tls_config.ssl_cert_path, Utf8PathBuf::from("certificate.pem"));
+        assert_eq!(tls_config.ssl_key_path, Utf8PathBuf::from("private-key.pem"));
     }
 }

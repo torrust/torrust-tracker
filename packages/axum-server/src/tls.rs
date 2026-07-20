@@ -21,15 +21,15 @@ pub enum Error {
     },
 }
 
-#[instrument(skip(tsl_config))]
+#[instrument(skip(tls_config))]
 /// # Errors
 ///
 /// Returns [`Error::MissingTlsConfig`] when the certificate or key path does
 /// not exist, and [`Error::BadTlsConfig`] when loading invalid PEM files
 /// fails.
-pub async fn make_rust_tls(tsl_config: &TslConfig) -> Result<RustlsConfig, Error> {
-    let cert = tsl_config.ssl_cert_path.clone();
-    let key = tsl_config.ssl_key_path.clone();
+pub async fn make_rust_tls(tls_config: &TslConfig) -> Result<RustlsConfig, Error> {
+    let cert = tls_config.ssl_cert_path.clone();
+    let key = tls_config.ssl_key_path.clone();
 
     if !cert.exists() || !key.exists() {
         return Err(Error::MissingTlsConfig {
