@@ -13,8 +13,8 @@ semantic-links:
     - packages/configuration/src/lib.rs
     - docs/issues/open/1417-1978-add-public-service-url-to-configuration.md
     - docs/issues/open/1640-1978-per-http-tracker-on-reverse-proxy-setting.md
-      - docs/issues/open/1136-1978-configurable-udp-connection-id-validation-policy.md
-      - docs/issues/open/1987-add-config-option-to-use-ip-from-announce-query-string/ISSUE.md
+    - docs/issues/open/1136-1978-configurable-udp-connection-id-validation-policy.md
+    - docs/issues/open/1987-add-config-option-to-use-ip-from-announce-query-string/ISSUE.md
     - docs/adrs/20260617093046_reject_wildcard_external_ip.md
 ---
 
