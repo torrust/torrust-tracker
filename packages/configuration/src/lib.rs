@@ -3,9 +3,13 @@
 //! This module contains the configuration data structures for the
 //! Torrust Tracker, which is a `BitTorrent` tracker server.
 //!
-//! The current version for configuration is [`v2_0_0`].
+//! The current schema version is `v3_0_0` (in progress).
+//! The previous version [`v2_0_0`] is kept for backward compatibility.
+//! Global re-exports still point to `v2_0_0` and will be migrated to `v3_0_0`
+//! in the final cleanup subissue (#1980) once all v3 changes are complete.
 pub mod logging;
 pub mod v2_0_0;
+pub mod v3_0_0;
 pub mod validator;
 
 use std::collections::HashMap;
@@ -71,6 +75,16 @@ impl Default for Metadata {
 }
 
 impl Metadata {
+    /// Creates a `Metadata` with a specific schema version, keeping other fields at their defaults.
+    #[must_use]
+    pub fn with_schema_version(schema_version: Version) -> Self {
+        Self {
+            app: Self::default_app(),
+            purpose: Self::default_purpose(),
+            schema_version,
+        }
+    }
+
     fn default_app() -> App {
         App::TorrustTracker
     }

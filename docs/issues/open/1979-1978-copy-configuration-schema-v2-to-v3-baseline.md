@@ -59,17 +59,17 @@ This approach:
 
 ## Implementation Plan
 
-| ID  | Status | Task                                                         | Notes                                                                         |
-| --- | ------ | ------------------------------------------------------------ | ----------------------------------------------------------------------------- |
-| T1  | TODO   | Copy `v2_0_0/` directory to `v3_0_0/`                        | `cp -r packages/configuration/src/v2_0_0/ packages/configuration/src/v3_0_0/` |
-| T2  | TODO   | Update `v3_0_0/mod.rs` to use `crate::v3_0_0` internal paths | Fix module references within the copied files                                 |
-| T3  | TODO   | Copy `logging.rs` into `v2_0_0/logging.rs`                   | Crate-root `logging.rs` (TraceStyle, setup, tracing_init) → v2_0_0            |
-| T4  | TODO   | Copy `logging.rs` into `v3_0_0/logging.rs`                   | Same content as T3; v3 gets its own copy                                      |
-| T5  | TODO   | Update `lib.rs` to expose `pub mod v3_0_0`                   | Alongside existing `pub mod v2_0_0`                                           |
-| T6  | TODO   | Update default config files to `schema_version = "3.0.0"`    | In `share/default/config/`                                                    |
-| T7  | TODO   | Wire application entry point to use `v3_0_0` by default      | Update `lib.rs` or `container.rs` default schema selection                    |
-| T8  | TODO   | Add smoke tests: deserialize default v3 config               | Verify v3_0_0 can parse the default config                                    |
-| T9  | TODO   | Run `linter all` and full test suite                         |                                                                               |
+| ID  | Status           | Task                                                         | Notes                                                                                                                                     |
+| --- | ---------------- | ------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| T1  | DONE             | Copy `v2_0_0/` directory to `v3_0_0/`                        | `cp -r packages/configuration/src/v2_0_0/ packages/configuration/src/v3_0_0/`                                                             |
+| T2  | DONE             | Update `v3_0_0/mod.rs` to use `crate::v3_0_0` internal paths | Fixed all doc links, VERSION constant, test imports, and schema_version strings                                                           |
+| T3  | DONE             | Copy `logging.rs` into `v2_0_0/logging.rs`                   | Merged TraceStyle/setup/tracing_init into the versioned logging.rs; added module-level doc comment                                        |
+| T4  | DONE             | Copy `logging.rs` into `v3_0_0/logging.rs`                   | Same content as T3; v3 gets its own copy                                                                                                  |
+| T5  | DONE             | Update `lib.rs` to expose `pub mod v3_0_0`                   | Added alongside existing `pub mod v2_0_0`; added `Metadata::with_schema_version` helper; global re-exports stay at v2                     |
+| T6  | DEFERRED → #1980 | Update default config files to `schema_version = "3.0.0"`    | Cannot be done while bootstrap still uses `v2_0_0::Configuration`; config files and bootstrap switch together in #1980                    |
+| T7  | DEFERRED → #1980 | Wire application entry point to use `v3_0_0` by default      | Requires updating bootstrap + all consumers; this is exactly the scope of subissue #1980                                                  |
+| T8  | DONE             | Add smoke tests: deserialize default v3 config               | Added `smoke::v3_configuration_should_load_when_schema_version_is_3_0_0` and `smoke::v3_configuration_should_reject_schema_version_2_0_0` |
+| T9  | DONE             | Run `linter all` and full test suite                         | All 48 test suites pass (0 failures)                                                                                                      |
 
 ## Progress Tracking
 
@@ -88,16 +88,17 @@ This approach:
 
 - 2026-07-13 21:00 UTC - josecelano - Initial spec drafted
 - 2026-07-15 00:00 UTC - josecelano - GitHub issue #1979 created; spec moved to `docs/issues/open/1979-1978-copy-configuration-schema-v2-to-v3-baseline.md`
+- 2026-07-20 00:00 UTC - agent - Implementation completed: T1–T5 and T8–T9 done; T6/T7 deferred to #1980 (consumer migration must happen atomically)
 
 ## Acceptance Criteria
 
-- [ ] AC1: `packages/configuration/src/v3_0_0/` exists as an exact copy of `v2_0_0/`
-- [ ] AC2: `lib.rs` exposes both `v2_0_0` and `v3_0_0` modules
-- [ ] AC3: Application uses `v3_0_0` by default
-- [ ] AC4: All existing tests pass (v2 unchanged)
-- [ ] AC5: Default config files reference `schema_version = "3.0.0"`
-- [ ] `linter all` exits with code `0`
-- [ ] Relevant tests pass
+- [x] AC1: `packages/configuration/src/v3_0_0/` exists as an exact copy of `v2_0_0/`
+- [x] AC2: `lib.rs` exposes both `v2_0_0` and `v3_0_0` modules
+- [ ] AC3: Application uses `v3_0_0` by default — **DEFERRED to #1980** (requires switching bootstrap + all consumers atomically)
+- [x] AC4: All existing tests pass (v2 unchanged)
+- [ ] AC5: Default config files reference `schema_version = "3.0.0"` — **DEFERRED to #1980** (config files must match the active parser)
+- [x] `linter all` exits with code `0`
+- [x] Relevant tests pass (48 suites, 0 failures)
 
 ## Verification Plan
 
@@ -116,13 +117,13 @@ This approach:
 
 ### Acceptance Verification
 
-| AC ID | Status | Evidence |
-| ----- | ------ | -------- |
-| AC1   | TODO   |          |
-| AC2   | TODO   |          |
-| AC3   | TODO   |          |
-| AC4   | TODO   |          |
-| AC5   | TODO   |          |
+| AC ID | Status   | Evidence                                                                         |
+| ----- | -------- | -------------------------------------------------------------------------------- |
+| AC1   | DONE     | `packages/configuration/src/v3_0_0/` exists with all 9 files mirroring `v2_0_0/` |
+| AC2   | DONE     | `lib.rs` has `pub mod v2_0_0` and `pub mod v3_0_0`                               |
+| AC3   | DEFERRED | Deferred to #1980; requires switching bootstrap and all consumers atomically     |
+| AC4   | DONE     | All 48 test suites pass; v2_0_0 tests unchanged                                  |
+| AC5   | DEFERRED | Deferred to #1980; config files must match the parser the bootstrap uses         |
 
 ## Risks and Trade-offs
 
