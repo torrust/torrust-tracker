@@ -13,7 +13,7 @@ metadata:
       - docs/security/docker/scans/torrust-tracker.md
       - docs/security/analysis/README.md
       - docs/security/analysis/production/
-  - docs/security/analysis/build/
+      - docs/security/analysis/build/
 ---
 
 # Run Manual Docker Security Scan

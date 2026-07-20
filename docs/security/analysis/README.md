@@ -67,7 +67,7 @@ build/
 
 - `grep -r CVE-2026-5435` finds it instantly.
 - Fast to check "have we seen this before?" on any new scan.
-- Each file carries its own `review-date`, `review-cadence`, and `requires-recheck-when`
+- Each file carries its own `date-analyzed`, `review-cadence`, and `requires-recheck-when`
   in frontmatter.
 - Impact context is immediately visible from the directory name.
 
