@@ -191,8 +191,8 @@ isready
 iterationsadd
 Jakub
 jdbe
-JobManager
 Joakim
+JobManager
 JoinSet
 josecelano
 kallsyms
