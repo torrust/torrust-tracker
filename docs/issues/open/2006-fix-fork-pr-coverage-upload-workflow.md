@@ -84,7 +84,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] AC3: The workflow does not set `allow-unsafe-pr-checkout: true`.
 - [ ] AC4: Codecov receives the pull request number and source commit SHA associated with the generated report.
 - [x] `linter all` exits with code `0`.
-- [ ] Relevant tests pass.
+- [x] Relevant tests pass.
 - [ ] Manual verification scenarios are executed and documented (status + evidence).
 - [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior.
 - [ ] Documentation is updated when behavior/workflow changes.

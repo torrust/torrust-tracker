@@ -97,6 +97,14 @@ jobs:
           unzip -j pr_number.zip -d "$artifact_dir"
           unzip -j commit_sha.zip -d "$artifact_dir"
 
+          for artifact_file in codecov.json pr_number.txt commit_sha.txt; do
+            artifact_path="$artifact_dir/$artifact_file"
+            if [[ ! -f "$artifact_path" || -L "$artifact_path" ]]; then
+              echo "Expected regular artifact file: $artifact_path" >&2
+              exit 1
+            fi
+          done
+
           echo "Detected PR is: $(<"$artifact_dir/pr_number.txt")"
           echo "Detected commit_sha is: $(<"$artifact_dir/commit_sha.txt")"
 
