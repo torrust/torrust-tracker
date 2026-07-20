@@ -6,8 +6,8 @@ priority: p2
 github-issue: 1136
 spec-path: docs/issues/open/1136-1978-configurable-udp-connection-id-validation-policy.md
 branch: "1136-connection-id-validation-policy"
-related-pr: null
-last-updated-utc: 2026-07-20 12:23
+related-pr: 2002
+last-updated-utc: 2026-07-20 12:32
 semantic-links:
   skill-links:
     - create-issue
@@ -220,6 +220,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   EPIC #1978, and verified its position immediately after #1453
 - 2026-07-20 12:26 UTC - committer - Verified the specification progress and
   two-file commit scope before the spec-only commit
+- 2026-07-20 12:32 UTC - agent - Opened spec-only PR #2002 against `develop`
 
 ## Acceptance Criteria
 
