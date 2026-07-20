@@ -20,7 +20,6 @@ semantic-links:
     - packages/rest-api-runtime-adapter/src/
 ---
 
-<!-- skill-link: create-issue -->
 
 # SI-1: Migrate `health_check` context to contract-first architecture
 

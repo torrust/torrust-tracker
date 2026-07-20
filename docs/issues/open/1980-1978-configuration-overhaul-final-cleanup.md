@@ -30,7 +30,6 @@ semantic-links:
     - contrib/dev-tools/
 ---
 
-<!-- skill-link: create-issue -->
 
 # Issue #1980 - Final cleanup: remove global re-exports, migrate all consumers to explicit versioned imports
 

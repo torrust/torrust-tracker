@@ -27,7 +27,6 @@ semantic-links:
     - docs/issues/open/1770-refactor-pre-push-checks-performance-and-verbosity.md
 ---
 
-<!-- skill-link: create-issue -->
 
 # Issue #1769 - Refactor pre-commit checks for lower verbosity and faster feedback
 

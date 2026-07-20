@@ -20,7 +20,6 @@ semantic-links:
     - docs/issues/open/1726-1840-workflow-performance-sccache/ISSUE.md
 ---
 
-<!-- skill-link: create-issue -->
 
 # Issue #1853 - Narrow Containerfile build targets to tracker image needs
 

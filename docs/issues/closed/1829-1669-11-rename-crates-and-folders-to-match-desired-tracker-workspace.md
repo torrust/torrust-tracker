@@ -19,7 +19,6 @@ semantic-links:
     - AGENTS.md
 ---
 
-<!-- skill-link: create-issue -->
 
 # Issue #1829 - Rename crates and folders to match EPIC desired tracker workspace state
 

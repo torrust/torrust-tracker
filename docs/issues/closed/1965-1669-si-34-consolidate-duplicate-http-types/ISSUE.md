@@ -27,7 +27,6 @@ semantic-links:
     - .github/skills/dev/environment-setup/run-tracker-locally/SKILL.md
 ---
 
-<!-- skill-link: create-issue -->
 
 # Issue #1965 - EPIC 1669 SI-34: Consolidate Duplicate HTTP Types into `http-protocol`
 

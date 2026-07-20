@@ -25,7 +25,6 @@ semantic-links:
     - docs/issues/open/1669-overhaul-packages/DECISIONS.md
 ---
 
-<!-- skill-link: create-issue -->
 
 # Issue #1910 (SI-29) - Remove redundant `-tracker-` from HTTP and UDP crate names
 

@@ -20,7 +20,6 @@ semantic-links:
     - docs/issues/closed/1790-move-duration-since-unix-epoch-to-torrust-tracker-clock.md
 ---
 
-<!-- skill-link: create-issue -->
 
 # Issue #1879 - Extract `torrust-clock` to a standalone repository
 

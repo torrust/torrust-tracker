@@ -19,7 +19,6 @@ semantic-links:
     - docs/issues/open/1669-overhaul-packages/EPIC.md
 ---
 
-<!-- skill-link: create-issue -->
 
 # Issue #1819 - Rename `torrust-tracker-metrics` to `torrust-metrics`
 

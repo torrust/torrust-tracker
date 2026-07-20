@@ -24,7 +24,6 @@ semantic-links:
     - .github/agents/committer.agent.md
 ---
 
-<!-- skill-link: create-issue -->
 
 # Issue #1843 — Migrate git hooks scripts from Bash to Rust
 

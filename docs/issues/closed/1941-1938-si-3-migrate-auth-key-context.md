@@ -24,7 +24,6 @@ semantic-links:
     - packages/clock/
 ---
 
-<!-- skill-link: create-issue -->
 
 # SI-3: Migrate `auth_key` context to contract-first architecture
 

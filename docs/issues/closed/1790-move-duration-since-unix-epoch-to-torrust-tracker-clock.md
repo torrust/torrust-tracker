@@ -16,7 +16,6 @@ semantic-links:
     - docs/issues/open/1669-overhaul-packages/EPIC.md
 ---
 
-<!-- skill-link: create-issue -->
 
 # Issue #1790 - Move `DurationSinceUnixEpoch` from `torrust-tracker-primitives` to `torrust-tracker-clock`
 

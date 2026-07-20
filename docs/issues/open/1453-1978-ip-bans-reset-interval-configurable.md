@@ -18,7 +18,6 @@ semantic-links:
     - src/bootstrap/jobs/
 ---
 
-<!-- skill-link: create-issue -->
 
 # Issue #1453 - Allow setting the IP bans reset interval via configuration and remove duplicate execution of cronjob to clean bans
 

@@ -19,7 +19,6 @@ semantic-links:
     - docs/issues/drafts/1669-decouple-rest-api-core-from-udp-internals.md
 ---
 
-<!-- skill-link: create-issue -->
 
 # Issue #1903 (SI-23) - Relocate `axum-rest-api-server` Test Environment Infrastructure
 

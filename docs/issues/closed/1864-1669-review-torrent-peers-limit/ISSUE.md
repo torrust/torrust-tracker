@@ -21,7 +21,6 @@ semantic-links:
     - docs/issues/open/1669-overhaul-packages/DECISIONS.md
 ---
 
-<!-- skill-link: create-issue -->
 
 # Issue #1864 — Review and refactor `TORRENT_PEERS_LIMIT`: hardcoded constant vs. config option
 

@@ -23,7 +23,6 @@ semantic-links:
     - packages/axum-rest-api-server/src/v1/state.rs
 ---
 
-<!-- skill-link: create-issue -->
 
 # SI-2: Migrate `whitelist` context to contract-first architecture
 

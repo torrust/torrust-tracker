@@ -21,7 +21,6 @@ semantic-links:
     - packages/configuration/src/v3_0_0/health_check_api.rs
 ---
 
-<!-- skill-link: create-issue -->
 
 # Issue #1417 - Include public service URL in configuration
 

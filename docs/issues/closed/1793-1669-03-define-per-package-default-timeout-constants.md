@@ -20,7 +20,6 @@ semantic-links:
     - docs/issues/open/1669-overhaul-packages/EPIC.md
 ---
 
-<!-- skill-link: create-issue -->
 
 # Issue #1793 - Define per-package default timeout constants and remove `DEFAULT_TIMEOUT` from `torrust-tracker-configuration`
 

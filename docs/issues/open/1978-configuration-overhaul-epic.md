@@ -4,7 +4,7 @@ status: open
 github-issue: 1978
 spec-path: docs/issues/open/1978-configuration-overhaul-epic.md
 epic-owner: josecelano
-last-updated-utc: 2026-07-13 21:00
+last-updated-utc: 2026-07-20 12:23
 semantic-links:
   skill-links:
     - create-issue
@@ -13,10 +13,10 @@ semantic-links:
     - packages/configuration/src/lib.rs
     - docs/issues/open/1417-1978-add-public-service-url-to-configuration.md
     - docs/issues/open/1640-1978-per-http-tracker-on-reverse-proxy-setting.md
+    - docs/issues/open/1136-1978-configurable-udp-connection-id-validation-policy.md
+    - docs/issues/open/1987-add-config-option-to-use-ip-from-announce-query-string/ISSUE.md
     - docs/adrs/20260617093046_reject_wildcard_external_ip.md
 ---
-
-<!-- skill-link: create-issue -->
 
 # EPIC #1978 - Configuration Overhaul (schema v3.0.0)
 
@@ -49,6 +49,12 @@ The current configuration schema (`v2.0.0`) has accumulated several limitations:
 6. **No logging style configuration** — `TraceStyle` is hardcoded to `Default`, not
    configurable (#889). Additionally, the `threshold` field name is misleading — it
    should be renamed to `trace_filter` to match `tracing` crate terminology.
+7. **No UDP connection ID validation policy** — every UDP listener validates connection
+   IDs strictly, preventing isolated compatibility listeners for non-compliant clients
+   that reuse expired or arbitrary IDs (#1136).
+8. **No opt-in support for the HTTP announce `ip` parameter** — the parameter is parsed
+   but ignored, so controlled deployments cannot choose to trust a client-provided peer
+   address (#1987).
 
 Several of these changes are **breaking** (schema reorganisation, field renames,
 removal of global `[core.net]`), making this the right time to bump the schema
@@ -61,7 +67,7 @@ version from `2.0.0` to `3.0.0`.
 - Bump configuration schema version from `2.0.0` to `3.0.0`
 - Copy `v2_0_0` module to `v3_0_0` as the starting point for breaking changes
 - Copy crate-root `logging.rs` into both versioned modules (making each self-contained)
-- All six configuration enhancements listed below
+- All eight configuration enhancements listed below
 - Final cleanup: remove global re-exports, migrate all consumers to explicit v3 imports
 - Migration path / backward compatibility considerations where feasible
 
@@ -75,17 +81,19 @@ version from `2.0.0` to `3.0.0`.
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| Order | Issue                                                                                                          | Local Spec                                                                     | Status | Notes                                                                            |
-| ----- | -------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ | ------ | -------------------------------------------------------------------------------- |
-| 1     | [#1979](../../issues/1979) — Copy `v2_0_0` → `v3_0_0` as baseline                                              | `docs/issues/open/1979-1978-copy-configuration-schema-v2-to-v3-baseline.md`    | TODO   | Foundation: all other subissues depend on this                                   |
-| 2     | [#1981](../../issues/1981) — Fix `tsl_config` → `tls_config` typo                                              | `docs/issues/open/1981-1978-fix-tsl-config-tls-config-typo.md`                 | TODO   | Mechanical rename; ~21 files; do early to avoid conflicts with #5                |
-| 3     | [#1640](../../issues/1640) — Support per-HTTP-tracker `on_reverse_proxy` setting                               | `docs/issues/open/1640-1978-per-http-tracker-on-reverse-proxy-setting.md`      | TODO   | Heaviest change (~30 files); establishes per-instance `Network` block            |
-| 4     | [#1417](../../issues/1417) — Include public service URL in configuration                                       | `docs/issues/open/1417-1978-add-public-service-url-to-configuration.md`        | TODO   | Depends on #3 for `Network` placement decision; adds flat `public_url` field     |
-| 5     | [#1415](../../issues/1415) — Use `ServiceBinding` instead of bare `SocketAddr` for service identity            | `docs/issues/open/1415-1978-use-service-binding-instead-of-socket-addr.md`     | TODO   | Independent; no config changes; can be parallel with #6, #7, #8                  |
-| 6     | [#1453](../../issues/1453) — IP bans reset interval configurable + fix duplicate cleanup                       | `docs/issues/open/1453-1978-ip-bans-reset-interval-configurable.md`            | TODO   | Independent; new `[udp_tracker_server]` section; can be parallel with #5, #7, #8 |
-| 7     | [#1490](../../issues/1490) — Decompose database config and overhaul secrets with `secrecy` crate               | `docs/issues/open/1490-1978-decompose-database-config-and-overhaul-secrets.md` | TODO   | After #3 (both touch `Core`); can be parallel with #5, #6, #8                    |
-| 8     | [#889](../../issues/889) — New config option for logging style                                                 | `docs/issues/open/889-1978-new-config-option-for-logging-style.md`             | TODO   | Independent; can be parallel with #5, #6, #7                                     |
-| 9     | [#1980](../../issues/1980) — Final cleanup: remove global re-exports, migrate consumers to explicit v3 imports | `docs/issues/open/1980-1978-configuration-overhaul-final-cleanup.md`           | TODO   | Must be last; depends on ALL other subissues                                     |
+| Order | Issue                                                                                                          | Local Spec                                                                              | Status | Notes                                                                           |
+| ----- | -------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- | ------ | ------------------------------------------------------------------------------- |
+| 1     | [#1979](../../issues/1979) — Copy `v2_0_0` → `v3_0_0` as baseline                                              | `docs/issues/open/1979-1978-copy-configuration-schema-v2-to-v3-baseline.md`             | TODO   | Foundation: all other subissues depend on this                                  |
+| 2     | [#1981](../../issues/1981) — Fix `tsl_config` → `tls_config` typo                                              | `docs/issues/open/1981-1978-fix-tsl-config-tls-config-typo.md`                          | TODO   | Mechanical rename; ~21 files; do early to avoid conflicts with #5               |
+| 3     | [#1640](../../issues/1640) — Support per-HTTP-tracker `on_reverse_proxy` setting                               | `docs/issues/open/1640-1978-per-http-tracker-on-reverse-proxy-setting.md`               | TODO   | Heaviest change (~30 files); establishes per-instance `Network` block           |
+| 4     | [#1417](../../issues/1417) — Include public service URL in configuration                                       | `docs/issues/open/1417-1978-add-public-service-url-to-configuration.md`                 | TODO   | Depends on #3 for `Network` placement decision; adds flat `public_url` field    |
+| 5     | [#1415](../../issues/1415) — Use `ServiceBinding` instead of bare `SocketAddr` for service identity            | `docs/issues/open/1415-1978-use-service-binding-instead-of-socket-addr.md`              | TODO   | Independent; no config changes; can be parallel with #6, #7, #8, #9             |
+| 6     | [#1453](../../issues/1453) — IP bans reset interval configurable + fix duplicate cleanup                       | `docs/issues/open/1453-1978-ip-bans-reset-interval-configurable.md`                     | TODO   | Independent global UDP policy; implement before #7 to establish its boundary    |
+| 7     | [#1136](../../issues/1136) — Add configurable UDP connection ID validation policy                              | `docs/issues/open/1136-1978-configurable-udp-connection-id-validation-policy.md`        | TODO   | Independent per-listener policy; ordered after related global ban cleanup in #6 |
+| 8     | [#1490](../../issues/1490) — Decompose database config and overhaul secrets with `secrecy` crate               | `docs/issues/open/1490-1978-decompose-database-config-and-overhaul-secrets.md`          | TODO   | After #3 (both touch `Core`); can be parallel with #5, #6, #7, #9               |
+| 9     | [#889](../../issues/889) — New config option for logging style                                                 | `docs/issues/open/889-1978-new-config-option-for-logging-style.md`                      | TODO   | Independent; can be parallel with #5, #6, #7, #8                                |
+| 10    | [#1987](../../issues/1987) — Use peer IP from the HTTP announce `ip` parameter when configured                 | `docs/issues/open/1987-add-config-option-to-use-ip-from-announce-query-string/ISSUE.md` | TODO   | After #3 and external prerequisite #1985; per-HTTP-tracker opt-in policy        |
+| 11    | [#1980](../../issues/1980) — Final cleanup: remove global re-exports, migrate consumers to explicit v3 imports | `docs/issues/open/1980-1978-configuration-overhaul-final-cleanup.md`                    | TODO   | Must be last; depends on ALL other subissues                                    |
 
 ## Delivery Strategy
 
@@ -97,35 +105,39 @@ graph TD
     sub1 --> sub3["3. #1640 Network block"]
     sub1 --> sub5["5. #1415 ServiceBinding"]
     sub1 --> sub6["6. #1453 IP bans"]
-    sub1 --> sub8["8. #889 Logging style"]
+      sub1 --> sub7["7. #1136 Connection ID policy"]
+      sub1 --> sub9["9. #889 Logging style"]
     sub2 --> sub3
     sub3 --> sub4["4. #1417 public_url"]
-    sub3 --> sub7["7. #1490 Secrets/secrecy"]
-    sub4 --> sub9["9. Final cleanup"]
-    sub5 --> sub9
-    sub6 --> sub9
-    sub7 --> sub9
-    sub8 --> sub9
+      sub3 --> sub8["8. #1490 Secrets/secrecy"]
+      sub3 --> sub10["10. #1987 Announce IP policy"]
+      sub4 --> sub11["11. Final cleanup"]
+      sub5 --> sub11
+      sub6 --> sub11
+      sub7 --> sub11
+      sub8 --> sub11
+      sub9 --> sub11
+      sub10 --> sub11
 ```
 
 ### Critical path
 
 ```text
-1 → 2 → 3 → 4 → 9
-1 → 2 → 3 → 7 → 9
+1 → 2 → 3 → 4 → 11
+1 → 2 → 3 → 8 → 11
 ```
 
-Subissues #5, #6, #8 are independent and can run in parallel with the critical path.
+Subissues #5, #6, #7, #9 are independent and can run in parallel with the critical path.
 
 ### Conflict hotspots
 
-| File(s)                             | Touched by             | Mitigation                                                       |
-| ----------------------------------- | ---------------------- | ---------------------------------------------------------------- |
-| `v3_0_0/http_tracker.rs`            | #2, #3, #4             | Implement sequentially: #2 → #3 → #4                             |
-| `v3_0_0/core.rs`                    | #3, #7                 | #3 first (removes `core.net`), then #7 (changes `database` type) |
-| `src/bootstrap/`                    | #3, #5, #6, #7, #8, #9 | Sequential order; #9 resolves all import paths last              |
-| `share/default/config/`             | ALL                    | Each subissue updates its relevant section; #9 does final pass   |
-| `test-helpers/src/configuration.rs` | #2, #3, #7, #9         | Sequential; each appends to test config defaults                 |
+| File(s)                             | Touched by                       | Mitigation                                                 |
+| ----------------------------------- | -------------------------------- | ---------------------------------------------------------- |
+| `v3_0_0/http_tracker.rs`            | #2, #3, #4, #10                  | Implement sequentially: #2 → #3 → #4 → #10                 |
+| `v3_0_0/core.rs`                    | #3, #8                           | #3 first (removes `core.net`), then #8 changes `database`  |
+| `src/bootstrap/`                    | #3, #5, #6, #7, #8, #9, #10, #11 | Sequential order; #11 resolves all import paths last       |
+| `share/default/config/`             | ALL                              | Each subissue updates its section; #11 does the final pass |
+| `test-helpers/src/configuration.rs` | #2, #3, #7, #8, #10, #11         | Sequential; each appends to test config defaults           |
 
 ### Phase 0: Foundation
 
@@ -135,8 +147,9 @@ Subissues #5, #6, #8 are independent and can run in parallel with the critical p
 ### Phase 1: Structural changes (sequential)
 
 - **Subissue #3** (#1640) — Per-instance `Network` block. Heaviest change (~30 files). Establishes the `Network` struct that #4 references.
-- **Subissue #7** (#1490) — Database enum decomposition + `secrecy` crate. After #3 (both touch `Core`). ~35 files.
+- **Subissue #8** (#1490) — Database enum decomposition + `secrecy` crate. After #3 (both touch `Core`). ~35 files.
 - **Subissue #4** (#1417) — `public_url` flat field. After #3 (depends on `Network` placement decision). ~6 files.
+- **Subissue #10** (#1987) — Opt-in use of the HTTP announce `ip` parameter. After #3 and external prerequisite #1985.
 
 ### Phase 2: Independent changes (parallel)
 
@@ -144,11 +157,12 @@ These can run in any order or in parallel branches:
 
 - **Subissue #5** (#1415) — `ServiceBinding` instead of `SocketAddr`. No config changes. ~10 files.
 - **Subissue #6** (#1453) — IP bans reset interval + fix duplicate cleanup. Isolated new config section. ~5 files.
-- **Subissue #8** (#889) — Logging style config. Isolated to `Logging` struct. ~5 files.
+- **Subissue #7** (#1136) — Per-listener UDP connection ID validation policy. Implement after #6 to keep related UDP policy work ordered.
+- **Subissue #9** (#889) — Logging style config. Isolated to `Logging` struct. ~5 files.
 
 ### Phase 3: Integration
 
-- **Subissue #9** — Final cleanup: remove global re-exports, migrate all ~30 consumers to explicit `v3_0_0` imports. Remove crate-root `logging.rs`. Keep `v2_0_0` module deprecated.
+- **Subissue #11** — Final cleanup: remove global re-exports, migrate all ~30 consumers to explicit `v3_0_0` imports. Remove crate-root `logging.rs`. Keep `v2_0_0` module deprecated.
 
 For each subissue implementation in this EPIC, the default completion policy is:
 
@@ -163,7 +177,7 @@ For each subissue implementation in this EPIC, the default completion policy is:
 - [ ] Epic spec drafted in `docs/issues/drafts/`
 - [ ] Epic spec reviewed and approved by user/maintainer
 - [ ] GitHub epic issue created and issue number added to this spec
-- [ ] Subissues created and linked in this spec
+- [x] Subissues created and linked in this spec
 - [ ] Subissue statuses kept up to date in the `Subissues` table
 - [ ] For each implemented subissue: automatic checks completed and recorded
 - [ ] For each implemented subissue: manual verification completed and recorded
@@ -172,7 +186,7 @@ For each subissue implementation in this EPIC, the default completion policy is:
 - [x] Epic spec drafted in `docs/issues/open/1978-configuration-overhaul-epic.md`
 - [x] Epic spec reviewed and approved by user/maintainer
 - [x] GitHub epic issue created: #1978
-- [ ] Subissues created and linked in this spec
+- [x] Subissues created and linked in this spec
 - [ ] Subissue statuses kept up to date in the `Subissues` table
 - [ ] For each implemented subissue: automatic checks completed and recorded
 - [ ] For each implemented subissue: manual verification completed and recorded
@@ -190,10 +204,13 @@ For each subissue implementation in this EPIC, the default completion policy is:
 - 2026-07-14 00:00 UTC - josecelano - Rewrote #1490 spec: decomposed `Database` into enum (`Sqlite3`, `MySQL(ConnectionInfo)`, `PostgreSQL(ConnectionInfo)`); removed backward-compat fallback; added ripple-effect analysis (~25 files). Renamed issue title.
 - 2026-07-15 00:00 UTC - josecelano - Dependency analysis complete. Reordered subissues: #1640 before #1417 (Network block first), #1490 after #1640 (both touch Core). Independent subissues (#1415, #1453, #889) can run in parallel. Added dependency graph and conflict hotspot table.
 - 2026-07-15 00:00 UTC - josecelano - GitHub issues created: EPIC #1978, #1979 (copy baseline), #1980 (final cleanup), #1981 (tsl typo). Specs moved to `docs/issues/open/` with issue number prefix.
+- 2026-07-20 12:12 UTC - agent - Added #1136 as subissue 7 of 11 after #1453; documented the secure-default per-listener UDP connection ID validation policy and reconciled the local EPIC with existing subissue #1987.
+- 2026-07-20 12:23 UTC - agent - Updated the GitHub EPIC body, linked #1136,
+  and verified all 11 native subissues in the documented order.
 
 ## Acceptance Criteria
 
-- [ ] All required subissues are created and linked.
+- [x] All required subissues are created and linked.
 - [ ] Implementation order is explicit and justified.
 - [ ] Dependencies and blockers are documented and current.
 - [ ] Epic status reflects actual state of linked subissues.
@@ -204,14 +221,14 @@ For each subissue implementation in this EPIC, the default completion policy is:
 
 ### Acceptance Verification
 
-| AC ID | Status (`TODO`/`DONE`) | Evidence                                  |
-| ----- | ---------------------- | ----------------------------------------- |
-| AC1   | TODO                   | All subissues created and linked          |
-| AC2   | TODO                   | Schema v3.0.0 is active and functional    |
-| AC3   | TODO                   | All six enhancements are implemented      |
-| AC4   | TODO                   | `linter all` passes                       |
-| AC5   | TODO                   | All tests pass (`cargo test --workspace`) |
-| AC6   | TODO                   | Default config files updated to v3.0.0    |
+| AC ID | Status (`TODO`/`DONE`) | Evidence                                                              |
+| ----- | ---------------------- | --------------------------------------------------------------------- |
+| AC1   | DONE                   | GitHub EPIC #1978 reports 11 linked subissues in the documented order |
+| AC2   | TODO                   | Schema v3.0.0 is active and functional                                |
+| AC3   | TODO                   | All eight enhancements are implemented                                |
+| AC4   | TODO                   | `linter all` passes                                                   |
+| AC5   | TODO                   | All tests pass (`cargo test --workspace`)                             |
+| AC6   | TODO                   | Default config files updated to v3.0.0                                |
 
 ## Risks and Trade-offs
 
@@ -227,7 +244,7 @@ For each subissue implementation in this EPIC, the default completion policy is:
 
 ## References
 
-- Related issues: #1417, #1640, #1490, #1453, #1415, #889
+- Related issues: #1417, #1640, #1490, #1453, #1415, #1136, #889, #1987
 - Related PRs: #1937 (spec for #1640)
 - Related ADRs: `docs/adrs/20260617093046_reject_wildcard_external_ip.md`
 - Related EPICs: #1669 (package overhaul)

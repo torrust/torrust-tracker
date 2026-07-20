@@ -21,7 +21,6 @@ semantic-links:
     - .github/skills/dev/planning/create-issue/SKILL.md
 ---
 
-<!-- skill-link: create-issue -->
 
 # Issue #1841 - Baseline workflow profiling and bottleneck analysis
 

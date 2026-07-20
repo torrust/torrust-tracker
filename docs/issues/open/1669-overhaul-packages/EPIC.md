@@ -25,7 +25,6 @@ semantic-links:
     - docs/media/packages/dependencies-workspace-packages.md
 ---
 
-<!-- skill-link: create-issue -->
 
 # EPIC #1669 - Overhaul: Packages
 

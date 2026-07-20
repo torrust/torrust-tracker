@@ -15,7 +15,6 @@ semantic-links:
     - docs/templates/ISSUE.md
 ---
 
-<!-- skill-link: create-issue -->
 
 # Issue #1736 - docs(http): document HTTP/3 support via reverse proxy
 

@@ -17,7 +17,6 @@ semantic-links:
     - docs/issues/open/1669-overhaul-packages/workspace-coupling-report.md
 ---
 
-<!-- skill-link: create-issue -->
 
 # Issue #1813 - Resolve `bittorrent-tracker-core` ↔ `torrust-tracker-rest-api-client` layer violation
 

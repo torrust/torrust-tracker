@@ -18,7 +18,6 @@ semantic-links:
     - packages/primitives/src/announce.rs
 ---
 
-<!-- skill-link: create-issue -->
 
 # Issue #1834 - Decouple `http-protocol` from `udp-protocol`
 

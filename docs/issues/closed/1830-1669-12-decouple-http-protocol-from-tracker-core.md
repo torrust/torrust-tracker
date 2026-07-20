@@ -21,7 +21,6 @@ semantic-links:
     - packages/axum-http-tracker-server/src/v1/handlers/scrape.rs
 ---
 
-<!-- skill-link: create-issue -->
 
 # Issue #1830 - Decouple `http-protocol` from `tracker-core`
 

@@ -18,7 +18,6 @@ semantic-links:
     - docs/skills/semantic-skill-link-convention.md
 ---
 
-<!-- skill-link: create-issue -->
 
 # Issue #1875 - Review and fix `lto = "fat"` in `[profile.dev]`
 

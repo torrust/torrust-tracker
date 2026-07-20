@@ -23,7 +23,6 @@ semantic-links:
     - docs/release_process.md
 ---
 
-<!-- skill-link: create-issue -->
 
 # Issue #1926 — Define and implement package versioning strategy for EPIC #1669
 

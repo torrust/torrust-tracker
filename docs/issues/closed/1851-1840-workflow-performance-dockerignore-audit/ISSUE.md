@@ -20,7 +20,6 @@ semantic-links:
     - docs/issues/closed/1841-1840-workflow-performance-baseline-analysis/benchmark-results-baseline.md
 ---
 
-<!-- skill-link: create-issue -->
 
 # Issue #1851 - Audit .dockerignore to minimize Docker build context
 

@@ -19,7 +19,6 @@ semantic-links:
     - share/default/config/
 ---
 
-<!-- skill-link: create-issue -->
 
 # Issue #1507 - Review IP assigned to localhost peers
 

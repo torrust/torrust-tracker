@@ -17,7 +17,6 @@ semantic-links:
     - console/tracker-client/docs/contracts/tracker-cli-io-contract.md
 ---
 
-<!-- skill-link: create-issue -->
 
 # Issue #1798 - Define a Global CLI Output Contract for the Tracker (ADR)
 

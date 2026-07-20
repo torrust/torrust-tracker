@@ -19,7 +19,6 @@ semantic-links:
     - .github/skills/dev/git-workflow/run-pre-push-checks/SKILL.md
 ---
 
-<!-- skill-link: create-issue -->
 
 # Issue #1780 - Refactor pre-push checks for output-mode parity and clearer failure feedback
 

@@ -18,7 +18,6 @@ semantic-links:
     - docs/issues/open/1669-overhaul-packages/workspace-coupling-report-2026-06-10.md
 ---
 
-<!-- skill-link: create-issue -->
 
 # Issue #1908 (SI-27) - Move `Driver` Enum from `configuration` to `primitives`
 

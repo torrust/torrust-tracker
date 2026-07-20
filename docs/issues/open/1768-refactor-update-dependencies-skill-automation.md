@@ -16,7 +16,6 @@ semantic-links:
     - .github/skills/dev/maintenance/add-rust-dependency/SKILL.md
 ---
 
-<!-- skill-link: create-issue -->
 
 # Issue #1768 - Refactor update-dependencies skill automation
 

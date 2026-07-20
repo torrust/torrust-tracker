@@ -18,7 +18,6 @@ semantic-links:
     - docs/issues/open/1669-overhaul-packages/workspace-coupling-report-2026-06-10.md
 ---
 
-<!-- skill-link: create-issue -->
 
 # Issue #1906 (SI-25) - Relocate `udp-server` Test Environment Infrastructure
 

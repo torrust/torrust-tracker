@@ -24,7 +24,6 @@ semantic-links:
     - evidence-chihaya-no-dns-support.md
 ---
 
-<!-- skill-link: create-issue -->
 
 # Issue #1987 - Add per-HTTP-tracker config option to use peer IP from `ip` GET parameter (sub-issue of #1978)
 

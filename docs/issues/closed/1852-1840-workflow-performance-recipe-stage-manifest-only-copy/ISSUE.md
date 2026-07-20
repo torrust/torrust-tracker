@@ -21,7 +21,6 @@ semantic-links:
     - docs/issues/closed/1841-1840-workflow-performance-baseline-analysis/benchmark-results-baseline.md
 ---
 
-<!-- skill-link: create-issue -->
 
 # Issue #1852 - Restrict recipe stage to manifest-only COPY to prevent spurious cook cache invalidation
 

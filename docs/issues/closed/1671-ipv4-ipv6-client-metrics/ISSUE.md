@@ -22,7 +22,6 @@ semantic-links:
     - packages/configuration/src/v2_0_0/http_tracker.rs
 ---
 
-<!-- skill-link: create-issue -->
 
 # Issue #1671 - IPv4/IPv6 client metrics: support per-client IP family labels and separate socket bindings
 

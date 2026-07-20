@@ -27,7 +27,6 @@ semantic-links:
     - packages/axum-rest-api-server/src/main.rs
 ---
 
-<!-- skill-link: create-issue -->
 
 # SI-4: Migrate `stats` context to contract-first architecture
 

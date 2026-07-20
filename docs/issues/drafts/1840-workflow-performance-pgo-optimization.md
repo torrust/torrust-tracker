@@ -17,7 +17,6 @@ semantic-links:
     - .github/workflows/container.yaml
 ---
 
-<!-- skill-link: create-issue -->
 
 # Issue #[To be assigned] - Apply Profile-Guided Optimization (PGO) to the tracker release binary
 

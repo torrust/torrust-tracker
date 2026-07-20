@@ -20,7 +20,6 @@ semantic-links:
     - console/tracker-client/src/console/clients/unified/mod.rs
 ---
 
-<!-- skill-link: create-issue -->
 
 # Issue #1771 — Merge all tracker client tools into a single unified `tracker_client` CLI
 

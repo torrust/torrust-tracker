@@ -17,7 +17,6 @@ semantic-links:
     - docs/issues/open/1669-overhaul-packages/workspace-coupling-report.md
 ---
 
-<!-- skill-link: create-issue -->
 
 # Issue #1805 - Overhaul workspace-coupling report tool: replace regex scanner with `syn` and adopt CLI output contract
 

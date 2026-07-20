@@ -20,7 +20,6 @@ semantic-links:
     - docs/issues/open/1854-1840-workflow-performance-container-test-gating/ISSUE.md
 ---
 
-<!-- skill-link: create-issue -->
 
 # Issue #1868 - Exclude irrelevant workspace members from container build
 

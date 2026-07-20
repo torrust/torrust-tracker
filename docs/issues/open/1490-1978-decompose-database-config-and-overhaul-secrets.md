@@ -18,7 +18,6 @@ semantic-links:
     - packages/configuration/src/lib.rs
 ---
 
-<!-- skill-link: create-issue -->
 
 # Issue #1490 - Decompose database config and overhaul secrets with `secrecy` crate
 

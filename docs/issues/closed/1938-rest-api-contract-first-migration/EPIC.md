@@ -22,7 +22,6 @@ semantic-links:
     - docs/issues/closed/1938-rest-api-contract-first-migration/
 ---
 
-<!-- skill-link: create-issue -->
 
 # REST API Contract-First Migration (follow-up to SI-33 PoC)
 

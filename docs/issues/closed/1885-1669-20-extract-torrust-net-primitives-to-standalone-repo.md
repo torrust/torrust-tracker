@@ -29,7 +29,6 @@ semantic-links:
     - docs/issues/closed/1797-1669-05-create-torrust-net-primitives-and-move-service-binding.md
 ---
 
-<!-- skill-link: create-issue -->
 
 # Issue #1885 - Extract `torrust-net-primitives` to a standalone repository
 

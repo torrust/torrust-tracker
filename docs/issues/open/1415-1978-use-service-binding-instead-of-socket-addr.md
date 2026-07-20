@@ -19,7 +19,6 @@ semantic-links:
     - src/bootstrap/jobs/
 ---
 
-<!-- skill-link: create-issue -->
 
 # Issue #1415 - Use `ServiceBinding` (protocol + address) instead of bare `SocketAddr` for service identity
 

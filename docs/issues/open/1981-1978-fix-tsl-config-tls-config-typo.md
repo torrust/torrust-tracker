@@ -30,7 +30,6 @@ semantic-links:
     - docs/issues/open/1640-per-http-tracker-on-reverse-proxy-setting.md
 ---
 
-<!-- skill-link: create-issue -->
 
 # Issue #1981 - Fix `tsl_config` → `tls_config` typo
 

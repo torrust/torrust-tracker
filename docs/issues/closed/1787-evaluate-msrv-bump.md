@@ -17,7 +17,6 @@ semantic-links:
     - .github/skills/dev/maintenance/setup-dev-environment/SKILL.md
 ---
 
-<!-- skill-link: create-issue -->
 
 # Issue #1787 - Evaluate and update workspace MSRV above 1.85
 

@@ -17,7 +17,6 @@ semantic-links:
     - docs/issues/closed/README.md
 ---
 
-<!-- skill-link: create-issue -->
 
 # Issue #1774 - Automate cleanup of completed issue specs with a non-interactive script
 
