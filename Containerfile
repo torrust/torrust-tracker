@@ -7,6 +7,7 @@ FROM docker.io/library/rust:slim-trixie AS chef
 WORKDIR /tmp
 RUN apt-get update \
  && apt-get install -y --no-install-recommends curl libssl-dev pkg-config \
+ && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 RUN curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
 RUN cargo binstall --no-confirm --locked torrust-cargo-chef@0.1.78 cargo-nextest
@@ -23,6 +24,7 @@ RUN apt-get update \
  && curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash \
  && cargo binstall --no-confirm --locked cargo-nextest \
  && apt-get purge -y --auto-remove curl \
+ && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 # Database initialization: Tests at runtime require a pre-initialized SQLite3 database
 # to test against a valid (not corrupted) schema. The VACUUM command optimizes the
@@ -36,6 +38,7 @@ RUN time mkdir -p /app/share/torrust/default/database/ \
 FROM docker.io/library/debian:trixie-slim AS gcc
 RUN apt-get update \
  && apt-get install -y --no-install-recommends gcc libc6-dev \
+ && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 COPY ./contrib/dev-tools/su-exec/ /usr/local/src/su-exec/
 RUN cc -Wall -Werror -g /usr/local/src/su-exec/su-exec.c -o /usr/local/bin/su-exec \
