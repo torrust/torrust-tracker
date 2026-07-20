@@ -20,7 +20,6 @@ semantic-links:
     - docs/issues/closed/1819-1669-08-rename-torrust-tracker-metrics-to-torrust-metrics.md
 ---
 
-<!-- skill-link: create-issue -->
 
 # Issue #1882 - Extract `torrust-metrics` to a standalone repository
 

@@ -20,7 +20,6 @@ semantic-links:
     - docs/issues/open/1669-overhaul-packages/EPIC.md
 ---
 
-<!-- skill-link: create-issue -->
 
 # Issue #1861 — Revisit `EnvContainer::initialize` to accept narrower config slices
 

@@ -16,7 +16,6 @@ semantic-links:
     - .github/skills/dev/planning/create-issue/SKILL.md
 ---
 
-<!-- skill-link: create-issue -->
 
 # EPIC #1840 - Improve PR Workflow Performance
 

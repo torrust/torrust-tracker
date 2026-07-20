@@ -16,7 +16,6 @@ semantic-links:
     - packages/rest-api-client/src/v1/client.rs
 ---
 
-<!-- skill-link: create-issue -->
 
 # SI-8: Eliminate all unwraps from the REST API client package
 

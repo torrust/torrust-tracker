@@ -18,7 +18,6 @@ semantic-links:
     - docs/issues/open/1669-overhaul-packages/EPIC.md
 ---
 
-<!-- skill-link: create-issue -->
 
 # Issue #1816 - Align `torrust-` prefix: rename tracker-specific packages to `torrust-tracker-`
 

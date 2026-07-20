@@ -18,7 +18,6 @@ semantic-links:
     - packages/rest-api-client/Cargo.toml
 ---
 
-<!-- skill-link: create-issue -->
 
 # SI-6: Introduce `ApiClient` — a high-level REST API client over protocol DTOs
 

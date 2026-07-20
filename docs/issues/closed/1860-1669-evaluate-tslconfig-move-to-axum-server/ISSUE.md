@@ -18,7 +18,6 @@ semantic-links:
     - docs/issues/open/1669-overhaul-packages/EPIC.md
 ---
 
-<!-- skill-link: create-issue -->
 
 # Issue #1860 — Evaluate moving `TslConfig` from `torrust-tracker-configuration` into `torrust-tracker-axum-server`
 

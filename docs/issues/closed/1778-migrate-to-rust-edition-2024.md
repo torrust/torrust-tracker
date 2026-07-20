@@ -16,7 +16,6 @@ semantic-links:
     - .github/skills/dev/planning/create-issue/SKILL.md
 ---
 
-<!-- skill-link: create-issue -->
 
 # Issue #1778 - Migrate workspace from Rust edition 2021 to edition 2024
 

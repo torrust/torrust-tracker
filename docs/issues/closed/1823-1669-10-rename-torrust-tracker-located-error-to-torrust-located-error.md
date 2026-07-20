@@ -19,7 +19,6 @@ semantic-links:
     - docs/issues/open/1669-overhaul-packages/EPIC.md
 ---
 
-<!-- skill-link: create-issue -->
 
 # Issue #1823 - Rename `torrust-tracker-located-error` to `torrust-located-error`
 

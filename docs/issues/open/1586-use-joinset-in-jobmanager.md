@@ -19,7 +19,6 @@ semantic-links:
     - src/AGENTS.md
 ---
 
-<!-- skill-link: create-issue -->
 
 # Issue #1586 - Consider using `tokio::task::JoinSet` in `JobManager`
 

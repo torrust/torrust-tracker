@@ -26,7 +26,6 @@ semantic-links:
     - packages/torrent-repository-benchmarking/tests/
 ---
 
-<!-- skill-link: create-issue -->
 
 # Issue #1964 - Rename `NumberOfDownloadsBTreeMap` to `NumberOfDownloadsPerInfoHash`
 

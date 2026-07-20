@@ -25,7 +25,6 @@ semantic-links:
     - docs/issues/closed/1823-1669-10-rename-torrust-tracker-located-error-to-torrust-located-error.md
 ---
 
-<!-- skill-link: create-issue -->
 
 # Issue #1894 - SI-22: Extract `torrust-located-error` to a standalone repository
 

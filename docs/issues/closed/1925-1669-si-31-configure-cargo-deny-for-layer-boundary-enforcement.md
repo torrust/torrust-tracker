@@ -24,7 +24,6 @@ semantic-links:
     - docs/issues/open/1669-overhaul-packages/workspace-coupling-report-2026-06-10.md
 ---
 
-<!-- skill-link: create-issue -->
 
 # Issue #1925 - Configure `cargo deny` for workspace layer boundary enforcement
 

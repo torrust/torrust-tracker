@@ -20,8 +20,6 @@ semantic-links:
     - .markdownlint.json
 ---
 
-<!-- skill-link: create-issue -->
-<!-- skill-link: write-markdown-docs -->
 
 # Issue #1803 - Improve `docs/` folder navigation
 

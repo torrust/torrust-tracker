@@ -19,7 +19,6 @@ semantic-links:
     - packages/swarm-coordination-registry/Cargo.toml
 ---
 
-<!-- skill-link: create-issue -->
 
 # Issue #1804 - Use `cargo machete --with-metadata` and remove unused dev dependencies
 

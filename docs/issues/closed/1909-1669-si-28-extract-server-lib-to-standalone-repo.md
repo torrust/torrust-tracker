@@ -28,7 +28,6 @@ semantic-links:
     - docs/issues/open/1669-overhaul-packages/EPIC.md
 ---
 
-<!-- skill-link: create-issue -->
 
 # Issue #1909 (SI-28) - Extract `torrust-server-lib` to a standalone repository
 

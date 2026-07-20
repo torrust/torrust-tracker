@@ -16,7 +16,6 @@ semantic-links:
     - .cargo/config.toml
 ---
 
-<!-- skill-link: create-issue -->
 
 # Issue #1786 - Migrate lint configuration to `[workspace.lints]` in Cargo.toml
 

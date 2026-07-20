@@ -21,7 +21,6 @@ semantic-links:
     - docs/issues/open/1669-overhaul-packages/EPIC.md
 ---
 
-<!-- skill-link: create-issue -->
 
 # Issue #1859 — Move `TrackerPolicy`, `TORRENT_PEERS_LIMIT`, and `PrivateMode` to `torrust-tracker-primitives`
 

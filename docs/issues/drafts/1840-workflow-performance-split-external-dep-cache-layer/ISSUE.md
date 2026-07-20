@@ -23,7 +23,6 @@ semantic-links:
     - docs/issues/open/1869-1840-workflow-performance-dependency-layer-cache-reuse/ISSUE.md
 ---
 
-<!-- skill-link: create-issue -->
 
 # Issue #[To be assigned] - Investigate splitting cook layer to isolate external dependency cache
 

@@ -15,7 +15,6 @@ semantic-links:
     - docs/templates/ISSUE.md
 ---
 
-<!-- skill-link: create-issue -->
 
 # Issue #1765 - feat(http-tracker): evaluate and implement native HTTP/3 support
 

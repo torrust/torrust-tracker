@@ -20,7 +20,6 @@ semantic-links:
     - packages/axum-http-server/tests/server/v1/contract/for_all_config_modes/receiving_an_announce_request.rs
 ---
 
-<!-- skill-link: create-issue -->
 
 # Issue #1986 - Return compact peer list by default when `compact` param is absent (BEP 23)
 

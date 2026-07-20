@@ -23,7 +23,6 @@ semantic-links:
     - https://github.com/torrust/torrust-tracker/issues/1463
 ---
 
-<!-- skill-link: create-issue -->
 
 # Issue #1898 - Document security analysis process and catalog non-affecting Containerfile CVEs
 

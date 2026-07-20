@@ -18,7 +18,6 @@ semantic-links:
     - packages/configuration/src/lib.rs
 ---
 
-<!-- skill-link: create-issue -->
 
 # Issue #[To be assigned] - Migrate Existing Binaries to the Global CLI Output Contract
 

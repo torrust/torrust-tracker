@@ -22,7 +22,6 @@ semantic-links:
     - docs/adrs/
 ---
 
-<!-- skill-link: create-issue -->
 
 # Issue #1856 — Analyse configuration package coupling and evaluate splitting strategies
 

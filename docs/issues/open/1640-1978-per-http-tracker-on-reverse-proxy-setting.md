@@ -44,7 +44,6 @@ semantic-links:
     - docs/containers.md
 ---
 
-<!-- skill-link: create-issue -->
 
 # Issue #1640 - Move `on_reverse_proxy` to per-tracker config (and relocate `Network`)
 

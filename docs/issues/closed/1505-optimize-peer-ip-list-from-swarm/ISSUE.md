@@ -31,7 +31,6 @@ semantic-links:
     - packages/tracker-client/src/http/client/responses/announce.rs
 ---
 
-<!-- skill-link: create-issue -->
 
 # Issue #1505 — Optimization: return peer IP list from swarm (lowest-level layer) to servers (highest-level layer)
 

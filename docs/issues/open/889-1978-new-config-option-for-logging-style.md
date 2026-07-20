@@ -18,7 +18,6 @@ semantic-links:
     - src/bootstrap/
 ---
 
-<!-- skill-link: create-issue -->
 
 # Issue #889 - New config option for logging style
 

@@ -20,7 +20,6 @@ semantic-links:
     - docs/issues/open/1669-overhaul-packages/workspace-coupling-report.md
 ---
 
-<!-- skill-link: create-issue -->
 
 # Issue #1795 - Move `AnnouncePolicy` from `torrust-tracker-configuration` to `torrust-tracker-primitives`
 

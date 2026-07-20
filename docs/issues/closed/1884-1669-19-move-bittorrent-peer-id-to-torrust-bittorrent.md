@@ -22,7 +22,6 @@ semantic-links:
     - docs/issues/open/1669-overhaul-packages/EPIC.md
 ---
 
-<!-- skill-link: create-issue -->
 
 # Issue #1884 - Move `packages/peer-id` to `torrust/torrust-bittorrent` as `torrust-peer-id`
 

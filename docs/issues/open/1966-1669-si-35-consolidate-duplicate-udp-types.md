@@ -27,7 +27,6 @@ semantic-links:
     - packages/http-protocol/src/v1/responses/scrape.rs
 ---
 
-<!-- skill-link: create-issue -->
 
 # Issue #1966 - EPIC 1669 SI-35: Consolidate Duplicate UDP Types
 

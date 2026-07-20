@@ -19,7 +19,6 @@ semantic-links:
     - docs/issues/open/1669-overhaul-packages/EPIC.md
 ---
 
-<!-- skill-link: create-issue -->
 
 # Issue #[To be assigned] - Establish baseline: workspace coupling analysis and README audit
 

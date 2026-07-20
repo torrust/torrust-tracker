@@ -23,7 +23,6 @@ semantic-links:
     - docs/adrs/
 ---
 
-<!-- skill-link: create-issue -->
 
 # Issue #1985 - Rename `peer_addr` GET param to `ip` in HTTP announce request (BEP 3)
 

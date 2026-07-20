@@ -22,7 +22,6 @@ semantic-links:
     - packages/rest-api-client/src/
 ---
 
-<!-- skill-link: create-issue -->
 
 # SI-7: Review tests and align v1 namespace across REST API packages
 

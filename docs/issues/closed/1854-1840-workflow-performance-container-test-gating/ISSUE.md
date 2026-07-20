@@ -20,7 +20,6 @@ semantic-links:
     - docs/adrs/20260603000000_keep_unit_tests_inside_container_build.md
 ---
 
-<!-- skill-link: create-issue -->
 
 # Issue #1854 - Evaluate test execution policy in container image build
 

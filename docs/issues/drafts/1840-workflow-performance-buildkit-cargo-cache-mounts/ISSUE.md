@@ -19,7 +19,6 @@ semantic-links:
     - docs/issues/open/1726-1840-workflow-performance-sccache/ISSUE.md
 ---
 
-<!-- skill-link: create-issue -->
 
 # Issue #[To be assigned] - Pass Cargo registry/git caches into BuildKit to speed up cook stage rebuilds
 

@@ -20,7 +20,6 @@ semantic-links:
     - docs/issues/drafts/1840-workflow-performance-split-external-dep-cache-layer/ISSUE.md
 ---
 
-<!-- skill-link: create-issue -->
 
 # Issue #1869 - Improve dependency-layer cache reuse within each workflow
 

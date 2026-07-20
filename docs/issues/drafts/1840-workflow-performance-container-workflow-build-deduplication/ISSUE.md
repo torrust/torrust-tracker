@@ -19,7 +19,6 @@ semantic-links:
     - docs/issues/closed/1841-1840-workflow-performance-baseline-analysis/benchmark-results-baseline.md
 ---
 
-<!-- skill-link: create-issue -->
 
 # Issue #[To be assigned] - Evaluate removing duplicate container build from container workflow
 

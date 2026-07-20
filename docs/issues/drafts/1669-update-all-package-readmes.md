@@ -17,7 +17,6 @@ semantic-links:
     - packages/
 ---
 
-<!-- skill-link: create-issue -->
 
 # Issue #[To be assigned] - Standardize package READMEs and Cargo.toml metadata
 

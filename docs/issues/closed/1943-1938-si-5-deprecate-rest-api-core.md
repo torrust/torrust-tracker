@@ -20,7 +20,6 @@ semantic-links:
     - packages/axum-rest-api-server/Cargo.toml
 ---
 
-<!-- skill-link: create-issue -->
 
 # SI-5: Deprecate `rest-api-core` and remove from workspace
 

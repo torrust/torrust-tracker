@@ -17,7 +17,6 @@ semantic-links:
     - share/default/config/
 ---
 
-<!-- skill-link: create-issue -->
 
 # Issue #1979 - Copy configuration schema v2_0_0 to v3_0_0 as baseline
 

@@ -27,7 +27,6 @@ semantic-links:
     - packages/axum-http-server/src/v1/handlers/scrape.rs
 ---
 
-<!-- skill-link: create-issue -->
 
 # Issue #1835 - Decouple `http-protocol` from `torrust-tracker-primitives`
 
