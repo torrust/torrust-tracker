@@ -49,9 +49,9 @@ The history shows that the split was introduced in commit [`9d8174df`](https://g
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| ID  | Status | Task                                                     | Notes / Expected Output                                                                                                               |
-| --- | ------ | -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| T1  | DONE   | Review Codecov action inputs and current artifact layout | Confirmed Codecov's checkout prerequisite and explicit report file and PR/SHA override inputs. |
+| ID  | Status | Task                                                     | Notes / Expected Output                                                                                                                                 |
+| --- | ------ | -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| T1  | DONE   | Review Codecov action inputs and current artifact layout | Confirmed Codecov's checkout prerequisite and explicit report file and PR/SHA override inputs.                                                          |
 | T2  | DONE   | Update the upload workflow                               | Moved the default-branch checkout before artifact retrieval and removed the fork-SHA `ref`, retaining artifact download and Codecov metadata overrides. |
 
 ## Progress Tracking
@@ -104,10 +104,10 @@ Define verification before implementation starts and execute it before closing t
 
 Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
-| ID  | Scenario                                     | Command/Steps                                                                                           | Expected Result                                                                                             | Status | Evidence                       |
-| --- | -------------------------------------------- | ------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- | ------ | ------------------------------ |
-| M1  | Fork pull request coverage upload            | Open or rerun a pull request from a fork that changes non-documentation files.                          | `Upload Coverage Report (PR)` succeeds, is not blocked by checkout policy, and Codecov receives the report. | TODO   | Workflow run and Codecov link. |
-| M2  | Same-repository pull request coverage upload | Open or rerun a pull request from a branch in the base repository that changes non-documentation files. | Coverage upload succeeds with the correct pull request and commit metadata.                                 | TODO   | Workflow run and Codecov link. |
+| ID  | Scenario                                     | Command/Steps                                                                                           | Expected Result                                                                                                                                                                 | Status | Evidence                                                          |
+| --- | -------------------------------------------- | ------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ----------------------------------------------------------------- |
+| M1  | Fork pull request coverage upload            | Open or rerun a pull request from a fork that changes non-documentation files.                          | `Upload Coverage Report (PR)` succeeds, is not blocked by checkout policy, and Codecov receives the report.                                                                     | TODO   | Workflow run and Codecov link.                                    |
+| M2  | Same-repository pull request coverage upload | Open or rerun a pull request from a branch in the base repository that changes non-documentation files. | Coverage upload succeeds with the correct pull request and commit metadata.                                                                                                     | TODO   | Workflow run and Codecov link.                                    |
 | M3  | Workflow security review                     | Inspect the final `upload_coverage_pr.yaml` workflow.                                                   | The checkout occurs before fork-produced artifact retrieval, has no fork-SHA `ref`, no privileged step executes fork-controlled code, and `allow-unsafe-pr-checkout` is absent. | DONE   | Workflow diff review; `linter yaml`; independent workflow review. |
 
 Notes:
