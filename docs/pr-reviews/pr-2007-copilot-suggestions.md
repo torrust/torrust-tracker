@@ -36,10 +36,10 @@ Status legend:
 
 ## Suggestions
 
-| #   | Thread ID             | Path                                                                      | URL                                                                                    | Suggestion Summary                                                                                                                | Decision | Status | Thread State |
-| --- | --------------------- | ------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- | -------- | ------ | ------------ |
+| #   | Thread ID               | Path                                                                      | URL                                                                                    | Suggestion Summary                                                                                                                | Decision | Status | Thread State |
+| --- | ----------------------- | ------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- | -------- | ------ | ------------ |
 | 1   | `PRRT_kwDOGp2yqc6SUumy` | `.github/skills/dev/maintenance/run-manual-docker-security-scan/SKILL.md` | [comment](https://github.com/torrust/torrust-tracker/pull/2007#discussion_r3616188738) | YAML frontmatter `related-artifacts` list is malformed: `docs/security/analysis/build/` is not indented under `related-artifacts` | action   | DONE   | resolved     |
-| 2   | `PRRT_kwDOGp2yqc6SUunN` | `docs/security/analysis/README.md`                                      | [comment](https://github.com/torrust/torrust-tracker/pull/2007#discussion_r3616188775) | README describes `review-date` but actual CVE docs use `date-analyzed`                                                             | action   | DONE   | resolved     |
+| 2   | `PRRT_kwDOGp2yqc6SUunN` | `docs/security/analysis/README.md`                                        | [comment](https://github.com/torrust/torrust-tracker/pull/2007#discussion_r3616188775) | README describes `review-date` but actual CVE docs use `date-analyzed`                                                            | action   | DONE   | resolved     |
 
 ## Notes
 
