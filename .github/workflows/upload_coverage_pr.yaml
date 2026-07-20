@@ -20,6 +20,13 @@ jobs:
     environment: coverage
     runs-on: ubuntu-latest
     steps:
+      # Codecov requires a checkout. This trusted workflow must check out only the
+      # default branch before retrieving fork-produced artifacts.
+      - name: Checkout trusted repository
+        uses: actions/checkout@v7
+        with:
+          path: repo_root
+
       - name: "Download existing coverage report"
         id: prepare_report
         uses: actions/github-script@v9
@@ -94,12 +101,6 @@ jobs:
           # Make the params available as step output
           echo "override_pr=$(<pr_number.txt)" >> "$GITHUB_OUTPUT"
           echo "override_commit=$(<commit_sha.txt)" >> "$GITHUB_OUTPUT"
-
-      - name: Checkout repository
-        uses: actions/checkout@v7
-        with:
-          ref: ${{ steps.parse_previous_artifacts.outputs.override_commit || '' }}
-          path: repo_root
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v7

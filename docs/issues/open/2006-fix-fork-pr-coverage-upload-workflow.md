@@ -1,13 +1,13 @@
 ---
 doc-type: issue
 issue-type: bug
-status: planned
+status: in-progress
 priority: p1
 github-issue: 2006
 spec-path: docs/issues/open/2006-fix-fork-pr-coverage-upload-workflow.md
 branch: "2006-fix-fork-pr-coverage-upload-workflow"
 related-pr: null
-last-updated-utc: 2026-07-20 17:15
+last-updated-utc: 2026-07-20 17:21
 semantic-links:
   skill-links:
     - create-issue
@@ -51,8 +51,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task                                                     | Notes / Expected Output                                                                                                               |
 | --- | ------ | -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| T1  | TODO   | Review Codecov action inputs and current artifact layout | Confirm the explicit report file and PR/SHA overrides upload `codecov.json` from a trusted default-branch checkout.                    |
-| T2  | TODO   | Update the upload workflow                               | Move the default-branch checkout before artifact retrieval and remove the fork-SHA `ref`, while retaining artifact download and Codecov metadata overrides. |
+| T1  | DONE   | Review Codecov action inputs and current artifact layout | Confirmed Codecov's checkout prerequisite and explicit report file and PR/SHA override inputs. |
+| T2  | DONE   | Update the upload workflow                               | Moved the default-branch checkout before artifact retrieval and removed the fork-SHA `ref`, retaining artifact download and Codecov metadata overrides. |
 
 ## Progress Tracking
 
@@ -63,7 +63,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] GitHub issue created and issue number added to this spec
 - [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
 - [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
+- [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [ ] Manual verification scenarios executed and recorded (status + evidence)
 - [ ] Acceptance criteria reviewed after implementation and updated with evidence
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
@@ -74,14 +74,16 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 - 2026-07-20 16:46 UTC - GitHub Copilot - Drafted bug specification from failed workflow run 29758909096; duplicate search found no matching open issue.
 - 2026-07-20 17:15 UTC - GitHub Copilot - Confirmed the trusted default-branch checkout remediation, created GitHub issue #2006, and updated this specification.
+- 2026-07-20 17:21 UTC - GitHub Copilot - Moved the trusted default-branch checkout before artifact retrieval and removed the artifact-derived checkout ref; `linter yaml`, `git diff --check`, and independent workflow review passed.
+- 2026-07-20 17:24 UTC - GitHub Copilot - `linter all` passed; fork pull request and Codecov upload verification remain pending a pushed pull request.
 
 ## Acceptance Criteria
 
 - [ ] AC1: A fork-originated pull request can complete the coverage upload workflow and publish its generated coverage report to Codecov.
-- [ ] AC2: The privileged `workflow_run` upload job checks out only the trusted default branch and does not execute fork-controlled code.
-- [ ] AC3: The workflow does not set `allow-unsafe-pr-checkout: true`.
+- [x] AC2: The privileged `workflow_run` upload job checks out only the trusted default branch and does not execute fork-controlled code.
+- [x] AC3: The workflow does not set `allow-unsafe-pr-checkout: true`.
 - [ ] AC4: Codecov receives the pull request number and source commit SHA associated with the generated report.
-- [ ] `linter all` exits with code `0`.
+- [x] `linter all` exits with code `0`.
 - [ ] Relevant tests pass.
 - [ ] Manual verification scenarios are executed and documented (status + evidence).
 - [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior.
@@ -106,7 +108,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | --- | -------------------------------------------- | ------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- | ------ | ------------------------------ |
 | M1  | Fork pull request coverage upload            | Open or rerun a pull request from a fork that changes non-documentation files.                          | `Upload Coverage Report (PR)` succeeds, is not blocked by checkout policy, and Codecov receives the report. | TODO   | Workflow run and Codecov link. |
 | M2  | Same-repository pull request coverage upload | Open or rerun a pull request from a branch in the base repository that changes non-documentation files. | Coverage upload succeeds with the correct pull request and commit metadata.                                 | TODO   | Workflow run and Codecov link. |
-| M3  | Workflow security review                     | Inspect the final `upload_coverage_pr.yaml` workflow.                                                   | The checkout occurs before fork-produced artifact retrieval, has no fork-SHA `ref`, no privileged step executes fork-controlled code, and `allow-unsafe-pr-checkout` is absent. | TODO   | Reviewed workflow revision.    |
+| M3  | Workflow security review                     | Inspect the final `upload_coverage_pr.yaml` workflow.                                                   | The checkout occurs before fork-produced artifact retrieval, has no fork-SHA `ref`, no privileged step executes fork-controlled code, and `allow-unsafe-pr-checkout` is absent. | DONE   | Workflow diff review; `linter yaml`; independent workflow review. |
 
 Notes:
 
@@ -118,8 +120,8 @@ Notes:
 | AC ID | Status (`TODO`/`DONE`) | Evidence                                         |
 | ----- | ---------------------- | ------------------------------------------------ |
 | AC1   | TODO                   | Fork pull request workflow run and Codecov link. |
-| AC2   | TODO                   | Final workflow review.                           |
-| AC3   | TODO                   | Final workflow review.                           |
+| AC2   | DONE                   | Workflow diff review and `linter yaml`.          |
+| AC3   | DONE                   | Workflow diff review and `linter yaml`.          |
 | AC4   | TODO                   | Codecov upload metadata from workflow logs.      |
 
 ## Risks and Trade-offs
