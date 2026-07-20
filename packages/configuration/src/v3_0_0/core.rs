@@ -3,7 +3,7 @@ use torrust_tracker_primitives::announce::AnnouncePolicy;
 use torrust_tracker_primitives::{PrivateMode, TrackerPolicy};
 
 use super::network::Network;
-use crate::v2_0_0::database::Database;
+use crate::v3_0_0::database::Database;
 use crate::validator::{SemanticValidationError, Validator};
 
 #[allow(clippy::struct_excessive_bools)]

@@ -1,26 +1,55 @@
-//! Setup for the application logging.
+//! Logging configuration and setup for `v3_0_0`.
 //!
-//! It redirects the log info to the standard output with the log threshold
-//! defined in the configuration.
-//!
-//! - `Off`
-//! - `Error`
-//! - `Warn`
-//! - `Info`
-//! - `Debug`
-//! - `Trace`
-//!
-//! Refer to the [configuration crate documentation](https://docs.rs/torrust-tracker-configuration) to know how to change log settings.
+//! Contains the `Logging` configuration struct, the `Threshold` level enum,
+//! the `TraceStyle` enum, and the `setup()` / `tracing_init()` helpers.
 use std::sync::Once;
 
+use serde::{Deserialize, Serialize};
 use tracing::level_filters::LevelFilter;
-
-use crate::v2_0_0::logging::{Logging, Threshold};
 
 static INIT: Once = Once::new();
 
-/// It redirects the log info to the standard output with the log threshold
-/// defined in the configuration.
+#[allow(clippy::struct_excessive_bools)]
+#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone)]
+pub struct Logging {
+    /// Logging level. Possible values are: `Off`, `Error`, `Warn`, `Info`,
+    /// `Debug` and `Trace`. Default is `Info`.
+    #[serde(default = "Logging::default_threshold")]
+    pub threshold: Threshold,
+}
+
+impl Default for Logging {
+    fn default() -> Self {
+        Self {
+            threshold: Self::default_threshold(),
+        }
+    }
+}
+
+impl Logging {
+    fn default_threshold() -> Threshold {
+        Threshold::Info
+    }
+}
+
+#[derive(Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Debug, Hash, Clone)]
+#[serde(rename_all = "lowercase")]
+pub enum Threshold {
+    /// A threshold lower than all security levels.
+    Off,
+    /// Corresponds to the `Error` security level.
+    Error,
+    /// Corresponds to the `Warn` security level.
+    Warn,
+    /// Corresponds to the `Info` security level.
+    Info,
+    /// Corresponds to the `Debug` security level.
+    Debug,
+    /// Corresponds to the `Trace` security level.
+    Trace,
+}
+
+/// Redirects log output to stdout at the threshold defined in the configuration.
 pub fn setup(cfg: &Logging) {
     let tracing_level = map_to_tracing_level_filter(&cfg.threshold);
 
