@@ -1,13 +1,13 @@
 ---
 doc-type: issue
 issue-type: task
-status: open
+status: done
 priority: p0
 github-issue: 1979
 spec-path: docs/issues/open/1979-1978-copy-configuration-schema-v2-to-v3-baseline.md
 branch: "config-copy-v2-to-v3-baseline"
 related-pr: 1999
-last-updated-utc: 2026-07-13 21:00
+last-updated-utc: 2026-07-20 13:21
 semantic-links:
   skill-links:
     - create-issue
@@ -16,7 +16,6 @@ semantic-links:
     - packages/configuration/src/lib.rs
     - share/default/config/
 ---
-
 
 # Issue #1979 - Copy configuration schema v2_0_0 to v3_0_0 as baseline
 
@@ -76,18 +75,19 @@ This approach:
 
 - [ ] Spec drafted in `docs/issues/drafts/`
 - [ ] Spec reviewed and approved by user/maintainer
-- [ ] GitHub issue created and issue number added to this spec
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests)
+- [x] GitHub issue created and issue number added to this spec
+- [x] Implementation completed
+- [x] Automatic verification completed (`linter all`, relevant tests)
 - [ ] Manual verification scenarios executed and recorded
-- [ ] Acceptance criteria reviewed after implementation
-- [ ] Issue closed and spec moved to `docs/issues/open/`
+- [x] Acceptance criteria reviewed after implementation
+- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
 - 2026-07-13 21:00 UTC - josecelano - Initial spec drafted
 - 2026-07-15 00:00 UTC - josecelano - GitHub issue #1979 created; spec moved to `docs/issues/open/1979-1978-copy-configuration-schema-v2-to-v3-baseline.md`
 - 2026-07-20 00:00 UTC - agent - Implementation completed: T1–T5 and T8–T9 done; T6/T7 deferred to #1980 (consumer migration must happen atomically)
+- 2026-07-20 13:21 UTC - agent - Reconciled the spec after PR #1999 merged; automatic verification and acceptance review are complete, while manual scenarios and archival remain open.
 
 ## Acceptance Criteria
 
