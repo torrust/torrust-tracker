@@ -3,8 +3,11 @@
 # Torrust Tracker
 
 ## Builder Image
-FROM docker.io/library/rust:trixie AS chef
+FROM docker.io/library/rust:slim-trixie AS chef
 WORKDIR /tmp
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends curl libssl-dev pkg-config \
+ && rm -rf /var/lib/apt/lists/*
 RUN curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
 RUN cargo binstall --no-confirm --locked torrust-cargo-chef@0.1.78 cargo-nextest
 # Note: We use the `torrust-cargo-chef` fork (v0.1.78) while upstream PR
