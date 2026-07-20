@@ -10,7 +10,7 @@ RUN apt-get update \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 RUN curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
-RUN cargo binstall --no-confirm --locked torrust-cargo-chef@0.1.78 cargo-nextest
+RUN cargo binstall --no-confirm --locked torrust-cargo-chef@0.1.78 cargo-nextest@0.9.140
 # Note: We use the `torrust-cargo-chef` fork (v0.1.78) while upstream PR
 # https://github.com/LukeMathWalker/cargo-chef/pull/360 is pending. Once merged,
 # switch back to upstream `cargo-chef` and remove this comment.
@@ -22,7 +22,7 @@ WORKDIR /tmp
 RUN apt-get update \
  && apt-get install -y --no-install-recommends curl sqlite3 time \
  && curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash \
- && cargo binstall --no-confirm --locked cargo-nextest \
+ && cargo binstall --no-confirm --locked cargo-nextest@0.9.140 \
  && apt-get purge -y --auto-remove curl \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*

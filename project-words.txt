@@ -441,7 +441,6 @@ upcasting
 ureq
 urlencode
 uroot
-Uumy
 usize
 Vagaa
 valgrind

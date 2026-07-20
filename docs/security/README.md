@@ -54,7 +54,7 @@ This priority increases if the build images are ever used in a long-running serv
 
 **Scope**:
 
-- Base build images: `rust:trixie`, `rust:slim-trixie`, `gcc:trixie`
+- Base build images: `rust:slim-trixie` (chef + tester), `debian:trixie-slim` (gcc)
 - Rust dependency vulnerabilities (`cargo audit` / RustSec)
 - CI/CD pipeline security
 
