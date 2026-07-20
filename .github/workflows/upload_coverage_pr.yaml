@@ -91,23 +91,25 @@ jobs:
 
       - id: parse_previous_artifacts
         run: |
-          unzip codecov_report.zip
-          unzip pr_number.zip
-          unzip commit_sha.zip
+          artifact_dir=coverage_artifacts
+          mkdir "$artifact_dir"
+          unzip -j codecov_report.zip -d "$artifact_dir"
+          unzip -j pr_number.zip -d "$artifact_dir"
+          unzip -j commit_sha.zip -d "$artifact_dir"
 
-          echo "Detected PR is: $(<pr_number.txt)"
-          echo "Detected commit_sha is: $(<commit_sha.txt)"
+          echo "Detected PR is: $(<"$artifact_dir/pr_number.txt")"
+          echo "Detected commit_sha is: $(<"$artifact_dir/commit_sha.txt")"
 
           # Make the params available as step output
-          echo "override_pr=$(<pr_number.txt)" >> "$GITHUB_OUTPUT"
-          echo "override_commit=$(<commit_sha.txt)" >> "$GITHUB_OUTPUT"
+          echo "override_pr=$(<"$artifact_dir/pr_number.txt")" >> "$GITHUB_OUTPUT"
+          echo "override_commit=$(<"$artifact_dir/commit_sha.txt")" >> "$GITHUB_OUTPUT"
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v7
         with:
           verbose: true
           token: ${{ secrets.CODECOV_TOKEN }}
-          files: ${{ github.workspace }}/codecov.json
+          files: ${{ github.workspace }}/coverage_artifacts/codecov.json
           fail_ci_if_error: true
           # Manual overrides for these parameters are needed because automatic detection
           # in codecov-action does not work for non-`pull_request` workflows.
