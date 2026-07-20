@@ -33,7 +33,10 @@ RUN time mkdir -p /app/share/torrust/default/database/ \
  && time sqlite3 /app/share/torrust/default/database/tracker.sqlite3.db "VACUUM;"
 
 ## Su Exe Compile
-FROM docker.io/library/gcc:trixie AS gcc
+FROM docker.io/library/debian:trixie-slim AS gcc
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends gcc libc6-dev \
+ && rm -rf /var/lib/apt/lists/*
 COPY ./contrib/dev-tools/su-exec/ /usr/local/src/su-exec/
 RUN cc -Wall -Werror -g /usr/local/src/su-exec/su-exec.c -o /usr/local/bin/su-exec \
  && chmod +x /usr/local/bin/su-exec

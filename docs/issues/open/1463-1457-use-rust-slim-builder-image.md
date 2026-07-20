@@ -117,6 +117,20 @@ The final tester stage is 975.9 MB with 123 Debian packages and 1,014 Trivy find
 `curl` is absent, while `sqlite3`, `time`, and `cargo-nextest` are executable. The full
 `release` target passed archive extraction, containerized tests, and final image assembly.
 
+### GCC implementation result
+
+The `gcc:trixie` image has been replaced by `debian:trixie-slim` plus only `gcc` and
+`libc6-dev`. An initial probe with `gcc` alone failed because `su-exec.c` includes
+`sys/types.h`; adding `libc6-dev` supplied the required libc headers. The final stage
+compiled `su-exec`, the full `release` target passed, and `su-exec` executed successfully
+inside the distroless runtime image.
+
+| Metric                       | `gcc:trixie` baseline | Final slim GCC | Difference                   |
+| ---------------------------- | --------------------- | -------------- | ---------------------------- |
+| Image size                   | 1,556.4 MB            | 274.3 MB       | 1,282.1 MB smaller (82.4%)   |
+| Installed Debian packages    | 464                   | 114            | 350 fewer packages (75.4%)   |
+| Trivy vulnerability findings | 2,165                 | 1,008          | 1,157 fewer findings (53.4%) |
+
 ## Scope
 
 ### In Scope
@@ -186,18 +200,18 @@ security signal.
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| ID  | Status | Task                                      | Notes / Expected Output                                                                                                                   |
-| --- | ------ | ----------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| T1  | DONE   | Establish a fresh base-image baseline     | Digests, sizes, package counts, tool inventory, and Trivy summaries recorded in this spec                                                 |
-| T2  | DONE   | Probe minimal cargo-tool installation     | Exact pinned tools install and run on slim after adding only `curl`                                                                       |
-| T3  | DONE   | Change and validate the chef stage        | Slim base plus three demonstrated packages; full `release` build and containerized tests passed; delivered independently                  |
-| T4  | DONE   | Minimize and validate the tester stage    | Setup-only curl removed; SQLite, time, and nextest retained; full `release` test path passed; delivered independently                     |
-| T5  | TODO   | Evaluate and validate a slimmer GCC stage | Candidate builds `su-exec` cleanly with a clearly smaller inventory, or evidence supports retaining `gcc:trixie`; delivered independently |
-| T6  | TODO   | Measure the resulting build stages        | Post-change size, package, and Trivy comparison includes transitive APT packages                                                          |
-| T7  | TODO   | Apply the decision rule                   | Each stage decision stands on its own evidence and can be reverted independently                                                          |
-| T8  | TODO   | Record build-stage scan history           | New consolidated `build-images.md` records chef, tester, and GCC commands, digests, package counts, and findings                          |
-| T9  | TODO   | Refresh production scan history           | Rebuilt release image is scanned and appended to `torrust-tracker.md`; scan index reflects both report types                              |
-| T10 | TODO   | Update security analysis documentation    | Existing catalog summary records current digests, scan date, counts, commands, and conclusion without bulky raw scan output               |
+| ID  | Status | Task                                      | Notes / Expected Output                                                                                                     |
+| --- | ------ | ----------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| T1  | DONE   | Establish a fresh base-image baseline     | Digests, sizes, package counts, tool inventory, and Trivy summaries recorded in this spec                                   |
+| T2  | DONE   | Probe minimal cargo-tool installation     | Exact pinned tools install and run on slim after adding only `curl`                                                         |
+| T3  | DONE   | Change and validate the chef stage        | Slim base plus three demonstrated packages; full `release` build and containerized tests passed; delivered independently    |
+| T4  | DONE   | Minimize and validate the tester stage    | Setup-only curl removed; SQLite, time, and nextest retained; full `release` test path passed; delivered independently       |
+| T5  | DONE   | Evaluate and validate a slimmer GCC stage | Debian slim plus GCC and libc headers builds and runs `su-exec`; full `release` path passed; delivered independently        |
+| T6  | DONE   | Measure the resulting build stages        | Final chef, tester, and GCC size, package, and Trivy evidence recorded                                                      |
+| T7  | DONE   | Apply the decision rule                   | Each stage has a small demonstrated package set and remains materially smaller                                              |
+| T8  | TODO   | Record build-stage scan history           | New consolidated `build-images.md` records chef, tester, and GCC commands, digests, package counts, and findings            |
+| T9  | TODO   | Refresh production scan history           | Rebuilt release image is scanned and appended to `torrust-tracker.md`; scan index reflects both report types                |
+| T10 | TODO   | Update security analysis documentation    | Existing catalog summary records current digests, scan date, counts, commands, and conclusion without bulky raw scan output |
 
 ## Progress Tracking
 
@@ -224,15 +238,17 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-07-20 00:00 UTC - GitHub Copilot - Built the complete `release` target with containerized tests and measured 145 packages, 1,067.4 MB, and 1,072 Trivy findings in the final chef stage - T3 and M3 completed
 - 2026-07-20 00:00 UTC - GitHub Copilot - Consolidated tester setup into one layer, removed setup-only curl, and retained only SQLite, time, and nextest - tester minimized to 123 packages and 1,014 Trivy findings
 - 2026-07-20 00:00 UTC - GitHub Copilot - Built the complete `release` target with the minimized tester in 131.4 s; containerized tests and final assembly passed - T4 and M4 completed
+- 2026-07-20 00:00 UTC - GitHub Copilot - Replaced `gcc:trixie` with Debian slim plus GCC and libc headers; reduced the stage to 274.3 MB, 114 packages, and 1,008 findings - T5, T6, and T7 completed
+- 2026-07-20 00:00 UTC - GitHub Copilot - Built the complete `release` target and executed `su-exec` successfully inside the distroless runtime - M5 and M6 completed
 
 ## Acceptance Criteria
 
 - [x] AC1: The `chef` stage uses `rust:slim-trixie`, or evidence documents why the slim image fails the decision rule and the full image is retained.
 - [x] AC2: Every package explicitly added to the slim chef stage is tied to a reproducible build or tool-installation requirement.
 - [x] AC3: The tester stage is independently minimized and validated without reducing existing test scope.
-- [ ] AC4: Before/after evidence records image digests, image sizes, installed package counts, and vulnerability findings using the same commands and scanner database.
-- [ ] AC5: The adopted result has a materially smaller installed package inventory than `rust:trixie`; no target percentage is assumed before transitive dependencies are measured.
-- [ ] AC6: The `gcc` stage uses a practical slimmer alternative, or measured evidence documents why `gcc:trixie` is retained.
+- [x] AC4: Before/after evidence records image digests, image sizes, installed package counts, and vulnerability findings using the same commands and scanner database.
+- [x] AC5: The adopted result has a materially smaller installed package inventory than `rust:trixie`; no target percentage is assumed before transitive dependencies are measured.
+- [x] AC6: The `gcc` stage uses a practical slimmer alternative, or measured evidence documents why `gcc:trixie` is retained.
 - [ ] AC7: The chef, tester, and GCC changes are implemented, validated, and committed independently.
 - [ ] AC8: `build-images.md` provides a consolidated scan history for the foundational build stages without mixing their lower-risk status into the production report.
 - [ ] AC9: `torrust-tracker.md` contains a new post-change release-image scan proving the production artifact did not regress.
@@ -266,8 +282,8 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | M2  | Verify minimal cargo tooling         | On `rust:slim-trixie`, install only `curl` with `--no-install-recommends`, run the existing `cargo-binstall` installer, then install the pinned tools | `cargo chef --version` and `cargo nextest --version` succeed                               | DONE   | Preliminary investigation and progress log in this spec               |
 | M3  | Validate chef change independently   | Build the dependent release path without relying on host artifacts before changing tester or GCC                                                      | Chef-dependent compilation succeeds and the change is ready for its own commit             | DONE   | Local `release` build passed in 236.7 s; image `sha256:0b497b43...`   |
 | M4  | Validate tester change independently | Run the complete containerized test paths after changing tester and before changing GCC                                                               | Existing tests execute successfully and the tester change is ready for its own commit      | DONE   | Local `release` build passed in 131.4 s; image `sha256:0b497b43...`   |
-| M5  | Inspect added package closure        | List explicit and transitive packages after the APT install and compare them with the full image                                                      | Every explicit package is necessary and the resulting inventory remains materially smaller | TODO   | Package comparison output                                             |
-| M6  | Evaluate a slimmer GCC stage         | Compare practical candidate images, compile `su-exec`, and inspect the resulting package closure                                                      | Adopt a clearly simpler candidate or document why the current GCC image remains preferable | TODO   | Build and package comparison output                                   |
+| M5  | Inspect added package closure        | List explicit and transitive packages after the APT install and compare them with the full image                                                      | Every explicit package is necessary and the resulting inventory remains materially smaller | DONE   | Chef, tester, and GCC implementation-result measurements              |
+| M6  | Evaluate a slimmer GCC stage         | Compare practical candidate images, compile `su-exec`, and inspect the resulting package closure                                                      | Adopt a clearly simpler candidate or document why the current GCC image remains preferable | DONE   | 114 packages; release build and runtime `su-exec` smoke test passed   |
 | M7  | Scan foundational build stages       | Build tagged `chef`, `tester`, and `gcc` targets, then scan all three with the same Trivy version/database                                            | Consolidated report shows comparable findings and preserves their build-time risk context  | TODO   | `docs/security/docker/scans/build-images.md`                          |
 | M8  | Scan and smoke-test release image    | Build and scan `release`, start it, and exercise its configured health check                                                                          | Production scan history is refreshed; runtime starts and becomes healthy                   | TODO   | `docs/security/docker/scans/torrust-tracker.md` plus container status |
 
@@ -285,9 +301,9 @@ Notes:
 | AC1   | DONE                   | `Containerfile` uses `rust:slim-trixie`; full release build passed |
 | AC2   | DONE                   | Chef implementation result package rationale                       |
 | AC3   | DONE                   | Tester build/test evidence from M4                                 |
-| AC4   | TODO                   | Before/after measurement table                                     |
-| AC5   | TODO                   | Package inventory comparison from M5                               |
-| AC6   | TODO                   | GCC-stage comparison from M6                                       |
+| AC4   | DONE                   | Before/after implementation-result tables                          |
+| AC5   | DONE                   | Package inventory comparison from M5                               |
+| AC6   | DONE                   | GCC-stage comparison and runtime smoke test from M6                |
 | AC7   | TODO                   | Independent commit history and stage-specific validation logs      |
 | AC8   | TODO                   | Consolidated build-image scan report from M7                       |
 | AC9   | TODO                   | Updated production scan report from M8                             |
