@@ -244,16 +244,6 @@ _We kindly ask you to take time and consider The Torrust Project [Contributor Ag
 
 This project was a joint effort by [Nautilus Cyberneering GmbH][nautilus] and [Dutch Bits]. Also thanks to [Naim A.] and [greatest-ape] for some parts of the code. Further added features and functions thanks to [Power2All].
 
-## Star History
-
-<a href="https://www.star-history.com/?repos=torrust%2Ftorrust-tracker&type=date&logscale=&legend=top-left">
- <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=torrust/torrust-tracker&type=date&theme=dark&legend=top-left&sealed_token=EZxXVF9XAD8H2DhnWPfead9gIAICpoo6hryWYUlgQD8O8sumGOar4rnhl38CGJLKVB8MEX5G3u1SRvQG_zb4FB23WQbEeL9TKfHUS88RbQ6lHyQeK-EgIyz_oh2idrLePDHKsH1zyk489E1adJUnbrjdLs57Q9F7XKLqUH_cUSCjvSVnKbg9yRXd8Ktm" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=torrust/torrust-tracker&type=date&legend=top-left&sealed_token=EZxXVF9XAD8H2DhnWPfead9gIAICpoo6hryWYUlgQD8O8sumGOar4rnhl38CGJLKVB8MEX5G3u1SRvQG_zb4FB23WQbEeL9TKfHUS88RbQ6lHyQeK-EgIyz_oh2idrLePDHKsH1zyk489E1adJUnbrjdLs57Q9F7XKLqUH_cUSCjvSVnKbg9yRXd8Ktm" />
-   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=torrust/torrust-tracker&type=date&legend=top-left&sealed_token=EZxXVF9XAD8H2DhnWPfead9gIAICpoo6hryWYUlgQD8O8sumGOar4rnhl38CGJLKVB8MEX5G3u1SRvQG_zb4FB23WQbEeL9TKfHUS88RbQ6lHyQeK-EgIyz_oh2idrLePDHKsH1zyk489E1adJUnbrjdLs57Q9F7XKLqUH_cUSCjvSVnKbg9yRXd8Ktm" />
- </picture>
-</a>
-
 [container_wf]: ../../actions/workflows/container.yaml
 [container_wf_b]: ../../actions/workflows/container.yaml/badge.svg
 [coverage_wf]: ../../actions/workflows/coverage.yaml
