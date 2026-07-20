@@ -18,8 +18,6 @@ semantic-links:
     - docs/adrs/20260617093046_reject_wildcard_external_ip.md
 ---
 
-<!-- skill-link: create-issue -->
-
 # EPIC #1978 - Configuration Overhaul (schema v3.0.0)
 
 ## Goal
