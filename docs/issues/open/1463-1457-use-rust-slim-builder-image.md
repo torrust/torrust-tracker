@@ -6,7 +6,7 @@ priority: p3
 github-issue: 1463
 spec-path: docs/issues/open/1463-1457-use-rust-slim-builder-image.md
 branch: "1463-1457-use-rust-slim-builder-image"
-related-pr: null
+related-pr: "https://github.com/torrust/torrust-tracker/pull/2007"
 last-updated-utc: 2026-07-20 00:00
 semantic-links:
   skill-links:
@@ -244,6 +244,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-07-20 00:00 UTC - GitHub Copilot - Scanned the 188.6 MB release image (5 MEDIUM, 0 HIGH, 0 CRITICAL) and observed repeated `200 OK` built-in health checks - T9, T10, and M8 completed
 - 2026-07-20 00:00 UTC - GitHub Copilot - Reorganized CVE catalog from flat `non-affecting/` to impact-context subdirectories (`production/`, `build/`); updated all cross-references in skills, scan reports, and security overview - documentation committed
 - 2026-07-20 00:00 UTC - User/maintainer - Pruned ~32 GB of Docker images and 76 GB of BuildKit cache left from this issue's implementation and earlier experiments - disk space recovered
+- 2026-07-20 00:00 UTC - GitHub Copilot - Pushed branch to fork and opened PR #2007 against develop - issue implementation complete
 
 ## Acceptance Criteria
 
