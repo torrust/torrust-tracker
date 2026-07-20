@@ -103,6 +103,20 @@ The explicitly installed chef packages are:
 - `libssl-dev`: provides OpenSSL headers and libraries required by `openssl-sys`.
 - `pkg-config`: lets `openssl-sys` discover the system OpenSSL installation.
 
+### Tester implementation result
+
+The tester stage now installs setup and runtime tools in one layer with
+`--no-install-recommends`. After `cargo-nextest` is installed, setup-only `curl` and its
+unused dependencies are removed. The final stage retains only the tools used later:
+
+- `sqlite3`: initializes the test database schema.
+- `time`: preserves the existing build-step timing instrumentation.
+- `cargo-nextest`: extracts and runs the archived test suite.
+
+The final tester stage is 975.9 MB with 123 Debian packages and 1,014 Trivy findings.
+`curl` is absent, while `sqlite3`, `time`, and `cargo-nextest` are executable. The full
+`release` target passed archive extraction, containerized tests, and final image assembly.
+
 ## Scope
 
 ### In Scope
@@ -177,7 +191,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T1  | DONE   | Establish a fresh base-image baseline     | Digests, sizes, package counts, tool inventory, and Trivy summaries recorded in this spec                                                 |
 | T2  | DONE   | Probe minimal cargo-tool installation     | Exact pinned tools install and run on slim after adding only `curl`                                                                       |
 | T3  | DONE   | Change and validate the chef stage        | Slim base plus three demonstrated packages; full `release` build and containerized tests passed; delivered independently                  |
-| T4  | TODO   | Minimize and validate the tester stage    | Only demonstrated runtime test tools remain; test targets pass; delivered as an independent commit                                        |
+| T4  | DONE   | Minimize and validate the tester stage    | Setup-only curl removed; SQLite, time, and nextest retained; full `release` test path passed; delivered independently                     |
 | T5  | TODO   | Evaluate and validate a slimmer GCC stage | Candidate builds `su-exec` cleanly with a clearly smaller inventory, or evidence supports retaining `gcc:trixie`; delivered independently |
 | T6  | TODO   | Measure the resulting build stages        | Post-change size, package, and Trivy comparison includes transitive APT packages                                                          |
 | T7  | TODO   | Apply the decision rule                   | Each stage decision stands on its own evidence and can be reverted independently                                                          |
@@ -208,12 +222,14 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-07-20 00:00 UTC - User/maintainer - Approved the stage-by-stage scope, independent commits, and separate runtime/build-image scan reports - specification approved
 - 2026-07-20 00:00 UTC - GitHub Copilot - Changed chef to `rust:slim-trixie`; the first release build exposed missing OpenSSL discovery tools, so `libssl-dev` and `pkg-config` were added - package requirements demonstrated by build failure
 - 2026-07-20 00:00 UTC - GitHub Copilot - Built the complete `release` target with containerized tests and measured 145 packages, 1,067.4 MB, and 1,072 Trivy findings in the final chef stage - T3 and M3 completed
+- 2026-07-20 00:00 UTC - GitHub Copilot - Consolidated tester setup into one layer, removed setup-only curl, and retained only SQLite, time, and nextest - tester minimized to 123 packages and 1,014 Trivy findings
+- 2026-07-20 00:00 UTC - GitHub Copilot - Built the complete `release` target with the minimized tester in 131.4 s; containerized tests and final assembly passed - T4 and M4 completed
 
 ## Acceptance Criteria
 
 - [x] AC1: The `chef` stage uses `rust:slim-trixie`, or evidence documents why the slim image fails the decision rule and the full image is retained.
 - [x] AC2: Every package explicitly added to the slim chef stage is tied to a reproducible build or tool-installation requirement.
-- [ ] AC3: The tester stage is independently minimized and validated without reducing existing test scope.
+- [x] AC3: The tester stage is independently minimized and validated without reducing existing test scope.
 - [ ] AC4: Before/after evidence records image digests, image sizes, installed package counts, and vulnerability findings using the same commands and scanner database.
 - [ ] AC5: The adopted result has a materially smaller installed package inventory than `rust:trixie`; no target percentage is assumed before transitive dependencies are measured.
 - [ ] AC6: The `gcc` stage uses a practical slimmer alternative, or measured evidence documents why `gcc:trixie` is retained.
@@ -249,7 +265,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | M1  | Compare fresh base images            | Pull both images by tag, record resolved digests, inspect `.Size`, and count the Debian package-query output                                          | Reproducible baseline shows the exact size and package-inventory delta                     | DONE   | Preliminary investigation table in this spec                          |
 | M2  | Verify minimal cargo tooling         | On `rust:slim-trixie`, install only `curl` with `--no-install-recommends`, run the existing `cargo-binstall` installer, then install the pinned tools | `cargo chef --version` and `cargo nextest --version` succeed                               | DONE   | Preliminary investigation and progress log in this spec               |
 | M3  | Validate chef change independently   | Build the dependent release path without relying on host artifacts before changing tester or GCC                                                      | Chef-dependent compilation succeeds and the change is ready for its own commit             | DONE   | Local `release` build passed in 236.7 s; image `sha256:0b497b43...`   |
-| M4  | Validate tester change independently | Run the complete containerized test paths after changing tester and before changing GCC                                                               | Existing tests execute successfully and the tester change is ready for its own commit      | TODO   | Build/test logs or CI run URL                                         |
+| M4  | Validate tester change independently | Run the complete containerized test paths after changing tester and before changing GCC                                                               | Existing tests execute successfully and the tester change is ready for its own commit      | DONE   | Local `release` build passed in 131.4 s; image `sha256:0b497b43...`   |
 | M5  | Inspect added package closure        | List explicit and transitive packages after the APT install and compare them with the full image                                                      | Every explicit package is necessary and the resulting inventory remains materially smaller | TODO   | Package comparison output                                             |
 | M6  | Evaluate a slimmer GCC stage         | Compare practical candidate images, compile `su-exec`, and inspect the resulting package closure                                                      | Adopt a clearly simpler candidate or document why the current GCC image remains preferable | TODO   | Build and package comparison output                                   |
 | M7  | Scan foundational build stages       | Build tagged `chef`, `tester`, and `gcc` targets, then scan all three with the same Trivy version/database                                            | Consolidated report shows comparable findings and preserves their build-time risk context  | TODO   | `docs/security/docker/scans/build-images.md`                          |
@@ -268,7 +284,7 @@ Notes:
 | ----- | ---------------------- | ------------------------------------------------------------------ |
 | AC1   | DONE                   | `Containerfile` uses `rust:slim-trixie`; full release build passed |
 | AC2   | DONE                   | Chef implementation result package rationale                       |
-| AC3   | TODO                   | Tester build/test logs from M4                                     |
+| AC3   | DONE                   | Tester build/test evidence from M4                                 |
 | AC4   | TODO                   | Before/after measurement table                                     |
 | AC5   | TODO                   | Package inventory comparison from M5                               |
 | AC6   | TODO                   | GCC-stage comparison from M6                                       |
