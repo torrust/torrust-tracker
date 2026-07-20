@@ -6,7 +6,7 @@ priority: p0
 github-issue: 1979
 spec-path: docs/issues/open/1979-1978-copy-configuration-schema-v2-to-v3-baseline.md
 branch: "config-copy-v2-to-v3-baseline"
-related-pr: null
+related-pr: 1999
 last-updated-utc: 2026-07-13 21:00
 semantic-links:
   skill-links:
