@@ -20,7 +20,7 @@ pub struct HttpTracker {
     #[serde(default = "HttpTracker::default_tsl_config")]
     pub tsl_config: Option<TslConfig>,
 
-    /// Weather the tracker should collect statistics about tracker usage.
+    /// Whether the tracker should collect statistics about tracker usage.
     #[serde(default = "HttpTracker::default_tracker_usage_statistics")]
     pub tracker_usage_statistics: bool,
 

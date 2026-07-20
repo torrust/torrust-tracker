@@ -19,7 +19,7 @@ pub struct HttpApi {
     #[serde(default = "HttpApi::default_bind_address")]
     pub bind_address: SocketAddr,
 
-    /// TSL config. Only used if `ssl_enabled` is true.
+    /// TSL config. Provide this section to enable TLS for the HTTP API.
     #[serde(default = "HttpApi::default_tsl_config")]
     pub tsl_config: Option<TslConfig>,
 
@@ -52,7 +52,7 @@ impl HttpApi {
     }
 
     fn default_access_tokens() -> AccessTokens {
-        [].iter().cloned().collect()
+        HashMap::new()
     }
 
     pub fn add_token(&mut self, key: &str, token: &str) {

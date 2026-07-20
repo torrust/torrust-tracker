@@ -17,7 +17,7 @@ pub struct UdpTracker {
     #[serde(default = "UdpTracker::default_cookie_lifetime")]
     pub cookie_lifetime: Duration,
 
-    /// Weather the tracker should collect statistics about tracker usage.
+    /// Whether the tracker should collect statistics about tracker usage.
     #[serde(default = "UdpTracker::default_tracker_usage_statistics")]
     pub tracker_usage_statistics: bool,
 

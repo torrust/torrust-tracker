@@ -42,7 +42,7 @@ pub struct Core {
     #[serde(default = "Core::default_tracker_policy")]
     pub tracker_policy: TrackerPolicy,
 
-    /// Weather the tracker should collect statistics about tracker usage.
+    /// Whether the tracker should collect statistics about tracker usage.
     /// If enabled, the tracker will collect statistics like the number of
     /// connections handled, the number of announce requests handled, etc.
     /// Refer to the [`Tracker`](https://docs.rs/torrust-tracker) for more

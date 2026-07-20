@@ -1,4 +1,4 @@
-//! Version `1` for [Torrust Tracker](https://docs.rs/torrust-tracker)
+//! Version `3` for [Torrust Tracker](https://docs.rs/torrust-tracker)
 //! configuration data structures.
 //!
 //! This module contains the configuration data structures for the
@@ -53,8 +53,9 @@
 //!
 //! ## TSL support
 //!
-//! For the API and HTTP tracker you can enable TSL by setting `ssl_enabled` to
-//! `true` and setting the paths to the certificate and key files.
+//! For the API and HTTP tracker you can enable TSL by providing a
+//! `[http_api.tsl_config]` or `[[http_trackers]].tsl_config` section with
+//! the paths to the certificate and key files.
 //!
 //! Typically, you will have a `storage` directory like the following:
 //!
