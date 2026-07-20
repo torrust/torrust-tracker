@@ -6,7 +6,7 @@ Security scan history for the `torrust-tracker` Docker image.
 
 | Stage   | MEDIUM | HIGH | CRITICAL | Status   | Last Scan    |
 | ------- | ------ | ---- | -------- | -------- | ------------ |
-| release | 5      | 0    | 0        | ✅ Clean | Jun 29, 2026 |
+| release | 5      | 0    | 0        | ✅ Clean | Jul 20, 2026 |
 
 ## Build & Scan Commands
 
@@ -29,6 +29,24 @@ trivy image --severity MEDIUM,HIGH,CRITICAL torrust-tracker:local
 ```
 
 ## Scan History
+
+### July 20, 2026 - Post-build-stage-minimization verification
+
+**Image**: `torrust-tracker:1463-gcc`
+**Image ID**: `sha256:3b8859fd30f921d4be511efb5a9578252841c624bf3f895057cd46b795666687`
+**Runtime base digest**: `gcr.io/distroless/cc-debian13@sha256:3be83724bcda99b72307e8d3cea256b3cfa5678b5198c1351bf66d2bc60d9cf9`
+**Trivy Version**: 0.69.3
+**Vulnerability DB Updated**: 2026-07-20 13:19:47 UTC
+**Base OS**: Debian 13.6 (trixie, distroless/cc-debian13)
+**Status**: ✅ **Clean** - 5 MEDIUM, 0 HIGH, 0 CRITICAL
+
+The rebuilt release image is 188.6 MB and contains 13 OS packages. A full-severity scan
+also reported 7 LOW findings, for 12 findings total. The five MEDIUM findings and affected
+packages (`libc6` and `zlib1g`) are unchanged from the June baseline below. The independent
+chef, tester, and GCC image reductions therefore did not regress the deployed artifact.
+
+The image was also started locally and its built-in health check returned repeated
+`200 OK` responses with container status `healthy`.
 
 ### June 29, 2026 - Baseline
 

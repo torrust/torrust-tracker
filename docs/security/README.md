@@ -37,7 +37,8 @@ When a security issue is detected (Docker Scout, dependabot, manual audit, conta
 **Documents**:
 
 - [Analysis README](analysis/README.md) — process and document index
-- [Non-affecting CVEs](analysis/non-affecting/) — analyzed and accepted vulnerabilities
+- [Non-affecting CVEs](analysis/production/) — analyzed and accepted vulnerabilities in the production runtime image
+- [Build-stage CVEs](analysis/build/) — analyzed and accepted vulnerabilities in build-stage images
 
 ---
 
@@ -75,9 +76,12 @@ See [`docker/scans/README.md`](docker/scans/README.md) for the latest status of 
 
 See [`analysis/README.md`](analysis/README.md) for cataloged vulnerability evaluations.
 
-**Non-affecting CVE catalog**: [`analysis/non-affecting/`](analysis/non-affecting/) —
+**Non-affecting CVE catalog**: [`analysis/production/`](analysis/production/) —
 per-CVE files documenting why each vulnerability does not affect the tracker and what
 conditions would change the verdict.
+
+**Build-stage CVE catalog**: [`analysis/build/`](analysis/build/) —
+per-CVE and bulk files documenting vulnerabilities in ephemeral build images.
 
 ## Related Documentation
 

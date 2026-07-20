@@ -23,7 +23,8 @@ provides a quick reference.
 ```text
 docs/security/analysis/
   README.md              ← Process + template
-  non-affecting/         ← CVEs that do NOT affect us (catalog)
+  production/            ← CVEs in the production runtime image (catalog)
+  build/                 ← CVEs in build-stage images (catalog)
   affecting/             ← CVEs that DO affect us (create when needed)
 ```
 
@@ -31,19 +32,21 @@ docs/security/analysis/
 
 ### Step 1: Check the Catalog
 
-Before analyzing a new warning, check `docs/security/analysis/non-affecting/` to see if
-it has already been evaluated. Every file there documents why a set of CVEs is
-non-affecting. If found, the analysis is already done — link the existing document in
-any related issue or PR comment.
+Before analyzing a new warning, check `docs/security/analysis/production/` and
+`docs/security/analysis/build/` to see if it has already been evaluated. Every file there
+documents why a set of CVEs is non-affecting. If found, the analysis is already done —
+link the existing document in any related issue or PR comment.
 
 ### Step 2: Analyse and Document (if not cataloged)
 
 If the vulnerability is **not yet cataloged**:
 
 1. Determine whether it affects us (see criteria examples in the README).
-2. If **non-affecting**: create a dated file in `non-affecting/` following the template
-   in the README. Include rationale, future actions, and review cadence.
-3. If **affecting**: escalate immediately (see Step 3).
+2. Determine the impact context: production runtime (`production/`) or build stage
+   (`build/`).
+3. If **non-affecting**: create a dated file in the appropriate subdirectory following the
+   template in the README. Include rationale, future actions, and review cadence.
+4. If **affecting**: escalate immediately (see Step 3).
 
 ### Step 3: Escalate if Affecting
 

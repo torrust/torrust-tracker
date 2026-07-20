@@ -12,7 +12,8 @@ metadata:
       - docs/security/docker/scans/README.md
       - docs/security/docker/scans/torrust-tracker.md
       - docs/security/analysis/README.md
-      - docs/security/analysis/non-affecting/
+      - docs/security/analysis/production/
+  - docs/security/analysis/build/
 ---
 
 # Run Manual Docker Security Scan
@@ -26,7 +27,7 @@ Use this workflow to run and document manual security scans for the tracker prod
 - Documentation outputs:
   - `docs/security/docker/scans/torrust-tracker.md`
   - `docs/security/docker/scans/README.md`
-  - `docs/security/analysis/non-affecting/CVE-*.md` (when non-affecting CVEs are analyzed)
+  - `docs/security/analysis/production/CVE-*.md` (when non-affecting CVEs are analyzed)
 
 ## Quick Commands
 
@@ -48,7 +49,7 @@ trivy image --severity MEDIUM,HIGH,CRITICAL torrust-tracker:local
 Before analyzing any CVE, search the existing catalog:
 
 ```bash
-grep -R "CVE-<id>" docs/security/analysis/non-affecting/
+grep -R "CVE-<id>" docs/security/analysis/
 ```
 
 If already present and `requires-recheck-when` conditions have not changed, reuse the existing verdict.
@@ -70,7 +71,8 @@ Update:
 
 ### Step 4: Document New Non-Affecting CVEs
 
-For any new non-affecting CVE, create `docs/security/analysis/non-affecting/CVE-<id>.md` with:
+For any new non-affecting CVE, create `docs/security/analysis/production/CVE-<id>.md` or
+`docs/security/analysis/build/CVE-<id>.md` with:
 
 - frontmatter fields:
   - `cve-id`

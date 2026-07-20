@@ -1,14 +1,15 @@
 ---
-date-analyzed: 2026-06-10
-source: Docker DX (docker-language-server) / Docker Scout
+date-analyzed: 2026-07-20
+source: Trivy 0.69.3 / Docker DX (docker-language-server)
 status: non-affecting
 review-cadence: quarterly
 requires-recheck-when: any build-stage image (`chef`, `tester`, `gcc`) is used in a runtime context
-image-digest: sha256:19dfb952582d0e17841fdb8cd70febfb6cb0761c4e0cd84f3cb1f07bb3281a8d
+image-digest: sha256:5c6f46a6e4472ab1ca7ba7d494e6677f2f219ebc02f32025d3986f057635ec9c
 semantic-links:
   related-artifacts:
     - Containerfile
     - docs/adrs/20260603000000_keep_unit_tests_inside_container_build.md
+    - docs/security/docker/scans/build-images.md
 ---
 
 # Containerfile trixie-based image vulnerabilities
@@ -19,42 +20,27 @@ The VS Code Docker DX extension (docker-language-server) flagged vulnerabilities
 `Containerfile` on the three `FROM` instructions that use Debian trixie-based base images.
 Line numbers drift as the file changes; the stages are the stable reference:
 
-| Line (approx.) | Image              | Stage    | Purpose                               |
-| -------------- | ------------------ | -------- | ------------------------------------- |
-| 6              | `rust:trixie`      | `chef`   | Install `cargo-chef`, `cargo-nextest` |
-| 15             | `rust:slim-trixie` | `tester` | Run unit tests inside container build |
-| 32             | `gcc:trixie`       | `gcc`    | Compile `su-exec` from source         |
+| Image                  | Stage    | Purpose                               |
+| ---------------------- | -------- | ------------------------------------- |
+| `rust:slim-trixie`     | `chef`   | Install `cargo-chef`, `cargo-nextest` |
+| `rust:slim-trixie`     | `tester` | Run unit tests inside container build |
+| `debian:trixie-slim`   | `gcc`    | Compile `su-exec` from source         |
 
 ## Vulnerability Summary
 
-All three images are **upstream Docker Official Images** based on Debian trixie
-(Debian 13/testing). The scanner reports CVEs in the OS-level packages shipped by
-those images, not in anything we add.
+All three stages use **upstream Docker Official Images** based on Debian trixie. The
+implemented stages were rebuilt and scanned together on 2026-07-20 with Trivy 0.69.3 and
+the vulnerability database updated at 2026-07-20 13:19:47 UTC.
 
-| Image              | C   | H   | M   | L   | Unspecified | Total |
-| ------------------ | --- | --- | --- | --- | ----------- | ----- |
-| `rust:trixie`      | 4   | 26  | 27  | 178 | 27          | 262   |
-| `rust:slim-trixie` | 1   | 6   | 6   | 84  | 1           | 98    |
-| `gcc:trixie`       | 4   | 31  | 27  | 182 | 27          | 271   |
+| Stage    | Debian packages | Critical | High | Medium | Low | Unknown | Total |
+| -------- | --------------- | -------- | ---- | ------ | --- | ------- | ----- |
+| `chef`   | 145             | 4        | 65   | 309    | 617 | 77      | 1,072 |
+| `tester` | 123             | 4        | 51   | 301    | 579 | 79      | 1,014 |
+| `gcc`    | 114             | 4        | 51   | 299    | 577 | 77      | 1,008 |
 
-### Notable critical CVEs
-
-| CVE            | CVSS | Package   |
-| -------------- | ---- | --------- |
-| CVE-2026-20889 | 9.8  | `libraw`  |
-| CVE-2026-21413 | 9.8  | `libraw`  |
-| CVE-2026-45447 | 9.8  | `openssl` |
-| CVE-2026-33278 | 9.1  | `unbound` |
-
-### Notable high-severity CVEs
-
-| CVE            | CVSS | Package                 |
-| -------------- | ---- | ----------------------- |
-| CVE-2026-41142 | 8.8  | `openexr`               |
-| CVE-2026-42216 | 8.8  | `openexr`               |
-| CVE-2026-32740 | 8.8  | `libheif`               |
-| CVE-2026-42959 | 8.7  | `unbound`               |
-| CVE-2026-7383  | 8.1  | `openssl` (slim-trixie) |
+These totals count findings, not unique CVEs. The chef stage also contains installed Cargo
+tools, so Trivy scans both OS and language-specific files there. Detailed reproducibility,
+image IDs, and base digests are maintained in the consolidated build-image scan report.
 
 ## Why This Does NOT Affect Us
 
@@ -73,9 +59,9 @@ during `docker build` and are never:
 
 | Stage       | Base image               | Exposed to traffic?   | Persisted after build? |
 | ----------- | ------------------------ | --------------------- | ---------------------- |
-| `chef`      | `rust:trixie`            | ❌ No                 | ❌ No                  |
+| `chef`      | `rust:slim-trixie`       | ❌ No                 | ❌ No                  |
 | `tester`    | `rust:slim-trixie`       | ❌ No                 | ❌ No                  |
-| `gcc`       | `gcc:trixie`             | ❌ No                 | ❌ No                  |
+| `gcc`       | `debian:trixie-slim`     | ❌ No                 | ❌ No                  |
 | **Runtime** | `distroless/cc-debian13` | ✅ Yes (UDP/HTTP/API) | ✅ Yes                 |
 
 ### 2. Runtime image is different
@@ -88,7 +74,7 @@ but those are not present in this warning.
 
 ### 3. Upstream image trust boundary
 
-All three flagged images are **Docker Official Images** (`library/rust`, `library/gcc`).
+All three flagged images are **Docker Official Images** (`library/rust`, `library/debian`).
 We pull them from Docker Hub's official repository, which is the same trust boundary as
 any `FROM` statement in any Dockerfile. The CVEs exist in the upstream images themselves;
 they are not introduced by our Containerfile.
@@ -112,16 +98,16 @@ the build image) could produce compromised binaries. However:
 
 | Action                                                               | Cadence                | Owner |
 | -------------------------------------------------------------------- | ---------------------- | ----- |
-| Monitor Docker Hub for updated `rust:trixie` and `gcc:trixie` images | Quarterly              | TBD   |
+| Monitor Docker Hub for updated slim Rust and Debian images          | Quarterly              | TBD   |
 | Rebuild container image and verify warning count decreases           | After upstream updates | TBD   |
 | Re-evaluate if these stages become part of the runtime image         | On architecture change | TBD   |
 | Check if Docker fixes these CVEs in fresh `trixie` tags              | Next quarterly review  | TBD   |
 
 ## References
 
-- Docker Hub `rust:trixie` (linux/amd64): <https://hub.docker.com/layers/library/rust/trixie/images/sha256-19dfb952582d0e17841fdb8cd70febfb6cb0761c4e0cd84f3cb1f07bb3281a8d>
-- Docker Hub `rust:slim-trixie` (linux/amd64): <https://hub.docker.com/layers/library/rust/slim-trixie/images/sha256-7be7e62dbd0954a32c340afe3df951d75dde2859549b2b72fdd4a8c842b37534>
-- Docker Hub `gcc:trixie` (linux/amd64): <https://hub.docker.com/layers/library/gcc/trixie/images/sha256-74b6d3e67f73206d3474a9fd8ce21695de3816bbc52616169110460594d66c32>
+- Docker Hub `rust:slim-trixie` (linux/amd64): <https://hub.docker.com/_/rust>
+- Docker Hub `debian:trixie-slim` (linux/amd64): <https://hub.docker.com/_/debian>
+- Consolidated build-stage scan history: `docs/security/docker/scans/build-images.md`
 - ADR: Keep unit tests inside container build: `docs/adrs/20260603000000_keep_unit_tests_inside_container_build.md`
 
   <!-- skill-link: catalog-security-vulnerabilities -->
@@ -141,3 +127,4 @@ the build image) could produce compromised binaries. However:
 | Date       | Change                                           |
 | ---------- | ------------------------------------------------ |
 | 2026-06-10 | Initial analysis — CVEs determined non-affecting |
+| 2026-07-20 | Replaced stale bases and counts after issue #1463 |

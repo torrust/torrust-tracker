@@ -51,6 +51,23 @@ trivy image --severity HIGH,CRITICAL torrust-tracker:local
 trivy image --severity MEDIUM,HIGH,CRITICAL torrust-tracker:local
 ```
 
+### Build-stage scans
+
+Build and scan the foundational stages after changing their base images or installed
+packages, and during the quarterly security review:
+
+```bash
+for stage in chef tester gcc; do
+  docker build --target "$stage" --tag "torrust-tracker:$stage-local" \
+    --file Containerfile .
+  trivy image --scanners vuln "torrust-tracker:$stage-local"
+done
+```
+
+Record these results in [`scans/build-images.md`](scans/build-images.md), separately from
+the deployed release image. Use the same Trivy version and vulnerability database for all
+comparisons.
+
 ### Severity Levels
 
 - `CRITICAL`: Exploitable vulnerabilities with severe impact

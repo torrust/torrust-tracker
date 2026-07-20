@@ -106,6 +106,7 @@ DNSSEC
 dockerhub
 doctest
 downloadedi
+dpkg
 dtolnay
 dylib
 EADDRINUSE
