@@ -86,7 +86,9 @@ cves
 Cyberneering
 cyclomatic
 dashmap
+dport
 datagram
+datagrams
 datetime
 dbip
 dbname
@@ -166,6 +168,7 @@ hotspot
 hotspots
 httpclientpeerid
 Hydranode
+HDRINCL
 hyperium
 hyperthread
 Icelake
@@ -230,6 +233,7 @@ metainfo
 microbenchmark
 microbenchmarks
 middlewares
+middlebox
 millis
 miniz
 miniz_oxide
@@ -248,6 +252,8 @@ mysqld
 ñaca
 Naim
 nanos
+nmap
+nping
 newkey
 newtrackon
 newtype
@@ -316,6 +322,7 @@ readelf
 realpath
 reannounce
 recaches
+recvfrom
 recognised
 recompiles
 recvspace
@@ -351,6 +358,7 @@ Rustls
 rustup
 Ryzen
 sarif
+sendto
 savepath
 scanf
 sccache
