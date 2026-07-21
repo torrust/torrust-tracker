@@ -4,7 +4,7 @@ status: open
 github-issue: 1978
 spec-path: docs/issues/open/1978-configuration-overhaul-epic.md
 epic-owner: josecelano
-last-updated-utc: 2026-07-20 15:25
+last-updated-utc: 2026-07-21 00:00
 semantic-links:
   skill-links:
     - create-issue
@@ -81,19 +81,19 @@ version from `2.0.0` to `3.0.0`.
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| Order | Issue                                                                                                          | Local Spec                                                                              | Status | Notes                                                                           |
-| ----- | -------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- | ------ | ------------------------------------------------------------------------------- |
-| 1     | [#1979](../../issues/1979) — Copy `v2_0_0` → `v3_0_0` as baseline                                              | `docs/issues/open/1979-1978-copy-configuration-schema-v2-to-v3-baseline.md`             | DONE   | Merged in PR #1999; v3 baseline and smoke tests are in `develop`                |
-| 2     | [#1981](../../issues/1981) — Fix `tsl_config` → `tls_config` typo                                              | `docs/issues/open/1981-1978-fix-tsl-config-tls-config-typo.md`                          | DONE   | Implemented for v3; v2 compatibility retained until final migration             |
-| 3     | [#1640](../../issues/1640) — Support per-HTTP-tracker `on_reverse_proxy` setting                               | `docs/issues/open/1640-1978-per-http-tracker-on-reverse-proxy-setting.md`               | TODO   | Heaviest change (~30 files); establishes per-instance `Network` block           |
-| 4     | [#1417](../../issues/1417) — Include public service URL in configuration                                       | `docs/issues/open/1417-1978-add-public-service-url-to-configuration.md`                 | TODO   | Depends on #3 for `Network` placement decision; adds flat `public_url` field    |
-| 5     | [#1415](../../issues/1415) — Use `ServiceBinding` instead of bare `SocketAddr` for service identity            | `docs/issues/open/1415-1978-use-service-binding-instead-of-socket-addr.md`              | TODO   | Independent; no config changes; can be parallel with #6, #7, #8, #9             |
-| 6     | [#1453](../../issues/1453) — IP bans reset interval configurable + fix duplicate cleanup                       | `docs/issues/open/1453-1978-ip-bans-reset-interval-configurable.md`                     | TODO   | Independent global UDP policy; implement before #7 to establish its boundary    |
-| 7     | [#1136](../../issues/1136) — Add configurable UDP connection ID validation policy                              | `docs/issues/open/1136-1978-configurable-udp-connection-id-validation-policy.md`        | TODO   | Independent per-listener policy; ordered after related global ban cleanup in #6 |
-| 8     | [#1490](../../issues/1490) — Decompose database config and overhaul secrets with `secrecy` crate               | `docs/issues/open/1490-1978-decompose-database-config-and-overhaul-secrets.md`          | TODO   | After #3 (both touch `Core`); can be parallel with #5, #6, #7, #9               |
-| 9     | [#889](../../issues/889) — New config option for logging style                                                 | `docs/issues/open/889-1978-new-config-option-for-logging-style.md`                      | TODO   | Independent; can be parallel with #5, #6, #7, #8                                |
-| 10    | [#1987](../../issues/1987) — Use peer IP from the HTTP announce `ip` parameter when configured                 | `docs/issues/open/1987-add-config-option-to-use-ip-from-announce-query-string/ISSUE.md` | TODO   | After #3 and external prerequisite #1985; per-HTTP-tracker opt-in policy        |
-| 11    | [#1980](../../issues/1980) — Final cleanup: remove global re-exports, migrate consumers to explicit v3 imports | `docs/issues/open/1980-1978-configuration-overhaul-final-cleanup.md`                    | TODO   | Must be last; depends on ALL other subissues                                    |
+| Order | Issue                                                                                                          | Local Spec                                                                              | Status      | Notes                                                                           |
+| ----- | -------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- | ----------- | ------------------------------------------------------------------------------- |
+| 1     | [#1979](../../issues/1979) — Copy `v2_0_0` → `v3_0_0` as baseline                                              | `docs/issues/open/1979-1978-copy-configuration-schema-v2-to-v3-baseline.md`             | DONE        | Merged in PR #1999; v3 baseline and smoke tests are in `develop`                |
+| 2     | [#1981](../../issues/1981) — Fix `tsl_config` → `tls_config` typo                                              | `docs/issues/open/1981-1978-fix-tsl-config-tls-config-typo.md`                          | DONE        | Implemented for v3; v2 compatibility retained until final migration             |
+| 3     | [#1640](../../issues/1640) — Support per-HTTP-tracker `on_reverse_proxy` setting                               | `docs/issues/open/1640-1978-per-http-tracker-on-reverse-proxy-setting.md`               | IN_PROGRESS | Heaviest change (~30 files); establishes per-instance `Network` block           |
+| 4     | [#1417](../../issues/1417) — Include public service URL in configuration                                       | `docs/issues/open/1417-1978-add-public-service-url-to-configuration.md`                 | TODO        | Depends on #3 for `Network` placement decision; adds flat `public_url` field    |
+| 5     | [#1415](../../issues/1415) — Use `ServiceBinding` instead of bare `SocketAddr` for service identity            | `docs/issues/open/1415-1978-use-service-binding-instead-of-socket-addr.md`              | TODO        | Independent; no config changes; can be parallel with #6, #7, #8, #9             |
+| 6     | [#1453](../../issues/1453) — IP bans reset interval configurable + fix duplicate cleanup                       | `docs/issues/open/1453-1978-ip-bans-reset-interval-configurable.md`                     | TODO        | Independent global UDP policy; implement before #7 to establish its boundary    |
+| 7     | [#1136](../../issues/1136) — Add configurable UDP connection ID validation policy                              | `docs/issues/open/1136-1978-configurable-udp-connection-id-validation-policy.md`        | TODO        | Independent per-listener policy; ordered after related global ban cleanup in #6 |
+| 8     | [#1490](../../issues/1490) — Decompose database config and overhaul secrets with `secrecy` crate               | `docs/issues/open/1490-1978-decompose-database-config-and-overhaul-secrets.md`          | TODO        | After #3 (both touch `Core`); can be parallel with #5, #6, #7, #9               |
+| 9     | [#889](../../issues/889) — New config option for logging style                                                 | `docs/issues/open/889-1978-new-config-option-for-logging-style.md`                      | TODO        | Independent; can be parallel with #5, #6, #7, #8                                |
+| 10    | [#1987](../../issues/1987) — Use peer IP from the HTTP announce `ip` parameter when configured                 | `docs/issues/open/1987-add-config-option-to-use-ip-from-announce-query-string/ISSUE.md` | TODO        | After #3 and external prerequisite #1985; per-HTTP-tracker opt-in policy        |
+| 11    | [#1980](../../issues/1980) — Final cleanup: remove global re-exports, migrate consumers to explicit v3 imports | `docs/issues/open/1980-1978-configuration-overhaul-final-cleanup.md`                    | TODO        | Must be last; depends on ALL other subissues                                    |
 
 ## Delivery Strategy
 
@@ -202,6 +202,9 @@ For each subissue implementation in this EPIC, the default completion policy is:
   started #1981 as the next subissue; identified its schema compatibility boundary for maintainer review.
 - 2026-07-20 15:25 UTC - agent - Completed #1981 with v3-corrected TLS names and
   schema-neutral module naming; preserved v2 compatibility and verified the full workspace. #1640 is next.
+- 2026-07-21 00:00 UTC - agent - Started #1640 as the next sequential EPIC subissue.
+  Maintainer confirmed the per-instance field as `network: Network`; its TOML block is optional
+  and defaults to `external_ip = None`, `on_reverse_proxy = false`, and `ipv6_v6only = false`.
 
 ## Acceptance Criteria
 
