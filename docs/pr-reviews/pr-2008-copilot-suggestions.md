@@ -43,6 +43,7 @@ Status legend:
 - 2026-07-21: Replied to and resolved all three newly processed Copilot review threads.
 - 2026-07-21: Started processing an additional Copilot suggestion.
 - 2026-07-21: Started processing an additional Copilot suggestion.
+- 2026-07-21: Replied to and resolved the final two processed Copilot review threads.
 
 ## Suggestions
 
@@ -56,8 +57,8 @@ Status legend:
 | 6   | PRRT_kwDOGp2yqc6SX7AO | `.github/workflows/upload_coverage_pr.yaml`                     | https://github.com/torrust/torrust-tracker/pull/2008#discussion_r3617362462 | Prevent archive-entry collisions across untrusted artifact ZIPs.                            | action: allowlist one expected entry per archive, extract each archive in an isolated temporary directory, then move that file into `coverage_artifacts`. | DONE   | RESOLVED     |
 | 7   | PRRT_kwDOGp2yqc6SX7Ah | `.github/workflows/upload_coverage_pr.yaml`                     | https://github.com/torrust/torrust-tracker/pull/2008#discussion_r3617362491 | Make artifact-directory creation idempotent.                                                | action: create `coverage_artifacts` with `mkdir -p`.                                                                                                      | DONE   | RESOLVED     |
 | 8   | PRRT_kwDOGp2yqc6SX7A1 | `docs/pr-reviews/pr-2008-copilot-suggestions.md`                | https://github.com/torrust/torrust-tracker/pull/2008#discussion_r3617362517 | Restore the exact opaque thread ID in row 3.                                                | action: restored `PRRT_kwDOGp2yqc6SWYB_` and retained it in the scoped cspell ignore directive.                                                           | DONE   | RESOLVED     |
-| 9   | PRRT_kwDOGp2yqc6SfBQ1 | `docs/pr-reviews/pr-2008-copilot-suggestions.md`                | https://github.com/torrust/torrust-tracker/pull/2008#discussion_r3620043755 | Add the tracker skill-link marker.                                                          | action: added `<!-- skill-link: process-copilot-suggestions -->` for the governing review workflow.                                                       | DONE   | OPEN         |
-| 10  | PRRT_kwDOGp2yqc6SfecS | `.github/workflows/upload_coverage_pr.yaml`                     | https://github.com/torrust/torrust-tracker/pull/2008#discussion_r3620210121 | Validate untrusted artifact metadata before writing step outputs.                           | action: require a numeric PR number and 40-character hexadecimal SHA before emitting Codecov metadata outputs.                                              | DONE   | OPEN         |
+| 9   | PRRT_kwDOGp2yqc6SfBQ1 | `docs/pr-reviews/pr-2008-copilot-suggestions.md`                | https://github.com/torrust/torrust-tracker/pull/2008#discussion_r3620043755 | Add the tracker skill-link marker.                                                          | action: added `<!-- skill-link: process-copilot-suggestions -->` for the governing review workflow.                                                       | DONE   | RESOLVED     |
+| 10  | PRRT_kwDOGp2yqc6SfecS | `.github/workflows/upload_coverage_pr.yaml`                     | https://github.com/torrust/torrust-tracker/pull/2008#discussion_r3620210121 | Validate untrusted artifact metadata before writing step outputs.                           | action: require a numeric PR number and 40-character hexadecimal SHA before emitting Codecov metadata outputs.                                            | DONE   | RESOLVED     |
 
 ## Notes
 
