@@ -1,3 +1,7 @@
+//! Per-tracker network topology configuration for schema v3.
+//!
+//! adr: `docs/adrs/20260721000000_make_network_configuration_per_tracker_instance.md`
+
 use std::convert::TryFrom;
 use std::fmt;
 use std::net::IpAddr;
@@ -6,6 +10,7 @@ use std::str::FromStr;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone)]
+#[serde(deny_unknown_fields)]
 pub struct Network {
     /// The external IP address of the tracker. If the client is using a
     /// loopback IP address, this IP address will be used instead. If the peer
@@ -20,6 +25,18 @@ pub struct Network {
     /// sent from the proxy will be used to get the client's IP address.
     #[serde(default = "Network::default_on_reverse_proxy")]
     pub on_reverse_proxy: bool,
+
+    /// Whether to set `IPV6_V6ONLY=1` on IPv6 sockets.
+    ///
+    /// When `true` (IPv6-only), the tracker must also bind an IPv4 socket
+    /// (for example, `0.0.0.0:<port>`) to accept IPv4 connections. When
+    /// `false` (the default), the socket option is not overridden and the OS
+    /// default applies.
+    ///
+    /// On OpenBSD, `IPV6_V6ONLY` is always `1` and cannot be disabled; setting
+    /// this to `false` is a no-op.
+    #[serde(default = "Network::default_ipv6_v6only")]
+    pub ipv6_v6only: bool,
 }
 
 impl Default for Network {
@@ -27,6 +44,7 @@ impl Default for Network {
         Self {
             external_ip: Self::default_external_ip(),
             on_reverse_proxy: Self::default_on_reverse_proxy(),
+            ipv6_v6only: Self::default_ipv6_v6only(),
         }
     }
 }
@@ -37,6 +55,10 @@ impl Network {
     }
 
     fn default_on_reverse_proxy() -> bool {
+        false
+    }
+
+    fn default_ipv6_v6only() -> bool {
         false
     }
 }

@@ -77,11 +77,12 @@
 //!
 //! where the application stores all the persistent data.
 //!
-//! Alternatively, you could setup a reverse proxy like Nginx or Apache to
+//! Alternatively, you could set up a reverse proxy like Nginx or Apache to
 //! handle the SSL/TLS part and forward the requests to the tracker. If you do
-//! that, you should set [`on_reverse_proxy`](crate::v3_0_0::network::Network::on_reverse_proxy)
-//! to `true` in the configuration file. It's out of scope for this
-//! documentation to explain in detail how to setup a reverse proxy, but the
+//! that, you should set
+//! [`http_trackers.network.on_reverse_proxy`](crate::v3_0_0::network::Network::on_reverse_proxy)
+//! to `true` for that tracker in the configuration file. It's out of scope for this
+//! documentation to explain in detail how to set up a reverse proxy, but the
 //! configuration file should be something like this:
 //!
 //! For [NGINX](https://docs.nginx.com/nginx/admin-guide/web-server/reverse-proxy/):
@@ -214,9 +215,6 @@
 //! driver = "sqlite3"
 //! path = "./storage/tracker/lib/database/sqlite3.db"
 //!
-//! [core.net]
-//! on_reverse_proxy = false
-//!
 //! [core.tracker_policy]
 //! max_peer_timeout = 900
 //! persistent_torrent_completed_stat = false
@@ -241,7 +239,6 @@ pub mod tracker_api;
 pub mod udp_tracker;
 
 use std::fs;
-use std::net::IpAddr;
 
 use figment::Figment;
 use figment::providers::{Env, Format, Serialized, Toml};
@@ -309,13 +306,6 @@ impl Default for Configuration {
 }
 
 impl Configuration {
-    /// Returns the tracker public IP address id defined in the configuration,
-    /// and `None` otherwise.
-    #[must_use]
-    pub fn get_ext_ip(&self) -> Option<IpAddr> {
-        self.core.net.external_ip.map(Into::into)
-    }
-
     /// Saves the default configuration at the given path.
     ///
     /// # Errors
@@ -452,7 +442,9 @@ mod tests {
 
     use crate::Info;
     use crate::v3_0_0::Configuration;
+    use crate::v3_0_0::http_tracker::HttpTracker;
     use crate::v3_0_0::network::ExternalIp;
+    use crate::v3_0_0::udp_tracker::UdpTracker;
 
     #[cfg(test)]
     fn default_config_toml() -> String {
@@ -479,9 +471,6 @@ mod tests {
                                 driver = "sqlite3"
                                 path = "./storage/tracker/lib/database/sqlite3.db"
 
-                                [core.net]
-                                on_reverse_proxy = false
-
                                 [core.tracker_policy]
                                 max_peer_timeout = 900
                                 persistent_torrent_completed_stat = false
@@ -506,10 +495,9 @@ mod tests {
     }
 
     #[test]
-    fn configuration_should_not_contain_an_external_ip_by_default() {
-        let configuration = Configuration::default();
-
-        assert_eq!(configuration.core.net.external_ip, None);
+    fn tracker_defaults_should_not_contain_an_external_ip() {
+        assert_eq!(HttpTracker::default().network.external_ip, None);
+        assert_eq!(UdpTracker::default().network.external_ip, None);
     }
 
     #[test]
@@ -728,7 +716,140 @@ mod tests {
 
         #[allow(clippy::result_large_err)]
         #[test]
-        fn should_deserialize_valid_external_ip_from_toml() {
+        fn it_should_deserialize_network_settings_from_a_http_tracker_network_block() {
+            Jail::expect_with(|jail| {
+                jail.create_file(
+                    "tracker.toml",
+                    r#"
+                    [metadata]
+                    schema_version = "3.0.0"
+
+                    [logging]
+                    threshold = "info"
+
+                    [core]
+                    listed = false
+                    private = false
+
+                    [[http_trackers]]
+                    bind_address = "127.0.0.1:7070"
+
+                    [http_trackers.network]
+                    external_ip = "203.0.113.5"
+                    on_reverse_proxy = true
+                    ipv6_v6only = true
+                "#,
+                )?;
+
+                let info = Info {
+                    config_toml: None,
+                    config_toml_path: "tracker.toml".to_string(),
+                };
+
+                let config = Configuration::load(&info).expect("Should load config");
+                let network = &config.http_trackers.expect("HTTP tracker should be configured")[0].network;
+                assert_eq!(
+                    network.external_ip,
+                    Some(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 5)).try_into().expect("valid IP"))
+                );
+                assert!(network.on_reverse_proxy, "on_reverse_proxy should be true");
+                assert!(network.ipv6_v6only, "ipv6_v6only should be true");
+
+                Ok(())
+            });
+        }
+
+        #[allow(clippy::result_large_err)]
+        #[test]
+        fn it_should_deserialize_network_settings_from_a_udp_tracker_network_block() {
+            Jail::expect_with(|jail| {
+                jail.create_file(
+                    "tracker.toml",
+                    r#"
+                    [metadata]
+                    schema_version = "3.0.0"
+
+                    [logging]
+                    threshold = "info"
+
+                    [core]
+                    listed = false
+                    private = false
+
+                    [[udp_trackers]]
+                    bind_address = "127.0.0.1:6969"
+
+                    [udp_trackers.network]
+                    external_ip = "203.0.113.5"
+                    on_reverse_proxy = true
+                    ipv6_v6only = true
+                "#,
+                )?;
+
+                let info = Info {
+                    config_toml: None,
+                    config_toml_path: "tracker.toml".to_string(),
+                };
+
+                let config = Configuration::load(&info).expect("Should load config");
+                let network = &config.udp_trackers.expect("UDP tracker should be configured")[0].network;
+                assert_eq!(
+                    network.external_ip,
+                    Some(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 5)).try_into().expect("valid IP"))
+                );
+                assert!(network.on_reverse_proxy, "on_reverse_proxy should be true");
+                assert!(network.ipv6_v6only, "ipv6_v6only should be true");
+
+                Ok(())
+            });
+        }
+
+        #[allow(clippy::result_large_err)]
+        #[test]
+        fn it_should_use_safe_network_defaults_when_the_network_block_is_omitted() {
+            Jail::expect_with(|jail| {
+                jail.create_file(
+                    "tracker.toml",
+                    r#"
+                    [metadata]
+                    schema_version = "3.0.0"
+
+                    [logging]
+                    threshold = "info"
+
+                    [core]
+                    listed = false
+                    private = false
+
+                    [[http_trackers]]
+                    bind_address = "127.0.0.1:7070"
+
+                    [[udp_trackers]]
+                    bind_address = "127.0.0.1:6969"
+                "#,
+                )?;
+
+                let info = Info {
+                    config_toml: None,
+                    config_toml_path: "tracker.toml".to_string(),
+                };
+
+                let configuration = Configuration::load(&info).expect("configuration should load");
+                let http_network = &configuration.http_trackers.expect("HTTP tracker should be configured")[0].network;
+                let udp_network = &configuration.udp_trackers.expect("UDP tracker should be configured")[0].network;
+
+                assert_eq!(http_network.external_ip, None);
+                assert!(!http_network.on_reverse_proxy);
+                assert!(!http_network.ipv6_v6only);
+                assert_eq!(udp_network, http_network);
+
+                Ok(())
+            });
+        }
+
+        #[allow(clippy::result_large_err)]
+        #[test]
+        fn it_should_reject_the_removed_core_network_layout() {
             Jail::expect_with(|jail| {
                 jail.create_file(
                     "tracker.toml",
@@ -745,7 +866,6 @@ mod tests {
 
                     [core.net]
                     external_ip = "203.0.113.5"
-                    on_reverse_proxy = false
                 "#,
                 )?;
 
@@ -754,11 +874,8 @@ mod tests {
                     config_toml_path: "tracker.toml".to_string(),
                 };
 
-                let config = Configuration::load(&info).expect("Should load config");
-                assert_eq!(
-                    config.core.net.external_ip,
-                    Some(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 5)).try_into().expect("valid IP"))
-                );
+                let result = Configuration::load(&info);
+                assert!(result.is_err(), "v3 must reject the removed core.net layout");
 
                 Ok(())
             });
@@ -766,7 +883,7 @@ mod tests {
 
         #[allow(clippy::result_large_err)]
         #[test]
-        fn should_reject_unspecified_ipv4_external_ip_in_toml() {
+        fn it_should_reject_the_removed_flat_tracker_ipv6_v6only_field() {
             Jail::expect_with(|jail| {
                 jail.create_file(
                     "tracker.toml",
@@ -781,9 +898,9 @@ mod tests {
                     listed = false
                     private = false
 
-                    [core.net]
-                    external_ip = "0.0.0.0"
-                    on_reverse_proxy = false
+                    [[http_trackers]]
+                    bind_address = "127.0.0.1:7070"
+                    ipv6_v6only = true
                 "#,
                 )?;
 
@@ -793,7 +910,7 @@ mod tests {
                 };
 
                 let result = Configuration::load(&info);
-                assert!(result.is_err());
+                assert!(result.is_err(), "v3 must reject the removed flat ipv6_v6only field");
 
                 Ok(())
             });
@@ -801,7 +918,7 @@ mod tests {
 
         #[allow(clippy::result_large_err)]
         #[test]
-        fn should_reject_unspecified_ipv6_external_ip_in_toml() {
+        fn it_should_reject_the_removed_flat_udp_tracker_ipv6_v6only_field() {
             Jail::expect_with(|jail| {
                 jail.create_file(
                     "tracker.toml",
@@ -816,9 +933,9 @@ mod tests {
                     listed = false
                     private = false
 
-                    [core.net]
-                    external_ip = "::"
-                    on_reverse_proxy = false
+                    [[udp_trackers]]
+                    bind_address = "127.0.0.1:6969"
+                    ipv6_v6only = true
                 "#,
                 )?;
 
@@ -828,7 +945,7 @@ mod tests {
                 };
 
                 let result = Configuration::load(&info);
-                assert!(result.is_err());
+                assert!(result.is_err(), "v3 must reject the removed flat ipv6_v6only field");
 
                 Ok(())
             });

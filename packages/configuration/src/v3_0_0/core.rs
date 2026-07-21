@@ -2,12 +2,12 @@ use serde::{Deserialize, Serialize};
 use torrust_tracker_primitives::announce::AnnouncePolicy;
 use torrust_tracker_primitives::{PrivateMode, TrackerPolicy};
 
-use super::network::Network;
 use crate::v3_0_0::database::Database;
 use crate::validator::{SemanticValidationError, Validator};
 
 #[allow(clippy::struct_excessive_bools)]
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone)]
+#[serde(deny_unknown_fields)]
 pub struct Core {
     /// Announce policy configuration.
     #[serde(default = "Core::default_announce_policy")]
@@ -25,10 +25,6 @@ pub struct Core {
     /// When `true` only approved torrents can be announced in the tracker.
     #[serde(default = "Core::default_listed")]
     pub listed: bool,
-
-    /// Network configuration.
-    #[serde(default = "Core::default_network")]
-    pub net: Network,
 
     /// When `true` clients require a key to connect and use the tracker.
     #[serde(default = "Core::default_private")]
@@ -58,7 +54,6 @@ impl Default for Core {
             database: Self::default_database(),
             inactive_peer_cleanup_interval: Self::default_inactive_peer_cleanup_interval(),
             listed: Self::default_listed(),
-            net: Self::default_network(),
             private: Self::default_private(),
             private_mode: Self::default_private_mode(),
             tracker_policy: Self::default_tracker_policy(),
@@ -82,10 +77,6 @@ impl Core {
 
     fn default_listed() -> bool {
         false
-    }
-
-    fn default_network() -> Network {
-        Network::default()
     }
 
     fn default_private() -> bool {
