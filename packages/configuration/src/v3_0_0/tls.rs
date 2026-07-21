@@ -9,6 +9,7 @@ use serde_with::serde_as;
 /// TLS certificate and private key paths.
 #[serde_as]
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone, Default)]
+#[serde(deny_unknown_fields)]
 pub struct TlsConfig {
     /// Path to the TLS certificate file.
     #[serde(default = "TlsConfig::default_ssl_cert_path")]

@@ -291,6 +291,7 @@ const CONFIG_OVERRIDE_SEPARATOR: &str = "__";
 
 /// Core configuration for the tracker.
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone)]
+#[serde(deny_unknown_fields)]
 pub struct Configuration {
     /// Configuration metadata.
     pub metadata: Metadata,

@@ -14,6 +14,7 @@ static INIT: Once = Once::new();
 
 #[allow(clippy::struct_excessive_bools)]
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone)]
+#[serde(deny_unknown_fields)]
 pub struct Logging {
     /// Logging level. Possible values are: `Off`, `Error`, `Warn`, `Info`,
     /// `Debug` and `Trace`. Default is `Info`.
