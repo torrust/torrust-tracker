@@ -1,5 +1,7 @@
 name: Upload Coverage Report (PR)
 
+# cspell:ignore mapfile
+
 on:
   # This workflow is triggered after every successful execution
   # of `Generate Coverage Report` workflow.
@@ -20,6 +22,13 @@ jobs:
     environment: coverage
     runs-on: ubuntu-latest
     steps:
+      # Codecov requires a checkout. This trusted workflow must check out only the
+      # default branch before retrieving fork-produced artifacts.
+      - name: Checkout trusted repository
+        uses: actions/checkout@v7
+        with:
+          path: repo_root
+
       - name: "Download existing coverage report"
         id: prepare_report
         uses: actions/github-script@v9
@@ -84,29 +93,59 @@ jobs:
 
       - id: parse_previous_artifacts
         run: |
-          unzip codecov_report.zip
-          unzip pr_number.zip
-          unzip commit_sha.zip
+          artifact_dir=coverage_artifacts
+          mkdir -p "$artifact_dir"
 
-          echo "Detected PR is: $(<pr_number.txt)"
-          echo "Detected commit_sha is: $(<commit_sha.txt)"
+          extract_artifact() (
+            archive_path="$1"
+            expected_file="$2"
+            extraction_dir=$(mktemp -d)
+            trap 'rm -rf "$extraction_dir"' EXIT
+
+            mapfile -t archive_entries < <(unzip -Z1 "$archive_path")
+            if [[ ${#archive_entries[@]} -ne 1 || "${archive_entries[0]}" != "$expected_file" ]]; then
+              echo "Expected only $expected_file in $archive_path" >&2
+              exit 1
+            fi
+
+            unzip -j "$archive_path" -d "$extraction_dir"
+            artifact_path="$extraction_dir/$expected_file"
+            if [[ ! -f "$artifact_path" || -L "$artifact_path" ]]; then
+              echo "Expected regular artifact file: $artifact_path" >&2
+              exit 1
+            fi
+
+            mv "$artifact_path" "$artifact_dir/$expected_file"
+          )
+
+          extract_artifact codecov_report.zip codecov.json
+          extract_artifact pr_number.zip pr_number.txt
+          extract_artifact commit_sha.zip commit_sha.txt
+
+          pr_number=$(<"$artifact_dir/pr_number.txt")
+          commit_sha=$(<"$artifact_dir/commit_sha.txt")
+          if [[ ! "$pr_number" =~ ^[0-9]+$ ]]; then
+            echo "Expected numeric pull request number" >&2
+            exit 1
+          fi
+          if [[ ! "$commit_sha" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "Expected 40-character hexadecimal commit SHA" >&2
+            exit 1
+          fi
+
+          echo "Detected PR is: $pr_number"
+          echo "Detected commit_sha is: $commit_sha"
 
           # Make the params available as step output
-          echo "override_pr=$(<pr_number.txt)" >> "$GITHUB_OUTPUT"
-          echo "override_commit=$(<commit_sha.txt)" >> "$GITHUB_OUTPUT"
-
-      - name: Checkout repository
-        uses: actions/checkout@v7
-        with:
-          ref: ${{ steps.parse_previous_artifacts.outputs.override_commit || '' }}
-          path: repo_root
+          echo "override_pr=$pr_number" >> "$GITHUB_OUTPUT"
+          echo "override_commit=$commit_sha" >> "$GITHUB_OUTPUT"
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v7
         with:
           verbose: true
           token: ${{ secrets.CODECOV_TOKEN }}
-          files: ${{ github.workspace }}/codecov.json
+          files: ${{ github.workspace }}/coverage_artifacts/codecov.json
           fail_ci_if_error: true
           # Manual overrides for these parameters are needed because automatic detection
           # in codecov-action does not work for non-`pull_request` workflows.
