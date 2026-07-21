@@ -224,16 +224,29 @@ mod tests {
         let client_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 1)), 0);
         processor.process_request(request_from(client_addr)).await;
 
-        // Give the async event listener time to process the emitted event.
-        tokio::time::sleep(Duration::from_millis(50)).await;
+        // Wait (bounded) for the async event listener to process the discarded event.
+        tokio::time::timeout(Duration::from_secs(1), async {
+            loop {
+                let stats = container.udp_tracker_server_container.stats_repository.get_stats().await;
+                if stats.udp_requests_discarded_total() >= 1 {
+                    break;
+                }
+                tokio::time::sleep(Duration::from_millis(1)).await;
+            }
+        })
+        .await
+        .expect("timed out waiting for the stats event listener to record the discarded event");
 
         // The discarded counter must be 1; all other counters must stay at 0.
         let stats = container.udp_tracker_server_container.stats_repository.get_stats().await;
         assert_eq!(stats.udp_requests_discarded_total(), 1, "expected 1 discarded request");
+        // Note: `UdpRequestReceived` is emitted by the launcher before `process_request` is
+        // called, so this counter is always 0 in tests that invoke the processor directly.
+        // This assertion confirms the processor itself does not emit that event.
         assert_eq!(
             stats.udp4_requests_received_total(),
             0,
-            "a port-0 request must not count as received"
+            "the processor does not emit UdpRequestReceived; that is the launcher's responsibility"
         );
 
         cancellation_token.cancel();

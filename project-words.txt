@@ -86,9 +86,9 @@ cves
 Cyberneering
 cyclomatic
 dashmap
-dport
 datagram
 datagrams
+dport
 datetime
 dbip
 dbname
@@ -156,6 +156,7 @@ Glrg
 Graphviz
 Grcov
 hasher
+HDRINCL
 healthcheck
 heaptrack
 hexdigit
@@ -168,7 +169,6 @@ hotspot
 hotspots
 httpclientpeerid
 Hydranode
-HDRINCL
 hyperium
 hyperthread
 Icelake
@@ -232,8 +232,8 @@ Mebibytes
 metainfo
 microbenchmark
 microbenchmarks
-middlewares
 middlebox
+middlewares
 millis
 miniz
 miniz_oxide
@@ -358,11 +358,11 @@ Rustls
 rustup
 Ryzen
 sarif
-sendto
 savepath
 scanf
 sccache
 Seedable
+sendto
 serde
 serialisation
 setgroups
