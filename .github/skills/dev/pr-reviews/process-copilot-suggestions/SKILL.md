@@ -10,6 +10,9 @@ metadata:
       - .github/skills/dev/pr-reviews/fetch-review-threads/scripts/get-pr-review-threads.sh
       - .github/skills/dev/pr-reviews/fetch-review-threads/scripts/list-unresolved-threads.sh
       - .github/skills/dev/pr-reviews/fetch-review-threads/scripts/show-unresolved-thread-bodies.sh
+      - .github/skills/dev/pr-reviews/fetch-review-threads/scripts/check-thread-reply-status.sh
+      - .github/skills/dev/pr-reviews/resolve-review-threads/scripts/reply-to-thread.sh
+      - .github/skills/dev/pr-reviews/resolve-review-threads/scripts/reply-and-resolve-thread.sh
       - .github/skills/dev/pr-reviews/resolve-review-threads/scripts/resolve-all-unresolved-threads.sh
 ---
 
@@ -24,6 +27,18 @@ Copilot generates suggestions that fall into two categories:
 
 - **action** — Code or documentation changes needed; implement, validate, commit
 - **no-action** — Already handled, false positive, or intentionally declined; explain reasoning and mark resolved
+
+## Two Absolute Rules
+
+**Rule 1 — Always reply before resolving.**
+Every thread must have a comment explaining what was done (or why nothing was done) before it
+is marked resolved. Resolving a thread without a reply makes the decision invisible to reviewers
+and future contributors reading the PR.
+
+**Rule 2 — Resolve promptly, one thread at a time.**
+Copilot re-reviews the PR on every push and opens new suggestion threads. If old threads are
+left unresolved, they become indistinguishable from the newly opened ones. Resolve each thread
+immediately after posting the reply — do not accumulate a backlog of open threads.
 
 ## Prerequisites
 
@@ -83,66 +98,110 @@ Add one row per thread to your tracker file with:
 - Comment URL
 - Brief summary of the suggestion
 
-### 4. Analyze and Decide
+### 4. Process Each Thread (Decide → Implement → Reply → Resolve)
 
-For each suggestion, decide:
+Handle suggestions **one at a time**, completing each thread fully before moving to the next.
+**Post a reply and resolve the thread before touching the next one.** This keeps already-addressed
+threads visibly separated from new suggestions Copilot may open on the next push.
 
-- **action** — The suggestion identifies a real fix needed:
-  - Apply the code/doc change
-  - Run `linter all` and targeted tests
-  - Commit with clear message
-  - Update tracker with `action` status
-- **no-action** — The suggestion is already handled or not needed:
-  - Document the reason (e.g., "outdated after later commits", "false positive verified by tests")
-  - Update tracker with `no-action` status and rationale
+For each unresolved thread:
 
-**Key principle**: Do not resolve a thread just because a suggestion exists. Only resolve when the concern is genuinely addressed or explicitly declined with documented reasoning.
+#### Step A — Decide
 
-### 5. Implement Fixes
+- **`action`** — The suggestion identifies a real fix needed. Apply it.
+- **`no-action`** — Already handled, false positive, or intentionally declined. Document the reason.
 
-For each `action` item:
+**Key principle**: Do not resolve a thread just because a suggestion exists. Only resolve when
+the concern is genuinely addressed or explicitly declined with documented reasoning.
 
-1. Read the suggestion carefully
-2. Apply the minimal fix
-3. Validate:
+#### Step B — Implement (action only)
+
+1. Apply the minimal fix.
+2. Validate:
 
    ```bash
    linter all                          # Full lint gate
    cargo test -p <affected-package>    # Targeted tests
    ```
 
-4. Commit with GPG signature:
+3. Commit with GPG signature:
 
    ```bash
    git add <files>
-   git commit -S -m "chore(review): <concise description>"
+   git commit -S -m "fix(review): <concise description>"
    ```
 
-5. Update tracker with `action` status
+#### Step C — Reply and resolve
 
-### 6. Batch Resolve All Threads
+Use the `reply-and-resolve-thread.sh` script to post a reply **and** resolve in one operation:
 
-After all decisions are made and `action` items are committed:
+```bash
+bash ../resolve-review-threads/scripts/reply-and-resolve-thread.sh \
+  --thread-id <THREAD_ID> \
+  --body "<explanation>"
+```
+
+For an `action` reply, include:
+
+- the commit that contains the fix,
+- the files or behaviour changed, and
+- the validation performed (when useful to establish correctness).
+
+For a `no-action` reply, state the reason it was declined (for example, it was already
+addressed, is outdated, or is a verified false positive).
+
+The script outputs `{"reply_url": "...", "resolved": true}`. Copy the `reply_url` into the
+tracker row.
+
+#### Step D — Update tracker
+
+- Set `Reply URL` to the reply URL from the script output.
+- Set `Status` to `DONE`.
+- Set `Thread State` to `RESOLVED`.
+
+Repeat steps A–D for every thread before moving on.
+
+### 5. Verify All Threads Are Resolved
+
+After processing all threads, refresh and verify no unresolved threads remain:
 
 ```bash
 bash ../fetch-review-threads/scripts/get-pr-review-threads.sh \
   --pr-number <PR_NUMBER> \
   --output-file /tmp/pr_threads_<PR_NUMBER>.json
 
+bash ../fetch-review-threads/scripts/list-unresolved-threads.sh \
+  --threads-file /tmp/pr_threads_<PR_NUMBER>.json
+```
+
+If any threads remain (Copilot may post new suggestions as you push commits), process them
+using the same per-thread loop (Step 4).
+
+#### Batch resolver — emergency cleanup only
+
+If some threads need bulk-resolving, first confirm every thread already has a user reply:
+
+```bash
+bash ../fetch-review-threads/scripts/check-thread-reply-status.sh \
+  --threads-file /tmp/pr_threads_<PR_NUMBER>.json
+```
+
+This script exits with code 1 if any thread lacks a reply. Only proceed with the batch resolver
+once it exits 0:
+
+```bash
 bash ../resolve-review-threads/scripts/resolve-all-unresolved-threads.sh \
   --threads-file /tmp/pr_threads_<PR_NUMBER>.json
 ```
 
-This resolves all unresolved threads (both `action` and `no-action` categories).
-
-### 7. Final Documentation
+### 6. Final Documentation
 
 Update the tracker file with completion notes:
 
-- Add timestamps to the Processing Log
-- Mark all threads as `resolved` in the Thread State column
+- Add timestamps to the Processing Log.
+- Confirm all rows have `Status = DONE` and `Thread State = RESOLVED`.
 
-Commit the tracker and related review docs as final documentation:
+Commit the tracker as final documentation:
 
 ```bash
 git add docs/pr-reviews/pr-<PR_NUMBER>-copilot-suggestions.md
@@ -161,9 +220,18 @@ git commit -S -m "docs(review): document PR #<PR_NUMBER> copilot suggestions aud
 
 ## Helper Scripts Reference
 
+### Fetch & inspect threads
+
 - `../fetch-review-threads/scripts/get-pr-review-threads.sh` — Fetch all threads for a PR
 - `../fetch-review-threads/scripts/list-unresolved-threads.sh` — Filter to unresolved threads only
-- `../resolve-review-threads/scripts/resolve-all-unresolved-threads.sh` — Resolve all unresolved threads via GraphQL
+- `../fetch-review-threads/scripts/show-unresolved-thread-bodies.sh` — Show full body of each unresolved thread
+- `../fetch-review-threads/scripts/check-thread-reply-status.sh` — Report which unresolved threads are missing a reply (exits 1 if any are missing)
+
+### Reply & resolve threads
+
+- `../resolve-review-threads/scripts/reply-and-resolve-thread.sh` — Post a reply then resolve a single thread (preferred per-thread operation)
+- `../resolve-review-threads/scripts/reply-to-thread.sh` — Post a reply on a thread without resolving it
+- `../resolve-review-threads/scripts/resolve-all-unresolved-threads.sh` — Bulk-resolve all unresolved threads (use only after `check-thread-reply-status.sh` exits 0)
 
 ## Related Skills
 
@@ -183,7 +251,8 @@ with all 26 Copilot suggestions processed, decided, and resolved.
 - [ ] All review threads fetched and added to tracker table
 - [ ] Each thread categorized as `action` or `no-action` with rationale
 - [ ] All `action` items implemented, validated, and committed
-- [ ] All threads resolved in GitHub (via batch script or one-by-one)
+- [ ] Every thread replied to with `reply-and-resolve-thread.sh` (reply URL recorded in tracker)
+- [ ] All threads resolved in GitHub (`list-unresolved-threads.sh` returns no output)
 - [ ] Tracker file updated with Processing Log and Thread State column
-- [ ] Tracker and helper scripts committed as documentation
+- [ ] Tracker committed as documentation
 - [ ] No uncommitted changes remain

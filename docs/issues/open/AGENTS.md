@@ -1,37 +1,38 @@
 # Agents Instructions — `docs/issues/open/`
 
-## File Naming Conventions
+## Spec Folder Naming Conventions
 
-Spec files in this folder follow one of these naming patterns:
+Issue and EPIC specs use a folder named after the GitHub issue. The primary specification file
+inside the folder is `ISSUE.md` for issues or `EPIC.md` for EPICs.
 
 ### Standalone issue (not part of an EPIC)
 
 ```text
-{ISSUE_NUMBER}-{short-description}.md
+{ISSUE_NUMBER}-{short-description}/ISSUE.md
 ```
 
 Example:
 
 ```text
-1875-review-lto-fat-in-dev-profile.md
+1875-review-lto-fat-in-dev-profile/ISSUE.md
 ```
 
 ### EPIC spec
 
 ```text
-{EPIC_ISSUE_NUMBER}-{short-description}.md
+{EPIC_ISSUE_NUMBER}-{short-description}/EPIC.md
 ```
 
 Example:
 
 ```text
-1978-configuration-overhaul-epic.md
+1978-configuration-overhaul-epic/EPIC.md
 ```
 
 ### Subissue (part of an EPIC)
 
 ```text
-{SUB_ISSUE_NUMBER}-{EPIC_ISSUE_NUMBER}-{short-description}.md
+{SUB_ISSUE_NUMBER}-{EPIC_ISSUE_NUMBER}-{short-description}/ISSUE.md
 ```
 
 Where:
@@ -42,7 +43,7 @@ Where:
 Example:
 
 ```text
-1979-1978-copy-configuration-schema-v2-to-v3-baseline.md
+1979-1978-copy-configuration-schema-v2-to-v3-baseline/ISSUE.md
 ```
 
 ### Subissue with explicit implementation order
@@ -51,7 +52,7 @@ An optional `si-{N}` segment can be added between the EPIC number and the descri
 the implementation order within the EPIC is significant and worth surfacing in the filename:
 
 ```text
-{SUB_ISSUE_NUMBER}-{EPIC_ISSUE_NUMBER}-si-{ORDER}-{short-description}.md
+{SUB_ISSUE_NUMBER}-{EPIC_ISSUE_NUMBER}-si-{ORDER}-{short-description}/ISSUE.md
 ```
 
 Where:
@@ -61,7 +62,7 @@ Where:
 Example:
 
 ```text
-1969-1938-si-8-eliminate-unwraps-from-rest-api-client.md
+1969-1938-si-8-eliminate-unwraps-from-rest-api-client/ISSUE.md
 ```
 
 ## Key Rule
@@ -72,9 +73,9 @@ number.
 
 ## Summary Table
 
-| Pattern             | Example                                                    |
-| ------------------- | ---------------------------------------------------------- |
-| Standalone          | `1875-review-lto-fat-in-dev-profile.md`                    |
-| EPIC                | `1978-configuration-overhaul-epic.md`                      |
-| Subissue            | `1979-1978-copy-configuration-schema-v2-to-v3-baseline.md` |
-| Subissue with order | `1969-1938-si-8-eliminate-unwraps-from-rest-api-client.md` |
+| Pattern             | Example                                                          |
+| ------------------- | ---------------------------------------------------------------- |
+| Standalone          | `1875-review-lto-fat-in-dev-profile/ISSUE.md`                    |
+| EPIC                | `1978-configuration-overhaul-epic/EPIC.md`                       |
+| Subissue            | `1979-1978-copy-configuration-schema-v2-to-v3-baseline/ISSUE.md` |
+| Subissue with order | `1969-1938-si-8-eliminate-unwraps-from-rest-api-client/ISSUE.md` |

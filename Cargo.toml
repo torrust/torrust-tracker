@@ -118,7 +118,6 @@ suspicious = { level = "deny", priority = -1 }
 
 [profile.dev]
 debug = 1
-lto = "fat"
 opt-level = 1
 
 [profile.release]
