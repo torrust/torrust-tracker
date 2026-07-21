@@ -761,6 +761,51 @@ mod tests {
 
         #[allow(clippy::result_large_err)]
         #[test]
+        fn it_should_deserialize_network_settings_from_a_udp_tracker_network_block() {
+            Jail::expect_with(|jail| {
+                jail.create_file(
+                    "tracker.toml",
+                    r#"
+                    [metadata]
+                    schema_version = "3.0.0"
+
+                    [logging]
+                    threshold = "info"
+
+                    [core]
+                    listed = false
+                    private = false
+
+                    [[udp_trackers]]
+                    bind_address = "127.0.0.1:6969"
+
+                    [udp_trackers.network]
+                    external_ip = "203.0.113.5"
+                    on_reverse_proxy = true
+                    ipv6_v6only = true
+                "#,
+                )?;
+
+                let info = Info {
+                    config_toml: None,
+                    config_toml_path: "tracker.toml".to_string(),
+                };
+
+                let config = Configuration::load(&info).expect("Should load config");
+                let network = &config.udp_trackers.expect("UDP tracker should be configured")[0].network;
+                assert_eq!(
+                    network.external_ip,
+                    Some(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 5)).try_into().expect("valid IP"))
+                );
+                assert!(network.on_reverse_proxy, "on_reverse_proxy should be true");
+                assert!(network.ipv6_v6only, "ipv6_v6only should be true");
+
+                Ok(())
+            });
+        }
+
+        #[allow(clippy::result_large_err)]
+        #[test]
         fn it_should_use_safe_network_defaults_when_the_network_block_is_omitted() {
             Jail::expect_with(|jail| {
                 jail.create_file(
