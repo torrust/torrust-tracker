@@ -252,8 +252,6 @@ mysqld
 ñaca
 Naim
 nanos
-nmap
-nping
 newkey
 newtrackon
 newtype
@@ -263,6 +261,8 @@ nghttp
 ngtcp
 nocapture
 nologin
+nmap
+nping
 nonblocking
 nonroot
 Norberg
@@ -322,9 +322,9 @@ readelf
 realpath
 reannounce
 recaches
-recvfrom
 recognised
 recompiles
+recvfrom
 recvspace
 referer
 Registar

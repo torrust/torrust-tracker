@@ -188,8 +188,9 @@ mod tests {
 
     /// Scenario: the tracker receives a UDP request whose source port is 0.
     ///
-    /// A source port of 0 is invalid — the OS rejects `send_to` with EINVAL, so
-    /// there is no point in processing or responding to the request. The tracker
+    /// Although RFC 768 does not forbid a source port of 0, the OS rejects any
+    /// `send_to` directed at port 0 with EINVAL, so there is no point in
+    /// processing or responding to such requests. The tracker
     /// should:
     ///
     ///  1. Discard the request immediately (no handlers invoked, no response sent).
