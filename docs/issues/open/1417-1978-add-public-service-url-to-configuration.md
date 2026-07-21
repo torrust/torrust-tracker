@@ -23,11 +23,11 @@ semantic-links:
 
 # Issue #1417 - Include public service URL in configuration
 
-> **EPIC position**: Subissue #4 of 9. Depends on #1640 (subissue #3) for the `Network` block placement decision — `public_url` stays flat (not inside `Network`). Implements after #1640 is complete.
+> **EPIC position**: Subissue #4 of 11. Depends on #1640 (subissue #3) for the `Network` block placement decision — `public_url` stays flat (not inside `Network`). Implements after #1640 is complete.
 
 ## Goal
 
-Add an optional `public_url` field to each tracker instance (`HttpTracker`, `UdpTracker`) and API service (`HttpApi`, `HealthCheckApi`) so the application knows the public-facing URL for each service regardless of network topology, reverse proxies, or TLS termination.
+Add an optional `public_url` field to each tracker instance (`HttpTracker`, `UdpTracker`) and API service (`HttpApi`) so the application knows the public-facing URL for each service regardless of network topology, reverse proxies, or TLS termination. `HealthCheckApi` is a minimal liveness endpoint and does not get a `public_url` field; it gains only `#[serde(deny_unknown_fields)]` for consistency.
 
 ## Background
 
@@ -57,7 +57,7 @@ For example, the [Torrust Tracker Deployer](https://github.com/torrust/torrust-t
 
 ### In Scope
 
-- Add optional `public_url: Option<String>` field to `HttpTracker`, `UdpTracker`, `HttpApi`, and `HealthCheckApi`
+- Add optional typed `public_url` fields: `Option<HttpUrl>` to `HttpTracker` and `HttpApi`, `Option<UdpUrl>` to `UdpTracker`; `HealthCheckApi` does not get a `public_url` field
 - Use a **single URL string** (e.g. `"https://tracker1.example.com/announce"`) — not decomposed into domain/path components, since consumers can parse those as needed
 - Validate URL protocol at deserialization time (HTTP tracker → `http://`/`https://`, UDP tracker → `udp://`, API → `http://`/`https://`)
 - The URL protocol (`https://`) provides TLS status; the domain is extracted by consumers
