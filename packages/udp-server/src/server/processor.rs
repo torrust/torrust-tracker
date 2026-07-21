@@ -179,6 +179,10 @@ mod tests {
     use crate::statistics::event::listener;
     use crate::testing::environment::EnvContainer;
 
+    // -----------------------------------------------------------------------
+    // Test helpers
+    // -----------------------------------------------------------------------
+
     fn request_from(addr: SocketAddr) -> RawRequest {
         RawRequest {
             payload: vec![],
@@ -186,33 +190,27 @@ mod tests {
         }
     }
 
-    /// Scenario: the tracker receives a UDP request whose source port is 0.
+    /// Creates an ephemeral tracker environment, wires up the stats event
+    /// listener, and returns a ready-to-use `Processor`.
     ///
-    /// Although RFC 768 does not forbid a source port of 0, the OS rejects any
-    /// `send_to` directed at port 0 with EINVAL, so there is no point in
-    /// processing or responding to such requests. The tracker
-    /// should:
-    ///
-    ///  1. Discard the request immediately (no handlers invoked, no response sent).
-    ///  2. Count the discarded request in statistics so operators can detect
-    ///     scanner activity or abuse without relying on log noise.
-    #[tokio::test]
-    async fn udp_tracker_discards_requests_from_clients_with_port_0_and_counts_them_in_statistics() {
+    /// The caller receives:
+    /// - `processor` — consumes itself in `process_request`.
+    /// - `container` — holds the stats repository for later assertions.
+    /// - `cancellation_token` — cancel it after the test to stop the listener.
+    async fn setup_processor_with_stats_listener() -> (Processor, Arc<EnvContainer>, CancellationToken) {
         let cfg = configuration::ephemeral();
         let core_config = Arc::new(cfg.core.clone());
         let udp_tracker_config = Arc::new(cfg.udp_trackers.unwrap()[0].clone());
 
         let container = Arc::new(EnvContainer::initialize(&core_config, &udp_tracker_config).await);
 
-        // Start the stats event listener so that emitted events update the repository.
         let cancellation_token = CancellationToken::new();
-        let _event_listener_job = listener::run_event_listener(
+        let _listener_job = listener::run_event_listener(
             container.udp_tracker_server_container.event_bus.receiver(),
             cancellation_token.clone(),
             &container.udp_tracker_server_container.stats_repository,
         );
 
-        // Create a processor backed by an ephemeral socket.
         let socket = Arc::new(BoundSocket::new("0.0.0.0:0".parse().unwrap(), false).expect("Failed to bind socket"));
         let processor = Processor::new(
             socket,
@@ -221,15 +219,16 @@ mod tests {
             udp_tracker_config.cookie_lifetime.as_secs_f64(),
         );
 
-        // Submit a request from a client whose source port is 0.
-        let client_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 1)), 0);
-        processor.process_request(request_from(client_addr)).await;
+        (processor, container, cancellation_token)
+    }
 
-        // Wait (bounded) for the async event listener to process the discarded event.
+    /// Polls the stats repository until `udp_requests_discarded_total` reaches
+    /// `expected`, or panics after one second.
+    async fn wait_for_discarded_count(container: &Arc<EnvContainer>, expected: u64) {
         tokio::time::timeout(Duration::from_secs(1), async {
             loop {
                 let stats = container.udp_tracker_server_container.stats_repository.get_stats().await;
-                if stats.udp_requests_discarded_total() >= 1 {
+                if stats.udp_requests_discarded_total() >= expected {
                     break;
                 }
                 tokio::time::sleep(Duration::from_millis(1)).await;
@@ -237,17 +236,67 @@ mod tests {
         })
         .await
         .expect("timed out waiting for the stats event listener to record the discarded event");
+    }
 
-        // The discarded counter must be 1; all other counters must stay at 0.
+    // -----------------------------------------------------------------------
+    // Tests
+    // -----------------------------------------------------------------------
+
+    /// Scenario: the tracker receives a UDP request whose source port is 0.
+    ///
+    /// The processor must return immediately without calling `send_response`.
+    /// Sending to port 0 would be rejected by the OS with EINVAL; the early
+    /// exit avoids the wasted work and the resulting WARN log noise.
+    #[tokio::test]
+    async fn processor_does_not_send_a_response_when_client_port_is_0() {
+        // Arrange
+        let (processor, container, cancellation_token) = setup_processor_with_stats_listener().await;
+        let client_with_port_0 = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 1)), 0);
+
+        // Act
+        processor.process_request(request_from(client_with_port_0)).await;
+        // Sync: wait until the discard event is processed so the stats
+        // are settled before we assert on the response counters.
+        wait_for_discarded_count(&container, 1).await;
+
+        // Assert: no response was sent (neither IPv4 nor IPv6 channel).
         let stats = container.udp_tracker_server_container.stats_repository.get_stats().await;
-        assert_eq!(stats.udp_requests_discarded_total(), 1, "expected 1 discarded request");
-        // Note: `UdpRequestReceived` is emitted by the launcher before `process_request` is
-        // called, so this counter is always 0 in tests that invoke the processor directly.
-        // This assertion confirms the processor itself does not emit that event.
         assert_eq!(
-            stats.udp4_requests_received_total(),
+            stats.udp4_responses_sent_total(),
             0,
-            "the processor does not emit UdpRequestReceived; that is the launcher's responsibility"
+            "no IPv4 response should be sent to port 0"
+        );
+        assert_eq!(
+            stats.udp6_responses_sent_total(),
+            0,
+            "no IPv6 response should be sent to port 0"
+        );
+
+        cancellation_token.cancel();
+    }
+
+    /// Scenario: the tracker receives a UDP request whose source port is 0.
+    ///
+    /// The processor must emit `Event::UdpRequestDiscarded` so that the stats
+    /// counter increments. This gives operators a clean signal (via the REST
+    /// stats endpoint) to detect scanner activity or abuse without relying on
+    /// log noise.
+    #[tokio::test]
+    async fn processor_emits_discard_event_when_client_port_is_0() {
+        // Arrange
+        let (processor, container, cancellation_token) = setup_processor_with_stats_listener().await;
+        let client_with_port_0 = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 1)), 0);
+
+        // Act
+        processor.process_request(request_from(client_with_port_0)).await;
+
+        // Assert: the discard event was emitted and the counter reflects it.
+        wait_for_discarded_count(&container, 1).await;
+        let stats = container.udp_tracker_server_container.stats_repository.get_stats().await;
+        assert_eq!(
+            stats.udp_requests_discarded_total(),
+            1,
+            "expected exactly 1 discarded request"
         );
 
         cancellation_token.cancel();
