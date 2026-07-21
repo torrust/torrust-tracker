@@ -100,6 +100,11 @@ REPLY_URL=$(gh api graphql \
     }' \
     --jq '.data.addPullRequestReviewThreadReply.comment.url')
 
+if [[ -z "${REPLY_URL}" || "${REPLY_URL}" == "null" ]]; then
+    echo "Error: GraphQL mutation returned no reply URL; aborting resolve." >&2
+    exit 1
+fi
+
 echo "Resolving thread ${THREAD_ID}..." >&2
 
 # shellcheck disable=SC2016

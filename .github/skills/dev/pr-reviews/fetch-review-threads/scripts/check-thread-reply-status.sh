@@ -70,15 +70,19 @@ without_reply=0
 while IFS= read -r thread_json; do
     thread_id=$(echo "${thread_json}" | jq -r '.id')
     path=$(echo "${thread_json}" | jq -r '.path')
-    url=$(echo "${thread_json}" | jq -r '.url')
     has_reply=$(echo "${thread_json}" | jq --arg login "${LOGIN}" '
         .comments.nodes
         | map(select(.author.login == $login))
         | length > 0
     ')
 
-    printf '{"thread_id":"%s","path":"%s","url":"%s","has_reply":%s}\n' \
-        "${thread_id}" "${path}" "${url}" "${has_reply}"
+    url_json=$(echo "${thread_json}" | jq '.url')
+    jq -n \
+        --arg thread_id "${thread_id}" \
+        --arg path "${path}" \
+        --argjson url "${url_json}" \
+        --argjson has_reply "${has_reply}" \
+        '{"thread_id":$thread_id,"path":$path,"url":$url,"has_reply":$has_reply}'
 
     total=$((total + 1))
     if [[ "${has_reply}" == "true" ]]; then

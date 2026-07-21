@@ -88,4 +88,9 @@ REPLY_URL=$(gh api graphql \
     }' \
     --jq '.data.addPullRequestReviewThreadReply.comment.url')
 
+if [[ -z "${REPLY_URL}" || "${REPLY_URL}" == "null" ]]; then
+    echo "Error: GraphQL mutation returned no reply URL; the comment may not have been posted." >&2
+    exit 1
+fi
+
 printf '{"status":"ok","thread_id":"%s","reply_url":"%s"}\n' "${THREAD_ID}" "${REPLY_URL}"
