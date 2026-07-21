@@ -1,9 +1,14 @@
+//! HTTP (REST) API configuration for schema v3.
+//!
+//! **Field type convention**: use typed newtypes for fields with domain constraints —
+//! not `String` or other unvalidated primitives. See [`crate::v3_0_0::public_url`].
 use std::collections::HashMap;
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
 
+use crate::v3_0_0::public_url::HttpUrl;
 use crate::v3_0_0::tls::TlsConfig;
 
 pub type AccessTokens = HashMap<String, String>;
@@ -11,6 +16,7 @@ pub type AccessTokens = HashMap<String, String>;
 /// Configuration for the HTTP API.
 #[serde_as]
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone)]
+#[serde(deny_unknown_fields)]
 pub struct HttpApi {
     /// The address the tracker will bind to.
     /// The format is `ip:port`, for example `0.0.0.0:6969`. If you want to
@@ -29,6 +35,13 @@ pub struct HttpApi {
     /// all permissions.
     #[serde(default = "HttpApi::default_access_tokens")]
     pub access_tokens: AccessTokens,
+
+    /// The public-facing URL of the REST API, e.g.
+    /// `"https://api.tracker.example.com"`. Used for service discovery and
+    /// logging. Must use the `http://` or `https://` scheme. Optional; defaults
+    /// to `None`.
+    #[serde(default)]
+    pub public_url: Option<HttpUrl>,
 }
 
 impl Default for HttpApi {
@@ -37,6 +50,7 @@ impl Default for HttpApi {
             bind_address: Self::default_bind_address(),
             tls_config: Self::default_tls_config(),
             access_tokens: Self::default_access_tokens(),
+            public_url: Self::default_public_url(),
         }
     }
 }
@@ -54,6 +68,10 @@ impl HttpApi {
         HashMap::new()
     }
 
+    fn default_public_url() -> Option<HttpUrl> {
+        None
+    }
+
     pub fn add_token(&mut self, key: &str, token: &str) {
         self.access_tokens.insert(key.to_string(), token.to_string());
     }
@@ -69,6 +87,7 @@ impl HttpApi {
 mod tests {
     use camino::Utf8PathBuf;
 
+    use crate::v3_0_0::public_url::HttpUrl;
     use crate::v3_0_0::tracker_api::HttpApi;
 
     #[test]
@@ -102,5 +121,41 @@ mod tests {
 
         assert_eq!(tls_config.ssl_cert_path, Utf8PathBuf::from("certificate.pem"));
         assert_eq!(tls_config.ssl_key_path, Utf8PathBuf::from("private-key.pem"));
+    }
+
+    #[test]
+    fn it_should_default_public_url_to_none() {
+        // Act
+        let configuration = HttpApi::default();
+
+        // Assert
+        assert!(configuration.public_url.is_none());
+    }
+
+    #[test]
+    fn it_should_accept_public_url_when_scheme_is_https() {
+        // Arrange
+        let toml = r#"public_url = "https://api.tracker.example.com/""#;
+
+        // Act
+        let configuration: HttpApi = toml::from_str(toml).expect("https:// public_url should deserialize for HttpApi");
+
+        // Assert
+        assert_eq!(
+            configuration.public_url.as_ref().map(HttpUrl::as_str),
+            Some("https://api.tracker.example.com/")
+        );
+    }
+
+    #[test]
+    fn it_should_reject_public_url_when_scheme_is_udp() {
+        // Arrange
+        let toml = r#"public_url = "udp://tracker.example.com:6969""#;
+
+        // Act
+        let result = toml::from_str::<HttpApi>(toml);
+
+        // Assert
+        assert!(result.is_err(), "udp:// scheme should be rejected for HttpApi public_url");
     }
 }

@@ -1,3 +1,7 @@
+//! Core tracker configuration for schema v3.
+//!
+//! **Field type convention**: use typed newtypes for fields with domain constraints —
+//! not `String` or other unvalidated primitives. See [`crate::v3_0_0::public_url`].
 use serde::{Deserialize, Serialize};
 use torrust_tracker_primitives::announce::AnnouncePolicy;
 use torrust_tracker_primitives::{PrivateMode, TrackerPolicy};

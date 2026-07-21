@@ -192,6 +192,22 @@
 //! ssl_key_path = "./storage/tracker/lib/tls/localhost.key"
 //! ```
 //!
+//! ## Type conventions for configuration fields
+//!
+//! Configuration struct fields whose value space is **smaller than the raw primitive** must be
+//! represented as typed newtypes, not as `String`, `u32`, or other unvalidated primitives.
+//! The constraint is encoded in the type and validated once at deserialization; consuming code
+//! never re-validates it.
+//!
+//! | Field constraint | Do this | Not this |
+//! |---|---|---|
+//! | URL must be `http`/`https` | `Option<HttpUrl>` | `Option<String>` |
+//! | URL must be `udp` | `Option<UdpUrl>` | `Option<String>` |
+//!
+//! See [`public_url`] for the canonical examples and
+//! [ADR 20260721100000](https://github.com/torrust/torrust-tracker/blob/develop/docs/adrs/20260721100000_use_newtypes_for_constrained_configuration_field_types.md)
+//! for the full rationale, the granularity decision, and the compile-time vs runtime split.
+//!
 //! ## Default configuration
 //!
 //! The default configuration is:
@@ -228,15 +244,26 @@
 //! [health_check_api]
 //! bind_address = "127.0.0.1:1313"
 //!```
+// ── Top-level configuration section structs ───────────────────────────────────
+// One module per TOML section; each maps directly to a key in `Configuration`.
 pub mod core;
-pub mod database;
 pub mod health_check_api;
 pub mod http_tracker;
 pub mod logging;
-pub mod network;
-pub mod tls;
 pub mod tracker_api;
 pub mod udp_tracker;
+
+// ── Sub-configuration block structs ───────────────────────────────────────────
+// Embedded inside the section structs above; each maps to a TOML sub-block
+// (e.g. `[http_trackers.tls_config]`, `[http_trackers.network]`).
+pub mod database;
+pub mod network;
+pub mod tls;
+
+// ── Value newtypes ────────────────────────────────────────────────────────────
+// Single-value types that encode a domain invariant (scheme, format, range).
+// When this group grows, consider extracting these into a `types/` submodule.
+pub mod public_url;
 
 use std::fs;
 
@@ -264,6 +291,7 @@ const CONFIG_OVERRIDE_SEPARATOR: &str = "__";
 
 /// Core configuration for the tracker.
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone)]
+#[serde(deny_unknown_fields)]
 pub struct Configuration {
     /// Configuration metadata.
     pub metadata: Metadata,

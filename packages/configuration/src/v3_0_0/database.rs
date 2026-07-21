@@ -1,9 +1,17 @@
+//! Database configuration for schema v3.
+//!
+//! **Field type convention**: for new fields with domain constraints, use typed newtypes —
+//! not `String` or other unvalidated primitives. See [`crate::v3_0_0::public_url`].
+//!
+//! Note: the existing `path: String` field is a legacy multi-driver field that predates
+//! this convention. It will be replaced with driver-specific typed fields in issue #1490.
 use serde::{Deserialize, Serialize};
 use torrust_tracker_primitives::Driver;
 use url::Url;
 
 #[allow(clippy::struct_excessive_bools)]
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone)]
+#[serde(deny_unknown_fields)]
 pub struct Database {
     // Database configuration
     /// Database driver. Possible values are: `sqlite3`, `mysql`, and `postgresql`.

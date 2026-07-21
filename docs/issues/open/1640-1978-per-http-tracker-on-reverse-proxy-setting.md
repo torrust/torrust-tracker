@@ -1,13 +1,13 @@
 ---
 doc-type: issue
 issue-type: enhancement
-status: open
+status: done
 priority: p2
 github-issue: 1640
 spec-path: docs/issues/open/1640-1978-per-http-tracker-on-reverse-proxy-setting.md
 branch: "1640-move-network-to-per-instance-config"
 related-pr: null
-last-updated-utc: 2026-07-21 00:00
+last-updated-utc: 2026-07-21 12:00
 semantic-links:
   skill-links:
     - create-issue
@@ -527,6 +527,7 @@ Append one line per meaningful update.
 - 2026-07-21 00:00 UTC - josecelano - Confirmed `network` as the per-instance field name, aligned with the `Network` type. Confirmed the TOML `[*.network]` block is optional and defaults to `external_ip = None`, `on_reverse_proxy = false`, and `ipv6_v6only = false`.
 - 2026-07-21 00:00 UTC - josecelano - Confirmed the schema compatibility boundary: v3 accepts only per-instance `network` fields and has no fallback or precedence for removed v2 fields. Application migration to v3 remains subissue #1980.
 - 2026-07-21 00:00 UTC - agent - Implemented the v3 schema slice: per-tracker `network` defaults, removed v3 global and flat fields, strict old-layout rejection tests, and ADR. Active runtime consumers remain on v2 and are deferred to #1980.
+- 2026-07-21 12:00 UTC - agent - Marked DONE: PR #2014 merged; v3 schema slice is in `develop`. Runtime consumer tasks (T2–T3c: `handle_announcement` param, `on_reverse_proxy`/`ipv6_v6only`/`external_ip` consumer switch) are tracked under subissue #11 (#1980).
 
 ## Acceptance Criteria
 
