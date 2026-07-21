@@ -179,7 +179,6 @@ RUN mkdir -p \
       packages/rest-api-application/src/lib.rs \
       packages/rest-api-protocol/src/lib.rs \
       packages/rest-api-runtime-adapter/src/lib.rs \
-
       packages/swarm-coordination-registry/src/lib.rs \
       packages/test-helpers/src/lib.rs \
       packages/torrent-repository-benchmarking/src/lib.rs \
