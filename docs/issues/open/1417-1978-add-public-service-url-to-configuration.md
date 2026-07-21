@@ -102,13 +102,13 @@ This catches misconfigurations early (e.g., accidentally setting `public_url = "
 
 | ID  | Status | Task                                                               | Notes                                                                        |
 | --- | ------ | ------------------------------------------------------------------ | ---------------------------------------------------------------------------- |
-| T0  | DONE | Create `v3_0_0/public_url.rs` with `HttpUrl` and `UdpUrl` newtypes | `url` crate; each newtype validates its scheme in its own `Deserialize` impl |
-| T1  | DONE | Add `public_url: Option<HttpUrl>` to `HttpTracker` config          | Default `None`; scheme validated by `HttpUrl`                                |
-| T2  | DONE | Add `public_url: Option<UdpUrl>` to `UdpTracker` config            | Default `None`; scheme validated by `UdpUrl`                                 |
-| T3  | DONE | Add `public_url: Option<HttpUrl>` to `HttpApi` config              | Default `None`; also add `deny_unknown_fields`                               |
-| T4  | DONE | Add `#[serde(deny_unknown_fields)]` to `HealthCheckApi`            | No `public_url` on this struct; consistency-only change                      |
-| T5  | DONE | Document field in crate-level docs and doc comments                | Default config migration is deferred to #1980                                |
-| T6  | DONE | Run `linter all` and tests                                         |                                                                              |
+| T0  | DONE   | Create `v3_0_0/public_url.rs` with `HttpUrl` and `UdpUrl` newtypes | `url` crate; each newtype validates its scheme in its own `Deserialize` impl |
+| T1  | DONE   | Add `public_url: Option<HttpUrl>` to `HttpTracker` config          | Default `None`; scheme validated by `HttpUrl`                                |
+| T2  | DONE   | Add `public_url: Option<UdpUrl>` to `UdpTracker` config            | Default `None`; scheme validated by `UdpUrl`                                 |
+| T3  | DONE   | Add `public_url: Option<HttpUrl>` to `HttpApi` config              | Default `None`; also add `deny_unknown_fields`                               |
+| T4  | DONE   | Add `#[serde(deny_unknown_fields)]` to `HealthCheckApi`            | No `public_url` on this struct; consistency-only change                      |
+| T5  | DONE   | Document field in crate-level docs and doc comments                | Default config migration is deferred to #1980                                |
+| T6  | DONE   | Run `linter all` and tests                                         |                                                                              |
 
 ## Progress Tracking
 
