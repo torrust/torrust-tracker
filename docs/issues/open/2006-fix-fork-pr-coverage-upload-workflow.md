@@ -7,7 +7,7 @@ github-issue: 2006
 spec-path: docs/issues/open/2006-fix-fork-pr-coverage-upload-workflow.md
 branch: "2006-fix-fork-pr-coverage-upload-workflow"
 related-pr: null
-last-updated-utc: 2026-07-20 20:18
+last-updated-utc: 2026-07-21 06:53
 semantic-links:
   skill-links:
     - create-issue
@@ -52,7 +52,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID  | Status | Task                                                     | Notes / Expected Output                                                                                                                                                                          |
 | --- | ------ | -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | T1  | DONE   | Review Codecov action inputs and current artifact layout | Confirmed Codecov's checkout prerequisite and explicit report file and PR/SHA override inputs.                                                                                                   |
-| T2  | DONE   | Update the upload workflow                               | Checks out the trusted default branch before artifact retrieval, removes the fork-SHA `ref`, validates expected artifact files are regular non-symlinks, and retains Codecov metadata overrides. |
+| T2  | DONE   | Update the upload workflow                               | Checks out the trusted default branch before artifact retrieval, removes the fork-SHA `ref`, allowlists and isolates each artifact archive before accepting a regular non-symlink file, and retains Codecov metadata overrides. |
 
 ## Progress Tracking
 
@@ -76,6 +76,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-07-20 17:15 UTC - GitHub Copilot - Confirmed the trusted default-branch checkout remediation, created GitHub issue #2006, and updated this specification.
 - 2026-07-20 17:21 UTC - GitHub Copilot - Moved the trusted default-branch checkout before artifact retrieval and removed the artifact-derived checkout ref; `linter yaml`, `git diff --check`, and independent workflow review passed.
 - 2026-07-20 17:24 UTC - GitHub Copilot - `linter all` passed; fork pull request and Codecov upload verification remain pending a pushed pull request.
+- 2026-07-21 06:53 UTC - GitHub Copilot - Applied follow-up review hardening: each fork-produced artifact archive must contain exactly one expected filename and is extracted in an isolated temporary directory before its regular non-symlink file is accepted; artifact-directory creation is idempotent. `linter all` passed.
 
 ## Acceptance Criteria
 

@@ -1,5 +1,7 @@
 name: Upload Coverage Report (PR)
 
+# cspell:ignore mapfile
+
 on:
   # This workflow is triggered after every successful execution
   # of `Generate Coverage Report` workflow.
@@ -92,18 +94,33 @@ jobs:
       - id: parse_previous_artifacts
         run: |
           artifact_dir=coverage_artifacts
-          mkdir "$artifact_dir"
-          unzip -j codecov_report.zip -d "$artifact_dir"
-          unzip -j pr_number.zip -d "$artifact_dir"
-          unzip -j commit_sha.zip -d "$artifact_dir"
+          mkdir -p "$artifact_dir"
 
-          for artifact_file in codecov.json pr_number.txt commit_sha.txt; do
-            artifact_path="$artifact_dir/$artifact_file"
+          extract_artifact() {
+            archive_path="$1"
+            expected_file="$2"
+            extraction_dir=$(mktemp -d)
+
+            mapfile -t archive_entries < <(unzip -Z1 "$archive_path")
+            if [[ ${#archive_entries[@]} -ne 1 || "${archive_entries[0]}" != "$expected_file" ]]; then
+              echo "Expected only $expected_file in $archive_path" >&2
+              exit 1
+            fi
+
+            unzip -j "$archive_path" -d "$extraction_dir"
+            artifact_path="$extraction_dir/$expected_file"
             if [[ ! -f "$artifact_path" || -L "$artifact_path" ]]; then
               echo "Expected regular artifact file: $artifact_path" >&2
               exit 1
             fi
-          done
+
+            mv "$artifact_path" "$artifact_dir/$expected_file"
+            rmdir "$extraction_dir"
+          }
+
+          extract_artifact codecov_report.zip codecov.json
+          extract_artifact pr_number.zip pr_number.txt
+          extract_artifact commit_sha.zip commit_sha.txt
 
           echo "Detected PR is: $(<"$artifact_dir/pr_number.txt")"
           echo "Detected commit_sha is: $(<"$artifact_dir/commit_sha.txt")"
