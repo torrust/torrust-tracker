@@ -7,7 +7,7 @@ github-issue: 2006
 spec-path: docs/issues/open/2006-fix-fork-pr-coverage-upload-workflow.md
 branch: "2006-fix-fork-pr-coverage-upload-workflow"
 related-pr: null
-last-updated-utc: 2026-07-21 06:53
+last-updated-utc: 2026-07-21 07:37
 semantic-links:
   skill-links:
     - create-issue
@@ -49,10 +49,10 @@ The history shows that the split was introduced in commit [`9d8174df`](https://g
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| ID  | Status | Task                                                     | Notes / Expected Output                                                                                                                                                                          |
-| --- | ------ | -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| T1  | DONE   | Review Codecov action inputs and current artifact layout | Confirmed Codecov's checkout prerequisite and explicit report file and PR/SHA override inputs.                                                                                                   |
-| T2  | DONE   | Update the upload workflow                               | Checks out the trusted default branch before artifact retrieval, removes the fork-SHA `ref`, allowlists and isolates each artifact archive before accepting a regular non-symlink file, and retains Codecov metadata overrides. |
+| ID  | Status | Task                                                     | Notes / Expected Output                                                                                                                                                                                                         |
+| --- | ------ | -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| T1  | DONE   | Review Codecov action inputs and current artifact layout | Confirmed Codecov's checkout prerequisite and explicit report file and PR/SHA override inputs.                                                                                                                                  |
+| T2  | DONE   | Update the upload workflow                               | Checks out the trusted default branch before artifact retrieval, removes the fork-SHA `ref`, allowlists and isolates each artifact archive before accepting a regular non-symlink file, validates artifact metadata before exposing step outputs, and retains Codecov metadata overrides. |
 
 ## Progress Tracking
 
@@ -77,6 +77,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-07-20 17:21 UTC - GitHub Copilot - Moved the trusted default-branch checkout before artifact retrieval and removed the artifact-derived checkout ref; `linter yaml`, `git diff --check`, and independent workflow review passed.
 - 2026-07-20 17:24 UTC - GitHub Copilot - `linter all` passed; fork pull request and Codecov upload verification remain pending a pushed pull request.
 - 2026-07-21 06:53 UTC - GitHub Copilot - Applied follow-up review hardening: each fork-produced artifact archive must contain exactly one expected filename and is extracted in an isolated temporary directory before its regular non-symlink file is accepted; artifact-directory creation is idempotent. `linter all` passed.
+- 2026-07-21 07:37 UTC - GitHub Copilot - Validated numeric pull request numbers and 40-character hexadecimal commit SHAs before writing fork-produced metadata to `$GITHUB_OUTPUT`, preventing output injection. `linter yaml` passed.
 
 ## Acceptance Criteria
 

@@ -122,12 +122,23 @@ jobs:
           extract_artifact pr_number.zip pr_number.txt
           extract_artifact commit_sha.zip commit_sha.txt
 
-          echo "Detected PR is: $(<"$artifact_dir/pr_number.txt")"
-          echo "Detected commit_sha is: $(<"$artifact_dir/commit_sha.txt")"
+          pr_number=$(<"$artifact_dir/pr_number.txt")
+          commit_sha=$(<"$artifact_dir/commit_sha.txt")
+          if [[ ! "$pr_number" =~ ^[0-9]+$ ]]; then
+            echo "Expected numeric pull request number" >&2
+            exit 1
+          fi
+          if [[ ! "$commit_sha" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "Expected 40-character hexadecimal commit SHA" >&2
+            exit 1
+          fi
+
+          echo "Detected PR is: $pr_number"
+          echo "Detected commit_sha is: $commit_sha"
 
           # Make the params available as step output
-          echo "override_pr=$(<"$artifact_dir/pr_number.txt")" >> "$GITHUB_OUTPUT"
-          echo "override_commit=$(<"$artifact_dir/commit_sha.txt")" >> "$GITHUB_OUTPUT"
+          echo "override_pr=$pr_number" >> "$GITHUB_OUTPUT"
+          echo "override_commit=$commit_sha" >> "$GITHUB_OUTPUT"
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v7
