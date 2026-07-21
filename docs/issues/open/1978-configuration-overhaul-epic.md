@@ -4,7 +4,7 @@ status: open
 github-issue: 1978
 spec-path: docs/issues/open/1978-configuration-overhaul-epic.md
 epic-owner: josecelano
-last-updated-utc: 2026-07-21 00:00
+last-updated-utc: 2026-07-21 12:00
 semantic-links:
   skill-links:
     - create-issue
@@ -85,8 +85,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ----- | -------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- | ----------- | ------------------------------------------------------------------------------- |
 | 1     | [#1979](../../issues/1979) — Copy `v2_0_0` → `v3_0_0` as baseline                                              | `docs/issues/open/1979-1978-copy-configuration-schema-v2-to-v3-baseline.md`             | DONE        | Merged in PR #1999; v3 baseline and smoke tests are in `develop`                |
 | 2     | [#1981](../../issues/1981) — Fix `tsl_config` → `tls_config` typo                                              | `docs/issues/open/1981-1978-fix-tsl-config-tls-config-typo.md`                          | DONE        | Implemented for v3; v2 compatibility retained until final migration             |
-| 3     | [#1640](../../issues/1640) — Support per-HTTP-tracker `on_reverse_proxy` setting                               | `docs/issues/open/1640-1978-per-http-tracker-on-reverse-proxy-setting.md`               | IN_PROGRESS | Heaviest change (~30 files); establishes per-instance `Network` block           |
-| 4     | [#1417](../../issues/1417) — Include public service URL in configuration                                       | `docs/issues/open/1417-1978-add-public-service-url-to-configuration.md`                 | TODO        | Depends on #3 for `Network` placement decision; adds flat `public_url` field    |
+| 3     | [#1640](../../issues/1640) — Support per-HTTP-tracker `on_reverse_proxy` setting                               | `docs/issues/open/1640-1978-per-http-tracker-on-reverse-proxy-setting.md`               | DONE        | Merged in PR #2014; v3 schema slice complete; runtime consumers deferred to #11 |
+| 4     | [#1417](../../issues/1417) — Include public service URL in configuration                                       | `docs/issues/open/1417-1978-add-public-service-url-to-configuration.md`                 | IN_PROGRESS | Flat `public_url` field on all four config structs; protocol validation         |
 | 5     | [#1415](../../issues/1415) — Use `ServiceBinding` instead of bare `SocketAddr` for service identity            | `docs/issues/open/1415-1978-use-service-binding-instead-of-socket-addr.md`              | TODO        | Independent; no config changes; can be parallel with #6, #7, #8, #9             |
 | 6     | [#1453](../../issues/1453) — IP bans reset interval configurable + fix duplicate cleanup                       | `docs/issues/open/1453-1978-ip-bans-reset-interval-configurable.md`                     | TODO        | Independent global UDP policy; implement before #7 to establish its boundary    |
 | 7     | [#1136](../../issues/1136) — Add configurable UDP connection ID validation policy                              | `docs/issues/open/1136-1978-configurable-udp-connection-id-validation-policy.md`        | TODO        | Independent per-listener policy; ordered after related global ban cleanup in #6 |
@@ -208,6 +208,9 @@ For each subissue implementation in this EPIC, the default completion policy is:
 - 2026-07-21 00:00 UTC - josecelano - Confirmed schema compatibility boundary for #1640:
   v3 uses only the new per-instance `network` fields with no fallback or precedence for removed
   v2 fields. The application-wide v2-to-v3 consumer and default-config migration remains #1980.
+- 2026-07-21 00:00 UTC - agent - Marked #1640 DONE: PR #2014 merged the v3 schema slice;
+  deferred runtime-consumer tasks (T2–T3c) are tracked under #1980. Started #1417 as next
+  subissue: flat `public_url: Option<String>` with protocol validation on all four config structs.
 
 ## Acceptance Criteria
 
