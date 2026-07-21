@@ -16,7 +16,6 @@ semantic-links:
     - .github/skills/dev/planning/create-issue/SKILL.md
 ---
 
-
 # EPIC #1840 - Improve PR Workflow Performance
 
 ## Goal
@@ -81,7 +80,7 @@ Ordering policy:
 | 11    | #[To be assigned] - Publish stable base stages as pre-built Docker Hub images (p3, deferred) | `docs/issues/drafts/1840-workflow-performance-prebuilt-base-images/ISSUE.md`                      | TODO       | Low priority. Base stages (`chef`, `tester`, `gcc`) are fast (3–7 min cold). Compile dominates (35+ min). Revisit if base stages grow or if CI runner cold-cache frequency increases.                                                                                                                                                                                                       |
 | 12    | #[To be assigned] - Pass Cargo registry/git caches into BuildKit cook stages                 | `docs/issues/drafts/1840-workflow-performance-buildkit-cargo-cache-mounts/ISSUE.md`               | TODO       | Adds `--mount=type=cache` for registry/git to cook stages. Local benefit: saves ~7 s download per cook rebuild (cold fetch 6.9 s → warm 0.16 s; registry 823 MB). CI benefit: none with ephemeral GitHub Actions runners (`type=gha` layer cache does not persist cache mount volumes). Evaluate target-dir cache mount variant as T5.                                                      |
 | 13    | #[To be assigned] - Apply Profile-Guided Optimization (PGO) to the tracker release binary    | `docs/issues/drafts/1840-workflow-performance-pgo-optimization.md`                                | TODO       | Deferred. Instrumentation PGO requires a double-compile pass which adds CI time — a direct cost against this EPIC's goals. Must measure CI overhead (T4/T5 in spec) and weigh against binary performance gains before enabling. Prerequisites: LTO already enabled in `[profile.release]`. Tooling: `cargo-pgo`. Training workload to be defined against realistic announce/scrape traffic. |
-| 14    | #1875 - Review and fix `lto = "fat"` in `[profile.dev]`                                      | `docs/issues/open/1875-review-lto-fat-in-dev-profile.md`                                          | TODO       | `lto = "fat"` in `[profile.dev]` was added in 2024 as a Docker/LLVM bitcode workaround (commit `3c715fbb`). With MSRV 1.88 and a stable toolchain in the Containerfile, the workaround may no longer be needed. Removing it should reduce CI test compile time (testing.yaml runs without `--release`) and Docker cook step time.                                                           |
+| 14    | #1875 - Review and fix `lto = "fat"` in `[profile.dev]`                                      | `docs/issues/open/1875-review-lto-fat-in-dev-profile/ISSUE.md`                                    | IN_REVIEW  | `lto = "fat"` in `[profile.dev]` was added in 2024 as a Docker/LLVM bitcode workaround (commit `3c715fbb`). The issue removes the development-profile override and retains release fat LTO; PR #2013 is under review.                                                                                                                                                                       |
 
 ## Delivery Strategy
 
@@ -146,7 +145,8 @@ Append one line per meaningful update.
 - 2026-06-03 00:00 UTC - GitHub Copilot - Marked #1853 DONE (merged PR #1867); added follow-up subissue #1868 (row 4.1) for `--exclude` fix based on post-merge CI analysis showing `workspace-coupling` still compiled (~840s gap, 19m03s total build step)
 - 2026-06-03 00:00 UTC - GitHub Copilot - Created GitHub issue #1869 and promoted dependency-layer-cache-reuse spec to `docs/issues/open/` (row 7)
 - 2026-06-03 00:00 UTC - GitHub Copilot - Added deferred subissue row 13 for PGO optimization of the release binary; draft spec at `docs/issues/drafts/1840-workflow-performance-pgo-optimization.md`
-- 2026-06-03 00:00 UTC - GitHub Copilot - Created GitHub issue #1875 and added subissue row 14 for reviewing `lto = "fat"` in `[profile.dev]`; spec at `docs/issues/open/1875-review-lto-fat-in-dev-profile.md`
+- 2026-06-03 00:00 UTC - GitHub Copilot - Created GitHub issue #1875 and added subissue row 14 for reviewing `lto = "fat"` in `[profile.dev]`; spec at `docs/issues/open/1875-review-lto-fat-in-dev-profile/ISSUE.md`
+- 2026-07-21 00:00 UTC - GitHub Copilot - Updated subissue #1875 to IN_REVIEW; its folder-format spec is at `docs/issues/open/1875-review-lto-fat-in-dev-profile/ISSUE.md` and implementation PR #2013 is open.
 - 2026-06-09 00:00 UTC - GitHub Copilot - Updated row 10 (split-external-dep-cache-layer draft) to SUPERSEDED: the `--external-only` cargo-chef flag was implemented in a `torrust-cargo-chef` fork during #1869 investigation, directly addressing T3; row 7 (#1869) now covers implementation of the three-layer cook pattern
 - 2026-06-09 00:00 UTC - GitHub Copilot - Marked row 7 (#1869) as DONE: three-layer cook pattern implemented, verified locally (release + debug builds pass, third-party layer CACHED on app-code-only changes)
 
