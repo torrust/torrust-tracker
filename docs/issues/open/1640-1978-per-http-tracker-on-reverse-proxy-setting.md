@@ -54,6 +54,18 @@ Give each tracker instance (`HttpTracker` and `UdpTracker`) its own `Network` co
 
 **End state**: Every tracker instance has its own networking config — socket behaviour, proxy awareness, and peer-IP replacement are all per-instance concerns. The shared `Core` only holds truly cross-cutting settings (database, policy, private mode).
 
+### Schema Compatibility Boundary
+
+This issue changes **only schema `v3.0.0`**. Schema `v2.0.0` remains unchanged in its
+separate module for compatibility, but `v3_0_0` must exclusively use the per-instance
+`network` fields. It must not deserialize, fall back to, or define precedence for the
+removed `[core.net]` section or the removed flat `ipv6_v6only` fields.
+
+The application-wide migration from v2 configuration types to v3 configuration types is
+the responsibility of EPIC subissue #1980. Once that migration is complete, production
+code will use only the v3 per-instance `network` values. No runtime compatibility bridge
+between the v2 and v3 field layouts is required or permitted.
+
 ## Background
 
 The issue was originally opened to allow per-HTTP-tracker `on_reverse_proxy` settings. During analysis we discovered a broader architectural problem: the entire `Network` struct (`external_ip`, `on_reverse_proxy`, `ipv6_v6only`) lived in `[core.net]` as a **global singleton** shared by all tracker instances. This caused three separate issues:
@@ -379,24 +391,20 @@ pub async fn handle_announcement(
 - Update all callers of `handle_announcement()` (HTTP services, UDP services, tests) to pass per-instance `external_ip`
 - Update all consumers of `ipv6_v6only` to read from `HttpTracker.network` / `UdpTracker.network` instead of flat struct fields
 - Remove deprecated flat `ipv6_v6only` fields from `HttpTracker` and `UdpTracker`
-- Update test helpers, default config TOML files, integration tests, docs, and doc comments
+- Update v3 configuration tests, docs, and doc comments
 - Write ADR for the architecture decision
 
 ### Out of Scope
 
 - TOML config migration tooling
+- Migrating application consumers, test helpers, or default configuration files from schema v2 to v3 (subissue #1980)
+- Supporting removed v2 fields in schema v3 or defining old-versus-new field precedence
 
 ## Approach B — Per-instance services (chosen)
 
 For the `on_reverse_proxy` threading, we use **Approach B** (as analysed earlier): each `HttpTrackerCoreContainer` creates per-instance `AnnounceService` and `ScrapeService` storing their own `ReverseProxyMode`. This avoids extending Axum state tuples and keeps handler signatures stable. The full analysis is preserved below in the appendix.
 
-## Implementation Strategy: Baby Steps + Parallel Changes + Draft PR
-
-**Key principles**:
-
-1. **Baby steps**: Each commit is a small, verifiable change
-2. **Parallel changes**: Introduce new code paths alongside old ones before deleting the old ones
-3. **Draft PR**: Open early and keep updated after each commit, running CI checks continuously
+## Implementation Strategy
 
 ### Phase 0 — ADR
 
@@ -406,9 +414,11 @@ Write the Architectural Decision Record documenting:
 - Why `external_ip` becomes a parameter of `handle_announcement()`
 - Why `ipv6_v6only` joins `Network`
 
-### Phase 1 — Add `network: Network` to `HttpTracker` and `UdpTracker` (parallel add)
+### Phase 1 — Define the v3 per-instance `Network`
 
-Add the new `network: Network` field to both tracker config structs. Keep the old fields (`core.net`, flat `ipv6_v6only`) for now. `Network` gains `ipv6_v6only`. The TOML block is optional and deserializes to the safe defaults below when omitted.
+Add the new `network: Network` field to both tracker config structs. Remove `core.net` and the
+flat `ipv6_v6only` fields from v3 at the same time. `Network` gains `ipv6_v6only`. The TOML
+block is optional and deserializes to the safe defaults below when omitted.
 
 Default for `Network`:
 
@@ -420,11 +430,13 @@ Network {
 }
 ```
 
-**Verification**: Config deserialization still works with both old and new formats. All existing tests pass unchanged.
+**Verification**: V3 configuration deserializes with an omitted `network` block and rejects the
+removed v2 field layout. Schema v2 tests remain unchanged.
 
 ### Phase 2 — Modify `AnnounceHandler::handle_announcement()` to accept `external_ip`
 
-Add `tracker_external_ip: Option<IpAddr>` parameter to `handle_announcement()`. The callers temporarily pass the old global `external_ip` value (still reading from `core.net` for now).
+Add `tracker_external_ip: Option<IpAddr>` parameter to `handle_announcement()`. V3 consumers
+pass their instance's `network.external_ip`; no caller reads `core.net`.
 
 **Verification**: All `handle_announcement()` call sites compile. No behaviour change.
 
@@ -451,14 +463,12 @@ This is the largest phase, split into sub-tasks (each committed and CI-verified 
 - `http-core` tests: Pass per-tracker `external_ip` to `handle_announcement()` (now available from `http_tracker_config.network.external_ip`)
 - `axum-http-server` contract tests: Same
 
-### Phase 4 — Remove deprecated fields
+### Phase 4 — Complete the v3 schema boundary
 
 - Delete `core.net` from `Core` struct. Keep `network.rs` with both `Network` and `ExternalIp` — both `HttpTracker` and `UdpTracker` import `Network` from there (single definition, no duplication).
 - Delete flat `ipv6_v6only` fields from `HttpTracker` and `UdpTracker`
 - Delete `get_ext_ip()` from `Configuration` (no longer needed — each instance has its own `external_ip`)
-- Update default TOML files to use the new format
-- Update all doc comments and crate-level docs
-- Update `docs/containers.md`
+- Update v3 doc comments and crate-level docs
 
 ### Phase 5 — Final verification
 
@@ -471,18 +481,17 @@ This is the largest phase, split into sub-tasks (each committed and CI-verified 
 
 **Chosen approach**: **Approach B** (per-instance services with `reverse_proxy_mode` field) for `on_reverse_proxy` threading.
 
-| ID  | Phase | Status | Task                                                                          | Notes                                                                                                 |
-| --- | ----- | ------ | ----------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| T0  | 0     | TODO   | Write ADR                                                                     | Record: move `Network` to per-instance, parameterize `external_ip`, join `ipv6_v6only` into `Network` |
-| T1  | 1     | TODO   | Add `network: Network` (with `ipv6_v6only`) to `HttpTracker` and `UdpTracker` | Parallel add — old fields kept. TOML block defaults safely when omitted                               |
-| T2  | 2     | TODO   | Add `tracker_external_ip` param to `handle_announcement()`                    | Callers pass old global value temporarily                                                             |
-| T3a | 3a    | TODO   | Switch `on_reverse_proxy` consumers to per-instance                           | Approach B: per-instance services with `ReverseProxyMode`                                             |
-| T3b | 3b    | TODO   | Switch `ipv6_v6only` consumers to `network.ipv6_v6only`                       | HTTP + UDP server launchers, tests                                                                    |
-| T3c | 3c    | TODO   | Switch `external_ip` consumers                                                | All callers of `handle_announcement()` pass per-instance value                                        |
-| T4  | 4     | TODO   | Remove deprecated fields                                                      | `core.net`, flat `ipv6_v6only`, `get_ext_ip()`                                                        |
-| T5  | 4     | TODO   | Update default config TOML files                                              | 6 files in `share/default/config/`                                                                    |
-| T6  | 4     | TODO   | Update docs and doc comments                                                  | `mod.rs`, `lib.rs`, `containers.md`, `tracker-core/lib.rs`, `extractors/client_ip_sources.rs`         |
-| T7  | 5     | TODO   | Run `linter all` and full test suite                                          |                                                                                                       |
+| ID  | Phase | Status | Task                                                                                | Notes                                                                                                 |
+| --- | ----- | ------ | ----------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| T0  | 0     | TODO   | Write ADR                                                                           | Record: move `Network` to per-instance, parameterize `external_ip`, join `ipv6_v6only` into `Network` |
+| T1  | 1     | TODO   | Define v3 `network: Network` (with `ipv6_v6only`) in `HttpTracker` and `UdpTracker` | Removed v2 fields are not accepted in v3; TOML block defaults safely when omitted                     |
+| T2  | 2     | TODO   | Add `tracker_external_ip` param to `handle_announcement()`                          | Callers pass the instance's `network.external_ip`                                                     |
+| T3a | 3a    | TODO   | Switch `on_reverse_proxy` consumers to per-instance                                 | Approach B: per-instance services with `ReverseProxyMode`                                             |
+| T3b | 3b    | TODO   | Switch `ipv6_v6only` consumers to `network.ipv6_v6only`                             | HTTP + UDP server launchers, tests                                                                    |
+| T3c | 3c    | TODO   | Switch `external_ip` consumers                                                      | All callers of `handle_announcement()` pass per-instance value                                        |
+| T4  | 4     | TODO   | Remove deprecated fields                                                            | `core.net`, flat `ipv6_v6only`, `get_ext_ip()`                                                        |
+| T5  | 4     | TODO   | Update v3 documentation and doc comments                                            | V3 configuration module and relevant crate docs                                                       |
+| T7  | 5     | TODO   | Run `linter all` and full test suite                                                |                                                                                                       |
 
 ## Progress Tracking
 
@@ -491,12 +500,12 @@ This is the largest phase, split into sub-tasks (each committed and CI-verified 
 - [ ] Spec drafted in `docs/issues/open/`
 - [ ] Spec reviewed and approved by user/maintainer
 - [ ] Phase 0: ADR created
-- [ ] Phase 1: `network: Network` added to `HttpTracker` and `UdpTracker` (parallel with old fields)
+- [ ] Phase 1: v3 `network: Network` replaces `core.net` and flat `ipv6_v6only`
 - [ ] Phase 2: `handle_announcement()` accepts `tracker_external_ip` param
 - [ ] Phase 3a: `on_reverse_proxy` consumers switched to per-instance
 - [ ] Phase 3b: `ipv6_v6only` consumers switched to `network.ipv6_v6only`
 - [ ] Phase 3c: `external_ip` consumers switched to per-instance
-- [ ] Phase 4: Deprecated fields removed (`core.net`, flat `ipv6_v6only`)
+- [ ] Phase 4: V3 schema boundary complete (`core.net`, flat `ipv6_v6only`, `get_ext_ip()` removed)
 - [ ] Phase 5: Final verification completed (`linter all`, full test suite)
 - [ ] Manual verification scenarios executed and recorded (status + evidence)
 - [ ] Acceptance criteria reviewed after implementation and updated with evidence
@@ -516,6 +525,7 @@ Append one line per meaningful update.
 - 2026-06-23 18:30 UTC - Copilot - Completed deep review against ADRs 20260617093046, 20260620000000, 20260527175600 and issues #1417, #1671. Added compatibility table and migration note.
 - 2026-07-14 00:00 UTC - josecelano - Resolved #1417 relationship: `public_url` is in this EPIC (not future), stays flat (not inside `Network`). Replaced "Future Extensions" section with "Related Issue: #1417" section. Updated config types to show `public_url` as `‡` field. Added versioning note (app 4.0.0, config schema 3.0.0).
 - 2026-07-21 00:00 UTC - josecelano - Confirmed `network` as the per-instance field name, aligned with the `Network` type. Confirmed the TOML `[*.network]` block is optional and defaults to `external_ip = None`, `on_reverse_proxy = false`, and `ipv6_v6only = false`.
+- 2026-07-21 00:00 UTC - josecelano - Confirmed the schema compatibility boundary: v3 accepts only per-instance `network` fields and has no fallback or precedence for removed v2 fields. Application migration to v3 remains subissue #1980.
 
 ## Acceptance Criteria
 
@@ -526,7 +536,8 @@ Append one line per meaningful update.
 - [ ] AC5: `AnnounceHandler::handle_announcement()` accepts `tracker_external_ip` per-call instead of reading from global config
 - [ ] AC6: Two HTTP trackers with different `on_reverse_proxy` settings behave independently: - Tracker A (`on_reverse_proxy = true`) reads `X-Forwarded-For` headers - Tracker B (`on_reverse_proxy = false` or unset) reads connection info IP
 - [ ] AC7: Example `http_only_public_tracker.rs` builds with the new `HttpTracker.network.on_reverse_proxy` field
-- [ ] AC8: All default config files and docs use the new format
+- [ ] AC8: V3 configuration documentation uses the new format; active application default configuration migration is deferred to #1980
+- [ ] AC9: Schema v3 rejects `[core.net]` and flat tracker `ipv6_v6only` fields; it does not define old-versus-new precedence
 - [ ] `linter all` exits with code `0`
 - [ ] Relevant tests pass
 - [ ] Manual verification scenarios are executed and documented (status + evidence)

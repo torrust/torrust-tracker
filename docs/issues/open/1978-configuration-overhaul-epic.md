@@ -146,7 +146,7 @@ Subissues #5, #6, #7, #9 are independent and can run in parallel with the critic
 
 ### Phase 1: Structural changes (sequential)
 
-- **Subissue #3** (#1640) — Per-instance `Network` block. Heaviest change (~30 files). Establishes the `Network` struct that #4 references.
+- **Subissue #3** (#1640) — Per-instance `Network` block in schema v3.0.0. Establishes the `Network` struct that #4 references; v3 does not support removed v2 field names.
 - **Subissue #8** (#1490) — Database enum decomposition + `secrecy` crate. After #3 (both touch `Core`). ~35 files.
 - **Subissue #4** (#1417) — `public_url` flat field. After #3 (depends on `Network` placement decision). ~6 files.
 - **Subissue #10** (#1987) — Opt-in use of the HTTP announce `ip` parameter. After #3 and external prerequisite #1985.
@@ -205,6 +205,9 @@ For each subissue implementation in this EPIC, the default completion policy is:
 - 2026-07-21 00:00 UTC - agent - Started #1640 as the next sequential EPIC subissue.
   Maintainer confirmed the per-instance field as `network: Network`; its TOML block is optional
   and defaults to `external_ip = None`, `on_reverse_proxy = false`, and `ipv6_v6only = false`.
+- 2026-07-21 00:00 UTC - josecelano - Confirmed schema compatibility boundary for #1640:
+  v3 uses only the new per-instance `network` fields with no fallback or precedence for removed
+  v2 fields. The application-wide v2-to-v3 consumer and default-config migration remains #1980.
 
 ## Acceptance Criteria
 
