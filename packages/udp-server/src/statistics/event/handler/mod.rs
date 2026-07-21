@@ -2,6 +2,7 @@ mod error;
 mod request_aborted;
 mod request_accepted;
 mod request_banned;
+mod request_discarded;
 mod request_received;
 mod response_sent;
 
@@ -14,6 +15,9 @@ pub async fn handle_event(event: Event, stats_repository: &Repository, now: Dura
     match event {
         Event::UdpRequestAborted { context } => {
             request_aborted::handle_event(context, stats_repository, now).await;
+        }
+        Event::UdpRequestDiscarded { context } => {
+            request_discarded::handle_event(context, stats_repository, now).await;
         }
         Event::UdpRequestBanned { context } => {
             request_banned::handle_event(context, stats_repository, now).await;
