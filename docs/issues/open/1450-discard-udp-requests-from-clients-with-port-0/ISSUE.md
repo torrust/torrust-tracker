@@ -53,11 +53,11 @@ them just like any other UDP packet.
 ### Current behaviour
 
 The tracker received UDP packets from clients whose source port is `0` in the UDP
-header. This is an invalid socket address — no response can ever be delivered to
-`<ip>:0`. The current code processes the request fully (parses it, executes the
-handler, serializes the response) and only discovers the problem when it calls
-`send_to`, which returns `EINVAL` (OS error 22). The failure is then logged as a
-`WARN`, polluting production logs.
+header. Although RFC 768 does not forbid source port 0, no response can ever be
+delivered to `<ip>:0`. The current code processes the request fully (parses it,
+executes the handler, serializes the response) and only discovers the problem when
+it calls `send_to`, which returns `EINVAL` (OS error 22). The failure is then
+logged as a `WARN`, polluting production logs.
 
 Example from the demo tracker logs:
 
