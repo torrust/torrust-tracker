@@ -1,6 +1,9 @@
 //! Per-tracker network topology configuration for schema v3.
 //!
 //! adr: `docs/adrs/20260721000000_make_network_configuration_per_tracker_instance.md`
+//!
+//! **Field type convention**: use typed newtypes for fields with domain constraints —
+//! not `String` or other unvalidated primitives. See [`crate::v3_0_0::public_url`].
 
 use std::convert::TryFrom;
 use std::fmt;

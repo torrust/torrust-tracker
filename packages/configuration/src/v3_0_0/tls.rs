@@ -1,3 +1,7 @@
+//! TLS certificate configuration for schema v3.
+//!
+//! **Field type convention**: use typed newtypes for fields with domain constraints —
+//! not `String` or other unvalidated primitives. See [`crate::v3_0_0::public_url`].
 use camino::Utf8PathBuf;
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
