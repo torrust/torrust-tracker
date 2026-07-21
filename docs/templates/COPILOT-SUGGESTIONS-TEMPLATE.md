@@ -6,6 +6,8 @@ semantic-links:
     - .github/skills/dev/pr-reviews/process-copilot-suggestions/SKILL.md
 ---
 
+<!-- cspell:disable -->
+
 <!-- skill-link: process-copilot-suggestions -->
 
 # PR #<PR_NUMBER> Copilot Suggestions Tracking
