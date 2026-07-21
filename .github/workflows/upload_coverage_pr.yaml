@@ -96,10 +96,11 @@ jobs:
           artifact_dir=coverage_artifacts
           mkdir -p "$artifact_dir"
 
-          extract_artifact() {
+          extract_artifact() (
             archive_path="$1"
             expected_file="$2"
             extraction_dir=$(mktemp -d)
+            trap 'rm -rf "$extraction_dir"' EXIT
 
             mapfile -t archive_entries < <(unzip -Z1 "$archive_path")
             if [[ ${#archive_entries[@]} -ne 1 || "${archive_entries[0]}" != "$expected_file" ]]; then
@@ -115,8 +116,7 @@ jobs:
             fi
 
             mv "$artifact_path" "$artifact_dir/$expected_file"
-            rmdir "$extraction_dir"
-          }
+          )
 
           extract_artifact codecov_report.zip codecov.json
           extract_artifact pr_number.zip pr_number.txt

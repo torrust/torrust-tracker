@@ -13,7 +13,7 @@ semantic-links:
 
 Source: Copilot PR review threads for https://github.com/torrust/torrust-tracker/pull/2008
 
-<!-- cspell:ignore PRRT_kwDOGp2yqc6SVFOl PRRT_kwDOGp2yqc6SVFPE PRRT_kwDOGp2yqc6SWYB_ PRRT_kwDOGp2yqc6SWYCe PRRT_kwDOGp2yqc6SWYC3 PRRT_kwDOGp2yqc6SX7AO PRRT_kwDOGp2yqc6SX7Ah PRRT_kwDOGp2yqc6SX7A1 PRRT_kwDOGp2yqc6SfBQ1 PRRT_kwDOGp2yqc6SfecS SWYB -->
+<!-- cspell:ignore PRRT_kwDOGp2yqc6SVFOl PRRT_kwDOGp2yqc6SVFPE PRRT_kwDOGp2yqc6SWYB_ PRRT_kwDOGp2yqc6SWYCe PRRT_kwDOGp2yqc6SWYC3 PRRT_kwDOGp2yqc6SX7AO PRRT_kwDOGp2yqc6SX7Ah PRRT_kwDOGp2yqc6SX7A1 PRRT_kwDOGp2yqc6SfBQ1 PRRT_kwDOGp2yqc6SfecS PRRT_kwDOGp2yqc6SgaMi PRRT_kwDOGp2yqc6SgaM_ SWYB subshell -->
 
 Status legend:
 
@@ -42,8 +42,8 @@ Status legend:
 - 2026-07-20: Started processing three newly received Copilot suggestions.
 - 2026-07-21: Replied to and resolved all three newly processed Copilot review threads.
 - 2026-07-21: Started processing an additional Copilot suggestion.
-- 2026-07-21: Started processing an additional Copilot suggestion.
 - 2026-07-21: Replied to and resolved the final two processed Copilot review threads.
+- 2026-07-21: Started processing two newly received Copilot suggestions.
 
 ## Suggestions
 
@@ -59,6 +59,8 @@ Status legend:
 | 8   | PRRT_kwDOGp2yqc6SX7A1 | `docs/pr-reviews/pr-2008-copilot-suggestions.md`                | https://github.com/torrust/torrust-tracker/pull/2008#discussion_r3617362517 | Restore the exact opaque thread ID in row 3.                                                | action: restored `PRRT_kwDOGp2yqc6SWYB_` and retained it in the scoped cspell ignore directive.                                                           | DONE   | RESOLVED     |
 | 9   | PRRT_kwDOGp2yqc6SfBQ1 | `docs/pr-reviews/pr-2008-copilot-suggestions.md`                | https://github.com/torrust/torrust-tracker/pull/2008#discussion_r3620043755 | Add the tracker skill-link marker.                                                          | action: added `<!-- skill-link: process-copilot-suggestions -->` for the governing review workflow.                                                       | DONE   | RESOLVED     |
 | 10  | PRRT_kwDOGp2yqc6SfecS | `.github/workflows/upload_coverage_pr.yaml`                     | https://github.com/torrust/torrust-tracker/pull/2008#discussion_r3620210121 | Validate untrusted artifact metadata before writing step outputs.                           | action: require a numeric PR number and 40-character hexadecimal SHA before emitting Codecov metadata outputs.                                            | DONE   | RESOLVED     |
+| 11  | PRRT_kwDOGp2yqc6SgaMi | `docs/pr-reviews/pr-2008-copilot-suggestions.md`                | https://github.com/torrust/torrust-tracker/pull/2008#discussion_r3620551890 | Remove the duplicate processing-log entry.                                                  | action: removed the repeated event so each review-batch milestone appears once.                                                                            | DONE   | OPEN         |
+| 12  | PRRT_kwDOGp2yqc6SgaM_ | `.github/workflows/upload_coverage_pr.yaml`                     | https://github.com/torrust/torrust-tracker/pull/2008#discussion_r3620551932 | Clean temporary extraction directories on all paths.                                        | action: run extraction in a subshell with an `EXIT` trap that removes its temporary directory.                                                             | DONE   | OPEN         |
 
 ## Notes
 
