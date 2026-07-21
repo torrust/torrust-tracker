@@ -41,6 +41,7 @@ pub fn metrics_response(stats: &Stats) -> Response {
     lines.push(format!("tcp6_scrapes_handled {}", stats.tcp6_scrapes_handled));
 
     // UDP
+    lines.push(format!("udp_requests_discarded {}", stats.udp_requests_discarded));
     lines.push(format!("udp_requests_aborted {}", stats.udp_requests_aborted));
     lines.push(format!("udp_requests_banned {}", stats.udp_requests_banned));
     lines.push(format!("udp_banned_ips_total {}", stats.udp_banned_ips_total));

@@ -74,6 +74,7 @@ impl StatsQueryPort for TrackerStatsAdapter {
             tcp6_scrapes_handled: http_stats.tcp6_scrapes_handled(),
 
             // UDP
+            udp_requests_discarded: udp_server_stats.udp_requests_discarded_total(),
             udp_requests_aborted: udp_server_stats.udp_requests_aborted_total(),
             udp_requests_banned: udp_server_stats.udp_requests_banned_total(),
             udp_banned_ips_total: udp_server_stats.udp_banned_ips_total(),

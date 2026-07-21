@@ -33,6 +33,8 @@ pub struct Stats {
     pub tcp6_scrapes_handled: u64,
 
     // UDP
+    /// Total number of UDP (UDP tracker) requests discarded before processing (e.g. client source port is 0).
+    pub udp_requests_discarded: u64,
     /// Total number of UDP (UDP tracker) requests aborted.
     pub udp_requests_aborted: u64,
     /// Total number of UDP (UDP tracker) requests banned.
