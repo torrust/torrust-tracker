@@ -7,7 +7,7 @@ github-issue: 2006
 spec-path: docs/issues/open/2006-fix-fork-pr-coverage-upload-workflow.md
 branch: "2006-fix-fork-pr-coverage-upload-workflow"
 related-pr: null
-last-updated-utc: 2026-07-20 17:21
+last-updated-utc: 2026-07-20 20:18
 semantic-links:
   skill-links:
     - create-issue
@@ -49,10 +49,10 @@ The history shows that the split was introduced in commit [`9d8174df`](https://g
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| ID  | Status | Task                                                     | Notes / Expected Output                                                                                                                                 |
-| --- | ------ | -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| T1  | DONE   | Review Codecov action inputs and current artifact layout | Confirmed Codecov's checkout prerequisite and explicit report file and PR/SHA override inputs.                                                          |
-| T2  | DONE   | Update the upload workflow                               | Moved the default-branch checkout before artifact retrieval and removed the fork-SHA `ref`, retaining artifact download and Codecov metadata overrides. |
+| ID  | Status | Task                                                     | Notes / Expected Output                                                                                                                                                                          |
+| --- | ------ | -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| T1  | DONE   | Review Codecov action inputs and current artifact layout | Confirmed Codecov's checkout prerequisite and explicit report file and PR/SHA override inputs.                                                                                                   |
+| T2  | DONE   | Update the upload workflow                               | Checks out the trusted default branch before artifact retrieval, removes the fork-SHA `ref`, validates expected artifact files are regular non-symlinks, and retains Codecov metadata overrides. |
 
 ## Progress Tracking
 
@@ -62,7 +62,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
 - [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
-- [ ] Implementation completed
+- [x] Implementation completed
 - [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [ ] Manual verification scenarios executed and recorded (status + evidence)
 - [ ] Acceptance criteria reviewed after implementation and updated with evidence
@@ -87,7 +87,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Relevant tests pass.
 - [ ] Manual verification scenarios are executed and documented (status + evidence).
 - [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior.
-- [ ] Documentation is updated when behavior/workflow changes.
+- [x] Documentation is updated when behavior/workflow changes.
 
 ## Verification Plan
 
