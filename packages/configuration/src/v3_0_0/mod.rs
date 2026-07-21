@@ -77,12 +77,12 @@
 //!
 //! where the application stores all the persistent data.
 //!
-//! Alternatively, you could setup a reverse proxy like Nginx or Apache to
+//! Alternatively, you could set up a reverse proxy like Nginx or Apache to
 //! handle the SSL/TLS part and forward the requests to the tracker. If you do
 //! that, you should set
 //! [`http_trackers.network.on_reverse_proxy`](crate::v3_0_0::network::Network::on_reverse_proxy)
 //! to `true` for that tracker in the configuration file. It's out of scope for this
-//! documentation to explain in detail how to setup a reverse proxy, but the
+//! documentation to explain in detail how to set up a reverse proxy, but the
 //! configuration file should be something like this:
 //!
 //! For [NGINX](https://docs.nginx.com/nginx/admin-guide/web-server/reverse-proxy/):
@@ -495,7 +495,7 @@ mod tests {
     }
 
     #[test]
-    fn configuration_should_not_contain_an_external_ip_by_default() {
+    fn tracker_defaults_should_not_contain_an_external_ip() {
         assert_eq!(HttpTracker::default().network.external_ip, None);
         assert_eq!(UdpTracker::default().network.external_ip, None);
     }
