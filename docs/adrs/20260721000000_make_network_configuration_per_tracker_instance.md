@@ -1,11 +1,16 @@
 ---
 semantic-links:
+  skill-links:
+    - create-adr
   related-artifacts:
-    - docs/issues/open/1640-1978-per-http-tracker-on-reverse-proxy-setting.md
+    - issue #1640
+    - issue #1978
     - packages/configuration/src/v3_0_0/network.rs
     - packages/configuration/src/v3_0_0/http_tracker.rs
     - packages/configuration/src/v3_0_0/udp_tracker.rs
     - packages/configuration/src/v3_0_0/core.rs
+    - docs/adrs/20260617093046_reject_wildcard_external_ip.md
+    - docs/adrs/20260620000000_add_ipv6_v6only_config_option.md
 ---
 
 # Make Network Configuration Per Tracker Instance
@@ -65,10 +70,3 @@ and socket behavior.
 ## Date
 
 2026-07-21
-
-## References
-
-- Issue [#1640](https://github.com/torrust/torrust-tracker/issues/1640)
-- EPIC [#1978](https://github.com/torrust/torrust-tracker/issues/1978)
-- [Reject wildcard IPs as invalid `external_ip` values](20260617093046_reject_wildcard_external_ip.md)
-- [Add `ipv6_v6only` config option for separate sockets](20260620000000_add_ipv6_v6only_config_option.md)

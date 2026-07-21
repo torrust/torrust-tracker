@@ -1,6 +1,6 @@
 //! Per-tracker network topology configuration for schema v3.
 //!
-//! See `docs/adrs/20260721000000_make_network_configuration_per_tracker_instance.md`.
+//! adr: `docs/adrs/20260721000000_make_network_configuration_per_tracker_instance.md`
 
 use std::convert::TryFrom;
 use std::fmt;
