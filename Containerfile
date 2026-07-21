@@ -3,10 +3,14 @@
 # Torrust Tracker
 
 ## Builder Image
-FROM docker.io/library/rust:trixie AS chef
+FROM docker.io/library/rust:slim-trixie AS chef
 WORKDIR /tmp
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends curl libssl-dev pkg-config \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
 RUN curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
-RUN cargo binstall --no-confirm --locked torrust-cargo-chef@0.1.78 cargo-nextest
+RUN cargo binstall --no-confirm --locked torrust-cargo-chef@0.1.78 cargo-nextest@0.9.140
 # Note: We use the `torrust-cargo-chef` fork (v0.1.78) while upstream PR
 # https://github.com/LukeMathWalker/cargo-chef/pull/360 is pending. Once merged,
 # switch back to upstream `cargo-chef` and remove this comment.
@@ -16,10 +20,12 @@ FROM docker.io/library/rust:slim-trixie AS tester
 WORKDIR /tmp
 
 RUN apt-get update \
- && apt-get install -y curl sqlite3 time \
- && apt-get autoclean
-RUN curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
-RUN cargo binstall --no-confirm --locked cargo-nextest
+ && apt-get install -y --no-install-recommends curl sqlite3 time \
+ && curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash \
+ && cargo binstall --no-confirm --locked cargo-nextest@0.9.140 \
+ && apt-get purge -y --auto-remove curl \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
 # Database initialization: Tests at runtime require a pre-initialized SQLite3 database
 # to test against a valid (not corrupted) schema. The VACUUM command optimizes the
 # database file layout. This image layer is inherited by test_debug and test stages.
@@ -29,7 +35,11 @@ RUN time mkdir -p /app/share/torrust/default/database/ \
  && time sqlite3 /app/share/torrust/default/database/tracker.sqlite3.db "VACUUM;"
 
 ## Su Exe Compile
-FROM docker.io/library/gcc:trixie AS gcc
+FROM docker.io/library/debian:trixie-slim AS gcc
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends gcc libc6-dev \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
 COPY ./contrib/dev-tools/su-exec/ /usr/local/src/su-exec/
 RUN cc -Wall -Werror -g /usr/local/src/su-exec/su-exec.c -o /usr/local/bin/su-exec \
  && chmod +x /usr/local/bin/su-exec
