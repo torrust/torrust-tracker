@@ -747,12 +747,13 @@ mod tests {
                 };
 
                 let config = Configuration::load(&info).expect("Should load config");
+                let network = &config.http_trackers.expect("HTTP tracker should be configured")[0].network;
                 assert_eq!(
-                    config.http_trackers.expect("HTTP tracker should be configured")[0]
-                        .network
-                        .external_ip,
+                    network.external_ip,
                     Some(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 5)).try_into().expect("valid IP"))
                 );
+                assert!(network.on_reverse_proxy, "on_reverse_proxy should be true");
+                assert!(network.ipv6_v6only, "ipv6_v6only should be true");
 
                 Ok(())
             });
