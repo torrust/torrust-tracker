@@ -32,14 +32,14 @@ Status legend:
 ## Processing Log
 
 - 2026-07-21: Started processing Copilot suggestions.
-- 2026-07-21: Updated stale issue-spec references, validated the documentation change, pushed commit `01a4843d`, and resolved the Copilot thread.
+- 2026-07-21: Updated stale issue-spec references, validated the documentation change, pushed commit `01a4843d`, replied with the fix summary, and resolved the Copilot thread.
 - 2026-07-21: Completed processing suggestions.
 
 ## Suggestions
 
-| #   | Thread ID               | Path                                                           | URL                                                                                    | Suggestion Summary                                         | Decision                                                                                                    | Status | Thread State |
-| --- | ----------------------- | -------------------------------------------------------------- | -------------------------------------------------------------------------------------- | ---------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- | ------ | ------------ |
-| 1   | `PRRT_kwDOGp2yqc6SitOP` | `docs/issues/open/1875-review-lto-fat-in-dev-profile/ISSUE.md` | [comment](https://github.com/torrust/torrust-tracker/pull/2013#discussion_r3621393047) | Update stale references to the standalone issue-spec path. | action — updated the EPIC's direct references and migrated the open-issues naming convention to folder specs. | DONE   | RESOLVED     |
+| #   | Thread ID               | Path                                                           | URL                                                                                    | Suggestion Summary                                         | Decision                                                                                                      | Reply URL                                                                            | Status | Thread State |
+| --- | ----------------------- | -------------------------------------------------------------- | -------------------------------------------------------------------------------------- | ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ | ------ | ------------ |
+| 1   | `PRRT_kwDOGp2yqc6SitOP` | `docs/issues/open/1875-review-lto-fat-in-dev-profile/ISSUE.md` | [comment](https://github.com/torrust/torrust-tracker/pull/2013#discussion_r3621393047) | Update stale references to the standalone issue-spec path. | action — updated the EPIC's direct references and migrated the open-issues naming convention to folder specs. | [reply](https://github.com/torrust/torrust-tracker/pull/2013#discussion_r3621442150) | DONE   | RESOLVED     |
 
 ## Notes
 

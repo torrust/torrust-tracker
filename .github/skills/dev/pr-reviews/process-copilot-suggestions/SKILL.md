@@ -122,7 +122,20 @@ For each `action` item:
 
 ### 6. Batch Resolve All Threads
 
-After all decisions are made and `action` items are committed:
+After all decisions are made and `action` items are committed, reply to every suggestion thread
+before resolving it. The reply is required even when the decision is `no-action`; it makes the
+decision visible in the PR itself rather than only in the repository tracker.
+
+For an `action` item, state:
+
+- the commit that contains the fix,
+- the files or behavior changed, and
+- the validation performed when it is useful to establish correctness.
+
+For a `no-action` item, state the reason it was declined (for example, it was already addressed,
+is outdated, or is a verified false positive).
+
+Then refresh the threads and resolve only those with a completed reply and a verified decision:
 
 ```bash
 bash ../fetch-review-threads/scripts/get-pr-review-threads.sh \
@@ -133,7 +146,9 @@ bash ../resolve-review-threads/scripts/resolve-all-unresolved-threads.sh \
   --threads-file /tmp/pr_threads_<PR_NUMBER>.json
 ```
 
-This resolves all unresolved threads (both `action` and `no-action` categories).
+This resolves all unresolved threads (both `action` and `no-action` categories). Do not use the
+batch resolver before posting the required replies, because it would hide the outcome from the
+review conversation.
 
 ### 7. Final Documentation
 
@@ -183,6 +198,7 @@ with all 26 Copilot suggestions processed, decided, and resolved.
 - [ ] All review threads fetched and added to tracker table
 - [ ] Each thread categorized as `action` or `no-action` with rationale
 - [ ] All `action` items implemented, validated, and committed
+- [ ] Each thread has a PR reply explaining the applied fix or no-action rationale
 - [ ] All threads resolved in GitHub (via batch script or one-by-one)
 - [ ] Tracker file updated with Processing Log and Thread State column
 - [ ] Tracker and helper scripts committed as documentation
