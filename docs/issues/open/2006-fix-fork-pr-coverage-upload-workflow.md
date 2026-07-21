@@ -49,9 +49,9 @@ The history shows that the split was introduced in commit [`9d8174df`](https://g
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| ID  | Status | Task                                                     | Notes / Expected Output                                                                                                                                                                                                         |
-| --- | ------ | -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| T1  | DONE   | Review Codecov action inputs and current artifact layout | Confirmed Codecov's checkout prerequisite and explicit report file and PR/SHA override inputs.                                                                                                                                  |
+| ID  | Status | Task                                                     | Notes / Expected Output                                                                                                                                                                                                                                                                   |
+| --- | ------ | -------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| T1  | DONE   | Review Codecov action inputs and current artifact layout | Confirmed Codecov's checkout prerequisite and explicit report file and PR/SHA override inputs.                                                                                                                                                                                            |
 | T2  | DONE   | Update the upload workflow                               | Checks out the trusted default branch before artifact retrieval, removes the fork-SHA `ref`, allowlists and isolates each artifact archive before accepting a regular non-symlink file, validates artifact metadata before exposing step outputs, and retains Codecov metadata overrides. |
 
 ## Progress Tracking
