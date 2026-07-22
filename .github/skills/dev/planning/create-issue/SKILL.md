@@ -27,8 +27,8 @@ The process is **spec-first**: write and review a specification before creating 
 
 Lifecycle docs:
 
-- Open issue specs: [`docs/issues/open/README.md`](../../../../docs/issues/open/README.md)
-- Closed issue buffer: [`docs/issues/closed/README.md`](../../../../docs/issues/closed/README.md)
+- Open issue specs: [`docs/issues/open/README.md`](../../../../../docs/issues/open/README.md)
+- Closed issue buffer: [`docs/issues/closed/README.md`](../../../../../docs/issues/closed/README.md)
 
 1. **Draft specification** document in `docs/issues/drafts/` using the repository templates
    appropriate to the issue type (`docs/templates/ISSUE.md` for Task/Bug/Feature,
