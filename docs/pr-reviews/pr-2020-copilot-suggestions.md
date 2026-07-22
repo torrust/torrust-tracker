@@ -35,6 +35,7 @@ Column legend:
 - 2026-07-22: Processed the final hook JSON and BSD `mktemp` portability suggestions in signed commit `53c0a6e6`.
 - 2026-07-22: Processed the issue metadata and dictionary typo suggestions in signed commit `57ed3b05`.
 - 2026-07-22: Started processing the tracker thread-ID formatting suggestion.
+- 2026-07-22: Corrected the tracker thread ID in signed commit `53909678`, replied to, and resolved the formatting suggestion.
 
 ## Suggestions
 
@@ -62,7 +63,7 @@ Column legend:
 | 20  | PRRT_kwDOGp2yqc6S4Coq | `contrib/dev-tools/git/tests/test-format-project-words.sh`               | https://github.com/torrust/torrust-tracker/pull/2020#discussion_r3629295532 | Use a portable test directory `mktemp` template.             | action: supplied an explicit BSD-compatible template.                   | https://github.com/torrust/torrust-tracker/pull/2020#discussion_r3629365111 | DONE   | RESOLVED     |
 | 21  | PRRT_kwDOGp2yqc6S4JkJ | `docs/issues/open/2019-automatically-format-project-dictionary/ISSUE.md` | https://github.com/torrust/torrust-tracker/pull/2020#discussion_r3629334908 | Link the issue specification to its implementation PR.       | action: set `related-pr: 2020`.                                         | https://github.com/torrust/torrust-tracker/pull/2020#discussion_r3629396136 | DONE   | RESOLVED     |
 | 22  | PRRT_kwDOGp2yqc6S4Jkr | `project-words.txt`                                                      | https://github.com/torrust/torrust-tracker/pull/2020#discussion_r3629334953 | Remove the unreferenced dictionary typo.                     | action: removed `Unamed`.                                               | https://github.com/torrust/torrust-tracker/pull/2020#discussion_r3629397148 | DONE   | RESOLVED     |
-| 23  | PRRT_kwDOGp2yqc6S4Z4w | `docs/pr-reviews/pr-2020-copilot-suggestions.md`                         | https://github.com/torrust/torrust-tracker/pull/2020#discussion_r3629428258 | Remove Markdown asterisks from row 9's thread ID.            | action: corrected the thread ID to its exact value.                     | —                                                                           | OPEN   | OPEN         |
+| 23  | PRRT_kwDOGp2yqc6S4Z4w | `docs/pr-reviews/pr-2020-copilot-suggestions.md`                         | https://github.com/torrust/torrust-tracker/pull/2020#discussion_r3629428258 | Remove Markdown asterisks from row 9's thread ID.            | action: corrected the thread ID to its exact value.                     | https://github.com/torrust/torrust-tracker/pull/2020#discussion_r3629575867 | DONE   | RESOLVED     |
 
 ## Notes
 
