@@ -1,16 +1,16 @@
 ---
 doc-type: issue
 issue-type: bug
-status: open
+status: done
 priority: p2
 github-issue: 1985
-spec-path: docs/issues/open/1985-rename-peer-addr-to-ip-in-http-announce-request/ISSUE.md
+spec-path: docs/issues/closed/1985-rename-peer-addr-to-ip-in-http-announce-request/ISSUE.md
 branch: "1985-rename-peer-addr-to-ip-in-http-announce-request"
 related-pr: null
 depends-on: null
 blocks:
   - docs/issues/open/1987-add-config-option-to-use-ip-from-announce-query-string/ISSUE.md
-last-updated-utc: 2026-07-15 00:00
+last-updated-utc: 2026-07-22 00:00
 semantic-links:
   skill-links:
     - create-issue
@@ -22,7 +22,6 @@ semantic-links:
     - packages/tracker-core/src/torrent/mod.rs
     - docs/adrs/
 ---
-
 
 # Issue #1985 - Rename `peer_addr` GET param to `ip` in HTTP announce request (BEP 3)
 
@@ -164,9 +163,11 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [x] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
+
+- 2026-07-22 00:00 UTC - agent - Verified issue #1985 is CLOSED on GitHub and archived this spec to docs/issues/closed/.
 
 - 2026-07-15 00:00 UTC - Copilot/User - Spec drafted; ADR embedded as a section pending extraction to `docs/adrs/` during implementation.
 - 2026-07-16 00:00 UTC - Copilot/User - Spec updated with user feedback (CLI flag renamed to `--ip`; JSON doc key renamed to `ip`; ADR date set to 2026-07-16). Implementation completed. All pre-commit checks pass.

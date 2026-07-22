@@ -1,7 +1,7 @@
 ---
 semantic-links:
   related-artifacts:
-    - docs/issues/open/1875-review-lto-fat-in-dev-profile/ISSUE.md
+    - docs/issues/closed/1875-review-lto-fat-in-dev-profile/ISSUE.md
     - Cargo.toml
     - Containerfile
     - commit 3c715fbb

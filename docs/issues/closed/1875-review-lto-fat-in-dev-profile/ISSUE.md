@@ -1,20 +1,20 @@
 ---
 doc-type: issue
 issue-type: task
-status: in-review
+status: done
 priority: p2
 github-issue: 1875
-spec-path: docs/issues/open/1875-review-lto-fat-in-dev-profile/ISSUE.md
+spec-path: docs/issues/closed/1875-review-lto-fat-in-dev-profile/ISSUE.md
 branch: "1875-review-lto-fat-in-dev-profile"
 related-pr: null
-last-updated-utc: 2026-07-21 10:18
+last-updated-utc: 2026-07-22 00:00
 semantic-links:
   skill-links:
     - create-issue
   related-artifacts:
     - Cargo.toml
     - Containerfile
-    - docs/issues/open/1875-review-lto-fat-in-dev-profile/research.md
+    - docs/issues/closed/1875-review-lto-fat-in-dev-profile/research.md
     - docs/skills/semantic-skill-link-convention.md
 ---
 
@@ -75,9 +75,11 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [x] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
+
+- 2026-07-22 00:00 UTC - agent - Verified issue #1875 is CLOSED on GitHub and archived this spec to docs/issues/closed/.
 
 - 2026-06-03 00:00 UTC - GitHub Copilot - Spec drafted after investigating git history for `lto = "fat"` in `[profile.dev]`; root cause traced to commit `3c715fbb`.
 - 2026-07-21 10:18 UTC - User - Confirmed the policy: prioritize development compilation speed and production execution speed. Approved the folder format with `ISSUE.md` as the normal-issue specification file.

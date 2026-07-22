@@ -4,10 +4,10 @@ issue-type: task
 status: done
 priority: p1
 github-issue: 1981
-spec-path: docs/issues/open/1981-1978-fix-tsl-config-tls-config-typo.md
+spec-path: docs/issues/closed/1981-1978-fix-tsl-config-tls-config-typo.md
 branch: "1981-fix-tsl-config-typo"
 related-pr: null
-last-updated-utc: 2026-07-20 15:25
+last-updated-utc: 2026-07-22 00:00
 semantic-links:
   skill-links:
     - create-issue
@@ -27,7 +27,7 @@ semantic-links:
     - src/bootstrap/jobs/http_tracker.rs
     - src/bootstrap/jobs/tracker_apis.rs
     - docs/containers.md
-    - docs/issues/open/1640-1978-per-http-tracker-on-reverse-proxy-setting.md
+    - docs/issues/closed/1640-1978-per-http-tracker-on-reverse-proxy-setting.md
 ---
 
 # Issue #1981 - Fix `tsl_config` → `tls_config` typo
@@ -117,7 +117,7 @@ Old spellings are therefore expected to remain under `v2_0_0`, in the crate-root
 | File                                                                      | Change                                    |
 | ------------------------------------------------------------------------- | ----------------------------------------- |
 | `packages/configuration/src/v3_0_0/mod.rs`                                | Correct v3 schema examples and prose      |
-| `docs/issues/open/1640-1978-per-http-tracker-on-reverse-proxy-setting.md` | Correct future v3 field/type references   |
+| `docs/issues/closed/1640-1978-per-http-tracker-on-reverse-proxy-setting.md` | Correct future v3 field/type references   |
 | `docs/issues/open/1978-configuration-overhaul-epic.md`                    | Track progress and compatibility boundary |
 
 ## Progress Tracking
@@ -131,9 +131,11 @@ Old spellings are therefore expected to remain under `v2_0_0`, in the crate-root
 - [x] Automatic verification completed (`linter all`, relevant tests)
 - [x] Manual verification scenarios executed and recorded
 - [x] Acceptance criteria reviewed after implementation
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
+
+- 2026-07-22 00:00 UTC - agent - Verified issue #1981 is CLOSED on GitHub and archived this spec to docs/issues/closed/.
 
 - 2026-07-14 00:00 UTC - josecelano - Initial spec drafted
 - 2026-07-15 00:00 UTC - josecelano - GitHub issue #1981 created; spec moved to `docs/issues/open/1981-1978-fix-tsl-config-tls-config-typo.md`
