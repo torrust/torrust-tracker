@@ -12,7 +12,11 @@ if [[ ! -f "${DICTIONARY_PATH}" ]]; then
     exit 2
 fi
 
-temporary_dictionary=$(mktemp "${DICTIONARY_PATH}.XXXXXX")
+if ! temporary_dictionary=$(mktemp "${DICTIONARY_PATH}.XXXXXX"); then
+    printf 'Error: failed to create a temporary project dictionary: %s\n' "${DICTIONARY_PATH}" >&2
+    exit 2
+fi
+
 trap 'rm -f "${temporary_dictionary}"' EXIT
 
 if ! LC_ALL=C sort --unique "${DICTIONARY_PATH}" >"${temporary_dictionary}"; then

@@ -65,6 +65,27 @@ it_should_report_success_when_dictionary_is_already_formatted() {
     grep --fixed-strings --quiet 'project-words.txt is already formatted.' "${fixture_root}/formatter-output.txt"
 }
 
+it_should_report_a_temp_file_creation_failure() {
+    # Arrange
+    local fixture_root
+    fixture_root=$(create_fixture "formatter-mktemp-failure")
+    printf 'Alpha\nzebra\n' >"${fixture_root}/project-words.txt"
+    cat >"${fixture_root}/bin/mktemp" <<'EOF'
+#!/usr/bin/env bash
+exit 1
+EOF
+    chmod +x "${fixture_root}/bin/mktemp"
+
+    # Act
+    if PATH="${fixture_root}/bin:${PATH}" "${fixture_root}/contrib/dev-tools/git/format-project-words.sh" >"${fixture_root}/formatter-output.txt" 2>&1; then
+        printf 'Expected formatter to fail when it cannot create its temporary dictionary.\n' >&2
+        return 1
+    fi
+
+    # Assert
+    grep --fixed-strings --quiet 'Error: failed to create a temporary project dictionary:' "${fixture_root}/formatter-output.txt"
+}
+
 it_should_abort_pre_commit_and_request_restaging_when_dictionary_is_formatted() {
     # Arrange
     local fixture_root
@@ -86,7 +107,7 @@ it_should_abort_pre_commit_and_request_restaging_when_dictionary_is_formatted() 
 
     # Assert
     diff --unified "${fixture_root}/project-words.txt" <(printf 'Alpha\nzebra\n')
-    grep --fixed-strings --quiet "stage 'project-words.txt' and retry the commit" "${fixture_root}/hook-output.txt"
+    grep --fixed-strings --quiet "Stage 'project-words.txt' and retry the commit" "${fixture_root}/hook-output.txt"
     [[ ! -e "${fixture_root}/commands.log" ]]
 }
 
@@ -113,6 +134,7 @@ it_should_continue_pre_commit_checks_when_dictionary_is_already_formatted() {
 
 it_should_sort_and_remove_exact_duplicates_when_dictionary_requires_formatting
 it_should_report_success_when_dictionary_is_already_formatted
+it_should_report_a_temp_file_creation_failure
 it_should_abort_pre_commit_and_request_restaging_when_dictionary_is_formatted
 it_should_continue_pre_commit_checks_when_dictionary_is_already_formatted
 
