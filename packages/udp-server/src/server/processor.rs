@@ -4,7 +4,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use tokio::time::Instant;
-use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
+use torrust_net_primitives::service_binding::ServiceBinding;
 use torrust_tracker_udp_core::container::UdpTrackerCoreContainer;
 use torrust_tracker_udp_core::event::ConnectionContext;
 use torrust_tracker_udp_core::{self};
@@ -26,18 +26,15 @@ pub struct Processor {
 }
 
 impl Processor {
-    /// # Panics
-    ///
-    /// It will panic if a bound socket address port is 0. It should never
-    /// happen.
     pub fn new(
         socket: Arc<BoundSocket>,
         udp_tracker_core_container: Arc<UdpTrackerCoreContainer>,
         udp_tracker_server_container: Arc<UdpTrackerServerContainer>,
         cookie_lifetime: f64,
     ) -> Self {
-        let server_service_binding =
-            ServiceBinding::new(Protocol::UDP, socket.address()).expect("Bound socket port should't be 0");
+        // BoundSocket guarantees a non-zero port by construction, so
+        // service_binding() cannot fail.
+        let server_service_binding = socket.service_binding();
 
         Self {
             socket,
@@ -211,7 +208,7 @@ mod tests {
             &container.udp_tracker_server_container.stats_repository,
         );
 
-        let socket = Arc::new(BoundSocket::new("0.0.0.0:0".parse().unwrap(), false).expect("Failed to bind socket"));
+        let socket = Arc::new(BoundSocket::bind("0.0.0.0:0".parse().unwrap(), false).expect("Failed to bind socket"));
         let processor = Processor::new(
             socket,
             container.udp_tracker_core_container.clone(),
