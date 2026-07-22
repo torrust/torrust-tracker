@@ -55,6 +55,11 @@ impl Processor {
         // We discard such requests immediately and record them in statistics so
         // operators can detect scanner activity or misconfigured clients without
         // filling the log with noise.
+        //
+        // In production the launcher loop already discards port-0 requests
+        // before spawning a processing task (so they never enter the
+        // active-requests buffer); this guard is kept as defense-in-depth for
+        // any other caller of `process_request`.
         if client_socket_addr.port() == 0 {
             tracing::trace!(%client_socket_addr, "discarding request: client source port is 0");
 

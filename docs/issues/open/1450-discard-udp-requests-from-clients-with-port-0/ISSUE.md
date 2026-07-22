@@ -79,9 +79,18 @@ them and should not fill logs with OS-level errors caused by user-space input.
 
 ### Detection point
 
-The check happens at the very start of `Processor::process_request`, before any
-packet parsing or handler invocation. If `client_socket_addr.port() == 0`, the
-request is **discarded immediately**:
+Detection happens at two layers:
+
+1. **Launcher loop (production path)**: the check runs in
+   `Launcher::run_udp_server_main`, right after the `UdpRequestReceived` event is
+   emitted and **before** a processing task is spawned and pushed into the
+   active-requests buffer. This means port-0 requests never consume a task slot
+   and can never evict legitimate in-flight requests under a port-0 flood. This
+   mirrors the existing banned-IP check (`check → emit event → continue`).
+
+2. **`Processor::process_request` (defense-in-depth)**: the same check is kept at
+   the very start of `process_request`, before any packet parsing or handler
+   invocation, protecting any other caller of the processor:
 
 ```rust
 pub async fn process_request(self, request: RawRequest) {
@@ -96,6 +105,9 @@ pub async fn process_request(self, request: RawRequest) {
     ...
 }
 ```
+
+In production only the launcher-level check fires (the processor is never invoked
+with a port-0 request), so each discarded request is counted exactly once.
 
 ### Logging
 
