@@ -30,7 +30,7 @@ Example:
 Example:
 
 ```text
-1875-review-lto-fat-in-dev-profile/ISSUE.md
+2022-vendor-and-document-maintainer-merge-workflow/ISSUE.md
 ```
 
 #### EPIC spec
