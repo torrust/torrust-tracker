@@ -73,7 +73,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Implementation completed
 - [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [x] Manual verification scenarios executed and recorded (status + evidence)
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
@@ -88,20 +88,21 @@ Append one line per meaningful update.
 - 2026-07-22 00:00 UTC - GitHub Copilot - Implemented the standalone formatter, pre-commit orchestration, focused shell tests, and synchronized workflow guidance; reviewed the linked `create-issue` skill with no process change required
 - 2026-07-22 00:00 UTC - GitHub Copilot - Verified focused formatter and hook tests, the standalone formatter, and `TORRUST_GIT_HOOKS_LOG_DIR=.tmp ./contrib/dev-tools/git/hooks/pre-commit.sh --format=json`; all passed
 - 2026-07-22 00:00 UTC - GitHub Copilot - Verified `TORRUST_GIT_HOOKS_LOG_DIR=.tmp ./contrib/dev-tools/git/hooks/pre-push.sh --format=json`; all nightly checks, documentation build, and stable workspace tests passed
+- 2026-07-22 00:00 UTC - GitHub Copilot - Re-reviewed the acceptance criteria against the implementation and recorded the existing verification evidence
 
 ## Acceptance Criteria
 
-- [ ] AC1: `contrib/dev-tools/git/format-project-words.sh` applies `LC_ALL=C sort --unique` to `project-words.txt`, preserving distinct entries that differ only by case.
-- [ ] AC2: If formatting modifies `project-words.txt`, the pre-commit hook exits non-zero and clearly instructs the contributor to stage the modified file and retry the commit.
-- [ ] AC3: If formatting does not modify `project-words.txt`, the pre-commit hook continues with its existing verification steps.
-- [ ] AC4: Automated coverage verifies both unchanged and changed formatter and hook behavior.
-- [ ] AC5: The workflow documentation describes the automatic behavior and standalone formatter command.
-- [ ] AC6: The implementation is documented as an interim measure related to EPIC #2003 and can be replaced or refactored by its future design.
-- [ ] `linter all` exits with code `0`.
-- [ ] Relevant tests pass.
-- [ ] Manual verification scenarios are executed and documented (status + evidence).
-- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior.
-- [ ] Documentation is updated when behavior/workflow changes.
+- [x] AC1: `contrib/dev-tools/git/format-project-words.sh` applies `LC_ALL=C sort --unique` to `project-words.txt`, preserving distinct entries that differ only by case.
+- [x] AC2: If formatting modifies `project-words.txt`, the pre-commit hook exits non-zero and clearly instructs the contributor to stage the modified file and retry the commit.
+- [x] AC3: If formatting does not modify `project-words.txt`, the pre-commit hook continues with its existing verification steps.
+- [x] AC4: Automated coverage verifies both unchanged and changed formatter and hook behavior.
+- [x] AC5: The workflow documentation describes the automatic behavior and standalone formatter command.
+- [x] AC6: The implementation is documented as an interim measure related to EPIC #2003 and can be replaced or refactored by its future design.
+- [x] `linter all` exits with code `0`.
+- [x] Relevant tests pass.
+- [x] Manual verification scenarios are executed and documented (status + evidence).
+- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior.
+- [x] Documentation is updated when behavior/workflow changes.
 
 ## Verification Plan
 
@@ -132,14 +133,14 @@ Notes:
 
 ### Acceptance Verification
 
-| AC ID | Status (`TODO`/`DONE`) | Evidence                |
-| ----- | ---------------------- | ----------------------- |
-| AC1   | TODO                   | Pending implementation. |
-| AC2   | TODO                   | Pending implementation. |
-| AC3   | TODO                   | Pending implementation. |
-| AC4   | TODO                   | Pending implementation. |
-| AC5   | TODO                   | Pending implementation. |
-| AC6   | TODO                   | Pending implementation. |
+| AC ID | Status (`TODO`/`DONE`) | Evidence                                                                                 |
+| ----- | ---------------------- | ---------------------------------------------------------------------------------------- |
+| AC1   | DONE                   | Formatter uses `LC_ALL=C sort --unique`; M3 verifies case variants remain distinct.      |
+| AC2   | DONE                   | M1 and focused hook test verify the non-zero exit and restaging instruction.             |
+| AC3   | DONE                   | M2 and focused hook test verify the existing checks continue.                            |
+| AC4   | DONE                   | `test-format-project-words.sh` covers changed and unchanged formatter and hook behavior. |
+| AC5   | DONE                   | `run-pre-commit-checks` documents the automatic behavior and standalone command.         |
+| AC6   | DONE                   | The formatter, hook, and workflow guidance identify this as interim work for EPIC #2003. |
 
 ## Risks and Trade-offs
 

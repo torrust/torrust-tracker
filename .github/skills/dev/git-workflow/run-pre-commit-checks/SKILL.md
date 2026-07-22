@@ -49,9 +49,10 @@ The script runs these steps in order:
 
 1. `./contrib/dev-tools/git/format-project-words.sh` - formats `project-words.txt` with
    `LC_ALL=C sort --unique`
-2. `cargo machete` - unused dependency check
-3. `linter all` - all linters (markdown, YAML, TOML, clippy, rustfmt, shellcheck, cspell)
-4. `cargo test --doc --workspace` - documentation tests
+2. `cargo machete --with-metadata` - unused dependency check
+3. `cargo deny check bans` - workspace layer-boundary dependency check
+4. `linter all` - all linters (markdown, YAML, TOML, clippy, rustfmt, shellcheck, cspell)
+5. `cargo test --doc --workspace` - documentation tests
 
 If the formatter changes the dictionary, the hook exits non-zero before the verification steps.
 Stage `project-words.txt` and retry the commit. Run the formatter independently with:

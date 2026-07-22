@@ -42,6 +42,7 @@ LOG_DIR="${TORRUST_GIT_HOOKS_LOG_DIR:-/tmp}"
 declare -a STEP_NAMES=()
 declare -a STEP_COMMANDS=()
 declare -a STEP_STATUSES=()
+declare -a STEP_EXIT_CODES=()
 declare -a STEP_ELAPSED_SECONDS=()
 declare -a STEP_LOG_PATHS=()
 
@@ -191,6 +192,7 @@ run_step() {
 
     STEP_NAMES+=("${description}")
     STEP_COMMANDS+=("${command}")
+    STEP_EXIT_CODES+=("${command_exit_code}")
     STEP_ELAPSED_SECONDS+=("${step_elapsed}")
     STEP_LOG_PATHS+=("${log_path}")
 
@@ -333,6 +335,7 @@ TOTAL_STEPS=${#STEPS[@]}
 overall_status="pass"
 exit_code=0
 failed_step_name=""
+failed_step_exit_code=0
 
 if [[ "${FORMAT}" == "text" ]]; then
     echo "Running pre-commit checks..."
@@ -345,6 +348,7 @@ for i in "${!STEPS[@]}"; do
         overall_status="fail"
         exit_code=1
         failed_step_name="${description}"
+        failed_step_exit_code=${STEP_EXIT_CODES[$(( ${#STEP_EXIT_CODES[@]} - 1 ))]}
         break
     fi
 done
@@ -368,7 +372,7 @@ fi
 echo
 echo "=========================================="
 echo "FAILED: Pre-commit checks failed!"
-if [[ "${failed_step_name}" == "Formatting project dictionary" ]]; then
+if [[ "${failed_step_name}" == "Formatting project dictionary" && "${failed_step_exit_code}" -eq 1 ]]; then
     echo "The formatter changed project-words.txt. Stage 'project-words.txt' and retry the commit."
 fi
 echo "Fix the errors above before committing."

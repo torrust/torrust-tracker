@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Integration tests for the project dictionary formatter and pre-commit orchestration.
 
-set -uo pipefail
+set -euo pipefail
 
 PROJECT_ROOT=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../../../.." && pwd)
 TEST_DIRECTORY=$(mktemp -d)

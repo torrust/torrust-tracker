@@ -12,7 +12,7 @@ if [[ ! -f "${DICTIONARY_PATH}" ]]; then
     exit 2
 fi
 
-temporary_dictionary=$(mktemp)
+temporary_dictionary=$(mktemp "${DICTIONARY_PATH}.XXXXXX")
 trap 'rm -f "${temporary_dictionary}"' EXIT
 
 if ! LC_ALL=C sort --unique "${DICTIONARY_PATH}" >"${temporary_dictionary}"; then
@@ -25,7 +25,7 @@ if cmp --silent "${DICTIONARY_PATH}" "${temporary_dictionary}"; then
     exit 0
 fi
 
-if ! cat "${temporary_dictionary}" >"${DICTIONARY_PATH}"; then
+if ! chmod --reference="${DICTIONARY_PATH}" "${temporary_dictionary}" || ! mv -- "${temporary_dictionary}" "${DICTIONARY_PATH}"; then
     printf 'Error: failed to update project dictionary: %s\n' "${DICTIONARY_PATH}" >&2
     exit 2
 fi
