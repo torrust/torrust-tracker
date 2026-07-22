@@ -1,13 +1,13 @@
 ---
 doc-type: issue
 issue-type: enhancement
-status: in_progress
+status: done
 priority: p2
 github-issue: 1415
 spec-path: docs/issues/open/1415-1978-use-service-binding-instead-of-socket-addr/ISSUE.md
 branch: "1415-use-service-binding"
 related-pr: null
-last-updated-utc: 2026-07-22 15:35
+last-updated-utc: 2026-07-22 16:10
 semantic-links:
   skill-links:
     - create-issue
@@ -140,6 +140,10 @@ The exact commands and complete relevant outputs are recorded in
 - 2026-07-22 15:35 UTC - josecelano - Accepted manual verification as the log-output evidence.
   Automated assertions for tracing output are deferred to #1430 because the global tracing
   subscriber and concurrent test output make deterministic field-level capture unreliable.
+- 2026-07-22 16:10 UTC - josecelano - Clarified the post-bind identity contract: the retained
+  `server_socket_addr` is derived from `ServiceBinding::bind_address()`. Both fields therefore
+  report the same actual bound address, including an OS-assigned port when configuration uses
+  port `0`.
 
 ## Acceptance Criteria
 
@@ -183,6 +187,10 @@ The exact commands and complete relevant outputs are recorded in
 - **Log-consumer compatibility**: request and response logs are operational output. This issue
   preserves `server_socket_addr` and adds `service_binding`, avoiding a breaking log-schema
   change while providing protocol-aware service identity.
+- **Post-bind address source**: `server_socket_addr` is derived from
+  `ServiceBinding::bind_address()` in the changed flows. The two log fields always describe the
+  same actual bound host and port; only `service_binding` adds protocol and URL formatting. If
+  configuration requests port `0`, both fields use the OS-assigned port rather than `0`.
 - **Tracing testability**: field-level assertions for concurrent tracing output are deferred to
   #1430. The manual verification evidence is the acceptance evidence for this issue's log schema.
 

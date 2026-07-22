@@ -148,6 +148,12 @@ HTTP TRACKER: request server_socket_addr=0.0.0.0:7070 service_binding=http://0.0
 API: response latency_ms=0 status_code=200 OK server_socket_addr=0.0.0.0:1212 service_binding=http://0.0.0.0:1212/
 ```
 
+The changed log flows derive `server_socket_addr` from `ServiceBinding::bind_address()`. Thus,
+the fields always identify the same actual post-bind host and port; `service_binding` additionally
+identifies the protocol and uses URL formatting for HTTP(S). If configuration requests port `0`,
+the operating system assigns the actual port when the listener binds, and both fields report that
+assigned port rather than `0`.
+
 The exact unrelated fields and their ordering may differ according to the tracing formatter, but
 the following are required:
 
