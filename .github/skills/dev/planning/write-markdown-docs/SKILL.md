@@ -72,6 +72,12 @@ Follow the frontmatter convention defined in
 which specifies the required fields for each document type and the shape of
 `semantic-links` entries.
 
+When a draft issue spec identifies source artifacts it will change, add an
+`issue-spec: <repo-relative-draft-path>` marker to those artifacts when the link
+is high-signal. Once the GitHub issue is created, replace the draft-path marker
+with `issue: #<number>`; do not keep paths that will become stale when the spec
+moves from `drafts/` to `open/` or `closed/`.
+
 ## Repo Markdown vs. GitHub Markdown
 
 The `.markdownlint.json` configuration at the repository root applies **only to `.md` files

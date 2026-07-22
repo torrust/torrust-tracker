@@ -3,6 +3,7 @@ use ringbuf::traits::{Consumer, Observer, Producer};
 use tokio::task::AbortHandle;
 use torrust_tracker_udp_core::UDP_TRACKER_LOG_TARGET;
 
+// issue-spec: docs/issues/drafts/simplify-udp-server-main-loop.md
 /// A ring buffer for managing active UDP request abort handles.
 ///
 /// The `ActiveRequests` struct maintains a fixed-size ring buffer of abort

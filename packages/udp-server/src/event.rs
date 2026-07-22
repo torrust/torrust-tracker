@@ -16,6 +16,9 @@ pub enum Event {
     UdpRequestReceived {
         context: ConnectionContext,
     },
+    UdpRequestDiscarded {
+        context: ConnectionContext,
+    },
     UdpRequestAborted {
         context: ConnectionContext,
     },

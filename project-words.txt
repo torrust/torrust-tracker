@@ -87,6 +87,7 @@ Cyberneering
 cyclomatic
 dashmap
 datagram
+datagrams
 datetime
 dbip
 dbname
@@ -107,6 +108,7 @@ dockerhub
 doctest
 downloadedi
 dpkg
+dport
 dtolnay
 dylib
 EADDRINUSE
@@ -154,6 +156,7 @@ Glrg
 Graphviz
 Grcov
 hasher
+HDRINCL
 healthcheck
 heaptrack
 hexdigit
@@ -229,6 +232,7 @@ Mebibytes
 metainfo
 microbenchmark
 microbenchmarks
+middlebox
 middlewares
 millis
 miniz
@@ -255,12 +259,14 @@ newtypes
 nextest
 nghttp
 ngtcp
+nmap
 nocapture
 nologin
 nonblocking
 nonroot
 Norberg
 notnull
+nping
 nquery
 numwant
 nvCFlJCq7fz7Qx6KoKTDiMZvns8l5Kw7
@@ -318,6 +324,7 @@ reannounce
 recaches
 recognised
 recompiles
+recvfrom
 recvspace
 referer
 Registar
@@ -355,6 +362,7 @@ savepath
 scanf
 sccache
 Seedable
+sendto
 serde
 serialisation
 setgroups

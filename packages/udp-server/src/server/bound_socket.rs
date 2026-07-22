@@ -7,24 +7,42 @@ use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
 use torrust_tracker_udp_core::UDP_TRACKER_LOG_TARGET;
 use url::Url;
 
-/// Wrapper for Tokio [`UdpSocket`][`tokio::net::UdpSocket`] that is bound to a particular socket.
+/// A UDP socket that has been successfully bound to a local address with a non-zero port.
+///
+/// # Invariant
+///
+/// The bound port is always non-zero. If port 0 is passed to [`BoundSocket::bind`], the OS
+/// assigns an ephemeral port before construction completes, and the resulting address is
+/// verified to have a non-zero port before the value is returned.
 pub struct BoundSocket {
     socket: tokio::net::UdpSocket,
 }
 
 impl BoundSocket {
+    /// Binds a UDP socket to `addr` and returns the bound socket.
+    ///
+    /// If `addr.port()` is 0 the OS assigns an ephemeral port; the resulting
+    /// socket always has a non-zero port (see [`BoundSocket`] invariant).
+    ///
     /// # Errors
     ///
-    /// Will return an error if the socket can't be bound to the provided address.
-    pub fn new(addr: SocketAddr, ipv6_v6only: bool) -> Result<Self, Box<std::io::Error>> {
+    /// Returns an error if the socket cannot be created or bound, or if the
+    /// OS unexpectedly assigns port 0 after a successful bind.
+    pub fn bind(addr: SocketAddr, ipv6_v6only: bool) -> Result<Self, Box<std::io::Error>> {
         let bind_addr = format!("udp://{addr}");
-        tracing::debug!(target: UDP_TRACKER_LOG_TARGET, bind_addr, "UdpSocket::new (binding)");
+        tracing::debug!(target: UDP_TRACKER_LOG_TARGET, bind_addr, "UdpSocket::bind (binding)");
 
         let socket = Self::create_socket(addr, ipv6_v6only)?;
         let tokio_socket = tokio::net::UdpSocket::from_std(socket)?;
 
-        let local_addr = format!("udp://{}", tokio_socket.local_addr()?);
-        tracing::debug!(target: UDP_TRACKER_LOG_TARGET, local_addr, "UdpSocket::new (bound)");
+        let local_addr = tokio_socket.local_addr()?;
+        tracing::debug!(target: UDP_TRACKER_LOG_TARGET, local_addr = %format!("udp://{local_addr}"), "UdpSocket::bind (bound)");
+
+        if local_addr.port() == 0 {
+            return Err(Box::new(std::io::Error::other(
+                "bound socket has port 0 — OS did not assign an ephemeral port",
+            )));
+        }
 
         Ok(Self { socket: tokio_socket })
     }

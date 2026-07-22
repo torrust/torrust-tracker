@@ -55,7 +55,7 @@ impl Launcher {
             panic!("it should not use udp if using authentication");
         }
 
-        let socket = BoundSocket::new(bind_to, udp_tracker_core_container.udp_tracker_config.ipv6_v6only);
+        let socket = BoundSocket::bind(bind_to, udp_tracker_core_container.udp_tracker_config.ipv6_v6only);
 
         let bound_socket = match socket {
             Ok(socket) => socket,
@@ -126,6 +126,7 @@ impl Launcher {
         ServiceHealthCheckJob::new(service_binding.clone(), info, TYPE_STRING.to_string(), job)
     }
 
+    // issue-spec: docs/issues/drafts/simplify-udp-server-main-loop.md
     #[instrument(skip(receiver, udp_tracker_core_container, udp_tracker_server_container))]
     async fn run_udp_server_main(
         mut receiver: Receiver,
@@ -187,6 +188,27 @@ impl Launcher {
                             context: ConnectionContext::new(client_socket_addr, server_service_binding.clone()),
                         })
                         .await;
+                }
+
+                // Discard requests from clients with source port 0 before
+                // spawning a processing task. Responses to port 0 are rejected
+                // by the OS with EINVAL, so processing them wastes resources
+                // and — worse — pushing them into the active-requests buffer
+                // could evict legitimate in-flight requests under a port-0
+                // flood. See also the defensive guard in
+                // `Processor::process_request`.
+                if client_socket_addr.port() == 0 {
+                    tracing::trace!(target: UDP_TRACKER_LOG_TARGET, local_addr, %client_socket_addr, "Udp::run_udp_server::loop continue: (discarded: client source port is 0)");
+
+                    if let Some(udp_server_stats_event_sender) = udp_tracker_server_container.stats_event_sender.as_deref() {
+                        udp_server_stats_event_sender
+                            .send(Event::UdpRequestDiscarded {
+                                context: ConnectionContext::new(client_socket_addr, server_service_binding.clone()),
+                            })
+                            .await;
+                    }
+
+                    continue;
                 }
 
                 if udp_tracker_core_container.ban_service.read().await.is_banned(&req.from.ip()) {

@@ -13,8 +13,8 @@ use crate::statistics::{
     UDP_TRACKER_SERVER_ERRORS_TOTAL, UDP_TRACKER_SERVER_IPS_BANNED_TOTAL,
     UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSED_REQUESTS_TOTAL, UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS,
     UDP_TRACKER_SERVER_REQUESTS_ABORTED_TOTAL, UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL,
-    UDP_TRACKER_SERVER_REQUESTS_BANNED_TOTAL, UDP_TRACKER_SERVER_REQUESTS_RECEIVED_TOTAL,
-    UDP_TRACKER_SERVER_RESPONSES_SENT_TOTAL,
+    UDP_TRACKER_SERVER_REQUESTS_BANNED_TOTAL, UDP_TRACKER_SERVER_REQUESTS_DISCARDED_TOTAL,
+    UDP_TRACKER_SERVER_REQUESTS_RECEIVED_TOTAL, UDP_TRACKER_SERVER_RESPONSES_SENT_TOTAL,
 };
 
 /// Metrics collected by the UDP tracker server.
@@ -154,6 +154,17 @@ impl Metrics {
     pub fn udp_requests_aborted_total(&self) -> u64 {
         self.metric_collection
             .sum(&metric_name!(UDP_TRACKER_SERVER_REQUESTS_ABORTED_TOTAL), &LabelSet::empty())
+            .unwrap_or_default() as u64
+    }
+
+    /// Total number of UDP (UDP tracker) requests discarded before processing
+    /// (e.g. because the client source port is 0).
+    #[must_use]
+    #[allow(clippy::cast_sign_loss)]
+    #[allow(clippy::cast_possible_truncation)]
+    pub fn udp_requests_discarded_total(&self) -> u64 {
+        self.metric_collection
+            .sum(&metric_name!(UDP_TRACKER_SERVER_REQUESTS_DISCARDED_TOTAL), &LabelSet::empty())
             .unwrap_or_default() as u64
     }
 

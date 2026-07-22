@@ -143,6 +143,11 @@ mod tests {
         assert!(
             stats
                 .metric_collection
+                .contains_counter(&metric_name!(UDP_TRACKER_SERVER_REQUESTS_DISCARDED_TOTAL))
+        );
+        assert!(
+            stats
+                .metric_collection
                 .contains_counter(&metric_name!(UDP_TRACKER_SERVER_REQUESTS_BANNED_TOTAL))
         );
         assert!(
