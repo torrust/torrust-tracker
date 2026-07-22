@@ -174,6 +174,7 @@ mod tests {
 
     use tokio_util::sync::CancellationToken;
     use torrust_tracker_test_helpers::configuration;
+    use torrust_tracker_udp_protocol::{ConnectRequest, Request, TransactionId};
 
     use crate::RawRequest;
     use crate::server::bound_socket::BoundSocket;
@@ -185,11 +186,23 @@ mod tests {
     // Test helpers
     // -----------------------------------------------------------------------
 
-    fn request_from(addr: SocketAddr) -> RawRequest {
-        RawRequest {
-            payload: vec![],
-            from: addr,
-        }
+    /// Builds a raw request carrying a valid UDP connect payload.
+    ///
+    /// The port-0 tests use a parsable payload on purpose: if the discard
+    /// guard regressed (e.g. it was moved after parsing or handler
+    /// invocation), the connect handler would run and increment the
+    /// accepted-connect counter, so the tests would catch it.
+    fn connect_request_from(addr: SocketAddr) -> RawRequest {
+        let connect_request = Request::from(ConnectRequest {
+            transaction_id: TransactionId(0i32.into()),
+        });
+
+        let mut payload = Vec::new();
+        connect_request
+            .write_bytes(&mut payload)
+            .expect("a valid connect request should serialize");
+
+        RawRequest { payload, from: addr }
     }
 
     /// Creates an ephemeral tracker environment, wires up the stats event
@@ -256,7 +269,7 @@ mod tests {
         let client_with_port_0 = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 1)), 0);
 
         // Act
-        processor.process_request(request_from(client_with_port_0)).await;
+        processor.process_request(connect_request_from(client_with_port_0)).await;
         // Sync: wait until the discard event is processed so the stats
         // are settled before we assert on the response counters.
         wait_for_discarded_count(&container, 1).await;
@@ -272,6 +285,13 @@ mod tests {
             stats.udp6_responses_sent_total(),
             0,
             "no IPv6 response should be sent to port 0"
+        );
+        // Assert: the request was discarded before any handler work, so the
+        // (valid) connect payload must never reach the connect handler.
+        assert_eq!(
+            stats.udp4_connect_requests_accepted_total(),
+            0,
+            "the connect handler should never run for port-0 requests"
         );
 
         cancellation_token.cancel();
@@ -290,7 +310,7 @@ mod tests {
         let client_with_port_0 = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 1)), 0);
 
         // Act
-        processor.process_request(request_from(client_with_port_0)).await;
+        processor.process_request(connect_request_from(client_with_port_0)).await;
 
         // Assert: the discard event was emitted and the counter reflects it.
         wait_for_discarded_count(&container, 1).await;
@@ -299,6 +319,13 @@ mod tests {
             stats.udp_requests_discarded_total(),
             1,
             "expected exactly 1 discarded request"
+        );
+        // Assert: the request was discarded before any handler work, so the
+        // (valid) connect payload must never reach the connect handler.
+        assert_eq!(
+            stats.udp4_connect_requests_accepted_total(),
+            0,
+            "the connect handler should never run for port-0 requests"
         );
 
         cancellation_token.cancel();
