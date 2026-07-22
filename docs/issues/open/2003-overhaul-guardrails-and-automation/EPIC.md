@@ -162,7 +162,7 @@ build actions needed by its checks.
   ordering rule and contains no duplicate entries. Decide its package and execution tier through
   the EPIC design rather than coupling it to the tracker library.
 - Permit the narrowly scoped interim formatter described by
-  [`2019-automatically-format-project-dictionary.md`](../2019-automatically-format-project-dictionary.md).
+  [`2019-automatically-format-project-dictionary/ISSUE.md`](../2019-automatically-format-project-dictionary/ISSUE.md).
   It supplies immediate developer feedback but does not select the EPIC's long-term architecture,
   execution tier, or check/action contract, and may be replaced or refactored after the design
   decision.
