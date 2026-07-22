@@ -29,9 +29,13 @@ pub async fn handle_error(
 ) -> Response {
     tracing::trace!("handle error");
 
-    let server_socket_addr = server_service_binding.bind_address();
-
-    log_error(error, client_socket_addr, server_socket_addr, opt_transaction_id, request_id);
+    log_error(
+        error,
+        client_socket_addr,
+        &server_service_binding,
+        opt_transaction_id,
+        request_id,
+    );
 
     trigger_udp_error_event(
         error,
@@ -51,28 +55,30 @@ pub async fn handle_error(
 fn log_error(
     error: &Error,
     client_socket_addr: SocketAddr,
-    server_socket_addr: SocketAddr,
+    server_service_binding: &ServiceBinding,
     opt_transaction_id: Option<TransactionId>,
     request_id: Uuid,
 ) {
+    let server_socket_addr = server_service_binding.bind_address();
+
     if is_connection_cookie_error(error) {
         match opt_transaction_id {
             Some(transaction_id) => {
                 let transaction_id = transaction_id.0.to_string();
-                tracing::warn!(target: UDP_TRACKER_LOG_TARGET, error = %error, %client_socket_addr, %server_socket_addr, %request_id, %transaction_id, "response error");
+                tracing::warn!(target: UDP_TRACKER_LOG_TARGET, error = %error, %client_socket_addr, %server_socket_addr, service_binding = %server_service_binding, %request_id, %transaction_id, "response error");
             }
             None => {
-                tracing::warn!(target: UDP_TRACKER_LOG_TARGET, error = %error, %client_socket_addr, %server_socket_addr, %request_id, "response error");
+                tracing::warn!(target: UDP_TRACKER_LOG_TARGET, error = %error, %client_socket_addr, %server_socket_addr, service_binding = %server_service_binding, %request_id, "response error");
             }
         }
     } else {
         match opt_transaction_id {
             Some(transaction_id) => {
                 let transaction_id = transaction_id.0.to_string();
-                tracing::error!(target: UDP_TRACKER_LOG_TARGET, error = %error, %client_socket_addr, %server_socket_addr, %request_id, %transaction_id, "response error");
+                tracing::error!(target: UDP_TRACKER_LOG_TARGET, error = %error, %client_socket_addr, %server_socket_addr, service_binding = %server_service_binding, %request_id, %transaction_id, "response error");
             }
             None => {
-                tracing::error!(target: UDP_TRACKER_LOG_TARGET, error = %error, %client_socket_addr, %server_socket_addr, %request_id, "response error");
+                tracing::error!(target: UDP_TRACKER_LOG_TARGET, error = %error, %client_socket_addr, %server_socket_addr, service_binding = %server_service_binding, %request_id, "response error");
             }
         }
     }

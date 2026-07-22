@@ -33,9 +33,7 @@ const DEFAULT_REQUEST_TIMEOUT: Duration = Duration::from_secs(5);
 /// > info. The tracker could use the connection info to get the client IP.
 #[instrument(skip(http_tracker_container, server_service_binding))]
 pub fn router(http_tracker_container: &Arc<HttpTrackerCoreContainer>, server_service_binding: &ServiceBinding) -> Router {
-    let server_socket_addr = server_service_binding.bind_address();
-
-    Router::new()
+    let router = Router::new()
         // Health check
         .route("/health_check", get(health_check::handler))
         // Announce request
@@ -63,7 +61,18 @@ pub fn router(http_tracker_container: &Arc<HttpTrackerCoreContainer>, server_ser
             "/scrape/{key}",
             get(scrape::handle_with_key)
                 .with_state((http_tracker_container.scrape_service.clone(), server_service_binding.clone())),
-        )
+        );
+
+    with_request_layers(router, server_service_binding)
+}
+
+fn with_request_layers(router: Router, server_service_binding: &ServiceBinding) -> Router {
+    let server_socket_addr = server_service_binding.bind_address();
+    let request_service_binding = server_service_binding.clone();
+    let response_service_binding = server_service_binding.clone();
+    let failure_service_binding = server_service_binding.clone();
+
+    router
         // Add extension to get the client IP from the connection info
         .layer(SecureClientIpSource::ConnectInfo.into_extension())
         .layer(CompressionLayer::new())
@@ -85,7 +94,14 @@ pub fn router(http_tracker_container: &Arc<HttpTrackerCoreContainer>, server_ser
 
                     tracing::event!(
                         target: HTTP_TRACKER_LOG_TARGET,
-                        tracing::Level::INFO, %server_socket_addr, %method, %uri, %request_id, "request");
+                        tracing::Level::INFO,
+                        %server_socket_addr,
+                        service_binding = %request_service_binding,
+                        %method,
+                        %uri,
+                        %request_id,
+                        "request"
+                    );
                 })
                 .on_response(move |response: &Response, latency: Duration, span: &Span| {
                     let latency_ms = latency.as_millis();
@@ -101,20 +117,38 @@ pub fn router(http_tracker_container: &Arc<HttpTrackerCoreContainer>, server_ser
                     if status_code.is_server_error() {
                         tracing::event!(
                             target: HTTP_TRACKER_LOG_TARGET,
-                            tracing::Level::ERROR, %server_socket_addr, %latency_ms, %status_code, %request_id, "response");
+                            tracing::Level::ERROR,
+                            %server_socket_addr,
+                            service_binding = %response_service_binding,
+                            %latency_ms,
+                            %status_code,
+                            %request_id,
+                            "response"
+                        );
                     } else {
                         tracing::event!(
                             target: HTTP_TRACKER_LOG_TARGET,
-                            tracing::Level::INFO, %server_socket_addr, %latency_ms, %status_code, %request_id, "response");
+                            tracing::Level::INFO,
+                            %server_socket_addr,
+                            service_binding = %response_service_binding,
+                            %latency_ms,
+                            %status_code,
+                            %request_id,
+                            "response"
+                        );
                     }
                 })
                 .on_failure(
-                    |failure_classification: ServerErrorsFailureClass, latency: Duration, _span: &Span| {
+                    move |failure_classification: ServerErrorsFailureClass, latency: Duration, _span: &Span| {
                         let latency = Latency::new(LatencyUnit::Millis, latency);
 
                         tracing::event!(
-                            target: HTTP_TRACKER_LOG_TARGET,
-                            tracing::Level::ERROR, %failure_classification, %latency, "response failed");
+                            target: HTTP_TRACKER_LOG_TARGET, tracing::Level::ERROR,
+                            %failure_classification,
+                            %latency,
+                            service_binding = %failure_service_binding,
+                            "response failed"
+                        );
                     },
                 ),
         )
