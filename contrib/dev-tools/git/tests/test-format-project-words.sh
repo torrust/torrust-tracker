@@ -49,7 +49,7 @@ it_should_sort_and_remove_exact_duplicates_when_dictionary_requires_formatting()
 
     # Assert
     diff --unified "${fixture_root}/project-words.txt" <(printf 'Alpha\nalpha\nzebra\n')
-    grep --fixed-strings --quiet 'Formatted project-words.txt with LC_ALL=C sort --unique.' "${fixture_root}/formatter-output.txt"
+    grep --fixed-strings --quiet 'Formatted project-words.txt with LC_ALL=C sort -u.' "${fixture_root}/formatter-output.txt"
 }
 
 it_should_report_success_when_dictionary_is_already_formatted() {

@@ -35,7 +35,7 @@ Make `project-words.txt` consistently sorted and free of exact duplicate entries
 
 ### In Scope
 
-- Add `contrib/dev-tools/git/format-project-words.sh`, an independently runnable formatter that applies `LC_ALL=C sort --unique` to `project-words.txt`.
+- Add `contrib/dev-tools/git/format-project-words.sh`, an independently runnable formatter that applies `LC_ALL=C sort -u` to `project-words.txt`.
 - Invoke the formatter from the pre-commit hook.
 - Detect when formatting changes the dictionary and abort the commit with clear restaging instructions.
 - Document the automatic behavior and manual formatting command in the relevant pre-commit workflow guidance.
@@ -55,7 +55,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task                                                          | Notes / Expected Output                                                                                                                                                   |
 | --- | ------ | ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| T1  | DONE   | Add an independently runnable dictionary formatter            | `contrib/dev-tools/git/format-project-words.sh` applies `LC_ALL=C sort --unique` to `project-words.txt` and reports whether it changed the file.                          |
+| T1  | DONE   | Add an independently runnable dictionary formatter            | `contrib/dev-tools/git/format-project-words.sh` applies `LC_ALL=C sort -u` to `project-words.txt` and reports whether it changed the file.                                |
 | T2  | DONE   | Invoke the formatter from the pre-commit hook                 | The hook calls the formatter before verification steps and retains its role as orchestration scaffolding.                                                                 |
 | T3  | DONE   | Abort when the formatter changes the dictionary               | The commit stops and tells the contributor to stage `project-words.txt` and retry, preventing a stale index from being committed.                                         |
 | T4  | DONE   | Update workflow documentation                                 | The documentation describes automatic formatting, the helper command, and the interim relationship to EPIC #2003; it no longer requires manual alphabetical-order review. |
@@ -93,7 +93,7 @@ Append one line per meaningful update.
 
 ## Acceptance Criteria
 
-- [x] AC1: `contrib/dev-tools/git/format-project-words.sh` applies `LC_ALL=C sort --unique` to `project-words.txt`, preserving distinct entries that differ only by case.
+- [x] AC1: `contrib/dev-tools/git/format-project-words.sh` applies `LC_ALL=C sort -u` to `project-words.txt`, preserving distinct entries that differ only by case.
 - [x] AC2: If formatting modifies `project-words.txt`, the pre-commit hook exits non-zero and clearly instructs the contributor to stage the modified file and retry the commit.
 - [x] AC3: If formatting does not modify `project-words.txt`, the pre-commit hook continues with its existing verification steps.
 - [x] AC4: Automated coverage verifies both unchanged and changed formatter and hook behavior.
@@ -136,7 +136,7 @@ Notes:
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence                                                                                 |
 | ----- | ---------------------- | ---------------------------------------------------------------------------------------- |
-| AC1   | DONE                   | Formatter uses `LC_ALL=C sort --unique`; M3 verifies case variants remain distinct.      |
+| AC1   | DONE                   | Formatter uses `LC_ALL=C sort -u`; M3 verifies case variants remain distinct.            |
 | AC2   | DONE                   | M1 and focused hook test verify the non-zero exit and restaging instruction.             |
 | AC3   | DONE                   | M2 and focused hook test verify the existing checks continue.                            |
 | AC4   | DONE                   | `test-format-project-words.sh` covers changed and unchanged formatter and hook behavior. |

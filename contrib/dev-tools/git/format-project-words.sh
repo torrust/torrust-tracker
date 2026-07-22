@@ -19,21 +19,26 @@ fi
 
 trap 'rm -f "${temporary_dictionary}"' EXIT
 
-if ! LC_ALL=C sort --unique "${DICTIONARY_PATH}" >"${temporary_dictionary}"; then
+if ! cp -p "${DICTIONARY_PATH}" "${temporary_dictionary}"; then
+    printf 'Error: failed to preserve project dictionary metadata: %s\n' "${DICTIONARY_PATH}" >&2
+    exit 2
+fi
+
+if ! LC_ALL=C sort -u "${DICTIONARY_PATH}" >"${temporary_dictionary}"; then
     printf 'Error: failed to format project dictionary: %s\n' "${DICTIONARY_PATH}" >&2
     exit 2
 fi
 
-if cmp --silent "${DICTIONARY_PATH}" "${temporary_dictionary}"; then
+if cmp -s "${DICTIONARY_PATH}" "${temporary_dictionary}"; then
     printf 'project-words.txt is already formatted.\n'
     exit 0
 fi
 
-if ! chmod --reference="${DICTIONARY_PATH}" "${temporary_dictionary}" || ! mv -- "${temporary_dictionary}" "${DICTIONARY_PATH}"; then
+if ! mv "${temporary_dictionary}" "${DICTIONARY_PATH}"; then
     printf 'Error: failed to update project dictionary: %s\n' "${DICTIONARY_PATH}" >&2
     exit 2
 fi
 
-printf 'Formatted project-words.txt with LC_ALL=C sort --unique.\n'
+printf 'Formatted project-words.txt with LC_ALL=C sort -u.\n'
 printf "Stage 'project-words.txt' and retry the commit.\n"
 exit 1

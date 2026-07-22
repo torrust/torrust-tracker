@@ -48,7 +48,7 @@ TORRUST_GIT_HOOKS_LOG_DIR=.tmp ./contrib/dev-tools/git/hooks/pre-commit.sh
 The script runs these steps in order:
 
 1. `./contrib/dev-tools/git/format-project-words.sh` - formats `project-words.txt` with
-   `LC_ALL=C sort --unique`
+   `LC_ALL=C sort -u`
 2. `cargo machete --with-metadata` - unused dependency check
 3. `cargo deny check bans` - workspace layer-boundary dependency check
 4. `linter all` - all linters (markdown, YAML, TOML, clippy, rustfmt, shellcheck, cspell)
