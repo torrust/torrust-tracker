@@ -252,8 +252,6 @@ impl Launcher {
             .expect("Failed to set socket to non-blocking mode");
         let address = socket.local_addr().expect("Could not get local_addr from tcp_listener.");
 
-        let router = router(http_api_container, access_tokens, address);
-
         let handle = Handle::new();
 
         tokio::task::spawn(graceful_shutdown(
@@ -266,6 +264,8 @@ impl Launcher {
         let tls = self.tls.clone();
         let protocol = if tls.is_some() { Protocol::HTTPS } else { Protocol::HTTP };
         let service_binding = ServiceBinding::new(protocol.clone(), address).expect("Service binding creation failed");
+
+        let router = router(http_api_container, access_tokens, &service_binding);
 
         tracing::info!(target: API_LOG_TARGET, "Starting on: {protocol}://{address}");
 

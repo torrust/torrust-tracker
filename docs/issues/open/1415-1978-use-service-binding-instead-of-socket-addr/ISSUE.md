@@ -7,7 +7,7 @@ github-issue: 1415
 spec-path: docs/issues/open/1415-1978-use-service-binding-instead-of-socket-addr/ISSUE.md
 branch: "1415-use-service-binding"
 related-pr: null
-last-updated-utc: 2026-07-22 13:35
+last-updated-utc: 2026-07-22 15:35
 semantic-links:
   skill-links:
     - create-issue
@@ -91,14 +91,14 @@ The exact commands and complete relevant outputs are recorded in
 
 ## Implementation Plan
 
-| ID  | Status | Task                                                   | Notes                                                                                                    |
-| --- | ------ | ------------------------------------------------------ | -------------------------------------------------------------------------------------------------------- |
-| T1  | DONE   | Capture baseline manual verification                   | Health check, HTTP announce, and Prometheus metrics recorded before code changes.                        |
-| T2  | TODO   | Inventory bare service-identity `SocketAddr` flows     | Distinguish service identity from socket I/O and client addresses.                                       |
-| T3  | TODO   | Replace remaining identity flows with `ServiceBinding` | Preserve public response and metric contracts.                                                           |
-| T4  | TODO   | Update runtime logging                                 | Retain `server_socket_addr` and add `service_binding`, formatted as `<protocol>://<post-bind-address>/`. |
-| T5  | TODO   | Add or update focused tests                            | Cover changed logging/registration/metric identity paths.                                                |
-| T6  | TODO   | Complete automatic and post-change manual verification | Record final commands and output in `manual-verification.md`.                                            |
+| ID  | Status | Task                                                   | Notes                                                                                                                                                                            |
+| --- | ------ | ------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| T1  | DONE   | Capture baseline manual verification                   | Health check, HTTP announce, and Prometheus metrics recorded before code changes.                                                                                                |
+| T2  | DONE   | Inventory bare service-identity `SocketAddr` flows     | Audited server production paths; HTTP and REST API request/response logs plus UDP error logs were the remaining observable bare-address flows.                                   |
+| T3  | DONE   | Replace remaining identity flows with `ServiceBinding` | Preserved public response and metric contracts.                                                                                                                                  |
+| T4  | DONE   | Update runtime logging                                 | Retained `server_socket_addr` and added `service_binding` to HTTP, REST API, and UDP error logs.                                                                                 |
+| T5  | DONE   | Run focused regression tests                           | Existing server-package tests cover the changed paths. Field-level log assertions are deferred to #1430 because global tracing state and concurrent output make them unreliable. |
+| T6  | DONE   | Complete automatic and post-change manual verification | Recorded final commands and output in `manual-verification.md`.                                                                                                                  |
 
 ## Progress Tracking
 
@@ -107,10 +107,10 @@ The exact commands and complete relevant outputs are recorded in
 - [x] Spec reviewed and clarified with user/maintainer
 - [x] GitHub issue exists and is linked to EPIC #1978
 - [x] Baseline manual verification executed and recorded
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests)
-- [ ] Post-implementation manual verification executed and recorded
-- [ ] Acceptance criteria reviewed after implementation
+- [x] Implementation completed
+- [x] Automatic verification completed (`linter all`, relevant tests)
+- [x] Post-implementation manual verification executed and recorded
+- [x] Acceptance criteria reviewed after implementation
 - [ ] Issue closed and specification moved to `docs/issues/closed/`
 
 ### Progress Log
@@ -133,21 +133,28 @@ The exact commands and complete relevant outputs are recorded in
   complementary protocol-aware information.
 - 2026-07-22 13:35 UTC - agent - Recorded approved public-URL runtime observability follow-up as
   issue #2023.
+- 2026-07-22 15:25 UTC - agent - Audited remaining production service-identity flows. Added
+  `service_binding` alongside `server_socket_addr` to HTTP tracker and REST API request/response
+  logs and UDP error logs. Verified the HTTP, REST API, and UDP output manually and passed
+  focused, workspace, and lint checks. Field-level regression tests are still pending.
+- 2026-07-22 15:35 UTC - josecelano - Accepted manual verification as the log-output evidence.
+  Automated assertions for tracing output are deferred to #1430 because the global tracing
+  subscriber and concurrent test output make deterministic field-level capture unreliable.
 
 ## Acceptance Criteria
 
-- [ ] AC1: Every changed flow that represents a service identity uses `ServiceBinding` rather
+- [x] AC1: Every changed flow that represents a service identity uses `ServiceBinding` rather
       than a bare `SocketAddr`.
-- [ ] AC2: Changed HTTP tracker and REST API request/response logs retain
+- [x] AC2: Changed HTTP tracker, REST API, and UDP error logs retain
       `server_socket_addr=<post-bind-address>` and add
       `service_binding=<protocol>://<post-bind-address>/`.
-- [ ] AC3: The health-check endpoint continues to expose protocol-aware `service_binding` data
+- [x] AC3: The health-check endpoint continues to expose protocol-aware `service_binding` data
       for each registered service.
-- [ ] AC4: An HTTP announce continues to produce metrics containing the protocol-aware
+- [x] AC4: An HTTP announce continues to produce metrics containing the protocol-aware
       `server_binding_*` label set.
-- [ ] AC5: No configuration field or `torrust-net-primitives` change is required.
-- [ ] AC6: `linter all` exits with code `0` and relevant tests pass.
-- [ ] AC7: The health-check, metric, and runtime-log post-implementation manual checks pass and
+- [x] AC5: No configuration field or `torrust-net-primitives` change is required.
+- [x] AC6: `linter all` exits with code `0` and relevant tests pass.
+- [x] AC7: The health-check, metric, and runtime-log post-implementation manual checks pass and
       their commands and output are
       recorded in `manual-verification.md`.
 
@@ -176,10 +183,13 @@ The exact commands and complete relevant outputs are recorded in
 - **Log-consumer compatibility**: request and response logs are operational output. This issue
   preserves `server_socket_addr` and adds `service_binding`, avoiding a breaking log-schema
   change while providing protocol-aware service identity.
+- **Tracing testability**: field-level assertions for concurrent tracing output are deferred to
+  #1430. The manual verification evidence is the acceptance evidence for this issue's log schema.
 
 ## References
 
 - #1409 and PR #1416 - health-check service binding output
 - #1403 and PR #1414 - per-service labelled metrics
 - #1417 - optional public service URL configuration
+- #1430 - tracing log-capture test reliability
 - [Manual verification evidence](manual-verification.md)

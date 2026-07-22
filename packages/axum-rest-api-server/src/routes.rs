@@ -5,7 +5,6 @@
 //!
 //! All the API routes have the `/api` prefix and the version number as the
 //! first path segment. For example: `/api/v1/torrents`.
-use std::net::SocketAddr;
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -15,6 +14,7 @@ use axum::response::Response;
 use axum::routing::get;
 use axum::{BoxError, Router, middleware};
 use hyper::{Request, StatusCode};
+use torrust_net_primitives::service_binding::ServiceBinding;
 use torrust_server_lib::logging::Latency;
 use torrust_tracker_configuration::AccessTokens;
 use torrust_tracker_rest_api_runtime_adapter::v1::container::TrackerHttpApiCoreContainer;
@@ -40,8 +40,12 @@ use crate::API_LOG_TARGET;
 pub fn router(
     http_api_container: &Arc<TrackerHttpApiCoreContainer>,
     access_tokens: Arc<AccessTokens>,
-    server_socket_addr: SocketAddr,
+    server_service_binding: &ServiceBinding,
 ) -> Router {
+    let server_socket_addr = server_service_binding.bind_address();
+    let request_service_binding = server_service_binding.clone();
+    let response_service_binding = server_service_binding.clone();
+    let failure_service_binding = server_service_binding.clone();
     let router = Router::new();
 
     let api_url_prefix = "/api";
@@ -59,7 +63,7 @@ pub fn router(
         .layer(
             TraceLayer::new_for_http()
                 .make_span_with(DefaultMakeSpan::new().level(Level::INFO))
-                .on_request(|request: &Request<axum::body::Body>, span: &Span| {
+                .on_request(move |request: &Request<axum::body::Body>, span: &Span| {
                     let method = request.method().to_string();
                     let uri = request.uri().to_string();
                     let request_id = request
@@ -72,7 +76,14 @@ pub fn router(
 
                     tracing::event!(
                         target: API_LOG_TARGET,
-                        tracing::Level::INFO, %method, %uri, %request_id, "request");
+                        tracing::Level::INFO,
+                        %server_socket_addr,
+                        service_binding = %request_service_binding,
+                        %method,
+                        %uri,
+                        %request_id,
+                        "request"
+                    );
                 })
                 .on_response(move |response: &Response, latency: Duration, span: &Span| {
                     let latency_ms = latency.as_millis();
@@ -88,11 +99,25 @@ pub fn router(
                     if status_code.is_server_error() {
                         tracing::event!(
                             target: API_LOG_TARGET,
-                            tracing::Level::ERROR, %latency_ms, %status_code, %server_socket_addr, %request_id, "response");
+                            tracing::Level::ERROR,
+                            %latency_ms,
+                            %status_code,
+                            %server_socket_addr,
+                            service_binding = %response_service_binding,
+                            %request_id,
+                            "response"
+                        );
                     } else {
                         tracing::event!(
                             target: API_LOG_TARGET,
-                            tracing::Level::INFO, %latency_ms, %status_code, %server_socket_addr, %request_id, "response");
+                            tracing::Level::INFO,
+                            %latency_ms,
+                            %status_code,
+                            %server_socket_addr,
+                            service_binding = %response_service_binding,
+                            %request_id,
+                            "response"
+                        );
                     }
                 })
                 .on_failure(
@@ -101,7 +126,13 @@ pub fn router(
 
                         tracing::event!(
                             target: API_LOG_TARGET,
-                            tracing::Level::ERROR, %failure_classification, %latency, %server_socket_addr, "response failed");
+                            tracing::Level::ERROR,
+                            %failure_classification,
+                            %latency,
+                            %server_socket_addr,
+                            service_binding = %failure_service_binding,
+                            "response failed"
+                        );
                     },
                 ),
         )
