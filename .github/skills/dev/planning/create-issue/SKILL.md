@@ -129,8 +129,6 @@ gh issue create \
   --label "{label}"
 ```
 
-**MCP GitHub tools** (if available): use `mcp_github_github_issue_write` with `title`, `body`, and `labels`.
-
 ### Step 4: Move the Specification to Open Issues
 
 Move from `drafts/` to `open/` using the assigned issue number. Preserve the chosen layout:

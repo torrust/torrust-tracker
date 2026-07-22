@@ -1,9 +1,25 @@
 # Agents Instructions — `docs/issues/open/`
 
-## Spec Folder Naming Conventions
+## Spec Naming Conventions
 
-Issue and EPIC specs use a folder named after the GitHub issue. The primary specification file
-inside the folder is `ISSUE.md` for issues or `EPIC.md` for EPICs.
+Use a standalone Markdown file when a specification has no issue-local supporting artifacts.
+Use a folder when it needs issue-local artifacts; the primary file inside the folder is `ISSUE.md`
+for issues or `EPIC.md` for EPICs. The GitHub issue number must start every filename or folder
+name.
+
+### Standalone issue specification
+
+```text
+{ISSUE_NUMBER}-{short-description}.md
+```
+
+Example:
+
+```text
+1843-migrate-git-hooks-scripts-from-bash-to-rust.md
+```
+
+### Folder-based issue specification
 
 ### Standalone issue (not part of an EPIC)
 
@@ -68,14 +84,15 @@ Example:
 ## Key Rule
 
 **The most important part is the issue number prefix.** It makes it easy to locate any spec
-from a GitHub issue number and vice versa. Always start the filename with the GitHub issue
-number.
+from a GitHub issue number and vice versa. Always start the filename or folder name with the
+GitHub issue number.
 
 ## Summary Table
 
 | Pattern             | Example                                                          |
 | ------------------- | ---------------------------------------------------------------- |
-| Standalone          | `1875-review-lto-fat-in-dev-profile/ISSUE.md`                    |
+| Standalone          | `1843-migrate-git-hooks-scripts-from-bash-to-rust.md`            |
+| Folder-based issue  | `1875-review-lto-fat-in-dev-profile/ISSUE.md`                    |
 | EPIC                | `1978-configuration-overhaul-epic/EPIC.md`                       |
 | Subissue            | `1979-1978-copy-configuration-schema-v2-to-v3-baseline/ISSUE.md` |
 | Subissue with order | `1969-1938-si-8-eliminate-unwraps-from-rest-api-client/ISSUE.md` |

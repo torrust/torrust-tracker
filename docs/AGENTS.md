@@ -35,15 +35,15 @@ For the full project context see the [root AGENTS.md](../AGENTS.md).
 
 ### Where to place a new artifact
 
-| Artifact type                                  | Target location                                                                                                    |
-| ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| New ADR                                        | `docs/adrs/` — filename format: `YYYYMMDDHHMMSS_<short-slug>.md`                                                   |
-| New issue spec (before GitHub issue exists)    | `docs/issues/drafts/`                                                                                              |
-| New issue spec (after GitHub issue created)    | `docs/issues/open/<number>-<short-slug>.md`, or `<number>-<short-slug>/ISSUE.md` when it has issue-local artifacts |
-| New refactor plan (before GitHub issue exists) | `docs/refactor-plans/drafts/`                                                                                      |
-| New refactor plan (after GitHub issue created) | `docs/refactor-plans/open/<number>-<short-slug>.md`                                                                |
-| New document template                          | `docs/templates/`                                                                                                  |
-| New diagram or screenshot                      | `docs/media/` (or the relevant subdirectory)                                                                       |
+| Artifact type                                  | Target location                                                                                                                     |
+| ---------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| New ADR                                        | `docs/adrs/` — filename format: `YYYYMMDDHHMMSS_<short-slug>.md`                                                                    |
+| New issue spec (before GitHub issue exists)    | `docs/issues/drafts/`                                                                                                               |
+| New issue spec (after GitHub issue created)    | `docs/issues/open/<number>-<short-slug>.md`, or `docs/issues/open/<number>-<short-slug>/ISSUE.md` when it has issue-local artifacts |
+| New refactor plan (before GitHub issue exists) | `docs/refactor-plans/drafts/`                                                                                                       |
+| New refactor plan (after GitHub issue created) | `docs/refactor-plans/open/<number>-<short-slug>.md`                                                                                 |
+| New document template                          | `docs/templates/`                                                                                                                   |
+| New diagram or screenshot                      | `docs/media/` (or the relevant subdirectory)                                                                                        |
 
 ## Markdown Frontmatter
 

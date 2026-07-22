@@ -7,7 +7,7 @@ github-issue: 2022
 spec-path: docs/issues/open/2022-vendor-and-document-maintainer-merge-workflow/ISSUE.md
 branch: "2022-vendor-and-document-maintainer-merge-workflow"
 related-pr: null
-last-updated-utc: 2026-07-22 00:00
+last-updated-utc: 2026-07-22 15:30
 semantic-links:
   skill-links:
     - create-issue
@@ -34,7 +34,7 @@ Bring the currently external, maintainer-operated pull-request merge workflow in
 
 Maintainers currently invoke `/home/josecelano/Bin/github-merge.py` through `gh-merge {PR-NUMBER}` to construct, inspect, sign, and optionally push local merge commits. The script is not versioned with this repository and its required configuration, temporary branches, hook behavior, validation flow, and recovery process are undocumented here.
 
-The exact current script is preserved with this folder-style draft as [`github-merge.py`](github-merge.py). It has SHA-256 `e390eb014131f3183a2cba642134974a6b09b19a65322d17dd7c81cf4ffbaad2` and is a planning snapshot only; implementation must audit and vendor it under `contrib/dev-tools/git/` with its copyright and MIT license notice intact. Its source-derived identifiers are excluded by one precise `cspell.json` ignore pattern so that the snapshot remains byte-for-byte reviewable without expanding the project dictionary.
+The exact current script is preserved with this folder-style specification as [`github-merge.py`](github-merge.py). It has SHA-256 `e390eb014131f3183a2cba642134974a6b09b19a65322d17dd7c81cf4ffbaad2` and is a planning snapshot only; implementation must audit and vendor it under `contrib/dev-tools/git/` with its copyright and MIT license notice intact. Its source-derived identifiers are excluded by one precise `cspell.json` ignore pattern so that the snapshot remains byte-for-byte reviewable without expanding the project dictionary.
 
 During the merge of PR #2020, the merge tool ran `git merge --commit`, which invoked the repository pre-commit hook. The hook's dictionary formatter rewrote `project-words.txt` and aborted the temporary merge commit. The incident showed that an external, undocumented merge tool leaves both maintainers and agents without a repository-local procedure for understanding side effects, recovering safely, and preparing a mergeable tree.
 
@@ -98,6 +98,7 @@ Append one line per meaningful update.
 
 - 2026-07-22 00:00 UTC - GitHub Copilot - Created folder-style draft specification after the PR #2020 merge-hook failure exposed the undocumented external merge workflow - `docs/issues/drafts/vendor-and-document-maintainer-merge-workflow/`
 - 2026-07-22 13:00 UTC - GitHub Copilot - User approved the specification; created GitHub issue #2022 with the `task`, `Documentation`, and `Automation` labels - `https://github.com/torrust/torrust-tracker/issues/2022`
+- 2026-07-22 15:30 UTC - GitHub Copilot - Corrected reviewed specification wording and added the MIT license text referenced by the immutable planning snapshot - PR #2024
 
 ## Acceptance Criteria
 
