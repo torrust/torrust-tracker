@@ -42,7 +42,7 @@ Example:
 Example:
 
 ```text
-1978-configuration-overhaul-epic/EPIC.md
+1669-overhaul-packages/EPIC.md
 ```
 
 #### Subissue (part of an EPIC)
@@ -59,7 +59,7 @@ Where:
 Example:
 
 ```text
-1979-1978-copy-configuration-schema-v2-to-v3-baseline/ISSUE.md
+docs/issues/closed/1859-1669-move-tracker-policy-and-private-mode-to-primitives/ISSUE.md
 ```
 
 #### Subissue with explicit implementation order
@@ -78,7 +78,7 @@ Where:
 Example:
 
 ```text
-1969-1938-si-8-eliminate-unwraps-from-rest-api-client/ISSUE.md
+docs/issues/closed/1965-1669-si-34-consolidate-duplicate-http-types/ISSUE.md
 ```
 
 ## Key Rule
@@ -89,10 +89,10 @@ GitHub issue number.
 
 ## Summary Table
 
-| Pattern             | Example                                                          |
-| ------------------- | ---------------------------------------------------------------- |
-| Standalone          | `1843-migrate-git-hooks-scripts-from-bash-to-rust.md`            |
-| Folder-based issue  | `1875-review-lto-fat-in-dev-profile/ISSUE.md`                    |
-| EPIC                | `1978-configuration-overhaul-epic/EPIC.md`                       |
-| Subissue            | `1979-1978-copy-configuration-schema-v2-to-v3-baseline/ISSUE.md` |
-| Subissue with order | `1969-1938-si-8-eliminate-unwraps-from-rest-api-client/ISSUE.md` |
+| Pattern             | Example                                                                                    |
+| ------------------- | ------------------------------------------------------------------------------------------ |
+| Standalone          | `1843-migrate-git-hooks-scripts-from-bash-to-rust.md`                                      |
+| Folder-based issue  | `docs/issues/open/2022-vendor-and-document-maintainer-merge-workflow/ISSUE.md`             |
+| EPIC                | `docs/issues/open/1669-overhaul-packages/EPIC.md`                                          |
+| Subissue            | `docs/issues/closed/1859-1669-move-tracker-policy-and-private-mode-to-primitives/ISSUE.md` |
+| Subissue with order | `docs/issues/closed/1965-1669-si-34-consolidate-duplicate-http-types/ISSUE.md`             |
