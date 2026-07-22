@@ -3,7 +3,7 @@ name: cleanup-completed-issues
 description: Guide for archiving closed issue specification files from docs/issues/open/ to docs/issues/closed/. Covers verifying closure on GitHub, moving files, updating frontmatter, creating a branch, and opening a PR. Permanent deletion of closed specs is not automated — the user must explicitly request it. Use when cleaning up closed issue specs, archiving issue docs, or maintaining the docs/issues/ folder. Triggers on "cleanup issue", "archive issue", "move closed issue", "clean completed issues", or "maintain issue docs".
 metadata:
   author: torrust
-  version: "1.4"
+  version: "1.5"
 ---
 
 # Cleaning Up Completed Issues
@@ -69,6 +69,34 @@ git checkout -b chore/cleanup-completed-issues
 > git push "$FORK_REMOTE" --delete chore/cleanup-completed-issues
 > ```
 
+### Step 0.5: Discover Archive Candidates in Both Open-Spec Formats (Mandatory)
+
+Always scan both issue spec formats under `docs/issues/open/`:
+
+1. **Directory specs** (multi-file issue folders)
+2. **Single-file specs** (`*.md` files except `README.md` and `AGENTS.md`)
+
+Do not proceed with archival if only one format was scanned.
+
+```bash
+echo "[open issue folders]"
+find docs/issues/open -maxdepth 1 -mindepth 1 -type d -exec basename {} \; | sort
+
+echo "[open single-file specs]"
+find docs/issues/open -maxdepth 1 -type f -name '*.md' \
+  ! -name 'README.md' ! -name 'AGENTS.md' -exec basename {} \; | sort
+```
+
+Optional unified number extraction for batch state verification:
+
+```bash
+{
+  find docs/issues/open -maxdepth 1 -mindepth 1 -type d -exec basename {} \;
+  find docs/issues/open -maxdepth 1 -type f -name '*.md' \
+    ! -name 'README.md' ! -name 'AGENTS.md' -exec basename {} \;
+} | sed -E 's/^([0-9]+).*/\1/' | sort -n | uniq
+```
+
 ### Step 1: Verify Issue is Closed on GitHub
 
 **Single issue:**
@@ -126,7 +154,7 @@ For directories with multiple files, update at minimum the main `ISSUE.md` plus 
 supplementary files whose frontmatter references the `docs/issues/open/` path (e.g.,
 `related-artifacts` links to the open spec). For supplementary docs without existing
 frontmatter, add a minimal block with `spec-path`, `last-updated-utc`, and a
-`sematic-links` section linking back to the parent issue spec.
+`semantic-links` section linking back to the parent issue spec.
 
 Also check the spec's **Workflow Checkpoints** section and tick any checkboxes that
 reflect completed work (manual verification, acceptance criteria review, etc.) based

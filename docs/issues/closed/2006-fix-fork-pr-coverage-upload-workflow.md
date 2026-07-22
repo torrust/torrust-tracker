@@ -1,13 +1,13 @@
 ---
 doc-type: issue
 issue-type: bug
-status: in-progress
+status: done
 priority: p1
 github-issue: 2006
-spec-path: docs/issues/open/2006-fix-fork-pr-coverage-upload-workflow.md
+spec-path: docs/issues/closed/2006-fix-fork-pr-coverage-upload-workflow.md
 branch: "2006-fix-fork-pr-coverage-upload-workflow"
 related-pr: null
-last-updated-utc: 2026-07-21 08:20
+last-updated-utc: 2026-07-22 00:00
 semantic-links:
   skill-links:
     - create-issue
@@ -68,9 +68,11 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [ ] Acceptance criteria reviewed after implementation and updated with evidence
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [x] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
+
+- 2026-07-22 00:00 UTC - agent - Verified issue #2006 is CLOSED on GitHub and archived this spec to docs/issues/closed/.
 
 - 2026-07-20 16:46 UTC - GitHub Copilot - Drafted bug specification from failed workflow run 29758909096; duplicate search found no matching open issue.
 - 2026-07-20 17:15 UTC - GitHub Copilot - Confirmed the trusted default-branch checkout remediation, created GitHub issue #2006, and updated this specification.

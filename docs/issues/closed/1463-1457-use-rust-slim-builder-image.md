@@ -1,13 +1,13 @@
 ---
 doc-type: issue
 issue-type: task
-status: open
+status: done
 priority: p3
 github-issue: 1463
-spec-path: docs/issues/open/1463-1457-use-rust-slim-builder-image.md
+spec-path: docs/issues/closed/1463-1457-use-rust-slim-builder-image.md
 branch: "1463-1457-use-rust-slim-builder-image"
 related-pr: "https://github.com/torrust/torrust-tracker/pull/2007"
-last-updated-utc: 2026-07-20 00:00
+last-updated-utc: 2026-07-22 00:00
 semantic-links:
   skill-links:
     - create-issue
@@ -227,9 +227,11 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
+
+- 2026-07-22 00:00 UTC - agent - Verified issue #1463 is CLOSED on GitHub and archived this spec to docs/issues/closed/.
 
 - 2026-07-20 00:00 UTC - GitHub Copilot - Read issue #1463 and both comments; created the local issue branch and drafted this spec - local investigation results recorded above
 - 2026-07-20 00:00 UTC - GitHub Copilot - Compared fresh full/slim images and verified the pinned cargo tools install on slim with only `curl` added - T1 and T2 completed

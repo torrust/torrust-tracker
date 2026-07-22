@@ -1,13 +1,13 @@
 ---
 doc-type: issue
 issue-type: bug
-status: open
+status: done
 priority: p2
 github-issue: 1986
-spec-path: docs/issues/open/1986-align-http-tracker-compact-default-with-bep-23/ISSUE.md
+spec-path: docs/issues/closed/1986-align-http-tracker-compact-default-with-bep-23/ISSUE.md
 branch: "1986-align-http-tracker-compact-default-with-bep-23"
 related-pr: "https://github.com/torrust/torrust-tracker/pull/1990"
-last-updated-utc: 2026-07-15 00:00
+last-updated-utc: 2026-07-22 00:00
 semantic-links:
   skill-links:
     - create-issue
@@ -19,7 +19,6 @@ semantic-links:
     - packages/http-protocol/src/v1/requests/announce.rs
     - packages/axum-http-server/tests/server/v1/contract/for_all_config_modes/receiving_an_announce_request.rs
 ---
-
 
 # Issue #1986 - Return compact peer list by default when `compact` param is absent (BEP 23)
 
@@ -116,9 +115,11 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [ ] Acceptance criteria reviewed after implementation and updated with evidence
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
+
+- 2026-07-22 00:00 UTC - agent - Verified issue #1986 is CLOSED on GitHub and archived this spec to docs/issues/closed/.
 
 - 2026-07-15 00:00 UTC - Copilot/User - Spec drafted based on code review of `build_response`, `lib.rs` NOTICE, and the existing `code-review` comment in the contract tests.
 

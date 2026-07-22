@@ -1,13 +1,13 @@
 ---
 doc-type: issue
 issue-type: enhancement
-status: in-review
+status: done
 priority: p3
 github-issue: 1417
-spec-path: docs/issues/open/1417-1978-add-public-service-url-to-configuration.md
+spec-path: docs/issues/closed/1417-1978-add-public-service-url-to-configuration.md
 branch: "1417-add-public-service-url"
 related-pr: null
-last-updated-utc: 2026-07-21 16:00
+last-updated-utc: 2026-07-22 00:00
 semantic-links:
   skill-links:
     - create-issue
@@ -113,6 +113,8 @@ This catches misconfigurations early (e.g., accidentally setting `public_url = "
 ## Progress Tracking
 
 ### Progress Log
+
+- 2026-07-22 00:00 UTC - agent - Verified issue #1417 is CLOSED on GitHub and archived this spec to docs/issues/closed/.
 
 - 2026-06-23 18:45 UTC - Copilot - Drafted from GitHub issue #1417 and discussions in issue #1640 spec review.
 - 2026-07-14 00:00 UTC - josecelano - Resolved placement: `public_url` stays flat (not inside `Network`). Added protocol validation. Updated related-artifacts to v3 paths.

@@ -4,10 +4,10 @@ issue-type: task
 status: done
 priority: p0
 github-issue: 1979
-spec-path: docs/issues/open/1979-1978-copy-configuration-schema-v2-to-v3-baseline.md
+spec-path: docs/issues/closed/1979-1978-copy-configuration-schema-v2-to-v3-baseline.md
 branch: "config-copy-v2-to-v3-baseline"
 related-pr: 1999
-last-updated-utc: 2026-07-20 13:21
+last-updated-utc: 2026-07-22 00:00
 semantic-links:
   skill-links:
     - create-issue
@@ -80,9 +80,11 @@ This approach:
 - [x] Automatic verification completed (`linter all`, relevant tests)
 - [ ] Manual verification scenarios executed and recorded
 - [x] Acceptance criteria reviewed after implementation
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
+
+- 2026-07-22 00:00 UTC - agent - Verified issue #1979 is CLOSED on GitHub and archived this spec to docs/issues/closed/.
 
 - 2026-07-13 21:00 UTC - josecelano - Initial spec drafted
 - 2026-07-15 00:00 UTC - josecelano - GitHub issue #1979 created; spec moved to `docs/issues/open/1979-1978-copy-configuration-schema-v2-to-v3-baseline.md`

@@ -4,10 +4,10 @@ issue-type: enhancement
 status: done
 priority: p2
 github-issue: 1640
-spec-path: docs/issues/open/1640-1978-per-http-tracker-on-reverse-proxy-setting.md
+spec-path: docs/issues/closed/1640-1978-per-http-tracker-on-reverse-proxy-setting.md
 branch: "1640-move-network-to-per-instance-config"
 related-pr: null
-last-updated-utc: 2026-07-21 12:00
+last-updated-utc: 2026-07-22 00:00
 semantic-links:
   skill-links:
     - create-issue
@@ -497,7 +497,7 @@ This is the largest phase, split into sub-tasks (each committed and CI-verified 
 
 ### Workflow Checkpoints
 
-- [ ] Spec drafted in `docs/issues/open/`
+- [x] Spec drafted in `docs/issues/open/`
 - [ ] Spec reviewed and approved by user/maintainer
 - [x] Phase 0: ADR created
 - [x] Phase 1: v3 `network: Network` replaces `core.net` and flat `ipv6_v6only`
@@ -511,9 +511,11 @@ This is the largest phase, split into sub-tasks (each committed and CI-verified 
 - [ ] Acceptance criteria reviewed after implementation and updated with evidence
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/closed/`
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
+
+- 2026-07-22 00:00 UTC - agent - Verified issue #1640 is CLOSED on GitHub and archived this spec to docs/issues/closed/.
 
 Append one line per meaningful update.
 

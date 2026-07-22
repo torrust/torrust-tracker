@@ -1,13 +1,13 @@
 ---
 doc-type: issue
 issue-type: bug
-status: open
+status: done
 priority: p2
 github-issue: 1450
-spec-path: docs/issues/open/1450-discard-udp-requests-from-clients-with-port-0/ISSUE.md
+spec-path: docs/issues/closed/1450-discard-udp-requests-from-clients-with-port-0/ISSUE.md
 branch: "1450-discard-udp-requests-from-clients-with-port-0"
 related-pr: null
-last-updated-utc: 2026-07-21 00:00
+last-updated-utc: 2026-07-22 00:00
 semantic-links:
   skill-links:
     - create-issue
@@ -213,3 +213,7 @@ Both require root / `sudo` because they use raw sockets.
 - Follow the existing pattern in
   `packages/udp-server/src/statistics/event/handler/request_aborted.rs` for the new
   handler file.
+
+## Progress Log
+
+- 2026-07-22 00:00 UTC - agent - Verified issue #1450 is CLOSED on GitHub and archived this spec to docs/issues/closed/.

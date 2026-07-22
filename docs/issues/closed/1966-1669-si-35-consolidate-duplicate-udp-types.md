@@ -1,13 +1,13 @@
 ---
 doc-type: issue
 issue-type: task
-status: in-review
+status: done
 priority: p2
 github-issue: 1966
-spec-path: docs/issues/open/1966-1669-si-35-consolidate-duplicate-udp-types.md
+spec-path: docs/issues/closed/1966-1669-si-35-consolidate-duplicate-udp-types.md
 branch: "1966-1669-si-35-consolidate-duplicate-udp-types"
 related-pr: 1991
-last-updated-utc: 2026-07-16 12:00
+last-updated-utc: 2026-07-22 00:00
 semantic-links:
   skill-links:
     - create-issue
@@ -148,9 +148,11 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [x] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
+
+- 2026-07-22 00:00 UTC - agent - Verified issue #1966 is CLOSED on GitHub and archived this spec to docs/issues/closed/.
 
 - 2026-07-16 12:00 UTC - Copilot - Implementation completed. All T1-T5 done. All ACs verified. 24 files modified.
 - 2026-06-30 12:00 UTC - Copilot - Spec draft created
