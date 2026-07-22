@@ -7,7 +7,9 @@ Use a folder when it needs issue-local artifacts; the primary file inside the fo
 for issues or `EPIC.md` for EPICs. The GitHub issue number must start every filename or folder
 name.
 
-### Standalone issue specification
+### Standalone specification
+
+#### Issue
 
 ```text
 {ISSUE_NUMBER}-{short-description}.md
@@ -17,6 +19,18 @@ Example:
 
 ```text
 1843-migrate-git-hooks-scripts-from-bash-to-rust.md
+```
+
+#### EPIC
+
+```text
+{EPIC_ISSUE_NUMBER}-{short-description}.md
+```
+
+Example:
+
+```text
+1978-configuration-overhaul-epic.md
 ```
 
 ### Folder-based specification
@@ -91,7 +105,8 @@ GitHub issue number.
 
 | Pattern             | Example                                                                                    |
 | ------------------- | ------------------------------------------------------------------------------------------ |
-| Standalone          | `1843-migrate-git-hooks-scripts-from-bash-to-rust.md`                                      |
+| Standalone issue    | `1843-migrate-git-hooks-scripts-from-bash-to-rust.md`                                      |
+| Standalone EPIC     | `1978-configuration-overhaul-epic.md`                                                      |
 | Folder-based issue  | `docs/issues/open/2022-vendor-and-document-maintainer-merge-workflow/ISSUE.md`             |
 | EPIC                | `docs/issues/open/1669-overhaul-packages/EPIC.md`                                          |
 | Subissue            | `docs/issues/closed/1859-1669-move-tracker-policy-and-private-mode-to-primitives/ISSUE.md` |
