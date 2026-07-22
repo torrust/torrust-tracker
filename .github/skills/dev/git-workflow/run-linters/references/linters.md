@@ -56,7 +56,9 @@ Key formatting settings:
 **Dictionary**: `project-words.txt`  
 **Run**: `linter cspell`
 
-Add technical terms to `project-words.txt` (alphabetical order, one per line).
+Add technical terms to `project-words.txt` (one per line), then run
+`./contrib/dev-tools/git/format-project-words.sh`. The formatter uses `LC_ALL=C sort --unique`;
+the pre-commit hook runs it automatically and requests restaging if it changes the dictionary.
 
 ## Configuration Linters
 

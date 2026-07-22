@@ -125,8 +125,9 @@ taplo fmt **/*.toml   # Auto-fix TOML formatting
 
 ### Spell Check Errors (cspell)
 
-For legitimate technical terms not in dictionaries, add them to `project-words.txt`
-(alphabetical order, one per line).
+For legitimate technical terms not in dictionaries, add them to `project-words.txt` (one per line)
+and run `./contrib/dev-tools/git/format-project-words.sh`. The pre-commit hook runs the formatter
+automatically and requests restaging if it changes the dictionary.
 
 ### Shell Script Errors (shellcheck)
 

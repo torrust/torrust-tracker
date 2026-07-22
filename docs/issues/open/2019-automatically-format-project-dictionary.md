@@ -55,12 +55,12 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task                                                          | Notes / Expected Output                                                                                                                                                   |
 | --- | ------ | ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| T1  | TODO   | Add an independently runnable dictionary formatter            | `contrib/dev-tools/git/format-project-words.sh` applies `LC_ALL=C sort --unique` to `project-words.txt` and reports whether it changed the file.                          |
-| T2  | TODO   | Invoke the formatter from the pre-commit hook                 | The hook calls the formatter before verification steps and retains its role as orchestration scaffolding.                                                                 |
-| T3  | TODO   | Abort when the formatter changes the dictionary               | The commit stops and tells the contributor to stage `project-words.txt` and retry, preventing a stale index from being committed.                                         |
-| T4  | TODO   | Update workflow documentation                                 | The documentation describes automatic formatting, the helper command, and the interim relationship to EPIC #2003; it no longer requires manual alphabetical-order review. |
-| T5  | TODO   | Add or update automated tests for formatter and hook behavior | Tests cover an already formatted dictionary and a dictionary changed by formatting.                                                                                       |
-| T6  | TODO   | Format and verify the dictionary                              | The checked-in file is sorted by the chosen command and all required checks pass.                                                                                         |
+| T1  | DONE   | Add an independently runnable dictionary formatter            | `contrib/dev-tools/git/format-project-words.sh` applies `LC_ALL=C sort --unique` to `project-words.txt` and reports whether it changed the file.                          |
+| T2  | DONE   | Invoke the formatter from the pre-commit hook                 | The hook calls the formatter before verification steps and retains its role as orchestration scaffolding.                                                                 |
+| T3  | DONE   | Abort when the formatter changes the dictionary               | The commit stops and tells the contributor to stage `project-words.txt` and retry, preventing a stale index from being committed.                                         |
+| T4  | DONE   | Update workflow documentation                                 | The documentation describes automatic formatting, the helper command, and the interim relationship to EPIC #2003; it no longer requires manual alphabetical-order review. |
+| T5  | DONE   | Add or update automated tests for formatter and hook behavior | `contrib/dev-tools/git/tests/test-format-project-words.sh` covers formatter and hook behavior for changed and unchanged dictionaries.                                     |
+| T6  | DONE   | Format and verify the dictionary                              | The checked-in file is formatted; focused tests and the required pre-commit validation gate pass.                                                                         |
 
 ## Progress Tracking
 
@@ -70,9 +70,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
 - [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
-- [ ] Manual verification scenarios executed and recorded (status + evidence)
+- [x] Implementation completed
+- [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
+- [x] Manual verification scenarios executed and recorded (status + evidence)
 - [ ] Acceptance criteria reviewed after implementation and updated with evidence
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Committer verified spec progress is up to date before commit
@@ -85,6 +85,9 @@ Append one line per meaningful update.
 - 2026-07-22 00:00 UTC - GitHub Copilot - Created draft specification for review - `docs/issues/drafts/automatically-format-project-dictionary.md`
 - 2026-07-22 00:00 UTC - josecelano - Approved an interim standalone formatter and hook integration while EPIC #2003 determines the long-term automation design - draft updated
 - 2026-07-22 00:00 UTC - GitHub Operator - Created issue #2019 - https://github.com/torrust/torrust-tracker/issues/2019
+- 2026-07-22 00:00 UTC - GitHub Copilot - Implemented the standalone formatter, pre-commit orchestration, focused shell tests, and synchronized workflow guidance; reviewed the linked `create-issue` skill with no process change required
+- 2026-07-22 00:00 UTC - GitHub Copilot - Verified focused formatter and hook tests, the standalone formatter, and `TORRUST_GIT_HOOKS_LOG_DIR=.tmp ./contrib/dev-tools/git/hooks/pre-commit.sh --format=json`; all passed
+- 2026-07-22 00:00 UTC - GitHub Copilot - Verified `TORRUST_GIT_HOOKS_LOG_DIR=.tmp ./contrib/dev-tools/git/hooks/pre-push.sh --format=json`; all nightly checks, documentation build, and stable workspace tests passed
 
 ## Acceptance Criteria
 
@@ -116,11 +119,11 @@ Define verification before implementation starts and execute it before closing t
 
 Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
-| ID  | Scenario                      | Command/Steps                                                                                                   | Expected Result                                                                                            | Status | Evidence                |
-| --- | ----------------------------- | --------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- | ------ | ----------------------- |
-| M1  | Dictionary needs formatting   | Temporarily add unsorted and duplicate exact entries in an isolated Git checkout, then run the pre-commit hook. | The hook rewrites `project-words.txt`, exits non-zero, and instructs the user to stage the file and retry. | TODO   | Pending implementation. |
-| M2  | Dictionary already formatted  | Run the pre-commit hook with the formatted tracked dictionary.                                                  | The formatter leaves the file unchanged and the hook continues to its existing checks.                     | TODO   | Pending implementation. |
-| M3  | Case variants remain distinct | Run the standalone formatter against a disposable dictionary containing otherwise identical case variants.      | Both variants remain; only exact duplicate lines are removed.                                              | TODO   | Pending implementation. |
+| ID  | Scenario                      | Command/Steps                                                                                                   | Expected Result                                                                                            | Status | Evidence                                                                                                                                         |
+| --- | ----------------------------- | --------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| M1  | Dictionary needs formatting   | Temporarily add unsorted and duplicate exact entries in an isolated Git checkout, then run the pre-commit hook. | The hook rewrites `project-words.txt`, exits non-zero, and instructs the user to stage the file and retry. | DONE   | `test-format-project-words.sh`: `it_should_abort_pre_commit_and_request_restaging_when_dictionary_is_formatted`.                                 |
+| M2  | Dictionary already formatted  | Run the pre-commit hook with the formatted tracked dictionary.                                                  | The formatter leaves the file unchanged and the hook continues to its existing checks.                     | DONE   | `TORRUST_GIT_HOOKS_LOG_DIR=.tmp ./contrib/dev-tools/git/hooks/pre-commit.sh --format=json` passed its formatter and all four verification steps. |
+| M3  | Case variants remain distinct | Run the standalone formatter against a disposable dictionary containing otherwise identical case variants.      | Both variants remain; only exact duplicate lines are removed.                                              | DONE   | `test-format-project-words.sh`: `it_should_sort_and_remove_exact_duplicates_when_dictionary_requires_formatting`.                                |
 
 Notes:
 

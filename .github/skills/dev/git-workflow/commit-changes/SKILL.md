@@ -128,8 +128,10 @@ Verify these by hand before committing:
   `docs/` pages reflect the change
 - **`AGENTS.md` updated**: if architecture, package structure, or key workflows changed, the
   relevant `AGENTS.md` file is updated
-- **New technical terms added to `project-words.txt`**: any new jargon or identifiers that
-  cspell does not know about are added alphabetically
+- **New technical terms added to `project-words.txt`**: run
+  `./contrib/dev-tools/git/format-project-words.sh` after adding jargon or identifiers that cspell
+  does not know. The pre-commit hook does this automatically, aborting for deliberate restaging if
+  it changes the dictionary.
 
 ### Debugging a Failing Run
 
