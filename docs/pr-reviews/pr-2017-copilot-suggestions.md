@@ -36,8 +36,10 @@ Status legend:
 ## Processing Log
 
 - 2026-07-21: Started processing suggestions (9 threads across 2 pushes).
-- 2026-07-21: Completed processing all suggestions. All 9 threads resolved.
-- 2026-07-21: New thread (PRRT_kwDOGp2yqc6StQu4) found on re-check after push. Applied fix and resolved.
+- 2026-07-21: Completed processing initial batch. All 9 threads resolved.
+- 2026-07-21: New thread (PRRT_kwDOGp2yqc6StQu4, thread #10) found on re-check after push. Applied fix and resolved.
+- 2026-07-22: New thread (PRRT_kwDOGp2yqc6SuPys, thread #11) found: flagged TBD reply URL for thread #10. Posted reply and resolved.
+- 2026-07-22: New thread (PRRT_kwDOGp2yqc6S0eYH, thread #12) found: processing log said "All 9 threads resolved" while table had 10 entries. Reworded log entry to say "initial batch". Applied fix and resolved.
 
 ## Suggestions
 
@@ -54,6 +56,7 @@ Status legend:
 | 9   | PRRT_kwDOGp2yqc6Srh5u | packages/udp-server/src/server/processor.rs                                  | https://github.com/torrust/torrust-tracker/pull/2017#discussion_r3624629708 | Doc comment says port 0 "invalid"; RFC 768 permits it; real issue is OS EINVAL                         | action   | https://github.com/torrust/torrust-tracker/pull/2017#discussion_r3624712519 | DONE   | RESOLVED     |
 | 10  | PRRT_kwDOGp2yqc6StQu4 | docs/issues/open/1450-discard-udp-requests-from-clients-with-port-0/ISSUE.md | https://github.com/torrust/torrust-tracker/pull/2017#discussion_r3625275177 | "invalid socket address" in Current Behaviour section; RFC 768 permits port 0; real issue is OS EINVAL | action   | https://github.com/torrust/torrust-tracker/pull/2017#discussion_r3628033936 | DONE   | RESOLVED     |
 | 11  | PRRT_kwDOGp2yqc6SuPys | docs/pr-reviews/pr-2017-copilot-suggestions.md                               | https://github.com/torrust/torrust-tracker/pull/2017#discussion_r3625638747 | Thread #10 marked DONE/RESOLVED but Reply URL left as TBD                                              | action   | https://github.com/torrust/torrust-tracker/pull/2017#discussion_r3628037362 | DONE   | RESOLVED     |
+| 12  | PRRT_kwDOGp2yqc6S0eYH | docs/pr-reviews/pr-2017-copilot-suggestions.md                               | https://github.com/torrust/torrust-tracker/pull/2017#discussion_r3627977934 | Processing log says "All 9 threads resolved" but table lists 10; reword to "initial batch"             | action   | https://github.com/torrust/torrust-tracker/pull/2017#discussion_r3628134459 | DONE   | RESOLVED     |
 
 ## Notes
 
