@@ -347,7 +347,7 @@ for i in "${!STEPS[@]}"; do
     else
         step_exit_code=$?
         overall_status="fail"
-        exit_code=1
+        exit_code=${step_exit_code}
         failed_step_name="${description}"
         failed_step_exit_code=${step_exit_code}
         break

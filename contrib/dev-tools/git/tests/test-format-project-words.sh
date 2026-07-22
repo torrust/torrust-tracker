@@ -4,7 +4,7 @@
 set -euo pipefail
 
 PROJECT_ROOT=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../../../.." && pwd)
-TEST_DIRECTORY=$(mktemp -d)
+TEST_DIRECTORY=$(mktemp -d "${TMPDIR:-/tmp}/test-format-project-words.XXXXXX")
 trap 'rm -rf "${TEST_DIRECTORY}"' EXIT
 
 create_fixture() {
@@ -143,6 +143,37 @@ EOF
     ! grep -F -q "The formatter changed project-words.txt." "${fixture_root}/hook-output.txt"
 }
 
+it_should_report_infrastructure_failures_with_their_exit_code_in_json() {
+    # Arrange
+    local fixture_root
+    fixture_root=$(create_fixture "hook-log-mktemp-failure-json")
+    printf 'Alpha\nzebra\n' >"${fixture_root}/project-words.txt"
+    create_successful_command_stubs "${fixture_root}"
+    cat >"${fixture_root}/bin/mktemp" <<'EOF'
+#!/usr/bin/env bash
+if [[ "$1" == *pre-commit-* ]]; then
+    exit 2
+fi
+exec /usr/bin/mktemp "$@"
+EOF
+    chmod +x "${fixture_root}/bin/mktemp"
+
+    # Act
+    if (
+        cd "${fixture_root}" || exit
+        PATH="${fixture_root}/bin:${PATH}" \
+            TEST_COMMAND_LOG="${fixture_root}/commands.log" \
+            TORRUST_GIT_HOOKS_LOG_DIR="${fixture_root}/logs" \
+            ./contrib/dev-tools/git/hooks/pre-commit.sh --format=json >"${fixture_root}/hook-output.txt" 2>&1
+    ); then
+        printf 'Expected pre-commit hook to fail when it cannot create a step log.\n' >&2
+        return 1
+    fi
+
+    # Assert
+    grep -F -q '"exit_code": 2' "${fixture_root}/hook-output.txt"
+}
+
 it_should_continue_pre_commit_checks_when_dictionary_is_already_formatted() {
     # Arrange
     local fixture_root
@@ -169,6 +200,7 @@ it_should_report_success_when_dictionary_is_already_formatted
 it_should_report_a_temp_file_creation_failure
 it_should_abort_pre_commit_and_request_restaging_when_dictionary_is_formatted
 it_should_not_mislabel_log_creation_failures_as_dictionary_changes
+it_should_report_infrastructure_failures_with_their_exit_code_in_json
 it_should_continue_pre_commit_checks_when_dictionary_is_already_formatted
 
 printf 'All formatter and pre-commit hook tests passed.\n'
