@@ -14,11 +14,11 @@ semantic-links:
 
 Source: Copilot PR review threads for https://github.com/torrust/torrust-tracker/pull/2024
 
-Status legend:
+Table value legend:
 
-- `action`: code/docs change applied
-- `no-action`: suggestion reviewed; no code change needed
-- `resolved`: thread resolved in PR
+- `Decision`: `action` means a code or documentation change was applied; `no-action` means the suggestion was reviewed and no change was needed.
+- `Status`: `DONE` means the suggestion has been processed; `OPEN` means processing remains.
+- `Thread State`: `RESOLVED` means the PR thread has been resolved; `UNRESOLVED` means it remains open.
 
 ## Workflow
 
@@ -51,6 +51,7 @@ Status legend:
 | 9   | PRRT_kwDOGp2yqc6S-h6B | docs/issues/open/AGENTS.md                                                          | https://github.com/torrust/torrust-tracker/pull/2024#discussion_r3631668877 | Document standalone EPIC layout                             | action: documented standalone EPIC layout with the existing #1978 EPIC specification in signed commit `a56b2b66`; gates passed.                                                            | https://github.com/torrust/torrust-tracker/pull/2024#discussion_r3632004367 | DONE   | RESOLVED     |
 | 10  | PRRT_kwDOGp2yqc6S_eyk | docs/pr-reviews/pr-2024-copilot-suggestions.md                                      | https://github.com/torrust/torrust-tracker/pull/2024#discussion_r3632020033 | Keep the tracker log and table states consistent            | action: verified the correction in signed commit `f25e56d7`, which scopes the initial completion log to the first five suggestions and records the later completed suggestions separately. | https://github.com/torrust/torrust-tracker/pull/2024#discussion_r3632311033 | DONE   | RESOLVED     |
 | 11  | PRRT_kwDOGp2yqc6S_ezE | docs/issues/open/AGENTS.md                                                          | https://github.com/torrust/torrust-tracker/pull/2024#discussion_r3632020084 | Use consistent paths in the summary table                   | action: removed redundant `docs/issues/open/` prefixes from open folder-based examples in signed commit `722909ef`; `linter all` and the mandatory pre-commit gate passed.                 | https://github.com/torrust/torrust-tracker/pull/2024#discussion_r3632393824 | DONE   | RESOLVED     |
+| 12  | PRRT_kwDOGp2yqc6TAiMK | docs/pr-reviews/pr-2024-copilot-suggestions.md                                      | https://github.com/torrust/torrust-tracker/pull/2024#discussion_r3632412953 | Clarify the table value legend                              | action: renamed and clarified the legend for the Decision, Status, and Thread State columns; validation and PR reply pending.                                                              | —                                                                           | OPEN   | UNRESOLVED   |
 
 ## Notes
 
