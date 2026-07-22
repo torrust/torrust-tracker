@@ -42,7 +42,6 @@ LOG_DIR="${TORRUST_GIT_HOOKS_LOG_DIR:-/tmp}"
 declare -a STEP_NAMES=()
 declare -a STEP_COMMANDS=()
 declare -a STEP_STATUSES=()
-declare -a STEP_EXIT_CODES=()
 declare -a STEP_ELAPSED_SECONDS=()
 declare -a STEP_LOG_PATHS=()
 
@@ -192,7 +191,6 @@ run_step() {
 
     STEP_NAMES+=("${description}")
     STEP_COMMANDS+=("${command}")
-    STEP_EXIT_CODES+=("${command_exit_code}")
     STEP_ELAPSED_SECONDS+=("${step_elapsed}")
     STEP_LOG_PATHS+=("${log_path}")
 
@@ -344,11 +342,14 @@ fi
 
 for i in "${!STEPS[@]}"; do
     IFS='|' read -r description command <<< "${STEPS[$i]}"
-    if ! run_step $((i + 1)) "${TOTAL_STEPS}" "${description}" "${command}"; then
+    if run_step $((i + 1)) "${TOTAL_STEPS}" "${description}" "${command}"; then
+        step_exit_code=0
+    else
+        step_exit_code=$?
         overall_status="fail"
         exit_code=1
         failed_step_name="${description}"
-        failed_step_exit_code=${STEP_EXIT_CODES[$(( ${#STEP_EXIT_CODES[@]} - 1 ))]}
+        failed_step_exit_code=${step_exit_code}
         break
     fi
 done

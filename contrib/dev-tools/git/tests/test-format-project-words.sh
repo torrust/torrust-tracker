@@ -111,6 +111,38 @@ it_should_abort_pre_commit_and_request_restaging_when_dictionary_is_formatted() 
     [[ ! -e "${fixture_root}/commands.log" ]]
 }
 
+it_should_not_mislabel_log_creation_failures_as_dictionary_changes() {
+    # Arrange
+    local fixture_root
+    fixture_root=$(create_fixture "hook-log-mktemp-failure")
+    printf 'Alpha\nzebra\n' >"${fixture_root}/project-words.txt"
+    create_successful_command_stubs "${fixture_root}"
+    cat >"${fixture_root}/bin/mktemp" <<'EOF'
+#!/usr/bin/env bash
+if [[ "$1" == *pre-commit-* ]]; then
+    exit 1
+fi
+exec /usr/bin/mktemp "$@"
+EOF
+    chmod +x "${fixture_root}/bin/mktemp"
+
+    # Act
+    if (
+        cd "${fixture_root}" || exit
+        PATH="${fixture_root}/bin:${PATH}" \
+            TEST_COMMAND_LOG="${fixture_root}/commands.log" \
+            TORRUST_GIT_HOOKS_LOG_DIR="${fixture_root}/logs" \
+            ./contrib/dev-tools/git/hooks/pre-commit.sh >"${fixture_root}/hook-output.txt" 2>&1
+    ); then
+        printf 'Expected pre-commit hook to fail when it cannot create a step log.\n' >&2
+        return 1
+    fi
+
+    # Assert
+    grep --fixed-strings --quiet "Error: failed to create a temporary log file in '${fixture_root}/logs'." "${fixture_root}/hook-output.txt"
+    ! grep --fixed-strings --quiet "The formatter changed project-words.txt." "${fixture_root}/hook-output.txt"
+}
+
 it_should_continue_pre_commit_checks_when_dictionary_is_already_formatted() {
     # Arrange
     local fixture_root
@@ -136,6 +168,7 @@ it_should_sort_and_remove_exact_duplicates_when_dictionary_requires_formatting
 it_should_report_success_when_dictionary_is_already_formatted
 it_should_report_a_temp_file_creation_failure
 it_should_abort_pre_commit_and_request_restaging_when_dictionary_is_formatted
+it_should_not_mislabel_log_creation_failures_as_dictionary_changes
 it_should_continue_pre_commit_checks_when_dictionary_is_already_formatted
 
 printf 'All formatter and pre-commit hook tests passed.\n'
