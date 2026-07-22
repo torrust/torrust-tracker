@@ -9,6 +9,9 @@
 # AI agents: set a per-command timeout of at least 3 minutes before invoking this script.
 #
 # All steps must pass (exit 0) before committing.
+# The formatter is an intentionally small interim action while EPIC #2003 determines
+# the repository's long-term automation architecture. It exits 1 after rewriting the
+# dictionary so this hook aborts and the contributor can deliberately stage the change.
 #
 # TODO: Implement branch-name validation in the Rust git-hooks binary (#1843).
 # When the branch uses an issue-number prefix (e.g. "42-some-description"), verify that
@@ -24,6 +27,7 @@ set -uo pipefail
 # Each step: "description|command"
 
 declare -a STEPS=(
+    "Formatting project dictionary|./contrib/dev-tools/git/format-project-words.sh"
     "Checking for unused dependencies (cargo machete --with-metadata)|cargo machete --with-metadata"
     "Checking workspace layer boundary bans (cargo deny check bans)|cargo deny check bans"
     "Running all linters|linter all"
@@ -329,6 +333,7 @@ TOTAL_STEPS=${#STEPS[@]}
 overall_status="pass"
 exit_code=0
 failed_step_name=""
+failed_step_exit_code=0
 
 if [[ "${FORMAT}" == "text" ]]; then
     echo "Running pre-commit checks..."
@@ -337,10 +342,14 @@ fi
 
 for i in "${!STEPS[@]}"; do
     IFS='|' read -r description command <<< "${STEPS[$i]}"
-    if ! run_step $((i + 1)) "${TOTAL_STEPS}" "${description}" "${command}"; then
+    if run_step $((i + 1)) "${TOTAL_STEPS}" "${description}" "${command}"; then
+        step_exit_code=0
+    else
+        step_exit_code=$?
         overall_status="fail"
-        exit_code=1
+        exit_code=${step_exit_code}
         failed_step_name="${description}"
+        failed_step_exit_code=${step_exit_code}
         break
     fi
 done
@@ -364,6 +373,9 @@ fi
 echo
 echo "=========================================="
 echo "FAILED: Pre-commit checks failed!"
+if [[ "${failed_step_name}" == "Formatting project dictionary" && "${failed_step_exit_code}" -eq 1 ]]; then
+    echo "The formatter changed project-words.txt. Stage 'project-words.txt' and retry the commit."
+fi
 echo "Fix the errors above before committing."
 echo "=========================================="
 exit 1

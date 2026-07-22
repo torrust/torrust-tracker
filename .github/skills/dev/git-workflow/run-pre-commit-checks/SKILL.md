@@ -47,9 +47,22 @@ TORRUST_GIT_HOOKS_LOG_DIR=.tmp ./contrib/dev-tools/git/hooks/pre-commit.sh
 
 The script runs these steps in order:
 
-1. `cargo machete` - unused dependency check
-2. `linter all` - all linters (markdown, YAML, TOML, clippy, rustfmt, shellcheck, cspell)
-3. `cargo test --doc --workspace` - documentation tests
+1. `./contrib/dev-tools/git/format-project-words.sh` - formats `project-words.txt` with
+   `LC_ALL=C sort -u`
+2. `cargo machete --with-metadata` - unused dependency check
+3. `cargo deny check bans` - workspace layer-boundary dependency check
+4. `linter all` - all linters (markdown, YAML, TOML, clippy, rustfmt, shellcheck, cspell)
+5. `cargo test --doc --workspace` - documentation tests
+
+If the formatter changes the dictionary, the hook exits non-zero before the verification steps.
+Stage `project-words.txt` and retry the commit. Run the formatter independently with:
+
+```bash
+./contrib/dev-tools/git/format-project-words.sh
+```
+
+This is an interim action related to EPIC #2003 and may be replaced or refactored after its
+automation design decision.
 
 ## Output Modes
 
@@ -117,7 +130,8 @@ Verify these by hand before committing:
 - **Self-review the diff**: read through `git diff --staged` for debug artifacts or unintended changes
 - **Documentation updated**: if public API or behaviour changed, doc comments and `docs/` pages reflect it
 - **`AGENTS.md` updated**: if architecture or key workflows changed, the relevant `AGENTS.md` is updated
-- **New technical terms in `project-words.txt`**: new jargon added alphabetically
+- **New technical terms in `project-words.txt`**: run the formatter after adding new jargon; the
+  hook will also format it automatically and request restaging when needed
 - **Branch name validation**: if the branch uses an issue-number prefix (e.g. `42-some-description`),
   verify that `docs/issues/open/` contains a matching spec file or directory. This prevents committing
   under a non-existent, closed, or wrong issue number.

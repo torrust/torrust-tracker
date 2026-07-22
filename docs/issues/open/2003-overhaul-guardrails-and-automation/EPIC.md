@@ -5,7 +5,7 @@ status: planned
 github-issue: 2003
 spec-path: docs/issues/open/2003-overhaul-guardrails-and-automation/EPIC.md
 epic-owner: josecelano
-last-updated-utc: 2026-07-20 00:00
+last-updated-utc: 2026-07-22 00:00
 semantic-links:
   skill-links:
     - create-issue
@@ -161,6 +161,11 @@ build actions needed by its checks.
 - Add a required deterministic check that verifies `project-words.txt` uses one documented
   ordering rule and contains no duplicate entries. Decide its package and execution tier through
   the EPIC design rather than coupling it to the tracker library.
+- Permit the narrowly scoped interim formatter described by
+  [`2019-automatically-format-project-dictionary/ISSUE.md`](../2019-automatically-format-project-dictionary/ISSUE.md).
+  It supplies immediate developer feedback but does not select the EPIC's long-term architecture,
+  execution tier, or check/action contract, and may be replaced or refactored after the design
+  decision.
 - Re-evaluate #1843, #1774, and #1768 against the resulting evidence and recommend whether each
   should proceed unchanged, be re-scoped, be split, or be superseded.
 - Present the evidence and options for maintainer review before selecting a full design.
@@ -174,7 +179,8 @@ build actions needed by its checks.
 ### Out of Scope
 
 - Implementing, migrating, or consolidating automation tools or checks before the design decision
-  and implementation subissues are approved.
+  and implementation subissues are approved, except for the explicitly approved interim project
+  dictionary formatter linked in Scope.
 - Prescribing a `workspace-tools` crate, a single Rust binary, Bash scripts, a task runner, or
   any other tool shape before alternatives are compared and reviewed.
 - Prototyping architecture tests before the research identifies a question that requires a
@@ -317,6 +323,8 @@ For each completed subissue in this EPIC, the default completion policy is:
 - 2026-07-20 00:00 UTC - josecelano - Approved the draft EPIC and its supporting artifacts
 - 2026-07-20 00:00 UTC - GitHub Operator - Created EPIC #2003 and moved the approved local
   specification to `docs/issues/open/2003-overhaul-guardrails-and-automation/`
+- 2026-07-22 00:00 UTC - josecelano - Approved a narrowly scoped interim project dictionary
+  formatter; it may be replaced or refactored after the EPIC design decision
 
 ## Acceptance Criteria
 
