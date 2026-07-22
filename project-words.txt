@@ -88,7 +88,6 @@ cyclomatic
 dashmap
 datagram
 datagrams
-dport
 datetime
 dbip
 dbname
@@ -109,6 +108,7 @@ dockerhub
 doctest
 downloadedi
 dpkg
+dport
 dtolnay
 dylib
 EADDRINUSE
@@ -259,14 +259,14 @@ newtypes
 nextest
 nghttp
 ngtcp
+nmap
 nocapture
 nologin
-nmap
-nping
 nonblocking
 nonroot
 Norberg
 notnull
+nping
 nquery
 numwant
 nvCFlJCq7fz7Qx6KoKTDiMZvns8l5Kw7
