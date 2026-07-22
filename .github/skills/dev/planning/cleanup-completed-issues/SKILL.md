@@ -80,20 +80,20 @@ Do not proceed with archival if only one format was scanned.
 
 ```bash
 echo "[open issue folders]"
-find docs/issues/open -maxdepth 1 -mindepth 1 -type d -printf '%f\n' | sort
+find docs/issues/open -maxdepth 1 -mindepth 1 -type d -exec basename {} \; | sort
 
 echo "[open single-file specs]"
 find docs/issues/open -maxdepth 1 -type f -name '*.md' \
-  ! -name 'README.md' ! -name 'AGENTS.md' -printf '%f\n' | sort
+  ! -name 'README.md' ! -name 'AGENTS.md' -exec basename {} \; | sort
 ```
 
 Optional unified number extraction for batch state verification:
 
 ```bash
 {
-  find docs/issues/open -maxdepth 1 -mindepth 1 -type d -printf '%f\n'
+  find docs/issues/open -maxdepth 1 -mindepth 1 -type d -exec basename {} \;
   find docs/issues/open -maxdepth 1 -type f -name '*.md' \
-    ! -name 'README.md' ! -name 'AGENTS.md' -printf '%f\n'
+    ! -name 'README.md' ! -name 'AGENTS.md' -exec basename {} \;
 } | sed -E 's/^([0-9]+).*/\1/' | sort -n | uniq
 ```
 
