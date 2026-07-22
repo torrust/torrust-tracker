@@ -21,11 +21,32 @@ The repository keeps a small catalog of marker definitions.
 
 Current markers:
 
-| Marker       | Value          | Meaning                                                                                |
-| ------------ | -------------- | -------------------------------------------------------------------------------------- |
-| `skill-link` | `<skill-name>` | This artifact affects the linked skill and should trigger a skill review when changed. |
+| Marker       | Value                  | Meaning                                                                                |
+| ------------ | ---------------------- | -------------------------------------------------------------------------------------- |
+| `skill-link` | `<skill-name>`         | This artifact affects the linked skill and should trigger a skill review when changed. |
+| `issue-spec` | `<repo-relative-path>` | This artifact is affected by a draft issue specification at the given temporary path.  |
+| `issue`      | `#<number>`            | This artifact is affected by the GitHub issue with the given number.                   |
 
 Add new markers only when there is a concrete recurring maintenance problem that the current marker set cannot represent.
+
+### Issue-spec lifecycle
+
+Use `issue-spec` only while an issue specification is still a draft. The value must be
+the repository-relative path to the draft spec:
+
+```text
+issue-spec: docs/issues/drafts/simplify-udp-server-main-loop.md
+```
+
+When the draft becomes a GitHub issue, replace every corresponding `issue-spec`
+marker with the stable issue-number marker:
+
+```text
+issue: #1234
+```
+
+Do not retain the draft file path after the issue is created: issue specs move from
+`drafts/` to `open/` and later to `closed/`, while the issue number remains stable.
 
 ## Marker Format
 
@@ -170,21 +191,33 @@ Use language-appropriate syntax:
 - TOML: `# skill-link: <skill-name>`
 - Markdown: `<!-- skill-link: <skill-name> -->`
 
+Use the same language-appropriate comment syntax for issue references:
+
+- Rust: `// issue-spec: docs/issues/drafts/<name>.md` or `// issue: #<number>`
+- TOML: `# issue-spec: docs/issues/drafts/<name>.md` or `# issue: #<number>`
+- Markdown: `<!-- issue-spec: docs/issues/drafts/<name>.md -->` or `<!-- issue: #<number> -->`
+
 For Markdown files with frontmatter `semantic-links.skill-links`, top-of-file inline markers are
 redundant and need not be added. Inline markers placed near specific workflow-defining sections
 within the body remain useful for navigation but are not required when frontmatter links are present.
 
-Place the marker near:
+Place a `skill-link`, `issue-spec`, or `issue` marker near:
 
 - constants that encode default behavior,
 - configuration blocks consumed by the workflow,
 - documentation sections that define the operational procedure.
 
+For issue references in source code, prefer the declaration of the function, type,
+or module whose behavior the issue plans to change. Keep these links high-signal:
+do not add a marker merely because a file is mentioned incidentally in an issue.
+
 ## Maintenance Workflow
 
-1. Add or update `skill-link` markers in touched artifacts.
-2. Update the skill instructions if semantics changed.
-3. Validate links and markers.
+1. Add or update `skill-link`, `issue-spec`, or `issue` markers in touched artifacts.
+2. When moving a draft spec to an issue, replace all of its `issue-spec` markers
+   with `issue: #<number>` markers.
+3. Update the skill instructions if semantics changed.
+4. Validate links and markers.
 
 ## Ontology-Lite Categories
 

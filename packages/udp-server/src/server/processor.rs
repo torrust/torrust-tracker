@@ -45,6 +45,7 @@ impl Processor {
         }
     }
 
+    // issue-spec: docs/issues/drafts/simplify-udp-server-main-loop.md
     #[instrument(skip(self, request))]
     pub async fn process_request(self, request: RawRequest) {
         let client_socket_addr = request.from;
