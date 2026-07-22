@@ -14,11 +14,11 @@ semantic-links:
 
 Source: Copilot PR review threads for https://github.com/torrust/torrust-tracker/pull/2020
 
-Status legend:
+Column legend:
 
-- `action`: code/docs change applied
-- `no-action`: suggestion reviewed; no code change needed
-- `resolved`: thread resolved in PR
+- **Decision**: `action` means a code or documentation change was applied; `no-action` means the suggestion was reviewed and declined with a documented rationale.
+- **Status**: `OPEN` while a thread is being processed; `DONE` after it has been handled.
+- **Thread State**: `OPEN` until the thread is resolved in the PR; `RESOLVED` after resolution.
 
 ## Workflow
 
@@ -42,6 +42,11 @@ Status legend:
 | 4   | PRRT_kwDOGp2yqc6S2_YS | `.github/skills/dev/git-workflow/run-pre-commit-checks/SKILL.md`   | https://github.com/torrust/torrust-tracker/pull/2020#discussion_r3628911279 | Synchronize documented hook steps.                           | action: added `cargo deny check bans` and the current machete command. | https://github.com/torrust/torrust-tracker/pull/2020#discussion_r3628958264 | DONE   | RESOLVED     |
 | 5   | PRRT_kwDOGp2yqc6S2_Yt | `docs/issues/open/2019-automatically-format-project-dictionary.md` | https://github.com/torrust/torrust-tracker/pull/2020#discussion_r3628911319 | Keep completed acceptance criteria consistent with evidence. | action: marked verified criteria complete.                             | https://github.com/torrust/torrust-tracker/pull/2020#discussion_r3628959344 | DONE   | RESOLVED     |
 | 6   | PRRT_kwDOGp2yqc6S2_ZL | `docs/issues/open/2019-automatically-format-project-dictionary.md` | https://github.com/torrust/torrust-tracker/pull/2020#discussion_r3628911359 | Replace stale pending acceptance-verification entries.       | action: recorded completion evidence.                                  | https://github.com/torrust/torrust-tracker/pull/2020#discussion_r3628960975 | DONE   | RESOLVED     |
+| 7   | PRRT_kwDOGp2yqc6S3Lr0 | `contrib/dev-tools/git/format-project-words.sh`                    | https://github.com/torrust/torrust-tracker/pull/2020#discussion_r3628981491 | Report temporary-file creation failures explicitly.          | action: added the diagnostic and focused test coverage.                | https://github.com/torrust/torrust-tracker/pull/2020#discussion_r3629010458 | DONE   | RESOLVED     |
+| 8   | PRRT_kwDOGp2yqc6S3LsT | `docs/issues/open/2019-automatically-format-project-dictionary.md` | https://github.com/torrust/torrust-tracker/pull/2020#discussion_r3628981533 | Align the issue specification with the documented layout.    | action: moved the spec to its documented `ISSUE.md` folder layout.     | https://github.com/torrust/torrust-tracker/pull/2020#discussion_r3629239329 | DONE | RESOLVED |
+| 9   | PRRT_kwDOGp2yqc6S3T8_ | `contrib/dev-tools/git/hooks/pre-commit.sh`                        | https://github.com/torrust/torrust-tracker/pull/2020#discussion_r3629029141 | Retain the exact failed step exit code.                       | action: captured the `run_step` exit code directly.                    | https://github.com/torrust/torrust-tracker/pull/2020#discussion_r3629242405 | DONE | RESOLVED |
+| 10  | PRRT_kwDOGp2yqc6S3dJZ | `contrib/dev-tools/git/format-project-words.sh`                    | https://github.com/torrust/torrust-tracker/pull/2020#discussion_r3629081831 | Support non-GNU local toolchains.                             | action: replaced GNU-only options with portable equivalents.           | https://github.com/torrust/torrust-tracker/pull/2020#discussion_r3629243737 | DONE | RESOLVED |
+| 11  | PRRT_kwDOGp2yqc6S3k60 | `docs/pr-reviews/pr-2020-copilot-suggestions.md`                   | https://github.com/torrust/torrust-tracker/pull/2020#discussion_r3629126625 | Make tracker column meanings unambiguous.                     | action: replaced the ambiguous legend with column-specific definitions. | Pending | OPEN | OPEN |
 
 ## Notes
 
