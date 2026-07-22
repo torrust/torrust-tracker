@@ -48,8 +48,8 @@ it_should_sort_and_remove_exact_duplicates_when_dictionary_requires_formatting()
     fi
 
     # Assert
-    diff --unified "${fixture_root}/project-words.txt" <(printf 'Alpha\nalpha\nzebra\n')
-    grep --fixed-strings --quiet 'Formatted project-words.txt with LC_ALL=C sort -u.' "${fixture_root}/formatter-output.txt"
+    diff -u "${fixture_root}/project-words.txt" <(printf 'Alpha\nalpha\nzebra\n')
+    grep -F -q 'Formatted project-words.txt with LC_ALL=C sort -u.' "${fixture_root}/formatter-output.txt"
 }
 
 it_should_report_success_when_dictionary_is_already_formatted() {
@@ -62,7 +62,7 @@ it_should_report_success_when_dictionary_is_already_formatted() {
     "${fixture_root}/contrib/dev-tools/git/format-project-words.sh" >"${fixture_root}/formatter-output.txt"
 
     # Assert
-    grep --fixed-strings --quiet 'project-words.txt is already formatted.' "${fixture_root}/formatter-output.txt"
+    grep -F -q 'project-words.txt is already formatted.' "${fixture_root}/formatter-output.txt"
 }
 
 it_should_report_a_temp_file_creation_failure() {
@@ -83,7 +83,7 @@ EOF
     fi
 
     # Assert
-    grep --fixed-strings --quiet 'Error: failed to create a temporary project dictionary:' "${fixture_root}/formatter-output.txt"
+    grep -F -q 'Error: failed to create a temporary project dictionary:' "${fixture_root}/formatter-output.txt"
 }
 
 it_should_abort_pre_commit_and_request_restaging_when_dictionary_is_formatted() {
@@ -106,8 +106,8 @@ it_should_abort_pre_commit_and_request_restaging_when_dictionary_is_formatted() 
     fi
 
     # Assert
-    diff --unified "${fixture_root}/project-words.txt" <(printf 'Alpha\nzebra\n')
-    grep --fixed-strings --quiet "Stage 'project-words.txt' and retry the commit" "${fixture_root}/hook-output.txt"
+    diff -u "${fixture_root}/project-words.txt" <(printf 'Alpha\nzebra\n')
+    grep -F -q "Stage 'project-words.txt' and retry the commit" "${fixture_root}/hook-output.txt"
     [[ ! -e "${fixture_root}/commands.log" ]]
 }
 
@@ -139,8 +139,8 @@ EOF
     fi
 
     # Assert
-    grep --fixed-strings --quiet "Error: failed to create a temporary log file in '${fixture_root}/logs'." "${fixture_root}/hook-output.txt"
-    ! grep --fixed-strings --quiet "The formatter changed project-words.txt." "${fixture_root}/hook-output.txt"
+    grep -F -q "Error: failed to create a temporary log file in '${fixture_root}/logs'." "${fixture_root}/hook-output.txt"
+    ! grep -F -q "The formatter changed project-words.txt." "${fixture_root}/hook-output.txt"
 }
 
 it_should_continue_pre_commit_checks_when_dictionary_is_already_formatted() {
@@ -161,7 +161,7 @@ it_should_continue_pre_commit_checks_when_dictionary_is_already_formatted() {
 
     # Assert
     [[ $(wc -l <"${fixture_root}/commands.log") -eq 4 ]]
-    grep --fixed-strings --quiet 'SUCCESS: All pre-commit checks passed!' "${fixture_root}/hook-output.txt"
+    grep -F -q 'SUCCESS: All pre-commit checks passed!' "${fixture_root}/hook-output.txt"
 }
 
 it_should_sort_and_remove_exact_duplicates_when_dictionary_requires_formatting
