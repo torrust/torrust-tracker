@@ -6,7 +6,7 @@ priority: p2
 github-issue: 2019
 spec-path: docs/issues/open/2019-automatically-format-project-dictionary/ISSUE.md
 branch: "2019-automatically-format-project-dictionary"
-related-pr: null
+related-pr: 2020
 last-updated-utc: 2026-07-22 00:00
 semantic-links:
   skill-links:
