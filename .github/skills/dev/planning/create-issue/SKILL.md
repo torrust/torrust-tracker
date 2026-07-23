@@ -27,12 +27,13 @@ The process is **spec-first**: write and review a specification before creating 
 
 Lifecycle docs:
 
-- Open issue specs: [`docs/issues/open/README.md`](../../../../docs/issues/open/README.md)
-- Closed issue buffer: [`docs/issues/closed/README.md`](../../../../docs/issues/closed/README.md)
+- Open issue specs: [`docs/issues/open/README.md`](../../../../../docs/issues/open/README.md)
+- Closed issue buffer: [`docs/issues/closed/README.md`](../../../../../docs/issues/closed/README.md)
 
 1. **Draft specification** document in `docs/issues/drafts/` using the repository templates
    appropriate to the issue type (`docs/templates/ISSUE.md` for Task/Bug/Feature,
-   `docs/templates/EPIC.md` for Epic)
+   `docs/templates/EPIC.md` for Epic). Use a folder-style specification when the issue needs
+   supporting artifacts that belong exclusively to that specification.
 2. **User reviews** the draft specification
 3. **Create GitHub issue**
 4. **Move spec file to `docs/issues/open/`** and include the issue number
@@ -55,10 +56,19 @@ criteria before code changes begin.
 
 ### Step 1: Draft Issue Specification
 
-Create a specification file with a **temporary name** (no issue number yet):
+Create a specification with a **temporary name** (no issue number yet). Use a single Markdown
+file when the specification has no issue-local artifacts:
 
 ```bash
 touch docs/issues/drafts/{short-description}.md
+```
+
+Use a folder-style specification when it needs issue-local supporting artifacts, such as an
+immutable source snapshot, evidence, or design input. Place the main specification in `ISSUE.md`:
+
+```bash
+mkdir -p docs/issues/drafts/{short-description}
+touch docs/issues/drafts/{short-description}/ISSUE.md
 ```
 
 Select the template by issue type:
@@ -119,16 +129,27 @@ gh issue create \
   --label "{label}"
 ```
 
-**MCP GitHub tools** (if available): use `mcp_github_github_issue_write` with `title`, `body`, and `labels`.
+### Step 4: Move the Specification to Open Issues
 
-### Step 4: Rename the Spec File
+Move from `drafts/` to `open/` using the assigned issue number. Preserve the chosen layout:
 
-Move from `drafts/` to `open/` using the assigned issue number:
+**Single-file specification:**
 
 ```bash
 git mv docs/issues/drafts/{short-description}.md \
   docs/issues/open/{number}-{short-description}.md
 ```
+
+**Folder-style specification:**
+
+```bash
+git mv docs/issues/drafts/{short-description} \
+  docs/issues/open/{number}-{short-description}
+```
+
+For folder-style specifications, the main document is
+`docs/issues/open/{number}-{short-description}/ISSUE.md`. Keep all issue-local artifacts in the
+same directory. Update the `spec-path` and all internal artifact references after the move.
 
 Update any issue number placeholders inside the file.
 
@@ -195,10 +216,16 @@ Do not treat an issue as complete only because automated tests pass; manual vali
 
 ## Naming Convention
 
-File name format: `{number}-{short-description}.md`
+Use one of these layouts:
+
+| Layout      | Use when                                                  | Main specification path                 |
+| ----------- | --------------------------------------------------------- | --------------------------------------- |
+| Single file | The specification has no issue-local supporting artifacts | `{number}-{short-description}.md`       |
+| Folder      | The specification has issue-local artifacts               | `{number}-{short-description}/ISSUE.md` |
 
 Examples:
 
 - `1697-ai-agent-configuration.md`
 - `42-add-peer-expiry-grace-period.md`
 - `523-internal-linting-tool.md`
+- `2022-vendor-and-document-maintainer-merge-workflow/ISSUE.md`

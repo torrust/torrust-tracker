@@ -1,11 +1,41 @@
 # Agents Instructions — `docs/issues/open/`
 
-## Spec Folder Naming Conventions
+## Spec Naming Conventions
 
-Issue and EPIC specs use a folder named after the GitHub issue. The primary specification file
-inside the folder is `ISSUE.md` for issues or `EPIC.md` for EPICs.
+Use a standalone Markdown file when a specification has no issue-local supporting artifacts.
+Use a folder when it needs issue-local artifacts; the primary file inside the folder is `ISSUE.md`
+for issues or `EPIC.md` for EPICs. The GitHub issue number must start every filename or folder
+name.
 
-### Standalone issue (not part of an EPIC)
+### Standalone specification
+
+#### Issue
+
+```text
+{ISSUE_NUMBER}-{short-description}.md
+```
+
+Example:
+
+```text
+1843-migrate-git-hooks-scripts-from-bash-to-rust.md
+```
+
+#### EPIC
+
+```text
+{EPIC_ISSUE_NUMBER}-{short-description}.md
+```
+
+Example:
+
+```text
+1978-configuration-overhaul-epic.md
+```
+
+### Folder-based specification
+
+#### Issue (not part of an EPIC)
 
 ```text
 {ISSUE_NUMBER}-{short-description}/ISSUE.md
@@ -14,10 +44,10 @@ inside the folder is `ISSUE.md` for issues or `EPIC.md` for EPICs.
 Example:
 
 ```text
-1875-review-lto-fat-in-dev-profile/ISSUE.md
+2022-vendor-and-document-maintainer-merge-workflow/ISSUE.md
 ```
 
-### EPIC spec
+#### EPIC spec
 
 ```text
 {EPIC_ISSUE_NUMBER}-{short-description}/EPIC.md
@@ -26,10 +56,10 @@ Example:
 Example:
 
 ```text
-1978-configuration-overhaul-epic/EPIC.md
+1669-overhaul-packages/EPIC.md
 ```
 
-### Subissue (part of an EPIC)
+#### Subissue (part of an EPIC)
 
 ```text
 {SUB_ISSUE_NUMBER}-{EPIC_ISSUE_NUMBER}-{short-description}/ISSUE.md
@@ -43,10 +73,10 @@ Where:
 Example:
 
 ```text
-1979-1978-copy-configuration-schema-v2-to-v3-baseline/ISSUE.md
+docs/issues/closed/1859-1669-move-tracker-policy-and-private-mode-to-primitives/ISSUE.md
 ```
 
-### Subissue with explicit implementation order
+#### Subissue with explicit implementation order
 
 An optional `si-{N}` segment can be added between the EPIC number and the description when
 the implementation order within the EPIC is significant and worth surfacing in the filename:
@@ -62,20 +92,22 @@ Where:
 Example:
 
 ```text
-1969-1938-si-8-eliminate-unwraps-from-rest-api-client/ISSUE.md
+docs/issues/closed/1965-1669-si-34-consolidate-duplicate-http-types/ISSUE.md
 ```
 
 ## Key Rule
 
 **The most important part is the issue number prefix.** It makes it easy to locate any spec
-from a GitHub issue number and vice versa. Always start the filename with the GitHub issue
-number.
+from a GitHub issue number and vice versa. Always start the filename or folder name with the
+GitHub issue number.
 
 ## Summary Table
 
-| Pattern             | Example                                                          |
-| ------------------- | ---------------------------------------------------------------- |
-| Standalone          | `1875-review-lto-fat-in-dev-profile/ISSUE.md`                    |
-| EPIC                | `1978-configuration-overhaul-epic/EPIC.md`                       |
-| Subissue            | `1979-1978-copy-configuration-schema-v2-to-v3-baseline/ISSUE.md` |
-| Subissue with order | `1969-1938-si-8-eliminate-unwraps-from-rest-api-client/ISSUE.md` |
+| Pattern             | Example                                                                                    |
+| ------------------- | ------------------------------------------------------------------------------------------ |
+| Standalone issue    | `1843-migrate-git-hooks-scripts-from-bash-to-rust.md`                                      |
+| Standalone EPIC     | `1978-configuration-overhaul-epic.md`                                                      |
+| Folder-based issue  | `2022-vendor-and-document-maintainer-merge-workflow/ISSUE.md`                              |
+| EPIC                | `1669-overhaul-packages/EPIC.md`                                                           |
+| Subissue            | `docs/issues/closed/1859-1669-move-tracker-policy-and-private-mode-to-primitives/ISSUE.md` |
+| Subissue with order | `docs/issues/closed/1965-1669-si-34-consolidate-duplicate-http-types/ISSUE.md`             |
