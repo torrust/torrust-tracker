@@ -141,6 +141,29 @@ it_should_explain_how_to_configure_an_unset_signing_key() {
     grep -F -q "ERROR: user.signingkey is not configured; run 'git config --global user.signingkey <gpg-key-id>'." "${output_file}"
 }
 
+it_should_refuse_an_empty_signing_key() {
+    # Arrange
+    local fixture_root
+    fixture_root=$(create_fixture "empty-signing-key")
+    (
+        cd "${fixture_root}"
+        git config user.signingkey ""
+    )
+    local output_file="${TEST_DIRECTORY}/empty-signing-key-output.txt"
+
+    # Act
+    if (
+        cd "${fixture_root}"
+        ./contrib/dev-tools/git/merge-pull-request.sh --dry-run 2022 >"${output_file}" 2>&1
+    ); then
+        printf 'Expected empty signing-key preflight to fail.\n' >&2
+        return 1
+    fi
+
+    # Assert
+    grep -F -q "ERROR: user.signingkey is not configured; run 'git config --global user.signingkey <gpg-key-id>'." "${output_file}"
+}
+
 it_should_invoke_the_vendored_tool_with_the_fixed_target_branch_after_preflight() {
     # Arrange
     local fixture_root
@@ -209,6 +232,7 @@ it_should_refuse_a_dirty_working_tree_without_invoking_the_vendored_tool
 it_should_refuse_a_repository_configuration_that_is_not_the_upstream_tracker
 it_should_explain_how_to_configure_an_unset_repository
 it_should_explain_how_to_configure_an_unset_signing_key
+it_should_refuse_an_empty_signing_key
 it_should_invoke_the_vendored_tool_with_the_fixed_target_branch_after_preflight
 it_should_refuse_to_invoke_a_missing_vendored_tool
 it_should_reject_a_non_positive_pull_request_number_before_performing_work

@@ -58,7 +58,10 @@ require_target_branch() {
 }
 
 require_signing_key() {
-    if ! git config --get user.signingkey >/dev/null; then
+    local signing_key
+    signing_key=$(git config --get user.signingkey || true)
+
+    if [[ -z "${signing_key}" ]]; then
         echo "ERROR: user.signingkey is not configured; run 'git config --global user.signingkey <gpg-key-id>'." >&2
         exit 1
     fi
