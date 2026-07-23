@@ -90,7 +90,7 @@ Status values: `TODO`, `IN_PROGRESS`, `IN_REVIEW`, `BLOCKED`, `DONE`.
 | 3     | [#1640](../../issues/1640) — Support per-HTTP-tracker `on_reverse_proxy` setting                               | `docs/issues/closed/1640-1978-per-http-tracker-on-reverse-proxy-setting.md`             | DONE        | Merged in PR #2014; v3 schema slice complete; runtime consumers deferred to #11                                                                       |
 | 4     | [#1417](../../issues/1417) — Include public service URL in configuration                                       | `docs/issues/closed/1417-1978-add-public-service-url-to-configuration.md`               | DONE        | Merged in PR #2016; typed `Option<HttpUrl>`/`Option<UdpUrl>` newtypes on `HttpTracker`, `UdpTracker`, `HttpApi`; scheme validation at deserialization |
 | 5     | [#1415](../../issues/1415) — Use `ServiceBinding` instead of bare `SocketAddr` for service identity            | `docs/issues/open/1415-1978-use-service-binding-instead-of-socket-addr/ISSUE.md`        | DONE        | Added protocol-aware `service_binding` alongside compatible `server_socket_addr` fields in HTTP, REST API, and UDP error logs; verified manually.     |
-| 6     | [#1453](../../issues/1453) — IP bans reset interval configurable + fix duplicate cleanup                       | `docs/issues/open/1453-1978-ip-bans-reset-interval-configurable.md`                     | IN_PROGRESS | Implementation branch `1453-ip-bans-reset-interval` created from `develop`; specification analysis is in progress                                     |
+| 6     | [#1453](../../issues/1453) — IP bans reset interval configurable + fix duplicate cleanup                       | `docs/issues/open/1453-1978-ip-bans-reset-interval-configurable.md`                     | IN_PROGRESS | Adds and validates the v3 setting; fixes duplicate cleanup with the current 24-hour interval. Runtime configuration use is deferred to #1980.         |
 | 7     | [#1136](../../issues/1136) — Add configurable UDP connection ID validation policy                              | `docs/issues/open/1136-1978-configurable-udp-connection-id-validation-policy.md`        | TODO        | Independent per-listener policy; ordered after related global ban cleanup in #6                                                                       |
 | 8     | [#1490](../../issues/1490) — Decompose database config and overhaul secrets with `secrecy` crate               | `docs/issues/open/1490-1978-decompose-database-config-and-overhaul-secrets.md`          | TODO        | After #3 (both touch `Core`); can be parallel with #5, #6, #7, #9                                                                                     |
 | 9     | [#889](../../issues/889) — New config option for logging style                                                 | `docs/issues/open/889-1978-new-config-option-for-logging-style.md`                      | TODO        | Independent; can be parallel with #5, #6, #7, #8                                                                                                      |
@@ -161,7 +161,9 @@ Subissues #5, #6, #7, #9 are independent and can run in parallel with the critic
 These can run in any order or in parallel branches:
 
 - **Subissue #5** (#1415) — `ServiceBinding` instead of `SocketAddr`. No config changes. ~10 files.
-- **Subissue #6** (#1453) — IP bans reset interval + fix duplicate cleanup. Isolated new config section. ~5 files.
+- **Subissue #6** (#1453) — IP bans reset interval + fix duplicate cleanup. Adds and validates
+  the v3 setting, but retains the current hardcoded 24-hour interval in the single cleanup job
+  until #1980 migrates runtime consumers to v3. Operational duration evidence: torrust-demo#28.
 - **Subissue #7** (#1136) — Per-listener UDP connection ID validation policy. Implement after #6 to keep related UDP policy work ordered.
 - **Subissue #9** (#889) — Logging style config. Isolated to `Logging` struct. ~5 files.
 
@@ -238,6 +240,11 @@ For each subissue implementation in this EPIC, the default completion policy is:
 - 2026-07-23 17:02 UTC - agent - Started #1453 as the next EPIC subissue. Created
   `1453-ip-bans-reset-interval` from current `develop`; implementation is pending maintainer
   review of the subissue specification.
+- 2026-07-23 17:02 UTC - josecelano - Approved staged #1453 delivery: add and validate the v3
+  interval configuration while moving the duplicate cleanup task into one bootstrap-managed job
+  that retains the current hardcoded 24-hour interval. #1980 will wire the v3 setting into that
+  job during the final consumer migration. Added torrust-demo#28 as operational evidence for the
+  duration policy.
 
 ## Acceptance Criteria
 
