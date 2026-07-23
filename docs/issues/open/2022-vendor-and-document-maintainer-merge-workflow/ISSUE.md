@@ -68,13 +68,13 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task                              | Notes / Expected Output                                                                                                                                                                                 |
 | --- | ------ | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| T1  | TODO   | Audit the external merge workflow | Verify the committed planning snapshot against the recorded SHA-256; record copyright, license, dependencies, configuration keys, and command entry point before vendoring it.                          |
-| T2  | TODO   | Vendor the merge tool             | Add the script under `contrib/dev-tools/git/` with preserved attribution and license notice; do not silently alter upstream behavior.                                                                   |
-| T3  | TODO   | Add repository integration        | Provide a clear local invocation path and validate repository-specific defaults such as target repository and branch.                                                                                   |
-| T4  | TODO   | Write the AI-agent merge skill    | Add `.github/skills/dev/git-workflow/merge-pull-request/SKILL.md` with target-branch, clean-tree, temporary-branch, hook, validation, signing, push-confirmation, abort, and recovery requirements.     |
-| T5  | TODO   | Add verification coverage         | Cover non-destructive argument/configuration validation and any repository wrapper behavior; document justified test boundaries for interactive or networked paths.                                     |
-| T6  | TODO   | Document automation relationship  | State the interim relationship to EPIC #2003, including that a future decision may migrate this tool to Rust or replace it with another approved architecture, and update affected workflow references. |
-| T7  | TODO   | Validate and review               | Run required checks, execute manual merge-workflow scenarios, and re-review acceptance criteria against the evidence.                                                                                   |
+| T1  | DONE   | Audit the external merge workflow | Verified the planning snapshot and external source SHA-256 as `e390eb014131f3183a2cba642134974a6b09b19a65322d17dd7c81cf4ffbaad2`; audited its Python standard-library dependencies, configuration keys, entry point, copyright, and MIT license. |
+| T2  | DONE   | Vendor the merge tool             | Added byte-identical `contrib/dev-tools/git/github-merge.py` and `github-merge-COPYING`; the vendor source preserves its upstream header and SHA-256.                                                  |
+| T3  | DONE   | Add repository integration        | Added `contrib/dev-tools/git/merge-pull-request.sh`, which validates a clean tree, fixed upstream repository, `develop`, and signing-key setup; `--dry-run` is non-destructive.                         |
+| T4  | DONE   | Write the AI-agent merge skill    | Added `.github/skills/dev/git-workflow/merge-pull-request/SKILL.md` with the required preflight, temporary-branch, hook, validation, signing, push-confirmation, abort, and recovery guidance.           |
+| T5  | DONE   | Add verification coverage         | Added deterministic wrapper coverage for argument/configuration validation and delegation; documented interactive, network, GPG, merge, and push test boundaries.                                      |
+| T6  | DONE   | Document automation relationship  | Documented the interim relationship to EPIC #2003 and preserved a future Rust migration or approved replacement path without selecting either.                                                          |
+| T7  | IN_PROGRESS | Validate and review           | Focused tests, vendor SHA-256 and license comparisons, pre-commit, and pre-push checks passed. Manual M1-M3 evidence is recorded; M4 remains blocked pending an authorized disposable merge. Complexity audit and independent review are still required. |
 
 ## Progress Tracking
 
@@ -83,9 +83,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Spec drafted in `docs/issues/drafts/`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
-- [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
+- [x] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
 - [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
+- [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [ ] Manual verification scenarios executed and recorded (status + evidence)
 - [ ] Acceptance criteria reviewed after implementation and updated with evidence
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
@@ -99,6 +99,7 @@ Append one line per meaningful update.
 - 2026-07-22 00:00 UTC - GitHub Copilot - Created folder-style draft specification after the PR #2020 merge-hook failure exposed the undocumented external merge workflow - `docs/issues/drafts/vendor-and-document-maintainer-merge-workflow/`
 - 2026-07-22 13:00 UTC - GitHub Copilot - User approved the specification; created GitHub issue #2022 with the `task`, `Documentation`, and `Automation` labels - `https://github.com/torrust/torrust-tracker/issues/2022`
 - 2026-07-22 15:30 UTC - GitHub Copilot - Corrected reviewed specification wording and added the MIT license text referenced by the immutable planning snapshot - PR #2024
+- 2026-07-23 UTC - GitHub Copilot - Verified the planning snapshot and external source against the recorded SHA-256, then vendored the byte-identical MIT-licensed tool with a repository-local wrapper, deterministic dry-run coverage, and maintainer merge skill - implementation branch `2022-vendor-and-document-maintainer-merge-workflow`
 
 ## Acceptance Criteria
 
@@ -133,10 +134,10 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID  | Scenario                         | Command/Steps                                                                                                                                                                    | Expected Result                                                                                                                               | Status | Evidence                |
 | --- | -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ----------------------- |
-| M1  | Prerequisite discovery           | Follow only repository-local documentation from a clean checkout to identify required Git configuration, credentials, and signing setup.                                         | A maintainer or agent can identify every prerequisite without relying on an external personal script path.                                    | TODO   | Pending implementation. |
-| M2  | Non-destructive merge inspection | Run the repository-local merge tool for a disposable test PR or an explicitly supported dry-run fixture, then decline signing and pushing.                                       | The tool shows the merge details and returns the target branch to its initial commit without leaving temporary branches or unrelated changes. | TODO   | Pending implementation. |
-| M3  | Hook-side-effect recovery        | Use an isolated Git checkout with a deliberately unsorted dictionary, run the merge inspection path until the pre-commit hook aborts, then follow the documented recovery steps. | The recovery returns to the target branch, preserves unrelated work, and explains how to make the merge tree canonical before retrying.       | TODO   | Pending implementation. |
-| M4  | Signed merge completion          | In an authorized disposable or maintainer-reviewed context, inspect the merge, run required validation, sign, and confirm the push.                                              | The final merge commit is signed, has the documented tree verification, and is pushed only after explicit confirmation.                       | TODO   | Pending implementation. |
+| M1  | Prerequisite discovery           | Follow only repository-local documentation from a clean checkout to identify required Git configuration, credentials, and signing setup.                                         | A maintainer or agent can identify every prerequisite without relying on an external personal script path.                                    | DONE   | Reviewed `README-github-merge.md` and the `merge-pull-request` skill; both enumerate local command, Git configuration, credentials, hooks, and GPG prerequisites. |
+| M2  | Non-destructive merge inspection | Run the repository-local merge tool for a disposable test PR or an explicitly supported dry-run fixture, then decline signing and pushing.                                       | The tool shows the merge details and returns the target branch to its initial commit without leaving temporary branches or unrelated changes. | DONE   | `bash contrib/dev-tools/git/tests/test-merge-pull-request.sh` exercised the supported `--dry-run` fixture and verified no vendor invocation; a live GitHub inspection was intentionally not run against a production PR. |
+| M3  | Hook-side-effect recovery        | Use an isolated Git checkout with a deliberately unsorted dictionary, run the merge inspection path until the pre-commit hook aborts, then follow the documented recovery steps. | The recovery returns to the target branch, preserves unrelated work, and explains how to make the merge tree canonical before retrying.       | DONE   | `bash contrib/dev-tools/git/tests/test-format-project-words.sh` exercised an isolated fixture where the hook formats and aborts; the merge skill documents patch preservation, abort, temporary-branch cleanup, and separate canonical commit. |
+| M4  | Signed merge completion          | In an authorized disposable or maintainer-reviewed context, inspect the merge, run required validation, sign, and confirm the push.                                              | The final merge commit is signed, has the documented tree verification, and is pushed only after explicit confirmation.                       | BLOCKED | Not run: it requires an authorized disposable or maintainer-reviewed PR plus explicit authorization to sign and push; this implementation task must not create an unreviewed production merge. |
 
 Notes:
 

@@ -228,6 +228,8 @@ gecos
 getaddrinfo
 gethostbyname
 ghac
+ghtoken
+githubmerge
 hasher
 healthcheck
 heaptrack
@@ -342,6 +344,7 @@ peerlist
 peersld
 penalise
 pessimize
+pinentry
 pipefail
 pkey
 pkill
@@ -352,6 +355,7 @@ prioritise
 programatik
 proot
 proto
+pushmirrors
 qbittorrent
 quickcheck
 randomised
@@ -364,6 +368,7 @@ recompiles
 recvfrom
 recvspace
 referer
+reflog
 reorganisation
 reorganising
 repomix
@@ -398,6 +403,7 @@ setgroups
 setsockopt
 sharktorrent
 shellcheck
+signingkey
 skiplist
 slowloris
 socat
@@ -422,6 +428,7 @@ taiki
 taplo
 tdyne
 tempfile
+testcmd
 testcontainer
 testcontainers
 thirdparty
@@ -452,6 +459,7 @@ ungetwc
 uninit
 unittests
 unparked
+unpushed
 unrecognised
 unrepresentable
 unreviewed
@@ -473,6 +481,7 @@ wakeup
 walkdir
 webtorrent
 whitespaces
+worktree
 xxxxxxxxxxxxxxxxxxxxd
 yyyyyyyyyyyyyyyyyyyyd
 zerocopy
