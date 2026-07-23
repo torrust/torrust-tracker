@@ -209,6 +209,30 @@ it_should_refuse_to_invoke_a_missing_vendored_tool() {
     grep -F -q "ERROR: Vendored merge tool is unavailable: '${fixture_root}/contrib/dev-tools/git/github-merge.py'." "${output_file}"
 }
 
+it_should_refuse_to_invoke_the_vendored_tool_without_python() {
+    # Arrange
+    local fixture_root
+    fixture_root=$(create_fixture "missing-python")
+    local stub_directory="${TEST_DIRECTORY}/missing-python-bin"
+    mkdir -p "${stub_directory}"
+    ln -s "$(command -v dirname)" "${stub_directory}/dirname"
+    ln -s "$(command -v git)" "${stub_directory}/git"
+    local output_file="${TEST_DIRECTORY}/missing-python-output.txt"
+
+    # Act
+    if (
+        cd "${fixture_root}"
+        PATH="${stub_directory}" \
+            /bin/bash ./contrib/dev-tools/git/merge-pull-request.sh 2022 >"${output_file}" 2>&1
+    ); then
+        printf 'Expected missing Python preflight to fail.\n' >&2
+        return 1
+    fi
+
+    # Assert
+    grep -F -q 'ERROR: python3 is required to run the vendored merge tool; install Python 3 and retry.' "${output_file}"
+}
+
 it_should_reject_a_non_positive_pull_request_number_before_performing_work() {
     # Arrange
     local fixture_root
@@ -236,6 +260,7 @@ it_should_explain_how_to_configure_an_unset_signing_key
 it_should_refuse_an_empty_signing_key
 it_should_invoke_the_vendored_tool_with_the_fixed_target_branch_after_preflight
 it_should_refuse_to_invoke_a_missing_vendored_tool
+it_should_refuse_to_invoke_the_vendored_tool_without_python
 it_should_reject_a_non_positive_pull_request_number_before_performing_work
 
 printf 'All merge workflow wrapper tests passed.\n'
