@@ -105,7 +105,9 @@ it_should_explain_how_to_configure_an_unset_repository() {
     # Act
     if (
         cd "${fixture_root}"
-        ./contrib/dev-tools/git/merge-pull-request.sh --dry-run 2022 >"${output_file}" 2>&1
+        GIT_CONFIG_NOSYSTEM=1 \
+            GIT_CONFIG_GLOBAL=/dev/null \
+            ./contrib/dev-tools/git/merge-pull-request.sh --dry-run 2022 >"${output_file}" 2>&1
     ); then
         printf 'Expected unset repository preflight to fail.\n' >&2
         return 1
