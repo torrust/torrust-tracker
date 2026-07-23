@@ -47,29 +47,32 @@ The full provenance, license, deterministic test boundary, and EPIC #2003 relati
    ```sh
    git remote -v
    git switch develop
-   git fetch torrust
-   git pull --ff-only torrust develop
+   git fetch <upstream-remote>
+   git pull --ff-only <upstream-remote> develop
    git status --short --branch
    ```
 
-2. Configure the required local Git values. Use a fine-grained GitHub token with access to the
+Replace `<upstream-remote>` with the contributor-local remote name that points to
+`torrust/torrust-tracker`; do not assume it is named `torrust`.
+
+1. Configure the required local Git values. Use a fine-grained GitHub token with access to the
    upstream repository only when unauthenticated API access is insufficient; do not expose it in
    chat, commits, or command output.
 
    ```sh
    git config githubmerge.repository torrust/torrust-tracker
-   git config githubmerge.branch develop
    git config --global user.signingkey <gpg-key-id>
    git config user.ghtoken <github-token>
    ```
 
    `user.ghtoken` is optional. `githubmerge.host` defaults to `git@github.com`; SSH credentials
-   must permit fetching the upstream repository and pushing only after authorization. Optional
-   settings supported by the vendor tool are `githubmerge.testcmd`,
+   must permit fetching the upstream repository and pushing only after authorization. The wrapper
+   passes `develop` directly, so `githubmerge.branch` is not required. Optional settings supported
+   by the vendor tool are `githubmerge.testcmd`,
    `githubmerge.merge-author-email`, and `githubmerge.pushmirrors` (the latter applies only to
    its historical `master` behavior and is not used by this `develop` wrapper).
 
-3. Confirm the installed hooks and signing setup. Hooks are installed with
+1. Confirm the installed hooks and signing setup. Hooks are installed with
    `./contrib/dev-tools/git/install-git-hooks.sh`. A real signing attempt requires an available
    GPG agent and pinentry session.
 

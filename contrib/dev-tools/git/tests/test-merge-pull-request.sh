@@ -89,7 +89,54 @@ it_should_refuse_a_repository_configuration_that_is_not_the_upstream_tracker() {
     fi
 
     # Assert
-    grep -F -q "ERROR: githubmerge.repository must be 'torrust/torrust-tracker'." "${output_file}"
+    grep -F -q "ERROR: githubmerge.repository is 'example/other-repository'; run 'git config githubmerge.repository torrust/torrust-tracker'." "${output_file}"
+}
+
+it_should_explain_how_to_configure_an_unset_repository() {
+    # Arrange
+    local fixture_root
+    fixture_root=$(create_fixture "unset-repository")
+    (
+        cd "${fixture_root}"
+        git config --unset githubmerge.repository
+    )
+    local output_file="${TEST_DIRECTORY}/unset-repository-output.txt"
+
+    # Act
+    if (
+        cd "${fixture_root}"
+        ./contrib/dev-tools/git/merge-pull-request.sh --dry-run 2022 >"${output_file}" 2>&1
+    ); then
+        printf 'Expected unset repository preflight to fail.\n' >&2
+        return 1
+    fi
+
+    # Assert
+    grep -F -q "ERROR: githubmerge.repository is not configured; run 'git config githubmerge.repository torrust/torrust-tracker'." "${output_file}"
+}
+
+it_should_explain_how_to_configure_an_unset_signing_key() {
+    # Arrange
+    local fixture_root
+    fixture_root=$(create_fixture "unset-signing-key")
+    (
+        cd "${fixture_root}"
+        git config --unset user.signingkey
+    )
+    local output_file="${TEST_DIRECTORY}/unset-signing-key-output.txt"
+
+    # Act
+    if (
+        cd "${fixture_root}"
+        GIT_CONFIG_GLOBAL=/dev/null \
+            ./contrib/dev-tools/git/merge-pull-request.sh --dry-run 2022 >"${output_file}" 2>&1
+    ); then
+        printf 'Expected unset signing-key preflight to fail.\n' >&2
+        return 1
+    fi
+
+    # Assert
+    grep -F -q "ERROR: user.signingkey is not configured; run 'git config --global user.signingkey <gpg-key-id>'." "${output_file}"
 }
 
 it_should_invoke_the_vendored_tool_with_the_fixed_target_branch_after_preflight() {
@@ -116,6 +163,26 @@ EOF
     grep -F -q 'contrib/dev-tools/git/github-merge.py 2022 develop' "${fixture_root}/python-arguments.txt"
 }
 
+it_should_refuse_to_invoke_a_missing_vendored_tool() {
+    # Arrange
+    local fixture_root
+    fixture_root=$(create_fixture "missing-vendored-tool")
+    rm "${fixture_root}/contrib/dev-tools/git/github-merge.py"
+    local output_file="${TEST_DIRECTORY}/missing-vendored-tool-output.txt"
+
+    # Act
+    if (
+        cd "${fixture_root}"
+        ./contrib/dev-tools/git/merge-pull-request.sh 2022 >"${output_file}" 2>&1
+    ); then
+        printf 'Expected missing vendored tool preflight to fail.\n' >&2
+        return 1
+    fi
+
+    # Assert
+    grep -F -q "ERROR: Vendored merge tool is unavailable: '${fixture_root}/contrib/dev-tools/git/github-merge.py'." "${output_file}"
+}
+
 it_should_reject_a_non_positive_pull_request_number_before_performing_work() {
     # Arrange
     local fixture_root
@@ -138,7 +205,10 @@ it_should_reject_a_non_positive_pull_request_number_before_performing_work() {
 it_should_pass_deterministic_preflight_when_repository_state_is_supported
 it_should_refuse_a_dirty_working_tree_without_invoking_the_vendored_tool
 it_should_refuse_a_repository_configuration_that_is_not_the_upstream_tracker
+it_should_explain_how_to_configure_an_unset_repository
+it_should_explain_how_to_configure_an_unset_signing_key
 it_should_invoke_the_vendored_tool_with_the_fixed_target_branch_after_preflight
+it_should_refuse_to_invoke_a_missing_vendored_tool
 it_should_reject_a_non_positive_pull_request_number_before_performing_work
 
 printf 'All merge workflow wrapper tests passed.\n'

@@ -38,7 +38,11 @@ require_repository_configuration() {
     repository=$(git config --get githubmerge.repository || true)
 
     if [[ "${repository}" != "${EXPECTED_REPOSITORY}" ]]; then
-        echo "ERROR: githubmerge.repository must be '${EXPECTED_REPOSITORY}'." >&2
+        if [[ -z "${repository}" ]]; then
+            echo "ERROR: githubmerge.repository is not configured; run 'git config githubmerge.repository ${EXPECTED_REPOSITORY}'." >&2
+        else
+            echo "ERROR: githubmerge.repository is '${repository}'; run 'git config githubmerge.repository ${EXPECTED_REPOSITORY}'." >&2
+        fi
         exit 1
     fi
 }
@@ -55,7 +59,21 @@ require_target_branch() {
 
 require_signing_key() {
     if ! git config --get user.signingkey >/dev/null; then
-        echo "ERROR: Configure user.signingkey before starting a merge attempt." >&2
+        echo "ERROR: user.signingkey is not configured; run 'git config --global user.signingkey <gpg-key-id>'." >&2
+        exit 1
+    fi
+}
+
+require_vendored_tool() {
+    if [[ ! -f "${VENDORED_TOOL}" || ! -r "${VENDORED_TOOL}" ]]; then
+        echo "ERROR: Vendored merge tool is unavailable: '${VENDORED_TOOL}'." >&2
+        exit 1
+    fi
+}
+
+require_python() {
+    if ! command -v python3 >/dev/null 2>&1; then
+        echo "ERROR: python3 is required to run the vendored merge tool; install Python 3 and retry." >&2
         exit 1
     fi
 }
@@ -96,6 +114,9 @@ main() {
         printf 'Dry-run preflight passed for %s PR %s targeting %s.\n' "${EXPECTED_REPOSITORY}" "${pull_request}" "${TARGET_BRANCH}"
         exit 0
     fi
+
+    require_vendored_tool
+    require_python
 
     exec python3 "${VENDORED_TOOL}" "${pull_request}" "${TARGET_BRANCH}"
 }
