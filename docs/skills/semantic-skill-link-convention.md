@@ -21,11 +21,12 @@ The repository keeps a small catalog of marker definitions.
 
 Current markers:
 
-| Marker       | Value                  | Meaning                                                                                |
-| ------------ | ---------------------- | -------------------------------------------------------------------------------------- |
-| `skill-link` | `<skill-name>`         | This artifact affects the linked skill and should trigger a skill review when changed. |
-| `issue-spec` | `<repo-relative-path>` | This artifact is affected by a draft issue specification at the given temporary path.  |
-| `issue`      | `#<number>`            | This artifact is affected by the GitHub issue with the given number.                   |
+| Marker              | Value                    | Meaning                                                                                        |
+| ------------------- | ------------------------ | ---------------------------------------------------------------------------------------------- |
+| `skill-link`        | `<skill-name>`           | This artifact affects the linked skill and should trigger a skill review when changed.         |
+| `related-artifacts` | `<repo-relative-path>`\* | List of artifacts related to this file; linked files should be reviewed when this one changes. |
+| `issue-spec`        | `<repo-relative-path>`   | This artifact is affected by a draft issue specification at the given temporary path.          |
+| `issue`             | `#<number>`              | This artifact is affected by the GitHub issue with the given number.                           |
 
 Add new markers only when there is a concrete recurring maintenance problem that the current marker set cannot represent.
 
@@ -48,19 +49,64 @@ issue: #1234
 Do not retain the draft file path after the issue is created: issue specs move from
 `drafts/` to `open/` and later to `closed/`, while the issue number remains stable.
 
-## Marker Format
+## Placement Syntax by File Type
 
-Use this marker in comments or documentation text close to behavior-defining lines:
+The format depends on the file type and comment syntax available.
 
-```text
-skill-link: <skill-name>
+### Markdown files (`.md`)
+
+Use YAML frontmatter (between `---` delimiters). This is the canonical format for
+Markdown artifacts:
+
+```yaml
+---
+semantic-links:
+  skill-links:
+    - <skill-name>
+  related-artifacts:
+    - <repo-relative-path>
+---
 ```
 
-Rules:
+### Shell scripts (`.sh`) and Dockerfiles
 
-- `skill-name` must match the skill frontmatter `name` value.
-- Use lowercase letters, numbers, and hyphens.
+Use a multi-line YAML-like indented block inside `#` comments, placed near the top
+of the file after the shebang or syntax directive:
+
+```bash
+# semantic-links:
+#   related-artifacts:
+#     - <repo-relative-path>
+#     - <another-path>
+```
+
+### Rust source files (`.rs`)
+
+Use a single-line `//!` or `//` comment close to the behavior-defining code:
+
+```rust
+//! skill-link: <skill-name>
+// skill-link: <skill-name>
+```
+
+### Workflow files (`.github/workflows/*.yaml`)
+
+Use YAML comment lines (`#`) placed near the relevant step or job:
+
+```yaml
+# skill-link: <skill-name>
+# related-artifacts:
+#   - <repo-relative-path>
+```
+
+## Rules
+
+- `skill-link` values must match the skill frontmatter `name` value.
+- Use lowercase letters, numbers, and hyphens for skill names.
 - Add only high-signal links: artifacts that can make a skill stale when they change.
+- When placing a `related-artifacts` block, place it near the top of the file (or
+  after the syntax directive for Dockerfiles) unless the relationship is specific
+  to a single section — in that case, place it near that section.
 
 ## Markdown Frontmatter (Required for New or Updated Issue and EPIC Specs)
 
