@@ -1,0 +1,48 @@
+# ----- hadolint global ignore configuration -----
+#
+# Rationale for each globally ignored rule is documented below.
+# When adding a new inline `# hadolint ignore=` comment, also add rationale
+# alongside it explaining why it's safe to ignore.
+#
+# Global ignores keep the Containerfile clean by avoiding repetitive
+# `# hadolint ignore=` comments for rules that are systematically
+# inapplicable to this project's build strategy.
+
+ignored:
+  # DL3008: Pin versions in apt-get install.
+  #
+  # We do not pin package versions in intermediate build stages (chef, tester,
+  # gcc) because:
+  # - These stages are development/build-time only, not production runtime images
+  # - Pinning would require constant manual maintenance as base images update
+  # - The base image tag (e.g. `slim-trixie`) is already pinned to a specific
+  #   Debian release, providing reproducible snapshots
+  # - Any version drift is caught by the CI rebuild cycle
+  - DL3008
+
+  # DL3059: Multiple consecutive RUN instructions.
+  #
+  # We intentionally use separate RUN instructions for Docker layer caching.
+  # Each RUN creates a cacheable layer, which speeds up rebuilds when only
+  # specific steps change. Consolidating them would reduce cache efficiency
+  # and increase rebuild times during development.
+  - DL3059
+
+  # DL4006: set -o pipefail is not available.
+  #
+  # Debian-based images use /bin/sh symlinked to /bin/dash, which does not
+  # support the `pipefail` option. Switching to `SHELL ["/bin/bash", "-o",
+  # "pipefail", "-c"]` would require installing bash in every build stage,
+  # adding unnecessary image size and build time. The pipe operations in this
+  # Containerfile are simple and low-risk (e.g., curl | bash for trusted
+  # install scripts, or ldd | grep for single-file library discovery).
+  - DL4006
+
+  # SC2046: Quote to prevent word splitting.
+  #
+  # The unquoted `$(realpath ...)` expansion is used as the source argument
+  # for `cp` in a specific pattern where word splitting is intentional and
+  # safe: the output of `realpath` is a single path, and the `ldd | grep`
+  # pipeline it wraps also produces a single path. The ShellCheck warning
+  # is a false positive in this context.
+  - SC2046

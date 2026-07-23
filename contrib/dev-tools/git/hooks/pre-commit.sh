@@ -31,6 +31,7 @@ declare -a STEPS=(
     "Checking for unused dependencies (cargo machete --with-metadata)|cargo machete --with-metadata"
     "Checking workspace layer boundary bans (cargo deny check bans)|cargo deny check bans"
     "Running all linters|linter all"
+    "Linting Containerfile with hadolint|if git diff --cached --name-only --diff-filter=ACM | grep -q '^Containerfile$'; then docker run --rm -i -v \"$(pwd)/.hadolint.yaml:/.hadolint.yaml\" --entrypoint hadolint hadolint/hadolint --config /.hadolint.yaml - < ./Containerfile; else echo 'Containerfile unchanged, skipping hadolint'; fi"
     "Running documentation tests|cargo test --doc --workspace"
 )
 
