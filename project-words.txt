@@ -231,6 +231,7 @@ gethostbyname
 ghac
 ghtoken
 githubmerge
+gpgsign
 hasher
 healthcheck
 heaptrack

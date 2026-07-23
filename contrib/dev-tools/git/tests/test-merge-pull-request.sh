@@ -23,7 +23,7 @@ create_fixture() {
         git config user.email "merge-workflow-test@example.com"
         printf 'fixture\n' >README.md
         git add .
-        git commit --quiet -m 'Initial fixture'
+        git -c commit.gpgsign=false -c core.hooksPath=/dev/null commit --quiet -m 'Initial fixture'
         git config githubmerge.repository torrust/torrust-tracker
         git config githubmerge.branch develop
         git config user.signingkey 0123456789ABCDEF
@@ -130,7 +130,8 @@ it_should_explain_how_to_configure_an_unset_signing_key() {
     # Act
     if (
         cd "${fixture_root}"
-        GIT_CONFIG_GLOBAL=/dev/null \
+        GIT_CONFIG_NOSYSTEM=1 \
+            GIT_CONFIG_GLOBAL=/dev/null \
             ./contrib/dev-tools/git/merge-pull-request.sh --dry-run 2022 >"${output_file}" 2>&1
     ); then
         printf 'Expected unset signing-key preflight to fail.\n' >&2
