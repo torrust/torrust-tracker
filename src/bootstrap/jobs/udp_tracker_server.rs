@@ -41,31 +41,11 @@ pub fn start_banning_event_listener(app_container: &Arc<AppContainer>, cancellat
 
 #[must_use]
 // issue: #1453
-pub fn start_ban_cleanup_job(
-    config: &Configuration,
-    app_container: &Arc<AppContainer>,
-    cancellation_token: CancellationToken,
-) -> Option<JoinHandle<()>> {
-    if !should_start_ban_cleanup_job(config) {
-        return None;
-    }
-
+pub fn start_ban_cleanup_job(app_container: &Arc<AppContainer>, cancellation_token: CancellationToken) -> JoinHandle<()> {
     let ban_service = app_container.udp_tracker_core_services.ban_service.clone();
     let reset_interval_in_secs = UdpTrackerServer::DEFAULT_IP_BANS_RESET_INTERVAL_IN_SECS;
 
-    Some(tokio::spawn(run_ban_cleanup_job(
-        ban_service,
-        reset_interval_in_secs,
-        cancellation_token,
-    )))
-}
-
-fn should_start_ban_cleanup_job(config: &Configuration) -> bool {
-    !config.core.private
-        && config
-            .udp_trackers
-            .as_ref()
-            .is_some_and(|udp_trackers| !udp_trackers.is_empty())
+    tokio::spawn(run_ban_cleanup_job(ban_service, reset_interval_in_secs, cancellation_token))
 }
 
 async fn run_ban_cleanup_job(
@@ -103,49 +83,9 @@ mod tests {
     use tokio::sync::RwLock;
     use tokio::time::timeout;
     use tokio_util::sync::CancellationToken;
-    use torrust_tracker_configuration::{Configuration, UdpTracker};
     use torrust_tracker_udp_core::services::banning::BanService;
 
-    use super::{run_ban_cleanup_job, should_start_ban_cleanup_job};
-
-    #[test]
-    fn it_should_not_start_the_ban_cleanup_job_without_udp_trackers() {
-        assert!(!should_start_ban_cleanup_job(&Configuration::default()));
-    }
-
-    #[test]
-    fn it_should_not_start_the_ban_cleanup_job_with_an_empty_udp_tracker_list() {
-        let configuration = Configuration {
-            udp_trackers: Some(Vec::new()),
-            ..Configuration::default()
-        };
-
-        assert!(!should_start_ban_cleanup_job(&configuration));
-    }
-
-    #[test]
-    fn it_should_not_start_the_ban_cleanup_job_for_a_private_tracker() {
-        let configuration = Configuration {
-            core: torrust_tracker_configuration::Core {
-                private: true,
-                ..Default::default()
-            },
-            udp_trackers: Some(vec![UdpTracker::default()]),
-            ..Configuration::default()
-        };
-
-        assert!(!should_start_ban_cleanup_job(&configuration));
-    }
-
-    #[test]
-    fn it_should_start_the_ban_cleanup_job_when_udp_trackers_are_configured() {
-        let configuration = Configuration {
-            udp_trackers: Some(vec![UdpTracker::default()]),
-            ..Configuration::default()
-        };
-
-        assert!(should_start_ban_cleanup_job(&configuration));
-    }
+    use super::run_ban_cleanup_job;
 
     #[tokio::test]
     async fn it_should_stop_the_ban_cleanup_job_when_cancelled() {

@@ -75,12 +75,7 @@ async fn start_jobs(config: &Configuration, app_container: &Arc<AppContainer>) -
     start_tracker_core_event_listener(config, app_container, &mut job_manager);
     start_http_core_event_listener(config, app_container, &mut job_manager);
     start_udp_core_event_listener(config, app_container, &mut job_manager);
-    start_udp_server_stats_event_listener(config, app_container, &mut job_manager);
-    start_udp_server_banning_event_listener(app_container, &mut job_manager);
-    // issue: #1453
-    start_udp_ban_cleanup_job(config, app_container, &mut job_manager);
-
-    start_the_udp_instances(config, app_container, &mut job_manager).await;
+    start_udp_tracker_services(config, app_container, &mut job_manager).await;
     start_the_http_instances(config, app_container, &mut job_manager).await;
 
     start_torrent_cleanup(config, app_container, &mut job_manager);
@@ -167,6 +162,40 @@ fn start_udp_core_event_listener(config: &Configuration, app_container: &Arc<App
     );
 }
 
+async fn start_udp_tracker_services(config: &Configuration, app_container: &Arc<AppContainer>, job_manager: &mut JobManager) {
+    if !should_start_udp_tracker_services(config) {
+        log_udp_tracker_services_not_started(config);
+        return;
+    }
+
+    start_udp_server_stats_event_listener(config, app_container, job_manager);
+    start_udp_server_banning_event_listener(app_container, job_manager);
+    // issue: #1453
+    start_udp_ban_cleanup_job(app_container, job_manager);
+    start_the_udp_instances(config, app_container, job_manager).await;
+}
+
+fn should_start_udp_tracker_services(config: &Configuration) -> bool {
+    !config.core.private
+        && config
+            .udp_trackers
+            .as_ref()
+            .is_some_and(|udp_trackers| !udp_trackers.is_empty())
+}
+
+fn log_udp_tracker_services_not_started(config: &Configuration) {
+    if config.core.private
+        && config
+            .udp_trackers
+            .as_ref()
+            .is_some_and(|udp_trackers| !udp_trackers.is_empty())
+    {
+        tracing::warn!("Could not start UDP trackers while in private mode. UDP is not safe for private trackers!");
+    } else {
+        tracing::info!("No UDP trackers configured");
+    }
+}
+
 fn start_udp_server_stats_event_listener(
     config: &Configuration,
     app_container: &Arc<AppContainer>,
@@ -185,27 +214,21 @@ fn start_udp_server_banning_event_listener(app_container: &Arc<AppContainer>, jo
     );
 }
 
-fn start_udp_ban_cleanup_job(config: &Configuration, app_container: &Arc<AppContainer>, job_manager: &mut JobManager) {
-    job_manager.push_opt(
+fn start_udp_ban_cleanup_job(app_container: &Arc<AppContainer>, job_manager: &mut JobManager) {
+    job_manager.push(
         "udp_ban_cleanup",
-        jobs::udp_tracker_server::start_ban_cleanup_job(config, app_container, job_manager.new_cancellation_token()),
+        jobs::udp_tracker_server::start_ban_cleanup_job(app_container, job_manager.new_cancellation_token()),
     );
 }
 
 async fn start_the_udp_instances(config: &Configuration, app_container: &Arc<AppContainer>, job_manager: &mut JobManager) {
-    if let Some(udp_trackers) = &config.udp_trackers {
-        for (idx, udp_tracker_config) in udp_trackers.iter().enumerate() {
-            if config.core.private {
-                tracing::warn!(
-                    "Could not start UDP tracker on: {} while in private mode. UDP is not safe for private trackers!",
-                    udp_tracker_config.bind_address
-                );
-            } else {
-                start_udp_instance(idx, udp_tracker_config, app_container, job_manager).await;
-            }
-        }
-    } else {
-        tracing::info!("No UDP blocks in configuration");
+    let udp_trackers = config
+        .udp_trackers
+        .as_ref()
+        .expect("UDP tracker services require at least one configured UDP tracker");
+
+    for (idx, udp_tracker_config) in udp_trackers.iter().enumerate() {
+        start_udp_instance(idx, udp_tracker_config, app_container, job_manager).await;
     }
 }
 
@@ -302,4 +325,50 @@ async fn start_health_check_api(config: &Configuration, app_container: &Arc<AppC
     let handle = health_check_api::start_job(&config.health_check_api, app_container.registar.entries()).await;
 
     job_manager.push("health_check_api", handle);
+}
+
+#[cfg(test)]
+mod tests {
+    use torrust_tracker_configuration::{Configuration, Core, UdpTracker};
+
+    use super::should_start_udp_tracker_services;
+
+    #[test]
+    fn it_should_not_start_udp_tracker_services_without_udp_trackers() {
+        assert!(!should_start_udp_tracker_services(&Configuration::default()));
+    }
+
+    #[test]
+    fn it_should_not_start_udp_tracker_services_with_an_empty_udp_tracker_list() {
+        let configuration = Configuration {
+            udp_trackers: Some(Vec::new()),
+            ..Configuration::default()
+        };
+
+        assert!(!should_start_udp_tracker_services(&configuration));
+    }
+
+    #[test]
+    fn it_should_not_start_udp_tracker_services_for_a_private_tracker() {
+        let configuration = Configuration {
+            core: Core {
+                private: true,
+                ..Default::default()
+            },
+            udp_trackers: Some(vec![UdpTracker::default()]),
+            ..Configuration::default()
+        };
+
+        assert!(!should_start_udp_tracker_services(&configuration));
+    }
+
+    #[test]
+    fn it_should_start_udp_tracker_services_for_a_public_tracker_with_udp_trackers() {
+        let configuration = Configuration {
+            udp_trackers: Some(vec![UdpTracker::default()]),
+            ..Configuration::default()
+        };
+
+        assert!(should_start_udp_tracker_services(&configuration));
+    }
 }

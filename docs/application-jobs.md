@@ -95,12 +95,14 @@ tracker instance. Previously, each UDP listener launcher spawned a cleanup task
 for that same shared service. With multiple UDP listeners, the application
 therefore ran multiple cleanup tasks that reset the same ban data.
 
-The cleanup task is now one application-owned `udp_ban_cleanup` job:
+The UDP listener instances, their event-listener jobs, and the cleanup task now
+start as one configuration-gated UDP service group. The cleanup task is one
+application-owned `udp_ban_cleanup` job:
 
-- `app::start_jobs` registers it with `JobManager` before starting UDP listener
+- `app::start_jobs` starts the group only when UDP listeners are requested and
+  allowed: at least one is configured and the tracker is not in private mode.
+- It registers the cleanup job with `JobManager` before starting UDP listener
   instances.
-- It starts only when UDP listeners can run: at least one is configured and the
-  tracker is not in private mode.
 - It receives the manager's shared `CancellationToken` and exits cooperatively
   when cancellation is requested.
 - The listener launcher no longer spawns cleanup tasks.
