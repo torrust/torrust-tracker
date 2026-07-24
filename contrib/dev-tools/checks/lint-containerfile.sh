@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # Lint the Containerfile with hadolint.
 #
+# Tests: (no automated tests yet — EPIC #2003)
+#
 # This sensor is a standalone check: it can be triggered by any orchestrator
 # (pre-commit hook, CI, Copilot file hooks, manual invocation). It only runs
 # hadolint when the Containerfile has been staged for commit (git diff check).

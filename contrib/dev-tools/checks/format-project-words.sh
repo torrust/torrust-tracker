@@ -1,5 +1,12 @@
 #!/usr/bin/env bash
 # Format the repository cspell dictionary with deterministic ordering and exact de-duplication.
+#
+# Tests: tests/test-format-project-words.sh
+#
+# NOTE: These tests are NOT automatically run by the pre-commit hook or CI.
+# If you modify this script, run the tests manually:
+#   bash contrib/dev-tools/checks/tests/test-format-project-words.sh
+# This will be addressed by the AI harness redesign (EPIC #2003).
 
 set -uo pipefail
 

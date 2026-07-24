@@ -1,5 +1,12 @@
 #!/usr/bin/env bash
 # Integration tests for the project dictionary formatter sensor and pre-commit orchestration.
+#
+# Sensor: ../format-project-words.sh
+#
+# NOTE: These tests are NOT automatically run by the pre-commit hook or CI.
+# Run them manually after modifying the sensor:
+#   bash contrib/dev-tools/checks/tests/test-format-project-words.sh
+# This will be addressed by the AI harness redesign (EPIC #2003).
 
 set -euo pipefail
 
