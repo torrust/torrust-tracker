@@ -5,6 +5,7 @@ semantic-links:
   related-artifacts:
     - docs/AGENTS.md
     - docs/benchmarking.md
+    - docs/application-jobs.md
     - docs/containers.md
     - docs/packages.md
     - docs/profiling.md
@@ -27,13 +28,14 @@ source code, see the [crate docs on docs.rs][docs].
 
 Operational and development guides for working with the tracker.
 
-| Document                                 | Description                                                          |
-| ---------------------------------------- | -------------------------------------------------------------------- |
-| [benchmarking.md](benchmarking.md)       | How to run and interpret the torrent-repository benchmarks           |
-| [containers.md](containers.md)           | Building and running the tracker with Docker / Podman                |
-| [packages.md](packages.md)               | Workspace package catalog, architecture layers, and dependency rules |
-| [profiling.md](profiling.md)             | CPU and memory profiling with Valgrind / kcachegrind                 |
-| [release_process.md](release_process.md) | Branch strategy, versioning, and the staging → main release pipeline |
+| Document                                   | Description                                                          |
+| ------------------------------------------ | -------------------------------------------------------------------- |
+| [application-jobs.md](application-jobs.md) | Current background-job ownership, lifecycle, and shutdown behavior   |
+| [benchmarking.md](benchmarking.md)         | How to run and interpret the torrent-repository benchmarks           |
+| [containers.md](containers.md)             | Building and running the tracker with Docker / Podman                |
+| [packages.md](packages.md)                 | Workspace package catalog, architecture layers, and dependency rules |
+| [profiling.md](profiling.md)               | CPU and memory profiling with Valgrind / kcachegrind                 |
+| [release_process.md](release_process.md)   | Branch strategy, versioning, and the staging → main release pipeline |
 
 ## Architecture Decisions (ADRs)
 
