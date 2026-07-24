@@ -42,7 +42,7 @@ After all v3 schema changes are implemented, perform the final cleanup:
 2. Remove the global re-exports from `packages/configuration/src/lib.rs`
 3. Remove the crate-root `packages/configuration/src/logging.rs` (now duplicated inside `v2_0_0/` and `v3_0_0/`)
 4. Make the #1453 v3 `udp_tracker_server.ip_bans_reset_interval_in_secs` setting effective in
-   the single bootstrap-managed ban cleanup job, replacing its temporary hardcoded 24-hour value
+   the single bootstrap-managed ban cleanup job, replacing its temporary default-constant value
 5. Apply any other cleanup discovered during the EPIC implementation
 
 ## Background
@@ -74,7 +74,7 @@ Similarly, the crate-root `logging.rs` (which contains `TraceStyle`, `setup()`, 
 - Remove global type aliases from `packages/configuration/src/lib.rs`
 - Remove crate-root `packages/configuration/src/logging.rs`
 - Update `pub mod logging;` in `lib.rs` (remove or redirect)
-- Replace #1453's temporary hardcoded cleanup interval with
+- Replace #1453's temporary default-constant cleanup interval with
   `Configuration::udp_tracker_server.ip_bans_reset_interval_in_secs`
 - Ensure all tests pass after migration
 - Any additional cleanup items discovered during EPIC implementation
@@ -151,15 +151,15 @@ Files that import `torrust_tracker_configuration::logging` (the module, not the 
 
 ## Implementation Plan
 
-| ID  | Status | Task                                                    | Notes                                                                            |
-| --- | ------ | ------------------------------------------------------- | -------------------------------------------------------------------------------- |
-| T1  | TODO   | Migrate all consumer imports to explicit `v3_0_0` paths | ~30 files; see Consumer Migration Map above                                      |
-| T2  | TODO   | Remove global type aliases from `lib.rs`                | `pub type Configuration = ...` etc.                                              |
-| T3  | TODO   | Remove crate-root `logging.rs`                          | Already copied into `v2_0_0/` and `v3_0_0/`                                      |
-| T4  | TODO   | Remove `pub mod logging;` from `lib.rs`                 | Or redirect to versioned module if needed                                        |
-| T5  | TODO   | Enable #1453's v3 ban-cleanup interval                  | Replace its temporary hardcoded 24-hour bootstrap value after consumer migration |
-| T6  | TODO   | Apply any additional cleanup discovered during EPIC     | Document in progress log                                                         |
-| T7  | TODO   | Run `linter all` and full test suite                    |                                                                                  |
+| ID  | Status | Task                                                    | Notes                                                                                   |
+| --- | ------ | ------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| T1  | TODO   | Migrate all consumer imports to explicit `v3_0_0` paths | ~30 files; see Consumer Migration Map above                                             |
+| T2  | TODO   | Remove global type aliases from `lib.rs`                | `pub type Configuration = ...` etc.                                                     |
+| T3  | TODO   | Remove crate-root `logging.rs`                          | Already copied into `v2_0_0/` and `v3_0_0/`                                             |
+| T4  | TODO   | Remove `pub mod logging;` from `lib.rs`                 | Or redirect to versioned module if needed                                               |
+| T5  | TODO   | Enable #1453's v3 ban-cleanup interval                  | Replace its temporary 24-hour default-constant bootstrap value after consumer migration |
+| T6  | TODO   | Apply any additional cleanup discovered during EPIC     | Document in progress log                                                                |
+| T7  | TODO   | Run `linter all` and full test suite                    |                                                                                         |
 
 ## Progress Tracking
 
@@ -179,7 +179,7 @@ Files that import `torrust_tracker_configuration::logging` (the module, not the 
 - 2026-07-14 00:00 UTC - josecelano - Initial spec drafted
 - 2026-07-15 00:00 UTC - josecelano - GitHub issue #1980 created; spec moved to `docs/issues/open/1980-1978-configuration-overhaul-final-cleanup.md`
 - 2026-07-23 17:02 UTC - josecelano - Added the deferred #1453 runtime-consumption task: after
-  migrating consumers to v3, replace the temporary hardcoded 24-hour global ban cleanup interval
+  migrating consumers to v3, replace the temporary 24-hour default-constant global ban cleanup interval
   with `udp_tracker_server.ip_bans_reset_interval_in_secs`.
 
 ## Acceptance Criteria

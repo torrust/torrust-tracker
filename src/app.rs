@@ -77,6 +77,8 @@ async fn start_jobs(config: &Configuration, app_container: &Arc<AppContainer>) -
     start_udp_core_event_listener(config, app_container, &mut job_manager);
     start_udp_server_stats_event_listener(config, app_container, &mut job_manager);
     start_udp_server_banning_event_listener(app_container, &mut job_manager);
+    // issue: #1453
+    start_udp_ban_cleanup_job(config, app_container, &mut job_manager);
 
     start_the_udp_instances(config, app_container, &mut job_manager).await;
     start_the_http_instances(config, app_container, &mut job_manager).await;
@@ -180,6 +182,13 @@ fn start_udp_server_banning_event_listener(app_container: &Arc<AppContainer>, jo
     job_manager.push(
         "udp_server_banning_event_listener",
         jobs::udp_tracker_server::start_banning_event_listener(app_container, job_manager.new_cancellation_token()),
+    );
+}
+
+fn start_udp_ban_cleanup_job(config: &Configuration, app_container: &Arc<AppContainer>, job_manager: &mut JobManager) {
+    job_manager.push_opt(
+        "udp_ban_cleanup",
+        jobs::udp_tracker_server::start_ban_cleanup_job(config, app_container, job_manager.new_cancellation_token()),
     );
 }
 

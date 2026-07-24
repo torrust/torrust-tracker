@@ -1,7 +1,7 @@
 ---
 doc-type: issue
 issue-type: enhancement
-status: open
+status: in_review
 priority: p2
 github-issue: 1453
 spec-path: docs/issues/open/1453-1978-ip-bans-reset-interval-configurable.md
@@ -13,6 +13,9 @@ semantic-links:
     - create-issue
   related-artifacts:
     - packages/configuration/src/v3_0_0/
+    - packages/configuration/src/v3_0_0/types.rs
+    - docs/adrs/20260723184019_separate_configuration_value_invariants_from_consistency_validation.md
+    - docs/application-jobs.md
     - packages/udp-core/src/services/banning.rs
     - packages/udp-server/src/server/launcher.rs
     - src/bootstrap/jobs/
@@ -50,11 +53,12 @@ was subsequently increased to 24 hours because many clients continued sending re
 valid connection ID. Future changes to the default or minimum should be supported by comparable
 operational evidence.
 
-The value must be at least `3600` seconds (one hour). The v3 configuration module must declare
-the minimum as the canonical constant (for example,
-`UdpTrackerServer::MINIMUM_IP_BANS_RESET_INTERVAL_IN_SECS`) and use it for validation and the
-explicit error message. This prevents the documented policy, validation, and error text from
-drifting apart. A zero value does not disable cleanup; disabling cleanup is out of scope.
+The value must be at least `3600` seconds (one hour). It is a single-value domain invariant, so
+the v3 configuration module must encode it in the typed `IpBansResetIntervalInSecs` newtype,
+backed by the reusable `AtLeastU64<MINIMUM_IP_BANS_RESET_INTERVAL_IN_SECS>` lower-bound type,
+and reject invalid values while constructing or deserializing it. This prevents the documented
+policy and validation from drifting apart. A zero value does not disable cleanup; disabling
+cleanup is out of scope. See ADR `20260723184019` for the validation-layer boundary.
 
 ### Task 2: Duplicate cleanup task
 
@@ -84,9 +88,9 @@ Since all UDP servers are launched simultaneously at startup, the bans are being
 - Ensure only one cleanup task runs regardless of the number of UDP servers
 - Start the cleanup job only when at least one UDP tracker is configured, and manage it through
   `JobManager` cancellation
-- Keep the bootstrap job's current hardcoded 24-hour interval temporarily; #1980 replaces it
-  with `udp_tracker_server.ip_bans_reset_interval_in_secs` when it migrates application consumers
-  to v3
+- Temporarily use `UdpTrackerServer::DEFAULT_IP_BANS_RESET_INTERVAL_IN_SECS` in the bootstrap
+  job; #1980 replaces it with `udp_tracker_server.ip_bans_reset_interval_in_secs` when it
+  migrates application consumers to v3
 - Update v3 configuration documentation and tests; defer runtime consumption and tracked default
   configuration files to #1980, which performs the v2-to-v3 migration
 
@@ -98,25 +102,25 @@ Since all UDP servers are launched simultaneously at startup, the bans are being
 
 ## Implementation Plan
 
-| ID  | Status | Task                                                                       | Notes                                                                                        |
-| --- | ------ | -------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
-| T1  | TODO   | Add `UdpTrackerServer` config struct with `ip_bans_reset_interval_in_secs` | In `packages/configuration/src/v3_0_0/`; declare the canonical minimum and default constants |
-| T2  | TODO   | Add `udp_tracker_server` field to root v3 `Configuration` struct           | Optional with default; do not migrate v2 consumers in this issue                             |
-| T3  | TODO   | Reject intervals below the minimum                                         | Error must state the minimum using the canonical constant; add boundary tests                |
-| T4  | TODO   | Move ban cleanup task from per-server launcher to bootstrap                | Register one job only when UDP trackers are configured; use `JobManager` cancellation        |
-| T5  | TODO   | Preserve the current hardcoded 24-hour bootstrap interval                  | Remove the launcher constant and duplicate task spawn; defer v3 config consumption to #1980  |
-| T6  | TODO   | Update v3 docs and tests                                                   | Production default config files and global v3 imports remain #1980                           |
-| T7  | TODO   | Run `linter all` and relevant tests                                        |                                                                                              |
+| ID  | Status | Task                                                                       | Notes                                                                                                                                            |
+| --- | ------ | -------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| T1  | DONE   | Add `UdpTrackerServer` config struct with `ip_bans_reset_interval_in_secs` | `udp_tracker_server.rs` defines canonical minimum/default constants                                                                              |
+| T2  | DONE   | Add `udp_tracker_server` field to root v3 `Configuration` struct           | Defaults through `UdpTrackerServer::default`; v2 consumers unchanged                                                                             |
+| T3  | DONE   | Reject intervals below the minimum                                         | `IpBansResetIntervalInSecs` newtype uses the canonical minimum; boundary tests added                                                             |
+| T4  | DONE   | Move ban cleanup task from per-server launcher to bootstrap                | One cancellation-managed `JobManager` job starts only with configured UDP trackers                                                               |
+| T5  | DONE   | Preserve the current 24-hour bootstrap interval                            | Uses `UdpTrackerServer::DEFAULT_IP_BANS_RESET_INTERVAL_IN_SECS`; #1980 enables config reading                                                    |
+| T6  | DONE   | Update v3 docs and tests                                                   | V3 module docs, configuration serialization, and focused job-condition tests updated                                                             |
+| T7  | DONE   | Run `linter all` and relevant tests                                        | `linter all`, focused tests, and formatting passed; the optional workspace-wide cognitive-complexity check is blocked by unrelated existing code |
 
 ## Progress Tracking
 
 ### Workflow Checkpoints
 
-- [ ] Spec drafted in `docs/issues/drafts/`
-- [ ] Spec reviewed and approved by user/maintainer
-- [ ] GitHub issue created and issue number added to this spec
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests)
+- [x] Spec drafted in `docs/issues/drafts/`
+- [x] Spec reviewed and approved by user/maintainer
+- [x] GitHub issue created and issue number added to this spec
+- [x] Implementation completed
+- [x] Automatic verification completed (`linter all`, formatting, and focused tests)
 - [ ] Manual verification scenarios executed and recorded
 - [ ] Acceptance criteria reviewed after implementation
 - [ ] Issue closed and spec moved to `docs/issues/open/`
@@ -127,25 +131,42 @@ Since all UDP servers are launched simultaneously at startup, the bans are being
 - 2026-07-23 17:02 UTC - josecelano - Approved the v3-only schema boundary: active
   application consumers and default configuration files remain deferred to #1980. The cleanup
   job starts only when UDP trackers are configured and is cancelled through `JobManager`.
-  Added a minimum interval policy of 3600 seconds; validation errors must use the configuration
-  type's canonical minimum constant so policy and diagnostics cannot diverge.
+  Added a minimum interval policy of 3600 seconds; the newtype validation must use the
+  configuration type's canonical minimum constant so policy and diagnostics cannot diverge.
 - 2026-07-23 17:02 UTC - josecelano - Confirmed staged delivery: #1453 creates and validates the
   v3 setting while fixing duplicate cleanup with the existing hardcoded 24-hour interval. #1980
   will make the setting effective during the application-wide v3 consumer migration. Recorded
   torrust-demo#28 as operational evidence for the 24-hour default.
+- 2026-07-23 17:02 UTC - agent - Implemented the approved staged delivery. Added the validated
+  v3 `UdpTrackerServer` configuration section; moved IP-ban cleanup from each UDP launcher into
+  one cancellation-managed bootstrap job; and retained the v3 type's canonical 24-hour default
+  constant until #1980 enables configured runtime consumption. Focused tests passed; ready for
+  maintainer review.
+- 2026-07-23 18:40 UTC - josecelano - Replaced the single-field use of semantic validation with
+  the reusable `AtLeastU64` value type and the domain newtype `IpBansResetIntervalInSecs`. Added
+  ADR `20260723184019` to distinguish value invariants, cross-field consistency validation, and
+  runtime/environment validation. The `validator` module has a code-review marker for a future
+  coordinated rename of its ambiguous public API.
+- 2026-07-23 18:49 UTC - agent - Verified the implementation with `cargo fmt --check`, focused
+  configuration/application/UDP-server tests, and `linter all`. The optional workspace-wide
+  cognitive-complexity check remains blocked by pre-existing violations in
+  `swarm-coordination-registry`, outside this issue's scope.
+- 2026-07-24 00:00 UTC - josecelano - Documented the current job ownership and lifecycle model
+  in `docs/application-jobs.md`. #1453 is the concrete example of an application-owned cleanup
+  job for a service shared across UDP instances; the final supervision design remains #1488.
 
 ## Acceptance Criteria
 
-- [ ] AC1: New `[udp_tracker_server]` config section with `ip_bans_reset_interval_in_secs` exists
-- [ ] AC2: Default value is `86400` (24 hours)
-- [ ] AC2a: Values below `3600` seconds are rejected with an error that states the canonical minimum
-- [ ] AC3: Ban cleanup task is spawned exactly once at app bootstrap
-- [ ] AC4: No duplicate cleanup tasks when multiple UDP servers are configured
-- [ ] AC5: The cleanup job is not started when no UDP trackers are configured and is cancelled by `JobManager`
-- [ ] AC6: The bootstrap cleanup job retains the current hardcoded 24-hour interval pending #1980
-- [ ] AC7: The v3 configuration documentation and tests cover the section; runtime consumption and v2 consumer/default-config migration remain deferred to #1980
-- [ ] `linter all` exits with code `0`
-- [ ] Relevant tests pass
+- [x] AC1: New `[udp_tracker_server]` config section with `ip_bans_reset_interval_in_secs` exists
+- [x] AC2: Default value is `86400` (24 hours)
+- [x] AC2a: Values below `3600` seconds are rejected with an error that states the canonical minimum
+- [x] AC3: Ban cleanup task is spawned exactly once at app bootstrap
+- [x] AC4: No duplicate cleanup tasks when multiple UDP servers are configured
+- [x] AC5: The cleanup job is not started when no UDP trackers are configured and is cancelled by `JobManager`
+- [x] AC6: The bootstrap cleanup job uses `UdpTrackerServer::DEFAULT_IP_BANS_RESET_INTERVAL_IN_SECS` pending #1980
+- [x] AC7: The v3 configuration documentation and tests cover the section; runtime consumption and v2 consumer/default-config migration remain deferred to #1980
+- [x] `linter all` exits with code `0`
+- [x] Relevant focused tests pass
 
 ## Verification Plan
 
@@ -156,24 +177,25 @@ Since all UDP servers are launched simultaneously at startup, the bans are being
 
 ### Manual Verification Scenarios
 
-| ID  | Scenario                   | Command/Steps                                                      | Expected Result                                                              | Status | Evidence |
-| --- | -------------------------- | ------------------------------------------------------------------ | ---------------------------------------------------------------------------- | ------ | -------- |
-| M1  | Verify v3 config parsing   | Load v3 configuration with custom `ip_bans_reset_interval_in_secs` | Configuration retains the configured value; runtime use is deferred to #1980 | TODO   |          |
-| M2  | Verify single cleanup task | Run tracker with 2+ UDP servers, check logs for cleanup task count | Only one cleanup task spawned                                                | TODO   |          |
-| M3  | Verify default value       | Load v3 config without the new option                              | Configuration defaults to 86400 seconds                                      | TODO   |          |
-| M4  | Reject too-short interval  | Load v3 config with a value below 3600 seconds                     | Explicit error states 3600-second minimum                                    | TODO   |          |
+| ID  | Scenario                   | Command/Steps                                                      | Expected Result                                                              | Status | Evidence                                          |
+| --- | -------------------------- | ------------------------------------------------------------------ | ---------------------------------------------------------------------------- | ------ | ------------------------------------------------- |
+| M1  | Verify v3 config parsing   | Load v3 configuration with custom `ip_bans_reset_interval_in_secs` | Configuration retains the configured value; runtime use is deferred to #1980 | TODO   | Deferred: runtime does not consume v3 until #1980 |
+| M2  | Verify single cleanup task | Run tracker with 2+ UDP servers, check logs for cleanup task count | Only one cleanup task spawned                                                | TODO   | Pending maintainer runtime verification           |
+| M3  | Verify default value       | Load v3 config without the new option                              | Configuration defaults to 86400 seconds                                      | DONE   | `cargo test -p torrust-tracker-configuration`     |
+| M4  | Reject too-short interval  | Load v3 config with a value below 3600 seconds                     | Explicit error states 3600-second minimum                                    | DONE   | `cargo test -p torrust-tracker-configuration`     |
 
 ### Acceptance Verification
 
-| AC ID | Status | Evidence |
-| ----- | ------ | -------- |
-| AC1   | TODO   |          |
-| AC2   | TODO   |          |
-| AC3   | TODO   |          |
-| AC4   | TODO   |          |
-| AC5   | TODO   |          |
-| AC6   | TODO   |          |
-| AC7   | TODO   |          |
+| AC ID | Status | Evidence                                                                           |
+| ----- | ------ | ---------------------------------------------------------------------------------- |
+| AC1   | DONE   | `v3_0_0::udp_tracker_server::UdpTrackerServer`                                     |
+| AC2   | DONE   | Default-configuration serialization and unit test                                  |
+| AC2a  | DONE   | `IpBansResetIntervalInSecs` boundary tests assert the explicit 3600-second error   |
+| AC3   | DONE   | Spawn removed from `Launcher`; one bootstrap registration                          |
+| AC4   | DONE   | Cleanup is independent of the UDP listener startup loop                            |
+| AC5   | DONE   | Condition tests; shared `JobManager` cancellation token                            |
+| AC6   | DONE   | Bootstrap job reads `UdpTrackerServer::DEFAULT_IP_BANS_RESET_INTERVAL_IN_SECS`     |
+| AC7   | DONE   | Docs, ADR, and focused tests updated; #1980 owns runtime configuration consumption |
 
 ## Risks and Trade-offs
 

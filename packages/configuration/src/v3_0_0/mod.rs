@@ -43,6 +43,7 @@
 //! - [`HTTP API configuration`](crate::v3_0_0::tracker_api::HttpApi)
 //! - [`HTTP Tracker configuration`](crate::v3_0_0::http_tracker::HttpTracker)
 //! - [`UDP Tracker configuration`](crate::v3_0_0::udp_tracker::UdpTracker)
+//! - [`UDP Tracker server configuration`](crate::v3_0_0::udp_tracker_server::UdpTrackerServer)
 //! - [`Health Check API configuration`](crate::v3_0_0::health_check_api::HealthCheckApi)
 //!
 //! ## Port binding
@@ -236,6 +237,9 @@
 //! persistent_torrent_completed_stat = false
 //! remove_peerless_torrents = true
 //!
+//! [udp_tracker_server]
+//! ip_bans_reset_interval_in_secs = 86400
+//!
 //! [http_api]
 //! bind_address = "127.0.0.1:1212"
 //!
@@ -251,7 +255,9 @@ pub mod health_check_api;
 pub mod http_tracker;
 pub mod logging;
 pub mod tracker_api;
+pub mod types;
 pub mod udp_tracker;
+pub mod udp_tracker_server;
 
 // ── Sub-configuration block structs ───────────────────────────────────────────
 // Embedded inside the section structs above; each maps to a TOML sub-block
@@ -277,6 +283,7 @@ use self::health_check_api::HealthCheckApi;
 use self::http_tracker::HttpTracker;
 use self::tracker_api::HttpApi;
 use self::udp_tracker::UdpTracker;
+use self::udp_tracker_server::UdpTrackerServer;
 use crate::validator::{SemanticValidationError, Validator};
 use crate::{Error, Info, Metadata, Version};
 
@@ -312,6 +319,10 @@ pub struct Configuration {
     /// configuration.
     pub http_trackers: Option<Vec<HttpTracker>>,
 
+    /// Configuration shared by every UDP tracker listener.
+    #[serde(default = "UdpTrackerServer::default")]
+    pub udp_tracker_server: UdpTrackerServer,
+
     /// The HTTP API configuration.
     pub http_api: Option<HttpApi>,
 
@@ -327,6 +338,7 @@ impl Default for Configuration {
             core: Core::default(),
             udp_trackers: None,
             http_trackers: None,
+            udp_tracker_server: UdpTrackerServer::default(),
             http_api: None,
             health_check_api: HealthCheckApi::default(),
         }
@@ -504,6 +516,9 @@ mod tests {
                                 persistent_torrent_completed_stat = false
                                 remove_peerless_torrents = true
 
+                                [udp_tracker_server]
+                                ip_bans_reset_interval_in_secs = 86400
+
                                 [health_check_api]
                                 bind_address = "127.0.0.1:1313"
         "#
@@ -526,6 +541,38 @@ mod tests {
     fn tracker_defaults_should_not_contain_an_external_ip() {
         assert_eq!(HttpTracker::default().network.external_ip, None);
         assert_eq!(UdpTracker::default().network.external_ip, None);
+    }
+
+    #[test]
+    #[allow(clippy::result_large_err)]
+    fn configuration_should_deserialize_a_custom_ip_bans_reset_interval() {
+        figment::Jail::expect_with(|_jail| {
+            let info = Info {
+                config_toml: r#"
+                    [metadata]
+                    schema_version = "3.0.0"
+
+                    [logging]
+                    threshold = "info"
+
+                    [core]
+                    listed = false
+                    private = false
+
+                    [udp_tracker_server]
+                    ip_bans_reset_interval_in_secs = 7200
+                "#
+                .to_string()
+                .into(),
+                config_toml_path: String::new(),
+            };
+
+            let configuration = Configuration::load(&info).expect("configuration should load");
+
+            assert_eq!(configuration.udp_tracker_server.ip_bans_reset_interval_in_secs.get(), 7200);
+
+            Ok(())
+        });
     }
 
     #[test]

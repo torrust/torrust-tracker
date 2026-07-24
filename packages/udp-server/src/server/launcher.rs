@@ -6,7 +6,6 @@ use derive_more::Constructor;
 use futures_util::StreamExt;
 use tokio::select;
 use tokio::sync::oneshot;
-use tokio::time::interval;
 use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
 use torrust_server_lib::logging::STARTED_ON;
 use torrust_server_lib::registar::ServiceHealthCheckJob;
@@ -23,8 +22,6 @@ use crate::event::Event;
 use crate::server::bound_socket::BoundSocket;
 use crate::server::processor::Processor;
 use crate::server::receiver::Receiver;
-
-const IP_BANS_RESET_INTERVAL_IN_SECS: u64 = 3600 * 24;
 
 const TYPE_STRING: &str = "udp_tracker";
 /// A UDP server instance launcher.
@@ -144,19 +141,6 @@ impl Launcher {
         let local_addr = server_service_binding.clone().to_string();
 
         let cookie_lifetime = cookie_lifetime.as_secs_f64();
-
-        let ban_cleaner = udp_tracker_core_container.ban_service.clone();
-
-        tokio::spawn(async move {
-            let mut cleaner_interval = interval(Duration::from_secs(IP_BANS_RESET_INTERVAL_IN_SECS));
-
-            cleaner_interval.tick().await;
-
-            loop {
-                cleaner_interval.tick().await;
-                ban_cleaner.write().await.reset_bans();
-            }
-        });
 
         loop {
             let server_service_binding =
