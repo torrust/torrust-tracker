@@ -61,10 +61,11 @@ pub fn start_ban_cleanup_job(
 }
 
 fn should_start_ban_cleanup_job(config: &Configuration) -> bool {
-    config
-        .udp_trackers
-        .as_ref()
-        .is_some_and(|udp_trackers| !udp_trackers.is_empty())
+    !config.core.private
+        && config
+            .udp_trackers
+            .as_ref()
+            .is_some_and(|udp_trackers| !udp_trackers.is_empty())
 }
 
 async fn run_ban_cleanup_job(
@@ -116,6 +117,20 @@ mod tests {
     fn it_should_not_start_the_ban_cleanup_job_with_an_empty_udp_tracker_list() {
         let configuration = Configuration {
             udp_trackers: Some(Vec::new()),
+            ..Configuration::default()
+        };
+
+        assert!(!should_start_ban_cleanup_job(&configuration));
+    }
+
+    #[test]
+    fn it_should_not_start_the_ban_cleanup_job_for_a_private_tracker() {
+        let configuration = Configuration {
+            core: torrust_tracker_configuration::Core {
+                private: true,
+                ..Default::default()
+            },
+            udp_trackers: Some(vec![UdpTracker::default()]),
             ..Configuration::default()
         };
 

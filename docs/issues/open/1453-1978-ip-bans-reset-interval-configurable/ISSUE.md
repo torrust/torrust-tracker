@@ -87,8 +87,8 @@ Since all UDP servers are launched simultaneously at startup, the bans are being
 - Reject values below the canonical minimum of `3600` seconds with an explicit validation error
 - Move ban cleanup task spawning from per-UDP-server launcher to main app bootstrap
 - Ensure only one cleanup task runs regardless of the number of UDP servers
-- Start the cleanup job only when at least one UDP tracker is configured, and manage it through
-  `JobManager` cancellation
+- Start the cleanup job only when at least one UDP tracker can run (at least one is configured and
+  the tracker is not private), and manage it through `JobManager` cancellation
 - Temporarily use `UdpTrackerServer::DEFAULT_IP_BANS_RESET_INTERVAL_IN_SECS` in the bootstrap
   job; #1980 replaces it with `udp_tracker_server.ip_bans_reset_interval_in_secs` when it
   migrates application consumers to v3
@@ -108,7 +108,7 @@ Since all UDP servers are launched simultaneously at startup, the bans are being
 | T1  | DONE   | Add `UdpTrackerServer` config struct with `ip_bans_reset_interval_in_secs` | `udp_tracker_server.rs` defines canonical minimum/default constants                                                                              |
 | T2  | DONE   | Add `udp_tracker_server` field to root v3 `Configuration` struct           | Defaults through `UdpTrackerServer::default`; v2 consumers unchanged                                                                             |
 | T3  | DONE   | Reject intervals below the minimum                                         | `IpBansResetIntervalInSecs` newtype uses the canonical minimum; boundary tests added                                                             |
-| T4  | DONE   | Move ban cleanup task from per-server launcher to bootstrap                | One cancellation-managed `JobManager` job starts only with configured UDP trackers                                                               |
+| T4  | DONE   | Move ban cleanup task from per-server launcher to bootstrap                | One cancellation-managed `JobManager` job starts only when UDP listeners can run                                                                 |
 | T5  | DONE   | Preserve the current 24-hour bootstrap interval                            | Uses `UdpTrackerServer::DEFAULT_IP_BANS_RESET_INTERVAL_IN_SECS`; #1980 enables config reading                                                    |
 | T6  | DONE   | Update v3 docs and tests                                                   | V3 module docs, configuration serialization, and focused job-condition tests updated                                                             |
 | T7  | DONE   | Run `linter all` and relevant tests                                        | `linter all`, focused tests, and formatting passed; the optional workspace-wide cognitive-complexity check is blocked by unrelated existing code |
@@ -166,7 +166,7 @@ Since all UDP servers are launched simultaneously at startup, the bans are being
 - [x] AC2a: Values below `3600` seconds are rejected with an error that states the canonical minimum
 - [x] AC3: Ban cleanup task is spawned exactly once at app bootstrap
 - [x] AC4: No duplicate cleanup tasks when multiple UDP servers are configured
-- [x] AC5: The cleanup job is not started when no UDP trackers are configured and is cancelled by `JobManager`
+- [x] AC5: The cleanup job is not started when UDP listeners cannot run (none are configured or the tracker is private) and is cancelled by `JobManager`
 - [x] AC6: The bootstrap cleanup job uses `UdpTrackerServer::DEFAULT_IP_BANS_RESET_INTERVAL_IN_SECS` pending #1980
 - [x] AC7: The v3 configuration documentation and tests cover the section; runtime consumption and v2 consumer/default-config migration remain deferred to #1980
 - [x] `linter all` exits with code `0`
@@ -197,7 +197,7 @@ Since all UDP servers are launched simultaneously at startup, the bans are being
 | AC2a  | DONE   | `IpBansResetIntervalInSecs` boundary tests assert the explicit 3600-second error                                      |
 | AC3   | DONE   | One bootstrap registration; [M2 runtime evidence](evidence/2026-07-24-manual-runtime-verification.md)                 |
 | AC4   | DONE   | Two UDP listeners produced one cleanup job; [M2 runtime evidence](evidence/2026-07-24-manual-runtime-verification.md) |
-| AC5   | DONE   | Condition tests; shared `JobManager` cancellation token                                                               |
+| AC5   | DONE   | Condition tests cover no configured UDP listeners and private mode; shared `JobManager` cancellation token            |
 | AC6   | DONE   | Bootstrap job reads `UdpTrackerServer::DEFAULT_IP_BANS_RESET_INTERVAL_IN_SECS`                                        |
 | AC7   | DONE   | Docs, ADR, and focused tests updated; #1980 owns runtime configuration consumption                                    |
 
