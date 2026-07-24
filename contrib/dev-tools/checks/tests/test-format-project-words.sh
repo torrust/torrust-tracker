@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# Integration tests for the project dictionary formatter and pre-commit orchestration.
+# Integration tests for the project dictionary formatter sensor and pre-commit orchestration.
 
 set -euo pipefail
 
-PROJECT_ROOT=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../../../.." && pwd)
+PROJECT_ROOT=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../../.." && pwd)
 TEST_DIRECTORY=$(mktemp -d "${TMPDIR:-/tmp}/test-format-project-words.XXXXXX")
 trap 'rm -rf "${TEST_DIRECTORY}"' EXIT
 
@@ -11,11 +11,15 @@ create_fixture() {
     local fixture_name=$1
     local fixture_root="${TEST_DIRECTORY}/${fixture_name}"
 
-    mkdir -p "${fixture_root}/contrib/dev-tools/git/hooks" "${fixture_root}/bin" "${fixture_root}/logs"
-    cp "${PROJECT_ROOT}/contrib/dev-tools/git/format-project-words.sh" "${fixture_root}/contrib/dev-tools/git/"
+    mkdir -p \
+        "${fixture_root}/contrib/dev-tools/checks" \
+        "${fixture_root}/contrib/dev-tools/git/hooks" \
+        "${fixture_root}/bin" \
+        "${fixture_root}/logs"
+    cp "${PROJECT_ROOT}/contrib/dev-tools/checks/format-project-words.sh" "${fixture_root}/contrib/dev-tools/checks/"
     cp "${PROJECT_ROOT}/contrib/dev-tools/git/hooks/pre-commit.sh" "${fixture_root}/contrib/dev-tools/git/hooks/"
     chmod +x \
-        "${fixture_root}/contrib/dev-tools/git/format-project-words.sh" \
+        "${fixture_root}/contrib/dev-tools/checks/format-project-words.sh" \
         "${fixture_root}/contrib/dev-tools/git/hooks/pre-commit.sh"
 
     printf '%s\n' "${fixture_root}"
@@ -42,7 +46,7 @@ it_should_sort_and_remove_exact_duplicates_when_dictionary_requires_formatting()
     printf 'zebra\nAlpha\nalpha\nAlpha\n' >"${fixture_root}/project-words.txt"
 
     # Act
-    if "${fixture_root}/contrib/dev-tools/git/format-project-words.sh" >"${fixture_root}/formatter-output.txt" 2>&1; then
+    if "${fixture_root}/contrib/dev-tools/checks/format-project-words.sh" >"${fixture_root}/formatter-output.txt" 2>&1; then
         printf 'Expected formatter to report a changed dictionary.\n' >&2
         return 1
     fi
@@ -59,7 +63,7 @@ it_should_report_success_when_dictionary_is_already_formatted() {
     printf 'Alpha\nalpha\nzebra\n' >"${fixture_root}/project-words.txt"
 
     # Act
-    "${fixture_root}/contrib/dev-tools/git/format-project-words.sh" >"${fixture_root}/formatter-output.txt"
+    "${fixture_root}/contrib/dev-tools/checks/format-project-words.sh" >"${fixture_root}/formatter-output.txt"
 
     # Assert
     grep -F -q 'project-words.txt is already formatted.' "${fixture_root}/formatter-output.txt"
@@ -77,7 +81,7 @@ EOF
     chmod +x "${fixture_root}/bin/mktemp"
 
     # Act
-    if PATH="${fixture_root}/bin:${PATH}" "${fixture_root}/contrib/dev-tools/git/format-project-words.sh" >"${fixture_root}/formatter-output.txt" 2>&1; then
+    if PATH="${fixture_root}/bin:${PATH}" "${fixture_root}/contrib/dev-tools/checks/format-project-words.sh" >"${fixture_root}/formatter-output.txt" 2>&1; then
         printf 'Expected formatter to fail when it cannot create its temporary dictionary.\n' >&2
         return 1
     fi

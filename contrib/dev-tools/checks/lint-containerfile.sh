@@ -23,20 +23,23 @@ if ! git diff --cached --name-only --diff-filter=ACM | grep -q '^Containerfile$'
     exit 0
 fi
 
-if [[ ! -f "${CONTAINERFILE}" ]]; then
-    echo "Error: Containerfile not found at '${CONTAINERFILE}'." >&2
+# Lint the staged version of the Containerfile to avoid false positives
+# from unstaged working-tree changes. This ensures the sensor checks exactly
+# what will be committed, not the current working tree.
+if ! staged_content=$(git show :./"${CONTAINERFILE##*/}" 2>/dev/null); then
+    echo "Error: cannot read staged Containerfile content." >&2
     exit 2
 fi
 
 if [[ ! -f "${CONFIG}" ]]; then
     echo "Warning: hadolint config '${CONFIG}' not found, running without." >&2
-    docker run --rm -i --entrypoint hadolint "${HADOLINT_IMAGE}" - < "${CONTAINERFILE}"
+    echo "${staged_content}" | docker run --rm -i --entrypoint hadolint "${HADOLINT_IMAGE}" -
     exit $?
 fi
 
-docker run --rm -i \
+echo "${staged_content}" | docker run --rm -i \
     -v "${CONFIG}:/.hadolint.yaml" \
     --entrypoint hadolint \
     "${HADOLINT_IMAGE}" \
     --config /.hadolint.yaml \
-    - < "${CONTAINERFILE}"
+    -

@@ -36,15 +36,15 @@ ignored:
   # adding unnecessary image size and build time.
   #
   # The pipe operations in this Containerfile are:
-  # - `curl ... | bash`: downloads a trusted install script from a pinned
-  #   HTTPS URL (raw.githubusercontent.com/cargo-bins/cargo-binstall). The
-  #   source is verified via TLS 1.2 and the URL is controlled by the project
-  #   we depend on. While `curl | bash` is high-impact, the risk is mitigated
-  #   by the signed HTTPS transport and the trusted upstream. A `curl --fail`
-  #   guard is not used because the binstall installer script does not return
-  #   a non-zero exit code on failure in all cases; the container build will
-  #   fail at the subsequent `cargo binstall` step if the script produced no
-  #   binary.
+  # - `curl -L --proto '=https' --tlsv1.2 -sSf https://... | bash`: downloads
+  #   the cargo-binstall installer script from a GitHub raw URL (`/main/` branch).
+  #   The URL points to a branch, not a pinned commit. The risk is that an
+  #   upstream compromise could inject malicious content. However, the `-sSf`
+  #   flags already make curl return a non-zero exit code on HTTP/download
+  #   failures, and the downstream `cargo binstall` step will fail if the
+  #   script produced no binary. This is a known trade-off accepted by the
+  #   project: pinning to a specific commit would require manual updates on
+  #   every upstream release and the upstream is a trusted dependency.
   # - `ldd ... | grep ... | awk ...`: simple text processing for single-file
   #   library discovery. If the pipe fails, the `cp` target is empty and the
   #   subsequent build step (or runtime) will fail immediately.
