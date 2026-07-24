@@ -1,0 +1,69 @@
+# ----- hadolint global ignore configuration -----
+#
+# Rationale for each globally ignored rule is documented below.
+# When adding a new inline `# hadolint ignore=` comment, also add rationale
+# alongside it explaining why it's safe to ignore.
+#
+# Global ignores keep the Containerfile clean by avoiding repetitive
+# `# hadolint ignore=` comments for rules that are systematically
+# inapplicable to this project's build strategy.
+
+ignored:
+  # DL3008: Pin versions in apt-get install.
+  #
+  # We do not pin package versions in intermediate build stages (chef, tester,
+  # gcc) because:
+  # - These stages are development/build-time only, not production runtime images
+  # - Pinning would require constant manual maintenance as base images update
+  # - The base image tag (e.g. `slim-trixie`) tracks the latest Debian trixie
+  #   point release. Tags are not immutable — upstream can publish security
+  #   rebuilds under the same tag. We accept this tag drift and rely on the
+  #   CI rebuild cycle to pick up fixes.
+  - DL3008
+
+  # DL3059: Multiple consecutive RUN instructions.
+  #
+  # We intentionally use separate RUN instructions for Docker layer caching.
+  # Each RUN creates a cacheable layer, which speeds up rebuilds when only
+  # specific steps change. Consolidating them would reduce cache efficiency
+  # and increase rebuild times during development.
+  - DL3059
+
+  # DL4006: set -o pipefail is not available.
+  #
+  # Debian-based images use /bin/sh symlinked to /bin/dash, which does not
+  # support the `pipefail` option. Switching to `SHELL ["/bin/bash", "-o",
+  # "pipefail", "-c"]` would require installing bash in every build stage,
+  # adding unnecessary image size and build time.
+  #
+  # The pipe operations in this Containerfile are:
+  # - `curl -L --proto '=https' --tlsv1.2 -sSf https://... | bash`: downloads
+  #   the cargo-binstall installer script from a GitHub raw URL (`/main/` branch).
+  #   The URL points to a branch, not a pinned commit. The risk is that an
+  #   upstream compromise could inject malicious content. However, the `-sSf`
+  #   flags already make curl return a non-zero exit code on HTTP/download
+  #   failures, and the downstream `cargo binstall` step will fail if the
+  #   script produced no binary. This is a known trade-off accepted by the
+  #   project: pinning to a specific commit would require manual updates on
+  #   every upstream release and the upstream is a trusted dependency.
+  # - `ldd ... | grep ... | awk ...`: simple text processing for single-file
+  #   library discovery. If the pipe fails, the `cp` target is empty and the
+  #   subsequent build step (or runtime) will fail immediately.
+  - DL4006
+
+  # SC2046: Quote to prevent word splitting.
+  #
+  # The unquoted `$(realpath ...)` expansion is used as the source argument
+  # for `cp` in a specific pattern where word splitting is intentional and
+  # safe: the output of `realpath` is a single path, and the `ldd | grep`
+  # pipeline it wraps also produces a single path. The ShellCheck warning
+  # is a false positive in this context.
+  #
+  # This is kept as a global ignore rather than inline because:
+  # - The pattern is identical in both debug and release stages (same
+  #   `$(realpath $(ldd ... | grep ... | awk ...))` expression)
+  # - Inline `# hadolint ignore=SC2046` comments for ShellCheck rules in
+  #   Dockerfiles have inconsistent behavior across hadolint versions
+  # - A global rule with documented rationale is cleaner and avoids
+  #   duplicating the same inline comment with rationale in two places
+  - SC2046

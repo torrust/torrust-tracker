@@ -1,4 +1,8 @@
 # syntax=docker/dockerfile:latest
+#
+# semantic-links:
+#   related-artifacts:
+#     - .hadolint.yaml  # hadolint global linting rules and ignore policies with rationale
 
 # Torrust Tracker
 

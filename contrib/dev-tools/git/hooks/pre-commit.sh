@@ -27,10 +27,11 @@ set -uo pipefail
 # Each step: "description|command"
 
 declare -a STEPS=(
-    "Formatting project dictionary|./contrib/dev-tools/git/format-project-words.sh"
+    "Formatting project dictionary|./contrib/dev-tools/checks/format-project-words.sh"
     "Checking for unused dependencies (cargo machete --with-metadata)|cargo machete --with-metadata"
     "Checking workspace layer boundary bans (cargo deny check bans)|cargo deny check bans"
     "Running all linters|linter all"
+    "Linting Containerfile with hadolint|./contrib/dev-tools/checks/lint-containerfile.sh"
     "Running documentation tests|cargo test --doc --workspace"
 )
 
