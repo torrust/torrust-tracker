@@ -15,9 +15,10 @@ ignored:
   # gcc) because:
   # - These stages are development/build-time only, not production runtime images
   # - Pinning would require constant manual maintenance as base images update
-  # - The base image tag (e.g. `slim-trixie`) is already pinned to a specific
-  #   Debian release, providing reproducible snapshots
-  # - Any version drift is caught by the CI rebuild cycle
+  # - The base image tag (e.g. `slim-trixie`) tracks the latest Debian trixie
+  #   point release. Tags are not immutable — upstream can publish security
+  #   rebuilds under the same tag. We accept this tag drift and rely on the
+  #   CI rebuild cycle to pick up fixes.
   - DL3008
 
   # DL3059: Multiple consecutive RUN instructions.

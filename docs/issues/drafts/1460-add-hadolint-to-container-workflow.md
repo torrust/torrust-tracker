@@ -17,8 +17,6 @@ semantic-links:
     - docs/security/analysis/non-affecting/
 ---
 
-<!-- skill-link: create-issue -->
-
 # Issue #1460 - Docker Security Overhaul: Add a linter step to the `container.yaml` workflow
 
 > **EPIC position**: Subissue of [Docker Security Overhaul #1457](https://github.com/torrust/torrust-tracker/issues/1457).
