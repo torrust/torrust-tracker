@@ -4,10 +4,10 @@ issue-type: enhancement
 status: in_review
 priority: p2
 github-issue: 1453
-spec-path: docs/issues/open/1453-1978-ip-bans-reset-interval-configurable.md
+spec-path: docs/issues/open/1453-1978-ip-bans-reset-interval-configurable/ISSUE.md
 branch: "1453-ip-bans-reset-interval"
 related-pr: null
-last-updated-utc: 2026-07-23 17:02
+last-updated-utc: 2026-07-24 15:59
 semantic-links:
   skill-links:
     - create-issue
@@ -16,6 +16,7 @@ semantic-links:
     - packages/configuration/src/v3_0_0/types.rs
     - docs/adrs/20260723184019_separate_configuration_value_invariants_from_consistency_validation.md
     - docs/application-jobs.md
+    - docs/issues/open/1453-1978-ip-bans-reset-interval-configurable/evidence/
     - packages/udp-core/src/services/banning.rs
     - packages/udp-server/src/server/launcher.rs
     - src/bootstrap/jobs/
@@ -177,25 +178,25 @@ Since all UDP servers are launched simultaneously at startup, the bans are being
 
 ### Manual Verification Scenarios
 
-| ID  | Scenario                   | Command/Steps                                                      | Expected Result                                                              | Status | Evidence                                          |
-| --- | -------------------------- | ------------------------------------------------------------------ | ---------------------------------------------------------------------------- | ------ | ------------------------------------------------- |
-| M1  | Verify v3 config parsing   | Load v3 configuration with custom `ip_bans_reset_interval_in_secs` | Configuration retains the configured value; runtime use is deferred to #1980 | TODO   | Deferred: runtime does not consume v3 until #1980 |
-| M2  | Verify single cleanup task | Run tracker with 2+ UDP servers, check logs for cleanup task count | Only one cleanup task spawned                                                | TODO   | Pending maintainer runtime verification           |
-| M3  | Verify default value       | Load v3 config without the new option                              | Configuration defaults to 86400 seconds                                      | DONE   | `cargo test -p torrust-tracker-configuration`     |
-| M4  | Reject too-short interval  | Load v3 config with a value below 3600 seconds                     | Explicit error states 3600-second minimum                                    | DONE   | `cargo test -p torrust-tracker-configuration`     |
+| ID  | Scenario                   | Command/Steps                                                      | Expected Result                                                              | Status | Evidence                                                         |
+| --- | -------------------------- | ------------------------------------------------------------------ | ---------------------------------------------------------------------------- | ------ | ---------------------------------------------------------------- |
+| M1  | Verify v3 config parsing   | Load v3 configuration with custom `ip_bans_reset_interval_in_secs` | Configuration retains the configured value; runtime use is deferred to #1980 | TODO   | Deferred: runtime does not consume v3 until #1980                |
+| M2  | Verify single cleanup task | Run tracker with 2+ UDP servers, check logs for cleanup task count | Only one cleanup task spawned                                                | TODO   | Pending separate evidence record                                  |
+| M3  | Verify default value       | Load v3 config without the new option                              | Configuration defaults to 86400 seconds                                      | DONE   | `cargo test -p torrust-tracker-configuration`                    |
+| M4  | Reject too-short interval  | Load v3 config with a value below 3600 seconds                     | Explicit error states 3600-second minimum                                    | DONE   | `cargo test -p torrust-tracker-configuration`                    |
 
 ### Acceptance Verification
 
-| AC ID | Status | Evidence                                                                           |
-| ----- | ------ | ---------------------------------------------------------------------------------- |
-| AC1   | DONE   | `v3_0_0::udp_tracker_server::UdpTrackerServer`                                     |
-| AC2   | DONE   | Default-configuration serialization and unit test                                  |
-| AC2a  | DONE   | `IpBansResetIntervalInSecs` boundary tests assert the explicit 3600-second error   |
-| AC3   | DONE   | Spawn removed from `Launcher`; one bootstrap registration                          |
-| AC4   | DONE   | Cleanup is independent of the UDP listener startup loop                            |
-| AC5   | DONE   | Condition tests; shared `JobManager` cancellation token                            |
-| AC6   | DONE   | Bootstrap job reads `UdpTrackerServer::DEFAULT_IP_BANS_RESET_INTERVAL_IN_SECS`     |
-| AC7   | DONE   | Docs, ADR, and focused tests updated; #1980 owns runtime configuration consumption |
+| AC ID | Status | Evidence                                                                                               |
+| ----- | ------ | ------------------------------------------------------------------------------------------------------ |
+| AC1   | DONE   | `v3_0_0::udp_tracker_server::UdpTrackerServer`                                                         |
+| AC2   | DONE   | Default-configuration serialization and unit test                                                      |
+| AC2a  | DONE   | `IpBansResetIntervalInSecs` boundary tests assert the explicit 3600-second error                       |
+| AC3   | DONE   | Spawn removed from `Launcher`; one bootstrap registration                                                |
+| AC4   | DONE   | Cleanup is independent of the UDP listener startup loop                                                  |
+| AC5   | DONE   | Condition tests; shared `JobManager` cancellation token                                                |
+| AC6   | DONE   | Bootstrap job reads `UdpTrackerServer::DEFAULT_IP_BANS_RESET_INTERVAL_IN_SECS`                         |
+| AC7   | DONE   | Docs, ADR, and focused tests updated; #1980 owns runtime configuration consumption                     |
 
 ## Risks and Trade-offs
 

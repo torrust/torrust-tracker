@@ -13,7 +13,7 @@ semantic-links:
     - create-issue
   related-artifacts:
     - docs/issues/open/1978-configuration-overhaul-epic.md
-    - docs/issues/open/1453-1978-ip-bans-reset-interval-configurable.md
+    - docs/issues/open/1453-1978-ip-bans-reset-interval-configurable/ISSUE.md
     - packages/configuration/src/v3_0_0/udp_tracker.rs
     - packages/udp-core/src/connection_cookie.rs
     - packages/udp-core/src/services/announce.rs
