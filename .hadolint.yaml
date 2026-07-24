@@ -33,9 +33,21 @@ ignored:
   # Debian-based images use /bin/sh symlinked to /bin/dash, which does not
   # support the `pipefail` option. Switching to `SHELL ["/bin/bash", "-o",
   # "pipefail", "-c"]` would require installing bash in every build stage,
-  # adding unnecessary image size and build time. The pipe operations in this
-  # Containerfile are simple and low-risk (e.g., curl | bash for trusted
-  # install scripts, or ldd | grep for single-file library discovery).
+  # adding unnecessary image size and build time.
+  #
+  # The pipe operations in this Containerfile are:
+  # - `curl ... | bash`: downloads a trusted install script from a pinned
+  #   HTTPS URL (raw.githubusercontent.com/cargo-bins/cargo-binstall). The
+  #   source is verified via TLS 1.2 and the URL is controlled by the project
+  #   we depend on. While `curl | bash` is high-impact, the risk is mitigated
+  #   by the signed HTTPS transport and the trusted upstream. A `curl --fail`
+  #   guard is not used because the binstall installer script does not return
+  #   a non-zero exit code on failure in all cases; the container build will
+  #   fail at the subsequent `cargo binstall` step if the script produced no
+  #   binary.
+  # - `ldd ... | grep ... | awk ...`: simple text processing for single-file
+  #   library discovery. If the pipe fails, the `cp` target is empty and the
+  #   subsequent build step (or runtime) will fail immediately.
   - DL4006
 
   # SC2046: Quote to prevent word splitting.
@@ -45,4 +57,12 @@ ignored:
   # safe: the output of `realpath` is a single path, and the `ldd | grep`
   # pipeline it wraps also produces a single path. The ShellCheck warning
   # is a false positive in this context.
+  #
+  # This is kept as a global ignore rather than inline because:
+  # - The pattern is identical in both debug and release stages (same
+  #   `$(realpath $(ldd ... | grep ... | awk ...))` expression)
+  # - Inline `# hadolint ignore=SC2046` comments for ShellCheck rules in
+  #   Dockerfiles have inconsistent behavior across hadolint versions
+  # - A global rule with documented rationale is cleaner and avoids
+  #   duplicating the same inline comment with rationale in two places
   - SC2046

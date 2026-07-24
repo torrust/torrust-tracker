@@ -61,7 +61,13 @@ jobs:
 
       - id: hadolint
         name: Lint Containerfile with hadolint
-        run: docker run --rm -i -v "${{ github.workspace }}/.hadolint.yaml:/.hadolint.yaml" --entrypoint hadolint hadolint/hadolint --config /.hadolint.yaml - < ./Containerfile
+        run: >
+          docker run --rm -i
+          -v "${{ github.workspace }}/.hadolint.yaml:/.hadolint.yaml"
+          --entrypoint hadolint
+          hadolint/hadolint@sha256:27086352fd5e1907ea2b934eb1023f217c5ae087992eb59fde121dce9c9ff21e
+          --config /.hadolint.yaml
+          - < ./Containerfile
 
       - id: setup-buildx
         name: Setup Buildx
