@@ -122,8 +122,8 @@ Since all UDP servers are launched simultaneously at startup, the bans are being
 - [x] GitHub issue created and issue number added to this spec
 - [x] Implementation completed
 - [x] Automatic verification completed (`linter all`, formatting, and focused tests)
-- [ ] Manual verification scenarios executed and recorded
-- [ ] Acceptance criteria reviewed after implementation
+- [x] Manual verification scenarios executed and recorded
+- [x] Acceptance criteria reviewed after implementation
 - [ ] Issue closed and spec moved to `docs/issues/open/`
 
 ### Progress Log
@@ -155,6 +155,9 @@ Since all UDP servers are launched simultaneously at startup, the bans are being
 - 2026-07-24 00:00 UTC - josecelano - Documented the current job ownership and lifecycle model
   in `docs/application-jobs.md`. #1453 is the concrete example of an application-owned cleanup
   job for a service shared across UDP instances; the final supervision design remains #1488.
+- 2026-07-24 15:59 UTC - agent - Recorded M2 manual runtime evidence in
+  [`evidence/2026-07-24-manual-runtime-verification.md`](evidence/2026-07-24-manual-runtime-verification.md).
+  Two UDP listeners started locally and produced one cleanup-job start log entry.
 
 ## Acceptance Criteria
 
@@ -178,25 +181,25 @@ Since all UDP servers are launched simultaneously at startup, the bans are being
 
 ### Manual Verification Scenarios
 
-| ID  | Scenario                   | Command/Steps                                                      | Expected Result                                                              | Status | Evidence                                                         |
-| --- | -------------------------- | ------------------------------------------------------------------ | ---------------------------------------------------------------------------- | ------ | ---------------------------------------------------------------- |
-| M1  | Verify v3 config parsing   | Load v3 configuration with custom `ip_bans_reset_interval_in_secs` | Configuration retains the configured value; runtime use is deferred to #1980 | TODO   | Deferred: runtime does not consume v3 until #1980                |
-| M2  | Verify single cleanup task | Run tracker with 2+ UDP servers, check logs for cleanup task count | Only one cleanup task spawned                                                | TODO   | Pending separate evidence record                                  |
-| M3  | Verify default value       | Load v3 config without the new option                              | Configuration defaults to 86400 seconds                                      | DONE   | `cargo test -p torrust-tracker-configuration`                    |
-| M4  | Reject too-short interval  | Load v3 config with a value below 3600 seconds                     | Explicit error states 3600-second minimum                                    | DONE   | `cargo test -p torrust-tracker-configuration`                    |
+| ID  | Scenario                   | Command/Steps                                                      | Expected Result                                                              | Status | Evidence                                                                                          |
+| --- | -------------------------- | ------------------------------------------------------------------ | ---------------------------------------------------------------------------- | ------ | ------------------------------------------------------------------------------------------------- |
+| M1  | Verify v3 config parsing   | Load v3 configuration with custom `ip_bans_reset_interval_in_secs` | Configuration retains the configured value; runtime use is deferred to #1980 | TODO   | Deferred: runtime does not consume v3 until #1980                                                 |
+| M2  | Verify single cleanup task | Run tracker with 2+ UDP servers, check logs for cleanup task count | Only one cleanup task spawned                                                | DONE   | [`2026-07-24-manual-runtime-verification.md`](evidence/2026-07-24-manual-runtime-verification.md) |
+| M3  | Verify default value       | Load v3 config without the new option                              | Configuration defaults to 86400 seconds                                      | DONE   | `cargo test -p torrust-tracker-configuration`                                                     |
+| M4  | Reject too-short interval  | Load v3 config with a value below 3600 seconds                     | Explicit error states 3600-second minimum                                    | DONE   | `cargo test -p torrust-tracker-configuration`                                                     |
 
 ### Acceptance Verification
 
-| AC ID | Status | Evidence                                                                                               |
-| ----- | ------ | ------------------------------------------------------------------------------------------------------ |
-| AC1   | DONE   | `v3_0_0::udp_tracker_server::UdpTrackerServer`                                                         |
-| AC2   | DONE   | Default-configuration serialization and unit test                                                      |
-| AC2a  | DONE   | `IpBansResetIntervalInSecs` boundary tests assert the explicit 3600-second error                       |
-| AC3   | DONE   | Spawn removed from `Launcher`; one bootstrap registration                                                |
-| AC4   | DONE   | Cleanup is independent of the UDP listener startup loop                                                  |
-| AC5   | DONE   | Condition tests; shared `JobManager` cancellation token                                                |
-| AC6   | DONE   | Bootstrap job reads `UdpTrackerServer::DEFAULT_IP_BANS_RESET_INTERVAL_IN_SECS`                         |
-| AC7   | DONE   | Docs, ADR, and focused tests updated; #1980 owns runtime configuration consumption                     |
+| AC ID | Status | Evidence                                                                                                              |
+| ----- | ------ | --------------------------------------------------------------------------------------------------------------------- |
+| AC1   | DONE   | `v3_0_0::udp_tracker_server::UdpTrackerServer`                                                                        |
+| AC2   | DONE   | Default-configuration serialization and unit test                                                                     |
+| AC2a  | DONE   | `IpBansResetIntervalInSecs` boundary tests assert the explicit 3600-second error                                      |
+| AC3   | DONE   | One bootstrap registration; [M2 runtime evidence](evidence/2026-07-24-manual-runtime-verification.md)                 |
+| AC4   | DONE   | Two UDP listeners produced one cleanup job; [M2 runtime evidence](evidence/2026-07-24-manual-runtime-verification.md) |
+| AC5   | DONE   | Condition tests; shared `JobManager` cancellation token                                                               |
+| AC6   | DONE   | Bootstrap job reads `UdpTrackerServer::DEFAULT_IP_BANS_RESET_INTERVAL_IN_SECS`                                        |
+| AC7   | DONE   | Docs, ADR, and focused tests updated; #1980 owns runtime configuration consumption                                    |
 
 ## Risks and Trade-offs
 
