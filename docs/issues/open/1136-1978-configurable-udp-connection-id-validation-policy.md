@@ -7,7 +7,7 @@ github-issue: 1136
 spec-path: docs/issues/open/1136-1978-configurable-udp-connection-id-validation-policy.md
 branch: "1136-connection-id-validation-policy"
 related-pr: 2002
-last-updated-utc: 2026-07-20 12:32
+last-updated-utc: 2026-07-27 00:00
 semantic-links:
   skill-links:
     - create-issue
@@ -130,13 +130,25 @@ When `connection_id_validation = "disabled"`:
 - Announce and scrape handlers do not call the connection cookie validator.
 - The connection ID value is ignored, including malformed, expired, future-dated, and
   wrong-fingerprint values that can be represented by the protocol type.
+- The UDP protocol still requires a connection ID field in the announce and scrape
+  request packets; the field is parsed and present but its value is not validated.
+  Clients that correctly implement BEP 15 will continue to send a valid connection ID
+  obtained from a preceding connect request and will work as expected.
 - Requests continue through all non-cookie validation, authorization, and tracker policy
   checks.
-- The connect action is unchanged and continues issuing connection IDs.
-- No connection-cookie error, connection-ID error metric, or IP-ban counter increment is
-  produced for the bypassed check.
-- The listener logs a warning at startup stating that connection ID validation is
-  disabled and UDP anti-spoofing/replay protection is reduced.
+- The connect action is unchanged and continues issuing valid connection IDs. Clients
+  that follow the protocol and use the issued connection ID in subsequent requests will
+  be unaffected.
+- Connection-cookie error metrics and related counters **are still emitted** so that
+  tracker operators can observe how many clients are sending invalid connection IDs even
+  when validation is disabled. This is especially useful for gathering real-world data
+  (for example, estimating what fraction of network clients do not comply with BEP 15).
+  IP-ban counters are **not** incremented, because banning clients for an invalid
+  connection ID when validation is intentionally disabled would contradict the purpose
+  of the setting.
+- The listener logs a `WARN`-level message at startup identifying the affected service
+  binding and stating that connection ID validation is disabled, which reduces
+  UDP anti-spoofing and replay protection for that listener.
 
 ### Decision 5: Apply the change only to schema v3
 
@@ -156,8 +168,10 @@ and `share/default/config/` to schema v3 remains part of final cleanup issue #19
 - Apply the policy consistently to announce and scrape requests
 - Preserve connect request behavior
 - Preserve current cookie-error metrics and banning behavior in strict mode
-- Suppress cookie-error metrics and ban increments when validation is disabled
-- Emit a startup warning for each listener using the disabled policy
+- Emit cookie-error metrics when validation is disabled (so operators can observe
+  non-compliant clients), but suppress IP-ban counter increments
+- Emit a `WARN`-level startup log message for each listener using the disabled policy,
+  identifying the service binding and the security implication
 - Add configuration, unit, integration, and mixed-listener tests
 - Document the security implications of the disabled policy
 
@@ -176,18 +190,19 @@ and `share/default/config/` to schema v3 remains part of final cleanup issue #19
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| ID  | Status | Task                                             | Notes / Expected Output                                                                |
-| --- | ------ | ------------------------------------------------ | -------------------------------------------------------------------------------------- |
-| T1  | TODO   | Add the v3 validation policy                     | Enum and per-listener field in `v3_0_0/udp_tracker.rs`; default is `strict`            |
-| T2  | TODO   | Add configuration serialization tests            | Missing field defaults to strict; both string values round-trip                        |
-| T3  | TODO   | Add shared policy-aware cookie authentication    | One UDP core boundary implements strict validation and the disabled bypass             |
-| T4  | TODO   | Propagate policy through UDP server construction | Policy reaches request processing without global state                                 |
-| T5  | TODO   | Apply the shared policy to announce and scrape   | Both request paths use the same authentication behavior                                |
-| T6  | TODO   | Preserve observability and banning semantics     | Strict emits current events; disabled emits no cookie-error or ban-counter event       |
-| T7  | TODO   | Warn when starting an insecure listener          | Warning identifies the affected UDP service binding                                    |
-| T8  | TODO   | Add mixed-listener contract coverage             | Strict and disabled listeners behave independently in the same process                 |
-| T9  | TODO   | Update v3 schema documentation and test fixtures | Do not modify v2 or active `share/default/config/` files                               |
-| T10 | TODO   | Run automatic and manual verification            | Linters, focused tests, workspace tests, pre-push checks, and recorded manual evidence |
+| ID  | Status | Task                                             | Notes / Expected Output                                                                 |
+| --- | ------ | ------------------------------------------------ | --------------------------------------------------------------------------------------- |
+| T1  | TODO   | Add the v3 validation policy                     | Enum and per-listener field in `v3_0_0/udp_tracker.rs`; default is `strict`             |
+| T2  | TODO   | Add configuration serialization tests            | Missing field defaults to strict; both string values round-trip                         |
+| T3  | TODO   | Add shared policy-aware cookie authentication    | One UDP core boundary implements strict validation and the disabled bypass              |
+| T4  | TODO   | Propagate policy through UDP server construction | Policy reaches request processing without global state                                  |
+| T5  | TODO   | Apply the shared policy to announce and scrape   | Both request paths use the same authentication behavior                                 |
+| T6  | TODO   | Preserve observability and banning semantics     | Both modes emit cookie-error metrics; only strict increments IP-ban counters            |
+| T7  | TODO   | Warn when starting an insecure listener          | `WARN` log at startup identifies the affected UDP service binding                       |
+| T8  | TODO   | Add mixed-listener contract coverage             | Treat disabled policy as a separate configuration scenario (like private/public) and    |
+|     |        |                                                  | add tests for connect (still valid), announce, and scrape with arbitrary connection IDs |
+| T9  | TODO   | Update v3 schema documentation and test fixtures | Do not modify v2 or active `share/default/config/` files                                |
+| T10 | TODO   | Run automatic and manual verification            | Linters, focused tests, workspace tests, pre-push checks, and recorded manual evidence  |
 
 ## Progress Tracking
 
@@ -221,6 +236,14 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-07-20 12:26 UTC - committer - Verified the specification progress and
   two-file commit scope before the spec-only commit
 - 2026-07-20 12:32 UTC - agent - Opened spec-only PR #2002 against `develop`
+- 2026-07-27 00:00 UTC - maintainer - Clarified design decisions during Q&A:
+  cookie-error metrics must be emitted even in disabled mode so operators can quantify
+  non-compliant clients; IP-ban counters must not be incremented in disabled mode;
+  connect action continues to issue valid connection IDs in both modes;
+  testing must treat disabled policy as a distinct scenario group analogous to
+  private/public; the `WARN` startup log must include the service binding and state
+  the security implication; feature motivation is operator flexibility for real-world
+  non-compliant clients while encouraging strict BEP 15 compliance
 
 ## Acceptance Criteria
 
@@ -232,12 +255,17 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
       wrong-fingerprint connection IDs for announce and scrape requests
 - [ ] AC5: Disabled mode bypasses only connection ID validation for announce and scrape
 - [ ] AC6: Connect requests continue issuing connection IDs in both modes
-- [ ] AC7: Disabled mode does not emit connection-cookie error events, increment
-      connection-ID error metrics, or increment IP-ban counters for the bypassed check
+- [ ] AC7: Disabled mode emits connection-cookie error metrics so operators can observe
+      non-compliant clients, but does not increment IP-ban counters for the bypassed check
 - [ ] AC8: A startup warning identifies each listener configured with disabled validation
 - [ ] AC9: Strict and disabled listeners can run simultaneously without sharing policy
 - [ ] AC10: Schema v2 behavior and public types remain unchanged
-- [ ] AC11: Security implications and recommended network isolation are documented
+- [ ] AC11: Security implications, the rationale for the feature (operator flexibility
+      for real-world non-compliant clients), and the recommendation to use strict
+      validation where possible are documented
+- [ ] AC12: Cookie-error metrics are emitted in disabled mode; connect requests still
+      issue valid connection IDs; clients following BEP 15 continue to work correctly
+      in both modes
 - [ ] `linter all` exits with code `0`
 - [ ] Relevant focused and workspace tests pass
 - [ ] Pre-push checks pass
@@ -263,20 +291,25 @@ Required focused coverage:
 - Announce with valid, expired, future-dated, non-normal, and wrong-fingerprint IDs in
   strict mode
 - Scrape with the same connection ID classes in strict mode
-- Announce and scrape with arbitrary IDs in disabled mode
-- Cookie-error metrics and ban counters in both modes
+- Disabled policy as a distinct configuration scenario group (analogous to the
+  existing private / public scenario groups):
+  - Connect still issues a valid connection ID
+  - Announce succeeds with an arbitrary (invalid) connection ID
+  - Scrape succeeds with an arbitrary (invalid) connection ID
+- Cookie-error metrics are emitted in both modes; IP-ban counters only in strict mode
 - Two simultaneous listeners using different policies
 
 ### Manual Verification Scenarios
 
 Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
-| ID  | Scenario                                | Command/Steps                                                                                               | Expected Result                                                                                  | Status | Evidence |
-| --- | --------------------------------------- | ----------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ | ------ | -------- |
-| M1  | Strict listener rejects an invalid ID   | Start a local strict UDP listener; send announce and scrape requests using an expired or zero connection ID | Requests receive the existing connection-ID error; error metrics and ban counters increase       | TODO   |          |
-| M2  | Disabled listener accepts an invalid ID | Start a local disabled UDP listener; repeat the same announce and scrape requests                           | Requests pass cookie validation and continue through normal request handling; no ban increment   | TODO   |          |
-| M3  | Mixed policies remain isolated          | Start strict and disabled listeners in one process; send the same invalid requests to both                  | Strict listener rejects them; disabled listener accepts them; neither listener changes the other | TODO   |          |
-| M4  | Insecure mode is visible                | Start a listener with `connection_id_validation = "disabled"` and inspect startup logs                      | A warning identifies the listener and reduced anti-spoofing/replay protection                    | TODO   |          |
+| ID  | Scenario                                | Command/Steps                                                                                                    | Expected Result                                                                                                              | Status | Evidence |
+| --- | --------------------------------------- | ---------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- | ------ | -------- |
+| M1  | Strict listener rejects an invalid ID   | Start a local strict UDP listener; send announce and scrape requests using an expired or zero connection ID      | Requests receive the existing connection-ID error; error metrics and ban counters increase                                   | TODO   |          |
+| M2  | Disabled listener accepts an invalid ID | Start a local disabled UDP listener; repeat the same announce and scrape requests with arbitrary connection IDs  | Requests pass cookie validation and continue through normal request handling; cookie-error metrics emitted; no ban increment | TODO   |          |
+| M3  | Connect works on a disabled listener    | Send a connect request to a disabled listener; then use the returned connection ID in an announce/scrape request | Connect returns a valid connection ID; subsequent announce/scrape succeeds                                                   | TODO   |          |
+| M4  | Mixed policies remain isolated          | Start strict and disabled listeners in one process; send the same invalid requests to both                       | Strict listener rejects them; disabled listener accepts them; neither listener changes the other                             | TODO   |          |
+| M5  | Insecure mode is visible in logs        | Start a listener with `connection_id_validation = "disabled"` and inspect startup logs                           | A `WARN`-level message identifies the listener and states that anti-spoofing/replay protection is reduced                    | TODO   |          |
 
 Notes:
 
@@ -301,13 +334,18 @@ Notes:
 | AC9   | TODO                   |          |
 | AC10  | TODO                   |          |
 | AC11  | TODO                   |          |
+| AC12  | TODO                   |          |
 
 ## Risks and Trade-offs
 
 - **Reduced spoofing and replay protection**: Disabled mode accepts arbitrary connection
   IDs for announce and scrape. Mitigation: strict remains the default, startup emits a
-  warning, documentation recommends binding compatibility listeners to trusted networks
-  or protecting them with external network controls.
+  `WARN`-level log, and documentation explains the trade-off. This feature exists to
+  give tracker operators flexibility when real-world clients do not follow BEP 15
+  strictly. Operators are encouraged to enable strict validation wherever possible and
+  to isolate disabled-validation listeners through external network controls.
+  Operators can use the emitted cookie-error metrics to quantify how many clients are
+  non-compliant before deciding whether to rely on the disabled policy.
 - **Misleading partial validation**: An expiration-only bypass could appear safer while
   accepting arbitrary values decoded as old timestamps. Mitigation: do not expose that
   mode with the current cookie design.
