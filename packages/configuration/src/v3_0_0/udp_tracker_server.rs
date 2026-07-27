@@ -6,6 +6,37 @@ use thiserror::Error;
 
 use crate::v3_0_0::types::AtLeastU64;
 
+/// Controls whether the UDP tracker validates the connection ID supplied by
+/// clients in announce and scrape requests.
+///
+/// Strict validation is the secure default and matches current behaviour.
+/// Disabled validation can be used for isolated compatibility listeners when
+/// serving non-compliant clients that reuse expired or arbitrary connection IDs
+/// is more important than anti-spoofing and replay protection.
+///
+/// # Security
+///
+/// Setting this to `Disabled` removes the narrow timestamp window that makes
+/// arbitrary connection IDs unlikely to be accepted. Operators **must** isolate
+/// disabled-validation listeners through external network controls and are
+/// encouraged to use `Strict` wherever possible. Cookie-error metrics continue
+/// to be emitted in disabled mode so operators can quantify non-compliant
+/// clients.
+#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone, Default)]
+#[serde(rename_all = "kebab-case")]
+pub enum ConnectionIdValidationPolicy {
+    /// Preserve all existing connection ID validation: reject non-normal,
+    /// expired, future-dated, and wrong-fingerprint values. This is the
+    /// secure default.
+    #[default]
+    Strict,
+    /// Skip connection ID validation for announce and scrape requests.
+    /// The connect action continues to issue valid connection IDs.
+    /// Cookie-error metrics are still emitted; IP-ban counters are not
+    /// incremented.
+    Disabled,
+}
+
 /// Configuration shared by every UDP tracker listener.
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone)]
 #[serde(deny_unknown_fields)]
@@ -13,6 +44,35 @@ pub struct UdpTrackerServer {
     /// Seconds between resets of the temporary IP-ban filters.
     #[serde(default = "default_ip_bans_reset_interval_in_secs")]
     pub ip_bans_reset_interval_in_secs: IpBansResetIntervalInSecs,
+
+    /// Connection ID validation policy for all UDP tracker listeners.
+    ///
+    /// This is a global setting because the ban service is shared across all
+    /// UDP instances. A per-instance policy would allow one listener's traffic
+    /// to pollute the shared ban counter that another listener enforces against.
+    ///
+    /// `strict` (default) preserves all existing validation.
+    /// `disabled` skips validation so non-compliant clients that reuse
+    /// expired or arbitrary connection IDs can still connect. Cookie-error
+    /// metrics are still emitted in disabled mode; IP-ban counters are not
+    /// incremented.
+    ///
+    /// **Security**: only use `disabled` on deployments where all listeners are
+    /// isolated through external network controls. Always prefer `strict` in
+    /// public deployments.
+    ///
+    /// See ADR-20260727180000 for the rationale behind shared services.
+    #[serde(default)]
+    pub connection_id_validation: ConnectionIdValidationPolicy,
+}
+
+impl Default for UdpTrackerServer {
+    fn default() -> Self {
+        Self {
+            ip_bans_reset_interval_in_secs: default_ip_bans_reset_interval_in_secs(),
+            connection_id_validation: ConnectionIdValidationPolicy::default(),
+        }
+    }
 }
 
 impl UdpTrackerServer {
@@ -79,14 +139,6 @@ impl<'de> Deserialize<'de> for IpBansResetIntervalInSecs {
     }
 }
 
-impl Default for UdpTrackerServer {
-    fn default() -> Self {
-        Self {
-            ip_bans_reset_interval_in_secs: default_ip_bans_reset_interval_in_secs(),
-        }
-    }
-}
-
 fn default_ip_bans_reset_interval_in_secs() -> IpBansResetIntervalInSecs {
     IpBansResetIntervalInSecs::new(UdpTrackerServer::DEFAULT_IP_BANS_RESET_INTERVAL_IN_SECS)
         .expect("the default IP-ban reset interval must satisfy its minimum")
@@ -94,7 +146,7 @@ fn default_ip_bans_reset_interval_in_secs() -> IpBansResetIntervalInSecs {
 
 #[cfg(test)]
 mod tests {
-    use crate::v3_0_0::udp_tracker_server::{IpBansResetIntervalInSecs, UdpTrackerServer};
+    use crate::v3_0_0::udp_tracker_server::{ConnectionIdValidationPolicy, IpBansResetIntervalInSecs, UdpTrackerServer};
 
     #[test]
     fn it_should_default_to_a_24_hour_reset_interval() {
@@ -125,5 +177,50 @@ mod tests {
                 UdpTrackerServer::MINIMUM_IP_BANS_RESET_INTERVAL_IN_SECS
             )
         );
+    }
+
+    #[test]
+    fn it_should_default_connection_id_validation_to_strict() {
+        let config = UdpTrackerServer::default();
+        assert_eq!(config.connection_id_validation, ConnectionIdValidationPolicy::Strict);
+    }
+
+    #[test]
+    fn it_should_use_strict_when_connection_id_validation_field_is_omitted() {
+        let config: UdpTrackerServer = toml::from_str("").expect("empty config should deserialize");
+        assert_eq!(config.connection_id_validation, ConnectionIdValidationPolicy::Strict);
+    }
+
+    #[test]
+    fn it_should_deserialize_strict_connection_id_validation() {
+        let toml = r#"connection_id_validation = "strict""#;
+        let config: UdpTrackerServer = toml::from_str(toml).expect("strict should deserialize");
+        assert_eq!(config.connection_id_validation, ConnectionIdValidationPolicy::Strict);
+    }
+
+    #[test]
+    fn it_should_deserialize_disabled_connection_id_validation() {
+        let toml = r#"connection_id_validation = "disabled""#;
+        let config: UdpTrackerServer = toml::from_str(toml).expect("disabled should deserialize");
+        assert_eq!(config.connection_id_validation, ConnectionIdValidationPolicy::Disabled);
+    }
+
+    #[test]
+    fn it_should_round_trip_strict_connection_id_validation() {
+        let original = UdpTrackerServer::default();
+        let serialized = toml::to_string(&original).expect("should serialize");
+        let deserialized: UdpTrackerServer = toml::from_str(&serialized).expect("should deserialize");
+        assert_eq!(deserialized.connection_id_validation, ConnectionIdValidationPolicy::Strict);
+    }
+
+    #[test]
+    fn it_should_round_trip_disabled_connection_id_validation() {
+        let original = UdpTrackerServer {
+            connection_id_validation: ConnectionIdValidationPolicy::Disabled,
+            ..UdpTrackerServer::default()
+        };
+        let serialized = toml::to_string(&original).expect("should serialize");
+        let deserialized: UdpTrackerServer = toml::from_str(&serialized).expect("should deserialize");
+        assert_eq!(deserialized.connection_id_validation, ConnectionIdValidationPolicy::Disabled);
     }
 }

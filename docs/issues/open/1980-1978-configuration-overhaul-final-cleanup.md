@@ -151,15 +151,16 @@ Files that import `torrust_tracker_configuration::logging` (the module, not the 
 
 ## Implementation Plan
 
-| ID  | Status | Task                                                    | Notes                                                                                   |
-| --- | ------ | ------------------------------------------------------- | --------------------------------------------------------------------------------------- |
-| T1  | TODO   | Migrate all consumer imports to explicit `v3_0_0` paths | ~30 files; see Consumer Migration Map above                                             |
-| T2  | TODO   | Remove global type aliases from `lib.rs`                | `pub type Configuration = ...` etc.                                                     |
-| T3  | TODO   | Remove crate-root `logging.rs`                          | Already copied into `v2_0_0/` and `v3_0_0/`                                             |
-| T4  | TODO   | Remove `pub mod logging;` from `lib.rs`                 | Or redirect to versioned module if needed                                               |
-| T5  | TODO   | Enable #1453's v3 ban-cleanup interval                  | Replace its temporary 24-hour default-constant bootstrap value after consumer migration |
-| T6  | TODO   | Apply any additional cleanup discovered during EPIC     | Document in progress log                                                                |
-| T7  | TODO   | Run `linter all` and full test suite                    |                                                                                         |
+| ID  | Status | Task                                                                | Notes                                                                                                                                                                     |
+| --- | ------ | ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| T1  | TODO   | Migrate all consumer imports to explicit `v3_0_0` paths             | ~30 files; see Consumer Migration Map above                                                                                                                               |
+| T2  | TODO   | Remove global type aliases from `lib.rs`                            | `pub type Configuration = ...` etc.                                                                                                                                       |
+| T3  | TODO   | Remove crate-root `logging.rs`                                      | Already copied into `v2_0_0/` and `v3_0_0/`                                                                                                                               |
+| T4  | TODO   | Remove `pub mod logging;` from `lib.rs`                             | Or redirect to versioned module if needed                                                                                                                                 |
+| T5  | TODO   | Enable #1453's v3 ban-cleanup interval                              | Replace its temporary 24-hour default-constant bootstrap value after consumer migration                                                                                   |
+| T6  | TODO   | Remove hardcoded `ConnectionIdValidationPolicy` in test environment | `packages/udp-server/src/testing/environment.rs` hardcodes `Strict` because v2 config lacks the field; after v3 migration the field is available natively in `UdpTracker` |
+| T7  | TODO   | Apply any additional cleanup discovered during EPIC                 | Document in progress log                                                                                                                                                  |
+| T8  | TODO   | Run `linter all` and full test suite                                |                                                                                                                                                                           |
 
 ## Progress Tracking
 
@@ -181,6 +182,8 @@ Files that import `torrust_tracker_configuration::logging` (the module, not the 
 - 2026-07-23 17:02 UTC - josecelano - Added the deferred #1453 runtime-consumption task: after
   migrating consumers to v3, replace the temporary 24-hour default-constant global ban cleanup interval
   with `udp_tracker_server.ip_bans_reset_interval_in_secs`.
+- 2026-07-27 12:36 UTC - agent - Added T6: `environment.rs` hardcoded `ConnectionIdValidationPolicy::Strict`
+  must be replaced with the v3 config's native field after consumer migration (#1136).
 
 ## Acceptance Criteria
 

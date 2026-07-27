@@ -24,6 +24,22 @@ use tracing::instrument;
 
 pub const UDP_TRACKER_LOG_TARGET: &str = "UDP TRACKER";
 
+/// Controls whether the UDP tracker validates the connection ID supplied by
+/// clients in announce and scrape requests.
+///
+/// This mirrors [`torrust_tracker_configuration::v3_0_0::udp_tracker_server::ConnectionIdValidationPolicy`]
+/// but lives in `udp-core` so that the service layer does not need to depend on
+/// the configuration crate.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum ConnectionIdValidationPolicy {
+    /// Preserve all existing connection ID validation. This is the secure default.
+    #[default]
+    Strict,
+    /// Skip connection ID validation for announce and scrape requests.
+    /// Cookie-error metrics are still emitted; IP-ban counters are not incremented.
+    Disabled,
+}
+
 /// It initializes the static values.
 #[instrument(skip())]
 pub fn initialize_static() {

@@ -55,16 +55,24 @@ impl AnnounceService {
     ///
     /// It will return an error if:
     ///
+    /// - Cookie validation fails and `validate_cookie` is `true`.
     /// - The tracker is running in listed mode and the torrent is not in the
     ///   whitelist.
+    ///
+    /// When `validate_cookie` is `false` the connection ID is not validated.
+    /// The caller is responsible for any metric or event emission related to
+    /// the skipped validation.
     pub async fn handle_announce(
         &self,
         client_socket_addr: SocketAddr,
         server_service_binding: ServiceBinding,
         request: &AnnounceRequest,
         cookie_valid_range: Range<f64>,
+        validate_cookie: bool,
     ) -> Result<AnnounceData, UdpAnnounceError> {
-        Self::authenticate(client_socket_addr, request, cookie_valid_range)?;
+        if validate_cookie {
+            Self::authenticate(client_socket_addr, request, cookie_valid_range)?;
+        }
 
         let info_hash = InfoHash::from(request.info_hash.0);
 

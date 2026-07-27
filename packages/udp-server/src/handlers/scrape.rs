@@ -1,21 +1,21 @@
 //! UDP tracker scrape handler.
 use std::net::SocketAddr;
-use std::ops::Range;
 use std::sync::Arc;
 
 use torrust_net_primitives::service_binding::ServiceBinding;
 use torrust_tracker_primitives::ScrapeData;
+use torrust_tracker_udp_core::connection_cookie::{check, gen_remote_fingerprint};
 use torrust_tracker_udp_core::event::ConnectionContext;
 use torrust_tracker_udp_core::services::scrape::ScrapeService;
-use torrust_tracker_udp_core::{self};
+use torrust_tracker_udp_core::{self, ConnectionIdValidationPolicy, UDP_TRACKER_LOG_TARGET};
 use torrust_tracker_udp_protocol::{
     NumberOfDownloads, NumberOfPeers, Response, ScrapeRequest, ScrapeResponse, TorrentScrapeStatistics,
 };
 use tracing::{Level, instrument};
 use zerocopy::byteorder::network_endian::I32;
 
-use crate::event::{Event, UdpRequestKind};
-use crate::handlers::HandlerError;
+use crate::event::{ErrorKind, Event, UdpRequestKind};
+use crate::handlers::{CookieValidationContext, HandlerError};
 
 /// It handles the `Scrape` request.
 ///
@@ -29,7 +29,7 @@ pub async fn handle_scrape(
     server_service_binding: ServiceBinding,
     request: &ScrapeRequest,
     opt_udp_server_stats_event_sender: &crate::event::sender::Sender,
-    cookie_valid_range: Range<f64>,
+    cookie_validation: CookieValidationContext,
 ) -> Result<Response, HandlerError> {
     tracing::Span::current()
         .record("transaction_id", request.transaction_id.0.to_string())
@@ -46,10 +46,46 @@ pub async fn handle_scrape(
             .await;
     }
 
-    let scrape_data = scrape_service
-        .handle_scrape(client_socket_addr, server_service_binding, request, cookie_valid_range)
-        .await
-        .map_err(|e| Box::new((e.into(), request.transaction_id, UdpRequestKind::Scrape)))?;
+    let scrape_data = {
+        let validate_cookie = match cookie_validation.connection_id_validation {
+            ConnectionIdValidationPolicy::Strict => true,
+            ConnectionIdValidationPolicy::Disabled => {
+                if let Err(cookie_error) = check(
+                    &request.connection_id,
+                    gen_remote_fingerprint(&client_socket_addr),
+                    cookie_validation.valid_range.clone(),
+                ) {
+                    tracing::debug!(
+                        target: UDP_TRACKER_LOG_TARGET,
+                        %client_socket_addr,
+                        error = %cookie_error,
+                        "connection ID validation disabled: invalid connection ID observed (request allowed, ban not enforced)"
+                    );
+                    if let Some(sender) = opt_udp_server_stats_event_sender.as_deref() {
+                        sender
+                            .send(Event::UdpError {
+                                context: ConnectionContext::new(client_socket_addr, server_service_binding.clone()),
+                                kind: Some(UdpRequestKind::Scrape),
+                                error: ErrorKind::ConnectionCookie(cookie_error.to_string()),
+                            })
+                            .await;
+                    }
+                }
+                false
+            }
+        };
+
+        scrape_service
+            .handle_scrape(
+                client_socket_addr,
+                server_service_binding,
+                request,
+                cookie_validation.valid_range,
+                validate_cookie,
+            )
+            .await
+            .map_err(|e| Box::new((e.into(), request.transaction_id, UdpRequestKind::Scrape)))?
+    };
 
     Ok(build_response(request, &scrape_data))
 }
@@ -106,7 +142,7 @@ mod tests {
         use crate::handlers::handle_scrape;
         use crate::handlers::tests::{
             CoreTrackerServices, CoreUdpTrackerServices, initialize_core_tracker_services_for_public_tracker,
-            sample_cookie_valid_range, sample_ipv4_remote_addr, sample_issue_time,
+            sample_ipv4_remote_addr, sample_issue_time, sample_strict_cookie_validation,
         };
 
         fn zeroed_torrent_statistics() -> TorrentScrapeStatistics {
@@ -141,7 +177,7 @@ mod tests {
                 server_service_binding,
                 &request,
                 &server_udp_tracker_services.udp_server_stats_event_sender,
-                sample_cookie_valid_range(),
+                sample_strict_cookie_validation(),
             )
             .await
             .unwrap();
@@ -215,7 +251,7 @@ mod tests {
                 server_service_binding,
                 &request,
                 &udp_server_stats_event_sender,
-                sample_cookie_valid_range(),
+                sample_strict_cookie_validation(),
             )
             .await
             .unwrap()
@@ -264,7 +300,7 @@ mod tests {
                 add_a_seeder, build_scrape_request, match_scrape_response, zeroed_torrent_statistics,
             };
             use crate::handlers::tests::{
-                initialize_core_tracker_services_for_listed_tracker, sample_cookie_valid_range, sample_ipv4_remote_addr,
+                initialize_core_tracker_services_for_listed_tracker, sample_ipv4_remote_addr, sample_strict_cookie_validation,
             };
 
             #[tokio::test]
@@ -296,7 +332,7 @@ mod tests {
                         server_service_binding,
                         &request,
                         &server_udp_tracker_services.udp_server_stats_event_sender,
-                        sample_cookie_valid_range(),
+                        sample_strict_cookie_validation(),
                     )
                     .await
                     .unwrap(),
@@ -339,7 +375,7 @@ mod tests {
                         server_service_binding,
                         &request,
                         &server_udp_tracker_services.udp_server_stats_event_sender,
-                        sample_cookie_valid_range(),
+                        sample_strict_cookie_validation(),
                     )
                     .await
                     .unwrap(),
@@ -377,7 +413,7 @@ mod tests {
             use crate::handlers::handle_scrape;
             use crate::handlers::tests::{
                 MockUdpServerStatsEventSender, initialize_core_tracker_services_for_default_tracker_configuration,
-                sample_cookie_valid_range, sample_ipv4_remote_addr,
+                sample_ipv4_remote_addr, sample_strict_cookie_validation,
             };
 
             #[tokio::test]
@@ -407,7 +443,7 @@ mod tests {
                     server_service_binding,
                     &sample_scrape_request(&client_socket_addr),
                     &udp_server_stats_event_sender,
-                    sample_cookie_valid_range(),
+                    sample_strict_cookie_validation(),
                 )
                 .await
                 .unwrap();
@@ -428,7 +464,7 @@ mod tests {
             use crate::handlers::handle_scrape;
             use crate::handlers::tests::{
                 MockUdpServerStatsEventSender, initialize_core_tracker_services_for_default_tracker_configuration,
-                sample_cookie_valid_range, sample_ipv6_remote_addr,
+                sample_ipv6_remote_addr, sample_strict_cookie_validation,
             };
 
             #[tokio::test]
@@ -458,7 +494,7 @@ mod tests {
                     server_service_binding,
                     &sample_scrape_request(&client_socket_addr),
                     &udp_server_stats_event_sender,
-                    sample_cookie_valid_range(),
+                    sample_strict_cookie_validation(),
                 )
                 .await
                 .unwrap();

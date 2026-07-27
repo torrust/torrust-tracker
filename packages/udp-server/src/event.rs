@@ -1,3 +1,26 @@
+//! UDP tracker server events.
+//!
+//! # Design contract: events are objective facts
+//!
+//! Every variant in [`Event`] describes *what happened* — a neutral, observable
+//! fact about a request or connection. Events must **not** be designed around
+//! what a particular consumer should or should not do in response.
+//!
+//! **Wrong pattern**: creating a new event variant (e.g. `CookieErrorInLenientMode`)
+//! so that a specific listener (e.g. the ban handler) silently ignores it.
+//! That couples the event schema to one consumer's behaviour and hides policy
+//! decisions inside the event layer.
+//!
+//! **Right pattern**: emit the same objective event (`UdpError { ConnectionCookie }`)
+//! regardless of the active policy. Let the enforcement point (e.g. the `is_banned`
+//! check in the main loop) gate on the policy and decide whether to act.
+//!
+//! Rule of thumb: if you are adding a new variant that is structurally identical
+//! to an existing one but named differently so a listener ignores it — stop and
+//! change the listener or the enforcement point instead.
+//!
+//! See [ADR-20260727000000](../../../../../docs/adrs/20260727000000_events_are_objective_facts.md)
+//! for the full rationale, the concrete counter-example, and naming heuristics.
 use std::fmt;
 use std::time::Duration;
 

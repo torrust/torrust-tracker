@@ -8,6 +8,7 @@ use derive_more::derive::Display;
 use tokio::sync::oneshot;
 use tokio::task::JoinHandle;
 use torrust_server_lib::signals::{Halted, Started};
+use torrust_tracker_udp_core::ConnectionIdValidationPolicy;
 use torrust_tracker_udp_core::container::UdpTrackerCoreContainer;
 
 use super::launcher::Launcher;
@@ -31,6 +32,7 @@ impl Spawner {
         udp_tracker_core_container: Arc<UdpTrackerCoreContainer>,
         udp_tracker_server_container: Arc<UdpTrackerServerContainer>,
         cookie_lifetime: Duration,
+        connection_id_validation: ConnectionIdValidationPolicy,
         tx_start: oneshot::Sender<Started>,
         rx_halt: oneshot::Receiver<Halted>,
     ) -> JoinHandle<Spawner> {
@@ -42,6 +44,7 @@ impl Spawner {
                 udp_tracker_server_container,
                 spawner.bind_to,
                 cookie_lifetime,
+                connection_id_validation,
                 tx_start,
                 rx_halt,
             )
