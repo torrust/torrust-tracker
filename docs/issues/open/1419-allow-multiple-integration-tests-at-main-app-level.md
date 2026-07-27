@@ -7,7 +7,7 @@ github-issue: 1419
 spec-path: docs/issues/open/1419-allow-multiple-integration-tests-at-main-app-level.md
 branch: 1419-allow-multiple-integration-tests
 related-pr: null
-last-updated-utc: 2026-07-27 08:00
+last-updated-utc: 2026-07-27 17:35
 semantic-links:
   skill-links:
     - write-unit-test
@@ -208,6 +208,9 @@ then fix the scaffolding infrastructure, then expand coverage.
 - 2026-07-27 08:38 UTC - agent - Updated implementation plan to use prove-then-fix strategy
 - 2026-07-27 13:00 UTC - agent - Updated Problem 3 and implementation plan to use temp directory
   pattern (not just temp files) for complete test isolation, matching qBittorrent E2E approach
+- 2026-07-27 17:35 UTC - agent - Recorded the decision to use one tracker application per Cargo
+  integration-test executable, with sequential scenarios per suite and a non-Docker process runner
+  deferred unless in-process lifecycle control proves insufficient
 
 ## Acceptance Criteria
 
@@ -266,3 +269,92 @@ then fix the scaffolding infrastructure, then expand coverage.
 - Consider whether test utilities should live in `tests/helpers.rs` or be added to the existing
   `packages/test-helpers/` package. Decision: prefer `tests/helpers.rs` to keep test-specific
   utilities close to the tests and avoid polluting the shared `test-helpers` package.
+
+## Decision Pivot: One Application per Integration-Test Binary
+
+**Decision date:** 2026-07-27
+
+The preceding specification describes the initial proposal: multiple independent test functions in
+`tests/integration.rs`, each bootstrapping a tracker application and running concurrently. That
+proposal is superseded by this section. The historical content remains above to preserve the
+reasoning and investigation that led to the decision.
+
+### Why the Initial Proposal Is Unsuitable
+
+Calling `app::run()` from an integration test starts the application inside the integration-test
+executable, not in an independent tracker process. Application bootstrap initializes process-wide
+state through `initialize_global_services`, including clock state, UDP cryptographic state, and
+logging. The application also starts a collection of long-lived servers and background jobs.
+
+Consequently, a test function cannot safely own a fully isolated tracker lifecycle in a shared
+test process. Temporary workspaces and port `0` solve filesystem and listener conflicts, but they
+do not isolate process-global state, environment-variable configuration, or background task
+lifecycle. Supporting multiple complete application instances per test executable would require a
+larger application lifecycle redesign and is out of scope for this issue.
+
+### Chosen Execution Model
+
+Each top-level Rust source file in `tests/` is a separate Cargo integration-test executable and
+therefore a separate operating-system process. The project will use one tracker configuration and
+one tracker application instance per such executable.
+
+Within an integration-test executable, a single suite test will:
+
+1. Create an isolated temporary workspace containing the tracker configuration and storage.
+2. Start one tracker application with the suite's fixed initial configuration.
+3. Execute its scenario functions sequentially against that running application.
+4. Shut down the application and wait for its jobs before releasing the temporary workspace.
+
+Scenario functions are not independently scheduled `#[tokio::test]` functions. They share the
+suite's runtime and data lifecycle, so they must use distinct test data or make assertions that
+explicitly account for accumulated state.
+
+The existing global-statistics scenarios belong in the same suite because they require the same
+public-tracker configuration. A concern requiring a different initial configuration or process
+lifecycle will be placed in another top-level file, such as `tests/bootstrap.rs`. Cargo may run
+such executables concurrently; each suite must therefore still use a unique `TempDir` workspace,
+its own database and storage paths, and port `0` for listeners.
+
+`TORRUST_TRACKER_CONFIG_TOML_PATH` remains process-local under this model, so configuration
+injection through the environment is safe between separate test executables. It must not be
+modified concurrently by separate scenarios in one executable.
+
+### Relationship to E2E Tests
+
+This is not a replacement for container E2E tests. Main-application integration suites provide
+faster application-composition coverage without Docker, while E2E tests continue to validate
+container images, mounts, network setup, and external-client workflows.
+
+### Deferred Alternative: Non-Docker Process Runner
+
+If an integration suite needs to verify the real tracker executable's startup, signal handling,
+logging, or exit behavior, or if reliable in-process shutdown cannot be implemented, introduce a
+non-Docker process runner. That runner would launch the built tracker binary as a child process
+with an isolated workspace, wait for readiness, capture diagnostics, and terminate it cleanly.
+
+Do not create a new package solely to obtain separate test executables: Cargo already provides
+that isolation through separate top-level files in `tests/`. A dedicated package becomes justified
+only when the child-process runner is reusable enough to warrant its own lifecycle, readiness,
+diagnostic, and cleanup abstractions.
+
+### Superseded Scope, Plan, Acceptance Criteria, and Verification
+
+The original scope, implementation plan, acceptance criteria, and verification plan above are
+superseded where they require parallel tracker application instances or multiple independently
+bootstrapped test functions in `tests/integration.rs`.
+
+This issue now covers the following:
+
+- Convert the existing global-statistics integration test into one sequential suite using one
+  public-tracker application instance.
+- Provide test-local helpers for an isolated temporary workspace, tracker startup, readiness, and
+  deterministic shutdown.
+- Use port `0` and discover resolved listener addresses for suite requests.
+- Add further global-statistics scenarios only when they share the suite's initial configuration.
+- Establish the convention that a different initial tracker configuration belongs to another
+  top-level integration-test executable.
+
+Verification must show that the suite starts one application, runs all its scenarios sequentially,
+shuts it down cleanly, and leaves no shared database, storage, or port dependency. Cross-suite
+parallel execution is supported through process isolation, but it is not a requirement for
+parallel full-application instances inside a single executable.
