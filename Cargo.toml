@@ -75,6 +75,7 @@ tracing-subscriber = { version = "0", features = [ "json" ] }
 [dev-dependencies]
 torrust-net-primitives = "0.1.0"
 torrust-tracker-test-helpers = { version = "3.0.0", path = "packages/test-helpers" }
+url = { version = "2", features = [ "serde" ] }
 
 [workspace]
 members = [

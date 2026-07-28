@@ -4840,6 +4840,7 @@ dependencies = [
  "torrust-tracker-udp-server",
  "tracing",
  "tracing-subscriber",
+ "url",
 ]
 
 [[package]]

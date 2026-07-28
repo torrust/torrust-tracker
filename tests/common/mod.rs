@@ -22,6 +22,7 @@ use tempfile::TempDir;
 use torrust_tracker_lib::app;
 use torrust_tracker_lib::bootstrap::jobs::manager::JobManager;
 use torrust_tracker_lib::container::AppContainer;
+use url::Url;
 
 /// A temporary workspace for an integration test.
 ///
@@ -90,7 +91,7 @@ pub async fn start_tracker_with_config(workspace: &EphemeralTrackerWorkspace) ->
 /// check bind to `127.0.0.1` (loopback). We identify trackers by their
 /// unspecified IP, which is deterministic regardless of hash-map ordering.
 /// Wildcard addresses are converted to `127.0.0.1` for client requests.
-pub async fn http_tracker_urls(container: &AppContainer) -> Vec<String> {
+pub async fn http_tracker_urls(container: &AppContainer) -> Vec<Url> {
     let reg = container.registar.entries();
     let map = reg.lock().await;
     map.keys()
@@ -105,17 +106,17 @@ pub async fn http_tracker_urls(container: &AppContainer) -> Vec<String> {
 ///
 /// The REST API binds to `127.0.0.1` (loopback), unlike the HTTP trackers
 /// which bind to `0.0.0.0`.
-pub async fn http_api_url(container: &AppContainer) -> Option<String> {
+pub async fn http_api_url(container: &AppContainer) -> Option<Url> {
     let reg = container.registar.entries();
     let map = reg.lock().await;
     map.keys()
         .find(|b| b.protocol() == torrust_net_primitives::service_binding::Protocol::HTTP && b.bind_address().ip().is_loopback())
-        .map(|b| format!("http://{}", b.bind_address()))
+        .map(|b| loopback_url(b.bind_address()))
 }
 
 /// Returns all registered service bindings for diagnostic purposes.
 #[allow(dead_code)]
-pub async fn all_service_bindings(container: &AppContainer) -> Vec<(String, String)> {
+pub async fn all_service_bindings(container: &AppContainer) -> Vec<(String, Url)> {
     let reg = container.registar.entries();
     let map = reg.lock().await;
     map.keys()
@@ -128,10 +129,11 @@ pub async fn all_service_bindings(container: &AppContainer) -> Vec<(String, Stri
 /// Tracker services bind to `0.0.0.0` (all interfaces), but clients must
 /// connect to a reachable address. This replaces wildcard IPv4 with the
 /// loopback address `127.0.0.1`, preserving the OS-assigned port.
-fn loopback_url(addr: SocketAddr) -> String {
+fn loopback_url(addr: SocketAddr) -> Url {
     if addr.ip().is_unspecified() {
-        format!("http://127.0.0.1:{port}", port = addr.port())
+        Url::parse(&format!("http://127.0.0.1:{port}", port = addr.port()))
     } else {
-        format!("http://{addr}")
+        Url::parse(&format!("http://{addr}"))
     }
+    .expect("loopback URL should always be valid")
 }

@@ -1,6 +1,7 @@
 use serde::Deserialize;
 use torrust_tracker_rest_api_client::connection_info::{ConnectionInfo, Origin};
 use torrust_tracker_rest_api_client::v1::client::ApiHttpClient as TrackerApiClient;
+use url::Url;
 
 use crate::common::{self, EphemeralTrackerWorkspace};
 
@@ -64,11 +65,10 @@ async fn the_stats_api_endpoint_should_return_the_global_stats() {
     // ── 3. Announce to both tracker instances ────────────────────────
     let client = reqwest::Client::new();
     for url in &tracker_urls {
-        let announce_url = format!(
-            "{}/announce?info_hash=%9c8b%22%13%e3%0b%ff%21%2b0%c3%60%d2o%9a%02%13d%22&peer_id=-qB00000000000000001&port=17548&ip=127.0.0.1&event=started&compact=0",
-            url.trim_end_matches('/')
-        );
-        let resp = client.get(&announce_url).send().await.unwrap();
+        let announce_url = url
+            .join("/announce?info_hash=%9c8b%22%13%e3%0b%ff%21%2b0%c3%60%d2o%9a%02%13d%22&peer_id=-qB00000000000000001&port=17548&ip=127.0.0.1&event=started&compact=0")
+            .expect("announce URL should be valid");
+        let resp = client.get(announce_url.as_str()).send().await.unwrap();
         let status = resp.status();
         if !status.is_success() {
             let body = resp.text().await.unwrap_or_default();
@@ -90,8 +90,8 @@ struct PartialGlobalStatistics {
     tcp4_announces_handled: u64,
 }
 
-async fn get_tracker_statistics(api_url: &str, token: &str) -> PartialGlobalStatistics {
-    let response = TrackerApiClient::new(ConnectionInfo::authenticated(Origin::new(api_url).unwrap(), token))
+async fn get_tracker_statistics(api_url: &Url, token: &str) -> PartialGlobalStatistics {
+    let response = TrackerApiClient::new(ConnectionInfo::authenticated(Origin::new(api_url.as_str()).unwrap(), token))
         .unwrap()
         .get_tracker_statistics(None)
         .await
