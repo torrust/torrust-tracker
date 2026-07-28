@@ -557,4 +557,59 @@ mod using_disabled_connection_id_validation {
 
         env.stop().await;
     }
+
+    #[tokio::test]
+    async fn many_invalid_connection_ids_do_not_cause_ban_in_disabled_mode() {
+        logging::setup();
+
+        let cfg = configuration::ephemeral();
+        let core_config = Arc::new(cfg.core.clone());
+        let udp_tracker_config = Arc::new(cfg.udp_trackers.unwrap()[0].clone());
+        let env = torrust_tracker_udp_server::testing::environment::Unstarted::new(&core_config, &udp_tracker_config)
+            .await
+            .with_connection_id_validation(ConnectionIdValidationPolicy::Disabled)
+            .start()
+            .await;
+
+        let client = UdpTrackerClient::new(env.bind_address(), DEFAULT_UDP_TIMEOUT).await.unwrap();
+
+        // Send more than the ban threshold (10) of invalid connection IDs.
+        // In strict mode this would trigger a ban on request 12; in disabled mode
+        // enforcement is skipped and requests should all succeed without timeout.
+        let invalid_connection_id = ConnectionId::new(0);
+        let info_hash = random_info_hash();
+
+        for x in 0..=15 {
+            tracing::info!("req no: {x}");
+
+            let tx_id = TransactionId::new(x as i32);
+
+            let announce_request = AnnounceRequest {
+                connection_id: invalid_connection_id,
+                action_placeholder: AnnounceActionPlaceholder::default(),
+                transaction_id: tx_id,
+                info_hash: InfoHash(info_hash.0),
+                peer_id: PeerId([255u8; 20]),
+                bytes_downloaded: NumberOfBytes(0i64.into()),
+                bytes_uploaded: NumberOfBytes(0i64.into()),
+                bytes_left: NumberOfBytes(0i64.into()),
+                event: AnnounceEvent::Started.into(),
+                ip_address: std::net::Ipv4Addr::UNSPECIFIED.into(),
+                key: PeerKey::new(0i32),
+                peers_wanted: NumberOfPeers(1i32.into()),
+                port: Port(client.client.socket.local_addr().unwrap().port().into()),
+            };
+
+            client.send(announce_request.into()).await.unwrap();
+
+            let response = client.receive().await;
+
+            assert!(
+                response.is_ok(),
+                "request {x} should not time out even after exceeding ban threshold — ban enforcement is disabled"
+            );
+        }
+
+        env.stop().await;
+    }
 }
