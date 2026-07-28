@@ -12,7 +12,7 @@ semantic-links:
   skill-links:
     - write-unit-test
   related-artifacts:
-    - tests/integration.rs
+    - tests/stats.rs
     - tests/servers/
     - src/app.rs
     - packages/test-helpers/
@@ -22,7 +22,7 @@ semantic-links:
 
 ## Goal
 
-Enable running multiple independent integration tests at the main application level (`tests/integration.rs`)
+Enable running multiple independent integration tests at the main application level (`tests/stats.rs`)
 in parallel without port conflicts, configuration collisions, or logging initialization errors.
 
 ## Background
@@ -186,7 +186,7 @@ then fix the scaffolding infrastructure, then expand coverage.
 | T5  | TODO   | Add utility to extract bound addresses from `AppContainer`  | Query `Registar` or job handles to get actual bound `SocketAddr` for HTTP API, trackers, etc.                                                |
 | T6  | TODO   | Update existing stats test to use port 0 and temp workspace | Replace `env::set_var` with isolated temp workspace, use port 0, extract actual ports for requests; fixes scaffolding to support parallelism |
 | T7  | TODO   | Expand global stats test coverage                           | Add tests for more global stat metrics now that scaffolding supports it (scrape counters, different IP families, etc.)                       |
-| T8  | TODO   | Run automatic verification                                  | `cargo test --test integration` must pass with all tests running concurrently                                                                |
+| T8  | TODO   | Run automatic verification                                  | `cargo test --test stats` must pass with all tests running concurrently                                                                      |
 
 ## Progress Tracking
 
@@ -195,7 +195,7 @@ then fix the scaffolding infrastructure, then expand coverage.
 - [ ] Specification drafted and approved by user/maintainer
 - [ ] GitHub issue #1419 already exists (created by maintainer)
 - [ ] Implementation completed
-- [ ] Automatic verification completed (`cargo test --test integration`)
+- [ ] Automatic verification completed (`cargo test --test stats`)
 - [ ] Acceptance criteria reviewed after implementation
 - [ ] Issue closed and specification moved to `docs/issues/closed/`
 
@@ -216,7 +216,7 @@ then fix the scaffolding infrastructure, then expand coverage.
 
 - [ ] AC1: `tests/AGENTS.md` exists and documents guidelines for what belongs at main-level vs
       package-level, with a TODO list of future valuable integration tests.
-- [ ] AC2: Multiple integration tests can run concurrently with `cargo test --test integration`
+- [ ] AC2: Multiple integration tests can run concurrently with `cargo test --test stats`
       without port conflicts.
 - [ ] AC3: Each test uses an isolated temporary workspace with separate config and storage
       directories (no shared environment variables or storage paths).
@@ -227,26 +227,26 @@ then fix the scaffolding infrastructure, then expand coverage.
 - [ ] AC6: Global stats test coverage includes multiple metrics (not just `tcp4_announces_handled`).
 - [ ] AC7: Test utilities for temp workspace creation (config + storage) and port extraction are
       available and documented.
-- [ ] AC8: `cargo test --test integration` passes cleanly with expanded test coverage.
+- [ ] AC8: `cargo test --test stats` passes cleanly with expanded test coverage.
 - [ ] AC9: `linter all` passes.
 
 ## Verification Plan
 
 ### Automatic Checks
 
-- `cargo test --test integration` — Must pass with all integration tests running concurrently
-- `cargo test --test integration -- --test-threads=1` — Verify tests also work in serial mode
+- `cargo test --test stats` — Must pass with all integration tests running concurrently
+- `cargo test --test stats -- --test-threads=1` — Verify tests also work in serial mode
 - `linter all` — Standard quality gate
 
 ### Manual Verification Scenarios
 
-| ID  | Scenario                                                                      | Expected Result                                                                   | Status | Evidence |
-| --- | ----------------------------------------------------------------------------- | --------------------------------------------------------------------------------- | ------ | -------- |
-| M1  | Run `cargo test --test integration` with default parallelism                  | All tests pass; no port conflicts or configuration collisions                     | TODO   |          |
-| M2  | Run `cargo test --test integration -- --nocapture` to see logs                | Each test shows unique bound ports; no env var configuration warnings             | TODO   |          |
-| M3  | Add a third integration test temporarily and run the suite                    | All three tests run concurrently without interference                             | TODO   |          |
-| M4  | Verify temp workspaces are cleaned up after tests complete                    | No leftover temporary directories in `/tmp` or system temp directory              | TODO   |          |
-| M5  | Run tests in serial mode: `cargo test --test integration -- --test-threads=1` | Tests pass in serial mode (no implicit dependency on parallelism for correctness) | TODO   |          |
+| ID  | Scenario                                                                | Expected Result                                                                   | Status | Evidence |
+| --- | ----------------------------------------------------------------------- | --------------------------------------------------------------------------------- | ------ | -------- |
+| M1  | Run `cargo test --test stats` with default parallelism                  | All tests pass; no port conflicts or configuration collisions                     | TODO   |          |
+| M2  | Run `cargo test --test stats -- --nocapture` to see logs                | Each test shows unique bound ports; no env var configuration warnings             | TODO   |          |
+| M3  | Add a third integration test temporarily and run the suite              | All three tests run concurrently without interference                             | TODO   |          |
+| M4  | Verify temp workspaces are cleaned up after tests complete              | No leftover temporary directories in `/tmp` or system temp directory              | TODO   |          |
+| M5  | Run tests in serial mode: `cargo test --test stats -- --test-threads=1` | Tests pass in serial mode (no implicit dependency on parallelism for correctness) | TODO   |          |
 
 ## Risks and Trade-offs
 

@@ -73,9 +73,7 @@ tracing = "0"
 tracing-subscriber = { version = "0", features = [ "json" ] }
 
 [dev-dependencies]
-torrust-info-hash = "=0.2.0"
-torrust-tracker-client = { package = "torrust-tracker-client-lib", version = "0.1.0", path = "packages/tracker-client" }
-torrust-tracker-http-protocol = { version = "0.1.0", path = "packages/http-protocol" }
+torrust-net-primitives = "0.1.0"
 torrust-tracker-test-helpers = { version = "3.0.0", path = "packages/test-helpers" }
 
 [workspace]

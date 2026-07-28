@@ -12,7 +12,7 @@ semantic-links:
   skill-links:
     - write-unit-test
   related-artifacts:
-    - tests/integration.rs
+    - tests/stats.rs
     - tests/AGENTS.md
     - docs/issues/open/1419-allow-multiple-integration-tests-at-main-app-level.md
   related-issues:
@@ -181,17 +181,17 @@ Suggested approach:
 ### Automatic Checks
 
 - `linter all` exits with code `0`
-- `cargo test --test integration` passes all new integration tests
+- `cargo test --test stats` passes all new integration tests
 - `cargo test --workspace` passes (no regressions)
 - CI pipeline passes with new tests running in parallel
 
 ### Manual Checks
 
-| ID  | Check                               | Expected Outcome                                                   |
-| --- | ----------------------------------- | ------------------------------------------------------------------ |
-| M1  | Run `cargo test --test integration` | All integration tests pass, no port conflicts or config collisions |
-| M2  | Run with `RUST_LOG=debug`           | Verify multiple services log startup without errors                |
-| M3  | Review test execution time          | Integration tests complete faster than equivalent E2E tests        |
+| ID  | Check                         | Expected Outcome                                                   |
+| --- | ----------------------------- | ------------------------------------------------------------------ |
+| M1  | Run `cargo test --test stats` | All integration tests pass, no port conflicts or config collisions |
+| M2  | Run with `RUST_LOG=debug`     | Verify multiple services log startup without errors                |
+| M3  | Review test execution time    | Integration tests complete faster than equivalent E2E tests        |
 
 ## Dependencies
 
@@ -211,7 +211,7 @@ Suggested approach:
 ### Integration Test Infrastructure
 
 - [tests/AGENTS.md](../../../tests/AGENTS.md) - Guidelines for main-level vs package-level tests
-- [tests/integration.rs](../../../tests/integration.rs) - Integration test scaffolding
+- [tests/stats.rs](../../../tests/stats.rs) - Integration test scaffolding
 - [tests/servers/api/contract/stats/](../../../tests/servers/api/contract/stats/) - Current global
   stats test example
 

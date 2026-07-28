@@ -3,7 +3,7 @@ semantic-links:
   skill-links:
     - write-unit-test
   related-artifacts:
-    - tests/integration.rs
+    - tests/stats.rs
     - tests/servers/
     - src/app.rs
     - docs/issues/open/1419-allow-multiple-integration-tests-at-main-app-level.md
@@ -44,18 +44,37 @@ Most tests should be in the corresponding `packages/*/tests/` directories:
 **Guideline**: If the test can be written at the package level, it should be. Only use main-level
 integration tests when you genuinely need the full application context.
 
+## Execution Model
+
+Each top-level Rust source file in `tests/` is a **separate Cargo integration-test
+executable** (and therefore a separate operating-system process). A single test
+executable manages **one tracker application instance** with a fixed initial
+configuration. Scenario functions run sequentially against that instance.
+
+A different initial configuration requires a separate top-level file. For example:
+
+| File                 | Purpose                                                  |
+| -------------------- | -------------------------------------------------------- |
+| `tests/stats.rs`     | Global statistics suite (public tracker, two HTTP nodes) |
+| `tests/scaffold.rs`  | Scaffolding demo — same pattern, isolated process        |
+| `tests/bootstrap.rs` | _(future)_ Bootstrap/shutdown lifecycle scenarios        |
+
+Cargo may run these binaries in parallel. Each binary binds to port `0` (OS-assigned
+ephemeral ports), uses its own `TempDir` workspace, and sets
+`TORRUST_TRACKER_CONFIG_TOML_PATH` only in its own process, so no conflict occurs.
+
 ## Test Infrastructure Requirements
 
 All integration tests at this level must:
 
-1. **Use port `0` for all bind addresses**: The OS assigns free ephemeral ports, preventing conflicts
-   when tests run in parallel
-2. **Use isolated temporary workspaces**: Never use `std::env::set_var()` for configuration —
-   tests run concurrently and would overwrite each other's config. Use `tempfile::TempDir` to create
+1. **Use port `0` for all bind addresses**: The OS assigns free ephemeral ports, preventing
+   conflicts when tests run in parallel
+2. **Use isolated temporary workspaces**: Use `tempfile::TempDir` to create
    isolated directories with separate config files and storage subdirectories
-3. **Extract actual bound ports**: Query `AppContainer` or `Registar` to get the OS-assigned ports
+3. **Extract actual bound ports**: Query `AppContainer`'s `Registar` to get the OS-assigned ports
    for making requests
-4. **Be independent**: Each test must be able to run in isolation or concurrently with others
+4. **Be independent**: Each top-level test binary must be able to run in isolation or concurrently
+   with others (it is the binary, not the function, that is the unit of isolation)
 5. **Clean up resources**: Use RAII patterns (temp dirs, handles) for automatic cleanup
 
 ## Current Test Structure
@@ -63,40 +82,38 @@ All integration tests at this level must:
 ```text
 tests/
 ├── AGENTS.md                    # This file
-├── integration.rs               # Test scaffolding and module declarations
-├── helpers.rs                   # Shared test utilities (temp config, port extraction)
+├── common/
+│   └── mod.rs                   # Shared test utilities (temp config, port extraction)
+├── integration.rs               # Global statistics suite (main integration tests)
+├── scaffold.rs                  # Scaffolding demo — pattern reference for new binaries
 └── servers/
     └── api/
         └── contract/
             └── stats/
-                └── mod.rs       # Global statistics tests
+                └── mod.rs       # Global statistics test scenarios
 ```
 
-## Future Test Coverage
-
-For a prioritized list of valuable integration tests to add at the main application level, see the
-[draft issue for increasing integration test
-coverage](../docs/issues/drafts/increase-main-app-integration-test-coverage.md).
-
-This draft issue tracks 14 planned integration tests organized by priority (high/medium/low) and
-complements [EPIC #1347](https://github.com/torrust/torrust-tracker/issues/1347) which focuses on
-unit test coverage for workspace packages.
-
-## Adding a New Integration Test
+## Adding a New Integration-Test Binary
 
 1. **Confirm it belongs here**: Can this test be written at the package level? If yes, write it there.
-2. **Use test utilities**: Import helpers from `tests/helpers.rs` for temp config and port extraction
-3. **Use port `0`**: All services must bind to port `0` in test configurations
-4. **Extract bound ports**: Query `AppContainer.registar` or job handles to get actual socket addresses
-5. **Make it independent**: Test must not depend on execution order or side effects from other tests
-6. **Document the purpose**: Add a clear doc comment explaining what application-level behavior is
-   being tested
+2. **Determine the initial configuration**: If your scenarios need a different tracker
+   configuration than the existing suite, create a new top-level file (e.g., `tests/bootstrap.rs`).
+   If they share the same configuration, add scenarios to the existing suite.
+3. **Reuse shared utilities**: Import `mod common;` and use the helpers in `tests/common/mod.rs`
+   for workspace setup, tracker startup, and port discovery.
+4. **Use port `0`**: All services must bind to port `0` in test configurations.
+5. **Extract bound ports**: Query the registar or `AppContainer` to discover actual socket addresses.
+6. **Document the purpose**: Add clear doc comments explaining what application-level behavior is
+   being tested.
+7. **Reference existing code**: See `tests/scaffold.rs` for a minimal working example of a new
+   integration-test binary, or `tests/servers/api/contract/stats/mod.rs` for the scenario pattern.
 
 For concrete examples, see the existing tests in `tests/servers/` — they serve as the canonical
 reference for the integration test pattern.
 
 ## References
 
-- [Issue #1419](../../docs/issues/open/1419-allow-multiple-integration-tests-at-main-app-level.md) - Infrastructure for parallel integration tests
-- [Integration test scaffolding](integration.rs)
-- [Test helpers](helpers.rs)
+- [Issue #1419](../../docs/issues/open/1419-allow-multiple-integration-tests-at-main-app-level.md) - Infrastructure for parallel integration tests (execution model decision)
+- [Integration test scaffolding](stats.rs)
+- [Shared test utilities](common/mod.rs)
+- [Scaffolding demo](scaffold.rs)
