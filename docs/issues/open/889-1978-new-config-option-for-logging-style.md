@@ -135,12 +135,12 @@ All four variants are simple unit variants — no boolean parameters. The `displ
 
 ### Workflow Checkpoints
 
-- [ ] Spec drafted in `docs/issues/drafts/`
-- [ ] Spec reviewed and approved by user/maintainer
-- [ ] GitHub issue created and issue number added to this spec
+- [x] Spec drafted in `docs/issues/drafts/`
+- [x] Spec reviewed and approved by user/maintainer
+- [x] GitHub issue created and issue number added to this spec
 - [x] Implementation completed
 - [x] Automatic verification completed (`linter all`, relevant tests)
-- [ ] Manual verification scenarios executed and recorded
+- [ ] Manual verification scenarios executed and recorded (deferred to #1980)
 - [ ] Acceptance criteria reviewed after implementation
 - [ ] Issue closed and spec moved to `docs/issues/open/`
 
@@ -151,6 +151,7 @@ All four variants are simple unit variants — no boolean parameters. The `displ
 - 2026-07-14 00:00 UTC - josecelano - Redesigned `TraceStyle` enum: renamed `Default` → `Full`, dropped `Pretty(bool)` → `Pretty` (unit variant). The `display_filename` boolean is dropped (defaults to `false`); can be added as a separate config field later.
 - 2026-07-28 00:00 UTC - josecelano - Confirmed that `trace_filter` retains the current level-only `Threshold` scope. Full tracing directives and per-module filtering are deferred to a separate feature.
 - 2026-07-28 00:00 UTC - josecelano - Implemented and automatically verified the v3-only logging schema. Migration of global callers and shipped v2 defaults remains deferred to #1980.
+- 2026-07-28 17:30 UTC - josecelano - Ready for PR. Manual verification deferred to #1980 (final cleanup) since v3 schema is not yet the active global schema.
 
 ## Acceptance Criteria
 
