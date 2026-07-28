@@ -579,10 +579,10 @@ mod using_disabled_connection_id_validation {
         let invalid_connection_id = ConnectionId::new(0);
         let info_hash = random_info_hash();
 
-        for x in 0..=15 {
+        for x in 0i32..=15 {
             tracing::info!("req no: {x}");
 
-            let tx_id = TransactionId::new(x as i32);
+            let tx_id = TransactionId::new(x);
 
             let announce_request = AnnounceRequest {
                 connection_id: invalid_connection_id,
