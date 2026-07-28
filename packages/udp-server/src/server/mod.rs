@@ -105,6 +105,7 @@ mod tests {
                 udp_tracker_server_container,
                 register.give_form(),
                 config.cookie_lifetime,
+                torrust_tracker_udp_core::ConnectionIdValidationPolicy::Strict,
             )
             .await
             .expect("it should start the server");
@@ -145,6 +146,7 @@ mod tests {
                 udp_tracker_server_container,
                 register.give_form(),
                 udp_tracker_config.cookie_lifetime,
+                torrust_tracker_udp_core::ConnectionIdValidationPolicy::Strict,
             )
             .await
             .expect("it should start the server");

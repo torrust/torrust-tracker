@@ -13,7 +13,7 @@ use torrust_server_lib::signals::{Halted, Started, shutdown_signal_with_message}
 use torrust_tracker_client::udp::client::check;
 use torrust_tracker_udp_core::container::UdpTrackerCoreContainer;
 use torrust_tracker_udp_core::event::ConnectionContext;
-use torrust_tracker_udp_core::{self, UDP_TRACKER_LOG_TARGET};
+use torrust_tracker_udp_core::{self, ConnectionIdValidationPolicy, UDP_TRACKER_LOG_TARGET};
 use tracing::instrument;
 
 use super::request_buffer::ActiveRequests;
@@ -42,10 +42,21 @@ impl Launcher {
         udp_tracker_server_container: Arc<UdpTrackerServerContainer>,
         bind_to: SocketAddr,
         cookie_lifetime: Duration,
+        connection_id_validation: ConnectionIdValidationPolicy,
         tx_start: oneshot::Sender<Started>,
         rx_halt: oneshot::Receiver<Halted>,
     ) {
         tracing::info!(target: UDP_TRACKER_LOG_TARGET, "Starting on: {bind_to}");
+
+        if connection_id_validation == ConnectionIdValidationPolicy::Disabled {
+            tracing::warn!(
+                target: UDP_TRACKER_LOG_TARGET,
+                %bind_to,
+                "UDP connection ID validation is DISABLED for this listener. \
+                 Anti-spoofing and replay protection are reduced. \
+                 Ensure this listener is isolated through external network controls."
+            );
+        }
 
         if udp_tracker_core_container.tracker_core_container.core_config.private {
             tracing::error!("udp services cannot be used for private trackers");
@@ -81,6 +92,7 @@ impl Launcher {
                     udp_tracker_core_container,
                     udp_tracker_server_container,
                     cookie_lifetime,
+                    connection_id_validation,
                 )
                 .await;
             })
@@ -130,6 +142,7 @@ impl Launcher {
         udp_tracker_core_container: Arc<UdpTrackerCoreContainer>,
         udp_tracker_server_container: Arc<UdpTrackerServerContainer>,
         cookie_lifetime: Duration,
+        connection_id_validation: ConnectionIdValidationPolicy,
     ) {
         let active_requests = &mut ActiveRequests::default();
 
@@ -195,7 +208,14 @@ impl Launcher {
                     continue;
                 }
 
-                if udp_tracker_core_container.ban_service.read().await.is_banned(&req.from.ip()) {
+                // When connection ID validation is disabled, the tracker is
+                // intentionally accepting requests with invalid or arbitrary
+                // connection IDs. Enforcing IP bans in that mode is
+                // contradictory — the banning listener still counts invalid
+                // cookies for observability, but the ban is not acted upon.
+                let ban_enforcement_active = connection_id_validation == ConnectionIdValidationPolicy::Strict;
+
+                if ban_enforcement_active && udp_tracker_core_container.ban_service.read().await.is_banned(&req.from.ip()) {
                     tracing::debug!(target: UDP_TRACKER_LOG_TARGET, local_addr,  "Udp::run_udp_server::loop continue: (banned ip)");
 
                     if let Some(udp_server_stats_event_sender) = udp_tracker_server_container.stats_event_sender.as_deref() {
@@ -214,6 +234,7 @@ impl Launcher {
                     udp_tracker_core_container.clone(),
                     udp_tracker_server_container.clone(),
                     cookie_lifetime,
+                    connection_id_validation,
                 );
 
                 /* We spawn the new task even if the active requests buffer is

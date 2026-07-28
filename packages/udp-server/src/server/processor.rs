@@ -7,7 +7,7 @@ use tokio::time::Instant;
 use torrust_net_primitives::service_binding::ServiceBinding;
 use torrust_tracker_udp_core::container::UdpTrackerCoreContainer;
 use torrust_tracker_udp_core::event::ConnectionContext;
-use torrust_tracker_udp_core::{self};
+use torrust_tracker_udp_core::{self, ConnectionIdValidationPolicy};
 use torrust_tracker_udp_protocol::Response;
 use tracing::{Level, instrument};
 
@@ -23,6 +23,7 @@ pub struct Processor {
     udp_tracker_server_container: Arc<UdpTrackerServerContainer>,
     cookie_lifetime: f64,
     server_service_binding: ServiceBinding,
+    connection_id_validation: ConnectionIdValidationPolicy,
 }
 
 impl Processor {
@@ -31,6 +32,7 @@ impl Processor {
         udp_tracker_core_container: Arc<UdpTrackerCoreContainer>,
         udp_tracker_server_container: Arc<UdpTrackerServerContainer>,
         cookie_lifetime: f64,
+        connection_id_validation: ConnectionIdValidationPolicy,
     ) -> Self {
         // BoundSocket guarantees a non-zero port by construction, so
         // service_binding() cannot fail.
@@ -42,6 +44,7 @@ impl Processor {
             udp_tracker_server_container,
             cookie_lifetime,
             server_service_binding,
+            connection_id_validation,
         }
     }
 
@@ -83,6 +86,7 @@ impl Processor {
             self.udp_tracker_server_container.clone(),
             self.server_service_binding.clone(),
             CookieTimeValues::new(self.cookie_lifetime),
+            self.connection_id_validation,
         )
         .await;
 
@@ -175,6 +179,7 @@ mod tests {
 
     use tokio_util::sync::CancellationToken;
     use torrust_tracker_test_helpers::configuration;
+    use torrust_tracker_udp_core::ConnectionIdValidationPolicy;
     use torrust_tracker_udp_protocol::{ConnectRequest, Request, TransactionId};
 
     use crate::RawRequest;
@@ -233,6 +238,7 @@ mod tests {
             container.udp_tracker_core_container.clone(),
             container.udp_tracker_server_container.clone(),
             udp_tracker_config.cookie_lifetime.as_secs_f64(),
+            ConnectionIdValidationPolicy::Strict,
         );
 
         (processor, container, cancellation_token)

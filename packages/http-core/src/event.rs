@@ -1,3 +1,14 @@
+//! HTTP core events.
+//!
+//! # Design contract: events are objective facts
+//!
+//! Every variant in [`Event`] describes *what happened* — a neutral, observable
+//! fact. Events must not be designed around what a particular consumer should or
+//! should not do in response. Policy decisions belong in the consumer or the
+//! enforcement point, never in the event definition.
+//!
+//! See [ADR-20260727000000](../../../../docs/adrs/20260727000000_events_are_objective_facts.md)
+//! for the full rationale, the concrete counter-example, and naming heuristics.
 use std::net::{IpAddr, SocketAddr};
 
 use torrust_info_hash::InfoHash;

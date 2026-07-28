@@ -10,8 +10,8 @@ use std::sync::Arc;
 
 use tokio::task::JoinHandle;
 use torrust_server_lib::registar::ServiceRegistrationForm;
-use torrust_tracker_udp_core::UDP_TRACKER_LOG_TARGET;
 use torrust_tracker_udp_core::container::UdpTrackerCoreContainer;
+use torrust_tracker_udp_core::{ConnectionIdValidationPolicy, UDP_TRACKER_LOG_TARGET};
 use torrust_tracker_udp_server::container::UdpTrackerServerContainer;
 use torrust_tracker_udp_server::server::Server;
 use torrust_tracker_udp_server::server::spawner::Spawner;
@@ -37,12 +37,20 @@ pub async fn start_job(
     let bind_to = udp_tracker_core_container.udp_tracker_config.bind_address;
     let cookie_lifetime = udp_tracker_core_container.udp_tracker_config.cookie_lifetime;
 
+    // The connection ID validation policy is available in schema v3 via
+    // `UdpTrackerServer::connection_id_validation`. The application bootstrap
+    // still uses v2 configuration, where this policy does not exist. Until the
+    // runtime switches to v3 (tracked in issue #1980), strict validation is the
+    // unconditional default.
+    let connection_id_validation = ConnectionIdValidationPolicy::Strict;
+
     let server = Server::new(Spawner::new(bind_to))
         .start(
             udp_tracker_core_container,
             udp_tracker_server_container,
             form,
             cookie_lifetime,
+            connection_id_validation,
         )
         .await
         .expect("it should be able to start the udp tracker");

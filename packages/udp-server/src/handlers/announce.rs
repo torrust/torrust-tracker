@@ -1,14 +1,15 @@
 //! UDP tracker announce handler.
 use std::net::{IpAddr, SocketAddr};
-use std::ops::Range;
 use std::sync::Arc;
 
 use torrust_info_hash::InfoHash;
 use torrust_net_primitives::service_binding::ServiceBinding;
 use torrust_tracker_configuration::Core;
 use torrust_tracker_primitives::AnnounceData;
+use torrust_tracker_udp_core::connection_cookie::{check, gen_remote_fingerprint};
 use torrust_tracker_udp_core::event::ConnectionContext;
 use torrust_tracker_udp_core::services::announce::AnnounceService;
+use torrust_tracker_udp_core::{ConnectionIdValidationPolicy, UDP_TRACKER_LOG_TARGET};
 use torrust_tracker_udp_protocol::{
     AnnounceInterval, AnnounceRequest, AnnounceResponse, AnnounceResponseFixedData, Ipv4AddrBytes, Ipv6AddrBytes, NumberOfPeers,
     Port, Response, ResponsePeer,
@@ -16,8 +17,8 @@ use torrust_tracker_udp_protocol::{
 use tracing::{Level, instrument};
 use zerocopy::byteorder::network_endian::I32;
 
-use crate::event::{Event, UdpRequestKind};
-use crate::handlers::HandlerError;
+use crate::event::{ErrorKind, Event, UdpRequestKind};
+use crate::handlers::{CookieValidationContext, HandlerError};
 
 /// It handles the `Announce` request.
 ///
@@ -32,7 +33,7 @@ pub async fn handle_announce(
     request: &AnnounceRequest,
     core_config: &Arc<Core>,
     opt_udp_server_stats_event_sender: &crate::event::sender::Sender,
-    cookie_valid_range: Range<f64>,
+    cookie_validation: CookieValidationContext,
 ) -> Result<Response, HandlerError> {
     tracing::Span::current()
         .record("transaction_id", request.transaction_id.0.to_string())
@@ -52,18 +53,62 @@ pub async fn handle_announce(
             .await;
     }
 
-    let announce_data = announce_service
-        .handle_announce(client_socket_addr, server_service_binding, request, cookie_valid_range)
-        .await
-        .map_err(|e| {
-            Box::new((
-                e.into(),
-                request.transaction_id,
-                UdpRequestKind::Announce {
-                    announce_request: *request,
-                },
-            ))
-        })?;
+    let announce_data = {
+        // When validation is disabled, still perform the cookie check so the
+        // banning listener can count invalid IDs for observability. Emit the
+        // same UdpError event (objective fact: a cookie error occurred), but
+        // do not return an error — the request is allowed to proceed.
+        // Ban enforcement is skipped in the main loop when validation is
+        // disabled (see launcher.rs), so the client is never actually blocked.
+        let validate_cookie = match cookie_validation.connection_id_validation {
+            ConnectionIdValidationPolicy::Strict => true,
+            ConnectionIdValidationPolicy::Disabled => {
+                if let Err(cookie_error) = check(
+                    &request.connection_id,
+                    gen_remote_fingerprint(&client_socket_addr),
+                    cookie_validation.valid_range.clone(),
+                ) {
+                    tracing::debug!(
+                        target: UDP_TRACKER_LOG_TARGET,
+                        %client_socket_addr,
+                        error = %cookie_error,
+                        "connection ID validation disabled: invalid connection ID observed (request allowed, ban not enforced)"
+                    );
+                    if let Some(sender) = opt_udp_server_stats_event_sender.as_deref() {
+                        sender
+                            .send(Event::UdpError {
+                                context: ConnectionContext::new(client_socket_addr, server_service_binding.clone()),
+                                kind: Some(UdpRequestKind::Announce {
+                                    announce_request: *request,
+                                }),
+                                error: ErrorKind::ConnectionCookie(cookie_error.to_string()),
+                            })
+                            .await;
+                    }
+                }
+                false
+            }
+        };
+
+        announce_service
+            .handle_announce(
+                client_socket_addr,
+                server_service_binding,
+                request,
+                cookie_validation.valid_range,
+                validate_cookie,
+            )
+            .await
+            .map_err(|e| {
+                Box::new((
+                    e.into(),
+                    request.transaction_id,
+                    UdpRequestKind::Announce {
+                        announce_request: *request,
+                    },
+                ))
+            })?
+    };
 
     Ok(build_response(client_socket_addr, request, core_config, &announce_data))
 }
@@ -230,8 +275,8 @@ pub(crate) mod tests {
             use crate::handlers::tests::{
                 CoreTrackerServices, CoreUdpTrackerServices, MockUdpServerStatsEventSender,
                 initialize_core_tracker_services_for_default_tracker_configuration,
-                initialize_core_tracker_services_for_public_tracker, sample_cookie_valid_range, sample_ipv4_socket_address,
-                sample_issue_time,
+                initialize_core_tracker_services_for_public_tracker, sample_ipv4_socket_address, sample_issue_time,
+                sample_strict_cookie_validation,
             };
 
             #[tokio::test]
@@ -263,7 +308,7 @@ pub(crate) mod tests {
                     &request,
                     &core_tracker_services.core_config,
                     &server_udp_tracker_services.udp_server_stats_event_sender,
-                    sample_cookie_valid_range(),
+                    sample_strict_cookie_validation(),
                 )
                 .await
                 .unwrap();
@@ -302,7 +347,7 @@ pub(crate) mod tests {
                     &request,
                     &core_tracker_services.core_config,
                     &server_udp_tracker_services.udp_server_stats_event_sender,
-                    sample_cookie_valid_range(),
+                    sample_strict_cookie_validation(),
                 )
                 .await
                 .unwrap();
@@ -358,7 +403,7 @@ pub(crate) mod tests {
                     &request,
                     &core_tracker_services.core_config,
                     &server_udp_tracker_services.udp_server_stats_event_sender,
-                    sample_cookie_valid_range(),
+                    sample_strict_cookie_validation(),
                 )
                 .await
                 .unwrap();
@@ -416,7 +461,7 @@ pub(crate) mod tests {
                     &request,
                     &core_tracker_services.core_config,
                     &udp_server_stats_event_sender,
-                    sample_cookie_valid_range(),
+                    sample_strict_cookie_validation(),
                 )
                 .await
                 .unwrap()
@@ -470,7 +515,7 @@ pub(crate) mod tests {
                     &announce_request,
                     &core_tracker_services.core_config,
                     &udp_server_stats_event_sender,
-                    sample_cookie_valid_range(),
+                    sample_strict_cookie_validation(),
                 )
                 .await
                 .unwrap();
@@ -489,8 +534,8 @@ pub(crate) mod tests {
                 use crate::handlers::announce::tests::announce_request::AnnounceRequestBuilder;
                 use crate::handlers::handle_announce;
                 use crate::handlers::tests::{
-                    TrackerConfigurationBuilder, initialize_core_tracker_services_with_config, sample_cookie_valid_range,
-                    sample_issue_time,
+                    TrackerConfigurationBuilder, initialize_core_tracker_services_with_config, sample_issue_time,
+                    sample_strict_cookie_validation,
                 };
 
                 #[tokio::test]
@@ -528,7 +573,7 @@ pub(crate) mod tests {
                         &request,
                         &core_tracker_services.core_config,
                         &None,
-                        sample_cookie_valid_range(),
+                        sample_strict_cookie_validation(),
                     )
                     .await
                     .unwrap();
@@ -582,8 +627,8 @@ pub(crate) mod tests {
             use crate::handlers::handle_announce;
             use crate::handlers::tests::{
                 MockUdpServerStatsEventSender, initialize_core_tracker_services_for_default_tracker_configuration,
-                initialize_core_tracker_services_for_public_tracker, sample_cookie_valid_range, sample_ipv6_remote_addr,
-                sample_issue_time,
+                initialize_core_tracker_services_for_public_tracker, sample_ipv6_remote_addr, sample_issue_time,
+                sample_strict_cookie_validation,
             };
 
             #[tokio::test]
@@ -616,7 +661,7 @@ pub(crate) mod tests {
                     &request,
                     &core_tracker_services.core_config,
                     &server_udp_tracker_services.udp_server_stats_event_sender,
-                    sample_cookie_valid_range(),
+                    sample_strict_cookie_validation(),
                 )
                 .await
                 .unwrap();
@@ -658,7 +703,7 @@ pub(crate) mod tests {
                     &request,
                     &core_tracker_services.core_config,
                     &server_udp_tracker_services.udp_server_stats_event_sender,
-                    sample_cookie_valid_range(),
+                    sample_strict_cookie_validation(),
                 )
                 .await
                 .unwrap();
@@ -714,7 +759,7 @@ pub(crate) mod tests {
                     &request,
                     &core_tracker_services.core_config,
                     &server_udp_tracker_service.udp_server_stats_event_sender,
-                    sample_cookie_valid_range(),
+                    sample_strict_cookie_validation(),
                 )
                 .await
                 .unwrap();
@@ -787,7 +832,7 @@ pub(crate) mod tests {
                     &request,
                     &core_config,
                     &udp_server_stats_event_sender,
-                    sample_cookie_valid_range(),
+                    sample_strict_cookie_validation(),
                 )
                 .await
                 .unwrap()
@@ -848,7 +893,7 @@ pub(crate) mod tests {
                     &announce_request,
                     &core_tracker_services.core_config,
                     &udp_server_stats_event_sender,
-                    sample_cookie_valid_range(),
+                    sample_strict_cookie_validation(),
                 )
                 .await
                 .unwrap();
@@ -878,8 +923,8 @@ pub(crate) mod tests {
                 use crate::handlers::announce::tests::announce_request::AnnounceRequestBuilder;
                 use crate::handlers::handle_announce;
                 use crate::handlers::tests::{
-                    MockUdpCoreStatsEventSender, MockUdpServerStatsEventSender, TrackerConfigurationBuilder,
-                    sample_cookie_valid_range, sample_issue_time,
+                    MockUdpCoreStatsEventSender, MockUdpServerStatsEventSender, TrackerConfigurationBuilder, sample_issue_time,
+                    sample_strict_cookie_validation,
                 };
                 use crate::tests::{announce_events_match, sample_peer};
 
@@ -980,7 +1025,7 @@ pub(crate) mod tests {
                         &request,
                         &core_config,
                         &udp_server_stats_event_sender,
-                        sample_cookie_valid_range(),
+                        sample_strict_cookie_validation(),
                     )
                     .await
                     .unwrap();

@@ -419,3 +419,197 @@ mod using_ipv6_v6only {
         env.stop().await;
     }
 }
+
+/// Tests for the disabled connection ID validation policy.
+///
+/// When `connection_id_validation = "disabled"`, announce and scrape requests
+/// succeed even with arbitrary/invalid connection IDs. Connect requests still
+/// issue valid connection IDs. The IP-ban enforcement is also disabled.
+///
+/// See ADR-20260727000000 (events are objective facts) and
+/// issue #1136 for the full rationale.
+mod using_disabled_connection_id_validation {
+    use std::sync::Arc;
+
+    use torrust_peer_id::PeerId;
+    use torrust_tracker_client::udp::client::UdpTrackerClient;
+    use torrust_tracker_test_helpers::{configuration, logging};
+    use torrust_tracker_udp_core::ConnectionIdValidationPolicy;
+    use torrust_tracker_udp_protocol::{
+        AnnounceActionPlaceholder, AnnounceEvent, AnnounceRequest, ConnectRequest, ConnectionId, InfoHash, NumberOfBytes,
+        NumberOfPeers, PeerKey, Port, ScrapeRequest, TransactionId,
+    };
+
+    use super::DEFAULT_UDP_TIMEOUT;
+    use crate::common::fixtures::random_info_hash;
+    use crate::server::asserts::is_connect_response;
+
+    #[tokio::test]
+    async fn connect_still_issues_a_valid_connection_id() {
+        logging::setup();
+
+        let cfg = configuration::ephemeral();
+        let core_config = Arc::new(cfg.core.clone());
+        let udp_tracker_config = Arc::new(cfg.udp_trackers.unwrap()[0].clone());
+        let env = torrust_tracker_udp_server::testing::environment::Unstarted::new(&core_config, &udp_tracker_config)
+            .await
+            .with_connection_id_validation(ConnectionIdValidationPolicy::Disabled)
+            .start()
+            .await;
+
+        let client = UdpTrackerClient::new(env.bind_address(), DEFAULT_UDP_TIMEOUT).await.unwrap();
+
+        let connect_request = ConnectRequest {
+            transaction_id: TransactionId::new(123),
+        };
+
+        client.send(connect_request.into()).await.unwrap();
+        let response = client.receive().await.unwrap();
+
+        assert!(is_connect_response(&response, TransactionId::new(123)));
+
+        env.stop().await;
+    }
+
+    #[tokio::test]
+    async fn announce_succeeds_with_an_arbitrary_connection_id() {
+        logging::setup();
+
+        let cfg = configuration::ephemeral();
+        let core_config = Arc::new(cfg.core.clone());
+        let udp_tracker_config = Arc::new(cfg.udp_trackers.unwrap()[0].clone());
+        let env = torrust_tracker_udp_server::testing::environment::Unstarted::new(&core_config, &udp_tracker_config)
+            .await
+            .with_connection_id_validation(ConnectionIdValidationPolicy::Disabled)
+            .start()
+            .await;
+
+        let client = UdpTrackerClient::new(env.bind_address(), DEFAULT_UDP_TIMEOUT).await.unwrap();
+
+        let info_hash = random_info_hash();
+
+        // An arbitrary connection ID that would fail strict validation (zero
+        // is a "not normal" value that triggers a cookie error).
+        let invalid_connection_id = ConnectionId::new(0);
+
+        let announce_request = AnnounceRequest {
+            connection_id: invalid_connection_id,
+            action_placeholder: AnnounceActionPlaceholder::default(),
+            transaction_id: TransactionId::new(1),
+            info_hash: InfoHash(info_hash.0),
+            peer_id: PeerId([255u8; 20]),
+            bytes_downloaded: NumberOfBytes(0i64.into()),
+            bytes_uploaded: NumberOfBytes(0i64.into()),
+            bytes_left: NumberOfBytes(0i64.into()),
+            event: AnnounceEvent::Started.into(),
+            ip_address: std::net::Ipv4Addr::UNSPECIFIED.into(),
+            key: PeerKey::new(0i32),
+            peers_wanted: NumberOfPeers(1i32.into()),
+            port: Port(client.client.socket.local_addr().unwrap().port().into()),
+        };
+
+        client.send(announce_request.into()).await.unwrap();
+
+        let response = client.receive().await.unwrap();
+
+        assert!(
+            crate::server::asserts::is_ipv4_announce_response(&response),
+            "announce should succeed with a valid announce response even with an invalid connection ID when validation is disabled"
+        );
+
+        env.stop().await;
+    }
+
+    #[tokio::test]
+    async fn scrape_succeeds_with_an_arbitrary_connection_id() {
+        logging::setup();
+
+        let cfg = configuration::ephemeral();
+        let core_config = Arc::new(cfg.core.clone());
+        let udp_tracker_config = Arc::new(cfg.udp_trackers.unwrap()[0].clone());
+        let env = torrust_tracker_udp_server::testing::environment::Unstarted::new(&core_config, &udp_tracker_config)
+            .await
+            .with_connection_id_validation(ConnectionIdValidationPolicy::Disabled)
+            .start()
+            .await;
+
+        let client = UdpTrackerClient::new(env.bind_address(), DEFAULT_UDP_TIMEOUT).await.unwrap();
+
+        // An arbitrary connection ID that would fail strict validation.
+        let invalid_connection_id = ConnectionId::new(0);
+
+        let empty_info_hash = vec![InfoHash([0u8; 20])];
+
+        let scrape_request = ScrapeRequest {
+            connection_id: invalid_connection_id,
+            transaction_id: TransactionId::new(1),
+            info_hashes: empty_info_hash,
+        };
+
+        client.send(scrape_request.into()).await.unwrap();
+
+        let response = client.receive().await.unwrap();
+
+        assert!(
+            crate::server::asserts::is_scrape_response(&response),
+            "scrape should succeed with a valid scrape response even with an invalid connection ID when validation is disabled"
+        );
+
+        env.stop().await;
+    }
+
+    #[tokio::test]
+    async fn many_invalid_connection_ids_do_not_cause_ban_in_disabled_mode() {
+        logging::setup();
+
+        let cfg = configuration::ephemeral();
+        let core_config = Arc::new(cfg.core.clone());
+        let udp_tracker_config = Arc::new(cfg.udp_trackers.unwrap()[0].clone());
+        let env = torrust_tracker_udp_server::testing::environment::Unstarted::new(&core_config, &udp_tracker_config)
+            .await
+            .with_connection_id_validation(ConnectionIdValidationPolicy::Disabled)
+            .start()
+            .await;
+
+        let client = UdpTrackerClient::new(env.bind_address(), DEFAULT_UDP_TIMEOUT).await.unwrap();
+
+        // Send more than the ban threshold (10) of invalid connection IDs.
+        // In strict mode this would trigger a ban on request 12; in disabled mode
+        // enforcement is skipped and requests should all succeed without timeout.
+        let invalid_connection_id = ConnectionId::new(0);
+        let info_hash = random_info_hash();
+
+        for x in 0i32..=15 {
+            tracing::info!("req no: {x}");
+
+            let tx_id = TransactionId::new(x);
+
+            let announce_request = AnnounceRequest {
+                connection_id: invalid_connection_id,
+                action_placeholder: AnnounceActionPlaceholder::default(),
+                transaction_id: tx_id,
+                info_hash: InfoHash(info_hash.0),
+                peer_id: PeerId([255u8; 20]),
+                bytes_downloaded: NumberOfBytes(0i64.into()),
+                bytes_uploaded: NumberOfBytes(0i64.into()),
+                bytes_left: NumberOfBytes(0i64.into()),
+                event: AnnounceEvent::Started.into(),
+                ip_address: std::net::Ipv4Addr::UNSPECIFIED.into(),
+                key: PeerKey::new(0i32),
+                peers_wanted: NumberOfPeers(1i32.into()),
+                port: Port(client.client.socket.local_addr().unwrap().port().into()),
+            };
+
+            client.send(announce_request.into()).await.unwrap();
+
+            let response = client.receive().await;
+
+            assert!(
+                response.is_ok(),
+                "request {x} should not time out even after exceeding ban threshold — ban enforcement is disabled"
+            );
+        }
+
+        env.stop().await;
+    }
+}

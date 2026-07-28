@@ -44,15 +44,23 @@ impl ScrapeService {
     ///
     /// # Errors
     ///
-    /// It will return an error if the tracker core scrape handler returns an error.
+    /// It will return an error if cookie validation fails and `validate_cookie`
+    /// is `true`, or if the tracker core scrape handler returns an error.
+    ///
+    /// When `validate_cookie` is `false` the connection ID is not validated.
+    /// The caller is responsible for any metric or event emission related to
+    /// the skipped validation.
     pub async fn handle_scrape(
         &self,
         client_socket_addr: SocketAddr,
         server_service_binding: ServiceBinding,
         request: &ScrapeRequest,
         cookie_valid_range: Range<f64>,
+        validate_cookie: bool,
     ) -> Result<ScrapeData, UdpScrapeError> {
-        Self::authenticate(client_socket_addr, request, cookie_valid_range)?;
+        if validate_cookie {
+            Self::authenticate(client_socket_addr, request, cookie_valid_range)?;
+        }
 
         let scrape_data = self
             .scrape_handler

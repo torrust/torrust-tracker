@@ -518,6 +518,7 @@ mod tests {
 
                                 [udp_tracker_server]
                                 ip_bans_reset_interval_in_secs = 86400
+                                connection_id_validation = "strict"
 
                                 [health_check_api]
                                 bind_address = "127.0.0.1:1313"

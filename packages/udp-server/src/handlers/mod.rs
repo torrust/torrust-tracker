@@ -16,6 +16,7 @@ use scrape::handle_scrape;
 use torrust_clock::clock::Time;
 use torrust_net_primitives::service_binding::ServiceBinding;
 use torrust_tracker_core::MAX_SCRAPE_TORRENTS;
+use torrust_tracker_udp_core::ConnectionIdValidationPolicy;
 use torrust_tracker_udp_core::container::UdpTrackerCoreContainer;
 use torrust_tracker_udp_protocol::{Request, Response, TransactionId};
 use tracing::{Level, instrument};
@@ -49,6 +50,17 @@ impl CookieTimeValues {
     }
 }
 
+/// Cookie validation parameters passed to announce and scrape handlers.
+///
+/// Groups the time-based validity range with the policy that controls whether
+/// the cookie is enforced. Both parameters travel together through the handler
+/// call chain because they both answer "how should the cookie be validated?".
+#[derive(Debug, Clone, PartialEq)]
+pub struct CookieValidationContext {
+    pub valid_range: Range<f64>,
+    pub connection_id_validation: ConnectionIdValidationPolicy,
+}
+
 /// It handles the incoming UDP packets.
 ///
 /// It's responsible for:
@@ -64,6 +76,7 @@ pub(crate) async fn handle_packet(
     udp_tracker_server_container: Arc<UdpTrackerServerContainer>,
     server_service_binding: ServiceBinding,
     cookie_time_values: CookieTimeValues,
+    connection_id_validation: ConnectionIdValidationPolicy,
 ) -> (Response, Option<UdpRequestKind>) {
     let request_id = Uuid::new_v4();
 
@@ -81,6 +94,7 @@ pub(crate) async fn handle_packet(
                 udp_tracker_core_container.clone(),
                 udp_tracker_server_container.clone(),
                 cookie_time_values.clone(),
+                connection_id_validation,
             )
             .await
             {
@@ -152,6 +166,7 @@ pub async fn handle_request(
     udp_tracker_core_container: Arc<UdpTrackerCoreContainer>,
     udp_tracker_server_container: Arc<UdpTrackerServerContainer>,
     cookie_time_values: CookieTimeValues,
+    connection_id_validation: ConnectionIdValidationPolicy,
 ) -> Result<(Response, UdpRequestKind), HandlerError> {
     tracing::trace!("handle request");
 
@@ -176,7 +191,10 @@ pub async fn handle_request(
                 &announce_request,
                 &udp_tracker_core_container.tracker_core_container.core_config,
                 &udp_tracker_server_container.stats_event_sender,
-                cookie_time_values.valid_range,
+                CookieValidationContext {
+                    valid_range: cookie_time_values.valid_range,
+                    connection_id_validation,
+                },
             )
             .await
             {
@@ -191,7 +209,10 @@ pub async fn handle_request(
                 server_service_binding,
                 &scrape_request,
                 &udp_tracker_server_container.stats_event_sender,
-                cookie_time_values.valid_range,
+                CookieValidationContext {
+                    valid_range: cookie_time_values.valid_range,
+                    connection_id_validation,
+                },
             )
             .await
             {
@@ -362,6 +383,13 @@ pub(crate) mod tests {
 
     pub(crate) fn sample_cookie_valid_range() -> Range<f64> {
         sample_issue_time() - 10.0..sample_issue_time() + 10.0
+    }
+
+    pub(crate) fn sample_strict_cookie_validation() -> super::CookieValidationContext {
+        super::CookieValidationContext {
+            valid_range: sample_cookie_valid_range(),
+            connection_id_validation: torrust_tracker_udp_core::ConnectionIdValidationPolicy::Strict,
+        }
     }
 
     pub(crate) struct TrackerConfigurationBuilder {

@@ -4,7 +4,7 @@ status: open
 github-issue: 1978
 spec-path: docs/issues/open/1978-configuration-overhaul-epic.md
 epic-owner: josecelano
-last-updated-utc: 2026-07-23 17:02
+last-updated-utc: 2026-07-27 00:00
 semantic-links:
   skill-links:
     - create-issue
@@ -91,7 +91,7 @@ Status values: `TODO`, `IN_PROGRESS`, `IN_REVIEW`, `BLOCKED`, `DONE`.
 | 4     | [#1417](../../issues/1417) — Include public service URL in configuration                                       | `docs/issues/closed/1417-1978-add-public-service-url-to-configuration.md`               | DONE      | Merged in PR #2016; typed `Option<HttpUrl>`/`Option<UdpUrl>` newtypes on `HttpTracker`, `UdpTracker`, `HttpApi`; scheme validation at deserialization |
 | 5     | [#1415](../../issues/1415) — Use `ServiceBinding` instead of bare `SocketAddr` for service identity            | `docs/issues/open/1415-1978-use-service-binding-instead-of-socket-addr/ISSUE.md`        | DONE      | Added protocol-aware `service_binding` alongside compatible `server_socket_addr` fields in HTTP, REST API, and UDP error logs; verified manually.     |
 | 6     | [#1453](../../issues/1453) — IP bans reset interval configurable + fix duplicate cleanup                       | `docs/issues/open/1453-1978-ip-bans-reset-interval-configurable/ISSUE.md`               | IN_REVIEW | V3 setting validated; one cancellation-managed bootstrap cleanup job uses the v3 default constant. Runtime configuration use is deferred to #1980.    |
-| 7     | [#1136](../../issues/1136) — Add configurable UDP connection ID validation policy                              | `docs/issues/open/1136-1978-configurable-udp-connection-id-validation-policy.md`        | TODO      | Independent per-listener policy; ordered after related global ban cleanup in #6                                                                       |
+| 7     | [#1136](../../issues/1136) — Add configurable UDP connection ID validation policy                              | `docs/issues/open/1136-1978-configurable-udp-connection-id-validation-policy.md`        | IN_REVIEW | PR #2032; all 12 ACs met; manual verification deferred to #1980                                                                                       |
 | 8     | [#1490](../../issues/1490) — Decompose database config and overhaul secrets with `secrecy` crate               | `docs/issues/open/1490-1978-decompose-database-config-and-overhaul-secrets.md`          | TODO      | After #3 (both touch `Core`); can be parallel with #5, #6, #7, #9                                                                                     |
 | 9     | [#889](../../issues/889) — New config option for logging style                                                 | `docs/issues/open/889-1978-new-config-option-for-logging-style.md`                      | TODO      | Independent; can be parallel with #5, #6, #7, #8                                                                                                      |
 | 10    | [#1987](../../issues/1987) — Use peer IP from the HTTP announce `ip` parameter when configured                 | `docs/issues/open/1987-add-config-option-to-use-ip-from-announce-query-string/ISSUE.md` | TODO      | After #3 and external prerequisite #1985; per-HTTP-tracker opt-in policy                                                                              |

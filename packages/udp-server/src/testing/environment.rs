@@ -8,6 +8,7 @@ use torrust_server_lib::registar::Registar;
 use torrust_tracker_configuration::{Core, UdpTracker};
 use torrust_tracker_core::container::TrackerCoreContainer;
 use torrust_tracker_swarm_coordination_registry::container::SwarmCoordinationRegistryContainer;
+use torrust_tracker_udp_core::ConnectionIdValidationPolicy;
 use torrust_tracker_udp_core::container::UdpTrackerCoreContainer;
 
 use crate::container::UdpTrackerServerContainer;
@@ -18,6 +19,7 @@ use crate::server::states::{Running, Stopped};
 const DEFAULT_SERVER_LIFECYCLE_TIMEOUT: Duration = Duration::from_secs(5);
 
 pub type Started = Environment<Running>;
+pub type Unstarted = Environment<Stopped>;
 
 pub struct Environment<S>
 where
@@ -30,6 +32,7 @@ where
     pub udp_server_stats_event_listener_job: Option<JoinHandle<()>>,
     pub udp_server_banning_event_listener_job: Option<JoinHandle<()>>,
     pub cancellation_token: CancellationToken,
+    pub connection_id_validation: ConnectionIdValidationPolicy,
 }
 
 impl Environment<Stopped> {
@@ -52,7 +55,20 @@ impl Environment<Stopped> {
             udp_server_stats_event_listener_job: None,
             udp_server_banning_event_listener_job: None,
             cancellation_token: CancellationToken::new(),
+            connection_id_validation: ConnectionIdValidationPolicy::Strict,
+            // TODO(#1980): remove this hardcoded fallback once schema v3 is the
+            // default. The v3 `UdpTrackerServer` config carries `connection_id_validation`
+            // natively; the policy should come from there, not from a separate
+            // Environment field.
         }
+    }
+
+    /// Sets the connection ID validation policy for this test environment.
+    #[must_use]
+    #[allow(dead_code)]
+    pub fn with_connection_id_validation(mut self, policy: ConnectionIdValidationPolicy) -> Self {
+        self.connection_id_validation = policy;
+        self
     }
 
     /// Starts the test environment and return a running environment.
@@ -94,6 +110,7 @@ impl Environment<Stopped> {
                 self.container.udp_tracker_server_container.clone(),
                 self.registar.give_form(),
                 cookie_lifetime,
+                self.connection_id_validation,
             )
             .await
             .expect("Failed to start the UDP tracker server");
@@ -106,6 +123,7 @@ impl Environment<Stopped> {
             udp_server_stats_event_listener_job,
             udp_server_banning_event_listener_job,
             cancellation_token: self.cancellation_token,
+            connection_id_validation: self.connection_id_validation,
         }
     }
 }
@@ -165,6 +183,7 @@ impl Environment<Running> {
             udp_server_stats_event_listener_job: None,
             udp_server_banning_event_listener_job: None,
             cancellation_token: self.cancellation_token,
+            connection_id_validation: self.connection_id_validation,
         }
     }
 
