@@ -95,6 +95,28 @@ rendering handle the wrapping.
 | GitHub issue / PR body | No                               | Do **not** hard-wrap lines                                   |
 | GitHub review comments | No                               | Do **not** hard-wrap lines                                   |
 
+## Filename Conventions
+
+Use **UPPERCASE** for two categories of Markdown files:
+
+1. **Templates** — reusable scaffolds (e.g. issue templates, PR templates).
+2. **Issue/EPIC specs** — the primary spec file inside a folder-based issue or
+   EPIC: `ISSUE.md`, `EPIC.md`.
+
+All other Markdown files (guides, notes, supporting docs) use **lowercase**
+kebab-case: `migration-guide.md`, `manual-verification.md`, `README.md`.
+
+| Category       | Convention | Example                                                 |
+| -------------- | ---------- | ------------------------------------------------------- |
+| Templates      | UPPERCASE  | `.github/ISSUE_TEMPLATE/BUG_REPORT.md`                  |
+| Issue spec     | UPPERCASE  | `1978-configuration-overhaul-epic/EPIC.md`              |
+| Issue spec     | UPPERCASE  | `889-1978-new-config-option-for-logging-style/ISSUE.md` |
+| Supporting doc | lowercase  | `1978-configuration-overhaul-epic/migration-guide.md`   |
+| README         | lowercase  | `docs/issues/open/README.md`                            |
+
+> **Note**: This convention may be tightened in the future to reserve UPPERCASE
+> exclusively for templates. For now, issue/EPIC specs are an exception.
+
 ## Checklist Before Committing Docs
 
 - [ ] No `#NUMBER` patterns used for enumeration or step numbering
