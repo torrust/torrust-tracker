@@ -90,14 +90,15 @@ Old spellings are therefore expected to remain under `v2_0_0`, in the crate-root
 
 ## Implementation Plan
 
-| ID  | Status | Task                                                 | Notes                                               |
-| --- | ------ | ---------------------------------------------------- | --------------------------------------------------- |
-| T1  | DONE   | Add the v3-owned `TlsConfig` struct                  | Added `packages/configuration/src/v3_0_0/tls.rs`    |
-| T2  | DONE   | Rename v3 `tsl_config` fields to `tls_config`        | Updated v3 `HttpTracker` and `HttpApi` only         |
-| T3  | DONE   | Rename schema-neutral `tsl.rs` to `tls.rs`           | Updated module imports and local identifiers        |
-| T4  | DONE   | Update v3 docs, open implementation specs, and tests | Preserved v2 and historical spellings intentionally |
-| T5  | DONE   | Record remaining old spellings by ownership          | All matches classified under the approved boundary  |
-| T6  | DONE   | Run `linter all` and full test suite                 | Both completed successfully on 2026-07-20           |
+| ID  | Status | Task                                                                  | Notes                                                                                   |
+| --- | ------ | --------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| T1  | DONE   | Add the v3-owned `TlsConfig` struct                                   | Added `packages/configuration/src/v3_0_0/tls.rs`                                        |
+| T2  | DONE   | Rename v3 `tsl_config` fields to `tls_config`                         | Updated v3 `HttpTracker` and `HttpApi` only                                             |
+| T3  | DONE   | Rename schema-neutral `tsl.rs` to `tls.rs`                            | Updated module imports and local identifiers                                            |
+| T4  | DONE   | Update v3 docs, open implementation specs, and tests                  | Preserved v2 and historical spellings intentionally                                     |
+| T5  | DONE   | Record remaining old spellings by ownership                           | All matches classified under the approved boundary                                      |
+| T6  | DONE   | Run `linter all` and full test suite                                  | Both completed successfully on 2026-07-20                                               |
+| T7  | DONE   | Update migration guide if this subissue affects the config public API | `docs/issues/open/1978-configuration-overhaul-epic/configuration-v2-to-v3-migration.md` |
 
 ## Implementation Files
 

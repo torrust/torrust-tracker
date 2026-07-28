@@ -129,6 +129,7 @@ All four variants are simple unit variants — no boolean parameters. The `displ
 | T6  | DONE   | Update v3 generated default configuration                                  | Uses `trace_filter` and `trace_style`; shipped v2 defaults are deferred to #1980 because v3 is not yet the active global schema |
 | T7  | DONE   | Run `linter all` and tests                                                 | `linter all` and the configuration crate test suite pass                                                                        |
 | T8  | DONE   | Add negative test: v3 `Logging` rejects the removed `threshold` key        | Ensures the breaking rename is guarded by `#[serde(deny_unknown_fields)]`                                                       |
+| T9  | DONE   | Update migration guide if this subissue affects the config public API      | `docs/issues/open/1978-configuration-overhaul-epic/configuration-v2-to-v3-migration.md`                                         |
 
 ## Progress Tracking
 

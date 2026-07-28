@@ -180,6 +180,7 @@ For each subissue implementation in this EPIC, the default completion policy is:
 1. Run automatic checks (`linter all`, relevant tests, pre-push checks when applicable).
 2. Run manual verification scenarios and record evidence.
 3. Re-review acceptance criteria after implementation and update verification evidence.
+4. If the subissue affects the configuration public API, update the migration guide at `docs/issues/open/1978-configuration-overhaul-epic/configuration-v2-to-v3-migration.md`.
 
 ## Progress Tracking
 

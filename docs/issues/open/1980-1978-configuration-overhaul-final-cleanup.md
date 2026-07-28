@@ -162,6 +162,7 @@ Files that import `torrust_tracker_configuration::logging` (the module, not the 
 | T7  | TODO   | Apply any additional cleanup discovered during EPIC                 | Document in progress log                                                                                                                                                  |
 | T8  | TODO   | Run #889 deferred manual verification scenarios (M1–M5)             | After consumer migration, run tracker with v3 config and verify all four trace styles + `trace_filter` filtering                                                          |
 | T9  | TODO   | Run `linter all` and full test suite                                |                                                                                                                                                                           |
+| T10 | TODO   | Finalize migration guide                                            | `docs/issues/open/1978-configuration-overhaul-epic/configuration-v2-to-v3-migration.md` — this is the final cleanup, so the guide should be complete at this point        |
 
 ## Progress Tracking
 

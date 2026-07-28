@@ -197,19 +197,20 @@ and `share/default/config/` to schema v3 remains part of final cleanup issue #19
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| ID  | Status | Task                                             | Notes / Expected Output                                                                 |
-| --- | ------ | ------------------------------------------------ | --------------------------------------------------------------------------------------- |
-| T1  | DONE   | Add the v3 validation policy                     | Enum in `v3_0_0/udp_tracker_server.rs`; default is `strict`                             |
-| T2  | DONE   | Add configuration serialization tests            | Missing field defaults to strict; both string values round-trip                         |
-| T3  | DONE   | Add shared policy-aware cookie authentication    | One UDP core boundary implements strict validation and the disabled bypass              |
-| T4  | DONE   | Propagate policy through UDP server construction | Policy reaches request processing without global state                                  |
-| T5  | DONE   | Apply the shared policy to announce and scrape   | Both request paths use the same authentication behavior                                 |
-| T6  | DONE   | Preserve observability and banning semantics     | Both modes emit cookie-error metrics; only strict increments IP-ban counters            |
-| T7  | DONE   | Warn when starting an insecure listener          | `WARN` log at startup identifies the affected UDP service binding                       |
-| T8  | DONE   | Add mixed-listener contract coverage             | Treat disabled policy as a separate configuration scenario (like private/public) and    |
-|     |        |                                                  | add tests for connect (still valid), announce, and scrape with arbitrary connection IDs |
-| T9  | DONE   | Update v3 schema documentation and test fixtures | Do not modify v2 or active `share/default/config/` files                                |
-| T10 | DONE   | Run automatic and manual verification            | Linters, focused tests, workspace tests, pre-push checks, and recorded manual evidence  |
+| ID  | Status | Task                                                                  | Notes / Expected Output                                                                 |
+| --- | ------ | --------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| T1  | DONE   | Add the v3 validation policy                                          | Enum in `v3_0_0/udp_tracker_server.rs`; default is `strict`                             |
+| T2  | DONE   | Add configuration serialization tests                                 | Missing field defaults to strict; both string values round-trip                         |
+| T3  | DONE   | Add shared policy-aware cookie authentication                         | One UDP core boundary implements strict validation and the disabled bypass              |
+| T4  | DONE   | Propagate policy through UDP server construction                      | Policy reaches request processing without global state                                  |
+| T5  | DONE   | Apply the shared policy to announce and scrape                        | Both request paths use the same authentication behavior                                 |
+| T6  | DONE   | Preserve observability and banning semantics                          | Both modes emit cookie-error metrics; only strict increments IP-ban counters            |
+| T7  | DONE   | Warn when starting an insecure listener                               | `WARN` log at startup identifies the affected UDP service binding                       |
+| T8  | DONE   | Add mixed-listener contract coverage                                  | Treat disabled policy as a separate configuration scenario (like private/public) and    |
+|     |        |                                                                       | add tests for connect (still valid), announce, and scrape with arbitrary connection IDs |
+| T9  | DONE   | Update v3 schema documentation and test fixtures                      | Do not modify v2 or active `share/default/config/` files                                |
+| T10 | DONE   | Run automatic and manual verification                                 | Linters, focused tests, workspace tests, pre-push checks, and recorded manual evidence  |
+| T11 | DONE   | Update migration guide if this subissue affects the config public API | `docs/issues/open/1978-configuration-overhaul-epic/configuration-v2-to-v3-migration.md` |
 
 ## Progress Tracking
 

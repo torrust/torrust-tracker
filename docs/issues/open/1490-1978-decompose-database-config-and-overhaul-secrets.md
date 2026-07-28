@@ -18,7 +18,6 @@ semantic-links:
     - packages/configuration/src/lib.rs
 ---
 
-
 # Issue #1490 - Decompose database config and overhaul secrets with `secrecy` crate
 
 > **EPIC position**: Subissue #7 of 9. Depends on #1640 (subissue #3) — both touch `Core`, so #1640 goes first (removes `core.net`, then #1490 changes `database` type). Can run in parallel with #1415, #1453, #889.
@@ -168,19 +167,20 @@ The `rest-api-client` crate and `tracker-core` authentication are **not affected
 
 ## Implementation Plan
 
-| ID  | Status | Task                                                            | Notes                                                                     |
-| --- | ------ | --------------------------------------------------------------- | ------------------------------------------------------------------------- |
-| T1  | TODO   | Add `secrecy` dependency to `packages/configuration/Cargo.toml` | Latest stable version                                                     |
-| T2  | TODO   | Define `ConnectionInfo` struct and `Database` enum              | In `packages/configuration/src/v3_0_0/database.rs`                        |
-| T3  | TODO   | Implement serde for `Database` enum (internally tagged)         | `driver` field as discriminant; `Sqlite3`, `MySQL`, `PostgreSQL` variants |
-| T4  | TODO   | Wrap database password in `Secret<String>`                      | In `ConnectionInfo`; `Sqlite3` variant has no secrets                     |
-| T5  | TODO   | Wrap API tokens in `Secret<String>`                             | In `HttpApi` config struct                                                |
-| T6  | TODO   | Remove manual `mask_secrets()` methods                          | No longer needed with type-level protection                               |
-| T7  | TODO   | Update `tracker-core/src/databases/setup.rs` dispatch           | Match on `Database` enum variant instead of `Driver`                      |
-| T8  | TODO   | Update all ~25 consumers (tests, examples, benchmarks, E2E)     | Construct enum variants; use `.expose_secret()` for secrets               |
-| T9  | TODO   | Update default config TOML files (6 files)                      | New per-driver format                                                     |
-| T10 | TODO   | Update inline TOML in tests and doc comments                    | `mod.rs` tests, `lib.rs`, integration tests                               |
-| T11 | TODO   | Run `linter all` and full test suite                            |                                                                           |
+| ID  | Status | Task                                                                  | Notes                                                                                   |
+| --- | ------ | --------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| T1  | TODO   | Add `secrecy` dependency to `packages/configuration/Cargo.toml`       | Latest stable version                                                                   |
+| T2  | TODO   | Define `ConnectionInfo` struct and `Database` enum                    | In `packages/configuration/src/v3_0_0/database.rs`                                      |
+| T3  | TODO   | Implement serde for `Database` enum (internally tagged)               | `driver` field as discriminant; `Sqlite3`, `MySQL`, `PostgreSQL` variants               |
+| T4  | TODO   | Wrap database password in `Secret<String>`                            | In `ConnectionInfo`; `Sqlite3` variant has no secrets                                   |
+| T5  | TODO   | Wrap API tokens in `Secret<String>`                                   | In `HttpApi` config struct                                                              |
+| T6  | TODO   | Remove manual `mask_secrets()` methods                                | No longer needed with type-level protection                                             |
+| T7  | TODO   | Update `tracker-core/src/databases/setup.rs` dispatch                 | Match on `Database` enum variant instead of `Driver`                                    |
+| T8  | TODO   | Update all ~25 consumers (tests, examples, benchmarks, E2E)           | Construct enum variants; use `.expose_secret()` for secrets                             |
+| T9  | TODO   | Update default config TOML files (6 files)                            | New per-driver format                                                                   |
+| T10 | TODO   | Update inline TOML in tests and doc comments                          | `mod.rs` tests, `lib.rs`, integration tests                                             |
+| T11 | TODO   | Run `linter all` and full test suite                                  |                                                                                         |
+| T12 | TODO   | Update migration guide if this subissue affects the config public API | `docs/issues/open/1978-configuration-overhaul-epic/configuration-v2-to-v3-migration.md` |
 
 ## Progress Tracking
 
