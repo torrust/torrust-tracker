@@ -84,7 +84,7 @@ tests/
 ├── AGENTS.md                    # This file
 ├── common/
 │   └── mod.rs                   # Shared test utilities (temp config, port extraction)
-├── integration.rs               # Global statistics suite (main integration tests)
+├── stats.rs                     # Global statistics suite (main integration tests)
 ├── scaffold.rs                  # Scaffolding demo — pattern reference for new binaries
 └── servers/
     └── api/

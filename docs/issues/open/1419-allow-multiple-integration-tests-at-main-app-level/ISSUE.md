@@ -182,7 +182,7 @@ then fix the scaffolding infrastructure, then expand coverage.
 
 | ID  | Status | Task                                                        | Notes                                                                                                                                        |
 | --- | ------ | ----------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| T1  | TODO   | Create `tests/AGENTS.md` with guidelines and TODO list      | Document what belongs in main-level integration tests vs package tests; include prioritized TODO list of future valuable integration tests   |
+| T1  | DONE   | Create `tests/AGENTS.md` with guidelines and TODO list      | Document what belongs in main-level integration tests vs package tests; include prioritized TODO list of future valuable integration tests   |
 | T2  | TODO   | Add second assertion to existing stats test                 | Check another global stat field (e.g., `tcp4_scrapes_handled` or `tcp6_announces_handled`) to prove need for parallel test capability        |
 | T3  | TODO   | Create test utilities module                                | `tests/helpers.rs` with utilities for temp workspace creation (config + storage dirs) and port extraction                                    |
 | T4  | TODO   | Add utility to create isolated temp workspace               | Returns `TempDir` with subdirectories for config and storage; writes TOML config; sets `TORRUST_TRACKER_CONFIG_TOML_PATH` env var            |
@@ -217,7 +217,7 @@ then fix the scaffolding infrastructure, then expand coverage.
 
 ## Acceptance Criteria
 
-- [ ] AC1: `tests/AGENTS.md` exists and documents guidelines for what belongs at main-level vs
+- [x] AC1: `tests/AGENTS.md` exists and documents guidelines for what belongs at main-level vs
       package-level, with a TODO list of future valuable integration tests.
 - [ ] AC2: Multiple integration tests can run concurrently with `cargo test --test stats`
       without port conflicts.
