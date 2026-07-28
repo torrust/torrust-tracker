@@ -83,14 +83,15 @@ follow both changes.
 
 ## Implementation Plan
 
-| ID  | Status | Task                                               | Notes                                                            |
-| --- | ------ | -------------------------------------------------- | ---------------------------------------------------------------- |
-| T1  | TODO   | Review v3 runtime configuration access after #1980 | Do not introduce a v2 fallback.                                  |
-| T2  | TODO   | Extend health-check contract                       | Preserve existing fields for compatibility.                      |
-| T3  | TODO   | Extend per-service metric labels                   | Cover configured and absent public URL cases.                    |
-| T4  | TODO   | Extend startup and request logging                 | Record `service_binding` and optional `public_url` separately.   |
-| T5  | TODO   | Add focused tests                                  | Cover HTTP, UDP where supported, wildcard binding, and port `0`. |
-| T6  | TODO   | Run automatic and manual verification              | Record command output in an evidence file after implementation.  |
+| ID  | Status | Task                                                                  | Notes                                                                                   |
+| --- | ------ | --------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| T1  | TODO   | Review v3 runtime configuration access after #1980                    | Do not introduce a v2 fallback.                                                         |
+| T2  | TODO   | Extend health-check contract                                          | Preserve existing fields for compatibility.                                             |
+| T3  | TODO   | Extend per-service metric labels                                      | Cover configured and absent public URL cases.                                           |
+| T4  | TODO   | Extend startup and request logging                                    | Record `service_binding` and optional `public_url` separately.                          |
+| T5  | TODO   | Add focused tests                                                     | Cover HTTP, UDP where supported, wildcard binding, and port `0`.                        |
+| T6  | TODO   | Run automatic and manual verification                                 | Record command output in an evidence file after implementation.                         |
+| T7  | TODO   | Update migration guide if this subissue affects the config public API | `docs/issues/open/1978-configuration-overhaul-epic/configuration-v2-to-v3-migration.md` |
 
 ## Progress Tracking
 

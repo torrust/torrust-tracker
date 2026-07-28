@@ -160,7 +160,9 @@ Files that import `torrust_tracker_configuration::logging` (the module, not the 
 | T5  | TODO   | Enable #1453's v3 ban-cleanup interval                              | Replace its temporary 24-hour default-constant bootstrap value after consumer migration                                                                                   |
 | T6  | TODO   | Remove hardcoded `ConnectionIdValidationPolicy` in test environment | `packages/udp-server/src/testing/environment.rs` hardcodes `Strict` because v2 config lacks the field; after v3 migration the field is available natively in `UdpTracker` |
 | T7  | TODO   | Apply any additional cleanup discovered during EPIC                 | Document in progress log                                                                                                                                                  |
-| T8  | TODO   | Run `linter all` and full test suite                                |                                                                                                                                                                           |
+| T8  | TODO   | Run #889 deferred manual verification scenarios (M1–M5)             | After consumer migration, run tracker with v3 config and verify all four trace styles + `trace_filter` filtering                                                          |
+| T9  | TODO   | Run `linter all` and full test suite                                |                                                                                                                                                                           |
+| T10 | TODO   | Finalize migration guide                                            | `docs/issues/open/1978-configuration-overhaul-epic/configuration-v2-to-v3-migration.md` — this is the final cleanup, so the guide should be complete at this point        |
 
 ## Progress Tracking
 
@@ -184,6 +186,9 @@ Files that import `torrust_tracker_configuration::logging` (the module, not the 
   with `udp_tracker_server.ip_bans_reset_interval_in_secs`.
 - 2026-07-27 12:36 UTC - agent - Added T6: `environment.rs` hardcoded `ConnectionIdValidationPolicy::Strict`
   must be replaced with the v3 config's native field after consumer migration (#1136).
+- 2026-07-28 00:00 UTC - agent - Added T8: run #889 deferred manual verification scenarios (M1–M5)
+  after consumer migration. These scenarios require the tracker to use v3 config, which is not
+  possible until this cleanup migrates global callers.
 
 ## Acceptance Criteria
 

@@ -18,12 +18,11 @@ semantic-links:
     - packages/http-protocol/src/v1/requests/announce.rs
     - packages/http-core/src/services/announce.rs
     - packages/configuration/src/v2_0_0/
-    - docs/issues/open/1978-configuration-overhaul-epic.md
+    - docs/issues/open/1978-configuration-overhaul-epic/EPIC.md
     - docs/issues/open/1640-1978-per-http-tracker-on-reverse-proxy-setting.md
     - evidence-opentracker-no-dns-support.md
     - evidence-chihaya-no-dns-support.md
 ---
-
 
 # Issue #1987 - Add per-HTTP-tracker config option to use peer IP from `ip` GET parameter (sub-issue of #1978)
 
@@ -83,16 +82,17 @@ Enabling this feature allows a remote client to claim any IP address in its anno
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| ID  | Status | Task                                                          | Notes / Expected Output                                                                                                                                                                                                                                                                                                |
-| --- | ------ | ------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| T1  | TODO   | Design the configuration field name and schema placement      | Align with #1978 schema v3.0.0 design; propose name (e.g. `use_ip_from_query_string`)                                                                                                                                                                                                                                  |
-| T2  | TODO   | Add the field to the per-HTTP-tracker configuration struct    | Target the v3.0.0 schema under `packages/configuration/` as part of the #1978 overhaul                                                                                                                                                                                                                                 |
-| T3  | TODO   | Thread the config value through to the announce service       | `packages/http-core/src/services/announce.rs` `peer_from_request`                                                                                                                                                                                                                                                      |
-| T4  | TODO   | Implement the conditional IP selection in `peer_from_request` | Use `announce_request.ip` if `use_ip_from_query_string` is `true` and the field is `Some`; otherwise use the connection IP. When both `use_ip_from_query_string` and `on_reverse_proxy` are enabled, the query string IP takes precedence. Requires prerequisite issue (rename `peer_addr` → `ip`) to be merged first. |
-| T5  | TODO   | Add contract tests for enabled and disabled behaviour         | New tests in `packages/axum-http-server/tests/`                                                                                                                                                                                                                                                                        |
-| T6  | TODO   | Update configuration documentation                            | `packages/configuration/` docs and `share/default/` config file                                                                                                                                                                                                                                                        |
-| T7  | TODO   | Run `cargo test --workspace` — no regressions                 | All tests pass                                                                                                                                                                                                                                                                                                         |
-| T8  | TODO   | Run `linter all`                                              | Must exit `0`                                                                                                                                                                                                                                                                                                          |
+| ID  | Status | Task                                                                  | Notes / Expected Output                                                                                                                                                                                                                                                                                                |
+| --- | ------ | --------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| T1  | TODO   | Design the configuration field name and schema placement              | Align with #1978 schema v3.0.0 design; propose name (e.g. `use_ip_from_query_string`)                                                                                                                                                                                                                                  |
+| T2  | TODO   | Add the field to the per-HTTP-tracker configuration struct            | Target the v3.0.0 schema under `packages/configuration/` as part of the #1978 overhaul                                                                                                                                                                                                                                 |
+| T3  | TODO   | Thread the config value through to the announce service               | `packages/http-core/src/services/announce.rs` `peer_from_request`                                                                                                                                                                                                                                                      |
+| T4  | TODO   | Implement the conditional IP selection in `peer_from_request`         | Use `announce_request.ip` if `use_ip_from_query_string` is `true` and the field is `Some`; otherwise use the connection IP. When both `use_ip_from_query_string` and `on_reverse_proxy` are enabled, the query string IP takes precedence. Requires prerequisite issue (rename `peer_addr` → `ip`) to be merged first. |
+| T5  | TODO   | Add contract tests for enabled and disabled behaviour                 | New tests in `packages/axum-http-server/tests/`                                                                                                                                                                                                                                                                        |
+| T6  | TODO   | Update configuration documentation                                    | `packages/configuration/` docs and `share/default/` config file                                                                                                                                                                                                                                                        |
+| T7  | TODO   | Run `cargo test --workspace` — no regressions                         | All tests pass                                                                                                                                                                                                                                                                                                         |
+| T8  | TODO   | Run `linter all`                                                      | Must exit `0`                                                                                                                                                                                                                                                                                                          |
+| T9  | TODO   | Update migration guide if this subissue affects the config public API | `docs/issues/open/1978-configuration-overhaul-epic/configuration-v2-to-v3-migration.md`                                                                                                                                                                                                                                |
 
 ## Progress Tracking
 
@@ -171,7 +171,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 - BEP 3 — The BitTorrent Protocol Specification: <https://www.bittorrent.org/beps/bep_0003.html>
 - Feature request: <https://github.com/torrust/torrust-tracker/issues/163#issuecomment-1836642956>
-- Parent epic: [#1978 — Configuration Overhaul](../1978-configuration-overhaul-epic.md)
+- Parent epic: [#1978 — Configuration Overhaul](../1978-configuration-overhaul-epic/EPIC.md)
 - Prerequisite issue: rename `peer_addr` → `ip` (to be linked once created)
 - Related issue: [#1640 — Per-HTTP-tracker `on_reverse_proxy` setting](../1640-1978-per-http-tracker-on-reverse-proxy-setting.md)
 - opentracker `WANT_IP_FROM_QUERY_STRING`: <https://erdgeist.org/arts/software/opentracker/>

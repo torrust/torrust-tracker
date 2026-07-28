@@ -57,17 +57,18 @@ This approach:
 
 ## Implementation Plan
 
-| ID  | Status           | Task                                                         | Notes                                                                                                                                     |
-| --- | ---------------- | ------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| T1  | DONE             | Copy `v2_0_0/` directory to `v3_0_0/`                        | `cp -r packages/configuration/src/v2_0_0/ packages/configuration/src/v3_0_0/`                                                             |
-| T2  | DONE             | Update `v3_0_0/mod.rs` to use `crate::v3_0_0` internal paths | Fixed all doc links, VERSION constant, test imports, and schema_version strings                                                           |
-| T3  | DONE             | Copy `logging.rs` into `v2_0_0/logging.rs`                   | Merged TraceStyle/setup/tracing_init into the versioned logging.rs; added module-level doc comment                                        |
-| T4  | DONE             | Copy `logging.rs` into `v3_0_0/logging.rs`                   | Same content as T3; v3 gets its own copy                                                                                                  |
-| T5  | DONE             | Update `lib.rs` to expose `pub mod v3_0_0`                   | Added alongside existing `pub mod v2_0_0`; added `Metadata::with_schema_version` helper; global re-exports stay at v2                     |
-| T6  | DEFERRED → #1980 | Update default config files to `schema_version = "3.0.0"`    | Cannot be done while bootstrap still uses `v2_0_0::Configuration`; config files and bootstrap switch together in #1980                    |
-| T7  | DEFERRED → #1980 | Wire application entry point to use `v3_0_0` by default      | Requires updating bootstrap + all consumers; this is exactly the scope of subissue #1980                                                  |
-| T8  | DONE             | Add smoke tests: deserialize default v3 config               | Added `smoke::v3_configuration_should_load_when_schema_version_is_3_0_0` and `smoke::v3_configuration_should_reject_schema_version_2_0_0` |
-| T9  | DONE             | Run `linter all` and full test suite                         | All 48 test suites pass (0 failures)                                                                                                      |
+| ID  | Status           | Task                                                                  | Notes                                                                                                                                     |
+| --- | ---------------- | --------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| T1  | DONE             | Copy `v2_0_0/` directory to `v3_0_0/`                                 | `cp -r packages/configuration/src/v2_0_0/ packages/configuration/src/v3_0_0/`                                                             |
+| T2  | DONE             | Update `v3_0_0/mod.rs` to use `crate::v3_0_0` internal paths          | Fixed all doc links, VERSION constant, test imports, and schema_version strings                                                           |
+| T3  | DONE             | Copy `logging.rs` into `v2_0_0/logging.rs`                            | Merged TraceStyle/setup/tracing_init into the versioned logging.rs; added module-level doc comment                                        |
+| T4  | DONE             | Copy `logging.rs` into `v3_0_0/logging.rs`                            | Same content as T3; v3 gets its own copy                                                                                                  |
+| T5  | DONE             | Update `lib.rs` to expose `pub mod v3_0_0`                            | Added alongside existing `pub mod v2_0_0`; added `Metadata::with_schema_version` helper; global re-exports stay at v2                     |
+| T6  | DEFERRED → #1980 | Update default config files to `schema_version = "3.0.0"`             | Cannot be done while bootstrap still uses `v2_0_0::Configuration`; config files and bootstrap switch together in #1980                    |
+| T7  | DEFERRED → #1980 | Wire application entry point to use `v3_0_0` by default               | Requires updating bootstrap + all consumers; this is exactly the scope of subissue #1980                                                  |
+| T8  | DONE             | Add smoke tests: deserialize default v3 config                        | Added `smoke::v3_configuration_should_load_when_schema_version_is_3_0_0` and `smoke::v3_configuration_should_reject_schema_version_2_0_0` |
+| T9  | DONE             | Run `linter all` and full test suite                                  | All 48 test suites pass (0 failures)                                                                                                      |
+| T10 | DONE             | Update migration guide if this subissue affects the config public API | `docs/issues/open/1978-configuration-overhaul-epic/configuration-v2-to-v3-migration.md`                                                   |
 
 ## Progress Tracking
 

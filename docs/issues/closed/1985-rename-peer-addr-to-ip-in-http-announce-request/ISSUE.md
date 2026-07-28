@@ -227,5 +227,5 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 - BEP 3 — The BitTorrent Protocol Specification: <https://www.bittorrent.org/beps/bep_0003.html>
 - Related issue (honour `ip` param — sub-issue of #1978): to be created
-- Related epic: [#1978 — Configuration Overhaul](../1978-configuration-overhaul-epic.md)
+- Related epic: [#1978 — Configuration Overhaul](../1978-configuration-overhaul-epic/EPIC.md)
 - opentracker `WANT_IP_FROM_QUERY_STRING`: <https://erdgeist.org/arts/software/opentracker/>

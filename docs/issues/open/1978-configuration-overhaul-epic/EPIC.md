@@ -2,7 +2,7 @@
 doc-type: epic
 status: open
 github-issue: 1978
-spec-path: docs/issues/open/1978-configuration-overhaul-epic.md
+spec-path: docs/issues/open/1978-configuration-overhaul-epic/EPIC.md
 epic-owner: josecelano
 last-updated-utc: 2026-07-27 00:00
 semantic-links:
@@ -11,6 +11,7 @@ semantic-links:
   related-artifacts:
     - packages/configuration/src/v2_0_0/
     - packages/configuration/src/lib.rs
+    - docs/issues/open/1978-configuration-overhaul-epic/configuration-v2-to-v3-migration.md
     - docs/issues/closed/1417-1978-add-public-service-url-to-configuration.md
     - docs/issues/closed/1640-1978-per-http-tracker-on-reverse-proxy-setting.md
     - docs/issues/open/1136-1978-configurable-udp-connection-id-validation-policy.md
@@ -93,7 +94,7 @@ Status values: `TODO`, `IN_PROGRESS`, `IN_REVIEW`, `BLOCKED`, `DONE`.
 | 6     | [#1453](../../issues/1453) — IP bans reset interval configurable + fix duplicate cleanup                       | `docs/issues/open/1453-1978-ip-bans-reset-interval-configurable/ISSUE.md`               | IN_REVIEW | V3 setting validated; one cancellation-managed bootstrap cleanup job uses the v3 default constant. Runtime configuration use is deferred to #1980.    |
 | 7     | [#1136](../../issues/1136) — Add configurable UDP connection ID validation policy                              | `docs/issues/open/1136-1978-configurable-udp-connection-id-validation-policy.md`        | IN_REVIEW | PR #2032; all 12 ACs met; manual verification deferred to #1980                                                                                       |
 | 8     | [#1490](../../issues/1490) — Decompose database config and overhaul secrets with `secrecy` crate               | `docs/issues/open/1490-1978-decompose-database-config-and-overhaul-secrets.md`          | TODO      | After #3 (both touch `Core`); can be parallel with #5, #6, #7, #9                                                                                     |
-| 9     | [#889](../../issues/889) — New config option for logging style                                                 | `docs/issues/open/889-1978-new-config-option-for-logging-style.md`                      | TODO      | Independent; can be parallel with #5, #6, #7, #8                                                                                                      |
+| 9     | [#889](../../issues/889) — New config option for logging style                                                 | `docs/issues/open/889-1978-new-config-option-for-logging-style.md`                      | IN_REVIEW | v3 schema implemented; includes negative test for removed `threshold` key; pending commit. Deps on #1 only.                                           |
 | 10    | [#1987](../../issues/1987) — Use peer IP from the HTTP announce `ip` parameter when configured                 | `docs/issues/open/1987-add-config-option-to-use-ip-from-announce-query-string/ISSUE.md` | TODO      | After #3 and external prerequisite #1985; per-HTTP-tracker opt-in policy                                                                              |
 | 11    | [#1980](../../issues/1980) — Final cleanup: remove global re-exports, migrate consumers to explicit v3 imports | `docs/issues/open/1980-1978-configuration-overhaul-final-cleanup.md`                    | TODO      | Must precede #12; depends on all other existing subissues                                                                                             |
 | 12    | [#2023](../../issues/2023) — Expose configured public URLs in runtime observability                            | `docs/issues/open/2023-1978-expose-configured-public-urls-in-runtime-observability.md`  | TODO      | Must follow #1417 and #1980; adds `public_url` to health checks, metrics, and logs without replacing ServiceBinding                                   |
@@ -179,12 +180,13 @@ For each subissue implementation in this EPIC, the default completion policy is:
 1. Run automatic checks (`linter all`, relevant tests, pre-push checks when applicable).
 2. Run manual verification scenarios and record evidence.
 3. Re-review acceptance criteria after implementation and update verification evidence.
+4. If the subissue affects the configuration public API, update the migration guide at `docs/issues/open/1978-configuration-overhaul-epic/configuration-v2-to-v3-migration.md`.
 
 ## Progress Tracking
 
 ### Workflow Checkpoints
 
-- [x] Epic spec drafted in `docs/issues/open/1978-configuration-overhaul-epic.md`
+- [x] Epic spec drafted in `docs/issues/open/1978-configuration-overhaul-epic/EPIC.md`
 - [x] Epic spec reviewed and approved by user/maintainer
 - [x] GitHub epic issue created: #1978
 - [x] Subissues created and linked in this spec
