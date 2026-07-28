@@ -12,7 +12,7 @@ semantic-links:
   skill-links:
     - create-issue
   related-artifacts:
-    - docs/issues/open/1978-configuration-overhaul-epic.md
+    - docs/issues/open/1978-configuration-overhaul-epic/EPIC.md
     - docs/issues/open/1453-1978-ip-bans-reset-interval-configurable/ISSUE.md
     - docs/adrs/20260727000000_events_are_objective_facts.md
     - packages/configuration/src/v3_0_0/udp_tracker_server.rs

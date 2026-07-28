@@ -118,7 +118,7 @@ Old spellings are therefore expected to remain under `v2_0_0`, in the crate-root
 | ------------------------------------------------------------------------- | ----------------------------------------- |
 | `packages/configuration/src/v3_0_0/mod.rs`                                | Correct v3 schema examples and prose      |
 | `docs/issues/closed/1640-1978-per-http-tracker-on-reverse-proxy-setting.md` | Correct future v3 field/type references   |
-| `docs/issues/open/1978-configuration-overhaul-epic.md`                    | Track progress and compatibility boundary |
+| `docs/issues/open/1978-configuration-overhaul-epic/EPIC.md` | Track progress and compatibility boundary |
 
 ## Progress Tracking
 

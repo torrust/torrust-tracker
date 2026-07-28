@@ -30,7 +30,7 @@ Example:
 Example:
 
 ```text
-1978-configuration-overhaul-epic.md
+1978-configuration-overhaul-epic/EPIC.md
 ```
 
 ### Folder-based specification
@@ -106,7 +106,7 @@ GitHub issue number.
 | Pattern             | Example                                                                                    |
 | ------------------- | ------------------------------------------------------------------------------------------ |
 | Standalone issue    | `1843-migrate-git-hooks-scripts-from-bash-to-rust.md`                                      |
-| Standalone EPIC     | `1978-configuration-overhaul-epic.md`                                                      |
+| Standalone EPIC     | `1978-configuration-overhaul-epic/EPIC.md`                                                 |
 | Folder-based issue  | `2022-vendor-and-document-maintainer-merge-workflow/ISSUE.md`                              |
 | EPIC                | `1669-overhaul-packages/EPIC.md`                                                           |
 | Subissue            | `docs/issues/closed/1859-1669-move-tracker-policy-and-private-mode-to-primitives/ISSUE.md` |

@@ -2,7 +2,7 @@
 doc-type: epic
 status: open
 github-issue: 1978
-spec-path: docs/issues/open/1978-configuration-overhaul-epic.md
+spec-path: docs/issues/open/1978-configuration-overhaul-epic/EPIC.md
 epic-owner: josecelano
 last-updated-utc: 2026-07-27 00:00
 semantic-links:
@@ -11,6 +11,7 @@ semantic-links:
   related-artifacts:
     - packages/configuration/src/v2_0_0/
     - packages/configuration/src/lib.rs
+    - docs/issues/open/1978-configuration-overhaul-epic/migration-guide.md
     - docs/issues/closed/1417-1978-add-public-service-url-to-configuration.md
     - docs/issues/closed/1640-1978-per-http-tracker-on-reverse-proxy-setting.md
     - docs/issues/open/1136-1978-configurable-udp-connection-id-validation-policy.md
@@ -184,7 +185,7 @@ For each subissue implementation in this EPIC, the default completion policy is:
 
 ### Workflow Checkpoints
 
-- [x] Epic spec drafted in `docs/issues/open/1978-configuration-overhaul-epic.md`
+- [x] Epic spec drafted in `docs/issues/open/1978-configuration-overhaul-epic/EPIC.md`
 - [x] Epic spec reviewed and approved by user/maintainer
 - [x] GitHub epic issue created: #1978
 - [x] Subissues created and linked in this spec
