@@ -104,7 +104,10 @@ Use **UPPERCASE** for two categories of Markdown files:
    EPIC: `ISSUE.md`, `EPIC.md`.
 
 All other Markdown files (guides, notes, supporting docs) use **lowercase**
-kebab-case: `migration-guide.md`, `manual-verification.md`, `README.md`.
+kebab-case: `migration-guide.md`, `manual-verification.md`.
+
+> **Note**: `README.md` is a conventional uppercase exception to the lowercase
+> kebab-case rule for supporting docs.
 
 | Category       | Convention | Example                                                 |
 | -------------- | ---------- | ------------------------------------------------------- |
@@ -112,7 +115,6 @@ kebab-case: `migration-guide.md`, `manual-verification.md`, `README.md`.
 | Issue spec     | UPPERCASE  | `1978-configuration-overhaul-epic/EPIC.md`              |
 | Issue spec     | UPPERCASE  | `889-1978-new-config-option-for-logging-style/ISSUE.md` |
 | Supporting doc | lowercase  | `1978-configuration-overhaul-epic/migration-guide.md`   |
-| README         | lowercase  | `docs/issues/open/README.md`                            |
 
 > **Note**: This convention may be tightened in the future to reserve UPPERCASE
 > exclusively for templates. For now, issue/EPIC specs are an exception.
