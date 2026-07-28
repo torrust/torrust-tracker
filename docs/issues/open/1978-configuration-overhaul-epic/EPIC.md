@@ -11,7 +11,7 @@ semantic-links:
   related-artifacts:
     - packages/configuration/src/v2_0_0/
     - packages/configuration/src/lib.rs
-    - docs/issues/open/1978-configuration-overhaul-epic/migration-guide.md
+    - docs/issues/open/1978-configuration-overhaul-epic/configuration-v2-to-v3-migration.md
     - docs/issues/closed/1417-1978-add-public-service-url-to-configuration.md
     - docs/issues/closed/1640-1978-per-http-tracker-on-reverse-proxy-setting.md
     - docs/issues/open/1136-1978-configurable-udp-connection-id-validation-policy.md
