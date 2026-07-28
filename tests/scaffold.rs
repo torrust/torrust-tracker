@@ -33,6 +33,14 @@
 //! - A small startup delay to allow async service registration.
 //! - Sequential scenarios that account for accumulated state.
 //!
+//! ## Temporary Limitation
+//!
+//! Endpoint discovery currently distinguishes services by test-only bind-IP conventions. This
+//! sample must not be copied as a general service-discovery pattern until the bootstrap and runtime
+//! registry prerequisite issues are implemented. See
+//! `docs/issues/open/2035-fix-duplicate-port-zero-tracker-instance-bootstrap/ISSUE.md` and
+//! `docs/issues/open/2036-add-runtime-service-registry-metadata/ISSUE.md`.
+//!
 //! # Example: Running this test
 //!
 //! ```text

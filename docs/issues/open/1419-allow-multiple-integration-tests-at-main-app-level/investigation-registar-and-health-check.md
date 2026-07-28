@@ -80,6 +80,27 @@ The `service_type` and `info` fields are only in `ServiceHealthCheckJob`, which 
 
 The registar uses `HashMap<ServiceBinding, ServiceRegistration>`. There is no service type information on the key or value.
 
+## Bootstrap collision discovered during implementation
+
+The endpoint-discovery limitation revealed a separate bootstrap correctness defect. `AppContainer`
+stores HTTP and UDP per-instance containers in `HashMap<SocketAddr, _>`, keyed by the configured
+`bind_address`. Two same-protocol configuration blocks using `0.0.0.0:0` therefore collide before
+either service starts: the later insertion overwrites the earlier container.
+
+Bootstrap then iterates both configuration blocks but retrieves the surviving container by the same
+`0.0.0.0:0` key for each. Two listeners can start with distinct OS-assigned ports, yet both use the
+later configuration block's settings. This silently loses per-instance configuration such as
+`tracker_usage_statistics` and affects HTTP and UDP trackers alike.
+
+A final `ServiceBinding` uniquely identifies a running listener, but it cannot retrospectively
+identify which repeated configuration block created that listener. Bootstrap must first preserve
+configuration-instance identity, for example through an ordered collection aligned with the
+configuration entries. The runtime registry can then carry that identity with the final binding.
+
+This is tracked separately in Bug #2035: [fix duplicate port-zero tracker instance bootstrap](../../open/2035-fix-duplicate-port-zero-tracker-instance-bootstrap/ISSUE.md).
+The external-crate registry work is tracked separately in
+Feature #2036: [add runtime service registry metadata](../../open/2036-add-runtime-service-registry-metadata/ISSUE.md).
+
 ## Service type constants
 
 Each server package defines its own type string constant:
@@ -179,4 +200,4 @@ This investigation remains the record of observed current behavior, the discover
 the reasoning that led to the change. The approved architectural boundary is defined by
 [ADR 20260728115400](../../../adrs/20260728115400_define_registar_as_runtime_service_registry.md).
 The ordered implementation and validation work is defined by the
-[runtime service registry refactor plan](../../../refactor-plans/open/1419-runtime-service-registry-refactor.md).
+[runtime service registry metadata feature](../../open/2036-add-runtime-service-registry-metadata/ISSUE.md).

@@ -87,6 +87,11 @@ pub async fn start_tracker_with_config(workspace: &EphemeralTrackerWorkspace) ->
 
 /// Returns the HTTP tracker URLs from the registar.
 ///
+/// TODO: Replace this temporary bind-IP classification after
+/// `fix-duplicate-port-zero-tracker-instance-bootstrap` and
+/// `add-runtime-service-registry-metadata` are implemented. Those issues establish stable
+/// configuration-instance identity and role-based runtime discovery.
+///
 /// HTTP trackers bind to `0.0.0.0` (unspecified). The REST API and health
 /// check bind to `127.0.0.1` (loopback). We identify trackers by their
 /// unspecified IP, which is deterministic regardless of hash-map ordering.
@@ -103,6 +108,9 @@ pub async fn http_tracker_urls(container: &AppContainer) -> Vec<Url> {
 }
 
 /// Returns the HTTP API URL from the registar.
+///
+/// TODO: Replace this temporary bind-IP classification with role-based runtime discovery. See
+/// `docs/issues/open/2036-add-runtime-service-registry-metadata/ISSUE.md`.
 ///
 /// The REST API binds to `127.0.0.1` (loopback), unlike the HTTP trackers
 /// which bind to `0.0.0.0`.

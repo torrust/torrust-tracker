@@ -13,7 +13,8 @@ semantic-links:
     - write-unit-test
   related-artifacts:
     - docs/adrs/20260728115400_define_registar_as_runtime_service_registry.md
-    - docs/refactor-plans/open/1419-runtime-service-registry-refactor.md
+    - docs/issues/open/2035-fix-duplicate-port-zero-tracker-instance-bootstrap/ISSUE.md
+    - docs/issues/open/2036-add-runtime-service-registry-metadata/ISSUE.md
     - tests/stats.rs
     - tests/servers/
     - src/app.rs
@@ -361,14 +362,26 @@ shuts it down cleanly, and leaves no shared database, storage, or port dependenc
 parallel execution is supported through process isolation, but it is not a requirement for
 parallel full-application instances inside a single executable.
 
-## Runtime Registry Prerequisite
+## Implementation Pause and Prerequisites
 
-The current test helper identifies services through test-only bind-IP conventions. That is not a
-valid solution because tracker services may legitimately share the same listener address class.
-Completing this issue therefore requires the runtime-service-registry refactor defined in
-[the active refactor plan](../../../refactor-plans/open/1419-runtime-service-registry-refactor.md).
+The current integration suite correctly verifies aggregate statistics across two started HTTP
+listeners. Its endpoint discovery is intentionally temporary: `tests/common/mod.rs` identifies
+HTTP trackers and the REST API through distinct bind-IP conventions. If discovery is incorrect,
+the test fails rather than producing a false aggregate-stats success, but the convention is not a
+valid application contract and must not be extended to more integration suites.
 
-The refactor is tracked on this issue branch because it is required to discover port-zero listener
-addresses reliably. It includes a coordinated `torrust-server-lib` release, tracker-side migration,
-and role-based endpoint discovery in the main-application test helpers. The architectural boundary
-is recorded in [ADR 20260728115400](../../../adrs/20260728115400_define_registar_as_runtime_service_registry.md).
+During implementation, two prerequisite defects were discovered. Work on this issue stops after
+the current, working scaffold is documented and merged. The prerequisites will be implemented and
+merged independently; #1419 remains open and resumes on that clean base.
+
+1. Bug #2035: [fix duplicate port-zero tracker instance bootstrap](../../open/2035-fix-duplicate-port-zero-tracker-instance-bootstrap/ISSUE.md)
+   — `AppContainer` stores HTTP and UDP per-instance containers in `HashMap<SocketAddr, _>`.
+   Repeated `0.0.0.0:0` configuration blocks overwrite each other before startup, so distinct
+   per-instance configuration can be silently lost.
+2. Feature #2036: [add runtime service registry metadata](../../open/2036-add-runtime-service-registry-metadata/ISSUE.md)
+   — `Registar` cannot expose stable service role or configuration-instance identity without
+   health-check side effects. This requires a coordinated `torrust-server-lib` change and release.
+
+The runtime registry boundary remains recorded in
+[ADR 20260728115400](../../../adrs/20260728115400_define_registar_as_runtime_service_registry.md).
+The dedicated prerequisite specifications above are the implementation records for that boundary.
