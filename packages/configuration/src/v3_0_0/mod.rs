@@ -215,7 +215,8 @@
 //!
 //! ```toml
 //! [logging]
-//! threshold = "info"
+//! trace_filter = "info"
+//! trace_style = "full"
 //!
 //! [core]
 //! inactive_peer_cleanup_interval = 600
@@ -404,7 +405,12 @@ impl Configuration {
     /// Will return an error if a mandatory configuration option is only
     /// obtained by default value (code), meaning the user hasn't overridden it.
     fn check_mandatory_options(figment: &Figment) -> Result<(), Error> {
-        let mandatory_options = ["metadata.schema_version", "logging.threshold", "core.private", "core.listed"];
+        let mandatory_options = [
+            "metadata.schema_version",
+            "logging.trace_filter",
+            "core.private",
+            "core.listed",
+        ];
 
         for mandatory_option in mandatory_options {
             figment
@@ -483,6 +489,7 @@ mod tests {
     use crate::Info;
     use crate::v3_0_0::Configuration;
     use crate::v3_0_0::http_tracker::HttpTracker;
+    use crate::v3_0_0::logging::TraceStyle;
     use crate::v3_0_0::network::ExternalIp;
     use crate::v3_0_0::udp_tracker::UdpTracker;
 
@@ -494,7 +501,8 @@ mod tests {
                                 schema_version = "3.0.0"
 
                                 [logging]
-                                threshold = "info"
+                                trace_filter = "info"
+                                trace_style = "full"
 
                                 [core]
                                 inactive_peer_cleanup_interval = 600
@@ -554,7 +562,8 @@ mod tests {
                     schema_version = "3.0.0"
 
                     [logging]
-                    threshold = "info"
+                    trace_filter = "info"
+                    trace_style = "json"
 
                     [core]
                     listed = false
@@ -571,6 +580,7 @@ mod tests {
             let configuration = Configuration::load(&info).expect("configuration should load");
 
             assert_eq!(configuration.udp_tracker_server.ip_bans_reset_interval_in_secs.get(), 7200);
+            assert_eq!(configuration.logging.trace_style, TraceStyle::Json);
 
             Ok(())
         });
@@ -612,7 +622,7 @@ mod tests {
                 schema_version = "3.0.0"
 
                 [logging]
-                threshold = "info"
+                trace_filter = "info"
 
                 [core]
                 listed = false
@@ -642,7 +652,7 @@ mod tests {
                 schema_version = "3.0.0"
 
                 [logging]
-                threshold = "info"
+                trace_filter = "info"
 
                 [core]
                 listed = false
@@ -672,7 +682,7 @@ mod tests {
                 schema_version = "3.0.0"
 
                 [logging]
-                threshold = "info"
+                trace_filter = "info"
 
                 [core]
                 listed = false
@@ -707,7 +717,7 @@ mod tests {
                 schema_version = "3.0.0"
 
                 [logging]
-                threshold = "info"
+                trace_filter = "info"
 
                 [core]
                 listed = false
@@ -801,7 +811,7 @@ mod tests {
                     schema_version = "3.0.0"
 
                     [logging]
-                    threshold = "info"
+                    trace_filter = "info"
 
                     [core]
                     listed = false
@@ -846,7 +856,7 @@ mod tests {
                     schema_version = "3.0.0"
 
                     [logging]
-                    threshold = "info"
+                    trace_filter = "info"
 
                     [core]
                     listed = false
@@ -891,7 +901,7 @@ mod tests {
                     schema_version = "3.0.0"
 
                     [logging]
-                    threshold = "info"
+                    trace_filter = "info"
 
                     [core]
                     listed = false
@@ -934,7 +944,7 @@ mod tests {
                     schema_version = "3.0.0"
 
                     [logging]
-                    threshold = "info"
+                    trace_filter = "info"
 
                     [core]
                     listed = false
@@ -968,7 +978,7 @@ mod tests {
                     schema_version = "3.0.0"
 
                     [logging]
-                    threshold = "info"
+                    trace_filter = "info"
 
                     [core]
                     listed = false
@@ -1003,7 +1013,7 @@ mod tests {
                     schema_version = "3.0.0"
 
                     [logging]
-                    threshold = "info"
+                    trace_filter = "info"
 
                     [core]
                     listed = false
@@ -1041,7 +1051,7 @@ mod tests {
                     schema_version = "3.0.0"
 
                     [logging]
-                    threshold = "info"
+                    trace_filter = "info"
 
                     [core]
                     listed = false
@@ -1070,7 +1080,7 @@ mod tests {
                     schema_version = "2.0.0"
 
                     [logging]
-                    threshold = "info"
+                    trace_filter = "info"
 
                     [core]
                     listed = false
