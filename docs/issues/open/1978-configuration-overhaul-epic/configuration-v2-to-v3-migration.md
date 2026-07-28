@@ -28,7 +28,7 @@ update, and why.
 | No connection ID policy     | `[udp_tracker_server] connection_id_validation`                  | #1136    | DONE      |
 | Hardcoded IP bans interval  | `[udp_tracker_server] ip_bans_reset_interval_in_secs`            | #1453    | IN_REVIEW |
 | Flat `[core.database]`      | Database enum with per-driver config                             | #1490    | TODO      |
-| No announce `ip` opt-in     | Per-HTTP-tracker `use_ip_from_announce`                          | #1987    | TODO      |
+| No announce `ip` opt-in     | Per-HTTP-tracker opt-in field (TBD)                              | #1987    | TODO      |
 
 ## Step 1: Update the schema version
 
