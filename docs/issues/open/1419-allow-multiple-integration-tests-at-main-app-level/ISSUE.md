@@ -4,14 +4,16 @@ issue-type: enhancement
 status: open
 priority: p3
 github-issue: 1419
-spec-path: docs/issues/open/1419-allow-multiple-integration-tests-at-main-app-level.md
+spec-path: docs/issues/open/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md
 branch: 1419-allow-multiple-integration-tests
 related-pr: null
-last-updated-utc: 2026-07-27 17:35
+last-updated-utc: 2026-07-28 11:54
 semantic-links:
   skill-links:
     - write-unit-test
   related-artifacts:
+    - docs/adrs/20260728115400_define_registar_as_runtime_service_registry.md
+    - docs/refactor-plans/open/1419-runtime-service-registry-refactor.md
     - tests/stats.rs
     - tests/servers/
     - src/app.rs
@@ -358,3 +360,15 @@ Verification must show that the suite starts one application, runs all its scena
 shuts it down cleanly, and leaves no shared database, storage, or port dependency. Cross-suite
 parallel execution is supported through process isolation, but it is not a requirement for
 parallel full-application instances inside a single executable.
+
+## Runtime Registry Prerequisite
+
+The current test helper identifies services through test-only bind-IP conventions. That is not a
+valid solution because tracker services may legitimately share the same listener address class.
+Completing this issue therefore requires the runtime-service-registry refactor defined in
+[the active refactor plan](../../../refactor-plans/open/1419-runtime-service-registry-refactor.md).
+
+The refactor is tracked on this issue branch because it is required to discover port-zero listener
+addresses reliably. It includes a coordinated `torrust-server-lib` release, tracker-side migration,
+and role-based endpoint discovery in the main-application test helpers. The architectural boundary
+is recorded in [ADR 20260728115400](../../../adrs/20260728115400_define_registar_as_runtime_service_registry.md).

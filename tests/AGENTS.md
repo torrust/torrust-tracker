@@ -6,7 +6,7 @@ semantic-links:
     - tests/stats.rs
     - tests/servers/
     - src/app.rs
-    - docs/issues/open/1419-allow-multiple-integration-tests-at-main-app-level.md
+    - docs/issues/open/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md
   issue-spec: docs/issues/drafts/increase-main-app-integration-test-coverage.md
 ---
 
@@ -113,7 +113,7 @@ reference for the integration test pattern.
 
 ## References
 
-- [Issue #1419](../../docs/issues/open/1419-allow-multiple-integration-tests-at-main-app-level.md) - Infrastructure for parallel integration tests (execution model decision)
+- [Issue #1419](../../docs/issues/open/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md) - Infrastructure for parallel integration tests (execution model decision)
 - [Integration test scaffolding](stats.rs)
 - [Shared test utilities](common/mod.rs)
 - [Scaffolding demo](scaffold.rs)

@@ -14,7 +14,7 @@ semantic-links:
   related-artifacts:
     - tests/stats.rs
     - tests/AGENTS.md
-    - docs/issues/open/1419-allow-multiple-integration-tests-at-main-app-level.md
+    - docs/issues/open/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md
   related-issues:
     - 1347
     - 1419
@@ -200,7 +200,7 @@ Suggested approach:
 ## Related Issues
 
 - [Issue #1419 - Allow multiple integration tests at the main app
-  level](../open/1419-allow-multiple-integration-tests-at-main-app-level.md) - Infrastructure
+  level](../open/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md) - Infrastructure
   foundation
 - [EPIC #1347 - Increase unit testing for workspace
   packages](https://github.com/torrust/torrust-tracker/issues/1347) - Package-level unit test
