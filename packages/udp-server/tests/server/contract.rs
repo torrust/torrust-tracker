@@ -510,11 +510,11 @@ mod using_disabled_connection_id_validation {
 
         client.send(announce_request.into()).await.unwrap();
 
-        let response = client.receive().await;
+        let response = client.receive().await.unwrap();
 
         assert!(
-            response.is_ok(),
-            "announce should succeed even with an invalid connection ID when validation is disabled"
+            crate::server::asserts::is_ipv4_announce_response(&response),
+            "announce should succeed with a valid announce response even with an invalid connection ID when validation is disabled"
         );
 
         env.stop().await;
@@ -548,11 +548,11 @@ mod using_disabled_connection_id_validation {
 
         client.send(scrape_request.into()).await.unwrap();
 
-        let response = client.receive().await;
+        let response = client.receive().await.unwrap();
 
         assert!(
-            response.is_ok(),
-            "scrape should succeed even with an invalid connection ID when validation is disabled"
+            crate::server::asserts::is_scrape_response(&response),
+            "scrape should succeed with a valid scrape response even with an invalid connection ID when validation is disabled"
         );
 
         env.stop().await;

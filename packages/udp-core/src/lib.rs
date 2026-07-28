@@ -36,7 +36,8 @@ pub enum ConnectionIdValidationPolicy {
     #[default]
     Strict,
     /// Skip connection ID validation for announce and scrape requests.
-    /// Cookie-error metrics are still emitted; IP-ban counters are not incremented.
+    /// Cookie-error metrics are still emitted and the ban counter still counts
+    /// invalid IDs for observability, but IP-ban enforcement is skipped.
     Disabled,
 }
 

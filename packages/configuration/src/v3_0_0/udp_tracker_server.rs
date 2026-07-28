@@ -32,8 +32,9 @@ pub enum ConnectionIdValidationPolicy {
     Strict,
     /// Skip connection ID validation for announce and scrape requests.
     /// The connect action continues to issue valid connection IDs.
-    /// Cookie-error metrics are still emitted; IP-ban counters are not
-    /// incremented.
+    /// Cookie-error metrics are still emitted and the ban counter still
+    /// counts invalid IDs for observability, but IP-ban enforcement is
+    /// skipped.
     Disabled,
 }
 
@@ -54,8 +55,8 @@ pub struct UdpTrackerServer {
     /// `strict` (default) preserves all existing validation.
     /// `disabled` skips validation so non-compliant clients that reuse
     /// expired or arbitrary connection IDs can still connect. Cookie-error
-    /// metrics are still emitted in disabled mode; IP-ban counters are not
-    /// incremented.
+    /// metrics are still emitted and the ban counter still counts invalid
+    /// IDs for observability, but IP-ban enforcement is skipped.
     ///
     /// **Security**: only use `disabled` on deployments where all listeners are
     /// isolated through external network controls. Always prefer `strict` in
