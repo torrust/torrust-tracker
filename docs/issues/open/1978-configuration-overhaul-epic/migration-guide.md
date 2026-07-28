@@ -17,18 +17,18 @@ update, and why.
 
 ## Quick reference
 
-| v2 field / section | v3 equivalent | Subissue | Status |
-| --- | --- | --- | --- |
-| `[core.net]` (global) | Per-tracker `[http_trackers.network]` / `[udp_trackers.network]` | #1640 | DONE |
-| `tsl_config` | `tls_config` | #1981 | DONE |
-| No public URL field | `public_url` on HTTP trackers, UDP trackers, and HTTP API | #1417 | DONE |
-| `on_reverse_proxy` (global) | Per-HTTP-tracker `network.on_reverse_proxy` | #1640 | DONE |
-| No logging style option | `[logging] trace_style` | #889 | DONE |
-| `threshold` | `trace_filter` | #889 | DONE |
-| No connection ID policy | `[udp_tracker_server] connection_id_validation` | #1136 | DONE |
-| Hardcoded IP bans interval | `[udp_tracker_server] ip_bans_reset_interval_in_secs` | #1453 | IN_REVIEW |
-| Flat `[core.database]` | Database enum with per-driver config | #1490 | TODO |
-| No announce `ip` opt-in | Per-HTTP-tracker `use_ip_from_announce` | #1987 | TODO |
+| v2 field / section          | v3 equivalent                                                    | Subissue | Status    |
+| --------------------------- | ---------------------------------------------------------------- | -------- | --------- |
+| `[core.net]` (global)       | Per-tracker `[http_trackers.network]` / `[udp_trackers.network]` | #1640    | DONE      |
+| `tsl_config`                | `tls_config`                                                     | #1981    | DONE      |
+| No public URL field         | `public_url` on HTTP trackers, UDP trackers, and HTTP API        | #1417    | DONE      |
+| `on_reverse_proxy` (global) | Per-HTTP-tracker `network.on_reverse_proxy`                      | #1640    | DONE      |
+| No logging style option     | `[logging] trace_style`                                          | #889     | DONE      |
+| `threshold`                 | `trace_filter`                                                   | #889     | DONE      |
+| No connection ID policy     | `[udp_tracker_server] connection_id_validation`                  | #1136    | DONE      |
+| Hardcoded IP bans interval  | `[udp_tracker_server] ip_bans_reset_interval_in_secs`            | #1453    | IN_REVIEW |
+| Flat `[core.database]`      | Database enum with per-driver config                             | #1490    | TODO      |
+| No announce `ip` opt-in     | Per-HTTP-tracker `use_ip_from_announce`                          | #1987    | TODO      |
 
 ## Step 1: Update the schema version
 
@@ -149,12 +149,12 @@ trace_style = "full"
 
 Supported `trace_style` values:
 
-| Value | Description |
-| --- | --- |
-| `"full"` | Standard human-readable output (default) |
-| `"pretty"` | Pretty-printed with colours |
-| `"compact"` | Compact single-line output |
-| `"json"` | Structured JSON output (for log aggregation) |
+| Value       | Description                                  |
+| ----------- | -------------------------------------------- |
+| `"full"`    | Standard human-readable output (default)     |
+| `"pretty"`  | Pretty-printed with colours                  |
+| `"compact"` | Compact single-line output                   |
+| `"json"`    | Structured JSON output (for log aggregation) |
 
 > **Breaking**: The old `threshold` key is rejected by v3. If you omit
 > `trace_filter`, the default is `info`.
