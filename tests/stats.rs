@@ -5,8 +5,9 @@
 //! the corresponding package.
 //!
 //! ```text
-//! cargo test --test integration
+//! cargo test --test stats
 //! ```
+mod common;
 mod servers;
 
 use torrust_clock::clock;
