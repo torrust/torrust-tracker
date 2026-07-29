@@ -60,6 +60,24 @@ in [#2041](../2041-migrate-runtime-service-registry-metadata/ISSUE.md), which de
 - Public URLs, proxies, domain names, and deployment topology.
 - Dynamic service restart, deregistration, or configuration reload.
 
+## Approved Design Decisions
+
+- The tracker-owned `primitives` package is the canonical home for both
+  identity types. They must not be added to the generic
+  `torrust-net-primitives` or `torrust-server-lib` packages.
+- `ServiceRole` has `HttpTracker`, `UdpTracker`, `RestApi`, and
+  `HealthCheckApi` variants. HTTPS remains the `HttpTracker` role; its final
+  `ServiceBinding` differentiates HTTP from HTTPS.
+- `ConfigurationInstanceId` combines a `ServiceRole` with a zero-based index
+  in that role's configuration-entry list. Its equality is structural over
+  those two values and never considers a configured or final `SocketAddr`.
+- The index is derived during configuration/bootstrap enumeration and remains
+  immutable for the lifetime of the process. It correlates one configured
+  instance; it is not a user-supplied persistent service identifier.
+- The public types provide the traits needed by their intended internal
+  consumers, including comparison, hashing, and serialization, without
+  introducing a parallel identity representation.
+
 ## Implementation Plan
 
 | ID  | Status | Task                                                  | Notes / Expected Output                                                                                                   |
@@ -84,6 +102,9 @@ in [#2041](../2041-migrate-runtime-service-registry-metadata/ISSUE.md), which de
 
 - 2026-07-28 14:51 UTC - agent - User-approved specification promoted to GitHub feature #2036.
 - 2026-07-29 14:45 UTC - agent - Split registry migration into a dedicated draft issue. #2036 now owns only canonical role and configuration-instance identity types, which can be implemented before #2035 bootstrap propagation.
+- 2026-07-29 16:15 UTC - user and agent - Confirmed the canonical identity model: tracker-owned
+  primitives define the four service roles and a role-qualified, zero-based configuration instance
+  index. The identity is independent of socket addresses and is not a user-supplied persistent ID.
 
 ## Acceptance Criteria
 
