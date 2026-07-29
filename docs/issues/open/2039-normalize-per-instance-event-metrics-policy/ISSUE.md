@@ -1,0 +1,220 @@
+---
+doc-type: issue
+issue-type: bug
+status: open
+priority: p1
+github-issue: 2039
+spec-path: docs/issues/open/2039-normalize-per-instance-event-metrics-policy/ISSUE.md
+branch: "2039-normalize-per-instance-event-metrics-policy"
+related-pr: null
+last-updated-utc: 2026-07-29 07:10
+semantic-links:
+  skill-links:
+    - create-issue
+    - write-unit-test
+  related-artifacts:
+    - .github/skills/dev/planning/create-issue/SKILL.md
+    - docs/events-architecture.md
+    - docs/adrs/20260727000000_events_are_objective_facts.md
+    - docs/adrs/20260727180000_shared_services_across_tracker_instances.md
+    - docs/issues/open/2035-fix-duplicate-port-zero-tracker-instance-bootstrap/ISSUE.md
+    - docs/issues/open/2036-add-runtime-service-registry-metadata/ISSUE.md
+    - evidence.md
+    - packages/events/src/bus.rs
+    - packages/http-core/src/container.rs
+    - packages/udp-core/src/container.rs
+    - packages/udp-server/src/container.rs
+---
+
+<!-- skill-link: create-issue -->
+
+# Issue #2039 - Normalize Per-Instance Event Metrics Policy
+
+## Goal
+
+Make `tracker_usage_statistics` control metrics processing for an individual
+public HTTP or UDP listener, without suppressing objective events or UDP ban
+enforcement.
+
+## Background
+
+[#1263][1263] and [#1401][1401] establish the intended operator model:
+aggregate metrics remain available, while each public listener can opt in or
+out through `tracker_usage_statistics`.
+
+### Concrete UDP Failure Example
+
+Consider two public UDP listeners:
+
+```toml
+[[udp_trackers]]
+bind_address = "0.0.0.0:0"
+tracker_usage_statistics = false
+
+[[udp_trackers]]
+bind_address = "0.0.0.0:0"
+tracker_usage_statistics = true
+```
+
+Both listeners correctly serve connect and announce requests. However, after
+one announce to each listener, the REST API's aggregate
+`udp4_announces_handled` counter is currently `2`, not `1`.
+
+The REST API reads this counter from the UDP **server** metrics repository. Its
+metrics listener receives `UdpRequestAccepted` events from one application-wide
+UDP server event bus, with no per-listener metrics policy. The configuration
+option therefore does not suppress server-layer metrics for the disabled
+listener.
+
+The old implementation tried to disable metrics by suppressing event producers:
+an `EventBus` returns no sender when statistics are disabled. This was
+reasonable when events existed only to generate metrics. It is no longer valid:
+UDP server events are generic objective facts and a separate banning listener
+also consumes cookie-error events from that stream. Suppressing the stream to
+avoid metrics would also prevent current or future non-metrics consumers from
+observing those facts.
+
+There is deliberately one aggregate metrics repository per layer, rather than
+one repository per public listener. The repository does not currently filter
+events by configuration policy; the listener increments counters from every
+event it receives. Therefore, preserving aggregate repositories while allowing
+per-listener metrics requires listener-side filtering before repository mutation.
+
+This issue replaces producer-side metrics suppression with always-emitted facts
+and listener-side metrics policy. The UDP server is the failure that exposes the
+problem, but HTTP core and UDP core must follow the same normalized rule.
+
+The prerequisite is [#2036][2036], which defines canonical runtime service and
+configuration-instance identity. A configured address cannot identify a
+listener because repeated `0.0.0.0:0` blocks are valid. This issue must use the
+canonical identity produced by #2036 rather than create a competing identity.
+
+## Scope
+
+### In Scope
+
+- Always emit objective HTTP core, UDP core, and UDP server events.
+- Carry #2036 canonical runtime identity on metric-relevant events.
+- Filter metrics in HTTP core, UDP core, and UDP server listeners before their
+  shared aggregate repositories are updated.
+- Keep UDP banning independent of metrics policy and subscribed to all relevant
+  cookie-error events.
+- Add focused and application-level regressions for enabled and disabled
+  listeners, including duplicate port-zero configuration blocks.
+- Record progressive manual baseline and post-change evidence for every
+  code-changing task.
+
+### Out of Scope
+
+- Per-listener repositories or a public per-listener metrics API.
+- A persistent user-supplied listener ID.
+- Changing shared ban-service semantics.
+- Replacing the runtime registry work owned by #2036.
+
+## Design Direction
+
+The application retains one aggregate repository per event layer. Producers
+always publish facts with canonical listener identity. A metrics listener uses
+that identity to find the listener's immutable metrics policy and ignores a
+disabled listener before repository mutation. The UDP banning listener receives
+the same security events regardless of that policy.
+
+## Implementation Plan
+
+Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
+
+| ID  | Status  | Task                             | Notes / Expected Output                                                                          |
+| --- | ------- | -------------------------------- | ------------------------------------------------------------------------------------------------ |
+| T1  | TODO    | Inventory event gates            | Map every `SenderStatus`, optional sender, listener, and UDP ban consumer.                       |
+| T2  | BLOCKED | Consume #2036 canonical identity | Propagate stable runtime configuration-instance identity; do not use configured addresses.       |
+| T3  | TODO    | Always emit HTTP core facts      | Remove metrics-driven producer suppression while preserving event semantics.                     |
+| T4  | TODO    | Always emit UDP core facts       | Remove metrics-driven producer suppression while preserving event semantics.                     |
+| T5  | TODO    | Always emit UDP server facts     | Decouple the shared UDP server producer from the global metrics gate.                            |
+| T6  | TODO    | Filter metrics in listeners      | Apply immutable identity-to-policy filtering before aggregate repository updates.                |
+| T7  | TODO    | Preserve banning independence    | Verify cookie-error events reach the shared ban service for every listener policy.               |
+| T8  | TODO    | Update REST metrics integration  | Preserve aggregate API counters and UDP operational metrics from filtered repositories.          |
+| T9  | TODO    | Add focused tests                | Cover producer independence, listener filtering, and ban-listener behavior.                      |
+| T10 | TODO    | Add application tests            | Verify one enabled and one disabled HTTP/UDP listener, including duplicate port-zero bindings.   |
+| T11 | TODO    | Validate and document            | Run focused tests, `linter all`, and the manual protocol; update evidence and architecture docs. |
+
+## Progressive Manual Verification Protocol
+
+Every code-changing task, T2 through T10, must complete this protocol before
+the next task begins:
+
+1. Select the smallest externally observable probe for the task.
+2. Run it against the pre-change implementation and record configuration,
+   commands, endpoints, and output in [evidence.md](evidence.md).
+3. Implement the smallest change and run focused automated tests.
+4. Repeat the unchanged probe and record the post-change output in
+   [evidence.md](evidence.md).
+5. Compare the two records. Explain every intentional difference and add a
+   regression before advancing; stop to diagnose every unexpected difference.
+
+Each applicable probe must verify both policies: a metrics-disabled listener
+does not update aggregate metrics, and its UDP cookie errors still reach the
+shared banning listener.
+
+## Progress Tracking
+
+### Workflow Checkpoints
+
+- [x] Spec drafted in `docs/issues/drafts/`
+- [x] Spec reviewed and approved by user/maintainer
+- [x] GitHub issue created: #2039
+- [ ] Spec-only PR merged into `develop` before implementation
+- [ ] Implementation completed
+- [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
+- [ ] Manual verification scenarios executed and recorded (status + evidence)
+- [ ] Acceptance criteria reviewed after implementation and updated with evidence
+- [ ] Reviewer validated acceptance criteria and updated checkboxes
+- [ ] Committer verified spec progress is up to date before commit
+- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+
+### Progress Log
+
+- 2026-07-28 20:30 UTC - agent - Drafted from the #2035 manual verification finding and #1263/#1401 historical intent.
+- 2026-07-29 00:00 UTC - agent - Converted to folder-style specification and added the progressive manual evidence protocol.
+- 2026-07-29 07:10 UTC - agent - User approved the specification; created GitHub issue #2039 and moved this specification to `docs/issues/open/`.
+
+## Acceptance Criteria
+
+- [ ] AC1: Metrics-disabled HTTP listeners emit facts but do not update aggregate HTTP metrics.
+- [ ] AC2: Metrics-disabled UDP listeners emit core and server facts but do not update aggregate UDP metrics.
+- [ ] AC3: Metrics-disabled UDP listeners still contribute relevant cookie-error facts to shared banning.
+- [ ] AC4: Metrics-enabled listeners update the existing shared aggregate repositories.
+- [ ] AC5: Metrics filtering uses #2036 canonical identity and works for repeated `0.0.0.0:0` blocks.
+- [ ] AC6: The REST API retains aggregate HTTP/UDP and UDP operational metrics.
+- [ ] AC7: Every code-changing task has baseline and post-change evidence.
+- [ ] AC8: Relevant tests and `linter all` pass.
+
+## Verification Plan
+
+### Automatic Checks
+
+- Focused tests for HTTP core, UDP core, UDP server metrics, and UDP banning listeners.
+- Application-level enabled/disabled listener tests, including duplicate port-zero configuration.
+- `cargo test --test stats -- --test-threads=1` until #1419 resolves test-process isolation.
+- `linter all`.
+
+### Manual Verification Scenarios
+
+| ID  | Scenario                     | Expected Result                                                                  | Status | Evidence |
+| --- | ---------------------------- | -------------------------------------------------------------------------------- | ------ | -------- |
+| M1  | HTTP policy filtering        | One enabled and one disabled listener produce aggregate announce count `1`.      | TODO   |          |
+| M2  | UDP policy filtering         | One enabled and one disabled listener produce aggregate UDP announce count `1`.  | TODO   |          |
+| M3  | UDP banning independence     | Invalid cookies through a disabled listener still update shared ban enforcement. | TODO   |          |
+| M4  | Duplicate port-zero identity | Policy follows runtime identity rather than configured address.                  | TODO   |          |
+
+## References
+
+- [Events architecture](../../../events-architecture.md)
+- [#1263][1263]
+- [#1401][1401]
+- [#2035][2035]
+- [#2036][2036]
+
+[1263]: https://github.com/torrust/torrust-tracker/issues/1263
+[1401]: https://github.com/torrust/torrust-tracker/issues/1401
+[2035]: https://github.com/torrust/torrust-tracker/issues/2035
+[2036]: https://github.com/torrust/torrust-tracker/issues/2036
