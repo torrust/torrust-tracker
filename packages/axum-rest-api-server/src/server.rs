@@ -40,13 +40,12 @@ use torrust_server_lib::signals::{Halted, Started};
 use torrust_tracker_axum_server::custom_axum_server::{self, TimeoutAcceptor};
 use torrust_tracker_axum_server::signals::graceful_shutdown;
 use torrust_tracker_configuration::AccessTokens;
+use torrust_tracker_primitives::ServiceRole;
 use torrust_tracker_rest_api_runtime_adapter::v1::container::TrackerHttpApiCoreContainer;
 use tracing::{Level, instrument};
 
 use super::routes::router;
 use crate::API_LOG_TARGET;
-
-const TYPE_STRING: &str = "tracker_rest_api";
 
 /// Errors that can occur when starting or stopping the API server.
 #[derive(Debug, Error)]
@@ -207,7 +206,7 @@ pub fn check_fn(service_binding: &ServiceBinding) -> ServiceHealthCheckJob {
             Err(err) => Err(err.to_string()),
         }
     });
-    ServiceHealthCheckJob::new(service_binding.clone(), info, TYPE_STRING.to_string(), job)
+    ServiceHealthCheckJob::new(service_binding.clone(), info, ServiceRole::RestApi.as_str().to_string(), job)
 }
 
 /// A struct responsible for starting the API server.
