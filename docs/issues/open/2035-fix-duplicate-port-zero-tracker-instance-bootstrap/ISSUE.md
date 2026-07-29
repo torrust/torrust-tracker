@@ -77,21 +77,29 @@ metrics policy correct: the UDP server has one application-wide event bus and
 repository, while producer-side metrics suppression can hide facts required by
 the independent banning listener.
 
-Issue [#2035](https://github.com/torrust/torrust-tracker/issues/2035) must be reimplemented after #2036 provides canonical runtime identity and
-after [#2039](../2039-normalize-per-instance-event-metrics-policy/ISSUE.md)
-lands. The new implementation will preserve bootstrap identity without creating
-a second runtime identity or metrics-policy mechanism.
+Issue [#2035](https://github.com/torrust/torrust-tracker/issues/2035) must be
+reimplemented after:
+
+1. #2036 defines canonical runtime service/configuration-instance identity.
+2. [#2041](../2041-migrate-runtime-service-registry-metadata/ISSUE.md)
+   carries that identity through started-service registration metadata.
+3. #2039 makes event publication independent of metrics policy and filters
+   metrics in listeners by that canonical identity.
+
+The new implementation will preserve bootstrap identity without creating a
+second runtime identity or metrics-policy mechanism.
 
 ## Implementation Plan
 
 | ID  | Status  | Task                                                                                                   | Notes / Expected Output                                                                    |
 | --- | ------- | ------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------ |
-| T1  | BLOCKED | Land [#2036](../2036-add-runtime-service-registry-metadata/ISSUE.md) runtime identity                  | Bootstrap identity must align with the canonical runtime identity contract.                |
-| T2  | BLOCKED | Land [#2039](../2039-normalize-per-instance-event-metrics-policy/ISSUE.md) event-metrics normalization | Objective-event publication and listener-side metrics filtering must be available.         |
-| T3  | TODO    | Replace address-keyed container lookup                                                                 | Use an order-preserving representation or canonical identity, not configured `SocketAddr`. |
-| T4  | TODO    | Start matching containers                                                                              | Pass each configuration entry's matching container into HTTP and UDP startup.              |
-| T5  | TODO    | Correlate lifecycle logs                                                                               | Include canonical identity with configured and final binding logs.                         |
-| T6  | TODO    | Add regressions and validate                                                                           | Cover duplicate port-zero HTTP/UDP listeners and record focused verification.              |
+| T1  | BLOCKED | Land [#2036](../2036-add-runtime-service-registry-metadata/ISSUE.md) canonical identity                | Bootstrap identity must align with the canonical runtime identity contract.                |
+| T2  | BLOCKED | Land registry metadata migration                                                                       | Register started services with canonical identity before #2039 consumes runtime identity.  |
+| T3  | BLOCKED | Land [#2039](../2039-normalize-per-instance-event-metrics-policy/ISSUE.md) event-metrics normalization | Objective-event publication and listener-side metrics filtering must be available.         |
+| T4  | TODO    | Replace address-keyed container lookup                                                                 | Use an order-preserving representation or canonical identity, not configured `SocketAddr`. |
+| T5  | TODO    | Start matching containers                                                                              | Pass each configuration entry's matching container into HTTP and UDP startup.              |
+| T6  | TODO    | Correlate lifecycle logs                                                                               | Include canonical identity with configured and final binding logs.                         |
+| T7  | TODO    | Add regressions and validate                                                                           | Cover duplicate port-zero HTTP/UDP listeners and record focused verification.              |
 
 ## Progress Tracking
 
@@ -144,5 +152,6 @@ a second runtime identity or metrics-policy mechanism.
 - [Runtime registry investigation](../../open/1419-allow-multiple-integration-tests-at-main-app-level/investigation-registar-and-health-check.md)
 - Feature #2036: [add runtime service registry metadata](../2036-add-runtime-service-registry-metadata/ISSUE.md)
 - Bug #2039: [normalize per-instance event metrics policy](../2039-normalize-per-instance-event-metrics-policy/ISSUE.md)
+- Issue #2041: [migrate runtime service registry metadata](../2041-migrate-runtime-service-registry-metadata/ISSUE.md)
 - [Archived implementation attempt](archived-attempt.md)
 - [Events architecture](../../../events-architecture.md)

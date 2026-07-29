@@ -84,10 +84,11 @@ This issue replaces producer-side metrics suppression with always-emitted facts
 and listener-side metrics policy. The UDP server is the failure that exposes the
 problem, but HTTP core and UDP core must follow the same normalized rule.
 
-The prerequisite is [#2036][2036], which defines canonical runtime service and
-configuration-instance identity. A configured address cannot identify a
-listener because repeated `0.0.0.0:0` blocks are valid. This issue must use the
-canonical identity produced by #2036 rather than create a competing identity.
+The prerequisites are [#2036][2036], which defines canonical runtime service
+and configuration-instance identity, and the registry metadata migration that
+exposes that identity for started services. A configured address cannot identify
+a listener because repeated `0.0.0.0:0` blocks are valid. This issue must use
+the canonical identity rather than create a competing identity.
 
 ## Scope
 
@@ -110,6 +111,7 @@ canonical identity produced by #2036 rather than create a competing identity.
 - A persistent user-supplied listener ID.
 - Changing shared ban-service semantics.
 - Replacing the runtime registry work owned by #2036.
+- Migrating registry metadata; owned by the dedicated follow-up issue.
 
 ## Design Direction
 
