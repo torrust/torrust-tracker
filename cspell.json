@@ -17,6 +17,7 @@
         "toml"
     ],
     "ignorePaths": [
+        ".tmp/**",
         "target",
         "docs/media/*.svg",
         "contrib/bencode/benches/*.bencode",

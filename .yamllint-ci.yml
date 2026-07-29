@@ -11,6 +11,7 @@ rules:
 
 # Ignore generated/runtime directories
 ignore: |
+  .tmp/**
   target/**
   storage/**
   .coverage/**
