@@ -5,6 +5,7 @@
 //! by the tracker server crate, but also by other crates in the Torrust
 //! ecosystem.
 pub mod announce;
+pub mod configuration_instance_id;
 pub mod driver;
 pub mod mode;
 pub mod number_of_bytes;
@@ -18,16 +19,19 @@ pub mod peer;
 pub mod peer_id;
 pub mod policy;
 pub mod scrape;
+pub mod service_role;
 pub mod swarm_metadata;
 
 use std::collections::BTreeMap;
 
 pub use announce::{AnnounceData, AnnounceEvent, AnnouncePolicy};
+pub use configuration_instance_id::ConfigurationInstanceId;
 pub use driver::Driver;
 pub use mode::PrivateMode;
 pub use number_of_bytes::NumberOfBytes;
 pub use policy::TrackerPolicy;
 pub use scrape::ScrapeData;
+pub use service_role::ServiceRole;
 /// Duration since the Unix Epoch.
 ///
 /// **Deprecated**: import from [`torrust_clock::DurationSinceUnixEpoch`] instead.

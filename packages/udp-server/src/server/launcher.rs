@@ -11,6 +11,7 @@ use torrust_server_lib::logging::STARTED_ON;
 use torrust_server_lib::registar::ServiceHealthCheckJob;
 use torrust_server_lib::signals::{Halted, Started, shutdown_signal_with_message};
 use torrust_tracker_client::udp::client::check;
+use torrust_tracker_primitives::ServiceRole;
 use torrust_tracker_udp_core::container::UdpTrackerCoreContainer;
 use torrust_tracker_udp_core::event::ConnectionContext;
 use torrust_tracker_udp_core::{self, ConnectionIdValidationPolicy, UDP_TRACKER_LOG_TARGET};
@@ -23,7 +24,6 @@ use crate::server::bound_socket::BoundSocket;
 use crate::server::processor::Processor;
 use crate::server::receiver::Receiver;
 
-const TYPE_STRING: &str = "udp_tracker";
 /// A UDP server instance launcher.
 #[derive(Constructor)]
 pub struct Launcher;
@@ -132,7 +132,12 @@ impl Launcher {
 
         let job = tokio::spawn(async move { check(&service_binding_clone).await });
 
-        ServiceHealthCheckJob::new(service_binding.clone(), info, TYPE_STRING.to_string(), job)
+        ServiceHealthCheckJob::new(
+            service_binding.clone(),
+            info,
+            ServiceRole::UdpTracker.as_str().to_string(),
+            job,
+        )
     }
 
     // issue-spec: docs/issues/drafts/simplify-udp-server-main-loop.md
