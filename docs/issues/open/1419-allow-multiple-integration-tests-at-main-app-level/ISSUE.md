@@ -180,16 +180,17 @@ which creates isolated workspaces with separate config and storage directories f
 **Strategy**: First prove the scaffolding is broken by adding a second test case that would conflict,
 then fix the scaffolding infrastructure, then expand coverage.
 
-| ID  | Status | Task                                                        | Notes                                                                                                                                        |
-| --- | ------ | ----------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| T1  | DONE   | Create `tests/AGENTS.md` with guidelines and TODO list      | Document what belongs in main-level integration tests vs package tests; include prioritized TODO list of future valuable integration tests   |
-| T2  | TODO   | Add second assertion to existing stats test                 | Check another global stat field (e.g., `tcp4_scrapes_handled` or `tcp6_announces_handled`) to prove need for parallel test capability        |
-| T3  | TODO   | Create test utilities module                                | `tests/helpers.rs` with utilities for temp workspace creation (config + storage dirs) and port extraction                                    |
-| T4  | TODO   | Add utility to create isolated temp workspace               | Returns `TempDir` with subdirectories for config and storage; writes TOML config; sets `TORRUST_TRACKER_CONFIG_TOML_PATH` env var            |
-| T5  | TODO   | Add utility to extract bound addresses from `AppContainer`  | Query `Registar` or job handles to get actual bound `SocketAddr` for HTTP API, trackers, etc.                                                |
-| T6  | TODO   | Update existing stats test to use port 0 and temp workspace | Replace `env::set_var` with isolated temp workspace, use port 0, extract actual ports for requests; fixes scaffolding to support parallelism |
-| T7  | TODO   | Expand global stats test coverage                           | Add tests for more global stat metrics now that scaffolding supports it (scrape counters, different IP families, etc.)                       |
-| T8  | TODO   | Run automatic verification                                  | `cargo test --test stats` must pass with all tests running concurrently                                                                      |
+| ID  | Status | Task                                                        | Notes                                                                                                                                                                |
+| --- | ------ | ----------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| T1  | DONE   | Create `tests/AGENTS.md` with guidelines and TODO list      | Document what belongs in main-level integration tests vs package tests; include prioritized TODO list of future valuable integration tests                           |
+| T2  | TODO   | Add second assertion to existing stats test                 | Check another global stat field (e.g., `tcp4_scrapes_handled` or `tcp6_announces_handled`) to prove need for parallel test capability                                |
+| T3  | TODO   | Create test utilities module                                | `tests/helpers.rs` with utilities for temp workspace creation (config + storage dirs) and port extraction                                                            |
+| T4  | TODO   | Add utility to create isolated temp workspace               | Returns `TempDir` with subdirectories for config and storage; writes TOML config; sets `TORRUST_TRACKER_CONFIG_TOML_PATH` env var                                    |
+| T5  | TODO   | Add utility to extract bound addresses from `AppContainer`  | Query `Registar` or job handles to get actual bound `SocketAddr` for HTTP API, trackers, etc.                                                                        |
+| T6  | TODO   | Update existing stats test to use port 0 and temp workspace | Replace `env::set_var` with isolated temp workspace, use port 0, extract actual ports for requests; fixes scaffolding to support parallelism                         |
+| T7  | TODO   | Expand global stats test coverage                           | Add tests for more global stat metrics now that scaffolding supports it (scrape counters, different IP families, etc.)                                               |
+| T8  | TODO   | Add shared-event-bus policy integration test                | After #2036 and event-metrics normalization, verify enabled and disabled HTTP/UDP listeners share aggregate buses while only enabled traffic changes public metrics. |
+| T9  | TODO   | Run automatic verification                                  | `cargo test --test stats` must pass with all tests running concurrently                                                                                              |
 
 ## Progress Tracking
 

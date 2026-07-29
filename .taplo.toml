@@ -2,7 +2,7 @@
 # Used by the "Even Better TOML" VS Code extension
 
 # Exclude generated and runtime folders from linting
-exclude = [ ".coverage/**", "storage/**", "target/**" ]
+exclude = [ ".coverage/**", ".tmp/**", "storage/**", "target/**" ]
 
 [formatting]
 # Preserve blank lines that exist

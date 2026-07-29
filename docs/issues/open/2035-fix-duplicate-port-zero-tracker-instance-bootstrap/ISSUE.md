@@ -14,10 +14,16 @@ semantic-links:
   related-artifacts:
     - src/container.rs
     - src/app.rs
+    - archived-attempt.md
     - docs/issues/open/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md
+    - docs/issues/open/2036-add-runtime-service-registry-metadata/ISSUE.md
+    - docs/issues/open/2039-normalize-per-instance-event-metrics-policy/ISSUE.md
+    - docs/events-architecture.md
     - evidence.md
   related-issues:
     - 1419
+    - 2036
+    - 2039
 ---
 
 # Issue #2035 - Fix Duplicate Port-Zero Tracker Instance Bootstrap
@@ -60,16 +66,40 @@ The local reproduction is recorded in [evidence.md](evidence.md).
 - Public endpoint, proxy, or DNS configuration.
 - User-supplied persistent service IDs in configuration.
 
+## Archived Attempt / Revised Delivery Plan
+
+The old implementation attempt lives on reference branch
+`archive/2035-bootstrap-identity-attempt`. It must not merge. Its evidence and
+the pause decision are recorded in [archived-attempt.md](archived-attempt.md).
+
+The attempt showed that bootstrap identity alone cannot make per-listener UDP
+metrics policy correct: the UDP server has one application-wide event bus and
+repository, while producer-side metrics suppression can hide facts required by
+the independent banning listener.
+
+Issue [#2035](https://github.com/torrust/torrust-tracker/issues/2035) must be
+reimplemented after:
+
+1. #2036 defines canonical runtime service/configuration-instance identity.
+2. [#2041](../2041-migrate-runtime-service-registry-metadata/ISSUE.md)
+   carries that identity through started-service registration metadata.
+3. #2039 makes event publication independent of metrics policy and filters
+   metrics in listeners by that canonical identity.
+
+The new implementation will preserve bootstrap identity without creating a
+second runtime identity or metrics-policy mechanism.
+
 ## Implementation Plan
 
-| ID  | Status | Task                                   | Notes / Expected Output                                                                                |
-| --- | ------ | -------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| T1  | DONE   | Add failing HTTP bootstrap regression  | Ignored stats-contract regression records the current `2 != 1` failure.                                |
-| T2  | TODO   | Add failing UDP bootstrap regression   | Same identity preservation for UDP instances.                                                          |
-| T3  | TODO   | Replace address-keyed container lookup | Startup aligns each configuration entry with its own initialized container.                            |
-| T4  | TODO   | Remove obsolete address lookup API     | No bootstrap path relies on configured `SocketAddr` uniqueness.                                        |
-| T5  | TODO   | Correlate bootstrap lifecycle logs     | Every HTTP and UDP lifecycle event that emits a configured or final binding includes `instance_index`. |
-| T6  | TODO   | Run focused and workspace validation   | Record before/after evidence in this issue folder.                                                     |
+| ID  | Status  | Task                                                                                                   | Notes / Expected Output                                                                    |
+| --- | ------- | ------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------ |
+| T1  | BLOCKED | Land [#2036](../2036-add-runtime-service-registry-metadata/ISSUE.md) canonical identity                | Bootstrap identity must align with the canonical runtime identity contract.                |
+| T2  | BLOCKED | Land registry metadata migration                                                                       | Register started services with canonical identity before #2039 consumes runtime identity.  |
+| T3  | BLOCKED | Land [#2039](../2039-normalize-per-instance-event-metrics-policy/ISSUE.md) event-metrics normalization | Objective-event publication and listener-side metrics filtering must be available.         |
+| T4  | TODO    | Replace address-keyed container lookup                                                                 | Use an order-preserving representation or canonical identity, not configured `SocketAddr`. |
+| T5  | TODO    | Start matching containers                                                                              | Pass each configuration entry's matching container into HTTP and UDP startup.              |
+| T6  | TODO    | Correlate lifecycle logs                                                                               | Include canonical identity with configured and final binding logs.                         |
+| T7  | TODO    | Add regressions and validate                                                                           | Cover duplicate port-zero HTTP/UDP listeners and record focused verification.              |
 
 ## Progress Tracking
 
@@ -77,17 +107,19 @@ The local reproduction is recorded in [evidence.md](evidence.md).
 
 - [x] Specification drafted and approved by user/maintainer
 - [x] GitHub issue created: #2035
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests)
-- [ ] Manual verification scenarios executed and recorded
+- [ ] Prerequisite #2036 completed
+- [ ] Event-metrics normalization completed
+- [ ] New implementation completed
+- [ ] Automatic and manual verification completed
 - [ ] Acceptance criteria reviewed after implementation
-- [ ] Issue closed and specification moved to `docs/issues/closed/`
 
 ### Progress Log
 
 - 2026-07-28 14:51 UTC - agent - User-approved specification promoted to GitHub issue #2035;
   the ignored HTTP stats-contract regression and its current `2 != 1` failure are recorded in
   [evidence.md](evidence.md).
+- 2026-07-29 00:00 UTC - agent - Archived the prior implementation attempt and deferred
+  implementation until #2036 and event-metrics normalization are complete.
 
 ## Acceptance Criteria
 
@@ -103,8 +135,8 @@ The local reproduction is recorded in [evidence.md](evidence.md).
 
 ### Automatic Checks
 
-- Focused regression tests for `AppContainer` and startup jobs.
-- `cargo test --test stats --test scaffold` after the runtime-registry prerequisite lands.
+- Focused regression tests for `AppContainer` and startup jobs after prerequisites land.
+- `cargo test --test stats --test scaffold`.
 - `linter all`.
 
 ### Manual Verification Scenarios
@@ -119,3 +151,7 @@ The local reproduction is recorded in [evidence.md](evidence.md).
 - Issue #1419: [main-application integration tests](../../open/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md)
 - [Runtime registry investigation](../../open/1419-allow-multiple-integration-tests-at-main-app-level/investigation-registar-and-health-check.md)
 - Feature #2036: [add runtime service registry metadata](../2036-add-runtime-service-registry-metadata/ISSUE.md)
+- Bug #2039: [normalize per-instance event metrics policy](../2039-normalize-per-instance-event-metrics-policy/ISSUE.md)
+- Issue #2041: [migrate runtime service registry metadata](../2041-migrate-runtime-service-registry-metadata/ISSUE.md)
+- [Archived implementation attempt](archived-attempt.md)
+- [Events architecture](../../../events-architecture.md)
