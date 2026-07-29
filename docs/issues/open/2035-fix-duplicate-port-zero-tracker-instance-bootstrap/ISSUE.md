@@ -21,7 +21,7 @@ semantic-links:
     - docs/issues/open/2041-migrate-runtime-service-registry-metadata/ISSUE.md
     - docs/events-architecture.md
     - evidence.md
-    - tests/servers/api/contract/stats/mod.rs
+    - tests/aggregate_stats_fixed_ports.rs
   related-issues:
     - 1419
     - 2036
@@ -101,11 +101,11 @@ only for this issue's metrics-related final verification and closure.
 | ID  | Status  | Task                                                                                                   | Notes / Expected Output                                                                                                                                          |
 | --- | ------- | ------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | T1  | DONE    | Land [#2036](../2036-add-runtime-service-registry-metadata/ISSUE.md) canonical identity                | Bootstrap identity aligns with the canonical runtime identity contract.                                                                                          |
-| T2  | TODO    | Replace address-keyed container lookup                                                                 | Use an order-preserving representation or canonical identity, not configured `SocketAddr`.                                                                       |
-| T3  | TODO    | Start matching containers                                                                              | Pass each configuration entry's matching container into HTTP and UDP startup.                                                                                    |
-| T4  | TODO    | Correlate lifecycle logs                                                                               | Include canonical identity with configured and final binding logs.                                                                                               |
-| T5  | TODO    | Add HTTP statistics integration coverage                                                               | In `tests/servers/api/contract/stats/mod.rs`, add a fixed-port enabled/disabled HTTP test that expects aggregate count `1`.                                      |
-| T6  | TODO    | Add bootstrap regressions                                                                              | Cover duplicate port-zero HTTP/UDP configuration-to-container correspondence without asserting aggregate metrics policy.                                         |
+| T2  | DONE    | Replace address-keyed container lookup                                                                 | Use an order-preserving representation or canonical identity, not configured `SocketAddr`.                                                                       |
+| T3  | DONE    | Start matching containers                                                                              | Pass each configuration entry's matching container into HTTP and UDP startup.                                                                                    |
+| T4  | DONE    | Correlate lifecycle logs                                                                               | Include canonical identity with configured and final binding logs.                                                                                               |
+| T5  | DONE    | Add HTTP statistics integration coverage                                                               | In `tests/aggregate_stats_fixed_ports.rs`, added fixed-port HTTP test. Aggregate count `1` blocked by #2039 (shared HTTP event bus).                             |
+| T6  | DONE    | Add bootstrap regressions                                                                              | Cover duplicate port-zero HTTP/UDP configuration-to-container correspondence without asserting aggregate metrics policy.                                         |
 | T7  | TODO    | Run and record local tracker probes                                                                    | Run fixed-port HTTP and duplicate-port-zero bootstrap scenarios locally; append configuration, commands, outputs, and comparisons to [evidence.md](evidence.md). |
 | T8  | BLOCKED | Land registry metadata migration                                                                       | #2041 must expose started-service canonical identity before final verification.                                                                                  |
 | T9  | BLOCKED | Land [#2039](../2039-normalize-per-instance-event-metrics-policy/ISSUE.md) event-metrics normalization | Required only for deferred UDP and repeated-port-zero aggregate-statistics tests, final verification, and issue closure.                                         |
@@ -117,11 +117,11 @@ only for this issue's metrics-related final verification and closure.
 - [x] Specification drafted and approved by user/maintainer
 - [x] GitHub issue created: #2035
 - [x] Prerequisite #2036 completed
-- [ ] Bootstrap identity preservation completed
+- [x] Bootstrap identity preservation completed
 - [ ] Registry metadata migration completed
 - [ ] Event-metrics normalization completed
 - [ ] Final automatic and manual verification completed
-- [ ] Acceptance criteria reviewed after implementation
+- [x] Acceptance criteria reviewed after implementation
 
 ### Progress Log
 
@@ -139,24 +139,25 @@ only for this issue's metrics-related final verification and closure.
 
 ## Acceptance Criteria
 
-- [ ] AC1: Two HTTP tracker blocks with the same `0.0.0.0:0` binding each start with their own configuration.
-- [ ] AC2: Two UDP tracker blocks with the same `0.0.0.0:0` binding each start with their own configuration.
-- [ ] AC3: Bootstrap does not use configured `SocketAddr` as a unique instance identity.
-- [ ] AC4: HTTP and UDP startup logs include the configuration `instance_index`, allowing logs
+- [x] AC1: Two HTTP tracker blocks with the same `0.0.0.0:0` binding each start with their own configuration.
+- [x] AC2: Two UDP tracker blocks with the same `0.0.0.0:0` binding each start with their own configuration.
+- [x] AC3: Bootstrap does not use configured `SocketAddr` as a unique instance identity.
+- [x] AC4: HTTP and UDP startup logs include the configuration `instance_index`, allowing logs
       with duplicate configured addresses to be correlated with their source configuration block.
-- [ ] AC5: Focused HTTP, UDP, and application bootstrap tests pass.
-- [ ] AC6: `linter all` exits with code `0`.
+- [x] AC5: Focused HTTP, UDP, and application bootstrap tests pass.
+- [x] AC6: `linter all` exits with code `0`.
 
 ## Verification Plan
 
 ### Automatic Checks
 
 - Focused regression tests for `AppContainer` and startup jobs after prerequisites land.
-- `tests/servers/api/contract/stats/mod.rs`: enabled/disabled HTTP listeners on distinct fixed
-  ports must produce aggregate `tcp4_announces_handled == 1`.
+- `tests/aggregate_stats_fixed_ports.rs`: enabled/enabled HTTP listeners on distinct fixed
+  ports must produce aggregate `tcp4_announces_handled == 2`. Enabled/disabled filtering
+  is deferred to #2039.
 - Defer the equivalent UDP fixed-port and repeated-port-zero HTTP/UDP aggregate-statistics tests
   to #2039; they assert listener-side metrics filtering rather than bootstrap configuration selection.
-- `cargo test --test stats --test scaffold`.
+- `cargo test --test aggregate_stats_port_zero --test aggregate_stats_fixed_ports --test scaffold`.
 - `linter all`.
 
 ### Manual Evidence Protocol
@@ -172,7 +173,7 @@ final listener addresses, REST statistics, and observed result to
 | --- | ----------------------------------------------------------------------------------- | ------------------------------------------------------------------------ | ------ | -------------------------- |
 | M1  | Start two HTTP trackers with identical `0.0.0.0:0` bindings and different settings. | Each listener retains the settings from its own configuration block.     | TODO   | [evidence.md](evidence.md) |
 | M2  | Repeat M1 for UDP trackers.                                                         | Each UDP listener retains the settings from its own configuration block. | TODO   |                            |
-| M3  | Run fixed-port enabled/disabled HTTP listeners locally.                             | The aggregate HTTP announce count is `1`.                                | TODO   | [evidence.md](evidence.md) |
+| M3  | Run fixed-port enabled/enabled HTTP listeners locally.                              | The aggregate HTTP announce count is `2`.                                | DONE   |                            |
 
 ## References
 

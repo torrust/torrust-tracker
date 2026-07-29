@@ -64,9 +64,11 @@ deny = [
     "torrust-tracker-axum-http-server",
     "torrust-tracker-client-lib",
     "torrust-tracker-http-core",
+    "torrust-tracker-test-helpers",
   ] },
   { crate = "torrust-tracker-udp-protocol", wrappers = [
     "torrust-tracker-client-lib",
+    "torrust-tracker-test-helpers",
     "torrust-tracker-udp-core",
     "torrust-tracker-udp-server",
   ] },

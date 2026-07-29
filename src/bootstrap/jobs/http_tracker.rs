@@ -32,11 +32,19 @@ use tracing::instrument;
 /// It would panic if the `config::HttpTracker` struct would contain inappropriate values.
 #[instrument(skip(http_tracker_container, form))]
 pub async fn start_job(
+    idx: usize,
     http_tracker_container: Arc<HttpTrackerCoreContainer>,
     form: ServiceRegistrationForm,
     version: Version,
 ) -> Option<JoinHandle<()>> {
     let socket = http_tracker_container.http_tracker_config.bind_address;
+
+    tracing::info!(
+        instance_index = idx,
+        bind_address = %socket,
+        tracker_usage_statistics = http_tracker_container.http_tracker_config.tracker_usage_statistics,
+        "Starting HTTP tracker instance"
+    );
 
     let tls = if let Some(tls_config) = &http_tracker_container.http_tracker_config.tsl_config {
         Some(
@@ -108,7 +116,7 @@ mod tests {
 
         let version = Version::V1;
 
-        start_job(http_tracker_container, Registar::default().give_form(), version)
+        start_job(0, http_tracker_container, Registar::default().give_form(), version)
             .await
             .expect("it should be able to join to the http tracker start-job");
     }

@@ -20,7 +20,7 @@ semantic-links:
     - docs/issues/open/2035-fix-duplicate-port-zero-tracker-instance-bootstrap/ISSUE.md
     - docs/issues/open/2036-add-runtime-service-registry-metadata/ISSUE.md
     - evidence.md
-    - tests/servers/api/contract/stats/mod.rs
+    - tests/aggregate_stats_fixed_ports.rs
     - packages/events/src/bus.rs
     - packages/http-core/src/container.rs
     - packages/udp-core/src/container.rs
@@ -104,7 +104,7 @@ the canonical identity rather than create a competing identity.
 - Add focused and application-level regressions for enabled and disabled
   listeners, including duplicate port-zero configuration blocks.
 - Add the deferred aggregate-statistics cases in
-  `tests/servers/api/contract/stats/mod.rs`: UDP enabled/disabled listeners on
+  `tests/aggregate_stats_fixed_ports.rs`: UDP enabled/disabled listeners on
   distinct fixed ports, then HTTP and UDP listeners with repeated port-zero
   bindings after bootstrap identity is available.
 - Record progressive manual baseline and post-change evidence for every
@@ -130,19 +130,19 @@ the same security events regardless of that policy.
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| ID  | Status  | Task                             | Notes / Expected Output                                                                                                                                                                |
-| --- | ------- | -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| T1  | TODO    | Inventory event gates            | Map every `SenderStatus`, optional sender, listener, and UDP ban consumer.                                                                                                             |
-| T2  | BLOCKED | Consume #2036 canonical identity | Propagate stable runtime configuration-instance identity; do not use configured addresses.                                                                                             |
-| T3  | TODO    | Always emit HTTP core facts      | Remove metrics-driven producer suppression while preserving event semantics.                                                                                                           |
-| T4  | TODO    | Always emit UDP core facts       | Remove metrics-driven producer suppression while preserving event semantics.                                                                                                           |
-| T5  | TODO    | Always emit UDP server facts     | Decouple the shared UDP server producer from the global metrics gate.                                                                                                                  |
-| T6  | TODO    | Filter metrics in listeners      | Apply immutable identity-to-policy filtering before aggregate repository updates.                                                                                                      |
-| T7  | TODO    | Preserve banning independence    | Verify cookie-error events reach the shared ban service for every listener policy.                                                                                                     |
-| T8  | TODO    | Update REST metrics integration  | Preserve aggregate API counters and UDP operational metrics from filtered repositories.                                                                                                |
-| T9  | TODO    | Add focused tests                | Cover producer independence, listener filtering, and ban-listener behavior.                                                                                                            |
-| T10 | TODO    | Add application tests            | In `tests/servers/api/contract/stats/mod.rs`, enable deferred UDP fixed-port coverage and add enabled/disabled HTTP/UDP repeated-port-zero coverage; each expects aggregate count `1`. |
-| T11 | TODO    | Validate and document            | Run focused tests, `linter all`, and the manual protocol; update evidence and architecture docs.                                                                                       |
+| ID  | Status  | Task                             | Notes / Expected Output                                                                                                                                                                                                      |
+| --- | ------- | -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| T1  | TODO    | Inventory event gates            | Map every `SenderStatus`, optional sender, listener, and UDP ban consumer.                                                                                                                                                   |
+| T2  | BLOCKED | Consume #2036 canonical identity | Propagate stable runtime configuration-instance identity; do not use configured addresses.                                                                                                                                   |
+| T3  | TODO    | Always emit HTTP core facts      | Remove metrics-driven producer suppression while preserving event semantics.                                                                                                                                                 |
+| T4  | TODO    | Always emit UDP core facts       | Remove metrics-driven producer suppression while preserving event semantics.                                                                                                                                                 |
+| T5  | TODO    | Always emit UDP server facts     | Decouple the shared UDP server producer from the global metrics gate.                                                                                                                                                        |
+| T6  | TODO    | Filter metrics in listeners      | Apply immutable identity-to-policy filtering before aggregate repository updates.                                                                                                                                            |
+| T7  | TODO    | Preserve banning independence    | Verify cookie-error events reach the shared ban service for every listener policy.                                                                                                                                           |
+| T8  | TODO    | Update REST metrics integration  | Preserve aggregate API counters and UDP operational metrics from filtered repositories.                                                                                                                                      |
+| T9  | TODO    | Add focused tests                | Cover producer independence, listener filtering, and ban-listener behavior.                                                                                                                                                  |
+| T10 | TODO    | Add application tests            | In `tests/aggregate_stats_fixed_ports.rs` and `tests/aggregate_stats_port_zero.rs`, enable deferred UDP fixed-port coverage and add enabled/disabled HTTP/UDP repeated-port-zero coverage; each expects aggregate count `1`. |
+| T11 | TODO    | Validate and document            | Run focused tests, `linter all`, and the manual protocol; update evidence and architecture docs.                                                                                                                             |
 
 ## Progressive Manual Verification Protocol
 

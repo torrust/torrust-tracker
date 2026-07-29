@@ -1,10 +1,5 @@
 # Event-Metrics Normalization Evidence
 
-## Purpose
-
-Record the manual baseline and post-change probes required by the progressive
-verification protocol in [ISSUE.md](ISSUE.md).
-
 ## Planned Baseline Probes
 
 | ID  | Issue phase   | Configuration                                                                               | Expected baseline                                                                             | Status |
@@ -16,7 +11,7 @@ verification protocol in [ISSUE.md](ISSUE.md).
 ## Evidence Records
 
 Add the exact tracker configuration, commands, observed REST statistics, and
-post-change comparison for each probe here. Do not overwrite baseline evidence.# Event Metrics Normalization Evidence
+post-change comparison for each probe here. Do not overwrite baseline evidence.
 
 ## Purpose
 
