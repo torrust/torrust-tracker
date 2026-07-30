@@ -2,5 +2,7 @@
 //!
 //! A collection of functions and types to help with testing the tracker server.
 pub mod configuration;
+pub mod http;
 pub mod logging;
 pub mod random;
+pub mod udp;

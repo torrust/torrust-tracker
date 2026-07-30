@@ -30,12 +30,20 @@ use tracing::instrument;
 #[allow(clippy::async_yields_async)]
 #[instrument(skip(udp_tracker_core_container, udp_tracker_server_container, form))]
 pub async fn start_job(
+    idx: usize,
     udp_tracker_core_container: Arc<UdpTrackerCoreContainer>,
     udp_tracker_server_container: Arc<UdpTrackerServerContainer>,
     form: ServiceRegistrationForm,
 ) -> JoinHandle<()> {
     let bind_to = udp_tracker_core_container.udp_tracker_config.bind_address;
     let cookie_lifetime = udp_tracker_core_container.udp_tracker_config.cookie_lifetime;
+
+    tracing::info!(
+        instance_index = idx,
+        bind_address = %bind_to,
+        tracker_usage_statistics = udp_tracker_core_container.udp_tracker_config.tracker_usage_statistics,
+        "Starting UDP tracker instance"
+    );
 
     // The connection ID validation policy is available in schema v3 via
     // `UdpTrackerServer::connection_id_validation`. The application bootstrap

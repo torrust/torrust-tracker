@@ -3,8 +3,9 @@ semantic-links:
   skill-links:
     - write-unit-test
   related-artifacts:
-    - tests/stats.rs
-    - tests/servers/
+    - tests/aggregate_stats_port_zero.rs
+    - tests/aggregate_stats_fixed_ports.rs
+    - tests/common/mod.rs
     - src/app.rs
     - docs/issues/open/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md
   issue-spec: docs/issues/drafts/increase-main-app-integration-test-coverage.md
@@ -53,22 +54,55 @@ configuration. Scenario functions run sequentially against that instance.
 
 A different initial configuration requires a separate top-level file. For example:
 
-| File                 | Purpose                                                  |
-| -------------------- | -------------------------------------------------------- |
-| `tests/stats.rs`     | Global statistics suite (public tracker, two HTTP nodes) |
-| `tests/scaffold.rs`  | Scaffolding demo — same pattern, isolated process        |
-| `tests/bootstrap.rs` | _(future)_ Bootstrap/shutdown lifecycle scenarios        |
+| File                                   | Purpose                                                        |
+| -------------------------------------- | -------------------------------------------------------------- |
+| `tests/aggregate_stats_port_zero.rs`   | Aggregate statistics with port-zero listeners (two HTTP nodes) |
+| `tests/aggregate_stats_fixed_ports.rs` | Aggregate statistics with distinct fixed-port HTTP listeners   |
+| `tests/scaffold.rs`                    | Scaffolding demo — same pattern, isolated process              |
 
-Cargo may run these binaries in parallel. Each binary binds to port `0` (OS-assigned
-ephemeral ports), uses its own `TempDir` workspace, and sets
-`TORRUST_TRACKER_CONFIG_TOML_PATH` only in its own process, so no conflict occurs.
+Each binary defines a single `#[tokio::test]` runner that starts the tracker
+once, then calls scenario functions sequentially. Scenario functions are plain
+async functions that receive the `AppContainer` and assert behavior.
+
+Cargo may run these binaries in parallel. Each binary binds to port `0`
+(OS-assigned ephemeral ports) by default, uses its own `TempDir` workspace,
+and sets `TORRUST_TRACKER_CONFIG_TOML_PATH` only in its own process, so no
+conflict occurs. Fixed-port binaries (e.g., `aggregate_stats_fixed_ports.rs`)
+use distinct non-overlapping ports and must not run concurrently with other
+binaries that use the same ports.
+
+### Why one binary per configuration?
+
+The 1:1 mapping between integration-test binaries and tracker configurations
+exists because the current application startup has several global side effects
+that prevent running multiple isolated tracker instances in the same process:
+
+1. **`tracing` global initialization** (main blocker): The `tracing` crate
+   initializes a global subscriber. Once set, it cannot be reset for a second
+   tracker instance in the same process. This means two tracker applications
+   sharing a process would share logging state and configuration.
+2. **Environment-variable config injection**: The tracker reads its
+   configuration from the `TORRUST_TRACKER_CONFIG_TOML_PATH` environment
+   variable. Multiple tracker instances in the same process would race on
+   this variable.
+3. **Static secrets and clock state**: Values like seed secrets and the
+   deterministic test clock are process-global. While these could be refactored
+   into injected dependencies, the tracing global subscriber remains the
+   fundamental blocker.
+
+Until these global side effects are eliminated (tracked in
+[#1430](https://github.com/torrust/torrust-tracker/issues/1430)), each
+integration-test binary must start exactly one tracker instance with one fixed
+configuration. Scenario functions run sequentially against that shared instance.
 
 ## Test Infrastructure Requirements
 
 All integration tests at this level must:
 
-1. **Use port `0` for all bind addresses**: The OS assigns free ephemeral ports, preventing
-   conflicts when tests run in parallel
+1. **Use port `0` for bind addresses by default**: The OS assigns free ephemeral ports,
+   preventing conflicts when tests run in parallel. Fixed ports are permitted when the
+   test scenario specifically requires distinct addresses (e.g., verifying per-instance
+   behavior). Use non-overlapping port ranges and document the constraint.
 2. **Use isolated temporary workspaces**: Use `tempfile::TempDir` to create
    isolated directories with separate config files and storage subdirectories
 3. **Extract actual bound ports**: Query `AppContainer`'s `Registar` to get the OS-assigned ports
@@ -81,39 +115,38 @@ All integration tests at this level must:
 
 ```text
 tests/
-├── AGENTS.md                    # This file
+├── AGENTS.md                         # This file
 ├── common/
-│   └── mod.rs                   # Shared test utilities (temp config, port extraction)
-├── stats.rs                     # Global statistics suite (main integration tests)
-├── scaffold.rs                  # Scaffolding demo — pattern reference for new binaries
-└── servers/
-    └── api/
-        └── contract/
-            └── stats/
-                └── mod.rs       # Global statistics test scenarios
+│   ├── mod.rs                        # Re-exports from submodules
+│   ├── workspace.rs                  # Tracker workspace setup and URL discovery
+│   ├── announce.rs                   # HTTP and UDP announce helpers
+│   └── statistics.rs                 # Aggregate statistics query helpers
+├── aggregate_stats_port_zero.rs      # Port-zero statistics (two HTTP + two UDP nodes)
+├── aggregate_stats_fixed_ports.rs    # Fixed-port statistics (two HTTP + two UDP nodes)
+└── scaffold.rs                       # Scaffolding demo — pattern reference for new binaries
 ```
 
 ## Adding a New Integration-Test Binary
 
 1. **Confirm it belongs here**: Can this test be written at the package level? If yes, write it there.
 2. **Determine the initial configuration**: If your scenarios need a different tracker
-   configuration than the existing suite, create a new top-level file (e.g., `tests/bootstrap.rs`).
-   If they share the same configuration, add scenarios to the existing suite.
+   configuration than the existing suite, create a new top-level file (e.g.,
+   `tests/aggregate_stats_fixed_ports.rs`). If they share the same configuration, add
+   scenarios to the existing suite's runner function.
 3. **Reuse shared utilities**: Import `mod common;` and use the helpers in `tests/common/mod.rs`
    for workspace setup, tracker startup, and port discovery.
-4. **Use port `0`**: All services must bind to port `0` in test configurations.
+4. **Use port `0` by default**: Bind services to port `0` unless the scenario specifically
+   requires distinct fixed addresses.
 5. **Extract bound ports**: Query the registar or `AppContainer` to discover actual socket addresses.
 6. **Document the purpose**: Add clear doc comments explaining what application-level behavior is
    being tested.
-7. **Reference existing code**: See `tests/scaffold.rs` for a minimal working example of a new
-   integration-test binary, or `tests/servers/api/contract/stats/mod.rs` for the scenario pattern.
-
-For concrete examples, see the existing tests in `tests/servers/` — they serve as the canonical
-reference for the integration test pattern.
+7. **Reference existing code**: See `tests/aggregate_stats_fixed_ports.rs` for the canonical
+   pattern: one `#[tokio::test]` runner, one config constant, scenario functions that receive
+   the `AppContainer`.
 
 ## References
 
 - [Issue #1419](../../docs/issues/open/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md) - Infrastructure for parallel integration tests (execution model decision)
-- [Integration test scaffolding](stats.rs)
+- [Integration test scaffolding](aggregate_stats_port_zero.rs)
 - [Shared test utilities](common/mod.rs)
 - [Scaffolding demo](scaffold.rs)

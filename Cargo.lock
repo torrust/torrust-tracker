@@ -5239,9 +5239,15 @@ name = "torrust-tracker-test-helpers"
 version = "3.0.0"
 dependencies = [
  "rand 0.10.2",
+ "torrust-info-hash",
+ "torrust-peer-id",
+ "torrust-tracker-client-lib",
  "torrust-tracker-configuration",
+ "torrust-tracker-http-protocol",
+ "torrust-tracker-udp-protocol",
  "tracing",
  "tracing-subscriber",
+ "url",
 ]
 
 [[package]]
