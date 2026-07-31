@@ -284,7 +284,7 @@ For every code-changing task (T2-T9):
 - [ ] AC9: Manual verification evidence is recorded for every code-changing
       task.
 - [x] AC10: Runtime service identity is emitted as explicit, stable tracing
-  fields rather than debug-formatted metadata.
+      fields rather than debug-formatted metadata.
 
 ## Verification Plan
 

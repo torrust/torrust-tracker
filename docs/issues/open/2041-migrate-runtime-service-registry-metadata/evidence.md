@@ -15,7 +15,7 @@ in the registry metadata migration.
 | T7   | NOT RECORDED    | Automated PASS; manual TODO | Health contract tests assert preserved URL, binding, and service-type fields for HTTP, REST API, and UDP.    |
 | T8   | NOT RECORDED    | Automated PASS; manual TODO | Integration helpers query roles/identities instead of raw map entries or bind IPs.                           |
 | T9   | NOT RECORDED    | Automated PASS; manual TODO | Focused server, health-contract, repeated-port-zero, and scaffold tests passed.                              |
-| T11  | NOT RECORDED    | Automated PASS; manual TODO | Startup spans use canonical tracing fields and post-bind events include the final service binding.            |
+| T11  | NOT RECORDED    | Automated PASS; manual TODO | Startup spans use canonical tracing fields and post-bind events include the final service binding.           |
 
 ## Automated Local Verification
 
@@ -67,11 +67,11 @@ all M1-M3 services and identity-discovery scenarios are now covered.
   `instance_index`. HTTP, UDP, REST, and health API startup paths emit a
   post-bind event with `service_binding`.
 - Commands: `cargo test -p torrust-tracker-axum-http-server -p
-  torrust-tracker-udp-server -p torrust-tracker-axum-rest-api-server -p
-  torrust-tracker --lib`; `cargo test -p
-  torrust-tracker-axum-health-check-api-server --test integration`; `cargo test
-  --test aggregate_stats_port_zero --test scaffold`; `linter all`; and `git
-  diff --check`.
+torrust-tracker-udp-server -p torrust-tracker-axum-rest-api-server -p
+torrust-tracker --lib`; `cargo test -p
+torrust-tracker-axum-health-check-api-server --test integration`; `cargo test
+--test aggregate_stats_port_zero --test scaffold`; `linter all`; and `git
+diff --check`.
 - Observed result: HTTP server (21 tests), REST API server (1 test), UDP server
   (125 tests), tracker library (58 tests), health integration (7 tests), and
   port-zero/scaffold integration tests passed. All linters and whitespace checks
@@ -93,10 +93,10 @@ all M1-M3 services and identity-discovery scenarios are now covered.
   `start_job{version=V1 service_role="tracker_rest_api" instance_index=0}`
   followed by `Started tracker API service_binding=http://0.0.0.0:1212/`. The
   health API emitted `service_role="health_check_api" instance_index=0
-  service_binding=http://127.0.0.1:1313/`.
+service_binding=http://127.0.0.1:1313/`.
 - Observed shutdown result: Ctrl+C logged `Torrust tracker shutting down ...`,
   each managed job completed gracefully, and the process ended with `Torrust
-  tracker successfully shutdown.`
+tracker successfully shutdown.`
 - Comparison: startup logging no longer depends on nested Rust `Debug` output
   for metadata identity. The canonical fields and final binding are explicit.
 - Result: `DONE`.
