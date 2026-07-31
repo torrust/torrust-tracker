@@ -132,7 +132,7 @@ fn build_response(
                 .peers
                 .iter()
                 .filter_map(|peer| {
-                    if let IpAddr::V4(ip) = peer.peer_addr.ip() {
+                    if let Some(IpAddr::V4(ip)) = peer.peer_addr.ip() {
                         Some(ResponsePeer::<Ipv4AddrBytes> {
                             ip_address: ip.into(),
                             port: Port(peer.peer_addr.port().into()),
@@ -157,7 +157,7 @@ fn build_response(
                 .peers
                 .iter()
                 .filter_map(|peer| {
-                    if let IpAddr::V6(ip) = peer.peer_addr.ip() {
+                    if let Some(IpAddr::V6(ip)) = peer.peer_addr.ip() {
                         Some(ResponsePeer::<Ipv6AddrBytes> {
                             ip_address: ip.into(),
                             port: Port(peer.peer_addr.port().into()),
@@ -413,7 +413,10 @@ pub(crate) mod tests {
                     .get_torrent_peers(&info_hash.0.into(), usize::MAX)
                     .await;
 
-                assert_eq!(peers[0].peer_addr, SocketAddr::new(IpAddr::V4(remote_client_ip), client_port));
+                assert_eq!(
+                    peers[0].peer_addr,
+                    SocketAddr::new(IpAddr::V4(remote_client_ip), client_port).into()
+                );
             }
 
             async fn add_a_torrent_peer_using_ipv6(in_memory_torrent_repository: &Arc<InMemoryTorrentRepository>) {
@@ -770,7 +773,10 @@ pub(crate) mod tests {
                     .await;
 
                 // When using IPv6 the tracker converts the remote client ip into a IPv4 address
-                assert_eq!(peers[0].peer_addr, SocketAddr::new(IpAddr::V6(remote_client_ip), client_port));
+                assert_eq!(
+                    peers[0].peer_addr,
+                    SocketAddr::new(IpAddr::V6(remote_client_ip), client_port).into()
+                );
             }
 
             async fn add_a_torrent_peer_using_ipv4(in_memory_torrent_repository: &Arc<InMemoryTorrentRepository>) {
@@ -943,7 +949,8 @@ pub(crate) mod tests {
                     let peer_id = PeerId([255u8; 20]);
                     let mut announcement = sample_peer();
                     announcement.peer_id = torrust_tracker_primitives::PeerId(peer_id.0);
-                    announcement.peer_addr = SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0x7e00, 1)), client_port);
+                    announcement.peer_addr =
+                        SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0x7e00, 1)), client_port).into();
 
                     let client_socket_addr = SocketAddr::new(IpAddr::V6(client_ip_v6), client_port);
                     let mut server_socket_addr = config.udp_trackers.clone().unwrap()[0].bind_address;
@@ -979,7 +986,7 @@ pub(crate) mod tests {
                                     server_service_binding.clone(),
                                 ),
                                 info_hash: torrust_info_hash::InfoHash::from(info_hash.0),
-                                announcement,
+                                announcement: announcement.clone(),
                             };
 
                             announce_events_match(event, &expected_event)
@@ -1043,7 +1050,7 @@ pub(crate) mod tests {
                     // 1111:2222:3333:4444:5555:6666:1.2.3.4
                     //
                     // ::127.0.0.1 is the IPV6 representation for the IPV4 address 127.0.0.1.
-                    assert_eq!(Ok(peers[0].peer_addr.ip()), "::126.0.0.1".parse());
+                    assert_eq!(peers[0].peer_addr.ip(), "::126.0.0.1".parse::<IpAddr>().ok());
                 }
             }
         }

@@ -583,7 +583,7 @@ async fn it_should_remove_inactive_peers(
     // Verify that this new peer was inserted into the repository.
     {
         let entry = repo.get(&info_hash).await.expect("it_should_get_some");
-        assert!(entry.get_peers(None).contains(&peer.into()));
+        assert!(entry.get_peers(None).contains(&peer.clone().into()));
     }
 
     // Remove peers that have not been updated since the timeout (120 seconds ago).

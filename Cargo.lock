@@ -5124,6 +5124,7 @@ dependencies = [
  "torrust-info-hash",
  "torrust-located-error",
  "torrust-peer-id",
+ "torrust-tracker-primitives",
 ]
 
 [[package]]
@@ -5148,10 +5149,12 @@ dependencies = [
 name = "torrust-tracker-primitives"
 version = "3.0.0"
 dependencies = [
+ "base64",
  "binascii",
  "derive_more 2.1.1",
  "serde",
  "serde_json",
+ "sha2 0.11.0",
  "tdyne-peer-id",
  "tdyne-peer-id-registry",
  "thiserror 2.0.19",

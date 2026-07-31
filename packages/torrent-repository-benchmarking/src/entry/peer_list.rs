@@ -1,9 +1,8 @@
 //! A peer list.
-use std::net::SocketAddr;
 use std::sync::Arc;
 
 use torrust_clock::DurationSinceUnixEpoch;
-use torrust_tracker_primitives::{PeerId, peer};
+use torrust_tracker_primitives::{PeerAddress, PeerId, peer};
 
 // code-review: the current implementation uses the peer Id as the ``BTreeMap``
 // key. That would allow adding two identical peers except for the Id.
@@ -61,13 +60,13 @@ impl PeerList {
     }
 
     #[must_use]
-    pub fn get_peers_excluding_addr(&self, peer_addr: &SocketAddr, limit: Option<usize>) -> Vec<Arc<peer::Peer>> {
+    pub fn get_peers_excluding_addr(&self, peer_addr: &PeerAddress, limit: Option<usize>) -> Vec<Arc<peer::Peer>> {
         limit.map_or_else(
             || {
                 self.peers
                     .values()
                     // Take peers which are not the client peer
-                    .filter(|peer| peer::ReadInfo::get_address(peer.as_ref()) != *peer_addr)
+                    .filter(|peer| peer::ReadInfo::get_address(peer.as_ref()) != peer_addr)
                     .cloned()
                     .collect()
             },
@@ -75,7 +74,7 @@ impl PeerList {
                 self.peers
                     .values()
                     // Take peers which are not the client peer
-                    .filter(|peer| peer::ReadInfo::get_address(peer.as_ref()) != *peer_addr)
+                    .filter(|peer| peer::ReadInfo::get_address(peer.as_ref()) != peer_addr)
                     // Limit the number of peers on the result
                     .take(limit)
                     .cloned()
@@ -127,9 +126,9 @@ mod tests {
 
             let peer = PeerBuilder::default().build();
 
-            peer_list.upsert(peer.into());
+            peer_list.upsert(peer.clone().into());
 
-            assert_eq!(peer_list.upsert(peer.into()), Some(Arc::new(peer)));
+            assert_eq!(peer_list.upsert(peer.clone().into()), Some(Arc::new(peer)));
         }
 
         #[test]
@@ -138,7 +137,7 @@ mod tests {
 
             let peer = PeerBuilder::default().build();
 
-            peer_list.upsert(peer.into());
+            peer_list.upsert(peer.clone().into());
 
             assert_eq!(peer_list.get_all(None), [Arc::new(peer)]);
         }
@@ -149,7 +148,7 @@ mod tests {
 
             let peer = PeerBuilder::default().build();
 
-            peer_list.upsert(peer.into());
+            peer_list.upsert(peer.clone().into());
 
             assert_eq!(peer_list.get(&peer.peer_id), Some(Arc::new(peer)).as_ref());
         }
@@ -171,7 +170,7 @@ mod tests {
 
             let peer = PeerBuilder::default().build();
 
-            peer_list.upsert(peer.into());
+            peer_list.upsert(peer.clone().into());
 
             peer_list.remove(&peer.peer_id);
 
@@ -184,7 +183,7 @@ mod tests {
 
             let peer = PeerBuilder::default().build();
 
-            peer_list.upsert(peer.into());
+            peer_list.upsert(peer.clone().into());
 
             peer_list.remove(&peer.peer_id);
 
@@ -199,13 +198,13 @@ mod tests {
                 .with_peer_id(&PeerId(*b"-qB00000000000000001"))
                 .with_peer_addr(&SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 6969))
                 .build();
-            peer_list.upsert(peer1.into());
+            peer_list.upsert(peer1.clone().into());
 
             let peer2 = PeerBuilder::default()
                 .with_peer_id(&PeerId(*b"-qB00000000000000002"))
                 .with_peer_addr(&SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 2)), 6969))
                 .build();
-            peer_list.upsert(peer2.into());
+            peer_list.upsert(peer2.clone().into());
 
             assert_eq!(peer_list.get_peers_excluding_addr(&peer2.peer_addr, None), [Arc::new(peer1)]);
         }

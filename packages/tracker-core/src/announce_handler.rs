@@ -27,7 +27,7 @@
 //!
 //! let peer = peer::Peer {
 //!     peer_id: PeerId(*b"-qB00000000000000001"),
-//!     peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8081),
+//!     peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8081).into(),
 //!     updated: DurationSinceUnixEpoch::new(1_669_397_478_934, 0),
 //!     uploaded: NumberOfBytes::new(0),
 //!     downloaded: NumberOfBytes::new(0),
@@ -163,10 +163,12 @@ impl AnnounceHandler {
     ) -> Result<AnnounceData, AnnounceError> {
         self.whitelist_authorization.authorize(info_hash).await?;
 
-        peer.change_ip(&assign_ip_address_to_peer(
-            remote_client_ip,
-            self.config.net.external_ip.map(Into::into),
-        ));
+        if !peer.peer_addr.is_i2p() {
+            peer.change_ip(&assign_ip_address_to_peer(
+                remote_client_ip,
+                self.config.net.external_ip.map(Into::into),
+            ));
+        }
 
         self.in_memory_torrent_repository
             .handle_announcement(info_hash, peer, self.load_downloads_metric_if_needed(info_hash).await?)
@@ -314,7 +316,7 @@ mod tests {
         fn sample_peer_1() -> Peer {
             Peer {
                 peer_id: PeerId(*b"-qB00000000000000001"),
-                peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8081),
+                peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8081).into(),
                 updated: DurationSinceUnixEpoch::new(1_669_397_478_934, 0),
                 uploaded: NumberOfBytes::new(0),
                 downloaded: NumberOfBytes::new(0),
@@ -327,7 +329,7 @@ mod tests {
         fn sample_peer_2() -> Peer {
             Peer {
                 peer_id: PeerId(*b"-qB00000000000000002"),
-                peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 2)), 8082),
+                peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 2)), 8082).into(),
                 updated: DurationSinceUnixEpoch::new(1_669_397_478_934, 0),
                 uploaded: NumberOfBytes::new(0),
                 downloaded: NumberOfBytes::new(0),
@@ -340,7 +342,7 @@ mod tests {
         fn sample_peer_3() -> Peer {
             Peer {
                 peer_id: PeerId(*b"-qB00000000000000003"),
-                peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 3)), 8082),
+                peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 3)), 8082).into(),
                 updated: DurationSinceUnixEpoch::new(1_669_397_478_934, 0),
                 uploaded: NumberOfBytes::new(0),
                 downloaded: NumberOfBytes::new(0),

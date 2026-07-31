@@ -51,8 +51,18 @@ impl SwarmMetadata {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Peer {
     pub peer_id: PeerId,
-    pub peer_addr: SocketAddr,
+    pub peer_addr: PeerAddress,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub enum PeerAddress {
+    Clearnet(SocketAddr),
+    I2p {
+        destination: String,
+        destination_hash: [u8; 32],
+        port: u16,
+    },
 }

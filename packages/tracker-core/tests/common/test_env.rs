@@ -142,7 +142,7 @@ impl TestEnv {
     }
 
     pub async fn increase_number_of_downloads(&mut self, peer: Peer, remote_client_ip: &IpAddr, info_hash: &InfoHash) {
-        let _announce_data = self.announce_peer_started(peer, remote_client_ip, info_hash).await;
+        let _announce_data = self.announce_peer_started(peer.clone(), remote_client_ip, info_hash).await;
         let announce_data = self.announce_peer_completed(peer, remote_client_ip, info_hash).await;
 
         assert_eq!(announce_data.stats.downloads(), 1);

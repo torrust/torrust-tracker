@@ -105,7 +105,7 @@ pub async fn get_torrent_info(
 
     let peers = torrent_entry.lock().await.peers(None);
 
-    let peers = Some(peers.iter().map(|peer| **peer).collect());
+    let peers = Some(peers.iter().map(|peer| peer.as_ref().clone()).collect());
 
     Some(Info {
         info_hash: *info_hash,
@@ -212,7 +212,7 @@ mod tests {
     fn sample_peer() -> peer::Peer {
         peer::Peer {
             peer_id: PeerId(*b"-qB00000000000000000"),
-            peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080),
+            peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080).into(),
             updated: DurationSinceUnixEpoch::new(1_669_397_478_934, 0),
             uploaded: NumberOfBytes::new(0),
             downloaded: NumberOfBytes::new(0),

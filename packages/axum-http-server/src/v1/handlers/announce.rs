@@ -106,9 +106,22 @@ fn to_protocol_announce_data(domain_data: DomainAnnounceData) -> responses::anno
         peers: domain_data
             .peers
             .into_iter()
-            .map(|peer| responses::announce::Peer {
-                peer_id: peer.peer_id,
-                peer_addr: peer.peer_addr,
+            .map(|peer| {
+                let peer_addr = match &peer.peer_addr {
+                    torrust_tracker_primitives::PeerAddress::Clearnet(address) => {
+                        responses::announce::PeerAddress::Clearnet(*address)
+                    }
+                    torrust_tracker_primitives::PeerAddress::I2p(address) => responses::announce::PeerAddress::I2p {
+                        destination: address.destination.to_string(),
+                        destination_hash: *address.destination.hash(),
+                        port: 1,
+                    },
+                };
+
+                responses::announce::Peer {
+                    peer_id: peer.peer_id,
+                    peer_addr,
+                }
             })
             .collect(),
         stats: responses::announce::SwarmMetadata {
