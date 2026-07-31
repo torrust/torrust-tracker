@@ -20,9 +20,9 @@ in the registry metadata migration.
 
 The issue's evidence protocol asks for manual baseline and post-change probes
 before each edit. This work started before those baselines were recorded, so no
-manual baseline or manual post-change result is claimed retroactively. The
-following are reproducible **automated** post-change checks only. M1-M3 remain
-mandatory manual scenarios before this issue can be accepted.
+manual baseline is available. The following are reproducible **automated**
+post-change checks. The completed manual post-change probe is recorded below;
+all M1-M3 services and identity-discovery scenarios are now covered.
 
 ### T3-T5 - Generic registry API and released crate
 
@@ -50,6 +50,103 @@ mandatory manual scenarios before this issue can be accepted.
 - Observed result: all invoked checks passed. Health JSON tests assert `service_binding`, `binding`, and `service_type`; port-zero coverage asserts exact identity-to-final-binding correlation.
 - Comparison: Regression coverage now protects the metadata and readiness contracts introduced by this issue.
 - Result: `DONE`.
+
+## Manual Post-Change Verification
+
+The manual baseline was not captured before implementation. The following
+post-change probe was performed against a locally started tracker and records
+the actual configuration, commands, and output.
+
+### M1-M3 - Port-zero service startup and health report
+
+#### Baseline
+
+- Not recorded before implementation.
+
+#### Post-change
+
+- Revisions: tracker commit `28b60a78` and follow-up invariant refactor
+  `e9515303`.
+- Configuration: `.tmp/issue-2041-manual.toml` configured two HTTP and two UDP
+  listeners at `0.0.0.0:0`, a REST API at `127.0.0.1:18081`, and a health API
+  at `127.0.0.1:18080`. TLS/HTTPS was not configured for this probe.
+- Start command:
+  `TORRUST_TRACKER_CONFIG_TOML_PATH="$PWD/.tmp/issue-2041-manual.toml" cargo run --bin torrust-tracker`.
+- Startup output: distinct final bindings were assigned and logged with their
+  canonical metadata: `UdpTracker(0)=0.0.0.0:49980`,
+  `UdpTracker(1)=0.0.0.0:57094`, `HttpTracker(0)=0.0.0.0:59065`,
+  `HttpTracker(1)=0.0.0.0:44209`, `RestApi(0)=127.0.0.1:18081`, and
+  `HealthCheckApi(0)=127.0.0.1:18080`.
+- Health query: `curl --fail --silent --show-error http://127.0.0.1:18080/health_check`.
+- Observed health report: `status` was `Ok`. It reported five checkable
+  services in deterministic protocol/binding order: both UDP listeners with
+  `service_type="udp_tracker"`, both HTTP listeners with
+  `service_type="http_tracker"`, and the REST API with
+  `service_type="tracker_rest_api"`. Every report entry preserved matching
+  `service_binding` URL and `binding` socket address. The health API itself was
+  correctly omitted because it is metadata-only and must not recursively check
+  itself.
+- Service probes:
+  - `curl --fail --silent --show-error http://127.0.0.1:59065/health_check` → `{"status":"Ok"}`.
+  - `curl --fail --silent --show-error http://127.0.0.1:44209/health_check` → `{"status":"Ok"}`.
+  - `curl --fail --silent --show-error http://127.0.0.1:18081/api/health_check` → `{"status":"Ok"}`.
+  - `cargo run -p torrust-tracker-client --bin tracker_client -- udp announce udp://127.0.0.1:49980/announce 0123456789abcdef0123456789abcdef01234567` → successful IPv4 announce response.
+  - The same announce command against `udp://127.0.0.1:57094/announce` → successful IPv4 announce response.
+- Comparison: exact configuration identities were correlated with non-zero,
+  distinct final bindings without bind-IP classification, registry-map order,
+  or a startup delay. The health-report JSON retained the compatibility fields.
+- Result: `DONE` for HTTP, UDP, REST API, health API, repeated port-zero
+  identity, and health compatibility.
+
+### M1 - HTTPS port-zero listener
+
+#### Baseline
+
+- Not recorded before implementation.
+
+#### Post-change
+
+- Revision: tracker commits `28b60a78` and `e9515303`.
+- Temporary TLS material: generated a one-day self-signed RSA certificate and
+  key in the ignored `.tmp/` directory. The certificate contained SAN entries
+  for `localhost` and `127.0.0.1`, allowing a local direct probe.
+- Temporary configuration: added a schema-2.0
+  `[http_trackers.tsl_config]` section to the second repeated HTTP
+  `0.0.0.0:0` listener in `.tmp/issue-2041-manual.toml`. It referenced the
+  temporary certificate and key. The configuration was restored afterwards.
+- Certificate command:
+  `openssl req -x509 -out .tmp/issue-2041-manual.crt -keyout .tmp/issue-2041-manual.key -newkey rsa:2048 -nodes -sha256 -days 1 -subj '/CN=localhost' -addext 'subjectAltName=DNS:localhost,IP:127.0.0.1' -addext 'keyUsage=digitalSignature' -addext 'extendedKeyUsage=serverAuth'`.
+- Start command:
+  `TORRUST_TRACKER_CONFIG_TOML_PATH="$PWD/.tmp/issue-2041-manual.toml" cargo run --bin torrust-tracker`.
+- Startup output: `HttpTracker(0)` bound as
+  `http://0.0.0.0:58997`; `HttpTracker(1)` bound as
+  `https://0.0.0.0:60057`. The latter used the temporary certificate and key.
+  The same run also bound `UdpTracker(0)=0.0.0.0:42524`,
+  `UdpTracker(1)=0.0.0.0:54809`, `RestApi(0)=127.0.0.1:18081`, and
+  `HealthCheckApi(0)=127.0.0.1:18080`.
+- Registry/health-report query:
+  `curl --fail --silent --show-error http://127.0.0.1:18080/health_check`.
+  The report contained the HTTPS entry with
+  `service_binding="https://0.0.0.0:60057/"`,
+  `binding="0.0.0.0:60057"`, and `service_type="http_tracker"`.
+- Direct TLS probe:
+  `curl --fail --silent --show-error --insecure https://127.0.0.1:60057/health_check`.
+  The response was `{"status":"Ok"}`.
+- Known unrelated limitation observed: the aggregate health report had
+  `status="Error"` for the HTTPS listener because
+  `packages/axum-http-server/src/server.rs` constructs the check URL with a
+  hard-coded `http://` scheme. Its report detail attempted
+  `http://0.0.0.0:60057/health_check` despite correctly exposing the service's
+  HTTPS binding. This is pre-existing behavior explicitly outside this issue's
+  scope; it is tracked by the draft issue
+  `docs/issues/drafts/fix-https-tracker-health-check-protocol.md`.
+- Comparison: same-role repeated HTTP configuration instances were
+  distinguished by canonical `HttpTracker` identities and their separately
+  assigned final HTTP and HTTPS bindings. The direct TLS probe confirms that
+  the HTTPS listener itself was operational.
+- Result: `DONE`. The registry-metadata behavior and the M1 service-startup
+  requirement are verified. The unrelated aggregate HTTPS health-check defect
+  is documented separately.
 
 ## Scenario Record Template
 

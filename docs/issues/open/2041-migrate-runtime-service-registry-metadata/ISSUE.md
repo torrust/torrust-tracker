@@ -196,18 +196,18 @@ incidentally.
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| ID  | Status      | Task                                          | Notes / Expected Output                                                                                          |
-| --- | ----------- | --------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| T1  | DONE        | Confirm prerequisites                         | #2036 and #2035 are merged; #2035's retained canonical identifiers must flow through registration.               |
-| T2  | DONE        | Define generic registration metadata boundary | Approved: generic immutable metadata, optional health behavior, and tracker-owned typed role/identity metadata.  |
-| T3  | DONE        | Extend registration and query API             | `torrust-server-lib` 0.2.0 provides metadata, optional checks, insertion acknowledgement, and ordered snapshots. |
-| T4  | DONE        | Establish readiness semantics                 | Approved per-service insertion acknowledgement after bind; readiness consumers query exact expected identities.  |
-| T5  | DONE        | Release and upgrade server library            | Published `torrust-server-lib` 0.2.0; all tracker declarations and lockfile resolve the release.                 |
-| T6  | DONE        | Migrate tracker registrations                 | HTTP(S), UDP, REST API, and health-check API register canonical role and instance metadata.                      |
-| T7  | DONE        | Migrate health reporting                      | Health reports combine metadata binding/role with optional check execution and preserve JSON fields.             |
-| T8  | DONE        | Migrate #1419 discovery helpers               | Helpers await exact identities and query canonical roles; no bind-IP or map-order classification remains.        |
-| T9  | DONE        | Add focused tests                             | Added health JSON compatibility and repeated port-zero identity-to-binding regressions.                          |
-| T10 | IN_PROGRESS | Validate and record evidence                  | Focused compilation, tests, and linters passed; final full quality gate and manual scenarios remain.             |
+| ID  | Status | Task                                          | Notes / Expected Output                                                                                                                                                          |
+| --- | ------ | --------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| T1  | DONE   | Confirm prerequisites                         | #2036 and #2035 are merged; #2035's retained canonical identifiers must flow through registration.                                                                               |
+| T2  | DONE   | Define generic registration metadata boundary | Approved: generic immutable metadata, optional health behavior, and tracker-owned typed role/identity metadata.                                                                  |
+| T3  | DONE   | Extend registration and query API             | `torrust-server-lib` 0.2.0 provides metadata, optional checks, insertion acknowledgement, and ordered snapshots.                                                                 |
+| T4  | DONE   | Establish readiness semantics                 | Approved per-service insertion acknowledgement after bind; readiness consumers query exact expected identities.                                                                  |
+| T5  | DONE   | Release and upgrade server library            | Published `torrust-server-lib` 0.2.0; all tracker declarations and lockfile resolve the release.                                                                                 |
+| T6  | DONE   | Migrate tracker registrations                 | HTTP(S), UDP, REST API, and health-check API register canonical role and instance metadata.                                                                                      |
+| T7  | DONE   | Migrate health reporting                      | Health reports combine metadata binding/role with optional check execution and preserve JSON fields.                                                                             |
+| T8  | DONE   | Migrate #1419 discovery helpers               | Helpers await exact identities and query canonical roles; no bind-IP or map-order classification remains.                                                                        |
+| T9  | DONE   | Add focused tests                             | Added health JSON compatibility and repeated port-zero identity-to-binding regressions.                                                                                          |
+| T10 | DONE   | Validate and record evidence                  | Focused/full pre-commit validation and manual HTTP/HTTPS/UDP/REST/health port-zero probes passed; the pre-existing HTTPS aggregate health-check defect is documented separately. |
 
 ## Progressive Verification Protocol
 
@@ -242,6 +242,8 @@ For every code-changing task (T2-T9):
 - 2026-07-30 00:00 UTC - user and agent - Confirmed that the standalone server-library release, publication, and tracker upgrade are in scope. Approved generic immutable metadata, per-service insertion-acknowledgement readiness, and a concrete `0.2.0` server-library API plan. Reviewed compatibility with #2035, #2036, #2039, and #1419.
 - 2026-07-31 UTC - agent - Published `torrust-server-lib` 0.2.0 after a successful `cargo publish --dry-run`; pushed signed release commit `d17fdb1`.
 - 2026-07-31 UTC - agent - Migrated tracker registrations and health reporting to typed runtime metadata. Replaced #1419 bind-IP/count-based helper behavior with exact canonical identity readiness and role queries. Focused tests, workspace compilation, and `linter all` passed; final validation and manual evidence remain pending.
+- 2026-07-31 UTC - agent - Manually started the tracker with repeated HTTP/UDP port-zero listeners plus REST and health APIs. Recorded distinct final bindings, canonical metadata correlation in startup logs, successful HTTP/UDP probes, and a compatible `Ok` health report in `evidence.md`. HTTPS remains manually unverified because the probe configuration omitted TLS material.
+- 2026-07-31 UTC - agent - Manually started a second port-zero HTTP listener with a temporary self-signed TLS certificate. Direct HTTPS health probing passed and the registry health report preserved its HTTPS binding, HTTP-tracker role, and final address. The report's pre-existing HTTP-scheme health probe for HTTPS is documented as a separate draft bug.
 
 ## Acceptance Criteria
 
@@ -272,11 +274,11 @@ For every code-changing task (T2-T9):
 
 ### Manual Verification Scenarios
 
-| ID  | Scenario                                                                  | Expected Result                                                                    | Status | Evidence |
-| --- | ------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- | ------ | -------- |
-| M1  | Start HTTP, HTTPS, REST API, health API, and UDP services with port zero. | Registry queries distinguish canonical role, instance identity, and final binding. | TODO   |          |
-| M2  | Start repeated HTTP and UDP `0.0.0.0:0` configuration blocks.             | Each final listener is correlated with the intended configuration instance.        | TODO   |          |
-| M3  | Run health checks after registry migration.                               | Health response preserves existing JSON fields and values.                         | TODO   |          |
+| ID  | Scenario                                                                  | Expected Result                                                                    | Status | Evidence                                                                                                             |
+| --- | ------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- | ------ | -------------------------------------------------------------------------------------------------------------------- |
+| M1  | Start HTTP, HTTPS, REST API, health API, and UDP services with port zero. | Registry queries distinguish canonical role, instance identity, and final binding. | DONE   | [evidence.md](evidence.md) — direct HTTPS probe passed; known aggregate health-check limitation recorded separately. |
+| M2  | Start repeated HTTP and UDP `0.0.0.0:0` configuration blocks.             | Each final listener is correlated with the intended configuration instance.        | DONE   | [evidence.md](evidence.md)                                                                                           |
+| M3  | Run health checks after registry migration.                               | Health response preserves existing JSON fields and values.                         | DONE   | [evidence.md](evidence.md)                                                                                           |
 
 ## References
 
