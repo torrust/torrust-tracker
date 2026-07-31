@@ -110,6 +110,63 @@ netstat -ulnp 2>/dev/null | grep -E '6969|6970'
 netstat -tlnp 2>/dev/null | grep -E '7070|7071|1212'
 ```
 
+## Running a Local HTTPS Tracker
+
+For local TLS verification, create a temporary configuration and certificate
+under `.tmp/`. The directory is git-ignored, so do not place test keys in
+`share/` or commit them.
+
+1. Copy or create a configuration based on the development configuration. Give
+   an HTTP tracker a port-zero binding if the final runtime binding is part of
+   the behavior under test:
+
+```toml
+[[http_trackers]]
+bind_address = "0.0.0.0:0"
+
+# Schema 2.0 uses the historical `tsl_config` spelling.
+[http_trackers.tsl_config]
+ssl_cert_path = ".tmp/localhost.crt"
+ssl_key_path = ".tmp/localhost.key"
+```
+
+1. Generate a short-lived self-signed certificate for local use. Include SANs
+   for both `localhost` and `127.0.0.1` so a loopback client can validate it
+   when supplied with the certificate:
+
+```bash
+openssl req -x509 -out .tmp/localhost.crt -keyout .tmp/localhost.key \
+  -newkey rsa:2048 -nodes -sha256 -days 1 \
+  -subj '/CN=localhost' \
+  -addext 'subjectAltName=DNS:localhost,IP:127.0.0.1' \
+  -addext 'keyUsage=digitalSignature' \
+  -addext 'extendedKeyUsage=serverAuth'
+```
+
+1. Start the tracker with the temporary configuration:
+
+```bash
+TORRUST_TRACKER_CONFIG_TOML_PATH="$PWD/.tmp/local-tls.toml" cargo run --bin torrust-tracker
+```
+
+Read the startup log to obtain the final port assigned to a `:0` binding.
+It will report an `https://` URL when TLS is enabled.
+
+1. Probe the listener. `--insecure` is appropriate only for this temporary
+   self-signed local certificate:
+
+```bash
+curl --fail --silent --show-error --insecure https://127.0.0.1:<port>/health_check
+```
+
+1. Stop the tracker and remove or retain the `.tmp/` files as local-only test
+   artifacts. Restore any temporary configuration edits before committing.
+
+> **Known limitation:** the aggregate health-check service currently builds
+> HTTP-tracker probes with an `http://` URL even when a registered listener is
+> HTTPS. A direct HTTPS probe verifies the TLS listener; do not treat that
+> separate health-check defect as a TLS-startup failure.
+
 ## Database Storage
 
 By default, development tracker uses SQLite3. The database file is stored in:

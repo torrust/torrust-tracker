@@ -15,7 +15,7 @@ use torrust_server_lib::signals::{Halted, Started};
 use torrust_tracker_axum_server::custom_axum_server::{self, TimeoutAcceptor};
 use torrust_tracker_axum_server::signals::graceful_shutdown;
 use torrust_tracker_http_core::container::HttpTrackerCoreContainer;
-use torrust_tracker_primitives::ServiceRole;
+use torrust_tracker_primitives::RuntimeServiceMetadata;
 use tracing::instrument;
 
 use super::v1::routes::router;
@@ -205,10 +205,18 @@ impl HttpServer<Stopped> {
     ///
     /// It would panic spawned HTTP server launcher cannot send the bound `SocketAddr`
     /// back to the main thread.
+    #[instrument(
+        skip(self, http_tracker_container, form, metadata),
+        fields(
+            service_role = metadata.service_role().as_str(),
+            instance_index = metadata.configuration_instance_id().instance_index(),
+        )
+    )]
     pub async fn start(
         self,
         http_tracker_container: Arc<HttpTrackerCoreContainer>,
-        form: ServiceRegistrationForm,
+        form: ServiceRegistrationForm<RuntimeServiceMetadata>,
+        metadata: RuntimeServiceMetadata,
     ) -> Result<HttpServer<Running>, Error> {
         let (tx_start, rx_start) = tokio::sync::oneshot::channel::<Started>();
         let (tx_halt, rx_halt) = tokio::sync::oneshot::channel::<Halted>();
@@ -225,11 +233,14 @@ impl HttpServer<Stopped> {
 
         let started = rx_start.await.expect("it should be able to start the service");
 
-        let listen_url = started.service_binding;
+        let service_binding = started.service_binding;
         let binding = started.address;
 
-        form.send(ServiceRegistration::new(listen_url, check_fn))
-            .expect("it should be able to send service registration");
+        tracing::info!(service_binding = %service_binding, "Started HTTP tracker");
+
+        form.register(ServiceRegistration::new(service_binding, metadata, Some(check_fn)))
+            .await
+            .expect("it should be able to register the started service");
 
         Ok(HttpServer {
             state: Running {
@@ -281,12 +292,7 @@ pub fn check_fn(service_binding: &ServiceBinding) -> ServiceHealthCheckJob {
         }
     });
 
-    ServiceHealthCheckJob::new(
-        service_binding.clone(),
-        info,
-        ServiceRole::HttpTracker.as_str().to_string(),
-        job,
-    )
+    ServiceHealthCheckJob::new(info, job)
 }
 
 #[cfg(test)]
@@ -305,6 +311,7 @@ mod tests {
     use torrust_tracker_http_core::services::scrape::ScrapeService;
     use torrust_tracker_http_core::statistics::event::listener::run_event_listener;
     use torrust_tracker_http_core::statistics::repository::Repository;
+    use torrust_tracker_primitives::{ConfigurationInstanceId, RuntimeServiceMetadata, ServiceRole};
     use torrust_tracker_swarm_coordination_registry::container::SwarmCoordinationRegistryContainer;
     use torrust_tracker_test_helpers::configuration::ephemeral_public;
 
@@ -407,7 +414,11 @@ mod tests {
         let stopped = HttpServer::new(Launcher::new(bind_to, tls, http_tracker_config.ipv6_v6only));
 
         let started = stopped
-            .start(http_tracker_container, register.give_form())
+            .start(
+                http_tracker_container,
+                register.give_form(),
+                RuntimeServiceMetadata::new(ConfigurationInstanceId::new(ServiceRole::HttpTracker, 0)),
+            )
             .await
             .expect("it should start the server");
         let stopped = started.stop().await.expect("it should stop the server");

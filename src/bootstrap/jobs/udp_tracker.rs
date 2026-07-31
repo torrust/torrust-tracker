@@ -10,6 +10,7 @@ use std::sync::Arc;
 
 use tokio::task::JoinHandle;
 use torrust_server_lib::registar::ServiceRegistrationForm;
+use torrust_tracker_primitives::RuntimeServiceMetadata;
 use torrust_tracker_udp_core::container::UdpTrackerCoreContainer;
 use torrust_tracker_udp_core::{ConnectionIdValidationPolicy, UDP_TRACKER_LOG_TARGET};
 use torrust_tracker_udp_server::container::UdpTrackerServerContainer;
@@ -28,18 +29,23 @@ use tracing::instrument;
 /// It will panic if the task did not finish successfully.
 #[must_use]
 #[allow(clippy::async_yields_async)]
-#[instrument(skip(udp_tracker_core_container, udp_tracker_server_container, form))]
+#[instrument(
+    skip(udp_tracker_core_container, udp_tracker_server_container, form, metadata),
+    fields(
+        service_role = metadata.service_role().as_str(),
+        instance_index = metadata.configuration_instance_id().instance_index(),
+    )
+)]
 pub async fn start_job(
-    idx: usize,
     udp_tracker_core_container: Arc<UdpTrackerCoreContainer>,
     udp_tracker_server_container: Arc<UdpTrackerServerContainer>,
-    form: ServiceRegistrationForm,
+    form: ServiceRegistrationForm<RuntimeServiceMetadata>,
+    metadata: RuntimeServiceMetadata,
 ) -> JoinHandle<()> {
     let bind_to = udp_tracker_core_container.udp_tracker_config.bind_address;
     let cookie_lifetime = udp_tracker_core_container.udp_tracker_config.cookie_lifetime;
 
     tracing::info!(
-        instance_index = idx,
         bind_address = %bind_to,
         tracker_usage_statistics = udp_tracker_core_container.udp_tracker_config.tracker_usage_statistics,
         "Starting UDP tracker instance"
@@ -57,6 +63,7 @@ pub async fn start_job(
             udp_tracker_core_container,
             udp_tracker_server_container,
             form,
+            metadata,
             cookie_lifetime,
             connection_id_validation,
         )

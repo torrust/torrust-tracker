@@ -7,6 +7,7 @@ use tokio_util::sync::CancellationToken;
 use torrust_server_lib::registar::Registar;
 use torrust_tracker_configuration::{Core, UdpTracker};
 use torrust_tracker_core::container::TrackerCoreContainer;
+use torrust_tracker_primitives::{ConfigurationInstanceId, RuntimeServiceMetadata, ServiceRole};
 use torrust_tracker_swarm_coordination_registry::container::SwarmCoordinationRegistryContainer;
 use torrust_tracker_udp_core::ConnectionIdValidationPolicy;
 use torrust_tracker_udp_core::container::UdpTrackerCoreContainer;
@@ -26,7 +27,7 @@ where
     S: std::fmt::Debug + std::fmt::Display,
 {
     pub container: Arc<EnvContainer>,
-    pub registar: Registar,
+    pub registar: Registar<RuntimeServiceMetadata>,
     pub server: Server<S>,
     pub udp_core_event_listener_job: Option<JoinHandle<()>>,
     pub udp_server_stats_event_listener_job: Option<JoinHandle<()>>,
@@ -109,6 +110,7 @@ impl Environment<Stopped> {
                 self.container.udp_tracker_core_container.clone(),
                 self.container.udp_tracker_server_container.clone(),
                 self.registar.give_form(),
+                RuntimeServiceMetadata::new(ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0)),
                 cookie_lifetime,
                 self.connection_id_validation,
             )

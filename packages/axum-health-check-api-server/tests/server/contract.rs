@@ -34,6 +34,7 @@ mod api {
     use torrust_tracker_axum_health_check_api_server::environment::Started;
     use torrust_tracker_axum_health_check_api_server::resources::{Report, Status};
     use torrust_tracker_test_helpers::{configuration, logging};
+    use url::Url;
 
     use crate::server::client::get;
 
@@ -66,7 +67,12 @@ mod api {
 
             let details = report.details.first().expect("it should have some details");
 
+            assert_eq!(
+                details.service_binding,
+                Url::parse(&format!("http://{}", service.bind_address())).unwrap()
+            );
             assert_eq!(details.binding, service.bind_address());
+            assert_eq!(details.service_type, "tracker_rest_api");
 
             assert_eq!(details.result, Ok("200 OK".to_string()));
 
@@ -117,7 +123,9 @@ mod api {
 
             let details = report.details.first().expect("it should have some details");
 
+            assert_eq!(details.service_binding, Url::parse(&format!("http://{binding}")).unwrap());
             assert_eq!(details.binding, binding);
+            assert_eq!(details.service_type, "tracker_rest_api");
             assert!(
                 details.result.as_ref().is_err_and(|e| e.contains("error sending request")),
                 "Expected to contain, \"error sending request\", but have message \"{:?}\".",
@@ -139,6 +147,7 @@ mod http {
     use torrust_tracker_axum_health_check_api_server::environment::Started;
     use torrust_tracker_axum_health_check_api_server::resources::{Report, Status};
     use torrust_tracker_test_helpers::{configuration, logging};
+    use url::Url;
 
     use crate::server::client::get;
 
@@ -174,7 +183,12 @@ mod http {
 
             let details = report.details.first().expect("it should have some details");
 
+            assert_eq!(
+                details.service_binding,
+                Url::parse(&format!("http://{}", service.bind_address())).unwrap()
+            );
             assert_eq!(details.binding, *service.bind_address());
+            assert_eq!(details.service_type, "http_tracker");
             assert_eq!(details.result, Ok("200 OK".to_string()));
 
             assert_eq!(
@@ -230,7 +244,9 @@ mod http {
 
             let details = report.details.first().expect("it should have some details");
 
+            assert_eq!(details.service_binding, Url::parse(&format!("http://{binding}")).unwrap());
             assert_eq!(details.binding, binding);
+            assert_eq!(details.service_type, "http_tracker");
             assert!(
                 details.result.as_ref().is_err_and(|e| e.contains("error sending request")),
                 "Expected to contain, \"error sending request\", but have message \"{:?}\".",
@@ -252,6 +268,7 @@ mod udp {
     use torrust_tracker_axum_health_check_api_server::environment::Started;
     use torrust_tracker_axum_health_check_api_server::resources::{Report, Status};
     use torrust_tracker_test_helpers::{configuration, logging};
+    use url::Url;
 
     use crate::server::client::get;
 
@@ -286,7 +303,12 @@ mod udp {
 
             let details = report.details.first().expect("it should have some details");
 
+            assert_eq!(
+                details.service_binding,
+                Url::parse(&format!("udp://{}", service.bind_address())).unwrap()
+            );
             assert_eq!(details.binding, service.bind_address());
+            assert_eq!(details.service_type, "udp_tracker");
             assert_eq!(details.result, Ok("Connected".to_string()));
 
             assert_eq!(
@@ -335,7 +357,9 @@ mod udp {
 
             let details = report.details.first().expect("it should have some details");
 
+            assert_eq!(details.service_binding, Url::parse(&format!("udp://{binding}")).unwrap());
             assert_eq!(details.binding, binding);
+            assert_eq!(details.service_type, "udp_tracker");
             assert_eq!(details.result, Err("Timed Out".to_string()));
             assert_eq!(details.info, format!("checking the udp tracker health check at: {binding}"));
 

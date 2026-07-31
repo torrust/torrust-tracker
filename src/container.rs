@@ -26,7 +26,7 @@ pub struct AppContainer {
     pub http_api_config: Arc<Option<HttpApi>>,
 
     // Registar
-    pub registar: Arc<Registar>,
+    pub registar: Arc<Registar<torrust_tracker_primitives::RuntimeServiceMetadata>>,
 
     // Swarm Coordination Registry Container
     pub swarm_coordination_registry_container: Arc<SwarmCoordinationRegistryContainer>,
@@ -133,10 +133,13 @@ impl AppContainer {
     ///
     /// Return an error if there is no HTTP tracker container at the given
     /// configuration index.
-    pub fn http_tracker_container(&self, index: usize) -> Result<Arc<HttpTrackerCoreContainer>, Error> {
+    pub fn http_tracker_container(
+        &self,
+        index: usize,
+    ) -> Result<(ConfigurationInstanceId, Arc<HttpTrackerCoreContainer>), Error> {
         self.http_tracker_instance_containers.get(index).map_or_else(
             || Err(Error::MissingHttpTrackerCoreContainer { index }),
-            |(_id, container)| Ok(container.clone()),
+            |(id, container)| Ok((*id, container.clone())),
         )
     }
 
@@ -144,10 +147,10 @@ impl AppContainer {
     ///
     /// Return an error if there is no UDP tracker container at the given
     /// configuration index.
-    pub fn udp_tracker_container(&self, index: usize) -> Result<Arc<UdpTrackerCoreContainer>, Error> {
+    pub fn udp_tracker_container(&self, index: usize) -> Result<(ConfigurationInstanceId, Arc<UdpTrackerCoreContainer>), Error> {
         self.udp_tracker_instance_containers.get(index).map_or_else(
             || Err(Error::MissingUdpTrackerCoreContainer { index }),
-            |(_id, container)| Ok(container.clone()),
+            |(id, container)| Ok((*id, container.clone())),
         )
     }
 

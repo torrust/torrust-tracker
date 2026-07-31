@@ -34,7 +34,7 @@ torrust-tracker-rest-api-client = { version = "0.1.0", path = "../rest-api-clien
 torrust-tracker-rest-api-application = { version = "0.1.0", path = "../rest-api-application" }
 torrust-tracker-rest-api-protocol = { version = "0.1.0", path = "../rest-api-protocol" }
 torrust-tracker-rest-api-runtime-adapter = { version = "0.1.0", path = "../rest-api-runtime-adapter" }
-torrust-server-lib = "0.1.0"
+torrust-server-lib = "0.2.0"
 torrust-clock = "3.0.0"
 torrust-tracker-configuration = { version = "3.0.0", path = "../configuration" }
 torrust-metrics = "0.1.0"

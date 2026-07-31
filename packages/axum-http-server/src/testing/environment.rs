@@ -9,7 +9,7 @@ use torrust_tracker_configuration::{Core, HttpTracker};
 use torrust_tracker_core::container::TrackerCoreContainer;
 use torrust_tracker_http_core::container::HttpTrackerCoreContainer;
 use torrust_tracker_http_core::statistics::event::listener::run_event_listener;
-use torrust_tracker_primitives::peer;
+use torrust_tracker_primitives::{ConfigurationInstanceId, RuntimeServiceMetadata, ServiceRole, peer};
 use torrust_tracker_swarm_coordination_registry::container::SwarmCoordinationRegistryContainer;
 
 use crate::server::{HttpServer, Launcher, Running, Stopped};
@@ -18,7 +18,7 @@ pub type Started = Environment<Running>;
 
 pub struct Environment<S> {
     pub container: Arc<EnvContainer>,
-    pub registar: Registar,
+    pub registar: Registar<RuntimeServiceMetadata>,
     pub server: HttpServer<S>,
     pub event_listener_job: Option<JoinHandle<()>>,
     pub cancellation_token: CancellationToken,
@@ -86,7 +86,11 @@ impl Environment<Stopped> {
         // Start the server
         let server = self
             .server
-            .start(self.container.http_tracker_core_container.clone(), self.registar.give_form())
+            .start(
+                self.container.http_tracker_core_container.clone(),
+                self.registar.give_form(),
+                RuntimeServiceMetadata::new(ConfigurationInstanceId::new(ServiceRole::HttpTracker, 0)),
+            )
             .await
             .expect("Failed to start the HTTP tracker server");
 
