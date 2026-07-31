@@ -29,9 +29,14 @@ use tracing::instrument;
 /// It will panic if the task did not finish successfully.
 #[must_use]
 #[allow(clippy::async_yields_async)]
-#[instrument(skip(udp_tracker_core_container, udp_tracker_server_container, form))]
+#[instrument(
+    skip(udp_tracker_core_container, udp_tracker_server_container, form, metadata),
+    fields(
+        service_role = metadata.service_role().as_str(),
+        instance_index = metadata.configuration_instance_id().instance_index(),
+    )
+)]
 pub async fn start_job(
-    idx: usize,
     udp_tracker_core_container: Arc<UdpTrackerCoreContainer>,
     udp_tracker_server_container: Arc<UdpTrackerServerContainer>,
     form: ServiceRegistrationForm<RuntimeServiceMetadata>,
@@ -41,7 +46,6 @@ pub async fn start_job(
     let cookie_lifetime = udp_tracker_core_container.udp_tracker_config.cookie_lifetime;
 
     tracing::info!(
-        instance_index = idx,
         bind_address = %bind_to,
         tracker_usage_statistics = udp_tracker_core_container.udp_tracker_config.tracker_usage_statistics,
         "Starting UDP tracker instance"

@@ -205,6 +205,13 @@ impl HttpServer<Stopped> {
     ///
     /// It would panic spawned HTTP server launcher cannot send the bound `SocketAddr`
     /// back to the main thread.
+    #[instrument(
+        skip(self, http_tracker_container, form, metadata),
+        fields(
+            service_role = metadata.service_role().as_str(),
+            instance_index = metadata.configuration_instance_id().instance_index(),
+        )
+    )]
     pub async fn start(
         self,
         http_tracker_container: Arc<HttpTrackerCoreContainer>,
@@ -226,10 +233,12 @@ impl HttpServer<Stopped> {
 
         let started = rx_start.await.expect("it should be able to start the service");
 
-        let listen_url = started.service_binding;
+        let service_binding = started.service_binding;
         let binding = started.address;
 
-        form.register(ServiceRegistration::new(listen_url, metadata, Some(check_fn)))
+        tracing::info!(service_binding = %service_binding, "Started HTTP tracker");
+
+        form.register(ServiceRegistration::new(service_binding, metadata, Some(check_fn)))
             .await
             .expect("it should be able to register the started service");
 

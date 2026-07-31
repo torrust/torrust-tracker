@@ -54,7 +54,13 @@ pub struct ApiServerJobStarted();
 /// It would panic if unable to send the  `ApiServerJobStarted` notice.
 ///
 ///
-#[instrument(skip(http_api_container, form))]
+#[instrument(
+    skip(http_api_container, form, metadata),
+    fields(
+        service_role = metadata.service_role().as_str(),
+        instance_index = metadata.configuration_instance_id().instance_index(),
+    )
+)]
 pub async fn start_job(
     http_api_container: Arc<TrackerHttpApiCoreContainer>,
     form: ServiceRegistrationForm<RuntimeServiceMetadata>,
@@ -81,7 +87,13 @@ pub async fn start_job(
 }
 
 #[allow(clippy::async_yields_async)]
-#[instrument(skip(socket, tls, http_api_container, form, access_tokens))]
+#[instrument(
+    skip(socket, tls, http_api_container, form, metadata, access_tokens),
+    fields(
+        service_role = metadata.service_role().as_str(),
+        instance_index = metadata.configuration_instance_id().instance_index(),
+    )
+)]
 async fn start_v1(
     socket: SocketAddr,
     tls: Option<RustlsConfig>,

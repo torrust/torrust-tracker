@@ -62,7 +62,15 @@ impl Server<Stopped> {
     /// # Panics
     ///
     /// It panics if unable to receive the bound socket address from service.
-    #[instrument(skip(self, udp_tracker_core_container, udp_tracker_server_container, form), err, ret(Display, level = Level::INFO))]
+    #[instrument(
+        skip(self, udp_tracker_core_container, udp_tracker_server_container, form, metadata),
+        fields(
+            service_role = metadata.service_role().as_str(),
+            instance_index = metadata.configuration_instance_id().instance_index(),
+        ),
+        err,
+        ret(Display, level = Level::INFO)
+    )]
     pub async fn start(
         self,
         udp_tracker_core_container: Arc<UdpTrackerCoreContainer>,
@@ -91,6 +99,8 @@ impl Server<Stopped> {
 
         let service_binding = started.service_binding;
         let local_addr = started.address;
+
+        tracing::info!(target: UDP_TRACKER_LOG_TARGET, service_binding = %service_binding, "Started UDP tracker");
 
         form.register(ServiceRegistration::new(service_binding, metadata, Some(Launcher::check)))
             .await

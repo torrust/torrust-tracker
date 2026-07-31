@@ -124,7 +124,15 @@ impl ApiServer<Stopped> {
     /// # Panics
     ///
     /// It would panic if the bound socket address cannot be sent back to this starter.
-    #[instrument(skip(self, http_api_container, form, access_tokens), err, ret(Display, level = Level::INFO))]
+    #[instrument(
+        skip(self, http_api_container, form, metadata, access_tokens),
+        fields(
+            service_role = metadata.service_role().as_str(),
+            instance_index = metadata.configuration_instance_id().instance_index(),
+        ),
+        err,
+        ret(Display, level = Level::INFO)
+    )]
     pub async fn start(
         self,
         http_api_container: Arc<TrackerHttpApiCoreContainer>,
@@ -149,6 +157,8 @@ impl ApiServer<Stopped> {
 
         let api_server = match rx_start.await {
             Ok(started) => {
+                tracing::info!(target: API_LOG_TARGET, service_binding = %started.service_binding, "Started tracker API");
+
                 form.register(ServiceRegistration::new(started.service_binding, metadata, Some(check_fn)))
                     .await
                     .expect("it should be able to register the started service");

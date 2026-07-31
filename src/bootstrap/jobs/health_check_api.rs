@@ -59,6 +59,14 @@ pub async fn start_job(config: &HealthCheckApi, registar: Registar<RuntimeServic
     // Wait until the server sends the started message
     match rx_start.await {
         Ok(msg) => {
+            tracing::info!(
+                target: HEALTH_CHECK_API_LOG_TARGET,
+                service_role = ServiceRole::HealthCheckApi.as_str(),
+                instance_index = 0,
+                service_binding = %msg.service_binding,
+                "Started health check API"
+            );
+
             registar
                 .give_form()
                 .register(ServiceRegistration::new(

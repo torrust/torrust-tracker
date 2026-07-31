@@ -31,9 +31,14 @@ use tracing::instrument;
 /// # Panics
 ///
 /// It would panic if the `config::HttpTracker` struct would contain inappropriate values.
-#[instrument(skip(http_tracker_container, form))]
+#[instrument(
+    skip(http_tracker_container, form, metadata),
+    fields(
+        service_role = metadata.service_role().as_str(),
+        instance_index = metadata.configuration_instance_id().instance_index(),
+    )
+)]
 pub async fn start_job(
-    idx: usize,
     http_tracker_container: Arc<HttpTrackerCoreContainer>,
     form: ServiceRegistrationForm<RuntimeServiceMetadata>,
     metadata: RuntimeServiceMetadata,
@@ -42,7 +47,6 @@ pub async fn start_job(
     let socket = http_tracker_container.http_tracker_config.bind_address;
 
     tracing::info!(
-        instance_index = idx,
         bind_address = %socket,
         tracker_usage_statistics = http_tracker_container.http_tracker_config.tracker_usage_statistics,
         "Starting HTTP tracker instance"
@@ -64,7 +68,13 @@ pub async fn start_job(
 }
 
 #[allow(clippy::async_yields_async)]
-#[instrument(skip(socket, tls, http_tracker_container, form))]
+#[instrument(
+    skip(socket, tls, http_tracker_container, form, metadata),
+    fields(
+        service_role = metadata.service_role().as_str(),
+        instance_index = metadata.configuration_instance_id().instance_index(),
+    )
+)]
 async fn start_v1(
     socket: SocketAddr,
     tls: Option<RustlsConfig>,
@@ -120,7 +130,6 @@ mod tests {
         let version = Version::V1;
 
         start_job(
-            0,
             http_tracker_container,
             Registar::default().give_form(),
             torrust_tracker_primitives::RuntimeServiceMetadata::new(torrust_tracker_primitives::ConfigurationInstanceId::new(

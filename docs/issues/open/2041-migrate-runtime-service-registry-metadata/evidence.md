@@ -15,6 +15,7 @@ in the registry metadata migration.
 | T7   | NOT RECORDED    | Automated PASS; manual TODO | Health contract tests assert preserved URL, binding, and service-type fields for HTTP, REST API, and UDP.    |
 | T8   | NOT RECORDED    | Automated PASS; manual TODO | Integration helpers query roles/identities instead of raw map entries or bind IPs.                           |
 | T9   | NOT RECORDED    | Automated PASS; manual TODO | Focused server, health-contract, repeated-port-zero, and scaffold tests passed.                              |
+| T11  | NOT RECORDED    | Automated PASS; manual TODO | Startup spans use canonical tracing fields and post-bind events include the final service binding.            |
 
 ## Automated Local Verification
 
@@ -49,6 +50,55 @@ all M1-M3 services and identity-discovery scenarios are now covered.
 - Commands: `cargo check --workspace --all-targets`; focused server package tests; `cargo test --test aggregate_stats_fixed_ports --test aggregate_stats_port_zero --test scaffold`; and `linter all`.
 - Observed result: all invoked checks passed. Health JSON tests assert `service_binding`, `binding`, and `service_type`; port-zero coverage asserts exact identity-to-final-binding correlation.
 - Comparison: Regression coverage now protects the metadata and readiness contracts introduced by this issue.
+- Result: `DONE`.
+
+### T11 - Structured runtime identity logging
+
+#### Baseline
+
+- Not recorded before implementation.
+
+#### Post-change
+
+- Revision: tracker branch `2041-migrate-runtime-service-registry-metadata`,
+  after documentation commit `d7684051`.
+- Changed behavior: HTTP, UDP, and REST startup spans skip automatic
+  `RuntimeServiceMetadata` capture and explicitly emit `service_role` and
+  `instance_index`. HTTP, UDP, REST, and health API startup paths emit a
+  post-bind event with `service_binding`.
+- Commands: `cargo test -p torrust-tracker-axum-http-server -p
+  torrust-tracker-udp-server -p torrust-tracker-axum-rest-api-server -p
+  torrust-tracker --lib`; `cargo test -p
+  torrust-tracker-axum-health-check-api-server --test integration`; `cargo test
+  --test aggregate_stats_port_zero --test scaffold`; `linter all`; and `git
+  diff --check`.
+- Observed result: HTTP server (21 tests), REST API server (1 test), UDP server
+  (125 tests), tracker library (58 tests), health integration (7 tests), and
+  port-zero/scaffold integration tests passed. All linters and whitespace checks
+  passed.
+- Shutdown note: an attempted `timeout 20s cargo run ...` probe did not stop
+  the tracker because `timeout` sends SIGTERM while the current tracker entry
+  point listens for SIGINT via Ctrl+C. `src/main.rs` and the relevant shutdown
+  orchestration are unchanged from `develop`; sending SIGINT stopped the process.
+  Manual logging verification must therefore start the tracker normally and use
+  Ctrl+C. SIGTERM support is outside #2041 and belongs to shutdown-overhaul
+  issue #1488.
+- Manual command: `cargo run --quiet`, followed by Ctrl+C after startup.
+- Observed startup output included explicit, queryable fields without a
+  `metadata=RuntimeServiceMetadata` rendering. Representative entries were:
+  `start_job{service_role="udp_tracker" instance_index=0}` followed by
+  `Started UDP tracker service_binding=udp://0.0.0.0:6868`;
+  `start_job{version=V1 service_role="http_tracker" instance_index=1}` followed
+  by `Started HTTP tracker service_binding=http://0.0.0.0:7171/`; and
+  `start_job{version=V1 service_role="tracker_rest_api" instance_index=0}`
+  followed by `Started tracker API service_binding=http://0.0.0.0:1212/`. The
+  health API emitted `service_role="health_check_api" instance_index=0
+  service_binding=http://127.0.0.1:1313/`.
+- Observed shutdown result: Ctrl+C logged `Torrust tracker shutting down ...`,
+  each managed job completed gracefully, and the process ended with `Torrust
+  tracker successfully shutdown.`
+- Comparison: startup logging no longer depends on nested Rust `Debug` output
+  for metadata identity. The canonical fields and final binding are explicit.
 - Result: `DONE`.
 
 ## Manual Post-Change Verification

@@ -245,7 +245,6 @@ async fn start_udp_instance(
     let udp_tracker_server_container = app_container.udp_tracker_server_container();
 
     let handle = udp_tracker::start_job(
-        idx,
         udp_tracker_container,
         udp_tracker_server_container,
         app_container.registar.give_form(),
@@ -277,7 +276,6 @@ async fn start_http_instance(
         .expect("Could not create HTTP tracker container");
 
     if let Some(handle) = http_tracker::start_job(
-        idx,
         http_tracker_container,
         app_container.registar.give_form(),
         RuntimeServiceMetadata::new(configuration_instance_id),
