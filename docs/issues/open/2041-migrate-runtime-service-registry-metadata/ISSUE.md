@@ -136,6 +136,11 @@ The standalone library change is deliberately small and application-agnostic:
    A registration without health behavior remains queryable and produces no
    health-check task.
 
+Registrations are immutable records for the process lifetime in this delivery.
+Dynamic restart, deregistration, replacement, liveness removal, and
+re-registration are intentionally out of scope. The registry rejects duplicate
+final bindings so a snapshot never represents two services at one listener.
+
 The tracker owns a typed runtime metadata value containing `ServiceRole` and
 `ConfigurationInstanceId`. `torrust-server-lib` must not define tracker roles,
 configuration identifiers, metrics policy, or tracker-specific metadata keys.
@@ -189,18 +194,18 @@ incidentally.
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| ID  | Status | Task                                          | Notes / Expected Output                                                                                         |
-| --- | ------ | --------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| T1  | DONE   | Confirm prerequisites                         | #2036 and #2035 are merged; #2035's retained canonical identifiers must flow through registration.              |
-| T2  | DONE   | Define generic registration metadata boundary | Approved: generic immutable metadata, optional health behavior, and tracker-owned typed role/identity metadata. |
-| T3  | TODO   | Extend registration and query API             | Store final binding, opaque metadata, and optional health behavior; hide raw storage and add ordered snapshots. |
-| T4  | DONE   | Establish readiness semantics                 | Approved per-service insertion acknowledgement after bind; readiness consumers query exact expected identities. |
-| T5  | TODO   | Release and upgrade server library            | Publish breaking `torrust-server-lib` 0.2.0 and update all tracker dependency declarations and lockfile.        |
-| T6  | TODO   | Migrate tracker registrations                 | Register canonical role and instance identity for every local service.                                          |
-| T7  | TODO   | Migrate health reporting                      | Build reports from registration metadata and execution results while preserving response JSON.                  |
-| T8  | TODO   | Migrate #1419 discovery helpers               | Replace bind-IP endpoint classification and fixed registration delay with registry queries.                     |
-| T9  | TODO   | Add focused tests                             | Cover metadata, query ordering/selection, readiness, health compatibility, and registration identity.           |
-| T10 | TODO   | Validate and record evidence                  | Run both-repository checks and manual port-zero scenarios; update evidence and acceptance review.               |
+| ID  | Status      | Task                                          | Notes / Expected Output                                                                                          |
+| --- | ----------- | --------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| T1  | DONE        | Confirm prerequisites                         | #2036 and #2035 are merged; #2035's retained canonical identifiers must flow through registration.               |
+| T2  | DONE        | Define generic registration metadata boundary | Approved: generic immutable metadata, optional health behavior, and tracker-owned typed role/identity metadata.  |
+| T3  | DONE        | Extend registration and query API             | `torrust-server-lib` 0.2.0 provides metadata, optional checks, insertion acknowledgement, and ordered snapshots. |
+| T4  | DONE        | Establish readiness semantics                 | Approved per-service insertion acknowledgement after bind; readiness consumers query exact expected identities.  |
+| T5  | DONE        | Release and upgrade server library            | Published `torrust-server-lib` 0.2.0; all tracker declarations and lockfile resolve the release.                 |
+| T6  | DONE        | Migrate tracker registrations                 | HTTP(S), UDP, REST API, and health-check API register canonical role and instance metadata.                      |
+| T7  | DONE        | Migrate health reporting                      | Health reports combine metadata binding/role with optional check execution and preserve JSON fields.             |
+| T8  | DONE        | Migrate #1419 discovery helpers               | Helpers await exact identities and query canonical roles; no bind-IP or map-order classification remains.        |
+| T9  | DONE        | Add focused tests                             | Added health JSON compatibility and repeated port-zero identity-to-binding regressions.                          |
+| T10 | IN_PROGRESS | Validate and record evidence                  | Focused compilation, tests, and linters passed; final full quality gate and manual scenarios remain.             |
 
 ## Progressive Verification Protocol
 
@@ -221,8 +226,8 @@ For every code-changing task (T2-T9):
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created: #2041
 - [ ] Spec-only PR merged into `develop` before implementation
-- [ ] Prerequisites merged
-- [ ] Implementation completed
+- [x] Prerequisites merged
+- [x] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests in both repositories)
 - [ ] Manual verification scenarios executed and recorded
 - [ ] Acceptance criteria reviewed after implementation
@@ -233,6 +238,8 @@ For every code-changing task (T2-T9):
 - 2026-07-29 14:45 UTC - agent - Drafted by splitting the registry migration from #2036, which now owns canonical identity types only. Awaiting user review.
 - 2026-07-29 15:10 UTC - agent - User approved the specification; created GitHub issue #2041 and moved this specification to `docs/issues/open/`.
 - 2026-07-30 00:00 UTC - user and agent - Confirmed that the standalone server-library release, publication, and tracker upgrade are in scope. Approved generic immutable metadata, per-service insertion-acknowledgement readiness, and a concrete `0.2.0` server-library API plan. Reviewed compatibility with #2035, #2036, #2039, and #1419.
+- 2026-07-31 UTC - agent - Published `torrust-server-lib` 0.2.0 after a successful `cargo publish --dry-run`; pushed signed release commit `d17fdb1`.
+- 2026-07-31 UTC - agent - Migrated tracker registrations and health reporting to typed runtime metadata. Replaced #1419 bind-IP/count-based helper behavior with exact canonical identity readiness and role queries. Focused tests, workspace compilation, and `linter all` passed; final validation and manual evidence remain pending.
 
 ## Acceptance Criteria
 
