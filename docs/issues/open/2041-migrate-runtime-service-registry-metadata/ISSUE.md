@@ -80,6 +80,10 @@ bind-IP classification and fixed registration delay.
   preserving the existing JSON contract.
 - Replace #1419 test helpers' bind-IP classification and fixed startup delay
   with role/identity-based registry discovery.
+- Log runtime service identity as stable tracing fields rather than a debug
+  rendering of `RuntimeServiceMetadata`.
+- Add a focused logging skill documenting the structured-field convention for
+  runtime identity.
 - Add progressive automatic and manual verification evidence for each
   code-changing task.
 
@@ -192,6 +196,19 @@ incidentally.
 - **#1419:** replace raw-registry polling, bind-IP classification, and fixed
   registration delays with exact role/identity snapshot discovery.
 
+### Runtime Identity Logging
+
+Runtime service identity must be emitted as stable tracing fields, not through
+the `Debug` representation of `RuntimeServiceMetadata` or
+`ConfigurationInstanceId`. Startup spans and events must record the canonical
+`service_role` and `instance_index` explicitly. Events describing a successfully
+bound listener must also record the final `service_binding`.
+
+This keeps logs machine-queryable and prevents internal Rust field names or
+debug-format changes from becoming an accidental observability contract. This
+is a logging convention, not an architectural decision; it is documented by
+the `structured-runtime-logging` skill rather than an ADR.
+
 ## Implementation Plan
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
@@ -208,6 +225,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T8  | DONE        | Migrate #1419 discovery helpers               | Helpers await exact identities and query canonical roles; no bind-IP or map-order classification remains.                                                                    |
 | T9  | DONE        | Add focused tests                             | Added health JSON compatibility and repeated port-zero identity-to-binding regressions.                                                                                      |
 | T10 | IN_PROGRESS | Validate and record evidence                  | Focused/full pre-commit validation and manual HTTP/HTTPS/UDP/REST/health port-zero probes passed; recorded per-task manual baseline/post-change evidence remains incomplete. |
+| T11 | IN_PROGRESS | Structure runtime identity logging            | Replace metadata debug capture with canonical tracing fields and add the focused logging convention skill.                                                                   |
 
 ## Progressive Verification Protocol
 
@@ -245,6 +263,7 @@ For every code-changing task (T2-T9):
 - 2026-07-31 UTC - agent - Manually started the tracker with repeated HTTP/UDP port-zero listeners plus REST and health APIs. Recorded distinct final bindings, canonical metadata correlation in startup logs, successful HTTP/UDP probes, and a compatible `Ok` health report in `evidence.md`. HTTPS remains manually unverified because the probe configuration omitted TLS material.
 - 2026-07-31 UTC - agent - Manually started a second port-zero HTTP listener with a temporary self-signed TLS certificate. Direct HTTPS health probing passed and the registry health report preserved its HTTPS binding, HTTP-tracker role, and final address. The report's pre-existing HTTP-scheme health probe for HTTPS is documented as a separate draft bug.
 - 2026-07-31 UTC - agent - Independent completion review confirmed AC1-AC7 have code and focused-test support. T10 remains in progress because the recorded evidence does not provide manual baseline/post-change scenarios for every code-changing task, as required by AC9 and the progressive verification protocol.
+- 2026-07-31 UTC - user and agent - Added runtime identity logging to this PR's scope. Startup logs will expose canonical role, instance index, and final service binding as tracing fields rather than debug-rendered metadata. This convention is documented in a focused skill; no ADR is needed.
 
 ## Acceptance Criteria
 
@@ -263,6 +282,8 @@ For every code-changing task (T2-T9):
 - [ ] AC8: Both repository validation suites pass.
 - [ ] AC9: Manual verification evidence is recorded for every code-changing
       task.
+- [ ] AC10: Runtime service identity is emitted as explicit, stable tracing
+      fields rather than debug-formatted metadata.
 
 ## Verification Plan
 
@@ -272,6 +293,7 @@ For every code-changing task (T2-T9):
 - Tracker registry/health-check tests.
 - `cargo test --test stats --test scaffold` after #1419 helper migration.
 - `linter all` in both repositories.
+- Focused structured-log assertions for HTTP, UDP, and REST API startup paths.
 
 ### Manual Verification Scenarios
 
