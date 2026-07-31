@@ -102,7 +102,7 @@ pub fn sample_peer() -> peer::Peer {
     }
 }
 
-pub fn sample_announce_request_for_peer(peer: Peer) -> (Announce, ClientIpSources) {
+pub fn sample_announce_request_for_peer(peer: &Peer) -> (Announce, ClientIpSources) {
     let announce_request = Announce {
         info_hash: sample_info_hash(),
         peer_id: peer.peer_id,

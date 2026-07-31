@@ -442,7 +442,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn it_should_not_return_clearnet_peers_to_an_i2p_peer() {
+    async fn it_should_not_return_peers_from_a_different_network() {
         let mut swarm = Coordinator::new(&sample_info_hash(), 0, None);
         let clearnet_peer = PeerBuilder::default().build();
         swarm.upsert_peer(clearnet_peer.clone().into()).await;
@@ -453,9 +453,11 @@ mod tests {
         });
         swarm.upsert_peer(i2p_peer.clone().into()).await;
 
-        let peers = swarm.peers_excluding(&i2p_peer.peer_addr, None);
+        let peers_for_i2p = swarm.peers_excluding(&i2p_peer.peer_addr, None);
+        let peers_for_clearnet = swarm.peers_excluding(&clearnet_peer.peer_addr, None);
 
-        assert!(peers.is_empty());
+        assert!(peers_for_i2p.is_empty());
+        assert!(peers_for_clearnet.is_empty());
     }
 
     #[tokio::test]

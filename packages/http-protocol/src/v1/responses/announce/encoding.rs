@@ -9,6 +9,8 @@ use torrust_bencode::{BMutAccess, BencodeMut, ben_bytes, ben_int, ben_list, ben_
 
 use crate::v1::responses::announce::data::{AnnounceData, Peer, PeerAddress};
 
+const I2P_PLACEHOLDER_PORT: u16 = 1;
+
 /// An [`Announce`] response, that can be anything that is convertible from [`AnnounceData`].
 ///
 /// The [`Announce`] can built from any data that implements: [`From<AnnounceData>`] and [`Into<Vec<u8>>`].
@@ -25,6 +27,8 @@ use crate::v1::responses::announce::data::{AnnounceData, Peer, PeerAddress};
 /// - [BEP 03: The `BitTorrent` Protocol Specification](https://www.bittorrent.org/beps/bep_0003.html)
 /// - [BEP 23: Tracker Returns Compact Peer Lists](https://www.bittorrent.org/beps/bep_0023.html)
 /// - [BEP 07: IPv6 Tracker Extension](https://www.bittorrent.org/beps/bep_0007.html)
+/// - [I2P BitTorrent client protocol](https://i2p.net/en/docs/applications/bittorrent/)
+///
 // `derive_more::Constructor` generates `field: field` initializers on this MSRV-compatible version.
 // Nightly Clippy diagnoses that proc-macro expansion; remove this allowance once derive_more emits
 // field-init shorthand.
@@ -156,7 +160,7 @@ impl Into<Vec<u8>> for Compact {
 pub struct NormalPeer {
     /// The peer's ID.
     pub peer_id: [u8; 20],
-    /// The peer's IP address.
+    /// The peer's IP address or I2P Destination.
     pub ip: String,
     /// The peer's port number.
     pub port: u16,
@@ -170,10 +174,10 @@ impl From<Peer> for NormalPeer {
                 ip: address.ip().to_string(),
                 port: address.port(),
             },
-            PeerAddress::I2p { destination, port, .. } => NormalPeer {
+            PeerAddress::I2p { destination, .. } => NormalPeer {
                 peer_id: peer.peer_id.0,
                 ip: destination,
-                port,
+                port: I2P_PLACEHOLDER_PORT,
             },
         }
     }
@@ -372,7 +376,6 @@ mod tests {
                 peer_addr: PeerAddress::I2p {
                     destination: destination.clone(),
                     destination_hash: [7; 32],
-                    port: 1,
                 },
             }],
             SwarmMetadata::default(),
@@ -396,7 +399,6 @@ mod tests {
                 peer_addr: PeerAddress::I2p {
                     destination: format!("{}.i2p", "A".repeat(516)),
                     destination_hash,
-                    port: 1,
                 },
             }],
             SwarmMetadata::default(),
