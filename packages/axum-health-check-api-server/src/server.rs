@@ -16,9 +16,10 @@ use serde_json::json;
 use tokio::sync::oneshot::{Receiver, Sender};
 use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
 use torrust_server_lib::logging::Latency;
-use torrust_server_lib::registar::ServiceRegistry;
+use torrust_server_lib::registar::Registar;
 use torrust_server_lib::signals::{Halted, Started};
 use torrust_tracker_axum_server::signals::graceful_shutdown;
+use torrust_tracker_primitives::RuntimeServiceMetadata;
 use tower_http::LatencyUnit;
 use tower_http::classify::ServerErrorsFailureClass;
 use tower_http::compression::CompressionLayer;
@@ -35,17 +36,17 @@ use crate::handlers::health_check_handler;
 /// # Panics
 ///
 /// Will panic if binding to the socket address fails.
-#[instrument(skip(bind_to, tx, rx_halt, register))]
+#[instrument(skip(bind_to, tx, rx_halt, registar))]
 pub fn start(
     bind_to: SocketAddr,
     tx: Sender<Started>,
     rx_halt: Receiver<Halted>,
-    register: ServiceRegistry,
+    registar: Registar<RuntimeServiceMetadata>,
 ) -> impl Future<Output = Result<(), std::io::Error>> {
     let router = Router::new()
         .route("/", get(|| async { Json(json!({})) }))
         .route("/health_check", get(health_check_handler))
-        .with_state(register)
+        .with_state(registar)
         .layer(CompressionLayer::new())
         .layer(SetRequestIdLayer::x_request_id(MakeRequestUuid))
         .layer(PropagateHeaderLayer::new(HeaderName::from_static("x-request-id")))

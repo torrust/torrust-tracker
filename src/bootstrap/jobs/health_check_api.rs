@@ -17,10 +17,11 @@
 use tokio::sync::oneshot;
 use tokio::task::JoinHandle;
 use torrust_server_lib::logging::STARTED_ON;
-use torrust_server_lib::registar::ServiceRegistry;
+use torrust_server_lib::registar::{Registar, ServiceRegistration};
 use torrust_server_lib::signals::{Halted, Started};
 use torrust_tracker_axum_health_check_api_server::{HEALTH_CHECK_API_LOG_TARGET, server};
 use torrust_tracker_configuration::HealthCheckApi;
+use torrust_tracker_primitives::{ConfigurationInstanceId, RuntimeServiceMetadata, ServiceRole};
 use tracing::instrument;
 
 /// This function starts a new Health Check API server with the provided
@@ -34,8 +35,8 @@ use tracing::instrument;
 ///
 /// It would panic if unable to send the  `ApiServerJobStarted` notice.
 #[allow(clippy::async_yields_async)]
-#[instrument(skip(config, register))]
-pub async fn start_job(config: &HealthCheckApi, register: ServiceRegistry) -> JoinHandle<()> {
+#[instrument(skip(config, registar))]
+pub async fn start_job(config: &HealthCheckApi, registar: Registar<RuntimeServiceMetadata>) -> JoinHandle<()> {
     let bind_addr = config.bind_address;
 
     let (tx_start, rx_start) = oneshot::channel::<Started>();
@@ -44,10 +45,11 @@ pub async fn start_job(config: &HealthCheckApi, register: ServiceRegistry) -> Jo
     let protocol = "http";
 
     // Run the API server
+    let health_check_api_registar = registar.clone();
     let join_handle = tokio::spawn(async move {
         tracing::info!(target: HEALTH_CHECK_API_LOG_TARGET, "Starting on: {protocol}://{}", bind_addr);
 
-        let handle = server::start(bind_addr, tx_start, rx_halt, register);
+        let handle = server::start(bind_addr, tx_start, rx_halt, health_check_api_registar);
 
         if matches!(handle.await, Ok(())) {
             tracing::info!(target: HEALTH_CHECK_API_LOG_TARGET, "Stopped server running on: {protocol}://{}", bind_addr);
@@ -56,7 +58,22 @@ pub async fn start_job(config: &HealthCheckApi, register: ServiceRegistry) -> Jo
 
     // Wait until the server sends the started message
     match rx_start.await {
-        Ok(msg) => tracing::info!(target: HEALTH_CHECK_API_LOG_TARGET, "{STARTED_ON}: {protocol}://{}", msg.address),
+        Ok(msg) => {
+            registar
+                .give_form()
+                .register(ServiceRegistration::new(
+                    msg.service_binding,
+                    RuntimeServiceMetadata::new(
+                        ServiceRole::HealthCheckApi,
+                        ConfigurationInstanceId::new(ServiceRole::HealthCheckApi, 0),
+                    ),
+                    None,
+                ))
+                .await
+                .expect("it should be able to register the started health check API");
+
+            tracing::info!(target: HEALTH_CHECK_API_LOG_TARGET, "{STARTED_ON}: {protocol}://{}", msg.address);
+        }
         Err(e) => panic!("the Health Check API server was dropped: {e}"),
     }
 

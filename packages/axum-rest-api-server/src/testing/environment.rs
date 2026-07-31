@@ -7,7 +7,7 @@ use torrust_tracker_axum_server::tls::make_rust_tls;
 use torrust_tracker_configuration::{Configuration, logging};
 use torrust_tracker_core::container::TrackerCoreContainer;
 use torrust_tracker_http_core::container::HttpTrackerCoreContainer;
-use torrust_tracker_primitives::peer;
+use torrust_tracker_primitives::{ConfigurationInstanceId, RuntimeServiceMetadata, ServiceRole, peer};
 use torrust_tracker_rest_api_client::connection_info::{ConnectionInfo, Origin};
 use torrust_tracker_rest_api_runtime_adapter::v1::container::TrackerHttpApiCoreContainer;
 use torrust_tracker_swarm_coordination_registry::container::SwarmCoordinationRegistryContainer;
@@ -23,7 +23,7 @@ where
     S: std::fmt::Debug + std::fmt::Display,
 {
     pub container: Arc<EnvContainer>,
-    pub registar: Registar,
+    pub registar: Registar<RuntimeServiceMetadata>,
     pub server: ApiServer<S>,
 }
 
@@ -89,6 +89,7 @@ impl Environment<Stopped> {
                 .start(
                     self.container.tracker_http_api_core_container.clone(),
                     self.registar.give_form(),
+                    RuntimeServiceMetadata::new(ServiceRole::RestApi, ConfigurationInstanceId::new(ServiceRole::RestApi, 0)),
                     access_tokens,
                 )
                 .await

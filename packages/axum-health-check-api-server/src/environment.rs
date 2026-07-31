@@ -6,6 +6,7 @@ use tokio::task::JoinHandle;
 use torrust_server_lib::registar::Registar;
 use torrust_server_lib::signals::{self, Halted as SignalHalted, Started as SignalStarted};
 use torrust_tracker_configuration::HealthCheckApi;
+use torrust_tracker_primitives::RuntimeServiceMetadata;
 
 use crate::{HEALTH_CHECK_API_LOG_TARGET, server};
 
@@ -28,13 +29,13 @@ pub struct Stopped {
 }
 
 pub struct Environment<S> {
-    pub registar: Registar,
+    pub registar: Registar<RuntimeServiceMetadata>,
     pub state: S,
 }
 
 impl Environment<Stopped> {
     #[must_use]
-    pub fn new(config: &Arc<HealthCheckApi>, registar: Registar) -> Self {
+    pub fn new(config: &Arc<HealthCheckApi>, registar: Registar<RuntimeServiceMetadata>) -> Self {
         let bind_to = config.bind_address;
 
         Self {
@@ -53,14 +54,14 @@ impl Environment<Stopped> {
         let (tx_start, rx_start) = oneshot::channel::<SignalStarted>();
         let (tx_halt, rx_halt) = tokio::sync::oneshot::channel::<SignalHalted>();
 
-        let register = self.registar.entries();
+        let registar = self.registar.clone();
 
         tracing::debug!(target: HEALTH_CHECK_API_LOG_TARGET, "Spawning task to launch the service ...");
 
         let server = tokio::spawn(async move {
             tracing::debug!(target: HEALTH_CHECK_API_LOG_TARGET, "Starting the server in a spawned task ...");
 
-            server::start(self.state.bind_to, tx_start, rx_halt, register)
+            server::start(self.state.bind_to, tx_start, rx_halt, registar)
                 .await
                 .expect("it should start the health check service");
 
@@ -85,7 +86,7 @@ impl Environment<Stopped> {
 }
 
 impl Environment<Running> {
-    pub async fn new(config: &Arc<HealthCheckApi>, registar: Registar) -> Self {
+    pub async fn new(config: &Arc<HealthCheckApi>, registar: Registar<RuntimeServiceMetadata>) -> Self {
         Environment::<Stopped>::new(config, registar).start().await
     }
 

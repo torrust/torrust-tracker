@@ -10,6 +10,7 @@
 mod common;
 
 use torrust_clock::clock;
+use torrust_tracker_primitives::{ConfigurationInstanceId, ServiceRole};
 
 /// This code needs to be copied into each crate.
 /// Working version, for production.
@@ -73,8 +74,28 @@ async fn stats_scenarios() {
     let (app_container, _jobs) = common::start_tracker_with_config(&workspace).await;
 
     duplicate_port_zero_instances_should_receive_distinct_configurations(&app_container);
+    duplicate_port_zero_instances_should_retain_runtime_identity(&app_container).await;
     two_http_trackers_on_port_zero_should_aggregate_announces_from_both_listeners(&app_container).await;
     two_udp_trackers_on_port_zero_should_aggregate_announces_from_both_listeners(&app_container).await;
+}
+
+/// Repeated configuration blocks must retain their canonical identity after
+/// receiving their distinct operating-system-assigned final bindings.
+async fn duplicate_port_zero_instances_should_retain_runtime_identity(
+    app_container: &std::sync::Arc<torrust_tracker_lib::container::AppContainer>,
+) {
+    for service_role in [ServiceRole::HttpTracker, ServiceRole::UdpTracker] {
+        let first = common::service_binding_for_identity(app_container, ConfigurationInstanceId::new(service_role, 0))
+            .await
+            .expect("first configured instance should be registered");
+        let second = common::service_binding_for_identity(app_container, ConfigurationInstanceId::new(service_role, 1))
+            .await
+            .expect("second configured instance should be registered");
+
+        assert_ne!(first.bind_address().port(), 0);
+        assert_ne!(second.bind_address().port(), 0);
+        assert_ne!(first.bind_address(), second.bind_address());
+    }
 }
 
 /// Duplicate port-zero configuration blocks each receive their own container

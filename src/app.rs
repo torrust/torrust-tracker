@@ -25,6 +25,7 @@ use std::sync::Arc;
 
 use torrust_clock::clock::Time;
 use torrust_tracker_configuration::{Configuration, HttpTracker, UdpTracker};
+use torrust_tracker_primitives::{ConfigurationInstanceId, RuntimeServiceMetadata, ServiceRole};
 use tracing::instrument;
 
 use crate::CurrentClock;
@@ -238,7 +239,7 @@ async fn start_udp_instance(
     app_container: &Arc<AppContainer>,
     job_manager: &mut JobManager,
 ) {
-    let udp_tracker_container = app_container
+    let (configuration_instance_id, udp_tracker_container) = app_container
         .udp_tracker_container(idx)
         .expect("Could not create UDP tracker container");
     let udp_tracker_server_container = app_container.udp_tracker_server_container();
@@ -248,6 +249,7 @@ async fn start_udp_instance(
         udp_tracker_container,
         udp_tracker_server_container,
         app_container.registar.give_form(),
+        RuntimeServiceMetadata::new(ServiceRole::UdpTracker, configuration_instance_id),
     )
     .await;
 
@@ -270,7 +272,7 @@ async fn start_http_instance(
     app_container: &Arc<AppContainer>,
     job_manager: &mut JobManager,
 ) {
-    let http_tracker_container = app_container
+    let (configuration_instance_id, http_tracker_container) = app_container
         .http_tracker_container(idx)
         .expect("Could not create HTTP tracker container");
 
@@ -278,6 +280,7 @@ async fn start_http_instance(
         idx,
         http_tracker_container,
         app_container.registar.give_form(),
+        RuntimeServiceMetadata::new(ServiceRole::HttpTracker, configuration_instance_id),
         torrust_tracker_axum_http_server::Version::V1,
     )
     .await
@@ -294,6 +297,7 @@ async fn start_the_http_api(config: &Configuration, app_container: &Arc<AppConta
         if let Some(job) = tracker_apis::start_job(
             http_api_container,
             app_container.registar.give_form(),
+            RuntimeServiceMetadata::new(ServiceRole::RestApi, ConfigurationInstanceId::new(ServiceRole::RestApi, 0)),
             torrust_tracker_axum_rest_api_server::Version::V1,
         )
         .await
@@ -324,7 +328,7 @@ fn start_peers_inactivity_update(config: &Configuration, app_container: &Arc<App
 }
 
 async fn start_health_check_api(config: &Configuration, app_container: &Arc<AppContainer>, job_manager: &mut JobManager) {
-    let handle = health_check_api::start_job(&config.health_check_api, app_container.registar.entries()).await;
+    let handle = health_check_api::start_job(&config.health_check_api, app_container.registar.as_ref().clone()).await;
 
     job_manager.push("health_check_api", handle);
 }

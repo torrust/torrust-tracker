@@ -29,7 +29,7 @@ serde = { version = "1", features = [ "derive" ] }
 tokio = { version = "1", features = [ "macros", "net", "rt-multi-thread", "signal", "sync" ] }
 tokio-util = "0.7.15"
 torrust-tracker-axum-server = { version = "0.1.0", path = "../axum-server" }
-torrust-server-lib = "0.1.0"
+torrust-server-lib = "0.2.0"
 torrust-clock = "3.0.0"
 torrust-tracker-configuration = { version = "3.0.0", path = "../configuration" }
 torrust-net-primitives = "0.1.0"

@@ -5,9 +5,11 @@ use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
 use tempfile::TempDir;
+use torrust_net_primitives::service_binding::ServiceBinding;
 use torrust_tracker_lib::app;
 use torrust_tracker_lib::bootstrap::jobs::manager::JobManager;
 use torrust_tracker_lib::container::AppContainer;
+use torrust_tracker_primitives::{ConfigurationInstanceId, ServiceRole};
 use url::Url;
 
 /// A temporary workspace for an integration test.
@@ -50,17 +52,7 @@ impl EphemeralTrackerWorkspace {
 /// tests in this binary must not run concurrently with other tests
 /// that modify the same variable.
 ///
-/// A short delay is added after startup to allow services to register
-/// in the registar and bind to OS-assigned ports.
 pub async fn start_tracker_with_config(workspace: &EphemeralTrackerWorkspace) -> (Arc<AppContainer>, JobManager) {
-    // We require at least two services to be registered before proceeding.
-    // This covers the common case of one HTTP tracker plus one UDP tracker.
-    // We intentionally do NOT wait for all services (HTTP API, health check,
-    // etc.) because scenarios only need the tracker listeners to be ready.
-    // Configurations with fewer services (e.g., health-check only) should
-    // use a lower threshold or bypass this wait.
-    const MIN_REGISTERED_SERVICES: usize = 2;
-
     // SAFETY: This binary must be the only test executable setting
     // `TORRUST_TRACKER_CONFIG_TOML_PATH`. Cargo may run different
     // integration-test binaries in parallel, but each binary is a
@@ -75,26 +67,24 @@ pub async fn start_tracker_with_config(workspace: &EphemeralTrackerWorkspace) ->
 
     let (container, jobs) = app::run().await;
 
-    // Wait for services to register in the registar and bind to ports.
-    // Polls the registar instead of using a fixed sleep to avoid
-    // flakiness on slow machines and unnecessary delay on fast ones.
-    //
-    // TODO: This gate can pass before the specific services scenarios need are
-    // registered (e.g., if HTTP API + health check register first). Consider
-    // waiting on concrete predicates per test binary when flakiness appears.
-    // Tracked by #1430.
+    // Each service acknowledges registry insertion only after binding its
+    // final listener. Wait for the exact configuration identities, rather than
+    // a map-size threshold or a registration delay.
+    let expected_identities = expected_service_identities(&container);
     let deadline = std::time::Instant::now() + std::time::Duration::from_secs(10);
 
     loop {
-        let entries = container.registar.entries();
-        let map = entries.lock().await;
-        if map.len() >= MIN_REGISTERED_SERVICES {
+        let services = container.registar.services().await;
+        if expected_identities.iter().all(|identity| {
+            services
+                .iter()
+                .any(|service| service.metadata().configuration_instance_id() == *identity)
+        }) {
             break;
         }
-        drop(map);
         assert!(
             std::time::Instant::now() < deadline,
-            "timeout waiting for services to register in the registar"
+            "timeout waiting for configured services to register in the registar"
         );
         tokio::time::sleep(std::time::Duration::from_millis(50)).await;
     }
@@ -104,26 +94,22 @@ pub async fn start_tracker_with_config(workspace: &EphemeralTrackerWorkspace) ->
 
 /// Returns the HTTP tracker URLs from the registar.
 ///
-/// HTTP trackers bind to `0.0.0.0` (unspecified). The REST API and health
-/// check bind to `127.0.0.1` (loopback). We identify trackers by their
-/// unspecified IP, which is deterministic regardless of hash-map ordering.
-/// Wildcard addresses are converted to `127.0.0.1` for client requests.
+/// Uses the canonical HTTP tracker role, not a bind-IP convention. Wildcard
+/// addresses are converted to `127.0.0.1` for client requests.
 pub async fn http_tracker_urls(container: &AppContainer) -> Vec<Url> {
-    let reg = container.registar.entries();
-    let map = reg.lock().await;
-    map.keys()
-        .filter(|b| {
-            b.protocol() == torrust_net_primitives::service_binding::Protocol::HTTP && b.bind_address().ip().is_unspecified()
-        })
-        .map(|b| loopback_url(b.bind_address()))
+    container
+        .registar
+        .services_matching(|metadata| metadata.service_role() == ServiceRole::HttpTracker)
+        .await
+        .iter()
+        .map(|service| loopback_url(service.service_binding().bind_address()))
         .collect()
 }
 
 /// Returns the UDP tracker URLs from the registar.
 ///
-/// UDP trackers bind to `0.0.0.0` (unspecified). We identify them by their
-/// unspecified IP, which is deterministic regardless of hash-map ordering.
-/// Wildcard addresses are converted to `127.0.0.1` for client requests.
+/// Uses the canonical UDP tracker role, not a bind-IP convention. Wildcard
+/// addresses are converted to `127.0.0.1` for client requests.
 //
 // Each integration-test binary compiles this module independently. Not all
 // binaries call every function here, so the compiler emits dead_code warnings
@@ -131,30 +117,65 @@ pub async fn http_tracker_urls(container: &AppContainer) -> Vec<Url> {
 // false positives without hiding genuine dead code in the workspace as a whole.
 #[allow(dead_code)]
 pub async fn udp_tracker_urls(container: &AppContainer) -> Vec<Url> {
-    let reg = container.registar.entries();
-    let map = reg.lock().await;
-    map.keys()
-        .filter(|b| {
-            b.protocol() == torrust_net_primitives::service_binding::Protocol::UDP && b.bind_address().ip().is_unspecified()
-        })
-        .map(|b| udp_loopback_url(b.bind_address()))
+    container
+        .registar
+        .services_matching(|metadata| metadata.service_role() == ServiceRole::UdpTracker)
+        .await
+        .iter()
+        .map(|service| udp_loopback_url(service.service_binding().bind_address()))
         .collect()
 }
 
 /// Returns the HTTP API URL from the registar.
 ///
-/// The REST API binds to `127.0.0.1` (loopback), unlike the HTTP trackers
-/// which bind to `0.0.0.0`. We filter specifically for the REST API bind IP
-/// (`127.0.0.1`) to avoid matching the health-check API on `127.0.0.2`.
+/// Uses the canonical REST API role, not a bind-IP convention.
 pub async fn http_api_url(container: &AppContainer) -> Option<Url> {
-    let reg = container.registar.entries();
-    let map = reg.lock().await;
-    map.keys()
-        .find(|b| {
-            b.protocol() == torrust_net_primitives::service_binding::Protocol::HTTP
-                && b.bind_address().ip() == std::net::IpAddr::V4(std::net::Ipv4Addr::LOCALHOST)
-        })
-        .map(|b| loopback_url(b.bind_address()))
+    container
+        .registar
+        .services_matching(|metadata| metadata.service_role() == ServiceRole::RestApi)
+        .await
+        .first()
+        .map(|service| loopback_url(service.service_binding().bind_address()))
+}
+
+/// Returns the final binding for one exact canonical configuration identity.
+///
+/// This is side-effect free: registry visibility acknowledges that the service
+/// has bound this listener.
+#[allow(dead_code)]
+pub async fn service_binding_for_identity(
+    container: &AppContainer,
+    configuration_instance_id: ConfigurationInstanceId,
+) -> Option<ServiceBinding> {
+    container
+        .registar
+        .services_matching(|metadata| metadata.configuration_instance_id() == configuration_instance_id)
+        .await
+        .into_iter()
+        .next()
+        .map(|service| service.service_binding().clone())
+}
+
+fn expected_service_identities(container: &AppContainer) -> Vec<ConfigurationInstanceId> {
+    let mut identities: Vec<_> = container
+        .http_tracker_instance_containers
+        .iter()
+        .map(|(identity, _)| *identity)
+        .chain(
+            container
+                .udp_tracker_instance_containers
+                .iter()
+                .map(|(identity, _)| *identity),
+        )
+        .collect();
+
+    if container.http_api_config.is_some() {
+        identities.push(ConfigurationInstanceId::new(ServiceRole::RestApi, 0));
+    }
+
+    identities.push(ConfigurationInstanceId::new(ServiceRole::HealthCheckApi, 0));
+
+    identities
 }
 
 /// Convert a socket address to a connectable loopback URL.

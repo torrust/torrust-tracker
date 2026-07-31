@@ -23,7 +23,7 @@ hyper-util = { version = "0", features = [ "http1", "http2", "tokio" ] }
 pin-project-lite = "0"
 thiserror = "2"
 tokio = { version = "1", features = [ "macros", "net", "rt-multi-thread", "signal", "sync" ] }
-torrust-server-lib = "0.1.0"
+torrust-server-lib = "0.2.0"
 torrust-tracker-configuration = { version = "3.0.0", path = "../configuration" }
 torrust-located-error = "3.0.0"
 tower = { version = "0", features = [ "timeout" ] }

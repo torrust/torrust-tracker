@@ -30,16 +30,14 @@
 //!
 //! - Port `0` for all service bind addresses.
 //! - Isolated temporary workspace per suite (`EphemeralTrackerWorkspace`).
-//! - A small startup delay to allow async service registration.
+//! - Registration-acknowledgement readiness for every configured service.
 //! - Sequential scenarios that account for accumulated state.
 //!
-//! ## Temporary Limitation
+//! ## Endpoint Discovery
 //!
-//! Endpoint discovery currently distinguishes services by test-only bind-IP conventions. This
-//! sample must not be copied as a general service-discovery pattern until the bootstrap and runtime
-//! registry prerequisite issues are implemented. See
-//! `docs/issues/open/2035-fix-duplicate-port-zero-tracker-instance-bootstrap/ISSUE.md` and
-//! `docs/issues/open/2036-add-runtime-service-registry-metadata/ISSUE.md`.
+//! Endpoint discovery uses side-effect-free runtime-registry snapshots. Helpers
+//! select services by canonical role or exact configuration identity rather
+//! than bind-IP conventions, registration delays, or registry-map ordering.
 //!
 //! # Example: Running this test
 //!

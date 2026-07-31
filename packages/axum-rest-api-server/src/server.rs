@@ -40,7 +40,7 @@ use torrust_server_lib::signals::{Halted, Started};
 use torrust_tracker_axum_server::custom_axum_server::{self, TimeoutAcceptor};
 use torrust_tracker_axum_server::signals::graceful_shutdown;
 use torrust_tracker_configuration::AccessTokens;
-use torrust_tracker_primitives::ServiceRole;
+use torrust_tracker_primitives::RuntimeServiceMetadata;
 use torrust_tracker_rest_api_runtime_adapter::v1::container::TrackerHttpApiCoreContainer;
 use tracing::{Level, instrument};
 
@@ -128,7 +128,8 @@ impl ApiServer<Stopped> {
     pub async fn start(
         self,
         http_api_container: Arc<TrackerHttpApiCoreContainer>,
-        form: ServiceRegistrationForm,
+        form: ServiceRegistrationForm<RuntimeServiceMetadata>,
+        metadata: RuntimeServiceMetadata,
         access_tokens: Arc<AccessTokens>,
     ) -> Result<ApiServer<Running>, Error> {
         let (tx_start, rx_start) = tokio::sync::oneshot::channel::<Started>();
@@ -148,8 +149,9 @@ impl ApiServer<Stopped> {
 
         let api_server = match rx_start.await {
             Ok(started) => {
-                form.send(ServiceRegistration::new(started.service_binding, check_fn))
-                    .expect("it should be able to send service registration");
+                form.register(ServiceRegistration::new(started.service_binding, metadata, Some(check_fn)))
+                    .await
+                    .expect("it should be able to register the started service");
 
                 ApiServer {
                     state: Running::new(started.address, tx_halt, task),
@@ -206,7 +208,7 @@ pub fn check_fn(service_binding: &ServiceBinding) -> ServiceHealthCheckJob {
             Err(err) => Err(err.to_string()),
         }
     });
-    ServiceHealthCheckJob::new(service_binding.clone(), info, ServiceRole::RestApi.as_str().to_string(), job)
+    ServiceHealthCheckJob::new(info, job)
 }
 
 /// A struct responsible for starting the API server.
@@ -309,6 +311,7 @@ mod tests {
     use torrust_server_lib::registar::Registar;
     use torrust_tracker_axum_server::tls::make_rust_tls;
     use torrust_tracker_configuration::{Configuration, logging};
+    use torrust_tracker_primitives::{ConfigurationInstanceId, RuntimeServiceMetadata, ServiceRole};
     use torrust_tracker_rest_api_runtime_adapter::v1::container::TrackerHttpApiCoreContainer;
     use torrust_tracker_test_helpers::configuration::ephemeral_public;
 
@@ -348,14 +351,19 @@ mod tests {
 
         let stopped = ApiServer::new(Launcher::new(bind_to, tls));
 
-        let register = &Registar::default();
+        let register = &Registar::<RuntimeServiceMetadata>::default();
 
         let http_api_container =
             TrackerHttpApiCoreContainer::initialize(&core_config, &http_tracker_config, &udp_tracker_config, &http_api_config)
                 .await;
 
         let started = stopped
-            .start(http_api_container, register.give_form(), access_tokens)
+            .start(
+                http_api_container,
+                register.give_form(),
+                RuntimeServiceMetadata::new(ServiceRole::RestApi, ConfigurationInstanceId::new(ServiceRole::RestApi, 0)),
+                access_tokens,
+            )
             .await
             .expect("it should start the server");
         let stopped = started.stop().await.expect("it should stop the server");

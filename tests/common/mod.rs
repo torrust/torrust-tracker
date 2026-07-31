@@ -28,5 +28,6 @@ pub use announce::{http_announce, udp_announce};
 pub use statistics::{PartialGlobalStatistics, get_tracker_statistics};
 #[allow(unused_imports)]
 pub use workspace::{
-    EphemeralTrackerWorkspace, http_api_url, http_tracker_urls, start_tracker_with_config, udp_socket_addr, udp_tracker_urls,
+    EphemeralTrackerWorkspace, http_api_url, http_tracker_urls, service_binding_for_identity, start_tracker_with_config,
+    udp_socket_addr, udp_tracker_urls,
 };

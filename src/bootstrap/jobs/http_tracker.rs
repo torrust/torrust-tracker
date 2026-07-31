@@ -20,6 +20,7 @@ use torrust_tracker_axum_http_server::Version;
 use torrust_tracker_axum_http_server::server::{HttpServer, Launcher};
 use torrust_tracker_axum_server::tls::make_rust_tls;
 use torrust_tracker_http_core::container::HttpTrackerCoreContainer;
+use torrust_tracker_primitives::RuntimeServiceMetadata;
 use tracing::instrument;
 
 /// It starts a new HTTP server with the provided configuration and version.
@@ -34,7 +35,8 @@ use tracing::instrument;
 pub async fn start_job(
     idx: usize,
     http_tracker_container: Arc<HttpTrackerCoreContainer>,
-    form: ServiceRegistrationForm,
+    form: ServiceRegistrationForm<RuntimeServiceMetadata>,
+    metadata: RuntimeServiceMetadata,
     version: Version,
 ) -> Option<JoinHandle<()>> {
     let socket = http_tracker_container.http_tracker_config.bind_address;
@@ -57,7 +59,7 @@ pub async fn start_job(
     };
 
     match version {
-        Version::V1 => Some(start_v1(socket, tls, http_tracker_container, form).await),
+        Version::V1 => Some(start_v1(socket, tls, http_tracker_container, form, metadata).await),
     }
 }
 
@@ -67,14 +69,15 @@ async fn start_v1(
     socket: SocketAddr,
     tls: Option<RustlsConfig>,
     http_tracker_container: Arc<HttpTrackerCoreContainer>,
-    form: ServiceRegistrationForm,
+    form: ServiceRegistrationForm<RuntimeServiceMetadata>,
+    metadata: RuntimeServiceMetadata,
 ) -> JoinHandle<()> {
     let server = HttpServer::new(Launcher::new(
         socket,
         tls,
         http_tracker_container.http_tracker_config.ipv6_v6only,
     ))
-    .start(http_tracker_container, form)
+    .start(http_tracker_container, form, metadata)
     .await
     .expect("it should be able to start to the http tracker");
 
@@ -116,8 +119,17 @@ mod tests {
 
         let version = Version::V1;
 
-        start_job(0, http_tracker_container, Registar::default().give_form(), version)
-            .await
-            .expect("it should be able to join to the http tracker start-job");
+        start_job(
+            0,
+            http_tracker_container,
+            Registar::default().give_form(),
+            torrust_tracker_primitives::RuntimeServiceMetadata::new(
+                torrust_tracker_primitives::ServiceRole::HttpTracker,
+                torrust_tracker_primitives::ConfigurationInstanceId::new(torrust_tracker_primitives::ServiceRole::HttpTracker, 0),
+            ),
+            version,
+        )
+        .await
+        .expect("it should be able to join to the http tracker start-job");
     }
 }

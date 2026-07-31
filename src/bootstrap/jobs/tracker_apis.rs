@@ -30,6 +30,7 @@ use torrust_tracker_axum_rest_api_server::Version;
 use torrust_tracker_axum_rest_api_server::server::{ApiServer, Launcher};
 use torrust_tracker_axum_server::tls::make_rust_tls;
 use torrust_tracker_configuration::AccessTokens;
+use torrust_tracker_primitives::RuntimeServiceMetadata;
 use torrust_tracker_rest_api_runtime_adapter::v1::container::TrackerHttpApiCoreContainer;
 use tracing::instrument;
 
@@ -56,7 +57,8 @@ pub struct ApiServerJobStarted();
 #[instrument(skip(http_api_container, form))]
 pub async fn start_job(
     http_api_container: Arc<TrackerHttpApiCoreContainer>,
-    form: ServiceRegistrationForm,
+    form: ServiceRegistrationForm<RuntimeServiceMetadata>,
+    metadata: RuntimeServiceMetadata,
     version: Version,
 ) -> Option<JoinHandle<()>> {
     let bind_to = http_api_container.http_api_config.bind_address;
@@ -74,7 +76,7 @@ pub async fn start_job(
     let access_tokens = Arc::new(http_api_container.http_api_config.access_tokens.clone());
 
     match version {
-        Version::V1 => Some(start_v1(bind_to, tls, http_api_container, form, access_tokens).await),
+        Version::V1 => Some(start_v1(bind_to, tls, http_api_container, form, metadata, access_tokens).await),
     }
 }
 
@@ -84,11 +86,12 @@ async fn start_v1(
     socket: SocketAddr,
     tls: Option<RustlsConfig>,
     http_api_container: Arc<TrackerHttpApiCoreContainer>,
-    form: ServiceRegistrationForm,
+    form: ServiceRegistrationForm<RuntimeServiceMetadata>,
+    metadata: RuntimeServiceMetadata,
     access_tokens: Arc<AccessTokens>,
 ) -> JoinHandle<()> {
     let server = ApiServer::new(Launcher::new(socket, tls))
-        .start(http_api_container, form, access_tokens)
+        .start(http_api_container, form, metadata, access_tokens)
         .await
         .expect("it should be able to start to the tracker api");
 
@@ -132,8 +135,16 @@ mod tests {
 
         let version = Version::V1;
 
-        start_job(http_api_container, Registar::default().give_form(), version)
-            .await
-            .expect("it should be able to join to the tracker api start-job");
+        start_job(
+            http_api_container,
+            Registar::default().give_form(),
+            torrust_tracker_primitives::RuntimeServiceMetadata::new(
+                torrust_tracker_primitives::ServiceRole::RestApi,
+                torrust_tracker_primitives::ConfigurationInstanceId::new(torrust_tracker_primitives::ServiceRole::RestApi, 0),
+            ),
+            version,
+        )
+        .await
+        .expect("it should be able to join to the tracker api start-job");
     }
 }

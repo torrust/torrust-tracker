@@ -1,8 +1,7 @@
-use std::collections::VecDeque;
-
 use axum::Json;
 use axum::extract::State;
-use torrust_server_lib::registar::{ServiceHealthCheckJob, ServiceRegistration, ServiceRegistry};
+use torrust_server_lib::registar::Registar;
+use torrust_tracker_primitives::RuntimeServiceMetadata;
 use tracing::{Level, instrument};
 
 use super::resources::{CheckReport, Report};
@@ -12,30 +11,39 @@ use super::responses;
 ///
 /// Creates a vector [`CheckReport`] from the input set of [`CheckJob`], and then builds a report from the results.
 ///
-#[instrument(skip(register), ret(level = Level::DEBUG))]
-pub(crate) async fn health_check_handler(State(register): State<ServiceRegistry>) -> Json<Report> {
-    #[allow(unused_assignments)]
-    let mut checks: VecDeque<ServiceHealthCheckJob> = VecDeque::new();
-
-    {
-        let mutex = register.lock();
-
-        checks = mutex.await.values().map(ServiceRegistration::spawn_check).collect();
-    }
+#[instrument(skip(registar), ret(level = Level::DEBUG))]
+pub(crate) async fn health_check_handler(State(registar): State<Registar<RuntimeServiceMetadata>>) -> Json<Report> {
+    let mut checks: Vec<_> = registar
+        .services()
+        .await
+        .into_iter()
+        .filter_map(|service| {
+            service.spawn_check().map(|health_check| {
+                (
+                    service.service_binding().clone(),
+                    service.metadata().service_role().as_str().to_string(),
+                    health_check,
+                )
+            })
+        })
+        .collect();
 
     // if we do not have any checks, lets return a `none` result.
     if checks.is_empty() {
         return responses::none();
     }
 
-    let jobs = checks.drain(..).map(|c| {
+    let jobs = checks.drain(..).map(|(service_binding, service_type, health_check)| {
         tokio::spawn(async move {
             CheckReport {
-                service_binding: c.service_binding.url(),
-                binding: c.service_binding.bind_address(),
-                info: c.info.clone(),
-                service_type: c.service_type,
-                result: c.job.await.expect("it should be able to join into the checking function"),
+                service_binding: service_binding.url(),
+                binding: service_binding.bind_address(),
+                info: health_check.info,
+                service_type,
+                result: health_check
+                    .job
+                    .await
+                    .expect("it should be able to join into the checking function"),
             }
         })
     });

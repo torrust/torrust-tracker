@@ -57,6 +57,7 @@ mod tests {
 
     use torrust_server_lib::registar::Registar;
     use torrust_tracker_configuration::{Configuration, logging};
+    use torrust_tracker_primitives::{ConfigurationInstanceId, RuntimeServiceMetadata, ServiceRole};
     use torrust_tracker_test_helpers::configuration::ephemeral_public;
     use torrust_tracker_udp_core::container::UdpTrackerCoreContainer;
 
@@ -92,7 +93,7 @@ mod tests {
         let udp_trackers = cfg.udp_trackers.clone().expect("missing UDP trackers configuration");
         let config = &udp_trackers[0];
         let bind_to = config.bind_address;
-        let register = &Registar::default();
+        let register = &Registar::<RuntimeServiceMetadata>::default();
 
         let stopped = Server::new(Spawner::new(bind_to));
 
@@ -104,6 +105,10 @@ mod tests {
                 udp_tracker_core_container,
                 udp_tracker_server_container,
                 register.give_form(),
+                RuntimeServiceMetadata::new(
+                    ServiceRole::UdpTracker,
+                    ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0),
+                ),
                 config.cookie_lifetime,
                 torrust_tracker_udp_core::ConnectionIdValidationPolicy::Strict,
             )
@@ -133,7 +138,7 @@ mod tests {
         initialize_global_services(&cfg);
 
         let bind_to = udp_tracker_config.bind_address;
-        let register = &Registar::default();
+        let register = &Registar::<RuntimeServiceMetadata>::default();
 
         let stopped = Server::new(Spawner::new(bind_to));
 
@@ -145,6 +150,10 @@ mod tests {
                 udp_tracker_core_container,
                 udp_tracker_server_container,
                 register.give_form(),
+                RuntimeServiceMetadata::new(
+                    ServiceRole::UdpTracker,
+                    ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0),
+                ),
                 udp_tracker_config.cookie_lifetime,
                 torrust_tracker_udp_core::ConnectionIdValidationPolicy::Strict,
             )

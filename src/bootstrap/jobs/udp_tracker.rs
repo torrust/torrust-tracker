@@ -10,6 +10,7 @@ use std::sync::Arc;
 
 use tokio::task::JoinHandle;
 use torrust_server_lib::registar::ServiceRegistrationForm;
+use torrust_tracker_primitives::RuntimeServiceMetadata;
 use torrust_tracker_udp_core::container::UdpTrackerCoreContainer;
 use torrust_tracker_udp_core::{ConnectionIdValidationPolicy, UDP_TRACKER_LOG_TARGET};
 use torrust_tracker_udp_server::container::UdpTrackerServerContainer;
@@ -33,7 +34,8 @@ pub async fn start_job(
     idx: usize,
     udp_tracker_core_container: Arc<UdpTrackerCoreContainer>,
     udp_tracker_server_container: Arc<UdpTrackerServerContainer>,
-    form: ServiceRegistrationForm,
+    form: ServiceRegistrationForm<RuntimeServiceMetadata>,
+    metadata: RuntimeServiceMetadata,
 ) -> JoinHandle<()> {
     let bind_to = udp_tracker_core_container.udp_tracker_config.bind_address;
     let cookie_lifetime = udp_tracker_core_container.udp_tracker_config.cookie_lifetime;
@@ -57,6 +59,7 @@ pub async fn start_job(
             udp_tracker_core_container,
             udp_tracker_server_container,
             form,
+            metadata,
             cookie_lifetime,
             connection_id_validation,
         )
