@@ -12,7 +12,7 @@ pub async fn return_announce_data_once(samples: u64) -> Duration {
 
     let peer = sample_peer();
 
-    let (announce_request, client_ip_sources) = sample_announce_request_for_peer(peer);
+    let (announce_request, client_ip_sources) = sample_announce_request_for_peer(&peer);
 
     let announce_service = AnnounceService::new(
         core_tracker_services.core_config.clone(),

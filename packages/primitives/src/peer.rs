@@ -28,94 +28,13 @@ use std::ops::{Deref, DerefMut};
 use std::str::FromStr;
 use std::sync::Arc;
 
-use base64::Engine;
-use base64::alphabet::Alphabet;
-use base64::engine::{GeneralPurpose, GeneralPurposeConfig};
 use serde::Serialize;
-use sha2::{Digest, Sha256};
 use thiserror::Error;
 use torrust_clock::DurationSinceUnixEpoch;
 
-use crate::{AnnounceEvent, NumberOfBytes, PeerId};
+use crate::{AnnounceEvent, I2pPeerAddress, NumberOfBytes, PeerId};
 
 pub type PeerAnnouncement = Peer;
-
-const I2P_BASE64_ALPHABET: &str = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-~";
-const I2P_SUFFIX: &str = ".i2p";
-const MIN_I2P_DESTINATION_BYTES: usize = 387;
-const I2P_CERTIFICATE_LENGTH_OFFSET: usize = 385;
-
-/// A validated I2P Base64 Destination.
-#[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
-pub struct I2pDestination {
-    value: Box<str>,
-    hash: [u8; 32],
-}
-
-impl I2pDestination {
-    /// Returns the SHA-256 hash of the decoded binary Destination.
-    #[must_use]
-    pub const fn hash(&self) -> &[u8; 32] {
-        &self.hash
-    }
-}
-
-impl fmt::Display for I2pDestination {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str(&self.value)
-    }
-}
-
-impl FromStr for I2pDestination {
-    type Err = ParseI2pDestinationError;
-
-    fn from_str(value: &str) -> Result<Self, Self::Err> {
-        let encoded = value.strip_suffix(I2P_SUFFIX).unwrap_or(value);
-        let alphabet =
-            Alphabet::new(I2P_BASE64_ALPHABET).expect("the I2P Base64 alphabet must contain 64 unique ASCII characters");
-        let engine = GeneralPurpose::new(&alphabet, GeneralPurposeConfig::new());
-        let decoded = engine.decode(encoded).map_err(|_| ParseI2pDestinationError::InvalidBase64)?;
-
-        if decoded.len() < MIN_I2P_DESTINATION_BYTES {
-            return Err(ParseI2pDestinationError::TooShort { actual: decoded.len() });
-        }
-
-        let certificate_payload_length = usize::from(u16::from_be_bytes([
-            decoded[I2P_CERTIFICATE_LENGTH_OFFSET],
-            decoded[I2P_CERTIFICATE_LENGTH_OFFSET + 1],
-        ]));
-        let expected_length = MIN_I2P_DESTINATION_BYTES + certificate_payload_length;
-
-        if decoded.len() != expected_length {
-            return Err(ParseI2pDestinationError::InvalidCertificateLength {
-                declared: certificate_payload_length,
-                actual: decoded.len() - MIN_I2P_DESTINATION_BYTES,
-            });
-        }
-
-        Ok(Self {
-            value: format!("{encoded}{I2P_SUFFIX}").into_boxed_str(),
-            hash: Sha256::digest(decoded).into(),
-        })
-    }
-}
-
-/// Error returned when parsing an I2P Destination.
-#[derive(Debug, Error, PartialEq, Eq)]
-pub enum ParseI2pDestinationError {
-    #[error("the I2P Destination is not valid I2P Base64")]
-    InvalidBase64,
-    #[error("the decoded I2P Destination must contain at least {MIN_I2P_DESTINATION_BYTES} bytes, got {actual}")]
-    TooShort { actual: usize },
-    #[error("the I2P certificate declares a {declared}-byte payload, but the Destination contains {actual} payload bytes")]
-    InvalidCertificateLength { declared: usize, actual: usize },
-}
-
-/// An I2P peer address. I2P routes by Destination and has no peer port.
-#[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
-pub struct I2pPeerAddress {
-    pub destination: I2pDestination,
-}
 
 /// A peer endpoint on either the public Internet or I2P.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
@@ -125,6 +44,10 @@ pub enum PeerAddress {
 }
 
 impl PeerAddress {
+    /// Returns the clearnet port, or the conventional placeholder port `1` for I2P.
+    ///
+    /// I2P routes by Destination rather than by port. The placeholder is needed
+    /// by non-compact tracker responses and legacy peer representations.
     #[must_use]
     pub const fn port(&self) -> u16 {
         match self {
@@ -135,6 +58,7 @@ impl PeerAddress {
         }
     }
 
+    /// Returns the peer's clearnet IP address, or `None` for an I2P peer.
     #[must_use]
     pub const fn ip(&self) -> Option<IpAddr> {
         match self {
@@ -143,11 +67,13 @@ impl PeerAddress {
         }
     }
 
+    /// Returns whether this is an I2P peer address.
     #[must_use]
     pub const fn is_i2p(&self) -> bool {
         matches!(self, Self::I2p(_))
     }
 
+    /// Returns the peer's clearnet socket address, or `None` for an I2P peer.
     #[must_use]
     pub const fn socket_addr(&self) -> Option<SocketAddr> {
         match self {
@@ -426,11 +352,14 @@ impl Peer {
         }
     }
 
+    /// Returns the peer's clearnet IP address, or `None` for an I2P peer.
+    #[must_use]
     pub fn ip(&self) -> Option<IpAddr> {
         self.peer_addr.ip()
     }
 
-    pub fn change_ip(&mut self, new_ip: &IpAddr) {
+    /// Replaces the IP of a clearnet peer and leaves an I2P peer unchanged.
+    pub fn set_clearnet_ip(&mut self, new_ip: &IpAddr) {
         if let PeerAddress::Clearnet(address) = &mut self.peer_addr {
             address.set_ip(*new_ip);
         }
@@ -785,71 +714,6 @@ pub mod fixture {
 
 #[cfg(test)]
 pub mod test {
-    mod i2p_destination {
-        use std::str::FromStr;
-
-        use base64::Engine;
-        use base64::alphabet::Alphabet;
-        use base64::engine::{GeneralPurpose, GeneralPurposeConfig};
-
-        use crate::peer::{I2pDestination, ParseI2pDestinationError};
-
-        #[test]
-        fn it_should_parse_a_valid_i2p_base64_destination() {
-            let destination = "A".repeat(516);
-
-            let parsed = I2pDestination::from_str(&destination).unwrap();
-
-            assert_eq!(parsed.to_string(), format!("{destination}.i2p"));
-            assert_eq!(parsed.hash().len(), 32);
-        }
-
-        #[test]
-        fn it_should_reject_an_i2p_destination_with_invalid_base64() {
-            let destination = format!("{}.i2p", "!".repeat(516));
-
-            let error = I2pDestination::from_str(&destination).unwrap_err();
-
-            assert_eq!(error, ParseI2pDestinationError::InvalidBase64);
-        }
-
-        #[test]
-        fn it_should_reject_an_i2p_destination_shorter_than_the_minimum_length() {
-            let destination = "A".repeat(512);
-
-            let error = I2pDestination::from_str(&destination).unwrap_err();
-
-            assert_eq!(error, ParseI2pDestinationError::TooShort { actual: 384 });
-        }
-
-        #[test]
-        fn it_should_parse_a_long_padded_destination_when_the_certificate_length_matches() {
-            let certificate_payload_length = 91_u16;
-            let mut decoded = vec![0; 387 + usize::from(certificate_payload_length)];
-            decoded[384] = 5;
-            decoded[385..387].copy_from_slice(&certificate_payload_length.to_be_bytes());
-            let alphabet = Alphabet::new("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-~").unwrap();
-            let encoded = GeneralPurpose::new(&alphabet, GeneralPurposeConfig::new()).encode(decoded);
-
-            let parsed = I2pDestination::from_str(&encoded).unwrap();
-
-            assert!(encoded.ends_with("=="));
-            assert_eq!(parsed.to_string(), format!("{encoded}.i2p"));
-        }
-
-        #[test]
-        fn it_should_reject_a_destination_when_the_certificate_length_does_not_match() {
-            let destination = "A".repeat(520);
-
-            let error = I2pDestination::from_str(&destination).unwrap_err();
-
-            assert_eq!(
-                error,
-                ParseI2pDestinationError::InvalidCertificateLength { declared: 0, actual: 3 }
-            );
-        }
-    }
-
     mod peer {
         use crate::peer::fixture::PeerBuilder;
 

@@ -18,6 +18,7 @@
     ],
     "ignorePaths": [
         ".tmp/**",
+        "storage/**",
         "target",
         "docs/media/*.svg",
         "contrib/bencode/benches/*.bencode",

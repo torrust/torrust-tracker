@@ -593,15 +593,20 @@ fn extract_ip(query: &Query) -> Result<Option<AnnounceAddress>, ParseAnnounceQue
                 return Ok(Some(AnnounceAddress::Ip(ip)));
             }
 
-            if raw_param.ends_with(".i2p") {
-                return I2pDestination::from_str(&raw_param)
-                    .map(AnnounceAddress::I2p)
-                    .map(Some)
-                    .map_err(|_| ParseAnnounceQueryError::InvalidParam {
+            let has_i2p_suffix = raw_param
+                .rsplit_once('.')
+                .is_some_and(|(_, suffix)| suffix.eq_ignore_ascii_case("i2p"));
+
+            match I2pDestination::from_str(&raw_param) {
+                Ok(destination) => return Ok(Some(AnnounceAddress::I2p(destination))),
+                Err(_) if has_i2p_suffix => {
+                    return Err(ParseAnnounceQueryError::InvalidParam {
                         param_name: IP.to_owned(),
                         param_value: raw_param,
                         location: Location::caller(),
                     });
+                }
+                Err(_) => {}
             }
 
             Ok(None)
@@ -722,7 +727,24 @@ mod tests {
         fn it_should_parse_a_padded_i2p_destination_from_the_ip_param() {
             // 391 decoded bytes: 384 key bytes, a key certificate with its
             // four-byte key-type payload, and `==` Base64 padding.
+            // cspell:disable-next-line
             let destination = format!("{}BQAEAAAAAA==.i2p", "A".repeat(512));
+            let raw_query = Query::from(vec![
+                (INFO_HASH, "%3B%24U%04%CF%5F%11%BB%DB%E1%20%1C%EAjk%F4Z%EE%1B%C0"),
+                (PEER_ID, "-RC3000-000000000001"),
+                (PORT, "1"),
+                (IP, &destination),
+            ])
+            .to_string();
+
+            let announce_request = Announce::try_from(raw_query.parse::<Query>().unwrap()).unwrap();
+
+            assert!(matches!(announce_request.ip, Some(AnnounceAddress::I2p(_))));
+        }
+
+        #[test]
+        fn it_should_parse_an_i2p_destination_without_the_i2p_suffix() {
+            let destination = "A".repeat(516);
             let raw_query = Query::from(vec![
                 (INFO_HASH, "%3B%24U%04%CF%5F%11%BB%DB%E1%20%1C%EAjk%F4Z%EE%1B%C0"),
                 (PEER_ID, "-RC3000-000000000001"),

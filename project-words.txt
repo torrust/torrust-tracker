@@ -37,6 +37,7 @@ Graphviz
 Grcov
 HDRINCL
 Hydranode
+I2P
 IPPROTO
 IPV6
 Icelake

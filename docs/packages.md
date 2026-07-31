@@ -277,6 +277,13 @@ Packages that have been extracted to their own standalone repositories.
   - Response bencoding
   - Error code mapping
   - Compact peer formatting
+  - I2P Destination parsing and compact Destination-hash formatting
+
+HTTP swarms keep I2P peers isolated from clearnet peers. An I2P announce may provide its full
+Base64 Destination, with or without the `.i2p` suffix, in the `ip` query parameter. Non-compact
+responses return that Destination, while compact responses return its 32-byte SHA-256 hash.
+See the [I2P BitTorrent specification](https://i2p.net/en/docs/applications/bittorrent/) for the
+wire-format details.
 
 ### UDP Tracker (BEP 15)
 

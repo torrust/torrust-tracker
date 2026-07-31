@@ -163,12 +163,10 @@ impl AnnounceHandler {
     ) -> Result<AnnounceData, AnnounceError> {
         self.whitelist_authorization.authorize(info_hash).await?;
 
-        if !peer.peer_addr.is_i2p() {
-            peer.change_ip(&assign_ip_address_to_peer(
-                remote_client_ip,
-                self.config.net.external_ip.map(Into::into),
-            ));
-        }
+        peer.set_clearnet_ip(&assign_ip_address_to_peer(
+            remote_client_ip,
+            self.config.net.external_ip.map(Into::into),
+        ));
 
         self.in_memory_torrent_repository
             .handle_announcement(info_hash, peer, self.load_downloads_metric_if_needed(info_hash).await?)

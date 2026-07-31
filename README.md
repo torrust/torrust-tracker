@@ -14,6 +14,7 @@
 - [x] Good Performance in Busy Conditions.
 - [x] Support for `UDP`, `HTTP`, and `TLS` Sockets.
 - [x] Native `IPv4` and `IPv6` support.
+- [x] [I2P] peer announces and matchmaking over HTTP.
 - [x] Private & Whitelisted mode.
 - [x] Tracker Management API.
 - [x] Support [newTrackon][newtrackon] checks.
@@ -296,3 +297,4 @@ This project was a joint effort by [Nautilus Cyberneering GmbH][nautilus] and [D
 [Power2All]: https://github.com/power2all
 [torrust-demo]: https://github.com/torrust/torrust-demo
 [prometheus]: https://prometheus.io/
+[I2P]: https://i2p.net/en/docs/applications/bittorrent/

@@ -32,7 +32,7 @@ impl TorrentQueryPort for TrackerTorrentQueryAdapter {
     async fn get_torrent_info(&self, info_hash: &InfoHash) -> Option<Torrent> {
         services::get_torrent_info(&self.in_memory_torrent_repository, info_hash)
             .await
-            .map(conversion::from_domain_info)
+            .map(|info| conversion::from_domain_info(&info))
     }
 
     async fn get_torrents_page(&self, pagination: &Pagination) -> Vec<ListItem> {

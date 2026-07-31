@@ -105,7 +105,7 @@ async fn should_fail_when_url_query_parameters_are_invalid() {
     let http_tracker_config = Arc::new(cfg.http_trackers.unwrap()[0].clone());
     let env = Started::new(&core_config, &http_tracker_config).await;
 
-    let invalid_query_param = "a=b=c";
+    let invalid_query_param = "missing-value-separator";
 
     let response = Client::new(env.base_url(), Duration::from_secs(5))
         .unwrap()
@@ -113,7 +113,7 @@ async fn should_fail_when_url_query_parameters_are_invalid() {
         .await
         .unwrap();
 
-    assert_cannot_parse_query_param_error_response(response, "invalid param a=b=c").await;
+    assert_cannot_parse_query_param_error_response(response, "invalid param missing-value-separator").await;
 
     env.stop().await;
 }
@@ -794,6 +794,7 @@ async fn it_should_return_i2p_destination_hashes_in_a_compact_response() {
     let env = Started::new(&core_config, &http_tracker_config).await;
     let client = Client::new(env.base_url(), Duration::from_secs(5)).unwrap();
     let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap(); // DevSkim: ignore DS173237
+    // cspell:disable-next-line
     let first_destination = format!("{}BQAEAAAAAA==.i2p", "A".repeat(512))
         .parse::<I2pDestination>()
         .unwrap();
@@ -818,6 +819,7 @@ async fn it_should_return_i2p_destination_hashes_in_a_compact_response() {
                 .with_peer_id(&PeerId(*b"-qB00000000000000002"))
                 .with_port(1)
                 .with_i2p_destination(
+                    // cspell:disable-next-line
                     format!("B{}BQAEAAAAAA==.i2p", "A".repeat(511))
                         .parse::<I2pDestination>()
                         .unwrap(),

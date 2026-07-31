@@ -328,7 +328,7 @@ mod tests {
         )
     }
 
-    fn sample_announce_request_for_peer(peer: Peer) -> (Announce, ClientIpSources) {
+    fn sample_announce_request_for_peer(peer: &Peer) -> (Announce, ClientIpSources) {
         let announce_request = Announce {
             info_hash: sample_info_hash(),
             peer_id: peer.peer_id,
@@ -418,7 +418,7 @@ mod tests {
 
             let peer = sample_peer();
 
-            let (announce_request, client_ip_sources) = sample_announce_request_for_peer(peer);
+            let (announce_request, client_ip_sources) = sample_announce_request_for_peer(&peer);
 
             let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070);
             let server_service_binding = ServiceBinding::new(Protocol::HTTP, server_socket_addr).unwrap();
@@ -462,7 +462,7 @@ mod tests {
                 core_http_tracker_services.http_stats_event_sender,
             );
 
-            let (mut first_request, client_ip_sources) = sample_announce_request_for_peer(sample_peer());
+            let (mut first_request, client_ip_sources) = sample_announce_request_for_peer(&sample_peer());
             first_request.ip = Some(AnnounceAddress::I2p(
                 format!("{}.i2p", "A".repeat(516)).parse::<I2pDestination>().unwrap(),
             ));
@@ -473,9 +473,9 @@ mod tests {
 
             let mut second_peer = sample_peer();
             second_peer.peer_id = PeerId(*b"-qB00000000000000002");
-            let (mut second_request, _) = sample_announce_request_for_peer(second_peer);
+            let (mut second_request, _) = sample_announce_request_for_peer(&second_peer);
             second_request.ip = Some(AnnounceAddress::I2p(
-                format!("{}.i2p", "B".repeat(516)).parse::<I2pDestination>().unwrap(),
+                format!("B{}.i2p", "A".repeat(515)).parse::<I2pDestination>().unwrap(),
             ));
 
             let announce_data = announce_service
@@ -523,7 +523,7 @@ mod tests {
 
             core_http_tracker_services.http_stats_event_sender = http_stats_event_sender;
 
-            let (announce_request, client_ip_sources) = sample_announce_request_for_peer(peer);
+            let (announce_request, client_ip_sources) = sample_announce_request_for_peer(&peer);
 
             let announce_service = AnnounceService::new(
                 core_tracker_services.core_config.clone(),
@@ -601,7 +601,7 @@ mod tests {
 
             core_http_tracker_services.http_stats_event_sender = http_stats_event_sender;
 
-            let (announce_request, client_ip_sources) = sample_announce_request_for_peer(peer);
+            let (announce_request, client_ip_sources) = sample_announce_request_for_peer(&peer);
 
             let announce_service = AnnounceService::new(
                 core_tracker_services.core_config.clone(),
@@ -647,7 +647,7 @@ mod tests {
             let (core_tracker_services, mut core_http_tracker_services) = initialize_core_tracker_services().await;
             core_http_tracker_services.http_stats_event_sender = http_stats_event_sender;
 
-            let (announce_request, client_ip_sources) = sample_announce_request_for_peer(peer);
+            let (announce_request, client_ip_sources) = sample_announce_request_for_peer(&peer);
 
             let announce_service = AnnounceService::new(
                 core_tracker_services.core_config.clone(),

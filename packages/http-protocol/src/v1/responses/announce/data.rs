@@ -63,6 +63,5 @@ pub enum PeerAddress {
     I2p {
         destination: String,
         destination_hash: [u8; 32],
-        port: u16,
     },
 }
