@@ -361,7 +361,7 @@ mod tests {
             .start(
                 http_api_container,
                 register.give_form(),
-                RuntimeServiceMetadata::new(ServiceRole::RestApi, ConfigurationInstanceId::new(ServiceRole::RestApi, 0)),
+                RuntimeServiceMetadata::new(ConfigurationInstanceId::new(ServiceRole::RestApi, 0)),
                 access_tokens,
             )
             .await

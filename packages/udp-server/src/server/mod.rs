@@ -105,10 +105,7 @@ mod tests {
                 udp_tracker_core_container,
                 udp_tracker_server_container,
                 register.give_form(),
-                RuntimeServiceMetadata::new(
-                    ServiceRole::UdpTracker,
-                    ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0),
-                ),
+                RuntimeServiceMetadata::new(ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0)),
                 config.cookie_lifetime,
                 torrust_tracker_udp_core::ConnectionIdValidationPolicy::Strict,
             )
@@ -150,10 +147,7 @@ mod tests {
                 udp_tracker_core_container,
                 udp_tracker_server_container,
                 register.give_form(),
-                RuntimeServiceMetadata::new(
-                    ServiceRole::UdpTracker,
-                    ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0),
-                ),
+                RuntimeServiceMetadata::new(ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0)),
                 udp_tracker_config.cookie_lifetime,
                 torrust_tracker_udp_core::ConnectionIdValidationPolicy::Strict,
             )

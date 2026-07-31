@@ -63,10 +63,7 @@ pub async fn start_job(config: &HealthCheckApi, registar: Registar<RuntimeServic
                 .give_form()
                 .register(ServiceRegistration::new(
                     msg.service_binding,
-                    RuntimeServiceMetadata::new(
-                        ServiceRole::HealthCheckApi,
-                        ConfigurationInstanceId::new(ServiceRole::HealthCheckApi, 0),
-                    ),
+                    RuntimeServiceMetadata::new(ConfigurationInstanceId::new(ServiceRole::HealthCheckApi, 0)),
                     None,
                 ))
                 .await

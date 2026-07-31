@@ -408,10 +408,7 @@ mod tests {
             .start(
                 http_tracker_container,
                 register.give_form(),
-                RuntimeServiceMetadata::new(
-                    ServiceRole::HttpTracker,
-                    ConfigurationInstanceId::new(ServiceRole::HttpTracker, 0),
-                ),
+                RuntimeServiceMetadata::new(ConfigurationInstanceId::new(ServiceRole::HttpTracker, 0)),
             )
             .await
             .expect("it should start the server");

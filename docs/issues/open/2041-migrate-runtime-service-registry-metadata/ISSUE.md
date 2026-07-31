@@ -141,9 +141,11 @@ Dynamic restart, deregistration, replacement, liveness removal, and
 re-registration are intentionally out of scope. The registry rejects duplicate
 final bindings so a snapshot never represents two services at one listener.
 
-The tracker owns a typed runtime metadata value containing `ServiceRole` and
-`ConfigurationInstanceId`. `torrust-server-lib` must not define tracker roles,
-configuration identifiers, metrics policy, or tracker-specific metadata keys.
+The tracker owns a typed runtime metadata value containing the canonical
+`ConfigurationInstanceId`; its `ServiceRole` is derived from that identity, so
+the metadata cannot represent inconsistent role and identity values.
+`torrust-server-lib` must not define tracker roles, configuration identifiers,
+metrics policy, or tracker-specific metadata keys.
 
 ### Registration and Readiness
 

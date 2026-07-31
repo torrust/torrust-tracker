@@ -123,10 +123,10 @@ mod tests {
             0,
             http_tracker_container,
             Registar::default().give_form(),
-            torrust_tracker_primitives::RuntimeServiceMetadata::new(
+            torrust_tracker_primitives::RuntimeServiceMetadata::new(torrust_tracker_primitives::ConfigurationInstanceId::new(
                 torrust_tracker_primitives::ServiceRole::HttpTracker,
-                torrust_tracker_primitives::ConfigurationInstanceId::new(torrust_tracker_primitives::ServiceRole::HttpTracker, 0),
-            ),
+                0,
+            )),
             version,
         )
         .await

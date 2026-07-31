@@ -138,10 +138,10 @@ mod tests {
         start_job(
             http_api_container,
             Registar::default().give_form(),
-            torrust_tracker_primitives::RuntimeServiceMetadata::new(
+            torrust_tracker_primitives::RuntimeServiceMetadata::new(torrust_tracker_primitives::ConfigurationInstanceId::new(
                 torrust_tracker_primitives::ServiceRole::RestApi,
-                torrust_tracker_primitives::ConfigurationInstanceId::new(torrust_tracker_primitives::ServiceRole::RestApi, 0),
-            ),
+                0,
+            )),
             version,
         )
         .await

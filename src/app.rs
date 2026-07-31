@@ -249,7 +249,7 @@ async fn start_udp_instance(
         udp_tracker_container,
         udp_tracker_server_container,
         app_container.registar.give_form(),
-        RuntimeServiceMetadata::new(ServiceRole::UdpTracker, configuration_instance_id),
+        RuntimeServiceMetadata::new(configuration_instance_id),
     )
     .await;
 
@@ -280,7 +280,7 @@ async fn start_http_instance(
         idx,
         http_tracker_container,
         app_container.registar.give_form(),
-        RuntimeServiceMetadata::new(ServiceRole::HttpTracker, configuration_instance_id),
+        RuntimeServiceMetadata::new(configuration_instance_id),
         torrust_tracker_axum_http_server::Version::V1,
     )
     .await
@@ -297,7 +297,7 @@ async fn start_the_http_api(config: &Configuration, app_container: &Arc<AppConta
         if let Some(job) = tracker_apis::start_job(
             http_api_container,
             app_container.registar.give_form(),
-            RuntimeServiceMetadata::new(ServiceRole::RestApi, ConfigurationInstanceId::new(ServiceRole::RestApi, 0)),
+            RuntimeServiceMetadata::new(ConfigurationInstanceId::new(ServiceRole::RestApi, 0)),
             torrust_tracker_axum_rest_api_server::Version::V1,
         )
         .await

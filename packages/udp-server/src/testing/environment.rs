@@ -110,10 +110,7 @@ impl Environment<Stopped> {
                 self.container.udp_tracker_core_container.clone(),
                 self.container.udp_tracker_server_container.clone(),
                 self.registar.give_form(),
-                RuntimeServiceMetadata::new(
-                    ServiceRole::UdpTracker,
-                    ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0),
-                ),
+                RuntimeServiceMetadata::new(ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0)),
                 cookie_lifetime,
                 self.connection_id_validation,
             )

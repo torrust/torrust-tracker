@@ -89,7 +89,7 @@ impl Environment<Stopped> {
                 .start(
                     self.container.tracker_http_api_core_container.clone(),
                     self.registar.give_form(),
-                    RuntimeServiceMetadata::new(ServiceRole::RestApi, ConfigurationInstanceId::new(ServiceRole::RestApi, 0)),
+                    RuntimeServiceMetadata::new(ConfigurationInstanceId::new(ServiceRole::RestApi, 0)),
                     access_tokens,
                 )
                 .await

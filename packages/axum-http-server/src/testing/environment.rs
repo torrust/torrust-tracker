@@ -89,10 +89,7 @@ impl Environment<Stopped> {
             .start(
                 self.container.http_tracker_core_container.clone(),
                 self.registar.give_form(),
-                RuntimeServiceMetadata::new(
-                    ServiceRole::HttpTracker,
-                    ConfigurationInstanceId::new(ServiceRole::HttpTracker, 0),
-                ),
+                RuntimeServiceMetadata::new(ConfigurationInstanceId::new(ServiceRole::HttpTracker, 0)),
             )
             .await
             .expect("Failed to start the HTTP tracker server");
