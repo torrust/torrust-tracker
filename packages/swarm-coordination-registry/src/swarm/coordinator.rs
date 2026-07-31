@@ -1,14 +1,13 @@
 //! A swarm is a collection of peers that are all trying to download the same
 //! torrent.
 use std::collections::BTreeMap;
-use std::net::SocketAddr;
 use std::sync::Arc;
 
 use torrust_clock::DurationSinceUnixEpoch;
 use torrust_info_hash::InfoHash;
 use torrust_tracker_primitives::peer::{self, Peer, PeerAnnouncement};
 use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
-use torrust_tracker_primitives::{AnnounceEvent, TrackerPolicy};
+use torrust_tracker_primitives::{AnnounceEvent, PeerAddress, TrackerPolicy};
 
 use crate::event::Event;
 use crate::event::sender::Sender;
@@ -16,7 +15,7 @@ use crate::event::sender::Sender;
 #[derive(Clone)]
 pub struct Coordinator {
     info_hash: InfoHash,
-    peers: BTreeMap<SocketAddr, Arc<PeerAnnouncement>>,
+    peers: BTreeMap<PeerAddress, Arc<PeerAnnouncement>>,
     metadata: SwarmMetadata,
     event_sender: Sender,
 }
@@ -35,7 +34,7 @@ impl Coordinator {
     pub async fn handle_announcement(&mut self, incoming_announce: &PeerAnnouncement) {
         let _previous_peer = match peer::ReadInfo::get_event(incoming_announce) {
             AnnounceEvent::Started | AnnounceEvent::None | AnnounceEvent::Completed => {
-                self.upsert_peer(Arc::new(*incoming_announce)).await
+                self.upsert_peer(Arc::new(incoming_announce.clone())).await
             }
             AnnounceEvent::Stopped => self.remove_peer(&incoming_announce.peer_addr).await,
         };
@@ -52,7 +51,7 @@ impl Coordinator {
     }
 
     #[must_use]
-    pub fn get(&self, peer_addr: &SocketAddr) -> Option<&Arc<Peer>> {
+    pub fn get(&self, peer_addr: &PeerAddress) -> Option<&Arc<Peer>> {
         self.peers.get(peer_addr)
     }
 
@@ -65,24 +64,16 @@ impl Coordinator {
     }
 
     #[must_use]
-    pub fn peers_excluding(&self, peer_addr: &SocketAddr, limit: Option<usize>) -> Vec<Arc<peer::Peer>> {
+    pub fn peers_excluding(&self, peer_addr: &PeerAddress, limit: Option<usize>) -> Vec<Arc<peer::Peer>> {
+        let peers = self
+            .peers
+            .values()
+            .filter(|peer| peer::ReadInfo::get_address(peer.as_ref()) != peer_addr)
+            .filter(|peer| peer.peer_addr.is_i2p() == peer_addr.is_i2p());
+
         match limit {
-            Some(limit) => self
-                .peers
-                .values()
-                // Take peers which are not the client peer
-                .filter(|peer| peer::ReadInfo::get_address(peer.as_ref()) != *peer_addr)
-                // Limit the number of peers on the result
-                .take(limit)
-                .cloned()
-                .collect(),
-            None => self
-                .peers
-                .values()
-                // Take peers which are not the client peer
-                .filter(|peer| peer::ReadInfo::get_address(peer.as_ref()) != *peer_addr)
-                .cloned()
-                .collect(),
+            Some(limit) => peers.take(limit).cloned().collect(),
+            None => peers.cloned().collect(),
         }
     }
 
@@ -157,7 +148,7 @@ impl Coordinator {
     async fn upsert_peer(&mut self, incoming_announce: Arc<PeerAnnouncement>) -> Option<Arc<Peer>> {
         let announcement = incoming_announce.clone();
 
-        if let Some(previous_announce) = self.peers.insert(incoming_announce.peer_addr, incoming_announce) {
+        if let Some(previous_announce) = self.peers.insert(incoming_announce.peer_addr.clone(), incoming_announce) {
             let downloads_increased = self.update_metadata_on_update(&previous_announce, &announcement);
 
             self.trigger_peer_updated_event(&previous_announce, &announcement).await;
@@ -176,7 +167,7 @@ impl Coordinator {
         }
     }
 
-    async fn remove_peer(&mut self, peer_addr: &SocketAddr) -> Option<Arc<Peer>> {
+    async fn remove_peer(&mut self, peer_addr: &PeerAddress) -> Option<Arc<Peer>> {
         if let Some(old_peer) = self.peers.remove(peer_addr) {
             self.update_metadata_on_removal(&old_peer);
 
@@ -189,11 +180,11 @@ impl Coordinator {
     }
 
     #[must_use]
-    fn inactive_peers(&self, current_cutoff: DurationSinceUnixEpoch) -> Vec<SocketAddr> {
+    fn inactive_peers(&self, current_cutoff: DurationSinceUnixEpoch) -> Vec<PeerAddress> {
         self.peers
             .iter()
             .filter(|(_, peer)| peer::ReadInfo::get_updated(&**peer) <= current_cutoff)
-            .map(|(addr, _)| *addr)
+            .map(|(addr, _)| addr.clone())
             .collect()
     }
 
@@ -249,7 +240,7 @@ impl Coordinator {
             event_sender
                 .send(Event::PeerAdded {
                     info_hash: self.info_hash,
-                    peer: *announcement.clone(),
+                    peer: announcement.as_ref().clone(),
                 })
                 .await;
         }
@@ -260,7 +251,7 @@ impl Coordinator {
             event_sender
                 .send(Event::PeerRemoved {
                     info_hash: self.info_hash,
-                    peer: *old_peer.clone(),
+                    peer: old_peer.as_ref().clone(),
                 })
                 .await;
         }
@@ -271,8 +262,8 @@ impl Coordinator {
             event_sender
                 .send(Event::PeerUpdated {
                     info_hash: self.info_hash,
-                    old_peer: *old_announce.clone(),
-                    new_peer: *new_announce.clone(),
+                    old_peer: old_announce.as_ref().clone(),
+                    new_peer: new_announce.as_ref().clone(),
                 })
                 .await;
         }
@@ -283,7 +274,7 @@ impl Coordinator {
             event_sender
                 .send(Event::PeerDownloadCompleted {
                     info_hash: self.info_hash,
-                    peer: *new_announce.clone(),
+                    peer: new_announce.as_ref().clone(),
                 })
                 .await;
         }
@@ -321,9 +312,9 @@ mod tests {
     use std::sync::Arc;
 
     use torrust_clock::DurationSinceUnixEpoch;
-    use torrust_tracker_primitives::PeerId;
     use torrust_tracker_primitives::peer::fixture::PeerBuilder;
     use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
+    use torrust_tracker_primitives::{I2pDestination, I2pPeerAddress, PeerAddress, PeerId};
 
     use crate::swarm::coordinator::Coordinator;
     use crate::tests::sample_info_hash;
@@ -348,7 +339,7 @@ mod tests {
 
         let peer = PeerBuilder::default().build();
 
-        assert_eq!(swarm.upsert_peer(peer.into()).await, None);
+        assert_eq!(swarm.upsert_peer(peer.clone().into()).await, None);
     }
 
     #[tokio::test]
@@ -357,9 +348,9 @@ mod tests {
 
         let peer = PeerBuilder::default().build();
 
-        swarm.upsert_peer(peer.into()).await;
+        swarm.upsert_peer(peer.clone().into()).await;
 
-        assert_eq!(swarm.upsert_peer(peer.into()).await, Some(Arc::new(peer)));
+        assert_eq!(swarm.upsert_peer(peer.clone().into()).await, Some(Arc::new(peer)));
     }
 
     #[tokio::test]
@@ -368,7 +359,7 @@ mod tests {
 
         let peer = PeerBuilder::default().build();
 
-        swarm.upsert_peer(peer.into()).await;
+        swarm.upsert_peer(peer.clone().into()).await;
 
         assert_eq!(swarm.peers(None), [Arc::new(peer)]);
     }
@@ -379,7 +370,7 @@ mod tests {
 
         let peer = PeerBuilder::default().build();
 
-        swarm.upsert_peer(peer.into()).await;
+        swarm.upsert_peer(peer.clone().into()).await;
 
         assert_eq!(swarm.get(&peer.peer_addr), Some(Arc::new(peer)).as_ref());
     }
@@ -390,7 +381,7 @@ mod tests {
 
         let peer = PeerBuilder::default().build();
 
-        swarm.upsert_peer(peer.into()).await;
+        swarm.upsert_peer(peer.clone().into()).await;
 
         assert_eq!(swarm.len(), 1);
     }
@@ -401,7 +392,7 @@ mod tests {
 
         let peer = PeerBuilder::default().build();
 
-        swarm.upsert_peer(peer.into()).await;
+        swarm.upsert_peer(peer.clone().into()).await;
 
         swarm.remove_peer(&peer.peer_addr).await;
 
@@ -414,11 +405,11 @@ mod tests {
 
         let peer = PeerBuilder::default().build();
 
-        swarm.upsert_peer(peer.into()).await;
+        swarm.upsert_peer(peer.clone().into()).await;
 
         let old = swarm.remove_peer(&peer.peer_addr).await;
 
-        assert_eq!(old, Some(Arc::new(peer)));
+        assert_eq!(old, Some(Arc::new(peer.clone())));
         assert_eq!(swarm.get(&peer.peer_addr), None);
     }
 
@@ -439,15 +430,34 @@ mod tests {
             .with_peer_id(&PeerId(*b"-qB00000000000000001"))
             .with_peer_addr(&SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 6969))
             .build();
-        swarm.upsert_peer(peer1.into()).await;
+        swarm.upsert_peer(peer1.clone().into()).await;
 
         let peer2 = PeerBuilder::default()
             .with_peer_id(&PeerId(*b"-qB00000000000000002"))
             .with_peer_addr(&SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 2)), 6969))
             .build();
-        swarm.upsert_peer(peer2.into()).await;
+        swarm.upsert_peer(peer2.clone().into()).await;
 
         assert_eq!(swarm.peers_excluding(&peer2.peer_addr, None), [Arc::new(peer1)]);
+    }
+
+    #[tokio::test]
+    async fn it_should_not_return_peers_from_a_different_network() {
+        let mut swarm = Coordinator::new(&sample_info_hash(), 0, None);
+        let clearnet_peer = PeerBuilder::default().build();
+        swarm.upsert_peer(clearnet_peer.clone().into()).await;
+
+        let mut i2p_peer = PeerBuilder::default().with_peer_id(&PeerId(*b"-qB00000000000000002")).build();
+        i2p_peer.peer_addr = PeerAddress::I2p(I2pPeerAddress {
+            destination: format!("{}.i2p", "A".repeat(516)).parse::<I2pDestination>().unwrap(),
+        });
+        swarm.upsert_peer(i2p_peer.clone().into()).await;
+
+        let peers_for_i2p = swarm.peers_excluding(&i2p_peer.peer_addr, None);
+        let peers_for_clearnet = swarm.peers_excluding(&clearnet_peer.peer_addr, None);
+
+        assert!(peers_for_i2p.is_empty());
+        assert!(peers_for_clearnet.is_empty());
     }
 
     #[tokio::test]
@@ -459,7 +469,7 @@ mod tests {
         // Insert the peer
         let last_update_time = DurationSinceUnixEpoch::new(1_669_397_478_934, 0);
         let peer = PeerBuilder::default().last_updated_on(last_update_time).build();
-        swarm.upsert_peer(peer.into()).await;
+        swarm.upsert_peer(peer.clone().into()).await;
 
         let inactive_peers_total = swarm.count_inactive_peers(last_update_time + one_second);
 
@@ -475,7 +485,7 @@ mod tests {
         // Insert the peer
         let last_update_time = DurationSinceUnixEpoch::new(1_669_397_478_934, 0);
         let peer = PeerBuilder::default().last_updated_on(last_update_time).build();
-        swarm.upsert_peer(peer.into()).await;
+        swarm.upsert_peer(peer.clone().into()).await;
 
         // Remove peers not updated since one second after inserting the peer
         swarm.remove_inactive(last_update_time + one_second).await;
@@ -492,7 +502,7 @@ mod tests {
         // Insert the peer
         let last_update_time = DurationSinceUnixEpoch::new(1_669_397_478_934, 0);
         let peer = PeerBuilder::default().last_updated_on(last_update_time).build();
-        swarm.upsert_peer(peer.into()).await;
+        swarm.upsert_peer(peer.clone().into()).await;
 
         // Remove peers not updated since one second before inserting the peer.
         swarm.remove_inactive(last_update_time.checked_sub(one_second).unwrap()).await;
@@ -523,11 +533,11 @@ mod tests {
 
             let mut peer = PeerBuilder::leecher().build();
 
-            swarm.upsert_peer(peer.into()).await;
+            swarm.upsert_peer(peer.clone().into()).await;
 
             peer.event = torrust_tracker_primitives::AnnounceEvent::Completed;
 
-            swarm.upsert_peer(peer.into()).await;
+            swarm.upsert_peer(peer.clone().into()).await;
 
             assert!(swarm.metadata().downloads() > 0);
 
@@ -608,12 +618,12 @@ mod tests {
         let peer1 = PeerBuilder::default()
             .with_peer_addr(&SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 6969))
             .build();
-        swarm.upsert_peer(peer1.into()).await;
+        swarm.upsert_peer(peer1.clone().into()).await;
 
         let peer2 = PeerBuilder::default()
             .with_peer_addr(&SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 2)), 6969))
             .build();
-        swarm.upsert_peer(peer2.into()).await;
+        swarm.upsert_peer(peer2.clone().into()).await;
 
         assert_eq!(swarm.len(), 2);
     }
@@ -629,13 +639,13 @@ mod tests {
             .with_peer_id(&PeerId(*b"-qB00000000000000001"))
             .with_peer_addr(&SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 6969))
             .build();
-        swarm.upsert_peer(peer1.into()).await;
+        swarm.upsert_peer(peer1.clone().into()).await;
 
         let peer2 = PeerBuilder::default()
             .with_peer_id(&PeerId(*b"-qB00000000000000002"))
             .with_peer_addr(&SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 6969))
             .build();
-        swarm.upsert_peer(peer2.into()).await;
+        swarm.upsert_peer(peer2.clone().into()).await;
 
         assert_eq!(swarm.len(), 1);
     }
@@ -647,8 +657,8 @@ mod tests {
         let seeder = PeerBuilder::seeder().build();
         let leecher = PeerBuilder::leecher().build();
 
-        swarm.upsert_peer(seeder.into()).await;
-        swarm.upsert_peer(leecher.into()).await;
+        swarm.upsert_peer(seeder.clone().into()).await;
+        swarm.upsert_peer(leecher.clone().into()).await;
 
         assert_eq!(
             swarm.metadata(),
@@ -667,8 +677,8 @@ mod tests {
         let seeder = PeerBuilder::seeder().build();
         let leecher = PeerBuilder::leecher().build();
 
-        swarm.upsert_peer(seeder.into()).await;
-        swarm.upsert_peer(leecher.into()).await;
+        swarm.upsert_peer(seeder.clone().into()).await;
+        swarm.upsert_peer(leecher.clone().into()).await;
 
         let (seeders, _leechers) = swarm.seeders_and_leechers();
 
@@ -682,8 +692,8 @@ mod tests {
         let seeder = PeerBuilder::seeder().build();
         let leecher = PeerBuilder::leecher().build();
 
-        swarm.upsert_peer(seeder.into()).await;
-        swarm.upsert_peer(leecher.into()).await;
+        swarm.upsert_peer(seeder.clone().into()).await;
+        swarm.upsert_peer(leecher.clone().into()).await;
 
         let (_seeders, leechers) = swarm.seeders_and_leechers();
 
@@ -712,7 +722,7 @@ mod tests {
 
                 let leecher = PeerBuilder::leecher().build();
 
-                swarm.upsert_peer(leecher.into()).await;
+                swarm.upsert_peer(leecher.clone().into()).await;
 
                 assert_eq!(swarm.metadata().leechers(), leechers + 1);
             }
@@ -725,7 +735,7 @@ mod tests {
 
                 let seeder = PeerBuilder::seeder().build();
 
-                swarm.upsert_peer(seeder.into()).await;
+                swarm.upsert_peer(seeder.clone().into()).await;
 
                 assert_eq!(swarm.metadata().seeders(), seeders + 1);
             }
@@ -739,7 +749,7 @@ mod tests {
 
                 let seeder = PeerBuilder::seeder().build();
 
-                swarm.upsert_peer(seeder.into()).await;
+                swarm.upsert_peer(seeder.clone().into()).await;
 
                 assert_eq!(swarm.metadata().downloads(), downloads);
             }
@@ -757,7 +767,7 @@ mod tests {
 
                 let leecher = PeerBuilder::leecher().build();
 
-                swarm.upsert_peer(leecher.into()).await;
+                swarm.upsert_peer(leecher.clone().into()).await;
 
                 let leechers = swarm.metadata().leechers();
 
@@ -772,7 +782,7 @@ mod tests {
 
                 let seeder = PeerBuilder::seeder().build();
 
-                swarm.upsert_peer(seeder.into()).await;
+                swarm.upsert_peer(seeder.clone().into()).await;
 
                 let seeders = swarm.metadata().seeders();
 
@@ -796,7 +806,7 @@ mod tests {
 
                 let leecher = PeerBuilder::leecher().build();
 
-                swarm.upsert_peer(leecher.into()).await;
+                swarm.upsert_peer(leecher.clone().into()).await;
 
                 let leechers = swarm.metadata().leechers();
 
@@ -811,7 +821,7 @@ mod tests {
 
                 let seeder = PeerBuilder::seeder().build();
 
-                swarm.upsert_peer(seeder.into()).await;
+                swarm.upsert_peer(seeder.clone().into()).await;
 
                 let seeders = swarm.metadata().seeders();
 
@@ -834,14 +844,14 @@ mod tests {
 
                 let mut peer = PeerBuilder::leecher().build();
 
-                swarm.upsert_peer(peer.into()).await;
+                swarm.upsert_peer(peer.clone().into()).await;
 
                 let leechers = swarm.metadata().leechers();
                 let seeders = swarm.metadata().seeders();
 
                 peer.left = NumberOfBytes::new(0); // Convert to seeder
 
-                swarm.upsert_peer(peer.into()).await;
+                swarm.upsert_peer(peer.clone().into()).await;
 
                 assert_eq!(swarm.metadata().seeders(), seeders + 1);
                 assert_eq!(swarm.metadata().leechers(), leechers - 1);
@@ -853,14 +863,14 @@ mod tests {
 
                 let mut peer = PeerBuilder::seeder().build();
 
-                swarm.upsert_peer(peer.into()).await;
+                swarm.upsert_peer(peer.clone().into()).await;
 
                 let leechers = swarm.metadata().leechers();
                 let seeders = swarm.metadata().seeders();
 
                 peer.left = NumberOfBytes::new(10); // Convert to leecher
 
-                swarm.upsert_peer(peer.into()).await;
+                swarm.upsert_peer(peer.clone().into()).await;
 
                 assert_eq!(swarm.metadata().leechers(), leechers + 1);
                 assert_eq!(swarm.metadata().seeders(), seeders - 1);
@@ -872,13 +882,13 @@ mod tests {
 
                 let mut peer = PeerBuilder::leecher().build();
 
-                swarm.upsert_peer(peer.into()).await;
+                swarm.upsert_peer(peer.clone().into()).await;
 
                 let downloads = swarm.metadata().downloads();
 
                 peer.event = torrust_tracker_primitives::AnnounceEvent::Completed;
 
-                swarm.upsert_peer(peer.into()).await;
+                swarm.upsert_peer(peer.clone().into()).await;
 
                 assert_eq!(swarm.metadata().downloads(), downloads + 1);
             }
@@ -889,15 +899,15 @@ mod tests {
 
                 let mut peer = PeerBuilder::leecher().build();
 
-                swarm.upsert_peer(peer.into()).await;
+                swarm.upsert_peer(peer.clone().into()).await;
 
                 let downloads = swarm.metadata().downloads();
 
                 peer.event = torrust_tracker_primitives::AnnounceEvent::Completed;
 
-                swarm.upsert_peer(peer.into()).await;
+                swarm.upsert_peer(peer.clone().into()).await;
 
-                swarm.upsert_peer(peer.into()).await;
+                swarm.upsert_peer(peer.clone().into()).await;
 
                 assert_eq!(swarm.metadata().downloads(), downloads + 1);
             }
@@ -924,11 +934,17 @@ mod tests {
 
             let mut event_sender_mock = MockEventSender::new();
 
-            expect_event_sequence(&mut event_sender_mock, vec![Event::PeerAdded { info_hash, peer }]);
+            expect_event_sequence(
+                &mut event_sender_mock,
+                vec![Event::PeerAdded {
+                    info_hash,
+                    peer: peer.clone(),
+                }],
+            );
 
             let mut swarm = Coordinator::new(&sample_info_hash(), 0, Some(Arc::new(event_sender_mock)));
 
-            swarm.upsert_peer(peer.into()).await;
+            swarm.upsert_peer(peer.clone().into()).await;
         }
 
         #[tokio::test]
@@ -940,13 +956,22 @@ mod tests {
 
             expect_event_sequence(
                 &mut event_sender_mock,
-                vec![Event::PeerAdded { info_hash, peer }, Event::PeerRemoved { info_hash, peer }],
+                vec![
+                    Event::PeerAdded {
+                        info_hash,
+                        peer: peer.clone(),
+                    },
+                    Event::PeerRemoved {
+                        info_hash,
+                        peer: peer.clone(),
+                    },
+                ],
             );
 
             let mut swarm = Coordinator::new(&info_hash, 0, Some(Arc::new(event_sender_mock)));
 
             // Insert the peer
-            swarm.upsert_peer(peer.into()).await;
+            swarm.upsert_peer(peer.clone().into()).await;
 
             swarm.remove_peer(&peer.peer_addr).await;
         }
@@ -960,13 +985,22 @@ mod tests {
 
             expect_event_sequence(
                 &mut event_sender_mock,
-                vec![Event::PeerAdded { info_hash, peer }, Event::PeerRemoved { info_hash, peer }],
+                vec![
+                    Event::PeerAdded {
+                        info_hash,
+                        peer: peer.clone(),
+                    },
+                    Event::PeerRemoved {
+                        info_hash,
+                        peer: peer.clone(),
+                    },
+                ],
             );
 
             let mut swarm = Coordinator::new(&info_hash, 0, Some(Arc::new(event_sender_mock)));
 
             // Insert the peer
-            swarm.upsert_peer(peer.into()).await;
+            swarm.upsert_peer(peer.clone().into()).await;
 
             // Peers not updated after this time will be removed
             let current_cutoff = peer.updated + DurationSinceUnixEpoch::from_secs(1);
@@ -984,11 +1018,14 @@ mod tests {
             expect_event_sequence(
                 &mut event_sender_mock,
                 vec![
-                    Event::PeerAdded { info_hash, peer },
+                    Event::PeerAdded {
+                        info_hash,
+                        peer: peer.clone(),
+                    },
                     Event::PeerUpdated {
                         info_hash,
-                        old_peer: peer,
-                        new_peer: peer,
+                        old_peer: peer.clone(),
+                        new_peer: peer.clone(),
                     },
                 ],
             );
@@ -996,17 +1033,17 @@ mod tests {
             let mut swarm = Coordinator::new(&info_hash, 0, Some(Arc::new(event_sender_mock)));
 
             // Insert the peer
-            swarm.upsert_peer(peer.into()).await;
+            swarm.upsert_peer(peer.clone().into()).await;
 
             // Update the peer
-            swarm.upsert_peer(peer.into()).await;
+            swarm.upsert_peer(peer.clone().into()).await;
         }
 
         #[tokio::test]
         async fn it_should_trigger_an_event_when_a_peer_completes_a_download() {
             let info_hash = sample_info_hash();
             let started_peer = PeerBuilder::leecher().with_event(Started).build();
-            let completed_peer = started_peer.into_completed();
+            let completed_peer = started_peer.clone().into_completed();
 
             let mut event_sender_mock = MockEventSender::new();
 
@@ -1015,16 +1052,16 @@ mod tests {
                 vec![
                     Event::PeerAdded {
                         info_hash,
-                        peer: started_peer,
+                        peer: started_peer.clone(),
                     },
                     Event::PeerUpdated {
                         info_hash,
-                        old_peer: started_peer,
-                        new_peer: completed_peer,
+                        old_peer: started_peer.clone(),
+                        new_peer: completed_peer.clone(),
                     },
                     Event::PeerDownloadCompleted {
                         info_hash,
-                        peer: completed_peer,
+                        peer: completed_peer.clone(),
                     },
                 ],
             );
@@ -1032,10 +1069,10 @@ mod tests {
             let mut swarm = Coordinator::new(&info_hash, 0, Some(Arc::new(event_sender_mock)));
 
             // Insert the peer
-            swarm.upsert_peer(started_peer.into()).await;
+            swarm.upsert_peer(started_peer.clone().into()).await;
 
             // Announce as completed
-            swarm.upsert_peer(completed_peer.into()).await;
+            swarm.upsert_peer(completed_peer.clone().into()).await;
         }
     }
 }

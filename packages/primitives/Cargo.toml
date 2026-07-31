@@ -16,10 +16,12 @@ version = "3.0.0"
 
 [dependencies]
 torrust-peer-id = "0.1.0"
+base64 = "0.22.1"
 binascii = "0"
 torrust-info-hash = "=0.2.0"
 derive_more = { version = "2", features = [ "constructor", "display" ] }
 serde = { version = "1", features = [ "derive" ] }
+sha2 = "0.11.0"
 tdyne-peer-id = "1"
 tdyne-peer-id-registry = "0"
 thiserror = "2"

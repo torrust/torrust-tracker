@@ -192,7 +192,7 @@ mod tests {
 
     // It returns a peer with the opposite role of the given peer.
     fn make_opposite_role_peer(peer: &Peer) -> Peer {
-        let mut opposite_role_peer = *peer;
+        let mut opposite_role_peer = peer.clone();
 
         match peer.role() {
             PeerRole::Seeder => {
@@ -491,7 +491,7 @@ mod tests {
                 handle_event(
                     Event::PeerAdded {
                         info_hash: sample_info_hash(),
-                        peer: old_peer,
+                        peer: old_peer.clone(),
                     },
                     &stats_repository,
                     CurrentClock::now(),
@@ -533,7 +533,7 @@ mod tests {
             handle_event(
                 Event::PeerAdded {
                     info_hash: sample_info_hash(),
-                    peer,
+                    peer: peer.clone(),
                 },
                 &stats_repository,
                 CurrentClock::now(),
@@ -560,7 +560,7 @@ mod tests {
             handle_event(
                 Event::PeerRemoved {
                     info_hash: sample_info_hash(),
-                    peer,
+                    peer: peer.clone(),
                 },
                 &stats_repository,
                 CurrentClock::now(),
@@ -588,7 +588,7 @@ mod tests {
                 Event::PeerUpdated {
                     info_hash: sample_info_hash(),
                     old_peer: sample_peer(),
-                    new_peer,
+                    new_peer: new_peer.clone(),
                 },
                 &stats_repository,
                 CurrentClock::now(),

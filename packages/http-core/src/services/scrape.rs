@@ -238,7 +238,7 @@ mod tests {
     fn sample_peer() -> peer::Peer {
         peer::Peer {
             peer_id: PeerId(*b"-qB00000000000000000"),
-            peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080),
+            peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080).into(),
             updated: DurationSinceUnixEpoch::new(1_669_397_478_934, 0),
             uploaded: NumberOfBytes::new(0),
             downloaded: NumberOfBytes::new(0),
@@ -299,7 +299,7 @@ mod tests {
 
             // Announce a new peer to force scrape data to contain non zeroed data
             let mut peer = sample_peer();
-            let original_peer_ip = peer.ip();
+            let original_peer_ip = peer.ip().unwrap();
             container
                 .announce_handler
                 .handle_announcement(&info_hash, &mut peer, &original_peer_ip, &PeersWanted::AsManyAsPossible)
@@ -489,7 +489,7 @@ mod tests {
 
             // Announce a new peer to force scrape data to contain non zeroed data
             let mut peer = sample_peer();
-            let original_peer_ip = peer.ip();
+            let original_peer_ip = peer.ip().unwrap();
             container
                 .announce_handler
                 .handle_announcement(&info_hash, &mut peer, &original_peer_ip, &PeersWanted::AsManyAsPossible)

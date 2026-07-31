@@ -45,14 +45,15 @@ pub(crate) mod tests {
         peer.peer_addr = SocketAddr::new(
             IpAddr::V6(Ipv6Addr::new(0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969)),
             8080,
-        );
+        )
+        .into();
         peer
     }
 
     pub fn sample_peer() -> peer::Peer {
         peer::Peer {
             peer_id: PeerId(*b"-qB00000000000000000"),
-            peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080),
+            peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080).into(),
             updated: DurationSinceUnixEpoch::new(1_669_397_478_934, 0),
             uploaded: NumberOfBytes::new(0),
             downloaded: NumberOfBytes::new(0),

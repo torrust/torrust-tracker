@@ -13,7 +13,7 @@
 //!
 //! peer::Peer {
 //!     peer_id: PeerId(*b"-qB00000000000000000"),
-//!     peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080),
+//!     peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080).into(),
 //!     updated: DurationSinceUnixEpoch::new(1_669_397_478_934, 0),
 //!     uploaded: NumberOfBytes::new(0),
 //!     downloaded: NumberOfBytes::new(0),
@@ -29,11 +29,80 @@ use std::str::FromStr;
 use std::sync::Arc;
 
 use serde::Serialize;
+use thiserror::Error;
 use torrust_clock::DurationSinceUnixEpoch;
 
-use crate::{AnnounceEvent, NumberOfBytes, PeerId};
+use crate::{AnnounceEvent, I2pPeerAddress, NumberOfBytes, PeerId};
 
 pub type PeerAnnouncement = Peer;
+
+/// A peer endpoint on either the public Internet or I2P.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
+pub enum PeerAddress {
+    Clearnet(SocketAddr),
+    I2p(I2pPeerAddress),
+}
+
+impl PeerAddress {
+    /// Returns the clearnet port, or the conventional placeholder port `1` for I2P.
+    ///
+    /// I2P routes by Destination rather than by port. The placeholder is needed
+    /// by non-compact tracker responses and legacy peer representations.
+    #[must_use]
+    pub const fn port(&self) -> u16 {
+        match self {
+            Self::Clearnet(address) => address.port(),
+            // I2P clients ignore the port, but legacy tracker response parsers
+            // expect the key to exist in non-compact responses.
+            Self::I2p(_) => 1,
+        }
+    }
+
+    /// Returns the peer's clearnet IP address, or `None` for an I2P peer.
+    #[must_use]
+    pub const fn ip(&self) -> Option<IpAddr> {
+        match self {
+            Self::Clearnet(address) => Some(address.ip()),
+            Self::I2p(_) => None,
+        }
+    }
+
+    /// Returns whether this is an I2P peer address.
+    #[must_use]
+    pub const fn is_i2p(&self) -> bool {
+        matches!(self, Self::I2p(_))
+    }
+
+    /// Returns the peer's clearnet socket address, or `None` for an I2P peer.
+    #[must_use]
+    pub const fn socket_addr(&self) -> Option<SocketAddr> {
+        match self {
+            Self::Clearnet(address) => Some(*address),
+            Self::I2p(_) => None,
+        }
+    }
+}
+
+impl From<SocketAddr> for PeerAddress {
+    fn from(value: SocketAddr) -> Self {
+        Self::Clearnet(value)
+    }
+}
+
+impl fmt::Display for PeerAddress {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Clearnet(address) => address.fmt(f),
+            Self::I2p(address) => address.destination.fmt(f),
+        }
+    }
+}
+
+impl Serialize for PeerAddress {
+    fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        serializer.serialize_str(&self.to_string())
+    }
+}
 
 #[derive(Debug, Serialize, Copy, Clone, PartialEq, Eq, Hash)]
 #[serde(rename_all_fields = "lowercase")]
@@ -101,7 +170,7 @@ pub enum ParsePeerRoleError {
 ///
 /// peer::Peer {
 ///     peer_id: PeerId(*b"-qB00000000000000000"),
-///     peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080),
+///     peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080).into(),
 ///     updated: DurationSinceUnixEpoch::new(1_669_397_478_934, 0),
 ///     uploaded: NumberOfBytes::new(0),
 ///     downloaded: NumberOfBytes::new(0),
@@ -109,13 +178,13 @@ pub enum ParsePeerRoleError {
 ///     event: AnnounceEvent::Started,
 /// };
 /// ```
-#[derive(Debug, Clone, Serialize, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Serialize, PartialEq, Eq, Hash)]
 pub struct Peer {
     /// ID used by the downloader peer
     #[serde(serialize_with = "ser_peer_id")]
     pub peer_id: PeerId,
-    /// The IP and port this peer is listening on
-    pub peer_addr: SocketAddr,
+    /// The clearnet socket address or I2P Destination for this peer.
+    pub peer_addr: PeerAddress,
     /// The last time the the tracker receive an announce request from this peer (timestamp)
     #[serde(serialize_with = "ser_unix_time_value")]
     pub updated: DurationSinceUnixEpoch,
@@ -203,7 +272,7 @@ pub trait ReadInfo {
     fn get_event(&self) -> AnnounceEvent;
     fn get_id(&self) -> PeerId;
     fn get_updated(&self) -> DurationSinceUnixEpoch;
-    fn get_address(&self) -> SocketAddr;
+    fn get_address(&self) -> &PeerAddress;
 }
 
 impl ReadInfo for Peer {
@@ -227,8 +296,8 @@ impl ReadInfo for Peer {
         self.updated
     }
 
-    fn get_address(&self) -> SocketAddr {
-        self.peer_addr
+    fn get_address(&self) -> &PeerAddress {
+        &self.peer_addr
     }
 }
 
@@ -253,8 +322,8 @@ impl ReadInfo for Arc<Peer> {
         self.updated
     }
 
-    fn get_address(&self) -> SocketAddr {
-        self.peer_addr
+    fn get_address(&self) -> &PeerAddress {
+        &self.peer_addr
     }
 }
 
@@ -283,12 +352,17 @@ impl Peer {
         }
     }
 
-    pub fn ip(&mut self) -> IpAddr {
+    /// Returns the peer's clearnet IP address, or `None` for an I2P peer.
+    #[must_use]
+    pub fn ip(&self) -> Option<IpAddr> {
         self.peer_addr.ip()
     }
 
-    pub fn change_ip(&mut self, new_ip: &IpAddr) {
-        self.peer_addr = SocketAddr::new(*new_ip, self.peer_addr.port());
+    /// Replaces the IP of a clearnet peer and leaves an I2P peer unchanged.
+    pub fn set_clearnet_ip(&mut self, new_ip: &IpAddr) {
+        if let PeerAddress::Clearnet(address) = &mut self.peer_addr {
+            address.set_ip(*new_ip);
+        }
     }
 
     pub fn mark_as_completed(&mut self) {
@@ -313,8 +387,6 @@ impl Peer {
 }
 
 use std::panic::Location;
-
-use thiserror::Error;
 
 /// Error returned when trying to convert an invalid peer id from another type.
 ///
@@ -518,7 +590,7 @@ pub mod fixture {
         pub fn seeder() -> Self {
             let peer = Peer {
                 peer_id: PeerId(*b"-qB00000000000000001"),
-                peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 8080),
+                peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 8080).into(),
                 updated: DurationSinceUnixEpoch::new(1_669_397_478_934, 0),
                 uploaded: NumberOfBytes::new(0),
                 downloaded: NumberOfBytes::new(0),
@@ -534,7 +606,7 @@ pub mod fixture {
         pub fn leecher() -> Self {
             let peer = Peer {
                 peer_id: PeerId(*b"-qB00000000000000002"),
-                peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 2)), 8080),
+                peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 2)), 8080).into(),
                 updated: DurationSinceUnixEpoch::new(1_669_397_478_934, 0),
                 uploaded: NumberOfBytes::new(0),
                 downloaded: NumberOfBytes::new(0),
@@ -555,13 +627,13 @@ pub mod fixture {
         #[allow(dead_code)]
         #[must_use]
         pub fn with_peer_addr(mut self, peer_addr: &SocketAddr) -> Self {
-            self.peer.peer_addr = *peer_addr;
+            self.peer.peer_addr = (*peer_addr).into();
             self
         }
 
         #[must_use]
         pub fn with_peer_address(mut self, peer_addr: SocketAddr) -> Self {
-            self.peer.peer_addr = peer_addr;
+            self.peer.peer_addr = peer_addr.into();
             self
         }
 
@@ -622,7 +694,7 @@ pub mod fixture {
         fn default() -> Self {
             Self {
                 peer_id: PeerId(*b"-qB00000000000000000"),
-                peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 8080),
+                peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 8080).into(),
                 updated: DurationSinceUnixEpoch::new(1_669_397_478_934, 0),
                 uploaded: NumberOfBytes::new(0),
                 downloaded: NumberOfBytes::new(0),
@@ -642,7 +714,6 @@ pub mod fixture {
 
 #[cfg(test)]
 pub mod test {
-
     mod peer {
         use crate::peer::fixture::PeerBuilder;
 

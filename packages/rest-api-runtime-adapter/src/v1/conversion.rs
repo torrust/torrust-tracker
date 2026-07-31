@@ -9,7 +9,7 @@ use torrust_tracker_rest_api_protocol::v1::context::torrent::resources::torrent:
 
 /// Convert a domain [`domain_peer::Peer`] into a protocol [`protocol_peer::Peer`].
 #[must_use]
-pub fn from_domain_peer(value: domain_peer::Peer) -> protocol_peer::Peer {
+pub fn from_domain_peer(value: &domain_peer::Peer) -> protocol_peer::Peer {
     #[allow(deprecated)]
     protocol_peer::Peer {
         peer_id: from_domain_peer_id(value.peer_id),
@@ -35,8 +35,11 @@ pub fn from_domain_peer_id(peer_id: PeerId) -> protocol_peer::Id {
 
 /// Convert a domain [`Info`] into a protocol [`Torrent`].
 #[must_use]
-pub fn from_domain_info(info: Info) -> Torrent {
-    let peers: Option<Vec<protocol_peer::Peer>> = info.peers.map(|peers| peers.into_iter().map(from_domain_peer).collect());
+pub fn from_domain_info(info: &Info) -> Torrent {
+    let peers: Option<Vec<protocol_peer::Peer>> = info
+        .peers
+        .as_deref()
+        .map(|peers| peers.iter().map(from_domain_peer).collect());
 
     Torrent {
         info_hash: info.info_hash.to_string(),
@@ -80,7 +83,7 @@ mod tests {
     fn sample_peer() -> peer::Peer {
         peer::Peer {
             peer_id: PeerId(*b"-qB00000000000000000"),
-            peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080),
+            peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080).into(),
             updated: DurationSinceUnixEpoch::new(1_669_397_478_934, 0),
             uploaded: NumberOfBytes::new(0),
             downloaded: NumberOfBytes::new(0),
@@ -92,7 +95,7 @@ mod tests {
     #[test]
     fn torrent_resource_should_be_converted_from_torrent_info() {
         assert_eq!(
-            from_domain_info(Info {
+            from_domain_info(&Info {
                 info_hash: InfoHash::from_str("9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d").unwrap(), // DevSkim: ignore DS173237
                 seeders: 1,
                 completed: 2,
@@ -104,7 +107,7 @@ mod tests {
                 seeders: 1,
                 completed: 2,
                 leechers: 3,
-                peers: Some(vec![from_domain_peer(sample_peer())]),
+                peers: Some(vec![from_domain_peer(&sample_peer())]),
             }
         );
     }

@@ -8,7 +8,7 @@ use torrust_tracker_primitives::{AnnounceEvent, NumberOfBytes, PeerId};
 
 pub const DEFAULT_PEER: Peer = Peer {
     peer_id: PeerId([0; 20]),
-    peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 8080),
+    peer_addr: torrust_tracker_primitives::PeerAddress::Clearnet(SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 8080)),
     updated: DurationSinceUnixEpoch::from_secs(0),
     uploaded: NumberOfBytes::new(0),
     downloaded: NumberOfBytes::new(0),

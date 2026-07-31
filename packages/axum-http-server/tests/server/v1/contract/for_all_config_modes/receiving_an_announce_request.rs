@@ -24,10 +24,10 @@ use torrust_tracker_client::http::client::Client;
 use torrust_tracker_http_protocol::percent_encoding::percent_encode_byte_array;
 use torrust_tracker_http_protocol::v1::requests::announce::{AnnounceBuilder, Compact};
 use torrust_tracker_http_protocol::v1::responses::announce::deserialization::{
-    CompactPeer, CompactPeerList, DeserializedNormal, DictionaryPeer,
+    CompactPeer, CompactPeerList, DeserializedCompact, DeserializedNormal, DictionaryPeer,
 };
-use torrust_tracker_primitives::PeerId as DomainPeerId;
 use torrust_tracker_primitives::peer::fixture::PeerBuilder;
+use torrust_tracker_primitives::{I2pDestination, PeerId as DomainPeerId};
 use torrust_tracker_test_helpers::{configuration, logging};
 
 use crate::common::fixtures::invalid_info_hashes;
@@ -105,7 +105,7 @@ async fn should_fail_when_url_query_parameters_are_invalid() {
     let http_tracker_config = Arc::new(cfg.http_trackers.unwrap()[0].clone());
     let env = Started::new(&core_config, &http_tracker_config).await;
 
-    let invalid_query_param = "a=b=c";
+    let invalid_query_param = "missing-value-separator";
 
     let response = Client::new(env.base_url(), Duration::from_secs(5))
         .unwrap()
@@ -113,7 +113,7 @@ async fn should_fail_when_url_query_parameters_are_invalid() {
         .await
         .unwrap();
 
-    assert_cannot_parse_query_param_error_response(response, "invalid param a=b=c").await;
+    assert_cannot_parse_query_param_error_response(response, "invalid param missing-value-separator").await;
 
     env.stop().await;
 }
@@ -594,7 +594,7 @@ async fn should_return_the_list_of_previously_announced_peers() {
             min_interval: announce_policy.interval_min,
             peers: vec![DictionaryPeer {
                 peer_id: previously_announced_peer.peer_id.as_bytes().to_vec(),
-                ip: previously_announced_peer.peer_addr.ip().to_string(),
+                ip: previously_announced_peer.peer_addr.ip().unwrap().to_string(),
                 port: previously_announced_peer.peer_addr.port(),
             }],
         },
@@ -658,12 +658,12 @@ async fn should_return_the_list_of_previously_announced_peers_including_peers_us
             peers: vec![
                 DictionaryPeer {
                     peer_id: peer_using_ipv4.peer_id.as_bytes().to_vec(),
-                    ip: peer_using_ipv4.peer_addr.ip().to_string(),
+                    ip: peer_using_ipv4.peer_addr.ip().unwrap().to_string(),
                     port: peer_using_ipv4.peer_addr.port(),
                 },
                 DictionaryPeer {
                     peer_id: peer_using_ipv6.peer_id.as_bytes().to_vec(),
-                    ip: peer_using_ipv6.peer_addr.ip().to_string(),
+                    ip: peer_using_ipv6.peer_addr.ip().unwrap().to_string(),
                     port: peer_using_ipv6.peer_addr.port(),
                 },
             ],
@@ -689,14 +689,14 @@ async fn should_consider_two_peers_to_be_the_same_when_they_have_the_same_socket
     let announce_query_1 = AnnounceBuilder::default()
         .with_info_hash(&info_hash)
         .with_peer_id(&PeerId(peer.peer_id.0))
-        .with_ip(peer.peer_addr.ip())
+        .with_ip(peer.peer_addr.ip().unwrap())
         .with_port(peer.peer_addr.port())
         .query();
 
     let announce_query_2 = AnnounceBuilder::default()
         .with_info_hash(&info_hash)
         .with_peer_id(&PeerId(*b"-qB00000000000000002")) // Different peer ID
-        .with_ip(peer.peer_addr.ip())
+        .with_ip(peer.peer_addr.ip().unwrap())
         .with_port(peer.peer_addr.port())
         .query();
 
@@ -776,10 +776,64 @@ async fn should_return_the_compact_response() {
         incomplete: 0,
         interval: 120,
         min_interval: 120,
-        peers: CompactPeerList::new([CompactPeer::new(&previously_announced_peer.peer_addr)].to_vec()),
+        peers: CompactPeerList::new([CompactPeer::new(&previously_announced_peer.peer_addr.socket_addr().unwrap())].to_vec()),
     };
 
     assert_compact_announce_response(response, &expected_response).await;
+
+    env.stop().await;
+}
+
+#[tokio::test]
+async fn it_should_return_i2p_destination_hashes_in_a_compact_response() {
+    logging::setup();
+
+    let cfg = configuration::ephemeral_public();
+    let core_config = Arc::new(cfg.core.clone());
+    let http_tracker_config = Arc::new(cfg.http_trackers.unwrap()[0].clone());
+    let env = Started::new(&core_config, &http_tracker_config).await;
+    let client = Client::new(env.base_url(), Duration::from_secs(5)).unwrap();
+    let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap(); // DevSkim: ignore DS173237
+    // cspell:disable-next-line
+    let first_destination = format!("{}BQAEAAAAAA==.i2p", "A".repeat(512))
+        .parse::<I2pDestination>()
+        .unwrap();
+
+    client
+        .announce(
+            &AnnounceBuilder::default()
+                .with_info_hash(&info_hash)
+                .with_peer_id(&PeerId(*b"-qB00000000000000001"))
+                .with_port(1)
+                .with_i2p_destination(first_destination.clone())
+                .with_compact(Compact::Accepted)
+                .query(),
+        )
+        .await
+        .unwrap();
+
+    let response = client
+        .announce(
+            &AnnounceBuilder::default()
+                .with_info_hash(&info_hash)
+                .with_peer_id(&PeerId(*b"-qB00000000000000002"))
+                .with_port(1)
+                .with_i2p_destination(
+                    // cspell:disable-next-line
+                    format!("B{}BQAEAAAAAA==.i2p", "A".repeat(511))
+                        .parse::<I2pDestination>()
+                        .unwrap(),
+                )
+                .with_compact(Compact::Accepted)
+                .query(),
+        )
+        .await
+        .unwrap();
+    let bytes = response.bytes().await.unwrap();
+    let announce = DeserializedCompact::from_bytes(&bytes).unwrap();
+
+    assert_eq!(announce.peers, *first_destination.hash());
+    assert!(announce.peers6.is_empty());
 
     env.stop().await;
 }
@@ -942,10 +996,10 @@ async fn should_assign_to_the_peer_ip_the_remote_client_ip_instead_of_the_peer_a
         .in_memory_torrent_repository
         .get_torrent_peers(&info_hash, usize::MAX)
         .await;
-    let peer_addr = peers[0].peer_addr;
+    let peer_addr = &peers[0].peer_addr;
 
-    assert_eq!(peer_addr.ip(), client_ip);
-    assert_ne!(peer_addr.ip(), IpAddr::from_str("2.2.2.2").unwrap());
+    assert_eq!(peer_addr.ip(), Some(client_ip));
+    assert_ne!(peer_addr.ip(), Some(IpAddr::from_str("2.2.2.2").unwrap()));
 
     env.stop().await;
 }
@@ -986,7 +1040,7 @@ async fn when_the_client_ip_is_a_loopback_ipv4_it_should_assign_to_the_peer_ip_t
         .in_memory_torrent_repository
         .get_torrent_peers(&info_hash, usize::MAX)
         .await;
-    let peer_addr = peers[0].peer_addr;
+    let peer_addr = &peers[0].peer_addr;
 
     let ext_ip: IpAddr = env
         .container
@@ -996,8 +1050,8 @@ async fn when_the_client_ip_is_a_loopback_ipv4_it_should_assign_to_the_peer_ip_t
         .external_ip
         .unwrap()
         .into();
-    assert_eq!(peer_addr.ip(), ext_ip);
-    assert_ne!(peer_addr.ip(), IpAddr::from_str("2.2.2.2").unwrap());
+    assert_eq!(peer_addr.ip(), Some(ext_ip));
+    assert_ne!(peer_addr.ip(), Some(IpAddr::from_str("2.2.2.2").unwrap()));
 
     env.stop().await;
 }
@@ -1039,7 +1093,7 @@ async fn when_the_client_ip_is_a_loopback_ipv6_it_should_assign_to_the_peer_ip_t
         .in_memory_torrent_repository
         .get_torrent_peers(&info_hash, usize::MAX)
         .await;
-    let peer_addr = peers[0].peer_addr;
+    let peer_addr = &peers[0].peer_addr;
 
     let ext_ip: IpAddr = env
         .container
@@ -1049,8 +1103,8 @@ async fn when_the_client_ip_is_a_loopback_ipv6_it_should_assign_to_the_peer_ip_t
         .external_ip
         .unwrap()
         .into();
-    assert_eq!(peer_addr.ip(), ext_ip);
-    assert_ne!(peer_addr.ip(), IpAddr::from_str("2.2.2.2").unwrap());
+    assert_eq!(peer_addr.ip(), Some(ext_ip));
+    assert_ne!(peer_addr.ip(), Some(IpAddr::from_str("2.2.2.2").unwrap()));
 
     env.stop().await;
 }
@@ -1095,9 +1149,9 @@ async fn when_the_tracker_is_behind_a_reverse_proxy_it_should_assign_to_the_peer
         .in_memory_torrent_repository
         .get_torrent_peers(&info_hash, usize::MAX)
         .await;
-    let peer_addr = peers[0].peer_addr;
+    let peer_addr = &peers[0].peer_addr;
 
-    assert_eq!(peer_addr.ip(), IpAddr::from_str("150.172.238.178").unwrap());
+    assert_eq!(peer_addr.ip(), Some(IpAddr::from_str("150.172.238.178").unwrap()));
 
     env.stop().await;
 }

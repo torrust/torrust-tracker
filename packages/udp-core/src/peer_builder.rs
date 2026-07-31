@@ -18,7 +18,7 @@ pub fn from_request(announce_request: &torrust_tracker_udp_protocol::AnnounceReq
 
     peer::Peer {
         peer_id: torrust_tracker_primitives::PeerId(announce_request.peer_id.0),
-        peer_addr: SocketAddr::new(*peer_ip, announce_request.port.0.into()),
+        peer_addr: SocketAddr::new(*peer_ip, announce_request.port.0.into()).into(),
         updated: CurrentClock::now(),
         uploaded: torrust_tracker_primitives::NumberOfBytes::new(announce_request.bytes_uploaded.0.get()),
         downloaded: torrust_tracker_primitives::NumberOfBytes::new(announce_request.bytes_downloaded.0.get()),
