@@ -13,7 +13,7 @@
 //!
 //! peer::Peer {
 //!     peer_id: PeerId(*b"-qB00000000000000000"),
-//!     peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080),
+//!     peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080).into(),
 //!     updated: DurationSinceUnixEpoch::new(1_669_397_478_934, 0),
 //!     uploaded: NumberOfBytes::new(0),
 //!     downloaded: NumberOfBytes::new(0),
@@ -28,12 +28,155 @@ use std::ops::{Deref, DerefMut};
 use std::str::FromStr;
 use std::sync::Arc;
 
+use base64::Engine;
+use base64::alphabet::Alphabet;
+use base64::engine::{GeneralPurpose, GeneralPurposeConfig};
 use serde::Serialize;
+use sha2::{Digest, Sha256};
+use thiserror::Error;
 use torrust_clock::DurationSinceUnixEpoch;
 
 use crate::{AnnounceEvent, NumberOfBytes, PeerId};
 
 pub type PeerAnnouncement = Peer;
+
+const I2P_BASE64_ALPHABET: &str = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-~";
+const I2P_SUFFIX: &str = ".i2p";
+const MIN_I2P_DESTINATION_BYTES: usize = 387;
+const I2P_CERTIFICATE_LENGTH_OFFSET: usize = 385;
+
+/// A validated I2P Base64 Destination.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
+pub struct I2pDestination {
+    value: Box<str>,
+    hash: [u8; 32],
+}
+
+impl I2pDestination {
+    /// Returns the SHA-256 hash of the decoded binary Destination.
+    #[must_use]
+    pub const fn hash(&self) -> &[u8; 32] {
+        &self.hash
+    }
+}
+
+impl fmt::Display for I2pDestination {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(&self.value)
+    }
+}
+
+impl FromStr for I2pDestination {
+    type Err = ParseI2pDestinationError;
+
+    fn from_str(value: &str) -> Result<Self, Self::Err> {
+        let encoded = value.strip_suffix(I2P_SUFFIX).unwrap_or(value);
+        let alphabet =
+            Alphabet::new(I2P_BASE64_ALPHABET).expect("the I2P Base64 alphabet must contain 64 unique ASCII characters");
+        let engine = GeneralPurpose::new(&alphabet, GeneralPurposeConfig::new());
+        let decoded = engine.decode(encoded).map_err(|_| ParseI2pDestinationError::InvalidBase64)?;
+
+        if decoded.len() < MIN_I2P_DESTINATION_BYTES {
+            return Err(ParseI2pDestinationError::TooShort { actual: decoded.len() });
+        }
+
+        let certificate_payload_length = usize::from(u16::from_be_bytes([
+            decoded[I2P_CERTIFICATE_LENGTH_OFFSET],
+            decoded[I2P_CERTIFICATE_LENGTH_OFFSET + 1],
+        ]));
+        let expected_length = MIN_I2P_DESTINATION_BYTES + certificate_payload_length;
+
+        if decoded.len() != expected_length {
+            return Err(ParseI2pDestinationError::InvalidCertificateLength {
+                declared: certificate_payload_length,
+                actual: decoded.len() - MIN_I2P_DESTINATION_BYTES,
+            });
+        }
+
+        Ok(Self {
+            value: format!("{encoded}{I2P_SUFFIX}").into_boxed_str(),
+            hash: Sha256::digest(decoded).into(),
+        })
+    }
+}
+
+/// Error returned when parsing an I2P Destination.
+#[derive(Debug, Error, PartialEq, Eq)]
+pub enum ParseI2pDestinationError {
+    #[error("the I2P Destination is not valid I2P Base64")]
+    InvalidBase64,
+    #[error("the decoded I2P Destination must contain at least {MIN_I2P_DESTINATION_BYTES} bytes, got {actual}")]
+    TooShort { actual: usize },
+    #[error("the I2P certificate declares a {declared}-byte payload, but the Destination contains {actual} payload bytes")]
+    InvalidCertificateLength { declared: usize, actual: usize },
+}
+
+/// An I2P peer address. I2P routes by Destination and has no peer port.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
+pub struct I2pPeerAddress {
+    pub destination: I2pDestination,
+}
+
+/// A peer endpoint on either the public Internet or I2P.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
+pub enum PeerAddress {
+    Clearnet(SocketAddr),
+    I2p(I2pPeerAddress),
+}
+
+impl PeerAddress {
+    #[must_use]
+    pub const fn port(&self) -> u16 {
+        match self {
+            Self::Clearnet(address) => address.port(),
+            // I2P clients ignore the port, but legacy tracker response parsers
+            // expect the key to exist in non-compact responses.
+            Self::I2p(_) => 1,
+        }
+    }
+
+    #[must_use]
+    pub const fn ip(&self) -> Option<IpAddr> {
+        match self {
+            Self::Clearnet(address) => Some(address.ip()),
+            Self::I2p(_) => None,
+        }
+    }
+
+    #[must_use]
+    pub const fn is_i2p(&self) -> bool {
+        matches!(self, Self::I2p(_))
+    }
+
+    #[must_use]
+    pub const fn socket_addr(&self) -> Option<SocketAddr> {
+        match self {
+            Self::Clearnet(address) => Some(*address),
+            Self::I2p(_) => None,
+        }
+    }
+}
+
+impl From<SocketAddr> for PeerAddress {
+    fn from(value: SocketAddr) -> Self {
+        Self::Clearnet(value)
+    }
+}
+
+impl fmt::Display for PeerAddress {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Clearnet(address) => address.fmt(f),
+            Self::I2p(address) => address.destination.fmt(f),
+        }
+    }
+}
+
+impl Serialize for PeerAddress {
+    fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        serializer.serialize_str(&self.to_string())
+    }
+}
 
 #[derive(Debug, Serialize, Copy, Clone, PartialEq, Eq, Hash)]
 #[serde(rename_all_fields = "lowercase")]
@@ -101,7 +244,7 @@ pub enum ParsePeerRoleError {
 ///
 /// peer::Peer {
 ///     peer_id: PeerId(*b"-qB00000000000000000"),
-///     peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080),
+///     peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080).into(),
 ///     updated: DurationSinceUnixEpoch::new(1_669_397_478_934, 0),
 ///     uploaded: NumberOfBytes::new(0),
 ///     downloaded: NumberOfBytes::new(0),
@@ -109,13 +252,13 @@ pub enum ParsePeerRoleError {
 ///     event: AnnounceEvent::Started,
 /// };
 /// ```
-#[derive(Debug, Clone, Serialize, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Serialize, PartialEq, Eq, Hash)]
 pub struct Peer {
     /// ID used by the downloader peer
     #[serde(serialize_with = "ser_peer_id")]
     pub peer_id: PeerId,
-    /// The IP and port this peer is listening on
-    pub peer_addr: SocketAddr,
+    /// The clearnet socket address or I2P Destination for this peer.
+    pub peer_addr: PeerAddress,
     /// The last time the the tracker receive an announce request from this peer (timestamp)
     #[serde(serialize_with = "ser_unix_time_value")]
     pub updated: DurationSinceUnixEpoch,
@@ -203,7 +346,7 @@ pub trait ReadInfo {
     fn get_event(&self) -> AnnounceEvent;
     fn get_id(&self) -> PeerId;
     fn get_updated(&self) -> DurationSinceUnixEpoch;
-    fn get_address(&self) -> SocketAddr;
+    fn get_address(&self) -> &PeerAddress;
 }
 
 impl ReadInfo for Peer {
@@ -227,8 +370,8 @@ impl ReadInfo for Peer {
         self.updated
     }
 
-    fn get_address(&self) -> SocketAddr {
-        self.peer_addr
+    fn get_address(&self) -> &PeerAddress {
+        &self.peer_addr
     }
 }
 
@@ -253,8 +396,8 @@ impl ReadInfo for Arc<Peer> {
         self.updated
     }
 
-    fn get_address(&self) -> SocketAddr {
-        self.peer_addr
+    fn get_address(&self) -> &PeerAddress {
+        &self.peer_addr
     }
 }
 
@@ -283,12 +426,14 @@ impl Peer {
         }
     }
 
-    pub fn ip(&mut self) -> IpAddr {
+    pub fn ip(&self) -> Option<IpAddr> {
         self.peer_addr.ip()
     }
 
     pub fn change_ip(&mut self, new_ip: &IpAddr) {
-        self.peer_addr = SocketAddr::new(*new_ip, self.peer_addr.port());
+        if let PeerAddress::Clearnet(address) = &mut self.peer_addr {
+            address.set_ip(*new_ip);
+        }
     }
 
     pub fn mark_as_completed(&mut self) {
@@ -313,8 +458,6 @@ impl Peer {
 }
 
 use std::panic::Location;
-
-use thiserror::Error;
 
 /// Error returned when trying to convert an invalid peer id from another type.
 ///
@@ -518,7 +661,7 @@ pub mod fixture {
         pub fn seeder() -> Self {
             let peer = Peer {
                 peer_id: PeerId(*b"-qB00000000000000001"),
-                peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 8080),
+                peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 8080).into(),
                 updated: DurationSinceUnixEpoch::new(1_669_397_478_934, 0),
                 uploaded: NumberOfBytes::new(0),
                 downloaded: NumberOfBytes::new(0),
@@ -534,7 +677,7 @@ pub mod fixture {
         pub fn leecher() -> Self {
             let peer = Peer {
                 peer_id: PeerId(*b"-qB00000000000000002"),
-                peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 2)), 8080),
+                peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 2)), 8080).into(),
                 updated: DurationSinceUnixEpoch::new(1_669_397_478_934, 0),
                 uploaded: NumberOfBytes::new(0),
                 downloaded: NumberOfBytes::new(0),
@@ -555,13 +698,13 @@ pub mod fixture {
         #[allow(dead_code)]
         #[must_use]
         pub fn with_peer_addr(mut self, peer_addr: &SocketAddr) -> Self {
-            self.peer.peer_addr = *peer_addr;
+            self.peer.peer_addr = (*peer_addr).into();
             self
         }
 
         #[must_use]
         pub fn with_peer_address(mut self, peer_addr: SocketAddr) -> Self {
-            self.peer.peer_addr = peer_addr;
+            self.peer.peer_addr = peer_addr.into();
             self
         }
 
@@ -622,7 +765,7 @@ pub mod fixture {
         fn default() -> Self {
             Self {
                 peer_id: PeerId(*b"-qB00000000000000000"),
-                peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 8080),
+                peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 8080).into(),
                 updated: DurationSinceUnixEpoch::new(1_669_397_478_934, 0),
                 uploaded: NumberOfBytes::new(0),
                 downloaded: NumberOfBytes::new(0),
@@ -642,6 +785,70 @@ pub mod fixture {
 
 #[cfg(test)]
 pub mod test {
+    mod i2p_destination {
+        use std::str::FromStr;
+
+        use base64::Engine;
+        use base64::alphabet::Alphabet;
+        use base64::engine::{GeneralPurpose, GeneralPurposeConfig};
+
+        use crate::peer::{I2pDestination, ParseI2pDestinationError};
+
+        #[test]
+        fn it_should_parse_a_valid_i2p_base64_destination() {
+            let destination = "A".repeat(516);
+
+            let parsed = I2pDestination::from_str(&destination).unwrap();
+
+            assert_eq!(parsed.to_string(), format!("{destination}.i2p"));
+            assert_eq!(parsed.hash().len(), 32);
+        }
+
+        #[test]
+        fn it_should_reject_an_i2p_destination_with_invalid_base64() {
+            let destination = format!("{}.i2p", "!".repeat(516));
+
+            let error = I2pDestination::from_str(&destination).unwrap_err();
+
+            assert_eq!(error, ParseI2pDestinationError::InvalidBase64);
+        }
+
+        #[test]
+        fn it_should_reject_an_i2p_destination_shorter_than_the_minimum_length() {
+            let destination = "A".repeat(512);
+
+            let error = I2pDestination::from_str(&destination).unwrap_err();
+
+            assert_eq!(error, ParseI2pDestinationError::TooShort { actual: 384 });
+        }
+
+        #[test]
+        fn it_should_parse_a_long_padded_destination_when_the_certificate_length_matches() {
+            let certificate_payload_length = 91_u16;
+            let mut decoded = vec![0; 387 + usize::from(certificate_payload_length)];
+            decoded[384] = 5;
+            decoded[385..387].copy_from_slice(&certificate_payload_length.to_be_bytes());
+            let alphabet = Alphabet::new("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-~").unwrap();
+            let encoded = GeneralPurpose::new(&alphabet, GeneralPurposeConfig::new()).encode(decoded);
+
+            let parsed = I2pDestination::from_str(&encoded).unwrap();
+
+            assert!(encoded.ends_with("=="));
+            assert_eq!(parsed.to_string(), format!("{encoded}.i2p"));
+        }
+
+        #[test]
+        fn it_should_reject_a_destination_when_the_certificate_length_does_not_match() {
+            let destination = "A".repeat(520);
+
+            let error = I2pDestination::from_str(&destination).unwrap_err();
+
+            assert_eq!(
+                error,
+                ParseI2pDestinationError::InvalidCertificateLength { declared: 0, actual: 3 }
+            );
+        }
+    }
 
     mod peer {
         use crate::peer::fixture::PeerBuilder;

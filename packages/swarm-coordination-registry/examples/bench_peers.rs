@@ -16,7 +16,7 @@ fn make_peer(ip_last_octet: u8, port: u16, seed: u8) -> Peer {
     id[0] = ip_last_octet;
     Peer {
         peer_id: PeerId(id),
-        peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(10, 0, 0, ip_last_octet)), port),
+        peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(10, 0, 0, ip_last_octet)), port).into(),
         updated: DurationSinceUnixEpoch::new(1_669_397_478, 0),
         uploaded: NumberOfBytes::new(0),
         downloaded: NumberOfBytes::new(0),
@@ -46,7 +46,7 @@ fn bench_peers_excluding(num_peers: usize, limit: usize, iterations: u64) -> f64
         rt.block_on(coordinator.handle_announcement(&peer));
     }
 
-    let requesting_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(10, 0, 0, 254)), 6999);
+    let requesting_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(10, 0, 0, 254)), 6999).into();
 
     // Warm up
     for _ in 0..1000 {

@@ -30,6 +30,7 @@ pub use configuration_instance_id::ConfigurationInstanceId;
 pub use driver::Driver;
 pub use mode::PrivateMode;
 pub use number_of_bytes::NumberOfBytes;
+pub use peer::{I2pDestination, I2pPeerAddress, PeerAddress};
 pub use policy::TrackerPolicy;
 pub use runtime_service_metadata::RuntimeServiceMetadata;
 pub use scrape::ScrapeData;

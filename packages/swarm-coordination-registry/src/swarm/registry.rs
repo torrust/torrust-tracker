@@ -68,7 +68,7 @@ impl Registry {
                     event_sender
                         .send(Event::TorrentAdded {
                             info_hash: *info_hash,
-                            announcement: *peer,
+                            announcement: peer.clone(),
                         })
                         .await;
                 }
@@ -652,7 +652,7 @@ mod tests {
                 for idx in 1..=75 {
                     let peer = Peer {
                         peer_id: numeric_peer_id(idx),
-                        peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, idx.try_into().unwrap())), 8080),
+                        peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, idx.try_into().unwrap())), 8080).into(),
                         updated: DurationSinceUnixEpoch::new(1_669_397_478_934, 0),
                         uploaded: NumberOfBytes::new(0),
                         downloaded: NumberOfBytes::new(0),
@@ -723,7 +723,8 @@ mod tests {
                     for idx in 2..=75 {
                         let peer = Peer {
                             peer_id: numeric_peer_id(idx),
-                            peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, idx.try_into().unwrap())), 8080),
+                            peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, idx.try_into().unwrap())), 8080)
+                                .into(),
                             updated: DurationSinceUnixEpoch::new(1_669_397_478_934, 0),
                             uploaded: NumberOfBytes::new(0),
                             downloaded: NumberOfBytes::new(0),
@@ -874,7 +875,7 @@ mod tests {
                 fn into(self) -> TorrentEntryInfo {
                     TorrentEntryInfo {
                         swarm_metadata: self.metadata(),
-                        peers: self.peers(None).iter().map(|peer| *peer.clone()).collect(),
+                        peers: self.peers(None).iter().map(|peer| peer.as_ref().clone()).collect(),
                         number_of_peers: self.len(),
                     }
                 }
@@ -1366,9 +1367,12 @@ mod tests {
                 vec![
                     Event::TorrentAdded {
                         info_hash,
-                        announcement: peer,
+                        announcement: peer.clone(),
                     },
-                    Event::PeerAdded { info_hash, peer },
+                    Event::PeerAdded {
+                        info_hash,
+                        peer: peer.clone(),
+                    },
                 ],
             );
 
@@ -1389,9 +1393,12 @@ mod tests {
                 vec![
                     Event::TorrentAdded {
                         info_hash,
-                        announcement: peer,
+                        announcement: peer.clone(),
                     },
-                    Event::PeerAdded { info_hash, peer },
+                    Event::PeerAdded {
+                        info_hash,
+                        peer: peer.clone(),
+                    },
                     Event::TorrentRemoved { info_hash },
                 ],
             );
@@ -1415,10 +1422,16 @@ mod tests {
                 vec![
                     Event::TorrentAdded {
                         info_hash,
-                        announcement: peer,
+                        announcement: peer.clone(),
                     },
-                    Event::PeerAdded { info_hash, peer },
-                    Event::PeerRemoved { info_hash, peer },
+                    Event::PeerAdded {
+                        info_hash,
+                        peer: peer.clone(),
+                    },
+                    Event::PeerRemoved {
+                        info_hash,
+                        peer: peer.clone(),
+                    },
                     Event::TorrentRemoved { info_hash },
                 ],
             );
