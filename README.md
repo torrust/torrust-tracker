@@ -244,6 +244,16 @@ _We kindly ask you to take time and consider The Torrust Project [Contributor Ag
 
 This project was a joint effort by [Nautilus Cyberneering GmbH][nautilus] and [Dutch Bits]. Also thanks to [Naim A.] and [greatest-ape] for some parts of the code. Further added features and functions thanks to [Power2All].
 
+## Star History
+
+<a href="https://star-history.dera.page/#av1155/houndarr&type=date&legend=top-left">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://star-history.dera.page/svg?repos=av1155/houndarr&type=date&theme=dark&legend=top-left" />
+   <source media="(prefers-color-scheme: light)" srcset="https://star-history.dera.page/svg?repos=av1155/houndarr&type=date&legend=top-left" />
+   <img alt="Star History Chart" src="https://star-history.dera.page/svg?repos=av1155/houndarr&type=date&legend=top-left" />
+ </picture>
+</a>
+
 [container_wf]: ../../actions/workflows/container.yaml
 [container_wf_b]: ../../actions/workflows/container.yaml/badge.svg
 [coverage_wf]: ../../actions/workflows/coverage.yaml
