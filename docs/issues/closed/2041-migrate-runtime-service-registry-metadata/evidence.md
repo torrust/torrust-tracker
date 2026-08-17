@@ -1,3 +1,11 @@
+---
+spec-path: docs/issues/closed/2041-migrate-runtime-service-registry-metadata/evidence.md
+last-updated-utc: 2026-08-17
+semantic-links:
+  related-artifacts:
+    - docs/issues/closed/2041-migrate-runtime-service-registry-metadata/ISSUE.md
+---
+
 # Progressive Verification Evidence
 
 Record baseline and post-change manual verification for each code-changing task

@@ -1,10 +1,12 @@
 ---
+spec-path: docs/issues/closed/1453-1978-ip-bans-reset-interval-configurable/evidence/2026-07-24-manual-runtime-verification.md
+last-updated-utc: 2026-08-17
 semantic-links:
   skill-links:
     - run-tracker-locally
   related-artifacts:
     - issue #1453
-    - docs/issues/open/1453-1978-ip-bans-reset-interval-configurable/ISSUE.md
+    - docs/issues/closed/1453-1978-ip-bans-reset-interval-configurable/ISSUE.md
     - src/app.rs
     - src/bootstrap/jobs/udp_tracker_server.rs
     - packages/udp-server/src/server/launcher.rs

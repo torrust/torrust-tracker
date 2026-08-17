@@ -1,19 +1,19 @@
 ---
 doc-type: issue
 issue-type: enhancement
-status: in_progress
+status: done
 priority: p2
 github-issue: 1136
-spec-path: docs/issues/open/1136-1978-configurable-udp-connection-id-validation-policy.md
+spec-path: docs/issues/closed/1136-1978-configurable-udp-connection-id-validation-policy.md
 branch: "1136-connection-id-validation-policy"
 related-pr: 2002
-last-updated-utc: 2026-07-27 12:36
+last-updated-utc: 2026-08-17
 semantic-links:
   skill-links:
     - create-issue
   related-artifacts:
     - docs/issues/open/1978-configuration-overhaul-epic/EPIC.md
-    - docs/issues/open/1453-1978-ip-bans-reset-interval-configurable/ISSUE.md
+    - docs/issues/closed/1453-1978-ip-bans-reset-interval-configurable/ISSUE.md
     - docs/adrs/20260727000000_events_are_objective_facts.md
     - packages/configuration/src/v3_0_0/udp_tracker_server.rs
     - packages/udp-core/src/connection_cookie.rs
@@ -230,7 +230,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [ ] Acceptance criteria reviewed after implementation and updated with evidence
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [x] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -267,6 +267,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   `UdpTracker` to global `UdpTrackerServer` after discovering that the shared `BanService`
   architecture makes a per-instance policy inconsistent. Added ADR-20260727180000 documenting
   the shared-services design. All code, tests, and docs updated to reflect the global config.
+- 2026-08-17 UTC - GitHub Copilot - Archived the specification after GitHub issue #1136 was closed and implementation PR #2032 merged.
 
 ## Acceptance Criteria
 

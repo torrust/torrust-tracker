@@ -1,13 +1,13 @@
 ---
 doc-type: issue
 issue-type: enhancement
-status: in_review
+status: done
 priority: p2
 github-issue: 1453
-spec-path: docs/issues/open/1453-1978-ip-bans-reset-interval-configurable/ISSUE.md
+spec-path: docs/issues/closed/1453-1978-ip-bans-reset-interval-configurable/ISSUE.md
 branch: "1453-ip-bans-reset-interval"
 related-pr: null
-last-updated-utc: 2026-07-24 15:59
+last-updated-utc: 2026-08-17
 semantic-links:
   skill-links:
     - create-issue
@@ -16,7 +16,7 @@ semantic-links:
     - packages/configuration/src/v3_0_0/types.rs
     - docs/adrs/20260723184019_separate_configuration_value_invariants_from_consistency_validation.md
     - docs/application-jobs.md
-    - docs/issues/open/1453-1978-ip-bans-reset-interval-configurable/evidence/
+    - docs/issues/closed/1453-1978-ip-bans-reset-interval-configurable/evidence/
     - packages/udp-core/src/services/banning.rs
     - packages/udp-server/src/server/launcher.rs
     - src/bootstrap/jobs/
@@ -125,7 +125,7 @@ Since all UDP servers are launched simultaneously at startup, the bans are being
 - [x] Automatic verification completed (`linter all`, formatting, and focused tests)
 - [x] Manual verification scenarios executed and recorded
 - [x] Acceptance criteria reviewed after implementation
-- [ ] Issue closed and spec moved to `docs/issues/open/`
+- [x] Issue closed and spec moved to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -159,6 +159,7 @@ Since all UDP servers are launched simultaneously at startup, the bans are being
 - 2026-07-24 15:59 UTC - agent - Recorded M2 manual runtime evidence in
   [`evidence/2026-07-24-manual-runtime-verification.md`](evidence/2026-07-24-manual-runtime-verification.md).
   Two UDP listeners started locally and produced one cleanup-job start log entry.
+- 2026-08-17 UTC - GitHub Copilot - Archived the specification after GitHub issue #1453 was closed and implementation PR #2029 merged.
 
 ## Acceptance Criteria
 

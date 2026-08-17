@@ -1,13 +1,13 @@
 ---
 doc-type: issue
 issue-type: enhancement
-status: open
+status: done
 priority: p1
 github-issue: 2036
-spec-path: docs/issues/open/2036-add-runtime-service-registry-metadata/ISSUE.md
+spec-path: docs/issues/closed/2036-add-runtime-service-registry-metadata/ISSUE.md
 branch: 2036-add-runtime-service-registry-metadata
 related-pr: null
-last-updated-utc: 2026-07-29 16:15
+last-updated-utc: 2026-08-17
 semantic-links:
   skill-links:
     - write-unit-test
@@ -15,7 +15,7 @@ semantic-links:
     - docs/adrs/20260728115400_define_registar_as_runtime_service_registry.md
     - docs/issues/open/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md
     - docs/issues/open/2035-fix-duplicate-port-zero-tracker-instance-bootstrap/ISSUE.md
-    - docs/issues/open/2041-migrate-runtime-service-registry-metadata/ISSUE.md
+    - docs/issues/closed/2041-migrate-runtime-service-registry-metadata/ISSUE.md
     - packages/axum-http-server/src/server.rs
     - packages/axum-rest-api-server/src/server.rs
     - packages/primitives/src/configuration_instance_id.rs
@@ -100,8 +100,8 @@ in [#2041](../2041-migrate-runtime-service-registry-metadata/ISSUE.md), which de
 - [x] GitHub issue created: #2036
 - [x] Implementation completed
 - [x] Automatic verification completed (`linter all`, relevant tests)
-- [ ] Acceptance criteria reviewed after implementation
-- [ ] Issue closed and specification moved to `docs/issues/closed/`
+- [x] Acceptance criteria reviewed after implementation
+- [x] Issue closed and specification moved to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -116,6 +116,7 @@ in [#2041](../2041-migrate-runtime-service-registry-metadata/ISSUE.md), which de
 - 2026-07-29 16:28 UTC - agent - Replaced the HTTP, REST API, and UDP health-check
   `TYPE_STRING` values with their corresponding `ServiceRole` identifiers. The REST API canonical
   string is `tracker_rest_api` to preserve its existing health-check response value.
+- 2026-08-17 UTC - GitHub Copilot - Archived the specification after GitHub issue #2036 was closed and implementation PR #2042 merged.
 
 ## Acceptance Criteria
 

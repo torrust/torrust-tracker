@@ -200,4 +200,4 @@ This investigation remains the record of observed current behavior, the discover
 the reasoning that led to the change. The approved architectural boundary is defined by
 [ADR 20260728115400](../../../adrs/20260728115400_define_registar_as_runtime_service_registry.md).
 The ordered implementation and validation work is defined by the
-[runtime service registry metadata feature](../../open/2036-add-runtime-service-registry-metadata/ISSUE.md).
+[runtime service registry metadata feature](../../closed/2036-add-runtime-service-registry-metadata/ISSUE.md).

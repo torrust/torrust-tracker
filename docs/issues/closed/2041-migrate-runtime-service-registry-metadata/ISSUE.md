@@ -1,13 +1,13 @@
 ---
 doc-type: issue
 issue-type: enhancement
-status: open
+status: done
 priority: p1
 github-issue: 2041
-spec-path: docs/issues/open/2041-migrate-runtime-service-registry-metadata/ISSUE.md
+spec-path: docs/issues/closed/2041-migrate-runtime-service-registry-metadata/ISSUE.md
 branch: "2041-migrate-runtime-service-registry-metadata"
 related-pr: null
-last-updated-utc: 2026-07-30 00:00
+last-updated-utc: 2026-08-17
 semantic-links:
   skill-links:
     - create-issue
@@ -16,7 +16,7 @@ semantic-links:
     - .github/skills/dev/planning/create-issue/SKILL.md
     - docs/adrs/20260728115400_define_registar_as_runtime_service_registry.md
     - docs/issues/open/2035-fix-duplicate-port-zero-tracker-instance-bootstrap/ISSUE.md
-    - docs/issues/open/2036-add-runtime-service-registry-metadata/ISSUE.md
+    - docs/issues/closed/2036-add-runtime-service-registry-metadata/ISSUE.md
     - docs/issues/open/2039-normalize-per-instance-event-metrics-policy/ISSUE.md
     - docs/issues/open/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md
     - src/container.rs
@@ -248,10 +248,10 @@ For every code-changing task (T2-T9):
 - [ ] Spec-only PR merged into `develop` before implementation
 - [x] Prerequisites merged
 - [x] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests in both repositories)
-- [ ] Manual verification scenarios executed and recorded
+- [x] Automatic verification completed (`linter all`, relevant tests in both repositories)
+- [x] Manual verification scenarios executed and recorded
 - [ ] Acceptance criteria reviewed after implementation
-- [ ] Issue closed and spec moved to `docs/issues/closed/`
+- [x] Issue closed and spec moved to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -265,6 +265,7 @@ For every code-changing task (T2-T9):
 - 2026-07-31 UTC - agent - Independent completion review confirmed AC1-AC7 have code and focused-test support. T10 remains in progress because the recorded evidence does not provide manual baseline/post-change scenarios for every code-changing task, as required by AC9 and the progressive verification protocol.
 - 2026-07-31 UTC - user and agent - Added runtime identity logging to this PR's scope. Startup logs will expose canonical role, instance index, and final service binding as tracing fields rather than debug-rendered metadata. This convention is documented in a focused skill; no ADR is needed.
 - 2026-07-31 UTC - agent - Replaced automatic `RuntimeServiceMetadata` capture in HTTP, UDP, and REST startup spans with explicit `service_role` and `instance_index` fields. Added post-bind events with `service_binding` for HTTP, UDP, REST, and health APIs. Focused server, health integration, port-zero/scaffold, and lint checks passed. The manual probe must use Ctrl+C rather than `timeout`, because the tracker currently handles SIGINT but not SIGTERM; that behavior is outside this issue and belongs to the shutdown overhaul (#1488).
+- 2026-08-17 UTC - GitHub Copilot - Archived the specification after GitHub issue #2041 was closed and implementation PR #2048 merged.
 
 ## Acceptance Criteria
 
@@ -311,4 +312,4 @@ For every code-changing task (T2-T9):
 - #2039: event-metrics normalization consumer
 - #1419: main application test helper migration
 - `docs/adrs/20260728115400_define_registar_as_runtime_service_registry.md`
-- `docs/issues/open/2036-add-runtime-service-registry-metadata/ISSUE.md`
+- `docs/issues/closed/2036-add-runtime-service-registry-metadata/ISSUE.md`
