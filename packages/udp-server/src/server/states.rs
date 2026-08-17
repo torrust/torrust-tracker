@@ -34,6 +34,10 @@ pub struct Stopped {
 }
 
 /// A running UDP server state.
+// `derive_more::Constructor` generates `field: field` initializers on this MSRV-compatible version.
+// Nightly Clippy diagnoses that proc-macro expansion; remove this allowance once derive_more emits
+// field-init shorthand.
+#[allow(clippy::redundant_field_names)]
 #[derive(Debug, Display, Constructor)]
 #[display("Running (with local address): {local_addr}")]
 pub struct Running {

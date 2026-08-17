@@ -11,6 +11,9 @@ use torrust_tracker_rest_api_protocol::v1::context::whitelist::resources::whitel
 ///
 /// All whitelist operations are pure commands with no query/read
 /// operations. They return either success or an error.
+// `async_trait` applies `#[must_use]` to generated futures. Nightly Clippy also treats those
+// futures as must-use and reports the macro expansion as redundant.
+#[allow(clippy::double_must_use)]
 #[async_trait]
 pub trait WhitelistCommandPort: Send + Sync {
     /// Adds a torrent to the whitelist.

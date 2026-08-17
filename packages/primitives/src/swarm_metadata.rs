@@ -9,6 +9,10 @@ use crate::NumberOfDownloads;
 /// Swarm metadata dictionary in the scrape response.
 ///
 /// See [BEP 48: Tracker Protocol Extension: Scrape](https://www.bittorrent.org/beps/bep_0048.html)
+// `derive_more::Constructor` generates `field: field` initializers on this MSRV-compatible version.
+// Nightly Clippy diagnoses that proc-macro expansion; remove this allowance once derive_more emits
+// field-init shorthand.
+#[allow(clippy::redundant_field_names)]
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Default, Constructor)]
 pub struct SwarmMetadata {
     /// (i.e `completed`): The number of peers that have ever completed

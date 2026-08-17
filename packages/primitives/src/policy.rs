@@ -6,6 +6,10 @@ use derive_more::Constructor;
 use serde::{Deserialize, Serialize};
 
 /// Policy settings that control tracker-wide torrent and peer retention.
+// `derive_more::Constructor` generates `field: field` initializers on this MSRV-compatible version.
+// Nightly Clippy diagnoses that proc-macro expansion; remove this allowance once derive_more emits
+// field-init shorthand.
+#[allow(clippy::redundant_field_names)]
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone, Constructor)]
 pub struct TrackerPolicy {
     // Cleanup job configuration

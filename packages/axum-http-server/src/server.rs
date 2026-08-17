@@ -38,6 +38,10 @@ pub enum Error {
     Error(String),
 }
 
+// `derive_more::Constructor` generates `field: field` initializers on this MSRV-compatible version.
+// Nightly Clippy diagnoses that proc-macro expansion; remove this allowance once derive_more emits
+// field-init shorthand.
+#[allow(clippy::redundant_field_names)]
 #[derive(Constructor, Debug)]
 pub struct Launcher {
     pub bind_to: SocketAddr,

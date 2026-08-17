@@ -11,6 +11,10 @@ use torrust_peer_id::PeerId;
 // field shapes. This keeps protocol crates decoupled from tracker domain types
 // and centralizes conversions in boundary adapters.
 // adr: docs/adrs/20260527175600_keep_protocol_and_domain_types_decoupled.md
+// `derive_more::Constructor` generates `field: field` initializers on this MSRV-compatible version.
+// Nightly Clippy diagnoses that proc-macro expansion; remove this allowance once derive_more emits
+// field-init shorthand.
+#[allow(clippy::redundant_field_names)]
 #[derive(Clone, Debug, PartialEq, Constructor, Default)]
 pub struct AnnounceData {
     pub peers: Vec<Peer>,
@@ -18,6 +22,10 @@ pub struct AnnounceData {
     pub policy: AnnouncePolicy,
 }
 
+// `derive_more::Constructor` generates `field: field` initializers on this MSRV-compatible version.
+// Nightly Clippy diagnoses that proc-macro expansion; remove this allowance once derive_more emits
+// field-init shorthand.
+#[allow(clippy::redundant_field_names)]
 #[derive(PartialEq, Eq, Debug, Clone, Copy, Constructor)]
 pub struct AnnouncePolicy {
     pub interval: u32,

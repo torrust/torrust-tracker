@@ -640,7 +640,7 @@ mod tests {
 
                 let peers = swarms.get_swarm_peers(&sample_info_hash(), 74).await.unwrap();
 
-                assert!(peers.is_empty());
+                assert_eq!(peers, Vec::new());
             }
 
             #[tokio::test]

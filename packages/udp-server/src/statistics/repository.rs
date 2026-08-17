@@ -11,6 +11,9 @@ use super::describe_metrics;
 use super::metrics::Metrics;
 
 /// Trait exposing only the UDP server statistics that external consumers need.
+// `async_trait` applies `#[must_use]` to generated futures. Nightly Clippy also treats those
+// futures as must-use and reports the macro expansion as redundant.
+#[allow(clippy::double_must_use)]
 #[async_trait::async_trait]
 pub trait UdpServerStatsRepository: Send + Sync {
     async fn get_metrics_collection(&self) -> MetricCollection;
@@ -104,7 +107,6 @@ impl UdpServerStatsRepository for Repository {
 
 #[cfg(test)]
 mod tests {
-    use core::f64;
     use std::time::Duration;
 
     use torrust_clock::clock::Time;
@@ -604,7 +606,6 @@ mod tests {
 
     mod race_conditions {
 
-        use core::f64;
         use std::time::Duration;
 
         use tokio::task::JoinHandle;

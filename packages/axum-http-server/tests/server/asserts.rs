@@ -27,7 +27,7 @@ pub fn assert_bencoded_error(response_text: &String, expected_failure_reason: &s
 pub async fn assert_empty_announce_response(response: Response) {
     assert_eq!(response.status(), 200);
     let announce_response: DeserializedNormal = serde_bencode::from_str(&response.text().await.unwrap()).unwrap();
-    assert!(announce_response.peers.is_empty());
+    assert_eq!(announce_response.peers, Vec::new());
 }
 
 pub async fn assert_announce_response(response: Response, expected_announce_response: &DeserializedNormal) {

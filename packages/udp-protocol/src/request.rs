@@ -245,7 +245,7 @@ mod tests {
         let mut buf = Vec::new();
 
         request.clone().write_bytes(&mut buf).unwrap();
-        let r2 = Request::parse_bytes(&buf[..], ::std::u8::MAX).unwrap();
+        let r2 = Request::parse_bytes(&buf[..], u8::MAX).unwrap();
 
         let success = request == r2;
 

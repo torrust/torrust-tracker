@@ -143,7 +143,7 @@ fn binary_extracts_grouped_reexported_aliased_and_glob_imports() {
         "workspace-coupling failed: {}",
         String::from_utf8_lossy(&output.stderr)
     );
-    assert!(output.stdout.is_empty());
+    assert_eq!(output.stdout, b"");
 
     assert_stderr_is_ndjson(&output.stderr);
 
@@ -193,7 +193,7 @@ fn binary_reports_malformed_rust_as_json_error() {
         .expect("failed to run workspace-coupling binary");
 
     assert!(!output.status.success());
-    assert!(output.stdout.is_empty());
+    assert_eq!(output.stdout, b"");
 
     let events = assert_stderr_is_ndjson(&output.stderr);
     assert!(events.iter().any(|event| {

@@ -11,6 +11,9 @@ use torrust_tracker_rest_api_protocol::v1::context::auth_key::resources::auth_ke
 ///
 /// Covers both command and query operations: adding/generating/deleting
 /// keys, and reloading them from the database.
+// `async_trait` applies `#[must_use]` to generated futures. Nightly Clippy also treats those
+// futures as must-use and reports the macro expansion as redundant.
+#[allow(clippy::double_must_use)]
 #[async_trait]
 pub trait AuthKeyPort: Send + Sync {
     /// Adds a new peer key (pre-generated or generated on-the-fly).
