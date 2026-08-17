@@ -265,6 +265,33 @@ explicitly typed JSON collection. The API redesign and migration belong in the
 [REST API overhaul epic #144](https://github.com/torrust/torrust-tracker/issues/144),
 with an ADR agreed before implementation.
 
+### 3.12 ⚠️ Announce statistics are not filtered by peer network
+
+`Coordinator::peers_excluding()` correctly filters the returned peer list by
+`PeerAddress::is_i2p()`, but `Coordinator::metadata()` remains aggregate across
+both clearnet and I2P peers. The announce response obtains `complete` and
+`incomplete` from that aggregate metadata. Consequently, an I2P requester can
+receive no usable peers while being told that the swarm has clearnet seeders or
+leechers (and vice versa).
+
+This produces misleading announce statistics after network isolation. Return
+network-scoped metadata using the same address-kind criterion as peer selection,
+while retaining aggregate metadata for administrative/statistics APIs where it
+is explicitly intended.
+
+### 3.13 ⚠️ Malformed suffixless Destinations silently fall back to clearnet
+
+The I2P protocol permits a Destination without the `.i2p` suffix. In
+`extract_ip()`, a non-IP value is rejected only when it has that suffix. A
+malformed or truncated suffixless Destination therefore returns `Ok(None)`, and
+the announce service registers the requester as a clearnet peer using its
+transport address. That silently crosses the network boundary the PR is meant
+to enforce.
+
+Define an unambiguous suffixless-I2P candidate rule and reject candidates that
+fail I2P validation. At minimum, values that use the I2P Base64 alphabet and
+are destination-sized must not silently fall back to clearnet behavior.
+
 ---
 
 ## 4. Actions for the Contributor
@@ -310,6 +337,20 @@ with an ADR agreed before implementation.
   - **Error behavior**: Errors may identify parameter and bounded actual/maximum lengths, but must not include the full Destination.
   - **Regression tests**: Cover NULL and every supported Key Certificate layout, unsupported type, declared-length mismatch, selected maximum, one-character overflow, and oversized-input redaction.
   - **Completion criteria**: No unbounded decode/hash occurs, only structurally valid supported Destinations are accepted, errors are bounded/actionable, and supported types/limits are documented with their specification rationale.
+
+- [ ] **A5**: **Return network-scoped announce statistics** — `complete` and
+      `incomplete` must describe peers reachable by the requesting network.
+  - **Implementation area**: `packages/swarm-coordination-registry/src/swarm/coordinator.rs`, registry/repository query methods, and the tracker-core announce response assembly.
+  - **Required behavior**: Derive response metadata using the same `is_i2p()` filter as `peers_excluding()`. Keep aggregate metadata only for administrative and aggregate-statistics consumers that intentionally span both networks.
+  - **Regression tests**: Build a swarm with an I2P leecher and a clearnet seeder sharing one info hash. Assert that an I2P announce receives no clearnet peer and reports zero reachable seeders; assert the reciprocal clearnet case; assert same-network counts remain correct.
+  - **Completion criteria**: Peer list and `complete`/`incomplete` response fields are internally consistent for both networks, without regressing aggregate scrape/management statistics.
+
+- [ ] **A6**: **Reject malformed suffixless I2P candidates** — Do not treat a
+      malformed suffixless I2P Destination as an absent `ip` parameter.
+  - **Implementation area**: `packages/http-protocol/src/v1/requests/announce.rs` and `packages/http-protocol/src/v1/query.rs`.
+  - **Required behavior**: Define a documented candidate rule for suffixless I2P Destinations. If a non-IP value meets that rule but fails `I2pDestination` validation, return an I2P-specific announce parse error; do not fall back to the TCP/X-Forwarded-For address.
+  - **Regression tests**: Cover a valid suffixless Destination, a truncated suffixless candidate, an invalid-alphabet suffixless candidate, an ordinary non-I2P value, and a valid clearnet IP. Verify only the ordinary non-I2P value retains existing ignore behavior, if that compatibility behavior is retained.
+  - **Completion criteria**: A malformed suffixless Destination cannot cause a clearnet registration or expose clearnet peers to an intended I2P announce.
 
 ### Follow-up work or documentation
 
@@ -485,7 +526,8 @@ defines these. Should be documented as future work.
 | R4  | I2P parse-error handling                        | Complete         | Findings 3.9–3.10 / actions A3–A4 record lost parse context, unbounded input, and full-value echoing                                                   |
 | R5  | I2P Destination validation and resource limits  | Complete         | Common-structures audit found missing certificate-type/payload validation and no pre-decode bound; A4 defines compatibility-aware requirements         |
 | R6  | REST API representation of I2P peers            | Complete         | Finding 3.11 / F5 defers final typed, separate I2P REST collections to REST API overhaul epic #144 and its ADR                                         |
-| R7  | Contributor response and fix verification       | Pending          | Re-run focused tests, manual evidence, and `linter all` after updates                                                                                  |
+| R7  | Copilot review suggestions from original PR     | Complete         | Two additional valid blockers recorded as findings 3.12–3.13 / actions A5–A6; the compact parser suggestion duplicates A2                              |
+| R8  | Contributor response and fix verification       | Pending          | Re-run focused tests, manual evidence, and `linter all` after updates                                                                                  |
 
 ---
 
