@@ -833,7 +833,7 @@ async fn it_should_return_i2p_destination_hashes_in_a_compact_response() {
     let announce = DeserializedCompact::from_bytes(&bytes).unwrap();
 
     assert_eq!(announce.peers, *first_destination.hash());
-    assert!(announce.peers6.is_empty());
+    assert_eq!(announce.peers6, Vec::<u8>::new());
 
     env.stop().await;
 }

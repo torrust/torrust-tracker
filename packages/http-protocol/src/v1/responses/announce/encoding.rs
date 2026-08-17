@@ -410,6 +410,6 @@ mod tests {
         let decoded = crate::v1::responses::announce::DeserializedCompact::from_bytes(&bytes).unwrap();
 
         assert_eq!(decoded.peers, destination_hash);
-        assert!(decoded.peers6.is_empty());
+        assert_eq!(decoded.peers6, []);
     }
 }

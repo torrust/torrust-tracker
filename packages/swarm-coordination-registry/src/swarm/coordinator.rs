@@ -456,8 +456,8 @@ mod tests {
         let peers_for_i2p = swarm.peers_excluding(&i2p_peer.peer_addr, None);
         let peers_for_clearnet = swarm.peers_excluding(&clearnet_peer.peer_addr, None);
 
-        assert!(peers_for_i2p.is_empty());
-        assert!(peers_for_clearnet.is_empty());
+        assert_eq!(peers_for_i2p, []);
+        assert_eq!(peers_for_clearnet, []);
     }
 
     #[tokio::test]
