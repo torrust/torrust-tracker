@@ -216,7 +216,7 @@ The parent EPIC is also an affected document under Step 4: update its frontmatte
 
 Before committing, confirm that every changed Markdown frontmatter block is valid YAML and that
 each archived primary issue spec has `status: done`, a `spec-path` below `docs/issues/closed/`,
-and a current `last-updated-utc`. Also run `git diff --check` after staging.
+and a current `last-updated-utc`. Also run `git diff --cached --check` after staging.
 
 ```bash
 # Single issue
