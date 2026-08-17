@@ -2,7 +2,7 @@
 semantic-links:
   related-artifacts:
     - docs/adrs/index.md
-    - docs/issues/open/1136-1978-configurable-udp-connection-id-validation-policy.md
+    - docs/issues/closed/1136-1978-configurable-udp-connection-id-validation-policy.md
     - packages/udp-core/src/event.rs
     - packages/udp-server/src/event.rs
     - packages/http-core/src/event.rs

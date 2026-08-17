@@ -8,6 +8,9 @@ use super::super::error::Error;
 ///
 /// Implementors are responsible for creating and dropping the full set of
 /// database tables used by the tracker.
+// `async_trait` applies `#[must_use]` to generated futures. Nightly Clippy also treats those
+// futures as must-use and reports the macro expansion as redundant.
+#[allow(clippy::double_must_use)]
 #[async_trait]
 #[allow(clippy::extra_unused_lifetimes)]
 #[automock]

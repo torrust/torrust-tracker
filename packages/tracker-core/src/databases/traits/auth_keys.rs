@@ -9,6 +9,9 @@ use crate::authentication::{self, Key};
 // The `automock` macro generates a struct whose fields all end with `keys`,
 // which triggers `clippy::struct_field_names` (pedantic). Suppressed here
 // because the generated mock struct is outside our control.
+// `async_trait` applies `#[must_use]` to generated futures. Nightly Clippy also treats those
+// futures as must-use and reports the macro expansion as redundant.
+#[allow(clippy::double_must_use)]
 #[async_trait]
 #[allow(clippy::struct_field_names, clippy::extra_unused_lifetimes)]
 #[automock]

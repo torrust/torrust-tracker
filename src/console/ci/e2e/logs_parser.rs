@@ -150,9 +150,9 @@ mod tests {
 
         let running_services = RunningServices::parse_from_logs(logs);
 
-        assert!(running_services.udp_trackers.is_empty());
-        assert!(running_services.http_trackers.is_empty());
-        assert!(running_services.health_checks.is_empty());
+        assert_eq!(running_services.udp_trackers, Vec::<String>::new());
+        assert_eq!(running_services.http_trackers, Vec::<String>::new());
+        assert_eq!(running_services.health_checks, Vec::<String>::new());
     }
 
     #[test]

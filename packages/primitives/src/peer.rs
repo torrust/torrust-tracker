@@ -382,13 +382,13 @@ impl TryFrom<Vec<u8>> for Id {
         if bytes.len() < PEER_ID_BYTES_LEN {
             return Err(IdConversionError::NotEnoughBytes {
                 location: Location::caller(),
-                message: format! {"got {} bytes, expected {}", bytes.len(), PEER_ID_BYTES_LEN},
+                message: format!("got {} bytes, expected {}", bytes.len(), PEER_ID_BYTES_LEN),
             });
         }
         if bytes.len() > PEER_ID_BYTES_LEN {
             return Err(IdConversionError::TooManyBytes {
                 location: Location::caller(),
-                message: format! {"got {} bytes, expected {}", bytes.len(), PEER_ID_BYTES_LEN},
+                message: format!("got {} bytes, expected {}", bytes.len(), PEER_ID_BYTES_LEN),
             });
         }
 

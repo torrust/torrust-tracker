@@ -1,13 +1,13 @@
 ---
 doc-type: issue
 issue-type: enhancement
-status: open
+status: done
 priority: p2
 github-issue: 2019
-spec-path: docs/issues/open/2019-automatically-format-project-dictionary/ISSUE.md
+spec-path: docs/issues/closed/2019-automatically-format-project-dictionary/ISSUE.md
 branch: "2019-automatically-format-project-dictionary"
 related-pr: 2020
-last-updated-utc: 2026-07-22 00:00
+last-updated-utc: 2026-08-17
 semantic-links:
   skill-links:
     - create-issue
@@ -76,7 +76,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -90,6 +90,7 @@ Append one line per meaningful update.
 - 2026-07-22 00:00 UTC - GitHub Copilot - Verified `TORRUST_GIT_HOOKS_LOG_DIR=.tmp ./contrib/dev-tools/git/hooks/pre-push.sh --format=json`; all nightly checks, documentation build, and stable workspace tests passed
 - 2026-07-22 00:00 UTC - GitHub Copilot - Re-reviewed the acceptance criteria against the implementation and recorded the existing verification evidence
 - 2026-07-22 00:00 UTC - GitHub Copilot - Moved the specification into the documented issue-folder layout after review feedback
+- 2026-08-17 UTC - GitHub Copilot - Archived the specification after GitHub issue #2019 was closed and implementation PR #2020 merged.
 
 ## Acceptance Criteria
 

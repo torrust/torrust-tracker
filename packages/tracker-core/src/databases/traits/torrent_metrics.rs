@@ -13,6 +13,9 @@ use super::super::error::Error;
 
 /// Trait covering persistence operations for per-torrent and global download
 /// counters.
+// `async_trait` applies `#[must_use]` to generated futures. Nightly Clippy also treats those
+// futures as must-use and reports the macro expansion as redundant.
+#[allow(clippy::double_must_use)]
 #[async_trait]
 #[allow(clippy::extra_unused_lifetimes)]
 #[automock]

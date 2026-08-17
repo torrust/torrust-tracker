@@ -7,14 +7,14 @@ github-issue: 1419
 spec-path: docs/issues/open/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md
 branch: 1419-allow-multiple-integration-tests
 related-pr: null
-last-updated-utc: 2026-07-28 11:54
+last-updated-utc: 2026-08-17
 semantic-links:
   skill-links:
     - write-unit-test
   related-artifacts:
     - docs/adrs/20260728115400_define_registar_as_runtime_service_registry.md
     - docs/issues/open/2035-fix-duplicate-port-zero-tracker-instance-bootstrap/ISSUE.md
-    - docs/issues/open/2036-add-runtime-service-registry-metadata/ISSUE.md
+    - docs/issues/closed/2036-add-runtime-service-registry-metadata/ISSUE.md
     - tests/stats.rs
     - tests/servers/
     - src/app.rs
@@ -379,7 +379,7 @@ merged independently; #1419 remains open and resumes on that clean base.
    — `AppContainer` stores HTTP and UDP per-instance containers in `HashMap<SocketAddr, _>`.
    Repeated `0.0.0.0:0` configuration blocks overwrite each other before startup, so distinct
    per-instance configuration can be silently lost.
-2. Feature #2036: [add runtime service registry metadata](../../open/2036-add-runtime-service-registry-metadata/ISSUE.md)
+2. Feature #2036: [add runtime service registry metadata](../../closed/2036-add-runtime-service-registry-metadata/ISSUE.md)
    — `Registar` cannot expose stable service role or configuration-instance identity without
    health-check side effects. This requires a coordinated `torrust-server-lib` change and release.
 

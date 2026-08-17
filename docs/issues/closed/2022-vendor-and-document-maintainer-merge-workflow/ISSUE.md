@@ -1,13 +1,13 @@
 ---
 doc-type: issue
 issue-type: task
-status: open
+status: done
 priority: p2
 github-issue: 2022
-spec-path: docs/issues/open/2022-vendor-and-document-maintainer-merge-workflow/ISSUE.md
+spec-path: docs/issues/closed/2022-vendor-and-document-maintainer-merge-workflow/ISSUE.md
 branch: "2022-vendor-and-document-maintainer-merge-workflow"
 related-pr: null
-last-updated-utc: 2026-07-22 15:30
+last-updated-utc: 2026-08-17
 semantic-links:
   skill-links:
     - create-issue
@@ -17,7 +17,7 @@ semantic-links:
     - .github/skills/dev/git-workflow/merge-pull-request/SKILL.md
     - contrib/dev-tools/git/
     - cspell.json
-    - docs/issues/open/2022-vendor-and-document-maintainer-merge-workflow/github-merge.py
+    - docs/issues/closed/2022-vendor-and-document-maintainer-merge-workflow/github-merge.py
     - docs/issues/open/2003-overhaul-guardrails-and-automation/EPIC.md
     - project-words.txt
 ---
@@ -90,7 +90,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [ ] Acceptance criteria reviewed after implementation and updated with evidence
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -100,6 +100,7 @@ Append one line per meaningful update.
 - 2026-07-22 13:00 UTC - GitHub Copilot - User approved the specification; created GitHub issue #2022 with the `task`, `Documentation`, and `Automation` labels - `https://github.com/torrust/torrust-tracker/issues/2022`
 - 2026-07-22 15:30 UTC - GitHub Copilot - Corrected reviewed specification wording and added the MIT license text referenced by the immutable planning snapshot - PR #2024
 - 2026-07-23 00:00 UTC - GitHub Copilot - Verified the planning snapshot and external source against the recorded SHA-256, then vendored the byte-identical MIT-licensed tool with a repository-local wrapper, deterministic dry-run coverage, and maintainer merge skill - implementation branch `2022-vendor-and-document-maintainer-merge-workflow`
+- 2026-08-17 UTC - GitHub Copilot - Archived the specification after GitHub issue #2022 was closed and implementation PR #2027 merged.
 
 ## Acceptance Criteria
 
@@ -171,7 +172,7 @@ Notes:
 - Related issues: #2003, #2022
 - Related PRs: #2020
 - External source before vendoring: `/home/josecelano/Bin/github-merge.py`
-- Current source snapshot: `docs/issues/open/2022-vendor-and-document-maintainer-merge-workflow/github-merge.py` (SHA-256 `e390eb014131f3183a2cba642134974a6b09b19a65322d17dd7c81cf4ffbaad2`)
+- Current source snapshot: `docs/issues/closed/2022-vendor-and-document-maintainer-merge-workflow/github-merge.py` (SHA-256 `e390eb014131f3183a2cba642134974a6b09b19a65322d17dd7c81cf4ffbaad2`)
 - `cspell.json`
 - `contrib/dev-tools/git/hooks/pre-commit.sh`
 - `contrib/dev-tools/git/format-project-words.sh`

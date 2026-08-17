@@ -7,7 +7,7 @@ github-issue: 2039
 spec-path: docs/issues/open/2039-normalize-per-instance-event-metrics-policy/ISSUE.md
 branch: "2039-normalize-per-instance-event-metrics-policy"
 related-pr: null
-last-updated-utc: 2026-07-29 18:14
+last-updated-utc: 2026-08-17
 semantic-links:
   skill-links:
     - create-issue
@@ -18,7 +18,7 @@ semantic-links:
     - docs/adrs/20260727000000_events_are_objective_facts.md
     - docs/adrs/20260727180000_shared_services_across_tracker_instances.md
     - docs/issues/open/2035-fix-duplicate-port-zero-tracker-instance-bootstrap/ISSUE.md
-    - docs/issues/open/2036-add-runtime-service-registry-metadata/ISSUE.md
+    - docs/issues/closed/2036-add-runtime-service-registry-metadata/ISSUE.md
     - evidence.md
     - tests/aggregate_stats_fixed_ports.rs
     - packages/events/src/bus.rs

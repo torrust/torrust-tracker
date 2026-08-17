@@ -1,13 +1,13 @@
 ---
 doc-type: issue
 issue-type: enhancement
-status: open
+status: done
 priority: p2
 github-issue: 889
-spec-path: docs/issues/open/889-1978-new-config-option-for-logging-style.md
+spec-path: docs/issues/closed/889-1978-new-config-option-for-logging-style.md
 branch: "889-logging-style"
 related-pr: null
-last-updated-utc: 2026-07-13 21:00
+last-updated-utc: 2026-08-17
 semantic-links:
   skill-links:
     - create-issue
@@ -142,7 +142,7 @@ All four variants are simple unit variants — no boolean parameters. The `displ
 - [x] Automatic verification completed (`linter all`, relevant tests)
 - [ ] Manual verification scenarios executed and recorded (deferred to #1980)
 - [ ] Acceptance criteria reviewed after implementation
-- [ ] Issue closed and spec moved to `docs/issues/open/`
+- [x] Issue closed and spec moved to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -152,6 +152,7 @@ All four variants are simple unit variants — no boolean parameters. The `displ
 - 2026-07-28 00:00 UTC - josecelano - Confirmed that `trace_filter` retains the current level-only `Threshold` scope. Full tracing directives and per-module filtering are deferred to a separate feature.
 - 2026-07-28 00:00 UTC - josecelano - Implemented and automatically verified the v3-only logging schema. Migration of global callers and shipped v2 defaults remains deferred to #1980.
 - 2026-07-28 17:30 UTC - josecelano - Ready for PR. Manual verification deferred to #1980 (final cleanup) since v3 schema is not yet the active global schema.
+- 2026-08-17 UTC - GitHub Copilot - Archived the specification after GitHub issue #889 was closed and implementation PR #2037 merged.
 
 ## Acceptance Criteria
 

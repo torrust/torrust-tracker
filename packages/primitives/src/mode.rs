@@ -6,6 +6,10 @@ use derive_more::{Constructor, Display};
 use serde::{Deserialize, Serialize};
 
 /// Configuration that applies when the tracker is operating in private mode.
+// `derive_more::Constructor` generates `field: field` initializers on this MSRV-compatible version.
+// Nightly Clippy diagnoses that proc-macro expansion; remove this allowance once derive_more emits
+// field-init shorthand.
+#[allow(clippy::redundant_field_names)]
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone, Copy, Constructor, Display)]
 pub struct PrivateMode {
     /// A flag to disable expiration date for peer keys.

@@ -133,7 +133,7 @@ mod tests {
             assert!(result.is_ok());
 
             let keys = repository.load_keys().await.unwrap();
-            assert!(keys.is_empty());
+            assert_eq!(keys, Vec::new());
         }
 
         #[tokio::test]

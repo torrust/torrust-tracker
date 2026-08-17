@@ -4,7 +4,7 @@ semantic-links:
     - create-adr
   related-artifacts:
     - docs/issues/open/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md
-    - docs/issues/open/2036-add-runtime-service-registry-metadata/ISSUE.md
+    - docs/issues/closed/2036-add-runtime-service-registry-metadata/ISSUE.md
     - src/container.rs
     - tests/common/mod.rs
     - packages/axum-health-check-api-server/src/handlers.rs

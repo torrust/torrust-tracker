@@ -8,6 +8,9 @@ use torrust_tracker_rest_api_protocol::v1::context::torrent::resources::torrent:
 ///
 /// Implementations of this trait adapt tracker-internal data sources
 /// (e.g., `InMemoryTorrentRepository`) into protocol-level DTOs.
+// `async_trait` applies `#[must_use]` to generated futures. Nightly Clippy also treats those
+// futures as must-use and reports the macro expansion as redundant.
+#[allow(clippy::double_must_use)]
 #[async_trait]
 pub trait TorrentQueryPort: Send + Sync {
     /// Returns full torrent info including peers for the given infohash.

@@ -1,3 +1,11 @@
+---
+spec-path: docs/issues/closed/1415-1978-use-service-binding-instead-of-socket-addr/manual-verification.md
+last-updated-utc: 2026-08-17
+semantic-links:
+  related-artifacts:
+    - docs/issues/closed/1415-1978-use-service-binding-instead-of-socket-addr/ISSUE.md
+---
+
 # Manual Verification Evidence - Issue #1415
 
 This file preserves reproducible manual-verification evidence before and after the implementation

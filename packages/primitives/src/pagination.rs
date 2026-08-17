@@ -2,6 +2,10 @@ use derive_more::Constructor;
 use serde::Deserialize;
 
 /// A struct to keep information about the page when results are being paginated
+// `derive_more::Constructor` generates `field: field` initializers on this MSRV-compatible version.
+// Nightly Clippy diagnoses that proc-macro expansion; remove this allowance once derive_more emits
+// field-init shorthand.
+#[allow(clippy::redundant_field_names)]
 #[derive(Deserialize, Copy, Clone, Debug, PartialEq, Constructor)]
 pub struct Pagination {
     /// The page number, starting at 0

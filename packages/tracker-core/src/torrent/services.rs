@@ -426,7 +426,7 @@ mod tests {
 
             let torrent_info = get_torrents(&in_memory_torrent_repository, &[sample_info_hash()]).await;
 
-            assert!(torrent_info.is_empty());
+            assert_eq!(torrent_info, Vec::new());
         }
 
         #[tokio::test]

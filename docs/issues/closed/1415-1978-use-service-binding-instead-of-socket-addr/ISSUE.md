@@ -4,10 +4,10 @@ issue-type: enhancement
 status: done
 priority: p2
 github-issue: 1415
-spec-path: docs/issues/open/1415-1978-use-service-binding-instead-of-socket-addr/ISSUE.md
+spec-path: docs/issues/closed/1415-1978-use-service-binding-instead-of-socket-addr/ISSUE.md
 branch: "1415-use-service-binding"
 related-pr: null
-last-updated-utc: 2026-07-22 16:10
+last-updated-utc: 2026-08-17
 semantic-links:
   skill-links:
     - create-issue
@@ -112,7 +112,7 @@ The exact commands and complete relevant outputs are recorded in
 - [x] Automatic verification completed (`linter all`, relevant tests)
 - [x] Post-implementation manual verification executed and recorded
 - [x] Acceptance criteria reviewed after implementation
-- [ ] Issue closed and specification moved to `docs/issues/closed/`
+- [x] Issue closed and specification moved to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -145,6 +145,7 @@ The exact commands and complete relevant outputs are recorded in
   `server_socket_addr` is derived from `ServiceBinding::bind_address()`. Both fields therefore
   report the same actual bound address, including an OS-assigned port when configuration uses
   port `0`.
+- 2026-08-17 UTC - GitHub Copilot - Archived the specification after GitHub issue #1415 was closed and implementation PR #2025 merged.
 
 ## Acceptance Criteria
 

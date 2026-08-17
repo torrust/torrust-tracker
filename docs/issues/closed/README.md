@@ -23,6 +23,13 @@ Closed spec files are moved here (rather than deleted immediately) because:
 - It provides a grace period before permanent removal, reducing the risk of losing context
   that is still actively referenced.
 
+## Archive Maintenance
+
+Archiving a spec also requires repairing live documentation references to its former
+`docs/issues/open/` path and updating frontmatter in every affected current document. This keeps
+EPIC tables, issue dependencies, ADR links, and issue-local evidence discoverable after the move.
+The authoritative procedure is the cleanup workflow skill below.
+
 ## References
 
 - Issues index: [../README.md](../README.md)

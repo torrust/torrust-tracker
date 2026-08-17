@@ -1,9 +1,9 @@
 ---
 name: cleanup-completed-issues
-description: Guide for archiving closed issue specification files from docs/issues/open/ to docs/issues/closed/. Covers verifying closure on GitHub, moving files, updating frontmatter, creating a branch, and opening a PR. Permanent deletion of closed specs is not automated — the user must explicitly request it. Use when cleaning up closed issue specs, archiving issue docs, or maintaining the docs/issues/ folder. Triggers on "cleanup issue", "archive issue", "move closed issue", "clean completed issues", or "maintain issue docs".
+description: Guide for archiving closed issue specification files from docs/issues/open/ to docs/issues/closed/. Covers verifying closure on GitHub, moving files, updating frontmatter, auditing and repairing affected documentation links, creating a branch, and opening a PR. Permanent deletion of closed specs is not automated — the user must explicitly request it. Use when cleaning up closed issue specs, archiving issue docs, or maintaining the docs/issues/ folder. Triggers on "cleanup issue", "archive issue", "move closed issue", "clean completed issues", or "maintain issue docs".
 metadata:
   author: torrust
-  version: "1.5"
+  version: "1.6"
 ---
 
 # Cleaning Up Completed Issues
@@ -161,7 +161,47 @@ reflect completed work (manual verification, acceptance criteria review, etc.) b
 on the actual content of the spec body. Add a progress log entry documenting the
 archival action.
 
-### Step 4: Update Any Parent Epic Spec
+### Step 4: Audit and Repair Documentation References (Mandatory)
+
+An archive move invalidates every live reference to the old `docs/issues/open/...` path.
+After updating the moved documents' own frontmatter, search the repository for each old path
+and update all **current** documentation links and references to the new `docs/issues/closed/...`
+location. This includes:
+
+- parent EPIC subissue tables and their frontmatter `semantic-links`;
+- active issue specs that name the archived issue as a prerequisite, dependency, or related
+  artifact;
+- ADR frontmatter and body links; and
+- frontmatter in moved supplementary artifacts (`evidence.md`, manual-verification records,
+  and similar documents) that references the moved primary spec.
+
+When modifying an affected document that has YAML frontmatter, keep its metadata current:
+
+- preserve its existing `status` unless its actual lifecycle state changed;
+- update any changed `spec-path` or `semantic-links.related-artifacts` value; and
+- set `last-updated-utc` to the current date when that field exists.
+
+Do not rewrite immutable historical records (for example, past PR review summaries) merely
+because they accurately record the path that existed at the time. Update them only when they
+function as a live navigational reference.
+
+For each archived issue, search for the old path before finishing. For a single-file spec:
+
+```bash
+rg 'docs/issues/open/42-add-peer-expiry-grace-period\.md' \
+  --glob '!target/**' --glob '!storage/**'
+```
+
+For a folder spec, search its folder prefix:
+
+```bash
+rg 'docs/issues/open/42-my-subissue-folder' \
+  --glob '!target/**' --glob '!storage/**'
+```
+
+The remaining results must be either corrected or deliberately retained historical records.
+
+### Step 5: Update Any Parent Epic Spec
 
 If the closed issue was a subissue of an EPIC, update the epic's spec to reflect the
 new `docs/issues/closed/` path and `DONE` status in its subissue table.
@@ -169,7 +209,14 @@ new `docs/issues/closed/` path and `DONE` status in its subissue table.
 Example: if `docs/issues/open/EPIC.md` has a table row referencing a subissue at
 `docs/issues/open/...` with `TODO` status, update both the path and status after archiving.
 
-### Step 5: Commit
+The parent EPIC is also an affected document under Step 4: update its frontmatter
+`semantic-links` and `last-updated-utc` when applicable.
+
+### Step 6: Validate and Commit
+
+Before committing, confirm that every changed Markdown frontmatter block is valid YAML and that
+each archived primary issue spec has `status: done`, a `spec-path` below `docs/issues/closed/`,
+and a current `last-updated-utc`. Also run `git diff --cached --check` after staging.
 
 ```bash
 # Single issue
@@ -185,7 +232,7 @@ Run the pre-commit hooks before finishing:
 ./contrib/dev-tools/git/hooks/pre-commit.sh
 ```
 
-### Step 6: Push and Open a Pull Request
+### Step 7: Push and Open a Pull Request
 
 ```bash
 FORK_REMOTE="${FORK_REMOTE:-josecelano}"

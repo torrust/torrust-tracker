@@ -7,7 +7,7 @@ github-issue: 2035
 spec-path: docs/issues/open/2035-fix-duplicate-port-zero-tracker-instance-bootstrap/ISSUE.md
 branch: 2035-fix-duplicate-port-zero-tracker-instance-bootstrap
 related-pr: null
-last-updated-utc: 2026-07-29 18:14
+last-updated-utc: 2026-08-17
 semantic-links:
   skill-links:
     - write-unit-test
@@ -16,9 +16,9 @@ semantic-links:
     - src/app.rs
     - archived-attempt.md
     - docs/issues/open/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md
-    - docs/issues/open/2036-add-runtime-service-registry-metadata/ISSUE.md
+    - docs/issues/closed/2036-add-runtime-service-registry-metadata/ISSUE.md
     - docs/issues/open/2039-normalize-per-instance-event-metrics-policy/ISSUE.md
-    - docs/issues/open/2041-migrate-runtime-service-registry-metadata/ISSUE.md
+    - docs/issues/closed/2041-migrate-runtime-service-registry-metadata/ISSUE.md
     - docs/events-architecture.md
     - evidence.md
     - tests/aggregate_stats_fixed_ports.rs
@@ -90,7 +90,7 @@ identity preservation and prove that each duplicate port-zero configuration
 starts with its matching container. This phase must not introduce registry
 metadata or metrics-policy behavior.
 
-After bootstrap identity propagation is merged, [#2041](../2041-migrate-runtime-service-registry-metadata/ISSUE.md)
+After bootstrap identity propagation is merged, [#2041](../../closed/2041-migrate-runtime-service-registry-metadata/ISSUE.md)
 will carry the same identity through started-service registration metadata, and
 Issue #2039 will make event publication independent of metrics policy and filter
 metrics in listeners by canonical identity. Those follow-ups are prerequisites
@@ -100,7 +100,7 @@ only for this issue's metrics-related final verification and closure.
 
 | ID  | Status  | Task                                                                                                   | Notes / Expected Output                                                                                                                                          |
 | --- | ------- | ------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| T1  | DONE    | Land [#2036](../2036-add-runtime-service-registry-metadata/ISSUE.md) canonical identity                | Bootstrap identity aligns with the canonical runtime identity contract.                                                                                          |
+| T1  | DONE    | Land [#2036](../../closed/2036-add-runtime-service-registry-metadata/ISSUE.md) canonical identity      | Bootstrap identity aligns with the canonical runtime identity contract.                                                                                          |
 | T2  | DONE    | Replace address-keyed container lookup                                                                 | Use an order-preserving representation or canonical identity, not configured `SocketAddr`.                                                                       |
 | T3  | DONE    | Start matching containers                                                                              | Pass each configuration entry's matching container into HTTP and UDP startup.                                                                                    |
 | T4  | DONE    | Correlate lifecycle logs                                                                               | Include canonical identity with configured and final binding logs.                                                                                               |
@@ -179,8 +179,8 @@ final listener addresses, REST statistics, and observed result to
 
 - Issue #1419: [main-application integration tests](../../open/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md)
 - [Runtime registry investigation](../../open/1419-allow-multiple-integration-tests-at-main-app-level/investigation-registar-and-health-check.md)
-- Feature #2036: [add runtime service registry metadata](../2036-add-runtime-service-registry-metadata/ISSUE.md)
+- Feature #2036: [add runtime service registry metadata](../../closed/2036-add-runtime-service-registry-metadata/ISSUE.md)
 - Bug #2039: [normalize per-instance event metrics policy](../2039-normalize-per-instance-event-metrics-policy/ISSUE.md)
-- Issue #2041: [migrate runtime service registry metadata](../2041-migrate-runtime-service-registry-metadata/ISSUE.md)
+- Issue #2041: [migrate runtime service registry metadata](../../closed/2041-migrate-runtime-service-registry-metadata/ISSUE.md)
 - [Archived implementation attempt](archived-attempt.md)
 - [Events architecture](../../../events-architecture.md)
