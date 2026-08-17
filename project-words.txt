@@ -29,6 +29,7 @@ EADDRINUSE
 EINVAL
 Eray
 Freebox
+Frigyes
 Frostegård
 Garnham
 Gibibytes
@@ -80,6 +81,7 @@ Registar
 Rustls
 Ryzen
 SHLVL
+SUBSESSIONS
 Seedable
 Shareaza
 Signedness
@@ -262,6 +264,7 @@ infohash
 infohashes
 infoschema
 initialisation
+inproxy
 intervali
 io_uring
 isready
