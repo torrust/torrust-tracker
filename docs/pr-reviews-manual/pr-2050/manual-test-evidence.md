@@ -211,6 +211,16 @@ rejected because the custom query parser does not percent-decode values before
 I2P Destination parsing. This is the confirmed URL-encoding interoperability
 finding in `review-pass-1.md`.
 
+**Required regression test**: Add a protocol-level test that parses a query
+with `ip` set to the exact valid fixture
+
+<!-- cspell:disable-next-line -->
+
+`"A".repeat(512) + "BQAEAAAAAA%3D%3D.i2p"` and asserts that it produces
+`Some(AnnounceAddress::I2p(_))`. The test must be committed with the
+percent-decoding implementation fix; it is recorded here as an acceptance test
+instead of being committed in its currently failing form.
+
 ---
 
 ## Test 6: Invalid I2P Destination is rejected

@@ -742,6 +742,25 @@ mod tests {
             assert!(matches!(announce_request.ip, Some(AnnounceAddress::I2p(_))));
         }
 
+        /*
+        #[test]
+        fn it_should_parse_a_percent_encoded_padded_i2p_destination_from_the_ip_param() {
+            // Keep this regression test disabled until Query percent-decodes
+            // parameter values. The current implementation passes `%3D%3D`
+            // literally to I2pDestination and rejects an otherwise valid
+            // Base64-padded Destination.
+            // cspell:disable-next-line
+            let destination = format!("{}BQAEAAAAAA%3D%3D.i2p", "A".repeat(512));
+            let raw_query = format!(
+                "{INFO_HASH}=%3B%24U%04%CF%5F%11%BB%DB%E1%20%1C%EAjk%F4Z%EE%1B%C0&{PEER_ID}=-RC3000-000000000001&{PORT}=1&{IP}={destination}"
+            );
+
+            let announce_request = Announce::try_from(raw_query.parse::<Query>().unwrap()).unwrap();
+
+            assert!(matches!(announce_request.ip, Some(AnnounceAddress::I2p(_))));
+        }
+        */
+
         #[test]
         fn it_should_parse_an_i2p_destination_without_the_i2p_suffix() {
             let destination = "A".repeat(516);

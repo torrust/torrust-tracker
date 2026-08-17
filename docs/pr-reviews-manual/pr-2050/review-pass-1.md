@@ -214,6 +214,57 @@ The eventual precedence must be explicit:
 The #1987 specification now records this rule and requires an ADR when that
 issue is implemented. This PR should link to #1987 and document the exception.
 
+### 3.9 ⚠️ I2P parse errors lose useful diagnostic context
+
+`I2pDestination::from_str` exposes structured errors that distinguish invalid
+I2P Base64, an undersized Destination, and an inconsistent certificate length.
+However, `extract_ip()` discards those errors and, when the value ends in
+`.i2p`, returns the generic `ParseAnnounceQueryError::InvalidParam` error.
+
+This does not meet the error-handling convention's clarity and actionability
+goals: an I2P client cannot tell whether it must correct Base64 encoding,
+provide a full Destination, or correct certificate data. Preserve the
+structured I2P parse error as the source of an I2P-specific announce error, or
+include its reason in the user-facing failure response.
+
+### 3.10 ⚠️ Destination structure validation is incomplete and input is unbounded
+
+`I2pDestination::from_str` decodes and hashes the complete untrusted query
+value without a maximum encoded or decoded length. On failure,
+`ParseAnnounceQueryError::InvalidParam` includes that complete value in the
+bencoded HTTP failure response. This can amplify a large request into memory,
+CPU, and response/log output work.
+
+The I2P common-structures specification defines a Destination as `KeysAndCert`:
+384 key/padding bytes followed by a Certificate whose type and payload length
+must be valid. The implementation checks only the declared certificate length;
+it accepts arbitrary certificate types and payloads when their lengths match.
+The specification explicitly cautions implementers to prohibit excess data and
+enforce the appropriate length for each certificate type.
+
+Add a compatibility-aware maximum before Base64 decoding, validate supported
+certificate types and their payload structure, reject unsupported types
+explicitly, and avoid echoing full untrusted input. Do **not** impose the I2P
+BitTorrent page's current $475$-byte "reasonable maximum" as a universal hard
+limit: modern valid Key Certificates may contain excess key data and exceed it.
+
+### 3.11 ⚠️ REST peer-address contract is undocumented and untested for I2P
+
+The REST adapter safely serializes `PeerAddress` using `to_string()`, so an I2P
+peer is not dropped or converted into a misleading clearnet socket address. It
+is returned as its full normalized Destination. However, the public REST DTO
+documents `peer_addr` as "The peer's socket address" and gives only an
+`IP:port` example. No REST adapter or endpoint contract test covers an I2P
+peer.
+
+Do not silently redefine this existing field as a polymorphic endpoint string.
+That would produce partial I2P support with an ambiguous REST contract. The
+initial I2P work must instead document the intended final REST behavior: I2P
+peers should be returned separately from clearnet peers in an additive,
+explicitly typed JSON collection. The API redesign and migration belong in the
+[REST API overhaul epic #144](https://github.com/torrust/torrust-tracker/issues/144),
+with an ADR agreed before implementation.
+
 ---
 
 ## 4. Actions for the Contributor
@@ -223,36 +274,91 @@ issue is implemented. This PR should link to #1987 and document the exception.
 - [ ] **A1**: **URL-decode I2P Destination query values** — A valid Destination
       with percent-encoded Base64 padding (`%3D%3D`) is rejected, while the
       raw-padding form succeeds. Decode query parameter values before I2P
-      Destination parsing and add contract tests for raw and percent-encoded
-      padding.
+      Destination parsing.
+  - **Implementation area**: `packages/http-protocol/src/v1/query.rs` and `packages/http-protocol/src/v1/requests/announce.rs`.
+  - **Required behavior**: Decode percent-encoded query parameter names and values exactly once before protocol parsing. Do not decode a second time or change raw binary `info_hash` and `peer_id` handling.
+  - **Regression test**: Uncomment and make `it_should_parse_a_percent_encoded_padded_i2p_destination_from_the_ip_param` pass. It must parse
+    <!-- cspell:disable-next-line -->
+    `"A".repeat(512) + "BQAEAAAAAA%3D%3D.i2p"` as `Some(AnnounceAddress::I2p(_))`.
+  - **Keep existing coverage**: Preserve the raw-padding `==` test and add a query-level test showing `%3D` decodes to `=`.
+  - **Completion criteria**: Raw and percent-encoded padding produce the same normalized `I2pDestination`; malformed percent escapes return a structured error; focused protocol tests and `linter all` pass.
 
 - [ ] **A2**: **Deserialization fix** — `DeserializedCompactParsed` uses
       `chunks_exact(6)` and cannot parse a valid 32-byte I2P compact peer hash.
       Extend the client-side response types or explicitly separate them from
       the clearnet-only parsed compact representation.
+  - **Implementation area**: `packages/http-protocol/src/v1/responses/announce/deserialization.rs` and `packages/http-protocol/src/v1/responses/announce/encoding.rs`.
+  - **Required behavior**: Do not parse a 32-byte I2P hash as IPv4 peers. Represent I2P compact responses explicitly, or make the clearnet parser reject I2P-format payloads with a clear error.
+  - **Regression tests**: Parse a valid 32-byte I2P compact `peers` payload into the correct I2P representation and prove it cannot be interpreted as IPv4 entries.
+  - **Completion criteria**: The client-side representation has an unambiguous I2P path, invalid compact lengths do not panic or silently truncate, and IPv4/IPv6 compact tests continue to pass.
+
+- [ ] **A3**: **Preserve I2P parse-error context** — Do not collapse
+      `ParseI2pDestinationError` into generic `InvalidParam` for `.i2p`
+      values. Return an I2P-specific error with the underlying reason so users
+      can correct invalid Base64, insufficient length, or certificate data.
+  - **Implementation area**: `packages/http-protocol/src/v1/requests/announce.rs` and `packages/primitives/src/i2p.rs`.
+  - **Required behavior**: Add an I2P-specific `ParseAnnounceQueryError` variant retaining `ParseI2pDestinationError` as source and identifying `ip`. Map it to a concise failure reason without reflecting the full Destination.
+  - **Regression tests**: Cover invalid I2P Base64, too-short Destination, and invalid certificate length. Assert the structured source and a useful bounded failure message.
+  - **Completion criteria**: The three modes remain distinguishable, errors answer what and why, and no production `unwrap()` is added to the parsing path.
+
+- [ ] **A4**: **Bound and redact invalid Destination input** — Set a documented
+      compatibility-aware maximum I2P Destination size before Base64 decoding.
+      Do not reflect the full untrusted `ip` value in the error response; return
+      an I2P-specific, actionable reason instead. Add boundary tests.
+  - **Implementation area**: `packages/primitives/src/i2p.rs` and announce error mapping in `packages/http-protocol/src/v1/requests/announce.rs`.
+  - **Required behavior**: Check encoded input length before allocating the decoded Base64 buffer. Validate Certificate type at byte $384$, declared payload length at bytes $385$–$386$, and payload structure for supported types. Reject unsupported types and excess certificate data. The limit must allow all supported modern key types; $475$ decoded bytes is not a safe universal bound.
+  - **Error behavior**: Errors may identify parameter and bounded actual/maximum lengths, but must not include the full Destination.
+  - **Regression tests**: Cover NULL and every supported Key Certificate layout, unsupported type, declared-length mismatch, selected maximum, one-character overflow, and oversized-input redaction.
+  - **Completion criteria**: No unbounded decode/hash occurs, only structurally valid supported Destinations are accepted, errors are bounded/actionable, and supported types/limits are documented with their specification rationale.
 
 ### Follow-up work or documentation
 
 - [ ] **F1**: **Query parser regression test** — The `split_once('=')` fix
       changes behavior for `name=value=value` (now accepted instead of rejected).
-      Retain a test documenting this intentional change.
+      Retain a test documenting this intentional change. Add a query-level
+      assertion that the first `=` separates the name and value while later
+      `=` characters remain part of the decoded value.
 
 - [ ] **F2**: **Placeholder port documentation** — The I2P spec says:
       _"Clients generally include a fake port=6881 parameter... Trackers may
       ignore the port parameter, and should not require it."_ Document why
       `I2P_PLACEHOLDER_PORT` is `1` (not `6881`) and that this value is
-      conventional.
+      conventional. The documentation must state that I2P routes by Destination,
+      clients must ignore the response port, and `1` exists only for legacy
+      non-compact peer dictionary compatibility.
 
 - [ ] **F3**: **Destination enforcement as future work** — Document that
       `X-I2P-DestHash` / `X-I2P-DestB64` / `X-I2P-DestB32` header validation
       is not implemented and is planned as future work. The I2P spec says:
       _"we expect that all trackers will eventually enforce destinations."_
+      Create or link a tracked issue; it should cover trusted tunnel-header
+      extraction, mismatch handling, compatibility impact on proxy announces,
+      and contract tests.
 
 - [ ] **F4**: **Tracker client I2P support** — The `tracker_client` binary
       (`console/tracker-client`) accepts `--ip` as `IpAddr` only. It cannot
       send I2P Destinations. Add a comment in the PR noting this limitation
       and track a follow-up issue to add `--i2p-destination` support to the
-      client.
+      client. The follow-up should accept raw or percent-encoded Destinations,
+      validate through `I2pDestination`, and parse both I2P non-compact and
+      compact responses without treating hashes as clearnet addresses.
+
+- [ ] **F5**: **Define REST API I2P representation in epic #144** — Do not
+      change the current `peer_addr` socket-address field to carry I2P
+      Destinations. Add an ADR under the
+      [REST API overhaul epic #144](https://github.com/torrust/torrust-tracker/issues/144)
+      that defines the final, versioned JSON contract before implementation.
+  - **Expected final behavior**: Return clearnet and I2P peers in separate,
+    explicitly typed collections. An I2P entry must identify its Destination
+    (for non-compact management responses) without inventing an IP address or
+    a meaningful port.
+  - **ADR decision points**: Resource names; versioning/migration strategy;
+    whether the I2P collection is optional, paginated, or separately queried;
+    authorization/privacy implications of exposing full Destinations; and
+    backwards compatibility for existing REST clients.
+  - **Implementation gate**: No REST I2P representation should be added until
+    the ADR is accepted and the epic's API migration plan includes contract,
+    adapter, endpoint, and client tests.
 
 ---
 
@@ -368,6 +474,18 @@ defines these. Should be documented as future work.
 | ---------- | ---------------------- | ------------------------------ | --------------------------------------------------- |
 | 2026-08-17 | Jose Celano + AI agent | `review-pass-1.md` (this file) | Draft — awaiting contributor responses              |
 | 2026-08-17 | Jose Celano + AI agent | `review-pass-1.md` §5          | Spec cross-reference complete (I2P BitTorrent spec) |
+
+### Review Work Tracker
+
+| ID  | Review activity                                 | Status           | Evidence / next step                                                                                                                                   |
+| --- | ----------------------------------------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| R1  | HTTP I2P announce and response behavior         | Complete         | `manual-test-evidence.md` Tests 1–7                                                                                                                    |
+| R2  | Cross-network isolation and compact wire format | Complete         | I2P and clearnet peers are filtered by address kind; compact I2P output is 32-byte hashes                                                              |
+| R3  | Percent-encoded Base64 padding                  | Finding recorded | A disabled regression test is in `packages/http-protocol/src/v1/requests/announce.rs`; contributor should uncomment it while implementing URL decoding |
+| R4  | I2P parse-error handling                        | Complete         | Findings 3.9–3.10 / actions A3–A4 record lost parse context, unbounded input, and full-value echoing                                                   |
+| R5  | I2P Destination validation and resource limits  | Complete         | Common-structures audit found missing certificate-type/payload validation and no pre-decode bound; A4 defines compatibility-aware requirements         |
+| R6  | REST API representation of I2P peers            | Complete         | Finding 3.11 / F5 defers final typed, separate I2P REST collections to REST API overhaul epic #144 and its ADR                                         |
+| R7  | Contributor response and fix verification       | Pending          | Re-run focused tests, manual evidence, and `linter all` after updates                                                                                  |
 
 ---
 
