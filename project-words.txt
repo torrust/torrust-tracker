@@ -347,6 +347,7 @@ parallelisable
 parallelise
 parallelised
 parseable
+pathlib
 peekable
 peerlist
 peersld
@@ -419,12 +420,12 @@ socat
 socketaddr
 sockfd
 specialised
+spoofable
 sqllite
 sqlx
 srcset
 sscanf
 stabilised
-spoofable
 subissue
 subkey
 subsec

@@ -1,6 +1,7 @@
 ---
 semantic-links:
   pr: "https://github.com/torrust/torrust-tracker/pull/2050"
+  superseding-pr: "https://github.com/torrust/torrust-tracker/pull/2059"
   i2p-bittorrent-spec: "https://i2p.net/en/docs/applications/bittorrent/"
   i2p-samv3: "https://i2p.net/en/docs/api/samv3"
   related-artifacts:
@@ -15,6 +16,12 @@ semantic-links:
 This document records the destination-identity threat model for the I2P peer
 support proposed in PR #2050, evaluates deployment options, and defines the
 minimum requirements before the feature can be merged.
+
+> **Review status (2026-08-18):** PR #2050 is the historical source under
+> review. The signed review baseline is `2050-i2p-peer-support-reviewed`, and
+> the active implementation proposal is draft
+> [PR #2059](https://github.com/torrust/torrust-tracker/pull/2059). Section 6
+> is the canonical security acceptance checklist for that draft.
 
 It complements the [I2P addressing primer](i2p-addressing-primer.md) and the
 main [review report](review-pass-1.md).
@@ -60,7 +67,7 @@ Assume an I2P swarm contains Alice, Bob, and Carol.
 Potential consequences:
 
 - disclosure of I2P peer Destinations or compact Destination hashes to an
-      unauthorized requester;
+  unauthorized requester;
 - peer-record takeover because the swarm is keyed by `PeerAddress`;
 - manipulation of peer availability, announces, and swarm statistics;
 - unexpected connection attempts toward an impersonated peer;
@@ -68,6 +75,52 @@ Potential consequences:
 
 Authentication can restrict _who_ may announce, but it does not prove that an
 authenticated user owns the Destination they supply.
+
+### 2.1 Fabricated-Destination spam and swarm pollution
+
+Destination spoofing also enables a high-volume abuse case that does not
+require an attacker to know a victim's Destination. An attacker can submit
+many announces containing distinct, structurally valid, but attacker-unowned
+Destinations. The current query-parameter model validates Destination syntax;
+it does not prove that an announcer controls the corresponding private keys.
+
+```text
+Attacker ── many HTTP announces ──► Torrust Tracker
+                               ip=<fabricated Destination 1>.i2p
+                               ip=<fabricated Destination 2>.i2p
+                               ip=<fabricated Destination N>.i2p
+```
+
+Each accepted Destination can create a distinct `PeerAddress::I2p` record.
+At scale, this is more than a repeated instance of a victim-impersonation
+attack: it is a resource-exhaustion and swarm-integrity risk.
+
+Potential consequences:
+
+- memory, persistence, cleanup, metrics, and registry-index pressure from
+  large numbers of short-lived peer records;
+- CPU consumption for request parsing, Base64 decoding, Destination
+  validation/hashing, and swarm updates;
+- polluted peer lists that cause genuine clients to perform useless I2P lookup
+  or connection work for nonexistent peers;
+- inflated availability and administrative statistics; and
+- aggregate bandwidth/CPU pressure from repeatedly generating peer responses,
+  even when each individual response is bounded.
+
+Trusted transport identity prevents an attacker from claiming arbitrary random
+Destinations: an I2P-enforced listener derives identity from the authenticated
+transport context. It does **not** prevent all high-volume abuse, because an
+attacker may still repeatedly announce from a genuine Destination or operate
+multiple genuine I2P identities. Those cases are conventional announce-rate
+limiting and Sybil-resistance concerns, separate from the claimed-identity
+trust boundary.
+
+The secure deployment must therefore combine identity enforcement with
+operational abuse controls: bounded Destination input before decoding, per-
+Destination and trusted-source announce rate limits, limits on active I2P
+peers per swarm and globally, bounded `numwant`/response sizes, efficient peer
+expiry, and privacy-aware abuse metrics. These controls must not use an
+untrusted query Destination as their only identity key.
 
 ---
 
@@ -242,6 +295,17 @@ authenticated I2P identity.
 - [ ] Document an operational deployment where the I2P forwarding listener is
       loopback-only and cannot be reached directly from the public Internet.
 
+### Operational abuse controls
+
+Identity enforcement removes arbitrary claimed identities, but it is not a
+replacement for ordinary denial-of-service and Sybil controls. The design and
+deployment must define bounded Destination input before decoding, rate limits
+keyed by trusted Destination and trusted tunnel/proxy source, peer-count and
+response-size limits, expiry/cleanup behavior, and privacy-aware metrics. Test
+the configured limits with repeated announces from one trusted identity and
+with multiple trusted identities; do not use the unauthenticated query `ip`
+value as the sole rate-limit key.
+
 ---
 
 ## 7. Future architecture decision
@@ -260,12 +324,15 @@ The ADR should decide:
 5. Logging/redaction requirements for Destinations.
 6. Listener/network separation and migration behavior.
 7. Test/deployment requirements for secure operation.
+8. Rate-limiting, peer-admission, peer-expiry, and observability controls for
+   fabricated-Destination spam and genuine-identity Sybil abuse.
 
 ---
 
-## 8. Recommendation for PR #2050
+## 8. Recommendation for draft PR #2059
 
-Keep PR #2050 as a draft until destination spoofing is addressed by one of the
-safe policy choices in Section 6. This is not merely a future enhancement: it
-is the trust boundary that determines whether the tracker records verified I2P
-peer identities or attacker-controlled claims.
+Keep PR #2059 as a draft until destination spoofing is addressed by one of the
+safe policy choices in Section 6. **No policy is selected or implemented in
+the current draft.** This is not merely a future enhancement: it is the trust
+boundary that determines whether the tracker records verified I2P peer
+identities or attacker-controlled claims.

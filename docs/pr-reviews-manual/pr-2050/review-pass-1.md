@@ -1,6 +1,7 @@
 ---
 semantic-links:
   pr: "https://github.com/torrust/torrust-tracker/pull/2050"
+  superseding-pr: "https://github.com/torrust/torrust-tracker/pull/2059"
   pr-title: "Feat/i2p peer support"
   pr-author: "Frigyes06"
   pr-branch: "feat/i2p-peer-support → develop"
@@ -17,7 +18,12 @@ semantic-links:
 Manual review of [PR #2050](https://github.com/torrust/torrust-tracker/pull/2050)
 "Feat/i2p peer support" by [Frigyes06](https://github.com/Frigyes06).
 
-**Branch checked out locally**: `pr-2050` (at `1bb9e9a3`, rebased on `develop`).
+> **Review status (2026-08-18):** PR #2050 and commit `1bb9e9a3` are the
+> historical source reviewed in this report. The signed review baseline is
+> `2050-i2p-peer-support-reviewed`; the active proposed implementation is
+> draft [PR #2059](https://github.com/torrust/torrust-tracker/pull/2059).
+> Findings and merge gates below apply to PR #2059 unless a section explicitly
+> identifies the historical PR #2050 source.
 
 ---
 
@@ -121,8 +127,9 @@ inactivity cleanup operates on `PeerAddress` correctly (Ord/Hash implemented).
 ### 2.6 UDP handler filtering
 
 UDP announce response builder uses `peer.peer_addr.ip()` with `filter_map` —
-I2P peers return `None` for `ip()` and are excluded. Correct behavior per
-spec (UDP-over-I2P was only standardized 2025-06).
+I2P peers return `None` for `ip()` and are excluded. This is appropriate for
+the HTTP-only scope of this PR. UDP-over-I2P was standardized in 2025-06 and
+is covered by a separate I2P specification.
 
 ---
 
@@ -319,7 +326,9 @@ attack scenario, deployment trade-offs, and minimum secure policies.
       Destination parsing.
   - **Implementation area**: `packages/http-protocol/src/v1/query.rs` and `packages/http-protocol/src/v1/requests/announce.rs`.
   - **Required behavior**: Decode percent-encoded query parameter names and values exactly once before protocol parsing. Do not decode a second time or change raw binary `info_hash` and `peer_id` handling.
-  - **Regression test**: Uncomment and make `it_should_parse_a_percent_encoded_padded_i2p_destination_from_the_ip_param` pass. It must parse
+  - **Regression test**: Restore the existing disabled
+    `it_should_parse_a_percent_encoded_padded_i2p_destination_from_the_ip_param`
+    test and make it pass. It must parse
     <!-- cspell:disable-next-line -->
     `"A".repeat(512) + "BQAEAAAAAA%3D%3D.i2p"` as `Some(AnnounceAddress::I2p(_))`.
   - **Keep existing coverage**: Preserve the raw-padding `==` test and add a query-level test showing `%3D` decodes to `=`.
@@ -369,10 +378,13 @@ attack scenario, deployment trade-offs, and minimum secure policies.
 
 - [ ] **A7**: **Eliminate Destination spoofing before enabling I2P announces** —
       Do not use an untrusted HTTP `ip` query value as an authenticated I2P peer
-      identity. Implement one of the safe policies defined in the
+      identity. Select and implement one of the safe policies defined in the
       [destination spoofing analysis](destination-spoofing-analysis.md):
       trusted I2P transport identity enforcement on a dedicated listener, or
       rejection of I2P announces until enforcement exists.
+  - **Current status**: Neither policy is implemented in PR #2059. The draft
+    must not merge while public I2P announces remain enabled with an untrusted
+    query Destination.
   - **Implementation area**: HTTP tracker listener configuration, trusted
     reverse-proxy/tunnel context extraction, and
     `packages/http-core/src/services/announce.rs`.
@@ -402,6 +414,10 @@ attack scenario, deployment trade-offs, and minimum secure policies.
       conventional. The documentation must state that I2P routes by Destination,
       clients must ignore the response port, and `1` exists only for legacy
       non-compact peer dictionary compatibility.
+
+  **Follow-up numbering note**: F3 was promoted to required action A5 when the
+  manual UDP check confirmed that aggregate announce statistics violate network
+  isolation. The remaining follow-up identifiers preserve the review history.
 
 - [ ] **F4**: **Tracker client I2P support** — The `tracker_client` binary
       (`console/tracker-client`) accepts `--ip` as `IpAddr` only. It cannot
@@ -497,9 +513,9 @@ hashes. This means:
 
 ### Q4: UDP over I2P
 
-**Spec answer**: Spec finalized 2025-06, support rolling out later in 2025.
-The spec references a separate [UDP announce specification](https://i2p.net/en/docs/specs/udp-announces)
-with differences from BEP 15.
+**Spec answer**: The UDP-over-I2P specification was finalized in 2025-06. It
+is separate from BEP 15 and defines its own
+[UDP announce protocol](https://i2p.net/en/docs/specs/udp-announces).
 
 **Implication for PR #2050**: HTTP-only scope is correct for now. UDP I2P
 support is a separate, future effort.
@@ -542,22 +558,22 @@ defines these. Should be documented as future work.
 
 | Date       | Reviewer               | File                           | Status                                              |
 | ---------- | ---------------------- | ------------------------------ | --------------------------------------------------- |
-| 2026-08-17 | Jose Celano + AI agent | `review-pass-1.md` (this file) | Draft — awaiting contributor responses              |
+| 2026-08-17 | Jose Celano + AI agent | `review-pass-1.md` (this file) | Findings carried to draft PR #2059                  |
 | 2026-08-17 | Jose Celano + AI agent | `review-pass-1.md` §5          | Spec cross-reference complete (I2P BitTorrent spec) |
 
 ### Review Work Tracker
 
-| ID  | Review activity                                 | Status           | Evidence / next step                                                                                                                                   |
-| --- | ----------------------------------------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| R1  | HTTP I2P announce and response behavior         | Complete         | `manual-test-evidence.md` Tests 1–7                                                                                                                    |
-| R2  | Cross-network isolation and compact wire format | Complete         | I2P and clearnet peers are filtered by address kind; compact I2P output is 32-byte hashes                                                              |
-| R3  | Percent-encoded Base64 padding                  | Finding recorded | A disabled regression test is in `packages/http-protocol/src/v1/requests/announce.rs`; contributor should uncomment it while implementing URL decoding |
-| R4  | I2P parse-error handling                        | Complete         | Findings 3.9–3.10 / actions A3–A4 record lost parse context, unbounded input, and full-value echoing                                                   |
-| R5  | I2P Destination validation and resource limits  | Complete         | Common-structures audit found missing certificate-type/payload validation and no pre-decode bound; A4 defines compatibility-aware requirements         |
-| R6  | REST API representation of I2P peers            | Complete         | Finding 3.11 / F5 defers final typed, separate I2P REST collections to REST API overhaul epic #144 and its ADR                                         |
-| R7  | Copilot review suggestions from original PR     | Complete         | Two additional valid blockers recorded as findings 3.12–3.13 / actions A5–A6; the compact parser suggestion duplicates A2                              |
-| R8  | I2P Destination spoofing threat model           | Complete         | Finding 3.14 / action A7 and `destination-spoofing-analysis.md` define the minimum secure policies before merge                                        |
-| R9  | Contributor response and fix verification       | Pending          | Re-run focused tests, manual evidence, and `linter all` after updates                                                                                  |
+| ID  | Review activity                                 | Status           | Evidence / next step                                                                                                                           |
+| --- | ----------------------------------------------- | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| R1  | HTTP I2P announce and response behavior         | Complete         | `manual-test-evidence.md` Tests 1–7                                                                                                            |
+| R2  | Cross-network isolation and compact wire format | Complete         | I2P and clearnet peers are filtered by address kind; compact I2P output is 32-byte hashes                                                      |
+| R3  | Percent-encoded Base64 padding                  | Finding recorded | A disabled regression test is in `packages/http-protocol/src/v1/requests/announce.rs`; restore it while implementing URL decoding              |
+| R4  | I2P parse-error handling                        | Complete         | Findings 3.9–3.10 / actions A3–A4 record lost parse context, unbounded input, and full-value echoing                                           |
+| R5  | I2P Destination validation and resource limits  | Complete         | Common-structures audit found missing certificate-type/payload validation and no pre-decode bound; A4 defines compatibility-aware requirements |
+| R6  | REST API representation of I2P peers            | Complete         | Finding 3.11 / F5 defers final typed, separate I2P REST collections to REST API overhaul epic #144 and its ADR                                 |
+| R7  | Copilot review suggestions from original PR     | Complete         | Two additional valid blockers recorded as findings 3.12–3.13 / actions A5–A6; the compact parser suggestion duplicates A2                      |
+| R8  | I2P Destination spoofing threat model           | Complete         | Finding 3.14 / action A7 and `destination-spoofing-analysis.md` define the minimum secure policies before merge                                |
+| R9  | Contributor response and fix verification       | Pending          | Re-run focused tests, manual evidence, and `linter all` after updates                                                                          |
 
 ---
 
@@ -574,7 +590,7 @@ on 2026-08-17.
 | Compact response         | 32-byte SHA-256 hash of binary Destination (I2P-only, no mixing)     | ✅ Implemented and isolated from clearnet responses |
 | Enforcement headers      | `X-I2P-DestHash`, `X-I2P-DestB64`, `X-I2P-DestB32` (I2PTunnel-added) | ⚠️ Required before merge (A7)                       |
 | Cross-network prevention | "Reject standard network announces... not deliver them in responses" | ✅ Implemented through swarm address-kind filtering |
-| UDP announce             | Spec finalized 2025-06, rolling out later in 2025                    | ✅ HTTP-only scope is correct                       |
+| UDP announce             | Separate UDP-over-I2P specification finalized 2025-06                | ✅ HTTP-only scope is correct                       |
 | PEX                      | Extension message `i2p_pex` (32-byte hashes)                         | ❌ Not in scope                                     |
 | DHT                      | Extension message `i2p_dht`, 54-byte compact node info               | ❌ Not in scope                                     |
 | SAMv3                    | Recommended for non-Java clients; `SIGNATURE_TYPE=7` (Ed25519)       | N/A (tracker-side only)                             |

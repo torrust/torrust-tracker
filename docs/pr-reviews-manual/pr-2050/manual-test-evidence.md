@@ -1,6 +1,7 @@
 ---
 semantic-links:
   pr: "https://github.com/torrust/torrust-tracker/pull/2050"
+  superseding-pr: "https://github.com/torrust/torrust-tracker/pull/2059"
   pr-title: "Feat/i2p peer support"
   review-pass: "review-pass-1.md"
 ---
@@ -11,11 +12,18 @@ Empirical verification of I2P peer behavior in the Torrust Tracker.
 This file documents every command, output, and observation needed to
 repeat the experiments.
 
+> **Review status (2026-08-18):** These results were captured from the
+> historical PR #2050 source at `1bb9e9a3`. Findings now apply to the signed
+> review baseline `2050-i2p-peer-support-reviewed` and draft
+> [PR #2059](https://github.com/torrust/torrust-tracker/pull/2059). Re-run the
+> checks after implementation changes before treating them as PR #2059 results.
+
 ---
 
 ## Prerequisites
 
-- Branch `pr-2050` checked out locally
+- Historical source branch `pr-2050` at `1bb9e9a3`, or the signed review
+  branch `2050-i2p-peer-support-reviewed` when reproducing the review baseline
 - Rust toolchain installed (MSRV 1.88)
 - Tracker built with `cargo build`
 - Storage directories created
@@ -72,13 +80,18 @@ in the response.
 I2P_DEST_1="$(python3 -c "print('A' * 512 + 'BQAEAAAAAA==.i2p')")"
 # cspell:disable-next-line
 I2P_DEST_2="$(python3 -c "print('B' + 'A' * 511 + 'BQAEAAAAAA==.i2p')")"
-INFO_HASH="9c38422213e30bff212b30c360d26f9a02136422"
+INFO_HASH="%9C8B%22%13%E3%0B%FF%21%2B0%C3%60%D2o%9A%02%13d%22"
 
 # Announce first I2P peer
 curl -s "http://127.0.0.1:7070/announce?info_hash=${INFO_HASH}&peer_id=-QT0001-000000000001&port=1&ip=${I2P_DEST_1}&uploaded=0&downloaded=0&left=0&compact=0" > /dev/null
 
-# Announce second I2P peer — should see first peer in response
-curl -s "http://127.0.0.1:7070/announce?info_hash=${INFO_HASH}&peer_id=-QT0001-000000000002&port=1&ip=${I2P_DEST_2}&uploaded=0&downloaded=0&left=0&compact=0" | python3 -m json.tool
+# Announce second I2P peer — response must contain peer 1's Destination.
+response="$(curl -s "http://127.0.0.1:7070/announce?info_hash=${INFO_HASH}&peer_id=-QT0001-000000000002&port=1&ip=${I2P_DEST_2}&uploaded=0&downloaded=0&left=0&compact=0")"
+if printf '%s' "${response}" | grep -Fq "${I2P_DEST_1}"; then
+  printf 'I2P-to-I2P: destination-present=yes, response-bytes=%s\n' "${#response}"
+else
+  printf 'I2P-to-I2P: destination-present=no, response-bytes=%s\n' "${#response}"
+fi
 ```
 
 **Expected**: Response contains one peer with:
@@ -107,13 +120,18 @@ non-compact response.
 ```bash
 # cspell:disable-next-line
 I2P_DEST="$(python3 -c "print('A' * 512 + 'BQAEAAAAAA==.i2p')")"
-INFO_HASH="9c38422213e30bff212b30c360d26f9a02136422"
+INFO_HASH="%9C8B%22%13%E3%0B%FF%21%2B0%C3%60%D2o%9A%02%13d%22"
 
 # Announce an I2P peer
 curl -s "http://127.0.0.1:7070/announce?info_hash=${INFO_HASH}&peer_id=-QT0001-000000000001&port=6881&ip=${I2P_DEST}&uploaded=0&downloaded=0&left=0&compact=0" > /dev/null
 
-# Announce a clearnet peer — check if I2P peer appears
-curl -s "http://127.0.0.1:7070/announce?info_hash=${INFO_HASH}&peer_id=-QT0001-000000000002&port=6881&uploaded=0&downloaded=0&left=0&compact=0" | python3 -m json.tool
+# Announce a clearnet peer — response must not contain the I2P Destination.
+response="$(curl -s "http://127.0.0.1:7070/announce?info_hash=${INFO_HASH}&peer_id=-QT0001-000000000002&port=6881&uploaded=0&downloaded=0&left=0&compact=0")"
+if printf '%s' "${response}" | grep -Fq "${I2P_DEST}"; then
+  printf 'Clearnet-to-I2P: destination-present=yes, response-bytes=%s\n' "${#response}"
+else
+  printf 'Clearnet-to-I2P: destination-present=no, response-bytes=%s\n' "${#response}"
+fi
 ```
 
 **Expected**: Response should NOT contain the I2P peer.
@@ -137,29 +155,31 @@ mixed I2P and clearnet responses was incorrect.
 **Command**:
 
 ```bash
-# cspell:disable-next-line
-I2P_DEST="$(python3 -c "print('A' * 512 + 'BQAEAAAAAA==.i2p')")"
-INFO_HASH="9c38422213e30bff212b30c360d26f9a02136422"
+# cspell:disable
+I2P_DEST_1="$(python3 -c "print('A' * 512 + 'BQAEAAAAAA==.i2p')")"
+I2P_DEST_2="$(python3 -c "print('B' + 'A' * 511 + 'BQAEAAAAAA==.i2p')")"
+# cspell:enable
+INFO_HASH="%9C8B%22%13%E3%0B%FF%21%2B0%C3%60%D2o%9A%02%13d%22"
 
 # Announce an I2P peer
-curl -s "http://127.0.0.1:7070/announce?info_hash=${INFO_HASH}&peer_id=-QT0001-000000000001&port=1&ip=${I2P_DEST}&uploaded=0&downloaded=0&left=0&compact=0" > /dev/null
+curl -s "http://127.0.0.1:7070/announce?info_hash=${INFO_HASH}&peer_id=-QT0001-000000000001&port=1&ip=${I2P_DEST_1}&uploaded=0&downloaded=0&left=0&compact=0" > /dev/null
 
 # Announce a second I2P peer with compact=1 — inspect raw response
 curl -s "http://127.0.0.1:7070/announce?info_hash=${INFO_HASH}&peer_id=-QT0001-000000000002&port=1&ip=${I2P_DEST_2}&uploaded=0&downloaded=0&left=0&compact=1" -o /tmp/compact_response.bin
 
-# Analyze the peers byte string length
-python3 -c "
-import bencode
-with open('/tmp/compact_response.bin', 'rb') as f:
-    data = bencode.bdecode(f.read())
-peers = data[b'peers']
-print(f'peers length: {len(peers)} bytes')
-print(f'6-byte chunks (IPv4): {len(peers) // 6}')
-print(f'32-byte chunks (I2P): {len(peers) // 32}')
-print(f'Mod 6: {len(peers) % 6}')
-print(f'Mod 32: {len(peers) % 32}')
-print(f'Hex: {peers.hex()}')
-"
+# Decode only the bencoded `peers` byte string using the Python standard library.
+python3 - <<'PY'
+from pathlib import Path
+
+payload = Path('/tmp/compact_response.bin').read_bytes()
+start = payload.index(b'5:peers') + len(b'5:peers')
+length_end = payload.index(b':', start)
+length = int(payload[start:length_end])
+peers = payload[length_end + 1 : length_end + 1 + length]
+assert len(peers) == length
+print(f'peers_length={len(peers)}, mod_32={len(peers) % 32}')
+print(f'sha256_hash_payload={peers.hex()}')
+PY
 ```
 
 **Observed output**:
@@ -186,13 +206,13 @@ an empty `peers` payload (`peers_length=0`), confirming separation.
 # I2P Destination with == padding
 # cspell:disable-next-line
 I2P_DEST="$(python3 -c "print('A' * 512 + 'BQAEAAAAAA==.i2p')")"
-INFO_HASH="9c38422213e30bff212b30c360d26f9a02136422"
+INFO_HASH="%9C8B%22%13%E3%0B%FF%21%2B0%C3%60%D2o%9A%02%13d%22"
 
 echo "Destination: ${I2P_DEST}"
 echo "Length: ${#I2P_DEST}"
 
-# Announce with the Destination — should succeed
-curl -s "http://127.0.0.1:7070/announce?info_hash=${INFO_HASH}&peer_id=-QT0001-000000000001&port=1&ip=${I2P_DEST}&uploaded=0&downloaded=0&left=0&compact=0" | python3 -m json.tool
+# Announce with raw padding — should succeed. Responses are bencoded.
+curl -s "http://127.0.0.1:7070/announce?info_hash=${INFO_HASH}&peer_id=-QT0001-000000000001&port=1&ip=${I2P_DEST}&uploaded=0&downloaded=0&left=0&compact=0"
 ```
 
 **Expected**: Both raw `==` and URL-encoded `%3D%3D` padding should be accepted
@@ -217,9 +237,8 @@ with `ip` set to the exact valid fixture
 <!-- cspell:disable-next-line -->
 
 `"A".repeat(512) + "BQAEAAAAAA%3D%3D.i2p"` and asserts that it produces
-`Some(AnnounceAddress::I2p(_))`. The test must be committed with the
-percent-decoding implementation fix; it is recorded here as an acceptance test
-instead of being committed in its currently failing form.
+`Some(AnnounceAddress::I2p(_))`. The existing disabled test must be restored
+and committed with the percent-decoding implementation fix.
 
 ---
 
@@ -231,13 +250,13 @@ are rejected.
 **Command**:
 
 ```bash
-INFO_HASH="9c38422213e30bff212b30c360d26f9a02136422"
+INFO_HASH="%9C8B%22%13%E3%0B%FF%21%2B0%C3%60%D2o%9A%02%13d%22"
 
 # Too short (384 decoded bytes = 512 Base64 chars, below 387 minimum)
-curl -s "http://127.0.0.1:7070/announce?info_hash=${INFO_HASH}&peer_id=-QT0001-000000000001&port=1&ip=$(python3 -c "print('A' * 512 + '.i2p')")&uploaded=0&downloaded=0&left=0&compact=0" | python3 -m json.tool
+curl -s "http://127.0.0.1:7070/announce?info_hash=${INFO_HASH}&peer_id=-QT0001-000000000001&port=1&ip=$(python3 -c "print('A' * 512 + '.i2p')")&uploaded=0&downloaded=0&left=0&compact=0"
 
 # Invalid Base64 characters
-curl -s "http://127.0.0.1:7070/announce?info_hash=${INFO_HASH}&peer_id=-QT0001-000000000001&port=1&ip=$(python3 -c "print('!' * 516 + '.i2p')")&uploaded=0&downloaded=0&left=0&compact=0" | python3 -m json.tool
+curl -s "http://127.0.0.1:7070/announce?info_hash=${INFO_HASH}&peer_id=-QT0001-000000000001&port=1&ip=$(python3 -c "print('!' * 516 + '.i2p')")&uploaded=0&downloaded=0&left=0&compact=0"
 ```
 
 **Expected**: Both return error responses (invalid parameter).
@@ -267,13 +286,13 @@ invalid I2P Base64 character are rejected with bencoded failure responses.
 # First announce an I2P peer via HTTP, then query via UDP
 # cspell:disable-next-line
 I2P_DEST="$(python3 -c "print('A' * 512 + 'BQAEAAAAAA==.i2p')")"
-INFO_HASH="9c38422213e30bff212b30c360d26f9a02136422"
+INFO_HASH="%9C8B%22%13%E3%0B%FF%21%2B0%C3%60%D2o%9A%02%13d%22"
 
 # Announce I2P peer via HTTP
 curl -s "http://127.0.0.1:7070/announce?info_hash=${INFO_HASH}&peer_id=-QT0001-000000000001&port=1&ip=${I2P_DEST}&uploaded=0&downloaded=0&left=0&compact=0" > /dev/null
 
 # Query via UDP — I2P peer should NOT appear
-cargo run --bin tracker_client -- udp announce "udp://127.0.0.1:6969" "${INFO_HASH}" 2>/dev/null | python3 -m json.tool
+cargo run -p torrust-tracker-client --bin tracker_client -- udp announce "udp://127.0.0.1:6969" "${INFO_HASH}"
 ```
 
 **Expected**: UDP response has empty `peers` list (I2P peer filtered out).
@@ -292,23 +311,24 @@ cargo run --bin tracker_client -- udp announce "udp://127.0.0.1:6969" "${INFO_HA
 }
 ```
 
-**Result**: **PASS** — the UDP response contains no I2P peer. The tracker
-reported two seeders in swarm metadata from preceding HTTP I2P announces, but
-the peer list itself is empty, as required by the UDP wire format.
+**Result**: **PARTIAL** — the UDP peer list correctly contains no I2P peer.
+However, `seeders: 2` includes unreachable I2P peers from aggregate swarm
+metadata. This is the unresolved network-scoped-statistics defect in finding
+3.12 / action A5 of `review-pass-1.md`; it must be fixed before merge.
 
 ---
 
 ## Summary
 
-| Test | Description                  | Finding                  | Status |
-| ---- | ---------------------------- | ------------------------ | ------ |
-| 1    | I2P announce accepted        | Destination parsing      | PASS   |
-| 2    | I2P-to-I2P matchmaking       | Swarm stores I2P peers   | PASS   |
-| 3    | Clearnet excludes I2P peers  | Cross-network separation | PASS   |
-| 4    | I2P 32-byte compact hash     | I2P compact wire format  | PASS   |
-| 5    | Base64 padding URL encoding  | `%3D%3D` compatibility   | FAIL   |
-| 6    | Invalid Destination rejected | Validation works         | PASS   |
-| 7    | UDP excludes I2P peers       | UDP peer-list filtering  | PASS   |
+| Test | Description                  | Finding                                          | Status  |
+| ---- | ---------------------------- | ------------------------------------------------ | ------- |
+| 1    | I2P announce accepted        | Destination parsing                              | PASS    |
+| 2    | I2P-to-I2P matchmaking       | Swarm stores I2P peers                           | PASS    |
+| 3    | Clearnet excludes I2P peers  | Cross-network separation                         | PASS    |
+| 4    | I2P 32-byte compact hash     | I2P compact wire format                          | PASS    |
+| 5    | Base64 padding URL encoding  | `%3D%3D` compatibility                           | FAIL    |
+| 6    | Invalid Destination rejected | Validation works                                 | PASS    |
+| 7    | UDP excludes I2P peers       | Peer filter passes; aggregate statistics need A5 | PARTIAL |
 
 ---
 
@@ -326,27 +346,30 @@ cargo test -p torrust-tracker-primitives \
 
 **Result**: **PASS**.
 
-| Package                         |     Tests |
-| ------------------------------- | --------: |
-| `torrust-tracker-http-core`     | 21 passed |
-| `torrust-tracker-http-protocol` | 52 passed |
-| `torrust-tracker-primitives`    | 32 passed |
+| Package                            |                                                           Tests |
+| ---------------------------------- | --------------------------------------------------------------: |
+| `torrust-tracker-http-core`        |                                                       21 passed |
+| `torrust-tracker-http-protocol`    |                                                       52 passed |
+| `torrust-tracker-primitives`       |                                                       32 passed |
+| `torrust-tracker-axum-http-server` | No unit-test count recorded; rerun required for an exact result |
 
-The run included the I2P-specific unit tests for Destination validation,
-announce parsing, I2P peer coordination, and compact/non-compact encoding.
-The HTTP protocol tests do not cover percent-encoded `%3D%3D` padding, which
-matches the manually reproduced interoperability failure.
+The run included Destination validation, announce parsing, and
+compact/non-compact encoding tests. It did not directly select
+`torrust-tracker-swarm-coordination-registry`; Tests 2–3 provide the manual
+matchmaking evidence. The HTTP protocol tests do not cover percent-encoded
+`%3D%3D` padding, which matches the manually reproduced interoperability
+failure.
 
 ---
 
 ## Environment
 
-| Item           | Value                                                   |
-| -------------- | ------------------------------------------------------- |
-| Branch         | `pr-2050` (at `1bb9e9a3`, rebased on `develop`)         |
-| Rust toolchain | _(fill in after `rustup show`)_                         |
-| Tracker config | `share/default/config/tracker.development.sqlite3.toml` |
-| HTTP port      | 7070                                                    |
-| UDP port       | 6969                                                    |
-| Test date      | 2026-08-17                                              |
-| Tester         | Jose Celano + AI agent                                  |
+| Item            | Value                                                                                |
+| --------------- | ------------------------------------------------------------------------------------ |
+| Source baseline | Historical `pr-2050` at `1bb9e9a3`; review baseline `2050-i2p-peer-support-reviewed` |
+| Rust toolchain  | _(fill in after `rustup show`)_                                                      |
+| Tracker config  | `share/default/config/tracker.development.sqlite3.toml`                              |
+| HTTP port       | 7070                                                                                 |
+| UDP port        | 6969                                                                                 |
+| Test date       | 2026-08-17                                                                           |
+| Tester          | Jose Celano + AI agent                                                               |

@@ -1,6 +1,7 @@
 ---
 semantic-links:
   pr: "https://github.com/torrust/torrust-tracker/pull/2050"
+  superseding-pr: "https://github.com/torrust/torrust-tracker/pull/2059"
   i2p-bittorrent-spec: "https://i2p.net/en/docs/applications/bittorrent/"
   i2p-common-structures-spec: "https://i2p.net/en/docs/specs/common-structures"
   related-artifacts:
@@ -15,6 +16,12 @@ This note explains the I2P address forms relevant to the Torrust Tracker I2P
 peer-support review. It is a review aid, not a replacement for the official
 [I2P BitTorrent specification](https://i2p.net/en/docs/applications/bittorrent/)
 or the [I2P common-structures specification](https://i2p.net/en/docs/specs/common-structures).
+
+> **Review status (2026-08-18):** PR #2050 is the historical source for this
+> review. The signed review baseline is `2050-i2p-peer-support-reviewed`, and
+> the active proposal is draft [PR #2059](https://github.com/torrust/torrust-tracker/pull/2059).
+> This primer describes the required merge behavior for that draft; it does not
+> claim that all requirements are implemented.
 
 ---
 
