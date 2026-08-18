@@ -26,7 +26,7 @@ use torrust_tracker_http_protocol::v1::services::peer_ip_resolver::{
     ClientIpSources, PeerIpResolutionError, RemoteClientAddr, resolve_remote_client_addr,
 };
 use torrust_tracker_primitives::peer::PeerAnnouncement;
-use torrust_tracker_primitives::{AnnounceData, AnnounceEvent, NumberOfBytes};
+use torrust_tracker_primitives::{AnnounceData, AnnounceEvent, ConfigurationInstanceId, NumberOfBytes};
 
 use crate::event;
 use crate::event::Event;
@@ -45,6 +45,7 @@ pub struct AnnounceService {
     whitelist_authorization: Arc<whitelist::authorization::WhitelistAuthorization>,
     opt_http_stats_event_sender: event::sender::Sender,
     peer_ip_selection_policy: PeerIpSelectionPolicy,
+    configuration_instance_id: ConfigurationInstanceId,
 }
 
 /// Controls whether an HTTP announce may override its peer IP with BEP 3's
@@ -91,12 +92,54 @@ impl AnnounceService {
 
     #[must_use]
     pub fn new_with_peer_ip_selection_policy(
+    pub fn with_configuration_instance_id(
         core_config: Arc<Core>,
         announce_handler: Arc<AnnounceHandler>,
         authentication_service: Arc<AuthenticationService>,
         whitelist_authorization: Arc<whitelist::authorization::WhitelistAuthorization>,
         opt_http_stats_event_sender: event::sender::Sender,
         peer_ip_selection_policy: PeerIpSelectionPolicy,
+    ) -> Self {
+        Self::new_with_peer_ip_selection_policy_and_configuration_instance_id(
+            core_config,
+            announce_handler,
+            authentication_service,
+            whitelist_authorization,
+            opt_http_stats_event_sender,
+            peer_ip_selection_policy,
+            ConfigurationInstanceId::new(torrust_tracker_primitives::ServiceRole::HttpTracker, 0),
+        )
+    }
+
+    #[must_use]
+    pub fn with_configuration_instance_id(
+        core_config: Arc<Core>,
+        announce_handler: Arc<AnnounceHandler>,
+        authentication_service: Arc<AuthenticationService>,
+        whitelist_authorization: Arc<whitelist::authorization::WhitelistAuthorization>,
+        opt_http_stats_event_sender: event::sender::Sender,
+        configuration_instance_id: ConfigurationInstanceId,
+    ) -> Self {
+        Self::new_with_peer_ip_selection_policy_and_configuration_instance_id(
+            core_config,
+            announce_handler,
+            authentication_service,
+            whitelist_authorization,
+            opt_http_stats_event_sender,
+            PeerIpSelectionPolicy::disabled(),
+            configuration_instance_id,
+        )
+    }
+
+    #[must_use]
+    pub fn new_with_peer_ip_selection_policy_and_configuration_instance_id(
+        core_config: Arc<Core>,
+        announce_handler: Arc<AnnounceHandler>,
+        authentication_service: Arc<AuthenticationService>,
+        whitelist_authorization: Arc<whitelist::authorization::WhitelistAuthorization>,
+        opt_http_stats_event_sender: event::sender::Sender,
+        peer_ip_selection_policy: PeerIpSelectionPolicy,
+        configuration_instance_id: ConfigurationInstanceId,
     ) -> Self {
         Self {
             core_config,
@@ -105,6 +148,7 @@ impl AnnounceService {
             whitelist_authorization,
             opt_http_stats_event_sender,
             peer_ip_selection_policy,
+            configuration_instance_id,
         }
     }
 
@@ -236,7 +280,11 @@ impl AnnounceService {
     ) {
         if let Some(http_stats_event_sender) = self.opt_http_stats_event_sender.as_deref() {
             let event = Event::TcpAnnounce {
-                connection: event::ConnectionContext::new(remote_client_addr, server_service_binding),
+                connection: event::ConnectionContext::with_configuration_instance_id(
+                    self.configuration_instance_id,
+                    remote_client_addr,
+                    server_service_binding,
+                ),
                 info_hash,
                 announcement,
             };

@@ -1,9 +1,8 @@
 //! Aggregate statistics integration test — fixed-port multi-instance scenarios.
 //!
 //! This binary starts a tracker with two HTTP and two UDP listeners on distinct
-//! fixed ports, all with `tracker_usage_statistics = true`. Scenario functions
-//! verify that aggregate statistics correctly count announces from all enabled
-//! listeners.
+//! fixed ports. Each protocol has one metrics-disabled and one metrics-enabled
+//! listener; aggregate statistics must count only the enabled listener.
 //!
 //! ```text
 //! cargo test --test aggregate_stats_fixed_ports
@@ -23,13 +22,8 @@ pub(crate) type CurrentClock = clock::Working;
 #[allow(dead_code)]
 pub(crate) type CurrentClock = clock::Stopped;
 
-/// Configuration: two HTTP listeners on distinct fixed ports,
-/// all with `tracker_usage_statistics = true`.
-// NOTE: The fixed-port enabled/disabled HTTP aggregate-statistics test (count == 1)
-// is blocked by #2039 — the shared HTTP event bus prevents per-instance metrics
-// suppression. The bootstrap fix correctly assigns different containers, but the
-// HTTP stats layer still counts both. This test proves both listeners start;
-// the per-instance filtering test will be added when #2039 lands.
+/// Configuration: two HTTP and two UDP listeners on distinct fixed ports, with
+/// the first listener for each protocol metrics-disabled.
 const FIXED_PORT_CONFIG: &str = r#"
     [metadata]
     app = "torrust-tracker"
@@ -49,7 +43,7 @@ const FIXED_PORT_CONFIG: &str = r#"
 
     [[http_trackers]]
     bind_address = "0.0.0.0:17091"
-    tracker_usage_statistics = true
+    tracker_usage_statistics = false
 
     [[http_trackers]]
     bind_address = "0.0.0.0:17092"
@@ -57,7 +51,7 @@ const FIXED_PORT_CONFIG: &str = r#"
 
     [[udp_trackers]]
     bind_address = "0.0.0.0:17093"
-    tracker_usage_statistics = true
+    tracker_usage_statistics = false
 
     [[udp_trackers]]
     bind_address = "0.0.0.0:17094"
@@ -80,10 +74,11 @@ async fn aggregate_stats_scenarios() {
 
     http_trackers_on_fixed_ports_should_aggregate_announces_from_both_listeners(&app_container).await;
     udp_trackers_on_fixed_ports_should_aggregate_announces_from_both_listeners(&app_container).await;
+    udp_metrics_disabled_tracker_should_still_enforce_cookie_error_bans(&app_container).await;
 }
 
-/// Both HTTP listeners are on distinct fixed ports. Announces to both
-/// should be counted in the aggregate HTTP statistics.
+/// Both HTTP listeners are on distinct fixed ports, but only the
+/// metrics-enabled listener contributes to aggregate HTTP statistics.
 async fn http_trackers_on_fixed_ports_should_aggregate_announces_from_both_listeners(
     app_container: &std::sync::Arc<torrust_tracker_lib::container::AppContainer>,
 ) {
@@ -102,11 +97,11 @@ async fn http_trackers_on_fixed_ports_should_aggregate_announces_from_both_liste
     }
 
     let global_stats = common::get_tracker_statistics(&api_url, "MyAccessToken").await;
-    assert_eq!(global_stats.tcp4_announces_handled, 2);
+    assert_eq!(global_stats.tcp4_announces_handled, 1);
 }
 
-/// Both UDP listeners are on distinct fixed ports. Announces to both
-/// should be counted in the aggregate UDP statistics.
+/// Both UDP listeners are on distinct fixed ports, but only the
+/// metrics-enabled listener contributes to aggregate UDP statistics.
 async fn udp_trackers_on_fixed_ports_should_aggregate_announces_from_both_listeners(
     app_container: &std::sync::Arc<torrust_tracker_lib::container::AppContainer>,
 ) {
@@ -126,5 +121,19 @@ async fn udp_trackers_on_fixed_ports_should_aggregate_announces_from_both_listen
     }
 
     let global_stats = common::get_tracker_statistics(&api_url, "MyAccessToken").await;
-    assert_eq!(global_stats.udp4_announces_handled, 2);
+    assert_eq!(global_stats.udp4_announces_handled, 1);
+}
+
+/// A metrics-disabled UDP tracker still publishes cookie-error facts to the
+/// shared banning listener, which enforces the resulting IP ban.
+async fn udp_metrics_disabled_tracker_should_still_enforce_cookie_error_bans(
+    app_container: &std::sync::Arc<torrust_tracker_lib::container::AppContainer>,
+) {
+    let udp_urls = common::udp_tracker_urls(app_container).await;
+    let api_url = common::http_api_url(app_container).await.expect("expected an HTTP API URL");
+
+    common::udp_invalid_connection_ids_should_trigger_ban(common::udp_socket_addr(&udp_urls[0])).await;
+
+    let global_stats = common::get_tracker_statistics(&api_url, "MyAccessToken").await;
+    assert_eq!(global_stats.udp_banned_ips_total, 1);
 }

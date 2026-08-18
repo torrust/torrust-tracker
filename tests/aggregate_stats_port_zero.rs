@@ -1,8 +1,8 @@
 //! Statistics integration test — aggregate statistics with port-zero listeners.
 //!
 //! This binary starts a tracker with two HTTP and two UDP listeners on port
-//! zero, all enabled. Scenario functions verify that aggregate statistics
-//! count announces from all listeners.
+//! zero, with metrics-disabled and metrics-enabled listeners. Scenario functions
+//! verify that only enabled listeners contribute to aggregate statistics.
 //!
 //! ```text
 //! cargo test --test aggregate_stats_port_zero
@@ -135,8 +135,8 @@ fn duplicate_port_zero_instances_should_receive_distinct_configurations(
     );
 }
 
-/// Both HTTP listeners on port zero. Announces to both should be counted
-/// in the aggregate HTTP statistics.
+/// Both HTTP listeners use repeated port-zero bindings. Announces to both must
+/// be filtered using canonical identity rather than their configured address.
 async fn two_http_trackers_on_port_zero_should_aggregate_announces_from_both_listeners(
     app_container: &std::sync::Arc<torrust_tracker_lib::container::AppContainer>,
 ) {
@@ -155,11 +155,11 @@ async fn two_http_trackers_on_port_zero_should_aggregate_announces_from_both_lis
     }
 
     let global_stats = common::get_tracker_statistics(&api_url, "MyAccessToken").await;
-    assert_eq!(global_stats.tcp4_announces_handled, 2);
+    assert_eq!(global_stats.tcp4_announces_handled, 1);
 }
 
-/// Both UDP listeners on port zero. Announces to both should be counted
-/// in the aggregate UDP statistics.
+/// Both UDP listeners use repeated port-zero bindings. Announces to both must
+/// be filtered using canonical identity rather than their configured address.
 async fn two_udp_trackers_on_port_zero_should_aggregate_announces_from_both_listeners(
     app_container: &std::sync::Arc<torrust_tracker_lib::container::AppContainer>,
 ) {
@@ -179,5 +179,5 @@ async fn two_udp_trackers_on_port_zero_should_aggregate_announces_from_both_list
     }
 
     let global_stats = common::get_tracker_statistics(&api_url, "MyAccessToken").await;
-    assert_eq!(global_stats.udp4_announces_handled, 2);
+    assert_eq!(global_stats.udp4_announces_handled, 1);
 }

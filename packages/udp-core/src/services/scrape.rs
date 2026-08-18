@@ -15,7 +15,7 @@ use torrust_info_hash::InfoHash;
 use torrust_net_primitives::service_binding::ServiceBinding;
 use torrust_tracker_core::error::{ScrapeError, WhitelistError};
 use torrust_tracker_core::scrape_handler::ScrapeHandler;
-use torrust_tracker_primitives::ScrapeData;
+use torrust_tracker_primitives::{ConfigurationInstanceId, ScrapeData};
 use torrust_tracker_udp_protocol::ScrapeRequest;
 
 use crate::connection_cookie::{ConnectionCookieError, check, gen_remote_fingerprint};
@@ -29,14 +29,34 @@ use crate::event::{ConnectionContext, Event};
 pub struct ScrapeService {
     scrape_handler: Arc<ScrapeHandler>,
     opt_udp_stats_event_sender: crate::event::sender::Sender,
+    configuration_instance_id: ConfigurationInstanceId,
 }
 
 impl ScrapeService {
     #[must_use]
+    pub const fn configuration_instance_id(&self) -> ConfigurationInstanceId {
+        self.configuration_instance_id
+    }
+
+    #[must_use]
     pub fn new(scrape_handler: Arc<ScrapeHandler>, opt_udp_stats_event_sender: crate::event::sender::Sender) -> Self {
+        Self::with_configuration_instance_id(
+            scrape_handler,
+            opt_udp_stats_event_sender,
+            ConfigurationInstanceId::new(torrust_tracker_primitives::ServiceRole::UdpTracker, 0),
+        )
+    }
+
+    #[must_use]
+    pub fn with_configuration_instance_id(
+        scrape_handler: Arc<ScrapeHandler>,
+        opt_udp_stats_event_sender: crate::event::sender::Sender,
+        configuration_instance_id: ConfigurationInstanceId,
+    ) -> Self {
         Self {
             scrape_handler,
             opt_udp_stats_event_sender,
+            configuration_instance_id,
         }
     }
 
@@ -91,7 +111,11 @@ impl ScrapeService {
     async fn send_event(&self, client_socket_addr: SocketAddr, server_service_binding: ServiceBinding) {
         if let Some(udp_stats_event_sender) = self.opt_udp_stats_event_sender.as_deref() {
             let event = Event::UdpScrape {
-                connection: ConnectionContext::new(client_socket_addr, server_service_binding),
+                connection: ConnectionContext::with_configuration_instance_id(
+                    self.configuration_instance_id,
+                    client_socket_addr,
+                    server_service_binding,
+                ),
             };
 
             tracing::debug!(target = crate::UDP_TRACKER_LOG_TARGET, "Sending UdpScrape event: {event:?}");

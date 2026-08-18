@@ -22,6 +22,7 @@ use torrust_metrics::label_name;
 use torrust_net_primitives::service_binding::{IpFamily, IpType, ServiceBinding};
 use torrust_tracker_http_protocol::v1::services::peer_ip_resolver::RemoteClientAddr;
 use torrust_tracker_primitives::peer::PeerAnnouncement;
+use torrust_tracker_primitives::{ConfigurationInstanceId, ServiceRole};
 
 /// A HTTP core event.
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -37,7 +38,11 @@ pub enum Event {
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]
+// issue: #2039
+// Carries canonical listener identity so shared metrics consumers can apply
+// per-instance policy without deriving identity from a socket address.
 pub struct ConnectionContext {
+    configuration_instance_id: ConfigurationInstanceId,
     client: ClientConnectionContext,
     server: ServerConnectionContext,
 }
@@ -45,12 +50,31 @@ pub struct ConnectionContext {
 impl ConnectionContext {
     #[must_use]
     pub fn new(remote_client_addr: RemoteClientAddr, server_service_binding: ServiceBinding) -> Self {
+        Self::with_configuration_instance_id(
+            ConfigurationInstanceId::new(ServiceRole::HttpTracker, 0),
+            remote_client_addr,
+            server_service_binding,
+        )
+    }
+
+    #[must_use]
+    pub fn with_configuration_instance_id(
+        configuration_instance_id: ConfigurationInstanceId,
+        remote_client_addr: RemoteClientAddr,
+        server_service_binding: ServiceBinding,
+    ) -> Self {
         Self {
+            configuration_instance_id,
             client: ClientConnectionContext { remote_client_addr },
             server: ServerConnectionContext {
                 service_binding: server_service_binding,
             },
         }
+    }
+
+    #[must_use]
+    pub const fn configuration_instance_id(&self) -> ConfigurationInstanceId {
+        self.configuration_instance_id
     }
 
     #[must_use]

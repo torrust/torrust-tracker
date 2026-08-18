@@ -2,6 +2,8 @@ use std::sync::Arc;
 
 use torrust_tracker_configuration::{Core, HttpTracker};
 use torrust_tracker_core::container::TrackerCoreContainer;
+use torrust_tracker_events::bus::SenderStatus;
+use torrust_tracker_primitives::ConfigurationInstanceId;
 use torrust_tracker_swarm_coordination_registry::container::SwarmCoordinationRegistryContainer;
 
 use crate::event::bus::EventBus;
@@ -44,7 +46,12 @@ impl HttpTrackerCoreContainer {
     ) -> Arc<Self> {
         let http_tracker_core_services = HttpTrackerCoreServices::initialize_from(tracker_core_container);
 
-        Self::initialize_from_services(tracker_core_container, &http_tracker_core_services, http_tracker_config)
+        Self::initialize_from_services(
+            tracker_core_container,
+            &http_tracker_core_services,
+            http_tracker_config,
+            ConfigurationInstanceId::new(torrust_tracker_primitives::ServiceRole::HttpTracker, 0),
+        )
     }
 
     #[must_use]
@@ -52,6 +59,7 @@ impl HttpTrackerCoreContainer {
         tracker_core_container: &Arc<TrackerCoreContainer>,
         http_tracker_core_services: &Arc<HttpTrackerCoreServices>,
         http_tracker_config: &Arc<HttpTracker>,
+        configuration_instance_id: ConfigurationInstanceId,
     ) -> Arc<Self> {
         Arc::new(Self {
             tracker_core_container: tracker_core_container.clone(),
@@ -59,8 +67,21 @@ impl HttpTrackerCoreContainer {
             event_bus: http_tracker_core_services.event_bus.clone(),
             stats_event_sender: http_tracker_core_services.stats_event_sender.clone(),
             stats_repository: http_tracker_core_services.stats_repository.clone(),
-            announce_service: http_tracker_core_services.announce_service.clone(),
-            scrape_service: http_tracker_core_services.scrape_service.clone(),
+            announce_service: Arc::new(AnnounceService::with_configuration_instance_id(
+                tracker_core_container.core_config.clone(),
+                tracker_core_container.announce_handler.clone(),
+                tracker_core_container.authentication_service.clone(),
+                tracker_core_container.whitelist_authorization.clone(),
+                http_tracker_core_services.stats_event_sender.clone(),
+                configuration_instance_id,
+            )),
+            scrape_service: Arc::new(ScrapeService::with_configuration_instance_id(
+                tracker_core_container.core_config.clone(),
+                tracker_core_container.scrape_handler.clone(),
+                tracker_core_container.authentication_service.clone(),
+                http_tracker_core_services.stats_event_sender.clone(),
+                configuration_instance_id,
+            )),
         })
     }
 }
@@ -79,10 +100,13 @@ impl HttpTrackerCoreServices {
         // HTTP core stats
         let http_core_broadcaster = Broadcaster::default();
         let http_stats_repository = Arc::new(Repository::new());
-        let http_stats_event_bus = Arc::new(EventBus::new(
-            tracker_core_container.core_config.tracker_usage_statistics.into(),
-            http_core_broadcaster.clone(),
-        ));
+        // issue: #2039
+        // issue-spec: docs/issues/drafts/optimize-event-publication-without-consumers/ISSUE.md
+        // Events are objective facts. Per-listener metrics policy is applied by
+        // the shared statistics listener, so it must not suppress publication.
+        // A future consumer-demand optimization needs an inventory and benchmark
+        // evidence before this can become conditional.
+        let http_stats_event_bus = Arc::new(EventBus::new(SenderStatus::Enabled, http_core_broadcaster.clone()));
 
         let http_stats_event_sender = http_stats_event_bus.sender();
 

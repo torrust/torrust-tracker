@@ -26,7 +26,11 @@ pub async fn handle_connect(
     if let Some(udp_server_stats_event_sender) = opt_udp_server_stats_event_sender.as_deref() {
         udp_server_stats_event_sender
             .send(Event::UdpRequestAccepted {
-                context: ConnectionContext::new(client_socket_addr, server_service_binding.clone()),
+                context: ConnectionContext::with_configuration_instance_id(
+                    connect_service.configuration_instance_id(),
+                    client_socket_addr,
+                    server_service_binding.clone(),
+                ),
                 kind: UdpRequestKind::Connect,
             })
             .await;

@@ -1,3 +1,4 @@
+use std::collections::BTreeMap;
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -11,25 +12,34 @@ use torrust_tracker_udp_core::services::banning::BanService;
 
 use crate::container::AppContainer;
 
+#[must_use]
+// issue: #2039
+// The shared metrics listener filters aggregate updates by immutable listener
+// policy. It must not control event publication, because banning consumes the
+// same stream independently.
 pub fn start_stats_event_listener(
-    config: &Configuration,
+    _config: &Configuration,
     app_container: &Arc<AppContainer>,
     cancellation_token: CancellationToken,
 ) -> Option<JoinHandle<()>> {
-    if config.core.tracker_usage_statistics {
-        let job = torrust_tracker_udp_server::statistics::event::listener::run_event_listener(
-            app_container.udp_tracker_server_container.event_bus.receiver(),
-            cancellation_token,
-            &app_container.udp_tracker_server_container.stats_repository,
-        );
-        Some(job)
-    } else {
-        tracing::info!("UDP tracker server event listener job is disabled.");
-        None
-    }
+    let metrics_policy = app_container
+        .udp_tracker_instance_containers
+        .iter()
+        .map(|(id, container)| (*id, container.udp_tracker_config.tracker_usage_statistics))
+        .collect::<BTreeMap<_, _>>();
+    let job = torrust_tracker_udp_server::statistics::event::listener::run_event_listener_with_metrics_policy(
+        app_container.udp_tracker_server_container.event_bus.receiver(),
+        cancellation_token,
+        &app_container.udp_tracker_server_container.stats_repository,
+        metrics_policy,
+    );
+    Some(job)
 }
 
 #[must_use]
+// issue: #2039
+// Banning intentionally receives every UDP-server fact; it never applies the
+// per-listener metrics policy used by `start_stats_event_listener`.
 pub fn start_banning_event_listener(app_container: &Arc<AppContainer>, cancellation_token: CancellationToken) -> JoinHandle<()> {
     torrust_tracker_udp_server::banning::event::listener::run_event_listener(
         app_container.udp_tracker_server_container.event_bus.receiver(),

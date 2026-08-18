@@ -4,6 +4,7 @@
 use std::net::SocketAddr;
 
 use torrust_net_primitives::service_binding::ServiceBinding;
+use torrust_tracker_primitives::ConfigurationInstanceId;
 use torrust_tracker_udp_protocol::ConnectionId;
 
 use crate::connection_cookie::{gen_remote_fingerprint, make};
@@ -15,13 +16,31 @@ use crate::event::{ConnectionContext, Event};
 /// appropriate statistics events.
 pub struct ConnectService {
     pub opt_udp_core_stats_event_sender: crate::event::sender::Sender,
+    configuration_instance_id: ConfigurationInstanceId,
 }
 
 impl ConnectService {
     #[must_use]
+    pub const fn configuration_instance_id(&self) -> ConfigurationInstanceId {
+        self.configuration_instance_id
+    }
+
+    #[must_use]
     pub fn new(opt_udp_core_stats_event_sender: crate::event::sender::Sender) -> Self {
+        Self::with_configuration_instance_id(
+            opt_udp_core_stats_event_sender,
+            ConfigurationInstanceId::new(torrust_tracker_primitives::ServiceRole::UdpTracker, 0),
+        )
+    }
+
+    #[must_use]
+    pub fn with_configuration_instance_id(
+        opt_udp_core_stats_event_sender: crate::event::sender::Sender,
+        configuration_instance_id: ConfigurationInstanceId,
+    ) -> Self {
         Self {
             opt_udp_core_stats_event_sender,
+            configuration_instance_id,
         }
     }
 
@@ -42,7 +61,11 @@ impl ConnectService {
         if let Some(udp_stats_event_sender) = self.opt_udp_core_stats_event_sender.as_deref() {
             udp_stats_event_sender
                 .send(Event::UdpConnect {
-                    connection: ConnectionContext::new(client_socket_addr, server_service_binding),
+                    connection: ConnectionContext::with_configuration_instance_id(
+                        self.configuration_instance_id,
+                        client_socket_addr,
+                        server_service_binding,
+                    ),
                 })
                 .await;
         }

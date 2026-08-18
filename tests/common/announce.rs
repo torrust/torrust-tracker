@@ -25,3 +25,9 @@ pub async fn http_announce(tracker_url: &Url, info_hash: &[u8; 20], peer_id: &[u
 pub async fn udp_announce(remote_addr: SocketAddr, info_hash: &[u8; 20], peer_id: &[u8; 20], port: u16) {
     torrust_tracker_test_helpers::udp::udp_announce(remote_addr, info_hash, peer_id, port).await;
 }
+
+/// Proves that invalid connection IDs from `remote_addr` reach shared UDP ban enforcement.
+#[allow(dead_code)]
+pub async fn udp_invalid_connection_ids_should_trigger_ban(remote_addr: SocketAddr) {
+    torrust_tracker_test_helpers::udp::invalid_connection_ids_should_trigger_ban(remote_addr).await;
+}

@@ -20,7 +20,7 @@ use torrust_tracker_http_protocol::v1::responses::error::Error as HttpProtocolEr
 use torrust_tracker_http_protocol::v1::services::peer_ip_resolver::{
     ClientIpSources, PeerIpResolutionError, RemoteClientAddr, resolve_remote_client_addr,
 };
-use torrust_tracker_primitives::ScrapeData;
+use torrust_tracker_primitives::{ConfigurationInstanceId, ScrapeData};
 
 use crate::event::{ConnectionContext, Event};
 use crate::services::error_mapping::protocol_error_from_tracker_core_error;
@@ -42,6 +42,7 @@ pub struct ScrapeService {
     scrape_handler: Arc<ScrapeHandler>,
     authentication_service: Arc<AuthenticationService>,
     opt_http_stats_event_sender: crate::event::sender::Sender,
+    configuration_instance_id: ConfigurationInstanceId,
 }
 
 impl ScrapeService {
@@ -52,11 +53,29 @@ impl ScrapeService {
         authentication_service: Arc<AuthenticationService>,
         opt_http_stats_event_sender: crate::event::sender::Sender,
     ) -> Self {
+        Self::with_configuration_instance_id(
+            core_config,
+            scrape_handler,
+            authentication_service,
+            opt_http_stats_event_sender,
+            ConfigurationInstanceId::new(torrust_tracker_primitives::ServiceRole::HttpTracker, 0),
+        )
+    }
+
+    #[must_use]
+    pub fn with_configuration_instance_id(
+        core_config: Arc<Core>,
+        scrape_handler: Arc<ScrapeHandler>,
+        authentication_service: Arc<AuthenticationService>,
+        opt_http_stats_event_sender: crate::event::sender::Sender,
+        configuration_instance_id: ConfigurationInstanceId,
+    ) -> Self {
         Self {
             core_config,
             scrape_handler,
             authentication_service,
             opt_http_stats_event_sender,
+            configuration_instance_id,
         }
     }
 
@@ -105,7 +124,11 @@ impl ScrapeService {
     async fn send_event(&self, remote_client_addr: RemoteClientAddr, server_service_binding: ServiceBinding) {
         if let Some(http_stats_event_sender) = self.opt_http_stats_event_sender.as_deref() {
             let event = Event::TcpScrape {
-                connection: ConnectionContext::new(remote_client_addr, server_service_binding),
+                connection: ConnectionContext::with_configuration_instance_id(
+                    self.configuration_instance_id,
+                    remote_client_addr,
+                    server_service_binding,
+                ),
             };
 
             tracing::debug!("Sending TcpScrape event: {:?}", event);

@@ -40,7 +40,11 @@ pub async fn handle_scrape(
     if let Some(udp_server_stats_event_sender) = opt_udp_server_stats_event_sender.as_deref() {
         udp_server_stats_event_sender
             .send(Event::UdpRequestAccepted {
-                context: ConnectionContext::new(client_socket_addr, server_service_binding.clone()),
+                context: ConnectionContext::with_configuration_instance_id(
+                    scrape_service.configuration_instance_id(),
+                    client_socket_addr,
+                    server_service_binding.clone(),
+                ),
                 kind: UdpRequestKind::Scrape,
             })
             .await;
@@ -64,7 +68,11 @@ pub async fn handle_scrape(
                     if let Some(sender) = opt_udp_server_stats_event_sender.as_deref() {
                         sender
                             .send(Event::UdpError {
-                                context: ConnectionContext::new(client_socket_addr, server_service_binding.clone()),
+                                context: ConnectionContext::with_configuration_instance_id(
+                                    scrape_service.configuration_instance_id(),
+                                    client_socket_addr,
+                                    server_service_binding.clone(),
+                                ),
                                 kind: Some(UdpRequestKind::Scrape),
                                 error: ErrorKind::ConnectionCookie(cookie_error.to_string()),
                             })

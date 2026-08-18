@@ -4,6 +4,10 @@ use crate::broadcaster::Broadcaster;
 use crate::{receiver, sender};
 
 #[derive(Clone, Debug)]
+// issue-spec: docs/issues/drafts/optimize-event-publication-without-consumers/ISSUE.md
+// `Disabled` remains explicit absent-sender injection. It is not a per-listener
+// metrics switch: application event families require objective facts while any
+// metrics or banning consumer is active.
 pub enum SenderStatus {
     Enabled,
     Disabled,
@@ -76,7 +80,10 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn it_should_not_provide_event_sender_when_disabled() {
+    async fn it_should_not_provide_an_event_sender_when_disabled() {
+        // Keep the generic absent-sender contract for tests and a future
+        // bootstrap-time consumer-demand decision. Issue #2039 instead makes
+        // the tracker event-family containers explicitly select `Enabled`.
         let bus = EventBus::<String>::new(SenderStatus::Disabled, Broadcaster::default());
 
         assert!(bus.sender().is_none());

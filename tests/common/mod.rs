@@ -23,7 +23,7 @@ mod workspace;
 // unused_imports warnings for the binaries that don't. The attributes
 // suppress those per-binary false positives.
 #[allow(unused_imports)]
-pub use announce::{http_announce, udp_announce};
+pub use announce::{http_announce, udp_announce, udp_invalid_connection_ids_should_trigger_ban};
 #[allow(unused_imports)]
 pub use statistics::{PartialGlobalStatistics, get_tracker_statistics};
 #[allow(unused_imports)]

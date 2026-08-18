@@ -20,6 +20,7 @@ use torrust_metrics::label::{LabelSet, LabelValue};
 use torrust_metrics::label_name;
 use torrust_net_primitives::service_binding::{IpFamily, IpType, ServiceBinding};
 use torrust_tracker_primitives::peer::PeerAnnouncement;
+use torrust_tracker_primitives::{ConfigurationInstanceId, ServiceRole};
 
 /// A UDP core event.
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -38,7 +39,11 @@ pub enum Event {
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]
+// issue: #2039
+// Carries canonical listener identity so shared metrics consumers can apply
+// per-instance policy without deriving identity from a socket address.
 pub struct ConnectionContext {
+    configuration_instance_id: ConfigurationInstanceId,
     client_socket_addr: SocketAddr,
     server_service_binding: ServiceBinding,
 }
@@ -46,10 +51,29 @@ pub struct ConnectionContext {
 impl ConnectionContext {
     #[must_use]
     pub fn new(client_socket_addr: SocketAddr, server_service_binding: ServiceBinding) -> Self {
+        Self::with_configuration_instance_id(
+            ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0),
+            client_socket_addr,
+            server_service_binding,
+        )
+    }
+
+    #[must_use]
+    pub fn with_configuration_instance_id(
+        configuration_instance_id: ConfigurationInstanceId,
+        client_socket_addr: SocketAddr,
+        server_service_binding: ServiceBinding,
+    ) -> Self {
         Self {
+            configuration_instance_id,
             client_socket_addr,
             server_service_binding,
         }
+    }
+
+    #[must_use]
+    pub const fn configuration_instance_id(&self) -> ConfigurationInstanceId {
+        self.configuration_instance_id
     }
 
     #[must_use]

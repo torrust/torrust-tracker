@@ -3,6 +3,8 @@ use std::sync::Arc;
 use tokio::sync::RwLock;
 use torrust_tracker_configuration::{Core, UdpTracker};
 use torrust_tracker_core::container::TrackerCoreContainer;
+use torrust_tracker_events::bus::SenderStatus;
+use torrust_tracker_primitives::ConfigurationInstanceId;
 use torrust_tracker_swarm_coordination_registry::container::SwarmCoordinationRegistryContainer;
 
 use crate::event::bus::EventBus;
@@ -16,6 +18,7 @@ use crate::{event, services, statistics};
 
 pub struct UdpTrackerCoreContainer {
     pub udp_tracker_config: Arc<UdpTracker>,
+    pub configuration_instance_id: ConfigurationInstanceId,
 
     pub tracker_core_container: Arc<TrackerCoreContainer>,
 
@@ -51,7 +54,12 @@ impl UdpTrackerCoreContainer {
         let udp_tracker_core_services =
             UdpTrackerCoreServices::initialize_from(tracker_core_container, max_connection_id_errors_per_ip);
 
-        Self::initialize_from_services(tracker_core_container, &udp_tracker_core_services, udp_tracker_config)
+        Self::initialize_from_services(
+            tracker_core_container,
+            &udp_tracker_core_services,
+            udp_tracker_config,
+            ConfigurationInstanceId::new(torrust_tracker_primitives::ServiceRole::UdpTracker, 0),
+        )
     }
 
     #[must_use]
@@ -59,9 +67,11 @@ impl UdpTrackerCoreContainer {
         tracker_core_container: &Arc<TrackerCoreContainer>,
         udp_tracker_core_services: &Arc<UdpTrackerCoreServices>,
         udp_tracker_config: &Arc<UdpTracker>,
+        configuration_instance_id: ConfigurationInstanceId,
     ) -> Arc<Self> {
         Arc::new(Self {
             udp_tracker_config: udp_tracker_config.clone(),
+            configuration_instance_id,
 
             tracker_core_container: tracker_core_container.clone(),
 
@@ -70,9 +80,21 @@ impl UdpTrackerCoreContainer {
             stats_event_sender: udp_tracker_core_services.stats_event_sender.clone(),
             stats_repository: udp_tracker_core_services.stats_repository.clone(),
             ban_service: udp_tracker_core_services.ban_service.clone(),
-            connect_service: udp_tracker_core_services.connect_service.clone(),
-            announce_service: udp_tracker_core_services.announce_service.clone(),
-            scrape_service: udp_tracker_core_services.scrape_service.clone(),
+            connect_service: Arc::new(ConnectService::with_configuration_instance_id(
+                udp_tracker_core_services.stats_event_sender.clone(),
+                configuration_instance_id,
+            )),
+            announce_service: Arc::new(AnnounceService::with_configuration_instance_id(
+                tracker_core_container.announce_handler.clone(),
+                tracker_core_container.whitelist_authorization.clone(),
+                udp_tracker_core_services.stats_event_sender.clone(),
+                configuration_instance_id,
+            )),
+            scrape_service: Arc::new(ScrapeService::with_configuration_instance_id(
+                tracker_core_container.scrape_handler.clone(),
+                udp_tracker_core_services.stats_event_sender.clone(),
+                configuration_instance_id,
+            )),
         })
     }
 }
@@ -95,10 +117,13 @@ impl UdpTrackerCoreServices {
     ) -> Arc<Self> {
         let udp_core_broadcaster = Broadcaster::default();
         let udp_core_stats_repository = Arc::new(Repository::new());
-        let event_bus = Arc::new(EventBus::new(
-            tracker_core_container.core_config.tracker_usage_statistics.into(),
-            udp_core_broadcaster.clone(),
-        ));
+        // issue: #2039
+        // issue-spec: docs/issues/drafts/optimize-event-publication-without-consumers/ISSUE.md
+        // Events are objective facts. Per-listener metrics policy is applied by
+        // the shared statistics listener, so it must not suppress publication.
+        // A future consumer-demand optimization needs an inventory and benchmark
+        // evidence before this can become conditional.
+        let event_bus = Arc::new(EventBus::new(SenderStatus::Enabled, udp_core_broadcaster.clone()));
 
         let udp_core_stats_event_sender = event_bus.sender();
         let ban_service = Arc::new(RwLock::new(BanService::new(max_connection_id_errors_per_ip)));
