@@ -41,16 +41,16 @@ git checkout develop && git pull --ff-only
 git checkout -b "${TIMESTAMP}-update-dependencies"
 
 # Update dependencies
-cargo update 2>&1 | tee /tmp/cargo-update.txt
+cargo update 2>&1 | tee .tmp/cargo-update.txt
 
 # If Cargo.lock has no changes, nothing to do — stop here.
 
 # Verify
 ./contrib/dev-tools/git/hooks/pre-commit.sh --format=json
 
-# Commit and push
+# Commit and push (using the captured `cargo update` output as the commit body)
 git add Cargo.lock
-git commit -S -m "chore: update dependencies" -m "$(cat /tmp/cargo-update.txt)"
+git commit -S -m "chore: update dependencies" -m "$(cat .tmp/cargo-update.txt)"
 git push {your-fork-remote} "${TIMESTAMP}-update-dependencies"
 ```
 
@@ -76,12 +76,12 @@ git checkout -b {issue-number}-update-dependencies
 ### Step 2: Run Cargo Update
 
 ```bash
-cargo update 2>&1 | tee /tmp/cargo-update.txt
+cargo update 2>&1 | tee .tmp/cargo-update.txt
 ```
 
 If `Cargo.lock` has no changes, there is nothing to update — exit early.
 
-Review `/tmp/cargo-update.txt` to identify any major version bumps that may be breaking.
+Review `.tmp/cargo-update.txt` to identify any major version bumps that may be breaking.
 
 ### Step 3: Handle Breaking Changes
 
@@ -114,9 +114,14 @@ Fix any failures before proceeding.
 
 ### Step 5: Commit and Push
 
+Use the complete output captured from `cargo update` as the commit body. This preserves the
+authoritative package-by-package update, addition, and removal list in Git history instead of
+maintaining a manually abbreviated summary. Do not edit or summarize this output for the commit
+body unless it contains information that must not be committed.
+
 ```bash
 git add Cargo.lock
-git commit -S -m "chore: update dependencies" -m "$(cat /tmp/cargo-update.txt)"
+git commit -S -m "chore: update dependencies" -m "$(cat .tmp/cargo-update.txt)"
 git push {your-fork-remote} "${TIMESTAMP}-update-dependencies"
 ```
 
