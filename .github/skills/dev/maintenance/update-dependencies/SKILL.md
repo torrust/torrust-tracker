@@ -40,6 +40,9 @@ TIMESTAMP=$(date +%Y%m%d)
 git checkout develop && git pull --ff-only
 git checkout -b "${TIMESTAMP}-update-dependencies"
 
+# Ensure the workspace-local ignored log directory exists.
+mkdir -p .tmp
+
 # Update dependencies
 cargo update 2>&1 | tee .tmp/cargo-update.txt
 
@@ -65,6 +68,8 @@ TIMESTAMP=$(date +%Y%m%d)
 git checkout develop
 git pull --ff-only
 git checkout -b "${TIMESTAMP}-update-dependencies"
+
+mkdir -p .tmp
 ```
 
 For breaking-change updates that require a tracked issue:
@@ -76,6 +81,7 @@ git checkout -b {issue-number}-update-dependencies
 ### Step 2: Run Cargo Update
 
 ```bash
+mkdir -p .tmp
 cargo update 2>&1 | tee .tmp/cargo-update.txt
 ```
 

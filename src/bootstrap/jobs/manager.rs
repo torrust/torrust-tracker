@@ -87,7 +87,7 @@ async fn wait_for_job(job: Job, grace_period: Duration) {
 fn log_job_result(name: &str, result: Result<Result<(), JoinError>, Elapsed>) {
     match result {
         Ok(Ok(())) => info!(job = %name, "Job completed gracefully"),
-        Ok(Err(error)) => warn!(job = %name, "Job return an error: {:?}", error),
+        Ok(Err(error)) => warn!(job = %name, "Job returned an error: {:?}", error),
         Err(_) => warn!(job = %name, "Job did not complete in time"),
     }
 }
