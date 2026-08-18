@@ -3,6 +3,7 @@
 set -euo pipefail
 
 repo_root="$(git rev-parse --show-toplevel)"
+export TORRUST_GIT_HOOKS_LOG_DIR="${TORRUST_GIT_HOOKS_LOG_DIR:-${repo_root}/.tmp}"
 
 # Use human-friendly text format when stdout is a terminal; JSON for non-interactive / agent runs.
 if [[ -t 1 ]]; then

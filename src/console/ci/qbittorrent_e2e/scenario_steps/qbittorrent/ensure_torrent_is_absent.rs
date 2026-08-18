@@ -21,11 +21,27 @@ pub async fn ensure_torrent_is_absent(
 ) -> anyhow::Result<()> {
     let client_label = client.label();
 
-    if client.has_torrent_with_hash(hash).await? {
-        tracing::info!(client = client_label, torrent = %hash, "torrent already present, deleting for clean start");
-        client.delete_torrent(hash).await?;
+    delete_torrent_if_present(client, hash, client_label).await?;
+
+    wait_until_torrent_is_absent(client, hash, timeout, poll_interval, client_label).await
+}
+
+async fn delete_torrent_if_present(client: &QbittorrentClient, hash: &InfoHash, client_label: &str) -> anyhow::Result<()> {
+    if !client.has_torrent_with_hash(hash).await? {
+        return Ok(());
     }
 
+    tracing::info!(client = client_label, torrent = %hash, "torrent already present, deleting for clean start");
+    client.delete_torrent(hash).await
+}
+
+async fn wait_until_torrent_is_absent(
+    client: &QbittorrentClient,
+    hash: &InfoHash,
+    timeout: Deadline,
+    poll_interval: PollInterval,
+    client_label: &str,
+) -> anyhow::Result<()> {
     let poller = Poller::new(timeout, poll_interval);
 
     loop {

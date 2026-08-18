@@ -1,6 +1,7 @@
 use std::time::Duration;
 
-use tokio::task::JoinHandle;
+use tokio::task::{JoinError, JoinHandle};
+use tokio::time::error::Elapsed;
 use tokio::time::timeout;
 use tokio_util::sync::CancellationToken;
 use tracing::{info, warn};
@@ -70,23 +71,24 @@ impl JobManager {
     /// job.
     pub async fn wait_for_all(mut self, grace_period: Duration) {
         for job in self.jobs.drain(..) {
-            let name = job.name.clone();
-
-            info!(job = %name, "Waiting for job to finish (timeout of {} seconds) ...", grace_period.as_secs());
-
-            match timeout(grace_period, job.handle).await {
-                Ok(result) => {
-                    if let Err(e) = result {
-                        warn!(job = %name, "Job return an error: {:?}", e);
-                    } else {
-                        info!(job = %name, "Job completed gracefully");
-                    }
-                }
-                _ => {
-                    warn!(job = %name, "Job did not complete in time");
-                }
-            }
+            wait_for_job(job, grace_period).await;
         }
+    }
+}
+
+async fn wait_for_job(job: Job, grace_period: Duration) {
+    let name = job.name.clone();
+
+    info!(job = %name, "Waiting for job to finish (timeout of {} seconds) ...", grace_period.as_secs());
+
+    log_job_result(&name, timeout(grace_period, job.handle).await);
+}
+
+fn log_job_result(name: &str, result: Result<Result<(), JoinError>, Elapsed>) {
+    match result {
+        Ok(Ok(())) => info!(job = %name, "Job completed gracefully"),
+        Ok(Err(error)) => warn!(job = %name, "Job returned an error: {:?}", error),
+        Err(_) => warn!(job = %name, "Job did not complete in time"),
     }
 }
 
