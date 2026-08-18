@@ -9,6 +9,11 @@ pub struct PartialGlobalStatistics {
     pub tcp4_announces_handled: u64,
     pub udp4_announces_handled: u64,
     pub udp_banned_ips_total: u64,
+    pub udp_requests_banned: u64,
+    pub udp4_requests: u64,
+    pub udp4_connections_handled: u64,
+    pub udp4_responses: u64,
+    pub udp4_errors_handled: u64,
 }
 
 #[allow(dead_code)]

@@ -156,6 +156,27 @@ pub async fn service_binding_for_identity(
         .map(|service| service.service_binding().clone())
 }
 
+/// Returns a connectable UDP socket address for a configuration identity.
+#[allow(dead_code)]
+pub async fn udp_socket_addr_for_identity(
+    container: &AppContainer,
+    configuration_instance_id: ConfigurationInstanceId,
+) -> SocketAddr {
+    let binding = service_binding_for_identity(container, configuration_instance_id)
+        .await
+        .expect("configured UDP tracker should be registered");
+    let address = binding.bind_address();
+
+    SocketAddr::new(
+        if address.ip().is_unspecified() {
+            std::net::IpAddr::V4(std::net::Ipv4Addr::LOCALHOST)
+        } else {
+            address.ip()
+        },
+        address.port(),
+    )
+}
+
 fn expected_service_identities(container: &AppContainer) -> Vec<ConfigurationInstanceId> {
     let mut identities: Vec<_> = container
         .http_tracker_instance_containers

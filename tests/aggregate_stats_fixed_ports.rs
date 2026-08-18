@@ -10,6 +10,7 @@
 mod common;
 
 use torrust_clock::clock;
+use torrust_tracker_primitives::{ConfigurationInstanceId, ServiceRole};
 
 /// This code needs to be copied into each crate.
 /// Working version, for production.
@@ -122,6 +123,12 @@ async fn udp_trackers_on_fixed_ports_should_aggregate_announces_from_both_listen
 
     let global_stats = common::get_tracker_statistics(&api_url, "MyAccessToken").await;
     assert_eq!(global_stats.udp4_announces_handled, 1);
+    assert_eq!(global_stats.udp4_requests, 2);
+    assert_eq!(global_stats.udp4_connections_handled, 1);
+    assert_eq!(global_stats.udp4_responses, 2);
+    assert_eq!(global_stats.udp4_errors_handled, 0);
+    assert_eq!(global_stats.udp_requests_banned, 0);
+    assert_eq!(global_stats.udp_banned_ips_total, 0);
 }
 
 /// A metrics-disabled UDP tracker still publishes cookie-error facts to the
@@ -129,11 +136,17 @@ async fn udp_trackers_on_fixed_ports_should_aggregate_announces_from_both_listen
 async fn udp_metrics_disabled_tracker_should_still_enforce_cookie_error_bans(
     app_container: &std::sync::Arc<torrust_tracker_lib::container::AppContainer>,
 ) {
-    let udp_urls = common::udp_tracker_urls(app_container).await;
     let api_url = common::http_api_url(app_container).await.expect("expected an HTTP API URL");
+    let disabled_udp_tracker =
+        common::udp_socket_addr_for_identity(app_container, ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0)).await;
 
-    common::udp_invalid_connection_ids_should_trigger_ban(common::udp_socket_addr(&udp_urls[0])).await;
+    common::udp_invalid_connection_ids_should_trigger_ban(disabled_udp_tracker).await;
 
     let global_stats = common::get_tracker_statistics(&api_url, "MyAccessToken").await;
     assert_eq!(global_stats.udp_banned_ips_total, 1);
+    assert_eq!(global_stats.udp_requests_banned, 0);
+    assert_eq!(global_stats.udp4_requests, 2);
+    assert_eq!(global_stats.udp4_connections_handled, 1);
+    assert_eq!(global_stats.udp4_responses, 2);
+    assert_eq!(global_stats.udp4_errors_handled, 0);
 }
