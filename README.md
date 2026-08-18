@@ -246,11 +246,11 @@ This project was a joint effort by [Nautilus Cyberneering GmbH][nautilus] and [D
 
 ## Star History
 
-<a href="https://star-history.dera.page/#av1155/houndarr&type=date&legend=top-left">
+<a href="https://star-history.dera.page/#torrust/torrust-tracker">
  <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://star-history.dera.page/svg?repos=av1155/houndarr&type=date&theme=dark&legend=top-left" />
-   <source media="(prefers-color-scheme: light)" srcset="https://star-history.dera.page/svg?repos=av1155/houndarr&type=date&legend=top-left" />
-   <img alt="Star History Chart" src="https://star-history.dera.page/svg?repos=av1155/houndarr&type=date&legend=top-left" />
+   <source media="(prefers-color-scheme: dark)" srcset="https://star-history.dera.page/svg?repos=torrust/torrust-tracker&theme=dark" />
+   <source media="(prefers-color-scheme: light)" srcset="https://star-history.dera.page/svg?repos=torrust/torrust-tracker" />
+   <img alt="Star History Chart" src="https://star-history.dera.page/svg?repos=torrust/torrust-tracker" />
  </picture>
 </a>
 
