@@ -108,8 +108,8 @@ the canonical identity rather than create a competing identity.
   `tests/aggregate_stats_fixed_ports.rs`: UDP enabled/disabled listeners on
   distinct fixed ports, then HTTP and UDP listeners with repeated port-zero
   bindings after bootstrap identity is available.
-- Record progressive manual baseline and post-change evidence for every
-  code-changing task.
+- Record manual baseline and post-change evidence at the risk-based
+  verification checkpoints.
 
 ### Out of Scope
 

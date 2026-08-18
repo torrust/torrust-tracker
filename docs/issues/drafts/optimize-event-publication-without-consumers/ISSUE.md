@@ -25,7 +25,7 @@ semantic-links:
 
 <!-- skill-link: create-issue -->
 
-# Draft - Investigate Event Publication Performance and Consumer Demand
+# Issue #[To be assigned] - Investigate Event Publication Performance and Consumer Demand
 
 ## Goal
 
