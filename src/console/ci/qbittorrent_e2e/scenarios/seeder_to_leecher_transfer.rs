@@ -161,7 +161,18 @@ async fn run_case(
 
     tracing::info!(case = scenario_case, torrent = %info_hash, "scenario start: seeder-to-leecher transfer");
 
-    // ARRANGE: seeder seeds a new torrent
+    prepare_seeder(seeder, workspace, case).await?;
+    download_with_leecher(leecher, workspace, case, scenario_case).await?;
+    verify_download(tracker, workspace, info_hash, case).await?;
+
+    tracing::info!(case = scenario_case, torrent = %info_hash, "scenario passed: seeder-to-leecher transfer");
+
+    Ok(())
+}
+
+async fn prepare_seeder(seeder: &QbittorrentClient, workspace: &WorkspaceResources, case: &ScenarioCase) -> anyhow::Result<()> {
+    let info_hash = &case.info_hash;
+    let scenario_case = case.protocol.label();
 
     login_client(
         seeder,
@@ -201,7 +212,16 @@ async fn run_case(
 
     tracing::info!(case = scenario_case, torrent = %info_hash, "seeder is ready");
 
-    // ACT: leecher downloads the torrent from the seeder via the tracker
+    Ok(())
+}
+
+async fn download_with_leecher(
+    leecher: &QbittorrentClient,
+    workspace: &WorkspaceResources,
+    case: &ScenarioCase,
+    scenario_case: &str,
+) -> anyhow::Result<()> {
+    let info_hash = &case.info_hash;
 
     login_client(
         leecher,
@@ -248,21 +268,24 @@ async fn run_case(
 
     tracing::info!(case = scenario_case, torrent = %info_hash, "download finished");
 
-    // ASSERT: downloaded file matches the original payload.
+    Ok(())
+}
 
+async fn verify_download(
+    tracker: &TrackerApiClient,
+    workspace: &WorkspaceResources,
+    info_hash: &InfoHash,
+    case: &ScenarioCase,
+) -> anyhow::Result<()> {
     verify_payload_integrity(
         &workspace.leecher.downloads_path.join(&case.payload_file_name),
         &workspace.shared.path.join(&case.payload_file_name),
     )
     .context("downloaded payload does not match the original")?;
 
-    // ASSERT: tracker registered both peers (seeder announced; leecher completed).
-
     verify_tracker_swarm(tracker, info_hash)
         .await
         .context("tracker swarm verification failed")?;
-
-    tracing::info!(case = scenario_case, torrent = %info_hash, "scenario passed: seeder-to-leecher transfer");
 
     Ok(())
 }
