@@ -292,6 +292,21 @@ Define an unambiguous suffixless-I2P candidate rule and reject candidates that
 fail I2P validation. At minimum, values that use the I2P Base64 alphabet and
 are destination-sized must not silently fall back to clearnet behavior.
 
+### 3.14 ⚠️ Destination identity is spoofable without trusted transport context
+
+A normal HTTP request does not prove that the requester owns the I2P
+Destination supplied in the `ip` parameter. An attacker can claim a victim's
+Destination, receive I2P swarm information, and update or remove the victim's
+peer record because the swarm is keyed by `PeerAddress`.
+
+Serving the tracker only through I2P is not sufficient: it establishes that
+_some_ I2P client made the request but not that it owns the Destination claimed
+in the query. The tracker must derive identity from trusted I2P transport
+context (for example, a validated server-tunnel `X-I2P-DestB64` header or a
+SAMv3/I2CP adapter) and reject or ignore mismatching query values. See the
+[destination spoofing analysis](destination-spoofing-analysis.md) for the
+attack scenario, deployment trade-offs, and minimum secure policies.
+
 ---
 
 ## 4. Actions for the Contributor
@@ -352,6 +367,26 @@ are destination-sized must not silently fall back to clearnet behavior.
   - **Regression tests**: Cover a valid suffixless Destination, a truncated suffixless candidate, an invalid-alphabet suffixless candidate, an ordinary non-I2P value, and a valid clearnet IP. Verify only the ordinary non-I2P value retains existing ignore behavior, if that compatibility behavior is retained.
   - **Completion criteria**: A malformed suffixless Destination cannot cause a clearnet registration or expose clearnet peers to an intended I2P announce.
 
+- [ ] **A7**: **Eliminate Destination spoofing before enabling I2P announces** —
+      Do not use an untrusted HTTP `ip` query value as an authenticated I2P peer
+      identity. Implement one of the safe policies defined in the
+      [destination spoofing analysis](destination-spoofing-analysis.md):
+      trusted I2P transport identity enforcement on a dedicated listener, or
+      rejection of I2P announces until enforcement exists.
+  - **Implementation area**: HTTP tracker listener configuration, trusted
+    reverse-proxy/tunnel context extraction, and
+    `packages/http-core/src/services/announce.rs`.
+  - **Required behavior**: In I2P-enforced mode, derive `PeerAddress::I2p`
+    from a validated trusted I2P transport identity. Reject direct/untrusted
+    requests, missing or malformed identity headers, and mismatches between the
+    query `ip` Destination and the trusted identity. Keep clearnet and
+    I2P-enforced listeners on separate explicit policies.
+  - **Regression tests**: Cover trusted and untrusted proxy sources; absent and
+    malformed identity headers; matching and mismatching query Destinations;
+    direct listener access; and attempted peer-record takeover.
+  - **Completion criteria**: An attacker cannot obtain I2P peer information or
+    update a victim peer record by claiming the victim's Destination.
+
 ### Follow-up work or documentation
 
 - [ ] **F1**: **Query parser regression test** — The `split_once('=')` fix
@@ -367,14 +402,6 @@ are destination-sized must not silently fall back to clearnet behavior.
       conventional. The documentation must state that I2P routes by Destination,
       clients must ignore the response port, and `1` exists only for legacy
       non-compact peer dictionary compatibility.
-
-- [ ] **F3**: **Destination enforcement as future work** — Document that
-      `X-I2P-DestHash` / `X-I2P-DestB64` / `X-I2P-DestB32` header validation
-      is not implemented and is planned as future work. The I2P spec says:
-      _"we expect that all trackers will eventually enforce destinations."_
-      Create or link a tracked issue; it should cover trusted tunnel-header
-      extraction, mismatch handling, compatibility impact on proxy announces,
-      and contract tests.
 
 - [ ] **F4**: **Tracker client I2P support** — The `tracker_client` binary
       (`console/tracker-client`) accepts `--ip` as `IpAddr` only. It cannot
@@ -437,9 +464,11 @@ The headers (`X-I2P-DestHash`, `X-I2P-DestB64`, `X-I2P-DestB32`) cannot be
 spoofed by the client. A tracker enforcing destinations "need not require the
 `ip` announce parameter at all."
 
-**Implication for PR #2050**: Not blocking for merge, but should be documented
-as a known limitation and future work item. Without enforcement, any client
-can spoof I2P announces by passing a valid Destination in `ip`.
+**Implication for PR #2050**: This blocks merge. Without enforcement, any
+client can spoof I2P announces by passing a valid Destination in `ip`.
+Implement the minimum secure policy described in the
+[destination spoofing analysis](destination-spoofing-analysis.md) before
+enabling I2P announces.
 
 ### Q3: Compact response format — separate field or mixed?
 
@@ -527,7 +556,8 @@ defines these. Should be documented as future work.
 | R5  | I2P Destination validation and resource limits  | Complete         | Common-structures audit found missing certificate-type/payload validation and no pre-decode bound; A4 defines compatibility-aware requirements         |
 | R6  | REST API representation of I2P peers            | Complete         | Finding 3.11 / F5 defers final typed, separate I2P REST collections to REST API overhaul epic #144 and its ADR                                         |
 | R7  | Copilot review suggestions from original PR     | Complete         | Two additional valid blockers recorded as findings 3.12–3.13 / actions A5–A6; the compact parser suggestion duplicates A2                              |
-| R8  | Contributor response and fix verification       | Pending          | Re-run focused tests, manual evidence, and `linter all` after updates                                                                                  |
+| R8  | I2P Destination spoofing threat model           | Complete         | Finding 3.14 / action A7 and `destination-spoofing-analysis.md` define the minimum secure policies before merge                                        |
+| R9  | Contributor response and fix verification       | Pending          | Re-run focused tests, manual evidence, and `linter all` after updates                                                                                  |
 
 ---
 
@@ -542,7 +572,7 @@ on 2026-08-17.
 | Announce `ip` param      | Full Base64 Destination (port is placeholder, often `6881`)          | ✅ Implemented (port=1, not 6881)                   |
 | Non-compact response     | Full Destination string in `ip` field of peer dictionary             | ✅ Implemented and isolated from clearnet responses |
 | Compact response         | 32-byte SHA-256 hash of binary Destination (I2P-only, no mixing)     | ✅ Implemented and isolated from clearnet responses |
-| Enforcement headers      | `X-I2P-DestHash`, `X-I2P-DestB64`, `X-I2P-DestB32` (I2PTunnel-added) | ❌ Not implemented (future work)                    |
+| Enforcement headers      | `X-I2P-DestHash`, `X-I2P-DestB64`, `X-I2P-DestB32` (I2PTunnel-added) | ⚠️ Required before merge (A7)                       |
 | Cross-network prevention | "Reject standard network announces... not deliver them in responses" | ✅ Implemented through swarm address-kind filtering |
 | UDP announce             | Spec finalized 2025-06, rolling out later in 2025                    | ✅ HTTP-only scope is correct                       |
 | PEX                      | Extension message `i2p_pex` (32-byte hashes)                         | ❌ Not in scope                                     |

@@ -400,6 +400,7 @@ rustc
 rustdoc
 rustfmt
 rustup
+samv3
 sarif
 savepath
 scanf
@@ -423,6 +424,7 @@ sqlx
 srcset
 sscanf
 stabilised
+spoofable
 subissue
 subkey
 subsec
