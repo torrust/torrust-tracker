@@ -988,146 +988,155 @@ async fn should_reject_a_valid_ipv4_peer_ip_when_overrides_are_disabled() {
     env.stop().await;
 }
 
-#[tokio::test]
-async fn when_the_client_ip_is_a_loopback_ipv4_it_should_assign_to_the_peer_ip_the_external_ip_without_an_ip_parameter() {
-    logging::setup();
+mod when_the_ip_parameter_is_not_accepted {
+    use super::*;
 
-    /*  We assume that both the client and tracker share the same public IP.
+    // TODO(#1980, #1987): Add `when_the_ip_parameter_is_accepted` after schema
+    // v3.0.0 becomes runtime-active. Cover query-IP precedence over `external_ip`
+    // for loopback clients, absent/empty fallback to `external_ip`, and the
+    // remaining enabled-policy HTTP contract scenarios.
 
-        client     <-> tracker                      <-> Internet
-        127.0.0.1      external_ip = "2.137.87.41"
-    */
-    let cfg = configuration::ephemeral_with_external_ip(IpAddr::from_str("2.137.87.41").unwrap());
-    let core_config = Arc::new(cfg.core.clone());
-    let http_tracker_config = Arc::new(cfg.http_trackers.unwrap()[0].clone());
-    let env = Started::new(&core_config, &http_tracker_config).await;
+    #[tokio::test]
+    async fn a_loopback_ipv4_client_uses_the_external_ip_when_ip_is_absent() {
+        logging::setup();
 
-    let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap(); // DevSkim: ignore DS173237
-    let loopback_ip = IpAddr::from_str("127.0.0.1").unwrap();
-    let client_ip = loopback_ip;
+        /*  We assume that both the client and tracker share the same public IP.
 
-    let announce_query = AnnounceBuilder::default().with_info_hash(&info_hash).query();
+            client     <-> tracker                      <-> Internet
+            127.0.0.1      external_ip = "2.137.87.41"
+        */
+        let cfg = configuration::ephemeral_with_external_ip(IpAddr::from_str("2.137.87.41").unwrap());
+        let core_config = Arc::new(cfg.core.clone());
+        let http_tracker_config = Arc::new(cfg.http_trackers.unwrap()[0].clone());
+        let env = Started::new(&core_config, &http_tracker_config).await;
 
-    {
-        let client = Client::bind(env.base_url(), Duration::from_secs(5), client_ip).unwrap();
-        let status = client.announce(&announce_query).await.unwrap().status();
+        let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap(); // DevSkim: ignore DS173237
+        let loopback_ip = IpAddr::from_str("127.0.0.1").unwrap();
+        let client_ip = loopback_ip;
 
-        assert_eq!(status, StatusCode::OK);
-    }
+        let announce_query = AnnounceBuilder::default().with_info_hash(&info_hash).query();
 
-    let peers = env
-        .container
-        .tracker_core_container
-        .in_memory_torrent_repository
-        .get_torrent_peers(&info_hash, usize::MAX)
-        .await;
-    let peer_addr = peers[0].peer_addr;
+        {
+            let client = Client::bind(env.base_url(), Duration::from_secs(5), client_ip).unwrap();
+            let status = client.announce(&announce_query).await.unwrap().status();
 
-    let ext_ip: IpAddr = env
-        .container
-        .tracker_core_container
-        .core_config
-        .net
-        .external_ip
-        .unwrap()
-        .into();
-    assert_eq!(peer_addr.ip(), ext_ip);
+            assert_eq!(status, StatusCode::OK);
+        }
 
-    env.stop().await;
-}
+        let peers = env
+            .container
+            .tracker_core_container
+            .in_memory_torrent_repository
+            .get_torrent_peers(&info_hash, usize::MAX)
+            .await;
+        let peer_addr = peers[0].peer_addr;
 
-#[tokio::test]
-async fn when_the_client_ip_is_a_loopback_ipv6_it_should_assign_to_the_peer_ip_the_external_ip_without_an_ip_parameter() {
-    logging::setup();
-
-    /* We assume that both the client and tracker share the same public IP.
-
-       client     <-> tracker                                                  <-> Internet
-       ::1            external_ip = "2345:0425:2CA1:0000:0000:0567:5673:23b5"
-    */
-
-    let cfg = configuration::ephemeral_with_external_ip(IpAddr::from_str("2345:0425:2CA1:0000:0000:0567:5673:23b5").unwrap());
-    let core_config = Arc::new(cfg.core.clone());
-    let http_tracker_config = Arc::new(cfg.http_trackers.unwrap()[0].clone());
-    let env = Started::new(&core_config, &http_tracker_config).await;
-
-    let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap(); // DevSkim: ignore DS173237
-    let loopback_ip = IpAddr::from_str("127.0.0.1").unwrap();
-    let client_ip = loopback_ip;
-
-    let announce_query = AnnounceBuilder::default().with_info_hash(&info_hash).query();
-
-    {
-        let client = Client::bind(env.base_url(), Duration::from_secs(5), client_ip).unwrap();
-        let status = client.announce(&announce_query).await.unwrap().status();
-
-        assert_eq!(status, StatusCode::OK);
-    }
-
-    let peers = env
-        .container
-        .tracker_core_container
-        .in_memory_torrent_repository
-        .get_torrent_peers(&info_hash, usize::MAX)
-        .await;
-    let peer_addr = peers[0].peer_addr;
-
-    let ext_ip: IpAddr = env
-        .container
-        .tracker_core_container
-        .core_config
-        .net
-        .external_ip
-        .unwrap()
-        .into();
-    assert_eq!(peer_addr.ip(), ext_ip);
-
-    env.stop().await;
-}
-
-#[tokio::test]
-async fn when_the_tracker_is_behind_a_reverse_proxy_it_should_assign_to_the_peer_ip_the_ip_in_the_x_forwarded_for_http_header() {
-    logging::setup();
-
-    /*
-    client          <-> http proxy                       <-> tracker                   <-> Internet
-    ip:                 header:                              config:                       peer addr:
-    145.254.214.256     X-Forwarded-For = 145.254.214.256    on_reverse_proxy = true       145.254.214.256
-    */
-
-    let cfg = configuration::ephemeral_with_reverse_proxy();
-    let core_config = Arc::new(cfg.core.clone());
-    let http_tracker_config = Arc::new(cfg.http_trackers.unwrap()[0].clone());
-    let env = Started::new(&core_config, &http_tracker_config).await;
-
-    let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap(); // DevSkim: ignore DS173237
-
-    let announce_query = AnnounceBuilder::default().with_info_hash(&info_hash).query();
-
-    {
-        let client = Client::new(env.base_url(), Duration::from_secs(5)).unwrap();
-        let status = client
-            .announce_with_header(
-                &announce_query,
-                "X-Forwarded-For",
-                "203.0.113.195,2001:db8:85a3:8d3:1319:8a2e:370:7348,150.172.238.178",
-            )
-            .await
+        let ext_ip: IpAddr = env
+            .container
+            .tracker_core_container
+            .core_config
+            .net
+            .external_ip
             .unwrap()
-            .status();
+            .into();
+        assert_eq!(peer_addr.ip(), ext_ip);
 
-        assert_eq!(status, StatusCode::OK);
+        env.stop().await;
     }
 
-    let peers = env
-        .container
-        .tracker_core_container
-        .in_memory_torrent_repository
-        .get_torrent_peers(&info_hash, usize::MAX)
-        .await;
-    let peer_addr = peers[0].peer_addr;
+    #[tokio::test]
+    async fn a_loopback_ipv6_client_uses_the_external_ip_when_ip_is_absent() {
+        logging::setup();
 
-    assert_eq!(peer_addr.ip(), IpAddr::from_str("150.172.238.178").unwrap());
+        /* We assume that both the client and tracker share the same public IP.
 
-    env.stop().await;
+           client     <-> tracker                                                  <-> Internet
+           ::1            external_ip = "2345:0425:2CA1:0000:0000:0567:5673:23b5"
+        */
+
+        let cfg = configuration::ephemeral_with_external_ip(IpAddr::from_str("2345:0425:2CA1:0000:0000:0567:5673:23b5").unwrap());
+        let core_config = Arc::new(cfg.core.clone());
+        let http_tracker_config = Arc::new(cfg.http_trackers.unwrap()[0].clone());
+        let env = Started::new(&core_config, &http_tracker_config).await;
+
+        let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap(); // DevSkim: ignore DS173237
+        let loopback_ip = IpAddr::from_str("127.0.0.1").unwrap();
+        let client_ip = loopback_ip;
+
+        let announce_query = AnnounceBuilder::default().with_info_hash(&info_hash).query();
+
+        {
+            let client = Client::bind(env.base_url(), Duration::from_secs(5), client_ip).unwrap();
+            let status = client.announce(&announce_query).await.unwrap().status();
+
+            assert_eq!(status, StatusCode::OK);
+        }
+
+        let peers = env
+            .container
+            .tracker_core_container
+            .in_memory_torrent_repository
+            .get_torrent_peers(&info_hash, usize::MAX)
+            .await;
+        let peer_addr = peers[0].peer_addr;
+
+        let ext_ip: IpAddr = env
+            .container
+            .tracker_core_container
+            .core_config
+            .net
+            .external_ip
+            .unwrap()
+            .into();
+        assert_eq!(peer_addr.ip(), ext_ip);
+
+        env.stop().await;
+    }
+
+    #[tokio::test]
+    async fn a_reverse_proxy_client_uses_the_x_forwarded_for_ip_when_ip_is_absent() {
+        logging::setup();
+
+        /*
+        client          <-> http proxy                       <-> tracker                   <-> Internet
+        ip:                 header:                              config:                       peer addr:
+        145.254.214.256     X-Forwarded-For = 145.254.214.256    on_reverse_proxy = true       145.254.214.256
+        */
+
+        let cfg = configuration::ephemeral_with_reverse_proxy();
+        let core_config = Arc::new(cfg.core.clone());
+        let http_tracker_config = Arc::new(cfg.http_trackers.unwrap()[0].clone());
+        let env = Started::new(&core_config, &http_tracker_config).await;
+
+        let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap(); // DevSkim: ignore DS173237
+
+        let announce_query = AnnounceBuilder::default().with_info_hash(&info_hash).query();
+
+        {
+            let client = Client::new(env.base_url(), Duration::from_secs(5)).unwrap();
+            let status = client
+                .announce_with_header(
+                    &announce_query,
+                    "X-Forwarded-For",
+                    "203.0.113.195,2001:db8:85a3:8d3:1319:8a2e:370:7348,150.172.238.178",
+                )
+                .await
+                .unwrap()
+                .status();
+
+            assert_eq!(status, StatusCode::OK);
+        }
+
+        let peers = env
+            .container
+            .tracker_core_container
+            .in_memory_torrent_repository
+            .get_torrent_peers(&info_hash, usize::MAX)
+            .await;
+        let peer_addr = peers[0].peer_addr;
+
+        assert_eq!(peer_addr.ip(), IpAddr::from_str("150.172.238.178").unwrap());
+
+        env.stop().await;
+    }
 }

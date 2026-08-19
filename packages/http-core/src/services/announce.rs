@@ -682,6 +682,69 @@ mod tests {
         }
 
         #[tokio::test]
+        async fn it_should_prefer_a_query_string_peer_ip_over_the_external_ip_for_a_loopback_client_when_overrides_are_enabled() {
+            // Arrange
+            let external_ip = "203.0.113.195".parse().unwrap();
+            let query_string_peer_ip = "198.51.100.42".parse().unwrap();
+            let configuration = configuration::ephemeral_with_external_ip(external_ip);
+            let (core_tracker_services, mut core_http_tracker_services) =
+                initialize_core_tracker_services_with_config(&configuration).await;
+            let server_service_binding =
+                ServiceBinding::new(Protocol::HTTP, SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070)).unwrap();
+            let server_service_binding_for_event = server_service_binding.clone();
+            let peer = sample_peer();
+            let peer_port = peer.peer_addr.port();
+            let (announce_request, _) = sample_announce_request_for_peer(peer);
+            let announce_request = Announce {
+                ip: PeerIp::Literal(query_string_peer_ip),
+                ..announce_request
+            };
+            let client_ip_sources = ClientIpSources {
+                right_most_x_forwarded_for: None,
+                connection_info_socket_address: Some(SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 8080)),
+            };
+
+            let mut http_stats_event_sender_mock = MockHttpStatsEventSender::new();
+            http_stats_event_sender_mock
+                .expect_send()
+                .with(predicate::function(move |event| {
+                    let mut announcement = peer;
+                    announcement.peer_addr = SocketAddr::new(query_string_peer_ip, peer_port);
+
+                    let expected_event = Event::TcpAnnounce {
+                        connection: ConnectionContext::new(
+                            RemoteClientAddr::new(ResolvedIp::FromSocketAddr(IpAddr::V4(Ipv4Addr::LOCALHOST)), Some(8080)),
+                            server_service_binding_for_event.clone(),
+                        ),
+                        info_hash: sample_info_hash(),
+                        announcement,
+                    };
+
+                    announce_events_match(event, &expected_event)
+                }))
+                .times(1)
+                .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
+            core_http_tracker_services.http_stats_event_sender = Some(Arc::new(http_stats_event_sender_mock));
+
+            let announce_service = AnnounceService::new_with_peer_ip_selection_policy(
+                core_tracker_services.core_config,
+                core_tracker_services.announce_handler,
+                core_tracker_services.authentication_service,
+                core_tracker_services.whitelist_authorization,
+                core_http_tracker_services.http_stats_event_sender,
+                PeerIpSelectionPolicy::enabled(),
+            );
+
+            // Act
+            let result = announce_service
+                .handle_announce(&announce_request, &client_ip_sources, &server_service_binding, None)
+                .await;
+
+            // Assert
+            assert!(result.is_ok());
+        }
+
+        #[tokio::test]
         async fn it_should_send_the_tcp_4_announce_event_when_the_peer_uses_ipv4() {
             let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070);
             let server_service_binding = ServiceBinding::new(Protocol::HTTP, server_socket_addr).unwrap();
