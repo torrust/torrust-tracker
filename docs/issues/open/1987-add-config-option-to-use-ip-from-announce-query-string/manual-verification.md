@@ -122,30 +122,15 @@ The same raw HTTP announce matrix from Phase 1 was run after rebuilding the trac
 
 This verifies the intentional baseline change: absent and empty values remain successful, while every non-empty override is explicitly rejected until schema v3.0.0 can activate the opt-in policy.
 
-### Observability Evidence
+### Observability Decision
 
-The tracker was restarted with a temporary local debug logging override, then received `ip=1.2.3.4` while the policy remained disabled.
-
-```sh
-TORRUST_TRACKER_CONFIG_OVERRIDE_LOGGING__THRESHOLD=debug \
-  cargo +1.88.0 run --bin torrust-tracker
-```
-
-The rejection-specific debug output used only the bounded reason code and did not contain the raw submitted value (`1.2.3.4`):
-
-```text
-DEBUG torrust_tracker_http_core::statistics::event::handler: Recorded rejected HTTP announce peer IP parameter reason="override_disabled"
-```
-
-The authenticated local metrics endpoint reported one rejection with the bounded `reason="override_disabled"` label and no raw submitted-IP label:
-
-```text
-# HELP http_tracker_core_announce_peer_ip_rejections_total Total rejected HTTP announce peer IP parameters
-# TYPE http_tracker_core_announce_peer_ip_rejections_total counter
-http_tracker_core_announce_peer_ip_rejections_total{client_address_ip_family="inet",client_address_ip_type="plain",reason="override_disabled",server_binding_address_ip_family="inet",server_binding_address_ip_type="plain",server_binding_ip="0.0.0.0",server_binding_port="7070",server_binding_protocol="http"}1
-```
-
-Existing HTTP request middleware logs the full request URI at `info`, including query values. That established behavior is outside #1987's rejection-observability scope and is not evidence that raw values are globally absent from tracker logs.
+The initially tested rejection-specific event and metric were deliberately
+removed under Option B after architectural review. The tracker therefore has no
+dedicated aggregate counter for rejected announce `ip` parameters in #1987.
+Existing request logs and normal diagnostics remain available to investigate
+client compatibility. A future general error-event contract may introduce a
+counter only when it is consistent with the documented cross-service design in
+[`generalize-error-events.md`](../../drafts/generalize-error-events.md).
 
 ### Local Tracker-Client Result
 

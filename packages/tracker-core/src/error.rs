@@ -17,6 +17,12 @@ use super::databases;
 use crate::authentication;
 
 /// Wrapper for all errors returned by the tracker core.
+///
+/// This internal composition type is not an event payload: it can expose
+/// implementation details and context that are unsuitable for a stable event
+/// API. See the [general error-events
+/// EPIC](../../../docs/issues/drafts/generalize-error-events.md) before adding
+/// error events derived from it.
 #[derive(thiserror::Error, Debug, Clone)]
 pub enum TrackerCoreError {
     /// Error returned when there was an error with the tracker core announce handler.

@@ -8,7 +8,6 @@ use torrust_metrics::metric_name;
 use torrust_metrics::unit::Unit;
 
 pub const HTTP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL: &str = "http_tracker_core_requests_received_total";
-pub const HTTP_TRACKER_CORE_ANNOUNCE_PEER_IP_REJECTIONS_TOTAL: &str = "http_tracker_core_announce_peer_ip_rejections_total";
 
 #[must_use]
 pub fn describe_metrics() -> Metrics {
@@ -19,11 +18,5 @@ pub fn describe_metrics() -> Metrics {
         Some(Unit::Count),
         Some(MetricDescription::new("Total number of HTTP requests received")),
     );
-    metrics.metric_collection.describe_counter(
-        &metric_name!(HTTP_TRACKER_CORE_ANNOUNCE_PEER_IP_REJECTIONS_TOTAL),
-        Some(Unit::Count),
-        Some(MetricDescription::new("Total rejected HTTP announce peer IP parameters")),
-    );
-
     metrics
 }

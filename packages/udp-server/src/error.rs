@@ -13,6 +13,10 @@ use torrust_tracker_udp_protocol::{ConnectionId, RequestParseError, TransactionI
 pub struct ConnectionCookie(pub ConnectionId);
 
 /// Error returned by the UDP server.
+///
+/// This internal type carries implementation details and must not be used as a
+/// new event payload without the stable reason classification required by the
+/// [general error-events EPIC](../../../docs/issues/drafts/generalize-error-events.md).
 #[derive(Error, Debug, Clone)]
 pub enum Error {
     /// Error returned when the request is invalid.

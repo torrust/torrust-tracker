@@ -7,6 +7,8 @@ semantic-links:
     - packages/udp-server/src/event.rs
     - packages/http-core/src/event.rs
     - packages/swarm-coordination-registry/src/event.rs
+    - docs/issues/drafts/generalize-error-events.md
+    - docs/issues/open/1987-add-config-option-to-use-ip-from-announce-query-string/error-event-observability-analysis.md
 ---
 
 # Events Are Objective Facts

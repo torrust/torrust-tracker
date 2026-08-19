@@ -19,8 +19,13 @@
 //! to an existing one but named differently so a listener ignores it — stop and
 //! change the listener or the enforcement point instead.
 //!
-//! See [ADR-20260727000000](../../../../../docs/adrs/20260727000000_events_are_objective_facts.md)
+//! See [ADR-20260727000000](../../../docs/adrs/20260727000000_events_are_objective_facts.md)
 //! for the full rationale, the concrete counter-example, and naming heuristics.
+//!
+//! The existing [`Event::UdpError`] and [`ErrorKind`] predate a general
+//! rejected-request event contract. Do not add ad hoc error variants or reuse
+//! internal error types as new payloads; see the [general error-events
+//! EPIC](../../../docs/issues/drafts/generalize-error-events.md).
 use std::fmt;
 use std::time::Duration;
 

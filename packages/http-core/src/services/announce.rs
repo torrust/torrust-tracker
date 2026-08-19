@@ -29,7 +29,7 @@ use torrust_tracker_primitives::peer::PeerAnnouncement;
 use torrust_tracker_primitives::{AnnounceData, AnnounceEvent, NumberOfBytes};
 
 use crate::event;
-use crate::event::{Event, PeerIpRejectionReason};
+use crate::event::Event;
 use crate::services::error_mapping::protocol_error_from_tracker_core_error;
 
 /// The HTTP tracker `announce` service.
@@ -129,14 +129,7 @@ impl AnnounceService {
 
         let remote_client_addr = resolve_remote_client_addr(&self.core_config.net.on_reverse_proxy.into(), client_ip_sources)?;
 
-        let peer_ip = match self.select_peer_ip(announce_request, remote_client_addr.ip()) {
-            Ok(peer_ip) => peer_ip,
-            Err(reason) => {
-                self.send_peer_ip_rejection_event(remote_client_addr, server_service_binding.clone(), reason)
-                    .await;
-                return Err(reason.into());
-            }
-        };
+        let peer_ip = self.select_peer_ip(announce_request, remote_client_addr.ip())?;
 
         let mut peer = Self::peer_from_request(announce_request, &peer_ip);
 
@@ -190,7 +183,7 @@ impl AnnounceService {
         &self,
         announce_request: &Announce,
         connection_peer_ip: std::net::IpAddr,
-    ) -> Result<std::net::IpAddr, PeerIpRejectionReason> {
+    ) -> Result<std::net::IpAddr, HttpAnnounceError> {
         Self::select_peer_ip_with_policy(self.peer_ip_selection_policy, announce_request, connection_peer_ip)
     }
 
@@ -198,15 +191,15 @@ impl AnnounceService {
         peer_ip_selection_policy: PeerIpSelectionPolicy,
         announce_request: &Announce,
         connection_peer_ip: std::net::IpAddr,
-    ) -> Result<std::net::IpAddr, PeerIpRejectionReason> {
+    ) -> Result<std::net::IpAddr, HttpAnnounceError> {
         match &announce_request.ip {
             PeerIp::Absent | PeerIp::Empty => Ok(connection_peer_ip),
             PeerIp::Literal(_) if !peer_ip_selection_policy.use_ip_from_query_string => {
-                Err(PeerIpRejectionReason::OverrideDisabled)
+                Err(HttpAnnounceError::PeerIpOverrideDisabled)
             }
             PeerIp::Literal(ip) => Ok(*ip),
-            PeerIp::DnsName => Err(PeerIpRejectionReason::DnsNameUnsupported),
-            PeerIp::Invalid => Err(PeerIpRejectionReason::InvalidIpAddress),
+            PeerIp::DnsName => Err(HttpAnnounceError::PeerIpDnsNameUnsupported),
+            PeerIp::Invalid => Err(HttpAnnounceError::PeerIpInvalid),
         }
     }
 
@@ -253,27 +246,14 @@ impl AnnounceService {
             http_stats_event_sender.send(event).await;
         }
     }
-
-    async fn send_peer_ip_rejection_event(
-        &self,
-        remote_client_addr: RemoteClientAddr,
-        server_service_binding: ServiceBinding,
-        reason: PeerIpRejectionReason,
-    ) {
-        tracing::debug!(reason = reason.as_str(), "Rejected HTTP announce peer IP parameter");
-
-        if let Some(http_stats_event_sender) = self.opt_http_stats_event_sender.as_deref() {
-            http_stats_event_sender
-                .send(Event::TcpAnnouncePeerIpRejected {
-                    connection: event::ConnectionContext::new(remote_client_addr, server_service_binding),
-                    reason,
-                })
-                .await;
-        }
-    }
 }
 
 /// Errors related to announce requests.
+///
+/// This internal error type is not an event payload: variants may compose
+/// implementation errors and client-visible text. Any future rejected-request
+/// event must use a stable, bounded, consumer-safe reason type defined by the
+/// [general error-events EPIC](../../../../docs/issues/drafts/generalize-error-events.md).
 #[derive(thiserror::Error, Debug, Clone)]
 pub enum HttpAnnounceError {
     #[error("Error resolving peer IP: {source}")]
@@ -290,16 +270,6 @@ pub enum HttpAnnounceError {
 
     #[error("The announce ip parameter must be an IPv4 or IPv6 literal")]
     PeerIpInvalid,
-}
-
-impl From<PeerIpRejectionReason> for HttpAnnounceError {
-    fn from(reason: PeerIpRejectionReason) -> Self {
-        match reason {
-            PeerIpRejectionReason::OverrideDisabled => Self::PeerIpOverrideDisabled,
-            PeerIpRejectionReason::DnsNameUnsupported => Self::PeerIpDnsNameUnsupported,
-            PeerIpRejectionReason::InvalidIpAddress => Self::PeerIpInvalid,
-        }
-    }
 }
 
 impl From<PeerIpResolutionError> for HttpAnnounceError {
@@ -513,12 +483,12 @@ mod tests {
         use torrust_tracker_test_helpers::configuration;
 
         use crate::event::test::announce_events_match;
-        use crate::event::{ConnectionContext, Event, PeerIpRejectionReason};
+        use crate::event::{ConnectionContext, Event};
         use crate::services::announce::tests::{
             MockHttpStatsEventSender, initialize_core_tracker_services, initialize_core_tracker_services_with_config,
             sample_announce_request_for_peer,
         };
-        use crate::services::announce::{AnnounceService, PeerIpSelectionPolicy};
+        use crate::services::announce::{AnnounceService, HttpAnnounceError, PeerIpSelectionPolicy};
         use crate::tests::{sample_info_hash, sample_peer, sample_peer_using_ipv4, sample_peer_using_ipv6};
 
         #[test]
@@ -532,10 +502,10 @@ mod tests {
                 let request = sample_announce_request_for_peer(sample_peer()).0;
                 let request = Announce { ip, ..request };
 
-                assert_eq!(
+                assert!(matches!(
                     AnnounceService::select_peer_ip_with_policy(policy, &request, connection_ip),
-                    Ok(connection_ip)
-                );
+                    Ok(peer_ip) if peer_ip == connection_ip
+                ));
             }
         }
 
@@ -544,37 +514,38 @@ mod tests {
             // Arrange
             let connection_ip = IpAddr::V4(Ipv4Addr::LOCALHOST);
             let cases = [
-                (
-                    PeerIp::Literal("192.0.2.1".parse().unwrap()),
-                    Ok("192.0.2.1".parse().unwrap()),
-                ),
-                (
-                    PeerIp::Literal("2001:db8::1".parse().unwrap()),
-                    Ok("2001:db8::1".parse().unwrap()),
-                ),
-                (PeerIp::DnsName, Err(PeerIpRejectionReason::DnsNameUnsupported)),
-                (PeerIp::Invalid, Err(PeerIpRejectionReason::InvalidIpAddress)),
+                PeerIp::Literal("192.0.2.1".parse().unwrap()),
+                PeerIp::Literal("2001:db8::1".parse().unwrap()),
+                PeerIp::DnsName,
+                PeerIp::Invalid,
             ];
 
-            // Act / Assert
-            for (ip, enabled_result) in cases {
+            for ip in cases {
                 let request = Announce {
                     ip,
                     ..sample_announce_request_for_peer(sample_peer()).0
                 };
-                assert_eq!(
-                    AnnounceService::select_peer_ip_with_policy(PeerIpSelectionPolicy::enabled(), &request, connection_ip),
-                    enabled_result
-                );
-                assert_eq!(
-                    AnnounceService::select_peer_ip_with_policy(PeerIpSelectionPolicy::disabled(), &request, connection_ip),
-                    match request.ip {
-                        PeerIp::Literal(_) => Err(PeerIpRejectionReason::OverrideDisabled),
-                        PeerIp::DnsName => Err(PeerIpRejectionReason::DnsNameUnsupported),
-                        PeerIp::Invalid => Err(PeerIpRejectionReason::InvalidIpAddress),
-                        PeerIp::Absent | PeerIp::Empty => Ok(connection_ip),
+
+                let enabled_result =
+                    AnnounceService::select_peer_ip_with_policy(PeerIpSelectionPolicy::enabled(), &request, connection_ip);
+                let disabled_result =
+                    AnnounceService::select_peer_ip_with_policy(PeerIpSelectionPolicy::disabled(), &request, connection_ip);
+
+                match request.ip {
+                    PeerIp::Literal(ip) => {
+                        assert!(matches!(enabled_result, Ok(peer_ip) if peer_ip == ip));
+                        assert!(matches!(disabled_result, Err(HttpAnnounceError::PeerIpOverrideDisabled)));
                     }
-                );
+                    PeerIp::DnsName => {
+                        assert!(matches!(enabled_result, Err(HttpAnnounceError::PeerIpDnsNameUnsupported)));
+                        assert!(matches!(disabled_result, Err(HttpAnnounceError::PeerIpDnsNameUnsupported)));
+                    }
+                    PeerIp::Invalid => {
+                        assert!(matches!(enabled_result, Err(HttpAnnounceError::PeerIpInvalid)));
+                        assert!(matches!(disabled_result, Err(HttpAnnounceError::PeerIpInvalid)));
+                    }
+                    PeerIp::Absent | PeerIp::Empty => unreachable!(),
+                }
             }
         }
 

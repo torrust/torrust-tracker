@@ -6,7 +6,7 @@ use torrust_metrics::metric_collection::aggregate::sum::Sum;
 use torrust_metrics::metric_collection::{Error, MetricCollection};
 use torrust_metrics::metric_name;
 
-use crate::statistics::{HTTP_TRACKER_CORE_ANNOUNCE_PEER_IP_REJECTIONS_TOTAL, HTTP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL};
+use crate::statistics::HTTP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL;
 
 /// Metrics collected by the tracker.
 #[derive(Debug, Clone, PartialEq, Default, Serialize)]
@@ -91,19 +91,6 @@ impl Metrics {
             .sum(
                 &metric_name!(HTTP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL),
                 &[("server_binding_address_ip_family", "inet6"), ("request_kind", "scrape")].into(),
-            )
-            .unwrap_or_default() as u64
-    }
-
-    /// Total rejected HTTP announce `ip` parameters for a bounded rejection reason.
-    #[must_use]
-    #[allow(clippy::cast_sign_loss)]
-    #[allow(clippy::cast_possible_truncation)]
-    pub fn announce_peer_ip_rejections_total(&self, reason: &str) -> u64 {
-        self.metric_collection
-            .sum(
-                &metric_name!(HTTP_TRACKER_CORE_ANNOUNCE_PEER_IP_REJECTIONS_TOTAL),
-                &[("reason", reason)].into(),
             )
             .unwrap_or_default() as u64
     }

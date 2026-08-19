@@ -11,7 +11,7 @@ depends-on:
   - docs/issues/open/1985-rename-peer-addr-to-ip-in-http-announce-request/ISSUE.md
   - docs/issues/open/1980-1978-configuration-overhaul-final-cleanup.md
 blocks: null
-last-updated-utc: 2026-08-18 00:00
+last-updated-utc: 2026-08-19 00:00
 semantic-links:
   skill-links:
     - create-issue
@@ -23,6 +23,8 @@ semantic-links:
     - docs/issues/open/1640-1978-per-http-tracker-on-reverse-proxy-setting.md
     - evidence-opentracker-no-dns-support.md
     - evidence-chihaya-no-dns-support.md
+    - error-event-observability-analysis.md
+    - docs/issues/drafts/generalize-error-events.md
 ---
 
 # Issue #1987 - Add per-HTTP-tracker config option to use peer IP from `ip` GET parameter (sub-issue of #1978)
@@ -107,9 +109,17 @@ Thus, the query-string `ip` takes precedence over both `external_ip` and `X-Forw
 
 Enabling this feature allows a remote client to claim any IP address in its announce request. The tracker would accept that address and include it in the peer list. This is a potential source of IP spoofing in the peer list. The feature must therefore be **opt-in**, disabled by default, and clearly documented as a trust-based setting — suitable only for private/controlled deployments, or as a workaround for peers behind symmetric NAT that cannot be reached via their connection IP.
 
-### Rejection observability scope
+### Rejection observability decision
 
-This issue defines observability only for the new peer-IP rejection event and metric. Its debug log records a bounded reason code, not the raw `ip` parameter value. The rejection metric likewise uses bounded labels only.
+The initially implemented peer-IP rejection event and metric were removed under
+Option B after architectural review. This issue retains strict validation and
+precise bencoded failure responses but does not add a dedicated aggregate
+counter or rejection-specific event.
+
+The deferred [general error-events draft EPIC](../../drafts/generalize-error-events.md)
+and [Error Event Observability Analysis](error-event-observability-analysis.md)
+record the cross-service contract that must be defined before a similar event or
+metric is introduced.
 
 Existing HTTP request logging, including its request-URI behavior, is outside this issue's scope. This issue does not establish a tracker-wide policy for redacting query parameters, client addresses, peer IDs, or other client-controlled request data. A cross-cutting request-log privacy and diagnostic policy requires a separate issue and, if adopted, an ADR.
 
@@ -123,7 +133,7 @@ Do not add raw invalid values to the new rejection log merely because they are n
 - Accept an absent or empty `ip` GET parameter in both configuration modes, using the normal connection-derived address.
 - Reject a non-empty `ip` parameter that is invalid, is a DNS name, or is supplied while the option is disabled, with a precise protocol failure reason.
 - When the option is enabled and the `ip` GET parameter contains a valid IP address, use that IP as the peer's address instead of the connection IP.
-- Record rejected `ip` parameters in an operator-visible bounded-reason counter and rejection-specific debug log without treating them as application errors or logging raw `ip` parameter values.
+- Defer rejected-parameter events and metrics until the general error-event contract is designed; retain strict protocol failures and existing diagnostics.
 - Document the security implications of enabling this option in the configuration schema and in the module documentation.
 - Preserve the `ip` parameter's raw request state at the HTTP protocol boundary so absent, empty, valid literal, DNS-name, and invalid non-empty values remain distinguishable.
 - Add exhaustive tests for every raw-parameter validation and address-selection case. Prefer focused unit tests; add contract/integration tests only where HTTP boundary behavior cannot be validated by unit tests.
@@ -147,14 +157,14 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T3  | DONE    | Preserve the raw `ip` parameter state in the HTTP protocol            | Replaced lossy `Option<IpAddr>` parsing with `PeerIp`, preserving absent, empty, literal, DNS-name, and invalid states.                                                                                                                                      |
 | T4  | DONE    | Inject the address-selection policy into the announce service         | Production constructs an explicit disabled policy pending #1980; unit tests inject both policy values.                                                                                                                                                       |
 | T5  | DONE    | Validate and select the peer IP                                       | Implemented strict failures and enabled literal selection. A valid enabled query IP overrides `external_ip`, reverse-proxy, and connection-derived addresses; absent/empty values preserve normal resolution.                                                |
-| T6  | DONE    | Add rejected-parameter observability                                  | Added a bounded-reason counter and rejection-specific debug event logging without raw `ip` parameter values. Existing request-URI logging is outside this issue's scope.                                                                                     |
+| T6  | DONE    | Decide rejected-parameter observability                               | Selected Option B: removed the #1987-specific event and metric; documented the deferred general error-events EPIC.                                                                                                                                           |
 | T7  | DONE    | Add exhaustive tests for validation and selection                     | Added protocol/service unit tests and HTTP contract coverage for raw states and failure responses.                                                                                                                                                           |
 | T8  | DONE    | Update configuration documentation                                    | Documented the v3 field and staged activation. The active v2 default config is intentionally unchanged pending #1980.                                                                                                                                        |
 | T9  | DONE    | Run `cargo test --workspace` — no regressions                         | Full workspace test suite passed on 2026-08-19 after updating the scaffold fixture to omit the now-disallowed non-empty `ip` override.                                                                                                                       |
 | T10 | DONE    | Run `linter all`                                                      | Passed through the pre-commit gate on 2026-08-18.                                                                                                                                                                                                            |
 | T11 | DONE    | Update migration guide if this subissue affects the config public API | Updated `docs/issues/open/1978-configuration-overhaul-epic/configuration-v2-to-v3-migration.md`.                                                                                                                                                             |
 | T12 | DONE    | Capture baseline behavior locally                                     | Recorded in `manual-verification.md`.                                                                                                                                                                                                                        |
-| T13 | DONE    | Manually verify disabled behavior locally                             | Recorded successful fallback, strict failures, client response, metric, and safe debug evidence in `manual-verification.md`.                                                                                                                                 |
+| T13 | DONE    | Manually verify disabled behavior locally                             | Recorded successful fallback, strict failures, and client response in `manual-verification.md`; rejection-specific observability was deferred under Option B.                                                                                                |
 | T14 | BLOCKED | Manually verify enabled behavior locally with active v3 configuration | After #1980 activates schema v3.0.0 at runtime, enable `use_ip_from_query_string` in a local per-HTTP-tracker config and run the enabled-mode scenarios with the local tracker and tracker client. Append reproducible evidence to `manual-verification.md`. |
 
 ## Progress Tracking
@@ -181,9 +191,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-08-18 00:00 UTC - Copilot/User - Required post-implementation manual verification against a local tracker using the local tracker client, with reproducible evidence retained in this issue directory.
 - 2026-08-18 00:00 UTC - Copilot/User - Chose staged delivery while v2 remains the active runtime schema: production wiring remains explicitly disabled; unit tests cover both policies; enabled-mode local manual verification is deferred until #1980 activates v3.0.0 configuration.
 - 2026-08-18 00:00 UTC - Copilot/User - Required a three-phase local manual verification record: baseline behavior before implementation, disabled-policy behavior after implementation, and enabled-v3 behavior after #1980. The baseline documents the intentional change from silently ignoring non-empty `ip` values to rejecting them when overrides are disabled.
-- 2026-08-19 00:00 UTC - Copilot/User - Implemented the staged disabled-policy behavior, v3 schema field, strict raw `ip` parsing, bounded observability, automated coverage, and baseline/disabled local verification. Enabled-v3 manual verification remains blocked on #1980.
-- 2026-08-19 00:00 UTC - Copilot/User - Clarified observability scope: the new rejection event and metric use bounded reason data only; existing HTTP request-URI logging is out of scope. A tracker-wide logging privacy/diagnostic policy requires a separate issue and ADR decision.
+- 2026-08-19 00:00 UTC - Copilot/User - Implemented the staged disabled-policy behavior, v3 schema field, strict raw `ip` parsing, automated coverage, and baseline/disabled local verification. Enabled-v3 manual verification remains blocked on #1980.
 - 2026-08-19 00:00 UTC - Copilot/User - Clarified future enabled-policy precedence: a valid query `ip` overrides loopback `external_ip`, `X-Forwarded-For`, and the direct connection address; absent or empty `ip` preserves normal address resolution. Grouped disabled-policy HTTP contract tests and reserved the enabled-policy group for #1980 runtime activation.
+- 2026-08-19 00:00 UTC - Copilot/User - Added error-event observability analysis to evaluate whether the #1987 rejection metric/event should remain or be deferred pending a cross-service event API design.
+- 2026-08-19 00:00 UTC - Copilot/User - Selected Option B: removed the #1987-specific rejection event and metric, retained strict validation, and created a deferred draft EPIC for a cross-service error-event contract.
 
 ## Acceptance Criteria
 
@@ -193,7 +204,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] AC4: The default configuration file (`share/default/`) has `use_ip_from_query_string` set to `false` (or omitted, defaulting to `false`). Evidence: v3 schema field defaults to `false`; active v2 default file intentionally remains unchanged pending #1980.
 - [x] AC5: The configuration schema documentation clearly states the security implications of enabling this option.
 - [x] AC6: Focused unit tests cover every `ip` parameter validation and address-selection case; minimum contract/integration tests verify HTTP failure responses and configuration wiring where unit tests cannot.
-- [x] AC6a: A counter records rejected non-empty `ip` parameters using bounded reason labels, and the rejection-specific debug log records only a bounded reason without raw `ip` parameter values or application error logs. Existing request-URI logging is outside scope. Evidence: `manual-verification.md` Phase 2.
+- [x] AC6a: The #1987-specific rejection event and counter are absent; strict rejection behavior remains. Any future error observability must follow the deferred general error-events contract. Evidence: `error-event-observability-analysis.md` and `docs/issues/drafts/generalize-error-events.md`.
 - [x] AC7: `linter all` exits with code `0`. Evidence: pre-commit gate passed on 2026-08-18.
 - [x] AC8: Relevant tests pass with no regressions. Evidence: `cargo +1.88.0 test --workspace` passed on 2026-08-19.
 - [x] AC9: Baseline manual verification runs a local tracker and local tracker client before implementation; reproducible commands, output, expected/actual results, and environment details are recorded in `manual-verification.md` in this issue directory.
@@ -214,22 +225,21 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 The implementation must add automated coverage for every row in the parameter contract. Prefer unit tests at the validation and peer-address selection boundaries. Use contract/integration tests only for behavior that requires the HTTP transport boundary.
 
-| ID  | `ip` value                                                           | Setting  | Expected outcome                                                                                      | Preferred test level                   |
-| --- | -------------------------------------------------------------------- | -------- | ----------------------------------------------------------------------------------------------------- | -------------------------------------- |
-| A1  | Raw state: absent                                                    | Disabled | Accept; use connection/reverse-proxy address                                                          | Protocol unit + service unit           |
-| A2  | Raw state: empty (`ip=`)                                             | Disabled | Accept; treat as absent                                                                               | Protocol unit + service unit           |
-| A3  | Valid IPv4 literal                                                   | Disabled | Reject with a disabled-override failure reason                                                        | Unit + HTTP contract response          |
-| A4  | Valid IPv6 literal                                                   | Disabled | Reject with a disabled-override failure reason                                                        | Unit + HTTP contract response          |
-| A5  | Raw state: DNS name                                                  | Disabled | Reject with a DNS-not-supported failure reason                                                        | Protocol unit + HTTP contract response |
-| A6  | Raw state: invalid non-empty value                                   | Disabled | Reject with an invalid-IP failure reason                                                              | Protocol unit + HTTP contract response |
-| A7  | Raw state: absent                                                    | Enabled  | Accept; use connection/reverse-proxy address                                                          | Protocol unit + service unit           |
-| A8  | Raw state: empty (`ip=`)                                             | Enabled  | Accept; treat as absent                                                                               | Protocol unit + service unit           |
-| A9  | Valid IPv4 literal                                                   | Enabled  | Accept; use supplied address                                                                          | Unit                                   |
-| A10 | Valid IPv6 literal                                                   | Enabled  | Accept; use supplied address                                                                          | Unit                                   |
-| A11 | Raw state: DNS name                                                  | Enabled  | Reject with a DNS-not-supported failure reason                                                        | Protocol unit + HTTP contract response |
-| A12 | Raw state: invalid non-empty value                                   | Enabled  | Reject with an invalid-IP failure reason                                                              | Protocol unit + HTTP contract response |
-| A13 | Valid IPv4/IPv6 literal with reverse proxy or loopback `external_ip` | Enabled  | Accept; supplied address takes precedence over `X-Forwarded-For` and `external_ip`                    | Unit + minimum integration coverage    |
-| A14 | Rejected value                                                       | Either   | Increment the bounded-reason counter and emit a rejection-specific debug entry with no raw `ip` value | Unit                                   |
+| ID  | `ip` value                                                           | Setting  | Expected outcome                                                                   | Preferred test level                   |
+| --- | -------------------------------------------------------------------- | -------- | ---------------------------------------------------------------------------------- | -------------------------------------- |
+| A1  | Raw state: absent                                                    | Disabled | Accept; use connection/reverse-proxy address                                       | Protocol unit + service unit           |
+| A2  | Raw state: empty (`ip=`)                                             | Disabled | Accept; treat as absent                                                            | Protocol unit + service unit           |
+| A3  | Valid IPv4 literal                                                   | Disabled | Reject with a disabled-override failure reason                                     | Unit + HTTP contract response          |
+| A4  | Valid IPv6 literal                                                   | Disabled | Reject with a disabled-override failure reason                                     | Unit + HTTP contract response          |
+| A5  | Raw state: DNS name                                                  | Disabled | Reject with a DNS-not-supported failure reason                                     | Protocol unit + HTTP contract response |
+| A6  | Raw state: invalid non-empty value                                   | Disabled | Reject with an invalid-IP failure reason                                           | Protocol unit + HTTP contract response |
+| A7  | Raw state: absent                                                    | Enabled  | Accept; use connection/reverse-proxy address                                       | Protocol unit + service unit           |
+| A8  | Raw state: empty (`ip=`)                                             | Enabled  | Accept; treat as absent                                                            | Protocol unit + service unit           |
+| A9  | Valid IPv4 literal                                                   | Enabled  | Accept; use supplied address                                                       | Unit                                   |
+| A10 | Valid IPv6 literal                                                   | Enabled  | Accept; use supplied address                                                       | Unit                                   |
+| A11 | Raw state: DNS name                                                  | Enabled  | Reject with a DNS-not-supported failure reason                                     | Protocol unit + HTTP contract response |
+| A12 | Raw state: invalid non-empty value                                   | Enabled  | Reject with an invalid-IP failure reason                                           | Protocol unit + HTTP contract response |
+| A13 | Valid IPv4/IPv6 literal with reverse proxy or loopback `external_ip` | Enabled  | Accept; supplied address takes precedence over `X-Forwarded-For` and `external_ip` | Unit + minimum integration coverage    |
 
 ### Manual Verification Scenarios
 
@@ -239,7 +249,7 @@ Run the same applicable request matrix against a local tracker in three phases: 
 
 - date/time, commit SHA, OS, Rust toolchain, and effective local tracker configuration;
 - exact tracker and client commands, with sensitive values redacted;
-- relevant client output and metric/debug-log evidence;
+- relevant client output and diagnostics evidence;
 - expected and actual results for every executed scenario.
 
 | ID  | Scenario                                                   | Command/Steps                                                                                                          | Expected Result                                                                                | Status      | Evidence                                                                                            |
@@ -249,28 +259,27 @@ Run the same applicable request matrix against a local tracker in three phases: 
 | M3  | Opt-in config: absent or empty `ip` — fallback             | Enable `use_ip_from_query_string`; announce without `ip` and with `ip=`                                                | Peer is registered with the connection IP in both cases                                        | TODO        |                                                                                                     |
 | M4  | Opt-in + resolved-address fallbacks: `ip` takes precedence | Enable `use_ip_from_query_string` with either `on_reverse_proxy` or loopback `external_ip`; announce with `ip=1.2.3.4` | Peer is registered with `1.2.3.4` (query string wins over `X-Forwarded-For` and `external_ip`) | TODO        |                                                                                                     |
 | M5  | Non-empty invalid or DNS `ip` is rejected                  | Announce with enabled and disabled configurations using `ip=invalid_ip` and `ip=example.com`                           | Announce fails with the specific validation reason                                             | IN_PROGRESS | Disabled-mode evidence complete in `manual-verification.md`; enabled-mode verification awaits #1980 |
-| M6  | Rejected parameters are observable                         | Submit rejected non-empty `ip` parameters and inspect the rejection metric and rejection-specific debug log            | Counter increments by bounded reason; rejection-specific debug log has no raw `ip` value       | DONE        | `manual-verification.md` Phase 2                                                                    |
 
-**Baseline expectation:** Before implementation, use M1–M5 as an address-selection request matrix. Valid, DNS-name, and invalid non-empty `ip` values are expected to be silently ignored and the announce is expected to succeed using the connection-derived address. Empty and absent values are expected to succeed. M6 is post-implementation only because its metric and debug log do not yet exist.
+**Baseline expectation:** Before implementation, use M1–M5 as an address-selection request matrix. Valid, DNS-name, and invalid non-empty `ip` values are expected to be silently ignored and the announce is expected to succeed using the connection-derived address. Empty and absent values are expected to succeed.
 
-**Post-implementation disabled-policy expectation:** M1, the disabled-mode portion of M5, and M6 apply. M2–M4 and the enabled-mode portion of M5 remain blocked until #1980 activates schema v3.0.0 configuration at runtime. Execute and document them under T14 once the setting can be enabled in the local tracker configuration.
+**Post-implementation disabled-policy expectation:** M1 and the disabled-mode portion of M5 apply. M2–M4 and the enabled-mode portion of M5 remain blocked until #1980 activates schema v3.0.0 configuration at runtime. Execute and document them under T14 once the setting can be enabled in the local tracker configuration.
 
 ### Acceptance Verification
 
-| AC ID | Status (`TODO`/`DONE`) | Evidence                                                                              |
-| ----- | ---------------------- | ------------------------------------------------------------------------------------- |
-| AC1   | DONE                   | `manual-verification.md` Phase 2                                                      |
-| AC2   | DONE                   | Focused enabled-policy service tests; runtime verification deferred to #1980          |
-| AC3   | DONE                   | Focused enabled-policy service/protocol tests; runtime verification deferred to #1980 |
-| AC4   | DONE                   | v3 schema default is `false`; active v2 default config unchanged pending #1980        |
-| AC5   | DONE                   | v3 `HttpTracker` field documentation                                                  |
-| AC6   | DONE                   | Focused protocol, service, and Axum HTTP contract tests                               |
-| AC6a  | DONE                   | `manual-verification.md` Phase 2                                                      |
-| AC7   | DONE                   | Pre-commit gate passed 2026-08-18                                                     |
-| AC8   | DONE                   | `cargo +1.88.0 test --workspace` passed 2026-08-19                                    |
-| AC9   | DONE                   | `manual-verification.md` Phase 1                                                      |
-| AC10  | DONE                   | `manual-verification.md` Phase 2                                                      |
-| AC11  | BLOCKED                | Requires #1980 to activate v3.0.0 configuration at runtime.                           |
+| AC ID | Status (`TODO`/`DONE`) | Evidence                                                                                 |
+| ----- | ---------------------- | ---------------------------------------------------------------------------------------- |
+| AC1   | DONE                   | `manual-verification.md` Phase 2                                                         |
+| AC2   | DONE                   | Focused enabled-policy service tests; runtime verification deferred to #1980             |
+| AC3   | DONE                   | Focused enabled-policy service/protocol tests; runtime verification deferred to #1980    |
+| AC4   | DONE                   | v3 schema default is `false`; active v2 default config unchanged pending #1980           |
+| AC5   | DONE                   | v3 `HttpTracker` field documentation                                                     |
+| AC6   | DONE                   | Focused protocol, service, and Axum HTTP contract tests                                  |
+| AC6a  | DONE                   | `error-event-observability-analysis.md`; `docs/issues/drafts/generalize-error-events.md` |
+| AC7   | DONE                   | Pre-commit gate passed 2026-08-18                                                        |
+| AC8   | DONE                   | `cargo +1.88.0 test --workspace` passed 2026-08-19                                       |
+| AC9   | DONE                   | `manual-verification.md` Phase 1                                                         |
+| AC10  | DONE                   | `manual-verification.md` Phase 2                                                         |
+| AC11  | BLOCKED                | Requires #1980 to activate v3.0.0 configuration at runtime.                              |
 
 ## Risks and Trade-offs
 

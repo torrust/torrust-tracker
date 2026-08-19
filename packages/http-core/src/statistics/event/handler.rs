@@ -5,8 +5,8 @@ use torrust_metrics::label::{LabelSet, LabelValue};
 use torrust_metrics::{label_name, metric_name};
 
 use crate::event::Event;
+use crate::statistics::HTTP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL;
 use crate::statistics::repository::Repository;
-use crate::statistics::{HTTP_TRACKER_CORE_ANNOUNCE_PEER_IP_REJECTIONS_TOTAL, HTTP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL};
 
 pub async fn handle_event(event: Event, stats_repository: &Arc<Repository>, now: DurationSinceUnixEpoch) {
     match event {
@@ -44,22 +44,6 @@ pub async fn handle_event(event: Event, stats_repository: &Arc<Repository>, now:
                 Err(err) => tracing::error!("Failed to increase the counter: {}", err),
             }
         }
-        Event::TcpAnnouncePeerIpRejected { connection, reason } => {
-            let mut label_set = LabelSet::from(connection);
-            label_set.upsert(label_name!("reason"), LabelValue::new(reason.as_str()));
-
-            match stats_repository
-                .increase_counter(
-                    &metric_name!(HTTP_TRACKER_CORE_ANNOUNCE_PEER_IP_REJECTIONS_TOTAL),
-                    &label_set,
-                    now,
-                )
-                .await
-            {
-                Ok(()) => tracing::debug!(reason = reason.as_str(), "Recorded rejected HTTP announce peer IP parameter"),
-                Err(err) => tracing::error!("Failed to increase the counter: {}", err),
-            }
-        }
     }
 
     tracing::debug!("stats: {:?}", stats_repository.get_stats().await);
@@ -75,7 +59,7 @@ mod tests {
     use torrust_tracker_http_protocol::v1::services::peer_ip_resolver::{RemoteClientAddr, ResolvedIp};
 
     use crate::CurrentClock;
-    use crate::event::{ConnectionContext, Event, PeerIpRejectionReason};
+    use crate::event::{ConnectionContext, Event};
     use crate::statistics::event::handler::handle_event;
     use crate::statistics::repository::Repository;
     use crate::tests::{sample_info_hash, sample_peer_using_ipv4, sample_peer_using_ipv6};
@@ -178,31 +162,5 @@ mod tests {
         let stats = stats_repository.get_stats().await;
 
         assert_eq!(stats.tcp6_scrapes_handled(), 1);
-    }
-
-    #[tokio::test]
-    async fn it_should_increase_the_peer_ip_rejection_counter_for_the_rejection_reason() {
-        // Arrange
-        let stats_repository = Arc::new(Repository::new());
-        let reason = PeerIpRejectionReason::DnsNameUnsupported;
-
-        // Act
-        handle_event(
-            Event::TcpAnnouncePeerIpRejected {
-                connection: ConnectionContext::new(
-                    RemoteClientAddr::new(ResolvedIp::FromSocketAddr(IpAddr::V4(Ipv4Addr::LOCALHOST)), Some(8080)),
-                    ServiceBinding::new(Protocol::HTTP, SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070)).unwrap(),
-                ),
-                reason,
-            },
-            &stats_repository,
-            CurrentClock::now(),
-        )
-        .await;
-
-        // Assert
-        let stats = stats_repository.get_stats().await;
-        assert_eq!(stats.announce_peer_ip_rejections_total(reason.as_str()), 1);
-        assert_eq!(stats.announce_peer_ip_rejections_total("invalid_ip_address"), 0);
     }
 }
