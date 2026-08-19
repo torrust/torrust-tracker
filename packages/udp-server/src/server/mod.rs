@@ -93,11 +93,13 @@ mod tests {
         let udp_trackers = cfg.udp_trackers.clone().expect("missing UDP trackers configuration");
         let config = &udp_trackers[0];
         let bind_to = config.bind_address;
+        let configuration_instance_id = ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0);
         let register = &Registar::<RuntimeServiceMetadata>::default();
 
         let stopped = Server::new(Spawner::new(bind_to));
 
-        let udp_tracker_core_container = UdpTrackerCoreContainer::initialize(&core_config, &udp_tracker_config).await;
+        let udp_tracker_core_container =
+            UdpTrackerCoreContainer::initialize(&core_config, &udp_tracker_config, configuration_instance_id).await;
         let udp_tracker_server_container = UdpTrackerServerContainer::initialize(&core_config);
 
         let started = stopped
@@ -105,7 +107,7 @@ mod tests {
                 udp_tracker_core_container,
                 udp_tracker_server_container,
                 register.give_form(),
-                RuntimeServiceMetadata::new(ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0)),
+                RuntimeServiceMetadata::new(configuration_instance_id),
                 config.cookie_lifetime,
                 torrust_tracker_udp_core::ConnectionIdValidationPolicy::Strict,
             )
@@ -135,11 +137,13 @@ mod tests {
         initialize_global_services(&cfg);
 
         let bind_to = udp_tracker_config.bind_address;
+        let configuration_instance_id = ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0);
         let register = &Registar::<RuntimeServiceMetadata>::default();
 
         let stopped = Server::new(Spawner::new(bind_to));
 
-        let udp_tracker_core_container = UdpTrackerCoreContainer::initialize(&core_config, &udp_tracker_config).await;
+        let udp_tracker_core_container =
+            UdpTrackerCoreContainer::initialize(&core_config, &udp_tracker_config, configuration_instance_id).await;
         let udp_tracker_server_container = UdpTrackerServerContainer::initialize(&core_config);
 
         let started = stopped
@@ -147,7 +151,7 @@ mod tests {
                 udp_tracker_core_container,
                 udp_tracker_server_container,
                 register.give_form(),
-                RuntimeServiceMetadata::new(ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0)),
+                RuntimeServiceMetadata::new(configuration_instance_id),
                 udp_tracker_config.cookie_lifetime,
                 torrust_tracker_udp_core::ConnectionIdValidationPolicy::Strict,
             )

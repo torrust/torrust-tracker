@@ -187,8 +187,11 @@ impl EnvContainer {
             ConfigurationInstanceId::new(ServiceRole::HttpTracker, 0),
         );
 
-        let udp_tracker_core_container =
-            UdpTrackerCoreContainer::initialize_from_tracker_core(&tracker_core_container, &udp_tracker_config);
+        let udp_tracker_core_container = UdpTrackerCoreContainer::initialize_from_tracker_core(
+            &tracker_core_container,
+            &udp_tracker_config,
+            ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0),
+        );
 
         let udp_tracker_server_container = UdpTrackerServerContainer::initialize(&core_config);
 

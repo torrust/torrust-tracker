@@ -211,8 +211,11 @@ impl EnvContainer {
         let tracker_core_container =
             Arc::new(TrackerCoreContainer::initialize_from(core_config, &swarm_coordination_registry_container).await);
 
-        let udp_tracker_core_container =
-            UdpTrackerCoreContainer::initialize_from_tracker_core(&tracker_core_container, udp_tracker_config);
+        let udp_tracker_core_container = UdpTrackerCoreContainer::initialize_from_tracker_core(
+            &tracker_core_container,
+            udp_tracker_config,
+            torrust_tracker_primitives::ConfigurationInstanceId::new(torrust_tracker_primitives::ServiceRole::UdpTracker, 0),
+        );
 
         let udp_tracker_server_container = UdpTrackerServerContainer::initialize(core_config);
 

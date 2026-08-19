@@ -34,7 +34,11 @@ pub struct UdpTrackerCoreContainer {
 
 impl UdpTrackerCoreContainer {
     #[must_use]
-    pub async fn initialize(core_config: &Arc<Core>, udp_tracker_config: &Arc<UdpTracker>) -> Arc<UdpTrackerCoreContainer> {
+    pub async fn initialize(
+        core_config: &Arc<Core>,
+        udp_tracker_config: &Arc<UdpTracker>,
+        configuration_instance_id: ConfigurationInstanceId,
+    ) -> Arc<UdpTrackerCoreContainer> {
         let swarm_coordination_registry_container = Arc::new(SwarmCoordinationRegistryContainer::initialize(
             core_config.tracker_usage_statistics.into(),
         ));
@@ -42,13 +46,14 @@ impl UdpTrackerCoreContainer {
         let tracker_core_container =
             Arc::new(TrackerCoreContainer::initialize_from(core_config, &swarm_coordination_registry_container).await);
 
-        Self::initialize_from_tracker_core(&tracker_core_container, udp_tracker_config)
+        Self::initialize_from_tracker_core(&tracker_core_container, udp_tracker_config, configuration_instance_id)
     }
 
     #[must_use]
     pub fn initialize_from_tracker_core(
         tracker_core_container: &Arc<TrackerCoreContainer>,
         udp_tracker_config: &Arc<UdpTracker>,
+        configuration_instance_id: ConfigurationInstanceId,
     ) -> Arc<UdpTrackerCoreContainer> {
         let max_connection_id_errors_per_ip = udp_tracker_config.max_connection_id_errors_per_ip;
         let udp_tracker_core_services =
@@ -58,7 +63,7 @@ impl UdpTrackerCoreContainer {
             tracker_core_container,
             &udp_tracker_core_services,
             udp_tracker_config,
-            ConfigurationInstanceId::new(torrust_tracker_primitives::ServiceRole::UdpTracker, 0),
+            configuration_instance_id,
         )
     }
 
