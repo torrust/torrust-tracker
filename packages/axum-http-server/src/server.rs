@@ -371,6 +371,7 @@ mod tests {
             tracker_core_container.scrape_handler.clone(),
             tracker_core_container.authentication_service.clone(),
             http_stats_event_sender.clone(),
+            configuration_instance_id,
         ));
 
         HttpTrackerCoreContainer {

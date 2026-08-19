@@ -114,6 +114,7 @@ mod tests {
     use torrust_tracker_http_protocol::v1::requests::scrape::Scrape;
     use torrust_tracker_http_protocol::v1::responses;
     use torrust_tracker_http_protocol::v1::services::peer_ip_resolver::ClientIpSources;
+    use torrust_tracker_primitives::{ConfigurationInstanceId, ServiceRole};
     use torrust_tracker_test_helpers::configuration;
 
     struct CoreTrackerServices {
@@ -124,6 +125,7 @@ mod tests {
 
     struct CoreHttpTrackerServices {
         pub http_stats_event_sender: torrust_tracker_http_core::event::sender::Sender,
+        pub configuration_instance_id: ConfigurationInstanceId,
     }
 
     fn initialize_private_tracker() -> (CoreTrackerServices, CoreHttpTrackerServices) {
@@ -144,6 +146,15 @@ mod tests {
 
     fn initialize_core_tracker_services(config: &Configuration) -> (CoreTrackerServices, CoreHttpTrackerServices) {
         let cancellation_token = CancellationToken::new();
+        let configuration_instance_id = config
+            .http_trackers
+            .as_deref()
+            .expect("the test configuration should contain an HTTP tracker")
+            .iter()
+            .enumerate()
+            .next()
+            .map(|(index, _)| ConfigurationInstanceId::new(ServiceRole::HttpTracker, index))
+            .expect("the test configuration should contain an HTTP tracker");
 
         let core_config = Arc::new(config.core.clone());
         let in_memory_whitelist = Arc::new(InMemoryWhitelist::default());
@@ -173,7 +184,10 @@ mod tests {
                 scrape_handler,
                 authentication_service,
             },
-            CoreHttpTrackerServices { http_stats_event_sender },
+            CoreHttpTrackerServices {
+                http_stats_event_sender,
+                configuration_instance_id,
+            },
         )
     }
 
@@ -223,6 +237,7 @@ mod tests {
                 core_tracker_services.scrape_handler.clone(),
                 core_tracker_services.authentication_service.clone(),
                 core_http_tracker_services.http_stats_event_sender.clone(),
+                core_http_tracker_services.configuration_instance_id,
             );
 
             let scrape_data = scrape_service
@@ -256,6 +271,7 @@ mod tests {
                 core_tracker_services.scrape_handler.clone(),
                 core_tracker_services.authentication_service.clone(),
                 core_http_tracker_services.http_stats_event_sender.clone(),
+                core_http_tracker_services.configuration_instance_id,
             );
 
             let scrape_data = scrape_service
@@ -298,6 +314,7 @@ mod tests {
                 core_tracker_services.scrape_handler.clone(),
                 core_tracker_services.authentication_service.clone(),
                 core_http_tracker_services.http_stats_event_sender.clone(),
+                core_http_tracker_services.configuration_instance_id,
             );
 
             let scrape_data = scrape_service
@@ -340,6 +357,7 @@ mod tests {
                 core_tracker_services.scrape_handler.clone(),
                 core_tracker_services.authentication_service.clone(),
                 core_http_tracker_services.http_stats_event_sender.clone(),
+                core_http_tracker_services.configuration_instance_id,
             );
 
             let response = scrape_service
@@ -385,6 +403,7 @@ mod tests {
                 core_tracker_services.scrape_handler.clone(),
                 core_tracker_services.authentication_service.clone(),
                 core_http_tracker_services.http_stats_event_sender.clone(),
+                core_http_tracker_services.configuration_instance_id,
             );
 
             let response = scrape_service

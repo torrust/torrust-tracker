@@ -52,22 +52,6 @@ impl ScrapeService {
         scrape_handler: Arc<ScrapeHandler>,
         authentication_service: Arc<AuthenticationService>,
         opt_http_stats_event_sender: crate::event::sender::Sender,
-    ) -> Self {
-        Self::with_configuration_instance_id(
-            core_config,
-            scrape_handler,
-            authentication_service,
-            opt_http_stats_event_sender,
-            ConfigurationInstanceId::new(torrust_tracker_primitives::ServiceRole::HttpTracker, 0),
-        )
-    }
-
-    #[must_use]
-    pub fn with_configuration_instance_id(
-        core_config: Arc<Core>,
-        scrape_handler: Arc<ScrapeHandler>,
-        authentication_service: Arc<AuthenticationService>,
-        opt_http_stats_event_sender: crate::event::sender::Sender,
         configuration_instance_id: ConfigurationInstanceId,
     ) -> Self {
         Self {
@@ -222,7 +206,7 @@ mod tests {
     use torrust_tracker_core::whitelist::authorization::WhitelistAuthorization;
     use torrust_tracker_core::whitelist::repository::in_memory::InMemoryWhitelist;
     use torrust_tracker_events::sender::SendError;
-    use torrust_tracker_primitives::{AnnounceEvent, NumberOfBytes, PeerId, peer};
+    use torrust_tracker_primitives::{AnnounceEvent, ConfigurationInstanceId, NumberOfBytes, PeerId, ServiceRole, peer};
 
     use crate::event::Event;
     use crate::tests::sample_info_hash;
@@ -231,9 +215,19 @@ mod tests {
         announce_handler: Arc<AnnounceHandler>,
         scrape_handler: Arc<ScrapeHandler>,
         authentication_service: Arc<AuthenticationService>,
+        configuration_instance_id: ConfigurationInstanceId,
     }
 
     async fn initialize_services_with_configuration(config: &Configuration) -> Container {
+        let configuration_instance_id = config
+            .http_trackers
+            .as_deref()
+            .expect("the test configuration should contain an HTTP tracker")
+            .iter()
+            .enumerate()
+            .next()
+            .map(|(index, _)| ConfigurationInstanceId::new(ServiceRole::HttpTracker, index))
+            .expect("the test configuration should contain an HTTP tracker");
         let database = initialize_database(&config.core).await;
         let in_memory_whitelist = Arc::new(InMemoryWhitelist::default());
         let whitelist_authorization = Arc::new(WhitelistAuthorization::new(&config.core, &in_memory_whitelist.clone()));
@@ -255,6 +249,7 @@ mod tests {
             announce_handler,
             scrape_handler,
             authentication_service,
+            configuration_instance_id,
         }
     }
 
@@ -350,6 +345,7 @@ mod tests {
                 container.scrape_handler.clone(),
                 container.authentication_service.clone(),
                 http_stats_event_sender.clone(),
+                container.configuration_instance_id,
             ));
 
             let scrape_data = scrape_service
@@ -411,6 +407,7 @@ mod tests {
                 container.scrape_handler.clone(),
                 container.authentication_service.clone(),
                 http_stats_event_sender.clone(),
+                container.configuration_instance_id,
             ));
 
             scrape_service
@@ -465,6 +462,7 @@ mod tests {
                 container.scrape_handler.clone(),
                 container.authentication_service.clone(),
                 http_stats_event_sender.clone(),
+                container.configuration_instance_id,
             ));
 
             scrape_service
@@ -540,6 +538,7 @@ mod tests {
                 container.scrape_handler.clone(),
                 container.authentication_service.clone(),
                 http_stats_event_sender.clone(),
+                container.configuration_instance_id,
             ));
 
             let scrape_data = scrape_service
@@ -593,6 +592,7 @@ mod tests {
                 container.scrape_handler.clone(),
                 container.authentication_service.clone(),
                 http_stats_event_sender.clone(),
+                container.configuration_instance_id,
             ));
 
             scrape_service
@@ -647,6 +647,7 @@ mod tests {
                 container.scrape_handler.clone(),
                 container.authentication_service.clone(),
                 http_stats_event_sender.clone(),
+                container.configuration_instance_id,
             ));
 
             scrape_service
