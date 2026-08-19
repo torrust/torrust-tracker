@@ -45,6 +45,20 @@ requiring permission prompts):
 TORRUST_GIT_HOOKS_LOG_DIR=.tmp ./contrib/dev-tools/git/hooks/pre-commit.sh
 ```
 
+### Restricted Agent Sandboxes
+
+Some restricted sandboxes also omit Cargo from the `PATH` inherited by hook
+subprocesses. When both restrictions apply, run:
+
+```bash
+PATH="$HOME/.cargo/bin:$PATH" \
+TORRUST_GIT_HOOKS_LOG_DIR=.tmp \
+./contrib/dev-tools/git/hooks/pre-commit.sh
+```
+
+This is an agent-environment workaround. Normal developer environments should
+continue using the standard command above.
+
 The script runs these steps in order:
 
 1. `./contrib/dev-tools/git/format-project-words.sh` - formats `project-words.txt` with

@@ -62,6 +62,22 @@ Scope should reflect the affected package or area (e.g., `tracker-core`, `udp-pr
 git commit -S -m "your commit message"
 ```
 
+### Restricted Agent Sandboxes
+
+Some agent sandboxes cannot write hook logs to `/tmp` and launch Git hooks with
+a reduced `PATH` that does not contain Cargo. When that occurs, preserve GPG
+signing and run the commit with:
+
+```bash
+PATH="$HOME/.cargo/bin:$PATH" \
+TORRUST_GIT_HOOKS_LOG_DIR=.tmp \
+git commit -S -m "<type>(<scope>): <description>"
+```
+
+This is a sandbox-only workaround. It keeps hook logs in the git-ignored
+workspace `.tmp/` directory and makes Cargo available to hook subprocesses; it
+does not replace normal developer setup or permit bypassing `git commit -S`.
+
 ### GPG Timeout Handling
 
 If the GPG passphrase prompt times out (`gpg: signing failed: Timeout`), the agent **must**:

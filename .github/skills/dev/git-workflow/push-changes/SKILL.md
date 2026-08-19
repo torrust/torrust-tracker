@@ -20,6 +20,21 @@ This skill guides you through the complete push process for the Torrust Tracker 
 git push <remote> <branch>
 ```
 
+### Restricted Agent Sandboxes
+
+If a sandbox cannot write hook logs to `/tmp` or its hook subprocesses cannot
+find Cargo, push with the environment required by the hooks:
+
+```bash
+PATH="$HOME/.cargo/bin:$PATH" \
+TORRUST_GIT_HOOKS_LOG_DIR=.tmp \
+git push <remote> <branch>
+```
+
+This is a sandbox-only workaround. `.tmp/` is git-ignored and keeps hook logs
+inside the workspace; adding Cargo's bin directory makes the pre-push hook
+portable to the restricted environment.
+
 ## Git Hook (Recommended Setup)
 
 The repository ships a `pre-push` Git hook that runs

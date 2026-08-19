@@ -64,6 +64,20 @@ requiring permission prompts):
 TORRUST_GIT_HOOKS_LOG_DIR=.tmp ./contrib/dev-tools/git/hooks/pre-push.sh
 ```
 
+### Restricted Agent Sandboxes
+
+If the restricted sandbox also removes Cargo from the hook `PATH`, use:
+
+```bash
+PATH="$HOME/.cargo/bin:$PATH" \
+TORRUST_GIT_HOOKS_LOG_DIR=.tmp \
+./contrib/dev-tools/git/hooks/pre-push.sh
+```
+
+This is an agent-environment workaround. It keeps logs in the git-ignored
+workspace `.tmp/` directory and restores Cargo for hook subprocesses; it does
+not alter the checks that the hook runs.
+
 The script runs these steps in order:
 
 1. `cargo +nightly fmt --check` - nightly format check
