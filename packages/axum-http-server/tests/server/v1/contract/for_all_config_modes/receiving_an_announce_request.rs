@@ -14,7 +14,6 @@ use std::str::FromStr;
 use std::sync::Arc;
 use std::time::Duration;
 
-use local_ip_address::local_ip;
 use reqwest::{Response, StatusCode};
 use tokio::net::TcpListener;
 use torrust_info_hash::InfoHash;
@@ -93,6 +92,29 @@ async fn should_fail_when_the_url_query_component_is_empty() {
 
     assert_missing_query_params_for_announce_request_error_response(response).await;
 
+    env.stop().await;
+}
+
+#[tokio::test]
+async fn it_should_return_a_failure_response_for_a_non_empty_peer_ip_when_overrides_are_disabled() {
+    // Arrange
+    logging::setup();
+    let cfg = configuration::ephemeral_public();
+    let core_config = Arc::new(cfg.core.clone());
+    let http_tracker_config = Arc::new(cfg.http_trackers.unwrap()[0].clone());
+    let env = Started::new(&core_config, &http_tracker_config).await;
+    let announce = AnnounceBuilder::default().with_ip("192.0.2.1".parse().unwrap()).query();
+
+    // Act
+    let response = Client::new(env.base_url(), Duration::from_secs(5))
+        .unwrap()
+        .announce(&announce)
+        .await
+        .unwrap();
+
+    // Assert
+    let response_body = String::from_utf8(response.bytes().await.unwrap().to_vec()).unwrap();
+    assert!(response_body.contains("Client-supplied peer IPs are disabled"));
     env.stop().await;
 }
 
@@ -206,13 +228,8 @@ async fn should_fail_when_the_info_hash_param_is_invalid() {
 }
 
 #[tokio::test]
-async fn should_not_fail_when_the_ip_param_is_invalid() {
+async fn should_reject_an_invalid_peer_ip_parameter() {
     logging::setup();
-
-    // AnnounceQuery does not even contain the `ip` param when it is invalid
-    // The peer IP is obtained in two ways:
-    // 1. If tracker is NOT running `on_reverse_proxy` from the remote client IP.
-    // 2. If tracker is     running `on_reverse_proxy` from `X-Forwarded-For` request HTTP header.
 
     let cfg = configuration::ephemeral();
     let core_config = Arc::new(cfg.core.clone());
@@ -224,7 +241,7 @@ async fn should_not_fail_when_the_ip_param_is_invalid() {
         percent_encode_byte_array(&AnnounceBuilder::default().query().info_hash.bytes()),
         percent_encode_byte_array(&AnnounceBuilder::default().query().peer_id.0),
         AnnounceBuilder::default().query().port,
-        "INVALID-IP-ADDRESS",
+        "invalid_ip",
     );
 
     let response = Client::new(env.base_url(), Duration::from_secs(5))
@@ -233,7 +250,47 @@ async fn should_not_fail_when_the_ip_param_is_invalid() {
         .await
         .unwrap();
 
-    assert_is_announce_response(response).await;
+    let response_body = String::from_utf8(response.bytes().await.unwrap().to_vec()).unwrap();
+    assert!(response_body.contains("The announce ip parameter must be an IPv4 or IPv6 literal"));
+
+    env.stop().await;
+}
+
+#[tokio::test]
+async fn it_should_return_distinct_failure_reasons_for_non_literal_peer_ip_parameters() {
+    // Arrange
+    logging::setup();
+    let cfg = configuration::ephemeral();
+    let core_config = Arc::new(cfg.core.clone());
+    let http_tracker_config = Arc::new(cfg.http_trackers.unwrap()[0].clone());
+    let env = Started::new(&core_config, &http_tracker_config).await;
+    let required_parameters = format!(
+        "info_hash={}&peer_id={}&port={}",
+        percent_encode_byte_array(&AnnounceBuilder::default().query().info_hash.bytes()),
+        percent_encode_byte_array(&AnnounceBuilder::default().query().peer_id.0),
+        AnnounceBuilder::default().query().port,
+    );
+
+    // Act / Assert
+    for (ip, expected_failure_reason) in [
+        ("localhost", "DNS names are not supported for the announce ip parameter"),
+        ("tracker", "DNS names are not supported for the announce ip parameter"),
+        ("example.com", "DNS names are not supported for the announce ip parameter"),
+        ("999.999.999.999", "The announce ip parameter must be an IPv4 or IPv6 literal"),
+        (
+            "%ZZ",
+            "Bad request. Cannot parse query params for announce request: malformed percent encoding for ip",
+        ),
+    ] {
+        let response = Client::new(env.base_url(), Duration::from_secs(5))
+            .unwrap()
+            .get(&format!("announce?{required_parameters}&ip={ip}"))
+            .await
+            .unwrap();
+
+        let response_body = String::from_utf8(response.bytes().await.unwrap().to_vec()).unwrap();
+        assert!(response_body.contains(expected_failure_reason), "ip={ip}");
+    }
 
     env.stop().await;
 }
@@ -675,7 +732,8 @@ async fn should_return_the_list_of_previously_announced_peers_including_peers_us
 }
 
 #[tokio::test]
-async fn should_consider_two_peers_to_be_the_same_when_they_have_the_same_socket_address_even_if_the_peer_id_is_different() {
+async fn should_consider_two_peers_to_be_the_same_when_they_have_the_same_connection_socket_address_even_if_the_peer_id_is_different()
+ {
     logging::setup();
 
     let cfg = configuration::ephemeral_public();
@@ -689,19 +747,16 @@ async fn should_consider_two_peers_to_be_the_same_when_they_have_the_same_socket
     let announce_query_1 = AnnounceBuilder::default()
         .with_info_hash(&info_hash)
         .with_peer_id(&PeerId(peer.peer_id.0))
-        .with_ip(peer.peer_addr.ip())
         .with_port(peer.peer_addr.port())
         .query();
 
     let announce_query_2 = AnnounceBuilder::default()
         .with_info_hash(&info_hash)
         .with_peer_id(&PeerId(*b"-qB00000000000000002")) // Different peer ID
-        .with_ip(peer.peer_addr.ip())
         .with_port(peer.peer_addr.port())
         .query();
 
-    // Same peer socket address
-    assert_eq!(announce_query_1.ip, announce_query_2.ip);
+    // Same connection peer socket address.
     assert_eq!(announce_query_1.port, announce_query_2.port);
 
     // Different peer ID
@@ -887,33 +942,28 @@ async fn should_increase_the_number_of_tcp6_announce_requests_handled_in_statist
 }
 
 #[tokio::test]
-async fn should_not_increase_the_number_of_tcp6_announce_requests_handled_if_the_client_is_not_using_an_ipv6_ip() {
+async fn should_reject_a_valid_ipv6_peer_ip_when_overrides_are_disabled() {
     logging::setup();
-
-    // The tracker ignores the peer address in the request param. It uses the client remote ip address.
 
     let cfg = configuration::ephemeral_public();
     let core_config = Arc::new(cfg.core.clone());
     let http_tracker_config = Arc::new(cfg.http_trackers.unwrap()[0].clone());
     let env = Started::new(&core_config, &http_tracker_config).await;
 
-    Client::new(env.base_url(), Duration::from_secs(5))
+    let response = Client::new(env.base_url(), Duration::from_secs(5))
         .unwrap()
         .announce(&AnnounceBuilder::default().with_ip(IpAddr::V6(Ipv6Addr::LOCALHOST)).query())
         .await
         .unwrap();
 
-    let stats = env.container.http_tracker_core_container.stats_repository.get_stats().await;
-
-    assert_eq!(stats.tcp6_announces_handled(), 0);
-
-    drop(stats);
+    let response_body = String::from_utf8(response.bytes().await.unwrap().to_vec()).unwrap();
+    assert!(response_body.contains("Client-supplied peer IPs are disabled"));
 
     env.stop().await;
 }
 
 #[tokio::test]
-async fn should_assign_to_the_peer_ip_the_remote_client_ip_instead_of_the_peer_address_in_the_request_param() {
+async fn should_reject_a_valid_ipv4_peer_ip_when_overrides_are_disabled() {
     logging::setup();
 
     let cfg = configuration::ephemeral_public();
@@ -922,36 +972,24 @@ async fn should_assign_to_the_peer_ip_the_remote_client_ip_instead_of_the_peer_a
     let env = Started::new(&core_config, &http_tracker_config).await;
 
     let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap(); // DevSkim: ignore DS173237
-    let client_ip = local_ip().unwrap();
-
     let announce_query = AnnounceBuilder::default()
         .with_info_hash(&info_hash)
         .with_ip(IpAddr::from_str("2.2.2.2").unwrap())
         .query();
 
     {
-        let client = Client::bind(env.base_url(), Duration::from_secs(5), client_ip).unwrap();
-        let status = client.announce(&announce_query).await.unwrap().status();
+        let client = Client::new(env.base_url(), Duration::from_secs(5)).unwrap();
+        let response = client.announce(&announce_query).await.unwrap();
+        let response_body = String::from_utf8(response.bytes().await.unwrap().to_vec()).unwrap();
 
-        assert_eq!(status, StatusCode::OK);
+        assert!(response_body.contains("Client-supplied peer IPs are disabled"));
     }
-
-    let peers = env
-        .container
-        .tracker_core_container
-        .in_memory_torrent_repository
-        .get_torrent_peers(&info_hash, usize::MAX)
-        .await;
-    let peer_addr = peers[0].peer_addr;
-
-    assert_eq!(peer_addr.ip(), client_ip);
-    assert_ne!(peer_addr.ip(), IpAddr::from_str("2.2.2.2").unwrap());
 
     env.stop().await;
 }
 
 #[tokio::test]
-async fn when_the_client_ip_is_a_loopback_ipv4_it_should_assign_to_the_peer_ip_the_external_ip_in_the_tracker_configuration() {
+async fn when_the_client_ip_is_a_loopback_ipv4_it_should_assign_to_the_peer_ip_the_external_ip_without_an_ip_parameter() {
     logging::setup();
 
     /*  We assume that both the client and tracker share the same public IP.
@@ -968,10 +1006,7 @@ async fn when_the_client_ip_is_a_loopback_ipv4_it_should_assign_to_the_peer_ip_t
     let loopback_ip = IpAddr::from_str("127.0.0.1").unwrap();
     let client_ip = loopback_ip;
 
-    let announce_query = AnnounceBuilder::default()
-        .with_info_hash(&info_hash)
-        .with_ip(IpAddr::from_str("2.2.2.2").unwrap())
-        .query();
+    let announce_query = AnnounceBuilder::default().with_info_hash(&info_hash).query();
 
     {
         let client = Client::bind(env.base_url(), Duration::from_secs(5), client_ip).unwrap();
@@ -997,13 +1032,12 @@ async fn when_the_client_ip_is_a_loopback_ipv4_it_should_assign_to_the_peer_ip_t
         .unwrap()
         .into();
     assert_eq!(peer_addr.ip(), ext_ip);
-    assert_ne!(peer_addr.ip(), IpAddr::from_str("2.2.2.2").unwrap());
 
     env.stop().await;
 }
 
 #[tokio::test]
-async fn when_the_client_ip_is_a_loopback_ipv6_it_should_assign_to_the_peer_ip_the_external_ip_in_the_tracker_configuration() {
+async fn when_the_client_ip_is_a_loopback_ipv6_it_should_assign_to_the_peer_ip_the_external_ip_without_an_ip_parameter() {
     logging::setup();
 
     /* We assume that both the client and tracker share the same public IP.
@@ -1021,10 +1055,7 @@ async fn when_the_client_ip_is_a_loopback_ipv6_it_should_assign_to_the_peer_ip_t
     let loopback_ip = IpAddr::from_str("127.0.0.1").unwrap();
     let client_ip = loopback_ip;
 
-    let announce_query = AnnounceBuilder::default()
-        .with_info_hash(&info_hash)
-        .with_ip(IpAddr::from_str("2.2.2.2").unwrap())
-        .query();
+    let announce_query = AnnounceBuilder::default().with_info_hash(&info_hash).query();
 
     {
         let client = Client::bind(env.base_url(), Duration::from_secs(5), client_ip).unwrap();
@@ -1050,7 +1081,6 @@ async fn when_the_client_ip_is_a_loopback_ipv6_it_should_assign_to_the_peer_ip_t
         .unwrap()
         .into();
     assert_eq!(peer_addr.ip(), ext_ip);
-    assert_ne!(peer_addr.ip(), IpAddr::from_str("2.2.2.2").unwrap());
 
     env.stop().await;
 }

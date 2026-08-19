@@ -116,7 +116,7 @@ async fn the_stats_api_endpoint_should_aggregate_announces_across_multiple_track
     let client = reqwest::Client::new();
     for url in &tracker_urls {
         let announce_url = url
-            .join("/announce?info_hash=%9c8b%22%13%e3%0b%ff%21%2b0%c3%60%d2o%9a%02%13d%22&peer_id=-qB00000000000000001&port=17548&ip=127.0.0.1&event=started&compact=0")
+            .join("/announce?info_hash=%9c8b%22%13%e3%0b%ff%21%2b0%c3%60%d2o%9a%02%13d%22&peer_id=-qB00000000000000001&port=17548&event=started&compact=0")
             .expect("announce URL should be valid");
         let resp = client.get(announce_url.as_str()).send().await.unwrap();
         let status = resp.status();

@@ -22,7 +22,7 @@ use torrust_tracker_http_core::event::sender::Broadcaster;
 use torrust_tracker_http_core::statistics::event::listener::run_event_listener;
 use torrust_tracker_http_core::statistics::repository::Repository;
 use torrust_tracker_http_protocol::v1::requests::announce::{
-    Announce, Event as ProtocolAnnounceEvent, NumberOfBytes as ProtocolNumberOfBytes,
+    Announce, Event as ProtocolAnnounceEvent, NumberOfBytes as ProtocolNumberOfBytes, PeerIp,
 };
 use torrust_tracker_http_protocol::v1::services::peer_ip_resolver::ClientIpSources;
 use torrust_tracker_primitives::peer::Peer;
@@ -107,7 +107,7 @@ pub fn sample_announce_request_for_peer(peer: Peer) -> (Announce, ClientIpSource
         info_hash: sample_info_hash(),
         peer_id: peer.peer_id,
         port: peer.peer_addr.port(),
-        ip: None,
+        ip: PeerIp::Absent,
         uploaded: Some(ProtocolNumberOfBytes::new(peer.uploaded.0)),
         downloaded: Some(ProtocolNumberOfBytes::new(peer.downloaded.0)),
         left: Some(ProtocolNumberOfBytes::new(peer.left.0)),

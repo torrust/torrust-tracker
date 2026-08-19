@@ -6,7 +6,7 @@ use torrust_tracker_swarm_coordination_registry::container::SwarmCoordinationReg
 
 use crate::event::bus::EventBus;
 use crate::event::sender::Broadcaster;
-use crate::services::announce::AnnounceService;
+use crate::services::announce::{AnnounceService, PeerIpSelectionPolicy};
 use crate::services::scrape::ScrapeService;
 use crate::statistics::repository::Repository;
 use crate::{event, services, statistics};
@@ -86,12 +86,15 @@ impl HttpTrackerCoreServices {
 
         let http_stats_event_sender = http_stats_event_bus.sender();
 
-        let http_announce_service = Arc::new(AnnounceService::new(
+        let http_announce_service = Arc::new(AnnounceService::new_with_peer_ip_selection_policy(
             tracker_core_container.core_config.clone(),
             tracker_core_container.announce_handler.clone(),
             tracker_core_container.authentication_service.clone(),
             tracker_core_container.whitelist_authorization.clone(),
             http_stats_event_sender.clone(),
+            // Configuration v3 is not runtime-active until #1980. Keep the
+            // production policy explicitly disabled rather than adding v2 wiring.
+            PeerIpSelectionPolicy::disabled(),
         ));
 
         let http_scrape_service = Arc::new(ScrapeService::new(

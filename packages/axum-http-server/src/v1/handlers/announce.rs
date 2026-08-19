@@ -27,7 +27,7 @@ pub async fn handle_without_key(
     ExtractRequest(announce_request): ExtractRequest,
     ExtractClientIpSources(client_ip_sources): ExtractClientIpSources,
 ) -> Response {
-    tracing::debug!("http announce request: {:#?}", announce_request);
+    tracing::debug!("Received HTTP announce request");
 
     handle(&state.0, &announce_request, &client_ip_sources, &state.1, None).await
 }
@@ -41,7 +41,7 @@ pub async fn handle_with_key(
     ExtractClientIpSources(client_ip_sources): ExtractClientIpSources,
     ExtractKey(key): ExtractKey,
 ) -> Response {
-    tracing::debug!("http announce request: {:#?}", announce_request);
+    tracing::debug!("Received HTTP announce request");
 
     handle(&state.0, &announce_request, &client_ip_sources, &state.1, Some(key)).await
 }
@@ -143,7 +143,7 @@ mod tests {
     use torrust_tracker_http_core::services::announce::AnnounceService;
     use torrust_tracker_http_core::statistics::event::listener::run_event_listener;
     use torrust_tracker_http_core::statistics::repository::Repository;
-    use torrust_tracker_http_protocol::v1::requests::announce::Announce;
+    use torrust_tracker_http_protocol::v1::requests::announce::{Announce, PeerIp};
     use torrust_tracker_http_protocol::v1::responses;
     use torrust_tracker_http_protocol::v1::services::peer_ip_resolver::ClientIpSources;
     use torrust_tracker_primitives::PeerId;
@@ -220,7 +220,7 @@ mod tests {
             info_hash: sample_info_hash(),
             peer_id: PeerId(*b"-qB00000000000000001"),
             port: 17548,
-            ip: None,
+            ip: PeerIp::Absent,
             downloaded: None,
             uploaded: None,
             left: None,

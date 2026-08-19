@@ -29,6 +29,30 @@ pub enum Event {
     TcpScrape {
         connection: ConnectionContext,
     },
+    /// A non-empty announce `ip` parameter was rejected by address-selection policy.
+    TcpAnnouncePeerIpRejected {
+        connection: ConnectionContext,
+        reason: PeerIpRejectionReason,
+    },
+}
+
+/// Bounded reasons for rejecting an announce `ip` parameter.
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+pub enum PeerIpRejectionReason {
+    OverrideDisabled,
+    DnsNameUnsupported,
+    InvalidIpAddress,
+}
+
+impl PeerIpRejectionReason {
+    #[must_use]
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::OverrideDisabled => "override_disabled",
+            Self::DnsNameUnsupported => "dns_name_unsupported",
+            Self::InvalidIpAddress => "invalid_ip_address",
+        }
+    }
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]

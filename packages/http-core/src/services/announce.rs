@@ -19,7 +19,7 @@ use torrust_tracker_core::authentication::{self, Key};
 use torrust_tracker_core::error::{AnnounceError, TrackerCoreError, WhitelistError};
 use torrust_tracker_core::whitelist;
 use torrust_tracker_http_protocol::v1::requests::announce::{
-    Announce, Event as ProtocolAnnounceEvent, NumberOfBytes as ProtocolNumberOfBytes,
+    Announce, Event as ProtocolAnnounceEvent, NumberOfBytes as ProtocolNumberOfBytes, PeerIp,
 };
 use torrust_tracker_http_protocol::v1::responses::error::Error as HttpProtocolErrorResponse;
 use torrust_tracker_http_protocol::v1::services::peer_ip_resolver::{
@@ -29,7 +29,7 @@ use torrust_tracker_primitives::peer::PeerAnnouncement;
 use torrust_tracker_primitives::{AnnounceData, AnnounceEvent, NumberOfBytes};
 
 use crate::event;
-use crate::event::Event;
+use crate::event::{Event, PeerIpRejectionReason};
 use crate::services::error_mapping::protocol_error_from_tracker_core_error;
 
 /// The HTTP tracker `announce` service.
@@ -44,6 +44,30 @@ pub struct AnnounceService {
     authentication_service: Arc<AuthenticationService>,
     whitelist_authorization: Arc<whitelist::authorization::WhitelistAuthorization>,
     opt_http_stats_event_sender: event::sender::Sender,
+    peer_ip_selection_policy: PeerIpSelectionPolicy,
+}
+
+/// Controls whether an HTTP announce may override its peer IP with BEP 3's
+/// non-empty `ip` parameter. Enabling this trusts client-supplied addresses.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct PeerIpSelectionPolicy {
+    use_ip_from_query_string: bool,
+}
+
+impl PeerIpSelectionPolicy {
+    #[must_use]
+    pub const fn disabled() -> Self {
+        Self {
+            use_ip_from_query_string: false,
+        }
+    }
+
+    #[must_use]
+    pub const fn enabled() -> Self {
+        Self {
+            use_ip_from_query_string: true,
+        }
+    }
 }
 
 impl AnnounceService {
@@ -55,12 +79,32 @@ impl AnnounceService {
         whitelist_authorization: Arc<whitelist::authorization::WhitelistAuthorization>,
         opt_http_stats_event_sender: event::sender::Sender,
     ) -> Self {
+        Self::new_with_peer_ip_selection_policy(
+            core_config,
+            announce_handler,
+            authentication_service,
+            whitelist_authorization,
+            opt_http_stats_event_sender,
+            PeerIpSelectionPolicy::disabled(),
+        )
+    }
+
+    #[must_use]
+    pub fn new_with_peer_ip_selection_policy(
+        core_config: Arc<Core>,
+        announce_handler: Arc<AnnounceHandler>,
+        authentication_service: Arc<AuthenticationService>,
+        whitelist_authorization: Arc<whitelist::authorization::WhitelistAuthorization>,
+        opt_http_stats_event_sender: event::sender::Sender,
+        peer_ip_selection_policy: PeerIpSelectionPolicy,
+    ) -> Self {
         Self {
             core_config,
             announce_handler,
             authentication_service,
             whitelist_authorization,
             opt_http_stats_event_sender,
+            peer_ip_selection_policy,
         }
     }
 
@@ -85,18 +129,22 @@ impl AnnounceService {
 
         let remote_client_addr = resolve_remote_client_addr(&self.core_config.net.on_reverse_proxy.into(), client_ip_sources)?;
 
-        let mut peer = Self::peer_from_request(announce_request, &remote_client_addr.ip());
+        let peer_ip = match self.select_peer_ip(announce_request, remote_client_addr.ip()) {
+            Ok(peer_ip) => peer_ip,
+            Err(reason) => {
+                self.send_peer_ip_rejection_event(remote_client_addr, server_service_binding.clone(), reason)
+                    .await;
+                return Err(reason.into());
+            }
+        };
+
+        let mut peer = Self::peer_from_request(announce_request, &peer_ip);
 
         let peers_wanted = Self::peers_wanted(announce_request);
 
         let announce_data = self
             .announce_handler
-            .handle_announcement(
-                &announce_request.info_hash,
-                &mut peer,
-                &remote_client_addr.ip(),
-                &peers_wanted,
-            )
+            .handle_announcement(&announce_request.info_hash, &mut peer, &peer_ip, &peers_wanted)
             .await?;
 
         self.send_event(
@@ -135,6 +183,30 @@ impl AnnounceService {
                 },
                 None => AnnounceEvent::None,
             },
+        }
+    }
+
+    fn select_peer_ip(
+        &self,
+        announce_request: &Announce,
+        connection_peer_ip: std::net::IpAddr,
+    ) -> Result<std::net::IpAddr, PeerIpRejectionReason> {
+        Self::select_peer_ip_with_policy(self.peer_ip_selection_policy, announce_request, connection_peer_ip)
+    }
+
+    fn select_peer_ip_with_policy(
+        peer_ip_selection_policy: PeerIpSelectionPolicy,
+        announce_request: &Announce,
+        connection_peer_ip: std::net::IpAddr,
+    ) -> Result<std::net::IpAddr, PeerIpRejectionReason> {
+        match &announce_request.ip {
+            PeerIp::Absent | PeerIp::Empty => Ok(connection_peer_ip),
+            PeerIp::Literal(_) if !peer_ip_selection_policy.use_ip_from_query_string => {
+                Err(PeerIpRejectionReason::OverrideDisabled)
+            }
+            PeerIp::Literal(ip) => Ok(*ip),
+            PeerIp::DnsName => Err(PeerIpRejectionReason::DnsNameUnsupported),
+            PeerIp::Invalid => Err(PeerIpRejectionReason::InvalidIpAddress),
         }
     }
 
@@ -181,6 +253,24 @@ impl AnnounceService {
             http_stats_event_sender.send(event).await;
         }
     }
+
+    async fn send_peer_ip_rejection_event(
+        &self,
+        remote_client_addr: RemoteClientAddr,
+        server_service_binding: ServiceBinding,
+        reason: PeerIpRejectionReason,
+    ) {
+        tracing::debug!(reason = reason.as_str(), "Rejected HTTP announce peer IP parameter");
+
+        if let Some(http_stats_event_sender) = self.opt_http_stats_event_sender.as_deref() {
+            http_stats_event_sender
+                .send(Event::TcpAnnouncePeerIpRejected {
+                    connection: event::ConnectionContext::new(remote_client_addr, server_service_binding),
+                    reason,
+                })
+                .await;
+        }
+    }
 }
 
 /// Errors related to announce requests.
@@ -191,6 +281,25 @@ pub enum HttpAnnounceError {
 
     #[error("Tracker core error: {source}")]
     TrackerCoreError { source: TrackerCoreError },
+
+    #[error("Client-supplied peer IPs are disabled")]
+    PeerIpOverrideDisabled,
+
+    #[error("DNS names are not supported for the announce ip parameter")]
+    PeerIpDnsNameUnsupported,
+
+    #[error("The announce ip parameter must be an IPv4 or IPv6 literal")]
+    PeerIpInvalid,
+}
+
+impl From<PeerIpRejectionReason> for HttpAnnounceError {
+    fn from(reason: PeerIpRejectionReason) -> Self {
+        match reason {
+            PeerIpRejectionReason::OverrideDisabled => Self::PeerIpOverrideDisabled,
+            PeerIpRejectionReason::DnsNameUnsupported => Self::PeerIpDnsNameUnsupported,
+            PeerIpRejectionReason::InvalidIpAddress => Self::PeerIpInvalid,
+        }
+    }
 }
 
 impl From<PeerIpResolutionError> for HttpAnnounceError {
@@ -238,6 +347,11 @@ impl From<HttpAnnounceError> for HttpProtocolErrorResponse {
         match error {
             HttpAnnounceError::PeerIpResolutionError { source } => source.into(),
             HttpAnnounceError::TrackerCoreError { source } => protocol_error_from_tracker_core_error(source),
+            HttpAnnounceError::PeerIpOverrideDisabled
+            | HttpAnnounceError::PeerIpDnsNameUnsupported
+            | HttpAnnounceError::PeerIpInvalid => Self {
+                failure_reason: error.to_string(),
+            },
         }
     }
 }
@@ -257,7 +371,7 @@ mod tests {
     use torrust_tracker_core::torrent::repository::in_memory::InMemoryTorrentRepository;
     use torrust_tracker_core::whitelist::authorization::WhitelistAuthorization;
     use torrust_tracker_core::whitelist::repository::in_memory::InMemoryWhitelist;
-    use torrust_tracker_http_protocol::v1::requests::announce::Announce;
+    use torrust_tracker_http_protocol::v1::requests::announce::{Announce, PeerIp};
     use torrust_tracker_http_protocol::v1::services::peer_ip_resolver::ClientIpSources;
     use torrust_tracker_primitives::peer::Peer;
     use torrust_tracker_test_helpers::configuration;
@@ -328,7 +442,7 @@ mod tests {
             info_hash: sample_info_hash(),
             peer_id: peer.peer_id,
             port: peer.peer_addr.port(),
-            ip: None,
+            ip: PeerIp::Absent,
             uploaded: Some(torrust_tracker_http_protocol::v1::requests::announce::NumberOfBytes::new(
                 peer.uploaded.0,
             )),
@@ -392,19 +506,77 @@ mod tests {
         use mockall::predicate::{self};
         use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
         use torrust_tracker_configuration::Configuration;
-        use torrust_tracker_http_protocol::v1::services::peer_ip_resolver::{RemoteClientAddr, ResolvedIp};
+        use torrust_tracker_http_protocol::v1::requests::announce::{Announce, PeerIp};
+        use torrust_tracker_http_protocol::v1::services::peer_ip_resolver::{ClientIpSources, RemoteClientAddr, ResolvedIp};
         use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
         use torrust_tracker_primitives::{AnnounceData, peer};
         use torrust_tracker_test_helpers::configuration;
 
         use crate::event::test::announce_events_match;
-        use crate::event::{ConnectionContext, Event};
-        use crate::services::announce::AnnounceService;
+        use crate::event::{ConnectionContext, Event, PeerIpRejectionReason};
         use crate::services::announce::tests::{
             MockHttpStatsEventSender, initialize_core_tracker_services, initialize_core_tracker_services_with_config,
             sample_announce_request_for_peer,
         };
+        use crate::services::announce::{AnnounceService, PeerIpSelectionPolicy};
         use crate::tests::{sample_info_hash, sample_peer, sample_peer_using_ipv4, sample_peer_using_ipv6};
+
+        #[test]
+        fn it_should_select_the_connection_address_for_absent_or_empty_peer_ip() {
+            // Arrange
+            let connection_ip = IpAddr::V4(Ipv4Addr::LOCALHOST);
+            let policy = PeerIpSelectionPolicy::enabled();
+
+            // Act / Assert
+            for ip in [PeerIp::Absent, PeerIp::Empty] {
+                let request = sample_announce_request_for_peer(sample_peer()).0;
+                let request = Announce { ip, ..request };
+
+                assert_eq!(
+                    AnnounceService::select_peer_ip_with_policy(policy, &request, connection_ip),
+                    Ok(connection_ip)
+                );
+            }
+        }
+
+        #[test]
+        fn it_should_reject_or_select_non_empty_peer_ip_according_to_policy() {
+            // Arrange
+            let connection_ip = IpAddr::V4(Ipv4Addr::LOCALHOST);
+            let cases = [
+                (
+                    PeerIp::Literal("192.0.2.1".parse().unwrap()),
+                    Ok("192.0.2.1".parse().unwrap()),
+                ),
+                (
+                    PeerIp::Literal("2001:db8::1".parse().unwrap()),
+                    Ok("2001:db8::1".parse().unwrap()),
+                ),
+                (PeerIp::DnsName, Err(PeerIpRejectionReason::DnsNameUnsupported)),
+                (PeerIp::Invalid, Err(PeerIpRejectionReason::InvalidIpAddress)),
+            ];
+
+            // Act / Assert
+            for (ip, enabled_result) in cases {
+                let request = Announce {
+                    ip,
+                    ..sample_announce_request_for_peer(sample_peer()).0
+                };
+                assert_eq!(
+                    AnnounceService::select_peer_ip_with_policy(PeerIpSelectionPolicy::enabled(), &request, connection_ip),
+                    enabled_result
+                );
+                assert_eq!(
+                    AnnounceService::select_peer_ip_with_policy(PeerIpSelectionPolicy::disabled(), &request, connection_ip),
+                    match request.ip {
+                        PeerIp::Literal(_) => Err(PeerIpRejectionReason::OverrideDisabled),
+                        PeerIp::DnsName => Err(PeerIpRejectionReason::DnsNameUnsupported),
+                        PeerIp::Invalid => Err(PeerIpRejectionReason::InvalidIpAddress),
+                        PeerIp::Absent | PeerIp::Empty => Ok(connection_ip),
+                    }
+                );
+            }
+        }
 
         #[tokio::test]
         async fn it_should_return_the_announce_data() {
@@ -441,6 +613,72 @@ mod tests {
             };
 
             assert_eq!(announce_data, expected_announce_data);
+        }
+
+        #[tokio::test]
+        async fn it_should_prefer_a_query_string_peer_ip_over_the_x_forwarded_for_ip_when_overrides_are_enabled() {
+            // Arrange
+            let (core_tracker_services, mut core_http_tracker_services) =
+                initialize_core_tracker_services_with_config(&configuration::ephemeral_with_reverse_proxy()).await;
+            let server_service_binding =
+                ServiceBinding::new(Protocol::HTTP, SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070)).unwrap();
+            let query_string_peer_ip = "198.51.100.42".parse().unwrap();
+            let x_forwarded_for_ip = "203.0.113.195".parse().unwrap();
+            let peer = sample_peer();
+            let peer_port = peer.peer_addr.port();
+            let (announce_request, _) = sample_announce_request_for_peer(peer);
+            let announce_request = Announce {
+                ip: PeerIp::Literal(query_string_peer_ip),
+                ..announce_request
+            };
+            let client_ip_sources = ClientIpSources {
+                right_most_x_forwarded_for: Some(x_forwarded_for_ip),
+                connection_info_socket_address: Some(SocketAddr::new("192.0.2.10".parse().unwrap(), 8080)),
+            };
+
+            let mut http_stats_event_sender_mock = MockHttpStatsEventSender::new();
+            http_stats_event_sender_mock
+                .expect_send()
+                .with(predicate::function(move |event| {
+                    let mut announcement = peer;
+                    announcement.peer_addr = SocketAddr::new(query_string_peer_ip, peer_port);
+
+                    let expected_event = Event::TcpAnnounce {
+                        connection: ConnectionContext::new(
+                            RemoteClientAddr::new(ResolvedIp::FromXForwardedFor(x_forwarded_for_ip), Some(8080)),
+                            server_service_binding.clone(),
+                        ),
+                        info_hash: sample_info_hash(),
+                        announcement,
+                    };
+
+                    announce_events_match(event, &expected_event)
+                }))
+                .times(1)
+                .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
+            core_http_tracker_services.http_stats_event_sender = Some(Arc::new(http_stats_event_sender_mock));
+
+            let announce_service = AnnounceService::new_with_peer_ip_selection_policy(
+                core_tracker_services.core_config,
+                core_tracker_services.announce_handler,
+                core_tracker_services.authentication_service,
+                core_tracker_services.whitelist_authorization,
+                core_http_tracker_services.http_stats_event_sender,
+                PeerIpSelectionPolicy::enabled(),
+            );
+
+            // Act
+            let result = announce_service
+                .handle_announce(
+                    &announce_request,
+                    &client_ip_sources,
+                    &ServiceBinding::new(Protocol::HTTP, SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070)).unwrap(),
+                    None,
+                )
+                .await;
+
+            // Assert
+            assert!(result.is_ok());
         }
 
         #[tokio::test]
