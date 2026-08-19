@@ -93,7 +93,7 @@ pub async fn initialize_core_tracker_services_with_config(
 pub fn sample_peer() -> peer::Peer {
     peer::Peer {
         peer_id: PeerId(*b"-qB00000000000000000"),
-        peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080),
+        peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080).into(),
         updated: DurationSinceUnixEpoch::new(1_669_397_478_934, 0),
         uploaded: NumberOfBytes::new(0),
         downloaded: NumberOfBytes::new(0),
@@ -102,7 +102,7 @@ pub fn sample_peer() -> peer::Peer {
     }
 }
 
-pub fn sample_announce_request_for_peer(peer: Peer) -> (Announce, ClientIpSources) {
+pub fn sample_announce_request_for_peer(peer: &Peer) -> (Announce, ClientIpSources) {
     let announce_request = Announce {
         info_hash: sample_info_hash(),
         peer_id: peer.peer_id,
@@ -123,7 +123,7 @@ pub fn sample_announce_request_for_peer(peer: Peer) -> (Announce, ClientIpSource
 
     let client_ip_sources = ClientIpSources {
         right_most_x_forwarded_for: None,
-        connection_info_socket_address: Some(SocketAddr::new(peer.peer_addr.ip(), 8080)),
+        connection_info_socket_address: Some(SocketAddr::new(peer.peer_addr.ip().unwrap(), 8080)),
     };
 
     (announce_request, client_ip_sources)

@@ -36,7 +36,7 @@ pub fn sample_info_hash() -> InfoHash {
 pub fn sample_peer() -> Peer {
     Peer {
         peer_id: PeerId(*b"-qB00000000000000000"),
-        peer_addr: SocketAddr::new(remote_client_ip(), 8080),
+        peer_addr: SocketAddr::new(remote_client_ip(), 8080).into(),
         updated: DurationSinceUnixEpoch::new(1_669_397_478_934, 0),
         uploaded: NumberOfBytes::new(0),
         downloaded: NumberOfBytes::new(0),

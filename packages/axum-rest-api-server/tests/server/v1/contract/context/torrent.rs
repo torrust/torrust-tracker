@@ -333,7 +333,7 @@ async fn should_allow_getting_a_torrent_info() {
             seeders: 1,
             completed: 0,
             leechers: 0,
-            peers: Some(vec![conversion::from_domain_peer(peer)]),
+            peers: Some(vec![conversion::from_domain_peer(&peer)]),
         },
     )
     .await;

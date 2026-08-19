@@ -97,8 +97,7 @@ impl Query {
 /// from a string.
 #[derive(Error, Debug)]
 pub enum ParseQueryError {
-    /// Invalid URL query param. For example: `"name=value=value"`. It contains
-    /// an unescaped `=` character.
+    /// Invalid URL query parameter without a name/value separator.
     #[error("invalid param {raw_param} in {location}")]
     InvalidParam {
         location: &'static Location<'static>,
@@ -168,18 +167,14 @@ impl FromStr for NameValuePair {
     type Err = ParseQueryError;
 
     fn from_str(raw_param: &str) -> Result<Self, Self::Err> {
-        let pair = raw_param.split('=').collect::<Vec<&str>>();
-
-        if pair.len() != 2 {
-            return Err(ParseQueryError::InvalidParam {
-                location: Location::caller(),
-                raw_param: raw_param.to_owned(),
-            });
-        }
+        let (name, value) = raw_param.split_once('=').ok_or_else(|| ParseQueryError::InvalidParam {
+            location: Location::caller(),
+            raw_param: raw_param.to_owned(),
+        })?;
 
         Ok(Self {
-            name: pair[0].to_owned(),
-            value: pair[1].to_owned(),
+            name: name.to_owned(),
+            value: value.to_owned(),
         })
     }
 }
@@ -257,12 +252,21 @@ mod tests {
         }
 
         #[test]
-        fn should_fail_parsing_an_invalid_query_string() {
-            let invalid_raw_query = "name=value=value";
+        fn it_should_preserve_equals_characters_in_a_query_parameter_value() {
+            let raw_query = "name=value==";
 
-            let query = invalid_raw_query.parse::<Query>();
+            let query = raw_query.parse::<Query>().unwrap();
 
-            assert!(query.is_err());
+            assert_eq!(query.get_param("name"), Some("value==".to_string()));
+        }
+
+        #[test]
+        fn it_should_reject_a_query_parameter_without_a_separator() {
+            let invalid_raw_query = "name";
+
+            let result = invalid_raw_query.parse::<Query>();
+
+            assert!(result.is_err());
         }
 
         #[test]
@@ -345,12 +349,21 @@ mod tests {
             }
 
             #[test]
-            fn should_fail_parsing_an_invalid_query_param() {
-                let invalid_raw_param = "name=value=value";
+            fn it_should_preserve_equals_characters_in_the_value() {
+                let raw_param = "name=value==";
 
-                let query = invalid_raw_param.parse::<NameValuePair>();
+                let param = raw_param.parse::<NameValuePair>().unwrap();
 
-                assert!(query.is_err());
+                assert_eq!(param.value, "value==");
+            }
+
+            #[test]
+            fn it_should_reject_a_param_without_a_separator() {
+                let invalid_raw_param = "name";
+
+                let result = invalid_raw_param.parse::<NameValuePair>();
+
+                assert!(result.is_err());
             }
 
             #[test]

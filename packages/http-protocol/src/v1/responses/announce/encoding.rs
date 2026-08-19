@@ -2,13 +2,14 @@
 //!
 //! Types for encoding announce responses into bencoded bytes.
 //! Supports two encoding forms: [`Normal`] (dictionary-based) and [`Compact`] (packed binary).
-use std::io::Write;
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
 
-use derive_more::{AsRef, Constructor, From};
+use derive_more::{AsRef, Constructor};
 use torrust_bencode::{BMutAccess, BencodeMut, ben_bytes, ben_int, ben_list, ben_map};
 
-use crate::v1::responses::announce::data::{AnnounceData, Peer};
+use crate::v1::responses::announce::data::{AnnounceData, Peer, PeerAddress};
+
+const I2P_PLACEHOLDER_PORT: u16 = 1;
 
 /// An [`Announce`] response, that can be anything that is convertible from [`AnnounceData`].
 ///
@@ -26,6 +27,8 @@ use crate::v1::responses::announce::data::{AnnounceData, Peer};
 /// - [BEP 03: The `BitTorrent` Protocol Specification](https://www.bittorrent.org/beps/bep_0003.html)
 /// - [BEP 23: Tracker Returns Compact Peer Lists](https://www.bittorrent.org/beps/bep_0023.html)
 /// - [BEP 07: IPv6 Tracker Extension](https://www.bittorrent.org/beps/bep_0007.html)
+/// - [I2P BitTorrent client protocol](https://i2p.net/en/docs/applications/bittorrent/)
+///
 // `derive_more::Constructor` generates `field: field` initializers on this MSRV-compatible version.
 // Nightly Clippy diagnoses that proc-macro expansion; remove this allowance once derive_more emits
 // field-init shorthand.
@@ -98,21 +101,30 @@ pub struct Compact {
 
 impl From<AnnounceData> for Compact {
     fn from(data: AnnounceData) -> Self {
-        let compact_peers: Vec<CompactPeer> = data.peers.into_iter().map(CompactPeer::from).collect();
+        let mut peers = vec![];
+        let mut peers6 = vec![];
 
-        let (peers, peers6): (Vec<CompactPeerData<Ipv4Addr>>, Vec<CompactPeerData<Ipv6Addr>>) =
-            compact_peers.into_iter().collect();
-
-        let peers_encoded: CompactPeersEncoded = peers.into_iter().collect();
-        let peers_encoded_6: CompactPeersEncoded = peers6.into_iter().collect();
+        for peer in data.peers.into_iter().map(CompactPeer::from) {
+            match peer {
+                CompactPeer::V4(peer) => {
+                    peers.extend(u32::from(peer.ip).to_be_bytes());
+                    peers.extend(peer.port.to_be_bytes());
+                }
+                CompactPeer::V6(peer) => {
+                    peers6.extend(u128::from(peer.ip).to_be_bytes());
+                    peers6.extend(peer.port.to_be_bytes());
+                }
+                CompactPeer::I2p(hash) => peers.extend(hash),
+            }
+        }
 
         Self {
             complete: data.stats.complete.into(),
             incomplete: data.stats.incomplete.into(),
             interval: data.policy.interval.into(),
             min_interval: data.policy.interval_min.into(),
-            peers: peers_encoded.0,
-            peers6: peers_encoded_6.0,
+            peers,
+            peers6,
         }
     }
 }
@@ -135,13 +147,12 @@ impl Into<Vec<u8>> for Compact {
 /// A [`NormalPeer`], for the [`Normal`] form.
 ///
 /// ```rust
-/// use std::net::{IpAddr, Ipv4Addr};
 /// use torrust_tracker_http_protocol::v1::responses::announce::{Normal, NormalPeer};
 ///
 /// let peer = NormalPeer {
 ///     peer_id: *b"-RC3000-000000000001",
-///     ip: IpAddr::V4(Ipv4Addr::new(0x69, 0x69, 0x69, 0x69)), // 105.105.105.105
-///     port: 0x7070,                                          // 28784
+///     ip: "105.105.105.105".to_owned(),
+///     port: 0x7070, // 28784
 /// };
 ///
 ///  ```
@@ -149,18 +160,25 @@ impl Into<Vec<u8>> for Compact {
 pub struct NormalPeer {
     /// The peer's ID.
     pub peer_id: [u8; 20],
-    /// The peer's IP address.
-    pub ip: IpAddr,
+    /// The peer's IP address or I2P Destination.
+    pub ip: String,
     /// The peer's port number.
     pub port: u16,
 }
 
 impl From<Peer> for NormalPeer {
     fn from(peer: Peer) -> Self {
-        NormalPeer {
-            peer_id: peer.peer_id.0,
-            ip: peer.peer_addr.ip(),
-            port: peer.peer_addr.port(),
+        match peer.peer_addr {
+            PeerAddress::Clearnet(address) => NormalPeer {
+                peer_id: peer.peer_id.0,
+                ip: address.ip().to_string(),
+                port: address.port(),
+            },
+            PeerAddress::I2p { destination, .. } => NormalPeer {
+                peer_id: peer.peer_id.0,
+                ip: destination,
+                port: I2P_PLACEHOLDER_PORT,
+            },
         }
     }
 }
@@ -169,7 +187,7 @@ impl From<&NormalPeer> for BencodeMut<'_> {
     fn from(value: &NormalPeer) -> Self {
         ben_map! {
             "peer id" => ben_bytes!(value.peer_id.clone().to_vec()),
-            "ip" => ben_bytes!(value.ip.to_string()),
+            "ip" => ben_bytes!(value.ip.clone()),
             "port" => ben_int!(i64::from(value.port))
         }
     }
@@ -203,6 +221,8 @@ pub enum CompactPeer {
     V4(CompactPeerData<Ipv4Addr>),
     /// The peer's port number.
     V6(CompactPeerData<Ipv6Addr>),
+    /// The SHA-256 hash of an I2P Destination.
+    I2p([u8; 32]),
 }
 
 impl CompactPeer {
@@ -249,9 +269,16 @@ impl CompactPeer {
 
 impl From<Peer> for CompactPeer {
     fn from(peer: Peer) -> Self {
-        match (peer.peer_addr.ip(), peer.peer_addr.port()) {
-            (IpAddr::V4(ip), port) => Self::V4(CompactPeerData { ip, port }),
-            (IpAddr::V6(ip), port) => Self::V6(CompactPeerData { ip, port }),
+        match peer.peer_addr {
+            PeerAddress::Clearnet(SocketAddr::V4(address)) => Self::V4(CompactPeerData {
+                ip: *address.ip(),
+                port: address.port(),
+            }),
+            PeerAddress::Clearnet(SocketAddr::V6(address)) => Self::V6(CompactPeerData {
+                ip: *address.ip(),
+                port: address.port(),
+            }),
+            PeerAddress::I2p { destination_hash, .. } => Self::I2p(destination_hash),
         }
     }
 }
@@ -266,54 +293,6 @@ pub struct CompactPeerData<V> {
     pub port: u16,
 }
 
-impl FromIterator<CompactPeer> for (Vec<CompactPeerData<Ipv4Addr>>, Vec<CompactPeerData<Ipv6Addr>>) {
-    fn from_iter<T: IntoIterator<Item = CompactPeer>>(iter: T) -> Self {
-        let mut peers_v4: Vec<CompactPeerData<Ipv4Addr>> = vec![];
-        let mut peers_v6: Vec<CompactPeerData<Ipv6Addr>> = vec![];
-
-        for peer in iter {
-            match peer {
-                CompactPeer::V4(peer) => peers_v4.push(peer),
-                CompactPeer::V6(peer6) => peers_v6.push(peer6),
-            }
-        }
-
-        (peers_v4, peers_v6)
-    }
-}
-
-#[derive(From, PartialEq)]
-struct CompactPeersEncoded(Vec<u8>);
-
-impl FromIterator<CompactPeerData<Ipv4Addr>> for CompactPeersEncoded {
-    fn from_iter<T: IntoIterator<Item = CompactPeerData<Ipv4Addr>>>(iter: T) -> Self {
-        let mut bytes: Vec<u8> = vec![];
-
-        for peer in iter {
-            bytes
-                .write_all(&u32::from(peer.ip).to_be_bytes())
-                .expect("it should write peer ip");
-            bytes.write_all(&peer.port.to_be_bytes()).expect("it should write peer port");
-        }
-
-        bytes.into()
-    }
-}
-
-impl FromIterator<CompactPeerData<Ipv6Addr>> for CompactPeersEncoded {
-    fn from_iter<T: IntoIterator<Item = CompactPeerData<Ipv6Addr>>>(iter: T) -> Self {
-        let mut bytes: Vec<u8> = Vec::new();
-
-        for peer in iter {
-            bytes
-                .write_all(&u128::from(peer.ip).to_be_bytes())
-                .expect("it should write peer ip");
-            bytes.write_all(&peer.port.to_be_bytes()).expect("it should write peer port");
-        }
-        bytes.into()
-    }
-}
-
 #[cfg(test)]
 mod tests {
 
@@ -321,7 +300,9 @@ mod tests {
 
     use torrust_peer_id::PeerId;
 
-    use crate::v1::responses::announce::{Announce, AnnounceData, AnnouncePolicy, Compact, Normal, Peer, SwarmMetadata};
+    use crate::v1::responses::announce::{
+        Announce, AnnounceData, AnnouncePolicy, Compact, Normal, Peer, PeerAddress, SwarmMetadata,
+    };
 
     // Some ascii values used in tests:
     //
@@ -340,15 +321,15 @@ mod tests {
 
         let peer_ipv4 = Peer {
             peer_id: PeerId(*b"-RC3000-000000000001"),
-            peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(0x69, 0x69, 0x69, 0x69)), 0x7070),
+            peer_addr: PeerAddress::Clearnet(SocketAddr::new(IpAddr::V4(Ipv4Addr::new(0x69, 0x69, 0x69, 0x69)), 0x7070)),
         };
 
         let peer_ipv6 = Peer {
             peer_id: PeerId(*b"-RC3000-000000000002"),
-            peer_addr: SocketAddr::new(
+            peer_addr: PeerAddress::Clearnet(SocketAddr::new(
                 IpAddr::V6(Ipv6Addr::new(0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969)),
                 0x7070,
-            ),
+            )),
         };
 
         let peers = vec![peer_ipv4, peer_ipv6];
@@ -384,5 +365,51 @@ mod tests {
             String::from_utf8(bytes).unwrap(),
             String::from_utf8(expected_bytes.to_vec()).unwrap()
         );
+    }
+
+    #[test]
+    fn it_should_encode_an_i2p_peer_as_a_destination_in_a_non_compact_response() {
+        let destination = format!("{}.i2p", "A".repeat(516));
+        let data = AnnounceData::new(
+            vec![Peer {
+                peer_id: PeerId(*b"-RC3000-000000000001"),
+                peer_addr: PeerAddress::I2p {
+                    destination: destination.clone(),
+                    destination_hash: [7; 32],
+                },
+            }],
+            SwarmMetadata::default(),
+            AnnouncePolicy::default(),
+        );
+
+        let response: Announce<Normal> = data.into();
+        let bytes: Vec<u8> = response.data.into();
+        let decoded = serde_bencode::from_bytes::<crate::v1::responses::announce::DeserializedNormal>(&bytes).unwrap();
+
+        assert_eq!(decoded.peers[0].ip, destination);
+        assert_eq!(decoded.peers[0].port, 1);
+    }
+
+    #[test]
+    fn it_should_encode_an_i2p_peer_hash_in_a_compact_response() {
+        let destination_hash = [7; 32];
+        let data = AnnounceData::new(
+            vec![Peer {
+                peer_id: PeerId(*b"-RC3000-000000000001"),
+                peer_addr: PeerAddress::I2p {
+                    destination: format!("{}.i2p", "A".repeat(516)),
+                    destination_hash,
+                },
+            }],
+            SwarmMetadata::default(),
+            AnnouncePolicy::default(),
+        );
+
+        let response: Announce<Compact> = data.into();
+        let bytes: Vec<u8> = response.data.into();
+        let decoded = crate::v1::responses::announce::DeserializedCompact::from_bytes(&bytes).unwrap();
+
+        assert_eq!(decoded.peers, destination_hash);
+        assert_eq!(decoded.peers6, []);
     }
 }

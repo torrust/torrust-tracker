@@ -13,7 +13,7 @@ use torrust_tracker_http_core::services::announce::{AnnounceService, HttpAnnounc
 use torrust_tracker_http_protocol::v1::requests::announce::{Announce, Compact};
 use torrust_tracker_http_protocol::v1::responses::{self};
 use torrust_tracker_http_protocol::v1::services::peer_ip_resolver::ClientIpSources;
-use torrust_tracker_primitives::AnnounceData as DomainAnnounceData;
+use torrust_tracker_primitives::{AnnounceData as DomainAnnounceData, PeerAddress as DomainPeerAddress};
 
 use crate::v1::extractors::announce_request::ExtractRequest;
 use crate::v1::extractors::authentication_key::Extract as ExtractKey;
@@ -106,9 +106,19 @@ fn to_protocol_announce_data(domain_data: DomainAnnounceData) -> responses::anno
         peers: domain_data
             .peers
             .into_iter()
-            .map(|peer| responses::announce::Peer {
-                peer_id: peer.peer_id,
-                peer_addr: peer.peer_addr,
+            .map(|peer| {
+                let peer_addr = match &peer.peer_addr {
+                    DomainPeerAddress::Clearnet(address) => responses::announce::PeerAddress::Clearnet(*address),
+                    DomainPeerAddress::I2p(address) => responses::announce::PeerAddress::I2p {
+                        destination: address.destination.to_string(),
+                        destination_hash: *address.destination.hash(),
+                    },
+                };
+
+                responses::announce::Peer {
+                    peer_id: peer.peer_id,
+                    peer_addr,
+                }
             })
             .collect(),
         stats: responses::announce::SwarmMetadata {

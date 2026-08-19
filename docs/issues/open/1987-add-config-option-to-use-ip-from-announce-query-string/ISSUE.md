@@ -10,7 +10,7 @@ related-pr: null
 depends-on:
   - docs/issues/open/1985-rename-peer-addr-to-ip-in-http-announce-request/ISSUE.md
 blocks: null
-last-updated-utc: 2026-07-15 00:00
+last-updated-utc: 2026-08-17 00:00
 semantic-links:
   skill-links:
     - create-issue
@@ -35,6 +35,19 @@ Add an optional per-HTTP-tracker configuration setting that allows the tracker t
 ### Current behaviour
 
 The Torrust Tracker HTTP announce handler always derives the peer IP from the TCP connection (or from the `X-Forwarded-For` header when running behind a reverse proxy). The `ip` GET parameter — defined as optional in [BEP 3](https://www.bittorrent.org/beps/bep_0003.html) — is parsed but then **silently ignored**.
+
+#### I2P protocol exception
+
+PR [#2050](https://github.com/torrust/torrust-tracker/pull/2050) introduces a
+protocol-specific exception. A valid I2P Destination supplied in the `ip`
+parameter is used as the peer address regardless of this future setting. I2P
+BitTorrent requires this reuse of the standard announce parameter because an
+I2P peer is addressed by its Destination rather than by an IP address and port.
+
+This issue's setting applies only to values parsed as clearnet `IpAddr`. It
+must not disable I2P Destination processing, and it must not make arbitrary
+clearnet IP spoofing the default. This exception and its security rationale
+require an ADR when this issue is implemented.
 
 BEP 3 states:
 
@@ -68,7 +81,9 @@ Enabling this feature allows a remote client to claim any IP address in its anno
 
 - Add a new optional boolean configuration field to the per-HTTP-tracker configuration (name TBD during schema design, e.g. `use_ip_from_query_string`), disabled by default.
 - When the option is enabled, and the `ip` GET parameter contains a valid IP address, use that IP as the peer's address instead of the connection IP.
+- Always use a valid I2P Destination in the `ip` GET parameter as the I2P peer address, independently of `use_ip_from_query_string`.
 - Document the security implications of enabling this option in the configuration schema and in the module documentation.
+- Create an ADR documenting the `ip` parameter precedence: I2P Destination first; otherwise, a clearnet IP only when the opt-in setting is enabled; otherwise, the resolved connection IP.
 - Add contract tests covering both the enabled and disabled behaviour.
 
 ### Out of Scope
@@ -82,17 +97,18 @@ Enabling this feature allows a remote client to claim any IP address in its anno
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| ID  | Status | Task                                                                  | Notes / Expected Output                                                                                                                                                                                                                                                                                                |
-| --- | ------ | --------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| T1  | TODO   | Design the configuration field name and schema placement              | Align with #1978 schema v3.0.0 design; propose name (e.g. `use_ip_from_query_string`)                                                                                                                                                                                                                                  |
-| T2  | TODO   | Add the field to the per-HTTP-tracker configuration struct            | Target the v3.0.0 schema under `packages/configuration/` as part of the #1978 overhaul                                                                                                                                                                                                                                 |
-| T3  | TODO   | Thread the config value through to the announce service               | `packages/http-core/src/services/announce.rs` `peer_from_request`                                                                                                                                                                                                                                                      |
-| T4  | TODO   | Implement the conditional IP selection in `peer_from_request`         | Use `announce_request.ip` if `use_ip_from_query_string` is `true` and the field is `Some`; otherwise use the connection IP. When both `use_ip_from_query_string` and `on_reverse_proxy` are enabled, the query string IP takes precedence. Requires prerequisite issue (rename `peer_addr` → `ip`) to be merged first. |
-| T5  | TODO   | Add contract tests for enabled and disabled behaviour                 | New tests in `packages/axum-http-server/tests/`                                                                                                                                                                                                                                                                        |
-| T6  | TODO   | Update configuration documentation                                    | `packages/configuration/` docs and `share/default/` config file                                                                                                                                                                                                                                                        |
-| T7  | TODO   | Run `cargo test --workspace` — no regressions                         | All tests pass                                                                                                                                                                                                                                                                                                         |
-| T8  | TODO   | Run `linter all`                                                      | Must exit `0`                                                                                                                                                                                                                                                                                                          |
-| T9  | TODO   | Update migration guide if this subissue affects the config public API | `docs/issues/open/1978-configuration-overhaul-epic/configuration-v2-to-v3-migration.md`                                                                                                                                                                                                                                |
+| ID  | Status | Task                                                                  | Notes / Expected Output                                                                                                                                                                                                                                                                                                                                                                                       |
+| --- | ------ | --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| T1  | TODO   | Design the configuration field name and schema placement              | Align with #1978 schema v3.0.0 design; propose name (e.g. `use_ip_from_query_string`)                                                                                                                                                                                                                                                                                                                         |
+| T2  | TODO   | Add the field to the per-HTTP-tracker configuration struct            | Target the v3.0.0 schema under `packages/configuration/` as part of the #1978 overhaul                                                                                                                                                                                                                                                                                                                        |
+| T3  | TODO   | Thread the config value through to the announce service               | `packages/http-core/src/services/announce.rs` `peer_from_request`                                                                                                                                                                                                                                                                                                                                             |
+| T4  | TODO   | Implement conditional address selection in `peer_from_request`        | Always use `AnnounceAddress::I2p` for I2P protocol compatibility. For `AnnounceAddress::Ip`, use the query value only when `use_ip_from_query_string` is `true`; otherwise use the resolved connection IP. When both `use_ip_from_query_string` and `on_reverse_proxy` are enabled, an opted-in query-string IP takes precedence. Requires prerequisite issue (rename `peer_addr` → `ip`) to be merged first. |
+| T5  | TODO   | Add contract tests for enabled and disabled behaviour                 | New tests in `packages/axum-http-server/tests/`                                                                                                                                                                                                                                                                                                                                                               |
+| T6  | TODO   | Update configuration documentation                                    | `packages/configuration/` docs and `share/default/` config file                                                                                                                                                                                                                                                                                                                                               |
+| T7  | TODO   | Run `cargo test --workspace` — no regressions                         | All tests pass                                                                                                                                                                                                                                                                                                                                                                                                |
+| T8  | TODO   | Run `linter all`                                                      | Must exit `0`                                                                                                                                                                                                                                                                                                                                                                                                 |
+| T9  | TODO   | Update migration guide if this subissue affects the config public API | `docs/issues/open/1978-configuration-overhaul-epic/configuration-v2-to-v3-migration.md`                                                                                                                                                                                                                                                                                                                       |
+| T10 | TODO   | Create ADR for I2P `ip` parameter precedence                          | Record the protocol exception, security rationale, and precedence order before implementation is merged.                                                                                                                                                                                                                                                                                                      |
 
 ## Progress Tracking
 
@@ -113,13 +129,15 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 ### Progress Log
 
+- 2026-08-17 00:00 UTC - Jose Celano/Copilot - Documented the I2P protocol exception: valid Destinations in the `ip` parameter bypass the future clearnet-IP opt-in setting. Added the required address precedence, acceptance criterion, verification scenario, and ADR task.
 - 2026-07-15 00:00 UTC - Copilot/User - Spec drafted as a sub-issue of #1978; feature deferred to the configuration overhaul epic.
 
 ## Acceptance Criteria
 
-- [ ] AC1: When `use_ip_from_query_string` is `false` (default), the tracker always uses the connection IP regardless of the `ip` GET parameter.
+- [ ] AC1: When `use_ip_from_query_string` is `false` (default), the tracker uses the connection IP for an `ip` GET parameter containing a clearnet IP address.
 - [ ] AC2: When `use_ip_from_query_string` is `true` and a valid IP is provided in the `ip` GET parameter, the tracker uses that IP as the peer's address.
 - [ ] AC3: When `use_ip_from_query_string` is `true` but the `ip` GET parameter is absent or contains a non-IP value, the tracker falls back to the connection IP.
+- [ ] AC3a: A valid I2P Destination in the `ip` GET parameter is used as an I2P peer address whether `use_ip_from_query_string` is enabled or disabled.
 - [ ] AC4: The default configuration file (`share/default/`) has `use_ip_from_query_string` set to `false` (or omitted, defaulting to `false`).
 - [ ] AC5: The configuration schema documentation clearly states the security implications of enabling this option.
 - [ ] AC6: Contract tests cover both enabled and disabled cases.
@@ -141,12 +159,13 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
-| ID  | Scenario                                            | Command/Steps                                                                                                            | Expected Result                                          | Status | Evidence |
-| --- | --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------- | ------ | -------- |
-| M1  | Default config: `ip` GET param is ignored           | Start tracker with default config; announce with `ip=1.2.3.4` from a different source IP; check the peer list            | Peer is registered with the connection IP, not `1.2.3.4` | TODO   |          |
-| M2  | Opt-in config: `ip` GET param is used               | Enable `use_ip_from_query_string`; announce with `ip=1.2.3.4`; check the peer list                                       | Peer is registered with `1.2.3.4`                        | TODO   |          |
-| M3  | Opt-in config: no `ip` param — fallback             | Enable `use_ip_from_query_string`; announce without `ip` param                                                           | Peer is registered with the connection IP                | TODO   |          |
-| M4  | Opt-in + reverse proxy: `ip` param takes precedence | Enable both `use_ip_from_query_string` and `on_reverse_proxy`; announce with `ip=1.2.3.4` and `X-Forwarded-For: 5.6.7.8` | Peer is registered with `1.2.3.4` (query string wins)    | TODO   |          |
+| ID  | Scenario                                            | Command/Steps                                                                                                            | Expected Result                                                                 | Status | Evidence |
+| --- | --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------- | ------ | -------- |
+| M1  | Default config: `ip` GET param is ignored           | Start tracker with default config; announce with `ip=1.2.3.4` from a different source IP; check the peer list            | Peer is registered with the connection IP, not `1.2.3.4`                        | TODO   |          |
+| M2  | Opt-in config: `ip` GET param is used               | Enable `use_ip_from_query_string`; announce with `ip=1.2.3.4`; check the peer list                                       | Peer is registered with `1.2.3.4`                                               | TODO   |          |
+| M3  | Opt-in config: no `ip` param — fallback             | Enable `use_ip_from_query_string`; announce without `ip` param                                                           | Peer is registered with the connection IP                                       | TODO   |          |
+| M4  | Opt-in + reverse proxy: `ip` param takes precedence | Enable both `use_ip_from_query_string` and `on_reverse_proxy`; announce with `ip=1.2.3.4` and `X-Forwarded-For: 5.6.7.8` | Peer is registered with `1.2.3.4` (query string wins)                           | TODO   |          |
+| M5  | Default config: valid I2P Destination is used       | Start tracker with default config; announce a valid I2P Destination in `ip`; inspect the peer list or response           | Peer is registered as an I2P peer despite the clearnet IP option being disabled | TODO   |          |
 
 ### Acceptance Verification
 
@@ -166,6 +185,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 - **IP spoofing**: When enabled, a client can register any IP address in the peer list. This is inherent to the feature and must be clearly documented. The opt-in default mitigates the risk for deployments that do not need this.
 - **Interaction with reverse proxy mode**: Resolved — when both `use_ip_from_query_string` and `on_reverse_proxy` are enabled, the query string `ip` takes precedence. See "Interaction with `on_reverse_proxy`" above for rationale.
 - **IPv4/IPv6**: The `ip` parameter accepts both IPv4 and IPv6 addresses (via `IpAddr::from_str`). If the tracker is bound to an IPv6-only socket and a client sends an IPv4 `ip`, the address is accepted as-is — the tracker does not validate address family compatibility with the listener binding.
+- **Protocol-specific semantics**: I2P reuses `ip` for a Destination, not a clearnet address. The configuration setting therefore cannot uniformly govern all `ip` values; this intentional exception must remain documented by an ADR.
 
 ## References
 

@@ -29,6 +29,7 @@ EADDRINUSE
 EINVAL
 Eray
 Freebox
+Frigyes
 Frostegård
 Garnham
 Gibibytes
@@ -37,6 +38,7 @@ Graphviz
 Grcov
 HDRINCL
 Hydranode
+I2P
 IPPROTO
 IPV6
 Icelake
@@ -79,6 +81,7 @@ Registar
 Rustls
 Ryzen
 SHLVL
+SUBSESSIONS
 Seedable
 Shareaza
 Signedness
@@ -261,6 +264,7 @@ infohash
 infohashes
 infoschema
 initialisation
+inproxy
 intervali
 io_uring
 isready
@@ -343,6 +347,7 @@ parallelisable
 parallelise
 parallelised
 parseable
+pathlib
 peekable
 peerlist
 peersld
@@ -396,6 +401,7 @@ rustc
 rustdoc
 rustfmt
 rustup
+samv3
 sarif
 savepath
 scanf
@@ -414,6 +420,7 @@ socat
 socketaddr
 sockfd
 specialised
+spoofable
 sqllite
 sqlx
 srcset
@@ -423,6 +430,7 @@ subissue
 subkey
 subsec
 substeps
+suffixless
 summarising
 supertrait
 syscall

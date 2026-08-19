@@ -14,7 +14,7 @@ fn it_should_be_serializable() {
 
     let torrent_peer = peer::Peer {
         peer_id: PeerId(*b"-qB0000-000000000000"),
-        peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080),
+        peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080).into(),
         updated: CurrentClock::now(),
         uploaded: NumberOfBytes::new(0),
         downloaded: NumberOfBytes::new(0),

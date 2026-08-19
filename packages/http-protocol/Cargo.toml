@@ -28,6 +28,7 @@ thiserror = "2"
 torrust-clock = "3.0.0"
 torrust-bencode = "3.0.0"
 torrust-located-error = "3.0.0"
+torrust-tracker-primitives = { version = "3.0.0", path = "../primitives" }
 
 [package.metadata.cargo-machete]
 ignored = [ "serde_bytes" ]

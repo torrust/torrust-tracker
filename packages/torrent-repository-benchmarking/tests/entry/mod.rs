@@ -271,7 +271,7 @@ async fn it_should_handle_a_peer_completed_announcement_and_update_the_downloade
     let downloaded = torrent.get_stats().await.downloaded;
 
     let peers = torrent.get_peers(None).await;
-    let mut peer = **peers.first().expect("there should be a peer");
+    let mut peer = peers.first().expect("there should be a peer").as_ref().clone();
 
     let is_already_completed = peer.event == AnnounceEvent::Completed;
 
@@ -302,7 +302,7 @@ async fn it_should_update_a_peer_as_a_seeder(
     let completed = u32::try_from(peers.iter().filter(|p| p.is_seeder()).count()).expect("it_should_not_be_so_many");
 
     let peers = torrent.get_peers(None).await;
-    let mut peer = **peers.first().expect("there should be a peer");
+    let mut peer = peers.first().expect("there should be a peer").as_ref().clone();
 
     let is_already_non_left = peer.left == NumberOfBytes::new(0);
 
@@ -334,7 +334,7 @@ async fn it_should_update_a_peer_as_incomplete(
     let incomplete = u32::try_from(peers.iter().filter(|p| !p.is_seeder()).count()).expect("it should not be so many");
 
     let peers = torrent.get_peers(None).await;
-    let mut peer = **peers.first().expect("there should be a peer");
+    let mut peer = peers.first().expect("there should be a peer").as_ref().clone();
 
     let completed_already = peer.left == NumberOfBytes::new(0);
 
@@ -365,18 +365,23 @@ async fn it_should_get_peers_excluding_the_client_socket(
     make(&mut torrent, makes).await;
 
     let peers = torrent.get_peers(None).await;
-    let mut peer = **peers.first().expect("there should be a peer");
+    let mut peer = peers.first().expect("there should be a peer").as_ref().clone();
 
     let socket = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 8081);
 
     // for this test, we should not already use this socket.
-    assert_ne!(peer.peer_addr, socket);
+    assert_ne!(peer.peer_addr, socket.into());
 
     // it should get the peer as it dose not share the socket.
-    assert!(torrent.get_peers_for_client(&socket, None).await.contains(&peer.into()));
+    assert!(
+        torrent
+            .get_peers_for_client(&socket, None)
+            .await
+            .contains(&peer.clone().into())
+    );
 
     // set the address to the socket.
-    peer.peer_addr = socket;
+    peer.peer_addr = socket.into();
     torrent.upsert_peer(&peer).await; // Add peer
 
     // It should not include the peer that has the same socket.
