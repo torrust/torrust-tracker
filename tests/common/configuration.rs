@@ -1,7 +1,24 @@
+use torrust_tracker_primitives::{ConfigurationInstanceId, ServiceRole};
+
 /// Port-zero configuration with one metrics-disabled and one metrics-enabled
 /// listener for each public tracker protocol.
 #[allow(dead_code)]
-pub const PORT_ZERO_METRICS_POLICY_CONFIG: &str = r#"
+pub struct PortZeroMetricsPolicyConfiguration;
+
+#[allow(dead_code)]
+impl PortZeroMetricsPolicyConfiguration {
+    /// Canonical ID of the first `[[udp_trackers]]` entry in [`Self::TOML`].
+    ///
+    /// This entry sets `tracker_usage_statistics = false`.
+    pub const METRICS_DISABLED_UDP_TRACKER_ID: ConfigurationInstanceId = ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0);
+
+    /// Canonical ID of the second `[[udp_trackers]]` entry in [`Self::TOML`].
+    ///
+    /// This entry sets `tracker_usage_statistics = true`.
+    pub const METRICS_ENABLED_UDP_TRACKER_ID: ConfigurationInstanceId = ConfigurationInstanceId::new(ServiceRole::UdpTracker, 1);
+
+    /// TOML source for the port-zero metrics-policy integration fixture.
+    pub const TOML: &str = r#"
     [metadata]
     app = "torrust-tracker"
     purpose = "configuration"
@@ -43,3 +60,4 @@ pub const PORT_ZERO_METRICS_POLICY_CONFIG: &str = r#"
     [health_check_api]
     bind_address = "127.0.0.2:0"
 "#;
+}

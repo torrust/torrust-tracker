@@ -23,13 +23,13 @@ mod workspace;
 // unused_imports warnings for the binaries that don't. The attributes
 // suppress those per-binary false positives.
 #[allow(unused_imports)]
-pub use configuration::PORT_ZERO_METRICS_POLICY_CONFIG;
+pub use configuration::PortZeroMetricsPolicyConfiguration;
 #[allow(unused_imports)]
 pub use statistics::{PartialGlobalStatistics, get_tracker_statistics};
 #[allow(unused_imports)]
 pub use torrust_tracker_test_helpers::{
     http::http_announce,
-    udp::{invalid_connection_id_should_receive_error, send_invalid_connection_ids_until_banned, udp_announce},
+    udp::{send_invalid_connection_id_announce, send_invalid_connection_ids_until_banned, udp_announce},
 };
 #[allow(unused_imports)]
 pub use workspace::{

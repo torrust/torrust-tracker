@@ -27,7 +27,7 @@ pub(crate) type CurrentClock = clock::Stopped;
 #[tokio::test]
 async fn it_should_apply_metrics_policy_to_port_zero_tracker_instances() {
     // Arrange
-    let workspace = common::EphemeralTrackerWorkspace::new(common::PORT_ZERO_METRICS_POLICY_CONFIG);
+    let workspace = common::EphemeralTrackerWorkspace::new(common::PortZeroMetricsPolicyConfiguration::TOML);
     let (app_container, _jobs) = common::start_tracker_with_config(&workspace).await;
 
     // Assert

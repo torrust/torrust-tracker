@@ -103,13 +103,16 @@ pub async fn send_invalid_connection_ids_until_banned(remote_addr: SocketAddr) {
     );
 }
 
-/// Sends one invalid connection ID and verifies that the tracker returns an error response.
+/// Sends one UDP announce request with an invalid connection ID.
+///
+/// Returns the tracker response so the caller can assert its protocol contract
+/// independently from any metric assertion.
 ///
 /// # Panics
 ///
 /// Panics if the UDP client cannot be created, the request cannot be sent, or
-/// the tracker does not return an error response.
-pub async fn invalid_connection_id_should_receive_error(remote_addr: SocketAddr) {
+/// no response is received.
+pub async fn send_invalid_connection_id_announce(remote_addr: SocketAddr) -> Response {
     let client = UdpTrackerClient::new(remote_addr, Duration::from_secs(1))
         .await
         .expect("failed to create UDP client");
@@ -120,13 +123,7 @@ pub async fn invalid_connection_id_should_receive_error(remote_addr: SocketAddr)
         .await
         .expect("failed to send invalid connection ID announce request");
 
-    assert!(
-        matches!(
-            client.receive().await.expect("expected a cookie error response"),
-            Response::Error(_)
-        ),
-        "invalid connection ID should receive an error response"
-    );
+    client.receive().await.expect("expected a tracker response")
 }
 
 fn invalid_connection_id_announce_request(transaction_id: i32, port: u16) -> AnnounceRequest {
