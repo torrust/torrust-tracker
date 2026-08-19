@@ -279,7 +279,7 @@ async fn it_should_return_distinct_failure_reasons_for_non_literal_peer_ip_param
         ("999.999.999.999", "The announce ip parameter must be an IPv4 or IPv6 literal"),
         (
             "%ZZ",
-            "Bad request. Cannot parse query params for announce request: malformed percent encoding for ip",
+            "Bad request. Cannot parse query params for announce request: malformed percent encoding or invalid UTF-8 for ip",
         ),
     ] {
         let response = Client::new(env.base_url(), Duration::from_secs(5))

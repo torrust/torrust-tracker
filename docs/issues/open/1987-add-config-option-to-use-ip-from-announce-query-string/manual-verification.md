@@ -108,17 +108,17 @@ It returned a successful JSON announce response whose peer list contains the con
 
 The same raw HTTP announce matrix from Phase 1 was run after rebuilding the tracker. Every response used HTTP 200, as required by the BitTorrent HTTP tracker failure-response convention; failed announces carry a bencoded `failure reason`.
 
-| Case                          | Request form           | Actual result                                                                                                                |
-| ----------------------------- | ---------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| Absent                        | No `ip` parameter      | HTTP 200; bencoded announce success response                                                                                 |
-| Empty                         | `ip=`                  | HTTP 200; bencoded announce success response                                                                                 |
-| Valid IPv4                    | `ip=1.2.3.4`           | HTTP 200; `failure reason`: `Client-supplied peer IPs are disabled`                                                          |
-| Valid encoded IPv6            | `ip=2001%3Adb8%3A%3A1` | HTTP 200; `failure reason`: `Client-supplied peer IPs are disabled`                                                          |
-| DNS name                      | `ip=example.com`       | HTTP 200; `failure reason`: `DNS names are not supported for the announce ip parameter`                                      |
-| Single-label DNS name         | `ip=localhost`         | HTTP 200; `failure reason`: `DNS names are not supported for the announce ip parameter`                                      |
-| Invalid value                 | `ip=invalid_ip`        | HTTP 200; `failure reason`: `The announce ip parameter must be an IPv4 or IPv6 literal`                                      |
-| Invalid numeric IP-like value | `ip=999.999.999.999`   | HTTP 200; `failure reason`: `The announce ip parameter must be an IPv4 or IPv6 literal`                                      |
-| Malformed encoding            | `ip=%ZZ`               | HTTP 200; `failure reason`: `Bad request. Cannot parse query params for announce request: malformed percent encoding for ip` |
+| Case                          | Request form           | Actual result                                                                                                                                 |
+| ----------------------------- | ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| Absent                        | No `ip` parameter      | HTTP 200; bencoded announce success response                                                                                                  |
+| Empty                         | `ip=`                  | HTTP 200; bencoded announce success response                                                                                                  |
+| Valid IPv4                    | `ip=1.2.3.4`           | HTTP 200; `failure reason`: `Client-supplied peer IPs are disabled`                                                                           |
+| Valid encoded IPv6            | `ip=2001%3Adb8%3A%3A1` | HTTP 200; `failure reason`: `Client-supplied peer IPs are disabled`                                                                           |
+| DNS name                      | `ip=example.com`       | HTTP 200; `failure reason`: `DNS names are not supported for the announce ip parameter`                                                       |
+| Single-label DNS name         | `ip=localhost`         | HTTP 200; `failure reason`: `DNS names are not supported for the announce ip parameter`                                                       |
+| Invalid value                 | `ip=invalid_ip`        | HTTP 200; `failure reason`: `The announce ip parameter must be an IPv4 or IPv6 literal`                                                       |
+| Invalid numeric IP-like value | `ip=999.999.999.999`   | HTTP 200; `failure reason`: `The announce ip parameter must be an IPv4 or IPv6 literal`                                                       |
+| Malformed encoding            | `ip=%ZZ`               | HTTP 200; `failure reason`: `Bad request. Cannot parse query params for announce request: malformed percent encoding or invalid UTF-8 for ip` |
 
 This verifies the intentional baseline change: absent and empty values remain successful, while every non-empty override is explicitly rejected until schema v3.0.0 can activate the opt-in policy.
 

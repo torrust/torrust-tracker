@@ -110,7 +110,7 @@ fn percent_decode_ip_parameter(value: &str) -> Result<String, ParseAnnounceQuery
     while index < bytes.len() {
         if bytes[index] == b'%' {
             if index + 2 >= bytes.len() || !bytes[index + 1].is_ascii_hexdigit() || !bytes[index + 2].is_ascii_hexdigit() {
-                return Err(ParseAnnounceQueryError::MalformedIpPercentEncoding);
+                return Err(ParseAnnounceQueryError::MalformedIpEncoding);
             }
             index += 3;
         } else {
@@ -121,7 +121,7 @@ fn percent_decode_ip_parameter(value: &str) -> Result<String, ParseAnnounceQuery
     percent_encoding::percent_decode_str(value)
         .decode_utf8()
         .map(std::borrow::Cow::into_owned)
-        .map_err(|_| ParseAnnounceQueryError::MalformedIpPercentEncoding)
+        .map_err(|_| ParseAnnounceQueryError::MalformedIpEncoding)
 }
 
 /// The `Announce` request. Fields use protocol-local types after parsing the
@@ -211,8 +211,8 @@ pub enum ParseAnnounceQueryError {
         source: LocatedError<'static, PeerIdConversionError>,
     },
     /// The `ip` parameter contains malformed percent encoding or invalid UTF-8.
-    #[error("malformed percent encoding for ip")]
-    MalformedIpPercentEncoding,
+    #[error("malformed percent encoding or invalid UTF-8 for ip")]
+    MalformedIpEncoding,
 }
 
 /// The event that the peer is reporting: `started`, `completed` or `stopped`.
@@ -354,8 +354,10 @@ impl fmt::Display for Announce {
         params.push(("peer_id", percent_encode_byte_array(&self.peer_id.0)));
         params.push(("port", self.port.to_string()));
 
-        if let PeerIp::Literal(ip) = &self.ip {
-            params.push((IP, ip.to_string()));
+        match &self.ip {
+            PeerIp::Absent | PeerIp::DnsName | PeerIp::Invalid => {}
+            PeerIp::Empty => params.push((IP, String::new())),
+            PeerIp::Literal(ip) => params.push((IP, ip.to_string())),
         }
         if let Some(downloaded) = self.downloaded {
             params.push(("downloaded", downloaded.0.to_string()));
@@ -655,8 +657,8 @@ mod tests {
 
         use crate::v1::query::Query;
         use crate::v1::requests::announce::{
-            Announce, COMPACT, Compact, DOWNLOADED, EVENT, Event, INFO_HASH, IP, LEFT, NUMWANT, NumberOfBytes, PEER_ID, PORT,
-            PeerIp, UPLOADED,
+            Announce, AnnounceBuilder, COMPACT, Compact, DOWNLOADED, EVENT, Event, INFO_HASH, IP, LEFT, NUMWANT, NumberOfBytes,
+            PEER_ID, PORT, PeerIp, UPLOADED,
         };
 
         #[test]
@@ -687,6 +689,20 @@ mod tests {
                     numwant: None,
                 }
             );
+        }
+
+        #[test]
+        fn should_serialize_an_empty_peer_ip_parameter() {
+            // Arrange
+            let mut announce = AnnounceBuilder::default().query();
+            announce.ip = PeerIp::Empty;
+
+            // Act
+            let query = announce.to_string();
+
+            // Assert
+            assert!(query.contains("ip="));
+            assert_eq!(Announce::try_from(query.parse::<Query>().unwrap()).unwrap().ip, PeerIp::Empty);
         }
 
         #[test]
@@ -758,20 +774,23 @@ mod tests {
         }
 
         #[test]
-        fn it_should_reject_malformed_percent_encoding_in_the_peer_ip_parameter() {
-            // Arrange
-            let raw_query = format!(
-                "{INFO_HASH}=%3B%24U%04%CF%5F%11%BB%DB%E1%20%1C%EAjk%F4Z%EE%1B%C0&{PEER_ID}=-RC3000-000000000001&{PORT}=17548&{IP}=%ZZ"
-            );
+        fn it_should_reject_malformed_encoding_or_invalid_utf8_in_the_peer_ip_parameter() {
+            for peer_ip in ["%ZZ", "%FF"] {
+                // Arrange
+                let raw_query = format!(
+                    "{INFO_HASH}=%3B%24U%04%CF%5F%11%BB%DB%E1%20%1C%EAjk%F4Z%EE%1B%C0&{PEER_ID}=-RC3000-000000000001&{PORT}=17548&{IP}={peer_ip}"
+                );
 
-            // Act
-            let error = Announce::try_from(raw_query.parse::<Query>().unwrap()).unwrap_err();
+                // Act
+                let error = Announce::try_from(raw_query.parse::<Query>().unwrap()).unwrap_err();
 
-            // Assert
-            assert!(matches!(
-                error,
-                crate::v1::requests::announce::ParseAnnounceQueryError::MalformedIpPercentEncoding
-            ));
+                // Assert
+                assert!(matches!(
+                    error,
+                    crate::v1::requests::announce::ParseAnnounceQueryError::MalformedIpEncoding
+                ));
+                assert_eq!(error.to_string(), "malformed percent encoding or invalid UTF-8 for ip");
+            }
         }
 
         mod when_it_is_instantiated_from_the_url_query_params {
