@@ -47,20 +47,6 @@ impl AnnounceService {
         announce_handler: Arc<AnnounceHandler>,
         whitelist_authorization: Arc<whitelist::authorization::WhitelistAuthorization>,
         opt_udp_core_stats_event_sender: crate::event::sender::Sender,
-    ) -> Self {
-        Self::with_configuration_instance_id(
-            announce_handler,
-            whitelist_authorization,
-            opt_udp_core_stats_event_sender,
-            ConfigurationInstanceId::new(torrust_tracker_primitives::ServiceRole::UdpTracker, 0),
-        )
-    }
-
-    #[must_use]
-    pub fn with_configuration_instance_id(
-        announce_handler: Arc<AnnounceHandler>,
-        whitelist_authorization: Arc<whitelist::authorization::WhitelistAuthorization>,
-        opt_udp_core_stats_event_sender: crate::event::sender::Sender,
         configuration_instance_id: ConfigurationInstanceId,
     ) -> Self {
         Self {

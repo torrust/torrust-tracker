@@ -39,16 +39,7 @@ impl ScrapeService {
     }
 
     #[must_use]
-    pub fn new(scrape_handler: Arc<ScrapeHandler>, opt_udp_stats_event_sender: crate::event::sender::Sender) -> Self {
-        Self::with_configuration_instance_id(
-            scrape_handler,
-            opt_udp_stats_event_sender,
-            ConfigurationInstanceId::new(torrust_tracker_primitives::ServiceRole::UdpTracker, 0),
-        )
-    }
-
-    #[must_use]
-    pub fn with_configuration_instance_id(
+    pub fn new(
         scrape_handler: Arc<ScrapeHandler>,
         opt_udp_stats_event_sender: crate::event::sender::Sender,
         configuration_instance_id: ConfigurationInstanceId,

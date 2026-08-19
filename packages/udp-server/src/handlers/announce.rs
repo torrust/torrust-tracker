@@ -833,10 +833,12 @@ pub(crate) mod tests {
                     .with_connection_id(make(gen_remote_fingerprint(&client_socket_addr), sample_issue_time()).unwrap())
                     .into();
 
+                let udp_tracker_test_configuration_instance_id = ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0);
                 let announce_service = Arc::new(AnnounceService::new(
                     announce_handler.clone(),
                     whitelist_authorization.clone(),
                     udp_core_stats_event_sender.clone(),
+                    udp_tracker_test_configuration_instance_id,
                 ));
 
                 handle_announce(
@@ -1036,10 +1038,12 @@ pub(crate) mod tests {
 
                     let core_config = Arc::new(config.core.clone());
 
+                    let udp_tracker_test_configuration_instance_id = ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0);
                     let announce_service = Arc::new(AnnounceService::new(
                         announce_handler.clone(),
                         whitelist_authorization.clone(),
                         udp_core_stats_event_sender.clone(),
+                        udp_tracker_test_configuration_instance_id,
                     ));
 
                     handle_announce(

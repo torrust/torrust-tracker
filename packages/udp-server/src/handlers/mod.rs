@@ -245,6 +245,7 @@ pub(crate) mod tests {
     use torrust_tracker_core::whitelist::repository::in_memory::InMemoryWhitelist;
     use torrust_tracker_events::bus::SenderStatus;
     use torrust_tracker_events::sender::SendError;
+    use torrust_tracker_primitives::{ConfigurationInstanceId, ServiceRole};
     use torrust_tracker_test_helpers::configuration;
     use torrust_tracker_udp_core::connection_cookie::gen_remote_fingerprint;
     use torrust_tracker_udp_core::event::bus::EventBus;
@@ -300,6 +301,7 @@ pub(crate) mod tests {
     async fn initialize_core_tracker_services(
         config: &Configuration,
     ) -> (CoreTrackerServices, CoreUdpTrackerServices, ServerUdpTrackerServices) {
+        let configuration_instance_id = ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0);
         let core_config = Arc::new(config.core.clone());
         let database = initialize_database(&config.core).await;
         let in_memory_whitelist = Arc::new(InMemoryWhitelist::default());
@@ -330,11 +332,13 @@ pub(crate) mod tests {
             announce_handler.clone(),
             whitelist_authorization.clone(),
             udp_core_stats_event_sender.clone(),
+            configuration_instance_id,
         ));
 
         let scrape_service = Arc::new(ScrapeService::new(
             scrape_handler.clone(),
             udp_core_stats_event_sender.clone(),
+            configuration_instance_id,
         ));
 
         (

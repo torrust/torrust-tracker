@@ -80,17 +80,17 @@ impl UdpTrackerCoreContainer {
             stats_event_sender: udp_tracker_core_services.stats_event_sender.clone(),
             stats_repository: udp_tracker_core_services.stats_repository.clone(),
             ban_service: udp_tracker_core_services.ban_service.clone(),
-            connect_service: Arc::new(ConnectService::with_configuration_instance_id(
+            connect_service: Arc::new(ConnectService::new(
                 udp_tracker_core_services.stats_event_sender.clone(),
                 configuration_instance_id,
             )),
-            announce_service: Arc::new(AnnounceService::with_configuration_instance_id(
+            announce_service: Arc::new(AnnounceService::new(
                 tracker_core_container.announce_handler.clone(),
                 tracker_core_container.whitelist_authorization.clone(),
                 udp_tracker_core_services.stats_event_sender.clone(),
                 configuration_instance_id,
             )),
-            scrape_service: Arc::new(ScrapeService::with_configuration_instance_id(
+            scrape_service: Arc::new(ScrapeService::new(
                 tracker_core_container.scrape_handler.clone(),
                 udp_tracker_core_services.stats_event_sender.clone(),
                 configuration_instance_id,
@@ -104,15 +104,12 @@ pub struct UdpTrackerCoreServices {
     pub stats_event_sender: crate::event::sender::Sender,
     pub stats_repository: Arc<statistics::repository::Repository>,
     pub ban_service: Arc<RwLock<services::banning::BanService>>,
-    pub connect_service: Arc<services::connect::ConnectService>,
-    pub announce_service: Arc<services::announce::AnnounceService>,
-    pub scrape_service: Arc<services::scrape::ScrapeService>,
 }
 
 impl UdpTrackerCoreServices {
     #[must_use]
     pub fn initialize_from(
-        tracker_core_container: &Arc<TrackerCoreContainer>,
+        _tracker_core_container: &Arc<TrackerCoreContainer>,
         max_connection_id_errors_per_ip: u32,
     ) -> Arc<Self> {
         let udp_core_broadcaster = Broadcaster::default();
@@ -127,25 +124,11 @@ impl UdpTrackerCoreServices {
 
         let udp_core_stats_event_sender = event_bus.sender();
         let ban_service = Arc::new(RwLock::new(BanService::new(max_connection_id_errors_per_ip)));
-        let connect_service = Arc::new(ConnectService::new(udp_core_stats_event_sender.clone()));
-        let announce_service = Arc::new(AnnounceService::new(
-            tracker_core_container.announce_handler.clone(),
-            tracker_core_container.whitelist_authorization.clone(),
-            udp_core_stats_event_sender.clone(),
-        ));
-        let scrape_service = Arc::new(ScrapeService::new(
-            tracker_core_container.scrape_handler.clone(),
-            udp_core_stats_event_sender.clone(),
-        ));
-
         Arc::new(Self {
             event_bus,
             stats_event_sender: udp_core_stats_event_sender,
             stats_repository: udp_core_stats_repository,
             ban_service,
-            connect_service,
-            announce_service,
-            scrape_service,
         })
     }
 }

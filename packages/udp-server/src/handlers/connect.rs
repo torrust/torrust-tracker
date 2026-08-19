@@ -81,6 +81,9 @@ mod tests {
             sample_ipv6_remote_addr_fingerprint, sample_issue_time,
         };
 
+        const UDP_TRACKER_TEST_CONFIGURATION_INSTANCE_ID: ConfigurationInstanceId =
+            ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0);
+
         fn sample_connect_request() -> ConnectRequest {
             ConnectRequest {
                 transaction_id: TransactionId(0i32.into()),
@@ -108,7 +111,10 @@ mod tests {
                 transaction_id: TransactionId(0i32.into()),
             };
 
-            let connect_service = Arc::new(ConnectService::new(udp_core_stats_event_sender));
+            let connect_service = Arc::new(ConnectService::new(
+                udp_core_stats_event_sender,
+                UDP_TRACKER_TEST_CONFIGURATION_INSTANCE_ID,
+            ));
 
             let response = handle_connect(
                 sample_ipv4_remote_addr(),
@@ -150,7 +156,10 @@ mod tests {
                 transaction_id: TransactionId(0i32.into()),
             };
 
-            let connect_service = Arc::new(ConnectService::new(udp_core_stats_event_sender));
+            let connect_service = Arc::new(ConnectService::new(
+                udp_core_stats_event_sender,
+                UDP_TRACKER_TEST_CONFIGURATION_INSTANCE_ID,
+            ));
 
             let response = handle_connect(
                 sample_ipv4_remote_addr(),
@@ -193,7 +202,10 @@ mod tests {
                 transaction_id: TransactionId(0i32.into()),
             };
 
-            let connect_service = Arc::new(ConnectService::new(udp_core_stats_event_sender));
+            let connect_service = Arc::new(ConnectService::new(
+                udp_core_stats_event_sender,
+                UDP_TRACKER_TEST_CONFIGURATION_INSTANCE_ID,
+            ));
 
             let response = handle_connect(
                 sample_ipv6_remote_addr(),
@@ -250,7 +262,10 @@ mod tests {
                 .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
             let udp_server_stats_event_sender: crate::event::sender::Sender = Some(Arc::new(udp_server_stats_event_sender_mock));
 
-            let connect_service = Arc::new(ConnectService::new(udp_core_stats_event_sender));
+            let connect_service = Arc::new(ConnectService::new(
+                udp_core_stats_event_sender,
+                UDP_TRACKER_TEST_CONFIGURATION_INSTANCE_ID,
+            ));
 
             handle_connect(
                 client_socket_addr,
@@ -299,7 +314,10 @@ mod tests {
                 .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
             let udp_server_stats_event_sender: crate::event::sender::Sender = Some(Arc::new(udp_server_stats_event_sender_mock));
 
-            let connect_service = Arc::new(ConnectService::new(udp_core_stats_event_sender));
+            let connect_service = Arc::new(ConnectService::new(
+                udp_core_stats_event_sender,
+                UDP_TRACKER_TEST_CONFIGURATION_INSTANCE_ID,
+            ));
 
             handle_connect(
                 client_socket_addr,
