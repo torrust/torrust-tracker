@@ -7,7 +7,7 @@ github-issue: 1980
 spec-path: docs/issues/open/1980-1978-configuration-overhaul-final-cleanup.md
 branch: "config-final-cleanup"
 related-pr: null
-last-updated-utc: 2026-07-23 17:02
+last-updated-utc: 2026-08-18 00:00
 semantic-links:
   skill-links:
     - create-issue
@@ -151,18 +151,19 @@ Files that import `torrust_tracker_configuration::logging` (the module, not the 
 
 ## Implementation Plan
 
-| ID  | Status | Task                                                                | Notes                                                                                                                                                                     |
-| --- | ------ | ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| T1  | TODO   | Migrate all consumer imports to explicit `v3_0_0` paths             | ~30 files; see Consumer Migration Map above                                                                                                                               |
-| T2  | TODO   | Remove global type aliases from `lib.rs`                            | `pub type Configuration = ...` etc.                                                                                                                                       |
-| T3  | TODO   | Remove crate-root `logging.rs`                                      | Already copied into `v2_0_0/` and `v3_0_0/`                                                                                                                               |
-| T4  | TODO   | Remove `pub mod logging;` from `lib.rs`                             | Or redirect to versioned module if needed                                                                                                                                 |
-| T5  | TODO   | Enable #1453's v3 ban-cleanup interval                              | Replace its temporary 24-hour default-constant bootstrap value after consumer migration                                                                                   |
-| T6  | TODO   | Remove hardcoded `ConnectionIdValidationPolicy` in test environment | `packages/udp-server/src/testing/environment.rs` hardcodes `Strict` because v2 config lacks the field; after v3 migration the field is available natively in `UdpTracker` |
-| T7  | TODO   | Apply any additional cleanup discovered during EPIC                 | Document in progress log                                                                                                                                                  |
-| T8  | TODO   | Run #889 deferred manual verification scenarios (M1–M5)             | After consumer migration, run tracker with v3 config and verify all four trace styles + `trace_filter` filtering                                                          |
-| T9  | TODO   | Run `linter all` and full test suite                                |                                                                                                                                                                           |
-| T10 | TODO   | Finalize migration guide                                            | `docs/issues/open/1978-configuration-overhaul-epic/configuration-v2-to-v3-migration.md` — this is the final cleanup, so the guide should be complete at this point        |
+| ID  | Status | Task                                                                | Notes                                                                                                                                                                                                                                                                                                                  |
+| --- | ------ | ------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| T1  | TODO   | Migrate all consumer imports to explicit `v3_0_0` paths             | ~30 files; see Consumer Migration Map above                                                                                                                                                                                                                                                                            |
+| T2  | TODO   | Remove global type aliases from `lib.rs`                            | `pub type Configuration = ...` etc.                                                                                                                                                                                                                                                                                    |
+| T3  | TODO   | Remove crate-root `logging.rs`                                      | Already copied into `v2_0_0/` and `v3_0_0/`                                                                                                                                                                                                                                                                            |
+| T4  | TODO   | Remove `pub mod logging;` from `lib.rs`                             | Or redirect to versioned module if needed                                                                                                                                                                                                                                                                              |
+| T5  | TODO   | Enable #1453's v3 ban-cleanup interval                              | Replace its temporary 24-hour default-constant bootstrap value after consumer migration                                                                                                                                                                                                                                |
+| T6  | TODO   | Remove hardcoded `ConnectionIdValidationPolicy` in test environment | `packages/udp-server/src/testing/environment.rs` hardcodes `Strict` because v2 config lacks the field; after v3 migration the field is available natively in `UdpTracker`                                                                                                                                              |
+| T7  | TODO   | Apply any additional cleanup discovered during EPIC                 | Document in progress log                                                                                                                                                                                                                                                                                               |
+| T8  | TODO   | Run #889 deferred manual verification scenarios (M1–M5)             | After consumer migration, run tracker with v3 config and verify all four trace styles + `trace_filter` filtering                                                                                                                                                                                                       |
+| T9  | TODO   | Run `linter all` and full test suite                                |                                                                                                                                                                                                                                                                                                                        |
+| T10 | TODO   | Finalize migration guide                                            | `docs/issues/open/1978-configuration-overhaul-epic/configuration-v2-to-v3-migration.md` — this is the final cleanup, so the guide should be complete at this point                                                                                                                                                     |
+| T11 | TODO   | Run #1987 enabled-mode local manual verification                    | After consumer migration activates v3.0.0 at runtime, enable `use_ip_from_query_string` for a local HTTP tracker and execute #1987's enabled-mode local scenarios. Append reproducible commands and evidence to `docs/issues/open/1987-add-config-option-to-use-ip-from-announce-query-string/manual-verification.md`. |
 
 ## Progress Tracking
 
@@ -189,6 +190,7 @@ Files that import `torrust_tracker_configuration::logging` (the module, not the 
 - 2026-07-28 00:00 UTC - agent - Added T8: run #889 deferred manual verification scenarios (M1–M5)
   after consumer migration. These scenarios require the tracker to use v3 config, which is not
   possible until this cleanup migrates global callers.
+- 2026-08-18 00:00 UTC - Copilot/User - Added T11: run #1987 enabled-mode local manual verification after this issue activates v3.0.0 configuration at runtime.
 
 ## Acceptance Criteria
 

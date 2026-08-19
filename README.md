@@ -41,7 +41,6 @@ Visit the [Torrust Demo repository][torrust-demo] to get started with your own t
 
 Core:
 
-- [ ] New option `want_ip_from_query_string`. See <https://github.com/torrust/torrust-tracker/discussions/532#issuecomment-1836642956>.
 - [ ] Peer and torrents specific statistics. See <https://github.com/torrust/torrust-tracker/discussions/139>.
 
 Persistence:

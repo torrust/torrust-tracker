@@ -41,7 +41,6 @@ tracing = "0"
 socket2 = "0.6.4"
 
 [dev-dependencies]
-local-ip-address = "0"
 rand = "0.9"
 serde_bencode = "0"
 serde_bytes = "0"

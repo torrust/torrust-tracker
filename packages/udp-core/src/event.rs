@@ -7,8 +7,12 @@
 //! should not do in response. Policy decisions belong in the consumer or the
 //! enforcement point, never in the event definition.
 //!
-//! See [ADR-20260727000000](../../../../docs/adrs/20260727000000_events_are_objective_facts.md)
+//! See [ADR-20260727000000](../../../docs/adrs/20260727000000_events_are_objective_facts.md)
 //! for the full rationale, the concrete counter-example, and naming heuristics.
+//!
+//! Error-event coverage is intentionally deferred until the [general
+//! error-events EPIC](../../../docs/issues/drafts/generalize-error-events.md)
+//! defines a stable cross-service contract.
 use std::net::{IpAddr, SocketAddr};
 
 use torrust_info_hash::InfoHash;

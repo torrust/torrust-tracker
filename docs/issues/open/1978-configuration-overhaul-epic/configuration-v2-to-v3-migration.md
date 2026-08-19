@@ -215,9 +215,12 @@ ip_bans_reset_interval_in_secs = 86400
 
 **Subissue**: #1987 — Use peer IP from the HTTP announce `ip` parameter
 
-> **TODO**: This section will be filled after #1987 is implemented.
-> A new per-HTTP-tracker opt-in field will control whether the tracker
-> trusts the client-provided `ip` parameter in announce requests.
+> **Staged delivery**: #1987 currently supplies the protocol policy and keeps
+> production explicitly disabled until #1980 activates v3 configuration at
+> runtime. This section will document the final v3 TOML field and its default
+> when that consumer migration is complete. The setting will remain opt-in:
+> enabling it trusts a client-provided announce `ip` and can therefore allow
+> peers to spoof addresses.
 
 ## Final cleanup
 

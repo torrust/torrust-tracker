@@ -31,6 +31,12 @@ pub struct HttpTracker {
     #[serde(default = "HttpTracker::default_tracker_usage_statistics")]
     pub tracker_usage_statistics: bool,
 
+    /// Whether to trust a non-empty BEP 3 `ip` query parameter as the peer
+    /// address. Defaults to `false` because enabling it allows clients to
+    /// spoof peer addresses; use only in a controlled, trusted deployment.
+    #[serde(default = "HttpTracker::default_use_ip_from_query_string")]
+    pub use_ip_from_query_string: bool,
+
     /// The public-facing URL of this HTTP tracker instance, e.g.
     /// `"https://tracker.example.com/announce"`. Used for metrics labels,
     /// logging, and API discovery. Must use the `http://` or `https://` scheme.
@@ -49,6 +55,7 @@ impl Default for HttpTracker {
             bind_address: Self::default_bind_address(),
             tls_config: Self::default_tls_config(),
             tracker_usage_statistics: Self::default_tracker_usage_statistics(),
+            use_ip_from_query_string: Self::default_use_ip_from_query_string(),
             public_url: Self::default_public_url(),
             network: Self::default_network(),
         }
@@ -65,6 +72,10 @@ impl HttpTracker {
     }
 
     fn default_tracker_usage_statistics() -> bool {
+        false
+    }
+
+    fn default_use_ip_from_query_string() -> bool {
         false
     }
 
@@ -108,6 +119,27 @@ mod tests {
 
         // Assert
         assert!(configuration.public_url.is_none());
+    }
+
+    #[test]
+    fn it_should_default_use_ip_from_query_string_to_false() {
+        // Act
+        let configuration = HttpTracker::default();
+
+        // Assert
+        assert!(!configuration.use_ip_from_query_string);
+    }
+
+    #[test]
+    fn it_should_deserialize_use_ip_from_query_string() {
+        // Arrange
+        let toml = "use_ip_from_query_string = true";
+
+        // Act
+        let configuration: HttpTracker = toml::from_str(toml).expect("configuration should deserialize");
+
+        // Assert
+        assert!(configuration.use_ip_from_query_string);
     }
 
     #[test]

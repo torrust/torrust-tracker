@@ -3,7 +3,7 @@
 use std::time::Duration;
 
 use torrust_tracker_client::http::client::Client;
-use torrust_tracker_http_protocol::v1::requests::announce::{Announce, Event};
+use torrust_tracker_http_protocol::v1::requests::announce::{Announce, Event, PeerIp};
 use url::Url;
 
 /// Sends an HTTP announce to the given tracker URL.
@@ -18,7 +18,7 @@ pub async fn http_announce(tracker_url: &Url, info_hash: &[u8; 20], peer_id: &[u
         info_hash: torrust_info_hash::InfoHash(*info_hash),
         peer_id: torrust_peer_id::PeerId(*peer_id),
         port,
-        ip: None,
+        ip: PeerIp::Absent,
         downloaded: None,
         uploaded: None,
         left: None,

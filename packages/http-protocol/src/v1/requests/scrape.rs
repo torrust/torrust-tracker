@@ -19,6 +19,12 @@ pub struct Scrape {
     pub info_hashes: Vec<InfoHash>,
 }
 
+/// Errors that can occur while parsing a scrape request.
+///
+/// Some variants retain raw query values, so this type must not be reused as an
+/// event payload. See the [general error-events
+/// EPIC](../../../../../docs/issues/drafts/generalize-error-events.md) before
+/// exposing parser failures through an event stream.
 #[derive(Error, Debug)]
 pub enum ParseScrapeQueryError {
     #[error("missing query params for scrape request in {location}")]

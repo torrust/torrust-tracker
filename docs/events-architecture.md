@@ -110,6 +110,7 @@ to metrics configuration.
 ## Related Work
 
 - Approved specification: [normalize per-instance event metrics policy](issues/open/2039-normalize-per-instance-event-metrics-policy/ISSUE.md)
+- Deferred draft EPIC: [define and implement general error events](issues/drafts/generalize-error-events.md)
 - Bootstrap bug: [#2035][2035]
 - Runtime identity prerequisite: [#2036][2036]
 - Shared-services decision: [ADR 20260727180000](adrs/20260727180000_shared_services_across_tracker_instances.md)

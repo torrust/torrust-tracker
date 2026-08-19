@@ -46,43 +46,90 @@ impl NumberOfBytes {
     }
 }
 
+/// Raw state of the optional BEP 3 `ip` parameter.
+///
+/// This preserves the distinction between an absent parameter, `ip=`, an IP
+/// literal, a DNS name, and another non-empty invalid value for service-level
+/// policy enforcement.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum PeerIp {
+    /// The request did not include an `ip` parameter.
+    Absent,
+    /// The request included `ip=`.
+    Empty,
+    /// The request included an IPv4 or IPv6 literal.
+    Literal(IpAddr),
+    /// The request included a DNS name. DNS resolution is deliberately unsupported.
+    DnsName,
+    /// The request included a non-empty value that is neither an IP literal nor a DNS name.
+    Invalid,
+}
+
+impl PeerIp {
+    /// Classifies a raw query value after strict percent-decoding.
+    ///
+    /// This is public because [`Announce::ip`] is public. Consumers that
+    /// construct requests manually must use this method so malformed encoding
+    /// is not silently treated as an invalid address.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when `value` contains malformed percent encoding or
+    /// bytes that are not valid UTF-8.
+    pub fn from_raw(value: Option<String>) -> Result<Self, ParseAnnounceQueryError> {
+        match value {
+            None => Ok(Self::Absent),
+            Some(value) if value.is_empty() => Ok(Self::Empty),
+            Some(value) => {
+                let value = percent_decode_ip_parameter(&value)?;
+
+                Ok(match IpAddr::from_str(&value) {
+                    Ok(ip) => Self::Literal(ip),
+                    Err(_) if is_dns_name(&value) => Self::DnsName,
+                    Err(_) => Self::Invalid,
+                })
+            }
+        }
+    }
+}
+
+fn is_dns_name(value: &str) -> bool {
+    value.bytes().any(|byte| byte.is_ascii_alphabetic())
+        && value.split('.').all(|label| {
+            !label.is_empty()
+                && !label.starts_with('-')
+                && !label.ends_with('-')
+                && label.bytes().all(|byte| byte.is_ascii_alphanumeric() || byte == b'-')
+        })
+}
+
+fn percent_decode_ip_parameter(value: &str) -> Result<String, ParseAnnounceQueryError> {
+    let bytes = value.as_bytes();
+    let mut index = 0;
+
+    while index < bytes.len() {
+        if bytes[index] == b'%' {
+            if index + 2 >= bytes.len() || !bytes[index + 1].is_ascii_hexdigit() || !bytes[index + 2].is_ascii_hexdigit() {
+                return Err(ParseAnnounceQueryError::MalformedIpEncoding);
+            }
+            index += 3;
+        } else {
+            index += 1;
+        }
+    }
+
+    percent_encoding::percent_decode_str(value)
+        .decode_utf8()
+        .map(std::borrow::Cow::into_owned)
+        .map_err(|_| ParseAnnounceQueryError::MalformedIpEncoding)
+}
+
 /// The `Announce` request. Fields use protocol-local types after parsing the
 /// query params of the request; boundary layers map them to domain types.
 ///
-/// This type is used for both server-side parsing and client-side construction:
-///
-/// - **Server-side**: Parsed from incoming HTTP query strings via `TryFrom<Query>`.
-/// - **Client-side**: Built via `AnnounceBuilder` and serialized to a URL query
-///   string via `Display`.
-///
-/// ```rust
-/// use torrust_tracker_http_protocol::v1::requests::announce::{Announce, Compact, Event};
-/// use torrust_info_hash::InfoHash;
-/// use torrust_peer_id::PeerId;
-/// use torrust_tracker_http_protocol::v1::requests::announce::NumberOfBytes;
-///
-/// let request = Announce {
-///     // Mandatory params
-///     info_hash: "3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0".parse::<InfoHash>().unwrap(),
-///     peer_id: PeerId(*b"-RC3000-000000000001"),
-///     port: 17548,
-///     // Optional params
-///     ip: None,
-///     downloaded: Some(NumberOfBytes::new(1)),
-///     uploaded: Some(NumberOfBytes::new(1)),
-///     left: Some(NumberOfBytes::new(1)),
-///     event: Some(Event::Started),
-///     compact: Some(Compact::NotAccepted),
-///     numwant: Some(50)
-/// };
-/// ```
-///
-/// > **NOTICE**: The [BEP 03. The `BitTorrent` Protocol Specification](https://www.bittorrent.org/beps/bep_0003.html)
-/// > specifies that only the peer `IP` and `event` are optional. However, the
-/// > tracker defines default values for some of the mandatory params.
-///
-/// > **NOTICE**: The struct contains `ip` as per BEP 3. The tracker
-/// > implementation may choose to use it or derive the IP from the connection.
+/// This type is used both for server-side parsing and client-side construction.
+/// The `ip` field preserves its raw semantic state so service policy can make a
+/// client-visible decision without silently ignoring non-empty values.
 #[derive(Clone, Debug, PartialEq)]
 pub struct Announce {
     // Mandatory params
@@ -96,8 +143,8 @@ pub struct Announce {
     pub port: u16,
 
     // Optional params
-    /// The peer IP address (BEP 3 `ip` parameter).
-    pub ip: Option<IpAddr>,
+    /// The raw-state-preserving peer IP parameter (BEP 3 `ip`).
+    pub ip: PeerIp,
 
     /// The number of bytes downloaded by the peer.
     pub downloaded: Option<NumberOfBytes>,
@@ -124,7 +171,10 @@ pub struct Announce {
 ///
 /// The `info_hash` and `peer_id` query params are special because they contain
 /// binary data. The `info_hash` is a 20-byte SHA1 hash and the `peer_id` is a
-/// 20-byte array.
+/// 20-byte array. This parser error includes raw query values and is not a
+/// suitable event payload. See the [general error-events
+/// EPIC](../../../../../docs/issues/drafts/generalize-error-events.md) before
+/// exposing parser failures through an event stream.
 #[derive(Error, Debug)]
 pub enum ParseAnnounceQueryError {
     /// A mandatory param is missing.
@@ -163,6 +213,9 @@ pub enum ParseAnnounceQueryError {
         param_value: String,
         source: LocatedError<'static, PeerIdConversionError>,
     },
+    /// The `ip` parameter contains malformed percent encoding or invalid UTF-8.
+    #[error("malformed percent encoding or invalid UTF-8 for ip")]
+    MalformedIpEncoding,
 }
 
 /// The event that the peer is reporting: `started`, `completed` or `stopped`.
@@ -291,7 +344,7 @@ impl TryFrom<Query> for Announce {
             event: extract_event(&query)?,
             compact: extract_compact(&query)?,
             numwant: extract_numwant(&query)?,
-            ip: extract_ip(&query),
+            ip: extract_ip(&query)?,
         })
     }
 }
@@ -304,8 +357,10 @@ impl fmt::Display for Announce {
         params.push(("peer_id", percent_encode_byte_array(&self.peer_id.0)));
         params.push(("port", self.port.to_string()));
 
-        if let Some(ip) = &self.ip {
-            params.push((IP, ip.to_string()));
+        match &self.ip {
+            PeerIp::Absent | PeerIp::DnsName | PeerIp::Invalid => {}
+            PeerIp::Empty => params.push((IP, String::new())),
+            PeerIp::Literal(ip) => params.push((IP, ip.to_string())),
         }
         if let Some(downloaded) = self.downloaded {
             params.push(("downloaded", downloaded.0.to_string()));
@@ -376,7 +431,7 @@ impl AnnounceBuilder {
             info_hash: InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap(), // DevSkim: ignore DS173237
             peer_id: PeerId(*b"-qB00000000000000001"),
             port: 17548,
-            ip: Some(IpAddr::V4(std::net::Ipv4Addr::new(192, 168, 1, 88))),
+            ip: PeerIp::Absent,
             downloaded: None,
             uploaded: None,
             left: None,
@@ -409,7 +464,7 @@ impl AnnounceBuilder {
 
     #[must_use]
     pub fn with_ip(mut self, ip: IpAddr) -> Self {
-        self.announce.ip = Some(ip);
+        self.announce.ip = PeerIp::Literal(ip);
         self
     }
 
@@ -563,11 +618,8 @@ fn extract_number_of_bytes_from_param(param_name: &str, query: &Query) -> Result
     }
 }
 
-fn extract_ip(query: &Query) -> Option<IpAddr> {
-    match query.get_param(IP) {
-        Some(raw_param) => IpAddr::from_str(&raw_param).ok(),
-        None => None,
-    }
+fn extract_ip(query: &Query) -> Result<PeerIp, ParseAnnounceQueryError> {
+    PeerIp::from_raw(query.get_param(IP))
 }
 
 fn extract_event(query: &Query) -> Result<Option<Event>, ParseAnnounceQueryError> {
@@ -608,9 +660,40 @@ mod tests {
 
         use crate::v1::query::Query;
         use crate::v1::requests::announce::{
-            Announce, COMPACT, Compact, DOWNLOADED, EVENT, Event, INFO_HASH, LEFT, NUMWANT, NumberOfBytes, PEER_ID, PORT,
-            UPLOADED,
+            Announce, AnnounceBuilder, COMPACT, Compact, DOWNLOADED, EVENT, Event, INFO_HASH, IP, LEFT, NUMWANT, NumberOfBytes,
+            PEER_ID, PORT, PeerIp, UPLOADED, is_dns_name, percent_decode_ip_parameter,
         };
+
+        #[test]
+        fn should_recognize_supported_dns_name_syntax() {
+            for value in ["localhost", "tracker", "example.com", "a-b.example"] {
+                assert!(is_dns_name(value), "{value}");
+            }
+        }
+
+        #[test]
+        fn should_reject_invalid_dns_name_syntax() {
+            for value in ["", "-example", "example-", "example..com", "example_com", "999.999.999.999"] {
+                assert!(!is_dns_name(value), "{value}");
+            }
+        }
+
+        #[test]
+        fn should_percent_decode_a_valid_peer_ip_parameter() {
+            for (encoded, decoded) in [("192.0.2.1", "192.0.2.1"), ("2001%3Adb8%3A%3A1", "2001:db8::1")] {
+                assert_eq!(percent_decode_ip_parameter(encoded).unwrap(), decoded);
+            }
+        }
+
+        #[test]
+        fn should_reject_invalid_peer_ip_parameter_encoding() {
+            for value in ["%", "%ZZ", "%FF"] {
+                assert!(matches!(
+                    percent_decode_ip_parameter(value),
+                    Err(crate::v1::requests::announce::ParseAnnounceQueryError::MalformedIpEncoding)
+                ));
+            }
+        }
 
         #[test]
         fn should_be_instantiated_from_the_url_query_with_only_the_mandatory_params() {
@@ -631,7 +714,7 @@ mod tests {
                     info_hash: "3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0".parse::<InfoHash>().unwrap(), // DevSkim: ignore DS173237
                     peer_id: PeerId(*b"-RC3000-000000000001"),
                     port: 17548,
-                    ip: None,
+                    ip: PeerIp::Absent,
                     downloaded: None,
                     uploaded: None,
                     left: None,
@@ -640,6 +723,20 @@ mod tests {
                     numwant: None,
                 }
             );
+        }
+
+        #[test]
+        fn should_serialize_an_empty_peer_ip_parameter() {
+            // Arrange
+            let mut announce = AnnounceBuilder::default().query();
+            announce.ip = PeerIp::Empty;
+
+            // Act
+            let query = announce.to_string();
+
+            // Assert
+            assert!(query.contains("ip="));
+            assert_eq!(Announce::try_from(query.parse::<Query>().unwrap()).unwrap().ip, PeerIp::Empty);
         }
 
         #[test]
@@ -667,7 +764,7 @@ mod tests {
                     info_hash: "3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0".parse::<InfoHash>().unwrap(), // DevSkim: ignore DS173237
                     peer_id: PeerId(*b"-RC3000-000000000001"),
                     port: 17548,
-                    ip: None,
+                    ip: PeerIp::Absent,
                     downloaded: Some(NumberOfBytes::new(1)),
                     uploaded: Some(NumberOfBytes::new(2)),
                     left: Some(NumberOfBytes::new(3)),
@@ -676,6 +773,58 @@ mod tests {
                     numwant: Some(50),
                 }
             );
+        }
+
+        #[test]
+        fn it_should_preserve_all_peer_ip_parameter_states() {
+            // Arrange
+            let mandatory_params = vec![
+                (INFO_HASH, "%3B%24U%04%CF%5F%11%BB%DB%E1%20%1C%EAjk%F4Z%EE%1B%C0"),
+                (PEER_ID, "-RC3000-000000000001"),
+                (PORT, "17548"),
+            ];
+
+            // Act / Assert
+            for (ip, expected) in [
+                (None, PeerIp::Absent),
+                (Some(""), PeerIp::Empty),
+                (Some("192.0.2.1"), PeerIp::Literal("192.0.2.1".parse().unwrap())),
+                (Some("2001%3Adb8%3A%3A1"), PeerIp::Literal("2001:db8::1".parse().unwrap())),
+                (Some("localhost"), PeerIp::DnsName),
+                (Some("tracker"), PeerIp::DnsName),
+                (Some("example.com"), PeerIp::DnsName),
+                (Some("999.999.999.999"), PeerIp::Invalid),
+                (Some("invalid_ip"), PeerIp::Invalid),
+            ] {
+                let mut params = mandatory_params.clone();
+                if let Some(ip) = ip {
+                    params.push((IP, ip));
+                }
+
+                let announce = Announce::try_from(Query::from(params)).unwrap();
+
+                assert_eq!(announce.ip, expected);
+            }
+        }
+
+        #[test]
+        fn it_should_reject_malformed_encoding_or_invalid_utf8_in_the_peer_ip_parameter() {
+            for peer_ip in ["%ZZ", "%FF"] {
+                // Arrange
+                let raw_query = format!(
+                    "{INFO_HASH}=%3B%24U%04%CF%5F%11%BB%DB%E1%20%1C%EAjk%F4Z%EE%1B%C0&{PEER_ID}=-RC3000-000000000001&{PORT}=17548&{IP}={peer_ip}"
+                );
+
+                // Act
+                let error = Announce::try_from(raw_query.parse::<Query>().unwrap()).unwrap_err();
+
+                // Assert
+                assert!(matches!(
+                    error,
+                    crate::v1::requests::announce::ParseAnnounceQueryError::MalformedIpEncoding
+                ));
+                assert_eq!(error.to_string(), "malformed percent encoding or invalid UTF-8 for ip");
+            }
         }
 
         mod when_it_is_instantiated_from_the_url_query_params {

@@ -18,6 +18,5 @@ pub fn describe_metrics() -> Metrics {
         Some(Unit::Count),
         Some(MetricDescription::new("Total number of HTTP requests received")),
     );
-
     metrics
 }
