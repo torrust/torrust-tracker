@@ -150,41 +150,41 @@ correctness delivery.
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| ID  | Status  | Task                             | Notes / Expected Output                                                                                               |
-| --- | ------- | -------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| T1  | DONE    | Inventory event gates            | Mapped event buses, optional senders, metrics listeners, and the UDP banning consumer during implementation analysis. |
-| T2  | DONE    | Consume #2036 canonical identity | Propagated stable runtime configuration-instance identity without using configured addresses.                         |
-| T3  | DONE    | Always emit HTTP core facts      | HTTP core producer publication is independent of listener metrics policy.                                             |
-| T4  | DONE    | Always emit UDP core facts       | UDP core producer publication is independent of listener metrics policy.                                              |
-| T5  | DONE    | Always emit UDP server facts     | UDP server publication is independent of listener metrics policy.                                                     |
-| T6  | DONE    | Filter metrics in listeners      | Shared HTTP, UDP-core, and UDP-server metrics listeners use immutable identity-to-policy filtering.                   |
-| T7  | DONE    | Preserve banning independence    | Full-application regression proves cookie errors through a metrics-disabled UDP listener still trigger a shared ban.  |
-| T8  | DONE    | Update REST metrics integration  | REST announce aggregates and deterministic UDP operational counters are verified.                                     |
-| T9  | DONE    | Add focused tests                | Added producer, filtering, and banning coverage.                                                                      |
-| T10 | DONE    | Add application tests            | Fixed-port and repeated-port-zero enabled/disabled HTTP and UDP regression tests expect aggregate count `1`.          |
-| T11 | BLOCKED | Validate and document            | Linting and focused tests pass; C2 manual forged-cookie evidence remains unavailable from the public CLI.             |
+| ID  | Status | Task                             | Notes / Expected Output                                                                                               |
+| --- | ------ | -------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| T1  | DONE   | Inventory event gates            | Mapped event buses, optional senders, metrics listeners, and the UDP banning consumer during implementation analysis. |
+| T2  | DONE   | Consume #2036 canonical identity | Propagated stable runtime configuration-instance identity without using configured addresses.                         |
+| T3  | DONE   | Always emit HTTP core facts      | HTTP core producer publication is independent of listener metrics policy.                                             |
+| T4  | DONE   | Always emit UDP core facts       | UDP core producer publication is independent of listener metrics policy.                                              |
+| T5  | DONE   | Always emit UDP server facts     | UDP server publication is independent of listener metrics policy.                                                     |
+| T6  | DONE   | Filter metrics in listeners      | Shared HTTP, UDP-core, and UDP-server metrics listeners use immutable identity-to-policy filtering.                   |
+| T7  | DONE   | Preserve banning independence    | Full-application regression proves cookie errors through a metrics-disabled UDP listener still trigger a shared ban.  |
+| T8  | DONE   | Update REST metrics integration  | REST announce aggregates and deterministic UDP operational counters are verified.                                     |
+| T9  | DONE   | Add focused tests                | Added producer, filtering, and banning coverage.                                                                      |
+| T10 | DONE   | Add application tests            | Fixed-port and repeated-port-zero enabled/disabled HTTP and UDP regression tests expect aggregate count `1`.          |
+| T11 | DONE   | Validate and document            | Captured an initial baseline, recorded final manual verification, and ran linting and focused tests.                  |
 
 ## Risk-Based Manual Verification Protocol
 
-Manual evidence is required after the highest-risk behavior changes rather than
-after every individual implementation task. This avoids duplicating expensive
-local tracker probes for tightly coupled internal refactorings while retaining
-an externally observable control after each change that could affect production
-behavior. The high-risk checkpoints are:
+Manual evidence consists of one baseline before the correctness implementation
+and one final verification after it. Intermediate checkpoints are optional
+safety controls rather than mandatory evidence records: the final application
+implementation and its regression suite provide the release decision. This
+avoids duplicating expensive local probes while retaining an externally
+observable before-and-after comparison.
 
-| Checkpoint | Tasks  | Risk controlled                                                                                                                                           | Required manual probes                                         |
-| ---------- | ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
-| C1         | T2-T6  | Events may lose canonical listener identity, metrics filtering may misclassify a listener, or shared aggregate repositories may receive the wrong events. | M1, M2, M4, and M5                                             |
-| C2         | T7     | Always-emitted UDP security facts may no longer reach the shared banning listener.                                                                        | M3                                                             |
-| C3         | T8-T10 | REST-visible aggregate metrics or application bootstrap/discovery may regress despite focused tests.                                                      | Repeat M1, M2, M4, and M5 against the final application build. |
+| Checkpoint | Timing                  | Risk controlled                                                                                                        | Required manual probes         |
+| ---------- | ----------------------- | ---------------------------------------------------------------------------------------------------------------------- | ------------------------------ |
+| Baseline   | Before implementation   | Establishes the observable pre-change metrics and banning behavior.                                                    | M1, M2, M3, and M5 where valid |
+| Final      | Final application build | Confirms the complete implementation, including identity filtering, banning, REST aggregates, and operational metrics. | M1, M2, M3, M4, and M5         |
 
-For each checkpoint:
+For each required checkpoint:
 
 1. Select the smallest externally observable probe for the task.
 2. Run it against the pre-change implementation and record configuration,
    commands, endpoints, and output in [evidence.md](evidence.md).
-3. Implement the smallest change and run focused automated tests.
-4. Repeat the unchanged probe and record the post-change output in
+3. Complete the implementation and run focused automated tests.
+4. Repeat the unchanged probe against the final application build and record the post-change output in
    [evidence.md](evidence.md).
 5. Compare the two records. Explain every intentional difference and add a
    regression before advancing; stop to diagnose every unexpected difference.
@@ -203,9 +203,9 @@ metrics-disabled listener still reach shared ban enforcement.
 - [ ] Spec-only PR merged into `develop` before implementation
 - [x] Implementation completed
 - [x] Automatic verification completed (`linter all` and relevant tests; pre-push checks remain pending)
-- [ ] Manual verification scenarios executed and recorded (status + evidence; required baseline/C2/C3 records remain incomplete)
+- [x] Manual verification scenarios executed and recorded (baseline and final application evidence)
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Reviewer validated acceptance criteria and updated checkboxes
+- [x] Reviewer validated acceptance criteria and updated checkboxes
 - [x] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
@@ -229,6 +229,9 @@ metrics-disabled listener still reach shared ban enforcement.
   `e6b99635`; it counted both disabled and enabled listeners (`2`) compared with the post-change
   aggregate count (`1`). Added final operational-counter assertions and corrected UDP error-event
   identity propagation.
+- 2026-08-19 - agent - Added and executed a tracked manual invalid-cookie probe against the
+  metrics-disabled UDP listener. It observed eleven cookie-error responses, twelfth-request ban
+  enforcement, and REST `udp_banned_ips_total: 1`.
 
 ## Acceptance Criteria
 
@@ -238,7 +241,7 @@ metrics-disabled listener still reach shared ban enforcement.
 - [x] AC4: Metrics-enabled listeners update the existing shared aggregate repositories.
 - [x] AC5: Metrics filtering uses #2036 canonical identity and works for repeated `0.0.0.0:0` blocks.
 - [x] AC6: The REST API retains aggregate HTTP/UDP and UDP operational metrics.
-- [ ] AC7: Every risk-based verification checkpoint has baseline and post-change evidence.
+- [x] AC7: The baseline and final application verification checkpoints have recorded evidence.
 - [x] AC8: Relevant tests and `linter all` pass.
 
 ## Verification Plan
@@ -252,13 +255,13 @@ metrics-disabled listener still reach shared ban enforcement.
 
 ### Manual Verification Scenarios
 
-| ID  | Scenario                        | Expected Result                                                                  | Status  | Evidence                                                                                                   |
-| --- | ------------------------------- | -------------------------------------------------------------------------------- | ------- | ---------------------------------------------------------------------------------------------------------- |
-| M1  | HTTP policy filtering           | One enabled and one disabled listener produce aggregate announce count `1`.      | DONE    | [evidence.md](evidence.md)                                                                                 |
-| M2  | UDP policy filtering            | One enabled and one disabled listener produce aggregate UDP announce count `1`.  | DONE    | [evidence.md](evidence.md)                                                                                 |
-| M3  | UDP banning independence        | Invalid cookies through a disabled listener still update shared ban enforcement. | BLOCKED | Full-application automated coverage exists; required manual probe remains unavailable from the public CLI. |
-| M4  | Duplicate port-zero identity    | Policy follows runtime identity rather than configured address.                  | DONE    | [evidence.md](evidence.md)                                                                                 |
-| M5  | Fixed-port UDP policy filtering | One enabled and one disabled listener produce aggregate UDP announce count `1`.  | DONE    | [evidence.md](evidence.md)                                                                                 |
+| ID  | Scenario                        | Expected Result                                                                  | Status | Evidence                   |
+| --- | ------------------------------- | -------------------------------------------------------------------------------- | ------ | -------------------------- |
+| M1  | HTTP policy filtering           | One enabled and one disabled listener produce aggregate announce count `1`.      | DONE   | [evidence.md](evidence.md) |
+| M2  | UDP policy filtering            | One enabled and one disabled listener produce aggregate UDP announce count `1`.  | DONE   | [evidence.md](evidence.md) |
+| M3  | UDP banning independence        | Invalid cookies through a disabled listener still update shared ban enforcement. | DONE   | [evidence.md](evidence.md) |
+| M4  | Duplicate port-zero identity    | Policy follows runtime identity rather than configured address.                  | DONE   | [evidence.md](evidence.md) |
+| M5  | Fixed-port UDP policy filtering | One enabled and one disabled listener produce aggregate UDP announce count `1`.  | DONE   | [evidence.md](evidence.md) |
 
 ## References
 

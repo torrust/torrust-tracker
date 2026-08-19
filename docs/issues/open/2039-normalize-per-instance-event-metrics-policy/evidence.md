@@ -21,7 +21,7 @@ post-change comparison for each probe here. Do not overwrite baseline evidence.
 
 The historical revision was run in an isolated temporary Git worktree with the
 same fixed-port configuration now preserved at
-[`evidence/fixed-port-manual.toml`](evidence/fixed-port-manual.toml), except for
+[`evidence-artifacts/fixed-port-manual.toml`](evidence-artifacts/fixed-port-manual.toml), except for
 an isolated temporary SQLite path.
 
 One HTTP and one UDP announce was sent to each disabled and enabled listener,
@@ -49,7 +49,7 @@ the C1 post-change counts of `1`, the expected correction is verified.
 
 #### Configuration
 
-- File: [`evidence/fixed-port-manual.toml`](evidence/fixed-port-manual.toml)
+- File: [`evidence-artifacts/fixed-port-manual.toml`](evidence-artifacts/fixed-port-manual.toml)
 - HTTP: `127.0.0.1:17091` (disabled) and `127.0.0.1:17092` (enabled)
 - UDP: `127.0.0.1:17093` (disabled) and `127.0.0.1:17094` (enabled)
 - REST API: `127.0.0.1:17100`
@@ -69,7 +69,7 @@ listener bindings.
 Started the tracker with:
 
 ```sh
-TORRUST_TRACKER_CONFIG_TOML_PATH="$PWD/docs/issues/open/2039-normalize-per-instance-event-metrics-policy/evidence/fixed-port-manual.toml" \
+TORRUST_TRACKER_CONFIG_TOML_PATH="$PWD/docs/issues/open/2039-normalize-per-instance-event-metrics-policy/evidence-artifacts/fixed-port-manual.toml" \
   cargo +nightly run --bin torrust-tracker
 ```
 
@@ -95,9 +95,11 @@ aggregates.
 
 `cargo +nightly test --test aggregate_stats_fixed_ports --test aggregate_stats_port_zero -- --test-threads=1` passed.
 
-The pre-change baseline was not captured before implementation began. The known
-pre-change regression is retained in the issue background and covered by the
-updated integration tests; this manual record is post-change evidence only.
+The fixed-port pre-change baseline was subsequently captured from isolated
+revision `e6b99635` and is recorded above. The port-zero baseline is not
+available because the prerequisite bootstrap identity work was not present in
+that revision; its post-change regression test and manual evidence verify the
+required final behavior.
 
 ### C1 post-change — repeated port-zero identity (M4)
 
@@ -108,7 +110,7 @@ updated integration tests; this manual record is post-change evidence only.
 
 #### Configuration
 
-- File: [`evidence/port-zero-manual.toml`](evidence/port-zero-manual.toml)
+- File: [`evidence-artifacts/port-zero-manual.toml`](evidence-artifacts/port-zero-manual.toml)
 - HTTP and UDP listeners: `127.0.0.1:0`
 - Configuration order: disabled instance `0`, then enabled instance `1`
 - REST API: `127.0.0.1:17100`
@@ -128,7 +130,7 @@ identities; they were not inferred from the shared configured address.
 Started the tracker with:
 
 ```sh
-TORRUST_TRACKER_CONFIG_TOML_PATH="$PWD/docs/issues/open/2039-normalize-per-instance-event-metrics-policy/evidence/port-zero-manual.toml" \
+TORRUST_TRACKER_CONFIG_TOML_PATH="$PWD/docs/issues/open/2039-normalize-per-instance-event-metrics-policy/evidence-artifacts/port-zero-manual.toml" \
   cargo +nightly run --bin torrust-tracker
 ```
 
@@ -155,7 +157,27 @@ address.
 
 `cargo +nightly test --test aggregate_stats_port_zero -- --test-threads=1` passed.
 
-### C2 automated — banning remains independent of metrics policy (M3)
+### C2 baseline — cookie errors from a metrics-disabled listener (M3)
+
+**Revision:** `e6b99635` (pre-implementation `develop`)
+
+The tracked probe was run from an isolated historical worktree against
+`UdpTracker:0` at `127.0.0.1:17093`.
+
+#### Observed output
+
+- Before traffic: `udp_banned_ips_total: 0` and `udp4_errors_handled: 0`
+- The probe received eleven cookie-error responses and the twelfth request
+  timed out after ban enforcement.
+- After traffic: `udp_banned_ips_total: 1`, `udp_requests_banned: 1`,
+  `udp4_requests: 12`, `udp4_announces_handled: 11`,
+  `udp4_responses: 11`, and `udp4_errors_handled: 11`.
+
+The historical shared metrics listener aggregated cookie errors and request
+events from the metrics-disabled listener. The intended post-change behavior
+retains shared banning while excluding those usage metrics.
+
+### C2 post-change — banning remains independent of metrics policy (M3)
 
 **Task:** T7: preserve banning independence
 
@@ -164,18 +186,27 @@ address.
 
 #### Scenario
 
-`tests/aggregate_stats_fixed_ports.rs` starts the full application with the
-first UDP listener metrics-disabled at `0.0.0.0:17093`. It sends eleven invalid
-UDP announce requests with connection ID `0` from one client socket, then sends
-a twelfth request from the same socket.
+Started the final tracker build with
+[`evidence-artifacts/fixed-port-manual.toml`](evidence-artifacts/fixed-port-manual.toml), then ran:
+
+```sh
+python3 evidence-artifacts/invalid_cookie_probe.py 127.0.0.1 17093
+```
+
+The probe retains one UDP socket and sends eleven invalid connection-ID
+announces through metrics-disabled `UdpTracker:0`, followed by a twelfth request
+from the same source address.
 
 #### Observed output
 
 - Each of the first eleven invalid-cookie requests receives the expected UDP
   cookie-error response.
-- The twelfth request receives no response because the shared ban service has
-  banned the client IP.
+- The probe printed: `PASS: the twelfth invalid request timed out after shared
+ban enforcement`.
 - The REST statistics endpoint reports `udp_banned_ips_total: 1`.
+- REST UDP aggregate metrics remained zero (`udp4_requests: 0`,
+  `udp4_announces_handled: 0`, and `udp4_errors_handled: 0`) because every
+  probe request originated at the metrics-disabled listener.
 
 #### Automated coverage
 
@@ -183,15 +214,15 @@ a twelfth request from the same socket.
 passed, including
 `udp_metrics_disabled_tracker_should_still_enforce_cookie_error_bans`.
 
-This is full-application regression coverage, rather than an operator-run
-manual probe. A manually reproducible forged-cookie client remains unavailable
-from the public `tracker_client` CLI.
+The tracked Python probe supplies the forged-cookie capability unavailable from
+the public `tracker_client` CLI. The full-application regression remains
+additional automated coverage.
 
 ### C3 final application confirmation (M1, M2, M4, M5)
 
 **Result:** DONE
 
-The final committed application test suite repeated fixed-port and repeated
+The final application test suite repeated fixed-port and repeated
 port-zero enabled/disabled traffic scenarios:
 
 ```sh
@@ -203,11 +234,28 @@ the fixed-port test also asserts retained UDP operational metrics for the
 enabled listener: requests `2`, connections `1`, responses `2`, errors `0`,
 and banned requests `0` before the independent banning scenario.
 
+#### Manual fixed-port result
+
+Using `evidence-artifacts/fixed-port-manual.toml`, one announce to each disabled and
+enabled HTTP/UDP listener produced final REST values
+`tcp4_announces_handled: 1`, `udp4_announces_handled: 1`,
+`udp4_requests: 2`, `udp4_connections_handled: 1`, and
+`udp4_responses: 2`.
+
+#### Manual repeated-port-zero result
+
+The final startup logs mapped `HttpTracker:0` and `UdpTracker:0` to the
+disabled ephemeral bindings, and identity `1` to the enabled bindings. One
+announce to each of the four final endpoints produced the same REST values:
+`tcp4_announces_handled: 1`, `udp4_announces_handled: 1`,
+`udp4_requests: 2`, `udp4_connections_handled: 1`, and
+`udp4_responses: 2`.
+
 ## Purpose
 
-This file records the progressive manual baseline and post-change probes
-required by the draft specification. Each code-changing task must have one
-entry before its change and one entry after it.
+This file records the baseline and final application probes required by the
+issue specification. Intermediate observations remain useful diagnostics, but
+the baseline-to-final comparison is the completion evidence.
 
 ## Entry Format
 
@@ -225,17 +273,17 @@ entry before its change and one entry after it.
 
 ## Task Evidence Matrix
 
-| Task | Baseline | Post-change | Result                                                                         |
-| ---- | -------- | ----------- | ------------------------------------------------------------------------------ |
-| T2   | DONE     | DONE        | Fixed-port baseline and fixed-port/port-zero post-change evidence recorded.    |
-| T3   | DONE     | DONE        | Fixed-port baseline and post-change evidence recorded.                         |
-| T4   | DONE     | DONE        | Fixed-port baseline and post-change evidence recorded.                         |
-| T5   | DONE     | DONE        | Fixed-port baseline and post-change evidence recorded.                         |
-| T6   | DONE     | DONE        | Fixed-port baseline and post-change evidence recorded.                         |
-| T7   | Missing  | PARTIAL     | Full-application automated M3 coverage recorded; manual probe remains blocked. |
-| T8   | Missing  | DONE        | REST announce and deterministic UDP operational-counter assertions verified.   |
-| T9   | N/A      | DONE        | Focused and full-application regressions added.                                |
-| T10  | N/A      | DONE        | Fixed-port and repeated-port-zero regressions pass.                            |
+| Task | Baseline | Post-change | Result                                                                       |
+| ---- | -------- | ----------- | ---------------------------------------------------------------------------- |
+| T2   | DONE     | DONE        | Fixed-port baseline and fixed-port/port-zero final evidence recorded.        |
+| T3   | DONE     | DONE        | Fixed-port baseline and final evidence recorded.                             |
+| T4   | DONE     | DONE        | Fixed-port baseline and final evidence recorded.                             |
+| T5   | DONE     | DONE        | Fixed-port baseline and final evidence recorded.                             |
+| T6   | DONE     | DONE        | Fixed-port baseline and final evidence recorded.                             |
+| T7   | DONE     | DONE        | Manual M3 baseline/final probe and full-application coverage recorded.       |
+| T8   | N/A      | DONE        | REST announce and deterministic UDP operational-counter assertions verified. |
+| T9   | N/A      | DONE        | Focused and full-application regressions added.                              |
+| T10  | N/A      | DONE        | Fixed-port and repeated-port-zero regressions pass.                          |
 
 ## Required Probe Outcomes
 

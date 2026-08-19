@@ -14,7 +14,6 @@
 //!
 //! See `docs/issues/open/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md`
 //! for the full decision record.
-mod announce;
 mod statistics;
 mod workspace;
 
@@ -23,9 +22,12 @@ mod workspace;
 // unused_imports warnings for the binaries that don't. The attributes
 // suppress those per-binary false positives.
 #[allow(unused_imports)]
-pub use announce::{http_announce, udp_announce, udp_invalid_connection_ids_should_trigger_ban};
-#[allow(unused_imports)]
 pub use statistics::{PartialGlobalStatistics, get_tracker_statistics};
+#[allow(unused_imports)]
+pub use torrust_tracker_test_helpers::{
+    http::http_announce,
+    udp::{invalid_connection_id_should_receive_error, invalid_connection_ids_should_trigger_ban, udp_announce},
+};
 #[allow(unused_imports)]
 pub use workspace::{
     EphemeralTrackerWorkspace, http_api_url, http_tracker_urls, service_binding_for_identity, start_tracker_with_config,

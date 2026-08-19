@@ -119,7 +119,6 @@ tests/
 ├── common/
 │   ├── mod.rs                        # Re-exports from submodules
 │   ├── workspace.rs                  # Tracker workspace setup and URL discovery
-│   ├── announce.rs                   # HTTP and UDP announce helpers
 │   └── statistics.rs                 # Aggregate statistics query helpers
 ├── aggregate_stats_port_zero.rs      # Port-zero statistics (two HTTP + two UDP nodes)
 ├── aggregate_stats_fixed_ports.rs    # Fixed-port statistics (two HTTP + two UDP nodes)

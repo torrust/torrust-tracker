@@ -69,20 +69,24 @@ const FIXED_PORT_CONFIG: &str = r#"
 "#;
 
 #[tokio::test]
-async fn aggregate_stats_scenarios() {
+async fn it_should_apply_metrics_policy_to_fixed_port_tracker_instances() {
+    // Arrange
     let workspace = common::EphemeralTrackerWorkspace::new(FIXED_PORT_CONFIG);
     let (app_container, _jobs) = common::start_tracker_with_config(&workspace).await;
 
-    http_trackers_on_fixed_ports_should_aggregate_announces_from_both_listeners(&app_container).await;
-    udp_trackers_on_fixed_ports_should_aggregate_announces_from_both_listeners(&app_container).await;
-    udp_metrics_disabled_tracker_should_still_enforce_cookie_error_bans(&app_container).await;
+    // Act
+    it_should_aggregate_http_announces_only_from_metrics_enabled_listener(&app_container).await;
+    it_should_aggregate_udp_events_only_from_metrics_enabled_listener(&app_container).await;
+    it_should_record_cookie_error_from_metrics_enabled_udp_listener(&app_container).await;
+    it_should_enforce_cookie_error_ban_from_metrics_disabled_udp_listener(&app_container).await;
 }
 
 /// Both HTTP listeners are on distinct fixed ports, but only the
 /// metrics-enabled listener contributes to aggregate HTTP statistics.
-async fn http_trackers_on_fixed_ports_should_aggregate_announces_from_both_listeners(
+async fn it_should_aggregate_http_announces_only_from_metrics_enabled_listener(
     app_container: &std::sync::Arc<torrust_tracker_lib::container::AppContainer>,
 ) {
+    // Arrange
     let tracker_urls = common::http_tracker_urls(app_container).await;
     assert_eq!(tracker_urls.len(), 2, "expected two HTTP trackers");
 
@@ -93,19 +97,22 @@ async fn http_trackers_on_fixed_ports_should_aggregate_announces_from_both_liste
     ];
     let peer_id = *b"-qB00000000000000001";
 
+    // Act
     for url in &tracker_urls {
         common::http_announce(url, &info_hash, &peer_id, 17548).await;
     }
 
+    // Assert
     let global_stats = common::get_tracker_statistics(&api_url, "MyAccessToken").await;
     assert_eq!(global_stats.tcp4_announces_handled, 1);
 }
 
 /// Both UDP listeners are on distinct fixed ports, but only the
 /// metrics-enabled listener contributes to aggregate UDP statistics.
-async fn udp_trackers_on_fixed_ports_should_aggregate_announces_from_both_listeners(
+async fn it_should_aggregate_udp_events_only_from_metrics_enabled_listener(
     app_container: &std::sync::Arc<torrust_tracker_lib::container::AppContainer>,
 ) {
+    // Arrange
     let udp_urls = common::udp_tracker_urls(app_container).await;
     assert_eq!(udp_urls.len(), 2, "expected two UDP trackers");
 
@@ -116,11 +123,13 @@ async fn udp_trackers_on_fixed_ports_should_aggregate_announces_from_both_listen
     ];
     let peer_id = *b"-qB00000000000000001";
 
+    // Act
     for url in &udp_urls {
         let addr = common::udp_socket_addr(url);
         common::udp_announce(addr, &info_hash, &peer_id, 17548).await;
     }
 
+    // Assert
     let global_stats = common::get_tracker_statistics(&api_url, "MyAccessToken").await;
     assert_eq!(global_stats.udp4_announces_handled, 1);
     assert_eq!(global_stats.udp4_requests, 2);
@@ -131,22 +140,48 @@ async fn udp_trackers_on_fixed_ports_should_aggregate_announces_from_both_listen
     assert_eq!(global_stats.udp_banned_ips_total, 0);
 }
 
-/// A metrics-disabled UDP tracker still publishes cookie-error facts to the
-/// shared banning listener, which enforces the resulting IP ban.
-async fn udp_metrics_disabled_tracker_should_still_enforce_cookie_error_bans(
+/// A cookie error on the enabled tracker retains its configuration identity and
+/// therefore updates the shared server error metric.
+async fn it_should_record_cookie_error_from_metrics_enabled_udp_listener(
     app_container: &std::sync::Arc<torrust_tracker_lib::container::AppContainer>,
 ) {
+    // Arrange
+    let api_url = common::http_api_url(app_container).await.expect("expected an HTTP API URL");
+    let enabled_udp_tracker =
+        common::udp_socket_addr_for_identity(app_container, ConfigurationInstanceId::new(ServiceRole::UdpTracker, 1)).await;
+
+    // Act
+    common::invalid_connection_id_should_receive_error(enabled_udp_tracker).await;
+
+    // Assert
+    let global_stats = common::get_tracker_statistics(&api_url, "MyAccessToken").await;
+    assert_eq!(global_stats.udp4_requests, 3);
+    assert_eq!(global_stats.udp4_connections_handled, 1);
+    assert_eq!(global_stats.udp4_responses, 3);
+    assert_eq!(global_stats.udp4_errors_handled, 1);
+
+    app_container.udp_tracker_core_services.ban_service.write().await.reset_bans();
+}
+
+/// A metrics-disabled UDP tracker still publishes cookie-error facts to the
+/// shared banning listener, which enforces the resulting IP ban.
+async fn it_should_enforce_cookie_error_ban_from_metrics_disabled_udp_listener(
+    app_container: &std::sync::Arc<torrust_tracker_lib::container::AppContainer>,
+) {
+    // Arrange
     let api_url = common::http_api_url(app_container).await.expect("expected an HTTP API URL");
     let disabled_udp_tracker =
         common::udp_socket_addr_for_identity(app_container, ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0)).await;
 
-    common::udp_invalid_connection_ids_should_trigger_ban(disabled_udp_tracker).await;
+    // Act
+    common::invalid_connection_ids_should_trigger_ban(disabled_udp_tracker).await;
 
+    // Assert
     let global_stats = common::get_tracker_statistics(&api_url, "MyAccessToken").await;
     assert_eq!(global_stats.udp_banned_ips_total, 1);
     assert_eq!(global_stats.udp_requests_banned, 0);
-    assert_eq!(global_stats.udp4_requests, 2);
+    assert_eq!(global_stats.udp4_requests, 3);
     assert_eq!(global_stats.udp4_connections_handled, 1);
-    assert_eq!(global_stats.udp4_responses, 2);
-    assert_eq!(global_stats.udp4_errors_handled, 0);
+    assert_eq!(global_stats.udp4_responses, 3);
+    assert_eq!(global_stats.udp4_errors_handled, 1);
 }
