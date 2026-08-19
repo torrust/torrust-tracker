@@ -40,7 +40,7 @@ pub async fn handle_scrape(
     if let Some(udp_server_stats_event_sender) = opt_udp_server_stats_event_sender.as_deref() {
         udp_server_stats_event_sender
             .send(Event::UdpRequestAccepted {
-                context: ConnectionContext::with_configuration_instance_id(
+                context: ConnectionContext::new(
                     scrape_service.configuration_instance_id(),
                     client_socket_addr,
                     server_service_binding.clone(),
@@ -68,7 +68,7 @@ pub async fn handle_scrape(
                     if let Some(sender) = opt_udp_server_stats_event_sender.as_deref() {
                         sender
                             .send(Event::UdpError {
-                                context: ConnectionContext::with_configuration_instance_id(
+                                context: ConnectionContext::new(
                                     scrape_service.configuration_instance_id(),
                                     client_socket_addr,
                                     server_service_binding.clone(),
@@ -414,6 +414,7 @@ mod tests {
 
             use mockall::predicate::eq;
             use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
+            use torrust_tracker_primitives::{ConfigurationInstanceId, ServiceRole};
             use torrust_tracker_udp_core::event::ConnectionContext;
 
             use super::sample_scrape_request;
@@ -434,7 +435,11 @@ mod tests {
                 udp_server_stats_event_sender_mock
                     .expect_send()
                     .with(eq(Event::UdpRequestAccepted {
-                        context: ConnectionContext::new(client_socket_addr, server_service_binding.clone()),
+                        context: ConnectionContext::new(
+                            ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0),
+                            client_socket_addr,
+                            server_service_binding.clone(),
+                        ),
                         kind: UdpRequestKind::Scrape,
                     }))
                     .times(1)
@@ -465,6 +470,7 @@ mod tests {
 
             use mockall::predicate::eq;
             use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
+            use torrust_tracker_primitives::{ConfigurationInstanceId, ServiceRole};
             use torrust_tracker_udp_core::event::ConnectionContext;
 
             use super::sample_scrape_request;
@@ -485,7 +491,11 @@ mod tests {
                 udp_server_stats_event_sender_mock
                     .expect_send()
                     .with(eq(Event::UdpRequestAccepted {
-                        context: ConnectionContext::new(client_socket_addr, server_service_binding.clone()),
+                        context: ConnectionContext::new(
+                            ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0),
+                            client_socket_addr,
+                            server_service_binding.clone(),
+                        ),
                         kind: UdpRequestKind::Scrape,
                     }))
                     .times(1)

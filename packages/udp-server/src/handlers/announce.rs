@@ -45,7 +45,7 @@ pub async fn handle_announce(
     if let Some(udp_server_stats_event_sender) = opt_udp_server_stats_event_sender.as_deref() {
         udp_server_stats_event_sender
             .send(Event::UdpRequestAccepted {
-                context: ConnectionContext::with_configuration_instance_id(
+                context: ConnectionContext::new(
                     announce_service.configuration_instance_id(),
                     client_socket_addr,
                     server_service_binding.clone(),
@@ -81,7 +81,7 @@ pub async fn handle_announce(
                     if let Some(sender) = opt_udp_server_stats_event_sender.as_deref() {
                         sender
                             .send(Event::UdpError {
-                                context: ConnectionContext::with_configuration_instance_id(
+                                context: ConnectionContext::new(
                                     announce_service.configuration_instance_id(),
                                     client_socket_addr,
                                     server_service_binding.clone(),
@@ -270,6 +270,7 @@ pub(crate) mod tests {
             use torrust_tracker_core::torrent::repository::in_memory::InMemoryTorrentRepository;
             use torrust_tracker_events::bus::SenderStatus;
             use torrust_tracker_primitives::peer::fixture::PeerBuilder;
+            use torrust_tracker_primitives::{ConfigurationInstanceId, ServiceRole};
             use torrust_tracker_udp_core::connection_cookie::{gen_remote_fingerprint, make};
             use torrust_tracker_udp_core::event::ConnectionContext;
             use torrust_tracker_udp_protocol::{
@@ -505,7 +506,11 @@ pub(crate) mod tests {
                 udp_server_stats_event_sender_mock
                     .expect_send()
                     .with(eq(Event::UdpRequestAccepted {
-                        context: ConnectionContext::new(client_socket_addr, server_service_binding.clone()),
+                        context: ConnectionContext::new(
+                            ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0),
+                            client_socket_addr,
+                            server_service_binding.clone(),
+                        ),
                         kind: UdpRequestKind::Announce { announce_request },
                     }))
                     .times(1)
@@ -620,6 +625,7 @@ pub(crate) mod tests {
             use torrust_tracker_core::whitelist;
             use torrust_tracker_events::bus::SenderStatus;
             use torrust_tracker_primitives::peer::fixture::PeerBuilder;
+            use torrust_tracker_primitives::{ConfigurationInstanceId, ServiceRole};
             use torrust_tracker_udp_core::connection_cookie::{gen_remote_fingerprint, make};
             use torrust_tracker_udp_core::event::ConnectionContext;
             use torrust_tracker_udp_core::event::bus::EventBus;
@@ -883,7 +889,11 @@ pub(crate) mod tests {
                 udp_server_stats_event_sender_mock
                     .expect_send()
                     .with(eq(Event::UdpRequestAccepted {
-                        context: ConnectionContext::new(client_socket_addr, server_service_binding.clone()),
+                        context: ConnectionContext::new(
+                            ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0),
+                            client_socket_addr,
+                            server_service_binding.clone(),
+                        ),
                         kind: UdpRequestKind::Announce { announce_request },
                     }))
                     .times(1)
@@ -921,6 +931,7 @@ pub(crate) mod tests {
                 use torrust_tracker_core::torrent::repository::in_memory::InMemoryTorrentRepository;
                 use torrust_tracker_core::whitelist::authorization::WhitelistAuthorization;
                 use torrust_tracker_core::whitelist::repository::in_memory::InMemoryWhitelist;
+                use torrust_tracker_primitives::{ConfigurationInstanceId, ServiceRole};
                 use torrust_tracker_udp_core::connection_cookie::{gen_remote_fingerprint, make};
                 use torrust_tracker_udp_core::event::ConnectionContext;
                 use torrust_tracker_udp_core::services::announce::AnnounceService;
@@ -983,6 +994,7 @@ pub(crate) mod tests {
                         .with(predicate::function(move |event| {
                             let expected_event = core_event::Event::UdpAnnounce {
                                 connection: core_event::ConnectionContext::new(
+                                    ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0),
                                     client_socket_addr,
                                     server_service_binding.clone(),
                                 ),
@@ -1001,7 +1013,11 @@ pub(crate) mod tests {
                     udp_server_stats_event_sender_mock
                         .expect_send()
                         .with(eq(Event::UdpRequestAccepted {
-                            context: ConnectionContext::new(client_socket_addr, server_service_binding_clone.clone()),
+                            context: ConnectionContext::new(
+                                ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0),
+                                client_socket_addr,
+                                server_service_binding_clone.clone(),
+                            ),
                             kind: UdpRequestKind::Announce {
                                 announce_request: request,
                             },

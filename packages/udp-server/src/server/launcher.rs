@@ -181,7 +181,7 @@ impl Launcher {
                 publish_event_if_sender_available(
                     &udp_tracker_server_container.stats_event_sender,
                     Event::UdpRequestReceived {
-                        context: ConnectionContext::with_configuration_instance_id(
+                        context: ConnectionContext::new(
                             udp_tracker_core_container.configuration_instance_id,
                             client_socket_addr,
                             server_service_binding.clone(),
@@ -236,7 +236,7 @@ impl Launcher {
                     publish_event_if_sender_available(
                         &udp_tracker_server_container.stats_event_sender,
                         Event::UdpRequestAborted {
-                            context: ConnectionContext::with_configuration_instance_id(
+                            context: ConnectionContext::new(
                                 udp_tracker_core_container.configuration_instance_id,
                                 client_socket_addr,
                                 server_service_binding,
@@ -274,7 +274,7 @@ impl Launcher {
             publish_event_if_sender_available(
                 &udp_tracker_server_container.stats_event_sender,
                 Event::UdpRequestDiscarded {
-                    context: ConnectionContext::with_configuration_instance_id(
+                    context: ConnectionContext::new(
                         udp_tracker_core_container.configuration_instance_id,
                         client_socket_addr,
                         server_service_binding.clone(),
@@ -301,7 +301,7 @@ impl Launcher {
             publish_event_if_sender_available(
                 &udp_tracker_server_container.stats_event_sender,
                 Event::UdpRequestBanned {
-                    context: ConnectionContext::with_configuration_instance_id(
+                    context: ConnectionContext::new(
                         udp_tracker_core_container.configuration_instance_id,
                         client_socket_addr,
                         server_service_binding.clone(),

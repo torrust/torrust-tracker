@@ -61,7 +61,7 @@ impl ConnectService {
         if let Some(udp_stats_event_sender) = self.opt_udp_core_stats_event_sender.as_deref() {
             udp_stats_event_sender
                 .send(Event::UdpConnect {
-                    connection: ConnectionContext::with_configuration_instance_id(
+                    connection: ConnectionContext::new(
                         self.configuration_instance_id,
                         client_socket_addr,
                         server_service_binding,
@@ -86,6 +86,7 @@ mod tests {
         use mockall::predicate::eq;
         use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
         use torrust_tracker_events::bus::SenderStatus;
+        use torrust_tracker_primitives::{ConfigurationInstanceId, ServiceRole};
 
         use crate::connection_cookie::make;
         use crate::event::bus::EventBus;
@@ -166,18 +167,26 @@ mod tests {
             let client_socket_addr = sample_ipv4_socket_address();
             let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969);
             let server_service_binding = ServiceBinding::new(Protocol::UDP, server_socket_addr).unwrap();
+            let configuration_instance_id = ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0);
 
             let mut udp_stats_event_sender_mock = MockUdpCoreStatsEventSender::new();
             udp_stats_event_sender_mock
                 .expect_send()
                 .with(eq(Event::UdpConnect {
-                    connection: ConnectionContext::new(client_socket_addr, server_service_binding.clone()),
+                    connection: ConnectionContext::new(
+                        configuration_instance_id,
+                        client_socket_addr,
+                        server_service_binding.clone(),
+                    ),
                 }))
                 .times(1)
                 .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
             let opt_udp_stats_event_sender: crate::event::sender::Sender = Some(Arc::new(udp_stats_event_sender_mock));
 
-            let connect_service = Arc::new(ConnectService::new(opt_udp_stats_event_sender));
+            let connect_service = Arc::new(ConnectService::with_configuration_instance_id(
+                opt_udp_stats_event_sender,
+                configuration_instance_id,
+            ));
 
             connect_service
                 .handle_connect(client_socket_addr, server_service_binding, sample_issue_time())
@@ -189,18 +198,26 @@ mod tests {
             let client_socket_addr = sample_ipv6_remote_addr();
             let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969);
             let server_service_binding = ServiceBinding::new(Protocol::UDP, server_socket_addr).unwrap();
+            let configuration_instance_id = ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0);
 
             let mut udp_stats_event_sender_mock = MockUdpCoreStatsEventSender::new();
             udp_stats_event_sender_mock
                 .expect_send()
                 .with(eq(Event::UdpConnect {
-                    connection: ConnectionContext::new(client_socket_addr, server_service_binding.clone()),
+                    connection: ConnectionContext::new(
+                        configuration_instance_id,
+                        client_socket_addr,
+                        server_service_binding.clone(),
+                    ),
                 }))
                 .times(1)
                 .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
             let opt_udp_stats_event_sender: crate::event::sender::Sender = Some(Arc::new(udp_stats_event_sender_mock));
 
-            let connect_service = Arc::new(ConnectService::new(opt_udp_stats_event_sender));
+            let connect_service = Arc::new(ConnectService::with_configuration_instance_id(
+                opt_udp_stats_event_sender,
+                configuration_instance_id,
+            ));
 
             connect_service
                 .handle_connect(client_socket_addr, server_service_binding, sample_issue_time())

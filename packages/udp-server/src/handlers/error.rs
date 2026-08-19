@@ -109,11 +109,7 @@ async fn trigger_udp_error_event(
     if let Some(udp_server_stats_event_sender) = opt_udp_server_stats_event_sender.as_deref() {
         udp_server_stats_event_sender
             .send(Event::UdpError {
-                context: ConnectionContext::with_configuration_instance_id(
-                    configuration_instance_id,
-                    client_socket_addr,
-                    server_service_binding,
-                ),
+                context: ConnectionContext::new(configuration_instance_id, client_socket_addr, server_service_binding),
                 kind: req_kind,
                 error: error.clone().into(),
             })

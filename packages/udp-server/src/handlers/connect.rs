@@ -26,7 +26,7 @@ pub async fn handle_connect(
     if let Some(udp_server_stats_event_sender) = opt_udp_server_stats_event_sender.as_deref() {
         udp_server_stats_event_sender
             .send(Event::UdpRequestAccepted {
-                context: ConnectionContext::with_configuration_instance_id(
+                context: ConnectionContext::new(
                     connect_service.configuration_instance_id(),
                     client_socket_addr,
                     server_service_binding.clone(),
@@ -64,6 +64,7 @@ mod tests {
         use mockall::predicate::eq;
         use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
         use torrust_tracker_events::bus::SenderStatus;
+        use torrust_tracker_primitives::{ConfigurationInstanceId, ServiceRole};
         use torrust_tracker_udp_core::connection_cookie::make;
         use torrust_tracker_udp_core::event as core_event;
         use torrust_tracker_udp_core::event::ConnectionContext;
@@ -223,7 +224,11 @@ mod tests {
             udp_core_stats_event_sender_mock
                 .expect_send()
                 .with(eq(core_event::Event::UdpConnect {
-                    connection: core_event::ConnectionContext::new(client_socket_addr, server_service_binding.clone()),
+                    connection: core_event::ConnectionContext::new(
+                        ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0),
+                        client_socket_addr,
+                        server_service_binding.clone(),
+                    ),
                 }))
                 .times(1)
                 .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
@@ -234,7 +239,11 @@ mod tests {
             udp_server_stats_event_sender_mock
                 .expect_send()
                 .with(eq(Event::UdpRequestAccepted {
-                    context: ConnectionContext::new(client_socket_addr, server_service_binding.clone()),
+                    context: ConnectionContext::new(
+                        ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0),
+                        client_socket_addr,
+                        server_service_binding.clone(),
+                    ),
                     kind: UdpRequestKind::Connect,
                 }))
                 .times(1)
@@ -264,7 +273,11 @@ mod tests {
             udp_core_stats_event_sender_mock
                 .expect_send()
                 .with(eq(core_event::Event::UdpConnect {
-                    connection: core_event::ConnectionContext::new(client_socket_addr, server_service_binding.clone()),
+                    connection: core_event::ConnectionContext::new(
+                        ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0),
+                        client_socket_addr,
+                        server_service_binding.clone(),
+                    ),
                 }))
                 .times(1)
                 .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
@@ -275,7 +288,11 @@ mod tests {
             udp_server_stats_event_sender_mock
                 .expect_send()
                 .with(eq(Event::UdpRequestAccepted {
-                    context: ConnectionContext::new(client_socket_addr, server_service_binding.clone()),
+                    context: ConnectionContext::new(
+                        ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0),
+                        client_socket_addr,
+                        server_service_binding.clone(),
+                    ),
                     kind: UdpRequestKind::Connect,
                 }))
                 .times(1)

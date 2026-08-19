@@ -111,11 +111,7 @@ impl ScrapeService {
     async fn send_event(&self, client_socket_addr: SocketAddr, server_service_binding: ServiceBinding) {
         if let Some(udp_stats_event_sender) = self.opt_udp_stats_event_sender.as_deref() {
             let event = Event::UdpScrape {
-                connection: ConnectionContext::with_configuration_instance_id(
-                    self.configuration_instance_id,
-                    client_socket_addr,
-                    server_service_binding,
-                ),
+                connection: ConnectionContext::new(self.configuration_instance_id, client_socket_addr, server_service_binding),
             };
 
             tracing::debug!(target = crate::UDP_TRACKER_LOG_TARGET, "Sending UdpScrape event: {event:?}");

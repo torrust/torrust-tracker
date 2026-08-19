@@ -142,11 +142,7 @@ impl AnnounceService {
     ) {
         if let Some(udp_stats_event_sender) = self.opt_udp_core_stats_event_sender.as_deref() {
             let event = Event::UdpAnnounce {
-                connection: ConnectionContext::with_configuration_instance_id(
-                    self.configuration_instance_id,
-                    client_socket_addr,
-                    server_service_binding,
-                ),
+                connection: ConnectionContext::new(self.configuration_instance_id, client_socket_addr, server_service_binding),
                 info_hash,
                 announcement,
             };

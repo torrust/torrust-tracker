@@ -71,6 +71,7 @@ mod tests {
 
     use torrust_clock::clock::Time;
     use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
+    use torrust_tracker_primitives::{ConfigurationInstanceId, ServiceRole};
     use torrust_tracker_udp_core::event::ConnectionContext;
 
     use crate::CurrentClock;
@@ -86,6 +87,7 @@ mod tests {
         handle_event(
             Event::UdpResponseSent {
                 context: ConnectionContext::new(
+                    ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0),
                     SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 195)), 8080),
                     ServiceBinding::new(
                         Protocol::UDP,
@@ -117,6 +119,7 @@ mod tests {
         handle_event(
             Event::UdpResponseSent {
                 context: ConnectionContext::new(
+                    ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0),
                     SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 195)), 8080),
                     ServiceBinding::new(
                         Protocol::UDP,

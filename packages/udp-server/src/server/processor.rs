@@ -70,7 +70,7 @@ impl Processor {
             if let Some(sender) = self.udp_tracker_server_container.stats_event_sender.as_deref() {
                 sender
                     .send(Event::UdpRequestDiscarded {
-                        context: ConnectionContext::with_configuration_instance_id(
+                        context: ConnectionContext::new(
                             self.udp_tracker_core_container.configuration_instance_id,
                             client_socket_addr,
                             self.server_service_binding,
@@ -150,7 +150,7 @@ impl Processor {
                         {
                             udp_server_stats_event_sender
                                 .send(Event::UdpResponseSent {
-                                    context: ConnectionContext::with_configuration_instance_id(
+                                    context: ConnectionContext::new(
                                         self.udp_tracker_core_container.configuration_instance_id,
                                         client_socket_addr,
                                         self.server_service_binding,
