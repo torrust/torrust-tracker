@@ -150,19 +150,19 @@ correctness delivery.
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| ID  | Status      | Task                             | Notes / Expected Output                                                                                               |
-| --- | ----------- | -------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| T1  | DONE        | Inventory event gates            | Mapped event buses, optional senders, metrics listeners, and the UDP banning consumer during implementation analysis. |
-| T2  | DONE        | Consume #2036 canonical identity | Propagated stable runtime configuration-instance identity without using configured addresses.                         |
-| T3  | DONE        | Always emit HTTP core facts      | HTTP core producer publication is independent of listener metrics policy.                                             |
-| T4  | DONE        | Always emit UDP core facts       | UDP core producer publication is independent of listener metrics policy.                                              |
-| T5  | DONE        | Always emit UDP server facts     | UDP server publication is independent of listener metrics policy.                                                     |
-| T6  | DONE        | Filter metrics in listeners      | Shared HTTP, UDP-core, and UDP-server metrics listeners use immutable identity-to-policy filtering.                   |
-| T7  | DONE        | Preserve banning independence    | Full-application regression proves cookie errors through a metrics-disabled UDP listener still trigger a shared ban.  |
-| T8  | IN_PROGRESS | Update REST metrics integration  | REST announce aggregates are verified; deterministic operational-counter assertions remain to be added.               |
-| T9  | DONE        | Add focused tests                | Added producer, filtering, and banning coverage.                                                                      |
-| T10 | DONE        | Add application tests            | Fixed-port and repeated-port-zero enabled/disabled HTTP and UDP regression tests expect aggregate count `1`.          |
-| T11 | BLOCKED     | Validate and document            | Linting and focused tests pass, but required pre-change/C2/C3 manual checkpoint evidence is incomplete.               |
+| ID  | Status  | Task                             | Notes / Expected Output                                                                                               |
+| --- | ------- | -------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| T1  | DONE    | Inventory event gates            | Mapped event buses, optional senders, metrics listeners, and the UDP banning consumer during implementation analysis. |
+| T2  | DONE    | Consume #2036 canonical identity | Propagated stable runtime configuration-instance identity without using configured addresses.                         |
+| T3  | DONE    | Always emit HTTP core facts      | HTTP core producer publication is independent of listener metrics policy.                                             |
+| T4  | DONE    | Always emit UDP core facts       | UDP core producer publication is independent of listener metrics policy.                                              |
+| T5  | DONE    | Always emit UDP server facts     | UDP server publication is independent of listener metrics policy.                                                     |
+| T6  | DONE    | Filter metrics in listeners      | Shared HTTP, UDP-core, and UDP-server metrics listeners use immutable identity-to-policy filtering.                   |
+| T7  | DONE    | Preserve banning independence    | Full-application regression proves cookie errors through a metrics-disabled UDP listener still trigger a shared ban.  |
+| T8  | DONE    | Update REST metrics integration  | REST announce aggregates and deterministic UDP operational counters are verified.                                     |
+| T9  | DONE    | Add focused tests                | Added producer, filtering, and banning coverage.                                                                      |
+| T10 | DONE    | Add application tests            | Fixed-port and repeated-port-zero enabled/disabled HTTP and UDP regression tests expect aggregate count `1`.          |
+| T11 | BLOCKED | Validate and document            | Linting and focused tests pass; C2 manual forged-cookie evidence remains unavailable from the public CLI.             |
 
 ## Risk-Based Manual Verification Protocol
 
@@ -225,6 +225,10 @@ metrics-disabled listener still reach shared ban enforcement.
   listener-side metrics filtering, and full-application banning regression coverage. Fixed-port and
   repeated-port-zero probes are recorded in `evidence.md`; remaining evidence requirements are tracked
   as blockers rather than inferred from automated coverage.
+- 2026-08-18 - agent - Captured the fixed-port pre-change baseline from isolated revision
+  `e6b99635`; it counted both disabled and enabled listeners (`2`) compared with the post-change
+  aggregate count (`1`). Added final operational-counter assertions and corrected UDP error-event
+  identity propagation.
 
 ## Acceptance Criteria
 
@@ -233,7 +237,7 @@ metrics-disabled listener still reach shared ban enforcement.
 - [x] AC3: Metrics-disabled UDP listeners still contribute relevant cookie-error facts to shared banning.
 - [x] AC4: Metrics-enabled listeners update the existing shared aggregate repositories.
 - [x] AC5: Metrics filtering uses #2036 canonical identity and works for repeated `0.0.0.0:0` blocks.
-- [ ] AC6: The REST API retains aggregate HTTP/UDP and UDP operational metrics. Deterministic operational-counter assertions remain pending.
+- [x] AC6: The REST API retains aggregate HTTP/UDP and UDP operational metrics.
 - [ ] AC7: Every risk-based verification checkpoint has baseline and post-change evidence.
 - [x] AC8: Relevant tests and `linter all` pass.
 

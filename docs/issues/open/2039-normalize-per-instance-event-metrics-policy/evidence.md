@@ -13,6 +13,33 @@
 Add the exact tracker configuration, commands, observed REST statistics, and
 post-change comparison for each probe here. Do not overwrite baseline evidence.
 
+### C1 baseline — fixed-port policy behavior (M1, M2, M5)
+
+**Revision:** `e6b99635` (pre-implementation `develop`)
+
+**Result:** DONE
+
+The historical revision was run in an isolated temporary Git worktree with the
+same fixed-port configuration now preserved at
+[`evidence/fixed-port-manual.toml`](evidence/fixed-port-manual.toml), except for
+an isolated temporary SQLite path.
+
+One HTTP and one UDP announce was sent to each disabled and enabled listener,
+using the same info hash and commands as the C1 post-change probe.
+
+#### Observed output
+
+- Before traffic: `tcp4_announces_handled: 0`, `udp4_announces_handled: 0`
+- After traffic:
+  - `tcp4_announces_handled: 2`
+  - `udp4_announces_handled: 2`
+  - `udp4_requests: 4`
+  - `udp4_connections_handled: 2`
+  - `udp4_responses: 4`
+
+The disabled listeners incorrectly updated the shared aggregates. Compared with
+the C1 post-change counts of `1`, the expected correction is verified.
+
 ### C1 post-change — fixed-port HTTP and UDP policy filtering (M1, M2, M5)
 
 **Task:** T2-T6: canonical identity, always-published facts, and listener-side filtering
@@ -160,6 +187,22 @@ This is full-application regression coverage, rather than an operator-run
 manual probe. A manually reproducible forged-cookie client remains unavailable
 from the public `tracker_client` CLI.
 
+### C3 final application confirmation (M1, M2, M4, M5)
+
+**Result:** DONE
+
+The final committed application test suite repeated fixed-port and repeated
+port-zero enabled/disabled traffic scenarios:
+
+```sh
+cargo +nightly test --test aggregate_stats_fixed_ports --test aggregate_stats_port_zero -- --test-threads=1
+```
+
+Both tests passed. They assert HTTP and UDP aggregate announce counts of `1`;
+the fixed-port test also asserts retained UDP operational metrics for the
+enabled listener: requests `2`, connections `1`, responses `2`, errors `0`,
+and banned requests `0` before the independent banning scenario.
+
 ## Purpose
 
 This file records the progressive manual baseline and post-change probes
@@ -184,13 +227,13 @@ entry before its change and one entry after it.
 
 | Task | Baseline | Post-change | Result                                                                         |
 | ---- | -------- | ----------- | ------------------------------------------------------------------------------ |
-| T2   | Missing  | DONE        | Baseline missing; fixed-port and port-zero post-change evidence recorded.      |
-| T3   | Missing  | DONE        | Fixed-port and port-zero post-change evidence recorded.                        |
-| T4   | Missing  | DONE        | Fixed-port and port-zero post-change evidence recorded.                        |
-| T5   | Missing  | DONE        | Fixed-port and port-zero post-change evidence recorded.                        |
-| T6   | Missing  | DONE        | Fixed-port and port-zero post-change evidence recorded.                        |
+| T2   | DONE     | DONE        | Fixed-port baseline and fixed-port/port-zero post-change evidence recorded.    |
+| T3   | DONE     | DONE        | Fixed-port baseline and post-change evidence recorded.                         |
+| T4   | DONE     | DONE        | Fixed-port baseline and post-change evidence recorded.                         |
+| T5   | DONE     | DONE        | Fixed-port baseline and post-change evidence recorded.                         |
+| T6   | DONE     | DONE        | Fixed-port baseline and post-change evidence recorded.                         |
 | T7   | Missing  | PARTIAL     | Full-application automated M3 coverage recorded; manual probe remains blocked. |
-| T8   | Missing  | PARTIAL     | REST announce aggregates verified; operational-counter assertions pending.     |
+| T8   | Missing  | DONE        | REST announce and deterministic UDP operational-counter assertions verified.   |
 | T9   | N/A      | DONE        | Focused and full-application regressions added.                                |
 | T10  | N/A      | DONE        | Fixed-port and repeated-port-zero regressions pass.                            |
 
