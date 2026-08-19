@@ -81,6 +81,7 @@ impl Environment<Stopped> {
             self.container.http_tracker_core_container.event_bus.receiver(),
             self.cancellation_token.clone(),
             &self.container.http_tracker_core_container.stats_repository,
+            [(ConfigurationInstanceId::new(ServiceRole::HttpTracker, 0), true)].into(),
         );
 
         // Start the server

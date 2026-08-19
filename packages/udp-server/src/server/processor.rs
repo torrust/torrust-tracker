@@ -186,6 +186,7 @@ mod tests {
     use std::time::Duration;
 
     use tokio_util::sync::CancellationToken;
+    use torrust_tracker_primitives::{ConfigurationInstanceId, ServiceRole};
     use torrust_tracker_test_helpers::configuration;
     use torrust_tracker_udp_core::ConnectionIdValidationPolicy;
     use torrust_tracker_udp_protocol::{ConnectRequest, Request, TransactionId};
@@ -238,6 +239,7 @@ mod tests {
             container.udp_tracker_server_container.event_bus.receiver(),
             cancellation_token.clone(),
             &container.udp_tracker_server_container.stats_repository,
+            [(ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0), true)].into(),
         );
 
         let socket = Arc::new(BoundSocket::bind("0.0.0.0:0".parse().unwrap(), false).expect("Failed to bind socket"));

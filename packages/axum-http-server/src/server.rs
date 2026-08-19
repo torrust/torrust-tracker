@@ -347,7 +347,12 @@ mod tests {
         let http_stats_event_sender = http_stats_event_bus.sender();
 
         if configuration.core.tracker_usage_statistics {
-            let _unused = run_event_listener(http_stats_event_bus.receiver(), cancellation_token, &http_stats_repository);
+            let _unused = run_event_listener(
+                http_stats_event_bus.receiver(),
+                cancellation_token,
+                &http_stats_repository,
+                [(configuration_instance_id, true)].into(),
+            );
         }
 
         let swarm_coordination_registry_container = Arc::new(SwarmCoordinationRegistryContainer::initialize(

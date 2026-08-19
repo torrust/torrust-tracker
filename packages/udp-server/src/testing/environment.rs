@@ -86,6 +86,7 @@ impl Environment<Stopped> {
             self.container.udp_tracker_core_container.event_bus.receiver(),
             self.cancellation_token.clone(),
             &self.container.udp_tracker_core_container.stats_repository,
+            [(ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0), true)].into(),
         ));
 
         // Start the UDP tracker server event listener (statistics)
@@ -93,6 +94,7 @@ impl Environment<Stopped> {
             self.container.udp_tracker_server_container.event_bus.receiver(),
             self.cancellation_token.clone(),
             &self.container.udp_tracker_server_container.stats_repository,
+            [(ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0), true)].into(),
         ));
 
         // Start the UDP tracker server event listener (banning)

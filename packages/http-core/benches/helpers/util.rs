@@ -78,7 +78,12 @@ pub async fn initialize_core_tracker_services_with_config(
     let http_stats_event_sender = http_stats_event_bus.sender();
 
     if config.core.tracker_usage_statistics {
-        let _unused = run_event_listener(http_stats_event_bus.receiver(), cancellation_token, &http_stats_repository);
+        let _unused = run_event_listener(
+            http_stats_event_bus.receiver(),
+            cancellation_token,
+            &http_stats_repository,
+            [(configuration_instance_id, true)].into(),
+        );
     }
 
     (

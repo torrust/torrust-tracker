@@ -21,7 +21,7 @@ pub fn start_event_listener(
         .iter()
         .map(|(id, container)| (*id, container.udp_tracker_config.tracker_usage_statistics))
         .collect::<BTreeMap<_, _>>();
-    let job = torrust_tracker_udp_core::statistics::event::listener::run_event_listener_with_metrics_policy(
+    let job = torrust_tracker_udp_core::statistics::event::listener::run_event_listener(
         app_container.udp_tracker_core_services.event_bus.receiver(),
         cancellation_token,
         &app_container.udp_tracker_core_services.stats_repository,
