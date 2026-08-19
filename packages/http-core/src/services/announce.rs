@@ -241,7 +241,7 @@ impl AnnounceService {
     ) {
         if let Some(http_stats_event_sender) = self.opt_http_stats_event_sender.as_deref() {
             let event = Event::TcpAnnounce {
-                connection: event::ConnectionContext::with_configuration_instance_id(
+                connection: event::ConnectionContext::new(
                     self.configuration_instance_id,
                     remote_client_addr,
                     server_service_binding,
@@ -619,6 +619,7 @@ mod tests {
             // Arrange
             let (core_tracker_services, mut core_http_tracker_services) =
                 initialize_core_tracker_services_with_config(&configuration::ephemeral_with_reverse_proxy()).await;
+            let configuration_instance_id = core_http_tracker_services.configuration_instance_id;
             let server_service_binding =
                 ServiceBinding::new(Protocol::HTTP, SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070)).unwrap();
             let query_string_peer_ip = "198.51.100.42".parse().unwrap();
@@ -644,6 +645,7 @@ mod tests {
 
                     let expected_event = Event::TcpAnnounce {
                         connection: ConnectionContext::new(
+                            configuration_instance_id,
                             RemoteClientAddr::new(ResolvedIp::FromXForwardedFor(x_forwarded_for_ip), Some(8080)),
                             server_service_binding.clone(),
                         ),
@@ -689,6 +691,7 @@ mod tests {
             let configuration = configuration::ephemeral_with_external_ip(external_ip);
             let (core_tracker_services, mut core_http_tracker_services) =
                 initialize_core_tracker_services_with_config(&configuration).await;
+            let configuration_instance_id = core_http_tracker_services.configuration_instance_id;
             let server_service_binding =
                 ServiceBinding::new(Protocol::HTTP, SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070)).unwrap();
             let server_service_binding_for_event = server_service_binding.clone();
@@ -713,6 +716,7 @@ mod tests {
 
                     let expected_event = Event::TcpAnnounce {
                         connection: ConnectionContext::new(
+                            configuration_instance_id,
                             RemoteClientAddr::new(ResolvedIp::FromSocketAddr(IpAddr::V4(Ipv4Addr::LOCALHOST)), Some(8080)),
                             server_service_binding_for_event.clone(),
                         ),
@@ -754,6 +758,9 @@ mod tests {
 
             let server_service_binding_clone = server_service_binding.clone();
 
+            let (core_tracker_services, mut core_http_tracker_services) = initialize_core_tracker_services().await;
+            let configuration_instance_id = core_http_tracker_services.configuration_instance_id;
+
             let mut http_stats_event_sender_mock = MockHttpStatsEventSender::new();
             http_stats_event_sender_mock
                 .expect_send()
@@ -763,6 +770,7 @@ mod tests {
 
                     let expected_event = Event::TcpAnnounce {
                         connection: ConnectionContext::new(
+                            configuration_instance_id,
                             RemoteClientAddr::new(ResolvedIp::FromSocketAddr(remote_client_ip), Some(8080)),
                             server_service_binding.clone(),
                         ),
@@ -775,8 +783,6 @@ mod tests {
                 .times(1)
                 .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
             let http_stats_event_sender: crate::event::sender::Sender = Some(Arc::new(http_stats_event_sender_mock));
-
-            let (core_tracker_services, mut core_http_tracker_services) = initialize_core_tracker_services().await;
 
             core_http_tracker_services.http_stats_event_sender = http_stats_event_sender;
 
@@ -826,6 +832,10 @@ mod tests {
 
             let server_service_binding_clone = server_service_binding.clone();
 
+            let (core_tracker_services, mut core_http_tracker_services) =
+                initialize_core_tracker_services_with_config(&tracker_with_an_ipv6_external_ip()).await;
+            let configuration_instance_id = core_http_tracker_services.configuration_instance_id;
+
             let mut http_stats_event_sender_mock = MockHttpStatsEventSender::new();
             http_stats_event_sender_mock
                 .expect_send()
@@ -838,6 +848,7 @@ mod tests {
 
                     let expected_event = Event::TcpAnnounce {
                         connection: ConnectionContext::new(
+                            configuration_instance_id,
                             RemoteClientAddr::new(ResolvedIp::FromSocketAddr(remote_client_ip), Some(8080)),
                             server_service_binding.clone(),
                         ),
@@ -851,9 +862,6 @@ mod tests {
                 .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
 
             let http_stats_event_sender: crate::event::sender::Sender = Some(Arc::new(http_stats_event_sender_mock));
-
-            let (core_tracker_services, mut core_http_tracker_services) =
-                initialize_core_tracker_services_with_config(&tracker_with_an_ipv6_external_ip()).await;
 
             core_http_tracker_services.http_stats_event_sender = http_stats_event_sender;
 
@@ -882,12 +890,16 @@ mod tests {
             let peer = sample_peer_using_ipv6();
             let remote_client_ip = IpAddr::V6(Ipv6Addr::new(0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969));
 
+            let (core_tracker_services, mut core_http_tracker_services) = initialize_core_tracker_services().await;
+            let configuration_instance_id = core_http_tracker_services.configuration_instance_id;
+
             let mut http_stats_event_sender_mock = MockHttpStatsEventSender::new();
             http_stats_event_sender_mock
                 .expect_send()
                 .with(predicate::function(move |event| {
                     let expected_event = Event::TcpAnnounce {
                         connection: ConnectionContext::new(
+                            configuration_instance_id,
                             RemoteClientAddr::new(ResolvedIp::FromSocketAddr(remote_client_ip), Some(8080)),
                             server_service_binding.clone(),
                         ),
@@ -899,8 +911,6 @@ mod tests {
                 .times(1)
                 .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
             let http_stats_event_sender: crate::event::sender::Sender = Some(Arc::new(http_stats_event_sender_mock));
-
-            let (core_tracker_services, mut core_http_tracker_services) = initialize_core_tracker_services().await;
             core_http_tracker_services.http_stats_event_sender = http_stats_event_sender;
 
             let (announce_request, client_ip_sources) = sample_announce_request_for_peer(peer);

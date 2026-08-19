@@ -57,6 +57,7 @@ mod tests {
     use torrust_clock::clock::Time;
     use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
     use torrust_tracker_http_protocol::v1::services::peer_ip_resolver::{RemoteClientAddr, ResolvedIp};
+    use torrust_tracker_primitives::{ConfigurationInstanceId, ServiceRole};
 
     use crate::CurrentClock;
     use crate::event::{ConnectionContext, Event};
@@ -66,6 +67,7 @@ mod tests {
 
     #[tokio::test]
     async fn should_increase_the_tcp4_announces_counter_when_it_receives_a_tcp4_announce_event() {
+        let http_test_configuration_instance_id = ConfigurationInstanceId::new(ServiceRole::HttpTracker, 0);
         let stats_repository = Arc::new(Repository::new());
         let peer = sample_peer_using_ipv4();
         let remote_client_ip = IpAddr::V4(Ipv4Addr::new(127, 0, 0, 2));
@@ -73,6 +75,7 @@ mod tests {
         handle_event(
             Event::TcpAnnounce {
                 connection: ConnectionContext::new(
+                    http_test_configuration_instance_id,
                     RemoteClientAddr::new(ResolvedIp::FromSocketAddr(remote_client_ip), Some(8080)),
                     ServiceBinding::new(Protocol::HTTP, SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070)).unwrap(),
                 ),
@@ -91,11 +94,13 @@ mod tests {
 
     #[tokio::test]
     async fn should_increase_the_tcp4_scrapes_counter_when_it_receives_a_tcp4_scrape_event() {
+        let http_test_configuration_instance_id = ConfigurationInstanceId::new(ServiceRole::HttpTracker, 0);
         let stats_repository = Arc::new(Repository::new());
 
         handle_event(
             Event::TcpScrape {
                 connection: ConnectionContext::new(
+                    http_test_configuration_instance_id,
                     RemoteClientAddr::new(
                         ResolvedIp::FromSocketAddr(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 2))),
                         Some(8080),
@@ -115,6 +120,7 @@ mod tests {
 
     #[tokio::test]
     async fn should_increase_the_tcp6_announces_counter_when_it_receives_a_tcp6_announce_event() {
+        let http_test_configuration_instance_id = ConfigurationInstanceId::new(ServiceRole::HttpTracker, 0);
         let stats_repository = Arc::new(Repository::new());
         let peer = sample_peer_using_ipv6();
         let remote_client_ip = IpAddr::V6(Ipv6Addr::new(0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969));
@@ -122,6 +128,7 @@ mod tests {
         handle_event(
             Event::TcpAnnounce {
                 connection: ConnectionContext::new(
+                    http_test_configuration_instance_id,
                     RemoteClientAddr::new(ResolvedIp::FromSocketAddr(remote_client_ip), Some(8080)),
                     ServiceBinding::new(Protocol::HTTP, SocketAddr::new(IpAddr::V6(Ipv6Addr::LOCALHOST), 7070)).unwrap(),
                 ),
@@ -140,11 +147,13 @@ mod tests {
 
     #[tokio::test]
     async fn should_increase_the_tcp6_scrapes_counter_when_it_receives_a_tcp6_scrape_event() {
+        let http_test_configuration_instance_id = ConfigurationInstanceId::new(ServiceRole::HttpTracker, 0);
         let stats_repository = Arc::new(Repository::new());
 
         handle_event(
             Event::TcpScrape {
                 connection: ConnectionContext::new(
+                    http_test_configuration_instance_id,
                     RemoteClientAddr::new(
                         ResolvedIp::FromSocketAddr(IpAddr::V6(Ipv6Addr::new(
                             0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969,

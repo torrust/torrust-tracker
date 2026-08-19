@@ -108,11 +108,7 @@ impl ScrapeService {
     async fn send_event(&self, remote_client_addr: RemoteClientAddr, server_service_binding: ServiceBinding) {
         if let Some(http_stats_event_sender) = self.opt_http_stats_event_sender.as_deref() {
             let event = Event::TcpScrape {
-                connection: ConnectionContext::with_configuration_instance_id(
-                    self.configuration_instance_id,
-                    remote_client_addr,
-                    server_service_binding,
-                ),
+                connection: ConnectionContext::new(self.configuration_instance_id, remote_client_addr, server_service_binding),
             };
 
             tracing::debug!("Sending TcpScrape event: {:?}", event);
@@ -369,12 +365,15 @@ mod tests {
         #[tokio::test]
         async fn it_should_send_the_tcp_4_scrape_event_when_the_peer_uses_ipv4() {
             let config = configuration::ephemeral();
+            let container = initialize_services_with_configuration(&config).await;
+            let configuration_instance_id = container.configuration_instance_id;
 
             let mut http_stats_event_sender_mock = MockHttpStatsEventSender::new();
             http_stats_event_sender_mock
                 .expect_send()
                 .with(eq(Event::TcpScrape {
                     connection: ConnectionContext::new(
+                        configuration_instance_id,
                         RemoteClientAddr::new(
                             ResolvedIp::FromSocketAddr(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1))),
                             Some(8080),
@@ -385,8 +384,6 @@ mod tests {
                 .times(1)
                 .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
             let http_stats_event_sender: crate::event::sender::Sender = Some(Arc::new(http_stats_event_sender_mock));
-
-            let container = initialize_services_with_configuration(&config).await;
 
             let peer_ip = IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1));
 
@@ -422,12 +419,15 @@ mod tests {
             let server_service_binding = ServiceBinding::new(Protocol::HTTP, server_socket_addr).unwrap();
 
             let config = configuration::ephemeral();
+            let container = initialize_services_with_configuration(&config).await;
+            let configuration_instance_id = container.configuration_instance_id;
 
             let mut http_stats_event_sender_mock = MockHttpStatsEventSender::new();
             http_stats_event_sender_mock
                 .expect_send()
                 .with(eq(Event::TcpScrape {
                     connection: ConnectionContext::new(
+                        configuration_instance_id,
                         RemoteClientAddr::new(
                             ResolvedIp::FromSocketAddr(IpAddr::V6(Ipv6Addr::new(
                                 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969,
@@ -440,8 +440,6 @@ mod tests {
                 .times(1)
                 .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
             let http_stats_event_sender: crate::event::sender::Sender = Some(Arc::new(http_stats_event_sender_mock));
-
-            let container = initialize_services_with_configuration(&config).await;
 
             let peer_ip = IpAddr::V6(Ipv6Addr::new(0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969));
 
@@ -556,12 +554,14 @@ mod tests {
             let config = configuration::ephemeral();
 
             let container = initialize_services_with_configuration(&config).await;
+            let configuration_instance_id = container.configuration_instance_id;
 
             let mut http_stats_event_sender_mock = MockHttpStatsEventSender::new();
             http_stats_event_sender_mock
                 .expect_send()
                 .with(eq(Event::TcpScrape {
                     connection: ConnectionContext::new(
+                        configuration_instance_id,
                         RemoteClientAddr::new(
                             ResolvedIp::FromSocketAddr(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1))),
                             Some(8080),
@@ -609,12 +609,14 @@ mod tests {
             let config = configuration::ephemeral();
 
             let container = initialize_services_with_configuration(&config).await;
+            let configuration_instance_id = container.configuration_instance_id;
 
             let mut http_stats_event_sender_mock = MockHttpStatsEventSender::new();
             http_stats_event_sender_mock
                 .expect_send()
                 .with(eq(Event::TcpScrape {
                     connection: ConnectionContext::new(
+                        configuration_instance_id,
                         RemoteClientAddr::new(
                             ResolvedIp::FromSocketAddr(IpAddr::V6(Ipv6Addr::new(
                                 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969,
