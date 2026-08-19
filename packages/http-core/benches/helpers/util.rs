@@ -26,7 +26,7 @@ use torrust_tracker_http_protocol::v1::requests::announce::{
 };
 use torrust_tracker_http_protocol::v1::services::peer_ip_resolver::ClientIpSources;
 use torrust_tracker_primitives::peer::Peer;
-use torrust_tracker_primitives::{AnnounceEvent, NumberOfBytes, PeerId, peer};
+use torrust_tracker_primitives::{AnnounceEvent, ConfigurationInstanceId, NumberOfBytes, PeerId, ServiceRole, peer};
 use torrust_tracker_test_helpers::configuration;
 
 pub struct CoreTrackerServices {
@@ -38,6 +38,7 @@ pub struct CoreTrackerServices {
 
 pub struct CoreHttpTrackerServices {
     pub http_stats_event_sender: torrust_tracker_http_core::event::sender::Sender,
+    pub configuration_instance_id: ConfigurationInstanceId,
 }
 
 pub async fn initialize_core_tracker_services() -> (CoreTrackerServices, CoreHttpTrackerServices) {
@@ -48,6 +49,7 @@ pub async fn initialize_core_tracker_services_with_config(
     config: &Configuration,
 ) -> (CoreTrackerServices, CoreHttpTrackerServices) {
     let cancellation_token = CancellationToken::new();
+    let configuration_instance_id = first_http_tracker_configuration_instance_id(config);
 
     let core_config = Arc::new(config.core.clone());
     let database = initialize_database(&config.core).await;
@@ -86,8 +88,23 @@ pub async fn initialize_core_tracker_services_with_config(
             authentication_service,
             whitelist_authorization,
         },
-        CoreHttpTrackerServices { http_stats_event_sender },
+        CoreHttpTrackerServices {
+            http_stats_event_sender,
+            configuration_instance_id,
+        },
     )
+}
+
+fn first_http_tracker_configuration_instance_id(config: &Configuration) -> ConfigurationInstanceId {
+    config
+        .http_trackers
+        .as_deref()
+        .expect("the benchmark configuration should contain an HTTP tracker")
+        .iter()
+        .enumerate()
+        .next()
+        .map(|(index, _)| ConfigurationInstanceId::new(ServiceRole::HttpTracker, index))
+        .expect("the benchmark configuration should contain an HTTP tracker")
 }
 
 pub fn sample_peer() -> peer::Peer {

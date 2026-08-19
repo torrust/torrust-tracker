@@ -168,8 +168,12 @@ impl EnvContainer {
         let tracker_core_container =
             Arc::new(TrackerCoreContainer::initialize_from(core_config, &swarm_coordination_registry_container).await);
 
-        let http_tracker_container =
-            HttpTrackerCoreContainer::initialize_from_tracker_core(&tracker_core_container, http_tracker_config);
+        let configuration_instance_id = ConfigurationInstanceId::new(ServiceRole::HttpTracker, 0);
+        let http_tracker_container = HttpTrackerCoreContainer::initialize_from_tracker_core(
+            &tracker_core_container,
+            http_tracker_config,
+            configuration_instance_id,
+        );
 
         Self {
             tracker_core_container,

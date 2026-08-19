@@ -334,6 +334,7 @@ mod tests {
         let http_tracker_config = &http_trackers[0];
 
         let http_tracker_config = Arc::new(http_tracker_config.clone());
+        let configuration_instance_id = ConfigurationInstanceId::new(ServiceRole::HttpTracker, 0);
 
         // HTTP core stats
         let http_core_broadcaster = Broadcaster::default();
@@ -362,6 +363,7 @@ mod tests {
             tracker_core_container.authentication_service.clone(),
             tracker_core_container.whitelist_authorization.clone(),
             http_stats_event_sender.clone(),
+            configuration_instance_id,
         ));
 
         let scrape_service = Arc::new(ScrapeService::new(

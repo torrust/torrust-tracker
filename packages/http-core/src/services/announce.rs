@@ -79,48 +79,9 @@ impl AnnounceService {
         authentication_service: Arc<AuthenticationService>,
         whitelist_authorization: Arc<whitelist::authorization::WhitelistAuthorization>,
         opt_http_stats_event_sender: event::sender::Sender,
-    ) -> Self {
-        Self::new_with_peer_ip_selection_policy(
-            core_config,
-            announce_handler,
-            authentication_service,
-            whitelist_authorization,
-            opt_http_stats_event_sender,
-            PeerIpSelectionPolicy::disabled(),
-        )
-    }
-
-    #[must_use]
-    pub fn new_with_peer_ip_selection_policy(
-    pub fn with_configuration_instance_id(
-        core_config: Arc<Core>,
-        announce_handler: Arc<AnnounceHandler>,
-        authentication_service: Arc<AuthenticationService>,
-        whitelist_authorization: Arc<whitelist::authorization::WhitelistAuthorization>,
-        opt_http_stats_event_sender: event::sender::Sender,
-        peer_ip_selection_policy: PeerIpSelectionPolicy,
-    ) -> Self {
-        Self::new_with_peer_ip_selection_policy_and_configuration_instance_id(
-            core_config,
-            announce_handler,
-            authentication_service,
-            whitelist_authorization,
-            opt_http_stats_event_sender,
-            peer_ip_selection_policy,
-            ConfigurationInstanceId::new(torrust_tracker_primitives::ServiceRole::HttpTracker, 0),
-        )
-    }
-
-    #[must_use]
-    pub fn with_configuration_instance_id(
-        core_config: Arc<Core>,
-        announce_handler: Arc<AnnounceHandler>,
-        authentication_service: Arc<AuthenticationService>,
-        whitelist_authorization: Arc<whitelist::authorization::WhitelistAuthorization>,
-        opt_http_stats_event_sender: event::sender::Sender,
         configuration_instance_id: ConfigurationInstanceId,
     ) -> Self {
-        Self::new_with_peer_ip_selection_policy_and_configuration_instance_id(
+        Self::new_with_peer_ip_selection_policy(
             core_config,
             announce_handler,
             authentication_service,
@@ -132,7 +93,7 @@ impl AnnounceService {
     }
 
     #[must_use]
-    pub fn new_with_peer_ip_selection_policy_and_configuration_instance_id(
+    pub fn new_with_peer_ip_selection_policy(
         core_config: Arc<Core>,
         announce_handler: Arc<AnnounceHandler>,
         authentication_service: Arc<AuthenticationService>,
@@ -392,6 +353,7 @@ mod tests {
     use torrust_tracker_http_protocol::v1::requests::announce::{Announce, PeerIp};
     use torrust_tracker_http_protocol::v1::services::peer_ip_resolver::ClientIpSources;
     use torrust_tracker_primitives::peer::Peer;
+    use torrust_tracker_primitives::{ConfigurationInstanceId, ServiceRole};
     use torrust_tracker_test_helpers::configuration;
 
     struct CoreTrackerServices {
@@ -403,6 +365,7 @@ mod tests {
 
     struct CoreHttpTrackerServices {
         pub http_stats_event_sender: crate::event::sender::Sender,
+        pub configuration_instance_id: ConfigurationInstanceId,
     }
 
     async fn initialize_core_tracker_services() -> (CoreTrackerServices, CoreHttpTrackerServices) {
@@ -413,6 +376,7 @@ mod tests {
         config: &Configuration,
     ) -> (CoreTrackerServices, CoreHttpTrackerServices) {
         let cancellation_token = CancellationToken::new();
+        let configuration_instance_id = first_http_tracker_configuration_instance_id(config);
 
         let core_config = Arc::new(config.core.clone());
         let database = initialize_database(&config.core).await;
@@ -451,8 +415,23 @@ mod tests {
                 authentication_service,
                 whitelist_authorization,
             },
-            CoreHttpTrackerServices { http_stats_event_sender },
+            CoreHttpTrackerServices {
+                http_stats_event_sender,
+                configuration_instance_id,
+            },
         )
+    }
+
+    fn first_http_tracker_configuration_instance_id(config: &Configuration) -> ConfigurationInstanceId {
+        config
+            .http_trackers
+            .as_deref()
+            .expect("the test configuration should contain an HTTP tracker")
+            .iter()
+            .enumerate()
+            .next()
+            .map(|(index, _)| ConfigurationInstanceId::new(ServiceRole::HttpTracker, index))
+            .expect("the test configuration should contain an HTTP tracker")
     }
 
     fn sample_announce_request_for_peer(peer: Peer) -> (Announce, ClientIpSources) {
@@ -614,6 +593,7 @@ mod tests {
                 core_tracker_services.authentication_service.clone(),
                 core_tracker_services.whitelist_authorization.clone(),
                 core_http_tracker_services.http_stats_event_sender.clone(),
+                core_http_tracker_services.configuration_instance_id,
             );
 
             let announce_data = announce_service
@@ -684,6 +664,7 @@ mod tests {
                 core_tracker_services.whitelist_authorization,
                 core_http_tracker_services.http_stats_event_sender,
                 PeerIpSelectionPolicy::enabled(),
+                core_http_tracker_services.configuration_instance_id,
             );
 
             // Act
@@ -752,6 +733,7 @@ mod tests {
                 core_tracker_services.whitelist_authorization,
                 core_http_tracker_services.http_stats_event_sender,
                 PeerIpSelectionPolicy::enabled(),
+                core_http_tracker_services.configuration_instance_id,
             );
 
             // Act
@@ -806,6 +788,7 @@ mod tests {
                 core_tracker_services.authentication_service.clone(),
                 core_tracker_services.whitelist_authorization.clone(),
                 core_http_tracker_services.http_stats_event_sender.clone(),
+                core_http_tracker_services.configuration_instance_id,
             );
 
             let _announce_data = announce_service
@@ -882,6 +865,7 @@ mod tests {
                 core_tracker_services.authentication_service.clone(),
                 core_tracker_services.whitelist_authorization.clone(),
                 core_http_tracker_services.http_stats_event_sender.clone(),
+                core_http_tracker_services.configuration_instance_id,
             );
 
             let _announce_data = announce_service
@@ -927,6 +911,7 @@ mod tests {
                 core_tracker_services.authentication_service.clone(),
                 core_tracker_services.whitelist_authorization.clone(),
                 core_http_tracker_services.http_stats_event_sender.clone(),
+                core_http_tracker_services.configuration_instance_id,
             );
 
             let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070);

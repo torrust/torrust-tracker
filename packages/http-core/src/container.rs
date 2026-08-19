@@ -8,10 +8,10 @@ use torrust_tracker_swarm_coordination_registry::container::SwarmCoordinationReg
 
 use crate::event::bus::EventBus;
 use crate::event::sender::Broadcaster;
-use crate::services::announce::{AnnounceService, PeerIpSelectionPolicy};
+use crate::services::announce::AnnounceService;
 use crate::services::scrape::ScrapeService;
 use crate::statistics::repository::Repository;
-use crate::{event, services, statistics};
+use crate::{event, statistics};
 
 pub struct HttpTrackerCoreContainer {
     pub http_tracker_config: Arc<HttpTracker>,
@@ -28,7 +28,11 @@ pub struct HttpTrackerCoreContainer {
 
 impl HttpTrackerCoreContainer {
     #[must_use]
-    pub async fn initialize(core_config: &Arc<Core>, http_tracker_config: &Arc<HttpTracker>) -> Arc<Self> {
+    pub async fn initialize(
+        core_config: &Arc<Core>,
+        http_tracker_config: &Arc<HttpTracker>,
+        configuration_instance_id: ConfigurationInstanceId,
+    ) -> Arc<Self> {
         let swarm_coordination_registry_container = Arc::new(SwarmCoordinationRegistryContainer::initialize(
             core_config.tracker_usage_statistics.into(),
         ));
@@ -36,13 +40,14 @@ impl HttpTrackerCoreContainer {
         let tracker_core_container =
             Arc::new(TrackerCoreContainer::initialize_from(core_config, &swarm_coordination_registry_container).await);
 
-        Self::initialize_from_tracker_core(&tracker_core_container, http_tracker_config)
+        Self::initialize_from_tracker_core(&tracker_core_container, http_tracker_config, configuration_instance_id)
     }
 
     #[must_use]
     pub fn initialize_from_tracker_core(
         tracker_core_container: &Arc<TrackerCoreContainer>,
         http_tracker_config: &Arc<HttpTracker>,
+        configuration_instance_id: ConfigurationInstanceId,
     ) -> Arc<Self> {
         let http_tracker_core_services = HttpTrackerCoreServices::initialize_from(tracker_core_container);
 
@@ -50,7 +55,7 @@ impl HttpTrackerCoreContainer {
             tracker_core_container,
             &http_tracker_core_services,
             http_tracker_config,
-            ConfigurationInstanceId::new(torrust_tracker_primitives::ServiceRole::HttpTracker, 0),
+            configuration_instance_id,
         )
     }
 
@@ -67,7 +72,7 @@ impl HttpTrackerCoreContainer {
             event_bus: http_tracker_core_services.event_bus.clone(),
             stats_event_sender: http_tracker_core_services.stats_event_sender.clone(),
             stats_repository: http_tracker_core_services.stats_repository.clone(),
-            announce_service: Arc::new(AnnounceService::with_configuration_instance_id(
+            announce_service: Arc::new(AnnounceService::new(
                 tracker_core_container.core_config.clone(),
                 tracker_core_container.announce_handler.clone(),
                 tracker_core_container.authentication_service.clone(),
@@ -90,8 +95,7 @@ pub struct HttpTrackerCoreServices {
     pub event_bus: Arc<event::bus::EventBus>,
     pub stats_event_sender: event::sender::Sender,
     pub stats_repository: Arc<statistics::repository::Repository>,
-    pub announce_service: Arc<services::announce::AnnounceService>,
-    pub scrape_service: Arc<services::scrape::ScrapeService>,
+    pub scrape_service: Arc<ScrapeService>,
 }
 
 impl HttpTrackerCoreServices {
@@ -110,17 +114,6 @@ impl HttpTrackerCoreServices {
 
         let http_stats_event_sender = http_stats_event_bus.sender();
 
-        let http_announce_service = Arc::new(AnnounceService::new_with_peer_ip_selection_policy(
-            tracker_core_container.core_config.clone(),
-            tracker_core_container.announce_handler.clone(),
-            tracker_core_container.authentication_service.clone(),
-            tracker_core_container.whitelist_authorization.clone(),
-            http_stats_event_sender.clone(),
-            // Configuration v3 is not runtime-active until #1980. Keep the
-            // production policy explicitly disabled rather than adding v2 wiring.
-            PeerIpSelectionPolicy::disabled(),
-        ));
-
         let http_scrape_service = Arc::new(ScrapeService::new(
             tracker_core_container.core_config.clone(),
             tracker_core_container.scrape_handler.clone(),
@@ -132,7 +125,6 @@ impl HttpTrackerCoreServices {
             event_bus: http_stats_event_bus,
             stats_event_sender: http_stats_event_sender,
             stats_repository: http_stats_repository,
-            announce_service: http_announce_service,
             scrape_service: http_scrape_service,
         })
     }
