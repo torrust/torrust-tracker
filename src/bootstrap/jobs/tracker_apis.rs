@@ -119,6 +119,7 @@ mod tests {
 
     use torrust_server_lib::registar::Registar;
     use torrust_tracker_axum_rest_api_server::Version;
+    use torrust_tracker_primitives::{ConfigurationInstanceId, ServiceRole};
     use torrust_tracker_rest_api_runtime_adapter::v1::container::TrackerHttpApiCoreContainer;
     use torrust_tracker_test_helpers::configuration::ephemeral_public;
 
@@ -133,17 +134,25 @@ mod tests {
 
         let http_tracker_config = cfg.http_trackers.clone().expect("missing HTTP tracker configuration");
         let http_tracker_config = Arc::new(http_tracker_config[0].clone());
+        let http_tracker_configuration_instance_id = ConfigurationInstanceId::new(ServiceRole::HttpTracker, 0);
 
         let udp_tracker_configurations = cfg.udp_trackers.clone().expect("missing UDP tracker configuration");
         let udp_tracker_config = Arc::new(udp_tracker_configurations[0].clone());
+        let udp_tracker_configuration_instance_id = ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0);
 
         let http_api_config = Arc::new(cfg.http_api.clone().expect("missing HTTP API configuration"));
 
         initialize_global_services(&cfg);
 
-        let http_api_container =
-            TrackerHttpApiCoreContainer::initialize(&core_config, &http_tracker_config, &udp_tracker_config, &http_api_config)
-                .await;
+        let http_api_container = TrackerHttpApiCoreContainer::initialize(
+            &core_config,
+            &http_tracker_config,
+            http_tracker_configuration_instance_id,
+            &udp_tracker_config,
+            udp_tracker_configuration_instance_id,
+            &http_api_config,
+        )
+        .await;
 
         let version = Version::V1;
 

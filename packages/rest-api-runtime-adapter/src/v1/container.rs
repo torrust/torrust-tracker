@@ -11,6 +11,7 @@ use tokio::sync::RwLock;
 use torrust_tracker_configuration::{Core, HttpApi, HttpTracker, UdpTracker};
 use torrust_tracker_core::container::TrackerCoreContainer;
 use torrust_tracker_http_core::container::HttpTrackerCoreContainer;
+use torrust_tracker_primitives::ConfigurationInstanceId;
 use torrust_tracker_swarm_coordination_registry::container::SwarmCoordinationRegistryContainer;
 use torrust_tracker_udp_core::container::UdpTrackerCoreContainer;
 use torrust_tracker_udp_core::services::banning::BanService;
@@ -42,7 +43,9 @@ impl TrackerHttpApiCoreContainer {
     pub async fn initialize(
         core_config: &Arc<Core>,
         http_tracker_config: &Arc<HttpTracker>,
+        http_tracker_configuration_instance_id: ConfigurationInstanceId,
         udp_tracker_config: &Arc<UdpTracker>,
+        udp_tracker_configuration_instance_id: ConfigurationInstanceId,
         http_api_config: &Arc<HttpApi>,
     ) -> Arc<TrackerHttpApiCoreContainer> {
         let swarm_coordination_registry_container = Arc::new(SwarmCoordinationRegistryContainer::initialize(
@@ -55,13 +58,13 @@ impl TrackerHttpApiCoreContainer {
         let http_tracker_core_container = HttpTrackerCoreContainer::initialize_from_tracker_core(
             &tracker_core_container,
             http_tracker_config,
-            torrust_tracker_primitives::ConfigurationInstanceId::new(torrust_tracker_primitives::ServiceRole::HttpTracker, 0),
+            http_tracker_configuration_instance_id,
         );
 
         let udp_tracker_core_container = UdpTrackerCoreContainer::initialize_from_tracker_core(
             &tracker_core_container,
             udp_tracker_config,
-            torrust_tracker_primitives::ConfigurationInstanceId::new(torrust_tracker_primitives::ServiceRole::UdpTracker, 0),
+            udp_tracker_configuration_instance_id,
         );
 
         let udp_tracker_server_container = UdpTrackerServerContainer::initialize(core_config);
