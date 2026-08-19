@@ -3,6 +3,7 @@ use std::net::SocketAddr;
 use std::ops::Range;
 
 use torrust_net_primitives::service_binding::ServiceBinding;
+use torrust_tracker_primitives::ConfigurationInstanceId;
 use torrust_tracker_udp_core::UDP_TRACKER_LOG_TARGET;
 use torrust_tracker_udp_core::event::ConnectionContext;
 use torrust_tracker_udp_core::services::announce::UdpAnnounceError;
@@ -21,6 +22,7 @@ pub async fn handle_error(
     req_kind: Option<UdpRequestKind>,
     client_socket_addr: SocketAddr,
     server_service_binding: ServiceBinding,
+    configuration_instance_id: ConfigurationInstanceId,
     request_id: Uuid,
     opt_udp_server_stats_event_sender: &crate::event::sender::Sender,
     cookie_valid_range: Range<f64>,
@@ -41,6 +43,7 @@ pub async fn handle_error(
         error,
         client_socket_addr,
         server_service_binding,
+        configuration_instance_id,
         opt_udp_server_stats_event_sender,
         req_kind,
     )
@@ -99,13 +102,14 @@ async fn trigger_udp_error_event(
     error: &Error,
     client_socket_addr: SocketAddr,
     server_service_binding: ServiceBinding,
+    configuration_instance_id: ConfigurationInstanceId,
     opt_udp_server_stats_event_sender: &crate::event::sender::Sender,
     req_kind: Option<UdpRequestKind>,
 ) {
     if let Some(udp_server_stats_event_sender) = opt_udp_server_stats_event_sender.as_deref() {
         udp_server_stats_event_sender
             .send(Event::UdpError {
-                context: ConnectionContext::new(client_socket_addr, server_service_binding),
+                context: ConnectionContext::new(configuration_instance_id, client_socket_addr, server_service_binding),
                 kind: req_kind,
                 error: error.clone().into(),
             })

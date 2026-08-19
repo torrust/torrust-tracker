@@ -20,6 +20,7 @@ pub async fn return_announce_data_once(samples: u64) -> Duration {
         core_tracker_services.authentication_service.clone(),
         core_tracker_services.whitelist_authorization.clone(),
         core_http_tracker_services.http_stats_event_sender.clone(),
+        core_http_tracker_services.configuration_instance_id,
     );
 
     let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070);

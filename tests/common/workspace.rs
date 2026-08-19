@@ -96,6 +96,7 @@ pub async fn start_tracker_with_config(workspace: &EphemeralTrackerWorkspace) ->
 ///
 /// Uses the canonical HTTP tracker role, not a bind-IP convention. Wildcard
 /// addresses are converted to `127.0.0.1` for client requests.
+#[allow(dead_code)]
 pub async fn http_tracker_urls(container: &AppContainer) -> Vec<Url> {
     container
         .registar
@@ -154,6 +155,27 @@ pub async fn service_binding_for_identity(
         .into_iter()
         .next()
         .map(|service| service.service_binding().clone())
+}
+
+/// Returns a connectable UDP socket address for a configuration identity.
+#[allow(dead_code)]
+pub async fn udp_socket_addr_for_identity(
+    container: &AppContainer,
+    configuration_instance_id: ConfigurationInstanceId,
+) -> SocketAddr {
+    let binding = service_binding_for_identity(container, configuration_instance_id)
+        .await
+        .expect("configured UDP tracker should be registered");
+    let address = binding.bind_address();
+
+    SocketAddr::new(
+        if address.ip().is_unspecified() {
+            std::net::IpAddr::V4(std::net::Ipv4Addr::LOCALHOST)
+        } else {
+            address.ip()
+        },
+        address.port(),
+    )
 }
 
 fn expected_service_identities(container: &AppContainer) -> Vec<ConfigurationInstanceId> {

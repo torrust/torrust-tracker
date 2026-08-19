@@ -59,6 +59,7 @@ mod tests {
     use torrust_clock::clock::Time;
     use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
     use torrust_tracker_primitives::peer::PeerAnnouncement;
+    use torrust_tracker_primitives::{ConfigurationInstanceId, ServiceRole};
 
     use crate::CurrentClock;
     use crate::event::{ConnectionContext, Event};
@@ -69,10 +70,12 @@ mod tests {
     #[tokio::test]
     async fn should_increase_the_udp4_connections_counter_when_it_receives_a_udp4_connect_event() {
         let stats_repository = Repository::new();
+        let configuration_instance_id = ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0);
 
         handle_event(
             Event::UdpConnect {
                 connection: ConnectionContext::new(
+                    configuration_instance_id,
                     SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 195)), 8080),
                     ServiceBinding::new(
                         Protocol::UDP,
@@ -94,10 +97,12 @@ mod tests {
     #[tokio::test]
     async fn should_increase_the_udp4_announces_counter_when_it_receives_a_udp4_announce_event() {
         let stats_repository = Repository::new();
+        let configuration_instance_id = ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0);
 
         handle_event(
             Event::UdpAnnounce {
                 connection: ConnectionContext::new(
+                    configuration_instance_id,
                     SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 195)), 8080),
                     ServiceBinding::new(
                         Protocol::UDP,
@@ -121,10 +126,12 @@ mod tests {
     #[tokio::test]
     async fn should_increase_the_udp4_scrapes_counter_when_it_receives_a_udp4_scrape_event() {
         let stats_repository = Repository::new();
+        let configuration_instance_id = ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0);
 
         handle_event(
             Event::UdpScrape {
                 connection: ConnectionContext::new(
+                    configuration_instance_id,
                     SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 195)), 8080),
                     ServiceBinding::new(
                         Protocol::UDP,
@@ -146,10 +153,12 @@ mod tests {
     #[tokio::test]
     async fn should_increase_the_udp6_connections_counter_when_it_receives_a_udp6_connect_event() {
         let stats_repository = Repository::new();
+        let configuration_instance_id = ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0);
 
         handle_event(
             Event::UdpConnect {
                 connection: ConnectionContext::new(
+                    configuration_instance_id,
                     SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 195)), 8080),
                     ServiceBinding::new(
                         Protocol::UDP,
@@ -171,10 +180,12 @@ mod tests {
     #[tokio::test]
     async fn should_increase_the_udp6_announces_counter_when_it_receives_a_udp6_announce_event() {
         let stats_repository = Repository::new();
+        let configuration_instance_id = ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0);
 
         handle_event(
             Event::UdpAnnounce {
                 connection: ConnectionContext::new(
+                    configuration_instance_id,
                     SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 195)), 8080),
                     ServiceBinding::new(
                         Protocol::UDP,
@@ -198,10 +209,12 @@ mod tests {
     #[tokio::test]
     async fn should_increase_the_udp6_scrapes_counter_when_it_receives_a_udp6_scrape_event() {
         let stats_repository = Repository::new();
+        let configuration_instance_id = ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0);
 
         handle_event(
             Event::UdpScrape {
                 connection: ConnectionContext::new(
+                    configuration_instance_id,
                     SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 195)), 8080),
                     ServiceBinding::new(
                         Protocol::UDP,

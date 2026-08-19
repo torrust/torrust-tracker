@@ -20,7 +20,7 @@ use torrust_tracker_http_protocol::v1::responses::error::Error as HttpProtocolEr
 use torrust_tracker_http_protocol::v1::services::peer_ip_resolver::{
     ClientIpSources, PeerIpResolutionError, RemoteClientAddr, resolve_remote_client_addr,
 };
-use torrust_tracker_primitives::ScrapeData;
+use torrust_tracker_primitives::{ConfigurationInstanceId, ScrapeData};
 
 use crate::event::{ConnectionContext, Event};
 use crate::services::error_mapping::protocol_error_from_tracker_core_error;
@@ -42,6 +42,7 @@ pub struct ScrapeService {
     scrape_handler: Arc<ScrapeHandler>,
     authentication_service: Arc<AuthenticationService>,
     opt_http_stats_event_sender: crate::event::sender::Sender,
+    configuration_instance_id: ConfigurationInstanceId,
 }
 
 impl ScrapeService {
@@ -51,12 +52,14 @@ impl ScrapeService {
         scrape_handler: Arc<ScrapeHandler>,
         authentication_service: Arc<AuthenticationService>,
         opt_http_stats_event_sender: crate::event::sender::Sender,
+        configuration_instance_id: ConfigurationInstanceId,
     ) -> Self {
         Self {
             core_config,
             scrape_handler,
             authentication_service,
             opt_http_stats_event_sender,
+            configuration_instance_id,
         }
     }
 
@@ -105,7 +108,7 @@ impl ScrapeService {
     async fn send_event(&self, remote_client_addr: RemoteClientAddr, server_service_binding: ServiceBinding) {
         if let Some(http_stats_event_sender) = self.opt_http_stats_event_sender.as_deref() {
             let event = Event::TcpScrape {
-                connection: ConnectionContext::new(remote_client_addr, server_service_binding),
+                connection: ConnectionContext::new(self.configuration_instance_id, remote_client_addr, server_service_binding),
             };
 
             tracing::debug!("Sending TcpScrape event: {:?}", event);
@@ -199,7 +202,7 @@ mod tests {
     use torrust_tracker_core::whitelist::authorization::WhitelistAuthorization;
     use torrust_tracker_core::whitelist::repository::in_memory::InMemoryWhitelist;
     use torrust_tracker_events::sender::SendError;
-    use torrust_tracker_primitives::{AnnounceEvent, NumberOfBytes, PeerId, peer};
+    use torrust_tracker_primitives::{AnnounceEvent, ConfigurationInstanceId, NumberOfBytes, PeerId, ServiceRole, peer};
 
     use crate::event::Event;
     use crate::tests::sample_info_hash;
@@ -208,9 +211,19 @@ mod tests {
         announce_handler: Arc<AnnounceHandler>,
         scrape_handler: Arc<ScrapeHandler>,
         authentication_service: Arc<AuthenticationService>,
+        configuration_instance_id: ConfigurationInstanceId,
     }
 
     async fn initialize_services_with_configuration(config: &Configuration) -> Container {
+        let configuration_instance_id = config
+            .http_trackers
+            .as_deref()
+            .expect("the test configuration should contain an HTTP tracker")
+            .iter()
+            .enumerate()
+            .next()
+            .map(|(index, _)| ConfigurationInstanceId::new(ServiceRole::HttpTracker, index))
+            .expect("the test configuration should contain an HTTP tracker");
         let database = initialize_database(&config.core).await;
         let in_memory_whitelist = Arc::new(InMemoryWhitelist::default());
         let whitelist_authorization = Arc::new(WhitelistAuthorization::new(&config.core, &in_memory_whitelist.clone()));
@@ -232,6 +245,7 @@ mod tests {
             announce_handler,
             scrape_handler,
             authentication_service,
+            configuration_instance_id,
         }
     }
 
@@ -327,6 +341,7 @@ mod tests {
                 container.scrape_handler.clone(),
                 container.authentication_service.clone(),
                 http_stats_event_sender.clone(),
+                container.configuration_instance_id,
             ));
 
             let scrape_data = scrape_service
@@ -350,12 +365,15 @@ mod tests {
         #[tokio::test]
         async fn it_should_send_the_tcp_4_scrape_event_when_the_peer_uses_ipv4() {
             let config = configuration::ephemeral();
+            let container = initialize_services_with_configuration(&config).await;
+            let configuration_instance_id = container.configuration_instance_id;
 
             let mut http_stats_event_sender_mock = MockHttpStatsEventSender::new();
             http_stats_event_sender_mock
                 .expect_send()
                 .with(eq(Event::TcpScrape {
                     connection: ConnectionContext::new(
+                        configuration_instance_id,
                         RemoteClientAddr::new(
                             ResolvedIp::FromSocketAddr(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1))),
                             Some(8080),
@@ -366,8 +384,6 @@ mod tests {
                 .times(1)
                 .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
             let http_stats_event_sender: crate::event::sender::Sender = Some(Arc::new(http_stats_event_sender_mock));
-
-            let container = initialize_services_with_configuration(&config).await;
 
             let peer_ip = IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1));
 
@@ -388,6 +404,7 @@ mod tests {
                 container.scrape_handler.clone(),
                 container.authentication_service.clone(),
                 http_stats_event_sender.clone(),
+                container.configuration_instance_id,
             ));
 
             scrape_service
@@ -402,12 +419,15 @@ mod tests {
             let server_service_binding = ServiceBinding::new(Protocol::HTTP, server_socket_addr).unwrap();
 
             let config = configuration::ephemeral();
+            let container = initialize_services_with_configuration(&config).await;
+            let configuration_instance_id = container.configuration_instance_id;
 
             let mut http_stats_event_sender_mock = MockHttpStatsEventSender::new();
             http_stats_event_sender_mock
                 .expect_send()
                 .with(eq(Event::TcpScrape {
                     connection: ConnectionContext::new(
+                        configuration_instance_id,
                         RemoteClientAddr::new(
                             ResolvedIp::FromSocketAddr(IpAddr::V6(Ipv6Addr::new(
                                 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969,
@@ -420,8 +440,6 @@ mod tests {
                 .times(1)
                 .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
             let http_stats_event_sender: crate::event::sender::Sender = Some(Arc::new(http_stats_event_sender_mock));
-
-            let container = initialize_services_with_configuration(&config).await;
 
             let peer_ip = IpAddr::V6(Ipv6Addr::new(0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969));
 
@@ -442,6 +460,7 @@ mod tests {
                 container.scrape_handler.clone(),
                 container.authentication_service.clone(),
                 http_stats_event_sender.clone(),
+                container.configuration_instance_id,
             ));
 
             scrape_service
@@ -517,6 +536,7 @@ mod tests {
                 container.scrape_handler.clone(),
                 container.authentication_service.clone(),
                 http_stats_event_sender.clone(),
+                container.configuration_instance_id,
             ));
 
             let scrape_data = scrape_service
@@ -534,12 +554,14 @@ mod tests {
             let config = configuration::ephemeral();
 
             let container = initialize_services_with_configuration(&config).await;
+            let configuration_instance_id = container.configuration_instance_id;
 
             let mut http_stats_event_sender_mock = MockHttpStatsEventSender::new();
             http_stats_event_sender_mock
                 .expect_send()
                 .with(eq(Event::TcpScrape {
                     connection: ConnectionContext::new(
+                        configuration_instance_id,
                         RemoteClientAddr::new(
                             ResolvedIp::FromSocketAddr(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1))),
                             Some(8080),
@@ -570,6 +592,7 @@ mod tests {
                 container.scrape_handler.clone(),
                 container.authentication_service.clone(),
                 http_stats_event_sender.clone(),
+                container.configuration_instance_id,
             ));
 
             scrape_service
@@ -586,12 +609,14 @@ mod tests {
             let config = configuration::ephemeral();
 
             let container = initialize_services_with_configuration(&config).await;
+            let configuration_instance_id = container.configuration_instance_id;
 
             let mut http_stats_event_sender_mock = MockHttpStatsEventSender::new();
             http_stats_event_sender_mock
                 .expect_send()
                 .with(eq(Event::TcpScrape {
                     connection: ConnectionContext::new(
+                        configuration_instance_id,
                         RemoteClientAddr::new(
                             ResolvedIp::FromSocketAddr(IpAddr::V6(Ipv6Addr::new(
                                 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969,
@@ -624,6 +649,7 @@ mod tests {
                 container.scrape_handler.clone(),
                 container.authentication_service.clone(),
                 http_stats_event_sender.clone(),
+                container.configuration_instance_id,
             ));
 
             scrape_service

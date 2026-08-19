@@ -18,6 +18,26 @@ version = "3.0.0-develop"
 [lib]
 name = "torrust_tracker_lib"
 
+[[test]]
+name = "metrics-fixed-ports"
+path = "tests/metrics/fixed_ports.rs"
+
+[[test]]
+name = "metrics-port-zero"
+path = "tests/metrics/port_zero.rs"
+
+[[test]]
+name = "metrics-udp-error-enabled-port-zero"
+path = "tests/metrics/udp_error_enabled_port_zero.rs"
+
+[[test]]
+name = "metrics-udp-error-disabled-port-zero"
+path = "tests/metrics/udp_error_disabled_port_zero.rs"
+
+[[test]]
+name = "banning-udp-metrics-disabled-port-zero"
+path = "tests/banning/udp_metrics_disabled_port_zero.rs"
+
 [lints]
 workspace = true
 

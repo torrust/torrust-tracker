@@ -19,6 +19,7 @@ use torrust_info_hash::InfoHash;
 use torrust_metrics::label::{LabelSet, LabelValue};
 use torrust_metrics::label_name;
 use torrust_net_primitives::service_binding::{IpFamily, IpType, ServiceBinding};
+use torrust_tracker_primitives::ConfigurationInstanceId;
 use torrust_tracker_primitives::peer::PeerAnnouncement;
 
 /// A UDP core event.
@@ -38,18 +39,32 @@ pub enum Event {
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]
+// issue: #2039
+// Carries canonical listener identity so shared metrics consumers can apply
+// per-instance policy without deriving identity from a socket address.
 pub struct ConnectionContext {
+    configuration_instance_id: ConfigurationInstanceId,
     client_socket_addr: SocketAddr,
     server_service_binding: ServiceBinding,
 }
 
 impl ConnectionContext {
     #[must_use]
-    pub fn new(client_socket_addr: SocketAddr, server_service_binding: ServiceBinding) -> Self {
+    pub fn new(
+        configuration_instance_id: ConfigurationInstanceId,
+        client_socket_addr: SocketAddr,
+        server_service_binding: ServiceBinding,
+    ) -> Self {
         Self {
+            configuration_instance_id,
             client_socket_addr,
             server_service_binding,
         }
+    }
+
+    #[must_use]
+    pub const fn configuration_instance_id(&self) -> ConfigurationInstanceId {
+        self.configuration_instance_id
     }
 
     #[must_use]
@@ -138,12 +153,15 @@ pub(crate) mod tests {
     use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
 
     use torrust_net_primitives::service_binding::{IpFamily, IpType, Protocol, ServiceBinding};
+    use torrust_tracker_primitives::{ConfigurationInstanceId, ServiceRole};
 
     use super::ConnectionContext;
 
     #[test]
     fn client_address_ip_family_should_be_inet_for_ipv4() {
+        let configuration_instance_id = ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0);
         let ctx = ConnectionContext::new(
+            configuration_instance_id,
             SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 6969),
             ServiceBinding::new(Protocol::UDP, SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 6969)).unwrap(),
         );
@@ -153,7 +171,9 @@ pub(crate) mod tests {
 
     #[test]
     fn client_address_ip_family_should_be_inet6_for_ipv6() {
+        let configuration_instance_id = ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0);
         let ctx = ConnectionContext::new(
+            configuration_instance_id,
             SocketAddr::new(IpAddr::V6(Ipv6Addr::LOCALHOST), 6969),
             ServiceBinding::new(Protocol::UDP, SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 6969)).unwrap(),
         );
@@ -163,7 +183,9 @@ pub(crate) mod tests {
 
     #[test]
     fn client_address_ip_type_should_be_plain_for_direct_ipv4() {
+        let configuration_instance_id = ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0);
         let ctx = ConnectionContext::new(
+            configuration_instance_id,
             SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 6969),
             ServiceBinding::new(Protocol::UDP, SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 6969)).unwrap(),
         );
@@ -173,7 +195,9 @@ pub(crate) mod tests {
 
     #[test]
     fn client_address_ip_type_should_be_plain_for_native_ipv6() {
+        let configuration_instance_id = ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0);
         let ctx = ConnectionContext::new(
+            configuration_instance_id,
             SocketAddr::new(IpAddr::V6(Ipv6Addr::LOCALHOST), 6969),
             ServiceBinding::new(Protocol::UDP, SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 6969)).unwrap(),
         );
@@ -184,8 +208,10 @@ pub(crate) mod tests {
     #[test]
     fn client_address_ip_type_should_be_v4_mapped_v6_for_ipv4_mapped_ipv6() {
         let v4_mapped_v6_addr = IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 0, 0xffff, 0xc0a8, 0x0101)); // ::ffff:192.168.1.1
+        let configuration_instance_id = ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0);
 
         let ctx = ConnectionContext::new(
+            configuration_instance_id,
             SocketAddr::new(v4_mapped_v6_addr, 6969),
             ServiceBinding::new(Protocol::UDP, SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 6969)).unwrap(),
         );

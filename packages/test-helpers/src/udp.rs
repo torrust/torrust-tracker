@@ -6,8 +6,8 @@ use std::time::Duration;
 
 use torrust_tracker_client::udp::client::UdpTrackerClient;
 use torrust_tracker_udp_protocol::{
-    AnnounceActionPlaceholder, AnnounceEvent, AnnounceRequest, ConnectRequest, NumberOfBytes, NumberOfPeers, PeerKey, Port,
-    TransactionId,
+    AnnounceActionPlaceholder, AnnounceEvent, AnnounceRequest, ConnectRequest, ConnectionId, NumberOfBytes, NumberOfPeers,
+    PeerKey, Port, Response, TransactionId,
 };
 
 /// Sends a UDP announce to the given tracker address.
@@ -63,4 +63,83 @@ pub async fn udp_announce(
         .await
         .expect("failed to send announce request");
     client.receive().await.expect("failed to receive announce response")
+}
+
+/// Sends invalid connection IDs until the tracker bans this client's IP.
+///
+/// The final request must time out because the ban is enforced before it is
+/// processed. The same UDP socket is retained to preserve its source address.
+///
+/// # Panics
+///
+/// Panics if the UDP client cannot be created, a request cannot be sent, an
+/// expected pre-ban cookie-error response is absent, or the final request is
+/// not banned.
+pub async fn send_invalid_connection_ids_until_banned(remote_addr: SocketAddr) {
+    let client = UdpTrackerClient::new(remote_addr, Duration::from_secs(1))
+        .await
+        .expect("failed to create UDP client");
+
+    for transaction_id in 1..=11 {
+        client
+            .send(
+                invalid_connection_id_announce_request(transaction_id, client.client.socket.local_addr().unwrap().port()).into(),
+            )
+            .await
+            .expect("failed to send invalid connection ID announce request");
+        client
+            .receive()
+            .await
+            .expect("the request before the ban threshold should receive a cookie error");
+    }
+
+    client
+        .send(invalid_connection_id_announce_request(12, client.client.socket.local_addr().unwrap().port()).into())
+        .await
+        .expect("failed to send post-threshold invalid connection ID announce request");
+    assert!(
+        client.receive().await.is_err(),
+        "the post-threshold request should be banned without a response"
+    );
+}
+
+/// Sends one UDP announce request with an invalid connection ID.
+///
+/// Returns the tracker response so the caller can assert its protocol contract
+/// independently from any metric assertion.
+///
+/// # Panics
+///
+/// Panics if the UDP client cannot be created, the request cannot be sent, or
+/// no response is received.
+pub async fn send_invalid_connection_id_announce(remote_addr: SocketAddr) -> Response {
+    let client = UdpTrackerClient::new(remote_addr, Duration::from_secs(1))
+        .await
+        .expect("failed to create UDP client");
+    let request = invalid_connection_id_announce_request(1, client.client.socket.local_addr().unwrap().port());
+
+    client
+        .send(request.into())
+        .await
+        .expect("failed to send invalid connection ID announce request");
+
+    client.receive().await.expect("expected a tracker response")
+}
+
+fn invalid_connection_id_announce_request(transaction_id: i32, port: u16) -> AnnounceRequest {
+    AnnounceRequest {
+        connection_id: ConnectionId::new(0),
+        action_placeholder: AnnounceActionPlaceholder::default(),
+        transaction_id: TransactionId::new(transaction_id),
+        info_hash: torrust_tracker_udp_protocol::common::InfoHash([0; 20]),
+        peer_id: torrust_peer_id::PeerId([0; 20]),
+        bytes_downloaded: NumberOfBytes::new(0),
+        bytes_uploaded: NumberOfBytes::new(0),
+        bytes_left: NumberOfBytes::new(0),
+        event: AnnounceEvent::Started.into(),
+        ip_address: std::net::Ipv4Addr::UNSPECIFIED.into(),
+        key: PeerKey::new(0),
+        peers_wanted: NumberOfPeers::new(1),
+        port: Port::new(NonZeroU16::new(port).expect("UDP client port must be non-zero")),
+    }
 }

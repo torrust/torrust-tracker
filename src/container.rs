@@ -189,6 +189,7 @@ impl AppContainer {
                     tracker_core_container,
                     http_tracker_core_services,
                     &Arc::new(http_tracker_config.clone()),
+                    id,
                 );
                 containers.push((id, container));
             }
@@ -214,6 +215,7 @@ impl AppContainer {
                     tracker_core_container,
                     udp_tracker_core_services,
                     &Arc::new(udp_tracker_config.clone()),
+                    id,
                 );
                 containers.push((id, container));
             }

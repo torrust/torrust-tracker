@@ -111,6 +111,7 @@ mod tests {
     use torrust_server_lib::registar::Registar;
     use torrust_tracker_axum_http_server::Version;
     use torrust_tracker_http_core::container::HttpTrackerCoreContainer;
+    use torrust_tracker_primitives::{ConfigurationInstanceId, RuntimeServiceMetadata, ServiceRole};
     use torrust_tracker_test_helpers::configuration::ephemeral_public;
 
     use crate::bootstrap::app::initialize_global_services;
@@ -122,20 +123,19 @@ mod tests {
         let core_config = Arc::new(cfg.core.clone());
         let http_tracker = cfg.http_trackers.clone().expect("missing HTTP tracker configuration");
         let http_tracker_config = Arc::new(http_tracker[0].clone());
+        let configuration_instance_id = ConfigurationInstanceId::new(ServiceRole::HttpTracker, 0);
 
         initialize_global_services(&cfg);
 
-        let http_tracker_container = HttpTrackerCoreContainer::initialize(&core_config, &http_tracker_config).await;
+        let http_tracker_container =
+            HttpTrackerCoreContainer::initialize(&core_config, &http_tracker_config, configuration_instance_id).await;
 
         let version = Version::V1;
 
         start_job(
             http_tracker_container,
             Registar::default().give_form(),
-            torrust_tracker_primitives::RuntimeServiceMetadata::new(torrust_tracker_primitives::ConfigurationInstanceId::new(
-                torrust_tracker_primitives::ServiceRole::HttpTracker,
-                0,
-            )),
+            RuntimeServiceMetadata::new(configuration_instance_id),
             version,
         )
         .await

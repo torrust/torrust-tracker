@@ -334,6 +334,7 @@ mod tests {
         let http_tracker_config = &http_trackers[0];
 
         let http_tracker_config = Arc::new(http_tracker_config.clone());
+        let configuration_instance_id = ConfigurationInstanceId::new(ServiceRole::HttpTracker, 0);
 
         // HTTP core stats
         let http_core_broadcaster = Broadcaster::default();
@@ -346,7 +347,12 @@ mod tests {
         let http_stats_event_sender = http_stats_event_bus.sender();
 
         if configuration.core.tracker_usage_statistics {
-            let _unused = run_event_listener(http_stats_event_bus.receiver(), cancellation_token, &http_stats_repository);
+            let _unused = run_event_listener(
+                http_stats_event_bus.receiver(),
+                cancellation_token,
+                &http_stats_repository,
+                [(configuration_instance_id, true)].into(),
+            );
         }
 
         let swarm_coordination_registry_container = Arc::new(SwarmCoordinationRegistryContainer::initialize(
@@ -362,6 +368,7 @@ mod tests {
             tracker_core_container.authentication_service.clone(),
             tracker_core_container.whitelist_authorization.clone(),
             http_stats_event_sender.clone(),
+            configuration_instance_id,
         ));
 
         let scrape_service = Arc::new(ScrapeService::new(
@@ -369,6 +376,7 @@ mod tests {
             tracker_core_container.scrape_handler.clone(),
             tracker_core_container.authentication_service.clone(),
             http_stats_event_sender.clone(),
+            configuration_instance_id,
         ));
 
         HttpTrackerCoreContainer {

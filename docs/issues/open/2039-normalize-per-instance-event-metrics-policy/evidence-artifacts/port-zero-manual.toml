@@ -1,0 +1,46 @@
+# Reproduction configuration for C1 repeated-port-zero identity probe (M4).
+# Run with:
+# TORRUST_TRACKER_CONFIG_TOML_PATH="$PWD/docs/issues/open/2039-normalize-per-instance-event-metrics-policy/evidence-artifacts/port-zero-manual.toml" \
+#   cargo +nightly run --bin torrust-tracker
+#
+# Record the configuration-instance identity and final listener binding from
+# startup logs before sending traffic. Do not infer identity from port ordering.
+
+[metadata]
+app = "torrust-tracker"
+purpose = "configuration"
+schema_version = "2.0.0"
+
+[logging]
+threshold = "info"
+
+[core]
+listed = false
+private = false
+
+[[http_trackers]]
+bind_address = "127.0.0.1:0"
+tracker_usage_statistics = false
+
+[[http_trackers]]
+bind_address = "127.0.0.1:0"
+tracker_usage_statistics = true
+
+[[udp_trackers]]
+bind_address = "127.0.0.1:0"
+tracker_usage_statistics = false
+max_connection_id_errors_per_ip = 10
+
+[[udp_trackers]]
+bind_address = "127.0.0.1:0"
+tracker_usage_statistics = true
+max_connection_id_errors_per_ip = 10
+
+[http_api]
+bind_address = "127.0.0.1:17100"
+
+[http_api.access_tokens]
+admin = "MyAccessToken"
+
+[health_check_api]
+bind_address = "127.0.0.1:17101"

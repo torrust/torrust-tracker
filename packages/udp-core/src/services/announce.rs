@@ -16,8 +16,8 @@ use torrust_net_primitives::service_binding::ServiceBinding;
 use torrust_tracker_core::announce_handler::{AnnounceHandler, PeersWanted};
 use torrust_tracker_core::error::{AnnounceError, WhitelistError};
 use torrust_tracker_core::whitelist;
-use torrust_tracker_primitives::AnnounceData;
 use torrust_tracker_primitives::peer::PeerAnnouncement;
+use torrust_tracker_primitives::{AnnounceData, ConfigurationInstanceId};
 use torrust_tracker_udp_protocol::AnnounceRequest;
 
 use crate::connection_cookie::{ConnectionCookieError, check, gen_remote_fingerprint};
@@ -33,19 +33,27 @@ pub struct AnnounceService {
     announce_handler: Arc<AnnounceHandler>,
     whitelist_authorization: Arc<whitelist::authorization::WhitelistAuthorization>,
     opt_udp_core_stats_event_sender: crate::event::sender::Sender,
+    configuration_instance_id: ConfigurationInstanceId,
 }
 
 impl AnnounceService {
+    #[must_use]
+    pub const fn configuration_instance_id(&self) -> ConfigurationInstanceId {
+        self.configuration_instance_id
+    }
+
     #[must_use]
     pub fn new(
         announce_handler: Arc<AnnounceHandler>,
         whitelist_authorization: Arc<whitelist::authorization::WhitelistAuthorization>,
         opt_udp_core_stats_event_sender: crate::event::sender::Sender,
+        configuration_instance_id: ConfigurationInstanceId,
     ) -> Self {
         Self {
             announce_handler,
             whitelist_authorization,
             opt_udp_core_stats_event_sender,
+            configuration_instance_id,
         }
     }
 
@@ -120,7 +128,7 @@ impl AnnounceService {
     ) {
         if let Some(udp_stats_event_sender) = self.opt_udp_core_stats_event_sender.as_deref() {
             let event = Event::UdpAnnounce {
-                connection: ConnectionContext::new(client_socket_addr, server_service_binding),
+                connection: ConnectionContext::new(self.configuration_instance_id, client_socket_addr, server_service_binding),
                 info_hash,
                 announcement,
             };

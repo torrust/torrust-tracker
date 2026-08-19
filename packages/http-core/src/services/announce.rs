@@ -26,7 +26,7 @@ use torrust_tracker_http_protocol::v1::services::peer_ip_resolver::{
     ClientIpSources, PeerIpResolutionError, RemoteClientAddr, resolve_remote_client_addr,
 };
 use torrust_tracker_primitives::peer::PeerAnnouncement;
-use torrust_tracker_primitives::{AnnounceData, AnnounceEvent, NumberOfBytes};
+use torrust_tracker_primitives::{AnnounceData, AnnounceEvent, ConfigurationInstanceId, NumberOfBytes};
 
 use crate::event;
 use crate::event::Event;
@@ -45,6 +45,7 @@ pub struct AnnounceService {
     whitelist_authorization: Arc<whitelist::authorization::WhitelistAuthorization>,
     opt_http_stats_event_sender: event::sender::Sender,
     peer_ip_selection_policy: PeerIpSelectionPolicy,
+    configuration_instance_id: ConfigurationInstanceId,
 }
 
 /// Controls whether an HTTP announce may override its peer IP with BEP 3's
@@ -78,6 +79,7 @@ impl AnnounceService {
         authentication_service: Arc<AuthenticationService>,
         whitelist_authorization: Arc<whitelist::authorization::WhitelistAuthorization>,
         opt_http_stats_event_sender: event::sender::Sender,
+        configuration_instance_id: ConfigurationInstanceId,
     ) -> Self {
         Self::new_with_peer_ip_selection_policy(
             core_config,
@@ -86,6 +88,7 @@ impl AnnounceService {
             whitelist_authorization,
             opt_http_stats_event_sender,
             PeerIpSelectionPolicy::disabled(),
+            configuration_instance_id,
         )
     }
 
@@ -97,6 +100,7 @@ impl AnnounceService {
         whitelist_authorization: Arc<whitelist::authorization::WhitelistAuthorization>,
         opt_http_stats_event_sender: event::sender::Sender,
         peer_ip_selection_policy: PeerIpSelectionPolicy,
+        configuration_instance_id: ConfigurationInstanceId,
     ) -> Self {
         Self {
             core_config,
@@ -105,6 +109,7 @@ impl AnnounceService {
             whitelist_authorization,
             opt_http_stats_event_sender,
             peer_ip_selection_policy,
+            configuration_instance_id,
         }
     }
 
@@ -236,7 +241,11 @@ impl AnnounceService {
     ) {
         if let Some(http_stats_event_sender) = self.opt_http_stats_event_sender.as_deref() {
             let event = Event::TcpAnnounce {
-                connection: event::ConnectionContext::new(remote_client_addr, server_service_binding),
+                connection: event::ConnectionContext::new(
+                    self.configuration_instance_id,
+                    remote_client_addr,
+                    server_service_binding,
+                ),
                 info_hash,
                 announcement,
             };
@@ -344,6 +353,7 @@ mod tests {
     use torrust_tracker_http_protocol::v1::requests::announce::{Announce, PeerIp};
     use torrust_tracker_http_protocol::v1::services::peer_ip_resolver::ClientIpSources;
     use torrust_tracker_primitives::peer::Peer;
+    use torrust_tracker_primitives::{ConfigurationInstanceId, ServiceRole};
     use torrust_tracker_test_helpers::configuration;
 
     struct CoreTrackerServices {
@@ -355,6 +365,7 @@ mod tests {
 
     struct CoreHttpTrackerServices {
         pub http_stats_event_sender: crate::event::sender::Sender,
+        pub configuration_instance_id: ConfigurationInstanceId,
     }
 
     async fn initialize_core_tracker_services() -> (CoreTrackerServices, CoreHttpTrackerServices) {
@@ -365,6 +376,7 @@ mod tests {
         config: &Configuration,
     ) -> (CoreTrackerServices, CoreHttpTrackerServices) {
         let cancellation_token = CancellationToken::new();
+        let configuration_instance_id = first_http_tracker_configuration_instance_id(config);
 
         let core_config = Arc::new(config.core.clone());
         let database = initialize_database(&config.core).await;
@@ -393,7 +405,12 @@ mod tests {
         let http_stats_event_sender = http_stats_event_bus.sender();
 
         if config.core.tracker_usage_statistics {
-            let _unused = run_event_listener(http_stats_event_bus.receiver(), cancellation_token, &http_stats_repository);
+            let _unused = run_event_listener(
+                http_stats_event_bus.receiver(),
+                cancellation_token,
+                &http_stats_repository,
+                [(configuration_instance_id, true)].into(),
+            );
         }
 
         (
@@ -403,8 +420,23 @@ mod tests {
                 authentication_service,
                 whitelist_authorization,
             },
-            CoreHttpTrackerServices { http_stats_event_sender },
+            CoreHttpTrackerServices {
+                http_stats_event_sender,
+                configuration_instance_id,
+            },
         )
+    }
+
+    fn first_http_tracker_configuration_instance_id(config: &Configuration) -> ConfigurationInstanceId {
+        config
+            .http_trackers
+            .as_deref()
+            .expect("the test configuration should contain an HTTP tracker")
+            .iter()
+            .enumerate()
+            .next()
+            .map(|(index, _)| ConfigurationInstanceId::new(ServiceRole::HttpTracker, index))
+            .expect("the test configuration should contain an HTTP tracker")
     }
 
     fn sample_announce_request_for_peer(peer: Peer) -> (Announce, ClientIpSources) {
@@ -566,6 +598,7 @@ mod tests {
                 core_tracker_services.authentication_service.clone(),
                 core_tracker_services.whitelist_authorization.clone(),
                 core_http_tracker_services.http_stats_event_sender.clone(),
+                core_http_tracker_services.configuration_instance_id,
             );
 
             let announce_data = announce_service
@@ -591,6 +624,7 @@ mod tests {
             // Arrange
             let (core_tracker_services, mut core_http_tracker_services) =
                 initialize_core_tracker_services_with_config(&configuration::ephemeral_with_reverse_proxy()).await;
+            let configuration_instance_id = core_http_tracker_services.configuration_instance_id;
             let server_service_binding =
                 ServiceBinding::new(Protocol::HTTP, SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070)).unwrap();
             let query_string_peer_ip = "198.51.100.42".parse().unwrap();
@@ -616,6 +650,7 @@ mod tests {
 
                     let expected_event = Event::TcpAnnounce {
                         connection: ConnectionContext::new(
+                            configuration_instance_id,
                             RemoteClientAddr::new(ResolvedIp::FromXForwardedFor(x_forwarded_for_ip), Some(8080)),
                             server_service_binding.clone(),
                         ),
@@ -636,6 +671,7 @@ mod tests {
                 core_tracker_services.whitelist_authorization,
                 core_http_tracker_services.http_stats_event_sender,
                 PeerIpSelectionPolicy::enabled(),
+                core_http_tracker_services.configuration_instance_id,
             );
 
             // Act
@@ -660,6 +696,7 @@ mod tests {
             let configuration = configuration::ephemeral_with_external_ip(external_ip);
             let (core_tracker_services, mut core_http_tracker_services) =
                 initialize_core_tracker_services_with_config(&configuration).await;
+            let configuration_instance_id = core_http_tracker_services.configuration_instance_id;
             let server_service_binding =
                 ServiceBinding::new(Protocol::HTTP, SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070)).unwrap();
             let server_service_binding_for_event = server_service_binding.clone();
@@ -684,6 +721,7 @@ mod tests {
 
                     let expected_event = Event::TcpAnnounce {
                         connection: ConnectionContext::new(
+                            configuration_instance_id,
                             RemoteClientAddr::new(ResolvedIp::FromSocketAddr(IpAddr::V4(Ipv4Addr::LOCALHOST)), Some(8080)),
                             server_service_binding_for_event.clone(),
                         ),
@@ -704,6 +742,7 @@ mod tests {
                 core_tracker_services.whitelist_authorization,
                 core_http_tracker_services.http_stats_event_sender,
                 PeerIpSelectionPolicy::enabled(),
+                core_http_tracker_services.configuration_instance_id,
             );
 
             // Act
@@ -724,6 +763,9 @@ mod tests {
 
             let server_service_binding_clone = server_service_binding.clone();
 
+            let (core_tracker_services, mut core_http_tracker_services) = initialize_core_tracker_services().await;
+            let configuration_instance_id = core_http_tracker_services.configuration_instance_id;
+
             let mut http_stats_event_sender_mock = MockHttpStatsEventSender::new();
             http_stats_event_sender_mock
                 .expect_send()
@@ -733,6 +775,7 @@ mod tests {
 
                     let expected_event = Event::TcpAnnounce {
                         connection: ConnectionContext::new(
+                            configuration_instance_id,
                             RemoteClientAddr::new(ResolvedIp::FromSocketAddr(remote_client_ip), Some(8080)),
                             server_service_binding.clone(),
                         ),
@@ -746,8 +789,6 @@ mod tests {
                 .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
             let http_stats_event_sender: crate::event::sender::Sender = Some(Arc::new(http_stats_event_sender_mock));
 
-            let (core_tracker_services, mut core_http_tracker_services) = initialize_core_tracker_services().await;
-
             core_http_tracker_services.http_stats_event_sender = http_stats_event_sender;
 
             let (announce_request, client_ip_sources) = sample_announce_request_for_peer(peer);
@@ -758,6 +799,7 @@ mod tests {
                 core_tracker_services.authentication_service.clone(),
                 core_tracker_services.whitelist_authorization.clone(),
                 core_http_tracker_services.http_stats_event_sender.clone(),
+                core_http_tracker_services.configuration_instance_id,
             );
 
             let _announce_data = announce_service
@@ -795,6 +837,10 @@ mod tests {
 
             let server_service_binding_clone = server_service_binding.clone();
 
+            let (core_tracker_services, mut core_http_tracker_services) =
+                initialize_core_tracker_services_with_config(&tracker_with_an_ipv6_external_ip()).await;
+            let configuration_instance_id = core_http_tracker_services.configuration_instance_id;
+
             let mut http_stats_event_sender_mock = MockHttpStatsEventSender::new();
             http_stats_event_sender_mock
                 .expect_send()
@@ -807,6 +853,7 @@ mod tests {
 
                     let expected_event = Event::TcpAnnounce {
                         connection: ConnectionContext::new(
+                            configuration_instance_id,
                             RemoteClientAddr::new(ResolvedIp::FromSocketAddr(remote_client_ip), Some(8080)),
                             server_service_binding.clone(),
                         ),
@@ -821,9 +868,6 @@ mod tests {
 
             let http_stats_event_sender: crate::event::sender::Sender = Some(Arc::new(http_stats_event_sender_mock));
 
-            let (core_tracker_services, mut core_http_tracker_services) =
-                initialize_core_tracker_services_with_config(&tracker_with_an_ipv6_external_ip()).await;
-
             core_http_tracker_services.http_stats_event_sender = http_stats_event_sender;
 
             let (announce_request, client_ip_sources) = sample_announce_request_for_peer(peer);
@@ -834,6 +878,7 @@ mod tests {
                 core_tracker_services.authentication_service.clone(),
                 core_tracker_services.whitelist_authorization.clone(),
                 core_http_tracker_services.http_stats_event_sender.clone(),
+                core_http_tracker_services.configuration_instance_id,
             );
 
             let _announce_data = announce_service
@@ -850,12 +895,16 @@ mod tests {
             let peer = sample_peer_using_ipv6();
             let remote_client_ip = IpAddr::V6(Ipv6Addr::new(0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969));
 
+            let (core_tracker_services, mut core_http_tracker_services) = initialize_core_tracker_services().await;
+            let configuration_instance_id = core_http_tracker_services.configuration_instance_id;
+
             let mut http_stats_event_sender_mock = MockHttpStatsEventSender::new();
             http_stats_event_sender_mock
                 .expect_send()
                 .with(predicate::function(move |event| {
                     let expected_event = Event::TcpAnnounce {
                         connection: ConnectionContext::new(
+                            configuration_instance_id,
                             RemoteClientAddr::new(ResolvedIp::FromSocketAddr(remote_client_ip), Some(8080)),
                             server_service_binding.clone(),
                         ),
@@ -867,8 +916,6 @@ mod tests {
                 .times(1)
                 .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
             let http_stats_event_sender: crate::event::sender::Sender = Some(Arc::new(http_stats_event_sender_mock));
-
-            let (core_tracker_services, mut core_http_tracker_services) = initialize_core_tracker_services().await;
             core_http_tracker_services.http_stats_event_sender = http_stats_event_sender;
 
             let (announce_request, client_ip_sources) = sample_announce_request_for_peer(peer);
@@ -879,6 +926,7 @@ mod tests {
                 core_tracker_services.authentication_service.clone(),
                 core_tracker_services.whitelist_authorization.clone(),
                 core_http_tracker_services.http_stats_event_sender.clone(),
+                core_http_tracker_services.configuration_instance_id,
             );
 
             let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070);

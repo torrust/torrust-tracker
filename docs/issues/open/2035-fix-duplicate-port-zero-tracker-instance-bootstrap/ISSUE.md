@@ -21,7 +21,7 @@ semantic-links:
     - docs/issues/closed/2041-migrate-runtime-service-registry-metadata/ISSUE.md
     - docs/events-architecture.md
     - evidence.md
-    - tests/aggregate_stats_fixed_ports.rs
+    - tests/metrics/fixed_ports.rs
   related-issues:
     - 1419
     - 2036
@@ -104,7 +104,7 @@ only for this issue's metrics-related final verification and closure.
 | T2  | DONE    | Replace address-keyed container lookup                                                                 | Use an order-preserving representation or canonical identity, not configured `SocketAddr`.                                                                                     |
 | T3  | DONE    | Start matching containers                                                                              | Pass each configuration entry's matching container into HTTP and UDP startup.                                                                                                  |
 | T4  | DONE    | Correlate lifecycle logs                                                                               | Include canonical identity with configured and final binding logs.                                                                                                             |
-| T5  | DONE    | Add HTTP statistics integration coverage                                                               | In `tests/aggregate_stats_fixed_ports.rs`, added fixed-port HTTP test. Aggregate count `1` blocked by #2039 (shared HTTP event bus).                                           |
+| T5  | DONE    | Add HTTP statistics integration coverage                                                               | In `tests/metrics/fixed_ports.rs`, added fixed-port HTTP test. Aggregate count `1` blocked by #2039 (shared HTTP event bus).                                                   |
 | T6  | DONE    | Add bootstrap regressions                                                                              | Cover duplicate port-zero HTTP/UDP configuration-to-container correspondence without asserting aggregate metrics policy.                                                       |
 | T7  | TODO    | Run and record final local tracker probes                                                              | After #2039, run fixed-port HTTP/UDP and duplicate-port-zero policy scenarios locally; append configuration, commands, outputs, and comparisons to [evidence.md](evidence.md). |
 | T8  | DONE    | Land registry metadata migration                                                                       | #2041 completed in PR #2048 and exposes canonical started-service identity.                                                                                                    |
@@ -156,12 +156,12 @@ only for this issue's metrics-related final verification and closure.
 ### Automatic Checks
 
 - Focused regression tests for `AppContainer` and startup jobs after prerequisites land.
-- `tests/aggregate_stats_fixed_ports.rs`: enabled/enabled HTTP listeners on distinct fixed
+- `tests/metrics/fixed_ports.rs`: enabled/enabled HTTP listeners on distinct fixed
   ports must produce aggregate `tcp4_announces_handled == 2`. Enabled/disabled filtering
   is deferred to #2039.
 - Defer the equivalent UDP fixed-port and repeated-port-zero HTTP/UDP aggregate-statistics tests
   to #2039; they assert listener-side metrics filtering rather than bootstrap configuration selection.
-- `cargo test --test aggregate_stats_port_zero --test aggregate_stats_fixed_ports --test scaffold`.
+- `cargo test --test metrics-port-zero --test metrics-fixed-ports --test scaffold`.
 - `linter all`.
 
 ### Manual Evidence Protocol

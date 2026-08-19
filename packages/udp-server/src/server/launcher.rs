@@ -19,6 +19,7 @@ use tracing::instrument;
 use super::request_buffer::ActiveRequests;
 use crate::container::UdpTrackerServerContainer;
 use crate::event::Event;
+use crate::event::sender::Sender;
 use crate::server::bound_socket::BoundSocket;
 use crate::server::processor::Processor;
 use crate::server::receiver::Receiver;
@@ -177,54 +178,28 @@ impl Launcher {
                 };
 
                 let client_socket_addr = req.from;
+                publish_event_if_sender_available(
+                    &udp_tracker_server_container.stats_event_sender,
+                    Event::UdpRequestReceived {
+                        context: ConnectionContext::new(
+                            udp_tracker_core_container.configuration_instance_id,
+                            client_socket_addr,
+                            server_service_binding.clone(),
+                        ),
+                    },
+                )
+                .await;
 
-                if let Some(udp_server_stats_event_sender) = udp_tracker_server_container.stats_event_sender.as_deref() {
-                    udp_server_stats_event_sender
-                        .send(Event::UdpRequestReceived {
-                            context: ConnectionContext::new(client_socket_addr, server_service_binding.clone()),
-                        })
-                        .await;
-                }
-
-                // Discard requests from clients with source port 0 before
-                // spawning a processing task. Responses to port 0 are rejected
-                // by the OS with EINVAL, so processing them wastes resources
-                // and — worse — pushing them into the active-requests buffer
-                // could evict legitimate in-flight requests under a port-0
-                // flood. See also the defensive guard in
-                // `Processor::process_request`.
-                if client_socket_addr.port() == 0 {
-                    tracing::trace!(target: UDP_TRACKER_LOG_TARGET, local_addr, %client_socket_addr, "Udp::run_udp_server::loop continue: (discarded: client source port is 0)");
-
-                    if let Some(udp_server_stats_event_sender) = udp_tracker_server_container.stats_event_sender.as_deref() {
-                        udp_server_stats_event_sender
-                            .send(Event::UdpRequestDiscarded {
-                                context: ConnectionContext::new(client_socket_addr, server_service_binding.clone()),
-                            })
-                            .await;
-                    }
-
-                    continue;
-                }
-
-                // When connection ID validation is disabled, the tracker is
-                // intentionally accepting requests with invalid or arbitrary
-                // connection IDs. Enforcing IP bans in that mode is
-                // contradictory — the banning listener still counts invalid
-                // cookies for observability, but the ban is not acted upon.
-                let ban_enforcement_active = connection_id_validation == ConnectionIdValidationPolicy::Strict;
-
-                if ban_enforcement_active && udp_tracker_core_container.ban_service.read().await.is_banned(&req.from.ip()) {
-                    tracing::debug!(target: UDP_TRACKER_LOG_TARGET, local_addr,  "Udp::run_udp_server::loop continue: (banned ip)");
-
-                    if let Some(udp_server_stats_event_sender) = udp_tracker_server_container.stats_event_sender.as_deref() {
-                        udp_server_stats_event_sender
-                            .send(Event::UdpRequestBanned {
-                                context: ConnectionContext::new(client_socket_addr, server_service_binding.clone()),
-                            })
-                            .await;
-                    }
-
+                if Self::should_discard_request(
+                    &req,
+                    &udp_tracker_core_container,
+                    &udp_tracker_server_container,
+                    &server_service_binding,
+                    &local_addr,
+                    connection_id_validation,
+                )
+                .await
+                {
                     continue;
                 }
 
@@ -258,13 +233,17 @@ impl Launcher {
                 if old_request_aborted {
                     // Evicted task from active requests buffer was aborted.
 
-                    if let Some(udp_server_stats_event_sender) = udp_tracker_server_container.stats_event_sender.as_deref() {
-                        udp_server_stats_event_sender
-                            .send(Event::UdpRequestAborted {
-                                context: ConnectionContext::new(client_socket_addr, server_service_binding),
-                            })
-                            .await;
-                    }
+                    publish_event_if_sender_available(
+                        &udp_tracker_server_container.stats_event_sender,
+                        Event::UdpRequestAborted {
+                            context: ConnectionContext::new(
+                                udp_tracker_core_container.configuration_instance_id,
+                                client_socket_addr,
+                                server_service_binding,
+                            ),
+                        },
+                    )
+                    .await;
                 }
             } else {
                 tokio::task::yield_now().await;
@@ -274,5 +253,72 @@ impl Launcher {
                 break;
             }
         }
+    }
+
+    async fn should_discard_request(
+        req: &crate::RawRequest,
+        udp_tracker_core_container: &UdpTrackerCoreContainer,
+        udp_tracker_server_container: &UdpTrackerServerContainer,
+        server_service_binding: &ServiceBinding,
+        local_addr: &str,
+        connection_id_validation: ConnectionIdValidationPolicy,
+    ) -> bool {
+        let client_socket_addr = req.from;
+
+        // Discard source-port-zero requests before processing: they cannot
+        // receive a response and could evict active work. See the defensive
+        // guard in `Processor::process_request`.
+        if client_socket_addr.port() == 0 {
+            tracing::trace!(target: UDP_TRACKER_LOG_TARGET, local_addr, %client_socket_addr, "Udp::run_udp_server::loop continue: (discarded: client source port is 0)");
+
+            publish_event_if_sender_available(
+                &udp_tracker_server_container.stats_event_sender,
+                Event::UdpRequestDiscarded {
+                    context: ConnectionContext::new(
+                        udp_tracker_core_container.configuration_instance_id,
+                        client_socket_addr,
+                        server_service_binding.clone(),
+                    ),
+                },
+            )
+            .await;
+
+            return true;
+        }
+
+        // When connection ID validation is disabled, the tracker accepts invalid
+        // IDs. Banning still observes cookie errors, but enforcement is skipped.
+        let ban_enforcement_active = connection_id_validation == ConnectionIdValidationPolicy::Strict;
+        if ban_enforcement_active
+            && udp_tracker_core_container
+                .ban_service
+                .read()
+                .await
+                .is_banned(&client_socket_addr.ip())
+        {
+            tracing::debug!(target: UDP_TRACKER_LOG_TARGET, local_addr, "Udp::run_udp_server::loop continue: (banned ip)");
+
+            publish_event_if_sender_available(
+                &udp_tracker_server_container.stats_event_sender,
+                Event::UdpRequestBanned {
+                    context: ConnectionContext::new(
+                        udp_tracker_core_container.configuration_instance_id,
+                        client_socket_addr,
+                        server_service_binding.clone(),
+                    ),
+                },
+            )
+            .await;
+
+            return true;
+        }
+
+        false
+    }
+}
+
+async fn publish_event_if_sender_available(sender: &Sender, event: Event) {
+    if let Some(sender) = sender.as_deref() {
+        sender.send(event).await;
     }
 }

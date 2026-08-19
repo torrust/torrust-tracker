@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
 use torrust_tracker_configuration::Core;
+use torrust_tracker_events::bus::SenderStatus;
 
 use crate::event::bus::EventBus;
 use crate::event::sender::Broadcaster;
@@ -16,8 +17,8 @@ pub struct UdpTrackerServerContainer {
 
 impl UdpTrackerServerContainer {
     #[must_use]
-    pub fn initialize(core_config: &Arc<Core>) -> Arc<Self> {
-        let udp_tracker_server_services = UdpTrackerServerServices::initialize(core_config);
+    pub fn initialize(_core_config: &Arc<Core>) -> Arc<Self> {
+        let udp_tracker_server_services = UdpTrackerServerServices::initialize();
 
         Arc::new(Self {
             event_bus: udp_tracker_server_services.event_bus.clone(),
@@ -35,13 +36,16 @@ pub struct UdpTrackerServerServices {
 
 impl UdpTrackerServerServices {
     #[must_use]
-    pub fn initialize(core_config: &Arc<Core>) -> Arc<Self> {
+    pub fn initialize() -> Arc<Self> {
         let udp_server_broadcaster = Broadcaster::default();
         let udp_server_stats_repository = Arc::new(Repository::new());
-        let udp_server_stats_event_bus = Arc::new(EventBus::new(
-            core_config.tracker_usage_statistics.into(),
-            udp_server_broadcaster.clone(),
-        ));
+        // issue: #2039
+        // issue-spec: docs/issues/drafts/optimize-event-publication-without-consumers/ISSUE.md
+        // Always publish UDP-server facts: metrics filtering is consumer-side,
+        // and the banning listener also requires cookie-error facts regardless
+        // of the originating listener's metrics policy. Any future demand-based
+        // optimization must first prove that no required consumer is active.
+        let udp_server_stats_event_bus = Arc::new(EventBus::new(SenderStatus::Enabled, udp_server_broadcaster.clone()));
 
         let udp_server_stats_event_sender = udp_server_stats_event_bus.sender();
 

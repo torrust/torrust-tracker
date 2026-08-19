@@ -4,6 +4,7 @@ use std::time::{Duration, Instant};
 
 use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
 use torrust_tracker_events::bus::SenderStatus;
+use torrust_tracker_primitives::{ConfigurationInstanceId, ServiceRole};
 use torrust_tracker_udp_core::event::bus::EventBus;
 use torrust_tracker_udp_core::event::sender::Broadcaster;
 use torrust_tracker_udp_core::services::connect::ConnectService;
@@ -20,7 +21,10 @@ pub async fn connect_once(samples: u64) -> Duration {
     let event_bus = Arc::new(EventBus::new(SenderStatus::Disabled, udp_core_broadcaster.clone()));
 
     let udp_core_stats_event_sender = event_bus.sender();
-    let connect_service = Arc::new(ConnectService::new(udp_core_stats_event_sender));
+    let connect_service = Arc::new(ConnectService::new(
+        udp_core_stats_event_sender,
+        ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0),
+    ));
     let start = Instant::now();
 
     for _ in 0..samples {

@@ -15,6 +15,28 @@
 
 set -uo pipefail
 
+# Git clients and editor integrations can invoke hooks with a reduced PATH.
+# Restore the conventional Rust installation directory before executing checks
+# so child shells can resolve Cargo as well.
+ensure_cargo_on_path() {
+    if command -v cargo >/dev/null 2>&1; then
+        return
+    fi
+
+    local cargo_bin_dir="${CARGO_HOME:-${HOME}/.cargo}/bin"
+
+    if [[ -x "${cargo_bin_dir}/cargo" ]]; then
+        PATH="${cargo_bin_dir}:${PATH}"
+        export PATH
+        return
+    fi
+
+    echo "Error: Cargo is not available on PATH or at '${cargo_bin_dir}/cargo'." >&2
+    exit 127
+}
+
+ensure_cargo_on_path
+
 # ============================================================================
 # STEPS
 # ============================================================================

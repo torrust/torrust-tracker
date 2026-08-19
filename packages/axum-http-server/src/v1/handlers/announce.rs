@@ -146,7 +146,7 @@ mod tests {
     use torrust_tracker_http_protocol::v1::requests::announce::{Announce, PeerIp};
     use torrust_tracker_http_protocol::v1::responses;
     use torrust_tracker_http_protocol::v1::services::peer_ip_resolver::ClientIpSources;
-    use torrust_tracker_primitives::PeerId;
+    use torrust_tracker_primitives::{ConfigurationInstanceId, PeerId, ServiceRole};
     use torrust_tracker_test_helpers::configuration;
 
     use crate::tests::helpers::sample_info_hash;
@@ -173,6 +173,15 @@ mod tests {
 
     async fn initialize_core_tracker_services(config: &Configuration) -> CoreHttpTrackerServices {
         let cancellation_token = CancellationToken::new();
+        let configuration_instance_id = config
+            .http_trackers
+            .as_deref()
+            .expect("the test configuration should contain an HTTP tracker")
+            .iter()
+            .enumerate()
+            .next()
+            .map(|(index, _)| ConfigurationInstanceId::new(ServiceRole::HttpTracker, index))
+            .expect("the test configuration should contain an HTTP tracker");
 
         // Initialize the core tracker services with the provided configuration.
         let core_config = Arc::new(config.core.clone());
@@ -201,7 +210,12 @@ mod tests {
         let http_stats_event_sender = http_stats_event_bus.sender();
 
         if config.core.tracker_usage_statistics {
-            let _unused = run_event_listener(http_stats_event_bus.receiver(), cancellation_token, &http_stats_repository);
+            let _unused = run_event_listener(
+                http_stats_event_bus.receiver(),
+                cancellation_token,
+                &http_stats_repository,
+                [(configuration_instance_id, true)].into(),
+            );
         }
 
         let announce_service = Arc::new(AnnounceService::new(
@@ -210,6 +224,7 @@ mod tests {
             authentication_service.clone(),
             whitelist_authorization.clone(),
             http_stats_event_sender.clone(),
+            configuration_instance_id,
         ));
 
         CoreHttpTrackerServices { announce_service }

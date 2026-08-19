@@ -21,6 +21,7 @@ use torrust_metrics::label::{LabelSet, LabelValue};
 use torrust_metrics::label_name;
 use torrust_net_primitives::service_binding::{IpFamily, IpType, ServiceBinding};
 use torrust_tracker_http_protocol::v1::services::peer_ip_resolver::RemoteClientAddr;
+use torrust_tracker_primitives::ConfigurationInstanceId;
 use torrust_tracker_primitives::peer::PeerAnnouncement;
 
 /// A HTTP core event.
@@ -37,20 +38,34 @@ pub enum Event {
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]
+// issue: #2039
+// Carries canonical listener identity so shared metrics consumers can apply
+// per-instance policy without deriving identity from a socket address.
 pub struct ConnectionContext {
+    configuration_instance_id: ConfigurationInstanceId,
     client: ClientConnectionContext,
     server: ServerConnectionContext,
 }
 
 impl ConnectionContext {
     #[must_use]
-    pub fn new(remote_client_addr: RemoteClientAddr, server_service_binding: ServiceBinding) -> Self {
+    pub fn new(
+        configuration_instance_id: ConfigurationInstanceId,
+        remote_client_addr: RemoteClientAddr,
+        server_service_binding: ServiceBinding,
+    ) -> Self {
         Self {
+            configuration_instance_id,
             client: ClientConnectionContext { remote_client_addr },
             server: ServerConnectionContext {
                 service_binding: server_service_binding,
             },
         }
+    }
+
+    #[must_use]
+    pub const fn configuration_instance_id(&self) -> ConfigurationInstanceId {
+        self.configuration_instance_id
     }
 
     #[must_use]
@@ -168,6 +183,7 @@ pub mod test {
     use torrust_net_primitives::service_binding::{IpFamily, IpType, Protocol, ServiceBinding};
     use torrust_tracker_http_protocol::v1::services::peer_ip_resolver::{RemoteClientAddr, ResolvedIp};
     use torrust_tracker_primitives::peer::Peer;
+    use torrust_tracker_primitives::{ConfigurationInstanceId, ServiceRole};
 
     use super::Event;
     use crate::event::ConnectionContext;
@@ -208,11 +224,13 @@ pub mod test {
 
     #[test]
     fn events_should_be_comparable() {
+        let http_test_configuration_instance_id = ConfigurationInstanceId::new(ServiceRole::HttpTracker, 0);
         let remote_client_ip = IpAddr::V4(Ipv4Addr::LOCALHOST);
         let info_hash = sample_info_hash();
 
         let event1 = Event::TcpAnnounce {
             connection: ConnectionContext::new(
+                http_test_configuration_instance_id,
                 RemoteClientAddr::new(ResolvedIp::FromSocketAddr(remote_client_ip), Some(8080)),
                 ServiceBinding::new(Protocol::HTTP, SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070)).unwrap(),
             ),
@@ -222,6 +240,7 @@ pub mod test {
 
         let event2 = Event::TcpAnnounce {
             connection: ConnectionContext::new(
+                http_test_configuration_instance_id,
                 RemoteClientAddr::new(
                     ResolvedIp::FromSocketAddr(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 2))),
                     Some(8080),
@@ -240,7 +259,9 @@ pub mod test {
 
     #[test]
     fn client_address_ip_family_should_be_inet_for_ipv4() {
+        let http_test_configuration_instance_id = ConfigurationInstanceId::new(ServiceRole::HttpTracker, 0);
         let ctx = ConnectionContext::new(
+            http_test_configuration_instance_id,
             RemoteClientAddr::new(ResolvedIp::FromSocketAddr(IpAddr::V4(Ipv4Addr::LOCALHOST)), Some(8080)),
             ServiceBinding::new(Protocol::HTTP, SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070)).unwrap(),
         );
@@ -250,7 +271,9 @@ pub mod test {
 
     #[test]
     fn client_address_ip_family_should_be_inet6_for_ipv6() {
+        let http_test_configuration_instance_id = ConfigurationInstanceId::new(ServiceRole::HttpTracker, 0);
         let ctx = ConnectionContext::new(
+            http_test_configuration_instance_id,
             RemoteClientAddr::new(ResolvedIp::FromSocketAddr(IpAddr::V6(Ipv6Addr::LOCALHOST)), Some(8080)),
             ServiceBinding::new(Protocol::HTTP, SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070)).unwrap(),
         );
@@ -260,7 +283,9 @@ pub mod test {
 
     #[test]
     fn client_address_ip_type_should_be_plain_for_direct_ipv4() {
+        let http_test_configuration_instance_id = ConfigurationInstanceId::new(ServiceRole::HttpTracker, 0);
         let ctx = ConnectionContext::new(
+            http_test_configuration_instance_id,
             RemoteClientAddr::new(ResolvedIp::FromSocketAddr(IpAddr::V4(Ipv4Addr::LOCALHOST)), Some(8080)),
             ServiceBinding::new(Protocol::HTTP, SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070)).unwrap(),
         );
@@ -270,7 +295,9 @@ pub mod test {
 
     #[test]
     fn client_address_ip_type_should_be_plain_for_native_ipv6() {
+        let http_test_configuration_instance_id = ConfigurationInstanceId::new(ServiceRole::HttpTracker, 0);
         let ctx = ConnectionContext::new(
+            http_test_configuration_instance_id,
             RemoteClientAddr::new(ResolvedIp::FromSocketAddr(IpAddr::V6(Ipv6Addr::LOCALHOST)), Some(8080)),
             ServiceBinding::new(Protocol::HTTP, SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070)).unwrap(),
         );
@@ -280,9 +307,11 @@ pub mod test {
 
     #[test]
     fn client_address_ip_type_should_be_v4_mapped_v6_for_ipv4_mapped_ipv6() {
+        let http_test_configuration_instance_id = ConfigurationInstanceId::new(ServiceRole::HttpTracker, 0);
         let v4_mapped_v6_addr = IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 0, 0xffff, 0xc0a8, 0x0101)); // ::ffff:192.168.1.1
 
         let ctx = ConnectionContext::new(
+            http_test_configuration_instance_id,
             RemoteClientAddr::new(ResolvedIp::FromSocketAddr(v4_mapped_v6_addr), Some(8080)),
             ServiceBinding::new(Protocol::HTTP, SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070)).unwrap(),
         );
