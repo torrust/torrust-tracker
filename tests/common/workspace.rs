@@ -96,6 +96,7 @@ pub async fn start_tracker_with_config(workspace: &EphemeralTrackerWorkspace) ->
 ///
 /// Uses the canonical HTTP tracker role, not a bind-IP convention. Wildcard
 /// addresses are converted to `127.0.0.1` for client requests.
+#[allow(dead_code)]
 pub async fn http_tracker_urls(container: &AppContainer) -> Vec<Url> {
     container
         .registar

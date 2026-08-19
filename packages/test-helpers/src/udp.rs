@@ -75,7 +75,7 @@ pub async fn udp_announce(
 /// Panics if the UDP client cannot be created, a request cannot be sent, an
 /// expected pre-ban cookie-error response is absent, or the final request is
 /// not banned.
-pub async fn invalid_connection_ids_should_trigger_ban(remote_addr: SocketAddr) {
+pub async fn send_invalid_connection_ids_until_banned(remote_addr: SocketAddr) {
     let client = UdpTrackerClient::new(remote_addr, Duration::from_secs(1))
         .await
         .expect("failed to create UDP client");

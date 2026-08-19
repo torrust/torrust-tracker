@@ -1,0 +1,36 @@
+//! UDP banning integration test — disabled port-zero listener.
+#[path = "../common/mod.rs"]
+mod common;
+
+use torrust_clock::clock;
+use torrust_tracker_primitives::{ConfigurationInstanceId, ServiceRole};
+
+#[cfg(not(test))]
+#[allow(dead_code)]
+pub(crate) type CurrentClock = clock::Working;
+
+#[cfg(test)]
+#[allow(dead_code)]
+pub(crate) type CurrentClock = clock::Stopped;
+
+const METRICS_DISABLED_UDP_TRACKER_ID: ConfigurationInstanceId = ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0);
+
+#[tokio::test]
+async fn it_should_increase_banned_ip_metric_for_metrics_disabled_port_zero_udp_listener() {
+    // Arrange
+    let workspace = common::EphemeralTrackerWorkspace::new(common::PORT_ZERO_METRICS_POLICY_CONFIG);
+    let (app_container, _jobs) = common::start_tracker_with_config(&workspace).await;
+    let api_url = common::http_api_url(&app_container).await.expect("expected an HTTP API URL");
+    let udp_tracker_address = common::udp_socket_addr_for_identity(&app_container, METRICS_DISABLED_UDP_TRACKER_ID).await;
+    let statistics_before = common::get_tracker_statistics(&api_url, "MyAccessToken").await;
+
+    // Act
+    common::send_invalid_connection_ids_until_banned(udp_tracker_address).await;
+
+    // Assert
+    let statistics_after = common::get_tracker_statistics(&api_url, "MyAccessToken").await;
+    assert_eq!(
+        statistics_after.udp_banned_ips_total,
+        statistics_before.udp_banned_ips_total + 1
+    );
+}

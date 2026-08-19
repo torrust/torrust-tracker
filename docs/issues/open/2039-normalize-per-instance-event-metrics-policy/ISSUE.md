@@ -21,7 +21,11 @@ semantic-links:
     - docs/issues/closed/2036-add-runtime-service-registry-metadata/ISSUE.md
     - docs/issues/drafts/optimize-event-publication-without-consumers/ISSUE.md
     - evidence.md
-    - tests/aggregate_stats_fixed_ports.rs
+    - tests/metrics/fixed_ports.rs
+    - tests/metrics/port_zero.rs
+    - tests/metrics/udp_error_enabled_port_zero.rs
+    - tests/metrics/udp_error_disabled_port_zero.rs
+    - tests/banning/udp_metrics_disabled_port_zero.rs
     - packages/events/src/bus.rs
     - packages/http-core/src/container.rs
     - packages/udp-core/src/container.rs
@@ -113,7 +117,7 @@ the canonical identity rather than create a competing identity.
 - Add focused and application-level regressions for enabled and disabled
   listeners, including duplicate port-zero configuration blocks.
 - Add the deferred aggregate-statistics cases in
-  `tests/aggregate_stats_fixed_ports.rs`: UDP enabled/disabled listeners on
+  `tests/metrics/fixed_ports.rs`: UDP enabled/disabled listeners on
   distinct fixed ports, then HTTP and UDP listeners with repeated port-zero
   bindings after bootstrap identity is available.
 - Record manual baseline and post-change evidence at the risk-based
@@ -160,8 +164,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T6  | DONE   | Filter metrics in listeners      | Shared HTTP, UDP-core, and UDP-server metrics listeners use immutable identity-to-policy filtering.                   |
 | T7  | DONE   | Preserve banning independence    | Full-application regression proves cookie errors through a metrics-disabled UDP listener still trigger a shared ban.  |
 | T8  | DONE   | Update REST metrics integration  | REST announce aggregates and deterministic UDP operational counters are verified.                                     |
-| T9  | DONE   | Add focused tests                | Added producer, filtering, and banning coverage.                                                                      |
-| T10 | DONE   | Add application tests            | Fixed-port and repeated-port-zero enabled/disabled HTTP and UDP regression tests expect aggregate count `1`.          |
+| T9  | DONE   | Add focused tests                | Added producer, filtering, banning, and enabled-error identity coverage.                                              |
+| T10 | DONE   | Add application tests            | Fixed-port routing and isolated port-zero policy binaries cover enabled/disabled traffic, errors, and banning.        |
 | T11 | DONE   | Validate and document            | Captured an initial baseline, recorded final manual verification, and ran linting and focused tests.                  |
 
 ## Risk-Based Manual Verification Protocol

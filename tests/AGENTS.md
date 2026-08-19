@@ -3,11 +3,11 @@ semantic-links:
   skill-links:
     - write-unit-test
   related-artifacts:
-    - tests/aggregate_stats_port_zero.rs
-    - tests/aggregate_stats_fixed_ports.rs
-    - tests/common/mod.rs
-    - src/app.rs
-    - docs/issues/open/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md
+    - tests/metrics/port_zero.rs
+    - tests/metrics/fixed_ports.rs
+      - tests/common/mod.rs
+      - src/app.rs
+      - docs/issues/open/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md
   issue-spec: docs/issues/drafts/increase-main-app-integration-test-coverage.md
 ---
 
@@ -54,20 +54,37 @@ configuration. Scenario functions run sequentially against that instance.
 
 A different initial configuration requires a separate top-level file. For example:
 
-| File                                   | Purpose                                                        |
-| -------------------------------------- | -------------------------------------------------------------- |
-| `tests/aggregate_stats_port_zero.rs`   | Aggregate statistics with port-zero listeners (two HTTP nodes) |
-| `tests/aggregate_stats_fixed_ports.rs` | Aggregate statistics with distinct fixed-port HTTP listeners   |
-| `tests/scaffold.rs`                    | Scaffolding demo — same pattern, isolated process              |
+| File                                              | Purpose                                                     |
+| ------------------------------------------------- | ----------------------------------------------------------- |
+| `tests/metrics/port_zero.rs`                      | Port-zero aggregate metrics and duplicate-instance identity |
+| `tests/metrics/fixed_ports.rs`                    | Fixed-port aggregate metrics and routing                    |
+| `tests/metrics/udp_error_*.rs`                    | Enabled/disabled UDP cookie-error metric policy             |
+| `tests/banning/udp_metrics_disabled_port_zero.rs` | Disabled-listener banning metric                            |
+| `tests/scaffold.rs`                               | Scaffolding demo — same pattern, isolated process           |
 
 Each binary defines a single `#[tokio::test]` runner that starts the tracker
 once, then calls scenario functions sequentially. Scenario functions are plain
 async functions that receive the `AppContainer` and assert behavior.
 
+### Scenario Design
+
+- Follow Arrange, Act, Assert (AAA) visibly in every scenario.
+- Give each scenario one observable contract and one reason to fail. Do not
+  combine metric filtering, protocol responses, and ban enforcement in one
+  scenario merely because they share setup.
+- Default to port-zero configurations. They exercise parallel-safe bindings,
+  duplicate configured addresses, and canonical runtime identity together.
+- Keep fixed-port binaries only for behavior that specifically depends on an
+  explicit configured address and binding.
+- Add a top-level binary even when its initial configuration is similar if an
+  existing binary's shared aggregate metrics or security state would make the
+  scenario depend on prior traffic. A separate binary supplies a fresh process,
+  repositories, and ban service.
+
 Cargo may run these binaries in parallel. Each binary binds to port `0`
 (OS-assigned ephemeral ports) by default, uses its own `TempDir` workspace,
 and sets `TORRUST_TRACKER_CONFIG_TOML_PATH` only in its own process, so no
-conflict occurs. Fixed-port binaries (e.g., `aggregate_stats_fixed_ports.rs`)
+conflict occurs. Fixed-port binaries (e.g., `metrics-fixed-ports`)
 use distinct non-overlapping ports and must not run concurrently with other
 binaries that use the same ports.
 
@@ -117,11 +134,17 @@ All integration tests at this level must:
 tests/
 ├── AGENTS.md                         # This file
 ├── common/
+│   ├── configuration.rs              # Shared integration-test configurations
 │   ├── mod.rs                        # Re-exports from submodules
 │   ├── workspace.rs                  # Tracker workspace setup and URL discovery
 │   └── statistics.rs                 # Aggregate statistics query helpers
-├── aggregate_stats_port_zero.rs      # Port-zero statistics (two HTTP + two UDP nodes)
-├── aggregate_stats_fixed_ports.rs    # Fixed-port statistics (two HTTP + two UDP nodes)
+├── banning/
+│   └── udp_metrics_disabled_port_zero.rs # Disabled-listener ban statistics
+├── metrics/
+│   ├── fixed_ports.rs                # Fixed-port metrics and routing
+│   ├── port_zero.rs                  # Port-zero metrics and identity
+│   ├── udp_error_disabled_port_zero.rs # Disabled-listener error filtering
+│   └── udp_error_enabled_port_zero.rs # Enabled-listener error metrics
 └── scaffold.rs                       # Scaffolding demo — pattern reference for new binaries
 ```
 
@@ -129,8 +152,8 @@ tests/
 
 1. **Confirm it belongs here**: Can this test be written at the package level? If yes, write it there.
 2. **Determine the initial configuration**: If your scenarios need a different tracker
-   configuration than the existing suite, create a new top-level file (e.g.,
-   `tests/aggregate_stats_fixed_ports.rs`). If they share the same configuration, add
+   configuration than the existing suite, create a new explicit Cargo test target
+   (e.g., `tests/metrics/fixed_ports.rs`). If they share the same configuration, add
    scenarios to the existing suite's runner function.
 3. **Reuse shared utilities**: Import `mod common;` and use the helpers in `tests/common/mod.rs`
    for workspace setup, tracker startup, and port discovery.
@@ -139,13 +162,13 @@ tests/
 5. **Extract bound ports**: Query the registar or `AppContainer` to discover actual socket addresses.
 6. **Document the purpose**: Add clear doc comments explaining what application-level behavior is
    being tested.
-7. **Reference existing code**: See `tests/aggregate_stats_fixed_ports.rs` for the canonical
+7. **Reference existing code**: See `tests/metrics/fixed_ports.rs` for the canonical
    pattern: one `#[tokio::test]` runner, one config constant, scenario functions that receive
    the `AppContainer`.
 
 ## References
 
 - [Issue #1419](../../docs/issues/open/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md) - Infrastructure for parallel integration tests (execution model decision)
-- [Integration test scaffolding](aggregate_stats_port_zero.rs)
+- [Integration test scaffolding](metrics/port_zero.rs)
 - [Shared test utilities](common/mod.rs)
 - [Scaffolding demo](scaffold.rs)

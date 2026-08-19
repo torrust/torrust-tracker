@@ -93,7 +93,10 @@ aggregates.
 
 #### Automated coverage
 
-`cargo +nightly test --test aggregate_stats_fixed_ports --test aggregate_stats_port_zero -- --test-threads=1` passed.
+The aggregate-policy binaries passed: `metrics-fixed-ports`,
+`metrics-port-zero`, `metrics-udp-error-enabled-port-zero`,
+`metrics-udp-error-disabled-port-zero`, and
+`banning-udp-metrics-disabled-port-zero`.
 
 The fixed-port pre-change baseline was subsequently captured from isolated
 revision `e6b99635` and is recorded above. The port-zero baseline is not
@@ -155,7 +158,7 @@ address.
 
 #### Automated coverage
 
-`cargo +nightly test --test aggregate_stats_port_zero -- --test-threads=1` passed.
+`cargo +nightly test --test metrics-port-zero -- --test-threads=1` passed.
 
 ### C2 baseline — cookie errors from a metrics-disabled listener (M3)
 
@@ -210,9 +213,8 @@ ban enforcement`.
 
 #### Automated coverage
 
-`cargo +nightly test --test aggregate_stats_fixed_ports -- --test-threads=1`
-passed, including
-`udp_metrics_disabled_tracker_should_still_enforce_cookie_error_bans`.
+`cargo +nightly test --test banning-udp-metrics-disabled-port-zero -- --test-threads=1`
+passed.
 
 The tracked Python probe supplies the forged-cookie capability unavailable from
 the public `tracker_client` CLI. The full-application regression remains
@@ -226,10 +228,16 @@ The final application test suite repeated fixed-port and repeated
 port-zero enabled/disabled traffic scenarios:
 
 ```sh
-cargo +nightly test --test aggregate_stats_fixed_ports --test aggregate_stats_port_zero -- --test-threads=1
+cargo +nightly test \
+  --test metrics-fixed-ports \
+  --test metrics-port-zero \
+  --test metrics-udp-error-enabled-port-zero \
+  --test metrics-udp-error-disabled-port-zero \
+  --test banning-udp-metrics-disabled-port-zero \
+  -- --test-threads=1
 ```
 
-Both tests passed. They assert HTTP and UDP aggregate announce counts of `1`;
+All five explicit test binaries passed. They assert HTTP and UDP aggregate announce counts of `1`;
 the fixed-port test also asserts retained UDP operational metrics for the
 enabled listener: requests `2`, connections `1`, responses `2`, errors `0`,
 and banned requests `0` before the independent banning scenario.
@@ -282,8 +290,8 @@ the baseline-to-final comparison is the completion evidence.
 | T6   | DONE     | DONE        | Fixed-port baseline and final evidence recorded.                             |
 | T7   | DONE     | DONE        | Manual M3 baseline/final probe and full-application coverage recorded.       |
 | T8   | N/A      | DONE        | REST announce and deterministic UDP operational-counter assertions verified. |
-| T9   | N/A      | DONE        | Focused and full-application regressions added.                              |
-| T10  | N/A      | DONE        | Fixed-port and repeated-port-zero regressions pass.                          |
+| T9   | N/A      | DONE        | Focused and isolated full-application regressions added.                     |
+| T10  | N/A      | DONE        | Fixed-port routing and port-zero policy binaries pass.                       |
 
 ## Required Probe Outcomes
 
