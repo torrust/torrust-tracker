@@ -658,8 +658,39 @@ mod tests {
         use crate::v1::query::Query;
         use crate::v1::requests::announce::{
             Announce, AnnounceBuilder, COMPACT, Compact, DOWNLOADED, EVENT, Event, INFO_HASH, IP, LEFT, NUMWANT, NumberOfBytes,
-            PEER_ID, PORT, PeerIp, UPLOADED,
+            PEER_ID, PORT, PeerIp, UPLOADED, is_dns_name, percent_decode_ip_parameter,
         };
+
+        #[test]
+        fn should_recognize_supported_dns_name_syntax() {
+            for value in ["localhost", "tracker", "example.com", "a-b.example"] {
+                assert!(is_dns_name(value), "{value}");
+            }
+        }
+
+        #[test]
+        fn should_reject_invalid_dns_name_syntax() {
+            for value in ["", "-example", "example-", "example..com", "example_com", "999.999.999.999"] {
+                assert!(!is_dns_name(value), "{value}");
+            }
+        }
+
+        #[test]
+        fn should_percent_decode_a_valid_peer_ip_parameter() {
+            for (encoded, decoded) in [("192.0.2.1", "192.0.2.1"), ("2001%3Adb8%3A%3A1", "2001:db8::1")] {
+                assert_eq!(percent_decode_ip_parameter(encoded).unwrap(), decoded);
+            }
+        }
+
+        #[test]
+        fn should_reject_invalid_peer_ip_parameter_encoding() {
+            for value in ["%", "%ZZ", "%FF"] {
+                assert!(matches!(
+                    percent_decode_ip_parameter(value),
+                    Err(crate::v1::requests::announce::ParseAnnounceQueryError::MalformedIpEncoding)
+                ));
+            }
+        }
 
         #[test]
         fn should_be_instantiated_from_the_url_query_with_only_the_mandatory_params() {
