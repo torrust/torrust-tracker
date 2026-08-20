@@ -57,7 +57,7 @@ jobs:
 
       - id: sccache
         name: Install sccache (GHA backend)
-        uses: mozilla-actions/sccache-action@v0.0.10
+        uses: mozilla-actions/sccache-action@v0.0.11
 
       - id: enable-sccache
         name: Enable sccache
@@ -76,7 +76,7 @@ jobs:
 
       - id: tools
         name: Install Tools
-        uses: taiki-e/install-action@v2
+        uses: taiki-e/install-action@v2.85.5
         with:
           tool: cargo-llvm-cov, cargo-nextest
 
@@ -150,7 +150,7 @@ jobs:
 
       - id: sccache
         name: Install sccache (GHA backend)
-        uses: mozilla-actions/sccache-action@v0.0.10
+        uses: mozilla-actions/sccache-action@v0.0.11
 
       - id: enable-sccache
         name: Enable sccache
