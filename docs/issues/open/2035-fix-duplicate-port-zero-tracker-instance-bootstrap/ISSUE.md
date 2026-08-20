@@ -158,6 +158,9 @@ only for this issue's metrics-related final verification and closure.
   distinct HTTP and UDP final bindings to canonical identities; announces to disabled and enabled
   listeners yielded aggregate HTTP and UDP counts of `1`, and invalid cookies through the disabled
   UDP listener still triggered a shared ban. Recorded commands and output in [evidence.md](evidence.md).
+- 2026-08-20 - agent - Repeated the final probe with the exact `0.0.0.0:0` HTTP and UDP bindings
+  from the original collision. Each configuration identity received a distinct final wildcard
+  binding, and the aggregate metrics and banning results matched the loopback probe.
 
 ## Acceptance Criteria
 

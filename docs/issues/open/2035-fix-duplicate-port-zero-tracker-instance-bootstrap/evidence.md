@@ -282,6 +282,32 @@ from the shared aggregates while instance `1` contributed normally. Objective
 UDP cookie-error facts from the metrics-disabled listener still reached shared
 banning enforcement.
 
+### Wildcard Binding Confirmation
+
+The preceding probe used loopback bindings to simplify local connections. The
+original collision applies specifically to repeated wildcard bindings, so the
+same probe was repeated with
+[`evidence-artifacts/wildcard-port-zero-manual.toml`](evidence-artifacts/wildcard-port-zero-manual.toml),
+which configures every public listener as `0.0.0.0:0`.
+
+Startup logs mapped each configured identity to a distinct final wildcard
+binding:
+
+| Instance        | Metrics policy | Final binding           |
+| --------------- | -------------- | ----------------------- |
+| `HttpTracker:0` | Disabled       | `http://0.0.0.0:41223/` |
+| `HttpTracker:1` | Enabled        | `http://0.0.0.0:39525/` |
+| `UdpTracker:0`  | Disabled       | `udp://0.0.0.0:39302`   |
+| `UdpTracker:1`  | Enabled        | `udp://0.0.0.0:44277`   |
+
+The clients connected to the corresponding `127.0.0.1` ports. One announce to
+each listener produced `tcp4_announces_handled: 1`,
+`udp4_announces_handled: 1`, `udp4_requests: 2`,
+`udp4_connections_handled: 1`, and `udp4_responses: 2`. The invalid-cookie
+probe against `UdpTracker:0` printed the expected twelfth-request ban result;
+afterward `udp_banned_ips_total: 1`, while those usage values remained
+unchanged.
+
 ### Automated Verification
 
 The final focused regression suite passed with one test in each target:
