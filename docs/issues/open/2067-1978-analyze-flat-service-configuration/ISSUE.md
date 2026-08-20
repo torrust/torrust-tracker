@@ -6,10 +6,10 @@ priority: p2
 github-issue: 2067
 spec-path: docs/issues/open/2067-1978-analyze-flat-service-configuration/ISSUE.md
 branch: "2067-analyze-flat-service-configuration"
-related-pr: null
+related-pr: 2068
 depends-on: null
 blocks: null
-last-updated-utc: 2026-08-20 16:44
+last-updated-utc: 2026-08-20 16:51
 semantic-links:
   skill-links:
     - create-issue
@@ -378,6 +378,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-08-20 UTC - Copilot/User - Converted the draft to a folder-style analysis issue. Added the final report and evidence-ledger contract, clarified that the work is non-blocking research for a potential post-v3 successor, and expanded the analysis scope around migration, normalization, shared UDP state, defaults, security, and compatibility.
 - 2026-08-20 16:36 UTC - Copilot/User - User approved the draft. Created GitHub Task #2067 and linked it as the thirteenth native sub-issue of #1978 after restoring #2023's missing native parent relationship.
 - 2026-08-20 16:44 UTC - Copilot - Renamed the folder to include the parent EPIC number, as required for folder-based subissue specifications.
+- 2026-08-20 16:51 UTC - Copilot/User - Opened spec-only PR #2068 against `develop`, linked it as related to #2067, and requested review from @da2ce7 because the proposal originated with Cameron.
 
 ## Acceptance Criteria
 
