@@ -197,3 +197,102 @@ assertion `left == right` failed
 The observed `2` shows that both listeners inherited the second configuration block's enabled
 statistics setting. After the bootstrap fix, remove the `#[ignore]` attribute and the same test
 must pass with the expected count of `1`.
+
+## Final Port-Zero Verification
+
+### Environment
+
+- Revision: `4560c0403dfb4c7d9da5e3a9bd8c56fe1bf4f85d`
+- Execution date: `2026-08-20`
+- Configuration:
+  [`../../2039-normalize-per-instance-event-metrics-policy/evidence-artifacts/port-zero-manual.toml`](../../2039-normalize-per-instance-event-metrics-policy/evidence-artifacts/port-zero-manual.toml)
+- REST API: `http://127.0.0.1:17100/api/v1/stats?token=MyAccessToken`
+
+The configuration defines two HTTP and two UDP listeners on `127.0.0.1:0`.
+For both protocols, configuration instance `0` disables usage statistics and
+instance `1` enables them.
+
+### Commands
+
+Started the tracker with:
+
+```sh
+TORRUST_TRACKER_CONFIG_TOML_PATH="$PWD/docs/issues/open/2039-normalize-per-instance-event-metrics-policy/evidence-artifacts/port-zero-manual.toml" \
+  cargo run --bin torrust-tracker
+```
+
+After reading the identity and final bindings from startup logs, queried REST
+statistics before and after one announce to each listener:
+
+```sh
+curl -fsS 'http://127.0.0.1:17100/api/v1/stats?token=MyAccessToken'
+cargo run -q -p torrust-tracker-client --bin tracker_client -- http announce http://127.0.0.1:60889 9c8b2213e30bff212b0c360d26f9a02131642200
+cargo run -q -p torrust-tracker-client --bin tracker_client -- http announce http://127.0.0.1:37067 9c8b2213e30bff212b0c360d26f9a02131642200
+cargo run -q -p torrust-tracker-client --bin tracker_client -- udp announce udp://127.0.0.1:35064 9c8b2213e30bff212b0c360d26f9a02131642200
+cargo run -q -p torrust-tracker-client --bin tracker_client -- udp announce udp://127.0.0.1:58877 9c8b2213e30bff212b0c360d26f9a02131642200
+curl -fsS 'http://127.0.0.1:17100/api/v1/stats?token=MyAccessToken'
+```
+
+Finally, ran the invalid-cookie probe through the metrics-disabled UDP listener:
+
+```sh
+python3 docs/issues/open/2039-normalize-per-instance-event-metrics-policy/evidence-artifacts/invalid_cookie_probe.py 127.0.0.1 35064
+curl -fsS 'http://127.0.0.1:17100/api/v1/stats?token=MyAccessToken'
+```
+
+### Runtime Bindings
+
+Startup logs mapped the canonical configuration instances to final bindings:
+
+| Instance        | Metrics policy | Final binding             |
+| --------------- | -------------- | ------------------------- |
+| `HttpTracker:0` | Disabled       | `http://127.0.0.1:60889/` |
+| `HttpTracker:1` | Enabled        | `http://127.0.0.1:37067/` |
+| `UdpTracker:0`  | Disabled       | `udp://127.0.0.1:35064`   |
+| `UdpTracker:1`  | Enabled        | `udp://127.0.0.1:58877`   |
+
+Each listener accepted its announce request. Before traffic, both aggregate
+announce counters were `0`. After all four announces, REST statistics reported:
+
+```text
+tcp4_announces_handled: 1
+udp4_announces_handled: 1
+udp4_requests: 2
+udp4_connections_handled: 1
+udp4_responses: 2
+udp4_errors_handled: 0
+udp_banned_ips_total: 0
+```
+
+The invalid-cookie probe printed:
+
+```text
+PASS: the twelfth invalid request timed out after shared ban enforcement
+```
+
+After that probe, REST reported `udp_banned_ips_total: 1`. The existing usage
+metric values remained unchanged: `udp4_requests: 2`,
+`udp4_announces_handled: 1`, and `udp4_errors_handled: 0`.
+
+### Result
+
+The duplicate port-zero listeners retained their own configuration and
+canonical identity through startup. Metrics from instance `0` were filtered
+from the shared aggregates while instance `1` contributed normally. Objective
+UDP cookie-error facts from the metrics-disabled listener still reached shared
+banning enforcement.
+
+### Automated Verification
+
+The final focused regression suite passed with one test in each target:
+
+```sh
+cargo test \
+  --test metrics-port-zero \
+  --test metrics-fixed-ports \
+  --test banning-udp-metrics-disabled-port-zero \
+  --test metrics-udp-error-enabled-port-zero \
+  --test metrics-udp-error-disabled-port-zero \
+  --test scaffold \
+  -- --test-threads=1
+```

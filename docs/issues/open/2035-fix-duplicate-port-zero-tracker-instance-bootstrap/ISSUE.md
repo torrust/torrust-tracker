@@ -109,17 +109,17 @@ only for this issue's metrics-related final verification and closure.
 
 ## Implementation Plan
 
-| ID  | Status | Task                                                                                                   | Notes / Expected Output                                                                                                                                                        |
-| --- | ------ | ------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| T1  | DONE   | Land [#2036](../../closed/2036-add-runtime-service-registry-metadata/ISSUE.md) canonical identity      | Bootstrap identity aligns with the canonical runtime identity contract.                                                                                                        |
-| T2  | DONE   | Replace address-keyed container lookup                                                                 | Use an order-preserving representation or canonical identity, not configured `SocketAddr`.                                                                                     |
-| T3  | DONE   | Start matching containers                                                                              | Pass each configuration entry's matching container into HTTP and UDP startup.                                                                                                  |
-| T4  | DONE   | Correlate lifecycle logs                                                                               | Include canonical identity with configured and final binding logs.                                                                                                             |
-| T5  | DONE   | Add HTTP statistics integration coverage                                                               | In `tests/metrics/fixed_ports.rs`, added fixed-port HTTP test. Aggregate count `1` blocked by #2039 (shared HTTP event bus).                                                   |
-| T6  | DONE   | Add bootstrap regressions                                                                              | Cover duplicate port-zero HTTP/UDP configuration-to-container correspondence without asserting aggregate metrics policy.                                                       |
-| T7  | TODO   | Run and record final local tracker probes                                                              | After #2039, run fixed-port HTTP/UDP and duplicate-port-zero policy scenarios locally; append configuration, commands, outputs, and comparisons to [evidence.md](evidence.md). |
-| T8  | DONE   | Land registry metadata migration                                                                       | #2041 completed in PR #2048 and exposes canonical started-service identity.                                                                                                    |
-| T9  | DONE   | Land [#2039](../2039-normalize-per-instance-event-metrics-policy/ISSUE.md) event-metrics normalization | #2039 completed listener-side filtering and its deferred policy regressions; final #2035 verification can now proceed.                                                         |
+| ID  | Status | Task                                                                                                   | Notes / Expected Output                                                                                                              |
+| --- | ------ | ------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------ |
+| T1  | DONE   | Land [#2036](../../closed/2036-add-runtime-service-registry-metadata/ISSUE.md) canonical identity      | Bootstrap identity aligns with the canonical runtime identity contract.                                                              |
+| T2  | DONE   | Replace address-keyed container lookup                                                                 | Use an order-preserving representation or canonical identity, not configured `SocketAddr`.                                           |
+| T3  | DONE   | Start matching containers                                                                              | Pass each configuration entry's matching container into HTTP and UDP startup.                                                        |
+| T4  | DONE   | Correlate lifecycle logs                                                                               | Include canonical identity with configured and final binding logs.                                                                   |
+| T5  | DONE   | Add HTTP statistics integration coverage                                                               | In `tests/metrics/fixed_ports.rs`, added fixed-port HTTP test. Aggregate count `1` blocked by #2039 (shared HTTP event bus).         |
+| T6  | DONE   | Add bootstrap regressions                                                                              | Cover duplicate port-zero HTTP/UDP configuration-to-container correspondence without asserting aggregate metrics policy.             |
+| T7  | DONE   | Run and record final local tracker probes                                                              | Ran duplicate-port-zero HTTP/UDP policy and metrics-disabled UDP banning probes; results are recorded in [evidence.md](evidence.md). |
+| T8  | DONE   | Land registry metadata migration                                                                       | #2041 completed in PR #2048 and exposes canonical started-service identity.                                                          |
+| T9  | DONE   | Land [#2039](../2039-normalize-per-instance-event-metrics-policy/ISSUE.md) event-metrics normalization | #2039 completed listener-side filtering and its deferred policy regressions; final #2035 verification can now proceed.               |
 
 ## Progress Tracking
 
@@ -131,7 +131,7 @@ only for this issue's metrics-related final verification and closure.
 - [x] Bootstrap identity preservation completed
 - [x] Registry metadata migration completed (PR #2048)
 - [x] Event-metrics normalization completed
-- [ ] Final automatic and manual verification completed
+- [x] Final automatic and manual verification completed
 - [x] Acceptance criteria reviewed after implementation
 
 ### Progress Log
@@ -154,6 +154,10 @@ only for this issue's metrics-related final verification and closure.
 - 2026-08-20 - agent and user - Confirmed #2039's implementation and verification are complete.
   The bootstrap phase had already established configuration-to-container correspondence; final
   #2035 verification can now prove its end-to-end metrics and banning outcome.
+- 2026-08-20 - agent - Ran the final duplicate-port-zero local probe. Startup logs mapped
+  distinct HTTP and UDP final bindings to canonical identities; announces to disabled and enabled
+  listeners yielded aggregate HTTP and UDP counts of `1`, and invalid cookies through the disabled
+  UDP listener still triggered a shared ban. Recorded commands and output in [evidence.md](evidence.md).
 
 ## Acceptance Criteria
 
@@ -170,12 +174,11 @@ only for this issue's metrics-related final verification and closure.
 ### Automatic Checks
 
 - Focused regression tests for `AppContainer` and startup jobs after prerequisites land.
-- `tests/metrics/fixed_ports.rs`: enabled/enabled HTTP listeners on distinct fixed
-  ports must produce aggregate `tcp4_announces_handled == 2`. Enabled/disabled filtering
-  is deferred to #2039.
-- Defer the equivalent UDP fixed-port and repeated-port-zero HTTP/UDP aggregate-statistics tests
-  to #2039; they assert listener-side metrics filtering rather than bootstrap configuration selection.
-- `cargo test --test metrics-port-zero --test metrics-fixed-ports --test scaffold`.
+- `tests/metrics/fixed_ports.rs`: metrics-disabled and metrics-enabled HTTP and UDP listeners on
+  distinct fixed ports produce aggregate announce counts of `1` for each protocol.
+- `tests/metrics/port_zero.rs`: repeated-port-zero HTTP and UDP listeners retain their distinct
+  canonical identities and produce aggregate announce counts of `1` for each protocol.
+- `cargo test --test metrics-port-zero --test metrics-fixed-ports --test banning-udp-metrics-disabled-port-zero --test scaffold -- --test-threads=1`.
 - `linter all`.
 
 ### Manual Evidence Protocol
@@ -189,11 +192,11 @@ evidence.
 
 ### Manual Verification Scenarios
 
-| ID  | Scenario                                                                            | Expected Result                                                     | Status | Evidence                   |
-| --- | ----------------------------------------------------------------------------------- | ------------------------------------------------------------------- | ------ | -------------------------- |
-| M1  | Start two HTTP trackers with identical `0.0.0.0:0` bindings and different policies. | Each listener retains its own configuration and metrics policy.     | TODO   | [evidence.md](evidence.md) |
-| M2  | Repeat M1 for UDP trackers.                                                         | Each UDP listener retains its own configuration and metrics policy. | TODO   |                            |
-| M3  | Run fixed-port enabled/enabled HTTP listeners locally.                              | The aggregate HTTP announce count is `2`.                           | DONE   |                            |
+| ID  | Scenario                                                                            | Expected Result                                                                                                                                   | Status | Evidence                                                                          |
+| --- | ----------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | --------------------------------------------------------------------------------- |
+| M1  | Start two HTTP trackers with identical `0.0.0.0:0` bindings and different policies. | Each listener retains its own configuration; only the enabled listener updates aggregate metrics.                                                 | DONE   | [evidence.md](evidence.md)                                                        |
+| M2  | Repeat M1 for UDP trackers.                                                         | Each listener retains its own configuration; only the enabled listener updates aggregate metrics and the disabled listener still reaches banning. | DONE   | [evidence.md](evidence.md)                                                        |
+| M3  | Run fixed-port disabled/enabled HTTP listeners locally.                             | The aggregate HTTP announce count is `1`.                                                                                                         | DONE   | [#2039 evidence](../2039-normalize-per-instance-event-metrics-policy/evidence.md) |
 
 ## References
 
