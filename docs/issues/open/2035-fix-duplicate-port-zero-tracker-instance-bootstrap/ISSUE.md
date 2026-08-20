@@ -7,7 +7,7 @@ github-issue: 2035
 spec-path: docs/issues/open/2035-fix-duplicate-port-zero-tracker-instance-bootstrap/ISSUE.md
 branch: 2035-fix-duplicate-port-zero-tracker-instance-bootstrap
 related-pr: null
-last-updated-utc: 2026-08-18
+last-updated-utc: 2026-08-20
 semantic-links:
   skill-links:
     - write-unit-test
@@ -83,6 +83,17 @@ metrics policy correct: the UDP server has one application-wide event bus and
 repository, while producer-side metrics suppression can hide facts required by
 the independent banning listener.
 
+### Completion Boundary
+
+The bootstrap phase of this issue is independently verified: duplicate
+port-zero HTTP and UDP configuration blocks retain distinct containers,
+canonical identities, and final listener bindings. It was intentionally not
+sufficient to close this issue. The original user-visible outcome also requires
+end-to-end proof that a metrics-disabled listener does not update shared
+aggregate metrics while a metrics-enabled sibling does, without preventing UDP
+banning from observing cookie-error facts. That policy belongs to #2039, whose
+listener-side filtering makes the final #2035 probes meaningful and safe.
+
 Issue [#2035](https://github.com/torrust/torrust-tracker/issues/2035) is
 delivered in two phases. After #2036 defines canonical runtime
 service/configuration-instance identity, this issue can reimplement bootstrap
@@ -98,17 +109,17 @@ only for this issue's metrics-related final verification and closure.
 
 ## Implementation Plan
 
-| ID  | Status  | Task                                                                                                   | Notes / Expected Output                                                                                                                                                        |
-| --- | ------- | ------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| T1  | DONE    | Land [#2036](../../closed/2036-add-runtime-service-registry-metadata/ISSUE.md) canonical identity      | Bootstrap identity aligns with the canonical runtime identity contract.                                                                                                        |
-| T2  | DONE    | Replace address-keyed container lookup                                                                 | Use an order-preserving representation or canonical identity, not configured `SocketAddr`.                                                                                     |
-| T3  | DONE    | Start matching containers                                                                              | Pass each configuration entry's matching container into HTTP and UDP startup.                                                                                                  |
-| T4  | DONE    | Correlate lifecycle logs                                                                               | Include canonical identity with configured and final binding logs.                                                                                                             |
-| T5  | DONE    | Add HTTP statistics integration coverage                                                               | In `tests/metrics/fixed_ports.rs`, added fixed-port HTTP test. Aggregate count `1` blocked by #2039 (shared HTTP event bus).                                                   |
-| T6  | DONE    | Add bootstrap regressions                                                                              | Cover duplicate port-zero HTTP/UDP configuration-to-container correspondence without asserting aggregate metrics policy.                                                       |
-| T7  | TODO    | Run and record final local tracker probes                                                              | After #2039, run fixed-port HTTP/UDP and duplicate-port-zero policy scenarios locally; append configuration, commands, outputs, and comparisons to [evidence.md](evidence.md). |
-| T8  | DONE    | Land registry metadata migration                                                                       | #2041 completed in PR #2048 and exposes canonical started-service identity.                                                                                                    |
-| T9  | BLOCKED | Land [#2039](../2039-normalize-per-instance-event-metrics-policy/ISSUE.md) event-metrics normalization | #2039 was reopened after a documentation-only commit closed it prematurely. It must complete the deferred policy tests before final verification and issue closure.            |
+| ID  | Status | Task                                                                                                   | Notes / Expected Output                                                                                                                                                        |
+| --- | ------ | ------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| T1  | DONE   | Land [#2036](../../closed/2036-add-runtime-service-registry-metadata/ISSUE.md) canonical identity      | Bootstrap identity aligns with the canonical runtime identity contract.                                                                                                        |
+| T2  | DONE   | Replace address-keyed container lookup                                                                 | Use an order-preserving representation or canonical identity, not configured `SocketAddr`.                                                                                     |
+| T3  | DONE   | Start matching containers                                                                              | Pass each configuration entry's matching container into HTTP and UDP startup.                                                                                                  |
+| T4  | DONE   | Correlate lifecycle logs                                                                               | Include canonical identity with configured and final binding logs.                                                                                                             |
+| T5  | DONE   | Add HTTP statistics integration coverage                                                               | In `tests/metrics/fixed_ports.rs`, added fixed-port HTTP test. Aggregate count `1` blocked by #2039 (shared HTTP event bus).                                                   |
+| T6  | DONE   | Add bootstrap regressions                                                                              | Cover duplicate port-zero HTTP/UDP configuration-to-container correspondence without asserting aggregate metrics policy.                                                       |
+| T7  | TODO   | Run and record final local tracker probes                                                              | After #2039, run fixed-port HTTP/UDP and duplicate-port-zero policy scenarios locally; append configuration, commands, outputs, and comparisons to [evidence.md](evidence.md). |
+| T8  | DONE   | Land registry metadata migration                                                                       | #2041 completed in PR #2048 and exposes canonical started-service identity.                                                                                                    |
+| T9  | DONE   | Land [#2039](../2039-normalize-per-instance-event-metrics-policy/ISSUE.md) event-metrics normalization | #2039 completed listener-side filtering and its deferred policy regressions; final #2035 verification can now proceed.                                                         |
 
 ## Progress Tracking
 
@@ -119,7 +130,7 @@ only for this issue's metrics-related final verification and closure.
 - [x] Prerequisite #2036 completed
 - [x] Bootstrap identity preservation completed
 - [x] Registry metadata migration completed (PR #2048)
-- [ ] Event-metrics normalization completed
+- [x] Event-metrics normalization completed
 - [ ] Final automatic and manual verification completed
 - [x] Acceptance criteria reviewed after implementation
 
@@ -140,6 +151,9 @@ only for this issue's metrics-related final verification and closure.
   registry metadata migration merged in PR #2048. #2039 had been prematurely auto-closed by the
   documentation-only commit `e1dc2350`; it was reopened. #2035 implementation must remain paused
   until #2039 completes listener-side metrics filtering and its regressions.
+- 2026-08-20 - agent and user - Confirmed #2039's implementation and verification are complete.
+  The bootstrap phase had already established configuration-to-container correspondence; final
+  #2035 verification can now prove its end-to-end metrics and banning outcome.
 
 ## Acceptance Criteria
 
@@ -175,11 +189,11 @@ evidence.
 
 ### Manual Verification Scenarios
 
-| ID  | Scenario                                                                            | Expected Result                                                     | Status           | Evidence                   |
-| --- | ----------------------------------------------------------------------------------- | ------------------------------------------------------------------- | ---------------- | -------------------------- |
-| M1  | Start two HTTP trackers with identical `0.0.0.0:0` bindings and different policies. | Each listener retains its own configuration and metrics policy.     | BLOCKED by #2039 | [evidence.md](evidence.md) |
-| M2  | Repeat M1 for UDP trackers.                                                         | Each UDP listener retains its own configuration and metrics policy. | BLOCKED by #2039 |                            |
-| M3  | Run fixed-port enabled/enabled HTTP listeners locally.                              | The aggregate HTTP announce count is `2`.                           | DONE             |                            |
+| ID  | Scenario                                                                            | Expected Result                                                     | Status | Evidence                   |
+| --- | ----------------------------------------------------------------------------------- | ------------------------------------------------------------------- | ------ | -------------------------- |
+| M1  | Start two HTTP trackers with identical `0.0.0.0:0` bindings and different policies. | Each listener retains its own configuration and metrics policy.     | TODO   | [evidence.md](evidence.md) |
+| M2  | Repeat M1 for UDP trackers.                                                         | Each UDP listener retains its own configuration and metrics policy. | TODO   |                            |
+| M3  | Run fixed-port enabled/enabled HTTP listeners locally.                              | The aggregate HTTP announce count is `2`.                           | DONE   |                            |
 
 ## References
 
