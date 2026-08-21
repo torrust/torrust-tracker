@@ -81,10 +81,16 @@ developer setup or permit bypassing `git commit -S`.
 
 If the GPG passphrase prompt times out (`gpg: signing failed: Timeout`), the agent **must**:
 
-1. **Stop immediately.** Do not retry, do not use `--no-gpg-sign`, do not skip signing.
-2. **Notify the user.** Tell them the GPG passphrase prompt timed out and they need to retry
-   the commit manually by running the same `git commit -S` command themselves.
-3. **Wait for the user** to confirm the commit was completed before proceeding.
+1. **Stop the failed attempt immediately.** Do not use `--no-gpg-sign` or skip signing.
+2. **Notify the user** that the passphrase prompt timed out and offer these choices:
+
+- retry the same signed commit manually; or
+- have the agent retry the same `git commit -S` command while the user enters the passphrase
+  directly in the terminal prompt.
+
+1. **Wait for the user's choice.** Do not retry automatically. If the user requests an
+   agent-assisted retry, invoke only the same signed commit command and allow the user to provide
+   the passphrase; never receive, request, or handle the passphrase in chat.
 
 This rule is absolute. Never bypass GPG signing for any reason.
 

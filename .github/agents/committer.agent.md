@@ -23,9 +23,11 @@ Treat every commit request as a review-and-verify workflow, not as a blind reque
   when deeper diagnostics are needed.
 - Create GPG-signed Conventional Commits (`git commit -S`).
   **GPG timeout handling**: If a `git commit -S` invocation fails because the GPG passphrase
-  prompt timed out, stop immediately and notify the user. Do not retry with `--no-gpg-sign`,
-  do not amend the commit without a signature, and do not proceed with the work. The user
-  must manually retry the commit to provide the passphrase.
+  prompt timed out, stop the failed attempt and notify the user. Do not retry with
+  `--no-gpg-sign`, do not amend the commit without a signature, and do not proceed until the
+  user chooses either a manual retry or an agent-assisted retry. For an agent-assisted retry,
+  rerun only the same `git commit -S` command while the user enters the passphrase directly in
+  the terminal prompt; never request, receive, or handle the passphrase in chat.
 
 ## Required Workflow
 
