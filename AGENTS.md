@@ -259,6 +259,12 @@ These policies are repository-wide and apply to all agents and workflows.
    Keep folder READMEs lightweight (purpose and navigation), and treat `.github/skills/` plus
    canonical docs (for example `docs/index.md`) as the authoritative workflow sources.
    When duplications are found, remove or replace them with links to the canonical source.
+7. **AI-agent implementation independence**: keep repository knowledge, decisions, workflows, and
+   validation reproducible from Git-tracked documentation, scripts, tests, and documented standard
+   interfaces. Treat provider-specific profiles, retained state, indexes, tools, and cloud setup as
+   optional adapters, not sources of truth. Document an adapter's purpose, portability limitation,
+   and practical alternative before making it required. See
+   [`docs/adrs/20260821172000_establish_ai_agent_context_capability_and_portability_governance.md`](docs/adrs/20260821172000_establish_ai_agent_context_capability_and_portability_governance.md).
 
 Implementation workflow references:
 
@@ -409,16 +415,16 @@ with YAML frontmatter and Markdown instructions covering a repeatable workflow.
 
 ### Quick Navigation
 
-| Task                                 | Start Here                                           |
-| ------------------------------------ | ---------------------------------------------------- |
-| Understand the architecture          | [`docs/packages.md`](docs/packages.md)               |
-| Run the tracker in a container       | [`docs/containers.md`](docs/containers.md)           |
-| Read all docs                        | [`docs/index.md`](docs/index.md)                     |
-| Understand an architectural decision | [`docs/adrs/README.md`](docs/adrs/README.md)         |
-| Read or write an issue spec          | [`docs/issues/`](docs/issues/)                       |
-| Run benchmarks                       | [`docs/benchmarking.md`](docs/benchmarking.md)       |
-| Run profiling                        | [`docs/profiling.md`](docs/profiling.md)             |
-| Understand the release process       | [`docs/release_process.md`](docs/release_process.md) |
-| Report a security vulnerability      | [`SECURITY.md`](SECURITY.md)                         |
-| Agent skills reference               | [`.github/skills/`](.github/skills/)                 |
-| Custom agents reference              | [`.github/agents/`](.github/agents/)                 |
+| Task                                 | Start Here                                             |
+| ------------------------------------ | ------------------------------------------------------ |
+| Understand the architecture          | [`docs/packages.md`](docs/packages.md)                 |
+| Run the tracker in a container       | [`docs/containers.md`](docs/containers.md)             |
+| Read all docs                        | [`docs/index.md`](docs/index.md)                       |
+| Understand an architectural decision | [`docs/adrs/README.md`](docs/adrs/README.md)           |
+| Read or write an issue spec          | [`docs/issues/`](docs/issues/)                         |
+| Run benchmarks                       | [`docs/benchmarking.md`](docs/benchmarking.md)         |
+| Run profiling                        | [`docs/profiling.md`](docs/profiling.md)               |
+| Understand the release process       | [`docs/release_process.md`](docs/release_process.md)   |
+| Report a security vulnerability      | [`SECURITY.md`](SECURITY.md)                           |
+| Agent skills reference               | [`.github/skills/`](.github/skills/)                   |
+| Custom agents reference              | [`.github/agents/README.md`](.github/agents/README.md) |

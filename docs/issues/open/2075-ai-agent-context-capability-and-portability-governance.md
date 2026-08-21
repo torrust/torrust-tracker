@@ -1,14 +1,14 @@
 ---
 doc-type: issue
 issue-type: task
-status: draft
+status: open
 priority: p2
 epic: null
-github-issue: null
+github-issue: 2075
 spec-path: docs/issues/open/2075-ai-agent-context-capability-and-portability-governance.md
 branch: "2075-ai-agent-context-capability-and-portability-governance"
-related-pr: "https://github.com/torrust/torrust-tracker/pull/2076"
-last-updated-utc: 2026-08-21 17:10
+related-pr: null
+last-updated-utc: 2026-08-21 17:25
 semantic-links:
   skill-links:
     - create-issue
@@ -191,17 +191,17 @@ than inferred.
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| ID  | Status | Task                                                                     | Notes / Expected Output                                                                                                                                                                               |
-| --- | ------ | ------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| T1  | TODO   | Decide ADR scope and relationship to ADR 20260420200013                  | Record whether the new ADR extends or supersedes any portion of the existing framework decision.                                                                                                      |
-| T2  | TODO   | Create the governance ADR                                                | Define authority model, capability-adapter constraints, terminology, exceptions, and consequences.                                                                                                    |
-| T3  | TODO   | Inventory agent capabilities and portability risks                       | Cover profiles, instructions, skills, tools/MCP, retained context, indexes, cloud setup, and IDE settings. Record canonical workflow, alternative, evidence, and limitation for each used capability. |
-| T4  | TODO   | Create an operational companion only if necessary                        | Prefer ADR plus concise `AGENTS.md` rules; add a guide only for durable operational detail that would otherwise duplicate or overload the ADR.                                                        |
-| T5  | TODO   | Add the implementation-independence engineering principle and navigation | Add a concise rule under `AGENTS.md` Engineering Policies; update `docs/index.md` and `docs/AGENTS.md` as needed with canonical links.                                                                |
-| T6  | TODO   | Add a minimal agent catalog if it improves discovery                     | Link to existing `.agent.md` definitions rather than duplicating their metadata; document catalog maintenance ownership.                                                                              |
-| T7  | TODO   | Define support-matrix and portability-review records                     | Use evidence-based status definitions; do not state unverified vendor, model, memory, index, or tool guarantees.                                                                                      |
-| T8  | TODO   | Evaluate dedicated maintenance skills                                    | Add only concrete repeatable on-demand workflows consistent with `add-new-skill` guidance.                                                                                                            |
-| T9  | TODO   | Verify documentation and links                                           | Run required linters, documentation tests, and applicable manual evidence review.                                                                                                                     |
+| ID  | Status | Task                                                                     | Notes / Expected Output                                                                                                                                   |
+| --- | ------ | ------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| T1  | DONE   | Decide ADR scope and relationship to ADR 20260420200013                  | New ADR extends the existing framework decision; it does not supersede it.                                                                                |
+| T2  | DONE   | Create the governance ADR                                                | Added `20260821172000_establish_ai_agent_context_capability_and_portability_governance.md`.                                                               |
+| T3  | DONE   | Inventory agent capabilities and portability risks                       | ADR records observed profiles, instructions, skills, prompts, tools/MCP preference, cloud setup, IDE settings, retained state, evidence, and limitations. |
+| T4  | DONE   | Create an operational companion only if necessary                        | Not added: the ADR and concise `AGENTS.md` rule provide one source of truth without duplicating procedure.                                                |
+| T5  | DONE   | Add the implementation-independence engineering principle and navigation | Added Engineering Policy 7 and ADR links from `docs/index.md` and `docs/AGENTS.md`.                                                                       |
+| T6  | DONE   | Add a minimal agent catalog if it improves discovery                     | Added `.github/agents/README.md` as a link-only catalog; each `.agent.md` remains authoritative.                                                          |
+| T7  | DONE   | Define support-matrix and portability-review records                     | ADR defines `Tracked`, `Reviewed`, and `Verified` evidence states, annual August review, and event triggers.                                              |
+| T8  | DONE   | Evaluate dedicated maintenance skills                                    | Not added: no concrete recurring on-demand workflow justified a new skill.                                                                                |
+| T9  | DONE   | Verify documentation and links                                           | Full pre-commit checks passed; manual verification results are recorded below.                                                                            |
 
 ## Progress Tracking
 
@@ -211,10 +211,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
 - [x] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
-- [ ] Manual verification scenarios executed and recorded (status + evidence)
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Implementation completed
+- [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
+- [x] Manual verification scenarios executed and recorded (status + evidence)
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
@@ -225,35 +225,37 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-08-21 16:45 UTC - GitHub Copilot - Expanded the draft before approval to cover provider-specific capabilities and portability risks beyond retained memory.
 - 2026-08-21 16:50 UTC - GitHub Copilot - GitHub issue #2075 created; spec moved from `docs/issues/drafts/` to `docs/issues/open/`.
 - 2026-08-21 17:10 UTC - GitHub Copilot - Spec-only PR #2076 opened against `develop`.
+- 2026-08-21 17:25 UTC - GitHub Copilot - Implemented the governance ADR, agent catalog, Engineering Policy, and documentation navigation; validation remains in progress.
+- 2026-08-21 17:30 UTC - GitHub Copilot - Full pre-commit checks passed; recorded manual verification, including unavailable external-runtime evidence.
 
 ## Acceptance Criteria
 
-- [ ] AC1: A tracked ADR defines the authority model and explicitly states that agent-local retained
+- [x] AC1: A tracked ADR defines the authority model and explicitly states that agent-local retained
       state cannot be the sole record of repository conventions or project decisions.
-- [ ] AC2: The policy contains a memory-write decision rule, prohibited-content rule, and bounded
+- [x] AC2: The policy contains a memory-write decision rule, prohibited-content rule, and bounded
       promotion rule for reusable environment facts.
-- [ ] AC3: The policy uses functional retention/visibility terminology and does not require a
+- [x] AC3: The policy uses functional retention/visibility terminology and does not require a
       vendor-specific memory path or implementation.
-- [ ] AC4: The policy inventories used provider-specific capability categories and records each
+- [x] AC4: The policy inventories used provider-specific capability categories and records each
       integration's purpose, canonical workflow/source, portability risk, practical alternative,
       evidence, and limitation.
-- [ ] AC5: Repository workflows and knowledge remain discoverable and reproducible with tracked
+- [x] AC5: Repository workflows and knowledge remain discoverable and reproducible with tracked
       Markdown, scripts, tests, or documented standard interfaces when provider-specific adapters are
       unavailable.
-- [ ] AC6: `AGENTS.md` Engineering Policies contains a concise AI-agent implementation-independence
+- [x] AC6: `AGENTS.md` Engineering Policies contains a concise AI-agent implementation-independence
       principle and links to the canonical policy.
-- [ ] AC7: Repository-defined agent profiles are discoverable through tracked navigation without
+- [x] AC7: Repository-defined agent profiles are discoverable through tracked navigation without
       duplicating their authoritative frontmatter.
-- [ ] AC8: Compatibility/support records distinguish tracked, reviewed, and verified states and
+- [x] AC8: Compatibility/support records distinguish tracked, reviewed, and verified states and
       include evidence, date, scenario, result, and limitations.
-- [ ] AC9: The policy defines a deterministic review cadence, event-driven triggers, and a durable
+- [x] AC9: The policy defines a deterministic review cadence, event-driven triggers, and a durable
       review-record format.
-- [ ] AC10: Existing secret-handling guidance is linked rather than contradicted or duplicated.
-- [ ] `linter all` exits with code `0`.
-- [ ] Relevant documentation tests pass.
-- [ ] Manual verification scenarios are executed and documented (status + evidence).
-- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior.
-- [ ] Documentation is updated when behavior/workflow changes.
+- [x] AC10: Existing secret-handling guidance is linked rather than contradicted or duplicated.
+- [x] `linter all` exits with code `0`.
+- [x] Relevant documentation tests pass.
+- [x] Manual verification scenarios are executed and documented (status + evidence).
+- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior.
+- [x] Documentation is updated when behavior/workflow changes.
 
 ## Verification Plan
 
@@ -270,28 +272,28 @@ Define verification before implementation starts and execute it before closing t
 
 Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
-| ID  | Scenario                                    | Command/Steps                                                                                                                          | Expected Result                                                                                 | Status | Evidence |
-| --- | ------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- | ------ | -------- |
-| M1  | Trace authority for a shared convention     | Select a representative project convention and confirm its tracked source is discoverable from `AGENTS.md` or canonical documentation. | The convention is not dependent on retained agent state.                                        | TODO   |          |
-| M2  | Apply memory-write decision rule            | Classify one shared repository fact, one temporary task fact, one user preference, and one prohibited secret-like value.               | Each classification selects the required storage/promotion outcome.                             | TODO   |          |
-| M3  | Trace provider-specific capability fallback | Select one profile/skill/tool or cloud setup adapter and follow its canonical source or documented standard-tool alternative.          | Required repository workflow remains discoverable without relying solely on the adapter.        | TODO   |          |
-| M4  | Review agent catalog and support record     | Compare catalog links to tracked `.github/agents/*.agent.md` definitions and inspect one evidence record.                              | The catalog does not duplicate profile metadata or claim unverified runtime guarantees.         | TODO   |          |
-| M5  | Validate optional external-runtime evidence | Where an accessible runtime exposes a public version/capability source, record the review source, scenario, result, and limitation.    | Any unavailable evidence is explicitly marked unavailable; the policy remains valid without it. | TODO   |          |
+| ID  | Scenario                                    | Command/Steps                                                                                                                          | Expected Result                                                                                 | Status | Evidence                                                                                                                                  |
+| --- | ------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- | ------ | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| M1  | Trace authority for a shared convention     | Select a representative project convention and confirm its tracked source is discoverable from `AGENTS.md` or canonical documentation. | The convention is not dependent on retained agent state.                                        | DONE   | `AGENTS.md` Engineering Policy 7 links to the ADR; the ADR defines tracked artifacts as authoritative.                                    |
+| M2  | Apply memory-write decision rule            | Classify one shared repository fact, one temporary task fact, one user preference, and one prohibited secret-like value.               | Each classification selects the required storage/promotion outcome.                             | DONE   | ADR retained-state rules define all four outcomes.                                                                                        |
+| M3  | Trace provider-specific capability fallback | Select one profile/skill/tool or cloud setup adapter and follow its canonical source or documented standard-tool alternative.          | Required repository workflow remains discoverable without relying solely on the adapter.        | DONE   | `github-operator.agent.md` documents MCP → GitHub CLI → raw API preference; ADR records the GitHub CLI/raw API alternative.               |
+| M4  | Review agent catalog and support record     | Compare catalog links to tracked `.github/agents/*.agent.md` definitions and inspect one evidence record.                              | The catalog does not duplicate profile metadata or claim unverified runtime guarantees.         | DONE   | `.github/agents/README.md` links all ten profile definitions; the ADR labels unsupported runtime behavior unverified.                     |
+| M5  | Validate optional external-runtime evidence | Where an accessible runtime exposes a public version/capability source, record the review source, scenario, result, and limitation.    | Any unavailable evidence is explicitly marked unavailable; the policy remains valid without it. | DONE   | ADR initial review record states that no reproducible external runtime/version source was available and records the resulting limitation. |
 
 ### Acceptance Verification
 
-| AC ID | Status (`TODO`/`DONE`) | Evidence |
-| ----- | ---------------------- | -------- |
-| AC1   | TODO                   |          |
-| AC2   | TODO                   |          |
-| AC3   | TODO                   |          |
-| AC4   | TODO                   |          |
-| AC5   | TODO                   |          |
-| AC6   | TODO                   |          |
-| AC7   | TODO                   |          |
-| AC8   | TODO                   |          |
-| AC9   | TODO                   |          |
-| AC10  | TODO                   |          |
+| AC ID | Status (`TODO`/`DONE`) | Evidence                                                                                        |
+| ----- | ---------------------- | ----------------------------------------------------------------------------------------------- |
+| AC1   | DONE                   | `docs/adrs/20260821172000_establish_ai_agent_context_capability_and_portability_governance.md`  |
+| AC2   | DONE                   | ADR retained-state rules and promotion requirement.                                             |
+| AC3   | DONE                   | ADR uses functional retained-state terminology and avoids vendor paths.                         |
+| AC4   | DONE                   | ADR capability inventory records tracked evidence and limitations for all scope categories.     |
+| AC5   | DONE                   | ADR requires tracked canonical workflows or practical alternatives for provider adapters.       |
+| AC6   | DONE                   | `AGENTS.md` Engineering Policy 7 links to the ADR.                                              |
+| AC7   | DONE                   | `.github/agents/README.md` is a link-only catalog of the ten authoritative profile definitions. |
+| AC8   | DONE                   | ADR defines `Tracked`, `Reviewed`, and `Verified` with evidence requirements.                   |
+| AC9   | DONE                   | ADR requires annual August review and event-driven reviews with durable records.                |
+| AC10  | DONE                   | ADR links to existing secret-handling guidance and defines only the agent-retention boundary.   |
 
 ## Risks and Trade-offs
 
