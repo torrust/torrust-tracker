@@ -15,7 +15,7 @@ semantic-links:
     - packages/configuration/src/v3_0_0/
     - packages/configuration/src/v3_0_0/database.rs
     - packages/configuration/src/lib.rs
-    - docs/issues/drafts/adopt-secrecy-for-sensitive-configuration.md
+    - docs/issues/open/2079-adopt-secrecy-for-sensitive-configuration.md
 ---
 
 # Issue #1490 - Decompose v3 database configuration
@@ -69,7 +69,7 @@ pub enum Database {
 }
 ```
 
-The [adopt secrecy for sensitive configuration](../drafts/adopt-secrecy-for-sensitive-configuration.md) issue is implemented first. It adds the dependency and protects API tokens in both configuration versions, but leaves legacy database URLs as plain strings because their embedded credentials cannot be isolated. This issue then uses the established `Secret<String>` convention for the new, isolated `ConnectionInfo.password`. The legacy v2 database URL retains its explicit `mask_secrets()` redaction.
+The [adopt secrecy for sensitive configuration](2079-adopt-secrecy-for-sensitive-configuration.md) issue is implemented first. It adds the dependency and protects API tokens in both configuration versions, but leaves legacy database URLs as plain strings because their embedded credentials cannot be isolated. This issue then uses the established `Secret<String>` convention for the new, isolated `ConnectionInfo.password`. The legacy v2 database URL retains its explicit `mask_secrets()` redaction.
 
 ### TOML representation
 
@@ -221,6 +221,6 @@ This is a **breaking v3 configuration-schema change** with no fallback for the l
 ## References
 
 - Related issue: #1441 (secret leak through tracing).
-- Follow-up draft: [Adopt `secrecy` for sensitive configuration](../drafts/adopt-secrecy-for-sensitive-configuration.md).
+- Prerequisite: [#2079 — Adopt `secrecy` for sensitive configuration](2079-adopt-secrecy-for-sensitive-configuration.md).
 - Related: `packages/configuration/src/v2_0_0/database.rs`.
 - Related: `packages/configuration/src/v3_0_0/database.rs`.

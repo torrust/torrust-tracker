@@ -1,31 +1,29 @@
 ---
 doc-type: issue
 issue-type: enhancement
-status: draft
+status: open
 priority: p1
-github-issue: null
-spec-path: docs/issues/drafts/adopt-secrecy-for-sensitive-configuration.md
-branch: "{issue-number}-adopt-secrecy-for-sensitive-configuration"
+github-issue: 2079
+spec-path: docs/issues/open/2079-adopt-secrecy-for-sensitive-configuration.md
+branch: "2079-adopt-secrecy-for-sensitive-configuration"
 related-pr: null
-last-updated-utc: 2026-08-21 16:45
+last-updated-utc: 2026-08-21 17:00
 semantic-links:
   skill-links:
     - create-issue
     - handle-secrets
   related-artifacts:
     - .github/skills/dev/rust-code-quality/handle-secrets/SKILL.md
-    - packages/configuration/src/v2_0_0/database.rs
     - packages/configuration/src/v2_0_0/tracker_api.rs
-    - packages/configuration/src/v3_0_0/database.rs
     - packages/configuration/src/v3_0_0/tracker_api.rs
     - docs/issues/open/1490-1978-decompose-database-configuration.md
 ---
 
-# Issue #[To be assigned] - Adopt `secrecy` for sensitive configuration
+# Issue #2079 - Adopt `secrecy` for sensitive configuration
 
 ## Goal
 
-Use the Rust `secrecy` crate consistently for configuration secrets in both schema versions. This makes secrets explicit in the public type system, redacts them automatically from `Debug` and `Display` output, clears them from memory when dropped, and makes every intentional exposure visible in code review.
+Use the Rust `secrecy` crate consistently for configuration API tokens in both schema versions. This makes secrets explicit in the public type system, redacts them automatically from `Debug` and `Display` output, clears them from memory when dropped, and makes every intentional exposure visible in code review.
 
 ## Background
 
@@ -33,7 +31,7 @@ Configuration currently represents API tokens and database credentials as plain 
 
 The repository's `handle-secrets` skill already requires `Secret<String>` for passwords, API tokens, and credentials. The accepted [Torrust Tracker Deployer ADR: Use Secrecy Crate for Sensitive Data Handling](https://github.com/torrust/torrust-tracker-deployer/blob/main/docs/decisions/secrecy-crate-for-sensitive-data.md) independently reaches the same decision. It identifies automatic redaction, clearing secrets from memory, a searchable secret inventory, and explicit `expose_secret()` calls as the key benefits. Its rationale supports adopting the crate directly rather than building a custom wrapper.
 
-This is the first of the two refactors. It delivers immediate protection for API tokens in the active v2 configuration while establishing the dependency and usage conventions that #1490 consumes. #1490 subsequently decomposes only v3 database configuration and protects its new isolated password field with `Secret<String>` from the outset.
+This is the first of two refactors. It delivers immediate protection for API tokens in the active v2 configuration while establishing the dependency and usage conventions that #1490 consumes. #1490 subsequently decomposes only v3 database configuration and protects its new isolated password field with `Secret<String>` from the outset.
 
 ### Version-specific representation
 
@@ -42,9 +40,9 @@ This is the first of the two refactors. It delivers immediate protection for API
 | v2.0.0         | `HashMap<String, Secret<String>>` | No change. Network database URLs remain plain strings with the existing `mask_secrets()` behavior because the password is embedded in the legacy representation. |
 | v3.0.0         | `HashMap<String, Secret<String>>` | No change in this issue. #1490 later introduces `ConnectionInfo.password: Secret<String>`; SQLite paths remain plain strings.                                    |
 
-The TOML schema remains unchanged by this issue: users continue writing token values such as `access_tokens.admin = "..."`. Only the Rust public API for access tokens changes.
+The TOML schema remains unchanged: users continue writing token values such as `access_tokens.admin = "..."`. Only the Rust public API for access tokens changes.
 
-> **Release gate**: Because changing public API-token values from `String` to `Secret<String>` is semver-breaking for Rust consumers, do not publish a `torrust-tracker-configuration` release exposing the v3 types until this issue and #1490 are complete. If such a release is already published, schedule the type changes for the next major package version.
+> **Release gate**: Changing public API-token values from `String` to `Secret<String>` is semver-breaking for Rust consumers. Do not publish a `torrust-tracker-configuration` release exposing the v3 types until this issue and #1490 are complete. If such a release is already published, schedule the type changes for the next major package version.
 
 ## Scope
 
@@ -52,18 +50,17 @@ The TOML schema remains unchanged by this issue: users continue writing token va
 
 - Add the current stable `secrecy` crate dependency at the appropriate workspace/package boundary.
 - Represent configuration API tokens as `Secret<String>` in v2 and v3.
-- Represent API tokens as `Secret<String>` in v2 and v3.
 - Preserve TOML serialization and deserialization of API tokens without changing the configuration-file surface.
 - Retain v2 and current v3 database URL masking; #1490 separately removes only its superseded v3 database redaction after isolating the password.
-- Replace selected secret redaction code paths with type-level protection and update callers to expose values only at runtime integration boundaries.
-- Add focused tests that assert the exact `Secret([REDACTED])` representation and assert that actual test secrets never appear.
-- Audit all configuration logging, display, debug, tracing, and error contexts for accidental secret exposure.
-- Update the secret-handling skill and any repository documentation that describes the old manual convention.
+- Replace selected API-token redaction code paths with type-level protection and expose values only at runtime integration boundaries.
+- Add focused tests that assert the exact `Secret([REDACTED])` representation and that actual test tokens never appear.
+- Audit configuration logging, display, debug, tracing, and error contexts for accidental API-token exposure.
+- Update the secret-handling skill and relevant documentation describing the old manual convention.
 
 ### Out of Scope
 
-- Changing the v2 or v3 TOML field names or configuration file syntax.
-- Protecting database credentials, including wrapping the legacy v2/v3 database URL. #1490 introduces and protects only the new isolated v3 password.
+- Changing v2 or v3 TOML field names or configuration file syntax.
+- Protecting database credentials, including wrapping legacy v2/v3 database URLs. #1490 introduces and protects only the new isolated v3 password.
 - Encrypting configuration files or secrets at rest.
 - Introducing a custom wrapper around `secrecy::Secret<T>`.
 - Applying secret types outside configuration unless an audit finds a direct configuration boundary that requires it.
@@ -95,8 +92,8 @@ The TOML schema remains unchanged by this issue: users continue writing token va
 ### Workflow Checkpoints
 
 - [x] Spec drafted in `docs/issues/drafts/`
-- [ ] Spec reviewed and approved by user/maintainer
-- [ ] GitHub issue created and issue number added to this spec
+- [x] Spec reviewed and approved by user/maintainer
+- [x] GitHub issue created and issue number added to this spec (#2079)
 - [ ] (Recommended) Spec-only PR merged into `develop` before implementation
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and pre-push checks)
@@ -108,6 +105,7 @@ The TOML schema remains unchanged by this issue: users continue writing token va
 
 - 2026-08-21 00:00 UTC - josecelano - Drafted from #1490 as the secret-handling effort.
 - 2026-08-21 16:45 UTC - josecelano - Reordered the two refactors: implement this smaller API-token-focused change first. Do not wrap legacy database URLs; #1490 later isolates and protects the v3 database password.
+- 2026-08-21 17:00 UTC - Copilot/User - Maintainer approved the draft; created GitHub issue #2079 and moved the specification to open issues.
 
 ## Acceptance Criteria
 
@@ -163,7 +161,7 @@ The TOML schema remains unchanged by this issue: users continue writing token va
 
 ## References
 
-- Follow-up: [#1490 — Decompose v3 database configuration](../open/1490-1978-decompose-database-configuration.md).
+- Follow-up: [#1490 — Decompose v3 database configuration](1490-1978-decompose-database-configuration.md).
 - Related issue: #1441 (secret leak through tracing).
 - Repository policy: [Handle secrets skill](../../../.github/skills/dev/rust-code-quality/handle-secrets/SKILL.md).
 - Repository policy: [Global CLI output contract ADR](../../adrs/20260519000000_define_global_cli_output_contract.md).

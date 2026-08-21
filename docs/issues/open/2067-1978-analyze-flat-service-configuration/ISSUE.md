@@ -18,7 +18,7 @@ semantic-links:
     - docs/issues/open/1978-configuration-overhaul-epic/EPIC.md
     - docs/issues/open/1978-configuration-overhaul-epic/configuration-v2-to-v3-migration.md
     - docs/issues/open/1490-1978-decompose-database-configuration.md
-    - docs/issues/drafts/adopt-secrecy-for-sensitive-configuration.md
+    - docs/issues/open/2079-adopt-secrecy-for-sensitive-configuration.md
     - docs/issues/open/2067-1978-analyze-flat-service-configuration/analysis.md
     - docs/issues/open/2067-1978-analyze-flat-service-configuration/evidence.md
     - docs/issues/open/2067-1978-analyze-flat-service-configuration/first-impressions.md
@@ -471,6 +471,6 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 - Candidate schema v3: `packages/configuration/src/v3_0_0/mod.rs`
 - Runtime v3 consumer migration: [#1980](../1980-1978-configuration-overhaul-final-cleanup.md)
 - Database configuration: [#1490](../1490-1978-decompose-database-configuration.md)
-- Preceding secret-handling effort: [draft issue](../../drafts/adopt-secrecy-for-sensitive-configuration.md)
+- Preceding secret-handling effort: [#2079](../2079-adopt-secrecy-for-sensitive-configuration.md)
 - Final decision record: [analysis.md](analysis.md)
 - Evidence ledger: [evidence.md](evidence.md)

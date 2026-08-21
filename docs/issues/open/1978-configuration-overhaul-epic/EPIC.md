@@ -20,7 +20,7 @@ semantic-links:
     - docs/issues/open/2023-1978-expose-configured-public-urls-in-runtime-observability.md
     - docs/issues/open/2067-1978-analyze-flat-service-configuration/ISSUE.md
     - docs/issues/open/1490-1978-decompose-database-configuration.md
-    - docs/issues/drafts/adopt-secrecy-for-sensitive-configuration.md
+    - docs/issues/open/2079-adopt-secrecy-for-sensitive-configuration.md
     - docs/adrs/20260617093046_reject_wildcard_external_ip.md
 ---
 
@@ -97,20 +97,20 @@ Status values: `TODO`, `IN_PROGRESS`, `IN_REVIEW`, `BLOCKED`, `DONE`.
 | 5     | [#1415](https://github.com/torrust/torrust-tracker/issues/1415) — Use `ServiceBinding` instead of bare `SocketAddr` for service identity            | `docs/issues/closed/1415-1978-use-service-binding-instead-of-socket-addr/ISSUE.md`      | DONE   | Added protocol-aware `service_binding` alongside compatible `server_socket_addr` fields in HTTP tracker, REST API, and UDP error logs; verified manually. |
 | 6     | [#1453](https://github.com/torrust/torrust-tracker/issues/1453) — IP bans reset interval configurable + fix duplicate cleanup                       | `docs/issues/closed/1453-1978-ip-bans-reset-interval-configurable/ISSUE.md`             | DONE   | V3 setting validated; one cancellation-managed bootstrap cleanup job uses the v3 default constant. Runtime configuration use is deferred to #1980.        |
 | 7     | [#1136](https://github.com/torrust/torrust-tracker/issues/1136) — Add configurable UDP connection ID validation policy                              | `docs/issues/closed/1136-1978-configurable-udp-connection-id-validation-policy.md`      | DONE   | PR #2032 merged; all 12 ACs met; manual verification deferred to #1980.                                                                                   |
-| 8     | [#1490](https://github.com/torrust/torrust-tracker/issues/1490) — Decompose v3 database configuration                                               | `docs/issues/open/1490-1978-decompose-database-configuration.md`                        | TODO   | After #3 and the secrecy follow-up; isolates the v3 password as `Secret<String>`.                                                                         |
+| 8     | [#1490](https://github.com/torrust/torrust-tracker/issues/1490) — Decompose v3 database configuration                                               | `docs/issues/open/1490-1978-decompose-database-configuration.md`                        | TODO   | After #3 and #2079; isolates the v3 password as `Secret<String>`.                                                                                         |
 | 9     | [#889](https://github.com/torrust/torrust-tracker/issues/889) — New config option for logging style                                                 | `docs/issues/closed/889-1978-new-config-option-for-logging-style.md`                    | DONE   | V3 schema implemented; includes negative test for removed `threshold` key. Manual verification is deferred to #1980.                                      |
 | 10    | [#1987](https://github.com/torrust/torrust-tracker/issues/1987) — Use peer IP from the HTTP announce `ip` parameter when configured                 | `docs/issues/open/1987-add-config-option-to-use-ip-from-announce-query-string/ISSUE.md` | TODO   | After #3 and external prerequisite #1985; per-HTTP-tracker opt-in policy                                                                                  |
 | 11    | [#1980](https://github.com/torrust/torrust-tracker/issues/1980) — Final cleanup: remove global re-exports, migrate consumers to explicit v3 imports | `docs/issues/open/1980-1978-configuration-overhaul-final-cleanup.md`                    | TODO   | Must follow all implemented schema subissues and the secrecy release gate.                                                                                |
 | 12    | [#2023](https://github.com/torrust/torrust-tracker/issues/2023) — Expose configured public URLs in runtime observability                            | `docs/issues/open/2023-1978-expose-configured-public-urls-in-runtime-observability.md`  | TODO   | Must follow #1417 and #1980; adds `public_url` to health checks, metrics, and logs without replacing ServiceBinding.                                      |
 | 13    | [#2067](https://github.com/torrust/torrust-tracker/issues/2067) — Analyze a flat heterogeneous service configuration                                | `docs/issues/open/2067-1978-analyze-flat-service-configuration/ISSUE.md`                | TODO   | Non-blocking analysis only; any recommended implementation follows #1980 and accounts for database and secrecy work.                                      |
 
-### Release-gated follow-up draft
+### Release-gated prerequisite
 
-The numbered table lists the 13 GitHub-linked EPIC subissues. The following draft will receive its own issue number only after maintainer approval; it is deliberately not assigned an EPIC order until then:
+Issue #2079 is outside the numbered configuration-overhaul subissues but is a release-gated prerequisite for #1490 and publishing a configuration release exposing v3 types:
 
-| Issue                                       | Local Spec                                                        | Status | Notes                                                                                                                                                                                                                                                                |
-| ------------------------------------------- | ----------------------------------------------------------------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Adopt `secrecy` for sensitive configuration | `docs/issues/drafts/adopt-secrecy-for-sensitive-configuration.md` | DRAFT  | Implements first: protects API tokens in v2 and v3, but leaves legacy database URLs and masking unchanged. #1490 follows and adds the isolated v3 secret password. Do not publish a `torrust-tracker-configuration` release exposing v3 types until both are merged. |
+| Issue                                                                                                         | Local Spec                                                           | Status | Notes                                                                                                                                                                                                                                                                |
+| ------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [#2079](https://github.com/torrust/torrust-tracker/issues/2079) — Adopt `secrecy` for sensitive configuration | `docs/issues/open/2079-adopt-secrecy-for-sensitive-configuration.md` | TODO   | Implements first: protects API tokens in v2 and v3, but leaves legacy database URLs and masking unchanged. #1490 follows and adds the isolated v3 secret password. Do not publish a `torrust-tracker-configuration` release exposing v3 types until both are merged. |
 
 ## Delivery Strategy
 
@@ -126,7 +126,7 @@ graph TD
       sub1 --> sub9["9. #889 Logging style"]
     sub2 --> sub3
     sub3 --> sub4["4. #1417 public_url"]
-      sub1 --> secrecy["Secrecy follow-up (draft)"]
+      sub1 --> secrecy["#2079 Secrecy"]
       sub3 --> sub8["8. #1490 Database configuration"]
       secrecy --> sub8
       sub3 --> sub10["10. #1987 Announce IP policy"]
@@ -171,7 +171,7 @@ Subissues #5, #6, #7, #9 are independent and can run in parallel with the critic
 ### Phase 1: Structural changes (sequential)
 
 - **Subissue #3** (#1640) — Per-instance `Network` block in schema v3.0.0. Establishes the `Network` struct that #4 references; v3 does not support removed v2 field names.
-- **Release-gated follow-up draft** — Adopt `secrecy` for sensitive configuration first. It protects API tokens in v2 and v3 and establishes the `Secret<String>` convention without changing legacy database URLs.
+- **Release-gated prerequisite #2079** — Adopt `secrecy` for sensitive configuration first. It protects API tokens in v2 and v3 and establishes the `Secret<String>` convention without changing legacy database URLs.
 - **Subissue #8** (#1490) — Database enum decomposition. After #3 and the secrecy follow-up; it uses `Secret<String>` for the new isolated v3 database password.
 - **Subissue #4** (#1417) — `public_url` flat field. After #3 (depends on `Network` placement decision). ~6 files.
 - **Subissue #10** (#1987) — Opt-in use of the HTTP announce `ip` parameter. After #3 and external prerequisite #1985.
@@ -283,8 +283,9 @@ For each subissue implementation in this EPIC, the default completion policy is:
   configuration; any implementation remains separate from this EPIC delivery.
 - 2026-08-20 16:44 UTC - Copilot - Renamed #2067's folder-based subissue specification to include
   the parent EPIC number, following the open-issues naming convention.
-- 2026-08-21 16:30 UTC - Copilot/User - Split #1490's schema-decomposition and secret-typing work. #1490 now defines the final v3 database configuration shape; a release-gated `secrecy` follow-up remains a draft until approved and issued.
+- 2026-08-21 16:30 UTC - Copilot/User - Split #1490's schema-decomposition and secret-typing work. #1490 now defines the final v3 database configuration shape; a release-gated `secrecy` prerequisite was drafted.
 - 2026-08-21 16:45 UTC - josecelano - Ordered the smaller secrecy refactor first. It protects API tokens in v2 and v3 without wrapping legacy database URLs; #1490 follows and uses the established `Secret<String>` convention for the isolated v3 database password.
+- 2026-08-21 17:00 UTC - Copilot/User - Maintainer approved and created the secrecy prerequisite as GitHub issue #2079; moved its specification to `docs/issues/open/`.
 
 ## Acceptance Criteria
 
@@ -299,16 +300,16 @@ For each subissue implementation in this EPIC, the default completion policy is:
 
 ### Acceptance Verification
 
-| AC ID | Status (`TODO`/`DONE`) | Evidence                                                                                                      |
-| ----- | ---------------------- | ------------------------------------------------------------------------------------------------------------- |
-| AC1   | DONE                   | GitHub EPIC #1978 reports 13 linked subissues in the documented order.                                        |
-| AC2   | DONE                   | The dependency graph, critical paths, phases, and conflict hotspot table document ordering and rationale.     |
-| AC3   | DONE                   | The EPIC table, dependency graph, and release-gated secrecy draft record current prerequisites and blockers.  |
-| AC4   | DONE                   | The `Subissues` table and progress log record the current status for each linked issue.                       |
-| AC5   | TODO                   | Confirm every completed subissue's automatic-check evidence before closing the EPIC.                          |
-| AC6   | TODO                   | Confirm every completed subissue's manual-verification evidence before closing the EPIC.                      |
-| AC7   | TODO                   | Confirm every completed subissue's post-implementation acceptance review before closing the EPIC.             |
-| AC8   | TODO                   | Confirm required documentation and governance updates across all completed subissues before closing the EPIC. |
+| AC ID | Status (`TODO`/`DONE`) | Evidence                                                                                                          |
+| ----- | ---------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| AC1   | DONE                   | GitHub EPIC #1978 reports 13 linked subissues in the documented order.                                            |
+| AC2   | DONE                   | The dependency graph, critical paths, phases, and conflict hotspot table document ordering and rationale.         |
+| AC3   | DONE                   | The EPIC table, dependency graph, and release-gated #2079 prerequisite record current prerequisites and blockers. |
+| AC4   | DONE                   | The `Subissues` table and progress log record the current status for each linked issue.                           |
+| AC5   | TODO                   | Confirm every completed subissue's automatic-check evidence before closing the EPIC.                              |
+| AC6   | TODO                   | Confirm every completed subissue's manual-verification evidence before closing the EPIC.                          |
+| AC7   | TODO                   | Confirm every completed subissue's post-implementation acceptance review before closing the EPIC.                 |
+| AC8   | TODO                   | Confirm required documentation and governance updates across all completed subissues before closing the EPIC.     |
 
 ## Risks and Trade-offs
 
