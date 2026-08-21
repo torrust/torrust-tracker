@@ -134,17 +134,17 @@ Define verification before implementation starts and execute it before closing t
 
 Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
-| ID  | Scenario                                                | Command/Steps                                                                                                                | Expected Result                                                             | Status | Evidence |
-| --- | ------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- | ------ | -------- |
-| M1  | Run hadolint locally with config                        | `docker run --rm -i -v "$(pwd)/.hadolint.yaml:/.hadolint.yaml" hadolint/hadolint --config /.hadolint.yaml < ./Containerfile` | Clean output (no unexpected warnings)                                       | DONE   | 2026-08-21: pre-commit hadolint step passed |
-| M2  | Verify workflow passes with violations                  | Push branch and check container.yaml workflow run                                                                            | Workflow passes or fails as expected                                        | DONE   | PR #2028 merged; issue #1460 closed as completed |
+| ID  | Scenario                                                | Command/Steps                                                                                                                | Expected Result                                                             | Status | Evidence                                                        |
+| --- | ------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- | ------ | --------------------------------------------------------------- |
+| M1  | Run hadolint locally with config                        | `docker run --rm -i -v "$(pwd)/.hadolint.yaml:/.hadolint.yaml" hadolint/hadolint --config /.hadolint.yaml < ./Containerfile` | Clean output (no unexpected warnings)                                       | DONE   | 2026-08-21: pre-commit hadolint step passed                     |
+| M2  | Verify workflow passes with violations                  | Push branch and check container.yaml workflow run                                                                            | Workflow passes or fails as expected                                        | DONE   | PR #2028 merged; issue #1460 closed as completed                |
 | M3  | Verify ignored rules have rationale in `.hadolint.yaml` | Check `.hadolint.yaml` `ignored` section                                                                                     | Each ignored rule has rationale comments explaining why it's safe to ignore | DONE   | 2026-08-21: configuration checked during archive reconciliation |
 
 ### Acceptance Verification
 
-| AC ID | Status (`TODO`/`DONE`) | Evidence |
-| ----- | ---------------------- | -------- |
+| AC ID | Status (`TODO`/`DONE`) | Evidence                                                              |
+| ----- | ---------------------- | --------------------------------------------------------------------- |
 | AC1   | DONE                   | `.github/workflows/container.yaml` contains the pinned hadolint step. |
-| AC2   | DONE                   | `.hadolint.yaml` documents the four global rule suppressions. |
-| AC3   | DONE                   | PR #2028 merged and GitHub issue #1460 closed as completed. |
-| AC4   | DONE                   | `.hadolint.yaml` defines global and inline suppression policy. |
+| AC2   | DONE                   | `.hadolint.yaml` documents the four global rule suppressions.         |
+| AC3   | DONE                   | PR #2028 merged and GitHub issue #1460 closed as completed.           |
+| AC4   | DONE                   | `.hadolint.yaml` defines global and inline suppression policy.        |
