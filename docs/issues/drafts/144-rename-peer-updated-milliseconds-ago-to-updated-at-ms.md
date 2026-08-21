@@ -5,7 +5,7 @@ status: draft
 priority: p2
 epic: 144
 github-issue: null
-spec-path: docs/issues/drafts/rename-peer-updated-milliseconds-ago-to-updated-at-ms.md
+spec-path: docs/issues/drafts/144-rename-peer-updated-milliseconds-ago-to-updated-at-ms.md
 branch: null
 related-pr: null
 last-updated-utc: 2026-06-24
