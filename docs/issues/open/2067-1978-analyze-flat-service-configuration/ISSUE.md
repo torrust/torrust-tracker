@@ -275,7 +275,7 @@ This open issue is stored at `docs/issues/open/2067-1978-analyze-flat-service-co
 1. **Executive Decision**: recommendation (`reject`, `defer`, or `create implementation issue`), decision status, rationale, prerequisites, and proposed owner/follow-up.
 2. **Current-State Baseline**: v3 configuration shape, cardinality/defaulting, startup phases, container/registry behavior, configuration identity, shared UDP state, and secret-redaction boundary.
 3. **Candidate Representations**: at least two TOML/Rust shapes, including the adjacent-tagged candidate; operator ergonomics and validation consequences for each.
-4. **Feasibility Evidence**: TOML parsing, Serde serialization round-trip, Figment defaulting and environment overrides, unknown/discriminator errors, and constraints discovered by prototypes.
+4. **Feasibility Results**: TOML parsing, Serde serialization round-trip, Figment defaulting and environment overrides, unknown/discriminator errors, and constraints discovered by prototypes.
 5. **Runtime and Normalization Model**: recommended single owner for normalization, role-specific views, service startup dependencies, singleton/default behavior, and preservation of existing health/metrics/registration contracts.
 6. **Identity, Ordering, and Migration**: `ServiceKind` to `ServiceRole` mapping, `ConfigurationInstanceId` behavior, loss of cross-role ordering during v3-to-v4 migration, and a canonical migration-order rule if implementation is recommended.
 7. **Schema Lifecycle, Security, and Compatibility**: v3/v4 loading and transition policy, #1980/#1490 relationship, secret redaction, external configuration consumers, and observability compatibility.
