@@ -290,17 +290,17 @@ same probe was repeated with
 [`evidence-artifacts/wildcard-port-zero-manual.toml`](evidence-artifacts/wildcard-port-zero-manual.toml),
 which configures every public listener as `0.0.0.0:0`.
 
-Startup logs mapped each configured identity to a distinct final wildcard
-binding:
+Startup logs mapped each configured identity to a distinct final wildcard bind
+socket address. The probe clients used the corresponding loopback endpoints:
 
-| Instance        | Metrics policy | Final binding           |
-| --------------- | -------------- | ----------------------- |
-| `HttpTracker:0` | Disabled       | `http://0.0.0.0:41223/` |
-| `HttpTracker:1` | Enabled        | `http://0.0.0.0:39525/` |
-| `UdpTracker:0`  | Disabled       | `udp://0.0.0.0:39302`   |
-| `UdpTracker:1`  | Enabled        | `udp://0.0.0.0:44277`   |
+| Instance        | Metrics policy | Bind socket address | Client endpoint           |
+| --------------- | -------------- | ------------------- | ------------------------- |
+| `HttpTracker:0` | Disabled       | `0.0.0.0:41223`     | `http://127.0.0.1:41223/` |
+| `HttpTracker:1` | Enabled        | `0.0.0.0:39525`     | `http://127.0.0.1:39525/` |
+| `UdpTracker:0`  | Disabled       | `0.0.0.0:39302`     | `udp://127.0.0.1:39302`   |
+| `UdpTracker:1`  | Enabled        | `0.0.0.0:44277`     | `udp://127.0.0.1:44277`   |
 
-The clients connected to the corresponding `127.0.0.1` ports. One announce to
+One announce to
 each listener produced `tcp4_announces_handled: 1`,
 `udp4_announces_handled: 1`, `udp4_requests: 2`,
 `udp4_connections_handled: 1`, and `udp4_responses: 2`. The invalid-cookie

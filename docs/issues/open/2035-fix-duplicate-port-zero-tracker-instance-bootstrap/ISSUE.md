@@ -181,7 +181,7 @@ only for this issue's metrics-related final verification and closure.
   distinct fixed ports produce aggregate announce counts of `1` for each protocol.
 - `tests/metrics/port_zero.rs`: repeated-port-zero HTTP and UDP listeners retain their distinct
   canonical identities and produce aggregate announce counts of `1` for each protocol.
-- `cargo test --test metrics-port-zero --test metrics-fixed-ports --test banning-udp-metrics-disabled-port-zero --test scaffold -- --test-threads=1`.
+- `cargo test --test metrics-port-zero --test metrics-fixed-ports --test banning-udp-metrics-disabled-port-zero --test metrics-udp-error-enabled-port-zero --test metrics-udp-error-disabled-port-zero --test scaffold -- --test-threads=1`.
 - `linter all`.
 
 ### Manual Evidence Protocol
