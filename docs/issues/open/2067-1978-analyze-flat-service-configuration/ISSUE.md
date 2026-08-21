@@ -9,7 +9,7 @@ branch: "2067-analyze-flat-service-configuration"
 related-pr: 2068
 depends-on: null
 blocks: null
-last-updated-utc: 2026-08-20 16:51
+last-updated-utc: 2026-08-21 17:23
 semantic-links:
   skill-links:
     - create-issue
