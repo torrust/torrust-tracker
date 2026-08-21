@@ -206,10 +206,38 @@ ip_bans_reset_interval_in_secs = 86400
 
 **Subissue**: #1490 — Decompose database config and overhaul secrets
 
-> **TODO**: This section will be filled after #1490 is implemented.
-> The flat `[core.database]` block will be replaced with a per-driver
-> enum structure (`sqlite3`, `mysql`, `postgresql`) and secrets will use
-> the `secrecy` crate. The exact v3 syntax depends on the implementation.
+The `path` field will be replaced by driver-specific fields. Database passwords
+and HTTP API tokens will be stored as `secrecy::Secret<String>` values:
+configuration debug output will render each secret as `Secret([REDACTED])`
+rather than revealing its value.
+
+```toml
+# v2 — a filesystem path or credential-bearing URL shared one field name
+[core.database]
+driver = "mysql"
+path = "mysql://db_user:db_user_secret_password@mysql:3306/torrust_tracker"
+
+# v3 — fields match the selected database driver
+[core.database]
+driver = "mysql"
+host = "mysql"
+port = 3306 # optional; defaults to 3306 for MySQL and 5432 for PostgreSQL
+user = "db_user"
+password = "db_user_secret_password" # mandatory and non-empty
+database = "torrust_tracker"
+```
+
+SQLite retains its filesystem `path`:
+
+```toml
+[core.database]
+driver = "sqlite3"
+path = "/var/lib/torrust/tracker/database/sqlite3.db"
+```
+
+This is a breaking configuration change: MySQL and PostgreSQL URLs are not
+accepted in v3. Move their URL components into the fields above. Do not use an
+empty password: loading rejects missing and empty network database passwords.
 
 ## Step 9: Configure HTTP announce IP trust policy
 

@@ -7,7 +7,7 @@ github-issue: 1490
 spec-path: docs/issues/open/1490-1978-decompose-database-config-and-overhaul-secrets.md
 branch: "1490-secrets-overhaul"
 related-pr: null
-last-updated-utc: 2026-07-13 21:00
+last-updated-utc: 2026-08-21 00:00
 semantic-links:
   skill-links:
     - create-issue
@@ -43,9 +43,13 @@ Currently, secrets are masked manually via a `mask_secrets()` method that clones
 
 Use the [`secrecy`](https://docs.rs/secrecy/) crate, which provides:
 
-- A `Secret<T>` wrapper type that implements `Debug` and `Display` without exposing the inner value
+- A `Secret<T>` wrapper type whose `Debug` representation redacts the inner value as `Secret([REDACTED])`
 - Automatic zeroing of memory when the secret is dropped (via `zeroize`)
 - Clear type-level distinction between secrets and plain strings
+
+This decision aligns with the accepted [Torrust Tracker Deployer ADR: Use Secrecy Crate for Sensitive Data Handling](https://github.com/torrust/torrust-tracker-deployer/blob/main/docs/decisions/secrecy-crate-for-sensitive-data.md). The deployer ADR independently reaches the same conclusion: use the maintained, ecosystem-standard `secrecy` crate directly instead of a custom secret wrapper or manual masking convention.
+
+> **Source of truth:** This repository issue specification is authoritative for implementing #1490. The GitHub issue body is informational only and may be stale; do not infer requirements from it that conflict with this specification.
 
 ### Database connection string
 
@@ -87,6 +91,10 @@ pub enum Database {
     PostgreSQL(ConnectionInfo),
 }
 ```
+
+`port` is optional in TOML for the network database variants, matching the current URL-based configuration behavior. When omitted, it defaults to `3306` for MySQL and `5432` for PostgreSQL. The in-memory `ConnectionInfo.port` remains a concrete `u16`; deserialization applies the driver-specific default.
+
+`password` is mandatory for MySQL and PostgreSQL and must not be empty. Configuration loading must reject an omitted or empty password rather than treating it as an empty secret.
 
 TOML representation:
 
@@ -130,6 +138,7 @@ This is a **breaking change** with no backward-compatibility fallback. Since we 
 | Benchmarks         | `persistence-benchmark/` (4 files)                                 | Construct enum variant  |
 | E2E config builder | `qbittorrent_e2e/tracker/config_builder.rs`                        | Construct enum variant  |
 | Default TOML files | `share/default/config/*.toml` (6 files)                            | New format              |
+| Operational docs   | `docs/containers.md`, v2-to-v3 migration guide                     | New per-driver examples |
 | Inline TOML/docs   | `mod.rs` tests, `lib.rs` doc comments, integration tests           | New format              |
 
 **AccessTokens `Secret<String>` wrapping (~10 additional files):**
@@ -167,20 +176,20 @@ The `rest-api-client` crate and `tracker-core` authentication are **not affected
 
 ## Implementation Plan
 
-| ID  | Status | Task                                                                  | Notes                                                                                   |
-| --- | ------ | --------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
-| T1  | TODO   | Add `secrecy` dependency to `packages/configuration/Cargo.toml`       | Latest stable version                                                                   |
-| T2  | TODO   | Define `ConnectionInfo` struct and `Database` enum                    | In `packages/configuration/src/v3_0_0/database.rs`                                      |
-| T3  | TODO   | Implement serde for `Database` enum (internally tagged)               | `driver` field as discriminant; `Sqlite3`, `MySQL`, `PostgreSQL` variants               |
-| T4  | TODO   | Wrap database password in `Secret<String>`                            | In `ConnectionInfo`; `Sqlite3` variant has no secrets                                   |
-| T5  | TODO   | Wrap API tokens in `Secret<String>`                                   | In `HttpApi` config struct                                                              |
-| T6  | TODO   | Remove manual `mask_secrets()` methods                                | No longer needed with type-level protection                                             |
-| T7  | TODO   | Update `tracker-core/src/databases/setup.rs` dispatch                 | Match on `Database` enum variant instead of `Driver`                                    |
-| T8  | TODO   | Update all ~25 consumers (tests, examples, benchmarks, E2E)           | Construct enum variants; use `.expose_secret()` for secrets                             |
-| T9  | TODO   | Update default config TOML files (6 files)                            | New per-driver format                                                                   |
-| T10 | TODO   | Update inline TOML in tests and doc comments                          | `mod.rs` tests, `lib.rs`, integration tests                                             |
-| T11 | TODO   | Run `linter all` and full test suite                                  |                                                                                         |
-| T12 | TODO   | Update migration guide if this subissue affects the config public API | `docs/issues/open/1978-configuration-overhaul-epic/configuration-v2-to-v3-migration.md` |
+| ID  | Status | Task                                                            | Notes                                                                                                     |
+| --- | ------ | --------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| T1  | TODO   | Add `secrecy` dependency to `packages/configuration/Cargo.toml` | Latest stable version                                                                                     |
+| T2  | TODO   | Define `ConnectionInfo` struct and `Database` enum              | In `packages/configuration/src/v3_0_0/database.rs`                                                        |
+| T3  | TODO   | Implement serde for `Database` enum (internally tagged)         | `driver` field as discriminant; default omitted ports to 3306 (MySQL) / 5432 (PostgreSQL)                 |
+| T4  | TODO   | Wrap and validate database passwords                            | Use `Secret<String>` in `ConnectionInfo`; reject omitted or empty passwords; `Sqlite3` has no secrets     |
+| T5  | TODO   | Wrap API tokens in `Secret<String>`                             | In `HttpApi` config struct                                                                                |
+| T6  | TODO   | Remove manual `mask_secrets()` methods                          | No longer needed with type-level protection                                                               |
+| T7  | TODO   | Update `tracker-core/src/databases/setup.rs` dispatch           | Match on `Database` enum variant instead of `Driver`                                                      |
+| T8  | TODO   | Update all ~25 consumers (tests, examples, benchmarks, E2E)     | Construct enum variants; use `.expose_secret()` for secrets                                               |
+| T9  | TODO   | Update default config TOML files (6 files)                      | New per-driver format                                                                                     |
+| T10 | TODO   | Update inline TOML in tests and doc comments                    | `mod.rs` tests, `lib.rs`, integration tests                                                               |
+| T11 | TODO   | Run `linter all` and full test suite                            |                                                                                                           |
+| T12 | TODO   | Update migration and operational documentation                  | Add before/after v2-to-v3 database examples and update `docs/containers.md` for the new connection fields |
 
 ## Progress Tracking
 
@@ -199,6 +208,7 @@ The `rest-api-client` crate and `tracker-core` authentication are **not affected
 
 - 2026-07-13 21:00 UTC - josecelano - Initial spec drafted
 - 2026-07-14 00:00 UTC - josecelano - Rewrote spec: decomposed `Database` into enum with `ConnectionInfo`; removed backward-compat fallback; added ripple-effect analysis (~25 files); renamed issue title
+- 2026-08-21 00:00 UTC - josecelano - Confirmed SQLx URL default-port behavior (MySQL 3306, PostgreSQL 5432); specified optional TOML ports, mandatory non-empty network database passwords, and exact `Secret([REDACTED])` debug output; added the related Torrust Tracker Deployer secrecy ADR and v2-to-v3 migration examples.
 
 ## Acceptance Criteria
 
@@ -209,6 +219,7 @@ The `rest-api-client` crate and `tracker-core` authentication are **not affected
 - [ ] AC5: All ~25 consumers compile and pass tests with the new enum + `Secret<String>`
 - [ ] AC6: Default config TOML files use the new per-driver format
 - [ ] AC7: No secrets leak in logs or tracing output
+- [ ] AC8: Omitted MySQL/PostgreSQL ports default to `3306`/`5432`; omitted or empty passwords are rejected
 - [ ] `linter all` exits with code `0`
 - [ ] Relevant tests pass
 
@@ -221,11 +232,12 @@ The `rest-api-client` crate and `tracker-core` authentication are **not affected
 
 ### Manual Verification Scenarios
 
-| ID  | Scenario                                    | Command/Steps                                         | Expected Result          | Status | Evidence |
-| --- | ------------------------------------------- | ----------------------------------------------------- | ------------------------ | ------ | -------- |
-| M1  | Verify secrets masked in logs               | Run tracker, check startup log for config output      | Secrets show as `***`    | TODO   |          |
-| M2  | Verify Debug output masks secrets           | `println!("{:?}", config)` in test or debug           | Secrets show as `***`    | TODO   |          |
-| M3  | Verify secrets accessible via expose_secret | Write test that reads a secret via `.expose_secret()` | Returns the actual value | TODO   |          |
+| ID  | Scenario                                        | Command/Steps                                                                       | Expected Result                                                         | Status | Evidence |
+| --- | ----------------------------------------------- | ----------------------------------------------------------------------------------- | ----------------------------------------------------------------------- | ------ | -------- |
+| M1  | Verify secrets redacted in logs                 | Run tracker, check startup log for config output                                    | Secret values never appear; each secret renders as `Secret([REDACTED])` | TODO   |          |
+| M2  | Verify Debug output redacts secrets             | `println!("{:?}", config)` in test or debug                                         | Exact literal `Secret([REDACTED])`; actual secret absent                | TODO   |          |
+| M3  | Verify secrets accessible via expose_secret     | Write test that reads a secret via `.expose_secret()`                               | Returns the actual value                                                | TODO   |          |
+| M4  | Verify network database defaults and validation | Deserialize configs omitting `port`, omitting `password`, and using `password = ""` | Omitted port uses driver default; missing/empty password is rejected    | TODO   |          |
 
 ### Acceptance Verification
 
@@ -237,11 +249,14 @@ The `rest-api-client` crate and `tracker-core` authentication are **not affected
 | AC4   | TODO   |          |
 | AC5   | TODO   |          |
 | AC6   | TODO   |          |
+| AC8   | TODO   |          |
 
 ## Risks and Trade-offs
 
 - **Breaking change for database config**: The `Database` struct becomes an enum; the old `path` field is removed with no backward-compatibility fallback. Mitigation: this is part of the v3.0.0 config schema bump where breaking changes are expected and documented.
 - **Consumer updates (~25 files)**: Every place that constructs or reads a `Database` value needs updating. Mitigation: the compiler will catch all mismatches; changes are mechanical (construct enum variant, use `.expose_secret()` for secrets).
+- **Driver-specific port defaults**: A shared `ConnectionInfo` needs deserialization aware of the selected driver. Mitigation: test omitted-port parsing for both network variants and retain a concrete, validated `u16` in memory.
+- **Empty database credentials**: Requiring non-empty passwords can reject configurations that previously encoded an empty URL password. Mitigation: this is an intentional security validation change; report a clear configuration error.
 - **Performance**: `secrecy` adds zeroize-on-drop overhead. Mitigation: negligible for config values read once at startup.
 
 ## References
@@ -250,3 +265,4 @@ The `rest-api-client` crate and `tracker-core` authentication are **not affected
 - Related: `packages/configuration/src/v2_0_0/database.rs`
 - Related: `packages/configuration/src/v2_0_0/tracker_api.rs`
 - Related: [secrecy crate docs](https://docs.rs/secrecy/)
+- Related: [Torrust Tracker Deployer ADR: Use Secrecy Crate for Sensitive Data Handling](https://github.com/torrust/torrust-tracker-deployer/blob/main/docs/decisions/secrecy-crate-for-sensitive-data.md)
