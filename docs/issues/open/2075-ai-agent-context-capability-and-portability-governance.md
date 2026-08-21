@@ -5,10 +5,10 @@ status: draft
 priority: p2
 epic: null
 github-issue: null
-spec-path: docs/issues/drafts/ai-agent-context-capability-and-portability-governance.md
-branch: "{issue-number}-ai-agent-context-capability-and-portability-governance"
-related-pr: null
-last-updated-utc: 2026-08-21 16:30
+spec-path: docs/issues/open/2075-ai-agent-context-capability-and-portability-governance.md
+branch: "2075-ai-agent-context-capability-and-portability-governance"
+related-pr: "https://github.com/torrust/torrust-tracker/pull/2076"
+last-updated-utc: 2026-08-21 17:10
 semantic-links:
   skill-links:
     - create-issue
@@ -210,7 +210,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Spec drafted in `docs/issues/drafts/`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
-- [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
+- [x] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [ ] Manual verification scenarios executed and recorded (status + evidence)
@@ -224,6 +224,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-08-21 16:30 UTC - GitHub Copilot - Created formal draft from the governance proposal and repository exploration; awaiting maintainer review before creating a GitHub issue.
 - 2026-08-21 16:45 UTC - GitHub Copilot - Expanded the draft before approval to cover provider-specific capabilities and portability risks beyond retained memory.
 - 2026-08-21 16:50 UTC - GitHub Copilot - GitHub issue #2075 created; spec moved from `docs/issues/drafts/` to `docs/issues/open/`.
+- 2026-08-21 17:10 UTC - GitHub Copilot - Spec-only PR #2076 opened against `develop`.
 
 ## Acceptance Criteria
 
