@@ -3,7 +3,7 @@ name: cleanup-completed-issues
 description: Guide for archiving closed issue specification files from docs/issues/open/ to docs/issues/closed/. Covers verifying closure on GitHub, moving files, updating frontmatter, auditing and repairing affected documentation links, creating a branch, and opening a PR. Permanent deletion of closed specs is not automated — the user must explicitly request it. Use when cleaning up closed issue specs, archiving issue docs, or maintaining the docs/issues/ folder. Triggers on "cleanup issue", "archive issue", "move closed issue", "clean completed issues", or "maintain issue docs".
 metadata:
   author: torrust
-  version: "1.6"
+  version: "1.7"
 ---
 
 # Cleaning Up Completed Issues
@@ -96,6 +96,20 @@ Optional unified number extraction for batch state verification:
     ! -name 'README.md' ! -name 'AGENTS.md' -exec basename {} \;
 } | sed -E 's/^([0-9]+).*/\1/' | sort -n | uniq
 ```
+
+### Step 0.6: Reconcile Drafts That Already Have a GitHub Issue (Mandatory)
+
+During issue-document maintenance, inspect `docs/issues/drafts/` for specifications whose
+frontmatter has a non-null `github-issue`. A draft must not remain in `drafts/` once it is linked
+to a GitHub issue:
+
+- if the GitHub issue is open, move the spec to `docs/issues/open/` using the assigned issue number;
+- if the GitHub issue is closed, include the spec in this archive operation and move it directly to
+  `docs/issues/closed/`; and
+- update `status`, `spec-path`, `related-pr`, and workflow checkpoints to match the recorded state.
+
+Use the GitHub state check in Step 1 before choosing either destination. Do not assume a draft is
+unopened merely because it is still filed below `docs/issues/drafts/`.
 
 ### Step 1: Verify Issue is Closed on GitHub
 

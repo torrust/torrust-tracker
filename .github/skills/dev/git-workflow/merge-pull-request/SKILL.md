@@ -37,8 +37,11 @@ The full provenance, license, deterministic test boundary, and EPIC #2003 relati
 - Inspect the temporary merge and run the required validation before considering a signature.
 - Never type `s` to sign or `push` to push unless an authorized maintainer has explicitly
   confirmed that action in the current request.
-- If GPG reports a timeout while signing, stop immediately. Do not retry, bypass signing, or
-  use `--no-gpg-sign`; tell the maintainer to retry the signed commit manually.
+- If GPG reports a timeout while signing, stop the failed attempt. Do not bypass signing or use
+  `--no-gpg-sign`; ask the maintainer whether they prefer to retry the signed commit manually or
+  have the agent rerun the same command while they enter the passphrase directly in the terminal
+  prompt. Do not retry until the maintainer chooses, and never request or handle the passphrase
+  in chat.
 
 ## Prerequisites
 

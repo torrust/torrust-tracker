@@ -3,6 +3,7 @@ doc-type: issue
 issue-type: <task|bug|feature|enhancement>
 status: draft
 priority: p2
+epic: null
 github-issue: null
 spec-path: docs/issues/drafts/{short-description}.md
 branch: "{issue-number}-{short-description}"

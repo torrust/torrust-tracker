@@ -3,7 +3,7 @@ name: create-issue
 description: Guide for creating GitHub issues in the torrust-tracker project. Covers the full workflow from specification drafting, user review, to GitHub issue creation with proper documentation and file naming. Supports task, bug, feature, and epic issue types. Use when creating issues, opening tickets, filing bugs, proposing tasks, or adding features. Triggers on "create issue", "open issue", "new issue", "file bug", "add task", "create epic", or "open ticket".
 metadata:
   author: torrust
-  version: "1.0"
+  version: "1.1"
   semantic-links:
     related-artifacts:
       - docs/templates/ISSUE.md
@@ -56,8 +56,16 @@ criteria before code changes begin.
 
 ### Step 1: Draft Issue Specification
 
-Create a specification with a **temporary name** (no issue number yet). Use a single Markdown
-file when the specification has no issue-local artifacts:
+Create a specification with a **temporary name** (no subissue number yet). When the proposed
+subissue has a known parent EPIC, prefix the draft name with that EPIC's GitHub issue number:
+
+```text
+docs/issues/drafts/{epic-issue-number}-{short-description}.md
+```
+
+This prefix identifies the known parent EPIC; it is not a placeholder for the future subissue's
+own GitHub issue number. Do not infer a parent EPIC from related issues, ADRs, or topic overlap.
+If the parent is not explicitly established, use an unnumbered descriptive draft name:
 
 ```bash
 touch docs/issues/drafts/{short-description}.md
@@ -71,6 +79,13 @@ mkdir -p docs/issues/drafts/{short-description}
 touch docs/issues/drafts/{short-description}/ISSUE.md
 ```
 
+For a known parent EPIC, apply the same prefix to a folder-style draft:
+
+```bash
+mkdir -p docs/issues/drafts/{epic-issue-number}-{short-description}
+touch docs/issues/drafts/{epic-issue-number}-{short-description}/ISSUE.md
+```
+
 Select the template by issue type:
 
 - Task/Bug/Feature: [docs/templates/ISSUE.md](../../../../docs/templates/ISSUE.md)
@@ -79,7 +94,7 @@ Select the template by issue type:
 Before presenting the draft for review, initialize these sections so progress can be tracked
 explicitly during implementation:
 
-- YAML frontmatter metadata (including `status`, `github-issue`, `spec-path`, and `last-updated-utc`)
+- YAML frontmatter metadata (including `status`, `epic`, `github-issue`, `spec-path`, and `last-updated-utc`)
 - `Implementation Plan` (or `Subissues` for epics) with explicit status values
 - `Progress Tracking` (`Workflow Checkpoints` and first `Progress Log` entry)
 - `Acceptance Criteria` and `Acceptance Verification`
@@ -92,6 +107,9 @@ The draft must also include a verification policy that is explicit and enforceab
 
 Use **placeholders** for the issue number until after creation (for example `github-issue: null`
 or `[To be assigned]` in the heading/body content).
+
+Set `epic: {epic-issue-number}` only when the draft is an explicitly established subissue; otherwise
+set `epic: null`. An EPIC subissue draft must also identify the parent directly below its title.
 
 After drafting, run linters:
 
@@ -140,12 +158,23 @@ git mv docs/issues/drafts/{short-description}.md \
   docs/issues/open/{number}-{short-description}.md
 ```
 
+For a subissue of a known EPIC, replace the draft's parent-only prefix with both GitHub issue
+numbers:
+
+```bash
+git mv docs/issues/drafts/{epic-issue-number}-{short-description}.md \
+  docs/issues/open/{number}-{epic-issue-number}-{short-description}.md
+```
+
 **Folder-style specification:**
 
 ```bash
 git mv docs/issues/drafts/{short-description} \
   docs/issues/open/{number}-{short-description}
 ```
+
+For a folder-style subissue, use
+`docs/issues/open/{number}-{epic-issue-number}-{short-description}`.
 
 For folder-style specifications, the main document is
 `docs/issues/open/{number}-{short-description}/ISSUE.md`. Keep all issue-local artifacts in the
