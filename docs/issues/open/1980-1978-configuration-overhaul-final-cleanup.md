@@ -7,7 +7,7 @@ github-issue: 1980
 spec-path: docs/issues/open/1980-1978-configuration-overhaul-final-cleanup.md
 branch: "config-final-cleanup"
 related-pr: null
-last-updated-utc: 2026-08-18 00:00
+last-updated-utc: 2026-08-21 16:30
 semantic-links:
   skill-links:
     - create-issue
@@ -32,7 +32,7 @@ semantic-links:
 
 # Issue #1980 - Final cleanup: remove global re-exports, migrate all consumers to explicit versioned imports
 
-> **EPIC position**: Subissue #11 of 12 in EPIC #1978 — **must precede #2023 and follow all other existing subissues.**
+> **EPIC position**: Final-cleanup subissue in EPIC #1978 — **must precede #2023 and follow all implemented schema subissues, including the preceding secrecy effort.**
 
 ## Goal
 
