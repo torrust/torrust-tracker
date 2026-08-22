@@ -96,6 +96,7 @@ explicitly during implementation:
 
 - YAML frontmatter metadata (including `status`, `epic`, `github-issue`, `spec-path`, and `last-updated-utc`)
 - `Implementation Plan` (or `Subissues` for epics) with explicit status values
+- `Architectural Decisions`, linking relevant ADRs and listing any ADRs expected from the work
 - `Progress Tracking` (`Workflow Checkpoints` and first `Progress Log` entry)
 - `Acceptance Criteria` and `Acceptance Verification`
 
@@ -104,6 +105,10 @@ The draft must also include a verification policy that is explicit and enforceab
 - Automatic checks to run after implementation (`linter all`, relevant tests, pre-push checks when applicable)
 - Manual verification scenarios with status + evidence tracking (mandatory)
 - A post-implementation acceptance criteria review step
+
+During implementation, create an ADR when an important architectural decision
+emerges, even if the issue draft did not anticipate it. Link the ADR from the
+issue specification and update the architectural-decisions section.
 
 Use **placeholders** for the issue number until after creation (for example `github-issue: null`
 or `[To be assigned]` in the heading/body content).

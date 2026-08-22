@@ -40,6 +40,20 @@ Describe the context, problem statement, and why this issue matters.
 - Item 1
 - Item 2
 
+## Architectural Decisions
+
+Record architectural decisions that are already known when this specification is
+drafted. Link existing ADRs and identify ADRs this issue is expected to create.
+
+- Related ADRs: `docs/adrs/...`
+- ADRs to create: {decision title, or `None known`}
+
+During implementation, stop and create an ADR when a decision affects project
+architecture or design patterns, selects an approach among meaningful
+alternatives, or has consequences future contributors need to understand. Do not
+create ADRs for routine implementation details or style choices already governed
+by project conventions.
+
 ## Implementation Plan
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
