@@ -4,7 +4,7 @@ status: open
 github-issue: 1978
 spec-path: docs/issues/open/1978-configuration-overhaul-epic/EPIC.md
 epic-owner: josecelano
-last-updated-utc: 2026-08-20 16:44
+last-updated-utc: 2026-08-22 00:00
 semantic-links:
   skill-links:
     - create-issue
@@ -99,7 +99,7 @@ Status values: `TODO`, `IN_PROGRESS`, `IN_REVIEW`, `BLOCKED`, `DONE`.
 | 10    | [#1987](../../issues/1987) — Use peer IP from the HTTP announce `ip` parameter when configured                 | `docs/issues/open/1987-add-config-option-to-use-ip-from-announce-query-string/ISSUE.md` | TODO   | After #3 and external prerequisite #1985; per-HTTP-tracker opt-in policy                                                                              |
 | 11    | [#1980](../../issues/1980) — Final cleanup: remove global re-exports, migrate consumers to explicit v3 imports | `docs/issues/open/1980-1978-configuration-overhaul-final-cleanup.md`                    | TODO   | Must precede #12; depends on all other existing subissues                                                                                             |
 | 12    | [#2023](../../issues/2023) — Expose configured public URLs in runtime observability                            | `docs/issues/open/2023-1978-expose-configured-public-urls-in-runtime-observability.md`  | TODO   | Must follow #1417 and #1980; adds `public_url` to health checks, metrics, and logs without replacing ServiceBinding                                   |
-| 13    | [#2067](../../issues/2067) — Analyze a flat heterogeneous service configuration                                | `docs/issues/open/2067-1978-analyze-flat-service-configuration/ISSUE.md`                | TODO   | Non-blocking analysis only; any recommended implementation follows #1980 and accounts for #1490                                                       |
+| 13    | [#2067](../../issues/2067) — Analyze a flat heterogeneous service configuration                                | `docs/issues/open/2067-1978-analyze-flat-service-configuration/ISSUE.md`                | TODO   | Analysis only. If approved, a new implementation sub-issue follows #1490 and precedes #1980 so it ships in schema v3.0.0.                             |
 
 ## Delivery Strategy
 
@@ -177,12 +177,13 @@ These can run in any order or in parallel branches:
   metrics, and logs. Preserve the distinction between configured bind address, post-bind
   `ServiceBinding`, and `public_url`; do not implement `internal_service_url`.
 
-### Phase 4: Post-v3 Research
+### Phase 4: Final v3 Design Decision
 
-- **Subissue #13** (#2067) — Analyze a possible successor schema that represents heterogeneous
-  listener services in one ordered collection. This non-blocking research does not implement a
-  schema or runtime change and must not delay #1980. Any implementation recommendation must be
-  tracked separately and account for #1490.
+- **Subissue #13** (#2067) — Analyze whether v3 should retain role-specific operator-facing TOML,
+  introduce a heterogeneous listener collection, or retain the TOML layout while normalizing to an
+  internal polymorphic service inventory. This analysis does not implement a schema or runtime
+  change. If approved, its separately created implementation sub-issue follows #1490 and precedes
+  #1980 so that the final consumer migration targets the selected v3 model.
 
 For each subissue implementation in this EPIC, the default completion policy is:
 
@@ -262,10 +263,13 @@ For each subissue implementation in this EPIC, the default completion policy is:
   Runtime consumption of the configured value remains assigned to #1980.
 - 2026-08-20 16:36 UTC - Copilot/User - Restored #2023 as the twelfth native GitHub sub-issue,
   resolving the discrepancy with this specification. Created approved Task #2067 as the thirteenth
-  native sub-issue for non-blocking research into a possible post-v3 flat heterogeneous service
-  configuration; any implementation remains separate from this EPIC delivery.
+  native sub-issue for analysis into a possible flat heterogeneous service configuration.
 - 2026-08-20 16:44 UTC - Copilot - Renamed #2067's folder-based subissue specification to include
   the parent EPIC number, following the open-issues naming convention.
+- 2026-08-22 UTC - Copilot/User - Corrected #2067's roadmap placement: if its analysis recommends
+  implementation, a new sub-issue must complete after #1490 and before #1980 so the chosen model
+  is part of schema v3.0.0. The analysis also compares operator-facing TOML design independently
+  from a possible internal polymorphic service inventory.
 
 ## Acceptance Criteria
 

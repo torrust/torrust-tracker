@@ -9,7 +9,7 @@ branch: "2067-analyze-flat-service-configuration"
 related-pr: 2068
 depends-on: null
 blocks: null
-last-updated-utc: 2026-08-20 16:51
+last-updated-utc: 2026-08-22 00:00
 semantic-links:
   skill-links:
     - create-issue
@@ -62,13 +62,13 @@ During weekly planning, Cameron proposed representing the listener services as a
 
 The current v3 configuration module still uses the existing split structure, while the application remains on the v2 public aliases pending #1980. This analysis must distinguish an immediately feasible schema representation from the proper delivery point in the configuration-overhaul roadmap.
 
-This is a non-blocking research sub-issue of #1978. It may inform a later schema version, but it must not delay the v3.0.0 delivery or expand #1978's implementation scope. Any implementation recommended by this analysis must be tracked in a new issue and scheduled after #1980; the analysis must also account for the #1490 secrets work that #1980 depends on.
+This is an analysis-only sub-issue of #1978. If the final recommendation is to implement a configuration-schema change, maintainers must first approve and create a new #1978 sub-issue. That implementation must complete after #1490 and before #1980 so that it is included in the v3.0.0 configuration release. The analysis itself must not implement the schema, migration tool, or runtime changes.
 
 ## Illustrative Configuration Outcome
 
 The following comparison deliberately starts from the v3 configuration schema, not the current v2 runtime configuration shown in `tests/common/configuration.rs`. The v2-to-v3 changes are independently planned under the Configuration Overhaul EPIC and #1980. This issue would be a later, separate breaking schema change built on top of v3: it changes only how v3's already-defined service configurations are organized at the root level.
 
-Consequently, the two examples use the same service-specific fields, nested structures, and shared `udp_tracker_server` policy. Their only intentional difference is the root-level representation: v3 uses role-specific sections; the illustrative successor uses a heterogeneous `services` list. The successor is a design example only, not a selected representation or a commitment to use the exact field names below. This analysis must validate its TOML and Serde feasibility and may recommend rejecting or changing the proposed form.
+Consequently, the two examples use the same service-specific fields, nested structures, and shared `udp_tracker_server` policy. Their only intentional difference is the root-level representation: v3 uses role-specific sections; the illustrative alternative uses a heterogeneous `services` list. The alternative is a design example only, not a selected representation or a commitment to use the exact field names below. This analysis must validate its TOML and Serde feasibility and may recommend rejecting or changing the proposed form.
 
 ### Before: v3 Role-Specific Service Sections
 
@@ -152,7 +152,7 @@ ip_bans_reset_interval_in_secs = 86400
 connection_id_validation = "strict"
 ```
 
-### After: Illustrative Flat Heterogeneous Service Collection
+### Alternative: Illustrative Flat Heterogeneous Service Collection
 
 The example uses an **adjacently tagged** representation: every list item has a `kind` discriminator and a nested `configuration` table. It models a Rust `Vec<Service>`, where `Service` is an enum with one variant per service type, and each variant wraps the corresponding v3 role-specific configuration type. This avoids requiring all service variants to share the same fields.
 
@@ -160,7 +160,7 @@ The example uses an **adjacently tagged** representation: every list item has a 
 [metadata]
 app = "torrust-tracker"
 purpose = "configuration"
-schema_version = "4.0.0"
+schema_version = "3.0.0"
 
 [logging]
 trace_filter = "info"
@@ -254,9 +254,21 @@ ip_bans_reset_interval_in_secs = 86400
 connection_id_validation = "strict"
 ```
 
-TOML attaches each `[services.configuration]` table and its nested tables to the immediately preceding `[[services]]` entry. `udp_tracker_server` remains top-level because it configures policy shared by all UDP listeners rather than one listener instance. The illustrative schema therefore requires a new schema version beyond the current v3 model; `4.0.0` is only a placeholder, not a release decision.
+TOML attaches each `[services.configuration]` table and its nested tables to the immediately preceding `[[services]]` entry. `udp_tracker_server` remains top-level because it configures policy shared by all UDP listeners rather than one listener instance. The illustrative schema would replace the existing v3 root-level role-specific layout before the v3.0.0 release; it does not imply a second successor schema version.
 
-In this illustration, declaration order represents the configuration's service inventory; the analysis must determine whether it would also carry startup-order semantics. A recommended design must define validation for singleton service kinds and clarify whether `ConfigurationInstanceId` continues to use role-local ordinals while scanning this list or adopts global list positions.
+In this illustration, declaration order represents the configuration's service inventory only. It must not acquire startup-order semantics: startup remains dependency-driven and role-grouped. A recommended design must define validation for singleton service kinds and clarify whether `ConfigurationInstanceId` continues to use role-local ordinals while scanning this list or adopts global list positions.
+
+## Maintainer Direction
+
+The final decision must remain evidence-led: decide whether the change should be implemented, deferred, or rejected. The following approved direction constrains the analysis but does not predetermine its recommendation:
+
+- The operator-facing TOML experience is the primary configuration-design concern. Names, explicit structure, readability, and the ability to build a correct configuration without explanatory comments are more important than mirroring internal runtime types.
+- The configuration representation and the internal runtime representation may differ. The analysis must compare retaining role-specific TOML while normalizing it into a polymorphic internal service inventory against exposing a flat polymorphic `services` list in TOML.
+- The internal inventory must be evaluated as a possible way to manage running services, handles, jobs, threads, registration, and metrics. It must remain distinct from the broader job collection, which also contains non-listener tasks such as cleanup jobs.
+- If a flat `services` TOML collection is selected, declaration order is presentation/configuration order only; startup remains dependency-driven and role-grouped.
+- `http_api` and `health_check_api` are singleton kinds: each may occur at most once. `http_api` remains optional. A missing `health_check_api` entry preserves the existing implicit/default health-check behavior. `http_tracker` and `udp_tracker` remain multi-instance kinds.
+- If a v2-to-v3 migration needs to materialize a flat collection, use the canonical order HTTP trackers, UDP trackers, HTTP API, then health-check API.
+- If implementation is recommended and approved, create a separate #1978 sub-issue after #1490 and before #1980, so the selected configuration model is included in the v3.0.0 release.
 
 ## Analysis Deliverables
 
@@ -278,7 +290,7 @@ This open issue is stored at `docs/issues/open/2067-1978-analyze-flat-service-co
 4. **Feasibility Results**: TOML parsing, Serde serialization round-trip, Figment defaulting and environment overrides, unknown/discriminator errors, and constraints discovered by prototypes.
 5. **Runtime and Normalization Model**: recommended single owner for normalization, role-specific views, service startup dependencies, singleton/default behavior, and preservation of existing health/metrics/registration contracts.
 6. **Identity, Ordering, and Migration**: `ServiceKind` to `ServiceRole` mapping, `ConfigurationInstanceId` behavior, loss of cross-role ordering during v3-to-v4 migration, and a canonical migration-order rule if implementation is recommended.
-7. **Schema Lifecycle, Security, and Compatibility**: v3/v4 loading and transition policy, #1980/#1490 relationship, secret redaction, external configuration consumers, and observability compatibility.
+7. **Schema Lifecycle, Security, and Compatibility**: v3 loading and transition policy, the #1490 → implementation → #1980 relationship, secret redaction, external configuration consumers, and observability compatibility.
 8. **Cost, Risks, and Recommendation**: affected modules, high-level effort, unresolved risks, decision rationale, and exact scope for any follow-up implementation issue.
 
 ### Required `evidence.md` Record Format
@@ -309,6 +321,7 @@ For an experiment, preserve the exact TOML input and command in the record. Test
   - an internally tagged/flattened representation, including whether it requires duplicated fields or custom deserialization;
   - an externally tagged or equivalent representation where relevant.
 - Evaluate configuration usability, readability, validation, environment-variable overrides, default configuration generation, and serialization/round-trip behavior for each viable representation.
+- Compare the operator-facing role-specific TOML model plus a normalized internal polymorphic service inventory with a TOML-level heterogeneous `services` collection. Treat configuration UX and internal runtime organization as separate design decisions.
 - Identify the required semantic rules that are currently structural, including singleton handling for the REST API and health-check API and the current always-started/defaulted health-check behavior. Define expected behavior for an omitted `services` list, an empty list, no health-check entry, duplicate singleton entries, and UDP entries in private mode.
 - Analyze whether `udp_tracker_server` remains a top-level shared support-service configuration or belongs in a flat listener list.
 - Inventory configuration values that look per-listener but are consumed through shared runtime services, including `max_connection_id_errors_per_ip`. Recommend whether each must become shared, be validated as consistent, or be redesigned in a separate implementation issue; do not make that runtime change here.
@@ -318,7 +331,7 @@ For an experiment, preserve the exact TOML input and command in the record. Test
   - describe the consequences of instead using the global list position.
 - Define a typed `ServiceKind` to `ServiceRole` mapping, including the distinction between the configuration-facing `http_api` kind and the existing `RestApi` runtime role.
 - Treat `ConfigurationInstanceId` as an existing constraint. Do **not** explore alternative identifier schemes such as explicit user-provided IDs, socket addresses after binding, or configuration hashes.
-- Identify migration, documentation, test, and consumer impacts, including the dependency/order relationship with #1980 and schema-versioning implications. Decide whether a future application accepts only the successor schema, dispatches among schema versions, or requires an external migration; state that v3 cannot express a cross-role service order and define any canonical migration order.
+- Identify migration, documentation, test, and consumer impacts, including the #1490 → implementation → #1980 dependency/order relationship and v3 release implications. Decide whether the selected v3 model accepts only one final shape or requires an external migration; state that the current split layout cannot express a cross-role service order and define any canonical migration order.
 - Analyze the effect of moving `HttpApi` inside a service enum on configuration logging, JSON serialization, and redaction of API tokens, including compatibility with #1490's planned secret types.
 - Preserve existing post-bind `ServiceBinding`, health-check registration, and metrics behavior as compatibility invariants, even though changing those public contracts is out of scope.
 - Provide a high-level implementation estimate, dependency plan, risks, and a recommended next step: reject, defer, or create a separate implementation issue.
@@ -346,7 +359,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T3  | TODO   | Compare configuration representations | Record readability, ergonomics, validation, environment override, round-trip serialization, and backwards-migration trade-offs for each option in `analysis.md`.                                      |
 | T4  | TODO   | Analyze runtime integration           | Define a conceptual single normalization owner, role-specific views, startup dependencies, shared UDP policies, singleton/default behavior, and compatibility invariants without changing production. |
 | T5  | TODO   | Analyze identity compatibility        | Compare role-local ordinals with global positions; define `ServiceKind` to `ServiceRole` mapping and show how one normalizer keeps IDs, containers, jobs, and registry metadata aligned.              |
-| T6  | TODO   | Define migration and schema lifecycle | Decide v3-to-successor ordering rules, schema loading/transition strategy, v3 compatibility policy, #1980/#1490 prerequisites, and the non-blocking relationship to the v3 EPIC.                      |
+| T6  | TODO   | Define migration and schema lifecycle | Decide current-layout-to-final-v3 ordering rules, loading/transition strategy, #1490 → implementation → #1980 prerequisites, and the effect on the v3.0.0 delivery.                                   |
 | T7  | TODO   | Analyze security and operator impact  | Document redaction, configuration logging/serialization, external configuration consumers, deployment overrides, and post-bind observability compatibility.                                           |
 | T8  | TODO   | Write the final analysis deliverables | Complete `analysis.md` and `evidence.md`; ensure every recommendation is traceable to evidence and no production implementation is included.                                                          |
 | T9  | TODO   | Run automatic checks                  | Run `linter all` and relevant focused tests for any analysis fixtures or documentation tooling changes.                                                                                               |
@@ -369,7 +382,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [ ] Manual verification scenarios executed and recorded (status + evidence)
 - [ ] Acceptance criteria reviewed after analysis and updated with evidence
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
-- [ ] Committer verified spec progress is up to date before commit
+- [x] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
@@ -379,6 +392,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-08-20 16:36 UTC - Copilot/User - User approved the draft. Created GitHub Task #2067 and linked it as the thirteenth native sub-issue of #1978 after restoring #2023's missing native parent relationship.
 - 2026-08-20 16:44 UTC - Copilot - Renamed the folder to include the parent EPIC number, as required for folder-based subissue specifications.
 - 2026-08-20 16:51 UTC - Copilot/User - Opened spec-only PR #2068 against `develop`, linked it as related to #2067, and requested review from @da2ce7 because the proposal originated with Cameron.
+- 2026-08-22 UTC - Copilot/User - Clarified that the analysis must decide whether to implement the change in schema v3.0.0, not a later successor version. If approved after the analysis, a new implementation sub-issue must follow #1490 and precede #1980. Added operator-focused configuration UX and the independent internal-normalization alternative as explicit evaluation criteria. Confirmed role-grouped, dependency-driven startup; singleton HTTP API and health-check kinds; implicit default health-check behavior; and the canonical migration order.
+- 2026-08-22 UTC - Copilot - Reviewed the updated issue and EPIC roadmap specifications before committing. `git diff --check` passed; the repository `linter` executable was unavailable in this environment.
 
 ## Acceptance Criteria
 
@@ -412,13 +427,13 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
-| ID  | Scenario                         | Command/Steps                                                                                                                                                                                     | Expected Result                                                                                                                                           | Status | Evidence                                                  |
-| --- | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | --------------------------------------------------------- |
-| M1  | Review current port-zero fixture | Compare `tests/common/configuration.rs` with configuration structs, bootstrap, containers, shared UDP services, registry, and redaction paths.                                                    | Evidence explains role-local IDs, post-bind identities, shared policy behavior, and current compatibility constraints.                                    | TODO   | `evidence.md#e1-current-state-baseline`                   |
-| M2  | Review candidate TOML files      | Parse and serialize interleaved entries for each viable form. Exercise unknown kinds, numeric environment overrides, omitted/empty lists, missing health entries, and duplicate singletons.       | Each result records syntax, readability, round-trip behavior, defaulting, error quality, and compatibility with nested TLS/network/access-token settings. | TODO   | `evidence.md#e2-configuration-representation-feasibility` |
-| M3  | Review normalization plan        | Trace a representative interleaved list through conceptual normalization, role-local ID allocation, container lookup, startup phases, registration, and metrics without changing production code. | The analysis identifies one consistent normalization boundary and proves whether source list order affects startup or presentation only.                  | TODO   | `evidence.md#e3-runtime-and-identity-model`               |
-| M4  | Review migration and transition  | Compare the recommended form with v3/default configs, environment overrides, docs, integration fixtures, #1980, and #1490. Define a canonical migration order and version-loading policy.         | The impact inventory, compatibility policy, prerequisites, and implementation estimate are complete; unresolved constraints are explicit.                 | TODO   | `evidence.md#e4-migration-schema-lifecycle-and-security`  |
-| M5  | Review final reports             | Check every conclusion in `analysis.md` against the linked record in `evidence.md`; confirm the recommendation does not include implementation work.                                              | The decision record is complete, traceable, and limited to analysis plus a proposed follow-up scope when warranted.                                       | TODO   | `evidence.md#e5-report-review`                            |
+| ID  | Scenario                         | Command/Steps                                                                                                                                                                                                    | Expected Result                                                                                                                                           | Status | Evidence                                                  |
+| --- | -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | --------------------------------------------------------- |
+| M1  | Review current port-zero fixture | Compare `tests/common/configuration.rs` with configuration structs, bootstrap, containers, shared UDP services, registry, and redaction paths.                                                                   | Evidence explains role-local IDs, post-bind identities, shared policy behavior, and current compatibility constraints.                                    | TODO   | `evidence.md#e1-current-state-baseline`                   |
+| M2  | Review candidate TOML files      | Parse and serialize interleaved entries for each viable form. Exercise unknown kinds, numeric environment overrides, omitted/empty lists, missing health entries, and duplicate singletons.                      | Each result records syntax, readability, round-trip behavior, defaulting, error quality, and compatibility with nested TLS/network/access-token settings. | TODO   | `evidence.md#e2-configuration-representation-feasibility` |
+| M3  | Review normalization plan        | Trace a representative interleaved list through conceptual normalization, role-local ID allocation, container lookup, startup phases, registration, and metrics without changing production code.                | The analysis identifies one consistent normalization boundary and proves whether source list order affects startup or presentation only.                  | TODO   | `evidence.md#e3-runtime-and-identity-model`               |
+| M4  | Review migration and transition  | Compare the recommended final-v3 form with the current split layout/default configs, environment overrides, docs, integration fixtures, #1490, and #1980. Define a canonical migration order and loading policy. | The impact inventory, compatibility policy, prerequisites, and implementation estimate are complete; unresolved constraints are explicit.                 | TODO   | `evidence.md#e4-migration-schema-lifecycle-and-security`  |
+| M5  | Review final reports             | Check every conclusion in `analysis.md` against the linked record in `evidence.md`; confirm the recommendation does not include implementation work.                                                             | The decision record is complete, traceable, and limited to analysis plus a proposed follow-up scope when warranted.                                       | TODO   | `evidence.md#e5-report-review`                            |
 
 ### Acceptance Verification
 
@@ -454,7 +469,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 - **Hidden shared UDP policy:** A field placed on a UDP listener can still configure one shared runtime service. The analysis must expose and resolve that semantic mismatch before a flat list makes ordering effects less visible.
 - **Schema lifecycle ambiguity:** A v4 representation requires an explicit transition, compatibility, or migration strategy because a versioned configuration loader accepts one schema shape at a time.
 - **Secret exposure:** Nesting API configuration in an enum can bypass current redaction paths unless serialization/logging behavior is explicitly tested and coordinated with #1490.
-- **Roadmap conflict:** Implementing the change before #1980 would create parallel v3 schema work while the application still consumes v2 aliases. This analysis is non-blocking; any implementation must be separately scheduled after #1980 and its prerequisites.
+- **Roadmap integration:** If approved, the configuration change must be a separately scoped sub-issue after #1490 and before #1980. It must resolve its schema shape before #1980 performs the final v3 consumer migration, avoiding a second migration of runtime consumers.
 
 ## References
 
