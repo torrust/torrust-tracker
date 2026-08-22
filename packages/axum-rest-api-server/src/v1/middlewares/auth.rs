@@ -47,6 +47,7 @@ use axum::extract::{self};
 use axum::http::Request;
 use axum::middleware::Next;
 use axum::response::{IntoResponse, Response};
+use secrecy::ExposeSecret;
 use serde::Deserialize;
 use torrust_tracker_configuration::AccessTokens;
 
@@ -146,7 +147,9 @@ impl IntoResponse for AuthError {
 }
 
 fn authenticate(token: &str, tokens: &AccessTokens) -> bool {
-    tokens.values().any(|t| t == token)
+    tokens
+        .values()
+        .any(|configured_token| configured_token.expose_secret() == token)
 }
 
 /// `500` error response returned when the token is missing.

@@ -1,16 +1,15 @@
-use std::collections::HashMap;
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
+use secrecy::{ExposeSecret, SecretString};
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
 
+pub use crate::AccessTokens;
 use crate::TslConfig;
-
-pub type AccessTokens = HashMap<String, String>;
 
 /// Configuration for the HTTP API.
 #[serde_as]
-#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct HttpApi {
     /// The address the tracker will bind to.
     /// The format is `ip:port`, for example `0.0.0.0:6969`. If you want to
@@ -27,7 +26,7 @@ pub struct HttpApi {
     /// token and the value is the token itself. The token is used to
     /// authenticate the user. All tokens are valid for all endpoints and have
     /// all permissions.
-    #[serde(default = "HttpApi::default_access_tokens")]
+    #[serde(default = "HttpApi::default_access_tokens", serialize_with = "serialize_access_tokens")]
     pub access_tokens: AccessTokens,
 }
 
@@ -56,14 +55,25 @@ impl HttpApi {
     }
 
     pub fn add_token(&mut self, key: &str, token: &str) {
-        self.access_tokens.insert(key.to_string(), token.to_string());
+        self.access_tokens.insert(key.to_string(), SecretString::from(token));
     }
 
-    pub fn mask_secrets(&mut self) {
+    pub(crate) fn redact_access_tokens_for_output(&mut self) {
         for token in self.access_tokens.values_mut() {
-            *token = "***".to_string();
+            *token = SecretString::from("***");
         }
     }
+}
+
+fn serialize_access_tokens<S>(access_tokens: &AccessTokens, serializer: S) -> Result<S::Ok, S::Error>
+where
+    S: serde::Serializer,
+{
+    access_tokens
+        .iter()
+        .map(|(label, token)| (label, token.expose_secret()))
+        .collect::<std::collections::HashMap<_, _>>()
+        .serialize(serializer)
 }
 
 #[cfg(test)]
@@ -83,6 +93,21 @@ mod tests {
 
         configuration.add_token("admin", "MyAccessToken");
 
-        assert!(configuration.access_tokens.values().any(|t| t == "MyAccessToken"));
+        let formatted = format!("{configuration:?}");
+
+        assert!(formatted.contains("SecretBox<str>([REDACTED])"));
+        assert!(!formatted.contains("MyAccessToken"));
+    }
+
+    #[test]
+    fn http_api_tokens_should_deserialize_and_serialize_with_toml_syntax() {
+        let token = "v2-token-only-for-serialization-test";
+        let configuration: HttpApi = toml::from_str(&format!("[access_tokens]\nadmin = \"{token}\"\n"))
+            .expect("HTTP API tokens should deserialize from TOML");
+
+        let serialized = toml::to_string(&configuration).expect("HTTP API tokens should serialize to TOML");
+
+        assert!(serialized.contains("[access_tokens]"));
+        assert!(serialized.contains(token));
     }
 }

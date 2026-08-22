@@ -298,7 +298,7 @@ const CONFIG_OVERRIDE_PREFIX: &str = "TORRUST_TRACKER_CONFIG_OVERRIDE_";
 const CONFIG_OVERRIDE_SEPARATOR: &str = "__";
 
 /// Core configuration for the tracker.
-#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(deny_unknown_fields)]
 pub struct Configuration {
     /// Configuration metadata.
@@ -457,8 +457,7 @@ impl Configuration {
     /// Will panic if it can't be converted to JSON.
     #[must_use]
     pub fn to_json(&self) -> String {
-        // code-review: do we need to use Figment also to serialize into json?
-        serde_json::to_string_pretty(self).expect("Could not encode JSON value")
+        serde_json::to_string_pretty(&self.clone().mask_secrets()).expect("Could not encode JSON value")
     }
 
     /// Masks secrets in the configuration.
@@ -467,7 +466,7 @@ impl Configuration {
         self.core.database.mask_secrets();
 
         if let Some(ref mut api) = self.http_api {
-            api.mask_secrets();
+            api.redact_access_tokens_for_output();
         }
 
         self
@@ -491,6 +490,7 @@ mod tests {
     use crate::v3_0_0::http_tracker::HttpTracker;
     use crate::v3_0_0::logging::TraceStyle;
     use crate::v3_0_0::network::ExternalIp;
+    use crate::v3_0_0::tracker_api::HttpApi;
     use crate::v3_0_0::udp_tracker::UdpTracker;
 
     #[cfg(test)]
@@ -637,7 +637,10 @@ mod tests {
 
             let configuration = Configuration::load(&info).expect("Could not load configuration from file");
 
-            assert_eq!(configuration, Configuration::default());
+            assert_eq!(
+                toml::to_string(&configuration).expect("default configuration should serialize"),
+                default_config_toml()
+            );
 
             Ok(())
         });
@@ -667,7 +670,10 @@ mod tests {
 
             let configuration = Configuration::load(&info).expect("Could not load configuration from file");
 
-            assert_eq!(configuration, Configuration::default());
+            assert_eq!(
+                toml::to_string(&configuration).expect("default configuration should serialize"),
+                default_config_toml()
+            );
 
             Ok(())
         });
@@ -754,13 +760,27 @@ mod tests {
 
             let configuration = Configuration::load(&info).expect("Could not load configuration from file");
 
-            assert_eq!(
-                configuration.http_api.unwrap().access_tokens.get("admin"),
-                Some("NewToken".to_owned()).as_ref()
-            );
+            let formatted = format!("{:?}", configuration.http_api.unwrap().access_tokens);
+
+            assert!(formatted.contains("SecretBox<str>([REDACTED])"));
+            assert!(!formatted.contains("NewToken"));
 
             Ok(())
         });
+    }
+
+    #[test]
+    fn configuration_json_output_should_redact_access_tokens() {
+        let token = "v3-token-only-for-json-redaction-test";
+        let mut configuration = Configuration::default();
+        let mut http_api = HttpApi::default();
+        http_api.add_token("admin", token);
+        configuration.http_api = Some(http_api);
+
+        let json = configuration.to_json();
+
+        assert!(json.contains("\"***\""));
+        assert!(!json.contains(token));
     }
 
     #[test]

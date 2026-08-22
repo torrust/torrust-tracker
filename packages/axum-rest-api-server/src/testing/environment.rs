@@ -1,6 +1,7 @@
 use std::net::SocketAddr;
 use std::sync::Arc;
 
+use secrecy::ExposeSecret;
 use torrust_info_hash::InfoHash;
 use torrust_server_lib::registar::Registar;
 use torrust_tracker_axum_server::tls::make_rust_tls;
@@ -130,7 +131,7 @@ impl Environment<Running> {
                 .http_api_config
                 .access_tokens
                 .get("admin")
-                .cloned(),
+                .map(|token| token.expose_secret().to_string()),
         }
     }
 

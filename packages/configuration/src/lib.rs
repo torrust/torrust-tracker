@@ -18,6 +18,7 @@ use std::sync::Arc;
 
 use camino::Utf8PathBuf;
 use derive_more::Display;
+use secrecy::SecretString;
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
 use thiserror::Error;
@@ -42,7 +43,8 @@ pub type UdpTracker = v2_0_0::udp_tracker::UdpTracker;
 pub type Database = v2_0_0::database::Database;
 pub type Threshold = v2_0_0::logging::Threshold;
 
-pub type AccessTokens = HashMap<String, String>;
+/// Named configuration API tokens, protected from accidental diagnostic exposure.
+pub type AccessTokens = HashMap<String, SecretString>;
 
 pub const LATEST_VERSION: &str = "2.0.0";
 

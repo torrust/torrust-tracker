@@ -38,7 +38,7 @@ pub async fn setup() -> (Configuration, AppContainer) {
 
     initialize_global_services(&configuration);
 
-    tracing::info!("Configuration:\n{}", configuration.clone().mask_secrets().to_json());
+    tracing::info!("Configuration:\n{}", configuration.to_json());
 
     let app_container = AppContainer::initialize(&configuration).await;
 
