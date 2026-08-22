@@ -64,18 +64,23 @@ git commit -S -m "your commit message"
 
 ### Restricted Agent Sandboxes
 
-Some agent sandboxes cannot write hook logs to `/tmp`. Preserve GPG signing and
-run the commit with workspace-local hook logs:
+Some agent sandboxes cannot write hook logs to `/tmp` and can invoke Git hooks
+with a `PATH` that does not resolve the Rust toolchain. Preserve GPG signing and
+explicitly restore Cargo's conventional installation directory while writing
+hook logs inside the workspace:
 
 ```bash
+PATH="${CARGO_HOME:-$HOME/.cargo}/bin:$PATH" \
 TORRUST_GIT_HOOKS_LOG_DIR=.tmp \
 git commit -S -m "<type>(<scope>): <description>"
 ```
 
-The hooks restore Cargo from `${CARGO_HOME:-$HOME/.cargo}/bin` when Git or an
-editor invokes them with a reduced `PATH`. This workaround keeps hook logs in
-the git-ignored workspace `.tmp/` directory; it does not replace normal
-developer setup or permit bypassing `git commit -S`.
+The repository hook also tries to restore Cargo. First validate with the same
+`PATH` and `TORRUST_GIT_HOOKS_LOG_DIR` variables by running the pre-commit script
+directly. If Git still launches the hook without usable Cargo in the restricted
+agent sandbox, rerun the signed `git commit` outside that sandbox; do not bypass
+the hook or signing. This workaround keeps hook logs in the git-ignored workspace
+`.tmp/` directory and does not alter the checks or replace normal developer setup.
 
 ### GPG Timeout Handling
 

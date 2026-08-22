@@ -3,7 +3,7 @@ name: handle-secrets
 description: Guide for handling sensitive data (secrets) in this Rust project. NEVER use plain String for API tokens, passwords, or other credentials. Use the secrecy crate's Secret<T> wrapper to prevent accidental exposure through Debug output, logs, and error messages. Call .expose_secret() only when the actual value is needed. Use when working with credentials, API keys, tokens, passwords, or any sensitive configuration. Triggers on "secret", "API token", "password", "credential", "sensitive data", "secrecy", or "expose secret".
 metadata:
   author: torrust
-  version: "1.0"
+    version: "1.1"
 ---
 
 # Handling Sensitive Data (Secrets)
@@ -36,8 +36,12 @@ Add the dependency:
 
 ```toml
 [dependencies]
-secrecy = { workspace = true }
+secrecy = { workspace = true, features = [ "serde" ] }
 ```
+
+Enable `serde` only when a secret must be read from or written to a serialized
+configuration format. This is an intentional opt-in: configuration-file syntax remains
+unchanged while the Rust type becomes `Secret<String>`.
 
 Basic usage:
 
@@ -78,6 +82,20 @@ let response = client
 tracing::debug!("Using token: {}", token.expose_secret());
 ```
 
+## Serialization and Test Expectations
+
+- Keep existing configuration-file syntax for secret values unless a deliberate schema change
+  is required. `secrecy` with its `serde` feature supports deserializing a TOML string directly
+  into `Secret<String>`.
+- Test redaction without exposing the secret. For a `Secret<String>`, assert that `Debug`
+  output contains the exact literal `Secret([REDACTED])` and does not contain the unique test
+  value.
+- Do not write assertions, snapshots, test failures, or diagnostics that call
+  `.expose_secret()` merely to inspect a value. Restrict exposure tests to the runtime boundary
+  that genuinely consumes the secret.
+- Do not remove unrelated legacy redaction solely because a new secret field is type-protected;
+  credential-bearing strings continue to require their existing masking until migrated.
+
 ## Checklist
 
 - [ ] No plain `String` fields for tokens, passwords, or private keys
@@ -85,3 +103,5 @@ tracing::debug!("Using token: {}", token.expose_secret());
 - [ ] `.expose_secret()` called only at the last moment
 - [ ] No `.expose_secret()` in log statements or error messages
 - [ ] No sensitive values in `Display` or `Debug` output
+- [ ] Serialized configuration tests preserve the existing secret syntax
+- [ ] Redaction tests assert `Secret([REDACTED])` and never print test secret values
