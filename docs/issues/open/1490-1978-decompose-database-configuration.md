@@ -71,11 +71,13 @@ pub enum Database {
 
 The [adopt secrecy for sensitive configuration](2079-adopt-secrecy-for-sensitive-configuration.md) issue is implemented first. It adds the dependency and protects API tokens in both configuration versions, but leaves legacy database URLs as plain strings because their embedded credentials cannot be isolated. This issue then uses the established `Secret<String>` convention for the new, isolated `ConnectionInfo.password`. The legacy v2 database URL retains its explicit `mask_secrets()` redaction.
 
+### TOML representation
+
 ```toml
 # SQLite
-> **EPIC position**: Subissue #8 of 13. Depends on #1640 (subissue #3), because both change `Core`, and on the secrecy follow-up, which establishes secret-handling conventions and protects API tokens in both configuration versions. #1640 removes `core.net` first; the secrecy issue establishes `SecretString` use; then #1490 changes `database`. It can otherwise run in parallel with #1415, #1453, #889, and #1987.
+[core.database]
 driver = "sqlite3"
-> **Release sequencing**: The secrecy follow-up and this issue must both be completed before publishing a `torrust-tracker-configuration` release exposing these v3 types. The follow-up prevents a public API containing plain API tokens; this issue establishes `SecretString` for the isolated v3 database password. If a release exposing either plain-string API already exists, schedule the change for the next major package version.
+path = "/var/lib/torrust/tracker/database/sqlite3.db"
 
 # MySQL
 [core.database]
@@ -86,7 +88,7 @@ user = "db_user"
 password = "db_user_password"
 database = "torrust_tracker"
 
-  pub password: SecretString,
+# PostgreSQL
 [core.database]
 driver = "postgresql"
 host = "postgres"
@@ -96,15 +98,14 @@ password = "postgres_password"
 database = "torrust_tracker"
 ```
 
-The [adopt secrecy for sensitive configuration](2079-adopt-secrecy-for-sensitive-configuration.md) issue is implemented first. It adds the dependency and protects API tokens in both configuration versions, but leaves legacy database URLs as plain strings because their embedded credentials cannot be isolated. This issue then uses the established `SecretString` convention for the new, isolated `ConnectionInfo.password`. The legacy v2 database URL retains its explicit `mask_secrets()` redaction.
 For MySQL and PostgreSQL, `port` is optional and defaults to `3306` and `5432`, respectively, retaining the effective behavior of the database connection URL parsers. `password` is mandatory and non-empty. SQLite has only `path` and must reject network-database-only fields.
 
 This is a **breaking v3 configuration-schema change** with no fallback for the legacy network database URL. It is appropriate for the v3.0.0 schema release.
 
 ## Scope
 
-- Use `SecretString` for `ConnectionInfo.password`, following the secrecy follow-up's established convention.
-- Remove the v3 database `mask_secrets()` implementation once the isolated password is protected by `SecretString`; leave v2 URL redaction unchanged.
+### In Scope
+
 - Decompose `v3_0_0::database::Database` into `Sqlite3`, `MySQL(ConnectionInfo)`, and `PostgreSQL(ConnectionInfo)` variants.
 - Deserialize the `driver` field as the enum discriminant and reject unknown or incompatible fields.
 - Default omitted MySQL and PostgreSQL ports to `3306` and `5432`, respectively.
@@ -113,7 +114,6 @@ This is a **breaking v3 configuration-schema change** with no fallback for the l
 - Remove the v3 database `mask_secrets()` implementation once the isolated password is protected by `Secret<String>`; leave v2 URL redaction unchanged.
 - Update v3 consumers, tests, examples, benchmarks, E2E config builders, default TOML files, inline TOML, and operational documentation.
 - Update the v2-to-v3 migration guide with before/after SQLite, MySQL, and PostgreSQL examples.
-  | T1 | TODO | Confirm secrecy prerequisite is merged | Use the established dependency, `SecretString` convention, and API-token changes. |
 
 ### Out of Scope
 
@@ -121,22 +121,21 @@ This is a **breaking v3 configuration-schema change** with no fallback for the l
 - Changing v2 database URLs or their manual redaction.
 - Changing v2 configuration types or v2 TOML.
 - Encrypting secrets at rest or changing runtime secret transmission.
-  | T5 | TODO | Protect the isolated v3 password | Use `SecretString` and remove v3 database `mask_secrets()`; do not change v2 URL masking. |
+- Changing the `Driver` enum in `packages/primitives`.
 
 ## Consumer Migration Map
 
-| Category          | Files                                                   | Change                                                              |
-| ----------------- | ------------------------------------------------------- | ------------------------------------------------------------------- |
-| Config definition | `v3_0_0/database.rs`, `v3_0_0/core.rs`, `v3_0_0/mod.rs` | Define and deserialize enum variants; test defaults and validation. |
-
-- 2026-08-21 16:45 UTC - josecelano - Reordered the work: implement the smaller secrecy refactor first for API tokens in v2 and v3, retaining v2 database URLs and their masking. #1490 follows and uses the established `SecretString` convention for the new isolated v3 database password.
-  | Test helpers | `test-helpers/`, `tracker-core/src/test_helpers.rs`, `fixtures.rs` | Build a `Sqlite3` variant instead of mutating `.path`. |
-  | Driver tests | `tracker-core/src/databases/driver/{mysql,postgres,sqlite}/mod.rs` | Construct the appropriate variant. |
-  | Examples | `http_only_public_tracker.rs`, `udp_only_public_tracker.rs` | Construct a `Sqlite3` variant. |
-  | Benchmarks | `persistence-benchmark/` | Construct network variants from container connection data. |
-  | E2E config builder | `qbittorrent_e2e/tracker/config_builder.rs` | Produce the appropriate v3 variant. |
-  | Configuration fixtures | `share/default/config/*.toml` | Use per-driver TOML fields. |
-- [ ] AC4: `ConnectionInfo.password` uses `SecretString` and formats as `SecretBox<str>([REDACTED])`; the v3 database `mask_secrets()` implementation is removed.
+| Category               | Files                                                                        | Change                                                              |
+| ---------------------- | ---------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| Config definition      | `v3_0_0/database.rs`, `v3_0_0/core.rs`, `v3_0_0/mod.rs`                      | Define and deserialize enum variants; test defaults and validation. |
+| Database setup         | `tracker-core/src/databases/setup.rs`                                        | Match the v3 enum and build each driver's connection input.         |
+| Test helpers           | `test-helpers/`, `tracker-core/src/test_helpers.rs`, `fixtures.rs`           | Build a `Sqlite3` variant instead of mutating `.path`.              |
+| Driver tests           | `tracker-core/src/databases/driver/{mysql,postgres,sqlite}/mod.rs`           | Construct the appropriate variant.                                  |
+| Examples               | `http_only_public_tracker.rs`, `udp_only_public_tracker.rs`                  | Construct a `Sqlite3` variant.                                      |
+| Benchmarks             | `persistence-benchmark/`                                                     | Construct network variants from container connection data.          |
+| E2E config builder     | `qbittorrent_e2e/tracker/config_builder.rs`                                  | Produce the appropriate v3 variant.                                 |
+| Configuration fixtures | `share/default/config/*.toml`                                                | Use per-driver TOML fields.                                         |
+| Docs and inline TOML   | `docs/containers.md`, migration guide, `mod.rs`, `lib.rs`, integration tests | Replace network database URLs with component fields.                |
 
 ## Implementation Plan
 

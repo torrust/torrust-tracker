@@ -32,7 +32,10 @@ pub struct HttpApi {
     /// token and the value is the token itself. The token is used to
     /// authenticate the user. All tokens are valid for all endpoints and have
     /// all permissions.
-    #[serde(default = "HttpApi::default_access_tokens", serialize_with = "serialize_access_tokens")]
+    #[serde(
+        default = "HttpApi::default_access_tokens",
+        serialize_with = "serialize_access_tokens_for_output"
+    )]
     pub access_tokens: AccessTokens,
 
     /// The public-facing URL of the REST API, e.g.
@@ -80,15 +83,22 @@ impl HttpApi {
             *token = SecretString::from("***");
         }
     }
+
+    pub(crate) fn serialize_access_tokens_for_toml(&self) -> toml::Table {
+        self.access_tokens
+            .iter()
+            .map(|(label, token)| (label.clone(), toml::Value::String(token.expose_secret().to_string())))
+            .collect()
+    }
 }
 
-fn serialize_access_tokens<S>(access_tokens: &AccessTokens, serializer: S) -> Result<S::Ok, S::Error>
+fn serialize_access_tokens_for_output<S>(access_tokens: &AccessTokens, serializer: S) -> Result<S::Ok, S::Error>
 where
     S: serde::Serializer,
 {
     access_tokens
-        .iter()
-        .map(|(label, token)| (label, token.expose_secret()))
+        .keys()
+        .map(|label| (label, "***"))
         .collect::<std::collections::HashMap<_, _>>()
         .serialize(serializer)
 }
@@ -125,10 +135,10 @@ mod tests {
         let configuration: HttpApi = toml::from_str(&format!("[access_tokens]\nadmin = \"{token}\"\n"))
             .expect("HTTP API tokens should deserialize from TOML");
 
-        let serialized = toml::to_string(&configuration).expect("HTTP API tokens should serialize to TOML");
+        let serialized = serde_json::to_string(&configuration).expect("HTTP API tokens should serialize to JSON safely");
 
-        assert!(serialized.contains("[access_tokens]"));
-        assert!(serialized.contains(token));
+        assert!(!serialized.contains(token));
+        assert!(serialized.contains("***"));
     }
 
     #[test]

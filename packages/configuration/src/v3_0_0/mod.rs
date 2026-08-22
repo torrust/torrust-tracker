@@ -446,8 +446,24 @@ impl Configuration {
     /// Will panic if it can't be converted to TOML.
     #[must_use]
     fn to_toml(&self) -> String {
-        // code-review: do we need to use Figment also to serialize into toml?
-        toml::to_string(self).expect("Could not encode TOML value")
+        if self.http_api.is_none() {
+            return toml::to_string(self).expect("Could not encode TOML value");
+        }
+
+        let mut configuration = toml::Value::try_from(self).expect("Could not encode TOML value");
+
+        if let Some(http_api) = &self.http_api {
+            configuration
+                .get_mut("http_api")
+                .and_then(toml::Value::as_table_mut)
+                .expect("HTTP API configuration should serialize to a TOML table")
+                .insert(
+                    "access_tokens".to_string(),
+                    toml::Value::Table(http_api.serialize_access_tokens_for_toml()),
+                );
+        }
+
+        toml::to_string(&configuration).expect("Could not encode TOML value")
     }
 
     /// Encodes the configuration to JSON.
@@ -781,6 +797,20 @@ mod tests {
 
         assert!(json.contains("\"***\""));
         assert!(!json.contains(token));
+    }
+
+    #[test]
+    fn configuration_toml_output_should_preserve_access_tokens() {
+        let token = "v3-token-only-for-toml-persistence-test";
+        let mut configuration = Configuration::default();
+        let mut http_api = HttpApi::default();
+        http_api.add_token("admin", token);
+        configuration.http_api = Some(http_api);
+
+        let toml = configuration.to_toml();
+
+        assert!(toml.contains("[http_api.access_tokens]"));
+        assert!(toml.contains(token));
     }
 
     #[test]
