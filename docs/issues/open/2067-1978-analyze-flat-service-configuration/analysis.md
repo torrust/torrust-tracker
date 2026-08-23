@@ -1,6 +1,6 @@
 # Analysis Report: Flat Heterogeneous Service Configuration
 
-> **Status:** Planned
+> **Status:** Complete — recommendation: reject the flat TOML schema change
 >
 > **Issue contract:** [ISSUE.md](ISSUE.md)
 >
@@ -12,50 +12,160 @@ not describe unapproved production work as implemented.
 
 ## Executive Decision
 
-| Field                  | Result |
-| ---------------------- | ------ |
-| Recommendation         | TODO   |
-| Decision status        | TODO   |
-| Rationale              | TODO   |
-| Required prerequisites | TODO   |
-| Proposed follow-up     | TODO   |
+| Field                  | Result                                                                                                                                                                                                                                                              |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Recommendation         | **Reject** a flat heterogeneous `[[services]]` TOML collection for schema v3.0.0.                                                                                                                                                                                   |
+| Decision status        | Ready for maintainer review.                                                                                                                                                                                                                                        |
+| Rationale              | The split layout is clearer for the common one-HTTP-or-one-UDP deployment, preserves structural cardinality, and avoids a breaking migration. The flat form supplies no demonstrated operator benefit that offsets those costs. |
+| Required prerequisites | None for this rejection. Complete #1490 and #1980 under their existing plans.                                                                                                                                                                                       |
+| Proposed follow-up     | Do not create the proposed configuration-schema implementation issue. Defer any internal normalized listener inventory until a concrete lifecycle consumer cannot use the existing registry and role-specific container views.                                      |
+
+The rejection is limited to changing the **operator-facing TOML shape**. It does not prohibit a
+future internal service inventory when it is justified independently of the configuration schema.
+The existing `Registar<RuntimeServiceMetadata>` already provides an inventory of successfully
+started listeners, while the job manager intentionally also contains non-listener work. See
+[E1](evidence.md#e1-current-state-baseline) and [E3](evidence.md#e3-runtime-and-identity-model).
 
 ## Current-State Baseline
 
-TODO: Describe the v3 configuration shape, cardinality/defaulting, startup phases, container and
-registry behavior, `ConfigurationInstanceId`, shared UDP behavior, and configuration redaction.
+Schema v3 currently has separate root fields: optional `Vec<HttpTracker>` and `Vec<UdpTracker>`,
+an optional `HttpApi`, a defaulted `HealthCheckApi`, and defaulted shared
+`UdpTrackerServer` policy. Consequently, trackers are $0..N$, the REST API is structurally
+$0..1$, and health checking has exactly one effective configuration even when no TOML health
+section is supplied. The health listener is always started; a missing REST API is not. [E1](evidence.md#e1-current-state-baseline)
+
+The application currently imports the v2 public aliases. The v3 module is the appropriate
+analysis target, but no production v3 consumer migration is valid before #1980. Runtime startup
+is role- and dependency-grouped: shared UDP support work precedes UDP listeners, then HTTP
+listeners, optional REST API, and unconditional health API. Therefore source declaration order
+has no current startup meaning and must not acquire one. [E1](evidence.md#e1-current-state-baseline)
+
+`ConfigurationInstanceId` is the established runtime identity: `(ServiceRole, role-local index)`.
+It deliberately excludes both configured and bound addresses, which is required for valid
+port-zero listeners. REST and health already register as `RestApi(0)` and `HealthCheckApi(0)`.
+Registration instead records the final post-bind `ServiceBinding`, preserving metrics and health
+contracts. [E1](evidence.md#e1-current-state-baseline)
+
+The primary baseline defect is unrelated to TOML layout: each `UdpTracker` exposes
+`max_connection_id_errors_per_ip`, yet container construction reads only the first UDP entry to
+initialize one shared ban service. This must not be perpetuated as flat-list order dependence.
+It belongs either in shared UDP policy, behind consistency validation, or in separately approved
+ban-service redesign work. [E1](evidence.md#e1-current-state-baseline)
 
 ## Candidate Representations
 
-TODO: Compare at least two TOML/Rust representations. Include the adjacent-tagged form and the
-rejected or less-preferred alternatives with their operator-facing trade-offs.
+| Representation                                              | TOML and Rust shape                                                                                                                                                             | Advantages                                                                                                                                                                                             | Costs and decision                                                                                                                                                                                                                                                   |
+| ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Current split TOML plus optional internal normalization** | `[[http_trackers]]`, `[[udp_trackers]]`, optional `[http_api]`, defaulted `[health_check_api]`; normalize role-specific views only inside a lifecycle boundary if later needed. | Names and role-specific fields remain adjacent; common single-service files require no type discriminator; singleton cardinality is structural; named nested Figment overrides remain supported; no migration. | Cross-role source order cannot be expressed; numeric overrides of any list entry are unsupported by the current Figment provider. **Recommended.** |
+| **Adjacent-tagged list**                                    | `Vec<Service>` with `#[serde(tag = "kind", content = "configuration")]`. Each list item has `kind` plus a nested configuration table.                                           | The most viable flat representation: preserves per-kind typed configuration, TOML order, Serde round trips, and clear unknown-kind rejection.                                                          | Adds a discriminator and nesting before each service's fields; duplicate singleton rules move to custom validation; omitted health needs normalizer defaulting; numeric list environment overrides fail; v2-to-v3 migration invents an order. **Rejected for TOML.** |
+| **Internally tagged flattened list**                        | `#[serde(tag = "kind")]` plus `#[serde(flatten)]` wrapped role configuration.                                                                                                   | Removes one TOML nesting level and round-trips.                                                                                                                                                        | Mixes discriminators with fields whose meaning varies by type, makes field discovery less local, and has no compensating benefit for common deployments. **Not recommended.**                                                                                        |
+| **Externally tagged list**                                  | `Vec<ExternallyTaggedService>` such as `[services.http_tracker]`.                                                                                                               | Round-trips and has no explicit discriminator field.                                                                                                                                                   | Adds a role-named wrapper table, duplicates the role grouping at per-item granularity, and is less discoverable than current sections. **Not recommended.**                                                                                                          |
+
+For an operator with one HTTP or one UDP listener—the expected primary deployment—the split form
+has a direct path from service purpose to its fields. A flat list imposes the extra steps “find
+the list entry” and “interpret its kind” before fields can be evaluated. Interleaving service
+types is only valuable when it represents an operational ordering, but ordering must not control
+startup and the current model has no demonstrated operator workflow requiring it. [E2](evidence.md#e2-configuration-representation-feasibility)
 
 ## Feasibility Results
 
-TODO: Summarize TOML parsing, Serde round-trip behavior, Figment defaults and environment
-overrides, discriminator validation, and any prototype constraints. Link each conclusion to an
-evidence record.
+Isolated tests using the repository's `toml`, Serde, and Figment versions confirm that adjacent,
+flattened, and externally tagged enum forms parse and serialize an interleaved service document.
+Adjacent tagging rejects an unknown `kind`. It is therefore technically feasible, but feasibility
+does not make it an appropriate operator schema. [E2](evidence.md#e2-configuration-representation-feasibility)
+
+The prototype establishes a provider limitation, not a flat-list regression: Figment's environment
+provider merges a numeric path such as `SERVICES__0__CONFIGURATION__BIND_ADDRESS` as a map, not a
+sequence item, so extraction fails with `InvalidType(Map, "a sequence")`. The equivalent current
+split-list override also fails. Named nested overrides such as `HTTP_API__ACCESS_TOKENS__ADMIN`
+remain supported. A flat representation would inherit this existing list-override limitation;
+it would need a separate provider solution only if indexed listener overrides become a requirement.
+[E2](evidence.md#e2-configuration-representation-feasibility)
+
+An omitted or empty prototype list deserializes as empty. That alone does **not** preserve the
+current default health listener: normalization would need to materialize `HealthCheckApi::default`
+when no health entry exists. Duplicate `http_api` and `health_check_api` entries also require
+explicit semantic diagnostics, whereas the split TOML form makes duplicates structurally
+impossible. [E2](evidence.md#e2-configuration-representation-feasibility)
 
 ## Runtime and Normalization Model
 
-TODO: Explain the proposed normalization boundary, role-specific views, startup dependencies,
-singleton/default behavior, shared UDP policies, and observability compatibility invariants.
+Do not implement a normalization layer now. If a concrete internal consumer later needs one, it
+must be the sole boundary between parsed configuration and runtime assembly. It would scan the
+chosen configuration representation once, assign role-local IDs, validate singleton and shared
+policy rules, materialize the default health configuration, and expose role-specific ordered views
+to existing container and job startup code. No container, job, metrics collector, or registry
+consumer should independently translate a list position into a role-local identity. [E3](evidence.md#e3-runtime-and-identity-model)
+
+The normalized output must retain dependency grouping: initialize core and shared UDP services;
+start prerequisite UDP event/cleanup jobs before UDP listeners; then HTTP listeners; then optional
+REST API and health API. Declaration order is presentation order only. It must preserve
+post-bind `ServiceBinding`, `RuntimeServiceMetadata`, registration, and metrics behavior. For
+UDP entries in private mode, current semantics are retained: configuration is accepted, startup
+skips UDP and logs a warning; this is not a schema validation failure. [E1](evidence.md#e1-current-state-baseline)
 
 ## Identity, Ordering, and Migration
 
-TODO: Define the `ServiceKind` to `ServiceRole` mapping, compare role-local and global positions,
-document the v3 cross-role ordering limitation, and state any canonical migration-order rule.
+If a future typed configuration enum is ever justified, its configuration-facing mapping must be:
+
+| `ServiceKind`      | Runtime role                  |
+| ------------------ | ----------------------------- |
+| `http_tracker`     | `ServiceRole::HttpTracker`    |
+| `udp_tracker`      | `ServiceRole::UdpTracker`     |
+| `http_api`         | `ServiceRole::RestApi`        |
+| `health_check_api` | `ServiceRole::HealthCheckApi` |
+
+`http_api` intentionally does not expose the runtime serialization name `tracker_rest_api` to
+operators. A single scanner can preserve IDs by incrementing a separate ordinal for each mapped
+role; the prototype proves this for interleaved HTTP and UDP entries. Using global list positions
+would renumber an HTTP entry when an unrelated earlier UDP entry is added, contradicting the
+existing identity contract and destabilizing metrics/container lookups. [E3](evidence.md#e3-runtime-and-identity-model)
+
+The present split layout records ordering only within each role; it cannot recover cross-role
+order. If an external migration ever has to materialize a flat list, it must document the approved
+synthetic order: HTTP trackers, UDP trackers, HTTP API, health-check API. That rule is a
+deterministic export convention, not recovery of historical startup or operator order. Since the
+flat TOML proposal is rejected, no migration tool or dual loader is proposed. [E4](evidence.md#e4-migration-schema-lifecycle-and-security)
 
 ## Schema Lifecycle, Security, and Compatibility
 
-TODO: State the future version-loading/transition recommendation, #1980/#1490 relationship,
-redaction requirements, affected external consumers, and compatibility constraints.
+Keep one final v3 schema shape: the current role-specific layout. Do not introduce a dual layout
+or migration tool. This avoids an otherwise unnecessary compatibility surface for default TOML,
+deployment overrides, documentation, fixtures, and external configuration consumers. #1490 still
+must replace manual token masking with secret types before #1980 moves application consumers to
+v3. [E4](evidence.md#e4-migration-schema-lifecycle-and-security)
+
+The current v3 root `mask_secrets` explicitly reaches `http_api`; nesting that configuration in
+an enum would require exhaustive redaction traversal and tests. #1490 makes that concern more
+important because it changes both API-token and database-password representations. Retaining the
+split root prevents new redaction traversal risk while #1490 performs the planned security
+overhaul. [E1](evidence.md#e1-current-state-baseline)
 
 ## Cost, Risks, and Recommendation
 
-TODO: Estimate the affected modules and effort, list remaining risks, and provide the final
-recommendation with exact proposed scope for any follow-up implementation issue.
+Implementing flat TOML would change at least `packages/configuration` loading/defaulting/
+serialization/validation/redaction, default configuration files, migration documentation,
+fixtures, configuration consumers, containers, bootstrap jobs, registration/metrics tests, and
+environment override behavior. It also collides with #1490 and #1980, which already make a broad
+v3 consumer migration. The hidden UDP shared-policy defect would need an explicit decision rather
+than preservation of first-entry-wins behavior. [E1](evidence.md#e1-current-state-baseline) [E4](evidence.md#e4-migration-schema-lifecycle-and-security)
+
+The adjacent enum is feasible, but its only distinct benefit—cross-role presentation order—does
+not improve the primary operator workflows and cannot influence lifecycle startup. Its costs are
+concrete: less local TOML, semantic singleton/default rules, unsupported indexed overrides,
+breaking migration, and redaction changes. **Reject the flat TOML implementation and do not
+create a new #1978 implementation sub-issue.**
+
+The remaining opportunity is deliberately deferred, not committed: if a future runtime feature
+needs a complete configuration-derived listener inventory beyond the existing registry, create a
+separate issue for an internal normalizer while retaining the role-specific TOML model. It must
+first define a consumer, shared UDP policy handling, and role-local ID ownership. [E3](evidence.md#e3-runtime-and-identity-model)
 
 ## Evidence Index
 
-TODO: Link each material conclusion above to the relevant section of [evidence.md](evidence.md).
+| Report area                                   | Evidence                                                                                                                                                   |
+| --------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Executive decision and current-state baseline | [E1](evidence.md#e1-current-state-baseline), [E3](evidence.md#e3-runtime-and-identity-model), [E4](evidence.md#e4-migration-schema-lifecycle-and-security) |
+| Candidate representations and feasibility     | [E2](evidence.md#e2-configuration-representation-feasibility)                                                                                              |
+| Runtime/normalization and identity            | [E1](evidence.md#e1-current-state-baseline), [E3](evidence.md#e3-runtime-and-identity-model)                                                               |
+| Migration, lifecycle, security, cost          | [E1](evidence.md#e1-current-state-baseline), [E4](evidence.md#e4-migration-schema-lifecycle-and-security)                                                  |
