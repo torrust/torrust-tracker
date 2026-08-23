@@ -1159,7 +1159,7 @@ mod tests {
             HealthCheckApi(HealthCheckApi),
         }
 
-        #[derive(Serialize, Deserialize)]
+        #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone)]
         #[serde(deny_unknown_fields)]
         struct AdjacentServicesDocument {
             #[serde(default)]
@@ -1177,7 +1177,7 @@ mod tests {
         }
 
         #[allow(dead_code)]
-        #[derive(Deserialize)]
+        #[derive(Debug, Deserialize)]
         struct SplitServicesDocument {
             #[serde(default)]
             http_trackers: Vec<HttpTracker>,
@@ -1250,6 +1250,14 @@ mod tests {
             Ok(())
         }
 
+        fn mask_service_secrets(services: &mut [AdjacentService]) {
+            for service in services {
+                if let AdjacentService::HttpApi(configuration) = service {
+                    configuration.mask_secrets();
+                }
+            }
+        }
+
         #[test]
         fn adjacent_tagged_services_round_trip_and_preserve_interleaved_order() {
             let input = r#"
@@ -1257,6 +1265,15 @@ mod tests {
                 kind = "http_tracker"
                 [services.configuration]
                 bind_address = "127.0.0.1:17070"
+
+                [services.configuration.network]
+                external_ip = "203.0.113.5"
+                on_reverse_proxy = true
+                ipv6_v6only = true
+
+                [services.configuration.tls_config]
+                ssl_cert_path = "tracker.crt"
+                ssl_key_path = "tracker.key"
 
                 [[services]]
                 kind = "udp_tracker"
@@ -1267,6 +1284,13 @@ mod tests {
                 kind = "http_api"
                 [services.configuration]
                 bind_address = "127.0.0.1:1212"
+
+                [services.configuration.access_tokens]
+                admin = "ExampleSecretToken"
+
+                [services.configuration.tls_config]
+                ssl_cert_path = "api.crt"
+                ssl_key_path = "api.key"
             "#;
 
             let document: AdjacentServicesDocument = toml::from_str(input).expect("adjacent-tagged TOML should deserialize");
@@ -1278,6 +1302,36 @@ mod tests {
             assert!(matches!(document.services[0], AdjacentService::HttpTracker(_)));
             assert!(matches!(document.services[1], AdjacentService::UdpTracker(_)));
             assert!(matches!(document.services[2], AdjacentService::HttpApi(_)));
+
+            let AdjacentService::HttpTracker(http_tracker) = &document.services[0] else {
+                panic!("first service should be an HTTP tracker");
+            };
+            assert_eq!(http_tracker.network.external_ip, Some("203.0.113.5".parse().unwrap()));
+            assert!(http_tracker.network.on_reverse_proxy);
+            assert!(http_tracker.network.ipv6_v6only);
+            assert!(http_tracker.tls_config.is_some());
+
+            let AdjacentService::HttpApi(http_api) = &document.services[2] else {
+                panic!("third service should be an HTTP API");
+            };
+            assert_eq!(http_api.access_tokens.get("admin"), Some(&"ExampleSecretToken".to_string()));
+            assert!(http_api.tls_config.is_some());
+        }
+
+        #[test]
+        fn enum_redaction_must_traverse_http_api_before_json_serialization() {
+            let mut document = AdjacentServicesDocument {
+                services: vec![AdjacentService::HttpApi(HttpApi {
+                    access_tokens: [("admin".to_string(), "ExampleSecretToken".to_string())].into(),
+                    ..HttpApi::default()
+                })],
+            };
+
+            mask_service_secrets(&mut document.services);
+            let json = serde_json::to_string(&document).expect("masked services should serialize to JSON");
+
+            assert!(json.contains("***"));
+            assert!(!json.contains("ExampleSecretToken"));
         }
 
         #[test]
@@ -1403,12 +1457,17 @@ mod tests {
                     "#,
                 ))
                 .merge(Env::prefixed(OVERRIDE_PREFIX).split(OVERRIDE_SEPARATOR));
-                let result = figment.extract::<AdjacentServicesDocument>();
+                let errors = figment
+                    .extract::<AdjacentServicesDocument>()
+                    .expect_err("Figment environment maps cannot override a sequence item by numeric index");
 
-                assert!(
-                    result.is_err(),
-                    "Figment environment maps cannot override a sequence item by numeric index"
-                );
+                assert!(errors.into_iter().any(|error| {
+                    matches!(
+                        error.kind,
+                        figment::error::Kind::InvalidType(figment::error::Actual::Map, expected)
+                            if expected == "a sequence"
+                    )
+                }));
 
                 Ok(())
             });
@@ -1430,12 +1489,17 @@ mod tests {
                     "#,
                 ))
                 .merge(Env::prefixed(OVERRIDE_PREFIX).split(OVERRIDE_SEPARATOR));
-                let result = figment.extract::<SplitServicesDocument>();
+                let errors = figment
+                    .extract::<SplitServicesDocument>()
+                    .expect_err("Figment environment maps cannot override a split sequence item by numeric index");
 
-                assert!(
-                    result.is_err(),
-                    "Figment environment maps cannot override a split sequence item by numeric index"
-                );
+                assert!(errors.into_iter().any(|error| {
+                    matches!(
+                        error.kind,
+                        figment::error::Kind::InvalidType(figment::error::Actual::Map, expected)
+                            if expected == "a sequence"
+                    )
+                }));
 
                 Ok(())
             });

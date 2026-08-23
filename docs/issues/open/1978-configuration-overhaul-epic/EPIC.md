@@ -4,7 +4,7 @@ status: open
 github-issue: 1978
 spec-path: docs/issues/open/1978-configuration-overhaul-epic/EPIC.md
 epic-owner: josecelano
-last-updated-utc: 2026-08-22 00:00
+last-updated-utc: 2026-08-23
 semantic-links:
   skill-links:
     - create-issue
@@ -267,9 +267,11 @@ For each subissue implementation in this EPIC, the default completion policy is:
 - 2026-08-20 16:44 UTC - Copilot - Renamed #2067's folder-based subissue specification to include
   the parent EPIC number, following the open-issues naming convention.
 - 2026-08-22 UTC - Copilot/User - Corrected #2067's roadmap placement: if its analysis recommends
-  implementation, a new sub-issue must complete after #1490 and before #1980 so the chosen model
-  is part of schema v3.0.0. The analysis also compares operator-facing TOML design independently
-  from a possible internal polymorphic service inventory.
+  implementation, a new sub-issue must complete after #1490 and before #1980 so the selected final
+  v3 model is in place before production consumers migrate. The analysis also compares operator-facing
+  TOML design independently from a possible internal polymorphic service inventory.
+- 2026-08-23 UTC - Copilot - Reconfirmed the #2067 policy during PR #2082 review remediation: it is
+  a decision about the final schema v3.0.0 shape before #1980, not a later-schema transition.
 
 ## Acceptance Criteria
 

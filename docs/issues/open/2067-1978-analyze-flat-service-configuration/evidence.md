@@ -26,11 +26,14 @@ or runtime change was implemented.
   shared UDP work before UDP instances, then HTTP instances, optional REST, and health. IDs are
   role-local; REST and health use ordinal zero. The registry records final post-bind bindings.
   The shared UDP ban service takes `max_connection_id_errors_per_ip` from only the first configured
-  UDP listener. V3 manual `mask_secrets` explicitly descends into the root `http_api`.
+  UDP listener. In `src/bootstrap/app.rs::setup`, the exact log expression is
+  `configuration.clone().mask_secrets().to_json()`: V3 `mask_secrets` masks the database, then
+  explicitly descends into root `http_api`, and `to_json` serializes only that masked clone.
 - **Conclusion:** The split schema encodes cardinality/defaulting structurally and is distinct from
   the existing role-grouped runtime lifecycle. Any future normalizer needs one ownership point for
   ID allocation, health defaulting, singleton validation, and shared UDP policy. It must retain
-  post-bind registration and redaction behavior.
+  post-bind registration and redaction behavior. Any enum-based schema must exhaustively traverse
+  secret-bearing variants before JSON serialization at this existing log boundary.
 - **Report Links:** `analysis.md` sections "Current-State Baseline" and "Runtime and Normalization Model".
 
 ## E2: Configuration Representation Feasibility
@@ -70,16 +73,20 @@ or runtime change was implemented.
   TORRUST_TRACKER_CONFIG_OVERRIDE_HTTP_TRACKERS__0__BIND_ADDRESS=127.0.0.1:18080
   ```
 
-- **Observation:** All nine focused tests passed. Adjacent, flattened/internal-tagged, and
-  externally tagged forms round-trip through TOML and Serde. Adjacent tagging rejects an unknown
-  kind. Omitted and empty lists deserialize as empty; duplicate singleton kinds need semantic
-  validation. Both flat and equivalent split-list indexed Figment overrides fail extraction with
-  `InvalidType(Map, "a sequence")`; the current named nested HTTP API override remains covered by
-  an existing test.
-- **Conclusion:** An adjacent enum is technically feasible and shares the current Figment
-  limitation for indexed listener overrides. It transfers singleton/default behavior from
-  structure to custom normalization/validation. Flattened and external forms are feasible but less
-  operator-friendly.
+- **Observation:** The focused prototype suite covers ten tests. Adjacent, flattened/internal-tagged,
+  and externally tagged forms round-trip through TOML and Serde. The adjacent fixture round-trips a
+  nested HTTP tracker `network` block and `tls_config`, plus HTTP API `access_tokens` and `tls_config`.
+  A separate enum traversal prototype masks the HTTP API token before JSON serialization, proving the
+  required redaction ordering for that variant. Adjacent tagging rejects an unknown kind. Omitted and
+  empty lists deserialize as empty; duplicate singleton kinds need semantic validation. Both flat and
+  equivalent split-list indexed Figment overrides fail extraction with a matched Figment
+  `InvalidType(Map, "a sequence")`; the current named nested HTTP API override remains covered by an
+  existing test.
+- **Conclusion:** An adjacent enum is technically feasible for the nested v3 fields exercised and
+  shares the current Figment limitation for indexed listener overrides. Complete secret redaction
+  remains feasible only with an exhaustive enum traversal before the existing JSON logging boundary.
+  It transfers singleton/default behavior from structure to custom normalization/validation.
+  Flattened and external forms are feasible but less operator-friendly.
 - **Report Links:** `analysis.md` sections "Candidate Representations" and "Feasibility Results".
 
 ## E3: Runtime and Identity Model
@@ -101,10 +108,10 @@ initialize_http_tracker_instance_containers,initialize_udp_tracker_instance_cont
   possible without a flat TOML schema, but no current consumer demonstrates that it is required.
 - **Report Links:** `analysis.md` sections "Runtime and Normalization Model" and "Identity, Ordering, and Migration".
 
-## E4: Migration, Schema Lifecycle, and Security
+## E4: Migration, Final-v3 Lifecycle, and Security
 
-- **Question:** What migration order, schema transition policy, dependency order, and redaction
-  constraints would a successor schema require?
+- **Question:** What migration order, final-v3 transition policy, dependency order, and redaction
+  constraints would a selected flat layout require before #1980?
 - **Status:** PASS
 - **Method:** Reviewed `packages/configuration/src/lib.rs`, v3 load/default/version checks,
   `src/bootstrap/app.rs`, #1490 at

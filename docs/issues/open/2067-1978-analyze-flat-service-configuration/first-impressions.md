@@ -45,7 +45,7 @@ not yet demonstrated, while the migration and runtime integration cost is alread
 - Current UDP configuration exposes an important semantic mismatch: the shared `BanService` is
   initialized from one UDP listener's `max_connection_id_errors_per_ip` value. A flat list could
   make this policy less visible without resolving it.
-- A v3-to-successor migration cannot recover a meaningful cross-role order, because v3 stores
+- Materializing a flat v3 collection from the current split layout cannot recover a meaningful cross-role order, because the split layout stores
   independent HTTP and UDP lists rather than one interleaved inventory. Any migration must impose
   a canonical order or require operator intervention.
 - The change must retain defaulting, environment overrides, configuration serialization, and

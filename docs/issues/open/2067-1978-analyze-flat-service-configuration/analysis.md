@@ -165,11 +165,16 @@ deployment overrides, documentation, fixtures, and external configuration consum
 must replace manual token masking with secret types before #1980 moves application consumers to
 v3. [E4](evidence.md#e4-migration-schema-lifecycle-and-security)
 
-The current v3 root `mask_secrets` explicitly reaches `http_api`; nesting that configuration in
-an enum would require exhaustive redaction traversal and tests. #1490 makes that concern more
-important because it changes both API-token and database-password representations. Retaining the
-split root prevents new redaction traversal risk while #1490 performs the planned security
-overhaul. [E1](evidence.md#e1-current-state-baseline)
+The current bootstrap boundary is concrete: `src/bootstrap/app.rs::setup` logs
+`configuration.clone().mask_secrets().to_json()` through `tracing::info!`. `Configuration::mask_secrets`
+first masks the database and then explicitly descends into root `http_api`; only the resulting clone
+is JSON serialized and logged. A hypothetical `Vec<Service>` enum must preserve that exact ordering:
+clone the complete configuration, exhaustively traverse every secret-carrying enum variant (currently
+the `HttpApi` variant) to mask it, and only then call `to_json` for the log. A test-only enum prototype
+confirms that traversal removes an API token from serialized JSON; it must be extended for every future
+secret-bearing variant. #1490 makes this boundary more important because it changes both API-token and
+database-password representations. Retaining the split root prevents new traversal risk while #1490
+performs the planned security overhaul. [E1](evidence.md#e1-current-state-baseline) [E2](evidence.md#e2-configuration-representation-feasibility)
 
 ## Cost, Risks, and Recommendation
 
@@ -179,6 +184,15 @@ fixtures, configuration consumers, containers, bootstrap jobs, registration/metr
 environment override behavior. It also collides with #1490 and #1980, which already make a broad
 v3 consumer migration. The confirmed UDP shared-policy bug must be fixed independently rather
 than preserving first-entry-wins behavior. [E1](evidence.md#e1-current-state-baseline) [E4](evidence.md#e4-migration-schema-lifecycle-and-security)
+
+The estimates are deliberately qualitative because the flat schema is rejected before an approved
+implementation design exists. A complete flat TOML delivery is **large, multi-week work**: it spans
+public schema and default/migration surfaces, semantic validation and secret-redaction traversal,
+then the already-planned #1980 consumer migration and cross-package lifecycle regression coverage.
+An internal normalizer that retains split TOML is **medium, multi-day to small multi-week work** if a
+concrete consumer justifies it; its size is driven by establishing one ID/default/shared-policy owner
+and adapting its consumers, rather than by external migration. Neither estimate authorizes work;
+both exclude the separately required correction for the shared UDP error-limit bug. [E1](evidence.md#e1-current-state-baseline) [E3](evidence.md#e3-runtime-and-identity-model) [E4](evidence.md#e4-migration-schema-lifecycle-and-security)
 
 The adjacent enum is feasible, but its only distinct benefit—cross-role presentation order—does
 not improve the primary operator workflows and cannot influence lifecycle startup. Its costs are
