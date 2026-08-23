@@ -110,7 +110,7 @@ mod tests {
     }
 
     #[test]
-    fn http_api_tokens_should_deserialize_and_serialize_with_toml_syntax() {
+    fn http_api_tokens_should_deserialize_from_toml_and_serialize_to_redacted_json() {
         let token = "v2-token-only-for-serialization-test";
         let configuration: HttpApi = toml::from_str(&format!("[access_tokens]\nadmin = \"{token}\"\n"))
             .expect("HTTP API tokens should deserialize from TOML");
