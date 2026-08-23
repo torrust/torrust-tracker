@@ -182,7 +182,7 @@ Implementing flat TOML would change at least `packages/configuration` loading/de
 serialization/validation/redaction, default configuration files, migration documentation,
 fixtures, configuration consumers, containers, bootstrap jobs, registration/metrics tests, and
 environment override behavior. It would also require a later successor-schema migration after
-#2079, #1490, and #1980 complete. The confirmed UDP shared-policy bug must be fixed independently
+issues #2079, #1490, and #1980 complete. The confirmed UDP shared-policy bug must be fixed independently
 rather than preserving first-entry-wins behavior. [E1](evidence.md#e1-current-state-baseline) [E4](evidence.md#e4-migration-schema-lifecycle-and-security)
 
 The estimates are deliberately qualitative because the flat schema is rejected before an approved
