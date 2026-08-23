@@ -1,5 +1,4 @@
 //! Builder for the Torrust Tracker configuration file written into the E2E workspace.
-use std::fs;
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::path::{Path, PathBuf};
 
@@ -199,9 +198,10 @@ impl TrackerConfigBuilder {
     pub(crate) fn write_to(&self, workspace_root: &Path) -> anyhow::Result<PathBuf> {
         let config_path = workspace_root.join(CONFIG_FILE_NAME);
         let config = self.tracker_config.to_torrust_configuration();
-        let config_toml = toml::to_string(&config).context("failed to serialize tracker config to TOML")?;
+        let config_path_as_str = config_path.to_str().context("tracker config path must be valid UTF-8")?;
 
-        fs::write(&config_path, config_toml)
+        config
+            .save_to_file(config_path_as_str)
             .with_context(|| format!("failed to write tracker config '{}'", config_path.display()))?;
 
         Ok(config_path)
@@ -210,4 +210,28 @@ impl TrackerConfigBuilder {
 
 const fn bind_address(port: u16) -> SocketAddr {
     SocketAddr::new(TRACKER_BIND_HOST, port)
+}
+
+#[cfg(test)]
+mod tests {
+    use std::fs;
+
+    use tempfile::tempdir;
+
+    use super::{TrackerConfig, TrackerConfigBuilder};
+
+    #[test]
+    fn write_to_should_persist_the_tracker_api_access_token() {
+        let temporary_directory = tempdir().expect("temporary E2E workspace should be created");
+        let config = TrackerConfigBuilder::new(TrackerConfig::default());
+
+        let config_path = config
+            .write_to(temporary_directory.path())
+            .expect("tracker configuration should be written");
+        let written_configuration = fs::read_to_string(config_path).expect("tracker configuration should be readable");
+
+        assert!(written_configuration.contains("[http_api.access_tokens]"));
+        assert!(written_configuration.contains("admin = \"MyAccessToken\""));
+        assert!(!written_configuration.contains("admin = \"***\""));
+    }
 }
