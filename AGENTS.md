@@ -259,6 +259,12 @@ These policies are repository-wide and apply to all agents and workflows.
    Keep folder READMEs lightweight (purpose and navigation), and treat `.github/skills/` plus
    canonical docs (for example `docs/index.md`) as the authoritative workflow sources.
    When duplications are found, remove or replace them with links to the canonical source.
+7. **AI-agent implementation independence**: keep repository knowledge, decisions, workflows, and
+   validation reproducible from Git-tracked documentation, scripts, tests, and documented standard
+   interfaces. Treat provider-specific profiles, retained state, indexes, tools, and cloud setup as
+   optional adapters, not sources of truth. Document an adapter's purpose, portability limitation,
+   and practical alternative before making it required. See
+   [`docs/adrs/20260821172000_establish_ai_agent_context_capability_and_portability_governance.md`](docs/adrs/20260821172000_establish_ai_agent_context_capability_and_portability_governance.md).
 
 Implementation workflow references:
 
@@ -270,9 +276,11 @@ Implementation workflow references:
 
 1. **Linting gate**: `linter all` must exit `0` before every commit. No exceptions.
 2. **GPG commit signing**: All commits **must** be signed with GPG (`git commit -S`). **GPG timeout handling**: If the GPG passphrase prompt times out during a commit, the agent
-   **must stop immediately**, notify the user, and ask them to retry the commit manually.
-   Never bypass GPG signing with `--no-gpg-sign` or skip the signing step under any
-   circumstances. This rule is absolute.3. **Never commit `storage/` or `target/`**: These directories contain runtime data and build
+   **must stop the failed attempt**, notify the user, and ask whether they prefer to retry the
+   commit manually or have the agent rerun the same signed command while they enter the
+   passphrase directly in the terminal prompt. Never retry automatically, request or handle the
+   passphrase in chat, bypass GPG signing with `--no-gpg-sign`, or skip the signing step under
+   any circumstances. This rule is absolute.3. **Never commit `storage/` or `target/`**: These directories contain runtime data and build
    artifacts. They are git-ignored; never force-add them.
 3. **Unused dependencies**: Run `cargo machete` before committing. Remove any unused
    dependencies immediately.
@@ -407,16 +415,16 @@ with YAML frontmatter and Markdown instructions covering a repeatable workflow.
 
 ### Quick Navigation
 
-| Task                                 | Start Here                                           |
-| ------------------------------------ | ---------------------------------------------------- |
-| Understand the architecture          | [`docs/packages.md`](docs/packages.md)               |
-| Run the tracker in a container       | [`docs/containers.md`](docs/containers.md)           |
-| Read all docs                        | [`docs/index.md`](docs/index.md)                     |
-| Understand an architectural decision | [`docs/adrs/README.md`](docs/adrs/README.md)         |
-| Read or write an issue spec          | [`docs/issues/`](docs/issues/)                       |
-| Run benchmarks                       | [`docs/benchmarking.md`](docs/benchmarking.md)       |
-| Run profiling                        | [`docs/profiling.md`](docs/profiling.md)             |
-| Understand the release process       | [`docs/release_process.md`](docs/release_process.md) |
-| Report a security vulnerability      | [`SECURITY.md`](SECURITY.md)                         |
-| Agent skills reference               | [`.github/skills/`](.github/skills/)                 |
-| Custom agents reference              | [`.github/agents/`](.github/agents/)                 |
+| Task                                 | Start Here                                             |
+| ------------------------------------ | ------------------------------------------------------ |
+| Understand the architecture          | [`docs/packages.md`](docs/packages.md)                 |
+| Run the tracker in a container       | [`docs/containers.md`](docs/containers.md)             |
+| Read all docs                        | [`docs/index.md`](docs/index.md)                       |
+| Understand an architectural decision | [`docs/adrs/README.md`](docs/adrs/README.md)           |
+| Read or write an issue spec          | [`docs/issues/`](docs/issues/)                         |
+| Run benchmarks                       | [`docs/benchmarking.md`](docs/benchmarking.md)         |
+| Run profiling                        | [`docs/profiling.md`](docs/profiling.md)               |
+| Understand the release process       | [`docs/release_process.md`](docs/release_process.md)   |
+| Report a security vulnerability      | [`SECURITY.md`](SECURITY.md)                           |
+| Agent skills reference               | [`.github/skills/`](.github/skills/)                   |
+| Custom agents reference              | [`.github/agents/README.md`](.github/agents/README.md) |

@@ -46,7 +46,7 @@ semantic-links:
 
 # Issue #1640 - Move `on_reverse_proxy` to per-tracker config (and relocate `Network`)
 
-> **EPIC position**: Subissue #3 of 11. Depends on #2 (`tsl` → `tls` typo fix). Must be implemented before #1417 (public_url) and #1490 (secrets) — both reference the `Network` block established here. Both #1640 and #1490 touch `Core`, so #1640 goes first.
+> **EPIC position**: Subissue #3 of the configuration-overhaul EPIC. Depends on #2 (`tsl` → `tls` typo fix). Must be implemented before #1417 (public_url) and #1490 (database configuration) — both reference the `Network` block established here. Both #1640 and #1490 touch `Core`, so #1640 goes first.
 
 ## Goal
 

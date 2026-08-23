@@ -70,8 +70,8 @@ Create a separate bug sub-issue of EPIC #1978. Its preferred correction is:
 
 1. Move `max_connection_id_errors_per_ip` from `UdpTracker` to the shared
    `UdpTrackerServer` configuration.
-2. Remove the per-listener field from the final v3 schema, defaults, fixtures, documentation, and
-   constructors.
+2. Remove the per-listener field from the active v3 schema, defaults, fixtures, documentation, and
+   constructors, coordinating the change with the planned v2-to-v3 consumer migration.
 3. Make `AppContainer` pass the one shared `udp_tracker_server` value to
    `UdpTrackerCoreServices::initialize_from`.
 4. Add tests proving that multiple UDP listeners use the same declared global limit and that

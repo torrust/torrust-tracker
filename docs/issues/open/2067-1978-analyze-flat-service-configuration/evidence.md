@@ -108,23 +108,25 @@ initialize_http_tracker_instance_containers,initialize_udp_tracker_instance_cont
   possible without a flat TOML schema, but no current consumer demonstrates that it is required.
 - **Report Links:** `analysis.md` sections "Runtime and Normalization Model" and "Identity, Ordering, and Migration".
 
-## E4: Migration, Final-v3 Lifecycle, and Security
+## E4: Successor-Schema Lifecycle and Security
 
-- **Question:** What migration order, final-v3 transition policy, dependency order, and redaction
-  constraints would a selected flat layout require before #1980?
+- **Question:** What successor-schema transition policy, dependency order, and redaction constraints
+  would a future flat layout require after the v3 delivery completes?
 - **Status:** PASS
 - **Method:** Reviewed `packages/configuration/src/lib.rs`, v3 load/default/version checks,
-  `src/bootstrap/app.rs`, #1490 at
-  `docs/issues/open/1490-1978-decompose-database-config-and-overhaul-secrets.md`, and #1978 at
+  `src/bootstrap/app.rs`, #2079 at
+  `docs/issues/open/2079-adopt-secrecy-for-sensitive-configuration.md`, #1490 at
+  `docs/issues/open/1490-1978-decompose-database-configuration.md`, and #1978 at
   `docs/issues/open/1978-configuration-overhaul-epic/EPIC.md`.
 - **Observation:** Current v3 loading accepts a single exact schema version, while production
-  consumers remain v2 until #1980. #1490 replaces manual secret masking and must precede #1980.
-  The split layout has no cross-role ordering; a flat migration would fabricate the approved
-  HTTP, UDP, REST, health order. A flat enum would require new redaction traversal, migration
-  guidance, default files, fixture updates, and an override solution.
+  consumers remain v2 until #1980. The #2079 secrecy prerequisite precedes #1490, and both
+  precede #1980. The current roadmap classifies #2067 as non-blocking post-v3 research. The split
+  layout has no cross-role ordering; a future flat migration would fabricate the approved HTTP,
+  UDP, REST, health order. A flat enum would require new redaction traversal, migration guidance,
+  default files, fixture updates, and an override solution.
 - **Conclusion:** A dual loader or migration tool adds cost without an operator benefit. Retaining
-  the split layout lets #1490 and #1980 proceed without redoing their consumer migration. No
-  schema implementation follow-up is warranted.
+  the split layout lets #2079, #1490, and #1980 proceed without redoing their consumer migration.
+  No schema implementation follow-up is warranted.
 - **Report Links:** `analysis.md` sections "Identity, Ordering, and Migration" and "Schema Lifecycle, Security, and Compatibility".
 
 ## E5: Final Report Review

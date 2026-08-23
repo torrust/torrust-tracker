@@ -2,7 +2,7 @@
 doc-type: guide
 parent-epic: 1978
 spec-path: docs/issues/open/1978-configuration-overhaul-epic/configuration-v2-to-v3-migration.md
-last-updated-utc: 2026-07-28
+last-updated-utc: 2026-08-21
 ---
 
 # Migrating from Configuration v2.0.0 to v3.0.0
@@ -204,12 +204,44 @@ ip_bans_reset_interval_in_secs = 86400
 
 ## Step 8: Update the database configuration
 
-**Subissue**: #1490 — Decompose database config and overhaul secrets
+**Subissue**: #1490 — Decompose v3 database configuration
 
-> **TODO**: This section will be filled after #1490 is implemented.
-> The flat `[core.database]` block will be replaced with a per-driver
-> enum structure (`sqlite3`, `mysql`, `postgresql`) and secrets will use
-> the `secrecy` crate. The exact v3 syntax depends on the implementation.
+The v3 `path` field is replaced by driver-specific fields. This makes the
+database connection explicit and removes the requirement to percent-encode
+password characters in a URL.
+
+```toml
+# v2 — a filesystem path or credential-bearing URL shared one field name
+[core.database]
+driver = "mysql"
+path = "mysql://db_user:db_user_secret_password@mysql:3306/torrust_tracker"
+
+# v3 — fields match the selected database driver
+[core.database]
+driver = "mysql"
+host = "mysql"
+port = 3306 # optional; defaults to 3306 for MySQL and 5432 for PostgreSQL
+user = "db_user"
+password = "db_user_password" # mandatory and non-empty
+database = "torrust_tracker"
+```
+
+SQLite retains its filesystem `path`:
+
+```toml
+[core.database]
+driver = "sqlite3"
+path = "/var/lib/torrust/tracker/database/sqlite3.db"
+```
+
+This is a breaking configuration change: MySQL and PostgreSQL URLs are not
+accepted in v3. Move their URL components into the fields above. Do not use an
+empty password: loading rejects missing and empty network database passwords.
+
+The preceding `secrecy` refactor changes API-token Rust value types without
+changing TOML syntax. #1490 then represents the isolated v3 database password
+as a secret value, also without changing the TOML syntax shown above. Both must
+be merged before the configuration crate's v3 public API is published.
 
 ## Step 9: Configure HTTP announce IP trust policy
 
