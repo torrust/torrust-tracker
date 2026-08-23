@@ -52,13 +52,13 @@ design.
 
 ## Evidence
 
-| Fact | Source |
-| --- | --- |
-| Field is placed on each listener | `packages/configuration/src/v2_0_0/udp_tracker.rs`, `packages/configuration/src/v3_0_0/udp_tracker.rs` |
-| First UDP listener value is selected | `src/container.rs::AppContainer::initialize` |
-| One shared ban service is created | `packages/udp-core/src/container.rs::UdpTrackerCoreServices::initialize_from` |
-| All UDP containers clone that service | `packages/udp-core/src/container.rs::UdpTrackerCoreContainer::initialize_from_services` |
-| Shared ban state is intentional security design | `docs/adrs/20260727180000_shared_services_across_tracker_instances.md` |
+| Fact                                            | Source                                                                                                 |
+| ----------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| Field is placed on each listener                | `packages/configuration/src/v2_0_0/udp_tracker.rs`, `packages/configuration/src/v3_0_0/udp_tracker.rs` |
+| First UDP listener value is selected            | `src/container.rs::AppContainer::initialize`                                                           |
+| One shared ban service is created               | `packages/udp-core/src/container.rs::UdpTrackerCoreServices::initialize_from`                          |
+| All UDP containers clone that service           | `packages/udp-core/src/container.rs::UdpTrackerCoreContainer::initialize_from_services`                |
+| Shared ban state is intentional security design | `docs/adrs/20260727180000_shared_services_across_tracker_instances.md`                                 |
 
 The ADR explicitly states that settings affecting shared services must themselves be global and
 uses global `connection_id_validation` as its example. The same reasoning applies to the error
