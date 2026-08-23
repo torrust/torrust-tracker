@@ -12,13 +12,13 @@ not describe unapproved production work as implemented.
 
 ## Executive Decision
 
-| Field                  | Result                                                                                                                                                                                                                                                              |
-| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Recommendation         | **Reject** a flat heterogeneous `[[services]]` TOML collection for schema v3.0.0.                                                                                                                                                                                   |
-| Decision status        | Ready for maintainer review.                                                                                                                                                                                                                                        |
+| Field                  | Result                                                                                                                                                                                                                          |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Recommendation         | **Reject** a flat heterogeneous `[[services]]` TOML collection for schema v3.0.0.                                                                                                                                               |
+| Decision status        | Ready for maintainer review.                                                                                                                                                                                                    |
 | Rationale              | The split layout is clearer for the common one-HTTP-or-one-UDP deployment, preserves structural cardinality, and avoids a breaking migration. The flat form supplies no demonstrated operator benefit that offsets those costs. |
-| Required prerequisites | None for this rejection. Complete #1490 and #1980 under their existing plans.                                                                                                                                                                                       |
-| Proposed follow-up     | Do not create the proposed configuration-schema implementation issue. Defer any internal normalized listener inventory until a concrete lifecycle consumer cannot use the existing registry and role-specific container views.                                      |
+| Required prerequisites | None for this rejection. Complete #1490 and #1980 under their existing plans.                                                                                                                                                   |
+| Proposed follow-up     | Do not create the proposed configuration-schema implementation issue. Defer any internal normalized listener inventory until a concrete lifecycle consumer cannot use the existing registry and role-specific container views.  |
 
 The rejection is limited to changing the **operator-facing TOML shape**. It does not prohibit a
 future internal service inventory when it is justified independently of the configuration schema.
@@ -48,18 +48,20 @@ contracts. [E1](evidence.md#e1-current-state-baseline)
 
 The primary baseline defect is unrelated to TOML layout: each `UdpTracker` exposes
 `max_connection_id_errors_per_ip`, yet container construction reads only the first UDP entry to
-initialize one shared ban service. This must not be perpetuated as flat-list order dependence.
-It belongs either in shared UDP policy, behind consistency validation, or in separately approved
-ban-service redesign work. [E1](evidence.md#e1-current-state-baseline)
+initialize one shared ban service. This is a confirmed configuration-model bug, not merely an
+open design choice: a setting consumed by one shared service must be global/shared, or the runtime
+must construct genuinely independent per-instance services. The shared-services ADR requires the
+former for the ban service. The separately tracked bug record defines the correction boundary;
+this analysis does not implement it. [E1](evidence.md#e1-current-state-baseline)
 
 ## Candidate Representations
 
-| Representation                                              | TOML and Rust shape                                                                                                                                                             | Advantages                                                                                                                                                                                             | Costs and decision                                                                                                                                                                                                                                                   |
-| ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Current split TOML plus optional internal normalization** | `[[http_trackers]]`, `[[udp_trackers]]`, optional `[http_api]`, defaulted `[health_check_api]`; normalize role-specific views only inside a lifecycle boundary if later needed. | Names and role-specific fields remain adjacent; common single-service files require no type discriminator; singleton cardinality is structural; named nested Figment overrides remain supported; no migration. | Cross-role source order cannot be expressed; numeric overrides of any list entry are unsupported by the current Figment provider. **Recommended.** |
-| **Adjacent-tagged list**                                    | `Vec<Service>` with `#[serde(tag = "kind", content = "configuration")]`. Each list item has `kind` plus a nested configuration table.                                           | The most viable flat representation: preserves per-kind typed configuration, TOML order, Serde round trips, and clear unknown-kind rejection.                                                          | Adds a discriminator and nesting before each service's fields; duplicate singleton rules move to custom validation; omitted health needs normalizer defaulting; numeric list environment overrides fail; v2-to-v3 migration invents an order. **Rejected for TOML.** |
-| **Internally tagged flattened list**                        | `#[serde(tag = "kind")]` plus `#[serde(flatten)]` wrapped role configuration.                                                                                                   | Removes one TOML nesting level and round-trips.                                                                                                                                                        | Mixes discriminators with fields whose meaning varies by type, makes field discovery less local, and has no compensating benefit for common deployments. **Not recommended.**                                                                                        |
-| **Externally tagged list**                                  | `Vec<ExternallyTaggedService>` such as `[services.http_tracker]`.                                                                                                               | Round-trips and has no explicit discriminator field.                                                                                                                                                   | Adds a role-named wrapper table, duplicates the role grouping at per-item granularity, and is less discoverable than current sections. **Not recommended.**                                                                                                          |
+| Representation                                              | TOML and Rust shape                                                                                                                                                             | Advantages                                                                                                                                                                                                     | Costs and decision                                                                                                                                                                                                                                                   |
+| ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Current split TOML plus optional internal normalization** | `[[http_trackers]]`, `[[udp_trackers]]`, optional `[http_api]`, defaulted `[health_check_api]`; normalize role-specific views only inside a lifecycle boundary if later needed. | Names and role-specific fields remain adjacent; common single-service files require no type discriminator; singleton cardinality is structural; named nested Figment overrides remain supported; no migration. | Cross-role source order cannot be expressed; numeric overrides of any list entry are unsupported by the current Figment provider. **Recommended.**                                                                                                                   |
+| **Adjacent-tagged list**                                    | `Vec<Service>` with `#[serde(tag = "kind", content = "configuration")]`. Each list item has `kind` plus a nested configuration table.                                           | The most viable flat representation: preserves per-kind typed configuration, TOML order, Serde round trips, and clear unknown-kind rejection.                                                                  | Adds a discriminator and nesting before each service's fields; duplicate singleton rules move to custom validation; omitted health needs normalizer defaulting; numeric list environment overrides fail; v2-to-v3 migration invents an order. **Rejected for TOML.** |
+| **Internally tagged flattened list**                        | `#[serde(tag = "kind")]` plus `#[serde(flatten)]` wrapped role configuration.                                                                                                   | Removes one TOML nesting level and round-trips.                                                                                                                                                                | Mixes discriminators with fields whose meaning varies by type, makes field discovery less local, and has no compensating benefit for common deployments. **Not recommended.**                                                                                        |
+| **Externally tagged list**                                  | `Vec<ExternallyTaggedService>` such as `[services.http_tracker]`.                                                                                                               | Round-trips and has no explicit discriminator field.                                                                                                                                                           | Adds a role-named wrapper table, duplicates the role grouping at per-item granularity, and is less discoverable than current sections. **Not recommended.**                                                                                                          |
 
 For an operator with one HTTP or one UDP listener—the expected primary deployment—the split form
 has a direct path from service purpose to its fields. A flat list imposes the extra steps “find
@@ -81,6 +83,34 @@ split-list override also fails. Named nested overrides such as `HTTP_API__ACCESS
 remain supported. A flat representation would inherit this existing list-override limitation;
 it would need a separate provider solution only if indexed listener overrides become a requirement.
 [E2](evidence.md#e2-configuration-representation-feasibility)
+
+For example, an operator may expect this current split-list configuration and override to change
+the listener's bind address:
+
+```toml
+[[http_trackers]]
+bind_address = "127.0.0.1:7070"
+```
+
+```text
+TORRUST_TRACKER_CONFIG_OVERRIDE_HTTP_TRACKERS__0__BIND_ADDRESS=127.0.0.1:17070
+```
+
+Instead, Figment merges the environment path as a table/map and fails because `http_trackers`
+must deserialize as a sequence. The adjacent flat-list equivalent fails for the same reason:
+
+```text
+TORRUST_TRACKER_CONFIG_OVERRIDE_SERVICES__0__CONFIGURATION__BIND_ADDRESS=127.0.0.1:17070
+```
+
+Do not add an alternative canonical configuration layout solely to solve this unproven deployment
+need. A map keyed by operator-chosen listener names could make an override path such as
+`HTTP_TRACKERS__PUBLIC__BIND_ADDRESS` feasible, but it would replace ordering with naming,
+introduce an additional schema and migration decision, and make the common single-listener TOML
+less direct. If deployments demonstrate a need for per-listener environment overrides, investigate
+that option or a configuration-provider capability in a separate issue. Until then, operators can
+provide the complete listener configuration through `TORRUST_TRACKER_CONFIG_TOML` or use a mounted
+TOML file. [E2](evidence.md#e2-configuration-representation-feasibility)
 
 An omitted or empty prototype list deserializes as empty. That alone does **not** preserve the
 current default health listener: normalization would need to materialize `HealthCheckApi::default`
@@ -147,8 +177,8 @@ Implementing flat TOML would change at least `packages/configuration` loading/de
 serialization/validation/redaction, default configuration files, migration documentation,
 fixtures, configuration consumers, containers, bootstrap jobs, registration/metrics tests, and
 environment override behavior. It also collides with #1490 and #1980, which already make a broad
-v3 consumer migration. The hidden UDP shared-policy defect would need an explicit decision rather
-than preservation of first-entry-wins behavior. [E1](evidence.md#e1-current-state-baseline) [E4](evidence.md#e4-migration-schema-lifecycle-and-security)
+v3 consumer migration. The confirmed UDP shared-policy bug must be fixed independently rather
+than preserving first-entry-wins behavior. [E1](evidence.md#e1-current-state-baseline) [E4](evidence.md#e4-migration-schema-lifecycle-and-security)
 
 The adjacent enum is feasible, but its only distinct benefit—cross-role presentation order—does
 not improve the primary operator workflows and cannot influence lifecycle startup. Its costs are

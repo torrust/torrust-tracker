@@ -20,6 +20,7 @@ semantic-links:
     - docs/issues/open/1490-1978-decompose-database-config-and-overhaul-secrets.md
     - docs/issues/open/2067-1978-analyze-flat-service-configuration/analysis.md
     - docs/issues/open/2067-1978-analyze-flat-service-configuration/evidence.md
+    - docs/issues/open/2067-1978-analyze-flat-service-configuration/max-connection-id-errors-per-ip-bug.md
     - docs/issues/open/2067-1978-analyze-flat-service-configuration/first-impressions.md
     - packages/configuration/src/lib.rs
     - packages/configuration/src/v2_0_0/mod.rs
@@ -354,19 +355,19 @@ For an experiment, preserve the exact TOML input and command in the record. Test
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| ID  | Status      | Task                                  | Notes / Expected Output                                                                                                                                                                   |
-| --- | ----------- | ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| T1  | DONE        | Capture the current model             | Recorded the v3/v2 boundary, cardinality/defaulting, startup, identity, shared UDP state, registration, observability, and redaction evidence in `evidence.md#e1-current-state-baseline`. |
-| T2  | DONE        | Prototype schema representations      | Added isolated test-only TOML/Serde/Figment experiments. Numeric list overrides fail with the current Figment provider; see `evidence.md#e2-configuration-representation-feasibility`.    |
-| T3  | DONE        | Compare configuration representations | Compared split TOML, adjacent, flattened, and externally tagged forms in `analysis.md#candidate-representations`.                                                                         |
-| T4  | DONE        | Analyze runtime integration           | Defined the conditional single-normalizer model and preserved dependency-grouped startup in `analysis.md#runtime-and-normalization-model`.                                                |
-| T5  | DONE        | Analyze identity compatibility        | Documented role-local ordinal preservation, global-position consequences, and `ServiceKind` mapping in `analysis.md#identity-ordering-and-migration`.                                     |
-| T6  | DONE        | Define migration and schema lifecycle | Rejected the schema transition; documented canonical export ordering and #1490/#1980 constraints in `analysis.md#schema-lifecycle-security-and-compatibility`.                            |
-| T7  | DONE        | Analyze security and operator impact  | Documented redaction, logging, override, and post-bind compatibility constraints in `analysis.md`.                                                                                        |
-| T8  | DONE        | Write the final analysis deliverables | Completed `analysis.md` and `evidence.md` with an analysis-only rejection recommendation.                                                                                                 |
-| T9  | DONE        | Run automatic checks                  | `cargo test -p torrust-tracker-configuration` and the mandatory pre-commit gate passed using the installed stable toolchain.                                                             |
-| T10 | DONE        | Perform manual review                 | Reviewed candidate presentation, report/evidence links, migration rule, and impact inventory; see M5 and `evidence.md#e5-final-report-review`.                                         |
-| T11 | DONE        | Re-review acceptance criteria         | Acceptance criteria reviewed against E1–E5 and the completed validation results.                                                                                                        |
+| ID  | Status | Task                                  | Notes / Expected Output                                                                                                                                                                   |
+| --- | ------ | ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| T1  | DONE   | Capture the current model             | Recorded the v3/v2 boundary, cardinality/defaulting, startup, identity, shared UDP state, registration, observability, and redaction evidence in `evidence.md#e1-current-state-baseline`. |
+| T2  | DONE   | Prototype schema representations      | Added isolated test-only TOML/Serde/Figment experiments. Numeric list overrides fail with the current Figment provider; see `evidence.md#e2-configuration-representation-feasibility`.    |
+| T3  | DONE   | Compare configuration representations | Compared split TOML, adjacent, flattened, and externally tagged forms in `analysis.md#candidate-representations`.                                                                         |
+| T4  | DONE   | Analyze runtime integration           | Defined the conditional single-normalizer model and preserved dependency-grouped startup in `analysis.md#runtime-and-normalization-model`.                                                |
+| T5  | DONE   | Analyze identity compatibility        | Documented role-local ordinal preservation, global-position consequences, and `ServiceKind` mapping in `analysis.md#identity-ordering-and-migration`.                                     |
+| T6  | DONE   | Define migration and schema lifecycle | Rejected the schema transition; documented canonical export ordering and #1490/#1980 constraints in `analysis.md#schema-lifecycle-security-and-compatibility`.                            |
+| T7  | DONE   | Analyze security and operator impact  | Documented redaction, logging, override, and post-bind compatibility constraints in `analysis.md`.                                                                                        |
+| T8  | DONE   | Write the final analysis deliverables | Completed `analysis.md` and `evidence.md` with an analysis-only rejection recommendation.                                                                                                 |
+| T9  | DONE   | Run automatic checks                  | `cargo test -p torrust-tracker-configuration` and the mandatory pre-commit gate passed using the installed stable toolchain.                                                              |
+| T10 | DONE   | Perform manual review                 | Reviewed candidate presentation, report/evidence links, migration rule, and impact inventory; see M5 and `evidence.md#e5-final-report-review`.                                            |
+| T11 | DONE   | Re-review acceptance criteria         | Acceptance criteria reviewed against E1–E5 and the completed validation results.                                                                                                          |
 
 ## Progress Tracking
 
@@ -443,24 +444,24 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 ### Acceptance Verification
 
-| AC ID | Status (`TODO`/`DONE`) | Evidence |
-| ----- | ---------------------- | -------- |
-| AC1   | DONE                   | `evidence.md#e1-current-state-baseline` |
-| AC2   | DONE                   | `analysis.md#candidate-representations`, `evidence.md#e2-configuration-representation-feasibility` |
-| AC3   | DONE                   | `evidence.md#e2-configuration-representation-feasibility` |
-| AC4   | DONE                   | `analysis.md#runtime-and-normalization-model`, `evidence.md#e3-runtime-and-identity-model` |
-| AC5   | DONE                   | `analysis.md#feasibility-results`, E1–E2 |
-| AC6   | DONE                   | `analysis.md#identity-ordering-and-migration`, `evidence.md#e3-runtime-and-identity-model` |
-| AC7   | DONE                   | `analysis.md#current-state-baseline`, `evidence.md#e1-current-state-baseline` |
+| AC ID | Status (`TODO`/`DONE`) | Evidence                                                                                                            |
+| ----- | ---------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| AC1   | DONE                   | `evidence.md#e1-current-state-baseline`                                                                             |
+| AC2   | DONE                   | `analysis.md#candidate-representations`, `evidence.md#e2-configuration-representation-feasibility`                  |
+| AC3   | DONE                   | `evidence.md#e2-configuration-representation-feasibility`                                                           |
+| AC4   | DONE                   | `analysis.md#runtime-and-normalization-model`, `evidence.md#e3-runtime-and-identity-model`                          |
+| AC5   | DONE                   | `analysis.md#feasibility-results`, E1–E2                                                                            |
+| AC6   | DONE                   | `analysis.md#identity-ordering-and-migration`, `evidence.md#e3-runtime-and-identity-model`                          |
+| AC7   | DONE                   | `analysis.md#current-state-baseline`, `evidence.md#e1-current-state-baseline`                                       |
 | AC8   | DONE                   | `analysis.md#schema-lifecycle-security-and-compatibility`, `evidence.md#e4-migration-schema-lifecycle-and-security` |
-| AC9   | DONE                   | E1 and E4 |
-| AC10  | DONE                   | `analysis.md`, `evidence.md#e5-final-report-review` |
-| AC11  | DONE                   | `evidence.md#e1-current-state-baseline` through `evidence.md#e5-final-report-review` |
-| AC12  | DONE                   | 2026-08-22 pre-commit gate (`linter all`) |
-| AC13  | DONE                   | Focused prototype tests (9 passed) and final pre-commit gate |
-| AC14  | DONE                   | M1–M5 and E1–E5 |
-| AC15  | DONE                   | 2026-08-22 acceptance review |
-| AC16  | DONE                   | `ISSUE.md`, `analysis.md`, and `evidence.md` |
+| AC9   | DONE                   | E1 and E4                                                                                                           |
+| AC10  | DONE                   | `analysis.md`, `evidence.md#e5-final-report-review`                                                                 |
+| AC11  | DONE                   | `evidence.md#e1-current-state-baseline` through `evidence.md#e5-final-report-review`                                |
+| AC12  | DONE                   | 2026-08-22 pre-commit gate (`linter all`)                                                                           |
+| AC13  | DONE                   | Focused prototype tests (9 passed) and final pre-commit gate                                                        |
+| AC14  | DONE                   | M1–M5 and E1–E5                                                                                                     |
+| AC15  | DONE                   | 2026-08-22 acceptance review                                                                                        |
+| AC16  | DONE                   | `ISSUE.md`, `analysis.md`, and `evidence.md`                                                                        |
 
 ## Risks and Trade-offs
 
