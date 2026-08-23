@@ -407,15 +407,14 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | Thread ID               | Finding                               | Local remediation                                                                            | Validation             | Publish             | Reply and resolution |
 | ----------------------- | ------------------------------------- | -------------------------------------------------------------------------------------------- | ---------------------- | ------------------- | -------------------- |
-| `PRRT_kwDOGp2yqc6beOKU` | Stale post-v3/v3-to-v4 language       | Reconciled this spec and the #1978 EPIC with the approved v3-before-#1980 policy.            | Pre-commit gate passed | Pending commit/push | Pending              |
-| `PRRT_kwDOGp2yqc6beOKf` | Missing logged-JSON redaction trace   | Added source trace and enum redaction-before-JSON prototype evidence.                        | Pre-commit gate passed | Pending commit/push | Pending              |
-| `PRRT_kwDOGp2yqc6beOKk` | Missing effort estimate               | Added qualitative estimates for the rejected flat TOML and deferred normalizer alternatives. | Pre-commit gate passed | Pending commit/push | Pending              |
-| `PRRT_kwDOGp2yqc6beOKr` | Missing nested-field round trip       | Added adjacent-enum round-trip coverage for `network`, `tls_config`, and `access_tokens`.    | Pre-commit gate passed | Pending commit/push | Pending              |
-| `PRRT_kwDOGp2yqc6beOKx` | Weak numeric-override error assertion | Both numeric override tests now match Figment `InvalidType(Map, "a sequence")`.              | Pre-commit gate passed | Pending commit/push | Pending              |
+| `PRRT_kwDOGp2yqc6beOKU` | Stale post-v3/v3-to-v4 language       | Reconciled this spec and the #1978 EPIC with the approved v3-before-#1980 policy.            | Pre-commit gate passed | Published in `79cd5f82` | Summary posted; resolution pending |
+| `PRRT_kwDOGp2yqc6beOKf` | Missing logged-JSON redaction trace   | Added source trace and enum redaction-before-JSON prototype evidence.                        | Pre-commit gate passed | Published in `79cd5f82` | Summary posted; resolution pending |
+| `PRRT_kwDOGp2yqc6beOKk` | Missing effort estimate               | Added qualitative estimates for the rejected flat TOML and deferred normalizer alternatives. | Pre-commit gate passed | Published in `79cd5f82` | Summary posted; resolution pending |
+| `PRRT_kwDOGp2yqc6beOKr` | Missing nested-field round trip       | Added adjacent-enum round-trip coverage for `network`, `tls_config`, and `access_tokens`.    | Pre-commit gate passed | Published in `79cd5f82` | Summary posted; resolution pending |
+| `PRRT_kwDOGp2yqc6beOKx` | Weak numeric-override error assertion | Both numeric override tests now match Figment `InvalidType(Map, "a sequence")`.              | Pre-commit gate passed | Published in `79cd5f82` | Summary posted; resolution pending |
 
 ## Acceptance Criteria
 
-- [x] AC3: Test-only feasibility experiments and results are recorded in E2.
 - [x] AC4: Order semantics and lifecycle constraints are documented in E3.
 - [x] AC5: List, singleton, private-mode, and UDP policy behavior is documented in E1–E2.
 - [x] AC6: Identity compatibility, mapping, and normalization boundary are documented in E3.
