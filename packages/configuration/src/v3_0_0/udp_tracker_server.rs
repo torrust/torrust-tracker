@@ -47,7 +47,8 @@ pub struct UdpTrackerServer {
     pub ip_bans_reset_interval_in_secs: IpBansResetIntervalInSecs,
 
     /// Maximum invalid connection IDs accepted from one IP before the shared
-    /// ban service bans it. Defaults to `10`.
+    /// ban service bans it when connection ID validation is `strict`. Defaults
+    /// to `10`.
     ///
     /// This is a global setting because every UDP listener uses the same ban
     /// service. Configuring it per listener would make the effective security
