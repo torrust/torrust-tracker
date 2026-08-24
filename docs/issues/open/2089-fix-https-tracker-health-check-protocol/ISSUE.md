@@ -79,14 +79,14 @@ rejected stateful-closure and production-configuration alternatives.
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| ID  | Status      | Task                            | Notes / Expected Output                                                                       |
-| --- | ----------- | ------------------------------- | --------------------------------------------------------------------------------------------- |
-| T1  | DONE        | Add HTTPS URL regression        | Prove an HTTPS binding produces an `https://` probe URL, not `http://`.                       |
-| T2  | DONE        | Derive URL from service binding | Use the binding's canonical URL without altering HTTP paths.                                  |
-| T3  | DONE        | Add named trusted-test callback | The callback builds a `reqwest` client that trusts only the static loopback test certificate. |
-| T4  | DONE        | Add aggregate HTTPS regression  | The aggregate report marks the operational HTTPS service `Ok`.                                |
-| T5  | DONE        | Validate health-report behavior | HTTP-server package tests and health-check API integration tests pass.                        |
-| T6  | IN_PROGRESS | Document verification evidence  | Automated evidence is recorded; manual scenarios remain pending.                              |
+| ID  | Status | Task                            | Notes / Expected Output                                                                       |
+| --- | ------ | ------------------------------- | --------------------------------------------------------------------------------------------- |
+| T1  | DONE   | Add HTTPS URL regression        | Prove an HTTPS binding produces an `https://` probe URL, not `http://`.                       |
+| T2  | DONE   | Derive URL from service binding | Use the binding's canonical URL without altering HTTP paths.                                  |
+| T3  | DONE   | Add named trusted-test callback | The callback builds a `reqwest` client that trusts only the static loopback test certificate. |
+| T4  | DONE   | Add aggregate HTTPS regression  | The aggregate report marks the operational HTTPS service `Ok`.                                |
+| T5  | DONE   | Validate health-report behavior | HTTP-server package tests and health-check API integration tests pass.                        |
+| T6  | DONE   | Document verification evidence  | Automated evidence and both manual scenarios are recorded.                                    |
 
 ## Progress Tracking
 
@@ -95,10 +95,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Spec drafted in `docs/issues/drafts/`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
-- [ ] Manual verification scenarios executed and recorded (status + evidence)
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Implementation completed
+- [x] Automatic verification completed (`linter all`, relevant tests, and pre-commit checks)
+- [x] Manual verification scenarios executed and recorded (status + evidence)
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
@@ -115,6 +115,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-08-24 - agent - Documented the static TLS fixture creation and manual verification process in [`tls-manual-test.md`](tls-manual-test.md).
 - 2026-08-24 - agent - Generated a one-day local CA and loopback TLS leaf under `.tmp/` for M1. The platform trust store has no user-writable anchor location: `trust anchor` returned `p11-kit: no configured writable location to store anchors`. M1 is blocked pending a trusted local development certificate or administrator-installed trust anchor.
 - 2026-08-24 - agent - Completed M2 with the default development configuration. `curl --fail --silent --show-error http://127.0.0.1:1313/health_check` returned `status: Ok`; HTTP tracker entries for `http://0.0.0.0:7070/` and `http://0.0.0.0:7171/` both returned `200 OK`.
+- 2026-08-24 - user and agent - Unblocked M1 by installing the temporary CA in the platform trust store. The direct trusted HTTPS probe returned `{"status":"Ok"}`. The aggregate `http://127.0.0.1:1313/health_check` report returned `status: Ok` with `https://127.0.0.1:7443/`, an HTTPS `/health_check` probe URL, and `200 OK`.
 
 ## Acceptance Criteria
 
@@ -123,9 +124,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] AC3: Existing HTTP tracker health checks continue to pass.
 - [x] `linter all` exits with code `0`.
 - [x] Relevant tests pass.
-- [ ] Manual verification scenarios are executed and documented (status + evidence).
-- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior.
-- [ ] Documentation is updated when behavior/workflow changes.
+- [x] Manual verification scenarios are executed and documented (status + evidence).
+- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior.
+- [x] Documentation is updated when behavior/workflow changes.
 
 ## Verification Plan
 
@@ -140,10 +141,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
-| ID  | Scenario                               | Command/Steps                                                                 | Expected Result                                     | Status  | Evidence                                                                                            |
-| --- | -------------------------------------- | ----------------------------------------------------------------------------- | --------------------------------------------------- | ------- | --------------------------------------------------------------------------------------------------- |
-| M1  | Health-report HTTPS listener           | Start local TLS tracker with a certificate trusted by the health-check client | Health report has `Ok` for the HTTPS tracker entry. | BLOCKED | Local `p11-kit` has no user-writable anchor location; see Progress Log.                             |
-| M2  | Preserve HTTP listener health checking | Start ordinary local HTTP tracker                                             | HTTP tracker entry remains `Ok`.                    | DONE    | `http://127.0.0.1:1313/health_check` returned `Ok` with `200 OK` for both configured HTTP trackers. |
+| ID  | Scenario                               | Command/Steps                                                                 | Expected Result                                     | Status | Evidence                                                                                               |
+| --- | -------------------------------------- | ----------------------------------------------------------------------------- | --------------------------------------------------- | ------ | ------------------------------------------------------------------------------------------------------ |
+| M1  | Health-report HTTPS listener           | Start local TLS tracker with a certificate trusted by the health-check client | Health report has `Ok` for the HTTPS tracker entry. | DONE   | Direct TLS probe and aggregate report both returned `Ok`; aggregate HTTPS tracker result was `200 OK`. |
+| M2  | Preserve HTTP listener health checking | Start ordinary local HTTP tracker                                             | HTTP tracker entry remains `Ok`.                    | DONE   | `http://127.0.0.1:1313/health_check` returned `Ok` with `200 OK` for both configured HTTP trackers.    |
 
 ### Acceptance Verification
 
