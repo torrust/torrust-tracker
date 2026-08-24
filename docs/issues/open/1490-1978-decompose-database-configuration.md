@@ -7,7 +7,7 @@ github-issue: 1490
 spec-path: docs/issues/open/1490-1978-decompose-database-configuration.md
 branch: "1490-decompose-database-configuration"
 related-pr: null
-last-updated-utc: 2026-08-21 16:45
+last-updated-utc: 2026-08-24 00:00
 semantic-links:
   skill-links:
     - create-issue
@@ -170,6 +170,7 @@ This is a **breaking v3 configuration-schema change** with no fallback for the l
 - 2026-07-14 00:00 UTC - josecelano - Reworked the proposal around a `Database` enum and `ConnectionInfo`; documented the consumer impact.
 - 2026-08-21 00:00 UTC - josecelano - Initially replanned #1490 as v3 database-schema decomposition only, with secret typing, API tokens, and manual-redaction policy moved to a separate secrecy effort. Superseded by the later ordering decision for the isolated v3 database password.
 - 2026-08-21 16:45 UTC - josecelano - Reordered the work: implement the smaller secrecy refactor first for API tokens in v2 and v3, retaining v2 database URLs and their masking. #1490 follows and uses `Secret<String>` for its new isolated v3 database password.
+- 2026-08-24 00:00 UTC - josecelano - Confirmed that #2079 is merged into the implementation base. Confirmed that this is a v3-only breaking-schema migration: v2 remains unchanged because v3.0.0 migration is imminent and changing v2 would introduce an unnecessary breaking change.
 
 ## Acceptance Criteria
 
