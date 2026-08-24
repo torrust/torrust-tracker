@@ -446,11 +446,20 @@ impl Configuration {
     /// Will panic if it can't be converted to TOML.
     #[must_use]
     fn serialize_toml_for_persistence(&self) -> String {
-        if self.http_api.is_none() {
+        if self.http_api.is_none() && matches!(self.core.database, database::Database::Sqlite3 { .. }) {
             return toml::to_string(self).expect("Could not encode TOML value");
         }
 
         let mut configuration = toml::Value::try_from(self).expect("Could not encode TOML value");
+
+        configuration
+            .get_mut("core")
+            .and_then(toml::Value::as_table_mut)
+            .expect("core configuration should serialize to a TOML table")
+            .insert(
+                "database".to_string(),
+                toml::Value::Table(self.core.database.serialize_for_persistence()),
+            );
 
         if let Some(http_api) = &self.http_api {
             configuration
@@ -479,8 +488,6 @@ impl Configuration {
     /// Masks secrets in the configuration.
     #[must_use]
     pub fn mask_secrets(mut self) -> Self {
-        self.core.database.mask_secrets();
-
         if let Some(ref mut api) = self.http_api {
             api.redact_access_tokens_for_diagnostic_output();
         }
@@ -501,8 +508,11 @@ mod tests {
     use std::convert::TryFrom;
     use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 
+    use secrecy::SecretString;
+
     use crate::Info;
     use crate::v3_0_0::Configuration;
+    use crate::v3_0_0::database::{ConnectionInfo, Database};
     use crate::v3_0_0::http_tracker::HttpTracker;
     use crate::v3_0_0::logging::TraceStyle;
     use crate::v3_0_0::network::ExternalIp;
@@ -722,7 +732,12 @@ mod tests {
 
             let configuration = Configuration::load(&info).expect("Could not load configuration from file");
 
-            assert_eq!(configuration.core.database.path, "OVERWRITTEN DEFAULT DB PATH".to_string());
+            assert_eq!(
+                configuration.core.database,
+                crate::v3_0_0::database::Database::Sqlite3 {
+                    path: "OVERWRITTEN DEFAULT DB PATH".to_string(),
+                }
+            );
 
             Ok(())
         });
@@ -757,7 +772,12 @@ mod tests {
 
             let configuration = Configuration::load(&info).expect("Could not load configuration from file");
 
-            assert_eq!(configuration.core.database.path, "OVERWRITTEN DEFAULT DB PATH".to_string());
+            assert_eq!(
+                configuration.core.database,
+                crate::v3_0_0::database::Database::Sqlite3 {
+                    path: "OVERWRITTEN DEFAULT DB PATH".to_string(),
+                }
+            );
 
             Ok(())
         });
@@ -811,6 +831,59 @@ mod tests {
 
         assert!(toml.contains("[http_api.access_tokens]"));
         assert!(toml.contains(token));
+    }
+
+    #[test]
+    fn persisted_configuration_toml_should_include_database_password() {
+        // Arrange
+        let password = "v3-database-password-only-for-toml-persistence-test";
+        let mut configuration = Configuration::default();
+        configuration.core.database = Database::MySQL(ConnectionInfo {
+            host: "mysql".to_string(),
+            port: 3306,
+            user: "db_user".to_string(),
+            password: SecretString::from(password),
+            database: "torrust_tracker".to_string(),
+        });
+
+        // Act
+        let toml = configuration.serialize_toml_for_persistence();
+
+        // Assert
+        assert!(toml.contains("[core.database]"));
+        assert!(toml.contains(password));
+    }
+
+    #[test]
+    fn persisted_configuration_toml_should_round_trip_network_database_passwords() {
+        // Arrange
+        let password = "v3-database-password-only-for-round-trip-test";
+
+        // Act and assert
+        for database in [
+            Database::MySQL(ConnectionInfo {
+                host: "mysql".to_string(),
+                port: 3307,
+                user: "mysql_user".to_string(),
+                password: SecretString::from(password),
+                database: "mysql_database".to_string(),
+            }),
+            Database::PostgreSQL(ConnectionInfo {
+                host: "postgres".to_string(),
+                port: 5433,
+                user: "postgres_user".to_string(),
+                password: SecretString::from(password),
+                database: "postgres_database".to_string(),
+            }),
+        ] {
+            let mut configuration = Configuration::default();
+            configuration.core.database = database;
+
+            let persisted = configuration.serialize_toml_for_persistence();
+            let loaded: Configuration = toml::from_str(&persisted).expect("persisted configuration should deserialize");
+
+            assert_eq!(loaded.core.database, configuration.core.database);
+        }
     }
 
     #[test]

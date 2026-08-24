@@ -27,7 +27,7 @@ update, and why.
 | `threshold`                 | `trace_filter`                                                   | #889     | DONE      |
 | No connection ID policy     | `[udp_tracker_server] connection_id_validation`                  | #1136    | DONE      |
 | Hardcoded IP bans interval  | `[udp_tracker_server] ip_bans_reset_interval_in_secs`            | #1453    | IN_REVIEW |
-| Flat `[core.database]`      | Database enum with per-driver config                             | #1490    | TODO      |
+| Flat `[core.database]`      | Database enum with per-driver config                             | #1490    | DONE      |
 | No announce `ip` opt-in     | Per-HTTP-tracker opt-in field (TBD)                              | #1987    | TODO      |
 
 ## Step 1: Update the schema version
@@ -226,6 +226,24 @@ password = "db_user_password" # mandatory and non-empty
 database = "torrust_tracker"
 ```
 
+PostgreSQL uses the same component fields and defaults an omitted `port` to
+`5432`:
+
+```toml
+# v2
+[core.database]
+driver = "postgresql"
+path = "postgresql://postgres:postgres_password@postgres:5432/torrust_tracker"
+
+# v3
+[core.database]
+driver = "postgresql"
+host = "postgres"
+user = "postgres"
+password = "postgres_password"
+database = "torrust_tracker"
+```
+
 SQLite retains its filesystem `path`:
 
 ```toml
@@ -283,6 +301,7 @@ Use this checklist to verify your configuration is ready for v3:
 - [ ] `public_url` added to trackers and API (optional, recommended for reverse proxies)
 - [ ] `connection_id_validation` reviewed in `[udp_tracker_server]` (optional, defaults to `"strict"`)
 - [ ] `ip_bans_reset_interval_in_secs` reviewed in `[udp_tracker_server]` (optional, defaults to `86400`)
+- [ ] Network database URLs replaced with component fields; database passwords are non-empty
 
 ## References
 
