@@ -10,7 +10,9 @@ use socket2::{Domain, Socket, Type};
 use tokio::sync::oneshot::{Receiver, Sender};
 use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
 use torrust_server_lib::logging::STARTED_ON;
-use torrust_server_lib::registar::{ServiceHealthCheckJob, ServiceRegistration, ServiceRegistrationForm};
+use torrust_server_lib::registar::{
+    FnSpawnServiceHeathCheck, ServiceHealthCheckJob, ServiceRegistration, ServiceRegistrationForm,
+};
 use torrust_server_lib::signals::{Halted, Started};
 use torrust_tracker_axum_server::custom_axum_server::{self, TimeoutAcceptor};
 use torrust_tracker_axum_server::signals::graceful_shutdown;
@@ -222,6 +224,32 @@ impl HttpServer<Stopped> {
         form: ServiceRegistrationForm<RuntimeServiceMetadata>,
         metadata: RuntimeServiceMetadata,
     ) -> Result<HttpServer<Running>, Error> {
+        self.start_with_health_check(http_tracker_container, form, metadata, check_fn)
+            .await
+    }
+
+    /// Starts the server and registers the supplied health-check callback.
+    ///
+    /// The application uses [`check_fn`]. This explicit callback seam lets
+    /// integration tests use a client that trusts their test certificate
+    /// without altering production certificate validation.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if no `SocketAddr` is returned after launching the
+    /// server.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the spawned HTTP server launcher cannot send its bound
+    /// `SocketAddr` back to the main thread, or if service registration fails.
+    pub async fn start_with_health_check(
+        self,
+        http_tracker_container: Arc<HttpTrackerCoreContainer>,
+        form: ServiceRegistrationForm<RuntimeServiceMetadata>,
+        metadata: RuntimeServiceMetadata,
+        health_check: FnSpawnServiceHeathCheck,
+    ) -> Result<HttpServer<Running>, Error> {
         let (tx_start, rx_start) = tokio::sync::oneshot::channel::<Started>();
         let (tx_halt, rx_halt) = tokio::sync::oneshot::channel::<Halted>();
 
@@ -242,7 +270,7 @@ impl HttpServer<Stopped> {
 
         tracing::info!(service_binding = %service_binding, "Started HTTP tracker");
 
-        form.register(ServiceRegistration::new(service_binding, metadata, Some(check_fn)))
+        form.register(ServiceRegistration::new(service_binding, metadata, Some(health_check)))
             .await
             .expect("it should be able to register the started service");
 
@@ -285,12 +313,21 @@ impl HttpServer<Running> {
 /// Or if the request returns an error.
 #[must_use]
 pub fn check_fn(service_binding: &ServiceBinding) -> ServiceHealthCheckJob {
-    let url = format!("http://{}/health_check", service_binding.bind_address()); // DevSkim: ignore DS137138
+    check_fn_with_client(service_binding, reqwest::Client::new())
+}
+
+/// Checks a tracker health endpoint using the supplied HTTP client.
+///
+/// This preserves normal production certificate validation when called from
+/// [`check_fn`] and allows integration tests to trust a known test certificate.
+#[must_use]
+pub fn check_fn_with_client(service_binding: &ServiceBinding, client: reqwest::Client) -> ServiceHealthCheckJob {
+    let url = health_check_url(service_binding);
 
     let info = format!("checking http tracker health check at: {url}");
 
     let job = tokio::spawn(async move {
-        match reqwest::get(url).await {
+        match client.get(url).send().await {
             Ok(response) => Ok(response.status().to_string()),
             Err(err) => Err(err.to_string()),
         }
@@ -299,11 +336,21 @@ pub fn check_fn(service_binding: &ServiceBinding) -> ServiceHealthCheckJob {
     ServiceHealthCheckJob::new(info, job)
 }
 
+fn health_check_url(service_binding: &ServiceBinding) -> String {
+    service_binding
+        .url()
+        .join("health_check")
+        .expect("Service binding URL can always resolve a health check path")
+        .to_string()
+}
+
 #[cfg(test)]
 mod tests {
+    use std::net::{Ipv4Addr, SocketAddr};
     use std::sync::Arc;
 
     use tokio_util::sync::CancellationToken;
+    use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
     use torrust_server_lib::registar::Registar;
     use torrust_tracker_axum_server::tls::make_rust_tls;
     use torrust_tracker_configuration::{Configuration, logging};
@@ -319,7 +366,21 @@ mod tests {
     use torrust_tracker_swarm_coordination_registry::container::SwarmCoordinationRegistryContainer;
     use torrust_tracker_test_helpers::configuration::ephemeral_public;
 
-    use crate::server::{HttpServer, Launcher};
+    use crate::server::{HttpServer, Launcher, health_check_url};
+
+    #[test]
+    fn it_should_build_a_health_check_url_using_the_service_binding_protocol() {
+        let address = SocketAddr::from((Ipv4Addr::LOCALHOST, 7070));
+
+        for (protocol, expected_url) in [
+            (Protocol::HTTP, "http://127.0.0.1:7070/health_check"),
+            (Protocol::HTTPS, "https://127.0.0.1:7070/health_check"),
+        ] {
+            let service_binding = ServiceBinding::new(protocol, address).expect("service binding should be valid");
+
+            assert_eq!(health_check_url(&service_binding), expected_url);
+        }
+    }
 
     pub async fn initialize_container(configuration: &Configuration) -> HttpTrackerCoreContainer {
         let cancellation_token = CancellationToken::new();

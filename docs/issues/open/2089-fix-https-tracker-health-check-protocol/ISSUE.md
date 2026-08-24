@@ -78,14 +78,14 @@ rejected stateful-closure and production-configuration alternatives.
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| ID  | Status      | Task                                  | Notes / Expected Output                                                                                  |
-| --- | ----------- | ------------------------------------- | -------------------------------------------------------------------------------------------------------- |
-| T1  | DONE        | Add HTTPS URL regression              | Prove an HTTPS binding produces an `https://` probe URL, not `http://`.                                 |
-| T2  | DONE        | Derive URL from service binding       | Use the binding's canonical URL without altering HTTP paths.                                             |
-| T3  | TODO        | Add named trusted-test callback       | Build the trusted client inside a non-capturing test callback; do not alter `torrust-server-lib`.        |
-| T4  | TODO        | Add aggregate HTTPS regression        | Aggregate report marks the operational HTTPS service `Ok`; its callback trusts only the test certificate. |
-| T5  | TODO        | Validate health-report behavior       | Existing HTTP aggregate test remains `Ok`; run targeted package tests.                                  |
-| T6  | TODO        | Document verification evidence        | Record automated and manual results.                                                                     |
+| ID  | Status      | Task                            | Notes / Expected Output                                                                       |
+| --- | ----------- | ------------------------------- | --------------------------------------------------------------------------------------------- |
+| T1  | DONE        | Add HTTPS URL regression        | Prove an HTTPS binding produces an `https://` probe URL, not `http://`.                       |
+| T2  | DONE        | Derive URL from service binding | Use the binding's canonical URL without altering HTTP paths.                                  |
+| T3  | DONE        | Add named trusted-test callback | The callback builds a `reqwest` client that trusts only the static loopback test certificate. |
+| T4  | DONE        | Add aggregate HTTPS regression  | The aggregate report marks the operational HTTPS service `Ok`.                                |
+| T5  | DONE        | Validate health-report behavior | HTTP-server package tests and health-check API integration tests pass.                        |
+| T6  | IN_PROGRESS | Document verification evidence  | Automated evidence is recorded; manual scenarios remain pending.                              |
 
 ## Progress Tracking
 
@@ -108,14 +108,17 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-08-24 00:00 UTC - user - Approved the draft specification.
 - 2026-08-24 00:00 UTC - agent - Created GitHub issue #2089 and moved the approved specification to `docs/issues/open/`.
 - 2026-08-24 00:00 UTC - agent and user - Rejected a stateful registry callback change for this focused issue; documented the named non-capturing test-callback alternative.
+- 2026-08-24 17:42 UTC - agent - Added protocol-aware URL construction, a focused HTTP/HTTPS URL regression, and a TLS aggregate regression that trusts only the static loopback test certificate.
+- 2026-08-24 17:42 UTC - agent - Verified `cargo test -p torrust-tracker-axum-http-server` (22 unit and 55 integration tests) and `cargo test -p torrust-tracker-axum-health-check-api-server --test integration` (8 tests).
+- 2026-08-24 18:42 UTC - agent - Ran `linter all`; markdown, YAML, TOML, spell-check, Clippy, rustfmt, and ShellCheck all passed.
 
 ## Acceptance Criteria
 
-- [ ] AC1: An HTTPS HTTP-tracker registration is health-checked through an `https://` URL, not an `http://` URL.
-- [ ] AC2: An operational HTTPS listener using the named trusted-test callback yields a successful entry in the aggregate health report.
-- [ ] AC3: Existing HTTP tracker health checks continue to pass.
-- [ ] `linter all` exits with code `0`.
-- [ ] Relevant tests pass.
+- [x] AC1: An HTTPS HTTP-tracker registration is health-checked through an `https://` URL, not an `http://` URL.
+- [x] AC2: An operational HTTPS listener using the named trusted-test callback yields a successful entry in the aggregate health report.
+- [x] AC3: Existing HTTP tracker health checks continue to pass.
+- [x] `linter all` exits with code `0`.
+- [x] Relevant tests pass.
 - [ ] Manual verification scenarios are executed and documented (status + evidence).
 - [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior.
 - [ ] Documentation is updated when behavior/workflow changes.
@@ -140,11 +143,11 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 ### Acceptance Verification
 
-| AC ID | Status (`TODO`/`DONE`) | Evidence |
-| ----- | ---------------------- | -------- |
-| AC1   | TODO                   |          |
-| AC2   | TODO                   |          |
-| AC3   | TODO                   |          |
+| AC ID | Status (`TODO`/`DONE`) | Evidence                                                                                                                                 |
+| ----- | ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| AC1   | DONE                   | `server::tests::it_should_build_a_health_check_url_using_the_service_binding_protocol` passed in the HTTP-server package test suite.     |
+| AC2   | DONE                   | `http::it_should_return_good_health_for_https_service_with_a_trusted_test_certificate` passed in the health-check API integration suite. |
+| AC3   | DONE                   | Existing HTTP health-check aggregate test passed in the health-check API integration suite.                                              |
 
 ## Risks and Trade-offs
 
