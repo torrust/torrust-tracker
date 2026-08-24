@@ -18,8 +18,8 @@
 //!
 //! A different initial configuration belongs in another binary.
 //! For example, `tests/bootstrap.rs` would exercise the startup/shutdown
-//! lifecycle, while `tests/stats.rs` exercises the global statistics API
-//! under one configuration.
+//! lifecycle, while `tests/metrics/port_zero.rs` exercises the global
+//! statistics API under one configuration.
 //!
 //! ## Shared Helpers
 //!
@@ -32,6 +32,8 @@
 //! - Isolated temporary workspace per suite (`EphemeralTrackerWorkspace`).
 //! - Registration-acknowledgement readiness for every configured service.
 //! - Sequential scenarios that account for accumulated state.
+//! - Explicit awaited shutdown through `TrackerApplicationFixture` before the
+//!   temporary workspace is released.
 //!
 //! ## Endpoint Discovery
 //!
@@ -45,10 +47,10 @@
 //! cargo test --test scaffold
 //! ```
 //!
-//! Both `stats` and `scaffold` binaries can run in parallel:
+//! The `metrics-port-zero` and `scaffold` binaries can run in parallel:
 //!
 //! ```text
-//! cargo test --test stats --test scaffold
+//! cargo test --test metrics-port-zero --test scaffold
 //! ```
 mod common;
 
@@ -56,8 +58,6 @@ use serde::Deserialize;
 use torrust_tracker_rest_api_client::connection_info::{ConnectionInfo, Origin};
 use torrust_tracker_rest_api_client::v1::client::ApiHttpClient as TrackerApiClient;
 use url::Url;
-
-use crate::common::EphemeralTrackerWorkspace;
 
 /// Demo: the stats API should aggregate announces across multiple trackers.
 ///
@@ -103,8 +103,8 @@ async fn the_stats_api_endpoint_should_aggregate_announces_across_multiple_track
     "#;
 
     // ── 2. Start tracker on isolated workspace ───────────────────────
-    let workspace = EphemeralTrackerWorkspace::new(config_toml);
-    let (app_container, _jobs) = common::start_tracker_with_config(&workspace).await;
+    let fixture = common::TrackerApplicationFixture::start(config_toml).await;
+    let app_container = fixture.app_container();
 
     // ── 3. Discover bound addresses ──────────────────────────────────
     let tracker_urls = common::http_tracker_urls(&app_container).await;
@@ -130,8 +130,8 @@ async fn the_stats_api_endpoint_should_aggregate_announces_across_multiple_track
     let stats = get_stats(&api_url, "MyAccessToken").await;
     assert_eq!(stats.tcp4_announces_handled, 2, "two announces should be aggregated");
 
-    // The tracker application and its temporary workspace are cleaned up
-    // when `workspace` and `_jobs` are dropped at the end of this scope.
+    // ── 6. Shut down before releasing the temporary workspace ────────
+    fixture.shutdown().await;
 }
 
 /// Statistics subset relevant to this demo.

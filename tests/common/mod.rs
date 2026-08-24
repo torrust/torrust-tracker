@@ -33,6 +33,6 @@ pub use torrust_tracker_test_helpers::{
 };
 #[allow(unused_imports)]
 pub use workspace::{
-    EphemeralTrackerWorkspace, http_api_url, http_tracker_urls, service_binding_for_identity, start_tracker_with_config,
-    udp_socket_addr, udp_socket_addr_for_identity, udp_tracker_urls,
+    EphemeralTrackerWorkspace, TrackerApplicationFixture, http_api_url, http_tracker_urls, service_binding_for_identity,
+    start_tracker_with_config, udp_socket_addr, udp_socket_addr_for_identity, udp_tracker_urls,
 };

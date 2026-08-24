@@ -2,8 +2,9 @@
 
 > **Issue specification:** [ISSUE.md](ISSUE.md)
 >
-> **Status:** Proposed; requires maintainer review before implementation
-> **Scope:** Deterministic teardown, related test coverage, documentation alignment, and manual plus automated verification
+> **Status:** Partial improvement ready for review; cooperative server shutdown deferred to #1488
+> **Scope:** Current-production lifecycle fixture, related test coverage, documentation alignment,
+> and manual plus automated verification
 
 ## Purpose
 
@@ -33,20 +34,58 @@ This is not a port-zero or runtime-registry defect. Port-zero bindings, isolated
 workspaces, and runtime endpoint discovery are already implemented. The remaining defect is that
 the test fixture does not own shutdown as part of its normal lifecycle.
 
-## Required Outcome
+## Discovery: Current Production Cancellation Does Not Stop Servers
+
+The initial implementation introduced `TrackerApplicationFixture` in `tests/common/` and migrated
+the current main-level suites to its explicit `shutdown().await` path. The fixture correctly calls
+`JobManager::cancel()` followed by `wait_for_all(...)` before releasing its workspace.
+
+Focused suite runs exposed a missing production shutdown connection. `JobManager::cancel()` signals
+the shared `CancellationToken` used by event-listener and maintenance jobs. HTTP tracker, REST API,
+UDP tracker, and health-check server jobs instead wait on their own service-specific oneshot halt
+channels. They therefore do not finish when the manager cancellation token is signaled, and each
+can consume `wait_for_all`'s per-job grace timeout.
+
+The fixture establishes correct test ownership and must be retained, but it cannot itself resolve
+this production lifecycle gap.
+
+## Deferral to Shutdown Overhaul #1488
+
+The production shutdown refactor belongs to
+[shutdown-overhaul #1488](https://github.com/torrust/torrust-tracker/issues/1488), not #1419.
+Its draft planning PR [#1993](https://github.com/torrust/torrust-tracker/pull/1993) records the
+selected direction: each server job starter watches `JobManager`'s `CancellationToken`, then sends
+`Halted::Normal` to its own existing halt channel and awaits the server task. This is intentionally
+different from introducing a new application-owned server-halt coordinator.
+
+Issue #1419 must not implement a competing production shutdown mechanism while #1488 is still open. It
+will deliver a partial integration-test improvement that consistently invokes the best lifecycle
+currently exposed by production:
+
+```text
+fixture shutdown → JobManager::cancel() → JobManager::wait_for_all(...) → workspace drop
+```
+
+This sequence makes test ownership explicit and ensures the workspace is retained until the current
+production wait path returns. It does **not** prove that each server exits cooperatively; current
+server jobs may still consume their configured per-job wait timeout. That limitation must be
+recorded in #1419's partial-improvement PR and revisited after #1488 merges.
+
+## Partial-Delivery Required Outcome
 
 Every current main-level suite must have one clear owner for its application lifecycle. After the
-last scenario completes, that owner must cancel the application jobs, await them with a bounded
-grace period, and only then permit the `EphemeralTrackerWorkspace` to be dropped.
+last scenario completes, that owner must invoke the current production shutdown sequence and only
+then permit the `EphemeralTrackerWorkspace` to be dropped.
 
-The resulting test structure must make the required lifetime order evident:
+The resulting test and application lifecycle must make the required order evident:
 
 ```text
 create workspace → start application → run sequential scenarios → cancel jobs → await jobs → drop workspace
 ```
 
-The solution must not depend on process exit, a fixed sleep, parsing logs, or a new application
-configuration.
+The partial delivery must not depend on process exit, a fixed sleep, parsing logs, or a new
+application configuration. Cooperative server termination without timeout is explicitly deferred
+to #1488.
 
 ## Alternatives Considered
 
@@ -88,9 +127,32 @@ An asynchronous operation cannot be performed from a normal Rust `Drop` implemen
 fixture must therefore make shutdown explicit in each suite, or use a test-runner structure that
 can always await shutdown before returning. The implementation must document its behavior when a
 scenario fails or panics; it must not claim that synchronous `Drop` guarantees async graceful
-teardown.
+teardown. This alternative has been implemented, but requires the server-coordination alternative
+below to complete graceful shutdown.
 
-### Alternative D — Make `JobManager` abort jobs on drop
+### Alternative D — Coordinate `JobManager` cancellation with existing server halt channels
+
+**Description:** Keep the existing per-service oneshot halt channels and introduce the smallest
+application-owned coordinator that observes the application shutdown request and sends each
+service's normal halt signal. `JobManager::wait_for_all(...)` then awaits the existing server job
+handles after their services have been asked to stop.
+
+**Deferred to #1488.** The server packages already own graceful stop behavior behind their halt
+channels. However, #1488/#1993 selected a different production implementation: server job starters
+watch the shared cancellation token and invoke their own halt channel. #1419 must not create a
+competing coordinator while that overhaul remains open.
+
+### Alternative E — Change every server job to consume `CancellationToken`
+
+**Description:** Pass `JobManager`'s token into HTTP, REST API, UDP, and health-check server
+launchers, then alter each server to select between the token and its halt channel.
+
+**Rejected for this issue:** This propagates application-specific cancellation through multiple
+server package APIs that already have a dedicated graceful-halt contract. It expands the API
+surface and duplicates shutdown inputs where a single application-level coordinator can reuse the
+existing channels.
+
+### Alternative F — Make `JobManager` abort jobs on drop
 
 **Description:** Change production `JobManager` drop semantics so dropping it aborts all tasks.
 
@@ -98,7 +160,7 @@ teardown.
 ownership problem. Aborting is not equivalent to cooperative cancellation plus bounded graceful
 waiting, and it would affect every production caller.
 
-### Alternative E — Run the tracker as a child process
+### Alternative G — Run the tracker as a child process
 
 **Description:** Replace the in-process suite with a process runner that terminates the tracker
 process after testing.
@@ -108,21 +170,22 @@ application composition coverage. A child-process runner adds readiness, diagnos
 signal, and cleanup concerns without being needed to solve the existing `JobManager` ownership
 gap. It remains deferred for future tests of executable startup, signals, logging, or exit behavior.
 
-## Chosen Direction
+## Chosen Direction for Partial Delivery
 
-Implement **Alternative C**, a smallest-possible lifecycle fixture in `tests/common/`, subject to
-review of the exact API. It must:
+Retain **Alternative C**, the test-local `TrackerApplicationFixture`, and defer **Alternative D**
+to #1488. The partial delivery must:
 
 - retain the `EphemeralTrackerWorkspace` for at least as long as tracker jobs are awaited;
 - expose the `Arc<AppContainer>` needed by existing scenario functions without duplicating runtime
   discovery logic;
-- use the existing `JobManager::cancel()` and `JobManager::wait_for_all(...)` APIs;
+- call the current production shutdown sequence: `JobManager::cancel()` then
+  `JobManager::wait_for_all(...)`;
 - define one shared, documented grace period appropriate for the current suites;
 - require explicit awaited shutdown before a successful suite returns; and
 - keep ownership test-local rather than modifying production lifecycle semantics.
 
-The exact fixture name and API are intentionally not prescribed here. The implementation should
-prefer a minimal, intention-revealing interface over a general-purpose test framework.
+When #1488 merges, review its finalized lifecycle boundary and modify the fixture to use that API.
+Do not duplicate the production server-halt implementation in `tests/common/`.
 
 ## Test-Coverage Design
 
@@ -134,13 +197,12 @@ The focused test should establish observable ordering rather than merely call th
 1. Start a tracker using an isolated workspace through the shared fixture.
 2. Complete a small existing scenario or readiness assertion.
 3. Invoke the fixture's explicit asynchronous shutdown.
-4. Assert the shutdown operation completed before releasing the fixture/workspace.
+4. Assert the awaited current-production shutdown returns before releasing the fixture/workspace.
 
-The test must not use a sleep as proof of completion and must not rely on test-process exit. If the
-existing `JobManager` API does not expose sufficient observability to prove more than successful
-awaited completion, document that limitation and use the successful bounded wait as the lifecycle
-contract. Do not introduce production-only test hooks solely for this issue without a separately
-reviewed justification.
+The test must not use a sleep as proof of ordering and must not rely on test-process exit. For this
+partial delivery, it must **not** claim that server jobs finish cooperatively: current production
+does not provide that guarantee. Post-#1488 coverage must distinguish completed jobs from a
+`wait_for_all` timeout without adding production-only test hooks unless separately justified.
 
 All suites using `start_tracker_with_config` must migrate in the same change, including
 `tests/scaffold.rs`. No `_jobs` binding may remain as an implicit teardown mechanism.
@@ -158,29 +220,34 @@ Update the following alongside the code:
 
 ## Manual Verification Is Mandatory
 
-Automated tests are necessary but insufficient for this lifecycle change. The implementation changes
-how real listeners and background jobs are stopped, so manual execution of the affected integration
-targets is mandatory after implementation. Record the command, UTC date, exit status, and concise
-observed result in `ISSUE.md`.
+Automated tests are necessary but insufficient for this lifecycle change. Manual execution of the
+affected integration targets is mandatory after implementation. Record the command, UTC date, exit
+status, and concise observed result in `ISSUE.md`, including that the current production shutdown
+path may consume server-job timeouts. Do not represent successful process exit as proof of
+cooperative server shutdown.
 
 ### Required Manual Runs
 
-| ID  | Command / action                                            | Expected observation                                                                                       |
-| --- | ----------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| MV1 | Run all current main-level targets in one Cargo invocation. | All targets exit successfully without port, configuration, storage, or shutdown interference.              |
-| MV2 | Run `metrics-port-zero` with `-- --nocapture`.              | The suite completes after explicit teardown; its port-zero services have distinct non-zero final bindings. |
-| MV3 | Run `metrics-port-zero` with `-- --test-threads=1`.         | The suite succeeds in serial mode and does not depend on normal parallel scheduling.                       |
-| MV4 | Run `linter all`.                                           | The repository quality gate succeeds after the code and documentation changes.                             |
+| ID  | Command / action                                            | Expected observation                                                                                                                                                       |
+| --- | ----------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| MV1 | Run all current main-level targets in one Cargo invocation. | All targets exit successfully without port, configuration, storage, or shutdown interference.                                                                              |
+| MV2 | Run `metrics-port-zero` with `-- --nocapture`.              | The suite completes after explicit current-production teardown; its port-zero services have distinct non-zero final bindings. Record any observed job-timeout diagnostics. |
+| MV3 | Run `metrics-port-zero` with `-- --test-threads=1`.         | The suite succeeds in serial mode and does not depend on normal parallel scheduling.                                                                                       |
+| MV4 | Run `linter all`.                                           | The repository quality gate succeeds after the code and documentation changes.                                                                                             |
 
 Use the commands listed in `ISSUE.md` as the authoritative command text. If a command must change,
 update both documents in the same change and explain why.
 
 ## Implementation Checklist
 
-- [ ] Review this decision record and confirm the selected fixture direction.
-- [ ] Implement the smallest test-local lifecycle fixture.
-- [ ] Migrate every current suite and remove `_jobs` drop-only cleanup.
-- [ ] Add focused lifecycle coverage.
-- [ ] Update `tests/scaffold.rs` and `tests/AGENTS.md`.
-- [ ] Execute and record MV1–MV4.
-- [ ] Update `ISSUE.md` progress, acceptance criteria, and closure decision.
+- [x] Implement the test-local `TrackerApplicationFixture` and migrate the current suites away
+      from `_jobs` drop-only cleanup.
+- [x] Run and record partial-delivery verification, explicitly documenting the current server-job
+      timeout limitation.
+- [x] Update `tests/scaffold.rs` and `tests/AGENTS.md`.
+- [x] Execute and record MV1–MV4.
+- [ ] Open a partial-improvement PR and keep #1419 open.
+- [ ] After #1488 merges, revise the fixture and add coverage that distinguishes cooperative
+      completion from a job timeout.
+- [ ] Update `ISSUE.md` progress, acceptance criteria, and closure decision after the #1488
+      follow-up.

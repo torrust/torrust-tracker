@@ -24,6 +24,8 @@ semantic-links:
     - src/bootstrap/jobs/manager.rs
     - packages/test-helpers/
     - docs/issues/open/1419-allow-multiple-integration-tests-at-main-app-level/completion-plan.md
+    - https://github.com/torrust/torrust-tracker/issues/1488
+    - https://github.com/torrust/torrust-tracker/pull/1993
 ---
 
 # Issue #1419 - Allow multiple integration tests at the main app level
@@ -206,8 +208,8 @@ completed work and remaining tasks are recorded after the decision pivot.
 
 - [ ] Specification drafted and approved by user/maintainer
 - [ ] GitHub issue #1419 already exists (created by maintainer)
-- [ ] Implementation completed
-- [ ] Automatic verification completed (current main-level integration-test targets)
+- [x] Implementation completed (partial improvement; cooperative server shutdown remains deferred)
+- [x] Automatic verification completed (current main-level integration-test targets)
 - [ ] Acceptance criteria reviewed after implementation
 - [ ] Issue closed and specification moved to `docs/issues/closed/`
 
@@ -229,6 +231,17 @@ completed work and remaining tasks are recorded after the decision pivot.
 - 2026-08-24 - agent - Added `completion-plan.md` as the decision record for the non-trivial
   teardown work. It documents the lifecycle problem, rejected alternatives, selected test-local
   fixture direction, and mandatory manual verification evidence.
+- 2026-08-24 - agent - Implemented an initial `TrackerApplicationFixture` and migrated the current
+  suites. Focused tests exposed a lifecycle gap: `JobManager::cancel()` reaches event-listener jobs,
+  but tracker server jobs wait on separate halt channels and run until their per-job wait timeout.
+  Production shutdown coordination is deferred to #1488; #1419 will retain the fixture and use the
+  best shutdown sequence currently exposed by production.
+- 2026-08-24 - agent - Completed the partial-delivery manual verification: all six current
+  main-level targets passed in one invocation; `metrics-port-zero` passed with `--nocapture` and
+  with `--test-threads=1`; and the full pre-commit quality gate passed. Each suite took 60–81
+  seconds because current server jobs can consume `wait_for_all`'s per-job timeout. Successful
+  process exit is not evidence of cooperative server shutdown; that proof remains deferred to
+  #1488.
 
 ## Acceptance Criteria
 
@@ -245,11 +258,16 @@ completed work and remaining tasks are recorded after the decision pivot.
 - [x] AC6: Global stats coverage includes multiple metrics, not only `tcp4_announces_handled`.
 - [x] AC7: Test utilities for temp workspace creation (config + storage) and port extraction are
       available and documented.
-- [ ] AC8: Every current main-level suite deterministically cancels and waits for its application
-      jobs before its temporary workspace is released.
-- [ ] AC9: All current main-level integration-test targets pass cleanly with normal parallel
-      scheduling, and a representative target passes in serial mode.
-- [ ] AC10: `linter all` passes.
+- [x] AC8: Every current main-level suite uses `TrackerApplicationFixture` to invoke the best
+      currently exposed production shutdown sequence—`JobManager::cancel()` followed by
+      `wait_for_all(...)`—before its temporary workspace is released.
+- [ ] AC8a: After shutdown-overhaul #1488 is implemented, review the integration fixture against
+      the new production lifecycle and prove server jobs finish cooperatively without consuming the
+      current per-job timeout.
+- [x] AC9: All current main-level integration-test targets pass with normal parallel scheduling,
+      and a representative target passes in serial mode. Current production server jobs can still
+      consume the per-job shutdown timeout; cooperative completion is deferred to AC8a.
+- [x] AC10: `linter all` passes.
 
 ## Verification Plan
 
@@ -261,13 +279,31 @@ completed work and remaining tasks are recorded after the decision pivot.
 
 ### Manual Verification Scenarios
 
-| ID  | Scenario                                   | Expected Result                                                                           | Status | Evidence                                                 |
-| --- | ------------------------------------------ | ----------------------------------------------------------------------------------------- | ------ | -------------------------------------------------------- |
-| M1  | Run all current targets in one invocation  | All targets pass; no port, configuration, storage, or shutdown interference               | TODO   | Record command, UTC date, exit status, and observation   |
-| M2  | Run `metrics-port-zero` with `--nocapture` | Explicit teardown completes; services have distinct, non-zero final bindings              | TODO   | Record command, UTC date, exit status, and observation   |
-| M3  | Verify focused teardown coverage           | Awaited shutdown completes before workspace cleanup; no process-exit or sleep-based proof | TODO   | Record test name, UTC date, exit status, and observation |
-| M4  | Run `metrics-port-zero` in serial mode     | Suite has no implicit dependency on parallel scheduling                                   | TODO   | Record command, UTC date, exit status, and observation   |
-| M5  | Run `linter all` after implementation      | Full quality gate passes                                                                  | TODO   | Record command, UTC date, exit status, and observation   |
+| ID  | Scenario                                   | Expected Result                                                                           | Status | Evidence                                                                                                                                                                  |
+| --- | ------------------------------------------ | ----------------------------------------------------------------------------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| M1  | Run all current targets in one invocation  | All targets pass; no port, configuration, storage, or shutdown interference               | DONE   | 2026-08-24; exit 0; all six targets passed. Each took 60–81 seconds because server jobs can consume the current per-job wait timeout.                                     |
+| M2  | Run `metrics-port-zero` with `--nocapture` | Explicit teardown completes; services have distinct, non-zero final bindings              | DONE   | 2026-08-24; exit 0; 1 test passed in 80.07 seconds. The scenario validates distinct non-zero final bindings; duration reflects the current server-job timeout limitation. |
+| M3  | Verify focused teardown coverage           | Awaited shutdown completes before workspace cleanup; no process-exit or sleep-based proof | DONE   | 2026-08-24; exit 0; `it_should_apply_metrics_policy_to_port_zero_tracker_instances` calls fixture shutdown then asserts the workspace has been released.                  |
+| M4  | Run `metrics-port-zero` in serial mode     | Suite has no implicit dependency on parallel scheduling                                   | DONE   | 2026-08-24; exit 0; 1 test passed with `--test-threads=1` in 80.07 seconds.                                                                                               |
+| M5  | Run `linter all` after implementation      | Full quality gate passes                                                                  | DONE   | 2026-08-24; exit 0; pre-commit gate passed `linter all` plus cargo machete, cargo deny, Containerfile lint, and documentation tests.                                      |
+
+### Verification Evidence
+
+All commands below completed with exit status `0` on 2026-08-24:
+
+```sh
+cargo test --test metrics-fixed-ports --test metrics-port-zero --test metrics-udp-error-enabled-port-zero --test metrics-udp-error-disabled-port-zero --test banning-udp-metrics-disabled-port-zero --test scaffold
+cargo test --test metrics-port-zero -- --nocapture
+cargo test --test metrics-port-zero -- --test-threads=1
+TORRUST_GIT_HOOKS_LOG_DIR=.tmp ./contrib/dev-tools/git/hooks/pre-commit.sh --format=json
+linter all
+```
+
+The multi-target invocation passed all six suites. `metrics-port-zero` passed in both focused runs.
+The focused lifecycle assertion confirms that fixture shutdown returns before the temporary workspace
+is released. The test executables took 60–81 seconds because current HTTP, UDP, REST API, and health
+check server jobs can consume `JobManager::wait_for_all`'s per-job timeout. This is a known current
+production limitation, not proof of cooperative server completion; #1488 owns that follow-up.
 
 ## Risks and Trade-offs
 
@@ -355,10 +391,14 @@ and side-effect-free runtime-registry discovery used by these suites. It creates
 containing a configuration file and tracker storage directory, while port-zero services publish
 their final bindings under canonical service roles and `ConfigurationInstanceId` values.
 
-The remaining lifecycle gap is deterministic teardown. Current tests retain the returned
-`JobManager` as `_jobs` and depend on scope/process exit. Before closing this issue, the shared
-fixture or each suite must explicitly call `JobManager::cancel()` and `wait_for_all(...)` before
-its temporary workspace is released.
+`TrackerApplicationFixture` now owns the workspace and `JobManager`, and explicitly calls
+`cancel()` then `wait_for_all(...)` before releasing its workspace. Focused execution showed that
+the current production shutdown path does not yet propagate cancellation to server-specific halt
+channels, so server jobs can reach `wait_for_all`'s per-job timeout. That production concern is
+owned by [shutdown-overhaul #1488](https://github.com/torrust/torrust-tracker/issues/1488), whose
+draft planning PR [#1993](https://github.com/torrust/torrust-tracker/pull/1993) selects token
+watching in each server job starter rather than a separate coordinator. #1419 deliberately does
+not implement a competing shutdown mechanism.
 
 The former pause for #2035 and #2036 is no longer active: repeated `0.0.0.0:0` HTTP and UDP
 configuration blocks retain distinct instance identities, and the runtime registry metadata needed
@@ -373,26 +413,29 @@ issue. The problem statement, alternatives, selected fixture direction, and mand
 protocol are documented in [completion-plan.md](completion-plan.md). That companion document must
 be reviewed before implementation begins.
 
-| ID  | Status | Step                                          | Implementation and completion evidence                                                                                                                                                                                                                 |
-| --- | ------ | --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| R1  | TODO   | Review lifecycle problem and fixture decision | Review [completion-plan.md](completion-plan.md): `_jobs` drop-only cleanup neither cancels nor awaits jobs. Confirm the selected test-local fixture approach and reject production `Drop` or child-process alternatives for this issue.                |
-| R2  | TODO   | Implement deterministic teardown              | Replace `_jobs` drop-only cleanup in every current main-level suite. The selected fixture must call `JobManager::cancel()` followed by `wait_for_all(...)` before `EphemeralTrackerWorkspace` is dropped.                                              |
-| R3  | TODO   | Prove teardown behavior                       | Add focused coverage that exercises the shared lifecycle path and proves awaited shutdown without process exit or sleep-based assertions.                                                                                                              |
-| R4  | TODO   | Align test documentation                      | Update `tests/scaffold.rs` references to the removed `stats` target and revise `tests/AGENTS.md` to describe tracing as one of several process-global lifecycle constraints, not the sole blocker.                                                     |
-| R5  | TODO   | Run mandatory manual integration verification | Execute the required manual runs defined in [completion-plan.md](completion-plan.md): normal parallel targets, `--nocapture`, and a representative serial run. Record the exact command, UTC date, exit status, and observation in this specification. |
-| R6  | TODO   | Run the full quality gate                     | Run `linter all`; record the UTC date, exit status, and result in this specification.                                                                                                                                                                  |
-| R7  | TODO   | Perform closure review                        | Confirm all acceptance criteria, move the issue specification to `docs/issues/closed/`, and close GitHub issue #1419.                                                                                                                                  |
+| ID  | Status | Step                                          | Implementation and completion evidence                                                                                                                                                                                    |
+| --- | ------ | --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| R1  | DONE   | Review lifecycle problem and fixture decision | The test-local fixture direction was selected. It centralizes the best shutdown sequence that current production exposes.                                                                                                 |
+| R2  | DONE   | Implement partial deterministic teardown      | `TrackerApplicationFixture` owns the application workspace and invokes `cancel()` then `wait_for_all(...)` before workspace release; all current suites use it.                                                           |
+| R3  | DONE   | Prove current fixture ordering                | Focused coverage proves awaited fixture shutdown precedes workspace cleanup without process-exit or sleep-based assertions.                                                                                               |
+| R4  | DONE   | Align test documentation                      | Update `tests/scaffold.rs` references to the removed `stats` target and revise `tests/AGENTS.md` to document the fixture and process-global lifecycle constraints.                                                        |
+| R5  | DONE   | Run mandatory manual integration verification | On 2026-08-24, exit 0: all six targets passed together; `metrics-port-zero` passed with `--nocapture` and in serial mode. Each suite took 60–81 seconds because server jobs can consume the current per-job wait timeout. |
+| R6  | DONE   | Run the full quality gate                     | On 2026-08-24, exit 0: the pre-commit gate passed, including `linter all`.                                                                                                                                                |
+| R7  | TODO   | Open partial-improvement PR                   | Submit the fixture, suite migration, focused ordering coverage, and documentation. State that cooperative server shutdown remains owned by #1488.                                                                         |
+| R8  | TODO   | Revisit after shutdown overhaul #1488         | After #1488's production shutdown work merges, review this fixture against its finalized API, update it if needed, and complete AC8a. Keep #1419 open until that review is recorded.                                      |
+| R9  | TODO   | Perform final closure review                  | After the #1488 follow-up, confirm all acceptance criteria, move the issue specification to `docs/issues/closed/`, and close GitHub issue #1419.                                                                          |
 
 #### Implementation Sequence
 
-1. Inspect `JobManager::cancel()` and `JobManager::wait_for_all(...)` and choose the smallest
-   shared fixture API that can enforce the required lifetime order. Review the alternatives and
-   decision criteria in [completion-plan.md](completion-plan.md) first.
-2. Implement the fixture and migrate every current suite, including `scaffold`; do not leave
-   `_jobs` bindings that silently rely on process exit.
-3. Add and run focused teardown coverage before changing unrelated test behavior.
-4. Update `tests/scaffold.rs` and `tests/AGENTS.md` to match the implemented model.
-5. Complete every mandatory manual run in [completion-plan.md](completion-plan.md), including the
+1. Complete and record the partial-delivery manual verification of the fixture, noting that the
+   current production server jobs may consume their wait timeout.
+2. Run the full quality gate and submit the partial-improvement PR. Do not add server shutdown
+   coordination in #1419.
+3. After #1488 merges, review its finalized shutdown API and update the fixture to call the same
+   application lifecycle boundary.
+4. Add and run post-overhaul focused coverage that proves cooperative server completion before
+   workspace cleanup, without fixed sleeps.
+5. Repeat every mandatory manual run in [completion-plan.md](completion-plan.md), including the
    normal parallel, `--nocapture`, and representative serial commands, then run `linter all`.
 6. Update the verification evidence and acceptance criteria. Only then prepare the issue for
    closure.
@@ -403,6 +446,9 @@ be reviewed before implementation begins.
   unless a second, non-main-level consumer establishes a real shared need.
 - A new integration-test binary is not required merely to prove teardown. Prefer focused coverage
   in the existing test structure.
+- Do not implement a server-halt coordinator, pass cancellation tokens through server packages, or
+  otherwise change production shutdown in this issue. Those responsibilities are explicitly owned
+  by shutdown-overhaul #1488 and its implementation subissues.
 - Do not claim temporary directories are cleaned after a forced process interruption; normal
   `TempDir` cleanup is sufficient once jobs stop before the workspace is dropped.
 - Do not close the issue until the normal parallel invocation and `linter all` have both passed.
