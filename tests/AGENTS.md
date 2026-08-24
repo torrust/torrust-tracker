@@ -91,21 +91,21 @@ binaries that use the same ports.
 ### Why one binary per configuration?
 
 The 1:1 mapping between integration-test binaries and tracker configurations
-exists because the current application startup has several global side effects
-that prevent running multiple isolated tracker instances in the same process:
+exists because the current application startup has several process-global
+lifecycle constraints that prevent running multiple isolated tracker instances
+in the same process:
 
-1. **`tracing` global initialization** (main blocker): The `tracing` crate
-   initializes a global subscriber. Once set, it cannot be reset for a second
-   tracker instance in the same process. This means two tracker applications
-   sharing a process would share logging state and configuration.
-2. **Environment-variable config injection**: The tracker reads its
+1. **`tracing` global initialization**: The `tracing` crate initializes a
+   global subscriber. Once set, it cannot be reset for a second tracker
+   instance in the same process. This means tracker applications sharing a
+   process would share logging state and configuration.
+2. **Environment-variable configuration injection**: The tracker reads its
    configuration from the `TORRUST_TRACKER_CONFIG_TOML_PATH` environment
    variable. Multiple tracker instances in the same process would race on
    this variable.
-3. **Static secrets and clock state**: Values like seed secrets and the
+3. **Static secrets and clock state**: Values such as seed secrets and the
    deterministic test clock are process-global. While these could be refactored
-   into injected dependencies, the tracing global subscriber remains the
-   fundamental blocker.
+   into injected dependencies, they remain lifecycle constraints today.
 
 Until these global side effects are eliminated (tracked in
 [#1430](https://github.com/torrust/torrust-tracker/issues/1430)), each
@@ -126,7 +126,12 @@ All integration tests at this level must:
    for making requests
 4. **Be independent**: Each top-level test binary must be able to run in isolation or concurrently
    with others (it is the binary, not the function, that is the unit of isolation)
-5. **Clean up resources**: Use RAII patterns (temp dirs, handles) for automatic cleanup
+5. **Shut down explicitly**: Start suites with `TrackerApplicationFixture::start`, then call
+   `fixture.shutdown().await` after the final scenario. This cancels and waits for all
+   application jobs before dropping its workspace. `Drop` cannot provide awaited async teardown.
+   If a scenario panics before that call, ordinary Rust drop semantics still release the workspace,
+   but cannot guarantee asynchronous graceful shutdown; keep scenarios small and ensure successful
+   paths always perform the explicit shutdown.
 
 ## Current Test Structure
 
@@ -136,7 +141,7 @@ tests/
 ├── common/
 │   ├── configuration.rs              # Shared integration-test configurations
 │   ├── mod.rs                        # Re-exports from submodules
-│   ├── workspace.rs                  # Tracker workspace setup and URL discovery
+│   ├── workspace.rs                  # Workspace, lifecycle fixture, and URL discovery
 │   └── statistics.rs                 # Aggregate statistics query helpers
 ├── banning/
 │   └── udp_metrics_disabled_port_zero.rs # Disabled-listener ban statistics
@@ -155,8 +160,9 @@ tests/
    configuration than the existing suite, create a new explicit Cargo test target
    (e.g., `tests/metrics/fixed_ports.rs`). If they share the same configuration, add
    scenarios to the existing suite's runner function.
-3. **Reuse shared utilities**: Import `mod common;` and use the helpers in `tests/common/mod.rs`
-   for workspace setup, tracker startup, and port discovery.
+3. **Reuse shared utilities**: Import `mod common;`, use `TrackerApplicationFixture::start` for
+   workspace setup and tracker startup, then call `fixture.shutdown().await` after the final
+   scenario. Use the remaining helpers for port discovery.
 4. **Use port `0` by default**: Bind services to port `0` unless the scenario specifically
    requires distinct fixed addresses.
 5. **Extract bound ports**: Query the registar or `AppContainer` to discover actual socket addresses.

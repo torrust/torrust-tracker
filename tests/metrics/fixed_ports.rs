@@ -71,12 +71,15 @@ const FIXED_PORT_CONFIG: &str = r#"
 #[tokio::test]
 async fn it_should_apply_metrics_policy_to_fixed_port_tracker_instances() {
     // Arrange
-    let workspace = common::EphemeralTrackerWorkspace::new(FIXED_PORT_CONFIG);
-    let (app_container, _jobs) = common::start_tracker_with_config(&workspace).await;
+    let fixture = common::TrackerApplicationFixture::start(FIXED_PORT_CONFIG).await;
+    let app_container = fixture.app_container();
 
     // Act
-    it_should_aggregate_http_announces_only_from_metrics_enabled_listener(&app_container).await;
-    it_should_aggregate_udp_events_only_from_metrics_enabled_listener(&app_container).await;
+    it_should_aggregate_http_announces_only_from_metrics_enabled_listener(app_container).await;
+    it_should_aggregate_udp_events_only_from_metrics_enabled_listener(app_container).await;
+
+    // Assert
+    fixture.shutdown().await;
 }
 
 /// Both HTTP listeners are on distinct fixed ports, but only the

@@ -12,13 +12,16 @@ use torrust_tracker_lib::container::AppContainer;
 use torrust_tracker_primitives::{ConfigurationInstanceId, ServiceRole};
 use url::Url;
 
+/// Maximum time to await each tracker job after requesting cancellation.
+const TRACKER_SHUTDOWN_GRACE_PERIOD: std::time::Duration = std::time::Duration::from_secs(10);
+
 /// A temporary workspace for an integration test.
 ///
 /// Creates an isolated directory with config file and storage directory.
 /// The `{STORAGE_PATH}` placeholder in the config TOML is replaced with
 /// the absolute path to the temp storage directory.
 pub struct EphemeralTrackerWorkspace {
-    _temp_dir: TempDir,
+    temp_dir: TempDir,
     config_path: PathBuf,
 }
 
@@ -33,15 +36,74 @@ impl EphemeralTrackerWorkspace {
         let resolved = config_toml.replace("{STORAGE_PATH}", &storage_path.to_string_lossy());
         std::fs::write(&config_path, resolved).expect("failed to write config file");
 
-        Self {
-            _temp_dir: temp_dir,
-            config_path,
-        }
+        Self { temp_dir, config_path }
     }
 
     #[must_use]
     pub fn config_path(&self) -> &Path {
         &self.config_path
+    }
+
+    #[must_use]
+    // Each integration target compiles this shared module independently; only
+    // the lifecycle coverage target queries the workspace path.
+    #[allow(dead_code)]
+    pub fn path(&self) -> &Path {
+        self.temp_dir.path()
+    }
+}
+
+/// Owns a tracker application and its isolated test workspace.
+///
+/// Call [`Self::shutdown`] explicitly after the suite scenarios finish. It
+/// cancels and awaits the tracker jobs before releasing the application and
+/// temporary workspace. Rust `Drop` cannot perform this asynchronous teardown.
+pub struct TrackerApplicationFixture {
+    app_container: Arc<AppContainer>,
+    jobs: Option<JobManager>,
+    workspace: EphemeralTrackerWorkspace,
+}
+
+impl TrackerApplicationFixture {
+    /// Starts one tracker application in an isolated workspace.
+    pub async fn start(config_toml: &str) -> Self {
+        let workspace = EphemeralTrackerWorkspace::new(config_toml);
+        let (app_container, jobs) = start_tracker_with_config(&workspace).await;
+
+        Self {
+            app_container,
+            jobs: Some(jobs),
+            workspace,
+        }
+    }
+
+    /// Returns the application container used by suite scenarios.
+    #[must_use]
+    pub const fn app_container(&self) -> &Arc<AppContainer> {
+        &self.app_container
+    }
+
+    /// Returns the temporary workspace path for lifecycle assertions.
+    #[must_use]
+    // See the per-target compilation note on `EphemeralTrackerWorkspace::path`.
+    #[allow(dead_code)]
+    pub fn workspace_path(&self) -> PathBuf {
+        self.workspace.path().to_path_buf()
+    }
+
+    /// Gracefully stops tracker jobs before releasing the workspace.
+    pub async fn shutdown(mut self) {
+        let jobs = self.jobs.take().expect("tracker jobs must be available before shutdown");
+        jobs.cancel();
+        jobs.wait_for_all(TRACKER_SHUTDOWN_GRACE_PERIOD).await;
+    }
+}
+
+impl Drop for TrackerApplicationFixture {
+    fn drop(&mut self) {
+        if let Some(jobs) = &self.jobs {
+            jobs.cancel();
+        }
     }
 }
 
