@@ -1100,4 +1100,409 @@ mod tests {
             });
         }
     }
+
+    /// Test-only feasibility experiments for issue #2067.
+    ///
+    /// These local types deliberately do not change the public v3 schema. They
+    /// exercise the TOML, Serde, and Figment behavior a separately approved
+    /// schema implementation would rely on.
+    mod flat_service_configuration_prototype {
+        use figment::Figment;
+        use figment::providers::{Env, Format, Toml};
+        use serde::{Deserialize, Serialize};
+        use torrust_tracker_primitives::{ConfigurationInstanceId, ServiceRole};
+
+        use crate::v3_0_0::health_check_api::HealthCheckApi;
+        use crate::v3_0_0::http_tracker::HttpTracker;
+        use crate::v3_0_0::tracker_api::HttpApi;
+        use crate::v3_0_0::udp_tracker::UdpTracker;
+
+        const OVERRIDE_PREFIX: &str = "TORRUST_TRACKER_CONFIG_OVERRIDE_";
+        const OVERRIDE_SEPARATOR: &str = "__";
+
+        #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone)]
+        #[serde(tag = "kind", content = "configuration", rename_all = "snake_case", deny_unknown_fields)]
+        enum AdjacentService {
+            HttpTracker(HttpTracker),
+            UdpTracker(UdpTracker),
+            HttpApi(HttpApi),
+            HealthCheckApi(HealthCheckApi),
+        }
+
+        #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone)]
+        #[serde(tag = "kind", rename_all = "snake_case", deny_unknown_fields)]
+        enum FlattenedService {
+            HttpTracker {
+                #[serde(flatten)]
+                configuration: HttpTracker,
+            },
+            UdpTracker {
+                #[serde(flatten)]
+                configuration: UdpTracker,
+            },
+            HttpApi {
+                #[serde(flatten)]
+                configuration: HttpApi,
+            },
+            HealthCheckApi {
+                #[serde(flatten)]
+                configuration: HealthCheckApi,
+            },
+        }
+
+        #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone)]
+        #[serde(rename_all = "snake_case", deny_unknown_fields)]
+        enum ExternallyTaggedService {
+            HttpTracker(HttpTracker),
+            UdpTracker(UdpTracker),
+            HttpApi(HttpApi),
+            HealthCheckApi(HealthCheckApi),
+        }
+
+        #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone)]
+        #[serde(deny_unknown_fields)]
+        struct AdjacentServicesDocument {
+            #[serde(default)]
+            services: Vec<AdjacentService>,
+        }
+
+        #[derive(Serialize, Deserialize)]
+        struct FlattenedServicesDocument {
+            services: Vec<FlattenedService>,
+        }
+
+        #[derive(Serialize, Deserialize)]
+        struct ExternallyTaggedServicesDocument {
+            services: Vec<ExternallyTaggedService>,
+        }
+
+        #[allow(dead_code)]
+        #[derive(Debug, Deserialize)]
+        struct SplitServicesDocument {
+            #[serde(default)]
+            http_trackers: Vec<HttpTracker>,
+        }
+
+        fn role_and_configuration(service: &AdjacentService) -> (ServiceRole, usize) {
+            match service {
+                AdjacentService::HttpTracker(_) => (ServiceRole::HttpTracker, 0),
+                AdjacentService::UdpTracker(_) => (ServiceRole::UdpTracker, 0),
+                AdjacentService::HttpApi(_) => (ServiceRole::RestApi, 0),
+                AdjacentService::HealthCheckApi(_) => (ServiceRole::HealthCheckApi, 0),
+            }
+        }
+
+        fn role_local_ids(services: &[AdjacentService]) -> Vec<ConfigurationInstanceId> {
+            let mut http_trackers = 0;
+            let mut udp_trackers = 0;
+            let mut http_apis = 0;
+            let mut health_check_apis = 0;
+
+            services
+                .iter()
+                .map(|service| {
+                    let (role, _) = role_and_configuration(service);
+                    let index = match role {
+                        ServiceRole::HttpTracker => {
+                            let index = http_trackers;
+                            http_trackers += 1;
+                            index
+                        }
+                        ServiceRole::UdpTracker => {
+                            let index = udp_trackers;
+                            udp_trackers += 1;
+                            index
+                        }
+                        ServiceRole::RestApi => {
+                            let index = http_apis;
+                            http_apis += 1;
+                            index
+                        }
+                        ServiceRole::HealthCheckApi => {
+                            let index = health_check_apis;
+                            health_check_apis += 1;
+                            index
+                        }
+                    };
+
+                    ConfigurationInstanceId::new(role, index)
+                })
+                .collect()
+        }
+
+        fn validate_singletons(services: &[AdjacentService]) -> Result<(), &'static str> {
+            let http_apis = services
+                .iter()
+                .filter(|service| matches!(service, AdjacentService::HttpApi(_)))
+                .count();
+            let health_check_apis = services
+                .iter()
+                .filter(|service| matches!(service, AdjacentService::HealthCheckApi(_)))
+                .count();
+
+            if http_apis > 1 {
+                return Err("services may contain at most one http_api entry");
+            }
+            if health_check_apis > 1 {
+                return Err("services may contain at most one health_check_api entry");
+            }
+
+            Ok(())
+        }
+
+        fn mask_service_secrets(services: &mut [AdjacentService]) {
+            for service in services {
+                if let AdjacentService::HttpApi(configuration) = service {
+                    configuration.mask_secrets();
+                }
+            }
+        }
+
+        #[test]
+        fn adjacent_tagged_services_round_trip_and_preserve_interleaved_order() {
+            let input = r#"
+                [[services]]
+                kind = "http_tracker"
+                [services.configuration]
+                bind_address = "127.0.0.1:17070"
+
+                [services.configuration.network]
+                external_ip = "203.0.113.5"
+                on_reverse_proxy = true
+                ipv6_v6only = true
+
+                [services.configuration.tls_config]
+                ssl_cert_path = "tracker.crt"
+                ssl_key_path = "tracker.key"
+
+                [[services]]
+                kind = "udp_tracker"
+                [services.configuration]
+                bind_address = "127.0.0.1:16969"
+
+                [[services]]
+                kind = "http_api"
+                [services.configuration]
+                bind_address = "127.0.0.1:1212"
+
+                [services.configuration.access_tokens]
+                admin = "ExampleSecretToken"
+
+                [services.configuration.tls_config]
+                ssl_cert_path = "api.crt"
+                ssl_key_path = "api.key"
+            "#;
+
+            let document: AdjacentServicesDocument = toml::from_str(input).expect("adjacent-tagged TOML should deserialize");
+            let serialized = toml::to_string(&document).expect("services document should serialize");
+            let round_tripped: AdjacentServicesDocument =
+                toml::from_str(&serialized).expect("serialized services document should deserialize");
+
+            assert_eq!(document.services, round_tripped.services);
+            assert!(matches!(document.services[0], AdjacentService::HttpTracker(_)));
+            assert!(matches!(document.services[1], AdjacentService::UdpTracker(_)));
+            assert!(matches!(document.services[2], AdjacentService::HttpApi(_)));
+
+            let AdjacentService::HttpTracker(http_tracker) = &document.services[0] else {
+                panic!("first service should be an HTTP tracker");
+            };
+            assert_eq!(http_tracker.network.external_ip, Some("203.0.113.5".parse().unwrap()));
+            assert!(http_tracker.network.on_reverse_proxy);
+            assert!(http_tracker.network.ipv6_v6only);
+            assert!(http_tracker.tls_config.is_some());
+
+            let AdjacentService::HttpApi(http_api) = &document.services[2] else {
+                panic!("third service should be an HTTP API");
+            };
+            assert_eq!(http_api.access_tokens.get("admin"), Some(&"ExampleSecretToken".to_string()));
+            assert!(http_api.tls_config.is_some());
+        }
+
+        #[test]
+        fn enum_redaction_must_traverse_http_api_before_json_serialization() {
+            let mut document = AdjacentServicesDocument {
+                services: vec![AdjacentService::HttpApi(HttpApi {
+                    access_tokens: [("admin".to_string(), "ExampleSecretToken".to_string())].into(),
+                    ..HttpApi::default()
+                })],
+            };
+
+            mask_service_secrets(&mut document.services);
+            let json = serde_json::to_string(&document).expect("masked services should serialize to JSON");
+
+            assert!(json.contains("***"));
+            assert!(!json.contains("ExampleSecretToken"));
+        }
+
+        #[test]
+        fn flattened_services_round_trip_but_mix_kind_and_service_specific_fields() {
+            let input = r#"
+                [[services]]
+                kind = "http_tracker"
+                bind_address = "127.0.0.1:17070"
+                tracker_usage_statistics = true
+
+                [[services]]
+                kind = "udp_tracker"
+                bind_address = "127.0.0.1:16969"
+                cookie_lifetime = { secs = 120, nanos = 0 }
+            "#;
+
+            let document: FlattenedServicesDocument = toml::from_str(input).expect("flattened TOML should deserialize");
+            let serialized = toml::to_string(&document).expect("flattened services document should serialize");
+            let round_tripped: FlattenedServicesDocument =
+                toml::from_str(&serialized).expect("serialized flattened services document should deserialize");
+
+            assert_eq!(document.services, round_tripped.services);
+        }
+
+        #[test]
+        fn externally_tagged_services_round_trip_but_add_a_role_named_wrapper_table() {
+            let input = r#"
+                [[services]]
+                [services.http_tracker]
+                bind_address = "127.0.0.1:17070"
+            "#;
+
+            let document: ExternallyTaggedServicesDocument =
+                toml::from_str(input).expect("externally-tagged TOML should deserialize");
+            let serialized = toml::to_string(&document).expect("externally-tagged services document should serialize");
+            let round_tripped: ExternallyTaggedServicesDocument =
+                toml::from_str(&serialized).expect("serialized externally-tagged services document should deserialize");
+
+            assert_eq!(document.services, round_tripped.services);
+        }
+
+        #[test]
+        fn adjacent_tagged_services_reject_unknown_kinds() {
+            let input = r#"
+                [[services]]
+                kind = "smtp_tracker"
+                [services.configuration]
+                bind_address = "127.0.0.1:25"
+            "#;
+
+            let result = toml::from_str::<AdjacentServicesDocument>(input);
+
+            assert!(result.is_err(), "unknown service kinds must be rejected");
+        }
+
+        #[test]
+        fn omitted_or_empty_services_are_valid_and_health_defaults_are_not_materialized_by_deserialization() {
+            let omitted: AdjacentServicesDocument = toml::from_str("").expect("omitted services should deserialize");
+            let empty: AdjacentServicesDocument = toml::from_str("services = []").expect("empty services should deserialize");
+
+            assert!(omitted.services.is_empty());
+            assert!(empty.services.is_empty());
+            assert!(validate_singletons(&omitted.services).is_ok());
+            assert!(validate_singletons(&empty.services).is_ok());
+        }
+
+        #[test]
+        fn singleton_validation_rejects_duplicate_http_api_and_health_check_api_entries() {
+            let duplicate_http_api = vec![
+                AdjacentService::HttpApi(HttpApi::default()),
+                AdjacentService::HttpApi(HttpApi::default()),
+            ];
+            let duplicate_health_check_api = vec![
+                AdjacentService::HealthCheckApi(HealthCheckApi::default()),
+                AdjacentService::HealthCheckApi(HealthCheckApi::default()),
+            ];
+
+            assert_eq!(
+                validate_singletons(&duplicate_http_api),
+                Err("services may contain at most one http_api entry")
+            );
+            assert_eq!(
+                validate_singletons(&duplicate_health_check_api),
+                Err("services may contain at most one health_check_api entry")
+            );
+        }
+
+        #[test]
+        fn role_local_ids_remain_stable_when_another_role_precedes_a_service() {
+            let services = vec![
+                AdjacentService::UdpTracker(UdpTracker::default()),
+                AdjacentService::HttpTracker(HttpTracker::default()),
+                AdjacentService::UdpTracker(UdpTracker::default()),
+                AdjacentService::HttpTracker(HttpTracker::default()),
+            ];
+
+            assert_eq!(
+                role_local_ids(&services),
+                vec![
+                    ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0),
+                    ConfigurationInstanceId::new(ServiceRole::HttpTracker, 0),
+                    ConfigurationInstanceId::new(ServiceRole::UdpTracker, 1),
+                    ConfigurationInstanceId::new(ServiceRole::HttpTracker, 1),
+                ]
+            );
+        }
+
+        #[allow(clippy::result_large_err)]
+        #[test]
+        fn figment_rejects_numeric_adjacent_service_index_overrides() {
+            figment::Jail::expect_with(|jail| {
+                jail.set_env(
+                    "TORRUST_TRACKER_CONFIG_OVERRIDE_SERVICES__0__CONFIGURATION__BIND_ADDRESS",
+                    "127.0.0.1:18080",
+                );
+
+                let figment = Figment::from(Toml::string(
+                    r#"
+                        [[services]]
+                        kind = "http_tracker"
+                        [services.configuration]
+                        bind_address = "127.0.0.1:17070"
+                    "#,
+                ))
+                .merge(Env::prefixed(OVERRIDE_PREFIX).split(OVERRIDE_SEPARATOR));
+                let errors = figment
+                    .extract::<AdjacentServicesDocument>()
+                    .expect_err("Figment environment maps cannot override a sequence item by numeric index");
+
+                assert!(errors.into_iter().any(|error| {
+                    matches!(
+                        error.kind,
+                        figment::error::Kind::InvalidType(figment::error::Actual::Map, expected)
+                            if expected == "a sequence"
+                    )
+                }));
+
+                Ok(())
+            });
+        }
+
+        #[allow(clippy::result_large_err)]
+        #[test]
+        fn figment_also_rejects_numeric_split_service_index_overrides() {
+            figment::Jail::expect_with(|jail| {
+                jail.set_env(
+                    "TORRUST_TRACKER_CONFIG_OVERRIDE_HTTP_TRACKERS__0__BIND_ADDRESS",
+                    "127.0.0.1:18080",
+                );
+
+                let figment = Figment::from(Toml::string(
+                    r#"
+                        [[http_trackers]]
+                        bind_address = "127.0.0.1:17070"
+                    "#,
+                ))
+                .merge(Env::prefixed(OVERRIDE_PREFIX).split(OVERRIDE_SEPARATOR));
+                let errors = figment
+                    .extract::<SplitServicesDocument>()
+                    .expect_err("Figment environment maps cannot override a split sequence item by numeric index");
+
+                assert!(errors.into_iter().any(|error| {
+                    matches!(
+                        error.kind,
+                        figment::error::Kind::InvalidType(figment::error::Actual::Map, expected)
+                            if expected == "a sequence"
+                    )
+                }));
+
+                Ok(())
+            });
+        }
+    }
 }
