@@ -87,9 +87,11 @@ tracing::debug!("Using token: {}", token.expose_secret());
 - Keep existing configuration-file syntax for secret values unless a deliberate schema change
   is required. `secrecy` with its `serde` feature supports deserializing a TOML string directly
   into `SecretString`.
-- `SecretString` deliberately does not serialize automatically. At a configuration persistence
-  boundary, use a narrow `serialize_with` function that calls `.expose_secret()` only to emit
-  the established TOML schema. Keep diagnostic JSON behind a separate redaction boundary.
+- `SecretString` deliberately does not serialize automatically. Separate serialization format
+  from disclosure intent: generic serialization and diagnostic output redact for every format;
+  an explicitly named, authorized persistence boundary may call `.expose_secret()` only to emit
+  a runnable configuration artifact. Do not infer disclosure intent from TOML, JSON, or another
+  format alone.
 - Test redaction without exposing the secret. For `SecretString`, assert that `Debug` output
   contains the exact literal `SecretBox<str>([REDACTED])` and does not contain the unique test
   value.

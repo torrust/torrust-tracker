@@ -435,17 +435,17 @@ impl Configuration {
     ///
     /// Will panic if the configuration cannot be written into the file.
     pub fn save_to_file(&self, path: &str) -> Result<(), Error> {
-        fs::write(path, self.to_toml()).expect("Could not write to file!");
+        fs::write(path, self.serialize_toml_for_persistence()).expect("Could not write to file!");
         Ok(())
     }
 
-    /// Encodes the configuration to TOML.
+    /// Encodes the configuration to TOML for an authorized persistence boundary.
     ///
     /// # Panics
     ///
     /// Will panic if it can't be converted to TOML.
     #[must_use]
-    fn to_toml(&self) -> String {
+    fn serialize_toml_for_persistence(&self) -> String {
         if self.http_api.is_none() {
             return toml::to_string(self).expect("Could not encode TOML value");
         }
@@ -459,20 +459,20 @@ impl Configuration {
                 .expect("HTTP API configuration should serialize to a TOML table")
                 .insert(
                     "access_tokens".to_string(),
-                    toml::Value::Table(http_api.serialize_access_tokens_for_toml()),
+                    toml::Value::Table(http_api.serialize_access_tokens_for_persistence()),
                 );
         }
 
         toml::to_string(&configuration).expect("Could not encode TOML value")
     }
 
-    /// Encodes the configuration to JSON.
+    /// Encodes the configuration to redacted JSON for diagnostics.
     ///
     /// # Panics
     ///
     /// Will panic if it can't be converted to JSON.
     #[must_use]
-    pub fn to_json(&self) -> String {
+    pub fn to_redacted_json(&self) -> String {
         serde_json::to_string_pretty(&self.clone().mask_secrets()).expect("Could not encode JSON value")
     }
 
@@ -482,7 +482,7 @@ impl Configuration {
         self.core.database.mask_secrets();
 
         if let Some(ref mut api) = self.http_api {
-            api.redact_access_tokens_for_output();
+            api.redact_access_tokens_for_diagnostic_output();
         }
 
         self
@@ -793,21 +793,21 @@ mod tests {
         http_api.add_token("admin", token);
         configuration.http_api = Some(http_api);
 
-        let json = configuration.to_json();
+        let json = configuration.to_redacted_json();
 
         assert!(json.contains("\"***\""));
         assert!(!json.contains(token));
     }
 
     #[test]
-    fn configuration_toml_output_should_preserve_access_tokens() {
+    fn persisted_configuration_toml_should_include_access_tokens() {
         let token = "v3-token-only-for-toml-persistence-test";
         let mut configuration = Configuration::default();
         let mut http_api = HttpApi::default();
         http_api.add_token("admin", token);
         configuration.http_api = Some(http_api);
 
-        let toml = configuration.to_toml();
+        let toml = configuration.serialize_toml_for_persistence();
 
         assert!(toml.contains("[http_api.access_tokens]"));
         assert!(toml.contains(token));

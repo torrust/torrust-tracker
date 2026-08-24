@@ -33,12 +33,13 @@ sensitive in-memory values.
   isolated passwords. Do not create a project wrapper that duplicates `secrecy`.
 - Enable the crate's `serde` feature where a secret needs to deserialize from a
   configuration source. Retain the existing external configuration syntax.
-- `SecretString` intentionally does not implement `Serialize`. Implement a
-  narrow, explicit serializer only at configuration write boundaries that must
-  persist a value, and expose a secret only for that serializer's immediate
-  operation.
-- Keep diagnostics, JSON output, tracing, `Debug`, `Display`, errors, and test
-  assertion messages redacted. `SecretString` formats as
+- `SecretString` intentionally does not implement `Serialize`. Separate format
+  from disclosure intent: generic serialization and diagnostic output redact for
+  every format, while a narrowly named, authorized persistence boundary may
+  expose a secret only for its immediate operation. Do not infer disclosure
+  intent from TOML, JSON, or another format alone.
+- Keep diagnostics, tracing, `Debug`, `Display`, errors, and test assertion
+  messages redacted. `SecretString` formats as
   `SecretBox<str>([REDACTED])`; tests must assert that exact representation and
   confirm a unique test secret is absent.
 - Call `ExposeSecret::expose_secret()` only at the last runtime boundary that

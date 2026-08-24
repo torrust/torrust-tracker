@@ -28,7 +28,7 @@ pub struct HttpApi {
     /// all permissions.
     #[serde(
         default = "HttpApi::default_access_tokens",
-        serialize_with = "serialize_access_tokens_for_output"
+        serialize_with = "serialize_access_tokens_for_redacted_output"
     )]
     pub access_tokens: AccessTokens,
 }
@@ -61,13 +61,13 @@ impl HttpApi {
         self.access_tokens.insert(key.to_string(), SecretString::from(token));
     }
 
-    pub(crate) fn redact_access_tokens_for_output(&mut self) {
+    pub(crate) fn redact_access_tokens_for_diagnostic_output(&mut self) {
         for token in self.access_tokens.values_mut() {
             *token = SecretString::from("***");
         }
     }
 
-    pub(crate) fn serialize_access_tokens_for_toml(&self) -> toml::Table {
+    pub(crate) fn serialize_access_tokens_for_persistence(&self) -> toml::Table {
         self.access_tokens
             .iter()
             .map(|(label, token)| (label.clone(), toml::Value::String(token.expose_secret().to_string())))
@@ -75,7 +75,7 @@ impl HttpApi {
     }
 }
 
-fn serialize_access_tokens_for_output<S>(access_tokens: &AccessTokens, serializer: S) -> Result<S::Ok, S::Error>
+fn serialize_access_tokens_for_redacted_output<S>(access_tokens: &AccessTokens, serializer: S) -> Result<S::Ok, S::Error>
 where
     S: serde::Serializer,
 {

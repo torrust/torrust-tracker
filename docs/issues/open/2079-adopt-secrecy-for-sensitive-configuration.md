@@ -75,7 +75,7 @@ The TOML schema remains unchanged: users continue writing token values such as `
 ## Design Constraints
 
 1. Use the current stable `secrecy::SecretString` type directly. Do not add a custom wrapper with duplicate behavior.
-2. Enable the crate's `serde` feature for configuration deserialization. Use a narrow, explicit TOML serialization boundary because `SecretString` intentionally does not serialize automatically; document the intentional exposure.
+2. Enable the crate's `serde` feature for configuration deserialization. Use a narrow, explicitly named persistence serialization boundary because `SecretString` intentionally does not serialize automatically; document the intentional exposure. Serialization format and disclosure intent are separate: generic and diagnostic output redact secrets regardless of format.
 3. Permit `.expose_secret()` only at the last possible runtime boundary, such as authenticating a request.
 4. Never call `.expose_secret()` in logs, tracing instrumentation, `Debug`, `Display`, errors, test assertion messages, or user-visible output.
 5. Treat `SecretBox<str>([REDACTED])` as the exact expected debug representation in tests.
@@ -117,6 +117,7 @@ The TOML schema remains unchanged: users continue writing token values such as `
 - 2026-08-22 UTC - User - Confirmed that the dependency-freshness policy is authoritative: use the latest stable `secrecy` release. Its direct string-secret type is `SecretString`, which formats as `SecretBox<str>([REDACTED])`; explicit TOML serialization is required while diagnostic JSON remains redacted.
 - 2026-08-22 UTC - Copilot/User - Created ADR `20260822094338_adopt_secrecy_for_sensitive_values.md` to establish project-wide `secrecy` conventions, including current-stable dependency selection, narrow serialization boundaries, and explicit runtime exposure rules.
 - 2026-08-22 UTC - Copilot - Implemented `SecretString` API tokens in both schemas, audited the four explicit exposure sites, and verified configuration serialization, output redaction, authentication, workspace tests, and all linters.
+- 2026-08-24 UTC - Copilot/User - Made serialization APIs intent-based: `to_redacted_json` is for diagnostics, while the private persistence serializer is used only by `save_to_file`. TOML and JSON no longer imply a disclosure policy.
 
 ## Acceptance Criteria
 
