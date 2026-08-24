@@ -9,6 +9,7 @@ semantic-links:
     - update-dependencies
   related-artifacts:
     - .github/dependabot.yaml
+    - .github/workflows/
     - .github/skills/dev/maintenance/update-dependencies/SKILL.md
     - docs/skills/semantic-skill-link-convention.md
 ---
