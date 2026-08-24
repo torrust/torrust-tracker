@@ -22,17 +22,20 @@ git push <remote> <branch>
 
 ### Restricted Agent Sandboxes
 
-If a sandbox cannot write hook logs to `/tmp`, push with workspace-local hook
-logs:
+If a sandbox cannot write hook logs to `/tmp` or invokes Git hooks with a
+reduced `PATH`, explicitly restore Cargo's conventional installation directory
+and push with workspace-local hook logs:
 
 ```bash
+PATH="${CARGO_HOME:-$HOME/.cargo}/bin:$PATH" \
 TORRUST_GIT_HOOKS_LOG_DIR=.tmp \
 git push <remote> <branch>
 ```
 
-The hooks restore Cargo from `${CARGO_HOME:-$HOME/.cargo}/bin` when Git or an
-editor invokes them with a reduced `PATH`. `.tmp/` is git-ignored and keeps hook
-logs inside the workspace.
+The repository hook also tries to restore Cargo. If Git still launches the hook
+without usable Cargo in the restricted agent sandbox, rerun the push outside that
+sandbox; do not bypass the hook. `.tmp/` is git-ignored and keeps hook logs inside
+the workspace.
 
 ## Git Hook (Recommended Setup)
 

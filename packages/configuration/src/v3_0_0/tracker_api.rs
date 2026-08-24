@@ -2,20 +2,19 @@
 //!
 //! **Field type convention**: use typed newtypes for fields with domain constraints —
 //! not `String` or other unvalidated primitives. See [`crate::v3_0_0::public_url`].
-use std::collections::HashMap;
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
+use secrecy::{ExposeSecret, SecretString};
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
 
+pub use crate::AccessTokens;
 use crate::v3_0_0::public_url::HttpUrl;
 use crate::v3_0_0::tls::TlsConfig;
 
-pub type AccessTokens = HashMap<String, String>;
-
 /// Configuration for the HTTP API.
 #[serde_as]
-#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(deny_unknown_fields)]
 pub struct HttpApi {
     /// The address the tracker will bind to.
@@ -33,7 +32,10 @@ pub struct HttpApi {
     /// token and the value is the token itself. The token is used to
     /// authenticate the user. All tokens are valid for all endpoints and have
     /// all permissions.
-    #[serde(default = "HttpApi::default_access_tokens")]
+    #[serde(
+        default = "HttpApi::default_access_tokens",
+        serialize_with = "serialize_access_tokens_for_redacted_output"
+    )]
     pub access_tokens: AccessTokens,
 
     /// The public-facing URL of the REST API, e.g.
@@ -65,7 +67,7 @@ impl HttpApi {
     }
 
     fn default_access_tokens() -> AccessTokens {
-        HashMap::new()
+        AccessTokens::new()
     }
 
     fn default_public_url() -> Option<HttpUrl> {
@@ -73,14 +75,37 @@ impl HttpApi {
     }
 
     pub fn add_token(&mut self, key: &str, token: &str) {
-        self.access_tokens.insert(key.to_string(), token.to_string());
+        self.access_tokens.insert(key.to_string(), SecretString::from(token));
     }
 
-    pub fn mask_secrets(&mut self) {
+    pub(crate) fn redact_access_tokens_for_diagnostic_output(&mut self) {
         for token in self.access_tokens.values_mut() {
-            *token = "***".to_string();
+            *token = SecretString::from("***");
         }
     }
+
+    #[cfg(test)]
+    pub(crate) fn mask_secrets(&mut self) {
+        self.redact_access_tokens_for_diagnostic_output();
+    }
+
+    pub(crate) fn serialize_access_tokens_for_persistence(&self) -> toml::Table {
+        self.access_tokens
+            .iter()
+            .map(|(label, token)| (label.clone(), toml::Value::String(token.expose_secret().to_string())))
+            .collect()
+    }
+}
+
+fn serialize_access_tokens_for_redacted_output<S>(access_tokens: &AccessTokens, serializer: S) -> Result<S::Ok, S::Error>
+where
+    S: serde::Serializer,
+{
+    access_tokens
+        .keys()
+        .map(|label| (label, "***"))
+        .collect::<std::collections::HashMap<_, _>>()
+        .serialize(serializer)
 }
 
 #[cfg(test)]
@@ -103,7 +128,22 @@ mod tests {
 
         configuration.add_token("admin", "MyAccessToken");
 
-        assert!(configuration.access_tokens.values().any(|t| t == "MyAccessToken"));
+        let formatted = format!("{configuration:?}");
+
+        assert!(formatted.contains("SecretBox<str>([REDACTED])"));
+        assert!(!formatted.contains("MyAccessToken"));
+    }
+
+    #[test]
+    fn http_api_tokens_should_deserialize_from_toml_and_serialize_to_redacted_json() {
+        let token = "v3-token-only-for-serialization-test";
+        let configuration: HttpApi = toml::from_str(&format!("[access_tokens]\nadmin = \"{token}\"\n"))
+            .expect("HTTP API tokens should deserialize from TOML");
+
+        let serialized = serde_json::to_string(&configuration).expect("HTTP API tokens should serialize to JSON safely");
+
+        assert!(!serialized.contains(token));
+        assert!(serialized.contains("***"));
     }
 
     #[test]

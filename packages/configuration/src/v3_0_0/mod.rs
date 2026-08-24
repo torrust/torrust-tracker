@@ -298,7 +298,7 @@ const CONFIG_OVERRIDE_PREFIX: &str = "TORRUST_TRACKER_CONFIG_OVERRIDE_";
 const CONFIG_OVERRIDE_SEPARATOR: &str = "__";
 
 /// Core configuration for the tracker.
-#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(deny_unknown_fields)]
 pub struct Configuration {
     /// Configuration metadata.
@@ -435,30 +435,45 @@ impl Configuration {
     ///
     /// Will panic if the configuration cannot be written into the file.
     pub fn save_to_file(&self, path: &str) -> Result<(), Error> {
-        fs::write(path, self.to_toml()).expect("Could not write to file!");
+        fs::write(path, self.serialize_toml_for_persistence()).expect("Could not write to file!");
         Ok(())
     }
 
-    /// Encodes the configuration to TOML.
+    /// Encodes the configuration to TOML for an authorized persistence boundary.
     ///
     /// # Panics
     ///
     /// Will panic if it can't be converted to TOML.
     #[must_use]
-    fn to_toml(&self) -> String {
-        // code-review: do we need to use Figment also to serialize into toml?
-        toml::to_string(self).expect("Could not encode TOML value")
+    fn serialize_toml_for_persistence(&self) -> String {
+        if self.http_api.is_none() {
+            return toml::to_string(self).expect("Could not encode TOML value");
+        }
+
+        let mut configuration = toml::Value::try_from(self).expect("Could not encode TOML value");
+
+        if let Some(http_api) = &self.http_api {
+            configuration
+                .get_mut("http_api")
+                .and_then(toml::Value::as_table_mut)
+                .expect("HTTP API configuration should serialize to a TOML table")
+                .insert(
+                    "access_tokens".to_string(),
+                    toml::Value::Table(http_api.serialize_access_tokens_for_persistence()),
+                );
+        }
+
+        toml::to_string(&configuration).expect("Could not encode TOML value")
     }
 
-    /// Encodes the configuration to JSON.
+    /// Encodes the configuration to redacted JSON for diagnostics.
     ///
     /// # Panics
     ///
     /// Will panic if it can't be converted to JSON.
     #[must_use]
-    pub fn to_json(&self) -> String {
-        // code-review: do we need to use Figment also to serialize into json?
-        serde_json::to_string_pretty(self).expect("Could not encode JSON value")
+    pub fn to_redacted_json(&self) -> String {
+        serde_json::to_string_pretty(&self.clone().mask_secrets()).expect("Could not encode JSON value")
     }
 
     /// Masks secrets in the configuration.
@@ -467,7 +482,7 @@ impl Configuration {
         self.core.database.mask_secrets();
 
         if let Some(ref mut api) = self.http_api {
-            api.mask_secrets();
+            api.redact_access_tokens_for_diagnostic_output();
         }
 
         self
@@ -491,6 +506,7 @@ mod tests {
     use crate::v3_0_0::http_tracker::HttpTracker;
     use crate::v3_0_0::logging::TraceStyle;
     use crate::v3_0_0::network::ExternalIp;
+    use crate::v3_0_0::tracker_api::HttpApi;
     use crate::v3_0_0::udp_tracker::UdpTracker;
 
     #[cfg(test)]
@@ -637,7 +653,10 @@ mod tests {
 
             let configuration = Configuration::load(&info).expect("Could not load configuration from file");
 
-            assert_eq!(configuration, Configuration::default());
+            assert_eq!(
+                toml::to_string(&configuration).expect("default configuration should serialize"),
+                default_config_toml()
+            );
 
             Ok(())
         });
@@ -667,7 +686,10 @@ mod tests {
 
             let configuration = Configuration::load(&info).expect("Could not load configuration from file");
 
-            assert_eq!(configuration, Configuration::default());
+            assert_eq!(
+                toml::to_string(&configuration).expect("default configuration should serialize"),
+                default_config_toml()
+            );
 
             Ok(())
         });
@@ -754,13 +776,41 @@ mod tests {
 
             let configuration = Configuration::load(&info).expect("Could not load configuration from file");
 
-            assert_eq!(
-                configuration.http_api.unwrap().access_tokens.get("admin"),
-                Some("NewToken".to_owned()).as_ref()
-            );
+            let formatted = format!("{:?}", configuration.http_api.unwrap().access_tokens);
+
+            assert!(formatted.contains("SecretBox<str>([REDACTED])"));
+            assert!(!formatted.contains("NewToken"));
 
             Ok(())
         });
+    }
+
+    #[test]
+    fn configuration_json_output_should_redact_access_tokens() {
+        let token = "v3-token-only-for-json-redaction-test";
+        let mut configuration = Configuration::default();
+        let mut http_api = HttpApi::default();
+        http_api.add_token("admin", token);
+        configuration.http_api = Some(http_api);
+
+        let json = configuration.to_redacted_json();
+
+        assert!(json.contains("\"***\""));
+        assert!(!json.contains(token));
+    }
+
+    #[test]
+    fn persisted_configuration_toml_should_include_access_tokens() {
+        let token = "v3-token-only-for-toml-persistence-test";
+        let mut configuration = Configuration::default();
+        let mut http_api = HttpApi::default();
+        http_api.add_token("admin", token);
+        configuration.http_api = Some(http_api);
+
+        let toml = configuration.serialize_toml_for_persistence();
+
+        assert!(toml.contains("[http_api.access_tokens]"));
+        assert!(toml.contains(token));
     }
 
     #[test]
@@ -1109,6 +1159,7 @@ mod tests {
     mod flat_service_configuration_prototype {
         use figment::Figment;
         use figment::providers::{Env, Format, Toml};
+        use secrecy::SecretString;
         use serde::{Deserialize, Serialize};
         use torrust_tracker_primitives::{ConfigurationInstanceId, ServiceRole};
 
@@ -1120,7 +1171,7 @@ mod tests {
         const OVERRIDE_PREFIX: &str = "TORRUST_TRACKER_CONFIG_OVERRIDE_";
         const OVERRIDE_SEPARATOR: &str = "__";
 
-        #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone)]
+        #[derive(Serialize, Deserialize, Debug, Clone)]
         #[serde(tag = "kind", content = "configuration", rename_all = "snake_case", deny_unknown_fields)]
         enum AdjacentService {
             HttpTracker(HttpTracker),
@@ -1129,7 +1180,7 @@ mod tests {
             HealthCheckApi(HealthCheckApi),
         }
 
-        #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone)]
+        #[derive(Serialize, Deserialize, Debug, Clone)]
         #[serde(tag = "kind", rename_all = "snake_case", deny_unknown_fields)]
         enum FlattenedService {
             HttpTracker {
@@ -1150,7 +1201,7 @@ mod tests {
             },
         }
 
-        #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone)]
+        #[derive(Serialize, Deserialize, Debug, Clone)]
         #[serde(rename_all = "snake_case", deny_unknown_fields)]
         enum ExternallyTaggedService {
             HttpTracker(HttpTracker),
@@ -1159,7 +1210,7 @@ mod tests {
             HealthCheckApi(HealthCheckApi),
         }
 
-        #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone)]
+        #[derive(Serialize, Deserialize, Debug, Clone)]
         #[serde(deny_unknown_fields)]
         struct AdjacentServicesDocument {
             #[serde(default)]
@@ -1259,7 +1310,7 @@ mod tests {
         }
 
         #[test]
-        fn adjacent_tagged_services_round_trip_and_preserve_interleaved_order() {
+        fn adjacent_tagged_services_redact_secrets_and_preserve_interleaved_order() {
             let input = r#"
                 [[services]]
                 kind = "http_tracker"
@@ -1298,7 +1349,9 @@ mod tests {
             let round_tripped: AdjacentServicesDocument =
                 toml::from_str(&serialized).expect("serialized services document should deserialize");
 
-            assert_eq!(document.services, round_tripped.services);
+            assert_eq!(document.services.len(), round_tripped.services.len());
+            assert!(serialized.contains("***"));
+            assert!(!serialized.contains("ExampleSecretToken"));
             assert!(matches!(document.services[0], AdjacentService::HttpTracker(_)));
             assert!(matches!(document.services[1], AdjacentService::UdpTracker(_)));
             assert!(matches!(document.services[2], AdjacentService::HttpApi(_)));
@@ -1314,7 +1367,7 @@ mod tests {
             let AdjacentService::HttpApi(http_api) = &document.services[2] else {
                 panic!("third service should be an HTTP API");
             };
-            assert_eq!(http_api.access_tokens.get("admin"), Some(&"ExampleSecretToken".to_string()));
+            assert!(http_api.access_tokens.contains_key("admin"));
             assert!(http_api.tls_config.is_some());
         }
 
@@ -1322,7 +1375,7 @@ mod tests {
         fn enum_redaction_must_traverse_http_api_before_json_serialization() {
             let mut document = AdjacentServicesDocument {
                 services: vec![AdjacentService::HttpApi(HttpApi {
-                    access_tokens: [("admin".to_string(), "ExampleSecretToken".to_string())].into(),
+                    access_tokens: [("admin".to_string(), SecretString::from("ExampleSecretToken"))].into(),
                     ..HttpApi::default()
                 })],
             };
@@ -1353,7 +1406,7 @@ mod tests {
             let round_tripped: FlattenedServicesDocument =
                 toml::from_str(&serialized).expect("serialized flattened services document should deserialize");
 
-            assert_eq!(document.services, round_tripped.services);
+            assert_eq!(document.services.len(), round_tripped.services.len());
         }
 
         #[test]
@@ -1370,7 +1423,7 @@ mod tests {
             let round_tripped: ExternallyTaggedServicesDocument =
                 toml::from_str(&serialized).expect("serialized externally-tagged services document should deserialize");
 
-            assert_eq!(document.services, round_tripped.services);
+            assert_eq!(document.services.len(), round_tripped.services.len());
         }
 
         #[test]

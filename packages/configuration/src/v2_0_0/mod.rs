@@ -264,7 +264,7 @@ const CONFIG_OVERRIDE_PREFIX: &str = "TORRUST_TRACKER_CONFIG_OVERRIDE_";
 const CONFIG_OVERRIDE_SEPARATOR: &str = "__";
 
 /// Core configuration for the tracker.
-#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Default, Clone)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
 pub struct Configuration {
     /// Configuration metadata.
     pub metadata: Metadata,
@@ -383,30 +383,45 @@ impl Configuration {
     ///
     /// Will panic if the configuration cannot be written into the file.
     pub fn save_to_file(&self, path: &str) -> Result<(), Error> {
-        fs::write(path, self.to_toml()).expect("Could not write to file!");
+        fs::write(path, self.serialize_toml_for_persistence()).expect("Could not write to file!");
         Ok(())
     }
 
-    /// Encodes the configuration to TOML.
+    /// Encodes the configuration to TOML for an authorized persistence boundary.
     ///
     /// # Panics
     ///
     /// Will panic if it can't be converted to TOML.
     #[must_use]
-    fn to_toml(&self) -> String {
-        // code-review: do we need to use Figment also to serialize into toml?
-        toml::to_string(self).expect("Could not encode TOML value")
+    fn serialize_toml_for_persistence(&self) -> String {
+        if self.http_api.is_none() {
+            return toml::to_string(self).expect("Could not encode TOML value");
+        }
+
+        let mut configuration = toml::Value::try_from(self).expect("Could not encode TOML value");
+
+        if let Some(http_api) = &self.http_api {
+            configuration
+                .get_mut("http_api")
+                .and_then(toml::Value::as_table_mut)
+                .expect("HTTP API configuration should serialize to a TOML table")
+                .insert(
+                    "access_tokens".to_string(),
+                    toml::Value::Table(http_api.serialize_access_tokens_for_persistence()),
+                );
+        }
+
+        toml::to_string(&configuration).expect("Could not encode TOML value")
     }
 
-    /// Encodes the configuration to JSON.
+    /// Encodes the configuration to redacted JSON for diagnostics.
     ///
     /// # Panics
     ///
     /// Will panic if it can't be converted to JSON.
     #[must_use]
-    pub fn to_json(&self) -> String {
-        // code-review: do we need to use Figment also to serialize into json?
-        serde_json::to_string_pretty(self).expect("Could not encode JSON value")
+    pub fn to_redacted_json(&self) -> String {
+        serde_json::to_string_pretty(&self.clone().mask_secrets()).expect("Could not encode JSON value")
     }
 
     /// Masks secrets in the configuration.
@@ -415,7 +430,7 @@ impl Configuration {
         self.core.database.mask_secrets();
 
         if let Some(ref mut api) = self.http_api {
-            api.mask_secrets();
+            api.redact_access_tokens_for_diagnostic_output();
         }
 
         self
@@ -437,6 +452,7 @@ mod tests {
     use crate::Info;
     use crate::v2_0_0::Configuration;
     use crate::v2_0_0::network::ExternalIp;
+    use crate::v2_0_0::tracker_api::HttpApi;
 
     #[cfg(test)]
     fn default_config_toml() -> String {
@@ -547,7 +563,10 @@ mod tests {
 
             let configuration = Configuration::load(&info).expect("Could not load configuration from file");
 
-            assert_eq!(configuration, Configuration::default());
+            assert_eq!(
+                toml::to_string(&configuration).expect("default configuration should serialize"),
+                default_config_toml()
+            );
 
             Ok(())
         });
@@ -577,7 +596,10 @@ mod tests {
 
             let configuration = Configuration::load(&info).expect("Could not load configuration from file");
 
-            assert_eq!(configuration, Configuration::default());
+            assert_eq!(
+                toml::to_string(&configuration).expect("default configuration should serialize"),
+                default_config_toml()
+            );
 
             Ok(())
         });
@@ -664,13 +686,41 @@ mod tests {
 
             let configuration = Configuration::load(&info).expect("Could not load configuration from file");
 
-            assert_eq!(
-                configuration.http_api.unwrap().access_tokens.get("admin"),
-                Some("NewToken".to_owned()).as_ref()
-            );
+            let formatted = format!("{:?}", configuration.http_api.unwrap().access_tokens);
+
+            assert!(formatted.contains("SecretBox<str>([REDACTED])"));
+            assert!(!formatted.contains("NewToken"));
 
             Ok(())
         });
+    }
+
+    #[test]
+    fn configuration_json_output_should_redact_access_tokens() {
+        let token = "v2-token-only-for-json-redaction-test";
+        let mut configuration = Configuration::default();
+        let mut http_api = HttpApi::default();
+        http_api.add_token("admin", token);
+        configuration.http_api = Some(http_api);
+
+        let json = configuration.to_redacted_json();
+
+        assert!(json.contains("\"***\""));
+        assert!(!json.contains(token));
+    }
+
+    #[test]
+    fn persisted_configuration_toml_should_include_access_tokens() {
+        let token = "v2-token-only-for-toml-persistence-test";
+        let mut configuration = Configuration::default();
+        let mut http_api = HttpApi::default();
+        http_api.add_token("admin", token);
+        configuration.http_api = Some(http_api);
+
+        let toml = configuration.serialize_toml_for_persistence();
+
+        assert!(toml.contains("[http_api.access_tokens]"));
+        assert!(toml.contains(token));
     }
 
     #[test]
