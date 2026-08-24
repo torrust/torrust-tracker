@@ -1,5 +1,6 @@
 name: Coverage
 
+# skill-link: update-github-workflow-actions
 # adr: docs/adrs/20260612000000_adopt_sccache_for_ci_bare_builds.md
 # sccache added for cross-run compilation caching on bare CI builds.
 
