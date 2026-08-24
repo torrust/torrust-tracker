@@ -10,7 +10,7 @@ branch: "2083-move-max-connection-id-errors-per-ip-to-udp-tracker-server"
 related-pr: null
 depends-on: null
 blocks: 1980
-last-updated-utc: 2026-08-24 11:04
+last-updated-utc: 2026-08-24 15:00
 semantic-links:
   skill-links:
     - create-issue
@@ -155,14 +155,14 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task                                             | Notes / Expected Output                                                                                                                                                                                                               |
 | --- | ------ | ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| T1  | TODO   | Confirm the pre-#1980 v3 configuration boundary  | Record every affected v3 schema, fixture, example, documentation artifact, and #1980 production-wiring handoff before editing.                                                                                                        |
-| T2  | TODO   | Move the v3 configuration field                  | `UdpTrackerServer` owns the global default and serde field; `UdpTracker` no longer exposes it.                                                                                                                                        |
-| T3  | TODO   | Update v3 fixtures, examples, and documentation  | Remove the listener-scoped setting and update the v2-to-v3 migration guide; do not change the active v2 defaults.                                                                                                                     |
+| T1  | DONE   | Confirm the pre-#1980 v3 configuration boundary  | Inventoried v3 schema, generated defaults, schema tests, migration guide, and #1980 runtime handoff; active v2 files remain untouched.                                                                                                |
+| T2  | DONE   | Move the v3 configuration field                  | `UdpTrackerServer` owns the global default and serde field; `UdpTracker` no longer exposes it.                                                                                                                                        |
+| T3  | DONE   | Update v3 fixtures, examples, and documentation  | Updated generated v3 defaults and the v2-to-v3 migration guide; active v2 defaults remain unchanged.                                                                                                                                  |
 | T4  | DONE   | Define #1980 production-wiring handoff           | #1980 already owns T12–T13: migrate constructors, read the one v3 `udp_tracker_server` limit in `AppContainer`, pass it once to `UdpTrackerCoreServices`, and prove runtime enforcement; no production v2 path changes in this issue. |
-| T5  | TODO   | Add schema regression tests                      | Cover defaults, explicit global values, and rejection of the removed listener field. Direct-construction and runtime cross-listener enforcement coverage is added when #1980 activates v3 in production.                              |
-| T6  | TODO   | Update migration and configuration documentation | Describe the v2 per-listener to v3 global move and update defaults and examples.                                                                                                                                                      |
-| T7  | TODO   | Run automatic and manual verification            | Record commands, results, and evidence in this specification.                                                                                                                                                                         |
-| T8  | TODO   | Re-review acceptance criteria                    | Compare observed behaviour and evidence against every acceptance criterion before closure.                                                                                                                                            |
+| T5  | DONE   | Add schema regression tests                      | Added default, explicit round-trip, two-listener global configuration, and obsolete listener-field rejection coverage. Direct-construction and runtime cross-listener enforcement coverage remains in #1980.                          |
+| T6  | DONE   | Update migration and configuration documentation | Documented the v2 per-listener to v3 global move and updated generated v3 defaults.                                                                                                                                                   |
+| T7  | DONE   | Run automatic and manual verification            | Focused, full workspace, pre-commit, and pre-push checks passed; manual schema scenarios are recorded below.                                                                                                                          |
+| T8  | DONE   | Re-review acceptance criteria                    | Re-reviewed after independent audit; AC1–AC5 are satisfied and AC6 remains correctly deferred to #1980.                                                                                                                               |
 
 ## Progress Tracking
 
@@ -174,13 +174,13 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] GitHub issue #2083 created and issue number added to this spec
 - [x] Linked as a subissue of EPIC #1978 in GitHub and in the EPIC specification
 - [x] Spec moved to `docs/issues/open/` after approval
-- [ ] V3 schema correction completed before #1980
-- [ ] #1980 production wiring handoff recorded and accepted
+- [x] V3 schema correction completed before #1980
+- [x] #1980 production wiring handoff recorded and accepted
 - [ ] (Optional, recommended for this cross-cutting bug) Spec-only PR merged into `develop` before implementation
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
-- [ ] Manual verification scenarios executed and recorded (status + evidence)
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Implementation completed
+- [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
+- [x] Manual verification scenarios executed and recorded (status + evidence)
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
@@ -192,6 +192,8 @@ Append one line per meaningful update.
 - 2026-08-24 00:00 UTC - GitHub Copilot - Drafted a dedicated bug specification from the confirmed finding in #2067; it corrects v3 before #1980 activates v3 in the production runtime.
 - 2026-08-24 11:04 UTC - GitHub Copilot/User - User approved the draft; created GitHub issue #2083 and linked it as a native subissue of EPIC #1978.
 - 2026-08-24 11:04 UTC - GitHub Copilot/User - User confirmed that #1980 must own the production-wiring handoff. Verified that its T12–T13 and AC8–AC9 already explicitly cover the required `AppContainer` migration and order-independent two-listener runtime test.
+- 2026-08-24 15:00 UTC - GitHub Copilot - Moved the v3 field from `UdpTracker` to `UdpTrackerServer`, updated generated defaults and migration documentation, and added focused schema regression tests. `cargo test -p torrust-tracker-configuration` passed (109 tests).
+- 2026-08-24 15:00 UTC - GitHub Copilot - Independent review confirmed the v3 schema change is correctly scoped. Corrected the premature AC6 completion claim because #1980 production wiring remains pending. Pre-commit, full workspace, and pre-push verification subsequently passed.
 
 ## Acceptance Criteria
 
@@ -239,11 +241,11 @@ documented development-environment setup before recording verification results.
 
 Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
-| ID  | Scenario                                     | Command/Steps                                                                                                                                                                                                            | Expected Result                                                                                                                                                    | Status | Evidence                                        |
-| --- | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------ | ----------------------------------------------- |
-| M1  | Inspect the corrected v3 configuration shape | Deserialize a v3 fixture with two `[[udp_trackers]]` entries and `[udp_tracker_server] max_connection_id_errors_per_ip = 2` in `torrust-tracker-configuration` tests. Run `cargo test -p torrust-tracker-configuration`. | The threshold is accepted only in `[udp_tracker_server]`; both listener entries remain free of the global setting.                                                 | TODO   | Fixture path, test name, command output         |
-| M2  | Reject obsolete listener configuration       | Add `max_connection_id_errors_per_ip = 2` inside a v3 `[[udp_trackers]]` block and deserialize it with `torrust-tracker-configuration` configuration tests.                                                              | Loading is rejected as an unknown `UdpTracker` field; the migration guide supplies the correct `[udp_tracker_server]` placement.                                   | TODO   | Focused configuration test and error output     |
-| M3  | Verify #1980 runtime-test handoff            | Review the #1980 implementation plan and acceptance criteria after updating them for the production container handoff.                                                                                                   | #1980 explicitly owns the constructor migration, cross-listener runtime test, and production `AppContainer` wiring required to activate this corrected v3 setting. | TODO   | Updated #1980 task and acceptance-criterion IDs |
+| ID  | Scenario                                     | Command/Steps                                                                                                                                                                                                            | Expected Result                                                                                                                                                    | Status | Evidence                                                                                                                                       |
+| --- | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| M1  | Inspect the corrected v3 configuration shape | Deserialize a v3 fixture with two `[[udp_trackers]]` entries and `[udp_tracker_server] max_connection_id_errors_per_ip = 2` in `torrust-tracker-configuration` tests. Run `cargo test -p torrust-tracker-configuration`. | The threshold is accepted only in `[udp_tracker_server]`; both listener entries remain free of the global setting.                                                 | DONE   | `v3_0_0::tests::configuration_should_apply_one_global_connection_id_error_limit_to_multiple_udp_trackers`; 2026-08-24 focused test run passed. |
+| M2  | Reject obsolete listener configuration       | Add `max_connection_id_errors_per_ip = 2` inside a v3 `[[udp_trackers]]` block and deserialize it with `torrust-tracker-configuration` configuration tests.                                                              | Loading is rejected as an unknown `UdpTracker` field; the migration guide supplies the correct `[udp_tracker_server]` placement.                                   | DONE   | `v3_0_0::tests::configuration_should_reject_a_listener_scoped_connection_id_error_limit`; 2026-08-24 focused test run passed.                  |
+| M3  | Verify #1980 runtime-test handoff            | Review the #1980 implementation plan and acceptance criteria after updating them for the production container handoff.                                                                                                   | #1980 explicitly owns the constructor migration, cross-listener runtime test, and production `AppContainer` wiring required to activate this corrected v3 setting. | DONE   | #1980 T12–T13, AC8–AC9, and M4 already record the required ownership.                                                                          |
 
 Notes:
 
@@ -257,14 +259,14 @@ Notes:
 
 ### Acceptance Verification
 
-| AC ID | Status (`TODO`/`DONE`) | Evidence |
-| ----- | ---------------------- | -------- |
-| AC1   | TODO                   |          |
-| AC2   | TODO                   |          |
-| AC3   | TODO                   |          |
-| AC4   | TODO                   |          |
-| AC5   | TODO                   |          |
-| AC6   | TODO                   |          |
+| AC ID | Status (`TODO`/`DONE`) | Evidence                                                                                                                                                       |
+| ----- | ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| AC1   | DONE                   | `UdpTrackerServer` declares the documented, serde-defaulted global field with default `10`; focused configuration tests passed.                                |
+| AC2   | DONE                   | Removed the field from v3 `UdpTracker`; aggregate schema test rejects the obsolete listener-scoped key.                                                        |
+| AC3   | DONE                   | A two-listener configuration accepts one server-wide value; no listener field remains to select by order. Runtime enforcement is explicitly deferred to #1980. |
+| AC4   | DONE                   | Updated generated v3 default TOML and schema tests; no v3 listener-scoped value remains.                                                                       |
+| AC5   | DONE                   | Migration guide includes v2/v3 before-and-after TOML, the shared-service rationale, default, and rejection behavior.                                           |
+| AC6   | TODO                   | #1980 T12–T13, AC8–AC9, and M4 explicitly own the remaining production migration and runtime validation; its implementation is pending.                        |
 
 ## Risks and Trade-offs
 

@@ -2,7 +2,7 @@
 doc-type: guide
 parent-epic: 1978
 spec-path: docs/issues/open/1978-configuration-overhaul-epic/configuration-v2-to-v3-migration.md
-last-updated-utc: 2026-08-21
+last-updated-utc: 2026-08-24
 ---
 
 # Migrating from Configuration v2.0.0 to v3.0.0
@@ -17,18 +17,19 @@ update, and why.
 
 ## Quick reference
 
-| v2 field / section          | v3 equivalent                                                    | Subissue | Status    |
-| --------------------------- | ---------------------------------------------------------------- | -------- | --------- |
-| `[core.net]` (global)       | Per-tracker `[http_trackers.network]` / `[udp_trackers.network]` | #1640    | DONE      |
-| `tsl_config`                | `tls_config`                                                     | #1981    | DONE      |
-| No public URL field         | `public_url` on HTTP trackers, UDP trackers, and HTTP API        | #1417    | DONE      |
-| `on_reverse_proxy` (global) | Per-HTTP-tracker `network.on_reverse_proxy`                      | #1640    | DONE      |
-| No logging style option     | `[logging] trace_style`                                          | #889     | DONE      |
-| `threshold`                 | `trace_filter`                                                   | #889     | DONE      |
-| No connection ID policy     | `[udp_tracker_server] connection_id_validation`                  | #1136    | DONE      |
-| Hardcoded IP bans interval  | `[udp_tracker_server] ip_bans_reset_interval_in_secs`            | #1453    | IN_REVIEW |
-| Flat `[core.database]`      | Database enum with per-driver config                             | #1490    | DONE      |
-| No announce `ip` opt-in     | Per-HTTP-tracker opt-in field (TBD)                              | #1987    | TODO      |
+| v2 field / section           | v3 equivalent                                                    | Subissue | Status    |
+| ---------------------------- | ---------------------------------------------------------------- | -------- | --------- |
+| `[core.net]` (global)        | Per-tracker `[http_trackers.network]` / `[udp_trackers.network]` | #1640    | DONE      |
+| `tsl_config`                 | `tls_config`                                                     | #1981    | DONE      |
+| No public URL field          | `public_url` on HTTP trackers, UDP trackers, and HTTP API        | #1417    | DONE      |
+| `on_reverse_proxy` (global)  | Per-HTTP-tracker `network.on_reverse_proxy`                      | #1640    | DONE      |
+| No logging style option      | `[logging] trace_style`                                          | #889     | DONE      |
+| `threshold`                  | `trace_filter`                                                   | #889     | DONE      |
+| No connection ID policy      | `[udp_tracker_server] connection_id_validation`                  | #1136    | DONE      |
+| Hardcoded IP bans interval   | `[udp_tracker_server] ip_bans_reset_interval_in_secs`            | #1453    | IN_REVIEW |
+| Per-listener UDP error limit | `[udp_tracker_server] max_connection_id_errors_per_ip`           | #2083    | IN_REVIEW |
+| Flat `[core.database]`       | Database enum with per-driver config                             | #1490    | DONE      |
+| No announce `ip` opt-in      | Per-HTTP-tracker opt-in field (TBD)                              | #1987    | TODO      |
 
 ## Step 1: Update the schema version
 
@@ -198,11 +199,39 @@ ip_bans_reset_interval_in_secs = 86400
 > effect at runtime until the final consumer migration (#1980). The value
 > is currently read from the v3 default constant.
 
+## Step 8: Move the UDP connection-ID error limit to the shared server section
+
+**Subissue**: #2083 — Move UDP connection-ID error limit to shared server configuration
+
+In v2, `max_connection_id_errors_per_ip` appears in every `[[udp_trackers]]`
+entry. In v3, it must be declared once in `[udp_tracker_server]`. The tracker
+uses one shared ban service for all UDP listeners, so a per-listener value would
+misrepresent the effective policy and could make it depend on listener order.
+
+```toml
+# v2 — remove this field from every listener
+[[udp_trackers]]
+bind_address = "0.0.0.0:6969"
+max_connection_id_errors_per_ip = 10
+
+[[udp_trackers]]
+bind_address = "0.0.0.0:6970"
+max_connection_id_errors_per_ip = 10
+
+# v3 — declare the shared policy once
+[udp_tracker_server]
+max_connection_id_errors_per_ip = 10
+```
+
+The default remains `10`. V3 rejects the old listener-scoped field rather than
+accepting repeated values. The setting takes effect at runtime when #1980
+activates v3 configuration consumers.
+
 <!-- ────────────────────────────────────────────────────────────────────── -->
 <!-- SECTIONS BELOW ARE TODO — to be filled as each subissue is implemented -->
 <!-- ────────────────────────────────────────────────────────────────────── -->
 
-## Step 8: Update the database configuration
+## Step 9: Update the database configuration
 
 **Subissue**: #1490 — Decompose v3 database configuration
 
@@ -261,7 +290,7 @@ changing TOML syntax. #1490 then represents the isolated v3 database password
 as a secret value, also without changing the TOML syntax shown above. Both must
 be merged before the configuration crate's v3 public API is published.
 
-## Step 9: Configure HTTP announce IP trust policy
+## Step 10: Configure HTTP announce IP trust policy
 
 **Subissue**: #1987 — Use peer IP from the HTTP announce `ip` parameter
 
@@ -296,6 +325,7 @@ Use this checklist to verify your configuration is ready for v3:
 - [ ] Global `[core.net]` replaced with per-tracker `network` blocks
 - [ ] `on_reverse_proxy` moved to per-HTTP-tracker `network` block (if `true`)
 - [ ] `external_ip` moved to per-tracker `network` blocks (if set)
+- [ ] `max_connection_id_errors_per_ip` moved from every `[[udp_trackers]]` entry to `[udp_tracker_server]` (if set)
 - [ ] `threshold` renamed to `trace_filter` in `[logging]`
 - [ ] `trace_style` added to `[logging]` (optional, defaults to `"full"`)
 - [ ] `public_url` added to trackers and API (optional, recommended for reverse proxies)
