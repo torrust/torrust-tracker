@@ -154,6 +154,10 @@ mod http {
 
     use crate::server::client::get;
 
+    fn install_rustls_crypto_provider() {
+        let _ = rustls::crypto::ring::default_provider().install_default();
+    }
+
     fn trusted_test_check_fn(service_binding: &ServiceBinding) -> ServiceHealthCheckJob {
         let certificate = reqwest::Certificate::from_pem(include_bytes!("../fixtures/https-health-check-cert.pem"))
             .expect("test certificate should parse");
@@ -222,6 +226,7 @@ mod http {
     #[tokio::test]
     pub(crate) async fn it_should_return_good_health_for_https_service_with_a_trusted_test_certificate() {
         logging::setup();
+        install_rustls_crypto_provider();
 
         let configuration = configuration::ephemeral();
         let core_config = Arc::new(configuration.core.clone());
