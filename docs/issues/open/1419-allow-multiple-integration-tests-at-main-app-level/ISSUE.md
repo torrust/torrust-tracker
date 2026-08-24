@@ -7,7 +7,7 @@ github-issue: 1419
 spec-path: docs/issues/open/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md
 branch: 1419-allow-multiple-integration-tests
 related-pr: null
-last-updated-utc: 2026-08-17
+last-updated-utc: 2026-08-24
 semantic-links:
   skill-links:
     - write-unit-test
@@ -15,25 +15,32 @@ semantic-links:
     - docs/adrs/20260728115400_define_registar_as_runtime_service_registry.md
     - docs/issues/open/2035-fix-duplicate-port-zero-tracker-instance-bootstrap/ISSUE.md
     - docs/issues/closed/2036-add-runtime-service-registry-metadata/ISSUE.md
-    - tests/stats.rs
-    - tests/servers/
+    - tests/AGENTS.md
+    - tests/common/
+    - tests/metrics/
+    - tests/banning/
+    - tests/scaffold.rs
     - src/app.rs
+    - src/bootstrap/jobs/manager.rs
     - packages/test-helpers/
+    - docs/issues/open/1419-allow-multiple-integration-tests-at-main-app-level/completion-plan.md
 ---
 
 # Issue #1419 - Allow multiple integration tests at the main app level
 
 ## Goal
 
-Enable running multiple independent integration tests at the main application level (`tests/stats.rs`)
-in parallel without port conflicts, configuration collisions, or logging initialization errors.
+Enable independent main-application integration-test executables to run in parallel without port,
+configuration, storage, or process-global-state collisions. Each executable owns one tracker
+application instance and runs its scenarios sequentially.
 
 ## Background
 
-Currently, there is one integration test for global metrics at the main app level
-(`tests/servers/api/contract/stats/mod.rs`). This test verifies behavior that can only be tested at
-the main app level, specifically that multiple tracker instances (HTTP and UDP) running on different
-socket addresses contribute to global metrics aggregation.
+The current test structure contains dedicated Cargo integration-test targets for port-zero metrics,
+fixed-port metrics, UDP error-policy behavior, UDP banning behavior, and a scaffolding example.
+They verify application-level behavior such as multiple HTTP/UDP listener coordination and global
+metrics aggregation. The former `tests/stats.rs` and `tests/servers/api/contract/stats/mod.rs`
+locations no longer exist.
 
 Most tests are correctly located inside the `packages/` directory, testing individual components in
 isolation. Integration tests at the main app level should be reserved for testing application-level
@@ -177,20 +184,21 @@ which creates isolated workspaces with separate config and storage directories f
 
 ## Implementation Plan
 
-**Strategy**: First prove the scaffolding is broken by adding a second test case that would conflict,
-then fix the scaffolding infrastructure, then expand coverage.
+**Status**: The following table is the historical implementation plan. Its original single-
+`stats`-executable premise was superseded by the per-executable execution model below. The actual
+completed work and remaining tasks are recorded after the decision pivot.
 
-| ID  | Status | Task                                                        | Notes                                                                                                                                                                |
-| --- | ------ | ----------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| T1  | DONE   | Create `tests/AGENTS.md` with guidelines and TODO list      | Document what belongs in main-level integration tests vs package tests; include prioritized TODO list of future valuable integration tests                           |
-| T2  | TODO   | Add second assertion to existing stats test                 | Check another global stat field (e.g., `tcp4_scrapes_handled` or `tcp6_announces_handled`) to prove need for parallel test capability                                |
-| T3  | TODO   | Create test utilities module                                | `tests/helpers.rs` with utilities for temp workspace creation (config + storage dirs) and port extraction                                                            |
-| T4  | TODO   | Add utility to create isolated temp workspace               | Returns `TempDir` with subdirectories for config and storage; writes TOML config; sets `TORRUST_TRACKER_CONFIG_TOML_PATH` env var                                    |
-| T5  | TODO   | Add utility to extract bound addresses from `AppContainer`  | Query `Registar` or job handles to get actual bound `SocketAddr` for HTTP API, trackers, etc.                                                                        |
-| T6  | TODO   | Update existing stats test to use port 0 and temp workspace | Replace `env::set_var` with isolated temp workspace, use port 0, extract actual ports for requests; fixes scaffolding to support parallelism                         |
-| T7  | TODO   | Expand global stats test coverage                           | Add tests for more global stat metrics now that scaffolding supports it (scrape counters, different IP families, etc.)                                               |
-| T8  | TODO   | Add shared-event-bus policy integration test                | After #2036 and event-metrics normalization, verify enabled and disabled HTTP/UDP listeners share aggregate buses while only enabled traffic changes public metrics. |
-| T9  | TODO   | Run automatic verification                                  | `cargo test --test stats` must pass with all tests running concurrently                                                                                              |
+| ID  | Status | Task                                                          | Notes                                                                                                   |
+| --- | ------ | ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| T1  | DONE   | Create `tests/AGENTS.md` with guidelines and TODO list        | `tests/AGENTS.md` documents scope, execution model, and test layout.                                    |
+| T2  | DONE   | Create independent integration-test executables               | `Cargo.toml` explicitly registers the current nested test targets.                                      |
+| T3  | DONE   | Create test utilities module                                  | Reusable utilities live in `tests/common/`, not the obsolete `tests/helpers.rs` proposal.               |
+| T4  | DONE   | Add utility to create isolated temp workspace                 | `EphemeralTrackerWorkspace` creates a `TempDir`, config file, and storage directory.                    |
+| T5  | DONE   | Add utility to extract bound addresses from `AppContainer`    | Runtime registry helpers use service role and `ConfigurationInstanceId`.                                |
+| T6  | DONE   | Migrate appropriate suites to port 0 and temporary workspaces | Port-zero metrics, UDP-error, and banning suites use isolated workspaces.                               |
+| T7  | DONE   | Expand global stats test coverage                             | Current suites cover HTTP/UDP announces plus request, connection, response, error, and banning metrics. |
+| T8  | DONE   | Resolve prerequisites for port-zero identity discovery        | #2035 bootstrap behavior and #2036 registry metadata are present and consumed by helpers.               |
+| T9  | TODO   | Run automatic verification                                    | Use the current multi-target command in the revised verification plan.                                  |
 
 ## Progress Tracking
 
@@ -199,7 +207,7 @@ then fix the scaffolding infrastructure, then expand coverage.
 - [ ] Specification drafted and approved by user/maintainer
 - [ ] GitHub issue #1419 already exists (created by maintainer)
 - [ ] Implementation completed
-- [ ] Automatic verification completed (`cargo test --test stats`)
+- [ ] Automatic verification completed (current main-level integration-test targets)
 - [ ] Acceptance criteria reviewed after implementation
 - [ ] Issue closed and specification moved to `docs/issues/closed/`
 
@@ -215,42 +223,51 @@ then fix the scaffolding infrastructure, then expand coverage.
 - 2026-07-27 17:35 UTC - agent - Recorded the decision to use one tracker application per Cargo
   integration-test executable, with sequential scenarios per suite and a non-Docker process runner
   deferred unless in-process lifecycle control proves insufficient
+- 2026-08-24 - agent - Reconciled the specification with the current `tests/` implementation and
+  replaced the remaining-work list with an ordered completion plan: deterministic teardown,
+  teardown coverage, documentation alignment, focused verification, quality gate, and closure review.
+- 2026-08-24 - agent - Added `completion-plan.md` as the decision record for the non-trivial
+  teardown work. It documents the lifecycle problem, rejected alternatives, selected test-local
+  fixture direction, and mandatory manual verification evidence.
 
 ## Acceptance Criteria
 
 - [x] AC1: `tests/AGENTS.md` exists and documents guidelines for what belongs at main-level vs
       package-level, with a TODO list of future valuable integration tests.
-- [ ] AC2: Multiple integration tests can run concurrently with `cargo test --test stats`
-      without port conflicts.
-- [ ] AC3: Each test uses an isolated temporary workspace with separate config and storage
+- [x] AC2: Independent main-level integration-test executables are registered and can run
+      concurrently as separate Cargo processes without shared environment state.
+- [x] AC3: Current port-zero suites use an isolated temporary workspace with separate config and storage
       directories (no shared environment variables or storage paths).
-- [ ] AC4: Tests using port 0 can extract the actual bound ports from `AppContainer` to construct
+- [x] AC4: Tests using port 0 can extract the actual bound ports from `AppContainer` to construct
       request URLs.
-- [ ] AC5: The existing stats integration test is updated to use an isolated temp workspace and
-      port 0.
-- [ ] AC6: Global stats test coverage includes multiple metrics (not just `tcp4_announces_handled`).
-- [ ] AC7: Test utilities for temp workspace creation (config + storage) and port extraction are
+- [x] AC5: Port-zero suites use an isolated temp workspace and port 0 where the scenario does not
+      require fixed ports.
+- [x] AC6: Global stats coverage includes multiple metrics, not only `tcp4_announces_handled`.
+- [x] AC7: Test utilities for temp workspace creation (config + storage) and port extraction are
       available and documented.
-- [ ] AC8: `cargo test --test stats` passes cleanly with expanded test coverage.
-- [ ] AC9: `linter all` passes.
+- [ ] AC8: Every current main-level suite deterministically cancels and waits for its application
+      jobs before its temporary workspace is released.
+- [ ] AC9: All current main-level integration-test targets pass cleanly with normal parallel
+      scheduling, and a representative target passes in serial mode.
+- [ ] AC10: `linter all` passes.
 
 ## Verification Plan
 
 ### Automatic Checks
 
-- `cargo test --test stats` — Must pass with all integration tests running concurrently
-- `cargo test --test stats -- --test-threads=1` — Verify tests also work in serial mode
+- `cargo test --test metrics-fixed-ports --test metrics-port-zero --test metrics-udp-error-enabled-port-zero --test metrics-udp-error-disabled-port-zero --test banning-udp-metrics-disabled-port-zero --test scaffold` — Must pass with normal parallel scheduling after deterministic teardown is implemented
+- `cargo test --test metrics-port-zero -- --test-threads=1` — Verify a representative suite also works in serial mode after deterministic teardown is implemented
 - `linter all` — Standard quality gate
 
 ### Manual Verification Scenarios
 
-| ID  | Scenario                                                                | Expected Result                                                                   | Status | Evidence |
-| --- | ----------------------------------------------------------------------- | --------------------------------------------------------------------------------- | ------ | -------- |
-| M1  | Run `cargo test --test stats` with default parallelism                  | All tests pass; no port conflicts or configuration collisions                     | TODO   |          |
-| M2  | Run `cargo test --test stats -- --nocapture` to see logs                | Each test shows unique bound ports; no env var configuration warnings             | TODO   |          |
-| M3  | Add a third integration test temporarily and run the suite              | All three tests run concurrently without interference                             | TODO   |          |
-| M4  | Verify temp workspaces are cleaned up after tests complete              | No leftover temporary directories in `/tmp` or system temp directory              | TODO   |          |
-| M5  | Run tests in serial mode: `cargo test --test stats -- --test-threads=1` | Tests pass in serial mode (no implicit dependency on parallelism for correctness) | TODO   |          |
+| ID  | Scenario                                   | Expected Result                                                                           | Status | Evidence                                                 |
+| --- | ------------------------------------------ | ----------------------------------------------------------------------------------------- | ------ | -------------------------------------------------------- |
+| M1  | Run all current targets in one invocation  | All targets pass; no port, configuration, storage, or shutdown interference               | TODO   | Record command, UTC date, exit status, and observation   |
+| M2  | Run `metrics-port-zero` with `--nocapture` | Explicit teardown completes; services have distinct, non-zero final bindings              | TODO   | Record command, UTC date, exit status, and observation   |
+| M3  | Verify focused teardown coverage           | Awaited shutdown completes before workspace cleanup; no process-exit or sleep-based proof | TODO   | Record test name, UTC date, exit status, and observation |
+| M4  | Run `metrics-port-zero` in serial mode     | Suite has no implicit dependency on parallel scheduling                                   | TODO   | Record command, UTC date, exit status, and observation   |
+| M5  | Run `linter all` after implementation      | Full quality gate passes                                                                  | TODO   | Record command, UTC date, exit status, and observation   |
 
 ## Risks and Trade-offs
 
@@ -323,6 +340,73 @@ its own database and storage paths, and port `0` for listeners.
 injection through the environment is safe between separate test executables. It must not be
 modified concurrently by separate scenarios in one executable.
 
+### Current Implementation Status
+
+The revised execution model is implemented by the explicit targets in `Cargo.toml`:
+
+- `metrics-port-zero` tests duplicate port-zero listener identity and metrics policy.
+- `metrics-fixed-ports` tests fixed-port multi-listener routing and aggregate metrics.
+- `metrics-udp-error-enabled-port-zero`, `metrics-udp-error-disabled-port-zero`, and
+  `banning-udp-metrics-disabled-port-zero` test the related UDP policy variants.
+- `scaffold` documents the pattern for a new isolated suite.
+
+`tests/common/workspace.rs` provides the shared `EphemeralTrackerWorkspace`, startup readiness,
+and side-effect-free runtime-registry discovery used by these suites. It creates a unique `TempDir`
+containing a configuration file and tracker storage directory, while port-zero services publish
+their final bindings under canonical service roles and `ConfigurationInstanceId` values.
+
+The remaining lifecycle gap is deterministic teardown. Current tests retain the returned
+`JobManager` as `_jobs` and depend on scope/process exit. Before closing this issue, the shared
+fixture or each suite must explicitly call `JobManager::cancel()` and `wait_for_all(...)` before
+its temporary workspace is released.
+
+The former pause for #2035 and #2036 is no longer active: repeated `0.0.0.0:0` HTTP and UDP
+configuration blocks retain distinct instance identities, and the runtime registry metadata needed
+for stable endpoint discovery is available. The implementation is now ready for teardown work and
+verification.
+
+### Completion Plan
+
+The remaining work is deliberately limited to lifecycle correctness, documentation alignment, and
+verification. Do not add new application-level behavior or a child-process runner as part of this
+issue. The problem statement, alternatives, selected fixture direction, and mandatory manual test
+protocol are documented in [completion-plan.md](completion-plan.md). That companion document must
+be reviewed before implementation begins.
+
+| ID  | Status | Step                                          | Implementation and completion evidence                                                                                                                                                                                                                 |
+| --- | ------ | --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| R1  | TODO   | Review lifecycle problem and fixture decision | Review [completion-plan.md](completion-plan.md): `_jobs` drop-only cleanup neither cancels nor awaits jobs. Confirm the selected test-local fixture approach and reject production `Drop` or child-process alternatives for this issue.                |
+| R2  | TODO   | Implement deterministic teardown              | Replace `_jobs` drop-only cleanup in every current main-level suite. The selected fixture must call `JobManager::cancel()` followed by `wait_for_all(...)` before `EphemeralTrackerWorkspace` is dropped.                                              |
+| R3  | TODO   | Prove teardown behavior                       | Add focused coverage that exercises the shared lifecycle path and proves awaited shutdown without process exit or sleep-based assertions.                                                                                                              |
+| R4  | TODO   | Align test documentation                      | Update `tests/scaffold.rs` references to the removed `stats` target and revise `tests/AGENTS.md` to describe tracing as one of several process-global lifecycle constraints, not the sole blocker.                                                     |
+| R5  | TODO   | Run mandatory manual integration verification | Execute the required manual runs defined in [completion-plan.md](completion-plan.md): normal parallel targets, `--nocapture`, and a representative serial run. Record the exact command, UTC date, exit status, and observation in this specification. |
+| R6  | TODO   | Run the full quality gate                     | Run `linter all`; record the UTC date, exit status, and result in this specification.                                                                                                                                                                  |
+| R7  | TODO   | Perform closure review                        | Confirm all acceptance criteria, move the issue specification to `docs/issues/closed/`, and close GitHub issue #1419.                                                                                                                                  |
+
+#### Implementation Sequence
+
+1. Inspect `JobManager::cancel()` and `JobManager::wait_for_all(...)` and choose the smallest
+   shared fixture API that can enforce the required lifetime order. Review the alternatives and
+   decision criteria in [completion-plan.md](completion-plan.md) first.
+2. Implement the fixture and migrate every current suite, including `scaffold`; do not leave
+   `_jobs` bindings that silently rely on process exit.
+3. Add and run focused teardown coverage before changing unrelated test behavior.
+4. Update `tests/scaffold.rs` and `tests/AGENTS.md` to match the implemented model.
+5. Complete every mandatory manual run in [completion-plan.md](completion-plan.md), including the
+   normal parallel, `--nocapture`, and representative serial commands, then run `linter all`.
+6. Update the verification evidence and acceptance criteria. Only then prepare the issue for
+   closure.
+
+#### Completion Boundaries
+
+- The shared fixture may remain inside `tests/common/`; do not move it to `packages/test-helpers/`
+  unless a second, non-main-level consumer establishes a real shared need.
+- A new integration-test binary is not required merely to prove teardown. Prefer focused coverage
+  in the existing test structure.
+- Do not claim temporary directories are cleaned after a forced process interruption; normal
+  `TempDir` cleanup is sufficient once jobs stop before the workspace is dropped.
+- Do not close the issue until the normal parallel invocation and `linter all` have both passed.
+
 ### Relationship to E2E Tests
 
 This is not a replacement for container E2E tests. Main-application integration suites provide
@@ -365,23 +449,22 @@ parallel full-application instances inside a single executable.
 
 ## Implementation Pause and Prerequisites
 
-The current integration suite correctly verifies aggregate statistics across two started HTTP
-listeners. Its endpoint discovery is intentionally temporary: `tests/common/mod.rs` identifies
-HTTP trackers and the REST API through distinct bind-IP conventions. If discovery is incorrect,
-the test fails rather than producing a false aggregate-stats success, but the convention is not a
-valid application contract and must not be extended to more integration suites.
+The current integration suites verify aggregate statistics across multiple started HTTP and UDP
+listeners. Endpoint discovery is no longer temporary: `tests/common/workspace.rs` queries the
+runtime registry by canonical service role and exact `ConfigurationInstanceId`, rather than bind-IP
+conventions or registry ordering.
 
-During implementation, two prerequisite defects were discovered. Work on this issue stops after
-the current, working scaffold is documented and merged. The prerequisites will be implemented and
-merged independently; #1419 remains open and resumes on that clean base.
+During implementation, two prerequisite defects were discovered. Both prerequisites are now
+implemented, so this issue resumes with deterministic teardown, documentation cleanup, and
+verification.
 
 1. Bug #2035: [fix duplicate port-zero tracker instance bootstrap](../../open/2035-fix-duplicate-port-zero-tracker-instance-bootstrap/ISSUE.md)
-   — `AppContainer` stores HTTP and UDP per-instance containers in `HashMap<SocketAddr, _>`.
-   Repeated `0.0.0.0:0` configuration blocks overwrite each other before startup, so distinct
-   per-instance configuration can be silently lost.
+   — `AppContainer` now retains HTTP and UDP per-instance containers with their
+   `ConfigurationInstanceId`, preventing repeated `0.0.0.0:0` configuration blocks from
+   overwriting each other before startup.
 2. Feature #2036: [add runtime service registry metadata](../../closed/2036-add-runtime-service-registry-metadata/ISSUE.md)
-   — `Registar` cannot expose stable service role or configuration-instance identity without
-   health-check side effects. This requires a coordinated `torrust-server-lib` change and release.
+   — `Registar` metadata now exposes stable service role and configuration-instance identity for
+   side-effect-free test endpoint discovery.
 
 The runtime registry boundary remains recorded in
 [ADR 20260728115400](../../../adrs/20260728115400_define_registar_as_runtime_service_registry.md).
