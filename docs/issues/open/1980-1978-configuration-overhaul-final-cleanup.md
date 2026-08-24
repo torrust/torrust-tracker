@@ -28,6 +28,7 @@ semantic-links:
     - packages/test-helpers/src/
     - packages/tracker-client/
     - contrib/dev-tools/
+    - docs/issues/open/2083-1978-move-max-connection-id-errors-per-ip-to-udp-tracker-server.md
 ---
 
 # Issue #1980 - Final cleanup: remove global re-exports, migrate all consumers to explicit versioned imports
@@ -44,6 +45,7 @@ After all v3 schema changes are implemented, perform the final cleanup:
 4. Make the #1453 v3 `udp_tracker_server.ip_bans_reset_interval_in_secs` setting effective in
    the single bootstrap-managed ban cleanup job, replacing its temporary default-constant value
 5. Apply any other cleanup discovered during the EPIC implementation
+6. Activate the corrected v3 global UDP connection-ID error limit in production
 
 ## Background
 
@@ -76,6 +78,12 @@ Similarly, the crate-root `logging.rs` (which contains `TraceStyle`, `setup()`, 
 - Update `pub mod logging;` in `lib.rs` (remove or redirect)
 - Replace #1453's temporary default-constant cleanup interval with
   `Configuration::udp_tracker_server.ip_bans_reset_interval_in_secs`
+- Read the corrected v3 `Configuration::udp_tracker_server.max_connection_id_errors_per_ip`
+  once in `AppContainer` and pass it to the shared `UdpTrackerCoreServices`/
+  `BanService` initialization path, replacing the current first-listener v2
+  selection.
+- Add production runtime coverage with two UDP listeners that proves the one
+  declared v3 threshold is shared and listener declaration order has no effect.
 - Ensure all tests pass after migration
 - Any additional cleanup items discovered during EPIC implementation
 
@@ -164,6 +172,8 @@ Files that import `torrust_tracker_configuration::logging` (the module, not the 
 | T9  | TODO   | Run `linter all` and full test suite                                |                                                                                                                                                                                                                                                                                                                        |
 | T10 | TODO   | Finalize migration guide                                            | `docs/issues/open/1978-configuration-overhaul-epic/configuration-v2-to-v3-migration.md` — this is the final cleanup, so the guide should be complete at this point                                                                                                                                                     |
 | T11 | TODO   | Run #1987 enabled-mode local manual verification                    | After consumer migration activates v3.0.0 at runtime, enable `use_ip_from_query_string` for a local HTTP tracker and execute #1987's enabled-mode local scenarios. Append reproducible commands and evidence to `docs/issues/open/1987-add-config-option-to-use-ip-from-announce-query-string/manual-verification.md`. |
+| T12 | TODO   | Activate corrected global UDP error limit                           | After its preceding v3 schema-fix subissue is merged, read `udp_tracker_server.max_connection_id_errors_per_ip` in `AppContainer` and pass it once to the shared UDP core services; remove the first-listener selection.                                                                                               |
+| T13 | TODO   | Verify shared UDP error limit at runtime                            | Register and run a two-listener integration test using one bound UDP client socket. Verify the declared v3 limit, cross-listener shared ban enforcement, and listener-order independence.                                                                                                                              |
 
 ## Progress Tracking
 
@@ -191,6 +201,7 @@ Files that import `torrust_tracker_configuration::logging` (the module, not the 
   after consumer migration. These scenarios require the tracker to use v3 config, which is not
   possible until this cleanup migrates global callers.
 - 2026-08-18 00:00 UTC - Copilot/User - Added T11: run #1987 enabled-mode local manual verification after this issue activates v3.0.0 configuration at runtime.
+- 2026-08-24 00:00 UTC - GitHub Copilot/User - Added T12–T13 as the production-activation handoff for the preceding v3 schema correction that moves `max_connection_id_errors_per_ip` to `udp_tracker_server`; this issue must replace the current first-listener runtime selection and prove shared, order-independent enforcement.
 
 ## Acceptance Criteria
 
@@ -201,6 +212,8 @@ Files that import `torrust_tracker_configuration::logging` (the module, not the 
 - [ ] AC5: All tests pass with the new import paths
 - [ ] AC6: `v2_0_0` module remains available (deprecated but not removed)
 - [ ] AC7: The global ban cleanup job uses the v3 `udp_tracker_server.ip_bans_reset_interval_in_secs` value
+- [ ] AC8: `AppContainer` reads the one v3 `udp_tracker_server.max_connection_id_errors_per_ip` value and initializes the shared `BanService` with it; it does not select a listener value.
+- [ ] AC9: With two UDP listeners, the configured v3 threshold is enforced by the one shared `BanService`, and reversing listener declarations does not change enforcement.
 - [ ] `linter all` exits with code `0`
 - [ ] Relevant tests pass
 
@@ -211,14 +224,16 @@ Files that import `torrust_tracker_configuration::logging` (the module, not the 
 - `linter all`
 - `cargo test --workspace`
 - `cargo build --workspace` (verify no broken imports)
+- `cargo test --test banning-udp-shared-connection-id-error-limit`
 
 ### Manual Verification Scenarios
 
-| ID  | Scenario                          | Command/Steps                                                                                                                   | Expected Result                   | Status | Evidence |
-| --- | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- | --------------------------------- | ------ | -------- |
-| M1  | Verify no global re-export usage  | `rg 'torrust_tracker_configuration::(Core\|Configuration\|Logging\|HttpApi\|HttpTracker\|UdpTracker\|Database\|Threshold)[^:]'` | No matches (all use v3_0_0 paths) | TODO   |          |
-| M2  | Verify v2 module still accessible | `cargo doc --document-private-items`                                                                                            | v2_0_0 types documented           | TODO   |          |
-| M3  | Verify v3 module is the default   | Check `lib.rs` for `LATEST_VERSION`                                                                                             | `LATEST_VERSION = "3.0.0"`        | TODO   |          |
+| ID  | Scenario                          | Command/Steps                                                                                                                                                                                                                                  | Expected Result                                                                                                                          | Status | Evidence |
+| --- | --------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | ------ | -------- |
+| M1  | Verify no global re-export usage  | `rg 'torrust_tracker_configuration::(Core\|Configuration\|Logging\|HttpApi\|HttpTracker\|UdpTracker\|Database\|Threshold)[^:]'`                                                                                                                | No matches (all use v3_0_0 paths)                                                                                                        | TODO   |          |
+| M2  | Verify v2 module still accessible | `cargo doc --document-private-items`                                                                                                                                                                                                           | v2_0_0 types documented                                                                                                                  | TODO   |          |
+| M3  | Verify v3 module is the default   | Check `lib.rs` for `LATEST_VERSION`                                                                                                                                                                                                            | `LATEST_VERSION = "3.0.0"`                                                                                                               | TODO   |          |
+| M4  | Verify global UDP error limit     | Start two UDP listeners using v3 configuration with `udp_tracker_server.max_connection_id_errors_per_ip = 2`. From one bound UDP socket, send invalid connection-ID requests to both listeners and repeat with listener declarations reversed. | The shared ban budget is consumed across listeners, and both declaration orders produce the same response sequence and ban metric delta. | TODO   |          |
 
 ### Acceptance Verification
 
@@ -230,6 +245,9 @@ Files that import `torrust_tracker_configuration::logging` (the module, not the 
 | AC4   | TODO   |          |
 | AC5   | TODO   |          |
 | AC6   | TODO   |          |
+| AC7   | TODO   |          |
+| AC8   | TODO   |          |
+| AC9   | TODO   |          |
 
 ## Risks and Trade-offs
 
