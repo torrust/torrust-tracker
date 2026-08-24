@@ -10,7 +10,7 @@ branch: "2083-move-max-connection-id-errors-per-ip-to-udp-tracker-server"
 related-pr: null
 depends-on: null
 blocks: 1980
-last-updated-utc: 2026-08-24 00:00
+last-updated-utc: 2026-08-24 11:04
 semantic-links:
   skill-links:
     - create-issue
@@ -153,16 +153,16 @@ contract for operators moving from the currently active v2 field placement.
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| ID  | Status | Task                                             | Notes / Expected Output                                                                                                                                                                                  |
-| --- | ------ | ------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| T1  | TODO   | Confirm the pre-#1980 v3 configuration boundary  | Record every affected v3 schema, fixture, example, documentation artifact, and #1980 production-wiring handoff before editing.                                                                           |
-| T2  | TODO   | Move the v3 configuration field                  | `UdpTrackerServer` owns the global default and serde field; `UdpTracker` no longer exposes it.                                                                                                           |
-| T3  | TODO   | Update v3 fixtures, examples, and documentation  | Remove the listener-scoped setting and update the v2-to-v3 migration guide; do not change the active v2 defaults.                                                                                        |
-| T4  | TODO   | Define #1980 production-wiring handoff           | Update #1980 to migrate constructors, read the one v3 `udp_tracker_server` limit in `AppContainer`, and pass it once to `UdpTrackerCoreServices`; no production v2 path changes in this issue.           |
-| T5  | TODO   | Add schema regression tests                      | Cover defaults, explicit global values, and rejection of the removed listener field. Direct-construction and runtime cross-listener enforcement coverage is added when #1980 activates v3 in production. |
-| T6  | TODO   | Update migration and configuration documentation | Describe the v2 per-listener to v3 global move and update defaults and examples.                                                                                                                         |
-| T7  | TODO   | Run automatic and manual verification            | Record commands, results, and evidence in this specification.                                                                                                                                            |
-| T8  | TODO   | Re-review acceptance criteria                    | Compare observed behaviour and evidence against every acceptance criterion before closure.                                                                                                               |
+| ID  | Status | Task                                             | Notes / Expected Output                                                                                                                                                                                                               |
+| --- | ------ | ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| T1  | TODO   | Confirm the pre-#1980 v3 configuration boundary  | Record every affected v3 schema, fixture, example, documentation artifact, and #1980 production-wiring handoff before editing.                                                                                                        |
+| T2  | TODO   | Move the v3 configuration field                  | `UdpTrackerServer` owns the global default and serde field; `UdpTracker` no longer exposes it.                                                                                                                                        |
+| T3  | TODO   | Update v3 fixtures, examples, and documentation  | Remove the listener-scoped setting and update the v2-to-v3 migration guide; do not change the active v2 defaults.                                                                                                                     |
+| T4  | DONE   | Define #1980 production-wiring handoff           | #1980 already owns T12–T13: migrate constructors, read the one v3 `udp_tracker_server` limit in `AppContainer`, pass it once to `UdpTrackerCoreServices`, and prove runtime enforcement; no production v2 path changes in this issue. |
+| T5  | TODO   | Add schema regression tests                      | Cover defaults, explicit global values, and rejection of the removed listener field. Direct-construction and runtime cross-listener enforcement coverage is added when #1980 activates v3 in production.                              |
+| T6  | TODO   | Update migration and configuration documentation | Describe the v2 per-listener to v3 global move and update defaults and examples.                                                                                                                                                      |
+| T7  | TODO   | Run automatic and manual verification            | Record commands, results, and evidence in this specification.                                                                                                                                                                         |
+| T8  | TODO   | Re-review acceptance criteria                    | Compare observed behaviour and evidence against every acceptance criterion before closure.                                                                                                                                            |
 
 ## Progress Tracking
 
@@ -191,6 +191,7 @@ Append one line per meaningful update.
 
 - 2026-08-24 00:00 UTC - GitHub Copilot - Drafted a dedicated bug specification from the confirmed finding in #2067; it corrects v3 before #1980 activates v3 in the production runtime.
 - 2026-08-24 11:04 UTC - GitHub Copilot/User - User approved the draft; created GitHub issue #2083 and linked it as a native subissue of EPIC #1978.
+- 2026-08-24 11:04 UTC - GitHub Copilot/User - User confirmed that #1980 must own the production-wiring handoff. Verified that its T12–T13 and AC8–AC9 already explicitly cover the required `AppContainer` migration and order-independent two-listener runtime test.
 
 ## Acceptance Criteria
 
