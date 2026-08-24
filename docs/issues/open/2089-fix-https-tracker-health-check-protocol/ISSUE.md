@@ -15,6 +15,7 @@ semantic-links:
   related-artifacts:
     - .github/skills/dev/planning/create-issue/SKILL.md
     - docs/issues/open/2089-fix-https-tracker-health-check-protocol/health-check-test-design.md
+    - docs/issues/open/2089-fix-https-tracker-health-check-protocol/tls-manual-test.md
     - packages/axum-http-server/src/server.rs
     - packages/axum-health-check-api-server/tests/server/contract.rs
 ---
@@ -111,6 +112,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-08-24 17:42 UTC - agent - Added protocol-aware URL construction, a focused HTTP/HTTPS URL regression, and a TLS aggregate regression that trusts only the static loopback test certificate.
 - 2026-08-24 17:42 UTC - agent - Verified `cargo test -p torrust-tracker-axum-http-server` (22 unit and 55 integration tests) and `cargo test -p torrust-tracker-axum-health-check-api-server --test integration` (8 tests).
 - 2026-08-24 18:42 UTC - agent - Ran `linter all`; markdown, YAML, TOML, spell-check, Clippy, rustfmt, and ShellCheck all passed.
+- 2026-08-24 - agent - Documented the static TLS fixture creation and manual verification process in [`tls-manual-test.md`](tls-manual-test.md).
 
 ## Acceptance Criteria
 
@@ -163,5 +165,6 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 - Related issue: #2041
 - Design record: [`health-check-test-design.md`](health-check-test-design.md)
+- TLS fixture and manual verification: [`tls-manual-test.md`](tls-manual-test.md)
 - Affected implementation: `packages/axum-http-server/src/server.rs`
 - Local TLS workflow: `.github/skills/dev/environment-setup/run-tracker-locally/SKILL.md`
