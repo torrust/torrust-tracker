@@ -1,99 +1,355 @@
 //! Database configuration for schema v3.
-//!
-//! **Field type convention**: for new fields with domain constraints, use typed newtypes —
-//! not `String` or other unvalidated primitives. See [`crate::v3_0_0::public_url`].
-//!
-//! Note: the existing `path: String` field is a legacy multi-driver field that predates
-//! this convention. It will be replaced with driver-specific typed fields in issue #1490.
+use secrecy::{ExposeSecret, SecretString};
+use serde::de::{self, Deserializer};
+use serde::ser::{SerializeStruct, Serializer};
 use serde::{Deserialize, Serialize};
 use torrust_tracker_primitives::Driver;
-use url::Url;
 
-#[allow(clippy::struct_excessive_bools)]
-#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone)]
-#[serde(deny_unknown_fields)]
-pub struct Database {
-    // Database configuration
-    /// Database driver. Possible values are: `sqlite3`, `mysql`, and `postgresql`.
-    #[serde(default = "Database::default_driver")]
-    pub driver: Driver,
+/// Network database connection settings.
+#[derive(Serialize, Debug, Clone)]
+pub struct ConnectionInfo {
+    /// Database server host name or IP address.
+    pub host: String,
+    /// Database server port.
+    pub port: u16,
+    /// Database user name.
+    pub user: String,
+    /// Database user password.
+    #[serde(serialize_with = "serialize_secret_for_redacted_output")]
+    pub password: SecretString,
+    /// Database name.
+    pub database: String,
+}
 
-    /// Database connection string. The format depends on the database driver.
-    /// For `sqlite3`, the format is `path/to/database.db`, for example:
-    /// `./storage/tracker/lib/database/sqlite3.db`.
-    /// For `mysql`, the format is `mysql://db_user:db_user_password@host:port/db_name`, for
-    /// example: `mysql://root:password@localhost:3306/torrust`.
-    /// For `postgresql`, the format is `postgresql://db_user:db_user_password@host:port/db_name`,
-    /// for example: `postgresql://postgres:password@localhost:5432/torrust`.
-    /// If the password contains reserved URL characters (for example `+` or `/`),
-    /// percent-encode it in the URL.
-    #[serde(default = "Database::default_path")]
-    pub path: String,
+impl PartialEq for ConnectionInfo {
+    fn eq(&self, other: &Self) -> bool {
+        self.host == other.host
+            && self.port == other.port
+            && self.user == other.user
+            && self.password.expose_secret() == other.password.expose_secret()
+            && self.database == other.database
+    }
+}
+
+impl Eq for ConnectionInfo {}
+
+/// Database configuration.
+#[derive(PartialEq, Eq, Debug, Clone)]
+pub enum Database {
+    /// SQLite database stored at a filesystem path.
+    Sqlite3 {
+        /// SQLite database file path.
+        path: String,
+    },
+    /// MySQL database connection.
+    MySQL(ConnectionInfo),
+    /// PostgreSQL database connection.
+    PostgreSQL(ConnectionInfo),
 }
 
 impl Default for Database {
     fn default() -> Self {
-        Self {
-            driver: Self::default_driver(),
+        Self::Sqlite3 {
             path: Self::default_path(),
         }
     }
 }
 
 impl Database {
-    fn default_driver() -> Driver {
-        Driver::Sqlite3
-    }
-
     fn default_path() -> String {
         String::from("./storage/tracker/lib/database/sqlite3.db")
     }
 
-    /// Masks secrets in the configuration.
-    ///
-    /// # Panics
-    ///
-    /// Will panic if the database path for `MySQL` or `PostgreSQL` is not a valid URL.
-    pub fn mask_secrets(&mut self) {
-        match self.driver {
-            Driver::Sqlite3 => {
-                // Nothing to mask
+    /// Serializes the database configuration for the authorized persistence boundary.
+    #[must_use]
+    pub(crate) fn serialize_for_persistence(&self) -> toml::Table {
+        let mut table = toml::Table::new();
+
+        match self {
+            Self::Sqlite3 { path } => {
+                table.insert("driver".to_string(), toml::Value::String("sqlite3".to_string()));
+                table.insert("path".to_string(), toml::Value::String(path.clone()));
             }
-            Driver::MySQL | Driver::PostgreSQL => {
-                let mut url = Url::parse(&self.path).expect("path for MySQL/PostgreSQL driver should be a valid URL");
-                url.set_password(Some("***")).expect("url password should be changed");
-                self.path = url.to_string();
+            Self::MySQL(connection) => Self::insert_network_connection_for_persistence(&mut table, "mysql", connection),
+            Self::PostgreSQL(connection) => {
+                Self::insert_network_connection_for_persistence(&mut table, "postgresql", connection);
             }
         }
+
+        table
+    }
+
+    fn insert_network_connection_for_persistence(table: &mut toml::Table, driver: &str, connection: &ConnectionInfo) {
+        table.insert("driver".to_string(), toml::Value::String(driver.to_string()));
+        table.insert("host".to_string(), toml::Value::String(connection.host.clone()));
+        table.insert("port".to_string(), toml::Value::Integer(i64::from(connection.port)));
+        table.insert("user".to_string(), toml::Value::String(connection.user.clone()));
+        table.insert(
+            "password".to_string(),
+            toml::Value::String(connection.password.expose_secret().to_string()),
+        );
+        table.insert("database".to_string(), toml::Value::String(connection.database.clone()));
+    }
+}
+
+impl Serialize for Database {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        match self {
+            Self::Sqlite3 { path } => {
+                let mut state = serializer.serialize_struct("Database", 2)?;
+                state.serialize_field("driver", "sqlite3")?;
+                state.serialize_field("path", path)?;
+                state.end()
+            }
+            Self::MySQL(connection) => serialize_network_database(serializer, "mysql", connection),
+            Self::PostgreSQL(connection) => serialize_network_database(serializer, "postgresql", connection),
+        }
+    }
+}
+
+fn serialize_network_database<S>(serializer: S, driver: &str, connection: &ConnectionInfo) -> Result<S::Ok, S::Error>
+where
+    S: Serializer,
+{
+    let mut state = serializer.serialize_struct("Database", 6)?;
+    state.serialize_field("driver", driver)?;
+    state.serialize_field("host", &connection.host)?;
+    state.serialize_field("port", &connection.port)?;
+    state.serialize_field("user", &connection.user)?;
+    state.serialize_field("password", "***")?;
+    state.serialize_field("database", &connection.database)?;
+    state.end()
+}
+
+fn serialize_secret_for_redacted_output<S>(_password: &SecretString, serializer: S) -> Result<S::Ok, S::Error>
+where
+    S: Serializer,
+{
+    serializer.serialize_str("***")
+}
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct RawDatabase {
+    #[serde(default)]
+    driver: Option<Driver>,
+    path: Option<String>,
+    host: Option<String>,
+    port: Option<u16>,
+    user: Option<String>,
+    password: Option<SecretString>,
+    database: Option<String>,
+}
+
+impl<'de> Deserialize<'de> for Database {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let raw = RawDatabase::deserialize(deserializer)?;
+
+        match raw.driver.clone().unwrap_or(Driver::Sqlite3) {
+            Driver::Sqlite3 => {
+                reject_network_fields(&raw).map_err(de::Error::custom)?;
+                Ok(Self::Sqlite3 {
+                    path: raw.path.unwrap_or_else(Self::default_path),
+                })
+            }
+            Driver::MySQL => build_network_database(raw, &Driver::MySQL, 3306).map_err(de::Error::custom),
+            Driver::PostgreSQL => build_network_database(raw, &Driver::PostgreSQL, 5432).map_err(de::Error::custom),
+        }
+    }
+}
+
+fn reject_network_fields(raw: &RawDatabase) -> Result<(), &'static str> {
+    if raw.host.is_some() || raw.port.is_some() || raw.user.is_some() || raw.password.is_some() || raw.database.is_some() {
+        return Err("SQLite database configuration only accepts the `path` field");
+    }
+
+    Ok(())
+}
+
+fn build_network_database(raw: RawDatabase, driver: &Driver, default_port: u16) -> Result<Database, &'static str> {
+    if raw.path.is_some() {
+        return Err("network database configuration does not accept the `path` field");
+    }
+
+    let password = raw
+        .password
+        .ok_or("network database configuration requires a `password` field")?;
+    if password.expose_secret().trim().is_empty() {
+        return Err("network database configuration requires a non-empty `password` field");
+    }
+
+    let connection = ConnectionInfo {
+        host: raw.host.ok_or("network database configuration requires a `host` field")?,
+        port: raw.port.unwrap_or(default_port),
+        user: raw.user.ok_or("network database configuration requires a `user` field")?,
+        password,
+        database: raw
+            .database
+            .ok_or("network database configuration requires a `database` field")?,
+    };
+
+    match driver {
+        Driver::MySQL => Ok(Database::MySQL(connection)),
+        Driver::PostgreSQL => Ok(Database::PostgreSQL(connection)),
+        Driver::Sqlite3 => unreachable!("SQLite is not a network database"),
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use secrecy::{ExposeSecret, SecretString};
 
-    use super::{Database, Driver};
+    use super::{ConnectionInfo, Database};
 
     #[test]
-    fn it_should_allow_masking_the_mysql_user_password() {
-        let mut database = Database {
-            driver: Driver::MySQL,
-            path: "mysql://root:password@localhost:3306/torrust".to_string(),
-        };
+    fn it_should_deserialize_mysql_configuration_with_a_default_port() {
+        // Arrange
+        let config = r#"
+            driver = "mysql"
+            host = "mysql"
+            user = "db_user"
+            password = "db_password"
+            database = "torrust_tracker"
+        "#;
 
-        database.mask_secrets();
+        // Act
+        let database: Database = toml::from_str(config).expect("database configuration should deserialize");
 
-        assert_eq!(database.path, "mysql://root:***@localhost:3306/torrust".to_string());
+        // Assert
+        assert_eq!(
+            database,
+            Database::MySQL(ConnectionInfo {
+                host: "mysql".to_string(),
+                port: 3306,
+                user: "db_user".to_string(),
+                password: SecretString::from("db_password"),
+                database: "torrust_tracker".to_string(),
+            })
+        );
     }
 
     #[test]
-    fn it_should_allow_masking_the_postgresql_user_password() {
-        let mut database = Database {
-            driver: Driver::PostgreSQL,
-            path: "postgresql://postgres:password@localhost:5432/torrust".to_string(),
+    fn it_should_deserialize_postgresql_configuration_with_a_default_port() {
+        // Arrange
+        let config = r#"
+            driver = "postgresql"
+            host = "postgres"
+            user = "db_user"
+            password = "db_password"
+            database = "torrust_tracker"
+        "#;
+
+        // Act
+        let database: Database = toml::from_str(config).expect("database configuration should deserialize");
+
+        // Assert
+        let Database::PostgreSQL(connection) = database else {
+            panic!("database configuration should be PostgreSQL");
         };
+        assert_eq!(connection.port, 5432);
+        assert_eq!(connection.password.expose_secret(), "db_password");
+    }
 
-        database.mask_secrets();
+    #[test]
+    fn sqlite_database_path_should_be_publicly_constructible_and_readable() {
+        // Arrange
+        let path = "database.db".to_string();
 
-        assert_eq!(database.path, "postgresql://postgres:***@localhost:5432/torrust".to_string());
+        // Act
+        let database = Database::Sqlite3 { path: path.clone() };
+
+        // Assert
+        let Database::Sqlite3 { path: configured_path } = database else {
+            panic!("database configuration should be SQLite");
+        };
+        assert_eq!(configured_path, path);
+    }
+
+    #[test]
+    fn it_should_reject_missing_or_empty_network_database_password() {
+        // Arrange
+        let missing_password = "driver = \"mysql\"\nhost = \"mysql\"\nuser = \"user\"\ndatabase = \"tracker\"";
+        let empty_password = "driver = \"mysql\"\nhost = \"mysql\"\nuser = \"user\"\npassword = \"  \"\ndatabase = \"tracker\"";
+
+        // Act and assert
+        assert!(toml::from_str::<Database>(missing_password).is_err());
+        assert!(toml::from_str::<Database>(empty_password).is_err());
+    }
+
+    #[test]
+    fn it_should_reject_fields_for_another_database_driver() {
+        // Arrange
+        let config = "driver = \"sqlite3\"\npath = \"database.db\"\nhost = \"mysql\"";
+
+        // Act
+        let result = toml::from_str::<Database>(config);
+
+        // Assert
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn it_should_reject_network_only_and_unknown_fields_for_sqlite() {
+        // Arrange
+        let network_only_fields = [
+            "host = \"mysql\"",
+            "port = 3306",
+            "user = \"db_user\"",
+            "password = \"db_password\"",
+            "database = \"torrust_tracker\"",
+        ];
+        let unknown_field = "driver = \"sqlite3\"\npath = \"database.db\"\nunknown = \"value\"";
+
+        // Act and assert
+        for field in network_only_fields {
+            let config = format!("driver = \"sqlite3\"\npath = \"database.db\"\n{field}");
+            assert!(
+                toml::from_str::<Database>(&config).is_err(),
+                "field should be rejected: {field}"
+            );
+        }
+        assert!(toml::from_str::<Database>(unknown_field).is_err());
+    }
+
+    #[test]
+    fn it_should_reject_a_path_for_network_database_drivers() {
+        // Arrange
+        let connection =
+            "host = \"database\"\nuser = \"db_user\"\npassword = \"db_password\"\ndatabase = \"tracker\"\npath = \"database.db\"";
+
+        // Act and assert
+        for driver in ["mysql", "postgresql"] {
+            let config = format!("driver = \"{driver}\"\n{connection}");
+            assert!(
+                toml::from_str::<Database>(&config).is_err(),
+                "driver should reject path: {driver}"
+            );
+        }
+    }
+
+    #[test]
+    fn it_should_redact_password_when_serializing_a_network_database() {
+        // Arrange
+        let password = "database-password-for-redaction";
+        let database = Database::MySQL(ConnectionInfo {
+            host: "mysql".to_string(),
+            port: 3306,
+            user: "db_user".to_string(),
+            password: SecretString::from(password),
+            database: "torrust_tracker".to_string(),
+        });
+
+        // Act
+        let serialized = serde_json::to_string(&database).expect("database configuration should serialize");
+
+        // Assert
+        assert!(serialized.contains("***"));
+        assert!(!serialized.contains(password));
     }
 }
