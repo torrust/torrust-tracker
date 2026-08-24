@@ -1,13 +1,14 @@
 ---
 doc-type: issue
 issue-type: bug
-status: draft
+status: planned
 priority: p2
-github-issue: null
-spec-path: docs/issues/drafts/fix-https-tracker-health-check-protocol.md
-branch: "{issue-number}-fix-https-tracker-health-check-protocol"
+epic: null
+github-issue: 2089
+spec-path: docs/issues/open/2089-fix-https-tracker-health-check-protocol.md
+branch: "2089-fix-https-tracker-health-check-protocol"
 related-pr: null
-last-updated-utc: 2026-07-31 14:00
+last-updated-utc: 2026-08-24 00:00
 semantic-links:
   skill-links:
     - create-issue
@@ -18,7 +19,7 @@ semantic-links:
 
 <!-- skill-link: create-issue -->
 
-# Issue #[To be assigned] - Fix HTTPS tracker health-check protocol
+# Issue #2089 - Fix HTTPS tracker health-check protocol
 
 ## Goal
 
@@ -57,25 +58,33 @@ outside #2041's registry-metadata scope.
 - Changing runtime registry metadata or service identity behavior introduced by
   #2041.
 
+## Architectural Decisions
+
+- Related ADRs: `docs/adrs/20260728115400_define_registar_as_runtime_service_registry.md`
+- ADRs to create: None known. Create an ADR during implementation only if the
+  work reveals a material architectural decision beyond the established
+  `ServiceBinding` and TLS-validation conventions.
+
 ## Implementation Plan
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| ID  | Status | Task                                      | Notes / Expected Output                                                                        |
-| --- | ------ | ----------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| T1  | TODO   | Add failing HTTPS health-check regression | Prove an HTTPS registration is not probed as plain HTTP.                                       |
-| T2  | TODO   | Derive check URL from service binding     | Use the binding's protocol and address without altering HTTP paths.                            |
-| T3  | TODO   | Define trusted-TLS test strategy          | Use test-only client trust or a trusted test certificate; do not weaken production validation. |
-| T4  | TODO   | Validate health-report behavior           | Aggregate report marks healthy local HTTP and HTTPS services `Ok`.                             |
-| T5  | TODO   | Document verification evidence            | Record automated and manual results.                                                           |
+| ID  | Status | Task                                      | Notes / Expected Output                                                                   |
+| --- | ------ | ----------------------------------------- | ----------------------------------------------------------------------------------------- |
+| T1  | TODO   | Add failing HTTPS health-check regression | Prove an HTTPS registration is not probed as plain HTTP.                                  |
+| T2  | TODO   | Derive check URL from service binding     | Use the binding's protocol and address without altering HTTP paths.                       |
+| T3  | TODO   | Add focused URL-construction helper       | Extract a small side-effect-free helper if it improves scheme-selection test readability. |
+| T4  | TODO   | Trust self-signed certificate in tests    | Configure only the test health-check client to trust the HTTPS server certificate.        |
+| T5  | TODO   | Validate health-report behavior           | Aggregate report marks healthy local HTTP and HTTPS services `Ok`.                        |
+| T6  | TODO   | Document verification evidence            | Record automated and manual results.                                                      |
 
 ## Progress Tracking
 
 ### Workflow Checkpoints
 
 - [x] Spec drafted in `docs/issues/drafts/`
-- [ ] Spec reviewed and approved by user/maintainer
-- [ ] GitHub issue created and issue number added to this spec
+- [x] Spec reviewed and approved by user/maintainer
+- [x] GitHub issue created and issue number added to this spec
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [ ] Manual verification scenarios executed and recorded (status + evidence)
@@ -87,6 +96,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 ### Progress Log
 
 - 2026-07-31 14:00 UTC - agent - Drafted from the manual TLS verification observation in #2041. Awaiting user review before GitHub issue creation.
+- 2026-08-24 00:00 UTC - user - Approved the draft specification.
+- 2026-08-24 00:00 UTC - agent - Created GitHub issue #2089 and moved the approved specification to `docs/issues/open/`.
 
 ## Acceptance Criteria
 
@@ -133,8 +144,9 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 - The direct service binding URL is the canonical source of transport. Avoid
   reintroducing protocol inference from addresses or configuration fields.
 - A self-signed certificate works for a direct `curl --insecure` probe, but
-  default `reqwest` validation rejects it. The implementation must not weaken
-  production certificate validation to make the test pass.
+  default `reqwest` validation rejects it. Tests may configure their
+  health-check client to trust the exact test server certificate; production
+  certificate validation must remain unchanged.
 
 ## References
 
