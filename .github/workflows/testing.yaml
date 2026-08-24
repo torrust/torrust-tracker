@@ -1,5 +1,6 @@
 name: Testing
 
+# skill-link: update-github-workflow-actions
 # adr: docs/adrs/20260612000000_adopt_sccache_for_ci_bare_builds.md
 # This workflow includes sccache for bare CI builds outside Docker containers, replacing Swatinem/rust-cache.
 # See ADR for evidence and rationale.

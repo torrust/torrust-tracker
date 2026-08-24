@@ -1,3 +1,5 @@
+# skill-link: update-github-workflow-actions
+# GitHub Actions updates require matching Torrust organization allowed-actions policy entries.
 version: 2
 updates:
   - package-ecosystem: github-actions

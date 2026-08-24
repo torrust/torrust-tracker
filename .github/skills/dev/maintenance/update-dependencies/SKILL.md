@@ -4,6 +4,12 @@ description: Guide for updating project dependencies in the torrust-tracker proj
 metadata:
   author: torrust
   version: "1.0"
+semantic-links:
+  skill-links:
+    - update-github-workflow-actions
+  related-artifacts:
+    - .github/dependabot.yaml
+    - .github/skills/dev/maintenance/update-github-workflow-actions/SKILL.md
 ---
 
 # Updating Dependencies
@@ -12,6 +18,8 @@ This skill guides you through updating project dependencies for the Torrust Trac
 
 Use `.github/skills/dev/maintenance/add-rust-dependency/SKILL.md` when introducing a new crate.
 This skill is for updating already-declared dependencies.
+Use `.github/skills/dev/maintenance/update-github-workflow-actions/SKILL.md` for GitHub Actions
+workflow dependency updates and organization action-allowlist synchronization.
 
 Delivery policy:
 
