@@ -84,6 +84,11 @@ impl HttpApi {
         }
     }
 
+    #[cfg(test)]
+    pub(crate) fn mask_secrets(&mut self) {
+        self.redact_access_tokens_for_diagnostic_output();
+    }
+
     pub(crate) fn serialize_access_tokens_for_persistence(&self) -> toml::Table {
         self.access_tokens
             .iter()

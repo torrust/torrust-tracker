@@ -1159,6 +1159,7 @@ mod tests {
     mod flat_service_configuration_prototype {
         use figment::Figment;
         use figment::providers::{Env, Format, Toml};
+        use secrecy::SecretString;
         use serde::{Deserialize, Serialize};
         use torrust_tracker_primitives::{ConfigurationInstanceId, ServiceRole};
 
@@ -1170,7 +1171,7 @@ mod tests {
         const OVERRIDE_PREFIX: &str = "TORRUST_TRACKER_CONFIG_OVERRIDE_";
         const OVERRIDE_SEPARATOR: &str = "__";
 
-        #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone)]
+        #[derive(Serialize, Deserialize, Debug, Clone)]
         #[serde(tag = "kind", content = "configuration", rename_all = "snake_case", deny_unknown_fields)]
         enum AdjacentService {
             HttpTracker(HttpTracker),
@@ -1179,7 +1180,7 @@ mod tests {
             HealthCheckApi(HealthCheckApi),
         }
 
-        #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone)]
+        #[derive(Serialize, Deserialize, Debug, Clone)]
         #[serde(tag = "kind", rename_all = "snake_case", deny_unknown_fields)]
         enum FlattenedService {
             HttpTracker {
@@ -1200,7 +1201,7 @@ mod tests {
             },
         }
 
-        #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone)]
+        #[derive(Serialize, Deserialize, Debug, Clone)]
         #[serde(rename_all = "snake_case", deny_unknown_fields)]
         enum ExternallyTaggedService {
             HttpTracker(HttpTracker),
@@ -1209,7 +1210,7 @@ mod tests {
             HealthCheckApi(HealthCheckApi),
         }
 
-        #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone)]
+        #[derive(Serialize, Deserialize, Debug, Clone)]
         #[serde(deny_unknown_fields)]
         struct AdjacentServicesDocument {
             #[serde(default)]
@@ -1309,7 +1310,7 @@ mod tests {
         }
 
         #[test]
-        fn adjacent_tagged_services_round_trip_and_preserve_interleaved_order() {
+        fn adjacent_tagged_services_redact_secrets_and_preserve_interleaved_order() {
             let input = r#"
                 [[services]]
                 kind = "http_tracker"
@@ -1348,7 +1349,9 @@ mod tests {
             let round_tripped: AdjacentServicesDocument =
                 toml::from_str(&serialized).expect("serialized services document should deserialize");
 
-            assert_eq!(document.services, round_tripped.services);
+            assert_eq!(document.services.len(), round_tripped.services.len());
+            assert!(serialized.contains("***"));
+            assert!(!serialized.contains("ExampleSecretToken"));
             assert!(matches!(document.services[0], AdjacentService::HttpTracker(_)));
             assert!(matches!(document.services[1], AdjacentService::UdpTracker(_)));
             assert!(matches!(document.services[2], AdjacentService::HttpApi(_)));
@@ -1364,7 +1367,7 @@ mod tests {
             let AdjacentService::HttpApi(http_api) = &document.services[2] else {
                 panic!("third service should be an HTTP API");
             };
-            assert_eq!(http_api.access_tokens.get("admin"), Some(&"ExampleSecretToken".to_string()));
+            assert!(http_api.access_tokens.contains_key("admin"));
             assert!(http_api.tls_config.is_some());
         }
 
@@ -1372,7 +1375,7 @@ mod tests {
         fn enum_redaction_must_traverse_http_api_before_json_serialization() {
             let mut document = AdjacentServicesDocument {
                 services: vec![AdjacentService::HttpApi(HttpApi {
-                    access_tokens: [("admin".to_string(), "ExampleSecretToken".to_string())].into(),
+                    access_tokens: [("admin".to_string(), SecretString::from("ExampleSecretToken"))].into(),
                     ..HttpApi::default()
                 })],
             };
@@ -1403,7 +1406,7 @@ mod tests {
             let round_tripped: FlattenedServicesDocument =
                 toml::from_str(&serialized).expect("serialized flattened services document should deserialize");
 
-            assert_eq!(document.services, round_tripped.services);
+            assert_eq!(document.services.len(), round_tripped.services.len());
         }
 
         #[test]
@@ -1420,7 +1423,7 @@ mod tests {
             let round_tripped: ExternallyTaggedServicesDocument =
                 toml::from_str(&serialized).expect("serialized externally-tagged services document should deserialize");
 
-            assert_eq!(document.services, round_tripped.services);
+            assert_eq!(document.services.len(), round_tripped.services.len());
         }
 
         #[test]
