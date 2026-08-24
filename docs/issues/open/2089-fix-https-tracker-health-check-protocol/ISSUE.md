@@ -1,11 +1,11 @@
 ---
 doc-type: issue
 issue-type: bug
-status: planned
+status: in-progress
 priority: p2
 epic: null
 github-issue: 2089
-spec-path: docs/issues/open/2089-fix-https-tracker-health-check-protocol.md
+spec-path: docs/issues/open/2089-fix-https-tracker-health-check-protocol/ISSUE.md
 branch: "2089-fix-https-tracker-health-check-protocol"
 related-pr: null
 last-updated-utc: 2026-08-24 00:00
@@ -14,7 +14,9 @@ semantic-links:
     - create-issue
   related-artifacts:
     - .github/skills/dev/planning/create-issue/SKILL.md
+    - docs/issues/open/2089-fix-https-tracker-health-check-protocol/health-check-test-design.md
     - packages/axum-http-server/src/server.rs
+    - packages/axum-health-check-api-server/tests/server/contract.rs
 ---
 
 <!-- skill-link: create-issue -->
@@ -35,7 +37,7 @@ its `/health_check` endpoint. The aggregate health API correctly exposed that
 HTTPS `service_binding`, its final socket address, and
 `service_type="http_tracker"`, but reported an error for the service.
 
-`packages/axum-http-server/src/server.rs` currently builds every HTTP-tracker
+`packages/axum-http-server/src/server.rs` previously built every HTTP-tracker
 health-check URL as `http://{binding}/health_check`. For an HTTPS registration,
 this probes plain HTTP on the TLS port and fails. The issue was pre-existing and
 outside #2041's registry-metadata scope.
@@ -45,20 +47,27 @@ outside #2041's registry-metadata scope.
 ### In Scope
 
 - Derive the HTTP tracker health-check URL scheme from `ServiceBinding`.
-- Preserve HTTP tracker health-check behavior for ordinary HTTP listeners.
-- Add regression coverage for HTTPS listener health checks.
-- Establish a test strategy for a TLS certificate trusted by the health-check
-  client, then verify the aggregate health API reports `Ok` for an operational
-  HTTPS tracker.
+- Preserve ordinary HTTP health-check behaviour.
+- Add focused URL-construction coverage for HTTP and HTTPS bindings.
+- Add aggregate HTTPS health-report coverage using a known test certificate and
+  a named, non-capturing trusted-test health-check callback.
+- Keep certificate validation enabled. The test callback trusts only its known
+  test certificate.
 
 ### Out of Scope
 
 - Changing production TLS certificate loading or certificate validation policy.
+- Adding configurable production trust anchors for health checks.
+- Changing `torrust-server-lib` to store stateful closure callbacks.
 - Changing the health API response schema.
 - Changing runtime registry metadata or service identity behavior introduced by
   #2041.
 
 ## Architectural Decisions
+
+The accepted test design is documented in
+[`health-check-test-design.md`](health-check-test-design.md). It records the
+rejected stateful-closure and production-configuration alternatives.
 
 - Related ADRs: `docs/adrs/20260728115400_define_registar_as_runtime_service_registry.md`
 - ADRs to create: None known. Create an ADR during implementation only if the
@@ -69,14 +78,14 @@ outside #2041's registry-metadata scope.
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| ID  | Status | Task                                      | Notes / Expected Output                                                                   |
-| --- | ------ | ----------------------------------------- | ----------------------------------------------------------------------------------------- |
-| T1  | TODO   | Add failing HTTPS health-check regression | Prove an HTTPS registration is not probed as plain HTTP.                                  |
-| T2  | TODO   | Derive check URL from service binding     | Use the binding's protocol and address without altering HTTP paths.                       |
-| T3  | TODO   | Add focused URL-construction helper       | Extract a small side-effect-free helper if it improves scheme-selection test readability. |
-| T4  | TODO   | Trust self-signed certificate in tests    | Configure only the test health-check client to trust the HTTPS server certificate.        |
-| T5  | TODO   | Validate health-report behavior           | Aggregate report marks healthy local HTTP and HTTPS services `Ok`.                        |
-| T6  | TODO   | Document verification evidence            | Record automated and manual results.                                                      |
+| ID  | Status      | Task                                  | Notes / Expected Output                                                                                  |
+| --- | ----------- | ------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| T1  | DONE        | Add HTTPS URL regression              | Prove an HTTPS binding produces an `https://` probe URL, not `http://`.                                 |
+| T2  | DONE        | Derive URL from service binding       | Use the binding's canonical URL without altering HTTP paths.                                             |
+| T3  | TODO        | Add named trusted-test callback       | Build the trusted client inside a non-capturing test callback; do not alter `torrust-server-lib`.        |
+| T4  | TODO        | Add aggregate HTTPS regression        | Aggregate report marks the operational HTTPS service `Ok`; its callback trusts only the test certificate. |
+| T5  | TODO        | Validate health-report behavior       | Existing HTTP aggregate test remains `Ok`; run targeted package tests.                                  |
+| T6  | TODO        | Document verification evidence        | Record automated and manual results.                                                                     |
 
 ## Progress Tracking
 
@@ -98,14 +107,12 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-07-31 14:00 UTC - agent - Drafted from the manual TLS verification observation in #2041. Awaiting user review before GitHub issue creation.
 - 2026-08-24 00:00 UTC - user - Approved the draft specification.
 - 2026-08-24 00:00 UTC - agent - Created GitHub issue #2089 and moved the approved specification to `docs/issues/open/`.
+- 2026-08-24 00:00 UTC - agent and user - Rejected a stateful registry callback change for this focused issue; documented the named non-capturing test-callback alternative.
 
 ## Acceptance Criteria
 
-- [ ] AC1: An HTTPS HTTP-tracker registration is health-checked through an
-      `https://` URL, not an `http://` URL.
-- [ ] AC2: An operational HTTPS listener using a certificate trusted by the
-      health-check client yields a successful entry in the aggregate health
-      report.
+- [ ] AC1: An HTTPS HTTP-tracker registration is health-checked through an `https://` URL, not an `http://` URL.
+- [ ] AC2: An operational HTTPS listener using the named trusted-test callback yields a successful entry in the aggregate health report.
 - [ ] AC3: Existing HTTP tracker health checks continue to pass.
 - [ ] `linter all` exits with code `0`.
 - [ ] Relevant tests pass.
@@ -141,15 +148,17 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 ## Risks and Trade-offs
 
-- The direct service binding URL is the canonical source of transport. Avoid
-  reintroducing protocol inference from addresses or configuration fields.
-- A self-signed certificate works for a direct `curl --insecure` probe, but
-  default `reqwest` validation rejects it. Tests may configure their
-  health-check client to trust the exact test server certificate; production
-  certificate validation must remain unchanged.
+- `ServiceBinding` is the canonical source of transport; do not infer protocol
+  from addresses or configuration fields.
+- Default `reqwest` validation rejects the test's self-signed certificate. The
+  named test callback adds exactly that certificate as a root rather than
+  disabling validation.
+- The named callback constructs a client per test probe. This is deliberate
+  test-only simplicity; production continues using its default client.
 
 ## References
 
 - Related issue: #2041
+- Design record: [`health-check-test-design.md`](health-check-test-design.md)
 - Affected implementation: `packages/axum-http-server/src/server.rs`
 - Local TLS workflow: `.github/skills/dev/environment-setup/run-tracker-locally/SKILL.md`
