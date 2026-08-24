@@ -380,8 +380,12 @@ impl Configuration {
         // Make sure user has provided the mandatory options.
         Self::check_mandatory_options(&figment)?;
 
-        // Fill missing options with default values.
-        let figment = figment.join(Serialized::defaults(Configuration::default()));
+        // Fill missing options with default values. `Database` defaults itself
+        // during deserialization, so omit that nested value from Figment's
+        // defaults. Otherwise Figment merges SQLite's default `path` into a
+        // user-supplied network-database table, which the driver-specific
+        // validation correctly rejects.
+        let figment = figment.join(Serialized::defaults(Self::defaults_for_loading()));
 
         // Build final configuration.
         let config: Configuration = figment.extract()?;
@@ -394,6 +398,18 @@ impl Configuration {
         }
 
         Ok(config)
+    }
+
+    fn defaults_for_loading() -> toml::Value {
+        let mut defaults = toml::Value::try_from(Self::default()).expect("default configuration should serialize");
+
+        defaults
+            .get_mut("core")
+            .and_then(toml::Value::as_table_mut)
+            .expect("default core configuration should serialize to a TOML table")
+            .remove("database");
+
+        defaults
     }
 
     /// Some configuration options are mandatory. The tracker will panic if
@@ -778,6 +794,57 @@ mod tests {
                     path: "OVERWRITTEN DEFAULT DB PATH".to_string(),
                 }
             );
+
+            Ok(())
+        });
+    }
+
+    #[test]
+    #[allow(clippy::result_large_err)]
+    fn network_database_configuration_should_not_merge_the_sqlite_default_path() {
+        figment::Jail::expect_with(|_jail| {
+            for (driver, host, default_port) in [("mysql", "mysql", 3306), ("postgresql", "postgres", 5432)] {
+                let info = Info {
+                    config_toml: Some(format!(
+                        r#"
+                    [metadata]
+                    schema_version = "3.0.0"
+
+                    [logging]
+                    trace_filter = "info"
+
+                    [core]
+                    listed = false
+                    private = false
+
+                    [core.database]
+                    driver = "{driver}"
+                    host = "{host}"
+                    user = "db_user"
+                    password = "db_password"
+                    database = "torrust_tracker"
+                    "#
+                    )),
+                    config_toml_path: String::new(),
+                };
+
+                let configuration = Configuration::load(&info).expect("network database configuration should load");
+
+                let expected_connection = ConnectionInfo {
+                    host: host.to_string(),
+                    port: default_port,
+                    user: "db_user".to_string(),
+                    password: SecretString::from("db_password"),
+                    database: "torrust_tracker".to_string(),
+                };
+                let expected_database = if driver == "mysql" {
+                    Database::MySQL(expected_connection)
+                } else {
+                    Database::PostgreSQL(expected_connection)
+                };
+
+                assert_eq!(configuration.core.database, expected_database);
+            }
 
             Ok(())
         });

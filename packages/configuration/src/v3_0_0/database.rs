@@ -257,6 +257,21 @@ mod tests {
     }
 
     #[test]
+    fn sqlite_database_path_should_be_publicly_constructible_and_readable() {
+        // Arrange
+        let path = "database.db".to_string();
+
+        // Act
+        let database = Database::Sqlite3 { path: path.clone() };
+
+        // Assert
+        let Database::Sqlite3 { path: configured_path } = database else {
+            panic!("database configuration should be SQLite");
+        };
+        assert_eq!(configured_path, path);
+    }
+
+    #[test]
     fn it_should_reject_missing_or_empty_network_database_password() {
         // Arrange
         let missing_password = "driver = \"mysql\"\nhost = \"mysql\"\nuser = \"user\"\ndatabase = \"tracker\"";
