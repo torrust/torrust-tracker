@@ -60,7 +60,7 @@ impl EphemeralTrackerWorkspace {
 /// temporary workspace. Rust `Drop` cannot perform this asynchronous teardown.
 pub struct TrackerApplicationFixture {
     app_container: Arc<AppContainer>,
-    jobs: JobManager,
+    jobs: Option<JobManager>,
     workspace: EphemeralTrackerWorkspace,
 }
 
@@ -72,15 +72,15 @@ impl TrackerApplicationFixture {
 
         Self {
             app_container,
-            jobs,
+            jobs: Some(jobs),
             workspace,
         }
     }
 
     /// Returns the application container used by suite scenarios.
     #[must_use]
-    pub fn app_container(&self) -> Arc<AppContainer> {
-        Arc::clone(&self.app_container)
+    pub const fn app_container(&self) -> &Arc<AppContainer> {
+        &self.app_container
     }
 
     /// Returns the temporary workspace path for lifecycle assertions.
@@ -92,17 +92,18 @@ impl TrackerApplicationFixture {
     }
 
     /// Gracefully stops tracker jobs before releasing the workspace.
-    pub async fn shutdown(self) {
-        let Self {
-            app_container,
-            jobs,
-            workspace,
-        } = self;
-
+    pub async fn shutdown(mut self) {
+        let jobs = self.jobs.take().expect("tracker jobs must be available before shutdown");
         jobs.cancel();
         jobs.wait_for_all(TRACKER_SHUTDOWN_GRACE_PERIOD).await;
-        drop(app_container);
-        drop(workspace);
+    }
+}
+
+impl Drop for TrackerApplicationFixture {
+    fn drop(&mut self) {
+        if let Some(jobs) = &self.jobs {
+            jobs.cancel();
+        }
     }
 }
 

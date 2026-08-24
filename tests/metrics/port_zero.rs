@@ -32,12 +32,12 @@ async fn it_should_apply_metrics_policy_to_port_zero_tracker_instances() {
     let app_container = fixture.app_container();
 
     // Assert
-    it_should_preserve_distinct_configurations_for_duplicate_port_zero_instances(&app_container);
-    it_should_preserve_runtime_identity_for_duplicate_port_zero_instances(&app_container).await;
+    it_should_preserve_distinct_configurations_for_duplicate_port_zero_instances(app_container);
+    it_should_preserve_runtime_identity_for_duplicate_port_zero_instances(app_container).await;
 
     // Act and Assert
-    it_should_aggregate_http_announces_only_from_metrics_enabled_port_zero_listener(&app_container).await;
-    it_should_aggregate_udp_announces_only_from_metrics_enabled_port_zero_listener(&app_container).await;
+    it_should_aggregate_http_announces_only_from_metrics_enabled_port_zero_listener(app_container).await;
+    it_should_aggregate_udp_announces_only_from_metrics_enabled_port_zero_listener(app_container).await;
 
     // Act
     fixture.shutdown().await;

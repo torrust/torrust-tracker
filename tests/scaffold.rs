@@ -107,10 +107,10 @@ async fn the_stats_api_endpoint_should_aggregate_announces_across_multiple_track
     let app_container = fixture.app_container();
 
     // ── 3. Discover bound addresses ──────────────────────────────────
-    let tracker_urls = common::http_tracker_urls(&app_container).await;
+    let tracker_urls = common::http_tracker_urls(app_container).await;
     assert_eq!(tracker_urls.len(), 2, "expected two HTTP trackers");
 
-    let api_url = common::http_api_url(&app_container).await.expect("expected an HTTP API URL");
+    let api_url = common::http_api_url(app_container).await.expect("expected an HTTP API URL");
 
     // ── 4. Scenario: announce to both trackers ───────────────────────
     let client = reqwest::Client::new();

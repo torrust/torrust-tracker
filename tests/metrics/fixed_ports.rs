@@ -75,8 +75,8 @@ async fn it_should_apply_metrics_policy_to_fixed_port_tracker_instances() {
     let app_container = fixture.app_container();
 
     // Act
-    it_should_aggregate_http_announces_only_from_metrics_enabled_listener(&app_container).await;
-    it_should_aggregate_udp_events_only_from_metrics_enabled_listener(&app_container).await;
+    it_should_aggregate_http_announces_only_from_metrics_enabled_listener(app_container).await;
+    it_should_aggregate_udp_events_only_from_metrics_enabled_listener(app_container).await;
 
     // Assert
     fixture.shutdown().await;

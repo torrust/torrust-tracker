@@ -17,9 +17,9 @@ async fn it_should_record_cookie_error_from_metrics_enabled_port_zero_udp_listen
     // Arrange
     let fixture = common::TrackerApplicationFixture::start(common::PortZeroMetricsPolicyConfiguration::TOML).await;
     let app_container = fixture.app_container();
-    let api_url = common::http_api_url(&app_container).await.expect("expected an HTTP API URL");
+    let api_url = common::http_api_url(app_container).await.expect("expected an HTTP API URL");
     let udp_tracker_address = common::udp_socket_addr_for_identity(
-        &app_container,
+        app_container,
         common::PortZeroMetricsPolicyConfiguration::METRICS_ENABLED_UDP_TRACKER_ID,
     )
     .await;
