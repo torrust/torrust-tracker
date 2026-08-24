@@ -46,6 +46,16 @@ pub struct UdpTrackerServer {
     #[serde(default = "default_ip_bans_reset_interval_in_secs")]
     pub ip_bans_reset_interval_in_secs: IpBansResetIntervalInSecs,
 
+    /// Maximum invalid connection IDs accepted from one IP before the shared
+    /// ban service bans it when connection ID validation is `strict`. Defaults
+    /// to `10`.
+    ///
+    /// This is a global setting because every UDP listener uses the same ban
+    /// service. Configuring it per listener would make the effective security
+    /// policy depend on listener declaration order.
+    #[serde(default = "default_max_connection_id_errors_per_ip")]
+    pub max_connection_id_errors_per_ip: u32,
+
     /// Connection ID validation policy for all UDP tracker listeners.
     ///
     /// This is a global setting because the ban service is shared across all
@@ -71,6 +81,7 @@ impl Default for UdpTrackerServer {
     fn default() -> Self {
         Self {
             ip_bans_reset_interval_in_secs: default_ip_bans_reset_interval_in_secs(),
+            max_connection_id_errors_per_ip: default_max_connection_id_errors_per_ip(),
             connection_id_validation: ConnectionIdValidationPolicy::default(),
         }
     }
@@ -145,6 +156,10 @@ fn default_ip_bans_reset_interval_in_secs() -> IpBansResetIntervalInSecs {
         .expect("the default IP-ban reset interval must satisfy its minimum")
 }
 
+fn default_max_connection_id_errors_per_ip() -> u32 {
+    10
+}
+
 #[cfg(test)]
 mod tests {
     use crate::v3_0_0::udp_tracker_server::{ConnectionIdValidationPolicy, IpBansResetIntervalInSecs, UdpTrackerServer};
@@ -155,6 +170,29 @@ mod tests {
             UdpTrackerServer::default().ip_bans_reset_interval_in_secs.get(),
             UdpTrackerServer::DEFAULT_IP_BANS_RESET_INTERVAL_IN_SECS
         );
+    }
+
+    #[test]
+    fn it_should_default_max_connection_id_errors_per_ip_to_ten() {
+        assert_eq!(UdpTrackerServer::default().max_connection_id_errors_per_ip, 10);
+    }
+
+    #[test]
+    fn it_should_use_the_default_max_connection_id_errors_per_ip_when_omitted() {
+        let config: UdpTrackerServer = toml::from_str("").expect("empty config should deserialize");
+
+        assert_eq!(config.max_connection_id_errors_per_ip, 10);
+    }
+
+    #[test]
+    fn it_should_deserialize_and_serialize_max_connection_id_errors_per_ip() {
+        let original: UdpTrackerServer =
+            toml::from_str("max_connection_id_errors_per_ip = 2").expect("the global error limit should deserialize");
+
+        let serialized = toml::to_string(&original).expect("the global error limit should serialize");
+        let deserialized: UdpTrackerServer = toml::from_str(&serialized).expect("the global error limit should round trip");
+
+        assert_eq!(deserialized.max_connection_id_errors_per_ip, 2);
     }
 
     #[test]

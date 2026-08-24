@@ -29,11 +29,6 @@ pub struct UdpTracker {
     #[serde(default = "UdpTracker::default_tracker_usage_statistics")]
     pub tracker_usage_statistics: bool,
 
-    /// The maximum number of connection ID errors per IP before the client is
-    /// banned. Default is `10`.
-    #[serde(default = "UdpTracker::default_max_connection_id_errors_per_ip")]
-    pub max_connection_id_errors_per_ip: u32,
-
     /// The public-facing URL of this UDP tracker instance, e.g.
     /// `"udp://tracker.example.com:6969"`. Used for metrics labels, logging,
     /// and API discovery. Must use the `udp://` scheme. Optional; defaults to `None`.
@@ -50,7 +45,6 @@ impl Default for UdpTracker {
             bind_address: Self::default_bind_address(),
             cookie_lifetime: Self::default_cookie_lifetime(),
             tracker_usage_statistics: Self::default_tracker_usage_statistics(),
-            max_connection_id_errors_per_ip: Self::default_max_connection_id_errors_per_ip(),
             public_url: Self::default_public_url(),
             network: Self::default_network(),
         }
@@ -68,10 +62,6 @@ impl UdpTracker {
 
     fn default_tracker_usage_statistics() -> bool {
         false
-    }
-
-    fn default_max_connection_id_errors_per_ip() -> u32 {
-        10
     }
 
     fn default_public_url() -> Option<UdpUrl> {

@@ -240,6 +240,8 @@
 //!
 //! [udp_tracker_server]
 //! ip_bans_reset_interval_in_secs = 86400
+//! max_connection_id_errors_per_ip = 10
+//! connection_id_validation = "strict"
 //!
 //! [http_api]
 //! bind_address = "127.0.0.1:1212"
@@ -568,6 +570,7 @@ mod tests {
 
                                 [udp_tracker_server]
                                 ip_bans_reset_interval_in_secs = 86400
+                                max_connection_id_errors_per_ip = 10
                                 connection_id_validation = "strict"
 
                                 [health_check_api]
@@ -623,6 +626,79 @@ mod tests {
 
             assert_eq!(configuration.udp_tracker_server.ip_bans_reset_interval_in_secs.get(), 7200);
             assert_eq!(configuration.logging.trace_style, TraceStyle::Json);
+
+            Ok(())
+        });
+    }
+
+    #[test]
+    #[allow(clippy::result_large_err)]
+    fn configuration_should_apply_one_global_connection_id_error_limit_to_multiple_udp_trackers() {
+        figment::Jail::expect_with(|_jail| {
+            let info = Info {
+                config_toml: r#"
+                    [metadata]
+                    schema_version = "3.0.0"
+
+                    [logging]
+                    trace_filter = "info"
+
+                    [core]
+                    listed = false
+                    private = false
+
+                    [udp_tracker_server]
+                    max_connection_id_errors_per_ip = 2
+
+                    [[udp_trackers]]
+                    bind_address = "127.0.0.1:6969"
+
+                    [[udp_trackers]]
+                    bind_address = "127.0.0.1:6970"
+                "#
+                .to_string()
+                .into(),
+                config_toml_path: String::new(),
+            };
+
+            let configuration = Configuration::load(&info).expect("configuration should load");
+
+            assert_eq!(configuration.udp_tracker_server.max_connection_id_errors_per_ip, 2);
+            assert_eq!(configuration.udp_trackers.expect("UDP trackers should deserialize").len(), 2);
+
+            Ok(())
+        });
+    }
+
+    #[test]
+    #[allow(clippy::result_large_err)]
+    fn configuration_should_reject_a_listener_scoped_connection_id_error_limit() {
+        figment::Jail::expect_with(|_jail| {
+            let info = Info {
+                config_toml: r#"
+                    [metadata]
+                    schema_version = "3.0.0"
+
+                    [logging]
+                    trace_filter = "info"
+
+                    [core]
+                    listed = false
+                    private = false
+
+                    [[udp_trackers]]
+                    bind_address = "127.0.0.1:6969"
+                    max_connection_id_errors_per_ip = 2
+                "#
+                .to_string()
+                .into(),
+                config_toml_path: String::new(),
+            };
+
+            assert!(
+                Configuration::load(&info).is_err(),
+                "v3 must reject the removed listener-scoped global error limit"
+            );
 
             Ok(())
         });
