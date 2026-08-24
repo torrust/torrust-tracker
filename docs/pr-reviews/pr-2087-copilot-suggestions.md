@@ -37,6 +37,7 @@ Status legend:
 
 - 2026-08-24: Started processing suggestions.
 - 2026-08-24: Completed processing suggestions; all unresolved Copilot threads were replied to and resolved.
+- 2026-08-24: Refreshed PR #2087 review threads after the latest push; `list-unresolved-threads.sh` returned no unresolved threads.
 
 ## Suggestions
 
