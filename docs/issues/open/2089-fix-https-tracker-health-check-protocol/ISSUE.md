@@ -113,6 +113,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-08-24 17:42 UTC - agent - Verified `cargo test -p torrust-tracker-axum-http-server` (22 unit and 55 integration tests) and `cargo test -p torrust-tracker-axum-health-check-api-server --test integration` (8 tests).
 - 2026-08-24 18:42 UTC - agent - Ran `linter all`; markdown, YAML, TOML, spell-check, Clippy, rustfmt, and ShellCheck all passed.
 - 2026-08-24 - agent - Documented the static TLS fixture creation and manual verification process in [`tls-manual-test.md`](tls-manual-test.md).
+- 2026-08-24 - agent - Generated a one-day local CA and loopback TLS leaf under `.tmp/` for M1. The platform trust store has no user-writable anchor location: `trust anchor` returned `p11-kit: no configured writable location to store anchors`. M1 is blocked pending a trusted local development certificate or administrator-installed trust anchor.
+- 2026-08-24 - agent - Completed M2 with the default development configuration. `curl --fail --silent --show-error http://127.0.0.1:1313/health_check` returned `status: Ok`; HTTP tracker entries for `http://0.0.0.0:7070/` and `http://0.0.0.0:7171/` both returned `200 OK`.
 
 ## Acceptance Criteria
 
@@ -138,10 +140,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
-| ID  | Scenario                               | Command/Steps                                                                 | Expected Result                                     | Status | Evidence |
-| --- | -------------------------------------- | ----------------------------------------------------------------------------- | --------------------------------------------------- | ------ | -------- |
-| M1  | Health-report HTTPS listener           | Start local TLS tracker with a certificate trusted by the health-check client | Health report has `Ok` for the HTTPS tracker entry. | TODO   |          |
-| M2  | Preserve HTTP listener health checking | Start ordinary local HTTP tracker                                             | HTTP tracker entry remains `Ok`.                    | TODO   |          |
+| ID  | Scenario                               | Command/Steps                                                                 | Expected Result                                     | Status  | Evidence                                                                                            |
+| --- | -------------------------------------- | ----------------------------------------------------------------------------- | --------------------------------------------------- | ------- | --------------------------------------------------------------------------------------------------- |
+| M1  | Health-report HTTPS listener           | Start local TLS tracker with a certificate trusted by the health-check client | Health report has `Ok` for the HTTPS tracker entry. | BLOCKED | Local `p11-kit` has no user-writable anchor location; see Progress Log.                             |
+| M2  | Preserve HTTP listener health checking | Start ordinary local HTTP tracker                                             | HTTP tracker entry remains `Ok`.                    | DONE    | `http://127.0.0.1:1313/health_check` returned `Ok` with `200 OK` for both configured HTTP trackers. |
 
 ### Acceptance Verification
 

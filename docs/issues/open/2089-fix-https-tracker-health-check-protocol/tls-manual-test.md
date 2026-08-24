@@ -166,3 +166,13 @@ listener. Configure that certificate in `tsl_config`, then:
 Do not mark this scenario complete when using a self-signed certificate that
 only `curl --cacert` trusts: that validates the listener, not the default
 production health-check client's trust path.
+
+### Current Environment Blocker
+
+On 2026-08-24, the issue verification environment generated a temporary CA and
+loopback leaf certificate under `.tmp/`. Installing that CA using `trust anchor`
+was not possible because p11-kit reported no user-writable anchor location. The
+manual production-path check therefore remains blocked until a trusted local
+development certificate is available or an administrator installs the temporary
+CA in the platform trust store. Do not use `sudo` from an automated agent to
+work around this limitation.
