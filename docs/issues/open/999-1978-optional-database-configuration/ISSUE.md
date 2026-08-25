@@ -293,4 +293,4 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 - V3 database-shape issue: #1490
 - V3 runtime-consumer migration: #1980
 - SQLite migrations: `packages/tracker-core/migrations/sqlite/`
-- PostgreSQL migrations: `packages/tracker-core/migrations/postgres/`
+- PostgreSQL migrations: `packages/tracker-core/migrations/postgresql/`

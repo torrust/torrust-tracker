@@ -20,8 +20,7 @@ persistence-backed capability is enabled.
 
 - Date: 2026-08-25
 - Revision: `f07553c0` (`develop` before this specification branch)
-- Binary: `target/debug/torrust-tracker`, built by `cargo run --bin
-torrust-tracker`
+- Binary: `target/debug/torrust-tracker`, built by `cargo run --bin torrust-tracker`
 - Configuration source: `share/default/config/tracker.udp.benchmarking.toml`
 - Schema version: `2.0.0`
 - Working directory: an isolated `.tmp/issue-999-baseline-*` directory
