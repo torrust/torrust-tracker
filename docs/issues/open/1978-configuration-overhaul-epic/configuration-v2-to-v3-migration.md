@@ -281,6 +281,26 @@ driver = "sqlite3"
 path = "/var/lib/torrust/tracker/database/sqlite3.db"
 ```
 
+### Optional database representation and staged activation
+
+**Subissue**: #999 — Optional v3 database configuration
+
+V3 accepts an omitted `[core.database]` section and represents it as no
+configured database. This is a schema/API change first; the runtime activation
+is deliberately staged:
+
+1. #999 introduces the optional representation and optional container
+   dependencies while retaining an explicit temporary database bridge.
+2. #1980 activates v3 runtime consumers with that bridge, preserving the
+   existing effective database behavior during the configuration transition.
+3. A small post-#1980 follow-up honors the omitted database at runtime when no
+   persistence-required capability is enabled.
+
+Until the activation follow-up is merged, do not interpret an omitted v3
+database section as a persistence-free running tracker. The final activation
+follow-up will document which capabilities require persistence, startup
+diagnostics, and supported container behavior.
+
 This is a breaking configuration change: MySQL and PostgreSQL URLs are not
 accepted in v3. Move their URL components into the fields above. Do not use an
 empty password: loading rejects missing and empty network database passwords.
@@ -332,6 +352,8 @@ Use this checklist to verify your configuration is ready for v3:
 - [ ] `connection_id_validation` reviewed in `[udp_tracker_server]` (optional, defaults to `"strict"`)
 - [ ] `ip_bans_reset_interval_in_secs` reviewed in `[udp_tracker_server]` (optional, defaults to `86400`)
 - [ ] Network database URLs replaced with component fields; database passwords are non-empty
+- [ ] Review the staged optional-database activation guidance before omitting
+      `[core.database]` in a deployed v3 tracker
 
 ## References
 

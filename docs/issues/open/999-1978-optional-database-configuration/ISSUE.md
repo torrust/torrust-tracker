@@ -28,6 +28,10 @@ semantic-links:
     - docs/issues/open/999-1978-optional-database-configuration/analysis.md
     - docs/issues/open/999-1978-optional-database-configuration/solution.md
     - docs/issues/open/999-1978-optional-database-configuration/baseline-e2e-verification.md
+    - docs/issues/open/999-1978-optional-database-configuration/adr-draft.md
+    - docs/issues/open/999-1978-optional-database-configuration/persistence-awareness-epic-draft.md
+    - docs/issues/open/999-1978-optional-database-configuration/persistence-free-runtime-activation-draft.md
+    - docs/issues/open/999-1978-optional-database-configuration/persistence-unavailable-scenarios.md
 ---
 
 # Issue #999 - Make v3 database configuration optional when persistence is unused
@@ -39,10 +43,12 @@ semantic-links:
 
 ## Goal
 
-Allow a tracker using configuration schema v3.0.0 to omit `[core.database]`
-when no enabled capability requires persistence. In that mode, startup must not
-construct a database driver, create database files, connect to network
-databases, or run migrations.
+Allow configuration schema v3.0.0 to represent an omitted `[core.database]`
+section with `Option<Database>`, while preserving the existing effective
+database dependency through the temporary v3-activation compatibility bridge.
+The post-activation follow-up drafted in this folder will make an omitted
+database suppress driver construction, database files, network connections, and
+migrations when no enabled capability requires persistence.
 
 The tracker must reject an invalid configuration at startup when an enabled
 persistence-backed capability requires a database but `[core.database]` is
@@ -82,14 +88,20 @@ inventoried.
 - Inventory direct and indirect dependencies on `tracker-core` persistence,
   including whitelist, torrent metrics, private-tracker keys, and management
   REST API operations.
-- Decide and document startup validation for every enabled capability that
-  requires persistence.
+- Prepare the bootstrap validation design for every enabled capability that
+  requires persistence; the post-activation follow-up implements it when
+  bootstrap receives the actual v3 `Option<Database>`.
 - Preserve the all-or-nothing schema lifecycle: once any enabled capability
   requires persistence, initialize the selected database and apply the complete
-  shared migration set. Do not create feature-specific database schemas or
-  feature-specific migration streams.
-- Decide and document the management REST API contract when persistence is
-  unavailable.
+  shared migration set. Feature configuration controls code behavior, not
+  schema fragments: do not create feature-specific database schemas,
+  feature-specific migration streams, or feature-specific migration selection.
+- Prepare optional persistence dependencies needed by the management REST API.
+  The post-activation follow-up keeps it persistence-required; API #144 later
+  makes it available without persistence and adds explicit
+  configuration-disabled direct-route responses.
+- Prepare a future persistence-awareness EPIC draft for remaining metric
+  provenance and broader persistence-decoupling behavior.
 - Define the implementation, regression coverage, migration documentation, and
   operational verification required by the approved solution.
 - Determine whether the change must precede #1980 and v3 activation; update
@@ -129,21 +141,30 @@ The final design must make an absent database configuration a startup
 configuration error whenever an enabled capability needs persistence. The exact
 capability inventory and validation location remain Phase 1 and Phase 2 work.
 
-The expected mechanism is a configuration-consistency rule in
-`packages/configuration/src/validator.rs`, invoked during bootstrap before
-`AppContainer` construction. The existing precedent is
-`UselessPrivateModeSection`: `[core.private_mode]` is rejected unless
-`core.private = true`. This issue must use that layer only if the approved
-database requirement is a relationship between configuration options; it must
-not use it for field-local parsing or value invariants.
+The working Phase 2 direction is one reusable bootstrap-owned
+application-composition validation step. Issue #999 implements and unit-tests
+it, owning the feature-to-database requirement matrix exactly once; the same
+rules must not be duplicated in `packages/configuration::Validator`. The
+post-#1980 activation follow-up invokes it after v3 configuration loading and
+before `AppContainer` construction, once bootstrap receives actual
+`Option<Database>` rather than the temporary bridge.
+The management REST API does not require persistence in the target architecture.
+However, the approved HTTP 409 configuration-disabled response contract is
+deferred to next-major REST API work in GitHub issue #144. Until that work is
+implemented, `http_api` remains persistence-required in the activation
+follow-up; it must not reinterpret intentionally absent persistence as an
+operational database failure.
+
+The initial persistence-required capabilities are `core.listed`, `core.private`,
+and `core.tracker_policy.persistent_torrent_completed_stat`. If implementation
+finds another persistence-required capability, it must be added to the one
+centralized bootstrap matrix and its focused tests rather than checked ad hoc
+by a repository, route, or feature.
 
 The implementation must keep feature-to-database requirements explicit at the
 application boundary. It must not distribute optional-database checks through
 repositories or feature implementation code, where a missed call site could
-become a delayed runtime failure. Phase 2 will decide whether the bootstrap
-rule is implemented through the configuration-consistency validator or a
-bootstrap-owned validation step, based on the documented validation-layer
-policy and the final configuration model.
+become a delayed runtime failure.
 
 - Related ADRs:
   `docs/adrs/20260723184019_separate_configuration_value_invariants_from_consistency_validation.md`.
@@ -154,14 +175,14 @@ policy and the final configuration model.
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| ID  | Status | Task                                           | Notes / Expected Output                                                                                                 |
-| --- | ------ | ---------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| T1  | TODO   | Complete persistence analysis                  | Populate `analysis.md` with evidence for the current lifecycle, all consumers, and driver-specific migration behaviour. |
-| T2  | TODO   | Approve an optional-persistence design         | Populate `solution.md` with the selected v3 contract, validation, API behaviour, compatibility, and ordering decision.  |
-| T3  | TODO   | Implement optional v3 database configuration   | Apply only the Phase 2-approved design; do not change v2.                                                               |
-| T4  | TODO   | Add regression coverage                        | Cover absent and present database configurations, required-feature validation, migrations, and REST API behaviour.      |
-| T5  | TODO   | Update migration and operational documentation | Explain the v2-to-v3 difference and any changed deployment requirements.                                                |
-| T6  | TODO   | Verify and re-review                           | Run required automatic and manual checks; update acceptance evidence.                                                   |
+| ID  | Status | Task                                           | Notes / Expected Output                                                                                                    |
+| --- | ------ | ---------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| T1  | DONE   | Complete persistence analysis                  | `analysis.md` records current lifecycle, all discovered consumers, REST coupling, and driver-specific migration behaviour. |
+| T2  | DONE   | Approve an optional-persistence design         | `solution.md` records the approved v3 contract, validation, API deferrals, compatibility bridge, and staged ordering.      |
+| T3  | TODO   | Implement optional v3 database configuration   | Apply only the Phase 2-approved design; do not change v2.                                                                  |
+| T4  | TODO   | Add regression coverage                        | Cover absent and present database configurations, required-feature validation, migrations, and REST API behaviour.         |
+| T5  | TODO   | Update migration and operational documentation | Explain the v2-to-v3 difference and any changed deployment requirements.                                                   |
+| T6  | TODO   | Verify and re-review                           | Run required automatic and manual checks; update acceptance evidence.                                                      |
 
 ## Progress Tracking
 
@@ -171,7 +192,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Spec-only branch created
 - [x] Folder-based specification scaffold created
 - [x] Spec reviewed and approved by user/maintainer
-- [ ] Spec-only PR merged into `develop`
+- [x] Spec-only PR merged into `develop` (#2094, merge commit `7aad6e79`)
 - [ ] Phase 1 and Phase 2 analysis-and-solution PR merged
 - [ ] Phase 3 implementation PR merged
 - [ ] Automatic verification completed
@@ -186,6 +207,81 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   the analysis-and-solution work precedes implementation.
 - 2026-08-25 00:00 UTC - User - Approved the specification for the spec-only
   PR.
+- 2026-08-25 00:00 UTC - GitHub Copilot - Completed Phase 1 evidence in
+  `analysis.md`: active v2/v3 configuration status, unconditional driver and
+  migration lifecycle, container side effects, persistence consumers, REST API
+  routes, validation layering, and Phase 2 questions. No runtime behavior or
+  solution decision changed.
+- 2026-08-25 00:00 UTC - GitHub Copilot/User - Recorded a working Phase 2
+  direction in `solution.md`: initial v3 persistence-free operation is limited
+  to deployments without listing, private keys, persistent completed metrics,
+  or the management REST API; bootstrap owns one requirement check; a future
+  persistence-awareness EPIC owns wider API and metric semantics. Explicit
+  Phase 2 approval remains required.
+- 2026-08-25 00:00 UTC - GitHub Copilot/User - Corrected the working direction:
+  the management REST API remains available without persistence. Phase 3 must
+  make its construction persistence-aware, return configuration-disabled
+  responses for direct disabled capabilities, and make metric history explicit.
+  Added draft ADR and future-EPIC artifacts for refinement during Phase 3.
+- 2026-08-25 00:00 UTC - User - Approved v3 `Option<Database>` for the
+  persistence-free contract. The implementation must test versioned v3
+  configuration and v3-compatible composition before #1980 activates v3
+  production consumers; it must not activate v3 early solely for testing.
+- 2026-08-25 00:00 UTC - GitHub Copilot/User - Adopted staged activation:
+  #999 adds the v3 optional representation and optional container dependencies;
+  #1980 activates v3 with an explicit temporary database bridge; a small
+  follow-up then honors `None` at runtime and completes persistence-free
+  verification. Added the follow-up issue draft.
+- 2026-08-25 00:00 UTC - User - Approved bootstrap as the single validation
+  owner. Issue #999 implements and tests the reusable requirement matrix; the
+  post-#1980 follow-up invokes it when replacing the temporary bridge with the
+  actual v3 `Option<Database>` value.
+- 2026-08-25 00:00 UTC - User - Approved the initial persistence-required
+  capability matrix: listing, private mode, and persistent completed metrics.
+  Any implementation discovery must extend the same centralized matrix and
+  tests, not introduce a feature-local missing-database check.
+- 2026-08-25 00:00 UTC - User - Approved `PersistenceRequirementError` with
+  one diagnostic per persistence-required capability. Approved the desired REST
+  configuration-disabled contract (HTTP 409, `ActionStatus::Err`, and a
+  distinct disabled-by-configuration error), but deferred its implementation
+  and historical-metric API changes to next-major REST API work in GitHub issue
+  #144. Until then, `http_api` remains persistence-required at activation.
+- 2026-08-25 00:00 UTC - User - Confirmed that session-versus-historical
+  response-field semantics are deferred to the REST API v2 subissue draft under
+  GitHub issue #144. The approved constraints remain no numeric sentinel and no
+  session-only value documented as lifetime history.
+- 2026-08-25 00:00 UTC - User - Approved the all-or-nothing persistence
+  lifecycle. Once persistence is present, initialize one driver and the full
+  shared schema; feature configuration controls code behavior only, not
+  conditional schema or migration fragments.
+- 2026-08-25 00:00 UTC - User - Approved the restart-only, non-destructive
+  persistence transition contract: disabling persistence leaves prior database
+  state untouched; re-enabling the same target reuses it; changing targets does
+  not transfer data automatically; data produced while disabled is not
+  recoverable.
+- 2026-08-25 00:00 UTC - User - Approved the container entrypoint contract:
+  defer persistence selection to actual v3 configuration, do not perform
+  persistence-specific setup when absent, and never destructively alter mounted
+  configuration or database state during transitions.
+- 2026-08-25 00:00 UTC - User - Approved `adr-draft.md` as the Phase 3 ADR
+  starting point. It must be copied to `docs/adrs/` with a timestamped filename
+  and reconciled with final code, tests, API contract, and review outcome.
+- 2026-08-25 00:00 UTC - User - Approved `persistence-awareness-epic-draft.md`
+  as the post-merge starting point. Reconcile it with merged #999, #1980,
+  persistence-free activation-follow-up, and API #144 work before creating the
+  GitHub EPIC.
+- 2026-08-25 00:00 UTC - User - Approved the staged #999 -> #1980 ->
+  persistence-free activation-follow-up ordering. EPIC #1978 and the v2-to-v3
+  migration guide record it. The activation-follow-up draft remains planning
+  only until #999/#1980 implementation evidence permits it to be refined and
+  opened.
+- 2026-08-25 00:00 UTC - User - Approved the Phase 3 implementation and
+  evidence sequence. The activation-follow-up draft records ownership across
+  #999, #1980, the later runtime activation, and API #144; do not create that
+  follow-up issue until preceding implementation evidence is reviewed.
+- 2026-08-25 00:00 UTC - User - Approved the complete Phase 2 design for the
+  analysis-and-solution PR. `solution.md` contains the approval record; Phase 3
+  implementation remains a separate delivery.
 
 ## Acceptance Criteria
 
@@ -250,22 +346,22 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 ### Acceptance Verification
 
-| AC ID | Status (`TODO`/`DONE`) | Evidence                                        |
-| ----- | ---------------------- | ----------------------------------------------- |
-| AC1   | TODO                   | `analysis.md` lifecycle inventory               |
-| AC2   | TODO                   | `analysis.md` consumer and API inventory        |
-| AC3   | TODO                   | `solution.md` approved contract                 |
-| AC4   | TODO                   | Implementation tests and M1 evidence            |
-| AC5   | TODO                   | Validation tests and M2 evidence                |
-| AC6   | TODO                   | REST API tests and M4 evidence                  |
-| AC7   | TODO                   | Driver/migration tests and M3 evidence          |
-| AC8   | TODO                   | EPIC and migration-document updates             |
-| AC9   | TODO                   | V2 compatibility tests/review                   |
-| AC10  | TODO                   | M5 evidence in `baseline-e2e-verification.md`   |
-| AC11  | TODO                   | M6 container-startup evidence                   |
-| AC12  | TODO                   | `linter all` output                             |
-| AC13  | TODO                   | Focused, relevant workspace, and M1–M6 evidence |
-| AC14  | TODO                   | Post-implementation acceptance review           |
+| AC ID | Status (`TODO`/`DONE`) | Evidence                                             |
+| ----- | ---------------------- | ---------------------------------------------------- |
+| AC1   | DONE                   | `analysis.md` lifecycle inventory                    |
+| AC2   | DONE                   | `analysis.md` consumer and API inventory             |
+| AC3   | DONE                   | `solution.md` approval record                        |
+| AC4   | TODO                   | Implementation tests and M1 evidence                 |
+| AC5   | TODO                   | Validation tests and M2 evidence                     |
+| AC6   | TODO                   | REST API tests and M4 evidence                       |
+| AC7   | TODO                   | Driver/migration tests and M3 evidence               |
+| AC8   | DONE                   | Approved staged ordering in EPIC and migration guide |
+| AC9   | TODO                   | V2 compatibility tests/review                        |
+| AC10  | TODO                   | M5 evidence in `baseline-e2e-verification.md`        |
+| AC11  | TODO                   | M6 container-startup evidence                        |
+| AC12  | TODO                   | `linter all` output                                  |
+| AC13  | TODO                   | Focused, relevant workspace, and M1–M6 evidence      |
+| AC14  | TODO                   | Post-implementation acceptance review                |
 
 ## Risks and Trade-offs
 

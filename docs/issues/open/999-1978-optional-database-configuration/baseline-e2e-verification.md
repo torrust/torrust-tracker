@@ -42,9 +42,10 @@ remove_peerless_torrents = false
 
 ## Baseline result
 
-The current v2 configuration still requires `[core.database]`. With its SQLite
-section present, the tracker starts and creates a 49,152-byte SQLite database
-file despite the persistence settings above being disabled:
+The active v2 runtime unconditionally initializes a database. This baseline
+supplies an explicit SQLite section, and the tracker starts and creates a
+49,152-byte SQLite database file despite the persistence settings above being
+disabled:
 
 ```toml
 [core.database]
@@ -89,12 +90,19 @@ were applied.
 ## Missing-database control observation
 
 Removing `[core.database]` from the equivalent v2 benchmarking configuration
-does not provide a valid reproduction of the desired final state because v2
-still requires the section. In the current runtime, the process remains alive
-after configuration loading and provides no useful visible diagnostic at the
-`error` logging threshold before the ten-second timeout. This confirms why the
-implementation must preserve v2 behaviour and target v3 only; Phase 1 must
-trace the precise v2 construction and failure path separately.
+does not provide a valid reproduction of the desired final state. The v2
+`Core::database` field has a serde default, so the TOML section itself is not
+mandatory: omission resolves to the default SQLite configuration. The active
+runtime then still unconditionally constructs that default database and applies
+migrations before it evaluates feature enablement.
+
+In the recorded control run, the process remained alive after configuration
+loading and provided no useful visible diagnostic at the `error` logging
+threshold before the ten-second timeout. The control did not inspect the
+default database location, so it does not independently prove whether that
+location was created. This confirms why the implementation must preserve v2
+behaviour and target v3 only; Phase 1 traces the precise v2 construction path
+in `analysis.md`.
 
 ## Final implementation acceptance scenario
 
