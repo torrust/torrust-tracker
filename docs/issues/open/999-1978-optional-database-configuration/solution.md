@@ -18,11 +18,11 @@ Phase 1 evidence and the Phase 2 design are approved. The approved design is
 ready for the analysis-and-solution PR. Phase 3 implementation remains a
 separate delivery and must follow this approved contract.
 
-## Decision to Make
+## Approved decision
 
-Select a design that allows v3 `[core.database]` to be omitted when persistence
+The approved design allows v3 `[core.database]` to be omitted when persistence
 is unused, while rejecting startup if an enabled persistence-backed capability
-requires a database. The selected design must preserve v2 behaviour unchanged.
+requires a database. It preserves v2 behaviour unchanged.
 
 ## Approved design
 

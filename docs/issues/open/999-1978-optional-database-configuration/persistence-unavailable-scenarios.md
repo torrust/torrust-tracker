@@ -9,7 +9,7 @@ semantic-links:
     - docs/issues/open/999-1978-optional-database-configuration/analysis.md
     - docs/issues/open/999-1978-optional-database-configuration/solution.md
     - docs/issues/open/999-1978-optional-database-configuration/persistence-free-runtime-activation-draft.md
-    - docs/issues/open/999-1978-optional-database-configuration/persistence-awareness-epic-draft.md
+      - docs/issues/open/999-1978-optional-database-configuration/persistence-awareness-epic-draft.md
       - docs/issues/drafts/144-make-rest-api-persistence-aware.md
 ---
 
