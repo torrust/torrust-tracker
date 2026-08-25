@@ -4,8 +4,9 @@
 # Usage:
 #   ./contrib/dev-tools/git/install-git-hooks.sh
 #
-# Run once after cloning the repository. Re-run to update hooks after
-# they change.
+# Run once after cloning the repository. Re-run after changing a dispatcher in .githooks/
+# so its installed copy in .git/hooks/ stays synchronized. Scripts under
+# contrib/dev-tools/git/hooks/ are invoked directly and do not require copying.
 
 set -euo pipefail
 

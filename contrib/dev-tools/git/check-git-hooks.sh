@@ -4,10 +4,11 @@
 # Usage:
 #   ./contrib/dev-tools/git/check-git-hooks.sh
 #
-# Exits 0 if all hooks are installed and executable.
-# Exits 1 if any hook is missing or not executable.
+# Exits 0 if all hooks are installed, executable, and synchronized with .githooks/.
+# Exits 1 if any hook is missing, not executable, or out of sync.
 #
-# Run after cloning or whenever you want to verify your hook installation.
+# Run after cloning, after changing a dispatcher in .githooks/, or whenever you want to verify
+# your hook installation.
 
 set -euo pipefail
 
@@ -26,10 +27,13 @@ for hook in "${HOOKS_SRC}"/*; do
     hook_name="$(basename "${hook}")"
     dest="${HOOKS_DST}/${hook_name}"
 
-    if [[ -x "${dest}" ]]; then
+    if [[ ! -x "${dest}" ]]; then
+        echo "NOT installed: ${hook_name}"
+        all_installed=false
+    elif cmp -s "${hook}" "${dest}"; then
         echo "installed:     ${hook_name}"
     else
-        echo "NOT installed: ${hook_name}"
+        echo "OUT OF SYNC:   ${hook_name}"
         all_installed=false
     fi
 done
@@ -38,12 +42,12 @@ echo ""
 
 if [[ "${all_installed}" == "true" ]]; then
     echo "=========================================="
-    echo "SUCCESS: All hooks are installed."
+    echo "SUCCESS: All hooks are installed and synchronized."
     echo "=========================================="
     exit 0
 else
     echo "=========================================="
-    echo "FAILURE: Some hooks are missing."
+    echo "FAILURE: Some hooks are missing or out of sync."
     echo "Run: ./contrib/dev-tools/git/install-git-hooks.sh"
     echo "=========================================="
     exit 1

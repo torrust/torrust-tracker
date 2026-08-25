@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# This tracked dispatcher is copied to .git/hooks/. After editing .githooks/, run:
+# ./contrib/dev-tools/git/install-git-hooks.sh
+# Scripts under contrib/dev-tools/git/hooks/ are invoked directly and do not require copying.
 
 set -euo pipefail
 
