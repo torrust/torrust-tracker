@@ -27,10 +27,10 @@ Status legend:
 
 ## Suggestions
 
-| # | Thread ID | Path | URL | Suggestion Summary | Decision | Reply URL | Status | Thread State |
-| - | --------- | ---- | --- | ------------------ | -------- | --------- | ------ | ------------ |
-| 1 | PRRT_kwDOGp2yqc6cDyJS | `docs/issues/open/999-1978-optional-database-configuration/baseline-e2e-verification.md` | <https://github.com/torrust/torrust-tracker/pull/2094#discussion_r3852680576> | Keep the build command in one inline code span. | action: corrected the split command in the baseline environment list. | <https://github.com/torrust/torrust-tracker/pull/2094#discussion_r3852742198> | DONE | RESOLVED |
-| 2 | PRRT_kwDOGp2yqc6cDyJo | `docs/issues/open/999-1978-optional-database-configuration/ISSUE.md` | <https://github.com/torrust/torrust-tracker/pull/2094#discussion_r3852680616> | Correct the PostgreSQL migrations directory name. | action: corrected the migration path to `postgresql`. | <https://github.com/torrust/torrust-tracker/pull/2094#discussion_r3852743800> | DONE | RESOLVED |
+| #   | Thread ID             | Path                                                                                     | URL                                                                           | Suggestion Summary                                | Decision                                                              | Reply URL                                                                     | Status | Thread State |
+| --- | --------------------- | ---------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- | ------------------------------------------------- | --------------------------------------------------------------------- | ----------------------------------------------------------------------------- | ------ | ------------ |
+| 1   | PRRT_kwDOGp2yqc6cDyJS | `docs/issues/open/999-1978-optional-database-configuration/baseline-e2e-verification.md` | <https://github.com/torrust/torrust-tracker/pull/2094#discussion_r3852680576> | Keep the build command in one inline code span.   | action: corrected the split command in the baseline environment list. | <https://github.com/torrust/torrust-tracker/pull/2094#discussion_r3852742198> | DONE   | RESOLVED     |
+| 2   | PRRT_kwDOGp2yqc6cDyJo | `docs/issues/open/999-1978-optional-database-configuration/ISSUE.md`                     | <https://github.com/torrust/torrust-tracker/pull/2094#discussion_r3852680616> | Correct the PostgreSQL migrations directory name. | action: corrected the migration path to `postgresql`.                 | <https://github.com/torrust/torrust-tracker/pull/2094#discussion_r3852743800> | DONE   | RESOLVED     |
 
 ## Notes
 
