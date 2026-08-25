@@ -31,11 +31,11 @@ Verify the repository-local setting with:
 git config --local --get core.sshCommand
 ```
 
-To apply the same behavior to all GitHub SSH connections, add these options to the `Host
-github.com` entry in `~/.ssh/config` instead:
+To apply the same behavior to all GitHub SSH connections, add these options to a `Host github.com
+ssh.github.com` entry in `~/.ssh/config` instead:
 
 ```text
-Host github.com
+Host github.com ssh.github.com
   ServerAliveInterval 30
   ServerAliveCountMax 20
 ```
