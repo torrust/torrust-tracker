@@ -18,7 +18,7 @@ semantic-links:
     - packages/udp-core/src/container.rs
     - packages/udp-server/src/container.rs
     - src/container.rs
-    - docs/events-architecture.md
+    - docs/architecture/events.md
     - docs/issues/open/2039-normalize-per-instance-event-metrics-policy/ISSUE.md
     - docs/issues/open/2035-fix-duplicate-port-zero-tracker-instance-bootstrap/ISSUE.md
 ---
@@ -189,5 +189,5 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 - Related issues: Issue #2035 and Issue #2039
 - Related PRs: PR #2044 and PR #2048
-- Events architecture: `docs/events-architecture.md`
+- Events architecture: `docs/architecture/events.md`
 - Event bus: `packages/events/src/bus.rs`

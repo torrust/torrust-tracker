@@ -14,7 +14,7 @@ semantic-links:
     - write-unit-test
   related-artifacts:
     - .github/skills/dev/planning/create-issue/SKILL.md
-    - docs/events-architecture.md
+    - docs/architecture/events.md
     - docs/adrs/20260727000000_events_are_objective_facts.md
     - docs/adrs/20260727180000_shared_services_across_tracker_instances.md
     - docs/issues/open/2035-fix-duplicate-port-zero-tracker-instance-bootstrap/ISSUE.md
@@ -269,7 +269,7 @@ metrics-disabled listener still reach shared ban enforcement.
 
 ## References
 
-- [Events architecture](../../../events-architecture.md)
+- [Events architecture](../../../architecture/events.md)
 - [#1263][1263]
 - [#1401][1401]
 - [#2035][2035]

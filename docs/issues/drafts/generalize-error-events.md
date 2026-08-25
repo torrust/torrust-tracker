@@ -10,7 +10,7 @@ semantic-links:
     - create-issue
   related-artifacts:
     - docs/adrs/20260727000000_events_are_objective_facts.md
-    - docs/events-architecture.md
+    - docs/architecture/events.md
     - docs/issues/open/1987-add-config-option-to-use-ip-from-announce-query-string/error-event-observability-analysis.md
     - packages/events/src/bus.rs
     - packages/http-core/src/event.rs
@@ -154,6 +154,6 @@ For each implementation subissue:
 
 ## References
 
-- Events architecture: `docs/events-architecture.md`
+- Events architecture: `docs/architecture/events.md`
 - Governing ADR: `docs/adrs/20260727000000_events_are_objective_facts.md`
 - #1987 analysis: `docs/issues/open/1987-add-config-option-to-use-ip-from-announce-query-string/error-event-observability-analysis.md`

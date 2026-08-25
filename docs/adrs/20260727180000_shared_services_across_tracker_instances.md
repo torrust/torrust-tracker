@@ -1,8 +1,13 @@
 ---
 semantic-links:
+  skill-links:
+    - create-adr
+    - write-markdown-docs
   related-artifacts:
     - docs/adrs/index.md
-    - docs/events-architecture.md
+    - docs/architecture/README.md
+    - docs/architecture/events.md
+    - docs/architecture/tracker-instance-architecture.md
     - packages/http-core/src/container.rs
     - packages/udp-core/src/container.rs
     - packages/udp-server/src/container.rs
@@ -17,7 +22,10 @@ semantic-links:
 ## Description
 
 The tracker can run multiple UDP and HTTP tracker listeners in a single process.
-Each listener binds to a different address/port but shares core infrastructure:
+They expose one logical tracker, not independent tracker applications managed by
+a launcher. Listeners can have different bindings; HTTP and UDP can use the
+same socket address because they use different transports, and port `0` is
+resolved only after binding. They share core infrastructure:
 
 - **Peer repository** (`TrackerCoreContainer`) — all instances share the same
   swarm data (torrents, peers, statistics). This is the primary reason to run
@@ -27,6 +35,11 @@ Each listener binds to a different address/port but shares core infrastructure:
 - **Event buses and repositories** — HTTP core, UDP core, and UDP server events
   are aggregate application services. The UDP server container is shared by all
   UDP listeners.
+
+The [tracker-instance architecture guide](../architecture/tracker-instance-architecture.md)
+explains the complete runtime composition, including shared core policy and
+listener-specific responsibilities. This ADR records the accepted
+shared-services decision and its rationale.
 
 This ADR documents the shared-services design and the rationale for keeping
 certain services global rather than per-instance.
@@ -38,16 +51,15 @@ certain services global rather than per-instance.
 The following services are created once and shared across all instances of the
 same type:
 
-| Service                                       | Location                                      | Shared? | Rationale                                                                                                          |
-| --------------------------------------------- | --------------------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------ |
-| Peer repository                               | `TrackerCoreContainer`                        | Yes     | All listeners serve the same swarm                                                                                 |
-| Swarm coordination registry                   | `SwarmCoordinationRegistryContainer`          | Yes     | Single source of truth for swarm state                                                                             |
-| UDP ban service                               | `UdpTrackerCoreServices::ban_service`         | Yes     | Resource protection: an attacker should not be able to consume N× resources by attacking N listeners independently |
-| UDP core event bus                            | `UdpTrackerCoreServices::event_bus`           | Yes     | Core events (connect, announce, scrape) are objective facts about the swarm, not about a specific listener         |
-| UDP core services (connect, announce, scrape) | `UdpTrackerCoreServices`                      | Yes     | Stateless service objects; they read from the shared peer repository                                               |
-| HTTP core event bus and repository            | `HttpTrackerCoreServices`                     | Yes     | Aggregate HTTP metrics are collected in one application-wide event path                                            |
-| UDP server event bus                          | `UdpTrackerServerContainer::event_bus`        | Yes     | One application-wide bus is passed to every UDP listener                                                           |
-| UDP server stats repository                   | `UdpTrackerServerContainer::stats_repository` | Yes     | One aggregate server repository receives events from every UDP listener                                            |
+| Service                                      | Location                                      | Shared? | Rationale                                                                                                          |
+| -------------------------------------------- | --------------------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------ |
+| Peer repository                              | `TrackerCoreContainer`                        | Yes     | All listeners serve the same swarm                                                                                 |
+| Swarm coordination registry                  | `SwarmCoordinationRegistryContainer`          | Yes     | Single source of truth for swarm state                                                                             |
+| UDP ban service                              | `UdpTrackerCoreServices::ban_service`         | Yes     | Resource protection: an attacker should not be able to consume N× resources by attacking N listeners independently |
+| UDP core event bus and statistics repository | `UdpTrackerCoreServices`                      | Yes     | Core events are objective facts about the swarm; aggregate protocol metrics are application-wide                   |
+| HTTP core event bus and repository           | `HttpTrackerCoreServices`                     | Yes     | Aggregate HTTP metrics are collected in one application-wide event path                                            |
+| UDP server event bus                         | `UdpTrackerServerContainer::event_bus`        | Yes     | One application-wide bus is passed to every UDP listener                                                           |
+| UDP server stats repository                  | `UdpTrackerServerContainer::stats_repository` | Yes     | One aggregate server repository receives events from every UDP listener                                            |
 
 The UDP server's shared bus and repository do not conflict with per-listener
 metrics policy. Events are objective facts and must be emitted independently of
@@ -59,7 +71,7 @@ listeners may validly use `0.0.0.0:0`.
 UDP banning remains independent of metrics. Its listener receives every
 security-relevant event from the shared UDP server bus and updates the shared
 ban service regardless of whether the originating listener contributes to
-metrics. See [events-architecture.md](../events-architecture.md).
+metrics. See [events.md](../architecture/events.md).
 
 ### Why the ban service is shared
 
@@ -84,6 +96,18 @@ Settings that affect shared services must themselves be global. For example:
 
 Settings that are inherently per-listener (bind address, cookie lifetime,
 public URL, network topology) remain on the per-instance config struct.
+
+The shared `TrackerCoreContainer` also means the tracker-core policies have one
+meaning for the process. Private mode, listed mode, private-mode configuration,
+announce policy, and tracker policy apply to the shared swarm, whitelist, and
+authentication state. They cannot differ by HTTP or UDP listener without
+creating inconsistent behavior over the same logical tracker.
+
+HTTP and UDP listener containers create their own protocol adapters, including
+announce and scrape services. Those adapters are listener-specific; their
+dependencies on tracker-core state, aggregate events, statistics, and UDP ban
+state are shared. A listener-specific adapter does not make the underlying
+tracker state independent.
 
 ### Alternatives Considered
 

@@ -1,3 +1,13 @@
+---
+semantic-links:
+  skill-links:
+    - write-markdown-docs
+  related-artifacts:
+    - docs/architecture/events.md
+    - docs/issues/open/2035-fix-duplicate-port-zero-tracker-instance-bootstrap/ISSUE.md
+    - docs/issues/open/2035-fix-duplicate-port-zero-tracker-instance-bootstrap/evidence.md
+---
+
 # Archived Implementation Attempt
 
 ## Status
@@ -34,4 +44,4 @@ metrics policy must be delivered in a coherent order:
 The archive remains useful for the reproduction, tests, and design questions;
 it is not an accepted implementation. See
 [the revised #2035 plan](ISSUE.md) and the
-[event architecture guide](../../../events-architecture.md).
+[event architecture guide](../../../architecture/events.md).

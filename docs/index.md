@@ -4,6 +4,7 @@ semantic-links:
     - write-markdown-docs
   related-artifacts:
     - docs/AGENTS.md
+    - docs/architecture/README.md
     - docs/adrs/20260821172000_establish_ai_agent_context_capability_and_portability_governance.md
     - docs/benchmarking.md
     - docs/application-jobs.md
@@ -34,12 +35,20 @@ Operational and development guides for working with the tracker.
 | [application-jobs.md](application-jobs.md)                                                                                                                                         | Current background-job ownership, lifecycle, and shutdown behavior   |
 | [benchmarking.md](benchmarking.md)                                                                                                                                                 | How to run and interpret the torrent-repository benchmarks           |
 | [containers.md](containers.md)                                                                                                                                                     | Building and running the tracker with Docker / Podman                |
-| [events-architecture.md](events-architecture.md)                                                                                                                                   | Event topology, consumers, and per-listener metrics policy           |
 | [git-hooks.md](git-hooks.md)                                                                                                                                                       | Hook behavior and SSH idle-timeout troubleshooting                   |
 | [packages.md](packages.md)                                                                                                                                                         | Workspace package catalog, architecture layers, and dependency rules |
 | [profiling.md](profiling.md)                                                                                                                                                       | CPU and memory profiling with Valgrind / kcachegrind                 |
 | [release_process.md](release_process.md)                                                                                                                                           | Branch strategy, versioning, and the staging → main release pipeline |
 | [adrs/20260821172000_establish_ai_agent_context_capability_and_portability_governance.md](adrs/20260821172000_establish_ai_agent_context_capability_and_portability_governance.md) | Governance for portable AI-agent workflows and retained context      |
+
+## Runtime Architecture
+
+Guides describing the running application's composition and behavior. They
+complement ADRs, which record accepted architectural decisions.
+
+| Document                                         | Description                                                                         |
+| ------------------------------------------------ | ----------------------------------------------------------------------------------- |
+| [architecture/README.md](architecture/README.md) | Runtime architecture index: tracker instances, shared services, and event topology. |
 
 ## Architecture Decisions (ADRs)
 
