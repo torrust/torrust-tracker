@@ -7,8 +7,8 @@ epic: null
 github-issue: 2089
 spec-path: docs/issues/open/2089-fix-https-tracker-health-check-protocol/ISSUE.md
 branch: "2089-fix-https-tracker-health-check-protocol"
-related-pr: null
-last-updated-utc: 2026-08-24 00:00
+related-pr: 2093
+last-updated-utc: 2026-08-25 00:00
 semantic-links:
   skill-links:
     - create-issue
@@ -117,6 +117,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-08-24 - agent - Completed M2 with the default development configuration. `curl --fail --silent --show-error http://127.0.0.1:1313/health_check` returned `status: Ok`; HTTP tracker entries for `http://0.0.0.0:7070/` and `http://0.0.0.0:7171/` both returned `200 OK`.
 - 2026-08-24 - user and agent - Unblocked M1 by installing the temporary CA in the platform trust store. The direct trusted HTTPS probe returned `{"status":"Ok"}`. The aggregate `http://127.0.0.1:1313/health_check` report returned `status: Ok` with `https://127.0.0.1:7443/`, an HTTPS `/health_check` probe URL, and `200 OK`.
 - 2026-08-24 - agent - The pre-push all-features suite exposed ambiguous Rustls crypto providers in the HTTPS integration test. The test now explicitly installs the `ring` provider before TLS configuration; `cargo +stable test -p torrust-tracker-axum-health-check-api-server --test integration --all-features` passed (8 tests).
+- 2026-08-25 - agent - Opened ready-for-review PR #2093 targeting `develop`.
 
 ## Acceptance Criteria
 
