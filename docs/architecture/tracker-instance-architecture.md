@@ -9,7 +9,7 @@ semantic-links:
     - docs/packages.md
     - docs/adrs/20260721000000_make_network_configuration_per_tracker_instance.md
     - docs/adrs/20260727180000_shared_services_across_tracker_instances.md
-    - docs/issues/open/1980-1978-configuration-overhaul-final-cleanup.md
+    - issue #1980
     - src/container.rs
     - packages/tracker-core/src/container.rs
     - packages/http-core/src/container.rs
