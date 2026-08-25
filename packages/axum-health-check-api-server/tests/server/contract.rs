@@ -152,11 +152,7 @@ mod http {
     use torrust_tracker_test_helpers::{configuration, logging};
     use url::Url;
 
-    use crate::server::client::get;
-
-    fn install_rustls_crypto_provider() {
-        let _ = rustls::crypto::ring::default_provider().install_default();
-    }
+    use crate::server::client::{get, install_rustls_crypto_provider};
 
     fn trusted_test_check_fn(service_binding: &ServiceBinding) -> ServiceHealthCheckJob {
         let certificate = reqwest::Certificate::from_pem(include_bytes!("../fixtures/https-health-check-cert.pem"))

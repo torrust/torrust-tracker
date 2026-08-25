@@ -153,8 +153,12 @@ this self-signed fixture.
 To exercise the unmodified production callback through the aggregate API, the
 TLS listener needs a certificate already trusted by the platform trust store
 used by `reqwest`. Use a real development trust anchor installed for the current
-user or a publicly trusted certificate for a hostname that resolves to the test
-listener. Configure that certificate in `tsl_config`, then:
+user or a publicly trusted certificate. The production callback constructs its
+URL from the numeric `ServiceBinding` address, so the certificate must contain
+an IP SAN matching the exact numeric listener address (for example,
+`IP:127.0.0.1`). A DNS SAN or common name is not sufficient merely because its
+hostname resolves to that address. Configure that certificate in `tsl_config`,
+then:
 
 1. Start the tracker with its temporary configuration.
 2. Read the log to find the final HTTPS listener address and health API address.
