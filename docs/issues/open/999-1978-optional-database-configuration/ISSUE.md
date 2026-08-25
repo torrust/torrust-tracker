@@ -166,6 +166,25 @@ application boundary. It must not distribute optional-database checks through
 repositories or feature implementation code, where a missed call site could
 become a delayed runtime failure.
 
+### Decision 4: Start Phase 3 at the existing optional database initialization seam
+
+Phase 3 selects, provisionally and reversibly, `Option<Database>` at the
+existing tracker-core initialization seam. The container selects a
+persistence-enabled or persistence-absent composition path before constructing
+services that require initialized stores. Consequently, the enabled path can
+continue passing ordinary required persistence dependencies to its consumers;
+an `Option` must not cascade through every persistence consumer merely because
+configuration can omit the database.
+
+This is deliberately less invasive than injecting an
+`Option<PersistenceServices>` bundle of already-initialized stores from
+bootstrap. The alternative remains documented in `solution.md` and is the
+fallback if the selected seam cannot keep the optional state at composition
+without making container fields or unrelated consumers optional. Driver and
+migration implementation ownership remains in `tracker-core` unless Phase 3
+evidence establishes a reason to move it; this decision changes where
+optionality is resolved, not schema ownership.
+
 - Related ADRs:
   `docs/adrs/20260723184019_separate_configuration_value_invariants_from_consistency_validation.md`.
 - ADRs to create: Decide during Phase 2. Create an ADR only if the selected
@@ -282,6 +301,12 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-08-25 00:00 UTC - User - Approved the complete Phase 2 design for the
   analysis-and-solution PR. `solution.md` contains the approval record; Phase 3
   implementation remains a separate delivery.
+- 2026-08-25 00:00 UTC - User/GitHub Copilot - For Phase 3, selected the
+  existing tracker-core initialization seam as the provisional location for
+  `Option<Database>`. The `Some` branch must retain required initialized-store
+  dependencies, avoiding an `Option` cascade through consumers. The optional
+  pre-initialized persistence-services injection alternative remains a
+  documented fallback if this selection cannot keep optionality at composition.
 
 ## Acceptance Criteria
 
