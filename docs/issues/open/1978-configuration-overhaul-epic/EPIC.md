@@ -20,6 +20,7 @@ semantic-links:
     - docs/issues/open/2023-1978-expose-configured-public-urls-in-runtime-observability.md
     - docs/issues/open/2067-1978-analyze-flat-service-configuration/ISSUE.md
     - docs/issues/open/1490-1978-decompose-database-configuration.md
+    - docs/issues/open/999-1978-optional-database-configuration/ISSUE.md
     - docs/issues/open/2079-adopt-secrecy-for-sensitive-configuration.md
     - docs/adrs/20260617093046_reject_wildcard_external_ip.md
 ---
@@ -98,6 +99,7 @@ Status values: `TODO`, `IN_PROGRESS`, `IN_REVIEW`, `BLOCKED`, `DONE`.
 | 6     | [#1453](https://github.com/torrust/torrust-tracker/issues/1453) — IP bans reset interval configurable + fix duplicate cleanup                       | `docs/issues/closed/1453-1978-ip-bans-reset-interval-configurable/ISSUE.md`                | DONE   | V3 setting validated; one cancellation-managed bootstrap cleanup job uses the v3 default constant. Runtime configuration use is deferred to #1980.        |
 | 7     | [#1136](https://github.com/torrust/torrust-tracker/issues/1136) — Add configurable UDP connection ID validation policy                              | `docs/issues/closed/1136-1978-configurable-udp-connection-id-validation-policy.md`         | DONE   | PR #2032 merged; all 12 ACs met; manual verification deferred to #1980.                                                                                   |
 | 8     | [#1490](https://github.com/torrust/torrust-tracker/issues/1490) — Decompose v3 database configuration                                               | `docs/issues/open/1490-1978-decompose-database-configuration.md`                           | TODO   | After #3 and #2079; isolates the v3 password as `Secret<String>`.                                                                                         |
+| 8a    | [#999](https://github.com/torrust/torrust-tracker/issues/999) — Make v3 database configuration optional when persistence is unused                  | `docs/issues/open/999-1978-optional-database-configuration/ISSUE.md`                       | TODO   | Follows #1490. Analysis and solution determine persistence dependencies, REST API behaviour, and whether it blocks #1980/v3 activation.                   |
 | 9     | [#889](https://github.com/torrust/torrust-tracker/issues/889) — New config option for logging style                                                 | `docs/issues/closed/889-1978-new-config-option-for-logging-style.md`                       | DONE   | V3 schema implemented; includes negative test for removed `threshold` key. Manual verification is deferred to #1980.                                      |
 | 10    | [#1987](https://github.com/torrust/torrust-tracker/issues/1987) — Use peer IP from the HTTP announce `ip` parameter when configured                 | `docs/issues/open/1987-add-config-option-to-use-ip-from-announce-query-string/ISSUE.md`    | TODO   | After #3 and external prerequisite #1985; per-HTTP-tracker opt-in policy                                                                                  |
 | 11    | [#2083](https://github.com/torrust/torrust-tracker/issues/2083) — Move UDP connection-ID error limit to shared server configuration                 | `docs/issues/open/2083-1978-move-max-connection-id-errors-per-ip-to-udp-tracker-server.md` | TODO   | Corrects the v3 shared UDP `BanService` configuration boundary found in #2067; blocks #1980 production activation.                                        |
@@ -130,6 +132,7 @@ graph TD
       sub1 --> secrecy["#2079 Secrecy"]
       sub3 --> sub8["8. #1490 Database configuration"]
       secrecy --> sub8
+      sub8 --> sub8a["8a. #999 optional database configuration"]
       sub3 --> sub10["10. #1987 Announce IP policy"]
       sub1 --> sub11["11. #2083 shared UDP error limit"]
       sub4 --> sub12["12. Final cleanup"]
@@ -140,6 +143,7 @@ graph TD
       sub9 --> sub12
       sub10 --> sub12
       sub11 --> sub12
+      sub8a -. "pending Phase 2 decision" .-> sub12
       sub4 --> sub13["13. public_url runtime observability"]
       sub12 --> sub13
       sub12 --> sub14["14. Post-v3 flat-service research"]
@@ -151,6 +155,7 @@ graph TD
 1 → 2 → 3 → 4 → 12
 1 → 2 → 3 → 8 → 12
 1 → secrecy → 8 → 12
+1 → 2 → 3 → 8 → 8a → 12 (only if Phase 2 confirms #999 blocks activation)
 1 → 11 → 12
 ```
 
@@ -177,6 +182,7 @@ Subissues #5, #6, #7, #9 are independent and can run in parallel with the critic
 - **Subissue #3** (#1640) — Per-instance `Network` block in schema v3.0.0. Establishes the `Network` struct that #4 references; v3 does not support removed v2 field names.
 - **Release-gated prerequisite #2079** — Adopt `secrecy` for sensitive configuration first. It protects API tokens in v2 and v3 and establishes the `Secret<String>` convention without changing legacy database URLs.
 - **Subissue #8** (#1490) — Database enum decomposition. After #3 and the secrecy follow-up; it uses `Secret<String>` for the new isolated v3 database password.
+- **Subissue #8a** (#999) — Analyze and define v3 optional database configuration after #1490. The analysis-and-solution PR determines every persistence requirement, REST API behaviour, and whether the implementation must precede #1980.
 - **Subissue #4** (#1417) — `public_url` flat field. After #3 (depends on `Network` placement decision). ~6 files.
 - **Subissue #10** (#1987) — Opt-in use of the HTTP announce `ip` parameter. After #3 and external prerequisite #1985.
 
@@ -292,6 +298,7 @@ For each subissue implementation in this EPIC, the default completion policy is:
 - 2026-08-21 16:30 UTC - Copilot/User - Split #1490's schema-decomposition and secret-typing work. #1490 now defines the final v3 database configuration shape; a release-gated `secrecy` prerequisite was drafted.
 - 2026-08-21 16:45 UTC - josecelano - Ordered the smaller secrecy refactor first. It protects API tokens in v2 and v3 without wrapping legacy database URLs; #1490 follows and uses the established `Secret<String>` convention for the isolated v3 database password.
 - 2026-08-21 17:00 UTC - Copilot/User - Maintainer approved and created the secrecy prerequisite as GitHub issue #2079; moved its specification to `docs/issues/open/`.
+- 2026-08-25 00:00 UTC - GitHub Copilot/User - Added #999 as a pending v3 configuration subissue after #1490. Its analysis-and-solution phase must decide whether optional database configuration blocks #1980 and v3 activation; v2 remains unchanged.
 
 ## Acceptance Criteria
 
@@ -331,7 +338,7 @@ For each subissue implementation in this EPIC, the default completion policy is:
 
 ## References
 
-- Related issues: #1417, #1640, #1490, #1453, #1415, #1136, #889, #1987
+- Related issues: #1417, #1640, #1490, #999, #1453, #1415, #1136, #889, #1987
 - Related PRs: #1937 (spec for #1640)
 - Related ADRs: `docs/adrs/20260617093046_reject_wildcard_external_ip.md`
 - Related EPICs: #1669 (package overhaul)
