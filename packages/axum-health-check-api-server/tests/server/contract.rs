@@ -232,8 +232,8 @@ mod http {
             .expect("missing HTTP tracker configuration")[0]
             .clone();
         http_tracker_config.tsl_config = Some(TslConfig {
-            ssl_cert_path: format!("{}/tests/fixtures/https-health-check-cert.pem", env!("CARGO_MANIFEST_DIR")).into(),
-            ssl_key_path: format!("{}/tests/fixtures/https-health-check-key.pem", env!("CARGO_MANIFEST_DIR")).into(),
+            ssl_cert_path: "tests/fixtures/https-health-check-cert.pem".into(),
+            ssl_key_path: "tests/fixtures/https-health-check-key.pem".into(),
         });
 
         let service = torrust_tracker_axum_http_server::testing::environment::Environment::<
