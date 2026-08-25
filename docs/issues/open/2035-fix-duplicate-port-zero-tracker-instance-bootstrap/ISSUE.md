@@ -19,7 +19,7 @@ semantic-links:
     - docs/issues/closed/2036-add-runtime-service-registry-metadata/ISSUE.md
     - docs/issues/open/2039-normalize-per-instance-event-metrics-policy/ISSUE.md
     - docs/issues/closed/2041-migrate-runtime-service-registry-metadata/ISSUE.md
-    - docs/events-architecture.md
+    - docs/architecture/events.md
     - evidence.md
     - tests/metrics/fixed_ports.rs
   related-issues:
@@ -209,4 +209,4 @@ evidence.
 - Bug #2039: [normalize per-instance event metrics policy](../2039-normalize-per-instance-event-metrics-policy/ISSUE.md)
 - Issue #2041: [migrate runtime service registry metadata](../../closed/2041-migrate-runtime-service-registry-metadata/ISSUE.md)
 - [Archived implementation attempt](archived-attempt.md)
-- [Events architecture](../../../events-architecture.md)
+- [Events architecture](../../../architecture/events.md)
