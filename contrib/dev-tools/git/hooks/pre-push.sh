@@ -351,6 +351,7 @@ failed_step_name=""
 
 if [[ "${FORMAT}" == "text" ]]; then
     echo "Running pre-push checks..."
+    echo "Note: these checks can take several minutes. If Git reports a closed SSH connection after they pass, see <repository root>/docs/git-hooks.md."
     echo
 fi
 
