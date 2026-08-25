@@ -11,8 +11,12 @@ use tracing::instrument;
 #[derive(Error, Debug)]
 pub enum Error {
     /// Enabled tls but missing config.
-    #[error("tls config missing")]
-    MissingTlsConfig { location: &'static Location<'static> },
+    #[error("TLS certificate or key file does not exist: certificate={cert}, key={key}")]
+    MissingTlsConfig {
+        cert: camino::Utf8PathBuf,
+        key: camino::Utf8PathBuf,
+        location: &'static Location<'static>,
+    },
 
     /// Unable to parse tls Config.
     #[error("bad tls config: {source}")]
@@ -33,6 +37,8 @@ pub async fn make_rust_tls(tls_config: &TslConfig) -> Result<RustlsConfig, Error
 
     if !cert.exists() || !key.exists() {
         return Err(Error::MissingTlsConfig {
+            cert,
+            key,
             location: Location::caller(),
         });
     }
@@ -95,6 +101,13 @@ mod tests {
         .await
         .expect_err("missing_config");
 
-        assert!(matches!(err, Error::MissingTlsConfig { location: _ }));
+        assert!(matches!(
+            err,
+            Error::MissingTlsConfig {
+                cert: _,
+                key: _,
+                location: _
+            }
+        ));
     }
 }

@@ -144,12 +144,26 @@ mod api {
 mod http {
     use std::sync::Arc;
 
+    use torrust_net_primitives::service_binding::ServiceBinding;
+    use torrust_server_lib::registar::ServiceHealthCheckJob;
     use torrust_tracker_axum_health_check_api_server::environment::Started;
     use torrust_tracker_axum_health_check_api_server::resources::{Report, Status};
+    use torrust_tracker_configuration::TslConfig;
     use torrust_tracker_test_helpers::{configuration, logging};
     use url::Url;
 
-    use crate::server::client::get;
+    use crate::server::client::{get, install_rustls_crypto_provider};
+
+    fn trusted_test_check_fn(service_binding: &ServiceBinding) -> ServiceHealthCheckJob {
+        let certificate = reqwest::Certificate::from_pem(include_bytes!("../fixtures/https-health-check-cert.pem"))
+            .expect("test certificate should parse");
+        let client = reqwest::Client::builder()
+            .add_root_certificate(certificate)
+            .build()
+            .expect("trusted test client should build");
+
+        torrust_tracker_axum_http_server::server::check_fn_with_client(service_binding, client)
+    }
 
     #[tokio::test]
     pub(crate) async fn it_should_return_good_health_for_http_service() {
@@ -200,6 +214,65 @@ mod http {
             );
 
             env.stop().await.expect("it should stop the service");
+        }
+
+        service.stop().await;
+    }
+
+    #[tokio::test]
+    pub(crate) async fn it_should_return_good_health_for_https_service_with_a_trusted_test_certificate() {
+        logging::setup();
+        install_rustls_crypto_provider();
+
+        let configuration = configuration::ephemeral();
+        let core_config = Arc::new(configuration.core.clone());
+        let mut http_tracker_config = configuration
+            .http_trackers
+            .clone()
+            .expect("missing HTTP tracker configuration")[0]
+            .clone();
+        http_tracker_config.tsl_config = Some(TslConfig {
+            ssl_cert_path: "tests/fixtures/https-health-check-cert.pem".into(),
+            ssl_key_path: "tests/fixtures/https-health-check-key.pem".into(),
+        });
+
+        let service = torrust_tracker_axum_http_server::testing::environment::Environment::<
+            torrust_tracker_axum_http_server::server::Stopped,
+        >::new(&core_config, &Arc::new(http_tracker_config))
+        .await
+        .start_with_health_check(trusted_test_check_fn)
+        .await;
+
+        let registar = service.registar.clone();
+
+        {
+            let config = configuration.health_check_api.clone();
+            let env = Started::new(&config.into(), registar).await;
+
+            let response = get(&format!("http://{}/health_check", env.state.binding)).await; // DevSkim: ignore DS137138
+            let report: Report = response.json().await.expect("health report should deserialize");
+            let details = report
+                .details
+                .first()
+                .expect("health report should include the HTTPS tracker");
+
+            assert_eq!(report.status, Status::Ok);
+            assert_eq!(
+                details.service_binding,
+                Url::parse(&format!("https://{}", service.bind_address())).unwrap()
+            );
+            assert_eq!(details.binding, *service.bind_address());
+            assert_eq!(details.service_type, "http_tracker");
+            assert_eq!(details.result, Ok("200 OK".to_string()));
+            assert_eq!(
+                details.info,
+                format!(
+                    "checking http tracker health check at: https://{}/health_check",
+                    service.bind_address()
+                )
+            );
+
+            env.stop().await.expect("health-check API should stop");
         }
 
         service.stop().await;

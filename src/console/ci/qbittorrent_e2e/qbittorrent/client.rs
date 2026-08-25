@@ -78,7 +78,7 @@ impl QbittorrentClient {
     pub async fn login(&self, credentials: &QbittorrentCredentials) -> anyhow::Result<()> {
         let body = reqwest::Url::parse_with_params(
             "http://localhost",
-            &[
+            [
                 ("username", credentials.username.as_str()),
                 ("password", credentials.password.as_str()),
             ],

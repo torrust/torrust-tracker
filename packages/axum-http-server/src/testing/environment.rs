@@ -3,7 +3,7 @@ use std::sync::Arc;
 use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
 use torrust_info_hash::InfoHash;
-use torrust_server_lib::registar::Registar;
+use torrust_server_lib::registar::{FnSpawnServiceHeathCheck, Registar};
 use torrust_tracker_axum_server::tls::make_rust_tls;
 use torrust_tracker_configuration::{Core, HttpTracker};
 use torrust_tracker_core::container::TrackerCoreContainer;
@@ -76,6 +76,16 @@ impl Environment<Stopped> {
     /// Will panic if the server fails to start.    
     #[allow(dead_code)]
     pub async fn start(self) -> Environment<Running> {
+        self.start_with_health_check(crate::server::check_fn).await
+    }
+
+    /// Starts the environment with the supplied health-check callback.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the HTTP tracker server fails to start or register with the
+    /// test registry.
+    pub async fn start_with_health_check(self, health_check: FnSpawnServiceHeathCheck) -> Environment<Running> {
         // Start the event listener
         let event_listener_job = run_event_listener(
             self.container.http_tracker_core_container.event_bus.receiver(),
@@ -87,10 +97,11 @@ impl Environment<Stopped> {
         // Start the server
         let server = self
             .server
-            .start(
+            .start_with_health_check(
                 self.container.http_tracker_core_container.clone(),
                 self.registar.give_form(),
                 RuntimeServiceMetadata::new(ConfigurationInstanceId::new(ServiceRole::HttpTracker, 0)),
+                health_check,
             )
             .await
             .expect("Failed to start the HTTP tracker server");

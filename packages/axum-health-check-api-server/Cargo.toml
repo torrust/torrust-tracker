@@ -32,6 +32,7 @@ url = "2.5.4"
 
 [dev-dependencies]
 reqwest = { version = "0", features = [ "json" ] }
+rustls = { version = "0.23", default-features = false, features = [ "ring" ] }
 torrust-tracker-axum-health-check-api-server = { version = "0.1.0", path = "../axum-health-check-api-server" }
 torrust-tracker-axum-http-server = { version = "0.1.0", path = "../axum-http-server" }
 torrust-tracker-axum-rest-api-server = { version = "0.1.0", path = "../axum-rest-api-server" }

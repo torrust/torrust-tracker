@@ -4809,6 +4809,7 @@ dependencies = [
  "futures",
  "hyper",
  "reqwest",
+ "rustls",
  "serde",
  "serde_json",
  "tokio",
