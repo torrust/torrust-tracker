@@ -89,23 +89,23 @@ version from `2.0.0` to `3.0.0`.
 
 Status values: `TODO`, `IN_PROGRESS`, `IN_REVIEW`, `BLOCKED`, `DONE`.
 
-| Order | Issue                                                                                                                                               | Local Spec                                                                                 | Status | Notes                                                                                                                                                     |
-| ----- | --------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ | ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1     | [#1979](https://github.com/torrust/torrust-tracker/issues/1979) — Copy `v2_0_0` → `v3_0_0` as baseline                                              | `docs/issues/closed/1979-1978-copy-configuration-schema-v2-to-v3-baseline.md`              | DONE   | Merged in PR #1999; v3 baseline and smoke tests are in `develop`                                                                                          |
-| 2     | [#1981](https://github.com/torrust/torrust-tracker/issues/1981) — Fix `tsl_config` → `tls_config` typo                                              | `docs/issues/closed/1981-1978-fix-tsl-config-tls-config-typo.md`                           | DONE   | Implemented for v3; v2 compatibility retained until final migration                                                                                       |
-| 3     | [#1640](https://github.com/torrust/torrust-tracker/issues/1640) — Support per-HTTP-tracker `on_reverse_proxy` setting                               | `docs/issues/closed/1640-1978-per-http-tracker-on-reverse-proxy-setting.md`                | DONE   | Merged in PR #2014; v3 schema slice complete; runtime consumers deferred to #1980 (subissue #12)                                                          |
-| 4     | [#1417](https://github.com/torrust/torrust-tracker/issues/1417) — Include public service URL in configuration                                       | `docs/issues/closed/1417-1978-add-public-service-url-to-configuration.md`                  | DONE   | Merged in PR #2016; typed `Option<HttpUrl>`/`Option<UdpUrl>` newtypes on `HttpTracker`, `UdpTracker`, `HttpApi`; scheme validation at deserialization     |
-| 5     | [#1415](https://github.com/torrust/torrust-tracker/issues/1415) — Use `ServiceBinding` instead of bare `SocketAddr` for service identity            | `docs/issues/closed/1415-1978-use-service-binding-instead-of-socket-addr/ISSUE.md`         | DONE   | Added protocol-aware `service_binding` alongside compatible `server_socket_addr` fields in HTTP tracker, REST API, and UDP error logs; verified manually. |
-| 6     | [#1453](https://github.com/torrust/torrust-tracker/issues/1453) — IP bans reset interval configurable + fix duplicate cleanup                       | `docs/issues/closed/1453-1978-ip-bans-reset-interval-configurable/ISSUE.md`                | DONE   | V3 setting validated; one cancellation-managed bootstrap cleanup job uses the v3 default constant. Runtime configuration use is deferred to #1980.        |
-| 7     | [#1136](https://github.com/torrust/torrust-tracker/issues/1136) — Add configurable UDP connection ID validation policy                              | `docs/issues/closed/1136-1978-configurable-udp-connection-id-validation-policy.md`         | DONE   | PR #2032 merged; all 12 ACs met; manual verification deferred to #1980.                                                                                   |
-| 8     | [#1490](https://github.com/torrust/torrust-tracker/issues/1490) — Decompose v3 database configuration                                               | `docs/issues/open/1490-1978-decompose-database-configuration.md`                           | TODO   | After #3 and #2079; isolates the v3 password as `Secret<String>`.                                                                                         |
-| 8a    | [#999](https://github.com/torrust/torrust-tracker/issues/999) — Make v3 database configuration optional when persistence is unused                  | `docs/issues/open/999-1978-optional-database-configuration/ISSUE.md`                       | TODO   | Follows #1490. Analysis and solution determine persistence dependencies, REST API behaviour, and whether it blocks #1980/v3 activation.                   |
-| 9     | [#889](https://github.com/torrust/torrust-tracker/issues/889) — New config option for logging style                                                 | `docs/issues/closed/889-1978-new-config-option-for-logging-style.md`                       | DONE   | V3 schema implemented; includes negative test for removed `threshold` key. Manual verification is deferred to #1980.                                      |
-| 10    | [#1987](https://github.com/torrust/torrust-tracker/issues/1987) — Use peer IP from the HTTP announce `ip` parameter when configured                 | `docs/issues/open/1987-add-config-option-to-use-ip-from-announce-query-string/ISSUE.md`    | TODO   | After #3 and external prerequisite #1985; per-HTTP-tracker opt-in policy                                                                                  |
-| 11    | [#2083](https://github.com/torrust/torrust-tracker/issues/2083) — Move UDP connection-ID error limit to shared server configuration                 | `docs/issues/open/2083-1978-move-max-connection-id-errors-per-ip-to-udp-tracker-server.md` | TODO   | Corrects the v3 shared UDP `BanService` configuration boundary found in #2067; blocks #1980 production activation.                                        |
-| 12    | [#1980](https://github.com/torrust/torrust-tracker/issues/1980) — Final cleanup: remove global re-exports, migrate consumers to explicit v3 imports | `docs/issues/open/1980-1978-configuration-overhaul-final-cleanup.md`                       | TODO   | Must follow all implemented schema subissues, including #2083, and the secrecy release gate.                                                              |
-| 13    | [#2023](https://github.com/torrust/torrust-tracker/issues/2023) — Expose configured public URLs in runtime observability                            | `docs/issues/open/2023-1978-expose-configured-public-urls-in-runtime-observability.md`     | TODO   | Must follow #1417 and #1980; adds `public_url` to health checks, metrics, and logs without replacing ServiceBinding.                                      |
-| 14    | [#2067](https://github.com/torrust/torrust-tracker/issues/2067) — Analyze a flat heterogeneous service configuration                                | `docs/issues/open/2067-1978-analyze-flat-service-configuration/ISSUE.md`                   | TODO   | Non-blocking analysis only; its confirmed configuration-model bug is tracked by #2083.                                                                    |
+| Order | Issue                                                                                                                                               | Local Spec                                                                                 | Status | Notes                                                                                                                                                                                   |
+| ----- | --------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ | ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1     | [#1979](https://github.com/torrust/torrust-tracker/issues/1979) — Copy `v2_0_0` → `v3_0_0` as baseline                                              | `docs/issues/closed/1979-1978-copy-configuration-schema-v2-to-v3-baseline.md`              | DONE   | Merged in PR #1999; v3 baseline and smoke tests are in `develop`                                                                                                                        |
+| 2     | [#1981](https://github.com/torrust/torrust-tracker/issues/1981) — Fix `tsl_config` → `tls_config` typo                                              | `docs/issues/closed/1981-1978-fix-tsl-config-tls-config-typo.md`                           | DONE   | Implemented for v3; v2 compatibility retained until final migration                                                                                                                     |
+| 3     | [#1640](https://github.com/torrust/torrust-tracker/issues/1640) — Support per-HTTP-tracker `on_reverse_proxy` setting                               | `docs/issues/closed/1640-1978-per-http-tracker-on-reverse-proxy-setting.md`                | DONE   | Merged in PR #2014; v3 schema slice complete; runtime consumers deferred to #1980 (subissue #12)                                                                                        |
+| 4     | [#1417](https://github.com/torrust/torrust-tracker/issues/1417) — Include public service URL in configuration                                       | `docs/issues/closed/1417-1978-add-public-service-url-to-configuration.md`                  | DONE   | Merged in PR #2016; typed `Option<HttpUrl>`/`Option<UdpUrl>` newtypes on `HttpTracker`, `UdpTracker`, `HttpApi`; scheme validation at deserialization                                   |
+| 5     | [#1415](https://github.com/torrust/torrust-tracker/issues/1415) — Use `ServiceBinding` instead of bare `SocketAddr` for service identity            | `docs/issues/closed/1415-1978-use-service-binding-instead-of-socket-addr/ISSUE.md`         | DONE   | Added protocol-aware `service_binding` alongside compatible `server_socket_addr` fields in HTTP tracker, REST API, and UDP error logs; verified manually.                               |
+| 6     | [#1453](https://github.com/torrust/torrust-tracker/issues/1453) — IP bans reset interval configurable + fix duplicate cleanup                       | `docs/issues/closed/1453-1978-ip-bans-reset-interval-configurable/ISSUE.md`                | DONE   | V3 setting validated; one cancellation-managed bootstrap cleanup job uses the v3 default constant. Runtime configuration use is deferred to #1980.                                      |
+| 7     | [#1136](https://github.com/torrust/torrust-tracker/issues/1136) — Add configurable UDP connection ID validation policy                              | `docs/issues/closed/1136-1978-configurable-udp-connection-id-validation-policy.md`         | DONE   | PR #2032 merged; all 12 ACs met; manual verification deferred to #1980.                                                                                                                 |
+| 8     | [#1490](https://github.com/torrust/torrust-tracker/issues/1490) — Decompose v3 database configuration                                               | `docs/issues/open/1490-1978-decompose-database-configuration.md`                           | TODO   | After #3 and #2079; isolates the v3 password as `Secret<String>`.                                                                                                                       |
+| 8a    | [#999](https://github.com/torrust/torrust-tracker/issues/999) — Make v3 database configuration optional when persistence is unused                  | `docs/issues/open/999-1978-optional-database-configuration/ISSUE.md`                       | TODO   | Follows #1490. Adds v3 `Option<Database>`, optional container dependencies, and a temporary bridge for #1980; a small post-#1980 follow-up activates persistence-free runtime behavior. |
+| 9     | [#889](https://github.com/torrust/torrust-tracker/issues/889) — New config option for logging style                                                 | `docs/issues/closed/889-1978-new-config-option-for-logging-style.md`                       | DONE   | V3 schema implemented; includes negative test for removed `threshold` key. Manual verification is deferred to #1980.                                                                    |
+| 10    | [#1987](https://github.com/torrust/torrust-tracker/issues/1987) — Use peer IP from the HTTP announce `ip` parameter when configured                 | `docs/issues/open/1987-add-config-option-to-use-ip-from-announce-query-string/ISSUE.md`    | TODO   | After #3 and external prerequisite #1985; per-HTTP-tracker opt-in policy                                                                                                                |
+| 11    | [#2083](https://github.com/torrust/torrust-tracker/issues/2083) — Move UDP connection-ID error limit to shared server configuration                 | `docs/issues/open/2083-1978-move-max-connection-id-errors-per-ip-to-udp-tracker-server.md` | TODO   | Corrects the v3 shared UDP `BanService` configuration boundary found in #2067; blocks #1980 production activation.                                                                      |
+| 12    | [#1980](https://github.com/torrust/torrust-tracker/issues/1980) — Final cleanup: remove global re-exports, migrate consumers to explicit v3 imports | `docs/issues/open/1980-1978-configuration-overhaul-final-cleanup.md`                       | TODO   | Must follow all implemented schema subissues, including #2083, and the secrecy release gate.                                                                                            |
+| 13    | [#2023](https://github.com/torrust/torrust-tracker/issues/2023) — Expose configured public URLs in runtime observability                            | `docs/issues/open/2023-1978-expose-configured-public-urls-in-runtime-observability.md`     | TODO   | Must follow #1417 and #1980; adds `public_url` to health checks, metrics, and logs without replacing ServiceBinding.                                                                    |
+| 14    | [#2067](https://github.com/torrust/torrust-tracker/issues/2067) — Analyze a flat heterogeneous service configuration                                | `docs/issues/open/2067-1978-analyze-flat-service-configuration/ISSUE.md`                   | TODO   | Non-blocking analysis only; its confirmed configuration-model bug is tracked by #2083.                                                                                                  |
 
 ### Release-gated prerequisite
 
@@ -132,7 +132,7 @@ graph TD
       sub1 --> secrecy["#2079 Secrecy"]
       sub3 --> sub8["8. #1490 Database configuration"]
       secrecy --> sub8
-      sub8 --> sub8a["8a. #999 optional database configuration"]
+      sub8 --> sub8a["8a. #999 optional DB representation"]
       sub3 --> sub10["10. #1987 Announce IP policy"]
       sub1 --> sub11["11. #2083 shared UDP error limit"]
       sub4 --> sub12["12. Final cleanup"]
@@ -143,7 +143,8 @@ graph TD
       sub9 --> sub12
       sub10 --> sub12
       sub11 --> sub12
-      sub8a -. "pending Phase 2 decision" .-> sub12
+      sub8a --> sub12["12. #1980 v3 activation with bridge"]
+      sub12 --> optionalRuntime["Post-#1980 persistence-free activation follow-up"]
       sub4 --> sub13["13. public_url runtime observability"]
       sub12 --> sub13
       sub12 --> sub14["14. Post-v3 flat-service research"]
@@ -155,7 +156,7 @@ graph TD
 1 → 2 → 3 → 4 → 12
 1 → 2 → 3 → 8 → 12
 1 → secrecy → 8 → 12
-1 → 2 → 3 → 8 → 8a → 12 (only if Phase 2 confirms #999 blocks activation)
+1 → 2 → 3 → 8 → 8a → 12 → persistence-free activation follow-up
 1 → 11 → 12
 ```
 
@@ -182,7 +183,11 @@ Subissues #5, #6, #7, #9 are independent and can run in parallel with the critic
 - **Subissue #3** (#1640) — Per-instance `Network` block in schema v3.0.0. Establishes the `Network` struct that #4 references; v3 does not support removed v2 field names.
 - **Release-gated prerequisite #2079** — Adopt `secrecy` for sensitive configuration first. It protects API tokens in v2 and v3 and establishes the `Secret<String>` convention without changing legacy database URLs.
 - **Subissue #8** (#1490) — Database enum decomposition. After #3 and the secrecy follow-up; it uses `Secret<String>` for the new isolated v3 database password.
-- **Subissue #8a** (#999) — Analyze and define v3 optional database configuration after #1490. The analysis-and-solution PR determines every persistence requirement, REST API behaviour, and whether the implementation must precede #1980.
+- **Subissue #8a** (#999) — After #1490, introduce the v3
+  `Option<Database>` representation, optional container dependencies, and a
+  tested temporary `Some(Database)` bridge. #1980 activates v3 consumers with
+  that bridge. A small post-#1980 follow-up passes actual `None`, invokes the
+  reusable validation matrix, and activates persistence-free runtime behavior.
 - **Subissue #4** (#1417) — `public_url` flat field. After #3 (depends on `Network` placement decision). ~6 files.
 - **Subissue #10** (#1987) — Opt-in use of the HTTP announce `ip` parameter. After #3 and external prerequisite #1985.
 
@@ -299,6 +304,11 @@ For each subissue implementation in this EPIC, the default completion policy is:
 - 2026-08-21 16:45 UTC - josecelano - Ordered the smaller secrecy refactor first. It protects API tokens in v2 and v3 without wrapping legacy database URLs; #1490 follows and uses the established `Secret<String>` convention for the isolated v3 database password.
 - 2026-08-21 17:00 UTC - Copilot/User - Maintainer approved and created the secrecy prerequisite as GitHub issue #2079; moved its specification to `docs/issues/open/`.
 - 2026-08-25 00:00 UTC - GitHub Copilot/User - Added #999 as a pending v3 configuration subissue after #1490. Its analysis-and-solution phase must decide whether optional database configuration blocks #1980 and v3 activation; v2 remains unchanged.
+- 2026-08-25 00:00 UTC - GitHub Copilot/User - Defined staged optional
+  persistence delivery: #999 adds v3 `Option<Database>` and optional container
+  dependencies; #1980 activates v3 with a temporary bridge; a small follow-up
+  activates the persistence-free runtime. The next-major REST API response
+  contract is separately drafted under API EPIC #144.
 
 ## Acceptance Criteria
 
