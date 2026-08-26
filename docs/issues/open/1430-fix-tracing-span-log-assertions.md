@@ -1,11 +1,11 @@
 ---
 doc-type: issue
 issue-type: bug
-status: done
+status: in_progress
 priority: p2
 epic: null
 github-issue: 1430
-spec-path: docs/issues/closed/1430-fix-tracing-span-log-assertions.md
+spec-path: docs/issues/open/1430-fix-tracing-span-log-assertions.md
 branch: "1430-fix-tracing-span-log-assertions"
 related-pr: 1429
 last-updated-utc: 2026-08-26
@@ -90,7 +90,7 @@ did not introduce general tracing-context propagation or resolve this issue's as
 | T2  | DONE   | Evaluate current tracker need and alternatives       | The custom helper and explicit identifiers satisfy current needs with less maintenance and better debuggability. |
 | T3  | DONE   | Write the test logging strategy ADR                  | Added `docs/adrs/20260826124959_use_explicit_identifiers_for_test_log_assertions.md`.                            |
 | T4  | DONE   | Validate and review the ADR                          | Maintainer approved the ADR; `linter all` passed.                                                                |
-| T5  | DONE   | Close the GitHub issue                               | Closed as `not_planned` with a link to the ADR in GitHub comment #5427424336.                                    |
+| T5  | TODO   | Merge the documentation PR and close the GitHub issue | The PR description must use `Closes #1430`; GitHub will close the issue when the PR merges.                      |
 
 ## Progress Tracking
 
@@ -102,8 +102,9 @@ did not introduce general tracing-context propagation or resolve this issue's as
 - [x] ADR written and accepted
 - [x] Documentation checks completed
 - [x] Acceptance criteria reviewed after documentation implementation and updated with evidence
-- [x] GitHub issue closed with ADR reference
-- [x] Issue closed and specification moved to `docs/issues/closed/`
+- [ ] Documentation PR opened and reviewed
+- [ ] GitHub issue closed by the merged documentation PR
+- [ ] Issue specification moved to `docs/issues/closed/` after PR merge
 
 ### Progress Log
 
@@ -119,9 +120,8 @@ did not introduce general tracing-context propagation or resolve this issue's as
   specification updates.
 - 2026-08-26 UTC - josecelano - Approved the ADR and the documented decision to retain explicit
   identifiers for test log assertions.
-- 2026-08-26 UTC - GitHub Copilot - Posted the closure rationale linking the accepted ADR and
-  closed GitHub issue #1430 as `not_planned`.
-- 2026-08-26 UTC - GitHub Copilot - Archived this completed specification in `docs/issues/closed/`.
+- 2026-08-26 UTC - GitHub Copilot - Reopened GitHub issue #1430 after correcting the lifecycle:
+  the documentation PR, rather than an issue state reason, will close it when merged.
 
 ## Acceptance Criteria
 
