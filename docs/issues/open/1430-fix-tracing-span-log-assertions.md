@@ -83,13 +83,13 @@ did not introduce general tracing-context propagation or resolve this issue's as
 
 ## Implementation Plan
 
-| ID | Status | Task | Notes / Expected Output |
-| --- | ------ | ---- | ----------------------- |
-| T1 | DONE | Review the original failure and upstream limitations | Confirmed the limitation affects spawned and blocking work and requires explicit propagation at each boundary. |
-| T2 | DONE | Evaluate current tracker need and alternatives | The custom helper and explicit identifiers satisfy current needs with less maintenance and better debuggability. |
-| T3 | TODO | Write the test logging strategy ADR | Record the adopted strategy, constraints, alternatives, and reopening criteria. |
-| T4 | TODO | Validate and review the ADR | Run documentation checks and obtain maintainer approval. |
-| T5 | TODO | Close the GitHub issue | Link the accepted ADR in the closing comment and close #1430 as not planned. |
+| ID  | Status | Task                                                 | Notes / Expected Output                                                                                          |
+| --- | ------ | ---------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| T1  | DONE   | Review the original failure and upstream limitations | Confirmed the limitation affects spawned and blocking work and requires explicit propagation at each boundary.   |
+| T2  | DONE   | Evaluate current tracker need and alternatives       | The custom helper and explicit identifiers satisfy current needs with less maintenance and better debuggability. |
+| T3  | DONE   | Write the test logging strategy ADR                  | Added `docs/adrs/20260826124959_use_explicit_identifiers_for_test_log_assertions.md`.                            |
+| T4  | DONE   | Validate and review the ADR                          | Maintainer approved the ADR; `linter all` passed.                                                                |
+| T5  | TODO   | Close the GitHub issue                               | Link the accepted ADR in the closing comment and close #1430 as not planned.                                     |
 
 ## Progress Tracking
 
@@ -98,8 +98,8 @@ did not introduce general tracing-context propagation or resolve this issue's as
 - [x] Specification drafted for the existing GitHub issue
 - [x] Specification reviewed and clarified with user/maintainer
 - [x] Current need and alternatives assessed
-- [ ] ADR written and accepted
-- [ ] Documentation checks completed
+- [x] ADR written and accepted
+- [x] Documentation checks completed
 - [ ] Acceptance criteria reviewed after documentation implementation and updated with evidence
 - [ ] GitHub issue closed with ADR reference
 - [ ] Issue closed and specification moved to `docs/issues/closed/`
@@ -111,19 +111,26 @@ did not introduce general tracing-context propagation or resolve this issue's as
 - 2026-08-26 UTC - josecelano - Decided not to pursue automatic test-span propagation. The
   repository-owned helper and explicit developer-selected identifiers meet current needs and are
   more maintainable for the tracker's concurrent execution model. Requested an ADR and closure.
+- 2026-08-26 UTC - GitHub Copilot - Drafted ADR
+  `20260826124959_use_explicit_identifiers_for_test_log_assertions.md` and registered it in the
+  ADR index. The ADR awaits review before it can be treated as accepted.
+- 2026-08-26 UTC - GitHub Copilot - `linter all` passed for the ADR, index, and issue
+  specification updates.
+- 2026-08-26 UTC - josecelano - Approved the ADR and the documented decision to retain explicit
+  identifiers for test log assertions.
 
 ## Acceptance Criteria
 
-- [ ] AC1: An ADR documents the repository-owned capture helper as the current strategy for test
-  log assertions.
-- [ ] AC2: The ADR records explicit developer-selected identifiers as the preferred method for
-  associating an assertion with an expected captured log record.
-- [ ] AC3: The ADR explains why automatic test-span propagation is not pursued: global tracing
-  initialization, shared output, concurrent nested execution, and maintenance cost.
-- [ ] AC4: The ADR documents `tracing-test` and automatic span propagation as alternatives that
-  may be reassessed if future test requirements justify their complexity.
-- [ ] AC5: `linter all` exits with code `0`.
-- [ ] AC6: The ADR is reviewed and accepted before closing #1430.
+- [x] AC1: An ADR documents the repository-owned capture helper as the current strategy for test
+      log assertions.
+- [x] AC2: The ADR records explicit developer-selected identifiers as the preferred method for
+      associating an assertion with an expected captured log record.
+- [x] AC3: The ADR explains why automatic test-span propagation is not pursued: global tracing
+      initialization, shared output, concurrent nested execution, and maintenance cost.
+- [x] AC4: The ADR documents `tracing-test` and automatic span propagation as alternatives that
+      may be reassessed if future test requirements justify their complexity.
+- [x] AC5: `linter all` exits with code `0`.
+- [x] AC6: The ADR is reviewed and accepted before closing #1430.
 
 ## Verification Plan
 
@@ -134,21 +141,21 @@ did not introduce general tracing-context propagation or resolve this issue's as
 
 ### Manual Verification Scenarios
 
-| ID | Scenario | Command/Steps | Expected Result | Status | Evidence |
-| -- | -------- | ------------- | --------------- | ------ | -------- |
-| M1 | ADR strategy review | Compare the ADR against `packages/test-helpers/src/logging.rs`, #1147, #1148, #1149, and upstream `tracing-test` issue #23. | The ADR accurately describes the current helper, limitations, and decision. | TODO | Pending |
-| M2 | Future reopening criteria review | Review the ADR's conditions for reconsidering `tracing-test` or automatic span propagation. | The decision remains reversible when concrete requirements change. | TODO | Pending |
+| ID  | Scenario                         | Command/Steps                                                                                                               | Expected Result                                                             | Status | Evidence                         |
+| --- | -------------------------------- | --------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- | ------ | -------------------------------- |
+| M1  | ADR strategy review              | Compare the ADR against `packages/test-helpers/src/logging.rs`, #1147, #1148, #1149, and upstream `tracing-test` issue #23. | The ADR accurately describes the current helper, limitations, and decision. | DONE   | Maintainer approval (2026-08-26) |
+| M2  | Future reopening criteria review | Review the ADR's conditions for reconsidering `tracing-test` or automatic span propagation.                                 | The decision remains reversible when concrete requirements change.          | DONE   | Maintainer approval (2026-08-26) |
 
 ### Acceptance Verification
 
-| AC ID | Status (`TODO`/`DONE`) | Evidence |
-| ----- | ---------------------- | -------- |
-| AC1 | TODO | Pending |
-| AC2 | TODO | Pending |
-| AC3 | TODO | Pending |
-| AC4 | TODO | Pending |
-| AC5 | TODO | Pending |
-| AC6 | TODO | Pending |
+| AC ID | Status (`TODO`/`DONE`) | Evidence                         |
+| ----- | ---------------------- | -------------------------------- |
+| AC1   | DONE                   | ADR 20260826124959               |
+| AC2   | DONE                   | ADR 20260826124959               |
+| AC3   | DONE                   | ADR 20260826124959               |
+| AC4   | DONE                   | ADR 20260826124959               |
+| AC5   | DONE                   | `linter all` (2026-08-26)        |
+| AC6   | DONE                   | Maintainer approval (2026-08-26) |
 
 ## Risks and Trade-offs
 
