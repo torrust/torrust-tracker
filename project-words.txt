@@ -79,6 +79,7 @@ Registar
 Rustls
 Ryzen
 SHLVL
+SIEM
 Seedable
 Shareaza
 Signedness
@@ -133,6 +134,7 @@ autolinks
 automock
 autoremove
 backlinks
+backpressure
 bdecode
 behaviour
 behavioural
