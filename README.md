@@ -176,11 +176,11 @@ TORRUST_TRACKER_CONFIG_TOML=$(cat "./storage/tracker/etc/tracker.toml") \
 The following services are provided by the default configuration:
 
 - UDP _(tracker)_
-  - `udp://127.0.0.1:6969/announce`.
+  - Binds to `0.0.0.0:6868` and `0.0.0.0:6969`.
 - HTTP _(tracker)_
-  - `http://127.0.0.1:7070/announce`.
+  - Binds to `0.0.0.0:7070` and `0.0.0.0:7171`.
 - API _(management)_
-  - `http://127.0.0.1:1212/api/v1/stats?token=MyAccessToken`.
+  - Binds to `0.0.0.0:1212`; the default token is `MyAccessToken`.
 
 ## Documentation
 
