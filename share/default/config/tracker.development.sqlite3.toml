@@ -14,6 +14,10 @@ inactive_peer_cleanup_interval = 120
 listed = false
 private = false
 
+[core.database]
+driver = "sqlite3"
+path = "./storage/tracker/lib/database/sqlite3.db"
+
 [udp_tracker_server]
 ip_bans_reset_interval_in_secs = 86400
 max_connection_id_errors_per_ip = 10

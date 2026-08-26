@@ -47,7 +47,8 @@ It binds the UDP tracker to `0.0.0.0:3000`:
 
 ```toml
 [logging]
-threshold = "error"
+trace_filter = "error"
+trace_style = "full"
 
 [[udp_trackers]]
 bind_address = "0.0.0.0:3000"

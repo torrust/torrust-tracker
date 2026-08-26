@@ -2,34 +2,50 @@
 doc-type: guide
 parent-epic: 1978
 spec-path: docs/issues/open/1978-configuration-overhaul-epic/configuration-v2-to-v3-migration.md
-last-updated-utc: 2026-08-24
+last-updated-utc: 2026-08-26
 ---
 
 # Migrating from Configuration v2.0.0 to v3.0.0
 
-This guide helps users migrate their Torrust Tracker configuration from schema
-version `2.0.0` to `3.0.0`. Each section covers a breaking change, what to
-update, and why.
+Torrust Tracker now activates configuration schema `3.0.0` at runtime. A running
+tracker accepts v3 configuration only: a file declaring `schema_version = "2.0.0"`
+is rejected. V3 also rejects unknown fields, so remove obsolete v2 keys rather
+than leaving them in place.
 
-> **Status**: Partially complete. Sections for completed subissues are filled in.
-> Sections for pending subissues are marked with TODOs and will be completed as
-> each subissue is implemented.
+All shipped configuration templates now declare schema v3. Use the template
+matching the intended deployment and migrate any separately maintained v2
+configuration before loading it with the active runtime.
 
 ## Quick reference
 
-| v2 field / section           | v3 equivalent                                                    | Subissue | Status    |
-| ---------------------------- | ---------------------------------------------------------------- | -------- | --------- |
-| `[core.net]` (global)        | Per-tracker `[http_trackers.network]` / `[udp_trackers.network]` | #1640    | DONE      |
-| `tsl_config`                 | `tls_config`                                                     | #1981    | DONE      |
-| No public URL field          | `public_url` on HTTP trackers, UDP trackers, and HTTP API        | #1417    | DONE      |
-| `on_reverse_proxy` (global)  | Per-HTTP-tracker `network.on_reverse_proxy`                      | #1640    | DONE      |
-| No logging style option      | `[logging] trace_style`                                          | #889     | DONE      |
-| `threshold`                  | `trace_filter`                                                   | #889     | DONE      |
-| No connection ID policy      | `[udp_tracker_server] connection_id_validation`                  | #1136    | DONE      |
-| Hardcoded IP bans interval   | `[udp_tracker_server] ip_bans_reset_interval_in_secs`            | #1453    | IN_REVIEW |
-| Per-listener UDP error limit | `[udp_tracker_server] max_connection_id_errors_per_ip`           | #2083    | IN_REVIEW |
-| Flat `[core.database]`       | Database enum with per-driver config                             | #1490    | DONE      |
-| No announce `ip` opt-in      | Per-HTTP-tracker opt-in field (TBD)                              | #1987    | TODO      |
+| v2 field / section           | v3 equivalent                                                    | Subissue | Status |
+| ---------------------------- | ---------------------------------------------------------------- | -------- | ------ |
+| `[core.net]` (global)        | Per-tracker `[http_trackers.network]` / `[udp_trackers.network]` | #1640    | Active |
+| `tsl_config`                 | `tls_config`                                                     | #1981    | DONE   |
+| No public URL field          | `public_url` on HTTP trackers, UDP trackers, and HTTP API        | #1417    | DONE   |
+| `on_reverse_proxy` (global)  | Per-HTTP-tracker `network.on_reverse_proxy`                      | #1640    | DONE   |
+| No logging style option      | `[logging] trace_style`                                          | #889     | DONE   |
+| `threshold`                  | `trace_filter`                                                   | #889     | DONE   |
+| No connection ID policy      | `[udp_tracker_server] connection_id_validation`                  | #1136    | DONE   |
+| Hardcoded IP bans interval   | `[udp_tracker_server] ip_bans_reset_interval_in_secs`            | #1453    | Active |
+| Per-listener UDP error limit | `[udp_tracker_server] max_connection_id_errors_per_ip`           | #2083    | Active |
+| Flat `[core.database]`       | Database enum with per-driver config                             | #1490    | DONE   |
+| No announce `ip` opt-in      | Per-HTTP-tracker `use_ip_from_query_string`                      | #1987    | Active |
+
+## Practical migration sequence
+
+1. Copy the deployed v2 file and change `metadata.schema_version` to `"3.0.0"`.
+2. Rename `logging.threshold` to `logging.trace_filter` and rename every
+   `tsl_config` table to `tls_config`.
+3. Remove `[core.net]`; add per-listener `network` tables where the old global
+   settings or listener `ipv6_v6only` values apply.
+4. Move UDP listener error limits into one `[udp_tracker_server]` table.
+5. Convert `[core.database]` for its selected driver. Do not copy a network
+   database URL into v3.
+6. Review each HTTP listener's `use_ip_from_query_string`; leave it disabled
+   unless trusting a client-provided peer address is intentional.
+7. Add optional public URLs for externally reachable services, validate the
+   converted configuration, and deploy it with an explicit SQLite section.
 
 ## Step 1: Update the schema version
 
@@ -45,7 +61,9 @@ schema_version = "2.0.0"
 schema_version = "3.0.0"
 ```
 
-The tracker will reject configs with a schema version other than `3.0.0`.
+The tracker runs the v3 schema at runtime and rejects configs with a schema
+version other than `3.0.0`. V2 is not a fallback schema. V3 also rejects
+unknown fields, so remove renamed and moved v2 keys instead of retaining them.
 
 ## Step 2: Fix the TLS config typo
 
@@ -67,16 +85,17 @@ ssl_cert_path = "..."
 ssl_key_path = "..."
 ```
 
-> **Note**: v2 compatibility is retained until the final cleanup (#1980). New
-> installations should use `tls_config` directly.
+V3 rejects the misspelled `tsl_config` key. The corrected table remains nested
+under the HTTP tracker or API that it configures; it is not a top-level table.
+For example, use `[http_api.tls_config]` for API TLS.
 
 ## Step 3: Replace the global network block
 
 **Subissue**: #1640 — Per-HTTP-tracker `on_reverse_proxy` setting
 
 The global `[core.net]` section (including `on_reverse_proxy` and
-`external_ip`) is **removed** in v3. These settings move to per-tracker
-`network` blocks.
+`external_ip`) is **removed** in v3. These settings, and listener
+`ipv6_v6only`, move to per-tracker `network` blocks.
 
 ```toml
 # v2
@@ -91,24 +110,32 @@ bind_address = "0.0.0.0:7070"
 [http_trackers.network]
 on_reverse_proxy = true
 external_ip = "1.2.3.4"
+ipv6_v6only = false
 
 [[udp_trackers]]
 bind_address = "0.0.0.0:6969"
 
 [udp_trackers.network]
 external_ip = "1.2.3.4"
+ipv6_v6only = false
 ```
 
-If you had `on_reverse_proxy = false` (the default), you can omit the
-`network` block entirely — the v3 defaults match the v2 defaults.
+`on_reverse_proxy` is an HTTP address-resolution policy: enable it only for an
+HTTP listener behind a trusted proxy, because the listener then trusts the
+proxy-provided `X-Forwarded-For` address. `external_ip` is per listener and is
+used when a loopback peer needs the tracker's reachable address; wildcard
+addresses (`0.0.0.0` and `::`) are invalid. `ipv6_v6only = true` requires a
+separate IPv4 listener if IPv4 traffic must be accepted. If the v2 defaults
+were suitable, you can omit the `network` block entirely.
 
 ## Step 4: Add public URL fields (optional)
 
 **Subissue**: #1417 — Include public service URL in configuration
 
-If your tracker is behind a reverse proxy or load balancer, you can now
-declare its public-facing URL. This is optional but recommended for
-metrics, health checks, and API discoverability.
+You can declare each service's externally reachable URL. This is optional and
+does not change its bind address, TLS configuration, reverse-proxy policy, or
+routing. Use the public scheme, host, port, and path rather than an internal
+bind address.
 
 ```toml
 [[http_trackers]]
@@ -125,8 +152,10 @@ public_url = "https://api.example.com:443"
 ```
 
 The `public_url` field is typed — scheme validation is enforced at
-deserialization. HTTP trackers require `http` or `https`; UDP trackers
-require `udp`.
+deserialization. HTTP trackers and the HTTP API require `http` or `https`;
+UDP trackers require `udp`. Configuring a public URL does not expose a new
+listener. Runtime observability of configured public URLs is delivered
+separately.
 
 ## Step 5: Update the logging configuration
 
@@ -158,7 +187,8 @@ Supported `trace_style` values:
 | `"json"`    | Structured JSON output (for log aggregation) |
 
 > **Breaking**: The old `threshold` key is rejected by v3. If you omit
-> `trace_filter`, the default is `info`.
+> `trace_filter`, its value defaults to `info` in the schema, but the v3 loader
+> requires an explicit value in a deployed configuration.
 
 ## Step 6: Configure UDP connection ID validation
 
@@ -195,9 +225,7 @@ previous hardcoded value.
 ip_bans_reset_interval_in_secs = 86400
 ```
 
-> **Note**: This setting is validated in the v3 schema but will not take
-> effect at runtime until the final consumer migration (#1980). The value
-> is currently read from the v3 default constant.
+The setting is active at runtime. It must be at least `3600` seconds.
 
 ## Step 8: Move the UDP connection-ID error limit to the shared server section
 
@@ -224,12 +252,8 @@ max_connection_id_errors_per_ip = 10
 ```
 
 The default remains `10`. V3 rejects the old listener-scoped field rather than
-accepting repeated values. The setting takes effect at runtime when #1980
-activates v3 configuration consumers.
-
-<!-- ────────────────────────────────────────────────────────────────────── -->
-<!-- SECTIONS BELOW ARE TODO — to be filled as each subissue is implemented -->
-<!-- ────────────────────────────────────────────────────────────────────── -->
+accepting repeated values. All UDP listeners share this limit and one ban
+service, so listener declaration order cannot change the effective policy.
 
 ## Step 9: Update the database configuration
 
@@ -283,58 +307,129 @@ path = "/var/lib/torrust/tracker/database/sqlite3.db"
 
 ### Optional database representation and staged activation
 
-**Subissue**: #999 — Optional v3 database configuration
+V3 permits an omitted `[core.database]` table. This is deliberately staged:
+Issue #1980 activates v3 consumers while retaining a named fixed-SQLite compatibility
+bridge so the tracker remains persistence-enabled. A follow-up will activate
+the configured optional value and define the effective omitted-database runtime
+behaviour.
 
-V3 accepts an omitted `[core.database]` section and represents it as no
-configured database. This is a schema/API change first; the runtime activation
-is deliberately staged:
-
-1. #999 introduces the optional representation and optional container
-   dependencies while retaining an explicit temporary database bridge.
-2. #1980 activates v3 runtime consumers with that bridge, preserving the
-   existing effective database behavior during the configuration transition.
-3. A small post-#1980 follow-up honors the omitted database at runtime when no
-   persistence-required capability is enabled.
-
-Until the activation follow-up is merged, do not interpret an omitted v3
-database section as a persistence-free running tracker. The final activation
-follow-up will document which capabilities require persistence, startup
-diagnostics, and supported container behavior.
+**Do not treat an omitted `[core.database]` as persistence-free startup.** It
+does not currently disable persistence, select no database, or make container
+startup independent of persistent storage. Keep an explicit SQLite database
+configuration for deployed v3 trackers until the follow-up is implemented and
+documented.
 
 This is a breaking configuration change: MySQL and PostgreSQL URLs are not
 accepted in v3. Move their URL components into the fields above. Do not use an
 empty password: loading rejects missing and empty network database passwords.
 
-The preceding `secrecy` refactor changes API-token Rust value types without
-changing TOML syntax. #1490 then represents the isolated v3 database password
-as a secret value, also without changing the TOML syntax shown above. Both must
-be merged before the configuration crate's v3 public API is published.
-
 ## Step 10: Configure HTTP announce IP trust policy
 
 **Subissue**: #1987 — Use peer IP from the HTTP announce `ip` parameter
 
-> **Staged delivery**: #1987 currently supplies the protocol policy and keeps
-> production explicitly disabled until #1980 activates v3 configuration at
-> runtime. This section will document the final v3 TOML field and its default
-> when that consumer migration is complete. The setting will remain opt-in:
-> enabling it trusts a client-provided announce `ip` and can therefore allow
-> peers to spoof addresses.
+V3 adds `use_ip_from_query_string` to each `[[http_trackers]]` entry. It
+defaults to `false`. With the default, absent or empty `ip` parameters use the
+normal address-resolution path and a non-empty `ip` value is rejected. When
+enabled, a non-empty `ip` must be an IPv4 or IPv6 literal and becomes the peer
+address; DNS names and invalid values are always rejected.
 
-## Final cleanup
+```toml
+[[http_trackers]]
+bind_address = "127.0.0.1:7070"
+use_ip_from_query_string = true
+```
 
-**Subissue**: #1980 — Remove global re-exports, migrate consumers
+Enabling this setting trusts a client-supplied address and allows a remote
+client to register an arbitrary IP in the peer list. Leave it disabled for
+public or untrusted deployments; use it only in a controlled deployment that
+requires this BEP 3 compatibility behaviour.
 
-> **TODO**: This section will document the internal cleanup steps.
-> For end users, the main effect is that the tracker now ships with v3
-> as the default schema and v2 configs are no longer accepted at runtime.
+For an accepted non-empty query IP, the precedence is:
 
-## Runtime observability
+1. The query `ip` literal when the setting is enabled.
+2. The listener `network.external_ip` for a loopback connection.
+3. The rightmost `X-Forwarded-For` address when
+   `network.on_reverse_proxy = true`.
+4. The direct connection address.
 
-**Subissue**: #2023 — Expose configured public URLs in runtime observability
+An absent or empty `ip` preserves steps 2–4.
 
-> **TODO**: This section will document how `public_url` values appear in
-> health checks, metrics, and logs after the final cleanup.
+## Complete representative v3 configuration
+
+This configuration shows a direct TLS HTTP tracker, one UDP listener, an HTTP
+API, per-listener topology, shared UDP policies, and explicit SQLite
+persistence. Replace paths, names, tokens, and addresses before production use.
+
+```toml
+[metadata]
+app = "torrust-tracker"
+purpose = "configuration"
+schema_version = "3.0.0"
+
+[logging]
+trace_filter = "info"
+trace_style = "json"
+
+[core]
+inactive_peer_cleanup_interval = 600
+listed = false
+private = false
+tracker_usage_statistics = true
+
+[core.announce_policy]
+interval = 120
+interval_min = 120
+max_peers_per_announce = 74
+
+[core.tracker_policy]
+max_peer_timeout = 900
+persistent_torrent_completed_stat = false
+remove_peerless_torrents = true
+
+# Keep this explicit while the fixed-SQLite compatibility bridge is active.
+[core.database]
+driver = "sqlite3"
+path = "/var/lib/torrust/tracker/database/sqlite3.db"
+
+[udp_tracker_server]
+connection_id_validation = "strict"
+ip_bans_reset_interval_in_secs = 86400
+max_connection_id_errors_per_ip = 10
+
+[[udp_trackers]]
+bind_address = "0.0.0.0:6969"
+tracker_usage_statistics = true
+public_url = "udp://tracker.example.com:6969"
+
+[udp_trackers.network]
+external_ip = "203.0.113.10"
+ipv6_v6only = false
+
+[[http_trackers]]
+bind_address = "0.0.0.0:7070"
+tracker_usage_statistics = true
+use_ip_from_query_string = false
+public_url = "https://tracker.example.com/announce"
+
+[http_trackers.network]
+external_ip = "203.0.113.10"
+on_reverse_proxy = false
+ipv6_v6only = false
+
+[http_trackers.tls_config]
+ssl_cert_path = "/etc/torrust/tracker/tls/tracker.crt"
+ssl_key_path = "/etc/torrust/tracker/tls/tracker.key"
+
+[http_api]
+bind_address = "127.0.0.1:1212"
+public_url = "https://api.tracker.example.com"
+
+[http_api.access_tokens]
+admin = "replace-with-a-secret"
+
+[health_check_api]
+bind_address = "127.0.0.1:1313"
+```
 
 ## Migration checklist
 
@@ -345,17 +440,20 @@ Use this checklist to verify your configuration is ready for v3:
 - [ ] Global `[core.net]` replaced with per-tracker `network` blocks
 - [ ] `on_reverse_proxy` moved to per-HTTP-tracker `network` block (if `true`)
 - [ ] `external_ip` moved to per-tracker `network` blocks (if set)
+- [ ] Listener `ipv6_v6only` moved to `network.ipv6_v6only` (if set)
 - [ ] `max_connection_id_errors_per_ip` moved from every `[[udp_trackers]]` entry to `[udp_tracker_server]` (if set)
 - [ ] `threshold` renamed to `trace_filter` in `[logging]`
 - [ ] `trace_style` added to `[logging]` (optional, defaults to `"full"`)
 - [ ] `public_url` added to trackers and API (optional, recommended for reverse proxies)
 - [ ] `connection_id_validation` reviewed in `[udp_tracker_server]` (optional, defaults to `"strict"`)
 - [ ] `ip_bans_reset_interval_in_secs` reviewed in `[udp_tracker_server]` (optional, defaults to `86400`)
+- [ ] `use_ip_from_query_string` left disabled unless client-supplied peer IPs are trusted
 - [ ] Network database URLs replaced with component fields; database passwords are non-empty
-- [ ] Review the staged optional-database activation guidance before omitting
-      `[core.database]` in a deployed v3 tracker
+- [ ] Explicit SQLite configuration retained during the fixed-SQLite bridge period
 
 ## References
 
 - [EPIC #1978 — Configuration Overhaul](EPIC.md)
+- [Issue #1980 — Runtime activation and final cleanup](../1980-1978-configuration-overhaul-final-cleanup.md)
+- [Issue #1987 — HTTP announce query-IP policy](../1987-add-config-option-to-use-ip-from-announce-query-string/ISSUE.md)
 - [ADRs](../../../adrs/README.md)
