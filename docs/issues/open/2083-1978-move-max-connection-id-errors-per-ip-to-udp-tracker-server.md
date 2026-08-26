@@ -17,7 +17,7 @@ semantic-links:
   related-artifacts:
     - .github/skills/dev/planning/create-issue/SKILL.md
     - docs/issues/open/1978-configuration-overhaul-epic/EPIC.md
-    - docs/issues/open/1978-configuration-overhaul-epic/configuration-v2-to-v3-migration.md
+    - packages/configuration/docs/migrate-v2-to-v3.md
     - docs/issues/open/2067-1978-analyze-flat-service-configuration/max-connection-id-errors-per-ip-bug.md
     - docs/adrs/20260727180000_shared_services_across_tracker_instances.md
     - packages/configuration/src/v3_0_0/udp_tracker.rs
@@ -297,4 +297,4 @@ Notes:
 - Confirmed bug record: `docs/issues/open/2067-1978-analyze-flat-service-configuration/max-connection-id-errors-per-ip-bug.md`
 - Shared-services rationale: `docs/adrs/20260727180000_shared_services_across_tracker_instances.md`
 - Existing global-policy precedent: #1136
-- V2-to-v3 migration guide: `docs/issues/open/1978-configuration-overhaul-epic/configuration-v2-to-v3-migration.md`
+- V2-to-v3 migration guide: `packages/configuration/docs/migrate-v2-to-v3.md`

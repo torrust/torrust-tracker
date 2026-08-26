@@ -68,7 +68,7 @@ This approach:
 | T7  | DEFERRED → #1980 | Wire application entry point to use `v3_0_0` by default               | Requires updating bootstrap + all consumers; this is exactly the scope of subissue #1980                                                  |
 | T8  | DONE             | Add smoke tests: deserialize default v3 config                        | Added `smoke::v3_configuration_should_load_when_schema_version_is_3_0_0` and `smoke::v3_configuration_should_reject_schema_version_2_0_0` |
 | T9  | DONE             | Run `linter all` and full test suite                                  | All 48 test suites pass (0 failures)                                                                                                      |
-| T10 | DONE             | Update migration guide if this subissue affects the config public API | `docs/issues/open/1978-configuration-overhaul-epic/configuration-v2-to-v3-migration.md`                                                   |
+| T10 | DONE             | Update migration guide if this subissue affects the config public API | `packages/configuration/docs/migrate-v2-to-v3.md`                                                   |
 
 ## Progress Tracking
 

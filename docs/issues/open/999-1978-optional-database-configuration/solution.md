@@ -3,7 +3,7 @@ semantic-links:
   related-artifacts:
     - docs/issues/open/999-1978-optional-database-configuration/ISSUE.md
     - docs/issues/open/999-1978-optional-database-configuration/analysis.md
-    - docs/issues/open/1978-configuration-overhaul-epic/configuration-v2-to-v3-migration.md
+    - packages/configuration/docs/migrate-v2-to-v3.md
     - docs/issues/open/999-1978-optional-database-configuration/adr-draft.md
     - docs/issues/open/999-1978-optional-database-configuration/persistence-awareness-epic-draft.md
     - docs/issues/open/999-1978-optional-database-configuration/persistence-free-runtime-activation-draft.md

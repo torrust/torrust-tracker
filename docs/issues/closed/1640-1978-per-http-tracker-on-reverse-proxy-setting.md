@@ -492,7 +492,7 @@ This is the largest phase, split into sub-tasks (each committed and CI-verified 
 | T4  | 4     | DONE     | Remove deprecated fields from v3                                                    | Removed `core.net`, flat `ipv6_v6only`, and `get_ext_ip()`                                        |
 | T5  | 4     | DONE     | Update v3 documentation and doc comments                                            | V3 configuration module, ADR, and issue specification                                             |
 | T7  | 5     | PARTIAL  | Run `linter all` and full test suite                                                | `linter all` and `cargo test -p torrust-tracker-configuration` pass; full suite deferred to #1980 |
-| T8  | 6     | DONE     | Update migration guide if this subissue affects the config public API               | `docs/issues/open/1978-configuration-overhaul-epic/configuration-v2-to-v3-migration.md`           |
+| T8  | 6     | DONE     | Update migration guide if this subissue affects the config public API               | `packages/configuration/docs/migrate-v2-to-v3.md`           |
 
 ## Progress Tracking
 

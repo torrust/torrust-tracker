@@ -11,7 +11,7 @@ semantic-links:
   related-artifacts:
     - packages/configuration/src/v2_0_0/
     - packages/configuration/src/lib.rs
-    - docs/issues/open/1978-configuration-overhaul-epic/configuration-v2-to-v3-migration.md
+    - packages/configuration/docs/migrate-v2-to-v3.md
     - docs/issues/closed/1417-1978-add-public-service-url-to-configuration.md
     - docs/issues/closed/1640-1978-per-http-tracker-on-reverse-proxy-setting.md
     - docs/issues/closed/1136-1978-configurable-udp-connection-id-validation-policy.md
@@ -222,7 +222,7 @@ For each subissue implementation in this EPIC, the default completion policy is:
 1. Run automatic checks (`linter all`, relevant tests, pre-push checks when applicable).
 2. Run manual verification scenarios and record evidence.
 3. Re-review acceptance criteria after implementation and update verification evidence.
-4. If the subissue affects the configuration public API, update the migration guide at `docs/issues/open/1978-configuration-overhaul-epic/configuration-v2-to-v3-migration.md`.
+4. If the subissue affects the configuration public API, update the migration guide at `packages/configuration/docs/migrate-v2-to-v3.md`.
 
 ## Progress Tracking
 

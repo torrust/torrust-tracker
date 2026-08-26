@@ -6,6 +6,8 @@ A library to provide configuration to the [Torrust Tracker](https://github.com/t
 
 [Crate documentation](https://docs.rs/torrust-tracker-configuration).
 
+- [Migrate Configuration v2 to v3](docs/migrate-v2-to-v3.md)
+
 ## License
 
 The project is licensed under the terms of the [GNU AFFERO GENERAL PUBLIC LICENSE](./LICENSE).

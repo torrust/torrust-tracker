@@ -1,7 +1,5 @@
 ---
 doc-type: guide
-parent-epic: 1978
-spec-path: docs/issues/open/1978-configuration-overhaul-epic/configuration-v2-to-v3-migration.md
 last-updated-utc: 2026-08-26
 ---
 
@@ -453,7 +451,7 @@ Use this checklist to verify your configuration is ready for v3:
 
 ## References
 
-- [EPIC #1978 — Configuration Overhaul](EPIC.md)
-- [Issue #1980 — Runtime activation and final cleanup](../1980-1978-configuration-overhaul-final-cleanup.md)
-- [Issue #1987 — HTTP announce query-IP policy](../1987-add-config-option-to-use-ip-from-announce-query-string/ISSUE.md)
-- [ADRs](../../../adrs/README.md)
+- [EPIC #1978 — Configuration Overhaul](../../../docs/issues/open/1978-configuration-overhaul-epic/EPIC.md)
+- [Issue #1980 — Runtime activation and final cleanup](../../../docs/issues/open/1980-1978-configuration-overhaul-final-cleanup.md)
+- [Issue #1987 — HTTP announce query-IP policy](../../../docs/issues/open/1987-add-config-option-to-use-ip-from-announce-query-string/ISSUE.md)
+- [ADRs](../../../docs/adrs/README.md)

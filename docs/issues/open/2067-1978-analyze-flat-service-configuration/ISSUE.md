@@ -16,7 +16,7 @@ semantic-links:
   related-artifacts:
     - .github/skills/dev/planning/create-issue/SKILL.md
     - docs/issues/open/1978-configuration-overhaul-epic/EPIC.md
-    - docs/issues/open/1978-configuration-overhaul-epic/configuration-v2-to-v3-migration.md
+    - packages/configuration/docs/migrate-v2-to-v3.md
     - docs/issues/open/1490-1978-decompose-database-configuration.md
     - docs/issues/open/2079-adopt-secrecy-for-sensitive-configuration.md
     - docs/issues/open/2067-1978-analyze-flat-service-configuration/analysis.md

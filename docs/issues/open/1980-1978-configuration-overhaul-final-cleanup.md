@@ -7,7 +7,7 @@ github-issue: 1980
 spec-path: docs/issues/open/1980-1978-configuration-overhaul-final-cleanup.md
 branch: "config-final-cleanup"
 related-pr: 2103
-last-updated-utc: 2026-08-26 18:00
+last-updated-utc: 2026-08-26 20:45
 semantic-links:
   skill-links:
     - create-issue
@@ -177,7 +177,7 @@ Files that import `torrust_tracker_configuration::logging` (the module, not the 
 | T7  | DONE   | Apply any additional cleanup discovered during EPIC                 | Activated listener-scoped HTTP reverse-proxy/query-IP/external-IP policies and UDP listener external-IP wiring; restored database-specific qBittorrent E2E config generation.                                 |
 | T8  | DONE   | Run #889 deferred manual verification scenarios (M1–M5)             | Local v3 full, JSON, compact, pretty, and `warn` filter scenarios passed; evidence is recorded in closed Issue #889.                                                                                          |
 | T9  | DONE   | Run automatic verification                                          | `linter all`, `cargo test --workspace`, `cargo test --doc --workspace`, `cargo machete`, Cargo deny bans, hadolint, and `git diff --check` pass.                                                              |
-| T10 | DONE   | Complete v2-to-v3 migration guide                                   | Completed final v2-versus-v3 schema/default comparison, user-facing key/table migration, representative v3 configuration, and staged optional-database warning. All shipped default templates now load as v3. |
+| T10 | DONE   | Complete v2-to-v3 migration guide                                   | Completed final v2-versus-v3 schema/default comparison, user-facing key/table migration, representative v3 configuration, and staged optional-database warning. The canonical guide is `packages/configuration/docs/migrate-v2-to-v3.md`; all shipped default templates load as v3. |
 | T11 | DONE   | Run #1987 enabled-mode local manual verification                    | Active-v3 local verification passed valid override, absent/empty fallback, DNS/invalid rejection, and query-IP precedence over loopback `external_ip`; evidence is in #1987 `manual-verification.md` Phase 3. |
 | T12 | DONE   | Activate corrected global UDP error limit                           | `AppContainer` reads the one v3 global value once and passes it to shared `UdpTrackerCoreServices`; first-listener selection is removed.                                                                      |
 | T13 | DONE   | Verify shared UDP error limit at runtime                            | Two isolated integration targets use one bound UDP client socket, two listeners, and both declaration orders; both pass.                                                                                      |
@@ -215,6 +215,7 @@ Files that import `torrust_tracker_configuration::logging` (the module, not the 
 - 2026-08-26 16:45 UTC - GitHub Copilot/User - Completed local v3 manual evidence at revision `af890d927578d5f60dc70d2da87dae92416e4f5c`: #889 full/JSON/compact/pretty/warn logging scenarios and #1987 enabled query-IP scenarios passed. Evidence is recorded in the respective issue documents; ignored reproducibility artifacts remain in `.tmp/`.
 - 2026-08-26 17:30 UTC - GitHub Copilot/User - Reproduced the Containerfile nextest SQLite error 14 from PR #2103 and isolated the HTTP-startup test database in a test-owned working-directory `TempDir`. Focused cargo and nextest checks, stable and nightly formatting checks, the tracker package suite, and both debug and release Containerfile test targets passed locally.
 - 2026-08-26 18:00 UTC - GitHub Copilot/User - The latest nightly Testing workflow then exposed the same bridge-default SQLite-path assumption in both shared-UDP integration fixtures. Added test-local explicit `{STORAGE_PATH}` SQLite configuration to both declaration-order scenarios. Both named tests and the full nightly CI test command passed locally.
+- 2026-08-26 20:45 UTC - GitHub Copilot/User - Relocated the completed v2-to-v3 migration guide from the issue folder to its canonical configuration-package documentation path, `packages/configuration/docs/migrate-v2-to-v3.md`. Added package and documentation-index links and updated tracked historical and active references, retaining a single source of truth.
 
 ## Acceptance Criteria
 
