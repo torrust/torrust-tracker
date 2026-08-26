@@ -8,7 +8,9 @@
 use std::sync::Arc;
 
 use tokio::sync::RwLock;
-use torrust_tracker_configuration::{Core, HttpApi, HttpTracker, UdpTracker};
+use torrust_tracker_configuration::v3_0_0::{
+    core::Core, http_tracker::HttpTracker, tracker_api::HttpApi, udp_tracker::UdpTracker,
+};
 use torrust_tracker_core::container::TrackerCoreContainer;
 use torrust_tracker_http_core::container::HttpTrackerCoreContainer;
 use torrust_tracker_primitives::ConfigurationInstanceId;
@@ -60,7 +62,7 @@ impl TrackerHttpApiCoreContainer {
             TrackerCoreContainer::initialize_from(
                 core_config,
                 &swarm_coordination_registry_container,
-                Some(&core_config.database),
+                core_config.database.as_ref(),
             )
             .await
             .expect("REST API initialization requires persistence"),

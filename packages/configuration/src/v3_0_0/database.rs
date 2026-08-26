@@ -60,6 +60,30 @@ impl Database {
         String::from("./storage/tracker/lib/database/sqlite3.db")
     }
 
+    /// Returns the connection string required by the persistence driver.
+    #[must_use]
+    pub fn connection_url(&self) -> String {
+        match self {
+            Self::Sqlite3 { path } => path.clone(),
+            Self::MySQL(connection) => format!(
+                "mysql://{}:{}@{}:{}/{}",
+                connection.user,
+                connection.password.expose_secret(),
+                connection.host,
+                connection.port,
+                connection.database
+            ),
+            Self::PostgreSQL(connection) => format!(
+                "postgresql://{}:{}@{}:{}/{}",
+                connection.user,
+                connection.password.expose_secret(),
+                connection.host,
+                connection.port,
+                connection.database
+            ),
+        }
+    }
+
     /// Serializes the database configuration for the authorized persistence boundary.
     #[must_use]
     pub(crate) fn serialize_for_persistence(&self) -> toml::Table {

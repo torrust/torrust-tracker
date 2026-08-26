@@ -56,7 +56,7 @@ mod tests {
     use std::time::Duration;
 
     use torrust_server_lib::registar::Registar;
-    use torrust_tracker_configuration::{Configuration, logging};
+    use torrust_tracker_configuration::v3_0_0::{Configuration, logging};
     use torrust_tracker_primitives::{ConfigurationInstanceId, RuntimeServiceMetadata, ServiceRole};
     use torrust_tracker_test_helpers::configuration::ephemeral_public;
     use torrust_tracker_udp_core::container::UdpTrackerCoreContainer;

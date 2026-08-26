@@ -6,7 +6,7 @@ use mockall::mock;
 use tokio_util::sync::CancellationToken;
 use torrust_clock::DurationSinceUnixEpoch;
 use torrust_info_hash::InfoHash;
-use torrust_tracker_configuration::{Configuration, Core};
+use torrust_tracker_configuration::v3_0_0::{Configuration, core::Core};
 use torrust_tracker_core::announce_handler::AnnounceHandler;
 use torrust_tracker_core::authentication::key::repository::in_memory::InMemoryKeyRepository;
 use torrust_tracker_core::authentication::service::AuthenticationService;

@@ -3,7 +3,7 @@ use std::panic::Location;
 use std::sync::Arc;
 
 use torrust_info_hash::InfoHash;
-use torrust_tracker_configuration::Core;
+use torrust_tracker_configuration::v3_0_0::core::Core;
 use tracing::instrument;
 
 use super::repository::in_memory::InMemoryWhitelist;
@@ -79,7 +79,7 @@ mod tests {
     mod the_whitelist_authorization_for_announce_and_scrape_actions {
         use std::sync::Arc;
 
-        use torrust_tracker_configuration::Core;
+        use torrust_tracker_configuration::v3_0_0::core::Core;
 
         use crate::whitelist::authorization::WhitelistAuthorization;
         use crate::whitelist::repository::in_memory::InMemoryWhitelist;
@@ -101,7 +101,7 @@ mod tests {
 
         mod when_the_tacker_is_configured_as_listed {
 
-            use torrust_tracker_configuration::Core;
+            use torrust_tracker_configuration::v3_0_0::core::Core;
 
             use crate::error::WhitelistError;
             use crate::test_helpers::tests::sample_info_hash;
@@ -142,7 +142,7 @@ mod tests {
 
         mod when_the_tacker_is_not_configured_as_listed {
 
-            use torrust_tracker_configuration::Core;
+            use torrust_tracker_configuration::v3_0_0::core::Core;
 
             use crate::test_helpers::tests::sample_info_hash;
             use crate::whitelist::authorization::tests::the_whitelist_authorization_for_announce_and_scrape_actions::{

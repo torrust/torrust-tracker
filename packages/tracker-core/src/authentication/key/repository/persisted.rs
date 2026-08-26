@@ -80,7 +80,7 @@ mod tests {
 
         use std::time::Duration;
 
-        use torrust_tracker_configuration::Core;
+        use torrust_tracker_configuration::v3_0_0::{core::Core, database::Database};
         use torrust_tracker_test_helpers::configuration::ephemeral_sqlite_database;
 
         use crate::authentication::key::repository::persisted::DatabaseKeyRepository;
@@ -90,7 +90,11 @@ mod tests {
         fn ephemeral_configuration() -> Core {
             let mut config = Core::default();
             let temp_file = ephemeral_sqlite_database();
-            temp_file.to_str().unwrap().clone_into(&mut config.database.path);
+            let database = config.database.get_or_insert_with(Database::default);
+            let torrust_tracker_configuration::v3_0_0::database::Database::Sqlite3 { path } = database else {
+                unreachable!("default core configuration uses SQLite persistence");
+            };
+            temp_file.to_str().unwrap().clone_into(path);
             config
         }
 

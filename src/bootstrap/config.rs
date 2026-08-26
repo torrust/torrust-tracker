@@ -2,7 +2,8 @@
 //!
 //! All environment variables are prefixed with `TORRUST_TRACKER_`.
 
-use torrust_tracker_configuration::{Configuration, Info};
+use torrust_tracker_configuration::Info;
+use torrust_tracker_configuration::v3_0_0::Configuration;
 
 // skill-link: run-tracker-locally
 pub const DEFAULT_PATH_CONFIG: &str = "./share/default/config/tracker.development.sqlite3.toml";

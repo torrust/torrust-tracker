@@ -3,8 +3,15 @@ use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::path::{Path, PathBuf};
 
 use anyhow::Context;
-use torrust_tracker_configuration::{Configuration, HealthCheckApi, HttpApi, HttpTracker, UdpTracker};
-use torrust_tracker_primitives::Driver;
+use secrecy::SecretString;
+use torrust_tracker_configuration::v3_0_0::{
+    Configuration,
+    database::{ConnectionInfo, Database},
+    health_check_api::HealthCheckApi,
+    http_tracker::HttpTracker,
+    tracker_api::HttpApi,
+    udp_tracker::UdpTracker,
+};
 
 const CONFIG_FILE_NAME: &str = "tracker-config.toml";
 const DEFAULT_SQLITE3_DATABASE_PATH: &str = "/var/lib/torrust/tracker/database/sqlite3.db";
@@ -25,14 +32,6 @@ pub(crate) enum DatabaseDriver {
 }
 
 impl DatabaseDriver {
-    const fn configuration_driver(self) -> Driver {
-        match self {
-            Self::Sqlite3 => Driver::Sqlite3,
-            Self::MySQL => Driver::MySQL,
-            Self::PostgreSQL => Driver::PostgreSQL,
-        }
-    }
-
     const fn default_database_path(self) -> &'static str {
         match self {
             Self::Sqlite3 => DEFAULT_SQLITE3_DATABASE_PATH,
@@ -103,11 +102,10 @@ impl TrackerConfig {
         format!("udp://tracker:{}", self.udp_bind_address.port())
     }
 
-    fn to_torrust_configuration(&self) -> Configuration {
+    fn to_torrust_configuration(&self) -> anyhow::Result<Configuration> {
         let mut configuration = Configuration::default();
 
-        configuration.core.database.driver = self.database_driver.configuration_driver();
-        configuration.core.database.path.clone_from(&self.database_path);
+        configuration.core.database = Some(self.database_configuration()?);
 
         configuration.udp_trackers = Some(vec![UdpTracker {
             bind_address: self.udp_bind_address,
@@ -130,8 +128,57 @@ impl TrackerConfig {
             bind_address: self.health_check_api_bind_address,
         };
 
-        configuration
+        Ok(configuration)
     }
+
+    fn database_configuration(&self) -> anyhow::Result<Database> {
+        match self.database_driver {
+            DatabaseDriver::Sqlite3 => Ok(Database::Sqlite3 {
+                path: self.database_path.clone(),
+            }),
+            DatabaseDriver::MySQL => Ok(Database::MySQL(connection_info_from_url(
+                &self.database_path,
+                "mysql://",
+                3306,
+            )?)),
+            DatabaseDriver::PostgreSQL => Ok(Database::PostgreSQL(connection_info_from_url(
+                &self.database_path,
+                "postgresql://",
+                5432,
+            )?)),
+        }
+    }
+}
+
+fn connection_info_from_url(url: &str, expected_scheme: &str, default_port: u16) -> anyhow::Result<ConnectionInfo> {
+    let authority_and_database = url
+        .strip_prefix(expected_scheme)
+        .with_context(|| format!("database URL must start with '{expected_scheme}'"))?;
+    let (credentials, host_and_database) = authority_and_database
+        .split_once('@')
+        .context("database URL must contain credentials and a host")?;
+    let (user, password) = credentials
+        .split_once(':')
+        .context("database URL must contain a user and password")?;
+    let (host_and_port, database) = host_and_database
+        .split_once('/')
+        .context("database URL must contain a database name")?;
+    let (host, port) = match host_and_port.rsplit_once(':') {
+        Some((host, port)) => (host, port.parse().context("database URL port must be a valid u16")?),
+        None => (host_and_port, default_port),
+    };
+
+    if user.is_empty() || password.is_empty() || host.is_empty() || database.is_empty() {
+        anyhow::bail!("database URL must contain non-empty credentials, host, and database name");
+    }
+
+    Ok(ConnectionInfo {
+        host: host.to_string(),
+        port,
+        user: user.to_string(),
+        password: SecretString::from(password.to_string()),
+        database: database.to_string(),
+    })
 }
 
 /// Builds and writes the Torrust Tracker configuration file for the E2E workspace.
@@ -197,7 +244,10 @@ impl TrackerConfigBuilder {
     /// Returns an error when writing the config file fails.
     pub(crate) fn write_to(&self, workspace_root: &Path) -> anyhow::Result<PathBuf> {
         let config_path = workspace_root.join(CONFIG_FILE_NAME);
-        let config = self.tracker_config.to_torrust_configuration();
+        let config = self
+            .tracker_config
+            .to_torrust_configuration()
+            .context("failed to build tracker configuration")?;
         let config_path_as_str = config_path.to_str().context("tracker config path must be valid UTF-8")?;
 
         config
@@ -216,9 +266,8 @@ const fn bind_address(port: u16) -> SocketAddr {
 mod tests {
     use std::fs;
 
+    use super::{DatabaseDriver, TrackerConfig, TrackerConfigBuilder};
     use tempfile::tempdir;
-
-    use super::{TrackerConfig, TrackerConfigBuilder};
 
     #[test]
     fn write_to_should_persist_the_tracker_api_access_token() {
@@ -233,5 +282,42 @@ mod tests {
         assert!(written_configuration.contains("[http_api.access_tokens]"));
         assert!(written_configuration.contains("admin = \"MyAccessToken\""));
         assert!(!written_configuration.contains("admin = \"***\""));
+    }
+
+    #[test]
+    fn it_should_select_the_configured_database_driver_without_exposing_network_passwords() {
+        // Arrange
+        let configurations = [
+            (DatabaseDriver::Sqlite3, "/tmp/qbittorrent-e2e.sqlite3", "sqlite3", None),
+            (
+                DatabaseDriver::MySQL,
+                "mysql://mysql_user:mysql_password@mysql:3307/mysql_database",
+                "mysql",
+                Some("mysql_password"),
+            ),
+            (
+                DatabaseDriver::PostgreSQL,
+                "postgresql://postgres_user:postgres_password@postgres:5433/postgres_database",
+                "postgresql",
+                Some("postgres_password"),
+            ),
+        ];
+
+        for (driver, configured_path, expected_driver, secret) in configurations {
+            // Act
+            let mut tracker_config = TrackerConfig::for_database_driver(driver);
+            tracker_config.database_path = configured_path.to_string();
+            let configuration = tracker_config
+                .to_torrust_configuration()
+                .expect("database configuration should be valid");
+            let serialized = configuration.to_redacted_json();
+
+            // Assert
+            assert!(serialized.contains(&format!("\"driver\": \"{expected_driver}\"")));
+            if let Some(secret) = secret {
+                assert!(serialized.contains("\"password\": \"***\""));
+                assert!(!serialized.contains(secret));
+            }
+        }
     }
 }

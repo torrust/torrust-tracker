@@ -39,7 +39,7 @@ use torrust_server_lib::registar::{ServiceHealthCheckJob, ServiceRegistration, S
 use torrust_server_lib::signals::{Halted, Started};
 use torrust_tracker_axum_server::custom_axum_server::{self, TimeoutAcceptor};
 use torrust_tracker_axum_server::signals::graceful_shutdown;
-use torrust_tracker_configuration::AccessTokens;
+use torrust_tracker_configuration::v3_0_0::tracker_api::AccessTokens;
 use torrust_tracker_primitives::RuntimeServiceMetadata;
 use torrust_tracker_rest_api_runtime_adapter::v1::container::TrackerHttpApiCoreContainer;
 use tracing::{Level, instrument};
@@ -324,7 +324,7 @@ mod tests {
 
     use torrust_server_lib::registar::Registar;
     use torrust_tracker_axum_server::tls::make_rust_tls;
-    use torrust_tracker_configuration::{Configuration, logging};
+    use torrust_tracker_configuration::v3_0_0::{Configuration, logging};
     use torrust_tracker_primitives::{ConfigurationInstanceId, RuntimeServiceMetadata, ServiceRole};
     use torrust_tracker_rest_api_runtime_adapter::v1::container::TrackerHttpApiCoreContainer;
     use torrust_tracker_test_helpers::configuration::ephemeral_public;
@@ -357,7 +357,7 @@ mod tests {
 
         let bind_to = http_api_config.bind_address;
 
-        let tls = if let Some(tls_config) = &http_api_config.tsl_config {
+        let tls = if let Some(tls_config) = &http_api_config.tls_config {
             Some(make_rust_tls(tls_config).await.expect("tls config failed"))
         } else {
             None

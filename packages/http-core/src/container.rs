@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use torrust_tracker_configuration::{Core, HttpTracker};
+use torrust_tracker_configuration::v3_0_0::{core::Core, database::Database, http_tracker::HttpTracker};
 use torrust_tracker_core::container::TrackerCoreContainer;
 use torrust_tracker_events::bus::SenderStatus;
 use torrust_tracker_primitives::ConfigurationInstanceId;
@@ -30,7 +30,7 @@ impl HttpTrackerCoreContainer {
     /// # Panics
     ///
     /// Panics if the persistence-required tracker-core container cannot be
-    /// composed from the active v2-compatible configuration.
+    /// composed from the temporary fixed-SQLite compatibility bridge.
     #[must_use]
     pub async fn initialize(
         core_config: &Arc<Core>,
@@ -45,7 +45,7 @@ impl HttpTrackerCoreContainer {
             TrackerCoreContainer::initialize_from(
                 core_config,
                 &swarm_coordination_registry_container,
-                Some(&core_config.database),
+                Some(&Database::default()),
             )
             .await
             .expect("HTTP tracker core initialization requires persistence"),
@@ -83,19 +83,21 @@ impl HttpTrackerCoreContainer {
             event_bus: http_tracker_core_services.event_bus.clone(),
             stats_event_sender: http_tracker_core_services.stats_event_sender.clone(),
             stats_repository: http_tracker_core_services.stats_repository.clone(),
-            announce_service: Arc::new(AnnounceService::new(
+            announce_service: Arc::new(AnnounceService::new_with_http_tracker_config(
                 tracker_core_container.core_config.clone(),
                 tracker_core_container.announce_handler.clone(),
                 tracker_core_container.authentication_service.clone(),
                 tracker_core_container.whitelist_authorization.clone(),
                 http_tracker_core_services.stats_event_sender.clone(),
+                http_tracker_config,
                 configuration_instance_id,
             )),
-            scrape_service: Arc::new(ScrapeService::new(
+            scrape_service: Arc::new(ScrapeService::new_with_http_tracker_config(
                 tracker_core_container.core_config.clone(),
                 tracker_core_container.scrape_handler.clone(),
                 tracker_core_container.authentication_service.clone(),
                 http_tracker_core_services.stats_event_sender.clone(),
+                http_tracker_config,
                 configuration_instance_id,
             )),
         })

@@ -93,7 +93,7 @@ mod tests {
 
     use std::sync::Arc;
 
-    use torrust_tracker_configuration::Core;
+    use torrust_tracker_configuration::v3_0_0::core::Core;
 
     use crate::databases::setup::initialize_database;
     use crate::test_helpers::tests::ephemeral_configuration_for_listed_tracker;

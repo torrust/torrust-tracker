@@ -11,8 +11,8 @@
 //! 2. Initialize static variables.
 //! 3. Initialize logging.
 //! 4. Initialize the domain tracker.
+use torrust_tracker_configuration::v3_0_0::{Configuration, logging};
 use torrust_tracker_configuration::validator::Validator;
-use torrust_tracker_configuration::{Configuration, logging};
 use torrust_tracker_udp_core::crypto::keys::{self, Keeper as _};
 use tracing::instrument;
 

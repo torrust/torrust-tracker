@@ -16,7 +16,7 @@ use axum::{BoxError, Router, middleware};
 use hyper::{Request, StatusCode};
 use torrust_net_primitives::service_binding::ServiceBinding;
 use torrust_server_lib::logging::Latency;
-use torrust_tracker_configuration::AccessTokens;
+use torrust_tracker_configuration::v3_0_0::tracker_api::AccessTokens;
 use torrust_tracker_rest_api_runtime_adapter::v1::container::TrackerHttpApiCoreContainer;
 use tower::ServiceBuilder;
 use tower::timeout::TimeoutLayer;

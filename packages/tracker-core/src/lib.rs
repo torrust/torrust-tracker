@@ -207,6 +207,7 @@ mod tests {
                             &info_hash,
                             &mut complete_peer,
                             &IpAddr::V4(Ipv4Addr::new(126, 0, 0, 10)),
+                            None,
                             &PeersWanted::AsManyAsPossible,
                         )
                         .await
@@ -219,6 +220,7 @@ mod tests {
                             &info_hash,
                             &mut incomplete_peer,
                             &IpAddr::V4(Ipv4Addr::new(126, 0, 0, 11)),
+                            None,
                             &PeersWanted::AsManyAsPossible,
                         )
                         .await

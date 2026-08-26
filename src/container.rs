@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use torrust_server_lib::registar::Registar;
-use torrust_tracker_configuration::{Configuration, Database, HttpApi};
+use torrust_tracker_configuration::v3_0_0::{Configuration, database::Database, tracker_api::HttpApi};
 use torrust_tracker_core::container::TrackerCoreContainer;
 use torrust_tracker_http_core::container::{HttpTrackerCoreContainer, HttpTrackerCoreServices};
 use torrust_tracker_primitives::ConfigurationInstanceId;
@@ -48,8 +48,7 @@ impl AppContainer {
     /// # Panics
     ///
     /// Panics when tracker-core database-driver initialization or database
-    /// migrations fail, including when the active v2 runtime fails to provide
-    /// its mandatory temporary database compatibility bridge.
+    /// migrations fail while using the fixed-SQLite compatibility bridge.
     #[instrument(skip(configuration))]
     pub async fn initialize(configuration: &Configuration) -> Self {
         // Configuration
@@ -70,18 +69,18 @@ impl AppContainer {
 
         // Core
 
-        // Temporary compatibility bridge: remove after #1980 activates v3 and
-        // the persistence-free runtime activation follow-up passes actual v3
-        // `core.database` to composition.
-        let v2_database_compatibility_bridge = Some(v2_database_compatibility_bridge(configuration));
+        // Temporary fixed-SQLite compatibility bridge: retain persistence while
+        // the follow-up activates the optional v3 `core.database` at runtime.
+        // Do not derive this from configuration or validate persistence here.
+        let fixed_sqlite_database_compatibility_bridge = fixed_sqlite_database_compatibility_bridge();
         let tracker_core_container = Arc::new(
             TrackerCoreContainer::initialize_from(
                 &core_config,
                 &swarm_coordination_registry_container,
-                v2_database_compatibility_bridge,
+                Some(&fixed_sqlite_database_compatibility_bridge),
             )
             .await
-            .expect("active v2 runtime must provide the temporary database compatibility bridge"),
+            .expect("the fixed-SQLite compatibility bridge must provide persistence"),
         );
 
         // HTTP
@@ -96,17 +95,7 @@ impl AppContainer {
 
         // UDP
 
-        use torrust_tracker_configuration::UdpTracker as UdpTrackerConfig;
-
-        let default_max_connection_id_errors = UdpTrackerConfig::default().max_connection_id_errors_per_ip;
-
-        let max_connection_id_errors = configuration
-            .udp_trackers
-            .as_ref()
-            .and_then(|trackers| trackers.first())
-            .map_or(default_max_connection_id_errors, |config| {
-                config.max_connection_id_errors_per_ip
-            });
+        let max_connection_id_errors = configuration.udp_tracker_server.max_connection_id_errors_per_ip;
 
         let udp_tracker_core_services =
             UdpTrackerCoreServices::initialize_from(&tracker_core_container, max_connection_id_errors);
@@ -241,30 +230,30 @@ impl AppContainer {
     }
 }
 
-/// Supplies persistence while configuration aliases still use schema v2.
+/// Supplies fixed SQLite persistence while the v3 optional database setting is
+/// not yet active at runtime.
 ///
-/// Remove this bridge after Issue #1980 activates v3 consumers and the
-/// persistence-free runtime activation follow-up passes actual v3
-/// `core.database` to composition.
-const fn v2_database_compatibility_bridge(configuration: &Configuration) -> &Database {
-    &configuration.core.database
+/// Remove this bridge only when the persistence activation follow-up passes
+/// the configured v3 `core.database` value to composition.
+fn fixed_sqlite_database_compatibility_bridge() -> Database {
+    Database::default()
 }
 
 #[cfg(test)]
 mod tests {
-    use torrust_tracker_configuration::Configuration;
+    use torrust_tracker_configuration::v3_0_0::database::Database;
 
-    use super::v2_database_compatibility_bridge;
+    use super::fixed_sqlite_database_compatibility_bridge;
 
     #[test]
-    fn it_should_explicitly_supply_v2_database_to_the_temporary_compatibility_bridge() {
+    fn it_should_supply_fixed_sqlite_persistence_through_the_temporary_compatibility_bridge() {
         // Arrange
-        let configuration = Configuration::default();
+        let expected_database = Database::default();
 
         // Act
-        let database = v2_database_compatibility_bridge(&configuration);
+        let database = fixed_sqlite_database_compatibility_bridge();
 
         // Assert
-        assert_eq!(database, &configuration.core.database);
+        assert_eq!(database, expected_database);
     }
 }

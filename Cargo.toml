@@ -38,6 +38,14 @@ path = "tests/metrics/udp_error_disabled_port_zero.rs"
 name = "banning-udp-metrics-disabled-port-zero"
 path = "tests/banning/udp_metrics_disabled_port_zero.rs"
 
+[[test]]
+name = "banning-udp-shared-connection-id-error-limit"
+path = "tests/banning/udp_shared_connection_id_error_limit.rs"
+
+[[test]]
+name = "banning-udp-shared-connection-id-error-limit-reverse-order"
+path = "tests/banning/udp_shared_connection_id_error_limit_reverse_order.rs"
+
 [lints]
 workspace = true
 
@@ -67,6 +75,7 @@ pbkdf2 = "0.13.0"
 rand = "0"
 regex = "1"
 reqwest = { version = "0", features = [ "json", "multipart" ] }
+secrecy = "0.10.3"
 serde = { version = "1", features = [ "derive" ] }
 serde_json = { version = "1", features = [ "preserve_order" ] }
 sha1 = "0.11.0"

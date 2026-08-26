@@ -1031,14 +1031,7 @@ mod when_the_ip_parameter_is_not_accepted {
             .await;
         let peer_addr = peers[0].peer_addr;
 
-        let ext_ip: IpAddr = env
-            .container
-            .tracker_core_container
-            .core_config
-            .net
-            .external_ip
-            .unwrap()
-            .into();
+        let ext_ip: IpAddr = http_tracker_config.network.external_ip.unwrap().into();
         assert_eq!(peer_addr.ip(), ext_ip);
 
         env.stop().await;
@@ -1080,14 +1073,7 @@ mod when_the_ip_parameter_is_not_accepted {
             .await;
         let peer_addr = peers[0].peer_addr;
 
-        let ext_ip: IpAddr = env
-            .container
-            .tracker_core_container
-            .core_config
-            .net
-            .external_ip
-            .unwrap()
-            .into();
+        let ext_ip: IpAddr = http_tracker_config.network.external_ip.unwrap().into();
         assert_eq!(peer_addr.ip(), ext_ip);
 
         env.stop().await;

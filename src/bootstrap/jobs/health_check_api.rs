@@ -20,7 +20,7 @@ use torrust_server_lib::logging::STARTED_ON;
 use torrust_server_lib::registar::{Registar, ServiceRegistration};
 use torrust_server_lib::signals::{Halted, Started};
 use torrust_tracker_axum_health_check_api_server::{HEALTH_CHECK_API_LOG_TARGET, server};
-use torrust_tracker_configuration::HealthCheckApi;
+use torrust_tracker_configuration::v3_0_0::health_check_api::HealthCheckApi;
 use torrust_tracker_primitives::{ConfigurationInstanceId, RuntimeServiceMetadata, ServiceRole};
 use tracing::instrument;
 

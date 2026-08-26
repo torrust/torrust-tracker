@@ -2,7 +2,7 @@
 use std::panic::Location;
 use std::sync::Arc;
 
-use torrust_tracker_configuration::Core;
+use torrust_tracker_configuration::v3_0_0::core::Core;
 
 use super::key::repository::in_memory::InMemoryKeyRepository;
 use super::{Error, Key, key};
@@ -122,7 +122,7 @@ mod tests {
             use std::str::FromStr;
             use std::sync::Arc;
 
-            use torrust_tracker_configuration::Core;
+            use torrust_tracker_configuration::v3_0_0::core::Core;
 
             use crate::authentication::key::repository::in_memory::InMemoryKeyRepository;
             use crate::authentication::service::AuthenticationService;
@@ -157,7 +157,7 @@ mod tests {
             use std::sync::Arc;
             use std::time::Duration;
 
-            use torrust_tracker_configuration::Core;
+            use torrust_tracker_configuration::v3_0_0::core::Core;
             use torrust_tracker_primitives::PrivateMode;
 
             use crate::authentication::key::repository::in_memory::InMemoryKeyRepository;
@@ -272,7 +272,7 @@ mod tests {
                 use std::sync::Arc;
                 use std::time::Duration;
 
-                use torrust_tracker_configuration::Core;
+                use torrust_tracker_configuration::v3_0_0::core::Core;
                 use torrust_tracker_primitives::PrivateMode;
 
                 use crate::authentication::key::repository::in_memory::InMemoryKeyRepository;

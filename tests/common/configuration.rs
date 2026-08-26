@@ -22,10 +22,10 @@ impl PortZeroMetricsPolicyConfiguration {
     [metadata]
     app = "torrust-tracker"
     purpose = "configuration"
-    schema_version = "2.0.0"
+    schema_version = "3.0.0"
 
     [logging]
-    threshold = "off"
+    trace_filter = "off"
 
     [core]
     listed = false

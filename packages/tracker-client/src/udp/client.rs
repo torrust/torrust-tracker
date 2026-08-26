@@ -17,7 +17,7 @@ pub const UDP_CLIENT_LOG_TARGET: &str = "UDP CLIENT";
 const DEFAULT_UDP_TIMEOUT: Duration = Duration::from_secs(5);
 
 #[allow(clippy::module_name_repetitions)]
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct UdpClient {
     /// The socket to connect to
     pub socket: Arc<UdpSocket>,

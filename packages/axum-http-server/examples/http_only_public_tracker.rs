@@ -45,7 +45,7 @@ use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::sync::Arc;
 
 use torrust_tracker_axum_http_server::testing::environment::Started;
-use torrust_tracker_configuration::{Core, HttpTracker};
+use torrust_tracker_configuration::v3_0_0::{core::Core, database::Database, http_tracker::HttpTracker, network::Network};
 
 #[tokio::main]
 async fn main() {
@@ -56,10 +56,9 @@ async fn main() {
     // Public tracker: peers do not need an authentication key.
     let core = Core {
         private: false,
-        database: torrust_tracker_configuration::Database {
+        database: Some(Database::Sqlite3 {
             path: db_path.to_string_lossy().into_owned(),
-            ..Default::default()
-        },
+        }),
         ..Core::default()
     };
 
@@ -67,9 +66,11 @@ async fn main() {
     // TLS is disabled for simplicity; a production deployment would set tsl_config.
     let http_tracker = HttpTracker {
         bind_address: SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 0),
-        tsl_config: None,
+        tls_config: None,
         tracker_usage_statistics: false,
-        ipv6_v6only: false,
+        use_ip_from_query_string: false,
+        public_url: None,
+        network: Network::default(),
     };
 
     println!("Types from torrust-tracker-configuration used by this binary:");

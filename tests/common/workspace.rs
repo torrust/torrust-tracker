@@ -192,6 +192,7 @@ pub async fn udp_tracker_urls(container: &AppContainer) -> Vec<Url> {
 /// Returns the HTTP API URL from the registar.
 ///
 /// Uses the canonical REST API role, not a bind-IP convention.
+#[allow(dead_code)]
 pub async fn http_api_url(container: &AppContainer) -> Option<Url> {
     container
         .registar

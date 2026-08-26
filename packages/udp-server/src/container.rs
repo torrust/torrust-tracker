@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use torrust_tracker_configuration::Core;
+use torrust_tracker_configuration::v3_0_0::core::Core;
 use torrust_tracker_events::bus::SenderStatus;
 
 use crate::event::bus::EventBus;

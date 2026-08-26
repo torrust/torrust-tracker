@@ -3,7 +3,7 @@ use std::sync::Arc;
 
 use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
-use torrust_tracker_configuration::Configuration;
+use torrust_tracker_configuration::v3_0_0::Configuration;
 
 use crate::container::AppContainer;
 

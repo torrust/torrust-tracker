@@ -353,7 +353,7 @@ mod tests {
     use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
     use torrust_server_lib::registar::Registar;
     use torrust_tracker_axum_server::tls::make_rust_tls;
-    use torrust_tracker_configuration::{Configuration, logging};
+    use torrust_tracker_configuration::v3_0_0::{Configuration, logging};
     use torrust_tracker_core::container::TrackerCoreContainer;
     use torrust_tracker_http_core::container::HttpTrackerCoreContainer;
     use torrust_tracker_http_core::event::bus::EventBus;
@@ -424,26 +424,28 @@ mod tests {
             TrackerCoreContainer::initialize_from(
                 &core_config,
                 &swarm_coordination_registry_container,
-                Some(&core_config.database),
+                core_config.database.as_ref(),
             )
             .await
             .expect("HTTP server test initialization requires persistence"),
         );
 
-        let announce_service = Arc::new(AnnounceService::new(
+        let announce_service = Arc::new(AnnounceService::new_with_http_tracker_config(
             tracker_core_container.core_config.clone(),
             tracker_core_container.announce_handler.clone(),
             tracker_core_container.authentication_service.clone(),
             tracker_core_container.whitelist_authorization.clone(),
             http_stats_event_sender.clone(),
+            &http_tracker_config,
             configuration_instance_id,
         ));
 
-        let scrape_service = Arc::new(ScrapeService::new(
+        let scrape_service = Arc::new(ScrapeService::new_with_http_tracker_config(
             tracker_core_container.core_config.clone(),
             tracker_core_container.scrape_handler.clone(),
             tracker_core_container.authentication_service.clone(),
             http_stats_event_sender.clone(),
+            &http_tracker_config,
             configuration_instance_id,
         ));
 
@@ -484,14 +486,14 @@ mod tests {
 
         let bind_to = http_tracker_config.bind_address;
 
-        let tls = if let Some(tls_config) = &http_tracker_config.tsl_config {
+        let tls = if let Some(tls_config) = &http_tracker_config.tls_config {
             Some(make_rust_tls(tls_config).await.expect("tls config failed"))
         } else {
             None
         };
 
         let register = &Registar::default();
-        let stopped = HttpServer::new(Launcher::new(bind_to, tls, http_tracker_config.ipv6_v6only));
+        let stopped = HttpServer::new(Launcher::new(bind_to, tls, http_tracker_config.network.ipv6_v6only));
 
         let started = stopped
             .start(

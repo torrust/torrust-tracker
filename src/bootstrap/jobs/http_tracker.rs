@@ -52,7 +52,7 @@ pub async fn start_job(
         "Starting HTTP tracker instance"
     );
 
-    let tls = if let Some(tls_config) = &http_tracker_container.http_tracker_config.tsl_config {
+    let tls = if let Some(tls_config) = &http_tracker_container.http_tracker_config.tls_config {
         Some(
             make_rust_tls(tls_config)
                 .await
@@ -85,7 +85,7 @@ async fn start_v1(
     let server = HttpServer::new(Launcher::new(
         socket,
         tls,
-        http_tracker_container.http_tracker_config.ipv6_v6only,
+        http_tracker_container.http_tracker_config.network.ipv6_v6only,
     ))
     .start(http_tracker_container, form, metadata)
     .await

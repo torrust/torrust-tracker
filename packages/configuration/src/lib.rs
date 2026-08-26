@@ -3,11 +3,9 @@
 //! This module contains the configuration data structures for the
 //! Torrust Tracker, which is a `BitTorrent` tracker server.
 //!
-//! The current schema version is `v3_0_0` (in progress).
+//! The current schema version is [`v3_0_0`].
 //! The previous version [`v2_0_0`] is kept for backward compatibility.
-//! Global re-exports still point to `v2_0_0` and will be migrated to `v3_0_0`
-//! in the final cleanup subissue (#1980) once all v3 changes are complete.
-pub mod logging;
+//! Consumers must import schema types through an explicit versioned module.
 pub mod v2_0_0;
 pub mod v3_0_0;
 pub mod validator;
@@ -33,20 +31,11 @@ const ENV_VAR_CONFIG_TOML: &str = "TORRUST_TRACKER_CONFIG_TOML";
 /// The `tracker.toml` file location.
 pub const ENV_VAR_CONFIG_TOML_PATH: &str = "TORRUST_TRACKER_CONFIG_TOML_PATH";
 
-pub type Configuration = v2_0_0::Configuration;
-pub type Core = v2_0_0::core::Core;
-pub type Logging = v2_0_0::logging::Logging;
-pub type HealthCheckApi = v2_0_0::health_check_api::HealthCheckApi;
-pub type HttpApi = v2_0_0::tracker_api::HttpApi;
-pub type HttpTracker = v2_0_0::http_tracker::HttpTracker;
-pub type UdpTracker = v2_0_0::udp_tracker::UdpTracker;
-pub type Database = v2_0_0::database::Database;
-pub type Threshold = v2_0_0::logging::Threshold;
-
 /// Named configuration API tokens, protected from accidental diagnostic exposure.
 pub type AccessTokens = HashMap<String, SecretString>;
 
-pub const LATEST_VERSION: &str = "2.0.0";
+/// The most recent supported configuration schema version.
+pub const LATEST_VERSION: &str = "3.0.0";
 
 /// Info about the configuration specification.
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Display, Clone)]
@@ -129,7 +118,7 @@ impl Default for Version {
 }
 
 impl Version {
-    fn new(semver: &str) -> Self {
+    pub(crate) fn new(semver: &str) -> Self {
         Self {
             schema_version: semver.to_owned(),
         }

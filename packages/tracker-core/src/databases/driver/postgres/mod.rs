@@ -79,10 +79,14 @@ impl Postgres {
 mod tests {
     use std::sync::Arc;
 
+    use secrecy::SecretString;
     use testcontainers::core::IntoContainerPort;
     use testcontainers::runners::AsyncRunner;
     use testcontainers::{ContainerAsync, GenericImage, ImageExt};
-    use torrust_tracker_configuration::Core;
+    use torrust_tracker_configuration::v3_0_0::{
+        core::Core,
+        database::{ConnectionInfo, Database as ConfigurationDatabase},
+    };
 
     use super::Postgres;
     use crate::databases::driver::tests::run_tests;
@@ -156,19 +160,25 @@ mod tests {
     }
 
     fn core_configuration(host: &url::Host, port: u16, postgres_configuration: &PostgresConfiguration) -> Core {
-        let mut config = Core::default();
-
-        let database = postgres_configuration.database.clone();
-        let db_user = postgres_configuration.db_user.clone();
-        let db_password = postgres_configuration.db_password.clone();
-
-        config.database.path = format!("postgres://{db_user}:{db_password}@{host}:{port}/{database}");
-
-        config
+        Core {
+            database: Some(ConfigurationDatabase::PostgreSQL(ConnectionInfo {
+                host: host.to_string(),
+                port,
+                user: postgres_configuration.db_user.clone(),
+                password: SecretString::from(postgres_configuration.db_password.clone()),
+                database: postgres_configuration.database.clone(),
+            })),
+            ..Core::default()
+        }
     }
 
     fn initialize_driver(config: &Core) -> Arc<Box<dyn Database>> {
-        Arc::new(Box::new(Postgres::new(&config.database.path).unwrap()))
+        let database_url = config
+            .database
+            .as_ref()
+            .expect("PostgreSQL driver test configuration must include a database")
+            .connection_url();
+        Arc::new(Box::new(Postgres::new(&database_url).unwrap()))
     }
 
     // This test is invoked by `.github/workflows/testing.yaml` in the
@@ -208,7 +218,13 @@ mod tests {
         driver.drop_database_tables().await.expect("drop tables for fresh test");
 
         let raw_pool = ::sqlx::postgres::PgPoolOptions::new()
-            .connect(&config.database.path)
+            .connect(
+                &config
+                    .database
+                    .as_ref()
+                    .expect("PostgreSQL driver test configuration must include a database")
+                    .connection_url(),
+            )
             .await
             .expect("connect to postgres for raw DDL");
         create_legacy_pre_v4_schema(&raw_pool).await;

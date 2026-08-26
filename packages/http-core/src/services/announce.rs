@@ -12,7 +12,7 @@ use std::sync::Arc;
 
 use torrust_info_hash::InfoHash;
 use torrust_net_primitives::service_binding::ServiceBinding;
-use torrust_tracker_configuration::Core;
+use torrust_tracker_configuration::v3_0_0::{core::Core, http_tracker::HttpTracker};
 use torrust_tracker_core::announce_handler::{AnnounceHandler, PeersWanted};
 use torrust_tracker_core::authentication::service::AuthenticationService;
 use torrust_tracker_core::authentication::{self, Key};
@@ -23,7 +23,7 @@ use torrust_tracker_http_protocol::v1::requests::announce::{
 };
 use torrust_tracker_http_protocol::v1::responses::error::Error as HttpProtocolErrorResponse;
 use torrust_tracker_http_protocol::v1::services::peer_ip_resolver::{
-    ClientIpSources, PeerIpResolutionError, RemoteClientAddr, resolve_remote_client_addr,
+    ClientIpSources, PeerIpResolutionError, RemoteClientAddr, ReverseProxyMode, resolve_remote_client_addr,
 };
 use torrust_tracker_primitives::peer::PeerAnnouncement;
 use torrust_tracker_primitives::{AnnounceData, AnnounceEvent, ConfigurationInstanceId, NumberOfBytes};
@@ -44,6 +44,7 @@ pub struct AnnounceService {
     authentication_service: Arc<AuthenticationService>,
     whitelist_authorization: Arc<whitelist::authorization::WhitelistAuthorization>,
     opt_http_stats_event_sender: event::sender::Sender,
+    reverse_proxy_mode: ReverseProxyMode,
     peer_ip_selection_policy: PeerIpSelectionPolicy,
     configuration_instance_id: ConfigurationInstanceId,
 }
@@ -53,6 +54,22 @@ pub struct AnnounceService {
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct PeerIpSelectionPolicy {
     use_ip_from_query_string: bool,
+    external_ip: Option<std::net::IpAddr>,
+}
+
+#[derive(Clone, Copy, Debug)]
+struct HttpTrackerPolicy {
+    reverse_proxy_mode: ReverseProxyMode,
+    peer_ip_selection: PeerIpSelectionPolicy,
+}
+
+impl From<&HttpTracker> for HttpTrackerPolicy {
+    fn from(http_tracker_config: &HttpTracker) -> Self {
+        Self {
+            reverse_proxy_mode: http_tracker_config.network.on_reverse_proxy.into(),
+            peer_ip_selection: http_tracker_config.into(),
+        }
+    }
 }
 
 impl PeerIpSelectionPolicy {
@@ -60,6 +77,7 @@ impl PeerIpSelectionPolicy {
     pub const fn disabled() -> Self {
         Self {
             use_ip_from_query_string: false,
+            external_ip: None,
         }
     }
 
@@ -67,6 +85,16 @@ impl PeerIpSelectionPolicy {
     pub const fn enabled() -> Self {
         Self {
             use_ip_from_query_string: true,
+            external_ip: None,
+        }
+    }
+}
+
+impl From<&HttpTracker> for PeerIpSelectionPolicy {
+    fn from(http_tracker_config: &HttpTracker) -> Self {
+        Self {
+            use_ip_from_query_string: http_tracker_config.use_ip_from_query_string,
+            external_ip: http_tracker_config.network.external_ip.map(Into::into),
         }
     }
 }
@@ -92,6 +120,28 @@ impl AnnounceService {
         )
     }
 
+    /// Creates a service using the policy of one configured HTTP tracker instance.
+    #[must_use]
+    pub fn new_with_http_tracker_config(
+        core_config: Arc<Core>,
+        announce_handler: Arc<AnnounceHandler>,
+        authentication_service: Arc<AuthenticationService>,
+        whitelist_authorization: Arc<whitelist::authorization::WhitelistAuthorization>,
+        opt_http_stats_event_sender: event::sender::Sender,
+        http_tracker_config: &HttpTracker,
+        configuration_instance_id: ConfigurationInstanceId,
+    ) -> Self {
+        Self::new_with_policies(
+            core_config,
+            announce_handler,
+            authentication_service,
+            whitelist_authorization,
+            opt_http_stats_event_sender,
+            http_tracker_config.into(),
+            configuration_instance_id,
+        )
+    }
+
     #[must_use]
     pub fn new_with_peer_ip_selection_policy(
         core_config: Arc<Core>,
@@ -102,13 +152,37 @@ impl AnnounceService {
         peer_ip_selection_policy: PeerIpSelectionPolicy,
         configuration_instance_id: ConfigurationInstanceId,
     ) -> Self {
+        Self::new_with_policies(
+            core_config,
+            announce_handler,
+            authentication_service,
+            whitelist_authorization,
+            opt_http_stats_event_sender,
+            HttpTrackerPolicy {
+                reverse_proxy_mode: ReverseProxyMode::Disabled,
+                peer_ip_selection: peer_ip_selection_policy,
+            },
+            configuration_instance_id,
+        )
+    }
+
+    fn new_with_policies(
+        core_config: Arc<Core>,
+        announce_handler: Arc<AnnounceHandler>,
+        authentication_service: Arc<AuthenticationService>,
+        whitelist_authorization: Arc<whitelist::authorization::WhitelistAuthorization>,
+        opt_http_stats_event_sender: event::sender::Sender,
+        http_tracker_policy: HttpTrackerPolicy,
+        configuration_instance_id: ConfigurationInstanceId,
+    ) -> Self {
         Self {
             core_config,
             announce_handler,
             authentication_service,
             whitelist_authorization,
             opt_http_stats_event_sender,
-            peer_ip_selection_policy,
+            reverse_proxy_mode: http_tracker_policy.reverse_proxy_mode,
+            peer_ip_selection_policy: http_tracker_policy.peer_ip_selection,
             configuration_instance_id,
         }
     }
@@ -132,7 +206,7 @@ impl AnnounceService {
 
         self.authorize(announce_request.info_hash).await?;
 
-        let remote_client_addr = resolve_remote_client_addr(&self.core_config.net.on_reverse_proxy.into(), client_ip_sources)?;
+        let remote_client_addr = resolve_remote_client_addr(&self.reverse_proxy_mode, client_ip_sources)?;
 
         let peer_ip = self.select_peer_ip(announce_request, remote_client_addr.ip())?;
 
@@ -142,7 +216,7 @@ impl AnnounceService {
 
         let announce_data = self
             .announce_handler
-            .handle_announcement(&announce_request.info_hash, &mut peer, &peer_ip, &peers_wanted)
+            .handle_announcement(&announce_request.info_hash, &mut peer, &peer_ip, None, &peers_wanted)
             .await?;
 
         self.send_event(
@@ -198,13 +272,27 @@ impl AnnounceService {
         connection_peer_ip: std::net::IpAddr,
     ) -> Result<std::net::IpAddr, HttpAnnounceError> {
         match &announce_request.ip {
-            PeerIp::Absent | PeerIp::Empty => Ok(connection_peer_ip),
+            PeerIp::Absent | PeerIp::Empty => Ok(Self::external_ip_for_loopback_connection(
+                peer_ip_selection_policy,
+                connection_peer_ip,
+            )),
             PeerIp::Literal(_) if !peer_ip_selection_policy.use_ip_from_query_string => {
                 Err(HttpAnnounceError::PeerIpOverrideDisabled)
             }
             PeerIp::Literal(ip) => Ok(*ip),
             PeerIp::DnsName => Err(HttpAnnounceError::PeerIpDnsNameUnsupported),
             PeerIp::Invalid => Err(HttpAnnounceError::PeerIpInvalid),
+        }
+    }
+
+    fn external_ip_for_loopback_connection(
+        peer_ip_selection_policy: PeerIpSelectionPolicy,
+        connection_peer_ip: std::net::IpAddr,
+    ) -> std::net::IpAddr {
+        if connection_peer_ip.is_loopback() {
+            peer_ip_selection_policy.external_ip.unwrap_or(connection_peer_ip)
+        } else {
+            connection_peer_ip
         }
     }
 
@@ -341,7 +429,7 @@ mod tests {
     use std::sync::Arc;
 
     use tokio_util::sync::CancellationToken;
-    use torrust_tracker_configuration::{Configuration, Core};
+    use torrust_tracker_configuration::v3_0_0::{Configuration, core::Core};
     use torrust_tracker_core::announce_handler::AnnounceHandler;
     use torrust_tracker_core::authentication::key::repository::in_memory::InMemoryKeyRepository;
     use torrust_tracker_core::authentication::service::AuthenticationService;
@@ -507,7 +595,7 @@ mod tests {
 
         use mockall::predicate::{self};
         use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
-        use torrust_tracker_configuration::Configuration;
+        use torrust_tracker_configuration::v3_0_0::Configuration;
         use torrust_tracker_http_protocol::v1::requests::announce::{Announce, PeerIp};
         use torrust_tracker_http_protocol::v1::services::peer_ip_resolver::{ClientIpSources, RemoteClientAddr, ResolvedIp};
         use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
@@ -620,10 +708,17 @@ mod tests {
         }
 
         #[tokio::test]
-        async fn it_should_prefer_a_query_string_peer_ip_over_the_x_forwarded_for_ip_when_overrides_are_enabled() {
+        async fn it_should_use_the_http_tracker_policy_for_query_string_and_reverse_proxy_ips() {
             // Arrange
+            let configuration = configuration::ephemeral_with_reverse_proxy();
+            let mut configuration = configuration;
+            configuration
+                .http_trackers
+                .as_mut()
+                .expect("the test configuration should contain an HTTP tracker")[0]
+                .use_ip_from_query_string = true;
             let (core_tracker_services, mut core_http_tracker_services) =
-                initialize_core_tracker_services_with_config(&configuration::ephemeral_with_reverse_proxy()).await;
+                initialize_core_tracker_services_with_config(&configuration).await;
             let configuration_instance_id = core_http_tracker_services.configuration_instance_id;
             let server_service_binding =
                 ServiceBinding::new(Protocol::HTTP, SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070)).unwrap();
@@ -664,13 +759,18 @@ mod tests {
                 .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
             core_http_tracker_services.http_stats_event_sender = Some(Arc::new(http_stats_event_sender_mock));
 
-            let announce_service = AnnounceService::new_with_peer_ip_selection_policy(
+            let http_tracker_config = configuration
+                .http_trackers
+                .as_ref()
+                .expect("the test configuration should contain an HTTP tracker")[0]
+                .clone();
+            let announce_service = AnnounceService::new_with_http_tracker_config(
                 core_tracker_services.core_config,
                 core_tracker_services.announce_handler,
                 core_tracker_services.authentication_service,
                 core_tracker_services.whitelist_authorization,
                 core_http_tracker_services.http_stats_event_sender,
-                PeerIpSelectionPolicy::enabled(),
+                &http_tracker_config,
                 core_http_tracker_services.configuration_instance_id,
             );
 
@@ -810,7 +910,9 @@ mod tests {
 
         fn tracker_with_an_ipv6_external_ip() -> Configuration {
             let mut configuration = configuration::ephemeral();
-            configuration.core.net.external_ip = Some(
+            configuration.http_trackers.as_mut().expect("HTTP tracker configuration")[0]
+                .network
+                .external_ip = Some(
                 IpAddr::V6(Ipv6Addr::new(0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969))
                     .try_into()
                     .expect("valid external IP"),
@@ -837,8 +939,9 @@ mod tests {
 
             let server_service_binding_clone = server_service_binding.clone();
 
+            let configuration = tracker_with_an_ipv6_external_ip();
             let (core_tracker_services, mut core_http_tracker_services) =
-                initialize_core_tracker_services_with_config(&tracker_with_an_ipv6_external_ip()).await;
+                initialize_core_tracker_services_with_config(&configuration).await;
             let configuration_instance_id = core_http_tracker_services.configuration_instance_id;
 
             let mut http_stats_event_sender_mock = MockHttpStatsEventSender::new();
@@ -872,12 +975,18 @@ mod tests {
 
             let (announce_request, client_ip_sources) = sample_announce_request_for_peer(peer);
 
-            let announce_service = AnnounceService::new(
+            let http_tracker_config = configuration
+                .http_trackers
+                .as_ref()
+                .expect("the test configuration should contain an HTTP tracker")[0]
+                .clone();
+            let announce_service = AnnounceService::new_with_http_tracker_config(
                 core_tracker_services.core_config.clone(),
                 core_tracker_services.announce_handler.clone(),
                 core_tracker_services.authentication_service.clone(),
                 core_tracker_services.whitelist_authorization.clone(),
                 core_http_tracker_services.http_stats_event_sender.clone(),
+                &http_tracker_config,
                 core_http_tracker_services.configuration_instance_id,
             );
 

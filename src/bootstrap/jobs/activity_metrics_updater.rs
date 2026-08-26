@@ -4,7 +4,7 @@ use std::time::Duration;
 
 use tokio::task::JoinHandle;
 use torrust_clock::clock::Time;
-use torrust_tracker_configuration::Configuration;
+use torrust_tracker_configuration::v3_0_0::Configuration;
 
 use crate::CurrentClock;
 use crate::container::AppContainer;

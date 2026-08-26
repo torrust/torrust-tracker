@@ -41,6 +41,7 @@ pub async fn start_job(
     udp_tracker_server_container: Arc<UdpTrackerServerContainer>,
     form: ServiceRegistrationForm<RuntimeServiceMetadata>,
     metadata: RuntimeServiceMetadata,
+    connection_id_validation: ConnectionIdValidationPolicy,
 ) -> JoinHandle<()> {
     let bind_to = udp_tracker_core_container.udp_tracker_config.bind_address;
     let cookie_lifetime = udp_tracker_core_container.udp_tracker_config.cookie_lifetime;
@@ -50,13 +51,6 @@ pub async fn start_job(
         tracker_usage_statistics = udp_tracker_core_container.udp_tracker_config.tracker_usage_statistics,
         "Starting UDP tracker instance"
     );
-
-    // The connection ID validation policy is available in schema v3 via
-    // `UdpTrackerServer::connection_id_validation`. The application bootstrap
-    // still uses v2 configuration, where this policy does not exist. Until the
-    // runtime switches to v3 (tracked in issue #1980), strict validation is the
-    // unconditional default.
-    let connection_id_validation = ConnectionIdValidationPolicy::Strict;
 
     let server = Server::new(Spawner::new(bind_to))
         .start(

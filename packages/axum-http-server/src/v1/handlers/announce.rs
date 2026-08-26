@@ -129,7 +129,7 @@ mod tests {
     use std::sync::Arc;
 
     use tokio_util::sync::CancellationToken;
-    use torrust_tracker_configuration::Configuration;
+    use torrust_tracker_configuration::v3_0_0::Configuration;
     use torrust_tracker_core::announce_handler::AnnounceHandler;
     use torrust_tracker_core::authentication::key::repository::in_memory::InMemoryKeyRepository;
     use torrust_tracker_core::authentication::service::AuthenticationService;
@@ -218,12 +218,17 @@ mod tests {
             );
         }
 
-        let announce_service = Arc::new(AnnounceService::new(
+        let http_tracker_config = &config
+            .http_trackers
+            .as_ref()
+            .expect("the test configuration should contain an HTTP tracker")[0];
+        let announce_service = Arc::new(AnnounceService::new_with_http_tracker_config(
             core_config.clone(),
             announce_handler.clone(),
             authentication_service.clone(),
             whitelist_authorization.clone(),
             http_stats_event_sender.clone(),
+            http_tracker_config,
             configuration_instance_id,
         ));
 

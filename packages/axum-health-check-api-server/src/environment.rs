@@ -5,7 +5,7 @@ use tokio::sync::oneshot::{self, Sender};
 use tokio::task::JoinHandle;
 use torrust_server_lib::registar::Registar;
 use torrust_server_lib::signals::{self, Halted as SignalHalted, Started as SignalStarted};
-use torrust_tracker_configuration::HealthCheckApi;
+use torrust_tracker_configuration::v3_0_0::health_check_api::HealthCheckApi;
 use torrust_tracker_primitives::RuntimeServiceMetadata;
 
 use crate::{HEALTH_CHECK_API_LOG_TARGET, server};

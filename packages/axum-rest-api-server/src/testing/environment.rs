@@ -5,7 +5,7 @@ use secrecy::ExposeSecret;
 use torrust_info_hash::InfoHash;
 use torrust_server_lib::registar::Registar;
 use torrust_tracker_axum_server::tls::make_rust_tls;
-use torrust_tracker_configuration::{Configuration, logging};
+use torrust_tracker_configuration::v3_0_0::{Configuration, logging};
 use torrust_tracker_core::container::TrackerCoreContainer;
 use torrust_tracker_http_core::container::HttpTrackerCoreContainer;
 use torrust_tracker_primitives::{ConfigurationInstanceId, RuntimeServiceMetadata, ServiceRole, peer};
@@ -55,7 +55,7 @@ impl Environment<Stopped> {
 
         let bind_to = container.tracker_http_api_core_container.http_api_config.bind_address;
 
-        let tls = if let Some(tls_config) = &container.tracker_http_api_core_container.http_api_config.tsl_config {
+        let tls = if let Some(tls_config) = &container.tracker_http_api_core_container.http_api_config.tls_config {
             Some(make_rust_tls(tls_config).await.expect("tls config failed"))
         } else {
             None
@@ -183,7 +183,7 @@ impl EnvContainer {
             TrackerCoreContainer::initialize_from(
                 &core_config,
                 &swarm_coordination_registry_container,
-                Some(&core_config.database),
+                core_config.database.as_ref(),
             )
             .await
             .expect("REST API server test initialization requires persistence"),

@@ -94,7 +94,7 @@ use std::net::IpAddr;
 use std::sync::Arc;
 
 use torrust_info_hash::InfoHash;
-use torrust_tracker_configuration::Core;
+use torrust_tracker_configuration::v3_0_0::core::Core;
 use torrust_tracker_primitives::{AnnounceData, NumberOfDownloads, peer};
 
 use super::torrent::repository::in_memory::InMemoryTorrentRepository;
@@ -144,6 +144,8 @@ impl AnnounceHandler {
     /// - `info_hash`: The unique identifier of the torrent.
     /// - `peer`: The peer announcing itself (may be updated if IP is adjusted).
     /// - `remote_client_ip`: The IP address of the client making the request.
+    /// - `tracker_external_ip`: The external IP configured for the listener
+    ///   that received the request.
     /// - `peers_wanted`: Specifies how many peers the client wants in the response.
     ///
     /// # Returns
@@ -159,14 +161,12 @@ impl AnnounceHandler {
         info_hash: &InfoHash,
         peer: &mut peer::Peer,
         remote_client_ip: &IpAddr,
+        tracker_external_ip: Option<IpAddr>,
         peers_wanted: &PeersWanted,
     ) -> Result<AnnounceData, AnnounceError> {
         self.whitelist_authorization.authorize(info_hash).await?;
 
-        peer.change_ip(&assign_ip_address_to_peer(
-            remote_client_ip,
-            self.config.net.external_ip.map(Into::into),
-        ));
+        peer.change_ip(&assign_ip_address_to_peer(remote_client_ip, tracker_external_ip));
 
         self.in_memory_torrent_repository
             .handle_announcement(info_hash, peer, self.load_downloads_metric_if_needed(info_hash).await?)
@@ -530,7 +530,13 @@ mod tests {
                     let mut peer = sample_peer();
 
                     let announce_data = announce_handler
-                        .handle_announcement(&sample_info_hash(), &mut peer, &peer_ip(), &PeersWanted::AsManyAsPossible)
+                        .handle_announcement(
+                            &sample_info_hash(),
+                            &mut peer,
+                            &peer_ip(),
+                            None,
+                            &PeersWanted::AsManyAsPossible,
+                        )
                         .await
                         .unwrap();
 
@@ -547,6 +553,7 @@ mod tests {
                             &sample_info_hash(),
                             &mut previously_announced_peer,
                             &peer_ip(),
+                            None,
                             &PeersWanted::AsManyAsPossible,
                         )
                         .await
@@ -554,7 +561,13 @@ mod tests {
 
                     let mut peer = sample_peer_2();
                     let announce_data = announce_handler
-                        .handle_announcement(&sample_info_hash(), &mut peer, &peer_ip(), &PeersWanted::AsManyAsPossible)
+                        .handle_announcement(
+                            &sample_info_hash(),
+                            &mut peer,
+                            &peer_ip(),
+                            None,
+                            &PeersWanted::AsManyAsPossible,
+                        )
                         .await
                         .unwrap();
 
@@ -571,6 +584,7 @@ mod tests {
                             &sample_info_hash(),
                             &mut previously_announced_peer_1,
                             &peer_ip(),
+                            None,
                             &PeersWanted::AsManyAsPossible,
                         )
                         .await
@@ -582,6 +596,7 @@ mod tests {
                             &sample_info_hash(),
                             &mut previously_announced_peer_2,
                             &peer_ip(),
+                            None,
                             &PeersWanted::AsManyAsPossible,
                         )
                         .await
@@ -589,7 +604,7 @@ mod tests {
 
                     let mut peer = sample_peer_3();
                     let announce_data = announce_handler
-                        .handle_announcement(&sample_info_hash(), &mut peer, &peer_ip(), &PeersWanted::only(1))
+                        .handle_announcement(&sample_info_hash(), &mut peer, &peer_ip(), None, &PeersWanted::only(1))
                         .await
                         .unwrap();
 
@@ -614,7 +629,13 @@ mod tests {
                         let mut peer = seeder();
 
                         let announce_data = announce_handler
-                            .handle_announcement(&sample_info_hash(), &mut peer, &peer_ip(), &PeersWanted::AsManyAsPossible)
+                            .handle_announcement(
+                                &sample_info_hash(),
+                                &mut peer,
+                                &peer_ip(),
+                                None,
+                                &PeersWanted::AsManyAsPossible,
+                            )
                             .await
                             .unwrap();
 
@@ -628,7 +649,13 @@ mod tests {
                         let mut peer = leecher();
 
                         let announce_data = announce_handler
-                            .handle_announcement(&sample_info_hash(), &mut peer, &peer_ip(), &PeersWanted::AsManyAsPossible)
+                            .handle_announcement(
+                                &sample_info_hash(),
+                                &mut peer,
+                                &peer_ip(),
+                                None,
+                                &PeersWanted::AsManyAsPossible,
+                            )
                             .await
                             .unwrap();
 
@@ -646,6 +673,7 @@ mod tests {
                                 &sample_info_hash(),
                                 &mut started_peer,
                                 &peer_ip(),
+                                None,
                                 &PeersWanted::AsManyAsPossible,
                             )
                             .await
@@ -657,6 +685,7 @@ mod tests {
                                 &sample_info_hash(),
                                 &mut completed_peer,
                                 &peer_ip(),
+                                None,
                                 &PeersWanted::AsManyAsPossible,
                             )
                             .await

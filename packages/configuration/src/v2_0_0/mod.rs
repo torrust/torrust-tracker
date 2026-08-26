@@ -264,7 +264,7 @@ const CONFIG_OVERRIDE_PREFIX: &str = "TORRUST_TRACKER_CONFIG_OVERRIDE_";
 const CONFIG_OVERRIDE_SEPARATOR: &str = "__";
 
 /// Core configuration for the tracker.
-#[derive(Serialize, Deserialize, Debug, Default, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Configuration {
     /// Configuration metadata.
     pub metadata: Metadata,
@@ -290,6 +290,20 @@ pub struct Configuration {
 
     /// The Health Check API configuration.
     pub health_check_api: HealthCheckApi,
+}
+
+impl Default for Configuration {
+    fn default() -> Self {
+        Self {
+            metadata: Metadata::with_schema_version(Version::new(VERSION_2_0_0)),
+            logging: Logging::default(),
+            core: Core::default(),
+            udp_trackers: None,
+            http_trackers: None,
+            http_api: None,
+            health_check_api: HealthCheckApi::default(),
+        }
+    }
 }
 
 impl Configuration {

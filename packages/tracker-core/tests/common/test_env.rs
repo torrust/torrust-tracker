@@ -7,7 +7,7 @@ use torrust_clock::DurationSinceUnixEpoch;
 use torrust_info_hash::InfoHash;
 use torrust_metrics::label::LabelSet;
 use torrust_metrics::metric::MetricName;
-use torrust_tracker_configuration::Core;
+use torrust_tracker_configuration::v3_0_0::core::Core;
 use torrust_tracker_core::announce_handler::PeersWanted;
 use torrust_tracker_core::container::TrackerCoreContainer;
 use torrust_tracker_core::statistics::persisted::load_persisted_metrics;
@@ -41,7 +41,7 @@ impl TestEnv {
             TrackerCoreContainer::initialize_from(
                 &core_config,
                 &swarm_coordination_registry_container,
-                Some(&core_config.database),
+                core_config.database.as_ref(),
             )
             .await
             .expect("tracker core test environment requires persistence"),
@@ -109,7 +109,7 @@ impl TestEnv {
         let announce_data = self
             .tracker_core_container
             .announce_handler
-            .handle_announcement(info_hash, &mut peer, remote_client_ip, &PeersWanted::AsManyAsPossible)
+            .handle_announcement(info_hash, &mut peer, remote_client_ip, None, &PeersWanted::AsManyAsPossible)
             .await
             .unwrap();
 
@@ -130,7 +130,7 @@ impl TestEnv {
         let announce_data = self
             .tracker_core_container
             .announce_handler
-            .handle_announcement(info_hash, &mut peer, remote_client_ip, &PeersWanted::AsManyAsPossible)
+            .handle_announcement(info_hash, &mut peer, remote_client_ip, None, &PeersWanted::AsManyAsPossible)
             .await
             .unwrap();
 

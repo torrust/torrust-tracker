@@ -5,8 +5,7 @@ use std::time::Duration;
 use tokio::task::JoinHandle;
 use tokio::time::interval;
 use tokio_util::sync::CancellationToken;
-use torrust_tracker_configuration::Configuration;
-use torrust_tracker_configuration::v3_0_0::udp_tracker_server::UdpTrackerServer;
+use torrust_tracker_configuration::v3_0_0::Configuration;
 use torrust_tracker_udp_core::UDP_TRACKER_LOG_TARGET;
 use torrust_tracker_udp_core::services::banning::BanService;
 
@@ -51,9 +50,12 @@ pub fn start_banning_event_listener(app_container: &Arc<AppContainer>, cancellat
 
 #[must_use]
 // issue: #1453
-pub fn start_ban_cleanup_job(app_container: &Arc<AppContainer>, cancellation_token: CancellationToken) -> JoinHandle<()> {
+pub fn start_ban_cleanup_job(
+    reset_interval_in_secs: u64,
+    app_container: &Arc<AppContainer>,
+    cancellation_token: CancellationToken,
+) -> JoinHandle<()> {
     let ban_service = app_container.udp_tracker_core_services.ban_service.clone();
-    let reset_interval_in_secs = UdpTrackerServer::DEFAULT_IP_BANS_RESET_INTERVAL_IN_SECS;
 
     tokio::spawn(run_ban_cleanup_job(ban_service, reset_interval_in_secs, cancellation_token))
 }

@@ -20,7 +20,7 @@
 //!
 //! # Configuration
 //!
-//! The configuration file has a [`[http_api]`](torrust_tracker_configuration::HttpApi)
+//! The configuration file has a [`[http_api]`](torrust_tracker_configuration::v3_0_0::tracker_api::HttpApi)
 //! section that can be used to enable the API.
 //!
 //! ```toml
@@ -128,8 +128,8 @@
 //! > **NOTICE**: You can generate a self-signed certificate for localhost using
 //! > OpenSSL. See [Let's Encrypt](https://letsencrypt.org/docs/certificates-for-localhost/).
 //! > That's particularly useful for testing purposes. Once you have the certificate
-//! > you need to set the [`ssl_cert_path`](torrust_tracker_configuration::HttpApi::tsl_config.ssl_cert_path)
-//! > and [`ssl_key_path`](torrust_tracker_configuration::HttpApi::tsl_config.ssl_key_path)
+//! > you need to set the TLS certificate and key paths in
+//! > [`HttpApi::tls_config`](torrust_tracker_configuration::v3_0_0::tracker_api::HttpApi::tls_config).
 //! > options in the configuration file with the paths to the certificate
 //! > (`localhost.crt`) and key (`localhost.key`) files.
 //!

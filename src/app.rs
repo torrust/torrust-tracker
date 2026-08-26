@@ -24,8 +24,9 @@
 use std::sync::Arc;
 
 use torrust_clock::clock::Time;
-use torrust_tracker_configuration::{Configuration, HttpTracker, UdpTracker};
+use torrust_tracker_configuration::v3_0_0::{Configuration, http_tracker::HttpTracker, udp_tracker::UdpTracker};
 use torrust_tracker_primitives::{ConfigurationInstanceId, RuntimeServiceMetadata, ServiceRole};
+use torrust_tracker_udp_core::ConnectionIdValidationPolicy;
 use tracing::instrument;
 
 use crate::CurrentClock;
@@ -172,7 +173,7 @@ async fn start_udp_tracker_services(config: &Configuration, app_container: &Arc<
     start_udp_server_stats_event_listener(config, app_container, job_manager);
     start_udp_server_banning_event_listener(app_container, job_manager);
     // issue: #1453
-    start_udp_ban_cleanup_job(app_container, job_manager);
+    start_udp_ban_cleanup_job(config, app_container, job_manager);
     start_the_udp_instances(config, app_container, job_manager).await;
 }
 
@@ -215,10 +216,14 @@ fn start_udp_server_banning_event_listener(app_container: &Arc<AppContainer>, jo
     );
 }
 
-fn start_udp_ban_cleanup_job(app_container: &Arc<AppContainer>, job_manager: &mut JobManager) {
+fn start_udp_ban_cleanup_job(config: &Configuration, app_container: &Arc<AppContainer>, job_manager: &mut JobManager) {
     job_manager.push(
         "udp_ban_cleanup",
-        jobs::udp_tracker_server::start_ban_cleanup_job(app_container, job_manager.new_cancellation_token()),
+        jobs::udp_tracker_server::start_ban_cleanup_job(
+            config.udp_tracker_server.ip_bans_reset_interval_in_secs.get(),
+            app_container,
+            job_manager.new_cancellation_token(),
+        ),
     );
 }
 
@@ -228,14 +233,17 @@ async fn start_the_udp_instances(config: &Configuration, app_container: &Arc<App
         .as_ref()
         .expect("UDP tracker services require at least one configured UDP tracker");
 
+    let connection_id_validation = connection_id_validation_policy(config);
+
     for (idx, udp_tracker_config) in udp_trackers.iter().enumerate() {
-        start_udp_instance(idx, udp_tracker_config, app_container, job_manager).await;
+        start_udp_instance(idx, udp_tracker_config, connection_id_validation, app_container, job_manager).await;
     }
 }
 
 async fn start_udp_instance(
     idx: usize,
     udp_tracker_config: &UdpTracker,
+    connection_id_validation: ConnectionIdValidationPolicy,
     app_container: &Arc<AppContainer>,
     job_manager: &mut JobManager,
 ) {
@@ -249,10 +257,22 @@ async fn start_udp_instance(
         udp_tracker_server_container,
         app_container.registar.give_form(),
         RuntimeServiceMetadata::new(configuration_instance_id),
+        connection_id_validation,
     )
     .await;
 
     job_manager.push(format!("udp_instance_{}_{}", idx, udp_tracker_config.bind_address), handle);
+}
+
+const fn connection_id_validation_policy(config: &Configuration) -> ConnectionIdValidationPolicy {
+    match config.udp_tracker_server.connection_id_validation {
+        torrust_tracker_configuration::v3_0_0::udp_tracker_server::ConnectionIdValidationPolicy::Strict => {
+            ConnectionIdValidationPolicy::Strict
+        }
+        torrust_tracker_configuration::v3_0_0::udp_tracker_server::ConnectionIdValidationPolicy::Disabled => {
+            ConnectionIdValidationPolicy::Disabled
+        }
+    }
 }
 
 async fn start_the_http_instances(config: &Configuration, app_container: &Arc<AppContainer>, job_manager: &mut JobManager) {
@@ -333,7 +353,7 @@ async fn start_health_check_api(config: &Configuration, app_container: &Arc<AppC
 
 #[cfg(test)]
 mod tests {
-    use torrust_tracker_configuration::{Configuration, Core, UdpTracker};
+    use torrust_tracker_configuration::v3_0_0::{Configuration, core::Core, udp_tracker::UdpTracker};
 
     use super::should_start_udp_tracker_services;
 

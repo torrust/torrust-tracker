@@ -33,7 +33,7 @@ mod tests {
         use std::sync::Arc;
         use std::time::Duration;
 
-        use torrust_tracker_configuration::Configuration;
+        use torrust_tracker_configuration::v3_0_0::Configuration;
         use torrust_tracker_primitives::PrivateMode;
         use torrust_tracker_test_helpers::configuration;
 
