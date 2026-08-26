@@ -102,12 +102,12 @@ impl TrackerCoreContainer {
 mod tests {
     use std::sync::Arc;
 
-    use crate::test_helpers::tests::ephemeral_configuration;
     use torrust_tracker_configuration::Core;
     use torrust_tracker_events::bus::SenderStatus;
     use torrust_tracker_swarm_coordination_registry::container::SwarmCoordinationRegistryContainer;
 
     use super::TrackerCoreContainer;
+    use crate::test_helpers::tests::ephemeral_configuration;
 
     #[tokio::test]
     async fn it_should_not_construct_a_tracker_core_container_without_persistence() {

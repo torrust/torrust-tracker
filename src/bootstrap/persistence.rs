@@ -52,8 +52,9 @@ pub const fn validate_persistence_requirements(core: &Core) -> Result<(), Persis
 
 #[cfg(test)]
 mod tests {
-    use super::{PersistenceRequirementError, validate_persistence_requirements};
     use torrust_tracker_configuration::v3_0_0::core::Core;
+
+    use super::{PersistenceRequirementError, validate_persistence_requirements};
 
     #[test]
     fn it_should_reject_listing_without_a_database() {
