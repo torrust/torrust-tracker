@@ -232,7 +232,14 @@ mod tests {
         let core_config = Arc::new(cfg.core.clone());
         let udp_tracker_config = Arc::new(cfg.udp_trackers.unwrap()[0].clone());
 
-        let container = Arc::new(EnvContainer::initialize(&core_config, &udp_tracker_config).await);
+        let container = Arc::new(
+            EnvContainer::initialize(
+                &core_config,
+                &udp_tracker_config,
+                cfg.udp_tracker_server.max_connection_id_errors_per_ip,
+            )
+            .await,
+        );
 
         let cancellation_token = CancellationToken::new();
         let _listener_job = listener::run_event_listener(

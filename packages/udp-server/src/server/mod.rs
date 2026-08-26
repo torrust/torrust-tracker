@@ -98,8 +98,13 @@ mod tests {
 
         let stopped = Server::new(Spawner::new(bind_to));
 
-        let udp_tracker_core_container =
-            UdpTrackerCoreContainer::initialize(&core_config, &udp_tracker_config, configuration_instance_id).await;
+        let udp_tracker_core_container = UdpTrackerCoreContainer::initialize(
+            &core_config,
+            &udp_tracker_config,
+            cfg.udp_tracker_server.max_connection_id_errors_per_ip,
+            configuration_instance_id,
+        )
+        .await;
         let udp_tracker_server_container = UdpTrackerServerContainer::initialize(&core_config);
 
         let started = stopped
@@ -142,8 +147,13 @@ mod tests {
 
         let stopped = Server::new(Spawner::new(bind_to));
 
-        let udp_tracker_core_container =
-            UdpTrackerCoreContainer::initialize(&core_config, &udp_tracker_config, configuration_instance_id).await;
+        let udp_tracker_core_container = UdpTrackerCoreContainer::initialize(
+            &core_config,
+            &udp_tracker_config,
+            cfg.udp_tracker_server.max_connection_id_errors_per_ip,
+            configuration_instance_id,
+        )
+        .await;
         let udp_tracker_server_container = UdpTrackerServerContainer::initialize(&core_config);
 
         let started = stopped

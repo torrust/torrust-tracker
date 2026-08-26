@@ -166,6 +166,7 @@ impl EnvContainer {
 
         let udp_tracker_configurations = configuration.udp_trackers.clone().expect("missing UDP tracker configuration");
         let udp_tracker_config = Arc::new(udp_tracker_configurations[0].clone());
+        let udp_tracker_server_config = configuration.udp_tracker_server.clone();
 
         let http_api_config = Arc::new(
             configuration
@@ -198,6 +199,7 @@ impl EnvContainer {
         let udp_tracker_core_container = UdpTrackerCoreContainer::initialize_from_tracker_core(
             &tracker_core_container,
             &udp_tracker_config,
+            udp_tracker_server_config.max_connection_id_errors_per_ip,
             ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0),
         );
 

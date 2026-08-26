@@ -51,7 +51,14 @@ impl Environment<Stopped> {
     ) -> Self {
         initialize_static();
 
-        let container = Arc::new(EnvContainer::initialize(core_config, udp_tracker_config).await);
+        let container = Arc::new(
+            EnvContainer::initialize(
+                core_config,
+                udp_tracker_config,
+                udp_tracker_server_config.max_connection_id_errors_per_ip,
+            )
+            .await,
+        );
 
         let bind_to = container.udp_tracker_core_container.udp_tracker_config.bind_address;
 
@@ -243,7 +250,11 @@ impl EnvContainer {
     /// Panics if the persistence-required tracker-core test container cannot
     /// be composed.
     #[must_use]
-    pub async fn initialize(core_config: &Arc<Core>, udp_tracker_config: &Arc<UdpTracker>) -> Self {
+    pub async fn initialize(
+        core_config: &Arc<Core>,
+        udp_tracker_config: &Arc<UdpTracker>,
+        max_connection_id_errors_per_ip: u32,
+    ) -> Self {
         let swarm_coordination_registry_container = Arc::new(SwarmCoordinationRegistryContainer::initialize(
             core_config.tracker_usage_statistics.into(),
         ));
@@ -261,6 +272,7 @@ impl EnvContainer {
         let udp_tracker_core_container = UdpTrackerCoreContainer::initialize_from_tracker_core(
             &tracker_core_container,
             udp_tracker_config,
+            max_connection_id_errors_per_ip,
             torrust_tracker_primitives::ConfigurationInstanceId::new(torrust_tracker_primitives::ServiceRole::UdpTracker, 0),
         );
 

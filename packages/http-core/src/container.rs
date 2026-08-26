@@ -1,7 +1,6 @@
 use std::sync::Arc;
 
 use torrust_tracker_configuration::v3_0_0::core::Core;
-use torrust_tracker_configuration::v3_0_0::database::Database;
 use torrust_tracker_configuration::v3_0_0::http_tracker::HttpTracker;
 use torrust_tracker_core::container::TrackerCoreContainer;
 use torrust_tracker_events::bus::SenderStatus;
@@ -32,7 +31,7 @@ impl HttpTrackerCoreContainer {
     /// # Panics
     ///
     /// Panics if the persistence-required tracker-core container cannot be
-    /// composed from the temporary fixed-SQLite compatibility bridge.
+    /// composed from the configured database or SQLite fallback.
     #[must_use]
     pub async fn initialize(
         core_config: &Arc<Core>,
@@ -43,14 +42,15 @@ impl HttpTrackerCoreContainer {
             core_config.tracker_usage_statistics.into(),
         ));
 
+        let database_compatibility_bridge = core_config.database.clone().unwrap_or_default();
         let tracker_core_container = Arc::new(
             TrackerCoreContainer::initialize_from(
                 core_config,
                 &swarm_coordination_registry_container,
-                Some(&Database::default()),
+                Some(&database_compatibility_bridge),
             )
             .await
-            .expect("HTTP tracker core initialization requires persistence"),
+            .expect("HTTP tracker core initialization requires a configured database or SQLite fallback"),
         );
 
         Self::initialize_from_tracker_core(&tracker_core_container, http_tracker_config, configuration_instance_id)

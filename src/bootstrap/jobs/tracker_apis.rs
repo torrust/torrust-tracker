@@ -138,6 +138,7 @@ mod tests {
 
         let udp_tracker_configurations = cfg.udp_trackers.clone().expect("missing UDP tracker configuration");
         let udp_tracker_config = Arc::new(udp_tracker_configurations[0].clone());
+        let udp_tracker_server_config = cfg.udp_tracker_server.clone();
         let udp_tracker_configuration_instance_id = ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0);
 
         let http_api_config = Arc::new(cfg.http_api.clone().expect("missing HTTP API configuration"));
@@ -149,6 +150,7 @@ mod tests {
             &http_tracker_config,
             http_tracker_configuration_instance_id,
             &udp_tracker_config,
+            &udp_tracker_server_config,
             udp_tracker_configuration_instance_id,
             &http_api_config,
         )

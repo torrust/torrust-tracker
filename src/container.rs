@@ -50,7 +50,7 @@ impl AppContainer {
     /// # Panics
     ///
     /// Panics when tracker-core database-driver initialization or database
-    /// migrations fail while using the fixed-SQLite compatibility bridge.
+    /// migrations fail.
     #[instrument(skip(configuration))]
     pub async fn initialize(configuration: &Configuration) -> Self {
         // Configuration
@@ -71,18 +71,21 @@ impl AppContainer {
 
         // Core
 
-        // Temporary fixed-SQLite compatibility bridge: retain persistence while
-        // the follow-up activates the optional v3 `core.database` at runtime.
-        // Do not derive this from configuration or validate persistence here.
-        let fixed_sqlite_database_compatibility_bridge = fixed_sqlite_database_compatibility_bridge();
+        // Temporary fixed-SQLite compatibility bridge: retain persistence when
+        // v3 omits `core.database`. An explicit v3 database configuration must
+        // take precedence over the compatibility fallback.
+        let database_compatibility_bridge = core_config
+            .database
+            .clone()
+            .unwrap_or_else(fixed_sqlite_database_compatibility_bridge);
         let tracker_core_container = Arc::new(
             TrackerCoreContainer::initialize_from(
                 &core_config,
                 &swarm_coordination_registry_container,
-                Some(&fixed_sqlite_database_compatibility_bridge),
+                Some(&database_compatibility_bridge),
             )
             .await
-            .expect("the fixed-SQLite compatibility bridge must provide persistence"),
+            .expect("the configured database or fixed-SQLite compatibility bridge must provide persistence"),
         );
 
         // HTTP
@@ -232,11 +235,11 @@ impl AppContainer {
     }
 }
 
-/// Supplies fixed SQLite persistence while the v3 optional database setting is
-/// not yet active at runtime.
+/// Supplies fixed SQLite persistence when the optional v3 database setting is
+/// omitted.
 ///
-/// Remove this bridge only when the persistence activation follow-up passes
-/// the configured v3 `core.database` value to composition.
+/// Remove this bridge only when persistence-free runtime composition becomes
+/// supported.
 fn fixed_sqlite_database_compatibility_bridge() -> Database {
     Database::default()
 }

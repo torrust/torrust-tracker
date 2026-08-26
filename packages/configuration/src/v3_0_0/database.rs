@@ -4,6 +4,7 @@ use serde::de::{self, Deserializer};
 use serde::ser::{SerializeStruct, Serializer};
 use serde::{Deserialize, Serialize};
 use torrust_tracker_primitives::Driver;
+use url::Url;
 
 /// Network database connection settings.
 #[derive(Serialize, Debug, Clone)]
@@ -65,23 +66,25 @@ impl Database {
     pub fn connection_url(&self) -> String {
         match self {
             Self::Sqlite3 { path } => path.clone(),
-            Self::MySQL(connection) => format!(
-                "mysql://{}:{}@{}:{}/{}",
-                connection.user,
-                connection.password.expose_secret(),
-                connection.host,
-                connection.port,
-                connection.database
-            ),
-            Self::PostgreSQL(connection) => format!(
-                "postgresql://{}:{}@{}:{}/{}",
-                connection.user,
-                connection.password.expose_secret(),
-                connection.host,
-                connection.port,
-                connection.database
-            ),
+            Self::MySQL(connection) => Self::network_connection_url("mysql", connection),
+            Self::PostgreSQL(connection) => Self::network_connection_url("postgresql", connection),
         }
+    }
+
+    fn network_connection_url(scheme: &str, connection: &ConnectionInfo) -> String {
+        let mut url = Url::parse(&format!("{scheme}://localhost")).expect("database URL scheme must be valid");
+        url.set_username(&connection.user)
+            .expect("database user names must be representable in a URL");
+        url.set_password(Some(connection.password.expose_secret()))
+            .expect("database passwords must be representable in a URL");
+        url.set_host(Some(&connection.host))
+            .expect("database hosts must be representable in a URL");
+        url.set_port(Some(connection.port))
+            .expect("database ports must be representable in a URL");
+        url.path_segments_mut()
+            .expect("database URLs must support path segments")
+            .push(&connection.database);
+        url.into()
     }
 
     /// Serializes the database configuration for the authorized persistence boundary.
@@ -293,6 +296,29 @@ mod tests {
             panic!("database configuration should be SQLite");
         };
         assert_eq!(configured_path, path);
+    }
+
+    #[test]
+    fn it_should_percent_encode_network_database_connection_components() {
+        // Arrange
+        let connection = ConnectionInfo {
+            host: "database.example".to_string(),
+            port: 3306,
+            user: "user@example".to_string(),
+            password: SecretString::from("pass:word/@+"),
+            database: "tracker/name?tenant=one".to_string(),
+        };
+
+        // Act
+        let url = Database::MySQL(connection).connection_url();
+
+        // Assert
+        // cspell:disable
+        assert_eq!(
+            url,
+            "mysql://user%40example:pass%3Aword%2F%40+@database.example:3306/tracker%2Fname%3Ftenant=one"
+        );
+        // cspell:enable
     }
 
     #[test]
