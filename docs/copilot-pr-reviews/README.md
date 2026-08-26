@@ -8,7 +8,7 @@ semantic-links:
     - .github/skills/dev/pr-reviews/process-copilot-suggestions/SKILL.md
 ---
 
-# PR Copilot Suggestions Review Workflow
+# Copilot PR Suggestions Review Workflow
 
 This directory contains tools and templates for managing GitHub Copilot code review suggestions on pull requests.
 
@@ -19,7 +19,7 @@ This directory contains tools and templates for managing GitHub Copilot code rev
 
 ## Workflow
 
-1. **Setup** — Copy [docs/templates/COPILOT-SUGGESTIONS-TEMPLATE.md](../templates/COPILOT-SUGGESTIONS-TEMPLATE.md) to a new file named `pr-<PR_NUMBER>-copilot-suggestions.md` in `docs/pr-reviews/`.
+1. **Setup** — Copy [docs/templates/COPILOT-SUGGESTIONS-TEMPLATE.md](../templates/COPILOT-SUGGESTIONS-TEMPLATE.md) to a new file named `pr-<PR_NUMBER>-copilot-suggestions.md` in `docs/copilot-pr-reviews/`.
 
 2. **Download threads** — Use `bash .github/skills/dev/pr-reviews/fetch-review-threads/scripts/get-pr-review-threads.sh --pr-number <PR_NUMBER> --output-file /tmp/pr_threads_<PR_NUMBER>.json` to fetch all review threads.
 
@@ -27,7 +27,7 @@ This directory contains tools and templates for managing GitHub Copilot code rev
 
 4. **Apply changes** — For `action` items, apply fixes, validate with linters/tests, and commit.
 
-5. **Resolve threads** — Use `bash .github/skills/dev/pr-reviews/resolve-review-threads/scripts/resolve-all-unresolved-threads.sh --threads-file /tmp/pr_threads_<PR_NUMBER>.json` to mark all processed suggestions as resolved in GitHub.
+5. **Reply and resolve threads** — For each processed suggestion, use `bash .github/skills/dev/pr-reviews/resolve-review-threads/scripts/reply-and-resolve-thread.sh --thread-id <THREAD_ID> --body "<explanation>"` to post an outcome before resolving the thread.
 
 6. **Document** — Update the tracker file with decisions and thread states, then commit as part of the PR documentation.
 

@@ -13,7 +13,7 @@ If no PR number is supplied, identify the active pull request. Process **only Co
 
 Use the full auditable workflow:
 
-1. Create or update `docs/pr-reviews/pr-<PR_NUMBER>-copilot-suggestions.md` from the tracker template.
+1. Create or update `docs/copilot-pr-reviews/pr-<PR_NUMBER>-copilot-suggestions.md` from the tracker template.
 2. Fetch every unresolved review thread with the repository helper scripts and record it in the tracker.
 3. Handle one thread at a time: decide `action` or `no-action`; for an action, make the smallest correct fix, validate it, create a GPG-signed commit through the Committer agent, and push it.
 4. Always reply with the outcome before resolving that same thread. Use the repository's atomic reply-and-resolve helper; record its reply URL and final status in the tracker.

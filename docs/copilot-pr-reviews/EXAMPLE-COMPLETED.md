@@ -3,7 +3,7 @@ semantic-links:
   skill-links:
     - process-copilot-suggestions
   related-artifacts:
-    - docs/pr-reviews/README.md
+    - docs/copilot-pr-reviews/README.md
 ---
 
 # PR #<PR_NUMBER> Copilot Suggestions Tracking (EXAMPLE - COMPLETED)

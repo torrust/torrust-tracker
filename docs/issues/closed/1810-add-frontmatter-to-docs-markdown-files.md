@@ -269,7 +269,7 @@ application. The detailed per-file checklist is in the [File Inventory](#file-in
 | T9  | DONE   | Add frontmatter + semantic links to `docs/issues/closed/` 1732 group                                 | 6              |
 | T10 | DONE   | Add frontmatter + semantic links to `docs/issues/closed/` 1740–1750                                  | 6              |
 | T11 | DONE   | Add frontmatter + semantic links to `docs/issues/open/` supplementary                                | 4              |
-| T12 | DONE   | Add frontmatter + semantic links to `docs/pr-reviews/` files                                         | 2              |
+| T12 | DONE   | Add frontmatter + semantic links to `docs/copilot-pr-reviews/` files                                 | 2              |
 | T13 | DONE   | Add frontmatter + semantic links to `docs/refactor-plans/` files                                     | 5              |
 | T14 | DONE   | Add frontmatter + semantic links to `docs/skills/` files                                             | 1              |
 | T15 | DONE   | Clarify inline marker vs. frontmatter skill-links in `docs/skills/semantic-skill-link-convention.md` | 1              |
@@ -370,10 +370,10 @@ Per-file progress checklist. Check each file when its frontmatter has been added
 - [x] `docs/issues/open/1726-reduce-build-times-sccache/ISSUE.md`
 - [x] `docs/issues/open/1726-reduce-build-times-sccache/benchmark-results.md`
 
-### T12 — `docs/pr-reviews/` files (2)
+### T12 — `docs/copilot-pr-reviews/` files (2)
 
-- [x] `docs/pr-reviews/README.md`
-- [x] `docs/pr-reviews/pr-1733-copilot-suggestions.md`
+- [x] `docs/copilot-pr-reviews/README.md`
+- [x] `docs/copilot-pr-reviews/pr-1733-copilot-suggestions.md`
 
 ### T13 — `docs/refactor-plans/` files (5)
 

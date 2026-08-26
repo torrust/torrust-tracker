@@ -15,7 +15,7 @@ semantic-links:
     - docs/adrs/README.md
     - docs/adrs/index.md
     - docs/issues/README.md
-    - docs/pr-reviews/README.md
+    - docs/copilot-pr-reviews/README.md
     - docs/refactor-plans/closed/README.md
     - docs/refactor-plans/drafts/README.md
     - docs/refactor-plans/open/README.md
@@ -82,13 +82,13 @@ specs (drafts → open → closed).
 | [refactor-plans/open/](refactor-plans/open/)     | Active refactor plan specs                          |
 | [refactor-plans/closed/](refactor-plans/closed/) | Completed refactor plans kept for reference         |
 
-## PR Reviews
+## Copilot PR Reviews
 
-Records of notable pull request reviews and Copilot suggestion threads.
+Records of Copilot pull request suggestion reviews.
 
-| Document                                     | Description                       |
-| -------------------------------------------- | --------------------------------- |
-| [pr-reviews/README.md](pr-reviews/README.md) | Overview of the PR review archive |
+| Document                                                     | Description                               |
+| ------------------------------------------------------------ | ----------------------------------------- |
+| [copilot-pr-reviews/README.md](copilot-pr-reviews/README.md) | Overview of the Copilot PR review archive |
 
 ## Skills and Conventions
 
