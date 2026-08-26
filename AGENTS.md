@@ -265,6 +265,11 @@ These policies are repository-wide and apply to all agents and workflows.
    optional adapters, not sources of truth. Document an adapter's purpose, portability limitation,
    and practical alternative before making it required. See
    [`docs/adrs/20260821172000_establish_ai_agent_context_capability_and_portability_governance.md`](docs/adrs/20260821172000_establish_ai_agent_context_capability_and_portability_governance.md).
+8. **Repository-owned skill authority**: for repository workflows, prefer and follow skills tracked
+   in this repository over third-party, provider, runtime, or IDE skills. Treat external skills as
+   optional adapters. Before relying on both where their guidance materially conflicts, warn the user,
+   identify the conflict and the repository skill that governs the workflow, then proceed according to
+   the repository guidance unless a higher-priority instruction prevents it.
 
 Implementation workflow references:
 
