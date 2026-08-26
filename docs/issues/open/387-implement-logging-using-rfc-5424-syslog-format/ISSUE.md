@@ -11,11 +11,23 @@ semantic-links:
   related-artifacts:
     - https://github.com/torrust/torrust-tracker/issues/387
     - docs/issues/open/387-implement-logging-using-rfc-5424-syslog-format/rfc-5424-current-state-analysis.md
+    - docs/issues/open/387-implement-logging-using-rfc-5424-syslog-format/questions.md
 ---
 
 # Issue #387 - Implement Logging Using RFC 5424 Syslog Format
 
 > **Source**: GitHub issue [#387](https://github.com/torrust/torrust-tracker/issues/387), opened by [Cameron (da2ce7)](https://github.com/da2ce7) on 2023-08-27. The issue content below is preserved verbatim, apart from this source note and Markdown link normalization.
+
+## Research Outcome
+
+Research completed on 2026-08-26 concludes that RFC 5424 support should not be implemented, either completely or partially, at this time. The tracker should retain its existing `tracing`-based logging and operator-managed log collection.
+
+The current tracker architecture scales a process vertically around process-local, in-memory swarm state. It is not currently deployed as a horizontally interchangeable fleet of tracker replicas, which is the main scenario where direct syslog delivery and central correlation are compelling. For the expected single-instance deployment, the container runtime, host logger, or operator log agent can collect stderr and forward it to central infrastructure when required.
+
+No implementation subissues or `tracing-rfc-5424` integration should be created now. Reconsider the issue only when a concrete deployment or customer requires the tracker process itself to send RFC 5424 records directly to a syslog daemon. Cameron should decide whether to close #387 as out of current priorities or retain it as a deferred enhancement.
+
+- [Current-state analysis](rfc-5424-current-state-analysis.md)
+- [Research questions](questions.md)
 
 ## Implement Logging
 
