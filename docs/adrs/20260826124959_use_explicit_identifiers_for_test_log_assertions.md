@@ -36,8 +36,8 @@ captured log record. Suitable identifiers include a request ID, info hash, peer 
 value that the operation deliberately records.
 
 Keep `packages/test-helpers/src/logging.rs` as the repository-owned test logging mechanism. It
-installs the global subscriber once, writes to the test output when requested, and retains recent
-formatted records in a bounded buffer for assertions through
+installs the global subscriber once, writes each captured record to the test output, and retains
+recent formatted records in a bounded buffer for assertions through
 `logging::logs_contains_a_line_with`.
 
 Do not introduce automatic propagation of test-owned `tracing` spans through tracker execution

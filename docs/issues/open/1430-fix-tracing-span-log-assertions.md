@@ -8,7 +8,7 @@ github-issue: 1430
 spec-path: docs/issues/open/1430-fix-tracing-span-log-assertions.md
 branch: "1430-fix-tracing-span-log-assertions"
 related-pr: 1429
-last-updated-utc: 2026-08-26
+last-updated-utc: 2026-08-26 16:11
 semantic-links:
   skill-links:
     - create-issue
