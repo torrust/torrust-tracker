@@ -3,7 +3,7 @@ name: update-dependencies
 description: Guide for updating project dependencies in the torrust-tracker project. Covers the manual cargo update workflow including branch creation, running checks, committing, and pushing. Distinguishes trivial updates (Cargo.lock only) from breaking-change updates (code rework needed). Use when updating dependencies, running cargo update, or bumping deps. Triggers on "update dependencies", "cargo update", "update deps", or "bump dependencies".
 metadata:
   author: torrust
-  version: "1.0"
+  version: "1.1"
 semantic-links:
   skill-links:
     - update-github-workflow-actions
@@ -63,6 +63,10 @@ cargo update 2>&1 | tee .tmp/cargo-update.txt
 git add Cargo.lock
 git commit -S -m "chore: update dependencies" -m "$(cat .tmp/cargo-update.txt)"
 git push {your-fork-remote} "${TIMESTAMP}-update-dependencies"
+
+# Open a PR targeting torrust/torrust-tracker:develop. Include the complete
+# .tmp/cargo-update.txt output verbatim under a "cargo update output" heading
+# in a fenced text block in the PR description.
 ```
 
 ## Complete Workflow
@@ -143,6 +147,11 @@ git push {your-fork-remote} "${TIMESTAMP}-update-dependencies"
 
 Target: `torrust/torrust-tracker:develop`  
 Title: `chore: update dependencies`
+
+Include the complete `.tmp/cargo-update.txt` output in the PR description as well as the commit
+body. Place it verbatim under a `## cargo update output` heading in a fenced `text` code block.
+Do not replace it with a manually abbreviated package list unless the output contains information
+that must not be published.
 
 ## Decision Guide
 
