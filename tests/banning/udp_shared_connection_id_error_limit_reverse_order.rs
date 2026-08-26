@@ -33,6 +33,10 @@ const CONFIGURATION: &str = r#"
     listed = false
     private = false
 
+    [core.database]
+    driver = "sqlite3"
+    path = "{STORAGE_PATH}/sqlite3.db"
+
     [udp_tracker_server]
     max_connection_id_errors_per_ip = 2
     connection_id_validation = "strict"

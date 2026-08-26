@@ -7,7 +7,7 @@ github-issue: 1980
 spec-path: docs/issues/open/1980-1978-configuration-overhaul-final-cleanup.md
 branch: "config-final-cleanup"
 related-pr: 2103
-last-updated-utc: 2026-08-26 17:30
+last-updated-utc: 2026-08-26 18:00
 semantic-links:
   skill-links:
     - create-issue
@@ -214,6 +214,7 @@ Files that import `torrust_tracker_configuration::logging` (the module, not the 
 - 2026-08-26 16:30 UTC - GitHub Copilot/User - Completed the v2-to-v3 migration guide and migrated all six shipped configuration templates to schema v3. Template loading, configuration tests, TOML and Markdown linting, and linked local-run workflow validation passed. Manual logging and enabled HTTP query-IP scenarios remain pending.
 - 2026-08-26 16:45 UTC - GitHub Copilot/User - Completed local v3 manual evidence at revision `af890d927578d5f60dc70d2da87dae92416e4f5c`: #889 full/JSON/compact/pretty/warn logging scenarios and #1987 enabled query-IP scenarios passed. Evidence is recorded in the respective issue documents; ignored reproducibility artifacts remain in `.tmp/`.
 - 2026-08-26 17:30 UTC - GitHub Copilot/User - Reproduced the Containerfile nextest SQLite error 14 from PR #2103 and isolated the HTTP-startup test database in a test-owned working-directory `TempDir`. Focused cargo and nextest checks, stable and nightly formatting checks, the tracker package suite, and both debug and release Containerfile test targets passed locally.
+- 2026-08-26 18:00 UTC - GitHub Copilot/User - The latest nightly Testing workflow then exposed the same bridge-default SQLite-path assumption in both shared-UDP integration fixtures. Added test-local explicit `{STORAGE_PATH}` SQLite configuration to both declaration-order scenarios. Both named tests and the full nightly CI test command passed locally.
 
 ## Acceptance Criteria
 
