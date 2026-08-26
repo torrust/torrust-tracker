@@ -11,7 +11,7 @@ depends-on:
   - docs/issues/open/1985-rename-peer-addr-to-ip-in-http-announce-request/ISSUE.md
   - docs/issues/open/1980-1978-configuration-overhaul-final-cleanup.md
 blocks: null
-last-updated-utc: 2026-08-19 00:00
+last-updated-utc: 2026-08-26 16:45
 semantic-links:
   skill-links:
     - create-issue
@@ -57,7 +57,9 @@ This feature requires adding a new per-HTTP-tracker configuration field. The con
 
 This issue depends on the `ip` GET parameter rename (from `peer_addr` to `ip`) being completed first. The rename issue must be resolved before this feature is implemented.
 
-The runtime activation of configuration schema v3.0.0 depends on #1980. Until that migration is complete, this issue uses a temporary internal disabled policy for production wiring. The v3 configuration field and all address-selection behavior are implemented and unit tested now, but the running tracker cannot enable the setting from configuration until #1980 is complete.
+Issue #1980 activated configuration schema v3.0.0 at runtime. Production wiring
+now derives this policy from each HTTP listener's
+`use_ip_from_query_string` setting.
 
 ### HTTP protocol API compatibility
 
@@ -155,17 +157,17 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T1  | DONE    | Design the configuration field name and schema placement              | Implemented `use_ip_from_query_string` in the v3 per-HTTP-tracker schema.                                                                                                                                                                                    |
 | T2  | DONE    | Add the field to the per-HTTP-tracker configuration struct            | Added `HttpTracker::use_ip_from_query_string`, defaulting to `false`, with security documentation.                                                                                                                                                           |
 | T3  | DONE    | Preserve the raw `ip` parameter state in the HTTP protocol            | Replaced lossy `Option<IpAddr>` parsing with `PeerIp`, preserving absent, empty, literal, DNS-name, and invalid states.                                                                                                                                      |
-| T4  | DONE    | Inject the address-selection policy into the announce service         | Production constructs an explicit disabled policy pending #1980; unit tests inject both policy values.                                                                                                                                                       |
+| T4  | DONE    | Inject the address-selection policy into the announce service         | Production derives the policy from each v3 HTTP tracker; focused tests cover both policy values.                                                                                                                                                             |
 | T5  | DONE    | Validate and select the peer IP                                       | Implemented strict failures and enabled literal selection. A valid enabled query IP overrides `external_ip`, reverse-proxy, and connection-derived addresses; absent/empty values preserve normal resolution.                                                |
 | T6  | DONE    | Decide rejected-parameter observability                               | Selected Option B: removed the #1987-specific event and metric; documented the deferred general error-events EPIC.                                                                                                                                           |
 | T7  | DONE    | Add exhaustive tests for validation and selection                     | Added protocol/service unit tests and HTTP contract coverage for raw states and failure responses.                                                                                                                                                           |
-| T8  | DONE    | Update configuration documentation                                    | Documented the v3 field and staged activation. The active v2 default config is intentionally unchanged pending #1980.                                                                                                                                        |
+| T8  | DONE    | Update configuration documentation                                    | Documented the v3 field, its security implications, and active runtime behavior.                                                                                                                                                                              |
 | T9  | DONE    | Run `cargo test --workspace` — no regressions                         | Full workspace test suite passed on 2026-08-19 after updating the scaffold fixture to omit the now-disallowed non-empty `ip` override.                                                                                                                       |
 | T10 | DONE    | Run `linter all`                                                      | Passed through the pre-commit gate on 2026-08-18.                                                                                                                                                                                                            |
 | T11 | DONE    | Update migration guide if this subissue affects the config public API | Updated `docs/issues/open/1978-configuration-overhaul-epic/configuration-v2-to-v3-migration.md`.                                                                                                                                                             |
 | T12 | DONE    | Capture baseline behavior locally                                     | Recorded in `manual-verification.md`.                                                                                                                                                                                                                        |
 | T13 | DONE    | Manually verify disabled behavior locally                             | Recorded successful fallback, strict failures, and client response in `manual-verification.md`; rejection-specific observability was deferred under Option B.                                                                                                |
-| T14 | BLOCKED | Manually verify enabled behavior locally with active v3 configuration | After #1980 activates schema v3.0.0 at runtime, enable `use_ip_from_query_string` in a local per-HTTP-tracker config and run the enabled-mode scenarios with the local tracker and tracker client. Append reproducible evidence to `manual-verification.md`. |
+| T14 | DONE    | Manually verify enabled behavior locally with active v3 configuration | Enabled-policy local verification passed after #1980 activated schema v3.0.0. `manual-verification.md` Phase 3 records valid override, absent/empty fallback, DNS/invalid rejection, and loopback `external_ip` precedence evidence. |
 
 ## Progress Tracking
 
@@ -178,7 +180,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
 - [x] Implementation completed
 - [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
-- [x] Manual verification scenarios executed and recorded (status + evidence); enabled-v3 scenarios remain blocked on #1980
+- [x] Manual verification scenarios executed and recorded (status + evidence)
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [x] Committer verified spec progress is up to date before commit
@@ -195,13 +197,14 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-08-19 00:00 UTC - Copilot/User - Clarified future enabled-policy precedence: a valid query `ip` overrides loopback `external_ip`, `X-Forwarded-For`, and the direct connection address; absent or empty `ip` preserves normal address resolution. Grouped disabled-policy HTTP contract tests and reserved the enabled-policy group for #1980 runtime activation.
 - 2026-08-19 00:00 UTC - Copilot/User - Added error-event observability analysis to evaluate whether the #1987 rejection metric/event should remain or be deferred pending a cross-service event API design.
 - 2026-08-19 00:00 UTC - Copilot/User - Selected Option B: removed the #1987-specific rejection event and metric, retained strict validation, and created a deferred draft EPIC for a cross-service error-event contract.
+- 2026-08-26 16:45 UTC - GitHub Copilot/User - Completed deferred enabled-v3 local verification after #1980 runtime activation. The local tracker and tracker client verified a valid override, absent/empty fallback, DNS and invalid rejection, and query-IP precedence over loopback `external_ip`. Reproducible results are recorded in `manual-verification.md` Phase 3.
 
 ## Acceptance Criteria
 
 - [x] AC1: When `use_ip_from_query_string` is `false` (default), an absent or empty `ip` GET parameter uses the connection IP; a non-empty `ip` value is rejected with a precise failure reason. Evidence: `manual-verification.md` Phase 2.
-- [x] AC2: When `use_ip_from_query_string` is `true` and a valid IP is provided in the `ip` GET parameter, the tracker uses that IP as the peer's address. Evidence: focused service unit tests; local runtime activation awaits #1980.
-- [x] AC3: When `use_ip_from_query_string` is `true`, an absent or empty `ip` GET parameter uses the connection IP; a non-empty invalid IP or DNS name is rejected with a precise failure reason. Evidence: focused service/protocol tests; local runtime activation awaits #1980.
-- [x] AC4: The default configuration file (`share/default/`) has `use_ip_from_query_string` set to `false` (or omitted, defaulting to `false`). Evidence: v3 schema field defaults to `false`; active v2 default file intentionally remains unchanged pending #1980.
+- [x] AC2: When `use_ip_from_query_string` is `true` and a valid IP is provided in the `ip` GET parameter, the tracker uses that IP as the peer's address. Evidence: focused service tests and `manual-verification.md` Phase 3.
+- [x] AC3: When `use_ip_from_query_string` is `true`, an absent or empty `ip` GET parameter uses the connection IP; a non-empty invalid IP or DNS name is rejected with a precise failure reason. Evidence: focused service/protocol tests and `manual-verification.md` Phase 3.
+- [x] AC4: The default configuration file (`share/default/`) has `use_ip_from_query_string` set to `false` (or omitted, defaulting to `false`). Evidence: v3 schema field defaults to `false`; all shipped templates are now v3 and omit the field.
 - [x] AC5: The configuration schema documentation clearly states the security implications of enabling this option.
 - [x] AC6: Focused unit tests cover every `ip` parameter validation and address-selection case; minimum contract/integration tests verify HTTP failure responses and configuration wiring where unit tests cannot.
 - [x] AC6a: The #1987-specific rejection event and counter are absent; strict rejection behavior remains. Any future error observability must follow the deferred general error-events contract. Evidence: `error-event-observability-analysis.md` and `docs/issues/drafts/generalize-error-events.md`.
@@ -209,7 +212,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] AC8: Relevant tests pass with no regressions. Evidence: `cargo +1.88.0 test --workspace` passed on 2026-08-19.
 - [x] AC9: Baseline manual verification runs a local tracker and local tracker client before implementation; reproducible commands, output, expected/actual results, and environment details are recorded in `manual-verification.md` in this issue directory.
 - [x] AC10: Before v3.0.0 runtime activation, manual verification reruns the baseline matrix and documents the intentional disabled-policy change: absent/empty values remain accepted while non-empty values are rejected with precise failure reasons.
-- [ ] AC11: After #1980 activates v3.0.0 configuration at runtime, manual verification runs a local tracker and local tracker client with `use_ip_from_query_string` enabled; the resulting evidence is appended to `manual-verification.md`.
+- [x] AC11: After #1980 activates v3.0.0 configuration at runtime, manual verification runs a local tracker and local tracker client with `use_ip_from_query_string` enabled; the resulting evidence is appended to `manual-verification.md` Phase 3.
 - [x] Acceptance criteria are re-reviewed after implementation and reflect actual behaviour.
 - [x] Documentation is updated when behaviour/workflow changes.
 
@@ -255,23 +258,23 @@ Run the same applicable request matrix against a local tracker in three phases: 
 | ID  | Scenario                                                   | Command/Steps                                                                                                          | Expected Result                                                                                | Status      | Evidence                                                                                            |
 | --- | ---------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- | ----------- | --------------------------------------------------------------------------------------------------- |
 | M1  | Default config: valid non-empty `ip` is rejected           | Start tracker with default config; announce with `ip=1.2.3.4`                                                          | Announce fails, explaining that client-supplied peer IPs are disabled                          | DONE        | `manual-verification.md` Phase 2                                                                    |
-| M2  | Opt-in config: `ip` GET param is used                      | Enable `use_ip_from_query_string`; announce with `ip=1.2.3.4`; check the peer list                                     | Peer is registered with `1.2.3.4`                                                              | TODO        |                                                                                                     |
-| M3  | Opt-in config: absent or empty `ip` — fallback             | Enable `use_ip_from_query_string`; announce without `ip` and with `ip=`                                                | Peer is registered with the connection IP in both cases                                        | TODO        |                                                                                                     |
-| M4  | Opt-in + resolved-address fallbacks: `ip` takes precedence | Enable `use_ip_from_query_string` with either `on_reverse_proxy` or loopback `external_ip`; announce with `ip=1.2.3.4` | Peer is registered with `1.2.3.4` (query string wins over `X-Forwarded-For` and `external_ip`) | TODO        |                                                                                                     |
-| M5  | Non-empty invalid or DNS `ip` is rejected                  | Announce with enabled and disabled configurations using `ip=invalid_ip` and `ip=example.com`                           | Announce fails with the specific validation reason                                             | IN_PROGRESS | Disabled-mode evidence complete in `manual-verification.md`; enabled-mode verification awaits #1980 |
+| M2  | Opt-in config: `ip` GET param is used                      | Enable `use_ip_from_query_string`; announce with `ip=1.2.3.4`; check the peer list                                     | Peer is registered with `1.2.3.4`                                                              | DONE        | `manual-verification.md` Phase 3                                                                    |
+| M3  | Opt-in config: absent or empty `ip` — fallback             | Enable `use_ip_from_query_string`; announce without `ip` and with `ip=`                                                | Peer uses the normal resolved address in both cases                                             | DONE        | `manual-verification.md` Phase 3                                                                    |
+| M4  | Opt-in + resolved-address fallbacks: `ip` takes precedence | Enable `use_ip_from_query_string` with either `on_reverse_proxy` or loopback `external_ip`; announce with `ip=1.2.3.4` | Peer is registered with `1.2.3.4` (query string wins over `X-Forwarded-For` and `external_ip`) | DONE        | `manual-verification.md` Phase 3                                                                    |
+| M5  | Non-empty invalid or DNS `ip` is rejected                  | Announce with enabled and disabled configurations using `ip=invalid_ip` and `ip=example.com`                           | Announce fails with the specific validation reason                                             | DONE        | Disabled evidence: Phase 2; enabled evidence: Phase 3                                               |
 
 **Baseline expectation:** Before implementation, use M1–M5 as an address-selection request matrix. Valid, DNS-name, and invalid non-empty `ip` values are expected to be silently ignored and the announce is expected to succeed using the connection-derived address. Empty and absent values are expected to succeed.
 
-**Post-implementation disabled-policy expectation:** M1 and the disabled-mode portion of M5 apply. M2–M4 and the enabled-mode portion of M5 remain blocked until #1980 activates schema v3.0.0 configuration at runtime. Execute and document them under T14 once the setting can be enabled in the local tracker configuration.
+**Post-implementation behavior:** M1 and the disabled-mode portion of M5 apply when the setting is omitted or `false`. M2–M4 and the enabled-mode portion of M5 were verified under the active v3 runtime and are recorded in `manual-verification.md` Phase 3.
 
 ### Acceptance Verification
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence                                                                                 |
 | ----- | ---------------------- | ---------------------------------------------------------------------------------------- |
 | AC1   | DONE                   | `manual-verification.md` Phase 2                                                         |
-| AC2   | DONE                   | Focused enabled-policy service tests; runtime verification deferred to #1980             |
-| AC3   | DONE                   | Focused enabled-policy service/protocol tests; runtime verification deferred to #1980    |
-| AC4   | DONE                   | v3 schema default is `false`; active v2 default config unchanged pending #1980           |
+| AC2   | DONE                   | Focused enabled-policy service tests and `manual-verification.md` Phase 3                |
+| AC3   | DONE                   | Focused service/protocol tests and `manual-verification.md` Phase 3                      |
+| AC4   | DONE                   | V3 schema default is `false`; shipped v3 templates omit the field                        |
 | AC5   | DONE                   | v3 `HttpTracker` field documentation                                                     |
 | AC6   | DONE                   | Focused protocol, service, and Axum HTTP contract tests                                  |
 | AC6a  | DONE                   | `error-event-observability-analysis.md`; `docs/issues/drafts/generalize-error-events.md` |
@@ -279,7 +282,7 @@ Run the same applicable request matrix against a local tracker in three phases: 
 | AC8   | DONE                   | `cargo +1.88.0 test --workspace` passed 2026-08-19                                       |
 | AC9   | DONE                   | `manual-verification.md` Phase 1                                                         |
 | AC10  | DONE                   | `manual-verification.md` Phase 2                                                         |
-| AC11  | BLOCKED                | Requires #1980 to activate v3.0.0 configuration at runtime.                              |
+| AC11  | DONE                   | `manual-verification.md` Phase 3                                                         |
 
 ## Risks and Trade-offs
 

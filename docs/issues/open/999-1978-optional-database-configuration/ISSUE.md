@@ -10,7 +10,7 @@ branch: "999-avoid-unneeded-database-initialization"
 related-pr: null
 depends-on: 1490
 blocks: null
-last-updated-utc: 2026-08-25 00:00
+last-updated-utc: 2026-08-26 16:45
 semantic-links:
   skill-links:
     - create-issue
@@ -319,6 +319,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   supplied database, rather than `Core.database`, drives persistence setup.
   Focused configuration, tracker-core, and application tests passed; workspace
   targets compiled; `linter all` and the mandatory pre-commit gate passed.
+- 2026-08-26 16:45 UTC - GitHub Copilot/User - #1980 activated v3 consumers while retaining the approved named fixed-SQLite compatibility bridge. Active runtime composition therefore remains persistence-enabled; omitted `[core.database]` is still not honored at runtime. The post-#1980 activation follow-up remains responsible for passing the actual optional value, invoking the bootstrap requirement matrix, and completing M1-M6.
 
 ## Acceptance Criteria
 

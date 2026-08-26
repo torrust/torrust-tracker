@@ -7,7 +7,7 @@ github-issue: 889
 spec-path: docs/issues/closed/889-1978-new-config-option-for-logging-style.md
 branch: "889-logging-style"
 related-pr: null
-last-updated-utc: 2026-08-17
+last-updated-utc: 2026-08-26 16:45
 semantic-links:
   skill-links:
     - create-issue
@@ -126,7 +126,7 @@ All four variants are simple unit variants — no boolean parameters. The `displ
 | T3  | DONE   | Add `trace_style: TraceStyle` field to `Logging` config struct             | Defaults to `TraceStyle::Full`                                                                                                  |
 | T4  | DONE   | Implement deserialization for `TraceStyle`                                 | Supports `"full"`, `"pretty"`, `"compact"`, and `"json"`                                                                        |
 | T5  | DONE   | Wire `trace_style` into tracing subscriber initialization                  | Implemented in `v3_0_0/logging.rs` `setup()`                                                                                    |
-| T6  | DONE   | Update v3 generated default configuration                                  | Uses `trace_filter` and `trace_style`; shipped v2 defaults are deferred to #1980 because v3 is not yet the active global schema |
+| T6  | DONE   | Update v3 generated default configuration                                  | Uses `trace_filter` and `trace_style`; #1980 later migrated all shipped templates and activated v3 runtime configuration. |
 | T7  | DONE   | Run `linter all` and tests                                                 | `linter all` and the configuration crate test suite pass                                                                        |
 | T8  | DONE   | Add negative test: v3 `Logging` rejects the removed `threshold` key        | Ensures the breaking rename is guarded by `#[serde(deny_unknown_fields)]`                                                       |
 | T9  | DONE   | Update migration guide if this subissue affects the config public API      | `docs/issues/open/1978-configuration-overhaul-epic/configuration-v2-to-v3-migration.md`                                         |
@@ -140,7 +140,7 @@ All four variants are simple unit variants — no boolean parameters. The `displ
 - [x] GitHub issue created and issue number added to this spec
 - [x] Implementation completed
 - [x] Automatic verification completed (`linter all`, relevant tests)
-- [ ] Manual verification scenarios executed and recorded (deferred to #1980)
+- [x] Manual verification scenarios executed and recorded under #1980
 - [ ] Acceptance criteria reviewed after implementation
 - [x] Issue closed and spec moved to `docs/issues/closed/`
 
@@ -150,9 +150,10 @@ All four variants are simple unit variants — no boolean parameters. The `displ
 - 2026-07-14 00:00 UTC - josecelano - Fixed field name: `log_level` → `threshold` (the field was renamed from `log_level` to `threshold` in commit 287e4842; the GitHub issue #889 description is outdated)
 - 2026-07-14 00:00 UTC - josecelano - Redesigned `TraceStyle` enum: renamed `Default` → `Full`, dropped `Pretty(bool)` → `Pretty` (unit variant). The `display_filename` boolean is dropped (defaults to `false`); can be added as a separate config field later.
 - 2026-07-28 00:00 UTC - josecelano - Confirmed that `trace_filter` retains the current level-only `Threshold` scope. Full tracing directives and per-module filtering are deferred to a separate feature.
-- 2026-07-28 00:00 UTC - josecelano - Implemented and automatically verified the v3-only logging schema. Migration of global callers and shipped v2 defaults remains deferred to #1980.
+- 2026-07-28 00:00 UTC - josecelano - Implemented and automatically verified the v3-only logging schema. Migration of global callers and shipped templates was deferred to #1980.
 - 2026-07-28 17:30 UTC - josecelano - Ready for PR. Manual verification deferred to #1980 (final cleanup) since v3 schema is not yet the active global schema.
 - 2026-08-17 UTC - GitHub Copilot - Archived the specification after GitHub issue #889 was closed and implementation PR #2037 merged.
+- 2026-08-26 16:45 UTC - GitHub Copilot/User - Completed deferred local v3 logging verification under #1980 at revision `af890d927578d5f60dc70d2da87dae92416e4f5c`. Default/full, JSON, compact, pretty, and `trace_filter = "warn"` scenarios passed; ignored local artifacts are in `.tmp/issue-1980-logging-verification/`.
 
 ## Acceptance Criteria
 
@@ -160,7 +161,7 @@ All four variants are simple unit variants — no boolean parameters. The `displ
 - [x] AC2: New `trace_style` field is configurable with values `"full"`, `"pretty"`, `"compact"`, `"json"`
 - [x] AC3: Default `trace_style` is `"full"` (backward-compatible behaviour)
 - [x] AC4: Tracing subscriber uses the configured style
-- [x] AC5: The v3 generated default configuration is updated; shipped v2 defaults are deferred to #1980 because v3 is not yet the active global schema
+- [x] AC5: The v3 generated default configuration uses `trace_filter` and `trace_style`; #1980 migrated all shipped templates and activated v3 at runtime.
 - [x] `linter all` exits with code `0`
 - [x] Relevant tests pass
 
@@ -175,11 +176,11 @@ All four variants are simple unit variants — no boolean parameters. The `displ
 
 | ID  | Scenario                    | Command/Steps                               | Expected Result                 | Status | Evidence |
 | --- | --------------------------- | ------------------------------------------- | ------------------------------- | ------ | -------- |
-| M1  | Verify default style        | Run tracker without `trace_style` in config | Uses `"full"` style             | TODO   |          |
-| M2  | Verify JSON style           | Set `trace_style = "json"`, run tracker     | Output is JSON-formatted        | TODO   |          |
-| M3  | Verify compact style        | Set `trace_style = "compact"`, run tracker  | Output is compact single-line   | TODO   |          |
-| M4  | Verify pretty style         | Set `trace_style = "pretty"`, run tracker   | Output is pretty-printed        | TODO   |          |
-| M5  | Verify `trace_filter` works | Set `trace_filter = "warn"`, run tracker    | Only warn+ level messages shown | TODO   |          |
+| M1  | Verify default style        | Run tracker without `trace_style` in config | Uses `"full"` style             | DONE   | Full-style `Logging initialized` and graceful-shutdown records captured. |
+| M2  | Verify JSON style           | Set `trace_style = "json"`, run tracker     | Output is JSON-formatted        | DONE   | `jq` accepted the `Logging initialized` trace record. |
+| M3  | Verify compact style        | Set `trace_style = "compact"`, run tracker  | Output is compact single-line   | DONE   | Dense startup record with appended fields captured. |
+| M4  | Verify pretty style         | Set `trace_style = "pretty"`, run tracker   | Output is pretty-printed        | DONE   | Indented, comma-delimited record with source location captured. |
+| M5  | Verify `trace_filter` works | Set `trace_filter = "warn"`, run tracker    | Only warn+ level messages shown | DONE   | No `INFO` or `Logging initialized` records; only expected signal warnings captured. |
 
 ### Acceptance Verification
 
