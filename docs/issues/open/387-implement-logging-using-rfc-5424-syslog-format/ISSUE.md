@@ -2,13 +2,17 @@
 doc-type: issue
 issue-type: enhancement
 status: open
+priority: p2
 github-issue: 387
 spec-path: docs/issues/open/387-implement-logging-using-rfc-5424-syslog-format/ISSUE.md
 branch: "387-rfc-5424-syslog-logging"
 related-pr: null
 last-updated-utc: 2026-08-26
 semantic-links:
+  skill-links:
+    - create-issue
   related-artifacts:
+    - .github/skills/dev/planning/create-issue/SKILL.md
     - https://github.com/torrust/torrust-tracker/issues/387
     - docs/issues/open/387-implement-logging-using-rfc-5424-syslog-format/rfc-5424-current-state-analysis.md
     - docs/issues/open/387-implement-logging-using-rfc-5424-syslog-format/questions.md
