@@ -157,16 +157,16 @@ It then returned its existing generic client-side error, `unrecognized announce 
 
 ### Environment
 
-| Item                  | Value                                                                 |
-| --------------------- | --------------------------------------------------------------------- |
-| Date/time (UTC)       | 2026-08-26; exact time captured in local logs                         |
-| Commit                | `af890d927578d5f60dc70d2da87dae92416e4f5c`                            |
-| OS                    | Linux                                                                 |
-| Rust toolchain        | Rust `1.98.0` (`rustc 1.98.0`, `cargo 1.98.0`)                        |
-| Tracker configuration | Isolated v3 TOML in `.tmp/issue-1987-enabled-v3/config.toml`          |
-| HTTP tracker          | `http://127.0.0.1:18070`                                              |
-| REST API              | `http://127.0.0.1:18121`                                              |
-| Health API            | `http://127.0.0.1:18122`                                              |
+| Item                  | Value                                                        |
+| --------------------- | ------------------------------------------------------------ |
+| Date/time (UTC)       | 2026-08-26; exact time captured in local logs                |
+| Commit                | `af890d927578d5f60dc70d2da87dae92416e4f5c`                   |
+| OS                    | Linux                                                        |
+| Rust toolchain        | Rust `1.98.0` (`rustc 1.98.0`, `cargo 1.98.0`)               |
+| Tracker configuration | Isolated v3 TOML in `.tmp/issue-1987-enabled-v3/config.toml` |
+| HTTP tracker          | `http://127.0.0.1:18070`                                     |
+| REST API              | `http://127.0.0.1:18121`                                     |
+| Health API            | `http://127.0.0.1:18122`                                     |
 
 The isolated v3 configuration enabled
 `use_ip_from_query_string = true`, set the HTTP listener's loopback fallback
@@ -176,14 +176,14 @@ tracker and REST API were healthy before the request matrix ran.
 
 ### Request Matrix
 
-| Case          | Request form                        | Actual result |
-| ------------- | ----------------------------------- | ------------- |
-| Valid IPv4    | Tracker client with `--ip 1.2.3.4`  | Successful announce; REST reported `peer_addr: "1.2.3.4:6881"`. |
-| Absent        | Raw HTTP request without `ip`       | Successful announce; REST reported fallback `peer_addr: "198.51.100.77:6882"`. |
-| Empty         | Raw HTTP request with `ip=`         | Successful announce; REST reported fallback `peer_addr: "198.51.100.77:6882"`. |
+| Case          | Request form                           | Actual result                                                                                 |
+| ------------- | -------------------------------------- | --------------------------------------------------------------------------------------------- |
+| Valid IPv4    | Tracker client with `--ip 1.2.3.4`     | Successful announce; REST reported `peer_addr: "1.2.3.4:6881"`.                               |
+| Absent        | Raw HTTP request without `ip`          | Successful announce; REST reported fallback `peer_addr: "198.51.100.77:6882"`.                |
+| Empty         | Raw HTTP request with `ip=`            | Successful announce; REST reported fallback `peer_addr: "198.51.100.77:6882"`.                |
 | DNS name      | Raw HTTP request with `ip=example.com` | Bencoded failure: `DNS names are not supported for the announce ip parameter`; no peer added. |
-| Invalid value | Raw HTTP request with `ip=invalid_ip` | Bencoded failure: `The announce ip parameter must be an IPv4 or IPv6 literal`; no peer added. |
-| Precedence    | Loopback request with `ip=1.2.3.4`  | Successful announce; REST reported `peer_addr: "1.2.3.4:6882"`, overriding `external_ip`. |
+| Invalid value | Raw HTTP request with `ip=invalid_ip`  | Bencoded failure: `The announce ip parameter must be an IPv4 or IPv6 literal`; no peer added. |
+| Precedence    | Loopback request with `ip=1.2.3.4`     | Successful announce; REST reported `peer_addr: "1.2.3.4:6882"`, overriding `external_ip`.     |
 
 ### Commands and Output
 
@@ -202,7 +202,13 @@ cargo run -p torrust-tracker-client --bin tracker_client -- \
 It returned a successful announce response:
 
 ```json
-{"complete":1,"incomplete":0,"interval":120,"min interval":120,"peers":[]}
+{
+  "complete": 1,
+  "incomplete": 0,
+  "interval": 120,
+  "min interval": 120,
+  "peers": []
+}
 ```
 
 The REST peer observation confirmed that the tracker registered

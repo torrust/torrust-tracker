@@ -118,18 +118,18 @@ All four variants are simple unit variants — no boolean parameters. The `displ
 
 ## Implementation Plan
 
-| ID  | Status | Task                                                                       | Notes                                                                                                                           |
-| --- | ------ | -------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| T0  | DONE   | Copy `packages/configuration/src/logging.rs` into `v3_0_0/`                | v3 logging module is self-contained with data types and behaviour                                                               |
-| T1  | DONE   | Rename `threshold` → `trace_filter` in `Logging` config struct             | Implemented in `packages/configuration/src/v3_0_0/logging.rs`                                                                   |
-| T2  | DONE   | Redesign `TraceStyle` enum: `Default`→`Full`, drop `Pretty(bool)`→`Pretty` | Four unit variants; no boolean parameters                                                                                       |
-| T3  | DONE   | Add `trace_style: TraceStyle` field to `Logging` config struct             | Defaults to `TraceStyle::Full`                                                                                                  |
-| T4  | DONE   | Implement deserialization for `TraceStyle`                                 | Supports `"full"`, `"pretty"`, `"compact"`, and `"json"`                                                                        |
-| T5  | DONE   | Wire `trace_style` into tracing subscriber initialization                  | Implemented in `v3_0_0/logging.rs` `setup()`                                                                                    |
+| ID  | Status | Task                                                                       | Notes                                                                                                                     |
+| --- | ------ | -------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| T0  | DONE   | Copy `packages/configuration/src/logging.rs` into `v3_0_0/`                | v3 logging module is self-contained with data types and behaviour                                                         |
+| T1  | DONE   | Rename `threshold` → `trace_filter` in `Logging` config struct             | Implemented in `packages/configuration/src/v3_0_0/logging.rs`                                                             |
+| T2  | DONE   | Redesign `TraceStyle` enum: `Default`→`Full`, drop `Pretty(bool)`→`Pretty` | Four unit variants; no boolean parameters                                                                                 |
+| T3  | DONE   | Add `trace_style: TraceStyle` field to `Logging` config struct             | Defaults to `TraceStyle::Full`                                                                                            |
+| T4  | DONE   | Implement deserialization for `TraceStyle`                                 | Supports `"full"`, `"pretty"`, `"compact"`, and `"json"`                                                                  |
+| T5  | DONE   | Wire `trace_style` into tracing subscriber initialization                  | Implemented in `v3_0_0/logging.rs` `setup()`                                                                              |
 | T6  | DONE   | Update v3 generated default configuration                                  | Uses `trace_filter` and `trace_style`; #1980 later migrated all shipped templates and activated v3 runtime configuration. |
-| T7  | DONE   | Run `linter all` and tests                                                 | `linter all` and the configuration crate test suite pass                                                                        |
-| T8  | DONE   | Add negative test: v3 `Logging` rejects the removed `threshold` key        | Ensures the breaking rename is guarded by `#[serde(deny_unknown_fields)]`                                                       |
-| T9  | DONE   | Update migration guide if this subissue affects the config public API      | `docs/issues/open/1978-configuration-overhaul-epic/configuration-v2-to-v3-migration.md`                                         |
+| T7  | DONE   | Run `linter all` and tests                                                 | `linter all` and the configuration crate test suite pass                                                                  |
+| T8  | DONE   | Add negative test: v3 `Logging` rejects the removed `threshold` key        | Ensures the breaking rename is guarded by `#[serde(deny_unknown_fields)]`                                                 |
+| T9  | DONE   | Update migration guide if this subissue affects the config public API      | `docs/issues/open/1978-configuration-overhaul-epic/configuration-v2-to-v3-migration.md`                                   |
 
 ## Progress Tracking
 
@@ -174,12 +174,12 @@ All four variants are simple unit variants — no boolean parameters. The `displ
 
 ### Manual Verification Scenarios
 
-| ID  | Scenario                    | Command/Steps                               | Expected Result                 | Status | Evidence |
-| --- | --------------------------- | ------------------------------------------- | ------------------------------- | ------ | -------- |
-| M1  | Verify default style        | Run tracker without `trace_style` in config | Uses `"full"` style             | DONE   | Full-style `Logging initialized` and graceful-shutdown records captured. |
-| M2  | Verify JSON style           | Set `trace_style = "json"`, run tracker     | Output is JSON-formatted        | DONE   | `jq` accepted the `Logging initialized` trace record. |
-| M3  | Verify compact style        | Set `trace_style = "compact"`, run tracker  | Output is compact single-line   | DONE   | Dense startup record with appended fields captured. |
-| M4  | Verify pretty style         | Set `trace_style = "pretty"`, run tracker   | Output is pretty-printed        | DONE   | Indented, comma-delimited record with source location captured. |
+| ID  | Scenario                    | Command/Steps                               | Expected Result                 | Status | Evidence                                                                            |
+| --- | --------------------------- | ------------------------------------------- | ------------------------------- | ------ | ----------------------------------------------------------------------------------- |
+| M1  | Verify default style        | Run tracker without `trace_style` in config | Uses `"full"` style             | DONE   | Full-style `Logging initialized` and graceful-shutdown records captured.            |
+| M2  | Verify JSON style           | Set `trace_style = "json"`, run tracker     | Output is JSON-formatted        | DONE   | `jq` accepted the `Logging initialized` trace record.                               |
+| M3  | Verify compact style        | Set `trace_style = "compact"`, run tracker  | Output is compact single-line   | DONE   | Dense startup record with appended fields captured.                                 |
+| M4  | Verify pretty style         | Set `trace_style = "pretty"`, run tracker   | Output is pretty-printed        | DONE   | Indented, comma-delimited record with source location captured.                     |
 | M5  | Verify `trace_filter` works | Set `trace_filter = "warn"`, run tracker    | Only warn+ level messages shown | DONE   | No `INFO` or `Logging initialized` records; only expected signal warnings captured. |
 
 ### Acceptance Verification
