@@ -4,7 +4,8 @@
 //! [`20260429000000_keep_database_as_aggregate_supertrait`](../../../docs/adrs/20260429000000_keep_database_as_aggregate_supertrait.md).
 use std::sync::Arc;
 
-use torrust_tracker_configuration::v3_0_0::{core::Core, database::Database};
+use torrust_tracker_configuration::v3_0_0::core::Core;
+use torrust_tracker_configuration::v3_0_0::database::Database;
 
 use super::driver::mysql::Mysql;
 use super::driver::postgres::Postgres;

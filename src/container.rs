@@ -1,7 +1,9 @@
 use std::sync::Arc;
 
 use torrust_server_lib::registar::Registar;
-use torrust_tracker_configuration::v3_0_0::{Configuration, database::Database, tracker_api::HttpApi};
+use torrust_tracker_configuration::v3_0_0::Configuration;
+use torrust_tracker_configuration::v3_0_0::database::Database;
+use torrust_tracker_configuration::v3_0_0::tracker_api::HttpApi;
 use torrust_tracker_core::container::TrackerCoreContainer;
 use torrust_tracker_http_core::container::{HttpTrackerCoreContainer, HttpTrackerCoreServices};
 use torrust_tracker_primitives::ConfigurationInstanceId;

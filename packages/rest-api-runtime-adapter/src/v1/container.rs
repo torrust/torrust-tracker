@@ -8,9 +8,10 @@
 use std::sync::Arc;
 
 use tokio::sync::RwLock;
-use torrust_tracker_configuration::v3_0_0::{
-    core::Core, http_tracker::HttpTracker, tracker_api::HttpApi, udp_tracker::UdpTracker,
-};
+use torrust_tracker_configuration::v3_0_0::core::Core;
+use torrust_tracker_configuration::v3_0_0::http_tracker::HttpTracker;
+use torrust_tracker_configuration::v3_0_0::tracker_api::HttpApi;
+use torrust_tracker_configuration::v3_0_0::udp_tracker::UdpTracker;
 use torrust_tracker_core::container::TrackerCoreContainer;
 use torrust_tracker_http_core::container::HttpTrackerCoreContainer;
 use torrust_tracker_primitives::ConfigurationInstanceId;

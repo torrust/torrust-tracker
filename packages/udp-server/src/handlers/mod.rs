@@ -234,7 +234,8 @@ pub(crate) mod tests {
 
     use futures::future::BoxFuture;
     use mockall::mock;
-    use torrust_tracker_configuration::v3_0_0::{Configuration, core::Core};
+    use torrust_tracker_configuration::v3_0_0::Configuration;
+    use torrust_tracker_configuration::v3_0_0::core::Core;
     use torrust_tracker_core::announce_handler::AnnounceHandler;
     use torrust_tracker_core::databases::setup::initialize_database;
     use torrust_tracker_core::scrape_handler::ScrapeHandler;

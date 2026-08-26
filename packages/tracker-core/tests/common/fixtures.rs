@@ -3,7 +3,8 @@ use std::str::FromStr;
 
 use torrust_clock::DurationSinceUnixEpoch;
 use torrust_info_hash::InfoHash;
-use torrust_tracker_configuration::v3_0_0::{core::Core, database::Database};
+use torrust_tracker_configuration::v3_0_0::core::Core;
+use torrust_tracker_configuration::v3_0_0::database::Database;
 use torrust_tracker_primitives::peer::Peer;
 use torrust_tracker_primitives::{AnnounceEvent, NumberOfBytes, PeerId};
 use torrust_tracker_test_helpers::configuration::ephemeral_sqlite_database;

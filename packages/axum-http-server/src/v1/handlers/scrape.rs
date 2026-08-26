@@ -100,7 +100,8 @@ mod tests {
 
     use tokio_util::sync::CancellationToken;
     use torrust_info_hash::InfoHash;
-    use torrust_tracker_configuration::v3_0_0::{Configuration, core::Core};
+    use torrust_tracker_configuration::v3_0_0::Configuration;
+    use torrust_tracker_configuration::v3_0_0::core::Core;
     use torrust_tracker_core::authentication::key::repository::in_memory::InMemoryKeyRepository;
     use torrust_tracker_core::authentication::service::AuthenticationService;
     use torrust_tracker_core::scrape_handler::ScrapeHandler;

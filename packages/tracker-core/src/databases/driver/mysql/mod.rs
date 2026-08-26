@@ -78,7 +78,6 @@ impl Mysql {
 mod tests {
     use std::sync::Arc;
 
-    use testcontainers::core::{IntoContainerPort, WaitFor};
     /*
     We run a MySQL container and run all the tests against the same container and database.
 
@@ -97,12 +96,11 @@ mod tests {
     If we increase the number of methods or the number or drivers.
     */
     use secrecy::SecretString;
+    use testcontainers::core::{IntoContainerPort, WaitFor};
     use testcontainers::runners::AsyncRunner;
     use testcontainers::{ContainerAsync, GenericImage, ImageExt};
-    use torrust_tracker_configuration::v3_0_0::{
-        core::Core,
-        database::{ConnectionInfo, Database as ConfigurationDatabase},
-    };
+    use torrust_tracker_configuration::v3_0_0::core::Core;
+    use torrust_tracker_configuration::v3_0_0::database::{ConnectionInfo, Database as ConfigurationDatabase};
 
     use super::Mysql;
     use crate::databases::driver::tests::run_tests;

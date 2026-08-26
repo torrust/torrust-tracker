@@ -5,10 +5,10 @@ use std::time::Duration;
 use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
 use torrust_server_lib::registar::Registar;
-use torrust_tracker_configuration::v3_0_0::{
-    core::Core,
-    udp_tracker::UdpTracker,
-    udp_tracker_server::{ConnectionIdValidationPolicy as ConfigurationConnectionIdValidationPolicy, UdpTrackerServer},
+use torrust_tracker_configuration::v3_0_0::core::Core;
+use torrust_tracker_configuration::v3_0_0::udp_tracker::UdpTracker;
+use torrust_tracker_configuration::v3_0_0::udp_tracker_server::{
+    ConnectionIdValidationPolicy as ConfigurationConnectionIdValidationPolicy, UdpTrackerServer,
 };
 use torrust_tracker_core::container::TrackerCoreContainer;
 use torrust_tracker_primitives::{ConfigurationInstanceId, RuntimeServiceMetadata, ServiceRole};

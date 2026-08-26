@@ -10,7 +10,8 @@
 use std::sync::Arc;
 
 use torrust_net_primitives::service_binding::ServiceBinding;
-use torrust_tracker_configuration::v3_0_0::{core::Core, http_tracker::HttpTracker};
+use torrust_tracker_configuration::v3_0_0::core::Core;
+use torrust_tracker_configuration::v3_0_0::http_tracker::HttpTracker;
 use torrust_tracker_core::authentication::service::AuthenticationService;
 use torrust_tracker_core::authentication::{self, Key};
 use torrust_tracker_core::error::{ScrapeError, TrackerCoreError, WhitelistError};

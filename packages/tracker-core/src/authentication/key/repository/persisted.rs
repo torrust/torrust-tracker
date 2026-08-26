@@ -80,7 +80,8 @@ mod tests {
 
         use std::time::Duration;
 
-        use torrust_tracker_configuration::v3_0_0::{core::Core, database::Database};
+        use torrust_tracker_configuration::v3_0_0::core::Core;
+        use torrust_tracker_configuration::v3_0_0::database::Database;
         use torrust_tracker_test_helpers::configuration::ephemeral_sqlite_database;
 
         use crate::authentication::key::repository::persisted::DatabaseKeyRepository;

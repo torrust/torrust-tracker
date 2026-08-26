@@ -4,7 +4,8 @@
 //! [`20260825193119_make_persistence_an_optional_application_composition_capability`](../../../docs/adrs/20260825193119_make_persistence_an_optional_application_composition_capability.md).
 use std::sync::Arc;
 
-use torrust_tracker_configuration::v3_0_0::{core::Core, database::Database};
+use torrust_tracker_configuration::v3_0_0::core::Core;
+use torrust_tracker_configuration::v3_0_0::database::Database;
 use torrust_tracker_swarm_coordination_registry::container::SwarmCoordinationRegistryContainer;
 
 use crate::announce_handler::AnnounceHandler;

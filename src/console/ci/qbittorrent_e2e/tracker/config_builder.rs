@@ -4,14 +4,12 @@ use std::path::{Path, PathBuf};
 
 use anyhow::Context;
 use secrecy::SecretString;
-use torrust_tracker_configuration::v3_0_0::{
-    Configuration,
-    database::{ConnectionInfo, Database},
-    health_check_api::HealthCheckApi,
-    http_tracker::HttpTracker,
-    tracker_api::HttpApi,
-    udp_tracker::UdpTracker,
-};
+use torrust_tracker_configuration::v3_0_0::Configuration;
+use torrust_tracker_configuration::v3_0_0::database::{ConnectionInfo, Database};
+use torrust_tracker_configuration::v3_0_0::health_check_api::HealthCheckApi;
+use torrust_tracker_configuration::v3_0_0::http_tracker::HttpTracker;
+use torrust_tracker_configuration::v3_0_0::tracker_api::HttpApi;
+use torrust_tracker_configuration::v3_0_0::udp_tracker::UdpTracker;
 
 const CONFIG_FILE_NAME: &str = "tracker-config.toml";
 const DEFAULT_SQLITE3_DATABASE_PATH: &str = "/var/lib/torrust/tracker/database/sqlite3.db";
@@ -266,8 +264,9 @@ const fn bind_address(port: u16) -> SocketAddr {
 mod tests {
     use std::fs;
 
-    use super::{DatabaseDriver, TrackerConfig, TrackerConfigBuilder};
     use tempfile::tempdir;
+
+    use super::{DatabaseDriver, TrackerConfig, TrackerConfigBuilder};
 
     #[test]
     fn write_to_should_persist_the_tracker_api_access_token() {

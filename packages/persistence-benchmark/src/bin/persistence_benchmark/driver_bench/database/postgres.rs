@@ -8,10 +8,8 @@ use testcontainers::core::wait::LogWaitStrategy;
 use testcontainers::core::{IntoContainerPort, WaitFor};
 use testcontainers::runners::AsyncRunner;
 use testcontainers::{GenericImage, ImageExt};
-use torrust_tracker_configuration::v3_0_0::{
-    core::Core,
-    database::{ConnectionInfo, Database},
-};
+use torrust_tracker_configuration::v3_0_0::core::Core;
+use torrust_tracker_configuration::v3_0_0::database::{ConnectionInfo, Database};
 use torrust_tracker_core::databases::setup::initialize_database;
 
 use super::{ActiveDatabase, BenchmarkResource};

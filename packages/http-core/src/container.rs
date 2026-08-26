@@ -1,6 +1,8 @@
 use std::sync::Arc;
 
-use torrust_tracker_configuration::v3_0_0::{core::Core, database::Database, http_tracker::HttpTracker};
+use torrust_tracker_configuration::v3_0_0::core::Core;
+use torrust_tracker_configuration::v3_0_0::database::Database;
+use torrust_tracker_configuration::v3_0_0::http_tracker::HttpTracker;
 use torrust_tracker_core::container::TrackerCoreContainer;
 use torrust_tracker_events::bus::SenderStatus;
 use torrust_tracker_primitives::ConfigurationInstanceId;

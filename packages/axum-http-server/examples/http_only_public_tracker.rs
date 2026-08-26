@@ -45,7 +45,10 @@ use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::sync::Arc;
 
 use torrust_tracker_axum_http_server::testing::environment::Started;
-use torrust_tracker_configuration::v3_0_0::{core::Core, database::Database, http_tracker::HttpTracker, network::Network};
+use torrust_tracker_configuration::v3_0_0::core::Core;
+use torrust_tracker_configuration::v3_0_0::database::Database;
+use torrust_tracker_configuration::v3_0_0::http_tracker::HttpTracker;
+use torrust_tracker_configuration::v3_0_0::network::Network;
 
 #[tokio::main]
 async fn main() {

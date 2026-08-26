@@ -83,10 +83,8 @@ mod tests {
     use testcontainers::core::IntoContainerPort;
     use testcontainers::runners::AsyncRunner;
     use testcontainers::{ContainerAsync, GenericImage, ImageExt};
-    use torrust_tracker_configuration::v3_0_0::{
-        core::Core,
-        database::{ConnectionInfo, Database as ConfigurationDatabase},
-    };
+    use torrust_tracker_configuration::v3_0_0::core::Core;
+    use torrust_tracker_configuration::v3_0_0::database::{ConnectionInfo, Database as ConfigurationDatabase};
 
     use super::Postgres;
     use crate::databases::driver::tests::run_tests;

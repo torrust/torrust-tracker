@@ -24,7 +24,9 @@
 use std::sync::Arc;
 
 use torrust_clock::clock::Time;
-use torrust_tracker_configuration::v3_0_0::{Configuration, http_tracker::HttpTracker, udp_tracker::UdpTracker};
+use torrust_tracker_configuration::v3_0_0::Configuration;
+use torrust_tracker_configuration::v3_0_0::http_tracker::HttpTracker;
+use torrust_tracker_configuration::v3_0_0::udp_tracker::UdpTracker;
 use torrust_tracker_primitives::{ConfigurationInstanceId, RuntimeServiceMetadata, ServiceRole};
 use torrust_tracker_udp_core::ConnectionIdValidationPolicy;
 use tracing::instrument;
@@ -353,7 +355,9 @@ async fn start_health_check_api(config: &Configuration, app_container: &Arc<AppC
 
 #[cfg(test)]
 mod tests {
-    use torrust_tracker_configuration::v3_0_0::{Configuration, core::Core, udp_tracker::UdpTracker};
+    use torrust_tracker_configuration::v3_0_0::Configuration;
+    use torrust_tracker_configuration::v3_0_0::core::Core;
+    use torrust_tracker_configuration::v3_0_0::udp_tracker::UdpTracker;
 
     use super::should_start_udp_tracker_services;
 

@@ -37,7 +37,10 @@ use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::sync::Arc;
 use std::time::Duration;
 
-use torrust_tracker_configuration::v3_0_0::{core::Core, database::Database, network::Network, udp_tracker::UdpTracker};
+use torrust_tracker_configuration::v3_0_0::core::Core;
+use torrust_tracker_configuration::v3_0_0::database::Database;
+use torrust_tracker_configuration::v3_0_0::network::Network;
+use torrust_tracker_configuration::v3_0_0::udp_tracker::UdpTracker;
 use torrust_tracker_udp_server::testing::environment::Started;
 
 #[tokio::main]

@@ -1,7 +1,8 @@
 use std::sync::Arc;
 
 use tokio::sync::RwLock;
-use torrust_tracker_configuration::v3_0_0::{core::Core, udp_tracker::UdpTracker};
+use torrust_tracker_configuration::v3_0_0::core::Core;
+use torrust_tracker_configuration::v3_0_0::udp_tracker::UdpTracker;
 use torrust_tracker_core::container::TrackerCoreContainer;
 use torrust_tracker_events::bus::SenderStatus;
 use torrust_tracker_primitives::ConfigurationInstanceId;

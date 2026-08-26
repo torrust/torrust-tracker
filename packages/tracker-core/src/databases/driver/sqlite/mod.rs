@@ -84,7 +84,8 @@ mod tests {
 
     use std::sync::Arc;
 
-    use torrust_tracker_configuration::v3_0_0::{core::Core, database::Database as DatabaseConfig};
+    use torrust_tracker_configuration::v3_0_0::core::Core;
+    use torrust_tracker_configuration::v3_0_0::database::Database as DatabaseConfig;
     use torrust_tracker_test_helpers::configuration::ephemeral_sqlite_database;
 
     use crate::databases::driver::sqlite::Sqlite;
