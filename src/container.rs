@@ -47,8 +47,9 @@ pub struct AppContainer {
 impl AppContainer {
     /// # Panics
     ///
-    /// Panics when the active v2 runtime fails to provide its mandatory
-    /// temporary database compatibility bridge.
+    /// Panics when tracker-core database-driver initialization or database
+    /// migrations fail, including when the active v2 runtime fails to provide
+    /// its mandatory temporary database compatibility bridge.
     #[instrument(skip(configuration))]
     pub async fn initialize(configuration: &Configuration) -> Self {
         // Configuration

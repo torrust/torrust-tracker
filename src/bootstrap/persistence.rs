@@ -6,7 +6,7 @@
 //! receives the actual v3 configuration.
 use torrust_tracker_configuration::v3_0_0::core::Core;
 
-/// A configured capability that requires an absent database.
+/// An enabled capability whose persistence requirement is unmet.
 #[derive(thiserror::Error, Debug, PartialEq, Eq)]
 pub enum PersistenceRequirementError {
     /// Listing needs the whitelist persistence store.
