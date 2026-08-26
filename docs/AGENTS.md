@@ -31,7 +31,7 @@ For the full project context see the [root AGENTS.md](../AGENTS.md).
 | `adrs/`                                                                                   | Architectural Decision Records (ADRs)                                              |
 | `issues/`                                                                                 | Issue specification documents linked to GitHub issues                              |
 | `refactor-plans/`                                                                         | Refactor plan specifications (same lifecycle as issue specs)                       |
-| `pr-reviews/`                                                                             | Notable PR review records and Copilot suggestion threads                           |
+| `copilot-pr-reviews/`                                                                     | Copilot PR review records and suggestion threads                                   |
 | `skills/`                                                                                 | Internal conventions used by humans and AI agents                                  |
 | `templates/`                                                                              | Canonical document templates (ADR, EPIC, issue, refactor plan)                     |
 | `media/`                                                                                  | Images, diagrams, flamegraphs, benchmark reports, sample torrents                  |

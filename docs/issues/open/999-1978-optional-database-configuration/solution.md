@@ -31,11 +31,20 @@ An omitted `[core.database]` table deserializes as `None`; configured drivers
 retain the existing v3 driver-specific representation.
 
 This issue prepares optional persistence at the configuration and
-application-container boundaries. While the crate-root runtime aliases remain
-v2, bootstrap deliberately passes `Some(Database)` to the optional container
-dependency. This preserves the existing effective database dependency during
-the v3 activation transition. It is a named, tested compatibility bridge—not
-the final persistence-free runtime behavior.
+application-container boundaries. Phase 3 provisionally resolves
+`Option<Database>` at the existing tracker-core initialization seam: its
+`Some` branch initializes the selected driver and complete migration set, then
+passes ordinary required stores to persistence-backed consumers. Its future
+`None` branch must select a persistence-absent composition path before those
+consumers are built. This prevents configuration optionality from cascading as
+`Option` through consumers that are only valid in the persistence-enabled
+composition.
+
+While the crate-root runtime aliases remain v2, bootstrap deliberately passes
+`Some(Database)` to that optional container dependency. This preserves the
+existing effective database dependency during the v3 activation transition. It
+is a named, tested compatibility bridge—not the final persistence-free runtime
+behavior.
 
 ### Test and activation sequencing
 
@@ -276,6 +285,46 @@ Evaluate at least these alternatives against Phase 1 evidence:
 The working direction rejects the first two alternatives: the first abandons
 the explicit in-memory deployment capability, and the second permits delayed
 failures and hidden feature-to-database coupling.
+
+#### Composition alternative A: resolve `Option<Database>` in tracker-core (selected)
+
+`TrackerCoreContainer::initialize_from` receives `Option<Database>` and
+matches it before constructing persistence-backed services. With `Some`, it
+uses tracker-core's existing driver, migration, and store setup to construct a
+persistence-enabled composition. With `None`, the future activation path can
+construct a separate persistence-absent composition without creating a driver,
+database file, network connection, or migration.
+
+This is selected for Phase 3 because it is the least aggressive evolution of
+the existing lifecycle. It localizes optionality at the current database
+initialization seam: persistence-enabled consumers receive required store
+dependencies, rather than each receiving and repeatedly handling an `Option`.
+An `Arc` can share an initialized driver or store, but it does not remove the
+need to choose a composition branch before constructing services whose
+dependencies must exist. The current active v2 runtime keeps choosing `Some`
+through the named compatibility bridge.
+
+#### Composition alternative B: inject optional initialized persistence services
+
+Bootstrap or application composition would initialize the driver, migrations,
+and stores first, then pass `Option<PersistenceServices>` into tracker-core.
+This can enforce that tracker-core never initiates infrastructure when no
+dependency is supplied. It may also be appropriate if multiple top-level
+containers need to share exactly one prebuilt persistence bundle.
+
+It is not selected initially because it is more invasive and could make the
+top-level composition own lifecycle details that currently belong to
+tracker-core. The database setup implementation, including schema and
+migration ownership, may remain in tracker-core even if a later refactor moves
+the invocation boundary. Reconsider alternative B if alternative A requires
+optional container fields, optionality in unrelated consumers, duplicate
+initialization paths, or cannot represent the future persistence-absent branch
+without weakening dependency invariants.
+
+Phase 3 must preserve this reversibility: keep the optional boundary explicit,
+avoid exposing the temporary v2 bridge as a generic default, and avoid coupling
+the persistence-absent branch to the active runtime before the activation
+follow-up.
 
 ## Approval Record
 

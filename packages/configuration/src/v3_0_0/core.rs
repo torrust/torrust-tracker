@@ -17,9 +17,12 @@ pub struct Core {
     #[serde(default = "Core::default_announce_policy")]
     pub announce_policy: AnnouncePolicy,
 
-    /// Database configuration.
-    #[serde(default = "Core::default_database")]
-    pub database: Database,
+    /// Optional database configuration.
+    ///
+    /// When omitted, persistence is unavailable by configuration. Runtime
+    /// capability validation is performed by application bootstrap.
+    #[serde(default)]
+    pub database: Option<Database>,
 
     /// Interval in seconds that the cleanup job will run to remove inactive
     /// peers from the torrent peer list.
@@ -55,7 +58,7 @@ impl Default for Core {
     fn default() -> Self {
         Self {
             announce_policy: Self::default_announce_policy(),
-            database: Self::default_database(),
+            database: None,
             inactive_peer_cleanup_interval: Self::default_inactive_peer_cleanup_interval(),
             listed: Self::default_listed(),
             private: Self::default_private(),
@@ -69,10 +72,6 @@ impl Default for Core {
 impl Core {
     fn default_announce_policy() -> AnnouncePolicy {
         AnnouncePolicy::default()
-    }
-
-    fn default_database() -> Database {
-        Database::default()
     }
 
     fn default_inactive_peer_cleanup_interval() -> u64 {

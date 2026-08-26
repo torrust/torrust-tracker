@@ -229,10 +229,6 @@
 //! interval_min = 120
 //! max_peers_per_announce = 74
 //!
-//! [core.database]
-//! driver = "sqlite3"
-//! path = "./storage/tracker/lib/database/sqlite3.db"
-//!
 //! [core.tracker_policy]
 //! max_peer_timeout = 900
 //! persistent_torrent_completed_stat = false
@@ -382,11 +378,10 @@ impl Configuration {
         // Make sure user has provided the mandatory options.
         Self::check_mandatory_options(&figment)?;
 
-        // Fill missing options with default values. `Database` defaults itself
-        // during deserialization, so omit that nested value from Figment's
-        // defaults. Otherwise Figment merges SQLite's default `path` into a
-        // user-supplied network-database table, which the driver-specific
-        // validation correctly rejects.
+        // Fill missing options with default values. Omit the optional database
+        // table from Figment defaults. Otherwise a default SQLite path could
+        // merge into a user-supplied network-database table, which the
+        // driver-specific validation correctly rejects.
         let figment = figment.join(Serialized::defaults(Self::defaults_for_loading()));
 
         // Build final configuration.
@@ -464,20 +459,22 @@ impl Configuration {
     /// Will panic if it can't be converted to TOML.
     #[must_use]
     fn serialize_toml_for_persistence(&self) -> String {
-        if self.http_api.is_none() && matches!(self.core.database, database::Database::Sqlite3 { .. }) {
+        if self.http_api.is_none() && matches!(self.core.database, Some(database::Database::Sqlite3 { .. })) {
             return toml::to_string(self).expect("Could not encode TOML value");
         }
 
         let mut configuration = toml::Value::try_from(self).expect("Could not encode TOML value");
 
-        configuration
-            .get_mut("core")
-            .and_then(toml::Value::as_table_mut)
-            .expect("core configuration should serialize to a TOML table")
-            .insert(
-                "database".to_string(),
-                toml::Value::Table(self.core.database.serialize_for_persistence()),
-            );
+        if let Some(database) = &self.core.database {
+            configuration
+                .get_mut("core")
+                .and_then(toml::Value::as_table_mut)
+                .expect("core configuration should serialize to a TOML table")
+                .insert(
+                    "database".to_string(),
+                    toml::Value::Table(database.serialize_for_persistence()),
+                );
+        }
 
         if let Some(http_api) = &self.http_api {
             configuration
@@ -559,10 +556,6 @@ mod tests {
                                 interval_min = 120
                                 max_peers_per_announce = 74
 
-                                [core.database]
-                                driver = "sqlite3"
-                                path = "./storage/tracker/lib/database/sqlite3.db"
-
                                 [core.tracker_policy]
                                 max_peer_timeout = 900
                                 persistent_torrent_completed_stat = false
@@ -582,6 +575,47 @@ mod tests {
         .join("\n")
     }
 
+    #[cfg(test)]
+    fn default_persisted_config_toml() -> String {
+        r#"[core]
+                                inactive_peer_cleanup_interval = 600
+                                listed = false
+                                private = false
+                                tracker_usage_statistics = true
+
+                                [core.announce_policy]
+                                interval = 120
+                                interval_min = 120
+                                max_peers_per_announce = 74
+
+                                [core.tracker_policy]
+                                max_peer_timeout = 900
+                                persistent_torrent_completed_stat = false
+                                remove_peerless_torrents = true
+
+                                [health_check_api]
+                                bind_address = "127.0.0.1:1313"
+
+                                [logging]
+                                trace_filter = "info"
+                                trace_style = "full"
+
+                                [metadata]
+                                app = "torrust-tracker"
+                                purpose = "configuration"
+                                schema_version = "3.0.0"
+
+                                [udp_tracker_server]
+                                connection_id_validation = "strict"
+                                ip_bans_reset_interval_in_secs = 86400
+                                max_connection_id_errors_per_ip = 10
+        "#
+        .lines()
+        .map(str::trim_start)
+        .collect::<Vec<&str>>()
+        .join("\n")
+    }
+
     #[test]
     fn configuration_should_have_default_values() {
         let configuration = Configuration::default();
@@ -589,6 +623,35 @@ mod tests {
         let toml = toml::to_string(&configuration).expect("Could not encode TOML value");
 
         assert_eq!(toml, default_config_toml());
+    }
+
+    #[test]
+    #[allow(clippy::result_large_err)]
+    fn it_should_deserialize_an_omitted_database_as_none() {
+        // Arrange
+        let info = Info {
+            config_toml: Some(
+                r#"
+                    [metadata]
+                    schema_version = "3.0.0"
+
+                    [logging]
+                    trace_filter = "info"
+
+                    [core]
+                    listed = false
+                    private = false
+                "#
+                .to_string(),
+            ),
+            config_toml_path: String::new(),
+        };
+
+        // Act
+        let configuration = Configuration::load(&info).expect("configuration should load");
+
+        // Assert
+        assert_eq!(configuration.core.database, None);
     }
 
     #[test]
@@ -726,7 +789,7 @@ mod tests {
 
         let contents = fs::read_to_string(&path).expect("Something went wrong reading the file");
 
-        assert_eq!(contents, default_config_toml());
+        assert_eq!(contents, default_persisted_config_toml());
     }
 
     #[test]
@@ -826,9 +889,9 @@ mod tests {
 
             assert_eq!(
                 configuration.core.database,
-                crate::v3_0_0::database::Database::Sqlite3 {
+                Some(crate::v3_0_0::database::Database::Sqlite3 {
                     path: "OVERWRITTEN DEFAULT DB PATH".to_string(),
-                }
+                })
             );
 
             Ok(())
@@ -866,9 +929,9 @@ mod tests {
 
             assert_eq!(
                 configuration.core.database,
-                crate::v3_0_0::database::Database::Sqlite3 {
+                Some(crate::v3_0_0::database::Database::Sqlite3 {
                     path: "OVERWRITTEN DEFAULT DB PATH".to_string(),
-                }
+                })
             );
 
             Ok(())
@@ -919,7 +982,7 @@ mod tests {
                     Database::PostgreSQL(expected_connection)
                 };
 
-                assert_eq!(configuration.core.database, expected_database);
+                assert_eq!(configuration.core.database, Some(expected_database));
             }
 
             Ok(())
@@ -981,13 +1044,13 @@ mod tests {
         // Arrange
         let password = "v3-database-password-only-for-toml-persistence-test";
         let mut configuration = Configuration::default();
-        configuration.core.database = Database::MySQL(ConnectionInfo {
+        configuration.core.database = Some(Database::MySQL(ConnectionInfo {
             host: "mysql".to_string(),
             port: 3306,
             user: "db_user".to_string(),
             password: SecretString::from(password),
             database: "torrust_tracker".to_string(),
-        });
+        }));
 
         // Act
         let toml = configuration.serialize_toml_for_persistence();
@@ -1020,13 +1083,27 @@ mod tests {
             }),
         ] {
             let mut configuration = Configuration::default();
-            configuration.core.database = database;
+            configuration.core.database = Some(database);
 
             let persisted = configuration.serialize_toml_for_persistence();
             let loaded: Configuration = toml::from_str(&persisted).expect("persisted configuration should deserialize");
 
             assert_eq!(loaded.core.database, configuration.core.database);
         }
+    }
+
+    #[test]
+    fn it_should_persist_an_absent_database_without_a_database_table() {
+        // Arrange
+        let configuration = Configuration::default();
+
+        // Act
+        let toml = configuration.serialize_toml_for_persistence();
+        let loaded: Configuration = toml::from_str(&toml).expect("persisted configuration should deserialize");
+
+        // Assert
+        assert!(!toml.contains("[core.database]"));
+        assert_eq!(loaded.core.database, None);
     }
 
     #[test]

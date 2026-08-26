@@ -39,6 +39,10 @@ pub struct TrackerHttpApiCoreContainer {
 }
 
 impl TrackerHttpApiCoreContainer {
+    /// # Panics
+    ///
+    /// Panics if the persistence-required tracker-core container cannot be
+    /// composed from the active v2-compatible configuration.
     #[must_use]
     pub async fn initialize(
         core_config: &Arc<Core>,
@@ -52,8 +56,15 @@ impl TrackerHttpApiCoreContainer {
             core_config.tracker_usage_statistics.into(),
         ));
 
-        let tracker_core_container =
-            Arc::new(TrackerCoreContainer::initialize_from(core_config, &swarm_coordination_registry_container).await);
+        let tracker_core_container = Arc::new(
+            TrackerCoreContainer::initialize_from(
+                core_config,
+                &swarm_coordination_registry_container,
+                Some(&core_config.database),
+            )
+            .await
+            .expect("REST API initialization requires persistence"),
+        );
 
         let http_tracker_core_container = HttpTrackerCoreContainer::initialize_from_tracker_core(
             &tracker_core_container,

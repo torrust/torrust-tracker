@@ -39,7 +39,7 @@ If no tracker file exists for this PR, create one from the template:
 
 ```bash
 cp docs/templates/COPILOT-SUGGESTIONS-TEMPLATE.md \
-   docs/pr-reviews/pr-<PR_NUMBER>-copilot-suggestions.md
+  docs/copilot-pr-reviews/pr-<PR_NUMBER>-copilot-suggestions.md
 ```
 
 Fill in `<PR_NUMBER>` and `<PR_URL>`.
@@ -107,7 +107,7 @@ bash .github/skills/dev/pr-reviews/fetch-review-threads/scripts/list-unresolved-
 Update the tracker Processing Log with timestamps and commit:
 
 ```bash
-git add docs/pr-reviews/pr-<PR_NUMBER>-copilot-suggestions.md
+git add docs/copilot-pr-reviews/pr-<PR_NUMBER>-copilot-suggestions.md
 # then ask the Committer agent to commit
 ```
 

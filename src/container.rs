@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use torrust_server_lib::registar::Registar;
-use torrust_tracker_configuration::{Configuration, HttpApi};
+use torrust_tracker_configuration::{Configuration, Database, HttpApi};
 use torrust_tracker_core::container::TrackerCoreContainer;
 use torrust_tracker_http_core::container::{HttpTrackerCoreContainer, HttpTrackerCoreServices};
 use torrust_tracker_primitives::ConfigurationInstanceId;
@@ -45,6 +45,11 @@ pub struct AppContainer {
 }
 
 impl AppContainer {
+    /// # Panics
+    ///
+    /// Panics when tracker-core database-driver initialization or database
+    /// migrations fail, including when the active v2 runtime fails to provide
+    /// its mandatory temporary database compatibility bridge.
     #[instrument(skip(configuration))]
     pub async fn initialize(configuration: &Configuration) -> Self {
         // Configuration
@@ -65,8 +70,19 @@ impl AppContainer {
 
         // Core
 
-        let tracker_core_container =
-            Arc::new(TrackerCoreContainer::initialize_from(&core_config, &swarm_coordination_registry_container).await);
+        // Temporary compatibility bridge: remove after #1980 activates v3 and
+        // the persistence-free runtime activation follow-up passes actual v3
+        // `core.database` to composition.
+        let v2_database_compatibility_bridge = Some(v2_database_compatibility_bridge(configuration));
+        let tracker_core_container = Arc::new(
+            TrackerCoreContainer::initialize_from(
+                &core_config,
+                &swarm_coordination_registry_container,
+                v2_database_compatibility_bridge,
+            )
+            .await
+            .expect("active v2 runtime must provide the temporary database compatibility bridge"),
+        );
 
         // HTTP
 
@@ -222,5 +238,33 @@ impl AppContainer {
         }
 
         containers
+    }
+}
+
+/// Supplies persistence while configuration aliases still use schema v2.
+///
+/// Remove this bridge after Issue #1980 activates v3 consumers and the
+/// persistence-free runtime activation follow-up passes actual v3
+/// `core.database` to composition.
+const fn v2_database_compatibility_bridge(configuration: &Configuration) -> &Database {
+    &configuration.core.database
+}
+
+#[cfg(test)]
+mod tests {
+    use torrust_tracker_configuration::Configuration;
+
+    use super::v2_database_compatibility_bridge;
+
+    #[test]
+    fn it_should_explicitly_supply_v2_database_to_the_temporary_compatibility_bridge() {
+        // Arrange
+        let configuration = Configuration::default();
+
+        // Act
+        let database = v2_database_compatibility_bridge(&configuration);
+
+        // Assert
+        assert_eq!(database, &configuration.core.database);
     }
 }

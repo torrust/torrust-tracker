@@ -55,7 +55,7 @@ Copy the template to create a tracker for this PR:
 
 ```bash
 cp docs/templates/COPILOT-SUGGESTIONS-TEMPLATE.md \
-   docs/pr-reviews/pr-<PR_NUMBER>-copilot-suggestions.md
+  docs/copilot-pr-reviews/pr-<PR_NUMBER>-copilot-suggestions.md
 ```
 
 Open the tracker file and fill in:
@@ -204,7 +204,7 @@ Update the tracker file with completion notes:
 Commit the tracker as final documentation:
 
 ```bash
-git add docs/pr-reviews/pr-<PR_NUMBER>-copilot-suggestions.md
+git add docs/copilot-pr-reviews/pr-<PR_NUMBER>-copilot-suggestions.md
 git commit -S -m "docs(review): document PR #<PR_NUMBER> copilot suggestions audit"
 ```
 
@@ -242,7 +242,7 @@ Both are integrated into this workflow automatically.
 
 ## Example
 
-See `docs/pr-reviews/EXAMPLE-COMPLETED.md` for a complete worked example
+See `docs/copilot-pr-reviews/EXAMPLE-COMPLETED.md` for a complete worked example
 with all 26 Copilot suggestions processed, decided, and resolved.
 
 ## Completion Checklist
