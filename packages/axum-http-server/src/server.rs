@@ -420,8 +420,15 @@ mod tests {
             configuration.core.tracker_usage_statistics.into(),
         ));
 
-        let tracker_core_container =
-            Arc::new(TrackerCoreContainer::initialize_from(&core_config, &swarm_coordination_registry_container).await);
+        let tracker_core_container = Arc::new(
+            TrackerCoreContainer::initialize_from(
+                &core_config,
+                &swarm_coordination_registry_container,
+                Some(&core_config.database),
+            )
+            .await
+            .expect("HTTP server test initialization requires persistence"),
+        );
 
         let announce_service = Arc::new(AnnounceService::new(
             tracker_core_container.core_config.clone(),

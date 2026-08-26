@@ -194,14 +194,14 @@ optionality is resolved, not schema ownership.
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| ID  | Status | Task                                           | Notes / Expected Output                                                                                                    |
-| --- | ------ | ---------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| T1  | DONE   | Complete persistence analysis                  | `analysis.md` records current lifecycle, all discovered consumers, REST coupling, and driver-specific migration behaviour. |
-| T2  | DONE   | Approve an optional-persistence design         | `solution.md` records the approved v3 contract, validation, API deferrals, compatibility bridge, and staged ordering.      |
-| T3  | TODO   | Implement optional v3 database configuration   | Apply only the Phase 2-approved design; do not change v2.                                                                  |
-| T4  | TODO   | Add regression coverage                        | Cover absent and present database configurations, required-feature validation, migrations, and REST API behaviour.         |
-| T5  | TODO   | Update migration and operational documentation | Explain the v2-to-v3 difference and any changed deployment requirements.                                                   |
-| T6  | TODO   | Verify and re-review                           | Run required automatic and manual checks; update acceptance evidence.                                                      |
+| ID  | Status | Task                                           | Notes / Expected Output                                                                                                                                |
+| --- | ------ | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| T1  | DONE   | Complete persistence analysis                  | `analysis.md` records current lifecycle, all discovered consumers, REST coupling, and driver-specific migration behaviour.                             |
+| T2  | DONE   | Approve an optional-persistence design         | `solution.md` records the approved v3 contract, validation, API deferrals, compatibility bridge, and staged ordering.                                  |
+| T3  | DONE   | Implement optional v3 database configuration   | `v3_0_0::Core.database` is `Option<Database>`; omitted TOML persists and loads as `None`. V2 remains unchanged.                                        |
+| T4  | DONE   | Add regression coverage                        | Focused v3 parsing/serialization, validation-matrix, and optional constructor coverage added. Runtime-free scenarios stay deferred.                    |
+| T5  | DONE   | Update migration and operational documentation | Published ADR `20260825193119_make_persistence_an_optional_application_composition_capability.md`; activation guidance remains in the follow-up draft. |
+| T6  | DONE   | Verify and re-review                           | Focused tests, workspace compilation, `linter all`, and pre-commit pass. M1-M6 remain deferred to the activation follow-up.                            |
 
 ## Progress Tracking
 
@@ -307,6 +307,18 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   dependencies, avoiding an `Option` cascade through consumers. The optional
   pre-initialized persistence-services injection alternative remains a
   documented fallback if this selection cannot keep optionality at composition.
+- 2026-08-25 00:00 UTC - GitHub Copilot - Implemented the Phase 3 v3
+  `Option<Database>` representation, persistence-safe serialization, optional
+  tracker-core constructor seam, named active-v2 compatibility bridge, and the
+  bootstrap-owned requirement matrix. Published ADR
+  `20260825193119_make_persistence_an_optional_application_composition_capability.md`.
+  The runtime still explicitly supplies persistence; activation and M1-M6 remain
+  deferred to the post-#1980 follow-up.
+- 2026-08-25 00:00 UTC - GitHub Copilot - Re-reviewed the Phase 3
+  implementation after correcting the optional composition seam so that the
+  supplied database, rather than `Core.database`, drives persistence setup.
+  Focused configuration, tracker-core, and application tests passed; workspace
+  targets compiled; `linter all` and the mandatory pre-commit gate passed.
 
 ## Acceptance Criteria
 
@@ -371,22 +383,22 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 ### Acceptance Verification
 
-| AC ID | Status (`TODO`/`DONE`) | Evidence                                             |
-| ----- | ---------------------- | ---------------------------------------------------- |
-| AC1   | DONE                   | `analysis.md` lifecycle inventory                    |
-| AC2   | DONE                   | `analysis.md` consumer and API inventory             |
-| AC3   | DONE                   | `solution.md` approval record                        |
-| AC4   | TODO                   | Implementation tests and M1 evidence                 |
-| AC5   | TODO                   | Validation tests and M2 evidence                     |
-| AC6   | TODO                   | REST API tests and M4 evidence                       |
-| AC7   | TODO                   | Driver/migration tests and M3 evidence               |
-| AC8   | DONE                   | Approved staged ordering in EPIC and migration guide |
-| AC9   | TODO                   | V2 compatibility tests/review                        |
-| AC10  | TODO                   | M5 evidence in `baseline-e2e-verification.md`        |
-| AC11  | TODO                   | M6 container-startup evidence                        |
-| AC12  | TODO                   | `linter all` output                                  |
-| AC13  | TODO                   | Focused, relevant workspace, and M1–M6 evidence      |
-| AC14  | TODO                   | Post-implementation acceptance review                |
+| AC ID | Status (`TODO`/`DONE`) | Evidence                                                 |
+| ----- | ---------------------- | -------------------------------------------------------- |
+| AC1   | DONE                   | `analysis.md` lifecycle inventory                        |
+| AC2   | DONE                   | `analysis.md` consumer and API inventory                 |
+| AC3   | DONE                   | `solution.md` approval record                            |
+| AC4   | TODO                   | Implementation tests and M1 evidence                     |
+| AC5   | TODO                   | Validation tests and M2 evidence                         |
+| AC6   | TODO                   | REST API tests and M4 evidence                           |
+| AC7   | TODO                   | Driver/migration tests and M3 evidence                   |
+| AC8   | DONE                   | Approved staged ordering in EPIC and migration guide     |
+| AC9   | DONE                   | V2 configuration tests and active explicit bridge review |
+| AC10  | TODO                   | M5 evidence in `baseline-e2e-verification.md`            |
+| AC11  | TODO                   | M6 container-startup evidence                            |
+| AC12  | DONE                   | `linter all` passed on 2026-08-25                        |
+| AC13  | TODO                   | Focused, relevant workspace, and M1–M6 evidence          |
+| AC14  | DONE                   | Phase 3 review; activation-owned criteria remain pending |
 
 ## Risks and Trade-offs
 

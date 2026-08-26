@@ -4,7 +4,7 @@
 //! [`20260429000000_keep_database_as_aggregate_supertrait`](../../../docs/adrs/20260429000000_keep_database_as_aggregate_supertrait.md).
 use std::sync::Arc;
 
-use torrust_tracker_configuration::Core;
+use torrust_tracker_configuration::{Core, Database};
 use torrust_tracker_primitives::Driver;
 
 use super::driver::mysql::Mysql;
@@ -89,21 +89,36 @@ where
 /// ```
 #[must_use]
 pub async fn initialize_database(config: &Core) -> DatabaseStores {
-    let driver = &config.database.driver;
+    initialize_database_from_configuration(&config.database).await
+}
+
+/// Initializes and returns a [`DatabaseStores`] bundle for one selected
+/// database configuration.
+///
+/// This factory is used at the optional persistence composition boundary, where
+/// the selected database is already known to be present.
+///
+/// # Panics
+///
+/// Panics when the database driver cannot be initialized or the shared schema
+/// migrations cannot be applied. See [`initialize_database`] for details.
+#[must_use]
+pub async fn initialize_database_from_configuration(database: &Database) -> DatabaseStores {
+    let driver = &database.driver;
 
     match driver {
         Driver::Sqlite3 => {
-            let db = Arc::new(Sqlite::new(&config.database.path).expect("Database driver build failed."));
+            let db = Arc::new(Sqlite::new(&database.path).expect("Database driver build failed."));
             db.create_database_tables().await.expect("Could not create database tables.");
             build_database_stores(db)
         }
         Driver::MySQL => {
-            let db = Arc::new(Mysql::new(&config.database.path).expect("Database driver build failed."));
+            let db = Arc::new(Mysql::new(&database.path).expect("Database driver build failed."));
             db.create_database_tables().await.expect("Could not create database tables.");
             build_database_stores(db)
         }
         Driver::PostgreSQL => {
-            let db = Arc::new(Postgres::new(&config.database.path).expect("Database driver build failed."));
+            let db = Arc::new(Postgres::new(&database.path).expect("Database driver build failed."));
             db.create_database_tables().await.expect("Could not create database tables.");
             build_database_stores(db)
         }

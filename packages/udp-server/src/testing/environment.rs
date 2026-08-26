@@ -204,14 +204,25 @@ pub struct EnvContainer {
 }
 
 impl EnvContainer {
+    /// # Panics
+    ///
+    /// Panics if the persistence-required tracker-core test container cannot
+    /// be composed.
     #[must_use]
     pub async fn initialize(core_config: &Arc<Core>, udp_tracker_config: &Arc<UdpTracker>) -> Self {
         let swarm_coordination_registry_container = Arc::new(SwarmCoordinationRegistryContainer::initialize(
             core_config.tracker_usage_statistics.into(),
         ));
 
-        let tracker_core_container =
-            Arc::new(TrackerCoreContainer::initialize_from(core_config, &swarm_coordination_registry_container).await);
+        let tracker_core_container = Arc::new(
+            TrackerCoreContainer::initialize_from(
+                core_config,
+                &swarm_coordination_registry_container,
+                Some(&core_config.database),
+            )
+            .await
+            .expect("UDP server test initialization requires persistence"),
+        );
 
         let udp_tracker_core_container = UdpTrackerCoreContainer::initialize_from_tracker_core(
             &tracker_core_container,
