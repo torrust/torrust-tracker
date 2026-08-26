@@ -1,11 +1,11 @@
 ---
 doc-type: issue
 issue-type: bug
-status: draft
+status: done
 priority: p2
 epic: null
 github-issue: 1430
-spec-path: docs/issues/open/1430-fix-tracing-span-log-assertions.md
+spec-path: docs/issues/closed/1430-fix-tracing-span-log-assertions.md
 branch: "1430-fix-tracing-span-log-assertions"
 related-pr: 1429
 last-updated-utc: 2026-08-26
@@ -13,6 +13,7 @@ semantic-links:
   skill-links:
     - create-issue
   related-artifacts:
+    - docs/adrs/20260826124959_use_explicit_identifiers_for_test_log_assertions.md
     - packages/test-helpers/src/logging.rs
     - packages/axum-http-server/tests/server/v1/contract/configured_as_whitelisted.rs
     - packages/axum-rest-api-server/tests/server/v1/contract/context/torrent.rs
@@ -89,7 +90,7 @@ did not introduce general tracing-context propagation or resolve this issue's as
 | T2  | DONE   | Evaluate current tracker need and alternatives       | The custom helper and explicit identifiers satisfy current needs with less maintenance and better debuggability. |
 | T3  | DONE   | Write the test logging strategy ADR                  | Added `docs/adrs/20260826124959_use_explicit_identifiers_for_test_log_assertions.md`.                            |
 | T4  | DONE   | Validate and review the ADR                          | Maintainer approved the ADR; `linter all` passed.                                                                |
-| T5  | TODO   | Close the GitHub issue                               | Link the accepted ADR in the closing comment and close #1430 as not planned.                                     |
+| T5  | DONE   | Close the GitHub issue                               | Closed as `not_planned` with a link to the ADR in GitHub comment #5427424336.                                    |
 
 ## Progress Tracking
 
@@ -100,9 +101,9 @@ did not introduce general tracing-context propagation or resolve this issue's as
 - [x] Current need and alternatives assessed
 - [x] ADR written and accepted
 - [x] Documentation checks completed
-- [ ] Acceptance criteria reviewed after documentation implementation and updated with evidence
-- [ ] GitHub issue closed with ADR reference
-- [ ] Issue closed and specification moved to `docs/issues/closed/`
+- [x] Acceptance criteria reviewed after documentation implementation and updated with evidence
+- [x] GitHub issue closed with ADR reference
+- [x] Issue closed and specification moved to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -118,6 +119,9 @@ did not introduce general tracing-context propagation or resolve this issue's as
   specification updates.
 - 2026-08-26 UTC - josecelano - Approved the ADR and the documented decision to retain explicit
   identifiers for test log assertions.
+- 2026-08-26 UTC - GitHub Copilot - Posted the closure rationale linking the accepted ADR and
+  closed GitHub issue #1430 as `not_planned`.
+- 2026-08-26 UTC - GitHub Copilot - Archived this completed specification in `docs/issues/closed/`.
 
 ## Acceptance Criteria
 
