@@ -37,7 +37,10 @@ use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::sync::Arc;
 use std::time::Duration;
 
-use torrust_tracker_configuration::{Core, UdpTracker};
+use torrust_tracker_configuration::v3_0_0::core::Core;
+use torrust_tracker_configuration::v3_0_0::database::Database;
+use torrust_tracker_configuration::v3_0_0::network::Network;
+use torrust_tracker_configuration::v3_0_0::udp_tracker::UdpTracker;
 use torrust_tracker_udp_server::testing::environment::Started;
 
 #[tokio::main]
@@ -49,10 +52,9 @@ async fn main() {
     // Public tracker: peers do not need an authentication key.
     let core = Core {
         private: false,
-        database: torrust_tracker_configuration::Database {
+        database: Some(Database::Sqlite3 {
             path: db_path.to_string_lossy().into_owned(),
-            ..Default::default()
-        },
+        }),
         ..Core::default()
     };
 
@@ -60,8 +62,8 @@ async fn main() {
         bind_address: SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 0),
         cookie_lifetime: Duration::from_secs(120),
         tracker_usage_statistics: false,
-        ipv6_v6only: false,
-        max_connection_id_errors_per_ip: 10,
+        public_url: None,
+        network: Network::default(),
     };
 
     println!("Types from torrust-tracker-configuration used by this binary:");

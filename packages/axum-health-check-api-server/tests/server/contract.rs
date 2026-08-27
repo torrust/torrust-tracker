@@ -148,7 +148,7 @@ mod http {
     use torrust_server_lib::registar::ServiceHealthCheckJob;
     use torrust_tracker_axum_health_check_api_server::environment::Started;
     use torrust_tracker_axum_health_check_api_server::resources::{Report, Status};
-    use torrust_tracker_configuration::TslConfig;
+    use torrust_tracker_configuration::v3_0_0::tls::TlsConfig;
     use torrust_tracker_test_helpers::{configuration, logging};
     use url::Url;
 
@@ -231,7 +231,7 @@ mod http {
             .clone()
             .expect("missing HTTP tracker configuration")[0]
             .clone();
-        http_tracker_config.tsl_config = Some(TslConfig {
+        http_tracker_config.tls_config = Some(TlsConfig {
             ssl_cert_path: "tests/fixtures/https-health-check-cert.pem".into(),
             ssl_key_path: "tests/fixtures/https-health-check-key.pem".into(),
         });

@@ -400,7 +400,7 @@ mod using_ipv6_v6only {
         let core_config = Arc::new(cfg.core.clone());
         let mut udp_tracker_config = cfg.udp_trackers.unwrap()[0].clone();
         udp_tracker_config.bind_address = SocketAddr::new(IpAddr::V6(Ipv6Addr::UNSPECIFIED), 0);
-        udp_tracker_config.ipv6_v6only = true;
+        udp_tracker_config.network.ipv6_v6only = true;
         let udp_tracker_config = Arc::new(udp_tracker_config);
         let env = torrust_tracker_udp_server::testing::environment::Started::new(&core_config, &udp_tracker_config).await;
 

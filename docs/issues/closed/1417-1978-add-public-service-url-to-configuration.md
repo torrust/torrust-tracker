@@ -109,7 +109,7 @@ This catches misconfigurations early (e.g., accidentally setting `public_url = "
 | T4  | DONE   | Add `#[serde(deny_unknown_fields)]` to `HealthCheckApi`               | No `public_url` on this struct; consistency-only change                                 |
 | T5  | DONE   | Document field in crate-level docs and doc comments                   | Default config migration is deferred to #1980                                           |
 | T6  | DONE   | Run `linter all` and tests                                            |                                                                                         |
-| T7  | DONE   | Update migration guide if this subissue affects the config public API | `docs/issues/open/1978-configuration-overhaul-epic/configuration-v2-to-v3-migration.md` |
+| T7  | DONE   | Update migration guide if this subissue affects the config public API | `packages/configuration/docs/migrate-v2-to-v3.md` |
 
 ## Progress Tracking
 

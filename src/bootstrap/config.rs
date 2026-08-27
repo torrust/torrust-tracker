@@ -2,7 +2,8 @@
 //!
 //! All environment variables are prefixed with `TORRUST_TRACKER_`.
 
-use torrust_tracker_configuration::{Configuration, Info};
+use torrust_tracker_configuration::Info;
+use torrust_tracker_configuration::v3_0_0::Configuration;
 
 // skill-link: run-tracker-locally
 pub const DEFAULT_PATH_CONFIG: &str = "./share/default/config/tracker.development.sqlite3.toml";
@@ -31,10 +32,33 @@ pub fn initialize_configuration() -> Configuration {
 #[cfg(test)]
 mod tests {
 
+    use torrust_tracker_configuration::Info;
+    use torrust_tracker_configuration::v3_0_0::Configuration;
+
     #[test]
     fn it_should_load_with_default_config() {
         use crate::bootstrap::config::initialize_configuration;
 
         drop(initialize_configuration());
+    }
+
+    #[test]
+    fn it_should_load_every_shipped_configuration_template() {
+        // Arrange
+        let templates = [
+            "./share/default/config/tracker.container.mysql.toml",
+            "./share/default/config/tracker.container.postgresql.toml",
+            "./share/default/config/tracker.container.sqlite3.toml",
+            "./share/default/config/tracker.development.sqlite3.toml",
+            "./share/default/config/tracker.e2e.container.sqlite3.toml",
+            "./share/default/config/tracker.udp.benchmarking.toml",
+        ];
+
+        // Act and assert
+        for template in templates {
+            let info = Info::new(template.to_string()).expect("configuration source should be valid");
+
+            Configuration::load(&info).unwrap_or_else(|error| panic!("template should load: {template}: {error}"));
+        }
     }
 }

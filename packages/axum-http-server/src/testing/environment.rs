@@ -5,7 +5,8 @@ use tokio_util::sync::CancellationToken;
 use torrust_info_hash::InfoHash;
 use torrust_server_lib::registar::{FnSpawnServiceHeathCheck, Registar};
 use torrust_tracker_axum_server::tls::make_rust_tls;
-use torrust_tracker_configuration::{Core, HttpTracker};
+use torrust_tracker_configuration::v3_0_0::core::Core;
+use torrust_tracker_configuration::v3_0_0::http_tracker::HttpTracker;
 use torrust_tracker_core::container::TrackerCoreContainer;
 use torrust_tracker_http_core::container::HttpTrackerCoreContainer;
 use torrust_tracker_http_core::statistics::event::listener::run_event_listener;
@@ -48,7 +49,7 @@ impl Environment<Stopped> {
 
         let bind_to = container.http_tracker_core_container.http_tracker_config.bind_address;
 
-        let tls = if let Some(tls_config) = &container.http_tracker_core_container.http_tracker_config.tsl_config {
+        let tls = if let Some(tls_config) = &container.http_tracker_core_container.http_tracker_config.tls_config {
             Some(make_rust_tls(tls_config).await.expect("tls config failed"))
         } else {
             None
@@ -57,7 +58,7 @@ impl Environment<Stopped> {
         let server = HttpServer::new(Launcher::new(
             bind_to,
             tls,
-            container.http_tracker_core_container.http_tracker_config.ipv6_v6only,
+            container.http_tracker_core_container.http_tracker_config.network.ipv6_v6only,
         ));
 
         Self {
@@ -185,7 +186,7 @@ impl EnvContainer {
             TrackerCoreContainer::initialize_from(
                 core_config,
                 &swarm_coordination_registry_container,
-                Some(&core_config.database),
+                core_config.database.as_ref(),
             )
             .await
             .expect("HTTP server test initialization requires persistence"),

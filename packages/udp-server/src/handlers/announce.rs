@@ -4,7 +4,7 @@ use std::sync::Arc;
 
 use torrust_info_hash::InfoHash;
 use torrust_net_primitives::service_binding::ServiceBinding;
-use torrust_tracker_configuration::Core;
+use torrust_tracker_configuration::v3_0_0::core::Core;
 use torrust_tracker_primitives::AnnounceData;
 use torrust_tracker_udp_core::connection_cookie::{check, gen_remote_fingerprint};
 use torrust_tracker_udp_core::event::ConnectionContext;
@@ -552,12 +552,19 @@ pub(crate) mod tests {
                 };
 
                 #[tokio::test]
-                async fn the_peer_ip_should_be_changed_to_the_external_ip_in_the_tracker_configuration_if_defined() {
-                    let config = Arc::new(
-                        TrackerConfigurationBuilder::default()
-                            .with_external_ip("203.0.113.196")
-                            .into(),
-                    );
+                async fn each_listener_should_use_its_own_configured_external_ip() {
+                    let mut configuration = TrackerConfigurationBuilder::default()
+                        .with_external_ip("203.0.113.196")
+                        .into();
+                    let mut second_udp_tracker =
+                        configuration.udp_trackers.as_ref().expect("UDP tracker configuration")[0].clone();
+                    second_udp_tracker.network.external_ip = Some("203.0.113.197".parse().expect("valid external IP address"));
+                    configuration
+                        .udp_trackers
+                        .as_mut()
+                        .expect("UDP tracker configuration")
+                        .push(second_udp_tracker);
+                    let config = Arc::new(configuration);
 
                     let client_ip = Ipv4Addr::LOCALHOST;
                     let client_port = 8080;
@@ -582,7 +589,7 @@ pub(crate) mod tests {
                     handle_announce(
                         &core_udp_tracker_services.announce_service,
                         client_socket_addr,
-                        server_service_binding,
+                        server_service_binding.clone(),
                         &request,
                         &core_tracker_services.core_config,
                         &None,
@@ -597,7 +604,11 @@ pub(crate) mod tests {
                         .await;
 
                     let external_ip_in_tracker_configuration: IpAddr =
-                        core_tracker_services.core_config.net.external_ip.unwrap().into();
+                        config.udp_trackers.as_ref().expect("UDP tracker configuration")[0]
+                            .network
+                            .external_ip
+                            .expect("external IP configuration")
+                            .into();
 
                     let expected_peer = PeerBuilder::default()
                         .with_peer_id(&torrust_tracker_primitives::PeerId(peer_id.0))
@@ -606,6 +617,53 @@ pub(crate) mod tests {
                         .into();
 
                     assert_eq!(peers[0], Arc::new(expected_peer));
+
+                    let second_info_hash = AquaticInfoHash([1u8; 20]);
+                    let second_request = AnnounceRequestBuilder::default()
+                        .with_connection_id(make(gen_remote_fingerprint(&client_socket_addr), sample_issue_time()).unwrap())
+                        .with_info_hash(second_info_hash)
+                        .with_peer_id(peer_id)
+                        .with_ip_address(client_ip)
+                        .with_port(client_port)
+                        .into();
+                    let second_listener_announce_service =
+                        Arc::new(torrust_tracker_udp_core::services::announce::AnnounceService::new(
+                            core_tracker_services.announce_handler.clone(),
+                            core_tracker_services.whitelist_authorization.clone(),
+                            None,
+                            torrust_tracker_primitives::ConfigurationInstanceId::new(
+                                torrust_tracker_primitives::ServiceRole::UdpTracker,
+                                1,
+                            ),
+                            config.udp_trackers.as_ref().expect("UDP tracker configuration")[1]
+                                .network
+                                .external_ip
+                                .map(Into::into),
+                        ));
+
+                    handle_announce(
+                        &second_listener_announce_service,
+                        client_socket_addr,
+                        server_service_binding,
+                        &second_request,
+                        &core_tracker_services.core_config,
+                        &None,
+                        sample_strict_cookie_validation(),
+                    )
+                    .await
+                    .unwrap();
+
+                    let second_listener_peers = core_tracker_services
+                        .in_memory_torrent_repository
+                        .get_torrent_peers(&second_info_hash.0.into(), usize::MAX)
+                        .await;
+                    let second_listener_external_ip: IpAddr = config.udp_trackers.as_ref().expect("UDP tracker configuration")[1]
+                        .network
+                        .external_ip
+                        .expect("external IP configuration")
+                        .into();
+
+                    assert_eq!(second_listener_peers[0].peer_addr.ip(), second_listener_external_ip);
                 }
             }
         }
@@ -619,7 +677,7 @@ pub(crate) mod tests {
             use mockall::predicate::eq;
             use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
             use torrust_peer_id::PeerId;
-            use torrust_tracker_configuration::Core;
+            use torrust_tracker_configuration::v3_0_0::core::Core;
             use torrust_tracker_core::announce_handler::AnnounceHandler;
             use torrust_tracker_core::torrent::repository::in_memory::InMemoryTorrentRepository;
             use torrust_tracker_core::whitelist;
@@ -839,6 +897,7 @@ pub(crate) mod tests {
                     whitelist_authorization.clone(),
                     udp_core_stats_event_sender.clone(),
                     udp_tracker_test_configuration_instance_id,
+                    None,
                 ));
 
                 handle_announce(
@@ -952,20 +1011,16 @@ pub(crate) mod tests {
                 #[tokio::test]
                 async fn the_peer_ip_should_be_changed_to_the_external_ip_in_the_tracker_configuration() {
                     let config = Arc::new(TrackerConfigurationBuilder::default().with_external_ip("::126.0.0.1").into());
-
                     let loopback_ipv4 = Ipv4Addr::LOCALHOST;
                     let loopback_ipv6 = Ipv6Addr::LOCALHOST;
-
                     let client_ip_v4 = loopback_ipv4;
                     let client_ip_v6 = loopback_ipv6;
                     let client_port = 8080;
-
                     let info_hash = AquaticInfoHash([0u8; 20]);
                     let peer_id = PeerId([255u8; 20]);
                     let mut announcement = sample_peer();
                     announcement.peer_id = torrust_tracker_primitives::PeerId(peer_id.0);
                     announcement.peer_addr = SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0x7e00, 1)), client_port);
-
                     let client_socket_addr = SocketAddr::new(IpAddr::V6(client_ip_v6), client_port);
                     let mut server_socket_addr = config.udp_trackers.clone().unwrap()[0].bind_address;
                     if server_socket_addr.port() == 0 {
@@ -974,14 +1029,12 @@ pub(crate) mod tests {
                     }
                     let server_service_binding = ServiceBinding::new(Protocol::UDP, server_socket_addr).unwrap();
                     let server_service_binding_clone = server_service_binding.clone();
-
                     let database = initialize_database(&config.core).await;
                     let in_memory_whitelist = Arc::new(InMemoryWhitelist::default());
                     let whitelist_authorization = Arc::new(WhitelistAuthorization::new(&config.core, &in_memory_whitelist));
                     let in_memory_torrent_repository = Arc::new(InMemoryTorrentRepository::default());
                     let db_downloads_metric_repository =
                         Arc::new(DatabaseDownloadsMetricRepository::new(&database.torrent_metrics_store));
-
                     let request = AnnounceRequestBuilder::default()
                         .with_connection_id(make(gen_remote_fingerprint(&client_socket_addr), sample_issue_time()).unwrap())
                         .with_info_hash(info_hash)
@@ -989,7 +1042,6 @@ pub(crate) mod tests {
                         .with_ip_address(client_ip_v4)
                         .with_port(client_port)
                         .into();
-
                     let mut udp_core_stats_event_sender_mock = MockUdpCoreStatsEventSender::new();
                     udp_core_stats_event_sender_mock
                         .expect_send()
@@ -1010,7 +1062,6 @@ pub(crate) mod tests {
                         .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
                     let udp_core_stats_event_sender: torrust_tracker_udp_core::event::sender::Sender =
                         Some(Arc::new(udp_core_stats_event_sender_mock));
-
                     let mut udp_server_stats_event_sender_mock = MockUdpServerStatsEventSender::new();
                     udp_server_stats_event_sender_mock
                         .expect_send()
@@ -1028,24 +1079,24 @@ pub(crate) mod tests {
                         .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
                     let udp_server_stats_event_sender: crate::event::sender::Sender =
                         Some(Arc::new(udp_server_stats_event_sender_mock));
-
                     let announce_handler = Arc::new(AnnounceHandler::new(
                         &config.core,
                         &whitelist_authorization,
                         &in_memory_torrent_repository,
                         &db_downloads_metric_repository,
                     ));
-
                     let core_config = Arc::new(config.core.clone());
-
                     let udp_tracker_test_configuration_instance_id = ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0);
                     let announce_service = Arc::new(AnnounceService::new(
                         announce_handler.clone(),
                         whitelist_authorization.clone(),
                         udp_core_stats_event_sender.clone(),
                         udp_tracker_test_configuration_instance_id,
+                        config.udp_trackers.as_ref().expect("UDP tracker configuration")[0]
+                            .network
+                            .external_ip
+                            .map(Into::into),
                     ));
-
                     handle_announce(
                         &announce_service,
                         client_socket_addr,
@@ -1057,21 +1108,16 @@ pub(crate) mod tests {
                     )
                     .await
                     .unwrap();
-
                     let peers = in_memory_torrent_repository
                         .get_torrent_peers(&info_hash.0.into(), usize::MAX)
                         .await;
 
-                    let external_ip_in_tracker_configuration: IpAddr = core_config.net.external_ip.unwrap().into();
+                    assert_external_ipv6_peer_address(peers[0].peer_addr.ip());
+                }
 
-                    assert!(external_ip_in_tracker_configuration.is_ipv6());
-
-                    // There's a special type of IPv6 addresses that provide compatibility with IPv4.
-                    // The last 32 bits of these addresses represent an IPv4, and are represented like this:
-                    // 1111:2222:3333:4444:5555:6666:1.2.3.4
-                    //
-                    // ::127.0.0.1 is the IPV6 representation for the IPV4 address 127.0.0.1.
-                    assert_eq!(Ok(peers[0].peer_addr.ip()), "::126.0.0.1".parse());
+                fn assert_external_ipv6_peer_address(peer_ip: IpAddr) {
+                    assert!(peer_ip.is_ipv6());
+                    assert_eq!(Ok(peer_ip), "::126.0.0.1".parse());
                 }
             }
         }

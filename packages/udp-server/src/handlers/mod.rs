@@ -234,7 +234,8 @@ pub(crate) mod tests {
 
     use futures::future::BoxFuture;
     use mockall::mock;
-    use torrust_tracker_configuration::{Configuration, Core};
+    use torrust_tracker_configuration::v3_0_0::Configuration;
+    use torrust_tracker_configuration::v3_0_0::core::Core;
     use torrust_tracker_core::announce_handler::AnnounceHandler;
     use torrust_tracker_core::databases::setup::initialize_database;
     use torrust_tracker_core::scrape_handler::ScrapeHandler;
@@ -333,6 +334,10 @@ pub(crate) mod tests {
             whitelist_authorization.clone(),
             udp_core_stats_event_sender.clone(),
             configuration_instance_id,
+            config.udp_trackers.as_ref().expect("UDP tracker configuration")[0]
+                .network
+                .external_ip
+                .map(Into::into),
         ));
 
         let scrape_service = Arc::new(ScrapeService::new(
@@ -411,7 +416,9 @@ pub(crate) mod tests {
         }
 
         pub fn with_external_ip(mut self, external_ip: &str) -> Self {
-            self.configuration.core.net.external_ip = Some(external_ip.parse().expect("valid external IP address"));
+            self.configuration.udp_trackers.as_mut().expect("UDP tracker configuration")[0]
+                .network
+                .external_ip = Some(external_ip.parse().expect("valid external IP address"));
             self
         }
 

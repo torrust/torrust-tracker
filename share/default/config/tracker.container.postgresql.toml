@@ -1,10 +1,11 @@
 [metadata]
 app = "torrust-tracker"
 purpose = "configuration"
-schema_version = "2.0.0"
+schema_version = "3.0.0"
 
 [logging]
-threshold = "info"
+trace_filter = "info"
+trace_style = "full"
 
 [core]
 listed = false
@@ -12,10 +13,16 @@ private = false
 
 [core.database]
 driver = "postgresql"
-# If the PostgreSQL password includes reserved URL characters (for example + or /),
-# percent-encode it in the DSN password component.
-# Example: password a+b/c -> a%2Bb%2Fc
-path = "postgresql://postgres:postgres@postgres:5432/torrust_tracker"
+host = "postgres"
+port = 5432
+user = "postgres"
+password = "postgres"
+database = "torrust_tracker"
+
+[udp_tracker_server]
+ip_bans_reset_interval_in_secs = 86400
+max_connection_id_errors_per_ip = 10
+connection_id_validation = "strict"
 
 # Uncomment to enable services
 

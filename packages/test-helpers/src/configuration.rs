@@ -4,7 +4,13 @@ use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
 use std::path::PathBuf;
 use std::time::Duration;
 
-use torrust_tracker_configuration::{Configuration, HttpApi, HttpTracker, Threshold, UdpTracker};
+use torrust_tracker_configuration::v3_0_0::Configuration;
+use torrust_tracker_configuration::v3_0_0::database::Database;
+use torrust_tracker_configuration::v3_0_0::http_tracker::HttpTracker;
+use torrust_tracker_configuration::v3_0_0::logging::Threshold;
+use torrust_tracker_configuration::v3_0_0::network::Network;
+use torrust_tracker_configuration::v3_0_0::tracker_api::HttpApi;
+use torrust_tracker_configuration::v3_0_0::udp_tracker::UdpTracker;
 
 use crate::random;
 
@@ -29,13 +35,16 @@ pub fn ephemeral() -> Configuration {
     // For example: a test for the UDP tracker should disable the API and HTTP tracker.
 
     let mut config = Configuration::default();
+    config.core.database = Some(Database::Sqlite3 {
+        path: ephemeral_sqlite_database().to_string_lossy().into_owned(),
+    });
 
     // This have to be Off otherwise the tracing global subscriber
     // initialization will panic because you can't set a global subscriber more
     // than once. You can use enable logging in tests with:
     // `crate::common::logging::setup(LevelFilter::ERROR);`
     // That will also allow you to capture logs and write assertions on them.
-    config.logging.threshold = Threshold::Off;
+    config.logging.trace_filter = Threshold::Off;
 
     // Ephemeral socket address for API
     let api_port = 0u16;
@@ -56,21 +65,18 @@ pub fn ephemeral() -> Configuration {
         bind_address: SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), udp_port),
         cookie_lifetime: Duration::from_secs(120),
         tracker_usage_statistics: true,
-        ipv6_v6only: false,
-        max_connection_id_errors_per_ip: 10,
+        network: Network::default(),
+        ..UdpTracker::default()
     }]);
 
     // Ephemeral socket address for HTTP tracker
     let http_port = 0u16;
     config.http_trackers = Some(vec![HttpTracker {
         bind_address: SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), http_port),
-        tsl_config: None,
         tracker_usage_statistics: true,
-        ipv6_v6only: false,
+        network: Network::default(),
+        ..HttpTracker::default()
     }]);
-
-    let temp_file = ephemeral_sqlite_database();
-    temp_file.to_str().unwrap().clone_into(&mut config.core.database.path);
 
     config
 }
@@ -83,21 +89,37 @@ pub fn ephemeral_sqlite_database() -> PathBuf {
 }
 
 /// Ephemeral configuration with reverse proxy enabled.
+///
+/// # Panics
+///
+/// Panics if the ephemeral configuration does not enable an HTTP tracker.
 #[must_use]
 pub fn ephemeral_with_reverse_proxy() -> Configuration {
     let mut cfg = ephemeral();
 
-    cfg.core.net.on_reverse_proxy = true;
+    cfg.http_trackers
+        .as_mut()
+        .expect("ephemeral configuration enables an HTTP tracker")[0]
+        .network
+        .on_reverse_proxy = true;
 
     cfg
 }
 
 /// Ephemeral configuration with reverse proxy disabled.
+///
+/// # Panics
+///
+/// Panics if the ephemeral configuration does not enable an HTTP tracker.
 #[must_use]
 pub fn ephemeral_without_reverse_proxy() -> Configuration {
     let mut cfg = ephemeral();
 
-    cfg.core.net.on_reverse_proxy = false;
+    cfg.http_trackers
+        .as_mut()
+        .expect("ephemeral configuration enables an HTTP tracker")[0]
+        .network
+        .on_reverse_proxy = false;
 
     cfg
 }
@@ -152,7 +174,12 @@ pub fn ephemeral_private_and_listed() -> Configuration {
 pub fn ephemeral_with_external_ip(ip: IpAddr) -> Configuration {
     let mut cfg = ephemeral();
 
-    cfg.core.net.external_ip = Some(ip.try_into().expect("wildcard IP is not a valid external IP"));
+    let external_ip = Some(ip.try_into().expect("wildcard IP is not a valid external IP"));
+    cfg.http_trackers
+        .as_mut()
+        .expect("ephemeral configuration enables an HTTP tracker")[0]
+        .network
+        .external_ip = external_ip;
 
     cfg
 }

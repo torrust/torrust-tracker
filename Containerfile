@@ -303,6 +303,7 @@ COPY --from=build_debug \
   /build/torrust-tracker-debug.tar.zst \
   /test/torrust-tracker-debug.tar.zst
 RUN cargo nextest run --workspace-remap /test/src/ --extract-to /test/src/ --no-run --archive-file /test/torrust-tracker-debug.tar.zst
+RUN mkdir -p /test/src/storage/tracker/lib/database
 RUN cargo nextest run --workspace-remap /test/src/ --target-dir-remap /test/src/target/ --cargo-metadata /test/src/target/nextest/cargo-metadata.json --binaries-metadata /test/src/target/nextest/binaries-metadata.json
 
 RUN time mkdir -p /app/bin/ \
@@ -321,6 +322,7 @@ COPY --from=build \
   /build/torrust-tracker.tar.zst \
   /test/torrust-tracker.tar.zst
 RUN cargo nextest run --workspace-remap /test/src/ --extract-to /test/src/ --no-run --archive-file /test/torrust-tracker.tar.zst
+RUN mkdir -p /test/src/storage/tracker/lib/database
 RUN cargo nextest run --workspace-remap /test/src/ --target-dir-remap /test/src/target/ --cargo-metadata /test/src/target/nextest/cargo-metadata.json --binaries-metadata /test/src/target/nextest/binaries-metadata.json
 
 RUN time mkdir -p /app/bin/ \

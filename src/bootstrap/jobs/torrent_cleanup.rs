@@ -14,7 +14,7 @@ use std::sync::Arc;
 
 use chrono::Utc;
 use tokio::task::JoinHandle;
-use torrust_tracker_configuration::Core;
+use torrust_tracker_configuration::v3_0_0::core::Core;
 use torrust_tracker_core::torrent::manager::TorrentsManager;
 use tracing::instrument;
 

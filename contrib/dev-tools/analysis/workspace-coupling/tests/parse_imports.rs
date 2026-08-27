@@ -119,7 +119,7 @@ fn binary_extracts_grouped_reexported_aliased_and_glob_imports() {
         r"
             use torrust_tracker_contrib_bencode::{BMutAccess, ben_int, ben_map};
             use torrust_tracker_located_error::{DynError, Located, LocatedError};
-            use torrust_tracker_configuration::{Core, UdpTracker};
+            use torrust_tracker_configuration::v3_0_0::{core::Core, udp_tracker::UdpTracker};
             use torrust_tracker_configuration::*;
             use torrust_tracker_configuration as configuration;
             pub use bittorrent_peer_id::{PeerClient, PeerId};
@@ -155,9 +155,9 @@ fn binary_extracts_grouped_reexported_aliased_and_glob_imports() {
         "bittorrent_peer_id::client::identify",
         "torrust_tracker_configuration",
         "torrust_tracker_configuration::*",
-        "torrust_tracker_configuration::Core",
+        "torrust_tracker_configuration::v3_0_0::core::Core",
         "torrust_tracker_configuration::Mode::Strict",
-        "torrust_tracker_configuration::UdpTracker",
+        "torrust_tracker_configuration::v3_0_0::udp_tracker::UdpTracker",
         "torrust_tracker_contrib_bencode::BMutAccess",
         "torrust_tracker_contrib_bencode::ben_int",
         "torrust_tracker_contrib_bencode::ben_map",

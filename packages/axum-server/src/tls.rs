@@ -4,7 +4,7 @@ use std::sync::Arc;
 use axum_server::tls_rustls::RustlsConfig;
 use thiserror::Error;
 use torrust_located_error::{DynError, LocatedError};
-use torrust_tracker_configuration::TslConfig;
+use torrust_tracker_configuration::v3_0_0::tls::TlsConfig;
 use tracing::instrument;
 
 /// Error returned by the Bootstrap Process.
@@ -31,7 +31,7 @@ pub enum Error {
 /// Returns [`Error::MissingTlsConfig`] when the certificate or key path does
 /// not exist, and [`Error::BadTlsConfig`] when loading invalid PEM files
 /// fails.
-pub async fn make_rust_tls(tls_config: &TslConfig) -> Result<RustlsConfig, Error> {
+pub async fn make_rust_tls(tls_config: &TlsConfig) -> Result<RustlsConfig, Error> {
     let cert = tls_config.ssl_cert_path.clone();
     let key = tls_config.ssl_key_path.clone();
 
@@ -59,7 +59,7 @@ mod tests {
     use std::time::{SystemTime, UNIX_EPOCH};
 
     use camino::Utf8PathBuf;
-    use torrust_tracker_configuration::TslConfig;
+    use torrust_tracker_configuration::v3_0_0::tls::TlsConfig;
 
     use super::{Error, make_rust_tls};
 
@@ -79,7 +79,7 @@ mod tests {
         let cert_path = make_temp_file("bad-cert", "not a valid certificate");
         let key_path = make_temp_file("bad-key", "not a valid private key");
 
-        let err = make_rust_tls(&TslConfig {
+        let err = make_rust_tls(&TlsConfig {
             ssl_cert_path: cert_path.clone(),
             ssl_key_path: key_path.clone(),
         })
@@ -94,7 +94,7 @@ mod tests {
 
     #[tokio::test]
     async fn it_should_error_on_missing_cert_or_key_paths() {
-        let err = make_rust_tls(&TslConfig {
+        let err = make_rust_tls(&TlsConfig {
             ssl_cert_path: Utf8PathBuf::from(""),
             ssl_key_path: Utf8PathBuf::from(""),
         })

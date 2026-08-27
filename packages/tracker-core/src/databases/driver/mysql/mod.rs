@@ -78,7 +78,6 @@ impl Mysql {
 mod tests {
     use std::sync::Arc;
 
-    use testcontainers::core::{IntoContainerPort, WaitFor};
     /*
     We run a MySQL container and run all the tests against the same container and database.
 
@@ -96,9 +95,12 @@ mod tests {
 
     If we increase the number of methods or the number or drivers.
     */
+    use secrecy::SecretString;
+    use testcontainers::core::{IntoContainerPort, WaitFor};
     use testcontainers::runners::AsyncRunner;
     use testcontainers::{ContainerAsync, GenericImage, ImageExt};
-    use torrust_tracker_configuration::Core;
+    use torrust_tracker_configuration::v3_0_0::core::Core;
+    use torrust_tracker_configuration::v3_0_0::database::{ConnectionInfo, Database as ConfigurationDatabase};
 
     use super::Mysql;
     use crate::databases::driver::tests::run_tests;
@@ -175,19 +177,25 @@ mod tests {
     }
 
     fn core_configuration(host: &url::Host, port: u16, mysql_configuration: &MysqlConfiguration) -> Core {
-        let mut config = Core::default();
-
-        let database = mysql_configuration.database.clone();
-        let db_user = mysql_configuration.db_user.clone();
-        let db_password = mysql_configuration.db_root_password.clone();
-
-        config.database.path = format!("mysql://{db_user}:{db_password}@{host}:{port}/{database}");
-
-        config
+        Core {
+            database: Some(ConfigurationDatabase::MySQL(ConnectionInfo {
+                host: host.to_string(),
+                port,
+                user: mysql_configuration.db_user.clone(),
+                password: SecretString::from(mysql_configuration.db_root_password.clone()),
+                database: mysql_configuration.database.clone(),
+            })),
+            ..Core::default()
+        }
     }
 
     fn initialize_driver(config: &Core) -> Arc<Box<dyn Database>> {
-        Arc::new(Box::new(Mysql::new(&config.database.path).unwrap()))
+        let database_url = config
+            .database
+            .as_ref()
+            .expect("MySQL driver test configuration must include a database")
+            .connection_url();
+        Arc::new(Box::new(Mysql::new(&database_url).unwrap()))
     }
 
     // This test is invoked by `.github/workflows/testing.yaml` in the
@@ -232,7 +240,13 @@ mod tests {
             .expect("drop tables before legacy bootstrap test");
 
         let raw_pool = ::sqlx::mysql::MySqlPoolOptions::new()
-            .connect(&config.database.path)
+            .connect(
+                &config
+                    .database
+                    .as_ref()
+                    .expect("MySQL driver test configuration must include a database")
+                    .connection_url(),
+            )
             .await
             .expect("connect to mysql for raw DDL");
         create_legacy_pre_v4_schema(&raw_pool).await;

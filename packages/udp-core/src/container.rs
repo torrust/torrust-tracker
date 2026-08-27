@@ -1,7 +1,8 @@
 use std::sync::Arc;
 
 use tokio::sync::RwLock;
-use torrust_tracker_configuration::{Core, UdpTracker};
+use torrust_tracker_configuration::v3_0_0::core::Core;
+use torrust_tracker_configuration::v3_0_0::udp_tracker::UdpTracker;
 use torrust_tracker_core::container::TrackerCoreContainer;
 use torrust_tracker_events::bus::SenderStatus;
 use torrust_tracker_primitives::ConfigurationInstanceId;
@@ -36,11 +37,12 @@ impl UdpTrackerCoreContainer {
     /// # Panics
     ///
     /// Panics if the persistence-required tracker-core container cannot be
-    /// composed from the active v2-compatible configuration.
+    /// composed from the configured database.
     #[must_use]
     pub async fn initialize(
         core_config: &Arc<Core>,
         udp_tracker_config: &Arc<UdpTracker>,
+        max_connection_id_errors_per_ip: u32,
         configuration_instance_id: ConfigurationInstanceId,
     ) -> Arc<UdpTrackerCoreContainer> {
         let swarm_coordination_registry_container = Arc::new(SwarmCoordinationRegistryContainer::initialize(
@@ -51,22 +53,27 @@ impl UdpTrackerCoreContainer {
             TrackerCoreContainer::initialize_from(
                 core_config,
                 &swarm_coordination_registry_container,
-                Some(&core_config.database),
+                core_config.database.as_ref(),
             )
             .await
             .expect("UDP tracker core initialization requires persistence"),
         );
 
-        Self::initialize_from_tracker_core(&tracker_core_container, udp_tracker_config, configuration_instance_id)
+        Self::initialize_from_tracker_core(
+            &tracker_core_container,
+            udp_tracker_config,
+            max_connection_id_errors_per_ip,
+            configuration_instance_id,
+        )
     }
 
     #[must_use]
     pub fn initialize_from_tracker_core(
         tracker_core_container: &Arc<TrackerCoreContainer>,
         udp_tracker_config: &Arc<UdpTracker>,
+        max_connection_id_errors_per_ip: u32,
         configuration_instance_id: ConfigurationInstanceId,
     ) -> Arc<UdpTrackerCoreContainer> {
-        let max_connection_id_errors_per_ip = udp_tracker_config.max_connection_id_errors_per_ip;
         let udp_tracker_core_services =
             UdpTrackerCoreServices::initialize_from(tracker_core_container, max_connection_id_errors_per_ip);
 
@@ -105,6 +112,7 @@ impl UdpTrackerCoreContainer {
                 tracker_core_container.whitelist_authorization.clone(),
                 udp_tracker_core_services.stats_event_sender.clone(),
                 configuration_instance_id,
+                udp_tracker_config.network.external_ip.map(Into::into),
             )),
             scrape_service: Arc::new(ScrapeService::new(
                 tracker_core_container.scrape_handler.clone(),

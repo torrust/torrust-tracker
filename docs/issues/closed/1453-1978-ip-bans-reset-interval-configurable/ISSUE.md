@@ -112,7 +112,7 @@ Since all UDP servers are launched simultaneously at startup, the bans are being
 | T5  | DONE   | Preserve the current 24-hour bootstrap interval                            | Uses `UdpTrackerServer::DEFAULT_IP_BANS_RESET_INTERVAL_IN_SECS`; #1980 enables config reading                                                    |
 | T6  | DONE   | Update v3 docs and tests                                                   | V3 module docs, configuration serialization, and focused job-condition tests updated                                                             |
 | T7  | DONE   | Run `linter all` and relevant tests                                        | `linter all`, focused tests, and formatting passed; the optional workspace-wide cognitive-complexity check is blocked by unrelated existing code |
-| T8  | DONE   | Update migration guide if this subissue affects the config public API      | `docs/issues/open/1978-configuration-overhaul-epic/configuration-v2-to-v3-migration.md`                                                          |
+| T8  | DONE   | Update migration guide if this subissue affects the config public API      | `packages/configuration/docs/migrate-v2-to-v3.md`                                                          |
 
 ## Progress Tracking
 

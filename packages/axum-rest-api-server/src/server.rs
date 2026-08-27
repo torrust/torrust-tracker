@@ -39,7 +39,7 @@ use torrust_server_lib::registar::{ServiceHealthCheckJob, ServiceRegistration, S
 use torrust_server_lib::signals::{Halted, Started};
 use torrust_tracker_axum_server::custom_axum_server::{self, TimeoutAcceptor};
 use torrust_tracker_axum_server::signals::graceful_shutdown;
-use torrust_tracker_configuration::AccessTokens;
+use torrust_tracker_configuration::v3_0_0::tracker_api::AccessTokens;
 use torrust_tracker_primitives::RuntimeServiceMetadata;
 use torrust_tracker_rest_api_runtime_adapter::v1::container::TrackerHttpApiCoreContainer;
 use tracing::{Level, instrument};
@@ -324,7 +324,7 @@ mod tests {
 
     use torrust_server_lib::registar::Registar;
     use torrust_tracker_axum_server::tls::make_rust_tls;
-    use torrust_tracker_configuration::{Configuration, logging};
+    use torrust_tracker_configuration::v3_0_0::{Configuration, logging};
     use torrust_tracker_primitives::{ConfigurationInstanceId, RuntimeServiceMetadata, ServiceRole};
     use torrust_tracker_rest_api_runtime_adapter::v1::container::TrackerHttpApiCoreContainer;
     use torrust_tracker_test_helpers::configuration::ephemeral_public;
@@ -350,6 +350,7 @@ mod tests {
         let http_tracker_configuration_instance_id = ConfigurationInstanceId::new(ServiceRole::HttpTracker, 0);
         let udp_tracker_configurations = cfg.udp_trackers.clone().expect("missing UDP tracker configuration");
         let udp_tracker_config = Arc::new(udp_tracker_configurations[0].clone());
+        let udp_tracker_server_config = cfg.udp_tracker_server.clone();
         let udp_tracker_configuration_instance_id = ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0);
         let http_api_config = Arc::new(cfg.http_api.clone().expect("missing HTTP API configuration").clone());
 
@@ -357,7 +358,7 @@ mod tests {
 
         let bind_to = http_api_config.bind_address;
 
-        let tls = if let Some(tls_config) = &http_api_config.tsl_config {
+        let tls = if let Some(tls_config) = &http_api_config.tls_config {
             Some(make_rust_tls(tls_config).await.expect("tls config failed"))
         } else {
             None
@@ -374,6 +375,7 @@ mod tests {
             &http_tracker_config,
             http_tracker_configuration_instance_id,
             &udp_tracker_config,
+            &udp_tracker_server_config,
             udp_tracker_configuration_instance_id,
             &http_api_config,
         )

@@ -4,8 +4,8 @@
 //! [`20260429000000_keep_database_as_aggregate_supertrait`](../../../docs/adrs/20260429000000_keep_database_as_aggregate_supertrait.md).
 use std::sync::Arc;
 
-use torrust_tracker_configuration::{Core, Database};
-use torrust_tracker_primitives::Driver;
+use torrust_tracker_configuration::v3_0_0::core::Core;
+use torrust_tracker_configuration::v3_0_0::database::Database;
 
 use super::driver::mysql::Mysql;
 use super::driver::postgres::Postgres;
@@ -76,7 +76,7 @@ where
 /// # Example
 ///
 /// ```rust,no_run
-/// use torrust_tracker_configuration::Core;
+/// use torrust_tracker_configuration::v3_0_0::core::Core;
 /// use torrust_tracker_core::databases::setup::initialize_database;
 ///
 /// // Create a default configuration (ensure it is properly set up for your environment)
@@ -89,7 +89,11 @@ where
 /// ```
 #[must_use]
 pub async fn initialize_database(config: &Core) -> DatabaseStores {
-    initialize_database_from_configuration(&config.database).await
+    let database = config
+        .database
+        .as_ref()
+        .expect("database configuration is required to initialize persistence");
+    initialize_database_from_configuration(database).await
 }
 
 /// Initializes and returns a [`DatabaseStores`] bundle for one selected
@@ -104,21 +108,21 @@ pub async fn initialize_database(config: &Core) -> DatabaseStores {
 /// migrations cannot be applied. See [`initialize_database`] for details.
 #[must_use]
 pub async fn initialize_database_from_configuration(database: &Database) -> DatabaseStores {
-    let driver = &database.driver;
-
-    match driver {
-        Driver::Sqlite3 => {
-            let db = Arc::new(Sqlite::new(&database.path).expect("Database driver build failed."));
+    match database {
+        Database::Sqlite3 { path } => {
+            let db = Arc::new(Sqlite::new(path).expect("Database driver build failed."));
             db.create_database_tables().await.expect("Could not create database tables.");
             build_database_stores(db)
         }
-        Driver::MySQL => {
-            let db = Arc::new(Mysql::new(&database.path).expect("Database driver build failed."));
+        Database::MySQL(connection) => {
+            let database_url = Database::MySQL(connection.clone()).connection_url();
+            let db = Arc::new(Mysql::new(&database_url).expect("Database driver build failed."));
             db.create_database_tables().await.expect("Could not create database tables.");
             build_database_stores(db)
         }
-        Driver::PostgreSQL => {
-            let db = Arc::new(Postgres::new(&database.path).expect("Database driver build failed."));
+        Database::PostgreSQL(connection) => {
+            let database_url = Database::PostgreSQL(connection.clone()).connection_url();
+            let db = Arc::new(Postgres::new(&database_url).expect("Database driver build failed."));
             db.create_database_tables().await.expect("Could not create database tables.");
             build_database_stores(db)
         }

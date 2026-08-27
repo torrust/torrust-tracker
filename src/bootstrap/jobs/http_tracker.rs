@@ -52,7 +52,7 @@ pub async fn start_job(
         "Starting HTTP tracker instance"
     );
 
-    let tls = if let Some(tls_config) = &http_tracker_container.http_tracker_config.tsl_config {
+    let tls = if let Some(tls_config) = &http_tracker_container.http_tracker_config.tls_config {
         Some(
             make_rust_tls(tls_config)
                 .await
@@ -85,7 +85,7 @@ async fn start_v1(
     let server = HttpServer::new(Launcher::new(
         socket,
         tls,
-        http_tracker_container.http_tracker_config.ipv6_v6only,
+        http_tracker_container.http_tracker_config.network.ipv6_v6only,
     ))
     .start(http_tracker_container, form, metadata)
     .await
@@ -108,8 +108,10 @@ async fn start_v1(
 mod tests {
     use std::sync::Arc;
 
+    use tempfile::TempDir;
     use torrust_server_lib::registar::Registar;
     use torrust_tracker_axum_http_server::Version;
+    use torrust_tracker_configuration::v3_0_0::database::Database;
     use torrust_tracker_http_core::container::HttpTrackerCoreContainer;
     use torrust_tracker_primitives::{ConfigurationInstanceId, RuntimeServiceMetadata, ServiceRole};
     use torrust_tracker_test_helpers::configuration::ephemeral_public;
@@ -119,7 +121,19 @@ mod tests {
 
     #[tokio::test]
     async fn it_should_start_http_tracker() {
-        let cfg = Arc::new(ephemeral_public());
+        // Arrange
+        // Keep the database parent directory alive for the whole test. Use the
+        // test's current working directory rather than the process temp path:
+        // nextest changes its temporary paths after archive extraction in the
+        // container image.
+        let database_workspace = TempDir::new_in(std::env::current_dir().expect("read test working directory"))
+            .expect("create test database workspace");
+        let database_path = database_workspace.path().join("tracker.sqlite3.db");
+        let mut cfg = ephemeral_public();
+        cfg.core.database = Some(Database::Sqlite3 {
+            path: database_path.to_string_lossy().into_owned(),
+        });
+        let cfg = Arc::new(cfg);
         let core_config = Arc::new(cfg.core.clone());
         let http_tracker = cfg.http_trackers.clone().expect("missing HTTP tracker configuration");
         let http_tracker_config = Arc::new(http_tracker[0].clone());
@@ -132,6 +146,7 @@ mod tests {
 
         let version = Version::V1;
 
+        // Act / Assert
         start_job(
             http_tracker_container,
             Registar::default().give_form(),

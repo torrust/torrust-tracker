@@ -84,7 +84,8 @@ mod tests {
 
     use std::sync::Arc;
 
-    use torrust_tracker_configuration::Core;
+    use torrust_tracker_configuration::v3_0_0::core::Core;
+    use torrust_tracker_configuration::v3_0_0::database::Database as DatabaseConfig;
     use torrust_tracker_test_helpers::configuration::ephemeral_sqlite_database;
 
     use crate::databases::driver::sqlite::Sqlite;
@@ -94,12 +95,27 @@ mod tests {
     fn ephemeral_configuration() -> Core {
         let mut config = Core::default();
         let temp_file = ephemeral_sqlite_database();
-        temp_file.to_str().unwrap().clone_into(&mut config.database.path);
+        let database = config.database.get_or_insert_with(DatabaseConfig::default);
+        let DatabaseConfig::Sqlite3 { path } = database else {
+            unreachable!("default core configuration uses SQLite persistence");
+        };
+        temp_file.to_str().unwrap().clone_into(path);
         config
     }
 
     fn initialize_driver(config: &Core) -> Arc<Box<dyn Database>> {
-        Arc::new(Box::new(Sqlite::new(&config.database.path).unwrap()))
+        Arc::new(Box::new(Sqlite::new(sqlite_path(config)).unwrap()))
+    }
+
+    fn sqlite_path(config: &Core) -> &str {
+        let database = config
+            .database
+            .as_ref()
+            .expect("test configuration includes SQLite persistence");
+        let DatabaseConfig::Sqlite3 { path } = database else {
+            unreachable!("test configuration uses SQLite persistence");
+        };
+        path
     }
 
     #[tokio::test]
@@ -118,7 +134,7 @@ mod tests {
         let config = ephemeral_configuration();
         let driver = initialize_driver(&config);
         let options = ::sqlx::sqlite::SqliteConnectOptions::new()
-            .filename(&config.database.path)
+            .filename(sqlite_path(&config))
             .create_if_missing(true);
         let pool = ::sqlx::sqlite::SqlitePoolOptions::new()
             .connect_with(options)

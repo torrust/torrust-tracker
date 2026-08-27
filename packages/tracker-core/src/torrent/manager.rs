@@ -4,7 +4,7 @@ use std::time::Duration;
 
 use torrust_clock::DurationSinceUnixEpoch;
 use torrust_clock::clock::Time;
-use torrust_tracker_configuration::Core;
+use torrust_tracker_configuration::v3_0_0::core::Core;
 
 use super::repository::in_memory::InMemoryTorrentRepository;
 use crate::statistics::persisted::downloads::DatabaseDownloadsMetricRepository;
@@ -147,7 +147,7 @@ mod tests {
 
     use std::sync::Arc;
 
-    use torrust_tracker_configuration::Core;
+    use torrust_tracker_configuration::v3_0_0::core::Core;
     use torrust_tracker_swarm_coordination_registry::Registry;
 
     use super::{DatabaseDownloadsMetricRepository, TorrentsManager};

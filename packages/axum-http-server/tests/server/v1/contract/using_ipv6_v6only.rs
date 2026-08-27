@@ -14,7 +14,7 @@ async fn should_accept_ipv6_connections_with_ipv6_v6only_enabled() {
     let core_config = Arc::new(cfg.core.clone());
     let mut http_tracker_config = cfg.http_trackers.unwrap()[0].clone();
     http_tracker_config.bind_address = SocketAddr::new(IpAddr::V6(Ipv6Addr::UNSPECIFIED), 0);
-    http_tracker_config.ipv6_v6only = true;
+    http_tracker_config.network.ipv6_v6only = true;
     let http_tracker_config = Arc::new(http_tracker_config);
     let env = Started::new(&core_config, &http_tracker_config).await;
 

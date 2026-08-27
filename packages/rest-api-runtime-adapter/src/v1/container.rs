@@ -8,7 +8,11 @@
 use std::sync::Arc;
 
 use tokio::sync::RwLock;
-use torrust_tracker_configuration::{Core, HttpApi, HttpTracker, UdpTracker};
+use torrust_tracker_configuration::v3_0_0::core::Core;
+use torrust_tracker_configuration::v3_0_0::http_tracker::HttpTracker;
+use torrust_tracker_configuration::v3_0_0::tracker_api::HttpApi;
+use torrust_tracker_configuration::v3_0_0::udp_tracker::UdpTracker;
+use torrust_tracker_configuration::v3_0_0::udp_tracker_server::UdpTrackerServer;
 use torrust_tracker_core::container::TrackerCoreContainer;
 use torrust_tracker_http_core::container::HttpTrackerCoreContainer;
 use torrust_tracker_primitives::ConfigurationInstanceId;
@@ -42,13 +46,14 @@ impl TrackerHttpApiCoreContainer {
     /// # Panics
     ///
     /// Panics if the persistence-required tracker-core container cannot be
-    /// composed from the active v2-compatible configuration.
+    /// composed from the configured database.
     #[must_use]
     pub async fn initialize(
         core_config: &Arc<Core>,
         http_tracker_config: &Arc<HttpTracker>,
         http_tracker_configuration_instance_id: ConfigurationInstanceId,
         udp_tracker_config: &Arc<UdpTracker>,
+        udp_tracker_server_config: &UdpTrackerServer,
         udp_tracker_configuration_instance_id: ConfigurationInstanceId,
         http_api_config: &Arc<HttpApi>,
     ) -> Arc<TrackerHttpApiCoreContainer> {
@@ -60,7 +65,7 @@ impl TrackerHttpApiCoreContainer {
             TrackerCoreContainer::initialize_from(
                 core_config,
                 &swarm_coordination_registry_container,
-                Some(&core_config.database),
+                core_config.database.as_ref(),
             )
             .await
             .expect("REST API initialization requires persistence"),
@@ -75,6 +80,7 @@ impl TrackerHttpApiCoreContainer {
         let udp_tracker_core_container = UdpTrackerCoreContainer::initialize_from_tracker_core(
             &tracker_core_container,
             udp_tracker_config,
+            udp_tracker_server_config.max_connection_id_errors_per_ip,
             udp_tracker_configuration_instance_id,
         );
 

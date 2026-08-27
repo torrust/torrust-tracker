@@ -1,7 +1,7 @@
 //! Authentication middleware for the API.
 //!
 //! It uses a "token" to authenticate the user. The token must be one of the
-//! `access_tokens` in the tracker [HTTP API configuration](torrust_tracker_configuration::HttpApi).
+//! `access_tokens` in the tracker [HTTP API configuration](torrust_tracker_configuration::v3_0_0::tracker_api::HttpApi).
 //!
 //! There are two ways to provide the token:
 //!
@@ -23,7 +23,7 @@
 //! > beginning or at the end.
 //!
 //! The token must be one of the `access_tokens` in the tracker
-//! [HTTP API configuration](torrust_tracker_configuration::HttpApi).
+//! [HTTP API configuration](torrust_tracker_configuration::v3_0_0::tracker_api::HttpApi).
 //!
 //! The configuration file `tracker.toml` contains a list of tokens:
 //!
@@ -49,7 +49,7 @@ use axum::middleware::Next;
 use axum::response::{IntoResponse, Response};
 use secrecy::ExposeSecret;
 use serde::Deserialize;
-use torrust_tracker_configuration::AccessTokens;
+use torrust_tracker_configuration::v3_0_0::tracker_api::AccessTokens;
 
 use crate::v1::responses::unhandled_rejection_response;
 
@@ -68,7 +68,7 @@ pub struct State {
 
 /// Middleware for authentication.
 ///
-/// The token must be one of the tokens in the tracker [HTTP API configuration](torrust_tracker_configuration::HttpApi).
+/// The token must be one of the tokens in the tracker [HTTP API configuration](torrust_tracker_configuration::v3_0_0::tracker_api::HttpApi).
 pub async fn auth(
     extract::State(state): extract::State<State>,
     extract::Query(params): extract::Query<QueryParams>,

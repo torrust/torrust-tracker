@@ -210,7 +210,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 |     |        |                                                                       | add tests for connect (still valid), announce, and scrape with arbitrary connection IDs |
 | T9  | DONE   | Update v3 schema documentation and test fixtures                      | Do not modify v2 or active `share/default/config/` files                                |
 | T10 | DONE   | Run automatic and manual verification                                 | Linters, focused tests, workspace tests, pre-push checks, and recorded manual evidence  |
-| T11 | DONE   | Update migration guide if this subissue affects the config public API | `docs/issues/open/1978-configuration-overhaul-epic/configuration-v2-to-v3-migration.md` |
+| T11 | DONE   | Update migration guide if this subissue affects the config public API | `packages/configuration/docs/migrate-v2-to-v3.md` |
 
 ## Progress Tracking
 

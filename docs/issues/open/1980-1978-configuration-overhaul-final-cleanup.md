@@ -1,13 +1,13 @@
 ---
 doc-type: issue
 issue-type: task
-status: open
+status: in_review
 priority: p1
 github-issue: 1980
 spec-path: docs/issues/open/1980-1978-configuration-overhaul-final-cleanup.md
 branch: "config-final-cleanup"
-related-pr: null
-last-updated-utc: 2026-08-21 16:30
+related-pr: 2103
+last-updated-utc: 2026-08-26 20:45
 semantic-links:
   skill-links:
     - create-issue
@@ -84,6 +84,13 @@ Similarly, the crate-root `logging.rs` (which contains `TraceStyle`, `setup()`, 
   selection.
 - Add production runtime coverage with two UDP listeners that proves the one
   declared v3 threshold is shared and listener declaration order has no effect.
+- Activate v3 configuration while retaining an explicit, named fixed-SQLite
+  compatibility bridge for persistence composition. The bridge is temporary:
+  it keeps the runtime persistence-enabled while the later activation follow-up
+  makes an omitted v3 `[core.database]` effective at runtime.
+- Complete the v2-to-v3 migration guide from the final schemas and defaults.
+  Document every user-facing key move, rename, removal, semantic change, and a
+  practical migration sequence. Do not claim persistence-free runtime support.
 - Ensure all tests pass after migration
 - Any additional cleanup items discovered during EPIC implementation
 
@@ -159,21 +166,21 @@ Files that import `torrust_tracker_configuration::logging` (the module, not the 
 
 ## Implementation Plan
 
-| ID  | Status | Task                                                                | Notes                                                                                                                                                                                                                                                                                                                  |
-| --- | ------ | ------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| T1  | TODO   | Migrate all consumer imports to explicit `v3_0_0` paths             | ~30 files; see Consumer Migration Map above                                                                                                                                                                                                                                                                            |
-| T2  | TODO   | Remove global type aliases from `lib.rs`                            | `pub type Configuration = ...` etc.                                                                                                                                                                                                                                                                                    |
-| T3  | TODO   | Remove crate-root `logging.rs`                                      | Already copied into `v2_0_0/` and `v3_0_0/`                                                                                                                                                                                                                                                                            |
-| T4  | TODO   | Remove `pub mod logging;` from `lib.rs`                             | Or redirect to versioned module if needed                                                                                                                                                                                                                                                                              |
-| T5  | TODO   | Enable #1453's v3 ban-cleanup interval                              | Replace its temporary 24-hour default-constant bootstrap value after consumer migration                                                                                                                                                                                                                                |
-| T6  | TODO   | Remove hardcoded `ConnectionIdValidationPolicy` in test environment | `packages/udp-server/src/testing/environment.rs` hardcodes `Strict` because v2 config lacks the field; after v3 migration the field is available natively in `UdpTracker`                                                                                                                                              |
-| T7  | TODO   | Apply any additional cleanup discovered during EPIC                 | Document in progress log                                                                                                                                                                                                                                                                                               |
-| T8  | TODO   | Run #889 deferred manual verification scenarios (M1–M5)             | After consumer migration, run tracker with v3 config and verify all four trace styles + `trace_filter` filtering                                                                                                                                                                                                       |
-| T9  | TODO   | Run `linter all` and full test suite                                |                                                                                                                                                                                                                                                                                                                        |
-| T10 | TODO   | Finalize migration guide                                            | `docs/issues/open/1978-configuration-overhaul-epic/configuration-v2-to-v3-migration.md` — this is the final cleanup, so the guide should be complete at this point                                                                                                                                                     |
-| T11 | TODO   | Run #1987 enabled-mode local manual verification                    | After consumer migration activates v3.0.0 at runtime, enable `use_ip_from_query_string` for a local HTTP tracker and execute #1987's enabled-mode local scenarios. Append reproducible commands and evidence to `docs/issues/open/1987-add-config-option-to-use-ip-from-announce-query-string/manual-verification.md`. |
-| T12 | TODO   | Activate corrected global UDP error limit                           | After its preceding v3 schema-fix subissue is merged, read `udp_tracker_server.max_connection_id_errors_per_ip` in `AppContainer` and pass it once to the shared UDP core services; remove the first-listener selection.                                                                                               |
-| T13 | TODO   | Verify shared UDP error limit at runtime                            | Register and run a two-listener integration test using one bound UDP client socket. Verify the declared v3 limit, cross-listener shared ban enforcement, and listener-order independence.                                                                                                                              |
+| ID  | Status | Task                                                                | Notes                                                                                                                                                                                                         |
+| --- | ------ | ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| T1  | DONE   | Migrate all consumer imports to explicit `v3_0_0` paths             | Rust consumers, tests, examples, benchmarks, parser fixtures, and Rust documentation links now use explicit versioned paths.                                                                                  |
+| T2  | DONE   | Remove global type aliases from `lib.rs`                            | Removed all schema type aliases; `Info` remains a legitimate non-schema crate-root type.                                                                                                                      |
+| T3  | DONE   | Remove crate-root `logging.rs`                                      | Deleted the duplicated root module; v2 and v3 retain their versioned logging modules.                                                                                                                         |
+| T4  | DONE   | Remove `pub mod logging;` from `lib.rs`                             | Removed; consumers import `v3_0_0::logging`.                                                                                                                                                                  |
+| T5  | DONE   | Enable #1453's v3 ban-cleanup interval                              | The one bootstrap-managed cleanup job reads `udp_tracker_server.ip_bans_reset_interval_in_secs`.                                                                                                              |
+| T6  | DONE   | Remove hardcoded `ConnectionIdValidationPolicy` in test environment | Startup and UDP test environments derive the policy from v3 `UdpTrackerServer`, retaining an explicit test override where needed.                                                                             |
+| T7  | DONE   | Apply any additional cleanup discovered during EPIC                 | Activated listener-scoped HTTP reverse-proxy/query-IP/external-IP policies and UDP listener external-IP wiring; restored database-specific qBittorrent E2E config generation.                                 |
+| T8  | DONE   | Run #889 deferred manual verification scenarios (M1–M5)             | Local v3 full, JSON, compact, pretty, and `warn` filter scenarios passed; evidence is recorded in closed Issue #889.                                                                                          |
+| T9  | DONE   | Run automatic verification                                          | `linter all`, `cargo test --workspace`, `cargo test --doc --workspace`, `cargo machete`, Cargo deny bans, hadolint, and `git diff --check` pass.                                                              |
+| T10 | DONE   | Complete v2-to-v3 migration guide                                   | Completed final v2-versus-v3 schema/default comparison, user-facing key/table migration, representative v3 configuration, and staged optional-database warning. The canonical guide is `packages/configuration/docs/migrate-v2-to-v3.md`; all shipped default templates load as v3. |
+| T11 | DONE   | Run #1987 enabled-mode local manual verification                    | Active-v3 local verification passed valid override, absent/empty fallback, DNS/invalid rejection, and query-IP precedence over loopback `external_ip`; evidence is in #1987 `manual-verification.md` Phase 3. |
+| T12 | DONE   | Activate corrected global UDP error limit                           | `AppContainer` reads the one v3 global value once and passes it to shared `UdpTrackerCoreServices`; first-listener selection is removed.                                                                      |
+| T13 | DONE   | Verify shared UDP error limit at runtime                            | Two isolated integration targets use one bound UDP client socket, two listeners, and both declaration orders; both pass.                                                                                      |
 
 ## Progress Tracking
 
@@ -182,10 +189,10 @@ Files that import `torrust_tracker_configuration::logging` (the module, not the 
 - [ ] Spec drafted in `docs/issues/drafts/`
 - [ ] Spec reviewed and approved by user/maintainer
 - [ ] GitHub issue created and issue number added to this spec
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests)
-- [ ] Manual verification scenarios executed and recorded
-- [ ] Acceptance criteria reviewed after implementation
+- [x] Implementation completed
+- [x] Automatic verification completed (`linter all`, relevant tests)
+- [x] Manual verification scenarios executed and recorded
+- [x] Acceptance criteria reviewed after implementation
 - [ ] Issue closed and spec moved to `docs/issues/open/`
 
 ### Progress Log
@@ -202,20 +209,27 @@ Files that import `torrust_tracker_configuration::logging` (the module, not the 
   possible until this cleanup migrates global callers.
 - 2026-08-18 00:00 UTC - Copilot/User - Added T11: run #1987 enabled-mode local manual verification after this issue activates v3.0.0 configuration at runtime.
 - 2026-08-24 00:00 UTC - GitHub Copilot/User - Added T12–T13 as the production-activation handoff for the preceding v3 schema correction that moves `max_connection_id_errors_per_ip` to `udp_tracker_server`; this issue must replace the current first-listener runtime selection and prove shared, order-independent enforcement.
+- 2026-08-26 00:00 UTC - GitHub Copilot/User - Confirmed that #1980 retains an explicit named fixed-SQLite compatibility bridge while activating v3 consumers. The later activation follow-up will replace it with the real optional `core.database` value after #1980 is merged and its evidence is reviewed. Expanded T10: the migration guide must be completed from a final v2-versus-v3 schema/default comparison, not treated as a brief cleanup note.
+- 2026-08-26 16:00 UTC - GitHub Copilot/User - Completed the automatic runtime activation batch: explicit v3 consumer imports; root alias and logging-module removal; v3 bootstrap/config fixtures; named fixed-SQLite persistence bridge; active HTTP and UDP v3 policies; qBittorrent E2E database selection; and two process-isolated shared UDP ban-budget tests for both listener declaration orders. `linter clippy`, `cargo test --workspace`, and `git diff --check` passed. Manual verification and migration-guide work remain pending.
+- 2026-08-26 16:30 UTC - GitHub Copilot/User - Completed the v2-to-v3 migration guide and migrated all six shipped configuration templates to schema v3. Template loading, configuration tests, TOML and Markdown linting, and linked local-run workflow validation passed. Manual logging and enabled HTTP query-IP scenarios remain pending.
+- 2026-08-26 16:45 UTC - GitHub Copilot/User - Completed local v3 manual evidence at revision `af890d927578d5f60dc70d2da87dae92416e4f5c`: #889 full/JSON/compact/pretty/warn logging scenarios and #1987 enabled query-IP scenarios passed. Evidence is recorded in the respective issue documents; ignored reproducibility artifacts remain in `.tmp/`.
+- 2026-08-26 17:30 UTC - GitHub Copilot/User - Reproduced the Containerfile nextest SQLite error 14 from PR #2103 and isolated the HTTP-startup test database in a test-owned working-directory `TempDir`. Focused cargo and nextest checks, stable and nightly formatting checks, the tracker package suite, and both debug and release Containerfile test targets passed locally.
+- 2026-08-26 18:00 UTC - GitHub Copilot/User - The latest nightly Testing workflow then exposed the same bridge-default SQLite-path assumption in both shared-UDP integration fixtures. Added test-local explicit `{STORAGE_PATH}` SQLite configuration to both declaration-order scenarios. Both named tests and the full nightly CI test command passed locally.
+- 2026-08-26 20:45 UTC - GitHub Copilot/User - Relocated the completed v2-to-v3 migration guide from the issue folder to its canonical configuration-package documentation path, `packages/configuration/docs/migrate-v2-to-v3.md`. Added package and documentation-index links and updated tracked historical and active references, retaining a single source of truth.
 
 ## Acceptance Criteria
 
-- [ ] AC1: All consumer imports use explicit `v3_0_0` paths (no global re-export usage remains)
-- [ ] AC2: Global type aliases removed from `packages/configuration/src/lib.rs`
-- [ ] AC3: Crate-root `packages/configuration/src/logging.rs` removed
-- [ ] AC4: `pub mod logging;` removed or redirected in `lib.rs`
-- [ ] AC5: All tests pass with the new import paths
-- [ ] AC6: `v2_0_0` module remains available (deprecated but not removed)
-- [ ] AC7: The global ban cleanup job uses the v3 `udp_tracker_server.ip_bans_reset_interval_in_secs` value
-- [ ] AC8: `AppContainer` reads the one v3 `udp_tracker_server.max_connection_id_errors_per_ip` value and initializes the shared `BanService` with it; it does not select a listener value.
-- [ ] AC9: With two UDP listeners, the configured v3 threshold is enforced by the one shared `BanService`, and reversing listener declarations does not change enforcement.
-- [ ] `linter all` exits with code `0`
-- [ ] Relevant tests pass
+- [x] AC1: All consumer imports use explicit `v3_0_0` paths (no global re-export usage remains)
+- [x] AC2: Global type aliases removed from `packages/configuration/src/lib.rs`
+- [x] AC3: Crate-root `packages/configuration/src/logging.rs` removed
+- [x] AC4: `pub mod logging;` removed or redirected in `lib.rs`
+- [x] AC5: All tests pass with the new import paths
+- [x] AC6: `v2_0_0` module remains available (deprecated but not removed)
+- [x] AC7: The global ban cleanup job uses the v3 `udp_tracker_server.ip_bans_reset_interval_in_secs` value
+- [x] AC8: `AppContainer` reads the one v3 `udp_tracker_server.max_connection_id_errors_per_ip` value and initializes the shared `BanService` with it; it does not select a listener value.
+- [x] AC9: With two UDP listeners, the configured v3 threshold is enforced by the one shared `BanService`, and reversing listener declarations does not change enforcement.
+- [x] `linter all` exits with code `0`
+- [x] Relevant tests pass
 
 ## Verification Plan
 
@@ -228,26 +242,26 @@ Files that import `torrust_tracker_configuration::logging` (the module, not the 
 
 ### Manual Verification Scenarios
 
-| ID  | Scenario                          | Command/Steps                                                                                                                                                                                                                                  | Expected Result                                                                                                                          | Status | Evidence |
-| --- | --------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | ------ | -------- |
-| M1  | Verify no global re-export usage  | `rg 'torrust_tracker_configuration::(Core\|Configuration\|Logging\|HttpApi\|HttpTracker\|UdpTracker\|Database\|Threshold)[^:]'`                                                                                                                | No matches (all use v3_0_0 paths)                                                                                                        | TODO   |          |
-| M2  | Verify v2 module still accessible | `cargo doc --document-private-items`                                                                                                                                                                                                           | v2_0_0 types documented                                                                                                                  | TODO   |          |
-| M3  | Verify v3 module is the default   | Check `lib.rs` for `LATEST_VERSION`                                                                                                                                                                                                            | `LATEST_VERSION = "3.0.0"`                                                                                                               | TODO   |          |
-| M4  | Verify global UDP error limit     | Start two UDP listeners using v3 configuration with `udp_tracker_server.max_connection_id_errors_per_ip = 2`. From one bound UDP socket, send invalid connection-ID requests to both listeners and repeat with listener declarations reversed. | The shared ban budget is consumed across listeners, and both declaration orders produce the same response sequence and ban metric delta. | TODO   |          |
+| ID  | Scenario                          | Command/Steps                                                                                                                                                                                                                                  | Expected Result                                                                                                                          | Status | Evidence                                                                                                  |
+| --- | --------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | ------ | --------------------------------------------------------------------------------------------------------- |
+| M1  | Verify no global re-export usage  | `rg 'torrust_tracker_configuration::(Core\|Configuration\|Logging\|HttpApi\|HttpTracker\|UdpTracker\|Database\|Threshold)[^:]'`                                                                                                                | No matches (all use v3_0_0 paths)                                                                                                        | DONE   | Targeted Rust search returned no matches on 2026-08-26.                                                   |
+| M2  | Verify v2 module still accessible | `cargo doc --document-private-items -p torrust-tracker-configuration`                                                                                                                                                                          | v2_0_0 types documented                                                                                                                  | DONE   | Documentation generated successfully on 2026-08-26.                                                       |
+| M3  | Verify v3 module is the default   | Check `lib.rs` for `LATEST_VERSION`                                                                                                                                                                                                            | `LATEST_VERSION = "3.0.0"`                                                                                                               | DONE   | `packages/configuration/src/lib.rs` sets `LATEST_VERSION` to `3.0.0`.                                     |
+| M4  | Verify global UDP error limit     | Start two UDP listeners using v3 configuration with `udp_tracker_server.max_connection_id_errors_per_ip = 2`. From one bound UDP socket, send invalid connection-ID requests to both listeners and repeat with listener declarations reversed. | The shared ban budget is consumed across listeners, and both declaration orders produce the same response sequence and ban metric delta. | DONE   | Both named integration targets pass with a single bound client socket and reversed listener declarations. |
 
 ### Acceptance Verification
 
-| AC ID | Status | Evidence |
-| ----- | ------ | -------- |
-| AC1   | TODO   |          |
-| AC2   | TODO   |          |
-| AC3   | TODO   |          |
-| AC4   | TODO   |          |
-| AC5   | TODO   |          |
-| AC6   | TODO   |          |
-| AC7   | TODO   |          |
-| AC8   | TODO   |          |
-| AC9   | TODO   |          |
+| AC ID | Status | Evidence                                                                        |
+| ----- | ------ | ------------------------------------------------------------------------------- |
+| AC1   | DONE   | Targeted Rust import search has no root schema alias matches.                   |
+| AC2   | DONE   | `packages/configuration/src/lib.rs` no longer defines schema aliases.           |
+| AC3   | DONE   | `packages/configuration/src/logging.rs` is deleted.                             |
+| AC4   | DONE   | `lib.rs` no longer exposes `pub mod logging`.                                   |
+| AC5   | DONE   | `cargo test --workspace` passed on 2026-08-26.                                  |
+| AC6   | DONE   | `pub mod v2_0_0;` remains in `lib.rs`.                                          |
+| AC7   | DONE   | Bootstrap cleanup job uses v3 UDP server reset interval.                        |
+| AC8   | DONE   | `AppContainer` reads the global value once and initializes shared UDP services. |
+| AC9   | DONE   | Both normal- and reverse-declaration-order integration targets pass.            |
 
 ## Risks and Trade-offs
 

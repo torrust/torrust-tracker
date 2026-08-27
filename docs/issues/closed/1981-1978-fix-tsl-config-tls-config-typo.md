@@ -98,7 +98,7 @@ Old spellings are therefore expected to remain under `v2_0_0`, in the crate-root
 | T4  | DONE   | Update v3 docs, open implementation specs, and tests                  | Preserved v2 and historical spellings intentionally                                     |
 | T5  | DONE   | Record remaining old spellings by ownership                           | All matches classified under the approved boundary                                      |
 | T6  | DONE   | Run `linter all` and full test suite                                  | Both completed successfully on 2026-07-20                                               |
-| T7  | DONE   | Update migration guide if this subissue affects the config public API | `docs/issues/open/1978-configuration-overhaul-epic/configuration-v2-to-v3-migration.md` |
+| T7  | DONE   | Update migration guide if this subissue affects the config public API | `packages/configuration/docs/migrate-v2-to-v3.md` |
 
 ## Implementation Files
 

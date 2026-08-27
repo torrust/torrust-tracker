@@ -4,7 +4,7 @@ use std::net::SocketAddr;
 use std::num::NonZeroU16;
 use std::time::Duration;
 
-use torrust_tracker_client::udp::client::UdpTrackerClient;
+use torrust_tracker_client::udp::client::{UdpClient, UdpTrackerClient};
 use torrust_tracker_udp_protocol::{
     AnnounceActionPlaceholder, AnnounceEvent, AnnounceRequest, ConnectRequest, ConnectionId, NumberOfBytes, NumberOfPeers,
     PeerKey, Port, Response, TransactionId,
@@ -95,6 +95,71 @@ pub async fn send_invalid_connection_ids_until_banned(remote_addr: SocketAddr) {
 
     client
         .send(invalid_connection_id_announce_request(12, client.client.socket.local_addr().unwrap().port()).into())
+        .await
+        .expect("failed to send post-threshold invalid connection ID announce request");
+    assert!(
+        client.receive().await.is_err(),
+        "the post-threshold request should be banned without a response"
+    );
+}
+
+/// Sends invalid connection IDs through one client socket to multiple UDP
+/// listeners until their shared ban service rejects the source IP.
+///
+/// # Panics
+///
+/// Panics if there is no listener, the socket cannot be created, an expected
+/// pre-ban cookie-error response is absent, or the post-threshold request is
+/// not rejected.
+pub async fn send_invalid_connection_ids_across_listeners_until_banned(
+    remote_addrs: &[SocketAddr],
+    max_connection_id_errors_per_ip: u32,
+) {
+    assert!(!remote_addrs.is_empty(), "at least one UDP listener is required");
+
+    let client = UdpClient::bound(
+        "0.0.0.0:0".parse().expect("socket address must be valid"),
+        Duration::from_secs(1),
+    )
+    .await
+    .expect("failed to create UDP client socket");
+    let source_port = client
+        .socket
+        .local_addr()
+        .expect("UDP client must have a local address")
+        .port();
+
+    for transaction_id in 1..=max_connection_id_errors_per_ip + 1 {
+        let remote_addr = remote_addrs[(transaction_id as usize - 1) % remote_addrs.len()];
+        client.connect(remote_addr).await.expect("failed to select UDP listener");
+        let client = UdpTrackerClient { client: client.clone() };
+        let transaction_id =
+            i32::try_from(transaction_id).expect("connection-ID error threshold must fit in an i32 transaction ID");
+        client
+            .send(invalid_connection_id_announce_request(transaction_id, source_port).into())
+            .await
+            .expect("failed to send invalid connection ID announce request");
+        client
+            .receive()
+            .await
+            .expect("the request before the ban threshold should receive a cookie error");
+    }
+
+    let post_threshold_transaction_id = max_connection_id_errors_per_ip
+        .checked_add(2)
+        .expect("connection-ID error threshold must allow a post-threshold transaction ID");
+    let remote_addr = remote_addrs[(max_connection_id_errors_per_ip as usize + 1) % remote_addrs.len()];
+    client.connect(remote_addr).await.expect("failed to select UDP listener");
+    let client = UdpTrackerClient { client };
+    client
+        .send(
+            invalid_connection_id_announce_request(
+                i32::try_from(post_threshold_transaction_id)
+                    .expect("connection-ID error threshold must fit in an i32 transaction ID"),
+                source_port,
+            )
+            .into(),
+        )
         .await
         .expect("failed to send post-threshold invalid connection ID announce request");
     assert!(

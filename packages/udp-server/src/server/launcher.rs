@@ -63,7 +63,7 @@ impl Launcher {
             panic!("it should not use udp if using authentication");
         }
 
-        let socket = BoundSocket::bind(bind_to, udp_tracker_core_container.udp_tracker_config.ipv6_v6only);
+        let socket = BoundSocket::bind(bind_to, udp_tracker_core_container.udp_tracker_config.network.ipv6_v6only);
 
         let bound_socket = match socket {
             Ok(socket) => socket,

@@ -91,7 +91,7 @@ follow both changes.
 | T4  | TODO   | Extend startup and request logging                                    | Record `service_binding` and optional `public_url` separately.                          |
 | T5  | TODO   | Add focused tests                                                     | Cover HTTP, UDP where supported, wildcard binding, and port `0`.                        |
 | T6  | TODO   | Run automatic and manual verification                                 | Record command output in an evidence file after implementation.                         |
-| T7  | TODO   | Update migration guide if this subissue affects the config public API | `docs/issues/open/1978-configuration-overhaul-epic/configuration-v2-to-v3-migration.md` |
+| T7  | TODO   | Update migration guide if this subissue affects the config public API | `packages/configuration/docs/migrate-v2-to-v3.md` |
 
 ## Progress Tracking
 

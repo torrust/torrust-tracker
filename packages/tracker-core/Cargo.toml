@@ -41,6 +41,7 @@ tracing = "0"
 
 [dev-dependencies]
 mockall = "0"
+secrecy = "0.10.3"
 testcontainers = "0"
 torrust-tracker-test-helpers = { version = "3.0.0", path = "../test-helpers" }
 url = "2.5.4"

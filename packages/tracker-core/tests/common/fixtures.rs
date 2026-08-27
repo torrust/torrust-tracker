@@ -3,7 +3,8 @@ use std::str::FromStr;
 
 use torrust_clock::DurationSinceUnixEpoch;
 use torrust_info_hash::InfoHash;
-use torrust_tracker_configuration::Core;
+use torrust_tracker_configuration::v3_0_0::core::Core;
+use torrust_tracker_configuration::v3_0_0::database::Database;
 use torrust_tracker_primitives::peer::Peer;
 use torrust_tracker_primitives::{AnnounceEvent, NumberOfBytes, PeerId};
 use torrust_tracker_test_helpers::configuration::ephemeral_sqlite_database;
@@ -16,7 +17,11 @@ pub fn ephemeral_configuration() -> Core {
     let mut config = Core::default();
 
     let temp_file = ephemeral_sqlite_database();
-    temp_file.to_str().unwrap().clone_into(&mut config.database.path);
+    let database = config.database.get_or_insert_with(Database::default);
+    let Database::Sqlite3 { path } = database else {
+        unreachable!("default core configuration uses SQLite persistence");
+    };
+    temp_file.to_str().unwrap().clone_into(path);
 
     config
 }

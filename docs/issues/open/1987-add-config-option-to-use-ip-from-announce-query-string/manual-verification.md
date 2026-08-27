@@ -153,6 +153,70 @@ It then returned its existing generic client-side error, `unrecognized announce 
 
 ## Phase 3 — Active v3 Enabled Policy
 
-**Status:** BLOCKED
+**Status:** DONE
 
-Blocked until issue #1980 activates schema v3.0.0 configuration at runtime. This phase will enable `use_ip_from_query_string` for a local HTTP tracker and verify valid overrides, fallback behavior, validation failures, and reverse-proxy precedence.
+### Environment
+
+| Item                  | Value                                                        |
+| --------------------- | ------------------------------------------------------------ |
+| Date/time (UTC)       | 2026-08-26; exact time captured in local logs                |
+| Commit                | `af890d927578d5f60dc70d2da87dae92416e4f5c`                   |
+| OS                    | Linux                                                        |
+| Rust toolchain        | Rust `1.98.0` (`rustc 1.98.0`, `cargo 1.98.0`)               |
+| Tracker configuration | Isolated v3 TOML in `.tmp/issue-1987-enabled-v3/config.toml` |
+| HTTP tracker          | `http://127.0.0.1:18070`                                     |
+| REST API              | `http://127.0.0.1:18121`                                     |
+| Health API            | `http://127.0.0.1:18122`                                     |
+
+The isolated v3 configuration enabled
+`use_ip_from_query_string = true`, set the HTTP listener's loopback fallback
+to `network.external_ip = "198.51.100.77"`, and used an isolated SQLite
+database. The health endpoint returned `status: "Ok"`, confirming the HTTP
+tracker and REST API were healthy before the request matrix ran.
+
+### Request Matrix
+
+| Case          | Request form                           | Actual result                                                                                 |
+| ------------- | -------------------------------------- | --------------------------------------------------------------------------------------------- |
+| Valid IPv4    | Tracker client with `--ip 1.2.3.4`     | Successful announce; REST reported `peer_addr: "1.2.3.4:6881"`.                               |
+| Absent        | Raw HTTP request without `ip`          | Successful announce; REST reported fallback `peer_addr: "198.51.100.77:6882"`.                |
+| Empty         | Raw HTTP request with `ip=`            | Successful announce; REST reported fallback `peer_addr: "198.51.100.77:6882"`.                |
+| DNS name      | Raw HTTP request with `ip=example.com` | Bencoded failure: `DNS names are not supported for the announce ip parameter`; no peer added. |
+| Invalid value | Raw HTTP request with `ip=invalid_ip`  | Bencoded failure: `The announce ip parameter must be an IPv4 or IPv6 literal`; no peer added. |
+| Precedence    | Loopback request with `ip=1.2.3.4`     | Successful announce; REST reported `peer_addr: "1.2.3.4:6882"`, overriding `external_ip`.     |
+
+### Commands and Output
+
+The valid override used the local typed client:
+
+```sh
+cargo run -p torrust-tracker-client --bin tracker_client -- \
+  http announce http://127.0.0.1:18070 \
+  0123456789abcdef0123456789abcdef01234567 \
+  --ip 1.2.3.4 \
+  --port 6881 \
+  --peer-id=-MV0001-123456789012 \
+  --event started
+```
+
+It returned a successful announce response:
+
+```json
+{
+  "complete": 1,
+  "incomplete": 0,
+  "interval": 120,
+  "min interval": 120,
+  "peers": []
+}
+```
+
+The REST peer observation confirmed that the tracker registered
+`1.2.3.4:6881`. Raw local HTTP requests covered absent, empty, DNS, invalid,
+and loopback-precedence forms because the typed client cannot construct each
+raw request state. The tracker was stopped with `SIGINT`; its logs confirmed
+graceful shutdown of the HTTP tracker, REST API, health API, and jobs, and no
+listeners remained on the three test ports.
+
+The ignored reproducibility artifacts, including the effective configuration
+and tracker logs, are retained locally in `.tmp/issue-1987-enabled-v3/`.

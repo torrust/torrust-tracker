@@ -7,7 +7,7 @@
 //!
 //! It also sends an [`udp_tracker_core::statistics::event::Event`]
 //! because events are specific for the HTTP tracker.
-use std::net::SocketAddr;
+use std::net::{IpAddr, SocketAddr};
 use std::ops::Range;
 use std::sync::Arc;
 
@@ -34,6 +34,7 @@ pub struct AnnounceService {
     whitelist_authorization: Arc<whitelist::authorization::WhitelistAuthorization>,
     opt_udp_core_stats_event_sender: crate::event::sender::Sender,
     configuration_instance_id: ConfigurationInstanceId,
+    tracker_external_ip: Option<IpAddr>,
 }
 
 impl AnnounceService {
@@ -48,12 +49,14 @@ impl AnnounceService {
         whitelist_authorization: Arc<whitelist::authorization::WhitelistAuthorization>,
         opt_udp_core_stats_event_sender: crate::event::sender::Sender,
         configuration_instance_id: ConfigurationInstanceId,
+        tracker_external_ip: Option<IpAddr>,
     ) -> Self {
         Self {
             announce_handler,
             whitelist_authorization,
             opt_udp_core_stats_event_sender,
             configuration_instance_id,
+            tracker_external_ip,
         }
     }
 
@@ -94,7 +97,13 @@ impl AnnounceService {
 
         let announce_data = self
             .announce_handler
-            .handle_announcement(&info_hash, &mut peer, &remote_client_ip, &peers_wanted)
+            .handle_announcement(
+                &info_hash,
+                &mut peer,
+                &remote_client_ip,
+                self.tracker_external_ip,
+                &peers_wanted,
+            )
             .await?;
 
         self.send_event(info_hash, peer, client_socket_addr, server_service_binding)

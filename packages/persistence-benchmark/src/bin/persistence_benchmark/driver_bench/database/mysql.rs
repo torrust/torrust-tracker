@@ -2,12 +2,14 @@ use std::str::FromStr;
 use std::time::Duration;
 
 use anyhow::{Context, Result};
+use secrecy::SecretString;
 use sqlx::mysql::{MySqlConnectOptions, MySqlPoolOptions};
 use testcontainers::core::wait::LogWaitStrategy;
 use testcontainers::core::{IntoContainerPort, WaitFor};
 use testcontainers::runners::AsyncRunner;
 use testcontainers::{GenericImage, ImageExt};
-use torrust_tracker_configuration as configuration;
+use torrust_tracker_configuration::v3_0_0::core::Core;
+use torrust_tracker_configuration::v3_0_0::database::{ConnectionInfo, Database};
 use torrust_tracker_core::databases::setup::initialize_database;
 
 use super::{ActiveDatabase, BenchmarkResource};
@@ -57,9 +59,16 @@ pub(super) async fn initialize(db_version: &str) -> Result<ActiveDatabase> {
         .await
         .context("mysql container did not accept connections in time")?;
 
-    let mut config = configuration::Core::default();
-    config.database.driver = torrust_tracker_primitives::Driver::MySQL;
-    config.database.path = mysql_database_url;
+    let config = Core {
+        database: Some(Database::MySQL(ConnectionInfo {
+            host: host.to_string(),
+            port,
+            user: "root".to_string(),
+            password: SecretString::from("test"),
+            database: "torrust_tracker_bench".to_string(),
+        })),
+        ..Default::default()
+    };
     let database = initialize_database(&config).await;
 
     Ok(ActiveDatabase {

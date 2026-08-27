@@ -100,7 +100,8 @@ mod tests {
 
     use tokio_util::sync::CancellationToken;
     use torrust_info_hash::InfoHash;
-    use torrust_tracker_configuration::{Configuration, Core};
+    use torrust_tracker_configuration::v3_0_0::Configuration;
+    use torrust_tracker_configuration::v3_0_0::core::Core;
     use torrust_tracker_core::authentication::key::repository::in_memory::InMemoryKeyRepository;
     use torrust_tracker_core::authentication::service::AuthenticationService;
     use torrust_tracker_core::scrape_handler::ScrapeHandler;
@@ -125,6 +126,7 @@ mod tests {
 
     struct CoreHttpTrackerServices {
         pub http_stats_event_sender: torrust_tracker_http_core::event::sender::Sender,
+        pub http_tracker_config: Arc<torrust_tracker_configuration::v3_0_0::http_tracker::HttpTracker>,
         pub configuration_instance_id: ConfigurationInstanceId,
     }
 
@@ -155,6 +157,13 @@ mod tests {
             .next()
             .map(|(index, _)| ConfigurationInstanceId::new(ServiceRole::HttpTracker, index))
             .expect("the test configuration should contain an HTTP tracker");
+        let http_tracker_config = Arc::new(
+            config
+                .http_trackers
+                .as_ref()
+                .expect("the test configuration should contain an HTTP tracker")[0]
+                .clone(),
+        );
 
         let core_config = Arc::new(config.core.clone());
         let in_memory_whitelist = Arc::new(InMemoryWhitelist::default());
@@ -191,6 +200,7 @@ mod tests {
             },
             CoreHttpTrackerServices {
                 http_stats_event_sender,
+                http_tracker_config,
                 configuration_instance_id,
             },
         )
@@ -357,11 +367,12 @@ mod tests {
             let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070);
             let server_service_binding = ServiceBinding::new(Protocol::HTTP, server_socket_addr).unwrap();
 
-            let scrape_service = ScrapeService::new(
+            let scrape_service = ScrapeService::new_with_http_tracker_config(
                 core_tracker_services.core_config.clone(),
                 core_tracker_services.scrape_handler.clone(),
                 core_tracker_services.authentication_service.clone(),
                 core_http_tracker_services.http_stats_event_sender.clone(),
+                &core_http_tracker_services.http_tracker_config,
                 core_http_tracker_services.configuration_instance_id,
             );
 

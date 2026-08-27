@@ -71,10 +71,10 @@ async fn the_stats_api_endpoint_should_aggregate_announces_across_multiple_track
         [metadata]
         app = "torrust-tracker"
         purpose = "configuration"
-        schema_version = "2.0.0"
+        schema_version = "3.0.0"
 
         [logging]
-        threshold = "off"
+        trace_filter = "off"
 
         [core]
         listed = false

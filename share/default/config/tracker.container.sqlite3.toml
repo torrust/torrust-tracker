@@ -1,17 +1,24 @@
 [metadata]
 app = "torrust-tracker"
 purpose = "configuration"
-schema_version = "2.0.0"
+schema_version = "3.0.0"
 
 [logging]
-threshold = "info"
+trace_filter = "info"
+trace_style = "full"
 
 [core]
 listed = false
 private = false
 
 [core.database]
+driver = "sqlite3"
 path = "/var/lib/torrust/tracker/database/sqlite3.db"
+
+[udp_tracker_server]
+ip_bans_reset_interval_in_secs = 86400
+max_connection_id_errors_per_ip = 10
+connection_id_validation = "strict"
 
 # Uncomment to enable services
 

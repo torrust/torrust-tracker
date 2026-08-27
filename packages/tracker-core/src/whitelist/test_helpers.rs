@@ -8,7 +8,7 @@ pub(crate) mod tests {
 
     use std::sync::Arc;
 
-    use torrust_tracker_configuration::Configuration;
+    use torrust_tracker_configuration::v3_0_0::Configuration;
 
     use crate::databases::setup::initialize_database;
     use crate::whitelist::authorization::WhitelistAuthorization;

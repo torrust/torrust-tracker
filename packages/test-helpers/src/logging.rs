@@ -3,7 +3,7 @@ use std::collections::VecDeque;
 use std::io;
 use std::sync::{Mutex, MutexGuard, Once, OnceLock};
 
-use torrust_tracker_configuration::logging::TraceStyle;
+use torrust_tracker_configuration::v3_0_0::logging::TraceStyle;
 use tracing::level_filters::LevelFilter;
 use tracing_subscriber::fmt::MakeWriter;
 
@@ -18,7 +18,7 @@ pub fn captured_logs_buffer() -> &'static Mutex<CircularBuffer> {
 
 pub fn setup() {
     INIT.call_once(|| {
-        tracing_init(LevelFilter::WARN, &TraceStyle::Default);
+        tracing_init(LevelFilter::WARN, &TraceStyle::Full);
     });
 }
 
@@ -32,8 +32,8 @@ fn tracing_init(level_filter: LevelFilter, style: &TraceStyle) {
         .with_writer(mock_writer);
 
     let () = match style {
-        TraceStyle::Default => builder.init(),
-        TraceStyle::Pretty(display_filename) => builder.pretty().with_file(*display_filename).init(),
+        TraceStyle::Full => builder.init(),
+        TraceStyle::Pretty => builder.pretty().with_file(false).init(),
         TraceStyle::Compact => builder.compact().init(),
         TraceStyle::Json => builder.json().init(),
     };

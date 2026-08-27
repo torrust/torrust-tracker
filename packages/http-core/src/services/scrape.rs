@@ -10,7 +10,8 @@
 use std::sync::Arc;
 
 use torrust_net_primitives::service_binding::ServiceBinding;
-use torrust_tracker_configuration::Core;
+use torrust_tracker_configuration::v3_0_0::core::Core;
+use torrust_tracker_configuration::v3_0_0::http_tracker::HttpTracker;
 use torrust_tracker_core::authentication::service::AuthenticationService;
 use torrust_tracker_core::authentication::{self, Key};
 use torrust_tracker_core::error::{ScrapeError, TrackerCoreError, WhitelistError};
@@ -18,7 +19,7 @@ use torrust_tracker_core::scrape_handler::ScrapeHandler;
 use torrust_tracker_http_protocol::v1::requests::scrape::Scrape;
 use torrust_tracker_http_protocol::v1::responses::error::Error as HttpProtocolErrorResponse;
 use torrust_tracker_http_protocol::v1::services::peer_ip_resolver::{
-    ClientIpSources, PeerIpResolutionError, RemoteClientAddr, resolve_remote_client_addr,
+    ClientIpSources, PeerIpResolutionError, RemoteClientAddr, ReverseProxyMode, resolve_remote_client_addr,
 };
 use torrust_tracker_primitives::{ConfigurationInstanceId, ScrapeData};
 
@@ -42,6 +43,7 @@ pub struct ScrapeService {
     scrape_handler: Arc<ScrapeHandler>,
     authentication_service: Arc<AuthenticationService>,
     opt_http_stats_event_sender: crate::event::sender::Sender,
+    reverse_proxy_mode: ReverseProxyMode,
     configuration_instance_id: ConfigurationInstanceId,
 }
 
@@ -59,6 +61,27 @@ impl ScrapeService {
             scrape_handler,
             authentication_service,
             opt_http_stats_event_sender,
+            reverse_proxy_mode: ReverseProxyMode::Disabled,
+            configuration_instance_id,
+        }
+    }
+
+    /// Creates a service using the network policy of one configured HTTP tracker instance.
+    #[must_use]
+    pub fn new_with_http_tracker_config(
+        core_config: Arc<Core>,
+        scrape_handler: Arc<ScrapeHandler>,
+        authentication_service: Arc<AuthenticationService>,
+        opt_http_stats_event_sender: crate::event::sender::Sender,
+        http_tracker_config: &HttpTracker,
+        configuration_instance_id: ConfigurationInstanceId,
+    ) -> Self {
+        Self {
+            core_config,
+            scrape_handler,
+            authentication_service,
+            opt_http_stats_event_sender,
+            reverse_proxy_mode: http_tracker_config.network.on_reverse_proxy.into(),
             configuration_instance_id,
         }
     }
@@ -86,7 +109,7 @@ impl ScrapeService {
             self.scrape_handler.handle_scrape(&scrape_request.info_hashes).await?
         };
 
-        let remote_client_addr = resolve_remote_client_addr(&self.core_config.net.on_reverse_proxy.into(), client_ip_sources)?;
+        let remote_client_addr = resolve_remote_client_addr(&self.reverse_proxy_mode, client_ip_sources)?;
 
         self.send_event(remote_client_addr, server_service_binding.clone()).await;
 
@@ -191,7 +214,7 @@ mod tests {
     use mockall::mock;
     use torrust_clock::DurationSinceUnixEpoch;
     use torrust_info_hash::InfoHash;
-    use torrust_tracker_configuration::Configuration;
+    use torrust_tracker_configuration::v3_0_0::Configuration;
     use torrust_tracker_core::announce_handler::AnnounceHandler;
     use torrust_tracker_core::authentication::key::repository::in_memory::InMemoryKeyRepository;
     use torrust_tracker_core::authentication::service::AuthenticationService;
@@ -300,6 +323,57 @@ mod tests {
         use crate::tests::sample_info_hash;
 
         #[tokio::test]
+        async fn it_should_use_the_http_tracker_reverse_proxy_policy() {
+            // Arrange
+            let configuration = configuration::ephemeral_with_reverse_proxy();
+            let container = initialize_services_with_configuration(&configuration).await;
+            let http_tracker_config = configuration
+                .http_trackers
+                .as_ref()
+                .expect("the test configuration should contain an HTTP tracker")[0]
+                .clone();
+            let proxy_ip = "203.0.113.195".parse().unwrap();
+            let connection_ip = "192.0.2.10".parse().unwrap();
+            let client_ip_sources = ClientIpSources {
+                right_most_x_forwarded_for: Some(proxy_ip),
+                connection_info_socket_address: Some(SocketAddr::new(connection_ip, 8080)),
+            };
+            let mut http_stats_event_sender_mock = MockHttpStatsEventSender::new();
+            http_stats_event_sender_mock
+                .expect_send()
+                .with(eq(Event::TcpScrape {
+                    connection: ConnectionContext::new(
+                        container.configuration_instance_id,
+                        RemoteClientAddr::new(ResolvedIp::FromXForwardedFor(proxy_ip), Some(8080)),
+                        ServiceBinding::new(Protocol::HTTP, SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070)).unwrap(),
+                    ),
+                }))
+                .times(1)
+                .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
+            let scrape_service = ScrapeService::new_with_http_tracker_config(
+                Arc::new(configuration.core),
+                container.scrape_handler,
+                container.authentication_service,
+                Some(Arc::new(http_stats_event_sender_mock)),
+                &http_tracker_config,
+                container.configuration_instance_id,
+            );
+            let scrape_request = Scrape {
+                info_hashes: sample_info_hashes(),
+            };
+            let server_service_binding =
+                ServiceBinding::new(Protocol::HTTP, SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070)).unwrap();
+
+            // Act
+            let result = scrape_service
+                .handle_scrape(&scrape_request, &client_ip_sources, &server_service_binding, None)
+                .await;
+
+            // Assert
+            assert!(result.is_ok());
+        }
+
+        #[tokio::test]
         async fn it_should_return_the_scrape_data_for_a_torrent() {
             let configuration = configuration::ephemeral_public();
             let core_config = Arc::new(configuration.core.clone());
@@ -320,7 +394,7 @@ mod tests {
             let original_peer_ip = peer.ip();
             container
                 .announce_handler
-                .handle_announcement(&info_hash, &mut peer, &original_peer_ip, &PeersWanted::AsManyAsPossible)
+                .handle_announcement(&info_hash, &mut peer, &original_peer_ip, None, &PeersWanted::AsManyAsPossible)
                 .await
                 .unwrap();
 
@@ -515,7 +589,7 @@ mod tests {
             let original_peer_ip = peer.ip();
             container
                 .announce_handler
-                .handle_announcement(&info_hash, &mut peer, &original_peer_ip, &PeersWanted::AsManyAsPossible)
+                .handle_announcement(&info_hash, &mut peer, &original_peer_ip, None, &PeersWanted::AsManyAsPossible)
                 .await
                 .unwrap();
 

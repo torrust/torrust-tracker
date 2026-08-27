@@ -8,9 +8,9 @@ pub(crate) mod tests {
     use rand::Rng;
     use torrust_clock::DurationSinceUnixEpoch;
     use torrust_info_hash::InfoHash;
-    use torrust_tracker_configuration::Configuration;
+    use torrust_tracker_configuration::v3_0_0::Configuration;
     #[cfg(test)]
-    use torrust_tracker_configuration::Core;
+    use torrust_tracker_configuration::v3_0_0::{core::Core, database::Database};
     use torrust_tracker_primitives::peer::Peer;
     use torrust_tracker_primitives::{AnnounceEvent, NumberOfBytes, PeerId};
     #[cfg(test)]
@@ -160,7 +160,7 @@ pub(crate) mod tests {
         let mut config = Core::default();
 
         let temp_file = ephemeral_sqlite_database();
-        temp_file.to_str().unwrap().clone_into(&mut config.database.path);
+        set_sqlite_database_path(&mut config, &temp_file);
 
         config
     }
@@ -177,8 +177,17 @@ pub(crate) mod tests {
         };
 
         let temp_file = ephemeral_sqlite_database();
-        temp_file.to_str().unwrap().clone_into(&mut config.database.path);
+        set_sqlite_database_path(&mut config, &temp_file);
 
         config
+    }
+
+    #[cfg(test)]
+    fn set_sqlite_database_path(config: &mut Core, temp_file: &std::path::Path) {
+        let database = config.database.get_or_insert_with(Database::default);
+        let Database::Sqlite3 { path } = database else {
+            unreachable!("default core configuration uses SQLite persistence");
+        };
+        temp_file.to_str().unwrap().clone_into(path);
     }
 }

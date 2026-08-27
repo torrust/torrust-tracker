@@ -99,7 +99,7 @@ The exact commands and complete relevant outputs are recorded in
 | T4  | DONE   | Update runtime logging                                                | Retained `server_socket_addr` and added `service_binding` to HTTP, REST API, and UDP error logs.                                                                                 |
 | T5  | DONE   | Run focused regression tests                                          | Existing server-package tests cover the changed paths. Field-level log assertions are deferred to #1430 because global tracing state and concurrent output make them unreliable. |
 | T6  | DONE   | Complete automatic and post-change manual verification                | Recorded final commands and output in `manual-verification.md`.                                                                                                                  |
-| T7  | DONE   | Update migration guide if this subissue affects the config public API | `docs/issues/open/1978-configuration-overhaul-epic/configuration-v2-to-v3-migration.md`                                                                                          |
+| T7  | DONE   | Update migration guide if this subissue affects the config public API | `packages/configuration/docs/migrate-v2-to-v3.md`                                                                                          |
 
 ## Progress Tracking
 

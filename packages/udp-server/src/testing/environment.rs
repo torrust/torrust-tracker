@@ -5,7 +5,11 @@ use std::time::Duration;
 use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
 use torrust_server_lib::registar::Registar;
-use torrust_tracker_configuration::{Core, UdpTracker};
+use torrust_tracker_configuration::v3_0_0::core::Core;
+use torrust_tracker_configuration::v3_0_0::udp_tracker::UdpTracker;
+use torrust_tracker_configuration::v3_0_0::udp_tracker_server::{
+    ConnectionIdValidationPolicy as ConfigurationConnectionIdValidationPolicy, UdpTrackerServer,
+};
 use torrust_tracker_core::container::TrackerCoreContainer;
 use torrust_tracker_primitives::{ConfigurationInstanceId, RuntimeServiceMetadata, ServiceRole};
 use torrust_tracker_swarm_coordination_registry::container::SwarmCoordinationRegistryContainer;
@@ -37,12 +41,24 @@ where
 }
 
 impl Environment<Stopped> {
+    /// Creates an environment using the global UDP server configuration.
     #[allow(dead_code)]
     #[must_use]
-    pub async fn new(core_config: &Arc<Core>, udp_tracker_config: &Arc<UdpTracker>) -> Self {
+    pub async fn new_with_udp_tracker_server_config(
+        core_config: &Arc<Core>,
+        udp_tracker_config: &Arc<UdpTracker>,
+        udp_tracker_server_config: &UdpTrackerServer,
+    ) -> Self {
         initialize_static();
 
-        let container = Arc::new(EnvContainer::initialize(core_config, udp_tracker_config).await);
+        let container = Arc::new(
+            EnvContainer::initialize(
+                core_config,
+                udp_tracker_config,
+                udp_tracker_server_config.max_connection_id_errors_per_ip,
+            )
+            .await,
+        );
 
         let bind_to = container.udp_tracker_core_container.udp_tracker_config.bind_address;
 
@@ -56,12 +72,14 @@ impl Environment<Stopped> {
             udp_server_stats_event_listener_job: None,
             udp_server_banning_event_listener_job: None,
             cancellation_token: CancellationToken::new(),
-            connection_id_validation: ConnectionIdValidationPolicy::Strict,
-            // TODO(#1980): remove this hardcoded fallback once schema v3 is the
-            // default. The v3 `UdpTrackerServer` config carries `connection_id_validation`
-            // natively; the policy should come from there, not from a separate
-            // Environment field.
+            connection_id_validation: connection_id_validation_policy(udp_tracker_server_config),
         }
+    }
+
+    /// Creates an environment with the default global UDP server configuration.
+    #[must_use]
+    pub async fn new(core_config: &Arc<Core>, udp_tracker_config: &Arc<UdpTracker>) -> Self {
+        Self::new_with_udp_tracker_server_config(core_config, udp_tracker_config, &UdpTrackerServer::default()).await
     }
 
     /// Sets the connection ID validation policy for this test environment.
@@ -136,13 +154,29 @@ impl Environment<Running> {
     /// # Panics
     ///
     /// Will panic if it cannot start the server within the timeout.
-    pub async fn new(core_config: &Arc<Core>, udp_tracker_config: &Arc<UdpTracker>) -> Self {
+    pub async fn new_with_udp_tracker_server_config(
+        core_config: &Arc<Core>,
+        udp_tracker_config: &Arc<UdpTracker>,
+        udp_tracker_server_config: &UdpTrackerServer,
+    ) -> Self {
         tokio::time::timeout(
             DEFAULT_SERVER_LIFECYCLE_TIMEOUT,
-            Environment::<Stopped>::new(core_config, udp_tracker_config).await.start(),
+            Environment::<Stopped>::new_with_udp_tracker_server_config(
+                core_config,
+                udp_tracker_config,
+                udp_tracker_server_config,
+            )
+            .await
+            .start(),
         )
         .await
         .expect("Failed to create a UDP tracker server running environment within the timeout")
+    }
+
+    /// Creates an environment with the default global UDP server configuration.
+    #[must_use]
+    pub async fn new(core_config: &Arc<Core>, udp_tracker_config: &Arc<UdpTracker>) -> Self {
+        Self::new_with_udp_tracker_server_config(core_config, udp_tracker_config, &UdpTrackerServer::default()).await
     }
 
     /// Stops the test environment and return a stopped environment.
@@ -197,6 +231,13 @@ impl Environment<Running> {
     }
 }
 
+fn connection_id_validation_policy(policy: &UdpTrackerServer) -> ConnectionIdValidationPolicy {
+    match policy.connection_id_validation {
+        ConfigurationConnectionIdValidationPolicy::Strict => ConnectionIdValidationPolicy::Strict,
+        ConfigurationConnectionIdValidationPolicy::Disabled => ConnectionIdValidationPolicy::Disabled,
+    }
+}
+
 pub struct EnvContainer {
     pub tracker_core_container: Arc<TrackerCoreContainer>,
     pub udp_tracker_core_container: Arc<UdpTrackerCoreContainer>,
@@ -209,7 +250,11 @@ impl EnvContainer {
     /// Panics if the persistence-required tracker-core test container cannot
     /// be composed.
     #[must_use]
-    pub async fn initialize(core_config: &Arc<Core>, udp_tracker_config: &Arc<UdpTracker>) -> Self {
+    pub async fn initialize(
+        core_config: &Arc<Core>,
+        udp_tracker_config: &Arc<UdpTracker>,
+        max_connection_id_errors_per_ip: u32,
+    ) -> Self {
         let swarm_coordination_registry_container = Arc::new(SwarmCoordinationRegistryContainer::initialize(
             core_config.tracker_usage_statistics.into(),
         ));
@@ -218,7 +263,7 @@ impl EnvContainer {
             TrackerCoreContainer::initialize_from(
                 core_config,
                 &swarm_coordination_registry_container,
-                Some(&core_config.database),
+                core_config.database.as_ref(),
             )
             .await
             .expect("UDP server test initialization requires persistence"),
@@ -227,6 +272,7 @@ impl EnvContainer {
         let udp_tracker_core_container = UdpTrackerCoreContainer::initialize_from_tracker_core(
             &tracker_core_container,
             udp_tracker_config,
+            max_connection_id_errors_per_ip,
             torrust_tracker_primitives::ConfigurationInstanceId::new(torrust_tracker_primitives::ServiceRole::UdpTracker, 0),
         );
 
@@ -263,7 +309,7 @@ mod tests {
         let core_config = Arc::new(cfg.core.clone());
         let udp_tracker_config = Arc::new(cfg.udp_trackers.unwrap()[0].clone());
 
-        let env = Started::new(&core_config, &udp_tracker_config).await;
+        let env = Started::new_with_udp_tracker_server_config(&core_config, &udp_tracker_config, &cfg.udp_tracker_server).await;
         sleep(Duration::from_secs(1)).await;
         env.stop().await;
         sleep(Duration::from_secs(1)).await;
