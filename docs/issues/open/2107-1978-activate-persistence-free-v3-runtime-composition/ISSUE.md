@@ -5,13 +5,13 @@ status: planned
 priority: p2
 epic: 1978
 github-issue: 2107
-spec-path: docs/issues/open/2107-1978-activate-persistence-free-v3-runtime-composition.md
+spec-path: docs/issues/open/2107-1978-activate-persistence-free-v3-runtime-composition/ISSUE.md
 branch: "2107-activate-persistence-free-v3-runtime-composition"
 related-pr: null
 depends-on:
   - 999
   - 1980
-last-updated-utc: 2026-08-28 00:00
+last-updated-utc: 2026-08-28 11:58
 semantic-links:
   skill-links:
     - create-issue
@@ -26,6 +26,7 @@ semantic-links:
     - src/container.rs
     - packages/tracker-core/src/container.rs
     - share/container/entry_script_sh
+    - docs/issues/open/2107-1978-activate-persistence-free-v3-runtime-composition/bootstrap-error-propagation-draft.md
 ---
 
 # Issue #2107 - Activate persistence-free v3 runtime composition
@@ -118,6 +119,9 @@ composition refactor, not merely removal of the temporary bridge.
 - Automatically moving data between configured database targets.
 - Persistence-awareness work not necessary for the initial public HTTP/UDP
   tracker composition.
+- Refactoring bootstrap startup failures to return and propagate typed errors.
+  That follow-up is explicitly deferred until this issue is complete; see
+  `bootstrap-error-propagation-draft.md`.
 
 ## Architectural Decisions
 
@@ -176,6 +180,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-08-28 00:00 UTC - GitHub Copilot - User approved the refined specification. Created GitHub issue #2107 and linked it as a native subissue of EPIC #1978.
 - 2026-08-28 00:00 UTC - GitHub Copilot/User - Merged spec-only PR #2108 and started T1, activation of bootstrap persistence validation.
 - 2026-08-28 00:00 UTC - GitHub Copilot - Activated the existing centralized persistence requirement check in bootstrap after configuration validation and before global or application-container construction. Focused root bootstrap tests passed.
+- 2026-08-28 11:58 UTC - GitHub Copilot/User - Promoted this specification to
+  an issue-local folder and recorded a deferred follow-up draft for typed
+  bootstrap error propagation. The follow-up is not part of #2107.
 
 ## Acceptance Criteria
 
