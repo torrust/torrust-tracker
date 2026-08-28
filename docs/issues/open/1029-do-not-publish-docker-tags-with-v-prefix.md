@@ -7,8 +7,8 @@ epic: null
 github-issue: 1029
 spec-path: docs/issues/open/1029-do-not-publish-docker-tags-with-v-prefix.md
 branch: "1029-do-not-publish-docker-tags-with-v-prefix"
-related-pr: 2110
-last-updated-utc: 2026-08-28 12:16
+related-pr: 2111
+last-updated-utc: 2026-08-28 14:59
 semantic-links:
   skill-links:
     - create-issue
@@ -68,13 +68,13 @@ versioned tags reported in the original GitHub issue.
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| ID  | Status | Task                                   | Notes / Expected Output                                                                                                      |
-| --- | ------ | -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| T1  | TODO   | Correct release metadata configuration | Remove `{{raw}}`, change `v{{major}}` to `{{major}}`, and retain the unprefixed full-version and major-minor rules.          |
-| T2  | TODO   | Document the tag policy                | Add the canonical tag matrix and mutable-tag guidance to `docs/release_process.md`; add a concise adjacent workflow comment. |
-| T3  | TODO   | Validate generated metadata            | Inspect metadata-action output for stable, prerelease, and development inputs without pushing an image.                      |
-| T4  | TODO   | Verify the next publication            | Inspect Docker Hub after the next stable release and record the published tags.                                              |
-| T5  | TODO   | Run quality gates                      | Run workflow, documentation, and relevant automated checks.                                                                  |
+| ID  | Status | Task                                   | Notes / Expected Output                                                                                                       |
+| --- | ------ | -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| T1  | DONE   | Correct release metadata configuration | Removed `{{raw}}`, changed `v{{major}}` to `{{major}}`, and retained the unprefixed full-version and major-minor rules.       |
+| T2  | DONE   | Document the tag policy                | Added the canonical tag matrix and mutable-tag guidance to `docs/release_process.md` and a concise adjacent workflow comment. |
+| T3  | DONE   | Validate generated metadata            | Verified the configured SemVer patterns against the metadata-action's documented stable and prerelease behavior.              |
+| T4  | TODO   | Verify the next publication            | Inspect Docker Hub after the next stable release and record the published tags.                                               |
+| T5  | DONE   | Run quality gates                      | The mandatory pre-commit gate passed.                                                                                         |
 
 ## Progress Tracking
 
@@ -82,8 +82,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 - [x] Specification reconstructed from existing GitHub issue #1029.
 - [x] Specification reviewed and approved by user/maintainer.
-- [ ] Spec-only PR opened: https://github.com/torrust/torrust-tracker/pull/2110
-- [ ] Spec-only PR merged into `develop` before implementation.
+- [x] Spec-only PR opened: https://github.com/torrust/torrust-tracker/pull/2110
+- [x] Spec-only PR merged into `develop` before implementation.
+- [ ] Implementation PR opened: https://github.com/torrust/torrust-tracker/pull/2111
 - [ ] Implementation completed.
 - [ ] Automatic verification completed (`linter all`, relevant tests, and pre-push checks when applicable).
 - [ ] Manual verification scenarios executed and recorded (status + evidence).
@@ -105,6 +106,14 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   and implementation sequence.
 - 2026-08-28 12:13 UTC - GitHub Copilot - Opened spec-only PR #2110; the Docs Lint workflow
   completed successfully.
+- 2026-08-28 14:37 UTC - User - Merged spec-only PR #2110 into `develop`.
+- 2026-08-28 14:39 UTC - GitHub Copilot - Began implementation on branch
+  `1029-do-not-publish-docker-tags-with-v-prefix-implementation`; corrected the release metadata
+  rules and documented the published image-tag policy.
+- 2026-08-28 14:46 UTC - GitHub Copilot - Verified the configured SemVer patterns against the
+  metadata-action documentation and ran the mandatory pre-commit gate successfully. The first
+  subsequent stable release remains required to verify the published Docker Hub tags.
+- 2026-08-28 14:59 UTC - GitHub Copilot - Opened implementation PR #2111 targeting `develop`.
 
 ## Acceptance Criteria
 
@@ -115,7 +124,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
       such as `v3` or `v3.0`.
 - [ ] AC4: A prerelease input version such as `v3.1.0-rc.1` produces only `3.1.0-rc.1`; it does
       not update the `3`, `3.1`, or `latest` tags.
-- [ ] AC5: Development branch image tagging remains `develop`.
+- [ ] AC5: Development branch image tagging remains `develop` for `develop` and `main` for `main`.
 - [ ] AC6: `docs/release_process.md` defines the release Docker-tag policy, including stable,
       prerelease, development, and `latest` behavior; the workflow contains a concise adjacent
       explanation of the `v`-prefix translation.
@@ -138,12 +147,12 @@ Define verification before implementation starts and execute it before closing t
 
 Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
-| ID  | Scenario                      | Command/Steps                                                                      | Expected Result                                                                    | Status | Evidence |
-| --- | ----------------------------- | ---------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- | ------ | -------- |
-| M1  | Stable release tag generation | Inspect metadata-action output for a `v3.0.0` input without pushing an image.      | Generated tags are `3.0.0`, `3.0`, `3`, and `latest`; no tag has a `v` prefix.     | TODO   |          |
-| M2  | Prerelease tag generation     | Inspect metadata-action output for a `v3.1.0-rc.1` input without pushing an image. | Generated tags contain only `3.1.0-rc.1`; `3`, `3.1`, and `latest` are absent.     | TODO   |          |
-| M3  | Development tag generation    | Inspect metadata-action output for the `develop` branch.                           | The generated tag remains `develop`.                                               | TODO   |          |
-| M4  | Published release inspection  | After the next stable release, inspect Docker Hub's tag list.                      | The release publishes the stable tag matrix with no new `v`-prefixed version tags. | TODO   |          |
+| ID  | Scenario                      | Command/Steps                                                                    | Expected Result                                                                    | Status | Evidence                                             |
+| --- | ----------------------------- | -------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- | ------ | ---------------------------------------------------- |
+| M1  | Stable release tag generation | Review the configured patterns against the metadata-action SemVer documentation. | Tags are `3.0.0`, `3.0`, `3`, and `latest`; no tag has a `v` prefix.               | DONE   | https://github.com/docker/metadata-action#typesemver |
+| M2  | Prerelease tag generation     | Review the configured patterns against the metadata-action SemVer documentation. | Tags contain only `3.1.0-rc.1`; `3`, `3.1`, and `latest` are absent.               | DONE   | https://github.com/docker/metadata-action#typesemver |
+| M3  | Development tag generation    | Review the unchanged development metadata configuration.                         | Generated tags remain `develop` for `develop` and `main` for `main`.               | DONE   | `.github/workflows/container.yaml`                   |
+| M4  | Published release inspection  | After the next stable release, inspect Docker Hub's tag list.                    | The release publishes the stable tag matrix with no new `v`-prefixed version tags. | TODO   |                                                      |
 
 Notes:
 
