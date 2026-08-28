@@ -8,7 +8,7 @@ github-issue: 1029
 spec-path: docs/issues/open/1029-do-not-publish-docker-tags-with-v-prefix.md
 branch: "1029-do-not-publish-docker-tags-with-v-prefix"
 related-pr: null
-last-updated-utc: 2026-08-28 11:34
+last-updated-utc: 2026-08-28 12:13
 semantic-links:
   skill-links:
     - create-issue
@@ -82,7 +82,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 ### Workflow Checkpoints
 
 - [x] Specification reconstructed from existing GitHub issue #1029.
-- [ ] Specification reviewed and approved by user/maintainer.
+- [x] Specification reviewed and approved by user/maintainer.
+- [ ] Spec-only PR opened: https://github.com/torrust/torrust-tracker/pull/2110
 - [ ] Spec-only PR merged into `develop` before implementation.
 - [ ] Implementation completed.
 - [ ] Automatic verification completed (`linter all`, relevant tests, and pre-push checks when applicable).
@@ -103,6 +104,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   release tag because it is an existing public contract and is not part of the duplicate-tag fix.
 - 2026-08-28 11:34 UTC - User - Approved refining the specification with the verified tag policy
   and implementation sequence.
+- 2026-08-28 12:13 UTC - GitHub Copilot - Opened spec-only PR #2110; the Docs Lint workflow
+  completed successfully.
 
 ## Acceptance Criteria
 
