@@ -7,8 +7,8 @@ epic: null
 github-issue: 1029
 spec-path: docs/issues/open/1029-do-not-publish-docker-tags-with-v-prefix.md
 branch: "1029-do-not-publish-docker-tags-with-v-prefix"
-related-pr: null
-last-updated-utc: 2026-08-28 12:13
+related-pr: 2110
+last-updated-utc: 2026-08-28 12:16
 semantic-links:
   skill-links:
     - create-issue
