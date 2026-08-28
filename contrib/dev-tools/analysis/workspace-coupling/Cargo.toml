@@ -1,5 +1,6 @@
 [package]
 description = "Generates a workspace coupling report for the Torrust Tracker workspace."
+license.workspace = true
 name = "workspace-coupling"
 publish = false
 
