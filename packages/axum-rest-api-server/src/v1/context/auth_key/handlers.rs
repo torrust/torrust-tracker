@@ -6,12 +6,13 @@ use axum::response::Response;
 use serde::Deserialize;
 use torrust_tracker_rest_api_application::v1::use_cases::auth_key::AuthKeyApiService;
 use torrust_tracker_rest_api_protocol::v1::context::auth_key::forms::add_key_form::AddKeyForm;
+use torrust_tracker_rest_api_protocol::v1::context::auth_key::resources::auth_key::AuthKeyError;
 
 use super::responses::{
     auth_key_response, failed_to_add_key_response, failed_to_delete_key_response, failed_to_generate_key_response,
     failed_to_reload_keys_response, invalid_auth_key_duration_response, invalid_auth_key_response,
 };
-use crate::v1::responses::{invalid_auth_key_param_response, ok_response};
+use crate::v1::responses::{disabled_by_configuration_response, invalid_auth_key_param_response, ok_response};
 
 /// It handles the request to add a new authentication key.
 ///
@@ -27,22 +28,20 @@ use crate::v1::responses::{invalid_auth_key_param_response, ok_response};
 /// Refer to the [API endpoint documentation](crate::v1::context::auth_key#generate-a-new-authentication-key)
 /// for more information about this endpoint.
 pub async fn add_auth_key_handler(
-    State(auth_key_service): State<Arc<AuthKeyApiService>>,
+    State(auth_key_service): State<Option<Arc<AuthKeyApiService>>>,
     extract::Json(add_key_form): extract::Json<AddKeyForm>,
 ) -> Response {
+    let Some(auth_key_service) = auth_key_service else {
+        return disabled_response();
+    };
+
     match auth_key_service.add_key(&add_key_form).await {
         Ok(auth_key) => auth_key_response(&auth_key),
         Err(err) => match &err {
-            torrust_tracker_rest_api_protocol::v1::context::auth_key::resources::auth_key::AuthKeyError::DurationOverflow {
-                seconds_valid,
-            } => invalid_auth_key_duration_response(*seconds_valid),
-            torrust_tracker_rest_api_protocol::v1::context::auth_key::resources::auth_key::AuthKeyError::InvalidKey {
-                key,
-                reason,
-            } => invalid_auth_key_response(key, reason),
-            torrust_tracker_rest_api_protocol::v1::context::auth_key::resources::auth_key::AuthKeyError::Database(_) => {
-                failed_to_add_key_response(AuthKeyErrorDisplay(&err))
-            }
+            AuthKeyError::DurationOverflow { seconds_valid } => invalid_auth_key_duration_response(*seconds_valid),
+            AuthKeyError::InvalidKey { key, reason } => invalid_auth_key_response(key, reason),
+            AuthKeyError::DisabledByConfiguration { .. } => disabled_response(),
+            AuthKeyError::Database(_) => failed_to_add_key_response(AuthKeyErrorDisplay(&err)),
         },
     }
 }
@@ -61,9 +60,13 @@ pub async fn add_auth_key_handler(
 ///
 /// This endpoint has been deprecated. Use [`add_auth_key_handler`].
 pub async fn generate_auth_key_handler(
-    State(auth_key_service): State<Arc<AuthKeyApiService>>,
+    State(auth_key_service): State<Option<Arc<AuthKeyApiService>>>,
     Path(seconds_valid_or_key): Path<u64>,
 ) -> Response {
+    let Some(auth_key_service) = auth_key_service else {
+        return disabled_response();
+    };
+
     let seconds_valid = seconds_valid_or_key;
     match auth_key_service.generate_key(seconds_valid).await {
         Ok(auth_key) => auth_key_response(&auth_key),
@@ -89,9 +92,13 @@ pub struct KeyParam(String);
 /// Refer to the [API endpoint documentation](crate::v1::context::auth_key#delete-an-authentication-key)
 /// for more information about this endpoint.
 pub async fn delete_auth_key_handler(
-    State(auth_key_service): State<Arc<AuthKeyApiService>>,
+    State(auth_key_service): State<Option<Arc<AuthKeyApiService>>>,
     Path(seconds_valid_or_key): Path<KeyParam>,
 ) -> Response {
+    let Some(auth_key_service) = auth_key_service else {
+        return disabled_response();
+    };
+
     match auth_key_service.delete_key(&seconds_valid_or_key.0).await {
         Ok(()) => ok_response(),
         Err(torrust_tracker_rest_api_protocol::v1::context::auth_key::resources::auth_key::AuthKeyError::InvalidKey {
@@ -114,11 +121,19 @@ pub async fn delete_auth_key_handler(
 ///
 /// Refer to the [API endpoint documentation](crate::v1::context::auth_key#reload-authentication-keys)
 /// for more information about this endpoint.
-pub async fn reload_keys_handler(State(auth_key_service): State<Arc<AuthKeyApiService>>) -> Response {
+pub async fn reload_keys_handler(State(auth_key_service): State<Option<Arc<AuthKeyApiService>>>) -> Response {
+    let Some(auth_key_service) = auth_key_service else {
+        return disabled_response();
+    };
+
     match auth_key_service.reload_keys().await {
         Ok(()) => ok_response(),
         Err(e) => failed_to_reload_keys_response(AuthKeyErrorDisplay(&e)),
     }
+}
+
+fn disabled_response() -> Response {
+    disabled_by_configuration_response(&AuthKeyError::DisabledByConfiguration { capability: "private" }.to_string())
 }
 
 /// Wrapper to allow passing an [`AuthKeyError`] reference to response

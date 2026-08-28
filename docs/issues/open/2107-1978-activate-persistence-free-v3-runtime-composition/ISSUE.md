@@ -27,6 +27,7 @@ semantic-links:
     - packages/tracker-core/src/container.rs
     - share/container/entry_script_sh
     - docs/issues/open/2107-1978-activate-persistence-free-v3-runtime-composition/bootstrap-error-propagation-draft.md
+    - docs/issues/open/2107-1978-activate-persistence-free-v3-runtime-composition/manual-t2-rest-route-contract.md
 ---
 
 # Issue #2107 - Activate persistence-free v3 runtime composition
@@ -151,7 +152,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID  | Status | Task                                      | Notes / Expected Output                                                                                                                                                   |
 | --- | ------ | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | T1  | DONE   | Activate persistence validation           | Active v3 bootstrap invokes the centralized check after configuration validation and before globals or containers are built.                                              |
-| T2  | TODO   | Compose capability-aware REST API         | Keep API-wide routes available without persistence; return controlled disabled-capability responses from key and whitelist routes without persistence access.             |
+| T2  | DONE   | Compose capability-aware REST API         | Key and whitelist routes retain registration but short-circuit to `409`/`ActionStatus::Err` when their capability is disabled; their adapters are not constructed.        |
 | T3  | TODO   | Build persistence-free core graph         | Refactor tracker-core composition, handlers, managers, and jobs so public HTTP/UDP operation does not require persistence services.                                       |
 | T4  | TODO   | Preserve persistence-enabled composition  | Verify configured SQLite, MySQL, and PostgreSQL retain one-driver, complete-migration lifecycle and existing required dependencies.                                       |
 | T5  | TODO   | Adapt supported container startup         | Define and test a no-persistence v3 configuration source; remove mandatory driver override/default SQLite installation while retaining non-persistence entrypoint duties. |
@@ -183,6 +184,18 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-08-28 11:58 UTC - GitHub Copilot/User - Promoted this specification to
   an issue-local folder and recorded a deferred follow-up draft for typed
   bootstrap error propagation. The follow-up is not part of #2107.
+- 2026-08-28 12:56 UTC - GitHub Copilot - Completed T2. REST route composition
+  now reads `private` and `listed` from the existing tracker-core configuration,
+  constructs the corresponding persistence-backed adapter only when enabled,
+  and returns JSON `ActionStatus::Err` with HTTP `409` otherwise. Focused
+  contracts force a database failure before each disabled request, proving the
+  persistence service is not called. Existing enabled-route and operational
+  database-failure contracts remain green.
+- 2026-08-28 12:58 UTC - GitHub Copilot - Manually verified the T2 route
+  contract against a locally running public-mode tracker with an isolated
+  configured SQLite database. Authenticated key and whitelist requests returned
+  their documented JSON `ActionStatus::Err`/HTTP `409` responses, while the
+  health endpoint returned HTTP `200`. See `manual-t2-rest-route-contract.md`.
 
 ## Acceptance Criteria
 
@@ -203,7 +216,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [ ] AC7: With `[core.database]`, SQLite, MySQL, and PostgreSQL retain the
       all-or-nothing driver and complete shared migration lifecycle.
 - [ ] AC8: V2 configuration and runtime behavior remain unchanged.
-- [ ] AC9: Whitelist and key-management routes remain registered but return
+- [x] AC9: Whitelist and key-management routes remain registered but return
       HTTP `409 Conflict` with `ActionStatus::Err` when their respective
       feature is disabled, without database access. Configured operational
       database failures remain distinguishable server errors.
@@ -245,33 +258,33 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`, `DEFERRED`.
 
-| ID  | Scenario                                      | Command/Steps                                                                                                                                | Expected Result                                                                                                                                   | Status | Evidence                                                                          |
-| --- | --------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | --------------------------------------------------------------------------------- |
-| M1  | Start public v3 tracker without persistence   | Start an ephemeral public HTTP and/or UDP tracker with no `[core.database]`, no required capabilities, and tracker usage statistics enabled. | Startup and protocol traffic succeed with no persistence artifacts.                                                                               | TODO   | Record configuration, command, logs, and artifact inspection in #999 evidence.    |
-| M2  | Reject all missing-persistence combinations   | Independently enable listing, private mode, and persistent completed metrics without `[core.database]`.                                      | Each configuration fails before composition with its stable requirement diagnostic.                                                               | TODO   | Record commands and output in #999 evidence.                                      |
-| M3  | Initialize configured drivers                 | Start each supported configured driver with a persistence-required capability enabled.                                                       | The selected driver and complete shared migrations initialize normally.                                                                           | TODO   | Record driver-specific environment and evidence in #999 artifacts.                |
-| M4  | REST API persistence-free route contract      | Start `http_api` with no persistence, exercise torrent/stats/metrics routes and disabled whitelist/key routes.                               | API starts; in-memory routes remain available; disabled direct capability routes return controlled HTTP 409 responses without persistence access. | TODO   | Record configuration, requests, responses, and no-persistence evidence.           |
-| M5  | Repeat baseline no-persistence run            | Follow `baseline-e2e-verification.md` with the active v3 runtime and no `[core.database]`.                                                   | Tracker remains available without a database file, connection, or migration.                                                                      | TODO   | Append command, logs, artifact inspection, and revision to the baseline artifact. |
-| M6  | Start supported container without persistence | Build/run the normal image using the documented no-persistence v3 configuration and no driver override.                                      | Entrypoint does not select/install SQLite or create its database directory solely for tracker persistence.                                        | TODO   | Record image/configuration, output, and mounted-state inspection.                 |
+| ID  | Scenario                                      | Command/Steps                                                                                                                                | Expected Result                                                                                                                                   | Status   | Evidence                                                                                                                                                                             |
+| --- | --------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| M1  | Start public v3 tracker without persistence   | Start an ephemeral public HTTP and/or UDP tracker with no `[core.database]`, no required capabilities, and tracker usage statistics enabled. | Startup and protocol traffic succeed with no persistence artifacts.                                                                               | TODO     | Record configuration, command, logs, and artifact inspection in #999 evidence.                                                                                                       |
+| M2  | Reject all missing-persistence combinations   | Independently enable listing, private mode, and persistent completed metrics without `[core.database]`.                                      | Each configuration fails before composition with its stable requirement diagnostic.                                                               | TODO     | Record commands and output in #999 evidence.                                                                                                                                         |
+| M3  | Initialize configured drivers                 | Start each supported configured driver with a persistence-required capability enabled.                                                       | The selected driver and complete shared migrations initialize normally.                                                                           | TODO     | Record driver-specific environment and evidence in #999 artifacts.                                                                                                                   |
+| M4  | REST API persistence-free route contract      | Start `http_api` with no persistence, exercise torrent/stats/metrics routes and disabled whitelist/key routes.                               | API starts; in-memory routes remain available; disabled direct capability routes return controlled HTTP 409 responses without persistence access. | DEFERRED | T2 route behavior was manually verified with configured SQLite in `manual-t2-rest-route-contract.md`; run this no-persistence scenario after T3 removes the temporary SQLite bridge. |
+| M5  | Repeat baseline no-persistence run            | Follow `baseline-e2e-verification.md` with the active v3 runtime and no `[core.database]`.                                                   | Tracker remains available without a database file, connection, or migration.                                                                      | TODO     | Append command, logs, artifact inspection, and revision to the baseline artifact.                                                                                                    |
+| M6  | Start supported container without persistence | Build/run the normal image using the documented no-persistence v3 configuration and no driver override.                                      | Entrypoint does not select/install SQLite or create its database directory solely for tracker persistence.                                        | TODO     | Record image/configuration, output, and mounted-state inspection.                                                                                                                    |
 
 ### Acceptance Verification
 
-| AC ID | Status (`TODO`/`DONE`) | Evidence                                                      |
-| ----- | ---------------------- | ------------------------------------------------------------- |
-| AC1   | DONE                   | Bootstrap wiring and focused root bootstrap tests             |
-| AC2   | TODO                   | One test and manual record per matrix capability              |
-| AC3   | TODO                   | Persistence-free REST API startup test                        |
-| AC4   | TODO                   | HTTP/UDP protocol integration evidence                        |
-| AC5   | TODO                   | Constructor tests plus isolated artifact inspection           |
-| AC6   | TODO                   | Persistence-free startup test with default statistics enabled |
-| AC7   | TODO                   | Driver/migration test evidence                                |
-| AC8   | TODO                   | V2 regression coverage and review                             |
-| AC9   | TODO                   | REST API disabled-capability contract tests and M4 evidence   |
-| AC10  | TODO                   | In-memory API tests and documentation review                  |
-| AC11  | TODO                   | M6 container evidence                                         |
-| AC12  | TODO                   | Restart-transition test and manual inspection                 |
-| AC13  | TODO                   | Updated #999 scenario and acceptance records                  |
-| AC14  | TODO                   | Validation command output and post-implementation review      |
+| AC ID | Status (`TODO`/`DONE`) | Evidence                                                                                                                                                                                                      |
+| ----- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| AC1   | DONE                   | Bootstrap wiring and focused root bootstrap tests                                                                                                                                                             |
+| AC2   | TODO                   | One test and manual record per matrix capability                                                                                                                                                              |
+| AC3   | TODO                   | Persistence-free REST API startup test                                                                                                                                                                        |
+| AC4   | TODO                   | HTTP/UDP protocol integration evidence                                                                                                                                                                        |
+| AC5   | TODO                   | Constructor tests plus isolated artifact inspection                                                                                                                                                           |
+| AC6   | TODO                   | Persistence-free startup test with default statistics enabled                                                                                                                                                 |
+| AC7   | TODO                   | Driver/migration test evidence                                                                                                                                                                                |
+| AC8   | TODO                   | V2 regression coverage and review                                                                                                                                                                             |
+| AC9   | DONE                   | Two forced-database-failure REST contracts return `409`/`ActionStatus::Err`; all 55 REST integration tests retain enabled and operational-error behavior; local evidence: `manual-t2-rest-route-contract.md`. |
+| AC10  | TODO                   | In-memory API tests and documentation review                                                                                                                                                                  |
+| AC11  | TODO                   | M6 container evidence                                                                                                                                                                                         |
+| AC12  | TODO                   | Restart-transition test and manual inspection                                                                                                                                                                 |
+| AC13  | TODO                   | Updated #999 scenario and acceptance records                                                                                                                                                                  |
+| AC14  | TODO                   | Validation command output and post-implementation review                                                                                                                                                      |
 
 ## Risks and Trade-offs
 

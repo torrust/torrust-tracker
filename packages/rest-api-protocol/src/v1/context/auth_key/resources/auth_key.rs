@@ -28,6 +28,8 @@ pub enum AuthKeyError {
     DurationOverflow { seconds_valid: u64 },
     /// The provided key is invalid.
     InvalidKey { key: String, reason: String },
+    /// The private-tracker capability is disabled by configuration.
+    DisabledByConfiguration { capability: &'static str },
     /// A database error occurred during the auth key operation.
     Database(String),
 }
@@ -40,6 +42,9 @@ impl fmt::Display for AuthKeyError {
             }
             AuthKeyError::InvalidKey { key, reason } => {
                 write!(f, "invalid key: \"{key}\", {reason}")
+            }
+            AuthKeyError::DisabledByConfiguration { capability } => {
+                write!(f, "{capability} capability is disabled by configuration")
             }
             AuthKeyError::Database(msg) => write!(f, "{msg}"),
         }

@@ -10,16 +10,36 @@ use uuid::Uuid;
 use crate::server::connection_info::{connection_with_invalid_token, connection_with_no_token};
 use crate::server::force_database_error;
 use crate::server::v1::asserts::{
-    assert_failed_to_reload_whitelist, assert_failed_to_remove_torrent_from_whitelist, assert_failed_to_whitelist_torrent,
-    assert_invalid_infohash_param, assert_not_found, assert_ok, assert_token_not_valid, assert_unauthorized,
+    assert_disabled_by_configuration, assert_failed_to_reload_whitelist, assert_failed_to_remove_torrent_from_whitelist,
+    assert_failed_to_whitelist_torrent, assert_invalid_infohash_param, assert_not_found, assert_ok, assert_token_not_valid,
+    assert_unauthorized,
 };
 use crate::server::v1::contract::fixtures::{invalid_infohashes_returning_bad_request, invalid_infohashes_returning_not_found};
+
+#[tokio::test]
+async fn should_reject_whitelist_requests_when_listed_mode_is_disabled_without_database_access() {
+    logging::setup();
+
+    let env = Started::new(&configuration::ephemeral().into()).await;
+    force_database_error(&env.container.tracker_core_container.database_stores.schema_migrator).await;
+
+    let info_hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d"; // DevSkim: ignore DS173237
+    let response = ApiHttpClient::new(env.get_connection_info())
+        .unwrap()
+        .whitelist_a_torrent(info_hash, None)
+        .await
+        .unwrap();
+
+    assert_disabled_by_configuration(response, "listed").await;
+
+    env.stop().await;
+}
 
 #[tokio::test]
 async fn should_allow_whitelisting_a_torrent() {
     logging::setup();
 
-    let env = Started::new(&configuration::ephemeral().into()).await;
+    let env = Started::new(&configuration::ephemeral_listed().into()).await;
 
     let request_id = Uuid::new_v4();
     let info_hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned(); // DevSkim: ignore DS173237
@@ -46,7 +66,7 @@ async fn should_allow_whitelisting_a_torrent() {
 async fn should_allow_whitelisting_a_torrent_that_has_been_already_whitelisted() {
     logging::setup();
 
-    let env = Started::new(&configuration::ephemeral().into()).await;
+    let env = Started::new(&configuration::ephemeral_listed().into()).await;
 
     let info_hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned(); // DevSkim: ignore DS173237
 
@@ -75,7 +95,7 @@ async fn should_allow_whitelisting_a_torrent_that_has_been_already_whitelisted()
 async fn should_not_allow_whitelisting_a_torrent_for_unauthenticated_users() {
     logging::setup();
 
-    let env = Started::new(&configuration::ephemeral().into()).await;
+    let env = Started::new(&configuration::ephemeral_listed().into()).await;
 
     let info_hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned(); // DevSkim: ignore DS173237
 
@@ -116,7 +136,7 @@ async fn should_not_allow_whitelisting_a_torrent_for_unauthenticated_users() {
 async fn should_fail_when_the_torrent_cannot_be_whitelisted() {
     logging::setup();
 
-    let env = Started::new(&configuration::ephemeral().into()).await;
+    let env = Started::new(&configuration::ephemeral_listed().into()).await;
 
     let info_hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned(); // DevSkim: ignore DS173237
 
@@ -144,7 +164,7 @@ async fn should_fail_when_the_torrent_cannot_be_whitelisted() {
 async fn should_fail_whitelisting_a_torrent_when_the_provided_infohash_is_invalid() {
     logging::setup();
 
-    let env = Started::new(&configuration::ephemeral().into()).await;
+    let env = Started::new(&configuration::ephemeral_listed().into()).await;
 
     let request_id = Uuid::new_v4();
 
@@ -177,7 +197,7 @@ async fn should_fail_whitelisting_a_torrent_when_the_provided_infohash_is_invali
 async fn should_allow_removing_a_torrent_from_the_whitelist() {
     logging::setup();
 
-    let env = Started::new(&configuration::ephemeral().into()).await;
+    let env = Started::new(&configuration::ephemeral_listed().into()).await;
 
     let hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned(); // DevSkim: ignore DS173237
     let info_hash = InfoHash::from_str(&hash).unwrap();
@@ -213,7 +233,7 @@ async fn should_allow_removing_a_torrent_from_the_whitelist() {
 async fn should_not_fail_trying_to_remove_a_non_whitelisted_torrent_from_the_whitelist() {
     logging::setup();
 
-    let env = Started::new(&configuration::ephemeral().into()).await;
+    let env = Started::new(&configuration::ephemeral_listed().into()).await;
 
     let non_whitelisted_torrent_hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned(); // DevSkim: ignore DS173237
 
@@ -234,7 +254,7 @@ async fn should_not_fail_trying_to_remove_a_non_whitelisted_torrent_from_the_whi
 async fn should_fail_removing_a_torrent_from_the_whitelist_when_the_provided_infohash_is_invalid() {
     logging::setup();
 
-    let env = Started::new(&configuration::ephemeral().into()).await;
+    let env = Started::new(&configuration::ephemeral_listed().into()).await;
 
     for invalid_infohash in &invalid_infohashes_returning_bad_request() {
         let request_id = Uuid::new_v4();
@@ -267,7 +287,7 @@ async fn should_fail_removing_a_torrent_from_the_whitelist_when_the_provided_inf
 async fn should_fail_when_the_torrent_cannot_be_removed_from_the_whitelist() {
     logging::setup();
 
-    let env = Started::new(&configuration::ephemeral().into()).await;
+    let env = Started::new(&configuration::ephemeral_listed().into()).await;
 
     let hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned(); // DevSkim: ignore DS173237
     let info_hash = InfoHash::from_str(&hash).unwrap();
@@ -302,7 +322,7 @@ async fn should_fail_when_the_torrent_cannot_be_removed_from_the_whitelist() {
 async fn should_not_allow_removing_a_torrent_from_the_whitelist_for_unauthenticated_users() {
     logging::setup();
 
-    let env = Started::new(&configuration::ephemeral().into()).await;
+    let env = Started::new(&configuration::ephemeral_listed().into()).await;
 
     let hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned(); // DevSkim: ignore DS173237
     let info_hash = InfoHash::from_str(&hash).unwrap();
@@ -358,7 +378,7 @@ async fn should_not_allow_removing_a_torrent_from_the_whitelist_for_unauthentica
 async fn should_allow_reload_the_whitelist_from_the_database() {
     logging::setup();
 
-    let env = Started::new(&configuration::ephemeral().into()).await;
+    let env = Started::new(&configuration::ephemeral_listed().into()).await;
 
     let hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned(); // DevSkim: ignore DS173237
     let info_hash = InfoHash::from_str(&hash).unwrap();
@@ -397,7 +417,7 @@ async fn should_allow_reload_the_whitelist_from_the_database() {
 async fn should_fail_when_the_whitelist_cannot_be_reloaded_from_the_database() {
     logging::setup();
 
-    let env = Started::new(&configuration::ephemeral().into()).await;
+    let env = Started::new(&configuration::ephemeral_listed().into()).await;
 
     let hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned(); // DevSkim: ignore DS173237
     let info_hash = InfoHash::from_str(&hash).unwrap();

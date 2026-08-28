@@ -53,6 +53,15 @@ pub async fn assert_ok(response: Response) {
     assert_eq!(response_text, "{\"status\":\"ok\"}", "\ndetails:{details}.");
 }
 
+pub async fn assert_disabled_by_configuration(response: Response, capability: &str) {
+    assert_eq!(response.status(), 409);
+    assert_eq!(response.headers().get("content-type").unwrap(), "application/json");
+    assert_eq!(
+        response.text().await.unwrap(),
+        format!("{{\"status\":\"err\",\"reason\":\"{capability} capability is disabled by configuration\"}}")
+    );
+}
+
 // Error responses
 
 pub async fn assert_bad_request(response: Response, body: &str) {
