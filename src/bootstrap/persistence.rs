@@ -22,6 +22,12 @@ pub enum PersistenceRequirementError {
         "Configuration requires persistence for `core.tracker_policy.persistent_torrent_completed_stat`, but `[core.database]` is missing."
     )]
     PersistentTorrentCompletedStatRequiresDatabase,
+
+    /// Persistent completed metrics are collected by the tracker usage statistics listener.
+    #[error(
+        "Configuration requires `core.tracker_usage_statistics` for `core.tracker_policy.persistent_torrent_completed_stat`."
+    )]
+    PersistentTorrentCompletedStatRequiresTrackerUsageStatistics,
 }
 
 /// Validates persistence requirements induced by enabled tracker capabilities.
@@ -31,6 +37,10 @@ pub enum PersistenceRequirementError {
 /// Returns the first enabled capability that requires persistence when the v3
 /// configuration omits `[core.database]`.
 pub const fn validate_persistence_requirements(core: &Core) -> Result<(), PersistenceRequirementError> {
+    if core.tracker_policy.persistent_torrent_completed_stat && !core.tracker_usage_statistics {
+        return Err(PersistenceRequirementError::PersistentTorrentCompletedStatRequiresTrackerUsageStatistics);
+    }
+
     if core.database.is_some() {
         return Ok(());
     }
@@ -53,6 +63,7 @@ pub const fn validate_persistence_requirements(core: &Core) -> Result<(), Persis
 #[cfg(test)]
 mod tests {
     use torrust_tracker_configuration::v3_0_0::core::Core;
+    use torrust_tracker_primitives::TrackerPolicy;
 
     use super::{PersistenceRequirementError, validate_persistence_requirements};
 
@@ -114,6 +125,33 @@ mod tests {
         assert_eq!(
             error.to_string(),
             "Configuration requires persistence for `core.tracker_policy.persistent_torrent_completed_stat`, but `[core.database]` is missing."
+        );
+    }
+
+    #[test]
+    fn it_should_reject_persistent_completed_metrics_without_tracker_usage_statistics() {
+        // Arrange
+        let core = Core {
+            tracker_usage_statistics: false,
+            tracker_policy: TrackerPolicy {
+                persistent_torrent_completed_stat: true,
+                ..Default::default()
+            },
+            ..Core::default()
+        };
+
+        // Act
+        let result = validate_persistence_requirements(&core);
+
+        // Assert
+        let error = result.expect_err("persistent completed metrics should require tracker usage statistics");
+        assert_eq!(
+            error,
+            PersistenceRequirementError::PersistentTorrentCompletedStatRequiresTrackerUsageStatistics
+        );
+        assert_eq!(
+            error.to_string(),
+            "Configuration requires `core.tracker_usage_statistics` for `core.tracker_policy.persistent_torrent_completed_stat`."
         );
     }
 

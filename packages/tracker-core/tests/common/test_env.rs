@@ -86,24 +86,31 @@ impl TestEnv {
 
         jobs.push(job);
 
-        let job = torrust_tracker_core::statistics::event::listener::run_event_listener(
+        let job = torrust_tracker_core::statistics::event::listener::run_in_memory_event_listener(
             self.swarm_coordination_registry_container.event_bus.receiver(),
             cancellation_token.clone(),
             &self.tracker_core_container.stats_repository,
-            Some(
-                self.tracker_core_container
+        );
+        jobs.push(job);
+
+        if self
+            .tracker_core_container
+            .core_config
+            .tracker_policy
+            .persistent_torrent_completed_stat
+        {
+            let job = torrust_tracker_core::statistics::event::listener::run_persistent_completed_statistics_event_listener(
+                self.swarm_coordination_registry_container.event_bus.receiver(),
+                cancellation_token.clone(),
+                &self
+                    .tracker_core_container
                     .persistence
                     .as_ref()
                     .expect("tracker core test environment requires persistence")
-                    .db_downloads_metric_repository
-                    .clone(),
-            ),
-            self.tracker_core_container
-                .core_config
-                .tracker_policy
-                .persistent_torrent_completed_stat,
-        );
-        jobs.push(job);
+                    .db_downloads_metric_repository,
+            );
+            jobs.push(job);
+        }
 
         // Give the event listeners some time to start
         // todo: they should notify when they are ready

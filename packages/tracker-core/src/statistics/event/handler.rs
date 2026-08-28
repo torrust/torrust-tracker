@@ -9,20 +9,8 @@ use crate::statistics::TRACKER_CORE_PERSISTENT_TORRENTS_DOWNLOADS_TOTAL;
 use crate::statistics::persisted::downloads::DatabaseDownloadsMetricRepository;
 use crate::statistics::repository::Repository;
 
-/// Handles a swarm coordination event and updates tracker statistics.
-///
-/// # Panics
-///
-/// Panics if persistent completed statistics are enabled without a metrics
-/// repository. Application bootstrap rejects that configuration before the
-/// listener starts.
-pub async fn handle_event(
-    event: Event,
-    stats_repository: &Arc<Repository>,
-    db_downloads_metric_repository: &Option<Arc<DatabaseDownloadsMetricRepository>>,
-    persistent_torrent_completed_stat: bool,
-    now: DurationSinceUnixEpoch,
-) {
+/// Handles a swarm coordination event and updates in-memory tracker statistics.
+pub async fn handle_in_memory_event(event: Event, stats_repository: &Arc<Repository>, now: DurationSinceUnixEpoch) {
     match event {
         // Torrent events
         Event::TorrentAdded { info_hash, .. } => {
@@ -57,37 +45,34 @@ pub async fn handle_event(
                     now,
                 )
                 .await;
+        }
+    }
+}
 
-            if persistent_torrent_completed_stat {
-                // Increment the number of downloads for the torrent in the database
-                match db_downloads_metric_repository
-                    .as_ref()
-                    .expect("persistent torrent completed statistics require a database")
-                    .increase_downloads_for_torrent(&info_hash)
-                    .await
-                {
-                    Ok(()) => {
-                        tracing::debug!(info_hash = ?info_hash, "Number of torrent downloads increased");
-                    }
-                    Err(err) => {
-                        tracing::error!(info_hash = ?info_hash, error = ?err, "Failed to increase number of downloads for the torrent");
-                    }
-                }
+/// Handles a swarm coordination event and persists completed-download statistics.
+pub async fn handle_persistent_completed_statistics_event(
+    event: Event,
+    db_downloads_metric_repository: &Arc<DatabaseDownloadsMetricRepository>,
+) {
+    if let Event::PeerDownloadCompleted { info_hash, .. } = event {
+        match db_downloads_metric_repository
+            .increase_downloads_for_torrent(&info_hash)
+            .await
+        {
+            Ok(()) => {
+                tracing::debug!(info_hash = ?info_hash, "Number of torrent downloads increased");
+            }
+            Err(err) => {
+                tracing::error!(info_hash = ?info_hash, error = ?err, "Failed to increase number of downloads for the torrent");
+            }
+        }
 
-                // Increment the global number of downloads (for all torrents) in the database
-                match db_downloads_metric_repository
-                    .as_ref()
-                    .expect("persistent torrent completed statistics require a database")
-                    .increase_global_downloads()
-                    .await
-                {
-                    Ok(()) => {
-                        tracing::debug!("Global number of downloads increased");
-                    }
-                    Err(err) => {
-                        tracing::error!(error = ?err, "Failed to increase global number of downloads");
-                    }
-                }
+        match db_downloads_metric_repository.increase_global_downloads().await {
+            Ok(()) => {
+                tracing::debug!("Global number of downloads increased");
+            }
+            Err(err) => {
+                tracing::error!(error = ?err, "Failed to increase global number of downloads");
             }
         }
     }

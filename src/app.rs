@@ -76,7 +76,8 @@ async fn start_jobs(config: &Configuration, app_container: &Arc<AppContainer>) -
     let mut job_manager = JobManager::new();
 
     start_swarm_coordination_registry_event_listener(config, app_container, &mut job_manager);
-    start_tracker_core_event_listener(config, app_container, &mut job_manager);
+    start_tracker_core_in_memory_event_listener(config, app_container, &mut job_manager);
+    start_tracker_core_persistent_completed_statistics_event_listener(config, app_container, &mut job_manager);
     start_http_core_event_listener(config, app_container, &mut job_manager);
     start_udp_core_event_listener(config, app_container, &mut job_manager);
     start_udp_tracker_services(config, app_container, &mut job_manager).await;
@@ -156,10 +157,29 @@ fn start_swarm_coordination_registry_event_listener(
     );
 }
 
-fn start_tracker_core_event_listener(config: &Configuration, app_container: &Arc<AppContainer>, job_manager: &mut JobManager) {
+fn start_tracker_core_in_memory_event_listener(
+    config: &Configuration,
+    app_container: &Arc<AppContainer>,
+    job_manager: &mut JobManager,
+) {
     job_manager.push_opt(
-        "tracker_core_event_listener",
-        jobs::tracker_core::start_event_listener(config, app_container, job_manager.new_cancellation_token()),
+        "tracker_core_in_memory_event_listener",
+        jobs::tracker_core::start_in_memory_event_listener(config, app_container, job_manager.new_cancellation_token()),
+    );
+}
+
+fn start_tracker_core_persistent_completed_statistics_event_listener(
+    config: &Configuration,
+    app_container: &Arc<AppContainer>,
+    job_manager: &mut JobManager,
+) {
+    job_manager.push_opt(
+        "tracker_core_persistent_completed_statistics_event_listener",
+        jobs::tracker_core::start_persistent_completed_statistics_event_listener(
+            config,
+            app_container,
+            job_manager.new_cancellation_token(),
+        ),
     );
 }
 
@@ -373,7 +393,7 @@ mod tests {
     use torrust_tracker_configuration::v3_0_0::core::Core;
     use torrust_tracker_configuration::v3_0_0::udp_tracker::UdpTracker;
 
-    use super::{should_start_udp_tracker_services, start_tracker_core_event_listener};
+    use super::{should_start_udp_tracker_services, start_tracker_core_in_memory_event_listener};
     use crate::bootstrap::jobs::manager::JobManager;
     use crate::container::AppContainer;
 
@@ -424,7 +444,7 @@ mod tests {
         let app_container = Arc::new(AppContainer::initialize(&configuration).await);
         let mut job_manager = JobManager::new();
 
-        start_tracker_core_event_listener(&configuration, &app_container, &mut job_manager);
+        start_tracker_core_in_memory_event_listener(&configuration, &app_container, &mut job_manager);
 
         job_manager.cancel();
         job_manager.wait_for_all(Duration::from_secs(1)).await;
