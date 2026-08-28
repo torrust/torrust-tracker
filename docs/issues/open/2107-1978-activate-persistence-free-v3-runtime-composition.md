@@ -146,7 +146,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task                                      | Notes / Expected Output                                                                                                                                                   |
 | --- | ------ | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| T1  | TODO   | Activate persistence validation           | Invoke the centralized bootstrap check from active v3 bootstrap after configuration validation and before globals or containers are built.                                |
+| T1  | DONE   | Activate persistence validation           | Active v3 bootstrap invokes the centralized check after configuration validation and before globals or containers are built.                                              |
 | T2  | TODO   | Compose capability-aware REST API         | Keep API-wide routes available without persistence; return controlled disabled-capability responses from key and whitelist routes without persistence access.             |
 | T3  | TODO   | Build persistence-free core graph         | Refactor tracker-core composition, handlers, managers, and jobs so public HTTP/UDP operation does not require persistence services.                                       |
 | T4  | TODO   | Preserve persistence-enabled composition  | Verify configured SQLite, MySQL, and PostgreSQL retain one-driver, complete-migration lifecycle and existing required dependencies.                                       |
@@ -162,7 +162,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Draft reconciled with merged #1980 runtime behavior
 - [x] Draft reviewed and approved by user/maintainer
 - [x] GitHub issue #2107 created, linked as a subissue of EPIC #1978, and number added to this spec
-- [ ] Spec-only PR merged into `develop` before implementation
+- [x] Spec-only PR merged into `develop` before implementation (#2108)
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and applicable pre-push checks)
 - [ ] Manual verification scenarios executed and recorded
@@ -174,6 +174,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-08-28 00:00 UTC - GitHub Copilot - Copied the post-#1980 activation-follow-up draft from #999 and reconciled it with merged runtime code. Confirmed that bridge removal alone cannot produce a usable persistence-free tracker; expanded planned scope to real public tracker composition and bootstrap validation. Initial draft temporarily classified `http_api` as persistence-required pending maintainer review.
 - 2026-08-28 00:00 UTC - User/GitHub Copilot - Approved keeping the management REST API available without persistence. This issue now corrects disabled whitelist/key endpoint behavior through controlled HTTP 409 responses while preserving API-wide availability; a later API version may add a response-field distinction between session and historical completed counts.
 - 2026-08-28 00:00 UTC - GitHub Copilot - User approved the refined specification. Created GitHub issue #2107 and linked it as a native subissue of EPIC #1978.
+- 2026-08-28 00:00 UTC - GitHub Copilot/User - Merged spec-only PR #2108 and started T1, activation of bootstrap persistence validation.
+- 2026-08-28 00:00 UTC - GitHub Copilot - Activated the existing centralized persistence requirement check in bootstrap after configuration validation and before global or application-container construction. Focused root bootstrap tests passed.
 
 ## Acceptance Criteria
 
@@ -249,7 +251,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`, `DEFERRED`.
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence                                                      |
 | ----- | ---------------------- | ------------------------------------------------------------- |
-| AC1   | TODO                   | Focused bootstrap tests and startup integration test          |
+| AC1   | DONE                   | Bootstrap wiring and focused root bootstrap tests             |
 | AC2   | TODO                   | One test and manual record per matrix capability              |
 | AC3   | TODO                   | Persistence-free REST API startup test                        |
 | AC4   | TODO                   | HTTP/UDP protocol integration evidence                        |

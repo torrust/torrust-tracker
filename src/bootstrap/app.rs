@@ -17,6 +17,7 @@ use torrust_tracker_udp_core::crypto::keys::{self, Keeper as _};
 use tracing::instrument;
 
 use super::config::initialize_configuration;
+use super::persistence::validate_persistence_requirements;
 use crate::container::AppContainer;
 
 /// It loads the configuration from the environment and builds app container.
@@ -33,6 +34,10 @@ pub async fn setup() -> (Configuration, AppContainer) {
     let configuration = initialize_configuration();
 
     if let Err(e) = configuration.validate() {
+        panic!("Configuration error: {e}");
+    }
+
+    if let Err(e) = validate_persistence_requirements(&configuration.core) {
         panic!("Configuration error: {e}");
     }
 
