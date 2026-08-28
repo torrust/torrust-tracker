@@ -15,9 +15,8 @@ semantic-links:
   related-artifacts:
     - .github/workflows/container.yaml
     - docs/containers.md
+    - docs/release_process.md
 ---
-
-<!-- skill-link: create-issue -->
 
 # Issue #1029 - Do not publish Docker tags with the `v` prefix
 
