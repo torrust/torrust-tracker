@@ -6,7 +6,7 @@ priority: p2
 epic: null
 github-issue: 269
 spec-path: docs/issues/open/269-review-dependency-licenses/ISSUE.md
-branch: "269-review-dependency-licenses"
+branch: "269-first-dependency-license-review"
 related-pr: null
 last-updated-utc: 2026-08-28 11:10
 semantic-links:
@@ -17,7 +17,11 @@ semantic-links:
     - .github/workflows/testing.yaml
     - contrib/dev-tools/git/hooks/pre-commit.sh
     - docs/issues/closed/1925-1669-si-31-configure-cargo-deny-for-layer-boundary-enforcement.md
+    - docs/issues/open/269-review-dependency-licenses/evidence.md
+    - docs/issues/open/269-review-dependency-licenses/initial-review.md
+    - docs/issues/open/269-review-dependency-licenses/locked-license-inventory.json
     - docs/issues/open/269-review-dependency-licenses/preliminary-assessment.md
+    - docs/issues/open/269-review-dependency-licenses/runtime-license-inventory.json
 ---
 
 # Issue #269 - Review dependency licenses
@@ -119,16 +123,16 @@ policy itself, provide legal advice, or compare previous and updated
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| ID  | Status | Task                               | Notes / Expected Output                                                                                                                                   |
-| --- | ------ | ---------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| T1  | TODO   | Define manual review protocol      | Record the unanimous-maintainer approval process, complete dependency-graph scope, evidence standards, legal-review boundaries, and twice-yearly cadence. |
-| T2  | DONE   | Run preliminary technical triage   | Record initial high-risk and metadata findings in [`preliminary-assessment.md`](preliminary-assessment.md); do not treat it as a legal conclusion.        |
-| T3  | TODO   | Gather independently verified data | Produce a dated full dependency inventory from reproducible tools and authoritative package license metadata.                                             |
-| T4  | TODO   | Analyze license conflicts          | Record actual and potential conflicts, ambiguity, and dependencies requiring qualified legal review.                                                      |
-| T5  | TODO   | Record decisions and actions       | Produce the initial review report, exceptions or policy decisions, and follow-up issues for unresolved work.                                              |
-| T6  | TODO   | Approve review outcome             | Obtain and retain unanimous active-maintainer approval of the documented review outcome.                                                                  |
-| T7  | TODO   | Publish future-review template     | Convert the initial review report into the documented template and schedule for twice-yearly use.                                                         |
-| T8  | TODO   | Assess automation follow-up        | Decide whether established rules justify a separate future automation issue; do not add CI or hook enforcement here.                                      |
+| ID  | Status      | Task                               | Notes / Expected Output                                                                                                                                                                  |
+| --- | ----------- | ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| T1  | DONE        | Define manual review protocol      | Recorded the review protocol, evidence standards, legal-review boundaries, unanimous-approval process, cadence, and interim-review triggers in [`initial-review.md`](initial-review.md). |
+| T2  | DONE        | Run preliminary technical triage   | Record initial high-risk and metadata findings in [`preliminary-assessment.md`](preliminary-assessment.md); do not treat it as a legal conclusion.                                       |
+| T3  | DONE        | Gather independently verified data | Produced a dated locked-graph inventory and source-manifest evidence in [`evidence.md`](evidence.md).                                                                                    |
+| T4  | IN_PROGRESS | Analyze license conflicts          | Recorded material findings in [`initial-review.md`](initial-review.md); `bloom` remains blocked pending qualified legal review.                                                          |
+| T5  | IN_PROGRESS | Record decisions and actions       | Produced the initial blocked review report and resolved the internal metadata gap; unresolved findings need dispositions.                                                                |
+| T6  | BLOCKED     | Approve review outcome             | Requires qualified legal disposition for `bloom`, other finding dispositions, and explicit unanimous active-maintainer approval.                                                         |
+| T7  | DONE        | Publish future-review template     | The initial report and evidence ledger define the twice-yearly template and schedule the next review for 2027-02-28.                                                                     |
+| T8  | DONE        | Assess automation follow-up        | Deferred: no approved SPDX policy or exception process yet justifies enforcement.                                                                                                        |
 
 ## Progress Tracking
 
@@ -137,11 +141,11 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Existing GitHub issue reviewed and its discussion incorporated into this spec.
 - [x] Specification converted to folder layout with issue-local evidence artifacts.
 - [x] Specification reviewed and approved by user/maintainer.
-- [ ] Unanimous-maintainer approval process, review protocol, and scope decisions recorded.
-- [ ] Spec-only PR merged into `develop` before implementation.
-- [ ] Implementation completed.
-- [ ] Documentation validation completed (`linter all`).
-- [ ] Manual verification scenarios executed and recorded (status + evidence).
+- [x] Unanimous-maintainer approval process, review protocol, and scope decisions recorded.
+- [x] Spec-only PR merged into `develop` before implementation.
+- [ ] Implementation completed; legal and unanimous-maintainer approval remain blocked.
+- [x] Documentation validation completed (`linter all`).
+- [x] Initial technical manual-review scenario executed and recorded in `evidence.md`.
 - [ ] Acceptance criteria reviewed after implementation and updated with evidence.
 - [ ] Reviewer validated acceptance criteria and updated checkboxes.
 - [ ] Committer verified spec progress is up to date before commit.
@@ -157,6 +161,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-08-28 10:20 UTC - agent - Created the preliminary assessment artifact from current Cargo metadata and package manifests. It identifies the direct `bloom` GPL-2.0 dependency as requiring urgent qualified legal review and does not state a final compatibility conclusion.
 - 2026-08-28 10:35 UTC - agent - Installed `cargo-license` 0.7.0 at the user's request and incorporated its production-oriented inventory into the preliminary assessment. The new inventory corroborates, but does not resolve, the GPL-2.0, LGPL-3.0, and non-routine-license findings.
 - 2026-08-28 11:10 UTC - user - Approved the issue specification and preliminary assessment; authorized a spec-only PR targeting `develop`.
+- 2026-08-28 - agent - Completed the first locked-graph technical inventory and evidence ledger at merged commit `c30fbff4`. The `workspace-coupling` metadata gap is resolved; `bloom` remains blocked pending qualified legal review and active-maintainer approval.
 
 ## Acceptance Criteria
 
@@ -204,21 +209,21 @@ Define verification before implementation starts and execute it before closing t
 
 Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
-| ID  | Scenario                   | Command/Steps                                                                                                                                                  | Expected Result                                                                                    | Status | Evidence                                                             |
-| --- | -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- | ------ | -------------------------------------------------------------------- |
-| M1  | Initial full review        | Run the documented inventory commands against the complete resolved graph; verify non-trivial metadata with the required sources; record analysis and actions. | A dated, reproducible review report is produced with evidence for every finding.                   | TODO   | `preliminary-assessment.md` is incomplete preliminary evidence only. |
-| M2  | Maintainer approval        | Present the initial report and review protocol to every active maintainer using the defined approval process.                                                  | Unanimous approval or recorded unresolved objections; unresolved matters are escalated or tracked. | TODO   | Pending defined approval process.                                    |
-| M3  | Recurring-review rehearsal | Use the initial report structure to plan the next review and an interim dependency-update review.                                                              | The report functions as a clear reusable template with a next-review date and triggers.            | TODO   | Pending initial report.                                              |
+| ID  | Scenario                   | Command/Steps                                                                                                                                                  | Expected Result                                                                                    | Status      | Evidence                                                                                                            |
+| --- | -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------- |
+| M1  | Initial full review        | Run the documented inventory commands against the complete resolved graph; verify non-trivial metadata with the required sources; record analysis and actions. | A dated, reproducible review report is produced with evidence for every finding.                   | IN_PROGRESS | Technical evidence is complete; each finding needs a maintainer-approved disposition or qualified legal escalation. |
+| M2  | Maintainer approval        | Present the initial report and review protocol to every active maintainer using the defined approval process.                                                  | Unanimous approval or recorded unresolved objections; unresolved matters are escalated or tracked. | TODO        | Pending defined approval process.                                                                                   |
+| M3  | Recurring-review rehearsal | Use the initial report structure to plan the next review and an interim dependency-update review.                                                              | The report functions as a clear reusable template with a next-review date and triggers.            | DONE        | [`initial-review.md`](initial-review.md) schedules 2027-02-28 and records interim-review triggers.                  |
 
 ### Acceptance Verification
 
-| AC ID | Status (`TODO`/`DONE`) | Evidence                                                       |
-| ----- | ---------------------- | -------------------------------------------------------------- |
-| AC1   | TODO                   | Pending approved review protocol.                              |
-| AC2   | TODO                   | Pending initial review report.                                 |
-| AC3   | TODO                   | Preliminary triage: `bloom` GPL-2.0 requires qualified review. |
-| AC4   | TODO                   | Pending recurring template.                                    |
-| AC5   | TODO                   | Pending automation assessment.                                 |
+| AC ID | Status (`TODO`/`DONE`) | Evidence                                                                                                                                          |
+| ----- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| AC1   | TODO                   | Protocol is documented; unanimous active-maintainer approval is pending.                                                                          |
+| AC2   | DONE                   | [`initial-review.md`](initial-review.md), [`evidence.md`](evidence.md), and the retained inventory artifacts record the locked graph and sources. |
+| AC3   | TODO                   | Material findings are recorded; `bloom` requires qualified legal review and other dispositions remain pending.                                    |
+| AC4   | DONE                   | The report and ledger are the recurring template; next review is scheduled for 2027-02-28.                                                        |
+| AC5   | DONE                   | The report defers automation because approved deterministic rules do not yet exist.                                                               |
 
 ## Risks and Trade-offs
 
