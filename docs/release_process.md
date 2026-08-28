@@ -78,6 +78,24 @@ git push torrust main:releases/v[semantic version]
 
 > **Check that the deployment is successful!**
 
+### Container Image Tags
+
+The `releases/v[semantic version]` branch name and Git tag retain the conventional `v` prefix,
+but Docker image version tags do not. The release container workflow publishes these tags:
+
+| Release type | Source version   | Docker image tags             |
+| ------------ | ---------------- | ----------------------------- |
+| Stable       | `v3.0.0`         | `3.0.0`, `3.0`, `3`, `latest` |
+| Prerelease   | `v3.1.0-rc.1`    | `3.1.0-rc.1`                  |
+| Development  | `develop` branch | `develop`                     |
+| Development  | `main` branch    | `main`                        |
+
+`latest` always identifies the newest stable release. The `3` and `3.0` tags are also mutable
+and advance with later stable releases in their compatible version lines. Deployments that must
+be repeatable should use a full version tag such as `3.0.0`, or preferably an immutable image
+digest. Existing Docker Hub tags with a `v` prefix are retained as historical artifacts but are
+not published for new releases.
+
 ### 6. Create Release Tag
 
 ```sh
