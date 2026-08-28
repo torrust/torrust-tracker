@@ -84,12 +84,71 @@ Use this report structure for each twice-yearly review.
 Common permissive and dual-permissive declarations were included in the full
 inventory but receive no blanket compatibility conclusion from this report.
 
+## Maintainer Decision Checklist
+
+For every `PENDING` or `BLOCKED` finding, a maintainer should record the
+following facts in the finding's issue or review thread before asking for an
+approval decision. This is a practical evidence checklist, not legal advice.
+
+1. Identify the package, version, license expression, and evidence record that
+   supports the declaration and license-text source.
+2. Identify how the workspace uses it: which package declares it, whether it is
+   a normal, build, or development dependency, and whether it reaches a binary,
+   library, container image, client artifact, or developer-only tool that the
+   project distributes.
+3. Identify what the project distributes that includes or depends on it, and
+   whether the distributed artifact contains the package's source, binaries,
+   notices, or only uses it while building or testing.
+4. Read the linked package license and notice files. Record factual obligations
+   that are stated plainly, such as retaining a notice or license text. Do not
+   infer unclear obligations or compatibility from the SPDX expression.
+5. Choose and record one disposition:
+   - **Escalate for qualified legal review** when the dependency is copyleft,
+     the expression or distribution model is unclear, an exception is proposed,
+     or the maintainer cannot confidently state the relevant facts. `bloom`
+     requires this disposition.
+   - **Create remediation work** to remove, replace, reconfigure, or stop
+     distributing a dependency when its continued use cannot be approved.
+   - **Propose an approved rationale** only after the required legal or policy
+     review is complete; link the decision and any required notice-handling
+     work.
+6. Ask every active maintainer to approve or object to the recorded disposition.
+   An approval confirms the documented project decision; it is not an individual
+   legal opinion. A missing response leaves the finding pending.
+
+For this first review, maintainers should begin with `bloom`, then process the
+five LGPL findings, `webpki-root-certs`, and the mixed-expression group in the
+order recorded above. No finding becomes approved merely because it appears in
+the inventory or because its license text has been located.
+
+## Prepared Factual Briefing
+
+The following factual classification is complete. It is the technical context
+needed for the decision checklist; it is not a compatibility conclusion.
+
+| Finding                                 | Verified use and distribution context                                                                                                                                                                           | Decision still required                                                                                 |
+| --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `bloom` 0.3.2                           | A normal dependency of `torrust-tracker-udp-core`, used by the UDP banning service's counting Bloom filter. Its dependency path reaches the tracker application and server packages.                            | Qualified legal review of continued runtime use, an exception, or replacement.                          |
+| `torrust-tracker-client` 0.1.0          | A workspace console-client package, explicitly `LGPL-3.0` and eligible for publication through `publish.workspace = true`. It normally depends on `bencode2json` and `torrust-tracker-client-lib`.              | Maintainer classification of the separately distributed client artifact and legal escalation if needed. |
+| `torrust-tracker-client-lib` 0.1.0      | A workspace client library, explicitly `LGPL-3.0` and eligible for publication through `publish.workspace = true`. It is used by the console client and tracker workspace packages.                             | Maintainer classification of library distribution and legal escalation if needed.                       |
+| `torrust-tracker-rest-api-client` 0.1.0 | A workspace REST client library, explicitly `LGPL-3.0` and eligible for publication through `publish.workspace = true`. It is a normal dependency of tracker workspace packages.                                | Maintainer classification of library distribution and legal escalation if needed.                       |
+| `openmetrics-parser` 0.4.4              | A normal dependency of `torrust-metrics`; its inverse dependency path reaches the tracker application and server packages.                                                                                      | Maintainer classification of runtime distribution and legal escalation if needed.                       |
+| `bencode2json` 0.1.0                    | A normal dependency of the publishable `torrust-tracker-client` console-client package. It is present in the complete locked graph; the current evidence does not show it as a main tracker runtime dependency. | Maintainer classification of console-client distribution and legal escalation if needed.                |
+| `webpki-root-certs` 1.0.9               | Reached through `reqwest` and `rustls-platform-verifier`; normal dependency paths reach the tracker application, server packages, and client artifacts.                                                         | Maintainer classification of runtime distribution and any notice-handling work.                         |
+| `ring`, `aws-lc-sys`, and `aws-lc-rs`   | TLS dependencies reached through Rustls, Axum server, Reqwest, and related normal dependency paths that reach tracker runtime packages.                                                                         | Maintainer classification of the compound expressions, bundled notices, and any legal escalation.       |
+| `encoding_rs` and `unicode-ident`       | Transitive dependencies in the locked workspace graph with verified package license texts and non-routine conjunctive declarations.                                                                             | Maintainer classification of the selected license paths, notices, and any legal escalation.             |
+
+All package declarations, source links, and license-file evidence for these
+facts are retained in [evidence.md](evidence.md). A maintainer only needs to
+correct a factual statement above, record the resulting disposition, and seek
+qualified legal help when the checklist requires it.
+
 ## Required Actions
 
 1. Obtain and record qualified legal guidance for `bloom` before any
    compatibility decision or exception.
-2. Complete maintainer classification for all five LGPL, CDLA, and conjunctive
-   findings, citing applicable package license and notice files.
+2. Complete the [Maintainer Decision Checklist](#maintainer-decision-checklist)
+   for all five LGPL, CDLA, and conjunctive findings.
 3. Obtain explicit unanimous active-maintainer approval after the blocked items
    have a recorded disposition. Until then, retain this report as blocked.
 4. Create focused remediation issues for each unapproved finding. No automatic
