@@ -486,6 +486,7 @@ vulns
 wakelist
 wakeup
 walkdir
+webpki
 webtorrent
 whitespaces
 worktree
