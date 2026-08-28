@@ -94,6 +94,6 @@ declared license expressions, not a compatibility verdict.
 ## References
 
 - Main specification: [`ISSUE.md`](ISSUE.md)
-- `bloom` manifest: `~/.cargo/registry/src/index.crates.io-*/bloom-0.3.2/Cargo.toml`
+- `bloom` manifest: `$CARGO_HOME/registry/src/index.crates.io-*/bloom-0.3.2/Cargo.toml` (common Unix default: `~/.cargo`)
 - Direct dependency declaration: `packages/udp-core/Cargo.toml`
 - Missing metadata declaration: `contrib/dev-tools/analysis/workspace-coupling/Cargo.toml`
