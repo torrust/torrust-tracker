@@ -17,6 +17,8 @@ semantic-links:
     - docs/containers.md
 ---
 
+<!-- skill-link: create-issue -->
+
 # Issue #1029 - Do not publish Docker tags with the `v` prefix
 
 ## Goal
