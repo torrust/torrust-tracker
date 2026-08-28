@@ -89,6 +89,21 @@ benchmarks to establish that any extra data access or handoff does not degrade
 request latency. It requires a dedicated design issue before implementation
 and is out of scope for #2107.
 
+### Private-Key and Whitelist Composition
+
+Private-key and whitelist behavior remains configuration-selected: `private`
+and `listed` decide whether startup loads the corresponding data and whether
+the REST routes receive their concrete adapters. The P5/P7 refactor must not
+use persistence presence as the feature switch, nor make the REST API depend
+on persistence when both features are disabled.
+
+For the current bootstrap API, a configured feature with no persistence service
+will omit only that feature's load or adapter instead of panicking. Bootstrap
+validation already rejects that invalid configuration before composition. A
+later typed startup-error refactor should report this impossible state directly
+rather than relying on the validation order; that broader propagation work
+remains deferred by `bootstrap-error-propagation-draft.md`.
+
 ## Inventory
 
 Status values: `TODO`, `IN_PROGRESS`, `DONE`, `NOT_APPLICABLE`.
