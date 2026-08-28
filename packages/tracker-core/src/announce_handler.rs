@@ -115,7 +115,7 @@ pub struct AnnounceHandler {
     in_memory_torrent_repository: Arc<InMemoryTorrentRepository>,
 
     /// Repository for persistent torrent data (database).
-    db_downloads_metric_repository: Arc<DatabaseDownloadsMetricRepository>,
+    db_downloads_metric_repository: Option<Arc<DatabaseDownloadsMetricRepository>>,
 }
 
 impl AnnounceHandler {
@@ -125,13 +125,13 @@ impl AnnounceHandler {
         config: &Core,
         whitelist_authorization: &Arc<WhitelistAuthorization>,
         in_memory_torrent_repository: &Arc<InMemoryTorrentRepository>,
-        db_downloads_metric_repository: &Arc<DatabaseDownloadsMetricRepository>,
+        db_downloads_metric_repository: Option<Arc<DatabaseDownloadsMetricRepository>>,
     ) -> Self {
         Self {
             whitelist_authorization: whitelist_authorization.clone(),
             config: config.clone(),
             in_memory_torrent_repository: in_memory_torrent_repository.clone(),
-            db_downloads_metric_repository: db_downloads_metric_repository.clone(),
+            db_downloads_metric_repository,
         }
     }
 
@@ -182,7 +182,12 @@ impl AnnounceHandler {
     ) -> Result<Option<NumberOfDownloads>, databases::error::Error> {
         if self.config.tracker_policy.persistent_torrent_completed_stat && !self.in_memory_torrent_repository.contains(info_hash)
         {
-            Ok(self.db_downloads_metric_repository.load_torrent_downloads(info_hash).await?)
+            Ok(self
+                .db_downloads_metric_repository
+                .as_ref()
+                .expect("persistent torrent completed statistics require a database")
+                .load_torrent_downloads(info_hash)
+                .await?)
         } else {
             Ok(None)
         }

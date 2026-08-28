@@ -104,6 +104,9 @@ async fn load_peer_keys(config: &Configuration, app_container: &Arc<AppContainer
     if config.core.private {
         app_container
             .tracker_core_container
+            .persistence
+            .as_ref()
+            .expect("private tracker mode requires persistence")
             .keys_handler
             .load_peer_keys_from_database()
             .await
@@ -115,6 +118,9 @@ async fn load_whitelisted_torrents(config: &Configuration, app_container: &Arc<A
     if config.core.listed {
         app_container
             .tracker_core_container
+            .persistence
+            .as_ref()
+            .expect("listed tracker mode requires persistence")
             .whitelist_manager
             .load_whitelist_from_database()
             .await
@@ -126,7 +132,12 @@ async fn load_torrent_metrics(config: &Configuration, app_container: &Arc<AppCon
     if config.core.tracker_policy.persistent_torrent_completed_stat {
         torrust_tracker_core::statistics::persisted::load_persisted_metrics(
             &app_container.tracker_core_container.stats_repository,
-            &app_container.tracker_core_container.db_downloads_metric_repository,
+            &app_container
+                .tracker_core_container
+                .persistence
+                .as_ref()
+                .expect("persistent torrent completed statistics require persistence")
+                .db_downloads_metric_repository,
             CurrentClock::now(),
         )
         .await
@@ -355,11 +366,16 @@ async fn start_health_check_api(config: &Configuration, app_container: &Arc<AppC
 
 #[cfg(test)]
 mod tests {
+    use std::sync::Arc;
+    use std::time::Duration;
+
     use torrust_tracker_configuration::v3_0_0::Configuration;
     use torrust_tracker_configuration::v3_0_0::core::Core;
     use torrust_tracker_configuration::v3_0_0::udp_tracker::UdpTracker;
 
-    use super::should_start_udp_tracker_services;
+    use super::{should_start_udp_tracker_services, start_tracker_core_event_listener};
+    use crate::bootstrap::jobs::manager::JobManager;
+    use crate::container::AppContainer;
 
     #[test]
     fn it_should_not_start_udp_tracker_services_without_udp_trackers() {
@@ -398,5 +414,19 @@ mod tests {
         };
 
         assert!(should_start_udp_tracker_services(&configuration));
+    }
+
+    #[tokio::test]
+    async fn it_should_start_tracker_core_statistics_listener_without_persistence() {
+        let mut configuration = Configuration::default();
+        configuration.core.tracker_usage_statistics = true;
+        assert!(configuration.core.database.is_none());
+        let app_container = Arc::new(AppContainer::initialize(&configuration).await);
+        let mut job_manager = JobManager::new();
+
+        start_tracker_core_event_listener(&configuration, &app_container, &mut job_manager);
+
+        job_manager.cancel();
+        job_manager.wait_for_all(Duration::from_secs(1)).await;
     }
 }

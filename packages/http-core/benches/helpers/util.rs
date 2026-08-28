@@ -65,7 +65,7 @@ pub async fn initialize_core_tracker_services_with_config(
         &config.core,
         &whitelist_authorization,
         &in_memory_torrent_repository,
-        &db_downloads_metric_repository,
+        Some(db_downloads_metric_repository.clone()),
     ));
 
     // HTTP core stats

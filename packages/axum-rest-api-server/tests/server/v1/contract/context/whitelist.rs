@@ -21,7 +21,16 @@ async fn should_reject_whitelist_requests_when_listed_mode_is_disabled_without_d
     logging::setup();
 
     let env = Started::new(&configuration::ephemeral().into()).await;
-    force_database_error(&env.container.tracker_core_container.database_stores.schema_migrator).await;
+    force_database_error(
+        &env.container
+            .tracker_core_container
+            .persistence
+            .as_ref()
+            .expect("whitelist test requires persistence")
+            .database_stores
+            .schema_migrator,
+    )
+    .await;
 
     let info_hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d"; // DevSkim: ignore DS173237
     let response = ApiHttpClient::new(env.get_connection_info())
@@ -140,7 +149,16 @@ async fn should_fail_when_the_torrent_cannot_be_whitelisted() {
 
     let info_hash = "9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d".to_owned(); // DevSkim: ignore DS173237
 
-    force_database_error(&env.container.tracker_core_container.database_stores.schema_migrator).await;
+    force_database_error(
+        &env.container
+            .tracker_core_container
+            .persistence
+            .as_ref()
+            .expect("whitelist test requires persistence")
+            .database_stores
+            .schema_migrator,
+    )
+    .await;
 
     let request_id = Uuid::new_v4();
 
@@ -204,6 +222,9 @@ async fn should_allow_removing_a_torrent_from_the_whitelist() {
 
     env.container
         .tracker_core_container
+        .persistence
+        .as_ref()
+        .expect("whitelist test requires persistence")
         .whitelist_manager
         .add_torrent_to_whitelist(&info_hash)
         .await
@@ -293,12 +314,24 @@ async fn should_fail_when_the_torrent_cannot_be_removed_from_the_whitelist() {
     let info_hash = InfoHash::from_str(&hash).unwrap();
     env.container
         .tracker_core_container
+        .persistence
+        .as_ref()
+        .expect("whitelist test requires persistence")
         .whitelist_manager
         .add_torrent_to_whitelist(&info_hash)
         .await
         .unwrap();
 
-    force_database_error(&env.container.tracker_core_container.database_stores.schema_migrator).await;
+    force_database_error(
+        &env.container
+            .tracker_core_container
+            .persistence
+            .as_ref()
+            .expect("whitelist test requires persistence")
+            .database_stores
+            .schema_migrator,
+    )
+    .await;
 
     let request_id = Uuid::new_v4();
 
@@ -329,6 +362,9 @@ async fn should_not_allow_removing_a_torrent_from_the_whitelist_for_unauthentica
 
     env.container
         .tracker_core_container
+        .persistence
+        .as_ref()
+        .expect("whitelist test requires persistence")
         .whitelist_manager
         .add_torrent_to_whitelist(&info_hash)
         .await
@@ -351,6 +387,9 @@ async fn should_not_allow_removing_a_torrent_from_the_whitelist_for_unauthentica
 
     env.container
         .tracker_core_container
+        .persistence
+        .as_ref()
+        .expect("whitelist test requires persistence")
         .whitelist_manager
         .add_torrent_to_whitelist(&info_hash)
         .await
@@ -385,6 +424,9 @@ async fn should_allow_reload_the_whitelist_from_the_database() {
 
     env.container
         .tracker_core_container
+        .persistence
+        .as_ref()
+        .expect("whitelist test requires persistence")
         .whitelist_manager
         .add_torrent_to_whitelist(&info_hash)
         .await
@@ -423,12 +465,24 @@ async fn should_fail_when_the_whitelist_cannot_be_reloaded_from_the_database() {
     let info_hash = InfoHash::from_str(&hash).unwrap();
     env.container
         .tracker_core_container
+        .persistence
+        .as_ref()
+        .expect("whitelist test requires persistence")
         .whitelist_manager
         .add_torrent_to_whitelist(&info_hash)
         .await
         .unwrap();
 
-    force_database_error(&env.container.tracker_core_container.database_stores.schema_migrator).await;
+    force_database_error(
+        &env.container
+            .tracker_core_container
+            .persistence
+            .as_ref()
+            .expect("whitelist test requires persistence")
+            .database_stores
+            .schema_migrator,
+    )
+    .await;
 
     let request_id = Uuid::new_v4();
 

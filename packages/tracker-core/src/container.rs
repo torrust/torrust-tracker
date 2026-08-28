@@ -26,18 +26,22 @@ use crate::{statistics, whitelist};
 
 pub struct TrackerCoreContainer {
     pub core_config: Arc<Core>,
-    pub database_stores: DatabaseStores,
     pub announce_handler: Arc<AnnounceHandler>,
     pub scrape_handler: Arc<ScrapeHandler>,
-    pub keys_handler: Arc<KeysHandler>,
     pub authentication_service: Arc<AuthenticationService>,
     pub in_memory_whitelist: Arc<InMemoryWhitelist>,
     pub whitelist_authorization: Arc<whitelist::authorization::WhitelistAuthorization>,
-    pub whitelist_manager: Arc<WhitelistManager>,
     pub in_memory_torrent_repository: Arc<InMemoryTorrentRepository>,
-    pub db_downloads_metric_repository: Arc<DatabaseDownloadsMetricRepository>,
     pub torrents_manager: Arc<TorrentsManager>,
     pub stats_repository: Arc<statistics::repository::Repository>,
+    pub persistence: Option<PersistenceServices>,
+}
+
+pub struct PersistenceServices {
+    pub database_stores: DatabaseStores,
+    pub keys_handler: Arc<KeysHandler>,
+    pub whitelist_manager: Arc<WhitelistManager>,
+    pub db_downloads_metric_repository: Arc<DatabaseDownloadsMetricRepository>,
 }
 
 impl TrackerCoreContainer {
@@ -47,54 +51,60 @@ impl TrackerCoreContainer {
         swarm_coordination_registry_container: &Arc<SwarmCoordinationRegistryContainer>,
         database: Option<&Database>,
     ) -> Option<Self> {
-        let database = database?;
-        let db = initialize_database_from_configuration(database).await;
         let in_memory_whitelist = Arc::new(InMemoryWhitelist::default());
         let whitelist_authorization = Arc::new(WhitelistAuthorization::new(core_config, &in_memory_whitelist.clone()));
-        let whitelist_manager = initialize_whitelist_manager(db.whitelist_store.clone(), in_memory_whitelist.clone());
-        let db_key_repository = Arc::new(DatabaseKeyRepository::new(&db.auth_key_store));
         let in_memory_key_repository = Arc::new(InMemoryKeyRepository::default());
         let authentication_service = Arc::new(AuthenticationService::new(core_config, &in_memory_key_repository));
-        let keys_handler = Arc::new(KeysHandler::new(
-            &db_key_repository.clone(),
-            &in_memory_key_repository.clone(),
-        ));
         let in_memory_torrent_repository = Arc::new(InMemoryTorrentRepository::new(
             swarm_coordination_registry_container.swarms.clone(),
         ));
-        let db_downloads_metric_repository = Arc::new(DatabaseDownloadsMetricRepository::new(&db.torrent_metrics_store));
+        let persistence = if let Some(database) = database {
+            let database_stores = initialize_database_from_configuration(database).await;
+            let whitelist_manager =
+                initialize_whitelist_manager(database_stores.whitelist_store.clone(), in_memory_whitelist.clone());
+            let db_key_repository = Arc::new(DatabaseKeyRepository::new(&database_stores.auth_key_store));
+            let keys_handler = Arc::new(KeysHandler::new(&db_key_repository, &in_memory_key_repository));
+            let db_downloads_metric_repository =
+                Arc::new(DatabaseDownloadsMetricRepository::new(&database_stores.torrent_metrics_store));
 
+            Some(PersistenceServices {
+                database_stores,
+                keys_handler,
+                whitelist_manager,
+                db_downloads_metric_repository,
+            })
+        } else {
+            None
+        };
+
+        let db_downloads_metric_repository = persistence
+            .as_ref()
+            .map(|services| services.db_downloads_metric_repository.clone());
         let torrents_manager = Arc::new(TorrentsManager::new(
             core_config,
             &in_memory_torrent_repository,
-            &db_downloads_metric_repository,
+            db_downloads_metric_repository.clone(),
         ));
-
         let stats_repository = Arc::new(statistics::repository::Repository::new());
-
         let announce_handler = Arc::new(AnnounceHandler::new(
             core_config,
             &whitelist_authorization,
             &in_memory_torrent_repository,
-            &db_downloads_metric_repository,
+            db_downloads_metric_repository,
         ));
-
         let scrape_handler = Arc::new(ScrapeHandler::new(&whitelist_authorization, &in_memory_torrent_repository));
 
         Some(Self {
             core_config: core_config.clone(),
-            database_stores: db,
             announce_handler,
             scrape_handler,
-            keys_handler,
             authentication_service,
             in_memory_whitelist,
             whitelist_authorization,
-            whitelist_manager,
             in_memory_torrent_repository,
-            db_downloads_metric_repository,
             torrents_manager,
             stats_repository,
+            persistence,
         })
     }
 }
@@ -111,7 +121,7 @@ mod tests {
     use crate::test_helpers::tests::ephemeral_configuration;
 
     #[tokio::test]
-    async fn it_should_not_construct_a_tracker_core_container_without_persistence() {
+    async fn it_should_construct_a_tracker_core_container_without_persistence() {
         // Arrange
         let core_config = Arc::new(Core::default());
         let swarm_coordination_registry_container =
@@ -121,7 +131,7 @@ mod tests {
         let container = TrackerCoreContainer::initialize_from(&core_config, &swarm_coordination_registry_container, None).await;
 
         // Assert
-        assert!(container.is_none());
+        assert!(container.is_some_and(|container| container.persistence.is_none()));
     }
 
     #[tokio::test]
@@ -140,6 +150,6 @@ mod tests {
         .await;
 
         // Assert
-        assert!(container.is_some());
+        assert!(container.is_some_and(|container| container.persistence.is_some()));
     }
 }

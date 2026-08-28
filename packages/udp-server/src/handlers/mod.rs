@@ -313,7 +313,7 @@ pub(crate) mod tests {
             &config.core,
             &whitelist_authorization,
             &in_memory_torrent_repository,
-            &db_downloads_metric_repository,
+            Some(db_downloads_metric_repository.clone()),
         ));
         let scrape_handler = Arc::new(ScrapeHandler::new(&whitelist_authorization, &in_memory_torrent_repository));
 

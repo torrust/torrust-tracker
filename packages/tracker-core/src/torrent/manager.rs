@@ -30,7 +30,7 @@ pub struct TorrentsManager {
     in_memory_torrent_repository: Arc<InMemoryTorrentRepository>,
 
     /// The download metrics repository.
-    db_downloads_metric_repository: Arc<DatabaseDownloadsMetricRepository>,
+    db_downloads_metric_repository: Option<Arc<DatabaseDownloadsMetricRepository>>,
 }
 
 impl TorrentsManager {
@@ -51,12 +51,12 @@ impl TorrentsManager {
     pub fn new(
         config: &Core,
         in_memory_torrent_repository: &Arc<InMemoryTorrentRepository>,
-        db_downloads_metric_repository: &Arc<DatabaseDownloadsMetricRepository>,
+        db_downloads_metric_repository: Option<Arc<DatabaseDownloadsMetricRepository>>,
     ) -> Self {
         Self {
             config: config.clone(),
             in_memory_torrent_repository: in_memory_torrent_repository.clone(),
-            db_downloads_metric_repository: db_downloads_metric_repository.clone(),
+            db_downloads_metric_repository,
         }
     }
 
@@ -70,8 +70,18 @@ impl TorrentsManager {
     ///
     /// Returns a `databases::error::Error` if unable to load the persistent
     /// torrent data.
+    ///
+    /// # Panics
+    ///
+    /// Panics if called without persistence services. Only persistence-enabled
+    /// startup paths call this method.
     pub async fn load_torrents_from_database(&self) -> Result<(), databases::error::Error> {
-        let persistent_torrents = self.db_downloads_metric_repository.load_all_torrents_downloads().await?;
+        let persistent_torrents = self
+            .db_downloads_metric_repository
+            .as_ref()
+            .expect("loading torrents from the database requires persistence")
+            .load_all_torrents_downloads()
+            .await?;
 
         self.in_memory_torrent_repository.import_persistent(&persistent_torrents);
 
@@ -176,7 +186,7 @@ mod tests {
         let torrents_manager = Arc::new(TorrentsManager::new(
             &config,
             &in_memory_torrent_repository,
-            &database_persistent_torrent_repository,
+            Some(database_persistent_torrent_repository.clone()),
         ));
 
         (

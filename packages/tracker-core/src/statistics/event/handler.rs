@@ -9,10 +9,17 @@ use crate::statistics::TRACKER_CORE_PERSISTENT_TORRENTS_DOWNLOADS_TOTAL;
 use crate::statistics::persisted::downloads::DatabaseDownloadsMetricRepository;
 use crate::statistics::repository::Repository;
 
+/// Handles a swarm coordination event and updates tracker statistics.
+///
+/// # Panics
+///
+/// Panics if persistent completed statistics are enabled without a metrics
+/// repository. Application bootstrap rejects that configuration before the
+/// listener starts.
 pub async fn handle_event(
     event: Event,
     stats_repository: &Arc<Repository>,
-    db_downloads_metric_repository: &Arc<DatabaseDownloadsMetricRepository>,
+    db_downloads_metric_repository: &Option<Arc<DatabaseDownloadsMetricRepository>>,
     persistent_torrent_completed_stat: bool,
     now: DurationSinceUnixEpoch,
 ) {
@@ -54,6 +61,8 @@ pub async fn handle_event(
             if persistent_torrent_completed_stat {
                 // Increment the number of downloads for the torrent in the database
                 match db_downloads_metric_repository
+                    .as_ref()
+                    .expect("persistent torrent completed statistics require a database")
                     .increase_downloads_for_torrent(&info_hash)
                     .await
                 {
@@ -66,7 +75,12 @@ pub async fn handle_event(
                 }
 
                 // Increment the global number of downloads (for all torrents) in the database
-                match db_downloads_metric_repository.increase_global_downloads().await {
+                match db_downloads_metric_repository
+                    .as_ref()
+                    .expect("persistent torrent completed statistics require a database")
+                    .increase_global_downloads()
+                    .await
+                {
                     Ok(()) => {
                         tracing::debug!("Global number of downloads increased");
                     }

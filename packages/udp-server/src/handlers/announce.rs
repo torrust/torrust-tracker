@@ -1083,7 +1083,7 @@ pub(crate) mod tests {
                         &config.core,
                         &whitelist_authorization,
                         &in_memory_torrent_repository,
-                        &db_downloads_metric_repository,
+                        Some(db_downloads_metric_repository.clone()),
                     ));
                     let core_config = Arc::new(config.core.clone());
                     let udp_tracker_test_configuration_instance_id = ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0);

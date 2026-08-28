@@ -21,7 +21,16 @@ async fn should_reject_auth_key_requests_when_private_mode_is_disabled_without_d
     logging::setup();
 
     let env = Started::new(&configuration::ephemeral().into()).await;
-    force_database_error(&env.container.tracker_core_container.database_stores.schema_migrator).await;
+    force_database_error(
+        &env.container
+            .tracker_core_container
+            .persistence
+            .as_ref()
+            .expect("auth key test requires persistence")
+            .database_stores
+            .schema_migrator,
+    )
+    .await;
 
     let response = ApiHttpClient::new(env.get_connection_info())
         .unwrap()
@@ -165,7 +174,16 @@ async fn should_fail_when_the_auth_key_cannot_be_generated() {
 
     let env = Started::new(&configuration::ephemeral_private().into()).await;
 
-    force_database_error(&env.container.tracker_core_container.database_stores.schema_migrator).await;
+    force_database_error(
+        &env.container
+            .tracker_core_container
+            .persistence
+            .as_ref()
+            .expect("auth key test requires persistence")
+            .database_stores
+            .schema_migrator,
+    )
+    .await;
 
     let request_id = Uuid::new_v4();
 
@@ -201,6 +219,9 @@ async fn should_allow_deleting_an_auth_key() {
     let auth_key = env
         .container
         .tracker_core_container
+        .persistence
+        .as_ref()
+        .expect("auth key test requires persistence")
         .keys_handler
         .generate_expiring_peer_key(Some(Duration::from_secs(seconds_valid)))
         .await
@@ -345,12 +366,24 @@ async fn should_fail_when_the_auth_key_cannot_be_deleted() {
     let auth_key = env
         .container
         .tracker_core_container
+        .persistence
+        .as_ref()
+        .expect("auth key test requires persistence")
         .keys_handler
         .generate_expiring_peer_key(Some(Duration::from_secs(seconds_valid)))
         .await
         .unwrap();
 
-    force_database_error(&env.container.tracker_core_container.database_stores.schema_migrator).await;
+    force_database_error(
+        &env.container
+            .tracker_core_container
+            .persistence
+            .as_ref()
+            .expect("auth key test requires persistence")
+            .database_stores
+            .schema_migrator,
+    )
+    .await;
 
     let request_id = Uuid::new_v4();
 
@@ -382,6 +415,9 @@ async fn should_not_allow_deleting_an_auth_key_for_unauthenticated_users() {
     let auth_key = env
         .container
         .tracker_core_container
+        .persistence
+        .as_ref()
+        .expect("auth key test requires persistence")
         .keys_handler
         .generate_expiring_peer_key(Some(Duration::from_secs(seconds_valid)))
         .await
@@ -406,6 +442,9 @@ async fn should_not_allow_deleting_an_auth_key_for_unauthenticated_users() {
     let auth_key = env
         .container
         .tracker_core_container
+        .persistence
+        .as_ref()
+        .expect("auth key test requires persistence")
         .keys_handler
         .generate_expiring_peer_key(Some(Duration::from_secs(seconds_valid)))
         .await
@@ -438,6 +477,9 @@ async fn should_allow_reloading_keys() {
     let seconds_valid = 60;
     env.container
         .tracker_core_container
+        .persistence
+        .as_ref()
+        .expect("auth key test requires persistence")
         .keys_handler
         .generate_expiring_peer_key(Some(Duration::from_secs(seconds_valid)))
         .await
@@ -467,12 +509,24 @@ async fn should_fail_when_keys_cannot_be_reloaded() {
 
     env.container
         .tracker_core_container
+        .persistence
+        .as_ref()
+        .expect("auth key test requires persistence")
         .keys_handler
         .generate_expiring_peer_key(Some(Duration::from_secs(seconds_valid)))
         .await
         .unwrap();
 
-    force_database_error(&env.container.tracker_core_container.database_stores.schema_migrator).await;
+    force_database_error(
+        &env.container
+            .tracker_core_container
+            .persistence
+            .as_ref()
+            .expect("auth key test requires persistence")
+            .database_stores
+            .schema_migrator,
+    )
+    .await;
 
     let response = ApiHttpClient::new(env.get_connection_info())
         .unwrap()
@@ -499,6 +553,9 @@ async fn should_not_allow_reloading_keys_for_unauthenticated_users() {
     let seconds_valid = 60;
     env.container
         .tracker_core_container
+        .persistence
+        .as_ref()
+        .expect("auth key test requires persistence")
         .keys_handler
         .generate_expiring_peer_key(Some(Duration::from_secs(seconds_valid)))
         .await
@@ -645,7 +702,16 @@ mod deprecated_generate_key_endpoint {
 
         let env = Started::new(&configuration::ephemeral_private().into()).await;
 
-        force_database_error(&env.container.tracker_core_container.database_stores.schema_migrator).await;
+        force_database_error(
+            &env.container
+                .tracker_core_container
+                .persistence
+                .as_ref()
+                .expect("auth key test requires persistence")
+                .database_stores
+                .schema_migrator,
+        )
+        .await;
 
         let request_id = Uuid::new_v4();
         let seconds_valid = 60;

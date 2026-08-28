@@ -2,7 +2,6 @@ use std::sync::Arc;
 
 use torrust_server_lib::registar::Registar;
 use torrust_tracker_configuration::v3_0_0::Configuration;
-use torrust_tracker_configuration::v3_0_0::database::Database;
 use torrust_tracker_configuration::v3_0_0::tracker_api::HttpApi;
 use torrust_tracker_core::container::TrackerCoreContainer;
 use torrust_tracker_http_core::container::{HttpTrackerCoreContainer, HttpTrackerCoreServices};
@@ -71,21 +70,14 @@ impl AppContainer {
 
         // Core
 
-        // Temporary fixed-SQLite compatibility bridge: retain persistence when
-        // v3 omits `core.database`. An explicit v3 database configuration must
-        // take precedence over the compatibility fallback.
-        let database_compatibility_bridge = core_config
-            .database
-            .clone()
-            .unwrap_or_else(fixed_sqlite_database_compatibility_bridge);
         let tracker_core_container = Arc::new(
             TrackerCoreContainer::initialize_from(
                 &core_config,
                 &swarm_coordination_registry_container,
-                Some(&database_compatibility_bridge),
+                core_config.database.as_ref(),
             )
             .await
-            .expect("the configured database or fixed-SQLite compatibility bridge must provide persistence"),
+            .expect("tracker-core container initialization must succeed"),
         );
 
         // HTTP
@@ -235,30 +227,22 @@ impl AppContainer {
     }
 }
 
-/// Supplies fixed SQLite persistence when the optional v3 database setting is
-/// omitted.
-///
-/// Remove this bridge only when persistence-free runtime composition becomes
-/// supported.
-fn fixed_sqlite_database_compatibility_bridge() -> Database {
-    Database::default()
-}
-
 #[cfg(test)]
 mod tests {
-    use torrust_tracker_configuration::v3_0_0::database::Database;
+    use torrust_tracker_configuration::v3_0_0::Configuration;
 
-    use super::fixed_sqlite_database_compatibility_bridge;
+    use super::AppContainer;
 
-    #[test]
-    fn it_should_supply_fixed_sqlite_persistence_through_the_temporary_compatibility_bridge() {
+    #[tokio::test]
+    async fn it_should_not_initialize_persistence_when_v3_omits_the_database() {
         // Arrange
-        let expected_database = Database::default();
+        let configuration = Configuration::default();
+        assert!(configuration.core.database.is_none());
 
         // Act
-        let database = fixed_sqlite_database_compatibility_bridge();
+        let container = AppContainer::initialize(&configuration).await;
 
         // Assert
-        assert_eq!(database, expected_database);
+        assert!(container.tracker_core_container.persistence.is_none());
     }
 }

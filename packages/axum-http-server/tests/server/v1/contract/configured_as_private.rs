@@ -26,6 +26,9 @@ mod and_receiving_an_announce_request {
         let expiring_key = env
             .container
             .tracker_core_container
+            .persistence
+            .as_ref()
+            .expect("private tracker test requires persistence")
             .keys_handler
             .generate_expiring_peer_key(Some(Duration::from_secs(60)))
             .await
@@ -212,6 +215,9 @@ mod receiving_an_scrape_request {
         let expiring_key = env
             .container
             .tracker_core_container
+            .persistence
+            .as_ref()
+            .expect("private tracker test requires persistence")
             .keys_handler
             .generate_expiring_peer_key(Some(Duration::from_secs(60)))
             .await

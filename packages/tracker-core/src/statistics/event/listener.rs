@@ -16,12 +16,10 @@ pub fn run_event_listener(
     receiver: Receiver,
     cancellation_token: CancellationToken,
     repository: &Arc<Repository>,
-    db_downloads_metric_repository: &Arc<DatabaseDownloadsMetricRepository>,
+    db_downloads_metric_repository: Option<Arc<DatabaseDownloadsMetricRepository>>,
     persistent_torrent_completed_stat: bool,
 ) -> JoinHandle<()> {
     let stats_repository = repository.clone();
-    let db_downloads_metric_repository: Arc<DatabaseDownloadsMetricRepository> = db_downloads_metric_repository.clone();
-
     tracing::info!(target: TRACKER_CORE_LOG_TARGET, "Starting tracker core event listener");
 
     tokio::spawn(async move {
@@ -42,7 +40,7 @@ async fn dispatch_events(
     mut receiver: Receiver,
     cancellation_token: CancellationToken,
     stats_repository: Arc<Repository>,
-    db_downloads_metric_repository: Arc<DatabaseDownloadsMetricRepository>,
+    db_downloads_metric_repository: Option<Arc<DatabaseDownloadsMetricRepository>>,
     persistent_torrent_completed_stat: bool,
 ) {
     loop {
