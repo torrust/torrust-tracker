@@ -23,13 +23,14 @@ Status legend:
 ## Processing Log
 
 - 2026-08-28: Started processing suggestions.
+- 2026-08-28: Completed processing suggestions; both Copilot threads were replied to and resolved.
 
 ## Suggestions
 
-| #   | Thread ID               | Path                                                                | URL                                                                         | Suggestion Summary                                           | Decision | Reply URL | Status | Thread State |
-| --- | ----------------------- | ------------------------------------------------------------------- | --------------------------------------------------------------------------- | ------------------------------------------------------------ | -------- | --------- | ------ | ------------ |
-| 1   | `PRRT_kwDOGp2yqc6dKlc4` | `docs/issues/open/1029-do-not-publish-docker-tags-with-v-prefix.md` | https://github.com/torrust/torrust-tracker/pull/2110#discussion_r3880556141 | Remove redundant inline `create-issue` skill-link marker.    | action   |           | OPEN   | OPEN         |
-| 2   | `PRRT_kwDOGp2yqc6dKldH` | `docs/issues/open/1029-do-not-publish-docker-tags-with-v-prefix.md` | https://github.com/torrust/torrust-tracker/pull/2110#discussion_r3880556171 | Add `docs/release_process.md` to semantic related artifacts. | action   |           | OPEN   | OPEN         |
+| #   | Thread ID               | Path                                                                | URL                                                                         | Suggestion Summary                                           | Decision | Reply URL                                                                   | Status | Thread State |
+| --- | ----------------------- | ------------------------------------------------------------------- | --------------------------------------------------------------------------- | ------------------------------------------------------------ | -------- | --------------------------------------------------------------------------- | ------ | ------------ |
+| 1   | `PRRT_kwDOGp2yqc6dKlc4` | `docs/issues/open/1029-do-not-publish-docker-tags-with-v-prefix.md` | https://github.com/torrust/torrust-tracker/pull/2110#discussion_r3880556141 | Remove redundant inline `create-issue` skill-link marker.    | action   | https://github.com/torrust/torrust-tracker/pull/2110#discussion_r3880745078 | DONE   | RESOLVED     |
+| 2   | `PRRT_kwDOGp2yqc6dKldH` | `docs/issues/open/1029-do-not-publish-docker-tags-with-v-prefix.md` | https://github.com/torrust/torrust-tracker/pull/2110#discussion_r3880556171 | Add `docs/release_process.md` to semantic related artifacts. | action   | https://github.com/torrust/torrust-tracker/pull/2110#discussion_r3880841081 | DONE   | RESOLVED     |
 
 ## Notes
 
