@@ -77,21 +77,29 @@ impl TrackerCoreContainer {
             None
         };
 
-        let db_downloads_metric_repository = persistence
-            .as_ref()
-            .map(|services| services.db_downloads_metric_repository.clone());
         let torrents_manager = Arc::new(TorrentsManager::new(
             core_config,
             &in_memory_torrent_repository,
-            db_downloads_metric_repository.clone(),
+            persistence
+                .as_ref()
+                .map(|services| services.db_downloads_metric_repository.clone()),
         ));
         let stats_repository = Arc::new(statistics::repository::Repository::new());
-        let announce_handler = Arc::new(AnnounceHandler::new(
-            core_config,
-            &whitelist_authorization,
-            &in_memory_torrent_repository,
-            db_downloads_metric_repository,
-        ));
+        let announce_handler = if core_config.tracker_policy.persistent_torrent_completed_stat {
+            let persistence = persistence.as_ref()?;
+            Arc::new(AnnounceHandler::new_with_persistent_completed_statistics(
+                core_config,
+                &whitelist_authorization,
+                &in_memory_torrent_repository,
+                &persistence.db_downloads_metric_repository,
+            ))
+        } else {
+            Arc::new(AnnounceHandler::new_public(
+                core_config,
+                &whitelist_authorization,
+                &in_memory_torrent_repository,
+            ))
+        };
         let scrape_handler = Arc::new(ScrapeHandler::new(&whitelist_authorization, &in_memory_torrent_repository));
 
         Some(Self {
@@ -111,6 +119,7 @@ impl TrackerCoreContainer {
 
 #[cfg(test)]
 mod tests {
+    use std::net::{IpAddr, Ipv4Addr};
     use std::sync::Arc;
 
     use torrust_tracker_configuration::v3_0_0::core::Core;
@@ -118,7 +127,8 @@ mod tests {
     use torrust_tracker_swarm_coordination_registry::container::SwarmCoordinationRegistryContainer;
 
     use super::TrackerCoreContainer;
-    use crate::test_helpers::tests::ephemeral_configuration;
+    use crate::announce_handler::PeersWanted;
+    use crate::test_helpers::tests::{ephemeral_configuration, sample_info_hash, sample_peer};
 
     #[tokio::test]
     async fn it_should_construct_a_tracker_core_container_without_persistence() {
@@ -151,5 +161,48 @@ mod tests {
 
         // Assert
         assert!(container.is_some_and(|container| container.persistence.is_some()));
+    }
+
+    #[tokio::test]
+    async fn it_should_load_persistent_completed_statistics_when_a_torrent_is_first_announced() {
+        // Arrange
+        let mut core_config = ephemeral_configuration();
+        core_config.tracker_policy.persistent_torrent_completed_stat = true;
+        let core_config = Arc::new(core_config);
+        let swarm_coordination_registry_container =
+            Arc::new(SwarmCoordinationRegistryContainer::initialize(SenderStatus::Disabled));
+        let info_hash = sample_info_hash();
+
+        let container = TrackerCoreContainer::initialize_from(
+            &core_config,
+            &swarm_coordination_registry_container,
+            core_config.database.as_ref(),
+        )
+        .await
+        .unwrap();
+        container
+            .persistence
+            .as_ref()
+            .unwrap()
+            .db_downloads_metric_repository
+            .save_torrent_downloads(&info_hash, 42)
+            .await
+            .unwrap();
+
+        // Act
+        let announce_data = container
+            .announce_handler
+            .handle_announcement(
+                &info_hash,
+                &mut sample_peer(),
+                &IpAddr::V4(Ipv4Addr::LOCALHOST),
+                None,
+                &PeersWanted::AsManyAsPossible,
+            )
+            .await
+            .unwrap();
+
+        // Assert
+        assert_eq!(announce_data.stats.downloads(), 42);
     }
 }

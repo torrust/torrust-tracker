@@ -114,24 +114,45 @@ pub struct AnnounceHandler {
     /// Repository for in-memory torrent data.
     in_memory_torrent_repository: Arc<InMemoryTorrentRepository>,
 
-    /// Repository for persistent torrent data (database).
-    db_downloads_metric_repository: Option<Arc<DatabaseDownloadsMetricRepository>>,
+    /// Persistent completed-statistics behavior, when configured.
+    persistent_completed_statistics: Option<PersistentCompletedStatistics>,
+}
+
+struct PersistentCompletedStatistics {
+    db_downloads_metric_repository: Arc<DatabaseDownloadsMetricRepository>,
 }
 
 impl AnnounceHandler {
-    /// Creates a new `AnnounceHandler`.
+    /// Creates an `AnnounceHandler` without persistent completed statistics.
     #[must_use]
-    pub fn new(
+    pub fn new_public(
         config: &Core,
         whitelist_authorization: &Arc<WhitelistAuthorization>,
         in_memory_torrent_repository: &Arc<InMemoryTorrentRepository>,
-        db_downloads_metric_repository: Option<Arc<DatabaseDownloadsMetricRepository>>,
     ) -> Self {
         Self {
             whitelist_authorization: whitelist_authorization.clone(),
             config: config.clone(),
             in_memory_torrent_repository: in_memory_torrent_repository.clone(),
-            db_downloads_metric_repository,
+            persistent_completed_statistics: None,
+        }
+    }
+
+    /// Creates an `AnnounceHandler` with persistent completed statistics.
+    #[must_use]
+    pub fn new_with_persistent_completed_statistics(
+        config: &Core,
+        whitelist_authorization: &Arc<WhitelistAuthorization>,
+        in_memory_torrent_repository: &Arc<InMemoryTorrentRepository>,
+        db_downloads_metric_repository: &Arc<DatabaseDownloadsMetricRepository>,
+    ) -> Self {
+        Self {
+            whitelist_authorization: whitelist_authorization.clone(),
+            config: config.clone(),
+            in_memory_torrent_repository: in_memory_torrent_repository.clone(),
+            persistent_completed_statistics: Some(PersistentCompletedStatistics {
+                db_downloads_metric_repository: db_downloads_metric_repository.clone(),
+            }),
         }
     }
 
@@ -180,20 +201,25 @@ impl AnnounceHandler {
         &self,
         info_hash: &InfoHash,
     ) -> Result<Option<NumberOfDownloads>, databases::error::Error> {
-        if self.config.tracker_policy.persistent_torrent_completed_stat && !self.in_memory_torrent_repository.contains(info_hash)
-        {
-            Ok(self
+        if self.in_memory_torrent_repository.contains(info_hash) {
+            return Ok(None);
+        }
+
+        match &self.persistent_completed_statistics {
+            Some(statistics) => Ok(statistics
                 .db_downloads_metric_repository
-                .as_ref()
-                .expect("persistent torrent completed statistics require a database")
                 .load_torrent_downloads(info_hash)
-                .await?)
-        } else {
-            Ok(None)
+                .await?),
+            None => Ok(None),
         }
     }
 
     /// Builds the announce data for the peer making the request.
+    ///
+    /// A later architectural refactor may move response decoration above
+    /// tracker core, separating peer selection from response statistics.
+    /// Until then, persistent completed metrics are loaded before this method
+    /// so the returned swarm metadata is complete for a first announcement.
     async fn build_announce_data(&self, info_hash: &InfoHash, peer: &peer::Peer, peers_wanted: &PeersWanted) -> AnnounceData {
         let peers = self
             .in_memory_torrent_repository

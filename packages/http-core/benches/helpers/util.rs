@@ -61,12 +61,20 @@ pub async fn initialize_core_tracker_services_with_config(
     let in_memory_key_repository = Arc::new(InMemoryKeyRepository::default());
     let authentication_service = Arc::new(AuthenticationService::new(&core_config, &in_memory_key_repository));
 
-    let announce_handler = Arc::new(AnnounceHandler::new(
-        &config.core,
-        &whitelist_authorization,
-        &in_memory_torrent_repository,
-        Some(db_downloads_metric_repository.clone()),
-    ));
+    let announce_handler = if config.core.tracker_policy.persistent_torrent_completed_stat {
+        Arc::new(AnnounceHandler::new_with_persistent_completed_statistics(
+            &config.core,
+            &whitelist_authorization,
+            &in_memory_torrent_repository,
+            &db_downloads_metric_repository,
+        ))
+    } else {
+        Arc::new(AnnounceHandler::new_public(
+            &config.core,
+            &whitelist_authorization,
+            &in_memory_torrent_repository,
+        ))
+    };
 
     // HTTP core stats
     let http_core_broadcaster = Broadcaster::default();

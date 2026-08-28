@@ -64,20 +64,45 @@ every `expect`:
 | Retain `expect` in handlers and repositories              | It converts a startup/composition fault into a late runtime panic on an event or request path.                                                                                           |
 | Implement full bootstrap error propagation now            | #2107 explicitly defers that cross-cutting error-flow refactor. This work introduces typed lower-layer errors where practical and leaves bootstrap propagation to the tracked follow-up. |
 
+### Deferred Announce Response Decoration
+
+`AnnounceHandler` currently needs persistent completed metrics before it can
+populate `AnnounceData.stats` for a first announcement of a torrent. That
+requirement makes a public handler and a persistent-statistics handler state a
+proportionate #2107 solution: protocol consumers retain one
+`Arc<AnnounceHandler>` API, while the container explicitly selects its state.
+Keeping the selected persistent-statistics state inside that one handler avoids
+duplicating the announce workflow merely to vary first-announce metric loading.
+
+A later architectural refactor may split `AnnounceHandler` into separate public
+and persistent-statistics types, or separate peer/swarm coordination from
+response decoration. Under the latter model, tracker core would return a
+peer-list result, and an upper layer would add metrics and policy fields to the
+protocol response. This could remove persistent metrics from the announce
+handler, but it changes a hot request path and the domain/protocol boundary.
+
+The response-decoration alternative is postponed because it must first define
+how peer updates and the enriched statistics share a consistent snapshot. It
+also requires a compatibility review of the HTTP and UDP mappings of
+`AnnounceData`, protocol-contract tests, and before/after announce-path
+benchmarks to establish that any extra data access or handoff does not degrade
+request latency. It requires a dedicated design issue before implementation
+and is out of scope for #2107.
+
 ## Inventory
 
 Status values: `TODO`, `IN_PROGRESS`, `DONE`, `NOT_APPLICABLE`.
 
-| ID  | Status         | Location                                                           | Current pattern                                                                                                                             | Planned disposition                                                                                                  |
-| --- | -------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| P1  | TODO           | `packages/tracker-core/src/announce_handler.rs`                    | Persistent completed-statistics configuration is paired with `Option<Arc<DatabaseDownloadsMetricRepository>>`; database load uses `expect`. | Compose one of two concrete handler states: a public state with no database repository or a persistent-statistics state with a required repository. |
-| P2  | TODO           | `packages/tracker-core/src/statistics/event/{listener,handler}.rs` | One listener handles both in-memory updates and optional database writes.                                                                   | Split into in-memory and persistence listeners with concrete dependencies.                                           |
-| P3  | TODO           | `src/bootstrap/jobs/tracker_core.rs`                               | One job starts when either configuration switch is enabled and passes a boolean plus optional repository.                                   | Explicitly start the mandatory in-memory listener and optional persistence listener from configuration.              |
-| P4  | TODO           | `src/bootstrap/persistence.rs`                                     | Persistent completed statistics requires a database but not enabled tracker usage statistics.                                               | Reject persistent completed statistics unless both prerequisites are enabled.                                        |
-| P5  | TODO           | `src/app.rs`                                                       | Private, listed, and persistent completed-statistics startup loading uses `expect` after configuration conditions.                          | Resolve concrete services in explicit configuration branches and return typed composition errors.                    |
-| P6  | TODO           | `packages/tracker-core/src/torrent/manager.rs`                     | Optional repository is unwrapped by `load_torrents_from_database`.                                                                          | Receive a required repository for this persistence-only operation or move the operation behind persistence services. |
-| P7  | TODO           | `packages/axum-rest-api-server/src/v1/routes.rs`                   | Private/listed route branches use `expect` after configuration guards before constructing adapters.                                         | Resolve concrete services in explicit configuration branches and return typed composition errors.                    |
-| P8  | NOT_APPLICABLE | Test fixtures changed on this branch                               | Tests use `expect` to assert persistence is present before exercising private/listed behavior.                                              | Retain as explicit test preconditions unless a production refactor changes fixture construction.                     |
+| ID  | Status         | Location                                                           | Current pattern                                                                                                                             | Planned disposition                                                                                                                |
+| --- | -------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| P1  | DONE           | `packages/tracker-core/src/announce_handler.rs`                    | Persistent completed-statistics configuration is paired with `Option<Arc<DatabaseDownloadsMetricRepository>>`; database load uses `expect`. | Composes public and persistent-statistics handler states through explicit constructors; the latter receives a required repository. |
+| P2  | DONE           | `packages/tracker-core/src/statistics/event/{listener,handler}.rs` | One listener handles both in-memory updates and optional database writes.                                                                   | Split into in-memory and persistence listeners with concrete dependencies.                                                         |
+| P3  | DONE           | `src/bootstrap/jobs/tracker_core.rs`                               | One job starts when either configuration switch is enabled and passes a boolean plus optional repository.                                   | Explicitly start the mandatory in-memory listener and optional persistence listener from configuration.                            |
+| P4  | DONE           | `src/bootstrap/persistence.rs`                                     | Persistent completed statistics requires a database but not enabled tracker usage statistics.                                               | Reject persistent completed statistics unless both prerequisites are enabled.                                                      |
+| P5  | TODO           | `src/app.rs`                                                       | Private, listed, and persistent completed-statistics startup loading uses `expect` after configuration conditions.                          | Resolve concrete services in explicit configuration branches and return typed composition errors.                                  |
+| P6  | TODO           | `packages/tracker-core/src/torrent/manager.rs`                     | Optional repository is unwrapped by `load_torrents_from_database`.                                                                          | Receive a required repository for this persistence-only operation or move the operation behind persistence services.               |
+| P7  | TODO           | `packages/axum-rest-api-server/src/v1/routes.rs`                   | Private/listed route branches use `expect` after configuration guards before constructing adapters.                                         | Resolve concrete services in explicit configuration branches and return typed composition errors.                                  |
+| P8  | NOT_APPLICABLE | Test fixtures changed on this branch                               | Tests use `expect` to assert persistence is present before exercising private/listed behavior.                                              | Retain as explicit test preconditions unless a production refactor changes fixture construction.                                   |
 
 ## Implementation Steps
 
@@ -85,9 +110,9 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `NOT_APPLICABLE`.
 - [x] Identify the expectation-based persistence invariants introduced by the current branch and classify test-only assertions separately.
 - [x] Maintainer reviewed the proposed scope and inventory.
 - [x] Select configuration-driven branching with concrete feature dependencies; reject the capability-enum abstraction.
-- [ ] Add and test the persistent-completed-statistics prerequisite on tracker usage statistics (P4).
-- [ ] Refactor persistent completed-statistics announce-time loading (P1): retain the existing `Arc<AnnounceHandler>` consumer API while `TrackerCoreContainer` constructs explicit public or persistent-statistics handler state with concrete dependencies.
-- [ ] Split persistent completed statistics from in-memory statistics event handling (P2-P3) with focused tests.
+- [x] Add and test the persistent-completed-statistics prerequisite on tracker usage statistics (P4).
+- [x] Refactor persistent completed-statistics announce-time loading (P1): retain the existing `Arc<AnnounceHandler>` consumer API while `TrackerCoreContainer` constructs explicit public or persistent-statistics handler state with concrete dependencies.
+- [x] Split persistent completed statistics from in-memory statistics event handling (P2-P3) with focused tests.
 - [ ] Refactor private-key and listed-whitelist startup and route composition (P5 and P7) with focused tests.
 - [ ] Refactor the persistence-only torrent startup operation (P6) with focused tests.
 - [ ] Run focused tests, formatting, and applicable quality checks.
@@ -115,3 +140,12 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `NOT_APPLICABLE`.
   the stable `Arc<AnnounceHandler>` API, so the container will select explicit
   public and persistent-statistics handler states internally. This is a
   feature-owned composition choice, not the rejected generic capability type.
+- 2026-08-28 - Completed P2-P4 in `e10d894b`: separated in-memory and
+  persistent-completed-statistics listeners, composed their jobs explicitly,
+  and rejected persistent statistics when tracker usage statistics is disabled.
+- 2026-08-28 - Completed P1. `AnnounceHandler` no longer combines the feature
+  configuration with an optional database repository or asserts its presence
+  on an announce path. A focused container test proves that the
+  persistent-statistics handler restores a stored completed count when the
+  torrent is first announced. The handler module, tracker-core integration
+  suite, formatting, and strict tracker-core Clippy checks passed.
