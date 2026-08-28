@@ -15,26 +15,21 @@ use torrust_tracker_rest_api_runtime_adapter::v1::container::TrackerHttpApiCoreC
 use super::context::{auth_key, stats, torrent, whitelist};
 
 /// Add the routes for the v1 API.
-///
-/// # Panics
-///
-/// Panics if private or listed tracker mode is configured without persistence
-/// services. Application bootstrap rejects those configurations before route
-/// composition.
 pub fn add(prefix: &str, router: Router, http_api_container: &Arc<TrackerHttpApiCoreContainer>) -> Router {
     let v1_prefix = format!("{prefix}/v1");
 
-    let auth_key_service = http_api_container.tracker_core_container.core_config.private.then(|| {
-        let auth_key_adapter = TrackerAuthKeyAdapter::new(
-            &http_api_container
-                .tracker_core_container
-                .persistence
-                .as_ref()
-                .expect("private tracker mode requires persistence")
-                .keys_handler,
-        );
-        Arc::new(AuthKeyApiService::new(Box::new(auth_key_adapter)))
-    });
+    let auth_key_service = if http_api_container.tracker_core_container.core_config.private {
+        http_api_container
+            .tracker_core_container
+            .persistence
+            .as_ref()
+            .map(|persistence| {
+                let auth_key_adapter = TrackerAuthKeyAdapter::new(&persistence.keys_handler);
+                Arc::new(AuthKeyApiService::new(Box::new(auth_key_adapter)))
+            })
+    } else {
+        None
+    };
     let router = auth_key::routes::add(&v1_prefix, router, auth_key_service.as_ref());
 
     let stats_adapter = TrackerStatsAdapter::new(
@@ -48,17 +43,18 @@ pub fn add(prefix: &str, router: Router, http_api_container: &Arc<TrackerHttpApi
     let stats_service = Arc::new(StatsApiService::new(Box::new(stats_adapter)));
     let router = stats::routes::add(&v1_prefix, router, &stats_service);
 
-    let whitelist_service = http_api_container.tracker_core_container.core_config.listed.then(|| {
-        let whitelist_adapter = TrackerWhitelistAdapter::new(
-            &http_api_container
-                .tracker_core_container
-                .persistence
-                .as_ref()
-                .expect("listed tracker mode requires persistence")
-                .whitelist_manager,
-        );
-        Arc::new(WhitelistApiService::new(Box::new(whitelist_adapter)))
-    });
+    let whitelist_service = if http_api_container.tracker_core_container.core_config.listed {
+        http_api_container
+            .tracker_core_container
+            .persistence
+            .as_ref()
+            .map(|persistence| {
+                let whitelist_adapter = TrackerWhitelistAdapter::new(&persistence.whitelist_manager);
+                Arc::new(WhitelistApiService::new(Box::new(whitelist_adapter)))
+            })
+    } else {
+        None
+    };
     let router = whitelist::routes::add(&v1_prefix, router, whitelist_service.as_ref());
 
     let tracker_adapter =

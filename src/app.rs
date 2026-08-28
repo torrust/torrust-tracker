@@ -102,48 +102,53 @@ fn warn_if_no_services_enabled(config: &Configuration) {
 }
 
 async fn load_peer_keys(config: &Configuration, app_container: &Arc<AppContainer>) {
-    if config.core.private {
-        app_container
-            .tracker_core_container
-            .persistence
-            .as_ref()
-            .expect("private tracker mode requires persistence")
-            .keys_handler
-            .load_peer_keys_from_database()
-            .await
-            .expect("Could not retrieve keys from database.");
+    if !config.core.private {
+        return;
     }
+
+    let Some(persistence) = app_container.tracker_core_container.persistence.as_ref() else {
+        return;
+    };
+
+    persistence
+        .keys_handler
+        .load_peer_keys_from_database()
+        .await
+        .expect("Could not retrieve keys from database.");
 }
 
 async fn load_whitelisted_torrents(config: &Configuration, app_container: &Arc<AppContainer>) {
-    if config.core.listed {
-        app_container
-            .tracker_core_container
-            .persistence
-            .as_ref()
-            .expect("listed tracker mode requires persistence")
-            .whitelist_manager
-            .load_whitelist_from_database()
-            .await
-            .expect("Could not load whitelist from database.");
+    if !config.core.listed {
+        return;
     }
+
+    let Some(persistence) = app_container.tracker_core_container.persistence.as_ref() else {
+        return;
+    };
+
+    persistence
+        .whitelist_manager
+        .load_whitelist_from_database()
+        .await
+        .expect("Could not load whitelist from database.");
 }
 
 async fn load_torrent_metrics(config: &Configuration, app_container: &Arc<AppContainer>) {
-    if config.core.tracker_policy.persistent_torrent_completed_stat {
-        torrust_tracker_core::statistics::persisted::load_persisted_metrics(
-            &app_container.tracker_core_container.stats_repository,
-            &app_container
-                .tracker_core_container
-                .persistence
-                .as_ref()
-                .expect("persistent torrent completed statistics require persistence")
-                .db_downloads_metric_repository,
-            CurrentClock::now(),
-        )
-        .await
-        .expect("Could not load persisted metrics from database.");
+    if !config.core.tracker_policy.persistent_torrent_completed_stat {
+        return;
     }
+
+    let Some(persistence) = app_container.tracker_core_container.persistence.as_ref() else {
+        return;
+    };
+
+    torrust_tracker_core::statistics::persisted::load_persisted_metrics(
+        &app_container.tracker_core_container.stats_repository,
+        &persistence.db_downloads_metric_repository,
+        CurrentClock::now(),
+    )
+    .await
+    .expect("Could not load persisted metrics from database.");
 }
 
 fn start_swarm_coordination_registry_event_listener(
@@ -393,7 +398,7 @@ mod tests {
     use torrust_tracker_configuration::v3_0_0::core::Core;
     use torrust_tracker_configuration::v3_0_0::udp_tracker::UdpTracker;
 
-    use super::{should_start_udp_tracker_services, start_tracker_core_in_memory_event_listener};
+    use super::{load_data_from_database, should_start_udp_tracker_services, start_tracker_core_in_memory_event_listener};
     use crate::bootstrap::jobs::manager::JobManager;
     use crate::container::AppContainer;
 
@@ -448,5 +453,18 @@ mod tests {
 
         job_manager.cancel();
         job_manager.wait_for_all(Duration::from_secs(1)).await;
+    }
+
+    #[tokio::test]
+    async fn it_should_skip_persistence_loaders_when_persistence_is_absent() {
+        let mut configuration = Configuration::default();
+        let app_container = Arc::new(AppContainer::initialize(&configuration).await);
+        assert!(app_container.tracker_core_container.persistence.is_none());
+
+        configuration.core.private = true;
+        configuration.core.listed = true;
+        configuration.core.tracker_policy.persistent_torrent_completed_stat = true;
+
+        load_data_from_database(&configuration, &app_container).await;
     }
 }
