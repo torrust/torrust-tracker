@@ -158,7 +158,7 @@ graph TD
 1 → 2 → 3 → 4 → 12
 1 → 2 → 3 → 8 → 12
 1 → secrecy → 8 → 12
-1 → 2 → 3 → 8 → 8a → 12 → persistence-free activation follow-up
+1 → 2 → 3 → 8 → 8a → 12 → 13 (#2107 persistence-free runtime activation)
 1 → 11 → 12
 ```
 
@@ -188,8 +188,8 @@ Subissues #5, #6, #7, #9 are independent and can run in parallel with the critic
 - **Subissue #8a** (#999) — After #1490, introduce the v3
   `Option<Database>` representation, optional container dependencies, and a
   tested temporary `Some(Database)` bridge. #1980 activates v3 consumers with
-  that bridge. A small post-#1980 follow-up passes actual `None`, invokes the
-  reusable validation matrix, and activates persistence-free runtime behavior.
+  that bridge. #2107 passes actual `None`, invokes the reusable validation
+  matrix, and activates persistence-free runtime behavior.
 - **Subissue #4** (#1417) — `public_url` flat field. After #3 (depends on `Network` placement decision). ~6 files.
 - **Subissue #10** (#1987) — Opt-in use of the HTTP announce `ip` parameter. After #3 and external prerequisite #1985.
 
