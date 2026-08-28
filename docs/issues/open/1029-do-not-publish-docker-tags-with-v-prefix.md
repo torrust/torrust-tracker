@@ -7,8 +7,8 @@ epic: null
 github-issue: 1029
 spec-path: docs/issues/open/1029-do-not-publish-docker-tags-with-v-prefix.md
 branch: "1029-do-not-publish-docker-tags-with-v-prefix"
-related-pr: 2110
-last-updated-utc: 2026-08-28 14:46
+related-pr: 2111
+last-updated-utc: 2026-08-28 14:59
 semantic-links:
   skill-links:
     - create-issue
@@ -84,6 +84,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Specification reviewed and approved by user/maintainer.
 - [x] Spec-only PR opened: https://github.com/torrust/torrust-tracker/pull/2110
 - [x] Spec-only PR merged into `develop` before implementation.
+- [ ] Implementation PR opened: https://github.com/torrust/torrust-tracker/pull/2111
 - [ ] Implementation completed.
 - [ ] Automatic verification completed (`linter all`, relevant tests, and pre-push checks when applicable).
 - [ ] Manual verification scenarios executed and recorded (status + evidence).
@@ -112,6 +113,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-08-28 14:46 UTC - GitHub Copilot - Verified the configured SemVer patterns against the
   metadata-action documentation and ran the mandatory pre-commit gate successfully. The first
   subsequent stable release remains required to verify the published Docker Hub tags.
+- 2026-08-28 14:59 UTC - GitHub Copilot - Opened implementation PR #2111 targeting `develop`.
 
 ## Acceptance Criteria
 
