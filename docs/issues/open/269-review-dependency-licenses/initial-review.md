@@ -126,22 +126,72 @@ the inventory or because its license text has been located.
 The following factual classification is complete. It is the technical context
 needed for the decision checklist; it is not a compatibility conclusion.
 
-| Finding                                 | Verified use and distribution context                                                                                                                                                                           | Decision still required                                                                                 |
-| --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| `bloom` 0.3.2                           | A normal dependency of `torrust-tracker-udp-core`, used by the UDP banning service's counting Bloom filter. Its dependency path reaches the tracker application and server packages.                            | Qualified legal review of continued runtime use, an exception, or replacement.                          |
-| `torrust-tracker-client` 0.1.0          | A workspace console-client package, explicitly `LGPL-3.0` and eligible for publication through `publish.workspace = true`. It normally depends on `bencode2json` and `torrust-tracker-client-lib`.              | Maintainer classification of the separately distributed client artifact and legal escalation if needed. |
-| `torrust-tracker-client-lib` 0.1.0      | A workspace client library, explicitly `LGPL-3.0` and eligible for publication through `publish.workspace = true`. It is used by the console client and tracker workspace packages.                             | Maintainer classification of library distribution and legal escalation if needed.                       |
-| `torrust-tracker-rest-api-client` 0.1.0 | A workspace REST client library, explicitly `LGPL-3.0` and eligible for publication through `publish.workspace = true`. It is a normal dependency of tracker workspace packages.                                | Maintainer classification of library distribution and legal escalation if needed.                       |
-| `openmetrics-parser` 0.4.4              | A normal dependency of `torrust-metrics`; its inverse dependency path reaches the tracker application and server packages.                                                                                      | Maintainer classification of runtime distribution and legal escalation if needed.                       |
-| `bencode2json` 0.1.0                    | A normal dependency of the publishable `torrust-tracker-client` console-client package. It is present in the complete locked graph; the current evidence does not show it as a main tracker runtime dependency. | Maintainer classification of console-client distribution and legal escalation if needed.                |
-| `webpki-root-certs` 1.0.9               | Reached through `reqwest` and `rustls-platform-verifier`; normal dependency paths reach the tracker application, server packages, and client artifacts.                                                         | Maintainer classification of runtime distribution and any notice-handling work.                         |
-| `ring`, `aws-lc-sys`, and `aws-lc-rs`   | TLS dependencies reached through Rustls, Axum server, Reqwest, and related normal dependency paths that reach tracker runtime packages.                                                                         | Maintainer classification of the compound expressions, bundled notices, and any legal escalation.       |
-| `encoding_rs` and `unicode-ident`       | Transitive dependencies in the locked workspace graph with verified package license texts and non-routine conjunctive declarations.                                                                             | Maintainer classification of the selected license paths, notices, and any legal escalation.             |
+| Finding                                 | Verified use and distribution context                                                                                                                                                                                                                                                                                                                                                                                                                        | Decision still required                                                                                                                   |
+| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `bloom` 0.3.2                           | A normal dependency of `torrust-tracker-udp-core`, used by the UDP banning service's counting Bloom filter. Its dependency path reaches the tracker application and server packages.                                                                                                                                                                                                                                                                         | Qualified legal review of continued runtime use, an exception, or replacement.                                                            |
+| `torrust-tracker-client` 0.1.0          | A workspace console-client package, explicitly `LGPL-3.0` and eligible for publication through `publish.workspace = true`. It normally depends on `bencode2json` and `torrust-tracker-client-lib`. The draft [client-extraction plan](../../drafts/1669-extract-torrust-tracker-client-to-standalone-repo.md) identifies its CLI binary as the primary artifact and intends a standalone repository; extraction remains blocked by unpublished dependencies. | Maintainer classification of the current separately distributed client artifact and legal escalation if needed; recheck after extraction. |
+| `torrust-tracker-client-lib` 0.1.0      | A workspace client library, explicitly `LGPL-3.0` and eligible for publication through `publish.workspace = true`. It is used by the console client and tracker workspace packages.                                                                                                                                                                                                                                                                          | Maintainer classification of library distribution and legal escalation if needed.                                                         |
+| `torrust-tracker-rest-api-client` 0.1.0 | A workspace REST client library, explicitly `LGPL-3.0` and eligible for publication through `publish.workspace = true`. It is a normal dependency of tracker workspace packages.                                                                                                                                                                                                                                                                             | Maintainer classification of library distribution and legal escalation if needed.                                                         |
+| `openmetrics-parser` 0.4.4              | A normal dependency of `torrust-metrics`; its inverse dependency path reaches the tracker application and server packages.                                                                                                                                                                                                                                                                                                                                   | Maintainer classification of runtime distribution and legal escalation if needed.                                                         |
+| `bencode2json` 0.1.0                    | A normal dependency of the publishable `torrust-tracker-client` console-client package. It is present in the complete locked graph; the current evidence does not show it as a main tracker runtime dependency.                                                                                                                                                                                                                                              | Maintainer classification of console-client distribution and legal escalation if needed.                                                  |
+| `webpki-root-certs` 1.0.9               | Reached through `reqwest` and `rustls-platform-verifier`; normal dependency paths reach the tracker application, server packages, and client artifacts.                                                                                                                                                                                                                                                                                                      | Maintainer classification of runtime distribution and any notice-handling work.                                                           |
+| `ring`, `aws-lc-sys`, and `aws-lc-rs`   | TLS dependencies reached through Rustls, Axum server, Reqwest, and related normal dependency paths that reach tracker runtime packages.                                                                                                                                                                                                                                                                                                                      | Maintainer classification of the compound expressions, bundled notices, and any legal escalation.                                         |
+| `encoding_rs` and `unicode-ident`       | Transitive dependencies in the locked workspace graph with verified package license texts and non-routine conjunctive declarations.                                                                                                                                                                                                                                                                                                                          | Maintainer classification of the selected license paths, notices, and any legal escalation.                                               |
 
 All package declarations, source links, and license-file evidence for these
 facts are retained in [evidence.md](evidence.md). A maintainer only needs to
 correct a factual statement above, record the resulting disposition, and seek
 qualified legal help when the checklist requires it.
+
+## Request for Qualified Legal Review: `bloom`
+
+Provide the following request and linked evidence to a qualified software
+licensing professional. The request asks for a written assessment; it does not
+ask maintainers to reach a legal conclusion themselves.
+
+### Factual Assumptions to Confirm
+
+- Torrust Tracker is licensed as `AGPL-3.0-only`.
+- `torrust-tracker-udp-core` declares `bloom` 0.3.2 as a normal dependency.
+- `bloom` 0.3.2 declares `GPL-2.0` and its bundled `LICENSE` is headed “GNU
+  GENERAL PUBLIC LICENSE, Version 2, June 1991.”
+- The tracker compiles `bloom` into its UDP banning service, where it provides
+  a counting Bloom filter. The dependency path reaches the tracker application
+  and server packages.
+- The project distributes source code, release binaries, and a container image.
+  Confirm the actual release channels and any additional distributed artifacts
+  before requesting the assessment.
+
+### Questions for the Reviewer
+
+1. Can the project distribute its source code, compiled tracker binaries, and
+   container image under `AGPL-3.0-only` while including `bloom` 0.3.2 under its
+   declared `GPL-2.0` license for this runtime use?
+2. What obligations apply to each actual distribution channel, including source
+   releases, binaries, and container images?
+3. Does operating the tracker over a network change any relevant obligations?
+4. If continued use is possible, what concrete license-text, notice,
+   attribution, source-availability, or other actions must the project take?
+5. If continued use is not possible under the current model, does the project
+   need to replace `bloom`, use a differently licensed version, or make a
+   project licensing decision?
+6. Does the answer change for separately distributed client libraries or tools?
+
+### Materials to Provide
+
+- This report and [evidence.md](evidence.md), especially E4 and E5.
+- The project license declaration in `Cargo.toml` and the repository `LICENSE`.
+- `packages/udp-core/Cargo.toml` and
+  `packages/udp-core/src/services/banning.rs`.
+- The exact release process and distribution channels used by the project.
+- Any proposed exception, replacement, relicensing, or notice-handling plan.
+
+### Requested Deliverable
+
+Ask for a written assessment that records the facts relied upon, a conclusion
+for the stated distribution model, required compliance actions, and any
+qualifications or facts that could change the answer. Link that assessment from
+the `bloom` finding before maintainers choose its disposition.
 
 ## Required Actions
 
