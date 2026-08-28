@@ -70,7 +70,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `NOT_APPLICABLE`.
 
 | ID  | Status         | Location                                                           | Current pattern                                                                                                                             | Planned disposition                                                                                                  |
 | --- | -------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| P1  | TODO           | `packages/tracker-core/src/announce_handler.rs`                    | Persistent completed-statistics configuration is paired with `Option<Arc<DatabaseDownloadsMetricRepository>>`; database load uses `expect`. | Construct this handler only in the persistence-enabled statistics branch, with a concrete repository.                |
+| P1  | TODO           | `packages/tracker-core/src/announce_handler.rs`                    | Persistent completed-statistics configuration is paired with `Option<Arc<DatabaseDownloadsMetricRepository>>`; database load uses `expect`. | Compose one of two concrete handler states: a public state with no database repository or a persistent-statistics state with a required repository. |
 | P2  | TODO           | `packages/tracker-core/src/statistics/event/{listener,handler}.rs` | One listener handles both in-memory updates and optional database writes.                                                                   | Split into in-memory and persistence listeners with concrete dependencies.                                           |
 | P3  | TODO           | `src/bootstrap/jobs/tracker_core.rs`                               | One job starts when either configuration switch is enabled and passes a boolean plus optional repository.                                   | Explicitly start the mandatory in-memory listener and optional persistence listener from configuration.              |
 | P4  | TODO           | `src/bootstrap/persistence.rs`                                     | Persistent completed statistics requires a database but not enabled tracker usage statistics.                                               | Reject persistent completed statistics unless both prerequisites are enabled.                                        |
@@ -86,7 +86,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `NOT_APPLICABLE`.
 - [x] Maintainer reviewed the proposed scope and inventory.
 - [x] Select configuration-driven branching with concrete feature dependencies; reject the capability-enum abstraction.
 - [ ] Add and test the persistent-completed-statistics prerequisite on tracker usage statistics (P4).
-- [ ] Refactor persistent completed-statistics announce-time loading (P1) with focused tests.
+- [ ] Refactor persistent completed-statistics announce-time loading (P1): retain the existing `Arc<AnnounceHandler>` consumer API while `TrackerCoreContainer` constructs explicit public or persistent-statistics handler state with concrete dependencies.
 - [ ] Split persistent completed statistics from in-memory statistics event handling (P2-P3) with focused tests.
 - [ ] Refactor private-key and listed-whitelist startup and route composition (P5 and P7) with focused tests.
 - [ ] Refactor the persistence-only torrent startup operation (P6) with focused tests.
@@ -111,3 +111,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `NOT_APPLICABLE`.
 - 2026-08-28 - The maintainer required this specification to be committed
   before implementation begins. P1-P7 remain planned until source changes are
   reviewed, validated, and committed separately.
+- 2026-08-28 - Refined P1 after tracing HTTP and UDP consumers. They depend on
+  the stable `Arc<AnnounceHandler>` API, so the container will select explicit
+  public and persistent-statistics handler states internally. This is a
+  feature-owned composition choice, not the rejected generic capability type.
