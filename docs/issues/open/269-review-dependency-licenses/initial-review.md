@@ -71,7 +71,7 @@ Use this report structure for each twice-yearly review.
 
 | Finding                                                                                                                              | Evidence   | Status   | Required disposition                                                                                         |
 | ------------------------------------------------------------------------------------------------------------------------------------ | ---------- | -------- | ------------------------------------------------------------------------------------------------------------ |
-| `bloom` 0.3.2 declares `GPL-2.0` and is a direct normal dependency of `torrust-tracker-udp-core`, reaching tracker runtime packages. | E4, E5     | BLOCKED  | Obtain qualified legal review before approving continued use, an exception, or replacement.                  |
+| `bloom` 0.3.2 declares `GPL-2.0` and is a direct normal dependency of `torrust-tracker-udp-core`, reaching tracker runtime packages. | E4, E5     | BLOCKED  | Obtain qualified legal review before approving continued use or an exception. [Issue #2114](https://github.com/torrust/torrust-tracker/issues/2114) evaluates removal. |
 | `torrust-tracker-client` 0.1.0 declares `LGPL-3.0`.                                                                                  | E1, E2     | PENDING  | Classify distribution and licensing obligations; obtain maintainer approval or legal escalation.             |
 | `torrust-tracker-client-lib` 0.1.0 declares `LGPL-3.0`.                                                                              | E1, E2     | PENDING  | Classify distribution and licensing obligations; obtain maintainer approval or legal escalation.             |
 | `torrust-tracker-rest-api-client` 0.1.0 declares `LGPL-3.0`.                                                                         | E1, E2     | PENDING  | Classify distribution and licensing obligations; obtain maintainer approval or legal escalation.             |
@@ -155,6 +155,10 @@ ask maintainers to reach a legal conclusion themselves.
 - `torrust-tracker-udp-core` declares `bloom` 0.3.2 as a normal dependency.
 - `bloom` 0.3.2 declares `GPL-2.0` and its bundled `LICENSE` is headed “GNU
   GENERAL PUBLIC LICENSE, Version 2, June 1991.”
+- Its source files contain notices that state GPL version 2 “or (at your
+  option) any later version.” Upstream clarification [issue #11](https://github.com/nicklan/bloom-rs/issues/11),
+  requesting a metadata correction, remains unresolved; the repository appears
+  inactive.
 - The tracker compiles `bloom` into its UDP banning service, where it provides
   a counting Bloom filter. The dependency path reaches the tracker application
   and server packages.
@@ -167,15 +171,18 @@ ask maintainers to reach a legal conclusion themselves.
 1. Can the project distribute its source code, compiled tracker binaries, and
    container image under `AGPL-3.0-only` while including `bloom` 0.3.2 under its
    declared `GPL-2.0` license for this runtime use?
-2. What obligations apply to each actual distribution channel, including source
+2. Do the source-file notices establish a GPL-2.0-or-later grant despite the
+   published Cargo metadata, and may the project rely on that interpretation
+   without a response from the apparently inactive upstream repository?
+3. What obligations apply to each actual distribution channel, including source
    releases, binaries, and container images?
-3. Does operating the tracker over a network change any relevant obligations?
-4. If continued use is possible, what concrete license-text, notice,
+4. Does operating the tracker over a network change any relevant obligations?
+5. If continued use is possible, what concrete license-text, notice,
    attribution, source-availability, or other actions must the project take?
-5. If continued use is not possible under the current model, does the project
+6. If continued use is not possible under the current model, does the project
    need to replace `bloom`, use a differently licensed version, or make a
    project licensing decision?
-6. Does the answer change for separately distributed client libraries or tools?
+7. Does the answer change for separately distributed client libraries or tools?
 
 ### Materials to Provide
 
@@ -195,13 +202,16 @@ the `bloom` finding before maintainers choose its disposition.
 
 ## Required Actions
 
-1. Obtain and record qualified legal guidance for `bloom` before any
-   compatibility decision or exception.
-2. Complete the [Maintainer Decision Checklist](#maintainer-decision-checklist)
+1. [Issue #2114](https://github.com/torrust/torrust-tracker/issues/2114) was
+   created to evaluate removing `bloom`. It is a technical investigation, not
+   an approval to remove the dependency or a legal compatibility conclusion.
+2. Obtain and record qualified legal guidance for `bloom` before approving
+   continued use or an exception.
+3. Complete the [Maintainer Decision Checklist](#maintainer-decision-checklist)
    for all five LGPL, CDLA, and conjunctive findings.
-3. Obtain explicit unanimous active-maintainer approval after the blocked items
+4. Obtain explicit unanimous active-maintainer approval after the blocked items
    have a recorded disposition. Until then, retain this report as blocked.
-4. Create focused remediation issues for each unapproved finding. No automatic
+5. Create focused remediation issues for each unapproved finding. No automatic
    enforcement should be added as part of this review.
 
 ## Automation Decision

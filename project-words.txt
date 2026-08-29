@@ -511,6 +511,7 @@ urlencode
 uroot
 usize
 valgrind
+valuevec
 vmlinux
 vtable
 vulns

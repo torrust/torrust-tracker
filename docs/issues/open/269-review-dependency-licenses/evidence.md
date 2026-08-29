@@ -96,11 +96,18 @@ cargo license --avoid-dev-deps --json | jq \
   `unicode-ident` 1.0.24.
 - **Observation:** Each manifest matches the declared expression in the
   inventory. Each package includes one or more license files. `bloom` declares
-  `GPL-2.0`; the remaining packages have the non-routine or conjunctive
-  expressions listed in the report.
+  `GPL-2.0`; its `src/lib.rs`, `src/bloom.rs`, and `src/valuevec.rs` each carry
+  a notice permitting redistribution and modification under GPL version 2 “or
+  (at your option) any later version.” The remaining packages have the
+  non-routine or conjunctive expressions listed in the report.
 - **Published-source records:**
   - [`bloom` 0.3.2](https://crates.io/crates/bloom/0.3.2): upstream
-    [repository](https://github.com/nicklan/bloom-rs), `LICENSE` (GPL-2.0).
+    [repository](https://github.com/nicklan/bloom-rs), `LICENSE` (GPL-2.0), and
+    unresolved [upstream clarification issue #11](https://github.com/nicklan/bloom-rs/issues/11).
+    The issue requests a GPL-2.0-or-later metadata correction; it was opened on
+    2024-12-10 and had no maintainer response, linked change, or published
+    correction when checked on 2026-08-28. The upstream repository's most
+    recent commit predates the review by approximately a decade.
   - [`webpki-root-certs` 1.0.9](https://crates.io/crates/webpki-root-certs/1.0.9):
     upstream [revision](https://github.com/rustls/webpki-roots/commit/0a553dbc8b3f18ea05c4f881cffa3f2d005d0d30),
     `LICENSE` (CDLA-Permissive-2.0).
@@ -121,9 +128,10 @@ cargo license --avoid-dev-deps --json | jq \
     upstream [tag](https://github.com/dtolnay/unicode-ident/tree/1.0.24),
     `LICENSE-APACHE`, `LICENSE-MIT`, and `LICENSE-UNICODE`.
 - **Conclusion:** The declared metadata is independently reproducible from the
-  installed package sources and immutable published artifacts. The texts and
-  distribution obligations still need maintainer classification, and `bloom`
-  needs qualified legal review.
+  installed package sources and immutable published artifacts. The `bloom`
+  source notices and Cargo metadata conflict, and upstream has not clarified
+  the intended declaration. The texts and distribution obligations still need
+  maintainer classification, and `bloom` needs qualified legal review.
 - **Report Links:** [Findings](initial-review.md#findings) and
   [Required Actions](initial-review.md#required-actions).
 
