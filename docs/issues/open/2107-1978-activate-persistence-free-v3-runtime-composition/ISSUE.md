@@ -11,7 +11,7 @@ related-pr: 2112
 depends-on:
   - 999
   - 1980
-last-updated-utc: 2026-08-29 10:18
+last-updated-utc: 2026-08-29 10:43
 semantic-links:
   skill-links:
     - create-issue
@@ -29,6 +29,7 @@ semantic-links:
     - docs/issues/open/2107-1978-activate-persistence-free-v3-runtime-composition/bootstrap-error-propagation-draft.md
     - docs/issues/open/2107-1978-activate-persistence-free-v3-runtime-composition/manual-t2-rest-route-contract.md
     - docs/issues/open/2107-1978-activate-persistence-free-v3-runtime-composition/manual-t3-persistence-free-runtime.md
+    - docs/issues/open/2107-1978-activate-persistence-free-v3-runtime-composition/manual-m2-persistence-requirements.md
 ---
 
 # Issue #2107 - Activate persistence-free v3 runtime composition
@@ -222,12 +223,17 @@ implementation record and its deferred design boundaries.
   #144 remains the deferred next-major completed-metric provenance work.
   T4-T7 remain open; no issue-wide driver, container, transition, or complete
   manual-evidence claim is made.
+- 2026-08-29 10:43 UTC - GitHub Copilot - Completed M2 against the active v3
+  bootstrap. With no `[core.database]`, independently enabling `listed`,
+  `private`, or persistent completed metrics produced its stable
+  capability-specific requirement diagnostic in `setup` before application
+  composition. See `manual-m2-persistence-requirements.md`.
 
 ## Acceptance Criteria
 
 - [x] AC1: Active v3 bootstrap evaluates the centralized persistence-requirement
       matrix before application composition.
-- [ ] AC2: With no `[core.database]`, each enabled required capability fails
+- [x] AC2: With no `[core.database]`, each enabled required capability fails
       deterministically before containers are constructed: `core.listed`,
       `core.private`, and persistent completed metrics.
 - [x] AC3: `http_api` alone is usable without `[core.database]`; no API-wide
@@ -287,7 +293,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`, `DEFERRED`.
 | ID  | Scenario                                      | Command/Steps                                                                                                                                | Expected Result                                                                                                                                   | Status | Evidence                                                                          |
 | --- | --------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | --------------------------------------------------------------------------------- |
 | M1  | Start public v3 tracker without persistence   | Start an ephemeral public HTTP and/or UDP tracker with no `[core.database]`, no required capabilities, and tracker usage statistics enabled. | Startup and protocol traffic succeed with no persistence artifacts.                                                                               | DONE   | Local source-tree evidence: `manual-t3-persistence-free-runtime.md`.              |
-| M2  | Reject all missing-persistence combinations   | Independently enable listing, private mode, and persistent completed metrics without `[core.database]`.                                      | Each configuration fails before composition with its stable requirement diagnostic.                                                               | TODO   | Record commands and output in #999 evidence.                                      |
+| M2  | Reject all missing-persistence combinations   | Independently enable listing, private mode, and persistent completed metrics without `[core.database]`.                                      | Each configuration fails before composition with its stable requirement diagnostic.                                                               | DONE   | `manual-m2-persistence-requirements.md`; #999 M2/AC5 updated.                    |
 | M3  | Initialize configured drivers                 | Start each supported configured driver with a persistence-required capability enabled.                                                       | The selected driver and complete shared migrations initialize normally.                                                                           | TODO   | Record driver-specific environment and evidence in #999 artifacts.                |
 | M4  | REST API persistence-free route contract      | Start `http_api` with no persistence, exercise torrent/stats/metrics routes and disabled whitelist/key routes.                               | API starts; in-memory routes remain available; disabled direct capability routes return controlled HTTP 409 responses without persistence access. | DONE   | Local source-tree evidence: `manual-t3-persistence-free-runtime.md`.              |
 | M5  | Repeat baseline no-persistence run            | Follow `baseline-e2e-verification.md` with the active v3 runtime and no `[core.database]`.                                                   | Tracker remains available without a database file, connection, or migration.                                                                      | TODO   | Append command, logs, artifact inspection, and revision to the baseline artifact. |
@@ -298,7 +304,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`, `DEFERRED`.
 | AC ID | Status (`TODO`/`DONE`) | Evidence                                                                                                                                                                                                      |
 | ----- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | AC1   | DONE                   | Bootstrap wiring and focused root bootstrap tests                                                                                                                                                             |
-| AC2   | TODO                   | One test and manual record per matrix capability                                                                                                                                                              |
+| AC2   | DONE                   | Focused matrix tests plus M2 local runtime evidence in `manual-m2-persistence-requirements.md`.                                                                                                                |
 | AC3   | DONE                   | REST API started and served health plus torrent routes with `database: null`; `manual-t3-persistence-free-runtime.md`.                                                                                        |
 | AC4   | DONE                   | Local HTTP and UDP announces passed with `database: null`; `manual-t3-persistence-free-runtime.md`.                                                                                                           |
 | AC5   | TODO                   | Constructor tests plus isolated artifact inspection                                                                                                                                                           |
