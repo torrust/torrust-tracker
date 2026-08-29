@@ -104,6 +104,15 @@ later typed startup-error refactor should report this impossible state directly
 rather than relying on the validation order; that broader propagation work
 remains deferred by `bootstrap-error-propagation-draft.md`.
 
+### Torrent Restoration Operation
+
+`TorrentsManager::load_torrents_from_database` is a persistence-only operation,
+but no production startup path currently invokes it. P6 therefore must not add
+a startup operation merely to relocate an optional dependency. The manager will
+retain only the dependencies needed for its always-available cleanup behavior,
+and the restoration operation will receive its required completed-downloads
+repository directly from any future persistence-enabled caller.
+
 ## Inventory
 
 Status values: `TODO`, `IN_PROGRESS`, `DONE`, `NOT_APPLICABLE`.
@@ -115,7 +124,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `NOT_APPLICABLE`.
 | P3  | DONE           | `src/bootstrap/jobs/tracker_core.rs`                               | One job starts when either configuration switch is enabled and passes a boolean plus optional repository.                                   | Explicitly start the mandatory in-memory listener and optional persistence listener from configuration.                                                                |
 | P4  | DONE           | `src/bootstrap/persistence.rs`                                     | Persistent completed statistics requires a database but not enabled tracker usage statistics.                                               | Reject persistent completed statistics unless both prerequisites are enabled.                                                                                          |
 | P5  | DONE           | `src/app.rs`                                                       | Private, listed, and persistent completed-statistics startup loading uses `expect` after configuration conditions.                          | Keep configuration as the feature gate; invoke loaders only with a concrete service. Bootstrap validation rejects invalid configurations before startup.               |
-| P6  | TODO           | `packages/tracker-core/src/torrent/manager.rs`                     | Optional repository is unwrapped by `load_torrents_from_database`.                                                                          | Receive a required repository for this persistence-only operation or move the operation behind persistence services.                                                   |
+| P6  | TODO           | `packages/tracker-core/src/torrent/manager.rs`                     | Optional repository is unwrapped by `load_torrents_from_database`.                                                                          | Remove the unused optional manager dependency; require the repository only at the persistence-only restoration operation.                                              |
 | P7  | DONE           | `packages/axum-rest-api-server/src/v1/routes.rs`                   | Private/listed route branches use `expect` after configuration guards before constructing adapters.                                         | Keep configuration as the feature gate; construct adapters only with a concrete service. Bootstrap validation rejects invalid configurations before route composition. |
 | P8  | NOT_APPLICABLE | Test fixtures changed on this branch                               | Tests use `expect` to assert persistence is present before exercising private/listed behavior.                                              | Retain as explicit test preconditions unless a production refactor changes fixture construction.                                                                       |
 
