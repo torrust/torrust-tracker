@@ -124,7 +124,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `NOT_APPLICABLE`.
 | P3  | DONE           | `src/bootstrap/jobs/tracker_core.rs`                               | One job starts when either configuration switch is enabled and passes a boolean plus optional repository.                                   | Explicitly start the mandatory in-memory listener and optional persistence listener from configuration.                                                                |
 | P4  | DONE           | `src/bootstrap/persistence.rs`                                     | Persistent completed statistics requires a database but not enabled tracker usage statistics.                                               | Reject persistent completed statistics unless both prerequisites are enabled.                                                                                          |
 | P5  | DONE           | `src/app.rs`                                                       | Private, listed, and persistent completed-statistics startup loading uses `expect` after configuration conditions.                          | Keep configuration as the feature gate; invoke loaders only with a concrete service. Bootstrap validation rejects invalid configurations before startup.               |
-| P6  | TODO           | `packages/tracker-core/src/torrent/manager.rs`                     | Optional repository is unwrapped by `load_torrents_from_database`.                                                                          | Remove the unused optional manager dependency; require the repository only at the persistence-only restoration operation.                                              |
+| P6  | DONE           | `packages/tracker-core/src/torrent/manager.rs`                     | Optional repository is unwrapped by `load_torrents_from_database`.                                                                          | Removed the unused optional manager dependency; the persistence-only restoration operation requires a concrete repository.                                           |
 | P7  | DONE           | `packages/axum-rest-api-server/src/v1/routes.rs`                   | Private/listed route branches use `expect` after configuration guards before constructing adapters.                                         | Keep configuration as the feature gate; construct adapters only with a concrete service. Bootstrap validation rejects invalid configurations before route composition. |
 | P8  | NOT_APPLICABLE | Test fixtures changed on this branch                               | Tests use `expect` to assert persistence is present before exercising private/listed behavior.                                              | Retain as explicit test preconditions unless a production refactor changes fixture construction.                                                                       |
 
@@ -138,7 +138,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `NOT_APPLICABLE`.
 - [x] Refactor persistent completed-statistics announce-time loading (P1): retain the existing `Arc<AnnounceHandler>` consumer API while `TrackerCoreContainer` constructs explicit public or persistent-statistics handler state with concrete dependencies.
 - [x] Split persistent completed statistics from in-memory statistics event handling (P2-P3) with focused tests.
 - [x] Refactor private-key and listed-whitelist startup and route composition (P5 and P7) with focused tests.
-- [ ] Refactor the persistence-only torrent startup operation (P6) with focused tests.
+- [x] Refactor the persistence-only torrent restoration operation (P6) with focused tests.
 - [ ] Run focused tests, formatting, and applicable quality checks.
 - [ ] Update this tracker with outcomes, evidence, and remaining follow-up work.
 
@@ -180,3 +180,8 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `NOT_APPLICABLE`.
   behavior, and focused REST contracts preserve the disabled-feature 409
   responses. Typed bootstrap-error propagation remains deferred by
   `bootstrap-error-propagation-draft.md`.
+- 2026-08-28 - Completed P6. No production startup path invokes torrent
+  restoration, so the refactor did not add one. `TorrentsManager` now owns only
+  cleanup dependencies; its restoration operation receives the concrete
+  completed-downloads repository from the persistence-enabled test caller.
+  Focused manager and tracker-core integration tests passed.
