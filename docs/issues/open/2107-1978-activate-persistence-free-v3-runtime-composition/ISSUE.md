@@ -11,7 +11,7 @@ related-pr: 2112
 depends-on:
   - 999
   - 1980
-last-updated-utc: 2026-08-29 10:43
+last-updated-utc: 2026-08-29 10:57
 semantic-links:
   skill-links:
     - create-issue
@@ -228,6 +228,11 @@ implementation record and its deferred design boundaries.
   `private`, or persistent completed metrics produced its stable
   capability-specific requirement diagnostic in `setup` before application
   composition. See `manual-m2-persistence-requirements.md`.
+- 2026-08-29 10:57 UTC - GitHub Copilot - Completed M5. The active v3 tracker
+  remained alive through a bounded isolated no-persistence baseline run. The
+  new working directory contained only its log and no database artifact; see
+  #999 `baseline-e2e-verification.md`. Supported-container verification remains
+  M6.
 
 ## Acceptance Criteria
 
@@ -290,24 +295,24 @@ implementation record and its deferred design boundaries.
 
 Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`, `DEFERRED`.
 
-| ID  | Scenario                                      | Command/Steps                                                                                                                                | Expected Result                                                                                                                                   | Status | Evidence                                                                          |
-| --- | --------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | --------------------------------------------------------------------------------- |
-| M1  | Start public v3 tracker without persistence   | Start an ephemeral public HTTP and/or UDP tracker with no `[core.database]`, no required capabilities, and tracker usage statistics enabled. | Startup and protocol traffic succeed with no persistence artifacts.                                                                               | DONE   | Local source-tree evidence: `manual-t3-persistence-free-runtime.md`.              |
-| M2  | Reject all missing-persistence combinations   | Independently enable listing, private mode, and persistent completed metrics without `[core.database]`.                                      | Each configuration fails before composition with its stable requirement diagnostic.                                                               | DONE   | `manual-m2-persistence-requirements.md`; #999 M2/AC5 updated.                    |
-| M3  | Initialize configured drivers                 | Start each supported configured driver with a persistence-required capability enabled.                                                       | The selected driver and complete shared migrations initialize normally.                                                                           | TODO   | Record driver-specific environment and evidence in #999 artifacts.                |
-| M4  | REST API persistence-free route contract      | Start `http_api` with no persistence, exercise torrent/stats/metrics routes and disabled whitelist/key routes.                               | API starts; in-memory routes remain available; disabled direct capability routes return controlled HTTP 409 responses without persistence access. | DONE   | Local source-tree evidence: `manual-t3-persistence-free-runtime.md`.              |
-| M5  | Repeat baseline no-persistence run            | Follow `baseline-e2e-verification.md` with the active v3 runtime and no `[core.database]`.                                                   | Tracker remains available without a database file, connection, or migration.                                                                      | TODO   | Append command, logs, artifact inspection, and revision to the baseline artifact. |
-| M6  | Start supported container without persistence | Build/run the normal image using the documented no-persistence v3 configuration and no driver override.                                      | Entrypoint does not select/install SQLite or create its database directory solely for tracker persistence.                                        | TODO   | Record image/configuration, output, and mounted-state inspection.                 |
+| ID  | Scenario                                      | Command/Steps                                                                                                                                | Expected Result                                                                                                                                   | Status | Evidence                                                             |
+| --- | --------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | -------------------------------------------------------------------- |
+| M1  | Start public v3 tracker without persistence   | Start an ephemeral public HTTP and/or UDP tracker with no `[core.database]`, no required capabilities, and tracker usage statistics enabled. | Startup and protocol traffic succeed with no persistence artifacts.                                                                               | DONE   | Local source-tree evidence: `manual-t3-persistence-free-runtime.md`. |
+| M2  | Reject all missing-persistence combinations   | Independently enable listing, private mode, and persistent completed metrics without `[core.database]`.                                      | Each configuration fails before composition with its stable requirement diagnostic.                                                               | DONE   | `manual-m2-persistence-requirements.md`; #999 M2/AC5 updated.        |
+| M3  | Initialize configured drivers                 | Start each supported configured driver with a persistence-required capability enabled.                                                       | The selected driver and complete shared migrations initialize normally.                                                                           | TODO   | Record driver-specific environment and evidence in #999 artifacts.   |
+| M4  | REST API persistence-free route contract      | Start `http_api` with no persistence, exercise torrent/stats/metrics routes and disabled whitelist/key routes.                               | API starts; in-memory routes remain available; disabled direct capability routes return controlled HTTP 409 responses without persistence access. | DONE   | Local source-tree evidence: `manual-t3-persistence-free-runtime.md`. |
+| M5  | Repeat baseline no-persistence run            | Follow `baseline-e2e-verification.md` with the active v3 runtime and no `[core.database]`.                                                   | Tracker remains available without a database file, connection, or migration.                                                                      | DONE   | #999 `baseline-e2e-verification.md`.                                 |
+| M6  | Start supported container without persistence | Build/run the normal image using the documented no-persistence v3 configuration and no driver override.                                      | Entrypoint does not select/install SQLite or create its database directory solely for tracker persistence.                                        | TODO   | Record image/configuration, output, and mounted-state inspection.    |
 
 ### Acceptance Verification
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence                                                                                                                                                                                                      |
 | ----- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | AC1   | DONE                   | Bootstrap wiring and focused root bootstrap tests                                                                                                                                                             |
-| AC2   | DONE                   | Focused matrix tests plus M2 local runtime evidence in `manual-m2-persistence-requirements.md`.                                                                                                                |
+| AC2   | DONE                   | Focused matrix tests plus M2 local runtime evidence in `manual-m2-persistence-requirements.md`.                                                                                                               |
 | AC3   | DONE                   | REST API started and served health plus torrent routes with `database: null`; `manual-t3-persistence-free-runtime.md`.                                                                                        |
 | AC4   | DONE                   | Local HTTP and UDP announces passed with `database: null`; `manual-t3-persistence-free-runtime.md`.                                                                                                           |
-| AC5   | TODO                   | Constructor tests plus isolated artifact inspection                                                                                                                                                           |
+| AC5   | DONE                   | Constructor tests plus M5 isolated artifact inspection in #999 `baseline-e2e-verification.md`.                                                                                                                |
 | AC6   | DONE                   | Focused listener lifecycle test and local run passed with tracker usage statistics enabled and `database: null`.                                                                                              |
 | AC7   | TODO                   | Driver/migration test evidence                                                                                                                                                                                |
 | AC8   | TODO                   | V2 regression coverage and review                                                                                                                                                                             |
