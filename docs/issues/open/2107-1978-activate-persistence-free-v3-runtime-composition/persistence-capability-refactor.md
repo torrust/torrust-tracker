@@ -124,7 +124,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `NOT_APPLICABLE`.
 | P3  | DONE           | `src/bootstrap/jobs/tracker_core.rs`                               | One job starts when either configuration switch is enabled and passes a boolean plus optional repository.                                   | Explicitly start the mandatory in-memory listener and optional persistence listener from configuration.                                                                |
 | P4  | DONE           | `src/bootstrap/persistence.rs`                                     | Persistent completed statistics requires a database but not enabled tracker usage statistics.                                               | Reject persistent completed statistics unless both prerequisites are enabled.                                                                                          |
 | P5  | DONE           | `src/app.rs`                                                       | Private, listed, and persistent completed-statistics startup loading uses `expect` after configuration conditions.                          | Keep configuration as the feature gate; invoke loaders only with a concrete service. Bootstrap validation rejects invalid configurations before startup.               |
-| P6  | DONE           | `packages/tracker-core/src/torrent/manager.rs`                     | Optional repository is unwrapped by `load_torrents_from_database`.                                                                          | Removed the unused optional manager dependency; the persistence-only restoration operation requires a concrete repository.                                           |
+| P6  | DONE           | `packages/tracker-core/src/torrent/manager.rs`                     | Optional repository is unwrapped by `load_torrents_from_database`.                                                                          | Removed the unused optional manager dependency; the persistence-only restoration operation requires a concrete repository.                                             |
 | P7  | DONE           | `packages/axum-rest-api-server/src/v1/routes.rs`                   | Private/listed route branches use `expect` after configuration guards before constructing adapters.                                         | Keep configuration as the feature gate; construct adapters only with a concrete service. Bootstrap validation rejects invalid configurations before route composition. |
 | P8  | NOT_APPLICABLE | Test fixtures changed on this branch                               | Tests use `expect` to assert persistence is present before exercising private/listed behavior.                                              | Retain as explicit test preconditions unless a production refactor changes fixture construction.                                                                       |
 
@@ -139,8 +139,8 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `NOT_APPLICABLE`.
 - [x] Split persistent completed statistics from in-memory statistics event handling (P2-P3) with focused tests.
 - [x] Refactor private-key and listed-whitelist startup and route composition (P5 and P7) with focused tests.
 - [x] Refactor the persistence-only torrent restoration operation (P6) with focused tests.
-- [ ] Run focused tests, formatting, and applicable quality checks.
-- [ ] Update this tracker with outcomes, evidence, and remaining follow-up work.
+- [x] Run focused tests, formatting, and applicable quality checks.
+- [x] Update this tracker with outcomes, evidence, and remaining follow-up work.
 
 ## Progress Log
 

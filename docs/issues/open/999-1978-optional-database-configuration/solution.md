@@ -72,11 +72,12 @@ requirement validation, and delivers the full persistence-free runtime
 guarantee. The final M1–M6 end-to-end evidence belongs to that follow-up.
 
 The intended activation-follow-up persistence-free deployment includes a public
-UDP tracker and/or public HTTP tracker. Listing, private mode, persistent
-completed statistics, and the management REST API remain disabled. The REST API
-can join a later persistence-free deployment only after API #144 implements its
-approved next-major contract. This deployment is the scope of the activation
-follow-up, not the effective runtime result of #999.
+UDP tracker and/or public HTTP tracker. Listing, private mode, and persistent
+completed statistics remain disabled. Issue #2107 also keeps the management
+REST API available, with direct private-key and whitelist routes returning the
+approved configuration-disabled response. Completed-metric provenance remains
+deferred to API #144. This deployment is the scope of the activation follow-up,
+not the effective runtime result of #999.
 
 This issue makes containers capable of representing absent persistence. The
 activation follow-up owns the minimum configuration-aware REST API behavior
@@ -137,7 +138,7 @@ diagnostic independently.
 | Whitelist                    | `core.listed = true`                                           | Startup fails before container construction.                                                                          | Error names `core.listed` and missing `[core.database]`.                                                    |
 | Private keys                 | `core.private = true`                                          | Startup fails before container construction.                                                                          | Error names `core.private` and missing `[core.database]`.                                                   |
 | Persistent completed metrics | `core.tracker_policy.persistent_torrent_completed_stat = true` | Startup fails before container construction.                                                                          | Error names the setting and missing `[core.database]`.                                                      |
-| Management REST API          | `http_api` is configured                                       | Remains persistence-required until the next-major API #144 work implements the approved disabled-capability contract. | Activation follow-up documents the temporary requirement; API #144 tests the persistence-free API contract. |
+| Management REST API          | `http_api` is configured                                       | Starts without persistence; direct disabled private-key and whitelist routes return HTTP `409`/`ActionStatus::Err`.  | #2107 route contracts prove disabled routes avoid persistence; API #144 owns completed-metric provenance.    |
 | Persistence-free tracker     | None of the persistence-backed conditions apply                | Startup succeeds without driver construction, migrations, database file, or network connection.                       | Activation follow-up proves no persistence artifacts.                                                       |
 
 This becomes deterministic startup validation when the activation follow-up
@@ -227,13 +228,11 @@ Protocol/application layers must represent this as a distinct
 path. Existing generic 500 database failures remain reserved for a configured
 database that fails operationally after startup.
 
-This response-model change is deferred to the next-major REST API subissue
-draft `docs/issues/drafts/144-make-rest-api-persistence-aware.md`, under
-GitHub EPIC issue #144. Therefore the post-#1980 persistence-free activation
-follow-up does not include the management REST API: it delivers a public UDP
-and/or HTTP tracker with no persistence. Until that subissue implements the
-approved REST contract, `http_api` remains a persistence-required capability in
-the activation follow-up.
+Issue #2107 implements this disabled-capability response model for the current
+REST API and keeps `http_api` available in persistence-free operation. The
+next-major REST API subissue draft
+`docs/issues/drafts/144-make-rest-api-persistence-aware.md`, under GitHub EPIC
+issue #144, retains the completed-metric provenance response-model work.
 
 The same #144 work must make persistence-dependent historical values explicit
 rather than silently presenting session values as lifetime values. Do not use a

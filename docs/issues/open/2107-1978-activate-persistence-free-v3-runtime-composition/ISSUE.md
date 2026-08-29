@@ -7,7 +7,7 @@ epic: 1978
 github-issue: 2107
 spec-path: docs/issues/open/2107-1978-activate-persistence-free-v3-runtime-composition/ISSUE.md
 branch: "2107-activate-persistence-free-v3-runtime-composition"
-related-pr: null
+related-pr: 2112
 depends-on:
   - 999
   - 1980

@@ -6,6 +6,7 @@ github-issue: null
 related-issues:
   - 999
   - 1980
+  - 2107
 last-updated-utc: 2026-08-25 00:00
 semantic-links:
   related-artifacts:
@@ -16,11 +17,11 @@ semantic-links:
 
 # Draft follow-up - Activate the v3 persistence-free runtime
 
-> **Approved planning draft:** Do not create this GitHub issue immediately.
-> After Issue #999 and Issue #1980 merge, refine this document against their
-> final implementation evidence and any newly discovered constraints. Then move
-> it to `docs/issues/drafts/`, obtain approval, and create the GitHub issue.
-> Create it earlier only if the staged compatibility bridge cannot remain small.
+> **Superseded planning draft:** This draft was refined, approved, and created
+> as GitHub issue #2107. Its implementation owns the persistence-free runtime
+> and disabled-capability REST behavior. Retain this file as the pre-issue
+> planning record; use #2107's issue-local documents for current requirements
+> and evidence.
 
 ## Goal
 
@@ -50,9 +51,9 @@ the runtime behavior without changing the public v3 configuration shape.
   database is configured.
 - Construct no persistence driver, stores, or migrations when persistence is
   absent and no capability requires it.
-- Keep `http_api` persistence-required until the next-major REST API work in
-  GitHub issue #144 implements the approved HTTP 409 configuration-disabled
-  response model and historical metric semantics.
+- Keep `http_api` available without persistence; direct disabled private-key
+  and whitelist routes return the approved HTTP 409 configuration-disabled
+  response. Historical metric semantics remain deferred to GitHub issue #144.
 - Update the container entrypoint so no-persistence v3 deployments do not
   require a driver override, database directory, or packaged SQLite install.
 - Defer persistence selection to actual v3 configuration; do not retain a
@@ -90,8 +91,8 @@ the runtime behavior without changing the public v3 configuration shape.
 | V3 optional representation      | Issue #999 Phase 3       | V3 parsing tests prove omitted `[core.database]` is `None`; configured drivers retain their behavior.                         | Preserve the temporary bridge and document that runtime persistence remains active. |
 | Optional dependency composition | Issue #999 Phase 3       | Container/constructor tests prove optional persistence dependencies are accepted; bootstrap passes explicit `Some(Database)`. | Provide the reusable validation matrix and final ADR.                               |
 | V3 consumer activation          | Issue #1980              | Consumer migration activates v3 while retaining the temporary bridge.                                                         | Record that omitted database is not yet honored at runtime.                         |
-| Persistence-free runtime        | This follow-up           | Actual `None` reaches composition; no driver/migration artifacts; M1–M6 and transition/container evidence pass.               | Update Issue #999 acceptance evidence and finalize operational guidance.            |
-| Persistence-free REST API       | API #144 next-major work | Disabled direct routes use HTTP 409; historical/session semantics are explicit.                                               | Remove the temporary `http_api` persistence requirement after review.               |
+| Persistence-free runtime        | GitHub issue #2107       | Actual `None` reaches composition; no driver/migration artifacts; M1–M6 and transition/container evidence pass.               | Update Issue #999 acceptance evidence and finalize operational guidance.            |
+| Persistence-free REST API       | GitHub issue #2107       | Disabled direct routes use HTTP 409; completed-metric provenance remains deferred to API #144.                                | #144 defines the next-major completed-metric response model.                        |
 
 The exact issue is intentionally not created until the preceding #999/#1980
 implementation evidence is reviewed. Before it is opened, reconcile this draft

@@ -97,9 +97,9 @@ inventoried.
   schema fragments: do not create feature-specific database schemas,
   feature-specific migration streams, or feature-specific migration selection.
 - Prepare optional persistence dependencies needed by the management REST API.
-  The post-activation follow-up keeps it persistence-required; API #144 later
-  makes it available without persistence and adds explicit
-  configuration-disabled direct-route responses.
+  The post-activation follow-up (#2107) makes it available without persistence
+  and adds explicit configuration-disabled direct-route responses. API #144
+  retains the deferred completed-metric provenance work.
 - Prepare a future persistence-awareness EPIC draft for remaining metric
   provenance and broader persistence-decoupling behavior.
 - Define the implementation, regression coverage, migration documentation, and
@@ -149,11 +149,11 @@ post-#1980 activation follow-up invokes it after v3 configuration loading and
 before `AppContainer` construction, once bootstrap receives actual
 `Option<Database>` rather than the temporary bridge.
 The management REST API does not require persistence in the target architecture.
-However, the approved HTTP 409 configuration-disabled response contract is
-deferred to next-major REST API work in GitHub issue #144. Until that work is
-implemented, `http_api` remains persistence-required in the activation
-follow-up; it must not reinterpret intentionally absent persistence as an
-operational database failure.
+Issue #2107 delivers the HTTP 409 configuration-disabled response contract for
+direct private-key and whitelist routes. `http_api` therefore does not belong
+in the persistence requirement matrix; it must not reinterpret intentionally
+absent persistence as an operational database failure. GitHub issue #144
+retains the separate next-major completed-metric provenance work.
 
 The initial persistence-required capabilities are `core.listed`, `core.private`,
 and `core.tracker_policy.persistent_torrent_completed_stat`. If implementation
