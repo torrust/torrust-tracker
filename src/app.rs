@@ -394,12 +394,13 @@ mod tests {
     use std::sync::Arc;
     use std::time::Duration;
 
+    use tokio_util::sync::CancellationToken;
     use torrust_tracker_configuration::v3_0_0::Configuration;
     use torrust_tracker_configuration::v3_0_0::core::Core;
     use torrust_tracker_configuration::v3_0_0::udp_tracker::UdpTracker;
 
-    use super::{load_data_from_database, should_start_udp_tracker_services, start_tracker_core_in_memory_event_listener};
-    use crate::bootstrap::jobs::manager::JobManager;
+    use super::{load_data_from_database, should_start_udp_tracker_services};
+    use crate::bootstrap::jobs::tracker_core;
     use crate::container::AppContainer;
 
     #[test]
@@ -447,12 +448,16 @@ mod tests {
         configuration.core.tracker_usage_statistics = true;
         assert!(configuration.core.database.is_none());
         let app_container = Arc::new(AppContainer::initialize(&configuration).await);
-        let mut job_manager = JobManager::new();
+        let cancellation_token = CancellationToken::new();
 
-        start_tracker_core_in_memory_event_listener(&configuration, &app_container, &mut job_manager);
+        let listener = tracker_core::start_in_memory_event_listener(&configuration, &app_container, cancellation_token.clone())
+            .expect("tracker usage statistics must start the in-memory listener");
 
-        job_manager.cancel();
-        job_manager.wait_for_all(Duration::from_secs(1)).await;
+        cancellation_token.cancel();
+        tokio::time::timeout(Duration::from_secs(1), listener)
+            .await
+            .expect("in-memory listener should stop after cancellation")
+            .expect("in-memory listener should not panic");
     }
 
     #[tokio::test]

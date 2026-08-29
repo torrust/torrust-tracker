@@ -1,7 +1,7 @@
 ---
 doc-type: issue
 issue-type: feature
-status: planned
+status: in-progress
 priority: p2
 epic: 1978
 github-issue: 2107
@@ -11,7 +11,7 @@ related-pr: 2112
 depends-on:
   - 999
   - 1980
-last-updated-utc: 2026-08-28 11:58
+last-updated-utc: 2026-08-29 10:18
 semantic-links:
   skill-links:
     - create-issue
@@ -47,22 +47,18 @@ persistence store, or database-backed service.
 
 ## Background
 
-V3 configuration already represents `core.database` as `Option<Database>`, but
-runtime composition currently substitutes `Database::default()` when the field
-is absent. Consequently, an omitted database table still starts SQLite
-persistence and executes the full shared migration set.
+Before this issue, runtime composition substituted `Database::default()` when
+the v3 `core.database: Option<Database>` field was absent. It consequently
+started SQLite persistence and ran the shared migrations. The bootstrap
+requirement check was also not active, and a persistence-free core container
+could not form a usable public service graph.
 
-The existing bootstrap validation function is also preparatory only: it is not
-called by active startup and covers the three core capabilities that require
-persistence. The management REST API is a critical operational feature and
-must remain available without persistence. Its key and whitelist routes must
-instead honor their associated feature configuration, rather than reaching a
-database merely because the routes are registered.
-
-Further, `TrackerCoreContainer::initialize_from(..., None)` currently returns
-no container rather than a usable persistence-free service graph. The HTTP and
-UDP containers, startup jobs, and tracker-core handlers therefore require a
-composition refactor, not merely removal of the temporary bridge.
+T1-T3 delivered bootstrap validation, a true persistence-free public
+HTTP/UDP/REST graph, and configuration-disabled `409` responses for direct
+key/whitelist operations. The P1-P7 follow-up refactor then removed introduced
+leaf-level persistence assumptions. The remaining work is T4-T7: configured
+driver lifecycle, the container entrypoint, transition coverage, and complete
+manual/documentation evidence.
 
 ## Scope
 
@@ -175,6 +171,14 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [ ] Acceptance criteria reviewed after implementation and updated with evidence
 - [ ] Issue closed and specification moved to `docs/issues/closed/`
 
+### Current Delivery Status
+
+T1-T3 and the implementation-tracker P1-P7 refactor are complete and have
+focused automated verification. The issue remains in progress because T4-T7
+still require configured-driver, container, transition, manual-evidence, and
+final acceptance work. See `persistence-capability-refactor.md` for the P1-P7
+implementation record and its deferred design boundaries.
+
 ### Progress Log
 
 - 2026-08-28 00:00 UTC - GitHub Copilot - Copied the post-#1980 activation-follow-up draft from #999 and reconciled it with merged runtime code. Confirmed that bridge removal alone cannot produce a usable persistence-free tracker; expanded planned scope to real public tracker composition and bootstrap validation. Initial draft temporarily classified `http_api` as persistence-required pending maintainer review.
@@ -202,10 +206,26 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   grouping database-backed services explicitly. Local public HTTP/UDP/REST
   verification with `database: null` passed; see
   `manual-t3-persistence-free-runtime.md`.
+- 2026-08-28 - GitHub Copilot - Completed P1-P4. Tracker-core now composes
+  public or persistent-statistics announce state explicitly, splits in-memory
+  and persistent completed-statistics listeners, and rejects persistent
+  completed statistics unless tracker usage statistics is enabled. Focused
+  tracker-core and bootstrap validation checks passed.
+- 2026-08-28 - GitHub Copilot - Completed P5-P7. Startup loaders and REST
+  private-key/whitelist adapter composition retain configuration as the feature
+  gate and no longer assert optional persistence at leaf boundaries.
+  `TorrentsManager` receives its required completed-downloads repository only
+  for its persistence-only restoration operation. Focused application, REST,
+  manager, and tracker-core integration checks passed.
+- 2026-08-29 10:18 UTC - GitHub Copilot - Reconciled current normative
+  documentation. #2107 owns the delivered persistence-free REST behavior;
+  #144 remains the deferred next-major completed-metric provenance work.
+  T4-T7 remain open; no issue-wide driver, container, transition, or complete
+  manual-evidence claim is made.
 
 ## Acceptance Criteria
 
-- [ ] AC1: Active v3 bootstrap evaluates the centralized persistence-requirement
+- [x] AC1: Active v3 bootstrap evaluates the centralized persistence-requirement
       matrix before application composition.
 - [ ] AC2: With no `[core.database]`, each enabled required capability fails
       deterministically before containers are constructed: `core.listed`,
