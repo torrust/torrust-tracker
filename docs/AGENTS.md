@@ -41,8 +41,8 @@ For the full project context see the [root AGENTS.md](../AGENTS.md).
 
 | Artifact type                                  | Target location                                                                                                                     |
 | ---------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| New root ADR                                   | `docs/adrs/` — for repository-wide, multi-package, or inter-package decisions                                                       |
-| New package-local ADR                          | `packages/<package>/docs/adrs/` — for decisions owned only by an extractable package                                                |
+| New root ADR                                   | `docs/adrs/YYYYMMDDHHMMSS_snake_case_title.md` — for repository-wide, multi-package, or inter-package decisions                     |
+| New package-local ADR                          | `packages/<package>/docs/adrs/YYYYMMDDHHMMSS_snake_case_title.md` — for decisions owned only by an extractable package              |
 | New issue spec (before GitHub issue exists)    | `docs/issues/drafts/`                                                                                                               |
 | New issue spec (after GitHub issue created)    | `docs/issues/open/<number>-<short-slug>.md`, or `docs/issues/open/<number>-<short-slug>/ISSUE.md` when it has issue-local artifacts |
 | New refactor plan (before GitHub issue exists) | `docs/refactor-plans/drafts/`                                                                                                       |
