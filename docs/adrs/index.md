@@ -11,7 +11,7 @@ semantic-links:
 # Root ADR Index
 
 This index lists repository-level ADRs only. Package-local ADRs are listed in their owning
-package's `docs/adrs/index.md` and are not duplicated here. See
+`packages/<package>/docs/adrs/index.md` and are not duplicated here. See
 [Place ADRs by Decision Scope](20260830124000_place_adrs_by_decision_scope.md) for placement and
 supersession rules.
 
