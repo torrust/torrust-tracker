@@ -41,13 +41,20 @@ For the full project context see the [root AGENTS.md](../AGENTS.md).
 
 | Artifact type                                  | Target location                                                                                                                     |
 | ---------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| New ADR                                        | `docs/adrs/` — filename format: `YYYYMMDDHHMMSS_<short-slug>.md`                                                                    |
+| New root ADR                                   | `docs/adrs/YYYYMMDDHHMMSS_snake_case_title.md` — for repository-wide, multi-package, or inter-package decisions                     |
+| New package-local ADR                          | `packages/<package>/docs/adrs/YYYYMMDDHHMMSS_snake_case_title.md` — for decisions owned only by an extractable package              |
 | New issue spec (before GitHub issue exists)    | `docs/issues/drafts/`                                                                                                               |
 | New issue spec (after GitHub issue created)    | `docs/issues/open/<number>-<short-slug>.md`, or `docs/issues/open/<number>-<short-slug>/ISSUE.md` when it has issue-local artifacts |
 | New refactor plan (before GitHub issue exists) | `docs/refactor-plans/drafts/`                                                                                                       |
 | New refactor plan (after GitHub issue created) | `docs/refactor-plans/open/<number>-<short-slug>.md`                                                                                 |
 | New document template                          | `docs/templates/`                                                                                                                   |
 | New diagram or screenshot                      | `docs/media/` (or the relevant subdirectory)                                                                                        |
+
+Choose ADR placement by the decision's architectural scope, not the paths modified by the
+implementation. Root ADRs cover shared configuration, protocols, dependency policy, workspace
+conventions, and other cross-package contracts. A package-local ADR collection contains its own
+`README.md` and `index.md`; do not duplicate its entries in the root ADR index. See
+[`docs/adrs/20260830124000_place_adrs_by_decision_scope.md`](adrs/20260830124000_place_adrs_by_decision_scope.md).
 
 ## Markdown Frontmatter
 

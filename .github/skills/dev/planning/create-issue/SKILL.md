@@ -108,7 +108,12 @@ The draft must also include a verification policy that is explicit and enforceab
 
 During implementation, create an ADR when an important architectural decision
 emerges, even if the issue draft did not anticipate it. Link the ADR from the
-issue specification and update the architectural-decisions section.
+issue specification and update the architectural-decisions section. For each
+planned ADR, identify its expected root or package-local collection by decision
+scope: use `docs/adrs/` for repository-wide, multi-package, and inter-package
+decisions, and `packages/<package>/docs/adrs/` only for decisions owned solely
+by an extractable package. Do not choose placement only from the implementation
+paths expected to change.
 
 Use **placeholders** for the issue number until after creation (for example `github-issue: null`
 or `[To be assigned]` in the heading/body content).
