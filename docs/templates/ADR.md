@@ -10,6 +10,13 @@ semantic-links:
 
 # [Title]
 
+## Scope
+
+State whether this is a repository-level or package-local decision and why that scope determines
+its ADR collection. Use `docs/adrs/` for repository-wide, multi-package, and inter-package
+decisions. Use `packages/<package>/docs/adrs/` only for a decision owned solely by that extractable
+package; implementation-file paths alone do not determine scope.
+
 ## Description
 
 What is the issue motivating this decision? Provide enough context for future

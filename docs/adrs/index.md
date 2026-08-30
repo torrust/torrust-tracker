@@ -8,7 +8,12 @@ semantic-links:
     - docs/adrs/20260527175600_keep_protocol_and_domain_types_decoupled.md
 ---
 
-# ADR Index
+# Root ADR Index
+
+This index lists repository-level ADRs only. Package-local ADRs are listed in their owning
+package's `docs/adrs/index.md` and are not duplicated here. See
+[Place ADRs by Decision Scope](20260830124000_place_adrs_by_decision_scope.md) for placement and
+supersession rules.
 
 | ADR                                                                                                     | Date       | Title                                                               | Short Description                                                                                                                                                                                                                                     |
 | ------------------------------------------------------------------------------------------------------- | ---------- | ------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -34,6 +39,7 @@ semantic-links:
 | [20260822094338](20260822094338_adopt_secrecy_for_sensitive_values.md)                                  | 2026-08-22 | Adopt secrecy for sensitive values                                  | Use the current stable `secrecy::SecretString` directly for credentials; deserialize existing configuration syntax with serde, serialize only at explicit persistence boundaries, and expose values only at immediate runtime-consumption boundaries. |
 | [20260825193119](20260825193119_make_persistence_an_optional_application_composition_capability.md)     | 2026-08-25 | Make persistence an optional application-composition capability     | Schema v3 represents absent persistence with `Option<Database>` and resolves it at tracker-core composition while retaining tracker-core schema and migration ownership.                                                                              |
 | [20260826124959](20260826124959_use_explicit_identifiers_for_test_log_assertions.md)                    | 2026-08-26 | Use explicit identifiers for test log assertions                    | Keep the repository-owned bounded log-capture helper and use test-selected identifiers instead of automatic span propagation through concurrent execution.                                                                                            |
+| [20260830124000](20260830124000_place_adrs_by_decision_scope.md)                                        | 2026-08-30 | Place ADRs by decision scope                                        | Keep package-owned decisions with extractable packages; record repository-wide, multi-package, and inter-package decisions in the root collection.                                                                                                    |
 
 ## ADR Lifecycle
 
