@@ -70,8 +70,8 @@ Using the standard mapping defined above produces this following mapped tree:
 ```s
 storage/tracker/
 ├── lib
-│   ├── database
-│   │   └── sqlite3.db     => /var/lib/torrust/tracker/database/sqlite3.db [auto populated]
+│   ├── database           => created only when SQLite persistence is selected
+│   │   └── sqlite3.db     => /var/lib/torrust/tracker/database/sqlite3.db
 │   └── tls
 │       ├── localhost.crt  => /var/lib/torrust/tracker/tls/localhost.crt [user supplied]
 │       └── localhost.key  => /var/lib/torrust/tracker/tls/localhost.key [user supplied]
@@ -159,13 +159,22 @@ The following environmental variables can be set:
 
 - `TORRUST_TRACKER_CONFIG_TOML_PATH` - The in-container path to the tracker configuration file, (default: `"/etc/torrust/tracker/tracker.toml"`).
 - `TORRUST_TRACKER_CONFIG_OVERRIDE_HTTP_API__ACCESS_TOKENS__ADMIN` - Override of the admin token. If set, this value overrides any value set in the config.
-- `TORRUST_TRACKER_CONFIG_OVERRIDE_CORE__DATABASE__DRIVER` - The database type used for the container, (options: `sqlite3`, `mysql`, `postgresql`, default `sqlite3`). Please Note: This dose not override the database configuration within the `.toml` config file.
+- `TORRUST_TRACKER_CONFIG_OVERRIDE_CORE__DATABASE__DRIVER` - Optional selection of a packaged persistence configuration for a fresh `/etc/torrust/tracker/tracker.toml` (options: `sqlite3`, `mysql`, `postgresql`). When omitted, the container installs the packaged v3 public tracker configuration, which omits `[core.database]`. This does not override an existing mounted configuration file.
 - `TORRUST_TRACKER_CONFIG_TOML` - Load config from this environmental variable instead from a file, (i.e: `TORRUST_TRACKER_CONFIG_TOML=$(cat tracker-tracker.toml)`).
 - `USER_ID` - The user id for the runtime crated `torrust` user. Please Note: This user id should match the ownership of the host-mapped volumes, (default `1000`).
 - `UDP_PORT` - The port for the UDP tracker. This should match the port used in the configuration, (default `6969`).
 - `HTTP_PORT` - The port for the HTTP tracker. This should match the port used in the configuration, (default `7070`).
 - `API_PORT` - The port for the tracker API. This should match the port used in the configuration, (default `1212`).
 - `HEALTH_CHECK_API_PORT` - The port for the Health Check API. This should match the port used in the configuration, (default `1313`).
+
+#### Persistence-Free Default
+
+With no mounted `tracker.toml` and no database-driver override, the image
+installs `tracker.container.no-persistence.toml`. It starts public UDP and HTTP
+trackers plus the health API without `[core.database]`. The entrypoint does not
+create `/var/lib/torrust/tracker/database` or install a SQLite database in this
+mode. Supply a mounted v3 configuration for other listener and capability
+combinations.
 
 #### PostgreSQL backend notes
 

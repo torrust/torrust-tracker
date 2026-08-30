@@ -380,7 +380,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | M3  | Initialize configured driver                 | Start with each supported configured database driver and a required feature enabled.                                                       | Startup initializes the selected driver and applies migrations according to the approved lifecycle.                                                   | DONE   | #2107 `manual-m3-configured-driver-lifecycle.md`.                    |
 | M4  | Verify REST API contract                     | Exercise affected management endpoints with persistence disabled and enabled.                                                              | Each endpoint returns the approved, documented response rather than an unexpected runtime database error.                                             | TODO   | Phase 2 identifies routes and expected statuses.                     |
 | M5  | Re-run the original benchmark scenario       | Follow `baseline-e2e-verification.md` with the completed v3 runtime and no `[core.database]`.                                              | Tracker remains available without creating a database file, connecting to a database, or running migrations.                                          | DONE   | Final v3 source-tree run recorded in `baseline-e2e-verification.md`. |
-| M6  | Verify container startup without persistence | Build or run the supported container startup path with v3 database configuration omitted and all persistence-backed capabilities disabled. | The entrypoint does not require a database-driver override, install a default SQLite database, or create a database directory solely for the tracker. | TODO   | Phase 2 defines the exact image/configuration and evidence.          |
+| M6  | Verify container startup without persistence | Build or run the supported container startup path with v3 database configuration omitted and all persistence-backed capabilities disabled. | The entrypoint does not require a database-driver override, install a default SQLite database, or create a database directory solely for the tracker. | DONE   | #2107 `manual-m6-container-no-persistence.md`.                       |
 
 ### Acceptance Verification
 
@@ -396,7 +396,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | AC8   | DONE                   | Approved staged ordering in EPIC and migration guide      |
 | AC9   | DONE                   | V2 configuration tests and active explicit bridge review  |
 | AC10  | DONE                   | Final v3 M5 evidence in `baseline-e2e-verification.md`    |
-| AC11  | TODO                   | M6 container-startup evidence                             |
+| AC11  | DONE                   | #2107 M6 release-image no-persistence evidence            |
 | AC12  | DONE                   | `linter all` passed on 2026-08-25                         |
 | AC13  | TODO                   | Focused, relevant workspace, and M1–M6 evidence           |
 | AC14  | DONE                   | Phase 3 review; activation-owned criteria remain pending  |

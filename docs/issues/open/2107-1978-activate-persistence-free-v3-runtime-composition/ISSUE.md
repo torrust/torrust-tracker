@@ -11,7 +11,7 @@ related-pr: 2112
 depends-on:
   - 999
   - 1980
-last-updated-utc: 2026-08-29 21:45
+last-updated-utc: 2026-08-30 10:37
 semantic-links:
   skill-links:
     - create-issue
@@ -31,6 +31,7 @@ semantic-links:
     - docs/issues/open/2107-1978-activate-persistence-free-v3-runtime-composition/manual-t3-persistence-free-runtime.md
     - docs/issues/open/2107-1978-activate-persistence-free-v3-runtime-composition/manual-m2-persistence-requirements.md
     - docs/issues/open/2107-1978-activate-persistence-free-v3-runtime-composition/manual-m3-configured-driver-lifecycle.md
+    - docs/issues/open/2107-1978-activate-persistence-free-v3-runtime-composition/manual-m6-container-no-persistence.md
 ---
 
 # Issue #2107 - Activate persistence-free v3 runtime composition
@@ -148,15 +149,15 @@ manual/documentation evidence.
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| ID  | Status | Task                                      | Notes / Expected Output                                                                                                                                                   |
-| --- | ------ | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| T1  | DONE   | Activate persistence validation           | Active v3 bootstrap invokes the centralized check after configuration validation and before globals or containers are built.                                              |
-| T2  | DONE   | Compose capability-aware REST API         | Key and whitelist routes retain registration but short-circuit to `409`/`ActionStatus::Err` when their capability is disabled; their adapters are not constructed.        |
-| T3  | DONE   | Build persistence-free core graph         | Tracker-core now groups database stores and persistence-only services in optional `PersistenceServices`; public HTTP/UDP and REST composition has no database fallback.   |
-| T4  | DONE   | Preserve persistence-enabled composition  | SQLite, MySQL, and PostgreSQL configured-driver lifecycle suites passed, including complete-migration and idempotency coverage.                                           |
-| T5  | TODO   | Adapt supported container startup         | Define and test a no-persistence v3 configuration source; remove mandatory driver override/default SQLite installation while retaining non-persistence entrypoint duties. |
-| T6  | TODO   | Add regression and transition tests       | Cover no-side-effect startup, public protocol behavior, validation failures, configured drivers, and non-destructive restart transitions.                                 |
-| T7  | TODO   | Execute manual evidence and documentation | Run M1-M6 as scoped below; update #999 evidence, migration guidance, container documentation, and progress records.                                                       |
+| ID  | Status | Task                                      | Notes / Expected Output                                                                                                                                                 |
+| --- | ------ | ----------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| T1  | DONE   | Activate persistence validation           | Active v3 bootstrap invokes the centralized check after configuration validation and before globals or containers are built.                                            |
+| T2  | DONE   | Compose capability-aware REST API         | Key and whitelist routes retain registration but short-circuit to `409`/`ActionStatus::Err` when their capability is disabled; their adapters are not constructed.      |
+| T3  | DONE   | Build persistence-free core graph         | Tracker-core now groups database stores and persistence-only services in optional `PersistenceServices`; public HTTP/UDP and REST composition has no database fallback. |
+| T4  | DONE   | Preserve persistence-enabled composition  | SQLite, MySQL, and PostgreSQL configured-driver lifecycle suites passed, including complete-migration and idempotency coverage.                                         |
+| T5  | DONE   | Adapt supported container startup         | A packaged v3 public default omits persistence; no override, SQLite seed, or persistence-only directory is used unless SQLite is explicitly selected.                   |
+| T6  | TODO   | Add regression and transition tests       | Cover no-side-effect startup, public protocol behavior, validation failures, configured drivers, and non-destructive restart transitions.                               |
+| T7  | TODO   | Execute manual evidence and documentation | Run M1-M6 as scoped below; update #999 evidence, migration guidance, container documentation, and progress records.                                                     |
 
 ## Progress Tracking
 
@@ -177,8 +178,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 T1-T3 and the implementation-tracker P1-P7 refactor are complete and have
 focused automated verification. T4's SQLite, MySQL, and PostgreSQL driver
-lifecycle suites also pass. The issue remains in progress because T5-T7 still
-require container, transition, manual-evidence, and final acceptance work. See
+lifecycle suites also pass. T5's release-image no-persistence path also passes.
+The issue remains in progress because T6-T7 still require transition,
+manual-evidence, and final acceptance work. See
 `persistence-capability-refactor.md` for the P1-P7 implementation record and
 its deferred design boundaries.
 
@@ -243,6 +245,10 @@ its deferred design boundaries.
 mysql:8.0` succeeded. The canonical MySQL compatibility suite passed, so
   SQLite, MySQL, and PostgreSQL all have configured-driver lifecycle evidence.
   T4/M3/AC7 are complete; see `manual-m3-configured-driver-lifecycle.md`.
+- 2026-08-30 09:50 UTC - GitHub Copilot - Completed T5/M6. The built release
+  image started its packaged v3 no-persistence public configuration without a
+  driver override. Health checks passed, and isolated mounted state contained
+  no database directory or SQLite file; see `manual-m6-container-no-persistence.md`.
 
 ## Acceptance Criteria
 
@@ -255,7 +261,7 @@ mysql:8.0` succeeded. The canonical MySQL compatibility suite passed, so
       startup rejection or late composition panic occurs.
 - [x] AC4: A v3 public HTTP and/or UDP tracker with no required capability and
       no `[core.database]` constructs and serves protocol traffic successfully.
-- [ ] AC5: The persistence-free composition constructs no concrete driver,
+- [x] AC5: The persistence-free composition constructs no concrete driver,
       database stores, migrations, database-backed repositories, database file,
       or network database connection.
 - [x] AC6: Persistence-free operation works when
@@ -270,7 +276,7 @@ mysql:8.0` succeeded. The canonical MySQL compatibility suite passed, so
 - [x] AC10: Torrent, statistics, and metrics routes remain available in
       persistence-free operation. Documentation does not claim an across-restart
       lifetime interpretation for completed counts without persistence.
-- [ ] AC11: The supported container startup path runs a documented v3
+- [x] AC11: The supported container startup path runs a documented v3
       no-persistence configuration without a database-driver override, packaged
       SQLite setup, or a tracker database directory created solely for
       persistence.
@@ -312,7 +318,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`, `DEFERRED`.
 | M3  | Initialize configured drivers                 | Start each supported configured driver with a persistence-required capability enabled.                                                       | The selected driver and complete shared migrations initialize normally.                                                                           | DONE   | SQLite, MySQL, and PostgreSQL lifecycle evidence: `manual-m3-configured-driver-lifecycle.md`. |
 | M4  | REST API persistence-free route contract      | Start `http_api` with no persistence, exercise torrent/stats/metrics routes and disabled whitelist/key routes.                               | API starts; in-memory routes remain available; disabled direct capability routes return controlled HTTP 409 responses without persistence access. | DONE   | Local source-tree evidence: `manual-t3-persistence-free-runtime.md`.                          |
 | M5  | Repeat baseline no-persistence run            | Follow `baseline-e2e-verification.md` with the active v3 runtime and no `[core.database]`.                                                   | Tracker remains available without a database file, connection, or migration.                                                                      | DONE   | #999 `baseline-e2e-verification.md`.                                                          |
-| M6  | Start supported container without persistence | Build/run the normal image using the documented no-persistence v3 configuration and no driver override.                                      | Entrypoint does not select/install SQLite or create its database directory solely for tracker persistence.                                        | TODO   | Record image/configuration, output, and mounted-state inspection.                             |
+| M6  | Start supported container without persistence | Build/run the normal image using the documented no-persistence v3 configuration and no driver override.                                      | Entrypoint does not select/install SQLite or create its database directory solely for tracker persistence.                                        | DONE   | Release-image evidence: `manual-m6-container-no-persistence.md`.                              |
 
 ### Acceptance Verification
 
@@ -328,7 +334,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`, `DEFERRED`.
 | AC8   | TODO                   | V2 regression coverage and review                                                                                                                                                                             |
 | AC9   | DONE                   | Two forced-database-failure REST contracts return `409`/`ActionStatus::Err`; all 55 REST integration tests retain enabled and operational-error behavior; local evidence: `manual-t2-rest-route-contract.md`. |
 | AC10  | DONE                   | Local REST torrent query returned the in-memory swarm; disabled capability routes returned `409`; `manual-t3-persistence-free-runtime.md`.                                                                    |
-| AC11  | TODO                   | M6 container evidence                                                                                                                                                                                         |
+| AC11  | DONE                   | Release-image M6 evidence: `manual-m6-container-no-persistence.md`.                                                                                                                                           |
 | AC12  | TODO                   | Restart-transition test and manual inspection                                                                                                                                                                 |
 | AC13  | TODO                   | Updated #999 scenario and acceptance records                                                                                                                                                                  |
 | AC14  | TODO                   | Validation command output and post-implementation review                                                                                                                                                      |

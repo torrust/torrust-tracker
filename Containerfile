@@ -334,6 +334,7 @@ RUN time mkdir -p /app/lib/ \
 RUN time chown -R root:root /app \
  && time chmod -R u=rw,go=r,a+X /app \
  && time chmod -R a+x /app/bin
+RUN rm -rf /app/share/torrust/default/database
 
 
 ## Runtime
@@ -342,7 +343,6 @@ RUN ["/busybox/cp", "-sp", "/busybox/sh","/busybox/cat","/busybox/ls","/busybox/
 COPY --from=gcc --chmod=0555 /usr/local/bin/su-exec /bin/su-exec
 
 ARG TORRUST_TRACKER_CONFIG_TOML_PATH="/etc/torrust/tracker/tracker.toml"
-ARG TORRUST_TRACKER_CONFIG_OVERRIDE_CORE__DATABASE__DRIVER="sqlite3"
 ARG USER_ID=1000
 ARG UDP_PORT=6969
 ARG HTTP_PORT=7070
@@ -350,7 +350,6 @@ ARG API_PORT=1212
 ARG HEALTH_CHECK_API_PORT=1313
 
 ENV TORRUST_TRACKER_CONFIG_TOML_PATH=${TORRUST_TRACKER_CONFIG_TOML_PATH}
-ENV TORRUST_TRACKER_CONFIG_OVERRIDE_CORE__DATABASE__DRIVER=${TORRUST_TRACKER_CONFIG_OVERRIDE_CORE__DATABASE__DRIVER}
 ENV USER_ID=${USER_ID}
 ENV UDP_PORT=${UDP_PORT}
 ENV HTTP_PORT=${HTTP_PORT}

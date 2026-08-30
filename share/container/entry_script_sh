@@ -19,21 +19,19 @@ fi
 
 adduser --disabled-password --shell "/bin/sh" --uid "$USER_ID" "torrust"
 
-# Configure Permissions for Torrust Folders
-mkdir -p /var/lib/torrust/tracker/database/ /etc/torrust/tracker/
+# Configure permissions for non-persistence paths.
+mkdir -p /etc/torrust/tracker/
 chown -R "${USER_ID}":"${USER_ID}" /var/lib/torrust /var/log/torrust /etc/torrust
 chmod -R 2770 /var/lib/torrust /var/log/torrust /etc/torrust
 
 
-# Install the database and config:
+# Select the default configuration and persistence setup.
 if [ -n "$TORRUST_TRACKER_CONFIG_OVERRIDE_CORE__DATABASE__DRIVER" ]; then
     if cmp_lc "$TORRUST_TRACKER_CONFIG_OVERRIDE_CORE__DATABASE__DRIVER" "sqlite3"; then
 
-        # Select Sqlite3 empty database
-        default_database="/usr/share/torrust/default/database/tracker.sqlite3.db"
-
-        # Select Sqlite3 default configuration
+        # Select SQLite3 default configuration.
         default_config="/usr/share/torrust/default/config/tracker.container.sqlite3.toml"
+        create_sqlite_database_directory=true
 
     elif cmp_lc "$TORRUST_TRACKER_CONFIG_OVERRIDE_CORE__DATABASE__DRIVER" "mysql"; then
 
@@ -49,20 +47,22 @@ if [ -n "$TORRUST_TRACKER_CONFIG_OVERRIDE_CORE__DATABASE__DRIVER" ]; then
         # Select default PostgreSQL configuration
         default_config="/usr/share/torrust/default/config/tracker.container.postgresql.toml"
 
-    else 
+    else
         echo "Error: Unsupported Database Type: \"$TORRUST_TRACKER_CONFIG_OVERRIDE_CORE__DATABASE__DRIVER\"."
         echo "Please Note: Supported Database Types: \"sqlite3\", \"mysql\", \"postgresql\"."
         exit 1
     fi
 else
-    echo "Error: \"\$TORRUST_TRACKER_CONFIG_OVERRIDE_CORE__DATABASE__DRIVER\" was not set!"; exit 1;
+    default_config="/usr/share/torrust/default/config/tracker.container.no-persistence.toml"
 fi
 
 install_config="/etc/torrust/tracker/tracker.toml"
-install_database="/var/lib/torrust/tracker/database/sqlite3.db"
 
 inst "$default_config" "$install_config"
-inst "$default_database" "$install_database"
+
+if [ -n "$create_sqlite_database_directory" ]; then
+    mkdir -p /var/lib/torrust/tracker/database/
+fi
 
 # Make Minimal Message of the Day
 if cmp_lc "$RUNTIME" "runtime"; then

@@ -47,6 +47,7 @@ mod tests {
         // Arrange
         let templates = [
             "./share/default/config/tracker.container.mysql.toml",
+            "./share/default/config/tracker.container.no-persistence.toml",
             "./share/default/config/tracker.container.postgresql.toml",
             "./share/default/config/tracker.container.sqlite3.toml",
             "./share/default/config/tracker.development.sqlite3.toml",

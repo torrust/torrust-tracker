@@ -1,0 +1,30 @@
+[metadata]
+app = "torrust-tracker"
+purpose = "configuration"
+schema_version = "3.0.0"
+
+[logging]
+trace_filter = "info"
+trace_style = "full"
+
+[core]
+listed = false
+private = false
+tracker_usage_statistics = true
+
+[core.tracker_policy]
+persistent_torrent_completed_stat = false
+
+[udp_tracker_server]
+ip_bans_reset_interval_in_secs = 86400
+max_connection_id_errors_per_ip = 10
+connection_id_validation = "strict"
+
+[[udp_trackers]]
+bind_address = "0.0.0.0:6969"
+
+[[http_trackers]]
+bind_address = "0.0.0.0:7070"
+
+[health_check_api]
+bind_address = "0.0.0.0:1313"
