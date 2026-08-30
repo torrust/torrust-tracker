@@ -10,7 +10,7 @@ branch: "999-avoid-unneeded-database-initialization"
 related-pr: null
 depends-on: 1490
 blocks: null
-last-updated-utc: 2026-08-26 16:45
+last-updated-utc: 2026-08-30 12:39
 semantic-links:
   skill-links:
     - create-issue
@@ -32,6 +32,7 @@ semantic-links:
     - docs/issues/open/999-1978-optional-database-configuration/persistence-awareness-epic-draft.md
     - docs/issues/open/999-1978-optional-database-configuration/persistence-free-runtime-activation-draft.md
     - docs/issues/open/999-1978-optional-database-configuration/persistence-unavailable-scenarios.md
+    - docs/issues/open/2107-1978-activate-persistence-free-v3-runtime-composition/ISSUE.md
 ---
 
 # Issue #999 - Make v3 database configuration optional when persistence is unused
@@ -320,6 +321,12 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   Focused configuration, tracker-core, and application tests passed; workspace
   targets compiled; `linter all` and the mandatory pre-commit gate passed.
 - 2026-08-26 16:45 UTC - GitHub Copilot/User - #1980 activated v3 consumers while retaining the approved named fixed-SQLite compatibility bridge. Active runtime composition therefore remains persistence-enabled; omitted `[core.database]` is still not honored at runtime. The post-#1980 activation follow-up remains responsible for passing the actual optional value, invoking the bootstrap requirement matrix, and completing M1-M6.
+- 2026-08-30 12:39 UTC - GitHub Copilot - #2107 completed the post-#1980
+  activation follow-up. Active v3 composition now honors an omitted database,
+  rejects persistence-required capabilities before composition, preserves the
+  configured SQLite/MySQL/PostgreSQL lifecycle, and keeps disabled REST
+  capability routes registered with controlled HTTP 409 responses. Its M1-M6
+  and SQLite transition evidence completes the applicable #999 scenarios.
 
 ## Acceptance Criteria
 
@@ -329,12 +336,12 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
       their enablement configuration, and their management REST API coupling.
 - [ ] AC3: Phase 2 defines an approved v3-only configuration and startup
       validation contract for omitted `[core.database]`.
-- [ ] AC4: The approved design prevents a database driver, database connection,
+- [x] AC4: The approved design prevents a database driver, database connection,
       database-file creation, and migration execution when persistence is not
       configured or required.
 - [ ] AC5: The approved design rejects startup with a clear error when an
       enabled persistence-backed capability requires a missing database.
-- [ ] AC6: The approved design defines deterministic REST API behaviour when
+- [x] AC6: The approved design defines deterministic REST API behaviour when
       persistence is unavailable.
 - [ ] AC7: When persistence is required by at least one enabled capability, the
       implementation initializes the selected driver and applies the complete
@@ -344,16 +351,16 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
       v3 activation; the EPIC ordering and migration guidance are updated if
       required.
 - [ ] AC9: The implementation preserves v2 configuration and behaviour.
-- [ ] AC10: The final v3 end-to-end scenario reproduces the original
+- [x] AC10: The final v3 end-to-end scenario reproduces the original
       persistence-disabled benchmark use case without a database file,
       connection, or migration, with evidence recorded in
       `baseline-e2e-verification.md`.
-- [ ] AC11: The supported container startup path permits a v3 deployment with
+- [x] AC11: The supported container startup path permits a v3 deployment with
       no persistence, without requiring database-driver configuration or
       installing a default SQLite database solely for the tracker.
 - [ ] AC12: `linter all` exits with code `0` after the implementation.
-- [ ] AC13: Relevant automated tests and mandatory manual verification pass.
-- [ ] AC14: Acceptance criteria are re-reviewed against implementation evidence.
+- [x] AC13: Relevant automated tests and mandatory manual verification pass.
+- [x] AC14: Acceptance criteria are re-reviewed against implementation evidence.
 
 ## Verification Plan
 
@@ -375,31 +382,31 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID  | Scenario                                     | Command/Steps                                                                                                                              | Expected Result                                                                                                                                       | Status | Evidence                                                             |
 | --- | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | -------------------------------------------------------------------- |
-| M1  | Start v3 without persistence                 | Start with no `[core.database]` and all persistence-backed capabilities disabled.                                                          | Startup succeeds without a database file, connection, or migration.                                                                                   | TODO   | Phase 2 defines exact configuration and evidence.                    |
+| M1  | Start v3 without persistence                 | Start with no `[core.database]` and all persistence-backed capabilities disabled.                                                          | Startup succeeds without a database file, connection, or migration.                                                                                   | DONE   | #2107 `manual-t3-persistence-free-runtime.md`.                       |
 | M2  | Reject missing required persistence          | Enable each persistence-backed capability without `[core.database]`.                                                                       | Startup fails with a precise configuration error naming the unmet requirement.                                                                        | DONE   | #2107 `manual-m2-persistence-requirements.md`.                       |
 | M3  | Initialize configured driver                 | Start with each supported configured database driver and a required feature enabled.                                                       | Startup initializes the selected driver and applies migrations according to the approved lifecycle.                                                   | DONE   | #2107 `manual-m3-configured-driver-lifecycle.md`.                    |
-| M4  | Verify REST API contract                     | Exercise affected management endpoints with persistence disabled and enabled.                                                              | Each endpoint returns the approved, documented response rather than an unexpected runtime database error.                                             | TODO   | Phase 2 identifies routes and expected statuses.                     |
+| M4  | Verify REST API contract                     | Exercise affected management endpoints with persistence disabled and enabled.                                                              | Each endpoint returns the approved, documented response rather than an unexpected runtime database error.                                             | DONE   | #2107 `manual-t2-rest-route-contract.md`.                            |
 | M5  | Re-run the original benchmark scenario       | Follow `baseline-e2e-verification.md` with the completed v3 runtime and no `[core.database]`.                                              | Tracker remains available without creating a database file, connecting to a database, or running migrations.                                          | DONE   | Final v3 source-tree run recorded in `baseline-e2e-verification.md`. |
 | M6  | Verify container startup without persistence | Build or run the supported container startup path with v3 database configuration omitted and all persistence-backed capabilities disabled. | The entrypoint does not require a database-driver override, install a default SQLite database, or create a database directory solely for the tracker. | DONE   | #2107 `manual-m6-container-no-persistence.md`.                       |
 
 ### Acceptance Verification
 
-| AC ID | Status (`TODO`/`DONE`) | Evidence                                                  |
-| ----- | ---------------------- | --------------------------------------------------------- |
-| AC1   | DONE                   | `analysis.md` lifecycle inventory                         |
-| AC2   | DONE                   | `analysis.md` consumer and API inventory                  |
-| AC3   | DONE                   | `solution.md` approval record                             |
-| AC4   | TODO                   | Implementation tests and M1 evidence                      |
-| AC5   | DONE                   | Focused matrix tests and #2107 M2 runtime evidence        |
-| AC6   | TODO                   | REST API tests and M4 evidence                            |
-| AC7   | DONE                   | #2107 SQLite, MySQL, and PostgreSQL M3 lifecycle evidence |
-| AC8   | DONE                   | Approved staged ordering in EPIC and migration guide      |
-| AC9   | DONE                   | V2 configuration tests and active explicit bridge review  |
-| AC10  | DONE                   | Final v3 M5 evidence in `baseline-e2e-verification.md`    |
-| AC11  | DONE                   | #2107 M6 release-image no-persistence evidence            |
-| AC12  | DONE                   | `linter all` passed on 2026-08-25                         |
-| AC13  | TODO                   | Focused, relevant workspace, and M1–M6 evidence           |
-| AC14  | DONE                   | Phase 3 review; activation-owned criteria remain pending  |
+| AC ID | Status (`TODO`/`DONE`) | Evidence                                                                   |
+| ----- | ---------------------- | -------------------------------------------------------------------------- |
+| AC1   | DONE                   | `analysis.md` lifecycle inventory                                          |
+| AC2   | DONE                   | `analysis.md` consumer and API inventory                                   |
+| AC3   | DONE                   | `solution.md` approval record                                              |
+| AC4   | DONE                   | #2107 persistence-free composition tests and M1/M5 evidence                |
+| AC5   | DONE                   | Focused matrix tests and #2107 M2 runtime evidence                         |
+| AC6   | DONE                   | #2107 REST contracts and M4 evidence                                       |
+| AC7   | DONE                   | #2107 SQLite, MySQL, and PostgreSQL M3 lifecycle evidence                  |
+| AC8   | DONE                   | Approved staged ordering in EPIC and migration guide                       |
+| AC9   | DONE                   | V2 configuration tests and active explicit bridge review                   |
+| AC10  | DONE                   | Final v3 M5 evidence in `baseline-e2e-verification.md`                     |
+| AC11  | DONE                   | #2107 M6 release-image no-persistence evidence                             |
+| AC12  | DONE                   | `linter all` passed on 2026-08-25                                          |
+| AC13  | DONE                   | #2107 focused checks, pre-push suite, M1–M6, and transition regression     |
+| AC14  | DONE                   | #2107 evidence review; activation-owned criteria remain pending final gate |
 
 ## Risks and Trade-offs
 

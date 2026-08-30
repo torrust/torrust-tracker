@@ -25,8 +25,10 @@ chown -R "${USER_ID}":"${USER_ID}" /var/lib/torrust /var/log/torrust /etc/torrus
 chmod -R 2770 /var/lib/torrust /var/log/torrust /etc/torrust
 
 
-# Select the default configuration and persistence setup.
-if [ -n "$TORRUST_TRACKER_CONFIG_OVERRIDE_CORE__DATABASE__DRIVER" ]; then
+# Select the default configuration and persistence setup for fresh mounts.
+install_config="/etc/torrust/tracker/tracker.toml"
+
+if [ ! -e "$install_config" ] && [ -n "$TORRUST_TRACKER_CONFIG_OVERRIDE_CORE__DATABASE__DRIVER" ]; then
     if cmp_lc "$TORRUST_TRACKER_CONFIG_OVERRIDE_CORE__DATABASE__DRIVER" "sqlite3"; then
 
         # Select SQLite3 default configuration.
@@ -52,11 +54,9 @@ if [ -n "$TORRUST_TRACKER_CONFIG_OVERRIDE_CORE__DATABASE__DRIVER" ]; then
         echo "Please Note: Supported Database Types: \"sqlite3\", \"mysql\", \"postgresql\"."
         exit 1
     fi
-else
+elif [ ! -e "$install_config" ]; then
     default_config="/usr/share/torrust/default/config/tracker.container.no-persistence.toml"
 fi
-
-install_config="/etc/torrust/tracker/tracker.toml"
 
 inst "$default_config" "$install_config"
 

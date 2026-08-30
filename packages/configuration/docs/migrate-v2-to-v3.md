@@ -42,8 +42,10 @@ configuration before loading it with the active runtime.
    database URL into v3.
 6. Review each HTTP listener's `use_ip_from_query_string`; leave it disabled
    unless trusting a client-provided peer address is intentional.
-7. Add optional public URLs for externally reachable services, validate the
-   converted configuration, and deploy it with an explicit SQLite section.
+7. Add optional public URLs for externally reachable services and validate the
+   converted configuration. Omit `[core.database]` for a public deployment
+   that does not enable a persistence-backed capability; otherwise configure
+   its selected database explicitly.
 
 ## Step 1: Update the schema version
 
@@ -303,19 +305,23 @@ driver = "sqlite3"
 path = "/var/lib/torrust/tracker/database/sqlite3.db"
 ```
 
-### Optional database representation and staged activation
+### Optional database representation and runtime behavior
 
-V3 permits an omitted `[core.database]` table. This is deliberately staged:
-Issue #1980 activates v3 consumers while retaining a named fixed-SQLite compatibility
-bridge so the tracker remains persistence-enabled. A follow-up will activate
-the configured optional value and define the effective omitted-database runtime
-behaviour.
+V3 permits an omitted `[core.database]` table. The active runtime honors that
+optional value: a public deployment can run without a database driver,
+database file, network database connection, migration, or persistence-backed
+service when all persistence-backed capabilities are disabled.
 
-**Do not treat an omitted `[core.database]` as persistence-free startup.** It
-does not currently disable persistence, select no database, or make container
-startup independent of persistent storage. Keep an explicit SQLite database
-configuration for deployed v3 trackers until the follow-up is implemented and
-documented.
+An omitted database is invalid when a required capability is enabled. Configure
+`[core.database]` when `core.listed`, `core.private`, or
+`core.tracker_policy.persistent_torrent_completed_stat` is `true`. Startup
+rejects these combinations before application composition, naming the unmet
+requirement.
+
+The supported container entrypoint defaults to its public no-persistence v3
+template when no database-driver override is supplied. A mounted
+`tracker.toml` remains authoritative; the entrypoint neither replaces it nor
+creates SQLite storage solely because an override is present.
 
 This is a breaking configuration change: MySQL and PostgreSQL URLs are not
 accepted in v3. Move their URL components into the fields above. Do not use an
