@@ -39,7 +39,7 @@ Create a new Markdown file in the selected collection using the format
 `YYYYMMDDHHMMSS_snake_case_title.md`:
 
 ```shell
-20230510152112_title.md
+20230510152112_example_decision.md
 ```
 
 Then add a row only to that collection's index. Every package-local collection requires its own
