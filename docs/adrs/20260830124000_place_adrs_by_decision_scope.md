@@ -14,6 +14,11 @@ semantic-links:
 
 # Place ADRs by Decision Scope
 
+## Scope
+
+Root ADR. This decision establishes a repository-wide policy for placing ADRs across root and
+package-local collections.
+
 ## Description
 
 The repository currently collects ADRs in `docs/adrs/`, but workspace packages are intended to
