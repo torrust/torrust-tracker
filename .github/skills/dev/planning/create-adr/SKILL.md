@@ -24,7 +24,10 @@ date -u +"%Y%m%d%H%M%S"
 
 # 3. Create the ADR file
 # Format: YYYYMMDDHHMMSS_snake_case_title.md
+# Root ADR:
 touch docs/adrs/20241115093012_your_decision_title.md
+# Package-local ADR:
+touch packages/<package>/docs/adrs/20241115093012_your_decision_title.md
 
 # 4. Update the owning collection's index
 # Add a root ADR to docs/adrs/index.md; add a local ADR only to its local index
