@@ -70,7 +70,7 @@ tracker and REST API request logs still emit `server_socket_addr`, which loses p
 - Adding URL path segments such as `/announce` to service identity.
 - Resolving wildcard bind addresses to a concrete host IP.
 - Adding, consuming, or exposing `public_url` configuration. Runtime observability integration
-  is tracked by [#2023](../2023-1978-expose-configured-public-urls-in-runtime-observability.md).
+  is tracked by [#2023](../../open/2023-1978-expose-configured-public-urls-in-runtime-observability/ISSUE.md).
 - Adding an `internal_service_url`; it remains a future concept distinct from both
   `ServiceBinding` and `public_url`.
 - Changing BitTorrent protocol parsing, TLS configuration, or `torrust-net-primitives`.

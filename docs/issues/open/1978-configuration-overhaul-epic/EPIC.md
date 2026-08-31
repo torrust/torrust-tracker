@@ -17,7 +17,7 @@ semantic-links:
     - docs/issues/closed/1136-1978-configurable-udp-connection-id-validation-policy.md
     - docs/issues/closed/1415-1978-use-service-binding-instead-of-socket-addr/ISSUE.md
     - docs/issues/open/1987-add-config-option-to-use-ip-from-announce-query-string/ISSUE.md
-    - docs/issues/open/2023-1978-expose-configured-public-urls-in-runtime-observability.md
+    - docs/issues/open/2023-1978-expose-configured-public-urls-in-runtime-observability/ISSUE.md
     - docs/issues/open/2067-1978-analyze-flat-service-configuration/ISSUE.md
     - docs/issues/open/1490-1978-decompose-database-configuration.md
     - docs/issues/open/999-1978-optional-database-configuration/ISSUE.md
@@ -106,7 +106,7 @@ Status values: `TODO`, `IN_PROGRESS`, `IN_REVIEW`, `BLOCKED`, `DONE`.
 | 11    | [#2083](https://github.com/torrust/torrust-tracker/issues/2083) — Move UDP connection-ID error limit to shared server configuration                 | `docs/issues/open/2083-1978-move-max-connection-id-errors-per-ip-to-udp-tracker-server.md` | DONE   | V3 global policy is active; #1980 added two-listener, order-independent runtime coverage.                                                                 |
 | 12    | [#1980](https://github.com/torrust/torrust-tracker/issues/1980) — Final cleanup: remove global re-exports, migrate consumers to explicit v3 imports | `docs/issues/open/1980-1978-configuration-overhaul-final-cleanup.md`                       | DONE   | PR #2103 merged; active runtime uses v3 configuration while the temporary SQLite compatibility bridge retains persistence.                                |
 | 13    | [#2107](https://github.com/torrust/torrust-tracker/issues/2107) — Activate persistence-free v3 runtime composition                                  | `docs/issues/open/2107-1978-activate-persistence-free-v3-runtime-composition/ISSUE.md`     | TODO   | Follows #999 and #1980; activates absent-database composition while keeping REST API routes capability-aware.                                             |
-| 14    | [#2023](https://github.com/torrust/torrust-tracker/issues/2023) — Expose configured public URLs in runtime observability                            | `docs/issues/open/2023-1978-expose-configured-public-urls-in-runtime-observability.md`     | TODO   | Must follow #1417 and #1980; adds `public_url` to health checks, metrics, and logs without replacing ServiceBinding.                                      |
+| 14    | [#2023](https://github.com/torrust/torrust-tracker/issues/2023) — Expose configured public URLs in runtime observability                            | `docs/issues/open/2023-1978-expose-configured-public-urls-in-runtime-observability/ISSUE.md` | TODO   | Implemented with automated verification; reproducible local runtime evidence remains pending.                                                              |
 | 15    | [#2067](https://github.com/torrust/torrust-tracker/issues/2067) — Analyze a flat heterogeneous service configuration                                | `docs/issues/open/2067-1978-analyze-flat-service-configuration/ISSUE.md`                   | TODO   | Non-blocking analysis only; its confirmed configuration-model bug is tracked by #2083.                                                                    |
 
 ### Release-gated prerequisite
