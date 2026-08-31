@@ -3,7 +3,7 @@
 //! It bans clients that send invalid connection id's.
 //! It uses an exact `HashMap` to track connection-ID errors by source IP,
 //! avoiding collision-driven bans. See ADR
-//! `../docs/adrs/20260829204258_use_exact_ip_counters_for_udp_banning.md`.
+//! `../../docs/adrs/20260829204258_use_exact_ip_counters_for_udp_banning.md`.
 use std::collections::HashMap;
 use std::net::IpAddr;
 

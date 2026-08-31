@@ -130,7 +130,7 @@ tracks separate, open research into HTTP and API idle-connection handling.
 1. Does the current Bloom-filter pre-check improve `increase_counter` or
    `is_banned` throughput compared with a direct `HashMap<IpAddr, u32>` lookup
    at realistic small, medium, and high exact-map cardinalities?
-2. Is the Bloom filter configuration of four hash functions, one percent false
+2. Is the Bloom filter configuration of four bits per counting entry, one percent false
    positive rate, and 100 expected entries appropriate for observed workloads?
 3. Does direct exact-map lookup preserve the current no-false-ban and
    no-false-negative guarantees after the threshold is crossed?

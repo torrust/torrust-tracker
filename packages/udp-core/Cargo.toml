@@ -19,7 +19,6 @@ torrust-tracker-core = { version = "0.1.0", path = "../tracker-core" }
 torrust-tracker-udp-protocol = { version = "0.1.0", path = "../udp-protocol" }
 blowfish = "0"
 cipher = "0.5"
-criterion = { version = "0.5.1", features = [ "async_tokio" ] }
 futures = "0"
 rand = "0.9"
 serde = "1.0.219"
@@ -38,6 +37,7 @@ zerocopy = "0.8"
 async-trait = "0"
 
 [dev-dependencies]
+criterion = { version = "0.5.1", features = [ "async_tokio" ] }
 mockall = "0"
 
 [[bench]]
