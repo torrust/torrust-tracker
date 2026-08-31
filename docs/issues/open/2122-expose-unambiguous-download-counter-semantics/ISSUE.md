@@ -40,7 +40,7 @@ semantic-links:
 
 Expose separate session and persisted completed-download totals without breaking
 v1 consumers. Establish the `in_session` and `persisted` metric naming
-convention that API v2 will use as its non-ambiguous completed-count contract.
+convention that API v2 will use as its unambiguous completed-count contract.
 
 ## Background
 
