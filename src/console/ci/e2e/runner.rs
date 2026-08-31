@@ -38,6 +38,8 @@ use crate::console::ci::e2e::tracker_checker::{self};
 
 const CONTAINER_IMAGE: &str = "torrust-tracker:local";
 const CONTAINER_NAME_PREFIX: &str = "tracker_";
+const SQLITE_DRIVER: &str = "sqlite3";
+const DATABASE_DRIVER_OVERRIDE: &str = "TORRUST_TRACKER_CONFIG_OVERRIDE_CORE__DATABASE__DRIVER";
 
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None)]
@@ -89,7 +91,10 @@ pub fn run() -> anyhow::Result<()> {
     // Besides, if we don't use port 0 we should get the port numbers from the tracker configuration.
     // We could not use docker, but the intention was to create E2E tests including containerization.
     let options = RunOptions {
-        env_vars: vec![("TORRUST_TRACKER_CONFIG_TOML".to_string(), tracker_config)],
+        env_vars: vec![
+            ("TORRUST_TRACKER_CONFIG_TOML".to_string(), tracker_config),
+            (DATABASE_DRIVER_OVERRIDE.to_string(), SQLITE_DRIVER.to_string()),
+        ],
         ports: vec![
             "6969:6969/udp".to_string(),
             "7070:7070/tcp".to_string(),

@@ -60,6 +60,12 @@ cmp \
     "${NO_PERSISTENCE_CONFIGURATION}" \
     "${MOUNTED_CONFIGURATION}"
 
+docker run --rm --entrypoint /bin/sh \
+    --env USER_ID="$(id -u)" \
+    --env TORRUST_TRACKER_CONFIG_OVERRIDE_CORE__DATABASE__DRIVER=sqlite3 \
+    "${IMAGE_TAG}" \
+    -c '/usr/local/bin/entry.sh true && /bin/su-exec torrust test -w /var/lib/torrust/tracker/database'
+
 mkdir -p "${TEST_DIRECTORY}/lib/database"
 configure_sqlite_database old.sqlite3
 run_tracker

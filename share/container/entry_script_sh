@@ -62,6 +62,7 @@ inst "$default_config" "$install_config"
 
 if [ -n "$create_sqlite_database_directory" ]; then
     mkdir -p /var/lib/torrust/tracker/database/
+    chown "${USER_ID}":"${USER_ID}" /var/lib/torrust/tracker/database/
 fi
 
 # Make Minimal Message of the Day
