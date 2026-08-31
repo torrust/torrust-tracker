@@ -16,7 +16,10 @@ The tracker historically supports an in-memory deployment, but the active v2 run
 
 Schema v3 makes the absence of `[core.database]` representable. The actual persistence-free runtime is delivered by the post-v3-activation follow-up: until then, bootstrap passes an explicit temporary database dependency to preserve current effective runtime behavior.
 
-The management REST API exposes both in-memory tracker information and direct persistence-backed capabilities. It remains persistence-required until API #144 implements its next-major disabled-capability response model.
+The management REST API exposes both in-memory tracker information and direct
+persistence-backed capabilities. Issue #2107 makes it available without
+persistence and supplies configuration-disabled responses for direct key and
+whitelist operations. API #144 retains completed-metric provenance work.
 
 ## Agreement
 
@@ -28,7 +31,10 @@ The v3 application treats persistence as an optional **application-composition c
 4. Phase 3 resolves the optional database at the existing `TrackerCoreContainer` initialization seam. The `Some` branch retains tracker-core's driver, migration, and store setup, then passes required stores to persistence-backed consumers. The future `None` branch selects persistence-absent composition before those consumers are built.
 5. Driver, schema, and migration implementation ownership remains in `tracker-core`. The selected composition seam changes where optionality is resolved; it does not move schema ownership or introduce feature-specific schemas, migration streams, or migration selection.
 6. When no capability requires persistence, the activation follow-up constructs no persistence driver, store, database file, network connection, or migration side effect.
-7. The management REST API may start without persistence only after the next-major API work tracked by GitHub issue #144 implements the approved configuration-disabled response model. Until then, it remains persistence-required at activation.
+7. The management REST API starts without persistence. Direct key and whitelist
+  operations whose capabilities are disabled return controlled HTTP 409
+  responses; GitHub issue #144 owns only the next-major completed-metric
+  provenance response model.
 8. Persistence configuration is evaluated at process startup only. Disabling persistence never deletes or alters prior database state; re-enabling the same target reuses it, and changing targets never transfers data automatically.
 9. The container entrypoint defers persistence selection to actual v3 configuration. It does not require or default a database driver when persistence is absent, and it never destructively alters mounted state during a persistence transition.
 
@@ -59,7 +65,8 @@ Rejected. Two owners would drift as services and configuration evolve. Bootstrap
 - **Positive:** The shared-schema lifecycle stays simple: zero drivers in persistence-free mode, exactly one driver and complete migrations otherwise.
 - **Positive:** Missing persistence is detected deterministically before driver construction rather than through a late repository failure.
 - **Negative:** The future `None` branch must construct a persistence-absent set of services before public runtime activation; Issue #999 deliberately does not activate that branch.
-- **Negative:** The management REST API, route behavior, response models, test helpers, and container entrypoint require later work.
+- **Negative:** Completed-metric provenance, the container entrypoint, and
+  restart-transition verification require later work.
 - **Negative:** State produced during a persistence-free interval is not recoverable when persistence is later re-enabled.
 
 ## Date

@@ -28,9 +28,6 @@ pub struct TorrentsManager {
 
     /// The in-memory torrents repository.
     in_memory_torrent_repository: Arc<InMemoryTorrentRepository>,
-
-    /// The download metrics repository.
-    db_downloads_metric_repository: Arc<DatabaseDownloadsMetricRepository>,
 }
 
 impl TorrentsManager {
@@ -41,22 +38,14 @@ impl TorrentsManager {
     /// * `config` - A reference to the tracker configuration.
     /// * `in_memory_torrent_repository` - A shared reference to the in-memory
     ///   repository of torrents.
-    /// * `db_downloads_metric_repository` - A shared reference to the persistent
-    ///   repository for torrent metrics.
-    ///
     /// # Returns
     ///
     /// A new `TorrentsManager` instance with cloned references of the provided dependencies.
     #[must_use]
-    pub fn new(
-        config: &Core,
-        in_memory_torrent_repository: &Arc<InMemoryTorrentRepository>,
-        db_downloads_metric_repository: &Arc<DatabaseDownloadsMetricRepository>,
-    ) -> Self {
+    pub fn new(config: &Core, in_memory_torrent_repository: &Arc<InMemoryTorrentRepository>) -> Self {
         Self {
             config: config.clone(),
             in_memory_torrent_repository: in_memory_torrent_repository.clone(),
-            db_downloads_metric_repository: db_downloads_metric_repository.clone(),
         }
     }
 
@@ -70,8 +59,12 @@ impl TorrentsManager {
     ///
     /// Returns a `databases::error::Error` if unable to load the persistent
     /// torrent data.
-    pub async fn load_torrents_from_database(&self) -> Result<(), databases::error::Error> {
-        let persistent_torrents = self.db_downloads_metric_repository.load_all_torrents_downloads().await?;
+    ///
+    pub async fn load_torrents_from_database(
+        &self,
+        db_downloads_metric_repository: &DatabaseDownloadsMetricRepository,
+    ) -> Result<(), databases::error::Error> {
+        let persistent_torrents = db_downloads_metric_repository.load_all_torrents_downloads().await?;
 
         self.in_memory_torrent_repository.import_persistent(&persistent_torrents);
 
@@ -173,11 +166,7 @@ mod tests {
         let database_persistent_torrent_repository =
             Arc::new(DatabaseDownloadsMetricRepository::new(&database.torrent_metrics_store));
 
-        let torrents_manager = Arc::new(TorrentsManager::new(
-            &config,
-            &in_memory_torrent_repository,
-            &database_persistent_torrent_repository,
-        ));
+        let torrents_manager = Arc::new(TorrentsManager::new(&config, &in_memory_torrent_repository));
 
         (
             torrents_manager,
@@ -201,7 +190,10 @@ mod tests {
             .await
             .unwrap();
 
-        torrents_manager.load_torrents_from_database().await.unwrap();
+        torrents_manager
+            .load_torrents_from_database(&services.database_persistent_torrent_repository)
+            .await
+            .unwrap();
 
         assert_eq!(
             services

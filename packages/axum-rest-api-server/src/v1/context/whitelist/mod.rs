@@ -16,7 +16,7 @@
 //! > to know how to enable the those modes.
 //!
 //! > **NOTICE**: if the tracker is not running in `listed` or `private_listed`
-//! > modes the requests to the whitelist API will be ignored.
+//! > modes, whitelist API requests return `409 Conflict`.
 //!
 //! # Endpoints
 //!

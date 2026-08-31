@@ -59,6 +59,9 @@ mod and_receiving_an_announce_request {
 
         env.container
             .tracker_core_container
+            .persistence
+            .as_ref()
+            .expect("listed tracker test requires persistence")
             .whitelist_manager
             .add_torrent_to_whitelist(&info_hash)
             .await
@@ -154,6 +157,9 @@ mod receiving_an_scrape_request {
 
         env.container
             .tracker_core_container
+            .persistence
+            .as_ref()
+            .expect("listed tracker test requires persistence")
             .whitelist_manager
             .add_torrent_to_whitelist(&info_hash)
             .await

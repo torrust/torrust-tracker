@@ -192,12 +192,20 @@ mod tests {
         let authentication_service = Arc::new(AuthenticationService::new(&config.core, &in_memory_key_repository));
         let in_memory_torrent_repository = Arc::new(InMemoryTorrentRepository::default());
         let db_downloads_metric_repository = Arc::new(DatabaseDownloadsMetricRepository::new(&database.torrent_metrics_store));
-        let announce_handler = Arc::new(AnnounceHandler::new(
-            &config.core,
-            &whitelist_authorization,
-            &in_memory_torrent_repository,
-            &db_downloads_metric_repository,
-        ));
+        let announce_handler = if config.core.tracker_policy.persistent_torrent_completed_stat {
+            Arc::new(AnnounceHandler::new_with_persistent_completed_statistics(
+                &config.core,
+                &whitelist_authorization,
+                &in_memory_torrent_repository,
+                &db_downloads_metric_repository,
+            ))
+        } else {
+            Arc::new(AnnounceHandler::new_public(
+                &config.core,
+                &whitelist_authorization,
+                &in_memory_torrent_repository,
+            ))
+        };
 
         // HTTP core stats
         let http_core_broadcaster = Broadcaster::default();

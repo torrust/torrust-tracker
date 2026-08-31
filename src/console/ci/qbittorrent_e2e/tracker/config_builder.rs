@@ -90,6 +90,10 @@ impl TrackerConfig {
         &self.access_token
     }
 
+    pub(crate) const fn database_driver(&self) -> DatabaseDriver {
+        self.database_driver
+    }
+
     pub(crate) fn announce_url_for_compose_service(&self) -> String {
         let announce_url = format!("http://tracker:{}/announce", self.http_tracker_bind_address.port()); // DevSkim: ignore DS137138
 

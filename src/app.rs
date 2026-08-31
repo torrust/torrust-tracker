@@ -76,7 +76,8 @@ async fn start_jobs(config: &Configuration, app_container: &Arc<AppContainer>) -
     let mut job_manager = JobManager::new();
 
     start_swarm_coordination_registry_event_listener(config, app_container, &mut job_manager);
-    start_tracker_core_event_listener(config, app_container, &mut job_manager);
+    start_tracker_core_in_memory_event_listener(config, app_container, &mut job_manager);
+    start_tracker_core_persistent_completed_statistics_event_listener(config, app_container, &mut job_manager);
     start_http_core_event_listener(config, app_container, &mut job_manager);
     start_udp_core_event_listener(config, app_container, &mut job_manager);
     start_udp_tracker_services(config, app_container, &mut job_manager).await;
@@ -101,37 +102,53 @@ fn warn_if_no_services_enabled(config: &Configuration) {
 }
 
 async fn load_peer_keys(config: &Configuration, app_container: &Arc<AppContainer>) {
-    if config.core.private {
-        app_container
-            .tracker_core_container
-            .keys_handler
-            .load_peer_keys_from_database()
-            .await
-            .expect("Could not retrieve keys from database.");
+    if !config.core.private {
+        return;
     }
+
+    let Some(persistence) = app_container.tracker_core_container.persistence.as_ref() else {
+        return;
+    };
+
+    persistence
+        .keys_handler
+        .load_peer_keys_from_database()
+        .await
+        .expect("Could not retrieve keys from database.");
 }
 
 async fn load_whitelisted_torrents(config: &Configuration, app_container: &Arc<AppContainer>) {
-    if config.core.listed {
-        app_container
-            .tracker_core_container
-            .whitelist_manager
-            .load_whitelist_from_database()
-            .await
-            .expect("Could not load whitelist from database.");
+    if !config.core.listed {
+        return;
     }
+
+    let Some(persistence) = app_container.tracker_core_container.persistence.as_ref() else {
+        return;
+    };
+
+    persistence
+        .whitelist_manager
+        .load_whitelist_from_database()
+        .await
+        .expect("Could not load whitelist from database.");
 }
 
 async fn load_torrent_metrics(config: &Configuration, app_container: &Arc<AppContainer>) {
-    if config.core.tracker_policy.persistent_torrent_completed_stat {
-        torrust_tracker_core::statistics::persisted::load_persisted_metrics(
-            &app_container.tracker_core_container.stats_repository,
-            &app_container.tracker_core_container.db_downloads_metric_repository,
-            CurrentClock::now(),
-        )
-        .await
-        .expect("Could not load persisted metrics from database.");
+    if !config.core.tracker_policy.persistent_torrent_completed_stat {
+        return;
     }
+
+    let Some(persistence) = app_container.tracker_core_container.persistence.as_ref() else {
+        return;
+    };
+
+    torrust_tracker_core::statistics::persisted::load_persisted_metrics(
+        &app_container.tracker_core_container.stats_repository,
+        &persistence.db_downloads_metric_repository,
+        CurrentClock::now(),
+    )
+    .await
+    .expect("Could not load persisted metrics from database.");
 }
 
 fn start_swarm_coordination_registry_event_listener(
@@ -145,10 +162,29 @@ fn start_swarm_coordination_registry_event_listener(
     );
 }
 
-fn start_tracker_core_event_listener(config: &Configuration, app_container: &Arc<AppContainer>, job_manager: &mut JobManager) {
+fn start_tracker_core_in_memory_event_listener(
+    config: &Configuration,
+    app_container: &Arc<AppContainer>,
+    job_manager: &mut JobManager,
+) {
     job_manager.push_opt(
-        "tracker_core_event_listener",
-        jobs::tracker_core::start_event_listener(config, app_container, job_manager.new_cancellation_token()),
+        "tracker_core_in_memory_event_listener",
+        jobs::tracker_core::start_in_memory_event_listener(config, app_container, job_manager.new_cancellation_token()),
+    );
+}
+
+fn start_tracker_core_persistent_completed_statistics_event_listener(
+    config: &Configuration,
+    app_container: &Arc<AppContainer>,
+    job_manager: &mut JobManager,
+) {
+    job_manager.push_opt(
+        "tracker_core_persistent_completed_statistics_event_listener",
+        jobs::tracker_core::start_persistent_completed_statistics_event_listener(
+            config,
+            app_container,
+            job_manager.new_cancellation_token(),
+        ),
     );
 }
 
@@ -355,11 +391,17 @@ async fn start_health_check_api(config: &Configuration, app_container: &Arc<AppC
 
 #[cfg(test)]
 mod tests {
+    use std::sync::Arc;
+    use std::time::Duration;
+
+    use tokio_util::sync::CancellationToken;
     use torrust_tracker_configuration::v3_0_0::Configuration;
     use torrust_tracker_configuration::v3_0_0::core::Core;
     use torrust_tracker_configuration::v3_0_0::udp_tracker::UdpTracker;
 
-    use super::should_start_udp_tracker_services;
+    use super::{load_data_from_database, should_start_udp_tracker_services};
+    use crate::bootstrap::jobs::tracker_core;
+    use crate::container::AppContainer;
 
     #[test]
     fn it_should_not_start_udp_tracker_services_without_udp_trackers() {
@@ -398,5 +440,36 @@ mod tests {
         };
 
         assert!(should_start_udp_tracker_services(&configuration));
+    }
+
+    #[tokio::test]
+    async fn it_should_start_tracker_core_statistics_listener_without_persistence() {
+        let mut configuration = Configuration::default();
+        configuration.core.tracker_usage_statistics = true;
+        assert!(configuration.core.database.is_none());
+        let app_container = Arc::new(AppContainer::initialize(&configuration).await);
+        let cancellation_token = CancellationToken::new();
+
+        let listener = tracker_core::start_in_memory_event_listener(&configuration, &app_container, cancellation_token.clone())
+            .expect("tracker usage statistics must start the in-memory listener");
+
+        cancellation_token.cancel();
+        tokio::time::timeout(Duration::from_secs(1), listener)
+            .await
+            .expect("in-memory listener should stop after cancellation")
+            .expect("in-memory listener should not panic");
+    }
+
+    #[tokio::test]
+    async fn it_should_skip_persistence_loaders_when_persistence_is_absent() {
+        let mut configuration = Configuration::default();
+        let app_container = Arc::new(AppContainer::initialize(&configuration).await);
+        assert!(app_container.tracker_core_container.persistence.is_none());
+
+        configuration.core.private = true;
+        configuration.core.listed = true;
+        configuration.core.tracker_policy.persistent_torrent_completed_stat = true;
+
+        load_data_from_database(&configuration, &app_container).await;
     }
 }

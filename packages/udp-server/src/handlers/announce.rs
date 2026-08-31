@@ -987,8 +987,6 @@ pub(crate) mod tests {
                 use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
                 use torrust_peer_id::PeerId;
                 use torrust_tracker_core::announce_handler::AnnounceHandler;
-                use torrust_tracker_core::databases::setup::initialize_database;
-                use torrust_tracker_core::statistics::persisted::downloads::DatabaseDownloadsMetricRepository;
                 use torrust_tracker_core::torrent::repository::in_memory::InMemoryTorrentRepository;
                 use torrust_tracker_core::whitelist::authorization::WhitelistAuthorization;
                 use torrust_tracker_core::whitelist::repository::in_memory::InMemoryWhitelist;
@@ -1029,12 +1027,9 @@ pub(crate) mod tests {
                     }
                     let server_service_binding = ServiceBinding::new(Protocol::UDP, server_socket_addr).unwrap();
                     let server_service_binding_clone = server_service_binding.clone();
-                    let database = initialize_database(&config.core).await;
                     let in_memory_whitelist = Arc::new(InMemoryWhitelist::default());
                     let whitelist_authorization = Arc::new(WhitelistAuthorization::new(&config.core, &in_memory_whitelist));
                     let in_memory_torrent_repository = Arc::new(InMemoryTorrentRepository::default());
-                    let db_downloads_metric_repository =
-                        Arc::new(DatabaseDownloadsMetricRepository::new(&database.torrent_metrics_store));
                     let request = AnnounceRequestBuilder::default()
                         .with_connection_id(make(gen_remote_fingerprint(&client_socket_addr), sample_issue_time()).unwrap())
                         .with_info_hash(info_hash)
@@ -1079,11 +1074,10 @@ pub(crate) mod tests {
                         .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
                     let udp_server_stats_event_sender: crate::event::sender::Sender =
                         Some(Arc::new(udp_server_stats_event_sender_mock));
-                    let announce_handler = Arc::new(AnnounceHandler::new(
+                    let announce_handler = Arc::new(AnnounceHandler::new_public(
                         &config.core,
                         &whitelist_authorization,
                         &in_memory_torrent_repository,
-                        &db_downloads_metric_repository,
                     ));
                     let core_config = Arc::new(config.core.clone());
                     let udp_tracker_test_configuration_instance_id = ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0);

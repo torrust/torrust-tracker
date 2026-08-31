@@ -628,30 +628,34 @@ mod tests {
     #[test]
     #[allow(clippy::result_large_err)]
     fn it_should_deserialize_an_omitted_database_as_none() {
-        // Arrange
-        let info = Info {
-            config_toml: Some(
-                r#"
-                    [metadata]
-                    schema_version = "3.0.0"
+        figment::Jail::expect_with(|_jail| {
+            // Arrange
+            let info = Info {
+                config_toml: Some(
+                    r#"
+                        [metadata]
+                        schema_version = "3.0.0"
 
-                    [logging]
-                    trace_filter = "info"
+                        [logging]
+                        trace_filter = "info"
 
-                    [core]
-                    listed = false
-                    private = false
-                "#
-                .to_string(),
-            ),
-            config_toml_path: String::new(),
-        };
+                        [core]
+                        listed = false
+                        private = false
+                    "#
+                    .to_string(),
+                ),
+                config_toml_path: String::new(),
+            };
 
-        // Act
-        let configuration = Configuration::load(&info).expect("configuration should load");
+            // Act
+            let configuration = Configuration::load(&info).expect("configuration should load");
 
-        // Assert
-        assert_eq!(configuration.core.database, None);
+            // Assert
+            assert_eq!(configuration.core.database, None);
+
+            Ok(())
+        });
     }
 
     #[test]

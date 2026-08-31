@@ -128,3 +128,41 @@ Record the exact v3 configuration, command, timeout result, logs, artifact
 inspection, and the commit or PR under test in this document. Mark the related
 manual-verification scenario in `ISSUE.md` as `DONE` only after the evidence is
 recorded.
+
+## Final V3 No-Persistence Verification
+
+- Date: 2026-08-29 10:57 UTC
+- Revision: `05d88794` on
+  `2107-activate-persistence-free-v3-runtime-composition`
+- Binary: `target/debug/torrust-tracker`
+- Working directory: new isolated `.tmp/2107-m5.bIaViE` directory
+
+The verification derived its complete v3 configuration from
+`share/default/config/tracker.udp.benchmarking.toml`. It removed only the
+`[core.database]` table and replaced the UDP bind address with `127.0.0.1:0` to
+avoid a fixed-port dependency. All persistence-backed capabilities remained
+disabled.
+
+```text
+repository_root=$PWD
+work_dir=$(mktemp -d .tmp/2107-m5.XXXXXX)
+configuration=$(sed '/^\[core\.database\]$/,/^$/d; s|bind_address = "0.0.0.0:3000"|bind_address = "127.0.0.1:0"|' share/default/config/tracker.udp.benchmarking.toml)
+(cd "$work_dir" && TORRUST_TRACKER_CONFIG_TOML="$configuration" timeout --signal=INT --kill-after=3s 10s "$repository_root/target/debug/torrust-tracker") >"$work_dir/tracker.log" 2>&1
+```
+
+Observed result:
+
+```text
+EXIT_STATUS=124
+tracker.log 671 bytes
+```
+
+`124` is the expected status from the bounded run: the tracker remained alive
+until `timeout` sent its interrupt. The captured configuration contained no
+`[core.database]` table. The isolated directory contained only `tracker.log`;
+no SQLite database file or other persistence artifact was created. At the
+`error` logging threshold, the log emitted no database initialization,
+connection, or migration message.
+
+This verifies the final v3 baseline scenario for source-tree runtime behavior.
+Supported-container verification remains M6.

@@ -71,6 +71,21 @@ pub fn bad_request_response(body: &str) -> Response {
         .into_response()
 }
 
+/// `409` response when a capability required by a route is disabled.
+///
+/// # Panics
+///
+/// Will panic if it cannot serialize the [`ActionStatus`] response to JSON.
+#[must_use]
+pub fn disabled_by_configuration_response(reason: &str) -> Response {
+    (
+        StatusCode::CONFLICT,
+        [(header::CONTENT_TYPE, "application/json")],
+        serde_json::to_string(&ActionStatus::Err { reason: reason.into() }).unwrap(),
+    )
+        .into_response()
+}
+
 /// This error response is to keep backward compatibility with the old API.
 /// It should be a plain text or json.
 #[must_use]

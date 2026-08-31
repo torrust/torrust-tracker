@@ -12,6 +12,8 @@ use std::fmt;
 /// without depending on `tracker-core` database error types.
 #[derive(Debug)]
 pub enum WhitelistError {
+    /// The listed-tracker capability is disabled by configuration.
+    DisabledByConfiguration { capability: &'static str },
     /// A database error occurred during the whitelist operation.
     Database(String),
 }
@@ -19,6 +21,9 @@ pub enum WhitelistError {
 impl fmt::Display for WhitelistError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
+            WhitelistError::DisabledByConfiguration { capability } => {
+                write!(f, "{capability} capability is disabled by configuration")
+            }
             // Forward the inner message as-is to preserve the original
             // error response format from the previous direct-to-WhitelistManager
             // wiring (the Axum handlers format via `{e}`).

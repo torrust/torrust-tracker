@@ -62,7 +62,12 @@ impl TestEnv {
     async fn load_persisted_metrics(&self, now: DurationSinceUnixEpoch) {
         load_persisted_metrics(
             &self.tracker_core_container.stats_repository,
-            &self.tracker_core_container.db_downloads_metric_repository,
+            &self
+                .tracker_core_container
+                .persistence
+                .as_ref()
+                .expect("tracker core test environment requires persistence")
+                .db_downloads_metric_repository,
             now,
         )
         .await
@@ -81,17 +86,31 @@ impl TestEnv {
 
         jobs.push(job);
 
-        let job = torrust_tracker_core::statistics::event::listener::run_event_listener(
+        let job = torrust_tracker_core::statistics::event::listener::run_in_memory_event_listener(
             self.swarm_coordination_registry_container.event_bus.receiver(),
             cancellation_token.clone(),
             &self.tracker_core_container.stats_repository,
-            &self.tracker_core_container.db_downloads_metric_repository,
-            self.tracker_core_container
-                .core_config
-                .tracker_policy
-                .persistent_torrent_completed_stat,
         );
         jobs.push(job);
+
+        if self
+            .tracker_core_container
+            .core_config
+            .tracker_policy
+            .persistent_torrent_completed_stat
+        {
+            let job = torrust_tracker_core::statistics::event::listener::run_persistent_completed_statistics_event_listener(
+                self.swarm_coordination_registry_container.event_bus.receiver(),
+                cancellation_token.clone(),
+                &self
+                    .tracker_core_container
+                    .persistence
+                    .as_ref()
+                    .expect("tracker core test environment requires persistence")
+                    .db_downloads_metric_repository,
+            );
+            jobs.push(job);
+        }
 
         // Give the event listeners some time to start
         // todo: they should notify when they are ready
@@ -171,6 +190,9 @@ impl TestEnv {
             loop {
                 if let Ok(Some(downloads)) = self
                     .tracker_core_container
+                    .persistence
+                    .as_ref()
+                    .expect("tracker core test environment requires persistence")
                     .database_stores
                     .torrent_metrics_store
                     .load_global_downloads()

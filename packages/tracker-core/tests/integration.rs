@@ -89,7 +89,14 @@ async fn it_should_persist_the_number_of_completed_peers_for_each_torrent_into_t
             test_env
                 .tracker_core_container
                 .torrents_manager
-                .load_torrents_from_database()
+                .load_torrents_from_database(
+                    &test_env
+                        .tracker_core_container
+                        .persistence
+                        .as_ref()
+                        .expect("torrent restoration test requires persistence")
+                        .db_downloads_metric_repository,
+                )
                 .await
                 .unwrap();
 

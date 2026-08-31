@@ -34,7 +34,7 @@ use anyhow::Context;
 use reqwest::Url;
 
 use super::qbittorrent::{QbittorrentConfigBuilder, QbittorrentCredentials};
-use super::tracker::{TrackerConfig, TrackerConfigBuilder};
+use super::tracker::{DatabaseDriver, TrackerConfig, TrackerConfigBuilder};
 use super::types::{ComposeProjectName, ContainerPath, Deadline, PollInterval};
 use super::workspace::{
     EphemeralWorkspace, PeerConfig, PermanentWorkspace, PreparedWorkspace, SharedFixtures, TimingConfig, TrackerEndpoints,
@@ -124,6 +124,9 @@ fn prepare_resources(
 fn setup_tracker_workspace(root: &Path, tracker_config: &TrackerConfig) -> anyhow::Result<TrackerFilesystem> {
     let storage_path = root.join("tracker-storage");
     fs::create_dir_all(&storage_path).context("failed to create tracker storage directory")?;
+    if tracker_config.database_driver() == DatabaseDriver::Sqlite3 {
+        fs::create_dir_all(storage_path.join("database")).context("failed to create SQLite database directory")?;
+    }
     let config_path = TrackerConfigBuilder::new(tracker_config.clone()).write_to(root)?;
     Ok(TrackerFilesystem {
         config_path,
@@ -153,4 +156,39 @@ fn setup_shared_fixtures(root: &Path) -> anyhow::Result<SharedFixtures> {
     let path = root.join("shared");
     fs::create_dir_all(&path).context("failed to create shared artifacts directory")?;
     Ok(SharedFixtures { path })
+}
+
+#[cfg(test)]
+mod tests {
+    use tempfile::tempdir;
+
+    use super::{DatabaseDriver, TrackerConfig, setup_tracker_workspace};
+
+    #[test]
+    fn it_should_create_the_sqlite_database_parent_directory() {
+        // Arrange
+        let temporary_directory = tempdir().expect("temporary E2E workspace should be created");
+        let tracker_config = TrackerConfig::for_database_driver(DatabaseDriver::Sqlite3);
+
+        // Act
+        let tracker_filesystem =
+            setup_tracker_workspace(temporary_directory.path(), &tracker_config).expect("tracker workspace should be created");
+
+        // Assert
+        assert!(tracker_filesystem.storage_path.join("database").is_dir());
+    }
+
+    #[test]
+    fn it_should_not_create_a_sqlite_database_directory_for_network_drivers() {
+        // Arrange
+        let temporary_directory = tempdir().expect("temporary E2E workspace should be created");
+        let tracker_config = TrackerConfig::for_database_driver(DatabaseDriver::MySQL);
+
+        // Act
+        let tracker_filesystem =
+            setup_tracker_workspace(temporary_directory.path(), &tracker_config).expect("tracker workspace should be created");
+
+        // Assert
+        assert!(!tracker_filesystem.storage_path.join("database").exists());
+    }
 }

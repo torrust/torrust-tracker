@@ -11,16 +11,49 @@ use uuid::Uuid;
 use crate::server::connection_info::{connection_with_invalid_token, connection_with_no_token};
 use crate::server::force_database_error;
 use crate::server::v1::asserts::{
-    assert_auth_key_utf8, assert_failed_to_add_key, assert_failed_to_delete_key, assert_failed_to_reload_keys,
-    assert_invalid_auth_key_get_param, assert_invalid_auth_key_post_param, assert_ok, assert_token_not_valid,
-    assert_unauthorized, assert_unprocessable_auth_key_duration_param,
+    assert_auth_key_utf8, assert_disabled_by_configuration, assert_failed_to_add_key, assert_failed_to_delete_key,
+    assert_failed_to_reload_keys, assert_invalid_auth_key_get_param, assert_invalid_auth_key_post_param, assert_ok,
+    assert_token_not_valid, assert_unauthorized, assert_unprocessable_auth_key_duration_param,
 };
+
+#[tokio::test]
+async fn should_reject_auth_key_requests_when_private_mode_is_disabled_without_database_access() {
+    logging::setup();
+
+    let env = Started::new(&configuration::ephemeral().into()).await;
+    force_database_error(
+        &env.container
+            .tracker_core_container
+            .persistence
+            .as_ref()
+            .expect("auth key test requires persistence")
+            .database_stores
+            .schema_migrator,
+    )
+    .await;
+
+    let response = ApiHttpClient::new(env.get_connection_info())
+        .unwrap()
+        .add_auth_key(
+            AddKeyForm {
+                opt_key: None,
+                opt_seconds_valid: Some(60),
+            },
+            None,
+        )
+        .await
+        .unwrap();
+
+    assert_disabled_by_configuration(response, "private").await;
+
+    env.stop().await;
+}
 
 #[tokio::test]
 async fn should_allow_generating_a_new_random_auth_key() {
     logging::setup();
 
-    let env = Started::new(&configuration::ephemeral().into()).await;
+    let env = Started::new(&configuration::ephemeral_private().into()).await;
 
     let request_id = Uuid::new_v4();
 
@@ -54,7 +87,7 @@ async fn should_allow_generating_a_new_random_auth_key() {
 async fn should_allow_uploading_a_preexisting_auth_key() {
     logging::setup();
 
-    let env = Started::new(&configuration::ephemeral().into()).await;
+    let env = Started::new(&configuration::ephemeral_private().into()).await;
 
     let request_id = Uuid::new_v4();
 
@@ -88,7 +121,7 @@ async fn should_allow_uploading_a_preexisting_auth_key() {
 async fn should_not_allow_generating_a_new_auth_key_for_unauthenticated_users() {
     logging::setup();
 
-    let env = Started::new(&configuration::ephemeral().into()).await;
+    let env = Started::new(&configuration::ephemeral_private().into()).await;
 
     let request_id = Uuid::new_v4();
 
@@ -139,9 +172,18 @@ async fn should_not_allow_generating_a_new_auth_key_for_unauthenticated_users() 
 async fn should_fail_when_the_auth_key_cannot_be_generated() {
     logging::setup();
 
-    let env = Started::new(&configuration::ephemeral().into()).await;
+    let env = Started::new(&configuration::ephemeral_private().into()).await;
 
-    force_database_error(&env.container.tracker_core_container.database_stores.schema_migrator).await;
+    force_database_error(
+        &env.container
+            .tracker_core_container
+            .persistence
+            .as_ref()
+            .expect("auth key test requires persistence")
+            .database_stores
+            .schema_migrator,
+    )
+    .await;
 
     let request_id = Uuid::new_v4();
 
@@ -171,12 +213,15 @@ async fn should_fail_when_the_auth_key_cannot_be_generated() {
 async fn should_allow_deleting_an_auth_key() {
     logging::setup();
 
-    let env = Started::new(&configuration::ephemeral().into()).await;
+    let env = Started::new(&configuration::ephemeral_private().into()).await;
 
     let seconds_valid = 60;
     let auth_key = env
         .container
         .tracker_core_container
+        .persistence
+        .as_ref()
+        .expect("auth key test requires persistence")
         .keys_handler
         .generate_expiring_peer_key(Some(Duration::from_secs(seconds_valid)))
         .await
@@ -206,7 +251,7 @@ async fn should_fail_generating_a_new_auth_key_when_the_provided_key_is_invalid(
 
     logging::setup();
 
-    let env = Started::new(&configuration::ephemeral().into()).await;
+    let env = Started::new(&configuration::ephemeral_private().into()).await;
 
     let invalid_keys = [
         // "", it returns 404
@@ -250,7 +295,7 @@ async fn should_fail_generating_a_new_auth_key_when_the_key_duration_is_invalid(
 
     logging::setup();
 
-    let env = Started::new(&configuration::ephemeral().into()).await;
+    let env = Started::new(&configuration::ephemeral_private().into()).await;
 
     let invalid_key_durations = [
         // "", it returns 404
@@ -284,7 +329,7 @@ async fn should_fail_generating_a_new_auth_key_when_the_key_duration_is_invalid(
 async fn should_fail_deleting_an_auth_key_when_the_key_id_is_invalid() {
     logging::setup();
 
-    let env = Started::new(&configuration::ephemeral().into()).await;
+    let env = Started::new(&configuration::ephemeral_private().into()).await;
 
     let invalid_auth_keys = [
         // "", it returns a 404
@@ -315,18 +360,30 @@ async fn should_fail_deleting_an_auth_key_when_the_key_id_is_invalid() {
 async fn should_fail_when_the_auth_key_cannot_be_deleted() {
     logging::setup();
 
-    let env = Started::new(&configuration::ephemeral().into()).await;
+    let env = Started::new(&configuration::ephemeral_private().into()).await;
 
     let seconds_valid = 60;
     let auth_key = env
         .container
         .tracker_core_container
+        .persistence
+        .as_ref()
+        .expect("auth key test requires persistence")
         .keys_handler
         .generate_expiring_peer_key(Some(Duration::from_secs(seconds_valid)))
         .await
         .unwrap();
 
-    force_database_error(&env.container.tracker_core_container.database_stores.schema_migrator).await;
+    force_database_error(
+        &env.container
+            .tracker_core_container
+            .persistence
+            .as_ref()
+            .expect("auth key test requires persistence")
+            .database_stores
+            .schema_migrator,
+    )
+    .await;
 
     let request_id = Uuid::new_v4();
 
@@ -350,7 +407,7 @@ async fn should_fail_when_the_auth_key_cannot_be_deleted() {
 async fn should_not_allow_deleting_an_auth_key_for_unauthenticated_users() {
     logging::setup();
 
-    let env = Started::new(&configuration::ephemeral().into()).await;
+    let env = Started::new(&configuration::ephemeral_private().into()).await;
 
     let seconds_valid = 60;
 
@@ -358,6 +415,9 @@ async fn should_not_allow_deleting_an_auth_key_for_unauthenticated_users() {
     let auth_key = env
         .container
         .tracker_core_container
+        .persistence
+        .as_ref()
+        .expect("auth key test requires persistence")
         .keys_handler
         .generate_expiring_peer_key(Some(Duration::from_secs(seconds_valid)))
         .await
@@ -382,6 +442,9 @@ async fn should_not_allow_deleting_an_auth_key_for_unauthenticated_users() {
     let auth_key = env
         .container
         .tracker_core_container
+        .persistence
+        .as_ref()
+        .expect("auth key test requires persistence")
         .keys_handler
         .generate_expiring_peer_key(Some(Duration::from_secs(seconds_valid)))
         .await
@@ -409,11 +472,14 @@ async fn should_not_allow_deleting_an_auth_key_for_unauthenticated_users() {
 async fn should_allow_reloading_keys() {
     logging::setup();
 
-    let env = Started::new(&configuration::ephemeral().into()).await;
+    let env = Started::new(&configuration::ephemeral_private().into()).await;
 
     let seconds_valid = 60;
     env.container
         .tracker_core_container
+        .persistence
+        .as_ref()
+        .expect("auth key test requires persistence")
         .keys_handler
         .generate_expiring_peer_key(Some(Duration::from_secs(seconds_valid)))
         .await
@@ -436,19 +502,31 @@ async fn should_allow_reloading_keys() {
 async fn should_fail_when_keys_cannot_be_reloaded() {
     logging::setup();
 
-    let env = Started::new(&configuration::ephemeral().into()).await;
+    let env = Started::new(&configuration::ephemeral_private().into()).await;
 
     let request_id = Uuid::new_v4();
     let seconds_valid = 60;
 
     env.container
         .tracker_core_container
+        .persistence
+        .as_ref()
+        .expect("auth key test requires persistence")
         .keys_handler
         .generate_expiring_peer_key(Some(Duration::from_secs(seconds_valid)))
         .await
         .unwrap();
 
-    force_database_error(&env.container.tracker_core_container.database_stores.schema_migrator).await;
+    force_database_error(
+        &env.container
+            .tracker_core_container
+            .persistence
+            .as_ref()
+            .expect("auth key test requires persistence")
+            .database_stores
+            .schema_migrator,
+    )
+    .await;
 
     let response = ApiHttpClient::new(env.get_connection_info())
         .unwrap()
@@ -470,11 +548,14 @@ async fn should_fail_when_keys_cannot_be_reloaded() {
 async fn should_not_allow_reloading_keys_for_unauthenticated_users() {
     logging::setup();
 
-    let env = Started::new(&configuration::ephemeral().into()).await;
+    let env = Started::new(&configuration::ephemeral_private().into()).await;
 
     let seconds_valid = 60;
     env.container
         .tracker_core_container
+        .persistence
+        .as_ref()
+        .expect("auth key test requires persistence")
         .keys_handler
         .generate_expiring_peer_key(Some(Duration::from_secs(seconds_valid)))
         .await
@@ -533,7 +614,7 @@ mod deprecated_generate_key_endpoint {
     async fn should_allow_generating_a_new_auth_key() {
         logging::setup();
 
-        let env = Started::new(&configuration::ephemeral().into()).await;
+        let env = Started::new(&configuration::ephemeral_private().into()).await;
 
         let seconds_valid = 60;
 
@@ -561,7 +642,7 @@ mod deprecated_generate_key_endpoint {
     async fn should_not_allow_generating_a_new_auth_key_for_unauthenticated_users() {
         logging::setup();
 
-        let env = Started::new(&configuration::ephemeral().into()).await;
+        let env = Started::new(&configuration::ephemeral_private().into()).await;
 
         let request_id = Uuid::new_v4();
         let seconds_valid = 60;
@@ -594,7 +675,7 @@ mod deprecated_generate_key_endpoint {
     async fn should_fail_generating_a_new_auth_key_when_the_key_duration_is_invalid() {
         logging::setup();
 
-        let env = Started::new(&configuration::ephemeral().into()).await;
+        let env = Started::new(&configuration::ephemeral_private().into()).await;
 
         let invalid_key_durations = [
             // "", it returns 404
@@ -619,9 +700,18 @@ mod deprecated_generate_key_endpoint {
     async fn should_fail_when_the_auth_key_cannot_be_generated() {
         logging::setup();
 
-        let env = Started::new(&configuration::ephemeral().into()).await;
+        let env = Started::new(&configuration::ephemeral_private().into()).await;
 
-        force_database_error(&env.container.tracker_core_container.database_stores.schema_migrator).await;
+        force_database_error(
+            &env.container
+                .tracker_core_container
+                .persistence
+                .as_ref()
+                .expect("auth key test requires persistence")
+                .database_stores
+                .schema_migrator,
+        )
+        .await;
 
         let request_id = Uuid::new_v4();
         let seconds_valid = 60;
