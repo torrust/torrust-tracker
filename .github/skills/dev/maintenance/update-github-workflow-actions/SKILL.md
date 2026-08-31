@@ -25,13 +25,15 @@ For Cargo dependency updates, use
 - Never push directly to `develop` or `main`.
 - Open a pull request to `torrust/torrust-tracker:develop` from a branch in the configured fork remote.
 - Keep actions on explicit versions. Do not replace an exact action version with a moving major tag solely to work around an allowlist failure.
+- Keep workflow actions updated to current safe versions to receive their security fixes.
+- When this work accompanies a Cargo dependency update, use its dedicated branch and update workflow actions only after the Cargo update has been validated.
 
 ## Update Workflow
 
 1. Start from an up-to-date `develop` branch and create a dedicated branch.
 2. Identify every matching action reference and review the action's release notes for compatibility or security implications.
 3. Update all intended `.github/workflows/*.yaml` references consistently. Dependabot manages GitHub Actions updates through `.github/dependabot.yaml`; preserve its explicit version format.
-4. Before opening the pull request, update the Torrust organization allowed-actions policy at [Organization Actions settings](https://github.com/organizations/torrust/settings/actions).
+4. Before opening the pull request, amend the Torrust organization allowed-actions policy at [Organization Actions settings](https://github.com/organizations/torrust/settings/actions). The allowlist is organization-wide: preserve entries used by other repositories and never replace it with an inventory from this repository alone. A missing entry from the configured list may be authorized by a broader organization policy, such as GitHub-owned or verified Marketplace actions; do not infer that it must be added from a repository scan. If a complete replacement list is requested, obtain an organization-wide inventory first; otherwise, provide only the required additions and replacements. If the required reference is not allowed and the agent cannot change the organization policy, tell the user that a GitHub organization administrator must update the allowed-actions list before the workflow can run.
    - Add an allowlist pattern that permits the versioned reference, such as `owner/action@v2.*`.
    - Prefer a scoped, stable pattern over a moving `owner/action@v2` tag when Dependabot updates exact versions.
    - Confirm that the configured pattern matches the full `uses:` reference, including its version.
