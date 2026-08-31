@@ -1,5 +1,8 @@
 name: Container
 
+# issue: #2107
+# Before changing container validation, review the deferred persistence-transition
+# test and entrypoint refactor plan in #2107.
 # Path policy: skip this workflow when every changed file is documentation.
 # See .github/workflows/docs-lint.yaml for the lightweight docs-only workflow.
 on:
@@ -98,6 +101,12 @@ jobs:
           tags: torrust-tracker:local
           cache-from: type=gha,scope=container-${{ matrix.target }}
           cache-to: type=gha,scope=container-${{ matrix.target }},mode=max
+
+      - id: run-persistence-transition-regression
+        name: Run Persistence Transition Regression
+        run: >-
+          IMAGE_TAG=torrust-tracker:local BUILD_IMAGE=false
+          bash contrib/dev-tools/containers/tests/test-mounted-no-persistence-configuration.sh
 
       - id: run-tracker-e2e-tests
         name: Run E2E Tests

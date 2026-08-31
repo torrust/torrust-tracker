@@ -1,4 +1,7 @@
 #!/bin/sh
+# issue: #2107
+# Before changing entrypoint configuration or filesystem behavior, review the
+# deferred persistence-transition test and entrypoint refactor plan in #2107.
 set -x
 
 to_lc() { echo "$1" | tr '[:upper:]' '[:lower:]'; }
