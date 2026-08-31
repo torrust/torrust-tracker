@@ -7,10 +7,10 @@ epic: null
 github-issue: 2122
 spec-path: docs/issues/open/2122-expose-unambiguous-download-counter-semantics/ISSUE.md
 branch: "2122-expose-unambiguous-download-counter-semantics"
-related-pr: null
+related-pr: 2123
 depends-on:
   - 2107
-last-updated-utc: 2026-08-31 16:49
+last-updated-utc: 2026-08-31 17:13
 semantic-links:
   skill-links:
     - create-issue
@@ -182,6 +182,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-08-31 16:45 UTC - GitHub Copilot/User - Reconciled the approved additive v1 bridge with the current counter, REST-adapter, metrics-export, and test-harness boundaries. The final draft defines distinct views and capability behavior, and records the required ADR refinement of #999.
 - 2026-08-31 16:48 UTC - GitHub Copilot/User - Created GitHub issue #2122 with the `bug` label and promoted this folder-style specification into `docs/issues/open/`.
 - 2026-08-31 16:49 UTC - GitHub Copilot/User - Located the REST API test boundary. The implementation plan requires review of the existing stats endpoint contract coverage and direct metrics endpoint coverage, with a focused `tests/` integration test when package-local coverage cannot prove the configuration-to-endpoint contract.
+- 2026-08-31 17:13 UTC - GitHub Copilot/User - Opened spec-only PR #2123 for this specification and #2121. It is related to, not an implementation that closes, either issue.
 
 ## Acceptance Criteria
 

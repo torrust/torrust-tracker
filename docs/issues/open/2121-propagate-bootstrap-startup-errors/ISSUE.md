@@ -7,10 +7,10 @@ epic: null
 github-issue: 2121
 spec-path: docs/issues/open/2121-propagate-bootstrap-startup-errors/ISSUE.md
 branch: "2121-propagate-bootstrap-errors"
-related-pr: null
+related-pr: 2123
 depends-on:
   - 2107
-last-updated-utc: 2026-08-31 16:45
+last-updated-utc: 2026-08-31 17:13
 semantic-links:
   skill-links:
     - create-issue
@@ -175,6 +175,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-08-31 16:03 UTC - GitHub Copilot/User - Expanded the intended boundary from `setup()` to complete initial startup. `app::run()` must propagate expected failures from `setup()`, `start()`, initial persistence loading, and configured job startup to `main()`, cancelling partial startup jobs before returning an error.
 - 2026-08-31 16:09 UTC - GitHub Copilot/User - Approved the specification. Created GitHub issue #2121 with the `task` label and moved this document into `docs/issues/open/`.
 - 2026-08-31 16:45 UTC - GitHub Copilot/User - Converted this specification to folder-style layout so issue-local implementation evidence can be added without a later layout migration.
+- 2026-08-31 17:13 UTC - GitHub Copilot/User - Opened spec-only PR #2123 for this specification and #2122. It is related to, not an implementation that closes, either issue.
 
 ## Acceptance Criteria
 
