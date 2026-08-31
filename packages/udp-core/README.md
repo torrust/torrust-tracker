@@ -10,6 +10,10 @@ You usually don’t need to use this library directly. Instead, you should use t
 
 [Crate documentation](https://docs.rs/torrust-tracker-udp-core).
 
+[UDP ban-service benchmarking](docs/benchmarking/banning.md).
+
+[Architectural Decision Records](docs/adrs/README.md).
+
 ## License
 
 The project is licensed under the terms of the [GNU AFFERO GENERAL PUBLIC LICENSE](./LICENSE).
