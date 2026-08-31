@@ -13,12 +13,12 @@ next-scheduled-review-utc: 2027-02-28
 ## Decision Status
 
 Technical inventory is complete, but the formal review is **in progress**. It
-must not be treated as approval of every dependency: `bloom` 0.3.2 is a direct
-runtime dependency declaring `GPL-2.0` and requires qualified legal review.
-Traceable authoritative-source evidence for the non-routine declarations must
-also be retained. All active maintainers must then explicitly approve the
-protocol and recorded outcome. This report is technical analysis, not legal
-advice.
+must not be treated as approval of every dependency. The direct runtime
+`bloom` 0.3.2 finding was remediated by its removal in Issue 2114; the remaining
+non-routine declarations require maintainer classification and qualified legal
+review where required. Traceable authoritative-source evidence must be retained.
+All active maintainers must then explicitly approve the protocol and recorded
+outcome. This report is technical analysis, not legal advice.
 
 ## Scope and Method
 
@@ -69,17 +69,17 @@ Use this report structure for each twice-yearly review.
 
 ## Findings
 
-| Finding                                                                                                                              | Evidence   | Status   | Required disposition                                                                                         |
-| ------------------------------------------------------------------------------------------------------------------------------------ | ---------- | -------- | ------------------------------------------------------------------------------------------------------------ |
-| `bloom` 0.3.2 declares `GPL-2.0` and is a direct normal dependency of `torrust-tracker-udp-core`, reaching tracker runtime packages. | E4, E5     | BLOCKED  | Obtain qualified legal review before approving continued use or an exception. [Issue #2114](https://github.com/torrust/torrust-tracker/issues/2114) evaluates removal. |
-| `torrust-tracker-client` 0.1.0 declares `LGPL-3.0`.                                                                                  | E1, E2     | PENDING  | Classify distribution and licensing obligations; obtain maintainer approval or legal escalation.             |
-| `torrust-tracker-client-lib` 0.1.0 declares `LGPL-3.0`.                                                                              | E1, E2     | PENDING  | Classify distribution and licensing obligations; obtain maintainer approval or legal escalation.             |
-| `torrust-tracker-rest-api-client` 0.1.0 declares `LGPL-3.0`.                                                                         | E1, E2     | PENDING  | Classify distribution and licensing obligations; obtain maintainer approval or legal escalation.             |
-| `openmetrics-parser` 0.4.4 declares `LGPL-3.0` and is runtime-reachable through `torrust-metrics`.                                   | E1, E2, E7 | PENDING  | Classify distribution and licensing obligations; obtain maintainer approval or legal escalation.             |
-| `bencode2json` 0.1.0 declares `LGPL-3.0` in the complete locked graph.                                                               | E1, E7     | PENDING  | Classify its locked-graph role and distribution obligations; obtain maintainer approval or legal escalation. |
-| `webpki-root-certs` 1.0.9 declares `CDLA-Permissive-2.0`.                                                                            | E2, E4     | PENDING  | Classify the license and any applicable notices.                                                             |
-| `ring`, `aws-lc-sys`, `aws-lc-rs`, `encoding_rs`, and `unicode-ident` have conjunctive or mixed declarations.                        | E1, E4     | PENDING  | Record selected paths, retained notices, and maintainer rationale.                                           |
-| `workspace-coupling` lacked a declared license.                                                                                      | E6         | RESOLVED | It now inherits the workspace `AGPL-3.0-only` declaration.                                                   |
+| Finding                                                                                                                                           | Evidence   | Status   | Required disposition                                                                                                                              |
+| ------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Historical: `bloom` 0.3.2 declared `GPL-2.0` and was a direct normal dependency of `torrust-tracker-udp-core`, reaching tracker runtime packages. | E4, E5, E8 | RESOLVED | [Issue #2114](https://github.com/torrust/torrust-tracker/issues/2114) removed `bloom` and `bit-vec`; no current resolved dependency path remains. |
+| `torrust-tracker-client` 0.1.0 declares `LGPL-3.0`.                                                                                               | E1, E2     | PENDING  | Classify distribution and licensing obligations; obtain maintainer approval or legal escalation.                                                  |
+| `torrust-tracker-client-lib` 0.1.0 declares `LGPL-3.0`.                                                                                           | E1, E2     | PENDING  | Classify distribution and licensing obligations; obtain maintainer approval or legal escalation.                                                  |
+| `torrust-tracker-rest-api-client` 0.1.0 declares `LGPL-3.0`.                                                                                      | E1, E2     | PENDING  | Classify distribution and licensing obligations; obtain maintainer approval or legal escalation.                                                  |
+| `openmetrics-parser` 0.4.4 declares `LGPL-3.0` and is runtime-reachable through `torrust-metrics`.                                                | E1, E2, E7 | PENDING  | Classify distribution and licensing obligations; obtain maintainer approval or legal escalation.                                                  |
+| `bencode2json` 0.1.0 declares `LGPL-3.0` in the complete locked graph.                                                                            | E1, E7     | PENDING  | Classify its locked-graph role and distribution obligations; obtain maintainer approval or legal escalation.                                      |
+| `webpki-root-certs` 1.0.9 declares `CDLA-Permissive-2.0`.                                                                                         | E2, E4     | PENDING  | Classify the license and any applicable notices.                                                                                                  |
+| `ring`, `aws-lc-sys`, `aws-lc-rs`, `encoding_rs`, and `unicode-ident` have conjunctive or mixed declarations.                                     | E1, E4     | PENDING  | Record selected paths, retained notices, and maintainer rationale.                                                                                |
+| `workspace-coupling` lacked a declared license.                                                                                                   | E6         | RESOLVED | It now inherits the workspace `AGPL-3.0-only` declaration.                                                                                        |
 
 Common permissive and dual-permissive declarations were included in the full
 inventory but receive no blanket compatibility conclusion from this report.
@@ -105,8 +105,7 @@ approval decision. This is a practical evidence checklist, not legal advice.
 5. Choose and record one disposition:
    - **Escalate for qualified legal review** when the dependency is copyleft,
      the expression or distribution model is unclear, an exception is proposed,
-     or the maintainer cannot confidently state the relevant facts. `bloom`
-     requires this disposition.
+     or the maintainer cannot confidently state the relevant facts.
    - **Create remediation work** to remove, replace, reconfigure, or stop
      distributing a dependency when its continued use cannot be approved.
    - **Propose an approved rationale** only after the required legal or policy
@@ -116,10 +115,10 @@ approval decision. This is a practical evidence checklist, not legal advice.
    An approval confirms the documented project decision; it is not an individual
    legal opinion. A missing response leaves the finding pending.
 
-For this first review, maintainers should begin with `bloom`, then process the
-five LGPL findings, `webpki-root-certs`, and the mixed-expression group in the
-order recorded above. No finding becomes approved merely because it appears in
-the inventory or because its license text has been located.
+For this first review, maintainers should process the five LGPL findings,
+`webpki-root-certs`, and the mixed-expression group in the order recorded above.
+No finding becomes approved merely because it appears in the inventory or
+because its license text has been located.
 
 ## Prepared Factual Briefing
 
@@ -128,7 +127,7 @@ needed for the decision checklist; it is not a compatibility conclusion.
 
 | Finding                                 | Verified use and distribution context                                                                                                                                                                                                                                                                                                                                                                                                                        | Decision still required                                                                                                                   |
 | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| `bloom` 0.3.2                           | A normal dependency of `torrust-tracker-udp-core`, used by the UDP banning service's counting Bloom filter. Its dependency path reaches the tracker application and server packages.                                                                                                                                                                                                                                                                         | Qualified legal review of continued runtime use, an exception, or replacement.                                                            |
+| Historical: `bloom` 0.3.2               | At the initial review snapshot, a normal `torrust-tracker-udp-core` dependency used by the UDP banning service. [Issue #2114](https://github.com/torrust/torrust-tracker/issues/2114) removed it after a focused Criterion comparison found the exact-map path faster; `bloom` and `bit-vec` are absent from the current locked graph.                                                                                                                       | Technical remediation is complete. Assess any obligation for already distributed releases separately if required.                         |
 | `torrust-tracker-client` 0.1.0          | A workspace console-client package, explicitly `LGPL-3.0` and eligible for publication through `publish.workspace = true`. It normally depends on `bencode2json` and `torrust-tracker-client-lib`. The draft [client-extraction plan](../../drafts/1669-extract-torrust-tracker-client-to-standalone-repo.md) identifies its CLI binary as the primary artifact and intends a standalone repository; extraction remains blocked by unpublished dependencies. | Maintainer classification of the current separately distributed client artifact and legal escalation if needed; recheck after extraction. |
 | `torrust-tracker-client-lib` 0.1.0      | A workspace client library, explicitly `LGPL-3.0` and eligible for publication through `publish.workspace = true`. It is used by the console client and tracker workspace packages.                                                                                                                                                                                                                                                                          | Maintainer classification of library distribution and legal escalation if needed.                                                         |
 | `torrust-tracker-rest-api-client` 0.1.0 | A workspace REST client library, explicitly `LGPL-3.0` and eligible for publication through `publish.workspace = true`. It is a normal dependency of tracker workspace packages.                                                                                                                                                                                                                                                                             | Maintainer classification of library distribution and legal escalation if needed.                                                         |
@@ -143,25 +142,30 @@ facts are retained in [evidence.md](evidence.md). A maintainer only needs to
 correct a factual statement above, record the resulting disposition, and seek
 qualified legal help when the checklist requires it.
 
-## Request for Qualified Legal Review: `bloom`
+## Historical Request for Qualified Legal Review: `bloom`
 
 Provide the following request and linked evidence to a qualified software
-licensing professional. The request asks for a written assessment; it does not
-ask maintainers to reach a legal conclusion themselves.
+licensing professional when assessing a release that included `bloom` 0.3.2.
+It was prepared before Issue 2114 removed the dependency. It does not block the
+current dependency graph and does not ask maintainers to reach a legal
+conclusion themselves.
 
 ### Factual Assumptions to Confirm
 
 - Torrust Tracker is licensed as `AGPL-3.0-only`.
-- `torrust-tracker-udp-core` declares `bloom` 0.3.2 as a normal dependency.
-- `bloom` 0.3.2 declares `GPL-2.0` and its bundled `LICENSE` is headed “GNU
+- At the initial review snapshot, `torrust-tracker-udp-core` declared `bloom`
+  0.3.2 as a normal dependency.
+- `bloom` 0.3.2 declared `GPL-2.0` and its bundled `LICENSE` is headed “GNU
   GENERAL PUBLIC LICENSE, Version 2, June 1991.”
 - Its source files contain notices that state GPL version 2 “or (at your
   option) any later version.” Upstream clarification [issue #11](https://github.com/nicklan/bloom-rs/issues/11),
   requesting a metadata correction, remains unresolved; the repository appears
   inactive.
-- The tracker compiles `bloom` into its UDP banning service, where it provides
-  a counting Bloom filter. The dependency path reaches the tracker application
-  and server packages.
+- At the initial review snapshot, the tracker compiled `bloom` into its UDP
+  banning service, where it provided a counting Bloom filter. The dependency
+  path reached the tracker application and server packages.
+- Issue 2114 removed `bloom` and `bit-vec`; the current locked graph has no
+  dependency path to either package.
 - The project distributes source code, release binaries, and a container image.
   Confirm the actual release channels and any additional distributed artifacts
   before requesting the assessment.
@@ -202,16 +206,15 @@ the `bloom` finding before maintainers choose its disposition.
 
 ## Required Actions
 
-1. [Issue #2114](https://github.com/torrust/torrust-tracker/issues/2114) was
-   created to evaluate removing `bloom`. It is a technical investigation, not
-   an approval to remove the dependency or a legal compatibility conclusion.
-2. Obtain and record qualified legal guidance for `bloom` before approving
-   continued use or an exception.
-3. Complete the [Maintainer Decision Checklist](#maintainer-decision-checklist)
+1. [Issue #2114](https://github.com/torrust/torrust-tracker/issues/2114)
+   removed `bloom` after recording the decision and benchmark evidence in the
+   UDP-core package ADR. Retain E4 and E5 as historical evidence for any review
+   of releases that included the dependency.
+2. Complete the [Maintainer Decision Checklist](#maintainer-decision-checklist)
    for all five LGPL, CDLA, and conjunctive findings.
-4. Obtain explicit unanimous active-maintainer approval after the blocked items
+3. Obtain explicit unanimous active-maintainer approval after the pending items
    have a recorded disposition. Until then, retain this report as blocked.
-5. Create focused remediation issues for each unapproved finding. No automatic
+4. Create focused remediation issues for each unapproved finding. No automatic
    enforcement should be added as part of this review.
 
 ## Automation Decision
