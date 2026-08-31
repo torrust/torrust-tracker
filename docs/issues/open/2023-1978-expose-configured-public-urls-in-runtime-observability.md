@@ -5,12 +5,12 @@ status: open
 priority: p2
 github-issue: 2023
 spec-path: docs/issues/open/2023-1978-expose-configured-public-urls-in-runtime-observability.md
-branch: null
+branch: 2023-expose-configured-public-urls
 related-pr: null
 depends-on:
   - docs/issues/closed/1417-1978-add-public-service-url-to-configuration.md
   - docs/issues/open/1980-1978-configuration-overhaul-final-cleanup.md
-last-updated-utc: 2026-07-22 13:35
+last-updated-utc: 2026-08-31 00:00
 semantic-links:
   skill-links:
     - create-issue
@@ -81,17 +81,26 @@ follow both changes.
 | Metrics      | Add `public_url` only when configured. Confirm and document the resulting Prometheus series/cardinality effect.                       |
 | Logs         | Emit `service_binding` as the local identity and optional `public_url` as the operator-declared endpoint. Neither replaces the other. |
 
+## Maintainer Decisions
+
+- Health-check responses always include `public_url`; the field is `null` when the service has no
+  configured public URL.
+- Emit `public_url` only in service startup logs, not in per-request logs.
+- Add `public_url` to every per-service metric family that already includes service-binding labels.
+  Do not add it to metric families that lack those labels.
+- Document the Prometheus series/cardinality effect next to the relevant metric definitions.
+
 ## Implementation Plan
 
-| ID  | Status | Task                                                                  | Notes                                                                                   |
-| --- | ------ | --------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
-| T1  | TODO   | Review v3 runtime configuration access after #1980                    | Do not introduce a v2 fallback.                                                         |
-| T2  | TODO   | Extend health-check contract                                          | Preserve existing fields for compatibility.                                             |
-| T3  | TODO   | Extend per-service metric labels                                      | Cover configured and absent public URL cases.                                           |
-| T4  | TODO   | Extend startup and request logging                                    | Record `service_binding` and optional `public_url` separately.                          |
-| T5  | TODO   | Add focused tests                                                     | Cover HTTP, UDP where supported, wildcard binding, and port `0`.                        |
-| T6  | TODO   | Run automatic and manual verification                                 | Record command output in an evidence file after implementation.                         |
-| T7  | TODO   | Update migration guide if this subissue affects the config public API | `packages/configuration/docs/migrate-v2-to-v3.md` |
+| ID  | Status | Task                                                                  | Notes                                                            |
+| --- | ------ | --------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| T1  | TODO   | Review v3 runtime configuration access after #1980                    | Do not introduce a v2 fallback.                                  |
+| T2  | TODO   | Extend health-check contract                                          | Preserve existing fields for compatibility.                      |
+| T3  | TODO   | Extend per-service metric labels                                      | Cover configured and absent public URL cases.                    |
+| T4  | TODO   | Extend startup and request logging                                    | Record `service_binding` and optional `public_url` separately.   |
+| T5  | TODO   | Add focused tests                                                     | Cover HTTP, UDP where supported, wildcard binding, and port `0`. |
+| T6  | TODO   | Run automatic and manual verification                                 | Record command output in an evidence file after implementation.  |
+| T7  | TODO   | Update migration guide if this subissue affects the config public API | `packages/configuration/docs/migrate-v2-to-v3.md`                |
 
 ## Progress Tracking
 
@@ -112,6 +121,8 @@ follow both changes.
   separate concepts.
 - 2026-07-22 13:35 UTC - agent - Maintainer approved the specification and created GitHub issue
   #2023.
+- 2026-08-31 00:00 UTC - maintainer - Confirmed nullable health-check output, startup-only log
+  fields, and metric coverage wherever service-binding labels already exist.
 
 ## Acceptance Criteria
 
