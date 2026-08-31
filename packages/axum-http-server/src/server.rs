@@ -268,7 +268,7 @@ impl HttpServer<Stopped> {
         let service_binding = started.service_binding;
         let binding = started.address;
 
-        tracing::info!(service_binding = %service_binding, "Started HTTP tracker");
+        tracing::info!(service_binding = %service_binding, public_url = ?metadata.public_url(), "Started HTTP tracker");
 
         form.register(ServiceRegistration::new(service_binding, metadata, Some(health_check)))
             .await

@@ -92,15 +92,15 @@ follow both changes.
 
 ## Implementation Plan
 
-| ID  | Status | Task                                                                  | Notes                                                            |
-| --- | ------ | --------------------------------------------------------------------- | ---------------------------------------------------------------- |
-| T1  | TODO   | Review v3 runtime configuration access after #1980                    | Do not introduce a v2 fallback.                                  |
-| T2  | TODO   | Extend health-check contract                                          | Preserve existing fields for compatibility.                      |
-| T3  | TODO   | Extend per-service metric labels                                      | Cover configured and absent public URL cases.                    |
-| T4  | TODO   | Extend startup and request logging                                    | Record `service_binding` and optional `public_url` separately.   |
-| T5  | TODO   | Add focused tests                                                     | Cover HTTP, UDP where supported, wildcard binding, and port `0`. |
-| T6  | TODO   | Run automatic and manual verification                                 | Record command output in an evidence file after implementation.  |
-| T7  | TODO   | Update migration guide if this subissue affects the config public API | `packages/configuration/docs/migrate-v2-to-v3.md`                |
+| ID  | Status  | Task                                                                  | Notes                                                            |
+| --- | ------- | --------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| T1  | DONE    | Review v3 runtime configuration access after #1980                    | Consumes v3 typed configuration only; no v2 fallback added.      |
+| T2  | DONE    | Extend health-check contract                                          | Adds nullable `public_url` while preserving existing fields.     |
+| T3  | DONE    | Extend per-service metric labels                                      | Adds the label where request contexts have binding labels.       |
+| T4  | DONE    | Extend startup logging                                                | Records `service_binding` and nullable `public_url` separately.  |
+| T5  | DONE    | Add focused tests                                                     | Covers HTTP, UDP, absent values, wildcard binding, and port `0`. |
+| T6  | PARTIAL | Run automatic and manual verification                                 | Automatic evidence recorded; manual scenarios remain TODO.       |
+| T7  | N/A     | Update migration guide if this subissue affects the config public API | No configuration public API changed.                             |
 
 ## Progress Tracking
 
@@ -108,8 +108,8 @@ follow both changes.
 
 - [x] Specification drafted and approved by user/maintainer
 - [x] GitHub issue created: #2023
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests)
+- [x] Implementation completed
+- [x] Automatic verification completed (`linter all`, relevant tests)
 - [ ] Manual verification scenarios executed and recorded
 - [ ] Acceptance criteria reviewed after implementation
 - [ ] Issue closed and specification moved to `docs/issues/closed/`
@@ -123,20 +123,24 @@ follow both changes.
   #2023.
 - 2026-08-31 00:00 UTC - maintainer - Confirmed nullable health-check output, startup-only log
   fields, and metric coverage wherever service-binding labels already exist.
+- 2026-08-31 00:00 UTC - agent - Implemented optional configured public URLs in runtime metadata,
+  health-check responses, per-service metrics, and service startup logs. Automatic verification
+  passed; evidence is recorded in
+  `2023-1978-expose-configured-public-urls-in-runtime-observability-verification.md`.
 
 ## Acceptance Criteria
 
-- [ ] AC1: A configured v3 `public_url` is exposed as an optional health-check field without
+- [x] AC1: A configured v3 `public_url` is exposed as an optional health-check field without
       replacing existing service-identity fields.
-- [ ] AC2: Relevant per-service metrics expose `public_url` only when configured.
-- [ ] AC3: Relevant startup and request logs identify the local service with `service_binding`
-      and, independently, the configured `public_url` when present.
-- [ ] AC4: A wildcard bind address with configured port `0` demonstrates three separate values:
+- [x] AC2: Relevant per-service metrics expose `public_url` only when configured.
+- [x] AC3: Relevant startup logs identify the local service with `service_binding` and,
+      independently, the configured `public_url` when present.
+- [x] AC4: A wildcard bind address with configured port `0` demonstrates three separate values:
       configured bind address, post-bind service binding, and configured public URL.
-- [ ] AC5: Services without `public_url` preserve existing health-check, metric, and logging
+- [x] AC5: Services without `public_url` preserve existing health-check, metric, and logging
       behavior.
-- [ ] AC6: No `internal_service_url` implementation or `torrust-net-primitives` change is made.
-- [ ] AC7: `linter all` and relevant tests pass.
+- [x] AC6: No `internal_service_url` implementation or `torrust-net-primitives` change is made.
+- [x] AC7: `linter all` and relevant tests pass.
 - [ ] AC8: Manual verification evidence records both configured and absent `public_url` cases.
 
 ## Verification Plan

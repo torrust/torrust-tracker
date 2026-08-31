@@ -157,7 +157,7 @@ impl ApiServer<Stopped> {
 
         let api_server = match rx_start.await {
             Ok(started) => {
-                tracing::info!(target: API_LOG_TARGET, service_binding = %started.service_binding, "Started tracker API");
+                tracing::info!(target: API_LOG_TARGET, service_binding = %started.service_binding, public_url = ?metadata.public_url(), "Started tracker API");
 
                 form.register(ServiceRegistration::new(started.service_binding, metadata, Some(check_fn)))
                     .await

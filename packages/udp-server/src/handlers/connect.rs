@@ -30,7 +30,8 @@ pub async fn handle_connect(
                     connect_service.configuration_instance_id(),
                     client_socket_addr,
                     server_service_binding.clone(),
-                ),
+                )
+                .with_public_url(connect_service.public_url().map(str::to_string)),
                 kind: UdpRequestKind::Connect,
             })
             .await;

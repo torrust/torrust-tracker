@@ -46,6 +46,7 @@ pub struct ConnectionContext {
     configuration_instance_id: ConfigurationInstanceId,
     client_socket_addr: SocketAddr,
     server_service_binding: ServiceBinding,
+    public_url: Option<String>,
 }
 
 impl ConnectionContext {
@@ -59,7 +60,14 @@ impl ConnectionContext {
             configuration_instance_id,
             client_socket_addr,
             server_service_binding,
+            public_url: None,
         }
+    }
+
+    #[must_use]
+    pub fn with_public_url(mut self, public_url: Option<String>) -> Self {
+        self.public_url = public_url;
+        self
     }
 
     #[must_use]
@@ -78,6 +86,11 @@ impl ConnectionContext {
     }
 
     #[must_use]
+    pub fn public_url(&self) -> Option<&str> {
+        self.public_url.as_deref()
+    }
+
+    #[must_use]
     pub fn client_address_ip_family(&self) -> IpFamily {
         self.client_socket_addr.ip().into()
     }
@@ -93,7 +106,7 @@ impl ConnectionContext {
 
 impl From<ConnectionContext> for LabelSet {
     fn from(connection_context: ConnectionContext) -> Self {
-        LabelSet::from([
+        let mut label_set = LabelSet::from([
             (
                 label_name!("server_binding_protocol"),
                 LabelValue::new(&connection_context.server_service_binding.protocol().to_string()),
@@ -122,7 +135,15 @@ impl From<ConnectionContext> for LabelSet {
                 label_name!("client_address_ip_type"),
                 LabelValue::new(&connection_context.client_address_ip_type().to_string()),
             ),
-        ])
+        ]);
+
+        // Each configured public URL creates a distinct Prometheus series for
+        // every combination of the existing per-service metric labels.
+        if let Some(public_url) = connection_context.public_url() {
+            label_set.upsert(label_name!("public_url"), LabelValue::new(public_url));
+        }
+
+        label_set
     }
 }
 
@@ -152,6 +173,8 @@ pub(crate) mod tests {
 
     use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
 
+    use torrust_metrics::label::{LabelSet, LabelValue};
+    use torrust_metrics::label_name;
     use torrust_net_primitives::service_binding::{IpFamily, IpType, Protocol, ServiceBinding};
     use torrust_tracker_primitives::{ConfigurationInstanceId, ServiceRole};
 
@@ -167,6 +190,40 @@ pub(crate) mod tests {
         );
 
         assert_eq!(ctx.client_address_ip_family(), IpFamily::Inet);
+    }
+
+    #[test]
+    fn it_should_retain_an_optional_configured_public_url() {
+        let ctx = ConnectionContext::new(
+            ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0),
+            SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 6969),
+            ServiceBinding::new(Protocol::UDP, SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 6969)).unwrap(),
+        )
+        .with_public_url(Some("udp://tracker.example.test:6969/announce".to_string()));
+
+        assert_eq!(ctx.public_url(), Some("udp://tracker.example.test:6969/announce"));
+    }
+
+    #[test]
+    fn connection_context_labels_should_include_the_configured_public_url_only_when_present() {
+        let connection = ConnectionContext::new(
+            ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0),
+            SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 6969),
+            ServiceBinding::new(Protocol::UDP, SocketAddr::new(IpAddr::V4(Ipv4Addr::UNSPECIFIED), 6969)).unwrap(),
+        )
+        .with_public_url(Some("udp://tracker.example.test:6969/announce".to_string()));
+
+        let configured_labels = LabelSet::from(connection);
+        let absent_labels = LabelSet::from(ConnectionContext::new(
+            ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0),
+            SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 6969),
+            ServiceBinding::new(Protocol::UDP, SocketAddr::new(IpAddr::V4(Ipv4Addr::UNSPECIFIED), 6969)).unwrap(),
+        ));
+        let public_url_label = label_name!("public_url");
+        let public_url = LabelValue::new("udp://tracker.example.test:6969/announce");
+
+        assert!(configured_labels.contains_pair(&public_url_label, &public_url));
+        assert!(!absent_labels.contains_pair(&public_url_label, &public_url));
     }
 
     #[test]

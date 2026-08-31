@@ -103,22 +103,31 @@ impl UdpTrackerCoreContainer {
             stats_event_sender: udp_tracker_core_services.stats_event_sender.clone(),
             stats_repository: udp_tracker_core_services.stats_repository.clone(),
             ban_service: udp_tracker_core_services.ban_service.clone(),
-            connect_service: Arc::new(ConnectService::new(
-                udp_tracker_core_services.stats_event_sender.clone(),
-                configuration_instance_id,
-            )),
-            announce_service: Arc::new(AnnounceService::new(
-                tracker_core_container.announce_handler.clone(),
-                tracker_core_container.whitelist_authorization.clone(),
-                udp_tracker_core_services.stats_event_sender.clone(),
-                configuration_instance_id,
-                udp_tracker_config.network.external_ip.map(Into::into),
-            )),
-            scrape_service: Arc::new(ScrapeService::new(
-                tracker_core_container.scrape_handler.clone(),
-                udp_tracker_core_services.stats_event_sender.clone(),
-                configuration_instance_id,
-            )),
+            connect_service: Arc::new(
+                ConnectService::new(
+                    udp_tracker_core_services.stats_event_sender.clone(),
+                    configuration_instance_id,
+                )
+                .with_public_url(udp_tracker_config.public_url.as_ref().map(ToString::to_string)),
+            ),
+            announce_service: Arc::new(
+                AnnounceService::new(
+                    tracker_core_container.announce_handler.clone(),
+                    tracker_core_container.whitelist_authorization.clone(),
+                    udp_tracker_core_services.stats_event_sender.clone(),
+                    configuration_instance_id,
+                    udp_tracker_config.network.external_ip.map(Into::into),
+                )
+                .with_public_url(udp_tracker_config.public_url.as_ref().map(ToString::to_string)),
+            ),
+            scrape_service: Arc::new(
+                ScrapeService::new(
+                    tracker_core_container.scrape_handler.clone(),
+                    udp_tracker_core_services.stats_event_sender.clone(),
+                    configuration_instance_id,
+                )
+                .with_public_url(udp_tracker_config.public_url.as_ref().map(ToString::to_string)),
+            ),
         })
     }
 }

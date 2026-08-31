@@ -15,6 +15,7 @@ pub struct CheckReport {
     pub service_binding: Url,
     pub binding: SocketAddr,
     pub service_type: String,
+    pub public_url: Option<String>,
     pub info: String,
     pub result: Result<String, String>,
 }

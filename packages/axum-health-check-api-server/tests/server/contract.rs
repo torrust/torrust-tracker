@@ -29,10 +29,12 @@ async fn health_check_endpoint_should_return_status_ok_when_there_is_no_services
 }
 
 mod api {
+    use std::net::{Ipv4Addr, SocketAddr};
     use std::sync::Arc;
 
     use torrust_tracker_axum_health_check_api_server::environment::Started;
     use torrust_tracker_axum_health_check_api_server::resources::{Report, Status};
+    use torrust_tracker_configuration::v3_0_0::public_url::HttpUrl;
     use torrust_tracker_test_helpers::{configuration, logging};
     use url::Url;
 
@@ -42,7 +44,18 @@ mod api {
     pub(crate) async fn it_should_return_good_health_for_api_service() {
         logging::setup();
 
-        let configuration = Arc::new(configuration::ephemeral());
+        let mut configuration = configuration::ephemeral();
+        let http_api_config = configuration.http_api.as_mut().expect("missing HTTP API configuration");
+        http_api_config.bind_address = SocketAddr::from((Ipv4Addr::UNSPECIFIED, 0));
+        http_api_config.public_url = Some(HttpUrl::parse("https://tracker.example.test/api").expect("valid public URL"));
+        let configured_bind_address = configuration
+            .http_api
+            .as_ref()
+            .expect("missing HTTP API configuration")
+            .bind_address;
+        assert!(configured_bind_address.ip().is_unspecified());
+        assert_eq!(configured_bind_address.port(), 0);
+        let configuration = Arc::new(configuration);
 
         let service = torrust_tracker_axum_rest_api_server::testing::environment::Started::new(&configuration).await;
 
@@ -73,6 +86,9 @@ mod api {
             );
             assert_eq!(details.binding, service.bind_address());
             assert_eq!(details.service_type, "tracker_rest_api");
+            assert_eq!(details.public_url.as_deref(), Some("https://tracker.example.test/api"));
+            assert_eq!(details.binding.ip(), configured_bind_address.ip());
+            assert_ne!(details.binding.port(), configured_bind_address.port());
 
             assert_eq!(details.result, Ok("200 OK".to_string()));
 
@@ -126,6 +142,7 @@ mod api {
             assert_eq!(details.service_binding, Url::parse(&format!("http://{binding}")).unwrap());
             assert_eq!(details.binding, binding);
             assert_eq!(details.service_type, "tracker_rest_api");
+            assert_eq!(details.public_url, None);
             assert!(
                 details.result.as_ref().is_err_and(|e| e.contains("error sending request")),
                 "Expected to contain, \"error sending request\", but have message \"{:?}\".",

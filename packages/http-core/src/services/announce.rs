@@ -48,6 +48,7 @@ pub struct AnnounceService {
     reverse_proxy_mode: ReverseProxyMode,
     peer_ip_selection_policy: PeerIpSelectionPolicy,
     configuration_instance_id: ConfigurationInstanceId,
+    public_url: Option<String>,
 }
 
 /// Controls whether an HTTP announce may override its peer IP with BEP 3's
@@ -58,10 +59,11 @@ pub struct PeerIpSelectionPolicy {
     external_ip: Option<std::net::IpAddr>,
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Debug)]
 struct HttpTrackerPolicy {
     reverse_proxy_mode: ReverseProxyMode,
     peer_ip_selection: PeerIpSelectionPolicy,
+    public_url: Option<String>,
 }
 
 impl From<&HttpTracker> for HttpTrackerPolicy {
@@ -69,6 +71,7 @@ impl From<&HttpTracker> for HttpTrackerPolicy {
         Self {
             reverse_proxy_mode: http_tracker_config.network.on_reverse_proxy.into(),
             peer_ip_selection: http_tracker_config.into(),
+            public_url: http_tracker_config.public_url.as_ref().map(ToString::to_string),
         }
     }
 }
@@ -162,6 +165,7 @@ impl AnnounceService {
             HttpTrackerPolicy {
                 reverse_proxy_mode: ReverseProxyMode::Disabled,
                 peer_ip_selection: peer_ip_selection_policy,
+                public_url: None,
             },
             configuration_instance_id,
         )
@@ -185,6 +189,7 @@ impl AnnounceService {
             reverse_proxy_mode: http_tracker_policy.reverse_proxy_mode,
             peer_ip_selection_policy: http_tracker_policy.peer_ip_selection,
             configuration_instance_id,
+            public_url: http_tracker_policy.public_url,
         }
     }
 
@@ -334,7 +339,8 @@ impl AnnounceService {
                     self.configuration_instance_id,
                     remote_client_addr,
                     server_service_binding,
-                ),
+                )
+                .with_public_url(self.public_url.clone()),
                 info_hash,
                 announcement,
             };

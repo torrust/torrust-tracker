@@ -30,6 +30,7 @@ pub struct ScrapeService {
     scrape_handler: Arc<ScrapeHandler>,
     opt_udp_stats_event_sender: crate::event::sender::Sender,
     configuration_instance_id: ConfigurationInstanceId,
+    public_url: Option<String>,
 }
 
 impl ScrapeService {
@@ -48,7 +49,19 @@ impl ScrapeService {
             scrape_handler,
             opt_udp_stats_event_sender,
             configuration_instance_id,
+            public_url: None,
         }
+    }
+
+    #[must_use]
+    pub fn with_public_url(mut self, public_url: Option<String>) -> Self {
+        self.public_url = public_url;
+        self
+    }
+
+    #[must_use]
+    pub fn public_url(&self) -> Option<&str> {
+        self.public_url.as_deref()
     }
 
     /// It handles the `Scrape` request.
@@ -102,7 +115,8 @@ impl ScrapeService {
     async fn send_event(&self, client_socket_addr: SocketAddr, server_service_binding: ServiceBinding) {
         if let Some(udp_stats_event_sender) = self.opt_udp_stats_event_sender.as_deref() {
             let event = Event::UdpScrape {
-                connection: ConnectionContext::new(self.configuration_instance_id, client_socket_addr, server_service_binding),
+                connection: ConnectionContext::new(self.configuration_instance_id, client_socket_addr, server_service_binding)
+                    .with_public_url(self.public_url.clone()),
             };
 
             tracing::debug!(target = crate::UDP_TRACKER_LOG_TARGET, "Sending UdpScrape event: {event:?}");

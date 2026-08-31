@@ -44,7 +44,8 @@ pub async fn handle_scrape(
                     scrape_service.configuration_instance_id(),
                     client_socket_addr,
                     server_service_binding.clone(),
-                ),
+                )
+                .with_public_url(scrape_service.public_url().map(str::to_string)),
                 kind: UdpRequestKind::Scrape,
             })
             .await;
@@ -72,7 +73,8 @@ pub async fn handle_scrape(
                                     scrape_service.configuration_instance_id(),
                                     client_socket_addr,
                                     server_service_binding.clone(),
-                                ),
+                                )
+                                .with_public_url(scrape_service.public_url().map(str::to_string)),
                                 kind: Some(UdpRequestKind::Scrape),
                                 error: ErrorKind::ConnectionCookie(cookie_error.to_string()),
                             })

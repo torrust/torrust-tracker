@@ -106,6 +106,11 @@ pub(crate) async fn handle_packet(
                         udp_request.from,
                         server_service_binding,
                         udp_tracker_core_container.configuration_instance_id,
+                        udp_tracker_core_container
+                            .udp_tracker_config
+                            .public_url
+                            .as_ref()
+                            .map(ToString::to_string),
                         request_id,
                         &udp_tracker_server_container.stats_event_sender,
                         cookie_time_values.valid_range.clone(),
@@ -130,6 +135,11 @@ pub(crate) async fn handle_packet(
                     udp_request.from,
                     server_service_binding,
                     udp_tracker_core_container.configuration_instance_id,
+                    udp_tracker_core_container
+                        .udp_tracker_config
+                        .public_url
+                        .as_ref()
+                        .map(ToString::to_string),
                     request_id,
                     &udp_tracker_server_container.stats_event_sender,
                     cookie_time_values.valid_range.clone(),

@@ -49,7 +49,8 @@ pub async fn handle_announce(
                     announce_service.configuration_instance_id(),
                     client_socket_addr,
                     server_service_binding.clone(),
-                ),
+                )
+                .with_public_url(announce_service.public_url().map(str::to_string)),
                 kind: UdpRequestKind::Announce {
                     announce_request: *request,
                 },
@@ -85,7 +86,8 @@ pub async fn handle_announce(
                                     announce_service.configuration_instance_id(),
                                     client_socket_addr,
                                     server_service_binding.clone(),
-                                ),
+                                )
+                                .with_public_url(announce_service.public_url().map(str::to_string)),
                                 kind: Some(UdpRequestKind::Announce {
                                     announce_request: *request,
                                 }),
