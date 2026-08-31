@@ -193,7 +193,8 @@ RUN mkdir -p \
       packages/udp-server/src/lib.rs \
       packages/udp-server/examples/udp_only_public_tracker.rs \
       packages/udp-core/src/lib.rs \
-      packages/udp-core/benches/udp_tracker_core_benchmark.rs
+      packages/udp-core/benches/udp_tracker_core_benchmark.rs \
+      packages/udp-core/benches/ban_service_benchmark.rs
 RUN cargo chef prepare --recipe-path /build/recipe.json
 # Generate an external-only recipe for the third-party dependency layer.
 # The `--external-only` flag strips all `path = "..."` dependency entries,
