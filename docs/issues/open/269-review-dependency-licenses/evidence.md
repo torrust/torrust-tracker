@@ -156,6 +156,32 @@ cargo license --avoid-dev-deps --json | jq \
 - **Report Links:** [Findings](initial-review.md#findings) and
   [Required Actions](initial-review.md#required-actions).
 
+## E8: `bloom` Technical Remediation
+
+- **Question:** Does the current locked graph still include the `bloom` finding
+  identified in E4 and E5?
+- **Status:** PASS
+- **Method:** Reviewed merged [Issue #2114](https://github.com/torrust/torrust-tracker/issues/2114), its package-local
+  [decision record](../../../../packages/udp-core/docs/adrs/20260829204258_use_exact_ip_counters_for_udp_banning.md),
+  and the merged implementation in PR #2119. Ran:
+
+  ```sh
+  cargo metadata --locked --format-version=1 | jq '[.packages[] | select(.name == "bloom" or .name == "bit-vec")] | length'
+  cargo tree --locked --workspace --target all --edges all -i bloom
+  ```
+
+- **Observation:** Issue 2114 removed the runtime `bloom` dependency and its
+  transitive `bit-vec` dependency after a focused Criterion comparison found
+  the exact-map ban-counter path faster for the measured operations. The
+  metadata query returned `0`; the inverse tree reported no matching `bloom`
+  package.
+- **Conclusion:** The `bloom` finding is technically remediated for the current
+  locked graph. E4 and E5 remain historical evidence for the initial snapshot;
+  this does not decide any obligation associated with releases that included
+  `bloom`.
+- **Report Links:** [Findings](initial-review.md#findings) and
+  [Required Actions](initial-review.md#required-actions).
+
 ## E6: Internal Metadata Completion
 
 - **Question:** Can the missing `workspace-coupling` license declaration be
