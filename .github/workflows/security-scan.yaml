@@ -1,5 +1,7 @@
 name: Security Scan
 
+# skill-link: update-github-workflow-actions
+
 on:
   push:
     branches: [main, develop]
@@ -35,7 +37,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       # Scheduled scans use the pre-built develop image from Docker Hub.
       # Push/PR triggers on Containerfile changes need to build from source.
@@ -85,7 +87,7 @@ jobs:
           scanners: "vuln"
 
       - name: Upload SARIF to Code Scanning
-        uses: github/codeql-action/upload-sarif@v4.37.4
+        uses: github/codeql-action/upload-sarif@v4.37.9
         if: always()
         with:
           sarif_file: trivy-results.sarif

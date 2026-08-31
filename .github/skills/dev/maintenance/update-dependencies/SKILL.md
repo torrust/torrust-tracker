@@ -20,6 +20,8 @@ Use `.github/skills/dev/maintenance/add-rust-dependency/SKILL.md` when introduci
 This skill is for updating already-declared dependencies.
 Use `.github/skills/dev/maintenance/update-github-workflow-actions/SKILL.md` for GitHub Actions
 workflow dependency updates and organization action-allowlist synchronization.
+When updating crates and workflow actions together, complete the crate update first and use the
+same dedicated branch for the subsequent workflow-action update.
 
 Delivery policy:
 
