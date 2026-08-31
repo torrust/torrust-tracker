@@ -1,24 +1,12 @@
 //! Banning service for UDP tracker.
 //!
 //! It bans clients that send invalid connection id's.
-//!
-//! It uses two levels of filtering:
-//!
-//! 1. First, tt uses a Counting Bloom Filter to keep track of the number of
-//!    connection ID errors per ip. That means there can be false positives, but
-//!    not false negatives. 1 out of 100000 requests will be a false positive
-//!    and the client will be banned and not receive a response.
-//! 2. Since we want to avoid false positives (banning a client that is not
-//!    sending invalid connection id's), we use a `HashMap` to keep track of the
-//!    exact number of connection ID errors per ip.
-//!
-//! This two level filtering is to avoid false positives. It has the advantage
-//! of being fast by using a Counting Bloom Filter and not having false
-//! negatives at the cost of increasing the memory usage.
+//! It uses an exact `HashMap` to track connection-ID errors by source IP,
+//! avoiding collision-driven bans. See ADR
+//! `../../docs/adrs/20260829204258_use_exact_ip_counters_for_udp_banning.md`.
 use std::collections::HashMap;
 use std::net::IpAddr;
 
-use bloom::{ASMS, CountingBloomFilter};
 use tokio::time::Instant;
 
 use crate::UDP_TRACKER_LOG_TARGET;
@@ -31,7 +19,6 @@ pub trait BanningStats: Send + Sync {
 
 pub struct BanService {
     max_connection_id_errors_per_ip: u32,
-    fuzzy_error_counter: CountingBloomFilter,
     accurate_error_counter: HashMap<IpAddr, u32>,
     last_connection_id_errors_reset: Instant,
 }
@@ -41,14 +28,12 @@ impl BanService {
     pub fn new(max_connection_id_errors_per_ip: u32) -> Self {
         Self {
             max_connection_id_errors_per_ip,
-            fuzzy_error_counter: CountingBloomFilter::with_rate(4, 0.01, 100),
             accurate_error_counter: HashMap::new(),
             last_connection_id_errors_reset: tokio::time::Instant::now(),
         }
     }
 
     pub fn increase_counter(&mut self, ip: &IpAddr) {
-        self.fuzzy_error_counter.insert(&ip.to_string());
         *self.accurate_error_counter.entry(*ip).or_insert(0) += 1;
     }
 
@@ -62,30 +47,15 @@ impl BanService {
         self.accurate_error_counter.len()
     }
 
-    #[must_use]
-    pub fn get_estimate_count(&self, ip: &IpAddr) -> u32 {
-        self.fuzzy_error_counter.estimate_count(&ip.to_string())
-    }
-
     /// Returns true if the given ip address is banned.
     #[must_use]
     pub fn is_banned(&self, ip: &IpAddr) -> bool {
-        // First check if the ip is in the bloom filter (fast check)
-        if self.fuzzy_error_counter.estimate_count(&ip.to_string()) <= self.max_connection_id_errors_per_ip {
-            return false;
-        }
-
-        // Check with the exact counter (to avoid false positives)
-        match self.get_count(ip) {
-            Some(count) => count > self.max_connection_id_errors_per_ip,
-            None => false,
-        }
+        self.get_count(ip)
+            .is_some_and(|count| count > self.max_connection_id_errors_per_ip)
     }
 
-    /// Resets the filters and updates the reset timestamp.
+    /// Resets the counters and updates the reset timestamp.
     pub fn reset_bans(&mut self) {
-        self.fuzzy_error_counter.clear();
-
         self.accurate_error_counter.clear();
 
         self.last_connection_id_errors_reset = Instant::now();
@@ -148,15 +118,32 @@ mod tests {
     }
 
     #[test]
-    fn it_should_allow_resetting_all_the_counters() {
-        let mut ban_service = ban_service(1);
-
+    fn it_should_not_ban_ips_without_connection_id_errors() {
+        // Arrange
+        let ban_service = ban_service(1);
         let ip: IpAddr = "127.0.0.2".parse().unwrap();
 
-        ban_service.increase_counter(&ip); // Counter = 1
+        // Act
+        let is_banned = ban_service.is_banned(&ip);
 
+        // Assert
+        assert!(!is_banned);
+    }
+
+    #[test]
+    fn it_should_allow_resetting_all_the_counters() {
+        // Arrange
+        let mut ban_service = ban_service(1);
+        let ip: IpAddr = "127.0.0.2".parse().unwrap();
+
+        ban_service.increase_counter(&ip);
+        ban_service.increase_counter(&ip);
+
+        // Act
         ban_service.reset_bans();
 
-        assert_eq!(ban_service.get_estimate_count(&ip), 0);
+        // Assert
+        assert_eq!(ban_service.get_count(&ip), None);
+        assert!(!ban_service.is_banned(&ip));
     }
 }
