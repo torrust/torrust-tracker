@@ -247,7 +247,7 @@ cover this independently for HTTP and UDP.
 - [x] SI-2 already exists in the EPIC sub-issue table with the `torrust-server-lib`
       external dependency noted.
 - [x] SI-16 and SI-17 cover `Environment::stop()` abort-vs-cancel and SIGTERM
-  for standalone HTTP and UDP examples, respectively.
+      for standalone HTTP and UDP examples, respectively.
 - [x] Q5 is resolved and is no longer a blocker for SI-2; its process-targeting
       rule remains required for SI-18/SI-19 verification.
 
