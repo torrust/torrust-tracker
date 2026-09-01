@@ -39,10 +39,10 @@ Status legend:
 
 ## Suggestions
 
-| #   | Thread ID               | Path                                                                | URL                                                                           | Suggestion Summary                                       | Decision | Reply URL | Status | Thread State |
-| --- | ----------------------- | ------------------------------------------------------------------- | ----------------------------------------------------------------------------- | -------------------------------------------------------- | -------- | --------- | ------ | ------------ |
-| 1   | `PRRT_kwDOGp2yqc6eGDnv` | `src/AGENTS.md`                                                     | <https://github.com/torrust/torrust-tracker/pull/2126#discussion_r3903896890> | Replace stale root `app::run()` startup references.      | `action` | <https://github.com/torrust/torrust-tracker/pull/2126#discussion_r3904110251> | DONE   | RESOLVED   |
-| 2   | `PRRT_kwDOGp2yqc6eGDoU` | `docs/issues/open/2121-propagate-bootstrap-startup-errors/ISSUE.md` | <https://github.com/torrust/torrust-tracker/pull/2126#discussion_r3903896939> | Replace stale `run()` references in acceptance evidence. | `action` | <https://github.com/torrust/torrust-tracker/pull/2126#discussion_r3904112863> | DONE   | RESOLVED   |
+| #   | Thread ID               | Path                                                                | URL                                                                           | Suggestion Summary                                       | Decision | Reply URL                                                                     | Status | Thread State |
+| --- | ----------------------- | ------------------------------------------------------------------- | ----------------------------------------------------------------------------- | -------------------------------------------------------- | -------- | ----------------------------------------------------------------------------- | ------ | ------------ |
+| 1   | `PRRT_kwDOGp2yqc6eGDnv` | `src/AGENTS.md`                                                     | <https://github.com/torrust/torrust-tracker/pull/2126#discussion_r3903896890> | Replace stale root `app::run()` startup references.      | `action` | <https://github.com/torrust/torrust-tracker/pull/2126#discussion_r3904110251> | DONE   | RESOLVED     |
+| 2   | `PRRT_kwDOGp2yqc6eGDoU` | `docs/issues/open/2121-propagate-bootstrap-startup-errors/ISSUE.md` | <https://github.com/torrust/torrust-tracker/pull/2126#discussion_r3903896939> | Replace stale `run()` references in acceptance evidence. | `action` | <https://github.com/torrust/torrust-tracker/pull/2126#discussion_r3904112863> | DONE   | RESOLVED     |
 
 ## Notes
 
