@@ -19,8 +19,8 @@ semantic-links:
     - packages/udp-server/src/container.rs
     - src/container.rs
     - docs/architecture/events.md
-    - docs/issues/open/2039-normalize-per-instance-event-metrics-policy/ISSUE.md
-    - docs/issues/open/2035-fix-duplicate-port-zero-tracker-instance-bootstrap/ISSUE.md
+    - docs/issues/closed/2039-normalize-per-instance-event-metrics-policy/ISSUE.md
+    - docs/issues/closed/2035-fix-duplicate-port-zero-tracker-instance-bootstrap/ISSUE.md
 ---
 
 <!-- skill-link: create-issue -->

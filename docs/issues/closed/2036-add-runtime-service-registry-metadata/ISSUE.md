@@ -14,7 +14,7 @@ semantic-links:
   related-artifacts:
     - docs/adrs/20260728115400_define_registar_as_runtime_service_registry.md
     - docs/issues/open/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md
-    - docs/issues/open/2035-fix-duplicate-port-zero-tracker-instance-bootstrap/ISSUE.md
+    - docs/issues/closed/2035-fix-duplicate-port-zero-tracker-instance-bootstrap/ISSUE.md
     - docs/issues/closed/2041-migrate-runtime-service-registry-metadata/ISSUE.md
     - packages/axum-http-server/src/server.rs
     - packages/axum-rest-api-server/src/server.rs

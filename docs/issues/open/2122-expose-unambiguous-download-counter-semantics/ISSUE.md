@@ -16,7 +16,7 @@ semantic-links:
     - create-issue
   related-artifacts:
     - .github/skills/dev/planning/create-issue/SKILL.md
-    - docs/issues/open/2107-1978-activate-persistence-free-v3-runtime-composition/ISSUE.md
+    - docs/issues/closed/2107-1978-activate-persistence-free-v3-runtime-composition/ISSUE.md
     - packages/tracker-core/src/statistics/mod.rs
     - packages/tracker-core/src/statistics/repository.rs
     - packages/tracker-core/src/statistics/persisted/mod.rs
@@ -28,7 +28,7 @@ semantic-links:
     - packages/axum-rest-api-server/tests/server/v1/contract/context/stats.rs
     - tests/scaffold.rs
     - tests/common/statistics.rs
-    - docs/issues/open/999-1978-optional-database-configuration/ISSUE.md
+    - docs/issues/closed/999-1978-optional-database-configuration/ISSUE.md
     - docs/issues/open/2122-expose-unambiguous-download-counter-semantics/manual-verification.md
 ---
 
@@ -260,7 +260,7 @@ Notes:
 - Parent EPIC of completed prerequisite: #1978
 - Historical behavior: commit `b0e74439` (`fix: [#1543] return always in API the downloads number from tracker-core`)
 - Persistence capability ADR: `docs/adrs/20260825193119_make_persistence_an_optional_application_composition_capability.md`
-- Earlier API-v2 deferral: `docs/issues/open/999-1978-optional-database-configuration/ISSUE.md`
+- Earlier API-v2 deferral: `docs/issues/closed/999-1978-optional-database-configuration/ISSUE.md`
 - Tracker metric: `packages/tracker-core/src/statistics/mod.rs`
 - REST stats adapter: `packages/rest-api-runtime-adapter/src/v1/adapters/stats.rs`
 - REST stats protocol: `packages/rest-api-protocol/src/v1/context/stats/resources/stats.rs`

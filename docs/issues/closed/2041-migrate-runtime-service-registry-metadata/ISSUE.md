@@ -15,9 +15,9 @@ semantic-links:
   related-artifacts:
     - .github/skills/dev/planning/create-issue/SKILL.md
     - docs/adrs/20260728115400_define_registar_as_runtime_service_registry.md
-    - docs/issues/open/2035-fix-duplicate-port-zero-tracker-instance-bootstrap/ISSUE.md
+    - docs/issues/closed/2035-fix-duplicate-port-zero-tracker-instance-bootstrap/ISSUE.md
     - docs/issues/closed/2036-add-runtime-service-registry-metadata/ISSUE.md
-    - docs/issues/open/2039-normalize-per-instance-event-metrics-policy/ISSUE.md
+    - docs/issues/closed/2039-normalize-per-instance-event-metrics-policy/ISSUE.md
     - docs/issues/open/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md
     - src/container.rs
   related-issues:
