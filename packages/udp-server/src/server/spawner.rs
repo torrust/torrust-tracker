@@ -13,6 +13,17 @@ use torrust_tracker_udp_core::container::UdpTrackerCoreContainer;
 
 use super::launcher::Launcher;
 use crate::container::UdpTrackerServerContainer;
+use crate::server::bound_socket::BoundSocket;
+
+pub struct LaunchRequest {
+    pub udp_tracker_core_container: Arc<UdpTrackerCoreContainer>,
+    pub udp_tracker_server_container: Arc<UdpTrackerServerContainer>,
+    pub cookie_lifetime: Duration,
+    pub connection_id_validation: ConnectionIdValidationPolicy,
+    pub bound_socket: BoundSocket,
+    pub tx_start: oneshot::Sender<Started>,
+    pub rx_halt: oneshot::Receiver<Halted>,
+}
 
 // `derive_more::Constructor` generates `field: field` initializers on this MSRV-compatible version.
 // Nightly Clippy diagnoses that proc-macro expansion; remove this allowance once derive_more emits
@@ -27,33 +38,22 @@ pub struct Spawner {
 impl Spawner {
     /// It spawns a new task to run the UDP server instance.
     ///
-    /// # Panics
-    ///
-    /// It would panic if unable to resolve the `local_addr` from the supplied ´socket´.
     #[must_use]
-    pub fn spawn_launcher(
-        &self,
-        udp_tracker_core_container: Arc<UdpTrackerCoreContainer>,
-        udp_tracker_server_container: Arc<UdpTrackerServerContainer>,
-        cookie_lifetime: Duration,
-        connection_id_validation: ConnectionIdValidationPolicy,
-        tx_start: oneshot::Sender<Started>,
-        rx_halt: oneshot::Receiver<Halted>,
-    ) -> JoinHandle<Spawner> {
+    pub fn spawn_launcher(&self, request: LaunchRequest) -> JoinHandle<Result<Spawner, std::io::Error>> {
         let spawner = Self::new(self.bind_to);
 
         tokio::spawn(async move {
             Launcher::run_with_graceful_shutdown(
-                udp_tracker_core_container,
-                udp_tracker_server_container,
-                spawner.bind_to,
-                cookie_lifetime,
-                connection_id_validation,
-                tx_start,
-                rx_halt,
+                request.udp_tracker_core_container,
+                request.udp_tracker_server_container,
+                request.bound_socket,
+                request.cookie_lifetime,
+                request.connection_id_validation,
+                request.tx_start,
+                request.rx_halt,
             )
-            .await;
-            spawner
+            .await
+            .map(|()| spawner)
         })
     }
 }

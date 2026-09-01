@@ -68,7 +68,8 @@ impl JobManager {
     }
 
     /// Waits sequentially for all jobs to complete, with a graceful timeout per
-    /// job.
+    /// job. Jobs that exceed the grace period are aborted and joined, so their
+    /// handles are never detached.
     pub async fn wait_for_all(mut self, grace_period: Duration) {
         for job in self.jobs.drain(..) {
             wait_for_job(job, grace_period).await;
@@ -76,12 +77,18 @@ impl JobManager {
     }
 }
 
-async fn wait_for_job(job: Job, grace_period: Duration) {
+async fn wait_for_job(mut job: Job, grace_period: Duration) {
     let name = job.name.clone();
 
     info!(job = %name, "Waiting for job to finish (timeout of {} seconds) ...", grace_period.as_secs());
 
-    log_job_result(&name, timeout(grace_period, job.handle).await);
+    if let Ok(result) = timeout(grace_period, &mut job.handle).await {
+        log_job_result(&name, Ok(result));
+    } else {
+        warn!(job = %name, "Job did not complete in time; aborting it");
+        job.handle.abort();
+        log_job_result(&name, Ok(job.handle.await));
+    }
 }
 
 fn log_job_result(name: &str, result: Result<Result<(), JoinError>, Elapsed>) {
@@ -120,5 +127,18 @@ mod tests {
         );
 
         manager.wait_for_all(Duration::from_secs(1)).await;
+    }
+
+    #[tokio::test]
+    async fn it_should_abort_and_join_a_job_that_does_not_stop_within_the_grace_period() {
+        // Arrange
+        let mut manager = JobManager::new();
+        manager.push("blocked_job", tokio::spawn(std::future::pending()));
+
+        // Act
+        manager.wait_for_all(Duration::ZERO).await;
+
+        // Assert
+        // `wait_for_all` returned only after aborting and joining the pending job.
     }
 }

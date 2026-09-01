@@ -25,6 +25,7 @@ use std::sync::Arc;
 
 use axum_server::tls_rustls::RustlsConfig;
 use tokio::task::JoinHandle;
+use tokio_util::sync::CancellationToken;
 use torrust_server_lib::registar::ServiceRegistrationForm;
 use torrust_tracker_axum_rest_api_server::Version;
 use torrust_tracker_axum_rest_api_server::server::{ApiServer, Launcher};
@@ -33,6 +34,19 @@ use torrust_tracker_configuration::v3_0_0::tracker_api::AccessTokens;
 use torrust_tracker_primitives::RuntimeServiceMetadata;
 use torrust_tracker_rest_api_runtime_adapter::v1::container::TrackerHttpApiCoreContainer;
 use tracing::instrument;
+
+#[derive(Debug, thiserror::Error)]
+pub enum Error {
+    #[error("Could not load TLS material for the tracker API. Verify the configured certificate and key paths: {source}")]
+    Tls {
+        source: torrust_tracker_axum_server::tls::Error,
+    },
+
+    #[error("Could not start the tracker API listener. Check that its bind address is available: {source}")]
+    Listener {
+        source: torrust_tracker_axum_rest_api_server::server::Error,
+    },
+}
 
 /// This is the message that the "launcher" spawned task sends to the main
 /// application process to notify the API server was successfully started.
@@ -49,10 +63,9 @@ pub struct ApiServerJobStarted();
 /// This task will send a message to the main application process to notify
 /// that the API server was successfully started.
 ///
-/// # Panics
+/// # Errors
 ///
-/// It would panic if unable to send the  `ApiServerJobStarted` notice.
-///
+/// Returns TLS-material or listener-start errors without losing their sources.
 ///
 #[instrument(
     skip(http_api_container, form, metadata),
@@ -66,15 +79,12 @@ pub async fn start_job(
     form: ServiceRegistrationForm<RuntimeServiceMetadata>,
     metadata: RuntimeServiceMetadata,
     version: Version,
-) -> Option<JoinHandle<()>> {
+    cancellation_token: CancellationToken,
+) -> Result<Option<JoinHandle<()>>, Error> {
     let bind_to = http_api_container.http_api_config.bind_address;
 
     let tls = if let Some(tls_config) = &http_api_container.http_api_config.tls_config {
-        Some(
-            make_rust_tls(tls_config)
-                .await
-                .expect("it should have a valid tracker api tls configuration"),
-        )
+        Some(make_rust_tls(tls_config).await.map_err(|source| Error::Tls { source })?)
     } else {
         None
     };
@@ -82,7 +92,18 @@ pub async fn start_job(
     let access_tokens = Arc::new(http_api_container.http_api_config.access_tokens.clone());
 
     match version {
-        Version::V1 => Some(start_v1(bind_to, tls, http_api_container, form, metadata, access_tokens).await),
+        Version::V1 => Ok(Some(
+            start_v1(
+                bind_to,
+                tls,
+                http_api_container,
+                form,
+                metadata,
+                access_tokens,
+                cancellation_token,
+            )
+            .await?,
+        )),
     }
 }
 
@@ -101,22 +122,37 @@ async fn start_v1(
     form: ServiceRegistrationForm<RuntimeServiceMetadata>,
     metadata: RuntimeServiceMetadata,
     access_tokens: Arc<AccessTokens>,
-) -> JoinHandle<()> {
+    cancellation_token: CancellationToken,
+) -> Result<JoinHandle<()>, Error> {
     let server = ApiServer::new(Launcher::new(socket, tls))
         .start(http_api_container, form, metadata, access_tokens)
         .await
-        .expect("it should be able to start to the tracker api");
+        .map_err(|source| Error::Listener { source })?;
 
-    tokio::spawn(async move {
+    Ok(tokio::spawn(async move {
         assert!(!server.state.halt_task.is_closed(), "Halt channel should be open");
-        server.state.task.await.expect("failed to close service");
-    })
+        let torrust_tracker_axum_rest_api_server::server::Running { halt_task, mut task, .. } = server.state;
+        tokio::select! {
+            () = cancellation_token.cancelled() => {
+                if halt_task.send(torrust_server_lib::signals::Halted::Normal).is_err() {
+                    tracing::warn!("Could not signal tracker API to stop after cancellation");
+                }
+                if let Err(error) = (&mut task).await {
+                    tracing::warn!(%error, "Could not join tracker API after cancellation");
+                }
+            }
+            result = &mut task => if let Err(error) = result {
+                tracing::warn!(%error, "Tracker API task failed");
+            },
+        }
+    }))
 }
 
 #[cfg(test)]
 mod tests {
     use std::sync::Arc;
 
+    use tokio_util::sync::CancellationToken;
     use torrust_server_lib::registar::Registar;
     use torrust_tracker_axum_rest_api_server::Version;
     use torrust_tracker_primitives::{ConfigurationInstanceId, ServiceRole};
@@ -166,8 +202,9 @@ mod tests {
                 0,
             )),
             version,
+            CancellationToken::new(),
         )
         .await
-        .expect("it should be able to join to the tracker api start-job");
+        .expect("it should be able to start the tracker API");
     }
 }

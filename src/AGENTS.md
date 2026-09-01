@@ -8,9 +8,9 @@ the bootstrap sequence, and the dependency-injection container. All domain logic
 
 | Path                        | Purpose                                                                                                                   |
 | --------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| `main.rs`                   | Binary entry point. Calls `app::run()`, waits for Ctrl-C, then cancels jobs and waits for graceful shutdown.              |
+| `main.rs`                   | Binary entry point. Calls `app::start()`, waits for Ctrl-C, then cancels jobs and waits for graceful shutdown.            |
 | `lib.rs`                    | Library crate root and crate-level documentation. Re-exports the public API used by integration tests and other binaries. |
-| `app.rs`                    | `run()` and `start()` — orchestrates the full startup sequence (setup → load data from DB → start jobs).                  |
+| `app.rs`                    | `start()` and `complete_startup()` — orchestrate the full startup sequence (setup → load data from DB → start jobs).      |
 | `container.rs`              | `AppContainer` — dependency-injection struct that holds `Arc`-wrapped instances of every per-layer container.             |
 | `bootstrap/app.rs`          | `setup()` — loads config, validates it, initializes logging and global services, builds `AppContainer`.                   |
 | `bootstrap/config.rs`       | `initialize_configuration()` — reads config from the environment / file.                                                  |
@@ -25,10 +25,10 @@ the bootstrap sequence, and the dependency-injection container. All domain logic
 
 ```text
 main()
-  └─ app::run()
+   └─ app::start()
        ├─ bootstrap::app::setup()
        │    ├─ bootstrap::config::initialize_configuration()   ← reads TOML / env vars
-       │    ├─ configuration.validate()                        ← panics on invalid config
+      │    ├─ configuration.validate()                        ← returns typed startup errors
        │    ├─ initialize_global_services()                    ← logging, crypto seed
        │    └─ AppContainer::initialize(&configuration)        ← builds all containers
        │
@@ -77,8 +77,8 @@ holds a name + `JoinHandle<()>`) and a shared `CancellationToken`:
 - `push(name, handle)` — registers a job.
 - `push_opt(name, handle)` — convenience for jobs that may be disabled.
 - `cancel()` — fires the token; all jobs that own a clone of it will observe cancellation.
-- `wait_for_all(timeout)` — joins all handles with a timeout, logging warnings for any that
-  exceed it.
+- `wait_for_all(timeout)` — gives every handle a graceful timeout; a job that exceeds it is
+  aborted and joined before the method returns, preventing detached startup jobs.
 
 ## Adding a New Service
 
@@ -100,8 +100,13 @@ When wiring a new server or background task, follow this checklist in order:
 
 - **No domain logic here.** This directory is pure wiring. Business rules belong in `packages/`.
 - **No globals for domain objects.** All state flows through `AppContainer`.
-- **Startup errors panic.** `bootstrap::app::setup()` panics on invalid config or a bad crypto
-  seed — this is intentional (fail fast before binding ports).
+- **Startup errors are typed.** `bootstrap::app::setup()`, `app::complete_startup()`, and `app::start()` return
+  source-preserving `thiserror` errors for expected configuration, composition, persistence-load,
+  and initial service-start failures. Entrypoints report their friendly, actionable display message
+  and exit unsuccessfully. If an initial service fails after jobs started, `start()` cancels and joins
+  those jobs before returning the error. `check_seed()` remains an assertion because it protects an
+  internal cryptographic invariant; failures after a task has started are runtime supervision, not
+  startup results.
 - **Health check always starts.** The health-check API job is unconditional — do not gate it
   behind a config flag.
 - **`lib.rs` is the integration-test surface.** Integration tests import

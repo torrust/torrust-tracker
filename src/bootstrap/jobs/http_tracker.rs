@@ -15,6 +15,7 @@ use std::sync::Arc;
 
 use axum_server::tls_rustls::RustlsConfig;
 use tokio::task::JoinHandle;
+use tokio_util::sync::CancellationToken;
 use torrust_server_lib::registar::ServiceRegistrationForm;
 use torrust_tracker_axum_http_server::Version;
 use torrust_tracker_axum_http_server::server::{HttpServer, Launcher};
@@ -23,14 +24,28 @@ use torrust_tracker_http_core::container::HttpTrackerCoreContainer;
 use torrust_tracker_primitives::RuntimeServiceMetadata;
 use tracing::instrument;
 
+#[derive(Debug, thiserror::Error)]
+pub enum Error {
+    #[error("Could not load TLS material for the HTTP tracker. Verify the configured certificate and key paths: {source}")]
+    Tls {
+        source: torrust_tracker_axum_server::tls::Error,
+    },
+
+    #[error("Could not start the HTTP tracker listener. Check that its bind address is available: {source}")]
+    Listener {
+        source: torrust_tracker_axum_http_server::server::Error,
+    },
+}
+
 /// It starts a new HTTP server with the provided configuration and version.
 ///
 /// Right now there is only one version but in the future we could support more than one HTTP tracker version at the same time.
 /// This feature allows supporting breaking changes on `BitTorrent` BEPs.
 ///
-/// # Panics
+/// # Errors
 ///
-/// It would panic if the `config::HttpTracker` struct would contain inappropriate values.
+/// Returns TLS-material or listener-start errors without losing their sources.
+///
 #[instrument(
     skip(http_tracker_container, form, metadata),
     fields(
@@ -43,7 +58,8 @@ pub async fn start_job(
     form: ServiceRegistrationForm<RuntimeServiceMetadata>,
     metadata: RuntimeServiceMetadata,
     version: Version,
-) -> Option<JoinHandle<()>> {
+    cancellation_token: CancellationToken,
+) -> Result<Option<JoinHandle<()>>, Error> {
     let socket = http_tracker_container.http_tracker_config.bind_address;
 
     tracing::info!(
@@ -53,17 +69,15 @@ pub async fn start_job(
     );
 
     let tls = if let Some(tls_config) = &http_tracker_container.http_tracker_config.tls_config {
-        Some(
-            make_rust_tls(tls_config)
-                .await
-                .expect("it should have a valid http tracker tls configuration"),
-        )
+        Some(make_rust_tls(tls_config).await.map_err(|source| Error::Tls { source })?)
     } else {
         None
     };
 
     match version {
-        Version::V1 => Some(start_v1(socket, tls, http_tracker_container, form, metadata).await),
+        Version::V1 => Ok(Some(
+            start_v1(socket, tls, http_tracker_container, form, metadata, cancellation_token).await?,
+        )),
     }
 }
 
@@ -81,7 +95,8 @@ async fn start_v1(
     http_tracker_container: Arc<HttpTrackerCoreContainer>,
     form: ServiceRegistrationForm<RuntimeServiceMetadata>,
     metadata: RuntimeServiceMetadata,
-) -> JoinHandle<()> {
+    cancellation_token: CancellationToken,
+) -> Result<JoinHandle<()>, Error> {
     let server = HttpServer::new(Launcher::new(
         socket,
         tls,
@@ -89,35 +104,50 @@ async fn start_v1(
     ))
     .start(http_tracker_container, form, metadata)
     .await
-    .expect("it should be able to start to the http tracker");
+    .map_err(|source| Error::Listener { source })?;
 
-    tokio::spawn(async move {
+    Ok(tokio::spawn(async move {
         assert!(
             !server.state.halt_task.is_closed(),
             "Halt channel for HTTP tracker should be open"
         );
-        server
-            .state
-            .task
-            .await
-            .expect("it should be able to join to the http tracker task");
-    })
+        let torrust_tracker_axum_http_server::server::Running { halt_task, mut task, .. } = server.state;
+
+        tokio::select! {
+            () = cancellation_token.cancelled() => {
+                if halt_task.send(torrust_server_lib::signals::Halted::Normal).is_err() {
+                    tracing::warn!("Could not signal HTTP tracker to stop after cancellation");
+                }
+                if let Err(error) = (&mut task).await {
+                    tracing::warn!(%error, "Could not join HTTP tracker after cancellation");
+                }
+            }
+            result = &mut task => {
+                if let Err(error) = result {
+                    tracing::warn!(%error, "HTTP tracker task failed");
+                }
+            }
+        }
+    }))
 }
 
 #[cfg(test)]
 mod tests {
+    use std::net::{IpAddr, Ipv4Addr, SocketAddr, TcpListener};
     use std::sync::Arc;
 
     use tempfile::TempDir;
+    use tokio_util::sync::CancellationToken;
     use torrust_server_lib::registar::Registar;
     use torrust_tracker_axum_http_server::Version;
     use torrust_tracker_configuration::v3_0_0::database::Database;
     use torrust_tracker_http_core::container::HttpTrackerCoreContainer;
     use torrust_tracker_primitives::{ConfigurationInstanceId, RuntimeServiceMetadata, ServiceRole};
-    use torrust_tracker_test_helpers::configuration::ephemeral_public;
+    use torrust_tracker_test_helpers::configuration::{ephemeral_public, ephemeral_with_no_services};
 
     use crate::bootstrap::app::initialize_global_services;
-    use crate::bootstrap::jobs::http_tracker::start_job;
+    use crate::bootstrap::jobs::http_tracker::{Error, start_job};
+    use crate::container::AppContainer;
 
     #[tokio::test]
     async fn it_should_start_http_tracker() {
@@ -152,8 +182,66 @@ mod tests {
             Registar::default().give_form(),
             RuntimeServiceMetadata::new(configuration_instance_id),
             version,
+            CancellationToken::new(),
         )
         .await
-        .expect("it should be able to join to the http tracker start-job");
+        .expect("it should be able to start the HTTP tracker");
+    }
+
+    #[tokio::test]
+    async fn it_should_return_a_tls_error_before_starting_the_http_listener() {
+        // Arrange
+        let mut configuration = ephemeral_with_no_services();
+        let http_tracker_config = torrust_tracker_configuration::v3_0_0::http_tracker::HttpTracker {
+            bind_address: SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 0),
+            tls_config: Some(torrust_tracker_configuration::v3_0_0::tls::TlsConfig::default()),
+            ..Default::default()
+        };
+        configuration.http_trackers = Some(vec![http_tracker_config]);
+        let app_container = AppContainer::initialize(&configuration)
+            .await
+            .expect("compose HTTP tracker container");
+        let (instance_id, http_tracker_container) = app_container.http_tracker_container(0).expect("get HTTP tracker container");
+
+        // Act
+        let result = start_job(
+            http_tracker_container,
+            app_container.registar.give_form(),
+            RuntimeServiceMetadata::new(instance_id),
+            Version::V1,
+            CancellationToken::new(),
+        )
+        .await;
+
+        // Assert
+        assert!(matches!(result, Err(Error::Tls { .. })));
+    }
+
+    #[tokio::test]
+    async fn it_should_return_a_listener_error_through_the_public_http_starter() {
+        // Arrange
+        let listener = TcpListener::bind("127.0.0.1:0").expect("reserve HTTP listener address");
+        let mut configuration = ephemeral_with_no_services();
+        configuration.http_trackers = Some(vec![torrust_tracker_configuration::v3_0_0::http_tracker::HttpTracker {
+            bind_address: listener.local_addr().expect("read HTTP listener address"),
+            ..Default::default()
+        }]);
+        let app_container = AppContainer::initialize(&configuration)
+            .await
+            .expect("compose HTTP tracker container");
+        let (instance_id, http_tracker_container) = app_container.http_tracker_container(0).expect("get HTTP tracker container");
+
+        // Act
+        let result = start_job(
+            http_tracker_container,
+            app_container.registar.give_form(),
+            RuntimeServiceMetadata::new(instance_id),
+            Version::V1,
+            CancellationToken::new(),
+        )
+        .await;
+
+        // Assert
+        assert!(matches!(result, Err(Error::Listener { .. })));
     }
 }

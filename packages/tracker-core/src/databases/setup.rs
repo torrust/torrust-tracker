@@ -93,7 +93,9 @@ pub async fn initialize_database(config: &Core) -> DatabaseStores {
         .database
         .as_ref()
         .expect("database configuration is required to initialize persistence");
-    initialize_database_from_configuration(database).await
+    initialize_database_from_configuration(database)
+        .await
+        .expect("database initialization requested by this legacy convenience API must succeed")
 }
 
 /// Initializes and returns a [`DatabaseStores`] bundle for one selected
@@ -102,29 +104,28 @@ pub async fn initialize_database(config: &Core) -> DatabaseStores {
 /// This factory is used at the optional persistence composition boundary, where
 /// the selected database is already known to be present.
 ///
-/// # Panics
+/// # Errors
 ///
-/// Panics when the database driver cannot be initialized or the shared schema
-/// migrations cannot be applied. See [`initialize_database`] for details.
-#[must_use]
-pub async fn initialize_database_from_configuration(database: &Database) -> DatabaseStores {
+/// Returns the typed driver or migration error when persistence cannot be
+/// initialized.
+pub async fn initialize_database_from_configuration(database: &Database) -> Result<DatabaseStores, super::error::Error> {
     match database {
         Database::Sqlite3 { path } => {
-            let db = Arc::new(Sqlite::new(path).expect("Database driver build failed."));
-            db.create_database_tables().await.expect("Could not create database tables.");
-            build_database_stores(db)
+            let db = Arc::new(Sqlite::new(path)?);
+            db.create_database_tables().await?;
+            Ok(build_database_stores(db))
         }
         Database::MySQL(connection) => {
             let database_url = Database::MySQL(connection.clone()).connection_url();
-            let db = Arc::new(Mysql::new(&database_url).expect("Database driver build failed."));
-            db.create_database_tables().await.expect("Could not create database tables.");
-            build_database_stores(db)
+            let db = Arc::new(Mysql::new(&database_url)?);
+            db.create_database_tables().await?;
+            Ok(build_database_stores(db))
         }
         Database::PostgreSQL(connection) => {
             let database_url = Database::PostgreSQL(connection.clone()).connection_url();
-            let db = Arc::new(Postgres::new(&database_url).expect("Database driver build failed."));
-            db.create_database_tables().await.expect("Could not create database tables.");
-            build_database_stores(db)
+            let db = Arc::new(Postgres::new(&database_url)?);
+            db.create_database_tables().await?;
+            Ok(build_database_stores(db))
         }
     }
 }

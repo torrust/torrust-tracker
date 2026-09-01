@@ -69,7 +69,7 @@ All three layers are part of a broader effort to improve overall test coverage a
 
 ### In Scope
 
-- Integration tests that require the full application context (`app::run()`)
+- Integration tests that require the full application context (`app::start()`)
 - Tests that verify behavior across multiple coordinated services
 - Tests that verify application container initialization and lifecycle
 - Tests that verify job manager orchestration and background tasks

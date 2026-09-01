@@ -165,23 +165,42 @@ use tokio::time::sleep;
 
 use crate::app;
 
-pub async fn run() {
+/// Errors that cause the profiling executable to exit unsuccessfully.
+#[derive(Debug, thiserror::Error)]
+pub enum Error {
+    #[error("Tracker startup failed: {source}")]
+    Startup { source: app::Error },
+}
+
+/// Runs the tracker for the requested profiling duration.
+///
+/// # Errors
+///
+/// Returns an error if initial tracker startup fails.
+pub async fn run() -> Result<(), Error> {
     // Parse command line arguments
     let args: Vec<String> = env::args().collect();
 
     // Ensure an argument for duration is provided
     if args.len() != 2 {
         eprintln!("Usage: {} <duration_in_seconds>", args[0]);
-        return;
+        return Ok(());
     }
 
     // Parse duration argument
     let Ok(duration_secs) = args[1].parse::<u64>() else {
         eprintln!("Invalid duration provided");
-        return;
+        return Ok(());
     };
 
-    let (_app_container, jobs) = app::run().await;
+    let (_app_container, jobs) = match app::start().await {
+        Ok(application) => application,
+        Err(error) => {
+            tracing::error!(%error, "Tracker startup failed");
+            eprintln!("Tracker startup failed: {error}");
+            return Err(Error::Startup { source: error });
+        }
+    };
 
     // Run the tracker for a fixed duration
     let run_duration = sleep(Duration::from_secs(duration_secs));
@@ -198,4 +217,6 @@ pub async fn run() {
     }
 
     println!("Torrust successfully shutdown.");
+
+    Ok(())
 }

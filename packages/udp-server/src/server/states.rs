@@ -13,9 +13,10 @@ use torrust_tracker_udp_core::container::UdpTrackerCoreContainer;
 use torrust_tracker_udp_core::{ConnectionIdValidationPolicy, UDP_TRACKER_LOG_TARGET};
 use tracing::{Level, instrument};
 
-use super::spawner::Spawner;
+use super::spawner::{LaunchRequest, Spawner};
 use super::{Server, UdpError};
 use crate::container::UdpTrackerServerContainer;
+use crate::server::bound_socket::BoundSocket;
 use crate::server::launcher::Launcher;
 
 /// A UDP server instance controller with no UDP instance running.
@@ -44,7 +45,7 @@ pub struct Running {
     /// The address where the server is bound.
     pub local_addr: SocketAddr,
     pub halt_task: tokio::sync::oneshot::Sender<Halted>,
-    pub task: JoinHandle<Spawner>,
+    pub task: JoinHandle<Result<Spawner, std::io::Error>>,
 }
 
 impl Server<Stopped> {
@@ -63,9 +64,6 @@ impl Server<Stopped> {
     ///
     /// Will return `Err` if UDP can't bind to given bind address.
     ///
-    /// # Panics
-    ///
-    /// It panics if unable to receive the bound socket address from service.
     #[instrument(
         skip(self, udp_tracker_core_container, udp_tracker_server_container, form, metadata),
         fields(
@@ -83,23 +81,29 @@ impl Server<Stopped> {
         metadata: RuntimeServiceMetadata,
         cookie_lifetime: Duration,
         connection_id_validation: ConnectionIdValidationPolicy,
-    ) -> Result<Server<Running>, std::io::Error> {
+    ) -> Result<Server<Running>, UdpError> {
         let (tx_start, rx_start) = tokio::sync::oneshot::channel::<Started>();
         let (tx_halt, rx_halt) = tokio::sync::oneshot::channel::<Halted>();
 
         assert!(!tx_halt.is_closed(), "Halt channel for UDP tracker should be open");
 
         // May need to wrap in a task to about a tokio bug.
-        let task = self.state.spawner.spawn_launcher(
+        let bound_socket = BoundSocket::bind(
+            self.state.spawner.bind_to,
+            udp_tracker_core_container.udp_tracker_config.network.ipv6_v6only,
+        )
+        .map_err(|source| UdpError::Bind { source: *source })?;
+        let mut task = self.state.spawner.spawn_launcher(LaunchRequest {
             udp_tracker_core_container,
             udp_tracker_server_container,
             cookie_lifetime,
             connection_id_validation,
+            bound_socket,
             tx_start,
             rx_halt,
-        );
+        });
 
-        let started = rx_start.await.expect("it should be able to start the service");
+        let started = await_startup_notification(rx_start, &mut task).await?;
 
         let service_binding = started.service_binding;
         let local_addr = started.address;
@@ -110,9 +114,14 @@ impl Server<Stopped> {
             tracing::info!(target: UDP_TRACKER_LOG_TARGET, service_binding = %service_binding, "Started UDP tracker");
         }
 
-        form.register(ServiceRegistration::new(service_binding, metadata, Some(Launcher::check)))
+        if let Err(error) = form
+            .register(ServiceRegistration::new(service_binding, metadata, Some(Launcher::check)))
             .await
-            .expect("it should be able to register the started service");
+        {
+            let _ = tx_halt.send(Halted::Normal);
+            let _ = task.await;
+            return Err(UdpError::Registration { source: error });
+        }
 
         let running_udp_server: Server<Running> = Server {
             state: Running {
@@ -126,6 +135,22 @@ impl Server<Stopped> {
         tracing::trace!(target: UDP_TRACKER_LOG_TARGET, local_addr, "UdpServer<Stopped>::start (running)");
 
         Ok(running_udp_server)
+    }
+}
+
+async fn await_startup_notification(
+    rx_start: tokio::sync::oneshot::Receiver<Started>,
+    task: &mut JoinHandle<Result<Spawner, std::io::Error>>,
+) -> Result<Started, UdpError> {
+    match rx_start.await {
+        Ok(started) => Ok(started),
+        Err(notification_error) => match task.await {
+            Ok(Err(source)) => Err(UdpError::Launcher { source }),
+            Ok(Ok(_)) => Err(UdpError::StartupNotification {
+                source: notification_error,
+            }),
+            Err(error) => Err(UdpError::FailedToStartOrStopServer(error.to_string())),
+        },
     }
 }
 
@@ -148,12 +173,47 @@ impl Server<Running> {
             .send(Halted::Normal)
             .map_err(|e| UdpError::FailedToStartOrStopServer(e.to_string()))?;
 
-        let launcher = self.state.task.await.expect("it should shutdown service");
+        let launcher = self
+            .state
+            .task
+            .await
+            .map_err(|error| UdpError::FailedToStartOrStopServer(error.to_string()))?
+            .map_err(|source| UdpError::Launcher { source })?;
 
         let stopped_api_server: Server<Stopped> = Server {
             state: Stopped { spawner: launcher },
         };
 
         Ok(stopped_api_server)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use tokio::sync::oneshot;
+
+    use super::{UdpError, await_startup_notification};
+    use crate::server::spawner::Spawner;
+
+    #[tokio::test]
+    async fn it_should_preserve_a_broken_pipe_launcher_error_when_startup_notification_fails() {
+        // Arrange
+        let (tx_start, rx_start) = oneshot::channel();
+        drop(tx_start);
+        let mut task = tokio::spawn(async {
+            Err::<Spawner, _>(std::io::Error::new(
+                std::io::ErrorKind::BrokenPipe,
+                "UDP startup receiver was dropped",
+            ))
+        });
+
+        // Act
+        let result = await_startup_notification(rx_start, &mut task).await;
+
+        // Assert
+        let UdpError::Launcher { source } = result.expect_err("launcher startup failure should be returned") else {
+            panic!("launcher error should not be collapsed into a startup-notification error");
+        };
+        assert_eq!(source.kind(), std::io::ErrorKind::BrokenPipe);
     }
 }

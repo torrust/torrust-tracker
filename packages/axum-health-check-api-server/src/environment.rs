@@ -62,6 +62,7 @@ impl Environment<Stopped> {
             tracing::debug!(target: HEALTH_CHECK_API_LOG_TARGET, "Starting the server in a spawned task ...");
 
             server::start(self.state.bind_to, tx_start, rx_halt, registar)
+                .expect("it should construct the health check service")
                 .await
                 .expect("it should start the health check service");
 
