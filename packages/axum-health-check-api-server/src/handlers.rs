@@ -22,6 +22,7 @@ pub(crate) async fn health_check_handler(State(registar): State<Registar<Runtime
                 (
                     service.service_binding().clone(),
                     service.metadata().service_role().as_str().to_string(),
+                    service.metadata().public_url().map(ToString::to_string),
                     health_check,
                 )
             })
@@ -33,20 +34,23 @@ pub(crate) async fn health_check_handler(State(registar): State<Registar<Runtime
         return responses::none();
     }
 
-    let jobs = checks.drain(..).map(|(service_binding, service_type, health_check)| {
-        tokio::spawn(async move {
-            CheckReport {
-                service_binding: service_binding.url(),
-                binding: service_binding.bind_address(),
-                info: health_check.info,
-                service_type,
-                result: health_check
-                    .job
-                    .await
-                    .expect("it should be able to join into the checking function"),
-            }
-        })
-    });
+    let jobs = checks
+        .drain(..)
+        .map(|(service_binding, service_type, public_url, health_check)| {
+            tokio::spawn(async move {
+                CheckReport {
+                    service_binding: service_binding.url(),
+                    binding: service_binding.bind_address(),
+                    info: health_check.info,
+                    service_type,
+                    public_url,
+                    result: health_check
+                        .job
+                        .await
+                        .expect("it should be able to join into the checking function"),
+                }
+            })
+        });
 
     let results: Vec<CheckReport> = futures::future::join_all(jobs)
         .await

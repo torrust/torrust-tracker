@@ -45,6 +45,7 @@ pub struct ConnectionContext {
     configuration_instance_id: ConfigurationInstanceId,
     client: ClientConnectionContext,
     server: ServerConnectionContext,
+    public_url: Option<String>,
 }
 
 impl ConnectionContext {
@@ -60,7 +61,14 @@ impl ConnectionContext {
             server: ServerConnectionContext {
                 service_binding: server_service_binding,
             },
+            public_url: None,
         }
+    }
+
+    #[must_use]
+    pub fn with_public_url(mut self, public_url: Option<String>) -> Self {
+        self.public_url = public_url;
+        self
     }
 
     #[must_use]
@@ -81,6 +89,11 @@ impl ConnectionContext {
     #[must_use]
     pub fn server_socket_addr(&self) -> SocketAddr {
         self.server.service_binding.bind_address()
+    }
+
+    #[must_use]
+    pub fn public_url(&self) -> Option<&str> {
+        self.public_url.as_deref()
     }
 
     #[must_use]
@@ -121,7 +134,7 @@ pub struct ServerConnectionContext {
 
 impl From<ConnectionContext> for LabelSet {
     fn from(connection_context: ConnectionContext) -> Self {
-        LabelSet::from([
+        let mut label_set = LabelSet::from([
             (
                 label_name!("server_binding_protocol"),
                 LabelValue::new(&connection_context.server.service_binding.protocol().to_string()),
@@ -150,7 +163,15 @@ impl From<ConnectionContext> for LabelSet {
                 label_name!("client_address_ip_type"),
                 LabelValue::new(&connection_context.client_address_ip_type().to_string()),
             ),
-        ])
+        ]);
+
+        // Each configured public URL creates a distinct Prometheus series for
+        // every combination of the existing per-service metric labels.
+        if let Some(public_url) = connection_context.public_url() {
+            label_set.upsert(label_name!("public_url"), LabelValue::new(public_url));
+        }
+
+        label_set
     }
 }
 
@@ -180,6 +201,8 @@ pub mod test {
 
     use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
 
+    use torrust_metrics::label::{LabelSet, LabelValue};
+    use torrust_metrics::label_name;
     use torrust_net_primitives::service_binding::{IpFamily, IpType, Protocol, ServiceBinding};
     use torrust_tracker_http_protocol::v1::services::peer_ip_resolver::{RemoteClientAddr, ResolvedIp};
     use torrust_tracker_primitives::peer::Peer;
@@ -255,6 +278,28 @@ pub mod test {
 
         assert_eq!(event1, event1_clone);
         assert_ne!(event1, event2);
+    }
+
+    #[test]
+    fn connection_context_labels_should_include_the_configured_public_url_only_when_present() {
+        let connection = ConnectionContext::new(
+            ConfigurationInstanceId::new(ServiceRole::HttpTracker, 0),
+            RemoteClientAddr::new(ResolvedIp::FromSocketAddr(IpAddr::V4(Ipv4Addr::LOCALHOST)), Some(8080)),
+            ServiceBinding::new(Protocol::HTTP, SocketAddr::new(IpAddr::V4(Ipv4Addr::UNSPECIFIED), 7070)).unwrap(),
+        )
+        .with_public_url(Some("https://tracker.example.test/announce".to_string()));
+
+        let configured_labels = LabelSet::from(connection);
+        let absent_labels = LabelSet::from(ConnectionContext::new(
+            ConfigurationInstanceId::new(ServiceRole::HttpTracker, 0),
+            RemoteClientAddr::new(ResolvedIp::FromSocketAddr(IpAddr::V4(Ipv4Addr::LOCALHOST)), Some(8080)),
+            ServiceBinding::new(Protocol::HTTP, SocketAddr::new(IpAddr::V4(Ipv4Addr::UNSPECIFIED), 7070)).unwrap(),
+        ));
+        let public_url_label = label_name!("public_url");
+        let public_url = LabelValue::new("https://tracker.example.test/announce");
+
+        assert!(configured_labels.contains_pair(&public_url_label, &public_url));
+        assert!(!absent_labels.contains_pair(&public_url_label, &public_url));
     }
 
     #[test]

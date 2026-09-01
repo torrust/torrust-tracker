@@ -25,6 +25,7 @@ tdyne-peer-id-registry = "0"
 thiserror = "2"
 torrust-net-primitives = "0.1.0"
 torrust-clock = "3.0.0"
+url = "2"
 
 [dev-dependencies]
 serde_json = "1"

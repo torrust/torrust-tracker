@@ -17,6 +17,7 @@ use crate::event::{ConnectionContext, Event};
 pub struct ConnectService {
     pub opt_udp_core_stats_event_sender: crate::event::sender::Sender,
     configuration_instance_id: ConfigurationInstanceId,
+    public_url: Option<String>,
 }
 
 impl ConnectService {
@@ -33,7 +34,19 @@ impl ConnectService {
         Self {
             opt_udp_core_stats_event_sender,
             configuration_instance_id,
+            public_url: None,
         }
+    }
+
+    #[must_use]
+    pub fn with_public_url(mut self, public_url: Option<String>) -> Self {
+        self.public_url = public_url;
+        self
+    }
+
+    #[must_use]
+    pub fn public_url(&self) -> Option<&str> {
+        self.public_url.as_deref()
     }
 
     /// Handles a `connect` request.
@@ -57,7 +70,8 @@ impl ConnectService {
                         self.configuration_instance_id,
                         client_socket_addr,
                         server_service_binding,
-                    ),
+                    )
+                    .with_public_url(self.public_url.clone()),
                 })
                 .await;
         }

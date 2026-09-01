@@ -294,7 +294,8 @@ async fn start_udp_instance(
         udp_tracker_container,
         udp_tracker_server_container,
         app_container.registar.give_form(),
-        RuntimeServiceMetadata::new(configuration_instance_id),
+        RuntimeServiceMetadata::new(configuration_instance_id)
+            .with_public_url(udp_tracker_config.public_url.as_ref().map(|url| url.as_url().clone())),
         connection_id_validation,
     )
     .await;
@@ -336,7 +337,8 @@ async fn start_http_instance(
     if let Some(handle) = http_tracker::start_job(
         http_tracker_container,
         app_container.registar.give_form(),
-        RuntimeServiceMetadata::new(configuration_instance_id),
+        RuntimeServiceMetadata::new(configuration_instance_id)
+            .with_public_url(http_tracker_config.public_url.as_ref().map(|url| url.as_url().clone())),
         torrust_tracker_axum_http_server::Version::V1,
     )
     .await
@@ -353,7 +355,8 @@ async fn start_the_http_api(config: &Configuration, app_container: &Arc<AppConta
         if let Some(job) = tracker_apis::start_job(
             http_api_container,
             app_container.registar.give_form(),
-            RuntimeServiceMetadata::new(ConfigurationInstanceId::new(ServiceRole::RestApi, 0)),
+            RuntimeServiceMetadata::new(ConfigurationInstanceId::new(ServiceRole::RestApi, 0))
+                .with_public_url(http_api_config.public_url.as_ref().map(|url| url.as_url().clone())),
             torrust_tracker_axum_rest_api_server::Version::V1,
         )
         .await

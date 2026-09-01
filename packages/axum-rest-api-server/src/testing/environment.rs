@@ -90,7 +90,14 @@ impl Environment<Stopped> {
                 .start(
                     self.container.tracker_http_api_core_container.clone(),
                     self.registar.give_form(),
-                    RuntimeServiceMetadata::new(ConfigurationInstanceId::new(ServiceRole::RestApi, 0)),
+                    RuntimeServiceMetadata::new(ConfigurationInstanceId::new(ServiceRole::RestApi, 0)).with_public_url(
+                        self.container
+                            .tracker_http_api_core_container
+                            .http_api_config
+                            .public_url
+                            .as_ref()
+                            .map(|url| url.as_url().clone()),
+                    ),
                     access_tokens,
                 )
                 .await

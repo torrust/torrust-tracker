@@ -70,7 +70,7 @@ tracker and REST API request logs still emit `server_socket_addr`, which loses p
 - Adding URL path segments such as `/announce` to service identity.
 - Resolving wildcard bind addresses to a concrete host IP.
 - Adding, consuming, or exposing `public_url` configuration. Runtime observability integration
-  is tracked by [#2023](../2023-1978-expose-configured-public-urls-in-runtime-observability.md).
+  is tracked by [#2023](../../open/2023-1978-expose-configured-public-urls-in-runtime-observability/ISSUE.md).
 - Adding an `internal_service_url`; it remains a future concept distinct from both
   `ServiceBinding` and `public_url`.
 - Changing BitTorrent protocol parsing, TLS configuration, or `torrust-net-primitives`.
@@ -99,7 +99,7 @@ The exact commands and complete relevant outputs are recorded in
 | T4  | DONE   | Update runtime logging                                                | Retained `server_socket_addr` and added `service_binding` to HTTP, REST API, and UDP error logs.                                                                                 |
 | T5  | DONE   | Run focused regression tests                                          | Existing server-package tests cover the changed paths. Field-level log assertions are deferred to #1430 because global tracing state and concurrent output make them unreliable. |
 | T6  | DONE   | Complete automatic and post-change manual verification                | Recorded final commands and output in `manual-verification.md`.                                                                                                                  |
-| T7  | DONE   | Update migration guide if this subissue affects the config public API | `packages/configuration/docs/migrate-v2-to-v3.md`                                                                                          |
+| T7  | DONE   | Update migration guide if this subissue affects the config public API | `packages/configuration/docs/migrate-v2-to-v3.md`                                                                                                                                |
 
 ## Progress Tracking
 

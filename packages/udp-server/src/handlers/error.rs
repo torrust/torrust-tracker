@@ -23,6 +23,7 @@ pub async fn handle_error(
     client_socket_addr: SocketAddr,
     server_service_binding: ServiceBinding,
     configuration_instance_id: ConfigurationInstanceId,
+    public_url: Option<String>,
     request_id: Uuid,
     opt_udp_server_stats_event_sender: &crate::event::sender::Sender,
     cookie_valid_range: Range<f64>,
@@ -44,6 +45,7 @@ pub async fn handle_error(
         client_socket_addr,
         server_service_binding,
         configuration_instance_id,
+        public_url,
         opt_udp_server_stats_event_sender,
         req_kind,
     )
@@ -103,13 +105,15 @@ async fn trigger_udp_error_event(
     client_socket_addr: SocketAddr,
     server_service_binding: ServiceBinding,
     configuration_instance_id: ConfigurationInstanceId,
+    public_url: Option<String>,
     opt_udp_server_stats_event_sender: &crate::event::sender::Sender,
     req_kind: Option<UdpRequestKind>,
 ) {
     if let Some(udp_server_stats_event_sender) = opt_udp_server_stats_event_sender.as_deref() {
         udp_server_stats_event_sender
             .send(Event::UdpError {
-                context: ConnectionContext::new(configuration_instance_id, client_socket_addr, server_service_binding),
+                context: ConnectionContext::new(configuration_instance_id, client_socket_addr, server_service_binding)
+                    .with_public_url(public_url),
                 kind: req_kind,
                 error: error.clone().into(),
             })

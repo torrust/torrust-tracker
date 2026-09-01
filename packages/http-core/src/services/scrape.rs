@@ -45,6 +45,7 @@ pub struct ScrapeService {
     opt_http_stats_event_sender: crate::event::sender::Sender,
     reverse_proxy_mode: ReverseProxyMode,
     configuration_instance_id: ConfigurationInstanceId,
+    public_url: Option<String>,
 }
 
 impl ScrapeService {
@@ -63,6 +64,7 @@ impl ScrapeService {
             opt_http_stats_event_sender,
             reverse_proxy_mode: ReverseProxyMode::Disabled,
             configuration_instance_id,
+            public_url: None,
         }
     }
 
@@ -83,6 +85,7 @@ impl ScrapeService {
             opt_http_stats_event_sender,
             reverse_proxy_mode: http_tracker_config.network.on_reverse_proxy.into(),
             configuration_instance_id,
+            public_url: http_tracker_config.public_url.as_ref().map(ToString::to_string),
         }
     }
 
@@ -131,7 +134,8 @@ impl ScrapeService {
     async fn send_event(&self, remote_client_addr: RemoteClientAddr, server_service_binding: ServiceBinding) {
         if let Some(http_stats_event_sender) = self.opt_http_stats_event_sender.as_deref() {
             let event = Event::TcpScrape {
-                connection: ConnectionContext::new(self.configuration_instance_id, remote_client_addr, server_service_binding),
+                connection: ConnectionContext::new(self.configuration_instance_id, remote_client_addr, server_service_binding)
+                    .with_public_url(self.public_url.clone()),
             };
 
             tracing::debug!("Sending TcpScrape event: {:?}", event);

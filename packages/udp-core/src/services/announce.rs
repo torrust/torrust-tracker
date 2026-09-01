@@ -35,6 +35,7 @@ pub struct AnnounceService {
     opt_udp_core_stats_event_sender: crate::event::sender::Sender,
     configuration_instance_id: ConfigurationInstanceId,
     tracker_external_ip: Option<IpAddr>,
+    public_url: Option<String>,
 }
 
 impl AnnounceService {
@@ -57,7 +58,19 @@ impl AnnounceService {
             opt_udp_core_stats_event_sender,
             configuration_instance_id,
             tracker_external_ip,
+            public_url: None,
         }
+    }
+
+    #[must_use]
+    pub fn with_public_url(mut self, public_url: Option<String>) -> Self {
+        self.public_url = public_url;
+        self
+    }
+
+    #[must_use]
+    pub fn public_url(&self) -> Option<&str> {
+        self.public_url.as_deref()
     }
 
     /// It handles the `Announce` request.
@@ -137,7 +150,8 @@ impl AnnounceService {
     ) {
         if let Some(udp_stats_event_sender) = self.opt_udp_core_stats_event_sender.as_deref() {
             let event = Event::UdpAnnounce {
-                connection: ConnectionContext::new(self.configuration_instance_id, client_socket_addr, server_service_binding),
+                connection: ConnectionContext::new(self.configuration_instance_id, client_socket_addr, server_service_binding)
+                    .with_public_url(self.public_url.clone()),
                 info_hash,
                 announcement,
             };
