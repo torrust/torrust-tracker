@@ -13,8 +13,22 @@ pub struct Stats {
     pub torrents: u64,
     /// Total number of seeders for all torrents.
     pub seeders: u64,
-    /// Total number of peers that have ever completed downloading for all torrents.
+    /// Deprecated ambiguous completed-download total. Use
+    /// [`Self::completed_in_session`] and [`Self::completed_persisted`] instead.
     pub completed: u64,
+    /// Completed downloads observed since the current tracker process started.
+    #[serde(default)]
+    pub completed_in_session: u64,
+    /// Completed downloads restored from and maintained in persistent storage.
+    ///
+    /// This is zero when persistence is disabled; use
+    /// [`Self::completed_persisted_enabled`] to distinguish that state from an
+    /// enabled persisted counter whose observed value is zero.
+    #[serde(default)]
+    pub completed_persisted: u64,
+    /// Whether [`Self::completed_persisted`] is backed by persistent storage.
+    #[serde(default)]
+    pub completed_persisted_enabled: bool,
     /// Total number of leechers for all torrents.
     pub leechers: u64,
 
@@ -85,4 +99,23 @@ pub struct Stats {
 pub struct LabeledStats {
     /// The labeled metrics collection from all tracker subsystems.
     pub metrics: MetricCollection,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::Stats;
+
+    #[test]
+    fn it_should_deserialize_a_legacy_stats_response() {
+        // Arrange
+        let payload = r#"{"torrents":0,"seeders":0,"completed":0,"leechers":0,"tcp4_connections_handled":0,"tcp4_announces_handled":0,"tcp4_scrapes_handled":0,"tcp6_connections_handled":0,"tcp6_announces_handled":0,"tcp6_scrapes_handled":0,"udp_requests_discarded":0,"udp_requests_aborted":0,"udp_requests_banned":0,"udp_banned_ips_total":0,"udp_avg_connect_processing_time_ns":0,"udp_avg_announce_processing_time_ns":0,"udp_avg_scrape_processing_time_ns":0,"udp4_requests":0,"udp4_connections_handled":0,"udp4_announces_handled":0,"udp4_scrapes_handled":0,"udp4_responses":0,"udp4_errors_handled":0,"udp6_requests":0,"udp6_connections_handled":0,"udp6_announces_handled":0,"udp6_scrapes_handled":0,"udp6_responses":0,"udp6_errors_handled":0}"#;
+
+        // Act
+        let stats: Stats = serde_json::from_str(payload).unwrap();
+
+        // Assert
+        assert_eq!(stats.completed_in_session, 0);
+        assert_eq!(stats.completed_persisted, 0);
+        assert!(!stats.completed_persisted_enabled);
+    }
 }

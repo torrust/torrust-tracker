@@ -147,15 +147,15 @@ These targets are confirmed current behavior and are subject to T1 reconciliatio
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| ID  | Status | Task                         | Notes / Expected Output                                                                                                                                                                                                                                  |
-| --- | ------ | ---------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| T1  | TODO   | Record retention ADR         | Add the repository-wide ADR and reconcile it with #999's API-v2 deferral, legacy compatibility, availability, update ordering, and API-v2 removal.                                                                                                       |
-| T2  | TODO   | Separate counter views       | Implement legacy, in-session, and persisted tracker-core views; retain listener topology and make persisted metric export capability-aware.                                                                                                              |
-| T3  | TODO   | Extend the v1 stats contract | Add the three fields with backward-compatible deserialization; inject validated persistence capability and map all values through the REST adapter.                                                                                                      |
-| T4  | TODO   | Prove retention regressions  | Make the test harness support no persistence; prove the reset, restoration, disabled metric omission, and enabled zero-value cases.                                                                                                                      |
-| T5  | TODO   | Review and extend API tests  | Review the existing `GET /api/v1/stats` contract test and add direct `GET /api/v1/metrics` endpoint coverage. Add focused `tests/` integration coverage if package-local tests cannot prove configuration, restart, and exported REST behavior together. |
-| T6  | TODO   | Verify public contract       | Run focused tracker-core, REST contract, and any new application integration tests; inspect legacy/new REST fields and legacy/new metrics for enabled and disabled persistence.                                                                          |
-| T7  | TODO   | Record local manual evidence | Run the tracker locally for M1-M3 and record exact commands, HTTP requests, redacted responses, configuration, and outcome in `manual-verification.md`.                                                                                                  |
+| ID  | Status  | Task                         | Notes / Expected Output                                                                                                                                                                  |
+| --- | ------- | ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| T1  | DONE    | Record retention ADR         | Added and indexed ADR `20260901113500_define_completed_download_metric_retention_names.md`, including #999 refinement, compatibility, availability, update ordering, and API-v2 removal. |
+| T2  | DONE    | Separate counter views       | Added legacy, `in_session`, and capability-aware `persisted` tracker-core views while preserving #2107's independent listeners.                                                          |
+| T3  | DONE    | Extend the v1 stats contract | Added backward-compatible fields and configuration-derived availability through REST composition.                                                                                        |
+| T4  | DONE    | Prove retention regressions  | Added persistence-free restart, persisted restoration, disabled omission, and enabled-zero focused coverage.                                                                             |
+| T5  | DONE    | Review and extend API tests  | Extended authenticated `GET /api/v1/stats` and direct Prometheus `GET /api/v1/metrics` package contract coverage; package-local tests prove configuration-to-endpoint behavior.          |
+| T6  | DONE    | Verify public contract       | Focused tracker-core, REST protocol/runtime adapter, and REST server tests pass.                                                                                                         |
+| T7  | BLOCKED | Record local manual evidence | SQLite manual-verification commands and expected outcomes are prepared; execution requires a local v3 configuration and real completed-download event.                                   |
 
 ## Progress Tracking
 
@@ -167,8 +167,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Spec reviewed and approved by user/maintainer.
 - [x] GitHub issue #2122 created and issue number added to this spec.
 - [x] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation.
-- [ ] Implementation completed.
-- [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks).
+- [x] Implementation completed.
+- [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks).
 - [ ] Manual verification scenarios executed and recorded (status + evidence).
 - [ ] Acceptance criteria reviewed after implementation and updated with evidence.
 - [ ] Reviewer validated acceptance criteria and updated checkboxes.
@@ -192,6 +192,12 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   in the `create-adr` skill and `docs/adrs/`; ADR filenames use a UTC timestamp
   and descriptive snake-case title. GitHub entity status is resolved directly
   through repository tooling rather than by asking the user.
+- 2026-09-01 11:35 UTC - GitHub Copilot - Implemented the additive v1 bridge,
+  explicit tracker-core retention views, and capability-aware Prometheus export.
+  Focused tracker-core, REST protocol/runtime-adapter, and REST server tests,
+  Markdown/spelling linting, and the mandatory pre-commit gate passed. SQLite
+  manual verification commands are recorded but remain blocked pending a local
+  v3 configuration and a real completed-download event.
 
 ## Acceptance Criteria
 
@@ -243,16 +249,16 @@ Notes:
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence           |
 | ----- | ---------------------- | ------------------ |
-| AC1   | TODO                   | {test/log/PR link} |
-| AC2   | TODO                   | {test/log/PR link} |
-| AC3   | TODO                   | {test/log/PR link} |
-| AC4   | TODO                   | {test/log/PR link} |
-| AC5   | TODO                   | {test/log/PR link} |
-| AC6   | TODO                   | {test/log/PR link} |
-| AC7   | TODO                   | {test/log/PR link} |
-| AC8   | TODO                   | {test/log/PR link} |
-| AC9   | TODO                   | {test/log/PR link} |
-| AC10  | TODO                   | {test/log/PR link} |
+| AC1   | TODO                   | `statistics/mod.rs`; focused package tests; reviewer pending |
+| AC2   | TODO                   | tracker-core persistence-free restart regression; reviewer pending |
+| AC3   | TODO                   | tracker-core persisted-update/restoration regression; reviewer pending |
+| AC4   | TODO                   | REST disabled-capability contract regression; reviewer pending |
+| AC5   | TODO                   | repository and direct Prometheus endpoint regressions; reviewer pending |
+| AC6   | TODO                   | protocol legacy-deserialization regression and REST composition; reviewer pending |
+| AC7   | TODO                   | `axum-rest-api-server` authenticated contract regressions; reviewer pending |
+| AC8   | TODO                   | focused tracker-core and REST package tests; reviewer pending |
+| AC9   | TODO                   | ADR `20260901113500_define_completed_download_metric_retention_names.md`; reviewer pending |
+| AC10  | TODO                   | pre-commit passed; manual scenarios blocked; reviewer pending |
 
 ## Risks and Trade-offs
 

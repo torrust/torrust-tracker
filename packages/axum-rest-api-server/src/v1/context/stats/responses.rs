@@ -30,6 +30,9 @@ pub fn metrics_response(stats: &Stats) -> Response {
     lines.push(format!("torrents {}", stats.torrents));
     lines.push(format!("seeders {}", stats.seeders));
     lines.push(format!("completed {}", stats.completed));
+    lines.push(format!("completed_in_session {}", stats.completed_in_session));
+    lines.push(format!("completed_persisted {}", stats.completed_persisted));
+    lines.push(format!("completed_persisted_enabled {}", stats.completed_persisted_enabled));
     lines.push(format!("leechers {}", stats.leechers));
 
     // TCP

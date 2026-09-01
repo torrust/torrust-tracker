@@ -1,4 +1,8 @@
 //! Route initialization for the v1 API.
+//!
+//! Completed-download persistence availability is derived here from validated
+//! configuration as defined by ADR
+//! [`20260901113500_define_completed_download_metric_retention_names`](../../../../docs/adrs/20260901113500_define_completed_download_metric_retention_names.md).
 use std::sync::Arc;
 
 use axum::Router;
@@ -39,6 +43,11 @@ pub fn add(prefix: &str, router: Router, http_api_container: &Arc<TrackerHttpApi
         &http_api_container.http_stats_repository,
         &http_api_container.udp_core_stats_repository,
         &http_api_container.udp_server_stats_repository,
+        http_api_container
+            .tracker_core_container
+            .core_config
+            .tracker_policy
+            .persistent_torrent_completed_stat,
     );
     let stats_service = Arc::new(StatsApiService::new(Box::new(stats_adapter)));
     let router = stats::routes::add(&v1_prefix, router, &stats_service);

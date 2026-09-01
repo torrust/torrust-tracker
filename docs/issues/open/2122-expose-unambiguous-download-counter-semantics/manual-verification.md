@@ -1,7 +1,7 @@
 # Manual Verification Evidence
 
-**Date:** {YYYY-MM-DD HH:MM UTC}
-**Tracker revision:** {commit SHA}
+**Date:** 2026-09-01 11:35 UTC
+**Tracker revision:** implementation worktree, pending signed commit
 **Issue:** #2122
 
 ## Safety
@@ -12,73 +12,87 @@ HTTP requests.
 
 ## Local Environment
 
-- Operating system: {value}
-- Tracker command: {exact command}
-- Working directory: {path}
-- Configuration source: {environment variable or file path}
-- Configuration: {redacted TOML or link to an issue-local redacted fixture}
+- Operating system: Linux
+- Tracker command: `cargo run -- --config {CONFIG_PATH}`
+- Working directory: repository root
+- Configuration source: `TORRUST_TRACKER_CONFIG_TOML_PATH={CONFIG_PATH}`
+- Configuration: use the documented v3 configuration with SQLite. For M1 omit
+  `[core.database]` and set `persistent_torrent_completed_stat = false`; for
+  M2 retain the same SQLite `path` across both starts and set it to `true`.
 
 ## M1 - Disabled Persistence
 
-**Status:** `TODO`
+**Status:** `BLOCKED`
 
 ### Commands
 
 ```text
-{exact tracker start, client, HTTP request, and restart commands}
+TORRUST_TRACKER_CONFIG_TOML_PATH={M1_CONFIG_PATH} cargo run
+{complete one download with tracker-client}
+curl -H 'Authorization: Bearer {REDACTED}' http://127.0.0.1:1212/api/v1/stats
+curl -H 'Authorization: Bearer {REDACTED}' 'http://127.0.0.1:1212/api/v1/metrics?format=prometheus'
+{stop and rerun the same command, then repeat both requests}
 ```
 
 ### Requests And Responses
 
 ```text
-{exact HTTP method, redacted URL, request body, HTTP status, and response body}
+Pending local tracker execution. Automated server coverage proves the disabled
+configuration response and persisted-metric omission.
 ```
 
 ### Result
 
-{Record legacy `completed`, `completed_in_session`, `completed_persisted`, and
-`completed_persisted_enabled` before and after restart. Confirm the persisted
-Prometheus metric is absent.}
+Blocked pending an operator-provided local v3 configuration and a complete
+download event. Expected: `completed_in_session` resets after restart,
+`completed_persisted` is zero, `completed_persisted_enabled` is false, and the
+persisted Prometheus sample is absent.
 
 ## M2 - Enabled Persistence
 
-**Status:** `TODO`
+**Status:** `BLOCKED`
 
 ### Commands
 
 ```text
-{exact tracker start, client, HTTP request, and restart commands}
+TORRUST_TRACKER_CONFIG_TOML_PATH={M2_CONFIG_PATH} cargo run
+{complete one download with tracker-client}
+curl -H 'Authorization: Bearer {REDACTED}' http://127.0.0.1:1212/api/v1/stats
+curl -H 'Authorization: Bearer {REDACTED}' 'http://127.0.0.1:1212/api/v1/metrics?format=prometheus'
+{stop and restart using the identical SQLite database path, then repeat requests}
 ```
 
 ### Requests And Responses
 
 ```text
-{exact HTTP method, redacted URL, request body, HTTP status, and response body}
+Pending local tracker execution. Automated server coverage proves that an
+enabled zero persisted count is exported.
 ```
 
 ### Result
 
-{Record all legacy and new REST values before and after restart using the same
-database. Confirm the persisted metric is exported and document an enabled
-zero-value observation when feasible.}
+Blocked pending a local SQLite run. Expected: `completed_persisted_enabled` is
+true; the persisted count survives restart; and its Prometheus sample is
+present even when the observed count is zero.
 
 ## M3 - Legacy Migration
 
-**Status:** `TODO`
+**Status:** `BLOCKED`
 
 ### Commands
 
 ```text
-{exact metrics request command}
+Repeat the authenticated stats and Prometheus metrics requests from M1 and M2.
 ```
 
 ### Requests And Responses
 
 ```text
-{exact HTTP method, redacted URL, HTTP status, and relevant response body}
+Pending M1/M2 execution.
 ```
 
 ### Result
 
-{Confirm the observed legacy and new REST fields and metric identifiers,
-descriptions, values, and availability match the approved ADR.}
+Blocked pending M1/M2 execution. Verify the deprecated legacy metric remains,
+the new `in_session` sample remains process-lifetime, and the `persisted`
+sample is capability-aware.

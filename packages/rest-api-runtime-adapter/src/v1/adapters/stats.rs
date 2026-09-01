@@ -4,6 +4,8 @@
 //! Previously this logic lived in `rest-api-core`; it was moved here as part
 //! of the contract-first migration (SI-4), advancing toward the deprecation
 //! of `rest-api-core` (SI-5).
+//! Completed-download retention mapping follows ADR
+//! [`20260901113500_define_completed_download_metric_retention_names`](../../../../../docs/adrs/20260901113500_define_completed_download_metric_retention_names.md).
 use std::sync::Arc;
 
 use async_trait::async_trait;
@@ -21,6 +23,7 @@ pub struct TrackerStatsAdapter {
     http_stats_repository: Arc<torrust_tracker_http_core::statistics::repository::Repository>,
     udp_core_stats_repository: Arc<torrust_tracker_udp_core::statistics::repository::Repository>,
     udp_server_stats_repository: Arc<torrust_tracker_udp_server::statistics::repository::Repository>,
+    completed_persisted_enabled: bool,
 }
 
 impl TrackerStatsAdapter {
@@ -34,6 +37,7 @@ impl TrackerStatsAdapter {
         http_stats_repository: &Arc<torrust_tracker_http_core::statistics::repository::Repository>,
         udp_core_stats_repository: &Arc<torrust_tracker_udp_core::statistics::repository::Repository>,
         udp_server_stats_repository: &Arc<torrust_tracker_udp_server::statistics::repository::Repository>,
+        completed_persisted_enabled: bool,
     ) -> Self {
         Self {
             in_memory_torrent_repository: in_memory_torrent_repository.clone(),
@@ -42,6 +46,7 @@ impl TrackerStatsAdapter {
             http_stats_repository: http_stats_repository.clone(),
             udp_core_stats_repository: udp_core_stats_repository.clone(),
             udp_server_stats_repository: udp_server_stats_repository.clone(),
+            completed_persisted_enabled,
         }
     }
 }
@@ -52,6 +57,14 @@ impl StatsQueryPort for TrackerStatsAdapter {
         let aggregate_swarm_metadata = self.in_memory_torrent_repository.get_aggregate_swarm_metadata().await;
 
         let total_downloaded = self.tracker_core_stats_repository.get_torrents_downloads_total().await;
+        let completed_in_session = self
+            .tracker_core_stats_repository
+            .get_torrents_downloads_in_session_total()
+            .await;
+        let completed_persisted = self
+            .tracker_core_stats_repository
+            .get_torrents_downloads_persisted_total()
+            .await;
 
         let http_stats = self.http_stats_repository.get_stats().await;
         let udp_server_stats = self.udp_server_stats_repository.get_stats().await;
@@ -61,6 +74,9 @@ impl StatsQueryPort for TrackerStatsAdapter {
             torrents: aggregate_swarm_metadata.total_torrents,
             seeders: aggregate_swarm_metadata.total_complete,
             completed: total_downloaded,
+            completed_in_session,
+            completed_persisted,
+            completed_persisted_enabled: self.completed_persisted_enabled,
             leechers: aggregate_swarm_metadata.total_incomplete,
 
             // TCPv4

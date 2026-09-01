@@ -1,7 +1,9 @@
 //! Tracker statistics API context.
 //!
 //! The tracker collects statistics about the number of torrents, seeders,
-//! leechers, completed downloads, and the number of requests handled.
+//! leechers, completed downloads, and the number of requests handled. The
+//! legacy `completed` field is deprecated; use `completed_in_session` and
+//! `completed_persisted` with `completed_persisted_enabled` instead.
 //!
 //! # Endpoints
 //!
@@ -26,6 +28,9 @@
 //!     "torrents": 0,
 //!     "seeders": 0,
 //!     "completed": 0,
+//!     "completed_in_session": 0,
+//!     "completed_persisted": 0,
+//!     "completed_persisted_enabled": false,
 //!     "leechers": 0,
 //!     "tcp4_connections_handled": 0,
 //!     "tcp4_announces_handled": 0,

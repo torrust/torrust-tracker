@@ -78,7 +78,10 @@ impl TrackerCoreContainer {
         };
 
         let torrents_manager = Arc::new(TorrentsManager::new(core_config, &in_memory_torrent_repository));
-        let stats_repository = Arc::new(statistics::repository::Repository::new());
+        let stats_repository = Arc::new(statistics::repository::Repository::new(
+            core_config.tracker_usage_statistics,
+            core_config.tracker_policy.persistent_torrent_completed_stat,
+        ));
         let announce_handler = if core_config.tracker_policy.persistent_torrent_completed_stat {
             let persistence = persistence.as_ref()?;
             Arc::new(AnnounceHandler::new_with_persistent_completed_statistics(
