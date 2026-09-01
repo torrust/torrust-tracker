@@ -182,6 +182,24 @@ deterministic tests, and manual evidence.
   migration while the legacy API remains available, or revert an additive API
   without changing existing consumers.
 
+### Completion Follow-up: Issue #1419
+
+Before declaring this EPIC complete, reassess and complete
+[issue #1419](https://github.com/torrust/torrust-tracker/issues/1419), **Allow
+multiple integration tests at the main app level**. Its remaining shared-event-
+bus policy integration test depends on canonical identity and registration
+metadata from #2036 and #2041, and on the outstanding event-metrics policy work
+in #2039 (the latest #2039 comment says its previous closure was premature).
+This EPIC must also leave every started application instance with deterministic,
+awaitable shutdown and no leaked tasks or listener bindings.
+
+The final #1419 verification must demonstrate concurrent main-application test
+instances can start, discover their canonical services, exercise the enabled
+and metrics-disabled HTTP/UDP listener policy, and complete shutdown without
+port, storage, environment, logging, or lingering-task interference. Do not
+absorb the canonical-identity or metrics-policy requirements into this EPIC;
+use #1419 to verify their interaction with the completed shutdown lifecycle.
+
 ## Dependencies
 
 - **#1405** (Overhaul stats: graceful shutdown for broadcast channels) — ✅ Closed.
