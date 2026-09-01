@@ -22,7 +22,7 @@ pub(crate) async fn health_check_handler(State(registar): State<Registar<Runtime
                 (
                     service.service_binding().clone(),
                     service.metadata().service_role().as_str().to_string(),
-                    service.metadata().public_url().map(str::to_string),
+                    service.metadata().public_url().map(ToString::to_string),
                     health_check,
                 )
             })

@@ -10,7 +10,7 @@ related-pr: null
 depends-on:
   - docs/issues/closed/1417-1978-add-public-service-url-to-configuration.md
   - docs/issues/open/1980-1978-configuration-overhaul-final-cleanup.md
-last-updated-utc: 2026-08-31 00:00
+last-updated-utc: 2026-08-31 22:05
 semantic-links:
   skill-links:
     - create-issue
@@ -36,11 +36,11 @@ its post-bind `ServiceBinding`.
 
 Each service has three distinct concepts:
 
-| Concept | Source | Meaning |
-| --- | --- | --- |
-| Configured bind address | `bind_address` configuration | The requested local socket bind target. It may be wildcard (`0.0.0.0` or `[::]`) and may use port `0`. |
-| Service binding | `ServiceBinding` created after the socket binds | The protocol plus the actual local socket address. An OS-assigned ephemeral port replaces configured port `0`, but a wildcard address remains wildcard. It is an identity, not necessarily a reachable URL. |
-| Public URL | Optional v3 `public_url` configuration | The operator-declared external endpoint. It may differ completely from the bind address and service binding because of reverse proxies, NAT, TLS termination, or DNS. |
+| Concept                 | Source                                          | Meaning                                                                                                                                                                                                     |
+| ----------------------- | ----------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Configured bind address | `bind_address` configuration                    | The requested local socket bind target. It may be wildcard (`0.0.0.0` or `[::]`) and may use port `0`.                                                                                                      |
+| Service binding         | `ServiceBinding` created after the socket binds | The protocol plus the actual local socket address. An OS-assigned ephemeral port replaces configured port `0`, but a wildcard address remains wildcard. It is an identity, not necessarily a reachable URL. |
+| Public URL              | Optional v3 `public_url` configuration          | The operator-declared external endpoint. It may differ completely from the bind address and service binding because of reverse proxies, NAT, TLS termination, or DNS.                                       |
 
 `internal_service_url` is a possible future concept. It is not implemented, must not be added by
 this issue, and cannot be inferred reliably from a wildcard service binding because a wildcard
@@ -77,24 +77,24 @@ issue follows both changes.
 
 ## Compatibility Decisions
 
-| Surface | Required behavior |
-| --- | --- |
-| Health check | Always include nullable `public_url`. Retain `service_binding`, `binding`, and `service_type` unchanged. |
-| Metrics | Add `public_url` only when configured, to metric families that already include service-binding labels. Document the Prometheus series/cardinality effect. |
-| Logs | Emit `service_binding` as the local identity and nullable `public_url` as the operator-declared endpoint in startup logs. Neither replaces the other. |
+| Surface      | Required behavior                                                                                                                                         |
+| ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Health check | Always include nullable `public_url`. Retain `service_binding`, `binding`, and `service_type` unchanged.                                                  |
+| Metrics      | Add `public_url` only when configured, to metric families that already include service-binding labels. Document the Prometheus series/cardinality effect. |
+| Logs         | Emit `service_binding` as the local identity and emit `public_url` only when configured. Neither replaces the other.                                      |
 
 ## Implementation Plan
 
-| ID | Status | Task | Notes |
-| --- | --- | --- | --- |
-| T1 | DONE | Review v3 runtime configuration access after #1980 | Consumes v3 typed configuration only; no v2 fallback added. |
-| T2 | DONE | Extend health-check contract | Adds nullable `public_url` while preserving existing fields. |
-| T3 | DONE | Extend per-service metric labels | Adds the label where request contexts have binding labels. |
-| T4 | DONE | Extend startup logging | Records `service_binding` and nullable `public_url` separately. |
-| T5 | DONE | Add focused tests | Covers HTTP, UDP, absent values, wildcard binding, and port `0`. |
-| T6 | DONE | Run automatic verification | Recorded in `automated-verification.md`. |
-| T7 | N/A | Update migration guide if this subissue affects the config public API | No configuration public API changed. |
-| T8 | TODO | Capture reproducible local runtime evidence | Follow the cases and artifact rules in `manual-verification.md`. |
+| ID  | Status | Task                                                                  | Notes                                                                 |
+| --- | ------ | --------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| T1  | DONE   | Review v3 runtime configuration access after #1980                    | Consumes v3 typed configuration only; no v2 fallback added.           |
+| T2  | DONE   | Extend health-check contract                                          | Adds nullable `public_url` while preserving existing fields.          |
+| T3  | DONE   | Extend per-service metric labels                                      | Adds the label where request contexts have binding labels.            |
+| T4  | DONE   | Extend startup logging                                                | Records `service_binding` and configured `public_url` separately.     |
+| T5  | DONE   | Add focused tests                                                     | Covers HTTP, UDP, absent values, wildcard binding, and port `0`.      |
+| T6  | DONE   | Run automatic verification                                            | Recorded in `automated-verification.md`.                              |
+| T7  | N/A    | Update migration guide if this subissue affects the config public API | No configuration public API changed.                                  |
+| T8  | DONE   | Capture reproducible local runtime evidence                           | Configured and absent cases are recorded in `manual-verification.md`. |
 
 ## Progress Tracking
 
@@ -104,8 +104,8 @@ issue follows both changes.
 - [x] GitHub issue created: #2023
 - [x] Implementation completed
 - [x] Automatic verification completed (`linter all`, relevant tests)
-- [ ] Manual verification scenarios executed and recorded
-- [ ] Acceptance criteria reviewed after implementation
+- [x] Manual verification scenarios executed and recorded
+- [x] Acceptance criteria reviewed after implementation
 - [ ] Issue closed and specification moved to `docs/issues/closed/`
 
 ### Progress Log
@@ -122,6 +122,9 @@ issue follows both changes.
   passed; evidence is recorded in `automated-verification.md`.
 - 2026-08-31 00:00 UTC - maintainer - Converted this issue to folder-style tracking and required
   reproducible, per-change local runtime evidence before completion.
+- 2026-08-31 22:05 UTC - agent - Ran isolated configured and absent local v3 tracker cases. The
+  health-check, HTTP announce, management API metrics, and startup-log evidence is retained under
+  `.tmp/issue-2023-public-url-observability/` and summarized in `manual-verification.md`.
 
 ## Acceptance Criteria
 
@@ -136,7 +139,7 @@ issue follows both changes.
       behavior.
 - [x] AC6: No `internal_service_url` implementation or `torrust-net-primitives` change is made.
 - [x] AC7: `linter all` and relevant tests pass. Evidence: `automated-verification.md`.
-- [ ] AC8: Manual verification evidence records configured and absent `public_url` cases,
+- [x] AC8: Manual verification evidence records configured and absent `public_url` cases,
       including effective configuration, requests, and observed output for every change.
 
 ## Verification Plan
@@ -159,12 +162,12 @@ Run the configured and absent cases against isolated local v3 tracker configurat
 execution in `manual-verification.md`, including the effective configuration, exact commands,
 relevant output, expected result, actual result, and environment details.
 
-| ID | Scenario | Expected Result | Status | Evidence |
-| --- | --- | --- | --- | --- |
-| M1 | Start a local v3 tracker with `bind_address = "0.0.0.0:0"` and `public_url = "https://tracker.example.test/announce"`; call the health-check endpoint. | The response distinguishes the configured public URL from the post-bind wildcard service binding with OS-assigned port. | TODO | `manual-verification.md` |
-| M2 | Send an HTTP announce to that local service and query Prometheus metrics. | The matching metric has `public_url="https://tracker.example.test/announce"` and retains its `server_binding_*` labels. | TODO | `manual-verification.md` |
-| M3 | Capture startup logs for the configured case. | Startup logs contain distinct `service_binding` and `public_url` fields. | TODO | `manual-verification.md` |
-| M4 | Repeat M1-M3 with no `public_url` configured. | The health field is `null`; metrics and startup logs do not claim a public URL. | TODO | `manual-verification.md` |
+| ID  | Scenario                                                                                                                                               | Expected Result                                                                                                         | Status | Evidence                 |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------- | ------ | ------------------------ |
+| M1  | Start a local v3 tracker with `bind_address = "0.0.0.0:0"` and `public_url = "https://tracker.example.test/announce"`; call the health-check endpoint. | The response distinguishes the configured public URL from the post-bind wildcard service binding with OS-assigned port. | DONE   | `manual-verification.md` |
+| M2  | Send an HTTP announce to that local service and query Prometheus metrics.                                                                              | The matching metric has `public_url="https://tracker.example.test/announce"` and retains its `server_binding_*` labels. | DONE   | `manual-verification.md` |
+| M3  | Capture startup logs for the configured case.                                                                                                          | Startup logs contain distinct `service_binding` and `public_url` fields.                                                | DONE   | `manual-verification.md` |
+| M4  | Repeat M1-M3 with no `public_url` configured.                                                                                                          | The health field is `null`; metrics and startup logs do not claim a public URL.                                         | DONE   | `manual-verification.md` |
 
 ## Risks and Trade-offs
 

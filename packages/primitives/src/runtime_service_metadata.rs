@@ -1,13 +1,20 @@
 use crate::{ConfigurationInstanceId, ServiceRole};
+use url::Url;
 
-/// Immutable tracker metadata attached to a started local service registration.
+/// Immutable listener-specific metadata attached to a started service registration.
 ///
-/// The registry owns neither the role nor the configuration identity; it stores
+/// It combines the identity of the source configuration entry with configured
+/// observability data that describes the same listener. The registry stores
 /// this tracker-owned value without assigning it application semantics.
 #[derive(PartialEq, Eq, PartialOrd, Ord, Debug, Hash, Clone)]
 pub struct RuntimeServiceMetadata {
+    /// Identifies the source configuration entry for this listener.
     configuration_instance_id: ConfigurationInstanceId,
-    public_url: Option<String>,
+    /// Configured, operator-declared external endpoint for this listener.
+    ///
+    /// This does not identify the local bind address or its post-bind service
+    /// binding.
+    public_url: Option<Url>,
 }
 
 impl RuntimeServiceMetadata {
@@ -22,7 +29,7 @@ impl RuntimeServiceMetadata {
 
     /// Adds the configured public URL for the listener.
     #[must_use]
-    pub fn with_public_url(mut self, public_url: Option<String>) -> Self {
+    pub fn with_public_url(mut self, public_url: Option<Url>) -> Self {
         self.public_url = public_url;
         self
     }
@@ -41,14 +48,15 @@ impl RuntimeServiceMetadata {
 
     /// Returns the configured public URL for the listener, when present.
     #[must_use]
-    pub fn public_url(&self) -> Option<&str> {
-        self.public_url.as_deref()
+    pub fn public_url(&self) -> Option<&Url> {
+        self.public_url.as_ref()
     }
 }
 
 #[cfg(test)]
 mod tests {
     use crate::{ConfigurationInstanceId, RuntimeServiceMetadata, ServiceRole};
+    use url::Url;
 
     #[test]
     fn it_should_derive_the_role_from_the_configuration_instance_identity() {
@@ -63,8 +71,11 @@ mod tests {
     #[test]
     fn it_should_store_an_optional_configured_public_url() {
         let metadata = RuntimeServiceMetadata::new(ConfigurationInstanceId::new(ServiceRole::HttpTracker, 0))
-            .with_public_url(Some("https://tracker.example.test/announce".to_string()));
+            .with_public_url(Some(Url::parse("https://tracker.example.test/announce").unwrap()));
 
-        assert_eq!(metadata.public_url(), Some("https://tracker.example.test/announce"));
+        assert_eq!(
+            metadata.public_url().map(Url::as_str),
+            Some("https://tracker.example.test/announce")
+        );
     }
 }

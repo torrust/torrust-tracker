@@ -5108,6 +5108,7 @@ dependencies = [
  "torrust-info-hash",
  "torrust-net-primitives",
  "torrust-peer-id",
+ "url",
 ]
 
 [[package]]

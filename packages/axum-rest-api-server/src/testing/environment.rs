@@ -96,7 +96,7 @@ impl Environment<Stopped> {
                             .http_api_config
                             .public_url
                             .as_ref()
-                            .map(ToString::to_string),
+                            .map(|url| url.as_url().clone()),
                     ),
                     access_tokens,
                 )

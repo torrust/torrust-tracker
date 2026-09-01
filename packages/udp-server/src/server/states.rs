@@ -104,7 +104,11 @@ impl Server<Stopped> {
         let service_binding = started.service_binding;
         let local_addr = started.address;
 
-        tracing::info!(target: UDP_TRACKER_LOG_TARGET, service_binding = %service_binding, public_url = ?metadata.public_url(), "Started UDP tracker");
+        if let Some(public_url) = metadata.public_url() {
+            tracing::info!(target: UDP_TRACKER_LOG_TARGET, service_binding = %service_binding, public_url = %public_url, "Started UDP tracker");
+        } else {
+            tracing::info!(target: UDP_TRACKER_LOG_TARGET, service_binding = %service_binding, "Started UDP tracker");
+        }
 
         form.register(ServiceRegistration::new(service_binding, metadata, Some(Launcher::check)))
             .await
