@@ -102,8 +102,8 @@ When wiring a new server or background task, follow this checklist in order:
 - **No globals for domain objects.** All state flows through `AppContainer`.
 - **Startup errors are typed.** `bootstrap::app::setup()`, `app::complete_startup()`, and `app::start()` return
   source-preserving `thiserror` errors for expected configuration, composition, persistence-load,
-   and initial service-start failures. Entrypoints report their friendly, actionable display message
-   and exit unsuccessfully. If an initial service fails after jobs started, `start()` cancels and joins
+  and initial service-start failures. Entrypoints report their friendly, actionable display message
+  and exit unsuccessfully. If an initial service fails after jobs started, `start()` cancels and joins
   those jobs before returning the error. `check_seed()` remains an assertion because it protects an
   internal cryptographic invariant; failures after a task has started are runtime supervision, not
   startup results.
