@@ -16,7 +16,7 @@ semantic-links:
     - create-issue
   related-artifacts:
     - .github/skills/dev/planning/create-issue/SKILL.md
-    - docs/issues/open/2107-1978-activate-persistence-free-v3-runtime-composition/ISSUE.md
+    - docs/issues/closed/2107-1978-activate-persistence-free-v3-runtime-composition/ISSUE.md
     - src/AGENTS.md
     - src/bootstrap/app.rs
     - src/bootstrap/config.rs

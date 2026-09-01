@@ -1,0 +1,43 @@
+# Reproduction configuration for C1 fixed-port policy filtering (M1, M2, M5).
+# Run with:
+# TORRUST_TRACKER_CONFIG_TOML_PATH="$PWD/docs/issues/closed/2039-normalize-per-instance-event-metrics-policy/evidence-artifacts/fixed-port-manual.toml" \
+#   cargo +nightly run --bin torrust-tracker
+
+[metadata]
+app = "torrust-tracker"
+purpose = "configuration"
+schema_version = "2.0.0"
+
+[logging]
+threshold = "info"
+
+[core]
+listed = false
+private = false
+
+[[http_trackers]]
+bind_address = "127.0.0.1:17091"
+tracker_usage_statistics = false
+
+[[http_trackers]]
+bind_address = "127.0.0.1:17092"
+tracker_usage_statistics = true
+
+[[udp_trackers]]
+bind_address = "127.0.0.1:17093"
+tracker_usage_statistics = false
+max_connection_id_errors_per_ip = 10
+
+[[udp_trackers]]
+bind_address = "127.0.0.1:17094"
+tracker_usage_statistics = true
+max_connection_id_errors_per_ip = 10
+
+[http_api]
+bind_address = "127.0.0.1:17100"
+
+[http_api.access_tokens]
+admin = "MyAccessToken"
+
+[health_check_api]
+bind_address = "127.0.0.1:17101"

@@ -13,7 +13,7 @@ semantic-links:
     - write-unit-test
   related-artifacts:
     - docs/adrs/20260728115400_define_registar_as_runtime_service_registry.md
-    - docs/issues/open/2035-fix-duplicate-port-zero-tracker-instance-bootstrap/ISSUE.md
+    - docs/issues/closed/2035-fix-duplicate-port-zero-tracker-instance-bootstrap/ISSUE.md
     - docs/issues/closed/2036-add-runtime-service-registry-metadata/ISSUE.md
     - tests/AGENTS.md
     - tests/common/

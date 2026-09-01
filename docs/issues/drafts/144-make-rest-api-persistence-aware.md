@@ -13,9 +13,9 @@ semantic-links:
   skill-links:
     - create-issue
   related-artifacts:
-    - docs/issues/open/999-1978-optional-database-configuration/solution.md
-    - docs/issues/open/999-1978-optional-database-configuration/persistence-unavailable-scenarios.md
-    - docs/issues/open/999-1978-optional-database-configuration/persistence-free-runtime-activation-draft.md
+    - docs/issues/closed/999-1978-optional-database-configuration/solution.md
+    - docs/issues/closed/999-1978-optional-database-configuration/persistence-unavailable-scenarios.md
+    - docs/issues/closed/999-1978-optional-database-configuration/persistence-free-runtime-activation-draft.md
     - packages/rest-api-protocol/
     - packages/rest-api-application/
     - packages/rest-api-runtime-adapter/
@@ -107,6 +107,6 @@ The final DTO names and migration policy require review during implementation.
 
 - GitHub EPIC issue #144
 - Issue #999
-- `docs/issues/open/999-1978-optional-database-configuration/solution.md`
-- `docs/issues/open/999-1978-optional-database-configuration/persistence-unavailable-scenarios.md`
-- `docs/issues/open/999-1978-optional-database-configuration/persistence-free-runtime-activation-draft.md`
+- `docs/issues/closed/999-1978-optional-database-configuration/solution.md`
+- `docs/issues/closed/999-1978-optional-database-configuration/persistence-unavailable-scenarios.md`
+- `docs/issues/closed/999-1978-optional-database-configuration/persistence-free-runtime-activation-draft.md`

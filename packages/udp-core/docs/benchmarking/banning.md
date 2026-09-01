@@ -3,7 +3,7 @@ semantic-links:
   related-artifacts:
     - packages/udp-core/benches/ban_service_benchmark.rs
     - packages/udp-core/src/services/banning.rs
-    - docs/issues/open/2114-consider-removing-bloom-filter/ISSUE.md
+    - docs/issues/closed/2114-consider-removing-bloom-filter/ISSUE.md
 ---
 
 # UDP Ban Service Benchmarking

@@ -6,7 +6,7 @@ semantic-links:
   related-artifacts:
     - .github/skills/dev/rust-code-quality/handle-secrets/SKILL.md
     - packages/configuration/src/lib.rs
-    - docs/issues/open/2079-adopt-secrecy-for-sensitive-configuration.md
+    - docs/issues/closed/2079-adopt-secrecy-for-sensitive-configuration.md
 ---
 
 # Adopt `secrecy` for Sensitive Values

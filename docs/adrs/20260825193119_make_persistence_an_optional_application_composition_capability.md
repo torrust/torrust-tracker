@@ -1,8 +1,8 @@
 ---
 semantic-links:
   related-artifacts:
-    - docs/issues/open/999-1978-optional-database-configuration/ISSUE.md
-    - docs/issues/open/999-1978-optional-database-configuration/solution.md
+    - docs/issues/closed/999-1978-optional-database-configuration/ISSUE.md
+    - docs/issues/closed/999-1978-optional-database-configuration/solution.md
     - packages/configuration/src/v3_0_0/core.rs
     - packages/tracker-core/src/container.rs
     - src/bootstrap/persistence.rs
@@ -77,7 +77,7 @@ Rejected. Two owners would drift as services and configuration evolve. Bootstrap
 
 - Issue #999
 - Configuration-overhaul EPIC #1978
-- `docs/issues/open/999-1978-optional-database-configuration/analysis.md`
-- `docs/issues/open/999-1978-optional-database-configuration/solution.md`
+- `docs/issues/closed/999-1978-optional-database-configuration/analysis.md`
+- `docs/issues/closed/999-1978-optional-database-configuration/solution.md`
 - `docs/adrs/20260723184019_separate_configuration_value_invariants_from_consistency_validation.md`
 - GitHub issue #144

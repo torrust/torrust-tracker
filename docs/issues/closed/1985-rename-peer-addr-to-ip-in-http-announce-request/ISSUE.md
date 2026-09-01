@@ -9,7 +9,7 @@ branch: "1985-rename-peer-addr-to-ip-in-http-announce-request"
 related-pr: null
 depends-on: null
 blocks:
-  - docs/issues/open/1987-add-config-option-to-use-ip-from-announce-query-string/ISSUE.md
+  - docs/issues/closed/1987-add-config-option-to-use-ip-from-announce-query-string/ISSUE.md
 last-updated-utc: 2026-07-22 00:00
 semantic-links:
   skill-links:

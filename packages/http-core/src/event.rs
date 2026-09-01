@@ -13,7 +13,7 @@
 //! Rejected-request/error events require an additional deliberate contract. Do
 //! not add one-off variants solely to support a metric; see the deferred
 //! [general error-events EPIC](../../../docs/issues/drafts/generalize-error-events.md)
-//! and the [#1987 analysis](../../../docs/issues/open/1987-add-config-option-to-use-ip-from-announce-query-string/error-event-observability-analysis.md).
+//! and the [#1987 analysis](../../../docs/issues/closed/1987-add-config-option-to-use-ip-from-announce-query-string/error-event-observability-analysis.md).
 use std::net::{IpAddr, SocketAddr};
 
 use torrust_info_hash::InfoHash;
