@@ -10,7 +10,7 @@ branch: "2121-propagate-bootstrap-errors"
 related-pr: 2123
 depends-on:
   - 2107
-last-updated-utc: 2026-08-31 17:13
+last-updated-utc: 2026-09-01 00:00
 semantic-links:
   skill-links:
     - create-issue
@@ -102,6 +102,15 @@ executable entrypoints one consistent way to report startup failure.
   `setup()`, initial persistence loading, and configured job startup succeed.
   Error variants retain their source categories instead of being flattened to
   strings.
+- Startup errors use the existing `thiserror` pattern. Their `Display`
+  messages must be friendly to operators and identify an actionable resolution;
+  variants retain the typed source error for diagnostics and future structured
+  reporting.
+- The tracker and profiling entrypoints preserve their current output style for
+  this scoped change: report the friendly startup error through the existing
+  diagnostic mechanism and exit unsuccessfully. Do not add a verbosity flag or
+  migrate output to the global JSONL contract in this issue; the global CLI
+  output ADR permits progressive migration of existing commands.
 - If a configured service fails after another job has started, `run()` cancels
   and joins the already-started jobs before returning that startup error.
 - `check_seed()` remains an assertion because it guards an internal
@@ -176,6 +185,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-08-31 16:09 UTC - GitHub Copilot/User - Approved the specification. Created GitHub issue #2121 with the `task` label and moved this document into `docs/issues/open/`.
 - 2026-08-31 16:45 UTC - GitHub Copilot/User - Converted this specification to folder-style layout so issue-local implementation evidence can be added without a later layout migration.
 - 2026-08-31 17:13 UTC - GitHub Copilot/User - Opened spec-only PR #2123 for this specification and #2122. It is related to, not an implementation that closes, either issue.
+- 2026-09-01 00:00 UTC - GitHub Copilot/User - Confirmed that startup errors must use the existing `thiserror` pattern, with friendly operator messages and descriptive remediation while preserving typed sources. Agreed to retain the current tracker output style for this issue rather than adding verbosity controls or migrating existing entrypoints to the global JSONL output contract. Manual regression coverage must enable at least one service of every configured service type to reduce bootstrap-refactoring risk.
 
 ## Acceptance Criteria
 
@@ -200,20 +210,20 @@ Define verification before implementation starts and execute it before closing t
 - Focused unit tests for configuration loading, bootstrap validation, and fallible container composition.
 - Focused application tests that prove a `setup()` failure prevents job startup and listener binding and that a later failure cleans up already-started jobs.
 - Focused loader and job-starter tests for database-load, TLS, registration, and listener-start errors.
-- Entrypoint/subprocess tests for contextual stderr output and nonzero status where the test harness permits them.
-- Regression tests for both persistence-free and configured-persistence composition.
+- Entrypoint/subprocess tests for the existing-style friendly diagnostic output and nonzero status where the test harness permits them.
+- Regression tests for both persistence-free and configured-persistence composition, each enabling at least one instance of every applicable configured service type.
 - `cargo fmt`, `linter all`, relevant package tests, and pre-push checks when applicable.
 
 ### Manual Verification Scenarios
 
 Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
-| ID  | Scenario                         | Command/Steps                                                                                         | Expected Result                                                                                           | Status | Evidence                                                  |
-| --- | -------------------------------- | ----------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- | ------ | --------------------------------------------------------- |
-| M1  | Invalid configuration source     | Run the tracker with `TORRUST_TRACKER_CONFIG_TOML_PATH` set to a nonexistent file.                    | The executable reports a contextual configuration-source failure, exits nonzero, and creates no listener. | TODO   | {log path and exit status}                                |
-| M2  | Invalid persistence requirements | Run the tracker with a v3 configuration that enables `core.private = true` and omits `core.database`. | The executable reports the typed requirement failure before application composition and exits nonzero.    | TODO   | {configuration, log path, and exit status}                |
-| M3  | Unavailable configured listener  | Run the tracker with a valid configuration whose configured HTTP or UDP listener cannot bind.         | The executable reports the listener-start error, exits nonzero, and stops any previously started jobs.    | TODO   | {configuration, log path, exit status, and port evidence} |
-| M4  | Valid startup regression         | Run one documented persistence-free v3 configuration and one configured SQLite v3 configuration.      | Both configurations retain #2107's successful startup behavior.                                           | TODO   | {commands, logs, and health-check evidence}               |
+| ID  | Scenario                         | Command/Steps                                                                                                                                                          | Expected Result                                                                                           | Status | Evidence                                                  |
+| --- | -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- | ------ | --------------------------------------------------------- |
+| M1  | Invalid configuration source     | Run the tracker with `TORRUST_TRACKER_CONFIG_TOML_PATH` set to a nonexistent file.                                                                                     | The executable reports a contextual configuration-source failure, exits nonzero, and creates no listener. | TODO   | {log path and exit status}                                |
+| M2  | Invalid persistence requirements | Run the tracker with a v3 configuration that enables `core.private = true` and omits `core.database`.                                                                  | The executable reports the typed requirement failure before application composition and exits nonzero.    | TODO   | {configuration, log path, and exit status}                |
+| M3  | Unavailable configured listener  | Run the tracker with a valid configuration whose configured HTTP or UDP listener cannot bind.                                                                          | The executable reports the listener-start error, exits nonzero, and stops any previously started jobs.    | TODO   | {configuration, log path, exit status, and port evidence} |
+| M4  | Valid startup regression         | Run one documented persistence-free v3 configuration and one configured SQLite v3 configuration, each enabling at least one instance of every applicable service type. | Both configurations retain #2107's successful startup behavior across their enabled service types.        | TODO   | {commands, logs, and health-check evidence}               |
 
 Notes:
 
