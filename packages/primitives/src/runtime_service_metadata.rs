@@ -1,5 +1,6 @@
-use crate::{ConfigurationInstanceId, ServiceRole};
 use url::Url;
+
+use crate::{ConfigurationInstanceId, ServiceRole};
 
 /// Immutable listener-specific metadata attached to a started service registration.
 ///
@@ -55,8 +56,9 @@ impl RuntimeServiceMetadata {
 
 #[cfg(test)]
 mod tests {
-    use crate::{ConfigurationInstanceId, RuntimeServiceMetadata, ServiceRole};
     use url::Url;
+
+    use crate::{ConfigurationInstanceId, RuntimeServiceMetadata, ServiceRole};
 
     #[test]
     fn it_should_derive_the_role_from_the_configuration_instance_identity() {
