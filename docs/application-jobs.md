@@ -42,7 +42,7 @@ shutdown unreliable. This document calls such a task **unmanaged** or
 
 ## Current Bootstrap Flow
 
-1. `main` calls `app::run`.
+1. `main` calls `app::start`.
 2. `bootstrap::app::setup` loads configuration, initializes shared services,
    and constructs `AppContainer`.
 3. `app::start` loads required persisted data, then `start_jobs` creates a
@@ -53,7 +53,7 @@ shutdown unreliable. This document calls such a task **unmanaged** or
 
 ```mermaid
 flowchart TD
-    Main[main] -->|app::run| Setup[bootstrap::app::setup]
+    Main[main] -->|app::start| Setup[bootstrap::app::setup]
     Setup --> Container[AppContainer]
     Main --> Start[app::start]
     Start --> Jobs[start_jobs]

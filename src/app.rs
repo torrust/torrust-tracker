@@ -661,7 +661,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn it_should_release_udp_listener_before_returning_from_run_after_setup_when_later_http_startup_fails() {
+    async fn it_should_release_udp_listener_before_returning_from_start_after_setup_when_later_http_startup_fails() {
         // Arrange
         let mut configuration = torrust_tracker_test_helpers::configuration::ephemeral_public();
         let udp_address = reserve_udp_address();

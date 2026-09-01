@@ -8,9 +8,9 @@ the bootstrap sequence, and the dependency-injection container. All domain logic
 
 | Path                        | Purpose                                                                                                                   |
 | --------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| `main.rs`                   | Binary entry point. Calls `app::run()`, waits for Ctrl-C, then cancels jobs and waits for graceful shutdown.              |
+| `main.rs`                   | Binary entry point. Calls `app::start()`, waits for Ctrl-C, then cancels jobs and waits for graceful shutdown.            |
 | `lib.rs`                    | Library crate root and crate-level documentation. Re-exports the public API used by integration tests and other binaries. |
-| `app.rs`                    | `run()` and `start()` — orchestrates the full startup sequence (setup → load data from DB → start jobs).                  |
+| `app.rs`                    | `start()` and `complete_startup()` — orchestrate the full startup sequence (setup → load data from DB → start jobs).      |
 | `container.rs`              | `AppContainer` — dependency-injection struct that holds `Arc`-wrapped instances of every per-layer container.             |
 | `bootstrap/app.rs`          | `setup()` — loads config, validates it, initializes logging and global services, builds `AppContainer`.                   |
 | `bootstrap/config.rs`       | `initialize_configuration()` — reads config from the environment / file.                                                  |
@@ -25,7 +25,7 @@ the bootstrap sequence, and the dependency-injection container. All domain logic
 
 ```text
 main()
-  └─ app::run()
+   └─ app::start()
        ├─ bootstrap::app::setup()
        │    ├─ bootstrap::config::initialize_configuration()   ← reads TOML / env vars
       │    ├─ configuration.validate()                        ← returns typed startup errors
@@ -100,10 +100,10 @@ When wiring a new server or background task, follow this checklist in order:
 
 - **No domain logic here.** This directory is pure wiring. Business rules belong in `packages/`.
 - **No globals for domain objects.** All state flows through `AppContainer`.
-- **Startup errors are typed.** `bootstrap::app::setup()`, `app::start()`, and `app::run()` return
+- **Startup errors are typed.** `bootstrap::app::setup()`, `app::complete_startup()`, and `app::start()` return
   source-preserving `thiserror` errors for expected configuration, composition, persistence-load,
-  and initial service-start failures. Entrypoints report their friendly, actionable display message
-  and exit unsuccessfully. If an initial service fails after jobs started, `run()` cancels and joins
+   and initial service-start failures. Entrypoints report their friendly, actionable display message
+   and exit unsuccessfully. If an initial service fails after jobs started, `start()` cancels and joins
   those jobs before returning the error. `check_seed()` remains an assertion because it protects an
   internal cryptographic invariant; failures after a task has started are runtime supervision, not
   startup results.
