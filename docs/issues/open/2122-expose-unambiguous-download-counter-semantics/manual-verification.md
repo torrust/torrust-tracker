@@ -13,7 +13,7 @@ HTTP requests.
 ## Local Environment
 
 - Operating system: Linux
-- Tracker command: `cargo run -- --config {CONFIG_PATH}`
+- Tracker command: `TORRUST_TRACKER_CONFIG_TOML_PATH={CONFIG_PATH} cargo run --bin torrust-tracker`
 - Working directory: repository root
 - Configuration source: `TORRUST_TRACKER_CONFIG_TOML_PATH={CONFIG_PATH}`
 - Configuration: local-only, API-enabled v3 configurations in `.tmp/`. M1

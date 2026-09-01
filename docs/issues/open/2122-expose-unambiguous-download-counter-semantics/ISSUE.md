@@ -147,15 +147,15 @@ These targets are confirmed current behavior and are subject to T1 reconciliatio
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| ID  | Status  | Task                         | Notes / Expected Output                                                                                                                                                                  |
-| --- | ------- | ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| T1  | DONE    | Record retention ADR         | Added and indexed ADR `20260901113500_define_completed_download_metric_retention_names.md`, including #999 refinement, compatibility, availability, update ordering, and API-v2 removal. |
-| T2  | DONE    | Separate counter views       | Added legacy, `in_session`, and capability-aware `persisted` tracker-core views while preserving #2107's independent listeners.                                                          |
-| T3  | DONE    | Extend the v1 stats contract | Added backward-compatible fields and configuration-derived availability through REST composition.                                                                                        |
-| T4  | DONE    | Prove retention regressions  | Added persistence-free restart, persisted restoration, disabled omission, and enabled-zero focused coverage.                                                                             |
-| T5  | DONE    | Review and extend API tests  | Extended authenticated `GET /api/v1/stats` and direct Prometheus `GET /api/v1/metrics` package contract coverage; package-local tests prove configuration-to-endpoint behavior.          |
-| T6  | DONE    | Verify public contract       | Focused tracker-core, REST protocol/runtime adapter, and REST server tests pass.                                                                                                         |
-| T7  | DONE    | Record local manual evidence | M1-M3 passed against local v3 persistence-free and SQLite configurations; `manual-verification.md` records redacted commands, responses, and restart outcomes.                             |
+| ID  | Status | Task                         | Notes / Expected Output                                                                                                                                                                  |
+| --- | ------ | ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| T1  | DONE   | Record retention ADR         | Added and indexed ADR `20260901113500_define_completed_download_metric_retention_names.md`, including #999 refinement, compatibility, availability, update ordering, and API-v2 removal. |
+| T2  | DONE   | Separate counter views       | Added legacy, `in_session`, and capability-aware `persisted` tracker-core views while preserving #2107's independent listeners.                                                          |
+| T3  | DONE   | Extend the v1 stats contract | Added backward-compatible fields and configuration-derived availability through REST composition.                                                                                        |
+| T4  | DONE   | Prove retention regressions  | Added persistence-free restart, persisted restoration, disabled omission, and enabled-zero focused coverage.                                                                             |
+| T5  | DONE   | Review and extend API tests  | Extended authenticated `GET /api/v1/stats` and direct Prometheus `GET /api/v1/metrics` package contract coverage; package-local tests prove configuration-to-endpoint behavior.          |
+| T6  | DONE   | Verify public contract       | Focused tracker-core, REST protocol/runtime adapter, and REST server tests pass.                                                                                                         |
+| T7  | DONE   | Record local manual evidence | M1-M3 passed against local v3 persistence-free and SQLite configurations; `manual-verification.md` records redacted commands, responses, and restart outcomes.                           |
 
 ## Progress Tracking
 
@@ -252,18 +252,18 @@ Notes:
 
 ### Acceptance Verification
 
-| AC ID | Status (`TODO`/`DONE`) | Evidence           |
-| ----- | ---------------------- | ------------------ |
-| AC1   | DONE                   | Metric/DTO descriptions, package tests, and M3 |
-| AC2   | DONE                   | Tracker-core restart regression and M1 |
-| AC3   | DONE                   | Persisted update/restoration regression and M2 |
-| AC4   | DONE                   | REST disabled-capability contract regression and M1 |
-| AC5   | DONE                   | Direct Prometheus regressions and M1-M3 |
-| AC6   | DONE                   | Protocol legacy-deserialization regression and REST composition |
-| AC7   | DONE                   | Authenticated REST server contract regressions |
-| AC8   | DONE                   | Focused package tests and M1-M2 |
+| AC ID | Status (`TODO`/`DONE`) | Evidence                                                                 |
+| ----- | ---------------------- | ------------------------------------------------------------------------ |
+| AC1   | DONE                   | Metric/DTO descriptions, package tests, and M3                           |
+| AC2   | DONE                   | Tracker-core restart regression and M1                                   |
+| AC3   | DONE                   | Persisted update/restoration regression and M2                           |
+| AC4   | DONE                   | REST disabled-capability contract regression and M1                      |
+| AC5   | DONE                   | Direct Prometheus regressions and M1-M3                                  |
+| AC6   | DONE                   | Protocol legacy-deserialization regression and REST composition          |
+| AC7   | DONE                   | Authenticated REST server contract regressions                           |
+| AC8   | DONE                   | Focused package tests and M1-M2                                          |
 | AC9   | DONE                   | ADR `20260901113500_define_completed_download_metric_retention_names.md` |
-| AC10  | DONE                   | Pre-commit passed; M1-M3 evidence; independent review |
+| AC10  | DONE                   | Pre-commit passed; M1-M3 evidence; independent review                    |
 
 ## Risks and Trade-offs
 
