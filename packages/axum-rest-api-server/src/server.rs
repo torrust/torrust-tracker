@@ -50,8 +50,25 @@ use crate::API_LOG_TARGET;
 /// Errors that can occur when starting or stopping the API server.
 #[derive(Debug, Error)]
 pub enum Error {
-    #[error("Error when starting or stopping the API server")]
-    FailedToStartOrStop(String),
+    #[error("could not bind tracker API listener: {source}")]
+    Bind { source: std::io::Error },
+
+    #[error("could not configure tracker API listener: {source}")]
+    Listener { source: std::io::Error },
+
+    #[error("tracker API startup notification receiver was dropped")]
+    StartupNotificationDropped,
+
+    #[error("tracker API startup notification was not received: {source}")]
+    StartupNotification { source: tokio::sync::oneshot::error::RecvError },
+
+    #[error("could not register tracker API service: {source}")]
+    Registration {
+        source: torrust_server_lib::registar::RegistrationError,
+    },
+
+    #[error("could not stop tracker API service: {message}")]
+    Stop { message: String },
 }
 
 /// An alias for the `ApiServer` struct with the `Stopped` state.
@@ -121,9 +138,6 @@ impl ApiServer<Stopped> {
     ///
     /// It would return an error if no `SocketAddr` is returned after launching the server.
     ///
-    /// # Panics
-    ///
-    /// It would panic if the bound socket address cannot be sent back to this starter.
     #[instrument(
         skip(self, http_api_container, form, metadata, access_tokens),
         fields(
@@ -145,37 +159,30 @@ impl ApiServer<Stopped> {
 
         let launcher = self.state.launcher;
 
+        let running = launcher.start(&http_api_container, access_tokens, tx_start, rx_halt)?;
         let task = tokio::spawn(async move {
-            tracing::debug!(target: API_LOG_TARGET, "Starting with launcher in spawned task ...");
-
-            let _task = launcher.start(&http_api_container, access_tokens, tx_start, rx_halt).await;
-
-            tracing::debug!(target: API_LOG_TARGET, "Started with launcher in spawned task");
-
+            running.await;
             launcher
         });
 
-        let api_server = match rx_start.await {
-            Ok(started) => {
-                if let Some(public_url) = metadata.public_url() {
-                    tracing::info!(target: API_LOG_TARGET, service_binding = %started.service_binding, public_url = %public_url, "Started tracker API");
-                } else {
-                    tracing::info!(target: API_LOG_TARGET, service_binding = %started.service_binding, "Started tracker API");
-                }
+        let started = rx_start.await.map_err(|source| Error::StartupNotification { source })?;
+        if let Some(public_url) = metadata.public_url() {
+            tracing::info!(target: API_LOG_TARGET, service_binding = %started.service_binding, public_url = %public_url, "Started tracker API");
+        } else {
+            tracing::info!(target: API_LOG_TARGET, service_binding = %started.service_binding, "Started tracker API");
+        }
 
-                form.register(ServiceRegistration::new(started.service_binding, metadata, Some(check_fn)))
-                    .await
-                    .expect("it should be able to register the started service");
+        if let Err(source) = form
+            .register(ServiceRegistration::new(started.service_binding, metadata, Some(check_fn)))
+            .await
+        {
+            let _ = tx_halt.send(Halted::Normal);
+            let _ = task.await;
+            return Err(Error::Registration { source });
+        }
 
-                ApiServer {
-                    state: Running::new(started.address, tx_halt, task),
-                }
-            }
-            Err(err) => {
-                let msg = format!("Unable to start API server: {err}");
-                tracing::error!("{}", msg);
-                panic!("{}", msg);
-            }
+        let api_server = ApiServer {
+            state: Running::new(started.address, tx_halt, task),
         };
 
         Ok(api_server)
@@ -190,12 +197,13 @@ impl ApiServer<Running> {
     /// It would return an error if the channel for the task killer signal was closed.
     #[instrument(skip(self), err, ret(Display, level = Level::INFO))]
     pub async fn stop(self) -> Result<ApiServer<Stopped>, Error> {
-        self.state
-            .halt_task
-            .send(Halted::Normal)
-            .map_err(|_| Error::FailedToStartOrStop("Task killer channel was closed.".to_string()))?;
+        self.state.halt_task.send(Halted::Normal).map_err(|_| Error::Stop {
+            message: "task killer channel was closed".to_string(),
+        })?;
 
-        let launcher = self.state.task.await.map_err(|e| Error::FailedToStartOrStop(e.to_string()))?;
+        let launcher = self.state.task.await.map_err(|error| Error::Stop {
+            message: error.to_string(),
+        })?;
 
         Ok(ApiServer {
             state: Stopped { launcher },
@@ -253,10 +261,9 @@ impl Launcher {
     /// TLS. See [`torrust-tracker-configuration`](torrust_tracker_configuration)
     /// for more  information about configuration.
     ///
-    /// # Panics
+    /// # Errors
     ///
-    /// Will panic if unable to bind to the socket, or unable to get the address of the bound socket.
-    /// Will also panic if unable to send message regarding the bound socket address.
+    /// Returns an error when the listener cannot bind or be configured.
     #[instrument(skip(self, http_api_container, access_tokens, tx_start, rx_halt))]
     pub fn start(
         &self,
@@ -264,12 +271,10 @@ impl Launcher {
         access_tokens: Arc<AccessTokens>,
         tx_start: Sender<Started>,
         rx_halt: Receiver<Halted>,
-    ) -> BoxFuture<'static, ()> {
-        let socket = std::net::TcpListener::bind(self.bind_to).expect("Could not bind tcp_listener to address.");
-        socket
-            .set_nonblocking(true)
-            .expect("Failed to set socket to non-blocking mode");
-        let address = socket.local_addr().expect("Could not get local_addr from tcp_listener.");
+    ) -> Result<BoxFuture<'static, ()>, Error> {
+        let socket = std::net::TcpListener::bind(self.bind_to).map_err(|source| Error::Bind { source })?;
+        socket.set_nonblocking(true).map_err(|source| Error::Listener { source })?;
+        let address = socket.local_addr().map_err(|source| Error::Listener { source })?;
 
         let handle = Handle::new();
 
@@ -282,32 +287,42 @@ impl Launcher {
 
         let tls = self.tls.clone();
         let protocol = if tls.is_some() { Protocol::HTTPS } else { Protocol::HTTP };
-        let service_binding = ServiceBinding::new(protocol.clone(), address).expect("Service binding creation failed");
+        let service_binding = ServiceBinding::new(protocol.clone(), address).map_err(|error| Error::Listener {
+            source: std::io::Error::other(error),
+        })?;
 
         let router = router(http_api_container, access_tokens, &service_binding);
 
         tracing::info!(target: API_LOG_TARGET, "Starting on: {protocol}://{address}");
 
-        let running = Box::pin(async {
-            match tls {
-                Some(tls) => custom_axum_server::from_tcp_rustls_with_timeouts(socket, tls)
-                    .expect("Failed to create server from TCP socket with TLS")
+        let running: BoxFuture<'static, ()> = if let Some(tls) = tls {
+            let server =
+                custom_axum_server::from_tcp_rustls_with_timeouts(socket, tls).map_err(|source| Error::Listener { source })?;
+            Box::pin(async move {
+                if let Err(error) = server
                     .handle(handle)
                     // The TimeoutAcceptor is commented because TLS does not work with it.
                     // See: https://github.com/torrust/torrust-index/issues/204#issuecomment-2115529214
                     //.acceptor(TimeoutAcceptor)
                     .serve(router.into_make_service_with_connect_info::<std::net::SocketAddr>())
                     .await
-                    .expect("Axum server for tracker API crashed."),
-                None => custom_axum_server::from_tcp_with_timeouts(socket)
-                    .expect("Failed to create server from TCP socket")
+                {
+                    tracing::error!(%error, "Tracker API TLS server stopped with an error");
+                }
+            })
+        } else {
+            let server = custom_axum_server::from_tcp_with_timeouts(socket).map_err(|source| Error::Listener { source })?;
+            Box::pin(async move {
+                if let Err(error) = server
                     .handle(handle)
                     .acceptor(TimeoutAcceptor)
                     .serve(router.into_make_service_with_connect_info::<std::net::SocketAddr>())
                     .await
-                    .expect("Axum server for tracker API crashed."),
-            }
-        });
+                {
+                    tracing::error!(%error, "Tracker API server stopped with an error");
+                }
+            })
+        };
 
         tracing::info!(target: API_LOG_TARGET, "{STARTED_ON}: {protocol}://{}", address);
 
@@ -316,9 +331,9 @@ impl Launcher {
                 service_binding,
                 address,
             })
-            .expect("the HTTP(s) Tracker API service should not be dropped");
+            .map_err(|_| Error::StartupNotificationDropped)?;
 
-        running
+        Ok(running)
     }
 }
 

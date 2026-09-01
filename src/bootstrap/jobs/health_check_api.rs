@@ -16,6 +16,7 @@
 
 use tokio::sync::oneshot;
 use tokio::task::JoinHandle;
+use tokio_util::sync::CancellationToken;
 use torrust_server_lib::logging::STARTED_ON;
 use torrust_server_lib::registar::{Registar, ServiceRegistration};
 use torrust_server_lib::signals::{Halted, Started};
@@ -24,6 +25,20 @@ use torrust_tracker_configuration::v3_0_0::health_check_api::HealthCheckApi;
 use torrust_tracker_primitives::{ConfigurationInstanceId, RuntimeServiceMetadata, ServiceRole};
 use tracing::instrument;
 
+#[derive(Debug, thiserror::Error)]
+pub enum Error {
+    #[error("Could not start the health check API listener. Check that its bind address is available: {source}")]
+    Listener { source: std::io::Error },
+
+    #[error("Health check API startup notification was not received: {source}")]
+    StartupNotification { source: oneshot::error::RecvError },
+
+    #[error("Could not register the health check API service: {source}")]
+    Registration {
+        source: torrust_server_lib::registar::RegistrationError,
+    },
+}
+
 /// This function starts a new Health Check API server with the provided
 /// configuration.
 ///
@@ -31,12 +46,21 @@ use tracing::instrument;
 /// This task will send a message to the main application process to notify
 /// that the API server was successfully started.
 ///
+/// # Errors
+///
+/// Returns listener, startup-notification, or service-registration errors.
+///
 /// # Panics
 ///
-/// It would panic if unable to send the  `ApiServerJobStarted` notice.
+/// Panics if its internally created halt channel is unexpectedly closed before
+/// the starter returns.
 #[allow(clippy::async_yields_async)]
 #[instrument(skip(config, registar))]
-pub async fn start_job(config: &HealthCheckApi, registar: Registar<RuntimeServiceMetadata>) -> JoinHandle<()> {
+pub async fn start_job(
+    config: &HealthCheckApi,
+    registar: Registar<RuntimeServiceMetadata>,
+    cancellation_token: CancellationToken,
+) -> Result<JoinHandle<()>, Error> {
     let bind_addr = config.bind_address;
 
     let (tx_start, rx_start) = oneshot::channel::<Started>();
@@ -44,17 +68,8 @@ pub async fn start_job(config: &HealthCheckApi, registar: Registar<RuntimeServic
 
     let protocol = "http";
 
-    // Run the API server
-    let health_check_api_registar = registar.clone();
-    let join_handle = tokio::spawn(async move {
-        tracing::info!(target: HEALTH_CHECK_API_LOG_TARGET, "Starting on: {protocol}://{}", bind_addr);
-
-        let handle = server::start(bind_addr, tx_start, rx_halt, health_check_api_registar);
-
-        if matches!(handle.await, Ok(())) {
-            tracing::info!(target: HEALTH_CHECK_API_LOG_TARGET, "Stopped server running on: {protocol}://{}", bind_addr);
-        }
-    });
+    tracing::info!(target: HEALTH_CHECK_API_LOG_TARGET, "Starting on: {protocol}://{}", bind_addr);
+    let running = server::start(bind_addr, tx_start, rx_halt, registar.clone()).map_err(|source| Error::Listener { source })?;
 
     // Wait until the server sends the started message
     match rx_start.await {
@@ -67,7 +82,7 @@ pub async fn start_job(config: &HealthCheckApi, registar: Registar<RuntimeServic
                 "Started health check API"
             );
 
-            registar
+            if let Err(source) = registar
                 .give_form()
                 .register(ServiceRegistration::new(
                     msg.service_binding,
@@ -75,19 +90,31 @@ pub async fn start_job(config: &HealthCheckApi, registar: Registar<RuntimeServic
                     None,
                 ))
                 .await
-                .expect("it should be able to register the started health check API");
+            {
+                let _ = tx_halt.send(Halted::Normal);
+                drop(running.await);
+                return Err(Error::Registration { source });
+            }
 
             tracing::info!(target: HEALTH_CHECK_API_LOG_TARGET, "{STARTED_ON}: {protocol}://{}", msg.address);
         }
-        Err(e) => panic!("the Health Check API server was dropped: {e}"),
+        Err(source) => return Err(Error::StartupNotification { source }),
     }
 
-    // Wait until the server finishes
-    tokio::spawn(async move {
+    Ok(tokio::spawn(async move {
         assert!(!tx_halt.is_closed(), "Halt channel for Health Check API should be open");
-
-        join_handle
-            .await
-            .expect("it should be able to join to the Health Check API server task");
-    })
+        tokio::pin!(running);
+        tokio::select! {
+            () = cancellation_token.cancelled() => {
+                let _ = tx_halt.send(Halted::Normal);
+                if let Err(error) = (&mut running).await {
+                    tracing::warn!(%error, "Health check API stopped with an error after cancellation");
+                }
+            }
+            result = &mut running => if let Err(error) = result {
+                tracing::warn!(%error, "Health check API runtime task failed");
+            },
+        }
+        tracing::info!(target: HEALTH_CHECK_API_LOG_TARGET, "Stopped server running on: {protocol}://{}", bind_addr);
+    }))
 }

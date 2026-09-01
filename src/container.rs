@@ -13,8 +13,11 @@ use torrust_tracker_udp_core::{self};
 use torrust_tracker_udp_server::container::UdpTrackerServerContainer;
 use tracing::instrument;
 
-#[derive(thiserror::Error, Debug, Clone)]
+#[derive(thiserror::Error, Debug)]
 pub enum Error {
+    #[error("Could not compose the tracker application. Review the configured persistence settings: {source}")]
+    TrackerCoreComposition { source: torrust_tracker_core::container::Error },
+
     #[error("No HTTP tracker container at configuration index {index}")]
     MissingHttpTrackerCoreContainer { index: usize },
 
@@ -46,12 +49,13 @@ pub struct AppContainer {
 }
 
 impl AppContainer {
-    /// # Panics
+    /// Builds the dependency-injection container for a validated configuration.
     ///
-    /// Panics when tracker-core database-driver initialization or database
-    /// migrations fail.
+    /// # Errors
+    ///
+    /// Returns an error when configured tracker-core persistence cannot be composed.
     #[instrument(skip(configuration))]
-    pub async fn initialize(configuration: &Configuration) -> Self {
+    pub async fn initialize(configuration: &Configuration) -> Result<Self, Error> {
         // Configuration
 
         let core_config = Arc::new(configuration.core.clone());
@@ -77,7 +81,7 @@ impl AppContainer {
                 core_config.database.as_ref(),
             )
             .await
-            .expect("tracker-core container initialization must succeed"),
+            .map_err(|source| Error::TrackerCoreComposition { source })?,
         );
 
         // HTTP
@@ -102,7 +106,7 @@ impl AppContainer {
         let udp_tracker_instance_containers =
             Self::initialize_udp_tracker_instance_containers(configuration, &tracker_core_container, &udp_tracker_core_services);
 
-        Self {
+        Ok(Self {
             // Configuration
             http_api_config,
 
@@ -123,7 +127,7 @@ impl AppContainer {
             udp_tracker_core_services,
             udp_tracker_server_container,
             udp_tracker_instance_containers,
-        }
+        })
     }
 
     #[must_use]
@@ -231,7 +235,7 @@ impl AppContainer {
 mod tests {
     use torrust_tracker_configuration::v3_0_0::Configuration;
 
-    use super::AppContainer;
+    use super::{AppContainer, Error};
 
     #[tokio::test]
     async fn it_should_not_initialize_persistence_when_v3_omits_the_database() {
@@ -240,9 +244,24 @@ mod tests {
         assert!(configuration.core.database.is_none());
 
         // Act
-        let container = AppContainer::initialize(&configuration).await;
+        let container = AppContainer::initialize(&configuration)
+            .await
+            .expect("composition should succeed");
 
         // Assert
         assert!(container.tracker_core_container.persistence.is_none());
+    }
+
+    #[tokio::test]
+    async fn it_should_return_a_contextual_composition_error_when_persistent_statistics_lack_persistence() {
+        // Arrange
+        let mut configuration = Configuration::default();
+        configuration.core.tracker_policy.persistent_torrent_completed_stat = true;
+
+        // Act
+        let result = AppContainer::initialize(&configuration).await;
+
+        // Assert
+        assert!(matches!(result, Err(Error::TrackerCoreComposition { .. })));
     }
 }

@@ -1,4 +1,3 @@
-use std::net::SocketAddr;
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -31,21 +30,20 @@ pub struct Launcher;
 impl Launcher {
     /// It starts the UDP server instance with graceful shutdown.
     ///
-    /// # Panics
+    /// # Errors
     ///
-    /// It panics if unable to bind to udp socket, and get the address from the udp socket.
-    /// It panics if unable to send address of socket.
-    /// It panics if the udp server is loaded when the tracker is private.
-    #[instrument(skip(udp_tracker_core_container, udp_tracker_server_container, bind_to, tx_start, rx_halt))]
+    /// Returns an error if the startup notification receiver is dropped.
+    #[instrument(skip(udp_tracker_core_container, udp_tracker_server_container, bound_socket, tx_start, rx_halt))]
     pub async fn run_with_graceful_shutdown(
         udp_tracker_core_container: Arc<UdpTrackerCoreContainer>,
         udp_tracker_server_container: Arc<UdpTrackerServerContainer>,
-        bind_to: SocketAddr,
+        bound_socket: BoundSocket,
         cookie_lifetime: Duration,
         connection_id_validation: ConnectionIdValidationPolicy,
         tx_start: oneshot::Sender<Started>,
         rx_halt: oneshot::Receiver<Halted>,
-    ) {
+    ) -> Result<(), std::io::Error> {
+        let bind_to = bound_socket.address();
         tracing::info!(target: UDP_TRACKER_LOG_TARGET, "Starting on: {bind_to}");
 
         if connection_id_validation == ConnectionIdValidationPolicy::Disabled {
@@ -58,21 +56,6 @@ impl Launcher {
             );
         }
 
-        if udp_tracker_core_container.tracker_core_container.core_config.private {
-            tracing::error!("udp services cannot be used for private trackers");
-            panic!("it should not use udp if using authentication");
-        }
-
-        let socket = BoundSocket::bind(bind_to, udp_tracker_core_container.udp_tracker_config.network.ipv6_v6only);
-
-        let bound_socket = match socket {
-            Ok(socket) => socket,
-            Err(e) => {
-                tracing::error!(target: UDP_TRACKER_LOG_TARGET, addr = %bind_to, err = %e, "Udp::run_with_graceful_shutdown panic! (error when building socket)" );
-                panic!("could not bind to socket!");
-            }
-        };
-
         let service_binding = bound_socket.service_binding().clone();
         let address = bound_socket.address();
         let local_udp_url = bound_socket.url().to_string();
@@ -83,7 +66,7 @@ impl Launcher {
 
         tracing::trace!(target: UDP_TRACKER_LOG_TARGET, local_udp_url, "Udp::run_with_graceful_shutdown (spawning main loop)");
 
-        let running = {
+        let mut running = {
             let local_addr = local_udp_url.clone();
             tokio::task::spawn(async move {
                 tracing::debug!(target: UDP_TRACKER_LOG_TARGET, local_addr, "Udp::run_with_graceful_shutdown::task (listening...)");
@@ -98,29 +81,35 @@ impl Launcher {
             })
         };
 
-        tx_start
+        if tx_start
             .send(Started {
                 service_binding,
                 address,
             })
-            .expect("the UDP Tracker service should not be dropped");
+            .is_err()
+        {
+            running.abort();
+            let _ = running.await;
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::BrokenPipe,
+                "UDP startup receiver was dropped",
+            ));
+        }
 
         tracing::debug!(target: UDP_TRACKER_LOG_TARGET, local_udp_url, "Udp::run_with_graceful_shutdown (started)");
 
-        let stop = running.abort_handle();
-
-        let halt_task = tokio::task::spawn(shutdown_signal_with_message(
-            rx_halt,
-            format!("Halting UDP Service Bound to Socket: {address}"),
-        ));
-
         select! {
-            _ = running => { tracing::debug!(target: UDP_TRACKER_LOG_TARGET, local_udp_url, "Udp::run_with_graceful_shutdown (stopped)"); },
-            _ = halt_task => { tracing::debug!(target: UDP_TRACKER_LOG_TARGET, local_udp_url, "Udp::run_with_graceful_shutdown (halting)"); }
+            _ = &mut running => {
+                tracing::debug!(target: UDP_TRACKER_LOG_TARGET, local_udp_url, "Udp::run_with_graceful_shutdown (stopped)");
+            },
+            () = shutdown_signal_with_message(rx_halt, format!("Halting UDP Service Bound to Socket: {address}")) => {
+                tracing::debug!(target: UDP_TRACKER_LOG_TARGET, local_udp_url, "Udp::run_with_graceful_shutdown (halting)");
+                running.abort();
+                let _ = running.await;
+            }
         }
-        stop.abort();
 
-        tokio::task::yield_now().await; // lets allow the other threads to complete.
+        Ok(())
     }
 
     #[must_use]
@@ -320,5 +309,74 @@ impl Launcher {
 async fn publish_event_if_sender_available(sender: &Sender, event: Event) {
     if let Some(sender) = sender.as_deref() {
         sender.send(event).await;
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::sync::Arc;
+
+    use tokio::sync::oneshot;
+    use torrust_server_lib::signals::{Halted, Started};
+    use torrust_tracker_configuration::v3_0_0::logging;
+    use torrust_tracker_primitives::{ConfigurationInstanceId, ServiceRole};
+    use torrust_tracker_test_helpers::configuration::ephemeral_public;
+    use torrust_tracker_udp_core::container::UdpTrackerCoreContainer;
+
+    use super::Launcher;
+    use crate::container::UdpTrackerServerContainer;
+    use crate::server::bound_socket::BoundSocket;
+
+    #[tokio::test]
+    async fn it_should_release_the_socket_when_the_startup_notification_receiver_is_dropped() {
+        // Arrange
+        let configuration = Arc::new(ephemeral_public());
+        let core_config = Arc::new(configuration.core.clone());
+        let udp_tracker_config = Arc::new(
+            configuration
+                .udp_trackers
+                .clone()
+                .expect("UDP test configuration should include a tracker")
+                .into_iter()
+                .next()
+                .expect("UDP test configuration should include one tracker"),
+        );
+        torrust_clock::initialize_static();
+        torrust_tracker_udp_core::initialize_static();
+        logging::setup(&configuration.logging);
+
+        let configuration_instance_id = ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0);
+        let udp_tracker_core_container = UdpTrackerCoreContainer::initialize(
+            &core_config,
+            &udp_tracker_config,
+            configuration.udp_tracker_server.max_connection_id_errors_per_ip,
+            configuration_instance_id,
+        )
+        .await;
+        let udp_tracker_server_container = UdpTrackerServerContainer::initialize(&core_config);
+        let bound_socket = BoundSocket::bind(udp_tracker_config.bind_address, false).expect("UDP socket should bind");
+        let address = bound_socket.address();
+        let (tx_start, rx_start) = oneshot::channel::<Started>();
+        let (_tx_halt, rx_halt) = oneshot::channel::<Halted>();
+        drop(rx_start);
+
+        // Act
+        let result = Launcher::run_with_graceful_shutdown(
+            udp_tracker_core_container,
+            udp_tracker_server_container,
+            bound_socket,
+            udp_tracker_config.cookie_lifetime,
+            torrust_tracker_udp_core::ConnectionIdValidationPolicy::Strict,
+            tx_start,
+            rx_halt,
+        )
+        .await;
+
+        // Assert
+        assert_eq!(
+            result.expect_err("startup notification should fail").kind(),
+            std::io::ErrorKind::BrokenPipe
+        );
+        BoundSocket::bind(address, false).expect("UDP socket should be released after startup notification failure");
     }
 }

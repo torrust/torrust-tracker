@@ -6,6 +6,13 @@ use torrust_tracker_configuration::v3_0_0::Configuration;
 
 use crate::container::AppContainer;
 
+/// Errors encountered while starting tracker-core background jobs.
+#[derive(Debug, thiserror::Error)]
+pub enum Error {
+    #[error("Persistent completed statistics require a persistence container")]
+    PersistentStatisticsRequirePersistence,
+}
+
 pub fn start_in_memory_event_listener(
     config: &Configuration,
     app_container: &Arc<AppContainer>,
@@ -25,21 +32,21 @@ pub fn start_in_memory_event_listener(
     }
 }
 
-/// # Panics
+/// # Errors
 ///
-/// Panics if persistent completed statistics are enabled but persistence was
-/// not composed. Bootstrap configuration validation prevents this state.
+/// Returns an error if persistent completed statistics are enabled but
+/// persistence was not composed.
 pub fn start_persistent_completed_statistics_event_listener(
     config: &Configuration,
     app_container: &Arc<AppContainer>,
     cancellation_token: CancellationToken,
-) -> Option<JoinHandle<()>> {
+) -> Result<Option<JoinHandle<()>>, Error> {
     if config.core.tracker_policy.persistent_torrent_completed_stat {
         let persistence = app_container
             .tracker_core_container
             .persistence
             .as_ref()
-            .expect("persistent completed statistics require persistence");
+            .ok_or(Error::PersistentStatisticsRequirePersistence)?;
         let job = torrust_tracker_core::statistics::event::listener::run_persistent_completed_statistics_event_listener(
             app_container.swarm_coordination_registry_container.event_bus.receiver(),
             cancellation_token,
@@ -47,9 +54,9 @@ pub fn start_persistent_completed_statistics_event_listener(
             &app_container.tracker_core_container.stats_repository,
         );
 
-        Some(job)
+        Ok(Some(job))
     } else {
         tracing::info!("Tracker core persistent completed statistics event listener job is disabled.");
-        None
+        Ok(None)
     }
 }

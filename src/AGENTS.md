@@ -28,7 +28,7 @@ main()
   └─ app::run()
        ├─ bootstrap::app::setup()
        │    ├─ bootstrap::config::initialize_configuration()   ← reads TOML / env vars
-       │    ├─ configuration.validate()                        ← panics on invalid config
+      │    ├─ configuration.validate()                        ← returns typed startup errors
        │    ├─ initialize_global_services()                    ← logging, crypto seed
        │    └─ AppContainer::initialize(&configuration)        ← builds all containers
        │
@@ -77,8 +77,8 @@ holds a name + `JoinHandle<()>`) and a shared `CancellationToken`:
 - `push(name, handle)` — registers a job.
 - `push_opt(name, handle)` — convenience for jobs that may be disabled.
 - `cancel()` — fires the token; all jobs that own a clone of it will observe cancellation.
-- `wait_for_all(timeout)` — joins all handles with a timeout, logging warnings for any that
-  exceed it.
+- `wait_for_all(timeout)` — gives every handle a graceful timeout; a job that exceeds it is
+  aborted and joined before the method returns, preventing detached startup jobs.
 
 ## Adding a New Service
 
@@ -100,8 +100,13 @@ When wiring a new server or background task, follow this checklist in order:
 
 - **No domain logic here.** This directory is pure wiring. Business rules belong in `packages/`.
 - **No globals for domain objects.** All state flows through `AppContainer`.
-- **Startup errors panic.** `bootstrap::app::setup()` panics on invalid config or a bad crypto
-  seed — this is intentional (fail fast before binding ports).
+- **Startup errors are typed.** `bootstrap::app::setup()`, `app::start()`, and `app::run()` return
+  source-preserving `thiserror` errors for expected configuration, composition, persistence-load,
+  and initial service-start failures. Entrypoints report their friendly, actionable display message
+  and exit unsuccessfully. If an initial service fails after jobs started, `run()` cancels and joins
+  those jobs before returning the error. `check_seed()` remains an assertion because it protects an
+  internal cryptographic invariant; failures after a task has started are runtime supervision, not
+  startup results.
 - **Health check always starts.** The health-check API job is unconditional — do not gate it
   behind a config flag.
 - **`lib.rs` is the integration-test surface.** Integration tests import

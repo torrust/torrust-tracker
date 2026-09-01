@@ -33,16 +33,17 @@ use crate::handlers::health_check_handler;
 
 /// Starts Health Check API server.
 ///
-/// # Panics
+/// # Errors
 ///
-/// Will panic if binding to the socket address fails.
+/// Returns an error if the listener cannot bind or be configured, or if the
+/// startup receiver is dropped before the listener is reported.
 #[instrument(skip(bind_to, tx, rx_halt, registar))]
 pub fn start(
     bind_to: SocketAddr,
     tx: Sender<Started>,
     rx_halt: Receiver<Halted>,
     registar: Registar<RuntimeServiceMetadata>,
-) -> impl Future<Output = Result<(), std::io::Error>> {
+) -> Result<impl Future<Output = Result<(), std::io::Error>>, std::io::Error> {
     let router = Router::new()
         .route("/", get(|| async { Json(json!({})) }))
         .route("/health_check", get(health_check_handler))
@@ -101,13 +102,11 @@ pub fn start(
         )
         .layer(SetRequestIdLayer::x_request_id(MakeRequestUuid));
 
-    let socket = std::net::TcpListener::bind(bind_to).expect("Could not bind tcp_listener to address.");
-    socket
-        .set_nonblocking(true)
-        .expect("Failed to set socket to non-blocking mode");
-    let address = socket.local_addr().expect("Could not get local_addr from tcp_listener.");
+    let socket = std::net::TcpListener::bind(bind_to)?;
+    socket.set_nonblocking(true)?;
+    let address = socket.local_addr()?;
     let protocol = Protocol::HTTP; // The health check API only supports HTTP directly now. Use a reverse proxy for HTTPS.
-    let service_binding = ServiceBinding::new(protocol.clone(), address).expect("Service binding creation failed");
+    let service_binding = ServiceBinding::new(protocol.clone(), address).map_err(std::io::Error::other)?;
 
     let handle = Handle::new();
 
@@ -120,8 +119,7 @@ pub fn start(
         address,
     ));
 
-    let running = axum_server::from_tcp(socket)
-        .expect("Failed to create server from TCP socket")
+    let running = axum_server::from_tcp(socket)?
         .handle(handle)
         .serve(router.into_make_service_with_connect_info::<SocketAddr>());
 
@@ -129,7 +127,7 @@ pub fn start(
         service_binding,
         address,
     })
-    .expect("the Health Check API server should not be dropped");
+    .map_err(|_| std::io::Error::new(std::io::ErrorKind::BrokenPipe, "health check startup receiver was dropped"))?;
 
-    running
+    Ok(running)
 }

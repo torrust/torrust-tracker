@@ -24,6 +24,22 @@ use crate::whitelist::repository::in_memory::InMemoryWhitelist;
 use crate::whitelist::setup::initialize_whitelist_manager;
 use crate::{statistics, whitelist};
 
+/// Errors while composing the tracker core.
+#[derive(Debug, thiserror::Error)]
+pub enum Error {
+    /// The configured persistence driver could not be initialized or migrated.
+    #[error(
+        "Could not initialize configured tracker persistence. Verify the database connection, credentials, and schema permissions: {source}"
+    )]
+    Persistence { source: crate::databases::error::Error },
+
+    /// Persistent completed statistics were requested without persistence.
+    #[error(
+        "Persistent completed statistics require configured persistence. Add `[core.database]` or disable `core.tracker_policy.persistent_torrent_completed_stat`."
+    )]
+    PersistentStatisticsRequirePersistence,
+}
+
 pub struct TrackerCoreContainer {
     pub core_config: Arc<Core>,
     pub announce_handler: Arc<AnnounceHandler>,
@@ -45,12 +61,17 @@ pub struct PersistenceServices {
 }
 
 impl TrackerCoreContainer {
-    #[must_use]
+    /// Constructs tracker-core services and, when configured, their persistence services.
+    ///
+    /// # Errors
+    ///
+    /// Returns a typed persistence-composition error when the configured database driver
+    /// or migrations fail, or when persistent statistics lack persistence services.
     pub async fn initialize_from(
         core_config: &Arc<Core>,
         swarm_coordination_registry_container: &Arc<SwarmCoordinationRegistryContainer>,
         database: Option<&Database>,
-    ) -> Option<Self> {
+    ) -> Result<Self, Error> {
         let in_memory_whitelist = Arc::new(InMemoryWhitelist::default());
         let whitelist_authorization = Arc::new(WhitelistAuthorization::new(core_config, &in_memory_whitelist.clone()));
         let in_memory_key_repository = Arc::new(InMemoryKeyRepository::default());
@@ -59,7 +80,9 @@ impl TrackerCoreContainer {
             swarm_coordination_registry_container.swarms.clone(),
         ));
         let persistence = if let Some(database) = database {
-            let database_stores = initialize_database_from_configuration(database).await;
+            let database_stores = initialize_database_from_configuration(database)
+                .await
+                .map_err(|source| Error::Persistence { source })?;
             let whitelist_manager =
                 initialize_whitelist_manager(database_stores.whitelist_store.clone(), in_memory_whitelist.clone());
             let db_key_repository = Arc::new(DatabaseKeyRepository::new(&database_stores.auth_key_store));
@@ -83,7 +106,7 @@ impl TrackerCoreContainer {
             core_config.tracker_policy.persistent_torrent_completed_stat,
         ));
         let announce_handler = if core_config.tracker_policy.persistent_torrent_completed_stat {
-            let persistence = persistence.as_ref()?;
+            let persistence = persistence.as_ref().ok_or(Error::PersistentStatisticsRequirePersistence)?;
             Arc::new(AnnounceHandler::new_with_persistent_completed_statistics(
                 core_config,
                 &whitelist_authorization,
@@ -99,7 +122,7 @@ impl TrackerCoreContainer {
         };
         let scrape_handler = Arc::new(ScrapeHandler::new(&whitelist_authorization, &in_memory_torrent_repository));
 
-        Some(Self {
+        Ok(Self {
             core_config: core_config.clone(),
             announce_handler,
             scrape_handler,
@@ -123,7 +146,7 @@ mod tests {
     use torrust_tracker_events::bus::SenderStatus;
     use torrust_tracker_swarm_coordination_registry::container::SwarmCoordinationRegistryContainer;
 
-    use super::TrackerCoreContainer;
+    use super::{Error, TrackerCoreContainer};
     use crate::announce_handler::PeersWanted;
     use crate::test_helpers::tests::{ephemeral_configuration, sample_info_hash, sample_peer};
 
@@ -138,7 +161,23 @@ mod tests {
         let container = TrackerCoreContainer::initialize_from(&core_config, &swarm_coordination_registry_container, None).await;
 
         // Assert
-        assert!(container.is_some_and(|container| container.persistence.is_none()));
+        assert!(container.expect("composition should succeed").persistence.is_none());
+    }
+
+    #[tokio::test]
+    async fn it_should_return_a_typed_error_when_persistent_statistics_lack_persistence() {
+        // Arrange
+        let mut core_config = Core::default();
+        core_config.tracker_policy.persistent_torrent_completed_stat = true;
+        let core_config = Arc::new(core_config);
+        let swarm_coordination_registry_container =
+            Arc::new(SwarmCoordinationRegistryContainer::initialize(SenderStatus::Disabled));
+
+        // Act
+        let result = TrackerCoreContainer::initialize_from(&core_config, &swarm_coordination_registry_container, None).await;
+
+        // Assert
+        assert!(matches!(result, Err(Error::PersistentStatisticsRequirePersistence)));
     }
 
     #[tokio::test]
@@ -157,7 +196,7 @@ mod tests {
         .await;
 
         // Assert
-        assert!(container.is_some_and(|container| container.persistence.is_some()));
+        assert!(container.expect("composition should succeed").persistence.is_some());
     }
 
     #[tokio::test]
@@ -176,7 +215,7 @@ mod tests {
             core_config.database.as_ref(),
         )
         .await
-        .unwrap();
+        .expect("composition should succeed");
         container
             .persistence
             .as_ref()

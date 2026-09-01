@@ -24,8 +24,19 @@ pub mod states;
 /// - The [`Server`] cannot send the shutdown signal to the spawned UDP service thread.
 #[derive(Debug, Error)]
 pub enum UdpError {
-    #[error("Any error to do with the socket")]
-    FailedToBindSocket(std::io::Error),
+    #[error("could not bind UDP tracker listener: {source}")]
+    Bind { source: std::io::Error },
+
+    #[error("UDP tracker startup notification was not received: {source}")]
+    StartupNotification { source: tokio::sync::oneshot::error::RecvError },
+
+    #[error("UDP tracker launcher failed during startup: {source}")]
+    Launcher { source: std::io::Error },
+
+    #[error("could not register UDP tracker service: {source}")]
+    Registration {
+        source: torrust_server_lib::registar::RegistrationError,
+    },
 
     #[error("Any error to do with starting or stopping the sever")]
     FailedToStartOrStopServer(String),
@@ -52,17 +63,19 @@ where
 
 #[cfg(test)]
 mod tests {
+    use std::net::{Ipv4Addr, UdpSocket};
     use std::sync::Arc;
     use std::time::Duration;
 
-    use torrust_server_lib::registar::Registar;
+    use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
+    use torrust_server_lib::registar::{Registar, RegistrationError, ServiceRegistration};
     use torrust_tracker_configuration::v3_0_0::{Configuration, logging};
     use torrust_tracker_primitives::{ConfigurationInstanceId, RuntimeServiceMetadata, ServiceRole};
     use torrust_tracker_test_helpers::configuration::ephemeral_public;
     use torrust_tracker_udp_core::container::UdpTrackerCoreContainer;
 
-    use super::Server;
     use super::spawner::Spawner;
+    use super::{Server, UdpError};
     use crate::container::UdpTrackerServerContainer;
 
     fn initialize_global_services(configuration: &Configuration) {
@@ -175,6 +188,61 @@ mod tests {
         tokio::time::sleep(Duration::from_secs(1)).await;
 
         assert_eq!(stopped.state.spawner.bind_to, bind_to);
+    }
+
+    #[tokio::test]
+    async fn it_should_preserve_registration_error_and_release_listener_when_registration_fails() {
+        // Arrange
+        let mut cfg = ephemeral_public();
+        let reserved_socket = UdpSocket::bind((Ipv4Addr::LOCALHOST, 0)).expect("reserve UDP listener address");
+        let bind_to = reserved_socket.local_addr().expect("read UDP listener address");
+        drop(reserved_socket);
+        cfg.udp_trackers.as_mut().expect("test configuration enables UDP")[0].bind_address = bind_to;
+        let cfg = Arc::new(cfg);
+        let core_config = Arc::new(cfg.core.clone());
+        let udp_tracker_config = Arc::new(cfg.udp_trackers.as_ref().expect("test configuration enables UDP")[0].clone());
+        let configuration_instance_id = ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0);
+        let registar = Registar::default();
+        registar
+            .give_form()
+            .register(ServiceRegistration::new(
+                ServiceBinding::new(Protocol::UDP, bind_to).expect("UDP service binding should be valid"),
+                RuntimeServiceMetadata::new(configuration_instance_id),
+                None,
+            ))
+            .await
+            .expect("reserve the UDP service registration");
+        initialize_global_services(&cfg);
+        let udp_tracker_core_container = UdpTrackerCoreContainer::initialize(
+            &core_config,
+            &udp_tracker_config,
+            cfg.udp_tracker_server.max_connection_id_errors_per_ip,
+            configuration_instance_id,
+        )
+        .await;
+        let udp_tracker_server_container = UdpTrackerServerContainer::initialize(&core_config);
+
+        // Act
+        let result = Server::new(Spawner::new(bind_to))
+            .start(
+                udp_tracker_core_container,
+                udp_tracker_server_container,
+                registar.give_form(),
+                RuntimeServiceMetadata::new(configuration_instance_id),
+                udp_tracker_config.cookie_lifetime,
+                torrust_tracker_udp_core::ConnectionIdValidationPolicy::Strict,
+            )
+            .await;
+
+        // Assert
+        let UdpError::Registration {
+            source: RegistrationError::DuplicateBinding(binding),
+        } = result.expect_err("duplicate registration should fail")
+        else {
+            panic!("UDP starter should retain the registration failure source");
+        };
+        assert_eq!(binding.bind_address(), bind_to);
+        UdpSocket::bind(bind_to).expect("UDP listener should be released after registration failure");
     }
 }
 

@@ -2,7 +2,7 @@
 
 use std::net::SocketAddr;
 use std::path::{Path, PathBuf};
-use std::sync::Arc;
+use std::sync::{Arc, LazyLock};
 
 use tempfile::TempDir;
 use torrust_net_primitives::service_binding::ServiceBinding;
@@ -14,6 +14,51 @@ use url::Url;
 
 /// Maximum time to await each tracker job after requesting cancellation.
 const TRACKER_SHUTDOWN_GRACE_PERIOD: std::time::Duration = std::time::Duration::from_secs(10);
+
+static ENVIRONMENT_LOCK: LazyLock<tokio::sync::Mutex<()>> = LazyLock::new(|| tokio::sync::Mutex::new(()));
+
+struct ConfigurationEnvironmentGuard {
+    original_path: Option<std::ffi::OsString>,
+    original_toml: Option<std::ffi::OsString>,
+}
+
+impl ConfigurationEnvironmentGuard {
+    #[allow(unsafe_code)]
+    fn replace(path: &Path) -> Self {
+        let original_path = std::env::var_os("TORRUST_TRACKER_CONFIG_TOML_PATH");
+        let original_toml = std::env::var_os("TORRUST_TRACKER_CONFIG_TOML");
+
+        // SAFETY: `ENVIRONMENT_LOCK` serializes configuration environment access in this test executable.
+        unsafe {
+            std::env::remove_var("TORRUST_TRACKER_CONFIG_TOML");
+            std::env::set_var("TORRUST_TRACKER_CONFIG_TOML_PATH", path);
+        }
+
+        Self {
+            original_path,
+            original_toml,
+        }
+    }
+}
+
+impl Drop for ConfigurationEnvironmentGuard {
+    #[allow(unsafe_code)]
+    fn drop(&mut self) {
+        // SAFETY: `ENVIRONMENT_LOCK` is held for the full guard lifetime.
+        unsafe {
+            if let Some(path) = &self.original_path {
+                std::env::set_var("TORRUST_TRACKER_CONFIG_TOML_PATH", path);
+            } else {
+                std::env::remove_var("TORRUST_TRACKER_CONFIG_TOML_PATH");
+            }
+            if let Some(toml) = &self.original_toml {
+                std::env::set_var("TORRUST_TRACKER_CONFIG_TOML", toml);
+            } else {
+                std::env::remove_var("TORRUST_TRACKER_CONFIG_TOML");
+            }
+        }
+    }
+}
 
 /// A temporary workspace for an integration test.
 ///
@@ -109,25 +154,15 @@ impl Drop for TrackerApplicationFixture {
 
 /// Starts the tracker application with the given workspace config.
 ///
-/// Since the application reads its configuration from the
-/// `TORRUST_TRACKER_CONFIG_TOML_PATH` environment variable,
-/// tests in this binary must not run concurrently with other tests
-/// that modify the same variable.
+/// Configuration environment access is serialized and restored before this
+/// function returns, so tests in the same executable remain isolated.
 ///
 pub async fn start_tracker_with_config(workspace: &EphemeralTrackerWorkspace) -> (Arc<AppContainer>, JobManager) {
-    // SAFETY: This binary must be the only test executable setting
-    // `TORRUST_TRACKER_CONFIG_TOML_PATH`. Cargo may run different
-    // integration-test binaries in parallel, but each binary is a
-    // separate OS process with its own environment.
-    #[allow(unsafe_code)]
-    unsafe {
-        std::env::set_var(
-            "TORRUST_TRACKER_CONFIG_TOML_PATH",
-            workspace.config_path().to_str().expect("config path must be valid UTF-8"),
-        );
-    }
-
-    let (container, jobs) = app::run().await;
+    let (container, jobs) = {
+        let _environment_lock = ENVIRONMENT_LOCK.lock().await;
+        let _environment_guard = ConfigurationEnvironmentGuard::replace(workspace.config_path());
+        app::run().await.expect("tracker application should start")
+    };
 
     // Each service acknowledges registry insertion only after binding its
     // final listener. Wait for the exact configuration identities, rather than

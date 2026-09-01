@@ -35,9 +35,27 @@ use crate::HTTP_TRACKER_LOG_TARGET;
 /// - The channel to send the shutdown signal to the server is closed.
 /// - The task to shutdown the server on the spawned server failed to execute to
 ///   completion.
-#[derive(Debug)]
+#[derive(Debug, thiserror::Error)]
 pub enum Error {
-    Error(String),
+    #[error("could not bind HTTP tracker listener: {source}")]
+    Bind { source: std::io::Error },
+
+    #[error("could not configure HTTP tracker listener: {source}")]
+    Listener { source: std::io::Error },
+
+    #[error("HTTP tracker startup notification receiver was dropped")]
+    StartupNotificationDropped,
+
+    #[error("HTTP tracker startup notification was not received: {source}")]
+    StartupNotification { source: tokio::sync::oneshot::error::RecvError },
+
+    #[error("could not register HTTP tracker service: {source}")]
+    Registration {
+        source: torrust_server_lib::registar::RegistrationError,
+    },
+
+    #[error("could not stop HTTP tracker service: {message}")]
+    Stop { message: String },
 }
 
 // `derive_more::Constructor` generates `field: field` initializers on this MSRV-compatible version.
@@ -73,7 +91,7 @@ impl Launcher {
     /// # Errors
     ///
     /// Will return an error if the socket cannot be created, configured, or bound.
-    fn create_tcp_listener(addr: SocketAddr, ipv6_v6only: bool) -> Result<std::net::TcpListener, Box<dyn std::error::Error>> {
+    fn create_tcp_listener(addr: SocketAddr, ipv6_v6only: bool) -> Result<std::net::TcpListener, std::io::Error> {
         let domain = if addr.is_ipv6() { Domain::IPV6 } else { Domain::IPV4 };
         let socket = Socket::new(domain, Type::STREAM, Some(socket2::Protocol::TCP))?;
 
@@ -94,9 +112,9 @@ impl Launcher {
         http_tracker_container: &Arc<HttpTrackerCoreContainer>,
         tx_start: Sender<Started>,
         rx_halt: Receiver<Halted>,
-    ) -> BoxFuture<'static, ()> {
-        let socket = Self::create_tcp_listener(self.bind_to, self.ipv6_v6only).expect("Could not create TCP listener.");
-        let address = socket.local_addr().expect("Could not get local_addr from tcp_listener.");
+    ) -> Result<BoxFuture<'static, ()>, Error> {
+        let socket = Self::create_tcp_listener(self.bind_to, self.ipv6_v6only).map_err(|source| Error::Bind { source })?;
+        let address = socket.local_addr().map_err(|source| Error::Listener { source })?;
 
         let handle = Handle::new();
 
@@ -109,32 +127,44 @@ impl Launcher {
 
         let tls = self.tls.clone();
         let protocol = if tls.is_some() { Protocol::HTTPS } else { Protocol::HTTP };
-        let service_binding = ServiceBinding::new(protocol.clone(), address).expect("Service binding creation failed");
+        let service_binding = ServiceBinding::new(protocol.clone(), address).map_err(|error| Error::Listener {
+            source: std::io::Error::other(error),
+        })?;
 
         tracing::info!(target: HTTP_TRACKER_LOG_TARGET, "Starting on: {protocol}://{address}");
 
         let app = router(http_tracker_container, &service_binding);
 
-        let running = Box::pin(async {
-            match tls {
-                Some(tls) => custom_axum_server::from_tcp_rustls_with_timeouts(socket, tls)
-                    .expect("Failed to create server from TCP socket with TLS")
+        let running: BoxFuture<'static, ()> = if let Some(tls) = tls {
+            let server =
+                custom_axum_server::from_tcp_rustls_with_timeouts(socket, tls).map_err(|source| Error::Listener { source })?;
+
+            Box::pin(async move {
+                if let Err(error) = server
                     .handle(handle)
                     // The TimeoutAcceptor is commented because TLS does not work with it.
                     // See: https://github.com/torrust/torrust-index/issues/204#issuecomment-2115529214
                     //.acceptor(TimeoutAcceptor)
                     .serve(app.into_make_service_with_connect_info::<std::net::SocketAddr>())
                     .await
-                    .expect("Axum server crashed."),
-                None => custom_axum_server::from_tcp_with_timeouts(socket)
-                    .expect("Failed to create server from TCP socket")
+                {
+                    tracing::error!(%error, "HTTP TLS server stopped with an error");
+                }
+            })
+        } else {
+            let server = custom_axum_server::from_tcp_with_timeouts(socket).map_err(|source| Error::Listener { source })?;
+
+            Box::pin(async move {
+                if let Err(error) = server
                     .handle(handle)
                     .acceptor(TimeoutAcceptor)
                     .serve(app.into_make_service_with_connect_info::<std::net::SocketAddr>())
                     .await
-                    .expect("Axum server crashed."),
-            }
-        });
+                {
+                    tracing::error!(%error, "HTTP server stopped with an error");
+                }
+            })
+        };
 
         tracing::info!(target: HTTP_TRACKER_LOG_TARGET, "{STARTED_ON}: {protocol}://{}", address);
 
@@ -143,9 +173,9 @@ impl Launcher {
                 service_binding,
                 address,
             })
-            .expect("the HTTP(s) Tracker service should not be dropped");
+            .map_err(|_| Error::StartupNotificationDropped)?;
 
-        running
+        Ok(running)
     }
 }
 
@@ -207,10 +237,6 @@ impl HttpServer<Stopped> {
     ///
     /// It would return an error if no `SocketAddr` is returned after launching the server.
     ///
-    /// # Panics
-    ///
-    /// It would panic spawned HTTP server launcher cannot send the bound `SocketAddr`
-    /// back to the main thread.
     #[instrument(
         skip(self, http_tracker_container, form, metadata),
         fields(
@@ -239,10 +265,6 @@ impl HttpServer<Stopped> {
     /// Returns an error if no `SocketAddr` is returned after launching the
     /// server.
     ///
-    /// # Panics
-    ///
-    /// Panics if the spawned HTTP server launcher cannot send its bound
-    /// `SocketAddr` back to the main thread, or if service registration fails.
     pub async fn start_with_health_check(
         self,
         http_tracker_container: Arc<HttpTrackerCoreContainer>,
@@ -255,15 +277,13 @@ impl HttpServer<Stopped> {
 
         let launcher = self.state.launcher;
 
+        let server = launcher.start(&http_tracker_container, tx_start, rx_halt)?;
         let task = tokio::spawn(async move {
-            let server = launcher.start(&http_tracker_container, tx_start, rx_halt);
-
             server.await;
-
             launcher
         });
 
-        let started = rx_start.await.expect("it should be able to start the service");
+        let started = rx_start.await.map_err(|source| Error::StartupNotification { source })?;
 
         let service_binding = started.service_binding;
         let binding = started.address;
@@ -274,9 +294,14 @@ impl HttpServer<Stopped> {
             tracing::info!(service_binding = %service_binding, "Started HTTP tracker");
         }
 
-        form.register(ServiceRegistration::new(service_binding, metadata, Some(health_check)))
+        if let Err(source) = form
+            .register(ServiceRegistration::new(service_binding, metadata, Some(health_check)))
             .await
-            .expect("it should be able to register the started service");
+        {
+            let _ = tx_halt.send(Halted::Normal);
+            let _ = task.await;
+            return Err(Error::Registration { source });
+        }
 
         Ok(HttpServer {
             state: Running {
@@ -296,12 +321,13 @@ impl HttpServer<Running> {
     ///
     /// It would return an error if the channel for the task killer signal was closed.
     pub async fn stop(self) -> Result<HttpServer<Stopped>, Error> {
-        self.state
-            .halt_task
-            .send(Halted::Normal)
-            .map_err(|_| Error::Error("Task killer channel was closed.".to_string()))?;
+        self.state.halt_task.send(Halted::Normal).map_err(|_| Error::Stop {
+            message: "task killer channel was closed".to_string(),
+        })?;
 
-        let launcher = self.state.task.await.map_err(|e| Error::Error(e.to_string()))?;
+        let launcher = self.state.task.await.map_err(|error| Error::Stop {
+            message: error.to_string(),
+        })?;
 
         Ok(HttpServer {
             state: Stopped { launcher },
@@ -370,7 +396,7 @@ mod tests {
     use torrust_tracker_swarm_coordination_registry::container::SwarmCoordinationRegistryContainer;
     use torrust_tracker_test_helpers::configuration::ephemeral_public;
 
-    use crate::server::{HttpServer, Launcher, health_check_url};
+    use crate::server::{Error, HttpServer, Launcher, health_check_url};
 
     #[test]
     fn it_should_build_a_health_check_url_using_the_service_binding_protocol() {
@@ -384,6 +410,19 @@ mod tests {
 
             assert_eq!(health_check_url(&service_binding), expected_url);
         }
+    }
+
+    #[test]
+    fn it_should_return_a_typed_bind_error_when_the_listener_address_is_already_in_use() {
+        // Arrange
+        let occupied_listener = std::net::TcpListener::bind((Ipv4Addr::LOCALHOST, 0)).expect("occupy a local TCP port");
+        let occupied_address = occupied_listener.local_addr().expect("read occupied listener address");
+
+        // Act
+        let result = Launcher::create_tcp_listener(occupied_address, false).map_err(|source| Error::Bind { source });
+
+        // Assert
+        assert!(matches!(result, Err(Error::Bind { .. })));
     }
 
     pub async fn initialize_container(configuration: &Configuration) -> HttpTrackerCoreContainer {
