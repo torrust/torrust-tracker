@@ -193,7 +193,7 @@ pub async fn run() -> Result<(), Error> {
         return Ok(());
     };
 
-    let (_app_container, jobs) = match app::run().await {
+    let (_app_container, jobs) = match app::start().await {
         Ok(application) => application,
         Err(error) => {
             tracing::error!(%error, "Tracker startup failed");

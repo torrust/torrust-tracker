@@ -69,7 +69,7 @@ When attempting to add a second integration test, three problems arise:
 #### ~~Problem 1: Logging initialization fails with multiple tests~~ [RESOLVED]
 
 **Update**: This issue can no longer be reproduced. Initial investigation showed that calling
-`app::run()` with `logging.threshold = "info"` in multiple tests would fail with:
+`app::start()` with `logging.threshold = "info"` in multiple tests would fail with:
 
 ```text
 Unable to install global subscriber: SetGlobalDefaultError("a global default trace dispatcher has already been set")
@@ -338,7 +338,7 @@ reasoning and investigation that led to the decision.
 
 ### Why the Initial Proposal Is Unsuitable
 
-Calling `app::run()` from an integration test starts the application inside the integration-test
+Calling `app::start()` from an integration test starts the application inside the integration-test
 executable, not in an independent tracker process. Application bootstrap initializes process-wide
 state through `initialize_global_services`, including clock state, UDP cryptographic state, and
 logging. The application also starts a collection of long-lived servers and background jobs.

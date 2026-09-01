@@ -143,7 +143,7 @@ impl ServiceRole {
 
 `Registar` was introduced for the health check API, but its data flow represents a broader responsibility: it receives information from services only after those services have started and therefore knows their final runtime bindings. In particular, it is the existing parent-side destination for bindings selected by the operating system when a service is configured with port zero.
 
-The health check API is one consumer of that runtime service information. Integration tests are another legitimate internal consumer: after `app::run()` has started services, a test needs to discover the concrete tracker and REST API endpoints in order to exercise them. Requiring either consumer to parse application logs, perform a health check merely to obtain metadata, or assume a particular bind IP is an API design gap.
+The health check API is one consumer of that runtime service information. Integration tests are another legitimate internal consumer: after `app::start()` has started services, a test needs to discover the concrete tracker and REST API endpoints in order to exercise them. Requiring either consumer to parse application logs, perform a health check merely to obtain metadata, or assume a particular bind IP is an API design gap.
 
 The responsibilities should remain distinct:
 

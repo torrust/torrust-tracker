@@ -9,7 +9,7 @@ fn report_startup_failure(error: &app::Error) {
 
 #[tokio::main]
 async fn main() {
-    match app::run().await {
+    match app::start().await {
         Ok((_app_container, jobs)) => {
             tokio::select! {
                 _ = tokio::signal::ctrl_c() => {

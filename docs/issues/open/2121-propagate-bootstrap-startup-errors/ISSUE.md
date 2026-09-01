@@ -10,7 +10,7 @@ branch: "2121-propagate-bootstrap-errors"
 related-pr: 2123
 depends-on:
   - 2107
-last-updated-utc: 2026-09-01 12:00
+last-updated-utc: 2026-09-01 12:30
 semantic-links:
   skill-links:
     - create-issue
@@ -33,7 +33,7 @@ semantic-links:
 ## Goal
 
 Make every expected failure during initial tracker startup an explicit typed
-error from `app::run()` through the tracker executable boundary. The executable
+error from `app::start()` through the tracker executable boundary. The executable
 must report the failure with context and exit unsuccessfully, cancelling any
 jobs already started during the failed startup attempt.
 
@@ -68,7 +68,7 @@ executable entrypoints one consistent way to report startup failure.
   loading, semantic validation, persistence-requirement validation,
   application-container composition, initial persistence data loading, and
   configured service startup.
-- Change `setup()`, `start()`, each fallible startup helper, and `app::run()`
+- Change `setup()`, `start()`, each fallible startup helper, and `app::start()`
   to return and propagate typed `Result` values. Update executable callers,
   including profiling and integration test helpers that start the complete
   application.
@@ -98,7 +98,7 @@ executable entrypoints one consistent way to report startup failure.
 - Related ADR: `docs/adrs/20260825193119_make_persistence_an_optional_application_composition_capability.md`.
 - Related completed work: #2107 established the persistence-free and
   persistence-enabled composition branches this task must preserve.
-- `app::run()` owns the typed startup boundary: it returns `Ok` only after
+- `app::start()` owns the typed startup boundary: it returns `Ok` only after
   `setup()`, initial persistence loading, and configured job startup succeed.
   Error variants retain their source categories instead of being flattened to
   strings.
@@ -181,20 +181,22 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 ### Progress Log
 
 - 2026-08-28 11:58 UTC - GitHub Copilot/User - Recorded a deferred draft after observing expected startup failures converted to `expect` or `panic` during #2107.
-- 2026-08-31 15:46 UTC - GitHub Copilot - Reconciled the draft with merged and closed #2107. The formal issue draft defines typed configuration and composition errors through `setup()` and `app::run()` while retaining post-setup runtime failures and `check_seed()` outside scope.
+- 2026-08-31 15:46 UTC - GitHub Copilot - Reconciled the draft with merged and closed #2107. The formal issue draft defines typed configuration and composition errors through `setup()` and `app::start()` while retaining post-setup runtime failures and `check_seed()` outside scope.
 - 2026-08-31 15:46 UTC - GitHub Copilot/User - Added a concrete, non-exhaustive list of current refactoring targets. T1 remains responsible for reconciling it with the exact error types and callers before implementation.
-- 2026-08-31 16:03 UTC - GitHub Copilot/User - Expanded the intended boundary from `setup()` to complete initial startup. `app::run()` must propagate expected failures from `setup()`, `start()`, initial persistence loading, and configured job startup to `main()`, cancelling partial startup jobs before returning an error.
+- 2026-08-31 16:03 UTC - GitHub Copilot/User - Expanded the intended boundary from `setup()` to complete initial startup. `app::start()` must propagate expected failures from `setup()`, startup completion, initial persistence loading, and configured job startup to `main()`, cancelling partial startup jobs before returning an error.
 - 2026-08-31 16:09 UTC - GitHub Copilot/User - Approved the specification. Created GitHub issue #2121 with the `task` label and moved this document into `docs/issues/open/`.
 - 2026-08-31 16:45 UTC - GitHub Copilot/User - Converted this specification to folder-style layout so issue-local implementation evidence can be added without a later layout migration.
 - 2026-08-31 17:13 UTC - GitHub Copilot/User - Opened spec-only PR #2123 for this specification and #2122. It is related to, not an implementation that closes, either issue.
 - 2026-09-01 00:00 UTC - GitHub Copilot/User - Confirmed that startup errors must use the existing `thiserror` pattern, with friendly operator messages and descriptive remediation while preserving typed sources. Agreed to retain the current tracker output style for this issue rather than adding verbosity controls or migrating existing entrypoints to the global JSONL output contract. Manual regression coverage must enable at least one service of every configured service type to reduce bootstrap-refactoring risk.
-- 2026-09-01 - GitHub Copilot - Reconciled the startup call graph. Implemented initial typed `Result` propagation for configuration, semantic and persistence-requirement validation, persistence composition/migration, initial loads, and selected HTTP/UDP starters. `cargo check -p torrust-tracker`, `cargo test -p torrust-tracker --lib`, and `cargo test -p torrust-tracker-core --lib` passed. Completion remains blocked on refactoring the server-package launchers and health-check path, which currently convert bind/registration failures into task panics and therefore cannot preserve a typed source at `app::run()`.
+- 2026-09-01 - GitHub Copilot - Reconciled the startup call graph. Implemented initial typed `Result` propagation for configuration, semantic and persistence-requirement validation, persistence composition/migration, initial loads, and selected HTTP/UDP starters. `cargo check -p torrust-tracker`, `cargo test -p torrust-tracker --lib`, and `cargo test -p torrust-tracker-core --lib` passed. Completion remained blocked on refactoring the server-package launchers and health-check path, which then converted bind/registration failures into typed sources at the application startup boundary.
 - 2026-09-01 00:30 UTC - GitHub Copilot - Replaced server-launcher bind, startup-notification, and registration panics with typed, source-preserving results in the HTTP tracker, REST API, health-check API, and UDP server paths. HTTP, REST API, and health-check starter jobs now observe the shared startup cancellation token and request service shutdown before joining. UDP binding occurs before the launcher task starts, so an address conflict is returned as the starter result rather than a task panic. Runtime server-task failures remain logged runtime outcomes rather than startup results. Validation is still in progress.
 - 2026-09-01 01:00 UTC - GitHub Copilot - Added direct stderr startup diagnostics at tracker and profiling executable boundaries, so early failures remain operator-visible before logging is initialized. UDP launcher shutdown now aborts and joins its receive-loop task before resolving; the existing focused listener-release test covers the outer startup cleanup behavior. The persistent completed-statistics helper now returns a typed error rather than relying on an `expect`. Validation is still in progress.
 - 2026-09-01 - GitHub Copilot - Added focused tests for a safely isolated configuration-source failure, semantic and persistence-requirement error categorization, deterministic fallible tracker-core/application composition, and public HTTP TLS/listener failures. `cargo fmt`, `cargo test -p torrust-tracker --lib` (79 tests), and `cargo test -p torrust-tracker-core --lib` (132 tests) passed. M1-M4 were executed with configurations and logs under `.tmp/2121-manual-20260901T113000Z` and `.tmp/2121-manual-20260901T114000Z`; all expected results passed. The final full quality gate remains pending.
 - 2026-09-01 - GitHub Copilot - Corrected an existing strict Clippy unit-pattern diagnostic in the modified UDP launcher shutdown select arm. `TORRUST_GIT_HOOKS_LOG_DIR=.tmp ./contrib/dev-tools/git/hooks/pre-commit.sh --format=json` then passed (including `cargo machete`, `cargo deny check bans`, `linter all`, Containerfile lint, and workspace documentation tests).
 - 2026-09-01 - GitHub Copilot - Final reviewer blockers: serialized and restored both configuration environment inputs for every in-process configuration reader; added deterministic source-retention coverage for an initial persistence-load failure; and made UDP launcher failures, including `BrokenPipe`, flow from the launcher task back to `Server::start`. `cargo fmt`, root library tests, UDP-server library tests, root integration tests, and the mandatory JSON pre-commit gate passed.
 - 2026-09-01 12:00 UTC - GitHub Copilot - Closed the final acceptance-review evidence gaps without adding test-only production seams. `app::tests::it_should_retain_the_loader_error_when_initial_peer_key_loading_fails` drops the real composed SQLite schema, invokes the real initial peer-key loader, and proves `app::Error::InitialPersistenceLoad` retains the concrete database error and its SQL source. `udp_server::server::tests::it_should_preserve_registration_error_and_release_listener_when_registration_fails` forces the public `Server::start` registration path to encounter `DuplicateBinding`, asserts the typed source and binding, then re-binds the UDP address to prove listener cleanup. `cargo fmt`, relevant root/UDP-server tests, and the mandatory pre-commit gate were rerun successfully.
+- 2026-09-01 12:15 UTC - GitHub Copilot/User - Renamed the public startup boundary from `app::run()` to `app::start()`, because it completes initial startup rather than owning the daemon lifecycle. Renamed the narrower post-setup helper to `complete_startup()`. The executable retains signal handling and shutdown ownership.
+- 2026-09-01 12:30 UTC - GitHub Copilot - Updated open and draft integration-test documentation that referenced the renamed application startup API.
 
 ## Acceptance Criteria
 
@@ -202,7 +204,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] AC2: Semantic configuration and persistence-requirement validation failures return source-preserving startup errors before global services or application containers are initialized.
 - [x] AC3: Expected configured-driver, migration, and application-container composition failures return contextual typed errors rather than `expect` or an ambiguous `Option`.
 - [x] AC4: Initial persistence-data loading and configured TLS, registration, and listener-start failures return source-preserving startup errors instead of panicking.
-- [x] AC5: `setup()`, `start()`, and `app::run()` propagate typed startup errors; `run()` returns `Ok` only after all configured initial startup work succeeds.
+- [x] AC5: `setup()`, `app::start()`, and its startup helpers propagate typed startup errors; `start()` returns `Ok` only after all configured initial startup work succeeds.
 - [x] AC6: A failure after another initial job has started cancels and joins the partial startup jobs before `run()` returns the error.
 - [x] AC7: The tracker executable and profiling executable report startup failures with context and exit nonzero.
 - [x] AC8: Valid persistence-free and configured-persistence composition behavior from #2107 remains unchanged.

@@ -161,7 +161,7 @@ pub async fn start_tracker_with_config(workspace: &EphemeralTrackerWorkspace) ->
     let (container, jobs) = {
         let _environment_lock = ENVIRONMENT_LOCK.lock().await;
         let _environment_guard = ConfigurationEnvironmentGuard::replace(workspace.config_path());
-        app::run().await.expect("tracker application should start")
+        app::start().await.expect("tracker application should start")
     };
 
     // Each service acknowledges registry insertion only after binding its

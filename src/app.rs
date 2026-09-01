@@ -73,12 +73,12 @@ pub enum Error {
     PersistentStatisticsRequirePersistence,
 }
 
-/// Runs all initial tracker startup operations.
+/// Starts the tracker application.
 ///
 /// # Errors
 ///
 /// Returns setup, persistence-load, or initial-service startup errors.
-pub async fn run() -> Result<(Arc<AppContainer>, JobManager), Error> {
+pub async fn start() -> Result<(Arc<AppContainer>, JobManager), Error> {
     let (config, app_container) = bootstrap::app::setup().await.map_err(|source| Error::Setup { source })?;
 
     let app_container = Arc::new(app_container);
@@ -90,18 +90,18 @@ async fn run_after_setup(
     config: &Configuration,
     app_container: &Arc<AppContainer>,
 ) -> Result<(Arc<AppContainer>, JobManager), Error> {
-    let jobs = start(config, app_container).await?;
+    let jobs = complete_startup(config, app_container).await?;
 
     Ok((app_container.clone(), jobs))
 }
 
-/// Starts the tracker application.
+/// Completes startup after application composition succeeds.
 ///
 /// # Errors
 ///
 /// Returns initial persistence-load or service-start errors.
 #[instrument(skip(config, app_container))]
-pub async fn start(config: &Configuration, app_container: &Arc<AppContainer>) -> Result<JobManager, Error> {
+async fn complete_startup(config: &Configuration, app_container: &Arc<AppContainer>) -> Result<JobManager, Error> {
     warn_if_no_services_enabled(config);
 
     load_data_from_database(config, app_container).await?;
