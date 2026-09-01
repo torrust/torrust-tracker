@@ -10,7 +10,7 @@ branch: "2122-expose-unambiguous-download-counter-semantics"
 related-pr: 2123
 depends-on:
   - 2107
-last-updated-utc: 2026-08-31 17:13
+last-updated-utc: 2026-09-01 10:30
 semantic-links:
   skill-links:
     - create-issue
@@ -103,6 +103,9 @@ ambiguous field.
 - The REST composition root derives `completed_persisted_enabled` from the
   validated `persistent_torrent_completed_stat` configuration, rather than
   inferring it from a metric value or a composed database service.
+- Manual verification uses SQLite because the required behavior is independent
+  of a database driver. Use the documented v3 configurations for the
+  persistence-free and persistence-enabled scenarios.
 - Prometheus uses distinct `in_session` and `persisted` metric identifiers. The
   persisted metric is omitted from the exported metric collection when disabled,
   so zero remains an unambiguous observed historical count. The legacy metric
@@ -163,7 +166,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Spec drafted in `docs/issues/drafts/`.
 - [x] Spec reviewed and approved by user/maintainer.
 - [x] GitHub issue #2122 created and issue number added to this spec.
-- [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation.
+- [x] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation.
 - [ ] Implementation completed.
 - [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks).
 - [ ] Manual verification scenarios executed and recorded (status + evidence).
@@ -183,6 +186,12 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-08-31 16:48 UTC - GitHub Copilot/User - Created GitHub issue #2122 with the `bug` label and promoted this folder-style specification into `docs/issues/open/`.
 - 2026-08-31 16:49 UTC - GitHub Copilot/User - Located the REST API test boundary. The implementation plan requires review of the existing stats endpoint contract coverage and direct metrics endpoint coverage, with a focused `tests/` integration test when package-local coverage cannot prove the configuration-to-endpoint contract.
 - 2026-08-31 17:13 UTC - GitHub Copilot/User - Opened spec-only PR #2123 for this specification and #2121. It is related to, not an implementation that closes, either issue.
+- 2026-09-01 10:30 UTC - GitHub Copilot/User - Confirmed that PR #2123 merged
+  into `develop`. Manual verification will use SQLite because the required
+  behavior is database-driver independent. Repository ADR guidance is available
+  in the `create-adr` skill and `docs/adrs/`; ADR filenames use a UTC timestamp
+  and descriptive snake-case title. GitHub entity status is resolved directly
+  through repository tooling rather than by asking the user.
 
 ## Acceptance Criteria
 
