@@ -1,13 +1,13 @@
 ---
 doc-type: issue
 issue-type: task
-status: draft
+status: superseded
 priority: p3
 github-issue: null
 spec-path: docs/issues/drafts/1488-si-8-configurable-grace-periods/ISSUE.md
 branch: null
 related-pr: null
-last-updated-utc: 2026-07-16
+last-updated-utc: 2026-09-01
 semantic-links:
   skill-links:
     - create-issue
@@ -17,18 +17,28 @@ semantic-links:
     - src/bootstrap/jobs/manager.rs
     - packages/axum-server/src/signals.rs
     - docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
-    - docs/features/shutdown-process/open-questions.md
+    - docs/features/shutdown-process/questions.md
 ---
 
 <!-- skill-link: create-issue -->
 
-# Draft SI-8 — Add Configurable Grace Periods (`[shutdown]` Config Section)
+# Superseded Draft SI-8 — Split Shutdown Policy Configuration
 
-> **EPIC position**: SI-8 of #1488.
-> **Blocked**: Q3 (exit codes) and Q4 (grace period alignment decision) must
-> be resolved before the config schema can be finalized.
+> **Status**: Superseded for implementation planning. [SI-20](../1488-si-20-configure-shutdown-policy/ISSUE.md)
+> replaces this draft after Q3 and Q4 defined the final outcome and deadline
+> semantics.
 
-## Goal
+## Why This Draft Is Superseded
+
+This draft hardcodes values before Q4 defines the deadline hierarchy and treats
+the old per-job timeout as the final model. The replacement must configure the
+final policy: an overall process deadline, component budgets, validation rules,
+and the required margin below the orchestrator deadline. SI-20 is the active
+replacement now that Q3 and Q4 have defined those contracts.
+
+Do not implement this draft.
+
+## Original Goal
 
 Replace the hardcoded grace period constants with a `[shutdown]` configuration
 section so operators can tune the shutdown timeout to match their deployment

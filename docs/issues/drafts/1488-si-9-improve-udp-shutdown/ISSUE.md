@@ -1,13 +1,13 @@
 ---
 doc-type: issue
 issue-type: task
-status: draft
+status: superseded
 priority: p3
 github-issue: null
 spec-path: docs/issues/drafts/1488-si-9-improve-udp-shutdown/ISSUE.md
 branch: null
 related-pr: null
-last-updated-utc: 2026-07-16
+last-updated-utc: 2026-09-01
 semantic-links:
   skill-links:
     - create-issue
@@ -20,14 +20,28 @@ semantic-links:
 
 <!-- skill-link: create-issue -->
 
-# Draft SI-9 — Improve UDP Server Shutdown
+# Superseded Draft SI-9 — Split UDP Lifecycle Migration
 
-> **EPIC position**: SI-9 of #1488. Lowest priority. Independent.
+> **Status**: Superseded for implementation planning. [SI-14](../1488-si-14-migrate-udp-receive-reset-token-lifecycle/ISSUE.md)
+> replaces the UDP receive/reset-loop migration, followed by [SI-15](../1488-si-15-define-udp-active-request-policy/ISSUE.md)
+> for the separate active-request policy change.
 
-## Goal
+## Why This Draft Is Superseded
 
-Improve the UDP server shutdown to be more observable and, where practical, to
-avoid dropping in-flight UDP requests during shutdown.
+This draft mixes two ownership boundaries. The first replacement must introduce
+a token-aware UDP stop path and make the receive loop plus IP-ban reset loop
+owned, cancellable, and joined. It retains the current safe, deliberate active
+request abort behavior as a compatibility fallback. A later replacement can
+then change only the active-request deadline, drain, abort metrics, and policy.
+
+Do not implement this combined draft.
+
+## Original Goal
+
+Replace the UDP server's shutdown `Halted` oneshot and OS-signal wait with a
+component `CancellationToken`. The UDP server must own, stop, and join its
+receive loop and IP-ban reset loop, and apply a documented, observable policy
+to active request processors before reporting its component outcome upward.
 
 ## Background
 
@@ -46,7 +60,7 @@ tokio::task::yield_now().await;  // Give other tasks a chance to run
 There is no connection draining mechanism — in-flight UDP requests are dropped
 silently.
 
-See [analysis §5.2 and §7.8](../../analysis/20260716-shutdown-process/README.md).
+See [analysis §5.2 and §7.8](../../../analysis/20260716-shutdown-process/README.md).
 
 ## Important Context: UDP is Stateless
 
@@ -63,47 +77,44 @@ trackers are configured) or on the next announce interval.
 The actual improvement is therefore primarily about **observability**, not about
 preventing data loss.
 
-## Implementation Options
+## Required Lifecycle Policy
 
-### Option A: Log in-flight requests on shutdown (minimal)
+1. Cancellation stops admission of new UDP packets.
+2. The UDP server cancels and joins its IP-ban reset loop; it cannot remain a
+   detached, indefinite task.
+3. Active request processors may finish only until the component deadline. The
+   server deliberately aborts any remaining processors, records their count,
+   and then completes.
+4. The UDP component joins its receive loop and reports one named outcome to
+   its parent. `JobManager` does not receive every per-request handle.
 
-Before aborting the main loop, log the number of requests in the buffer:
+## Implementation Notes
+
+During shutdown, log completed and deliberately aborted active request counts:
 
 ```rust
 tracing::info!(
     "UDP server shutting down with {} requests in flight",
     active_requests.len()
 );
-stop.abort();
 ```
-
-### Option B: Drain the request buffer before stopping (more complete)
-
-Process all requests already in the socket buffer before stopping. This requires:
-
-1. Stop accepting new UDP packets (close the socket for reads).
-2. Process any already-buffered packets.
-3. Then stop.
-
-This is more complex and may not be worth the effort given UDP retry behavior.
-
-## Recommendation
-
-Implement **Option A** first as it is low risk and adds observability. Revisit
-Option B if operator feedback indicates that in-flight UDP request drops are
-causing measurable peer-tracking inconsistencies.
 
 ## Acceptance Criteria
 
-- [ ] On shutdown, the UDP server logs the number of in-flight requests (if any).
-- [ ] The abort approach is documented as intentional with a note about UDP
-      retry semantics.
+- [ ] UDP server shutdown is driven by an injected `CancellationToken`, not a
+      shutdown `Halted` oneshot or OS-signal listener.
+- [ ] The receive loop and IP-ban reset loop are retained, cancelled, and joined
+      by their UDP component owner.
+- [ ] Active request processors complete before the component deadline or are
+      deliberately aborted; the outcome counts are logged.
+- [ ] The UDP component reports a single outcome to its parent after all owned
+      child tasks have completed or been aborted.
 - [ ] `linter all` passes.
 
 ## Dependencies
 
-- No hard prerequisites. Can land independently.
-- Lower priority than SI-1 through SI-6.
+- SI-2 must define the token-based server lifecycle contract first.
+- Q4 must define component deadlines before the active-request policy is final.
 
 ## Manual Verification
 

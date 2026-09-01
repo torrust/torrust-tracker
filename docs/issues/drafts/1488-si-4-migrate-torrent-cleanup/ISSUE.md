@@ -7,7 +7,7 @@ github-issue: null
 spec-path: docs/issues/drafts/1488-si-4-migrate-torrent-cleanup/ISSUE.md
 branch: null
 related-pr: null
-last-updated-utc: 2026-07-16
+last-updated-utc: 2026-09-01
 semantic-links:
   skill-links:
     - create-issue
@@ -22,7 +22,8 @@ semantic-links:
 
 # Draft SI-4 — Migrate Torrent Cleanup Job to `CancellationToken`
 
-> **EPIC position**: SI-4 of #1488. Independent — no blockers.
+> **EPIC position**: Roadmap step 3. One independently releasable periodic
+> component migration after the supervisor token convention is documented.
 
 ## Goal
 
@@ -49,11 +50,13 @@ This job does **not** respond to `jobs.cancel()` — it only stops when Ctrl+C i
 pressed. After SI-1 adds `SIGTERM` to `main.rs`, this job will still not stop
 on SIGTERM because it listens for Ctrl+C directly.
 
-See [analysis §3.2 and §7.2](../../analysis/20260716-shutdown-process/README.md).
+See [analysis §3.2 and §7.2](../../../analysis/20260716-shutdown-process/README.md).
 
 ## Implementation
 
-Pass the `CancellationToken` into `start_job` and use it in the loop:
+Pass a component `CancellationToken` into `start_job` and use it in the loop.
+The job is a named top-level component: it reports completion to `JobManager`
+only after its owned loop has stopped. It does not subscribe to OS signals.
 
 ```rust
 pub fn start_job(
@@ -83,15 +86,18 @@ In `src/app.rs`, pass `job_manager.new_cancellation_token()` when calling
 - [ ] The `ctrl_c()` call is removed from `torrent_cleanup.rs`.
 - [ ] The job stops when `jobs.cancel()` is called (i.e., responds to SIGTERM
       after SI-1, not just SIGINT).
-- [ ] The job receives the `CancellationToken` as a parameter.
-- [ ] `src/app.rs` passes the token when starting the job.
+- [ ] The job receives a component `CancellationToken` as a parameter.
+- [ ] `src/app.rs` passes a token derived from the `JobManager` root token when
+      starting the job.
+- [ ] Unit tests cancel an injected token and await job completion without
+      delivering an OS signal.
 - [ ] `cargo test` passes.
 - [ ] `linter all` passes.
 
 ## Dependencies
 
-- No hard prerequisites. Can land independently.
-- Benefits from SI-1 being landed first (SIGTERM will then also stop this job).
+- The shared component-token convention must be established first.
+- SI-1 allows end-to-end SIGTERM verification after this migration.
 
 ## Manual Verification
 

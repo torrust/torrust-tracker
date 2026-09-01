@@ -7,13 +7,16 @@ github-issue: 1588
 spec-path: docs/issues/open/1588-review-shutdown-process-for-all-tasks-jobs/ISSUE.md
 branch: "1588-review-shutdown-process"
 related-pr: null
-last-updated-utc: 2026-07-16
+last-updated-utc: 2026-09-01
 semantic-links:
   skill-links:
     - create-issue
   related-artifacts:
     - docs/analysis/20260716-shutdown-process/README.md
     - docs/features/shutdown-process/README.md
+    - docs/features/shutdown-process/questions.md
+    - docs/features/shutdown-process/task-inventory.md
+    - docs/issues/open/1586-evaluate-job-manager-join-set/ISSUE.md
     - docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
     - src/bootstrap/jobs/manager.rs
     - src/bootstrap/jobs/torrent_cleanup.rs
@@ -25,17 +28,27 @@ semantic-links:
 
 <!-- skill-link: create-issue -->
 
-# Issue #1588 - Review shutdown process for all tasks/jobs
+# Issue #1588 — Review Shutdown Process for All Tasks/Jobs
 
-> **EPIC position**: Subissue #1 of #1488. First step — inventory and analysis before any implementation.
+> **EPIC position**: Roadmap sequence 0. Validate the final task inventory and
+> migration boundaries before closing this analysis issue; it is not a blocker
+> for the additive supervisor evaluation in #1586.
 
 ## Goal
 
-Review all jobs and tasks in the Torrust Tracker application to identify which ones still handle the Ctrl+C signal directly instead of using the centralized `CancellationToken` from the `JobManager`. Document the current state and produce a list of remaining jobs that need migration.
+Revalidate the complete task inventory against the implementation and confirm
+the final migration boundaries for the supervised cancellation tree. The
+planning-time [task inventory](../../../features/shutdown-process/task-inventory.md)
+is the baseline; this issue produces implementation-time evidence before it
+closes.
 
 ## Background
 
-The `JobManager` type was introduced in PR #1587 to centralize job management. It provides a shared `CancellationToken` that can be used to signal all jobs to stop. However, some jobs were not updated to use it:
+PR #1587 introduced `JobManager` and token-based cancellation for event
+listeners. The selected architecture now requires root/child cancellation
+tokens, component-owned child joining, and named supervisor outcomes. The
+initial issue scope remains relevant, but it must cover nested and detached
+tasks rather than only direct Ctrl+C listeners.
 
 - **HTTP servers (Axum)**: Use `torrust_server_lib::signals::global_shutdown_signal` inside the `shutdown_signal()` function, which listens for `ctrl_c` and `SIGTERM` directly.
 - **Activity metrics updater**: Uses `tokio::signal::ctrl_c()` directly in its loop.
@@ -45,7 +58,7 @@ Additionally, the `main.rs` entry point only handles `SIGINT` (Ctrl+C), not `SIG
 
 ## Tasks
 
-### Task 1: Inventory all jobs and their shutdown mechanism
+### Task 1: Revalidate the task inventory and ownership tree
 
 Create a complete inventory of all jobs spawned by the application, including:
 
@@ -57,50 +70,54 @@ Create a complete inventory of all jobs spawned by the application, including:
 - Torrent cleanup
 - Activity metrics updater
 
-For each job, document:
+For each top-level component and owned child task, document:
 
-- What shutdown mechanism it uses (`CancellationToken`, direct `ctrl_c`, halt channel)
-- Whether it responds to `jobs.cancel()`
-- Whether it would stop on `SIGTERM`
+- Owner and retained handle (or intentionally framework-managed task)
+- Current and target cancellation mechanism
+- Child completion, timeout, or deliberate-abort policy
+- Whether it responds to root cancellation and how a binary maps SIGTERM
 
-### Task 2: Identify gaps
+### Task 2: Identify implementation gaps
 
 From the inventory, produce a list of jobs that:
 
-- Do not respond to the `CancellationToken`
-- Do not respond to `SIGTERM`
-- Have inconsistent shutdown behavior
+- Do not respond to the cancellation tree
+- Are detached without an explicit owner or completion policy
+- Observe OS signals in library code
+- Have inconsistent shutdown, timeout, or outcome behavior
 
-### Task 3: Propose migration plan
+### Task 3: Validate the approved migration plan
 
-For each gap, propose a concrete migration:
-
-- Which jobs can be migrated to `CancellationToken` directly
-- Which jobs need a two-phase shutdown (e.g., Axum servers)
-- Whether the `global_shutdown_signal` in servers should be removed or kept
+Map each confirmed gap to the active #1488 roadmap draft. Do not create a new
+competing migration design; update an existing draft only when evidence shows
+its stated boundary is incomplete.
 
 ## Acceptance Criteria
 
-- [ ] Complete inventory documented in a table
-- [ ] Gaps identified and categorized
-- [ ] Migration plan reviewed and approved
-- [ ] New sub-issues created for each migration task
+- [ ] Complete revalidated inventory documents ownership, token propagation,
+      completion policy, and configuration-dependent task cardinality.
+- [ ] Gaps are identified and mapped to active #1586, SI-1, SI-2, SI-4–SI-5,
+      and SI-10–SI-21 work items.
+- [ ] The final inventory confirms the #1586 supervisor boundary: direct
+      top-level components only, not component-owned child handles.
+- [ ] The EPIC roadmap is updated only if implementation evidence exposes a
+      missing independently releasable migration slice.
 
 ## References
 
 - [PR #1587](https://github.com/torrust/torrust-tracker/pull/1587) — introduced centralized shutdown for event listeners
-- [Shutdown Analysis](../../analysis/20260716-shutdown-process/README.md) — detailed code-level analysis
-- [Feature: Shutdown Process](../../features/shutdown-process/README.md) — product-oriented feature description
+- [Shutdown Analysis](../../../analysis/20260716-shutdown-process/README.md) — detailed code-level analysis
+- [Feature: Shutdown Process](../../../features/shutdown-process/README.md) — product-oriented feature description
 
 ## Manual Verification
 
 Evidence of these steps must be recorded in `verification.md` in this folder
 before the issue can be closed.
 
-### Test 1: Complete inventory table exists
+### Test 1: Complete revalidated inventory exists
 
-After completing Task 1, confirm the inventory table in this issue (or in a
-linked document) covers all of the following jobs:
+After completing Task 1, confirm the inventory table in this issue (or the
+linked feature inventory) covers all of the following top-level components:
 
 - [ ] swarm coordination registry event listener
 - [ ] tracker core event listener
@@ -115,33 +132,37 @@ linked document) covers all of the following jobs:
 - [ ] Torrent cleanup
 - [ ] Activity metrics updater (peers inactivity update)
 
-For each job, the inventory must document all three columns:
+For each component, the inventory must document:
 
-- Shutdown mechanism (`CancellationToken` / direct `ctrl_c` / halt channel)
-- Whether it responds to `jobs.cancel()`
-- Whether it would stop on `SIGTERM`
+- Its owner and retained handle.
+- Current and target cancellation mechanism.
+- Its child completion, timeout, or deliberate-abort policy.
+- How it responds to root cancellation and how executable signal handling
+  reaches that path.
 
 **Record in `verification.md`**: a copy of or link to the completed inventory table.
 
-### Test 2: Gaps identified match the analysis
+### Test 2: Gaps and ownership boundaries match the analysis
 
 Confirm the gaps identified in Task 2 are consistent with the findings in the
-[shutdown analysis §7](../../analysis/20260716-shutdown-process/README.md).
+[shutdown analysis §7](../../../analysis/20260716-shutdown-process/README.md).
 
-Specifically, at minimum these gaps must be identified:
+Specifically, at minimum these gaps and boundaries must be identified:
 
 - [ ] Torrent cleanup uses direct `ctrl_c` — does not respond to `jobs.cancel()`
 - [ ] Activity metrics updater uses direct `ctrl_c` — does not respond to `jobs.cancel()`
 - [ ] HTTP/REST API/Health Check servers use `global_shutdown_signal()` independently
 - [ ] `main.rs` does not handle `SIGTERM`
+- [ ] The detached Axum drain controllers and UDP IP-ban reset loop require
+      component-owned join policies.
 
 **Record in `verification.md`**: the gap list, confirming it matches or extends
 the analysis findings.
 
-### Test 3: Migration plan covers all gaps
+### Test 3: Active roadmap covers all gaps
 
-Confirm Task 3 produces a migration entry for every gap found in Test 2, and
-that each entry maps to an existing draft sub-issue (SI-1 through SI-9) or
-proposes a new one.
+Confirm Task 3 maps every gap found in Test 2 to the active EPIC roadmap:
+existing issues #1586/#1588 or SI-1, SI-2, SI-4–SI-5, and SI-10–SI-21. Do not
+map work to superseded SI-3 or SI-6–SI-9.
 
 **Record in `verification.md`**: the migration mapping table (gap → sub-issue).

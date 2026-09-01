@@ -1,10 +1,12 @@
 ---
 doc-type: feature
 status: draft
-last-updated-utc: 2026-07-16
+last-updated-utc: 2026-09-01
 semantic-links:
   related-artifacts:
     - docs/analysis/20260716-shutdown-process/README.md
+    - docs/features/shutdown-process/shutdown-architecture-examples.md
+    - docs/features/shutdown-process/task-inventory.md
     - docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
     - docs/research/20260716-console-shutdown-patterns/README.md
 ---
@@ -13,7 +15,7 @@ semantic-links:
 
 ## Status
 
-Draft — under analysis. No implementation started.
+Draft — planning complete; implementation has not started.
 
 ## Summary
 
@@ -61,6 +63,95 @@ The current shutdown process has several pain points:
 6. **Hardcoded timeouts**: Grace periods are magic numbers scattered across the
    codebase with no configuration surface.
 
+## Architecture Decision Criteria
+
+Shutdown architecture choices must be evaluated against these criteria. The
+amount of refactoring, number of packages touched, and public API changes are
+important migration costs, but are **not** reasons by themselves to reject a
+design that materially improves correctness, maintainability, readability, or
+testability.
+
+| Criterion                             | Why it matters                                                                                                                           |
+| ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| **Single shutdown authority**         | Prevents double-signal races and makes responsibility for shutdown decisions explicit.                                                   |
+| **One normalized cancellation model** | Lets maintainers add jobs and servers without inventing another shutdown mechanism.                                                      |
+| **Library usability**                 | Independently embedded HTTP and UDP servers must have a clear, predictable lifecycle contract.                                           |
+| **Testability**                       | Tests must inject and observe shutdown deterministically, without relying on OS signals.                                                 |
+| **Observability**                     | The supervisor must know which services are draining, stopped, failed, or timed out.                                                     |
+| **Failure behavior**                  | The design must specify behavior when a controller is dropped, a task panics, or the process is force-terminated.                        |
+| **API quality**                       | Public API changes are acceptable when they materially improve lifecycle semantics for component consumers.                              |
+| **Migration cost**                    | Breaking changes and multi-package refactors must be planned, phased, documented, and tested; they are not automatic rejection criteria. |
+
+The design selected for this feature must satisfy the first six criteria. It
+must then explain the API and migration trade-offs against the final two.
+
+## Current Task Topology
+
+The [Preliminary Task Inventory](task-inventory.md) maps the production
+tracker's task ownership, spawn hierarchy, retained handles, and current
+shutdown triggers. It is a planning aid for the architecture decision; issue
+number 1588 must revalidate and complete it against the implementation before that
+issue can close.
+
+The [Shutdown Architecture Examples](shutdown-architecture-examples.md) show
+the leading Q2 alternatives through nested task levels so their lifecycle and
+shutdown-ownership differences can be evaluated explicitly.
+
+## Target Shutdown Architecture
+
+The tracker uses a **supervised cancellation tree**:
+
+- executable entry points translate OS signals into an in-process shutdown
+  request;
+- `JobManager` supervises named top-level tasks, initiates root-token
+  cancellation, and aggregates their completion outcomes;
+- each long-running component receives a child `CancellationToken` and owns
+  the graceful shutdown and joining of every task it spawns;
+- server libraries expose deterministic in-process lifecycle operations, but
+  do not subscribe to OS signals.
+
+Cancellation requests a component to stop; joining its task proves whether it
+stopped, failed, or timed out. HTTP draining and UDP in-flight-work policy stay
+component-specific. See [Q2](questions.md#q2) for the evaluated
+alternatives, migration constraints, and decisions intentionally deferred to
+Q3–Q5.
+
+### Outcome and Deadline Policy
+
+A fully graceful shutdown exits with code 0. A startup failure or any component
+failure, timeout, or deliberate abort exits with code 1. A termination signal
+that cannot be handled, such as SIGKILL, has an OS-defined process result.
+
+All top-level components share one 25-second process-wide shutdown deadline.
+HTTP, REST API, and health-check connection draining has a 20-second component
+budget; UDP active request work has a five-second component budget. The
+orchestrator grace period must be at least 30 seconds, leaving at least five
+seconds after the tracker process deadline. Docker/Podman's default 10-second
+deadline is insufficient and must be configured. See [Q3 and Q4](questions.md#q3)
+for rationale and deployment constraints.
+
+### Ownership and Propagation Rule
+
+Shutdown requests flow **top-down** and completion outcomes flow **bottom-up**.
+`JobManager` retains only the named, direct components it starts; it must not
+collect every nested `JoinHandle`. Each component retains the handles of its
+children, propagates cancellation to them, and awaits or deliberately aborts
+them before reporting its own outcome. This prevents logically orphaned tasks
+while preserving local ownership boundaries.
+
+The `Started` oneshot remains separate because it reports a one-time startup
+outcome. Only shutdown signaling migrates from `Halted` oneshot channels to
+`CancellationToken` propagation.
+
+### Readiness Before Drain
+
+For a normal shutdown, the application marks itself not ready before it cancels
+the root token. While components drain, `/health_check` returns HTTP 503 without
+probing downstream services, allowing readiness-aware infrastructure to stop
+routing new traffic. This does not stop direct TCP or UDP clients; server
+components retain admission and graceful-stop responsibility. The readiness
+transition has no separate timeout and remains inside the process deadline.
+
 ## The Contracts We Are Implementing
 
 These are established, well-proven standards. We are not inventing anything new —
@@ -81,6 +172,27 @@ container runtime, and operator already expects.
 **Currently**: `SIGTERM` is ignored. `kill <pid>` has no effect.
 **After fix**: `kill <pid>` triggers the same graceful shutdown as Ctrl+C.
 
+### Windows Console Shutdown Support
+
+On Windows, executable entry points use Tokio `ctrl_c()` to translate supported
+console control events into the same in-process shutdown request. Unix-only
+SIGTERM handling is conditionally compiled and has no Windows equivalent in this
+feature. Server libraries remain platform-independent and do not subscribe to
+OS signals. Windows service-control-manager integration and forceful task
+termination are out of scope.
+
+### Signal Targeting and Forced Termination
+
+Send a signal to the tracker process that actually owns the Tokio runtime. In
+development, `cargo run` can be a launcher process with a separate tracker
+child process; signaling only Cargo does not signal that child. Use the tracker
+binary PID for direct tests, or deliberately target the relevant process group.
+
+SIGKILL cannot be handled or made graceful. It terminates the tracker process,
+all its Tokio tasks, and its owned sockets. Containers and systemd are
+responsible for sending SIGKILL only after their configured shutdown grace
+period; server libraries must not retain OS-signal listeners as a fallback.
+
 ### Docker / Podman Container Stop Contract
 
 > `docker stop <container>` sends `SIGTERM` and waits up to 10 seconds (the
@@ -94,8 +206,10 @@ kill -KILL <pid>   # sends SIGKILL if process is still running
 
 **Currently**: `docker stop torrust-tracker` sends `SIGTERM`, which is ignored.
 After the 10s timeout, Docker force-kills the container with `SIGKILL`.
-**After fix**: `docker stop torrust-tracker` triggers graceful shutdown and the
-container exits cleanly within the grace period — no force kill needed.
+**After fix**: `docker stop torrust-tracker` triggers graceful shutdown when
+Docker is configured with at least the 30-second external grace period required
+by the [Outcome and Deadline Policy](#outcome-and-deadline-policy). Docker's
+default 10-second deadline is insufficient.
 
 ### Kubernetes Pod Termination Contract
 
@@ -135,7 +249,9 @@ kill -INT <pid>          # sends SIGINT — works ✅
 kill -9 <pid>            # SIGKILL — force kill, no cleanup ❌
 ```
 
-After implementing this feature, all the lines marked ❌ above will work.
+After implementing this feature, every graceful-stop mechanism marked ❌ above
+will work when its required external grace period is configured. SIGKILL remains
+an OS-enforced last resort and cannot become graceful.
 
 ## User Value
 
@@ -328,6 +444,8 @@ management, but it is not needed to meet the fundamental standards.
 ### Out of Scope
 
 - Hot-reload / restart without process exit.
+- `SIGHUP` configuration reload. Configuration changes require a normal graceful
+  restart; dynamic reload is deferred to a separate future feature.
 - Dynamic job lifecycle (start/stop jobs at runtime via admin API).
 - Windows-specific signal handling beyond what Tokio provides.
 - The **profiling binary** (`src/console/profiling.rs`) — it is a developer-only
@@ -340,17 +458,20 @@ management, but it is not needed to meet the fundamental standards.
 
 Only `main.rs` captures OS signals. On signal receipt:
 
-1. Log "Shutting down..."
-2. Cancel all jobs via `CancellationToken`.
-3. Send halt signal to all servers via oneshot channels.
-4. Wait for all jobs concurrently with a shared grace period.
-5. Log "Shutdown complete" or "N jobs did not finish in time".
+1. Mark the application not ready.
+2. Log the shutdown request and cancel the root `CancellationToken`.
+3. Let each component propagate cancellation to, then join or deliberately
+   abort, its owned child tasks.
+4. Await named top-level component outcomes concurrently under the single
+   process deadline.
+5. Map aggregate outcomes to the defined process exit result.
 
 ### Consistent Job Interface
 
-Every job should accept a `CancellationToken` and check it in its main loop.
-Jobs that need a two-phase shutdown (e.g., Axum servers) can additionally
-receive a halt channel.
+Every long-running job accepts a `CancellationToken` and observes it in its
+main loop. Components that need protocol-specific shutdown, such as Axum
+draining, implement that behavior behind their token-aware lifecycle API rather
+than receiving a shutdown `Halted` channel.
 
 ### Observable Shutdown
 
@@ -358,22 +479,27 @@ The `JobManager` should periodically log which jobs are still running during
 shutdown, e.g.:
 
 ```text
-Waiting for jobs to finish (timeout: 30s)...
+Waiting for jobs to finish (process deadline: 25s)...
   ✅ Health Check API — done
   ⏳ HTTP tracker (127.0.0.1:7070) — still running (5 active connections)
   ⏳ Torrent cleanup — still running
   ❌ Activity metrics updater — timed out
 ```
 
-### Configurable Grace Periods
+### Shutdown Deadline Policy
 
-Add configuration options:
+SI-20 will add validated configuration for the approved deadline hierarchy:
 
-```toml
-[shutdown]
-grace_period_secs = 30
-force_timeout_secs = 35
-```
+- a 25-second process-wide shutdown deadline;
+- a 20-second connection-drain budget for HTTP, REST API, and health-check
+  servers;
+- a 5-second completion budget for accepted UDP requests; and
+- an externally configured orchestrator grace period of at least 30 seconds,
+  with 35 seconds or more recommended where practical.
+
+The process deadline is shared by all top-level components, not applied
+sequentially per job. Docker and Podman's default 10-second stop deadline is
+therefore insufficient and must be explicitly increased.
 
 ## Related Documents
 

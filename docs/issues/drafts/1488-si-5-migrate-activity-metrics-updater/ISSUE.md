@@ -7,7 +7,7 @@ github-issue: null
 spec-path: docs/issues/drafts/1488-si-5-migrate-activity-metrics-updater/ISSUE.md
 branch: null
 related-pr: null
-last-updated-utc: 2026-07-16
+last-updated-utc: 2026-09-01
 semantic-links:
   skill-links:
     - create-issue
@@ -23,7 +23,8 @@ semantic-links:
 
 # Draft SI-5 — Migrate Activity Metrics Updater to `CancellationToken`
 
-> **EPIC position**: SI-5 of #1488. Independent — no blockers.
+> **EPIC position**: Roadmap step 4. One independently releasable periodic
+> component migration after the supervisor token convention is documented.
 
 ## Goal
 
@@ -49,7 +50,7 @@ tokio::select! {
 This job does **not** respond to `jobs.cancel()`. The interval is also hardcoded
 at 15 seconds (a separate known issue noted in the code with a `todo:`).
 
-See [analysis §3.2 and §7.2](../../analysis/20260716-shutdown-process/README.md).
+See [analysis §3.2 and §7.2](../../../analysis/20260716-shutdown-process/README.md).
 
 ## Implementation
 
@@ -64,7 +65,9 @@ pub fn start_job(
 ) -> JoinHandle<()>
 ```
 
-Add a `CancellationToken` parameter:
+Add a component `CancellationToken` parameter. The job reports completion to
+its `JobManager` owner only after its owned loop has stopped; it does not
+subscribe to OS signals:
 
 ```rust
 pub fn start_job(
@@ -94,15 +97,17 @@ pass `job_manager.new_cancellation_token()`.
 
 - [ ] The `ctrl_c()` call is removed from `activity_metrics_updater.rs`.
 - [ ] The job stops when `jobs.cancel()` is called.
-- [ ] The `CancellationToken` is passed from `JobManager` through
+- [ ] A component `CancellationToken` is passed from `JobManager` through
       `src/bootstrap/jobs/activity_metrics_updater.rs`.
+- [ ] Unit tests cancel an injected token and await job completion without
+      delivering an OS signal.
 - [ ] `cargo test` passes.
 - [ ] `linter all` passes.
 
 ## Dependencies
 
-- No hard prerequisites. Can land independently.
-- Benefits from SI-1 being landed first (SIGTERM will then also stop this job).
+- The shared component-token convention must be established first.
+- SI-1 allows end-to-end SIGTERM verification after this migration.
 - Note: the hardcoded 15s interval has a `TODO` comment — that is a separate
   concern and not in scope for this sub-issue.
 

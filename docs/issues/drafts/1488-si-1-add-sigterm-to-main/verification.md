@@ -130,8 +130,8 @@ kill -9 955797
 Exit 137   ./target/release/torrust-tracker > /tmp/tracker-si1-before-test1.log 2>&1
 ```
 
-Exit code 137 (= 128 + 9) confirms SIGKILL was used. After the fix, a graceful
-shutdown should produce exit code 0.
+Exit code 137 (= 128 + 9) confirms SIGKILL was used. SI-20 implements Q3's
+approved process exit-result contract for the complete shutdown architecture.
 
 ### P1 — Test 3: Ports freed after SIGKILL
 
@@ -176,10 +176,9 @@ Same procedure as P1 Test 1 using the fixed binary.
 
 - [ ] PASS: Process exits without a second signal
 - [ ] PASS: Log contains `shutting down (SIGTERM)`
-- [ ] PASS: Log contains `successfully shutdown.`
-- [ ] PASS: Log contains `Job completed gracefully` for all jobs
-- [ ] PASS: No periodic metrics log lines after `successfully shutdown.`
-- [ ] PASS: Exit code is 0 (not 137)
+- [ ] PASS: Log shows `jobs.cancel()` and managed-job waiting began
+- [ ] PASS: Do not require every legacy component to complete in this
+      incremental signal-boundary change
 
 ### P2 — Test 2: `kill -TERM <pid>` — same outcome as P2 Test 1
 
@@ -212,29 +211,31 @@ echo "Exit code: $?"
 - [ ] PASS: Exit code is 137
 - [ ] PASS: No graceful shutdown log lines after the kill
 
-### P2 — Test 5: `docker stop` — graceful shutdown within 10s (optional)
+### P2 — Test 5: `docker stop` forwards SIGTERM (exploratory)
 
 ```text
 (paste `time docker stop` output and container log tail — or mark as SKIPPED)
 ```
 
-- [ ] PASS: `docker stop` returns in < 10s
-- [ ] PASS: Container log ends with `successfully shutdown.`
-- [ ] SKIPPED (reason: ___)
+- [ ] PASS: Container log shows `main.rs` received SIGTERM and began shutdown
+- [ ] RECORD: Whether the configured Docker deadline was sufficient
+- [ ] SKIPPED (reason: \_\_\_)
 
 ---
 
 ## Final Summary
 
-| Phase | Test | Description                         | Result       |
-| ----- | ---- | ----------------------------------- | ------------ |
-| P1    | T1   | SIGTERM ignored — process survives  | Confirmed    |
-| P1    | T2   | SIGKILL required — exit code 137    | Confirmed    |
-| P1    | T3   | Ports freed after SIGKILL           | Confirmed    |
-| P2    | T1   | SIGTERM handled — graceful exit     | Pending      |
-| P2    | T2   | `kill -TERM` — same as T1           | Pending      |
-| P2    | T3   | Ctrl+C — log says SIGINT            | Pending      |
-| P2    | T4   | SIGKILL — exit 137, no shutdown log | Pending      |
-| P2    | T5   | `docker stop` — within 10s         | Pending      |
+| Phase | Test | Description                         | Result    |
+| ----- | ---- | ----------------------------------- | --------- |
+| P1    | T1   | SIGTERM ignored — process survives  | Confirmed |
+| P1    | T2   | SIGKILL required — exit code 137    | Confirmed |
+| P1    | T3   | Ports freed after SIGKILL           | Confirmed |
+| P2    | T1   | SIGTERM reaches `main()`            | Pending   |
+| P2    | T2   | `kill -TERM` — same as T1           | Pending   |
+| P2    | T3   | Ctrl+C — log says SIGINT            | Pending   |
+| P2    | T4   | SIGKILL — exit 137, no shutdown log | Pending   |
+| P2    | T5   | `docker stop` forwards SIGTERM      | Pending   |
 
-All P2 tests must PASS (or T5 SKIPPED with reason) before this issue can be closed.
+All P2 tests must PASS (or T5 is skipped with a reason) before this issue can
+be closed. Complete lifecycle success is verified by the later component,
+deadline, and exit-code work items.

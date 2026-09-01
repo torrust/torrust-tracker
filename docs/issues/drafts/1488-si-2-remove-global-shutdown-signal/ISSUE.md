@@ -7,7 +7,7 @@ github-issue: null
 spec-path: docs/issues/drafts/1488-si-2-remove-global-shutdown-signal/ISSUE.md
 branch: null
 related-pr: null
-last-updated-utc: 2026-07-16
+last-updated-utc: 2026-09-01
 semantic-links:
   skill-links:
     - create-issue
@@ -18,32 +18,28 @@ semantic-links:
     - packages/axum-rest-api-server/src/server.rs
     - packages/udp-server/src/server/launcher.rs
     - docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
-    - docs/features/shutdown-process/open-questions.md
+    - docs/features/shutdown-process/questions.md
 ---
 
 <!-- skill-link: create-issue -->
 
-# Draft SI-2 — Remove `global_shutdown_signal()` from Per-Server Shutdown
+# Draft SI-2 — Establish Token-Based Server Lifecycle and Remove OS Signals
 
-> **EPIC position**: SI-2 of #1488. Depends on SI-1.
-> **Blocked**: Q5 must be resolved before implementing (Q1 and Q2 are resolved).
+> **EPIC position**: Roadmap step 5. Additive server-lifecycle foundation for
+> #1488; legacy shutdown behavior remains available to existing consumers.
 
 ## Goal
 
-Remove the `global_shutdown_signal()` call from `shutdown_signal()` in
-`torrust_server_lib::signals` so that servers only stop when explicitly told to
-by `main.rs` via the halt channel — not by independently catching OS signals.
+Establish a token-based lifecycle contract for server libraries. A server
+receives an in-process `CancellationToken`, owns the tasks it spawns, and does
+not subscribe to OS signals. On cancellation, it performs its protocol-specific
+graceful stop and joins its owned children before its top-level task completes.
 
-Also wire the `CancellationToken` from `JobManager` into each server job starter
-so that when `main.rs` calls `jobs.cancel()`, the halt message is forwarded to
-each server automatically.
-
-After SI-1 (`main.rs` catches `SIGTERM`), both `main.rs` and each server still
-catch SIGINT/SIGTERM independently. This sub-issue cleans that up so that:
-
-- `main.rs` owns all signal handling.
-- Servers shut down only when they receive a `Halted::Normal` message via
-  their oneshot channel, triggered by the `CancellationToken`.
+`main.rs` remains the only tracker OS-signal boundary. `JobManager` cancels its
+root token; component child tokens carry that request into the server tree.
+The `Started` oneshot remains a startup notification. The shutdown `Halted`
+oneshot is removed from the target lifecycle API; any temporary forwarding is a
+strictly bounded migration bridge, not the final design.
 
 ## Background
 
@@ -63,45 +59,20 @@ do not wait for `main.rs` to coordinate the shutdown order.
 
 ## Implementation
 
-Change `shutdown_signal()` in `torrust_server_lib` to remove the
-`global_shutdown_signal()` branch:
+1. Define and release an **additive** `torrust-server-lib` lifecycle API based
+   on injected cancellation, while retaining `global_shutdown_signal()` and
+   shutdown `Halted` channel compatibility for existing consumers.
+2. Make server start APIs accept an injected cancellation token or a component
+   lifecycle context that owns one.
+3. Require server implementations to retain and join their graceful-stop
+   controller tasks rather than discarding their handles.
+4. Document the required component-consumer migrations; SI-11 through SI-17
+   derive component child tokens and await server completion through managed
+   component tasks.
+5. Document migration and deprecation criteria; do not remove the legacy path
+   in this issue.
 
-```rust
-pub async fn shutdown_signal(rx_halt: tokio::sync::oneshot::Receiver<Halted>) {
-    match rx_halt.await {
-        Ok(signal) => tracing::debug!("Halt signal processed: {}", signal),
-        Err(err) => panic!("Failed to install stop signal: {err}"),
-    }
-}
-```
-
-Servers then only stop when `main.rs` explicitly sends `Halted::Normal` via
-the halt channel.
-
-**Also update each server job starter** to watch the `CancellationToken` and
-forward the halt signal internally (Q2 decision, Option 3):
-
-```rust
-// e.g. src/bootstrap/jobs/udp_tracker.rs — after this change:
-tokio::spawn(async move {
-    tokio::select! {
-        _ = cancellation_token.cancelled() => {
-            // JobManager signalled shutdown — forward to server via halt channel
-            let _ = server.state.halt_task.send(Halted::Normal);
-            server.state.task.await.expect("...");
-        }
-        _ = &mut server.state.task => {
-            // Server finished on its own
-        }
-    }
-})
-```
-
-The same pattern applies to HTTP tracker, REST API, and Health Check API job
-starters. This requires adding a `CancellationToken` parameter to each
-`start_job` function (or threading it through from `app.rs`).
-
-See [Q2 decision](../../features/shutdown-process/open-questions.md#q2) for full
+See [Q2 decision](../../../features/shutdown-process/questions.md#q2) for full
 rationale.
 
 ## Important Considerations
@@ -112,40 +83,43 @@ rationale.
 Changes to `shutdown_signal()` require a coordinated release of `torrust-server-lib`
 and a version bump in this workspace's `Cargo.toml`.
 
-### Orphan risk on `main.rs` crash
+### Process-wrapper signal targeting
 
-If `main.rs` crashes or is SIGKILL'd before sending halt messages, servers
-become orphaned (ports stay open, process appears dead). See Q5 for the
-strategy decision on this risk.
+Q5 is resolved: a `SIGKILL` of the tracker process cannot leave its Tokio
+tasks or ports alive. A `cargo run` child process is a separate operational
+concern; manual tests must signal the actual tracker binary or a deliberately
+selected process group.
 
 ### Impact on standalone binary consumers
 
-The examples `http_only_public_tracker.rs` and `udp_only_public_tracker.rs` use
-`global_shutdown_signal()` indirectly via the server's `shutdown_signal()`. After
-this change, those examples must be updated to send halt signals explicitly — or
-they can be updated independently in SI-3.
+The examples `http_only_public_tracker.rs` and `udp_only_public_tracker.rs` must
+be migrated to token lifecycle APIs in their own later drafts. Their executable
+entry points, not server libraries, handle OS signals.
 
 ## Acceptance Criteria
 
-- [ ] Q1, Q2, and Q5 are resolved before implementation begins.
-- [ ] `shutdown_signal()` in `torrust-server-lib` no longer calls
-      `global_shutdown_signal()`.
-- [ ] Each server job starter accepts and uses a `CancellationToken` to
-      forward the halt signal to its server when `jobs.cancel()` is called.
-- [ ] Servers only stop when the halt channel receives `Halted::Normal`.
-- [ ] `main.rs` does not need to hold or send halt senders directly —
-      `jobs.cancel()` is the only call needed.
+- [ ] An additive lifecycle API accepts injected cancellation without requiring
+      an OS-signal subscription.
+- [ ] Existing `global_shutdown_signal()` and shutdown `Halted` channel users
+      remain source- and behavior-compatible.
+- [ ] The target lifecycle API does not expose a shutdown `Halted` channel;
+      `Started` startup signaling remains unaffected.
+- [ ] Server components receive cancellation through an injected token or
+      lifecycle context, not through OS signals.
+- [ ] Migration documentation states that each eventual server component must
+      join its graceful-stop controller before reporting completion to its
+      parent.
 - [ ] All existing server start/stop tests pass.
-- [ ] Experimental validation: `kill <pid>` (after SI-1) still shuts down
-      cleanly with a single shutdown sequence in the logs (no duplicate
-      "halting" messages per server).
+- [ ] Compatibility tests prove existing legacy server consumers preserve their
+      current shutdown behavior while the additive API remains unused.
 
 ## Dependencies
 
-- SI-1 must land first.
 - Requires `torrust-server-lib` to be updated and released.
-- Q1 is resolved: SI-1 and SI-2 are sequential; SI-1 lands first.
-- Q5 (orphan risk) must be resolved before this sub-issue can land.
+- Q5's process-wrapper premise must be corrected before legacy removal, not
+  before this additive API release.
+- HTTP, REST, health-check, UDP, and standalone consumers migrate separately
+  before legacy deprecation and removal.
 
 ## Manual Verification
 
@@ -159,40 +133,25 @@ cargo build --release
 RUST_LOG=info ./target/release/torrust-tracker
 ```
 
-### Test 1: Single shutdown sequence in the logs (no duplicate "halting" messages)
+### Test 1: Additive API preserves legacy consumers
 
-Send `kill <pid>` (SIGTERM) to the tracker.
+Compile and run representative legacy server consumers without changing their
+call sites. Record that their shutdown behavior remains available while the new
+token-aware lifecycle API is introduced.
 
-**Expected**: Each server logs exactly **one** halt message, not two:
+### Test 2: New lifecycle API has no OS-signal dependency
 
-```text
-# CORRECT (one message per server):
-INFO  Shutting down HTTP server on socket address: 0.0.0.0:7070
+Run focused deterministic tests that cancel an injected token and await the
+new lifecycle API outcome. Do not use SIGINT or SIGTERM in this test.
 
-# WRONG (two messages per server — indicates double-signal still present):
-WARN  caught interrupt signal (ctrl-c), halting...
-INFO  Shutting down HTTP server on socket address: 0.0.0.0:7070
-```
+### Test 3: Process targeting validation
 
-**Record in `verification.md`**: full shutdown log showing absence of
-`global_shutdown_signal` messages.
+Run the tracker through `cargo run`, record the process tree, and demonstrate
+that a direct test targets the actual tracker binary rather than its Cargo
+launcher. If testing a process group, document that intention explicitly.
 
-### Test 2: Ctrl+C also produces a single shutdown sequence
-
-Send SIGINT (Ctrl+C). Confirm the same — no duplicate halt messages per server.
-
-### Test 3: Orphan risk validation
-
-Send `kill -9 <pid>` to force-kill the main process.
-
-**Expected**: All server ports (`6868`, `6969`, `7070`, `7171`, `1212`, `1313`)
-are freed within a few seconds (the OS reclaims them when the process group exits).
-
-```bash
-sleep 2 && lsof -i :7070,6969,1212 | grep LISTEN
-```
-
-Output should be empty. **Record any ports that remain open.**
+**Expected**: Signal delivery and observed shutdown behavior match the selected
+target. Do not describe a separate Cargo child process as a Tokio task orphan.
 
 ### Test 4: Restart succeeds immediately after clean shutdown
 

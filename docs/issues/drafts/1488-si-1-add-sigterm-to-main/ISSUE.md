@@ -7,7 +7,7 @@ github-issue: null
 spec-path: docs/issues/drafts/1488-si-1-add-sigterm-to-main/ISSUE.md
 branch: null
 related-pr: null
-last-updated-utc: 2026-07-16
+last-updated-utc: 2026-09-01
 semantic-links:
   skill-links:
     - create-issue
@@ -15,16 +15,17 @@ semantic-links:
     - src/main.rs
     - docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
     - docs/features/shutdown-process/README.md
-    - docs/features/shutdown-process/open-questions.md
+    - docs/features/shutdown-process/questions.md
     - docs/analysis/20260716-shutdown-process/README.md
     - docs/research/20260716-console-shutdown-patterns/README.md
 ---
 
 <!-- skill-link: create-issue -->
 
-# Draft SI-1 — Add `SIGTERM` Handler to `main.rs`
+# Draft SI-1 — Add `SIGTERM` Handler at the Tracker Signal Boundary
 
-> **EPIC position**: SI-1 of #1488. Highest priority. No prerequisites.
+> **EPIC position**: Roadmap step 1. Independently releasable compatibility
+> improvement; it does not complete the server lifecycle migration.
 
 ## Goal
 
@@ -35,6 +36,10 @@ trigger the same graceful shutdown as Ctrl+C.
 This is the single most impactful change in the EPIC: a few lines of code that fix
 the tracker's compliance with the Unix, Docker, Kubernetes, and systemd process
 lifecycle contracts.
+
+It must preserve the current legacy server shutdown path until token-aware
+server components have been migrated. This issue must not remove or alter a
+library lifecycle API.
 
 ## Background
 
@@ -60,8 +65,8 @@ This was confirmed experimentally on 2026-07-16 (see Phase 1 evidence in
   (`Torrust tracker shutting down`, `Job completed gracefully`,
   `Torrust tracker successfully shutdown.`).
 
-See also [analysis §7.4 and §8.1](../../analysis/20260716-shutdown-process/README.md)
-and [research §4.2](../../research/20260716-console-shutdown-patterns/README.md).
+See also [analysis §7.4 and §8.1](../../../analysis/20260716-shutdown-process/README.md)
+and [research §4.2](../../../research/20260716-console-shutdown-patterns/README.md).
 
 ## Implementation
 
@@ -104,9 +109,10 @@ tracing::info!("Torrust tracker successfully shutdown.");
 **Important nuance from the experimental baseline**: after this change there
 will be a **redundant double-signal** for SIGTERM: `main.rs` catches it _and_
 each server's `global_shutdown_signal()` also catches it. In practice, `main.rs`
-reacts first (since it is the top-level `tokio::select!`), calls `jobs.cancel()`,
-and sends halt messages to all servers. The servers' own SIGTERM handlers then
-fire as a redundant no-op. This is harmless but produces extra log noise
+reacts at the top-level `tokio::select!` and calls `jobs.cancel()`. Servers still
+react independently through their own signal handlers until their lifecycle
+migration is complete. This is temporary compatibility behavior, but produces
+extra log noise
 (duplicate `caught interrupt signal (terminate)` messages from each server).
 The clean removal of `global_shutdown_signal()` is tracked in SI-2.
 
@@ -118,24 +124,25 @@ The clean removal of `global_shutdown_signal()` is tracked in SI-2.
 - [ ] The tracker logs distinguish the signal source: `(SIGINT)` vs `(SIGTERM)`.
 - [ ] After SIGTERM, `main.rs` logs `Torrust tracker shutting down (SIGTERM) ...`.
 - [ ] `JobManager` logs `Waiting for job to finish` for each job.
-- [ ] All jobs report `Job completed gracefully`.
-- [ ] Final log line is `Torrust tracker successfully shutdown.`
-- [ ] No periodic metrics log lines appear after the final shutdown message.
-- [ ] Process exits with code 0 (not 137).
+- [ ] Every component already migrated to manager cancellation reports a
+      graceful completion outcome.
+- [ ] The final shutdown result accurately reflects pending legacy components;
+      complete success and exit-code semantics are finalized by Q3.
 - [ ] `cargo test` passes.
 - [ ] `linter all` passes.
 - [ ] Phase 2 of [verification.md](./verification.md) is fully completed.
 
 ## Open Questions Affecting This Sub-issue
 
-- [Q1](../../features/shutdown-process/open-questions.md#q1): The
+- [Q1](../../../features/shutdown-process/questions.md#q1): The
   double-signal for SIGTERM after this change is harmless but should be noted.
   SI-2 must follow to clean it up.
 
 ## Dependencies
 
 - No hard prerequisites. Can land independently.
-- SI-2 should follow to remove the `global_shutdown_signal()` redundancy.
+- The later server lifecycle migration removes the temporary duplicate
+  library-level signal handling.
 
 ## Manual Verification
 
@@ -162,14 +169,16 @@ pgrep -x torrust-tracker
 kill <pid>
 ```
 
-**Expected**:
+**Expected for this incremental change**:
 
 - Log shows: `Torrust tracker shutting down (SIGTERM) ...`
-- Log shows each job completing gracefully: `Job completed gracefully job=...`
-- Log shows: `Torrust tracker successfully shutdown.`
-- Process exits with code 0.
-- No `SIGKILL` is needed.
-- Verify exit code: `echo $?` in the terminal running the tracker (should be 0).
+- Log shows `main.rs` received SIGTERM and began `jobs.cancel()` / managed-job
+  waiting.
+- Migrated components receive their normal cancellation request.
+- No `SIGKILL` is needed to prove that SIGTERM reached `main.rs`.
+- Do not require every legacy server or periodic job to complete until their
+  token-lifecycle migrations land. SI-20 implements Q3's approved exit-result
+  mapping.
 
 **Record in `verification.md`**: full log output from shutdown start to exit.
 
@@ -194,7 +203,7 @@ Repeat Test 1 using `kill -TERM <pid>`. Expected outcome is identical.
 Confirm that the log message text differs between SIGINT and SIGTERM shutdowns
 (i.e., the log says "SIGINT" vs "SIGTERM" respectively).
 
-### Test 5: `docker stop` triggers graceful shutdown
+### Test 5: `docker stop` forwards SIGTERM (exploratory)
 
 ```bash
 # Run tracker in a container
@@ -205,9 +214,13 @@ docker logs torrust-test
 
 **Expected**:
 
-- Logs show the graceful shutdown sequence ending with `successfully shutdown`.
-- `docker stop` returns within 10 seconds (Docker default).
-- No "Killed" or forced exit message from Docker.
+- Logs show that `main.rs` received SIGTERM and initiated cancellation.
+- Record whether Docker's configured deadline is sufficient; do not require the
+  default 10-second deadline to prove the incomplete intermediate migration.
+- If collecting full graceful-stop evidence, configure Docker with at least a
+  30-second grace period; SI-20 owns that end-to-end validation.
+- Full container graceful-shutdown acceptance follows server, periodic-job,
+  deadline, and exit-status work.
 
 ### Test 6: `kill -9 <pid>` still works (SIGKILL, unchanged behavior)
 

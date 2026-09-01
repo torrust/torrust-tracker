@@ -1,13 +1,13 @@
 ---
 doc-type: issue
 issue-type: task
-status: draft
+status: superseded
 priority: p2
 github-issue: null
 spec-path: docs/issues/drafts/1488-si-6-align-grace-periods/ISSUE.md
 branch: null
 related-pr: null
-last-updated-utc: 2026-07-16
+last-updated-utc: 2026-09-01
 semantic-links:
   skill-links:
     - create-issue
@@ -17,22 +17,33 @@ semantic-links:
     - packages/axum-server/src/signals.rs
     - docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
     - docs/analysis/20260716-shutdown-process/README.md
-    - docs/features/shutdown-process/open-questions.md
+    - docs/features/shutdown-process/questions.md
 ---
 
 <!-- skill-link: create-issue -->
 
-# Draft SI-6 — Align `JobManager` Grace Period with Axum Server Timeout
+# Superseded Draft SI-6 — Use Issue #1586 for Supervisor Ownership
 
-> **EPIC position**: SI-6 of #1488.
-> **Blocked**: Q4 must be resolved — the correct target grace period depends
-> on the Docker/Kubernetes deployment context decision.
+> **Status**: Superseded for implementation planning. Existing issue
+> [#1586](../../open/1586-evaluate-job-manager-join-set/ISSUE.md) replaces this
+> draft because it requires direct `JoinSet` ownership rather than wrapping
+> already-spawned handles.
+
+## Why This Draft Is Superseded
+
+Issue #1586 requires `JobManager` to evaluate direct task ownership through
+`JoinSet` (or an explicitly justified alternative). This draft instead retains
+a `Vec<Job>` of already-spawned handles, which can require wrapper tasks solely
+for registration. Do not implement this draft; use the local issue #1586 spec.
+
+## Original Goal
 
 ## Goal
 
-Fix the mismatch between the `JobManager`'s per-job timeout (10s) and the Axum
-server's graceful shutdown grace period (90s) so that the main process actually
-waits long enough for HTTP connections to drain before exiting.
+Replace sequential per-job waits with concurrent waiting for existing direct
+handles and structured, named outcomes. This issue does not change server
+cancellation APIs, component child ownership, numeric deployment policy, or
+exit codes; those follow in independent work items.
 
 ## Background
 
@@ -47,36 +58,19 @@ Because the `JobManager` times out after 10s per job, the main process exits
 before the Axum 90s drain period completes. The Axum drain task keeps running
 as an orphan but the process has already exited — connections are force-dropped.
 
-See [analysis §5.1 and §7.3](../../analysis/20260716-shutdown-process/README.md).
+See [analysis §5.1 and §7.3](../../../analysis/20260716-shutdown-process/README.md).
 
 **The tension with Docker**:
 
 Docker's default `stop_grace_period` is 10s. If we raise the `JobManager` timeout
 to match the Axum 90s, Docker will SIGKILL the container before the tracker
 finishes draining. Operators must configure `stop_grace_period` appropriately.
-See Q4 in open-questions.md.
+See Q4 in questions.md.
 
 ## Implementation
 
-**Step 1**: Reduce the Axum server grace period to a value shorter than the
-`JobManager` total timeout. A good target:
-
-```rust
-// packages/axum-server/src/signals.rs
-let grace_period = Duration::from_secs(25);  // was 90s
-let max_wait = Duration::from_secs(30);       // was 95s
-```
-
-**Step 2**: Raise the `JobManager` grace period to give enough time for all jobs
-(including the Axum drain):
-
-```rust
-// src/main.rs
-jobs.wait_for_all(Duration::from_secs(30)).await;  // was 10s
-```
-
-**Step 3**: Change `wait_for_all` to wait concurrently rather than sequentially
-(each job currently gets 10s regardless of what others are doing):
+Change `wait_for_all` to wait concurrently and return named outcomes. Use an
+existing temporary overall deadline until Q4 specifies configurable final policy:
 
 ```rust
 // src/bootstrap/jobs/manager.rs
@@ -98,20 +92,18 @@ pub async fn wait_for_all(mut self, grace_period: Duration) {
 
 ## Acceptance Criteria
 
-- [ ] Q4 is resolved and the target grace period is agreed.
 - [ ] `jobs.wait_for_all()` waits concurrently, not sequentially.
-- [ ] The Axum internal grace period is ≤ `JobManager` total timeout.
-- [ ] `main.rs` uses the agreed total timeout.
-- [ ] When `kill -INT <pid>` is sent, all Axum servers drain their connections
-      (log shows "All connections closed") before `main.rs` exits.
-- [ ] Deployment documentation (`docs/containers.md`) notes the recommended
-      Docker `stop_grace_period` configuration.
+- [ ] Each registered job has a named structured outcome: completed, failed,
+      timed out, or deliberately aborted.
+- [ ] The implementation preserves current job registration and server APIs.
+- [ ] Unit tests exercise completion, failure, and timeout without OS signals.
+- [ ] The temporary deadline and its limitations are documented for Q4.
 
 ## Dependencies
 
-- Q4 (grace period decision) must be resolved.
-- Can land after SI-1 or independently; the grace period alignment is correct
-  behavior regardless of which signal triggered the shutdown.
+- No hard prerequisite. It is additive and may precede component migrations.
+- Q4 supplies the final deadline hierarchy and configuration after this outcome
+  foundation exists.
 
 ## Manual Verification
 
@@ -125,34 +117,7 @@ cargo build --release
 RUST_LOG=info ./target/release/torrust-tracker
 ```
 
-### Test 1: All Axum servers drain connections before main exits
-
-With the tracker running, open one or more idle HTTP connections (e.g., with
-`curl` or `telnet`) and then send `kill -INT <pid>`.
-
-```bash
-# Keep a connection alive in background
-curl -v --no-progress-meter http://127.0.0.1:7070/health_check &
-
-# Shutdown
-kill -INT <pid>
-```
-
-**Expected log sequence**:
-
-```text
-INFO  graceful_shutdown: !! Shutting down HTTP server ... in 25 seconds !!
-INFO  graceful_shutdown: All connections closed, shutting down server in address ...
-INFO  Job completed gracefully job=http_instance_0_0.0.0.0:7070
-INFO  Torrust tracker successfully shutdown.
-```
-
-The key requirement is that `All connections closed` appears **before**
-`successfully shutdown` — the main process waited for HTTP drain to complete.
-
-**Record in `verification.md`**: timestamped log output showing the sequence.
-
-### Test 2: Jobs are waited concurrently
+### Test 1: Jobs are waited concurrently
 
 Confirm that the shutdown log does **not** show sequential one-by-one waits
 but instead shows jobs completing in parallel. Compare timestamps:
@@ -163,25 +128,15 @@ but instead shows jobs completing in parallel. Compare timestamps:
 2026-07-16T10:00:10 INFO  Waiting for job ... job=http_api
 
 # Concurrent (CORRECT): timestamps are clustered together
-2026-07-16T10:00:00 INFO  Waiting for 9 jobs to finish (timeout: 30s)
+2026-07-16T10:00:00 INFO  Waiting for 9 jobs to finish (temporary overall deadline)
 2026-07-16T10:00:01 INFO  Job completed gracefully job=health_check_api
 2026-07-16T10:00:01 INFO  Job completed gracefully job=http_api
 ```
 
 **Record in `verification.md`**: log output with timestamps showing concurrent completion.
 
-### Test 3: Docker stop completes without SIGKILL
+### Test 2: Structured outcomes are named
 
-```bash
-docker run -d --name torrust-test torrust/tracker:dev
-# Make one HTTP request to ensure a connection is open
-curl http://localhost:7070/health_check &
-docker stop torrust-test  # default 10s timeout
-docker logs torrust-test | tail -5
-```
-
-**Expected**: `docker stop` returns before the timeout. The last log line shows
-`successfully shutdown`, not a killed/aborted message.
-
-**Note**: If the default 10s is too short, document the observed timing and the
-recommended `stop_grace_period` in `verification.md`.
+Use deterministic completed, failed, and blocked tasks. Confirm the supervisor
+returns the corresponding named outcomes. SI-20 owns the approved 25s/20s/5s
+budgets and configured Docker/Podman validation.

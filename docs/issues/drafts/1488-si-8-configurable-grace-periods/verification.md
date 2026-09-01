@@ -1,6 +1,7 @@
-# Verification Evidence
+# Verification Evidence — Superseded Shutdown Configuration Draft
 
-> **Status**: Not started — to be filled in when implementing the issue.
+> **Status**: Do not populate. [SI-20](../1488-si-20-configure-shutdown-policy/verification.md)
+> owns verification of the approved Q3/Q4 policy decisions.
 
 ## Environment
 
@@ -11,4 +12,4 @@
 
 ## Test Results
 
-<!-- Copy the test headings from ISSUE.md and paste evidence below each one -->
+No verification applies to this superseded draft.

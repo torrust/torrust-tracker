@@ -1,6 +1,7 @@
-# Verification Evidence
+# Verification Evidence — Superseded Concurrent Supervisor Outcomes
 
-> **Status**: Not started — to be filled in when implementing the issue.
+> **Status**: Do not populate. Issue [#1586](../../open/1586-evaluate-job-manager-join-set/verification.md)
+> owns the direct `JobManager` ownership and outcome evidence.
 
 ## Environment
 
@@ -11,4 +12,4 @@
 
 ## Test Results
 
-<!-- Copy the test headings from ISSUE.md and paste evidence below each one -->
+No verification applies to this superseded draft.

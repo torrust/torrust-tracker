@@ -1,13 +1,13 @@
 ---
 doc-type: issue
 issue-type: task
-status: draft
+status: superseded
 priority: p3
 github-issue: null
 spec-path: docs/issues/drafts/1488-si-7-observable-shutdown-progress/ISSUE.md
 branch: null
 related-pr: null
-last-updated-utc: 2026-07-16
+last-updated-utc: 2026-09-01
 semantic-links:
   skill-links:
     - create-issue
@@ -20,16 +20,27 @@ semantic-links:
 
 <!-- skill-link: create-issue -->
 
-# Draft SI-7 — Implement Observable Shutdown Progress in `JobManager`
+# Superseded Draft SI-7 — Fold Outcome Reporting into Issue #1586
 
-> **EPIC position**: SI-7 of #1488. Independent — no blockers.
-> Pairs naturally with SI-6 (concurrent waiting).
+> **Status**: Superseded for implementation planning. Its structured-outcome
+> requirement is part of issue [#1586](../../open/1586-evaluate-job-manager-join-set/ISSUE.md);
+> optional periodic progress is a later additive presentation task after
+> operational feedback.
 
-## Goal
+## Why This Draft Is Superseded
 
-During shutdown, log which jobs are still running so operators and developers can
-tell what is blocking the tracker from exiting. Currently only a single `WARN` is
-logged if a job times out, with no periodic progress reporting.
+Structured outcomes and concurrent waiting share one data model and must land
+together. Splitting them would produce either unstructured waiting or output
+that cannot faithfully represent component state. Issue #1586 now owns
+completed, failed, timed-out, and deliberately aborted named outcomes. Do not
+implement this draft separately.
+
+## Original Goal
+
+During shutdown, report the named outcome of every top-level component:
+completed, failed, timed out, or deliberately aborted. Optional periodic
+"still waiting" output must be derived from the same concurrent-supervision
+state, not from a separate unowned logging task.
 
 ## Background
 
@@ -71,21 +82,20 @@ Options:
 3. **Both** — periodic progress + final summary.
 
 The minimal viable implementation is option 2 (final summary). Option 1 requires
-SI-6's concurrent waiting to be useful.
+issue #1586's concurrent waiting to be useful.
 
 ## Acceptance Criteria
 
-- [ ] On graceful shutdown, a final summary log lists each job and its outcome
-      (completed / timed out).
+- [ ] A final summary lists every top-level component and its outcome:
+      completed, failed, timed out, or deliberately aborted.
 - [ ] If any job times out, the log message includes the job name.
 - [ ] The shutdown start message logs the total number of jobs and the timeout.
 - [ ] `linter all` passes.
 
 ## Dependencies
 
-- No hard prerequisites. Can land independently.
-- Most useful after SI-6 (concurrent waiting), since sequential waiting makes
-  progress harder to interpret.
+- Depends on issue #1586's structured concurrent outcome collection.
+- Q3 consumes these aggregate outcomes to define the process exit result.
 
 ## Manual Verification
 

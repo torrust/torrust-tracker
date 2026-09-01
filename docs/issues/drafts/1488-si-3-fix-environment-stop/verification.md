@@ -1,6 +1,9 @@
-# Verification Evidence
+# Verification Evidence — Superseded Combined Standalone Migration
 
-> **Status**: Not started — to be filled in when implementing the issue.
+> **Status**: Do not populate. [SI-16](../1488-si-16-migrate-standalone-http-environment/verification.md)
+> and [SI-17](../1488-si-17-migrate-standalone-udp-environment/verification.md)
+> require separate verification evidence for the HTTP and UDP consumers,
+> respectively.
 
 ## Environment
 
@@ -11,4 +14,4 @@
 
 ## Test Results
 
-<!-- Copy the test headings from ISSUE.md and paste evidence below each one -->
+No verification applies to this superseded draft.
