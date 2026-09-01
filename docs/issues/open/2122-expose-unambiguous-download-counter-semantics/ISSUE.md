@@ -10,7 +10,7 @@ branch: "2122-expose-unambiguous-download-counter-semantics"
 related-pr: 2123
 depends-on:
   - 2107
-last-updated-utc: 2026-09-01 10:30
+last-updated-utc: 2026-09-01 12:05
 semantic-links:
   skill-links:
     - create-issue
@@ -155,7 +155,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T4  | DONE    | Prove retention regressions  | Added persistence-free restart, persisted restoration, disabled omission, and enabled-zero focused coverage.                                                                             |
 | T5  | DONE    | Review and extend API tests  | Extended authenticated `GET /api/v1/stats` and direct Prometheus `GET /api/v1/metrics` package contract coverage; package-local tests prove configuration-to-endpoint behavior.          |
 | T6  | DONE    | Verify public contract       | Focused tracker-core, REST protocol/runtime adapter, and REST server tests pass.                                                                                                         |
-| T7  | BLOCKED | Record local manual evidence | SQLite manual-verification commands and expected outcomes are prepared; execution requires a local v3 configuration and real completed-download event.                                   |
+| T7  | DONE    | Record local manual evidence | M1-M3 passed against local v3 persistence-free and SQLite configurations; `manual-verification.md` records redacted commands, responses, and restart outcomes.                             |
 
 ## Progress Tracking
 
@@ -169,10 +169,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation.
 - [x] Implementation completed.
 - [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks).
-- [ ] Manual verification scenarios executed and recorded (status + evidence).
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence.
-- [ ] Reviewer validated acceptance criteria and updated checkboxes.
-- [ ] Committer verified spec progress is up to date before commit.
+- [x] Manual verification scenarios executed and recorded (status + evidence).
+- [x] Acceptance criteria reviewed after implementation and updated with evidence.
+- [x] Reviewer validated acceptance criteria and updated checkboxes.
+- [x] Committer verified spec progress is up to date before commit.
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`.
 
 ### Progress Log
@@ -198,19 +198,24 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   Markdown/spelling linting, and the mandatory pre-commit gate passed. SQLite
   manual verification commands are recorded but remain blocked pending a local
   v3 configuration and a real completed-download event.
+- 2026-09-01 12:05 UTC - GitHub Copilot - Completed M1-M3 against local v3
+  configurations. The persistence-free run reset legacy and in-session counts
+  across restart and omitted the persisted metric. The SQLite run exported zero
+  while enabled, retained the persisted count across restart, and reset only the
+  in-session count. The independent reviewer found no implementation defects.
 
 ## Acceptance Criteria
 
-- [ ] AC1: The legacy `completed` field and legacy metric identifier retain their conditional value semantics, have accurate descriptions, and are documented as deprecated migration paths to explicit views.
-- [ ] AC2: `completed_in_session` resets to zero for every tracker process and increments with every in-memory completed-download event.
-- [ ] AC3: With persistent completed statistics enabled, `completed_persisted` is seeded from the database aggregate and advances only after successful database persistence; `completed_persisted_enabled` is true.
-- [ ] AC4: With persistent completed statistics disabled, `completed_persisted` is zero, `completed_persisted_enabled` is false, and clients can distinguish this from an enabled zero count only through the boolean.
-- [ ] AC5: The in-session metric has the tracker-usage-statistics availability contract; the persisted metric is exported only when persistent completed statistics are enabled; the legacy metric remains exported with legacy semantics.
-- [ ] AC6: The REST composition root supplies persistence capability from validated configuration, and the v1 protocol remains backward-compatible for clients deserializing older payloads.
-- [ ] AC7: REST server contract tests cover the additive `GET /api/v1/stats` fields and direct `GET /api/v1/metrics` behavior for both persistence modes.
-- [ ] AC8: Focused tests prove a persistence-free restart reset, persistence-enabled restoration, enabled zero-value behavior, and persisted-metric omission when disabled without changing #2107's listener topology. Add a `tests/` application integration test when package-local tests cannot prove the configuration-to-endpoint contract.
-- [ ] AC9: A repository-wide ADR records the names, lifecycle, compatibility/deprecation policy, and API-v2 migration; it explicitly refines #999's session-versus-historical deferral.
-- [ ] AC10: `linter all` exits with code `0`, relevant tests pass, manual verification is documented, and acceptance criteria are re-reviewed against actual behavior.
+- [x] AC1: The legacy `completed` field and legacy metric identifier retain their conditional value semantics, have accurate descriptions, and are documented as deprecated migration paths to explicit views.
+- [x] AC2: `completed_in_session` resets to zero for every tracker process and increments with every in-memory completed-download event.
+- [x] AC3: With persistent completed statistics enabled, `completed_persisted` is seeded from the database aggregate and advances only after successful database persistence; `completed_persisted_enabled` is true.
+- [x] AC4: With persistent completed statistics disabled, `completed_persisted` is zero, `completed_persisted_enabled` is false, and clients can distinguish this from an enabled zero count only through the boolean.
+- [x] AC5: The in-session metric has the tracker-usage-statistics availability contract; the persisted metric is exported only when persistent completed statistics are enabled; the legacy metric remains exported with legacy semantics.
+- [x] AC6: The REST composition root supplies persistence capability from validated configuration, and the v1 protocol remains backward-compatible for clients deserializing older payloads.
+- [x] AC7: REST server contract tests cover the additive `GET /api/v1/stats` fields and direct `GET /api/v1/metrics` behavior for both persistence modes.
+- [x] AC8: Focused tests prove a persistence-free restart reset, persistence-enabled restoration, enabled zero-value behavior, and persisted-metric omission when disabled without changing #2107's listener topology. Add a `tests/` application integration test when package-local tests cannot prove the configuration-to-endpoint contract.
+- [x] AC9: A repository-wide ADR records the names, lifecycle, compatibility/deprecation policy, and API-v2 migration; it explicitly refines #999's session-versus-historical deferral.
+- [x] AC10: `linter all` exits with code `0`, relevant tests pass, manual verification is documented, and acceptance criteria are re-reviewed against actual behavior.
 
 ## Verification Plan
 
@@ -249,16 +254,16 @@ Notes:
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence           |
 | ----- | ---------------------- | ------------------ |
-| AC1   | TODO                   | `statistics/mod.rs`; focused package tests; reviewer pending |
-| AC2   | TODO                   | tracker-core persistence-free restart regression; reviewer pending |
-| AC3   | TODO                   | tracker-core persisted-update/restoration regression; reviewer pending |
-| AC4   | TODO                   | REST disabled-capability contract regression; reviewer pending |
-| AC5   | TODO                   | repository and direct Prometheus endpoint regressions; reviewer pending |
-| AC6   | TODO                   | protocol legacy-deserialization regression and REST composition; reviewer pending |
-| AC7   | TODO                   | `axum-rest-api-server` authenticated contract regressions; reviewer pending |
-| AC8   | TODO                   | focused tracker-core and REST package tests; reviewer pending |
-| AC9   | TODO                   | ADR `20260901113500_define_completed_download_metric_retention_names.md`; reviewer pending |
-| AC10  | TODO                   | pre-commit passed; manual scenarios blocked; reviewer pending |
+| AC1   | DONE                   | Metric/DTO descriptions, package tests, and M3 |
+| AC2   | DONE                   | Tracker-core restart regression and M1 |
+| AC3   | DONE                   | Persisted update/restoration regression and M2 |
+| AC4   | DONE                   | REST disabled-capability contract regression and M1 |
+| AC5   | DONE                   | Direct Prometheus regressions and M1-M3 |
+| AC6   | DONE                   | Protocol legacy-deserialization regression and REST composition |
+| AC7   | DONE                   | Authenticated REST server contract regressions |
+| AC8   | DONE                   | Focused package tests and M1-M2 |
+| AC9   | DONE                   | ADR `20260901113500_define_completed_download_metric_retention_names.md` |
+| AC10  | DONE                   | Pre-commit passed; M1-M3 evidence; independent review |
 
 ## Risks and Trade-offs
 
