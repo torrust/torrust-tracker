@@ -7,8 +7,8 @@ use torrust_clock::DurationSinceUnixEpoch;
 use torrust_metrics::label::LabelSet;
 use torrust_metrics::{metric_collection, metric_name};
 
-use super::TRACKER_CORE_PERSISTENT_TORRENTS_DOWNLOADS_TOTAL;
 use super::repository::Repository;
+use super::{TRACKER_CORE_PERSISTED_TORRENTS_DOWNLOADS_TOTAL, TRACKER_CORE_PERSISTENT_TORRENTS_DOWNLOADS_TOTAL};
 use crate::databases;
 use crate::statistics::persisted::downloads::DatabaseDownloadsMetricRepository;
 
@@ -27,6 +27,14 @@ pub async fn load_persisted_metrics(
         stats_repository
             .set_counter(
                 &metric_name!(TRACKER_CORE_PERSISTENT_TORRENTS_DOWNLOADS_TOTAL),
+                &LabelSet::default(),
+                u64::from(downloads),
+                now,
+            )
+            .await?;
+        stats_repository
+            .set_counter(
+                &metric_name!(TRACKER_CORE_PERSISTED_TORRENTS_DOWNLOADS_TOTAL),
                 &LabelSet::default(),
                 u64::from(downloads),
                 now,

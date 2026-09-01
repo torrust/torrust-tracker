@@ -5,9 +5,12 @@ use torrust_metrics::label::LabelSet;
 use torrust_metrics::metric_name;
 use torrust_tracker_swarm_coordination_registry::event::Event;
 
-use crate::statistics::TRACKER_CORE_PERSISTENT_TORRENTS_DOWNLOADS_TOTAL;
 use crate::statistics::persisted::downloads::DatabaseDownloadsMetricRepository;
 use crate::statistics::repository::Repository;
+use crate::statistics::{
+    TRACKER_CORE_IN_SESSION_TORRENTS_DOWNLOADS_TOTAL, TRACKER_CORE_PERSISTED_TORRENTS_DOWNLOADS_TOTAL,
+    TRACKER_CORE_PERSISTENT_TORRENTS_DOWNLOADS_TOTAL,
+};
 
 /// Handles a swarm coordination event and updates in-memory tracker statistics.
 pub async fn handle_in_memory_event(event: Event, stats_repository: &Arc<Repository>, now: DurationSinceUnixEpoch) {
@@ -45,6 +48,13 @@ pub async fn handle_in_memory_event(event: Event, stats_repository: &Arc<Reposit
                     now,
                 )
                 .await;
+            let _unused = stats_repository
+                .increment_counter(
+                    &metric_name!(TRACKER_CORE_IN_SESSION_TORRENTS_DOWNLOADS_TOTAL),
+                    &LabelSet::default(),
+                    now,
+                )
+                .await;
         }
     }
 }
@@ -53,6 +63,8 @@ pub async fn handle_in_memory_event(event: Event, stats_repository: &Arc<Reposit
 pub async fn handle_persistent_completed_statistics_event(
     event: Event,
     db_downloads_metric_repository: &Arc<DatabaseDownloadsMetricRepository>,
+    stats_repository: &Arc<Repository>,
+    now: DurationSinceUnixEpoch,
 ) {
     if let Event::PeerDownloadCompleted { info_hash, .. } = event {
         match db_downloads_metric_repository
@@ -70,6 +82,13 @@ pub async fn handle_persistent_completed_statistics_event(
         match db_downloads_metric_repository.increase_global_downloads().await {
             Ok(()) => {
                 tracing::debug!("Global number of downloads increased");
+                let _unused = stats_repository
+                    .increment_counter(
+                        &metric_name!(TRACKER_CORE_PERSISTED_TORRENTS_DOWNLOADS_TOTAL),
+                        &LabelSet::default(),
+                        now,
+                    )
+                    .await;
             }
             Err(err) => {
                 tracing::error!(error = ?err, "Failed to increase global number of downloads");

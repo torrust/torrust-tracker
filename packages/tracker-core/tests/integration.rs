@@ -132,6 +132,14 @@ async fn it_should_persist_the_global_number_of_completed_peers_into_the_databas
     // start before the background task has written to the database, causing a
     // flaky failure under high-concurrency environments such as Docker builds.
     test_env.wait_for_global_downloads_persisted(1).await;
+    assert_eq!(
+        test_env
+            .tracker_core_container
+            .stats_repository
+            .get_torrents_downloads_persisted_total()
+            .await,
+        1
+    );
 
     // We run a new instance of the test environment to simulate a restart.
     // The new instance uses the same underlying database.
@@ -143,5 +151,54 @@ async fn it_should_persist_the_global_number_of_completed_peers_into_the_databas
             .get_counter_value("tracker_core_persistent_torrents_downloads_total")
             .await,
         1
+    );
+    assert_eq!(
+        new_test_env
+            .tracker_core_container
+            .stats_repository
+            .get_torrents_downloads_persisted_total()
+            .await,
+        1
+    );
+}
+
+#[tokio::test]
+async fn it_should_reset_in_session_completed_downloads_after_a_persistence_free_restart() {
+    // Arrange
+    let mut core_config = ephemeral_configuration();
+    core_config.database = None;
+    let mut test_env = TestEnv::started(core_config.clone()).await;
+
+    test_env
+        .increase_number_of_downloads(sample_peer(), &remote_client_ip(), &sample_info_hash())
+        .await;
+
+    // Act
+    let restarted_test_env = TestEnv::started(core_config).await;
+
+    // Assert
+    assert_eq!(
+        test_env
+            .tracker_core_container
+            .stats_repository
+            .get_torrents_downloads_in_session_total()
+            .await,
+        1
+    );
+    assert_eq!(
+        restarted_test_env
+            .tracker_core_container
+            .stats_repository
+            .get_torrents_downloads_in_session_total()
+            .await,
+        0
+    );
+    assert_eq!(
+        restarted_test_env
+            .tracker_core_container
+            .stats_repository
+            .get_torrents_downloads_persisted_total()
+            .await,
+        0
     );
 }

@@ -3,6 +3,7 @@ use std::str::FromStr;
 use torrust_info_hash::InfoHash;
 use torrust_tracker_axum_rest_api_server::testing::environment::Started;
 use torrust_tracker_primitives::peer::fixture::PeerBuilder;
+use torrust_tracker_rest_api_client::common::http::{Query, QueryParam};
 use torrust_tracker_rest_api_client::v1::client::{ApiHttpClient, headers_with_request_id};
 use torrust_tracker_rest_api_protocol::v1::context::stats::resources::stats::Stats;
 use torrust_tracker_test_helpers::logging::logs_contains_a_line_with;
@@ -38,6 +39,9 @@ async fn should_allow_getting_tracker_statistics() {
             torrents: 1,
             seeders: 1,
             completed: 0,
+            completed_in_session: 0,
+            completed_persisted: 0,
+            completed_persisted_enabled: false,
             leechers: 0,
             // TCP
             tcp4_connections_handled: 0,
@@ -73,6 +77,90 @@ async fn should_allow_getting_tracker_statistics() {
     .await;
 
     env.stop().await;
+}
+
+#[tokio::test]
+async fn should_expose_completed_download_availability_and_omit_the_persisted_metric_when_disabled() {
+    // Arrange
+    logging::setup();
+    let mut configuration = configuration::ephemeral();
+    configuration.core.database = None;
+    let env = Started::new(&configuration.into()).await;
+    let connection = env.get_connection_info();
+    let client = ApiHttpClient::new(connection).unwrap();
+
+    // Act
+    let stats = client
+        .get_request_with_query("stats", Query::default(), None)
+        .await
+        .unwrap()
+        .json::<Stats>()
+        .await
+        .unwrap();
+    let metrics = client
+        .get_request_with_query("metrics", Query::params(vec![QueryParam::new("format", "prometheus")]), None)
+        .await
+        .unwrap()
+        .text()
+        .await
+        .unwrap();
+
+    // Assert
+    assert_eq!(stats.completed_persisted, 0);
+    assert!(!stats.completed_persisted_enabled);
+    assert_metric_is_exported(&metrics, "tracker_core_persistent_torrents_downloads_total");
+    assert_metric_is_exported(&metrics, "tracker_core_in_session_torrents_downloads_total");
+    assert_metric_is_not_exported(&metrics, "tracker_core_persisted_torrents_downloads_total");
+
+    env.stop().await;
+}
+
+#[tokio::test]
+async fn should_expose_an_enabled_zero_value_persisted_metric() {
+    // Arrange
+    logging::setup();
+    let mut configuration = configuration::ephemeral();
+    configuration.core.tracker_policy.persistent_torrent_completed_stat = true;
+    let env = Started::new(&configuration.into()).await;
+    let connection = env.get_connection_info();
+    let client = ApiHttpClient::new(connection).unwrap();
+
+    // Act
+    let stats = client
+        .get_request_with_query("stats", Query::default(), None)
+        .await
+        .unwrap()
+        .json::<Stats>()
+        .await
+        .unwrap();
+    let metrics = client
+        .get_request_with_query("metrics", Query::params(vec![QueryParam::new("format", "prometheus")]), None)
+        .await
+        .unwrap()
+        .text()
+        .await
+        .unwrap();
+
+    // Assert
+    assert_eq!(stats.completed_persisted, 0);
+    assert!(stats.completed_persisted_enabled);
+    assert_metric_is_exported(&metrics, "tracker_core_persisted_torrents_downloads_total");
+
+    env.stop().await;
+}
+
+fn assert_metric_is_exported(metrics: &str, metric_name: &str) {
+    assert!(
+        metrics.lines().any(|line| line.starts_with(&format!("{metric_name} "))),
+        "Expected metric {metric_name} to be exported"
+    );
+}
+
+fn assert_metric_is_not_exported(metrics: &str, metric_name: &str) {
+    assert!(
+        !metrics.lines().any(|line| line.starts_with(&format!("{metric_name} "))),
+        "Expected metric {metric_name} not to be exported"
+    );
 }
 
 #[tokio::test]

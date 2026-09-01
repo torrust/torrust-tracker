@@ -8,7 +8,10 @@ use torrust_metrics::metric_collection::Error;
 use torrust_metrics::metric_name;
 
 use super::metrics::Metrics;
-use super::{TRACKER_CORE_PERSISTENT_TORRENTS_DOWNLOADS_TOTAL, describe_metrics};
+use super::{
+    TRACKER_CORE_IN_SESSION_TORRENTS_DOWNLOADS_TOTAL, TRACKER_CORE_PERSISTED_TORRENTS_DOWNLOADS_TOTAL,
+    TRACKER_CORE_PERSISTENT_TORRENTS_DOWNLOADS_TOTAL, describe_metrics,
+};
 
 /// A repository for the torrent repository metrics.
 #[derive(Clone)]
@@ -18,14 +21,17 @@ pub struct Repository {
 
 impl Default for Repository {
     fn default() -> Self {
-        Self::new()
+        Self::new(true, false)
     }
 }
 
 impl Repository {
     #[must_use]
-    pub fn new() -> Self {
-        let stats = Arc::new(RwLock::new(describe_metrics()));
+    pub fn new(tracker_usage_statistics_enabled: bool, persisted_completed_statistics_enabled: bool) -> Self {
+        let stats = Arc::new(RwLock::new(describe_metrics(
+            tracker_usage_statistics_enabled,
+            persisted_completed_statistics_enabled,
+        )));
 
         Self { stats }
     }
@@ -156,21 +162,86 @@ impl Repository {
         result
     }
 
-    /// Get the total number of torrent downloads.
-    ///
-    /// The value is persisted in database if persistence for downloads metrics is enabled.
+    /// Gets the deprecated, conditionally retained total number of torrent downloads.
     pub async fn get_torrents_downloads_total(&self) -> u64 {
+        self.get_counter_value(TRACKER_CORE_PERSISTENT_TORRENTS_DOWNLOADS_TOTAL).await
+    }
+
+    /// Gets completed downloads observed by this tracker process.
+    pub async fn get_torrents_downloads_in_session_total(&self) -> u64 {
+        self.get_counter_value(TRACKER_CORE_IN_SESSION_TORRENTS_DOWNLOADS_TOTAL).await
+    }
+
+    /// Gets completed downloads restored from and maintained in persistent storage.
+    pub async fn get_torrents_downloads_persisted_total(&self) -> u64 {
+        self.get_counter_value(TRACKER_CORE_PERSISTED_TORRENTS_DOWNLOADS_TOTAL).await
+    }
+
+    async fn get_counter_value(&self, metric_name: &str) -> u64 {
         let metrics = self.get_metrics().await;
 
-        let downloads = metrics.metric_collection.get_counter_value(
-            &metric_name!(TRACKER_CORE_PERSISTENT_TORRENTS_DOWNLOADS_TOTAL),
-            &LabelSet::default(),
-        );
+        let downloads = metrics
+            .metric_collection
+            .get_counter_value(&metric_name!(metric_name), &LabelSet::default());
 
         if let Some(downloads) = downloads {
             downloads.value()
         } else {
             0
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use torrust_metrics::metric_name;
+
+    use super::Repository;
+    use crate::statistics::{
+        TRACKER_CORE_IN_SESSION_TORRENTS_DOWNLOADS_TOTAL, TRACKER_CORE_PERSISTED_TORRENTS_DOWNLOADS_TOTAL,
+        TRACKER_CORE_PERSISTENT_TORRENTS_DOWNLOADS_TOTAL,
+    };
+
+    #[tokio::test]
+    async fn it_should_omit_persisted_metric_when_persisted_completed_statistics_are_disabled() {
+        // Arrange
+        let repository = Repository::new(true, false);
+
+        // Act
+        let metrics = repository.get_metrics().await;
+
+        // Assert
+        assert!(
+            metrics
+                .metric_collection
+                .contains_counter(&metric_name!(TRACKER_CORE_PERSISTENT_TORRENTS_DOWNLOADS_TOTAL))
+        );
+        assert!(
+            metrics
+                .metric_collection
+                .contains_counter(&metric_name!(TRACKER_CORE_IN_SESSION_TORRENTS_DOWNLOADS_TOTAL))
+        );
+        assert!(
+            !metrics
+                .metric_collection
+                .contains_counter(&metric_name!(TRACKER_CORE_PERSISTED_TORRENTS_DOWNLOADS_TOTAL))
+        );
+    }
+
+    #[tokio::test]
+    async fn it_should_export_persisted_metric_with_zero_value_when_persisted_completed_statistics_are_enabled() {
+        // Arrange
+        let repository = Repository::new(true, true);
+
+        // Act
+        let metrics = repository.get_metrics().await;
+
+        // Assert
+        assert!(
+            metrics
+                .metric_collection
+                .contains_counter(&metric_name!(TRACKER_CORE_PERSISTED_TORRENTS_DOWNLOADS_TOTAL))
+        );
+        assert_eq!(repository.get_torrents_downloads_persisted_total().await, 0);
     }
 }

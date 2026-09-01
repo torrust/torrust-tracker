@@ -44,6 +44,7 @@ pub fn start_persistent_completed_statistics_event_listener(
             app_container.swarm_coordination_registry_container.event_bus.receiver(),
             cancellation_token,
             &persistence.db_downloads_metric_repository,
+            &app_container.tracker_core_container.stats_repository,
         );
 
         Some(job)

@@ -194,7 +194,7 @@ impl EnvContainer {
                 core_config.database.as_ref(),
             )
             .await
-            .expect("REST API server test initialization requires persistence"),
+            .expect("REST API server test initialization requires valid composition"),
         );
 
         let http_tracker_core_container = HttpTrackerCoreContainer::initialize_from_tracker_core(

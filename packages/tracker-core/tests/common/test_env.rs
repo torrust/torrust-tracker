@@ -44,7 +44,7 @@ impl TestEnv {
                 core_config.database.as_ref(),
             )
             .await
-            .expect("tracker core test environment requires persistence"),
+            .expect("tracker core test environment requires valid composition"),
         );
 
         Self {
@@ -55,7 +55,14 @@ impl TestEnv {
 
     pub async fn start(&self) {
         let now = DurationSinceUnixEpoch::from_secs(0);
-        self.load_persisted_metrics(now).await;
+        if self
+            .tracker_core_container
+            .core_config
+            .tracker_policy
+            .persistent_torrent_completed_stat
+        {
+            self.load_persisted_metrics(now).await;
+        }
         self.run_jobs().await;
     }
 
@@ -108,6 +115,7 @@ impl TestEnv {
                     .as_ref()
                     .expect("tracker core test environment requires persistence")
                     .db_downloads_metric_repository,
+                &self.tracker_core_container.stats_repository,
             );
             jobs.push(job);
         }

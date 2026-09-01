@@ -5139,6 +5139,7 @@ name = "torrust-tracker-rest-api-protocol"
 version = "0.1.0"
 dependencies = [
  "serde",
+ "serde_json",
  "serde_with",
  "torrust-metrics",
 ]
