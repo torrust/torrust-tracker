@@ -2,9 +2,9 @@
 doc-type: epic
 status: open
 github-issue: 1347
-spec-path: docs/issues/open/1347-overhaul-packages-testing/ISSUE.md
+spec-path: docs/issues/open/1347-overhaul-packages-testing/EPIC.md
 epic-owner: josecelano
-last-updated-utc: 2026-09-01 17:48 UTC
+last-updated-utc: 2026-09-01 17:48
 semantic-links:
   skill-links:
     - create-issue

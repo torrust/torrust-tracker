@@ -8,7 +8,7 @@ github-issue: 1348
 spec-path: docs/issues/open/1348-1347-add-tests-axum-http-server/ISSUE.md
 branch: "1348-add-tests-axum-http-server"
 related-pr: null
-last-updated-utc: 2026-09-01 18:00 UTC
+last-updated-utc: 2026-09-01 18:00
 semantic-links:
   skill-links:
     - create-issue

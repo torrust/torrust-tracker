@@ -8,7 +8,7 @@ github-issue: 1349
 spec-path: docs/issues/open/1349-1347-add-tests-axum-rest-api-server/ISSUE.md
 branch: "1349-add-tests-axum-rest-api-server"
 related-pr: null
-last-updated-utc: 2026-09-01 18:00 UTC
+last-updated-utc: 2026-09-01 18:00
 semantic-links:
   skill-links:
     - create-issue
