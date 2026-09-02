@@ -146,14 +146,22 @@ beginning the next.
 
 ### R3 — Assess missing handler-entry behavior
 
-- **Status:** TODO
+- **Status:** DONE
 - **Priority:** Medium impact / medium effort
 - **Addresses:** P6
 - **Change:** Compare the uncovered paths with existing router and real-server tests. Add one
   focused transport-wiring test only if it proves an unobserved contract.
 - **Guardrail:** Prefer an in-process router seam; do not add tests merely to turn lines green or
   duplicate integration coverage.
-- **Done when:** the plan records either a behavior-justified test or a concrete deferral rationale.
+- **Decision:** No change. `v1::routes::router` registers `handle_without_key` on `/announce` and
+  `handle_with_key` on `/announce/{key}`. The existing real-server announce contract suite invokes
+  those routes across public, private, and whitelisted configurations, including successful,
+  malformed, missing-key, invalid-key, and client-IP failure behavior. A new direct
+  extractor-to-handler test would exercise the same route wiring while adding a second, less
+  representative fixture path. The uncovered entry-point locations are therefore not a missing
+  observable contract for this issue.
+- **Done when:** the router and real-server coverage assessment and no-change rationale are
+  recorded.
 
 ### R4 — Consider an error scenario only if needed
 
@@ -192,6 +200,10 @@ beginning the next.
   in 0.02 seconds after compilation. Retained the real-service fixture because no smaller existing
   seam preserves the authorization and client-IP error contracts without speculative mocks or
   production changes.
+- 2026-09-02 - GitHub Copilot - Completed R3 assessment. Retained existing route and real-server
+  coverage: the router binds the public handlers to `/announce` and `/announce/{key}`, and the
+  integration suite exercises those routes across configuration and error contracts. No additional
+  direct wiring test would add an unobserved behavior.
 
 ### Validation Evidence
 
@@ -200,7 +212,7 @@ beginning the next.
 | Plan documentation | DONE   | `linter markdown`, `linter cspell`, and `git diff --check` passed after plan creation.                                                           |
 | R1                 | DONE   | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-axum-http-server --lib`, `git diff --check`, and editor diagnostics passed.         |
 | R2                 | DONE   | `cargo test -p torrust-tracker-axum-http-server --lib v1::handlers::announce::tests -- --nocapture`: 8 passed in 0.02 seconds after compilation. |
-| R3                 | TODO   | Not started.                                                                                                                                     |
+| R3                 | DONE   | Inspected `v1::routes::router` and the existing real-server announce contract suite; no unique observable wiring contract was found.             |
 | R4                 | TODO   | Not started.                                                                                                                                     |
 
 ## Non-Goals
