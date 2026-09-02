@@ -32,12 +32,13 @@ The repository was reorganized through package refactoring and extraction work. 
 
 ### In Scope
 
-- Establish and record a coverage baseline for each package addressed by a subissue, then aim to increase it by testing critical behavior.
+- Establish and record a coverage baseline for each package addressed by a subissue, then aim to increase it by testing critical behavior. Record an issue-local, human-readable coverage-evidence document with the command, measurement scope, aggregate comparison, per-file results, and prioritized uncovered areas.
 - Add maintainable, fast, responsibility-oriented unit tests close to the code they protect, using Arrange, Act, Assert (AAA) structure where appropriate.
 - Add integration tests, runnable examples, or end-to-end tests when they provide valuable package-level regression protection.
 - Use `tracker-core` as a reference for effective package-level test coverage.
 - Create and track additional package-testing subissues when a maintainer or contributor identifies a need.
 - Set qualitative, risk-based coverage objectives per subissue and document the rationale and exceptions; do not require a numeric percentage target.
+- Review every test-producing increment before beginning the next one, then stop for maintainer review after the final test-producing increment and before final verification, committing, or opening a pull request.
 
 ### Out of Scope
 
@@ -58,7 +59,19 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 ## Delivery Strategy
 
-Implement independently reviewable, package-scoped subissues. Each subissue records its starting coverage, the critical responsibilities assessed, the coverage increase achieved where practical, verification evidence, and any explicitly justified exclusions. Prioritize fast unit tests close to the code being changed, while retaining or adding integration, runnable-example, and end-to-end tests when they provide valuable regression protection. Coverage percentage informs the work but does not replace testing critical behavior. Record reusable test-design refactors in the [testing refactoring-pattern catalog](../../../testing/refactoring-patterns/README.md) so later subissues can apply proven patterns without restating their rationale.
+Implement independently reviewable, package-scoped subissues. Each subissue records its starting coverage, the critical responsibilities assessed, the coverage increase achieved where practical, verification evidence, and any explicitly justified exclusions. Store the coverage evidence in an issue-local human-readable document, rather than committing large raw coverage artifacts. State which source paths and code types the measurement includes, because test-inclusive totals are not production-only coverage. Use aggregate percentages only for navigation; prioritize behavior by examining per-file coverage and uncovered functions or regions.
+
+Prioritize fast unit tests close to the code being changed, while retaining or adding integration, runnable-example, and end-to-end tests when they provide valuable regression protection. Coverage percentage informs the work but does not replace testing critical behavior. Record reusable test-design refactors in the [testing refactoring-pattern catalog](../../../testing/refactoring-patterns/README.md) so later subissues can apply proven patterns without restating their rationale.
+
+For every test-producing task, apply this development loop:
+
+1. Add the smallest behavior-focused test increment.
+2. Review the changed tests before beginning the next test-producing task: remove duplication, extract only justified mechanical helpers, improve naming and AAA structure, and prefer expressive assertions.
+3. Run focused tests and correct failures.
+4. After the final test-producing task, stop and request maintainer review before final verification, committing, or opening a pull request.
+5. Address review feedback, then complete verification and acceptance review.
+
+For multi-input protocol behavior, scenarios should own every related artifact that describes the example, including selector request fields, domain input, and independently specified expected output. Builders may hide irrelevant fields of an individual artifact. Do not derive expected values by calling production mapping or serialization code under test. Keep the production-boundary invocation, concrete expected representation, and final actual-versus-expected assertion visible; helpers may encapsulate only repeated mechanics such as successful-response decoding.
 
 For each subissue implementation, the completion policy is:
 
@@ -131,7 +144,8 @@ For each subissue implementation, the completion policy is:
 
 ## Risks and Trade-offs
 
-- Coverage percentage can incentivize low-value tests; mitigate it by recording it as a baseline and prioritizing critical responsibilities and valuable regression protection.
+- Coverage percentage can conceal critical low-coverage files behind strong aggregate results; mitigate it by maintaining per-file and uncovered-area evidence, then selecting behavior by risk rather than pursuing a percentage target.
+- Raw coverage formats can be too large or tool-oriented for code review; mitigate this by committing a concise, human-readable issue-local evidence document and retaining the reproducible command instead.
 - Testing may expose design seams that are difficult to isolate; make small testability refactorings only when justified and keep unrelated refactoring out of scope.
 - New packages or package extractions can change the inventory during the EPIC; add concrete subissues as needs are identified and record deferrals explicitly before closing the EPIC.
 

@@ -106,6 +106,21 @@ The draft must also include a verification policy that is explicit and enforceab
 - Manual verification scenarios with status + evidence tracking (mandatory)
 - A post-implementation acceptance criteria review step
 
+For testing or coverage-focused issue specs, also require:
+
+- an issue-local, human-readable coverage-evidence document when coverage is measured;
+- the exact reproducible coverage command and a statement of what paths and code types it includes;
+- aggregate baseline/current values **and** per-file coverage plus prioritized uncovered functions,
+  regions, or behavior gaps; and
+- a policy to retain concise Markdown evidence rather than raw generated JSON, LCOV, or HTML
+  artifacts unless the artifact itself has a documented human-review purpose.
+
+When the plan adds or changes tests, include a progressive test-development loop: make the smallest
+behavior-focused increment, review its design and focused validation before the next test-producing
+task, and stop for maintainer review after the final increment before final verification, commit, or
+pull request. Direct test authors to the `write-unit-test` skill and the test refactoring-pattern
+catalog when applicable.
+
 During implementation, create an ADR when an important architectural decision
 emerges, even if the issue draft did not anticipate it. Link the ADR from the
 issue specification and update the architectural-decisions section. For each
