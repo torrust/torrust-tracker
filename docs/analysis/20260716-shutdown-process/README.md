@@ -112,8 +112,8 @@ pub async fn wait_for_all(mut self, grace_period: Duration) {
 - Jobs are waited **sequentially**, not concurrently.
 - Each job gets the **same** grace period timeout.
 - If a job times out, its named top-level task is logged, aborted, and awaited.
-    The manager therefore does not detach that handle, but this is forceful
-    escalation rather than a graceful component outcome.
+  The manager therefore does not detach that handle, but this is forceful
+  escalation rather than a graceful component outcome.
 - The order of waiting is the order jobs were pushed (currently: event listeners first,
   then servers, then periodic tasks, then API servers).
 
@@ -245,10 +245,10 @@ pub async fn graceful_shutdown(handle, rx_halt, message, address) {
 - The 10-second delta allows for the `graceful_shutdown` to complete before the loop times out.
 - Connections are drained actively — the server waits for active HTTP connections to finish.
 - **BUT**: `main.rs` waits **10 seconds per job sequentially**. A wrapper that
-    exceeds that limit is aborted and joined before the manager proceeds to the
-    next job. Because the Axum drain controller is detached, that abort can leave
-    the wrapper unable to prove drain completion; total shutdown latency can grow
-    with the number and order of blocked jobs.
+  exceeds that limit is aborted and joined before the manager proceeds to the
+  next job. Because the Axum drain controller is detached, that abort can leave
+  the wrapper unable to prove drain completion; total shutdown latency can grow
+  with the number and order of blocked jobs.
 
 ### 5.2 UDP Server
 
@@ -266,7 +266,7 @@ running.abort();  // Force-abort the main loop
 
 - The UDP server **cannot** drain connections gracefully — it simply aborts the main loop.
 - The launcher directly awaits the halt channel or library-level OS signal in
-    its `select!`; it does not spawn a separate halt-signal task.
+  its `select!`; it does not spawn a separate halt-signal task.
 - There is no connection draining mechanism for UDP.
 - After abort, `tokio::task::yield_now().await` gives other tasks a chance to complete.
 
@@ -359,8 +359,8 @@ When Ctrl+C is pressed:
 1. `main.rs` catches it and starts the shutdown sequence.
 2. Each server's `shutdown_signal()` also catches it via `global_shutdown_signal()`.
 3. This creates a race: the main process calls `jobs.cancel()`, server wrappers
-    forward that cancellation to their private `Halted` channels, and servers may
-    already be shutting down from the global signal.
+   forward that cancellation to their private `Halted` channels, and servers may
+   already be shutting down from the global signal.
 
 ### 7.8 UDP Server Has No Graceful Shutdown
 
@@ -455,14 +455,14 @@ This is relevant for development workflows but not for production deployments
 
 ## 9. Summary Table
 
-| Aspect                       | Current Implementation                                | Status                             |
-| ---------------------------- | ----------------------------------------------------- | ---------------------------------- |
-| Top-level signal handling    | Only `SIGINT` in `main.rs`                            | ⚠️ Missing `SIGTERM`               |
-| Server shutdown mechanism    | Manager token forwarded to `Halted` + `global_shutdown_signal()` | ⚠️ Transitional bridge |
-| Event listener shutdown      | `CancellationToken` from `JobManager`                 | ✅ Functional                      |
-| Periodic job shutdown        | Direct `tokio::signal::ctrl_c()`                      | ⚠️ Inconsistent                    |
-| Axum connection draining     | 90s grace period, polls connection count              | ✅ Functional but timeout mismatch |
-| UDP connection draining      | None — `abort()`                                      | ❌ Not graceful                    |
-| Job waiting strategy         | Sequential per-job timeout                            | ⚠️ Sequential + timeout mismatch   |
-| Grace period configurability | Hardcoded everywhere                                  | ❌ Not configurable                |
-| Double-signal on Ctrl+C      | Both `main.rs` and servers catch it                   | ⚠️ Potential race                  |
+| Aspect                       | Current Implementation                                           | Status                             |
+| ---------------------------- | ---------------------------------------------------------------- | ---------------------------------- |
+| Top-level signal handling    | Only `SIGINT` in `main.rs`                                       | ⚠️ Missing `SIGTERM`               |
+| Server shutdown mechanism    | Manager token forwarded to `Halted` + `global_shutdown_signal()` | ⚠️ Transitional bridge             |
+| Event listener shutdown      | `CancellationToken` from `JobManager`                            | ✅ Functional                      |
+| Periodic job shutdown        | Direct `tokio::signal::ctrl_c()`                                 | ⚠️ Inconsistent                    |
+| Axum connection draining     | 90s grace period, polls connection count                         | ✅ Functional but timeout mismatch |
+| UDP connection draining      | None — `abort()`                                                 | ❌ Not graceful                    |
+| Job waiting strategy         | Sequential per-job timeout                                       | ⚠️ Sequential + timeout mismatch   |
+| Grace period configurability | Hardcoded everywhere                                             | ❌ Not configurable                |
+| Double-signal on Ctrl+C      | Both `main.rs` and servers catch it                              | ⚠️ Potential race                  |

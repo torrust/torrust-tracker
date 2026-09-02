@@ -52,14 +52,14 @@ The current shutdown process has several pain points:
    main entry point only handles `SIGINT` (Ctrl+C). Containers may be forcefully
    killed after the orchestrator's own timeout.
 2. **Incomplete shutdown observability**: The current manager logs the name of
-  a job that exceeds its timeout, but it has no concurrent aggregate outcome
-  model or complete component-level drain progress.
+   a job that exceeds its timeout, but it has no concurrent aggregate outcome
+   model or complete component-level drain progress.
 3. **Inconsistent behavior**: Different jobs use different shutdown mechanisms
    (`CancellationToken`, direct `ctrl_c` listener, oneshot channel). Some jobs
    ignore the central `JobManager` entirely.
 4. **Timeout mismatch**: The `JobManager` waits 10 seconds per job sequentially
-  and force-aborts timed-out wrappers, while Axum servers have a 90-second
-  graceful shutdown. The wrapper cannot prove its detached drain completed.
+   and force-aborts timed-out wrappers, while Axum servers have a 90-second
+   graceful shutdown. The wrapper cannot prove its detached drain completed.
 5. **No graceful UDP shutdown**: The UDP server simply aborts its main loop.
    In-flight requests are dropped without notice.
 6. **Hardcoded timeouts**: Grace periods are magic numbers scattered across the

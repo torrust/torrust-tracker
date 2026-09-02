@@ -94,7 +94,7 @@ standard Unix termination signal.
    failure result rather than silently dropping or aborting it. The error API
    may evolve with the token-aware UDP server contract.
 5. The component obeys the established UDP active-request policy; this task does
-  not change receive-loop or request behavior within the UDP server.
+   not change receive-loop or request behavior within the UDP server.
 
 ## Acceptance Criteria
 

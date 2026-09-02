@@ -154,8 +154,8 @@ Specifically, at minimum these gaps and boundaries must be identified:
 - [ ] HTTP/REST API/Health Check servers use `global_shutdown_signal()` independently
 - [ ] `main.rs` does not handle `SIGTERM`
 - [ ] The detached Axum drain controllers require component-owned join policies;
-  the separate UDP IP-ban cleanup job remains manager-owned and
-  token-cancellable.
+      the separate UDP IP-ban cleanup job remains manager-owned and
+      token-cancellable.
 
 **Record in `verification.md`**: the gap list, confirming it matches or extends
 the analysis findings.

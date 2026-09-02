@@ -53,20 +53,20 @@ The current shutdown process has several problems identified in the
    level. Container orchestrators (Docker/Podman) send `SIGTERM` by default,
    which means `jobs.cancel()` and `jobs.wait_for_all()` are never called.
 2. **Three inconsistent shutdown mechanisms** — jobs use `CancellationToken`,
-  direct `tokio::signal::ctrl_c()`, or oneshot `Halted` channels. Server
-  wrappers currently bridge the manager token to `Halted`, leaving two normal
-  cancellation layers; periodic jobs still ignore `JobManager` cancellation.
+   direct `tokio::signal::ctrl_c()`, or oneshot `Halted` channels. Server
+   wrappers currently bridge the manager token to `Halted`, leaving two normal
+   cancellation layers; periodic jobs still ignore `JobManager` cancellation.
 3. **Torrent cleanup and activity metrics ignore `CancellationToken`** — they
    listen for `ctrl_c` directly instead of using the shared token.
 4. **Grace period mismatch** — `JobManager` waits 10s per job sequentially and
-  force-aborts timed-out wrappers, while Axum servers have a 90s graceful
-  shutdown with detached drain controllers.
+   force-aborts timed-out wrappers, while Axum servers have a 90s graceful
+   shutdown with detached drain controllers.
 5. **No graceful UDP shutdown** — the UDP server simply aborts its main loop.
 6. **Hardcoded timeouts** — grace periods are magic numbers with no configuration
    surface.
 7. **Incomplete shutdown observability** — named per-job waiting and timeout
-  logs exist, but the supervisor has no concurrent aggregate outcomes or
-  complete component-level drain progress.
+   logs exist, but the supervisor has no concurrent aggregate outcomes or
+   complete component-level drain progress.
 8. **Double-signal on Ctrl+C** — both `main.rs` and each server's
    `global_shutdown_signal()` catch the same signal, creating a potential race.
 
@@ -144,31 +144,31 @@ deprecate → remove**. Each component migration is a vertical slice:
 cancellation request, owned-child completion policy, named outcome,
 deterministic tests, and manual evidence.
 
-| Sequence | Draft | Work item                                                                                                                        | Status     | Independently releasable scope                                                         |
-| -------- | ----- | -------------------------------------------------------------------------------------------------------------------------------- | ---------- | -------------------------------------------------------------------------------------- |
-| 0        | #1588 | [Revalidate task inventory](../1588-review-shutdown-process-for-all-tasks-jobs/ISSUE.md)                                         | Open       | Implementation-time inventory and ownership evidence; no runtime behavior changes.     |
-| 1        | SI-1  | [Add `SIGTERM` at `main()`](../../drafts/1488-si-1-add-sigterm-to-main/ISSUE.md)                                                 | Draft      | Incremental signal-boundary compatibility fix.                                         |
-| 2        | #1586 | [Evaluate `JoinSet` for `JobManager`](../1586-evaluate-job-manager-join-set/ISSUE.md)                                            | Open       | Direct supervisor task ownership, concurrent outcomes, and explicit escalation policy. |
-| 3        | SI-4  | [Migrate torrent cleanup](../../drafts/1488-si-4-migrate-torrent-cleanup/ISSUE.md)                                               | Draft      | One periodic component adopts token cancellation.                                      |
-| 4        | SI-5  | [Migrate activity metrics](../../drafts/1488-si-5-migrate-activity-metrics-updater/ISSUE.md)                                     | Draft      | One periodic component adopts token cancellation.                                      |
-| 5        | SI-2  | [Add token-aware server lifecycle API](../../drafts/1488-si-2-remove-global-shutdown-signal/ISSUE.md)                            | Draft      | Additive `torrust-server-lib` API; retain legacy shutdown compatibility.               |
-| 6        | SI-10 | [Add token-aware, joinable Axum drain helper](../../drafts/1488-si-10-add-token-aware-axum-drain-helper/ISSUE.md)                | Draft      | Additive helper alongside existing API; no consumer breaks.                            |
-| 7        | SI-11 | [Migrate HTTP tracker to token lifecycle](../../drafts/1488-si-11-migrate-http-tracker-token-lifecycle/ISSUE.md)                 | Draft      | One complete HTTP vertical slice.                                                      |
-| 8        | SI-12 | [Migrate REST API to token lifecycle](../../drafts/1488-si-12-migrate-rest-api-token-lifecycle/ISSUE.md)                         | Draft      | One complete REST API vertical slice.                                                  |
-| 9        | SI-13 | [Migrate health-check API to token lifecycle](../../drafts/1488-si-13-migrate-health-check-api-token-lifecycle/ISSUE.md)         | Draft      | One health-check vertical slice; SI-21 separately implements readiness-before-drain.   |
+| Sequence | Draft | Work item                                                                                                                 | Status     | Independently releasable scope                                                                       |
+| -------- | ----- | ------------------------------------------------------------------------------------------------------------------------- | ---------- | ---------------------------------------------------------------------------------------------------- |
+| 0        | #1588 | [Revalidate task inventory](../1588-review-shutdown-process-for-all-tasks-jobs/ISSUE.md)                                  | Open       | Implementation-time inventory and ownership evidence; no runtime behavior changes.                   |
+| 1        | SI-1  | [Add `SIGTERM` at `main()`](../../drafts/1488-si-1-add-sigterm-to-main/ISSUE.md)                                          | Draft      | Incremental signal-boundary compatibility fix.                                                       |
+| 2        | #1586 | [Evaluate `JoinSet` for `JobManager`](../1586-evaluate-job-manager-join-set/ISSUE.md)                                     | Open       | Direct supervisor task ownership, concurrent outcomes, and explicit escalation policy.               |
+| 3        | SI-4  | [Migrate torrent cleanup](../../drafts/1488-si-4-migrate-torrent-cleanup/ISSUE.md)                                        | Draft      | One periodic component adopts token cancellation.                                                    |
+| 4        | SI-5  | [Migrate activity metrics](../../drafts/1488-si-5-migrate-activity-metrics-updater/ISSUE.md)                              | Draft      | One periodic component adopts token cancellation.                                                    |
+| 5        | SI-2  | [Add token-aware server lifecycle API](../../drafts/1488-si-2-remove-global-shutdown-signal/ISSUE.md)                     | Draft      | Additive `torrust-server-lib` API; retain legacy shutdown compatibility.                             |
+| 6        | SI-10 | [Add token-aware, joinable Axum drain helper](../../drafts/1488-si-10-add-token-aware-axum-drain-helper/ISSUE.md)         | Draft      | Additive helper alongside existing API; no consumer breaks.                                          |
+| 7        | SI-11 | [Migrate HTTP tracker to token lifecycle](../../drafts/1488-si-11-migrate-http-tracker-token-lifecycle/ISSUE.md)          | Draft      | One complete HTTP vertical slice.                                                                    |
+| 8        | SI-12 | [Migrate REST API to token lifecycle](../../drafts/1488-si-12-migrate-rest-api-token-lifecycle/ISSUE.md)                  | Draft      | One complete REST API vertical slice.                                                                |
+| 9        | SI-13 | [Migrate health-check API to token lifecycle](../../drafts/1488-si-13-migrate-health-check-api-token-lifecycle/ISSUE.md)  | Draft      | One health-check vertical slice; SI-21 separately implements readiness-before-drain.                 |
 | 10       | SI-14 | [Migrate UDP receive loop to token lifecycle](../../drafts/1488-si-14-migrate-udp-receive-reset-token-lifecycle/ISSUE.md) | Draft      | Token-aware UDP stop; join receive loop; retain request abort fallback and separate managed cleanup. |
-| 11       | SI-15 | [Define UDP active-request shutdown policy](../../drafts/1488-si-15-define-udp-active-request-policy/ISSUE.md)                   | Draft      | Request deadline, abort behavior, outcomes, and verification.                          |
-| 12       | SI-16 | [Migrate standalone HTTP environment/example](../../drafts/1488-si-16-migrate-standalone-http-environment/ISSUE.md)              | Draft      | One supported standalone HTTP consumer migration.                                      |
-| 13       | SI-17 | [Migrate standalone UDP environment/example](../../drafts/1488-si-17-migrate-standalone-udp-environment/ISSUE.md)                | Draft      | One supported standalone UDP consumer migration.                                       |
-| 14       | SI-18 | [Deprecate legacy shutdown API](../../drafts/1488-si-18-deprecate-legacy-shutdown-api/ISSUE.md)                                  | Draft      | Compatibility-preserving source deprecation only.                                      |
-| 15       | SI-19 | [Remove legacy shutdown API and library OS signals](../../drafts/1488-si-19-remove-legacy-shutdown-api/ISSUE.md)                 | Draft      | Breaking release after migration, deprecation, and compatibility gates.                |
-| 16       | SI-20 | [Configure shutdown policy and deployment contract](../../drafts/1488-si-20-configure-shutdown-policy/ISSUE.md)                  | Draft      | Apply approved Q3/Q4 outcomes, budgets, configuration, and deployment guidance.        |
-| 17       | SI-21 | [Mark health check unhealthy during shutdown](../../drafts/1488-si-21-mark-health-unhealthy-during-shutdown/ISSUE.md)            | Draft      | Set readiness to not ready before root cancellation and component drain.               |
-| —        | SI-3  | [Combined standalone environment migration](../../drafts/1488-si-3-fix-environment-stop/ISSUE.md)                                | Superseded | Replaced by SI-16 and SI-17. Do not implement.                                         |
-| —        | SI-6  | [Concurrent supervisor outcomes](../../drafts/1488-si-6-align-grace-periods/ISSUE.md)                                            | Superseded | Replaced by existing issue #1586. Do not implement separately.                         |
-| —        | SI-7  | [Standalone shutdown-progress reporting](../../drafts/1488-si-7-observable-shutdown-progress/ISSUE.md)                           | Superseded | Structured outcomes are incorporated into issue #1586. Do not implement.               |
-| —        | SI-8  | [Original shutdown configuration](../../drafts/1488-si-8-configurable-grace-periods/ISSUE.md)                                    | Superseded | Replaced by SI-20 after Q3/Q4 decisions. Do not implement.                             |
-| —        | SI-9  | [Combined UDP shutdown migration](../../drafts/1488-si-9-improve-udp-shutdown/ISSUE.md)                                          | Superseded | Replaced by SI-14 and SI-15. Do not implement.                                         |
+| 11       | SI-15 | [Define UDP active-request shutdown policy](../../drafts/1488-si-15-define-udp-active-request-policy/ISSUE.md)            | Draft      | Request deadline, abort behavior, outcomes, and verification.                                        |
+| 12       | SI-16 | [Migrate standalone HTTP environment/example](../../drafts/1488-si-16-migrate-standalone-http-environment/ISSUE.md)       | Draft      | One supported standalone HTTP consumer migration.                                                    |
+| 13       | SI-17 | [Migrate standalone UDP environment/example](../../drafts/1488-si-17-migrate-standalone-udp-environment/ISSUE.md)         | Draft      | One supported standalone UDP consumer migration.                                                     |
+| 14       | SI-18 | [Deprecate legacy shutdown API](../../drafts/1488-si-18-deprecate-legacy-shutdown-api/ISSUE.md)                           | Draft      | Compatibility-preserving source deprecation only.                                                    |
+| 15       | SI-19 | [Remove legacy shutdown API and library OS signals](../../drafts/1488-si-19-remove-legacy-shutdown-api/ISSUE.md)          | Draft      | Breaking release after migration, deprecation, and compatibility gates.                              |
+| 16       | SI-20 | [Configure shutdown policy and deployment contract](../../drafts/1488-si-20-configure-shutdown-policy/ISSUE.md)           | Draft      | Apply approved Q3/Q4 outcomes, budgets, configuration, and deployment guidance.                      |
+| 17       | SI-21 | [Mark health check unhealthy during shutdown](../../drafts/1488-si-21-mark-health-unhealthy-during-shutdown/ISSUE.md)     | Draft      | Set readiness to not ready before root cancellation and component drain.                             |
+| —        | SI-3  | [Combined standalone environment migration](../../drafts/1488-si-3-fix-environment-stop/ISSUE.md)                         | Superseded | Replaced by SI-16 and SI-17. Do not implement.                                                       |
+| —        | SI-6  | [Concurrent supervisor outcomes](../../drafts/1488-si-6-align-grace-periods/ISSUE.md)                                     | Superseded | Replaced by existing issue #1586. Do not implement separately.                                       |
+| —        | SI-7  | [Standalone shutdown-progress reporting](../../drafts/1488-si-7-observable-shutdown-progress/ISSUE.md)                    | Superseded | Structured outcomes are incorporated into issue #1586. Do not implement.                             |
+| —        | SI-8  | [Original shutdown configuration](../../drafts/1488-si-8-configurable-grace-periods/ISSUE.md)                             | Superseded | Replaced by SI-20 after Q3/Q4 decisions. Do not implement.                                           |
+| —        | SI-9  | [Combined UDP shutdown migration](../../drafts/1488-si-9-improve-udp-shutdown/ISSUE.md)                                   | Superseded | Replaced by SI-14 and SI-15. Do not implement.                                                       |
 
 ### Release and Review Requirements
 

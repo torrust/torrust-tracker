@@ -57,10 +57,10 @@ complement ADRs, which record accepted architectural decisions.
 
 Records of significant architectural decisions, including context and consequences.
 
-| Document                         | Description                                                 |
-| -------------------------------- | ----------------------------------------------------------- |
-| [adrs/README.md](adrs/README.md) | Root ADR guidance, including placement by decision scope    |
-| [adrs/index.md](adrs/index.md)   | Quick-reference table of repository-level ADRs              |
+| Document                         | Description                                              |
+| -------------------------------- | -------------------------------------------------------- |
+| [adrs/README.md](adrs/README.md) | Root ADR guidance, including placement by decision scope |
+| [adrs/index.md](adrs/index.md)   | Quick-reference table of repository-level ADRs           |
 
 ## Analysis Documents
 

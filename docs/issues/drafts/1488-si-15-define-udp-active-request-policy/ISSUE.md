@@ -87,8 +87,8 @@ component has stopped accepting new packets.
 ## Proposed Shutdown Contract
 
 1. After root cancellation reaches the UDP component, it stops admitting new
-  packets and completes the receive-loop shutdown defined by the prior
-  migration.
+   packets and completes the receive-loop shutdown defined by the prior
+   migration.
 2. The component awaits active processors until its request deadline, which is
    supplied by the component lifecycle policy.
 3. It deliberately aborts processors still incomplete at that deadline.

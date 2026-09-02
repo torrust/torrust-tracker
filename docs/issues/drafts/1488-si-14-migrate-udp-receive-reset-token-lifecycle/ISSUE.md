@@ -96,11 +96,11 @@ does not change its policy.
    joined. Existing request processors may still follow the current deliberate
    abort fallback.
 4. The UDP component owns and joins its receive task before returning its
-  top-level outcome. `JobManager` receives only that top-level handle and
-  outcome, not nested UDP task handles.
+   top-level outcome. `JobManager` receives only that top-level handle and
+   outcome, not nested UDP task handles.
 5. Unexpected receive-loop completion/failure and cancellation races return an
-  explicit component outcome; they must not panic or leave the receive-loop
-  handle detached.
+   explicit component outcome; they must not panic or leave the receive-loop
+   handle detached.
 
 ## Acceptance Criteria
 
@@ -111,7 +111,7 @@ does not change its policy.
 - [ ] The UDP component stops packet admission and awaits the receive-loop task
       before reporting its named outcome to `JobManager`.
 - [ ] The application-level UDP IP-ban cleanup job remains manager-owned,
-  token-cancellable, and separate from each UDP listener component.
+      token-cancellable, and separate from each UDP listener component.
 - [ ] Existing `ActiveRequests` capacity and deliberate request-processor abort
       behavior are unchanged and explicitly covered by a compatibility test.
 - [ ] Deterministic tests cover injected-token cancellation and unexpected
@@ -150,6 +150,6 @@ Record evidence in `verification.md` before closing this issue.
 3. Confirm a legacy UDP start/stop call path still compiles and retains current
    behavior.
 4. Review the token-aware path to confirm it retains and awaits the receive
-  task and contains no OS-signal listener.
+   task and contains no OS-signal listener.
 5. Confirm the active-request implementation is unchanged other than any
    necessary ownership wiring; defer behavior changes to the next UDP task.
