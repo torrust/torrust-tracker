@@ -167,11 +167,11 @@ Define verification before implementation starts and execute it before closing t
 
 Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
-| ID  | Scenario                             | Command/Steps                                                                                                                   | Expected Result                                                                                                                                         | Status | Evidence                |
-| --- | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ----------------------- |
-| M1  | Inspect the v1 torrent wire response | Start a local tracker, announce a known peer, then request `GET /api/v1/torrent/{info_hash}` with an authorized `curl` request. | The peer JSON contains integer `updated`, `updated_milliseconds_ago`, and `updated_at_ms` fields, and all values are equal Unix-millisecond timestamps. | DONE | `.tmp/issue-2130-torrent-response.json`; equal value `1788336187937` verified. |
-| M2  | Verify typed-client deserialization  | Deserialize the M1 response through the current `ApiClient`/`Torrent` model.                                                    | Deserialization succeeds and exposes the peer's `updated_at_ms` value.                                                                                  | DONE | Protocol round-trip test passed, exercising the shared v1 `Torrent`/`Peer` response model used by `ApiClient::get_torrent`. |
-| M3  | Inspect generated API documentation  | Build and inspect the generated Rust documentation for `Peer` and the torrent endpoint.                                         | `updated_at_ms` and the migration-only legacy fields are documented with accurate absolute-time semantics.                                              | DONE | Nightly documentation build passed; generated `Peer` documentation contains all three fields and their deprecation/migration text. |
+| ID  | Scenario                             | Command/Steps                                                                                                                   | Expected Result                                                                                                                                         | Status | Evidence                                                                                                                           |
+| --- | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------- |
+| M1  | Inspect the v1 torrent wire response | Start a local tracker, announce a known peer, then request `GET /api/v1/torrent/{info_hash}` with an authorized `curl` request. | The peer JSON contains integer `updated`, `updated_milliseconds_ago`, and `updated_at_ms` fields, and all values are equal Unix-millisecond timestamps. | DONE   | `.tmp/issue-2130-torrent-response.json`; equal value `1788336187937` verified.                                                     |
+| M2  | Verify typed-client deserialization  | Deserialize the M1 response through the current `ApiClient`/`Torrent` model.                                                    | Deserialization succeeds and exposes the peer's `updated_at_ms` value.                                                                                  | DONE   | Protocol round-trip test passed, exercising the shared v1 `Torrent`/`Peer` response model used by `ApiClient::get_torrent`.        |
+| M3  | Inspect generated API documentation  | Build and inspect the generated Rust documentation for `Peer` and the torrent endpoint.                                         | `updated_at_ms` and the migration-only legacy fields are documented with accurate absolute-time semantics.                                              | DONE   | Nightly documentation build passed; generated `Peer` documentation contains all three fields and their deprecation/migration text. |
 
 Notes:
 
@@ -180,16 +180,16 @@ Notes:
 
 ### Acceptance Verification
 
-| AC ID | Status (`TODO`/`DONE`) | Evidence                |
-| ----- | ---------------------- | ----------------------- |
-| AC1   | DONE                   | Protocol serialization/deserialization test passed. |
-| AC2   | DONE                   | Runtime-adapter conversion test passed. |
-| AC3   | DONE                   | Raw Axum JSON contract test and M1 passed. |
-| AC4   | DONE                   | Endpoint documentation update and M3 passed. |
+| AC ID | Status (`TODO`/`DONE`) | Evidence                                                                           |
+| ----- | ---------------------- | ---------------------------------------------------------------------------------- |
+| AC1   | DONE                   | Protocol serialization/deserialization test passed.                                |
+| AC2   | DONE                   | Runtime-adapter conversion test passed.                                            |
+| AC3   | DONE                   | Raw Axum JSON contract test and M1 passed.                                         |
+| AC4   | DONE                   | Endpoint documentation update and M3 passed.                                       |
 | AC5   | DONE                   | Scope and architectural-decision sections document the API v2 migration direction. |
-| AC6   | TODO                   | Focused tests and `linter all` passed; run pre-push checks after final commits. |
-| AC7   | DONE                   | M1-M3 recorded above. |
-| AC8   | DONE                   | Independent task review completed and records updated. |
+| AC6   | TODO                   | Focused tests and `linter all` passed; run pre-push checks after final commits.    |
+| AC7   | DONE                   | M1-M3 recorded above.                                                              |
+| AC8   | DONE                   | Independent task review completed and records updated.                             |
 
 ## Risks and Trade-offs
 
