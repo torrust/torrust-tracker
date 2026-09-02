@@ -98,7 +98,7 @@ identifies a stable missing classification. Otherwise record the deferral.
 
 ### R1 — Correct the extractor response-status documentation
 
-- **Status:** TODO
+- **Status:** DONE
 - **Priority:** High impact / trivial effort
 - **Addresses:** P5
 - **Change:** Replace the stale `500` wording with the actual bencoded HTTP `200 OK` failure
@@ -158,8 +158,8 @@ identifies a stable missing classification. Otherwise record the deferral.
 
 - [x] Phase 1 findings reviewed against the current file and package coverage evidence
 - [x] Phase 2 refactorings ordered by impact and effort
-- [ ] Maintainer approved implementation of R1
-- [ ] R1 implemented, reviewed, and validated
+- [x] Maintainer approved implementation of R1
+- [x] R1 implemented, reviewed, and validated
 - [ ] Maintainer approved implementation of R2
 - [ ] R2 implemented, reviewed, and validated
 - [ ] Maintainer approved implementation of R3
@@ -174,17 +174,20 @@ identifies a stable missing classification. Otherwise record the deferral.
 - 2026-09-02 - GitHub Copilot - Created the proposed plan from the extractor tests, current package
   coverage evidence, HTTP-protocol response contract, and existing private-mode real-server tests.
   No refactoring has been implemented.
+- 2026-09-02 - User/maintainer - Approved R1 after reviewing the documentation correction.
+- 2026-09-02 - GitHub Copilot - Completed R1. The extractor documentation now states the actual
+  bencoded HTTP `200 OK` failure-response contract.
 
 ### Validation Evidence
 
-| Increment          | Status | Evidence                     |
-| ------------------ | ------ | ---------------------------- |
-| Plan documentation | TODO   | Not run after plan creation. |
-| R1                 | TODO   | Not started.                 |
-| R2                 | TODO   | Not started.                 |
-| R3                 | TODO   | Not started.                 |
-| R4                 | TODO   | Not started.                 |
-| R5                 | TODO   | Not started.                 |
+| Increment          | Status | Evidence                                                                                                                            |
+| ------------------ | ------ | ----------------------------------------------------------------------------------------------------------------------------------- |
+| Plan documentation | DONE   | `linter markdown`, `linter cspell`, and `git diff --check` passed after plan creation.                                              |
+| R1                 | DONE   | `cargo fmt --all -- --check`, package library tests (32 passed), `linter markdown`, `linter cspell`, and `git diff --check` passed. |
+| R2                 | TODO   | Not started.                                                                                                                        |
+| R3                 | TODO   | Not started.                                                                                                                        |
+| R4                 | TODO   | Not started.                                                                                                                        |
+| R5                 | TODO   | Not started.                                                                                                                        |
 
 ## Non-Goals
 
