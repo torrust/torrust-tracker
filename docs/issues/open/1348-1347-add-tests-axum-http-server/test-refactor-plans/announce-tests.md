@@ -165,13 +165,17 @@ beginning the next.
 
 ### R4 — Consider an error scenario only if needed
 
-- **Status:** TODO
+- **Status:** DONE
 - **Priority:** Low impact / medium effort
 - **Addresses:** Remaining duplication after R1
 - **Change:** Extract a small scenario fixture only if R1 leaves meaningful duplication.
 - **Guardrail:** A scenario must own configuration selector, request, client-IP sources, key, and
   expected failure contract. It must not accumulate optional variants or hide the behavior.
-- **Done when:** the plan records an approved scenario design or a no-change decision.
+- **Decision:** No change. R1 removed the only repeated mechanical fixture. The remaining test
+  statements express different configuration modes, distinct inputs, and different failure-reason
+  contracts. A shared scenario would need optional configuration, key, client-IP, and expected
+  error fields, which would hide the behavior each nested module currently makes explicit.
+- **Done when:** the no-change decision is recorded.
 
 ## Progress Tracking
 
@@ -181,11 +185,11 @@ beginning the next.
 - [x] Phase 2 refactorings ordered by impact and effort
 - [x] Maintainer approved implementation of R1
 - [x] R1 implemented, reviewed, and validated
-- [ ] R2 implemented, reviewed, and validated
-- [ ] R3 implemented, reviewed, and validated
-- [ ] R4 implemented or no-change decision recorded
-- [ ] Maintainer reviewed all approved changes
-- [ ] Plan completed and ready for commit
+- [x] R2 assessment completed and decision recorded
+- [x] R3 assessment completed and decision recorded
+- [x] R4 assessment completed and decision recorded
+- [x] Maintainer reviewed all approved changes
+- [x] Plan completed and ready for commit
 
 ### Progress Log
 
@@ -204,6 +208,11 @@ beginning the next.
   coverage: the router binds the public handlers to `/announce` and `/announce/{key}`, and the
   integration suite exercises those routes across configuration and error contracts. No additional
   direct wiring test would add an unobserved behavior.
+- 2026-09-02 - GitHub Copilot - Completed R4 assessment. After R1, no repeated mechanical setup
+  remains. Retained the explicit error tests because a shared scenario would require optional,
+  behavior-hiding fields across unrelated configuration and failure contracts.
+- 2026-09-02 - User/maintainer - Reviewed and approved the R4 no-change decision and completion
+  of the announce-handler test refactor plan.
 
 ### Validation Evidence
 
@@ -213,7 +222,7 @@ beginning the next.
 | R1                 | DONE   | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-axum-http-server --lib`, `git diff --check`, and editor diagnostics passed.         |
 | R2                 | DONE   | `cargo test -p torrust-tracker-axum-http-server --lib v1::handlers::announce::tests -- --nocapture`: 8 passed in 0.02 seconds after compilation. |
 | R3                 | DONE   | Inspected `v1::routes::router` and the existing real-server announce contract suite; no unique observable wiring contract was found.             |
-| R4                 | TODO   | Not started.                                                                                                                                     |
+| R4                 | DONE   | Inspected the post-R1 error tests; their remaining differences are behavior-specific, so a scenario would add optional, opaque fields.           |
 
 ## Non-Goals
 
