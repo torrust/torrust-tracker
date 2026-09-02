@@ -1,4 +1,4 @@
-//! Axum [`handlers`](axum#handlers) for the `announce` requests.
+//! Axum [`handlers`](axum#handlers) for the `scrape` requests.
 //!
 //! The handlers perform the authentication and authorization of the request,
 //! and resolve the client IP address.

@@ -93,7 +93,7 @@ contracts. Remove it only if it is unnecessary, or retain explicit ownership if 
 
 ### R1 — Correct the scrape module documentation
 
-- **Status:** TODO
+- **Status:** DONE
 - **Priority:** High impact / trivial effort
 - **Addresses:** P6
 - **Change:** Replace the module-documentation reference to `announce` with `scrape`.
@@ -172,8 +172,8 @@ contracts. Remove it only if it is unnecessary, or retain explicit ownership if 
 
 - [x] Phase 1 findings reviewed against the current file
 - [x] Phase 2 refactorings ordered by impact and effort
-- [ ] Maintainer approved implementation of R1
-- [ ] R1 implemented, reviewed, and validated
+- [x] Maintainer approved implementation of R1
+- [x] R1 implemented, reviewed, and validated
 - [ ] Maintainer approved implementation of R2
 - [ ] R2 implemented, reviewed, and validated
 - [ ] Maintainer approved implementation of R3
@@ -192,19 +192,23 @@ contracts. Remove it only if it is unnecessary, or retain explicit ownership if 
 - 2026-09-02 - GitHub Copilot - Created the proposed plan from the current `scrape.rs` tests,
   existing integration coverage, and the completed announce-handler test plan. No refactoring has
   been implemented.
+- 2026-09-02 - User/maintainer - Approved R1 after reviewing the isolated module-documentation
+  correction.
+- 2026-09-02 - GitHub Copilot - Completed R1 by correcting the module documentation to identify
+  scrape requests.
 
 ### Validation Evidence
 
-| Increment | Status | Evidence |
-| --- | --- | --- |
-| Plan documentation | TODO | Not run after plan creation. |
-| R1 | TODO | Not started. |
-| R2 | TODO | Not started. |
-| R3 | TODO | Not started. |
-| R4 | TODO | Not started. |
-| R5 | TODO | Not started. |
-| R6 | TODO | Not started. |
-| R7 | TODO | Not started. |
+| Increment          | Status | Evidence                     |
+| ------------------ | ------ | ---------------------------- |
+| Plan documentation | DONE   | `linter markdown`, `linter cspell`, and `git diff --check` passed after plan creation. |
+| R1                 | DONE   | `cargo fmt --all -- --check`, package library tests, `linter markdown`, `linter cspell`, and `git diff --check` passed. |
+| R2                 | TODO   | Not started.                 |
+| R3                 | TODO   | Not started.                 |
+| R4                 | TODO   | Not started.                 |
+| R5                 | TODO   | Not started.                 |
+| R6                 | TODO   | Not started.                 |
+| R7                 | TODO   | Not started.                 |
 
 ## Non-Goals
 
