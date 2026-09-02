@@ -67,7 +67,7 @@ whether a subissue has adequately covered critical behavior.
 
 | Package                            | Subissue                                               | Baseline                                          | Latest                                            | Change                                                  | Evidence                                                                       |
 | ---------------------------------- | ------------------------------------------------------ | ------------------------------------------------- | ------------------------------------------------- | ------------------------------------------------------- | ------------------------------------------------------------------------------ |
-| `torrust-tracker-axum-http-server` | [#1348](1348-1347-add-tests-axum-http-server/ISSUE.md) | Lines: 93.82%; regions: 91.66%; functions: 89.54% | Lines: 95.00%; regions: 93.10%; functions: 91.06% | Lines: +1.18 pp; regions: +1.44 pp; functions: +1.52 pp | [Coverage evidence](1348-1347-add-tests-axum-http-server/coverage-evidence.md) |
+| `torrust-tracker-axum-http-server` | [#1348](1348-1347-add-tests-axum-http-server/ISSUE.md) | Lines: 93.82%; regions: 91.66%; functions: 89.54% | Lines: 95.22%; regions: 92.96%; functions: 91.58% | Lines: +1.40 pp; regions: +1.30 pp; functions: +2.04 pp | [Coverage evidence](1348-1347-add-tests-axum-http-server/coverage-evidence.md) |
 
 ## Delivery Strategy
 
