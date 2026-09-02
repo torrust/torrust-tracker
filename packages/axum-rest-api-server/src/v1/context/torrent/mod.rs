@@ -45,6 +45,7 @@
 //!         "peer_addr": "192.168.1.88:17548",
 //!         "updated": 1680082693001,
 //!         "updated_milliseconds_ago": 1680082693001,
+//!         "updated_at_ms": 1680082693001,
 //!         "uploaded": 0,
 //!         "downloaded": 0,
 //!         "left": 0,
@@ -53,6 +54,10 @@
 //!     ]
 //! }
 //! ```
+//!
+//! A peer's `updated_at_ms` value is an absolute Unix timestamp in milliseconds since epoch. The
+//! deprecated `updated` and `updated_milliseconds_ago` fields have the same absolute value and are
+//! retained only for v1 compatibility; migrate clients to `updated_at_ms` before API v2.
 //!
 //! **Not Found response** `200`
 //!
