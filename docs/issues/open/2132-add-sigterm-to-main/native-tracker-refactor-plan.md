@@ -314,20 +314,20 @@ shared startup deadline, and applying the retry interval.
 The assessment reached this decision for these reasons:
 
 1. The remaining readiness operation does not mix multiple stable
-  responsibilities. `HealthCheckClient` owns deadline-bounded health API
-  requests, response decoding, and probe outcome classification;
-  `TrackerOutputCapture` owns retained child output.
+   responsibilities. `HealthCheckClient` owns deadline-bounded health API
+   requests, response decoding, and probe outcome classification;
+   `TrackerOutputCapture` owns retained child output.
 2. A `ReadinessProbe` would only partially own coherent dependencies. It would
-  need the captured output for endpoint discovery and the signal-handler
-  marker, while `NativeTracker` would still own child lifecycle, timeout
-  diagnostics, and retry policy.
+   need the captured output for endpoint discovery and the signal-handler
+   marker, while `NativeTracker` would still own child lifecycle, timeout
+   diagnostics, and retry policy.
 3. A new probe would not reduce the fixture's public interface or make its
-  readiness rule clearer. The current rule remains explicit: discover the
-  health endpoint, receive a successful and deserializable `Report` with
-  `Status::Ok`, and observe the installed-signal-handlers marker.
+   readiness rule clearer. The current rule remains explicit: discover the
+   health endpoint, receive a successful and deserializable `Report` with
+   `Status::Ok`, and observe the installed-signal-handlers marker.
 4. There is no independent second consumer. The SIGTERM and SIGINT scenarios
-  both use `NativeTracker::wait_until_ready()`, while drop cleanup does not
-  require readiness.
+   both use `NativeTracker::wait_until_ready()`, while drop cleanup does not
+   require readiness.
 
 The existing `HealthCheckClient` is the appropriate API-boundary collaborator.
 Adding `ReadinessProbe` now would only distribute a small cohesive lifecycle
