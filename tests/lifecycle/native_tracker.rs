@@ -68,6 +68,9 @@ impl NativeTracker {
         let output = Arc::new(Mutex::new(String::new()));
         let mut command = Command::new(tracker_binary());
         command
+            // Configure only this child process. `Command::env` does not
+            // mutate the test process environment, so parallel fixtures each
+            // retain their own temporary configuration path.
             .env("TORRUST_TRACKER_CONFIG_TOML_PATH", config_path)
             .env_remove("TORRUST_TRACKER_CONFIG_TOML")
             // `shutdown` reaps normal and expected-error paths. This kills a
