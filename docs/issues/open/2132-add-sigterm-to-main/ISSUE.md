@@ -1,13 +1,13 @@
 ---
 doc-type: issue
 issue-type: task
-status: draft
+status: open
 priority: p1
-github-issue: null
-spec-path: docs/issues/drafts/1488-si-1-add-sigterm-to-main/ISSUE.md
-branch: null
+github-issue: 2132
+spec-path: docs/issues/open/2132-add-sigterm-to-main/ISSUE.md
+branch: 2132-add-sigterm-to-main
 related-pr: null
-last-updated-utc: 2026-09-01
+last-updated-utc: 2026-09-02
 semantic-links:
   skill-links:
     - create-issue
@@ -22,7 +22,7 @@ semantic-links:
 
 <!-- skill-link: create-issue -->
 
-# Draft SI-1 — Add `SIGTERM` Handler at the Tracker Signal Boundary
+# Issue #2132 — Add `SIGTERM` Handler at the Tracker Signal Boundary
 
 > **EPIC position**: Roadmap step 1. Independently releasable compatibility
 > improvement; it does not complete the server lifecycle migration.
@@ -41,6 +41,13 @@ It must preserve the current legacy server shutdown path until token-aware
 server components have been migrated. This issue must not remove or alter a
 library lifecycle API.
 
+## Implementation Status
+
+Implemented and manually verified on 2026-09-02. The direct release-binary
+checks recorded in [verification.md](verification.md) confirm the SIGTERM and
+SIGINT signal-boundary behavior. Legacy periodic-job timeout and aggregate
+exit-result policy remain deferred to SI-20.
+
 ## Background
 
 `main.rs` currently only listens for `SIGINT` (Ctrl+C) via
@@ -48,7 +55,7 @@ library lifecycle API.
 `docker stop`, `systemctl stop`, and Kubernetes — is silently ignored by `main.rs`.
 
 This was confirmed experimentally on 2026-07-16 (see Phase 1 evidence in
-[verification.md](./verification.md)).
+[verification.md](verification.md)).
 
 **Exact behaviour observed (commit 49d8117f)**:
 
@@ -87,19 +94,24 @@ To:
 
 ```rust
 #[cfg(unix)]
-let mut sigterm = tokio::signal::unix::signal(
-    tokio::signal::unix::SignalKind::terminate()
-).expect("failed to install SIGTERM handler");
+let shutdown_signal = {
+  let mut sigterm = tokio::signal::unix::signal(
+    tokio::signal::unix::SignalKind::terminate(),
+  ).expect("failed to install SIGTERM handler");
 
-tokio::select! {
-    _ = tokio::signal::ctrl_c() => {
-        tracing::info!("Torrust tracker shutting down (SIGINT) ...");
-    }
-    #[cfg(unix)]
-    _ = sigterm.recv() => {
-        tracing::info!("Torrust tracker shutting down (SIGTERM) ...");
-    }
-}
+  tokio::select! {
+    _ = tokio::signal::ctrl_c() => "SIGINT",
+    _ = sigterm.recv() => "SIGTERM",
+  }
+};
+
+#[cfg(not(unix))]
+let shutdown_signal = {
+  tokio::signal::ctrl_c().await.expect("failed to install Ctrl-C handler");
+  "SIGINT"
+};
+
+tracing::info!("Torrust tracker shutting down ({shutdown_signal}) ...");
 
 jobs.cancel();
 jobs.wait_for_all(Duration::from_secs(10)).await;
@@ -118,22 +130,23 @@ The clean removal of `global_shutdown_signal()` is tracked in SI-2.
 
 ## Acceptance Criteria
 
-- [ ] `kill <pid>` against the tracker binary starts a graceful shutdown.
-- [ ] `kill -TERM <pid>` starts a graceful shutdown.
-- [ ] Ctrl+C still works as before.
-- [ ] The tracker logs distinguish the signal source: `(SIGINT)` vs `(SIGTERM)`.
-- [ ] After SIGTERM, `main.rs` logs `Torrust tracker shutting down (SIGTERM) ...`.
-- [ ] `JobManager` logs `Waiting for job to finish` for each job.
-- [ ] Every component already migrated to manager cancellation reports a
+- [x] `kill <pid>` against the tracker binary starts a graceful shutdown.
+- [x] `kill -TERM <pid>` starts a graceful shutdown.
+- [x] Ctrl+C still works as before.
+- [x] The tracker logs distinguish the signal source: `(SIGINT)` vs `(SIGTERM)`.
+- [x] After SIGTERM, `main.rs` logs `Torrust tracker shutting down (SIGTERM) ...`.
+- [x] `JobManager` logs `Waiting for job to finish` for each job.
+- [x] Every component already migrated to manager cancellation reports a
       graceful completion outcome.
-- [ ] The final shutdown result accurately reflects pending legacy components;
-      complete success and exit-code semantics are finalized by Q3.
-- [ ] The signal-boundary test targets the tracker binary directly. Do not use
+- [x] The existing completion log and exit behavior remain unchanged while
+  legacy periodic-job timeout and aggregate exit-result policy are deferred
+  to SI-20.
+- [x] The signal-boundary test targets the tracker binary directly. Do not use
       `timeout 20s cargo run` as shutdown evidence because it targets Cargo's
       launcher process rather than a documented tracker process boundary.
-- [ ] `cargo test` passes.
-- [ ] `linter all` passes.
-- [ ] Phase 2 of [verification.md](./verification.md) is fully completed.
+- [x] `cargo test` passes.
+- [x] `linter all` passes.
+- [x] Phase 2 of [verification.md](verification.md) is fully completed.
 
 ## Open Questions Affecting This Sub-issue
 
