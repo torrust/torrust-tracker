@@ -128,7 +128,7 @@ mod tests {
 
     use super::parse_key;
 
-    fn assert_error_response(error: &Error, error_message: &str) {
+    fn assert_failure_reason_contains(error: &Error, error_message: &str) {
         assert!(
             error.failure_reason.contains(error_message),
             "Error response does not contain message: '{error_message}'. Error: {error:?}"
@@ -136,13 +136,16 @@ mod tests {
     }
 
     #[test]
-    fn it_should_return_an_authentication_error_if_the_key_cannot_be_parsed() {
+    fn it_should_map_an_invalid_path_key_to_an_invalid_key_format_authentication_failure() {
+        // Arrange
         let invalid_key = "invalid_key";
 
-        let response = parse_key(invalid_key).unwrap_err();
+        // Act
+        let actual_error_response = parse_key(invalid_key).unwrap_err();
 
-        assert_error_response(
-            &response,
+        // Assert
+        assert_failure_reason_contains(
+            &actual_error_response,
             "Tracker authentication error: Invalid format for authentication key param",
         );
     }
