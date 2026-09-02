@@ -20,7 +20,7 @@ semantic-links:
     - docs/features/shutdown-process/task-inventory.md
     - docs/features/shutdown-process/shutdown-architecture-examples.md
     - docs/issues/drafts/1488-si-2-remove-global-shutdown-signal/ISSUE.md
-   - docs/issues/drafts/1488-si-10-add-token-aware-axum-drain-helper/ISSUE.md
+      - docs/issues/drafts/1488-si-10-add-token-aware-axum-drain-helper/ISSUE.md
     - docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
 ---
 
