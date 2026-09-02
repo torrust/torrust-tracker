@@ -1,6 +1,7 @@
 //! `Peer` and Peer `Id` API resources.
 use serde::{Deserialize, Serialize};
 
+// issue: #2130
 /// `Peer` API resource.
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
 pub struct Peer {

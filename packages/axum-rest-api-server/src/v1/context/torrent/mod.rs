@@ -1,5 +1,7 @@
 //! Torrents API context.
 //!
+//! issue: #2130
+//!
 //! This API context is responsible for handling all the requests related to
 //! the torrents data stored by the tracker.
 //!

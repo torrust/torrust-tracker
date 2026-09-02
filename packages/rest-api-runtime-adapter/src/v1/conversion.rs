@@ -7,6 +7,7 @@ use torrust_tracker_primitives::{PeerId, peer as domain_peer};
 use torrust_tracker_rest_api_protocol::v1::context::torrent::resources::peer as protocol_peer;
 use torrust_tracker_rest_api_protocol::v1::context::torrent::resources::torrent::{ListItem, Torrent};
 
+// issue: #2130
 /// Convert a domain [`domain_peer::Peer`] into a protocol [`protocol_peer::Peer`].
 #[must_use]
 pub fn from_domain_peer(value: domain_peer::Peer) -> protocol_peer::Peer {
