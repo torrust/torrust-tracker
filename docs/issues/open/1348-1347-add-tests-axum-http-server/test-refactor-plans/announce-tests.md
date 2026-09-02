@@ -115,7 +115,7 @@ beginning the next.
 
 ### R1 — Clarify error-test setup and failure contracts
 
-- **Status:** TODO
+- **Status:** DONE
 - **Priority:** High impact / low effort
 - **Addresses:** P1, P2, P3, P4
 - **Change:** Apply the related readability improvements as one atomic increment:
@@ -168,8 +168,8 @@ beginning the next.
 
 - [x] Phase 1 findings reviewed against the current file
 - [x] Phase 2 refactorings ordered by impact and effort
-- [ ] Maintainer approved implementation of R1
-- [ ] R1 implemented, reviewed, and validated
+- [x] Maintainer approved implementation of R1
+- [x] R1 implemented, reviewed, and validated
 - [ ] R2 implemented, reviewed, and validated
 - [ ] R3 implemented, reviewed, and validated
 - [ ] R4 implemented or no-change decision recorded
@@ -180,13 +180,18 @@ beginning the next.
 
 - 2026-09-02 - GitHub Copilot - Created the proposed plan from the current
   `announce.rs` tests and the issue's coverage evidence. No refactoring has been implemented.
+- 2026-09-02 - User/maintainer - Approved R1 after reviewing the shared binding fixture, explicit
+  error-path names, failure-reason assertion name, and AAA structure.
+- 2026-09-02 - GitHub Copilot - Completed R1. The five error tests now share
+  `sample_http_service_binding()`, use explicit actual-error names, and retain their distinct
+  configuration and input in visible Arrange sections.
 
 ### Validation Evidence
 
 | Increment          | Status | Evidence                                                                               |
 | ------------------ | ------ | -------------------------------------------------------------------------------------- |
 | Plan documentation | DONE   | `linter markdown`, `linter cspell`, and `git diff --check` passed after plan creation. |
-| R1                 | TODO   | Not started.                                                                           |
+| R1                 | DONE   | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-axum-http-server --lib`, `git diff --check`, and editor diagnostics passed. |
 | R2                 | TODO   | Not started.                                                                           |
 | R3                 | TODO   | Not started.                                                                           |
 | R4                 | TODO   | Not started.                                                                           |

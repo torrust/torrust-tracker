@@ -134,6 +134,7 @@ mod tests {
     use hyper::StatusCode;
     use serde::de::DeserializeOwned;
     use tokio_util::sync::CancellationToken;
+    use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
     use torrust_tracker_configuration::v3_0_0::Configuration;
     use torrust_tracker_core::announce_handler::AnnounceHandler;
     use torrust_tracker_core::authentication::key::repository::in_memory::InMemoryKeyRepository;
@@ -332,6 +333,12 @@ mod tests {
         }
     }
 
+    fn sample_http_service_binding() -> ServiceBinding {
+        let address = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070);
+
+        ServiceBinding::new(Protocol::HTTP, address).expect("the sample HTTP service binding should be valid")
+    }
+
     fn one_ipv4_seeder_announce_data() -> AnnounceData {
         AnnounceData {
             peers: vec![Arc::new(
@@ -377,7 +384,7 @@ mod tests {
         }
     }
 
-    fn assert_error_response(error: &responses::error::Error, error_message: &str) {
+    fn assert_failure_reason_contains(error: &responses::error::Error, error_message: &str) {
         assert!(
             error.failure_reason.contains(error_message),
             "Error response does not contain message: '{error_message}'. Error: {error:?}"
@@ -425,66 +432,66 @@ mod tests {
 
     mod with_tracker_in_private_mode {
 
-        use std::net::{IpAddr, Ipv4Addr, SocketAddr};
         use std::str::FromStr;
 
-        use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
         use torrust_tracker_core::authentication;
         use torrust_tracker_http_protocol::v1::responses;
 
-        use super::{initialize_private_tracker, sample_announce_request, sample_client_ip_sources};
+        use super::{
+            assert_failure_reason_contains, initialize_private_tracker, sample_announce_request, sample_client_ip_sources,
+            sample_http_service_binding,
+        };
         use crate::v1::handlers::announce::handle_announce;
-        use crate::v1::handlers::announce::tests::assert_error_response;
 
         #[tokio::test]
         async fn it_should_fail_when_the_authentication_key_is_missing() {
+            // Arrange
             let http_core_tracker_services = initialize_private_tracker().await;
-
-            let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070);
-            let server_service_binding = ServiceBinding::new(Protocol::HTTP, server_socket_addr).unwrap();
-
             let maybe_key = None;
 
-            let response = handle_announce(
+            // Act
+            let actual_error = handle_announce(
                 &http_core_tracker_services.announce_service,
                 &sample_announce_request(),
                 &sample_client_ip_sources(),
-                &server_service_binding,
+                &sample_http_service_binding(),
                 maybe_key,
             )
             .await
             .unwrap_err();
 
-            let error_response = responses::error::Error::from(response);
+            // Assert
+            let actual_error_response = responses::error::Error::from(actual_error);
 
-            assert_error_response(&error_response, "Tracker authentication error: Missing authentication key");
+            assert_failure_reason_contains(
+                &actual_error_response,
+                "Tracker authentication error: Missing authentication key",
+            );
         }
 
         #[tokio::test]
         async fn it_should_fail_when_the_authentication_key_is_invalid() {
+            // Arrange
             let http_core_tracker_services = initialize_private_tracker().await;
-
             let unregistered_key = authentication::Key::from_str("YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ").unwrap();
-
-            let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070);
-            let server_service_binding = ServiceBinding::new(Protocol::HTTP, server_socket_addr).unwrap();
-
             let maybe_key = Some(unregistered_key);
 
-            let response = handle_announce(
+            // Act
+            let actual_error = handle_announce(
                 &http_core_tracker_services.announce_service,
                 &sample_announce_request(),
                 &sample_client_ip_sources(),
-                &server_service_binding,
+                &sample_http_service_binding(),
                 maybe_key,
             )
             .await
             .unwrap_err();
 
-            let error_response = responses::error::Error::from(response);
+            // Assert
+            let actual_error_response = responses::error::Error::from(actual_error);
 
-            assert_error_response(
-                &error_response,
+            assert_failure_reason_contains(
+                &actual_error_response,
                 "Tracker authentication error: Failed to read key: YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ",
             );
         }
@@ -492,38 +499,36 @@ mod tests {
 
     mod with_tracker_in_listed_mode {
 
-        use std::net::{IpAddr, Ipv4Addr, SocketAddr};
-
-        use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
         use torrust_tracker_http_protocol::v1::responses;
 
-        use super::{initialize_listed_tracker, sample_announce_request, sample_client_ip_sources};
+        use super::{
+            assert_failure_reason_contains, initialize_listed_tracker, sample_announce_request, sample_client_ip_sources,
+            sample_http_service_binding,
+        };
         use crate::v1::handlers::announce::handle_announce;
-        use crate::v1::handlers::announce::tests::assert_error_response;
 
         #[tokio::test]
         async fn it_should_fail_when_the_announced_torrent_is_not_whitelisted() {
+            // Arrange
             let http_core_tracker_services = initialize_listed_tracker().await;
-
             let announce_request = sample_announce_request();
 
-            let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070);
-            let server_service_binding = ServiceBinding::new(Protocol::HTTP, server_socket_addr).unwrap();
-
-            let response = handle_announce(
+            // Act
+            let actual_error = handle_announce(
                 &http_core_tracker_services.announce_service,
                 &announce_request,
                 &sample_client_ip_sources(),
-                &server_service_binding,
+                &sample_http_service_binding(),
                 None,
             )
             .await
             .unwrap_err();
 
-            let error_response = responses::error::Error::from(response);
+            // Assert
+            let actual_error_response = responses::error::Error::from(actual_error);
 
-            assert_error_response(
-                &error_response,
+            assert_failure_reason_contains(
+                &actual_error_response,
                 &format!(
                     "Tracker whitelist error: The torrent: {}, is not whitelisted",
                     announce_request.info_hash
@@ -534,42 +539,40 @@ mod tests {
 
     mod with_tracker_on_reverse_proxy {
 
-        use std::net::{IpAddr, Ipv4Addr, SocketAddr};
-
-        use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
         use torrust_tracker_http_protocol::v1::responses;
         use torrust_tracker_http_protocol::v1::services::peer_ip_resolver::ClientIpSources;
 
-        use super::{initialize_tracker_on_reverse_proxy, sample_announce_request};
+        use super::{
+            assert_failure_reason_contains, initialize_tracker_on_reverse_proxy, sample_announce_request,
+            sample_http_service_binding,
+        };
         use crate::v1::handlers::announce::handle_announce;
-        use crate::v1::handlers::announce::tests::assert_error_response;
 
         #[tokio::test]
         async fn it_should_fail_when_the_right_most_x_forwarded_for_header_ip_is_not_available() {
+            // Arrange
             let http_core_tracker_services = initialize_tracker_on_reverse_proxy().await;
-
             let client_ip_sources = ClientIpSources {
                 right_most_x_forwarded_for: None,
                 connection_info_socket_address: None,
             };
 
-            let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070);
-            let server_service_binding = ServiceBinding::new(Protocol::HTTP, server_socket_addr).unwrap();
-
-            let response = handle_announce(
+            // Act
+            let actual_error = handle_announce(
                 &http_core_tracker_services.announce_service,
                 &sample_announce_request(),
                 &client_ip_sources,
-                &server_service_binding,
+                &sample_http_service_binding(),
                 None,
             )
             .await
             .unwrap_err();
 
-            let error_response = responses::error::Error::from(response);
+            // Assert
+            let actual_error_response = responses::error::Error::from(actual_error);
 
-            assert_error_response(
-                &error_response,
+            assert_failure_reason_contains(
+                &actual_error_response,
                 "Error resolving peer IP: missing or invalid the right most X-Forwarded-For IP",
             );
         }
@@ -577,42 +580,40 @@ mod tests {
 
     mod with_tracker_not_on_reverse_proxy {
 
-        use std::net::{IpAddr, Ipv4Addr, SocketAddr};
-
-        use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
         use torrust_tracker_http_protocol::v1::responses;
         use torrust_tracker_http_protocol::v1::services::peer_ip_resolver::ClientIpSources;
 
-        use super::{initialize_tracker_not_on_reverse_proxy, sample_announce_request};
+        use super::{
+            assert_failure_reason_contains, initialize_tracker_not_on_reverse_proxy, sample_announce_request,
+            sample_http_service_binding,
+        };
         use crate::v1::handlers::announce::handle_announce;
-        use crate::v1::handlers::announce::tests::assert_error_response;
 
         #[tokio::test]
         async fn it_should_fail_when_the_client_ip_from_the_connection_info_is_not_available() {
+            // Arrange
             let http_core_tracker_services = initialize_tracker_not_on_reverse_proxy().await;
-
             let client_ip_sources = ClientIpSources {
                 right_most_x_forwarded_for: None,
                 connection_info_socket_address: None,
             };
 
-            let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070);
-            let server_service_binding = ServiceBinding::new(Protocol::HTTP, server_socket_addr).unwrap();
-
-            let response = handle_announce(
+            // Act
+            let actual_error = handle_announce(
                 &http_core_tracker_services.announce_service,
                 &sample_announce_request(),
                 &client_ip_sources,
-                &server_service_binding,
+                &sample_http_service_binding(),
                 None,
             )
             .await
             .unwrap_err();
 
-            let error_response = responses::error::Error::from(response);
+            // Assert
+            let actual_error_response = responses::error::Error::from(actual_error);
 
-            assert_error_response(
-                &error_response,
+            assert_failure_reason_contains(
+                &actual_error_response,
                 "Error resolving peer IP: cannot get the client IP from the connection info",
             );
         }
