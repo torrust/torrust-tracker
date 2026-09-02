@@ -118,6 +118,9 @@ component-specific. See [Q2](questions.md#q2) for the evaluated
 alternatives, migration constraints, and decisions intentionally deferred to
 Q3–Q5.
 
+The durable repository-wide decision and its alternatives are recorded in the
+[supervised cancellation-tree ADR](../../adrs/20260902074438_adopt_supervised_cancellation_tree_for_shutdown.md).
+
 ### Outcome and Deadline Policy
 
 A fully graceful shutdown exits with code 0. A startup failure or any component

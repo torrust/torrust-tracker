@@ -26,8 +26,9 @@ must be run after the implementation is merged.
 
 ## Phase 1 — Pre-Implementation (Baseline: Broken Behaviour)
 
-> **Purpose**: prove that `SIGTERM` is currently ignored by `main.rs` and that
-> the tracker must be force-killed with `SIGKILL` to stop it.
+> **Purpose**: prove that `main.rs` currently ignores `SIGTERM` even though
+> server libraries react independently, leaving the tracker process running
+> until it is force-killed with `SIGKILL`.
 >
 > **Status**: Completed on 2026-07-16.
 
@@ -44,7 +45,7 @@ ls -lh target/release/torrust-tracker
 -rwxrwxr-x 2 josecelano josecelano 127M Jul 16 17:54 target/release/torrust-tracker
 ```
 
-### P1 — Test 1: `kill <pid>` is ignored by `main.rs` (SIGTERM ignored)
+### P1 — Test 1: `kill <pid>` bypasses `main.rs` (SIGTERM ignored by `main.rs`)
 
 #### Procedure
 
@@ -65,7 +66,7 @@ fi
 
 ```text
 Binary PID: 955797
-RESULT: Process IS STILL RUNNING after SIGTERM — SIGTERM was IGNORED
+RESULT: Process IS STILL RUNNING after SIGTERM — SIGTERM bypassed main.rs
 ```
 
 #### Interpretation
@@ -120,7 +121,7 @@ had reacted:
 
 ### P1 — Test 2: Force-killing with SIGKILL is required to stop the process
 
-After SIGTERM was ignored, SIGKILL was required:
+After SIGTERM bypassed `main.rs`, SIGKILL was required:
 
 ```bash
 kill -9 955797
@@ -180,6 +181,17 @@ Same procedure as P1 Test 1 using the fixed binary.
 - [ ] PASS: Do not require every legacy component to complete in this
       incremental signal-boundary change
 
+### P2 — Test 1a: Bounded direct-binary signal delivery
+
+```text
+(paste the bounded harness command and terminal output)
+```
+
+- [ ] PASS: The harness targets the release tracker binary PID, not `cargo run`.
+- [ ] PASS: SIGTERM reaches `main()` and begins cancellation before the harness deadline.
+- [ ] PASS: The recorded bound accommodates SI-1's current sequential legacy
+  shutdown behavior; SI-20 owns the final process deadline.
+
 ### P2 — Test 2: `kill -TERM <pid>` — same outcome as P2 Test 1
 
 ```text
@@ -231,6 +243,7 @@ echo "Exit code: $?"
 | P1    | T2   | SIGKILL required — exit code 137    | Confirmed |
 | P1    | T3   | Ports freed after SIGKILL           | Confirmed |
 | P2    | T1   | SIGTERM reaches `main()`            | Pending   |
+| P2    | T1a  | Bounded direct-binary delivery       | Pending   |
 | P2    | T2   | `kill -TERM` — same as T1           | Pending   |
 | P2    | T3   | Ctrl+C — log says SIGINT            | Pending   |
 | P2    | T4   | SIGKILL — exit 137, no shutdown log | Pending   |

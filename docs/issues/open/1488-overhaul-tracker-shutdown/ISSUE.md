@@ -44,6 +44,9 @@ tree. `JobManager` supervises named top-level components; cancellation flows
 from its root token to component child tokens; each component joins or
 deliberately aborts its own children before reporting its outcome upward.
 
+The accepted architecture and alternatives are recorded in the
+[supervised cancellation-tree ADR](../../../adrs/20260902074438_adopt_supervised_cancellation_tree_for_shutdown.md).
+
 ## Why This Is Needed
 
 The current shutdown process has several problems identified in the

@@ -128,6 +128,9 @@ The clean removal of `global_shutdown_signal()` is tracked in SI-2.
       graceful completion outcome.
 - [ ] The final shutdown result accurately reflects pending legacy components;
       complete success and exit-code semantics are finalized by Q3.
+- [ ] The signal-boundary test targets the tracker binary directly. Do not use
+  `timeout 20s cargo run` as shutdown evidence because it targets Cargo's
+  launcher process rather than a documented tracker process boundary.
 - [ ] `cargo test` passes.
 - [ ] `linter all` passes.
 - [ ] Phase 2 of [verification.md](./verification.md) is fully completed.
@@ -181,6 +184,15 @@ kill <pid>
   mapping.
 
 **Record in `verification.md`**: full log output from shutdown start to exit.
+
+### Test 1a: Bounded direct-binary signal delivery
+
+Run the release binary in the background, record its PID, and send SIGTERM to
+that PID within a bounded test harness. The harness must target the tracker
+binary, not `cargo run`; it may use `timeout` only to bound the harness and must
+allow enough time for SI-1's existing sequential legacy shutdown path. The test
+passes when the log proves SIGTERM reached `main()` and initiated cancellation.
+It does not require the final 25-second process deadline, which is SI-20 work.
 
 ### Test 2: `kill -TERM <pid>` (explicit SIGTERM)
 
