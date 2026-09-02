@@ -1,6 +1,10 @@
 ---
 name: write-unit-test
 description: Guide for writing unit tests following project conventions including behavior-driven naming (it*should*\*), AAA pattern, MockClock for deterministic time testing, and parameterized tests with rstest. Use when adding tests for domain entities, value objects, utilities, or tracker logic. Triggers on "write unit test", "add test", "test coverage", "unit testing", or "add unit tests".
+semantic-links:
+  related-artifacts:
+    - docs/testing/README.md
+    - docs/testing/refactoring-patterns/README.md
 metadata:
   author: torrust
   version: "1.0"
@@ -253,6 +257,14 @@ torrust-tracker-test-helpers = { workspace = true }
 ```
 
 Check the package for available mock servers, fixture generators, and utility types.
+
+## Reusable Refactoring Patterns
+
+Before adding a bespoke helper or refactoring generated test code, consult the
+[test refactoring-pattern catalog](../../../../../docs/testing/refactoring-patterns/README.md).
+It contains repository-native examples with their problem, selected pattern, and constraints.
+Prefer an existing catalog pattern when it fits. Add a focused entry when a reviewed refactor
+establishes a reusable pattern for future tests.
 
 ## Quick Checklist
 

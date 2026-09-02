@@ -7,6 +7,7 @@ semantic-links:
     - docs/architecture/README.md
     - docs/adrs/20260821172000_establish_ai_agent_context_capability_and_portability_governance.md
     - docs/skills/semantic-skill-link-convention.md
+    - docs/testing/README.md
 ---
 
 # `docs/` — Documentation Directory
@@ -35,22 +36,24 @@ For the full project context see the [root AGENTS.md](../AGENTS.md).
 | `refactor-plans/`                                                                         | Refactor plans (same lifecycle as issue specs)                                     |
 | `copilot-pr-reviews/`                                                                     | Copilot PR review records and suggestion threads                                   |
 | `skills/`                                                                                 | Internal conventions used by humans and AI agents                                  |
+| `testing/`                                                                                | Durable testing guidance and test-design refactoring pattern catalog               |
 | `templates/`                                                                              | Canonical document templates (ADR, EPIC, issue, refactor plan)                     |
 | `media/`                                                                                  | Images, diagrams, flamegraphs, benchmark reports, sample torrents                  |
 | `licenses/`                                                                               | Full license texts (AGPL-3.0, MIT-0)                                               |
 
 ### Where to place a new artifact
 
-| Artifact type                                  | Target location                                                                                                        |
-| ---------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| New root ADR                                   | `docs/adrs/YYYYMMDDHHMMSS_snake_case_title.md` — for repository-wide, multi-package, or inter-package decisions        |
-| New package-local ADR                          | `packages/<package>/docs/adrs/YYYYMMDDHHMMSS_snake_case_title.md` — for decisions owned only by an extractable package |
-| New issue spec (before GitHub issue exists)    | `docs/issues/drafts/<short-slug>/ISSUE.md`                                                                             |
-| New issue spec (after GitHub issue created)    | `docs/issues/open/<number>-<short-slug>/ISSUE.md`                                                                      |
-| New refactor plan (before GitHub issue exists) | `docs/refactor-plans/drafts/`                                                                                          |
-| New refactor plan (after GitHub issue created) | `docs/refactor-plans/open/<number>-<short-slug>.md`                                                                    |
-| New document template                          | `docs/templates/`                                                                                                      |
-| New diagram or screenshot                      | `docs/media/` (or the relevant subdirectory)                                                                           |
+| Artifact type                                  | Target location                                                                                                                     |
+| ---------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| New root ADR                                   | `docs/adrs/YYYYMMDDHHMMSS_snake_case_title.md` — for repository-wide, multi-package, or inter-package decisions                     |
+| New package-local ADR                          | `packages/<package>/docs/adrs/YYYYMMDDHHMMSS_snake_case_title.md` — for decisions owned only by an extractable package              |
+| New issue spec (before GitHub issue exists)    | `docs/issues/drafts/<short-slug>/ISSUE.md`                                                                                         |
+| New issue spec (after GitHub issue created)    | `docs/issues/open/<number>-<short-slug>.md`, or `docs/issues/open/<number>-<short-slug>/ISSUE.md` when it has issue-local artifacts |
+| New refactor plan (before GitHub issue exists) | `docs/refactor-plans/drafts/`                                                                                                       |
+| New refactor plan (after GitHub issue created) | `docs/refactor-plans/open/<number>-<short-slug>.md`                                                                                 |
+| Durable testing guide or pattern catalog       | `docs/testing/`                                                                                                                     |
+| New document template                          | `docs/templates/`                                                                                                                   |
+| New diagram or screenshot                      | `docs/media/` (or the relevant subdirectory)                                                                                        |
 
 Choose ADR placement by the decision's architectural scope, not the paths modified by the
 implementation. Root ADRs cover shared configuration, protocols, dependency policy, workspace

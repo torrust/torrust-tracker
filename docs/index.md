@@ -14,6 +14,7 @@ semantic-links:
     - docs/packages.md
     - docs/profiling.md
     - docs/release_process.md
+    - docs/testing/README.md
     - docs/adrs/README.md
     - docs/adrs/index.md
     - docs/issues/README.md
@@ -32,17 +33,18 @@ source code, see the [crate docs on docs.rs][docs].
 
 Operational and development guides for working with the tracker.
 
-| Document                                                                                                                                                                           | Description                                                          |
-| ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
-| [application-jobs.md](application-jobs.md)                                                                                                                                         | Current background-job ownership, lifecycle, and shutdown behavior   |
-| [benchmarking.md](benchmarking.md)                                                                                                                                                 | How to run and interpret the torrent-repository benchmarks           |
-| [containers.md](containers.md)                                                                                                                                                     | Building and running the tracker with Docker / Podman                |
-| [git-hooks.md](git-hooks.md)                                                                                                                                                       | Hook behavior and SSH idle-timeout troubleshooting                   |
-| [packages.md](packages.md)                                                                                                                                                         | Workspace package catalog, architecture layers, and dependency rules |
-| [Configuration v2-to-v3 migration guide](../packages/configuration/docs/migrate-v2-to-v3.md)                                                                                       | Upgrade tracker configuration files to active schema v3              |
-| [profiling.md](profiling.md)                                                                                                                                                       | CPU and memory profiling with Valgrind / kcachegrind                 |
-| [release_process.md](release_process.md)                                                                                                                                           | Branch strategy, versioning, and the staging → main release pipeline |
-| [adrs/20260821172000_establish_ai_agent_context_capability_and_portability_governance.md](adrs/20260821172000_establish_ai_agent_context_capability_and_portability_governance.md) | Governance for portable AI-agent workflows and retained context      |
+| Document                                                                                                                                                                           | Description                                                                |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| [application-jobs.md](application-jobs.md)                                                                                                                                         | Current background-job ownership, lifecycle, and shutdown behavior         |
+| [benchmarking.md](benchmarking.md)                                                                                                                                                 | How to run and interpret the torrent-repository benchmarks                 |
+| [containers.md](containers.md)                                                                                                                                                     | Building and running the tracker with Docker / Podman                      |
+| [git-hooks.md](git-hooks.md)                                                                                                                                                       | Hook behavior and SSH idle-timeout troubleshooting                         |
+| [packages.md](packages.md)                                                                                                                                                         | Workspace package catalog, architecture layers, and dependency rules       |
+| [Configuration v2-to-v3 migration guide](../packages/configuration/docs/migrate-v2-to-v3.md)                                                                                       | Upgrade tracker configuration files to active schema v3                    |
+| [profiling.md](profiling.md)                                                                                                                                                       | CPU and memory profiling with Valgrind / kcachegrind                       |
+| [release_process.md](release_process.md)                                                                                                                                           | Branch strategy, versioning, and the staging → main release pipeline       |
+| [testing/README.md](testing/README.md)                                                                                                                                             | Testing guidance and a catalog of durable test-design refactoring patterns |
+| [adrs/20260821172000_establish_ai_agent_context_capability_and_portability_governance.md](adrs/20260821172000_establish_ai_agent_context_capability_and_portability_governance.md) | Governance for portable AI-agent workflows and retained context            |
 
 ## Runtime Architecture
 
