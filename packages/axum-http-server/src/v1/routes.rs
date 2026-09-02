@@ -186,10 +186,10 @@ mod tests {
     #[tokio::test]
     async fn it_should_propagate_a_client_supplied_request_id() {
         // Arrange
-        let request_id = "test-request-id";
+        let client_request_id = "test-request-id";
         let request = http::Request::builder()
             .uri("/")
-            .header("x-request-id", request_id)
+            .header("x-request-id", client_request_id)
             .body(Body::empty())
             .expect("valid request");
 
@@ -205,7 +205,7 @@ mod tests {
                 .expect("request ID header")
                 .to_str()
                 .expect("request ID header should be valid text"),
-            request_id
+            client_request_id
         );
     }
 
@@ -219,15 +219,15 @@ mod tests {
 
         // Assert
         assert_eq!(response.status(), http::StatusCode::OK);
-        let request_id = response
+        let actual_request_id = response
             .headers()
             .get(HeaderName::from_static("x-request-id"))
             .expect("request ID header")
             .to_str()
             .expect("request ID header should be valid text");
         assert!(
-            Uuid::parse_str(request_id).is_ok(),
-            "request ID should be a UUID: {request_id}"
+            Uuid::parse_str(actual_request_id).is_ok(),
+            "request ID should be a UUID: {actual_request_id}"
         );
     }
 }

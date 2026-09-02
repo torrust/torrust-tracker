@@ -95,6 +95,8 @@ fn to_protocol_scrape_data(domain_data: DomainScrapeData) -> responses::scrape::
 #[cfg(test)]
 mod tests {
     use axum::body::to_bytes;
+    use axum::response::Response;
+    use hyper::StatusCode;
     use std::net::{IpAddr, Ipv4Addr, SocketAddr};
     use std::str::FromStr;
     use std::sync::Arc;
@@ -228,6 +230,20 @@ mod tests {
         );
     }
 
+    async fn decode_successful_bencoded_response(response: Response) -> responses::scrape::deserialization::Response {
+        assert_eq!(
+            response.status(),
+            StatusCode::OK,
+            "a successful scrape response should use HTTP 200"
+        );
+
+        let body = to_bytes(response.into_body(), usize::MAX)
+            .await
+            .expect("scrape response body should be readable");
+
+        responses::scrape::deserialization::Response::try_from_bencoded(&body).expect("scrape response should be valid bencode")
+    }
+
     #[tokio::test]
     async fn it_should_encode_domain_scrape_data_as_a_bencoded_response() {
         // Arrange
@@ -244,26 +260,19 @@ mod tests {
 
         // Act
         let response = super::build_response(scrape_data);
-        let status = response.status();
-        let body = to_bytes(response.into_body(), usize::MAX)
-            .await
-            .expect("scrape response body should be readable");
-        let decoded = responses::scrape::deserialization::Response::try_from_bencoded(&body)
-            .expect("response should be a bencoded scrape response");
+        let actual_response = decode_successful_bencoded_response(response).await;
 
         // Assert
-        assert_eq!(status, hyper::StatusCode::OK);
-        assert_eq!(
-            decoded,
-            responses::scrape::deserialization::Response::with_one_file(
-                info_hash,
-                responses::scrape::deserialization::File {
-                    complete: 3,
-                    downloaded: 2,
-                    incomplete: 4,
-                },
-            )
+        let expected_response = responses::scrape::deserialization::Response::with_one_file(
+            info_hash,
+            responses::scrape::deserialization::File {
+                complete: 3,
+                downloaded: 2,
+                incomplete: 4,
+            },
         );
+
+        assert_eq!(actual_response, expected_response);
     }
 
     mod with_tracker_in_private_mode {
