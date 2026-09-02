@@ -86,14 +86,21 @@ regression or versioned observability requirement.
 
 ### R3 — Assess residual middleware coverage by contract value
 
-- **Status:** TODO
+- **Status:** DONE
 - **Priority:** Low impact / medium effort
 - **Addresses:** P3
 - **Change:** Compare potentially uncovered compression, timeout, and trace branches with existing
   package tests and public requirements. Add a test only for a stable unobserved HTTP contract.
 - **Guardrails:** Do not wait for the default five-second timeout; test logs, closure execution,
   framework defaults, layer order, UUID uniqueness, or compression merely to improve coverage.
-- **Done when:** the plan records a behavior-justified test or a concrete no-change/defer rationale.
+- **Decision:** No change. The remaining branches are compression negotiation, the fixed
+  five-second timeout mapping, and request/response trace classification. No package requirement
+  identifies compression as a tracker contract, and a timeout test would require wall-clock waiting
+  or production-only configurability. Trace events and their fields are not a versioned public
+  observability contract. Existing real-server tests cover tracker route registration, protocol
+  responses, health checks, reverse-proxy behavior, and request-ID propagation. No stable,
+  unobserved HTTP-level behavior justifies expanding this focused test module.
+- **Done when:** the no-change rationale and existing coverage boundaries are recorded.
 
 ## Progress Tracking
 
@@ -104,9 +111,9 @@ regression or versioned observability requirement.
 - [x] Maintainer approved implementation of R1
 - [x] R1 implemented, reviewed, and validated
 - [x] R2 assessment completed and decision recorded
-- [ ] R3 assessment completed and decision recorded
-- [ ] Maintainer reviewed all approved changes
-- [ ] Plan completed and ready for commit
+- [x] R3 assessment completed and decision recorded
+- [x] Maintainer reviewed all approved changes
+- [x] Plan completed and ready for commit
 
 ### Progress Log
 
@@ -121,6 +128,11 @@ regression or versioned observability requirement.
 - 2026-09-02 - GitHub Copilot - Completed R2 assessment. Retained `test_router()` because its
   test-module scope and direct `with_request_layers` implementation already make its narrow purpose
   clear; a longer call-site name would not improve readability.
+- 2026-09-02 - GitHub Copilot - Completed R3 assessment. Deferred compression, timeout, and trace
+  coverage because no stable missing HTTP contract was identified; existing real-server tests cover
+  tracker route and protocol behavior.
+- 2026-09-02 - User/maintainer - Reviewed and approved R3's no-change decision and completion of
+  the routes test refactor plan.
 
 ### Validation Evidence
 
@@ -129,7 +141,7 @@ regression or versioned observability requirement.
 | Plan documentation | DONE   | `linter markdown`, `linter cspell`, and `git diff --check` passed after plan creation.                                                               |
 | R1                 | DONE   | Editor diagnostics, `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-axum-http-server --lib` (32 passed), and `git diff --check` passed. |
 | R2                 | DONE   | Inspected the helper and its two call sites; no rename improves the local test contract.                                                             |
-| R3                 | TODO   | Not started.                                                                                                                                         |
+| R3                 | DONE   | Inspected middleware configuration, package documentation, and existing real-server contracts; no stable missing HTTP contract was found.            |
 
 ## Non-Goals
 
