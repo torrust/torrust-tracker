@@ -132,14 +132,17 @@ beginning the next.
 
 ### R2 — Assess fixture cost before changing it
 
-- **Status:** TODO
+- **Status:** DONE
 - **Priority:** Medium impact / low effort
 - **Addresses:** P5
 - **Change:** Measure focused test duration and inspect existing seams. Record a no-change decision
   unless a smaller existing seam preserves the same observable behavior.
 - **Guardrail:** Do not add mocks or refactor production based on speculation.
-- **Done when:** the plan records the evidence and either the retained fixture rationale or an
-  approved focused improvement.
+- **Decision:** No change. The focused `announce` test module ran 8 tests in 0.02 seconds after
+  compilation. The current fixture exercises the real `AnnounceService` boundary with its required
+  authorization, repository, and configuration collaborators. No smaller existing seam preserves
+  those error-path contracts without replacing the behavior with mocks or adding production seams.
+- **Done when:** the retained-fixture rationale and timing evidence are recorded.
 
 ### R3 — Assess missing handler-entry behavior
 
@@ -185,16 +188,20 @@ beginning the next.
 - 2026-09-02 - GitHub Copilot - Completed R1. The five error tests now share
   `sample_http_service_binding()`, use explicit actual-error names, and retain their distinct
   configuration and input in visible Arrange sections.
+- 2026-09-02 - GitHub Copilot - Completed R2 assessment. Focused `announce` tests passed 8 tests
+  in 0.02 seconds after compilation. Retained the real-service fixture because no smaller existing
+  seam preserves the authorization and client-IP error contracts without speculative mocks or
+  production changes.
 
 ### Validation Evidence
 
-| Increment          | Status | Evidence                                                                               |
-| ------------------ | ------ | -------------------------------------------------------------------------------------- |
-| Plan documentation | DONE   | `linter markdown`, `linter cspell`, and `git diff --check` passed after plan creation. |
-| R1                 | DONE   | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-axum-http-server --lib`, `git diff --check`, and editor diagnostics passed. |
-| R2                 | TODO   | Not started.                                                                           |
-| R3                 | TODO   | Not started.                                                                           |
-| R4                 | TODO   | Not started.                                                                           |
+| Increment          | Status | Evidence                                                                                                                                         |
+| ------------------ | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Plan documentation | DONE   | `linter markdown`, `linter cspell`, and `git diff --check` passed after plan creation.                                                           |
+| R1                 | DONE   | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-axum-http-server --lib`, `git diff --check`, and editor diagnostics passed.         |
+| R2                 | DONE   | `cargo test -p torrust-tracker-axum-http-server --lib v1::handlers::announce::tests -- --nocapture`: 8 passed in 0.02 seconds after compilation. |
+| R3                 | TODO   | Not started.                                                                                                                                     |
+| R4                 | TODO   | Not started.                                                                                                                                     |
 
 ## Non-Goals
 
