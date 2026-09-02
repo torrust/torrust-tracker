@@ -148,13 +148,21 @@ contracts. Remove it only if it is unnecessary, or retain explicit ownership if 
 
 ### R6 — Assess statistics-listener necessity and lifecycle
 
-- **Status:** TODO
+- **Status:** DONE
 - **Priority:** Medium impact / medium effort
 - **Addresses:** P5
 - **Change:** Verify configuration and sender/receiver requirements. Record either a no-change
   lifecycle rationale or an approved focused cleanup.
 - **Guardrail:** Do not remove required event wiring or add sleeps, retries, polling, or shared state.
-- **Done when:** listener necessity and ownership are explicit.
+- **Decision:** Removed the listener from this focused handler setup. `ScrapeService::send_event`
+  performs no event work when its optional sender is `None`, so an active listener is not required
+  for response-adaptation, authentication, whitelist, or client-IP contracts. Event publication is
+  directly tested in `packages/http-core/src/services/scrape.rs`; composed scrape metrics are
+  verified by the TCP4 and TCP6 assertions in
+  `packages/axum-http-server/tests/server/v1/contract/for_all_config_modes/receiving_an_scrape_request.rs`.
+  The resulting split keeps event publication and consumption coverage while removing background
+  work that this file's focused tests do not assert.
+- **Done when:** listener necessity, lifecycle decision, and coverage boundaries are recorded.
 
 ### R7 — Reassess the cross-file bootstrap draft after local changes
 
@@ -182,7 +190,7 @@ contracts. Remove it only if it is unnecessary, or retain explicit ownership if 
 - [x] R4 implemented, reviewed, and validated
 - [x] Maintainer approved implementation of R5
 - [x] R5 implemented, reviewed, and validated
-- [ ] R6 assessment completed and decision recorded
+- [x] R6 assessment completed and decision recorded
 - [ ] R7 draft assessment completed and decision recorded
 - [ ] Maintainer reviewed all approved changes
 - [ ] Plan completed and ready for commit
@@ -212,19 +220,24 @@ contracts. Remove it only if it is unnecessary, or retain explicit ownership if 
   contract.
 - 2026-09-02 - GitHub Copilot - Completed R5. Added a fixed two-file `build_response` contract
   with independently specified metadata and decoded protocol output.
+- 2026-09-02 - User/maintainer - Confirmed that event coverage belongs in HTTP-core service tests
+  and composed package integration tests, not as listener work in focused handler tests without an assertion.
+- 2026-09-02 - GitHub Copilot - Completed R6. Removed optional statistics-listener infrastructure
+  from the focused scrape handler setup. `ScrapeService` receives no event sender; HTTP-core tests
+  cover `TcpScrape` publication and HTTP-server integration tests cover consumed TCP4/TCP6 metrics.
 
 ### Validation Evidence
 
-| Increment          | Status | Evidence                                                                                                                                             |
-| ------------------ | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Plan documentation | DONE   | `linter markdown`, `linter cspell`, and `git diff --check` passed after plan creation.                                                               |
-| R1                 | DONE   | `cargo fmt --all -- --check`, package library tests, `linter markdown`, `linter cspell`, and `git diff --check` passed.                              |
-| R2                 | DONE   | Editor diagnostics, `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-axum-http-server --lib`, and `git diff --check` passed.             |
-| R3                 | DONE   | Editor diagnostics, `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-axum-http-server --lib` (31 passed), and `git diff --check` passed. |
-| R4                 | DONE   | Editor diagnostics, `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-axum-http-server --lib` (31 passed), and `git diff --check` passed. |
-| R5                 | DONE   | Editor diagnostics, `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-axum-http-server --lib` (32 passed), and `git diff --check` passed. |
-| R6                 | TODO   | Not started.                                                                                                                                         |
-| R7                 | TODO   | Not started.                                                                                                                                         |
+| Increment          | Status | Evidence                                                                                                                                                                                                                                           |
+| ------------------ | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Plan documentation | DONE   | `linter markdown`, `linter cspell`, and `git diff --check` passed after plan creation.                                                                                                                                                             |
+| R1                 | DONE   | `cargo fmt --all -- --check`, package library tests, `linter markdown`, `linter cspell`, and `git diff --check` passed.                                                                                                                            |
+| R2                 | DONE   | Editor diagnostics, `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-axum-http-server --lib`, and `git diff --check` passed.                                                                                                           |
+| R3                 | DONE   | Editor diagnostics, `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-axum-http-server --lib` (31 passed), and `git diff --check` passed.                                                                                               |
+| R4                 | DONE   | Editor diagnostics, `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-axum-http-server --lib` (31 passed), and `git diff --check` passed.                                                                                               |
+| R5                 | DONE   | Editor diagnostics, `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-axum-http-server --lib` (32 passed), and `git diff --check` passed.                                                                                               |
+| R6                 | DONE   | Inspected `ScrapeService::send_event`, HTTP-core service event tests, and HTTP-server TCP4/TCP6 metric integration assertions; editor diagnostics, `cargo fmt --all -- --check`, package library tests (32 passed), and `git diff --check` passed. |
+| R7                 | TODO   | Not started.                                                                                                                                                                                                                                       |
 
 ## Non-Goals
 

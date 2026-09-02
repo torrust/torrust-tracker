@@ -118,7 +118,6 @@ mod tests {
     use std::str::FromStr;
     use std::sync::Arc;
 
-    use tokio_util::sync::CancellationToken;
     use torrust_info_hash::InfoHash;
     use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
     use torrust_tracker_configuration::v3_0_0::Configuration;
@@ -128,11 +127,7 @@ mod tests {
     use torrust_tracker_core::torrent::repository::in_memory::InMemoryTorrentRepository;
     use torrust_tracker_core::whitelist::authorization::WhitelistAuthorization;
     use torrust_tracker_core::whitelist::repository::in_memory::InMemoryWhitelist;
-    use torrust_tracker_http_core::event::bus::EventBus;
-    use torrust_tracker_http_core::event::sender::Broadcaster;
     use torrust_tracker_http_core::services::scrape::ScrapeService;
-    use torrust_tracker_http_core::statistics::event::listener::run_event_listener;
-    use torrust_tracker_http_core::statistics::repository::Repository;
     use torrust_tracker_http_protocol::v1::requests::scrape::Scrape;
     use torrust_tracker_http_protocol::v1::responses;
     use torrust_tracker_http_protocol::v1::services::peer_ip_resolver::ClientIpSources;
@@ -161,7 +156,6 @@ mod tests {
     }
 
     fn initialize_core_tracker_services(config: &Configuration) -> TestServices {
-        let cancellation_token = CancellationToken::new();
         let configuration_instance_id = config
             .http_trackers
             .as_deref()
@@ -185,30 +179,11 @@ mod tests {
         let in_memory_torrent_repository = Arc::new(InMemoryTorrentRepository::default());
         let scrape_handler = Arc::new(ScrapeHandler::new(&whitelist_authorization, &in_memory_torrent_repository));
 
-        // HTTP core stats
-        let http_core_broadcaster = Broadcaster::default();
-        let http_stats_repository = Arc::new(Repository::new());
-        let http_stats_event_bus = Arc::new(EventBus::new(
-            config.core.tracker_usage_statistics.into(),
-            http_core_broadcaster.clone(),
-        ));
-
-        let http_stats_event_sender = http_stats_event_bus.sender();
-
-        if config.core.tracker_usage_statistics {
-            let _unused = run_event_listener(
-                http_stats_event_bus.receiver(),
-                cancellation_token,
-                &http_stats_repository,
-                [(configuration_instance_id, true)].into(),
-            );
-        }
-
         let scrape_service = Arc::new(ScrapeService::new_with_http_tracker_config(
             core_config,
             scrape_handler,
             authentication_service,
-            http_stats_event_sender,
+            None,
             &http_tracker_config,
             configuration_instance_id,
         ));
