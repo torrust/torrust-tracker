@@ -142,7 +142,7 @@ The previously proposed Axum and qBittorrent E2E DTO-literal edits are not requi
 - [ ] AC2: `from_domain_peer` maps `updated_at_ms` from `DurationSinceUnixEpoch::as_millis()`.
 - [ ] AC3: Until API v2, `updated`, `updated_milliseconds_ago`, and `updated_at_ms` are all serialized for a returned peer and contain the same value; both legacy fields are deprecated with a migration path to `updated_at_ms`.
 - [ ] AC4: The v1 torrent endpoint documentation accurately shows all timestamp fields and their absolute-time semantics.
-- [ ] AC5: API v2 uses `updated_at_ms` and does not retain `updated` or `updated_milliseconds_ago`.
+- [ ] AC5: This issue documents that API v2 is planned to use `updated_at_ms` and omit `updated` and `updated_milliseconds_ago`; implementing API v2 remains out of scope.
 - [ ] AC6: `linter all`, relevant tests, and applicable pre-push checks pass.
 - [ ] AC7: Manual verification scenarios are executed and documented with status and evidence.
 - [ ] AC8: Acceptance criteria are re-reviewed after implementation and reflect observed behavior.
@@ -156,7 +156,6 @@ Define verification before implementation starts and execute it before closing t
 - `cargo test -p torrust-tracker-rest-api-protocol`
 - `cargo test -p torrust-tracker-rest-api-runtime-adapter`
 - `cargo test -p torrust-tracker-axum-rest-api-server`
-- `cargo test --test integration`
 - `cargo +nightly doc --no-deps --workspace --all-features`
 - `linter all`
 - Pre-push checks when the implementation is ready to push.
