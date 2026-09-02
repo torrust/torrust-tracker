@@ -14,6 +14,7 @@ semantic-links:
     - .github/skills/dev/testing/write-unit-test/SKILL.md
     - docs/testing/README.md
     - docs/testing/refactoring-patterns/README.md
+    - docs/skills/semantic-skill-link-convention.md
 ---
 
 <!-- skill-link: create-issue -->
@@ -35,6 +36,7 @@ The repository was reorganized through package refactoring and extraction work. 
 - Establish and record a coverage baseline for each package addressed by a subissue, then aim to increase it by testing critical behavior. Record an issue-local, human-readable coverage-evidence document with the command, measurement scope, aggregate comparison, per-file results, and prioritized uncovered areas.
 - Add maintainable, fast, responsibility-oriented unit tests close to the code they protect, using Arrange, Act, Assert (AAA) structure where appropriate.
 - Add integration tests, runnable examples, or end-to-end tests when they provide valuable package-level regression protection.
+- When a package behavior is impractical to cover with a unit test, select the narrowest stable test boundary that can cover it: package-local integration or end-to-end tests first, then root `tests/` integration tests or `packages/e2e-tools/` only when the behavior is necessarily composed at that level. Record the chosen boundary and its rationale in the subissue evidence.
 - Use `tracker-core` as a reference for effective package-level test coverage.
 - Create and track additional package-testing subissues when a maintainer or contributor identifies a need.
 - Set qualitative, risk-based coverage objectives per subissue and document the rationale and exceptions; do not require a numeric percentage target.
@@ -74,6 +76,14 @@ whether a subissue has adequately covered critical behavior.
 Implement independently reviewable, package-scoped subissues. When work begins on a package, add it to the Package Coverage Tracking table and record its starting coverage before adding tests. After implementation, update the row with the latest measurement and percentage-point change. Each subissue records its starting coverage, the critical responsibilities assessed, the coverage increase achieved where practical, verification evidence, and any explicitly justified exclusions. Store the coverage evidence in an issue-local human-readable document, rather than committing large raw coverage artifacts. State which source paths and code types the measurement includes, because test-inclusive totals are not production-only coverage. Use aggregate percentages only for navigation; prioritize behavior by examining per-file coverage and uncovered functions or regions.
 
 Prioritize fast unit tests close to the code being changed, while retaining or adding integration, runnable-example, and end-to-end tests when they provide valuable regression protection. Coverage percentage informs the work but does not replace testing critical behavior. Record reusable test-design refactors in the [testing refactoring-pattern catalog](../../../testing/refactoring-patterns/README.md) so later subissues can apply proven patterns without restating their rationale.
+
+When a package behavior is covered outside its package, add a high-signal semantic link from the
+subissue specification to the external test artifact using the
+[Semantic Skill Link Convention](../../../skills/semantic-skill-link-convention.md). In Markdown
+frontmatter, add the stable repository-relative test path under
+`semantic-links.related-artifacts`; use an issue number rather than a moving issue-spec path when
+the external artifact must refer back to the subissue. Do not add broad directory links or markers
+for incidental mentions: the link must identify the test that provides the coverage evidence.
 
 For every test-producing task, apply this development loop:
 
