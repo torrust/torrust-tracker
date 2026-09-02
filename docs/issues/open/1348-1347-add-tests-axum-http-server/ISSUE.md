@@ -74,6 +74,16 @@ Apply this loop to **every implementation-plan task that adds or changes tests**
 
 The completed tests use the existing `PeerBuilder`, protocol deserializers, direct handler-response seams, and an in-process router; no production refactor was needed.
 
+### Test Refactor Plans
+
+Test-bearing package files are reviewed one at a time. Each plan first identifies file-specific
+problems, then orders proposed refactorings from high-impact/low-effort to low-impact/high-effort.
+Implementation begins only after maintainer review of the current file's plan.
+
+- [Shared test-refactor-plan guidance](test-refactor-plans/README.md)
+- [Announce handler tests](test-refactor-plans/announce-tests.md) — proposed; do not implement
+  until reviewed.
+
 ## Progress Tracking
 
 ### Workflow Checkpoints
