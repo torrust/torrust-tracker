@@ -320,7 +320,8 @@ approved final architecture.
 ### Evaluation
 
 The [Preliminary Task Inventory](task-inventory.md) establishes that the
-current manager reaches only the event listeners, while server shutdown has
+current manager reaches event listeners, the UDP IP-ban cleanup job, and server
+wrappers through a token-to-halt bridge, while server shutdown still has
 unjoined controller tasks and library-level OS-signal listeners. The
 [Shutdown Architecture Examples](shutdown-architecture-examples.md) apply the
 following comparison to the tracker binary and standalone HTTP/UDP consumers.

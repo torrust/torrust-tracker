@@ -32,16 +32,17 @@ container conventions.
 
 ## The Problem in One Sentence
 
-`kill <pid>` — the most basic Unix way to ask a process to stop — silently does
-nothing to the Torrust Tracker today. The tracker ignores `SIGTERM`.
+`kill <pid>` — the most basic Unix way to ask a process to stop — begins an
+uncoordinated partial shutdown today. Server libraries observe `SIGTERM`, but
+`main.rs` does not cancel and await all application jobs.
 
 > **A note on `kill`**: Despite its name, `kill` does not force-terminate a
 > process by default. It sends `SIGTERM` (signal 15), which is simply a polite
 > request to stop gracefully. The word "kill" sounds brutal, but the mechanism
 > is not — it is the standard Unix way of asking a process to exit. The truly
 > forceful command is `kill -9` (SIGKILL), which cannot be caught or ignored.
-> The tracker currently treats `kill <pid>` as if it were silent — surprising
-> and wrong.
+> The tracker currently handles `SIGTERM` at the wrong boundary, leaving the
+> process without coordinated application-wide shutdown — surprising and wrong.
 
 ## Motivation
 
@@ -50,14 +51,15 @@ The current shutdown process has several pain points:
 1. **Container orchestration**: Docker/Podman send `SIGTERM` by default, but the
    main entry point only handles `SIGINT` (Ctrl+C). Containers may be forcefully
    killed after the orchestrator's own timeout.
-2. **Silent hangs**: When a job does not finish in time, only a generic warning
-   is logged — operators cannot tell which job is blocking shutdown.
+2. **Incomplete shutdown observability**: The current manager logs the name of
+  a job that exceeds its timeout, but it has no concurrent aggregate outcome
+  model or complete component-level drain progress.
 3. **Inconsistent behavior**: Different jobs use different shutdown mechanisms
    (`CancellationToken`, direct `ctrl_c` listener, oneshot channel). Some jobs
    ignore the central `JobManager` entirely.
-4. **Timeout mismatch**: The `JobManager` waits 10 seconds per job sequentially,
-   while Axum servers have a 90-second graceful shutdown. The main process may
-   exit before servers finish draining connections.
+4. **Timeout mismatch**: The `JobManager` waits 10 seconds per job sequentially
+  and force-aborts timed-out wrappers, while Axum servers have a 90-second
+  graceful shutdown. The wrapper cannot prove its detached drain completed.
 5. **No graceful UDP shutdown**: The UDP server simply aborts its main loop.
    In-flight requests are dropped without notice.
 6. **Hardcoded timeouts**: Grace periods are magic numbers scattered across the
@@ -169,8 +171,11 @@ container runtime, and operator already expects.
 | `SIGINT` (2)   | "User pressed Ctrl+C"         | Same as `SIGTERM` — start graceful shutdown              |
 | `SIGKILL` (9)  | "Stop immediately, no choice" | Immediate termination by OS — cannot be caught           |
 
-**Currently**: `SIGTERM` is ignored. `kill <pid>` has no effect.
-**After fix**: `kill <pid>` triggers the same graceful shutdown as Ctrl+C.
+**Currently**: server libraries react to `SIGTERM`, but `main.rs` does not
+cancel and await every application job. `kill <pid>` therefore does not provide
+a coordinated process shutdown.
+**After fix**: `kill <pid>` triggers the same coordinated graceful shutdown as
+Ctrl+C.
 
 ### Windows Console Shutdown Support
 
@@ -204,8 +209,10 @@ kill -TERM <pid>   # sends SIGTERM, waits up to 10s
 kill -KILL <pid>   # sends SIGKILL if process is still running
 ```
 
-**Currently**: `docker stop torrust-tracker` sends `SIGTERM`, which is ignored.
-After the 10s timeout, Docker force-kills the container with `SIGKILL`.
+**Currently**: `docker stop torrust-tracker` sends `SIGTERM`, which server
+libraries observe independently while `main.rs` does not coordinate cancellation
+and completion of all application jobs. After the 10s timeout, Docker can
+force-kill the container with `SIGKILL`.
 **After fix**: `docker stop torrust-tracker` triggers graceful shutdown when
 Docker is configured with at least the 30-second external grace period required
 by the [Outcome and Deadline Policy](#outcome-and-deadline-policy). Docker's
@@ -235,12 +242,12 @@ Any operator, developer, or automated agent interacting with the tracker will
 try the most natural stop mechanisms first. They should not be surprised:
 
 ```bash
-# These all SHOULD work — and currently DON'T (except Ctrl+C):
-kill <pid>               # sends SIGTERM — currently ignored ❌
-kill -TERM <pid>         # sends SIGTERM — currently ignored ❌
-docker stop <container>  # sends SIGTERM — currently ignored ❌
-podman stop <container>  # sends SIGTERM — currently ignored ❌
-systemctl stop <service> # sends SIGTERM — currently ignored ❌
+# These all SHOULD trigger coordinated shutdown, but currently only stop servers:
+kill <pid>               # SIGTERM reaches server libraries but bypasses main ❌
+kill -TERM <pid>         # SIGTERM reaches server libraries but bypasses main ❌
+docker stop <container>  # SIGTERM reaches server libraries but bypasses main ❌
+podman stop <container>  # SIGTERM reaches server libraries but bypasses main ❌
+systemctl stop <service> # SIGTERM reaches server libraries but bypasses main ❌
 
 # This works but is less standard:
 kill -INT <pid>          # sends SIGINT — works ✅

@@ -75,10 +75,11 @@ objects.
 | HTTP, UDP-core, and UDP-server event paths and aggregate statistics repositories | Events describe application facts and feed aggregate observability; metrics policy is applied by consumers. See [events.md](events.md).        |
 | Runtime service registry and application jobs                                    | The application tracks the started services and owns jobs according to service lifetime. See [../application-jobs.md](../application-jobs.md). |
 
-The current runtime still consumes configuration v2 aliases. Configuration v3
-expresses the intended placement of shared values under `core`, and its runtime
-activation is tracked by [issue #1980][1980]. The shared-process topology itself
-already exists regardless of configuration-schema activation.
+The current runtime consumes the configuration v3 model. Shutdown policy is not
+yet part of that schema; when it is introduced, process-wide policy belongs in
+an application-level v3 configuration section, while component-specific budgets
+remain owned by their lifecycle contracts. The shared-process topology itself is
+independent of that future shutdown-policy configuration.
 
 ## Listener-Owned Concerns
 
@@ -144,5 +145,3 @@ within one process provide.
 - [Package architecture](../packages.md)
 - [Application jobs and task ownership](../application-jobs.md)
 - [Shared services ADR](../adrs/20260727180000_shared_services_across_tracker_instances.md)
-
-[1980]: https://github.com/torrust/torrust-tracker/issues/1980

@@ -28,13 +28,13 @@ semantic-links:
 # Draft SI-15 — Define UDP Active-Request Shutdown Policy
 
 > **EPIC position**: Roadmap step 11. A focused policy and implementation change
-> after UDP receive/reset task ownership is token-driven and joinable.
+> after UDP receive-loop ownership is token-driven and joinable.
 
 ## Goal
 
 Define and implement the shutdown policy for UDP request processor tasks already
 accepted when cancellation begins. The UDP component first stops admission and
-joins its receive/reset tasks. This task then defines how it waits for active
+completes its receive-loop lifecycle. This task then defines how it waits for active
 request processors, when it deliberately aborts any remaining processors, and
 how it reports completed versus aborted work.
 
@@ -51,8 +51,9 @@ When the buffer is full, `force_push` can abort an older unfinished task.
 shutdown-specific timeout, completed-versus-aborted outcome count, or explicit
 owner-visible request-set completion mechanism.
 
-The preceding receive/reset migration retains this behavior as a compatibility
-fallback. This task may change only the active-request lifecycle after the
+The preceding receive-loop migration retains this behavior as a compatibility
+fallback. The application-level UDP IP-ban cleanup job remains separately
+manager-owned. This task may change only the active-request lifecycle after the
 component has stopped accepting new packets.
 
 ## Scope
@@ -73,8 +74,9 @@ component has stopped accepting new packets.
 
 ### Out of scope
 
-- Token propagation, receive-loop ownership, and IP-ban reset-loop ownership;
-  the preceding UDP receive/reset migration owns those changes.
+- Token propagation and receive-loop ownership; the preceding UDP receive-loop
+  migration owns those changes. UDP IP-ban cleanup remains a separate
+  manager-owned application job.
 - HTTP, REST API, health-check API, or standalone UDP environment migration.
 - Changing normal-operation overload behavior except where a tracking change is
   required to preserve the documented bounded-capacity contract.
@@ -85,8 +87,8 @@ component has stopped accepting new packets.
 ## Proposed Shutdown Contract
 
 1. After root cancellation reaches the UDP component, it stops admitting new
-   packets and completes the receive/reset-loop shutdown defined by the prior
-   migration.
+  packets and completes the receive-loop shutdown defined by the prior
+  migration.
 2. The component awaits active processors until its request deadline, which is
    supplied by the component lifecycle policy.
 3. It deliberately aborts processors still incomplete at that deadline.
@@ -119,7 +121,8 @@ component has stopped accepting new packets.
 
 ## Dependencies
 
-- UDP receive/reset task ownership migration is complete.
+- UDP receive-loop lifecycle migration is complete; the UDP IP-ban cleanup job
+  remains independently manager-owned.
 - Q4 defines the approved component/request deadline hierarchy. SI-20 later
   makes its production values configurable; tests may use controlled deadlines.
 - SI-1 is required only for manual SIGTERM verification.

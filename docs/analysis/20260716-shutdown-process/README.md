@@ -55,7 +55,7 @@ The main entry point is in `src/main.rs`:
 ```rust
 #[tokio::main]
 async fn main() {
-    let (_app_container, jobs) = app::run().await;
+    let (_app_container, jobs) = app::start().await;
 
     tokio::select! {
         _ = tokio::signal::ctrl_c() => {
@@ -111,7 +111,9 @@ pub async fn wait_for_all(mut self, grace_period: Duration) {
 
 - Jobs are waited **sequentially**, not concurrently.
 - Each job gets the **same** grace period timeout.
-- If a job times out, only a warning is logged — no forced abort.
+- If a job times out, its named top-level task is logged, aborted, and awaited.
+    The manager therefore does not detach that handle, but this is forceful
+    escalation rather than a graceful component outcome.
 - The order of waiting is the order jobs were pushed (currently: event listeners first,
   then servers, then periodic tasks, then API servers).
 
@@ -120,7 +122,7 @@ pub async fn wait_for_all(mut self, grace_period: Duration) {
 The tracker uses **three different mechanisms** to signal shutdown to its various jobs.
 This inconsistency is a primary area for improvement.
 
-### 3.1 `CancellationToken` (used by event listeners)
+### 3.1 `CancellationToken` (used by event listeners and server wrappers)
 
 Used by statistics event listeners:
 
@@ -133,6 +135,14 @@ Used by statistics event listeners:
 
 These jobs receive a `CancellationToken` from the `JobManager` and check `token.cancelled()`
 in their main loop. They respond to `jobs.cancel()`.
+
+The UDP banning cleanup job and the HTTP tracker, REST API, health-check API,
+and UDP tracker wrappers also receive the shared token. Each server wrapper
+currently translates cancellation into its private `Halted::Normal` oneshot
+message, then awaits its corresponding server task. This is an already-landed
+token-to-halt migration bridge, not the target lifecycle contract: server
+libraries still retain OS-signal behavior and some server-owned children remain
+unjoined.
 
 ### 3.2 Direct `tokio::signal::ctrl_c()` (used by periodic jobs)
 
@@ -164,9 +174,10 @@ between:
 1. The halt channel (receiving `Halted::Normal` from the main process)
 2. The `global_shutdown_signal()` (Ctrl+C or SIGTERM)
 
-This means **all servers will also shut down if any other server's halt signal fires** —
-because the `global_shutdown_signal()` is shared across all tokio tasks and resolves once
-for all of them.
+Each server can therefore react to a library-level OS signal independently of
+the application supervisor. In the current tracker application, its wrapper
+also translates the manager token into that server's private halt message. The
+two paths coexist during the migration bridge.
 
 ## 4. The `global_shutdown_signal()` (`torrust_server_lib::signals`)
 
@@ -233,63 +244,70 @@ pub async fn graceful_shutdown(handle, rx_halt, message, address) {
 - Grace period is **90 seconds** with a **95-second** upper bound.
 - The 10-second delta allows for the `graceful_shutdown` to complete before the loop times out.
 - Connections are drained actively — the server waits for active HTTP connections to finish.
-- **BUT**: `main.rs` only waits **10 seconds** per job. The Axum 90s grace period is never
-  reached because `JobManager` times out after 10s. The Axum shutdown runs in a spawned task
-  and will complete independently, but the main process will have already exited by then.
+- **BUT**: `main.rs` waits **10 seconds per job sequentially**. A wrapper that
+    exceeds that limit is aborted and joined before the manager proceeds to the
+    next job. Because the Axum drain controller is detached, that abort can leave
+    the wrapper unable to prove drain completion; total shutdown latency can grow
+    with the number and order of blocked jobs.
 
 ### 5.2 UDP Server
 
 The UDP server (`packages/udp-server/src/server/launcher.rs`) has a different approach:
 
 ```rust
-// The halt task waits for shutdown signal
-let halt_task = tokio::task::spawn(shutdown_signal_with_message(rx_halt, ...));
-
 select! {
     _ = running => { ... },
-    _ = halt_task => { ... }
+    () = shutdown_signal_with_message(rx_halt, ...) => { ... }
 }
-stop.abort();  // Force-abort the main loop
+running.abort();  // Force-abort the main loop
 ```
 
 **Key observations:**
 
 - The UDP server **cannot** drain connections gracefully — it simply aborts the main loop.
+- The launcher directly awaits the halt channel or library-level OS signal in
+    its `select!`; it does not spawn a separate halt-signal task.
 - There is no connection draining mechanism for UDP.
 - After abort, `tokio::task::yield_now().await` gives other tasks a chance to complete.
 
 ## 6. Startup and Shutdown Architecture
 
-The overall startup sequence in `src/app.rs`:
+The public startup boundary in `src/app.rs` is `app::start()`, which completes
+configuration loading and application bootstrap before returning the application
+container and `JobManager`. Its bootstrap path starts jobs in this order:
 
 ```rust
-pub async fn start(config, app_container) -> JobManager {
-    warn_if_no_services_enabled(config);
-    load_data_from_database(config, app_container).await;
-    start_jobs(config, app_container).await
+pub async fn start() -> Result<(Arc<AppContainer>, JobManager), Error> {
+    let (config, app_container) = bootstrap::app::setup()
+        .await
+        .map_err(|source| Error::Setup { source })?;
+    let app_container = Arc::new(app_container);
+    run_after_setup(&config, &app_container).await
 }
 ```
 
 Jobs are started in this order:
 
-1. Event listeners (swarm, core, http-core, udp-core, udp-server stats, udp-server banning)
-2. UDP tracker instances
-3. HTTP tracker instances
-4. Torrent cleanup (periodic)
-5. Peers inactivity update (periodic)
-6. REST API
-7. Health Check API
+1. Event listeners (swarm, core, http-core, udp-core, UDP-server stats, UDP-server banning)
+2. UDP IP-ban cleanup
+3. UDP tracker instances
+4. HTTP tracker instances
+5. Torrent cleanup (periodic)
+6. Peers inactivity update (periodic)
+7. REST API
+8. Health Check API
 
 The shutdown (waiting) order follows the push order — jobs pushed first are
 waited first:
 
-1. Event listeners (swarm, core, http-core, udp-core, udp-server stats, banning)
-2. UDP tracker instances
-3. HTTP tracker instances
-4. Torrent cleanup
-5. Peers inactivity update
-6. REST API
-7. Health Check API (waited last)
+1. Event listeners (swarm, core, http-core, udp-core, UDP-server stats, banning)
+2. UDP IP-ban cleanup
+3. UDP tracker instances
+4. HTTP tracker instances
+5. Torrent cleanup
+6. Peers inactivity update
+7. REST API
+8. Health Check API (waited last)
 
 > This was confirmed experimentally in §8.2.
 
@@ -311,8 +329,9 @@ to `jobs.cancel()`.
 The `JobManager` waits **10 seconds per job sequentially**, while Axum servers have a
 **90-second grace period**. This means:
 
-- The main process will likely timeout before the Axum servers finish draining connections.
-- The Axum graceful shutdown spawned task continues running after the main process exits.
+A wrapper can be force-aborted before the Axum server's 90-second drain finishes.
+The detached drain controller can then continue independently until runtime
+teardown, while the manager continues its sequential waits.
 
 ### 7.4 No SIGTERM in `main.rs`
 
@@ -323,9 +342,10 @@ be called, and `jobs.wait_for_all()` will never execute.
 
 ### 7.5 Sequential Job Waiting
 
-Jobs are waited one by one. If the first job (e.g., Health Check API) takes the full 10
-seconds, all subsequent jobs get less time. This could be improved by waiting concurrently
-with a shared timeout.
+Jobs are waited one by one, and every job receives the full 10-second grace
+period. Consequently, each blocked job can add another 10 seconds to total
+shutdown time. This should be replaced by concurrent waiting under one shared
+process deadline.
 
 ### 7.6 Hardcoded Grace Periods
 
@@ -338,8 +358,9 @@ When Ctrl+C is pressed:
 
 1. `main.rs` catches it and starts the shutdown sequence.
 2. Each server's `shutdown_signal()` also catches it via `global_shutdown_signal()`.
-3. This creates a race: the main process calls `jobs.cancel()` and sends `Halted` via the
-   channel, but the servers may already be shutting down from the global signal.
+3. This creates a race: the main process calls `jobs.cancel()`, server wrappers
+    forward that cancellation to their private `Halted` channels, and servers may
+    already be shutting down from the global signal.
 
 ### 7.8 UDP Server Has No Graceful Shutdown
 
@@ -437,7 +458,7 @@ This is relevant for development workflows but not for production deployments
 | Aspect                       | Current Implementation                                | Status                             |
 | ---------------------------- | ----------------------------------------------------- | ---------------------------------- |
 | Top-level signal handling    | Only `SIGINT` in `main.rs`                            | ⚠️ Missing `SIGTERM`               |
-| Server shutdown mechanism    | Oneshot channel `Halted` + `global_shutdown_signal()` | ✅ Functional                      |
+| Server shutdown mechanism    | Manager token forwarded to `Halted` + `global_shutdown_signal()` | ⚠️ Transitional bridge |
 | Event listener shutdown      | `CancellationToken` from `JobManager`                 | ✅ Functional                      |
 | Periodic job shutdown        | Direct `tokio::signal::ctrl_c()`                      | ⚠️ Inconsistent                    |
 | Axum connection draining     | 90s grace period, polls connection count              | ✅ Functional but timeout mismatch |

@@ -1,7 +1,7 @@
 # Verification Evidence — UDP Active-Request Shutdown Policy
 
 > **Status**: Not started — capture controlled request-lifecycle evidence for
-> this policy slice after UDP receive/reset ownership migration.
+> this policy slice after UDP receive-loop ownership migration.
 
 ## Environment
 

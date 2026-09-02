@@ -1,7 +1,7 @@
-# Verification Evidence — UDP Receive and Reset Token Lifecycle Migration
+# Verification Evidence — UDP Receive Token Lifecycle Migration
 
 > **Status**: Not started — capture deterministic and manual evidence for this
-> UDP receive/reset ownership slice.
+> UDP receive-loop ownership slice.
 
 ## Environment
 
@@ -12,12 +12,14 @@
 
 ## Deterministic Tests
 
-### Test 1: Cancellation joins receive and reset tasks
+### Test 1: Cancellation joins the receive task
 
 - [ ] Start one UDP component with an injected `CancellationToken`.
 - [ ] Cancel the token without delivering `SIGINT` or `SIGTERM`.
 - [ ] Verify new packet admission stops.
-- [ ] Verify the receive loop and IP-ban reset loop are awaited.
+- [ ] Verify the receive loop is awaited.
+- [ ] Verify the separate application-level UDP IP-ban cleanup job remains
+      manager-owned and token-cancellable.
 - [ ] Verify the component reports its named UDP outcome.
 
 **Evidence:**
@@ -30,7 +32,6 @@
 
 - [ ] Cause or simulate receive-loop completion/failure without cancellation.
 - [ ] Verify an explicit UDP component outcome is reported.
-- [ ] Verify the IP-ban reset loop is not left detached.
 
 **Evidence:**
 
@@ -68,8 +69,8 @@
 - [ ] After SI-1, SIGTERM sent to the tracker binary reaches `main()` and the
       migrated UDP component completes through the token path.
 - [ ] The token-aware UDP path has no OS-signal subscription.
-- [ ] Receive-loop and reset-loop handles are retained and awaited by the UDP
-      component owner.
+- [ ] The receive-loop handle is retained and awaited by the UDP component
+      owner; UDP IP-ban cleanup remains separately manager-owned.
 
 **Evidence:**
 
@@ -82,7 +83,8 @@
 | Check                        | Result  | Evidence link or note |
 | ---------------------------- | ------- | --------------------- |
 | Token-driven UDP stop        | Pending |                       |
-| Joined receive/reset tasks   | Pending |                       |
+| Joined receive loop          | Pending |                       |
+| Managed UDP IP-ban cleanup   | Pending |                       |
 | Unexpected receive outcome   | Pending |                       |
 | Active-request compatibility | Pending |                       |
 | Bootstrap propagation        | Pending |                       |

@@ -45,15 +45,15 @@ HTTP environment consumers. Their legacy lifecycle paths remain supported.
 ## Current State
 
 `src/bootstrap/jobs/http_tracker.rs` starts `HttpServer` then returns a wrapper
-`JoinHandle<()>` to `JobManager`. The wrapper owns a shutdown `Halted` sender
-but does not use the `JobManager` token. In `packages/axum-http-server`, the
-server spawns `graceful_shutdown(...)` and discards that drain controller's
-handle. The legacy helper observes a `Halted` channel or library-level OS
-signals.
+`JoinHandle<()>` to `JobManager`. The wrapper already receives the manager
+token, forwards cancellation to its private `Halted::Normal` sender, and awaits
+the server task. In `packages/axum-http-server`, the server spawns
+`graceful_shutdown(...)` and discards that drain controller's handle. The
+legacy helper observes a `Halted` channel or library-level OS signals.
 
-Consequently, `JobManager` currently cannot request HTTP tracker shutdown and
-cannot prove that the HTTP drain controller completed before the wrapper task
-ends.
+Consequently, the existing bridge requests HTTP tracker shutdown but does not
+give the component a direct token-aware lifecycle API or prove that the HTTP
+drain controller completed before the wrapper task ends.
 
 ## Scope
 

@@ -75,8 +75,9 @@ standard Unix termination signal.
 
 - Standalone HTTP environment/example changes.
 - Tracker `main()` / `JobManager` changes and tracker application bootstrap.
-- UDP receive/reset ownership or active-request policy work, which must already
-  be supplied by SI-14 and SI-15.
+- UDP receive-loop ownership or active-request policy work, which must already
+  be supplied by SI-14 and SI-15. The application-level UDP IP-ban cleanup job
+  remains separately manager-owned.
 - Removal/deprecation of legacy UDP lifecycle APIs or library OS-signal paths.
 - HTTP, REST API, health-check, deadline configuration, exit-code, and
   readiness changes.
@@ -93,7 +94,7 @@ standard Unix termination signal.
    failure result rather than silently dropping or aborting it. The error API
    may evolve with the token-aware UDP server contract.
 5. The component obeys the established UDP active-request policy; this task does
-   not change receive/reset/request behavior within the UDP server.
+  not change receive-loop or request behavior within the UDP server.
 
 ## Acceptance Criteria
 
@@ -113,7 +114,7 @@ standard Unix termination signal.
 
 ## Dependencies
 
-- SI-14 (UDP receive/reset token lifecycle) is complete.
+- SI-14 (UDP receive-loop token lifecycle) is complete.
 - SI-15 (UDP active-request policy) is complete.
 - SI-20 later implements Q3's process exit-result mapping; that mapping is not
   required to migrate this standalone consumer's lifecycle.

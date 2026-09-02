@@ -57,6 +57,12 @@ pub async fn shutdown_signal(rx_halt: tokio::sync::oneshot::Receiver<Halted>) {
 This means every server independently catches Ctrl+C and SIGTERM. The servers
 do not wait for `main.rs` to coordinate the shutdown order.
 
+The tracker application already has a transitional bridge: its HTTP, REST API,
+health-check API, and UDP job wrappers receive the manager token, forward
+cancellation to private `Halted::Normal` channels, and await their server
+tasks. This task replaces that bridge with the additive direct token-aware
+lifecycle API; it must not describe manager cancellation wiring as new.
+
 ## Implementation
 
 1. Define and release an **additive** `torrust-server-lib` lifecycle API based

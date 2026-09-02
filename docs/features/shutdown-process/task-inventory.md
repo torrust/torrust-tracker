@@ -25,7 +25,7 @@ decision in [Q2](questions.md#q2); it is **not** the implementation-time,
 complete inventory required to close [issue #1588][issue-1588].
 
 The map starts at the tracker binary's Tokio runtime and follows the normal
-`app::run()` startup path. It excludes tests, benchmarks, the tracker-client
+`app::start()` startup path. It excludes tests, benchmarks, the tracker-client
 console application, and Tokio work whose exact task structure is owned by
 third-party HTTP framework internals.
 
@@ -51,7 +51,7 @@ spawn or supervision ownership, not an operating-system parent-child relation.
 
 ```text
 torrust-tracker process (Tokio runtime; main)
-└─ app::run() / start_jobs()
+└─ app::start() / start_jobs()
    └─ JobManager
       ├─ swarm-registry statistics listener [managed; conditional]
       ├─ tracker-core event listener [managed; conditional]
@@ -59,12 +59,12 @@ torrust-tracker process (Tokio runtime; main)
       ├─ UDP-core statistics listener [managed; conditional]
       ├─ UDP-server statistics listener [managed; conditional]
       ├─ UDP-server banning listener [managed]
+      ├─ UDP IP-ban cleanup job [managed; conditional]
       ├─ UDP instance wrapper [managed; N bindings]
       │  └─ UDP launcher task
       │     ├─ UDP receive / main loop
-      │     │  ├─ IP-ban reset loop [detached]
       │     │  └─ request processor [one per datagram; AbortHandle retained]
-      │     └─ halt-signal task [halt oneshot or global OS signal]
+      │     └─ direct halt wait [private halt oneshot or global OS signal]
       ├─ HTTP instance wrapper [managed; N bindings]
       │  └─ HTTP launcher / server task
       │     ├─ graceful-shutdown controller [detached]
@@ -90,7 +90,7 @@ implementation.
 
 ```mermaid
 flowchart TD
-    main["Tokio runtime: main()"] --> app["app::run() / start_jobs()"]
+   main["Tokio runtime: main()"] --> app["app::start() / start_jobs()"]
     app --> manager["JobManager"]
 
     manager --> listeners["Event listeners (six conditional jobs)"]
@@ -99,9 +99,9 @@ flowchart TD
     manager --> udpWrapper["UDP instance wrapper (N)\nmanaged"]
     udpWrapper --> udpLauncher["UDP launcher task"]
     udpLauncher --> udpLoop["UDP receive / main loop"]
-    udpLauncher --> udpHalt["UDP halt-signal task\nhalt oneshot or global OS signal"]
-    udpLoop --> banReset["IP-ban reset loop\ndetached"]
+   udpLauncher --> udpHalt["Direct halt wait\nprivate halt oneshot or global OS signal"]
     udpLoop --> udpRequest["UDP request processor (N)\nAbortHandle retained"]
+   manager --> banCleanup["UDP IP-ban cleanup job\nmanaged; CancellationToken"]
 
     manager --> httpWrapper["HTTP instance wrapper (N)\nmanaged"]
     httpWrapper --> httpServer["HTTP launcher / server task"]
@@ -134,38 +134,38 @@ flowchart TD
 | UDP-core statistics listener, conditional                 | `JobManager`                         | Managed                                            | `CancellationToken` or event receiver closure                | Yes                          | None identified in this preliminary review.                               |
 | UDP-server statistics listener, conditional               | `JobManager`                         | Managed                                            | `CancellationToken` or event receiver closure                | Yes                          | None identified in this preliminary review.                               |
 | UDP-server banning listener                               | `JobManager`                         | Managed                                            | `CancellationToken` or event receiver closure                | Yes                          | None identified in this preliminary review.                               |
-| UDP instance wrapper, one per public UDP binding          | `JobManager`                         | Managed wrapper awaits launcher                    | No manager-token path; relies on launcher completion         | No                           | Wrapper owns a server halt sender but does not send it.                   |
-| UDP launcher                                              | UDP wrapper / `Server<Running>`      | Retained by wrapper                                | Halt oneshot or `global_shutdown_signal()`                   | No                           | Global signal bypasses the application supervisor.                        |
+| UDP IP-ban cleanup, conditional                            | `JobManager`                         | Managed                                            | `CancellationToken`                                            | Yes                          | Application-wide cleanup is already owned; it is not a per-listener child task. |
+| UDP instance wrapper, one per public UDP binding          | `JobManager`                         | Managed wrapper awaits launcher                    | Manager token → private `Halted::Normal`; legacy global signal remains | Yes, through forwarding | Cancellation reaches the wrapper, but launcher child ownership remains incomplete. |
+| UDP launcher                                              | UDP wrapper / `Server<Running>`      | Retained by wrapper                                | Private halt oneshot or `global_shutdown_signal()`           | Indirectly                   | Global signal bypasses the application supervisor.                        |
 | UDP receive/main loop                                     | UDP launcher                         | Local join handle; aborted on halt                 | Aborted by launcher after halt signal                        | No                           | Forced cancellation can interrupt in-flight work.                         |
-| UDP halt-signal task                                      | UDP launcher                         | Local join handle                                  | Halt oneshot or global SIGINT/SIGTERM                        | No                           | Each server independently observes OS signals.                            |
-| UDP IP-ban reset loop                                     | UDP receive/main loop                | Detached                                           | None before Tokio runtime teardown                           | No                           | A genuinely detached long-running task.                                   |
-| UDP request processor, one per datagram                   | UDP receive/main loop                | `AbortHandle` retained in bounded `ActiveRequests` | Completion or forced abort under capacity/lifecycle pressure | No                           | No cooperative process-shutdown path is visible.                          |
-| HTTP instance wrapper, one per HTTP binding               | `JobManager`                         | Managed wrapper awaits server                      | No manager-token path; relies on server completion           | No                           | Wrapper owns a server halt sender but does not send it.                   |
-| HTTP launcher / server                                    | HTTP wrapper / `HttpServer<Running>` | Retained by wrapper                                | Detached controller receives halt oneshot or global signal   | No                           | 90-second Axum drain conflicts with the manager's 10-second per-job wait. |
+| UDP direct halt wait                                      | UDP launcher                         | Awaited directly in launcher `select!`             | Private halt oneshot or global SIGINT/SIGTERM                | Indirectly                   | Each server independently observes OS signals.                            |
+| HTTP instance wrapper, one per HTTP binding               | `JobManager`                         | Managed wrapper awaits server                      | Manager token → private `Halted::Normal`; legacy global signal remains | Yes, through forwarding | Cancellation reaches the wrapper, but server drain ownership and budgets conflict. |
+| HTTP launcher / server                                    | HTTP wrapper / `HttpServer<Running>` | Retained by wrapper                                | Detached controller receives private halt oneshot or global signal | Indirectly              | 90-second Axum drain conflicts with the manager's 10-second per-job wait. |
 | HTTP graceful-shutdown controller                         | HTTP server                          | Detached                                           | Halt oneshot or global SIGINT/SIGTERM                        | No                           | May outlive a manager wrapper that has timed out.                         |
 | HTTP connection and request work                          | Axum / Hyper                         | Framework-managed                                  | `Handle::graceful_shutdown`                                  | Indirectly                   | Exact task topology is an external implementation detail.                 |
 | Torrent-cleanup periodic job, conditional                 | `JobManager`                         | Managed                                            | Direct Ctrl+C or weak-manager expiry                         | No                           | Does not have a manager-token or SIGTERM path.                            |
-| Activity-metrics periodic job, conditional                | `JobManager`                         | Managed                                            | Direct Ctrl+C or weak-state expiry                           | No                           | Does not have a manager-token or SIGTERM path.                            |
-| REST API wrapper and launcher                             | `JobManager`                         | Managed wrapper awaits server                      | Halt oneshot or global signal in detached controller         | No                           | Same lifecycle split and timeout conflict as HTTP tracker.                |
+| REST API wrapper and launcher                             | `JobManager`                         | Managed wrapper awaits server                      | Manager token → private `Halted::Normal`; legacy global signal remains | Yes, through forwarding | Same lifecycle split and timeout conflict as HTTP tracker.                |
 | REST API graceful-shutdown controller                     | REST API server                      | Detached                                           | Halt oneshot or global SIGINT/SIGTERM                        | No                           | Same detached-controller concern as HTTP tracker.                         |
-| REST connection and request work                          | Axum / Hyper                         | Framework-managed                                  | `Handle::graceful_shutdown`                                  | Indirectly                   | Exact task topology is an external implementation detail.                 |
-| Health-check API wrapper and server                       | `JobManager`                         | Managed wrapper awaits server                      | Halt oneshot or global signal in detached controller         | No                           | Production code retains a halt sender but does not use it.                |
+| Health-check API wrapper and server                       | `JobManager`                         | Managed wrapper awaits server                      | Manager token → private `Halted::Normal`; legacy global signal remains | Yes, through forwarding | Same lifecycle split and timeout conflict as HTTP tracker.                |
 | Health-check graceful-shutdown controller                 | Health-check server                  | Detached                                           | Halt oneshot or global SIGINT/SIGTERM                        | No                           | Same detached-controller concern as other Axum servers.                   |
 | Health-check service probe, one per service per request   | Health-check request handler         | Retained indirectly by result collection           | Normal response/error or runtime teardown                    | No                           | Timeout behavior depends on the protocol client.                          |
 | Health-check result collection, one per probe per request | Health-check request handler         | Awaited by `join_all`                              | Normal completion or request-future cancellation             | No                           | A failed task join currently panics.                                      |
 
 ## Preliminary Findings Relevant to Q2
 
-1. `JobManager` provides a cancellation path only to the six event listeners.
+1. `JobManager` provides a cancellation path to the event listeners, UDP-ban
+   cleanup, and server wrappers. Torrent cleanup and activity metrics remain
+   outside that path; server wrappers use token-to-halt forwarding rather than
+   the target direct lifecycle API.
 2. Server instances have multiple lifecycle layers: a managed wrapper, a retained
    server/launcher task, and a detached shutdown controller. This means the
    top-level handle does not alone represent the full shutdown lifecycle.
 3. The HTTP, REST, health-check, and UDP server paths each accept direct OS
    signals inside library-level code. This conflicts with a single application
    shutdown authority.
-4. At least two long-running tasks do not participate in either manager
-   cancellation or server-halt signaling: the periodic jobs and the UDP IP-ban
-   reset loop.
+4. The periodic torrent-cleanup and activity-metrics jobs do not participate in
+   manager cancellation. The application-level UDP IP-ban cleanup job is already
+   token-cancellable and manager-owned.
 5. Request-level work needs separate treatment from long-running components:
    HTTP is drained through the server handle, whereas UDP processing is
    explicitly abortable.

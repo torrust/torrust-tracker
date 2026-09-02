@@ -27,18 +27,17 @@ semantic-links:
 
 <!-- skill-link: create-issue -->
 
-# Draft SI-14 — Migrate UDP Receive and Reset Tasks to Token Lifecycle
+# Draft SI-14 — Migrate UDP Receive Loop to Token Lifecycle
 
 > **EPIC position**: Roadmap step 10. One independently releasable UDP
 > ownership slice. Active-request policy remains unchanged and is addressed next.
 
 ## Goal
 
-Migrate the UDP tracker's top-level shutdown wait, receive loop, and IP-ban
-reset loop to an injected component `CancellationToken`. The UDP component must
-stop admission of new UDP packets on cancellation, cancel and join the receive
-and reset-loop tasks it owns, and report one named UDP component outcome to
-`JobManager`.
+Migrate the UDP tracker's top-level shutdown wait and receive loop to an
+injected component `CancellationToken`. The UDP component must stop admission
+of new UDP packets on cancellation, cancel and join the receive task it owns,
+and report one named UDP component outcome to `JobManager`.
 
 The current bounded `ActiveRequests` behavior and request-processor abort
 semantics remain unchanged. They are a safe compatibility fallback until the
@@ -47,15 +46,17 @@ separate active-request-policy task defines deadlines, outcomes, and metrics.
 ## Current State
 
 `src/bootstrap/jobs/udp_tracker.rs` starts a `Server<Running>` and returns a
-wrapper handle to `JobManager`. The wrapper owns a `Halted` sender but has no
-manager token path. In `packages/udp-server/src/server/launcher.rs`, the
-launcher spawns a receive-loop task and a separate halt-signal task, then aborts
-the receive loop when the halt task completes.
+wrapper handle to `JobManager`. The wrapper already receives the manager token,
+forwards cancellation to its private `Halted` sender, and awaits the launcher.
+In `packages/udp-server/src/server/launcher.rs`, the launcher spawns a
+receive-loop task and directly awaits the private halt channel or library-level
+OS signal in its `select!`, then aborts the receive loop when that wait completes.
 
-`run_udp_server_main` spawns the IP-ban reset loop and discards its handle. That
-long-running loop survives the logical receive-loop owner until runtime teardown.
-Active request processors are bounded through `ActiveRequests` abort handles;
-this draft preserves that implementation and does not change its policy.
+UDP IP-ban cleanup is instead an application-level `udp_ban_cleanup` job. It is
+already manager-owned, receives the manager cancellation token, and is not a
+per-listener UDP child task. Active request processors are bounded through
+`ActiveRequests` abort handles; this draft preserves that implementation and
+does not change its policy.
 
 ## Scope
 
@@ -68,8 +69,6 @@ this draft preserves that implementation and does not change its policy.
 - Replace the token-aware path's halt-signal task with cancellation waiting;
   it must not subscribe to OS signals.
 - Retain and join the UDP receive loop after cancellation stops admission.
-- Pass a child token to the IP-ban reset loop; retain and join its handle before
-  UDP component completion.
 - Report one named `udp_instance_<index>_<address>` outcome to `JobManager`.
 - Add deterministic cancellation tests and focused bootstrap propagation tests
   without OS signals.
@@ -96,12 +95,12 @@ this draft preserves that implementation and does not change its policy.
 3. Cancellation must stop new packet admission before the receive loop is
    joined. Existing request processors may still follow the current deliberate
    abort fallback.
-4. The UDP component owns and joins its receive and IP-ban reset tasks before
-   returning its top-level outcome. `JobManager` receives only that top-level
-   handle and outcome, not nested UDP task handles.
+4. The UDP component owns and joins its receive task before returning its
+  top-level outcome. `JobManager` receives only that top-level handle and
+  outcome, not nested UDP task handles.
 5. Unexpected receive-loop completion/failure and cancellation races return an
-   explicit component outcome; they must not panic or leave the reset loop
-   detached.
+  explicit component outcome; they must not panic or leave the receive-loop
+  handle detached.
 
 ## Acceptance Criteria
 
@@ -111,8 +110,8 @@ this draft preserves that implementation and does not change its policy.
       or shutdown `Halted` channel in its token-aware path.
 - [ ] The UDP component stops packet admission and awaits the receive-loop task
       before reporting its named outcome to `JobManager`.
-- [ ] The IP-ban reset loop receives cancellation, has a retained handle, and is
-      awaited by the UDP component owner.
+- [ ] The application-level UDP IP-ban cleanup job remains manager-owned,
+  token-cancellable, and separate from each UDP listener component.
 - [ ] Existing `ActiveRequests` capacity and deliberate request-processor abort
       behavior are unchanged and explicitly covered by a compatibility test.
 - [ ] Deterministic tests cover injected-token cancellation and unexpected
@@ -150,7 +149,7 @@ Record evidence in `verification.md` before closing this issue.
    completion.
 3. Confirm a legacy UDP start/stop call path still compiles and retains current
    behavior.
-4. Review the token-aware path to confirm it retains and awaits receive/reset
-   task handles and contains no OS-signal listener.
+4. Review the token-aware path to confirm it retains and awaits the receive
+  task and contains no OS-signal listener.
 5. Confirm the active-request implementation is unchanged other than any
    necessary ownership wiring; defer behavior changes to the next UDP task.

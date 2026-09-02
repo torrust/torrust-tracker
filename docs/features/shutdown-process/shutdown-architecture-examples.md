@@ -211,18 +211,18 @@ sequenceDiagram
     participant Root as root CancellationToken
     participant UdpServer as UDP server task
     participant Receive as UDP receive loop
-    participant BanReset as IP-ban reset loop
+    participant BanCleanup as UDP IP-ban cleanup job
     participant Requests as active request processors
 
     Operator->>Main: SIGTERM
     Main->>Supervisor: shutdown()
     Supervisor->>Root: cancel()
     Root-->>UdpServer: component child token cancelled
+    Root-->>BanCleanup: application token cancelled
     UdpServer->>Receive: stop accepting new UDP packets
-    UdpServer->>BanReset: cancel and join periodic reset loop
     UdpServer->>Requests: apply documented in-flight-request policy
     Receive-->>UdpServer: receive loop joined
-    BanReset-->>UdpServer: reset loop joined
+    BanCleanup-->>Supervisor: cleanup job joined
     Requests-->>UdpServer: processors completed or deliberately aborted
     UdpServer-->>Supervisor: named component outcome
     Supervisor-->>Main: aggregate outcomes before overall deadline
@@ -242,8 +242,8 @@ main() [only OS-signal boundary]
       └─ UDP managed job [joined by JobManager]
          └─ UDP server task [joined by UDP job]
             ├─ receive loop [joined by UDP server]
-            ├─ IP-ban reset loop [cancelled and joined by UDP server]
             └─ active request processors [joined or deliberately aborted]
+    └─ UDP IP-ban cleanup job [cancelled and joined by JobManager]
 ```
 
 ### Contract for Standalone Consumers
@@ -276,7 +276,8 @@ Cancellation flows top-down, from an owner to the child tasks it directly owns.
 Completion and failure outcomes flow bottom-up through awaited handles. The
 supervisor therefore owns only named top-level component tasks, while each
 component owns and joins its nested tasks. This applies equally to the HTTP
-drain controller, UDP receive loop, IP-ban reset loop, and active request work.
+drain controller, UDP receive loop, and active request work. The application-
+level UDP IP-ban cleanup job is separately owned and joined by `JobManager`.
 
 ## Relationship to the Existing Options
 

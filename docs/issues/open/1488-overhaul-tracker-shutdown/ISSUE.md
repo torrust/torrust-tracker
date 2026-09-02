@@ -53,18 +53,20 @@ The current shutdown process has several problems identified in the
    level. Container orchestrators (Docker/Podman) send `SIGTERM` by default,
    which means `jobs.cancel()` and `jobs.wait_for_all()` are never called.
 2. **Three inconsistent shutdown mechanisms** — jobs use `CancellationToken`,
-   direct `tokio::signal::ctrl_c()`, or oneshot `Halted` channels. Some jobs
-   ignore the central `JobManager` entirely.
+  direct `tokio::signal::ctrl_c()`, or oneshot `Halted` channels. Server
+  wrappers currently bridge the manager token to `Halted`, leaving two normal
+  cancellation layers; periodic jobs still ignore `JobManager` cancellation.
 3. **Torrent cleanup and activity metrics ignore `CancellationToken`** — they
    listen for `ctrl_c` directly instead of using the shared token.
-4. **Grace period mismatch** — `JobManager` waits 10s per job sequentially,
-   while Axum servers have a 90s graceful shutdown. The main process may exit
-   before servers finish draining connections.
+4. **Grace period mismatch** — `JobManager` waits 10s per job sequentially and
+  force-aborts timed-out wrappers, while Axum servers have a 90s graceful
+  shutdown with detached drain controllers.
 5. **No graceful UDP shutdown** — the UDP server simply aborts its main loop.
 6. **Hardcoded timeouts** — grace periods are magic numbers with no configuration
    surface.
-7. **No observable shutdown progress** — operators cannot tell which job is
-   blocking shutdown.
+7. **Incomplete shutdown observability** — named per-job waiting and timeout
+  logs exist, but the supervisor has no concurrent aggregate outcomes or
+  complete component-level drain progress.
 8. **Double-signal on Ctrl+C** — both `main.rs` and each server's
    `global_shutdown_signal()` catch the same signal, creating a potential race.
 
@@ -74,11 +76,11 @@ These are not new features — they are standard behaviors that every process
 manager, container runtime, and operator already expects:
 
 ```bash
-# These all SHOULD work — and currently DON'T (except Ctrl+C):
-kill <pid>               # SIGTERM — currently ignored ❌
-docker stop <container>  # SIGTERM — currently ignored ❌
-systemctl stop <service> # SIGTERM — currently ignored ❌
-# Kubernetes pod delete    # SIGTERM — currently ignored ❌
+# These all SHOULD trigger coordinated shutdown, but currently only stop servers:
+kill <pid>               # SIGTERM reaches server libraries but bypasses main ❌
+docker stop <container>  # SIGTERM reaches server libraries but bypasses main ❌
+systemctl stop <service> # SIGTERM reaches server libraries but bypasses main ❌
+# Kubernetes pod delete    # SIGTERM reaches server libraries but bypasses main ❌
 
 # This works but is non-standard:
 kill -INT <pid>          # SIGINT — works ✅
@@ -154,7 +156,7 @@ deterministic tests, and manual evidence.
 | 7        | SI-11 | [Migrate HTTP tracker to token lifecycle](../../drafts/1488-si-11-migrate-http-tracker-token-lifecycle/ISSUE.md)                 | Draft      | One complete HTTP vertical slice.                                                      |
 | 8        | SI-12 | [Migrate REST API to token lifecycle](../../drafts/1488-si-12-migrate-rest-api-token-lifecycle/ISSUE.md)                         | Draft      | One complete REST API vertical slice.                                                  |
 | 9        | SI-13 | [Migrate health-check API to token lifecycle](../../drafts/1488-si-13-migrate-health-check-api-token-lifecycle/ISSUE.md)         | Draft      | One health-check vertical slice; SI-21 separately implements readiness-before-drain.   |
-| 10       | SI-14 | [Migrate UDP receive/reset tasks to token lifecycle](../../drafts/1488-si-14-migrate-udp-receive-reset-token-lifecycle/ISSUE.md) | Draft      | Token-aware UDP stop; join receive/reset; retain request abort fallback.               |
+| 10       | SI-14 | [Migrate UDP receive loop to token lifecycle](../../drafts/1488-si-14-migrate-udp-receive-reset-token-lifecycle/ISSUE.md) | Draft      | Token-aware UDP stop; join receive loop; retain request abort fallback and separate managed cleanup. |
 | 11       | SI-15 | [Define UDP active-request shutdown policy](../../drafts/1488-si-15-define-udp-active-request-policy/ISSUE.md)                   | Draft      | Request deadline, abort behavior, outcomes, and verification.                          |
 | 12       | SI-16 | [Migrate standalone HTTP environment/example](../../drafts/1488-si-16-migrate-standalone-http-environment/ISSUE.md)              | Draft      | One supported standalone HTTP consumer migration.                                      |
 | 13       | SI-17 | [Migrate standalone UDP environment/example](../../drafts/1488-si-17-migrate-standalone-udp-environment/ISSUE.md)                | Draft      | One supported standalone UDP consumer migration.                                       |

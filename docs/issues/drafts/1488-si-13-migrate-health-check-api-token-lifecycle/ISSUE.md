@@ -47,13 +47,14 @@ consumers. Their legacy lifecycle paths remain supported.
 
 `src/bootstrap/jobs/health_check_api.rs` creates startup and shutdown oneshot
 channels, spawns the server, then returns a wrapper `JoinHandle<()>` to
-`JobManager`. The wrapper retains the `Halted` sender but does not use a manager
-cancellation token. `packages/axum-health-check-api-server/src/server.rs` spawns
-`graceful_shutdown(...)` and drops the drain-controller handle. The legacy helper
-observes a `Halted` channel or library-level OS signals.
+`JobManager`. The wrapper already receives the manager token, forwards
+cancellation to its private `Halted::Normal` sender, and awaits the server task.
+`packages/axum-health-check-api-server/src/server.rs` spawns
+`graceful_shutdown(...)` and drops the drain-controller handle. The legacy
+helper observes a `Halted` channel or library-level OS signals.
 
-Consequently, `JobManager` cannot request health-check API shutdown through its
-token tree or verify drain-controller completion before `health_check_api`
+Consequently, `JobManager` reaches the health-check API through a transitional
+bridge but cannot verify drain-controller completion before `health_check_api`
 reports completion.
 
 ## Scope

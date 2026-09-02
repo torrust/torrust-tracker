@@ -46,15 +46,15 @@ or standalone consumers. Their legacy lifecycle paths remain supported.
 ## Current State
 
 `src/bootstrap/jobs/tracker_apis.rs` starts `ApiServer` and returns a wrapper
-`JoinHandle<()>` to `JobManager`. The wrapper owns a shutdown `Halted` sender
-but does not observe a `JobManager` cancellation token. In
-`packages/axum-rest-api-server`, the launcher spawns `graceful_shutdown(...)`
-and discards the drain-controller handle. The legacy helper observes a `Halted`
-channel or library-level OS signals.
+`JoinHandle<()>` to `JobManager`. The wrapper already receives the manager
+token, forwards cancellation to its private `Halted::Normal` sender, and awaits
+the server task. In `packages/axum-rest-api-server`, the launcher spawns
+`graceful_shutdown(...)` and discards the drain-controller handle. The legacy
+helper observes a `Halted` channel or library-level OS signals.
 
-Consequently, the application supervisor cannot request REST API shutdown
-through its token tree or prove that the REST API drain controller completed
-before the `http_api` wrapper completes.
+Consequently, the application supervisor reaches the REST API through a
+transitional bridge but cannot prove that the REST API drain controller
+completed before the `http_api` wrapper completes.
 
 ## Scope
 
