@@ -94,6 +94,7 @@ fn to_protocol_scrape_data(domain_data: DomainScrapeData) -> responses::scrape::
 
 #[cfg(test)]
 mod tests {
+    use axum::body::to_bytes;
     use std::net::{IpAddr, Ipv4Addr, SocketAddr};
     use std::str::FromStr;
     use std::sync::Arc;
@@ -115,7 +116,8 @@ mod tests {
     use torrust_tracker_http_protocol::v1::requests::scrape::Scrape;
     use torrust_tracker_http_protocol::v1::responses;
     use torrust_tracker_http_protocol::v1::services::peer_ip_resolver::ClientIpSources;
-    use torrust_tracker_primitives::{ConfigurationInstanceId, ServiceRole};
+    use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
+    use torrust_tracker_primitives::{ConfigurationInstanceId, ScrapeData, ServiceRole};
     use torrust_tracker_test_helpers::configuration;
 
     struct CoreTrackerServices {
@@ -223,6 +225,44 @@ mod tests {
         assert!(
             error.failure_reason.contains(error_message),
             "Error response does not contain message: '{error_message}'. Error: {error:?}"
+        );
+    }
+
+    #[tokio::test]
+    async fn it_should_encode_domain_scrape_data_as_a_bencoded_response() {
+        // Arrange
+        let info_hash = sample_scrape_request().info_hashes[0];
+        let mut scrape_data = ScrapeData::empty();
+        scrape_data.add_file(
+            &info_hash,
+            SwarmMetadata {
+                complete: 3,
+                downloaded: 2,
+                incomplete: 4,
+            },
+        );
+
+        // Act
+        let response = super::build_response(scrape_data);
+        let status = response.status();
+        let body = to_bytes(response.into_body(), usize::MAX)
+            .await
+            .expect("scrape response body should be readable");
+        let decoded = responses::scrape::deserialization::Response::try_from_bencoded(&body)
+            .expect("response should be a bencoded scrape response");
+
+        // Assert
+        assert_eq!(status, hyper::StatusCode::OK);
+        assert_eq!(
+            decoded,
+            responses::scrape::deserialization::Response::with_one_file(
+                info_hash,
+                responses::scrape::deserialization::File {
+                    complete: 3,
+                    downloaded: 2,
+                    incomplete: 4,
+                },
+            )
         );
     }
 

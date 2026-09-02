@@ -126,8 +126,10 @@ fn to_protocol_announce_data(domain_data: DomainAnnounceData) -> responses::anno
 #[cfg(test)]
 mod tests {
 
+    use std::net::{IpAddr, Ipv4Addr, SocketAddr};
     use std::sync::Arc;
 
+    use axum::body::to_bytes;
     use tokio_util::sync::CancellationToken;
     use torrust_tracker_configuration::v3_0_0::Configuration;
     use torrust_tracker_core::announce_handler::AnnounceHandler;
@@ -146,7 +148,9 @@ mod tests {
     use torrust_tracker_http_protocol::v1::requests::announce::{Announce, PeerIp};
     use torrust_tracker_http_protocol::v1::responses;
     use torrust_tracker_http_protocol::v1::services::peer_ip_resolver::ClientIpSources;
-    use torrust_tracker_primitives::{ConfigurationInstanceId, PeerId, ServiceRole};
+    use torrust_tracker_primitives::peer::fixture::PeerBuilder;
+    use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
+    use torrust_tracker_primitives::{AnnounceData, AnnouncePolicy, ConfigurationInstanceId, PeerId, ServiceRole};
     use torrust_tracker_test_helpers::configuration;
 
     use crate::tests::helpers::sample_info_hash;
@@ -270,6 +274,102 @@ mod tests {
             error.failure_reason.contains(error_message),
             "Error response does not contain message: '{error_message}'. Error: {error:?}"
         );
+    }
+
+    fn sample_announce_data() -> AnnounceData {
+        AnnounceData {
+            peers: vec![Arc::new(
+                PeerBuilder::seeder()
+                    .with_peer_address(SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 8080))
+                    .build(),
+            )],
+            stats: SwarmMetadata {
+                complete: 3,
+                downloaded: 2,
+                incomplete: 4,
+            },
+            policy: AnnouncePolicy {
+                interval: 60,
+                interval_min: 30,
+                max_peers_per_announce: 74,
+            },
+        }
+    }
+
+    #[tokio::test]
+    async fn it_should_encode_a_non_compact_bencoded_response_when_compact_is_not_accepted() {
+        // Arrange
+        let announce_request = Announce {
+            compact: Some(torrust_tracker_http_protocol::v1::requests::announce::Compact::NotAccepted),
+            ..sample_announce_request()
+        };
+
+        // Act
+        let response = super::build_response(&announce_request, sample_announce_data());
+        let status = response.status();
+        let body = to_bytes(response.into_body(), usize::MAX)
+            .await
+            .expect("announce response body should be readable");
+        let decoded: responses::announce::deserialization::DeserializedNormal =
+            serde_bencode::from_bytes(&body).expect("response should be a non-compact bencoded announce response");
+
+        // Assert
+        assert_eq!(status, hyper::StatusCode::OK);
+        assert_eq!(decoded.complete, 3);
+        assert_eq!(decoded.incomplete, 4);
+        assert_eq!(decoded.interval, 60);
+        assert_eq!(decoded.min_interval, 30);
+        assert_eq!(decoded.peers.len(), 1);
+        assert_eq!(decoded.peers[0].ip, "127.0.0.1");
+        assert_eq!(decoded.peers[0].peer_id, b"-qB00000000000000001");
+        assert_eq!(decoded.peers[0].port, 8080);
+    }
+
+    #[tokio::test]
+    async fn it_should_encode_a_compact_bencoded_response_when_compact_is_omitted() {
+        // Arrange
+        let announce_request = sample_announce_request();
+
+        // Act
+        let response = super::build_response(&announce_request, sample_announce_data());
+        let status = response.status();
+        let body = to_bytes(response.into_body(), usize::MAX)
+            .await
+            .expect("announce response body should be readable");
+        let decoded = responses::announce::deserialization::DeserializedCompact::from_bytes(&body)
+            .expect("response should be a compact bencoded announce response");
+
+        // Assert
+        assert_eq!(status, hyper::StatusCode::OK);
+        assert_eq!(decoded.complete, 3);
+        assert_eq!(decoded.incomplete, 4);
+        assert_eq!(decoded.interval, 60);
+        assert_eq!(decoded.min_interval, 30);
+        assert_eq!(decoded.peers, [127, 0, 0, 1, 0x1f, 0x90]);
+        assert!(decoded.peers6.is_empty());
+    }
+
+    #[tokio::test]
+    async fn it_should_encode_a_compact_bencoded_response_when_compact_is_accepted() {
+        // Arrange
+        let announce_request = Announce {
+            compact: Some(torrust_tracker_http_protocol::v1::requests::announce::Compact::Accepted),
+            ..sample_announce_request()
+        };
+
+        // Act
+        let response = super::build_response(&announce_request, sample_announce_data());
+        let status = response.status();
+        let body = to_bytes(response.into_body(), usize::MAX)
+            .await
+            .expect("announce response body should be readable");
+        let decoded = responses::announce::deserialization::DeserializedCompact::from_bytes(&body)
+            .expect("response should be a compact bencoded announce response");
+
+        // Assert
+        assert_eq!(status, hyper::StatusCode::OK);
+        assert_eq!(decoded.peers, [127, 0, 0, 1, 0x1f, 0x90]);
+        assert!(decoded.peers6.is_empty());
     }
 
     mod with_tracker_in_private_mode {
