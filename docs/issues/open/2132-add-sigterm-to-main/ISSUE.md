@@ -139,8 +139,8 @@ The clean removal of `global_shutdown_signal()` is tracked in SI-2.
 - [x] Every component already migrated to manager cancellation reports a
       graceful completion outcome.
 - [x] The existing completion log and exit behavior remain unchanged while
-  legacy periodic-job timeout and aggregate exit-result policy are deferred
-  to SI-20.
+      legacy periodic-job timeout and aggregate exit-result policy are deferred
+      to SI-20.
 - [x] The signal-boundary test targets the tracker binary directly. Do not use
       `timeout 20s cargo run` as shutdown evidence because it targets Cargo's
       launcher process rather than a documented tracker process boundary.
