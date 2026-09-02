@@ -309,6 +309,56 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn it_should_encode_each_file_when_scrape_data_contains_multiple_files() {
+        // Arrange
+        let first_info_hash = sample_scrape_request().info_hashes[0];
+        let second_info_hash = InfoHash::from([2; 20]);
+        let mut scrape_data = ScrapeData::empty();
+        scrape_data.add_file(
+            &first_info_hash,
+            SwarmMetadata {
+                complete: 3,
+                downloaded: 2,
+                incomplete: 4,
+            },
+        );
+        scrape_data.add_file(
+            &second_info_hash,
+            SwarmMetadata {
+                complete: 7,
+                downloaded: 11,
+                incomplete: 13,
+            },
+        );
+
+        // Act
+        let response = super::build_response(scrape_data);
+        let actual_response = decode_successful_bencoded_response(response).await;
+
+        // Assert
+        let expected_response = responses::scrape::deserialization::ResponseBuilder::default()
+            .add_file(
+                first_info_hash,
+                responses::scrape::deserialization::File {
+                    complete: 3,
+                    downloaded: 2,
+                    incomplete: 4,
+                },
+            )
+            .add_file(
+                second_info_hash,
+                responses::scrape::deserialization::File {
+                    complete: 7,
+                    downloaded: 11,
+                    incomplete: 13,
+                },
+            )
+            .build();
+
+        assert_eq!(actual_response, expected_response);
+    }
+
+    #[tokio::test]
     async fn it_should_encode_a_bencoded_failure_response_when_the_client_ip_cannot_be_resolved() {
         // Arrange
         let test_services = initialize_tracker_on_reverse_proxy();
