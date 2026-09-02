@@ -7,6 +7,7 @@ semantic-links:
     - docs/architecture/README.md
     - docs/adrs/20260821172000_establish_ai_agent_context_capability_and_portability_governance.md
     - docs/skills/semantic-skill-link-convention.md
+    - docs/testing/README.md
 ---
 
 # `docs/` — Documentation Directory
@@ -33,6 +34,7 @@ For the full project context see the [root AGENTS.md](../AGENTS.md).
 | `refactor-plans/`                                                                         | Refactor plan specifications (same lifecycle as issue specs)                       |
 | `copilot-pr-reviews/`                                                                     | Copilot PR review records and suggestion threads                                   |
 | `skills/`                                                                                 | Internal conventions used by humans and AI agents                                  |
+| `testing/`                                                                                | Durable testing guidance and test-design refactoring pattern catalog               |
 | `templates/`                                                                              | Canonical document templates (ADR, EPIC, issue, refactor plan)                     |
 | `media/`                                                                                  | Images, diagrams, flamegraphs, benchmark reports, sample torrents                  |
 | `licenses/`                                                                               | Full license texts (AGPL-3.0, MIT-0)                                               |
@@ -47,6 +49,7 @@ For the full project context see the [root AGENTS.md](../AGENTS.md).
 | New issue spec (after GitHub issue created)    | `docs/issues/open/<number>-<short-slug>.md`, or `docs/issues/open/<number>-<short-slug>/ISSUE.md` when it has issue-local artifacts |
 | New refactor plan (before GitHub issue exists) | `docs/refactor-plans/drafts/`                                                                                                       |
 | New refactor plan (after GitHub issue created) | `docs/refactor-plans/open/<number>-<short-slug>.md`                                                                                 |
+| Durable testing guide or pattern catalog       | `docs/testing/`                                                                                                                     |
 | New document template                          | `docs/templates/`                                                                                                                   |
 | New diagram or screenshot                      | `docs/media/` (or the relevant subdirectory)                                                                                        |
 

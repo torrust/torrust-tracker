@@ -8,8 +8,12 @@ last-updated-utc: 2026-09-01 17:48
 semantic-links:
   skill-links:
     - create-issue
+    - write-unit-test
   related-artifacts:
     - .github/skills/dev/planning/create-issue/SKILL.md
+    - .github/skills/dev/testing/write-unit-test/SKILL.md
+    - docs/testing/README.md
+    - docs/testing/refactoring-patterns/README.md
 ---
 
 <!-- skill-link: create-issue -->
@@ -46,15 +50,15 @@ The repository was reorganized through package refactoring and extraction work. 
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| Order | Issue                                                 | Local Spec                                                            | Status | Notes                                                          |
-| ----- | ----------------------------------------------------- | --------------------------------------------------------------------- | ------ | -------------------------------------------------------------- |
+| Order | Issue                                                 | Local Spec                                                            | Status | Notes                                                                                                                |
+| ----- | ----------------------------------------------------- | --------------------------------------------------------------------- | ------ | -------------------------------------------------------------------------------------------------------------------- |
 | 1     | #1348 - Add tests to the axum-http-server package     | `docs/issues/open/1348-1347-add-tests-axum-http-server/ISSUE.md`      | DONE   | Added fast package-local response, request-ID, and lifecycle tests; verification and final review evidence recorded. |
-| 2     | #1349 - Add tests to the axum-rest-api-server package | `docs/issues/open/1349-1347-add-tests-axum-rest-api-server/ISSUE.md`  | TODO   | Existing subissue; package-level test work.                    |
-| 3     | Additional package-testing subissues                  | Create a folder-style spec when a concrete package need is identified | TODO   | Permitted but not required upfront; retain scope in this EPIC. |
+| 2     | #1349 - Add tests to the axum-rest-api-server package | `docs/issues/open/1349-1347-add-tests-axum-rest-api-server/ISSUE.md`  | TODO   | Existing subissue; package-level test work.                                                                          |
+| 3     | Additional package-testing subissues                  | Create a folder-style spec when a concrete package need is identified | TODO   | Permitted but not required upfront; retain scope in this EPIC.                                                       |
 
 ## Delivery Strategy
 
-Implement independently reviewable, package-scoped subissues. Each subissue records its starting coverage, the critical responsibilities assessed, the coverage increase achieved where practical, verification evidence, and any explicitly justified exclusions. Prioritize fast unit tests close to the code being changed, while retaining or adding integration, runnable-example, and end-to-end tests when they provide valuable regression protection. Coverage percentage informs the work but does not replace testing critical behavior.
+Implement independently reviewable, package-scoped subissues. Each subissue records its starting coverage, the critical responsibilities assessed, the coverage increase achieved where practical, verification evidence, and any explicitly justified exclusions. Prioritize fast unit tests close to the code being changed, while retaining or adding integration, runnable-example, and end-to-end tests when they provide valuable regression protection. Coverage percentage informs the work but does not replace testing critical behavior. Record reusable test-design refactors in the [testing refactoring-pattern catalog](../../../testing/refactoring-patterns/README.md) so later subissues can apply proven patterns without restating their rationale.
 
 For each subissue implementation, the completion policy is:
 
@@ -113,16 +117,16 @@ For each subissue implementation, the completion policy is:
 
 ### Acceptance Verification
 
-| AC ID | Status (`TODO`/`DONE`) | Evidence                                   |
-| ----- | ---------------------- | ------------------------------------------ |
-| AC1   | TODO                   | EPIC subissue table and GitHub issue links |
-| AC2   | DONE                   | Delivery strategy in this spec             |
-| AC3   | DONE                   | Scope and delivery strategy in this spec   |
-| AC4   | TODO                   | Subissue specs and progress logs           |
-| AC5   | DONE                   | #1348 status in the subissues table and its specification |
-| AC6   | DONE                   | #1348 automatic-verification records       |
-| AC7   | DONE                   | #1348 manual-verification records          |
-| AC8   | DONE                   | #1348 post-implementation acceptance-verification record |
+| AC ID | Status (`TODO`/`DONE`) | Evidence                                                                                                              |
+| ----- | ---------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| AC1   | TODO                   | EPIC subissue table and GitHub issue links                                                                            |
+| AC2   | DONE                   | Delivery strategy in this spec                                                                                        |
+| AC3   | DONE                   | Scope and delivery strategy in this spec                                                                              |
+| AC4   | TODO                   | Subissue specs and progress logs                                                                                      |
+| AC5   | DONE                   | #1348 status in the subissues table and its specification                                                             |
+| AC6   | DONE                   | #1348 automatic-verification records                                                                                  |
+| AC7   | DONE                   | #1348 manual-verification records                                                                                     |
+| AC8   | DONE                   | #1348 post-implementation acceptance-verification record                                                              |
 | AC9   | DONE                   | #1348 specification and this EPIC update; no additional behavior, workflow, or governance documentation was required. |
 
 ## Risks and Trade-offs
@@ -139,3 +143,4 @@ For each subissue implementation, the completion policy is:
 - Reference package: `packages/tracker-core/`
 - Coverage tooling: `cargo llvm-cov`
 - Related historical work: #753, #1181, #1226, #1266
+- Test-pattern catalog: `docs/testing/refactoring-patterns/README.md`
