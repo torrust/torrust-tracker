@@ -70,14 +70,19 @@ regression or versioned observability requirement.
 
 ### R2 — Assess the minimal router helper name
 
-- **Status:** TODO
+- **Status:** DONE
 - **Priority:** Low impact / trivial effort
 - **Addresses:** P2
 - **Change:** Decide whether renaming `test_router()` to `router_with_request_layers()` materially
   improves intent.
 - **Guardrails:** Do not add routes, tracker services, listeners, or production setup. Retain the
   minimal successful endpoint and direct `oneshot` call.
-- **Done when:** a rename or no-change decision is recorded.
+- **Decision:** No change. The helper is scoped to the test module, and its implementation visibly
+  applies `with_request_layers` to a minimal successful route. Renaming it would make every Act
+  line longer without adding meaningful context; the test names and direct helper implementation
+  already establish that the tests exercise request layers rather than a representative tracker
+  router.
+- **Done when:** the no-change decision is recorded.
 
 ### R3 — Assess residual middleware coverage by contract value
 
@@ -98,7 +103,7 @@ regression or versioned observability requirement.
 - [x] Phase 2 refactorings ordered by impact and effort
 - [x] Maintainer approved implementation of R1
 - [x] R1 implemented, reviewed, and validated
-- [ ] R2 assessment completed and decision recorded
+- [x] R2 assessment completed and decision recorded
 - [ ] R3 assessment completed and decision recorded
 - [ ] Maintainer reviewed all approved changes
 - [ ] Plan completed and ready for commit
@@ -113,6 +118,9 @@ regression or versioned observability requirement.
 - 2026-09-02 - GitHub Copilot - Completed R1. Both request-ID tests now use the same
   `REQUEST_ID_HEADER` constant while retaining their distinct propagation and generated-ID
   contracts.
+- 2026-09-02 - GitHub Copilot - Completed R2 assessment. Retained `test_router()` because its
+  test-module scope and direct `with_request_layers` implementation already make its narrow purpose
+  clear; a longer call-site name would not improve readability.
 
 ### Validation Evidence
 
@@ -120,7 +128,7 @@ regression or versioned observability requirement.
 | ------------------ | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Plan documentation | DONE   | `linter markdown`, `linter cspell`, and `git diff --check` passed after plan creation.                                                               |
 | R1                 | DONE   | Editor diagnostics, `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-axum-http-server --lib` (32 passed), and `git diff --check` passed. |
-| R2                 | TODO   | Not started.                                                                                                                                         |
+| R2                 | DONE   | Inspected the helper and its two call sites; no rename improves the local test contract.                                                             |
 | R3                 | TODO   | Not started.                                                                                                                                         |
 
 ## Non-Goals
