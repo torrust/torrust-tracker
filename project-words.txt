@@ -80,6 +80,7 @@ Rustls
 Ryzen
 SHLVL
 SIEM
+SIGUSR
 Seedable
 Shareaza
 Signedness
@@ -350,6 +351,7 @@ peerlist
 peersld
 penalise
 pessimize
+pgrep
 pinentry
 pipefail
 pkey
@@ -398,6 +400,7 @@ rustc
 rustdoc
 rustfmt
 rustup
+rwxrwxr
 sarif
 savepath
 scanf
@@ -432,6 +435,7 @@ sysmalloc
 sysret
 taiki
 taplo
+taskkill
 tdyne
 tempfile
 testcmd

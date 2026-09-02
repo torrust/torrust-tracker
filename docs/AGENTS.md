@@ -29,8 +29,10 @@ For the full project context see the [root AGENTS.md](../AGENTS.md).
 | `release_process.md`                                                                      | Branch strategy, versioning, and the release pipeline                              |
 | `adrs/20260821172000_establish_ai_agent_context_capability_and_portability_governance.md` | Authority and portability governance for AI-agent workflows and retained context   |
 | `adrs/`                                                                                   | Architectural Decision Records (ADRs)                                              |
+| `analysis/`                                                                               | In-depth analysis of features, components, or aspects of the app                   |
+| `research/`                                                                               | External research on technologies, patterns, and best practices                    |
 | `issues/`                                                                                 | Issue specification documents linked to GitHub issues                              |
-| `refactor-plans/`                                                                         | Refactor plan specifications (same lifecycle as issue specs)                       |
+| `refactor-plans/`                                                                         | Refactor plans (same lifecycle as issue specs)                                     |
 | `copilot-pr-reviews/`                                                                     | Copilot PR review records and suggestion threads                                   |
 | `skills/`                                                                                 | Internal conventions used by humans and AI agents                                  |
 | `templates/`                                                                              | Canonical document templates (ADR, EPIC, issue, refactor plan)                     |

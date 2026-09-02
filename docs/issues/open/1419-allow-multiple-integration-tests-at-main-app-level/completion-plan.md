@@ -34,17 +34,19 @@ This is not a port-zero or runtime-registry defect. Port-zero bindings, isolated
 workspaces, and runtime endpoint discovery are already implemented. The remaining defect is that
 the test fixture does not own shutdown as part of its normal lifecycle.
 
-## Discovery: Current Production Cancellation Does Not Stop Servers
+## Discovery: Current Production Cancellation Uses a Transitional Server Bridge
 
 The initial implementation introduced `TrackerApplicationFixture` in `tests/common/` and migrated
 the current main-level suites to its explicit `shutdown().await` path. The fixture correctly calls
 `JobManager::cancel()` followed by `wait_for_all(...)` before releasing its workspace.
 
-Focused suite runs exposed a missing production shutdown connection. `JobManager::cancel()` signals
-the shared `CancellationToken` used by event-listener and maintenance jobs. HTTP tracker, REST API,
-UDP tracker, and health-check server jobs instead wait on their own service-specific oneshot halt
-channels. They therefore do not finish when the manager cancellation token is signaled, and each
-can consume `wait_for_all`'s per-job grace timeout.
+Focused suite runs exposed a production lifecycle limitation. `JobManager::cancel()` reaches the
+HTTP tracker, REST API, UDP tracker, and health-check server wrappers through its shared
+`CancellationToken`. Each wrapper forwards cancellation to its private `Halted::Normal` channel
+and awaits its server task. The unresolved issue is not absence of cancellation delivery: lifecycle
+ownership remains split across wrappers, legacy halt/global-signal behavior, and detached server
+children. The manager's 10-second **per-job sequential** grace can force-abort a wrapper before
+the server-specific drain policy completes.
 
 The fixture establishes correct test ownership and must be retained, but it cannot itself resolve
 this production lifecycle gap.
@@ -54,9 +56,9 @@ this production lifecycle gap.
 The production shutdown refactor belongs to
 [shutdown-overhaul #1488](https://github.com/torrust/torrust-tracker/issues/1488), not #1419.
 Its draft planning PR [#1993](https://github.com/torrust/torrust-tracker/pull/1993) records the
-selected direction: each server job starter watches `JobManager`'s `CancellationToken`, then sends
-`Halted::Normal` to its own existing halt channel and awaits the server task. This is intentionally
-different from introducing a new application-owned server-halt coordinator.
+selected target replaces the existing token-to-halt bridge with direct token-aware component
+lifecycle APIs and owner-joined children. This is intentionally different from introducing a new
+application-owned server-halt coordinator.
 
 Issue #1419 must not implement a competing production shutdown mechanism while #1488 is still open. It
 will deliver a partial integration-test improvement that consistently invokes the best lifecycle
@@ -137,10 +139,10 @@ application-owned coordinator that observes the application shutdown request and
 service's normal halt signal. `JobManager::wait_for_all(...)` then awaits the existing server job
 handles after their services have been asked to stop.
 
-**Deferred to #1488.** The server packages already own graceful stop behavior behind their halt
-channels. However, #1488/#1993 selected a different production implementation: server job starters
-watch the shared cancellation token and invoke their own halt channel. #1419 must not create a
-competing coordinator while that overhaul remains open.
+**Deferred to #1488.** The tracker already uses this token-to-halt bridge: server wrappers observe
+the shared cancellation token, invoke their own private halt channel, and await the server task.
+EPIC #1488 replaces that bridge with direct token-aware component lifecycle APIs and owner-joined
+children. #1419 must not create a competing coordinator while that overhaul remains open.
 
 ### Alternative E — Change every server job to consume `CancellationToken`
 
@@ -185,7 +187,8 @@ to #1488. The partial delivery must:
 - keep ownership test-local rather than modifying production lifecycle semantics.
 
 When #1488 merges, review its finalized lifecycle boundary and modify the fixture to use that API.
-Do not duplicate the production server-halt implementation in `tests/common/`.
+It must prove named top-level outcomes complete without manager escalation, registered bindings are
+released, and no owned task remains. Do not duplicate production lifecycle behavior in `tests/common/`.
 
 ## Test-Coverage Design
 

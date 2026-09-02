@@ -393,12 +393,13 @@ their final bindings under canonical service roles and `ConfigurationInstanceId`
 
 `TrackerApplicationFixture` now owns the workspace and `JobManager`, and explicitly calls
 `cancel()` then `wait_for_all(...)` before releasing its workspace. Focused execution showed that
-the current production shutdown path does not yet propagate cancellation to server-specific halt
-channels, so server jobs can reach `wait_for_all`'s per-job timeout. That production concern is
-owned by [shutdown-overhaul #1488](https://github.com/torrust/torrust-tracker/issues/1488), whose
-draft planning PR [#1993](https://github.com/torrust/torrust-tracker/pull/1993) selects token
-watching in each server job starter rather than a separate coordinator. #1419 deliberately does
-not implement a competing shutdown mechanism.
+server wrappers already forward the manager token to their private `Halted::Normal` channels, but
+the current split lifecycle and detached drain controllers can still make server jobs reach
+`wait_for_all`'s per-job timeout. That production concern is owned by
+[shutdown-overhaul #1488](https://github.com/torrust/torrust-tracker/issues/1488), whose draft
+planning PR [#1993](https://github.com/torrust/torrust-tracker/pull/1993) replaces this bridge with
+direct token-aware component lifecycle APIs and owner-joined children. #1419 deliberately does not
+implement a competing shutdown mechanism.
 
 The former pause for #2035 and #2036 is no longer active: repeated `0.0.0.0:0` HTTP and UDP
 configuration blocks retain distinct instance identities, and the runtime registry metadata needed
