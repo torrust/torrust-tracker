@@ -130,6 +130,9 @@ mod tests {
     use std::sync::Arc;
 
     use axum::body::to_bytes;
+    use axum::response::Response;
+    use hyper::StatusCode;
+    use serde::de::DeserializeOwned;
     use tokio_util::sync::CancellationToken;
     use torrust_tracker_configuration::v3_0_0::Configuration;
     use torrust_tracker_core::announce_handler::AnnounceHandler;
@@ -350,6 +353,23 @@ mod tests {
         }
     }
 
+    async fn decode_successful_bencoded_response<TExpectedResponse>(response: Response) -> TExpectedResponse
+    where
+        TExpectedResponse: DeserializeOwned,
+    {
+        assert_eq!(
+            response.status(),
+            StatusCode::OK,
+            "a successful announce response should use HTTP 200"
+        );
+
+        let body = to_bytes(response.into_body(), usize::MAX)
+            .await
+            .expect("announce response body should be readable");
+
+        serde_bencode::from_bytes(&body).expect("announce response should be valid bencode")
+    }
+
     fn sample_client_ip_sources() -> ClientIpSources {
         ClientIpSources {
             right_most_x_forwarded_for: None,
@@ -371,16 +391,10 @@ mod tests {
 
         // Act
         let response = super::build_response(&scenario.announce_request, scenario.announce_data);
-        let status = response.status();
-        let body = to_bytes(response.into_body(), usize::MAX)
-            .await
-            .expect("announce response body should be readable");
-        let decoded: DeserializedNormal =
-            serde_bencode::from_bytes(&body).expect("response should be a non-compact bencoded announce response");
+        let actual_response: DeserializedNormal = decode_successful_bencoded_response(response).await;
 
         // Assert
-        assert_eq!(status, hyper::StatusCode::OK);
-        assert_eq!(decoded, scenario.expected_response);
+        assert_eq!(actual_response, scenario.expected_response);
     }
 
     #[tokio::test]
@@ -390,15 +404,10 @@ mod tests {
 
         // Act
         let response = super::build_response(&scenario.announce_request, scenario.announce_data);
-        let status = response.status();
-        let body = to_bytes(response.into_body(), usize::MAX)
-            .await
-            .expect("announce response body should be readable");
-        let decoded = DeserializedCompact::from_bytes(&body).expect("response should be a compact bencoded announce response");
+        let actual_response: DeserializedCompact = decode_successful_bencoded_response(response).await;
 
         // Assert
-        assert_eq!(status, hyper::StatusCode::OK);
-        assert_eq!(decoded, scenario.expected_response);
+        assert_eq!(actual_response, scenario.expected_response);
     }
 
     #[tokio::test]
@@ -408,15 +417,10 @@ mod tests {
 
         // Act
         let response = super::build_response(&scenario.announce_request, scenario.announce_data);
-        let status = response.status();
-        let body = to_bytes(response.into_body(), usize::MAX)
-            .await
-            .expect("announce response body should be readable");
-        let decoded = DeserializedCompact::from_bytes(&body).expect("response should be a compact bencoded announce response");
+        let actual_response: DeserializedCompact = decode_successful_bencoded_response(response).await;
 
         // Assert
-        assert_eq!(status, hyper::StatusCode::OK);
-        assert_eq!(decoded, scenario.expected_response);
+        assert_eq!(actual_response, scenario.expected_response);
     }
 
     mod with_tracker_in_private_mode {

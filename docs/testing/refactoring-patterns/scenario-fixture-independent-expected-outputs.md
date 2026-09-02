@@ -23,9 +23,9 @@ request, domain input, and independently specified expected response.
 
 ```rust
 struct AnnounceResponseScenario<TExpectedResponse> {
-  announce_request: Announce,
+    announce_request: Announce,
     announce_data: AnnounceData,
-  expected_response: TExpectedResponse,
+    expected_response: TExpectedResponse,
 }
 ```
 
@@ -41,8 +41,15 @@ the whole observable response directly:
 
 ```rust
 let response = build_response(&scenario.announce_request, scenario.announce_data);
-assert_eq!(decoded, scenario.expected_response);
+let actual_response: DeserializedCompact = decode_successful_bencoded_response(response).await;
+
+assert_eq!(actual_response, scenario.expected_response);
 ```
+
+`decode_successful_bencoded_response` is a narrow test helper for repeated transport mechanics: it
+asserts the successful HTTP status, reads the body, and deserializes bencode. Keep the production
+boundary call, the expected response type, and the final behavioral assertion visible in each test.
+Do not use the helper to derive expected values or select a response representation.
 
 ## Why This Works
 
