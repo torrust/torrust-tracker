@@ -59,7 +59,7 @@ regression or versioned observability requirement.
 
 ### R1 — Standardize the request-ID header name
 
-- **Status:** TODO
+- **Status:** DONE
 - **Priority:** Medium impact / trivial effort
 - **Addresses:** P1
 - **Change:** Introduce a private `REQUEST_ID_HEADER` constant and use it in both tests.
@@ -96,8 +96,8 @@ regression or versioned observability requirement.
 
 - [x] Phase 1 findings reviewed against the current file and package coverage evidence
 - [x] Phase 2 refactorings ordered by impact and effort
-- [ ] Maintainer approved implementation of R1
-- [ ] R1 implemented, reviewed, and validated
+- [x] Maintainer approved implementation of R1
+- [x] R1 implemented, reviewed, and validated
 - [ ] R2 assessment completed and decision recorded
 - [ ] R3 assessment completed and decision recorded
 - [ ] Maintainer reviewed all approved changes
@@ -108,15 +108,20 @@ regression or versioned observability requirement.
 - 2026-09-02 - GitHub Copilot - Created the proposed plan from the current request-layer tests,
   package coverage evidence, and existing real-server contract coverage. No refactoring has been
   implemented.
+- 2026-09-02 - User/maintainer - Approved R1 after reviewing the test-local request-ID header
+  constant.
+- 2026-09-02 - GitHub Copilot - Completed R1. Both request-ID tests now use the same
+  `REQUEST_ID_HEADER` constant while retaining their distinct propagation and generated-ID
+  contracts.
 
 ### Validation Evidence
 
-| Increment          | Status | Evidence                     |
-| ------------------ | ------ | ---------------------------- |
-| Plan documentation | TODO   | Not run after plan creation. |
-| R1                 | TODO   | Not started.                 |
-| R2                 | TODO   | Not started.                 |
-| R3                 | TODO   | Not started.                 |
+| Increment          | Status | Evidence                                                                                                                                             |
+| ------------------ | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Plan documentation | DONE   | `linter markdown`, `linter cspell`, and `git diff --check` passed after plan creation.                                                               |
+| R1                 | DONE   | Editor diagnostics, `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-axum-http-server --lib` (32 passed), and `git diff --check` passed. |
+| R2                 | TODO   | Not started.                                                                                                                                         |
+| R3                 | TODO   | Not started.                                                                                                                                         |
 
 ## Non-Goals
 

@@ -174,6 +174,8 @@ mod tests {
 
     use super::with_request_layers;
 
+    const REQUEST_ID_HEADER: HeaderName = HeaderName::from_static("x-request-id");
+
     fn service_binding() -> ServiceBinding {
         ServiceBinding::new(Protocol::HTTP, "127.0.0.1:7070".parse().expect("valid socket address"))
             .expect("valid HTTP service binding")
@@ -189,7 +191,7 @@ mod tests {
         let client_request_id = "test-request-id";
         let request = http::Request::builder()
             .uri("/")
-            .header("x-request-id", client_request_id)
+            .header(REQUEST_ID_HEADER, client_request_id)
             .body(Body::empty())
             .expect("valid request");
 
@@ -201,7 +203,7 @@ mod tests {
         assert_eq!(
             response
                 .headers()
-                .get("x-request-id")
+                .get(REQUEST_ID_HEADER)
                 .expect("request ID header")
                 .to_str()
                 .expect("request ID header should be valid text"),
@@ -221,7 +223,7 @@ mod tests {
         assert_eq!(response.status(), http::StatusCode::OK);
         let actual_request_id = response
             .headers()
-            .get(HeaderName::from_static("x-request-id"))
+            .get(REQUEST_ID_HEADER)
             .expect("request ID header")
             .to_str()
             .expect("request ID header should be valid text");
