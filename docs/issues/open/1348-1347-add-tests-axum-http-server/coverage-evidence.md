@@ -2,7 +2,7 @@
 doc-type: coverage-evidence
 issue: 1348
 package: torrust-tracker-axum-http-server
-measured-commit: 312ad07e
+measured-commit: 3e424fec
 measured-utc: 2026-09-02
 ---
 
@@ -14,7 +14,7 @@ and uncovered-function locations to decide which critical behavior needs more co
 
 ## Measurement Method
 
-The report was generated at commit `312ad07e` with:
+The report was generated at commit `3e424fec` with:
 
 ```text
 cargo llvm-cov -p torrust-tracker-axum-http-server --all-features --json
@@ -30,7 +30,7 @@ above to inspect line- and region-level detail for the measured revision.
 | Measurement                           |                  Lines |                Regions |          Functions |
 | ------------------------------------- | ---------------------: | ---------------------: | -----------------: |
 | Baseline (before Issue #1348 changes) | 1,153 / 1,229 (93.82%) | 1,616 / 1,763 (91.66%) | 137 / 153 (89.54%) |
-| Latest (commit `312ad07e`)            | 1,387 / 1,460 (95.00%) | 1,915 / 2,057 (93.10%) | 163 / 179 (91.06%) |
+| Latest (commit `3e424fec`)            | 1,433 / 1,505 (95.22%) | 1,850 / 1,990 (92.96%) | 174 / 190 (91.58%) |
 
 ## Latest Detailed File Report
 
@@ -42,8 +42,8 @@ Files are ordered by ascending line coverage to highlight likely follow-up candi
 | `server.rs`                           | 262 / 306 (85.62%) | 428 / 524 (81.68%) |  23 / 35 (65.71%) | Lowest function and region coverage; prioritize lifecycle, TLS, health-check, and startup-failure paths by risk. |
 | `v1/extractors/client_ip_sources.rs`  |   13 / 14 (92.86%) |   20 / 21 (95.24%) |   2 / 2 (100.00%) | Small residual branch gap.                                                                                       |
 | `v1/routes.rs`                        | 128 / 137 (93.43%) | 209 / 223 (93.72%) |  14 / 17 (82.35%) | Request-layer branches remain partially uncovered.                                                               |
-| `v1/handlers/announce.rs`             | 410 / 415 (98.80%) | 470 / 477 (98.53%) | 48 / 48 (100.00%) | Response adapter and handler error paths have strong package-level coverage.                                     |
-| `v1/handlers/scrape.rs`               | 292 / 295 (98.98%) | 413 / 422 (97.87%) | 31 / 31 (100.00%) | Response adapter and handler error paths have strong package-level coverage.                                     |
+| `v1/handlers/announce.rs`             | 409 / 414 (98.79%) | 440 / 447 (98.43%) | 49 / 49 (100.00%) | Response adapter and handler error paths have strong package-level coverage.                                     |
+| `v1/handlers/scrape.rs`               | 339 / 341 (99.41%) | 378 / 385 (98.18%) | 41 / 41 (100.00%) | Response adapter, error mapping, and multi-file mapping paths have strong package-level coverage.                |
 | `testing/environment.rs`              | 110 / 111 (99.10%) | 128 / 134 (95.52%) | 17 / 17 (100.00%) | Remaining regions are test-environment alternatives.                                                             |
 | `lib.rs`                              |    5 / 5 (100.00%) |    6 / 6 (100.00%) |   1 / 1 (100.00%) | Fully covered.                                                                                                   |
 | `v1/extractors/announce_request.rs`   |  60 / 60 (100.00%) |  86 / 86 (100.00%) |   8 / 8 (100.00%) | Fully covered.                                                                                                   |
