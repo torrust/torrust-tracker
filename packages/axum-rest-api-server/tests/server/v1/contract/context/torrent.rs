@@ -1,5 +1,6 @@
 use std::str::FromStr;
 
+use serde_json::Value;
 use torrust_info_hash::InfoHash;
 use torrust_tracker_axum_rest_api_server::testing::environment::Started;
 use torrust_tracker_primitives::peer::fixture::PeerBuilder;
@@ -337,6 +338,38 @@ async fn should_allow_getting_a_torrent_info() {
         },
     )
     .await;
+
+    env.stop().await;
+}
+
+#[tokio::test]
+async fn should_include_equal_v1_peer_timestamp_fields_in_the_raw_torrent_json_response() {
+    // Arrange
+    logging::setup();
+
+    let env = Started::new(&configuration::ephemeral().into()).await;
+    let info_hash = InfoHash::from_str("9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d").unwrap(); // DevSkim: ignore DS173237
+
+    env.add_torrent_peer(&info_hash, &PeerBuilder::default().into()).await;
+
+    let request_id = Uuid::new_v4();
+
+    // Act
+    let response = ApiHttpClient::new(env.get_connection_info())
+        .unwrap()
+        .get_torrent(&info_hash.to_string(), Some(headers_with_request_id(request_id)))
+        .await
+        .unwrap();
+    let payload = response.json::<Value>().await.unwrap();
+    let peer = &payload["peers"][0];
+
+    // Assert
+    let updated = peer["updated"].as_u64().unwrap();
+    let updated_milliseconds_ago = peer["updated_milliseconds_ago"].as_u64().unwrap();
+    let updated_at_ms = peer["updated_at_ms"].as_u64().unwrap();
+
+    assert_eq!(updated, updated_milliseconds_ago);
+    assert_eq!(updated, updated_at_ms);
 
     env.stop().await;
 }

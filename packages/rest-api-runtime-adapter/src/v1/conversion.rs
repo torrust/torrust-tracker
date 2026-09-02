@@ -7,15 +7,19 @@ use torrust_tracker_primitives::{PeerId, peer as domain_peer};
 use torrust_tracker_rest_api_protocol::v1::context::torrent::resources::peer as protocol_peer;
 use torrust_tracker_rest_api_protocol::v1::context::torrent::resources::torrent::{ListItem, Torrent};
 
+// issue: #2130
 /// Convert a domain [`domain_peer::Peer`] into a protocol [`protocol_peer::Peer`].
 #[must_use]
 pub fn from_domain_peer(value: domain_peer::Peer) -> protocol_peer::Peer {
+    let updated_at_ms = value.updated.as_millis();
+
     #[allow(deprecated)]
     protocol_peer::Peer {
         peer_id: from_domain_peer_id(value.peer_id),
         peer_addr: value.peer_addr.to_string(),
-        updated: value.updated.as_millis(),
-        updated_milliseconds_ago: value.updated.as_millis(),
+        updated: updated_at_ms,
+        updated_milliseconds_ago: updated_at_ms,
+        updated_at_ms,
         uploaded: value.uploaded.0,
         downloaded: value.downloaded.0,
         left: value.left.0,
@@ -87,6 +91,25 @@ mod tests {
             left: NumberOfBytes::new(0),
             event: AnnounceEvent::Started,
         }
+    }
+
+    #[test]
+    fn it_should_map_all_v1_peer_timestamps_from_the_domain_update_time() {
+        // Arrange
+        let peer = sample_peer();
+        let expected_timestamp = peer.updated.as_millis();
+
+        // Act
+        #[allow(deprecated)]
+        let converted_peer = from_domain_peer(peer);
+
+        // Assert
+        #[allow(deprecated)]
+        {
+            assert_eq!(converted_peer.updated, expected_timestamp);
+            assert_eq!(converted_peer.updated_milliseconds_ago, expected_timestamp);
+        }
+        assert_eq!(converted_peer.updated_at_ms, expected_timestamp);
     }
 
     #[test]
