@@ -52,8 +52,7 @@ bind_address = "127.0.0.1:0"
 /// A running tracker executable isolated in a temporary workspace.
 pub struct NativeTracker {
     child: Option<Child>,
-    output: Arc<Mutex<String>>,
-    output_readers: Vec<JoinHandle<()>>,
+    output: Option<TrackerOutputCapture>,
     workspace: Option<NativeTrackerWorkspace>,
     health_check_address: Option<SocketAddr>,
     drop_cleanup_complete: Option<oneshot::Sender<Result<i32, String>>>,
@@ -82,11 +81,44 @@ impl NativeTrackerWorkspace {
     }
 }
 
+/// Concurrently drains and retains a tracker child's output for readiness and diagnostics.
+struct TrackerOutputCapture {
+    output: Arc<Mutex<String>>,
+    readers: Vec<JoinHandle<()>>,
+}
+
+impl TrackerOutputCapture {
+    fn new<R, S>(stdout: R, stderr: S) -> Self
+    where
+        R: AsyncRead + Unpin + Send + 'static,
+        S: AsyncRead + Unpin + Send + 'static,
+    {
+        let output = Arc::new(Mutex::new(String::new()));
+
+        Self {
+            readers: vec![
+                tokio::spawn(drain_output(stdout, Arc::clone(&output))),
+                tokio::spawn(drain_output(stderr, Arc::clone(&output))),
+            ],
+            output,
+        }
+    }
+
+    async fn wait_for_readers(&mut self) {
+        for reader in self.readers.drain(..) {
+            reader.await.expect("output reader task must complete");
+        }
+    }
+
+    async fn contents(&self) -> String {
+        self.output.lock().await.clone()
+    }
+}
+
 impl NativeTracker {
     /// Spawns the Cargo-built tracker binary with an isolated port-zero configuration.
     pub fn start() -> Self {
         let workspace = NativeTrackerWorkspace::new();
-        let output = Arc::new(Mutex::new(String::new()));
         let mut command = Command::new(tracker_binary());
         command
             // Configure only this child process. `Command::env` does not
@@ -103,15 +135,12 @@ impl NativeTracker {
         let mut child = command.spawn().expect("spawn Cargo-built tracker executable");
         let stdout = child.stdout.take().expect("tracker child stdout is piped");
         let stderr = child.stderr.take().expect("tracker child stderr is piped");
+        let output = TrackerOutputCapture::new(stdout, stderr);
         let (drop_cleanup_complete, drop_cleanup_observer) = oneshot::channel();
 
         Self {
             child: Some(child),
-            output: Arc::clone(&output),
-            output_readers: vec![
-                tokio::spawn(drain_output(stdout, Arc::clone(&output))),
-                tokio::spawn(drain_output(stderr, output)),
-            ],
+            output: Some(output),
             workspace: Some(workspace),
             health_check_address: None,
             drop_cleanup_complete: Some(drop_cleanup_complete),
@@ -205,11 +234,15 @@ impl NativeTracker {
             }
         };
 
-        for reader in self.output_readers.drain(..) {
-            reader.await.expect("output reader task must complete");
-        }
-        let output = self.output.lock().await.clone();
-        exit_result.map(|_| output)
+        let mut output_capture = self
+            .output
+            .take()
+            .expect("tracker output capture must be available before shutdown");
+        output_capture.wait_for_readers().await;
+        let output = output_capture.contents().await;
+        exit_result
+            .map(|_| output.clone())
+            .map_err(|message| format!("{message}\ntracker output:\n{output}"))
     }
 
     /// Returns an observer for the signal that terminated the reaped drop-path child.
@@ -219,25 +252,27 @@ impl NativeTracker {
             .expect("drop cleanup observer must be taken at most once")
     }
 
-    async fn discover_health_check_address(&mut self) {
-        if self.health_check_address.is_some() {
-            return;
-        }
+    fn failure_message_sync(message: &str) -> String {
+        format!("{message}\ntracker output is being drained concurrently")
+    }
 
-        let output = self.output.lock().await;
-        self.health_check_address = output.lines().find_map(parse_health_check_address);
+    async fn discover_health_check_address(&mut self) {
+        if self.health_check_address.is_none() {
+            self.health_check_address = self
+                .output_ref()
+                .contents()
+                .await
+                .lines()
+                .find_map(parse_health_check_address);
+        }
     }
 
     async fn signal_handlers_are_installed(&self) -> bool {
-        self.output.lock().await.contains(SIGNAL_HANDLERS_READY_MESSAGE)
+        self.output_ref().contents().await.contains(SIGNAL_HANDLERS_READY_MESSAGE)
     }
 
     async fn failure_message(&self, message: &str) -> String {
-        format!("{message}\ntracker output:\n{}", self.output.lock().await)
-    }
-
-    fn failure_message_sync(message: &str) -> String {
-        format!("{message}\ntracker output is being drained concurrently")
+        format!("{message}\ntracker output:\n{}", self.output_ref().contents().await)
     }
 
     const fn child_ref(&self) -> &Child {
@@ -247,6 +282,10 @@ impl NativeTracker {
     const fn child_mut(&mut self) -> &mut Child {
         self.child.as_mut().expect("tracker child must be available")
     }
+
+    const fn output_ref(&self) -> &TrackerOutputCapture {
+        self.output.as_ref().expect("tracker output capture must be available")
+    }
 }
 
 impl Drop for NativeTracker {
@@ -255,6 +294,7 @@ impl Drop for NativeTracker {
             return;
         };
         let workspace = self.workspace.take();
+        let output = self.output.take();
         let cleanup_complete = self.drop_cleanup_complete.take();
 
         // `shutdown` owns normal and expected-error teardown. On a panic,
@@ -269,9 +309,15 @@ impl Drop for NativeTracker {
                 },
                 Err(error) => Err(format!("force-kill dropped tracker child: {error}")),
             };
+            let output = if let Some(mut output) = output {
+                output.wait_for_readers().await;
+                output.contents().await
+            } else {
+                String::new()
+            };
             drop(workspace);
             if let Some(cleanup_complete) = cleanup_complete {
-                drop(cleanup_complete.send(cleanup_result));
+                drop(cleanup_complete.send(cleanup_result.map_err(|message| format!("{message}\ntracker output:\n{output}"))));
             }
         }));
     }
