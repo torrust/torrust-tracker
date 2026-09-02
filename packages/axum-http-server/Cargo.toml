@@ -35,7 +35,7 @@ torrust-tracker-configuration = { version = "3.0.0", path = "../configuration" }
 torrust-net-primitives = "0.1.0"
 torrust-tracker-primitives = { version = "3.0.0", path = "../primitives" }
 torrust-tracker-swarm-coordination-registry = { version = "0.1.0", path = "../swarm-coordination-registry" }
-tower = { version = "0", features = [ "timeout" ] }
+tower = { version = "0", features = [ "timeout", "util" ] }
 tower-http = { version = "0", features = [ "compression-full", "cors", "propagate-header", "request-id", "trace" ] }
 tracing = "0"
 socket2 = "0.6.4"

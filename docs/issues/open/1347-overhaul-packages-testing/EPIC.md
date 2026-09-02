@@ -48,7 +48,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | Order | Issue                                                 | Local Spec                                                            | Status | Notes                                                          |
 | ----- | ----------------------------------------------------- | --------------------------------------------------------------------- | ------ | -------------------------------------------------------------- |
-| 1     | #1348 - Add tests to the axum-http-server package     | `docs/issues/open/1348-1347-add-tests-axum-http-server/ISSUE.md`      | TODO   | Existing subissue; package-level test work.                    |
+| 1     | #1348 - Add tests to the axum-http-server package     | `docs/issues/open/1348-1347-add-tests-axum-http-server/ISSUE.md`      | DONE   | Added fast package-local response, request-ID, and lifecycle tests; verification and final review evidence recorded. |
 | 2     | #1349 - Add tests to the axum-rest-api-server package | `docs/issues/open/1349-1347-add-tests-axum-rest-api-server/ISSUE.md`  | TODO   | Existing subissue; package-level test work.                    |
 | 3     | Additional package-testing subissues                  | Create a folder-style spec when a concrete package need is identified | TODO   | Permitted but not required upfront; retain scope in this EPIC. |
 
@@ -86,10 +86,10 @@ For each subissue implementation, the completion policy is:
 - [x] Epic spec reviewed and approved by user/maintainer
 - [x] Existing GitHub epic issue number added to this spec
 - [x] Existing subissues linked in this spec
-- [ ] Subissue statuses kept up to date in the `Subissues` table
-- [ ] For each implemented subissue: automatic checks completed and recorded
-- [ ] For each implemented subissue: manual verification completed and recorded
-- [ ] For each implemented subissue: acceptance criteria reviewed post-implementation
+- [x] Subissue statuses kept up to date in the `Subissues` table
+- [x] For each implemented subissue: automatic checks completed and recorded
+- [x] For each implemented subissue: manual verification completed and recorded
+- [x] For each implemented subissue: acceptance criteria reviewed post-implementation
 - [ ] Epic acceptance criteria reviewed and checked off
 - [ ] Epic issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
@@ -97,6 +97,7 @@ For each subissue implementation, the completion policy is:
 
 - 2026-09-01 17:48 UTC - GitHub Copilot - Created repository-local EPIC specification from GitHub issue #1347 and recorded maintainer feedback: cover all current workspace packages, allow additional subissues as needs are identified, and use baselines with risk-based targets. - https://github.com/torrust/torrust-tracker/issues/1347
 - 2026-09-01 18:00 UTC - User/maintainer - Approved the EPIC direction and clarified that each package should build a local safety net: establish and increase the coverage baseline, prioritize fast tests close to the code, and use unit, integration, or end-to-end tests whenever they provide valuable regression protection. - https://github.com/torrust/torrust-tracker/issues/1347
+- 2026-09-01 - GitHub Copilot - Completed #1348 with fast package-local response-adapter, request-ID middleware, and registration-cleanup tests; automated checks, directly invoked real-server verification scenarios, and final review evidence are recorded in its subissue specification. - https://github.com/torrust/torrust-tracker/issues/1348
 
 ## Acceptance Criteria
 
@@ -104,11 +105,11 @@ For each subissue implementation, the completion policy is:
 - [x] Implementation order and package-scoped delivery strategy are explicit.
 - [x] Coverage policy requires a recorded baseline, an aim to increase it, and prioritization of critical behavior over an arbitrary percentage for each subissue.
 - [ ] Dependencies, blockers, and remaining package needs are documented and current.
-- [ ] Epic status reflects actual state of linked subissues.
-- [ ] Every completed subissue includes automated verification evidence.
-- [ ] Every completed subissue includes manual verification evidence.
-- [ ] Every completed subissue includes post-implementation acceptance criteria review.
-- [ ] Documentation and governance updates are included when required.
+- [x] Epic status reflects actual state of linked subissues.
+- [x] Every completed subissue includes automated verification evidence.
+- [x] Every completed subissue includes manual verification evidence.
+- [x] Every completed subissue includes post-implementation acceptance criteria review.
+- [x] Documentation and governance updates are included when required.
 
 ### Acceptance Verification
 
@@ -118,10 +119,11 @@ For each subissue implementation, the completion policy is:
 | AC2   | DONE                   | Delivery strategy in this spec             |
 | AC3   | DONE                   | Scope and delivery strategy in this spec   |
 | AC4   | TODO                   | Subissue specs and progress logs           |
-| AC5   | TODO                   | Subissue verification records              |
-| AC6   | TODO                   | Subissue verification records              |
-| AC7   | TODO                   | Subissue acceptance-verification records   |
-| AC8   | TODO                   | Relevant PRs and documentation             |
+| AC5   | DONE                   | #1348 status in the subissues table and its specification |
+| AC6   | DONE                   | #1348 automatic-verification records       |
+| AC7   | DONE                   | #1348 manual-verification records          |
+| AC8   | DONE                   | #1348 post-implementation acceptance-verification record |
+| AC9   | DONE                   | #1348 specification and this EPIC update; no additional behavior, workflow, or governance documentation was required. |
 
 ## Risks and Trade-offs
 
