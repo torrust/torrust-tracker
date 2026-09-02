@@ -126,7 +126,7 @@ contracts. Remove it only if it is unnecessary, or retain explicit ownership if 
 
 ### R4 — Return a ready-to-call service from local setup
 
-- **Status:** TODO
+- **Status:** DONE
 - **Priority:** Medium impact / medium effort
 - **Addresses:** P2
 - **Change:** Make the file-local setup return an `Arc<ScrapeService>` configured with the selected
@@ -178,8 +178,8 @@ contracts. Remove it only if it is unnecessary, or retain explicit ownership if 
 - [x] R2 implemented, reviewed, and validated
 - [x] Maintainer approved implementation of R3
 - [x] R3 implemented, reviewed, and validated
-- [ ] Maintainer approved implementation of R4
-- [ ] R4 implemented, reviewed, and validated
+- [x] Maintainer approved implementation of R4
+- [x] R4 implemented, reviewed, and validated
 - [ ] Maintainer approved implementation of R5
 - [ ] R5 implemented, reviewed, and validated
 - [ ] R6 assessment completed and decision recorded
@@ -204,19 +204,23 @@ contracts. Remove it only if it is unnecessary, or retain explicit ownership if 
 - 2026-09-02 - GitHub Copilot - Completed R3. Extracted the `handle_scrape` service-delegation
   seam and added a focused contract proving an unresolved reverse-proxy client IP becomes a
   bencoded BitTorrent failure response with HTTP `200 OK`.
+- 2026-09-02 - User/maintainer - Approved R4 after reviewing the local ready-to-call service
+  fixture.
+- 2026-09-02 - GitHub Copilot - Completed R4. Local setup now returns a configuration-aware
+  `Arc<ScrapeService>`, removing repeated constructor wiring while keeping test inputs explicit.
 
 ### Validation Evidence
 
-| Increment          | Status | Evidence                                                                                                                                 |
-| ------------------ | ------ | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| Plan documentation | DONE   | `linter markdown`, `linter cspell`, and `git diff --check` passed after plan creation.                                                   |
-| R1                 | DONE   | `cargo fmt --all -- --check`, package library tests, `linter markdown`, `linter cspell`, and `git diff --check` passed.                  |
-| R2                 | DONE   | Editor diagnostics, `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-axum-http-server --lib`, and `git diff --check` passed. |
+| Increment          | Status | Evidence                                                                                                                                             |
+| ------------------ | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Plan documentation | DONE   | `linter markdown`, `linter cspell`, and `git diff --check` passed after plan creation.                                                               |
+| R1                 | DONE   | `cargo fmt --all -- --check`, package library tests, `linter markdown`, `linter cspell`, and `git diff --check` passed.                              |
+| R2                 | DONE   | Editor diagnostics, `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-axum-http-server --lib`, and `git diff --check` passed.             |
 | R3                 | DONE   | Editor diagnostics, `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-axum-http-server --lib` (31 passed), and `git diff --check` passed. |
-| R4                 | TODO   | Not started.                                                                                                                             |
-| R5                 | TODO   | Not started.                                                                                                                             |
-| R6                 | TODO   | Not started.                                                                                                                             |
-| R7                 | TODO   | Not started.                                                                                                                             |
+| R4                 | DONE   | Editor diagnostics, `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-axum-http-server --lib` (31 passed), and `git diff --check` passed. |
+| R5                 | TODO   | Not started.                                                                                                                                         |
+| R6                 | TODO   | Not started.                                                                                                                                         |
+| R7                 | TODO   | Not started.                                                                                                                                         |
 
 ## Non-Goals
 

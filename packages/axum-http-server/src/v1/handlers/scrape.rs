@@ -122,7 +122,6 @@ mod tests {
     use torrust_info_hash::InfoHash;
     use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
     use torrust_tracker_configuration::v3_0_0::Configuration;
-    use torrust_tracker_configuration::v3_0_0::core::Core;
     use torrust_tracker_core::authentication::key::repository::in_memory::InMemoryKeyRepository;
     use torrust_tracker_core::authentication::service::AuthenticationService;
     use torrust_tracker_core::scrape_handler::ScrapeHandler;
@@ -141,35 +140,27 @@ mod tests {
     use torrust_tracker_primitives::{ConfigurationInstanceId, ScrapeData, ServiceRole};
     use torrust_tracker_test_helpers::configuration;
 
-    struct CoreTrackerServices {
-        pub core_config: Arc<Core>,
-        pub scrape_handler: Arc<ScrapeHandler>,
-        pub authentication_service: Arc<AuthenticationService>,
+    struct TestServices {
+        pub scrape_service: Arc<ScrapeService>,
     }
 
-    struct CoreHttpTrackerServices {
-        pub http_stats_event_sender: torrust_tracker_http_core::event::sender::Sender,
-        pub http_tracker_config: Arc<torrust_tracker_configuration::v3_0_0::http_tracker::HttpTracker>,
-        pub configuration_instance_id: ConfigurationInstanceId,
-    }
-
-    fn initialize_private_tracker() -> (CoreTrackerServices, CoreHttpTrackerServices) {
+    fn initialize_private_tracker() -> TestServices {
         initialize_core_tracker_services(&configuration::ephemeral_private())
     }
 
-    fn initialize_listed_tracker() -> (CoreTrackerServices, CoreHttpTrackerServices) {
+    fn initialize_listed_tracker() -> TestServices {
         initialize_core_tracker_services(&configuration::ephemeral_listed())
     }
 
-    fn initialize_tracker_on_reverse_proxy() -> (CoreTrackerServices, CoreHttpTrackerServices) {
+    fn initialize_tracker_on_reverse_proxy() -> TestServices {
         initialize_core_tracker_services(&configuration::ephemeral_with_reverse_proxy())
     }
 
-    fn initialize_tracker_not_on_reverse_proxy() -> (CoreTrackerServices, CoreHttpTrackerServices) {
+    fn initialize_tracker_not_on_reverse_proxy() -> TestServices {
         initialize_core_tracker_services(&configuration::ephemeral_without_reverse_proxy())
     }
 
-    fn initialize_core_tracker_services(config: &Configuration) -> (CoreTrackerServices, CoreHttpTrackerServices) {
+    fn initialize_core_tracker_services(config: &Configuration) -> TestServices {
         let cancellation_token = CancellationToken::new();
         let configuration_instance_id = config
             .http_trackers
@@ -180,13 +171,11 @@ mod tests {
             .next()
             .map(|(index, _)| ConfigurationInstanceId::new(ServiceRole::HttpTracker, index))
             .expect("the test configuration should contain an HTTP tracker");
-        let http_tracker_config = Arc::new(
-            config
-                .http_trackers
-                .as_ref()
-                .expect("the test configuration should contain an HTTP tracker")[0]
-                .clone(),
-        );
+        let http_tracker_config = config
+            .http_trackers
+            .as_ref()
+            .expect("the test configuration should contain an HTTP tracker")[0]
+            .clone();
 
         let core_config = Arc::new(config.core.clone());
         let in_memory_whitelist = Arc::new(InMemoryWhitelist::default());
@@ -215,18 +204,16 @@ mod tests {
             );
         }
 
-        (
-            CoreTrackerServices {
-                core_config,
-                scrape_handler,
-                authentication_service,
-            },
-            CoreHttpTrackerServices {
-                http_stats_event_sender,
-                http_tracker_config,
-                configuration_instance_id,
-            },
-        )
+        let scrape_service = Arc::new(ScrapeService::new_with_http_tracker_config(
+            core_config,
+            scrape_handler,
+            authentication_service,
+            http_stats_event_sender,
+            &http_tracker_config,
+            configuration_instance_id,
+        ));
+
+        TestServices { scrape_service }
     }
 
     fn sample_scrape_request() -> Scrape {
@@ -324,19 +311,11 @@ mod tests {
     #[tokio::test]
     async fn it_should_encode_a_bencoded_failure_response_when_the_client_ip_cannot_be_resolved() {
         // Arrange
-        let (core_tracker_services, core_http_tracker_services) = initialize_tracker_on_reverse_proxy();
-        let scrape_service = Arc::new(ScrapeService::new_with_http_tracker_config(
-            core_tracker_services.core_config,
-            core_tracker_services.scrape_handler,
-            core_tracker_services.authentication_service,
-            core_http_tracker_services.http_stats_event_sender,
-            &core_http_tracker_services.http_tracker_config,
-            core_http_tracker_services.configuration_instance_id,
-        ));
+        let test_services = initialize_tracker_on_reverse_proxy();
 
         // Act
         let response = super::handle(
-            &scrape_service,
+            &test_services.scrape_service,
             &sample_scrape_request(),
             &missing_client_ip_sources(),
             &sample_http_service_binding(),
@@ -356,7 +335,6 @@ mod tests {
         use std::str::FromStr;
 
         use torrust_tracker_core::authentication;
-        use torrust_tracker_http_core::services::scrape::ScrapeService;
         use torrust_tracker_primitives::ScrapeData;
 
         use super::{initialize_private_tracker, sample_client_ip_sources, sample_http_service_binding, sample_scrape_request};
@@ -364,19 +342,13 @@ mod tests {
         #[tokio::test]
         async fn it_should_return_zeroed_swarm_metadata_when_the_authentication_key_is_missing() {
             // Arrange
-            let (core_tracker_services, core_http_tracker_services) = initialize_private_tracker();
+            let test_services = initialize_private_tracker();
             let scrape_request = sample_scrape_request();
             let maybe_key = None;
-            let scrape_service = ScrapeService::new(
-                core_tracker_services.core_config.clone(),
-                core_tracker_services.scrape_handler.clone(),
-                core_tracker_services.authentication_service.clone(),
-                core_http_tracker_services.http_stats_event_sender.clone(),
-                core_http_tracker_services.configuration_instance_id,
-            );
 
             // Act
-            let actual_scrape_data = scrape_service
+            let actual_scrape_data = test_services
+                .scrape_service
                 .handle_scrape(
                     &scrape_request,
                     &sample_client_ip_sources(),
@@ -395,21 +367,14 @@ mod tests {
         #[tokio::test]
         async fn it_should_return_zeroed_swarm_metadata_when_the_authentication_key_is_invalid() {
             // Arrange
-            let (core_tracker_services, core_http_tracker_services) = initialize_private_tracker();
+            let test_services = initialize_private_tracker();
             let scrape_request = sample_scrape_request();
             let unregistered_key = authentication::Key::from_str("YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ").unwrap();
             let maybe_key = Some(unregistered_key);
 
-            let scrape_service = ScrapeService::new(
-                core_tracker_services.core_config.clone(),
-                core_tracker_services.scrape_handler.clone(),
-                core_tracker_services.authentication_service.clone(),
-                core_http_tracker_services.http_stats_event_sender.clone(),
-                core_http_tracker_services.configuration_instance_id,
-            );
-
             // Act
-            let actual_scrape_data = scrape_service
+            let actual_scrape_data = test_services
+                .scrape_service
                 .handle_scrape(
                     &scrape_request,
                     &sample_client_ip_sources(),
@@ -428,7 +393,6 @@ mod tests {
 
     mod with_tracker_in_listed_mode {
 
-        use torrust_tracker_http_core::services::scrape::ScrapeService;
         use torrust_tracker_primitives::ScrapeData;
 
         use super::{initialize_listed_tracker, sample_client_ip_sources, sample_http_service_binding, sample_scrape_request};
@@ -436,18 +400,12 @@ mod tests {
         #[tokio::test]
         async fn it_should_return_zeroed_swarm_metadata_when_the_torrent_is_not_whitelisted() {
             // Arrange
-            let (core_tracker_services, core_http_tracker_services) = initialize_listed_tracker();
+            let test_services = initialize_listed_tracker();
             let scrape_request = sample_scrape_request();
-            let scrape_service = ScrapeService::new(
-                core_tracker_services.core_config.clone(),
-                core_tracker_services.scrape_handler.clone(),
-                core_tracker_services.authentication_service.clone(),
-                core_http_tracker_services.http_stats_event_sender.clone(),
-                core_http_tracker_services.configuration_instance_id,
-            );
 
             // Act
-            let actual_scrape_data = scrape_service
+            let actual_scrape_data = test_services
+                .scrape_service
                 .handle_scrape(
                     &scrape_request,
                     &sample_client_ip_sources(),
@@ -466,7 +424,6 @@ mod tests {
 
     mod with_tracker_on_reverse_proxy {
 
-        use torrust_tracker_http_core::services::scrape::ScrapeService;
         use torrust_tracker_http_protocol::v1::responses;
 
         use super::{
@@ -477,18 +434,11 @@ mod tests {
         #[tokio::test]
         async fn it_should_fail_when_the_right_most_x_forwarded_for_header_ip_is_not_available() {
             // Arrange
-            let (core_tracker_services, core_http_tracker_services) = initialize_tracker_on_reverse_proxy();
-            let scrape_service = ScrapeService::new_with_http_tracker_config(
-                core_tracker_services.core_config.clone(),
-                core_tracker_services.scrape_handler.clone(),
-                core_tracker_services.authentication_service.clone(),
-                core_http_tracker_services.http_stats_event_sender.clone(),
-                &core_http_tracker_services.http_tracker_config,
-                core_http_tracker_services.configuration_instance_id,
-            );
+            let test_services = initialize_tracker_on_reverse_proxy();
 
             // Act
-            let actual_error = scrape_service
+            let actual_error = test_services
+                .scrape_service
                 .handle_scrape(
                     &sample_scrape_request(),
                     &missing_client_ip_sources(),
@@ -510,7 +460,6 @@ mod tests {
 
     mod with_tracker_not_on_reverse_proxy {
 
-        use torrust_tracker_http_core::services::scrape::ScrapeService;
         use torrust_tracker_http_protocol::v1::responses;
 
         use super::{
@@ -521,17 +470,11 @@ mod tests {
         #[tokio::test]
         async fn it_should_fail_when_the_client_ip_from_the_connection_info_is_not_available() {
             // Arrange
-            let (core_tracker_services, core_http_tracker_services) = initialize_tracker_not_on_reverse_proxy();
-            let scrape_service = ScrapeService::new(
-                core_tracker_services.core_config.clone(),
-                core_tracker_services.scrape_handler.clone(),
-                core_tracker_services.authentication_service.clone(),
-                core_http_tracker_services.http_stats_event_sender.clone(),
-                core_http_tracker_services.configuration_instance_id,
-            );
+            let test_services = initialize_tracker_not_on_reverse_proxy();
 
             // Act
-            let actual_error = scrape_service
+            let actual_error = test_services
+                .scrape_service
                 .handle_scrape(
                     &sample_scrape_request(),
                     &missing_client_ip_sources(),
