@@ -39,9 +39,9 @@ Status legend:
 
 ## Suggestions
 
-| #   | Thread ID               | Path          | URL                                                                           | Suggestion Summary                                                    | Decision | Reply URL | Status | Thread State |
-| --- | ----------------------- | ------------- | ----------------------------------------------------------------------------- | --------------------------------------------------------------------- | -------- | --------- | ------ | ------------ |
-| 1   | `PRRT_kwDOGp2yqc6eemf_` | `src/main.rs` | <https://github.com/torrust/torrust-tracker/pull/2133#discussion_r3913544168> | Explicitly handle failure while installing the Ctrl-C signal handler. | action: fixed in `871d0ff3` and validated with `linter all`, `cargo test --package torrust-tracker`, pre-commit, and pre-push checks. | <https://github.com/torrust/torrust-tracker/pull/2133#discussion_r3913892315> | DONE | RESOLVED |
+| #   | Thread ID               | Path          | URL                                                                           | Suggestion Summary                                                    | Decision                                                                                                                              | Reply URL                                                                     | Status | Thread State |
+| --- | ----------------------- | ------------- | ----------------------------------------------------------------------------- | --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- | ------ | ------------ |
+| 1   | `PRRT_kwDOGp2yqc6eemf_` | `src/main.rs` | <https://github.com/torrust/torrust-tracker/pull/2133#discussion_r3913544168> | Explicitly handle failure while installing the Ctrl-C signal handler. | action: fixed in `871d0ff3` and validated with `linter all`, `cargo test --package torrust-tracker`, pre-commit, and pre-push checks. | <https://github.com/torrust/torrust-tracker/pull/2133#discussion_r3913892315> | DONE   | RESOLVED     |
 
 ## Notes
 
