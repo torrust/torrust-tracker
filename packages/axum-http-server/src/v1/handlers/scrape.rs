@@ -103,6 +103,7 @@ mod tests {
 
     use tokio_util::sync::CancellationToken;
     use torrust_info_hash::InfoHash;
+    use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
     use torrust_tracker_configuration::v3_0_0::Configuration;
     use torrust_tracker_configuration::v3_0_0::core::Core;
     use torrust_tracker_core::authentication::key::repository::in_memory::InMemoryKeyRepository;
@@ -223,7 +224,20 @@ mod tests {
         }
     }
 
-    fn assert_error_response(error: &responses::error::Error, error_message: &str) {
+    fn missing_client_ip_sources() -> ClientIpSources {
+        ClientIpSources {
+            right_most_x_forwarded_for: None,
+            connection_info_socket_address: None,
+        }
+    }
+
+    fn sample_http_service_binding() -> ServiceBinding {
+        let address = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070);
+
+        ServiceBinding::new(Protocol::HTTP, address).expect("the sample HTTP service binding should be valid")
+    }
+
+    fn assert_failure_reason_contains(error: &responses::error::Error, error_message: &str) {
         assert!(
             error.failure_reason.contains(error_message),
             "Error response does not contain message: '{error_message}'. Error: {error:?}"
@@ -276,26 +290,20 @@ mod tests {
     }
 
     mod with_tracker_in_private_mode {
-        use std::net::{IpAddr, Ipv4Addr, SocketAddr};
         use std::str::FromStr;
 
-        use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
         use torrust_tracker_core::authentication;
         use torrust_tracker_http_core::services::scrape::ScrapeService;
         use torrust_tracker_primitives::ScrapeData;
 
-        use super::{initialize_private_tracker, sample_client_ip_sources, sample_scrape_request};
+        use super::{initialize_private_tracker, sample_client_ip_sources, sample_http_service_binding, sample_scrape_request};
 
         #[tokio::test]
         async fn it_should_return_zeroed_swarm_metadata_when_the_authentication_key_is_missing() {
-            let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070);
-            let server_service_binding = ServiceBinding::new(Protocol::HTTP, server_socket_addr).unwrap();
-
+            // Arrange
             let (core_tracker_services, core_http_tracker_services) = initialize_private_tracker();
-
             let scrape_request = sample_scrape_request();
             let maybe_key = None;
-
             let scrape_service = ScrapeService::new(
                 core_tracker_services.core_config.clone(),
                 core_tracker_services.scrape_handler.clone(),
@@ -304,28 +312,27 @@ mod tests {
                 core_http_tracker_services.configuration_instance_id,
             );
 
-            let scrape_data = scrape_service
+            // Act
+            let actual_scrape_data = scrape_service
                 .handle_scrape(
                     &scrape_request,
                     &sample_client_ip_sources(),
-                    &server_service_binding,
+                    &sample_http_service_binding(),
                     maybe_key,
                 )
                 .await
                 .unwrap();
 
+            // Assert
             let expected_scrape_data = ScrapeData::zeroed(&scrape_request.info_hashes);
 
-            assert_eq!(scrape_data, expected_scrape_data);
+            assert_eq!(actual_scrape_data, expected_scrape_data);
         }
 
         #[tokio::test]
         async fn it_should_return_zeroed_swarm_metadata_when_the_authentication_key_is_invalid() {
-            let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070);
-            let server_service_binding = ServiceBinding::new(Protocol::HTTP, server_socket_addr).unwrap();
-
+            // Arrange
             let (core_tracker_services, core_http_tracker_services) = initialize_private_tracker();
-
             let scrape_request = sample_scrape_request();
             let unregistered_key = authentication::Key::from_str("YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ").unwrap();
             let maybe_key = Some(unregistered_key);
@@ -338,41 +345,36 @@ mod tests {
                 core_http_tracker_services.configuration_instance_id,
             );
 
-            let scrape_data = scrape_service
+            // Act
+            let actual_scrape_data = scrape_service
                 .handle_scrape(
                     &scrape_request,
                     &sample_client_ip_sources(),
-                    &server_service_binding,
+                    &sample_http_service_binding(),
                     maybe_key,
                 )
                 .await
                 .unwrap();
 
+            // Assert
             let expected_scrape_data = ScrapeData::zeroed(&scrape_request.info_hashes);
 
-            assert_eq!(scrape_data, expected_scrape_data);
+            assert_eq!(actual_scrape_data, expected_scrape_data);
         }
     }
 
     mod with_tracker_in_listed_mode {
 
-        use std::net::{IpAddr, Ipv4Addr, SocketAddr};
-
-        use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
         use torrust_tracker_http_core::services::scrape::ScrapeService;
         use torrust_tracker_primitives::ScrapeData;
 
-        use super::{initialize_listed_tracker, sample_client_ip_sources, sample_scrape_request};
+        use super::{initialize_listed_tracker, sample_client_ip_sources, sample_http_service_binding, sample_scrape_request};
 
         #[tokio::test]
         async fn it_should_return_zeroed_swarm_metadata_when_the_torrent_is_not_whitelisted() {
+            // Arrange
             let (core_tracker_services, core_http_tracker_services) = initialize_listed_tracker();
-
             let scrape_request = sample_scrape_request();
-
-            let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070);
-            let server_service_binding = ServiceBinding::new(Protocol::HTTP, server_socket_addr).unwrap();
-
             let scrape_service = ScrapeService::new(
                 core_tracker_services.core_config.clone(),
                 core_tracker_services.scrape_handler.clone(),
@@ -381,41 +383,38 @@ mod tests {
                 core_http_tracker_services.configuration_instance_id,
             );
 
-            let scrape_data = scrape_service
-                .handle_scrape(&scrape_request, &sample_client_ip_sources(), &server_service_binding, None)
+            // Act
+            let actual_scrape_data = scrape_service
+                .handle_scrape(
+                    &scrape_request,
+                    &sample_client_ip_sources(),
+                    &sample_http_service_binding(),
+                    None,
+                )
                 .await
                 .unwrap();
 
+            // Assert
             let expected_scrape_data = ScrapeData::zeroed(&scrape_request.info_hashes);
 
-            assert_eq!(scrape_data, expected_scrape_data);
+            assert_eq!(actual_scrape_data, expected_scrape_data);
         }
     }
 
     mod with_tracker_on_reverse_proxy {
 
-        use std::net::{IpAddr, Ipv4Addr, SocketAddr};
-
-        use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
         use torrust_tracker_http_core::services::scrape::ScrapeService;
         use torrust_tracker_http_protocol::v1::responses;
-        use torrust_tracker_http_protocol::v1::services::peer_ip_resolver::ClientIpSources;
 
-        use super::{initialize_tracker_on_reverse_proxy, sample_scrape_request};
-        use crate::v1::handlers::scrape::tests::assert_error_response;
+        use super::{
+            assert_failure_reason_contains, initialize_tracker_on_reverse_proxy, missing_client_ip_sources,
+            sample_http_service_binding, sample_scrape_request,
+        };
 
         #[tokio::test]
         async fn it_should_fail_when_the_right_most_x_forwarded_for_header_ip_is_not_available() {
+            // Arrange
             let (core_tracker_services, core_http_tracker_services) = initialize_tracker_on_reverse_proxy();
-
-            let client_ip_sources = ClientIpSources {
-                right_most_x_forwarded_for: None,
-                connection_info_socket_address: None,
-            };
-
-            let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070);
-            let server_service_binding = ServiceBinding::new(Protocol::HTTP, server_socket_addr).unwrap();
-
             let scrape_service = ScrapeService::new_with_http_tracker_config(
                 core_tracker_services.core_config.clone(),
                 core_tracker_services.scrape_handler.clone(),
@@ -425,15 +424,22 @@ mod tests {
                 core_http_tracker_services.configuration_instance_id,
             );
 
-            let response = scrape_service
-                .handle_scrape(&sample_scrape_request(), &client_ip_sources, &server_service_binding, None)
+            // Act
+            let actual_error = scrape_service
+                .handle_scrape(
+                    &sample_scrape_request(),
+                    &missing_client_ip_sources(),
+                    &sample_http_service_binding(),
+                    None,
+                )
                 .await
                 .unwrap_err();
 
-            let error_response = responses::error::Error::from(response);
+            // Assert
+            let actual_error_response = responses::error::Error::from(actual_error);
 
-            assert_error_response(
-                &error_response,
+            assert_failure_reason_contains(
+                &actual_error_response,
                 "Error resolving peer IP: missing or invalid the right most X-Forwarded-For IP",
             );
         }
@@ -441,28 +447,18 @@ mod tests {
 
     mod with_tracker_not_on_reverse_proxy {
 
-        use std::net::{IpAddr, Ipv4Addr, SocketAddr};
-
-        use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
         use torrust_tracker_http_core::services::scrape::ScrapeService;
         use torrust_tracker_http_protocol::v1::responses;
-        use torrust_tracker_http_protocol::v1::services::peer_ip_resolver::ClientIpSources;
 
-        use super::{initialize_tracker_not_on_reverse_proxy, sample_scrape_request};
-        use crate::v1::handlers::scrape::tests::assert_error_response;
+        use super::{
+            assert_failure_reason_contains, initialize_tracker_not_on_reverse_proxy, missing_client_ip_sources,
+            sample_http_service_binding, sample_scrape_request,
+        };
 
         #[tokio::test]
         async fn it_should_fail_when_the_client_ip_from_the_connection_info_is_not_available() {
+            // Arrange
             let (core_tracker_services, core_http_tracker_services) = initialize_tracker_not_on_reverse_proxy();
-
-            let client_ip_sources = ClientIpSources {
-                right_most_x_forwarded_for: None,
-                connection_info_socket_address: None,
-            };
-
-            let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070);
-            let server_service_binding = ServiceBinding::new(Protocol::HTTP, server_socket_addr).unwrap();
-
             let scrape_service = ScrapeService::new(
                 core_tracker_services.core_config.clone(),
                 core_tracker_services.scrape_handler.clone(),
@@ -471,15 +467,22 @@ mod tests {
                 core_http_tracker_services.configuration_instance_id,
             );
 
-            let response = scrape_service
-                .handle_scrape(&sample_scrape_request(), &client_ip_sources, &server_service_binding, None)
+            // Act
+            let actual_error = scrape_service
+                .handle_scrape(
+                    &sample_scrape_request(),
+                    &missing_client_ip_sources(),
+                    &sample_http_service_binding(),
+                    None,
+                )
                 .await
                 .unwrap_err();
 
-            let error_response = responses::error::Error::from(response);
+            // Assert
+            let actual_error_response = responses::error::Error::from(actual_error);
 
-            assert_error_response(
-                &error_response,
+            assert_failure_reason_contains(
+                &actual_error_response,
                 "Error resolving peer IP: cannot get the client IP from the connection info",
             );
         }

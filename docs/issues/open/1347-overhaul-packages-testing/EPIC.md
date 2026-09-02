@@ -57,9 +57,21 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | 2     | #1349 - Add tests to the axum-rest-api-server package | `docs/issues/open/1349-1347-add-tests-axum-rest-api-server/ISSUE.md`  | TODO   | Existing subissue; package-level test work.                                                                          |
 | 3     | Additional package-testing subissues                  | Create a folder-style spec when a concrete package need is identified | TODO   | Permitted but not required upfront; retain scope in this EPIC.                                                       |
 
+## Package Coverage Tracking
+
+Add a row only when work begins on a package subissue. Record its baseline before adding tests and
+its latest measurement after implementation. Link each row to the subissue's issue-local
+`coverage-evidence.md`, which remains the source of truth for measurement scope, per-file detail,
+and prioritized gaps. These aggregate values show progress across the EPIC; they do not determine
+whether a subissue has adequately covered critical behavior.
+
+| Package                            | Subissue                                               | Baseline                                          | Latest                                            | Change                                                  | Evidence                                                                       |
+| ---------------------------------- | ------------------------------------------------------ | ------------------------------------------------- | ------------------------------------------------- | ------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| `torrust-tracker-axum-http-server` | [#1348](1348-1347-add-tests-axum-http-server/ISSUE.md) | Lines: 93.82%; regions: 91.66%; functions: 89.54% | Lines: 95.00%; regions: 93.10%; functions: 91.06% | Lines: +1.18 pp; regions: +1.44 pp; functions: +1.52 pp | [Coverage evidence](1348-1347-add-tests-axum-http-server/coverage-evidence.md) |
+
 ## Delivery Strategy
 
-Implement independently reviewable, package-scoped subissues. Each subissue records its starting coverage, the critical responsibilities assessed, the coverage increase achieved where practical, verification evidence, and any explicitly justified exclusions. Store the coverage evidence in an issue-local human-readable document, rather than committing large raw coverage artifacts. State which source paths and code types the measurement includes, because test-inclusive totals are not production-only coverage. Use aggregate percentages only for navigation; prioritize behavior by examining per-file coverage and uncovered functions or regions.
+Implement independently reviewable, package-scoped subissues. When work begins on a package, add it to the Package Coverage Tracking table and record its starting coverage before adding tests. After implementation, update the row with the latest measurement and percentage-point change. Each subissue records its starting coverage, the critical responsibilities assessed, the coverage increase achieved where practical, verification evidence, and any explicitly justified exclusions. Store the coverage evidence in an issue-local human-readable document, rather than committing large raw coverage artifacts. State which source paths and code types the measurement includes, because test-inclusive totals are not production-only coverage. Use aggregate percentages only for navigation; prioritize behavior by examining per-file coverage and uncovered functions or regions.
 
 Prioritize fast unit tests close to the code being changed, while retaining or adding integration, runnable-example, and end-to-end tests when they provide valuable regression protection. Coverage percentage informs the work but does not replace testing critical behavior. Record reusable test-design refactors in the [testing refactoring-pattern catalog](../../../testing/refactoring-patterns/README.md) so later subissues can apply proven patterns without restating their rationale.
 
