@@ -13,6 +13,7 @@ responsibility.
 - [Draft shared handler test bootstrap](drafts/shared-handler-test-bootstrap.md)
 - [Announce handler tests](announce-tests.md) — complete
 - [Scrape handler tests](scrape-tests.md) — proposed
+- [Routes tests](routes-tests.md) — proposed
 
 ## Shared Purpose
 

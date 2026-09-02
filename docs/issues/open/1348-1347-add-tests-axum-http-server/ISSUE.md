@@ -84,8 +84,8 @@ Implementation begins only after maintainer review of the current file's plan.
 - [Announce handler tests](test-refactor-plans/announce-tests.md) — complete.
 - [Draft shared handler test bootstrap](test-refactor-plans/drafts/shared-handler-test-bootstrap.md)
   — future cross-file assessment only; no extraction is approved.
-- [Scrape handler tests](test-refactor-plans/scrape-tests.md) — proposed; do not implement until
-  reviewed.
+- [Scrape handler tests](test-refactor-plans/scrape-tests.md) — complete.
+- [Routes tests](test-refactor-plans/routes-tests.md) — proposed; do not implement until reviewed.
 
 ## Progress Tracking
 
