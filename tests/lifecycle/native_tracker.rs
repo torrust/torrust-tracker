@@ -54,24 +54,45 @@ pub struct NativeTracker {
     child: Option<Child>,
     output: Arc<Mutex<String>>,
     output_readers: Vec<JoinHandle<()>>,
-    _workspace: tempfile::TempDir,
+    workspace: Option<NativeTrackerWorkspace>,
     health_check_address: Option<SocketAddr>,
     drop_cleanup_complete: Option<oneshot::Sender<Result<i32, String>>>,
     drop_cleanup_observer: Option<oneshot::Receiver<Result<i32, String>>>,
 }
 
+/// An isolated workspace and configuration for one tracker child process.
+struct NativeTrackerWorkspace {
+    _workspace: tempfile::TempDir,
+    configuration_path: PathBuf,
+}
+
+impl NativeTrackerWorkspace {
+    fn new() -> Self {
+        let workspace = tempfile::tempdir().expect("create temporary tracker workspace");
+        let configuration_path = write_configuration(&workspace);
+
+        Self {
+            _workspace: workspace,
+            configuration_path,
+        }
+    }
+
+    fn configuration_path(&self) -> &std::path::Path {
+        &self.configuration_path
+    }
+}
+
 impl NativeTracker {
     /// Spawns the Cargo-built tracker binary with an isolated port-zero configuration.
     pub fn start() -> Self {
-        let workspace = tempfile::tempdir().expect("create temporary tracker workspace");
-        let config_path = write_configuration(&workspace);
+        let workspace = NativeTrackerWorkspace::new();
         let output = Arc::new(Mutex::new(String::new()));
         let mut command = Command::new(tracker_binary());
         command
             // Configure only this child process. `Command::env` does not
             // mutate the test process environment, so parallel fixtures each
             // retain their own temporary configuration path.
-            .env("TORRUST_TRACKER_CONFIG_TOML_PATH", config_path)
+            .env("TORRUST_TRACKER_CONFIG_TOML_PATH", workspace.configuration_path())
             .env_remove("TORRUST_TRACKER_CONFIG_TOML")
             // `shutdown` reaps normal and expected-error paths. This kills a
             // panicking test's child so it cannot outlive its temporary workspace.
@@ -91,7 +112,7 @@ impl NativeTracker {
                 tokio::spawn(drain_output(stdout, Arc::clone(&output))),
                 tokio::spawn(drain_output(stderr, output)),
             ],
-            _workspace: workspace,
+            workspace: Some(workspace),
             health_check_address: None,
             drop_cleanup_complete: Some(drop_cleanup_complete),
             drop_cleanup_observer: Some(drop_cleanup_observer),
@@ -233,6 +254,7 @@ impl Drop for NativeTracker {
         let Some(mut child) = self.child.take() else {
             return;
         };
+        let workspace = self.workspace.take();
         let cleanup_complete = self.drop_cleanup_complete.take();
 
         // `shutdown` owns normal and expected-error teardown. On a panic,
@@ -247,6 +269,7 @@ impl Drop for NativeTracker {
                 },
                 Err(error) => Err(format!("force-kill dropped tracker child: {error}")),
             };
+            drop(workspace);
             if let Some(cleanup_complete) = cleanup_complete {
                 drop(cleanup_complete.send(cleanup_result));
             }
