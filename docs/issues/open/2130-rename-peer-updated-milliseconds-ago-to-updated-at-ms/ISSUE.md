@@ -121,10 +121,10 @@ The previously proposed Axum and qBittorrent E2E DTO-literal edits are not requi
 - [x] Spec moved to `docs/issues/open/` using the assigned issue number.
 - [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation (not required; implementation shares this small issue PR).
 - [x] Implementation completed.
-- [x] Automatic verification completed (`linter all` and relevant tests; pre-push checks pending before push).
+- [x] Automatic verification completed (`linter all`, relevant tests, and pre-push checks).
 - [x] Manual verification scenarios executed and recorded (status + evidence).
 - [x] Acceptance criteria reviewed after implementation and updated with evidence.
-- [ ] Reviewer validated acceptance criteria and updated checkboxes.
+- [x] Reviewer validated acceptance criteria and updated checkboxes.
 - [ ] Committer verified spec progress is up to date before commit.
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`.
 
@@ -138,6 +138,7 @@ The previously proposed Axum and qBittorrent E2E DTO-literal edits are not requi
 - 2026-09-02 00:00 UTC - Implementer - Added the v1 timestamp field, compatibility deprecations, conversion mapping, endpoint documentation, and automated contract coverage - focused tests and `linter all` passed.
 - 2026-09-02 00:00 UTC - Task Reviewer - Confirmed implementation correctness; identified and resolved the out-of-scope API v2 acceptance-criterion conflict before recording completion - review evidence in this specification.
 - 2026-09-02 00:00 UTC - Copilot - Manually announced a local peer and verified the v1 response contains equal integer `updated`, `updated_milliseconds_ago`, and `updated_at_ms` values - `.tmp/issue-2130-torrent-response.json`.
+- 2026-09-02 00:00 UTC - Task Reviewer - Revalidated all in-scope acceptance criteria after the final verification records; review passed - reviewer checkpoint completed.
 
 ## Acceptance Criteria
 
@@ -146,7 +147,7 @@ The previously proposed Axum and qBittorrent E2E DTO-literal edits are not requi
 - [x] AC3: Until API v2, `updated`, `updated_milliseconds_ago`, and `updated_at_ms` are all serialized for a returned peer and contain the same value; both legacy fields are deprecated with a migration path to `updated_at_ms`.
 - [x] AC4: The v1 torrent endpoint documentation accurately shows all timestamp fields and their absolute-time semantics.
 - [x] AC5: This issue documents that API v2 is planned to use `updated_at_ms` and omit `updated` and `updated_milliseconds_ago`; implementing API v2 remains out of scope.
-- [ ] AC6: `linter all`, relevant tests, and applicable pre-push checks pass.
+- [x] AC6: `linter all`, relevant tests, and applicable pre-push checks pass.
 - [x] AC7: Manual verification scenarios are executed and documented with status and evidence.
 - [x] AC8: Acceptance criteria are re-reviewed after implementation and reflect observed behavior.
 
@@ -187,7 +188,7 @@ Notes:
 | AC3   | DONE                   | Raw Axum JSON contract test and M1 passed.                                         |
 | AC4   | DONE                   | Endpoint documentation update and M3 passed.                                       |
 | AC5   | DONE                   | Scope and architectural-decision sections document the API v2 migration direction. |
-| AC6   | TODO                   | Focused tests and `linter all` passed; run pre-push checks after final commits.    |
+| AC6   | DONE                   | Focused tests, `linter all`, and pre-push checks passed.                           |
 | AC7   | DONE                   | M1-M3 recorded above.                                                              |
 | AC8   | DONE                   | Independent task review completed and records updated.                             |
 
