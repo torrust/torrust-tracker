@@ -291,7 +291,38 @@ fn tracker_binary() -> PathBuf {
 
 #[cfg(test)]
 mod tests {
-    use super::parse_health_check_address;
+    use super::{parse_health_check_address, write_configuration};
+
+    #[test]
+    fn it_should_write_a_port_zero_configuration_with_workspace_local_sqlite_storage() {
+        // Arrange
+        let workspace = tempfile::tempdir().expect("create temporary tracker workspace");
+        let storage_path = workspace.path().join("storage");
+
+        // Act
+        let config_path = write_configuration(&workspace);
+        let configuration = std::fs::read_to_string(&config_path).expect("read tracker configuration");
+
+        // Assert
+        assert!(
+            config_path.starts_with(workspace.path()),
+            "configuration path should be workspace-local"
+        );
+        assert!(storage_path.is_dir(), "tracker storage directory should be created");
+        assert!(
+            configuration.contains(&format!("path = \"{}/sqlite3.db\"", storage_path.to_string_lossy())),
+            "configuration should use workspace-local SQLite storage"
+        );
+        assert!(
+            configuration.contains("bind_address = \"127.0.0.1:0\""),
+            "configuration should use port-zero listener bindings"
+        );
+        assert_eq!(
+            configuration.matches("bind_address = \"127.0.0.1:0\"").count(),
+            2,
+            "HTTP tracker and health-check API should both use port-zero bindings"
+        );
+    }
 
     #[test]
     fn it_should_extract_the_assigned_health_check_address_from_its_startup_log() {
