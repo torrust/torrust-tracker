@@ -17,7 +17,10 @@ async fn main() {
                     .expect("failed to install SIGTERM handler");
 
                 tokio::select! {
-                    _ = tokio::signal::ctrl_c() => "SIGINT",
+                    result = tokio::signal::ctrl_c() => {
+                        result.expect("failed to install Ctrl-C handler");
+                        "SIGINT"
+                    },
                     _ = sigterm.recv() => "SIGTERM",
                 }
             };
