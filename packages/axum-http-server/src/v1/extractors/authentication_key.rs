@@ -10,7 +10,7 @@
 //! authentication errors.
 //!
 //! It returns a bencoded [`Error`](torrust_tracker_http_protocol::v1::responses::error)
-//! response (`500`) if the `key` parameter are missing or invalid.
+//! response with HTTP status `200 OK` if the `key` parameter is missing or invalid.
 //!
 //! **Sample authentication error responses**
 //!
