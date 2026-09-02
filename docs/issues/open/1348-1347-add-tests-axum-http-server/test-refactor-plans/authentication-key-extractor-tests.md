@@ -109,7 +109,7 @@ identifies a stable missing classification. Otherwise record the deferral.
 
 ### R2 — Make malformed-key mapping explicit
 
-- **Status:** TODO
+- **Status:** DONE
 - **Priority:** Medium impact / trivial effort
 - **Addresses:** P1, P3
 - **Change:** Rename the failure test for the invalid-key-format mapping and rename the local helper
@@ -160,8 +160,8 @@ identifies a stable missing classification. Otherwise record the deferral.
 - [x] Phase 2 refactorings ordered by impact and effort
 - [x] Maintainer approved implementation of R1
 - [x] R1 implemented, reviewed, and validated
-- [ ] Maintainer approved implementation of R2
-- [ ] R2 implemented, reviewed, and validated
+- [x] Maintainer approved implementation of R2
+- [x] R2 implemented, reviewed, and validated
 - [ ] Maintainer approved implementation of R3
 - [ ] R3 implemented, reviewed, and validated
 - [ ] R4 assessment completed and decision recorded
@@ -177,17 +177,21 @@ identifies a stable missing classification. Otherwise record the deferral.
 - 2026-09-02 - User/maintainer - Approved R1 after reviewing the documentation correction.
 - 2026-09-02 - GitHub Copilot - Completed R1. The extractor documentation now states the actual
   bencoded HTTP `200 OK` failure-response contract.
+- 2026-09-02 - User/maintainer - Approved R2 after reviewing the explicit malformed-key mapping
+  test and failure-reason assertion name.
+- 2026-09-02 - GitHub Copilot - Completed R2. The direct parsing test and its assertion helper now
+  name the stable invalid-key-format authentication failure contract.
 
 ### Validation Evidence
 
-| Increment          | Status | Evidence                                                                                                                            |
-| ------------------ | ------ | ----------------------------------------------------------------------------------------------------------------------------------- |
-| Plan documentation | DONE   | `linter markdown`, `linter cspell`, and `git diff --check` passed after plan creation.                                              |
-| R1                 | DONE   | `cargo fmt --all -- --check`, package library tests (32 passed), `linter markdown`, `linter cspell`, and `git diff --check` passed. |
-| R2                 | TODO   | Not started.                                                                                                                        |
-| R3                 | TODO   | Not started.                                                                                                                        |
-| R4                 | TODO   | Not started.                                                                                                                        |
-| R5                 | TODO   | Not started.                                                                                                                        |
+| Increment          | Status | Evidence                                                                                                                                             |
+| ------------------ | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Plan documentation | DONE   | `linter markdown`, `linter cspell`, and `git diff --check` passed after plan creation.                                                               |
+| R1                 | DONE   | `cargo fmt --all -- --check`, package library tests (32 passed), `linter markdown`, `linter cspell`, and `git diff --check` passed.                  |
+| R2                 | DONE   | Editor diagnostics, `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-axum-http-server --lib` (32 passed), and `git diff --check` passed. |
+| R3                 | TODO   | Not started.                                                                                                                                         |
+| R4                 | TODO   | Not started.                                                                                                                                         |
+| R5                 | TODO   | Not started.                                                                                                                                         |
 
 ## Non-Goals
 
