@@ -114,7 +114,7 @@ contracts. Remove it only if it is unnecessary, or retain explicit ownership if 
 
 ### R3 — Re-establish the handler error-mapping boundary
 
-- **Status:** TODO
+- **Status:** DONE
 - **Priority:** High impact / medium effort
 - **Addresses:** P1
 - **Change:** Extract `handle_scrape` as the service-delegation seam and add a focused test that an
@@ -176,8 +176,8 @@ contracts. Remove it only if it is unnecessary, or retain explicit ownership if 
 - [x] R1 implemented, reviewed, and validated
 - [x] Maintainer approved implementation of R2
 - [x] R2 implemented, reviewed, and validated
-- [ ] Maintainer approved implementation of R3
-- [ ] R3 implemented, reviewed, and validated
+- [x] Maintainer approved implementation of R3
+- [x] R3 implemented, reviewed, and validated
 - [ ] Maintainer approved implementation of R4
 - [ ] R4 implemented, reviewed, and validated
 - [ ] Maintainer approved implementation of R5
@@ -200,19 +200,23 @@ contracts. Remove it only if it is unnecessary, or retain explicit ownership if 
   clearer error-value names, explicit failure-reason assertion, and AAA structure.
 - 2026-09-02 - GitHub Copilot - Completed R2. Replaced repeated binding and missing-client-IP
   setup with narrow local fixtures, made actual values explicit, and added concise AAA boundaries.
+- 2026-09-02 - User/maintainer - Approved implementation of R3.
+- 2026-09-02 - GitHub Copilot - Completed R3. Extracted the `handle_scrape` service-delegation
+  seam and added a focused contract proving an unresolved reverse-proxy client IP becomes a
+  bencoded BitTorrent failure response with HTTP `200 OK`.
 
 ### Validation Evidence
 
-| Increment          | Status | Evidence                                                                                                                |
-| ------------------ | ------ | ----------------------------------------------------------------------------------------------------------------------- |
-| Plan documentation | DONE   | `linter markdown`, `linter cspell`, and `git diff --check` passed after plan creation.                                  |
-| R1                 | DONE   | `cargo fmt --all -- --check`, package library tests, `linter markdown`, `linter cspell`, and `git diff --check` passed. |
+| Increment          | Status | Evidence                                                                                                                                 |
+| ------------------ | ------ | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| Plan documentation | DONE   | `linter markdown`, `linter cspell`, and `git diff --check` passed after plan creation.                                                   |
+| R1                 | DONE   | `cargo fmt --all -- --check`, package library tests, `linter markdown`, `linter cspell`, and `git diff --check` passed.                  |
 | R2                 | DONE   | Editor diagnostics, `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-axum-http-server --lib`, and `git diff --check` passed. |
-| R3                 | TODO   | Not started.                                                                                                            |
-| R4                 | TODO   | Not started.                                                                                                            |
-| R5                 | TODO   | Not started.                                                                                                            |
-| R6                 | TODO   | Not started.                                                                                                            |
-| R7                 | TODO   | Not started.                                                                                                            |
+| R3                 | DONE   | Editor diagnostics, `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-axum-http-server --lib` (31 passed), and `git diff --check` passed. |
+| R4                 | TODO   | Not started.                                                                                                                             |
+| R5                 | TODO   | Not started.                                                                                                                             |
+| R6                 | TODO   | Not started.                                                                                                                             |
+| R7                 | TODO   | Not started.                                                                                                                             |
 
 ## Non-Goals
 
