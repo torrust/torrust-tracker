@@ -7,7 +7,7 @@ github-issue: 1586
 spec-path: docs/issues/open/1586-evaluate-job-manager-join-set/ISSUE.md
 branch: null
 related-pr: null
-last-updated-utc: 2026-09-01
+last-updated-utc: 2026-09-02 07:44
 semantic-links:
   skill-links:
     - create-issue

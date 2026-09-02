@@ -7,7 +7,7 @@ github-issue: 1588
 spec-path: docs/issues/open/1588-review-shutdown-process-for-all-tasks-jobs/ISSUE.md
 branch: "1588-review-shutdown-process"
 related-pr: null
-last-updated-utc: 2026-09-01
+last-updated-utc: 2026-09-02 07:44
 semantic-links:
   skill-links:
     - create-issue
