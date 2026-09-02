@@ -54,7 +54,7 @@ pub struct NativeTracker {
     child: Option<Child>,
     output: Option<TrackerOutputCapture>,
     workspace: Option<NativeTrackerWorkspace>,
-    health_check_address: Option<SocketAddr>,
+    health_check_client: Option<HealthCheckClient>,
     drop_cleanup_complete: Option<oneshot::Sender<Result<i32, String>>>,
     drop_cleanup_observer: Option<oneshot::Receiver<Result<i32, String>>>,
 }
@@ -115,6 +115,53 @@ impl TrackerOutputCapture {
     }
 }
 
+/// A deadline-bounded client for the tracker health-check endpoint.
+struct HealthCheckClient {
+    address: SocketAddr,
+    client: reqwest::Client,
+}
+
+impl HealthCheckClient {
+    fn new(address: SocketAddr) -> Self {
+        Self {
+            address,
+            client: reqwest::Client::new(),
+        }
+    }
+
+    async fn probe(&self, deadline: tokio::time::Instant) -> Result<HealthCheckProbe, HealthCheckProbeError> {
+        let health_check_url = format!("http://{}/health_check", self.address); // DevSkim: ignore DS137138
+        let response = match tokio::time::timeout_at(deadline, self.client.get(health_check_url).send()).await {
+            Ok(Ok(response)) => response,
+            Ok(Err(_)) => return Ok(HealthCheckProbe::Unavailable),
+            Err(_) => return Err(HealthCheckProbeError::TimedOut),
+        };
+
+        if !response.status().is_success() {
+            return Err(HealthCheckProbeError::UnexpectedHttpStatus(response.status()));
+        }
+
+        let report = match tokio::time::timeout_at(deadline, response.json::<Report>()).await {
+            Ok(Ok(report)) => report,
+            Ok(Err(error)) => return Err(HealthCheckProbeError::InvalidReport(error.to_string())),
+            Err(_) => return Err(HealthCheckProbeError::TimedOut),
+        };
+
+        Ok(HealthCheckProbe::Report(report))
+    }
+}
+
+enum HealthCheckProbe {
+    Unavailable,
+    Report(Report),
+}
+
+enum HealthCheckProbeError {
+    TimedOut,
+    UnexpectedHttpStatus(reqwest::StatusCode),
+    InvalidReport(String),
+}
+
 impl NativeTracker {
     /// Spawns the Cargo-built tracker binary with an isolated port-zero configuration.
     pub fn start() -> Self {
@@ -142,7 +189,7 @@ impl NativeTracker {
             child: Some(child),
             output: Some(output),
             workspace: Some(workspace),
-            health_check_address: None,
+            health_check_client: None,
             drop_cleanup_complete: Some(drop_cleanup_complete),
             drop_cleanup_observer: Some(drop_cleanup_observer),
         }
@@ -151,57 +198,14 @@ impl NativeTracker {
     /// Waits until the tracker is healthy and its executable-boundary signal handlers are installed.
     pub async fn wait_until_ready(&mut self) -> Result<(), String> {
         let deadline = tokio::time::Instant::now() + STARTUP_DEADLINE;
-        let client = reqwest::Client::new();
 
         loop {
-            self.discover_health_check_address().await;
-
-            if let Some(address) = self.health_check_address {
-                let health_check_url = format!("http://{address}/health_check"); // DevSkim: ignore DS137138
-                match client.get(health_check_url).send().await {
-                    Ok(response) if response.status().is_success() => match response.json::<Report>().await {
-                        Ok(report) if report.status == Status::Ok && self.signal_handlers_are_installed().await => {
-                            return Ok(());
-                        }
-                        Ok(report) => {
-                            if tokio::time::Instant::now() >= deadline {
-                                return Err(self
-                                    .failure_message(&format!(
-                                        "health endpoint {address} reported {:?}: {}",
-                                        report.status, report.message
-                                    ))
-                                    .await);
-                            }
-                        }
-                        Err(error) if tokio::time::Instant::now() >= deadline => {
-                            return Err(self
-                                .failure_message(&format!("health endpoint {address} returned an invalid report: {error}"))
-                                .await);
-                        }
-                        Err(_) => {}
-                    },
-                    Ok(response) if tokio::time::Instant::now() >= deadline => {
-                        return Err(self
-                            .failure_message(&format!("health endpoint {address} returned HTTP {}", response.status()))
-                            .await);
-                    }
-                    Ok(_) | Err(_) => {}
-                }
+            if self.readiness_is_satisfied(deadline).await? {
+                return Ok(());
             }
-
-            if let Some(status) = self
-                .child_mut()
-                .try_wait()
-                .map_err(|error| Self::failure_message_sync(&format!("check tracker child status: {error}")))?
-            {
-                return Err(self
-                    .failure_message(&format!("tracker exited before readiness with {status}"))
-                    .await);
-            }
+            self.fail_if_child_exited().await?;
             if tokio::time::Instant::now() >= deadline {
-                return Err(self
-                    .failure_message("timed out waiting for health-check startup log, Status::Ok, and installed signal handlers")
-                    .await);
+                return Err(self.startup_timeout_failure().await);
             }
             tokio::time::sleep(RETRY_INTERVAL).await;
         }
@@ -256,19 +260,86 @@ impl NativeTracker {
         format!("{message}\ntracker output is being drained concurrently")
     }
 
-    async fn discover_health_check_address(&mut self) {
-        if self.health_check_address.is_none() {
-            self.health_check_address = self
+    async fn discover_health_check_client(&mut self) {
+        if self.health_check_client.is_none() {
+            self.health_check_client = self
                 .output_ref()
                 .contents()
                 .await
                 .lines()
-                .find_map(parse_health_check_address);
+                .find_map(parse_health_check_address)
+                .map(HealthCheckClient::new);
         }
     }
 
     async fn signal_handlers_are_installed(&self) -> bool {
         self.output_ref().contents().await.contains(SIGNAL_HANDLERS_READY_MESSAGE)
+    }
+
+    async fn readiness_is_satisfied(&mut self, deadline: tokio::time::Instant) -> Result<bool, String> {
+        self.discover_health_check_client().await;
+
+        match &self.health_check_client {
+            Some(client) => match client.probe(deadline).await {
+                Ok(HealthCheckProbe::Unavailable) => Ok(false),
+                Ok(HealthCheckProbe::Report(report)) if report.status == Status::Ok => {
+                    Ok(self.signal_handlers_are_installed().await)
+                }
+                Ok(HealthCheckProbe::Report(report)) => {
+                    self.fail_if_startup_deadline_reached(
+                        deadline,
+                        &format!(
+                            "health endpoint {} reported {:?}: {}",
+                            client.address, report.status, report.message
+                        ),
+                    )
+                    .await
+                }
+                Err(HealthCheckProbeError::TimedOut) => Err(self.startup_timeout_failure().await),
+                Err(HealthCheckProbeError::UnexpectedHttpStatus(status)) => {
+                    self.fail_if_startup_deadline_reached(
+                        deadline,
+                        &format!("health endpoint {} returned HTTP {status}", client.address),
+                    )
+                    .await
+                }
+                Err(HealthCheckProbeError::InvalidReport(error)) => {
+                    self.fail_if_startup_deadline_reached(
+                        deadline,
+                        &format!("health endpoint {} returned an invalid report: {error}", client.address),
+                    )
+                    .await
+                }
+            },
+            None => Ok(false),
+        }
+    }
+
+    async fn fail_if_startup_deadline_reached(&self, deadline: tokio::time::Instant, message: &str) -> Result<bool, String> {
+        if tokio::time::Instant::now() >= deadline {
+            Err(self.failure_message(message).await)
+        } else {
+            Ok(false)
+        }
+    }
+
+    async fn fail_if_child_exited(&mut self) -> Result<(), String> {
+        let status = self
+            .child_mut()
+            .try_wait()
+            .map_err(|error| Self::failure_message_sync(&format!("check tracker child status: {error}")))?;
+
+        match status {
+            Some(status) => Err(self
+                .failure_message(&format!("tracker exited before readiness with {status}"))
+                .await),
+            None => Ok(()),
+        }
+    }
+
+    async fn startup_timeout_failure(&self) -> String {
+        self.failure_message("timed out waiting for health-check startup log, Status::Ok, and installed signal handlers")
+            .await
     }
 
     async fn failure_message(&self, message: &str) -> String {
