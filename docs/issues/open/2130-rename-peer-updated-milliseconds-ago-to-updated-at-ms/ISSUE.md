@@ -119,11 +119,11 @@ The previously proposed Axum and qBittorrent E2E DTO-literal edits are not requi
 - [x] Spec reviewed and approved by user/maintainer.
 - [x] GitHub issue #2130 created and issue number added to this spec.
 - [x] Spec moved to `docs/issues/open/` using the assigned issue number.
-- [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation.
-- [ ] Implementation completed.
-- [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks).
-- [ ] Manual verification scenarios executed and recorded (status + evidence).
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence.
+- [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation (not required; implementation shares this small issue PR).
+- [x] Implementation completed.
+- [x] Automatic verification completed (`linter all` and relevant tests; pre-push checks pending before push).
+- [x] Manual verification scenarios executed and recorded (status + evidence).
+- [x] Acceptance criteria reviewed after implementation and updated with evidence.
 - [ ] Reviewer validated acceptance criteria and updated checkboxes.
 - [ ] Committer verified spec progress is up to date before commit.
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`.
@@ -135,17 +135,20 @@ The previously proposed Axum and qBittorrent E2E DTO-literal edits are not requi
 - 2026-09-02 00:00 UTC - User - Approved the draft specification and requested a folder-style layout - approval recorded.
 - 2026-09-02 00:00 UTC - User - Clarified this is a standalone current-API refactor, not an EPIC #144 subissue; API v2 will use only `updated_at_ms` - scope and relationship updated.
 - 2026-09-02 00:00 UTC - Copilot - Created GitHub issue #2130 and moved the approved specification to the open-issues folder - https://github.com/torrust/torrust-tracker/issues/2130.
+- 2026-09-02 00:00 UTC - Implementer - Added the v1 timestamp field, compatibility deprecations, conversion mapping, endpoint documentation, and automated contract coverage - focused tests and `linter all` passed.
+- 2026-09-02 00:00 UTC - Task Reviewer - Confirmed implementation correctness; identified and resolved the out-of-scope API v2 acceptance-criterion conflict before recording completion - review evidence in this specification.
+- 2026-09-02 00:00 UTC - Copilot - Manually announced a local peer and verified the v1 response contains equal integer `updated`, `updated_milliseconds_ago`, and `updated_at_ms` values - `.tmp/issue-2130-torrent-response.json`.
 
 ## Acceptance Criteria
 
-- [ ] AC1: The v1 `Peer` DTO serializes and deserializes a required `updated_at_ms: u128` field documented as an absolute Unix timestamp in milliseconds since epoch.
-- [ ] AC2: `from_domain_peer` maps `updated_at_ms` from `DurationSinceUnixEpoch::as_millis()`.
-- [ ] AC3: Until API v2, `updated`, `updated_milliseconds_ago`, and `updated_at_ms` are all serialized for a returned peer and contain the same value; both legacy fields are deprecated with a migration path to `updated_at_ms`.
-- [ ] AC4: The v1 torrent endpoint documentation accurately shows all timestamp fields and their absolute-time semantics.
-- [ ] AC5: This issue documents that API v2 is planned to use `updated_at_ms` and omit `updated` and `updated_milliseconds_ago`; implementing API v2 remains out of scope.
+- [x] AC1: The v1 `Peer` DTO serializes and deserializes a required `updated_at_ms: u128` field documented as an absolute Unix timestamp in milliseconds since epoch.
+- [x] AC2: `from_domain_peer` maps `updated_at_ms` from `DurationSinceUnixEpoch::as_millis()`.
+- [x] AC3: Until API v2, `updated`, `updated_milliseconds_ago`, and `updated_at_ms` are all serialized for a returned peer and contain the same value; both legacy fields are deprecated with a migration path to `updated_at_ms`.
+- [x] AC4: The v1 torrent endpoint documentation accurately shows all timestamp fields and their absolute-time semantics.
+- [x] AC5: This issue documents that API v2 is planned to use `updated_at_ms` and omit `updated` and `updated_milliseconds_ago`; implementing API v2 remains out of scope.
 - [ ] AC6: `linter all`, relevant tests, and applicable pre-push checks pass.
-- [ ] AC7: Manual verification scenarios are executed and documented with status and evidence.
-- [ ] AC8: Acceptance criteria are re-reviewed after implementation and reflect observed behavior.
+- [x] AC7: Manual verification scenarios are executed and documented with status and evidence.
+- [x] AC8: Acceptance criteria are re-reviewed after implementation and reflect observed behavior.
 
 ## Verification Plan
 
@@ -166,9 +169,9 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID  | Scenario                             | Command/Steps                                                                                                                   | Expected Result                                                                                                                                         | Status | Evidence                |
 | --- | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ----------------------- |
-| M1  | Inspect the v1 torrent wire response | Start a local tracker, announce a known peer, then request `GET /api/v1/torrent/{info_hash}` with an authorized `curl` request. | The peer JSON contains integer `updated`, `updated_milliseconds_ago`, and `updated_at_ms` fields, and all values are equal Unix-millisecond timestamps. | TODO   | Pending implementation. |
-| M2  | Verify typed-client deserialization  | Deserialize the M1 response through the current `ApiClient`/`Torrent` model.                                                    | Deserialization succeeds and exposes the peer's `updated_at_ms` value.                                                                                  | TODO   | Pending implementation. |
-| M3  | Inspect generated API documentation  | Build and inspect the generated Rust documentation for `Peer` and the torrent endpoint.                                         | `updated_at_ms` and the migration-only legacy fields are documented with accurate absolute-time semantics.                                              | TODO   | Pending implementation. |
+| M1  | Inspect the v1 torrent wire response | Start a local tracker, announce a known peer, then request `GET /api/v1/torrent/{info_hash}` with an authorized `curl` request. | The peer JSON contains integer `updated`, `updated_milliseconds_ago`, and `updated_at_ms` fields, and all values are equal Unix-millisecond timestamps. | DONE | `.tmp/issue-2130-torrent-response.json`; equal value `1788336187937` verified. |
+| M2  | Verify typed-client deserialization  | Deserialize the M1 response through the current `ApiClient`/`Torrent` model.                                                    | Deserialization succeeds and exposes the peer's `updated_at_ms` value.                                                                                  | DONE | Protocol round-trip test passed, exercising the shared v1 `Torrent`/`Peer` response model used by `ApiClient::get_torrent`. |
+| M3  | Inspect generated API documentation  | Build and inspect the generated Rust documentation for `Peer` and the torrent endpoint.                                         | `updated_at_ms` and the migration-only legacy fields are documented with accurate absolute-time semantics.                                              | DONE | Nightly documentation build passed; generated `Peer` documentation contains all three fields and their deprecation/migration text. |
 
 Notes:
 
@@ -179,14 +182,14 @@ Notes:
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence                |
 | ----- | ---------------------- | ----------------------- |
-| AC1   | TODO                   | Pending implementation. |
-| AC2   | TODO                   | Pending implementation. |
-| AC3   | TODO                   | Pending implementation. |
-| AC4   | TODO                   | Pending implementation. |
-| AC5   | TODO                   | Pending implementation. |
-| AC6   | TODO                   | Pending implementation. |
-| AC7   | TODO                   | Pending implementation. |
-| AC8   | TODO                   | Pending implementation. |
+| AC1   | DONE                   | Protocol serialization/deserialization test passed. |
+| AC2   | DONE                   | Runtime-adapter conversion test passed. |
+| AC3   | DONE                   | Raw Axum JSON contract test and M1 passed. |
+| AC4   | DONE                   | Endpoint documentation update and M3 passed. |
+| AC5   | DONE                   | Scope and architectural-decision sections document the API v2 migration direction. |
+| AC6   | TODO                   | Focused tests and `linter all` passed; run pre-push checks after final commits. |
+| AC7   | DONE                   | M1-M3 recorded above. |
+| AC8   | DONE                   | Independent task review completed and records updated. |
 
 ## Risks and Trade-offs
 
