@@ -18,33 +18,37 @@ multiple fixtures, which made the scenario less expressive and created hidden co
 
 ## Pattern
 
-Represent one meaningful domain situation with a small test-only scenario type. It owns the domain
-input and each independently specified expected representation.
+Represent one complete behavioral example with a small test-only scenario type. It owns the
+request, domain input, and independently specified expected response.
 
 ```rust
-struct AnnounceResponseScenario {
+struct AnnounceResponseScenario<TExpectedResponse> {
+  announce_request: Announce,
     announce_data: AnnounceData,
-    expected_normal: DeserializedNormal,
-    expected_compact: DeserializedCompact,
+  expected_response: TExpectedResponse,
 }
 ```
 
 Give the scenario an associated factory with a behavior-oriented name, such as
-`AnnounceResponseScenario::one_ipv4_seeder()`. Construct every expected value explicitly, and
-visibly set every input value that the expected output asserts. Do not derive expected values by
-calling the production mapping or response-building functions being tested.
+`AnnounceResponseScenario::compact_response_for_one_ipv4_seeder_when_accepted()`. A builder may
+hide fields that are irrelevant to the behavior, but the scenario owns all artifacts that form the
+example. Construct every expected value explicitly, and visibly set every input value that the
+expected output asserts. Do not derive expected values by calling the production mapping or
+response-building functions being tested.
 
-Each test keeps its distinguishing request condition local, then decodes and compares the whole
-observable response directly:
+Each test executes the production boundary with the complete scenario, then decodes and compares
+the whole observable response directly:
 
 ```rust
-assert_eq!(decoded, scenario.expected_compact);
+let response = build_response(&scenario.announce_request, scenario.announce_data);
+assert_eq!(decoded, scenario.expected_response);
 ```
 
 ## Why This Works
 
 - **Expressive:** the factory identifies the real scenario rather than an implementation detail.
-- **Readable:** all related input and expected normal/compact contracts are adjacent.
+- **Readable:** all related request, domain input, and expected response contracts belong to one
+  scenario.
 - **Maintainable:** changing the scenario updates one intentional test fixture instead of several
   disconnected helpers and field assertions.
 - **Deterministic and fast:** the fixture has no clock, I/O, randomness, network listener, or
@@ -56,7 +60,7 @@ assert_eq!(decoded, scenario.expected_compact);
 
 - A single domain input has two or more observable protocol representations.
 - Response types implement `Debug` and `PartialEq`, making direct whole-value comparison useful.
-- Multiple tests differ only in a small selector such as a request flag or negotiated format.
+- Related test artifacts form one concrete example, including the request that selects the result.
 
 ## Do Not Use When
 
