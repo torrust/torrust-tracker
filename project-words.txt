@@ -27,7 +27,9 @@ Dmqcd
 Dockerfiles
 EADDRINUSE
 EINVAL
+ESRCH
 Eray
+Errno
 Freebox
 Frostegård
 Garnham
@@ -467,6 +469,7 @@ unconfigured
 underflows
 ungetwc
 uninit
+unistd
 unittests
 unparked
 unpushed

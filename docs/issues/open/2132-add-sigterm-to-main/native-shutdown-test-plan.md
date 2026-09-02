@@ -236,34 +236,34 @@ management for this suite.
 
 ## Implementation Plan
 
-| Step | Work                                                                                                                                                                                        | Status      |
-| ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
-| 1    | Confirm the health-check startup log provides the bound address and that `GET /health_check` returns successfully with `Report.status == Status::Ok` for the minimal fixture configuration. | Not started |
-| 2    | Add Unix-only test target configuration, Tokio `process`, `io-util`, and `time` features, and the minimal Unix target-specific `nix` dev-dependency with its `signal` feature.              | Not started |
-| 3    | Implement `NativeTracker` temporary workspace, configuration, child spawning, output capture, readiness, bounded waiting, and cleanup.                                                      | Not started |
-| 4    | Add the SIGTERM executable-boundary scenario for #2132.                                                                                                                                     | Not started |
-| 5    | Add the SIGINT source-distinction scenario using the shared fixture.                                                                                                                        | Not started |
-| 6    | Verify failure cleanup by intentionally exercising a controlled failing path or fixture-level test seam.                                                                                    | Not started |
-| 7    | Run the focused lifecycle target, root `cargo test`, `linter all`, and manual direct-binary verification.                                                                                   | Not started |
-| 8    | Update `ISSUE.md`, `verification.md`, and this plan with observed commands, outcomes, time budgets, and remaining limitations.                                                              | Not started |
+| Step | Work                                                                                                                                                                                        | Status    |
+| ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
+| 1    | Confirm the health-check startup log provides the bound address and that `GET /health_check` returns successfully with `Report.status == Status::Ok` for the minimal fixture configuration. | Completed |
+| 2    | Add Unix-only test target configuration, Tokio `process`, `io-util`, and `time` features, and the minimal Unix target-specific `nix` dev-dependency with its `signal` feature.              | Completed |
+| 3    | Implement `NativeTracker` temporary workspace, configuration, child spawning, output capture, readiness, bounded waiting, and cleanup.                                                      | Completed |
+| 4    | Add the SIGTERM executable-boundary scenario for #2132.                                                                                                                                     | Completed |
+| 5    | Add the SIGINT source-distinction scenario using the shared fixture.                                                                                                                        | Completed |
+| 6    | Verify failure cleanup by intentionally exercising a controlled failing path or fixture-level test seam.                                                                                    | Completed |
+| 7    | Run the focused lifecycle target, root `cargo test`, `linter all`, and manual direct-binary verification.                                                                                   | Completed |
+| 8    | Update `ISSUE.md`, `verification.md`, and this plan with observed commands, outcomes, time budgets, and remaining limitations.                                                              | Completed |
 
 ## Acceptance Criteria
 
-- [ ] A Unix CI runner can execute the native lifecycle target without Docker or Podman.
-- [ ] The test starts the actual Cargo-built `torrust-tracker` executable, not an
+- [x] A Unix CI runner can execute the native lifecycle target without Docker or Podman.
+- [x] The test starts the actual Cargo-built `torrust-tracker` executable, not an
       in-process app or Cargo launcher.
-- [ ] The test waits for external readiness without fixed-sleep readiness proof.
-- [ ] The fixture uses port `0` for its listeners and discovers the health-check
+- [x] The test waits for external readiness without fixed-sleep readiness proof.
+- [x] The fixture uses port `0` for its listeners and discovers the health-check
       binding without a find-free-port race.
-- [ ] The SIGTERM test delivers SIGTERM to the tracked child PID and asserts the
+- [x] The SIGTERM test delivers SIGTERM to the tracked child PID and asserts the
       source-specific shutdown log, JobManager progress, and bounded exit.
-- [ ] The SIGINT test delivers SIGINT to the tracked child PID and asserts the
+- [x] The SIGINT test delivers SIGINT to the tracked child PID and asserts the
       SIGINT source-specific shutdown log without a SIGTERM source message.
-- [ ] Cleanup reaps the child in successful and failed paths; SIGKILL is used
+- [x] Cleanup reaps the child in successful and failed paths; SIGKILL is used
       only for timeout/failure cleanup.
-- [ ] The Unix-only implementation does not break non-Unix compilation.
-- [ ] The new target, root `cargo test`, and `linter all` pass in CI.
-- [ ] The resulting fixture is documented well enough for later shutdown EPIC
+- [x] The Unix-only implementation does not break non-Unix compilation.
+- [x] The new target, root `cargo test`, and `linter all` pass locally on Linux.
+- [x] The resulting fixture is documented well enough for later shutdown EPIC
       slices to reuse without copying child-process lifecycle code.
 
 ## Validation Plan
@@ -275,6 +275,23 @@ cargo test --test lifecycle-signals
 cargo test
 linter all
 ```
+
+Observed locally on Linux on 2026-09-02:
+
+- `cargo test --test lifecycle-signals`: 4 passed in 20.07 seconds. The
+  scenarios cover SIGTERM, SIGINT, startup-log parsing, and deliberate fixture
+  drop cleanup.
+- `cargo test`: passed. The new lifecycle target completed in 20.07 seconds.
+- `linter all`: passed.
+- `cargo machete`: reported only existing unused-dependency findings in
+  `packages/e2e-tools` and `packages/test-helpers`; it did not report the new
+  root `nix` dependency.
+
+The fixture permits 10 seconds for readiness and 30 seconds for graceful
+shutdown. The latter accommodates the current observed SIGTERM shutdown, which
+uses the legacy sequential 10-second job waits and completed in about 20
+seconds. CI has not yet supplied evidence, so CI-specific acceptance remains
+pending merge-pipeline execution.
 
 Manual validation remains the direct release-binary procedure in
 [verification.md](verification.md). The automated suite complements that evidence

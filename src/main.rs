@@ -13,22 +13,49 @@ async fn main() {
         Ok((_app_container, jobs)) => {
             #[cfg(unix)]
             let shutdown_signal = {
+                let ctrl_c = tokio::signal::ctrl_c();
+                tokio::pin!(ctrl_c);
                 let mut sigterm = tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate())
                     .expect("failed to install SIGTERM handler");
 
                 tokio::select! {
-                    result = tokio::signal::ctrl_c() => {
+                    biased;
+                    result = &mut ctrl_c => {
                         result.expect("failed to install Ctrl-C handler");
                         "SIGINT"
                     },
                     _ = sigterm.recv() => "SIGTERM",
+                    () = std::future::ready(()) => {
+                        tracing::info!("Tracker shutdown signal handlers installed.");
+
+                        tokio::select! {
+                            result = &mut ctrl_c => {
+                                result.expect("failed to install Ctrl-C handler");
+                                "SIGINT"
+                            },
+                            _ = sigterm.recv() => "SIGTERM",
+                        }
+                    },
                 }
             };
 
             #[cfg(not(unix))]
             let shutdown_signal = {
-                tokio::signal::ctrl_c().await.expect("failed to install Ctrl-C handler");
-                "SIGINT"
+                let ctrl_c = tokio::signal::ctrl_c();
+                tokio::pin!(ctrl_c);
+
+                tokio::select! {
+                    biased;
+                    result = &mut ctrl_c => {
+                        result.expect("failed to install Ctrl-C handler");
+                        "SIGINT"
+                    },
+                    _ = std::future::ready(()) => {
+                        tracing::info!("Tracker shutdown signal handlers installed.");
+                        ctrl_c.await.expect("failed to install Ctrl-C handler");
+                        "SIGINT"
+                    },
+                }
             };
 
             tracing::info!("Torrust tracker shutting down ({shutdown_signal}) ...");

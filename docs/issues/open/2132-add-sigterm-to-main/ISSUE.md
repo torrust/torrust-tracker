@@ -46,8 +46,11 @@ library lifecycle API.
 
 Implemented and manually verified on 2026-09-02. The direct release-binary
 checks recorded in [verification.md](verification.md) confirm the SIGTERM and
-SIGINT signal-boundary behavior. Legacy periodic-job timeout and aggregate
-exit-result policy remain deferred to SI-20.
+SIGINT signal-boundary behavior. Native Unix executable-boundary coverage was
+added and passed locally on 2026-09-02; it launches the Cargo-built binary,
+waits for health `Status::Ok`, and delivers each signal to its exact child PID.
+Legacy periodic-job timeout and aggregate exit-result policy remain deferred to
+SI-20.
 
 ## Background
 

@@ -255,6 +255,37 @@ SKIPPED: container validation is exploratory for SI-1. SI-20 owns configured ext
 - [ ] RECORD: Whether the configured Docker deadline was sufficient
 - [x] SKIPPED (reason: container validation is exploratory for SI-1; SI-20 owns configured external-grace-period validation)
 
+### P2 — Test 6: Native Unix executable-boundary regression suite
+
+```text
+cargo test --test lifecycle-signals
+
+running 4 tests
+test native_tracker::tests::it_should_extract_the_assigned_health_check_address_from_its_startup_log ... ok
+test it_should_force_kill_and_reap_the_tracker_binary_when_the_fixture_is_dropped ... ok
+test it_should_distinguish_sigint_from_sigterm_when_shutting_down_the_tracker_binary ... ok
+test it_should_gracefully_shutdown_the_tracker_binary_when_sigterm_is_delivered_to_its_exact_pid ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 20.07s
+```
+
+The fixture creates a port-zero temporary configuration, starts the Cargo-built
+executable, discovers the health-check address from its `Started on` log, and
+requires `/health_check` to report `Status::Ok`. It delivers the typed `nix`
+signal directly to the retained child PID. A controlled fixture-drop scenario
+confirms failure-path force-kill and reaping; normal scenarios only await the
+graceful shutdown path.
+
+The full root suite and lint gate also passed locally:
+
+```text
+cargo test
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+linter all
+All linters passed
+```
+
 ---
 
 ## Final Summary
