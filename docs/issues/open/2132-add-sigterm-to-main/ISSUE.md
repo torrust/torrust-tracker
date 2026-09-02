@@ -13,6 +13,7 @@ semantic-links:
     - create-issue
   related-artifacts:
     - src/main.rs
+    - docs/issues/open/2132-add-sigterm-to-main/native-shutdown-test-plan.md
     - docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
     - docs/features/shutdown-process/README.md
     - docs/features/shutdown-process/questions.md
