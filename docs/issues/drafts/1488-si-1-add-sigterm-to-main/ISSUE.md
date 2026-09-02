@@ -129,8 +129,8 @@ The clean removal of `global_shutdown_signal()` is tracked in SI-2.
 - [ ] The final shutdown result accurately reflects pending legacy components;
       complete success and exit-code semantics are finalized by Q3.
 - [ ] The signal-boundary test targets the tracker binary directly. Do not use
-  `timeout 20s cargo run` as shutdown evidence because it targets Cargo's
-  launcher process rather than a documented tracker process boundary.
+      `timeout 20s cargo run` as shutdown evidence because it targets Cargo's
+      launcher process rather than a documented tracker process boundary.
 - [ ] `cargo test` passes.
 - [ ] `linter all` passes.
 - [ ] Phase 2 of [verification.md](./verification.md) is fully completed.

@@ -190,7 +190,7 @@ Same procedure as P1 Test 1 using the fixed binary.
 - [ ] PASS: The harness targets the release tracker binary PID, not `cargo run`.
 - [ ] PASS: SIGTERM reaches `main()` and begins cancellation before the harness deadline.
 - [ ] PASS: The recorded bound accommodates SI-1's current sequential legacy
-  shutdown behavior; SI-20 owns the final process deadline.
+      shutdown behavior; SI-20 owns the final process deadline.
 
 ### P2 — Test 2: `kill -TERM <pid>` — same outcome as P2 Test 1
 
@@ -243,7 +243,7 @@ echo "Exit code: $?"
 | P1    | T2   | SIGKILL required — exit code 137    | Confirmed |
 | P1    | T3   | Ports freed after SIGKILL           | Confirmed |
 | P2    | T1   | SIGTERM reaches `main()`            | Pending   |
-| P2    | T1a  | Bounded direct-binary delivery       | Pending   |
+| P2    | T1a  | Bounded direct-binary delivery      | Pending   |
 | P2    | T2   | `kill -TERM` — same as T1           | Pending   |
 | P2    | T3   | Ctrl+C — log says SIGINT            | Pending   |
 | P2    | T4   | SIGKILL — exit 137, no shutdown log | Pending   |
