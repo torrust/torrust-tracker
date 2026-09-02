@@ -57,7 +57,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task                            | Notes / Expected Output                                                                                                                                               |
 | --- | ------ | ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| T1  | DONE   | Establish the baseline          | Baseline recorded: 1,229 lines, 1,153 covered (93.82%); 1,763 regions, 1,616 covered (91.66%); 153 functions, 137 covered (89.54%).                                   |
+| T1  | DONE   | Establish the baseline          | Baseline and latest per-file evidence are recorded in [coverage-evidence.md](coverage-evidence.md).                                                                   |
 | T2  | DONE   | Plan coverage improvement       | The response adapters were the smallest direct package seam: previous higher-level tests exercised them, but no focused tests decoded the handlers' returned bencode. |
 | T3  | DONE   | Add lifecycle and routing tests | Added fast router tests for propagated and generated request IDs, plus a lifecycle test that proves failed registration releases the HTTP listener.                   |
 | T4  | DONE   | Add protocol-boundary tests     | Added fast handler tests that decode accepted, omitted, and non-compact announce responses and scrape responses from domain data.                                     |
@@ -93,7 +93,7 @@ The completed tests use the existing `PeerBuilder`, protocol deserializers, dire
 
 - 2026-09-01 18:00 UTC - GitHub Copilot - Created a repository-local folder-style specification from GitHub issue #1348 and EPIC #1347. - https://github.com/torrust/torrust-tracker/issues/1348
 - 2026-09-01 18:00 UTC - User/maintainer - Clarified that the work should increase the recorded coverage baseline by testing critical behavior, prioritize fast unit tests close to package code, and retain or add valuable package-level integration and end-to-end tests. - https://github.com/torrust/torrust-tracker/issues/1348
-- 2026-09-01 - GitHub Copilot - Measured package-source coverage with `cargo llvm-cov -p torrust-tracker-axum-http-server --all-features --json`, summing the `summary` objects for files beneath `packages/axum-http-server/src/`: baseline: 1,229 lines / 1,153 covered (93.82%), 1,763 regions / 1,616 covered (91.66%), and 153 functions / 137 covered (89.54%). Final: 1,441 lines / 1,368 covered (94.93%), 2,072 regions / 1,930 covered (93.15%), and 172 functions / 156 covered (90.70%). These package-source totals include test code and are not a production-only coverage measurement; the new tests directly assert previously high-level-only response-adapter, request-ID middleware, and registration-cleanup behavior.
+- 2026-09-01 - GitHub Copilot - Measured package-source coverage with `cargo llvm-cov -p torrust-tracker-axum-http-server --all-features --json`. The baseline, current aggregate comparison, per-file coverage, uncovered-function locations, method, and scope limitations are maintained in [coverage-evidence.md](coverage-evidence.md). The new tests directly assert previously high-level-only response-adapter, request-ID middleware, and registration-cleanup behavior.
 - 2026-09-01 - GitHub Copilot - Automatic verification passed: `cargo test -p torrust-tracker-axum-http-server` (30 unit tests and 55 integration tests), `cargo test -p torrust-tracker-axum-http-server --test integration` (55 tests), `linter all`, and `TORRUST_GIT_HOOKS_LOG_DIR=.tmp ./contrib/dev-tools/git/hooks/pre-commit.sh --format=json`. The complexity audit found all added tests and helpers to have cyclomatic complexity 1, nesting depth 0, and fewer than 50 lines. `cargo clippy --package torrust-tracker-axum-http-server -- -W clippy::cognitive_complexity -D warnings` was blocked only by two pre-existing high-complexity diagnostics in `torrust-tracker-swarm-coordination-registry`; the normal Clippy validation included in `linter all` passed.
 - 2026-09-01 - Task Reviewer - Independently reviewed the focused response-adapter tests. The compact-response test name was corrected to state that it verifies the omitted-parameter default. Review identified follow-up work: use reproducible package-source coverage totals, complete manual verification, and keep EPIC/subissue progress state aligned. The focused tests themselves passed review.
 - 2026-09-01 - GitHub Copilot - Added fast in-process router tests for client-supplied and generated request IDs, a listener-release test for registration failure, and an explicit accepted-compact response test. Re-ran focused real-server announce, scrape, health-check, and start/stop scenarios successfully.
@@ -136,17 +136,17 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 ### Acceptance Verification
 
-| AC ID | Status (`TODO`/`DONE`) | Evidence                                          |
-| ----- | ---------------------- | ------------------------------------------------- |
-| AC1   | DONE                   | Coverage command output recorded in progress log. |
-| AC2   | DONE                   | Added test paths and test output.                 |
-| AC3   | DONE                   | Test output and review notes.                     |
-| AC4   | DONE                   | Code review of test fixtures and assertions.      |
-| AC5   | DONE                   | `linter all` output.                              |
-| AC6   | DONE                   | Package test output.                              |
-| AC7   | DONE                   | Manual-verification table and evidence.           |
-| AC8   | DONE                   | Post-implementation review entry.                 |
-| AC9   | DONE                   | Relevant documentation diff.                      |
+| AC ID | Status (`TODO`/`DONE`) | Evidence                                                                                                                      |
+| ----- | ---------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| AC1   | DONE                   | [Coverage evidence](coverage-evidence.md) records the command, baseline, latest totals, per-file detail, and follow-up queue. |
+| AC2   | DONE                   | Added test paths and test output.                                                                                             |
+| AC3   | DONE                   | Test output and review notes.                                                                                                 |
+| AC4   | DONE                   | Code review of test fixtures and assertions.                                                                                  |
+| AC5   | DONE                   | `linter all` output.                                                                                                          |
+| AC6   | DONE                   | Package test output.                                                                                                          |
+| AC7   | DONE                   | Manual-verification table and evidence.                                                                                       |
+| AC8   | DONE                   | Post-implementation review entry.                                                                                             |
+| AC9   | DONE                   | Relevant documentation diff.                                                                                                  |
 
 All planned work is complete and has independent review evidence recorded above. No public behavior, workflow, or governance change required documentation beyond this issue specification and the EPIC progress update.
 
