@@ -126,7 +126,7 @@ mod tests {
 
     use torrust_tracker_http_protocol::v1::responses::error::Error;
 
-    use super::parse_key;
+    use super::{Key, parse_key};
 
     fn assert_failure_reason_contains(error: &Error, error_message: &str) {
         assert!(
@@ -148,5 +148,20 @@ mod tests {
             &actual_error_response,
             "Tracker authentication error: Invalid format for authentication key param",
         );
+    }
+
+    #[test]
+    fn it_should_parse_a_valid_path_key() {
+        // Arrange
+        let valid_key = "YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ";
+        let expected_key = valid_key
+            .parse::<Key>()
+            .expect("the fixture should be a valid authentication key");
+
+        // Act
+        let actual_key = parse_key(valid_key).expect("a valid path key should be accepted");
+
+        // Assert
+        assert_eq!(actual_key, expected_key);
     }
 }

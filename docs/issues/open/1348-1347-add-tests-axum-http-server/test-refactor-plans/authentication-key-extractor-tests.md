@@ -120,7 +120,7 @@ identifies a stable missing classification. Otherwise record the deferral.
 
 ### R3 — Add a valid-key parsing contract
 
-- **Status:** TODO
+- **Status:** DONE
 - **Priority:** Medium impact / trivial effort
 - **Addresses:** P2
 - **Change:** Add one deterministic test with a fixed syntactically valid key, asserting the parsed
@@ -162,8 +162,8 @@ identifies a stable missing classification. Otherwise record the deferral.
 - [x] R1 implemented, reviewed, and validated
 - [x] Maintainer approved implementation of R2
 - [x] R2 implemented, reviewed, and validated
-- [ ] Maintainer approved implementation of R3
-- [ ] R3 implemented, reviewed, and validated
+- [x] Maintainer approved implementation of R3
+- [x] R3 implemented, reviewed, and validated
 - [ ] R4 assessment completed and decision recorded
 - [ ] R5 assessment completed and decision recorded
 - [ ] Maintainer reviewed all approved changes
@@ -181,6 +181,10 @@ identifies a stable missing classification. Otherwise record the deferral.
   test and failure-reason assertion name.
 - 2026-09-02 - GitHub Copilot - Completed R2. The direct parsing test and its assertion helper now
   name the stable invalid-key-format authentication failure contract.
+- 2026-09-02 - User/maintainer - Approved R3 after reviewing the deterministic valid-key parsing
+  contract.
+- 2026-09-02 - GitHub Copilot - Completed R3. Added one fixed valid path-key example and asserted
+  the `parse_key` result equals the independently parsed expected domain key.
 
 ### Validation Evidence
 
@@ -189,7 +193,7 @@ identifies a stable missing classification. Otherwise record the deferral.
 | Plan documentation | DONE   | `linter markdown`, `linter cspell`, and `git diff --check` passed after plan creation.                                                               |
 | R1                 | DONE   | `cargo fmt --all -- --check`, package library tests (32 passed), `linter markdown`, `linter cspell`, and `git diff --check` passed.                  |
 | R2                 | DONE   | Editor diagnostics, `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-axum-http-server --lib` (32 passed), and `git diff --check` passed. |
-| R3                 | TODO   | Not started.                                                                                                                                         |
+| R3                 | DONE   | Editor diagnostics, `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-axum-http-server --lib` (33 passed), and `git diff --check` passed. |
 | R4                 | TODO   | Not started.                                                                                                                                         |
 | R5                 | TODO   | Not started.                                                                                                                                         |
 
