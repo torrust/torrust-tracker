@@ -137,7 +137,7 @@ contracts. Remove it only if it is unnecessary, or retain explicit ownership if 
 
 ### R5 — Add a concrete two-file response-mapping contract
 
-- **Status:** TODO
+- **Status:** DONE
 - **Priority:** Medium impact / low effort
 - **Addresses:** P4
 - **Change:** Add one `build_response` test with two fixed info hashes and distinct metadata,
@@ -180,8 +180,8 @@ contracts. Remove it only if it is unnecessary, or retain explicit ownership if 
 - [x] R3 implemented, reviewed, and validated
 - [x] Maintainer approved implementation of R4
 - [x] R4 implemented, reviewed, and validated
-- [ ] Maintainer approved implementation of R5
-- [ ] R5 implemented, reviewed, and validated
+- [x] Maintainer approved implementation of R5
+- [x] R5 implemented, reviewed, and validated
 - [ ] R6 assessment completed and decision recorded
 - [ ] R7 draft assessment completed and decision recorded
 - [ ] Maintainer reviewed all approved changes
@@ -208,6 +208,10 @@ contracts. Remove it only if it is unnecessary, or retain explicit ownership if 
   fixture.
 - 2026-09-02 - GitHub Copilot - Completed R4. Local setup now returns a configuration-aware
   `Arc<ScrapeService>`, removing repeated constructor wiring while keeping test inputs explicit.
+- 2026-09-02 - User/maintainer - Approved R5 after reviewing the two-file response-mapping
+  contract.
+- 2026-09-02 - GitHub Copilot - Completed R5. Added a fixed two-file `build_response` contract
+  with independently specified metadata and decoded protocol output.
 
 ### Validation Evidence
 
@@ -218,7 +222,7 @@ contracts. Remove it only if it is unnecessary, or retain explicit ownership if 
 | R2                 | DONE   | Editor diagnostics, `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-axum-http-server --lib`, and `git diff --check` passed.             |
 | R3                 | DONE   | Editor diagnostics, `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-axum-http-server --lib` (31 passed), and `git diff --check` passed. |
 | R4                 | DONE   | Editor diagnostics, `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-axum-http-server --lib` (31 passed), and `git diff --check` passed. |
-| R5                 | TODO   | Not started.                                                                                                                                         |
+| R5                 | DONE   | Editor diagnostics, `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-axum-http-server --lib` (32 passed), and `git diff --check` passed. |
 | R6                 | TODO   | Not started.                                                                                                                                         |
 | R7                 | TODO   | Not started.                                                                                                                                         |
 
