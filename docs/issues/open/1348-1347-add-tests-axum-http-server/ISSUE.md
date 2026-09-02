@@ -57,12 +57,22 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task                            | Notes / Expected Output                                                                                                                                               |
 | --- | ------ | ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| T1  | DONE   | Establish the baseline          | Baseline recorded: 1,229 lines, 1,153 covered (93.82%); 1,763 regions, 1,616 covered (91.66%); 153 functions, 137 covered (89.54%).                                  |
+| T1  | DONE   | Establish the baseline          | Baseline recorded: 1,229 lines, 1,153 covered (93.82%); 1,763 regions, 1,616 covered (91.66%); 153 functions, 137 covered (89.54%).                                   |
 | T2  | DONE   | Plan coverage improvement       | The response adapters were the smallest direct package seam: previous higher-level tests exercised them, but no focused tests decoded the handlers' returned bencode. |
-| T3  | DONE   | Add lifecycle and routing tests | Added fast router tests for propagated and generated request IDs, plus a lifecycle test that proves failed registration releases the HTTP listener. |
-| T4  | DONE   | Add protocol-boundary tests     | Added fast handler tests that decode accepted, omitted, and non-compact announce responses and scrape responses from domain data. |
-| T5  | DONE   | Review test design              | Tests use the existing `PeerBuilder`, protocol deserializers, AAA comments, direct handler-response seams, and an in-process router; no production refactor was needed. |
-| T6  | DONE   | Verify and record evidence      | Automated and manually invoked real-server verification evidence is recorded below; final independent review and acceptance review passed. |
+| T3  | DONE   | Add lifecycle and routing tests | Added fast router tests for propagated and generated request IDs, plus a lifecycle test that proves failed registration releases the HTTP listener.                   |
+| T4  | DONE   | Add protocol-boundary tests     | Added fast handler tests that decode accepted, omitted, and non-compact announce responses and scrape responses from domain data.                                     |
+
+### Test Development Loop
+
+Apply this loop to **every implementation-plan task that adds or changes tests**; it is not a separate sequential implementation-plan task.
+
+1. Add the smallest test increment that covers the intended behavior.
+2. Review the changed tests before starting the next test-producing task. Remove duplication, extract justified helpers, improve naming and Arrange/Act/Assert structure, and use expressive assertions.
+3. Run the focused tests for that increment and correct failures.
+4. After the final test-producing task, stop and ask the user/maintainer to review the generated tests before final verification, committing, or opening a pull request.
+5. Address requested test refactorings, then complete the full verification and acceptance review.
+
+The completed tests use the existing `PeerBuilder`, protocol deserializers, direct handler-response seams, and an in-process router; no production refactor was needed.
 
 ## Progress Tracking
 
@@ -89,6 +99,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-09-01 - GitHub Copilot - Added fast in-process router tests for client-supplied and generated request IDs, a listener-release test for registration failure, and an explicit accepted-compact response test. Re-ran focused real-server announce, scrape, health-check, and start/stop scenarios successfully.
 - 2026-09-01 - Task Reviewer - Focused tests passed review. Follow-up review identified documentation-evidence alignment work, which was corrected before final review.
 - 2026-09-01 - Task Reviewer - Final independent review passed after verifying focused test scope, reproducible coverage evidence, manually invoked real-server scenarios, and documentation consistency.
+- 2026-09-02 - User/maintainer - Clarified the required test-development workflow: review test design progressively after each test-producing task, then stop after all planned tests are complete and request maintainer review before final verification, commit, or PR creation. Prioritize removing duplication, extracting justified helpers, using expressive assertions, and making test intent easy to read.
+- 2026-09-02 - GitHub Copilot - Applied the progressive test-design review to the announce response tests: extracted expected normal and compact response fixtures and replaced repeated field assertions with whole-response assertions. Maintainer review confirmed that direct `assert_eq!(actual, expected)` comparisons are preferred to a custom assertion wrapper for these `PartialEq` response types.
 
 ## Acceptance Criteria
 
@@ -116,11 +128,11 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
-| ID  | Scenario                             | Command/Steps                                                                         | Expected Result                                                                                                 | Status | Evidence                              |
-| --- | ------------------------------------ | ------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- | ------ | ------------------------------------- |
-| M1  | HTTP tracker announce contract       | Invoke the specified real-server integration tests for compact and non-compact announce requests. | Both requests produce valid bencoded tracker responses with the selected peer representation.                   | DONE   | Invoked `should_return_the_compact_response` and `should_return_the_list_of_previously_announced_peers`; both passed. |
+| ID  | Scenario                             | Command/Steps                                                                                      | Expected Result                                                                                                 | Status | Evidence                                                                                                                                                                              |
+| --- | ------------------------------------ | -------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| M1  | HTTP tracker announce contract       | Invoke the specified real-server integration tests for compact and non-compact announce requests.  | Both requests produce valid bencoded tracker responses with the selected peer representation.                   | DONE   | Invoked `should_return_the_compact_response` and `should_return_the_list_of_previously_announced_peers`; both passed.                                                                 |
 | M2  | Scrape and failure response contract | Invoke the specified real-server integration tests for valid scrape and invalid announce requests. | Scrape data is returned when available; invalid announce input is represented as a BitTorrent failure response. | DONE   | Invoked `should_return_the_file_with_the_incomplete_peer_when_there_is_one_peer_with_bytes_pending_to_download` and `should_fail_when_the_url_query_component_is_empty`; both passed. |
-| M3  | Server lifecycle                     | Invoke the specified real-server integration tests for health checks and start/stop. | The server registers, accepts a health check, and stops cleanly.                                                | DONE   | Invoked `health_check_endpoint_should_return_ok_if_the_http_tracker_is_running` and `it_should_start_and_stop`; both passed. |
+| M3  | Server lifecycle                     | Invoke the specified real-server integration tests for health checks and start/stop.               | The server registers, accepts a health check, and stops cleanly.                                                | DONE   | Invoked `health_check_endpoint_should_return_ok_if_the_http_tracker_is_running` and `it_should_start_and_stop`; both passed.                                                          |
 
 ### Acceptance Verification
 
@@ -143,6 +155,7 @@ All planned work is complete and has independent review evidence recorded above.
 - End-to-end-style fixture tests can be slow and costly to compose; prefer direct router or focused unit tests where they cover the intended boundary, while keeping higher-level tests that provide distinct value.
 - Testing implementation details creates brittle tests; assert public HTTP and bencoded protocol contracts instead.
 - TLS health checks require appropriately configured trust in tests; use the injectable client seam rather than weakening production TLS behavior.
+- AI-generated tests can be difficult to maintain or understand; mitigate this by requiring progressive design review and a maintainer review checkpoint before finalizing the implementation.
 
 ## References
 
