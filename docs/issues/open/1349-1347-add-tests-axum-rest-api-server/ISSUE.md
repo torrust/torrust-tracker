@@ -34,7 +34,7 @@ Improve maintainable test coverage for `torrust-tracker-axum-rest-api-server`, b
 
 ### In Scope
 
-- Record the starting package coverage baseline and the coverage increase achieved while testing critical behavior.
+- Record the starting package coverage baseline and the coverage increase achieved while testing critical behavior in an issue-local `coverage-evidence.md` document. Include the reproducible command, measurement scope, aggregate comparison, per-file results, and prioritized uncovered functions or regions; do not commit raw tool reports unless they are made human-readable.
 - Prefer fast unit tests close to the implementation whenever they provide the appropriate regression boundary.
 - Review and improve tests for HTTP/HTTPS startup, registration failure cleanup, listener errors, and graceful shutdown.
 - Test public routing and middleware contracts: unauthenticated health checks, protected API routes, token sources and precedence, and transport headers.
@@ -57,12 +57,34 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task                                  | Notes / Expected Output                                                                                                                                                                  |
 | --- | ------ | ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| T1  | TODO   | Establish the baseline                | Run package coverage and identify critical untested paths.                                                                                                                               |
-| T2  | TODO   | Plan coverage improvement             | Identify critical behavior and record the coverage increase achieved without pursuing an arbitrary percentage.                                                                           |
+| T1  | TODO   | Establish the baseline                | Run package coverage, create `coverage-evidence.md`, state the measurement scope, and identify critical low-coverage files and paths.                                                    |
+| T2  | TODO   | Plan coverage improvement             | Select behavior by risk and detailed file/path evidence; record the coverage increase without pursuing an arbitrary percentage.                                                          |
 | T3  | TODO   | Add routing and authentication tests  | Cover public health checks, protection, token semantics, and middleware gaps; prefer fast tests close to the code when appropriate.                                                      |
 | T4  | TODO   | Add configuration and lifecycle tests | Cover configuration-gated routes and meaningful server lifecycle gaps, including behavior otherwise covered only at higher levels when package-level coverage provides regression value. |
-| T5  | TODO   | Review transport boundaries           | Cover behavior at the level it is implemented; simplify setup only when justified and retain valuable package integration coverage.                                                      |
-| T6  | TODO   | Verify and record evidence            | Complete automated checks, manual scenarios, and the post-implementation AC review.                                                                                                      |
+| T5  | TODO   | Review transport boundaries           | Cover behavior at the level it is implemented; simplify setup only when justified and retain valuable package integration coverage. Review each test increment before continuing.        |
+| T6  | TODO   | Verify and record evidence            | After maintainer review of the final test increment, complete automated checks, manual scenarios, coverage evidence, and the post-implementation AC review.                              |
+
+### Test Development Loop
+
+Apply this loop to every implementation-plan task that adds or changes tests; it is not a separate
+sequential task.
+
+1. Add the smallest behavior-focused test increment.
+2. Review the changed tests before starting the next test-producing task. Remove duplication,
+   extract justified mechanical helpers, improve naming and Arrange/Act/Assert structure, and use
+   expressive assertions.
+3. Run the focused tests for that increment and correct failures.
+4. After the final test-producing task, stop and ask the user/maintainer to review the generated
+   tests before final verification, committing, or opening a pull request.
+5. Address requested refactorings, then complete the full verification and acceptance review.
+
+For a multi-input REST contract, use a small scenario fixture when it makes the complete behavioral
+example clearer. The scenario owns request selectors, domain or service input, and independently
+specified expected output; builders hide only irrelevant fields of individual artifacts. Do not
+derive expected output with production mapping or serialization code under test. Keep the SUT call,
+the expected response representation, and the final actual-versus-expected assertion visible.
+Helpers may encapsulate repeated mechanics, such as successful-response decoding, but not behavior
+selection or expected-value construction.
 
 ## Progress Tracking
 
@@ -86,7 +108,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 ## Acceptance Criteria
 
-- [ ] A coverage baseline and the coverage increase achieved are recorded, with critical behavior prioritized over an arbitrary percentage.
+- [ ] A coverage baseline and the coverage increase achieved are recorded in `coverage-evidence.md`, with measurement scope, per-file gaps, and critical behavior prioritized over an arbitrary percentage.
 - [ ] Tests cover identified critical REST-server transport gaps, including behavior previously covered only at a higher level when package-level coverage provides regression value.
 - [ ] Authentication, public/protected routing, configuration-gated routes, and lifecycle behavior are tested or explicitly justified as already covered.
 - [ ] Tests reuse appropriate fixtures and remain readable and maintainable.
@@ -119,23 +141,25 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 ### Acceptance Verification
 
-| AC ID | Status (`TODO`/`DONE`) | Evidence                                          |
-| ----- | ---------------------- | ------------------------------------------------- |
-| AC1   | TODO                   | Coverage command output recorded in progress log. |
-| AC2   | TODO                   | Added test paths and test output.                 |
-| AC3   | TODO                   | Test output and review notes.                     |
-| AC4   | TODO                   | Code review of test fixtures and assertions.      |
-| AC5   | TODO                   | `linter all` output.                              |
-| AC6   | TODO                   | Package test output.                              |
-| AC7   | TODO                   | Manual-verification table and evidence.           |
-| AC8   | TODO                   | Post-implementation review entry.                 |
-| AC9   | TODO                   | Relevant documentation diff.                      |
+| AC ID | Status (`TODO`/`DONE`) | Evidence                                                                                                                       |
+| ----- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| AC1   | TODO                   | `coverage-evidence.md` records the command, scope, baseline, current totals, per-file detail, and prioritized follow-up areas. |
+| AC2   | TODO                   | Added test paths and test output.                                                                                              |
+| AC3   | TODO                   | Test output and review notes.                                                                                                  |
+| AC4   | TODO                   | Code review of test fixtures and assertions.                                                                                   |
+| AC5   | TODO                   | `linter all` output.                                                                                                           |
+| AC6   | TODO                   | Package test output.                                                                                                           |
+| AC7   | TODO                   | Manual-verification table and evidence.                                                                                        |
+| AC8   | TODO                   | Post-implementation review entry.                                                                                              |
+| AC9   | TODO                   | Relevant documentation diff.                                                                                                   |
 
 ## Risks and Trade-offs
 
 - The existing REST server fixture composes multiple services and can make contract tests expensive; prefer direct router tests when they exercise the correct transport boundary, while keeping higher-level tests that provide distinct value.
 - Tests that reach into private authentication helpers may constrain refactoring; favor HTTP-level authentication contracts unless a narrow unit test has clear value.
 - Configuration matrices can multiply test time; cover meaningful route-composition distinctions without duplicating equivalent endpoint tests.
+- Aggregate coverage can conceal low-coverage, high-risk files; mitigate it by recording human-readable per-file and uncovered-area evidence in `coverage-evidence.md` and selecting behavior by risk.
+- Generated raw coverage reports can be too large and tool-oriented for review; mitigate it by committing the concise evidence document and reproducible command instead.
 
 ## References
 
