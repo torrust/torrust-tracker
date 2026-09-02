@@ -4,6 +4,16 @@ This folder contains one proposed refactor plan for each test-bearing file in
 `packages/axum-http-server/`. Create, review, and implement plans one file at a time. Do not begin
 a plan for the next file until the current plan's approved work has been completed and reviewed.
 
+Draft cross-file plans belong in `drafts/`. They assess a shared concern without authorizing a
+cross-file extraction; promote one only after maintainer review establishes a cohesive common
+responsibility.
+
+## Plans
+
+- [Draft shared handler test bootstrap](drafts/shared-handler-test-bootstrap.md)
+- [Announce handler tests](announce-tests.md) — complete
+- [Scrape handler tests](scrape-tests.md) — proposed
+
 ## Shared Purpose
 
 Each plan improves tests without changing production behavior. Its scope is deliberately limited to
