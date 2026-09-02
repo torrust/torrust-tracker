@@ -166,13 +166,17 @@ contracts. Remove it only if it is unnecessary, or retain explicit ownership if 
 
 ### R7 — Reassess the cross-file bootstrap draft after local changes
 
-- **Status:** TODO
+- **Status:** DONE
 - **Priority:** Low impact / low effort
 - **Addresses:** Cross-file bootstrap duplication
 - **Change:** Revisit `drafts/shared-handler-test-bootstrap.md` after R2–R6. Promote it only when a
   cohesive shared responsibility remains.
 - **Guardrail:** Do not implement cross-file extraction as part of this file-local plan.
-- **Done when:** the draft is retained, revised, promoted, or closed with rationale.
+- **Decision:** Retained the draft in deferred status. After R4 and R6, the remaining overlap is
+  configuration selection, in-memory repositories, and authentication. The handler-specific service
+  graphs still differ, and scrape deliberately excludes statistics infrastructure. A shared context
+  would expose construction ingredients rather than a cohesive behavior-focused capability.
+- **Done when:** the revised deferred draft and no-extraction rationale are recorded.
 
 ## Progress Tracking
 
@@ -191,9 +195,9 @@ contracts. Remove it only if it is unnecessary, or retain explicit ownership if 
 - [x] Maintainer approved implementation of R5
 - [x] R5 implemented, reviewed, and validated
 - [x] R6 assessment completed and decision recorded
-- [ ] R7 draft assessment completed and decision recorded
-- [ ] Maintainer reviewed all approved changes
-- [ ] Plan completed and ready for commit
+- [x] R7 draft assessment completed and decision recorded
+- [x] Maintainer reviewed all approved changes
+- [x] Plan completed and ready for commit
 
 ### Progress Log
 
@@ -225,6 +229,10 @@ contracts. Remove it only if it is unnecessary, or retain explicit ownership if 
 - 2026-09-02 - GitHub Copilot - Completed R6. Removed optional statistics-listener infrastructure
   from the focused scrape handler setup. `ScrapeService` receives no event sender; HTTP-core tests
   cover `TcpScrape` publication and HTTP-server integration tests cover consumed TCP4/TCP6 metrics.
+- 2026-09-02 - GitHub Copilot - Completed R7. Retained the cross-file bootstrap draft as deferred:
+  no cohesive shared test capability remains after the scrape setup simplifications.
+- 2026-09-02 - User/maintainer - Reviewed and approved the R7 deferred cross-file bootstrap
+  decision and completion of the scrape-handler test refactor plan.
 
 ### Validation Evidence
 
@@ -237,7 +245,7 @@ contracts. Remove it only if it is unnecessary, or retain explicit ownership if 
 | R4                 | DONE   | Editor diagnostics, `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-axum-http-server --lib` (31 passed), and `git diff --check` passed.                                                                                               |
 | R5                 | DONE   | Editor diagnostics, `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-axum-http-server --lib` (32 passed), and `git diff --check` passed.                                                                                               |
 | R6                 | DONE   | Inspected `ScrapeService::send_event`, HTTP-core service event tests, and HTTP-server TCP4/TCP6 metric integration assertions; editor diagnostics, `cargo fmt --all -- --check`, package library tests (32 passed), and `git diff --check` passed. |
-| R7                 | TODO   | Not started.                                                                                                                                                                                                                                       |
+| R7                 | DONE   | Reassessed the shared bootstrap draft after R2–R6; no cross-file extraction is justified without an opaque construction bundle.                                                                                                                    |
 
 ## Non-Goals
 

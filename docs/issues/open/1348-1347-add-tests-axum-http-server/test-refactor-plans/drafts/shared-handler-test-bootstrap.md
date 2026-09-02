@@ -25,9 +25,8 @@ This is not a plan to create a generic service factory.
 ### B1 — Similar infrastructure is initialized in both handler modules
 
 Both test modules select an HTTP tracker configuration and instance ID, then create in-memory
-whitelist, key, and torrent repositories; authentication; HTTP statistics event infrastructure; and
-an optional listener. These common concerns appear inside two independently maintained
-`initialize_core_tracker_services` functions.
+whitelist, key, and torrent repositories plus authentication. These common concerns appear inside
+two independently maintained `initialize_core_tracker_services` functions.
 
 **Effect.** Changes to shared infrastructure can require parallel edits, while the large setup
 functions make their common boundary hard to recognize.
@@ -41,31 +40,37 @@ used to instantiate `ScrapeService` in individual tests.
 **Effect.** A generic bootstrap that returns every possible component would make dependencies
 implicit, create optional fields, and weaken test expressiveness.
 
-### B3 — Background statistics lifecycle needs explicit ownership
+### B3 — Statistics infrastructure is no longer a shared bootstrap concern
 
-Both setups can start an event listener but do not retain its task handle. The listener is currently
-not part of the focused handler assertions.
+The focused scrape setup now passes no event sender because its tests do not assert statistics.
+The announce setup still creates statistics infrastructure because its service setup currently
+retains it.
 
-**Effect.** This is not a demonstrated flaky-test defect, but any shared context must make a
-listener's necessity and lifecycle explicit rather than spreading detached background work.
+**Effect.** Statistics initialization is not a cohesive cross-file responsibility. Any future shared
+context must not reintroduce listener work into scrape tests that do not assert it.
 
 ## Phase 2 — Proposed Refactorings
 
 ### B1 — Map exact common infrastructure and lifecycle needs
 
-- **Status:** TODO
+- **Status:** DONE
 - **Priority:** High impact / low effort
 - **Change:** List each setup dependency as common, announce-specific, scrape-specific, or
   configuration-dependent. Verify whether the event listener is needed for the current focused
   handler contracts.
 - **Guardrail:** Do not modify production code or introduce a common abstraction during this
   assessment.
-- **Done when:** the plan records a minimal candidate responsibility and an explicit lifecycle
-  decision.
+- **Decision:** The remaining common setup is configuration selection, in-memory repositories, and
+  authentication. However, it does not form a useful standalone test fixture: announce needs
+  whitelist authorization, persistence metrics, and `AnnounceHandler`; scrape needs
+  `ScrapeHandler` and now deliberately has no statistics sender. Extracting the common objects
+  would require a bundle that exposes construction ingredients rather than a behavior-focused
+  capability.
+- **Done when:** the remaining shared setup and explicit no-extraction rationale are recorded.
 
 ### B2 — Prototype a narrow test-only context only if B1 supports it
 
-- **Status:** TODO
+- **Status:** DEFERRED
 - **Priority:** Medium impact / medium effort
 - **Change:** If a cohesive boundary exists, introduce a private test-only context that owns only
   common infrastructure: core configuration, selected HTTP tracker configuration and instance ID,
@@ -73,31 +78,43 @@ listener's necessity and lifecycle explicit rather than spreading detached backg
 - **Guardrail:** Each handler module must still visibly construct its own handler and service with
   service-specific dependencies. The context must not expose a generic `build_service` API or
   optional fields for unrelated behavior.
-- **Done when:** both modules become simpler, dependencies remain readable at service construction,
-  and focused tests retain fresh isolated state.
+- **Decision:** Deferred. B1 found no cohesive shared responsibility that would make both modules
+  clearer today. Revisit only if a third consumer needs the same test infrastructure or if a
+  concrete shared capability emerges without optional fields.
+- **Done when:** a future concrete trigger justifies reassessment.
 
 ### B3 — Retain local mode and behavior fixtures unless separately justified
 
-- **Status:** TODO
+- **Status:** DONE
 - **Priority:** Low impact / low effort
 - **Change:** Decide whether mode-specific wrappers and common HTTP bindings remain local or have a
   broader, established test-support home.
 - **Guardrail:** Do not move a fixture merely because it is duplicated twice. Shared ownership must
   be clearer than local ownership and must not broaden test coupling.
-- **Done when:** the plan records a keep-local or shared-home decision with rationale.
+- **Decision:** Keep fixtures local. `sample_http_service_binding()` appears in both files but has
+  only two consumers with different neighboring fixtures and test contexts. The mode wrappers also
+  directly express each handler's supported service configuration. A shared fixture module would
+  increase coupling without a clearer owner.
+- **Done when:** the keep-local decision is recorded.
 
 ## Progress Tracking
 
 - [x] Draft created from comparison of announce and scrape handler test bootstraps.
-- [ ] B1 assessment approved and completed.
-- [ ] B2 approved, implemented, reviewed, and validated, or no-change decision recorded.
-- [ ] B3 assessment completed and decision recorded.
-- [ ] Maintainer reviewed all completed work.
+- [x] B1 assessment completed.
+- [x] B2 deferred with a concrete reassessment trigger.
+- [x] B3 assessment completed.
+- [x] Maintainer reviewed the assessment decisions.
 
 ### Progress Log
 
 - 2026-09-02 - GitHub Copilot - Created this draft after identifying similar test infrastructure in
   announce and scrape handler modules. No implementation has been approved or performed.
+- 2026-09-02 - GitHub Copilot - Reassessed after completing the scrape-file plan. No cross-file
+  extraction is currently justified: the remaining overlap is construction detail, while handler
+  dependencies and statistics requirements differ. The draft remains deferred for a future concrete
+  trigger.
+- 2026-09-02 - User/maintainer - Reviewed and approved the deferred assessment. Revisit only when
+  a concrete shared test capability or a third consumer justifies it.
 
 ## Non-Goals
 
