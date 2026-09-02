@@ -9,7 +9,7 @@ use axum::response::{IntoResponse, Response};
 use hyper::StatusCode;
 use torrust_net_primitives::service_binding::ServiceBinding;
 use torrust_tracker_core::authentication::Key;
-use torrust_tracker_http_core::services::scrape::ScrapeService;
+use torrust_tracker_http_core::services::scrape::{HttpScrapeError, ScrapeService};
 use torrust_tracker_http_protocol::v1::requests::scrape::Scrape;
 use torrust_tracker_http_protocol::v1::responses;
 use torrust_tracker_http_protocol::v1::services::peer_ip_resolver::ClientIpSources;
@@ -55,9 +55,14 @@ async fn handle(
     server_service_binding: &ServiceBinding,
     maybe_key: Option<Key>,
 ) -> Response {
-    let scrape_data = match scrape_service
-        .handle_scrape(scrape_request, client_ip_sources, server_service_binding, maybe_key)
-        .await
+    let scrape_data = match handle_scrape(
+        scrape_service,
+        scrape_request,
+        client_ip_sources,
+        server_service_binding,
+        maybe_key,
+    )
+    .await
     {
         Ok(scrape_data) => scrape_data,
         Err(error) => {
@@ -67,6 +72,18 @@ async fn handle(
     };
 
     build_response(scrape_data)
+}
+
+async fn handle_scrape(
+    scrape_service: &Arc<ScrapeService>,
+    scrape_request: &Scrape,
+    client_ip_sources: &ClientIpSources,
+    server_service_binding: &ServiceBinding,
+    maybe_key: Option<Key>,
+) -> Result<DomainScrapeData, HttpScrapeError> {
+    scrape_service
+        .handle_scrape(scrape_request, client_ip_sources, server_service_binding, maybe_key)
+        .await
 }
 
 fn build_response(scrape_data: DomainScrapeData) -> Response {
@@ -114,6 +131,7 @@ mod tests {
     use torrust_tracker_core::whitelist::repository::in_memory::InMemoryWhitelist;
     use torrust_tracker_http_core::event::bus::EventBus;
     use torrust_tracker_http_core::event::sender::Broadcaster;
+    use torrust_tracker_http_core::services::scrape::ScrapeService;
     use torrust_tracker_http_core::statistics::event::listener::run_event_listener;
     use torrust_tracker_http_core::statistics::repository::Repository;
     use torrust_tracker_http_protocol::v1::requests::scrape::Scrape;
@@ -258,6 +276,20 @@ mod tests {
         responses::scrape::deserialization::Response::try_from_bencoded(&body).expect("scrape response should be valid bencode")
     }
 
+    async fn decode_bencoded_error_response(response: Response) -> responses::error::Error {
+        assert_eq!(
+            response.status(),
+            StatusCode::OK,
+            "a BitTorrent scrape failure response should use HTTP 200"
+        );
+
+        let body = to_bytes(response.into_body(), usize::MAX)
+            .await
+            .expect("scrape failure response body should be readable");
+
+        serde_bencode::from_bytes(&body).expect("scrape failure response should be valid bencode")
+    }
+
     #[tokio::test]
     async fn it_should_encode_domain_scrape_data_as_a_bencoded_response() {
         // Arrange
@@ -287,6 +319,37 @@ mod tests {
         );
 
         assert_eq!(actual_response, expected_response);
+    }
+
+    #[tokio::test]
+    async fn it_should_encode_a_bencoded_failure_response_when_the_client_ip_cannot_be_resolved() {
+        // Arrange
+        let (core_tracker_services, core_http_tracker_services) = initialize_tracker_on_reverse_proxy();
+        let scrape_service = Arc::new(ScrapeService::new_with_http_tracker_config(
+            core_tracker_services.core_config,
+            core_tracker_services.scrape_handler,
+            core_tracker_services.authentication_service,
+            core_http_tracker_services.http_stats_event_sender,
+            &core_http_tracker_services.http_tracker_config,
+            core_http_tracker_services.configuration_instance_id,
+        ));
+
+        // Act
+        let response = super::handle(
+            &scrape_service,
+            &sample_scrape_request(),
+            &missing_client_ip_sources(),
+            &sample_http_service_binding(),
+            None,
+        )
+        .await;
+        let actual_error_response = decode_bencoded_error_response(response).await;
+
+        // Assert
+        assert_failure_reason_contains(
+            &actual_error_response,
+            "Error resolving peer IP: missing or invalid the right most X-Forwarded-For IP",
+        );
     }
 
     mod with_tracker_in_private_mode {
