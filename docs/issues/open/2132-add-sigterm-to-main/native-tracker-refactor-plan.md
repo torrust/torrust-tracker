@@ -86,10 +86,13 @@ The target design has a limited number of responsibility-based collaborators:
 - `NativeTrackerWorkspace` (or a similarly clear name): owns the temporary
   workspace, creates storage, writes the configuration, and supplies the
   configuration path used by the child command.
-- `TrackerOutput` or `TrackerOutputCapture`: owns concurrent reader tasks and
-  captured output. It exposes intent-level operations such as finding the
-  health-check address, checking the signal-handler marker, waiting for reader
-  tasks, and rendering diagnostics.
+- `TrackerOutputCapture`: owns concurrent reader tasks and captured output. It
+  deliberately remains passive: it drains streams, waits for readers, and
+  returns retained text without interpreting tracker-specific log messages.
+- `NativeTracker`: interprets tracker-specific startup facts from captured
+  output and combines them with process lifecycle and readiness policy.
+- `HealthCheckClient`: owns deadline-bounded interaction with the tracker
+  health-check REST endpoint and classifies each probe outcome.
 - A readiness collaborator is **not pre-approved as an automatic extraction**.
   A mandatory assessment step determines whether a small `ReadinessProbe` makes
   the remaining loop clearer than intent-level methods on `NativeTracker` and
@@ -211,9 +214,11 @@ coherent owner.
 
 - Introduce `TrackerOutputCapture` or `TrackerOutput`; choose the name that
   makes its retention and reader-task ownership clear.
-- Move the shared output buffer, reader task handles, `drain_output`,
-  health-check address parsing/discovery, signal-handler marker lookup, and
-  output rendering into the collaborator.
+- Move the shared output buffer, reader task handles, `drain_output`, reader
+  completion, and retained-output access into the collaborator.
+- Keep health-check address discovery and the signal-handler marker lookup on
+  `NativeTracker`. They interpret tracker-specific output and therefore do not
+  belong to the passive capture collaborator.
 - Preserve concurrent stdout/stderr draining immediately after spawning.
 - Preserve the existing policy that assertions require message presence, not
   cross-stream ordering.
@@ -375,19 +380,19 @@ is necessary.
 
 ## Completion Criteria
 
-- [ ] `NativeTracker` is a concise interface for tracker process lifecycle.
-- [ ] Temporary workspace/configuration and output capture have coherent,
+- [x] `NativeTracker` is a concise interface for tracker process lifecycle.
+- [x] Temporary workspace/configuration and output capture have coherent,
       separately named owners.
-- [ ] `wait_until_ready()` clearly expresses bounded readiness orchestration and
+- [x] `wait_until_ready()` clearly expresses bounded readiness orchestration and
       no longer contains the current dense mixture of concerns.
 - [x] The mandatory `ReadinessProbe` assessment has a recorded,
       evidence-based extract-or-do-not-extract decision.
-- [ ] The fixture retains all process, readiness, isolation, and cleanup
+- [x] The fixture retains all process, readiness, isolation, and cleanup
       invariants listed in this plan.
-- [ ] `cargo test --test lifecycle-signals` passes after every committed step.
-- [ ] Formatting, relevant linting, and required branch quality gates pass
+- [x] `cargo test --test lifecycle-signals` passes after every committed step.
+- [x] Formatting, relevant linting, and required branch quality gates pass
       before the final commit.
-- [ ] No generic process framework, signal hierarchy, process-group policy, or
+- [x] No generic process framework, signal hierarchy, process-group policy, or
       production startup-contract change was introduced without a separate
       approved need.
 
