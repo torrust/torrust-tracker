@@ -303,6 +303,37 @@ or a small documentation/review-note update that records the evidence-based
 no-extraction decision. Do not make a cosmetic commit solely to satisfy this
 step.
 
+#### Step 5 Assessment Decision
+
+**Decision: do not extract `ReadinessProbe`.** The completed
+`NativeTracker::wait_until_ready()` is a 14-line bounded polling orchestrator
+with complexity 6 and nesting 2. It now owns only the inseparable lifecycle
+concerns of retrying readiness, detecting an early child exit, enforcing the
+shared startup deadline, and applying the retry interval.
+
+The assessment reached this decision for these reasons:
+
+1. The remaining readiness operation does not mix multiple stable
+  responsibilities. `HealthCheckClient` owns deadline-bounded health API
+  requests, response decoding, and probe outcome classification;
+  `TrackerOutputCapture` owns retained child output.
+2. A `ReadinessProbe` would only partially own coherent dependencies. It would
+  need the captured output for endpoint discovery and the signal-handler
+  marker, while `NativeTracker` would still own child lifecycle, timeout
+  diagnostics, and retry policy.
+3. A new probe would not reduce the fixture's public interface or make its
+  readiness rule clearer. The current rule remains explicit: discover the
+  health endpoint, receive a successful and deserializable `Report` with
+  `Status::Ok`, and observe the installed-signal-handlers marker.
+4. There is no independent second consumer. The SIGTERM and SIGINT scenarios
+  both use `NativeTracker::wait_until_ready()`, while drop cleanup does not
+  require readiness.
+
+The existing `HealthCheckClient` is the appropriate API-boundary collaborator.
+Adding `ReadinessProbe` now would only distribute a small cohesive lifecycle
+operation across another private type. Reassess this decision if a future
+executable fixture needs readiness independently from `NativeTracker`.
+
 ### Step 6: Final cleanup and independent review
 
 **Goal:** Confirm the completed small refactors retain a narrow, readable
@@ -349,7 +380,7 @@ is necessary.
       separately named owners.
 - [ ] `wait_until_ready()` clearly expresses bounded readiness orchestration and
       no longer contains the current dense mixture of concerns.
-- [ ] The mandatory `ReadinessProbe` assessment has a recorded,
+- [x] The mandatory `ReadinessProbe` assessment has a recorded,
       evidence-based extract-or-do-not-extract decision.
 - [ ] The fixture retains all process, readiness, isolation, and cleanup
       invariants listed in this plan.
