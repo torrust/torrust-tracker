@@ -14,7 +14,8 @@ responsibility.
 - [Announce handler tests](announce-tests.md) — complete
 - [Scrape handler tests](scrape-tests.md) — complete
 - [Routes tests](routes-tests.md) — complete
-- [Authentication-key extractor tests](authentication-key-extractor-tests.md) — proposed
+- [Authentication-key extractor tests](authentication-key-extractor-tests.md) — complete
+- [HTTP server tests](server-tests.md) — proposed
 
 ## Shared Purpose
 
