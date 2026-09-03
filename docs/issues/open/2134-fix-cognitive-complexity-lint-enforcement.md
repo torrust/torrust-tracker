@@ -1,14 +1,14 @@
 ---
 doc-type: issue
 issue-type: task
-status: planned
+status: in-progress
 priority: p1
 epic: null
 github-issue: 2134
 spec-path: docs/issues/open/2134-fix-cognitive-complexity-lint-enforcement.md
-branch: "2134-fix-cognitive-complexity-lint-enforcement-spec"
+branch: "2134-fix-cognitive-complexity-lint-enforcement"
 related-pr: null
-last-updated-utc: 2026-09-03 00:00
+last-updated-utc: 2026-09-03 00:15
 semantic-links:
   skill-links:
     - create-issue
@@ -124,7 +124,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID  | Status | Task                                            | Notes / Expected Output                                                                                                                                                         |
 | --- | ------ | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | T1  | DONE   | Establish enforcement baseline                  | Verified 26 workspace packages, temporarily enabled lint inheritance in all 20 remaining manifests, recorded the 87-diagnostic baseline, then reverted the experiment.          |
-| T2  | TODO   | Remediate workspace lint baseline               | Fix all 87 diagnostics exposed by full workspace-lint inheritance, retaining behavior and adding focused regression tests where needed.                                         |
+| T2  | IN_PROGRESS | Remediate workspace lint baseline           | Fix all 87 diagnostics exposed by full workspace-lint inheritance, retaining behavior and adding focused regression tests where needed.                                         |
 | T3  | TODO   | Refactor event metrics handler                  | Split `handle_event` into intention-revealing helpers while preserving all existing metric effects and labels.                                                                  |
 | T4  | TODO   | Refactor event listener loop                    | Split receive-result handling from `dispatch_events` while retaining `biased` cancellation priority and all shutdown/lag behavior.                                              |
 | T5  | TODO   | Add focused regression tests                    | Preserve handler coverage and add listener behavior coverage where practical.                                                                                                   |
@@ -140,7 +140,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Spec drafted in `docs/issues/drafts/`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue #2134 created and specification moved to `docs/issues/open/`
-- [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
+- [x] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [ ] Manual verification scenarios executed and recorded (status + evidence)
@@ -156,6 +156,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-09-03 00:00 UTC - GitHub Copilot - Temporarily enabled workspace lint inheritance in all 20 remaining package manifests and recorded a flag-free full-workspace baseline of 87 diagnostics, chiefly `use_self`, `missing_const_for_fn`, and `derive_partial_eq_without_eq`. The experiment was reverted; user expanded this issue to remediate every diagnostic before enabling the cognitive-complexity lint. - Terminal output and user direction in this session
 - 2026-09-03 00:00 UTC - GitHub Copilot - Created GitHub issue #2134. - https://github.com/torrust/torrust-tracker/issues/2134
 - 2026-09-03 00:00 UTC - Committer - Verified the specification progress and staged scope before the specification commit. - Local commit workflow
+- 2026-09-03 00:15 UTC - GitHub Copilot - Created the implementation branch from merged `develop`. Began package-scoped workspace lint inheritance and baseline remediation; `udp-protocol` is complete in commit `df3bab7a`. - Local commit workflow
 
 ## Acceptance Criteria
 
