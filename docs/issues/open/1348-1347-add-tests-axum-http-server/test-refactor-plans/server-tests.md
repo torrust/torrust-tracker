@@ -99,19 +99,25 @@ platform-, or implementation-coupled.
 application integration, or E2E tests according to the narrowest stable boundary. Do not add a
 server-local test unless it proves a missing observable contract.
 
-### P6 — The registration-failure Arrange mixes five concerns
+### P6 — The registration-failure Arrange hides its defining scenario
 
 **Problem.** The Arrange section of
 `it_should_release_the_listener_and_preserve_the_duplicate_binding_error_when_registration_fails`
 interleaves address reservation and release, configuration mutation, duplicate-registration seeding,
 global service setup, and container composition in one flat block.
 
-**Why it matters.** A reader must reconstruct the scenario ("start on an address whose registration
-is already taken") from low-level steps, which hides the one condition the test depends on.
+**Why it matters.** A reader must reconstruct the defining initial condition ("start a server whose
+binding is already registered") from low-level steps. The required concrete container is visible,
+but its construction detail competes with the scenario that makes the registration fail.
 
-**Opportunity.** Extract small, intent-revealing, file-local helpers that hide mechanics but keep
-the scenario choice visible in the test body. `initialize_container` duplication is tracked
-separately in `drafts/shared-handler-test-bootstrap.md` (B4) and is out of scope here.
+**Opportunity.** Represent the complete initial condition as a file-local scenario fixture. The
+test should arrange a named scenario, not a collection of plumbing helpers. Its construction may
+hide infrastructure, while the test keeps the `HttpServer::start` Act and its error/cleanup Assert
+visible. This establishes a discoverable catalog of server-start scenarios; future scenarios may
+vary tracker configuration or registry state without making every test explain their construction.
+
+`initialize_container` duplication and shared bootstrap work remain separately tracked in
+`drafts/shared-handler-test-bootstrap.md` (B4).
 
 ## Phase 2 — Proposed Refactorings
 
@@ -181,22 +187,26 @@ separately in `drafts/shared-handler-test-bootstrap.md` (B4) and is out of scope
   not a test-only task-scheduling hook.
 - **Done when:** a concrete flake or lifecycle change justifies separate design review.
 
-### R6 — Extract intent-revealing Arrange helpers for the registration-failure test
+### R6 — Name the duplicate-registration startup scenario
 
 - **Status:** APPROVED
-- **Priority:** Medium impact / low effort
+- **Priority:** Medium impact / medium effort
 - **Addresses:** P6
-- **Change:** Introduce file-local test helpers such as `reserve_released_ephemeral_address()`,
-  `ephemeral_public_bound_to(bind_to)`, and
-  `registar_with_registered_http_binding(bind_to, configuration_instance_id)`, so the Arrange
-  section reads as: reserve an address, bind the configuration to it, pre-register that binding,
-  build the container, then start the server.
-- **Guardrails:** Keep the `HttpServer::start` call, the typed
+- **Change:** Replace the narrow plumbing helpers with a file-local test scenario, for example
+  `ServerStartWithDuplicateRegistration`. Its constructor establishes an available ephemeral
+  address, configures the tracker to use it, and pre-registers its HTTP binding. It exposes the
+  concrete inputs the Act needs: the configured `HttpTrackerCoreContainer`, launcher settings,
+  registration form, and runtime metadata.
+- **Guardrails:** The scenario name must state the condition under test. A fixture is chosen here
+  over a builder because the condition spans an address handoff, configuration, and registry state
+  that no single readable chain expresses; do not let the fixture accumulate unrelated options.
+  Keep `HttpServer::new(...).start(...)`, the typed
   `Error::Registration { DuplicateBinding }` match, and the `TcpListener::bind` release assertion
-  visible in the test body. Keep the R2 port-handoff comment beside the reservation logic. Do not
-  change production code, touch `initialize_container`, or introduce a generic server-test builder.
-- **Done when:** the test body states the scenario in a few named steps and the library tests still
-  pass unchanged (34 passed).
+  visible in the test body. Keep the R2 port-handoff comment beside the reservation logic inside
+  the scenario. Do not change production code or touch `initialize_container`.
+- **Done when:** the Arrange section names the duplicate-registration initial condition in one
+  scenario fixture, and a reader can inspect that fixture for the detailed tracker bootstrap. The
+  library tests still pass unchanged (34 passed).
 
 ## Progress Tracking
 
@@ -237,6 +247,10 @@ separately in `drafts/shared-handler-test-bootstrap.md` (B4) and is out of scope
   the bootstrap duplication in `drafts/shared-handler-test-bootstrap.md` (B4) and adding R6 for
   file-local Arrange helpers. Clarified that tests intentionally avoid the production container
   factories to keep dependencies minimal, explicit, and fast.
+- 2026-09-03 - User/maintainer - Refined R6 before committing its initial helper extraction: the
+  Arrange section should name the complete duplicate-registration scenario, not individual plumbing
+  steps. Approved a file-local scenario fixture as a navigable catalog entry for future
+  configuration and registration-state scenarios.
 
 ### Validation Evidence
 
@@ -248,7 +262,7 @@ separately in `drafts/shared-handler-test-bootstrap.md` (B4) and is out of scope
 | R3                 | DONE     | Inspected `check_fn_with_client`, existing test helpers, package health contracts, and health-check API contracts; no deterministic non-listener seam exists. |
 | R4                 | TODO     | Not started.                                                                                                                                                  |
 | R5                 | DEFERRED | Awaiting a concrete flake or lifecycle-design trigger.                                                                                                        |
-| R6                 | APPROVED | Not started.                                                                                                                                                  |
+| R6                 | APPROVED | Scenario-fixture design approved; implementation not started.                                                                                                 |
 
 ## Non-Goals
 
