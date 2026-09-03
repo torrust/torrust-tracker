@@ -5,7 +5,7 @@ status: draft
 priority: p2
 epic: null
 github-issue: null
-spec-path: docs/issues/drafts/{short-description}/issue.md
+spec-path: docs/issues/drafts/{short-description}/ISSUE.md
 branch: "{issue-number}-{short-description}"
 related-pr: null
 last-updated-utc: YYYY-MM-DD HH:MM
@@ -81,7 +81,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 ### Workflow Checkpoints
 
-- [ ] Folder-style spec drafted in `docs/issues/drafts/{short-description}/issue.md`
+- [ ] Folder-style spec drafted in `docs/issues/drafts/{short-description}/ISSUE.md`
 - [ ] Spec reviewed and approved by user/maintainer
 - [ ] GitHub issue created and issue number added to this spec
 - [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation

@@ -99,21 +99,22 @@ rendering handle the wrapping.
 
 New concrete Markdown documents use lowercase filenames. Use **UPPERCASE** only
 for reusable document templates and the documented conventional exceptions
-`README.md` and `AGENTS.md`. Individual document families may define their own
-lowercase separators, such as kebab-case issue artifacts and timestamped
-snake_case ADRs. Existing uppercase concrete documents are legacy and may retain
-their names; do not rename them as unrelated cleanup. For legacy issue
-specifications specifically, a material specification update or an added
-issue-local artifact requires migration to lowercase `issue.md` or `epic.md`.
+`README.md`, `AGENTS.md`, and folder-style issue-spec primary files `ISSUE.md`
+and `EPIC.md`. Individual document families may define their own lowercase
+separators, such as kebab-case issue artifacts and timestamped snake_case ADRs.
+Existing uppercase concrete documents are legacy and may retain their names; do
+not rename them as unrelated cleanup. A material update or an added issue-local
+artifact requires migration only for a legacy single-file issue specification.
 
 Templates use uppercase names, including `ISSUE.md`, `EPIC.md`, and
-`IMPLEMENTATION-RETROSPECTIVE.md`. Copies made for actual issues use lowercase:
-`issue.md`, `epic.md`, and `implementation-retrospective.md`.
+`IMPLEMENTATION-RETROSPECTIVE.md`. Folder-style issue specs use the allowed
+uppercase `ISSUE.md` and `EPIC.md`; supporting documents use lowercase, for
+example `implementation-retrospective.md`.
 
 | Category                | Convention | Example                                                            |
 | ----------------------- | ---------- | ------------------------------------------------------------------ |
 | Reusable template       | UPPERCASE  | `docs/templates/ISSUE.md`                                          |
-| Concrete issue spec     | lowercase  | `1978-configuration-overhaul-epic/epic.md`                         |
+| Concrete issue spec     | UPPERCASE  | `1978-configuration-overhaul-epic/EPIC.md`                         |
 | Concrete supporting doc | lowercase  | `1978-configuration-overhaul-epic/implementation-retrospective.md` |
 | Conventional index file | UPPERCASE  | `README.md`, `AGENTS.md`                                           |
 

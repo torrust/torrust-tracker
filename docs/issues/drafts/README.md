@@ -10,8 +10,8 @@ semantic-links:
 # Issue Drafts
 
 This folder contains folder-style draft issue specifications that are not yet linked to a created
-GitHub issue. New primary specs use lowercase `issue.md` (or `epic.md` for an EPIC) so
-issue-local evidence, plans, and retrospectives can remain alongside the specification.
+GitHub issue. New primary specs use the allowed uppercase `ISSUE.md` (or `EPIC.md` for an EPIC)
+so issue-local evidence, plans, and retrospectives can remain alongside the specification.
 
 ## Purpose
 
@@ -19,7 +19,7 @@ Draft specs capture problem framing, scope, and implementation intent before ope
 
 Use an unnumbered descriptive folder for a draft. When the draft is an explicitly established
 subissue of a known EPIC, prefix its folder with the parent EPIC's GitHub issue number, for
-example `1669-extract-torrust-tracker-client-to-standalone-repo/issue.md`. Set the
+example `1669-extract-torrust-tracker-client-to-standalone-repo/ISSUE.md`. Set the
 frontmatter field `epic: 1669` and identify the parent in the document body. Do not infer a parent
 EPIC from related work; leave `epic: null` and use an unnumbered name until the relationship is
 established.

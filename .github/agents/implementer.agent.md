@@ -120,8 +120,8 @@ issue specification and record the result in the issue-local documentation:
    Create it when the work produced a reusable lesson, a material design change,
    or a meaningful deviation from the original plan. Retrospectives require a
    folder-style issue specification; before adding one, migrate a touched legacy
-   single-file spec or uppercase `ISSUE.md`/`EPIC.md` primary file to its
-   documented lowercase folder layout.
+   single-file spec to its documented folder layout. `ISSUE.md` and `EPIC.md`
+   are allowed primary-file exceptions in folder-style specifications.
 3. When no retrospective is needed, add a brief completion-review entry to the
    issue progress log explaining why the work did not meet those conditions.
 4. If the lesson applies beyond the issue, update the relevant repository skill,

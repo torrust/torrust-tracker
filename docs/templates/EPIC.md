@@ -2,7 +2,7 @@
 doc-type: epic
 status: draft
 github-issue: null
-spec-path: docs/issues/drafts/{short-description}/epic.md
+spec-path: docs/issues/drafts/{short-description}/EPIC.md
 epic-owner: null
 last-updated-utc: YYYY-MM-DD HH:MM
 semantic-links:
@@ -42,8 +42,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | Order | Issue                                | Local Spec                                  | Status | Notes                  |
 | ----- | ------------------------------------ | ------------------------------------------- | ------ | ---------------------- |
-| 1     | #[To be assigned] - {Subissue title} | `docs/issues/open/{number}-{slug}/issue.md` | TODO   | {Dependencies/remarks} |
-| 2     | #[To be assigned] - {Subissue title} | `docs/issues/open/{number}-{slug}/issue.md` | TODO   | {Dependencies/remarks} |
+| 1     | #[To be assigned] - {Subissue title} | `docs/issues/open/{number}-{slug}/ISSUE.md` | TODO   | {Dependencies/remarks} |
+| 2     | #[To be assigned] - {Subissue title} | `docs/issues/open/{number}-{slug}/ISSUE.md` | TODO   | {Dependencies/remarks} |
 
 ## Delivery Strategy
 

@@ -7,7 +7,7 @@ github-issue: 2132
 spec-path: docs/issues/open/2132-add-sigterm-to-main/ISSUE.md
 branch: 2132-add-sigterm-to-main
 related-pr: null
-last-updated-utc: 2026-09-02
+last-updated-utc: 2026-09-03 12:30
 semantic-links:
   skill-links:
     - create-issue
@@ -104,8 +104,14 @@ let shutdown_signal = {
   ).expect("failed to install SIGTERM handler");
 
   tokio::select! {
-    _ = tokio::signal::ctrl_c() => "SIGINT",
-    _ = sigterm.recv() => "SIGTERM",
+    result = tokio::signal::ctrl_c() => {
+      result.expect("failed to install Ctrl-C handler");
+      "SIGINT"
+    },
+    result = sigterm.recv() => {
+      result.expect("SIGTERM handler stream closed unexpectedly");
+      "SIGTERM"
+    },
   }
 };
 
@@ -121,6 +127,11 @@ jobs.cancel();
 jobs.wait_for_all(Duration::from_secs(10)).await;
 tracing::info!("Torrust tracker successfully shutdown.");
 ```
+
+The production implementation registers both listeners before logging its
+readiness marker. It handles errors from `ctrl_c()` and fails loudly if the
+SIGTERM stream unexpectedly closes; neither condition is treated as signal
+delivery.
 
 **Important nuance from the experimental baseline**: after this change there
 will be a **redundant double-signal** for SIGTERM: `main.rs` catches it _and_

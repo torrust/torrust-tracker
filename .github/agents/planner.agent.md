@@ -56,11 +56,11 @@ You plan the work. You do not perform implementation changes yourself.
 8. Delegate implementation tasks to the **Implementer** (`@implementer`) in a clear execution order.
 
 Use folder-style issue specifications for all new planning work. The primary
-specification is lowercase `issue.md` or `epic.md`, and issue-local evidence,
-plans, and retrospectives remain in the same directory. Existing single-file
-specifications and uppercase `ISSUE.md`/`EPIC.md` primary files are legacy;
-migrate either when it is materially updated or needs an issue-local supporting
-artifact.
+specification is the allowed uppercase `ISSUE.md` or `EPIC.md`; issue-local
+evidence, plans, and lowercase supporting documents such as
+`implementation-retrospective.md` remain in the same directory. Existing
+single-file specifications are legacy; migrate one when it is materially
+updated or needs an issue-local supporting artifact.
 
 For complex implementation work, ensure the specification requires an
 evidence-based completion review. It must either create an issue-local

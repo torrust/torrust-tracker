@@ -30,9 +30,9 @@ an issue/task is complete and ready to be pushed.
    require a concise issue progress-log entry explaining why no retrospective
    was needed.
 7. Require a folder-style specification before accepting an issue-local
-   retrospective. When a touched legacy single-file specification or uppercase
-   `ISSUE.md`/`EPIC.md` primary file needs one, require migration to the
-   documented lowercase folder layout first.
+   retrospective. When a touched legacy single-file specification needs one,
+   require migration to the documented folder layout first. `ISSUE.md` and
+   `EPIC.md` are allowed primary-file exceptions in that layout.
 8. Report pass/fail with remediation for any gaps.
 
 ## Task Review Checklist
@@ -57,7 +57,7 @@ an issue/task is complete and ready to be pushed.
 - [ ] Workflow checkpoints reflect pre-PR status correctly.
 - [ ] Progress log includes meaningful, factual updates.
 - [ ] Completion review records a retrospective or a rationale that one was unnecessary.
-- [ ] Any retrospective belongs to a folder-style issue specification with a lowercase filename.
+- [ ] Any retrospective belongs to a folder-style issue specification; the retrospective is lowercase while `ISSUE.md` and `EPIC.md` are allowed primary-file exceptions.
 
 ## Output
 

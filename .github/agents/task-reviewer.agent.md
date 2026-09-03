@@ -27,9 +27,9 @@ pull request is opened.
 5. Verify that the implementation completion review was performed and that
    material discoveries were recorded or explicitly assessed as inapplicable.
    Require a folder-style specification before accepting an issue-local
-   retrospective; a touched legacy single-file specification or uppercase
-   `ISSUE.md`/`EPIC.md` primary file must be migrated to its documented
-   lowercase layout first.
+   retrospective; a touched legacy single-file specification must be migrated
+   to its documented folder layout first. `ISSUE.md` and `EPIC.md` are allowed
+   primary-file exceptions in folder-style specifications.
 
 ## Required Workflow
 

@@ -160,13 +160,10 @@ After moving, update the spec's YAML frontmatter to reflect the closed state:
 | `spec-path`        | `docs/issues/open/...`  | `docs/issues/closed/...` |
 | `last-updated-utc` | previous date           | current date             |
 
-For directories with multiple files, update at minimum the main lowercase `issue.md`
-or `epic.md` plus any supplementary files whose frontmatter references the
-`docs/issues/open/` path (e.g., `related-artifacts` links to the open spec). An
-uppercase `ISSUE.md` or `EPIC.md` is a legacy primary filename. Archival alone
-does not require a rename because it is not a material specification update;
-preserve the historical layout unless the archive change deliberately includes
-the migration. For supplementary docs without existing
+For directories with multiple files, update at minimum the main `ISSUE.md` or
+`EPIC.md` plus any supplementary files whose frontmatter references the
+`docs/issues/open/` path (e.g., `related-artifacts` links to the open spec). For
+supplementary docs without existing
 frontmatter, add a minimal block with `spec-path`, `last-updated-utc`, and a
 `semantic-links` section linking back to the parent issue spec.
 
@@ -220,10 +217,9 @@ The remaining results must be either corrected or deliberately retained historic
 If the closed issue was a subissue of an EPIC, update the epic's spec to reflect the
 new `docs/issues/closed/` path and `DONE` status in its subissue table.
 
-Example: if a parent `docs/issues/open/<epic-slug>/epic.md` has a table row
+Example: if a parent `docs/issues/open/<epic-slug>/EPIC.md` has a table row
 referencing a subissue at `docs/issues/open/...` with `TODO` status, update both
-the path and status after archiving. Use the existing uppercase primary filename
-only when the parent EPIC is a legacy document that has not been migrated.
+the path and status after archiving.
 
 The parent EPIC is also an affected document under Step 4: update its frontmatter
 `semantic-links` and `last-updated-utc` when applicable.

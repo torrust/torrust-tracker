@@ -33,8 +33,8 @@ Lifecycle docs:
 
 1. **Draft a folder-style specification** in `docs/issues/drafts/` using the repository templates
    appropriate to the issue type (`docs/templates/ISSUE.md` for Task/Bug/Feature,
-   `docs/templates/EPIC.md` for Epic). The template filenames are uppercase, but every concrete
-   specification filename is lowercase: `issue.md` or `epic.md`.
+   `docs/templates/EPIC.md` for Epic). Concrete folder-style primary
+   specifications use the allowed uppercase filenames `ISSUE.md` or `EPIC.md`.
 2. **User reviews** the draft specification
 3. **Create GitHub issue**
 4. **Move the spec directory to `docs/issues/open/`** and include the issue number
@@ -61,7 +61,7 @@ Create a specification with a **temporary name** (no subissue number yet). When 
 subissue has a known parent EPIC, prefix the draft name with that EPIC's GitHub issue number:
 
 ```text
-docs/issues/drafts/{epic-issue-number}-{short-description}/issue.md
+docs/issues/drafts/{epic-issue-number}-{short-description}/ISSUE.md
 ```
 
 This prefix identifies the known parent EPIC; it is not a placeholder for the future subissue's
@@ -70,31 +70,31 @@ If the parent is not explicitly established, use an unnumbered descriptive draft
 
 ```bash
 mkdir -p docs/issues/drafts/{short-description}
-touch docs/issues/drafts/{short-description}/issue.md
+touch docs/issues/drafts/{short-description}/ISSUE.md
 ```
 
 All new specifications use a folder-style layout. It keeps issue-local artifacts, such as an
 immutable source snapshot, evidence, design input, or an implementation retrospective with the
-main specification. Place the main specification in lowercase `issue.md`, or `epic.md` for an
-EPIC:
+main specification. Place the main specification in uppercase `ISSUE.md`, or `EPIC.md` for an
+EPIC; issue-local supporting artifacts use lowercase kebab-case names:
 
 ```bash
 mkdir -p docs/issues/drafts/{short-description}
-touch docs/issues/drafts/{short-description}/issue.md
+touch docs/issues/drafts/{short-description}/ISSUE.md
 ```
 
 For an EPIC, use:
 
 ```bash
 mkdir -p docs/issues/drafts/{short-description}
-touch docs/issues/drafts/{short-description}/epic.md
+touch docs/issues/drafts/{short-description}/EPIC.md
 ```
 
 For a known parent EPIC, apply the same prefix to a folder-style draft:
 
 ```bash
 mkdir -p docs/issues/drafts/{epic-issue-number}-{short-description}
-touch docs/issues/drafts/{epic-issue-number}-{short-description}/issue.md
+touch docs/issues/drafts/{epic-issue-number}-{short-description}/ISSUE.md
 ```
 
 Select the template by issue type:
@@ -202,7 +202,7 @@ git mv docs/issues/drafts/{epic-issue-number}-{short-description} \
 ```
 
 For folder-style specifications, the main document is
-`docs/issues/open/{number}-{short-description}/issue.md`, or `epic.md` for an EPIC. Keep all
+`docs/issues/open/{number}-{short-description}/ISSUE.md`, or `EPIC.md` for an EPIC. Keep all
 issue-local artifacts in the same directory. Update the `spec-path` and all internal artifact
 references after the move.
 
@@ -282,18 +282,17 @@ Use one of these layouts:
 
 | Layout      | Status                                                                                  | Main specification path                 |
 | ----------- | --------------------------------------------------------------------------------------- | --------------------------------------- |
-| Folder      | Required for all new specifications                                                     | `{number}-{short-description}/issue.md` |
+| Folder      | Required for all new specifications                                                     | `{number}-{short-description}/ISSUE.md` |
 | Single file | Legacy only; migrate when materially updating it or when adding an issue-local artifact | `{number}-{short-description}.md`       |
 
 ### Migrating a Legacy Specification
 
-Migrate a legacy single-file specification, or an older folder whose primary
-file is uppercase, before adding an issue-local artifact or when materially
-updating its planning or completion-review content. Do not migrate unrelated
-legacy specifications opportunistically.
+Migrate a legacy single-file specification before adding an issue-local artifact
+or when materially updating its planning or completion-review content. Do not
+migrate unrelated legacy specifications opportunistically.
 
 1. Move the existing primary document into a folder with its current issue
-   prefix and lowercase primary filename: `issue.md` or `epic.md`.
+   prefix and the allowed uppercase primary filename: `ISSUE.md` or `EPIC.md`.
 2. Update the moved document's `spec-path`, `semantic-links.related-artifacts`,
    and relative links to issue-local documents.
 3. Search for live references to the former path and repair them. Retain paths
@@ -307,13 +306,13 @@ For example, migrate an issue specification with:
 ```bash
 mkdir docs/issues/open/42-short-description
 git mv docs/issues/open/42-short-description.md \
-  docs/issues/open/42-short-description/issue.md
+  docs/issues/open/42-short-description/ISSUE.md
 ```
 
 Examples:
 
-- `1697-ai-agent-configuration/issue.md`
-- `42-add-peer-expiry-grace-period/issue.md`
-- `523-internal-linting-tool/issue.md`
-- `2022-vendor-and-document-maintainer-merge-workflow/issue.md`
-- `1669-overhaul-packages/epic.md`
+- `1697-ai-agent-configuration/ISSUE.md`
+- `42-add-peer-expiry-grace-period/ISSUE.md`
+- `523-internal-linting-tool/ISSUE.md`
+- `2022-vendor-and-document-maintainer-merge-workflow/ISSUE.md`
+- `1669-overhaul-packages/EPIC.md`
