@@ -513,7 +513,8 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn it_should_be_able_to_start_and_stop() {
+    async fn it_should_preserve_the_launcher_bind_address_after_starting_and_stopping() {
+        // Arrange
         let configuration = Arc::new(ephemeral_public());
 
         let http_trackers = configuration
@@ -523,21 +524,19 @@ mod tests {
 
         let http_tracker_config = &http_trackers[0];
 
-        initialize_global_services(&configuration);
-
         let http_tracker_container = Arc::new(initialize_container(&configuration).await);
-
         let bind_to = http_tracker_config.bind_address;
-
         let tls = if let Some(tls_config) = &http_tracker_config.tls_config {
             Some(make_rust_tls(tls_config).await.expect("tls config failed"))
         } else {
             None
         };
-
         let register = &Registar::default();
         let stopped = HttpServer::new(Launcher::new(bind_to, tls, http_tracker_config.network.ipv6_v6only));
 
+        initialize_global_services(&configuration);
+
+        // Act
         let started = stopped
             .start(
                 http_tracker_container,
@@ -548,11 +547,12 @@ mod tests {
             .expect("it should start the server");
         let stopped = started.stop().await.expect("it should stop the server");
 
+        // Assert
         assert_eq!(stopped.state.launcher.bind_to, bind_to);
     }
 
     #[tokio::test]
-    async fn it_should_preserve_registration_error_and_release_listener_when_registration_fails() {
+    async fn it_should_release_the_listener_and_preserve_the_duplicate_binding_error_when_registration_fails() {
         // Arrange
         let mut configuration = ephemeral_public();
         let reserved_listener = TcpListener::bind((Ipv4Addr::LOCALHOST, 0)).expect("reserve HTTP listener address");
