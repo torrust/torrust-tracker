@@ -135,6 +135,8 @@ mod tests {
 
     use super::{Extract, Key, parse_key};
 
+    const MAX_RESPONSE_BODY_BYTES: usize = 64 * 1024;
+
     async fn protected_handler(Extract(_key): Extract) -> impl IntoResponse {
         StatusCode::NO_CONTENT
     }
@@ -146,7 +148,7 @@ mod tests {
             "a BitTorrent authentication failure response should use HTTP 200"
         );
 
-        let body = to_bytes(response.into_body(), usize::MAX)
+        let body = to_bytes(response.into_body(), MAX_RESPONSE_BODY_BYTES)
             .await
             .expect("the failure response body should be readable");
 
