@@ -1,6 +1,6 @@
 ---
 doc-type: test-refactor-plan
-issue: 1348
+issue: 2136
 package: torrust-tracker-axum-http-server
 target-file: packages/axum-http-server/src/v1/extractors/authentication_key.rs
 status: proposed
@@ -8,7 +8,7 @@ semantic-links:
   related-artifacts:
     - packages/axum-http-server/src/v1/extractors/authentication_key.rs
     - packages/axum-http-server/tests/server/v1/contract/configured_as_private.rs
-    - docs/issues/open/1348-1347-add-tests-axum-http-server/coverage-evidence.md
+    - docs/issues/open/2136-1347-add-tests-axum-http-server/coverage-evidence.md
 ---
 
 # Authentication-Key Extractor Test Refactor Plan

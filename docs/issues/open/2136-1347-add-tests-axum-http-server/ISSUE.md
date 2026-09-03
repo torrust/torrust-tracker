@@ -4,9 +4,9 @@ issue-type: task
 status: open
 priority: p2
 epic: 1347
-github-issue: 1348
-spec-path: docs/issues/open/1348-1347-add-tests-axum-http-server/ISSUE.md
-branch: "1348-add-tests-axum-http-server"
+github-issue: 2136
+spec-path: docs/issues/open/2136-1347-add-tests-axum-http-server/ISSUE.md
+branch: "2136-add-tests-axum-http-server"
 related-pr: null
 last-updated-utc: 2026-09-01 18:00
 semantic-links:
@@ -18,7 +18,7 @@ semantic-links:
 
 <!-- skill-link: create-issue -->
 
-# Issue #1348 - Add Tests to the Axum HTTP Server Package
+# Issue #2136 - Add Tests to the Axum HTTP Server Package
 
 Parent EPIC: #1347 - Overhaul: Packages Testing
 
@@ -94,7 +94,7 @@ Implementation begins only after maintainer review of the current file's plan.
 
 ### Workflow Checkpoints
 
-- [x] Repository-local folder-style spec created for existing GitHub issue #1348
+- [x] Repository-local folder-style spec created for GitHub issue #2136
 - [x] Spec reviewed and approved by user/maintainer
 - [x] Spec-only PR merged into `develop` before implementation
 - [x] Implementation completed
@@ -107,8 +107,8 @@ Implementation begins only after maintainer review of the current file's plan.
 
 ### Progress Log
 
-- 2026-09-01 18:00 UTC - GitHub Copilot - Created a repository-local folder-style specification from GitHub issue #1348 and EPIC #1347. - https://github.com/torrust/torrust-tracker/issues/1348
-- 2026-09-01 18:00 UTC - User/maintainer - Clarified that the work should increase the recorded coverage baseline by testing critical behavior, prioritize fast unit tests close to package code, and retain or add valuable package-level integration and end-to-end tests. - https://github.com/torrust/torrust-tracker/issues/1348
+- 2026-09-01 18:00 UTC - GitHub Copilot - Created a repository-local folder-style specification for the Axum HTTP server package under the incorrect #1348 identity. Its scope and package references were correct; the issue identity was not.
+- 2026-09-01 18:00 UTC - User/maintainer - Clarified that the work should increase the recorded coverage baseline by testing critical behavior, prioritize fast unit tests close to package code, and retain or add valuable package-level integration and end-to-end tests.
 - 2026-09-01 - GitHub Copilot - Measured package-source coverage with `cargo llvm-cov -p torrust-tracker-axum-http-server --all-features --json`. The baseline, current aggregate comparison, per-file coverage, uncovered-function locations, method, and scope limitations are maintained in [coverage-evidence.md](coverage-evidence.md). The new tests directly assert previously high-level-only response-adapter, request-ID middleware, and registration-cleanup behavior.
 - 2026-09-01 - GitHub Copilot - Automatic verification passed: `cargo test -p torrust-tracker-axum-http-server` (30 unit tests and 55 integration tests), `cargo test -p torrust-tracker-axum-http-server --test integration` (55 tests), `linter all`, and `TORRUST_GIT_HOOKS_LOG_DIR=.tmp ./contrib/dev-tools/git/hooks/pre-commit.sh --format=json`. The complexity audit found all added tests and helpers to have cyclomatic complexity 1, nesting depth 0, and fewer than 50 lines. `cargo clippy --package torrust-tracker-axum-http-server -- -W clippy::cognitive_complexity -D warnings` was blocked only by two pre-existing high-complexity diagnostics in `torrust-tracker-swarm-coordination-registry`; the normal Clippy validation included in `linter all` passed.
 - 2026-09-01 - Task Reviewer - Independently reviewed the focused response-adapter tests. The compact-response test name was corrected to state that it verifies the omitted-parameter default. Review identified follow-up work: use reproducible package-source coverage totals, complete manual verification, and keep EPIC/subissue progress state aligned. The focused tests themselves passed review.
@@ -117,6 +117,7 @@ Implementation begins only after maintainer review of the current file's plan.
 - 2026-09-01 - Task Reviewer - Final independent review passed after verifying focused test scope, reproducible coverage evidence, manually invoked real-server scenarios, and documentation consistency.
 - 2026-09-02 - User/maintainer - Clarified the required test-development workflow: review test design progressively after each test-producing task, then stop after all planned tests are complete and request maintainer review before final verification, commit, or PR creation. Prioritize removing duplication, extracting justified helpers, using expressive assertions, and making test intent easy to read.
 - 2026-09-02 - GitHub Copilot - Applied the progressive test-design review to the announce response tests: extracted expected normal and compact response fixtures and replaced repeated field assertions with whole-response assertions. Maintainer review confirmed that direct `assert_eq!(actual, expected)` comparisons are preferred to a custom assertion wrapper for these `PartialEq` response types.
+- 2026-09-03 - User/maintainer - Identified that #1348 belongs to `udp-core` and #1349 to `http-core`. Created #2136 as the correct Axum HTTP server subissue and migrated this specification without changing its implementation evidence.
 
 ## Acceptance Criteria
 
@@ -175,7 +176,7 @@ All planned work is complete and has independent review evidence recorded above.
 
 ## References
 
-- GitHub issue: https://github.com/torrust/torrust-tracker/issues/1348
+- GitHub issue: https://github.com/torrust/torrust-tracker/issues/2136
 - Parent EPIC: #1347
 - Package: `packages/axum-http-server/`
 - Test environment: `packages/axum-http-server/src/testing/environment.rs`

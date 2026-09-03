@@ -99,6 +99,6 @@ condition most directly; do not adopt one as a rule against the other.
 
 The duplicate-registration HTTP server-start test in
 [`packages/axum-http-server/src/server.rs`](../../../packages/axum-http-server/src/server.rs) is
-being refactored under package-testing EPIC issue #1347, subissue #1348. Its scenario fixture
+being refactored under package-testing EPIC issue #1347, subissue #2136. Its scenario fixture
 captures a server binding that is available to bind but already registered, while the test visibly
 starts the server and verifies both the typed error and listener cleanup.

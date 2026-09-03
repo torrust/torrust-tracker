@@ -1,6 +1,6 @@
 ---
 doc-type: coverage-evidence
-issue: 1348
+issue: 2136
 package: torrust-tracker-axum-http-server
 measured-commit: b9437375
 measured-utc: 2026-09-03
@@ -9,7 +9,7 @@ measured-utc: 2026-09-03
 # Coverage Evidence
 
 This document records the reproducible coverage baseline and the latest detailed package-source
-report for Issue #1348.
+report for Issue #2136.
 
 ## Measurement Method
 
@@ -26,7 +26,7 @@ above to inspect line- and region-level detail for the measured revision.
 
 | Measurement                           |                  Lines |                Regions |          Functions |
 | ------------------------------------- | ---------------------: | ---------------------: | -----------------: |
-| Baseline (before Issue #1348 changes) | 1,153 / 1,229 (93.82%) | 1,616 / 1,763 (91.66%) | 137 / 153 (89.54%) |
+| Baseline (before Issue #2136 changes) | 1,153 / 1,229 (93.82%) | 1,616 / 1,763 (91.66%) | 137 / 153 (89.54%) |
 | Latest (commit `b9437375`)            | 1,467 / 1,543 (95.07%) | 1,911 / 2,055 (92.99%) | 179 / 197 (90.86%) |
 
 ## Latest Detailed File Report
@@ -67,7 +67,7 @@ These locations are a review queue, not a requirement to test every implementati
 
 ## Coverage Decision
 
-Issue #1348 closes the highest-value direct gaps: announce and scrape response adaptation,
+Issue #2136 closes the highest-value direct gaps: announce and scrape response adaptation,
 request-ID middleware behavior, and registration-failure listener release. Future work should
 consider `server.rs` and authentication-key extraction first, but only where a stable,
 behavior-focused package test provides regression value.

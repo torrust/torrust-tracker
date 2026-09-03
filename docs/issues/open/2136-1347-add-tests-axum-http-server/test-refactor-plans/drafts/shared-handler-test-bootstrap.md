@@ -1,6 +1,6 @@
 ---
 doc-type: test-bootstrap-refactor-plan
-issue: 1348
+issue: 2136
 package: torrust-tracker-axum-http-server
 target-files:
   - packages/axum-http-server/src/v1/handlers/announce.rs

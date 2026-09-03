@@ -1,6 +1,6 @@
 ---
 doc-type: test-refactor-plan
-issue: 1348
+issue: 2136
 package: torrust-tracker-axum-http-server
 target-file: packages/axum-http-server/src/v1/routes.rs
 status: proposed

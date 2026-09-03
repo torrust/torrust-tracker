@@ -1,6 +1,6 @@
 ---
 doc-type: test-refactor-plan
-issue: 1348
+issue: 2136
 package: torrust-tracker-axum-http-server
 target-file: packages/axum-http-server/src/server.rs
 status: completed
@@ -12,7 +12,7 @@ semantic-links:
     - packages/axum-http-server/tests/server/v1/contract/for_all_config_modes/mod.rs
     - packages/axum-http-server/tests/server/v1/contract/using_ipv6_v6only.rs
     - packages/axum-health-check-api-server/tests/server/contract.rs
-    - docs/issues/open/1348-1347-add-tests-axum-http-server/coverage-evidence.md
+    - docs/issues/open/2136-1347-add-tests-axum-http-server/coverage-evidence.md
 ---
 
 # HTTP Server Test Refactor Plan

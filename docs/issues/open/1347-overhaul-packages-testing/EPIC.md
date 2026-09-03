@@ -53,11 +53,12 @@ The repository was reorganized through package refactoring and extraction work. 
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| Order | Issue                                                 | Local Spec                                                            | Status | Notes                                                                                                                |
-| ----- | ----------------------------------------------------- | --------------------------------------------------------------------- | ------ | -------------------------------------------------------------------------------------------------------------------- |
-| 1     | #1348 - Add tests to the axum-http-server package     | `docs/issues/open/1348-1347-add-tests-axum-http-server/ISSUE.md`      | DONE   | Added fast package-local response, request-ID, and lifecycle tests; verification and final review evidence recorded. |
-| 2     | #1349 - Add tests to the axum-rest-api-server package | `docs/issues/open/1349-1347-add-tests-axum-rest-api-server/ISSUE.md`  | TODO   | Existing subissue; package-level test work.                                                                          |
-| 3     | Additional package-testing subissues                  | Create a folder-style spec when a concrete package need is identified | TODO   | Permitted but not required upfront; retain scope in this EPIC.                                                       |
+| Order | Issue                                             | Local Spec                                                            | Status | Notes                                                                                                                |
+| ----- | ------------------------------------------------- | --------------------------------------------------------------------- | ------ | -------------------------------------------------------------------------------------------------------------------- |
+| 1     | #1348 - Add tests to the udp-core package         | Not yet created                                                       | TODO   | Existing subissue; package-level test work.                                                                          |
+| 2     | #1349 - Add tests to the http-core package        | Not yet created                                                       | TODO   | Existing subissue; package-level test work.                                                                          |
+| 3     | #2136 - Add tests to the axum-http-server package | `docs/issues/open/2136-1347-add-tests-axum-http-server/ISSUE.md`      | DONE   | Added fast package-local response, request-ID, and lifecycle tests; verification and final review evidence recorded. |
+| 4     | Additional package-testing subissues              | Create a folder-style spec when a concrete package need is identified | TODO   | Permitted but not required upfront; retain scope in this EPIC.                                                       |
 
 ## Package Coverage Tracking
 
@@ -69,7 +70,7 @@ whether a subissue has adequately covered critical behavior.
 
 | Package                            | Subissue                                               | Baseline                                          | Latest                                            | Change                                                  | Evidence                                                                       |
 | ---------------------------------- | ------------------------------------------------------ | ------------------------------------------------- | ------------------------------------------------- | ------------------------------------------------------- | ------------------------------------------------------------------------------ |
-| `torrust-tracker-axum-http-server` | [#1348](1348-1347-add-tests-axum-http-server/ISSUE.md) | Lines: 93.82%; regions: 91.66%; functions: 89.54% | Lines: 95.07%; regions: 92.99%; functions: 90.86% | Lines: +1.25 pp; regions: +1.33 pp; functions: +1.32 pp | [Coverage evidence](1348-1347-add-tests-axum-http-server/coverage-evidence.md) |
+| `torrust-tracker-axum-http-server` | [#2136](2136-1347-add-tests-axum-http-server/ISSUE.md) | Lines: 93.82%; regions: 91.66%; functions: 89.54% | Lines: 95.07%; regions: 92.99%; functions: 90.86% | Lines: +1.25 pp; regions: +1.33 pp; functions: +1.32 pp | [Coverage evidence](2136-1347-add-tests-axum-http-server/coverage-evidence.md) |
 
 ## Delivery Strategy
 
@@ -104,7 +105,7 @@ For each subissue implementation, the completion policy is:
 ### Phase 1
 
 - Outcome: Existing package-testing issues have repository-local specs with clear scope, baselines, and qualitative risk-based coverage objectives.
-- Exit criteria: Specs for #1348 and #1349 are approved, and their status is represented accurately in this EPIC.
+- Exit criteria: Specs for #1348, #1349, and #2136 are approved, and their status is represented accurately in this EPIC.
 
 ### Phase 2
 
@@ -136,7 +137,8 @@ For each subissue implementation, the completion policy is:
 
 - 2026-09-01 17:48 UTC - GitHub Copilot - Created repository-local EPIC specification from GitHub issue #1347 and recorded maintainer feedback: cover all current workspace packages, allow additional subissues as needs are identified, and use baselines with risk-based targets. - https://github.com/torrust/torrust-tracker/issues/1347
 - 2026-09-01 18:00 UTC - User/maintainer - Approved the EPIC direction and clarified that each package should build a local safety net: establish and increase the coverage baseline, prioritize fast tests close to the code, and use unit, integration, or end-to-end tests whenever they provide valuable regression protection. - https://github.com/torrust/torrust-tracker/issues/1347
-- 2026-09-01 - GitHub Copilot - Completed #1348 with fast package-local response-adapter, request-ID middleware, and registration-cleanup tests; automated checks, directly invoked real-server verification scenarios, and final review evidence are recorded in its subissue specification. - https://github.com/torrust/torrust-tracker/issues/1348
+- 2026-09-01 - GitHub Copilot - Completed Axum HTTP server package-local response-adapter, request-ID middleware, and registration-cleanup tests. The work was initially recorded under the wrong historical #1348 identity.
+- 2026-09-03 - User/maintainer - Corrected the package-to-subissue mapping after package renames: #1348 remains `udp-core`, #1349 remains `http-core`, and #2136 is the Axum HTTP server subissue. The completed Axum HTTP evidence moved to #2136. - https://github.com/torrust/torrust-tracker/issues/2136
 
 ## Acceptance Criteria
 
@@ -158,11 +160,11 @@ For each subissue implementation, the completion policy is:
 | AC2   | DONE                   | Delivery strategy in this spec                                                                                        |
 | AC3   | DONE                   | Scope and delivery strategy in this spec                                                                              |
 | AC4   | TODO                   | Subissue specs and progress logs                                                                                      |
-| AC5   | DONE                   | #1348 status in the subissues table and its specification                                                             |
-| AC6   | DONE                   | #1348 automatic-verification records                                                                                  |
-| AC7   | DONE                   | #1348 manual-verification records                                                                                     |
-| AC8   | DONE                   | #1348 post-implementation acceptance-verification record                                                              |
-| AC9   | DONE                   | #1348 specification and this EPIC update; no additional behavior, workflow, or governance documentation was required. |
+| AC5   | DONE                   | #2136 status in the subissues table and its specification                                                             |
+| AC6   | DONE                   | #2136 automatic-verification records                                                                                  |
+| AC7   | DONE                   | #2136 manual-verification records                                                                                     |
+| AC8   | DONE                   | #2136 post-implementation acceptance-verification record                                                              |
+| AC9   | DONE                   | #2136 specification and this EPIC update; no additional behavior, workflow, or governance documentation was required. |
 
 ## Risks and Trade-offs
 
@@ -174,7 +176,7 @@ For each subissue implementation, the completion policy is:
 ## References
 
 - GitHub EPIC: https://github.com/torrust/torrust-tracker/issues/1347
-- Related issues: #1348, #1349
+- Related issues: #1348, #1349, #2136
 - Package inventory: `docs/packages.md`
 - Reference package: `packages/tracker-core/`
 - Coverage tooling: `cargo llvm-cov`
