@@ -131,7 +131,7 @@ identifies a stable missing classification. Otherwise record the deferral.
 
 ### R4 — Assess the in-process malformed-key wire contract
 
-- **Status:** TODO
+- **Status:** DONE
 - **Priority:** Medium impact / medium effort
 - **Addresses:** P4
 - **Change:** Determine whether one minimal router test adds value beyond the real-server announce
@@ -164,7 +164,7 @@ identifies a stable missing classification. Otherwise record the deferral.
 - [x] R2 implemented, reviewed, and validated
 - [x] Maintainer approved implementation of R3
 - [x] R3 implemented, reviewed, and validated
-- [ ] R4 assessment completed and decision recorded
+- [x] R4 assessment completed and decision recorded
 - [ ] R5 assessment completed and decision recorded
 - [ ] Maintainer reviewed all approved changes
 - [ ] Plan completed and ready for commit
@@ -185,6 +185,10 @@ identifies a stable missing classification. Otherwise record the deferral.
   contract.
 - 2026-09-02 - GitHub Copilot - Completed R3. Added one fixed valid path-key example and asserted
   the `parse_key` result equals the independently parsed expected domain key.
+- 2026-09-03 - User/maintainer - Approved R4 after reviewing the in-process malformed-path-key
+  wire contract and its response-decoding helper.
+- 2026-09-03 - GitHub Copilot - Completed R4. A minimal route requiring `Extract` proves an invalid
+  path key returns HTTP `200 OK` with a bencoded invalid-key-format failure response.
 
 ### Validation Evidence
 
@@ -194,7 +198,7 @@ identifies a stable missing classification. Otherwise record the deferral.
 | R1                 | DONE   | `cargo fmt --all -- --check`, package library tests (32 passed), `linter markdown`, `linter cspell`, and `git diff --check` passed.                  |
 | R2                 | DONE   | Editor diagnostics, `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-axum-http-server --lib` (32 passed), and `git diff --check` passed. |
 | R3                 | DONE   | Editor diagnostics, `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-axum-http-server --lib` (33 passed), and `git diff --check` passed. |
-| R4                 | TODO   | Not started.                                                                                                                                         |
+| R4                 | DONE   | Editor diagnostics, `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-axum-http-server --lib` (34 passed), and `git diff --check` passed. |
 | R5                 | TODO   | Not started.                                                                                                                                         |
 
 ## Non-Goals
