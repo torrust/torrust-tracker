@@ -22,11 +22,11 @@ pub struct CheckReport {
 
 impl CheckReport {
     #[must_use]
-    pub fn pass(&self) -> bool {
+    pub const fn pass(&self) -> bool {
         self.result.is_ok()
     }
     #[must_use]
-    pub fn fail(&self) -> bool {
+    pub const fn fail(&self) -> bool {
         self.result.is_err()
     }
 }
@@ -40,7 +40,7 @@ pub struct Report {
 
 impl Report {
     #[must_use]
-    pub fn none() -> Report {
+    pub fn none() -> Self {
         Self {
             status: Status::None,
             message: String::new(),
@@ -49,7 +49,7 @@ impl Report {
     }
 
     #[must_use]
-    pub fn ok(details: Vec<CheckReport>) -> Report {
+    pub const fn ok(details: Vec<CheckReport>) -> Self {
         Self {
             status: Status::Ok,
             message: String::new(),
@@ -58,7 +58,7 @@ impl Report {
     }
 
     #[must_use]
-    pub fn error(message: String, details: Vec<CheckReport>) -> Report {
+    pub const fn error(message: String, details: Vec<CheckReport>) -> Self {
         Self {
             status: Status::Error,
             message,
