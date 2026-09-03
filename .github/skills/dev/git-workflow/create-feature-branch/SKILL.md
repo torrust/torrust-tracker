@@ -24,6 +24,9 @@ conventions.
 
 **Format**: `{issue-number}-{short-description}` (preferred)
 
+For a spec-only branch, use `{issue-number}-{short-description}-spec`. Reserve the base
+issue branch name for the later implementation branch so the two phases do not collide.
+
 Alternative formats (no tracked issue):
 
 - `feat/{short-description}`
@@ -70,6 +73,7 @@ git checkout -b 42-add-peer-expiry-grace-period
 - `156-refactor-udp-server-socket-binding`
 - `203-add-e2e-mysql-tests`
 - `1697-ai-agent-configuration`
+- `2134-fix-cognitive-complexity-lint-enforcement-spec` — spec-only branch
 
 ❌ **Avoid**:
 

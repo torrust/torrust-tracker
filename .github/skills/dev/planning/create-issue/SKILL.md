@@ -208,14 +208,16 @@ When the issue is complex, cross-cutting, or likely to need scope negotiation, o
 contains only the issue specification changes:
 
 1. Branch from `develop`
-2. Commit only spec changes (`docs/issues/`, and if needed templates/skills)
-3. Push branch to your fork remote (for example `josecelano`)
-4. Open PR in the **upstream repository** (`torrust/torrust-tracker`) targeting `develop`
-5. If using fork-based workflow, set head as `{fork-owner}:{branch}` (for example
-   `josecelano:1771-spec-first-pr-workflow`)
-6. Do not open the PR in the fork repository unless explicitly requested
-7. Merge PR after review
-8. Start implementation work in a separate branch/PR
+2. Name the branch `{issue-number}-{short-description}-spec`; reserve the base
+  `{issue-number}-{short-description}` name for the later implementation branch
+3. Commit only spec changes (`docs/issues/`, and if needed templates/skills)
+4. Push branch to your fork remote (for example `josecelano`)
+5. Open PR in the **upstream repository** (`torrust/torrust-tracker`) targeting `develop`
+6. If using fork-based workflow, set head as `{fork-owner}:{branch}` (for example
+  `josecelano:1771-spec-first-pr-workflow-spec`)
+7. Do not open the PR in the fork repository unless explicitly requested
+8. Merge PR after review
+9. Start implementation work in the reserved base branch and open a separate implementation PR
 
 > **Important — do NOT auto-close the issue from a spec-only PR.**
 > Use `Related to #<number>` in the PR body, never `Closes #<number>` / `Fixes #<number>` /

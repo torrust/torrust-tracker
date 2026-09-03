@@ -309,6 +309,7 @@ Implementation workflow references:
 
 ```text
 <issue-number>-<short-description>   # e.g. 1697-ai-agent-configuration (preferred)
+<issue-number>-<short-description>-spec # spec-only branch; reserve the base name for implementation
 feat/<short-description>             # for features without a tracked issue
 fix/<short-description>              # for bug fixes
 chore/<short-description>            # for maintenance tasks
