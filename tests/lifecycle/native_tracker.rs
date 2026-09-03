@@ -485,7 +485,7 @@ mod tests {
         let lines = [
             "2026-09-02T10:20:22Z  INFO HTTP TRACKER: Started on: http://127.0.0.1:43210",
             "2026-09-02T10:20:22Z  INFO HEALTH CHECK API: Listening on: http://127.0.0.1:43210",
-            "2026-09-02T10:20:22Z  INFO HEALTH CHECK API: Started on: http://not-an-address",
+            "2026-09-02T10:20:22Z  INFO HEALTH CHECK API: Started on: http://not-an-address", // DevSkim: ignore DS137138
         ];
 
         // Act and Assert
