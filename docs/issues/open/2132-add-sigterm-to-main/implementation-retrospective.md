@@ -1,14 +1,14 @@
 ---
 semantic-links:
-   skill-links:
-      - write-markdown-docs
-      - write-unit-test
-   related-artifacts:
-      - docs/issues/open/2132-add-sigterm-to-main/ISSUE.md
-      - docs/issues/open/2132-add-sigterm-to-main/native-shutdown-test-plan.md
-      - docs/issues/open/2132-add-sigterm-to-main/native-tracker-refactor-plan.md
-      - tests/lifecycle/native_tracker.rs
-      - tests/lifecycle/signals.rs
+  skill-links:
+    - write-markdown-docs
+    - write-unit-test
+  related-artifacts:
+    - docs/issues/open/2132-add-sigterm-to-main/ISSUE.md
+    - docs/issues/open/2132-add-sigterm-to-main/native-shutdown-test-plan.md
+    - docs/issues/open/2132-add-sigterm-to-main/native-tracker-refactor-plan.md
+    - tests/lifecycle/native_tracker.rs
+    - tests/lifecycle/signals.rs
 ---
 
 # Implementation Retrospective
