@@ -555,6 +555,9 @@ mod tests {
     async fn it_should_release_the_listener_and_preserve_the_duplicate_binding_error_when_registration_fails() {
         // Arrange
         let mut configuration = ephemeral_public();
+        // Registration must fail after the server has bound this address, so the reservation is
+        // released before start. Do not add retries or waits: they would hide this OS-level handoff
+        // risk instead of preserving the cleanup contract under test.
         let reserved_listener = TcpListener::bind((Ipv4Addr::LOCALHOST, 0)).expect("reserve HTTP listener address");
         let bind_to = reserved_listener.local_addr().expect("read reserved listener address");
         drop(reserved_listener);

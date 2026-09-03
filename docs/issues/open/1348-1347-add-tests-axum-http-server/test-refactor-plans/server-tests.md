@@ -115,7 +115,7 @@ server-local test unless it proves a missing observable contract.
 
 ### R2 — Document the registration-test port-handoff limitation
 
-- **Status:** TODO
+- **Status:** DONE
 - **Priority:** Medium impact / trivial effort
 - **Addresses:** P3
 - **Change:** Add a concise comment beside the reservation/drop setup explaining why it is needed and
@@ -170,8 +170,8 @@ server-local test unless it proves a missing observable contract.
 - [x] Phase 2 refactorings ordered by impact and effort
 - [x] Maintainer approved implementation of R1
 - [x] R1 implemented, reviewed, and validated
-- [ ] Maintainer approved implementation of R2
-- [ ] R2 implemented, reviewed, and validated
+- [x] Maintainer approved implementation of R2
+- [x] R2 implemented, reviewed, and validated
 - [ ] R3 assessment completed and decision recorded
 - [ ] R4 assessment completed and decision recorded
 - [ ] Maintainer reviewed all approved changes
@@ -187,17 +187,21 @@ server-local test unless it proves a missing observable contract.
 - 2026-09-03 - GitHub Copilot - Completed R1. Renamed the lifecycle tests for launcher
   configuration preservation and duplicate-registration listener cleanup without changing their
   behavior.
+- 2026-09-03 - User/maintainer - Approved R2 after reviewing the documented port-handoff
+  limitation.
+- 2026-09-03 - GitHub Copilot - Completed R2. Documented why duplicate registration must occur
+  after listener binding and why retries or waiting would conceal the OS-level handoff risk.
 
 ### Validation Evidence
 
-| Increment          | Status   | Evidence                                               |
-| ------------------ | -------- | ------------------------------------------------------ |
-| Plan documentation | DONE     | `linter markdown`, `linter cspell`, and `git diff --check` passed after plan creation. |
+| Increment          | Status   | Evidence                                                                                                                                             |
+| ------------------ | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Plan documentation | DONE     | `linter markdown`, `linter cspell`, and `git diff --check` passed after plan creation.                                                               |
 | R1                 | DONE     | Editor diagnostics, `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-axum-http-server --lib` (34 passed), and `git diff --check` passed. |
-| R2                 | TODO     | Not started.                                           |
-| R3                 | TODO     | Not started.                                           |
-| R4                 | TODO     | Not started.                                           |
-| R5                 | DEFERRED | Awaiting a concrete flake or lifecycle-design trigger. |
+| R2                 | DONE     | `cargo fmt --all -- --check`, package library tests (34 passed), `linter markdown`, `linter cspell`, and `git diff --check` passed. |
+| R3                 | TODO     | Not started.                                                                                                                                         |
+| R4                 | TODO     | Not started.                                                                                                                                         |
+| R5                 | DEFERRED | Awaiting a concrete flake or lifecycle-design trigger.                                                                                               |
 
 ## Non-Goals
 
