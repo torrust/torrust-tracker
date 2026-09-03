@@ -10,12 +10,12 @@ responsibility.
 
 ## Plans
 
-- [Draft shared handler test bootstrap](drafts/shared-handler-test-bootstrap.md)
+- [Shared handler test bootstrap assessment](drafts/shared-handler-test-bootstrap.md) — complete
 - [Announce handler tests](announce-tests.md) — complete
 - [Scrape handler tests](scrape-tests.md) — complete
 - [Routes tests](routes-tests.md) — complete
 - [Authentication-key extractor tests](authentication-key-extractor-tests.md) — complete
-- [HTTP server tests](server-tests.md) — proposed
+- [HTTP server tests](server-tests.md) — complete
 
 ## Shared Purpose
 
