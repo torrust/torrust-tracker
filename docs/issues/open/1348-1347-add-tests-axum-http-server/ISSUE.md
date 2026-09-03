@@ -82,14 +82,13 @@ Implementation begins only after maintainer review of the current file's plan.
 
 - [Shared test-refactor-plan guidance](test-refactor-plans/README.md)
 - [Announce handler tests](test-refactor-plans/announce-tests.md) — complete.
-- [Draft shared handler test bootstrap](test-refactor-plans/drafts/shared-handler-test-bootstrap.md)
-  — future cross-file assessment only; no extraction is approved.
+- [Shared handler test bootstrap assessment](test-refactor-plans/drafts/shared-handler-test-bootstrap.md)
+  — complete; local bootstraps are retained because the consumers do not share a cohesive capability.
 - [Scrape handler tests](test-refactor-plans/scrape-tests.md) — complete.
 - [Routes tests](test-refactor-plans/routes-tests.md) — complete.
 - [Authentication-key extractor tests](test-refactor-plans/authentication-key-extractor-tests.md)
   — complete.
-- [HTTP server tests](test-refactor-plans/server-tests.md) — proposed; do not implement until
-  reviewed.
+- [HTTP server tests](test-refactor-plans/server-tests.md) — complete.
 
 ## Progress Tracking
 
