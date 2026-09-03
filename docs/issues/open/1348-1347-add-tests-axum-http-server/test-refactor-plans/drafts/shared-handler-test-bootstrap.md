@@ -5,6 +5,7 @@ package: torrust-tracker-axum-http-server
 target-files:
   - packages/axum-http-server/src/v1/handlers/announce.rs
   - packages/axum-http-server/src/v1/handlers/scrape.rs
+  - packages/axum-http-server/src/server.rs
 status: draft
 ---
 
@@ -19,6 +20,22 @@ file-local announce and scrape test plans.
 Assess whether the duplicated **test infrastructure** in the announce and scrape handler modules
 can be reduced without hiding the distinct dependencies of `AnnounceService` and `ScrapeService`.
 This is not a plan to create a generic service factory.
+
+### Why the tests do not reuse the production bootstrap
+
+The test bootstraps deliberately duplicate composition instead of calling the production container
+factories (for example `HttpTrackerCoreContainer::initialize_from_tracker_core`). This decision was
+made when the tests were written and remains valid:
+
+- **Fewer dependencies per test.** A test instantiates only the services it exercises, instead of
+  the whole tracker with its persistence, statistics, and coordination dependencies.
+- **Explicit coupling.** The test setup shows exactly which dependencies the unit under test needs,
+  which documents (and pressures) its real coupling.
+- **Faster execution.** Constructing fewer services keeps unit tests cheap.
+
+Any shared test bootstrap must preserve these properties. Reusing production composition is a
+non-goal; the goal is to remove duplicated _construction detail_ while each test still selects and
+constructs only what it needs.
 
 ## Phase 1 — Identify Problems
 
@@ -48,6 +65,19 @@ retains it.
 
 **Effect.** Statistics initialization is not a cohesive cross-file responsibility. Any future shared
 context must not reintroduce listener work into scrape tests that do not assert it.
+
+### B4 — `server.rs` is a third bootstrap consumer with a different shape
+
+`server.rs::initialize_container` is a third near-duplicate bootstrap. Unlike the handler modules,
+it must produce a complete `HttpTrackerCoreContainer` because `HttpServer::start` consumes the whole
+container. It therefore composes the statistics event bus and optional listener, the swarm
+coordination registry, the persistence-backed `TrackerCoreContainer`, and both services.
+
+**Effect.** This is the "third consumer" trigger named in B2. The overlap with the handler
+bootstraps is real (configuration selection, instance ID, `TrackerCoreContainer` ingredients,
+`*Service::new_with_http_tracker_config` calls), but the required output differs: the server needs
+everything, while the handler tests need one service each. A shared helper must be composable so
+that handler tests can still stop early and skip what they do not use.
 
 ## Phase 2 — Proposed Refactorings
 
@@ -81,7 +111,20 @@ context must not reintroduce listener work into scrape tests that do not assert 
 - **Decision:** Deferred. B1 found no cohesive shared responsibility that would make both modules
   clearer today. Revisit only if a third consumer needs the same test infrastructure or if a
   concrete shared capability emerges without optional fields.
-- **Done when:** a future concrete trigger justifies reassessment.
+- **Reassessment (B4 trigger):** `server.rs` is now the third consumer, so B2 must be reassessed.
+  The candidate shape is **layered, composable helpers** rather than one context object, so each
+  test stops at the layer it needs:
+  1. `selected_http_tracker_config(&Configuration) -> (Arc<HttpTracker>, ConfigurationInstanceId)`
+     — the configuration selection every consumer repeats.
+  2. In-memory core ingredients (repositories, authentication, whitelist authorization, handlers)
+     built without persistence — used by handler tests.
+  3. Service constructors stay **at the call site** in each test module so service-specific
+     dependencies remain visible.
+  4. Only `server.rs` composes the full `HttpTrackerCoreContainer` from the layers above, because
+     only it needs the whole container.
+     Statistics sender/listener remain an explicit per-test choice (`None` where not asserted). This
+     is still a proposal; implementation requires a separate approval after the server plan closes.
+- **Done when:** the layered shape is approved or rejected and the decision is recorded.
 
 ### B3 — Retain local mode and behavior fixtures unless separately justified
 
@@ -104,6 +147,9 @@ context must not reintroduce listener work into scrape tests that do not assert 
 - [x] B2 deferred with a concrete reassessment trigger.
 - [x] B3 assessment completed.
 - [x] Maintainer reviewed the assessment decisions.
+- [x] B4 recorded `server.rs` as the third consumer and documented why tests avoid the production
+      bootstrap.
+- [ ] Maintainer approved or rejected the layered-helper shape proposed under B2.
 
 ### Progress Log
 
@@ -115,10 +161,15 @@ context must not reintroduce listener work into scrape tests that do not assert 
   trigger.
 - 2026-09-02 - User/maintainer - Reviewed and approved the deferred assessment. Revisit only when
   a concrete shared test capability or a third consumer justifies it.
+- 2026-09-03 - GitHub Copilot - Recorded `server.rs::initialize_container` as the third bootstrap
+  consumer (B4) and documented the maintainer's rationale for not reusing the production container
+  factories. Proposed a layered-helper shape under B2 for later approval; nothing implemented.
 
 ## Non-Goals
 
 - Do not create a universal handler or service factory.
 - Do not move production bootstrap code merely to make tests shorter.
+- Do not replace test bootstraps with the production container factories; tests must keep
+  constructing only the services they need.
 - Do not introduce shared mutable state, listeners without lifecycle ownership, retries, or sleeps.
 - Do not merge this draft into a file-local plan without maintainer approval.
