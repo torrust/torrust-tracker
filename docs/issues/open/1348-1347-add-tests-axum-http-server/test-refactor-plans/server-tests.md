@@ -99,6 +99,20 @@ platform-, or implementation-coupled.
 application integration, or E2E tests according to the narrowest stable boundary. Do not add a
 server-local test unless it proves a missing observable contract.
 
+### P6 — The registration-failure Arrange mixes five concerns
+
+**Problem.** The Arrange section of
+`it_should_release_the_listener_and_preserve_the_duplicate_binding_error_when_registration_fails`
+interleaves address reservation and release, configuration mutation, duplicate-registration seeding,
+global service setup, and container composition in one flat block.
+
+**Why it matters.** A reader must reconstruct the scenario ("start on an address whose registration
+is already taken") from low-level steps, which hides the one condition the test depends on.
+
+**Opportunity.** Extract small, intent-revealing, file-local helpers that hide mechanics but keep
+the scenario choice visible in the test body. `initialize_container` duplication is tracked
+separately in `drafts/shared-handler-test-bootstrap.md` (B4) and is out of scope here.
+
 ## Phase 2 — Proposed Refactorings
 
 ### R1 — Clarify lifecycle test names and AAA boundaries
@@ -167,6 +181,23 @@ server-local test unless it proves a missing observable contract.
   not a test-only task-scheduling hook.
 - **Done when:** a concrete flake or lifecycle change justifies separate design review.
 
+### R6 — Extract intent-revealing Arrange helpers for the registration-failure test
+
+- **Status:** APPROVED
+- **Priority:** Medium impact / low effort
+- **Addresses:** P6
+- **Change:** Introduce file-local test helpers such as `reserve_released_ephemeral_address()`,
+  `ephemeral_public_bound_to(bind_to)`, and
+  `registar_with_registered_http_binding(bind_to, configuration_instance_id)`, so the Arrange
+  section reads as: reserve an address, bind the configuration to it, pre-register that binding,
+  build the container, then start the server.
+- **Guardrails:** Keep the `HttpServer::start` call, the typed
+  `Error::Registration { DuplicateBinding }` match, and the `TcpListener::bind` release assertion
+  visible in the test body. Keep the R2 port-handoff comment beside the reservation logic. Do not
+  change production code, touch `initialize_container`, or introduce a generic server-test builder.
+- **Done when:** the test body states the scenario in a few named steps and the library tests still
+  pass unchanged (34 passed).
+
 ## Progress Tracking
 
 ### Plan Checklist
@@ -179,6 +210,8 @@ server-local test unless it proves a missing observable contract.
 - [x] R2 implemented, reviewed, and validated
 - [x] R3 assessment completed and decision recorded
 - [ ] R4 assessment completed and decision recorded
+- [x] Maintainer approved implementation of R6
+- [ ] R6 implemented, reviewed, and validated
 - [ ] Maintainer reviewed all approved changes
 - [ ] Plan completed and ready for commit
 
@@ -199,6 +232,11 @@ server-local test unless it proves a missing observable contract.
 - 2026-09-03 - GitHub Copilot - Completed R3 assessment. Deferred a direct health-job result test:
   the injected client has no existing deterministic transport seam, while package and health-check
   API integration tests already cover HTTP, trusted HTTPS, and post-stop health outcomes.
+- 2026-09-03 - User/maintainer - Raised two readability concerns: `initialize_container` duplicates
+  bootstrap composition, and the registration-failure Arrange is hard to follow. Approved tracking
+  the bootstrap duplication in `drafts/shared-handler-test-bootstrap.md` (B4) and adding R6 for
+  file-local Arrange helpers. Clarified that tests intentionally avoid the production container
+  factories to keep dependencies minimal, explicit, and fast.
 
 ### Validation Evidence
 
@@ -210,6 +248,7 @@ server-local test unless it proves a missing observable contract.
 | R3                 | DONE     | Inspected `check_fn_with_client`, existing test helpers, package health contracts, and health-check API contracts; no deterministic non-listener seam exists. |
 | R4                 | TODO     | Not started.                                                                                                                                                  |
 | R5                 | DEFERRED | Awaiting a concrete flake or lifecycle-design trigger.                                                                                                        |
+| R6                 | APPROVED | Not started.                                                                                                                                                  |
 
 ## Non-Goals
 
