@@ -75,7 +75,7 @@ pub enum AnnounceEvent {
 pub struct AnnounceInterval(pub I32);
 
 impl AnnounceInterval {
-    pub fn new(v: i32) -> Self {
+    pub const fn new(v: i32) -> Self {
         Self(I32::new(v))
     }
 }

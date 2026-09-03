@@ -31,7 +31,7 @@ pub struct InfoHash(pub [u8; 20]);
 pub struct ConnectionId(pub I64);
 
 impl ConnectionId {
-    pub fn new(v: i64) -> Self {
+    pub const fn new(v: i64) -> Self {
         Self(I64::new(v))
     }
 }
@@ -41,7 +41,7 @@ impl ConnectionId {
 pub struct TransactionId(pub I32);
 
 impl TransactionId {
-    pub fn new(v: i32) -> Self {
+    pub const fn new(v: i32) -> Self {
         Self(I32::new(v))
     }
 }
@@ -56,7 +56,7 @@ impl TransactionId {
 pub struct NumberOfBytes(pub I64);
 
 impl NumberOfBytes {
-    pub fn new(v: i64) -> Self {
+    pub const fn new(v: i64) -> Self {
         Self(I64::new(v))
     }
 }
@@ -66,7 +66,7 @@ impl NumberOfBytes {
 pub struct NumberOfPeers(pub I32);
 
 impl NumberOfPeers {
-    pub fn new(v: i32) -> Self {
+    pub const fn new(v: i32) -> Self {
         Self(I32::new(v))
     }
 }
@@ -76,7 +76,7 @@ impl NumberOfPeers {
 pub struct NumberOfDownloads(pub I32);
 
 impl NumberOfDownloads {
-    pub fn new(v: i32) -> Self {
+    pub const fn new(v: i32) -> Self {
         Self(I32::new(v))
     }
 }
@@ -96,7 +96,7 @@ impl Port {
 pub struct PeerKey(pub I32);
 
 impl PeerKey {
-    pub fn new(v: i32) -> Self {
+    pub const fn new(v: i32) -> Self {
         Self(I32::new(v))
     }
 }
@@ -116,13 +116,13 @@ impl Ip for Ipv4AddrBytes {}
 
 impl From<Ipv4AddrBytes> for Ipv4Addr {
     fn from(val: Ipv4AddrBytes) -> Self {
-        Ipv4Addr::from(val.0)
+        Self::from(val.0)
     }
 }
 
 impl From<Ipv4Addr> for Ipv4AddrBytes {
     fn from(val: Ipv4Addr) -> Self {
-        Ipv4AddrBytes(val.octets())
+        Self(val.octets())
     }
 }
 
@@ -134,13 +134,13 @@ impl Ip for Ipv6AddrBytes {}
 
 impl From<Ipv6AddrBytes> for Ipv6Addr {
     fn from(val: Ipv6AddrBytes) -> Self {
-        Ipv6Addr::from(val.0)
+        Self::from(val.0)
     }
 }
 
 impl From<Ipv6Addr> for Ipv6AddrBytes {
     fn from(val: Ipv6Addr) -> Self {
-        Ipv6AddrBytes(val.octets())
+        Self(val.octets())
     }
 }
 
