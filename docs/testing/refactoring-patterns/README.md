@@ -18,6 +18,7 @@ the mandatory conventions in the [unit-test skill](../../../.github/skills/dev/t
 | Pattern                                                                                                | Use it when                                                                                        | Representative source                                   |
 | ------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
 | [Scenario fixture with independent expected outputs](scenario-fixture-independent-expected-outputs.md) | One domain input must be verified through multiple independently decoded response representations. | `packages/axum-http-server/src/v1/handlers/announce.rs` |
+| [Scenario fixtures for causal initial state](scenario-fixtures-for-causal-initial-state.md)            | Several setup operations establish the one state that makes the Act behave differently.            | `packages/axum-http-server/src/server.rs`               |
 
 ## Entry Requirements
 
