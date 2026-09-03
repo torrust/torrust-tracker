@@ -6,7 +6,7 @@ target-files:
   - packages/axum-http-server/src/v1/handlers/announce.rs
   - packages/axum-http-server/src/v1/handlers/scrape.rs
   - packages/axum-http-server/src/server.rs
-status: draft
+status: completed
 ---
 
 # Draft Plan — Shared Handler Test Bootstrap
@@ -98,33 +98,31 @@ that handler tests can still stop early and skip what they do not use.
   capability.
 - **Done when:** the remaining shared setup and explicit no-extraction rationale are recorded.
 
-### B2 — Prototype a narrow test-only context only if B1 supports it
+### B2 — Reassess cross-file test bootstrap extraction
 
-- **Status:** DEFERRED
+- **Status:** DONE
 - **Priority:** Medium impact / medium effort
-- **Change:** If a cohesive boundary exists, introduce a private test-only context that owns only
-  common infrastructure: core configuration, selected HTTP tracker configuration and instance ID,
-  in-memory repositories, authentication, and necessary statistics sender/lifecycle.
+- **Change:** Compare the completed `server.rs` scenarios with the announce and scrape handler
+  bootstraps, then either identify a cohesive cross-file capability or reject extraction.
 - **Guardrail:** Each handler module must still visibly construct its own handler and service with
-  service-specific dependencies. The context must not expose a generic `build_service` API or
-  optional fields for unrelated behavior.
-- **Decision:** Deferred. B1 found no cohesive shared responsibility that would make both modules
-  clearer today. Revisit only if a third consumer needs the same test infrastructure or if a
-  concrete shared capability emerges without optional fields.
-- **Reassessment (B4 trigger):** `server.rs` is now the third consumer, so B2 must be reassessed.
-  The candidate shape is **layered, composable helpers** rather than one context object, so each
-  test stops at the layer it needs:
-  1. `selected_http_tracker_config(&Configuration) -> (Arc<HttpTracker>, ConfigurationInstanceId)`
-     — the configuration selection every consumer repeats.
-  2. In-memory core ingredients (repositories, authentication, whitelist authorization, handlers)
-     built without persistence — used by handler tests.
-  3. Service constructors stay **at the call site** in each test module so service-specific
-     dependencies remain visible.
-  4. Only `server.rs` composes the full `HttpTrackerCoreContainer` from the layers above, because
-     only it needs the whole container.
-     Statistics sender/listener remain an explicit per-test choice (`None` where not asserted). This
-     is still a proposal; implementation requires a separate approval after the server plan closes.
-- **Done when:** the layered shape is approved or rejected and the decision is recorded.
+  service-specific dependencies. Do not introduce a generic `build_service` API, optional fields
+  for unrelated behavior, or a shared fixture merely because setup statements look similar.
+- **Decision:** Reject extraction. The third consumer did not establish a shared test-infrastructure layer:
+  - `announce.rs` constructs in-memory repositories, authentication, whitelist authorization, an
+    `AnnounceHandler`, and a database-backed download-metrics repository.
+  - `scrape.rs` constructs only its in-memory repositories, authentication, whitelist
+    authorization, and `ScrapeHandler`; it intentionally omits statistics infrastructure.
+  - `server.rs` scenario fixtures require persistence-backed `TrackerCoreContainer` initialization,
+    swarm coordination, statistics infrastructure, both HTTP services, and registration state.
+
+  Configuration selection and `ConfigurationInstanceId` creation are the only meaningful overlap.
+  Extracting only those lines would add a shared test-support dependency without a behavior-focused
+  capability or material duplication reduction. Extracting more would force the handlers to create
+  server-only dependencies or turn the helper into the generic bootstrap this draft forbids. Keep
+  the bootstraps local; their construction remains useful documentation of each unit's coupling.
+
+- **Done when:** the completed reassessment records why the third consumer does not justify a
+  cross-file abstraction.
 
 ### B3 — Retain local mode and behavior fixtures unless separately justified
 
@@ -144,12 +142,12 @@ that handler tests can still stop early and skip what they do not use.
 
 - [x] Draft created from comparison of announce and scrape handler test bootstraps.
 - [x] B1 assessment completed.
-- [x] B2 deferred with a concrete reassessment trigger.
+- [x] B2 reassessed after the third-consumer trigger.
 - [x] B3 assessment completed.
 - [x] Maintainer reviewed the assessment decisions.
 - [x] B4 recorded `server.rs` as the third consumer and documented why tests avoid the production
       bootstrap.
-- [ ] Maintainer approved or rejected the layered-helper shape proposed under B2.
+- [x] Maintainer approved rejecting extraction and closing the draft.
 
 ### Progress Log
 
@@ -164,6 +162,13 @@ that handler tests can still stop early and skip what they do not use.
 - 2026-09-03 - GitHub Copilot - Recorded `server.rs::initialize_container` as the third bootstrap
   consumer (B4) and documented the maintainer's rationale for not reusing the production container
   factories. Proposed a layered-helper shape under B2 for later approval; nothing implemented.
+- 2026-09-03 - GitHub Copilot - Reassessed B2 after the completed server scenarios. The three
+  consumers share configuration-selection detail but not a cohesive infrastructure capability:
+  announce is metrics-specific, scrape intentionally omits statistics, and server requires
+  persistence, coordination, statistics, both services, and registration state. Proposed closing
+  the draft without an extraction; local bootstraps remain explicit dependency documentation.
+- 2026-09-03 - User/maintainer - Approved the B2 decision to retain local bootstraps and close this
+  cross-file draft without extraction.
 
 ## Non-Goals
 
