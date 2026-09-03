@@ -140,9 +140,10 @@ service report is unhealthy.
 
 Launch the child with `tokio::process::Command`. Retain the `Child` handle for
 the full test lifecycle. Capture stdout and stderr, consume them concurrently
-without allowing pipe-buffer backpressure to block the child, and retain each
-stream for assertion and failure messages. Assertions need message presence, not
-cross-stream ordering, so concatenate the fully drained streams only after exit.
+without allowing pipe-buffer backpressure to block the child, and append both
+streams to one shared retained output buffer for assertions and failure
+messages. Assertions require message presence only; they do not rely on stream
+identity or cross-stream ordering, which concurrent draining does not preserve.
 
 Use a bounded wait for graceful completion. A fixture teardown API must await a
 normally exited child and force-kill then reap it after a timeout, panic, or
