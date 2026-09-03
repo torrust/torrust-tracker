@@ -144,13 +144,18 @@ identifies a stable missing classification. Otherwise record the deferral.
 
 ### R5 — Assess direct Axum path-rejection coverage
 
-- **Status:** TODO
+- **Status:** DONE
 - **Priority:** Low impact / medium effort
 - **Addresses:** P6
 - **Change:** Assess whether a concrete tracker-owned path-rejection contract remains untested after
   R4.
 - **Guardrails:** Do not manufacture Axum rejection variants merely to improve coverage.
-- **Done when:** the plan records a behavior-justified test or a deferral rationale.
+- **Decision:** Deferred. R4 covers the tracker-owned invalid-key-format response for a malformed
+  path value. The remaining `custom_error` alternatives depend on Axum `PathRejection` variants;
+  no package contract identifies a distinct externally observable behavior for them. A route without
+  a `{key}` segment is a routing concern rather than an extractor invocation. Constructing
+  framework rejection values would increase implementation coupling merely to cover branches.
+- **Done when:** the deferral rationale is recorded.
 
 ## Progress Tracking
 
@@ -165,9 +170,9 @@ identifies a stable missing classification. Otherwise record the deferral.
 - [x] Maintainer approved implementation of R3
 - [x] R3 implemented, reviewed, and validated
 - [x] R4 assessment completed and decision recorded
-- [ ] R5 assessment completed and decision recorded
-- [ ] Maintainer reviewed all approved changes
-- [ ] Plan completed and ready for commit
+- [x] R5 assessment completed and decision recorded
+- [x] Maintainer reviewed all approved changes
+- [x] Plan completed and ready for commit
 
 ### Progress Log
 
@@ -189,17 +194,22 @@ identifies a stable missing classification. Otherwise record the deferral.
   wire contract and its response-decoding helper.
 - 2026-09-03 - GitHub Copilot - Completed R4. A minimal route requiring `Extract` proves an invalid
   path key returns HTTP `200 OK` with a bencoded invalid-key-format failure response.
+- 2026-09-03 - GitHub Copilot - Completed R5 assessment. Deferred direct Axum path-rejection
+  tests: R4 covers the tracker-owned malformed-key contract, while remaining variants are framework
+  extraction details without a distinct documented external behavior.
+- 2026-09-03 - User/maintainer - Reviewed and approved R5's deferral decision and completion of
+  the authentication-key extractor test refactor plan.
 
 ### Validation Evidence
 
-| Increment          | Status | Evidence                                                                                                                                             |
-| ------------------ | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Plan documentation | DONE   | `linter markdown`, `linter cspell`, and `git diff --check` passed after plan creation.                                                               |
-| R1                 | DONE   | `cargo fmt --all -- --check`, package library tests (32 passed), `linter markdown`, `linter cspell`, and `git diff --check` passed.                  |
-| R2                 | DONE   | Editor diagnostics, `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-axum-http-server --lib` (32 passed), and `git diff --check` passed. |
-| R3                 | DONE   | Editor diagnostics, `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-axum-http-server --lib` (33 passed), and `git diff --check` passed. |
-| R4                 | DONE   | Editor diagnostics, `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-axum-http-server --lib` (34 passed), and `git diff --check` passed. |
-| R5                 | TODO   | Not started.                                                                                                                                         |
+| Increment          | Status | Evidence                                                                                                                                                            |
+| ------------------ | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Plan documentation | DONE   | `linter markdown`, `linter cspell`, and `git diff --check` passed after plan creation.                                                                              |
+| R1                 | DONE   | `cargo fmt --all -- --check`, package library tests (32 passed), `linter markdown`, `linter cspell`, and `git diff --check` passed.                                 |
+| R2                 | DONE   | Editor diagnostics, `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-axum-http-server --lib` (32 passed), and `git diff --check` passed.                |
+| R3                 | DONE   | Editor diagnostics, `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-axum-http-server --lib` (33 passed), and `git diff --check` passed.                |
+| R4                 | DONE   | Editor diagnostics, `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-axum-http-server --lib` (34 passed), and `git diff --check` passed.                |
+| R5                 | DONE   | Inspected `custom_error`, HTTP protocol error types, and existing malformed-key coverage; no tracker-owned behavior justifies constructing Axum rejection variants. |
 
 ## Non-Goals
 
