@@ -478,4 +478,23 @@ mod tests {
             "127.0.0.1:43210"
         );
     }
+
+    #[test]
+    fn it_should_reject_non_health_check_startup_logs() {
+        // Arrange
+        let lines = [
+            "2026-09-02T10:20:22Z  INFO HTTP TRACKER: Started on: http://127.0.0.1:43210",
+            "2026-09-02T10:20:22Z  INFO HEALTH CHECK API: Listening on: http://127.0.0.1:43210",
+            "2026-09-02T10:20:22Z  INFO HEALTH CHECK API: Started on: http://not-an-address",
+        ];
+
+        // Act and Assert
+        for line in lines {
+            assert_eq!(
+                parse_health_check_address(line),
+                None,
+                "line should not provide a health-check address: {line}"
+            );
+        }
+    }
 }
