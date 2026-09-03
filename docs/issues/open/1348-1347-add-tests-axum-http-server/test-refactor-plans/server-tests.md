@@ -3,7 +3,7 @@ doc-type: test-refactor-plan
 issue: 1348
 package: torrust-tracker-axum-http-server
 target-file: packages/axum-http-server/src/server.rs
-status: proposed
+status: completed
 semantic-links:
   related-artifacts:
     - packages/axum-http-server/src/server.rs
@@ -278,8 +278,8 @@ exposes the inputs needed for the visible start/stop lifecycle Act.
 - [x] R6 implemented, reviewed, and validated
 - [x] Maintainer approved implementation of R7
 - [x] R7 implemented, reviewed, and validated
-- [ ] Maintainer reviewed all approved changes
-- [ ] Plan completed and ready for commit
+- [x] Maintainer reviewed all approved changes
+- [x] Plan completed and ready for commit
 
 ### Progress Log
 
@@ -321,6 +321,8 @@ exposes the inputs needed for the visible start/stop lifecycle Act.
   health at the health-check API integration boundary; reserved root and E2E coverage for their
   application-composition and container-interoperability responsibilities; deferred private launch,
   task/shutdown, logging, and TLS construction mechanics without an observable regression.
+- 2026-09-03 - User/maintainer - Reviewed the completed R4 assessment and approved closure of this
+  file-local server test-refactor plan. R5 remains deferred pending the documented trigger.
 
 ### Validation Evidence
 
