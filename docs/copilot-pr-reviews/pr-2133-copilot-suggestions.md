@@ -40,6 +40,8 @@ Status legend:
   follow-up fix was pushed.
 - 2026-09-03: Resolved the later `const fn` suggestion as no-action after the
   project compiler and Clippy confirmed the existing accessor is const-compatible.
+- 2026-09-03: Resolved the outdated EPIC-layout suggestion after clarifying the
+  summary table's legacy and folder-based patterns.
 
 ## Suggestions
 
@@ -48,6 +50,7 @@ Status legend:
 | 1   | `PRRT_kwDOGp2yqc6eemf_` | `src/main.rs`                       | <https://github.com/torrust/torrust-tracker/pull/2133#discussion_r3913544168> | Explicitly handle failure while installing the Ctrl-C signal handler. | action: fixed in `871d0ff3` and validated with `linter all`, `cargo test --package torrust-tracker`, pre-commit, and pre-push checks.      | <https://github.com/torrust/torrust-tracker/pull/2133#discussion_r3913892315> | DONE   | RESOLVED     |
 | 2   | `PRRT_kwDOGp2yqc6e2lwc` | `src/main.rs`                       | <https://github.com/torrust/torrust-tracker/pull/2133#discussion_r3923027343> | Reject a closed SIGTERM stream instead of reporting SIGTERM.          | action: fixed in `356b3a54`; both SIGTERM receive branches fail loudly when the stream closes.                                             | <https://github.com/torrust/torrust-tracker/pull/2133#discussion_r3925629112> | DONE   | RESOLVED     |
 | 3   | `PRRT_kwDOGp2yqc6e-YA9` | `tests/lifecycle/native_tracker.rs` | <https://github.com/torrust/torrust-tracker/pull/2133#discussion_r3926060953> | Remove `const` from the mutating cleanup-observer accessor.           | no-action: the compiler and Clippy confirm `Option::take()` is const-compatible; removing `const` triggers `clippy::missing_const_for_fn`. | <https://github.com/torrust/torrust-tracker/pull/2133#discussion_r3926261665> | DONE   | RESOLVED     |
+| 4   | `PRRT_kwDOGp2yqc6e-7LF` | `docs/issues/open/AGENTS.md`        | <https://github.com/torrust/torrust-tracker/pull/2133#discussion_r3926273309> | Distinguish legacy standalone and folder-based EPIC layouts.           | action: fixed in `02a4db19`; the summary table now lists both patterns explicitly.                                                        | <https://github.com/torrust/torrust-tracker/pull/2133#discussion_r3926468892> | DONE   | RESOLVED     |
 
 ## Notes
 
