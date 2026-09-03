@@ -209,7 +209,8 @@ contains only the issue specification changes:
 
 1. Branch from `develop`
 2. Name the branch `{issue-number}-{short-description}-spec`; reserve the base
-  `{issue-number}-{short-description}` name for the later implementation branch
+   `{issue-number}-{short-description}` name for the later implementation branch. Set the issue
+   specification frontmatter `branch:` value to this same `-spec` branch name.
 3. Commit only spec changes (`docs/issues/`, and if needed templates/skills)
 4. Push branch to your fork remote (for example `josecelano`)
 5. Open PR in the **upstream repository** (`torrust/torrust-tracker`) targeting `develop`
