@@ -215,7 +215,7 @@ contains only the issue specification changes:
 4. Push branch to your fork remote (for example `josecelano`)
 5. Open PR in the **upstream repository** (`torrust/torrust-tracker`) targeting `develop`
 6. If using fork-based workflow, set head as `{fork-owner}:{branch}` (for example
-  `josecelano:1771-spec-first-pr-workflow-spec`)
+   `josecelano:1771-spec-first-pr-workflow-spec`)
 7. Do not open the PR in the fork repository unless explicitly requested
 8. Merge PR after review
 9. Start implementation work in the reserved base branch and open a separate implementation PR
