@@ -103,7 +103,7 @@ server-local test unless it proves a missing observable contract.
 
 ### R1 — Clarify lifecycle test names and AAA boundaries
 
-- **Status:** TODO
+- **Status:** DONE
 - **Priority:** High impact / low effort
 - **Addresses:** P1, P2
 - **Change:** Rename both lifecycle tests for their explicit controller/cleanup contracts and add
@@ -168,8 +168,8 @@ server-local test unless it proves a missing observable contract.
 
 - [x] Phase 1 findings reviewed against current code, coverage evidence, and external boundaries
 - [x] Phase 2 refactorings ordered by impact and effort
-- [ ] Maintainer approved implementation of R1
-- [ ] R1 implemented, reviewed, and validated
+- [x] Maintainer approved implementation of R1
+- [x] R1 implemented, reviewed, and validated
 - [ ] Maintainer approved implementation of R2
 - [ ] R2 implemented, reviewed, and validated
 - [ ] R3 assessment completed and decision recorded
@@ -182,13 +182,18 @@ server-local test unless it proves a missing observable contract.
 - 2026-09-03 - GitHub Copilot - Created the proposed plan from `server.rs`, current package coverage
   evidence, package integration contracts, cross-package health-check integration contracts, root
   integration scope, and E2E tooling. No refactoring has been implemented.
+- 2026-09-03 - User/maintainer - Approved R1 after reviewing the explicit lifecycle contract names
+  and start/stop AAA structure.
+- 2026-09-03 - GitHub Copilot - Completed R1. Renamed the lifecycle tests for launcher
+  configuration preservation and duplicate-registration listener cleanup without changing their
+  behavior.
 
 ### Validation Evidence
 
 | Increment          | Status   | Evidence                                               |
 | ------------------ | -------- | ------------------------------------------------------ |
-| Plan documentation | TODO     | Not run after plan creation.                           |
-| R1                 | TODO     | Not started.                                           |
+| Plan documentation | DONE     | `linter markdown`, `linter cspell`, and `git diff --check` passed after plan creation. |
+| R1                 | DONE     | Editor diagnostics, `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-axum-http-server --lib` (34 passed), and `git diff --check` passed. |
 | R2                 | TODO     | Not started.                                           |
 | R3                 | TODO     | Not started.                                           |
 | R4                 | TODO     | Not started.                                           |
