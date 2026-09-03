@@ -11,7 +11,10 @@ semantic-links:
 
 # Open Issues
 
-This folder contains issue specification files for GitHub issues that are currently open.
+This folder contains folder-style issue specifications for GitHub issues that are currently open.
+New primary specs use lowercase `issue.md` (or `epic.md` for an EPIC), allowing issue-local
+evidence, plans, and retrospectives to remain in the same directory. Legacy standalone files and
+uppercase primary specs are migrated when they are materially updated or need issue-local artifacts.
 
 ## Purpose
 

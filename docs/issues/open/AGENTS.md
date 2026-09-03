@@ -2,12 +2,14 @@
 
 ## Spec Naming Conventions
 
-Use a standalone Markdown file when a specification has no issue-local supporting artifacts.
-Use a folder when it needs issue-local artifacts; the primary file inside the folder is `ISSUE.md`
-for issues or `EPIC.md` for EPICs. The GitHub issue number must start every filename or folder
-name.
+All new specifications use a folder. The primary file inside the folder is
+lowercase `issue.md` for issues or `epic.md` for EPICs. This keeps supporting
+artifacts, including `implementation-retrospective.md`, in the issue directory.
+The GitHub issue number must start every folder name. Existing standalone files
+and uppercase primary files are legacy; migrate them when materially updating
+the specification or adding an issue-local artifact.
 
-### Standalone specification
+### Legacy standalone specification
 
 #### Issue
 
@@ -30,39 +32,43 @@ Example:
 Example:
 
 ```text
-1978-configuration-overhaul-epic/EPIC.md
+1978-configuration-overhaul-epic.md
 ```
 
-### Folder-based specification
+Legacy folders whose primary files are uppercase `ISSUE.md` or `EPIC.md` are
+also migrated to lowercase `issue.md` or `epic.md` when they are materially
+updated or need an issue-local artifact.
+
+### Required folder-based specification
 
 #### Issue (not part of an EPIC)
 
 ```text
-{ISSUE_NUMBER}-{short-description}/ISSUE.md
+{ISSUE_NUMBER}-{short-description}/issue.md
 ```
 
 Example:
 
 ```text
-2022-vendor-and-document-maintainer-merge-workflow/ISSUE.md
+2022-vendor-and-document-maintainer-merge-workflow/issue.md
 ```
 
 #### EPIC spec
 
 ```text
-{EPIC_ISSUE_NUMBER}-{short-description}/EPIC.md
+{EPIC_ISSUE_NUMBER}-{short-description}/epic.md
 ```
 
 Example:
 
 ```text
-1669-overhaul-packages/EPIC.md
+1669-overhaul-packages/epic.md
 ```
 
 #### Subissue (part of an EPIC)
 
 ```text
-{SUB_ISSUE_NUMBER}-{EPIC_ISSUE_NUMBER}-{short-description}/ISSUE.md
+{SUB_ISSUE_NUMBER}-{EPIC_ISSUE_NUMBER}-{short-description}/issue.md
 ```
 
 Where:
@@ -73,7 +79,7 @@ Where:
 Example:
 
 ```text
-docs/issues/closed/1859-1669-move-tracker-policy-and-private-mode-to-primitives/ISSUE.md
+docs/issues/closed/1859-1669-move-tracker-policy-and-private-mode-to-primitives/issue.md
 ```
 
 #### Subissue with explicit implementation order
@@ -82,7 +88,7 @@ An optional `si-{N}` segment can be added between the EPIC number and the descri
 the implementation order within the EPIC is significant and worth surfacing in the filename:
 
 ```text
-{SUB_ISSUE_NUMBER}-{EPIC_ISSUE_NUMBER}-si-{ORDER}-{short-description}/ISSUE.md
+{SUB_ISSUE_NUMBER}-{EPIC_ISSUE_NUMBER}-si-{ORDER}-{short-description}/issue.md
 ```
 
 Where:
@@ -92,7 +98,7 @@ Where:
 Example:
 
 ```text
-docs/issues/closed/1965-1669-si-34-consolidate-duplicate-http-types/ISSUE.md
+docs/issues/closed/1965-1669-si-34-consolidate-duplicate-http-types/issue.md
 ```
 
 ## Key Rule
@@ -103,10 +109,10 @@ GitHub issue number.
 
 ## Summary Table
 
-| Pattern             | Example                                                                                    |
-| ------------------- | ------------------------------------------------------------------------------------------ |
-| Standalone issue    | `1843-migrate-git-hooks-scripts-from-bash-to-rust.md`                                      |
-| EPIC spec           | `1978-configuration-overhaul-epic/EPIC.md`                                                 |
-| Folder-based issue  | `2022-vendor-and-document-maintainer-merge-workflow/ISSUE.md`                              |
-| Subissue            | `docs/issues/closed/1859-1669-move-tracker-policy-and-private-mode-to-primitives/ISSUE.md` |
-| Subissue with order | `docs/issues/closed/1965-1669-si-34-consolidate-duplicate-http-types/ISSUE.md`             |
+| Pattern                 | Example                                                                                    |
+| ----------------------- | ------------------------------------------------------------------------------------------ |
+| Legacy standalone issue | `1843-migrate-git-hooks-scripts-from-bash-to-rust.md`                                      |
+| EPIC spec               | `1978-configuration-overhaul-epic/epic.md`                                                 |
+| Folder-based issue      | `2022-vendor-and-document-maintainer-merge-workflow/issue.md`                              |
+| Subissue                | `docs/issues/closed/1859-1669-move-tracker-policy-and-private-mode-to-primitives/issue.md` |
+| Subissue with order     | `docs/issues/closed/1965-1669-si-34-consolidate-duplicate-http-types/issue.md`             |

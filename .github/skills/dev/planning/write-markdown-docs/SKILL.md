@@ -97,27 +97,25 @@ rendering handle the wrapping.
 
 ## Filename Conventions
 
-Use **UPPERCASE** for two categories of Markdown files:
+New concrete Markdown documents use lowercase filenames. Use **UPPERCASE** only
+for reusable document templates and the documented conventional exceptions
+`README.md` and `AGENTS.md`. Individual document families may define their own
+lowercase separators, such as kebab-case issue artifacts and timestamped
+snake_case ADRs. Existing uppercase concrete documents are legacy and may retain
+their names; do not rename them as unrelated cleanup. For legacy issue
+specifications specifically, a material specification update or an added
+issue-local artifact requires migration to lowercase `issue.md` or `epic.md`.
 
-1. **Templates** — reusable scaffolds (e.g. issue templates, PR templates).
-2. **Issue/EPIC specs** — the primary spec file inside a folder-based issue or
-   EPIC: `ISSUE.md`, `EPIC.md`.
+Templates use uppercase names, including `ISSUE.md`, `EPIC.md`, and
+`IMPLEMENTATION-RETROSPECTIVE.md`. Copies made for actual issues use lowercase:
+`issue.md`, `epic.md`, and `implementation-retrospective.md`.
 
-All other Markdown files (guides, notes, supporting docs) use **lowercase**
-kebab-case: `migration-guide.md`, `manual-verification.md`.
-
-> **Note**: `README.md` is a conventional uppercase exception to the lowercase
-> kebab-case rule for supporting docs.
-
-| Category       | Convention | Example                                                 |
-| -------------- | ---------- | ------------------------------------------------------- |
-| Templates      | UPPERCASE  | `.github/ISSUE_TEMPLATE/BUG_REPORT.md`                  |
-| Issue spec     | UPPERCASE  | `1978-configuration-overhaul-epic/EPIC.md`              |
-| Issue spec     | UPPERCASE  | `889-1978-new-config-option-for-logging-style/ISSUE.md` |
-| Supporting doc | lowercase  | `1978-configuration-overhaul-epic/migration-guide.md`   |
-
-> **Note**: This convention may be tightened in the future to reserve UPPERCASE
-> exclusively for templates. For now, issue/EPIC specs are an exception.
+| Category                | Convention | Example                                                            |
+| ----------------------- | ---------- | ------------------------------------------------------------------ |
+| Reusable template       | UPPERCASE  | `docs/templates/ISSUE.md`                                          |
+| Concrete issue spec     | lowercase  | `1978-configuration-overhaul-epic/epic.md`                         |
+| Concrete supporting doc | lowercase  | `1978-configuration-overhaul-epic/implementation-retrospective.md` |
+| Conventional index file | UPPERCASE  | `README.md`, `AGENTS.md`                                           |
 
 ## Checklist Before Committing Docs
 

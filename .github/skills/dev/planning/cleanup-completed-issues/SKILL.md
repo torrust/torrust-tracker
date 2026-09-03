@@ -69,20 +69,16 @@ git checkout -b chore/cleanup-completed-issues
 > git push "$FORK_REMOTE" --delete chore/cleanup-completed-issues
 > ```
 
-### Step 0.5: Discover Archive Candidates in Both Open-Spec Formats (Mandatory)
+### Step 0.5: Discover Archive Candidates (Mandatory)
 
-Always scan both issue spec formats under `docs/issues/open/`:
-
-1. **Directory specs** (multi-file issue folders)
-2. **Single-file specs** (`*.md` files except `README.md` and `AGENTS.md`)
-
-Do not proceed with archival if only one format was scanned.
+All new issue specifications use directories. Scan directory specs under
+`docs/issues/open/` and include legacy single-file specs while they remain:
 
 ```bash
 echo "[open issue folders]"
 find docs/issues/open -maxdepth 1 -mindepth 1 -type d -exec basename {} \; | sort
 
-echo "[open single-file specs]"
+echo "[legacy open single-file specs]"
 find docs/issues/open -maxdepth 1 -type f -name '*.md' \
   ! -name 'README.md' ! -name 'AGENTS.md' -exec basename {} \; | sort
 ```
@@ -130,15 +126,15 @@ for issue in 21 22 23 24; do
 done
 ```
 
-### Step 2: Move Issue File to `docs/issues/closed/`
+### Step 2: Move Issue Specification to `docs/issues/closed/`
 
-**Directory (multi-file subissue spec):**
+**Directory specification:**
 
 ```bash
 git mv docs/issues/open/42-my-subissue-folder/ docs/issues/closed/
 ```
 
-**Single file:**
+**Legacy single-file specification:**
 
 ```bash
 git mv docs/issues/open/42-add-peer-expiry-grace-period.md docs/issues/closed/
@@ -164,9 +160,13 @@ After moving, update the spec's YAML frontmatter to reflect the closed state:
 | `spec-path`        | `docs/issues/open/...`  | `docs/issues/closed/...` |
 | `last-updated-utc` | previous date           | current date             |
 
-For directories with multiple files, update at minimum the main `ISSUE.md` plus any
-supplementary files whose frontmatter references the `docs/issues/open/` path (e.g.,
-`related-artifacts` links to the open spec). For supplementary docs without existing
+For directories with multiple files, update at minimum the main lowercase `issue.md`
+or `epic.md` plus any supplementary files whose frontmatter references the
+`docs/issues/open/` path (e.g., `related-artifacts` links to the open spec). An
+uppercase `ISSUE.md` or `EPIC.md` is a legacy primary filename. Archival alone
+does not require a rename because it is not a material specification update;
+preserve the historical layout unless the archive change deliberately includes
+the migration. For supplementary docs without existing
 frontmatter, add a minimal block with `spec-path`, `last-updated-utc`, and a
 `semantic-links` section linking back to the parent issue spec.
 
@@ -220,8 +220,10 @@ The remaining results must be either corrected or deliberately retained historic
 If the closed issue was a subissue of an EPIC, update the epic's spec to reflect the
 new `docs/issues/closed/` path and `DONE` status in its subissue table.
 
-Example: if `docs/issues/open/EPIC.md` has a table row referencing a subissue at
-`docs/issues/open/...` with `TODO` status, update both the path and status after archiving.
+Example: if a parent `docs/issues/open/<epic-slug>/epic.md` has a table row
+referencing a subissue at `docs/issues/open/...` with `TODO` status, update both
+the path and status after archiving. Use the existing uppercase primary filename
+only when the parent EPIC is a legacy document that has not been migrated.
 
 The parent EPIC is also an affected document under Step 4: update its frontmatter
 `semantic-links` and `last-updated-utc` when applicable.

@@ -40,6 +40,11 @@ You plan the work. You do not perform implementation changes yourself.
    - Scope in/out
    - Acceptance criteria
    - Risks and assumptions
+   - A responsibility and ownership map when the work includes child processes,
+     asynchronous I/O, network readiness, resource cleanup, or reusable test
+     fixtures
+   - A post-vertical-slice design review when those concerns make the initial
+     implementation likely to reveal material design constraints
 4. Classify the issue as `task`, `bug`, or `feature`, with one-sentence justification.
 5. Select an implementation strategy and explain why it fits.
 6. Decompose into minimal, independently verifiable tasks.
@@ -49,6 +54,18 @@ You plan the work. You do not perform implementation changes yourself.
    - Verification approach
    - Dependencies
 8. Delegate implementation tasks to the **Implementer** (`@implementer`) in a clear execution order.
+
+Use folder-style issue specifications for all new planning work. The primary
+specification is lowercase `issue.md` or `epic.md`, and issue-local evidence,
+plans, and retrospectives remain in the same directory. Existing single-file
+specifications and uppercase `ISSUE.md`/`EPIC.md` primary files are legacy;
+migrate either when it is materially updated or needs an issue-local supporting
+artifact.
+
+For complex implementation work, ensure the specification requires an
+evidence-based completion review. It must either create an issue-local
+`implementation-retrospective.md` for reusable lessons or record why no
+retrospective was needed in the issue progress log.
 
 ## Output Format
 

@@ -2,7 +2,7 @@
 doc-type: epic
 status: draft
 github-issue: null
-spec-path: docs/issues/drafts/{short-description}.md
+spec-path: docs/issues/drafts/{short-description}/epic.md
 epic-owner: null
 last-updated-utc: YYYY-MM-DD HH:MM
 semantic-links:
@@ -40,10 +40,10 @@ Describe the current pain, risk, or missed opportunity.
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| Order | Issue                                | Local Spec                            | Status | Notes                  |
-| ----- | ------------------------------------ | ------------------------------------- | ------ | ---------------------- |
-| 1     | #[To be assigned] - {Subissue title} | `docs/issues/open/{number}-{slug}.md` | TODO   | {Dependencies/remarks} |
-| 2     | #[To be assigned] - {Subissue title} | `docs/issues/open/{number}-{slug}.md` | TODO   | {Dependencies/remarks} |
+| Order | Issue                                | Local Spec                                  | Status | Notes                  |
+| ----- | ------------------------------------ | ------------------------------------------- | ------ | ---------------------- |
+| 1     | #[To be assigned] - {Subissue title} | `docs/issues/open/{number}-{slug}/issue.md` | TODO   | {Dependencies/remarks} |
+| 2     | #[To be assigned] - {Subissue title} | `docs/issues/open/{number}-{slug}/issue.md` | TODO   | {Dependencies/remarks} |
 
 ## Delivery Strategy
 
@@ -54,6 +54,10 @@ For each subissue implementation in this EPIC, the default completion policy is:
 1. Run automatic checks (`linter all`, relevant tests, pre-push checks when applicable).
 2. Run manual verification scenarios and record evidence.
 3. Re-review acceptance criteria after implementation and update verification evidence.
+4. Complete an evidence-based implementation review. Create or update an
+   issue-local retrospective for reusable lessons, material design changes, or
+   meaningful deviations from the plan; otherwise record why one was unnecessary
+   in the issue progress log.
 
 ### Phase 1
 
@@ -77,6 +81,7 @@ For each subissue implementation in this EPIC, the default completion policy is:
 - [ ] For each implemented subissue: automatic checks completed and recorded
 - [ ] For each implemented subissue: manual verification completed and recorded
 - [ ] For each implemented subissue: acceptance criteria reviewed post-implementation
+- [ ] For each implemented subissue: implementation completion review recorded
 - [ ] Epic acceptance criteria reviewed and checked off
 - [ ] Epic issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
@@ -95,6 +100,7 @@ Append one line per meaningful update.
 - [ ] Every completed subissue includes automated verification evidence.
 - [ ] Every completed subissue includes manual verification evidence.
 - [ ] Every completed subissue includes post-implementation acceptance criteria review.
+- [ ] Every completed subissue includes an implementation completion review.
 - [ ] Documentation and governance updates are included when required.
 
 ### Acceptance Verification
