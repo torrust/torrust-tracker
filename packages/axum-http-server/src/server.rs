@@ -597,43 +597,75 @@ mod tests {
         }
     }
 
+    /// A server-start scenario whose HTTP binding is available to both the OS and the registry.
+    struct ServerStartWithAvailableHttpBinding {
+        bind_to: SocketAddr,
+        configuration: Arc<Configuration>,
+        configuration_instance_id: ConfigurationInstanceId,
+        registar: Registar<RuntimeServiceMetadata>,
+    }
+
+    impl ServerStartWithAvailableHttpBinding {
+        fn new() -> Self {
+            let configuration = Arc::new(ephemeral_public());
+            let bind_to = configuration
+                .http_trackers
+                .as_ref()
+                .expect("missing HTTP trackers configuration")[0]
+                .bind_address;
+
+            Self {
+                bind_to,
+                configuration,
+                configuration_instance_id: ConfigurationInstanceId::new(ServiceRole::HttpTracker, 0),
+                registar: Registar::default(),
+            }
+        }
+
+        async fn container(&self) -> Arc<HttpTrackerCoreContainer> {
+            initialize_global_services(&self.configuration);
+            Arc::new(initialize_container(&self.configuration).await)
+        }
+
+        async fn launcher(&self) -> Launcher {
+            let http_tracker_config = &self
+                .configuration
+                .http_trackers
+                .as_ref()
+                .expect("missing HTTP trackers configuration")[0];
+            let tls = if let Some(tls_config) = &http_tracker_config.tls_config {
+                Some(make_rust_tls(tls_config).await.expect("tls config failed"))
+            } else {
+                None
+            };
+
+            Launcher::new(self.bind_to, tls, http_tracker_config.network.ipv6_v6only)
+        }
+
+        fn registration_form(&self) -> ServiceRegistrationForm<RuntimeServiceMetadata> {
+            self.registar.give_form()
+        }
+
+        fn metadata(&self) -> RuntimeServiceMetadata {
+            RuntimeServiceMetadata::new(self.configuration_instance_id)
+        }
+    }
+
     #[tokio::test]
     async fn it_should_preserve_the_launcher_bind_address_after_starting_and_stopping() {
         // Arrange
-        let configuration = Arc::new(ephemeral_public());
-
-        let http_trackers = configuration
-            .http_trackers
-            .clone()
-            .expect("missing HTTP trackers configuration");
-
-        let http_tracker_config = &http_trackers[0];
-
-        let http_tracker_container = Arc::new(initialize_container(&configuration).await);
-        let bind_to = http_tracker_config.bind_address;
-        let tls = if let Some(tls_config) = &http_tracker_config.tls_config {
-            Some(make_rust_tls(tls_config).await.expect("tls config failed"))
-        } else {
-            None
-        };
-        let register = &Registar::default();
-        let stopped = HttpServer::new(Launcher::new(bind_to, tls, http_tracker_config.network.ipv6_v6only));
-
-        initialize_global_services(&configuration);
+        let scenario = ServerStartWithAvailableHttpBinding::new();
+        let http_tracker_container = scenario.container().await;
 
         // Act
-        let started = stopped
-            .start(
-                http_tracker_container,
-                register.give_form(),
-                RuntimeServiceMetadata::new(ConfigurationInstanceId::new(ServiceRole::HttpTracker, 0)),
-            )
+        let started = HttpServer::new(scenario.launcher().await)
+            .start(http_tracker_container, scenario.registration_form(), scenario.metadata())
             .await
             .expect("it should start the server");
         let stopped = started.stop().await.expect("it should stop the server");
 
         // Assert
-        assert_eq!(stopped.state.launcher.bind_to, bind_to);
+        assert_eq!(stopped.state.launcher.bind_to, scenario.bind_to);
     }
 
     #[tokio::test]

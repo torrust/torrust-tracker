@@ -225,7 +225,7 @@ exposes the inputs needed for the visible start/stop lifecycle Act.
 
 ### R7 — Name the normal server-start scenario
 
-- **Status:** PROPOSED
+- **Status:** DONE
 - **Priority:** Medium impact / medium effort
 - **Addresses:** P2, P7
 - **Change:** Introduce a file-local `ServerStartWithAvailableHttpBinding` scenario fixture as the
@@ -254,8 +254,8 @@ exposes the inputs needed for the visible start/stop lifecycle Act.
 - [ ] R4 assessment completed and decision recorded
 - [x] Maintainer approved implementation of R6
 - [x] R6 implemented, reviewed, and validated
-- [ ] Maintainer approved implementation of R7
-- [ ] R7 implemented, reviewed, and validated
+- [x] Maintainer approved implementation of R7
+- [x] R7 implemented, reviewed, and validated
 - [ ] Maintainer reviewed all approved changes
 - [ ] Plan completed and ready for commit
 
@@ -291,6 +291,9 @@ exposes the inputs needed for the visible start/stop lifecycle Act.
 - 2026-09-03 - User/maintainer - Requested a paired named scenario for the successful lifecycle
   test, so the scenario catalog documents both an available HTTP binding and a duplicate
   registration. R7 is proposed; no implementation was approved.
+- 2026-09-03 - GitHub Copilot - Completed R7 with `ServerStartWithAvailableHttpBinding`. The
+  normal-start scenario owns configuration, global setup, container construction, registry, TLS
+  selection, and metadata; the test retains the visible start/stop lifecycle contract.
 
 ### Validation Evidence
 
@@ -303,7 +306,7 @@ exposes the inputs needed for the visible start/stop lifecycle Act.
 | R4                 | TODO     | Not started.                                                                                                                                                  |
 | R5                 | DEFERRED | Awaiting a concrete flake or lifecycle-design trigger.                                                                                                        |
 | R6                 | DONE     | Editor diagnostics, `cargo fmt --all -- --check`, package library tests, `linter markdown`, `linter cspell`, and `git diff --check` passed.                   |
-| R7                 | PROPOSED | Not started.                                                                                                                                                  |
+| R7                 | DONE     | Editor diagnostics, `cargo fmt --all -- --check`, package library tests, `linter markdown`, `linter cspell`, and `git diff --check` passed.                   |
 
 ## Non-Goals
 
