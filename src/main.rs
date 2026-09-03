@@ -47,7 +47,10 @@ async fn wait_for_shutdown_signal() -> &'static str {
             result.expect("failed to install Ctrl-C handler");
             "SIGINT"
         },
-        _ = sigterm.recv() => "SIGTERM",
+        result = sigterm.recv() => {
+            result.expect("SIGTERM handler stream closed unexpectedly");
+            "SIGTERM"
+        },
         () = std::future::ready(()) => {
             tracing::info!("Tracker shutdown signal handlers installed.");
 
@@ -56,7 +59,10 @@ async fn wait_for_shutdown_signal() -> &'static str {
                     result.expect("failed to install Ctrl-C handler");
                     "SIGINT"
                 },
-                _ = sigterm.recv() => "SIGTERM",
+                result = sigterm.recv() => {
+                    result.expect("SIGTERM handler stream closed unexpectedly");
+                    "SIGTERM"
+                },
             }
         },
     }
