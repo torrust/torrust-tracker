@@ -119,6 +119,21 @@ vary tracker configuration or registry state without making every test explain t
 `initialize_container` duplication and shared bootstrap work remain separately tracked in
 `drafts/shared-handler-test-bootstrap.md` (B4).
 
+### P7 — The successful lifecycle Arrange also hides its defining scenario
+
+**Problem.** `it_should_preserve_the_launcher_bind_address_after_starting_and_stopping` directly
+assembles public configuration, container, optional TLS, empty registry, metadata, and launcher.
+The reader must infer that this is the normal counterpart to the duplicate-registration scenario:
+the configured HTTP binding is available to both the OS and the registry.
+
+**Why it matters.** The test's protected contract is launcher configuration preservation through a
+successful lifecycle, not configuration extraction or TLS selection. The scenario catalog is less
+useful if only failure states receive names.
+
+**Opportunity.** Add a paired file-local normal-start scenario fixture, tentatively named
+`ServerStartWithAvailableHttpBinding`, that owns the ordinary valid startup infrastructure and
+exposes the inputs needed for the visible start/stop lifecycle Act.
+
 ## Phase 2 — Proposed Refactorings
 
 ### R1 — Clarify lifecycle test names and AAA boundaries
@@ -189,7 +204,7 @@ vary tracker configuration or registry state without making every test explain t
 
 ### R6 — Name the duplicate-registration startup scenario
 
-- **Status:** APPROVED
+- **Status:** DONE
 - **Priority:** Medium impact / medium effort
 - **Addresses:** P6
 - **Change:** Replace the narrow plumbing helpers with a file-local test scenario, for example
@@ -208,6 +223,23 @@ vary tracker configuration or registry state without making every test explain t
   scenario fixture, and a reader can inspect that fixture for the detailed tracker bootstrap. The
   library tests still pass unchanged (34 passed).
 
+### R7 — Name the normal server-start scenario
+
+- **Status:** PROPOSED
+- **Priority:** Medium impact / medium effort
+- **Addresses:** P2, P7
+- **Change:** Introduce a file-local `ServerStartWithAvailableHttpBinding` scenario fixture as the
+  successful counterpart to `ServerStartWithDuplicateRegistration`. It owns public configuration,
+  global setup, container construction, an empty `Registar`, launcher settings, and metadata. The
+  test Arrange names the scenario, while the Act visibly starts then stops the server.
+- **Guardrails:** Do not imply that the `HttpTrackerCoreContainer` internals are the behavior under
+  test. The scenario's documented invariant must state that its binding is available to both the OS
+  and the registry. Keep `HttpServer::new(...).start(...)`, `.stop()`, and the launcher bind-address
+  assertion in the test body. Do not add a generic fixture with unrelated configuration options;
+  use a builder only if a future variation reads more clearly as a small chain of named choices.
+- **Done when:** the normal lifecycle test's Arrange is a named scenario and its relationship to
+  the duplicate-registration scenario is clear without changing the 34-test behavior.
+
 ## Progress Tracking
 
 ### Plan Checklist
@@ -221,7 +253,9 @@ vary tracker configuration or registry state without making every test explain t
 - [x] R3 assessment completed and decision recorded
 - [ ] R4 assessment completed and decision recorded
 - [x] Maintainer approved implementation of R6
-- [ ] R6 implemented, reviewed, and validated
+- [x] R6 implemented, reviewed, and validated
+- [ ] Maintainer approved implementation of R7
+- [ ] R7 implemented, reviewed, and validated
 - [ ] Maintainer reviewed all approved changes
 - [ ] Plan completed and ready for commit
 
@@ -251,6 +285,12 @@ vary tracker configuration or registry state without making every test explain t
   Arrange section should name the complete duplicate-registration scenario, not individual plumbing
   steps. Approved a file-local scenario fixture as a navigable catalog entry for future
   configuration and registration-state scenarios.
+- 2026-09-03 - GitHub Copilot - Completed R6 with `ServerStartWithDuplicateRegistration`. The
+  scenario owns the address handoff, HTTP configuration, duplicate-registration state, global setup,
+  and container construction; the test keeps the server start and error/cleanup contract visible.
+- 2026-09-03 - User/maintainer - Requested a paired named scenario for the successful lifecycle
+  test, so the scenario catalog documents both an available HTTP binding and a duplicate
+  registration. R7 is proposed; no implementation was approved.
 
 ### Validation Evidence
 
@@ -262,7 +302,8 @@ vary tracker configuration or registry state without making every test explain t
 | R3                 | DONE     | Inspected `check_fn_with_client`, existing test helpers, package health contracts, and health-check API contracts; no deterministic non-listener seam exists. |
 | R4                 | TODO     | Not started.                                                                                                                                                  |
 | R5                 | DEFERRED | Awaiting a concrete flake or lifecycle-design trigger.                                                                                                        |
-| R6                 | APPROVED | Scenario-fixture design approved; implementation not started.                                                                                                 |
+| R6                 | DONE     | Editor diagnostics, `cargo fmt --all -- --check`, package library tests, `linter markdown`, `linter cspell`, and `git diff --check` passed.                   |
+| R7                 | PROPOSED | Not started.                                                                                                                                                  |
 
 ## Non-Goals
 
