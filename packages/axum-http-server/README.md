@@ -29,8 +29,8 @@ cargo llvm-cov --manifest-path Cargo.toml --all-features --summary-only
 
 Use `--json` instead of `--summary-only` when you need per-file, function, and region detail.
 Aggregate percentages are only a navigation aid: prioritize behavior risk and per-file gaps when
-choosing tests. For Issue #1348's current measurement method and coverage interpretation, see
-[`coverage-evidence.md`](../../docs/issues/open/1348-1347-add-tests-axum-http-server/coverage-evidence.md).
+choosing tests. For Issue #2136's current measurement method and coverage interpretation, see
+[`coverage-evidence.md`](../../docs/issues/open/2136-1347-add-tests-axum-http-server/coverage-evidence.md).
 
 ## License
 
