@@ -126,7 +126,7 @@ server-local test unless it proves a missing observable contract.
 
 ### R3 — Assess a deterministic `check_fn_with_client` result contract
 
-- **Status:** TODO
+- **Status:** DONE
 - **Priority:** Medium impact / medium effort
 - **Addresses:** P4
 - **Change:** Identify an existing deterministic controlled HTTP-client boundary. If one can execute
@@ -135,8 +135,13 @@ server-local test unless it proves a missing observable contract.
 - **Guardrails:** Test one behavior-focused result path; do not duplicate URL-only, HTTP endpoint,
   trusted TLS, or health API registration tests. Do not use external networking, a port handoff,
   sleeps, retries, or log assertions.
-- **Done when:** the plan records a behavior-justified focused test or a concrete no-change/defer
-  rationale.
+- **Decision:** Deferred. `check_fn_with_client` accepts a concrete `reqwest::Client`, and no
+  existing deterministic in-process client transport or mock server seam can execute its spawned
+  request without a listener. The package and cross-package integration tests already cover HTTP
+  health success, trusted HTTPS health success, and post-stop request failure. Adding another
+  listener-based test here would duplicate those contracts and create the port/timing concerns that
+  this focused plan excludes.
+- **Done when:** the deferred rationale and existing coverage boundaries are recorded.
 
 ### R4 — Assess external lifecycle coverage boundaries
 
@@ -172,7 +177,7 @@ server-local test unless it proves a missing observable contract.
 - [x] R1 implemented, reviewed, and validated
 - [x] Maintainer approved implementation of R2
 - [x] R2 implemented, reviewed, and validated
-- [ ] R3 assessment completed and decision recorded
+- [x] R3 assessment completed and decision recorded
 - [ ] R4 assessment completed and decision recorded
 - [ ] Maintainer reviewed all approved changes
 - [ ] Plan completed and ready for commit
@@ -191,17 +196,20 @@ server-local test unless it proves a missing observable contract.
   limitation.
 - 2026-09-03 - GitHub Copilot - Completed R2. Documented why duplicate registration must occur
   after listener binding and why retries or waiting would conceal the OS-level handoff risk.
+- 2026-09-03 - GitHub Copilot - Completed R3 assessment. Deferred a direct health-job result test:
+  the injected client has no existing deterministic transport seam, while package and health-check
+  API integration tests already cover HTTP, trusted HTTPS, and post-stop health outcomes.
 
 ### Validation Evidence
 
-| Increment          | Status   | Evidence                                                                                                                                             |
-| ------------------ | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Plan documentation | DONE     | `linter markdown`, `linter cspell`, and `git diff --check` passed after plan creation.                                                               |
-| R1                 | DONE     | Editor diagnostics, `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-axum-http-server --lib` (34 passed), and `git diff --check` passed. |
-| R2                 | DONE     | `cargo fmt --all -- --check`, package library tests (34 passed), `linter markdown`, `linter cspell`, and `git diff --check` passed. |
-| R3                 | TODO     | Not started.                                                                                                                                         |
-| R4                 | TODO     | Not started.                                                                                                                                         |
-| R5                 | DEFERRED | Awaiting a concrete flake or lifecycle-design trigger.                                                                                               |
+| Increment          | Status   | Evidence                                                                                                                                                      |
+| ------------------ | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Plan documentation | DONE     | `linter markdown`, `linter cspell`, and `git diff --check` passed after plan creation.                                                                        |
+| R1                 | DONE     | Editor diagnostics, `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-axum-http-server --lib` (34 passed), and `git diff --check` passed.          |
+| R2                 | DONE     | `cargo fmt --all -- --check`, package library tests (34 passed), `linter markdown`, `linter cspell`, and `git diff --check` passed.                           |
+| R3                 | DONE     | Inspected `check_fn_with_client`, existing test helpers, package health contracts, and health-check API contracts; no deterministic non-listener seam exists. |
+| R4                 | TODO     | Not started.                                                                                                                                                  |
+| R5                 | DEFERRED | Awaiting a concrete flake or lifecycle-design trigger.                                                                                                        |
 
 ## Non-Goals
 
