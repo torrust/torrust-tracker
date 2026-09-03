@@ -8,6 +8,7 @@ metadata:
     related-artifacts:
       - docs/templates/ISSUE.md
       - docs/templates/EPIC.md
+      - docs/templates/IMPLEMENTATION-RETROSPECTIVE.md
 ---
 
 # Creating Issues
@@ -30,13 +31,13 @@ Lifecycle docs:
 - Open issue specs: [`docs/issues/open/README.md`](../../../../../docs/issues/open/README.md)
 - Closed issue buffer: [`docs/issues/closed/README.md`](../../../../../docs/issues/closed/README.md)
 
-1. **Draft specification** document in `docs/issues/drafts/` using the repository templates
+1. **Draft a folder-style specification** in `docs/issues/drafts/` using the repository templates
    appropriate to the issue type (`docs/templates/ISSUE.md` for Task/Bug/Feature,
-   `docs/templates/EPIC.md` for Epic). Use a folder-style specification when the issue needs
-   supporting artifacts that belong exclusively to that specification.
+   `docs/templates/EPIC.md` for Epic). Concrete folder-style primary
+   specifications use the allowed uppercase filenames `ISSUE.md` or `EPIC.md`.
 2. **User reviews** the draft specification
 3. **Create GitHub issue**
-4. **Move spec file to `docs/issues/open/`** and include the issue number
+4. **Move the spec directory to `docs/issues/open/`** and include the issue number
 5. **Pre-commit checks** and commit the spec
 
 For complex or high-impact issues, a **spec-first PR** is recommended:
@@ -60,23 +61,33 @@ Create a specification with a **temporary name** (no subissue number yet). When 
 subissue has a known parent EPIC, prefix the draft name with that EPIC's GitHub issue number:
 
 ```text
-docs/issues/drafts/{epic-issue-number}-{short-description}.md
+docs/issues/drafts/{epic-issue-number}-{short-description}/ISSUE.md
 ```
 
 This prefix identifies the known parent EPIC; it is not a placeholder for the future subissue's
 own GitHub issue number. Do not infer a parent EPIC from related issues, ADRs, or topic overlap.
-If the parent is not explicitly established, use an unnumbered descriptive draft name:
-
-```bash
-touch docs/issues/drafts/{short-description}.md
-```
-
-Use a folder-style specification when it needs issue-local supporting artifacts, such as an
-immutable source snapshot, evidence, or design input. Place the main specification in `ISSUE.md`:
+If the parent is not explicitly established, use an unnumbered descriptive draft folder:
 
 ```bash
 mkdir -p docs/issues/drafts/{short-description}
 touch docs/issues/drafts/{short-description}/ISSUE.md
+```
+
+All new specifications use a folder-style layout. It keeps issue-local artifacts, such as an
+immutable source snapshot, evidence, design input, or an implementation retrospective with the
+main specification. Place the main specification in uppercase `ISSUE.md`, or `EPIC.md` for an
+EPIC; issue-local supporting artifacts use lowercase kebab-case names:
+
+```bash
+mkdir -p docs/issues/drafts/{short-description}
+touch docs/issues/drafts/{short-description}/ISSUE.md
+```
+
+For an EPIC, use:
+
+```bash
+mkdir -p docs/issues/drafts/{short-description}
+touch docs/issues/drafts/{short-description}/EPIC.md
 ```
 
 For a known parent EPIC, apply the same prefix to a folder-style draft:
@@ -99,12 +110,28 @@ explicitly during implementation:
 - `Architectural Decisions`, linking relevant ADRs and listing any ADRs expected from the work
 - `Progress Tracking` (`Workflow Checkpoints` and first `Progress Log` entry)
 - `Acceptance Criteria` and `Acceptance Verification`
+- `Implementation Completion Review`, with the conditions for creating an
+  issue-local `implementation-retrospective.md` or recording why one is
+  unnecessary
 
 The draft must also include a verification policy that is explicit and enforceable:
 
 - Automatic checks to run after implementation (`linter all`, relevant tests, pre-push checks when applicable)
 - Manual verification scenarios with status + evidence tracking (mandatory)
 - A post-implementation acceptance criteria review step
+- An evidence-based implementation completion review that records reusable
+  lessons, material design changes, or deviations from the plan. Use
+  `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` when a separate
+  retrospective is warranted; otherwise require a concise progress-log entry
+  explaining why it is not.
+
+For work involving child processes, asynchronous I/O, network readiness,
+resource cleanup, or reusable test fixtures, the draft must additionally define:
+
+- a responsibility and ownership map;
+- normal and failure/drop-path resource lifetime invariants;
+- absolute deadline coverage for every awaited readiness operation; and
+- a design-review checkpoint after the first passing vertical slice.
 
 During implementation, create an ADR when an important architectural decision
 emerges, even if the issue draft did not anticipate it. Link the ADR from the
@@ -159,36 +186,25 @@ gh issue create \
 
 ### Step 4: Move the Specification to Open Issues
 
-Move from `drafts/` to `open/` using the assigned issue number. Preserve the chosen layout:
-
-**Single-file specification:**
-
-```bash
-git mv docs/issues/drafts/{short-description}.md \
-  docs/issues/open/{number}-{short-description}.md
-```
-
-For a subissue of a known EPIC, replace the draft's parent-only prefix with both GitHub issue
-numbers:
-
-```bash
-git mv docs/issues/drafts/{epic-issue-number}-{short-description}.md \
-  docs/issues/open/{number}-{epic-issue-number}-{short-description}.md
-```
-
-**Folder-style specification:**
+Move the folder-style specification from `drafts/` to `open/` using its assigned issue number:
 
 ```bash
 git mv docs/issues/drafts/{short-description} \
   docs/issues/open/{number}-{short-description}
 ```
 
-For a folder-style subissue, use
-`docs/issues/open/{number}-{epic-issue-number}-{short-description}`.
+For a subissue of a known EPIC, replace the draft's parent-only prefix with both GitHub issue
+numbers:
+
+```bash
+git mv docs/issues/drafts/{epic-issue-number}-{short-description} \
+  docs/issues/open/{number}-{epic-issue-number}-{short-description}
+```
 
 For folder-style specifications, the main document is
-`docs/issues/open/{number}-{short-description}/ISSUE.md`. Keep all issue-local artifacts in the
-same directory. Update the `spec-path` and all internal artifact references after the move.
+`docs/issues/open/{number}-{short-description}/ISSUE.md`, or `EPIC.md` for an EPIC. Keep all
+issue-local artifacts in the same directory. Update the `spec-path` and all internal artifact
+references after the move.
 
 Update any issue number placeholders inside the file.
 
@@ -253,6 +269,10 @@ before implementation starts:
 3. **Evidence tracking**: include status/evidence fields for manual scenarios.
 4. **Post-implementation AC review**: explicitly require acceptance criteria to be re-reviewed
    against observed behavior before closing the issue.
+5. **Implementation completion review**: require an evidence-based review after
+   implementation. Create an issue-local retrospective for reusable lessons,
+   material design changes, or meaningful deviations from the plan; otherwise
+   record why none was needed in the issue progress log.
 
 Do not treat an issue as complete only because automated tests pass; manual validation is required.
 
@@ -260,14 +280,39 @@ Do not treat an issue as complete only because automated tests pass; manual vali
 
 Use one of these layouts:
 
-| Layout      | Use when                                                  | Main specification path                 |
-| ----------- | --------------------------------------------------------- | --------------------------------------- |
-| Single file | The specification has no issue-local supporting artifacts | `{number}-{short-description}.md`       |
-| Folder      | The specification has issue-local artifacts               | `{number}-{short-description}/ISSUE.md` |
+| Layout      | Status                                                                                  | Main specification path                 |
+| ----------- | --------------------------------------------------------------------------------------- | --------------------------------------- |
+| Folder      | Required for all new specifications                                                     | `{number}-{short-description}/ISSUE.md` |
+| Single file | Legacy only; migrate when materially updating it or when adding an issue-local artifact | `{number}-{short-description}.md`       |
+
+### Migrating a Legacy Specification
+
+Migrate a legacy single-file specification before adding an issue-local artifact
+or when materially updating its planning or completion-review content. Do not
+migrate unrelated legacy specifications opportunistically.
+
+1. Move the existing primary document into a folder with its current issue
+   prefix and the allowed uppercase primary filename: `ISSUE.md` or `EPIC.md`.
+2. Update the moved document's `spec-path`, `semantic-links.related-artifacts`,
+   and relative links to issue-local documents.
+3. Search for live references to the former path and repair them. Retain paths
+   in immutable historical records only when they accurately describe the path
+   at that time.
+4. Add any new issue-local artifact after the move, then validate Markdown
+   links and frontmatter.
+
+For example, migrate an issue specification with:
+
+```bash
+mkdir docs/issues/open/42-short-description
+git mv docs/issues/open/42-short-description.md \
+  docs/issues/open/42-short-description/ISSUE.md
+```
 
 Examples:
 
-- `1697-ai-agent-configuration.md`
-- `42-add-peer-expiry-grace-period.md`
-- `523-internal-linting-tool.md`
+- `1697-ai-agent-configuration/ISSUE.md`
+- `42-add-peer-expiry-grace-period/ISSUE.md`
+- `523-internal-linting-tool/ISSUE.md`
 - `2022-vendor-and-document-maintainer-merge-workflow/ISSUE.md`
+- `1669-overhaul-packages/EPIC.md`

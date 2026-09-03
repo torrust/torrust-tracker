@@ -2,12 +2,14 @@
 
 ## Spec Naming Conventions
 
-Use a standalone Markdown file when a specification has no issue-local supporting artifacts.
-Use a folder when it needs issue-local artifacts; the primary file inside the folder is `ISSUE.md`
-for issues or `EPIC.md` for EPICs. The GitHub issue number must start every filename or folder
-name.
+All new specifications use a folder. The primary file inside the folder is the
+allowed uppercase `ISSUE.md` for issues or `EPIC.md` for EPICs. This keeps
+supporting artifacts, including lowercase `implementation-retrospective.md`, in
+the issue directory. The GitHub issue number must start every folder name.
+Existing standalone files are legacy; migrate them when materially updating the
+specification or adding an issue-local artifact.
 
-### Standalone specification
+### Legacy standalone specification
 
 #### Issue
 
@@ -30,10 +32,10 @@ Example:
 Example:
 
 ```text
-1978-configuration-overhaul-epic/EPIC.md
+1978-configuration-overhaul-epic.md
 ```
 
-### Folder-based specification
+### Required folder-based specification
 
 #### Issue (not part of an EPIC)
 
@@ -103,10 +105,11 @@ GitHub issue number.
 
 ## Summary Table
 
-| Pattern             | Example                                                                                    |
-| ------------------- | ------------------------------------------------------------------------------------------ |
-| Standalone issue    | `1843-migrate-git-hooks-scripts-from-bash-to-rust.md`                                      |
-| EPIC spec           | `1978-configuration-overhaul-epic/EPIC.md`                                                 |
-| Folder-based issue  | `2022-vendor-and-document-maintainer-merge-workflow/ISSUE.md`                              |
-| Subissue            | `docs/issues/closed/1859-1669-move-tracker-policy-and-private-mode-to-primitives/ISSUE.md` |
-| Subissue with order | `docs/issues/closed/1965-1669-si-34-consolidate-duplicate-http-types/ISSUE.md`             |
+| Pattern                 | Example                                                                                    |
+| ----------------------- | ------------------------------------------------------------------------------------------ |
+| Legacy standalone issue | `1843-migrate-git-hooks-scripts-from-bash-to-rust.md`                                      |
+| Legacy standalone EPIC  | `1978-configuration-overhaul-epic.md`                                                      |
+| Folder-based issue      | `2022-vendor-and-document-maintainer-merge-workflow/ISSUE.md`                              |
+| Folder-based EPIC       | `1669-overhaul-packages/EPIC.md`                                                           |
+| Subissue                | `docs/issues/closed/1859-1669-move-tracker-policy-and-private-mode-to-primitives/ISSUE.md` |
+| Subissue with order     | `docs/issues/closed/1965-1669-si-34-consolidate-duplicate-http-types/ISSUE.md`             |

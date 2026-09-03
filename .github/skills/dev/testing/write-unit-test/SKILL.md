@@ -61,6 +61,23 @@ Acceptable reasons to defer or avoid direct unit tests include:
 If a feature is hard to test, treat that as design feedback first and improve testability when
 practical.
 
+### Lifecycle Fixture Design Review
+
+When a test fixture manages a child process, asynchronous I/O, network
+readiness, or failure cleanup, define its lifecycle design before implementing
+the main scenario:
+
+1. Identify the narrow test-facing interface and the owner of each resource.
+2. Keep passive infrastructure, such as output draining, separate from
+   domain-specific interpretation such as readiness rules.
+3. State resource lifetime through normal shutdown and panic/drop cleanup;
+   retain diagnostic output after reader tasks complete where possible.
+4. Use one absolute deadline that bounds all awaited readiness work, including
+   connection attempts, response decoding, child-exit checks, and retry delays.
+5. After the first passing vertical slice, review whether the responsibilities
+   remain coherent. Record material lessons in the issue completion review;
+   do not create generic abstractions without a demonstrated need.
+
 ### Project-specific conventions
 
 - **Behavior-driven naming** — test names document what the code does

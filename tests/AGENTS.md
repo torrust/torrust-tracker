@@ -88,6 +88,24 @@ conflict occurs. Fixed-port binaries (e.g., `metrics-fixed-ports`)
 use distinct non-overlapping ports and must not run concurrently with other
 binaries that use the same ports.
 
+### Child-Process Configuration Isolation
+
+Executable-boundary tests may start the tracker as a child process instead of
+calling `app::start()` in their integration-test executable. Set
+`TORRUST_TRACKER_CONFIG_TOML_PATH` on that specific `Command`, not in the test
+process environment. A child receives its own environment snapshot when it is
+spawned, so concurrent test binaries and concurrent child processes cannot
+overwrite each other's configured path. Each child must still use a separate
+`TempDir` workspace and port-zero listener configuration.
+
+The tracker currently receives its configuration-file path through environment
+configuration; it does not provide a tracker-binary configuration-path command
+line argument. A future explicit argument may be preferable because it makes
+the child configuration visible in the invocation. If introduced, it should
+take precedence over `TORRUST_TRACKER_CONFIG_TOML_PATH`, be documented as the
+canonical executable-boundary test mechanism, and retain the environment
+variable for compatibility until a separately approved migration removes it.
+
 ### Why one binary per configuration?
 
 The 1:1 mapping between integration-test binaries and tracker configurations

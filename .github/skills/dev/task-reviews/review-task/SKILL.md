@@ -24,7 +24,16 @@ an issue/task is complete and ready to be pushed.
 3. Run relevant validation checks (`linter all` minimum, plus focused tests when applicable).
 4. Classify each criterion as `PASS`, `FAIL`, or `PENDING`.
 5. Update only verified checklist items in the issue spec.
-6. Report pass/fail with remediation for any gaps.
+6. Review the implementation completion evidence. Require an issue-local
+   `implementation-retrospective.md` when the work revealed reusable lessons,
+   material design changes, or meaningful deviations from the plan. Otherwise,
+   require a concise issue progress-log entry explaining why no retrospective
+   was needed.
+7. Require a folder-style specification before accepting an issue-local
+   retrospective. When a touched legacy single-file specification needs one,
+   require migration to the documented folder layout first. `ISSUE.md` and
+   `EPIC.md` are allowed primary-file exceptions in that layout.
+8. Report pass/fail with remediation for any gaps.
 
 ## Task Review Checklist
 
@@ -47,6 +56,8 @@ an issue/task is complete and ready to be pushed.
 - [ ] Only verified checklist items are marked done.
 - [ ] Workflow checkpoints reflect pre-PR status correctly.
 - [ ] Progress log includes meaningful, factual updates.
+- [ ] Completion review records a retrospective or a rationale that one was unnecessary.
+- [ ] Any retrospective belongs to a folder-style issue specification; the retrospective is lowercase while `ISSUE.md` and `EPIC.md` are allowed primary-file exceptions.
 
 ## Output
 
@@ -54,9 +65,10 @@ Return:
 
 1. Scope reviewed
 2. Acceptance criteria matrix (`PASS`/`FAIL`/`PENDING` + evidence)
-3. Blocking findings
-4. Issue spec updates made
-5. Overall result (`REVIEW PASSED` or `REVIEW FAILED`)
+3. Repository-convention findings
+4. Completion-review finding
+5. Issue spec updates made
+6. Overall result (`REVIEW PASSED` or `REVIEW FAILED`)
 
 ## Not In Scope
 

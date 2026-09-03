@@ -131,6 +131,7 @@ that type.
 | -------------------------------------------------------------------------------------- | ------------------------------------------------------ |
 | [templates/ADR.md](templates/ADR.md)                                                   | Template for Architectural Decision Records            |
 | [templates/EPIC.md](templates/EPIC.md)                                                 | Template for EPIC issue specifications                 |
+| [templates/IMPLEMENTATION-RETROSPECTIVE.md](templates/IMPLEMENTATION-RETROSPECTIVE.md) | Template for issue-local implementation retrospectives |
 | [templates/ISSUE.md](templates/ISSUE.md)                                               | Template for task / bug / feature issue specifications |
 | [templates/REFACTOR-PLAN.md](templates/REFACTOR-PLAN.md)                               | Template for refactor plan specifications              |
 | [templates/COPILOT-SUGGESTIONS-TEMPLATE.md](templates/COPILOT-SUGGESTIONS-TEMPLATE.md) | Template for recording Copilot PR review suggestions   |

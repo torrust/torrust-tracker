@@ -46,6 +46,10 @@ path = "tests/banning/udp_shared_connection_id_error_limit.rs"
 name = "banning-udp-shared-connection-id-error-limit-reverse-order"
 path = "tests/banning/udp_shared_connection_id_error_limit_reverse_order.rs"
 
+[[test]]
+name = "lifecycle-signals"
+path = "tests/lifecycle/signals.rs"
+
 [lints]
 workspace = true
 
@@ -82,7 +86,7 @@ sha1 = "0.11.0"
 sha2 = "0.11.0"
 tempfile = "3.27.0"
 thiserror = "2.0.12"
-tokio = { version = "1", features = [ "macros", "net", "rt-multi-thread", "signal", "sync" ] }
+tokio = { version = "1", features = [ "io-util", "macros", "net", "process", "rt-multi-thread", "signal", "sync", "time" ] }
 tokio-util = "0.7.15"
 torrust-tracker-axum-health-check-api-server = { version = "0.1.0", path = "packages/axum-health-check-api-server" }
 torrust-tracker-axum-http-server = { version = "0.1.0", path = "packages/axum-http-server" }
@@ -104,6 +108,10 @@ tracing-subscriber = { version = "0", features = [ "json" ] }
 torrust-net-primitives = "0.1.0"
 torrust-tracker-test-helpers = { version = "3.0.0", path = "packages/test-helpers" }
 url = { version = "2", features = [ "serde" ] }
+
+[target.'cfg(unix)'.dev-dependencies]
+# `nix` provides typed, safe delivery of POSIX signals to the exact child PID.
+nix = { version = "0.31.3", default-features = false, features = [ "signal" ] }
 
 [workspace]
 members = [

@@ -109,7 +109,34 @@ Do not proceed to the next step until the auditor reports no blocking issues.
 
 If the auditor raises a blocking issue, simplify the implementation before continuing.
 
-### Step 5 — Request Independent Verification
+### Step 5 — Complete an Evidence-Based Implementation Review
+
+Before independent verification, compare the completed implementation with the
+issue specification and record the result in the issue-local documentation:
+
+1. Identify assumptions invalidated by implementation, material design changes,
+   unexpected validation findings, and reusable engineering lessons.
+2. Decide whether an issue-local `implementation-retrospective.md` is needed.
+   Create it when the work produced a reusable lesson, a material design change,
+   or a meaningful deviation from the original plan. Retrospectives require a
+   folder-style issue specification; before adding one, migrate a touched legacy
+   single-file spec to its documented folder layout. `ISSUE.md` and `EPIC.md`
+   are allowed primary-file exceptions in folder-style specifications.
+3. When no retrospective is needed, add a brief completion-review entry to the
+   issue progress log explaining why the work did not meet those conditions.
+4. If the lesson applies beyond the issue, update the relevant repository skill,
+   agent, template, or canonical documentation in the same change, or record a
+   separately scoped follow-up.
+5. Do not create retrospectives for routine work with no material discovery.
+   Retrospectives must remain evidence-based and blameless; they are not a
+   substitute for acceptance-criteria verification or an implementation diary.
+
+For test fixtures with child processes, asynchronous I/O, network readiness, or
+panic-safe cleanup, explicitly review collaborator responsibilities, resource
+ownership across normal and drop-path cleanup, deadline coverage, and separation
+between passive infrastructure and domain interpretation.
+
+### Step 6 — Request Independent Verification
 
 When all steps are complete and tests are passing, invoke the **Task Reviewer**
 (`@task-reviewer`) to verify the work before any commit. Provide the following context upfront:
@@ -125,7 +152,7 @@ When all steps are complete and tests are passing, invoke the **Task Reviewer**
 If the Task Reviewer reports gaps, pending tasks, failing behaviour, or
 repository-convention problems, address those issues first and request review again.
 
-### Step 6 — Commit When Ready
+### Step 7 — Commit When Ready
 
 Only after Task Reviewer approval, invoke the **Committer** (`@committer`) with a description of
 what was implemented and verified. Do not commit directly — always delegate to the Committer.

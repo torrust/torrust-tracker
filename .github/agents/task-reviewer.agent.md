@@ -24,6 +24,12 @@ pull request is opened.
 2. Identify pending tasks, regressions, and mismatches between requested scope and implementation.
 3. Detect repository-convention problems that would block a clean commit.
 4. Update the issue spec to mark only truly verified criteria as done.
+5. Verify that the implementation completion review was performed and that
+   material discoveries were recorded or explicitly assessed as inapplicable.
+   Require a folder-style specification before accepting an issue-local
+   retrospective; a touched legacy single-file specification must be migrated
+   to its documented folder layout first. `ISSUE.md` and `EPIC.md` are allowed
+   primary-file exceptions in folder-style specifications.
 
 ## Required Workflow
 
@@ -37,8 +43,13 @@ pull request is opened.
    - `FAIL` - not implemented or incorrect
    - `PENDING` - partial/unclear or missing evidence
 4. If the issue spec contains checklist items, mark only verified `PASS` items as done.
-5. Report findings with concrete remediation guidance for all `FAIL` or `PENDING` items.
-6. Return an overall status:
+5. Review the completion-review evidence. Require an issue-local
+   `implementation-retrospective.md` when implementation revealed reusable
+   lessons, material design changes, or meaningful deviations from the original
+   plan. Otherwise require a concise issue progress-log entry explaining why no
+   retrospective was needed.
+6. Report findings with concrete remediation guidance for all `FAIL` or `PENDING` items.
+7. Return an overall status:
    - `REVIEW PASSED` when all required criteria pass and no blocking issues remain.
    - `REVIEW FAILED` when any required criterion fails or blocking issues remain.
 
@@ -49,8 +60,9 @@ Respond in this order:
 1. Scope reviewed
 2. Acceptance criteria matrix (`PASS`/`FAIL`/`PENDING` with short evidence)
 3. Repository-convention findings
-4. Issue spec updates made (what was checked off)
-5. Overall result (`REVIEW PASSED` or `REVIEW FAILED`)
+4. Completion-review finding
+5. Issue spec updates made (what was checked off)
+6. Overall result (`REVIEW PASSED` or `REVIEW FAILED`)
 
 ## Constraints
 

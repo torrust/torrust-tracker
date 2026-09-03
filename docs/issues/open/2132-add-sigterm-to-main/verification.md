@@ -150,88 +150,141 @@ Ports freed correctly when the OS killed the process.
 
 ## Phase 2 — Post-Implementation (After the Fix)
 
-> **Status**: Not started — to be completed after SI-1 is implemented and merged.
+> **Status**: Completed on 2026-09-02.
 
-Rebuild the binary from the branch with the SIGTERM fix applied, then run all
-tests below. The environment block must be updated with the new commit hash.
+The release binary was rebuilt from the branch with the uncommitted SIGTERM fix
+applied, then the checks below were run.
 
 ### P2 Environment
 
-- **Date**:
-- **Tracker git commit** (`git rev-parse --short HEAD`):
-- **Branch** (`git branch --show-current`):
+- **Date**: 2026-09-02
+- **OS**: Linux josecelano-desktop 7.0.0-30-generic #30-Ubuntu SMP PREEMPT_DYNAMIC Fri Jul 31 18:22:54 UTC 2026 x86_64 GNU/Linux
+- **Tracker git commit** (`git rev-parse --short HEAD`): 2d972739 (working tree contains the SI-1 change)
+- **Branch** (`git branch --show-current`): 2132-add-sigterm-to-main
 
 ### P2 — Test 1: `kill <pid>` triggers graceful shutdown (SIGTERM handled)
 
 Same procedure as P1 Test 1 using the fixed binary.
 
 ```text
-(paste terminal output — must show "Process has exited")
+Tracker PID: 1153694
+Startup indication observed after 2 checks.
+RESULT: Process exited after default SIGTERM (21 checks).
 ```
 
 ```text
-(paste /tmp/tracker-si1-after-test1.log)
+2026-09-02T10:20:22.449045Z  INFO torrust_tracker: Torrust tracker shutting down (SIGTERM) ...
+2026-09-02T10:20:22.449071Z  INFO torrust_tracker_lib::bootstrap::jobs::manager: Waiting for job to finish (timeout of 10 seconds) ... job=swarm_coordination_registry_event_listener
+2026-09-02T10:20:32.451223Z  INFO torrust_tracker_lib::bootstrap::jobs::manager: Waiting for job to finish (timeout of 10 seconds) ... job=peers_inactivity_update
+2026-09-02T10:20:42.452078Z  INFO torrust_tracker: Torrust tracker successfully shutdown.
 ```
 
 #### P2 Test 1 Pass/Fail
 
-- [ ] PASS: Process exits without a second signal
-- [ ] PASS: Log contains `shutting down (SIGTERM)`
-- [ ] PASS: Log shows `jobs.cancel()` and managed-job waiting began
-- [ ] PASS: Do not require every legacy component to complete in this
+- [x] PASS: Process exits without a second signal
+- [x] PASS: Log contains `shutting down (SIGTERM)`
+- [x] PASS: Log shows `jobs.cancel()` and managed-job waiting began
+- [x] PASS: Do not require every legacy component to complete in this
       incremental signal-boundary change
 
 ### P2 — Test 1a: Bounded direct-binary signal delivery
 
 ```text
-(paste the bounded harness command and terminal output)
+RUST_LOG=info ./target/release/torrust-tracker > .tmp/si-1-sigterm-default.log 2>&1 &
+tracker_pid=$!
+# Poll the direct binary PID and its startup log for at most 60 seconds.
+kill "$tracker_pid"
+# Poll the direct binary PID for exit for at most 90 seconds.
+
+Tracker PID: 1153694
+Startup indication observed after 2 checks.
+RESULT: Process exited after default SIGTERM (21 checks).
 ```
 
-- [ ] PASS: The harness targets the release tracker binary PID, not `cargo run`.
-- [ ] PASS: SIGTERM reaches `main()` and begins cancellation before the harness deadline.
-- [ ] PASS: The recorded bound accommodates SI-1's current sequential legacy
+- [x] PASS: The harness targets the release tracker binary PID, not `cargo run`.
+- [x] PASS: SIGTERM reaches `main()` and begins cancellation before the harness deadline.
+- [x] PASS: The recorded bound accommodates SI-1's current sequential legacy
       shutdown behavior; SI-20 owns the final process deadline.
 
 ### P2 — Test 2: `kill -TERM <pid>` — same outcome as P2 Test 1
 
 ```text
-(paste log output)
+Tracker PID: 1154347
+Startup indication observed after 2 checks.
+RESULT: Process exited after explicit SIGTERM (21 checks).
+2026-09-02T10:20:59.433560Z  INFO torrust_tracker: Torrust tracker shutting down (SIGTERM) ...
+2026-09-02T10:20:59.433589Z  INFO torrust_tracker_lib::bootstrap::jobs::manager: Waiting for job to finish (timeout of 10 seconds) ... job=swarm_coordination_registry_event_listener
+2026-09-02T10:21:19.436259Z  INFO torrust_tracker: Torrust tracker successfully shutdown.
 ```
 
-- [ ] PASS: Outcome identical to P2 Test 1
+- [x] PASS: Outcome identical to P2 Test 1
 
 ### P2 — Test 3: Ctrl+C — log says SIGINT not SIGTERM
 
 ```text
-(paste log output)
+Tracker PID: 1155312
+Startup indication observed after 2 checks.
+RESULT: Process exited after SIGINT (2 checks).
+2026-09-02T10:22:00.797660Z  INFO torrust_tracker: Torrust tracker shutting down (SIGINT) ...
+2026-09-02T10:22:00.797684Z  INFO torrust_tracker_lib::bootstrap::jobs::manager: Waiting for job to finish (timeout of 10 seconds) ... job=swarm_coordination_registry_event_listener
+2026-09-02T10:22:00.798412Z  INFO torrust_tracker: Torrust tracker successfully shutdown.
 ```
 
-- [ ] PASS: Log contains `shutting down (SIGINT)`
-- [ ] PASS: Log does NOT contain `shutting down (SIGTERM)`
+- [x] PASS: Log contains `shutting down (SIGINT)`
+- [x] PASS: Log does NOT contain `shutting down (SIGTERM)`
 
 ### P2 — Test 4: SIGKILL — still force-terminates immediately (exit 137)
 
-```bash
-kill -9 <pid>
-echo "Exit code: $?"
-```
-
 ```text
-(paste output)
+Tracker PID: 1160642
+Startup indication observed after 2 checks.
+Exit code: 137
+RESULT: No graceful-shutdown log after SIGKILL.
 ```
 
-- [ ] PASS: Exit code is 137
-- [ ] PASS: No graceful shutdown log lines after the kill
+- [x] PASS: Exit code is 137
+- [x] PASS: No graceful shutdown log lines after the kill
 
 ### P2 — Test 5: `docker stop` forwards SIGTERM (exploratory)
 
 ```text
-(paste `time docker stop` output and container log tail — or mark as SKIPPED)
+SKIPPED: container validation is exploratory for SI-1. SI-20 owns configured external-grace-period validation.
 ```
 
 - [ ] PASS: Container log shows `main.rs` received SIGTERM and began shutdown
 - [ ] RECORD: Whether the configured Docker deadline was sufficient
-- [ ] SKIPPED (reason: \_\_\_)
+- [x] SKIPPED (reason: container validation is exploratory for SI-1; SI-20 owns configured external-grace-period validation)
+
+### P2 — Test 6: Native Unix executable-boundary regression suite
+
+```text
+cargo test --test lifecycle-signals
+
+running 4 tests
+test native_tracker::tests::it_should_extract_the_assigned_health_check_address_from_its_startup_log ... ok
+test it_should_force_kill_and_reap_the_tracker_binary_when_the_fixture_is_dropped ... ok
+test it_should_distinguish_sigint_from_sigterm_when_shutting_down_the_tracker_binary ... ok
+test it_should_gracefully_shutdown_the_tracker_binary_when_sigterm_is_delivered_to_its_exact_pid ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 20.07s
+```
+
+The fixture creates a port-zero temporary configuration, starts the Cargo-built
+executable, discovers the health-check address from its `Started on` log, and
+requires `/health_check` to report `Status::Ok`. It delivers the typed `nix`
+signal directly to the retained child PID. A controlled fixture-drop scenario
+confirms failure-path force-kill and reaping; normal scenarios only await the
+graceful shutdown path.
+
+The full root suite and lint gate also passed locally:
+
+```text
+cargo test
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+linter all
+All linters passed
+```
 
 ---
 
@@ -242,12 +295,12 @@ echo "Exit code: $?"
 | P1    | T1   | SIGTERM ignored — process survives  | Confirmed |
 | P1    | T2   | SIGKILL required — exit code 137    | Confirmed |
 | P1    | T3   | Ports freed after SIGKILL           | Confirmed |
-| P2    | T1   | SIGTERM reaches `main()`            | Pending   |
-| P2    | T1a  | Bounded direct-binary delivery      | Pending   |
-| P2    | T2   | `kill -TERM` — same as T1           | Pending   |
-| P2    | T3   | Ctrl+C — log says SIGINT            | Pending   |
-| P2    | T4   | SIGKILL — exit 137, no shutdown log | Pending   |
-| P2    | T5   | `docker stop` forwards SIGTERM      | Pending   |
+| P2    | T1   | SIGTERM reaches `main()`            | Passed    |
+| P2    | T1a  | Bounded direct-binary delivery      | Passed    |
+| P2    | T2   | `kill -TERM` — same as T1           | Passed    |
+| P2    | T3   | Ctrl+C — log says SIGINT            | Passed    |
+| P2    | T4   | SIGKILL — exit 137, no shutdown log | Passed    |
+| P2    | T5   | `docker stop` forwards SIGTERM      | Skipped   |
 
 All P2 tests must PASS (or T5 is skipped with a reason) before this issue can
 be closed. Complete lifecycle success is verified by the later component,
