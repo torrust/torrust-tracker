@@ -135,6 +135,8 @@ mod tests {
     use torrust_tracker_primitives::{ConfigurationInstanceId, ScrapeData, ServiceRole};
     use torrust_tracker_test_helpers::configuration;
 
+    const MAX_RESPONSE_BODY_BYTES: usize = 64 * 1024;
+
     struct TestServices {
         pub scrape_service: Arc<ScrapeService>,
     }
@@ -231,7 +233,7 @@ mod tests {
             "a successful scrape response should use HTTP 200"
         );
 
-        let body = to_bytes(response.into_body(), usize::MAX)
+        let body = to_bytes(response.into_body(), MAX_RESPONSE_BODY_BYTES)
             .await
             .expect("scrape response body should be readable");
 
@@ -245,7 +247,7 @@ mod tests {
             "a BitTorrent scrape failure response should use HTTP 200"
         );
 
-        let body = to_bytes(response.into_body(), usize::MAX)
+        let body = to_bytes(response.into_body(), MAX_RESPONSE_BODY_BYTES)
             .await
             .expect("scrape failure response body should be readable");
 

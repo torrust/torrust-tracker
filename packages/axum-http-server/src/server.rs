@@ -538,12 +538,12 @@ mod tests {
         }
 
         fn available_http_bind_address() -> SocketAddr {
-            // Registration must fail after the server has bound this address, so the reservation is
+            // Registration must fail after the server has bound this address, so this listener is
             // released before start. Do not add retries or waits: they would hide this OS-level handoff
             // risk instead of preserving the cleanup contract under test.
-            let reserved_listener = TcpListener::bind((Ipv4Addr::LOCALHOST, 0)).expect("reserve HTTP listener address");
-            let bind_to = reserved_listener.local_addr().expect("read reserved listener address");
-            drop(reserved_listener);
+            let available_listener = TcpListener::bind((Ipv4Addr::LOCALHOST, 0)).expect("select available HTTP listener address");
+            let bind_to = available_listener.local_addr().expect("read available listener address");
+            drop(available_listener);
 
             bind_to
         }

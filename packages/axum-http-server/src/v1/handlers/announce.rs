@@ -160,6 +160,8 @@ mod tests {
     use torrust_tracker_primitives::{AnnounceData, AnnouncePolicy, ConfigurationInstanceId, PeerId, ServiceRole};
     use torrust_tracker_test_helpers::configuration;
 
+    const MAX_RESPONSE_BODY_BYTES: usize = 64 * 1024;
+
     use crate::tests::helpers::sample_info_hash;
 
     struct CoreHttpTrackerServices {
@@ -370,7 +372,7 @@ mod tests {
             "a successful announce response should use HTTP 200"
         );
 
-        let body = to_bytes(response.into_body(), usize::MAX)
+        let body = to_bytes(response.into_body(), MAX_RESPONSE_BODY_BYTES)
             .await
             .expect("announce response body should be readable");
 
