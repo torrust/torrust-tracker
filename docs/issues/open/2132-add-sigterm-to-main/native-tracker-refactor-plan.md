@@ -396,6 +396,70 @@ is necessary.
       production startup-contract change was introduced without a separate
       approved need.
 
+## Post-Completion Improvement Proposals
+
+The refactor above is complete. The following proposals were identified during
+the final review and are intentionally not part of its completion criteria.
+They are small, independently verifiable follow-ups. Implement only a proposal
+that remains valuable when it is reviewed again; do not reopen the completed
+refactor merely to add speculative abstraction.
+
+### Proposal 1: Characterize rejected health-check startup logs
+
+**Why it may be worthwhile:** `parse_health_check_address` is the intentional
+source of the ephemeral health-check address. The existing positive test proves
+the expected startup line is accepted, but does not characterize rejected input.
+Small negative cases guard against future false positives that could make the
+readiness loop probe an unintended address.
+
+**Small scope:** Add table-driven fixture-local tests for these inputs:
+
+1. A line from an unrelated log target.
+2. A health-check log line without the `Started on: http://` prefix.
+3. A health-check startup line with a malformed or non-socket address.
+
+Do not introduce a log-parsing service or move tracker-specific parsing into
+`TrackerOutputCapture`; it deliberately remains a passive output component.
+
+**Verification:** Run `cargo test --test lifecycle-signals` and the applicable
+formatting/lint checks.
+
+**Independent commit boundary:**
+`test(lifecycle): cover malformed health startup logs`.
+
+### Proposal 2: Align native shutdown-plan output-capture wording
+
+**Why it may be worthwhile:** `native-shutdown-test-plan.md` describes retaining
+each output stream and concatenating after exit, while the fixture deliberately
+drains stdout and stderr concurrently into one retained buffer. The actual
+contract is message presence, not stream identity or cross-stream ordering.
+
+**Small scope:** Update only the output-handling wording in
+`native-shutdown-test-plan.md` to describe the shared retained output buffer and
+the no-cross-stream-order assertion policy. Do not change output capture code,
+split the streams, or add stream-order assertions.
+
+**Verification:** Run `linter markdown` and `linter cspell`.
+
+**Independent commit boundary:**
+`docs(lifecycle): clarify native tracker output capture`.
+
+### Improvements Explicitly Rejected for Now
+
+- Further log-parsing extraction or generic log-query APIs: one small
+  tracker-specific parser does not justify a framework.
+- A `ReadinessProbe`: the mandatory assessment already found no coherent
+  independent boundary or second consumer.
+- A richer health-probe state model or typed fixture-error hierarchy: the
+  current outcomes and output-rich `String` diagnostics remain adequate for one
+  fixture.
+- Removing `Option` ownership from child, workspace, or output fields:
+  `Option::take` is required to move those values into exclusive explicit or
+  drop-path cleanup.
+- Separate stdout/stderr buffers, process-group policy, broader fixture API,
+  or additional internal scheduling tests: none improve the asserted
+  executable-boundary contract enough to justify their complexity.
+
 ## References
 
 - [Native executable shutdown test plan](native-shutdown-test-plan.md)
