@@ -124,9 +124,34 @@ fn custom_error(rejection: &PathRejection) -> responses::error::Error {
 #[cfg(test)]
 mod tests {
 
+    use axum::body::Body;
+    use axum::body::to_bytes;
+    use axum::http::StatusCode;
+    use axum::response::Response;
+    use axum::routing::get;
+    use axum::{Router, response::IntoResponse};
     use torrust_tracker_http_protocol::v1::responses::error::Error;
+    use tower::ServiceExt;
 
-    use super::{Key, parse_key};
+    use super::{Extract, Key, parse_key};
+
+    async fn protected_handler(Extract(_key): Extract) -> impl IntoResponse {
+        StatusCode::NO_CONTENT
+    }
+
+    async fn decode_bencoded_failure_response(response: Response) -> Error {
+        assert_eq!(
+            response.status(),
+            StatusCode::OK,
+            "a BitTorrent authentication failure response should use HTTP 200"
+        );
+
+        let body = to_bytes(response.into_body(), usize::MAX)
+            .await
+            .expect("the failure response body should be readable");
+
+        serde_bencode::from_bytes(&body).expect("the failure response should be valid bencode")
+    }
 
     fn assert_failure_reason_contains(error: &Error, error_message: &str) {
         assert!(
@@ -163,5 +188,25 @@ mod tests {
 
         // Assert
         assert_eq!(actual_key, expected_key);
+    }
+
+    #[tokio::test]
+    async fn it_should_encode_an_invalid_key_format_failure_response_for_an_invalid_path_key() {
+        // Arrange
+        let router = Router::new().route("/{key}", get(protected_handler));
+        let request = axum::http::Request::builder()
+            .uri("/invalid_key")
+            .body(Body::empty())
+            .expect("the test request should be valid");
+
+        // Act
+        let response = router.oneshot(request).await.expect("the router should handle the request");
+        let actual_error_response = decode_bencoded_failure_response(response).await;
+
+        // Assert
+        assert_failure_reason_contains(
+            &actual_error_response,
+            "Tracker authentication error: Invalid format for authentication key param",
+        );
     }
 }
