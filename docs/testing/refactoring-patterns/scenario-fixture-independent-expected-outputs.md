@@ -80,4 +80,4 @@ Do not use the helper to derive expected values or select a response representat
 
 [`packages/axum-http-server/src/v1/handlers/announce.rs`](../../../packages/axum-http-server/src/v1/handlers/announce.rs)
 uses this pattern to verify normal and compact bencoded announce responses. It was introduced
-during package-testing EPIC issue #1347, subissue #1348.
+during package-testing EPIC issue #1347, subissue #2136.
