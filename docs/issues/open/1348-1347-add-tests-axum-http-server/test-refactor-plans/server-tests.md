@@ -180,7 +180,7 @@ exposes the inputs needed for the visible start/stop lifecycle Act.
 
 ### R4 — Assess external lifecycle coverage boundaries
 
-- **Status:** TODO
+- **Status:** DONE
 - **Priority:** Low impact / low effort
 - **Addresses:** P5
 - **Change:** Record why remaining server behavior belongs to one of these existing boundaries:
@@ -189,6 +189,28 @@ exposes the inputs needed for the visible start/stop lifecycle Act.
   `packages/e2e-tools/` for containerized interoperability.
 - **Guardrails:** Link only high-signal external test artifacts under this plan's semantic links; do
   not add markers to external source files just to describe coverage overlap.
+- **Decision:**
+  - **Listener, router, and protocol behavior:** retain package integration coverage in
+    `tests/server/v1/contract/`. `environment_should_be_started_and_stopped` proves its lifecycle
+    fixture can bind and stop an HTTP server; the all-modes contract proves the live health endpoint;
+    the announce and scrape contract modules prove routes and protocol handling; and
+    `using_ipv6_v6only.rs` proves the IPv6-only binding behavior. Server-local unit tests should not
+    repeat those live-listener contracts.
+  - **Registered HTTP and HTTPS health:** retain cross-package composition coverage in
+    `packages/axum-health-check-api-server/tests/server/contract.rs`. It verifies the health API's
+    observable report for running HTTP, trusted-certificate HTTPS, and a service stopped after
+    registration. This is the correct boundary for the `check_fn` callback plus registry plus
+    health API, rather than a scheduler-coupled `server.rs` test.
+  - **Application composition:** retain root `tests/` for configuration-driven multi-service startup,
+    discovery through runtime-registry snapshots, and application shutdown. These tests prove the
+    tracker application's composition rather than `HttpServer` controller internals; add an HTTP
+    case there only when an application-level configuration interaction needs coverage.
+  - **Containerized interoperability:** reserve `packages/e2e-tools/` for an externally observed,
+    multi-process tracker/client contract. It is an E2E runner, not evidence for a currently missing
+    `server.rs` unit-test branch; add coverage there only for a reproducible containerized defect.
+  - **Private launch, task/shutdown, logging, and TLS construction mechanics:** defer. They are
+    implementation mechanics or already exercised incidentally by the boundaries above. Test a
+    future observable lifecycle contract only when a regression demonstrates a stable seam.
 - **Done when:** the plan states the retained or deferred boundary for each relevant behavior class.
 
 ### R5 — Consider a deterministic listener-cleanup seam only on evidence
@@ -251,7 +273,7 @@ exposes the inputs needed for the visible start/stop lifecycle Act.
 - [x] Maintainer approved implementation of R2
 - [x] R2 implemented, reviewed, and validated
 - [x] R3 assessment completed and decision recorded
-- [ ] R4 assessment completed and decision recorded
+- [x] R4 assessment completed and decision recorded
 - [x] Maintainer approved implementation of R6
 - [x] R6 implemented, reviewed, and validated
 - [x] Maintainer approved implementation of R7
@@ -294,6 +316,11 @@ exposes the inputs needed for the visible start/stop lifecycle Act.
 - 2026-09-03 - GitHub Copilot - Completed R7 with `ServerStartWithAvailableHttpBinding`. The
   normal-start scenario owns configuration, global setup, container construction, registry, TLS
   selection, and metadata; the test retains the visible start/stop lifecycle contract.
+- 2026-09-03 - GitHub Copilot - Completed R4 assessment. Retained live listener, endpoint, route,
+  protocol, and IPv6 behavior at package integration boundaries; retained registered HTTP/HTTPS
+  health at the health-check API integration boundary; reserved root and E2E coverage for their
+  application-composition and container-interoperability responsibilities; deferred private launch,
+  task/shutdown, logging, and TLS construction mechanics without an observable regression.
 
 ### Validation Evidence
 
@@ -303,7 +330,7 @@ exposes the inputs needed for the visible start/stop lifecycle Act.
 | R1                 | DONE     | Editor diagnostics, `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-axum-http-server --lib` (34 passed), and `git diff --check` passed.          |
 | R2                 | DONE     | `cargo fmt --all -- --check`, package library tests (34 passed), `linter markdown`, `linter cspell`, and `git diff --check` passed.                           |
 | R3                 | DONE     | Inspected `check_fn_with_client`, existing test helpers, package health contracts, and health-check API contracts; no deterministic non-listener seam exists. |
-| R4                 | TODO     | Not started.                                                                                                                                                  |
+| R4                 | DONE     | Inspected package integration, cross-package health API integration, root application integration, and E2E runner boundaries; decision recorded.              |
 | R5                 | DEFERRED | Awaiting a concrete flake or lifecycle-design trigger.                                                                                                        |
 | R6                 | DONE     | Editor diagnostics, `cargo fmt --all -- --check`, package library tests, `linter markdown`, `linter cspell`, and `git diff --check` passed.                   |
 | R7                 | DONE     | Editor diagnostics, `cargo fmt --all -- --check`, package library tests, `linter markdown`, `linter cspell`, and `git diff --check` passed.                   |
