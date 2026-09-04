@@ -7,7 +7,7 @@ use torrust_info_hash::InfoHash;
 use crate::swarm_metadata::SwarmMetadata;
 
 /// Structure that holds the data returned by the `scrape` request.
-#[derive(Debug, PartialEq, Default)]
+#[derive(Debug, PartialEq, Eq, Default)]
 pub struct ScrapeData {
     /// A map of infohashes and swarm metadata for each torrent.
     pub files: HashMap<InfoHash, SwarmMetadata>,

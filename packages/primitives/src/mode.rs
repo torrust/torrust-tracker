@@ -29,7 +29,7 @@ impl Default for PrivateMode {
 }
 
 impl PrivateMode {
-    fn default_check_keys_expiration() -> bool {
+    const fn default_check_keys_expiration() -> bool {
         true
     }
 }
