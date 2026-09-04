@@ -376,7 +376,8 @@ evidence, not a regression test.
 - Reproduction evidence: [`reproduction.md`](reproduction.md)
 - Companion process spec:
   `docs/issues/drafts/define-confidential-vulnerability-remediation-process/ISSUE.md`
-- Follow-up feature (to draft): `docs/issues/drafts/rest-api-rate-limiting/ISSUE.md`
+- Rate limiting: valid defense-in-depth to be proposed independently after this focused
+  hardening is disclosed; no follow-up issue has been drafted yet.
 - Follow-up advisory triage (to draft): `rsa 0.9.10` RUSTSEC-2023-0071 via `sqlx-mysql`,
   found during dependency vetting; public, unrelated to this change
 - CWE-208: Observable Timing Discrepancy
