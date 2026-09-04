@@ -82,6 +82,33 @@ let response = client
 tracing::debug!("Using token: {}", token.expose_secret());
 ```
 
+## Comparing Secrets
+
+**Never compare a secret with `==`, `!=`, `eq()`, or `Iterator::any` over `==`.** Those may
+exit at the first differing byte and leak, through timing, how many leading bytes were
+correct. Use `subtle::ConstantTimeEq` on the byte slices and, when checking against several
+candidates, evaluate **all** of them and OR the `Choice` results instead of stopping at the
+first match:
+
+```rust
+use subtle::{Choice, ConstantTimeEq};
+
+let provided = provided.as_bytes();
+
+let matched = configured.iter().fold(Choice::from(0), |acc, secret| {
+    acc | secret.expose_secret().as_bytes().ct_eq(provided)
+});
+
+bool::from(matched)
+```
+
+`subtle` is already a workspace dependency (transitively via `sqlx`); adding it directly to a
+crate pulls in no new code. Length still short-circuits in `ct_eq`; if token length must be
+hidden, that is a separate design decision (fixed-length tokens or a keyed hash), not a reason
+to fall back to `==`.
+
+See `docs/security/analysis/reports/` for disclosed, handled-report examples.
+
 ## Serialization and Test Expectations
 
 - Keep existing configuration-file syntax for secret values unless a deliberate schema change
@@ -106,6 +133,7 @@ tracing::debug!("Using token: {}", token.expose_secret());
 - [ ] No plain `String` fields for tokens, passwords, or private keys
 - [ ] `SecretString` (or an equivalent direct `secrecy` type) used for string secrets
 - [ ] `.expose_secret()` called only at the last moment
+- [ ] Secrets compared with `subtle::ConstantTimeEq`, never `==`; multiple candidates all evaluated
 - [ ] No `.expose_secret()` in log statements or error messages
 - [ ] No sensitive values in `Display` or `Debug` output
 - [ ] Serialized configuration tests preserve the existing secret syntax
