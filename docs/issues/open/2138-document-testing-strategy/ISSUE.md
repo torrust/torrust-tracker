@@ -86,7 +86,7 @@ The guide must present the layers in the taxonomy the maintainers use:
 
 The guide must state the maintainers' strategy explicitly:
 
-1. **More unit tests is better.** Unit tests are the preferred layer and the
+1. **More unit tests are better.** Unit tests are the preferred layer and the
    primary target for coverage growth.
 2. **Test as close to the code as possible.** Coverage is being increased at
    the package level; a test that can live in a package must not be promoted to
@@ -251,9 +251,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 ### Progress Log
 
-- 2026-09-03 16:00 UTC - GitHub Copilot - Created temporary draft after a
+- 2026-09-03 16:00 UTC - GitHub Copilot - Created a temporary draft after a
   repository inventory found distributed testing guidance without a human-facing
-  testing strategy index. - `.tmp/draft-document-testing-strategy/ISSUE.md`
+  testing strategy index.
 - 2026-09-04 07:45 UTC - GitHub Copilot - Moved draft to `docs/issues/drafts/`
   and incorporated maintainer input: explicit taxonomy (unit / in-process and
   executable-boundary integration / container and qBittorrent E2E), testing
