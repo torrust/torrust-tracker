@@ -88,6 +88,14 @@ temporary root-policy enforcement check on 2026-09-04 found four additional viol
 - `dispatch_in_memory_events` in `src/statistics/event/listener.rs` has complexity 29.
 - `dispatch_persistent_completed_statistics_events` in `src/statistics/event/listener.rs` has complexity 29.
 
+After the tracker-core refactor exposed subsequent workspace compilation, a further temporary
+root-policy enforcement check on 2026-09-04 found four additional violations:
+
+- `handle_event` in `packages/http-core/src/statistics/event/handler.rs` has complexity 43.
+- `dispatch_events` in `packages/http-core/src/statistics/event/listener.rs` has complexity 37.
+- `handle_event` in `packages/udp-core/src/statistics/event/handler.rs` has complexity 38.
+- `dispatch_events` in `packages/udp-core/src/statistics/event/listener.rs` has complexity 37.
+
 `Cargo.toml` defines the workspace Clippy policy, but `cognitive_complexity` is not included. Workspace lint settings are only inherited by manifests that opt into `[lints] workspace = true`; the affected package does not currently opt in. CI enforces Clippy through `linter all` (which runs `cargo clippy` for the workspace), so once the lint is declared in `Cargo.toml` and inherited by every package, the existing CI step enforces it without extra workflow changes.
 
 Implementation baseline verified on 2026-09-03:
@@ -104,9 +112,9 @@ On 2026-09-03, all 20 remaining package manifests were temporarily updated to in
 
 ### In Scope
 
-- Refactor all six identified handler and listener functions in `swarm-coordination-registry` and `tracker-core` until none exceeds the default `clippy::cognitive_complexity` threshold.
-- Preserve event-to-metric and persistence updates, labels, timestamps, listener cancellation priority, receiver-closed termination, lagged-receiver continuation, and logging behavior.
-- Retain and extend focused automated coverage where needed to protect the refactored behavior, especially listener receive-result handling and persistence failure handling.
+- Refactor all ten identified handler and listener functions in `swarm-coordination-registry`, `tracker-core`, `http-core`, and `udp-core` until none exceeds the default `clippy::cognitive_complexity` threshold.
+- Preserve event-to-metric and persistence updates, labels, timestamps, metrics-policy routing, listener cancellation priority, receiver-closed termination, lagged-receiver continuation, and logging behavior.
+- Retain and extend focused automated coverage where needed to protect the refactored behavior, especially listener receive-result handling, metrics-policy routing, and persistence failure handling.
 - Add `[lints] workspace = true` to every workspace package manifest that does not yet inherit the workspace lint policy, so the lint applies to all 26 packages.
 - Fix every diagnostic exposed by the newly inherited workspace lint policy, preserving behavior and adding or adjusting focused regression coverage where a fix changes executable code.
 - Add `cognitive_complexity` with level `deny` to `[workspace.lints.clippy]` in the root `Cargo.toml` only after the workspace is clean under the inherited existing policy.
@@ -134,9 +142,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | --- | ------ | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | T1  | DONE   | Establish enforcement baseline                  | Verified 26 workspace packages, temporarily enabled lint inheritance in all 20 remaining manifests, recorded the 87-diagnostic baseline, then reverted the experiment.          |
 | T2  | IN_PROGRESS | Remediate workspace lint baseline           | Fix all 87 diagnostics exposed by full workspace-lint inheritance, retaining behavior and adding focused regression tests where needed.                                         |
-| T3  | IN_PROGRESS | Refactor event metrics handlers              | `swarm-coordination-registry` is complete; split its `handle_event` into helpers. Refactor the two tracker-core handlers while preserving metrics and persistence behavior.      |
-| T4  | IN_PROGRESS | Refactor event listener loops                 | `swarm-coordination-registry` is complete; split receive-result handling from its dispatcher. Apply the same approach to both tracker-core listeners.                            |
-| T5  | IN_PROGRESS | Add focused regression tests                  | `swarm-coordination-registry` coverage is complete; add tracker-core handler, persistence-failure, and listener lifecycle coverage.                                             |
+| T3  | IN_PROGRESS | Refactor event metrics handlers              | `swarm-coordination-registry` and `tracker-core` are complete. Refactor the HTTP and UDP core handlers while preserving metrics, labels, and policy behavior.                   |
+| T4  | IN_PROGRESS | Refactor event listener loops                 | `swarm-coordination-registry` and `tracker-core` are complete. Apply the receive-result extraction to HTTP and UDP core dispatchers.                                            |
+| T5  | IN_PROGRESS | Add focused regression tests                  | Swarm and tracker-core coverage is complete; add HTTP/UDP core label-propagation, metrics-policy, and lifecycle coverage.                                                      |
 | T6  | TODO   | Complete Cargo lint policy                      | Add `[lints] workspace = true` to every package manifest and add `cognitive_complexity = { level = "deny", priority = -1 }` only after T2 through T5 leave the workspace clean. |
 | T7  | TODO   | Verify CI enforcement                           | Confirm `linter all` (as run in `testing.yaml`) fails on a cognitive-complexity violation and passes after the complete remediation; no workflow change expected.               |
 | T8  | TODO   | Update affected documentation                   | Align lint-policy documentation with the final `Cargo.toml` and CI ownership.                                                                                                   |
@@ -169,11 +177,13 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-09-04 UTC - GitHub Copilot - Completed workspace lint inheritance and all baseline remediation. Flag-free workspace Clippy passed. - Local commit workflow
 - 2026-09-04 UTC - GitHub Copilot - Refactored the swarm-coordination-registry event handler and listener, adding deterministic lifecycle and metric regression coverage in `7e347911`. - Local commit workflow
 - 2026-09-04 UTC - GitHub Copilot - A temporary root cognitive-complexity policy check exposed four additional tracker-core violations (46/25, 35/25, 29/25, and 29/25). Reverted the temporary policy and expanded this specification before implementation. - Terminal output and source inspection in this session
+- 2026-09-04 UTC - GitHub Copilot - Refactored the tracker-core event handlers and listeners, adding deterministic lifecycle and persistence-failure regression coverage in `abc0c54e`. - Local commit workflow
+- 2026-09-04 UTC - GitHub Copilot - A subsequent temporary root cognitive-complexity policy check exposed four additional HTTP and UDP core violations (43/25, 37/25, 38/25, and 37/25). Reverted the temporary policy and expanded this specification before implementation. - Terminal output and source inspection in this session
 
 ## Acceptance Criteria
 
-- [ ] AC1: All six identified handler and listener functions in `swarm-coordination-registry` and `tracker-core` comply with Clippy's default cognitive-complexity threshold without a `clippy::cognitive_complexity` allowance.
-- [ ] AC2: Existing observable event-metric and persistence behavior, metric labels, timestamps, listener ordering, termination behavior, and logging semantics are preserved.
+- [ ] AC1: All ten identified handler and listener functions in `swarm-coordination-registry`, `tracker-core`, `http-core`, and `udp-core` comply with Clippy's default cognitive-complexity threshold without a `clippy::cognitive_complexity` allowance.
+- [ ] AC2: Existing observable event-metric and persistence behavior, metric labels, timestamps, metrics-policy routing, listener ordering, termination behavior, and logging semantics are preserved.
 - [ ] AC3: Root `Cargo.toml` declares `clippy::cognitive_complexity` as a denied workspace lint, and every workspace package manifest inherits workspace lints via `[lints] workspace = true`.
 - [ ] AC4: `cargo clippy --workspace --all-targets --all-features` (with no extra `-D` flags) fails on a cognitive-complexity violation, so the existing `linter all` CI step enforces it.
 - [ ] AC5: Every diagnostic exposed by enabling workspace lint inheritance, including the 87-diagnostic baseline, is fixed without lint allowances that weaken the workspace policy.
@@ -195,6 +205,10 @@ Define verification before implementation starts and execute it before closing t
 - `cargo clippy -p torrust-tracker-swarm-coordination-registry --all-targets --all-features`
 - `cargo test -p torrust-tracker-core --all-features`
 - `cargo clippy -p torrust-tracker-core --all-targets --all-features`
+- `cargo test -p torrust-tracker-http-core --all-features`
+- `cargo clippy -p torrust-tracker-http-core --all-targets --all-features`
+- `cargo test -p torrust-tracker-udp-core --all-features`
+- `cargo clippy -p torrust-tracker-udp-core --all-targets --all-features`
 - `cargo clippy --workspace --all-targets --all-features` (must fail before the refactor once the lint is declared, and pass after)
 - `linter all`
 - `cargo test --doc --workspace`
@@ -244,5 +258,9 @@ Notes:
 - `packages/swarm-coordination-registry/src/statistics/event/listener.rs`
 - `packages/tracker-core/src/statistics/event/handler.rs`
 - `packages/tracker-core/src/statistics/event/listener.rs`
+- `packages/http-core/src/statistics/event/handler.rs`
+- `packages/http-core/src/statistics/event/listener.rs`
+- `packages/udp-core/src/statistics/event/handler.rs`
+- `packages/udp-core/src/statistics/event/listener.rs`
 - `docs/adrs/20260727000000_events_are_objective_facts.md`
 - `docs/issues/closed/1786-tighten-lint-config.md`
