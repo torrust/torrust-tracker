@@ -100,7 +100,7 @@ pub struct TimeoutService<S> {
 }
 
 impl<S> TimeoutService<S> {
-    fn new(inner: S, sender: UnboundedSender<TimerSignal>) -> Self {
+    const fn new(inner: S, sender: UnboundedSender<TimerSignal>) -> Self {
         Self { inner, sender }
     }
 }
@@ -134,7 +134,7 @@ pin_project! {
 }
 
 impl<F> TimeoutServiceFuture<F> {
-    fn new(inner: F, sender: UnboundedSender<TimerSignal>) -> Self {
+    const fn new(inner: F, sender: UnboundedSender<TimerSignal>) -> Self {
         Self {
             inner,
             sender: Some(sender),
@@ -172,7 +172,7 @@ pin_project! {
 }
 
 impl<B> TimeoutBody<B> {
-    fn new(inner: B, sender: UnboundedSender<TimerSignal>) -> Self {
+    const fn new(inner: B, sender: UnboundedSender<TimerSignal>) -> Self {
         Self { inner, sender }
     }
 }
@@ -250,7 +250,7 @@ impl<IO: AsyncRead + Unpin> AsyncRead for TimeoutStream<IO> {
 
         if !self.waiting {
             // return error if timer is elapsed
-            if let Poll::Ready(()) = self.sleep.as_mut().poll(cx) {
+            if self.sleep.as_mut().poll(cx) == Poll::Ready(()) {
                 return Poll::Ready(Err(std::io::Error::new(ErrorKind::TimedOut, "request header read timed out")));
             }
         }
