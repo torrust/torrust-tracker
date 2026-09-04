@@ -88,8 +88,8 @@ maintainability, readability, and expressiveness without changing the behavior
 under test. Use a pattern only where its stated constraints apply; keep the
 production Act and observable assertions visible.
 
-Use [test helpers](../packages/test-helpers/) for shared mock servers and test
-data. For root integration tests, follow the port isolation, fixture shutdown,
+Use [test helpers](../packages/test-helpers/README.md) for shared mock servers and
+test data. For root integration tests, follow the port isolation, fixture shutdown,
 and scenario constraints in [`tests/AGENTS.md`](../tests/AGENTS.md).
 
 ## Tests, Benchmarks, and Profiling
