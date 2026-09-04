@@ -58,7 +58,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | 1     | #1348 - Add tests to the udp-core package         | Not yet created                                                       | TODO   | Existing subissue; package-level test work.                                                                          |
 | 2     | #1349 - Add tests to the http-core package        | Not yet created                                                       | TODO   | Existing subissue; package-level test work.                                                                          |
 | 3     | #2136 - Add tests to the axum-http-server package | `docs/issues/open/2136-1347-add-tests-axum-http-server/ISSUE.md`      | DONE   | Added fast package-local response, request-ID, and lifecycle tests; verification and final review evidence recorded. |
-| 4     | Additional package-testing subissues              | Create a folder-style spec when a concrete package need is identified | TODO   | Permitted but not required upfront; retain scope in this EPIC.                                                       |
+| 4     | #2140 - Review axum-http-server integration tests | `docs/issues/open/2140-1347-review-axum-http-server-integration-tests/ISSUE.md` | TODO | Inventory, coverage/domain analysis, and test-design review precede approved test additions. |
+| 5     | Additional package-testing subissues              | Create a folder-style spec when a concrete package need is identified | TODO   | Permitted but not required upfront; retain scope in this EPIC.                                                       |
 
 ## Package Coverage Tracking
 
