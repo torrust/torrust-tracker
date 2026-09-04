@@ -224,13 +224,13 @@ already maintained by hook skills or CI workflow files.
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| ID  | Status | Task                             | Notes / Expected Output                                                                                              |
-| --- | ------ | -------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| T1  | DONE   | Verify the testing inventory     | Confirmed layers, ownership, examples, and workflows, including the merged refactoring-pattern catalog.               |
-| T2  | DONE   | Draft the testing strategy guide | Added `docs/testing.md` with concise strategy, layer, ownership, and reference navigation.                           |
-| T3  | DONE   | Add documentation navigation     | Linked `docs/testing.md` from `docs/index.md`.                                                                        |
-| T4  | DONE   | Validate source links and claims | All local links resolve; `linter markdown` and `linter cspell` pass.                                                 |
-| T5  | DONE   | Review completion evidence       | Acceptance criteria and manual evidence reviewed; no material discovery requires a retrospective.                    |
+| ID  | Status | Task                             | Notes / Expected Output                                                                                 |
+| --- | ------ | -------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| T1  | DONE   | Verify the testing inventory     | Confirmed layers, ownership, examples, and workflows, including the merged refactoring-pattern catalog. |
+| T2  | DONE   | Draft the testing strategy guide | Added `docs/testing.md` with concise strategy, layer, ownership, and reference navigation.              |
+| T3  | DONE   | Add documentation navigation     | Linked `docs/testing.md` from `docs/index.md`.                                                          |
+| T4  | DONE   | Validate source links and claims | All local links resolve; `linter markdown` and `linter cspell` pass.                                    |
+| T5  | DONE   | Review completion evidence       | Acceptance criteria and manual evidence reviewed; no material discovery requires a retrospective.       |
 
 ## Progress Tracking
 
@@ -279,7 +279,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-09-04 16:30 UTC - GitHub Copilot - Verified the testing inventory and
   the merged PR #2137 refactoring-pattern catalog; added `docs/testing.md` and
   linked it from `docs/index.md`. Local relative-link validation, `linter
-  markdown`, and `linter cspell` pass. - `docs/testing.md`; `docs/index.md`
+markdown`, and `linter cspell` pass. - `docs/testing.md`; `docs/index.md`
 - 2026-09-04 16:35 UTC - GitHub Copilot - Rechecked every acceptance criterion
   against the guide, index, linked sources, and validation evidence. No
   assumptions were invalidated and no material design change or reusable lesson
@@ -334,28 +334,28 @@ the issue.
 
 Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
-| ID  | Scenario                        | Command/Steps                                                                                                              | Expected Result                                                                           | Status | Evidence                 |
-| --- | ------------------------------- | -------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- | ------ | ------------------------ |
-| M1  | Verify test-layer inventory     | Compare every row in `docs/testing.md` with the linked `AGENTS.md`, skill, workflow, ADR, and representative test/example. | Every claimed layer has a valid source and accurate scope.                                | DONE   | Inventory and local link-target check, 2026-09-04 |
-| M2  | Verify documentation navigation | Open `docs/index.md`, follow the testing-guide link, and inspect the guide's references.                                   | The guide is discoverable and links resolve to current repository artifacts.              | DONE   | `docs/index.md` link and local link-target check, 2026-09-04 |
-| M3  | Verify non-duplication          | Compare commands/procedures in the guide with authoritative hook skills and workflow files.                                | The guide links to detailed procedures rather than creating a conflicting command source. | DONE   | Manual source-of-truth review, 2026-09-04 |
+| ID  | Scenario                        | Command/Steps                                                                                                              | Expected Result                                                                           | Status | Evidence                                                                    |
+| --- | ------------------------------- | -------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- | ------ | --------------------------------------------------------------------------- |
+| M1  | Verify test-layer inventory     | Compare every row in `docs/testing.md` with the linked `AGENTS.md`, skill, workflow, ADR, and representative test/example. | Every claimed layer has a valid source and accurate scope.                                | DONE   | Inventory and local link-target check, 2026-09-04                           |
+| M2  | Verify documentation navigation | Open `docs/index.md`, follow the testing-guide link, and inspect the guide's references.                                   | The guide is discoverable and links resolve to current repository artifacts.              | DONE   | `docs/index.md` link and local link-target check, 2026-09-04                |
+| M3  | Verify non-duplication          | Compare commands/procedures in the guide with authoritative hook skills and workflow files.                                | The guide links to detailed procedures rather than creating a conflicting command source. | DONE   | Manual source-of-truth review, 2026-09-04                                   |
 | M4  | Verify strategy and history     | Read the strategy and history sections against `tests/AGENTS.md` and maintainer input recorded in this spec.               | The guide states the preferred-layer ordering and the E2E-first origin accurately.        | DONE   | Manual review against issue specification and `tests/AGENTS.md`, 2026-09-04 |
 
 ### Acceptance Verification
 
-| AC ID | Status (`TODO`/`DONE`) | Evidence                             |
-| ----- | ---------------------- | ------------------------------------ |
-| AC1   | DONE                   | Test Layers table; manual inventory review |
-| AC2   | DONE                   | Strategy and Why the Suite Looks This Way sections |
-| AC3   | DONE                   | Test Layers table; M1 review |
-| AC4   | DONE                   | Representative links and local link-target check |
-| AC5   | DONE                   | Validation Ownership section; M3 review |
-| AC6   | DONE                   | Tests, Benchmarks, and Profiling section |
-| AC7   | DONE                   | `docs/index.md`; M2 review |
+| AC ID | Status (`TODO`/`DONE`) | Evidence                                                  |
+| ----- | ---------------------- | --------------------------------------------------------- |
+| AC1   | DONE                   | Test Layers table; manual inventory review                |
+| AC2   | DONE                   | Strategy and Why the Suite Looks This Way sections        |
+| AC3   | DONE                   | Test Layers table; M1 review                              |
+| AC4   | DONE                   | Representative links and local link-target check          |
+| AC5   | DONE                   | Validation Ownership section; M3 review                   |
+| AC6   | DONE                   | Tests, Benchmarks, and Profiling section                  |
+| AC7   | DONE                   | `docs/index.md`; M2 review                                |
 | AC8   | DONE                   | Manual source-of-truth review; linked detailed procedures |
-| AC9   | DONE                   | `linter all`, 2026-09-04 |
-| AC10  | DONE                   | `linter markdown` and `linter cspell`, 2026-09-04 |
-| AC11  | DONE                   | M1–M4 manual review; PR review pending |
+| AC9   | DONE                   | `linter all`, 2026-09-04                                  |
+| AC10  | DONE                   | `linter markdown` and `linter cspell`, 2026-09-04         |
+| AC11  | DONE                   | M1–M4 manual review; PR review pending                    |
 
 ## Risks and Trade-offs
 
