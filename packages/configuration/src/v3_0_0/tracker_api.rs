@@ -58,11 +58,11 @@ impl Default for HttpApi {
 }
 
 impl HttpApi {
-    fn default_bind_address() -> SocketAddr {
+    const fn default_bind_address() -> SocketAddr {
         SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 1212)
     }
 
-    fn default_tls_config() -> Option<TlsConfig> {
+    const fn default_tls_config() -> Option<TlsConfig> {
         None
     }
 
@@ -70,7 +70,7 @@ impl HttpApi {
         AccessTokens::new()
     }
 
-    fn default_public_url() -> Option<HttpUrl> {
+    const fn default_public_url() -> Option<HttpUrl> {
         None
     }
 

@@ -320,8 +320,8 @@ impl Configuration {
     ///
     /// Will return `Err` if `path` is not a valid path or the configuration
     /// file cannot be created.
-    pub fn create_default_configuration_file(path: &str) -> Result<Configuration, Error> {
-        let config = Configuration::default();
+    pub fn create_default_configuration_file(path: &str) -> Result<Self, Error> {
+        let config = Self::default();
         config.save_to_file(path)?;
         Ok(config)
     }
@@ -335,23 +335,27 @@ impl Configuration {
     /// # Errors
     ///
     /// Will return `Err` if the environment variable does not exist or has a bad configuration.
-    pub fn load(info: &Info) -> Result<Configuration, Error> {
+    pub fn load(info: &Info) -> Result<Self, Error> {
         // Load configuration provided by the user, prioritizing env vars
-        let figment = if let Some(config_toml) = &info.config_toml {
-            Figment::from(Toml::string(config_toml)).merge(Env::prefixed(CONFIG_OVERRIDE_PREFIX).split(CONFIG_OVERRIDE_SEPARATOR))
-        } else {
-            Figment::from(Toml::file(&info.config_toml_path))
-                .merge(Env::prefixed(CONFIG_OVERRIDE_PREFIX).split(CONFIG_OVERRIDE_SEPARATOR))
-        };
+        let figment = info.config_toml.as_ref().map_or_else(
+            || {
+                Figment::from(Toml::file(&info.config_toml_path))
+                    .merge(Env::prefixed(CONFIG_OVERRIDE_PREFIX).split(CONFIG_OVERRIDE_SEPARATOR))
+            },
+            |config_toml| {
+                Figment::from(Toml::string(config_toml))
+                    .merge(Env::prefixed(CONFIG_OVERRIDE_PREFIX).split(CONFIG_OVERRIDE_SEPARATOR))
+            },
+        );
 
         // Make sure user has provided the mandatory options.
         Self::check_mandatory_options(&figment)?;
 
         // Fill missing options with default values.
-        let figment = figment.join(Serialized::defaults(Configuration::default()));
+        let figment = figment.join(Serialized::defaults(Self::default()));
 
         // Build final configuration.
-        let config: Configuration = figment.extract()?;
+        let config: Self = figment.extract()?;
 
         // Make sure the provided schema version matches this version.
         if config.metadata.schema_version != Version::new(VERSION_2_0_0) {

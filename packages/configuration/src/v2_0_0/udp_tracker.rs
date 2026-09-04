@@ -51,23 +51,23 @@ impl Default for UdpTracker {
 }
 
 impl UdpTracker {
-    fn default_bind_address() -> SocketAddr {
+    const fn default_bind_address() -> SocketAddr {
         SocketAddr::new(IpAddr::V4(Ipv4Addr::UNSPECIFIED), 6969)
     }
 
-    fn default_cookie_lifetime() -> Duration {
+    const fn default_cookie_lifetime() -> Duration {
         Duration::from_secs(120)
     }
 
-    fn default_tracker_usage_statistics() -> bool {
+    const fn default_tracker_usage_statistics() -> bool {
         false
     }
 
-    fn default_ipv6_v6only() -> bool {
+    const fn default_ipv6_v6only() -> bool {
         false
     }
 
-    fn default_max_connection_id_errors_per_ip() -> u32 {
+    const fn default_max_connection_id_errors_per_ip() -> u32 {
         10
     }
 }

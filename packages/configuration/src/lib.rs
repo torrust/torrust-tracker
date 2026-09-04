@@ -21,6 +21,7 @@ use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
 use thiserror::Error;
 use torrust_located_error::{DynError, LocatedError};
+use tracing::info;
 
 // Environment variables
 
@@ -68,7 +69,7 @@ impl Default for Metadata {
 impl Metadata {
     /// Creates a `Metadata` with a specific schema version, keeping other fields at their defaults.
     #[must_use]
-    pub fn with_schema_version(schema_version: Version) -> Self {
+    pub const fn with_schema_version(schema_version: Version) -> Self {
         Self {
             app: Self::default_app(),
             purpose: Self::default_purpose(),
@@ -76,11 +77,11 @@ impl Metadata {
         }
     }
 
-    fn default_app() -> App {
+    const fn default_app() -> App {
         App::TorrustTracker
     }
 
-    fn default_purpose() -> Purpose {
+    const fn default_purpose() -> Purpose {
         Purpose::Configuration
     }
 
@@ -154,20 +155,21 @@ impl Info {
         let env_var_config_toml = ENV_VAR_CONFIG_TOML.to_string();
         let env_var_config_toml_path = ENV_VAR_CONFIG_TOML_PATH.to_string();
 
-        let config_toml = if let Ok(config_toml) = env::var(env_var_config_toml) {
-            println!("Loading extra configuration from environment variable:\n {config_toml}");
+        let config_toml = env::var(env_var_config_toml).map_or(None, |config_toml| {
+            info!("Loading extra configuration from environment variable:\n {config_toml}");
             Some(config_toml)
-        } else {
-            None
-        };
+        });
 
-        let config_toml_path = if let Ok(config_toml_path) = env::var(env_var_config_toml_path) {
-            println!("Loading extra configuration from file: `{config_toml_path}` ...");
-            config_toml_path
-        } else {
-            println!("Loading extra configuration from default configuration file: `{default_config_toml_path}` ...");
-            default_config_toml_path
-        };
+        let config_toml_path = env::var(env_var_config_toml_path).map_or_else(
+            |_| {
+                info!("Loading extra configuration from default configuration file: `{default_config_toml_path}` ...");
+                default_config_toml_path
+            },
+            |config_toml_path| {
+                info!("Loading extra configuration from file: `{config_toml_path}` ...");
+                config_toml_path
+            },
+        );
 
         Ok(Self {
             config_toml,
