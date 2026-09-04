@@ -10,6 +10,7 @@ Azureus
 Beránek
 Biriukov
 Bitflu
+Bleichenbacher
 Bragilevsky
 BuildKit
 Buildx
@@ -63,6 +64,7 @@ Mebibytes
 NOSYSTEM
 Naim
 Norberg
+Oaep
 PGID
 PRRT
 PUID
@@ -76,6 +78,7 @@ REUSEPORT
 RPIT
 RUSTDOCFLAGS
 RUSTFLAGS
+RUSTSEC
 Radeon
 Rakshasa
 Rasterbar
@@ -185,6 +188,7 @@ curr
 cvar
 cves
 cyclomatic
+dalek
 dashmap
 datagram
 datagrams
@@ -247,6 +251,7 @@ healthcheck
 heaptrack
 hexdigit
 hexlify
+hkdf
 hlocalhost
 hmac
 hostnames
@@ -269,6 +274,7 @@ infohash
 infohashes
 infoschema
 initialisation
+inlines
 intervali
 io_uring
 isready
@@ -296,6 +302,7 @@ libz
 llist
 lscr
 matchmakes
+memcmp
 metainfo
 microbenchmark
 microbenchmarks
