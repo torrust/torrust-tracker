@@ -56,7 +56,7 @@ impl TrackerHttpApiCoreContainer {
         udp_tracker_server_config: &UdpTrackerServer,
         udp_tracker_configuration_instance_id: ConfigurationInstanceId,
         http_api_config: &Arc<HttpApi>,
-    ) -> Arc<TrackerHttpApiCoreContainer> {
+    ) -> Arc<Self> {
         let swarm_coordination_registry_container = Arc::new(SwarmCoordinationRegistryContainer::initialize(
             core_config.tracker_usage_statistics.into(),
         ));
@@ -104,8 +104,8 @@ impl TrackerHttpApiCoreContainer {
         udp_tracker_core_container: &Arc<UdpTrackerCoreContainer>,
         udp_tracker_server_container: &Arc<UdpTrackerServerContainer>,
         http_api_config: &Arc<HttpApi>,
-    ) -> Arc<TrackerHttpApiCoreContainer> {
-        Arc::new(TrackerHttpApiCoreContainer {
+    ) -> Arc<Self> {
+        Arc::new(Self {
             http_api_config: http_api_config.clone(),
 
             // Swarm Coordination Registry Container
