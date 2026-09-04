@@ -51,7 +51,7 @@ pub struct ConnectionContext {
 
 impl ConnectionContext {
     #[must_use]
-    pub fn new(
+    pub const fn new(
         configuration_instance_id: ConfigurationInstanceId,
         client_socket_addr: SocketAddr,
         server_service_binding: ServiceBinding,
@@ -76,7 +76,7 @@ impl ConnectionContext {
     }
 
     #[must_use]
-    pub fn client_socket_addr(&self) -> SocketAddr {
+    pub const fn client_socket_addr(&self) -> SocketAddr {
         self.client_socket_addr
     }
 
@@ -96,7 +96,7 @@ impl ConnectionContext {
     }
 
     #[must_use]
-    pub fn client_address_ip_type(&self) -> IpType {
+    pub const fn client_address_ip_type(&self) -> IpType {
         match self.client_socket_addr.ip() {
             IpAddr::V6(v6) if v6.to_ipv4_mapped().is_some() => IpType::V4MappedV6,
             _ => IpType::Plain,
@@ -106,7 +106,7 @@ impl ConnectionContext {
 
 impl From<ConnectionContext> for LabelSet {
     fn from(connection_context: ConnectionContext) -> Self {
-        let mut label_set = LabelSet::from([
+        let mut label_set = Self::from([
             (
                 label_name!("server_binding_protocol"),
                 LabelValue::new(&connection_context.server_service_binding.protocol().to_string()),
