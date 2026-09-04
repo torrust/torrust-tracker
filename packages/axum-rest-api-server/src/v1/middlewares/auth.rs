@@ -147,6 +147,13 @@ impl IntoResponse for AuthError {
     }
 }
 
+/// Checks a supplied token against every configured token without content-dependent early exits.
+///
+/// Do not simplify this to `==` or `Iterator::any`: both can stop early and make comparison
+/// work depend on matching token content. `Choice` keeps all comparison results until every
+/// configured token has been checked.
+///
+/// Security record: `docs/security/analysis/reports/2026-09-04_rest-api-token-timing.md`.
 fn authenticate(token: &str, tokens: &AccessTokens) -> bool {
     let token = token.as_bytes();
 

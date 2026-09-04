@@ -1,8 +1,8 @@
 ---
 doc-type: issue
-issue-type: bug
+issue-type: task
 status: draft
-priority: p1
+priority: p2
 epic: null
 github-issue: null
 spec-path: docs/issues/drafts/rest-api-constant-time-token-comparison/ISSUE.md
@@ -168,10 +168,10 @@ agreed to follow the project's timeline.
 ### Reporter credit
 
 Abdurazzoqov Javohir — GitHub `abdurazzoqovjavohir700-dev`. The reporter consented by email
-to being named in the commit and PR. The fix commit carries a `Reported-by:` trailer with the
-name and email he supplied; the PR description names him with his GitHub handle. He did not
-author the patch, so commit authorship stays with the maintainer (see the credit rule in
-`docs/security/vulnerability-remediation.md`).
+to public credit in the commit, PR, issue specification, and handled-report record. The fix
+commit carries a `Reported-by:` trailer with the name and email he supplied; the public
+surfaces name him with his GitHub handle. He did not author the patch, so commit authorship
+stays with the maintainer (see the credit rule in `docs/security/vulnerability-remediation.md`).
 
 ### What the first case taught the process
 
@@ -200,8 +200,8 @@ input. This spec is written the way the amended process now requires.
 - **Rate limiting / request throttling on the REST API.** Valid defense-in-depth, but a
   feature with its own design questions (client identity behind reverse proxies, IPv6
   prefix keying, bounded memory, operator configuration, impact on legitimate dashboards).
-  To be proposed as a separate feature issue; the reporter's suggestion (`governor` /
-  `tower_governor`, /64 or /56 IPv6 keying, bounded LRU eviction) is recorded there.
+  To be proposed as a separate feature issue; the reporter suggested `governor` /
+  `tower_governor`, /64 or /56 IPv6 keying, and bounded LRU eviction.
 - Token-length leakage. `subtle`'s slice comparison still short-circuits on length; hiding
   the length would require hashing both sides first. Tokens are operator-chosen; length is
   not considered a meaningful secret for this surface.
@@ -229,8 +229,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T2  | DONE   | Rewrite `authenticate` with `ConstantTimeEq`                 | Fold `Choice` over all configured tokens with bitwise OR; convert to `bool` once at the end; `expose_secret()` stays at the comparison                                      |
 | T3  | DONE   | Add unit tests in `auth.rs`                                  | Match; mismatch early/late/shorter/longer; empty token; match on second configured token; no secret values in assertion messages. Structural review verifies full iteration |
 | T4  | DONE   | Run quality gates and manual scenarios                       | Focused format, Clippy, tests, dependency analysis, and M1–M3 passed; full pre-commit runs at commit time                                                                   |
-| T5  | DONE   | Review the remediation process against this case             | Added: first-case coupling rule, explicit disclosure-path decision, mandatory reproduction, maintainer-set severity, suggested-fix vetting. Closes T4 of the process spec   |
-| T6  | TODO   | Disclose: create both issues, move specs to `open/`, open PR | PR body credits the reporter and states the hardening classification; `Closes` both issues; notify the reporter with the PR link                                            |
+| T5  | DONE   | Review the remediation process against this case             | Added: first-case coupling rule, explicit disclosure-path decision, mandatory reproduction, maintainer-set severity, suggested-fix vetting. Closes T4 and T5 of the process spec |
+| T6  | TODO   | Disclose: create both issues, move specs to `open/`, open PR | Create the handled-report record from the template and add the `auth.rs` code pointer; PR credits reporter and states hardening classification; `Closes` both issues; fill record metadata; notify reporter |
 
 ## Progress Tracking
 
@@ -241,8 +241,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [ ] GitHub issue created and issue number added to this spec (deferred to disclosure moment)
 - [x] Implementation completed
 - [x] Automatic verification completed (`cargo fmt --check`, Clippy, focused tests, `cargo machete`, documentation lint baseline)
-- [ ] Manual verification scenarios executed and recorded
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Manual verification scenarios executed and recorded
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [ ] Evidence-based implementation completion review recorded
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [x] Committer verified spec progress is up to date before commit
@@ -259,7 +259,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-09-04 12:00 UTC - Copilot - Implemented the `Choice` fold, added authentication unit
   tests, and performed a structural security review. `cargo fmt --check`,
   `cargo clippy -p torrust-tracker-axum-rest-api-server --all-targets -- -D warnings`, and
-  `cargo test -p torrust-tracker-axum-rest-api-server` passed (4 unit tests; 58 integration
+  `cargo test -p torrust-tracker-axum-rest-api-server` passed (3 unit tests; 58 integration
   tests). Plain `cargo machete` reported two pre-existing unrelated false positives;
   `cargo machete --with-metadata` passes in the repository pre-commit hook.
 - 2026-09-04 12:00 UTC - Copilot - Manual verification passed: valid header and query tokens
@@ -378,7 +378,7 @@ evidence, not a regression test.
   `docs/issues/drafts/define-confidential-vulnerability-remediation-process/ISSUE.md`
 - Rate limiting: valid defense-in-depth to be proposed independently after this focused
   hardening is disclosed; no follow-up issue has been drafted yet.
-- Follow-up advisory triage (to draft): `rsa 0.9.10` RUSTSEC-2023-0071 via `sqlx-mysql`,
-  found during dependency vetting; public, unrelated to this change
+- [RUSTSEC-2023-0071 analysis](../../../security/analysis/production/RUSTSEC-2023-0071.md):
+  public `rsa 0.9.10` advisory found during dependency vetting; unrelated to this change
 - CWE-208: Observable Timing Discrepancy
 - `subtle` crate: <https://docs.rs/subtle> — <https://github.com/dalek-cryptography/subtle>

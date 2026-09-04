@@ -14,8 +14,8 @@ and handled under the [confidential vulnerability-remediation process](../../vul
 
 ## Purpose
 
-The CVE catalogs (`../production/`, `../build/`) record *external* vulnerabilities we have
-evaluated. This catalog records *reports about our own code* we have processed, so that:
+The CVE catalogs (`../production/`, `../build/`) record _external_ vulnerabilities we have
+evaluated. This catalog records _reports about our own code_ we have processed, so that:
 
 1. a second report of the same finding (from anyone) is recognised immediately and answered
    with a link instead of a new triage;
@@ -50,5 +50,6 @@ Copy [`docs/templates/SECURITY-REPORT.md`](../../../templates/SECURITY-REPORT.md
 
 Add a row when the handled-report record is created at disclosure time.
 
-| Date | Report | Status | Severity |
-| ---- | ------ | ------ | -------- |
+| Date       | Report                                                                         | Status   | Severity  |
+| ---------- | ------------------------------------------------------------------------------ | -------- | --------- |
+| 2026-09-04 | [REST API access-token timing comparison](2026-09-04_rest-api-token-timing.md) | hardened | hardening |
