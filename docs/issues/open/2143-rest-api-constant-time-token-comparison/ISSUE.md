@@ -1,11 +1,11 @@
 ---
 doc-type: issue
 issue-type: task
-status: draft
+status: open
 priority: p2
 epic: null
-github-issue: null
-spec-path: docs/issues/drafts/rest-api-constant-time-token-comparison/ISSUE.md
+github-issue: 2143
+spec-path: docs/issues/open/2143-rest-api-constant-time-token-comparison/ISSUE.md
 branch: "security/private-remediation-20260904"
 related-pr: null
 last-updated-utc: 2026-09-04 12:00
@@ -22,7 +22,7 @@ semantic-links:
 
 <!-- skill-link: create-issue -->
 
-# Issue #[To be assigned] - Use constant-time comparison for REST API access tokens
+# Issue #2143 - Use constant-time comparison for REST API access tokens
 
 ## Goal
 
@@ -222,23 +222,23 @@ Not applicable.
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| ID  | Status | Task                                                         | Notes / Expected Output                                                                                                                                                     |
-| --- | ------ | ------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| T0  | DONE   | Independent reproduction and dependency vetting              | Negative timing result recorded in `reproduction.md`; `subtle` vetted (already in lockfile, zero deps, no advisories); std-only alternative rejected with rationale         |
-| T1  | DONE   | Add direct `subtle` dependency to `axum-rest-api-server`     | Latest stable (`2.6.1`); already resolved transitively in `Cargo.lock` at the same checksum, so no new code enters the binary                                               |
-| T2  | DONE   | Rewrite `authenticate` with `ConstantTimeEq`                 | Fold `Choice` over all configured tokens with bitwise OR; convert to `bool` once at the end; `expose_secret()` stays at the comparison                                      |
-| T3  | DONE   | Add unit tests in `auth.rs`                                  | Match; mismatch early/late/shorter/longer; empty token; match on second configured token; no secret values in assertion messages. Structural review verifies full iteration |
-| T4  | DONE   | Run quality gates and manual scenarios                       | Focused format, Clippy, tests, dependency analysis, and M1–M3 passed; full pre-commit runs at commit time                                                                   |
-| T5  | DONE   | Review the remediation process against this case             | Added: first-case coupling rule, explicit disclosure-path decision, mandatory reproduction, maintainer-set severity, suggested-fix vetting. Closes T4 and T5 of the process spec |
+| ID  | Status | Task                                                         | Notes / Expected Output                                                                                                                                                                                     |
+| --- | ------ | ------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| T0  | DONE   | Independent reproduction and dependency vetting              | Negative timing result recorded in `reproduction.md`; `subtle` vetted (already in lockfile, zero deps, no advisories); std-only alternative rejected with rationale                                         |
+| T1  | DONE   | Add direct `subtle` dependency to `axum-rest-api-server`     | Latest stable (`2.6.1`); already resolved transitively in `Cargo.lock` at the same checksum, so no new code enters the binary                                                                               |
+| T2  | DONE   | Rewrite `authenticate` with `ConstantTimeEq`                 | Fold `Choice` over all configured tokens with bitwise OR; convert to `bool` once at the end; `expose_secret()` stays at the comparison                                                                      |
+| T3  | DONE   | Add unit tests in `auth.rs`                                  | Match; mismatch early/late/shorter/longer; empty token; match on second configured token; no secret values in assertion messages. Structural review verifies full iteration                                 |
+| T4  | DONE   | Run quality gates and manual scenarios                       | Focused format, Clippy, tests, dependency analysis, and M1–M3 passed; full pre-commit runs at commit time                                                                                                   |
+| T5  | DONE   | Review the remediation process against this case             | Added: first-case coupling rule, explicit disclosure-path decision, mandatory reproduction, maintainer-set severity, suggested-fix vetting. Closes T4 and T5 of the process spec                            |
 | T6  | TODO   | Disclose: create both issues, move specs to `open/`, open PR | Create the handled-report record from the template and add the `auth.rs` code pointer; PR credits reporter and states hardening classification; `Closes` both issues; fill record metadata; notify reporter |
 
 ## Progress Tracking
 
 ### Workflow Checkpoints
 
-- [x] Folder-style spec drafted in `docs/issues/drafts/rest-api-constant-time-token-comparison/ISSUE.md`
+- [x] Folder-style spec drafted in `docs/issues/open/2143-rest-api-constant-time-token-comparison/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer
-- [ ] GitHub issue created and issue number added to this spec (deferred to disclosure moment)
+- [x] GitHub issue created and issue number added to this spec (#2143)
 - [x] Implementation completed
 - [x] Automatic verification completed (`cargo fmt --check`, Clippy, focused tests, `cargo machete`, documentation lint baseline)
 - [x] Manual verification scenarios executed and recorded
@@ -374,8 +374,8 @@ evidence, not a regression test.
 ## References
 
 - Reproduction evidence: [`reproduction.md`](reproduction.md)
-- Companion process spec:
-  `docs/issues/drafts/define-confidential-vulnerability-remediation-process/ISSUE.md`
+- Companion process spec: #2142 —
+  `docs/issues/open/2142-define-confidential-vulnerability-remediation-process/ISSUE.md`
 - Rate limiting: valid defense-in-depth to be proposed independently after this focused
   hardening is disclosed; no follow-up issue has been drafted yet.
 - [RUSTSEC-2023-0071 analysis](../../../security/analysis/production/RUSTSEC-2023-0071.md):
