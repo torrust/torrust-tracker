@@ -209,7 +209,7 @@ mod tests {
     }
 
     #[test]
-    fn it_authenticates_a_token_after_a_non_matching_token() {
+    fn it_authenticates_each_configured_token() {
         let access_tokens = access_tokens();
 
         assert!(authenticate("other-token-678", &access_tokens));
