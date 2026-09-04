@@ -45,15 +45,15 @@ impl<Event: Sync + Send + Clone> Receiver for broadcast::Receiver<Event> {
 
 impl<Event> From<broadcast::error::SendError<Event>> for SendError<Event> {
     fn from(err: broadcast::error::SendError<Event>) -> Self {
-        SendError(err.0)
+        Self(err.0)
     }
 }
 
 impl From<broadcast::error::RecvError> for RecvError {
     fn from(err: broadcast::error::RecvError) -> Self {
         match err {
-            broadcast::error::RecvError::Lagged(amt) => RecvError::Lagged(amt),
-            broadcast::error::RecvError::Closed => RecvError::Closed,
+            broadcast::error::RecvError::Lagged(amt) => Self::Lagged(amt),
+            broadcast::error::RecvError::Closed => Self::Closed,
         }
     }
 }
