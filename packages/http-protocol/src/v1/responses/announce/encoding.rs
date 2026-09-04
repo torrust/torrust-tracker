@@ -30,7 +30,7 @@ use crate::v1::responses::announce::data::{AnnounceData, Peer};
 // Nightly Clippy diagnoses that proc-macro expansion; remove this allowance once derive_more emits
 // field-init shorthand.
 #[allow(clippy::redundant_field_names)]
-#[derive(Debug, AsRef, PartialEq, Constructor)]
+#[derive(Debug, AsRef, PartialEq, Eq, Constructor)]
 pub struct Announce<E>
 where
     E: From<AnnounceData> + Into<Vec<u8>>,
@@ -98,10 +98,8 @@ pub struct Compact {
 
 impl From<AnnounceData> for Compact {
     fn from(data: AnnounceData) -> Self {
-        let compact_peers: Vec<CompactPeer> = data.peers.into_iter().map(CompactPeer::from).collect();
-
         let (peers, peers6): (Vec<CompactPeerData<Ipv4Addr>>, Vec<CompactPeerData<Ipv6Addr>>) =
-            compact_peers.into_iter().collect();
+            data.peers.into_iter().map(CompactPeer::from).collect();
 
         let peers_encoded: CompactPeersEncoded = peers.into_iter().collect();
         let peers_encoded_6: CompactPeersEncoded = peers6.into_iter().collect();
@@ -145,7 +143,7 @@ impl Into<Vec<u8>> for Compact {
 /// };
 ///
 ///  ```
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct NormalPeer {
     /// The peer's ID.
     pub peer_id: [u8; 20],
@@ -157,7 +155,7 @@ pub struct NormalPeer {
 
 impl From<Peer> for NormalPeer {
     fn from(peer: Peer) -> Self {
-        NormalPeer {
+        Self {
             peer_id: peer.peer_id.0,
             ip: peer.peer_addr.ip(),
             port: peer.peer_addr.port(),
@@ -197,7 +195,7 @@ impl From<&NormalPeer> for BencodeMut<'_> {
 ///
 /// Refer to [BEP 23: Tracker Returns Compact Peer Lists](https://www.bittorrent.org/beps/bep_0023.html)
 /// for more information.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum CompactPeer {
     /// The peer's IP address.
     V4(CompactPeerData<Ipv4Addr>),
@@ -208,7 +206,7 @@ pub enum CompactPeer {
 impl CompactPeer {
     /// Creates a compact peer from a socket address.
     #[must_use]
-    pub fn new(socket_addr: &SocketAddr) -> Self {
+    pub const fn new(socket_addr: &SocketAddr) -> Self {
         match socket_addr.ip() {
             IpAddr::V4(ip) => Self::V4(CompactPeerData {
                 ip,
@@ -223,7 +221,7 @@ impl CompactPeer {
 
     /// Creates a compact peer from 6 bytes (IPv4) or 18 bytes (IPv6).
     #[must_use]
-    pub fn new_from_bytes(bytes: &[u8]) -> Self {
+    pub const fn new_from_bytes(bytes: &[u8]) -> Self {
         if bytes.len() == 18 {
             // IPv6: 16 bytes IP + 2 bytes port
             let ip = Ipv6Addr::new(
@@ -258,7 +256,7 @@ impl From<Peer> for CompactPeer {
 
 /// The [`CompactPeerData`], that made with either a [`Ipv4Addr`], or [`Ipv6Addr`] along with a `port`.
 ///
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct CompactPeerData<V> {
     /// The peer's IP address.
     pub ip: V,

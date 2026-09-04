@@ -64,11 +64,7 @@ impl From<ReverseProxyMode> for bool {
 
 impl From<bool> for ReverseProxyMode {
     fn from(reverse_proxy_mode: bool) -> Self {
-        if reverse_proxy_mode {
-            ReverseProxyMode::Enabled
-        } else {
-            ReverseProxyMode::Disabled
-        }
+        if reverse_proxy_mode { Self::Enabled } else { Self::Disabled }
     }
 }
 /// This struct contains the sources from which the peer IP can be obtained.
@@ -82,7 +78,7 @@ pub struct ClientIpSources {
 }
 
 impl ClientIpSources {
-    fn try_client_ip_from_connection_info(&self) -> Result<IpAddr, PeerIpResolutionError> {
+    const fn try_client_ip_from_connection_info(&self) -> Result<IpAddr, PeerIpResolutionError> {
         if let Some(socket_addr) = self.connection_info_socket_address {
             Ok(socket_addr.ip())
         } else {
@@ -92,7 +88,7 @@ impl ClientIpSources {
         }
     }
 
-    fn try_client_ip_from_proxy_header(&self) -> Result<IpAddr, PeerIpResolutionError> {
+    const fn try_client_ip_from_proxy_header(&self) -> Result<IpAddr, PeerIpResolutionError> {
         if let Some(ip) = self.right_most_x_forwarded_for {
             Ok(ip)
         } else {
@@ -137,19 +133,19 @@ pub struct RemoteClientAddr {
 
 impl RemoteClientAddr {
     #[must_use]
-    pub fn new(ip: ResolvedIp, port: Option<u16>) -> Self {
+    pub const fn new(ip: ResolvedIp, port: Option<u16>) -> Self {
         Self { ip, port }
     }
 
     #[must_use]
-    pub fn ip(&self) -> IpAddr {
+    pub const fn ip(&self) -> IpAddr {
         match self.ip {
             ResolvedIp::FromSocketAddr(ip) | ResolvedIp::FromXForwardedFor(ip) => ip,
         }
     }
 
     #[must_use]
-    pub fn port(&self) -> Option<u16> {
+    pub const fn port(&self) -> Option<u16> {
         self.port
     }
 }
