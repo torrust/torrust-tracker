@@ -50,7 +50,7 @@ pub struct ConnectionContext {
 
 impl ConnectionContext {
     #[must_use]
-    pub fn new(
+    pub const fn new(
         configuration_instance_id: ConfigurationInstanceId,
         remote_client_addr: RemoteClientAddr,
         server_service_binding: ServiceBinding,
@@ -134,7 +134,7 @@ pub struct ServerConnectionContext {
 
 impl From<ConnectionContext> for LabelSet {
     fn from(connection_context: ConnectionContext) -> Self {
-        let mut label_set = LabelSet::from([
+        let mut label_set = Self::from([
             (
                 label_name!("server_binding_protocol"),
                 LabelValue::new(&connection_context.server.service_binding.protocol().to_string()),

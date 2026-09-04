@@ -57,7 +57,7 @@ pub async fn initialize_core_tracker_services_with_config(
     let in_memory_torrent_repository = Arc::new(InMemoryTorrentRepository::default());
     let db_downloads_metric_repository = Arc::new(DatabaseDownloadsMetricRepository::new(&database.torrent_metrics_store));
     let in_memory_whitelist = Arc::new(InMemoryWhitelist::default());
-    let whitelist_authorization = Arc::new(WhitelistAuthorization::new(&config.core, &in_memory_whitelist.clone()));
+    let whitelist_authorization = Arc::new(WhitelistAuthorization::new(&config.core, &in_memory_whitelist));
     let in_memory_key_repository = Arc::new(InMemoryKeyRepository::default());
     let authentication_service = Arc::new(AuthenticationService::new(&core_config, &in_memory_key_repository));
 
@@ -81,7 +81,7 @@ pub async fn initialize_core_tracker_services_with_config(
     let http_stats_repository = Arc::new(Repository::new());
     let http_stats_event_bus = Arc::new(EventBus::new(
         config.core.tracker_usage_statistics.into(),
-        http_core_broadcaster.clone(),
+        http_core_broadcaster,
     ));
 
     let http_stats_event_sender = http_stats_event_bus.sender();
@@ -121,7 +121,7 @@ fn first_http_tracker_configuration_instance_id(config: &Configuration) -> Confi
         .expect("the benchmark configuration should contain an HTTP tracker")
 }
 
-pub fn sample_peer() -> peer::Peer {
+pub const fn sample_peer() -> peer::Peer {
     peer::Peer {
         peer_id: PeerId(*b"-qB00000000000000000"),
         peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080),

@@ -77,7 +77,7 @@ async fn dispatch_events(
     }
 }
 
-fn event_connection_id(event: &crate::event::Event) -> ConfigurationInstanceId {
+const fn event_connection_id(event: &crate::event::Event) -> ConfigurationInstanceId {
     match event {
         crate::event::Event::TcpAnnounce { connection, .. } | crate::event::Event::TcpScrape { connection } => {
             connection.configuration_instance_id()
