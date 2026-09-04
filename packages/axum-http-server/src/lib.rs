@@ -316,7 +316,7 @@ pub enum Version {
 #[cfg(test)]
 pub(crate) mod tests {
 
-    pub(crate) mod helpers {
+    pub mod helpers {
         use torrust_info_hash::InfoHash;
 
         /// # Panics

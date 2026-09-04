@@ -52,7 +52,7 @@ where
     fn from_request_parts(parts: &mut Parts, _state: &S) -> impl Future<Output = Result<Self, Self::Rejection>> + Send {
         async {
             match extract_announce_from(parts.uri.query()) {
-                Ok(announce_request) => Ok(ExtractRequest(announce_request)),
+                Ok(announce_request) => Ok(Self(announce_request)),
                 Err(error) => Err((StatusCode::OK, error.write()).into_response()),
             }
         }
