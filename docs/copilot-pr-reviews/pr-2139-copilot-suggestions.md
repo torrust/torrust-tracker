@@ -45,10 +45,10 @@ Status legend:
 
 ## Suggestions
 
-| #   | Thread ID               | Path                                                       | URL                                                                           | Suggestion Summary                                                   | Decision | Reply URL | Status | Thread State |
-| --- | ----------------------- | ---------------------------------------------------------- | ----------------------------------------------------------------------------- | -------------------------------------------------------------------- | -------- | --------- | ------ | ------------ |
-| 1   | `PRRT_kwDOGp2yqc6fPc6q` | `docs/issues/open/2138-document-testing-strategy/ISSUE.md` | <https://github.com/torrust/torrust-tracker/pull/2139#discussion_r3932816666> | Correct subject-verb agreement in the testing-strategy statement.    | `action`: corrected in `2fdddb05`. | <https://github.com/torrust/torrust-tracker/pull/2139#discussion_r3932941209> | DONE | RESOLVED |
-| 2   | `PRRT_kwDOGp2yqc6fPc7H` | `docs/issues/open/2138-document-testing-strategy/ISSUE.md` | <https://github.com/torrust/torrust-tracker/pull/2139#discussion_r3932816716> | Do not reference a git-ignored temporary draft as a stable artifact. | `action`: corrected in `2fdddb05`. | <https://github.com/torrust/torrust-tracker/pull/2139#discussion_r3932945935> | DONE | RESOLVED |
+| #   | Thread ID               | Path                                                       | URL                                                                           | Suggestion Summary                                                   | Decision                           | Reply URL                                                                     | Status | Thread State |
+| --- | ----------------------- | ---------------------------------------------------------- | ----------------------------------------------------------------------------- | -------------------------------------------------------------------- | ---------------------------------- | ----------------------------------------------------------------------------- | ------ | ------------ |
+| 1   | `PRRT_kwDOGp2yqc6fPc6q` | `docs/issues/open/2138-document-testing-strategy/ISSUE.md` | <https://github.com/torrust/torrust-tracker/pull/2139#discussion_r3932816666> | Correct subject-verb agreement in the testing-strategy statement.    | `action`: corrected in `2fdddb05`. | <https://github.com/torrust/torrust-tracker/pull/2139#discussion_r3932941209> | DONE   | RESOLVED     |
+| 2   | `PRRT_kwDOGp2yqc6fPc7H` | `docs/issues/open/2138-document-testing-strategy/ISSUE.md` | <https://github.com/torrust/torrust-tracker/pull/2139#discussion_r3932816716> | Do not reference a git-ignored temporary draft as a stable artifact. | `action`: corrected in `2fdddb05`. | <https://github.com/torrust/torrust-tracker/pull/2139#discussion_r3932945935> | DONE   | RESOLVED     |
 
 ## Notes
 
