@@ -79,6 +79,15 @@ error: could not compile `torrust-tracker-swarm-coordination-registry` (lib test
 - `handle_event` in `packages/swarm-coordination-registry/src/statistics/event/handler.rs` has complexity 59.
 - `dispatch_events` in `packages/swarm-coordination-registry/src/statistics/event/listener.rs` has complexity 29.
 
+After the swarm-coordination-registry refactor exposed subsequent workspace compilation, a
+temporary root-policy enforcement check on 2026-09-04 found four additional violations in
+`packages/tracker-core`:
+
+- `handle_in_memory_event` in `src/statistics/event/handler.rs` has complexity 46.
+- `handle_persistent_completed_statistics_event` in `src/statistics/event/handler.rs` has complexity 35.
+- `dispatch_in_memory_events` in `src/statistics/event/listener.rs` has complexity 29.
+- `dispatch_persistent_completed_statistics_events` in `src/statistics/event/listener.rs` has complexity 29.
+
 `Cargo.toml` defines the workspace Clippy policy, but `cognitive_complexity` is not included. Workspace lint settings are only inherited by manifests that opt into `[lints] workspace = true`; the affected package does not currently opt in. CI enforces Clippy through `linter all` (which runs `cargo clippy` for the workspace), so once the lint is declared in `Cargo.toml` and inherited by every package, the existing CI step enforces it without extra workflow changes.
 
 Implementation baseline verified on 2026-09-03:
@@ -95,9 +104,9 @@ On 2026-09-03, all 20 remaining package manifests were temporarily updated to in
 
 ### In Scope
 
-- Refactor `handle_event` and `dispatch_events` until neither exceeds the default `clippy::cognitive_complexity` threshold.
-- Preserve event-to-metric updates, labels, listener cancellation priority, receiver-closed termination, lagged-receiver continuation, and logging behavior.
-- Retain and extend focused automated coverage where needed to protect the refactored behavior, especially listener receive-result handling.
+- Refactor all six identified handler and listener functions in `swarm-coordination-registry` and `tracker-core` until none exceeds the default `clippy::cognitive_complexity` threshold.
+- Preserve event-to-metric and persistence updates, labels, timestamps, listener cancellation priority, receiver-closed termination, lagged-receiver continuation, and logging behavior.
+- Retain and extend focused automated coverage where needed to protect the refactored behavior, especially listener receive-result handling and persistence failure handling.
 - Add `[lints] workspace = true` to every workspace package manifest that does not yet inherit the workspace lint policy, so the lint applies to all 26 packages.
 - Fix every diagnostic exposed by the newly inherited workspace lint policy, preserving behavior and adding or adjusting focused regression coverage where a fix changes executable code.
 - Add `cognitive_complexity` with level `deny` to `[workspace.lints.clippy]` in the root `Cargo.toml` only after the workspace is clean under the inherited existing policy.
@@ -125,9 +134,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | --- | ------ | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | T1  | DONE   | Establish enforcement baseline                  | Verified 26 workspace packages, temporarily enabled lint inheritance in all 20 remaining manifests, recorded the 87-diagnostic baseline, then reverted the experiment.          |
 | T2  | IN_PROGRESS | Remediate workspace lint baseline           | Fix all 87 diagnostics exposed by full workspace-lint inheritance, retaining behavior and adding focused regression tests where needed.                                         |
-| T3  | TODO   | Refactor event metrics handler                  | Split `handle_event` into intention-revealing helpers while preserving all existing metric effects and labels.                                                                  |
-| T4  | TODO   | Refactor event listener loop                    | Split receive-result handling from `dispatch_events` while retaining `biased` cancellation priority and all shutdown/lag behavior.                                              |
-| T5  | TODO   | Add focused regression tests                    | Preserve handler coverage and add listener behavior coverage where practical.                                                                                                   |
+| T3  | IN_PROGRESS | Refactor event metrics handlers              | `swarm-coordination-registry` is complete; split its `handle_event` into helpers. Refactor the two tracker-core handlers while preserving metrics and persistence behavior.      |
+| T4  | IN_PROGRESS | Refactor event listener loops                 | `swarm-coordination-registry` is complete; split receive-result handling from its dispatcher. Apply the same approach to both tracker-core listeners.                            |
+| T5  | IN_PROGRESS | Add focused regression tests                  | `swarm-coordination-registry` coverage is complete; add tracker-core handler, persistence-failure, and listener lifecycle coverage.                                             |
 | T6  | TODO   | Complete Cargo lint policy                      | Add `[lints] workspace = true` to every package manifest and add `cognitive_complexity = { level = "deny", priority = -1 }` only after T2 through T5 leave the workspace clean. |
 | T7  | TODO   | Verify CI enforcement                           | Confirm `linter all` (as run in `testing.yaml`) fails on a cognitive-complexity violation and passes after the complete remediation; no workflow change expected.               |
 | T8  | TODO   | Update affected documentation                   | Align lint-policy documentation with the final `Cargo.toml` and CI ownership.                                                                                                   |
@@ -157,11 +166,14 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-09-03 00:00 UTC - GitHub Copilot - Created GitHub issue #2134. - https://github.com/torrust/torrust-tracker/issues/2134
 - 2026-09-03 00:00 UTC - Committer - Verified the specification progress and staged scope before the specification commit. - Local commit workflow
 - 2026-09-03 00:15 UTC - GitHub Copilot - Created the implementation branch from merged `develop`. Began package-scoped workspace lint inheritance and baseline remediation; `udp-protocol` is complete in commit `df3bab7a`. - Local commit workflow
+- 2026-09-04 UTC - GitHub Copilot - Completed workspace lint inheritance and all baseline remediation. Flag-free workspace Clippy passed. - Local commit workflow
+- 2026-09-04 UTC - GitHub Copilot - Refactored the swarm-coordination-registry event handler and listener, adding deterministic lifecycle and metric regression coverage in `7e347911`. - Local commit workflow
+- 2026-09-04 UTC - GitHub Copilot - A temporary root cognitive-complexity policy check exposed four additional tracker-core violations (46/25, 35/25, 29/25, and 29/25). Reverted the temporary policy and expanded this specification before implementation. - Terminal output and source inspection in this session
 
 ## Acceptance Criteria
 
-- [ ] AC1: `handle_event` and `dispatch_events` comply with Clippy's default cognitive-complexity threshold without a `clippy::cognitive_complexity` allowance.
-- [ ] AC2: Existing observable event-metric behavior, metric labels, listener ordering, termination behavior, and logging semantics are preserved.
+- [ ] AC1: All six identified handler and listener functions in `swarm-coordination-registry` and `tracker-core` comply with Clippy's default cognitive-complexity threshold without a `clippy::cognitive_complexity` allowance.
+- [ ] AC2: Existing observable event-metric and persistence behavior, metric labels, timestamps, listener ordering, termination behavior, and logging semantics are preserved.
 - [ ] AC3: Root `Cargo.toml` declares `clippy::cognitive_complexity` as a denied workspace lint, and every workspace package manifest inherits workspace lints via `[lints] workspace = true`.
 - [ ] AC4: `cargo clippy --workspace --all-targets --all-features` (with no extra `-D` flags) fails on a cognitive-complexity violation, so the existing `linter all` CI step enforces it.
 - [ ] AC5: Every diagnostic exposed by enabling workspace lint inheritance, including the 87-diagnostic baseline, is fixed without lint allowances that weaken the workspace policy.
@@ -181,6 +193,8 @@ Define verification before implementation starts and execute it before closing t
 - `cargo fmt --check`
 - `cargo test -p torrust-tracker-swarm-coordination-registry`
 - `cargo clippy -p torrust-tracker-swarm-coordination-registry --all-targets --all-features`
+- `cargo test -p torrust-tracker-core --all-features`
+- `cargo clippy -p torrust-tracker-core --all-targets --all-features`
 - `cargo clippy --workspace --all-targets --all-features` (must fail before the refactor once the lint is declared, and pass after)
 - `linter all`
 - `cargo test --doc --workspace`
@@ -228,5 +242,7 @@ Notes:
 - `.github/workflows/testing.yaml`
 - `packages/swarm-coordination-registry/src/statistics/event/handler.rs`
 - `packages/swarm-coordination-registry/src/statistics/event/listener.rs`
+- `packages/tracker-core/src/statistics/event/handler.rs`
+- `packages/tracker-core/src/statistics/event/listener.rs`
 - `docs/adrs/20260727000000_events_are_objective_facts.md`
 - `docs/issues/closed/1786-tighten-lint-config.md`
