@@ -15,6 +15,9 @@ repository.workspace = true
 rust-version.workspace = true
 version = "0.1.0"
 
+[lints]
+workspace = true
+
 [dependencies]
 torrust-info-hash = "=0.2.0"
 chrono = { version = "0", default-features = false, features = [ "clock" ] }
