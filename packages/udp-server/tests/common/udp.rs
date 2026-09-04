@@ -10,8 +10,8 @@ pub struct Client {
 
 impl Client {
     #[allow(dead_code)]
-    pub async fn connected(remote_socket_addr: &SocketAddr, local_socket_addr: &SocketAddr) -> Client {
-        let client = Client::bind(local_socket_addr).await;
+    pub async fn connected(remote_socket_addr: &SocketAddr, local_socket_addr: &SocketAddr) -> Self {
+        let client = Self::bind(local_socket_addr).await;
         client.connect(remote_socket_addr).await;
         client
     }

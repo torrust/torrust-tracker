@@ -78,7 +78,7 @@ async fn dispatch_events(
     }
 }
 
-fn event_connection_id(event: &crate::event::Event) -> ConfigurationInstanceId {
+const fn event_connection_id(event: &crate::event::Event) -> ConfigurationInstanceId {
     match event {
         crate::event::Event::UdpRequestReceived { context }
         | crate::event::Event::UdpRequestDiscarded { context }

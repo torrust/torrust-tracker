@@ -15,7 +15,7 @@ use crate::server::asserts::get_error_response_message;
 
 const DEFAULT_UDP_TIMEOUT: Duration = Duration::from_secs(5);
 
-fn empty_udp_request() -> [u8; MAX_PACKET_SIZE] {
+const fn empty_udp_request() -> [u8; MAX_PACKET_SIZE] {
     [0; MAX_PACKET_SIZE]
 }
 

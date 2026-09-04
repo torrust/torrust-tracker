@@ -89,7 +89,7 @@ fn log_error(
     }
 }
 
-fn is_connection_cookie_error(error: &Error) -> bool {
+const fn is_connection_cookie_error(error: &Error) -> bool {
     matches!(
         error,
         Error::AnnounceFailed {

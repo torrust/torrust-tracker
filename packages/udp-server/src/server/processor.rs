@@ -267,7 +267,9 @@ mod tests {
         tokio::time::timeout(Duration::from_secs(1), async {
             loop {
                 let stats = container.udp_tracker_server_container.stats_repository.get_stats().await;
-                if stats.udp_requests_discarded_total() >= expected {
+                let discarded_count_reached = stats.udp_requests_discarded_total() >= expected;
+                drop(stats);
+                if discarded_count_reached {
                     break;
                 }
                 tokio::time::sleep(Duration::from_millis(1)).await;

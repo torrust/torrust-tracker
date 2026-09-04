@@ -51,7 +51,7 @@ pub struct Running {
 impl Server<Stopped> {
     /// Creates a new `UdpServer` instance in `stopped`state.
     #[must_use]
-    pub fn new(spawner: Spawner) -> Self {
+    pub const fn new(spawner: Spawner) -> Self {
         Self {
             state: Stopped { spawner },
         }
@@ -119,7 +119,7 @@ impl Server<Stopped> {
             .await
         {
             let _ = tx_halt.send(Halted::Normal);
-            let _ = task.await;
+            drop(task.await);
             return Err(UdpError::Registration { source: error });
         }
 
