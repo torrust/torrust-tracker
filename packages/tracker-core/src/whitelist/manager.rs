@@ -35,7 +35,7 @@ impl WhitelistManager {
     ///
     /// A new `WhitelistManager` instance.
     #[must_use]
-    pub fn new(database_whitelist: Arc<DatabaseWhitelist>, in_memory_whitelist: Arc<InMemoryWhitelist>) -> Self {
+    pub const fn new(database_whitelist: Arc<DatabaseWhitelist>, in_memory_whitelist: Arc<InMemoryWhitelist>) -> Self {
         Self {
             in_memory_whitelist,
             database_whitelist,

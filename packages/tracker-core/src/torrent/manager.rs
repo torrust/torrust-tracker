@@ -10,11 +10,10 @@ use super::repository::in_memory::InMemoryTorrentRepository;
 use crate::statistics::persisted::downloads::DatabaseDownloadsMetricRepository;
 use crate::{CurrentClock, databases};
 
-/// The `TorrentsManager` is responsible for managing torrent entries by
-/// integrating persistent storage and in-memory state. It provides methods to
-/// load torrent data from the database into memory, and to periodically clean
-/// up stale torrent entries by removing inactive peers or entire torrent
-/// entries that no longer have active peers.
+/// Manages torrent entries in persistent storage and in-memory state.
+///
+/// It loads persisted torrent data into memory and periodically removes stale
+/// peers or torrent entries without active peers.
 ///
 /// This manager relies on two repositories:
 ///

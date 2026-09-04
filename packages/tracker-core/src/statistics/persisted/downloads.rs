@@ -40,7 +40,7 @@ impl DatabaseDownloadsMetricRepository {
     /// A new `DatabaseDownloadsMetricRepository` instance with a cloned
     /// reference to the provided store.
     #[must_use]
-    pub fn new(database: &Arc<dyn TorrentMetricsStore>) -> DatabaseDownloadsMetricRepository {
+    pub fn new(database: &Arc<dyn TorrentMetricsStore>) -> Self {
         Self {
             database: database.clone(),
         }

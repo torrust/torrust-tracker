@@ -25,7 +25,7 @@ pub struct InMemoryTorrentRepository {
 
 impl InMemoryTorrentRepository {
     #[must_use]
-    pub fn new(swarms: Arc<Registry>) -> Self {
+    pub const fn new(swarms: Arc<Registry>) -> Self {
         Self { swarms }
     }
 
