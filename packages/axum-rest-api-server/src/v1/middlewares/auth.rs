@@ -49,6 +49,7 @@ use axum::middleware::Next;
 use axum::response::{IntoResponse, Response};
 use secrecy::ExposeSecret;
 use serde::Deserialize;
+use subtle::{Choice, ConstantTimeEq};
 use torrust_tracker_configuration::v3_0_0::tracker_api::AccessTokens;
 
 use crate::v1::responses::unhandled_rejection_response;
@@ -147,9 +148,13 @@ impl IntoResponse for AuthError {
 }
 
 fn authenticate(token: &str, tokens: &AccessTokens) -> bool {
-    tokens
-        .values()
-        .any(|configured_token| configured_token.expose_secret() == token)
+    let token = token.as_bytes();
+
+    let authentication_result = tokens.values().fold(Choice::from(0), |result, configured_token| {
+        result | configured_token.expose_secret().as_bytes().ct_eq(token)
+    });
+
+    bool::from(authentication_result)
 }
 
 /// `500` error response returned when the token is missing.
@@ -171,4 +176,42 @@ pub fn token_not_valid_response() -> Response {
 #[must_use]
 pub fn unknown_auth_data_provided_response() -> Response {
     unhandled_rejection_response("unknown token provided".to_string())
+}
+
+#[cfg(test)]
+mod tests {
+    use secrecy::SecretString;
+    use torrust_tracker_configuration::v3_0_0::tracker_api::AccessTokens;
+
+    use super::authenticate;
+
+    #[test]
+    fn it_authenticates_a_configured_token() {
+        let access_tokens = access_tokens();
+
+        assert!(authenticate("api-token-12345", &access_tokens));
+    }
+
+    #[test]
+    fn it_rejects_tokens_that_differ_at_any_position_or_length() {
+        let access_tokens = access_tokens();
+
+        for token in ["xpi-token-12345", "api-token-1234x", "api-token-1234", "api-token-123456", ""] {
+            assert!(!authenticate(token, &access_tokens));
+        }
+    }
+
+    #[test]
+    fn it_authenticates_a_token_after_a_non_matching_token() {
+        let access_tokens = access_tokens();
+
+        assert!(authenticate("other-token-678", &access_tokens));
+    }
+
+    fn access_tokens() -> AccessTokens {
+        AccessTokens::from([
+            ("first".to_string(), SecretString::from("api-token-12345")),
+            ("second".to_string(), SecretString::from("other-token-678")),
+        ])
+    }
 }
