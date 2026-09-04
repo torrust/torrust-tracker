@@ -37,6 +37,14 @@ The repository was reorganized through package refactoring and extraction work. 
 - Add maintainable, fast, responsibility-oriented unit tests close to the code they protect, using Arrange, Act, Assert (AAA) structure where appropriate.
 - Add integration tests, runnable examples, or end-to-end tests when they provide valuable package-level regression protection.
 - When a package behavior is impractical to cover with a unit test, select the narrowest stable test boundary that can cover it: package-local integration or end-to-end tests first, then root `tests/` integration tests or `packages/e2e-tools/` only when the behavior is necessarily composed at that level. Record the chosen boundary and its rationale in the subissue evidence.
+- For every package subissue, assess the applicability and current evidence for unit tests,
+  package-local integration tests, runnable examples, package/root/end-to-end tests, mutation
+  testing, property-based testing, fuzzing, and any other package-relevant test technique. Record
+  why each level is selected, deferred, or not applicable; do not require every technique merely
+  because it exists.
+- Use mutation testing as a bounded analysis aid when practical: examine behavior-relevant surviving
+  mutants for missing assertions, but do not require a mutation score or add it to CI without a
+  separate maintainer-approved decision.
 - Use `tracker-core` as a reference for effective package-level test coverage.
 - Create and track additional package-testing subissues when a maintainer or contributor identifies a need.
 - Set qualitative, risk-based coverage objectives per subissue and document the rationale and exceptions; do not require a numeric percentage target.

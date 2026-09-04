@@ -58,6 +58,9 @@ high-value cases from that backlog.
 - Measure current package-source coverage with the reproducible `cargo llvm-cov` command and record
   aggregate, per-file, and uncovered-function/region evidence. Treat the test-inclusive aggregate
   as navigation evidence, not proof that observable integration contracts are complete.
+- Assess a bounded, package-scoped mutation-testing sample. Record tool configuration, duration,
+  limitations, and only behavior-relevant surviving mutants; do not add mutation testing to CI or
+  make a mutation score a required target without separate maintainer approval.
 - Compare integration tests with the package's transport, router, extractor, lifecycle, and
   `http-core` domain behavior to find meaningful edge cases that coverage alone cannot expose.
 - Perform a dedicated, file-by-file test-design review before adding tests. Identify duplication and
@@ -92,14 +95,15 @@ high-value cases from that backlog.
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`, `DEFERRED`.
 
-| ID  | Status | Task                                     | Expected output                                                                                                                                                                |
-| --- | ------ | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| T1  | TODO   | Inventory all integration contracts      | Read every package integration-test file and map its observable behavior, configuration mode, boundary, and existing scenario coverage.                                        |
-| T2  | TODO   | Measure and analyze coverage             | Record reproducible package-source aggregate and per-file coverage, then compare uncovered areas with package/domain behavior to identify gaps coverage alone does not reveal. |
-| T3  | TODO   | Review test design before expansion      | Create a file-by-file integration-test refactor plan covering readability, maintainability, expressiveness, fixture selection, and justified duplication reduction.            |
-| T4  | TODO   | Approve prioritized improvement plan     | Review the evidence-backed plan with the maintainer; implement one approved refactoring or behavior increment at a time.                                                       |
-| T5  | TODO   | Improve selected integration contracts   | Add only approved high-value edge cases. The combined private-and-whitelisted announce/scrape matrix is an initial candidate, not a preselected outcome.                       |
-| T6  | TODO   | Final verification and acceptance review | Run full package tests, linters, required hooks, manual real-server scenarios, and post-implementation acceptance review.                                                      |
+| ID  | Status | Task                                     | Expected output                                                                                                                                                                                 |
+| --- | ------ | ---------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| T1  | TODO   | Inventory all integration contracts      | Read every package integration-test file and map its observable behavior, configuration mode, boundary, and existing scenario coverage.                                                         |
+| T2  | TODO   | Measure and analyze coverage             | Record reproducible package-source aggregate and per-file coverage, then compare uncovered areas with package/domain behavior to identify gaps coverage alone does not reveal.                  |
+| T2a | TODO   | Assess mutation-testing feasibility      | Run a bounded `cargo-mutants` sample against this package. Record configuration, duration, limitations, and behavior-relevant surviving mutants; do not add a mutation-score target or CI gate. |
+| T3  | TODO   | Review test design before expansion      | Create a file-by-file integration-test refactor plan covering readability, maintainability, expressiveness, fixture selection, and justified duplication reduction.                             |
+| T4  | TODO   | Approve prioritized improvement plan     | Review the evidence-backed plan with the maintainer; implement one approved refactoring or behavior increment at a time.                                                                        |
+| T5  | TODO   | Improve selected integration contracts   | Add only approved high-value edge cases. The combined private-and-whitelisted announce/scrape matrix is an initial candidate, not a preselected outcome.                                        |
+| T6  | TODO   | Final verification and acceptance review | Run full package tests, linters, required hooks, manual real-server scenarios, and post-implementation acceptance review.                                                                       |
 
 ## Test Development Loop
 
@@ -141,6 +145,8 @@ Apply this loop to every test-producing task:
       contracts, configuration modes, and boundary are recorded.
 - [ ] Coverage evidence and domain-behavior analysis identify and prioritize meaningful integration
       gaps; coverage percentages alone do not determine the selection.
+- [ ] A bounded mutation-testing assessment records whether `cargo-mutants` is practical and which
+      surviving mutants, if any, identify behavior-relevant contract gaps.
 - [ ] A dedicated integration-test design review records readability, maintainability, and
       expressiveness opportunities before any new tests are added.
 - [ ] Maintainer-approved, high-value integration contracts are added at the real package HTTP
@@ -183,6 +189,7 @@ Apply this loop to every test-producing task:
 | AC6   | TODO   | —        |
 | AC7   | TODO   | —        |
 | AC8   | TODO   | —        |
+| AC9   | TODO   | —        |
 
 ## Risks and Trade-offs
 
@@ -196,6 +203,8 @@ Apply this loop to every test-producing task:
   together.
 - Package source coverage aggregates test-inclusive code and may not isolate integration-test value.
   Treat coverage as navigation evidence, not a substitute for the selected behavioral contracts.
+- Mutation testing can create a large, tool-specific backlog. Use a bounded sample to challenge
+  test assertions, then select only observable contract gaps; do not pursue a mutation percentage.
 
 ## References
 
