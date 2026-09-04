@@ -29,8 +29,13 @@ docs/security/analysis/
   README.md              ← Process + template
   production/            ← CVEs in the production runtime image (catalog)
   build/                 ← CVEs in build-stage images (catalog)
+  reports/               ← Handled coordinated-disclosure reports (created at disclosure)
   affecting/             ← CVEs that DO affect us (create when needed)
 ```
+
+`reports/` is written by the confidential remediation process, not by this skill; consult it
+when a scanner or reviewer flags code that was already the subject of a handled report (grep
+the path or CWE).
 
 ## Process (3 Steps)
 

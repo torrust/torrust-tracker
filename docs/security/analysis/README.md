@@ -40,8 +40,15 @@ docs/security/analysis/
 ├── build/                     # CVEs in build-stage images (chef, tester, gcc)
 │   ├── CVE-{id}.md            # Per-CVE files
 │   └── {date}_{source}.md     # Bulk scan/event files (for bulk triage)
+├── reports/                   # Handled coordinated-disclosure reports (after disclosure)
+│   ├── README.md              # Template and rules
+│   └── {date}_{slug}.md       # One file per handled report
 └── affecting/                 # (future) Vulnerabilities that DO affect us
 ```
+
+The `production/` and `build/` catalogs answer "have we already evaluated this **CVE**?".
+The `reports/` catalog answers "have we already handled this **privately reported finding**,
+and what did we do?". Both exist so the same case is never re-triaged from scratch.
 
 ## Catalog Strategy
 
@@ -92,7 +99,10 @@ build/
 
 1. **Check the catalog**: `grep -r '<CVE-ID>' docs/security/analysis/` to
    see if this vulnerability has already been analyzed. If it has, verify the
-   `requires-recheck-when` conditions still hold. If they do, you're done.
+   `requires-recheck-when` conditions still hold. If they do, you're done. For a
+   finding that is not a CVE (a code-level report about our own source), grep the
+   affected path or weakness class (e.g. `CWE-208`, `auth.rs`) across
+   `docs/security/analysis/reports/` as well.
 
 2. **If not yet cataloged**: create a new per-CVE analysis document in the appropriate
    subdirectory (`production/` or `build/`) following the template below.

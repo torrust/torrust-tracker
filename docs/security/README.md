@@ -83,6 +83,10 @@ conditions would change the verdict.
 **Build-stage CVE catalog**: [`analysis/build/`](analysis/build/) —
 per-CVE and bulk files documenting vulnerabilities in ephemeral build images.
 
+**Handled-report catalog**: [`analysis/reports/`](analysis/reports/) —
+one sanitized record per coordinated-disclosure report the project has processed (fixed,
+hardened, declined, or non-affecting), created at disclosure time.
+
 ## Related Documentation
 
 - [Confidential Vulnerability Remediation](vulnerability-remediation.md) — coordinated-disclosure process for privately reported vulnerabilities
