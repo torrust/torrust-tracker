@@ -7,7 +7,7 @@ epic: 1347
 github-issue: 2136
 spec-path: docs/issues/open/2136-1347-add-tests-axum-http-server/ISSUE.md
 branch: "2136-add-tests-axum-http-server"
-related-pr: null
+related-pr: 2137
 last-updated-utc: 2026-09-01 18:00
 semantic-links:
   skill-links:
