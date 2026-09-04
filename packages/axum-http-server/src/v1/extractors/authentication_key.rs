@@ -124,12 +124,11 @@ fn custom_error(rejection: &PathRejection) -> responses::error::Error {
 #[cfg(test)]
 mod tests {
 
-    use axum::body::Body;
-    use axum::body::to_bytes;
+    use axum::Router;
+    use axum::body::{Body, to_bytes};
     use axum::http::StatusCode;
-    use axum::response::Response;
+    use axum::response::{IntoResponse, Response};
     use axum::routing::get;
-    use axum::{Router, response::IntoResponse};
     use torrust_tracker_http_protocol::v1::responses::error::Error;
     use tower::ServiceExt;
 

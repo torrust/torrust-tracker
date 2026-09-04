@@ -111,13 +111,13 @@ fn to_protocol_scrape_data(domain_data: DomainScrapeData) -> responses::scrape::
 
 #[cfg(test)]
 mod tests {
-    use axum::body::to_bytes;
-    use axum::response::Response;
-    use hyper::StatusCode;
     use std::net::{IpAddr, Ipv4Addr, SocketAddr};
     use std::str::FromStr;
     use std::sync::Arc;
 
+    use axum::body::to_bytes;
+    use axum::response::Response;
+    use hyper::StatusCode;
     use torrust_info_hash::InfoHash;
     use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
     use torrust_tracker_configuration::v3_0_0::Configuration;
