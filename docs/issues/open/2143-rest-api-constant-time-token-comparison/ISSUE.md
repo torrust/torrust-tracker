@@ -7,7 +7,7 @@ epic: null
 github-issue: 2143
 spec-path: docs/issues/open/2143-rest-api-constant-time-token-comparison/ISSUE.md
 branch: "security/private-remediation-20260904"
-related-pr: null
+related-pr: 2144
 last-updated-utc: 2026-09-04 12:00
 semantic-links:
   skill-links:
