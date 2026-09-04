@@ -10,7 +10,7 @@
 //! authentication errors.
 //!
 //! It returns a bencoded [`Error`](torrust_tracker_http_protocol::v1::responses::error)
-//! response (`500`) if the `key` parameter are missing or invalid.
+//! response with HTTP status `200 OK` if the `key` parameter is missing or invalid.
 //!
 //! **Sample authentication error responses**
 //!
@@ -124,11 +124,37 @@ fn custom_error(rejection: &PathRejection) -> responses::error::Error {
 #[cfg(test)]
 mod tests {
 
+    use axum::Router;
+    use axum::body::{Body, to_bytes};
+    use axum::http::StatusCode;
+    use axum::response::{IntoResponse, Response};
+    use axum::routing::get;
     use torrust_tracker_http_protocol::v1::responses::error::Error;
+    use tower::ServiceExt;
 
-    use super::parse_key;
+    use super::{Extract, Key, parse_key};
 
-    fn assert_error_response(error: &Error, error_message: &str) {
+    const MAX_RESPONSE_BODY_BYTES: usize = 64 * 1024;
+
+    async fn protected_handler(Extract(_key): Extract) -> impl IntoResponse {
+        StatusCode::NO_CONTENT
+    }
+
+    async fn decode_bencoded_failure_response(response: Response) -> Error {
+        assert_eq!(
+            response.status(),
+            StatusCode::OK,
+            "a BitTorrent authentication failure response should use HTTP 200"
+        );
+
+        let body = to_bytes(response.into_body(), MAX_RESPONSE_BODY_BYTES)
+            .await
+            .expect("the failure response body should be readable");
+
+        serde_bencode::from_bytes(&body).expect("the failure response should be valid bencode")
+    }
+
+    fn assert_failure_reason_contains(error: &Error, error_message: &str) {
         assert!(
             error.failure_reason.contains(error_message),
             "Error response does not contain message: '{error_message}'. Error: {error:?}"
@@ -136,13 +162,51 @@ mod tests {
     }
 
     #[test]
-    fn it_should_return_an_authentication_error_if_the_key_cannot_be_parsed() {
+    fn it_should_map_an_invalid_path_key_to_an_invalid_key_format_authentication_failure() {
+        // Arrange
         let invalid_key = "invalid_key";
 
-        let response = parse_key(invalid_key).unwrap_err();
+        // Act
+        let actual_error_response = parse_key(invalid_key).unwrap_err();
 
-        assert_error_response(
-            &response,
+        // Assert
+        assert_failure_reason_contains(
+            &actual_error_response,
+            "Tracker authentication error: Invalid format for authentication key param",
+        );
+    }
+
+    #[test]
+    fn it_should_parse_a_valid_path_key() {
+        // Arrange
+        let valid_key = "YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ";
+        let expected_key = valid_key
+            .parse::<Key>()
+            .expect("the fixture should be a valid authentication key");
+
+        // Act
+        let actual_key = parse_key(valid_key).expect("a valid path key should be accepted");
+
+        // Assert
+        assert_eq!(actual_key, expected_key);
+    }
+
+    #[tokio::test]
+    async fn it_should_encode_an_invalid_key_format_failure_response_for_an_invalid_path_key() {
+        // Arrange
+        let router = Router::new().route("/{key}", get(protected_handler));
+        let request = axum::http::Request::builder()
+            .uri("/invalid_key")
+            .body(Body::empty())
+            .expect("the test request should be valid");
+
+        // Act
+        let response = router.oneshot(request).await.expect("the router should handle the request");
+        let actual_error_response = decode_bencoded_failure_response(response).await;
+
+        // Assert
+        assert_failure_reason_contains(
+            &actual_error_response,
             "Tracker authentication error: Invalid format for authentication key param",
         );
     }

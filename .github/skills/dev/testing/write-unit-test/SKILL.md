@@ -1,6 +1,10 @@
 ---
 name: write-unit-test
 description: Guide for writing unit tests following project conventions including behavior-driven naming (it*should*\*), AAA pattern, MockClock for deterministic time testing, and parameterized tests with rstest. Use when adding tests for domain entities, value objects, utilities, or tracker logic. Triggers on "write unit test", "add test", "test coverage", "unit testing", or "add unit tests".
+semantic-links:
+  related-artifacts:
+    - docs/testing/README.md
+    - docs/testing/refactoring-patterns/README.md
 metadata:
   author: torrust
   version: "1.0"
@@ -85,6 +89,33 @@ the main scenario:
 - **Deterministic** — use `MockClock` instead of real time (see Phase 2)
 - **Isolated** — no shared mutable state between tests
 - **Fast** — unit tests run in milliseconds
+
+### Make Arrange State-Centered
+
+Before writing or refactoring an Arrange section, ask: **what is the one difference in initial
+state that makes this Act behave differently?** Make that causal condition visible to the reader.
+
+Pick the Arrange tool that states that condition most directly:
+
+- **Inline values** when a literal or a single constructor call already says it.
+- **Test builders** when a readable call chain in the test body names the choice, e.g.
+  `configuration().private().with_expired_key(...)`. Builders fit when each test varies one or two
+  named options on the same object.
+- **Scenario fixtures** when the condition emerges from several coordinated steps across objects,
+  resources, or registries, and no chain reads as clearly. Name the fixture for the resulting state,
+  such as `ServerStartWithDuplicateRegistration`. The fixture owns incidental mechanics (resource
+  allocation, configuration mutation, dependency construction, state seeding); the test keeps the
+  production Act and observable assertions visible. Focused fixtures form a catalog of important
+  system scenarios.
+
+These tools compose: a fixture may use builders internally, and a scenario may expose a small
+builder for the few variations it legitimately supports. Apply the pattern that fits the moment;
+none of them is a rule against the others.
+
+Whatever the tool, do not hide the Act or assertions inside it, let it accumulate unrelated optional
+components, or derive an expected outcome using production code under test. For the full
+constraints and example, see
+[Scenario fixtures for causal initial state](../../../../../docs/testing/refactoring-patterns/scenario-fixtures-for-causal-initial-state.md).
 
 ## Phase 1: Basic Unit Test
 
@@ -253,6 +284,14 @@ torrust-tracker-test-helpers = { workspace = true }
 ```
 
 Check the package for available mock servers, fixture generators, and utility types.
+
+## Reusable Refactoring Patterns
+
+Before adding a bespoke helper or refactoring generated test code, consult the
+[test refactoring-pattern catalog](../../../../../docs/testing/refactoring-patterns/README.md).
+It contains repository-native examples with their problem, selected pattern, and constraints.
+Prefer an existing catalog pattern when it fits. Add a focused entry when a reviewed refactor
+establishes a reusable pattern for future tests.
 
 ## Quick Checklist
 

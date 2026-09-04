@@ -161,3 +161,75 @@ fn with_request_layers(router: Router, server_service_binding: &ServiceBinding) 
                 .layer(TimeoutLayer::new(DEFAULT_REQUEST_TIMEOUT)),
         )
 }
+
+#[cfg(test)]
+mod tests {
+    use axum::body::Body;
+    use axum::http::header::HeaderName;
+    use axum::routing::get;
+    use axum::{Router, http};
+    use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
+    use tower::ServiceExt;
+    use uuid::Uuid;
+
+    use super::with_request_layers;
+
+    const REQUEST_ID_HEADER: HeaderName = HeaderName::from_static("x-request-id");
+
+    fn service_binding() -> ServiceBinding {
+        ServiceBinding::new(Protocol::HTTP, "127.0.0.1:7070".parse().expect("valid socket address"))
+            .expect("valid HTTP service binding")
+    }
+
+    fn test_router() -> Router {
+        with_request_layers(Router::new().route("/", get(|| async {})), &service_binding())
+    }
+
+    #[tokio::test]
+    async fn it_should_propagate_a_client_supplied_request_id() {
+        // Arrange
+        let client_request_id = "test-request-id";
+        let request = http::Request::builder()
+            .uri("/")
+            .header(REQUEST_ID_HEADER, client_request_id)
+            .body(Body::empty())
+            .expect("valid request");
+
+        // Act
+        let response = test_router().oneshot(request).await.expect("router should handle request");
+
+        // Assert
+        assert_eq!(response.status(), http::StatusCode::OK);
+        assert_eq!(
+            response
+                .headers()
+                .get(REQUEST_ID_HEADER)
+                .expect("request ID header")
+                .to_str()
+                .expect("request ID header should be valid text"),
+            client_request_id
+        );
+    }
+
+    #[tokio::test]
+    async fn it_should_add_a_uuid_request_id_when_the_client_does_not_supply_one() {
+        // Arrange
+        let request = http::Request::builder().uri("/").body(Body::empty()).expect("valid request");
+
+        // Act
+        let response = test_router().oneshot(request).await.expect("router should handle request");
+
+        // Assert
+        assert_eq!(response.status(), http::StatusCode::OK);
+        let actual_request_id = response
+            .headers()
+            .get(REQUEST_ID_HEADER)
+            .expect("request ID header")
+            .to_str()
+            .expect("request ID header should be valid text");
+        assert!(
+            Uuid::parse_str(actual_request_id).is_ok(),
+            "request ID should be a UUID: {actual_request_id}"
+        );
+    }
+}

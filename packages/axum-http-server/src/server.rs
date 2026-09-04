@@ -376,12 +376,12 @@ fn health_check_url(service_binding: &ServiceBinding) -> String {
 
 #[cfg(test)]
 mod tests {
-    use std::net::{Ipv4Addr, SocketAddr};
+    use std::net::{Ipv4Addr, SocketAddr, TcpListener};
     use std::sync::Arc;
 
     use tokio_util::sync::CancellationToken;
     use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
-    use torrust_server_lib::registar::Registar;
+    use torrust_server_lib::registar::{Registar, RegistrationError, ServiceRegistration, ServiceRegistrationForm};
     use torrust_tracker_axum_server::tls::make_rust_tls;
     use torrust_tracker_configuration::v3_0_0::{Configuration, logging};
     use torrust_tracker_core::container::TrackerCoreContainer;
@@ -512,42 +512,182 @@ mod tests {
         torrust_clock::initialize_static();
     }
 
+    /// A server-start scenario whose HTTP binding is available to the OS but already registered.
+    struct ServerStartWithDuplicateRegistration {
+        bind_to: SocketAddr,
+        configuration: Arc<Configuration>,
+        configuration_instance_id: ConfigurationInstanceId,
+        registar: Registar<RuntimeServiceMetadata>,
+    }
+
+    impl ServerStartWithDuplicateRegistration {
+        async fn new() -> Self {
+            let bind_to = Self::available_http_bind_address();
+            let configuration = Self::configuration_bound_to(bind_to);
+            let configuration_instance_id = ConfigurationInstanceId::new(ServiceRole::HttpTracker, 0);
+            let registar = Registar::default();
+
+            Self::pre_register_http_binding(&registar, bind_to, configuration_instance_id).await;
+
+            Self {
+                bind_to,
+                configuration,
+                configuration_instance_id,
+                registar,
+            }
+        }
+
+        fn available_http_bind_address() -> SocketAddr {
+            // Registration must fail after the server has bound this address, so this listener is
+            // released before start. Do not add retries or waits: they would hide this OS-level handoff
+            // risk instead of preserving the cleanup contract under test.
+            let available_listener = TcpListener::bind((Ipv4Addr::LOCALHOST, 0)).expect("select available HTTP listener address");
+            let bind_to = available_listener.local_addr().expect("read available listener address");
+            drop(available_listener);
+
+            bind_to
+        }
+
+        fn configuration_bound_to(bind_to: SocketAddr) -> Arc<Configuration> {
+            let mut configuration = ephemeral_public();
+            configuration.http_trackers.as_mut().expect("test configuration enables HTTP")[0].bind_address = bind_to;
+
+            Arc::new(configuration)
+        }
+
+        async fn pre_register_http_binding(
+            registar: &Registar<RuntimeServiceMetadata>,
+            bind_to: SocketAddr,
+            configuration_instance_id: ConfigurationInstanceId,
+        ) {
+            let service_binding = ServiceBinding::new(Protocol::HTTP, bind_to).expect("HTTP service binding should be valid");
+
+            registar
+                .give_form()
+                .register(ServiceRegistration::new(
+                    service_binding,
+                    RuntimeServiceMetadata::new(configuration_instance_id),
+                    None,
+                ))
+                .await
+                .expect("reserve the HTTP service registration");
+        }
+
+        async fn container(&self) -> Arc<HttpTrackerCoreContainer> {
+            initialize_global_services(&self.configuration);
+            Arc::new(initialize_container(&self.configuration).await)
+        }
+
+        fn launcher(&self) -> Launcher {
+            let http_tracker_config = &self
+                .configuration
+                .http_trackers
+                .as_ref()
+                .expect("test configuration enables HTTP")[0];
+
+            Launcher::new(self.bind_to, None, http_tracker_config.network.ipv6_v6only)
+        }
+
+        fn registration_form(&self) -> ServiceRegistrationForm<RuntimeServiceMetadata> {
+            self.registar.give_form()
+        }
+
+        fn metadata(&self) -> RuntimeServiceMetadata {
+            RuntimeServiceMetadata::new(self.configuration_instance_id)
+        }
+    }
+
+    /// A server-start scenario whose HTTP binding is available to both the OS and the registry.
+    struct ServerStartWithAvailableHttpBinding {
+        bind_to: SocketAddr,
+        configuration: Arc<Configuration>,
+        configuration_instance_id: ConfigurationInstanceId,
+        registar: Registar<RuntimeServiceMetadata>,
+    }
+
+    impl ServerStartWithAvailableHttpBinding {
+        fn new() -> Self {
+            let configuration = Arc::new(ephemeral_public());
+            let bind_to = configuration
+                .http_trackers
+                .as_ref()
+                .expect("missing HTTP trackers configuration")[0]
+                .bind_address;
+
+            Self {
+                bind_to,
+                configuration,
+                configuration_instance_id: ConfigurationInstanceId::new(ServiceRole::HttpTracker, 0),
+                registar: Registar::default(),
+            }
+        }
+
+        async fn container(&self) -> Arc<HttpTrackerCoreContainer> {
+            initialize_global_services(&self.configuration);
+            Arc::new(initialize_container(&self.configuration).await)
+        }
+
+        async fn launcher(&self) -> Launcher {
+            let http_tracker_config = &self
+                .configuration
+                .http_trackers
+                .as_ref()
+                .expect("missing HTTP trackers configuration")[0];
+            let tls = if let Some(tls_config) = &http_tracker_config.tls_config {
+                Some(make_rust_tls(tls_config).await.expect("tls config failed"))
+            } else {
+                None
+            };
+
+            Launcher::new(self.bind_to, tls, http_tracker_config.network.ipv6_v6only)
+        }
+
+        fn registration_form(&self) -> ServiceRegistrationForm<RuntimeServiceMetadata> {
+            self.registar.give_form()
+        }
+
+        fn metadata(&self) -> RuntimeServiceMetadata {
+            RuntimeServiceMetadata::new(self.configuration_instance_id)
+        }
+    }
+
     #[tokio::test]
-    async fn it_should_be_able_to_start_and_stop() {
-        let configuration = Arc::new(ephemeral_public());
+    async fn it_should_preserve_the_launcher_bind_address_after_starting_and_stopping() {
+        // Arrange
+        let scenario = ServerStartWithAvailableHttpBinding::new();
+        let http_tracker_container = scenario.container().await;
 
-        let http_trackers = configuration
-            .http_trackers
-            .clone()
-            .expect("missing HTTP trackers configuration");
-
-        let http_tracker_config = &http_trackers[0];
-
-        initialize_global_services(&configuration);
-
-        let http_tracker_container = Arc::new(initialize_container(&configuration).await);
-
-        let bind_to = http_tracker_config.bind_address;
-
-        let tls = if let Some(tls_config) = &http_tracker_config.tls_config {
-            Some(make_rust_tls(tls_config).await.expect("tls config failed"))
-        } else {
-            None
-        };
-
-        let register = &Registar::default();
-        let stopped = HttpServer::new(Launcher::new(bind_to, tls, http_tracker_config.network.ipv6_v6only));
-
-        let started = stopped
-            .start(
-                http_tracker_container,
-                register.give_form(),
-                RuntimeServiceMetadata::new(ConfigurationInstanceId::new(ServiceRole::HttpTracker, 0)),
-            )
+        // Act
+        let started = HttpServer::new(scenario.launcher().await)
+            .start(http_tracker_container, scenario.registration_form(), scenario.metadata())
             .await
             .expect("it should start the server");
         let stopped = started.stop().await.expect("it should stop the server");
 
-        assert_eq!(stopped.state.launcher.bind_to, bind_to);
+        // Assert
+        assert_eq!(stopped.state.launcher.bind_to, scenario.bind_to);
+    }
+
+    #[tokio::test]
+    async fn it_should_release_the_listener_and_preserve_the_duplicate_binding_error_when_registration_fails() {
+        // Arrange
+        let scenario = ServerStartWithDuplicateRegistration::new().await;
+        let http_tracker_container = scenario.container().await;
+
+        // Act
+        let result = HttpServer::new(scenario.launcher())
+            .start(http_tracker_container, scenario.registration_form(), scenario.metadata())
+            .await;
+
+        // Assert
+        let binding = match result {
+            Err(Error::Registration {
+                source: RegistrationError::DuplicateBinding(binding),
+            }) => binding,
+            Err(error) => panic!("HTTP starter should retain the registration failure source: {error}"),
+            Ok(_) => panic!("duplicate registration should fail"),
+        };
+        assert_eq!(binding.bind_address(), scenario.bind_to);
+        TcpListener::bind(scenario.bind_to).expect("HTTP listener should be released after registration failure");
     }
 }

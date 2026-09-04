@@ -45,6 +45,7 @@ thiserror = "2.0.12"
 rand = "0.9"
 serde_bencode = "0"
 serde_bytes = "0"
+tower = { version = "0", features = [ "util" ] }
 torrust-peer-id = "0.1.0"
 torrust-tracker-client-lib = { version = "0.1.0", path = "../tracker-client" }
 torrust-tracker-test-helpers = { version = "3.0.0", path = "../test-helpers" }
