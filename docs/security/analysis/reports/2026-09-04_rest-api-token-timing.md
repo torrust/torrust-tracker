@@ -8,7 +8,7 @@ weakness: CWE-208 (observable timing discrepancy)
 component: packages/axum-rest-api-server/src/v1/middlewares/auth.rs
 fix-commit: 90d7a637
 fix-pr: 2144
-issue-spec: docs/issues/open/2143-rest-api-constant-time-token-comparison/ISSUE.md
+issue-spec: docs/issues/closed/2143-rest-api-constant-time-token-comparison/ISSUE.md
 reported-by: Abdurazzoqov Javohir (GitHub abdurazzoqovjavohir700-dev)
 review-cadence: on-recheck-condition
 requires-recheck-when: the token comparison stops using subtle::ConstantTimeEq, a new secret-comparison site is added without it, or a practical remote timing recovery is demonstrated on a supported platform

@@ -1,14 +1,14 @@
 ---
 doc-type: issue
 issue-type: task
-status: open
+status: done
 priority: p2
 epic: null
 github-issue: 2143
-spec-path: docs/issues/open/2143-rest-api-constant-time-token-comparison/ISSUE.md
+spec-path: docs/issues/closed/2143-rest-api-constant-time-token-comparison/ISSUE.md
 branch: "security/private-remediation-20260904"
 related-pr: 2144
-last-updated-utc: 2026-09-04 12:00
+last-updated-utc: 2026-09-04 21:50
 semantic-links:
   skill-links:
     - create-issue
@@ -230,23 +230,23 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T3  | DONE   | Add unit tests in `auth.rs`                                  | Match; mismatch early/late/shorter/longer; empty token; match on second configured token; no secret values in assertion messages. Structural review verifies full iteration                                 |
 | T4  | DONE   | Run quality gates and manual scenarios                       | Focused format, Clippy, tests, dependency analysis, and M1–M3 passed; full pre-commit runs at commit time                                                                                                   |
 | T5  | DONE   | Review the remediation process against this case             | Added: first-case coupling rule, explicit disclosure-path decision, mandatory reproduction, maintainer-set severity, suggested-fix vetting. Closes T4 and T5 of the process spec                            |
-| T6  | TODO   | Disclose: create both issues, move specs to `open/`, open PR | Create the handled-report record from the template and add the `auth.rs` code pointer; PR credits reporter and states hardening classification; `Closes` both issues; fill record metadata; notify reporter |
+| T6  | DONE   | Disclose: create both issues, move specs to `open/`, open PR | Created issues #2142 and #2143, report record, and code pointer; PR #2144 credited the reporter, closed both issues, and recorded the final metadata |
 
 ## Progress Tracking
 
 ### Workflow Checkpoints
 
-- [x] Folder-style spec drafted in `docs/issues/open/2143-rest-api-constant-time-token-comparison/ISSUE.md`
+- [x] Folder-style spec drafted in `docs/issues/closed/2143-rest-api-constant-time-token-comparison/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec (#2143)
 - [x] Implementation completed
 - [x] Automatic verification completed (`cargo fmt --check`, Clippy, focused tests, `cargo machete`, documentation lint baseline)
 - [x] Manual verification scenarios executed and recorded
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded
-- [ ] Reviewer validated acceptance criteria and updated checkboxes
+- [x] Evidence-based implementation completion review recorded
+- [x] Reviewer validated acceptance criteria and updated checkboxes
 - [x] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -277,6 +277,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-09-04 12:00 UTC - Maintainer - Decision: apply the hardening (contract over libc
   coincidence; zero new code; ~30 ns cost) with the reclassified severity. Process amended
   with three mandatory triage steps. Background rewritten around the evidence.
+- 2026-09-04 21:50 UTC - Maintainer - PR #2144 merged; issue #2143 closed automatically.
+  Copilot review feedback was addressed before merge. Archived this specification in
+  `docs/issues/closed/`.
 
 ## Acceptance Criteria
 
@@ -329,7 +332,7 @@ evidence, not a regression test.
 | AC ID | Status (`TODO`/`DONE`) | Evidence                                                                    |
 | ----- | ---------------------- | --------------------------------------------------------------------------- |
 | AC1   | DONE                   | Structural review of `Choice` fold in `auth.rs`                             |
-| AC2   | DONE                   | Four unit tests in `auth.rs`                                                |
+| AC2   | DONE                   | Three authentication unit tests in `auth.rs`                                |
 | AC3   | DONE                   | `cargo test -p torrust-tracker-axum-rest-api-server` (58 integration tests) |
 | AC4   | DONE                   | Review of changed production and test code                                  |
 | AC5   | TODO                   |                                                                             |
@@ -375,7 +378,7 @@ evidence, not a regression test.
 
 - Reproduction evidence: [`reproduction.md`](reproduction.md)
 - Companion process spec: #2142 —
-  `docs/issues/open/2142-define-confidential-vulnerability-remediation-process/ISSUE.md`
+  `docs/issues/closed/2142-define-confidential-vulnerability-remediation-process/ISSUE.md`
 - Rate limiting: valid defense-in-depth to be proposed independently after this focused
   hardening is disclosed; no follow-up issue has been drafted yet.
 - [RUSTSEC-2023-0071 analysis](../../../security/analysis/production/RUSTSEC-2023-0071.md):
