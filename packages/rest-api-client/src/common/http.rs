@@ -9,12 +9,12 @@ pub struct Query {
 
 impl Query {
     #[must_use]
-    pub fn empty() -> Self {
+    pub const fn empty() -> Self {
         Self { params: vec![] }
     }
 
     #[must_use]
-    pub fn params(params: Vec<QueryParam>) -> Self {
+    pub const fn params(params: Vec<QueryParam>) -> Self {
         Self { params }
     }
 

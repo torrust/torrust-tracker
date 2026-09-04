@@ -19,7 +19,7 @@ impl ConnectionInfo {
     }
 
     #[must_use]
-    pub fn anonymous(origin: Origin) -> Self {
+    pub const fn anonymous(origin: Origin) -> Self {
         Self { origin, api_token: None }
     }
 }
@@ -66,7 +66,7 @@ impl FromStr for Origin {
         url.set_query(None);
         url.set_fragment(None);
 
-        Ok(Origin { url })
+        Ok(Self { url })
     }
 }
 
@@ -86,7 +86,7 @@ impl Origin {
     }
 
     #[must_use]
-    pub fn url(&self) -> &Url {
+    pub const fn url(&self) -> &Url {
         &self.url
     }
 }
