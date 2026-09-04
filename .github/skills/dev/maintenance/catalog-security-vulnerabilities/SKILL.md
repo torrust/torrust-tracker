@@ -18,6 +18,10 @@ dependencies or infrastructure.
 The authoritative process document is `docs/security/analysis/README.md` — this skill
 provides a quick reference.
 
+This skill applies only to public scanner findings and vulnerabilities already approved for
+disclosure. For a privately reported or embargoed vulnerability, do not create a public
+catalog record or issue; follow `docs/security/vulnerability-remediation.md`.
+
 ## Quick Reference
 
 ```text
@@ -52,9 +56,11 @@ If the vulnerability is **not yet cataloged**:
 
 If a vulnerability **does** affect us (rare — the runtime is distroless):
 
-1. Create the `docs/security/analysis/affecting/` directory if it does not exist, then create a file there with the same template.
-2. Open a GitHub issue with the `security` and `bug` labels.
-3. Notify maintainers — these are high priority.
+1. Confirm it is already public or approved for disclosure. Otherwise stop this workflow and
+   use `docs/security/vulnerability-remediation.md`.
+2. Create the `docs/security/analysis/affecting/` directory if it does not exist, then create a file there with the same template.
+3. Open a GitHub issue with the `security` and `bug` labels.
+4. Notify maintainers — these are high priority.
 
 ## Review Cadence
 

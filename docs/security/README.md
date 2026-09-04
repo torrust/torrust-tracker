@@ -85,6 +85,7 @@ per-CVE and bulk files documenting vulnerabilities in ephemeral build images.
 
 ## Related Documentation
 
+- [Confidential Vulnerability Remediation](vulnerability-remediation.md) — coordinated-disclosure process for privately reported vulnerabilities
 - [Docker Image Security](docker/README.md) — scanning instructions and scan history
 - [Security Analysis](analysis/README.md) — CVE evaluation process
 - [`SECURITY.md`](../../SECURITY.md) — project security policy and reporting

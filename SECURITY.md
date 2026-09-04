@@ -14,6 +14,9 @@ If you believe you have found a security vulnerability in any of our repositorie
 
 Instead, please send an email to info[@]nautilus-cyberneering.de.
 
+Maintainers handle non-public reports using the confidential
+[vulnerability-remediation process](docs/security/vulnerability-remediation.md).
+
 Please include as much of the information listed below as you can to help us better understand and resolve the issue:
 
 - The type of issue (e.g., buffer overflow, SQL injection, or cross-site scripting)

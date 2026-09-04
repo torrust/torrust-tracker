@@ -25,6 +25,11 @@ container image vulnerability scanning), we create an analysis document here to:
 3. **Track periodic review** — even non-affecting vulnerabilities should be re-evaluated
    periodically to check if the situation has changed.
 
+This is a **public** catalog for scanner findings and vulnerabilities already approved for
+public disclosure. A report received through coordinated disclosure remains confidential;
+follow the [confidential vulnerability-remediation process](../vulnerability-remediation.md)
+instead. Do not create an analysis document or public issue for an embargoed report.
+
 ## Folder Structure
 
 ```text
@@ -92,8 +97,10 @@ build/
 2. **If not yet cataloged**: create a new per-CVE analysis document in the appropriate
    subdirectory (`production/` or `build/`) following the template below.
 
-3. **If it DOES affect us**: escalate immediately. Create an issue and a fix. The analysis
-   document should describe the impact, affected components, and remediation plan.
+3. **If it DOES affect us**: confirm that the finding is already public or approved for
+   disclosure, then escalate immediately with an issue and fix. The analysis document should
+   describe the impact, affected components, and remediation plan. Otherwise follow the
+   confidential vulnerability-remediation process.
 
 ### Recheck Policy
 

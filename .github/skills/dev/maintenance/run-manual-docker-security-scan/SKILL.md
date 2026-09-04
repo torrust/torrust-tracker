@@ -88,6 +88,9 @@ For any new non-affecting CVE, create `docs/security/analysis/production/CVE-<id
 
 If a CVE is affecting:
 
+- Confirm it is already public or approved for disclosure. Privately reported or embargoed
+  vulnerabilities must instead follow `docs/security/vulnerability-remediation.md`; do not
+  create public documentation, issues, or pull requests.
 - create/update a tracking issue
 - include impact, affected component, exploitability context, and remediation plan
 - update scan docs with current status and owner
