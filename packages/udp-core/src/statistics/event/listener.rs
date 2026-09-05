@@ -49,31 +49,48 @@ async fn dispatch_events(
             }
 
             result = receiver.recv() => {
-                match result {
-                    Ok(event) if metrics_policy.get(&event_connection_id(&event)).copied().unwrap_or(false) => {
-                        handle_event(event, &stats_repository, CurrentClock::now()).await;
-                    }
-                    Ok(event) => {
-                        tracing::warn!(
-                            target: UDP_TRACKER_LOG_TARGET,
-                            configuration_instance_id = ?event_connection_id(&event),
-                            "Ignoring UDP tracker event from an unknown or metrics-disabled listener"
-                        );
-                    }
-                    Err(e) => {
-                        match e {
-                            RecvError::Closed => {
-                                tracing::info!(target: UDP_TRACKER_LOG_TARGET, "Udp tracker core statistics receiver closed.");
-                                break;
-                            }
-                            RecvError::Lagged(n) => {
-                                tracing::warn!(target: UDP_TRACKER_LOG_TARGET, "Udp tracker core statistics receiver lagged by {} events.", n);
-                            }
-                        }
-                    }
+                if should_stop_after_receiving_event(result, &stats_repository, &metrics_policy).await {
+                    break;
                 }
             }
         }
+    }
+}
+
+async fn should_stop_after_receiving_event(
+    result: Result<crate::event::Event, RecvError>,
+    stats_repository: &Arc<Repository>,
+    metrics_policy: &BTreeMap<ConfigurationInstanceId, bool>,
+) -> bool {
+    match result {
+        Ok(event) => {
+            handle_received_event(event, stats_repository, metrics_policy).await;
+            false
+        }
+        Err(RecvError::Closed) => {
+            tracing::info!(target: UDP_TRACKER_LOG_TARGET, "Udp tracker core statistics receiver closed.");
+            true
+        }
+        Err(RecvError::Lagged(n)) => {
+            tracing::warn!(target: UDP_TRACKER_LOG_TARGET, "Udp tracker core statistics receiver lagged by {} events.", n);
+            false
+        }
+    }
+}
+
+async fn handle_received_event(
+    event: crate::event::Event,
+    stats_repository: &Arc<Repository>,
+    metrics_policy: &BTreeMap<ConfigurationInstanceId, bool>,
+) {
+    if metrics_policy.get(&event_connection_id(&event)).copied().unwrap_or(false) {
+        handle_event(event, stats_repository, CurrentClock::now()).await;
+    } else {
+        tracing::warn!(
+            target: UDP_TRACKER_LOG_TARGET,
+            configuration_instance_id = ?event_connection_id(&event),
+            "Ignoring UDP tracker event from an unknown or metrics-disabled listener"
+        );
     }
 }
 
@@ -87,18 +104,40 @@ const fn event_connection_id(event: &crate::event::Event) -> ConfigurationInstan
 
 #[cfg(test)]
 mod tests {
+    use std::collections::{BTreeMap, VecDeque};
     use std::net::{IpAddr, Ipv4Addr, SocketAddr};
     use std::sync::Arc;
 
+    use futures::future::BoxFuture;
+    use tokio_util::sync::CancellationToken;
     use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
-    use torrust_tracker_events::broadcaster::Broadcaster;
-    use torrust_tracker_events::sender::Sender as _;
+    use torrust_tracker_events::receiver::RecvError;
     use torrust_tracker_primitives::{ConfigurationInstanceId, ServiceRole};
 
     use super::dispatch_events;
     use crate::event::receiver::Receiver;
     use crate::event::{ConnectionContext, Event};
     use crate::statistics::repository::Repository;
+
+    struct ScriptedReceiver {
+        results: VecDeque<Result<Event, RecvError>>,
+    }
+
+    impl ScriptedReceiver {
+        fn new(results: impl IntoIterator<Item = Result<Event, RecvError>>) -> Self {
+            Self {
+                results: results.into_iter().collect(),
+            }
+        }
+    }
+
+    impl torrust_tracker_events::receiver::Receiver for ScriptedReceiver {
+        type Event = Event;
+
+        fn recv(&mut self) -> BoxFuture<'_, Result<Self::Event, RecvError>> {
+            Box::pin(std::future::ready(self.results.pop_front().unwrap_or(Err(RecvError::Closed))))
+        }
+    }
 
     fn connect_event(configuration_instance_id: ConfigurationInstanceId) -> Event {
         Event::UdpConnect {
@@ -111,28 +150,76 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn it_should_update_metrics_only_for_an_enabled_configuration_instance() {
+    async fn it_should_stop_when_the_receiver_is_closed() {
         // Arrange
-        let enabled_id = ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0);
-        let disabled_id = ConfigurationInstanceId::new(ServiceRole::UdpTracker, 1);
-        let unknown_id = ConfigurationInstanceId::new(ServiceRole::UdpTracker, 2);
-        let broadcaster = Broadcaster::default();
-        let receiver: Receiver = Box::new(broadcaster.subscribe());
+        let receiver: Receiver = Box::new(ScriptedReceiver::new([Err(RecvError::Closed)]));
         let repository = Arc::new(Repository::new());
 
-        for configuration_instance_id in [enabled_id, disabled_id, unknown_id] {
-            let _unused = broadcaster
-                .send(connect_event(configuration_instance_id))
-                .await
-                .unwrap()
-                .unwrap();
-        }
-        drop(broadcaster);
+        // Act
+        dispatch_events(receiver, CancellationToken::new(), repository.clone(), BTreeMap::new()).await;
+
+        // Assert
+        assert_eq!(repository.get_stats().await.udp4_connections_handled(), 0);
+    }
+
+    #[tokio::test]
+    async fn it_should_continue_after_lag_and_process_an_enabled_event() {
+        // Arrange
+        let enabled_id = ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0);
+        let receiver: Receiver = Box::new(ScriptedReceiver::new([
+            Err(RecvError::Lagged(2)),
+            Ok(connect_event(enabled_id)),
+            Err(RecvError::Closed),
+        ]));
+        let repository = Arc::new(Repository::new());
 
         // Act
         dispatch_events(
             receiver,
-            tokio_util::sync::CancellationToken::new(),
+            CancellationToken::new(),
+            repository.clone(),
+            [(enabled_id, true)].into(),
+        )
+        .await;
+
+        // Assert
+        assert_eq!(repository.get_stats().await.udp4_connections_handled(), 1);
+    }
+
+    #[tokio::test]
+    async fn it_should_prioritize_cancellation_over_a_ready_event() {
+        // Arrange
+        let enabled_id = ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0);
+        let receiver: Receiver = Box::new(ScriptedReceiver::new([Ok(connect_event(enabled_id))]));
+        let cancellation_token = CancellationToken::new();
+        cancellation_token.cancel();
+        let repository = Arc::new(Repository::new());
+
+        // Act
+        dispatch_events(receiver, cancellation_token, repository.clone(), [(enabled_id, true)].into()).await;
+
+        // Assert
+        assert_eq!(repository.get_stats().await.udp4_connections_handled(), 0);
+    }
+
+    #[tokio::test]
+    async fn it_should_ignore_disabled_and_unknown_events_before_processing_an_enabled_event() {
+        // Arrange
+        let enabled_id = ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0);
+        let disabled_id = ConfigurationInstanceId::new(ServiceRole::UdpTracker, 1);
+        let unknown_id = ConfigurationInstanceId::new(ServiceRole::UdpTracker, 2);
+        let receiver: Receiver = Box::new(ScriptedReceiver::new([
+            Ok(connect_event(disabled_id)),
+            Ok(connect_event(unknown_id)),
+            Ok(connect_event(enabled_id)),
+            Err(RecvError::Closed),
+        ]));
+        let repository = Arc::new(Repository::new());
+
+        // Act
+        dispatch_events(
+            receiver,
+            CancellationToken::new(),
             repository.clone(),
             [(enabled_id, true), (disabled_id, false)].into(),
         )
