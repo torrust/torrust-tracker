@@ -154,17 +154,17 @@ On 2026-09-03, all 20 remaining package manifests were temporarily updated to in
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| ID  | Status | Task                                            | Notes / Expected Output                                                                                                                                                         |
-| --- | ------ | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| T1  | DONE   | Establish enforcement baseline                  | Verified 26 workspace packages, temporarily enabled lint inheritance in all 20 remaining manifests, recorded the 87-diagnostic baseline, then reverted the experiment.          |
-| T2  | IN_PROGRESS | Remediate workspace lint baseline           | Fix all 87 diagnostics exposed by full workspace-lint inheritance, retaining behavior and adding focused regression tests where needed.                                         |
-| T3  | IN_PROGRESS | Refactor event-processing functions          | All event handlers/listeners and the UDP-server error logger are complete. Refactor the profiling runner while preserving its asymmetric shutdown behavior.                  |
-| T4  | IN_PROGRESS | Refactor event listener loops                 | Swarm, tracker-core, HTTP core, and UDP core are complete. Apply the receive-result extraction to both UDP-server dispatchers.                                                  |
-| T5  | IN_PROGRESS | Add focused regression tests                  | Event-processing coverage is complete. Add proportionate profiling CLI coverage where a deterministic executable fixture is practical.                                         |
-| T6  | TODO   | Complete Cargo lint policy                      | Add `[lints] workspace = true` to every package manifest and add `cognitive_complexity = { level = "deny", priority = -1 }` only after T2 through T5 leave the workspace clean. |
-| T7  | TODO   | Verify CI enforcement                           | Confirm `linter all` (as run in `testing.yaml`) fails on a cognitive-complexity violation and passes after the complete remediation; no workflow change expected.               |
-| T8  | TODO   | Update affected documentation                   | Align lint-policy documentation with the final `Cargo.toml` and CI ownership.                                                                                                   |
-| T9  | TODO   | Run verification and review acceptance criteria | Record automated and mandatory manual evidence, then re-review every acceptance criterion.                                                                                      |
+| ID  | Status      | Task                                            | Notes / Expected Output                                                                                                                                                                                                                                      |
+| --- | ----------- | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| T1  | DONE        | Establish enforcement baseline                  | Verified 26 workspace packages, temporarily enabled lint inheritance in all 20 remaining manifests, recorded the 87-diagnostic baseline, then reverted the experiment.                                                                                       |
+| T2  | DONE        | Remediate workspace lint baseline               | All 87 diagnostics exposed by full workspace-lint inheritance were fixed; flag-free workspace Clippy passes.                                                                                                                                                 |
+| T3  | DONE        | Refactor event-processing functions             | All fourteen identified functions were structurally refactored without cognitive-complexity allowances or threshold changes.                                                                                                                                 |
+| T4  | DONE        | Refactor event listener loops                   | All affected listeners retain `biased` cancellation priority, receiver-close termination, and lag continuation.                                                                                                                                              |
+| T5  | DONE        | Add focused regression tests                    | Deterministic listener, policy-routing, metric, persistence-failure, banning, and UDP error-event tests were added. Profiling extraction is behavior-preserving; process-level tests are disproportionate without a deterministic signal-readiness boundary. |
+| T6  | DONE        | Complete Cargo lint policy                      | Every workspace package inherits lint policy; root `Cargo.toml` denies `cognitive_complexity` and gives it precedence over `nursery`.                                                                                                                        |
+| T7  | DONE        | Verify CI enforcement                           | `linter all`, invoked by both pre-commit and `testing.yaml`, failed on an intentional 27/25 profiling violation and passed after restoration.                                                                                                                |
+| T8  | DONE        | Update affected documentation                   | This issue specification records the final Cargo policy, CI ownership, implementation scope, and evidence.                                                                                                                                                   |
+| T9  | IN_PROGRESS | Run verification and review acceptance criteria | Final full-suite verification and independent task review remain.                                                                                                                                                                                            |
 
 ## Progress Tracking
 
@@ -174,10 +174,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue #2134 created and specification moved to `docs/issues/open/`
 - [x] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
-- [ ] Implementation completed
+- [x] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
-- [ ] Manual verification scenarios executed and recorded (status + evidence)
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Manual verification scenarios executed and recorded (status + evidence)
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [x] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
@@ -199,20 +199,23 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-09-05 UTC - GitHub Copilot - A subsequent temporary root cognitive-complexity policy check exposed three additional UDP-server violations (29/25, 32/25, and 37/25). Reverted the temporary policy and expanded this specification before implementation. - Terminal output and source inspection in this session
 - 2026-09-05 UTC - GitHub Copilot - Refactored both UDP-server event listeners and the UDP error logger, adding deterministic listener and error-event regression coverage in `33387541`. - Local commit workflow
 - 2026-09-05 UTC - GitHub Copilot - A subsequent temporary root cognitive-complexity policy check exposed the root profiling runner violation (27/25). Reverted the temporary policy and expanded this specification before implementation. - Terminal output and source inspection in this session
+- 2026-09-05 UTC - GitHub Copilot - Refactored `profiling::run` by extracting its shutdown selection into `wait_for_shutdown` in `0278ae00`; root-library tests and explicit cognitive-complexity Clippy passed. - Local commit workflow
+- 2026-09-05 UTC - GitHub Copilot - Enabled `cognitive_complexity = { level = "deny", priority = -1 }` in root `Cargo.toml` in `b2733dac` and set `nursery` to priority `-2`, as Cargo requires to permit the individual lint override. - Local commit workflow
+- 2026-09-05 UTC - GitHub Copilot - Verified flag-free workspace Clippy and `linter all` pass with the root policy enabled. Temporarily restored the profiling runner's previous 27/25 shape; `linter all` failed with the expected cognitive-complexity diagnostic, then passed after the compliant helper was restored. Both pre-commit and `testing.yaml` invoke `linter all`. - Terminal output and workflow inspection in this session
 
 ## Acceptance Criteria
 
-- [ ] AC1: All fourteen identified handlers, listeners, error-log functions, and the profiling runner in `swarm-coordination-registry`, `tracker-core`, `http-core`, `udp-core`, `udp-server`, and the root crate comply with Clippy's default cognitive-complexity threshold without a `clippy::cognitive_complexity` allowance.
-- [ ] AC2: Existing observable event-metric and persistence behavior, metric labels, timestamps, metrics-policy routing, listener ordering, termination behavior, UDP error responses and event publication, profiling CLI/startup reporting, timer-versus-Ctrl+C behavior, and logging semantics are preserved.
-- [ ] AC3: Root `Cargo.toml` declares `clippy::cognitive_complexity` as a denied workspace lint, and every workspace package manifest inherits workspace lints via `[lints] workspace = true`.
-- [ ] AC4: `cargo clippy --workspace --all-targets --all-features` (with no extra `-D` flags) fails on a cognitive-complexity violation, so the existing `linter all` CI step enforces it.
-- [ ] AC5: Every diagnostic exposed by enabling workspace lint inheritance, including the 87-diagnostic baseline, is fixed without lint allowances that weaken the workspace policy.
-- [ ] AC6: Focused regression tests cover behavior affected by the baseline remediation, including listener receive outcomes where practicable.
-- [ ] `linter all` exits with code `0`.
+- [x] AC1: All fourteen identified handlers, listeners, error-log functions, and the profiling runner in `swarm-coordination-registry`, `tracker-core`, `http-core`, `udp-core`, `udp-server`, and the root crate comply with Clippy's default cognitive-complexity threshold without a `clippy::cognitive_complexity` allowance.
+- [x] AC2: Existing observable event-metric and persistence behavior, metric labels, timestamps, metrics-policy routing, listener ordering, termination behavior, UDP error responses and event publication, profiling CLI/startup reporting, timer-versus-Ctrl+C behavior, and logging semantics are preserved.
+- [x] AC3: Root `Cargo.toml` declares `clippy::cognitive_complexity` as a denied workspace lint, and every workspace package manifest inherits workspace lints via `[lints] workspace = true`.
+- [x] AC4: `cargo clippy --workspace --all-targets --all-features` (with no extra `-D` flags) fails on a cognitive-complexity violation, so the existing `linter all` CI step enforces it.
+- [x] AC5: Every diagnostic exposed by enabling workspace lint inheritance, including the 87-diagnostic baseline, is fixed without lint allowances that weaken the workspace policy.
+- [x] AC6: Focused regression tests cover behavior affected by the baseline remediation, including listener receive outcomes where practicable.
+- [x] `linter all` exits with code `0`.
 - [ ] Relevant tests pass.
-- [ ] Manual verification scenarios are executed and documented (status + evidence).
-- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior.
-- [ ] Documentation is updated when behavior/workflow changes.
+- [x] Manual verification scenarios are executed and documented (status + evidence).
+- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior.
+- [x] Documentation is updated when behavior/workflow changes.
 
 ## Verification Plan
 
@@ -243,11 +246,11 @@ Define verification before implementation starts and execute it before closing t
 
 Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
-| ID  | Scenario                       | Command/Steps                                                                                                                                                                | Expected Result                                                                                                                                             | Status | Evidence                          |
-| --- | ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | --------------------------------- |
-| M1  | Validate workspace remediation | Run `cargo clippy --workspace --all-targets --all-features` after completing all baseline fixes and again after enabling cognitive complexity.                               | The command exits 0 both before and after the new lint is enabled.                                                                                          | TODO   | Pending workspace Clippy output   |
-| M2  | Validate CI enforcement        | Temporarily reintroduce one cognitive-complexity violation (or check out the pre-refactor commit) with the lint declared, run `linter all`, then restore the fix and re-run. | `linter all` fails on the violation and passes after the fix, proving the existing CI step enforces the lint.                                               | TODO   | Pending local `linter all` output |
-| M3  | Validate listener behavior     | Exercise cancellation, closed receiver, successful event delivery, and lagged receiver paths with focused tests or deterministic test harness steps.                         | Cancellation and closed receiver terminate; successful events are handled; lagged receivers continue; existing log and ordering semantics remain unchanged. | TODO   | Pending focused test output       |
+| ID  | Scenario                       | Command/Steps                                                                                                                                                                | Expected Result                                                                                                                                             | Status | Evidence                    |
+| --- | ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | --------------------------- |
+| M1  | Validate workspace remediation | Run `cargo clippy --workspace --all-targets --all-features` after completing all baseline fixes and again after enabling cognitive complexity.                               | The command exits 0 both before and after the new lint is enabled.                                                                                          | DONE   | 2026-09-05 terminal output  |
+| M2  | Validate CI enforcement        | Temporarily reintroduce one cognitive-complexity violation (or check out the pre-refactor commit) with the lint declared, run `linter all`, then restore the fix and re-run. | `linter all` fails on the violation and passes after the fix, proving the existing CI step enforces the lint.                                               | DONE   | 2026-09-05 terminal output  |
+| M3  | Validate listener behavior     | Exercise cancellation, closed receiver, successful event delivery, and lagged receiver paths with focused tests or deterministic test harness steps.                         | Cancellation and closed receiver terminate; successful events are handled; lagged receivers continue; existing log and ordering semantics remain unchanged. | DONE   | Focused package test output |
 
 Notes:
 
@@ -256,14 +259,14 @@ Notes:
 
 ### Acceptance Verification
 
-| AC ID | Status (`TODO`/`DONE`) | Evidence                                                              |
-| ----- | ---------------------- | --------------------------------------------------------------------- |
-| AC1   | TODO                   | Pending focused and workspace Clippy output                           |
-| AC2   | TODO                   | Pending regression-test and manual-scenario evidence                  |
-| AC3   | TODO                   | Pending Cargo lint-inheritance inspection and workspace Clippy output |
-| AC4   | TODO                   | Pending `linter all` fail/pass evidence and CI run                    |
-| AC5   | TODO                   | Pending clean workspace Clippy output                                 |
-| AC6   | TODO                   | Pending focused test output                                           |
+| AC ID | Status (`TODO`/`DONE`) | Evidence                                                                    |
+| ----- | ---------------------- | --------------------------------------------------------------------------- |
+| AC1   | DONE                   | Focused cognitive-complexity Clippy and root policy workspace Clippy output |
+| AC2   | DONE                   | Refactor review plus focused regression test output                         |
+| AC3   | DONE                   | Root `Cargo.toml` inspection and inherited workspace lint validation        |
+| AC4   | DONE                   | Intentional 27/25 `linter all` failure and restored pass output             |
+| AC5   | DONE                   | Flag-free workspace Clippy output                                           |
+| AC6   | DONE                   | Focused deterministic listener and behavior test output                     |
 
 ## Risks and Trade-offs
 
