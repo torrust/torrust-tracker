@@ -118,7 +118,8 @@ mod tests {
     use std::sync::Arc;
     use std::sync::atomic::{AtomicUsize, Ordering};
 
-    use futures::{FutureExt as _, future::BoxFuture};
+    use futures::FutureExt as _;
+    use futures::future::BoxFuture;
     use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
     use torrust_tracker_events::receiver::RecvError;
     use torrust_tracker_primitives::{ConfigurationInstanceId, ServiceRole};

@@ -86,7 +86,8 @@ mod tests {
     use std::sync::Arc;
     use std::sync::atomic::{AtomicUsize, Ordering};
 
-    use futures::{FutureExt as _, future::BoxFuture};
+    use futures::FutureExt as _;
+    use futures::future::BoxFuture;
     use tokio::sync::RwLock;
     use tokio_util::sync::CancellationToken;
     use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
