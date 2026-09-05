@@ -164,7 +164,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T6  | DONE        | Complete Cargo lint policy                      | Every workspace package inherits lint policy; root `Cargo.toml` denies `cognitive_complexity` and gives it precedence over `nursery`.                                                                                                                        |
 | T7  | DONE        | Verify CI enforcement                           | `linter all`, invoked by both pre-commit and `testing.yaml`, failed on an intentional 27/25 profiling violation and passed after restoration.                                                                                                                |
 | T8  | DONE        | Update affected documentation                   | This issue specification records the final Cargo policy, CI ownership, implementation scope, and evidence.                                                                                                                                                   |
-| T9  | IN_PROGRESS | Run verification and review acceptance criteria | Final full-suite verification and independent task review remain.                                                                                                                                                                                            |
+| T9  | IN_PROGRESS | Run verification and review acceptance criteria | The full stable suite and pre-push gate passed on 2026-09-05; independent final task review remains.                                                                            |
 
 ## Progress Tracking
 
@@ -175,7 +175,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] GitHub issue #2134 created and specification moved to `docs/issues/open/`
 - [x] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
 - [x] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
+- [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [x] Manual verification scenarios executed and recorded (status + evidence)
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
@@ -202,6 +202,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-09-05 UTC - GitHub Copilot - Refactored `profiling::run` by extracting its shutdown selection into `wait_for_shutdown` in `0278ae00`; root-library tests and explicit cognitive-complexity Clippy passed. - Local commit workflow
 - 2026-09-05 UTC - GitHub Copilot - Enabled `cognitive_complexity = { level = "deny", priority = -1 }` in root `Cargo.toml` in `b2733dac` and set `nursery` to priority `-2`, as Cargo requires to permit the individual lint override. - Local commit workflow
 - 2026-09-05 UTC - GitHub Copilot - Verified flag-free workspace Clippy and `linter all` pass with the root policy enabled. Temporarily restored the profiling runner's previous 27/25 shape; `linter all` failed with the expected cognitive-complexity diagnostic, then passed after the compliant helper was restored. Both pre-commit and `testing.yaml` invoke `linter all`. - Terminal output and workflow inspection in this session
+- 2026-09-05 UTC - GitHub Copilot - Final pre-push verification passed: nightly formatting, nightly workspace checks, nightly documentation build, and the complete stable test suite. Corrected twelve pre-existing broken rustdoc links in `7b75d393` so the mandatory documentation build could complete. - Pre-push JSON output and local commit workflow
 
 ## Acceptance Criteria
 
@@ -212,7 +213,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] AC5: Every diagnostic exposed by enabling workspace lint inheritance, including the 87-diagnostic baseline, is fixed without lint allowances that weaken the workspace policy.
 - [x] AC6: Focused regression tests cover behavior affected by the baseline remediation, including listener receive outcomes where practicable.
 - [x] `linter all` exits with code `0`.
-- [ ] Relevant tests pass.
+- [x] Relevant tests pass.
 - [x] Manual verification scenarios are executed and documented (status + evidence).
 - [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior.
 - [x] Documentation is updated when behavior/workflow changes.
