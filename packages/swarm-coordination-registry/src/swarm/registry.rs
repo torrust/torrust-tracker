@@ -376,13 +376,13 @@ impl Registry {
 
     /// Calculates and returns overall torrent metrics.
     ///
-    /// The returned [`AggregateSwarmMetadata`] contains aggregate data such as
+    /// The returned [`AggregateActiveSwarmMetadata`] contains aggregate data such as
     /// the total number of torrents, total complete (seeders), incomplete
     /// (leechers), and downloaded counts.
     ///
     /// # Returns
     ///
-    /// A [`AggregateSwarmMetadata`] struct with the aggregated metrics.
+    /// An [`AggregateActiveSwarmMetadata`] struct with the aggregated metrics.
     ///
     /// # Errors
     ///

@@ -7,7 +7,7 @@
 //! - `Announce`: used to announce the presence of a peer to the tracker.
 //! - `Scrape`: used to get information about a torrent.
 //!
-//! Refer to the [`bit_torrent`](crate::shared::bit_torrent) module for more
+//! Refer to the `bit_torrent` module for more
 //! information about the `BitTorrent` protocol.
 //!
 //! ## Table of Contents
@@ -78,13 +78,13 @@
 //! > **NOTICE**: the `info_hash` parameter is NOT a `URL` encoded string param.
 //! > It is percent encode of the raw `info_hash` bytes (40 bytes). URL `GET` params
 //! > can contain any bytes, not only well-formed UTF-8. The `info_hash` is a
-//! > 20-byte SHA1. Check the [`percent_encoding`]
+//! > 20-byte SHA1. Check the `percent_encoding`
 //! > module to know more about the encoding.
 //!
 //! > **NOTICE**: the `peer_id` parameter is NOT a `URL` encoded string param.
 //! > It is percent encode of the raw peer ID bytes (20 bytes). URL `GET` params
 //! > can contain any bytes, not only well-formed UTF-8. The `info_hash` is a
-//! > 20-byte SHA1. Check the [`percent_encoding`]
+//! > 20-byte SHA1. Check the `percent_encoding`
 //! > module to know more about the encoding.
 //!
 
@@ -233,7 +233,7 @@
 //! `info_hash` parameters: `info_hash=%81%00%0...00%00%00&info_hash=%82%00%0...00%00%00`
 //!
 //! > **NOTICE**: the maximum number of torrents you can scrape at the same time
-//! > is `74`. Defined with a hardcoded const [`MAX_SCRAPE_TORRENTS`](torrust_tracker_udp_server::MAX_SCRAPE_TORRENTS).
+//! > is `74`. Defined with a hardcoded const [`MAX_SCRAPE_TORRENTS`](torrust_tracker_core::MAX_SCRAPE_TORRENTS).
 //!
 //! **Sample response**
 //!
