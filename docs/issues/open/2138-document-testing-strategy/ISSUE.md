@@ -6,9 +6,9 @@ priority: p2
 epic: null
 github-issue: 2138
 spec-path: docs/issues/open/2138-document-testing-strategy/ISSUE.md
-branch: "2138-document-testing-strategy-spec"
+branch: "2138-document-testing-strategy"
 related-pr: null
-last-updated-utc: 2026-09-04 09:25
+last-updated-utc: 2026-09-04 16:45
 semantic-links:
   skill-links:
     - create-issue
@@ -224,13 +224,13 @@ already maintained by hook skills or CI workflow files.
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| ID  | Status | Task                             | Notes / Expected Output                                                                                              |
-| --- | ------ | -------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| T1  | TODO   | Verify the testing inventory     | Confirm current test layers, owners, commands, examples, and existing documentation before drafting.                 |
-| T2  | TODO   | Draft the testing strategy guide | Add `docs/testing.md` with the proposed concise navigation structure and links.                                      |
-| T3  | TODO   | Add documentation navigation     | Link the guide from `docs/index.md`; update other current navigational documents only if needed for discoverability. |
-| T4  | TODO   | Validate source links and claims | Check paths, Markdown, spelling, and consistency with `AGENTS.md`, skills, scripts, workflows, and ADRs.             |
-| T5  | TODO   | Review completion evidence       | Recheck acceptance criteria, record validation, and determine whether a retrospective is needed.                     |
+| ID  | Status | Task                             | Notes / Expected Output                                                                                 |
+| --- | ------ | -------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| T1  | DONE   | Verify the testing inventory     | Confirmed layers, ownership, examples, and workflows, including the merged refactoring-pattern catalog. |
+| T2  | DONE   | Draft the testing strategy guide | Added `docs/testing.md` with concise strategy, layer, ownership, and reference navigation.              |
+| T3  | DONE   | Add documentation navigation     | Linked `docs/testing.md` from `docs/index.md`.                                                          |
+| T4  | DONE   | Validate source links and claims | All local links resolve; `linter markdown` and `linter cspell` pass.                                    |
+| T5  | DONE   | Review completion evidence       | Acceptance criteria and manual evidence reviewed; no material discovery requires a retrospective.       |
 
 ## Progress Tracking
 
@@ -240,12 +240,12 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Draft reviewed and approved by user/maintainer
 - [x] GitHub issue [#2138](https://github.com/torrust/torrust-tracker/issues/2138) created and issue number added to this spec
 - [x] Draft moved to `docs/issues/open/2138-document-testing-strategy/ISSUE.md`
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all` and relevant documentation checks)
-- [ ] Manual link/claim review executed and recorded
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
-- [ ] Reviewer validated acceptance criteria and updated checkboxes
+- [x] Implementation completed
+- [x] Automatic verification completed (`linter all` and relevant documentation checks)
+- [x] Manual link/claim review executed and recorded
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
+- [x] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
@@ -276,32 +276,46 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   `2138-document-testing-strategy-spec`; the base branch name remains reserved
   for implementation. -
   `docs/issues/open/2138-document-testing-strategy/ISSUE.md`
+- 2026-09-04 16:30 UTC - GitHub Copilot - Verified the testing inventory and
+  the merged PR #2137 refactoring-pattern catalog; added `docs/testing.md` and
+  linked it from `docs/index.md`. Local relative-link validation, `linter
+markdown`, and `linter cspell` pass. - `docs/testing.md`; `docs/index.md`
+- 2026-09-04 16:35 UTC - GitHub Copilot - Rechecked every acceptance criterion
+  against the guide, index, linked sources, and validation evidence. No
+  assumptions were invalidated and no material design change or reusable lesson
+  beyond the merged refactoring-pattern catalog was discovered; a separate
+  retrospective is unnecessary. - `docs/testing.md`; `docs/index.md`
+- 2026-09-04 16:45 UTC - Task Reviewer - Independently reviewed the completed
+  guide against all acceptance criteria. The initial review found and the
+  implementation replaced a moving issue-specification link with the stable
+  issue-workflow documentation; the follow-up review passed with no blockers. -
+  `docs/testing.md`; `docs/issues/README.md`
 
 ## Acceptance Criteria
 
-- [ ] AC1: `docs/testing.md` describes every current major testing and
+- [x] AC1: `docs/testing.md` describes every current major testing and
       verification layer: unit/docs, package integration, root integration,
       executable-boundary, container/qBittorrent E2E, database compatibility,
       manual verification, and benchmarks/profiling distinction.
-- [ ] AC2: The guide states the testing strategy (prefer unit tests, test close
+- [x] AC2: The guide states the testing strategy (prefer unit tests, test close
       to the code, root-level tests only for multi-service orchestration, E2E as
       the outermost net) and the history explaining the E2E-heavy origin.
-- [ ] AC3: For every described layer, the guide explains when to use it, the
+- [x] AC3: For every described layer, the guide explains when to use it, the
       behavior it can prove, and a meaningful limitation or non-guarantee.
-- [ ] AC4: Each layer links to at least one current representative example and
+- [x] AC4: Each layer links to at least one current representative example and
       to its detailed authoritative procedure, workflow, configuration, or
       scoped guidance where one exists.
-- [ ] AC5: The guide distinguishes focused developer checks, pre-commit,
+- [x] AC5: The guide distinguishes focused developer checks, pre-commit,
       pre-push, CI merge authority, and manual verification without duplicating
       commands maintained elsewhere.
-- [ ] AC6: The guide accurately states that benchmarks and profiling complement
+- [x] AC6: The guide accurately states that benchmarks and profiling complement
       but do not replace correctness testing.
-- [ ] AC7: `docs/index.md` links to the new guide.
-- [ ] AC8: The guide does not introduce conflicting commands, test
+- [x] AC7: `docs/index.md` links to the new guide.
+- [x] AC8: The guide does not introduce conflicting commands, test
       requirements, or duplicate policy sources of truth.
-- [ ] AC9: `linter all` exits with code `0`.
-- [ ] AC10: Relevant documentation checks pass.
-- [ ] AC11: A reviewer can verify all test-layer claims and links against the
+- [x] AC9: `linter all` exits with code `0`.
+- [x] AC10: Relevant documentation checks pass.
+- [x] AC11: A reviewer can verify all test-layer claims and links against the
       current repository.
 
 ## Verification Plan
@@ -320,28 +334,28 @@ the issue.
 
 Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
-| ID  | Scenario                        | Command/Steps                                                                                                              | Expected Result                                                                           | Status | Evidence                 |
-| --- | ------------------------------- | -------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- | ------ | ------------------------ |
-| M1  | Verify test-layer inventory     | Compare every row in `docs/testing.md` with the linked `AGENTS.md`, skill, workflow, ADR, and representative test/example. | Every claimed layer has a valid source and accurate scope.                                | TODO   | {review note or PR link} |
-| M2  | Verify documentation navigation | Open `docs/index.md`, follow the testing-guide link, and inspect the guide's references.                                   | The guide is discoverable and links resolve to current repository artifacts.              | TODO   | {review note or PR link} |
-| M3  | Verify non-duplication          | Compare commands/procedures in the guide with authoritative hook skills and workflow files.                                | The guide links to detailed procedures rather than creating a conflicting command source. | TODO   | {review note or PR link} |
-| M4  | Verify strategy and history     | Read the strategy and history sections against `tests/AGENTS.md` and maintainer input recorded in this spec.               | The guide states the preferred-layer ordering and the E2E-first origin accurately.        | TODO   | {review note or PR link} |
+| ID  | Scenario                        | Command/Steps                                                                                                              | Expected Result                                                                           | Status | Evidence                                                                    |
+| --- | ------------------------------- | -------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- | ------ | --------------------------------------------------------------------------- |
+| M1  | Verify test-layer inventory     | Compare every row in `docs/testing.md` with the linked `AGENTS.md`, skill, workflow, ADR, and representative test/example. | Every claimed layer has a valid source and accurate scope.                                | DONE   | Inventory and local link-target check, 2026-09-04                           |
+| M2  | Verify documentation navigation | Open `docs/index.md`, follow the testing-guide link, and inspect the guide's references.                                   | The guide is discoverable and links resolve to current repository artifacts.              | DONE   | `docs/index.md` link and local link-target check, 2026-09-04                |
+| M3  | Verify non-duplication          | Compare commands/procedures in the guide with authoritative hook skills and workflow files.                                | The guide links to detailed procedures rather than creating a conflicting command source. | DONE   | Manual source-of-truth review, 2026-09-04                                   |
+| M4  | Verify strategy and history     | Read the strategy and history sections against `tests/AGENTS.md` and maintainer input recorded in this spec.               | The guide states the preferred-layer ordering and the E2E-first origin accurately.        | DONE   | Manual review against issue specification and `tests/AGENTS.md`, 2026-09-04 |
 
 ### Acceptance Verification
 
-| AC ID | Status (`TODO`/`DONE`) | Evidence                             |
-| ----- | ---------------------- | ------------------------------------ |
-| AC1   | TODO                   | {guide section and inventory review} |
-| AC2   | TODO                   | {strategy and history sections}      |
-| AC3   | TODO                   | {guide table and manual review}      |
-| AC4   | TODO                   | {link review}                        |
-| AC5   | TODO                   | {gate ownership section}             |
-| AC6   | TODO                   | {benchmarks/profiling section}       |
-| AC7   | TODO                   | {documentation index link}           |
-| AC8   | TODO                   | {source-of-truth review}             |
-| AC9   | TODO                   | {linter output}                      |
-| AC10  | TODO                   | {documentation check output}         |
-| AC11  | TODO                   | {review report}                      |
+| AC ID | Status (`TODO`/`DONE`) | Evidence                                                  |
+| ----- | ---------------------- | --------------------------------------------------------- |
+| AC1   | DONE                   | Test Layers table; manual inventory review                |
+| AC2   | DONE                   | Strategy and Why the Suite Looks This Way sections        |
+| AC3   | DONE                   | Test Layers table; M1 review                              |
+| AC4   | DONE                   | Representative links and local link-target check          |
+| AC5   | DONE                   | Validation Ownership section; M3 review                   |
+| AC6   | DONE                   | Tests, Benchmarks, and Profiling section                  |
+| AC7   | DONE                   | `docs/index.md`; M2 review                                |
+| AC8   | DONE                   | Manual source-of-truth review; linked detailed procedures |
+| AC9   | DONE                   | `linter all`, 2026-09-04                                  |
+| AC10  | DONE                   | `linter markdown` and `linter cspell`, 2026-09-04         |
+| AC11  | DONE                   | M1–M4 manual review; PR review pending                    |
 
 ## Risks and Trade-offs
 
@@ -359,7 +373,9 @@ After implementation, compare the result with this specification. Record
 invalidated assumptions, material design changes, unexpected validation
 findings, and reusable lessons.
 
-- Retrospective: `Not yet assessed`
+- Retrospective: Not needed. The implementation followed the approved
+  navigation-only design. The merged refactoring-pattern catalog was included as
+  planned; no material discovery or deviation warrants a separate record.
 - If needed, create `implementation-retrospective.md` from
   `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in the future issue
   specification's directory.
