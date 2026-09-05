@@ -5189,7 +5189,6 @@ dependencies = [
  "mockall",
  "rstest",
  "serde",
- "thiserror 2.0.20",
  "tokio",
  "tokio-util",
  "torrust-clock",

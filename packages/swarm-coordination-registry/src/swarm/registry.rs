@@ -1,3 +1,4 @@
+use std::convert::Infallible;
 use std::sync::Arc;
 
 use crossbeam_skiplist::SkipMap;
@@ -189,7 +190,6 @@ impl Registry {
         match self.get_swarm_metadata(info_hash).await {
             Ok(Some(swarm_metadata)) => Ok(swarm_metadata),
             Ok(None) => Ok(SwarmMetadata::zeroed()),
-            Err(err) => Err(err),
         }
     }
 
@@ -465,8 +465,8 @@ impl Registry {
     }
 }
 
-#[derive(thiserror::Error, Debug, Clone)]
-pub enum Error {}
+/// The registry currently exposes no recoverable error cases.
+pub type Error = Infallible;
 
 #[derive(Clone, Debug, Default)]
 pub struct AggregateActivityMetadata {

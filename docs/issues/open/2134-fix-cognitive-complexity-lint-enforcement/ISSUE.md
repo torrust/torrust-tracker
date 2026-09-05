@@ -165,7 +165,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T6  | DONE        | Complete Cargo lint policy                      | Every workspace package inherits lint policy; root `Cargo.toml` denies `cognitive_complexity` and gives it precedence over `nursery`.                                                                                                                        |
 | T7  | DONE        | Verify CI enforcement                           | `linter all`, invoked by both pre-commit and `testing.yaml`, failed on an intentional 27/25 profiling violation and passed after restoration.                                                                                                                |
 | T8  | DONE        | Update affected documentation                   | This issue specification records the final Cargo policy, CI ownership, implementation scope, and evidence.                                                                                                                                                   |
-| T9  | DONE        | Run verification and review acceptance criteria | The full stable suite and pre-push gate passed on 2026-09-05; the independent final task review passed.                                                                                                                                                      |
+| T9  | IN_PROGRESS | Run verification and review acceptance criteria | Nightly CI exposed a zerocopy macro-generated `empty_enums` false positive; validate the documented compatibility fix and repeat final review.                                                                                                             |
 
 ## Progress Tracking
 
@@ -176,7 +176,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] GitHub issue #2134 created and specification moved to `docs/issues/open/`
 - [x] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
 - [x] Implementation completed
-- [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
+- [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [x] Manual verification scenarios executed and recorded (status + evidence)
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [x] Reviewer validated acceptance criteria and updated checkboxes
@@ -206,6 +206,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-09-05 UTC - GitHub Copilot - Final pre-push verification passed: nightly formatting, nightly workspace checks, nightly documentation build, and the complete stable test suite. Corrected twelve pre-existing broken rustdoc links in `7b75d393` so the mandatory documentation build could complete. - Pre-push JSON output and local commit workflow
 - 2026-09-05 UTC - Task Reviewer - Independently reviewed the full branch against this specification. All acceptance criteria passed; this material scope expansion required an issue-local implementation retrospective. - Final task review
 - 2026-09-05 UTC - Task Reviewer - Re-reviewed the full branch after the folder-layout migration and retrospective. All acceptance criteria, validation evidence, and completion-review requirements passed. - Final task review
+- 2026-09-05 UTC - GitHub Copilot - The nightly PR `linter all` job reported `clippy::empty_enums` from zerocopy-generated `FromBytes` helper enums in `udp-protocol`, plus an explicit uninhabited registry error enum. Replaced the explicit enum with `Infallible`, removed its unused `thiserror` dependency, and added a documented crate-level exception for the macro-generated false positive. Nightly and stable `linter all` now pass locally. - GitHub Actions job 101292805541 and local validation
 
 ## Acceptance Criteria
 

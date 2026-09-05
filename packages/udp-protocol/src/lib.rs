@@ -8,6 +8,10 @@
 #![allow(clippy::cast_possible_truncation)]
 #![allow(clippy::default_trait_access)]
 #![allow(clippy::doc_markdown)]
+// `FromBytes` derives for transparent wire types expand to empty helper enums.
+// Nightly Clippy reports those generated enums as `empty_enums`; the wire types
+// themselves are inhabited and cannot use the suggested replacement.
+#![allow(clippy::empty_enums)]
 #![allow(clippy::explicit_iter_loop)]
 #![allow(clippy::legacy_numeric_constants)]
 #![allow(clippy::match_same_arms)]
