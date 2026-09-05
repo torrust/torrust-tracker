@@ -5,7 +5,7 @@ status: in-progress
 priority: p1
 epic: null
 github-issue: 2134
-spec-path: docs/issues/open/2134-fix-cognitive-complexity-lint-enforcement.md
+spec-path: docs/issues/open/2134-fix-cognitive-complexity-lint-enforcement/ISSUE.md
 branch: "2134-fix-cognitive-complexity-lint-enforcement"
 related-pr: null
 last-updated-utc: 2026-09-05 00:00
@@ -21,6 +21,7 @@ semantic-links:
     - src/console/profiling.rs
     - packages/e2e-tools/src/bin/profiling.rs
     - .github/skills/dev/planning/create-issue/SKILL.md
+    - docs/issues/open/2134-fix-cognitive-complexity-lint-enforcement/implementation-retrospective.md
 ---
 
 # Issue #2134 - Fix cognitive-complexity violations and enforce the Clippy lint
@@ -164,7 +165,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T6  | DONE        | Complete Cargo lint policy                      | Every workspace package inherits lint policy; root `Cargo.toml` denies `cognitive_complexity` and gives it precedence over `nursery`.                                                                                                                        |
 | T7  | DONE        | Verify CI enforcement                           | `linter all`, invoked by both pre-commit and `testing.yaml`, failed on an intentional 27/25 profiling violation and passed after restoration.                                                                                                                |
 | T8  | DONE        | Update affected documentation                   | This issue specification records the final Cargo policy, CI ownership, implementation scope, and evidence.                                                                                                                                                   |
-| T9  | IN_PROGRESS | Run verification and review acceptance criteria | The full stable suite and pre-push gate passed on 2026-09-05; independent final task review remains.                                                                            |
+| T9  | IN_PROGRESS | Run verification and review acceptance criteria | The full stable suite and pre-push gate passed on 2026-09-05; independent final task review remains.                                                                                                                                                         |
 
 ## Progress Tracking
 
@@ -178,7 +179,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [x] Manual verification scenarios executed and recorded (status + evidence)
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Reviewer validated acceptance criteria and updated checkboxes
+- [x] Reviewer validated acceptance criteria and updated checkboxes
 - [x] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
@@ -203,6 +204,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-09-05 UTC - GitHub Copilot - Enabled `cognitive_complexity = { level = "deny", priority = -1 }` in root `Cargo.toml` in `b2733dac` and set `nursery` to priority `-2`, as Cargo requires to permit the individual lint override. - Local commit workflow
 - 2026-09-05 UTC - GitHub Copilot - Verified flag-free workspace Clippy and `linter all` pass with the root policy enabled. Temporarily restored the profiling runner's previous 27/25 shape; `linter all` failed with the expected cognitive-complexity diagnostic, then passed after the compliant helper was restored. Both pre-commit and `testing.yaml` invoke `linter all`. - Terminal output and workflow inspection in this session
 - 2026-09-05 UTC - GitHub Copilot - Final pre-push verification passed: nightly formatting, nightly workspace checks, nightly documentation build, and the complete stable test suite. Corrected twelve pre-existing broken rustdoc links in `7b75d393` so the mandatory documentation build could complete. - Pre-push JSON output and local commit workflow
+- 2026-09-05 UTC - Task Reviewer - Independently reviewed the full branch against this specification. All acceptance criteria passed; this material scope expansion required an issue-local implementation retrospective. - Final task review
 
 ## Acceptance Criteria
 
