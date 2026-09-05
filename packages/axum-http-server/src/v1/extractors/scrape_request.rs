@@ -52,7 +52,7 @@ where
     fn from_request_parts(parts: &mut Parts, _state: &S) -> impl Future<Output = Result<Self, Self::Rejection>> + Send {
         async {
             match extract_scrape_from(parts.uri.query()) {
-                Ok(scrape_request) => Ok(ExtractRequest(scrape_request)),
+                Ok(scrape_request) => Ok(Self(scrape_request)),
                 Err(error) => Err((StatusCode::OK, error.write()).into_response()),
             }
         }

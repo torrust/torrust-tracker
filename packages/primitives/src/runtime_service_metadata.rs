@@ -49,7 +49,7 @@ impl RuntimeServiceMetadata {
 
     /// Returns the configured public URL for the listener, when present.
     #[must_use]
-    pub fn public_url(&self) -> Option<&Url> {
+    pub const fn public_url(&self) -> Option<&Url> {
         self.public_url.as_ref()
     }
 }

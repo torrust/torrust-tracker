@@ -37,7 +37,7 @@ use crate::v1::responses::scrape::data::ScrapeData;
 ///     String::from_utf8(expected_bytes.to_vec()).unwrap()
 /// );
 /// ```
-#[derive(Debug, PartialEq, Default)]
+#[derive(Debug, PartialEq, Eq, Default)]
 pub struct Bencoded {
     /// The scrape data to be bencoded.
     scrape_data: ScrapeData,

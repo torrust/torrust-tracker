@@ -80,7 +80,7 @@ where
             let maybe_path_with_key = Path::<KeyParam>::from_request_parts(parts, state).await;
 
             match extract_key(maybe_path_with_key) {
-                Ok(key) => Ok(Extract(key)),
+                Ok(key) => Ok(Self(key)),
                 Err(error) => Err((StatusCode::OK, error.write()).into_response()),
             }
         }

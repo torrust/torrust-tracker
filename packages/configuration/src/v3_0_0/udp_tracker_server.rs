@@ -156,7 +156,7 @@ fn default_ip_bans_reset_interval_in_secs() -> IpBansResetIntervalInSecs {
         .expect("the default IP-ban reset interval must satisfy its minimum")
 }
 
-fn default_max_connection_id_errors_per_ip() -> u32 {
+const fn default_max_connection_id_errors_per_ip() -> u32 {
     10
 }
 

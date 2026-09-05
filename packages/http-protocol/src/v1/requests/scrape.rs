@@ -14,7 +14,7 @@ use crate::v1::responses;
 // Query param names
 const INFO_HASH: &str = "info_hash";
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct Scrape {
     pub info_hashes: Vec<InfoHash>,
 }
@@ -44,7 +44,7 @@ pub enum ParseScrapeQueryError {
 
 impl From<ParseScrapeQueryError> for responses::error::Error {
     fn from(err: ParseScrapeQueryError) -> Self {
-        responses::error::Error {
+        Self {
             failure_reason: format!("Bad request. Cannot parse query params for scrape request: {err}"),
         }
     }

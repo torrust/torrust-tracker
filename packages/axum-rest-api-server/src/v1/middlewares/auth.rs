@@ -114,13 +114,13 @@ fn extract_bearer_token_from_header(request: &Request<axum::body::Body>) -> Resu
                 return Ok(Some(String::new()));
             }
 
-            if !header_value.starts_with(&format!("{AUTH_BEARER_TOKEN_HEADER_PREFIX} ").to_string()) {
+            if !header_value.starts_with(&format!("{AUTH_BEARER_TOKEN_HEADER_PREFIX} ")) {
                 // Invalid token type. Missing "Bearer" prefix.
                 return Err(AuthError::UnknownTokenProvided);
             }
 
             Ok(header_value
-                .strip_prefix(&format!("{AUTH_BEARER_TOKEN_HEADER_PREFIX} ").to_string())
+                .strip_prefix(&format!("{AUTH_BEARER_TOKEN_HEADER_PREFIX} "))
                 .map(std::string::ToString::to_string))
         }
     }
@@ -140,9 +140,9 @@ enum AuthError {
 impl IntoResponse for AuthError {
     fn into_response(self) -> Response {
         match self {
-            AuthError::Unauthorized => unauthorized_response(),
-            AuthError::TokenNotValid => token_not_valid_response(),
-            AuthError::UnknownTokenProvided => unknown_auth_data_provided_response(),
+            Self::Unauthorized => unauthorized_response(),
+            Self::TokenNotValid => token_not_valid_response(),
+            Self::UnknownTokenProvided => unknown_auth_data_provided_response(),
         }
     }
 }

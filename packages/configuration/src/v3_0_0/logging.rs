@@ -36,11 +36,11 @@ impl Default for Logging {
 }
 
 impl Logging {
-    fn default_trace_filter() -> Threshold {
+    const fn default_trace_filter() -> Threshold {
         Threshold::Info
     }
 
-    fn default_trace_style() -> TraceStyle {
+    const fn default_trace_style() -> TraceStyle {
         TraceStyle::Full
     }
 }
@@ -75,7 +75,7 @@ pub fn setup(cfg: &Logging) {
     });
 }
 
-fn map_to_tracing_level_filter(trace_filter: &Threshold) -> LevelFilter {
+const fn map_to_tracing_level_filter(trace_filter: &Threshold) -> LevelFilter {
     match trace_filter {
         Threshold::Off => LevelFilter::OFF,
         Threshold::Error => LevelFilter::ERROR,
@@ -118,10 +118,10 @@ pub enum TraceStyle {
 impl std::fmt::Display for TraceStyle {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let style = match self {
-            TraceStyle::Full => "Full Style",
-            TraceStyle::Pretty => "Pretty Style",
-            TraceStyle::Compact => "Compact Style",
-            TraceStyle::Json => "Json Format",
+            Self::Full => "Full Style",
+            Self::Pretty => "Pretty Style",
+            Self::Compact => "Compact Style",
+            Self::Json => "Json Format",
         };
 
         f.write_str(style)

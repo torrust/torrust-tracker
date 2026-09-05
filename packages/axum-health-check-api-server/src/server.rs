@@ -106,7 +106,7 @@ pub fn start(
     socket.set_nonblocking(true)?;
     let address = socket.local_addr()?;
     let protocol = Protocol::HTTP; // The health check API only supports HTTP directly now. Use a reverse proxy for HTTPS.
-    let service_binding = ServiceBinding::new(protocol.clone(), address).map_err(std::io::Error::other)?;
+    let service_binding = ServiceBinding::new(protocol, address).map_err(std::io::Error::other)?;
 
     let handle = Handle::new();
 

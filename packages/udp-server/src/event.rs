@@ -39,7 +39,7 @@ use torrust_tracker_udp_protocol::AnnounceRequest;
 use crate::error::Error;
 
 /// A UDP server event.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Event {
     UdpRequestReceived {
         context: ConnectionContext,
@@ -79,9 +79,9 @@ pub enum UdpRequestKind {
 impl From<UdpRequestKind> for LabelValue {
     fn from(kind: UdpRequestKind) -> Self {
         match kind {
-            UdpRequestKind::Connect => LabelValue::new("connect"),
-            UdpRequestKind::Announce { .. } => LabelValue::new("announce"),
-            UdpRequestKind::Scrape => LabelValue::new("scrape"),
+            UdpRequestKind::Connect => Self::new("connect"),
+            UdpRequestKind::Announce { .. } => Self::new("announce"),
+            UdpRequestKind::Scrape => Self::new("scrape"),
         }
     }
 }
@@ -89,9 +89,9 @@ impl From<UdpRequestKind> for LabelValue {
 impl fmt::Display for UdpRequestKind {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let proto_str = match self {
-            UdpRequestKind::Connect => "connect",
-            UdpRequestKind::Announce { .. } => "announce",
-            UdpRequestKind::Scrape => "scrape",
+            Self::Connect => "connect",
+            Self::Announce { .. } => "announce",
+            Self::Scrape => "scrape",
         };
         write!(f, "{proto_str}")
     }
@@ -110,7 +110,7 @@ pub enum UdpResponseKind {
     },
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ErrorKind {
     RequestParse(String),
     ConnectionCookie(String),
@@ -140,7 +140,7 @@ impl From<Error> for ErrorKind {
                 },
                 UdpScrapeError::TrackerCoreWhitelistError { source } => Self::Whitelist(source.to_string()),
             },
-            Error::Internal { location: _, message } => Self::InternalServer(message.clone()),
+            Error::Internal { location: _, message } => Self::InternalServer(message),
             Error::AuthRequired { location } => Self::TrackerAuthentication(location.to_string()),
         }
     }

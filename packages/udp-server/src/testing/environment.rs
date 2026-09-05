@@ -85,7 +85,7 @@ impl Environment<Stopped> {
     /// Sets the connection ID validation policy for this test environment.
     #[must_use]
     #[allow(dead_code)]
-    pub fn with_connection_id_validation(mut self, policy: ConnectionIdValidationPolicy) -> Self {
+    pub const fn with_connection_id_validation(mut self, policy: ConnectionIdValidationPolicy) -> Self {
         self.connection_id_validation = policy;
         self
     }
@@ -226,12 +226,12 @@ impl Environment<Running> {
     }
 
     #[must_use]
-    pub fn bind_address(&self) -> SocketAddr {
+    pub const fn bind_address(&self) -> SocketAddr {
         self.server.state.local_addr
     }
 }
 
-fn connection_id_validation_policy(policy: &UdpTrackerServer) -> ConnectionIdValidationPolicy {
+const fn connection_id_validation_policy(policy: &UdpTrackerServer) -> ConnectionIdValidationPolicy {
     match policy.connection_id_validation {
         ConfigurationConnectionIdValidationPolicy::Strict => ConnectionIdValidationPolicy::Strict,
         ConfigurationConnectionIdValidationPolicy::Disabled => ConnectionIdValidationPolicy::Disabled,

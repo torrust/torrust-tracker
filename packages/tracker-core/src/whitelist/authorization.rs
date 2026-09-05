@@ -63,7 +63,7 @@ impl WhitelistAuthorization {
     }
 
     /// Checks if the tracker is running in "listed" mode.
-    fn is_listed(&self) -> bool {
+    const fn is_listed(&self) -> bool {
         self.config.listed
     }
 
@@ -94,7 +94,7 @@ mod tests {
             config: &Core,
         ) -> (Arc<WhitelistAuthorization>, Arc<InMemoryWhitelist>) {
             let in_memory_whitelist = Arc::new(InMemoryWhitelist::default());
-            let whitelist_authorization = Arc::new(WhitelistAuthorization::new(config, &in_memory_whitelist.clone()));
+            let whitelist_authorization = Arc::new(WhitelistAuthorization::new(config, &in_memory_whitelist));
 
             (whitelist_authorization, in_memory_whitelist)
         }

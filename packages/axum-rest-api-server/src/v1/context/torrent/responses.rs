@@ -7,14 +7,14 @@ use torrust_tracker_rest_api_protocol::v1::context::torrent::resources::torrent:
 /// `200` response that contains an array of
 /// [`ListItem`](torrust_tracker_rest_api_protocol::v1::context::torrent::resources::torrent::ListItem)
 /// resources as json.
-pub fn torrent_list_response(items: Vec<ListItem>) -> Json<Vec<ListItem>> {
+pub const fn torrent_list_response(items: Vec<ListItem>) -> Json<Vec<ListItem>> {
     Json(items)
 }
 
 /// `200` response that contains a
 /// [`Torrent`](torrust_tracker_rest_api_protocol::v1::context::torrent::resources::torrent::Torrent)
 /// resources as json.
-pub fn torrent_info_response(torrent: Torrent) -> Json<Torrent> {
+pub const fn torrent_info_response(torrent: Torrent) -> Json<Torrent> {
     Json(torrent)
 }
 

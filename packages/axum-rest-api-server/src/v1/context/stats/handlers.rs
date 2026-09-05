@@ -28,24 +28,24 @@ pub struct QueryParams {
 pub async fn get_stats_handler(State(stats_service): State<Arc<StatsApiService>>, params: Query<QueryParams>) -> Response {
     let stats = stats_service.get_stats().await;
 
-    match params.0.format {
-        Some(format) => match format {
+    params.0.format.map_or_else(
+        || stats_response(&stats),
+        |format| match format {
             Format::Json => stats_response(&stats),
             Format::Prometheus => metrics_response(&stats),
         },
-        None => stats_response(&stats),
-    }
+    )
 }
 
 /// It handles the request to get the tracker extendable metrics.
 pub async fn get_metrics_handler(State(stats_service): State<Arc<StatsApiService>>, params: Query<QueryParams>) -> Response {
     let labeled_stats = stats_service.get_labeled_stats().await;
 
-    match params.0.format {
-        Some(format) => match format {
+    params.0.format.map_or_else(
+        || labeled_stats_response(&labeled_stats),
+        |format| match format {
             Format::Json => labeled_stats_response(&labeled_stats),
             Format::Prometheus => labeled_metrics_response(&labeled_stats),
         },
-        None => labeled_stats_response(&labeled_stats),
-    }
+    )
 }

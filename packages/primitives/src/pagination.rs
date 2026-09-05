@@ -6,7 +6,7 @@ use serde::Deserialize;
 // Nightly Clippy diagnoses that proc-macro expansion; remove this allowance once derive_more emits
 // field-init shorthand.
 #[allow(clippy::redundant_field_names)]
-#[derive(Deserialize, Copy, Clone, Debug, PartialEq, Constructor)]
+#[derive(Deserialize, Copy, Clone, Debug, PartialEq, Eq, Constructor)]
 pub struct Pagination {
     /// The page number, starting at 0
     pub offset: u32,
@@ -16,26 +16,26 @@ pub struct Pagination {
 
 impl Pagination {
     #[must_use]
-    pub fn new_with_options(offset_option: Option<u32>, limit_option: Option<u32>) -> Self {
+    pub const fn new_with_options(offset_option: Option<u32>, limit_option: Option<u32>) -> Self {
         let offset = match offset_option {
             Some(offset) => offset,
-            None => Pagination::default_offset(),
+            None => Self::default_offset(),
         };
         let limit = match limit_option {
             Some(offset) => offset,
-            None => Pagination::default_limit(),
+            None => Self::default_limit(),
         };
 
         Self { offset, limit }
     }
 
     #[must_use]
-    pub fn default_offset() -> u32 {
+    pub const fn default_offset() -> u32 {
         0
     }
 
     #[must_use]
-    pub fn default_limit() -> u32 {
+    pub const fn default_limit() -> u32 {
         4000
     }
 }

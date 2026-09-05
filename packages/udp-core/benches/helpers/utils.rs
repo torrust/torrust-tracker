@@ -5,15 +5,15 @@ use mockall::mock;
 use torrust_tracker_events::sender::SendError;
 use torrust_tracker_udp_core::event::Event;
 
-pub(crate) fn sample_ipv4_remote_addr() -> SocketAddr {
+pub const fn sample_ipv4_remote_addr() -> SocketAddr {
     sample_ipv4_socket_address()
 }
 
-pub(crate) fn sample_ipv4_socket_address() -> SocketAddr {
+pub const fn sample_ipv4_socket_address() -> SocketAddr {
     SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 8080)
 }
 
-pub(crate) fn sample_issue_time() -> f64 {
+pub const fn sample_issue_time() -> f64 {
     1_000_000_000_f64
 }
 

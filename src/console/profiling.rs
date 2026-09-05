@@ -164,6 +164,7 @@ use std::time::Duration;
 use tokio::time::sleep;
 
 use crate::app;
+use crate::bootstrap::jobs::manager::JobManager;
 
 /// Errors that cause the profiling executable to exit unsuccessfully.
 #[derive(Debug, thiserror::Error)]
@@ -202,11 +203,16 @@ pub async fn run() -> Result<(), Error> {
         }
     };
 
-    // Run the tracker for a fixed duration
-    let run_duration = sleep(Duration::from_secs(duration_secs));
+    wait_for_shutdown(jobs, Duration::from_secs(duration_secs)).await;
 
+    println!("Torrust successfully shutdown.");
+
+    Ok(())
+}
+
+async fn wait_for_shutdown(jobs: JobManager, run_duration: Duration) {
     tokio::select! {
-        () = run_duration => {
+        () = sleep(run_duration) => {
             tracing::info!("Torrust timed shutdown..");
         },
         _ = tokio::signal::ctrl_c() => {
@@ -215,8 +221,4 @@ pub async fn run() -> Result<(), Error> {
             jobs.wait_for_all(Duration::from_secs(10)).await;
         }
     }
-
-    println!("Torrust successfully shutdown.");
-
-    Ok(())
 }

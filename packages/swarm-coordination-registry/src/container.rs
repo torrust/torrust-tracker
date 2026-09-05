@@ -22,7 +22,7 @@ impl SwarmCoordinationRegistryContainer {
         let broadcaster = Broadcaster::default();
         let stats_repository = Arc::new(Repository::new());
 
-        let event_bus = Arc::new(EventBus::new(sender_status, broadcaster.clone()));
+        let event_bus = Arc::new(EventBus::new(sender_status, broadcaster));
 
         let stats_event_sender = event_bus.sender();
 

@@ -25,7 +25,7 @@ use crate::torrent::repository::in_memory::InMemoryTorrentRepository;
 /// This struct contains all the information that the tracker holds about a
 /// torrent, including the infohash, aggregate swarm metrics (seeders, leechers,
 /// completed downloads), and the complete list of peers in the swarm.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct Info {
     /// The infohash of the torrent this data is related to
     pub info_hash: InfoHash,
@@ -52,7 +52,7 @@ pub struct Info {
 /// This struct contains the same aggregate metrics as [`Info`] (infohash,
 /// seeders, completed, leechers) but omits the peer list. It is used when only
 /// summary information is needed.
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub struct BasicInfo {
     /// The infohash of the torrent this data is related to
     pub info_hash: InfoHash,
@@ -443,12 +443,12 @@ mod tests {
 
             assert_eq!(
                 torrent_info,
-                vec!(BasicInfo {
+                vec![BasicInfo {
                     info_hash,
                     seeders: 1,
                     completed: 0,
                     leechers: 0,
-                })
+                }]
             );
         }
     }

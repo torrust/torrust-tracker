@@ -33,7 +33,7 @@ impl Default for Database {
 }
 
 impl Database {
-    fn default_driver() -> Driver {
+    const fn default_driver() -> Driver {
         Driver::Sqlite3
     }
 

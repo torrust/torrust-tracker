@@ -69,7 +69,7 @@ impl AuthenticationService {
 
     /// Returns `true` is the tracker is in private mode.
     #[must_use]
-    fn tracker_is_private(&self) -> bool {
+    const fn tracker_is_private(&self) -> bool {
         self.config.private
     }
 
@@ -136,7 +136,7 @@ mod tests {
 
                 let in_memory_key_repository = Arc::new(InMemoryKeyRepository::default());
 
-                AuthenticationService::new(&config, &in_memory_key_repository.clone())
+                AuthenticationService::new(&config, &in_memory_key_repository)
             }
 
             #[tokio::test]
@@ -172,7 +172,7 @@ mod tests {
 
                 let in_memory_key_repository = Arc::new(InMemoryKeyRepository::default());
 
-                AuthenticationService::new(&config, &in_memory_key_repository.clone())
+                AuthenticationService::new(&config, &in_memory_key_repository)
             }
 
             #[tokio::test]

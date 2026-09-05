@@ -252,15 +252,15 @@ impl AnnounceService {
             uploaded: NumberOfBytes::new(uploaded.0),
             downloaded: NumberOfBytes::new(downloaded.0),
             left: NumberOfBytes::new(left.0),
-            event: match &announce_request.event {
-                Some(event) => match event {
+            event: announce_request
+                .event
+                .as_ref()
+                .map_or(AnnounceEvent::None, |event| match event {
                     ProtocolAnnounceEvent::Started => AnnounceEvent::Started,
                     ProtocolAnnounceEvent::Stopped => AnnounceEvent::Stopped,
                     ProtocolAnnounceEvent::Completed => AnnounceEvent::Completed,
                     ProtocolAnnounceEvent::Empty => AnnounceEvent::None,
-                },
-                None => AnnounceEvent::None,
-            },
+                }),
         }
     }
 
@@ -320,10 +320,9 @@ impl AnnounceService {
 
     /// Determines how many peers the client wants in the response
     fn peers_wanted(announce_request: &Announce) -> PeersWanted {
-        match announce_request.numwant {
-            Some(numwant) => PeersWanted::only(numwant),
-            None => PeersWanted::AsManyAsPossible,
-        }
+        announce_request
+            .numwant
+            .map_or(PeersWanted::AsManyAsPossible, PeersWanted::only)
     }
 
     async fn send_event(
@@ -479,7 +478,7 @@ mod tests {
         let in_memory_torrent_repository = Arc::new(InMemoryTorrentRepository::default());
         let db_downloads_metric_repository = Arc::new(DatabaseDownloadsMetricRepository::new(&database.torrent_metrics_store));
         let in_memory_whitelist = Arc::new(InMemoryWhitelist::default());
-        let whitelist_authorization = Arc::new(WhitelistAuthorization::new(&config.core, &in_memory_whitelist.clone()));
+        let whitelist_authorization = Arc::new(WhitelistAuthorization::new(&config.core, &in_memory_whitelist));
         let in_memory_key_repository = Arc::new(InMemoryKeyRepository::default());
         let authentication_service = Arc::new(AuthenticationService::new(&core_config, &in_memory_key_repository));
 
@@ -503,7 +502,7 @@ mod tests {
         let http_stats_repository = Arc::new(Repository::new());
         let http_stats_event_bus = Arc::new(EventBus::new(
             config.core.tracker_usage_statistics.into(),
-            http_core_broadcaster.clone(),
+            http_core_broadcaster,
         ));
 
         let http_stats_event_sender = http_stats_event_bus.sender();

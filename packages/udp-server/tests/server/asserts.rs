@@ -14,10 +14,10 @@ pub fn is_connect_response(response: &Response, transaction_id: TransactionId) -
     }
 }
 
-pub fn is_ipv4_announce_response(response: &Response) -> bool {
+pub const fn is_ipv4_announce_response(response: &Response) -> bool {
     matches!(response, Response::AnnounceIpv4(_))
 }
 
-pub fn is_scrape_response(response: &Response) -> bool {
+pub const fn is_scrape_response(response: &Response) -> bool {
     matches!(response, Response::Scrape(_))
 }

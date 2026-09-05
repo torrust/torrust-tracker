@@ -17,8 +17,8 @@ pub struct Receiver {
 
 impl Receiver {
     #[must_use]
-    pub fn new(bound_socket: Arc<BoundSocket>) -> Self {
-        Receiver {
+    pub const fn new(bound_socket: Arc<BoundSocket>) -> Self {
+        Self {
             socket: bound_socket,
             data: RefCell::new([0; MAX_PACKET_SIZE]),
         }

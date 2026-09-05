@@ -50,7 +50,7 @@ pub struct ConnectionContext {
 
 impl ConnectionContext {
     #[must_use]
-    pub fn new(
+    pub const fn new(
         configuration_instance_id: ConfigurationInstanceId,
         remote_client_addr: RemoteClientAddr,
         server_service_binding: ServiceBinding,
@@ -77,12 +77,12 @@ impl ConnectionContext {
     }
 
     #[must_use]
-    pub fn client_ip_addr(&self) -> IpAddr {
+    pub const fn client_ip_addr(&self) -> IpAddr {
         self.client.ip_addr()
     }
 
     #[must_use]
-    pub fn client_port(&self) -> Option<u16> {
+    pub const fn client_port(&self) -> Option<u16> {
         self.client.port()
     }
 
@@ -102,7 +102,7 @@ impl ConnectionContext {
     }
 
     #[must_use]
-    pub fn client_address_ip_type(&self) -> IpType {
+    pub const fn client_address_ip_type(&self) -> IpType {
         match self.client.ip_addr() {
             IpAddr::V6(v6) if v6.to_ipv4_mapped().is_some() => IpType::V4MappedV6,
             _ => IpType::Plain,
@@ -117,12 +117,12 @@ pub struct ClientConnectionContext {
 
 impl ClientConnectionContext {
     #[must_use]
-    pub fn ip_addr(&self) -> IpAddr {
+    pub const fn ip_addr(&self) -> IpAddr {
         self.remote_client_addr.ip()
     }
 
     #[must_use]
-    pub fn port(&self) -> Option<u16> {
+    pub const fn port(&self) -> Option<u16> {
         self.remote_client_addr.port()
     }
 }
@@ -134,7 +134,7 @@ pub struct ServerConnectionContext {
 
 impl From<ConnectionContext> for LabelSet {
     fn from(connection_context: ConnectionContext) -> Self {
-        let mut label_set = LabelSet::from([
+        let mut label_set = Self::from([
             (
                 label_name!("server_binding_protocol"),
                 LabelValue::new(&connection_context.server.service_binding.protocol().to_string()),

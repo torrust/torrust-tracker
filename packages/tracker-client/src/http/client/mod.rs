@@ -240,10 +240,9 @@ impl Client {
     }
 
     fn build_path(&self, path: &str) -> String {
-        match &self.key {
-            Some(key) => format!("{path}/{key}"),
-            None => path.to_string(),
-        }
+        self.key
+            .as_ref()
+            .map_or_else(|| path.to_string(), |key| format!("{path}/{key}"))
     }
 
     fn build_url(&self, path: &str) -> String {

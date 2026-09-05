@@ -74,15 +74,15 @@ impl Core {
         AnnouncePolicy::default()
     }
 
-    fn default_inactive_peer_cleanup_interval() -> u64 {
+    const fn default_inactive_peer_cleanup_interval() -> u64 {
         600
     }
 
-    fn default_listed() -> bool {
+    const fn default_listed() -> bool {
         false
     }
 
-    fn default_private() -> bool {
+    const fn default_private() -> bool {
         false
     }
 
@@ -98,7 +98,7 @@ impl Core {
         TrackerPolicy::default()
     }
 
-    fn default_tracker_usage_statistics() -> bool {
+    const fn default_tracker_usage_statistics() -> bool {
         true
     }
 }

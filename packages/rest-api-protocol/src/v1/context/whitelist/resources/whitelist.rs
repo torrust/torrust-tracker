@@ -21,13 +21,13 @@ pub enum WhitelistError {
 impl fmt::Display for WhitelistError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            WhitelistError::DisabledByConfiguration { capability } => {
+            Self::DisabledByConfiguration { capability } => {
                 write!(f, "{capability} capability is disabled by configuration")
             }
             // Forward the inner message as-is to preserve the original
             // error response format from the previous direct-to-WhitelistManager
             // wiring (the Axum handlers format via `{e}`).
-            WhitelistError::Database(msg) => write!(f, "{msg}"),
+            Self::Database(msg) => write!(f, "{msg}"),
         }
     }
 }

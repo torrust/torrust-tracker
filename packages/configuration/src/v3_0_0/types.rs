@@ -26,7 +26,7 @@ impl<const MINIMUM: u64> AtLeastU64<MINIMUM> {
     /// # Errors
     ///
     /// Returns [`ValueBelowMinimumError`] when `value` is less than `MINIMUM`.
-    pub fn new(value: u64) -> Result<Self, ValueBelowMinimumError> {
+    pub const fn new(value: u64) -> Result<Self, ValueBelowMinimumError> {
         if value < MINIMUM {
             return Err(ValueBelowMinimumError { minimum: MINIMUM });
         }

@@ -39,7 +39,7 @@ impl Spawner {
     /// It spawns a new task to run the UDP server instance.
     ///
     #[must_use]
-    pub fn spawn_launcher(&self, request: LaunchRequest) -> JoinHandle<Result<Spawner, std::io::Error>> {
+    pub fn spawn_launcher(&self, request: LaunchRequest) -> JoinHandle<Result<Self, std::io::Error>> {
         let spawner = Self::new(self.bind_to);
 
         tokio::spawn(async move {

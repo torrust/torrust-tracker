@@ -124,7 +124,7 @@ impl HttpTrackerCoreServices {
         // the shared statistics listener, so it must not suppress publication.
         // A future consumer-demand optimization needs an inventory and benchmark
         // evidence before this can become conditional.
-        let http_stats_event_bus = Arc::new(EventBus::new(SenderStatus::Enabled, http_core_broadcaster.clone()));
+        let http_stats_event_bus = Arc::new(EventBus::new(SenderStatus::Enabled, http_core_broadcaster));
 
         let http_stats_event_sender = http_stats_event_bus.sender();
 

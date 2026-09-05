@@ -17,7 +17,7 @@ use crate::v1::auth;
 use crate::v1::services::peer_ip_resolver::PeerIpResolutionError;
 
 /// `Error` response for the HTTP tracker.
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
 pub struct Error {
     /// Human readable string which explains why the request failed.
     #[serde(rename = "failure reason")]

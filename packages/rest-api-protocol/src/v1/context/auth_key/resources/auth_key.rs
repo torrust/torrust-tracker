@@ -37,16 +37,16 @@ pub enum AuthKeyError {
 impl fmt::Display for AuthKeyError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            AuthKeyError::DurationOverflow { seconds_valid } => {
+            Self::DurationOverflow { seconds_valid } => {
                 write!(f, "duration overflow: {seconds_valid}")
             }
-            AuthKeyError::InvalidKey { key, reason } => {
+            Self::InvalidKey { key, reason } => {
                 write!(f, "invalid key: \"{key}\", {reason}")
             }
-            AuthKeyError::DisabledByConfiguration { capability } => {
+            Self::DisabledByConfiguration { capability } => {
                 write!(f, "{capability} capability is disabled by configuration")
             }
-            AuthKeyError::Database(msg) => write!(f, "{msg}"),
+            Self::Database(msg) => write!(f, "{msg}"),
         }
     }
 }

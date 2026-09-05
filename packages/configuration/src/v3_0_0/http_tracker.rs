@@ -63,23 +63,23 @@ impl Default for HttpTracker {
 }
 
 impl HttpTracker {
-    fn default_bind_address() -> SocketAddr {
+    const fn default_bind_address() -> SocketAddr {
         SocketAddr::new(IpAddr::V4(Ipv4Addr::UNSPECIFIED), 7070)
     }
 
-    fn default_tls_config() -> Option<TlsConfig> {
+    const fn default_tls_config() -> Option<TlsConfig> {
         None
     }
 
-    fn default_tracker_usage_statistics() -> bool {
+    const fn default_tracker_usage_statistics() -> bool {
         false
     }
 
-    fn default_use_ip_from_query_string() -> bool {
+    const fn default_use_ip_from_query_string() -> bool {
         false
     }
 
-    fn default_public_url() -> Option<HttpUrl> {
+    const fn default_public_url() -> Option<HttpUrl> {
         None
     }
 

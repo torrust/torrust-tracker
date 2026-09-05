@@ -49,19 +49,19 @@ impl Default for HttpTracker {
 }
 
 impl HttpTracker {
-    fn default_bind_address() -> SocketAddr {
+    const fn default_bind_address() -> SocketAddr {
         SocketAddr::new(IpAddr::V4(Ipv4Addr::UNSPECIFIED), 7070)
     }
 
-    fn default_tsl_config() -> Option<TslConfig> {
+    const fn default_tsl_config() -> Option<TslConfig> {
         None
     }
 
-    fn default_tracker_usage_statistics() -> bool {
+    const fn default_tracker_usage_statistics() -> bool {
         false
     }
 
-    fn default_ipv6_v6only() -> bool {
+    const fn default_ipv6_v6only() -> bool {
         false
     }
 }

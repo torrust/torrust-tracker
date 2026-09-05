@@ -35,17 +35,17 @@ impl SwarmMetadata {
     }
 
     #[must_use]
-    pub fn downloads(&self) -> NumberOfDownloads {
+    pub const fn downloads(&self) -> NumberOfDownloads {
         self.downloaded
     }
 
     #[must_use]
-    pub fn seeders(&self) -> u32 {
+    pub const fn seeders(&self) -> u32 {
         self.complete
     }
 
     #[must_use]
-    pub fn leechers(&self) -> u32 {
+    pub const fn leechers(&self) -> u32 {
         self.incomplete
     }
 }
@@ -53,7 +53,7 @@ impl SwarmMetadata {
 /// Structure that holds aggregate swarm metadata.
 ///
 /// Metrics are aggregate values for all active torrents/swarms.
-#[derive(Copy, Clone, Debug, PartialEq, Default)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Default)]
 pub struct AggregateActiveSwarmMetadata {
     /// Total number of peers that have ever completed downloading.
     pub total_downloaded: u64,

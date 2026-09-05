@@ -244,7 +244,7 @@ impl AnnounceHandler {
 }
 
 /// Specifies how many peers a client wants in the announce response.
-#[derive(Clone, Debug, PartialEq, Default)]
+#[derive(Clone, Debug, PartialEq, Eq, Default)]
 pub enum PeersWanted {
     /// Request as many peers as possible (default behavior).
     #[default]
@@ -259,8 +259,8 @@ impl PeersWanted {
     ///
     /// The cap is applied when [`limit`](PeersWanted::limit) is called.
     #[must_use]
-    pub fn only(amount: u32) -> Self {
-        PeersWanted::Only { amount: amount as usize }
+    pub const fn only(amount: u32) -> Self {
+        Self::Only { amount: amount as usize }
     }
 
     /// Constructs a `PeersWanted` from a raw client-supplied value.
@@ -269,13 +269,13 @@ impl PeersWanted {
     /// any positive value is stored as-is and capped at the tracker limit
     /// when [`limit`](PeersWanted::limit) is called.
     #[must_use]
-    pub fn from_client_request(value: i32) -> Self {
+    pub const fn from_client_request(value: i32) -> Self {
         if value <= 0 {
-            PeersWanted::AsManyAsPossible
+            Self::AsManyAsPossible
         } else {
             // Safe: value > 0, so casting to usize is lossless on all supported platforms.
             #[allow(clippy::cast_sign_loss)]
-            PeersWanted::Only { amount: value as usize }
+            Self::Only { amount: value as usize }
         }
     }
 
@@ -285,8 +285,8 @@ impl PeersWanted {
     /// - `Only { amount }` resolves to `amount.min(max_peers)`.
     pub(crate) fn limit(&self, max_peers: usize) -> usize {
         match self {
-            PeersWanted::AsManyAsPossible => max_peers,
-            PeersWanted::Only { amount } => (*amount).min(max_peers),
+            Self::AsManyAsPossible => max_peers,
+            Self::Only { amount } => (*amount).min(max_peers),
         }
     }
 }
