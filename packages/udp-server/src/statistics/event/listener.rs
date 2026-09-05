@@ -45,37 +45,58 @@ async fn dispatch_events(
             biased;
 
             () = cancellation_token.cancelled() => {
-                tracing::info!(target: UDP_TRACKER_LOG_TARGET, "Received cancellation request, shutting down UDP tracker server event listener.");
+                log_cancellation();
                 break;
             }
 
             result = receiver.recv() => {
-                match result {
-                    Ok(event) if metrics_policy.get(&event_connection_id(&event)).copied().unwrap_or(false) => {
-                        handle_event(event, &stats_repository, CurrentClock::now()).await;
-                    }
-                    Ok(event) => {
-                        tracing::warn!(
-                            target: UDP_TRACKER_LOG_TARGET,
-                            configuration_instance_id = ?event_connection_id(&event),
-                            "Ignoring UDP server event from an unknown or metrics-disabled listener"
-                        );
-                    }
-                    Err(e) => {
-                        match e {
-                            RecvError::Closed => {
-                                tracing::info!(target: UDP_TRACKER_LOG_TARGET, "Udp tracker server statistics receiver closed.");
-                                break;
-                            }
-                            RecvError::Lagged(n) => {
-                                tracing::warn!(target: UDP_TRACKER_LOG_TARGET, "Udp tracker server statistics receiver lagged by {} events.", n);
-                            }
-                        }
-                    }
+                if !handle_received_event(result, &stats_repository, &metrics_policy).await {
+                    break;
                 }
             }
         }
     }
+}
+
+async fn handle_received_event(
+    result: Result<crate::event::Event, RecvError>,
+    stats_repository: &Repository,
+    metrics_policy: &BTreeMap<ConfigurationInstanceId, bool>,
+) -> bool {
+    match result {
+        Ok(event) => handle_event_if_enabled(event, stats_repository, metrics_policy).await,
+        Err(RecvError::Closed) => {
+            tracing::info!(target: UDP_TRACKER_LOG_TARGET, "Udp tracker server statistics receiver closed.");
+            return false;
+        }
+        Err(RecvError::Lagged(events)) => {
+            tracing::warn!(target: UDP_TRACKER_LOG_TARGET, "Udp tracker server statistics receiver lagged by {} events.", events);
+        }
+    }
+
+    true
+}
+
+async fn handle_event_if_enabled(
+    event: crate::event::Event,
+    stats_repository: &Repository,
+    metrics_policy: &BTreeMap<ConfigurationInstanceId, bool>,
+) {
+    let configuration_instance_id = event_connection_id(&event);
+
+    if metrics_policy.get(&configuration_instance_id).copied() == Some(true) {
+        handle_event(event, stats_repository, CurrentClock::now()).await;
+    } else {
+        tracing::warn!(
+            target: UDP_TRACKER_LOG_TARGET,
+            ?configuration_instance_id,
+            "Ignoring UDP server event from an unknown or metrics-disabled listener"
+        );
+    }
+}
+
+fn log_cancellation() {
+    tracing::info!(target: UDP_TRACKER_LOG_TARGET, "Received cancellation request, shutting down UDP tracker server event listener.");
 }
 
 const fn event_connection_id(event: &crate::event::Event) -> ConfigurationInstanceId {
@@ -92,12 +113,14 @@ const fn event_connection_id(event: &crate::event::Event) -> ConfigurationInstan
 
 #[cfg(test)]
 mod tests {
+    use std::collections::{BTreeMap, VecDeque};
     use std::net::{IpAddr, Ipv4Addr, SocketAddr};
     use std::sync::Arc;
+    use std::sync::atomic::{AtomicUsize, Ordering};
 
+    use futures::{FutureExt as _, future::BoxFuture};
     use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
-    use torrust_tracker_events::broadcaster::Broadcaster;
-    use torrust_tracker_events::sender::Sender as _;
+    use torrust_tracker_events::receiver::RecvError;
     use torrust_tracker_primitives::{ConfigurationInstanceId, ServiceRole};
     use torrust_tracker_udp_core::event::ConnectionContext;
 
@@ -105,6 +128,33 @@ mod tests {
     use crate::event::Event;
     use crate::event::receiver::Receiver;
     use crate::statistics::repository::Repository;
+
+    struct ScriptedReceiver {
+        results: VecDeque<Result<Event, RecvError>>,
+        receives: Arc<AtomicUsize>,
+    }
+
+    impl ScriptedReceiver {
+        fn new(results: impl IntoIterator<Item = Result<Event, RecvError>>) -> (Self, Arc<AtomicUsize>) {
+            let receives = Arc::new(AtomicUsize::new(0));
+            (
+                Self {
+                    results: results.into_iter().collect(),
+                    receives: receives.clone(),
+                },
+                receives,
+            )
+        }
+    }
+
+    impl torrust_tracker_events::receiver::Receiver for ScriptedReceiver {
+        type Event = Event;
+
+        fn recv(&mut self) -> BoxFuture<'_, Result<Self::Event, RecvError>> {
+            self.receives.fetch_add(1, Ordering::SeqCst);
+            futures::future::ready(self.results.pop_front().expect("scripted receive result")).boxed()
+        }
+    }
 
     fn request_received_event(configuration_instance_id: ConfigurationInstanceId) -> Event {
         Event::UdpRequestReceived {
@@ -122,18 +172,14 @@ mod tests {
         let enabled_id = ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0);
         let disabled_id = ConfigurationInstanceId::new(ServiceRole::UdpTracker, 1);
         let unknown_id = ConfigurationInstanceId::new(ServiceRole::UdpTracker, 2);
-        let broadcaster = Broadcaster::default();
-        let receiver: Receiver = Box::new(broadcaster.subscribe());
+        let (scripted_receiver, _receives) = ScriptedReceiver::new([
+            Ok(request_received_event(enabled_id)),
+            Ok(request_received_event(disabled_id)),
+            Ok(request_received_event(unknown_id)),
+            Err(RecvError::Closed),
+        ]);
+        let receiver: Receiver = Box::new(scripted_receiver);
         let repository = Arc::new(Repository::new());
-
-        for configuration_instance_id in [enabled_id, disabled_id, unknown_id] {
-            let _unused = broadcaster
-                .send(request_received_event(configuration_instance_id))
-                .await
-                .unwrap()
-                .unwrap();
-        }
-        drop(broadcaster);
 
         // Act
         dispatch_events(
@@ -146,5 +192,69 @@ mod tests {
 
         // Assert
         assert_eq!(repository.get_stats().await.udp4_requests_received_total(), 1);
+    }
+
+    #[tokio::test]
+    async fn it_should_stop_when_the_receiver_is_closed() {
+        // Arrange
+        let (scripted_receiver, receives) = ScriptedReceiver::new([Err(RecvError::Closed)]);
+
+        // Act
+        dispatch_events(
+            Box::new(scripted_receiver),
+            tokio_util::sync::CancellationToken::new(),
+            Arc::new(Repository::new()),
+            BTreeMap::new(),
+        )
+        .await;
+
+        // Assert
+        assert_eq!(receives.load(Ordering::SeqCst), 1);
+    }
+
+    #[tokio::test]
+    async fn it_should_process_enabled_events_after_lagging() {
+        // Arrange
+        let enabled_id = ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0);
+        let (scripted_receiver, _receives) = ScriptedReceiver::new([
+            Err(RecvError::Lagged(2)),
+            Ok(request_received_event(enabled_id)),
+            Err(RecvError::Closed),
+        ]);
+        let repository = Arc::new(Repository::new());
+
+        // Act
+        dispatch_events(
+            Box::new(scripted_receiver),
+            tokio_util::sync::CancellationToken::new(),
+            repository.clone(),
+            [(enabled_id, true)].into(),
+        )
+        .await;
+
+        // Assert
+        assert_eq!(repository.get_stats().await.udp4_requests_received_total(), 1);
+    }
+
+    #[tokio::test]
+    async fn it_should_prioritize_cancellation_over_a_ready_event() {
+        // Arrange
+        let enabled_id = ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0);
+        let (scripted_receiver, _receives) = ScriptedReceiver::new([Ok(request_received_event(enabled_id))]);
+        let cancellation_token = tokio_util::sync::CancellationToken::new();
+        cancellation_token.cancel();
+        let repository = Arc::new(Repository::new());
+
+        // Act
+        dispatch_events(
+            Box::new(scripted_receiver),
+            cancellation_token,
+            repository.clone(),
+            [(enabled_id, true)].into(),
+        )
+        .await;
+
+        // Assert
+        assert_eq!(repository.get_stats().await.udp4_requests_received_total(), 0);
     }
 }

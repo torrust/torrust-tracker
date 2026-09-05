@@ -67,25 +67,55 @@ fn log_error(
     let server_socket_addr = server_service_binding.bind_address();
 
     if is_connection_cookie_error(error) {
-        match opt_transaction_id {
-            Some(transaction_id) => {
-                let transaction_id = transaction_id.0.to_string();
-                tracing::warn!(target: UDP_TRACKER_LOG_TARGET, error = %error, %client_socket_addr, %server_socket_addr, service_binding = %server_service_binding, %request_id, %transaction_id, "response error");
-            }
-            None => {
-                tracing::warn!(target: UDP_TRACKER_LOG_TARGET, error = %error, %client_socket_addr, %server_socket_addr, service_binding = %server_service_binding, %request_id, "response error");
-            }
-        }
+        log_connection_cookie_error(
+            error,
+            client_socket_addr,
+            server_service_binding,
+            server_socket_addr,
+            opt_transaction_id,
+            request_id,
+        );
     } else {
-        match opt_transaction_id {
-            Some(transaction_id) => {
-                let transaction_id = transaction_id.0.to_string();
-                tracing::error!(target: UDP_TRACKER_LOG_TARGET, error = %error, %client_socket_addr, %server_socket_addr, service_binding = %server_service_binding, %request_id, %transaction_id, "response error");
-            }
-            None => {
-                tracing::error!(target: UDP_TRACKER_LOG_TARGET, error = %error, %client_socket_addr, %server_socket_addr, service_binding = %server_service_binding, %request_id, "response error");
-            }
-        }
+        log_non_cookie_error(
+            error,
+            client_socket_addr,
+            server_service_binding,
+            server_socket_addr,
+            opt_transaction_id,
+            request_id,
+        );
+    }
+}
+
+fn log_connection_cookie_error(
+    error: &Error,
+    client_socket_addr: SocketAddr,
+    server_service_binding: &ServiceBinding,
+    server_socket_addr: SocketAddr,
+    opt_transaction_id: Option<TransactionId>,
+    request_id: Uuid,
+) {
+    if let Some(transaction_id) = opt_transaction_id {
+        let transaction_id = transaction_id.0.to_string();
+        tracing::warn!(target: UDP_TRACKER_LOG_TARGET, error = %error, %client_socket_addr, %server_socket_addr, service_binding = %server_service_binding, %request_id, %transaction_id, "response error");
+    } else {
+        tracing::warn!(target: UDP_TRACKER_LOG_TARGET, error = %error, %client_socket_addr, %server_socket_addr, service_binding = %server_service_binding, %request_id, "response error");
+    }
+}
+
+fn log_non_cookie_error(
+    error: &Error,
+    client_socket_addr: SocketAddr,
+    server_service_binding: &ServiceBinding,
+    server_socket_addr: SocketAddr,
+    opt_transaction_id: Option<TransactionId>,
+    request_id: Uuid,
+) {
+    if let Some(transaction_id) = opt_transaction_id {
+        let transaction_id = transaction_id.0.to_string();
+        tracing::error!(target: UDP_TRACKER_LOG_TARGET, error = %error, %client_socket_addr, %server_socket_addr, service_binding = %server_service_binding, %request_id, %transaction_id, "response error");
+    } else {
+        tracing::error!(target: UDP_TRACKER_LOG_TARGET, error = %error, %client_socket_addr, %server_socket_addr, service_binding = %server_service_binding, %request_id, "response error");
     }
 }
 
@@ -118,5 +148,91 @@ async fn trigger_udp_error_event(
                 error: error.clone().into(),
             })
             .await;
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::net::{IpAddr, Ipv4Addr, SocketAddr};
+    use std::sync::Arc;
+
+    use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
+    use torrust_tracker_primitives::{ConfigurationInstanceId, ServiceRole};
+    use torrust_tracker_udp_protocol::{ErrorResponse, Response, TransactionId};
+    use uuid::Uuid;
+    use zerocopy::byteorder::network_endian::I32;
+
+    use super::handle_error;
+    use crate::error::Error;
+    use crate::event::{ErrorKind, Event, UdpRequestKind};
+
+    fn service_binding() -> ServiceBinding {
+        ServiceBinding::new(Protocol::UDP, SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 6969)).unwrap()
+    }
+
+    fn internal_error() -> Error {
+        Error::Internal {
+            location: std::panic::Location::caller(),
+            message: "failure".into(),
+        }
+    }
+
+    #[tokio::test]
+    async fn it_should_publish_the_exact_error_with_the_supplied_transaction_id() {
+        // Arrange
+        let broadcaster = crate::event::sender::Broadcaster::default();
+        let mut receiver = broadcaster.subscribe();
+        let sender = Some(Arc::new(broadcaster) as Arc<dyn torrust_tracker_events::sender::Sender<Event = Event>>);
+        let transaction_id = TransactionId(I32::new(42));
+        let error = internal_error();
+
+        // Act
+        let response = handle_error(
+            Some(UdpRequestKind::Connect),
+            SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 8080),
+            service_binding(),
+            ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0),
+            None,
+            Uuid::nil(),
+            &sender,
+            0.0..1.0,
+            &error,
+            Some(transaction_id),
+        )
+        .await;
+
+        // Assert
+        assert!(matches!(response, Response::Error(ErrorResponse { transaction_id: actual, .. }) if actual == transaction_id));
+        assert!(matches!(
+            receiver.recv().await.unwrap(),
+            Event::UdpError { kind: Some(UdpRequestKind::Connect), error: ErrorKind::InternalServer(message), .. } if message == "failure"
+        ));
+    }
+
+    #[tokio::test]
+    async fn it_should_return_a_zero_transaction_id_without_an_event_sender() {
+        // Arrange
+        let sender = None;
+        let error = internal_error();
+
+        // Act
+        let response = handle_error(
+            None,
+            SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 8080),
+            service_binding(),
+            ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0),
+            None,
+            Uuid::nil(),
+            &sender,
+            0.0..1.0,
+            &error,
+            None,
+        )
+        .await;
+
+        // Assert
+        assert!(
+            matches!(response, Response::Error(ErrorResponse { transaction_id: TransactionId(value), .. }) if value == I32::new(0))
+        );
     }
 }
