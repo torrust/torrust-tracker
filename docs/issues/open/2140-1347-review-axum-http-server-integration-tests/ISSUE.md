@@ -17,6 +17,8 @@ semantic-links:
     - .github/skills/dev/planning/create-issue/SKILL.md
     - .github/skills/dev/testing/write-unit-test/SKILL.md
     - docs/testing/refactoring-patterns/README.md
+    - docs/issues/open/2140-1347-review-axum-http-server-integration-tests/coverage-evidence.md
+    - docs/issues/open/2140-1347-review-axum-http-server-integration-tests/test-design-review.md
     - packages/axum-http-server/tests/server/v1/contract/configured_as_private_and_whitelisted.rs
     - packages/axum-http-server/tests/server/v1/contract/configured_as_private.rs
     - packages/axum-http-server/tests/server/v1/contract/configured_as_whitelisted.rs
@@ -95,15 +97,15 @@ high-value cases from that backlog.
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`, `DEFERRED`.
 
-| ID  | Status | Task                                     | Expected output                                                                                                                                                                                 |
-| --- | ------ | ---------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| T1  | TODO   | Inventory all integration contracts      | Read every package integration-test file and map its observable behavior, configuration mode, boundary, and existing scenario coverage.                                                         |
-| T2  | TODO   | Measure and analyze coverage             | Record reproducible package-source aggregate and per-file coverage, then compare uncovered areas with package/domain behavior to identify gaps coverage alone does not reveal.                  |
-| T2a | TODO   | Assess mutation-testing feasibility      | Run a bounded `cargo-mutants` sample against this package. Record configuration, duration, limitations, and behavior-relevant surviving mutants; do not add a mutation-score target or CI gate. |
-| T3  | TODO   | Review test design before expansion      | Create a file-by-file integration-test refactor plan covering readability, maintainability, expressiveness, fixture selection, and justified duplication reduction.                             |
-| T4  | TODO   | Approve prioritized improvement plan     | Review the evidence-backed plan with the maintainer; implement one approved refactoring or behavior increment at a time.                                                                        |
-| T5  | TODO   | Improve selected integration contracts   | Add only approved high-value edge cases. The combined private-and-whitelisted announce/scrape matrix is an initial candidate, not a preselected outcome.                                        |
-| T6  | TODO   | Final verification and acceptance review | Run full package tests, linters, required hooks, manual real-server scenarios, and post-implementation acceptance review.                                                                       |
+| ID  | Status      | Task                                     | Expected output                                                                                                                                                                                 |
+| --- | ----------- | ---------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| T1  | DONE        | Inventory all integration contracts      | Read every package integration-test file and map its observable behavior, configuration mode, boundary, and existing scenario coverage.                                                         |
+| T2  | DONE        | Measure and analyze coverage             | Record reproducible package-source aggregate and per-file coverage, then compare uncovered areas with package/domain behavior to identify gaps coverage alone does not reveal.                  |
+| T2a | DONE        | Assess mutation-testing feasibility      | Run a bounded `cargo-mutants` sample against this package. Record configuration, duration, limitations, and behavior-relevant surviving mutants; do not add a mutation-score target or CI gate. |
+| T3  | DONE        | Review test design before expansion      | Create a file-by-file integration-test refactor plan covering readability, maintainability, expressiveness, fixture selection, and justified duplication reduction.                             |
+| T4  | DONE        | Approve prioritized improvement plan     | Review the evidence-backed plan with the maintainer; implement one approved refactoring or behavior increment at a time.                                                                        |
+| T5  | DONE        | Improve selected integration contracts   | Add only approved high-value edge cases. The combined private-and-whitelisted announce/scrape matrix is an initial candidate, not a preselected outcome.                                        |
+| T6  | DONE        | Final verification and acceptance review | Run full package tests, linters, required hooks, manual real-server scenarios, and post-implementation acceptance review.                                                                       |
 
 ## Test Development Loop
 
@@ -129,15 +131,19 @@ Apply this loop to every test-producing task:
 - [x] Maintainer reviewed and approved draft specification.
 - [x] GitHub subissue #2140 created under #1347.
 - [x] Draft moved to `docs/issues/open/` with assigned issue number.
-- [ ] Implementation completed.
-- [ ] Automatic and manual verification completed.
-- [ ] Acceptance criteria reviewed after implementation.
+- [x] Implementation completed.
+- [x] Automatic and manual verification completed.
+- [x] Acceptance criteria reviewed after implementation.
 
 ### Progress Log
 
 - 2026-09-04 - GitHub Copilot - Performed a preliminary review of `packages/axum-http-server/tests/` after #2136. The combined private-and-whitelisted configuration has placeholder modules but no contract tests; private-only and whitelisted-only suites are existing references.
 - 2026-09-04 - User/maintainer - Expanded the draft scope: before selecting new tests, analyze every package integration test, current coverage, and relevant domain behavior; conduct a dedicated test-design review for readability, maintainability, and expressiveness; then propose the prioritized implementation plan.
 - 2026-09-04 - User/maintainer - Approved this specification. GitHub subissue #2140 was created under #1347; this specification is now the open, tracked work item.
+- 2026-09-04 - GitHub Copilot - Completed T1-T3 analysis. All 18 integration-test sources and 55 executable integration tests were inventoried. The coverage baseline is 1,526/1,602 package-source lines (95.26%) across 34 unit and 55 integration tests; see `coverage-evidence.md`. A bounded `cargo-mutants` sample caught the compact-response branch mutation. The prioritized, analysis-first proposal is recorded in `test-design-review.md`; no behavior tests have been added pending maintainer approval.
+- 2026-09-06 - GitHub Copilot - Following maintainer approval, completed T4-T5. Added six combined private-and-listed HTTP listener contracts using one file-local `PrivateListedTracker` scenario fixture, and corrected the IPv6 external-IP scenario to use an IPv6 listener and `::1` client with an availability guard. The refreshed coverage run passed 34 unit and 61 integration tests with unchanged package-source coverage (1,526/1,602, 95.26%); see `coverage-evidence.md`. The maintainer chose to retain dormant local test helpers as future examples, so cleanup remains deferred.
+- 2026-09-06 - GitHub Copilot - Completed package and manual real-server verification: the full package suite passed (34 unit tests and 61 integration tests), nightly Rustfmt passed, `linter all` passed, and `git diff --check` passed. The mandatory pre-commit hook remains to be run before committing.
+- 2026-09-06 - GitHub Copilot - The mandatory pre-commit hook passed: dictionary formatting, dependency analysis, workspace-ban checks, linters, Containerfile linting, and documentation tests all passed. No issue-local implementation retrospective is required because the implemented approach follows the approved plan without a material design deviation; the focused `PrivateListedTracker` fixture is already captured in the test-pattern analysis.
 
 ## Acceptance Criteria
 
@@ -172,24 +178,24 @@ Apply this loop to every test-producing task:
 
 ### Manual Verification Scenarios
 
-| ID  | Scenario                                    | Command/steps                                                     | Expected result                                                                               | Status | Evidence |
-| --- | ------------------------------------------- | ----------------------------------------------------------------- | --------------------------------------------------------------------------------------------- | ------ | -------- |
-| M1  | Selected HTTP tracker integration contracts | Run focused real-server tests selected by the approved plan.      | Each selected configuration and edge case has its documented observable response/side effect. | TODO   | —        |
-| M2  | Full package integration suite              | Run the full package integration target after the last increment. | Existing and newly selected HTTP listener contracts pass together.                            | TODO   | —        |
+| ID  | Scenario                                    | Command/steps                                                     | Expected result                                                                               | Status | Evidence                                                                                          |
+| --- | ------------------------------------------- | ----------------------------------------------------------------- | --------------------------------------------------------------------------------------------- | ------ | ------------------------------------------------------------------------------------------------- |
+| M1  | Selected HTTP tracker integration contracts | Run focused real-server tests selected by the approved plan.      | Each selected configuration and edge case has its documented observable response/side effect. | DONE   | Six combined private-and-listed contracts passed; the corrected IPv6 external-IP contract passed. |
+| M2  | Full package integration suite              | Run the full package integration target after the last increment. | Existing and newly selected HTTP listener contracts pass together.                            | DONE   | `cargo test -p torrust-tracker-axum-http-server` passed 34 unit and 61 integration tests.         |
 
 ### Acceptance Verification
 
-| AC ID | Status | Evidence |
-| ----- | ------ | -------- |
-| AC1   | TODO   | —        |
-| AC2   | TODO   | —        |
-| AC3   | TODO   | —        |
-| AC4   | TODO   | —        |
-| AC5   | TODO   | —        |
-| AC6   | TODO   | —        |
-| AC7   | TODO   | —        |
-| AC8   | TODO   | —        |
-| AC9   | TODO   | —        |
+| AC ID | Status      | Evidence                                                                                           |
+| ----- | ----------- | -------------------------------------------------------------------------------------------------- |
+| AC1   | DONE        | `test-design-review.md` inventories all 18 integration-test sources.                               |
+| AC2   | DONE        | `coverage-evidence.md` records coverage and domain-behavior analysis.                              |
+| AC3   | DONE        | `coverage-evidence.md` records the bounded `cargo-mutants` assessment.                             |
+| AC4   | DONE        | `test-design-review.md` records the dedicated design review and prioritization.                    |
+| AC5   | DONE        | Six combined private-and-listed real-listener contracts assert bencoded HTTP responses.            |
+| AC6   | DONE        | `PrivateListedTracker` exposes causal state while tests retain HTTP Act and response Assert steps. |
+| AC7   | DONE        | No out-of-scope test categories were added; dormant local helpers were retained.                   |
+| AC8   | DONE        | Package tests, nightly Rustfmt, `linter all`, and the mandatory pre-commit hook passed.            |
+| AC9   | DONE        | M1 and M2 passed using real-listener integration tests.                                            |
 
 ## Risks and Trade-offs
 

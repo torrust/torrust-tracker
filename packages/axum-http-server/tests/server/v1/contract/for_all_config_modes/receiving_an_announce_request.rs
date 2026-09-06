@@ -1041,19 +1041,31 @@ mod when_the_ip_parameter_is_not_accepted {
     async fn a_loopback_ipv6_client_uses_the_external_ip_when_ip_is_absent() {
         logging::setup();
 
+        if TcpListener::bind(SocketAddrV6::new(Ipv6Addr::LOCALHOST, 0, 0, 0))
+            .await
+            .is_err()
+        {
+            return; // the environment does not support IPv6 loopback connections
+        }
+
         /* We assume that both the client and tracker share the same public IP.
 
            client     <-> tracker                                                  <-> Internet
            ::1            external_ip = "2345:0425:2CA1:0000:0000:0567:5673:23b5"
         */
 
-        let cfg = configuration::ephemeral_with_external_ip(IpAddr::from_str("2345:0425:2CA1:0000:0000:0567:5673:23b5").unwrap());
+        let mut cfg =
+            configuration::ephemeral_with_external_ip(IpAddr::from_str("2345:0425:2CA1:0000:0000:0567:5673:23b5").unwrap());
+        cfg.http_trackers
+            .as_mut()
+            .expect("test configuration should contain an HTTP tracker")[0]
+            .bind_address = SocketAddr::new(IpAddr::V6(Ipv6Addr::UNSPECIFIED), 0);
         let core_config = Arc::new(cfg.core.clone());
         let http_tracker_config = Arc::new(cfg.http_trackers.unwrap()[0].clone());
         let env = Started::new(&core_config, &http_tracker_config).await;
 
         let info_hash = InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap(); // DevSkim: ignore DS173237
-        let loopback_ip = IpAddr::from_str("127.0.0.1").unwrap();
+        let loopback_ip = IpAddr::V6(Ipv6Addr::LOCALHOST);
         let client_ip = loopback_ip;
 
         let announce_query = AnnounceBuilder::default().with_info_hash(&info_hash).query();
