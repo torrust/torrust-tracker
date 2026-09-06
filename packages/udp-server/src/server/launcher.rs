@@ -56,7 +56,7 @@ impl Launcher {
             );
         }
 
-        let service_binding = bound_socket.service_binding().clone();
+        let service_binding = bound_socket.service_binding();
         let address = bound_socket.address();
         let local_udp_url = bound_socket.url().to_string();
 
@@ -89,7 +89,7 @@ impl Launcher {
             .is_err()
         {
             running.abort();
-            let _ = running.await;
+            drop(running.await);
             return Err(std::io::Error::new(
                 std::io::ErrorKind::BrokenPipe,
                 "UDP startup receiver was dropped",
@@ -105,7 +105,7 @@ impl Launcher {
             () = shutdown_signal_with_message(rx_halt, format!("Halting UDP Service Bound to Socket: {address}")) => {
                 tracing::debug!(target: UDP_TRACKER_LOG_TARGET, local_udp_url, "Udp::run_with_graceful_shutdown (halting)");
                 running.abort();
-                let _ = running.await;
+                drop(running.await);
             }
         }
 

@@ -78,7 +78,7 @@ pub struct LogCapturer<'a> {
 }
 
 impl<'a> LogCapturer<'a> {
-    pub fn new(buf: &'a Mutex<CircularBuffer>) -> Self {
+    pub const fn new(buf: &'a Mutex<CircularBuffer>) -> Self {
         Self { logs: buf }
     }
 
@@ -89,7 +89,7 @@ impl<'a> LogCapturer<'a> {
 
 impl io::Write for LogCapturer<'_> {
     fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
-        print!("{}", String::from_utf8(buf.to_vec()).unwrap());
+        std::io::stdout().lock().write_all(buf)?;
 
         let mut target = self.buf()?;
 
@@ -145,7 +145,7 @@ impl CircularBuffer {
     /// Won't return any error.
     #[allow(clippy::unnecessary_wraps)]
     #[allow(clippy::unused_self)]
-    pub fn flush(&mut self) -> io::Result<()> {
+    pub const fn flush(&mut self) -> io::Result<()> {
         Ok(())
     }
 

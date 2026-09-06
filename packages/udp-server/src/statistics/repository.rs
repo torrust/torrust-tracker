@@ -187,6 +187,7 @@ mod tests {
                 .metric_collection
                 .contains_gauge(&metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS))
         );
+        drop(stats);
     }
 
     #[tokio::test]
@@ -349,6 +350,7 @@ mod tests {
 
         assert_eq!(udp_avg_connect_processing_time_ns, 1000);
         assert_eq!(udp_avg_announce_processing_time_ns, 2000);
+        drop(stats);
     }
 
     #[tokio::test]
@@ -662,6 +664,7 @@ mod tests {
 
             // Verify metric collection integrity
             assert_metric_collection_integrity(&stats);
+            drop(stats);
         }
 
         // Test helper functions to hide implementation details

@@ -31,6 +31,6 @@ pub fn add(prefix: &str, router: Router, whitelist_service: Option<&Arc<Whitelis
         // Whitelist commands
         .route(
             &format!("{prefix}/reload"),
-            get(reload_whitelist_handler).with_state(whitelist_service.clone()),
+            get(reload_whitelist_handler).with_state(whitelist_service),
         )
 }

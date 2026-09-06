@@ -1,5 +1,7 @@
-//! Tracker completed-download counters use the retention terminology defined
-//! by ADR [`20260901113500_define_completed_download_metric_retention_names`](../../../../docs/adrs/20260901113500_define_completed_download_metric_retention_names.md).
+//! Tracker completed-download counters use explicit retention terminology.
+//!
+//! The terminology is defined by ADR
+//! [`20260901113500_define_completed_download_metric_retention_names`](../../../../docs/adrs/20260901113500_define_completed_download_metric_retention_names.md).
 pub mod event;
 pub mod metrics;
 pub mod persisted;

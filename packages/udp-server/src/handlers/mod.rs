@@ -267,7 +267,7 @@ pub(crate) mod tests {
 
     use crate::event as server_event;
 
-    pub(crate) struct CoreTrackerServices {
+    pub struct CoreTrackerServices {
         pub core_config: Arc<Core>,
         pub announce_handler: Arc<AnnounceHandler>,
         pub in_memory_torrent_repository: Arc<InMemoryTorrentRepository>,
@@ -275,12 +275,12 @@ pub(crate) mod tests {
         pub whitelist_authorization: Arc<whitelist::authorization::WhitelistAuthorization>,
     }
 
-    pub(crate) struct CoreUdpTrackerServices {
+    pub struct CoreUdpTrackerServices {
         pub announce_service: Arc<AnnounceService>,
         pub scrape_service: Arc<ScrapeService>,
     }
 
-    pub(crate) struct ServerUdpTrackerServices {
+    pub struct ServerUdpTrackerServices {
         pub udp_server_stats_event_sender: crate::event::sender::Sender,
     }
 
@@ -288,22 +288,22 @@ pub(crate) mod tests {
         configuration::ephemeral()
     }
 
-    pub(crate) async fn initialize_core_tracker_services_for_default_tracker_configuration()
+    pub async fn initialize_core_tracker_services_for_default_tracker_configuration()
     -> (CoreTrackerServices, CoreUdpTrackerServices, ServerUdpTrackerServices) {
         initialize_core_tracker_services(&default_testing_tracker_configuration()).await
     }
 
-    pub(crate) async fn initialize_core_tracker_services_for_public_tracker()
+    pub async fn initialize_core_tracker_services_for_public_tracker()
     -> (CoreTrackerServices, CoreUdpTrackerServices, ServerUdpTrackerServices) {
         initialize_core_tracker_services(&configuration::ephemeral_public()).await
     }
 
-    pub(crate) async fn initialize_core_tracker_services_for_listed_tracker()
+    pub async fn initialize_core_tracker_services_for_listed_tracker()
     -> (CoreTrackerServices, CoreUdpTrackerServices, ServerUdpTrackerServices) {
         initialize_core_tracker_services(&configuration::ephemeral_listed()).await
     }
 
-    pub(crate) async fn initialize_core_tracker_services_with_config(
+    pub async fn initialize_core_tracker_services_with_config(
         config: &Configuration,
     ) -> (CoreTrackerServices, CoreUdpTrackerServices, ServerUdpTrackerServices) {
         initialize_core_tracker_services(config).await
@@ -316,7 +316,7 @@ pub(crate) mod tests {
         let core_config = Arc::new(config.core.clone());
         let database = initialize_database(&config.core).await;
         let in_memory_whitelist = Arc::new(InMemoryWhitelist::default());
-        let whitelist_authorization = Arc::new(WhitelistAuthorization::new(&config.core, &in_memory_whitelist.clone()));
+        let whitelist_authorization = Arc::new(WhitelistAuthorization::new(&config.core, &in_memory_whitelist));
         let in_memory_torrent_repository = Arc::new(InMemoryTorrentRepository::default());
         let db_downloads_metric_repository = Arc::new(DatabaseDownloadsMetricRepository::new(&database.torrent_metrics_store));
         let announce_handler = if config.core.tracker_policy.persistent_torrent_completed_stat {
@@ -336,13 +336,13 @@ pub(crate) mod tests {
         let scrape_handler = Arc::new(ScrapeHandler::new(&whitelist_authorization, &in_memory_torrent_repository));
 
         let udp_core_broadcaster = Broadcaster::default();
-        let core_event_bus = Arc::new(EventBus::new(SenderStatus::Disabled, udp_core_broadcaster.clone()));
+        let core_event_bus = Arc::new(EventBus::new(SenderStatus::Disabled, udp_core_broadcaster));
         let udp_core_stats_event_sender = core_event_bus.sender();
 
         let udp_server_broadcaster = crate::event::sender::Broadcaster::default();
         let server_event_bus = Arc::new(crate::event::bus::EventBus::new(
             SenderStatus::Disabled,
-            udp_server_broadcaster.clone(),
+            udp_server_broadcaster,
         ));
 
         let udp_server_stats_event_sender = server_event_bus.sender();
@@ -359,7 +359,7 @@ pub(crate) mod tests {
         ));
 
         let scrape_service = Arc::new(ScrapeService::new(
-            scrape_handler.clone(),
+            scrape_handler,
             udp_core_stats_event_sender.clone(),
             configuration_instance_id,
         ));
@@ -382,23 +382,23 @@ pub(crate) mod tests {
         )
     }
 
-    pub(crate) fn sample_ipv4_remote_addr() -> SocketAddr {
+    pub fn sample_ipv4_remote_addr() -> SocketAddr {
         sample_ipv4_socket_address()
     }
 
-    pub(crate) fn sample_ipv4_remote_addr_fingerprint() -> u64 {
+    pub fn sample_ipv4_remote_addr_fingerprint() -> u64 {
         gen_remote_fingerprint(&sample_ipv4_socket_address())
     }
 
-    pub(crate) fn sample_ipv6_remote_addr() -> SocketAddr {
+    pub fn sample_ipv6_remote_addr() -> SocketAddr {
         sample_ipv6_socket_address()
     }
 
-    pub(crate) fn sample_ipv6_remote_addr_fingerprint() -> u64 {
+    pub fn sample_ipv6_remote_addr_fingerprint() -> u64 {
         gen_remote_fingerprint(&sample_ipv6_socket_address())
     }
 
-    pub(crate) fn sample_ipv4_socket_address() -> SocketAddr {
+    pub fn sample_ipv4_socket_address() -> SocketAddr {
         SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 8080)
     }
 
@@ -406,29 +406,29 @@ pub(crate) mod tests {
         SocketAddr::new(IpAddr::V6(Ipv6Addr::LOCALHOST), 8080)
     }
 
-    pub(crate) fn sample_issue_time() -> f64 {
+    pub fn sample_issue_time() -> f64 {
         1_000_000_000_f64
     }
 
-    pub(crate) fn sample_cookie_valid_range() -> Range<f64> {
+    pub fn sample_cookie_valid_range() -> Range<f64> {
         sample_issue_time() - 10.0..sample_issue_time() + 10.0
     }
 
-    pub(crate) fn sample_strict_cookie_validation() -> super::CookieValidationContext {
+    pub fn sample_strict_cookie_validation() -> super::CookieValidationContext {
         super::CookieValidationContext {
             valid_range: sample_cookie_valid_range(),
             connection_id_validation: torrust_tracker_udp_core::ConnectionIdValidationPolicy::Strict,
         }
     }
 
-    pub(crate) struct TrackerConfigurationBuilder {
+    pub struct TrackerConfigurationBuilder {
         configuration: Configuration,
     }
 
     impl TrackerConfigurationBuilder {
-        pub fn default() -> TrackerConfigurationBuilder {
+        pub fn default() -> Self {
             let default_configuration = default_testing_tracker_configuration();
-            TrackerConfigurationBuilder {
+            Self {
                 configuration: default_configuration,
             }
         }

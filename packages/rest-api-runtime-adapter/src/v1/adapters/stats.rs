@@ -117,28 +117,22 @@ impl StatsQueryPort for TrackerStatsAdapter {
     }
 
     async fn get_labeled_stats(&self) -> LabeledStats {
-        let swarms_stats = self.swarms_stats_repository.get_metrics().await;
-        let tracker_core_stats = self.tracker_core_stats_repository.get_metrics().await;
-        let http_stats = self.http_stats_repository.get_stats().await;
-        let udp_stats = self.udp_core_stats_repository.get_stats().await;
-        let udp_server_stats = self.udp_server_stats_repository.get_stats().await;
-
         let mut metrics = MetricCollection::default();
 
         metrics
-            .merge(&swarms_stats.metric_collection)
+            .merge(&self.swarms_stats_repository.get_metrics().await.metric_collection)
             .expect("failed to merge torrent repository metrics");
         metrics
-            .merge(&tracker_core_stats.metric_collection)
+            .merge(&self.tracker_core_stats_repository.get_metrics().await.metric_collection)
             .expect("failed to merge tracker core metrics");
         metrics
-            .merge(&http_stats.metric_collection)
+            .merge(&self.http_stats_repository.get_stats().await.metric_collection)
             .expect("failed to merge HTTP core metrics");
         metrics
-            .merge(&udp_stats.metric_collection)
+            .merge(&self.udp_core_stats_repository.get_stats().await.metric_collection)
             .expect("failed to merge UDP core metrics");
         metrics
-            .merge(&udp_server_stats.metric_collection)
+            .merge(&self.udp_server_stats_repository.get_stats().await.metric_collection)
             .expect("failed to merge UDP server metrics");
 
         LabeledStats { metrics }

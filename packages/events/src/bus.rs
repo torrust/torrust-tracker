@@ -45,7 +45,7 @@ impl<Event: Sync + Send + Clone + 'static> Default for EventBus<Event> {
 
 impl<Event: Sync + Send + Clone + 'static> EventBus<Event> {
     #[must_use]
-    pub fn new(sender_status: SenderStatus, broadcaster: Broadcaster<Event>) -> Self {
+    pub const fn new(sender_status: SenderStatus, broadcaster: Broadcaster<Event>) -> Self {
         Self {
             sender_status,
             broadcaster,

@@ -44,17 +44,17 @@ impl Default for HttpApi {
 }
 
 impl HttpApi {
-    fn default_bind_address() -> SocketAddr {
+    const fn default_bind_address() -> SocketAddr {
         SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 1212)
     }
 
     #[allow(clippy::unnecessary_wraps)]
-    fn default_tsl_config() -> Option<TslConfig> {
+    const fn default_tsl_config() -> Option<TslConfig> {
         None
     }
 
     fn default_access_tokens() -> AccessTokens {
-        [].iter().cloned().collect()
+        std::iter::empty().collect()
     }
 
     pub fn add_token(&mut self, key: &str, token: &str) {

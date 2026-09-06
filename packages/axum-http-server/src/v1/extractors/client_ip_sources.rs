@@ -57,17 +57,17 @@ where
     #[allow(clippy::manual_async_fn)]
     fn from_request_parts(parts: &mut Parts, state: &S) -> impl Future<Output = Result<Self, Self::Rejection>> + Send {
         async move {
-            let right_most_x_forwarded_for = match RightmostXForwardedFor::from_request_parts(parts, state).await {
-                Ok(right_most_x_forwarded_for) => Some(right_most_x_forwarded_for.0),
-                Err(_) => None,
-            };
+            let right_most_x_forwarded_for = RightmostXForwardedFor::from_request_parts(parts, state)
+                .await
+                .ok()
+                .map(|right_most_x_forwarded_for| right_most_x_forwarded_for.0);
 
-            let connection_info_ip = match ConnectInfo::<SocketAddr>::from_request_parts(parts, state).await {
-                Ok(connection_info_socket_addr) => Some(connection_info_socket_addr.0),
-                Err(_) => None,
-            };
+            let connection_info_ip = ConnectInfo::<SocketAddr>::from_request_parts(parts, state)
+                .await
+                .ok()
+                .map(|connection_info_socket_addr| connection_info_socket_addr.0);
 
-            Ok(Extract(ClientIpSources {
+            Ok(Self(ClientIpSources {
                 right_most_x_forwarded_for,
                 connection_info_socket_address: connection_info_ip,
             }))

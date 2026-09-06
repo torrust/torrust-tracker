@@ -75,7 +75,7 @@ impl ApiClient {
 
     /// Returns a reference to the inner [`ApiHttpClient`] for low-level operations.
     #[must_use]
-    pub fn inner(&self) -> &ApiHttpClient {
+    pub const fn inner(&self) -> &ApiHttpClient {
         &self.inner
     }
 
@@ -381,7 +381,7 @@ impl ApiHttpClient {
     /// Prefer [`Self::post_empty`] for most use cases; use this when you need access
     /// to the raw token-injection logic.
     pub(crate) async fn post_empty_result(&self, path: &str, headers: Option<HeaderMap>) -> Result<Response, ClientError> {
-        let builder = self.http_client.post(self.base_url(path)?.clone());
+        let builder = self.http_client.post(self.base_url(path)?);
 
         let builder = match headers {
             Some(headers) => builder.headers(headers),
@@ -399,7 +399,7 @@ impl ApiHttpClient {
     /// # Errors
     ///
     /// Will return an error if the request can't be sent.
-    pub async fn post_form<T: Serialize + ?Sized>(
+    pub async fn post_form<T: Serialize + Sync + ?Sized>(
         &self,
         path: &str,
         form: &T,
@@ -412,13 +412,13 @@ impl ApiHttpClient {
     ///
     /// Prefer [`Self::post_form`] for most use cases; use this when you need access
     /// to the raw token-injection logic.
-    pub(crate) async fn post_form_result<T: Serialize + ?Sized>(
+    pub(crate) async fn post_form_result<T: Serialize + Sync + ?Sized>(
         &self,
         path: &str,
         form: &T,
         headers: Option<HeaderMap>,
     ) -> Result<Response, ClientError> {
-        let builder = self.http_client.post(self.base_url(path)?.clone()).json(&form);
+        let builder = self.http_client.post(self.base_url(path)?).json(&form);
 
         let builder = match headers {
             Some(headers) => builder.headers(headers),
@@ -435,7 +435,7 @@ impl ApiHttpClient {
 
     /// Fallible version of [`Self::delete`] that returns a `Result` instead of panicking.
     async fn delete_result(&self, path: &str, headers: Option<HeaderMap>) -> Result<Response, ClientError> {
-        let builder = self.http_client.delete(self.base_url(path)?.clone());
+        let builder = self.http_client.delete(self.base_url(path)?);
 
         let builder = match headers {
             Some(headers) => builder.headers(headers),
@@ -475,38 +475,28 @@ impl ApiHttpClient {
         let url = self.base_url(path)?;
         match &self.connection_info.api_token {
             Some(token) => {
-                let headers = if let Some(headers) = headers {
-                    // Headers provided -> add auth token if not already present
+                let headers = headers.map_or_else(
+                    || headers_with_auth_token(token),
+                    |headers| {
+                        // Headers provided -> add auth token if not already present
 
-                    if headers.get(header::AUTHORIZATION).is_some() {
-                        // Auth token already present -> use provided
-                        headers
-                    } else {
-                        let mut headers = headers;
+                        if headers.get(header::AUTHORIZATION).is_some() {
+                            // Auth token already present -> use provided
+                            headers
+                        } else {
+                            let mut headers = headers;
 
-                        headers.insert(
-                            header::AUTHORIZATION,
-                            format!("{AUTH_BEARER_TOKEN_HEADER_PREFIX} {token}")
-                                .parse()
-                                .expect("the auth token is not a valid header value"),
-                        );
+                            headers.insert(
+                                header::AUTHORIZATION,
+                                format!("{AUTH_BEARER_TOKEN_HEADER_PREFIX} {token}")
+                                    .parse()
+                                    .expect("the auth token is not a valid header value"),
+                            );
 
-                        headers
-                    }
-                } else {
-                    // No headers provided -> create headers with auth token
-
-                    let mut headers = HeaderMap::new();
-
-                    headers.insert(
-                        header::AUTHORIZATION,
-                        format!("{AUTH_BEARER_TOKEN_HEADER_PREFIX} {token}")
-                            .parse()
-                            .expect("the auth token is not a valid header value"),
-                    );
-
-                    headers
-                };
+                            headers
+                        }
+                    },
+                );
 
                 get_result(url, Some(params), Some(headers)).await
             }

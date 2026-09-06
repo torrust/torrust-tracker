@@ -60,7 +60,7 @@ impl HttpUrl {
 
     /// Returns a reference to the inner [`Url`].
     #[must_use]
-    pub fn as_url(&self) -> &Url {
+    pub const fn as_url(&self) -> &Url {
         &self.0
     }
 }
@@ -135,7 +135,7 @@ impl UdpUrl {
 
     /// Returns a reference to the inner [`Url`].
     #[must_use]
-    pub fn as_url(&self) -> &Url {
+    pub const fn as_url(&self) -> &Url {
         &self.0
     }
 }

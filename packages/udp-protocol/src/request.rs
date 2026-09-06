@@ -27,9 +27,9 @@ pub enum Request {
 impl Request {
     pub fn write_bytes(&self, bytes: &mut impl Write) -> Result<(), io::Error> {
         match self {
-            Request::Connect(r) => r.write_bytes(bytes),
-            Request::Announce(r) => r.write_bytes(bytes),
-            Request::Scrape(r) => r.write_bytes(bytes),
+            Self::Connect(r) => r.write_bytes(bytes),
+            Self::Announce(r) => r.write_bytes(bytes),
+            Self::Scrape(r) => r.write_bytes(bytes),
         }
     }
 
@@ -73,7 +73,7 @@ impl Request {
                         request.transaction_id,
                     ))
                 } else {
-                    Ok(Request::Announce(request))
+                    Ok(Self::Announce(request))
                 }
             }
             2 => {
@@ -158,17 +158,17 @@ pub enum RequestParseError {
 }
 
 impl RequestParseError {
-    pub fn sendable_text(text: &'static str, connection_id: ConnectionId, transaction_id: TransactionId) -> Self {
+    pub const fn sendable_text(text: &'static str, connection_id: ConnectionId, transaction_id: TransactionId) -> Self {
         Self::Sendable {
             connection_id,
             transaction_id,
             err: text,
         }
     }
-    pub fn unsendable_io(err: io::Error) -> Self {
+    pub const fn unsendable_io(err: io::Error) -> Self {
         Self::Unsendable { err: Either::Left(err) }
     }
-    pub fn unsendable_text(text: &'static str) -> Self {
+    pub const fn unsendable_text(text: &'static str) -> Self {
         Self::Unsendable {
             err: Either::Right(text),
         }
@@ -244,7 +244,7 @@ mod tests {
     fn same_after_conversion(request: Request) -> bool {
         let mut buf = Vec::new();
 
-        request.clone().write_bytes(&mut buf).unwrap();
+        request.write_bytes(&mut buf).unwrap();
         let r2 = Request::parse_bytes(&buf[..], u8::MAX).unwrap();
 
         let success = request == r2;

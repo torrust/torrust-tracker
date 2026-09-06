@@ -7,7 +7,7 @@ use torrust_tracker_primitives::{AnnounceData, AnnouncePolicy};
 
 #[tokio::test]
 async fn it_should_handle_the_announce_request() {
-    let mut test_env = TestEnv::started(ephemeral_configuration()).await;
+    let test_env = TestEnv::started(ephemeral_configuration()).await;
 
     let announce_data = test_env
         .announce_peer_started(sample_peer(), &remote_client_ip(), &sample_info_hash())
@@ -33,7 +33,7 @@ async fn it_should_handle_the_announce_request() {
 
 #[tokio::test]
 async fn it_should_not_return_the_peer_making_the_announce_request() {
-    let mut test_env = TestEnv::started(ephemeral_configuration()).await;
+    let test_env = TestEnv::started(ephemeral_configuration()).await;
 
     let announce_data = test_env
         .announce_peer_started(sample_peer(), &remote_client_ip(), &sample_info_hash())
@@ -44,7 +44,7 @@ async fn it_should_not_return_the_peer_making_the_announce_request() {
 
 #[tokio::test]
 async fn it_should_handle_the_scrape_request() {
-    let mut test_env = TestEnv::started(ephemeral_configuration()).await;
+    let test_env = TestEnv::started(ephemeral_configuration()).await;
 
     let info_hash = sample_info_hash();
 
@@ -62,7 +62,7 @@ async fn it_should_persist_the_number_of_completed_peers_for_each_torrent_into_t
     let mut core_config = ephemeral_configuration();
     core_config.tracker_policy.persistent_torrent_completed_stat = true;
 
-    let mut test_env = TestEnv::started(core_config).await;
+    let test_env = TestEnv::started(core_config).await;
 
     let info_hash = sample_info_hash();
 
@@ -121,7 +121,7 @@ async fn it_should_persist_the_global_number_of_completed_peers_into_the_databas
 
     core_config.tracker_policy.persistent_torrent_completed_stat = true;
 
-    let mut test_env = TestEnv::started(core_config.clone()).await;
+    let test_env = TestEnv::started(core_config.clone()).await;
 
     test_env
         .increase_number_of_downloads(sample_peer(), &remote_client_ip(), &sample_info_hash())
@@ -167,7 +167,7 @@ async fn it_should_reset_in_session_completed_downloads_after_a_persistence_free
     // Arrange
     let mut core_config = ephemeral_configuration();
     core_config.database = None;
-    let mut test_env = TestEnv::started(core_config.clone()).await;
+    let test_env = TestEnv::started(core_config.clone()).await;
 
     test_env
         .increase_number_of_downloads(sample_peer(), &remote_client_ip(), &sample_info_hash())

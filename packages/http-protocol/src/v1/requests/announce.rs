@@ -130,7 +130,7 @@ fn percent_decode_ip_parameter(value: &str) -> Result<String, ParseAnnounceQuery
 /// This type is used both for server-side parsing and client-side construction.
 /// The `ip` field preserves its raw semantic state so service policy can make a
 /// client-visible decision without silently ignoring non-empty values.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Announce {
     // Mandatory params
     /// The `InfoHash` of the torrent.
@@ -225,7 +225,7 @@ pub enum ParseAnnounceQueryError {
 ///
 /// Refer to [BEP 03. The `BitTorrent Protocol` Specification](https://www.bittorrent.org/beps/bep_0003.html)
 /// for more information.
-#[derive(PartialEq, Debug, Clone)]
+#[derive(PartialEq, Eq, Debug, Clone)]
 pub enum Event {
     /// Event sent when a download first begins.
     Started,
@@ -263,10 +263,10 @@ impl FromStr for Event {
 impl fmt::Display for Event {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Event::Started => write!(f, "started"),
-            Event::Stopped => write!(f, "stopped"),
-            Event::Completed => write!(f, "completed"),
-            Event::Empty => write!(f, "empty"),
+            Self::Started => write!(f, "started"),
+            Self::Stopped => write!(f, "stopped"),
+            Self::Completed => write!(f, "completed"),
+            Self::Empty => write!(f, "empty"),
         }
     }
 }
@@ -280,7 +280,7 @@ impl fmt::Display for Event {
 /// - [`Compact`](crate::v1::responses::announce::Compact) response.
 ///
 /// Refer to [BEP 23. Tracker Returns Compact Peer Lists](https://www.bittorrent.org/beps/bep_0023.html)
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Compact {
     /// The client advises the tracker that the client prefers compact format.
     Accepted = 1,
@@ -292,8 +292,8 @@ pub enum Compact {
 impl fmt::Display for Compact {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Compact::Accepted => write!(f, "1"),
-            Compact::NotAccepted => write!(f, "0"),
+            Self::Accepted => write!(f, "1"),
+            Self::NotAccepted => write!(f, "0"),
         }
     }
 }
@@ -316,7 +316,7 @@ impl FromStr for Compact {
 
 impl From<ParseQueryError> for responses::error::Error {
     fn from(err: ParseQueryError) -> Self {
-        responses::error::Error {
+        Self {
             failure_reason: format!("Bad request. Cannot parse query params: {err}"),
         }
     }
@@ -324,7 +324,7 @@ impl From<ParseQueryError> for responses::error::Error {
 
 impl From<ParseAnnounceQueryError> for responses::error::Error {
     fn from(err: ParseAnnounceQueryError) -> Self {
-        responses::error::Error {
+        Self {
             failure_reason: format!("Bad request. Cannot parse query params for announce request: {err}"),
         }
     }
@@ -426,7 +426,7 @@ impl AnnounceBuilder {
     ///
     /// Will panic if the default info-hash value is not a valid info-hash.
     #[must_use]
-    pub fn with_default_values() -> AnnounceBuilder {
+    pub fn with_default_values() -> Self {
         let default_announce = Announce {
             info_hash: InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap(), // DevSkim: ignore DS173237
             peer_id: PeerId(*b"-qB00000000000000001"),
@@ -445,31 +445,31 @@ impl AnnounceBuilder {
     }
 
     #[must_use]
-    pub fn with_info_hash(mut self, info_hash: &InfoHash) -> Self {
+    pub const fn with_info_hash(mut self, info_hash: &InfoHash) -> Self {
         self.announce.info_hash = *info_hash;
         self
     }
 
     #[must_use]
-    pub fn with_peer_id(mut self, peer_id: &PeerId) -> Self {
+    pub const fn with_peer_id(mut self, peer_id: &PeerId) -> Self {
         self.announce.peer_id = *peer_id;
         self
     }
 
     #[must_use]
-    pub fn with_port(mut self, port: u16) -> Self {
+    pub const fn with_port(mut self, port: u16) -> Self {
         self.announce.port = port;
         self
     }
 
     #[must_use]
-    pub fn with_ip(mut self, ip: IpAddr) -> Self {
+    pub const fn with_ip(mut self, ip: IpAddr) -> Self {
         self.announce.ip = PeerIp::Literal(ip);
         self
     }
 
     #[must_use]
-    pub fn with_event(mut self, event: Event) -> Self {
+    pub const fn with_event(mut self, event: Event) -> Self {
         self.announce.event = Some(event);
         self
     }
@@ -506,26 +506,26 @@ impl AnnounceBuilder {
     }
 
     #[must_use]
-    pub fn with_compact(mut self, compact: Compact) -> Self {
+    pub const fn with_compact(mut self, compact: Compact) -> Self {
         self.announce.compact = Some(compact);
         self
     }
 
     #[must_use]
-    pub fn without_compact(mut self) -> Self {
+    pub const fn without_compact(mut self) -> Self {
         self.announce.compact = None;
         self
     }
 
     #[must_use]
-    pub fn with_numwant(mut self, numwant: u32) -> Self {
+    pub const fn with_numwant(mut self, numwant: u32) -> Self {
         self.announce.numwant = Some(numwant);
         self
     }
 
     /// Consumes the builder and returns the constructed [`Announce`].
     #[must_use]
-    pub fn query(self) -> Announce {
+    pub const fn query(self) -> Announce {
         self.announce
     }
 }
@@ -637,17 +637,18 @@ fn extract_compact(query: &Query) -> Result<Option<Compact>, ParseAnnounceQueryE
 }
 
 fn extract_numwant(query: &Query) -> Result<Option<u32>, ParseAnnounceQueryError> {
-    match query.get_param(NUMWANT) {
-        Some(raw_param) => match u32::from_str(&raw_param) {
-            Ok(numwant) => Ok(Some(numwant)),
-            Err(_) => Err(ParseAnnounceQueryError::InvalidParam {
-                param_name: NUMWANT.to_owned(),
-                param_value: raw_param.clone(),
-                location: Location::caller(),
-            }),
+    query.get_param(NUMWANT).map_or_else(
+        || Ok(None),
+        |raw_param| {
+            u32::from_str(&raw_param)
+                .map(Some)
+                .map_err(|_| ParseAnnounceQueryError::InvalidParam {
+                    param_name: NUMWANT.to_owned(),
+                    param_value: raw_param.clone(),
+                    location: Location::caller(),
+                })
         },
-        None => Ok(None),
-    }
+    )
 }
 
 #[cfg(test)]
@@ -831,7 +832,7 @@ mod tests {
 
             use crate::v1::query::Query;
             use crate::v1::requests::announce::{
-                Announce, COMPACT, DOWNLOADED, EVENT, INFO_HASH, LEFT, NUMWANT, PEER_ID, PORT, UPLOADED,
+                Announce, COMPACT, DOWNLOADED, EVENT, INFO_HASH, LEFT, NUMWANT, PEER_ID, PORT, ParseAnnounceQueryError, UPLOADED,
             };
 
             #[test]
@@ -961,7 +962,14 @@ mod tests {
                 ])
                 .to_string();
 
-                assert!(Announce::try_from(raw_query.parse::<Query>().unwrap()).is_err());
+                assert!(matches!(
+                    Announce::try_from(raw_query.parse::<Query>().unwrap()),
+                    Err(ParseAnnounceQueryError::InvalidParam {
+                        param_name,
+                        param_value,
+                        ..
+                    }) if param_name == NUMWANT && param_value == "-1"
+                ));
             }
         }
     }

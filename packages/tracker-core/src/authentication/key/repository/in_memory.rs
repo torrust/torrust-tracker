@@ -79,7 +79,7 @@ impl InMemoryKeyRepository {
         keys_lock.clear();
 
         for key in peer_keys {
-            keys_lock.insert(key.key.clone(), key.clone());
+            keys_lock.insert(key.key.clone(), key);
         }
     }
 }

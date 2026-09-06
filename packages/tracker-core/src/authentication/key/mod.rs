@@ -150,8 +150,9 @@ pub fn generate_key(lifetime: Option<Duration>) -> PeerKey {
 pub fn verify_key_expiration(auth_key: &PeerKey) -> Result<(), Error> {
     let current_time: DurationSinceUnixEpoch = CurrentClock::now();
 
-    match auth_key.valid_until {
-        Some(valid_until) => {
+    auth_key.valid_until.map_or_else(
+        || Ok(()),
+        |valid_until| {
             if valid_until < current_time {
                 Err(Error::KeyExpired {
                     location: Location::caller(),
@@ -159,9 +160,8 @@ pub fn verify_key_expiration(auth_key: &PeerKey) -> Result<(), Error> {
             } else {
                 Ok(())
             }
-        }
-        None => Ok(()), // Permanent key
-    }
+        },
+    )
 }
 
 /// Verification error. Error returned when an [`PeerKey`] cannot be
@@ -193,7 +193,7 @@ pub enum Error {
 
 impl From<sqlx::Error> for Error {
     fn from(e: sqlx::Error) -> Self {
-        Error::KeyVerificationError {
+        Self::KeyVerificationError {
             source: (Arc::new(e) as DynError).into(),
         }
     }

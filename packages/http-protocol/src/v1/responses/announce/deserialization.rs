@@ -6,7 +6,7 @@
 use serde::{Deserialize, Serialize};
 
 /// Non-compact announce response (BEP 3 dictionary format).
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
 pub struct DeserializedNormal {
     pub complete: u32,
     pub incomplete: u32,
@@ -17,7 +17,7 @@ pub struct DeserializedNormal {
 }
 
 /// A peer in dictionary format (BEP 3).
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
 pub struct DictionaryPeer {
     pub ip: String,
     #[serde(rename = "peer id")]
@@ -27,7 +27,7 @@ pub struct DictionaryPeer {
 }
 
 /// Raw compact announce response (BEP 23) from serde deserialization.
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
 pub struct DeserializedCompact {
     pub complete: u32,
     pub incomplete: u32,
@@ -47,12 +47,12 @@ impl DeserializedCompact {
     ///
     /// Will return an error if bytes can't be deserialized.
     pub fn from_bytes(bytes: &[u8]) -> Result<Self, serde_bencode::Error> {
-        serde_bencode::from_bytes::<DeserializedCompact>(bytes)
+        serde_bencode::from_bytes::<Self>(bytes)
     }
 }
 
 /// Parsed compact announce response with peer entries extracted.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct DeserializedCompactParsed {
     pub complete: u32,
     pub incomplete: u32,
@@ -64,14 +64,14 @@ pub struct DeserializedCompactParsed {
 pub use crate::v1::responses::announce::encoding::CompactPeer;
 
 /// A list of compact peer entries.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct CompactPeerList {
     peers: Vec<CompactPeer>,
 }
 
 impl CompactPeerList {
     #[must_use]
-    pub fn new(peers: Vec<CompactPeer>) -> Self {
+    pub const fn new(peers: Vec<CompactPeer>) -> Self {
         Self { peers }
     }
 }

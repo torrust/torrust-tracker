@@ -41,7 +41,7 @@ mod api {
     use crate::server::client::get;
 
     #[tokio::test]
-    pub(crate) async fn it_should_return_good_health_for_api_service() {
+    async fn it_should_return_good_health_for_api_service() {
         logging::setup();
 
         let mut configuration = configuration::ephemeral();
@@ -107,7 +107,7 @@ mod api {
     }
 
     #[tokio::test]
-    pub(crate) async fn it_should_return_error_when_api_service_was_stopped_after_registration() {
+    async fn it_should_return_error_when_api_service_was_stopped_after_registration() {
         logging::setup();
 
         let configuration = Arc::new(configuration::ephemeral());
@@ -183,7 +183,7 @@ mod http {
     }
 
     #[tokio::test]
-    pub(crate) async fn it_should_return_good_health_for_http_service() {
+    async fn it_should_return_good_health_for_http_service() {
         logging::setup();
 
         let configuration = configuration::ephemeral();
@@ -237,7 +237,7 @@ mod http {
     }
 
     #[tokio::test]
-    pub(crate) async fn it_should_return_good_health_for_https_service_with_a_trusted_test_certificate() {
+    async fn it_should_return_good_health_for_https_service_with_a_trusted_test_certificate() {
         logging::setup();
         install_rustls_crypto_provider();
 
@@ -296,7 +296,7 @@ mod http {
     }
 
     #[tokio::test]
-    pub(crate) async fn it_should_return_error_when_http_service_was_stopped_after_registration() {
+    async fn it_should_return_error_when_http_service_was_stopped_after_registration() {
         logging::setup();
 
         let configuration = configuration::ephemeral();
@@ -363,7 +363,7 @@ mod udp {
     use crate::server::client::get;
 
     #[tokio::test]
-    pub(crate) async fn it_should_return_good_health_for_udp_service() {
+    async fn it_should_return_good_health_for_udp_service() {
         logging::setup();
 
         let configuration = configuration::ephemeral();
@@ -413,7 +413,7 @@ mod udp {
     }
 
     #[tokio::test]
-    pub(crate) async fn it_should_return_error_when_udp_service_was_stopped_after_registration() {
+    async fn it_should_return_error_when_udp_service_was_stopped_after_registration() {
         logging::setup();
 
         let configuration = configuration::ephemeral();

@@ -25,7 +25,7 @@ pub struct Environment<S> {
     pub cancellation_token: CancellationToken,
 }
 
-impl<S> Environment<S> {
+impl<S: Sync> Environment<S> {
     /// Add a torrent to the tracker
     pub async fn add_torrent_peer(&self, info_hash: &InfoHash, peer: &peer::Peer) {
         self.container
@@ -151,7 +151,7 @@ impl Environment<Running> {
     }
 
     #[must_use]
-    pub fn bind_address(&self) -> &std::net::SocketAddr {
+    pub const fn bind_address(&self) -> &std::net::SocketAddr {
         &self.server.state.binding
     }
 

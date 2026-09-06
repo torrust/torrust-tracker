@@ -86,7 +86,7 @@ mod tests {
 
             let _result = whitelist.add(&infohash).await;
 
-            assert_eq!(whitelist.load_from_database().await.unwrap(), vec!(infohash));
+            assert_eq!(whitelist.load_from_database().await.unwrap(), vec![infohash]);
         }
 
         #[tokio::test]
@@ -99,7 +99,7 @@ mod tests {
 
             let _result = whitelist.remove(&infohash).await;
 
-            assert_eq!(whitelist.load_from_database().await.unwrap(), vec!());
+            assert_eq!(whitelist.load_from_database().await.unwrap(), vec![]);
         }
 
         #[tokio::test]
@@ -112,7 +112,7 @@ mod tests {
 
             let result = whitelist.load_from_database().await.unwrap();
 
-            assert_eq!(result, vec!(infohash));
+            assert_eq!(result, vec![infohash]);
         }
 
         #[tokio::test]
@@ -124,7 +124,7 @@ mod tests {
             let _result = whitelist.add(&infohash).await;
             let _result = whitelist.add(&infohash).await;
 
-            assert_eq!(whitelist.load_from_database().await.unwrap(), vec!(infohash));
+            assert_eq!(whitelist.load_from_database().await.unwrap(), vec![infohash]);
         }
 
         #[tokio::test]

@@ -2,6 +2,7 @@
 //! Usage: cargo run --package torrust-tracker-swarm-coordination-registry --example `bench_peers` --release
 
 use std::hint::black_box;
+use std::io::Write;
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::time::Instant;
 
@@ -11,7 +12,7 @@ use torrust_tracker_primitives::{AnnounceEvent, NumberOfBytes, PeerId};
 use torrust_tracker_swarm_coordination_registry::event::sender::Sender;
 use torrust_tracker_swarm_coordination_registry::swarm::coordinator::Coordinator;
 
-fn make_peer(ip_last_octet: u8, port: u16, seed: u8) -> Peer {
+const fn make_peer(ip_last_octet: u8, port: u16, seed: u8) -> Peer {
     let mut id = [seed; 20];
     id[0] = ip_last_octet;
     Peer {
@@ -63,29 +64,41 @@ fn bench_peers_excluding(num_peers: usize, limit: usize, iterations: u64) -> f64
 
 fn main() {
     let iterations = 100_000;
+    let mut stdout = std::io::stdout().lock();
 
-    println!("=== Baseline: Coordinator::peers_excluding ===");
-    println!("iterations={iterations}");
+    writeln!(stdout, "=== Baseline: Coordinator::peers_excluding ===").expect("failed to write benchmark output");
+    writeln!(stdout, "iterations={iterations}").expect("failed to write benchmark output");
 
     for num_peers in [10, 74, 100, 500, 1000] {
         let ns = bench_peers_excluding(num_peers, 74, iterations);
         let per_peer = ns / f64::from(u32::try_from(num_peers).expect("num_peers fits in u32"));
-        println!("{num_peers:>4} peers: {ns:>10.2} ns/iter  ({per_peer:.2} ns/peer)");
+        writeln!(stdout, "{num_peers:>4} peers: {ns:>10.2} ns/iter  ({per_peer:.2} ns/peer)")
+            .expect("failed to write benchmark output");
     }
 
     // Memory estimate
-    println!();
-    println!("=== Memory per peer ===");
-    println!("Peer struct:        {} bytes", std::mem::size_of::<Peer>());
-    println!("Arc<Peer>:          {} bytes", std::mem::size_of::<std::sync::Arc<Peer>>());
-    println!("SocketAddr:         {} bytes", std::mem::size_of::<SocketAddr>());
-    println!("PeerId:             {} bytes", std::mem::size_of::<PeerId>());
-    println!(
+    writeln!(stdout).expect("failed to write benchmark output");
+    writeln!(stdout, "=== Memory per peer ===").expect("failed to write benchmark output");
+    writeln!(stdout, "Peer struct:        {} bytes", std::mem::size_of::<Peer>()).expect("failed to write benchmark output");
+    writeln!(
+        stdout,
+        "Arc<Peer>:          {} bytes",
+        std::mem::size_of::<std::sync::Arc<Peer>>()
+    )
+    .expect("failed to write benchmark output");
+    writeln!(stdout, "SocketAddr:         {} bytes", std::mem::size_of::<SocketAddr>())
+        .expect("failed to write benchmark output");
+    writeln!(stdout, "PeerId:             {} bytes", std::mem::size_of::<PeerId>()).expect("failed to write benchmark output");
+    writeln!(
+        stdout,
         "CompactPeer (est):  {} bytes (PeerId + SocketAddr)",
         std::mem::size_of::<PeerId>() + std::mem::size_of::<SocketAddr>()
-    );
-    println!(
+    )
+    .expect("failed to write benchmark output");
+    writeln!(
+        stdout,
         "Vec<Arc<Peer>>(74): {} bytes",
         std::mem::size_of::<Vec<std::sync::Arc<Peer>>>() + 74 * std::mem::size_of::<std::sync::Arc<Peer>>()
-    );
+    )
+    .expect("failed to write benchmark output");
 }

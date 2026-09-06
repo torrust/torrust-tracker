@@ -1,3 +1,4 @@
+use std::convert::Infallible;
 use std::sync::Arc;
 
 use crossbeam_skiplist::SkipMap;
@@ -78,9 +79,7 @@ impl Registry {
             Some(existing_swarm_handle) => existing_swarm_handle,
         };
 
-        let mut swarm = swarm_handle.value().lock().await;
-
-        swarm.handle_announcement(peer).await;
+        swarm_handle.value().lock().await.handle_announcement(peer).await;
 
         Ok(())
     }
@@ -139,20 +138,22 @@ impl Registry {
     /// A vector of `(InfoHash, TorrentEntry)` tuples.
     #[must_use]
     pub fn get_paginated(&self, pagination: Option<&Pagination>) -> Vec<(InfoHash, CoordinatorHandle)> {
-        match pagination {
-            Some(pagination) => self
-                .swarms
-                .iter()
-                .skip(pagination.offset as usize)
-                .take(pagination.limit as usize)
-                .map(|entry| (*entry.key(), entry.value().clone()))
-                .collect(),
-            None => self
-                .swarms
-                .iter()
-                .map(|entry| (*entry.key(), entry.value().clone()))
-                .collect(),
-        }
+        pagination.map_or_else(
+            || {
+                self.swarms
+                    .iter()
+                    .map(|entry| (*entry.key(), entry.value().clone()))
+                    .collect()
+            },
+            |pagination| {
+                self.swarms
+                    .iter()
+                    .skip(pagination.offset as usize)
+                    .take(pagination.limit as usize)
+                    .map(|entry| (*entry.key(), entry.value().clone()))
+                    .collect()
+            },
+        )
     }
 
     /// Retrieves swarm metadata for a given torrent.
@@ -189,7 +190,6 @@ impl Registry {
         match self.get_swarm_metadata(info_hash).await {
             Ok(Some(swarm_metadata)) => Ok(swarm_metadata),
             Ok(None) => Ok(SwarmMetadata::zeroed()),
-            Err(err) => Err(err),
         }
     }
 
@@ -253,9 +253,7 @@ impl Registry {
         let mut active_torrents_total = 0;
 
         for swarm_handle in &self.swarms {
-            let swarm = swarm_handle.value().lock().await;
-
-            let activity_metadata = swarm.get_activity_metadata(current_cutoff);
+            let activity_metadata = swarm_handle.value().lock().await.get_activity_metadata(current_cutoff);
 
             if activity_metadata.is_active {
                 active_torrents_total += 1;
@@ -303,8 +301,7 @@ impl Registry {
         let mut inactive_peers_removed = 0;
 
         for swarm_handle in &self.swarms {
-            let mut swarm = swarm_handle.value().lock().await;
-            let removed = swarm.remove_inactive(current_cutoff).await;
+            let removed = swarm_handle.value().lock().await.remove_inactive(current_cutoff).await;
             inactive_peers_removed += removed;
         }
 
@@ -328,9 +325,7 @@ impl Registry {
         let mut peerless_torrents_removed = 0;
 
         for swarm_handle in &self.swarms {
-            let swarm = swarm_handle.value().lock().await;
-
-            if swarm.meets_retaining_policy(policy) {
+            if swarm_handle.value().lock().await.meets_retaining_policy(policy) {
                 continue;
             }
 
@@ -381,13 +376,13 @@ impl Registry {
 
     /// Calculates and returns overall torrent metrics.
     ///
-    /// The returned [`AggregateSwarmMetadata`] contains aggregate data such as
+    /// The returned [`AggregateActiveSwarmMetadata`] contains aggregate data such as
     /// the total number of torrents, total complete (seeders), incomplete
     /// (leechers), and downloaded counts.
     ///
     /// # Returns
     ///
-    /// A [`AggregateSwarmMetadata`] struct with the aggregated metrics.
+    /// An [`AggregateActiveSwarmMetadata`] struct with the aggregated metrics.
     ///
     /// # Errors
     ///
@@ -397,9 +392,7 @@ impl Registry {
         let mut metrics = AggregateActiveSwarmMetadata::default();
 
         for swarm_handle in &self.swarms {
-            let swarm = swarm_handle.value().lock().await;
-
-            let stats = swarm.metadata();
+            let stats = swarm_handle.value().lock().await.metadata();
 
             metrics.total_complete += u64::from(stats.complete);
             metrics.total_downloaded += u64::from(stats.downloaded);
@@ -472,8 +465,8 @@ impl Registry {
     }
 }
 
-#[derive(thiserror::Error, Debug, Clone)]
-pub enum Error {}
+/// The registry currently exposes no recoverable error cases.
+pub type Error = Infallible;
 
 #[derive(Clone, Debug, Default)]
 pub struct AggregateActivityMetadata {
@@ -898,7 +891,7 @@ mod tests {
                             complete: 1,
                             incomplete: 0
                         },
-                        peers: vec!(peer),
+                        peers: vec![peer],
                         number_of_peers: 1
                     },
                     torrent_entry_info
@@ -937,7 +930,7 @@ mod tests {
                                 complete: 1,
                                 incomplete: 0
                             },
-                            peers: vec!(peer),
+                            peers: vec![peer],
                             number_of_peers: 1
                         },
                         torrent_entry
@@ -987,7 +980,7 @@ mod tests {
                                     complete: 1,
                                     incomplete: 0
                                 },
-                                peers: vec!(peer_one),
+                                peers: vec![peer_one],
                                 number_of_peers: 1
                             },
                             torrent_entry_info
@@ -1022,7 +1015,7 @@ mod tests {
                                     complete: 1,
                                     incomplete: 0
                                 },
-                                peers: vec!(peer_two),
+                                peers: vec![peer_two],
                                 number_of_peers: 1
                             },
                             torrent_entry_info

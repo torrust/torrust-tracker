@@ -32,10 +32,12 @@ pub async fn get_torrent_handler(
 ) -> Response {
     match InfoHash::from_str(&info_hash.0) {
         Err(_) => invalid_info_hash_param_response(&info_hash.0),
-        Ok(info_hash) => match service.get_torrent(&info_hash).await {
-            Some(torrent) => torrent_info_response(torrent).into_response(),
-            None => torrent_not_known_response(),
-        },
+        Ok(info_hash) => service
+            .get_torrent(&info_hash)
+            .await
+            .map_or_else(torrent_not_known_response, |torrent| {
+                torrent_info_response(torrent).into_response()
+            }),
     }
 }
 

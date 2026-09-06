@@ -224,7 +224,7 @@ pub struct Running {
 impl HttpServer<Stopped> {
     /// It creates a new `HttpServer` controller in `stopped` state.
     #[must_use]
-    pub fn new(launcher: Launcher) -> Self {
+    pub const fn new(launcher: Launcher) -> Self {
         Self {
             state: Stopped { launcher },
         }
@@ -299,7 +299,7 @@ impl HttpServer<Stopped> {
             .await
         {
             let _ = tx_halt.send(Halted::Normal);
-            let _ = task.await;
+            drop(task.await);
             return Err(Error::Registration { source });
         }
 

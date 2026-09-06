@@ -41,6 +41,7 @@
 //! cargo tree -p torrust-tracker-axum-http-server --example http_only_public_tracker
 //! ```
 
+use std::io::Write as _;
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::sync::Arc;
 
@@ -76,27 +77,29 @@ async fn main() {
         network: Network::default(),
     };
 
-    println!("Types from torrust-tracker-configuration used by this binary:");
-    println!("  Core        — tracker domain settings");
-    println!("  HttpTracker — bind address, TLS config");
-    println!("  (Configuration aggregate and idle types are NOT compiled in)");
-    println!();
+    let stdout = std::io::stdout();
+    let mut output = stdout.lock();
+    writeln!(output, "Types from torrust-tracker-configuration used by this binary:").expect("stdout should be writable");
+    writeln!(output, "  Core        — tracker domain settings").expect("stdout should be writable");
+    writeln!(output, "  HttpTracker — bind address, TLS config").expect("stdout should be writable");
+    writeln!(output, "  (Configuration aggregate and idle types are NOT compiled in)").expect("stdout should be writable");
+    writeln!(output).expect("stdout should be writable");
 
     // Start the tracker using the narrowed API; `Started` is a type alias for `Environment<Running>`.
     let core_config = Arc::new(core);
     let http_tracker_config = Arc::new(http_tracker);
     let env = Started::new(&core_config, &http_tracker_config).await;
 
-    println!("Listening on {}", env.bind_address());
-    println!("Press Ctrl-C to stop.");
+    writeln!(output, "Listening on {}", env.bind_address()).expect("stdout should be writable");
+    writeln!(output, "Press Ctrl-C to stop.").expect("stdout should be writable");
 
     tokio::signal::ctrl_c().await.expect("failed to install Ctrl-C handler");
-    println!("\nShutting down...");
+    writeln!(output, "\nShutting down...").expect("stdout should be writable");
 
     env.stop().await;
 
     // Best-effort cleanup of the temporary database file.
     std::fs::remove_file(&db_path).ok();
 
-    println!("Stopped.");
+    writeln!(output, "Stopped.").expect("stdout should be writable");
 }

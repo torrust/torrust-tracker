@@ -25,7 +25,7 @@ pub enum Driver {
 impl Driver {
     /// Returns the stable lowercase identifier used by CLI and reports.
     #[must_use]
-    pub fn as_str(&self) -> &'static str {
+    pub const fn as_str(&self) -> &'static str {
         match self {
             Self::Sqlite3 => "sqlite3",
             Self::MySQL => "mysql",

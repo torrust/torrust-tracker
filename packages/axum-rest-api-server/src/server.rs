@@ -111,7 +111,7 @@ pub struct Running {
 
 impl Running {
     #[must_use]
-    pub fn new(
+    pub const fn new(
         local_addr: SocketAddr,
         halt_task: tokio::sync::oneshot::Sender<Halted>,
         task: tokio::task::JoinHandle<Launcher>,
@@ -126,7 +126,7 @@ impl Running {
 
 impl ApiServer<Stopped> {
     #[must_use]
-    pub fn new(launcher: Launcher) -> Self {
+    pub const fn new(launcher: Launcher) -> Self {
         Self {
             state: Stopped { launcher },
         }
@@ -177,7 +177,7 @@ impl ApiServer<Stopped> {
             .await
         {
             let _ = tx_halt.send(Halted::Normal);
-            let _ = task.await;
+            drop(task.await);
             return Err(Error::Registration { source });
         }
 
@@ -371,7 +371,7 @@ mod tests {
         let udp_tracker_config = Arc::new(udp_tracker_configurations[0].clone());
         let udp_tracker_server_config = cfg.udp_tracker_server.clone();
         let udp_tracker_configuration_instance_id = ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0);
-        let http_api_config = Arc::new(cfg.http_api.clone().expect("missing HTTP API configuration").clone());
+        let http_api_config = Arc::new(cfg.http_api.clone().expect("missing HTTP API configuration"));
 
         initialize_global_services(&cfg);
 

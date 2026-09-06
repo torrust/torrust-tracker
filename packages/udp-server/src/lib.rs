@@ -14,7 +14,7 @@
 //! The UDP tracker is more efficient than the HTTP tracker because it uses UDP
 //! instead of TCP.
 //!
-//! Refer to the [`bit_torrent`](crate::shared::bit_torrent) module for more
+//! Refer to the `bit_torrent` module for more
 //! information about the `BitTorrent` protocol.
 //!
 //! Refer to [BEP 15. UDP Tracker Protocol for `BitTorrent`](https://www.bittorrent.org/beps/bep_0015.html)
@@ -139,7 +139,7 @@
 //!
 //! **Connect request (parsed struct)**
 //!
-//! After parsing the UDP packet, the [`ConnectRequest`](torrust_tracker_udp_protocol::request::ConnectRequest)
+//! After parsing the UDP packet, the [`ConnectRequest`](torrust_tracker_udp_protocol::ConnectRequest)
 //! request struct will look like this:
 //!
 //! Field            | Type                                                           | Example
@@ -186,7 +186,7 @@
 //!
 //! **Connect response (struct)**
 //!
-//! Before building the UDP packet, the [`ConnectResponse`](torrust_tracker_udp_protocol::response::ConnectResponse)
+//! Before building the UDP packet, the [`ConnectResponse`](torrust_tracker_udp_protocol::ConnectResponse)
 //! struct will look like this:
 //!
 //! Field            | Type                                                           | Example
@@ -446,7 +446,7 @@
 //!
 //! **Announce response (struct)**
 //!
-//! The [`AnnounceResponse`](torrust_tracker_udp_protocol::response::AnnounceResponse)
+//! The [`AnnounceResponse`](torrust_tracker_udp_protocol::AnnounceResponse)
 //! struct will have the following fields:
 //!
 //! Field               | Type                                                                   | Example
@@ -475,7 +475,7 @@
 //!
 //! > **NOTICE**: up to about 74 torrents can be scraped at once. A full scrape
 //! > can't be done with this protocol. This is a limitation of the UDP protocol.
-//! > Defined with a hardcoded const [`MAX_SCRAPE_TORRENTS`](torrust_tracker_udp_server::MAX_SCRAPE_TORRENTS).
+//! > Defined with a hardcoded const [`MAX_SCRAPE_TORRENTS`](torrust_tracker_core::MAX_SCRAPE_TORRENTS).
 //! > Refer to [issue 262](https://github.com/torrust/torrust-tracker/issues/262)
 //! > for more information about this limitation.
 //!

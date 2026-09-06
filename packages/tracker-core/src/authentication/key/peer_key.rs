@@ -162,7 +162,7 @@ impl Key {
             .take(AUTH_KEY_LENGTH)
             .map(char::from)
             .collect();
-        random_id.parse::<Key>().expect("Failed to generate a valid random key")
+        random_id.parse::<Self>().expect("Failed to generate a valid random key")
     }
 
     #[must_use]
@@ -204,7 +204,7 @@ impl FromStr for Key {
     type Err = ParseKeyError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Key::new(s)?;
+        Self::new(s)?;
         Ok(Self(s.to_string()))
     }
 }

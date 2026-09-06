@@ -32,11 +32,11 @@ impl Default for Network {
 }
 
 impl Network {
-    fn default_external_ip() -> Option<ExternalIp> {
+    const fn default_external_ip() -> Option<ExternalIp> {
         None
     }
 
-    fn default_on_reverse_proxy() -> bool {
+    const fn default_on_reverse_proxy() -> bool {
         false
     }
 }
@@ -65,7 +65,7 @@ impl FromStr for ExternalIp {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let ip: IpAddr = s.parse().map_err(|_| "invalid IP address format")?;
-        ExternalIp::try_from(ip)
+        Self::try_from(ip)
     }
 }
 
@@ -88,6 +88,6 @@ impl<'de> Deserialize<'de> for ExternalIp {
         D: serde::Deserializer<'de>,
     {
         let ip = IpAddr::deserialize(deserializer)?;
-        ExternalIp::try_from(ip).map_err(serde::de::Error::custom)
+        Self::try_from(ip).map_err(serde::de::Error::custom)
     }
 }

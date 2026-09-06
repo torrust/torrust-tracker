@@ -178,17 +178,11 @@ impl Repository {
     }
 
     async fn get_counter_value(&self, metric_name: &str) -> u64 {
-        let metrics = self.get_metrics().await;
-
-        let downloads = metrics
+        self.get_metrics()
+            .await
             .metric_collection
-            .get_counter_value(&metric_name!(metric_name), &LabelSet::default());
-
-        if let Some(downloads) = downloads {
-            downloads.value()
-        } else {
-            0
-        }
+            .get_counter_value(&metric_name!(metric_name), &LabelSet::default())
+            .map_or(0, |downloads| downloads.value())
     }
 }
 
@@ -226,6 +220,7 @@ mod tests {
                 .metric_collection
                 .contains_counter(&metric_name!(TRACKER_CORE_PERSISTED_TORRENTS_DOWNLOADS_TOTAL))
         );
+        drop(metrics);
     }
 
     #[tokio::test]
@@ -242,6 +237,7 @@ mod tests {
                 .metric_collection
                 .contains_counter(&metric_name!(TRACKER_CORE_PERSISTED_TORRENTS_DOWNLOADS_TOTAL))
         );
+        drop(metrics);
         assert_eq!(repository.get_torrents_downloads_persisted_total().await, 0);
     }
 }

@@ -52,19 +52,19 @@ impl Default for UdpTracker {
 }
 
 impl UdpTracker {
-    fn default_bind_address() -> SocketAddr {
+    const fn default_bind_address() -> SocketAddr {
         SocketAddr::new(IpAddr::V4(Ipv4Addr::UNSPECIFIED), 6969)
     }
 
-    fn default_cookie_lifetime() -> Duration {
+    const fn default_cookie_lifetime() -> Duration {
         Duration::from_secs(120)
     }
 
-    fn default_tracker_usage_statistics() -> bool {
+    const fn default_tracker_usage_statistics() -> bool {
         false
     }
 
-    fn default_public_url() -> Option<UdpUrl> {
+    const fn default_public_url() -> Option<UdpUrl> {
         None
     }
 

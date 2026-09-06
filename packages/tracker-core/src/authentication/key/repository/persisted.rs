@@ -116,7 +116,7 @@ mod tests {
             assert!(result.is_ok());
 
             let keys = repository.load_keys().await.unwrap();
-            assert_eq!(keys, vec!(peer_key));
+            assert_eq!(keys, vec![peer_key]);
         }
 
         #[tokio::test]
@@ -158,7 +158,7 @@ mod tests {
 
             let keys = repository.load_keys().await.unwrap();
 
-            assert_eq!(keys, vec!(peer_key));
+            assert_eq!(keys, vec![peer_key]);
         }
     }
 }

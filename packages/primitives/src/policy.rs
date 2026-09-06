@@ -44,15 +44,15 @@ impl Default for TrackerPolicy {
 }
 
 impl TrackerPolicy {
-    fn default_max_peer_timeout() -> u32 {
+    const fn default_max_peer_timeout() -> u32 {
         900
     }
 
-    fn default_persistent_torrent_completed_stat() -> bool {
+    const fn default_persistent_torrent_completed_stat() -> bool {
         false
     }
 
-    fn default_remove_peerless_torrents() -> bool {
+    const fn default_remove_peerless_torrents() -> bool {
         true
     }
 }

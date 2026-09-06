@@ -67,15 +67,15 @@ impl Default for AnnouncePolicy {
 }
 
 impl AnnouncePolicy {
-    fn default_interval() -> u32 {
+    const fn default_interval() -> u32 {
         120
     }
 
-    fn default_interval_min() -> u32 {
+    const fn default_interval_min() -> u32 {
         120
     }
 
-    fn default_max_peers_per_announce() -> usize {
+    const fn default_max_peers_per_announce() -> usize {
         74
     }
 }
@@ -85,7 +85,7 @@ impl AnnouncePolicy {
 // Nightly Clippy diagnoses that proc-macro expansion; remove this allowance once derive_more emits
 // field-init shorthand.
 #[allow(clippy::redundant_field_names)]
-#[derive(Clone, Debug, PartialEq, Constructor, Default)]
+#[derive(Clone, Debug, PartialEq, Eq, Constructor, Default)]
 pub struct AnnounceData {
     /// The list of peers that are downloading the same torrent.
     /// It excludes the peer that made the request.
@@ -95,7 +95,9 @@ pub struct AnnounceData {
     pub policy: AnnouncePolicy,
 }
 
-/// Intentional boundary duplication: this domain type mirrors
+/// Intentional boundary duplication.
+///
+/// This domain type mirrors
 /// protocol-level `AnnounceEvent` definitions in `udp-protocol` and
 /// `http-protocol`, but is kept here so domain logic does not depend on
 /// protocol wire formats.

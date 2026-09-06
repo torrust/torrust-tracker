@@ -264,7 +264,7 @@ mod tests {
         let core_config = Arc::new(config.core.clone());
         let database = initialize_database(&config.core).await;
         let in_memory_whitelist = Arc::new(InMemoryWhitelist::default());
-        let whitelist_authorization = Arc::new(WhitelistAuthorization::new(&config.core, &in_memory_whitelist.clone()));
+        let whitelist_authorization = Arc::new(WhitelistAuthorization::new(&config.core, &in_memory_whitelist));
         let in_memory_key_repository = Arc::new(InMemoryKeyRepository::default());
         let authentication_service = Arc::new(AuthenticationService::new(&config.core, &in_memory_key_repository));
         let in_memory_torrent_repository = Arc::new(InMemoryTorrentRepository::default());
@@ -289,7 +289,7 @@ mod tests {
         let http_stats_repository = Arc::new(Repository::new());
         let http_stats_event_bus = Arc::new(EventBus::new(
             config.core.tracker_usage_statistics.into(),
-            http_core_broadcaster.clone(),
+            http_core_broadcaster,
         ));
 
         let http_stats_event_sender = http_stats_event_bus.sender();
@@ -309,10 +309,10 @@ mod tests {
             .expect("the test configuration should contain an HTTP tracker")[0];
         let announce_service = Arc::new(AnnounceService::new_with_http_tracker_config(
             core_config.clone(),
-            announce_handler.clone(),
-            authentication_service.clone(),
-            whitelist_authorization.clone(),
-            http_stats_event_sender.clone(),
+            announce_handler,
+            authentication_service,
+            whitelist_authorization,
+            http_stats_event_sender,
             http_tracker_config,
             configuration_instance_id,
         ));

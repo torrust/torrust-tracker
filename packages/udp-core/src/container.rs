@@ -44,7 +44,7 @@ impl UdpTrackerCoreContainer {
         udp_tracker_config: &Arc<UdpTracker>,
         max_connection_id_errors_per_ip: u32,
         configuration_instance_id: ConfigurationInstanceId,
-    ) -> Arc<UdpTrackerCoreContainer> {
+    ) -> Arc<Self> {
         let swarm_coordination_registry_container = Arc::new(SwarmCoordinationRegistryContainer::initialize(
             core_config.tracker_usage_statistics.into(),
         ));
@@ -73,7 +73,7 @@ impl UdpTrackerCoreContainer {
         udp_tracker_config: &Arc<UdpTracker>,
         max_connection_id_errors_per_ip: u32,
         configuration_instance_id: ConfigurationInstanceId,
-    ) -> Arc<UdpTrackerCoreContainer> {
+    ) -> Arc<Self> {
         let udp_tracker_core_services =
             UdpTrackerCoreServices::initialize_from(tracker_core_container, max_connection_id_errors_per_ip);
 
@@ -153,7 +153,7 @@ impl UdpTrackerCoreServices {
         // the shared statistics listener, so it must not suppress publication.
         // A future consumer-demand optimization needs an inventory and benchmark
         // evidence before this can become conditional.
-        let event_bus = Arc::new(EventBus::new(SenderStatus::Enabled, udp_core_broadcaster.clone()));
+        let event_bus = Arc::new(EventBus::new(SenderStatus::Enabled, udp_core_broadcaster));
 
         let udp_core_stats_event_sender = event_bus.sender();
         let ban_service = Arc::new(RwLock::new(BanService::new(max_connection_id_errors_per_ip)));

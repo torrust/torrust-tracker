@@ -20,7 +20,7 @@ pub struct SwarmMetadata {
 // Intentional boundary duplication: this represents scrape response payload
 // semantics for the HTTP protocol crate, not tracker-domain semantics.
 // adr: docs/adrs/20260527175600_keep_protocol_and_domain_types_decoupled.md
-#[derive(Clone, Debug, PartialEq, Default)]
+#[derive(Clone, Debug, PartialEq, Eq, Default)]
 pub struct ScrapeData {
     pub files: BTreeMap<InfoHash, SwarmMetadata>,
 }

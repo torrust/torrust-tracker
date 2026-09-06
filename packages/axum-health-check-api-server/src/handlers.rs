@@ -13,7 +13,7 @@ use super::responses;
 ///
 #[instrument(skip(registar), ret(level = Level::DEBUG))]
 pub(crate) async fn health_check_handler(State(registar): State<Registar<RuntimeServiceMetadata>>) -> Json<Report> {
-    let mut checks: Vec<_> = registar
+    let checks: Vec<_> = registar
         .services()
         .await
         .into_iter()
@@ -35,7 +35,7 @@ pub(crate) async fn health_check_handler(State(registar): State<Registar<Runtime
     }
 
     let jobs = checks
-        .drain(..)
+        .into_iter()
         .map(|(service_binding, service_type, public_url, health_check)| {
             tokio::spawn(async move {
                 CheckReport {
@@ -54,7 +54,7 @@ pub(crate) async fn health_check_handler(State(registar): State<Registar<Runtime
 
     let results: Vec<CheckReport> = futures::future::join_all(jobs)
         .await
-        .drain(..)
+        .into_iter()
         .map(|r| r.expect("it should be able to connect to the job"))
         .collect();
 

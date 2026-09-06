@@ -33,6 +33,8 @@
 //! cargo tree -p torrust-tracker-udp-server --example udp_only_public_tracker
 //! ```
 
+#![allow(clippy::print_stdout)]
+
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::sync::Arc;
 use std::time::Duration;

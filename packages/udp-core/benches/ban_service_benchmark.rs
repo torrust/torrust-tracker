@@ -14,7 +14,7 @@ enum AddressFamily {
 }
 
 impl AddressFamily {
-    fn name(self) -> &'static str {
+    const fn name(self) -> &'static str {
         match self {
             Self::Ipv4 => "ipv4",
             Self::Ipv6 => "ipv6",

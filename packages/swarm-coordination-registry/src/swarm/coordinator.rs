@@ -58,36 +58,38 @@ impl Coordinator {
 
     #[must_use]
     pub fn peers(&self, limit: Option<usize>) -> Vec<Arc<Peer>> {
-        match limit {
-            Some(limit) => self.peers.values().take(limit).cloned().collect(),
-            None => self.peers.values().cloned().collect(),
-        }
+        limit.map_or_else(
+            || self.peers.values().cloned().collect(),
+            |limit| self.peers.values().take(limit).cloned().collect(),
+        )
     }
 
     #[must_use]
     pub fn peers_excluding(&self, peer_addr: &SocketAddr, limit: Option<usize>) -> Vec<Arc<peer::Peer>> {
-        match limit {
-            Some(limit) => self
-                .peers
-                .values()
-                // Take peers which are not the client peer
-                .filter(|peer| peer::ReadInfo::get_address(peer.as_ref()) != *peer_addr)
-                // Limit the number of peers on the result
-                .take(limit)
-                .cloned()
-                .collect(),
-            None => self
-                .peers
-                .values()
-                // Take peers which are not the client peer
-                .filter(|peer| peer::ReadInfo::get_address(peer.as_ref()) != *peer_addr)
-                .cloned()
-                .collect(),
-        }
+        limit.map_or_else(
+            || {
+                self.peers
+                    .values()
+                    // Take peers which are not the client peer
+                    .filter(|peer| peer::ReadInfo::get_address(peer.as_ref()) != *peer_addr)
+                    .cloned()
+                    .collect()
+            },
+            |limit| {
+                self.peers
+                    .values()
+                    // Take peers which are not the client peer
+                    .filter(|peer| peer::ReadInfo::get_address(peer.as_ref()) != *peer_addr)
+                    // Limit the number of peers on the result
+                    .take(limit)
+                    .cloned()
+                    .collect()
+            },
+        )
     }
 
     #[must_use]
-    pub fn metadata(&self) -> SwarmMetadata {
+    pub const fn metadata(&self) -> SwarmMetadata {
         self.metadata
     }
 
@@ -305,7 +307,7 @@ pub struct ActivityMetadata {
 
 impl ActivityMetadata {
     #[must_use]
-    pub fn new(is_active: bool, active_peers_total: usize, inactive_peers_total: usize) -> Self {
+    pub const fn new(is_active: bool, active_peers_total: usize, inactive_peers_total: usize) -> Self {
         Self {
             is_active,
             active_peers_total,

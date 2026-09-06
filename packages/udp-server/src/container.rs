@@ -45,14 +45,14 @@ impl UdpTrackerServerServices {
         // and the banning listener also requires cookie-error facts regardless
         // of the originating listener's metrics policy. Any future demand-based
         // optimization must first prove that no required consumer is active.
-        let udp_server_stats_event_bus = Arc::new(EventBus::new(SenderStatus::Enabled, udp_server_broadcaster.clone()));
+        let udp_server_stats_event_bus = Arc::new(EventBus::new(SenderStatus::Enabled, udp_server_broadcaster));
 
         let udp_server_stats_event_sender = udp_server_stats_event_bus.sender();
 
         Arc::new(Self {
             event_bus: udp_server_stats_event_bus.clone(),
             stats_event_sender: udp_server_stats_event_sender.clone(),
-            stats_repository: udp_server_stats_repository.clone(),
+            stats_repository: udp_server_stats_repository,
         })
     }
 }

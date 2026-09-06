@@ -190,9 +190,9 @@ impl UdpTrackerClient {
     ///
     /// If unable to connect to the remote address.
     ///
-    pub async fn new(remote_addr: SocketAddr, timeout: Duration) -> Result<UdpTrackerClient, Error> {
+    pub async fn new(remote_addr: SocketAddr, timeout: Duration) -> Result<Self, Error> {
         let client = UdpClient::connected(remote_addr, timeout).await?;
-        Ok(UdpTrackerClient { client })
+        Ok(Self { client })
     }
 
     /// # Errors

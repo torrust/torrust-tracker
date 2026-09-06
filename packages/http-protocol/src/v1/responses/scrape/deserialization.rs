@@ -10,7 +10,7 @@ use serde_bencode::value::Value;
 use thiserror::Error;
 use torrust_info_hash::InfoHash;
 
-#[derive(Debug, PartialEq, Default, Deserialize)]
+#[derive(Debug, PartialEq, Eq, Default, Deserialize)]
 pub struct Response {
     pub files: HashMap<InfoHash, File>,
 }
@@ -33,7 +33,7 @@ impl Response {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, PartialEq, Default)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Default)]
 pub struct File {
     pub complete: i64,
     pub downloaded: i64,

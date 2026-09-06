@@ -191,7 +191,7 @@ impl<'de> Deserialize<'de> for Database {
     }
 }
 
-fn reject_network_fields(raw: &RawDatabase) -> Result<(), &'static str> {
+const fn reject_network_fields(raw: &RawDatabase) -> Result<(), &'static str> {
     if raw.host.is_some() || raw.port.is_some() || raw.user.is_some() || raw.password.is_some() || raw.database.is_some() {
         return Err("SQLite database configuration only accepts the `path` field");
     }

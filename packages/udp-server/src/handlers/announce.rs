@@ -205,7 +205,7 @@ pub(crate) mod tests {
         }
 
         impl AnnounceRequestBuilder {
-            pub fn default() -> AnnounceRequestBuilder {
+            pub fn default() -> Self {
                 let client_ip = Ipv4Addr::new(126, 0, 0, 1);
                 let client_port = 8080;
                 let info_hash_aquatic = torrust_tracker_udp_protocol::InfoHash([0u8; 20]);
@@ -225,7 +225,7 @@ pub(crate) mod tests {
                     peers_wanted: NumberOfPeers::new(1i32),
                     port: Port::new(NonZeroU16::new(client_port).expect("a non-zero client port")),
                 };
-                AnnounceRequestBuilder {
+                Self {
                     request: default_request,
                 }
             }

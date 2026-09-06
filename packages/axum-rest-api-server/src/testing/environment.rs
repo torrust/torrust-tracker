@@ -21,7 +21,7 @@ pub type Started = Environment<Running>;
 
 pub struct Environment<S>
 where
-    S: std::fmt::Debug + std::fmt::Display,
+    S: std::fmt::Debug + std::fmt::Display + Sync,
 {
     pub container: Arc<EnvContainer>,
     pub registar: Registar<RuntimeServiceMetadata>,
@@ -30,7 +30,7 @@ where
 
 impl<S> Environment<S>
 where
-    S: std::fmt::Debug + std::fmt::Display,
+    S: std::fmt::Debug + std::fmt::Display + Sync,
 {
     /// Add a torrent to the tracker
     pub async fn add_torrent_peer(&self, info_hash: &InfoHash, peer: &peer::Peer) {
@@ -143,7 +143,7 @@ impl Environment<Running> {
     }
 
     #[must_use]
-    pub fn bind_address(&self) -> SocketAddr {
+    pub const fn bind_address(&self) -> SocketAddr {
         self.server.state.local_addr
     }
 }
@@ -175,13 +175,7 @@ impl EnvContainer {
         let udp_tracker_config = Arc::new(udp_tracker_configurations[0].clone());
         let udp_tracker_server_config = configuration.udp_tracker_server.clone();
 
-        let http_api_config = Arc::new(
-            configuration
-                .http_api
-                .clone()
-                .expect("missing HTTP API configuration")
-                .clone(),
-        );
+        let http_api_config = Arc::new(configuration.http_api.clone().expect("missing HTTP API configuration"));
 
         let swarm_coordination_registry_container = Arc::new(SwarmCoordinationRegistryContainer::initialize(
             core_config.tracker_usage_statistics.into(),

@@ -34,6 +34,6 @@ pub fn add(prefix: &str, router: Router, auth_key_service: Option<&Arc<AuthKeyAp
         )
         .route(
             &format!("{prefix}/keys"),
-            post(add_auth_key_handler).with_state(auth_key_service.clone()),
+            post(add_auth_key_handler).with_state(auth_key_service),
         )
 }

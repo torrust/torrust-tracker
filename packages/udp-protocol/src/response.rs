@@ -32,11 +32,11 @@ impl Response {
     #[inline]
     pub fn write_bytes(&self, bytes: &mut impl Write) -> Result<(), io::Error> {
         match self {
-            Response::Connect(r) => r.write_bytes(bytes),
-            Response::AnnounceIpv4(r) => r.write_bytes(bytes),
-            Response::AnnounceIpv6(r) => r.write_bytes(bytes),
-            Response::Scrape(r) => r.write_bytes(bytes),
-            Response::Error(r) => r.write_bytes(bytes),
+            Self::Connect(r) => r.write_bytes(bytes),
+            Self::AnnounceIpv4(r) => r.write_bytes(bytes),
+            Self::AnnounceIpv6(r) => r.write_bytes(bytes),
+            Self::Scrape(r) => r.write_bytes(bytes),
+            Self::Error(r) => r.write_bytes(bytes),
         }
     }
 
@@ -45,7 +45,7 @@ impl Response {
         let action = read_i32_ne(&mut bytes)?;
 
         match action.get() {
-            0 => Ok(Response::Connect(
+            0 => Ok(Self::Connect(
                 ConnectResponse::read_from_prefix(bytes).map_err(|_| invalid_data())?.0,
             )),
             1 if ipv4 => {
@@ -72,7 +72,7 @@ impl Response {
                     Vec::new()
                 };
 
-                Ok(Response::AnnounceIpv4(AnnounceResponse { fixed, peers }))
+                Ok(Self::AnnounceIpv4(AnnounceResponse { fixed, peers }))
             }
             1 if !ipv4 => {
                 let fixed = AnnounceResponseFixedData::read_from_prefix(bytes)
@@ -98,7 +98,7 @@ impl Response {
                     Vec::new()
                 };
 
-                Ok(Response::AnnounceIpv6(AnnounceResponse { fixed, peers }))
+                Ok(Self::AnnounceIpv6(AnnounceResponse { fixed, peers }))
             }
             2 => {
                 let transaction_id = read_i32_ne(&mut bytes).map(TransactionId)?;
@@ -256,7 +256,7 @@ mod tests {
     fn same_after_conversion(response: Response, ipv4: bool) -> bool {
         let mut buf = Vec::new();
 
-        response.clone().write_bytes(&mut buf).unwrap();
+        response.write_bytes(&mut buf).unwrap();
         let r2 = Response::parse_bytes(&buf[..], ipv4).unwrap();
 
         let success = response == r2;

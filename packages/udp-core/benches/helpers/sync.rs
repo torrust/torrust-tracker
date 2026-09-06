@@ -18,7 +18,7 @@ pub async fn connect_once(samples: u64) -> Duration {
     let server_service_binding = ServiceBinding::new(Protocol::UDP, server_socket_addr).unwrap();
 
     let udp_core_broadcaster = Broadcaster::default();
-    let event_bus = Arc::new(EventBus::new(SenderStatus::Disabled, udp_core_broadcaster.clone()));
+    let event_bus = Arc::new(EventBus::new(SenderStatus::Disabled, udp_core_broadcaster));
 
     let udp_core_stats_event_sender = event_bus.sender();
     let connect_service = Arc::new(ConnectService::new(

@@ -29,8 +29,8 @@ pub enum RecvError {
 impl fmt::Display for RecvError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            RecvError::Closed => write!(f, "channel closed"),
-            RecvError::Lagged(amt) => write!(f, "channel lagged by {amt}"),
+            Self::Closed => write!(f, "channel closed"),
+            Self::Lagged(amt) => write!(f, "channel lagged by {amt}"),
         }
     }
 }

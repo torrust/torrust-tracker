@@ -138,7 +138,7 @@ mod tests {
     }
 
     impl RunningMysqlContainer {
-        fn new(container: ContainerAsync<GenericImage>, internal_port: u16) -> Self {
+        const fn new(container: ContainerAsync<GenericImage>, internal_port: u16) -> Self {
             Self {
                 container,
                 internal_port,
@@ -203,7 +203,7 @@ mod tests {
     #[tokio::test]
     async fn run_mysql_driver_tests() -> Result<(), Box<dyn std::error::Error + 'static>> {
         if std::env::var("TORRUST_TRACKER_CORE_RUN_MYSQL_DRIVER_TEST").is_err() {
-            println!("Skipping the MySQL driver tests.");
+            tracing::info!("Skipping the MySQL driver tests.");
             return Ok(());
         }
 

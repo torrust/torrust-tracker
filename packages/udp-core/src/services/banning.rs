@@ -101,8 +101,6 @@ mod tests {
         ban_service.increase_counter(&ip); // Counter = 1
         ban_service.increase_counter(&ip); // Counter = 2
 
-        println!("Counter: {}", ban_service.get_count(&ip).unwrap());
-
         assert!(ban_service.is_banned(&ip));
     }
 

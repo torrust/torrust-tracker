@@ -24,7 +24,7 @@ pub struct TestEnv {
 impl TestEnv {
     #[must_use]
     pub async fn started(core_config: Core) -> Self {
-        let test_env = TestEnv::new(core_config).await;
+        let test_env = Self::new(core_config).await;
         test_env.start().await;
         test_env
     }
@@ -82,23 +82,20 @@ impl TestEnv {
     }
 
     async fn run_jobs(&self) {
-        let mut jobs = vec![];
         let cancellation_token = CancellationToken::new();
 
-        let job = torrust_tracker_swarm_coordination_registry::statistics::event::listener::run_event_listener(
-            self.swarm_coordination_registry_container.event_bus.receiver(),
-            cancellation_token.clone(),
-            &self.swarm_coordination_registry_container.stats_repository,
-        );
+        let _swarm_statistics_listener =
+            torrust_tracker_swarm_coordination_registry::statistics::event::listener::run_event_listener(
+                self.swarm_coordination_registry_container.event_bus.receiver(),
+                cancellation_token.clone(),
+                &self.swarm_coordination_registry_container.stats_repository,
+            );
 
-        jobs.push(job);
-
-        let job = torrust_tracker_core::statistics::event::listener::run_in_memory_event_listener(
+        let _in_memory_statistics_listener = torrust_tracker_core::statistics::event::listener::run_in_memory_event_listener(
             self.swarm_coordination_registry_container.event_bus.receiver(),
             cancellation_token.clone(),
             &self.tracker_core_container.stats_repository,
         );
-        jobs.push(job);
 
         if self
             .tracker_core_container
@@ -106,18 +103,18 @@ impl TestEnv {
             .tracker_policy
             .persistent_torrent_completed_stat
         {
-            let job = torrust_tracker_core::statistics::event::listener::run_persistent_completed_statistics_event_listener(
-                self.swarm_coordination_registry_container.event_bus.receiver(),
-                cancellation_token.clone(),
-                &self
-                    .tracker_core_container
-                    .persistence
-                    .as_ref()
-                    .expect("tracker core test environment requires persistence")
-                    .db_downloads_metric_repository,
-                &self.tracker_core_container.stats_repository,
-            );
-            jobs.push(job);
+            let _persistent_statistics_listener =
+                torrust_tracker_core::statistics::event::listener::run_persistent_completed_statistics_event_listener(
+                    self.swarm_coordination_registry_container.event_bus.receiver(),
+                    cancellation_token.clone(),
+                    &self
+                        .tracker_core_container
+                        .persistence
+                        .as_ref()
+                        .expect("tracker core test environment requires persistence")
+                        .db_downloads_metric_repository,
+                    &self.tracker_core_container.stats_repository,
+                );
         }
 
         // Give the event listeners some time to start
@@ -125,12 +122,7 @@ impl TestEnv {
         tokio::time::sleep(std::time::Duration::from_millis(100)).await;
     }
 
-    pub async fn announce_peer_started(
-        &mut self,
-        mut peer: Peer,
-        remote_client_ip: &IpAddr,
-        info_hash: &InfoHash,
-    ) -> AnnounceData {
+    pub async fn announce_peer_started(&self, mut peer: Peer, remote_client_ip: &IpAddr, info_hash: &InfoHash) -> AnnounceData {
         peer.event = AnnounceEvent::Started;
 
         let announce_data = self
@@ -146,12 +138,7 @@ impl TestEnv {
         announce_data
     }
 
-    pub async fn announce_peer_completed(
-        &mut self,
-        mut peer: Peer,
-        remote_client_ip: &IpAddr,
-        info_hash: &InfoHash,
-    ) -> AnnounceData {
+    pub async fn announce_peer_completed(&self, mut peer: Peer, remote_client_ip: &IpAddr, info_hash: &InfoHash) -> AnnounceData {
         peer.event = AnnounceEvent::Completed;
 
         let announce_data = self
@@ -175,7 +162,7 @@ impl TestEnv {
             .unwrap()
     }
 
-    pub async fn increase_number_of_downloads(&mut self, peer: Peer, remote_client_ip: &IpAddr, info_hash: &InfoHash) {
+    pub async fn increase_number_of_downloads(&self, peer: Peer, remote_client_ip: &IpAddr, info_hash: &InfoHash) {
         let _announce_data = self.announce_peer_started(peer, remote_client_ip, info_hash).await;
         let announce_data = self.announce_peer_completed(peer, remote_client_ip, info_hash).await;
 

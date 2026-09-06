@@ -45,10 +45,10 @@ pub enum PeerRole {
 impl PeerRole {
     /// Returns the opposite role: Seeder becomes Leecher, and vice versa.
     #[must_use]
-    pub fn opposite(self) -> Self {
+    pub const fn opposite(self) -> Self {
         match self {
-            PeerRole::Seeder => PeerRole::Leecher,
-            PeerRole::Leecher => PeerRole::Seeder,
+            Self::Seeder => Self::Leecher,
+            Self::Leecher => Self::Seeder,
         }
     }
 }
@@ -56,8 +56,8 @@ impl PeerRole {
 impl fmt::Display for PeerRole {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            PeerRole::Seeder => write!(f, "seeder"),
-            PeerRole::Leecher => write!(f, "leecher"),
+            Self::Seeder => write!(f, "seeder"),
+            Self::Leecher => write!(f, "leecher"),
         }
     }
 }
@@ -67,8 +67,8 @@ impl FromStr for PeerRole {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s.to_lowercase().as_str() {
-            "seeder" => Ok(PeerRole::Seeder),
-            "leecher" => Ok(PeerRole::Leecher),
+            "seeder" => Ok(Self::Seeder),
+            "leecher" => Ok(Self::Leecher),
             _ => Err(ParsePeerRoleError::InvalidPeerRole {
                 location: Location::caller(),
                 raw_param: s.to_string(),
@@ -283,20 +283,20 @@ impl Peer {
         }
     }
 
-    pub fn ip(&mut self) -> IpAddr {
+    pub const fn ip(&mut self) -> IpAddr {
         self.peer_addr.ip()
     }
 
-    pub fn change_ip(&mut self, new_ip: &IpAddr) {
+    pub const fn change_ip(&mut self, new_ip: &IpAddr) {
         self.peer_addr = SocketAddr::new(*new_ip, self.peer_addr.port());
     }
 
-    pub fn mark_as_completed(&mut self) {
+    pub const fn mark_as_completed(&mut self) {
         self.event = AnnounceEvent::Completed;
     }
 
     #[must_use]
-    pub fn into_completed(self) -> Self {
+    pub const fn into_completed(self) -> Self {
         Self {
             event: AnnounceEvent::Completed,
             ..self
@@ -304,7 +304,7 @@ impl Peer {
     }
 
     #[must_use]
-    pub fn into_seeder(self) -> Self {
+    pub const fn into_seeder(self) -> Self {
         Self {
             left: NumberOfBytes::new(0),
             ..self
@@ -371,7 +371,7 @@ impl Id {
         ];
 
         let data = PeerId(bytes);
-        Id { data }
+        Self { data }
     }
 }
 
@@ -444,10 +444,7 @@ impl Id {
 
         binascii::bin2hex(&self.0, &mut tmp).unwrap();
 
-        match std::str::from_utf8(&tmp) {
-            Ok(hex) => Some(format!("0x{hex}")),
-            Err(_) => None,
-        }
+        std::str::from_utf8(&tmp).ok().map(|hex| format!("0x{hex}"))
     }
 
     #[must_use]
@@ -481,7 +478,7 @@ pub trait Encoding: From<Peer> + PartialEq {}
 
 impl<P: Encoding> FromIterator<Peer> for Vec<P> {
     fn from_iter<T: IntoIterator<Item = Peer>>(iter: T) -> Self {
-        let mut peers: Vec<P> = vec![];
+        let mut peers: Self = vec![];
 
         for peer in iter {
             peers.push(peer.into());
@@ -499,7 +496,7 @@ pub mod fixture {
     use super::{Id, Peer, PeerId};
     use crate::{AnnounceEvent, NumberOfBytes};
 
-    #[derive(PartialEq, Debug)]
+    #[derive(PartialEq, Eq, Debug)]
 
     pub struct PeerBuilder {
         peer: Peer,
@@ -515,7 +512,7 @@ pub mod fixture {
     impl PeerBuilder {
         #[allow(dead_code)]
         #[must_use]
-        pub fn seeder() -> Self {
+        pub const fn seeder() -> Self {
             let peer = Peer {
                 peer_id: PeerId(*b"-qB00000000000000001"),
                 peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 8080),
@@ -531,7 +528,7 @@ pub mod fixture {
 
         #[allow(dead_code)]
         #[must_use]
-        pub fn leecher() -> Self {
+        pub const fn leecher() -> Self {
             let peer = Peer {
                 peer_id: PeerId(*b"-qB00000000000000002"),
                 peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 2)), 8080),
@@ -547,73 +544,73 @@ pub mod fixture {
 
         #[allow(dead_code)]
         #[must_use]
-        pub fn with_peer_id(mut self, peer_id: &PeerId) -> Self {
+        pub const fn with_peer_id(mut self, peer_id: &PeerId) -> Self {
             self.peer.peer_id = *peer_id;
             self
         }
 
         #[allow(dead_code)]
         #[must_use]
-        pub fn with_peer_addr(mut self, peer_addr: &SocketAddr) -> Self {
+        pub const fn with_peer_addr(mut self, peer_addr: &SocketAddr) -> Self {
             self.peer.peer_addr = *peer_addr;
             self
         }
 
         #[must_use]
-        pub fn with_peer_address(mut self, peer_addr: SocketAddr) -> Self {
+        pub const fn with_peer_address(mut self, peer_addr: SocketAddr) -> Self {
             self.peer.peer_addr = peer_addr;
             self
         }
 
         #[must_use]
-        pub fn updated_on(mut self, updated: DurationSinceUnixEpoch) -> Self {
+        pub const fn updated_on(mut self, updated: DurationSinceUnixEpoch) -> Self {
             self.peer.updated = updated;
             self
         }
 
         #[must_use]
-        pub fn with_bytes_left_to_download(mut self, left: i64) -> Self {
+        pub const fn with_bytes_left_to_download(mut self, left: i64) -> Self {
             self.peer.left = NumberOfBytes::new(left);
             self
         }
 
         #[must_use]
-        pub fn with_no_bytes_left_to_download(mut self) -> Self {
+        pub const fn with_no_bytes_left_to_download(mut self) -> Self {
             self.peer.left = NumberOfBytes::new(0);
             self
         }
 
         #[must_use]
-        pub fn last_updated_on(mut self, updated: DurationSinceUnixEpoch) -> Self {
+        pub const fn last_updated_on(mut self, updated: DurationSinceUnixEpoch) -> Self {
             self.peer.updated = updated;
             self
         }
 
         #[must_use]
-        pub fn with_event(mut self, event: AnnounceEvent) -> Self {
+        pub const fn with_event(mut self, event: AnnounceEvent) -> Self {
             self.peer.event = event;
             self
         }
 
         #[must_use]
-        pub fn with_event_started(mut self) -> Self {
+        pub const fn with_event_started(mut self) -> Self {
             self.peer.event = AnnounceEvent::Started;
             self
         }
 
         #[must_use]
-        pub fn with_event_completed(mut self) -> Self {
+        pub const fn with_event_completed(mut self) -> Self {
             self.peer.event = AnnounceEvent::Completed;
             self
         }
 
         #[must_use]
-        pub fn build(self) -> Peer {
+        pub const fn build(self) -> Peer {
             self.into()
         }
 
         #[must_use]
-        pub fn into(self) -> Peer {
+        pub const fn into(self) -> Peer {
             self.peer
         }
     }

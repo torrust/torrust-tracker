@@ -26,7 +26,9 @@ pub async fn handle_event(
 
         ban_service.increase_counter(&context.client_socket_addr().ip());
 
-        update_metric_for_banned_ips_total(repository, ban_service.get_banned_ips_total(), now).await;
+        let ips_banned_total = ban_service.get_banned_ips_total();
+        drop(ban_service);
+        update_metric_for_banned_ips_total(repository, ips_banned_total, now).await;
     }
 }
 

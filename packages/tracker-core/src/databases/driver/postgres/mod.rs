@@ -119,7 +119,7 @@ mod tests {
     }
 
     impl RunningPostgresContainer {
-        fn new(container: ContainerAsync<GenericImage>, internal_port: u16) -> Self {
+        const fn new(container: ContainerAsync<GenericImage>, internal_port: u16) -> Self {
             Self {
                 container,
                 internal_port,
@@ -184,7 +184,7 @@ mod tests {
     #[tokio::test]
     async fn run_postgres_driver_tests() -> Result<(), Box<dyn std::error::Error + 'static>> {
         if std::env::var("TORRUST_TRACKER_CORE_RUN_POSTGRES_DRIVER_TEST").is_err() {
-            println!("Skipping the PostgreSQL driver tests.");
+            tracing::info!("Skipping the PostgreSQL driver tests.");
             return Ok(());
         }
 

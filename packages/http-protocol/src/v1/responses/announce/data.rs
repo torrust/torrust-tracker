@@ -15,7 +15,7 @@ use torrust_peer_id::PeerId;
 // Nightly Clippy diagnoses that proc-macro expansion; remove this allowance once derive_more emits
 // field-init shorthand.
 #[allow(clippy::redundant_field_names)]
-#[derive(Clone, Debug, PartialEq, Constructor, Default)]
+#[derive(Clone, Debug, PartialEq, Eq, Constructor, Default)]
 pub struct AnnounceData {
     pub peers: Vec<Peer>,
     pub stats: SwarmMetadata,
