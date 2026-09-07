@@ -7,8 +7,8 @@ epic: 2003
 github-issue: 2160
 spec-path: docs/issues/open/2160-2003-persist-independent-agent-review-reports/ISSUE.md
 branch: "2160-2003-persist-independent-agent-review-reports"
-related-pr: null
-last-updated-utc: 2026-09-07 16:45
+related-pr: 2166
+last-updated-utc: 2026-09-07 16:49
 semantic-links:
   skill-links:
     - create-issue
@@ -71,7 +71,7 @@ must be updated before reviewers can own these reports.
 | T1  | DONE        | Define report template              | Added `docs/templates/AGENT-REVIEW-REPORTS.md` with frontmatter and append-only entries.                         |
 | T2  | DONE        | Update reviewer tools and workflows | Added shared persistence guidance; Complexity Auditor now declares `edit`.                                       |
 | T3  | DONE        | Update issue-spec template          | Added review-report checkpoint and artifact guidance.                                                            |
-| T4  | IN_PROGRESS | Test sequential reporting           | PR Reviewer appended the third entry and found a commit-ownership gap; correction, commit, and re-review remain. |
+| T4  | DONE        | Test sequential reporting           | All three reviewers appended chronological entries; the commit-ownership correction was tested and committed.      |
 
 ## Progress Tracking
 
@@ -80,8 +80,8 @@ must be updated before reviewers can own these reports.
 - [x] Folder-style spec drafted in `docs/issues/drafts/2003-persist-independent-agent-review-reports/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue #2160 created and issue number added to this spec
-- [ ] Implementation completed and verified
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Implementation completed and verified
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
 
 ### Progress Log
 
@@ -93,6 +93,7 @@ must be updated before reviewers can own these reports.
 - 2026-09-07 16:30 UTC - GitHub Copilot - Recorded prior PR #2163 Copilot tracker evidence for the separate-tracker boundary; preparing the reviewed change set for the Committer, after which a PR Reviewer can append the third entry - Pending commit
 - 2026-09-07 16:40 UTC - PR Reviewer - Appended the third sequential report entry and requested explicit caller-to-Committer ownership constraints for Task Reviewer and PR Reviewer, with matching contract-test coverage - PR #2166
 - 2026-09-07 16:45 UTC - GitHub Copilot - Added the required retrospective for the material commit-authority correction; preparing the correction and appended review records for a Committer-handled evidence commit - Pending commit
+- 2026-09-07 16:49 UTC - Task Reviewer - Verified the signed Committer-handled evidence commit `6b39d10bf332b07be107a55afe95f2d64e63215b` is pushed to PR #2166; AC5 and M1/M2/M3 pass, and the required retrospective records the material correction - `agent-review-reports.md`
 
 ## Acceptance Criteria
 
@@ -100,7 +101,7 @@ must be updated before reviewers can own these reports.
 - [x] Complexity Auditor, Task Reviewer, and PR Reviewer each declare the `edit` tool.
 - [x] Each reviewer creates or appends an explicit report before returning its verdict when given a folder-style spec.
 - [x] Sequential reports preserve earlier entries and make reviewer, evidence, findings, verdict, and follow-up visible.
-- [ ] Branch or PR report updates are committed through Committer.
+- [x] Branch or PR report updates are committed through Committer.
 - [x] Copilot Suggestions Handler keeps its dedicated PR-thread tracker location and workflow.
 - [x] `linter all` exits with code `0` and relevant documentation checks pass.
 
@@ -116,8 +117,8 @@ must be updated before reviewers can own these reports.
 
 | ID  | Scenario                 | Command/Steps                                                | Expected Result                                                                      | Status      | Evidence                                                                                                                                     |
 | --- | ------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------------------------------ | ----------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| M1  | Sequential reviews       | Invoke all three reviewers against a folder-style test spec. | One report file contains complete chronological entries from each reviewer.          | IN_PROGRESS | Complexity Auditor and Task Reviewer entries appended; PR Reviewer invocation awaits an actual PR.                                           |
-| M2  | PR report commit         | Perform a PR-review report update on a disposable branch.    | The report update is committed through Committer before final completion.            | IN_PROGRESS | Current persisted reports will be included in the reviewed change set committed through Committer.                                           |
+| M1  | Sequential reviews       | Invoke all three reviewers against a folder-style test spec. | One report file contains complete chronological entries from each reviewer.          | DONE        | `agent-review-reports.md` preserves complete chronological Complexity Auditor, Task Reviewer, and PR Reviewer entries.                       |
+| M2  | PR report commit         | Perform a PR-review report update on a disposable branch.    | The report update is committed through Committer before final completion.            | DONE        | Signed Committer-handled commit `6b39d10bf332b07be107a55afe95f2d64e63215b` includes the PR Reviewer report and is pushed to PR #2166.      |
 | M3  | Copilot tracker boundary | Inspect a completed representative Copilot review tracker.   | Its tracker remains in `docs/copilot-pr-reviews/` rather than the issue spec folder. | DONE        | `docs/copilot-pr-reviews/pr-2163-copilot-suggestions.md` records an addressed, replied-to, resolved PR thread outside the issue spec folder. |
 
 ### Acceptance Verification
@@ -128,7 +129,7 @@ must be updated before reviewers can own these reports.
 | AC2   | DONE                   | Reviewer profile frontmatter; structural contract test passed                     |
 | AC3   | DONE                   | Shared reviewer persistence policy; structural contract test passed               |
 | AC4   | DONE                   | Complexity Auditor entry and Task Reviewer entry in `agent-review-reports.md`     |
-| AC5   | TODO                   | Current persisted reports await the required Committer-handled commit.            |
+| AC5   | DONE                   | Signed Committer-handled commit `6b39d10bf332b07be107a55afe95f2d64e63215b` includes the PR Reviewer report and is pushed to PR #2166. |
 | AC6   | DONE                   | Copilot Suggestions Handler profile and structural contract test passed           |
 | AC7   | DONE                   | `linter all`, structural contract test, and `cargo test --doc --workspace` passed |
 
