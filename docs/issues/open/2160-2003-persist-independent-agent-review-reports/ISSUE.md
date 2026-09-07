@@ -66,12 +66,12 @@ must be updated before reviewers can own these reports.
 
 ## Implementation Plan
 
-| ID  | Status      | Task                                | Notes / Expected Output                                                                                          |
-| --- | ----------- | ----------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| T1  | DONE        | Define report template              | Added `docs/templates/AGENT-REVIEW-REPORTS.md` with frontmatter and append-only entries.                         |
-| T2  | DONE        | Update reviewer tools and workflows | Added shared persistence guidance; Complexity Auditor now declares `edit`.                                       |
-| T3  | DONE        | Update issue-spec template          | Added review-report checkpoint and artifact guidance.                                                            |
-| T4  | DONE        | Test sequential reporting           | All three reviewers appended chronological entries; the commit-ownership correction was tested and committed.      |
+| ID  | Status | Task                                | Notes / Expected Output                                                                                       |
+| --- | ------ | ----------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| T1  | DONE   | Define report template              | Added `docs/templates/AGENT-REVIEW-REPORTS.md` with frontmatter and append-only entries.                      |
+| T2  | DONE   | Update reviewer tools and workflows | Added shared persistence guidance; Complexity Auditor now declares `edit`.                                    |
+| T3  | DONE   | Update issue-spec template          | Added review-report checkpoint and artifact guidance.                                                         |
+| T4  | DONE   | Test sequential reporting           | All three reviewers appended chronological entries; the commit-ownership correction was tested and committed. |
 
 ## Progress Tracking
 
@@ -115,23 +115,23 @@ must be updated before reviewers can own these reports.
 
 ### Manual Verification Scenarios
 
-| ID  | Scenario                 | Command/Steps                                                | Expected Result                                                                      | Status      | Evidence                                                                                                                                     |
-| --- | ------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------------------------------ | ----------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| M1  | Sequential reviews       | Invoke all three reviewers against a folder-style test spec. | One report file contains complete chronological entries from each reviewer.          | DONE        | `agent-review-reports.md` preserves complete chronological Complexity Auditor, Task Reviewer, and PR Reviewer entries.                       |
-| M2  | PR report commit         | Perform a PR-review report update on a disposable branch.    | The report update is committed through Committer before final completion.            | DONE        | Signed Committer-handled commit `6b39d10bf332b07be107a55afe95f2d64e63215b` includes the PR Reviewer report and is pushed to PR #2166.      |
-| M3  | Copilot tracker boundary | Inspect a completed representative Copilot review tracker.   | Its tracker remains in `docs/copilot-pr-reviews/` rather than the issue spec folder. | DONE        | `docs/copilot-pr-reviews/pr-2163-copilot-suggestions.md` records an addressed, replied-to, resolved PR thread outside the issue spec folder. |
+| ID  | Scenario                 | Command/Steps                                                | Expected Result                                                                      | Status | Evidence                                                                                                                                     |
+| --- | ------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------------------------------ | ------ | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| M1  | Sequential reviews       | Invoke all three reviewers against a folder-style test spec. | One report file contains complete chronological entries from each reviewer.          | DONE   | `agent-review-reports.md` preserves complete chronological Complexity Auditor, Task Reviewer, and PR Reviewer entries.                       |
+| M2  | PR report commit         | Perform a PR-review report update on a disposable branch.    | The report update is committed through Committer before final completion.            | DONE   | Signed Committer-handled commit `6b39d10bf332b07be107a55afe95f2d64e63215b` includes the PR Reviewer report and is pushed to PR #2166.        |
+| M3  | Copilot tracker boundary | Inspect a completed representative Copilot review tracker.   | Its tracker remains in `docs/copilot-pr-reviews/` rather than the issue spec folder. | DONE   | `docs/copilot-pr-reviews/pr-2163-copilot-suggestions.md` records an addressed, replied-to, resolved PR thread outside the issue spec folder. |
 
 ### Acceptance Verification
 
-| AC ID | Status (`TODO`/`DONE`) | Evidence                                                                          |
-| ----- | ---------------------- | --------------------------------------------------------------------------------- |
-| AC1   | DONE                   | `docs/templates/AGENT-REVIEW-REPORTS.md`; structural contract test passed         |
-| AC2   | DONE                   | Reviewer profile frontmatter; structural contract test passed                     |
-| AC3   | DONE                   | Shared reviewer persistence policy; structural contract test passed               |
-| AC4   | DONE                   | Complexity Auditor entry and Task Reviewer entry in `agent-review-reports.md`     |
+| AC ID | Status (`TODO`/`DONE`) | Evidence                                                                                                                              |
+| ----- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| AC1   | DONE                   | `docs/templates/AGENT-REVIEW-REPORTS.md`; structural contract test passed                                                             |
+| AC2   | DONE                   | Reviewer profile frontmatter; structural contract test passed                                                                         |
+| AC3   | DONE                   | Shared reviewer persistence policy; structural contract test passed                                                                   |
+| AC4   | DONE                   | Complexity Auditor entry and Task Reviewer entry in `agent-review-reports.md`                                                         |
 | AC5   | DONE                   | Signed Committer-handled commit `6b39d10bf332b07be107a55afe95f2d64e63215b` includes the PR Reviewer report and is pushed to PR #2166. |
-| AC6   | DONE                   | Copilot Suggestions Handler profile and structural contract test passed           |
-| AC7   | DONE                   | `linter all`, structural contract test, and `cargo test --doc --workspace` passed |
+| AC6   | DONE                   | Copilot Suggestions Handler profile and structural contract test passed                                                               |
+| AC7   | DONE                   | `linter all`, structural contract test, and `cargo test --doc --workspace` passed                                                     |
 
 ## Risks and Trade-offs
 
