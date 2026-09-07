@@ -147,7 +147,7 @@ mapped commit point—before beginning the next item.
 
 ### R3a — Clarify full-buffer scenario construction
 
-- **Status:** IN_PROGRESS
+- **Status:** DONE
 - **Priority:** Medium impact / low effort
 - **Addresses:** R3 Arrange readability
 - **Change:** Add a file-local `PendingTask::insert_into` helper that creates a pending task,
@@ -201,7 +201,7 @@ mapped commit point—before beginning the next item.
 - [x] Maintainer approved implementation of R3a.
 - [x] R3a implemented, reviewed, validated, and committed.
 - [x] Maintainer approved implementation of R4.
-- [ ] R4 implemented, reviewed, validated, and committed.
+- [x] R4 implemented, reviewed, validated, and committed.
 - [ ] R5 assessment completed and decision recorded.
 - [ ] Maintainer reviewed all approved changes.
 - [ ] Plan completed and ready for final verification.
@@ -253,6 +253,9 @@ mapped commit point—before beginning the next item.
 - 2026-09-07 16:37 UTC - User/maintainer - Approved R4. Use an inline completed task and the
   focused `PendingTask` helper to make the mixed completion state visible without adding another
   scenario fixture.
+- 2026-09-07 16:42 UTC - User/maintainer - Reviewed and approved R4. The inline Arrange retains
+  the causal mixed completion state without a premature builder or scenario fixture; the test-only
+  increment leaves production behavior and the hot path unchanged.
 
 ### Validation Evidence
 
@@ -263,7 +266,7 @@ mapped commit point—before beginning the next item.
 | R2                 | DONE   | History review, package ADR, and production comments record the intentional oldest-first bounded policy; committed in `208f1d70`. |
 | R3                 | DONE   | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server server::request_buffer::tests`, and `git diff --check` passed. The reviewed `FullBufferWithPendingTasks` scenario uses a local `PendingTask` helper for setup/cleanup mechanics. |
 | R3a                | DONE   | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server server::request_buffer::tests`, and `git diff --check` passed. |
-| R4                 | IN_PROGRESS | Focused request-buffer test, formatting, and diff checks.   |
+| R4                 | DONE   | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server server::request_buffer::tests`, and `git diff --check` passed. |
 | R5                 | TODO   | Test or documented no-change decision.                      |
 
 ## Non-Goals
