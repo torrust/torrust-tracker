@@ -166,6 +166,12 @@ build actions needed by its checks.
   It supplies immediate developer feedback but does not select the EPIC's long-term architecture,
   execution tier, or check/action contract, and may be replaced or refactored after the design
   decision.
+- Permit low-risk, additive, independently verifiable documentation, skill, profile, template, and
+  focused validation subissues to proceed before the EPIC architecture decision when they do not
+  select or depend on a shared runner, cache, enforcement platform, external workflow tool, or
+  broad consumer migration. These exceptions must document their current integration point and
+  remain replaceable by the later design. The initial approved candidates are the six proposed
+  AI-agent, repository-guardrail, and documentation process subissues listed below.
 - Re-evaluate #1843, #1774, and #1768 against the resulting evidence and recommend whether each
   should proceed unchanged, be re-scoped, be split, or be superseded.
 - Present the evidence and options for maintainer review before selecting a full design.
@@ -223,6 +229,22 @@ review; no GitHub issues should be created from this draft without approval.
 | 9     | Implement and migrate approved operations                | Deliver the approved actions and checks, then move consumers without losing current guarantees                 | Dictionary-integrity guardrail plus approved #1843/#1774/#1768 scopes; local, agent, and CI migration; superseded-path removal                                      | Old/new parity or intentional-difference evidence, rollback exercise, consumer migration audit, and selected local/CI policies pass                    | Subissue 8                                      |
 | 10    | Validate rollout and close the EPIC                      | Prove the resulting system is usable, maintainable, and no longer depends on superseded paths                  | Runtime and token-impact results, final ownership map, operating documentation, residual-risk record, and closure dispositions                                      | Representative human and agent workflows pass; required CI guarantees remain enforced; stale references and temporary compatibility paths are removed  | Subissue 9                                      |
 
+## Approved Early Implementation Candidates
+
+These proposed subissues meet the Scope exception for low-risk, additive, independently verifiable
+work. They may be created and implemented now, including through one spec-only PR, without
+selecting the EPIC's long-term automation or orchestration architecture. Final GitHub issue
+creation remains subject to maintainer approval of each draft specification.
+
+| Order | Issue                                            | Local Specification                                                            | Why It May Proceed                                                                                     | Dependencies                                     |
+| ----- | ------------------------------------------------ | ------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------ | ------------------------------------------------ |
+| 1     | #2155 - Document AI agent orchestration          | `docs/issues/open/2155-2003-document-ai-agent-orchestration/ISSUE.md`          | Documents current profiles and creates evidence for future enforcement; selects no enforcement tool.   | None                                             |
+| 2     | #2156 - Create Markdown template skill           | `docs/issues/open/2156-2003-create-markdown-template-skill/ISSUE.md`           | Documentation convention and skill only; does not alter shared execution architecture.                 | None                                             |
+| 3     | #2157 - Require documented Clippy allows         | `docs/issues/open/2157-2003-require-documented-clippy-allows/ISSUE.md`         | Focused policy and validator at an existing validation tier; prospective baseline remains replaceable. | Existing lint entry points                       |
+| 4     | #2158 - Inventory existing Clippy allows         | `docs/issues/open/2158-2003-inventory-existing-clippy-allows/ISSUE.md`         | Evidence and incremental remediation; does not redesign the linter runner.                             | #2157 policy conventions, if merged first        |
+| 5     | #2159 - Adopt folder-style issue specifications  | `docs/issues/open/2159-2003-adopt-folder-style-issue-specs/ISSUE.md`           | Documentation, templates, and root ADR only; prospective and reversible for new work.                  | None                                             |
+| 6     | #2160 - Persist independent agent review reports | `docs/issues/open/2160-2003-persist-independent-agent-review-reports/ISSUE.md` | Profile/template documentation and explicit records; does not enforce transitions technically.         | #2155 documentation conventions, if merged first |
+
 ## Delivery Strategy
 
 Use an evidence-first, progressive delivery strategy because the problem crosses repository
@@ -231,9 +253,11 @@ intentionally unsettled. Discovery and candidate analysis can gather evidence in
 but architecture selection and implementation must wait until both are complete.
 
 Research artifacts should be committed as durable documentation under the EPIC or an approved
-canonical docs location. Implementation subissues begin only after maintainers review the
-alternatives and record a decision. The decision may keep the current distributed model,
-approve only targeted improvements, select consolidation, or request a bounded experiment
+canonical docs location. Architecture-dependent implementation subissues begin only after
+maintainers review the alternatives and record a decision. The separately listed approved early
+implementation candidates may proceed now because they are additive, independently verifiable,
+and do not preselect the shared architecture. The later decision may keep the current distributed
+model, approve only targeted improvements, select consolidation, or request a bounded experiment
 before committing to the remaining implementation.
 
 For each completed subissue in this EPIC, the default completion policy is:
