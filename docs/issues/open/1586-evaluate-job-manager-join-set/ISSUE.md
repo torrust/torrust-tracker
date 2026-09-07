@@ -5,9 +5,9 @@ status: open
 priority: p2
 github-issue: 1586
 spec-path: docs/issues/open/1586-evaluate-job-manager-join-set/ISSUE.md
-branch: null
+branch: 1586-evaluate-job-manager-join-set
 related-pr: null
-last-updated-utc: 2026-09-02 07:44
+last-updated-utc: 2026-09-07
 semantic-links:
   skill-links:
     - create-issue
@@ -61,20 +61,63 @@ The existing SI-6 draft proposed concurrent outcomes while preserving a
 `Vec<Job>` of already-spawned handles. That misses #1586's central design
 constraint and is superseded by this issue.
 
+## Implementation Decisions
+
+### Direct supervisor registration API
+
+Adopt `JoinSet` for `JobManager`'s direct top-level component ownership. Add a
+`spawn(name, future)` registration API and migrate all current `push` and
+`push_opt` callers. The manager must spawn the supplied component future
+directly into its `JoinSet`; it must not accept an already-spawned
+`JoinHandle`.
+
+This deliberately removes the current two-step pattern:
+
+```rust
+let handle = tokio::spawn(component());
+job_manager.push("component", handle);
+```
+
+It is replaced by direct registration:
+
+```rust
+job_manager.spawn("component", component());
+```
+
+Retaining `push(name, JoinHandle)` would require a second wrapper task solely
+to await the already-spawned task before it could enter `JoinSet`. Aborting
+that wrapper could detach the real component, violating the supervisor's
+ownership and escalation requirements.
+
+### Deadline escalation outcome
+
+When the single process-wide deadline expires, `JobManager` must deliberately
+abort every remaining direct top-level component, join them, and record each
+as the named `Aborted` outcome. `Aborted` is abnormal shutdown and must remain
+distinct from a component that completed cooperatively or independently
+panicked. It supplies the structured evidence required for the non-zero
+process result defined by Q3 and implemented later by SI-20.
+
+This policy applies only to direct component tasks owned by `JobManager`.
+Each component remains responsible for joining or deliberately aborting its
+own nested children before it completes.
+
 ## Acceptance Criteria
 
-- [ ] Re-evaluate `JoinSet` against the selected cancellation-tree architecture
-      and record whether it is adopted or rejected with rationale.
-- [ ] If adopted, direct top-level component futures are registered without
-      spawning an additional wrapper solely to await an existing handle.
+- [x] Re-evaluate `JoinSet` against the selected cancellation-tree architecture
+  and record whether it is adopted or rejected with rationale.
+- [ ] Adopt a `spawn(name, future)` registration API and migrate all existing
+  `push` / `push_opt` callers so direct top-level component futures enter
+  `JoinSet` without wrapper tasks.
 - [ ] Job/component names remain available for completed, failed, panicked,
       timed-out, cancelled, and deliberately aborted outcomes.
 - [ ] Supervisor waiting observes components concurrently under the configured
       process-wide deadline; it is not a sequential per-job timeout loop.
 - [ ] Components still own and join or deliberately abort their nested tasks;
       `JobManager` does not collect those child handles.
-- [ ] Tasks remaining after cooperative shutdown follow an explicit escalation
-      policy and are not silently detached.
+- [ ] Tasks remaining after cooperative shutdown are deliberately aborted,
+  joined, and reported as named `Aborted` outcomes; none are silently
+  detached.
 - [ ] Focused deterministic tests cover completion order, panic/failure,
       deadline expiry, cancellation, and escalation behavior.
 - [ ] `linter all` passes.
