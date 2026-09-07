@@ -16,6 +16,9 @@ Repository workflow and policy remain authoritative in `AGENTS.md`, `.github/ski
 scripts, tests, and documentation. Profiles are optional adapters, as defined by the
 [AI agent context, capability, and portability governance ADR](../../docs/adrs/20260821172000_establish_ai_agent_context_capability_and_portability_governance.md).
 
+See the [AI agent orchestration guide](../../docs/agents/orchestration.md) for the documented
+profile handoffs, prerequisites, artifacts, and known enforcement boundary.
+
 ## Planning and Implementation
 
 - [Planner](planner.agent.md)

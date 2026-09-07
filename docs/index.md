@@ -56,6 +56,16 @@ complement ADRs, which record accepted architectural decisions.
 | ------------------------------------------------ | ----------------------------------------------------------------------------------- |
 | [architecture/README.md](architecture/README.md) | Runtime architecture index: tracker instances, shared services, and event topology. |
 
+## AI Agents
+
+Repository-owned documentation of the current workflows between custom AI-agent profiles. It does
+not replace profile definitions or technically enforce agent transitions.
+
+| Document                                           | Description                                                                         |
+| -------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| [agents/README.md](agents/README.md)               | AI-agent documentation index and workflow references.                               |
+| [agents/orchestration.md](agents/orchestration.md) | Agent handoffs, prerequisites, feedback loops, artifacts, and enforcement boundary. |
+
 ## Architecture Decisions (ADRs)
 
 Records of significant architectural decisions, including context and consequences.
