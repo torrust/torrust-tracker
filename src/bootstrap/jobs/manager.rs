@@ -1,3 +1,13 @@
+//! Application-level background-component supervision.
+//!
+//! `JobManager` owns only direct components registered during application
+//! bootstrap. New components must use [`JobManager::spawn`]; each component,
+//! rather than this supervisor, owns and completes or deliberately aborts its
+//! nested tasks. Shutdown requests cooperative cancellation, waits under one
+//! shared deadline, then aborts and joins any remaining direct components.
+//!
+//! issue: #1586
+
 use std::collections::HashMap;
 use std::future::Future;
 use std::pin::Pin;
@@ -169,6 +179,9 @@ impl<T> Drop for NestedServerTask<T> {
     }
 }
 
+// issue: #1488
+// Transitional compatibility boundary. Do not register new components here.
+// SI-4/SI-5 must migrate these pre-spawned periodic jobs to `JobManager::spawn`.
 /// A pre-spawned job retained for a narrow legacy compatibility boundary.
 ///
 /// `JoinSet` cannot adopt this handle without a wrapper task, so this type is
@@ -213,6 +226,7 @@ impl JobManager {
         self.job_names.insert(abort_handle.id(), name.into());
     }
 
+    // issue: #1488
     /// Registers an existing periodic job without transferring it to `JoinSet`.
     ///
     /// This narrow compatibility API preserves pre-existing launch and
