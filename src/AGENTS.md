@@ -8,12 +8,12 @@ the bootstrap sequence, and the dependency-injection container. All domain logic
 
 | Path                        | Purpose                                                                                                                                                                                            |
 | --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `main.rs`                   | Binary entry point. Calls `app::start()`, waits for Ctrl-C, then cancels jobs and waits for graceful shutdown.                                                                                     |
+| `main.rs`                   | Main binary entry point. Parses `-c` / `--config-toml-path`, starts the app, then waits for shutdown and cancels jobs.                                                                             |
 | `lib.rs`                    | Library crate root and crate-level documentation. Re-exports the public API used by integration tests and other binaries.                                                                          |
-| `app.rs`                    | `start()` and `complete_startup()` — orchestrate the full startup sequence (setup → load data from DB → start jobs).                                                                               |
+| `app.rs`                    | Environment-compatible `start()`, parameterized startup, and `complete_startup()` — orchestrate the full startup sequence.                                                                         |
 | `container.rs`              | `AppContainer` — dependency-injection struct that holds `Arc`-wrapped instances of every per-layer container.                                                                                      |
-| `bootstrap/app.rs`          | `setup()` — loads config, validates it, initializes logging and global services, builds `AppContainer`.                                                                                            |
-| `bootstrap/config.rs`       | `initialize_configuration()` — reads config from the environment / file.                                                                                                                           |
+| `bootstrap/app.rs`          | `setup()` — receives optional explicit path, loads config, validates it, initializes services, builds `AppContainer`.                                                                              |
+| `bootstrap/config.rs`       | `initialize_configuration()` — loads config from an optional explicit path or existing environment/default sources.                                                                                |
 | `bootstrap/jobs/`           | One module per service: each module exposes a starter function called from `app::start_jobs`.                                                                                                      |
 | `bootstrap/jobs/manager.rs` | `JobManager` — directly owns named component futures in a `JoinSet`, retains legacy periodic handles through a compatibility registry, owns the `CancellationToken`, and drives graceful shutdown. |
 | `bin/e2e_tests_runner.rs`   | Binary that runs E2E tests by delegating to `src/console/ci/`.                                                                                                                                     |
@@ -25,9 +25,9 @@ the bootstrap sequence, and the dependency-injection container. All domain logic
 
 ```text
 main()
-   └─ app::start()
-       ├─ bootstrap::app::setup()
-       │    ├─ bootstrap::config::initialize_configuration()   ← reads TOML / env vars
+   └─ app::start_with_explicit_config_toml_path()
+      ├─ bootstrap::app::setup(explicit_config_toml_path)
+      │    ├─ bootstrap::config::initialize_configuration()   ← explicit path / TOML / env vars
       │    ├─ configuration.validate()                        ← returns typed startup errors
        │    ├─ initialize_global_services()                    ← logging, crypto seed
        │    └─ AppContainer::initialize(&configuration)        ← builds all containers

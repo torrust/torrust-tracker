@@ -28,11 +28,13 @@ use tracing::info;
 
 // Environment variables
 
-/// The whole `tracker.toml` file content. It has priority over the config file.
-/// Even if the file is not on the default path.
+/// Complete TOML base source from the environment.
+///
+/// It has priority over [`ENV_VAR_CONFIG_TOML_PATH`] when no explicit file path
+/// is supplied by the caller.
 const ENV_VAR_CONFIG_TOML: &str = "TORRUST_TRACKER_CONFIG_TOML";
 
-/// The `tracker.toml` file location.
+/// Legacy environment-selected TOML file location.
 pub const ENV_VAR_CONFIG_TOML_PATH: &str = "TORRUST_TRACKER_CONFIG_TOML_PATH";
 
 /// Named configuration API tokens, protected from accidental diagnostic exposure.

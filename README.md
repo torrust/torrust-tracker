@@ -145,16 +145,25 @@ cp ./share/default/config/tracker.development.sqlite3.toml ./storage/tracker/etc
 # Customize the tracker configuration (for example):
 vim ./storage/tracker/etc/tracker.toml
 
-# Run the tracker with the updated configuration:
-TORRUST_TRACKER_CONFIG_TOML_PATH="./storage/tracker/etc/tracker.toml" cargo run
+# Run the main tracker binary with the updated configuration:
+cargo run --bin torrust-tracker -- --config-toml-path ./storage/tracker/etc/tracker.toml
 ```
 
-_Optionally, you may choose to supply the entire configuration as an environmental variable:_
+_Alternatively, you may choose to select the configuration file or supply its
+complete contents with environment variables:_
 
 ```sh
 # Use a configuration supplied on an environmental variable:
 TORRUST_TRACKER_CONFIG_TOML=$(cat "./storage/tracker/etc/tracker.toml") cargo run
 ```
+
+Base-source precedence is `--config-toml-path` >
+`TORRUST_TRACKER_CONFIG_TOML` > `TORRUST_TRACKER_CONFIG_TOML_PATH` > the default
+development file. `TORRUST_TRACKER_CONFIG_OVERRIDE_*` values override matching
+values in the selected base source. The main binary resolves a CLI path exactly
+from its current working directory; it rejects missing, unreadable, non-file,
+or invalid TOML sources at startup. The environment path remains supported with
+its legacy resolution behavior.
 
 _For deployment, you **should** override the `api_admin_token` by using an environmental variable:_
 

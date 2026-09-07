@@ -83,7 +83,7 @@ async functions that receive the `AppContainer` and assert behavior.
 
 Cargo may run these binaries in parallel. Each binary binds to port `0`
 (OS-assigned ephemeral ports) by default, uses its own `TempDir` workspace,
-and sets `TORRUST_TRACKER_CONFIG_TOML_PATH` only in its own process, so no
+and configures its in-process tracker through its own environment, so no
 conflict occurs. Fixed-port binaries (e.g., `metrics-fixed-ports`)
 use distinct non-overlapping ports and must not run concurrently with other
 binaries that use the same ports.
@@ -91,20 +91,18 @@ binaries that use the same ports.
 ### Child-Process Configuration Isolation
 
 Executable-boundary tests may start the tracker as a child process instead of
-calling `app::start()` in their integration-test executable. Set
-`TORRUST_TRACKER_CONFIG_TOML_PATH` on that specific `Command`, not in the test
-process environment. A child receives its own environment snapshot when it is
-spawned, so concurrent test binaries and concurrent child processes cannot
-overwrite each other's configured path. Each child must still use a separate
-`TempDir` workspace and port-zero listener configuration.
+calling `app::start()` in their integration-test executable. Pass
+`--config-toml-path <workspace-local-path>` to the child and remove both
+`TORRUST_TRACKER_CONFIG_TOML` and `TORRUST_TRACKER_CONFIG_TOML_PATH` from that
+`Command`. This makes the selected source visible in the invocation and prevents
+inherited base-source environment state from affecting the child. The CLI path
+outranks both environment base sources; per-value
+`TORRUST_TRACKER_CONFIG_OVERRIDE_*` variables still apply. Each child must use a
+separate `TempDir` workspace and port-zero listener configuration.
 
-The tracker currently receives its configuration-file path through environment
-configuration; it does not provide a tracker-binary configuration-path command
-line argument. A future explicit argument may be preferable because it makes
-the child configuration visible in the invocation. If introduced, it should
-take precedence over `TORRUST_TRACKER_CONFIG_TOML_PATH`, be documented as the
-canonical executable-boundary test mechanism, and retain the environment
-variable for compatibility until a separately approved migration removes it.
+In-process application fixtures remain environment-based because they call the
+compatibility wrapper `app::start()`. Do not mutate configuration variables
+without the fixture's synchronization guard.
 
 ### Why one binary per configuration?
 
@@ -117,10 +115,10 @@ in the same process:
    global subscriber. Once set, it cannot be reset for a second tracker
    instance in the same process. This means tracker applications sharing a
    process would share logging state and configuration.
-2. **Environment-variable configuration injection**: The tracker reads its
-   configuration from the `TORRUST_TRACKER_CONFIG_TOML_PATH` environment
-   variable. Multiple tracker instances in the same process would race on
-   this variable.
+2. **Environment-variable configuration injection in in-process fixtures**:
+   `app::start()` reads configuration from the environment. Multiple tracker
+   instances in the same process would race on those variables. Native child
+   fixtures instead use the main binary's explicit CLI path.
 3. **Static secrets and clock state**: Values such as seed secrets and the
    deterministic test clock are process-global. While these could be refactored
    into injected dependencies, they remain lifecycle constraints today.

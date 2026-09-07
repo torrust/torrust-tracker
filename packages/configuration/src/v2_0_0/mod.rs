@@ -4,19 +4,17 @@
 //! This module contains the configuration data structures for the
 //! Torrust Tracker, which is a `BitTorrent` tracker server.
 //!
-//! The configuration is loaded from a [TOML](https://toml.io/en/) file
-//! `tracker.toml` in the project root folder or from an environment variable
-//! with the same content as the file.
+//! The configuration crate loads an explicit TOML file supplied by its caller,
+//! complete TOML from `TORRUST_TRACKER_CONFIG_TOML`, a file selected by
+//! `TORRUST_TRACKER_CONFIG_TOML_PATH`, or a caller-selected default file. It
+//! does not parse executable arguments; the main `torrust-tracker` binary
+//! supplies the explicit path for `-c` / `--config-toml-path`.
 //!
-//! Configuration can not only be loaded from a file, but also from an
-//! environment variable `TORRUST_TRACKER_CONFIG_TOML`. This is useful when running
-//! the tracker in a Docker container or environments where you do not have a
-//! persistent storage or you cannot inject a configuration file. Refer to
-//! [`Torrust Tracker documentation`](https://docs.rs/torrust-tracker) for more
-//! information about how to pass configuration to the tracker.
-//!
-//! When you run the tracker without providing the configuration via a file or
-//! env var, the default configuration is used.
+//! Base-source precedence is explicit path, complete TOML environment value,
+//! environment-selected path, then caller default. Per-value
+//! `TORRUST_TRACKER_CONFIG_OVERRIDE_*` variables are merged over the selected
+//! base source. Explicit paths are exact and must name readable files;
+//! environment-selected paths retain legacy resolution behavior.
 //!
 //! # Table of contents
 //!
@@ -330,7 +328,9 @@ impl Configuration {
     /// configuration in toml format is included in the `info.tracker_toml`
     /// string.
     ///
-    /// Configuration provided via env var has priority over config file path.
+    /// Base-source precedence is explicit path, complete TOML environment value,
+    /// environment-selected path, then caller default. Per-value environment
+    /// overrides are merged over the selected base source.
     ///
     /// # Errors
     ///

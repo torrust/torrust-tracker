@@ -57,8 +57,8 @@ bind_address = "0.0.0.0:3000"
 Start the tracker:
 
 ```console
-TORRUST_TRACKER_CONFIG_TOML_PATH="./share/default/config/tracker.udp.benchmarking.toml" \
-  ./target/release/torrust-tracker
+./target/release/torrust-tracker \
+  --config-toml-path ./share/default/config/tracker.udp.benchmarking.toml
 ```
 
 ### 3. Build the aquatic UDP load test
