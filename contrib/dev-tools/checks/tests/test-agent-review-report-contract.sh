@@ -44,8 +44,26 @@ require_absent_text() {
     fi
 }
 
+require_yaml_frontmatter() {
+    local file_path=$1
+
+    if [[ $(sed -n '1p' "${file_path}") != '---' ]] || ! sed -n '2,/^---$/p' "${file_path}" | grep -Fx -q -- '---'; then
+        printf 'Expected %s to begin with closed YAML frontmatter.\n' "${file_path}" >&2
+        return 1
+    fi
+}
+
+require_tools_declaration_with_edit() {
+    local file_path=$1
+
+    if ! awk '/^tools:/ { declaration = declaration $0 } declaration && /edit/ { found = 1 } /^---$/ && NR > 1 { exit } END { exit !found }' "${file_path}"; then
+        printf 'Expected %s tools declaration to include edit.\n' "${file_path}" >&2
+        return 1
+    fi
+}
+
 it_should_define_the_reusable_report_template_contract() {
-    require_text "${TEMPLATE}" '---'
+    require_yaml_frontmatter "${TEMPLATE}"
     require_text "${TEMPLATE}" 'Append one completed independent-review entry at a time.'
     require_text "${TEMPLATE}" '### {YYYY-MM-DD HH:MM UTC} - {Reviewer}'
     require_text "${TEMPLATE}" '- Invocation scope:'
@@ -57,9 +75,9 @@ it_should_define_the_reusable_report_template_contract() {
 }
 
 it_should_grant_each_independent_reviewer_edit_access() {
-    require_text "${COMPLEXITY_AUDITOR}" 'tools: [execute, read, search, edit]'
-    require_text "${TASK_REVIEWER}" 'tools: [execute, read, search, edit, todo, agent]'
-    require_text "${PR_REVIEWER}" 'tools: [execute, read, search, edit, todo, agent]'
+    require_tools_declaration_with_edit "${COMPLEXITY_AUDITOR}"
+    require_tools_declaration_with_edit "${TASK_REVIEWER}"
+    require_tools_declaration_with_edit "${PR_REVIEWER}"
 }
 
 it_should_define_the_shared_create_append_or_skip_policy() {
