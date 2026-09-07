@@ -8,7 +8,7 @@ github-issue: 2149
 spec-path: docs/issues/open/2149-1347-add-focused-udp-server-package-tests/ISSUE.md
 branch: "2149-add-focused-udp-server-package-tests-spec"
 related-pr: 2152
-last-updated-utc: 2026-09-07 09:42
+last-updated-utc: 2026-09-07 11:27
 semantic-links:
   skill-links:
     - create-issue
@@ -26,7 +26,9 @@ semantic-links:
     - packages/udp-server/src/server/launcher.rs
     - packages/udp-server/tests/server/contract.rs
     - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/coverage-evidence.md
+    - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/performance-evidence.md
     - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/test-refactor-plans/README.md
+    - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/test-refactor-plans/request-buffer-tests.md
 ---
 
 <!-- skill-link: create-issue -->
@@ -67,6 +69,9 @@ must protect current normal-operation behavior without preempting that design.
 - Add focused, deterministic tests for package-owned transport and dispatch seams where they
   protect observable behavior: socket binding metadata, packet/error conversion, event/error
   classification, container composition, and normal-operation request-buffer capacity/cleanup.
+- Establish and record a reproducible release-performance baseline before an approved production
+  change to a UDP hot-path file. Compare equivalent repeated measurements after the change; do not
+  require throughput measurements for test-only changes.
 - Assess launcher admission behavior only where it can be tested without timing dependence,
   production refactoring, or a competing lifecycle design.
 - Review every test-bearing file selected by the evidence inventory. Create one file-local
@@ -120,17 +125,17 @@ without evidence of a shared capability.
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`, `DEFERRED`.
 
-| ID  | Status | Task                                        | Notes / Expected Output                                                                                                                                                                                                                                                                                                                                                    |
-| --- | ------ | ------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| T1  | DONE   | Record baseline and test-boundary inventory | [coverage-evidence.md](coverage-evidence.md) records the exact command, package-source scope, aggregate baseline, per-file detail, priority gaps, and external-coverage/deferral decisions.                                                                                                                                                                                |
-| T2  | TODO   | Review and approve test design              | Inventory test-bearing files and create one file-local plan per concrete opportunity in [test-refactor-plans/](test-refactor-plans/README.md). Each plan identifies strengths, problems, ordered improvements, scope guardrails, and focused validation. Assess unit, package integration, example, root/E2E, mutation, property, and fuzz techniques before adding tests. |
-| T3  | TODO   | Improve request-buffer tests                | Implement the approved `server/request_buffer.rs` plan increment for current normal-operation capacity, finished-task removal, eviction, or drop cleanup. Explicitly exclude shutdown drain/deadline policy. **Commit point:** one reviewed request-buffer plan increment plus its focused validation.                                                                     |
-| T4  | TODO   | Improve dispatch and classification tests   | Implement the approved plan increment(s) for `event.rs`, `error.rs`, or `handlers/mod.rs`. Keep event/error classification and packet-dispatch behavior separate from handler business rules. **Commit point:** one reviewed, coherent classification or dispatch increment plus focused validation.                                                                       |
-| T5  | TODO   | Improve socket-adapter tests                | Implement the approved `server/bound_socket.rs` or `server/receiver.rs` plan increment for stable socket metadata, port-zero allocation, or receive adaptation. Do not assert platform-specific dual-stack defaults. **Commit point:** one reviewed socket-adapter increment plus focused validation.                                                                      |
-| T6  | TODO   | Improve container-composition tests         | Implement a `container.rs` test-plan increment only if review identifies a package-owned composition regression not already proven indirectly. A justified no-change decision completes this task without a commit. **Commit point:** one reviewed composition increment plus focused validation, if code changes are warranted.                                           |
-| T7  | TODO   | Improve admission or UDP contracts          | Implement one approved `server/launcher.rs` or `tests/server/contract.rs` increment only when the package integration boundary adds unique stable value. Record an infeasible seam rather than forcing a production refactor. **Commit point:** one reviewed admission or real-loopback contract increment plus focused validation.                                        |
-| T8  | TODO   | Perform bounded mutation assessment         | Run a time-bounded sample against the completed changed/high-risk seam. Record configuration, duration, limitations, and behavior-relevant surviving mutants; do not create a score target or CI gate. **Commit point:** documentation-only commit if the evidence materially changes the tracked review queue.                                                            |
-| T9  | TODO   | Review, verify, and complete evidence       | Stop for maintainer review after the final test increment, then run checks, manual scenarios, refreshed coverage, acceptance review, and completion review. **Commit point:** final documentation/evidence commit only after the required review and verification.                                                                                                         |
+| ID  | Status      | Task                                        | Notes / Expected Output                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| --- | ----------- | ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| T1  | DONE        | Record baseline and test-boundary inventory | [coverage-evidence.md](coverage-evidence.md) records the exact command, package-source scope, aggregate baseline, per-file detail, priority gaps, and external-coverage/deferral decisions.                                                                                                                                                                                                                                                                                  |
+| T2  | IN_PROGRESS | Review and approve test design              | Inventory test-bearing files and create one file-local plan per concrete opportunity in [test-refactor-plans/](test-refactor-plans/README.md). The first plan, [request-buffer tests](test-refactor-plans/request-buffer-tests.md), is approved. Each plan identifies strengths, problems, ordered improvements, scope guardrails, and focused validation. Assess unit, package integration, example, root/E2E, mutation, property, and fuzz techniques before adding tests. |
+| T3  | TODO        | Improve request-buffer tests                | Implement the approved `server/request_buffer.rs` plan increment for current normal-operation capacity, finished-task removal, eviction, or drop cleanup. Explicitly exclude shutdown drain/deadline policy. If a production refactor is needed, stop, obtain approval, and establish the [performance baseline](performance-evidence.md) before changing production code. **Commit point:** one reviewed request-buffer plan increment plus its focused validation.         |
+| T4  | TODO        | Improve dispatch and classification tests   | Implement the approved plan increment(s) for `event.rs`, `error.rs`, or `handlers/mod.rs`. Keep event/error classification and packet-dispatch behavior separate from handler business rules. **Commit point:** one reviewed, coherent classification or dispatch increment plus focused validation.                                                                                                                                                                         |
+| T5  | TODO        | Improve socket-adapter tests                | Implement the approved `server/bound_socket.rs` or `server/receiver.rs` plan increment for stable socket metadata, port-zero allocation, or receive adaptation. Do not assert platform-specific dual-stack defaults. **Commit point:** one reviewed socket-adapter increment plus focused validation.                                                                                                                                                                        |
+| T6  | TODO        | Improve container-composition tests         | Implement a `container.rs` test-plan increment only if review identifies a package-owned composition regression not already proven indirectly. A justified no-change decision completes this task without a commit. **Commit point:** one reviewed composition increment plus focused validation, if code changes are warranted.                                                                                                                                             |
+| T7  | TODO        | Improve admission or UDP contracts          | Implement one approved `server/launcher.rs` or `tests/server/contract.rs` increment only when the package integration boundary adds unique stable value. Record an infeasible seam rather than forcing a production refactor. **Commit point:** one reviewed admission or real-loopback contract increment plus focused validation.                                                                                                                                          |
+| T8  | TODO        | Perform bounded mutation assessment         | Run a time-bounded sample against the completed changed/high-risk seam. Record configuration, duration, limitations, and behavior-relevant surviving mutants; do not create a score target or CI gate. **Commit point:** documentation-only commit if the evidence materially changes the tracked review queue.                                                                                                                                                              |
+| T9  | TODO        | Review, verify, and complete evidence       | Stop for maintainer review after the final test increment, then run checks, manual scenarios, refreshed coverage, acceptance review, and completion review. **Commit point:** final documentation/evidence commit only after the required review and verification.                                                                                                                                                                                                           |
 
 ## Commit Points
 
@@ -229,6 +234,17 @@ responsibility.
 - 2026-09-07 10:08 UTC - GitHub Copilot - Opened spec-only PR #2152 against `develop` from the
   fork branch `josecelano:2149-add-focused-udp-server-package-tests-spec`. The PR uses
   `Related to #2149` and does not close the implementation issue.
+- 2026-09-07 11:10 UTC - GitHub Copilot - Spec-only PR #2152 was merged into `develop`. Created
+  the implementation branch from the merged commit and began T2 with the proposed
+  [request-buffer test refactor plan](test-refactor-plans/request-buffer-tests.md). No test or
+  production change has been made; implementation awaits maintainer approval of R1.
+- 2026-09-07 11:10 UTC - User/maintainer - Identified `ActiveRequests` as a UDP hot-path concern.
+  Added a performance-evidence policy requiring equivalent release throughput baseline and after
+  measurements before any approved hot-path production change, while keeping focused test-only
+  changes free from unnecessary benchmark work.
+- 2026-09-07 11:27 UTC - User/maintainer - Approved the request-buffer test refactor plan. Commit
+  all accumulated #2149 planning and performance-evidence changes before beginning the R1
+  test-only implementation increment.
 
 ## Acceptance Criteria
 
@@ -246,6 +262,8 @@ responsibility.
       output in generic helpers.
 - [ ] Request-buffer tests distinguish current normal-operation capacity/cleanup behavior from
       the shutdown policy owned by SI-15.
+- [ ] Any approved production change to a UDP hot-path file has reproducible before/after release
+      performance evidence with equivalent workload and environment details.
 - [ ] Any asynchronous fixture or lifecycle test change completes the Design and Ownership Review,
       uses bounded absolute deadlines, and has a post-vertical-slice review.
 - [ ] Package integration tests are added only when the actual loopback UDP boundary provides
@@ -286,13 +304,14 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | AC4   | TODO                   | Approved refactor increments and focused validation       |
 | AC5   | TODO                   | Focused test paths and test output                        |
 | AC6   | TODO                   | Request-buffer tests and SI-15 deferral record            |
-| AC7   | TODO                   | Design and Ownership Review or explicit non-applicability |
-| AC8   | TODO                   | Approved real-loopback contract evidence                  |
-| AC9   | TODO                   | `linter all` output                                       |
-| AC10  | TODO                   | Package test output                                       |
-| AC11  | TODO                   | Manual-verification table                                 |
-| AC12  | TODO                   | Post-implementation acceptance review                     |
-| AC13  | TODO                   | Documentation diff and completion review                  |
+| AC7   | TODO                   | `performance-evidence.md` and any required result report  |
+| AC8   | TODO                   | Design and Ownership Review or explicit non-applicability |
+| AC9   | TODO                   | Approved real-loopback contract evidence                  |
+| AC10  | TODO                   | `linter all` output                                       |
+| AC11  | TODO                   | Package test output                                       |
+| AC12  | TODO                   | Manual-verification table                                 |
+| AC13  | TODO                   | Post-implementation acceptance review                     |
+| AC14  | TODO                   | Documentation diff and completion review                  |
 
 ## Risks and Trade-offs
 
@@ -306,6 +325,9 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
   default.
 - Mutation testing can be slow and generate a tool-specific backlog. Keep it bounded and use only
   behavior-relevant surviving mutants to challenge assertions.
+- A production hot-path refactor can cause a throughput regression even when its tests pass.
+  Mitigate this with the conditional, reproducible baseline policy in
+  [performance-evidence.md](performance-evidence.md), not with a single noisy benchmark run.
 
 ## Implementation Completion Review
 
@@ -325,6 +347,8 @@ material design changes, unexpected verification results, and reusable test-desi
 - Completed package-testing predecessors: #2136 and #2140
 - Package: `packages/udp-server/`
 - Current real-loopback contracts: `packages/udp-server/tests/server/contract.rs`
+- Performance measurement policy: [performance-evidence.md](performance-evidence.md)
+- Canonical benchmarking guide: `docs/benchmarking.md`
 - Shutdown EPIC: `docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md`
 - UDP receive-loop lifecycle draft: `docs/issues/drafts/1488-si-14-migrate-udp-receive-reset-token-lifecycle/ISSUE.md`
 - Active-request policy draft: `docs/issues/drafts/1488-si-15-define-udp-active-request-policy/ISSUE.md`

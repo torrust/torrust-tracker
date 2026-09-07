@@ -10,8 +10,7 @@ a cross-file extraction unless maintainer review establishes a cohesive common r
 
 ## Plans
 
-- No file plans have been created. T2 will inventory each test-bearing file and create a plan only
-  where review identifies a concrete maintainability or behavior-coverage opportunity.
+- [Request-buffer tests](request-buffer-tests.md) — proposed; awaiting maintainer approval.
 
 ## Shared Purpose
 
