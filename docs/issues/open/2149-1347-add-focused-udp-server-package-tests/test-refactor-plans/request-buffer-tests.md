@@ -164,7 +164,7 @@ mapped commit point—before beginning the next item.
 - [x] Phase 2 refactorings ordered by impact and effort.
 - [x] Maintainer approved implementation of R1.
 - [x] R1 implemented, reviewed, validated, and committed.
-- [ ] Maintainer approved implementation of R2.
+- [x] Maintainer approved implementation of R2.
 - [ ] R2 implemented, reviewed, validated, and committed.
 - [ ] Maintainer approved implementation of R3.
 - [ ] R3 implemented, reviewed, validated, and committed.
@@ -189,6 +189,10 @@ mapped commit point—before beginning the next item.
 - 2026-09-07 11:43 UTC - User/maintainer - Reviewed and approved R1. The increment adds one
   deterministic capacity-available contract without production changes, sleeps, polling, or a
   performance-baseline requirement.
+- 2026-09-07 13:08 UTC - User/maintainer - Approved R2. The test must establish an oldest pending
+  handle followed by completed handles, then prove whether finished work is reclaimed before active
+  work is aborted. If the expected contract fails, stop before changing the hot-path implementation
+  and follow the issue performance-baseline policy.
 
 ### Validation Evidence
 

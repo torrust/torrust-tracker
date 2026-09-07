@@ -2,6 +2,9 @@
   "[rust]": {
     "editor.formatOnSave": true
   },
+  "[markdown]": {
+    "editor.formatOnSave": false
+  },
   "[ignore]": {
     "rust-analyzer.cargo.extraEnv": {
       "RUSTFLAGS": "-Z profile -C codegen-units=1 -C inline-threshold=0 -C link-dead-code -C overflow-checks=off -C panic=abort -Z panic_abort_tests",
