@@ -112,9 +112,7 @@ pub async fn start_job(
         let mut server_task = NestedServerTask::with_shutdown_controller(tx_halt, running, server.shutdown_controller);
         let completion: ComponentResult = tokio::select! {
             () = cancellation_token.cancelled() => {
-                if server_task.signal_shutdown().is_err() {
-                    return Err(ComponentError::new("could not signal health check API to stop after cancellation"));
-                }
+                let _ = server_task.signal_shutdown();
                 let result = server_task
                     .join()
                     .await

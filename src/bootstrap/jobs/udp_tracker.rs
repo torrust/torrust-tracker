@@ -91,9 +91,7 @@ pub async fn start_job(
         let mut server_task = NestedServerTask::new(halt_task, task);
         tokio::select! {
             () = cancellation_token.cancelled() => {
-                if server_task.signal_shutdown().is_err() {
-                    return Err(ComponentError::new("could not signal UDP tracker to stop after cancellation"));
-                }
+                let _ = server_task.signal_shutdown();
                 let result = server_task
                     .join()
                     .await
