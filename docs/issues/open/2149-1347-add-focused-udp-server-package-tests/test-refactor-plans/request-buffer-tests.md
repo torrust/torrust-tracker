@@ -180,7 +180,7 @@ mapped commit point—before beginning the next item.
 - [x] Maintainer approved implementation of R2.
 - [x] R2 assessment, ADR, and source-comment clarification committed independently.
 - [x] Maintainer approved implementation of R3.
-- [ ] R3 implemented, reviewed, validated, and committed.
+- [x] R3 implemented, reviewed, validated, and committed.
 - [ ] Maintainer approved implementation of R4.
 - [ ] R4 implemented, reviewed, validated, and committed.
 - [ ] R5 assessment completed and decision recorded.
@@ -221,6 +221,10 @@ mapped commit point—before beginning the next item.
   a file-local `FullBufferWithPendingTasks` scenario fixture before completing the test increment.
   The fixture may own setup and cleanup mechanics only; the test retains the `force_push` Act and
   observable eviction assertion.
+- 2026-09-07 16:05 UTC - User/maintainer - Requested a further simplification of
+  `FullBufferWithPendingTasks::new`. Replaced duplicated channel/task mechanics with the file-local
+  `PendingTask` helper; the scenario constructor now directly states construction of the oldest task,
+  the remaining 49 pending tasks, and the incoming task.
 
 ### Validation Evidence
 
@@ -229,7 +233,7 @@ mapped commit point—before beginning the next item.
 | Plan documentation | TODO   | Run Markdown and spelling checks after plan review changes. |
 | R1                 | DONE   | `cargo fmt --all -- --check`, focused request-buffer test, and `git diff --check` passed. |
 | R2                 | DONE   | History review, package ADR, and production comments record the intentional oldest-first bounded policy; committed in `208f1d70`. |
-| R3                 | IN_PROGRESS | Focused request-buffer test, formatting, and diff checks.   |
+| R3                 | DONE   | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server server::request_buffer::tests`, and `git diff --check` passed. The reviewed `FullBufferWithPendingTasks` scenario uses a local `PendingTask` helper for setup/cleanup mechanics. |
 | R4                 | TODO   | Focused request-buffer test, formatting, and diff checks.   |
 | R5                 | TODO   | Test or documented no-change decision.                      |
 

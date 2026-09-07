@@ -140,16 +140,104 @@ impl ActiveRequests {
 #[cfg(test)]
 mod tests {
     use tokio::sync::oneshot;
+    use tokio::task::JoinHandle;
+
+    use ringbuf::traits::Producer;
 
     use super::ActiveRequests;
+
+    struct PendingTask {
+        completion_sender: oneshot::Sender<()>,
+        join_handle: JoinHandle<()>,
+    }
+
+    impl PendingTask {
+        fn new() -> Self {
+            let (completion_sender, completion_receiver) = oneshot::channel::<()>();
+            let join_handle = tokio::spawn(async move {
+                drop(completion_receiver.await);
+            });
+
+            Self {
+                completion_sender,
+                join_handle,
+            }
+        }
+
+        fn abort_handle(&self) -> tokio::task::AbortHandle {
+            self.join_handle.abort_handle()
+        }
+
+        async fn assert_was_aborted(self, message: &str) {
+            self.join_handle.await.expect_err(message);
+        }
+    }
+
+    struct FullBufferWithPendingTasks {
+        active_requests: ActiveRequests,
+        oldest_task: Option<PendingTask>,
+        retained_tasks: Vec<PendingTask>,
+        new_task: PendingTask,
+    }
+
+    impl FullBufferWithPendingTasks {
+        fn new() -> Self {
+            let mut active_requests = ActiveRequests::default();
+            let oldest_task = PendingTask::new();
+            active_requests
+                .rb
+                .try_push(oldest_task.abort_handle())
+                .expect("an empty request buffer should accept the oldest task");
+
+            let mut retained_tasks = Vec::with_capacity(49);
+            for _ in 0..49 {
+                let task = PendingTask::new();
+                active_requests
+                    .rb
+                    .try_push(task.abort_handle())
+                    .expect("a request buffer with available capacity should accept the task");
+                retained_tasks.push(task);
+            }
+
+            let new_task = PendingTask::new();
+
+            Self {
+                active_requests,
+                oldest_task: Some(oldest_task),
+                retained_tasks,
+                new_task,
+            }
+        }
+
+        fn new_task_abort_handle(&self) -> tokio::task::AbortHandle {
+            self.new_task.abort_handle()
+        }
+
+        async fn assert_oldest_task_was_aborted(&mut self) {
+            self.oldest_task
+                .take()
+                .expect("scenario should retain the oldest task")
+                .assert_was_aborted("oldest pending task should be evicted when capacity is exhausted")
+                .await;
+        }
+
+        async fn abort_and_join_retained_tasks(self) {
+            drop(self.active_requests);
+
+            for task in self.retained_tasks {
+                task.assert_was_aborted("retained task should be aborted during test cleanup")
+                    .await;
+            }
+            self.new_task
+                .assert_was_aborted("new task should be aborted during test cleanup")
+                .await;
+        }
+    }
 
     #[tokio::test]
     async fn it_should_not_evict_a_pending_task_when_the_buffer_has_available_capacity() {
         // Arrange
-        let (task_completion_sender, task_completion_receiver) = oneshot::channel::<()>();
-        let task = tokio::spawn(async move {
-            drop(task_completion_receiver.await);
-        });
+        let task = PendingTask::new();
         let mut active_requests = ActiveRequests::default();
 
         // Act
@@ -157,9 +245,28 @@ mod tests {
 
         // Assert
         assert!(!task_was_evicted);
-        assert!(!task.is_finished());
+        assert!(!task.join_handle.is_finished());
 
-        drop(task_completion_sender);
-        task.await.expect("pending task should complete after test cleanup");
+        drop(task.completion_sender);
+        task.join_handle
+            .await
+            .expect("pending task should complete after test cleanup");
+    }
+
+    #[tokio::test]
+    async fn it_should_evict_the_oldest_pending_task_when_the_buffer_is_full() {
+        // Arrange
+        let mut scenario = FullBufferWithPendingTasks::new();
+
+        // Act
+        let task_was_evicted = scenario
+            .active_requests
+            .force_push(scenario.new_task_abort_handle(), "127.0.0.1:6969")
+            .await;
+
+        // Assert
+        assert!(task_was_evicted);
+        scenario.assert_oldest_task_was_aborted().await;
+        scenario.abort_and_join_retained_tasks().await;
     }
 }
