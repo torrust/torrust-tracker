@@ -8,7 +8,7 @@ github-issue: 2149
 spec-path: docs/issues/open/2149-1347-add-focused-udp-server-package-tests/ISSUE.md
 branch: "2149-add-focused-udp-server-package-tests-spec"
 related-pr: 2152
-last-updated-utc: 2026-09-07 11:27
+last-updated-utc: 2026-09-07 15:27
 semantic-links:
   skill-links:
     - create-issue
@@ -29,6 +29,7 @@ semantic-links:
     - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/performance-evidence.md
     - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/test-refactor-plans/README.md
     - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/test-refactor-plans/request-buffer-tests.md
+    - packages/udp-server/docs/adrs/20260907152707_keep_oldest_first_udp_request_eviction.md
 ---
 
 <!-- skill-link: create-issue -->
@@ -100,8 +101,9 @@ must protect current normal-operation behavior without preempting that design.
 ## Architectural Decisions
 
 - Related ADRs: `docs/adrs/20260527175600_keep_protocol_and_domain_types_decoupled.md`
+- Package-local ADR: `packages/udp-server/docs/adrs/20260907152707_keep_oldest_first_udp_request_eviction.md`
 - Related shutdown governance: `docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md`
-- ADRs to create: None expected. Create one if this work identifies a durable package or
+- ADRs to create: None known. Create one if this work identifies another durable package or
   cross-package ownership/design decision.
 
 ## Design and Ownership Review
@@ -129,7 +131,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`, `DEFERRED`.
 | --- | ----------- | ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | T1  | DONE        | Record baseline and test-boundary inventory | [coverage-evidence.md](coverage-evidence.md) records the exact command, package-source scope, aggregate baseline, per-file detail, priority gaps, and external-coverage/deferral decisions.                                                                                                                                                                                                                                                                                  |
 | T2  | IN_PROGRESS | Review and approve test design              | Inventory test-bearing files and create one file-local plan per concrete opportunity in [test-refactor-plans/](test-refactor-plans/README.md). The first plan, [request-buffer tests](test-refactor-plans/request-buffer-tests.md), is approved. Each plan identifies strengths, problems, ordered improvements, scope guardrails, and focused validation. Assess unit, package integration, example, root/E2E, mutation, property, and fuzz techniques before adding tests. |
-| T3  | TODO        | Improve request-buffer tests                | Implement the approved `server/request_buffer.rs` plan increment for current normal-operation capacity, finished-task removal, eviction, or drop cleanup. Explicitly exclude shutdown drain/deadline policy. If a production refactor is needed, stop, obtain approval, and establish the [performance baseline](performance-evidence.md) before changing production code. **Commit point:** one reviewed request-buffer plan increment plus its focused validation.         |
+| T3  | IN_PROGRESS | Improve request-buffer tests                | R1 is complete. R2 history review and the package ADR confirm that the oldest-first bounded eviction is intentional; do not replace it with a full-buffer scan. Continue with the next approved request-buffer plan increment. **Commit point:** one reviewed request-buffer plan increment plus its focused validation. |
 | T4  | TODO        | Improve dispatch and classification tests   | Implement the approved plan increment(s) for `event.rs`, `error.rs`, or `handlers/mod.rs`. Keep event/error classification and packet-dispatch behavior separate from handler business rules. **Commit point:** one reviewed, coherent classification or dispatch increment plus focused validation.                                                                                                                                                                         |
 | T5  | TODO        | Improve socket-adapter tests                | Implement the approved `server/bound_socket.rs` or `server/receiver.rs` plan increment for stable socket metadata, port-zero allocation, or receive adaptation. Do not assert platform-specific dual-stack defaults. **Commit point:** one reviewed socket-adapter increment plus focused validation.                                                                                                                                                                        |
 | T6  | TODO        | Improve container-composition tests         | Implement a `container.rs` test-plan increment only if review identifies a package-owned composition regression not already proven indirectly. A justified no-change decision completes this task without a commit. **Commit point:** one reviewed composition increment plus focused validation, if code changes are warranted.                                                                                                                                             |
@@ -245,6 +247,13 @@ responsibility.
 - 2026-09-07 11:27 UTC - User/maintainer - Approved the request-buffer test refactor plan. Commit
   all accumulated #2149 planning and performance-evidence changes before beginning the R1
   test-only implementation increment.
+- 2026-09-07 15:12 UTC - GitHub Copilot - Preserved the failed R2 experiment in an ignored handoff
+  while investigating whether its full-scan expectation represented a production defect or an
+  intentional policy. No production change was made.
+- 2026-09-07 15:27 UTC - User/maintainer - After reviewing the request-buffer history, confirmed
+  that R2's observed oldest-first eviction behavior is an intentional performance trade-off, not a
+  defect. Approved a package-local ADR and source-comment clarification as an independent
+  documentation commit. The unsupported bug-handoff conclusion is withdrawn.
 
 ## Acceptance Criteria
 
@@ -304,14 +313,15 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | AC4   | TODO                   | Approved refactor increments and focused validation       |
 | AC5   | TODO                   | Focused test paths and test output                        |
 | AC6   | TODO                   | Request-buffer tests and SI-15 deferral record            |
-| AC7   | TODO                   | `performance-evidence.md` and any required result report  |
-| AC8   | TODO                   | Design and Ownership Review or explicit non-applicability |
-| AC9   | TODO                   | Approved real-loopback contract evidence                  |
-| AC10  | TODO                   | `linter all` output                                       |
-| AC11  | TODO                   | Package test output                                       |
-| AC12  | TODO                   | Manual-verification table                                 |
-| AC13  | TODO                   | Post-implementation acceptance review                     |
-| AC14  | TODO                   | Documentation diff and completion review                  |
+| AC7   | TODO                   | Separate bug issue, merged fix, and rebase evidence       |
+| AC8   | TODO                   | `performance-evidence.md` and any required result report  |
+| AC9   | TODO                   | Design and Ownership Review or explicit non-applicability |
+| AC10  | TODO                   | Approved real-loopback contract evidence                  |
+| AC11  | TODO                   | `linter all` output                                       |
+| AC12  | TODO                   | Package test output                                       |
+| AC13  | TODO                   | Manual-verification table                                 |
+| AC14  | TODO                   | Post-implementation acceptance review                     |
+| AC15  | TODO                   | Documentation diff and completion review                  |
 
 ## Risks and Trade-offs
 
@@ -328,6 +338,9 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 - A production hot-path refactor can cause a throughput regression even when its tests pass.
   Mitigate this with the conditional, reproducible baseline policy in
   [performance-evidence.md](performance-evidence.md), not with a single noisy benchmark run.
+- A coverage increment can uncover a production defect outside its intended delivery scope.
+  Mitigate this by preserving a reproducible handoff, fixing the defect on an independent branch,
+  then rebasing this branch before resuming dependent coverage work.
 
 ## Implementation Completion Review
 
