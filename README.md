@@ -265,6 +265,8 @@ This project was a joint effort by [Nautilus Cyberneering GmbH][nautilus] and [D
 [os_compat_wf_b]: https://github.com/torrust/torrust-tracker/actions/workflows/os-compatibility.yaml/badge.svg
 [db_compat_wf]: https://github.com/torrust/torrust-tracker/actions/workflows/db-compatibility.yaml
 [db_compat_wf_b]: https://github.com/torrust/torrust-tracker/actions/workflows/db-compatibility.yaml/badge.svg
+[db_bench_wf]: https://github.com/torrust/torrust-tracker/actions/workflows/db-benchmarking.yaml
+[db_bench_wf_b]: https://github.com/torrust/torrust-tracker/actions/workflows/db-benchmarking.yaml/badge.svg
 [docs_lint_wf]: https://github.com/torrust/torrust-tracker/actions/workflows/docs-lint.yaml
 [docs_lint_wf_b]: https://github.com/torrust/torrust-tracker/actions/workflows/docs-lint.yaml/badge.svg
 [security_scan_wf]: https://github.com/torrust/torrust-tracker/actions/workflows/security-scan.yaml

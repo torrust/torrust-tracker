@@ -4,7 +4,7 @@
 
 - Tool: [lychee](https://lychee.cli.rs/)
 - Version: `0.24.2`
-- Installation: already available locally at `~/.cargo/bin/lychee`; install with `cargo install lychee`
+- Installation: already available locally at `~/.cargo/bin/lychee`; install with `cargo install lychee --version 0.24.2`
 - Configuration: [`lychee.toml`](../../../../lychee.toml)
 
 ## Checked Markdown Set
