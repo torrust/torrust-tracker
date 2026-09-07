@@ -8,7 +8,7 @@ github-issue: 2155
 spec-path: docs/issues/open/2155-2003-document-ai-agent-orchestration/ISSUE.md
 branch: "2155-2003-document-ai-agent-orchestration"
 related-pr: 2163
-last-updated-utc: 2026-09-07 15:30
+last-updated-utc: 2026-09-07 15:35
 semantic-links:
   skill-links:
     - create-issue
@@ -95,6 +95,7 @@ enforcement from being based on reviewed, observed process documentation.
 - 2026-09-07 13:30 UTC - GitHub Copilot - Expanded the guide with focused implementation and pull-request workflow diagrams while retaining the global overview and authoritative handoff tables - Pending final revalidation
 - 2026-09-07 15:00 UTC - GitHub Copilot - Validated all three Mermaid diagrams with syntax checks and previews; `linter all` and `cargo test --doc --workspace` passed - Awaiting final independent task review
 - 2026-09-07 15:30 UTC - GitHub Copilot - Processing a valid Copilot suggestion on PR #2163: replace move-prone issue-spec semantic-link paths with stable issue references - `docs/copilot-pr-reviews/pr-2163-copilot-suggestions.md`
+- 2026-09-07 15:35 UTC - GitHub Copilot - Applied and committed the semantic-link fix, then replied to and resolved the PR #2163 Copilot suggestion; tracker completion record pending its own commit - https://github.com/torrust/torrust-tracker/pull/2163#discussion_r3951125417
 - 2026-09-07 15:00 UTC - Task Reviewer - Independently verified all acceptance criteria against the working-tree documentation diff, all ten custom agent profiles, and rendered Mermaid diagrams - REVIEW PASSED
 
 ## Acceptance Criteria
