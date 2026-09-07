@@ -162,11 +162,13 @@ mapped commit point—before beginning the next item.
 
 ### R4 — Cover drop cleanup for active work
 
-- **Status:** TODO
+- **Status:** IN_PROGRESS
 - **Priority:** Medium impact / medium effort
 - **Addresses:** P4, P5
 - **Change:** Add a deterministic test that drops a buffer containing a completed and a pending
-  task handle, then observes pending-task cancellation.
+  task handle, then observes pending-task cancellation. Keep the completed task inline because its
+  only causal role is to establish mixed buffer state; use the local `PendingTask` helper for the
+  pending task's controlled lifetime and cancellation assertion.
 - **Guardrails:** Do not use this test to define server shutdown behavior. `ActiveRequests` is a
   normal-operation capacity buffer; shutdown task policy belongs to SI-15.
 - **Done when:** the test proves unfinished retained work is aborted by buffer drop without timing
@@ -198,7 +200,7 @@ mapped commit point—before beginning the next item.
 - [x] R3 implemented, reviewed, validated, and committed.
 - [x] Maintainer approved implementation of R3a.
 - [x] R3a implemented, reviewed, validated, and committed.
-- [ ] Maintainer approved implementation of R4.
+- [x] Maintainer approved implementation of R4.
 - [ ] R4 implemented, reviewed, validated, and committed.
 - [ ] R5 assessment completed and decision recorded.
 - [ ] Maintainer reviewed all approved changes.
@@ -248,6 +250,9 @@ mapped commit point—before beginning the next item.
 - 2026-09-07 16:30 UTC - User/maintainer - Reviewed and approved R3a. The local helper now owns
   only pending-task construction/insertion mechanics, while the scenario constructor and test Act
   remain readable and behavior-specific.
+- 2026-09-07 16:37 UTC - User/maintainer - Approved R4. Use an inline completed task and the
+  focused `PendingTask` helper to make the mixed completion state visible without adding another
+  scenario fixture.
 
 ### Validation Evidence
 
@@ -258,7 +263,7 @@ mapped commit point—before beginning the next item.
 | R2                 | DONE   | History review, package ADR, and production comments record the intentional oldest-first bounded policy; committed in `208f1d70`. |
 | R3                 | DONE   | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server server::request_buffer::tests`, and `git diff --check` passed. The reviewed `FullBufferWithPendingTasks` scenario uses a local `PendingTask` helper for setup/cleanup mechanics. |
 | R3a                | DONE   | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server server::request_buffer::tests`, and `git diff --check` passed. |
-| R4                 | TODO   | Focused request-buffer test, formatting, and diff checks.   |
+| R4                 | IN_PROGRESS | Focused request-buffer test, formatting, and diff checks.   |
 | R5                 | TODO   | Test or documented no-change decision.                      |
 
 ## Non-Goals
