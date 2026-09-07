@@ -65,8 +65,8 @@ linter clippy
 
 ## Related Skills
 
-- [`fix-clippy-warnings`](../rust-code-quality/fix-clippy-warnings/SKILL.md) - Detailed guide for fixing clippy warnings properly
-- [`commit-changes`](../git-workflow/commit-changes/SKILL.md) - Commit changes with proper conventions
+- [`fix-clippy-warnings`](../../rust-code-quality/fix-clippy-warnings/SKILL.md) - Detailed guide for fixing clippy warnings properly
+- [`commit-changes`](../commit-changes/SKILL.md) - Commit changes with proper conventions
 
 ### During Development (Rust only)
 

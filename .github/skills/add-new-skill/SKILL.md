@@ -70,7 +70,7 @@ Split detailed content into reference files loaded on-demand:
 ## Advanced Features
 
 See [specification.md](references/specification.md) for Agent Skills spec.
-See [patterns.md](references/patterns.md) for workflow patterns.
+See the [Agent Skills specification](https://agentskills.io/specification) for workflow patterns.
 ```
 
 ### 5. Content Strategy
@@ -160,6 +160,6 @@ Use a lightweight marker convention for cross-artifact maintenance links:
 ## References
 
 - Agent Skills specification: [references/specification.md](references/specification.md)
-- Skill patterns: [references/patterns.md](references/patterns.md)
-- Real examples: [references/examples.md](references/examples.md)
+- Skill patterns: [Agent Skills specification](https://agentskills.io/specification)
+- Real examples: [Agent Skills specification](https://agentskills.io/specification)
 - Semantic link convention: [`docs/skills/semantic-skill-link-convention.md`](../../../docs/skills/semantic-skill-link-convention.md)

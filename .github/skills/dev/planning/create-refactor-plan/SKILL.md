@@ -94,7 +94,7 @@ Plans follow the same `drafts/` → `open/` → `closed/` lifecycle as issue spe
 touch docs/refactor-plans/drafts/{short-description}.md
 ```
 
-Use the template at [docs/templates/REFACTOR-PLAN.md](../../../../docs/templates/REFACTOR-PLAN.md).
+Use the template at [docs/templates/REFACTOR-PLAN.md](../../../../../docs/templates/REFACTOR-PLAN.md).
 
 Naming convention: `{related-artifact-short-description}.md`
 

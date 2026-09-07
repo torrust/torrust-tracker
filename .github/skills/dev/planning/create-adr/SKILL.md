@@ -88,7 +88,7 @@ local-placement and root-supersession pattern.
 ## ADR Structure
 
 There is no rigid template — derive structure from context. Use
-[docs/templates/ADR.md](../../../docs/templates/ADR.md) as a starting point.
+[docs/templates/ADR.md](../../../../../docs/templates/ADR.md) as a starting point.
 
 Optional sections to add when relevant:
 
@@ -164,4 +164,4 @@ same commit when practical.
 ## Example ADR
 
 For a real example, see
-[20240227164834_use_plural_for_modules_containing_collections.md](../../../docs/adrs/20240227164834_use_plural_for_modules_containing_collections.md).
+[20240227164834_use_plural_for_modules_containing_collections.md](../../../../../docs/adrs/20240227164834_use_plural_for_modules_containing_collections.md).

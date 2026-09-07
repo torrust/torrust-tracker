@@ -98,5 +98,5 @@ for item in &items {
 
 ## Related Skills
 
-- [`run-linters`](../git-workflow/run-linters/SKILL.md) - Run all code quality checks
-- [`commit-changes`](../git-workflow/commit-changes/SKILL.md) - Commit changes with proper conventions
+- [`run-linters`](../../git-workflow/run-linters/SKILL.md) - Run all code quality checks
+- [`commit-changes`](../../git-workflow/commit-changes/SKILL.md) - Commit changes with proper conventions
