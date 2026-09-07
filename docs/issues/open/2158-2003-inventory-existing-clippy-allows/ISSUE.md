@@ -166,6 +166,7 @@ explaining why no retrospective is needed.
 
 - Parent EPIC: #2003
 - GitHub issue: #2158
-- Prospective policy: `2003-require-documented-clippy-allows`
+- Prospective policy: #2157 - Require Documented Clippy Allows
+  (`docs/issues/open/2157-2003-require-documented-clippy-allows/ISSUE.md`)
 - Inventory artifact: `clippy-allow-inventory.md` in this issue specification folder
 - Remediation agent: `.github/agents/clippy-fixer.agent.md`

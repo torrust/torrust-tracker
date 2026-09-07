@@ -171,7 +171,7 @@ build actions needed by its checks.
   select or depend on a shared runner, cache, enforcement platform, external workflow tool, or
   broad consumer migration. These exceptions must document their current integration point and
   remain replaceable by the later design. The initial approved candidates are the six proposed
-  AI-agent process subissues listed below.
+  AI-agent, repository-guardrail, and documentation process subissues listed below.
 - Re-evaluate #1843, #1774, and #1768 against the resulting evidence and recommend whether each
   should proceed unchanged, be re-scoped, be split, or be superseded.
 - Present the evidence and options for maintainer review before selecting a full design.
