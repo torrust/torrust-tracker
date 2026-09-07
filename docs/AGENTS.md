@@ -22,6 +22,7 @@ For the full project context see the [root AGENTS.md](../AGENTS.md).
 | Path                                                                                      | Purpose                                                                            |
 | ----------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
 | `index.md`                                                                                | Entry point — structured index of every document and subdirectory                  |
+| `agents/`                                                                                 | Current AI-agent workflow documentation, handoffs, and enforcement boundary        |
 | `architecture/`                                                                           | Runtime-composition guides: tracker instances, shared services, and event topology |
 | `benchmarking.md`                                                                         | How to run and interpret torrent-repository benchmarks                             |
 | `containers.md`                                                                           | Running the tracker with Docker / Podman                                           |
