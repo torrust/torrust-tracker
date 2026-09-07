@@ -24,9 +24,9 @@ Status legend:
 
 ## Suggestions
 
-| #   | Thread ID               | Path                           | URL                                                                         | Suggestion Summary                                                              | Decision | Reply URL | Status | Thread State |
-| --- | ----------------------- | ------------------------------ | --------------------------------------------------------------------------- | ------------------------------------------------------------------------------- | -------- | --------- | ------ | ------------ |
-| 1   | `PRRT_kwDOGp2yqc6f9wia` | `docs/agents/orchestration.md` | https://github.com/torrust/torrust-tracker/pull/2163#discussion_r3951049779 | Replace move-prone issue-spec semantic-link paths with stable issue references. | action   | https://github.com/torrust/torrust-tracker/pull/2163#discussion_r3951125417 | DONE   | RESOLVED |
+| #   | Thread ID               | Path                           | URL                                                                         | Suggestion Summary                                                              | Decision | Reply URL                                                                   | Status | Thread State |
+| --- | ----------------------- | ------------------------------ | --------------------------------------------------------------------------- | ------------------------------------------------------------------------------- | -------- | --------------------------------------------------------------------------- | ------ | ------------ |
+| 1   | `PRRT_kwDOGp2yqc6f9wia` | `docs/agents/orchestration.md` | https://github.com/torrust/torrust-tracker/pull/2163#discussion_r3951049779 | Replace move-prone issue-spec semantic-link paths with stable issue references. | action   | https://github.com/torrust/torrust-tracker/pull/2163#discussion_r3951125417 | DONE   | RESOLVED     |
 
 ## Notes
 
