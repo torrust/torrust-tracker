@@ -145,6 +145,21 @@ mapped commit point—before beginning the next item.
 - **Done when:** the test demonstrates exactly one required capacity eviction, names the full
   pending-buffer state in Arrange, and keeps the Act and eviction assertion visible.
 
+### R3a — Clarify full-buffer scenario construction
+
+- **Status:** IN_PROGRESS
+- **Priority:** Medium impact / low effort
+- **Addresses:** R3 Arrange readability
+- **Change:** Add a file-local `PendingTask::insert_into` helper that creates a pending task,
+  inserts its abort handle into the scenario buffer, and returns the task for deterministic
+  cleanup. Rename `new_task` to `incoming_task` because it represents the request arriving after
+  capacity is exhausted.
+- **Guardrails:** The helper owns only Arrange mechanics and must not invoke `force_push`, decide
+  an expected result, or assert eviction behavior. Keep it private to this module; do not create a
+  general builder or shared test factory.
+- **Done when:** `FullBufferWithPendingTasks::new` visibly constructs the oldest task, the
+  remaining 49 tasks, and the incoming task without duplicating buffer-insertion mechanics.
+
 ### R4 — Cover drop cleanup for active work
 
 - **Status:** TODO
@@ -181,6 +196,8 @@ mapped commit point—before beginning the next item.
 - [x] R2 assessment, ADR, and source-comment clarification committed independently.
 - [x] Maintainer approved implementation of R3.
 - [x] R3 implemented, reviewed, validated, and committed.
+- [x] Maintainer approved implementation of R3a.
+- [ ] R3a implemented, reviewed, validated, and committed.
 - [ ] Maintainer approved implementation of R4.
 - [ ] R4 implemented, reviewed, validated, and committed.
 - [ ] R5 assessment completed and decision recorded.
@@ -225,6 +242,9 @@ mapped commit point—before beginning the next item.
   `FullBufferWithPendingTasks::new`. Replaced duplicated channel/task mechanics with the file-local
   `PendingTask` helper; the scenario constructor now directly states construction of the oldest task,
   the remaining 49 pending tasks, and the incoming task.
+- 2026-09-07 16:25 UTC - User/maintainer - Approved an R3a readability refinement: factor only
+  repeated pending-task insertion into `PendingTask::insert_into` and rename the incoming request
+  task. Commit the plan update before changing test code.
 
 ### Validation Evidence
 
@@ -234,6 +254,7 @@ mapped commit point—before beginning the next item.
 | R1                 | DONE   | `cargo fmt --all -- --check`, focused request-buffer test, and `git diff --check` passed. |
 | R2                 | DONE   | History review, package ADR, and production comments record the intentional oldest-first bounded policy; committed in `208f1d70`. |
 | R3                 | DONE   | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server server::request_buffer::tests`, and `git diff --check` passed. The reviewed `FullBufferWithPendingTasks` scenario uses a local `PendingTask` helper for setup/cleanup mechanics. |
+| R3a                | IN_PROGRESS | Focused fixture-construction cleanup is approved; validation and commit are pending. |
 | R4                 | TODO   | Focused request-buffer test, formatting, and diff checks.   |
 | R5                 | TODO   | Test or documented no-change decision.                      |
 
