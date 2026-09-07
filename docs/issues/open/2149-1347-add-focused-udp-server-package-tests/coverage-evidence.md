@@ -31,6 +31,22 @@ production-only coverage measure or proof of behavioral completeness.
 | Baseline before issue changes | 4,814 / 4,965 (96.96%) | 6,326 / 6,604 (95.79%) | 485 / 499 (97.19%) |
 | Latest                        |       Not yet measured |       Not yet measured |   Not yet measured |
 
+## Current Increment Coverage
+
+The following measurement was taken after the completed request-buffer plan at commit `796e2a9e`.
+It is an interim comparison, not the final Issue #2149 measurement; later file-plan increments can
+change package totals and source-file denominators.
+
+| Source file | Baseline lines | Current lines | Change | Baseline regions | Current regions | Change | Baseline functions | Current functions | Change |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| `server/request_buffer.rs` | 24 / 45 (53.33%) | 144 / 156 (92.31%) | +38.98 pp | 36 / 74 (48.65%) | 196 / 223 (87.89%) | +39.24 pp | 3 / 4 (75.00%) | 22 / 23 (95.65%) | +20.65 pp |
+
+The added test code increases the measured denominator because package-source coverage includes
+`#[cfg(test)]` code. The meaningful result is that the capacity-available, oldest-first eviction,
+and buffer-drop cleanup contracts now execute deterministically. The remaining uncovered areas are
+the intentionally untested scheduler-dependent incoming-task race guard and implementation details
+not selected by the approved plan.
+
 ## Baseline Detailed File Report
 
 Files are ordered by ascending line coverage so the table highlights the review queue. The issue

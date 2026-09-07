@@ -3,7 +3,7 @@ doc-type: test-refactor-plan
 issue: 2149
 package: torrust-tracker-udp-server
 target-file: packages/udp-server/src/server/request_buffer.rs
-status: proposed
+status: completed
 semantic-links:
   related-artifacts:
     - packages/udp-server/src/server/request_buffer.rs
@@ -162,7 +162,7 @@ mapped commit point—before beginning the next item.
 
 ### R4 — Cover drop cleanup for active work
 
-- **Status:** IN_PROGRESS
+- **Status:** DONE
 - **Priority:** Medium impact / medium effort
 - **Addresses:** P4, P5
 - **Change:** Add a deterministic test that drops a buffer containing a completed and a pending
@@ -208,8 +208,8 @@ mapped commit point—before beginning the next item.
 - [x] Maintainer approved implementation of R4.
 - [x] R4 implemented, reviewed, validated, and committed.
 - [x] R5 assessment completed and decision recorded.
-- [ ] Maintainer reviewed all approved changes.
-- [ ] Plan completed and ready for final verification.
+- [x] Maintainer reviewed all approved changes.
+- [x] Plan completed and ready for final verification.
 
 ### Progress Log
 
@@ -265,6 +265,9 @@ mapped commit point—before beginning the next item.
   filters already finished processor handles before buffer admission, and the remaining
   `new_task.is_finished()` branch is a scheduler-dependent defensive race guard rather than a
   stable observable contract.
+- 2026-09-07 17:03 UTC - User/maintainer - Reviewed and approved the completed request-buffer
+  plan. R1–R4 add deterministic coverage, R2 documents the intentional performance trade-off, and
+  R5 is a justified no-change decision. The next test plan may begin.
 
 ### Validation Evidence
 
@@ -277,6 +280,7 @@ mapped commit point—before beginning the next item.
 | R3a                | DONE   | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server server::request_buffer::tests`, and `git diff --check` passed. |
 | R4                 | DONE   | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server server::request_buffer::tests`, and `git diff --check` passed. |
 | R5                 | DONE   | No change: the launcher filters already finished handles; the remaining defensive race guard has no stable observable contract. |
+| Plan completion    | DONE   | Maintainer reviewed all approved increments and decisions before the next file plan begins. |
 
 ## Non-Goals
 
