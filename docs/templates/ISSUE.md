@@ -77,6 +77,23 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T1  | TODO   | {Task title} | {What "done" means for this task} |
 | T2  | TODO   | {Task title} | {What "done" means for this task} |
 
+## Commit Points
+
+Map implementation-plan tasks that change code, tests, configuration, or documentation to small,
+coherent commit opportunities. A commit point completes one independently reviewable behavior,
+refactor, or evidence increment; do not group unrelated changes merely to reduce commit count.
+
+| Task | Coherent change set                       | Commit policy                                        |
+| ---- | ----------------------------------------- | ---------------------------------------------------- |
+| T1   | {Narrow, independently reviewable change} | Commit after focused validation and required review. |
+| T2   | {Narrow, independently reviewable change} | Commit after focused validation and required review. |
+
+Record a justified no-change decision in the task's evidence without creating an empty commit. For
+test-producing work, commit each reviewed test-design increment before starting the next planned
+file or behavior area. Keep final verification and completion evidence separate when it improves
+reviewability. Use a Conventional Commit message with the narrow affected scope, and sign every
+commit with GPG.
+
 ## Progress Tracking
 
 ### Workflow Checkpoints

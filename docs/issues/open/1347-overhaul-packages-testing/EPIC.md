@@ -4,7 +4,7 @@ status: open
 github-issue: 1347
 spec-path: docs/issues/open/1347-overhaul-packages-testing/EPIC.md
 epic-owner: josecelano
-last-updated-utc: 2026-09-01 17:48
+last-updated-utc: 2026-09-07 10:33
 semantic-links:
   skill-links:
     - create-issue
@@ -67,7 +67,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | 2     | #1349 - Add tests to the http-core package        | Not yet created                                                                 | TODO   | Existing subissue; package-level test work.                                                                          |
 | 3     | #2136 - Add tests to the axum-http-server package | `docs/issues/open/2136-1347-add-tests-axum-http-server/ISSUE.md`                | DONE   | Added fast package-local response, request-ID, and lifecycle tests; verification and final review evidence recorded. |
 | 4     | #2140 - Review axum-http-server integration tests | `docs/issues/open/2140-1347-review-axum-http-server-integration-tests/ISSUE.md` | TODO   | Inventory, coverage/domain analysis, and test-design review precede approved test additions.                         |
-| 5     | Additional package-testing subissues              | Create a folder-style spec when a concrete package need is identified           | TODO   | Permitted but not required upfront; retain scope in this EPIC.                                                       |
+| 5     | #2149 - Add focused UDP server package tests      | `docs/issues/open/2149-1347-add-focused-udp-server-package-tests/ISSUE.md`      | TODO   | Baseline recorded; spec-only PR precedes focused transport, dispatch, socket, and overload test/refactor increments. |
+| 6     | Additional package-testing subissues              | Create a folder-style spec when a concrete package need is identified           | TODO   | Permitted but not required upfront; retain scope in this EPIC.                                                       |
 
 ## Package Coverage Tracking
 
@@ -77,9 +78,10 @@ its latest measurement after implementation. Link each row to the subissue's iss
 and prioritized gaps. These aggregate values show progress across the EPIC; they do not determine
 whether a subissue has adequately covered critical behavior.
 
-| Package                            | Subissue                                               | Baseline                                          | Latest                                            | Change                                                  | Evidence                                                                       |
-| ---------------------------------- | ------------------------------------------------------ | ------------------------------------------------- | ------------------------------------------------- | ------------------------------------------------------- | ------------------------------------------------------------------------------ |
-| `torrust-tracker-axum-http-server` | [#2136](2136-1347-add-tests-axum-http-server/ISSUE.md) | Lines: 93.82%; regions: 91.66%; functions: 89.54% | Lines: 95.07%; regions: 92.99%; functions: 90.86% | Lines: +1.25 pp; regions: +1.33 pp; functions: +1.32 pp | [Coverage evidence](2136-1347-add-tests-axum-http-server/coverage-evidence.md) |
+| Package                            | Subissue                                                         | Baseline                                          | Latest                                            | Change                                                  | Evidence                                                                                 |
+| ---------------------------------- | ---------------------------------------------------------------- | ------------------------------------------------- | ------------------------------------------------- | ------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| `torrust-tracker-axum-http-server` | [#2136](2136-1347-add-tests-axum-http-server/ISSUE.md)           | Lines: 93.82%; regions: 91.66%; functions: 89.54% | Lines: 95.07%; regions: 92.99%; functions: 90.86% | Lines: +1.25 pp; regions: +1.33 pp; functions: +1.32 pp | [Coverage evidence](2136-1347-add-tests-axum-http-server/coverage-evidence.md)           |
+| `torrust-tracker-udp-server`       | [#2149](2149-1347-add-focused-udp-server-package-tests/ISSUE.md) | Lines: 96.96%; regions: 95.79%; functions: 97.19% | Not yet measured                                  | Not yet measured                                        | [Coverage evidence](2149-1347-add-focused-udp-server-package-tests/coverage-evidence.md) |
 
 ## Delivery Strategy
 
@@ -148,6 +150,10 @@ For each subissue implementation, the completion policy is:
 - 2026-09-01 18:00 UTC - User/maintainer - Approved the EPIC direction and clarified that each package should build a local safety net: establish and increase the coverage baseline, prioritize fast tests close to the code, and use unit, integration, or end-to-end tests whenever they provide valuable regression protection. - https://github.com/torrust/torrust-tracker/issues/1347
 - 2026-09-01 - GitHub Copilot - Completed Axum HTTP server package-local response-adapter, request-ID middleware, and registration-cleanup tests. The work was initially recorded under the wrong historical #1348 identity.
 - 2026-09-03 - User/maintainer - Corrected the package-to-subissue mapping after package renames: #1348 remains `udp-core`, #1349 remains `http-core`, and #2136 is the Axum HTTP server subissue. The completed Axum HTTP evidence moved to #2136. - https://github.com/torrust/torrust-tracker/issues/2136
+- 2026-09-07 10:33 UTC - User/maintainer - Approved and created #2149 for focused `udp-server` package
+  testing. Its spec-only PR records the 96.96% line, 95.79% region, and 97.19% function baseline,
+  then requires per-file test-refactor plans and small, reviewed commit points before implementation.
+  - https://github.com/torrust/torrust-tracker/issues/2149
 
 ## Acceptance Criteria
 
@@ -185,7 +191,7 @@ For each subissue implementation, the completion policy is:
 ## References
 
 - GitHub EPIC: https://github.com/torrust/torrust-tracker/issues/1347
-- Related issues: #1348, #1349, #2136
+- Related issues: #1348, #1349, #2136, #2149
 - Package inventory: `docs/packages.md`
 - Reference package: `packages/tracker-core/`
 - Coverage tooling: `cargo llvm-cov`
