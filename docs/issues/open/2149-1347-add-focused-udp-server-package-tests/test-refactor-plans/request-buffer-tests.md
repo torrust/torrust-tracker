@@ -176,7 +176,7 @@ mapped commit point—before beginning the next item.
 
 ### R5 — Assess finished incoming-task behavior
 
-- **Status:** TODO
+- **Status:** DONE
 - **Priority:** Low impact / medium effort
 - **Addresses:** P5
 - **Change:** After R1–R4, decide whether a task that completes before reinsertion has a stable,
@@ -184,7 +184,12 @@ mapped commit point—before beginning the next item.
 - **Guardrails:** Record a no-change decision if the behavior is scheduler-dependent or has no
   observable package contract. Do not create a test merely to cover the `new_task.is_finished()`
   branch.
-- **Done when:** the plan records either one behavior-focused test or a justified deferral.
+- **Decision:** No test added. `Launcher::run_udp_server_main` checks `abort_handle.is_finished()`
+  immediately after spawning a processor and does not call `force_push` for an already completed
+  task. The `new_task.is_finished()` check is therefore a defensive race guard only for completion
+  between that caller check and buffer admission. A direct test would need to control scheduler
+  timing rather than prove an observable UDP-server contract.
+- **Done when:** the plan records a justified no-change decision.
 
 ## Progress Tracking
 
@@ -202,7 +207,7 @@ mapped commit point—before beginning the next item.
 - [x] R3a implemented, reviewed, validated, and committed.
 - [x] Maintainer approved implementation of R4.
 - [x] R4 implemented, reviewed, validated, and committed.
-- [ ] R5 assessment completed and decision recorded.
+- [x] R5 assessment completed and decision recorded.
 - [ ] Maintainer reviewed all approved changes.
 - [ ] Plan completed and ready for final verification.
 
@@ -256,6 +261,10 @@ mapped commit point—before beginning the next item.
 - 2026-09-07 16:42 UTC - User/maintainer - Reviewed and approved R4. The inline Arrange retains
   the causal mixed completion state without a premature builder or scenario fixture; the test-only
   increment leaves production behavior and the hot path unchanged.
+- 2026-09-07 16:55 UTC - GitHub Copilot - Completed R5 assessment. No test is added: the launcher
+  filters already finished processor handles before buffer admission, and the remaining
+  `new_task.is_finished()` branch is a scheduler-dependent defensive race guard rather than a
+  stable observable contract.
 
 ### Validation Evidence
 
@@ -267,7 +276,7 @@ mapped commit point—before beginning the next item.
 | R3                 | DONE   | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server server::request_buffer::tests`, and `git diff --check` passed. The reviewed `FullBufferWithPendingTasks` scenario uses a local `PendingTask` helper for setup/cleanup mechanics. |
 | R3a                | DONE   | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server server::request_buffer::tests`, and `git diff --check` passed. |
 | R4                 | DONE   | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server server::request_buffer::tests`, and `git diff --check` passed. |
-| R5                 | TODO   | Test or documented no-change decision.                      |
+| R5                 | DONE   | No change: the launcher filters already finished handles; the remaining defensive race guard has no stable observable contract. |
 
 ## Non-Goals
 
