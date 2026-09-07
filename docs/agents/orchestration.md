@@ -6,8 +6,8 @@ semantic-links:
     - .github/agents/README.md
     - .github/skills/
     - docs/agents/README.md
-    - docs/issues/open/2155-2003-document-ai-agent-orchestration/ISSUE.md
-    - docs/issues/open/2160-2003-persist-independent-agent-review-reports/ISSUE.md
+    - issue #2155
+    - issue #2160
     - docs/adrs/20260821172000_establish_ai_agent_context_capability_and_portability_governance.md
 ---
 
