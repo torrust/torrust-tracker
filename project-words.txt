@@ -301,6 +301,7 @@ libtorrent
 libz
 llist
 lscr
+lycheeignore
 matchmakes
 memcmp
 metainfo
