@@ -129,7 +129,7 @@ mapped commit point—before beginning the next item.
 
 ### R3 — Cover active-task eviction at capacity
 
-- **Status:** IN_PROGRESS
+- **Status:** DONE
 - **Priority:** High impact / medium effort
 - **Addresses:** P3, P5
 - **Change:** Add a deterministic full-buffer test in which every tracked task remains pending;
@@ -197,7 +197,7 @@ mapped commit point—before beginning the next item.
 - [x] Maintainer approved implementation of R3.
 - [x] R3 implemented, reviewed, validated, and committed.
 - [x] Maintainer approved implementation of R3a.
-- [ ] R3a implemented, reviewed, validated, and committed.
+- [x] R3a implemented, reviewed, validated, and committed.
 - [ ] Maintainer approved implementation of R4.
 - [ ] R4 implemented, reviewed, validated, and committed.
 - [ ] R5 assessment completed and decision recorded.
@@ -245,6 +245,9 @@ mapped commit point—before beginning the next item.
 - 2026-09-07 16:25 UTC - User/maintainer - Approved an R3a readability refinement: factor only
   repeated pending-task insertion into `PendingTask::insert_into` and rename the incoming request
   task. Commit the plan update before changing test code.
+- 2026-09-07 16:30 UTC - User/maintainer - Reviewed and approved R3a. The local helper now owns
+  only pending-task construction/insertion mechanics, while the scenario constructor and test Act
+  remain readable and behavior-specific.
 
 ### Validation Evidence
 
@@ -254,7 +257,7 @@ mapped commit point—before beginning the next item.
 | R1                 | DONE   | `cargo fmt --all -- --check`, focused request-buffer test, and `git diff --check` passed. |
 | R2                 | DONE   | History review, package ADR, and production comments record the intentional oldest-first bounded policy; committed in `208f1d70`. |
 | R3                 | DONE   | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server server::request_buffer::tests`, and `git diff --check` passed. The reviewed `FullBufferWithPendingTasks` scenario uses a local `PendingTask` helper for setup/cleanup mechanics. |
-| R3a                | IN_PROGRESS | Focused fixture-construction cleanup is approved; validation and commit are pending. |
+| R3a                | DONE   | `cargo fmt --all -- --check`, `cargo test -p torrust-tracker-udp-server server::request_buffer::tests`, and `git diff --check` passed. |
 | R4                 | TODO   | Focused request-buffer test, formatting, and diff checks.   |
 | R5                 | TODO   | Test or documented no-change decision.                      |
 

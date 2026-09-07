@@ -168,6 +168,14 @@ mod tests {
             self.join_handle.abort_handle()
         }
 
+        fn insert_into(self, active_requests: &mut ActiveRequests) -> Self {
+            active_requests
+                .rb
+                .try_push(self.abort_handle())
+                .expect("a request buffer with available capacity should accept the pending task");
+            self
+        }
+
         async fn assert_was_aborted(self, message: &str) {
             self.join_handle.await.expect_err(message);
         }
@@ -177,40 +185,31 @@ mod tests {
         active_requests: ActiveRequests,
         oldest_task: Option<PendingTask>,
         retained_tasks: Vec<PendingTask>,
-        new_task: PendingTask,
+        incoming_task: PendingTask,
     }
 
     impl FullBufferWithPendingTasks {
         fn new() -> Self {
             let mut active_requests = ActiveRequests::default();
-            let oldest_task = PendingTask::new();
-            active_requests
-                .rb
-                .try_push(oldest_task.abort_handle())
-                .expect("an empty request buffer should accept the oldest task");
+            let oldest_task = PendingTask::new().insert_into(&mut active_requests);
 
             let mut retained_tasks = Vec::with_capacity(49);
             for _ in 0..49 {
-                let task = PendingTask::new();
-                active_requests
-                    .rb
-                    .try_push(task.abort_handle())
-                    .expect("a request buffer with available capacity should accept the task");
-                retained_tasks.push(task);
+                retained_tasks.push(PendingTask::new().insert_into(&mut active_requests));
             }
 
-            let new_task = PendingTask::new();
+            let incoming_task = PendingTask::new();
 
             Self {
                 active_requests,
                 oldest_task: Some(oldest_task),
                 retained_tasks,
-                new_task,
+                incoming_task,
             }
         }
 
-        fn new_task_abort_handle(&self) -> tokio::task::AbortHandle {
-            self.new_task.abort_handle()
+        fn incoming_task_abort_handle(&self) -> tokio::task::AbortHandle {
+            self.incoming_task.abort_handle()
         }
 
         async fn assert_oldest_task_was_aborted(&mut self) {
@@ -228,8 +227,8 @@ mod tests {
                 task.assert_was_aborted("retained task should be aborted during test cleanup")
                     .await;
             }
-            self.new_task
-                .assert_was_aborted("new task should be aborted during test cleanup")
+            self.incoming_task
+                .assert_was_aborted("incoming task should be aborted during test cleanup")
                 .await;
         }
     }
@@ -261,7 +260,7 @@ mod tests {
         // Act
         let task_was_evicted = scenario
             .active_requests
-            .force_push(scenario.new_task_abort_handle(), "127.0.0.1:6969")
+            .force_push(scenario.incoming_task_abort_handle(), "127.0.0.1:6969")
             .await;
 
         // Assert
