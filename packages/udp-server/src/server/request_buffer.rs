@@ -3,7 +3,7 @@ use ringbuf::traits::{Consumer, Observer, Producer};
 use tokio::task::AbortHandle;
 use torrust_tracker_udp_core::UDP_TRACKER_LOG_TARGET;
 
-// issue-spec: docs/issues/drafts/simplify-udp-server-main-loop.md
+// ADR: packages/udp-server/docs/adrs/20260907152707_keep_oldest_first_udp_request_eviction.md
 /// A ring buffer for managing active UDP request abort handles.
 ///
 /// The `ActiveRequests` struct maintains a fixed-size ring buffer of abort
@@ -36,10 +36,16 @@ impl Drop for ActiveRequests {
 impl ActiveRequests {
     /// Inserts an abort handle for a UDP request processor task.
     ///
-    /// If the buffer is full, this method attempts to make space by:
+    /// If the buffer is full, this method traverses handles from oldest to newest. It:
     ///
-    /// 1. Removing finished tasks.
-    /// 2. Removing the oldest unfinished task if no finished tasks are found.
+    /// 1. Removes completed handles encountered before the first still-active handle.
+    /// 2. Gives that oldest active task one scheduler yield to finish.
+    /// 3. Aborts that task when no earlier completed handle created capacity; otherwise it
+    ///    continues the bounded traversal. It retains at most one subsequently encountered active
+    ///    handle for re-entry.
+    ///
+    /// It intentionally does not scan all newer handles before selecting this eviction. See the
+    /// module ADR for the request-hot-path performance rationale.
     ///
     /// Returns `true` if a task was removed, `false` otherwise.
     ///
@@ -66,28 +72,22 @@ impl ActiveRequests {
                 let mut old_task_aborted = false;
 
                 for old_task in self.rb.pop_iter() {
-                    // We found a finished tasks ... increase the counter and
-                    // continue searching for more and ...
+                    // A completed task before the first still-active task frees capacity.
                     if old_task.is_finished() {
                         finished += 1;
                         continue;
                     }
 
-                    // The current removed tasks is not finished.
-
-                    // Give it a second chance to finish.
+                    // Give the oldest still-active task one opportunity to finish.
                     tokio::task::yield_now().await;
 
-                    // Recheck if it finished ... increase the counter and
-                    // continue searching for more and ...
+                    // If it completed while yielded, it also frees capacity.
                     if old_task.is_finished() {
                         finished += 1;
                         continue;
                     }
 
-                    // At this point we found a "definitive" unfinished task.
-
-                    // Log unfinished task.
+                    // This is the first task that remains active after yielding.
                     tracing::debug!(
                         target: UDP_TRACKER_LOG_TARGET,
                         local_addr,
@@ -95,8 +95,7 @@ impl ActiveRequests {
                         "Udp::run_udp_server::loop (got unfinished task)"
                     );
 
-                    // If no finished tasks were found, abort the current
-                    // unfinished task.
+                    // No older completed task created capacity, so evict this oldest active task.
                     if finished == 0 {
                         // We make place aborting this task.
                         old_task.abort();
@@ -111,11 +110,7 @@ impl ActiveRequests {
                         break;
                     }
 
-                    // At this point we found at least one finished task, but the
-                    // current one is not finished and it was removed from the
-                    // buffer, so we need to re-insert in in the buffer.
-
-                    // Save the unfinished task for re-entry.
+                    // Earlier completed tasks created capacity; retain this active task for re-entry.
                     unfinished_task = Some(old_task);
                 }
 
@@ -124,18 +119,14 @@ impl ActiveRequests {
                 // buffer to be full again. That means the "expects" should
                 // never happen.
 
-                // Reinsert the unfinished task if any.
+                // Reinsert the active task that followed at least one completed task, if any.
                 if let Some(h) = unfinished_task {
                     self.rb.try_push(h).expect("it was previously inserted");
                 }
 
                 // Insert the new task.
                 //
-                // Notice that space has already been made for this new task in
-                // the buffer. One or many old task have already been finished
-                // or yielded, freeing space in the buffer. Or a single
-                // unfinished task has been aborted to make space for this new
-                // task.
+                // Earlier completed tasks, or one oldest active task eviction, made capacity.
                 if !new_task.is_finished() {
                     self.rb.try_push(new_task).expect("it should have space for this new task.");
                 }

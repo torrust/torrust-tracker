@@ -11,6 +11,7 @@ semantic-links:
     - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/ISSUE.md
     - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/coverage-evidence.md
     - docs/issues/open/2149-1347-add-focused-udp-server-package-tests/performance-evidence.md
+    - packages/udp-server/docs/adrs/20260907152707_keep_oldest_first_udp_request_eviction.md
     - docs/issues/drafts/1488-si-15-define-udp-active-request-policy/ISSUE.md
 ---
 
@@ -23,9 +24,9 @@ to `packages/udp-server/src/server/request_buffer.rs`.
 
 ### Strengths to preserve
 
-1. `ActiveRequests::force_push` documents the current normal-operation overload policy: retain up
-   to 50 processor-task abort handles, remove finished work first, otherwise abort the oldest
-   observed unfinished task to make space.
+1. `ActiveRequests::force_push` has a documented normal-operation overload policy: retain up to
+  50 processor-task abort handles, reclaim completed handles encountered before the first
+  still-active task, otherwise abort that oldest active task to make space.
 2. `Drop` explicitly aborts remaining unfinished processor tasks, avoiding detached work when the
    normal-operation buffer is released.
 3. The implementation retains single-owner buffer invariants and does not use shared mutable
@@ -44,17 +45,17 @@ publish `UdpRequestAborted`. A regression could emit an abort fact without an ev
 **Opportunity.** Create a pending task with a deterministic synchronization channel, insert its
 abort handle, and assert no eviction occurred while preserving the production buffer behavior.
 
-#### P2 — Finished-handle reclamation is unprotected
+#### P2 — Oldest-first bounded eviction is unprotected
 
-**Problem.** The full-buffer path must discard finished handles before aborting active work, but no
-test distinguishes this priority.
+**Problem.** The full-buffer path has no test for its intentional oldest-first decision: it does
+not scan newer completed handles before evicting the first oldest task that remains active after a
+scheduler yield.
 
-**Why it matters.** Aborting live requests when completed handles already make space would violate
-the documented normal-operation overload policy.
+**Why it matters.** A future refactor could mistake this intentional performance trade-off for a
+bug, introduce a slower full-buffer scan, or change the eviction/event result without review.
 
-**Opportunity.** Fill the buffer with completed task handles plus one pending task. Insert another
-pending handle and assert the existing pending task was not aborted while completed handles were
-removed.
+**Opportunity.** Fill the buffer with one oldest pending task followed by completed handles. Insert
+a new pending task and assert that the oldest task is evicted and `force_push` reports the eviction.
 
 #### P3 — Active-task eviction is unprotected
 
@@ -108,16 +109,23 @@ mapped commit point—before beginning the next item.
   [performance-evidence.md](../performance-evidence.md) before changing the hot path.
 - **Done when:** the test names the capacity-available causal state and proves no task was evicted.
 
-### R2 — Cover finished-handle reclamation before eviction
+### R2 — Assess and document oldest-first bounded eviction
 
-- **Status:** TODO
+- **Status:** IN_PROGRESS
 - **Priority:** High impact / medium effort
 - **Addresses:** P2, P5
-- **Change:** Add a deterministic full-buffer test with completed handles and one pending handle;
-  insert a new pending handle and assert the existing pending task remains active.
-- **Guardrails:** Synchronize completed and pending task state explicitly. Do not use sleeps,
-  retries, or assumptions about a task's scheduling order beyond the test's own synchronization.
-- **Done when:** the test proves finished work is reclaimed before a live task is aborted.
+- **Change:** Use the deterministic oldest-pending/later-completed scenario to assess the current
+  behavior. Document its historical performance rationale in a package-local ADR and clarify the
+  production comments. Defer a behavior test until the ADR and source wording receive maintainer
+  review.
+- **Guardrails:** Do not reinterpret the historic comment as a full-buffer reclamation guarantee.
+  Do not change hot-path production behavior or add a benchmark for documentation-only work.
+- **Decision:** The current oldest-first behavior is intentional. PR #921 documents the starvation
+  concern and one-yield opportunity; PR #922 records that a refactor separating removal from
+  cleaning all completed tasks regressed performance. The initial failing R2 test asserted the
+  rejected full-scan alternative, not a production defect.
+- **Done when:** the ADR and production comment clarify the policy, and the unsupported bug handoff
+  and failing test evidence are removed.
 
 ### R3 — Cover active-task eviction at capacity
 
@@ -165,7 +173,7 @@ mapped commit point—before beginning the next item.
 - [x] Maintainer approved implementation of R1.
 - [x] R1 implemented, reviewed, validated, and committed.
 - [x] Maintainer approved implementation of R2.
-- [ ] R2 implemented, reviewed, validated, and committed.
+- [ ] R2 assessment, ADR, and source-comment clarification committed independently.
 - [ ] Maintainer approved implementation of R3.
 - [ ] R3 implemented, reviewed, validated, and committed.
 - [ ] Maintainer approved implementation of R4.
@@ -193,6 +201,14 @@ mapped commit point—before beginning the next item.
   handle followed by completed handles, then prove whether finished work is reclaimed before active
   work is aborted. If the expected contract fails, stop before changing the hot-path implementation
   and follow the issue performance-baseline policy.
+- 2026-09-07 15:12 UTC - GitHub Copilot - The initial R2 test assumed that all later completed
+  handles must be reclaimed before an oldest pending task can be evicted. The test failed as
+  expected against the implementation.
+- 2026-09-07 15:27 UTC - GitHub Copilot - History review found this is intentional, not a defect:
+  PR #921 documents the starvation/fairness rationale, and PR #922 records a rejected
+  finished-handle-cleanup refactor due to a performance regression. A package-local ADR and source
+  comment clarification record this decision. The unsupported bug handoff and failing test snapshot
+  were removed.
 
 ### Validation Evidence
 
@@ -200,7 +216,7 @@ mapped commit point—before beginning the next item.
 | ------------------ | ------ | ----------------------------------------------------------- |
 | Plan documentation | TODO   | Run Markdown and spelling checks after plan review changes. |
 | R1                 | DONE   | `cargo fmt --all -- --check`, focused request-buffer test, and `git diff --check` passed. |
-| R2                 | TODO   | Focused request-buffer test, formatting, and diff checks.   |
+| R2                 | IN_PROGRESS | History review, package ADR, and production comments record the intentional oldest-first bounded policy; the independent documentation commit is pending. |
 | R3                 | TODO   | Focused request-buffer test, formatting, and diff checks.   |
 | R4                 | TODO   | Focused request-buffer test, formatting, and diff checks.   |
 | R5                 | TODO   | Test or documented no-change decision.                      |
@@ -215,6 +231,8 @@ mapped commit point—before beginning the next item.
   owns that policy.
 - Do not test `Launcher` event publication here; this plan protects only the buffer's own contract.
 - Do not add sleeps, polling loops, unbounded awaits, or log assertions.
+- Do not replace the oldest-first policy with a full-buffer scan without a separately approved
+  production change, direct benchmark evidence, and ADR review.
 
 ## Validation Per Approved Increment
 
