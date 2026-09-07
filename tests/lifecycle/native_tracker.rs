@@ -1,8 +1,9 @@
 //! Native child-process fixture for tracker executable lifecycle scenarios.
 //!
-//! It owns one isolated tracker workspace, drains the child's output while the
-//! tracker runs, discovers the health endpoint from its startup log, and reaps
-//! the child even when graceful shutdown exceeds the scenario deadline.
+//! It owns one isolated tracker workspace, supplies its configuration through
+//! the executable's CLI, drains the child's output while the tracker runs,
+//! discovers the health endpoint from its startup log, and reaps the child
+//! even when graceful shutdown exceeds the scenario deadline.
 
 use std::net::SocketAddr;
 use std::os::unix::process::ExitStatusExt;
@@ -63,21 +64,27 @@ pub struct NativeTracker {
 struct NativeTrackerWorkspace {
     _workspace: tempfile::TempDir,
     configuration_path: PathBuf,
+    storage_path: PathBuf,
 }
 
 impl NativeTrackerWorkspace {
     fn new() -> Self {
         let workspace = tempfile::tempdir().expect("create temporary tracker workspace");
-        let configuration_path = write_configuration(&workspace);
+        let (configuration_path, storage_path) = write_configuration(&workspace);
 
         Self {
             _workspace: workspace,
             configuration_path,
+            storage_path,
         }
     }
 
     fn configuration_path(&self) -> &std::path::Path {
         &self.configuration_path
+    }
+
+    fn storage_path(&self) -> &std::path::Path {
+        &self.storage_path
     }
 }
 
@@ -163,21 +170,10 @@ enum HealthCheckProbeError {
 }
 
 impl NativeTracker {
-    /// Spawns the Cargo-built tracker binary with an isolated port-zero configuration.
+    /// Spawns the Cargo-built tracker binary with an isolated CLI configuration and port-zero bindings.
     pub fn start() -> Self {
         let workspace = NativeTrackerWorkspace::new();
-        let mut command = Command::new(tracker_binary());
-        command
-            // Configure only this child process. `Command::env` does not
-            // mutate the test process environment, so parallel fixtures each
-            // retain their own temporary configuration path.
-            .env("TORRUST_TRACKER_CONFIG_TOML_PATH", workspace.configuration_path())
-            .env_remove("TORRUST_TRACKER_CONFIG_TOML")
-            // `shutdown` reaps normal and expected-error paths. This kills a
-            // panicking test's child so it cannot outlive its temporary workspace.
-            .kill_on_drop(true)
-            .stdout(Stdio::piped())
-            .stderr(Stdio::piped());
+        let mut command = tracker_command(workspace.configuration_path());
 
         let mut child = command.spawn().expect("spawn Cargo-built tracker executable");
         let stdout = child.stdout.take().expect("tracker child stdout is piped");
@@ -216,6 +212,30 @@ impl NativeTracker {
         self.child_ref()
             .id()
             .ok_or_else(|| Self::failure_message_sync("tracker child exited before signal delivery"))
+    }
+
+    /// Returns the health-check address discovered while waiting for readiness.
+    pub fn health_check_address(&self) -> Result<SocketAddr, String> {
+        self.health_check_client
+            .as_ref()
+            .map(|client| client.address)
+            .ok_or_else(|| Self::failure_message_sync("tracker health-check address is unavailable before readiness"))
+    }
+
+    /// Returns the CLI-selected configuration path owned by this fixture.
+    pub fn configuration_path(&self) -> Result<PathBuf, String> {
+        self.workspace
+            .as_ref()
+            .map(|workspace| workspace.configuration_path().to_path_buf())
+            .ok_or_else(|| Self::failure_message_sync("tracker workspace is unavailable after shutdown"))
+    }
+
+    /// Returns the isolated storage path owned by this fixture.
+    pub fn storage_path(&self) -> Result<PathBuf, String> {
+        self.workspace
+            .as_ref()
+            .map(|workspace| workspace.storage_path().to_path_buf())
+            .ok_or_else(|| Self::failure_message_sync("tracker workspace is unavailable after shutdown"))
     }
 
     /// Waits for a graceful exit, force-killing and reaping only after its deadline.
@@ -414,13 +434,32 @@ fn parse_health_check_address(line: &str) -> Option<SocketAddr> {
     address.parse().ok()
 }
 
-fn write_configuration(workspace: &tempfile::TempDir) -> PathBuf {
+fn write_configuration(workspace: &tempfile::TempDir) -> (PathBuf, PathBuf) {
     let storage_path = workspace.path().join("storage");
     std::fs::create_dir_all(&storage_path).expect("create tracker storage directory");
     let config_path = workspace.path().join("tracker.toml");
     let config = CONFIGURATION.replace("{STORAGE_PATH}", &storage_path.to_string_lossy());
     std::fs::write(&config_path, config).expect("write tracker configuration");
-    config_path
+    (config_path, storage_path)
+}
+
+/// Builds a child command whose base configuration is selected only by the CLI.
+///
+/// The two legacy base-source variables are explicitly removed so inherited
+/// environment state cannot override or obscure a fixture's CLI-selected file.
+fn tracker_command(configuration_path: &std::path::Path) -> Command {
+    let mut command = Command::new(tracker_binary());
+    command
+        .arg("--config-toml-path")
+        .arg(configuration_path)
+        .env_remove("TORRUST_TRACKER_CONFIG_TOML")
+        .env_remove("TORRUST_TRACKER_CONFIG_TOML_PATH")
+        // `shutdown` reaps normal and expected-error paths. This kills a
+        // panicking test's child so it cannot outlive its temporary workspace.
+        .kill_on_drop(true)
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped());
+    command
 }
 
 fn tracker_binary() -> PathBuf {
@@ -431,16 +470,43 @@ fn tracker_binary() -> PathBuf {
 
 #[cfg(test)]
 mod tests {
-    use super::{parse_health_check_address, write_configuration};
+    use std::ffi::OsStr;
+    use std::path::Path;
+
+    use super::{parse_health_check_address, tracker_command, write_configuration};
+
+    #[test]
+    fn it_should_select_its_configuration_with_the_cli_and_remove_legacy_base_source_variables() {
+        // Arrange
+        let configuration_path = Path::new("/workspace/tracker.toml");
+
+        // Act
+        let command = tracker_command(configuration_path);
+        let arguments = command.as_std().get_args().collect::<Vec<_>>();
+        let environment = command.as_std().get_envs().collect::<Vec<_>>();
+
+        // Assert
+        assert_eq!(
+            arguments,
+            vec![OsStr::new("--config-toml-path"), configuration_path.as_os_str()]
+        );
+        for variable in ["TORRUST_TRACKER_CONFIG_TOML", "TORRUST_TRACKER_CONFIG_TOML_PATH"] {
+            assert!(
+                environment
+                    .iter()
+                    .any(|(name, value)| *name == OsStr::new(variable) && value.is_none()),
+                "command should remove inherited {variable}"
+            );
+        }
+    }
 
     #[test]
     fn it_should_write_a_port_zero_configuration_with_workspace_local_sqlite_storage() {
         // Arrange
         let workspace = tempfile::tempdir().expect("create temporary tracker workspace");
-        let storage_path = workspace.path().join("storage");
 
         // Act
-        let config_path = write_configuration(&workspace);
+        let (config_path, storage_path) = write_configuration(&workspace);
         let configuration = std::fs::read_to_string(&config_path).expect("read tracker configuration");
 
         // Assert
