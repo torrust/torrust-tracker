@@ -8,7 +8,7 @@ github-issue: 2151
 spec-path: docs/issues/open/2151-add-tracker-config-path-argument/ISSUE.md
 branch: "2151-add-tracker-config-path-argument"
 related-pr: 2153
-last-updated-utc: 2026-09-07 15:55
+last-updated-utc: 2026-09-07 16:30
 semantic-links:
   skill-links:
     - create-issue
@@ -310,7 +310,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T6  | DONE   | Preserve overrides and defaults    | Existing explicit-file coverage proves a per-value override wins. Added table-driven tests that each mandatory field still fails before Rust defaults, and that an explicit file containing only mandatory fields receives the unchanged optional defaults. `cargo test --package torrust-tracker-configuration --lib` passed (129 tests); Rust formatting and Clippy passed.                                                                                 |
 | T7  | DONE   | Add executable-boundary coverage   | Native fixtures now pass `--config-toml-path`, remove both inherited base-source variables, and retain per-child CLI-path/storage identities. The lifecycle target starts two children concurrently, verifies distinct PIDs, health addresses, CLI paths, and storage paths, then sends SIGTERM and reaps both. `cargo test --test lifecycle-signals` passed (8 tests); tracker tests, Rust formatting, and Clippy passed.                                    |
 | T8  | DONE   | Update documentation               | Updated the README, configuration crate/root API docs, container, benchmarking, profiling, source/test guidance, and local-run skill. CLI selection is primary for the main binary; environment examples remain valid. Documentation states final precedence, strict CLI-path behavior, profiling's environment-only boundary, and native fixture isolation. Skill-link validation, Markdown lint, spell checking, and diff checks passed.                    |
-| T9  | TODO   | Validate and record evidence       | Run checks, execute manual scenarios, re-review every acceptance criterion against evidence, and complete the implementation completion review.                                                                                                                                                                                                                                                                                                               |
+| T9  | DONE   | Validate and record evidence       | The mandatory pre-commit gate, configuration (129), tracker, and lifecycle-signals (8) tests passed. Manual M1-M5 release-binary scenarios passed with `.tmp/issue-2151-manual/` evidence, including unreadable-file and no-listener checks. Acceptance criteria were independently reviewed and all passed. No separate retrospective was warranted.                                                                                                         |
 
 Each task must be independently buildable and tested. T1 is a
 behavior-preserving safety-net change; T2 is a configuration refactor; T3-T4
@@ -324,13 +324,13 @@ are the deployable feature; later tasks extend verification and documentation.
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue [#2151](https://github.com/torrust/torrust-tracker/issues/2151) created and issue number added to this spec
 - [x] Spec-only PR [#2153](https://github.com/torrust/torrust-tracker/pull/2153) merged into `develop` before implementation
-- [ ] First passing CLI-only vertical slice reviewed for ownership, cleanup, deadline, and ADR decisions
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
-- [ ] Manual verification scenarios executed and recorded (status + evidence)
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
-- [ ] Reviewer validated acceptance criteria and updated checkboxes
+- [x] First passing CLI-only vertical slice reviewed for ownership, cleanup, deadline, and ADR decisions
+- [x] Implementation completed
+- [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
+- [x] Manual verification scenarios executed and recorded (status + evidence)
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Evidence-based implementation completion review recorded: progress log states why no retrospective was needed
+- [x] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
@@ -352,33 +352,35 @@ are the deployable feature; later tasks extend verification and documentation.
 - 2026-09-07 15:20 UTC - GitHub Copilot - Completed T6. The existing explicit-file override test remains the regression for per-value override precedence. Added table-driven explicit-file coverage proving each mandatory option is still required before defaults are joined, plus a minimal explicit-file test proving optional values receive the unchanged Rust defaults. `cargo test --package torrust-tracker-configuration --lib` passed (129 tests); `linter rustfmt`, `linter clippy`, and `git diff --check` passed.
 - 2026-09-07 15:40 UTC - GitHub Copilot - Completed T7. Native executable fixtures now pass the isolated configuration through `--config-toml-path` and explicitly remove both inherited base-source environment variables. A concurrent child-process scenario starts two port-zero trackers, waits within each fixture deadline, asserts distinct PIDs, health-check addresses, CLI paths, and workspace-local storage paths, then sends SIGTERM and reaps both children. `cargo test --test lifecycle-signals` passed (8 tests); `cargo test --package torrust-tracker`, Rust formatting, Clippy, and diff checks passed.
 - 2026-09-07 15:55 UTC - GitHub Copilot - Completed T8. Updated the README, container and benchmarking commands, profiling clarification, root/configuration API docs, source and test guidance, and `run-tracker-locally` skill. The CLI path is documented as the main-binary primary source; environment examples retain their compatible behavior. `validate-skill-links.sh`, `linter markdown`, `linter cspell`, and `git diff --check` passed.
+- 2026-09-07 16:30 UTC - GitHub Copilot - Completed T9 verification. The pre-commit gate passed; configuration tests passed (129), tracker tests passed, and lifecycle-signals passed (8). The release binary was built and manual scenarios M1-M5 passed with disposable logs under `.tmp/issue-2151-manual/`. The first verifier run used a 10-second shutdown wait and force-killed an otherwise healthy M1 child; it was corrected to use the fixture-aligned 30-second deadline, then all scenarios passed. No implementation deviation or reusable design discovery warrants a separate retrospective.
+- 2026-09-07 16:50 UTC - Task Reviewer / GitHub Copilot - Independent acceptance review initially found M4 had no unreadable regular-file scenario, M1 incorrectly named a debug binary, T9 remained TODO, and CLI-source remediation text named only environment sources. Added a mode-`000` unreadable regular-file scenario and retained its command, file mode, exit status, and `Permission denied` result in `.tmp/issue-2151-manual/summary.txt`; added no-listener bind probes for malformed and parent-only relative sources; corrected M1 evidence; marked T9 done; and updated the guidance with a regression test. The release-binary manual suite and focused tracker tests passed after correction; all acceptance criteria now pass.
 
 ## Acceptance Criteria
 
-- [ ] AC1: `torrust-tracker` accepts `-c` and `--config-toml-path <PATH>`.
-- [ ] AC2: Every row of the base-source selection table in "Proposed Source
+- [x] AC1: `torrust-tracker` accepts `-c` and `--config-toml-path <PATH>`.
+- [x] AC2: Every row of the base-source selection table in "Proposed Source
       Precedence" is covered by a test and behaves as specified; in particular
       a CLI path selects its file even when both `TORRUST_TRACKER_CONFIG_TOML`
       and `TORRUST_TRACKER_CONFIG_TOML_PATH` are set, and the ignored base
       sources are not merged.
-- [ ] AC3: `TORRUST_TRACKER_CONFIG_OVERRIDE_*` values still override matching
+- [x] AC3: `TORRUST_TRACKER_CONFIG_OVERRIDE_*` values still override matching
       values in a CLI-selected file; without the option, the four unchanged
       rows (env TOML content beats env path beats default) behave exactly as
       before.
-- [ ] AC4: Required values remain mandatory before Rust defaults are applied;
+- [x] AC4: Required values remain mandatory before Rust defaults are applied;
       optional defaults remain unchanged.
-- [ ] AC5: An absent or supplied empty CLI value is a descriptive usage error
+- [x] AC5: An absent or supplied empty CLI value is a descriptive usage error
       with exit code `2` and no listener. A missing, unreadable, non-file, or
       TOML-invalid CLI path produces an error naming the offending path with
       exit code `1` and no listener. A relative CLI path is never resolved
       through parent-directory search.
-- [ ] AC6: Two tracker child processes can run concurrently with distinct CLI
+- [x] AC6: Two tracker child processes can run concurrently with distinct CLI
       paths, isolated storage, and port-zero bindings without configuration-source
       environment variables.
-- [ ] `linter all` exits with code `0` and relevant tests pass.
-- [ ] Manual verification scenarios are executed and documented (status + evidence).
-- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior.
-- [ ] Documentation states final interfaces and precedence without contradicting implementation.
+- [x] `linter all` exits with code `0` and relevant tests pass.
+- [x] Manual verification scenarios are executed and documented (status + evidence).
+- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior.
+- [x] Documentation states final interfaces and precedence without contradicting implementation.
 
 ## Verification Plan
 
@@ -398,28 +400,28 @@ are the deployable feature; later tasks extend verification and documentation.
 
 Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
-| ID  | Scenario                        | Command/Steps                                                                                                                                                                                                                                                   | Expected Result                                                                                                                                                                        | Status | Evidence        |
-| --- | ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | --------------- |
-| M1  | CLI path only                   | Start the release binary with `--config-toml-path` pointing to an isolated valid file and no configuration-source variables.                                                                                                                                    | The tracker reads that file, starts configured services, and exits cleanly on SIGTERM.                                                                                                 | TODO   | To be recorded. |
-| M2  | CLI source precedence           | Prepare three valid configurations that differ only in `health_check_api.bind_address` (three distinct fixed loopback ports). Supply one via `TORRUST_TRACKER_CONFIG_TOML`, one via `TORRUST_TRACKER_CONFIG_TOML_PATH`, and the third via `--config-toml-path`. | The `HEALTH CHECK API: Started on:` log line reports the port from the CLI-selected file.                                                                                              | TODO   | To be recorded. |
-| M3  | Per-value override              | Start with `--config-toml-path` and a distinguishable `TORRUST_TRACKER_CONFIG_OVERRIDE_*` value.                                                                                                                                                                | The override wins for its path while other values come from the file.                                                                                                                  | TODO   | To be recorded. |
-| M4  | Invalid CLI source              | Start with (a) `--config-toml-path` with no value, (b) an empty supplied path, (c) a nonexistent absolute file, (d) a directory or unreadable file, (e) malformed TOML, and (f) a relative filename that exists only in a parent directory of the CWD.          | Cases (a-b) exit `2` with a descriptive usage error. Cases (c-f) exit `1` with an error naming the path; case (f) must not load the parent-directory file. No case creates a listener. | TODO   | To be recorded. |
-| M5  | Parallel child isolation (Unix) | Launch two binaries concurrently with different CLI paths, isolated storage, and port-zero configuration.                                                                                                                                                       | Both start with their own configuration; neither reads or overwrites the other's source.                                                                                               | TODO   | To be recorded. |
+| ID  | Scenario                        | Command/Steps                                                                                                                                                                                                                                                       | Expected Result                                                                                                                                                                        | Status | Evidence                                                                                                                                                       |
+| --- | ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| M1  | CLI path only                   | Start the release binary with `--config-toml-path` pointing to an isolated valid file and no configuration-source variables.                                                                                                                                        | The tracker reads that file, starts configured services, and exits cleanly on SIGTERM.                                                                                                 | DONE   | `.tmp/issue-2151-manual/m1.log`; health endpoint `127.0.0.1:43151`, exit `0`.                                                                                  |
+| M2  | CLI source precedence           | Prepare three valid configurations that differ only in `health_check_api.bind_address` (three distinct fixed loopback ports). Supply one via `TORRUST_TRACKER_CONFIG_TOML`, one via `TORRUST_TRACKER_CONFIG_TOML_PATH`, and the third via `--config-toml-path`.     | The `HEALTH CHECK API: Started on:` log line reports the port from the CLI-selected file.                                                                                              | DONE   | `.tmp/issue-2151-manual/m2.log`; CLI port `43152` selected over env ports `43153` and `43154`, exit `0`.                                                       |
+| M3  | Per-value override              | Start with `--config-toml-path` and a distinguishable `TORRUST_TRACKER_CONFIG_OVERRIDE_*` value.                                                                                                                                                                    | The override wins for its path while other values come from the file.                                                                                                                  | DONE   | `.tmp/issue-2151-manual/m3.log`; override port `43156` selected over CLI file port `43155`, exit `0`.                                                          |
+| M4  | Invalid CLI source              | Start with (a) `--config-toml-path` with no value, (b) an empty supplied path, (c) a nonexistent absolute file, (d) a directory, (e) an unreadable regular file, (f) malformed TOML, and (g) a relative filename that exists only in a parent directory of the CWD. | Cases (a-b) exit `2` with a descriptive usage error. Cases (c-g) exit `1` with an error naming the path; case (g) must not load the parent-directory file. No case creates a listener. | DONE   | `.tmp/issue-2151-manual/m4-*.log`; cases (a-b) exit `2`, cases (c-g) exit `1`, including `m4-unreadable.log` (`Permission denied`); no-listener probes passed. |
+| M5  | Parallel child isolation (Unix) | Launch two binaries concurrently with different CLI paths, isolated storage, and port-zero configuration.                                                                                                                                                           | Both start with their own configuration; neither reads or overwrites the other's source.                                                                                               | DONE   | `.tmp/issue-2151-manual/m5-first.log`, `m5-second.log`; distinct discovered port-zero health endpoints, workspace-local SQLite paths, and clean SIGTERM exits. |
 
 Manual verification is mandatory. Record a failing scenario and its diagnosis in
 the progress log before proceeding.
 
 ### Acceptance Verification
 
-| AC ID                     | Status (`TODO`/`DONE`) | Evidence                                                |
-| ------------------------- | ---------------------- | ------------------------------------------------------- |
-| AC1                       | TODO                   | Parser and executable tests.                            |
-| AC2                       | TODO                   | Configuration/bootstrap tests and M2.                   |
-| AC3                       | TODO                   | Configuration tests and M3.                             |
-| AC4                       | TODO                   | Configuration tests.                                    |
-| AC5                       | TODO                   | Executable test and M4.                                 |
-| AC6                       | TODO                   | Native child-process test and M5.                       |
-| Quality and documentation | TODO                   | Linter, relevant test output, and documentation review. |
+| AC ID                     | Status (`TODO`/`DONE`) | Evidence                                                                               |
+| ------------------------- | ---------------------- | -------------------------------------------------------------------------------------- |
+| AC1                       | DONE                   | Parser tests; `cargo test --package torrust-tracker --bin torrust-tracker` (7 passed). |
+| AC2                       | DONE                   | T1/T4 configuration and bootstrap tests; M2.                                           |
+| AC3                       | DONE                   | T1/T2/T6 configuration tests; M3.                                                      |
+| AC4                       | DONE                   | T6 table-driven mandatory/default tests (129 configuration tests passed).              |
+| AC5                       | DONE                   | Parser/configuration tests; M4 release-binary command, mode, exit, diagnostic, and no-listener evidence in `.tmp/issue-2151-manual/summary.txt`. |
+| AC6                       | DONE                   | `cargo test --test lifecycle-signals` (8 passed); M5.                                  |
+| Quality and documentation | DONE                   | Pre-commit gate, test runs, T8 review, and manual evidence.                            |
 
 ## Risks and Trade-offs
 
@@ -442,11 +444,13 @@ After implementation, compare the result with this specification and record
 invalidated assumptions, material design changes, unexpected validation findings,
 and reusable lessons.
 
-- Retrospective: `Not yet assessed`
+- Retrospective: `Not needed`
 - If needed, create `implementation-retrospective.md` from
   `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in this issue directory.
-- If no retrospective is needed, add a concise progress-log entry explaining why
-  the work had no material discovery.
+- No separate retrospective was needed: the implementation followed the source
+  precedence and ownership decisions in this specification. The only discovery
+  was a disposable verifier deadline mismatch, corrected without changing the
+  product design; the progress log records it.
 
 ## References
 

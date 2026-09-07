@@ -11,7 +11,7 @@ use torrust_tracker_configuration::v3_0_0::Configuration;
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
     #[error(
-        "Could not prepare the tracker configuration source. Check `TORRUST_TRACKER_CONFIG_TOML_PATH` or `TORRUST_TRACKER_CONFIG_TOML`: {source}"
+        "Could not prepare the tracker configuration source. Check `--config-toml-path`, `TORRUST_TRACKER_CONFIG_TOML_PATH`, or `TORRUST_TRACKER_CONFIG_TOML`: {source}"
     )]
     Source { source: torrust_tracker_configuration::Error },
 
@@ -162,6 +162,23 @@ mod tests {
 
         // Assert
         assert!(matches!(result, Err(Error::Load { .. })));
+    }
+
+    #[test]
+    fn it_should_name_the_cli_argument_when_an_explicit_configuration_source_cannot_be_prepared() {
+        // Arrange
+        let _environment_lock = ENVIRONMENT_LOCK.lock().expect("lock environment access");
+        let missing_path = tempfile::tempdir()
+            .expect("create temporary directory")
+            .path()
+            .join("missing-tracker-config.toml");
+
+        // Act
+        let error = initialize_configuration(Some(missing_path))
+            .expect_err("missing explicit configuration source should fail before loading");
+
+        // Assert
+        assert!(error.to_string().contains("--config-toml-path"));
     }
 
     #[test]
