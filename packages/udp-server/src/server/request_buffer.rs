@@ -145,3 +145,30 @@ impl ActiveRequests {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use tokio::sync::oneshot;
+
+    use super::ActiveRequests;
+
+    #[tokio::test]
+    async fn it_should_not_evict_a_pending_task_when_the_buffer_has_available_capacity() {
+        // Arrange
+        let (task_completion_sender, task_completion_receiver) = oneshot::channel::<()>();
+        let task = tokio::spawn(async move {
+            drop(task_completion_receiver.await);
+        });
+        let mut active_requests = ActiveRequests::default();
+
+        // Act
+        let task_was_evicted = active_requests.force_push(task.abort_handle(), "127.0.0.1:6969").await;
+
+        // Assert
+        assert!(!task_was_evicted);
+        assert!(!task.is_finished());
+
+        drop(task_completion_sender);
+        task.await.expect("pending task should complete after test cleanup");
+    }
+}
