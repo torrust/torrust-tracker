@@ -268,4 +268,30 @@ mod tests {
         scenario.assert_oldest_task_was_aborted().await;
         scenario.abort_and_join_retained_tasks().await;
     }
+
+    #[tokio::test]
+    async fn it_should_abort_a_pending_task_when_the_request_buffer_is_dropped() {
+        // Arrange
+        let completed_task = tokio::spawn(async {});
+        let completed_task_abort_handle = completed_task.abort_handle();
+        completed_task
+            .await
+            .expect("completed task should finish before the buffer is dropped");
+
+        let pending_task = PendingTask::new();
+        let mut active_requests = ActiveRequests::default();
+        active_requests
+            .rb
+            .try_push(completed_task_abort_handle)
+            .expect("an empty request buffer should accept the completed task");
+        let pending_task = pending_task.insert_into(&mut active_requests);
+
+        // Act
+        drop(active_requests);
+
+        // Assert
+        pending_task
+            .assert_was_aborted("pending task should be aborted when the request buffer is dropped")
+            .await;
+    }
 }
