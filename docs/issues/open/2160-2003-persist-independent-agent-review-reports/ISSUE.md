@@ -8,7 +8,7 @@ github-issue: 2160
 spec-path: docs/issues/open/2160-2003-persist-independent-agent-review-reports/ISSUE.md
 branch: "2160-2003-persist-independent-agent-review-reports"
 related-pr: null
-last-updated-utc: 2026-09-07 16:30
+last-updated-utc: 2026-09-07 16:45
 semantic-links:
   skill-links:
     - create-issue
@@ -66,12 +66,12 @@ must be updated before reviewers can own these reports.
 
 ## Implementation Plan
 
-| ID  | Status      | Task                                | Notes / Expected Output                                                                                 |
-| --- | ----------- | ----------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| T1  | DONE        | Define report template              | Added `docs/templates/AGENT-REVIEW-REPORTS.md` with frontmatter and append-only entries.                |
-| T2  | DONE        | Update reviewer tools and workflows | Added shared persistence guidance; Complexity Auditor now declares `edit`.                              |
-| T3  | DONE        | Update issue-spec template          | Added review-report checkpoint and artifact guidance.                                                   |
-| T4  | IN_PROGRESS | Test sequential reporting           | Complexity Auditor and Task Reviewer entries appended; commit, PR Reviewer entry, and re-review remain. |
+| ID  | Status      | Task                                | Notes / Expected Output                                                                                          |
+| --- | ----------- | ----------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| T1  | DONE        | Define report template              | Added `docs/templates/AGENT-REVIEW-REPORTS.md` with frontmatter and append-only entries.                         |
+| T2  | DONE        | Update reviewer tools and workflows | Added shared persistence guidance; Complexity Auditor now declares `edit`.                                       |
+| T3  | DONE        | Update issue-spec template          | Added review-report checkpoint and artifact guidance.                                                            |
+| T4  | IN_PROGRESS | Test sequential reporting           | PR Reviewer appended the third entry and found a commit-ownership gap; correction, commit, and re-review remain. |
 
 ## Progress Tracking
 
@@ -91,6 +91,8 @@ must be updated before reviewers can own these reports.
 - 2026-09-07 16:20 UTC - GitHub Copilot - Added the reusable template, reviewer persistence contract, caller/Committer handoff, indexes, and structural contract test - Pending validation
 - 2026-09-07 16:22 UTC - Complexity Auditor and Task Reviewer - Appended sequential independent-review entries. Task Reviewer found the expected remaining evidence steps: a Committer-handled report update, PR Reviewer invocation, and completion assessment - `agent-review-reports.md`
 - 2026-09-07 16:30 UTC - GitHub Copilot - Recorded prior PR #2163 Copilot tracker evidence for the separate-tracker boundary; preparing the reviewed change set for the Committer, after which a PR Reviewer can append the third entry - Pending commit
+- 2026-09-07 16:40 UTC - PR Reviewer - Appended the third sequential report entry and requested explicit caller-to-Committer ownership constraints for Task Reviewer and PR Reviewer, with matching contract-test coverage - PR #2166
+- 2026-09-07 16:45 UTC - GitHub Copilot - Added the required retrospective for the material commit-authority correction; preparing the correction and appended review records for a Committer-handled evidence commit - Pending commit
 
 ## Acceptance Criteria
 
@@ -112,10 +114,10 @@ must be updated before reviewers can own these reports.
 
 ### Manual Verification Scenarios
 
-| ID  | Scenario                 | Command/Steps                                                | Expected Result                                                                      | Status      | Evidence                                                                                                                                    |
-| --- | ------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------------------------------ | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| M1  | Sequential reviews       | Invoke all three reviewers against a folder-style test spec. | One report file contains complete chronological entries from each reviewer.          | IN_PROGRESS | Complexity Auditor and Task Reviewer entries appended; PR Reviewer invocation awaits an actual PR.                                          |
-| M2  | PR report commit         | Perform a PR-review report update on a disposable branch.    | The report update is committed through Committer before final completion.            | IN_PROGRESS | Current persisted reports will be included in the reviewed change set committed through Committer.                                          |
+| ID  | Scenario                 | Command/Steps                                                | Expected Result                                                                      | Status      | Evidence                                                                                                                                     |
+| --- | ------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------------------------------ | ----------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| M1  | Sequential reviews       | Invoke all three reviewers against a folder-style test spec. | One report file contains complete chronological entries from each reviewer.          | IN_PROGRESS | Complexity Auditor and Task Reviewer entries appended; PR Reviewer invocation awaits an actual PR.                                           |
+| M2  | PR report commit         | Perform a PR-review report update on a disposable branch.    | The report update is committed through Committer before final completion.            | IN_PROGRESS | Current persisted reports will be included in the reviewed change set committed through Committer.                                           |
 | M3  | Copilot tracker boundary | Inspect a completed representative Copilot review tracker.   | Its tracker remains in `docs/copilot-pr-reviews/` rather than the issue spec folder. | DONE        | `docs/copilot-pr-reviews/pr-2163-copilot-suggestions.md` records an addressed, replied-to, resolved PR thread outside the issue spec folder. |
 
 ### Acceptance Verification
@@ -141,10 +143,7 @@ After implementation, record material report-persistence or reviewer-workflow di
 issue-local `implementation-retrospective.md`. If none occurred, add a concise progress-log entry
 explaining why no retrospective is needed.
 
-- Assessment: The need to open a PR before exercising the PR Reviewer is an expected consequence
-  of its declared prerequisite, not a material design change. The first failed Task Reviewer entry
-  is retained as the intended evidence of the verification loop; no separate retrospective is
-  needed at this stage.
+- Retrospective: `implementation-retrospective.md`
 
 ## References
 

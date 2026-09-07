@@ -37,3 +37,29 @@ semantic-links:
 - Follow-up actions:
   - Implementer: execute and record M1, M2, and M3; use Committer for the M2 report-update commit; then request a new Task Reviewer review.
   - Implementer: add a concise implementation-completion progress-log entry explaining why no retrospective was needed, or create `implementation-retrospective.md` for material discoveries.
+
+### 2026-09-07 16:34 UTC - PR Reviewer
+
+- Invocation scope: PR #2166 against `develop`: reviewer profiles, report template, issue-template guidance, orchestration documentation, and `contrib/dev-tools/checks/tests/test-agent-review-report-contract.sh`.
+- Inputs: Folder-style issue specification, complete existing report, PR metadata and patch, PR commit signature, current CI status, and the focused structural contract test.
+- Evidence: PR #2166 has a Conventional Commit title, targets `develop`, links `Closes #2160`, and has a valid signed commit. The focused contract test passed. Docs Lint passed; eleven CI checks remain pending or in progress. The test verifies edit permissions and shared persistence text, but only verifies Committer exclusion for Complexity Auditor.
+- Findings:
+  - Blocker: The Task Reviewer and PR Reviewer profiles have `agent` access but do not explicitly require the caller to route their report-only changes through Committer or prohibit them from invoking Committer themselves. The structural contract test does not assert this boundary for either profile, so the required no-circular-commit-authority policy is not enforced across all independent reviewers.
+  - Suggestion: Re-run the focused contract test after adding assertions for the Task Reviewer and PR Reviewer commit-authority boundary.
+  - Nit: None.
+- Verdict: REQUEST_CHANGES
+- Follow-up actions:
+  - Implementer: state and test the caller-to-Committer ownership rule for Task Reviewer and PR Reviewer, then request a new PR review after the resulting PR update is committed through Committer and required CI checks complete.
+
+### 2026-09-07 16:38 UTC - Task Reviewer
+
+- Invocation scope: Correction review for issue #2160 after the PR Reviewer `REQUEST_CHANGES` report; AC5, M2, and the implementation-completion assessment, plus the corrected Task Reviewer/PR Reviewer commit-authority contract.
+- Inputs: Folder-style issue specification, complete existing report history, current branch diff and commit history, Task Reviewer and PR Reviewer profiles, contract-test script, and post-correction linter and workspace doctest results.
+- Evidence: `bash contrib/dev-tools/checks/tests/test-agent-review-report-contract.sh`, `linter all`, and `cargo test --doc --workspace` passed. The Task Reviewer and PR Reviewer profiles now explicitly prohibit invoking Committer or self-committing reports and require the caller to request Committer for branch or PR worktree changes; the contract test asserts that rule for both. `HEAD` (`92632f18`) is GPG-signed but predates the uncommitted PR Reviewer report and correction, so it cannot evidence M2's required Committer-handled PR-report update.
+- Findings:
+  - PENDING: The correction resolves the previous PR Reviewer blocker in the documented and tested policy, but AC5 and M2 remain unverified. The PR Reviewer report and its correction are still uncommitted; no evidence shows a PR-review report update committed through Committer.
+  - FAIL: The implementation-completion assessment incorrectly treats the correction as immaterial. The added caller-to-Committer policy for two reviewer profiles and expanded contract-test coverage are a material reusable workflow change, so `implementation-retrospective.md` is required and is absent.
+- Verdict: REVIEW FAILED
+- Follow-up actions:
+  - Caller: request Committer to create the required GPG-signed commit containing the PR Reviewer report, corrected profiles, contract test, and this report; then provide the resulting commit evidence for M2.
+  - Implementer: create `implementation-retrospective.md` documenting the commit-authority correction and its contract-test coverage; then request another Task Reviewer review.

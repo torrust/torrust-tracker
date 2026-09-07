@@ -40,6 +40,10 @@ severity-classified findings, checklist gaps, merge-readiness verdict, and follo
 This record is independent of Copilot review-thread handling and must not replace the Copilot
 Suggestions Handler tracker.
 
+Do not invoke Committer or self-commit a report. When the report changes a branch or pull-request
+worktree, the caller requests Committer to include it in the coherent reviewed change set or create
+a focused documentation commit.
+
 When no folder-style issue specification is supplied, including direct diff/package reviews and
 legacy standalone specifications, do not create, migrate, or modify an issue-local report. State in
 the caller-facing result: `Issue-local report skipped: no folder-style issue specification was supplied.`

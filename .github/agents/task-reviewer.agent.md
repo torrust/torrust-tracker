@@ -68,6 +68,11 @@ matrix, repository-convention findings, completion-review finding, issue-spec up
 result, and remediation for every `FAIL` or `PENDING` item. Do not commit the report or ask
 Committer to proceed when the result is `REVIEW FAILED`.
 
+Do not invoke Committer or self-commit a report. When the report changes a branch or pull-request
+worktree, the caller requests Committer to include it in the coherent reviewed change set or create
+a focused documentation commit. A persisted failed review may be committed as durable evidence;
+that commit does not authorize feature-code work before remediation.
+
 When no folder-style issue specification is supplied, including direct diff/package reviews and
 legacy standalone specifications, do not create, migrate, or modify an issue-local report. State in
 the caller-facing result: `Issue-local report skipped: no folder-style issue specification was supplied.`

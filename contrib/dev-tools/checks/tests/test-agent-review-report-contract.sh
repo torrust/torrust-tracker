@@ -74,9 +74,15 @@ it_should_define_the_shared_create_append_or_skip_policy() {
     done
 }
 
-it_should_keep_commit_authority_outside_the_complexity_auditor() {
+it_should_keep_commit_authority_with_the_caller_and_committer() {
+    local reviewer
+
     require_absent_text "${COMPLEXITY_AUDITOR}" 'git commit'
     require_text "${COMPLEXITY_AUDITOR}" 'Do not alter the reviewed implementation or invoke Committer.'
+
+    for reviewer in "${TASK_REVIEWER}" "${PR_REVIEWER}"; do
+        require_wrapped_text "${reviewer}" 'Do not invoke Committer or self-commit a report. When the report changes a branch or pull-request worktree, the caller requests Committer to include it in the coherent reviewed change set or create a focused documentation commit.'
+    done
 }
 
 it_should_keep_copilot_tracking_separate_from_independent_reviews() {
@@ -87,7 +93,7 @@ it_should_keep_copilot_tracking_separate_from_independent_reviews() {
 it_should_define_the_reusable_report_template_contract
 it_should_grant_each_independent_reviewer_edit_access
 it_should_define_the_shared_create_append_or_skip_policy
-it_should_keep_commit_authority_outside_the_complexity_auditor
+it_should_keep_commit_authority_with_the_caller_and_committer
 it_should_keep_copilot_tracking_separate_from_independent_reviews
 
 printf 'All agent review report contract tests passed.\n'
