@@ -107,6 +107,11 @@ explicitly during implementation:
 
 - YAML frontmatter metadata (including `status`, `epic`, `github-issue`, `spec-path`, and `last-updated-utc`)
 - `Implementation Plan` (or `Subissues` for epics) with explicit status values
+- For Task, Bug, and Feature specifications, `Commit Points` that map each code-, test-,
+  configuration-, or documentation-changing implementation task to a small, coherent,
+  independently reviewable commit opportunity. EPICs track delivery through `Subissues`; their
+  implementation commit points belong in the linked subissue specifications. Record justified
+  no-change decisions in task evidence without creating an empty commit.
 - `Architectural Decisions`, linking relevant ADRs and listing any ADRs expected from the work
 - `Progress Tracking` (`Workflow Checkpoints` and first `Progress Log` entry)
 - `Acceptance Criteria` and `Acceptance Verification`
