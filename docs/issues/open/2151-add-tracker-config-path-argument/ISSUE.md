@@ -8,11 +8,12 @@ github-issue: 2151
 spec-path: docs/issues/open/2151-add-tracker-config-path-argument/ISSUE.md
 branch: "2151-add-tracker-config-path-argument"
 related-pr: 2153
-last-updated-utc: 2026-09-07 16:30
+last-updated-utc: 2026-09-07 17:00
 semantic-links:
   skill-links:
     - create-issue
   related-artifacts:
+    - docs/issues/open/2151-add-tracker-config-path-argument/manual-verification.py
     - src/main.rs
     - src/app.rs
     - src/bootstrap/app.rs
@@ -352,8 +353,9 @@ are the deployable feature; later tasks extend verification and documentation.
 - 2026-09-07 15:20 UTC - GitHub Copilot - Completed T6. The existing explicit-file override test remains the regression for per-value override precedence. Added table-driven explicit-file coverage proving each mandatory option is still required before defaults are joined, plus a minimal explicit-file test proving optional values receive the unchanged Rust defaults. `cargo test --package torrust-tracker-configuration --lib` passed (129 tests); `linter rustfmt`, `linter clippy`, and `git diff --check` passed.
 - 2026-09-07 15:40 UTC - GitHub Copilot - Completed T7. Native executable fixtures now pass the isolated configuration through `--config-toml-path` and explicitly remove both inherited base-source environment variables. A concurrent child-process scenario starts two port-zero trackers, waits within each fixture deadline, asserts distinct PIDs, health-check addresses, CLI paths, and workspace-local storage paths, then sends SIGTERM and reaps both children. `cargo test --test lifecycle-signals` passed (8 tests); `cargo test --package torrust-tracker`, Rust formatting, Clippy, and diff checks passed.
 - 2026-09-07 15:55 UTC - GitHub Copilot - Completed T8. Updated the README, container and benchmarking commands, profiling clarification, root/configuration API docs, source and test guidance, and `run-tracker-locally` skill. The CLI path is documented as the main-binary primary source; environment examples retain their compatible behavior. `validate-skill-links.sh`, `linter markdown`, `linter cspell`, and `git diff --check` passed.
-- 2026-09-07 16:30 UTC - GitHub Copilot - Completed T9 verification. The pre-commit gate passed; configuration tests passed (129), tracker tests passed, and lifecycle-signals passed (8). The release binary was built and manual scenarios M1-M5 passed with disposable logs under `.tmp/issue-2151-manual/`. The first verifier run used a 10-second shutdown wait and force-killed an otherwise healthy M1 child; it was corrected to use the fixture-aligned 30-second deadline, then all scenarios passed. No implementation deviation or reusable design discovery warrants a separate retrospective.
+- 2026-09-07 16:30 UTC - GitHub Copilot - Completed T9 verification. The pre-commit gate passed; configuration tests passed (129), tracker tests passed, and lifecycle-signals passed (8). The release binary was built and manual scenarios M1-M5 passed with logs under `.tmp/issue-2151-manual/`. The first verifier run used a 10-second shutdown wait and force-killed an otherwise healthy M1 child; it was corrected to use the fixture-aligned 30-second deadline, then all scenarios passed. No implementation deviation or reusable design discovery warrants a separate retrospective.
 - 2026-09-07 16:50 UTC - Task Reviewer / GitHub Copilot - Independent acceptance review initially found M4 had no unreadable regular-file scenario, M1 incorrectly named a debug binary, T9 remained TODO, and CLI-source remediation text named only environment sources. Added a mode-`000` unreadable regular-file scenario and retained its command, file mode, exit status, and `Permission denied` result in `.tmp/issue-2151-manual/summary.txt`; added no-listener bind probes for malformed and parent-only relative sources; corrected M1 evidence; marked T9 done; and updated the guidance with a regression test. The release-binary manual suite and focused tracker tests passed after correction; all acceptance criteria now pass.
+- 2026-09-07 17:00 UTC - Maintainer / GitHub Copilot - Preserved the reusable release-binary manual verifier as `manual-verification.py` in this issue directory. It creates only ignored runtime configurations and logs beneath `.tmp/issue-2151-manual/`, keeping source and reproducible verification procedure together without tracking transient evidence.
 
 ## Acceptance Criteria
 
@@ -413,15 +415,15 @@ the progress log before proceeding.
 
 ### Acceptance Verification
 
-| AC ID                     | Status (`TODO`/`DONE`) | Evidence                                                                               |
-| ------------------------- | ---------------------- | -------------------------------------------------------------------------------------- |
-| AC1                       | DONE                   | Parser tests; `cargo test --package torrust-tracker --bin torrust-tracker` (7 passed). |
-| AC2                       | DONE                   | T1/T4 configuration and bootstrap tests; M2.                                           |
-| AC3                       | DONE                   | T1/T2/T6 configuration tests; M3.                                                      |
-| AC4                       | DONE                   | T6 table-driven mandatory/default tests (129 configuration tests passed).              |
+| AC ID                     | Status (`TODO`/`DONE`) | Evidence                                                                                                                                         |
+| ------------------------- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| AC1                       | DONE                   | Parser tests; `cargo test --package torrust-tracker --bin torrust-tracker` (7 passed).                                                           |
+| AC2                       | DONE                   | T1/T4 configuration and bootstrap tests; M2.                                                                                                     |
+| AC3                       | DONE                   | T1/T2/T6 configuration tests; M3.                                                                                                                |
+| AC4                       | DONE                   | T6 table-driven mandatory/default tests (129 configuration tests passed).                                                                        |
 | AC5                       | DONE                   | Parser/configuration tests; M4 release-binary command, mode, exit, diagnostic, and no-listener evidence in `.tmp/issue-2151-manual/summary.txt`. |
-| AC6                       | DONE                   | `cargo test --test lifecycle-signals` (8 passed); M5.                                  |
-| Quality and documentation | DONE                   | Pre-commit gate, test runs, T8 review, and manual evidence.                            |
+| AC6                       | DONE                   | `cargo test --test lifecycle-signals` (8 passed); M5.                                                                                            |
+| Quality and documentation | DONE                   | Pre-commit gate, test runs, T8 review, and manual evidence.                                                                                      |
 
 ## Risks and Trade-offs
 
@@ -437,6 +439,21 @@ the progress log before proceeding.
 | CLI behavior differs across direct binary, `cargo run`, containers, and service managers.                | Test the built executable; retain and document environment interfaces.                                                       |
 | A refactor exposes complete TOML content in diagnostics.                                                 | Preserve redaction behavior and add no secret-bearing logs without an explicit security decision.                            |
 | The issue grows into general configuration redesign.                                                     | Limit it to a file-path argument and source-selection plumbing.                                                              |
+
+## Reusable Manual Verifier
+
+[`manual-verification.py`](manual-verification.py) reproduces M1-M5 with the
+release `torrust-tracker` binary. Build the binary first, then run the script
+from the repository root:
+
+```text
+cargo build --release --bin torrust-tracker
+python3 docs/issues/open/2151-add-tracker-config-path-argument/manual-verification.py
+```
+
+The script creates configurations, SQLite storage, process logs, and its concise
+summary only under `.tmp/issue-2151-manual/`. Those runtime artifacts are
+deliberately git-ignored; the script is the durable, reviewed evidence procedure.
 
 ## Implementation Completion Review
 
