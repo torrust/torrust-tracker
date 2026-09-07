@@ -214,7 +214,7 @@ production code (not test-only) and belongs in the client library alongside
 - `packages/udp-server/src/server/launcher.rs` — uses
   `torrust_tracker_client::udp::client::check`
 - `packages/tracker-client/src/udp/client.rs` — defines the `check` function
-- [workspace-coupling-report-2026-06-10.md](../open/1669-overhaul-packages/workspace-coupling-report-2026-06-10.md)
+- [workspace-coupling-report-2026-06-10.md](workspace-coupling-report-2026-06-10.md)
   — "Acceptable thin dependencies" section
 
 ---
@@ -272,7 +272,7 @@ is inherent, not accidental.
 - `packages/http-core/src/container.rs` — wraps `TrackerCoreContainer`
 - `packages/http-core/src/services/announce.rs` — delegates to `tracker-core`
 - `packages/http-core/src/services/scrape.rs` — delegates to `tracker-core`
-- [workspace-coupling-report-2026-06-10.md](../open/1669-overhaul-packages/workspace-coupling-report-2026-06-10.md)
+- [workspace-coupling-report-2026-06-10.md](workspace-coupling-report-2026-06-10.md)
   — "Cluster dependencies" section
 
 ---
@@ -320,7 +320,7 @@ as test infrastructure.
 - `packages/axum-rest-api-server/src/environment.rs` — target for relocation
 - `packages/axum-http-server/src/environment.rs` — target for relocation
 - `packages/udp-server/src/environment.rs` — target for relocation
-- [workspace-coupling-report-2026-06-10.md](../open/1669-overhaul-packages/workspace-coupling-report-2026-06-10.md)
+- [workspace-coupling-report-2026-06-10.md](workspace-coupling-report-2026-06-10.md)
   — "Cluster dependencies" section
 
 ---
@@ -448,6 +448,8 @@ naming predictable and removes the need to look up what folder a crate lives in.
 
 ---
 
+## DEC-08 — Keep `TslConfig` in tracker configuration and keep `torrust-tracker-axum-server` tracker-scoped
+
 **Date**: 2026-06-03
 **Status**: Adopted
 
@@ -491,7 +493,7 @@ tracker-scoped, and avoid creating a new package just for the TLS DTO.
 
 ### Supporting artifacts
 
-- [Issue #1860 spec](../../open/1860-1669-evaluate-tslconfig-move-to-axum-server/ISSUE.md)
+- [Issue #1860 spec](../../closed/1860-1669-evaluate-tslconfig-move-to-axum-server/ISSUE.md)
 - `packages/axum-server/README.md`
 - `packages/configuration/src/lib.rs`
 
@@ -551,7 +553,7 @@ via the REST API (see DEC-07 trade-offs).
 
 ### Supporting artifacts
 
-- [Issue #1861 spec](../../open/1861-1669-narrow-envcontainer-initialize-config-slices/ISSUE.md)
+- [Issue #1861 spec](../../closed/1861-1669-narrow-envcontainer-initialize-config-slices/ISSUE.md)
 - `packages/udp-server/src/environment.rs`
 - `packages/axum-http-server/src/environment.rs`
 - `packages/udp-server/examples/udp_only_public_tracker.rs` — now compiles without
@@ -643,7 +645,7 @@ and separately move the three domain primitives that are misplaced in it to
 
 ### Supporting artifacts
 
-- [Issue #1856 spec](../../open/1856-1669-analyse-configuration-package-coupling/ISSUE.md) —
+- [Issue #1856 spec](../../closed/1856-1669-analyse-configuration-package-coupling/ISSUE.md) —
   full analysis including item-level coupling table, split-boundary table, two Cargo
   examples, and versioning implications for all four alternatives.
 - `packages/udp-server/examples/udp_only_public_tracker.rs` — UDP-only coupling demo.
@@ -685,7 +687,7 @@ protocol-to-domain mapping only in boundary layers (`http-core` and/or
 ### Supporting artifacts
 
 - [EPIC.md](EPIC.md) Layer guardrails and Active Subissues
-- [1669-14-decouple-http-protocol-from-tracker-primitives.md](../../drafts/1669-14-decouple-http-protocol-from-tracker-primitives.md)
+- [issue #1669](https://github.com/torrust/torrust-tracker/issues/1669)
 
 ---
 

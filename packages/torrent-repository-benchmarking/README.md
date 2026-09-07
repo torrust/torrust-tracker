@@ -29,4 +29,4 @@ add_one_torrent/RwLockStdMutexStd
 
 ## License
 
-The project is licensed under the terms of the [GNU AFFERO GENERAL PUBLIC LICENSE](./LICENSE).
+The project is licensed under the terms of the [GNU AFFERO GENERAL PUBLIC LICENSE](../../LICENSE).

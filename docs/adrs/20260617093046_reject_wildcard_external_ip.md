@@ -108,4 +108,4 @@ format stays compatible across the tracker's major version bump.
 ## References
 
 - [Issue #1507](https://github.com/torrust/torrust-tracker/issues/1507) — Original bug report
-- [Issue spec](../../docs/issues/open/1507-review-localhost-peer-ip.md) — Implementation specification
+- [Issue #1507](https://github.com/torrust/torrust-tracker/issues/1507) — Implementation specification

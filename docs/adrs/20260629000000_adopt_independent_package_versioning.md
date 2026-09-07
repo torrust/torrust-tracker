@@ -174,6 +174,6 @@ for the full rationale.
 ## References
 
 - Issue: [#1926](https://github.com/torrust/torrust-tracker/issues/1926) — Define package versioning strategy
-- Issue spec: [`docs/issues/open/1926-1669-si-32-define-package-versioning-strategy.md`](../../docs/issues/open/1926-1669-si-32-define-package-versioning-strategy.md)
+- Issue #1926: <https://github.com/torrust/torrust-tracker/issues/1926>
 - EPIC: [#1669](https://github.com/torrust/torrust-tracker/issues/1669) — Overhaul: Packages
 - ADR: [20260527175600](20260527175600_keep_protocol_and_domain_types_decoupled.md) — related ADR on protocol/domain decoupling

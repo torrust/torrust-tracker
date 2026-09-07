@@ -199,6 +199,6 @@ Some files include explicit copyright notices and/or license notices.
 
 For prosperity, versions of Torrust BitTorrent Tracker Client that are older than five years are automatically granted the [MIT-0][MIT_0] license in addition to the existing [LGPL-3.0-only][LGPL_3_0] license.
 
-[LGPL_3_0]: ./LICENSE
-[MIT_0]: ./docs/licenses/LICENSE-MIT_0
+[LGPL_3_0]: ../../LICENSE
+[MIT_0]: ../../docs/licenses/LICENSE-MIT_0
 [FSF]: https://www.fsf.org/

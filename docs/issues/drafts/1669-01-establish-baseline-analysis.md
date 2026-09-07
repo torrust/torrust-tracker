@@ -19,7 +19,6 @@ semantic-links:
     - docs/issues/open/1669-overhaul-packages/EPIC.md
 ---
 
-
 # Issue #[To be assigned] - Establish baseline: workspace coupling analysis and README audit
 
 ## Goal
@@ -212,7 +211,7 @@ explicit "will not split" decision recorded in the coupling report observations.
 ## References
 
 - EPIC: [`docs/issues/open/1669-overhaul-packages/EPIC.md`](../open/1669-overhaul-packages/EPIC.md)
-- Coupling report (generated): [`docs/issues/open/1669-overhaul-packages/workspace-coupling-report.md`](../open/1669-overhaul-packages/workspace-coupling-report.md)
+- Coupling report (generated): [`workspace-coupling-report-2026-06-10.md`](../open/1669-overhaul-packages/workspace-coupling-report-2026-06-10.md)
 - README audit (generated): [`docs/issues/open/1669-overhaul-packages/readme-audit.md`](../open/1669-overhaul-packages/readme-audit.md)
 - Report generator: [`contrib/dev-tools/analysis/workspace-coupling/`](../../../contrib/dev-tools/analysis/workspace-coupling/)
 - Existing thin-dependency subissues: SI-02, SI-03

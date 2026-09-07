@@ -97,9 +97,9 @@ identify which repeated configuration block created that listener. Bootstrap mus
 configuration-instance identity, for example through an ordered collection aligned with the
 configuration entries. The runtime registry can then carry that identity with the final binding.
 
-This is tracked separately in Bug #2035: [fix duplicate port-zero tracker instance bootstrap](../../open/2035-fix-duplicate-port-zero-tracker-instance-bootstrap/ISSUE.md).
+This is tracked separately in Bug #2035: [fix duplicate port-zero tracker instance bootstrap](../../closed/2035-fix-duplicate-port-zero-tracker-instance-bootstrap/ISSUE.md).
 The external-crate registry work is tracked separately in
-Feature #2036: [add runtime service registry metadata](../../open/2036-add-runtime-service-registry-metadata/ISSUE.md).
+Feature #2036: [add runtime service registry metadata](../../closed/2036-add-runtime-service-registry-metadata/ISSUE.md).
 
 ## Service type constants
 

@@ -39,6 +39,6 @@ experiment. They are archived here after the experiment concluded.
 
 ## Links
 
-- Task 3a full results: [`docs/issues/open/1726-1840-workflow-performance-sccache/experiment-results-gha.md`](../../../../docs/issues/open/1726-1840-workflow-performance-sccache/experiment-results-gha.md)
-- Task 3b full results: [`docs/issues/open/1726-1840-workflow-performance-sccache/experiment-docker-gha-results.md`](../../../../docs/issues/open/1726-1840-workflow-performance-sccache/experiment-docker-gha-results.md)
-- Issue spec: [`docs/issues/open/1726-1840-workflow-performance-sccache/ISSUE.md`](../../../../docs/issues/open/1726-1840-workflow-performance-sccache/ISSUE.md)
+- Task 3a full results: [`experiment-results-gha.md`](../../../../../docs/issues/closed/1726-1840-workflow-performance-sccache/experiment-results-gha.md)
+- Task 3b full results: [`experiment-docker-gha-results.md`](../../../../../docs/issues/closed/1726-1840-workflow-performance-sccache/experiment-docker-gha-results.md)
+- Issue spec: [`ISSUE.md`](../../../../../docs/issues/closed/1726-1840-workflow-performance-sccache/ISSUE.md)

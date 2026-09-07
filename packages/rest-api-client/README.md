@@ -10,7 +10,7 @@ This program is free software: you can redistribute it and/or modify it under th
 
 This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the [GNU Lesser General Public License][LGPL_3_0] for more details.
 
-You should have received a copy of the *GNU Lesser General Public License* along with this program. If not, see <https://www.gnu.org/licenses/>.
+You should have received a copy of the _GNU Lesser General Public License_ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 Some files include explicit copyright notices and/or license notices.
 
@@ -18,6 +18,6 @@ Some files include explicit copyright notices and/or license notices.
 
 For prosperity, versions of Torrust BitTorrent Tracker Client that are older than five years are automatically granted the [MIT-0][MIT_0] license in addition to the existing [LGPL-3.0-only][LGPL_3_0] license.
 
-[LGPL_3_0]: ./LICENSE
-[MIT_0]: ./docs/licenses/LICENSE-MIT_0
+[LGPL_3_0]: ../../LICENSE
+[MIT_0]: ../../docs/licenses/LICENSE-MIT_0
 [FSF]: https://www.fsf.org/

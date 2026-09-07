@@ -113,7 +113,7 @@ RUSTFLAGS='-g' cargo build --release --bin profiling \
      ./target/release/profiling 60
 ```
 
-> NOTICE: You should make requests to the services you want to profile. For example, using the [UDP load test](./benchmarking.md#run-udp-load-test).
+> NOTICE: You should make requests to the services you want to profile. For example, using the [UDP load test](./benchmarking.md#e2e-udp-load-testing).
 
 After running the tracker with `<valgrind` it generates a file `callgrind.out`
 that you can open with `kcachegrind`.

@@ -100,7 +100,7 @@ roles, not generic network or server-library concepts.
 ## References
 
 - Issue #1419: [main-application integration tests](../issues/open/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md)
-- Feature #2036: [add runtime service registry metadata](../issues/open/2036-add-runtime-service-registry-metadata/ISSUE.md)
+- Feature #2036: [add runtime service registry metadata](../issues/closed/2036-add-runtime-service-registry-metadata/ISSUE.md)
 - [Investigation: runtime service registration and health check API](../issues/open/1419-allow-multiple-integration-tests-at-main-app-level/investigation-registar-and-health-check.md)
 - [App container](../../src/container.rs)
 - [Integration-test helpers](../../tests/common/mod.rs)

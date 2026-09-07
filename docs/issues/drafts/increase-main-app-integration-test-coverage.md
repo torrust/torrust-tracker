@@ -211,8 +211,8 @@ Suggested approach:
 ### Integration Test Infrastructure
 
 - [tests/AGENTS.md](../../../tests/AGENTS.md) - Guidelines for main-level vs package-level tests
-- [tests/stats.rs](../../../tests/stats.rs) - Integration test scaffolding
-- [tests/servers/api/contract/stats/](../../../tests/servers/api/contract/stats/) - Current global
+- [tests/stats.rs](https://github.com/torrust/torrust-tracker/blob/develop/tests/stats.rs) - Historical integration-test scaffolding
+- [tests/servers/api/contract/stats/](https://github.com/torrust/torrust-tracker/tree/develop/tests/servers/api/contract/stats) - Historical global
   stats test example
 
 ### Testing Strategy Documentation

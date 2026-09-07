@@ -125,4 +125,4 @@ metrics configuration.
 [1401]: https://github.com/torrust/torrust-tracker/issues/1401
 [2035]: https://github.com/torrust/torrust-tracker/issues/2035
 [2036]: https://github.com/torrust/torrust-tracker/issues/2036
-[2039]: ../issues/open/2039-normalize-per-instance-event-metrics-policy/ISSUE.md
+[2039]: ../issues/closed/2039-normalize-per-instance-event-metrics-policy/ISSUE.md
