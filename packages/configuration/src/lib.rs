@@ -12,6 +12,9 @@ pub mod validator;
 
 use std::collections::HashMap;
 use std::env;
+use std::fs;
+use std::io;
+use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
 use camino::Utf8PathBuf;
@@ -141,6 +144,14 @@ impl Version {
 pub struct Info {
     config_toml: Option<String>,
     config_toml_path: String,
+    explicit_config_toml_path: Option<PathBuf>,
+}
+
+/// The base source from which to load configuration data.
+pub(crate) enum ConfigTomlSource<'a> {
+    Inline(&'a str),
+    Explicit { path: &'a Path, contents: &'a str },
+    File(&'a str),
 }
 
 impl Info {
@@ -152,6 +163,42 @@ impl Info {
     ///
     #[allow(clippy::needless_pass_by_value)]
     pub fn new(default_config_toml_path: String) -> Result<Self, Error> {
+        Self::new_with_explicit_config_toml_path(default_config_toml_path, None)
+    }
+
+    /// Builds configuration information from an optional explicit configuration-file path.
+    ///
+    /// An explicit path takes priority over all environment base sources. Its contents are read
+    /// eagerly so the path is resolved exactly from the current working directory and no Figment
+    /// parent-directory lookup occurs.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::UnableToLoadExplicitConfigFile`] if the explicit path cannot be read as a
+    /// regular file.
+    #[allow(clippy::needless_pass_by_value)]
+    pub fn new_with_explicit_config_toml_path(
+        default_config_toml_path: String,
+        explicit_config_toml_path: Option<PathBuf>,
+    ) -> Result<Self, Error> {
+        match explicit_config_toml_path {
+            Some(path) => Self::from_explicit_file(default_config_toml_path, path),
+            None => Ok(Self::from_environment(default_config_toml_path)),
+        }
+    }
+
+    fn from_explicit_file(default_config_toml_path: String, path: PathBuf) -> Result<Self, Error> {
+        let config_toml = Self::read_explicit_config_toml_file(&path)?;
+        info!(path = ?path, "Loading extra configuration from explicit configuration file");
+
+        Ok(Self {
+            config_toml: Some(config_toml),
+            config_toml_path: default_config_toml_path,
+            explicit_config_toml_path: Some(path),
+        })
+    }
+
+    fn from_environment(default_config_toml_path: String) -> Self {
         let env_var_config_toml = ENV_VAR_CONFIG_TOML.to_string();
         let env_var_config_toml_path = ENV_VAR_CONFIG_TOML_PATH.to_string();
 
@@ -174,16 +221,65 @@ impl Info {
             },
         );
 
-        Ok(Self {
-            config_toml,
-            config_toml_path,
+        // The path is irrelevant when inline configuration is selected. Keeping it empty also
+        // distinguishes this legacy environment source from an explicit file source.
+        match config_toml {
+            None => Self {
+                config_toml: None,
+                config_toml_path,
+                explicit_config_toml_path: None,
+            },
+            Some(config_toml) => Self {
+                config_toml: Some(config_toml),
+                config_toml_path,
+                explicit_config_toml_path: None,
+            },
+        }
+    }
+
+    pub(crate) fn config_toml_source(&self) -> ConfigTomlSource<'_> {
+        match (&self.explicit_config_toml_path, &self.config_toml) {
+            (Some(path), Some(contents)) => ConfigTomlSource::Explicit { path, contents },
+            (None, Some(config_toml)) => ConfigTomlSource::Inline(config_toml),
+            (_, None) => ConfigTomlSource::File(&self.config_toml_path),
+        }
+    }
+
+    pub(crate) fn attach_explicit_config_path(&self, source: Error) -> Error {
+        match self.config_toml_source() {
+            ConfigTomlSource::Explicit { path, .. } => Error::UnableToProcessExplicitConfigFile {
+                path: path.to_path_buf(),
+                source: (Arc::new(source) as DynError).into(),
+            },
+            ConfigTomlSource::Inline(_) | ConfigTomlSource::File(_) => source,
+        }
+    }
+
+    fn read_explicit_config_toml_file(path: &PathBuf) -> Result<String, Error> {
+        let metadata = fs::metadata(path).map_err(|source| Error::UnableToLoadExplicitConfigFile {
+            path: path.clone(),
+            source,
+        })?;
+
+        if !metadata.is_file() {
+            return Err(Error::UnableToLoadExplicitConfigFile {
+                path: path.clone(),
+                source: io::Error::new(io::ErrorKind::InvalidInput, "path is not a regular file"),
+            });
+        }
+
+        fs::read_to_string(path).map_err(|source| Error::UnableToLoadExplicitConfigFile {
+            path: path.clone(),
+            source,
         })
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use std::io;
     use std::net::SocketAddr;
+    use std::path::PathBuf;
 
     use figment::Jail;
 
@@ -215,6 +311,12 @@ mod tests {
 
     fn load_configuration(default_path: &str) -> Result<Configuration, Error> {
         let info = Info::new(default_path.to_owned())?;
+
+        Configuration::load(&info)
+    }
+
+    fn load_configuration_with_explicit_path(path: PathBuf) -> Result<Configuration, Error> {
+        let info = Info::new_with_explicit_config_toml_path("default.toml".to_owned(), Some(path))?;
 
         Configuration::load(&info)
     }
@@ -369,6 +471,211 @@ mod tests {
             Ok(())
         });
     }
+
+    #[test]
+    #[allow(clippy::result_large_err)]
+    fn it_should_select_an_explicit_file_over_complete_toml_and_path_environment_sources() {
+        Jail::expect_with(|jail| {
+            // Arrange
+            jail.clear_env();
+            jail.create_file("explicit.toml", &configuration_with_health_check_port(41009))?;
+            jail.create_file("path.toml", &configuration_with_health_check_port(41010))?;
+            jail.set_env(ENV_VAR_CONFIG_TOML, configuration_with_health_check_port(41011));
+            jail.set_env(ENV_VAR_CONFIG_TOML_PATH, "path.toml");
+
+            // Act
+            let configuration =
+                load_configuration_with_explicit_path(PathBuf::from("explicit.toml")).expect("explicit source should load");
+
+            // Assert
+            assert_eq!(configuration.health_check_api.bind_address, health_check_address(41009));
+
+            Ok(())
+        });
+    }
+
+    #[test]
+    #[allow(clippy::result_large_err)]
+    fn it_should_select_an_explicit_file_when_no_environment_base_source_is_set() {
+        Jail::expect_with(|jail| {
+            // Arrange
+            jail.clear_env();
+            jail.create_file("explicit.toml", &configuration_with_health_check_port(41012))?;
+
+            // Act
+            let configuration =
+                load_configuration_with_explicit_path(PathBuf::from("explicit.toml")).expect("explicit source should load");
+
+            // Assert
+            assert_eq!(configuration.health_check_api.bind_address, health_check_address(41012));
+
+            Ok(())
+        });
+    }
+
+    #[test]
+    #[allow(clippy::result_large_err)]
+    fn it_should_apply_an_environment_override_to_an_explicit_file() {
+        Jail::expect_with(|jail| {
+            // Arrange
+            jail.clear_env();
+            jail.create_file("explicit.toml", &configuration_with_health_check_port(41013))?;
+            jail.set_env(
+                "TORRUST_TRACKER_CONFIG_OVERRIDE_HEALTH_CHECK_API__BIND_ADDRESS",
+                "127.0.0.1:41014",
+            );
+
+            // Act
+            let configuration =
+                load_configuration_with_explicit_path(PathBuf::from("explicit.toml")).expect("explicit source should load");
+
+            // Assert
+            assert_eq!(configuration.health_check_api.bind_address, health_check_address(41014));
+
+            Ok(())
+        });
+    }
+
+    #[test]
+    #[allow(clippy::result_large_err)]
+    fn it_should_return_a_path_specific_error_when_an_explicit_file_is_missing() {
+        Jail::expect_with(|jail| {
+            // Arrange
+            jail.clear_env();
+            let path = PathBuf::from("missing.toml");
+
+            // Act
+            let result = load_configuration_with_explicit_path(path.clone());
+
+            // Assert
+            assert!(matches!(
+                result,
+                Err(Error::UnableToLoadExplicitConfigFile {
+                    path: error_path,
+                    source,
+                }) if error_path == path && source.kind() == io::ErrorKind::NotFound
+            ));
+
+            Ok(())
+        });
+    }
+
+    #[test]
+    #[allow(clippy::result_large_err)]
+    fn it_should_return_a_path_specific_error_when_an_explicit_path_is_a_directory() {
+        Jail::expect_with(|jail| {
+            // Arrange
+            jail.clear_env();
+            jail.create_dir("configuration")?;
+            let path = PathBuf::from("configuration");
+
+            // Act
+            let result = load_configuration_with_explicit_path(path.clone());
+
+            // Assert
+            assert!(matches!(
+                result,
+                Err(Error::UnableToLoadExplicitConfigFile {
+                    path: error_path,
+                    source,
+                }) if error_path == path && source.kind() == io::ErrorKind::InvalidInput
+            ));
+
+            Ok(())
+        });
+    }
+
+    #[test]
+    #[allow(clippy::result_large_err)]
+    fn it_should_not_search_parent_directories_for_a_relative_explicit_path() {
+        Jail::expect_with(|jail| {
+            // Arrange
+            jail.clear_env();
+            jail.create_file("tracker.toml", &configuration_with_health_check_port(41015))?;
+            jail.create_dir("child")?;
+            jail.change_dir("child")?;
+            let path = PathBuf::from("tracker.toml");
+
+            // Act
+            let result = load_configuration_with_explicit_path(path.clone());
+
+            // Assert
+            assert!(matches!(result, Err(Error::UnableToLoadExplicitConfigFile { path: error_path, .. }) if error_path == path));
+
+            Ok(())
+        });
+    }
+
+    #[test]
+    #[allow(clippy::result_large_err)]
+    fn it_should_include_the_explicit_path_but_not_contents_when_explicit_toml_is_malformed() {
+        Jail::expect_with(|jail| {
+            // Arrange
+            jail.clear_env();
+            let path = PathBuf::from("malformed.toml");
+            let malformed_content = "sensitive-malformed-content = [";
+            jail.create_file(&path, malformed_content)?;
+
+            // Act
+            let error = load_configuration_with_explicit_path(path.clone()).expect_err("malformed explicit TOML should not load");
+
+            // Assert
+            let display = error.to_string();
+            assert!(display.contains(path.to_str().expect("test path should be UTF-8")));
+            assert!(!display.contains(malformed_content));
+
+            Ok(())
+        });
+    }
+
+    #[cfg(unix)]
+    #[test]
+    #[allow(clippy::result_large_err)]
+    fn it_should_preserve_a_non_utf8_explicit_path_when_explicit_toml_is_malformed() {
+        use std::os::unix::ffi::OsStringExt;
+
+        Jail::expect_with(|jail| {
+            // Arrange
+            jail.clear_env();
+            let path = PathBuf::from(std::ffi::OsString::from_vec(b"malformed-\xFF.toml".to_vec()));
+            let malformed_content = "sensitive-malformed-content = [";
+            jail.create_file(&path, malformed_content)?;
+
+            // Act
+            let error = load_configuration_with_explicit_path(path.clone()).expect_err("malformed explicit TOML should not load");
+
+            // Assert
+            assert!(
+                matches!(error, Error::UnableToProcessExplicitConfigFile { path: ref error_path, .. } if error_path == &path)
+            );
+            assert!(!error.to_string().contains(malformed_content));
+
+            Ok(())
+        });
+    }
+
+    #[test]
+    #[allow(clippy::result_large_err)]
+    fn it_should_load_the_content_read_when_the_explicit_file_changes_after_info_is_created() {
+        Jail::expect_with(|jail| {
+            // Arrange
+            jail.clear_env();
+            let path = PathBuf::from("explicit.toml");
+            let initially_read_content = configuration_with_health_check_port(41016);
+            jail.create_file(&path, &initially_read_content)?;
+            let info = Info::new_with_explicit_config_toml_path("default.toml".to_owned(), Some(path))
+                .expect("explicit configuration file should be readable");
+            jail.create_file("explicit.toml", &configuration_with_health_check_port(41017))?;
+
+            // Act
+            let configuration = Configuration::load(&info).expect("eagerly read explicit content should load");
+
+            // Assert
+            assert_eq!(configuration.health_check_api.bind_address, health_check_address(41016));
+
+            Ok(())
+        });
+    }
 }
 
 /// Announce policy for the `BitTorrent` announce cycle.
@@ -387,6 +694,26 @@ pub use torrust_tracker_primitives::AnnouncePolicy;
 /// Errors that can occur when loading the configuration.
 #[derive(Error, Debug)]
 pub enum Error {
+    /// Unable to read an explicitly selected configuration file.
+    #[error("Unable to load explicit configuration file `{path}`: {source}")]
+    UnableToLoadExplicitConfigFile {
+        /// The explicitly selected path that could not be read.
+        path: PathBuf,
+        /// The file-system failure.
+        #[source]
+        source: io::Error,
+    },
+
+    /// Unable to parse or extract an explicitly selected configuration file.
+    #[error("Unable to process explicit configuration file `{path}`: {source}")]
+    UnableToProcessExplicitConfigFile {
+        /// The explicitly selected path whose contents could not be processed.
+        path: PathBuf,
+        /// The preserved configuration diagnostic.
+        #[source]
+        source: LocatedError<'static, dyn std::error::Error + Send + Sync>,
+    },
+
     /// Unable to load the configuration from the environment variable.
     /// This error only occurs if there is no configuration file and the
     /// `TORRUST_TRACKER_CONFIG_TOML` environment variable is not set.

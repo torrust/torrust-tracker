@@ -252,7 +252,7 @@ use self::http_tracker::HttpTracker;
 use self::tracker_api::HttpApi;
 use self::udp_tracker::UdpTracker;
 use crate::validator::{SemanticValidationError, Validator};
-use crate::{Error, Info, Metadata, Version};
+use crate::{ConfigTomlSource, Error, Info, Metadata, Version};
 
 /// This configuration version
 const VERSION_2_0_0: &str = "2.0.0";
@@ -336,17 +336,17 @@ impl Configuration {
     ///
     /// Will return `Err` if the environment variable does not exist or has a bad configuration.
     pub fn load(info: &Info) -> Result<Self, Error> {
+        Self::load_from_source(info).map_err(|source| info.attach_explicit_config_path(source))
+    }
+
+    fn load_from_source(info: &Info) -> Result<Self, Error> {
         // Load configuration provided by the user, prioritizing env vars
-        let figment = info.config_toml.as_ref().map_or_else(
-            || {
-                Figment::from(Toml::file(&info.config_toml_path))
-                    .merge(Env::prefixed(CONFIG_OVERRIDE_PREFIX).split(CONFIG_OVERRIDE_SEPARATOR))
-            },
-            |config_toml| {
-                Figment::from(Toml::string(config_toml))
-                    .merge(Env::prefixed(CONFIG_OVERRIDE_PREFIX).split(CONFIG_OVERRIDE_SEPARATOR))
-            },
-        );
+        let figment = match info.config_toml_source() {
+            ConfigTomlSource::Inline(config_toml) => Figment::from(Toml::string(config_toml)),
+            ConfigTomlSource::Explicit { contents, .. } => Figment::from(Toml::string(contents)),
+            ConfigTomlSource::File(path) => Figment::from(Toml::file(path)),
+        }
+        .merge(Env::prefixed(CONFIG_OVERRIDE_PREFIX).split(CONFIG_OVERRIDE_SEPARATOR));
 
         // Make sure user has provided the mandatory options.
         Self::check_mandatory_options(&figment)?;
@@ -577,6 +577,7 @@ mod tests {
             let info = Info {
                 config_toml: None,
                 config_toml_path: "tracker.toml".to_string(),
+                explicit_config_toml_path: None,
             };
 
             let configuration = Configuration::load(&info).expect("Could not load configuration from file");
@@ -610,6 +611,7 @@ mod tests {
             let info = Info {
                 config_toml: Some(config_toml),
                 config_toml_path: String::new(),
+                explicit_config_toml_path: None,
             };
 
             let configuration = Configuration::load(&info).expect("Could not load configuration from file");
@@ -646,6 +648,7 @@ mod tests {
             let info = Info {
                 config_toml: Some(config_toml),
                 config_toml_path: String::new(),
+                explicit_config_toml_path: None,
             };
 
             let configuration = Configuration::load(&info).expect("Could not load configuration from file");
@@ -681,6 +684,7 @@ mod tests {
             let info = Info {
                 config_toml: None,
                 config_toml_path: "tracker.toml".to_string(),
+                explicit_config_toml_path: None,
             };
 
             let configuration = Configuration::load(&info).expect("Could not load configuration from file");
@@ -700,6 +704,7 @@ mod tests {
             let info = Info {
                 config_toml: Some(default_config_toml()),
                 config_toml_path: String::new(),
+                explicit_config_toml_path: None,
             };
 
             let configuration = Configuration::load(&info).expect("Could not load configuration from file");
@@ -804,6 +809,7 @@ mod tests {
                 let info = Info {
                     config_toml: None,
                     config_toml_path: "tracker.toml".to_string(),
+                    explicit_config_toml_path: None,
                 };
 
                 let config = Configuration::load(&info).expect("Should load config");
@@ -842,6 +848,7 @@ mod tests {
                 let info = Info {
                     config_toml: None,
                     config_toml_path: "tracker.toml".to_string(),
+                    explicit_config_toml_path: None,
                 };
 
                 let result = Configuration::load(&info);
@@ -877,6 +884,7 @@ mod tests {
                 let info = Info {
                     config_toml: None,
                     config_toml_path: "tracker.toml".to_string(),
+                    explicit_config_toml_path: None,
                 };
 
                 let result = Configuration::load(&info);
