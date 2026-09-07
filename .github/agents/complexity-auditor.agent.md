@@ -2,7 +2,7 @@
 name: Complexity Auditor
 description: Code quality auditor that checks cyclomatic and cognitive complexity of code changes. Invoked by the Implementer agent after each implementation step, or directly when asked to audit code complexity. Reports PASS, WARN, or FAIL for each changed function.
 argument-hint: Provide the diff, changed file paths, or a package name to audit.
-tools: [execute, read, search]
+tools: [execute, read, search, edit]
 user-invocable: true
 disable-model-invocation: false
 ---
@@ -66,6 +66,24 @@ Flag functions longer than 50 lines. Long functions are a proxy for missing deco
 4. Check nesting depth and function length.
 5. Report findings using the output format below.
 
+### Persisting Independent Review Reports
+
+When the caller supplies an existing folder-style issue specification path whose primary file is
+`ISSUE.md` or `EPIC.md`, persist this independent review before returning the caller-facing
+verdict. In that specification directory, create `agent-review-reports.md` from
+`docs/templates/AGENT-REVIEW-REPORTS.md` when absent; otherwise append one complete entry after
+the final existing report entry. Read the entire existing report before editing. Preserve all
+earlier entries unchanged and in chronological order; a correction is a new timestamped entry that
+names the earlier conclusion.
+
+If persistence applies, record every audited changed function, the Clippy command and result when
+run, warnings or failures, the terminal audit result, and the required simplification or next-step
+action. Do not alter the reviewed implementation or invoke Committer.
+
+When no folder-style issue specification is supplied, including direct diff/package reviews and
+legacy standalone specifications, do not create, migrate, or modify an issue-local report. State in
+the caller-facing result: `Issue-local report skipped: no folder-style issue specification was supplied.`
+
 ## Output Format
 
 For each audited function, report one line:
@@ -85,6 +103,7 @@ End the report with one of:
 ## Constraints
 
 - Do not rewrite or suggest rewrites of code yourself — report only, let the Implementer decide.
+- Do not alter the reviewed implementation or invoke Committer.
 - Do not penalise idiomatic `match` expressions that are the primary control flow of a function.
 - Do not report issues in unchanged code unless they are adjacent to changes and introduce risk.
 - Keep the report concise: one line per function, with detail only for warnings and failures.

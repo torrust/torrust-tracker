@@ -149,6 +149,11 @@ When all steps are complete and tests are passing, invoke the **Task Reviewer**
 5. Request the Task Reviewer to mark accepted items as done in the issue spec.
 6. Wait for the Task Reviewer report.
 
+When a folder-style issue specification was supplied, Task Reviewer also persists its independent
+review in `agent-review-reports.md`. Include that report and any verified-checkbox changes in the
+pending change set handed to Committer. A failed review report may be committed as focused evidence
+when durable review history is needed; it does not authorize feature-code commits before remediation.
+
 If the Task Reviewer reports gaps, pending tasks, failing behaviour, or
 repository-convention problems, address those issues first and request review again.
 

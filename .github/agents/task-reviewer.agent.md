@@ -53,6 +53,25 @@ pull request is opened.
    - `REVIEW PASSED` when all required criteria pass and no blocking issues remain.
    - `REVIEW FAILED` when any required criterion fails or blocking issues remain.
 
+### Persisting Independent Review Reports
+
+When the caller supplies an existing folder-style issue specification path whose primary file is
+`ISSUE.md` or `EPIC.md`, persist this independent review before returning the caller-facing
+verdict. In that specification directory, create `agent-review-reports.md` from
+`docs/templates/AGENT-REVIEW-REPORTS.md` when absent; otherwise append one complete entry after
+the final existing report entry. Read the entire existing report before editing. Preserve all
+earlier entries unchanged and in chronological order; a correction is a new timestamped entry that
+names the earlier conclusion.
+
+If persistence applies, update verified issue checkboxes first, then record the acceptance-criteria
+matrix, repository-convention findings, completion-review finding, issue-spec updates, overall
+result, and remediation for every `FAIL` or `PENDING` item. Do not commit the report or ask
+Committer to proceed when the result is `REVIEW FAILED`.
+
+When no folder-style issue specification is supplied, including direct diff/package reviews and
+legacy standalone specifications, do not create, migrate, or modify an issue-local report. State in
+the caller-facing result: `Issue-local report skipped: no folder-style issue specification was supplied.`
+
 ## Output Format
 
 Respond in this order:
