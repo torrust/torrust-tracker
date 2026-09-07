@@ -12,6 +12,15 @@ semantic-links:
 
 # Implementation Retrospective
 
+## Historical Context
+
+On 2026-07-20, the initial #1586 local specification was drafted and approved
+as a spec-only change. Implementation was deliberately deferred until the
+shutdown architecture for EPIC #1488 settled. The original nested-wrapper
+proposal was removed in favor of direct task ownership. After the EPIC adopted
+the supervised cancellation tree, the issue was re-scoped as roadmap sequence
+2 and this folder-style specification superseded the flat draft.
+
 ## Outcome
 
 Issue #1586 adopts direct named `JoinSet` ownership for application components.
@@ -55,5 +64,10 @@ exception.
 - Focused manager tests cover concurrent completion, failure, panic,
   cooperative cancellation, shared-deadline escalation, nested-child abort,
   and shutdown-controller abort.
+- Server-launcher tests preserve asynchronous startup readiness and
+  startup-failure behavior after moving direct component ownership to the
+  manager.
+- `src/AGENTS.md` was updated and re-reviewed for the direct `JoinSet` and
+  legacy compatibility ownership model.
 - [Verification evidence](verification.md) records the completed final command
   results, including the passing `linter all` gate.

@@ -99,6 +99,7 @@ the outer component is deadline-aborted.
 | `cargo fmt --all`                                                     | Pass   | Formatting applied before validation    |
 | `cargo test -p torrust-tracker-axum-health-check-api-server`          | Pass   | Health-check package tests              |
 | `cargo test -p torrust-tracker --lib bootstrap::jobs::manager::tests` | Pass   | Focused manager tests                   |
+| `cargo test -p torrust-tracker --lib console::profiling::tests`       | Pass   | Timed profiling shutdown regression     |
 | `cargo test -p torrust-tracker --lib`                                 | Pass   | Tracker library tests                   |
 | `cargo test -p torrust-tracker-http-core`                             | Pass   | HTTP listener package tests             |
 | `cargo test -p torrust-tracker-swarm-coordination-registry`           | Pass   | Registry listener package tests         |

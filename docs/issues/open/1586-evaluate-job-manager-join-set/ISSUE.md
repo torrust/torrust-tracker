@@ -49,6 +49,14 @@ settled. Its stated constraints are preserved here:
 - focused tests cover completion order, panic reporting, deadline expiry, and
   cancellation.
 
+## Historical Context
+
+The original #1586 proposal was intentionally deferred while EPIC #1488 and
+its shutdown architecture were reviewed in [draft PR #1993](https://github.com/torrust/torrust-tracker/pull/1993).
+The EPIC subsequently adopted the supervised cancellation-tree architecture
+and added #1586 at roadmap sequence 2. The historic flat specification was
+superseded by this folder-style specification after this re-scope.
+
 ## Relationship to the Selected Architecture
 
 The supervised cancellation tree is now selected. `JobManager` owns direct,
@@ -145,6 +153,8 @@ own nested children before it completes.
       deadline expiry, cancellation, and escalation behavior.
 - [x] Server component runners use drop-safe cleanup so deadline-aborting an
       outer component cannot detach its nested server task or running future.
+- [x] Affected launcher and registration APIs preserve existing asynchronous
+      startup readiness guarantees and startup-failure behavior.
 - [x] `linter all` passes.
 
 ## Dependencies
@@ -170,3 +180,8 @@ Record evidence in `verification.md` before closing this issue.
 3. Review the task registration path to confirm no task is spawned solely to
    await an already-spawned handle for supervisor registration.
 4. Confirm component child handles are not added to the supervisor.
+5. Verify affected server launchers preserve their externally visible startup
+   readiness and startup-failure behavior after ownership changes.
+6. Exercise named graceful-completion, deadline-escalation, and panic-isolation
+   outcomes through deterministic tests; operational OS-signal verification is
+   covered by the lifecycle signal suite.
