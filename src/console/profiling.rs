@@ -213,12 +213,44 @@ pub async fn run() -> Result<(), Error> {
 async fn wait_for_shutdown(jobs: JobManager, run_duration: Duration) {
     tokio::select! {
         () = sleep(run_duration) => {
-            tracing::info!("Torrust timed shutdown..");
+            tracing::info!("Torrust timed shutdown.");
         },
         _ = tokio::signal::ctrl_c() => {
             tracing::info!("Torrust tracker shutting down via Ctrl+C ...");
-
-            jobs.wait_for_all(Duration::from_secs(10)).await;
         }
+    }
+
+    jobs.cancel();
+    jobs.wait_for_all(Duration::from_secs(10)).await;
+}
+
+#[cfg(test)]
+mod tests {
+    use tokio::sync::oneshot;
+
+    use super::*;
+    use crate::bootstrap::jobs::manager::ComponentCompletion;
+
+    #[tokio::test]
+    async fn it_should_cancel_and_join_jobs_after_the_profiling_duration_elapses() {
+        // Arrange
+        let mut jobs = JobManager::new();
+        let cancellation_token = jobs.new_cancellation_token();
+        let (completed_sender, completed_receiver) = oneshot::channel();
+        jobs.spawn("test-job", async move {
+            cancellation_token.cancelled().await;
+            completed_sender
+                .send(())
+                .expect("the test waits for the job to complete after cancellation");
+            Ok(ComponentCompletion::Cancelled)
+        });
+
+        // Act
+        wait_for_shutdown(jobs, Duration::ZERO).await;
+
+        // Assert
+        completed_receiver
+            .await
+            .expect("profiling shutdown must cancel and join managed jobs");
     }
 }
