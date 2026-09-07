@@ -538,6 +538,62 @@ mod tests {
 
     #[test]
     #[allow(clippy::result_large_err)]
+    fn it_should_require_each_mandatory_option_when_loading_an_explicit_file() {
+        Jail::expect_with(|jail| {
+            // Arrange
+            jail.clear_env();
+            let mandatory_options = [
+                ("metadata.schema_version", "schema_version = \"3.0.0\""),
+                ("logging.trace_filter", "trace_filter = \"info\""),
+                ("core.private", "private = false"),
+                ("core.listed", "listed = false"),
+            ];
+
+            for (mandatory_option, toml_entry) in mandatory_options {
+                let configuration_without_mandatory_option = MANDATORY_CONFIGURATION.replace(toml_entry, "");
+                jail.create_file("explicit.toml", &configuration_without_mandatory_option)?;
+
+                // Act
+                let result = load_configuration_with_explicit_path(PathBuf::from("explicit.toml"));
+
+                // Assert
+                assert!(matches!(
+                    result,
+                    Err(Error::UnableToProcessExplicitConfigFile {
+                        source,
+                        ..
+                    }) if source.to_string().contains(&format!("Option path: {mandatory_option}"))
+                ));
+            }
+
+            Ok(())
+        });
+    }
+
+    #[test]
+    #[allow(clippy::result_large_err)]
+    fn it_should_apply_existing_defaults_when_only_mandatory_options_are_provided_by_an_explicit_file() {
+        Jail::expect_with(|jail| {
+            // Arrange
+            jail.clear_env();
+            jail.create_file("explicit.toml", MANDATORY_CONFIGURATION)?;
+
+            // Act
+            let configuration =
+                load_configuration_with_explicit_path(PathBuf::from("explicit.toml")).expect("explicit source should load");
+
+            // Assert
+            assert_eq!(
+                toml::to_string(&configuration).expect("loaded configuration should serialize"),
+                toml::to_string(&Configuration::default()).expect("default configuration should serialize")
+            );
+
+            Ok(())
+        });
+    }
+
+    #[test]
+    #[allow(clippy::result_large_err)]
     fn it_should_return_a_path_specific_error_when_an_explicit_file_is_missing() {
         Jail::expect_with(|jail| {
             // Arrange
